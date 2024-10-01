@@ -236,7 +236,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const selectedValue = selectElement.value;
                     const selectedTafseer = tafseers[selectedValue] || { text: 'No tafseer available' };
                     tafseerTextElement.innerHTML = selectedTafseer.text;
-                    console.log('Selected Tafseer:', JSON.stringify(selectedTafseer)); // Log the selected tafseer
                     // Save the selected tafseer to localStorage
                     localStorage.setItem('selectedTafseer', selectedValue);
                 });
