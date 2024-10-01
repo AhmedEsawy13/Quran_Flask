@@ -17,13 +17,9 @@ Quran_Flask is a web application that provides access to the Holy Quran. It is b
 - Supports multiple languages for translation.
 - Responsive design for mobile and desktop users.
 
-## Language Composition
 
-- **JavaScript**: 52.7%
-- **Python**: 20.9%
-- **CSS**: 17.1%
-- **HTML**: 9.3%
-
+```
+   
 ## Installation
 
 To run this project locally, follow these steps:
@@ -31,7 +27,7 @@ To run this project locally, follow these steps:
 1. Clone the repository:
    ```bash
    git clone https://github.com/AhmedEsawy13/Quran_Flask.git
-   ```
+
 2. Navigate to the project directory:
    ```bash
    cd Quran_Flask
