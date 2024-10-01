@@ -1,7 +1,5 @@
 # Quran_Flask_Vercel
 
-# Quran_Flask
-
 Quran_Flask is a web application that provides access to the Holy Quran. It is built using Flask and deployed on Vercel.
 
 ## Features
@@ -52,5 +50,3 @@ Contributions are welcome! Please fork the repository and create a pull request 
 
 For any inquiries or support, please contact [Ahmed Esawy](https://github.com/AhmedEsawy13).
 ```
-
-Would you like me to commit this updated content to the `README.md` file?
