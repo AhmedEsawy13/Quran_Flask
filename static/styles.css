@@ -1,0 +1,365 @@
+/* Font Faces */
+@font-face {
+    font-family: 'Digital Khatt';
+    src: url('digitalkhatt.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'UthmanicHafs';
+    src: url('uthmanic_hafs_v20.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'HafsNastaleeq';
+    src: url('HafsNastaleeq Ver10.otf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Naskh-Nastaleeq-IndoPak-QWBW';
+    src: url('Naskh-Nastaleeq-IndoPak-QWBW.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'UthmanicWarsh';
+    src: url('UthmanicWarsh V21.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Body Styles */
+body {
+    font-family: 'UthmanicHafs', 'Digital Khatt', serif;
+    margin: 0;
+    background-color: #f4f4f9;
+    color: #333;
+    direction: rtl;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+    background-color: #000;
+    color: #f4f4f9;
+}
+
+/* Container Styles */
+.container {
+    width: 90%;
+    max-width: 1000px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, color 0.3s;
+    overflow: hidden;
+}
+
+body.dark-mode .container {
+    background-color: #1c1a1a;
+    color: #f4f4f9;
+}
+
+/* Label Styles */
+label {
+    display: inline;
+    margin-bottom: 10px;
+}
+
+/* Controls Styles */
+#controls {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+select, button {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #333;
+    font-family: 'Uthmanic Hafs', 'Digital Khatt', serif;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+    margin: 5px;
+}
+
+body.dark-mode select, body.dark-mode button {
+    background-color: #555;
+    color: #f4f4f9;
+    border: 1px solid #888;
+}
+
+/* Quran Text Styles */
+#quran-text {
+    margin-top: 20px;
+    font-size: 24px;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* Highlight and Error Styles */
+.highlight {
+    color: green;
+}
+
+.error {
+    color: red;
+    font-size: 18px;
+}
+
+/* Audio Styles */
+audio {
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Range Input Styles */
+input[type="range"] {
+    width: 100%;
+    margin-top: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 5px;
+    background: #ddd;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    margin: 5px 0;
+}
+
+input[type="range"]:hover {
+    opacity: 1;
+}
+
+input[type="range"]::-webkit-slider-thumb, input[type="range"]::-moz-range-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 15px;
+    height: 15px;
+    background: #333;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+body.dark-mode input[type="range"] {
+    background: #555;
+}
+
+body.dark-mode input[type="range"]::-webkit-slider-thumb, body.dark-mode input[type="range"]::-moz-range-thumb {
+    background: #f4f4f9;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+    backdrop-filter: blur(5px);
+    transition: opacity 0.5s ease;
+    opacity: 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    text-align: center;
+    transform: translateY(-50px);
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    opacity: 0;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.modal.show {
+    display: block;
+    opacity: 1;
+}
+
+.modal-content.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Dark Mode Modal Styles */
+body.dark-mode .modal-content {
+    background-color: #333;
+    color: #f4f4f9;
+    border: 1px solid #555;
+}
+
+body.dark-mode .close {
+    color: #f4f4f9;
+}
+
+body.dark-mode .close:hover,
+body.dark-mode .close:focus {
+    color: #ccc;
+}
+
+/* Additional Font Styles */
+.digital_khatt {
+    font-family: 'Digital Khatt', sans-serif;
+}
+
+.qpc_hafs {
+    font-family: 'UthmanicHafs', serif;
+}
+
+.hafs_nastaleeq {
+    font-family: 'HafsNastaleeq', serif;
+}
+
+.naskh_nastaleeq {
+    font-family: 'Naskh-Nastaleeq-IndoPak-QWBW', serif;
+}
+
+.uthmanic_warsh {
+    font-family: 'UthmanicWarsh', serif;
+}
+
+/* Dark Mode Toggle Styles */
+#dark-mode-toggle-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    cursor: pointer;
+}
+
+#dark-mode-toggle {
+    display: none;
+}
+
+/* Ayah Container Styles */
+.ayah-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    width: 80%;
+    text-align: center;
+}
+
+.ayah-container #quran-text {
+    margin-bottom: 10px;
+    font-size: 35px;
+}
+
+.operation-container #quran-audio {
+    display: none;
+}
+
+.operation-container button {
+    padding: 12px 24px;
+    font-size: 20px;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-family: 'UthmanicHafs', 'Digital Khatt', serif;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    margin-bottom: 10px;
+    color: green;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.operation-container button:hover {
+    background-color: black;
+    transform: translateY(-2px);
+}
+
+.operation-container button:active {
+    background-color: #004494;
+    transform: translateY(0);
+}
+
+.operation-container #play-pause-button::before,
+.operation-container #download-button::before {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    padding: 8px;
+}
+
+.operation-container #play-pause-button::before {
+    content: ' \f144 '; /* Font Awesome play icon */
+    
+}
+
+.operation-container #play-pause-button.fa-pause::before {
+    content: ' \f28b '; /* Font Awesome pause icon */
+}
+
+.operation-container #download-button::before {
+    content: ' \f358 '; /* Font Awesome download icon */
+}
+
+body.dark-mode .operation-container button {
+    background-color: #555;
+    color: #f4f4f9;
+    border: none;
+}
+
+body.dark-mode .operation-container button:hover {
+    background-color: #444;
+}
+
+body.dark-mode .operation-container button:active {
+    background-color: #333;
+}
+
+/* Controls Container Styles */
+.controls-container {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

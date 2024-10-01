@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quranic App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="https://quranic-app.s3.amazonaws.com/quran-audio.png">
+</head>
+<body>
+    <div id="dark-mode-toggle-label">
+        <label for="dark-mode-toggle">
+            <i class="fas fa-moon"></i>
+        </label>
+        <input type="checkbox" id="dark-mode-toggle">
+    </div>
+    <div class="controls-container">
+        <div id="controls">
+            <select id="reciter-select">
+                <option value="AbdulBaset AbdulSamad">عبد الباسط عبد الصمد</option>
+                <option value="Mohamed al-Tablawi">محمد الطبلاوي</option>
+                <option value="Mishary Rashid Alafasy">محمد صديق المنشاوي</option>
+                <!-- Add more reciters here -->
+            </select>
+            <select id="surah-select"></select>
+            <select id="ayah-select"></select>
+            <button id="show-range-selection">تحديد نطاق</button>
+            <select id="quran-text-select">
+                <option value="qpc_hafs">UthmanicHafs</option>
+                <option value="digital_khatt">Digital Khatt</option>
+                <option value="hafs_nastaleeq">Hafs_Nastaleeq</option>
+                <option value="uthmanic_warsh">UthmanicWarsh</option>
+                <option value="naskh_nastaleeq">Naskh-Nastaleeq-IndoPak-QWBW</option>
+            </select>
+            <select id="tafseer-select">
+                <option value="Tafseer Al Qurtubi"></option>
+                <option value="Tafseer Al Saddi"></option>
+                <option value="Tafseer Al-Bagha"></option>
+                <!-- Add more tafseers here -->
+            </select>
+        </div>
+        <div class="ayah-container">
+            <div id="quran-text" class="qpc_hafs"></div>
+            <div id="transliteration-container" style="display: none;">
+                <h2></h2>
+                <div id="transliteration"></div>
+            </div>
+            <div id="tafseer-container" style="display: none;">
+                <h2></h2>
+                <div id="tafseer-text"></div>
+            </div>
+            <div class="operation-container">
+                <button id="prev-ayah">الاية السابقة</button>
+                <audio id="quran-audio" controls></audio>
+                <button id="show-transliteration"> عرض / اخفاء الترجمة الحرفية</button>
+                <button id="play-pause-button">ايقاف / تشغيل</button>
+                <button id="download-button">تحميل</button>
+                <button id="show-tafseer">عرض / اخفاء التفسير </button>
+                <button id="next-ayah">الاية التالية</button>
+            </div>
+        </div>
+    </div>
+    <div id="rangeModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <label for="start-ayah-select">بداية النطاق </label>
+            <select id="start-ayah-select"></select>
+            <label for="end-ayah-select">نهاية النطاق</label>
+            <select id="end-ayah-select"></select>
+            <button id="play-range">تشغيل</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
