@@ -1,8 +1,5 @@
 # Quran_Flask_Vercel
 
-Here is the updated content for the `README.md` file, including the additional features:
-
-```markdown
 # Quran_Flask
 
 Quran_Flask is a web application that provides access to the Holy Quran. It is built using Flask and deployed on Vercel.
@@ -17,8 +14,6 @@ Quran_Flask is a web application that provides access to the Holy Quran. It is b
 - Supports multiple languages for translation.
 - Responsive design for mobile and desktop users.
 
-
-```
    
 ## Installation
 
