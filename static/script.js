@@ -156,12 +156,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciterAudio = ayahData.reciters[reciter];
             if (!reciterAudio) throw new Error('Reciter audio not found');
     
-            console.log('Quran Text Data:', ayahData);
-            console.log('Reciter Audio:', reciterAudio);
-            console.log('Current Segments:', reciterAudio.segments);
-            console.log('Transliteration:', ayahData.transliteration);
-            console.log('Tafseers:', ayahData.tafseer);
-    
             elements.audioElement.src = reciterAudio.audio_url;
             currentSegments = reciterAudio.segments;
             displayQuranicText(ayahData.text, currentSegments);
