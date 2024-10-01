@@ -94,30 +94,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateGlobalAyahToVerseKey();
     }
 
-    async function loadReciterAudioData() {
-        const reciter = elements.reciterSelect.value;
-        const surah = elements.surahSelect.value;
-        const ayah = elements.ayahSelect.value;
-
-        if (reciterAudioDataMap[reciter]) return;
-
-        try {
-            const response = await fetch(`/api/surahs/${surah}/ayahs/${ayah}`);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error('Reciter audio data not found (404)');
-                } else {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-            }
-            const audioData = await response.json();
-            if (!audioData.reciters || !audioData.reciters[reciter]) throw new Error('Invalid audio data format');
-            reciterAudioDataMap[reciter] = audioData.reciters[reciter];
-        } catch (error) {
-            handleError('Error loading reciter audio data:', error, elements.quranTextContainer, 'خطأ في تحميل بيانات القارئ. يرجى المحاولة مرة أخرى لاحقًا.');
-        }
-    }
-
     function updateGlobalAyahToVerseKey() {
         const globalAyahToVerseKey = {};
         for (const verseKey in quranTextData) {
