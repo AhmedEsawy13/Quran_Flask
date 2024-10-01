@@ -49,4 +49,3 @@ Contributions are welcome! Please fork the repository and create a pull request 
 ## Contact
 
 For any inquiries or support, please contact [Ahmed Esawy](https://github.com/AhmedEsawy13).
-```
