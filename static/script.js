@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadSurahData();
         await loadQuranTextData();
         updateGlobalAyahToVerseKey();
-        await loadReciterAudioData();
         await loadRandomAyah();
     }
 
