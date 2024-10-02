@@ -128,12 +128,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciter = elements.reciterSelect.value;
             const reciterAudio = ayahData.reciters[reciter];
             if (!reciterAudio) throw new Error('Reciter audio not found');
-    
-            console.log('Quran Text Data:', ayahData);
-            console.log('Reciter Audio:', reciterAudio);
-            console.log('Current Segments:', reciterAudio.segments);
-            console.log('Transliteration:', ayahData.transliteration);
-            console.log('Tafseers:', ayahData.tafseer);
 
             // Fetch Quran text data based on selected font
             const font = elements.quranTextSelect.value;
@@ -226,7 +220,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const selectedValue = selectElement.value;
                     const selectedTafseer = tafseers[selectedValue] || { text: 'No tafseer available' };
                     tafseerTextElement.innerHTML = selectedTafseer.text;
-                    console.log('Selected Tafseer:', JSON.stringify(selectedTafseer)); // Log the selected tafseer
                     // Save the selected tafseer to localStorage
                     localStorage.setItem('selectedTafseer', selectedValue);
                 });
