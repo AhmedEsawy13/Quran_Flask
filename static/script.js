@@ -11,12 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         handleError('Error loading data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
     }
-
+    
     async function loadInitialData() {
         await loadSurahData();
         await loadQuranTextData();
         updateGlobalAyahToVerseKey();
-        //await loadRandomAyah();
     }
 
     function getElements() {
@@ -74,7 +73,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function onReciterChange() {
         const currentSurah = elements.surahSelect.value;
         const currentAyah = elements.ayahSelect.value;
-        await loadReciterAudioData();
         await loadAyahs();
         elements.surahSelect.value = currentSurah;
         elements.ayahSelect.value = currentAyah;
@@ -131,9 +129,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciterAudio = ayahData.reciters[reciter];
             if (!reciterAudio) throw new Error('Reciter audio not found');
     
+            console.log('Quran Text Data:', ayahData);
+            console.log('Reciter Audio:', reciterAudio);
+            console.log('Current Segments:', reciterAudio.segments);
+            console.log('Transliteration:', ayahData.transliteration);
+            console.log('Tafseers:', ayahData.tafseer);
+
+            // Fetch Quran text data based on selected font
+            const font = elements.quranTextSelect.value;
+            const quranTextUrl = `/api/quran-text?source=${font}`;
+            const quranTextData = await fetchData(quranTextUrl);
+            const ayahText = quranTextData[verseKey]?.text || ayahData.text;
+    
             elements.audioElement.src = reciterAudio.audio_url;
             currentSegments = reciterAudio.segments;
-            displayQuranicText(ayahData.text, currentSegments);
+            displayQuranicText(ayahText, currentSegments);
             displayTransliteration(ayahData.transliteration);
             displayTafseers(ayahData.tafseer || {}); // Ensure tafseer is an object
             updatePlayPauseButton();
@@ -151,7 +161,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const ayahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
-            displayQuranicText(ayahData.text, currentSegments);
+            const verseKey = `${surahNumber}:${ayahNumber}`;
+            const font = elements.quranTextSelect.value;
+            const quranTextUrl = `/api/quran-text?source=${font}`;
+            const quranTextData = await fetchData(quranTextUrl);
+            const ayahText = quranTextData[verseKey]?.text || ayahData.text;
+            displayQuranicText(ayahText, currentSegments);
         } catch (error) {
             handleError('Error updating Quran text:', error, elements.quranTextContainer, 'خطأ في تحديث النص. يرجى المحاولة مرة أخرى لاحقًا.');
         }
@@ -211,6 +226,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const selectedValue = selectElement.value;
                     const selectedTafseer = tafseers[selectedValue] || { text: 'No tafseer available' };
                     tafseerTextElement.innerHTML = selectedTafseer.text;
+                    console.log('Selected Tafseer:', JSON.stringify(selectedTafseer)); // Log the selected tafseer
                     // Save the selected tafseer to localStorage
                     localStorage.setItem('selectedTafseer', selectedValue);
                 });
