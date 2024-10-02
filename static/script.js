@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadSurahData();
         await loadQuranTextData();
         updateGlobalAyahToVerseKey();
-        await loadRandomAyah();
+        //await loadRandomAyah();
     }
 
     function getElements() {
@@ -416,17 +416,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         URL.revokeObjectURL(url); // Clean up the URL object
     }
 
-    async function loadRandomAyah() {
-        const surahData = await fetchData('https://api.alquran.cloud/v1/surah');
-        const randomSurah = surahData.data[Math.floor(Math.random() * surahData.data.length)];
-        const ayahData = await fetchData(`https://api.alquran.cloud/v1/surah/${randomSurah.number}`);
-        const randomAyah = ayahData.data.ayahs[Math.floor(Math.random() * ayahData.data.ayahs.length)];
+    // async function loadRandomAyah() {
+    //     const surahData = await fetchData('https://api.alquran.cloud/v1/surah');
+    //     const randomSurah = surahData.data[Math.floor(Math.random() * surahData.data.length)];
+    //     const ayahData = await fetchData(`https://api.alquran.cloud/v1/surah/${randomSurah.number}`);
+    //     const randomAyah = ayahData.data.ayahs[Math.floor(Math.random() * ayahData.data.ayahs.length)];
 
-        elements.surahSelect.value = randomSurah.number;
-        await loadAyahs();
-        elements.ayahSelect.value = randomAyah.number;
-        await loadQuranData();
-    }
+    //     elements.surahSelect.value = randomSurah.number;
+    //     await loadAyahs();
+    //     elements.ayahSelect.value = randomAyah.number;
+    //     await loadQuranData();
+    // }
 
     loadAyahs();
 });
