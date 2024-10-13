@@ -4,7 +4,7 @@ import json
 app = Flask(__name__, static_folder='static')
 
 # Load Quranic text data
-with open('QUL_data/Digital Khatt Aya.json', 'r', encoding='utf-8') as f:
+with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
     digital_khatt_data = json.load(f)
 
 with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
