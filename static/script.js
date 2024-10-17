@@ -82,7 +82,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadSurahData() {
         const surahData = await fetchData('https://api.alquran.cloud/v1/surah');
-        populateSelectOptions(surahData.data, elements.surahSelect, 'number', 'name');
+        const formattedSurahData = surahData.data.map(surah => ({
+            number: surah.number,
+            name: `${surah.number}. ${surah.name}`
+        }));
+        populateSelectOptions(formattedSurahData, elements.surahSelect, 'number', 'name');
     }
 
     async function loadQuranTextData() {
