@@ -72,11 +72,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function onReciterChange() {
-        const currentSurah = elements.surahSelect.value;
-        const currentAyah = elements.ayahSelect.value;
-        await loadAyahs();
-        elements.surahSelect.value = currentSurah;
-        elements.ayahSelect.value = currentAyah;
         await loadQuranData();
         updatePlayPauseButton();
     }
