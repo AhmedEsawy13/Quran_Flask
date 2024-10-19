@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reciterAudioDataMap = {};
     let quranTextData;
     let currentSegments = [];
+    const fontCache = {};
 
     addEventListeners();
 
@@ -91,7 +92,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadQuranTextData() {
         const font = elements.quranTextSelect.value;
-        quranTextData = await fetchData(`/api/quran-text?source=${font}`);
+        if (!fontCache[font]) {
+            quranTextData = await fetchData(`/api/quran-text?source=${font}`);
+            fontCache[font] = quranTextData;
+        } else {
+            quranTextData = fontCache[font];
+        }
         updateGlobalAyahToVerseKey();
     }
 
@@ -132,8 +138,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciter = elements.reciterSelect.value;
             const reciterAudio = ayahData.reciters[reciter];
             if (!reciterAudio) throw new Error('Reciter audio not found');
+    
+            console.log('Quran Text Data:', ayahData);
+            console.log('Reciter Audio:', reciterAudio);
+            console.log('Current Segments:', reciterAudio.segments);
+            console.log('Transliteration:', ayahData.transliteration);
+            console.log('Tafseers:', ayahData.tafseer);
 
-            // Fetch Quran text data based on selected font
             const font = elements.quranTextSelect.value;
             const quranTextUrl = `/api/quran-text?source=${font}`;
             const quranTextData = await fetchData(quranTextUrl);
@@ -143,7 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentSegments = reciterAudio.segments;
             displayQuranicText(ayahText, currentSegments);
             displayTransliteration(ayahData.transliteration);
-            displayTafseers(ayahData.tafseer || {}); // Ensure tafseer is an object
+            displayTafseers(ayahData.tafseer || {});
             updatePlayPauseButton();
     
             elements.audioElement.onended = updatePlayPauseButton;
@@ -206,15 +217,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const selectElement = document.getElementById('tafseer-select');
                 const tafseerTextElement = document.getElementById('tafseer-text');
     
-                // Prepare data for populateSelectOptions
                 const tafseerArray = Object.keys(tafseers).map(tafseerName => ({
                    value: tafseerName,
                    text: tafseerName
                 }));
-                // Use populateSelectOptions to populate the select element
                 populateSelectOptions(tafseerArray, selectElement, 'value', 'text');
     
-                // Check if there's a previously selected tafseer
                 const previouslySelectedTafseer = localStorage.getItem('selectedTafseer');
                 if (previouslySelectedTafseer && tafseers[previouslySelectedTafseer]) {
                     selectElement.value = previouslySelectedTafseer;
@@ -224,11 +232,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const selectedValue = selectElement.value;
                     const selectedTafseer = tafseers[selectedValue] || { text: 'No tafseer available' };
                     tafseerTextElement.innerHTML = selectedTafseer.text;
-                    // Save the selected tafseer to localStorage
+                    console.log('Selected Tafseer:', JSON.stringify(selectedTafseer));
                     localStorage.setItem('selectedTafseer', selectedValue);
                 });
     
-                // Trigger change event to display the selected or first tafseer by default
                 selectElement.dispatchEvent(new Event('change'));
             } else {
                 elements.tafseerContainer.innerHTML = 'No tafseer available';
@@ -268,7 +275,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function highlightWords(words, wordIndexToSegmentMap) {
-        const currentTime = elements.audioElement.currentTime * 1000; // Convert to milliseconds
+        const currentTime = elements.audioElement.currentTime * 1000;
         words.forEach((_, index) => {
             const wordElement = elements.quranTextContainer.querySelector(`[data-index="${index}"]`);
             if (!wordElement) return;
@@ -284,7 +291,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function playWordSegment(index, wordIndexToSegmentMap) {
         const segment = wordIndexToSegmentMap.get(index);
         if (segment) {
-            elements.audioElement.currentTime = segment.startTime / 1000; // Convert to seconds
+            elements.audioElement.currentTime = segment.startTime / 1000;
             elements.audioElement.play();
             updatePlayPauseButton();
         }
@@ -342,7 +349,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await loadQuranData();
             elements.audioElement.play();
             updatePlayPauseButton();
-            closeModal(); // Close the modal immediately after clicking play
+            closeModal();
 
             elements.audioElement.addEventListener('ended', async function onEnded() {
                 if (elements.ayahSelect.selectedIndex < endAyahIndex) {
@@ -390,7 +397,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function changeFont(font) {
         const quranText = document.getElementById('quran-text');
-        quranText.className = 'digital_khatt'; // Set base class
+        quranText.className = 'digital_khatt';
         if (font !== 'digital_khatt') {
             quranText.classList.add(font);
         }
@@ -426,20 +433,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         link.href = url;
         link.download = 'quran_audio.mp3';
         link.click();
-        URL.revokeObjectURL(url); // Clean up the URL object
+        URL.revokeObjectURL(url);
     }
-
-    // async function loadRandomAyah() {
-    //     const surahData = await fetchData('https://api.alquran.cloud/v1/surah');
-    //     const randomSurah = surahData.data[Math.floor(Math.random() * surahData.data.length)];
-    //     const ayahData = await fetchData(`https://api.alquran.cloud/v1/surah/${randomSurah.number}`);
-    //     const randomAyah = ayahData.data.ayahs[Math.floor(Math.random() * ayahData.data.ayahs.length)];
-
-    //     elements.surahSelect.value = randomSurah.number;
-    //     await loadAyahs();
-    //     elements.ayahSelect.value = randomAyah.number;
-    //     await loadQuranData();
-    // }
-
+    
     loadAyahs();
 });
