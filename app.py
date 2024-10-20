@@ -10,6 +10,9 @@ with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
 with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
     qpc_hafs_data = json.load(f)
 
+with open('QUL_data/Indopak Nastaleeq.json', 'r', encoding='utf-8') as f:
+    indopak_nastaleeq_data = json.load(f)
+
 # Load transliteration and tafseer data
 with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
     transliteration_data = json.load(f)
@@ -32,6 +35,7 @@ reciters = {
     "AbdulBaset AbdulSamad": "QUL_data/AbdulBaset AbdulSamad Recitation.json",
     "Mohamed al-Tablawi": "QUL_data/Mohamed al-Tablawi Recitation.json",
     "Mohamed al-Minshawi": "QUL_data/Mohamed Siddiq al-Minshawi Recitation.json",
+    "Mahmoud Khalil Al-Husary": "QUL_data/Mahmoud Khalil Al-Husary.json",
 }
 
 audio_data = {}
@@ -209,6 +213,8 @@ def get_quran_text_data():
     source = request.args.get('source','qpc_hafs')
     if source == 'digital_khatt':
         return  digital_khatt_data
+    elif source == 'indopak_nastaleeq':
+        return indopak_nastaleeq_data
     return qpc_hafs_data
 
 if __name__ == '__main__':
