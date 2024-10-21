@@ -10,7 +10,7 @@ with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
 with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
     qpc_hafs_data = json.load(f)
 
-with open('QUL_data/Indopak Nastaleeq.json', 'r', encoding='utf-8') as f:
+with open('QUL_data/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
     indopak_nastaleeq_data = json.load(f)
 
 # Load transliteration and tafseer data
