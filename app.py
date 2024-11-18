@@ -16,9 +16,6 @@ with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
 with open('/Users/mac/Development/WordAlign/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
     indopak_nastaleeq_data = json.load(f)
 
-with open('QUL_data/QPC V4.json', 'r', encoding='utf-8') as f:
-    tajweed_data = json.load(f)
-
 # Load transliteration and tafseer data
 with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
     transliteration_data = json.load(f)
@@ -258,8 +255,6 @@ def get_quran_text_data():
         return digital_khatt_data
     elif source == 'indopak_nastaleeq':
         return indopak_nastaleeq_data
-    elif source == 'tajweed':
-        return tajweed_data
     return qpc_hafs_data
 
 if __name__ == '__main__':
