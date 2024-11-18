@@ -41,7 +41,6 @@ reciters = {
     "AbdulBaset AbdulSamad": "QUL_data/AbdulBaset AbdulSamad Recitation.json",
     "Mohamed al-Tablawi": "QUL_data/Mohamed al-Tablawi Recitation.json",
     "Mohamed al-Minshawi": "QUL_data/Mohamed Siddiq al-Minshawi Recitation.json",
-    "Mahmoud Khalil Al-Husary": "QUL_data/Mahmoud Khalil Al-Husary Muallam_duration.json",
 }
 
 audio_data = {}
