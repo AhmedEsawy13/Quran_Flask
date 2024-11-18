@@ -6,7 +6,7 @@
     <title>Quranic App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="icon" href="https://quranic-app.s3.amazonaws.com/quran-audio.png">
+    <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
 </head>
 <body>
     <div id="dark-mode-toggle-label">
@@ -18,18 +18,23 @@
     <div class="controls-container">
         <div id="controls">
             <select id="reciter-select">
+                <option value="Mahmoud Khalil Al-Husary">محمود خليل الحصري</option>
                 <option value="AbdulBaset AbdulSamad">عبد الباسط عبد الصمد</option>
                 <option value="Mohamed al-Tablawi">محمد الطبلاوي</option>
-                <option value="Mohamed al-Minshawi">محمد صديق المنشاوي</option>
+                <option value="Mohamed al-Minshawi"> محمد صديق المنشاوي</option>
                 <!-- Add more reciters here -->
             </select>
             <select id="surah-select"></select>
             <select id="ayah-select"></select>
+            <button id="start-voice-command">امر صوتي</button>
             <button id="show-range-selection">تحديد نطاق</button>
             <select id="quran-text-select">
                 <option value="qpc_hafs">UthmanicHafs</option>
                 <option value="digital_khatt">Digital Khatt</option>
                 <option value="indopak_nastaleeq">IndoPak Nastaleeq</option>
+                <option value="hafs_nastaleeq">Hafs_Nastaleeq</option>
+                <option value="uthmanic_warsh">UthmanicWarsh</option>
+                <option value="tajweed">Tajweed</option>
             </select>
             <select id="tafseer-select">
                 <option value="Tafseer Al Qurtubi"></option>
@@ -39,7 +44,7 @@
             </select>
         </div>
         <div class="ayah-container">
-            <div id="quran-text" class="qpc_hafs"></div>
+            <div id="quran-text"></div>
             <div id="transliteration-container" style="display: none;">
                 <h2></h2>
                 <div id="transliteration"></div>
@@ -51,11 +56,20 @@
             <div class="operation-container">
                 <button id="prev-ayah">الاية السابقة</button>
                 <audio id="quran-audio" controls></audio>
-                <button id="show-transliteration"> عرض / اخفاء النطق الحرفي</button>
+                <button id="show-transliteration"> عرض النطق الحرفي</button>
                 <button id="play-pause-button">ايقاف / تشغيل</button>
-                <button id="download-button">تحميل</button>
-                <button id="show-tafseer">عرض / اخفاء التفسير </button>
+               <!-- <button id="download-button">تحميل</button>-->
+                <button id="show-tafseer">عرض التفسير </button>
                 <button id="next-ayah">الاية التالية</button>
+                <button id="toggle-word-meaning-button">عرض غريب الكلمات</button>
+                <div id="word-meaning-text" style="display: none;"></div>
+                    <button id="loop-button">
+                        <span>تكرار الاية</span>
+                        <label class="switch">
+                            <input type="checkbox" id="loopSwitch">
+                            <span class="slider round"></span>
+                        </label>
+                    </button>
             </div>
         </div>
     </div>
@@ -69,6 +83,8 @@
             <button id="play-range">تشغيل</button>
         </div>
     </div>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
