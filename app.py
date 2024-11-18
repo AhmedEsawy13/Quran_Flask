@@ -1,7 +1,10 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, g
 import json
+import sqlite3
 
 app = Flask(__name__, static_folder='static')
+
+DATABASE = '/Users/mac/Development/WordAlign/QUL_data/word_name.db'  
 
 # Load Quranic text data
 with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
@@ -10,8 +13,11 @@ with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
 with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
     qpc_hafs_data = json.load(f)
 
-with open('QUL_data/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
+with open('/Users/mac/Development/WordAlign/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
     indopak_nastaleeq_data = json.load(f)
+
+with open('QUL_data/QPC V4.json', 'r', encoding='utf-8') as f:
+    tajweed_data = json.load(f)
 
 # Load transliteration and tafseer data
 with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
@@ -35,6 +41,7 @@ reciters = {
     "AbdulBaset AbdulSamad": "QUL_data/AbdulBaset AbdulSamad Recitation.json",
     "Mohamed al-Tablawi": "QUL_data/Mohamed al-Tablawi Recitation.json",
     "Mohamed al-Minshawi": "QUL_data/Mohamed Siddiq al-Minshawi Recitation.json",
+    "Mahmoud Khalil Al-Husary": "QUL_data/Mahmoud Khalil Al-Husary Muallam_duration.json",
 }
 
 audio_data = {}
@@ -63,9 +70,9 @@ def create_mapping_from_list(quran_text_data, audio_data):
         verse_key = id_to_verse_key.get(ayah_number)
 
         if verse_key:
-            verse_info = quran_text_data[verse_key]
+            verse_info = quran_text_data.get(verse_key, {})
             verse_key_to_segment_map[verse_key] = {
-                'id': verse_info['id'],
+                'id': verse_info.get('id', ayah_number),
                 'surah_number': int(verse_key.split(':')[0]),
                 'ayah_number': int(verse_key.split(':')[1]),
                 'audio_url': audio_url,
@@ -102,14 +109,14 @@ def create_mapping_from_dict(quran_text_data, audio_data):
             print(f"Warning: Incomplete audio info: {audio_info}")
             continue
 
-        verse_key = id_to_verse_key.get(ayah_number)
+        verse_key_db = id_to_verse_key.get(ayah_number)
 
-        if verse_key:
-            verse_info = quran_text_data[verse_key]
-            verse_key_to_segment_map[verse_key] = {
-                'id': verse_info['id'],
-                'surah_number': int(verse_key.split(':')[0]),
-                'ayah_number': int(verse_key.split(':')[1]),
+        if verse_key_db:
+            verse_info = quran_text_data.get(verse_key_db, {})
+            verse_key_to_segment_map[verse_key_db] = {
+                'id': verse_info.get('id', ayah_number),
+                'surah_number': int(verse_key_db.split(':')[0]),
+                'ayah_number': int(verse_key_db.split(':')[1]),
                 'audio_url': audio_url,
                 'segments': [
                     {
@@ -136,14 +143,45 @@ for reciter, data in audio_data.items():
     else:
         print(f"Warning: Unexpected data structure for reciter {reciter}")
 
+
+# Database helper functions
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+        db.row_factory = sqlite3.Row  # To access columns by name
+    return db
+
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
+
+def get_word_meanings(surah_number, ayah_number):
+    db = get_db()
+    cursor = db.cursor()
+    query = '''
+        SELECT word, meaning
+        FROM verses
+        WHERE surah_number = ? AND ayah_number = ?
+    '''
+    cursor.execute(query, (surah_number, ayah_number))
+    rows = cursor.fetchall()
+    word_meanings = {}
+    for row in rows:
+        word_meanings[row['word']] = row['meaning']
+    return word_meanings
+
 @app.route('/api/surahs', methods=['GET'])
 def get_surahs():
     quran_text_data = get_quran_text_data()
     surahs = []
     for verse_key in quran_text_data.keys():
-        surah_number = verse_key.split(':')[0]
+        surah_number = int(verse_key.split(':')[0])
         if surah_number not in surahs:
             surahs.append(surah_number)
+    surahs.sort()
     return jsonify(surahs)
 
 @app.route('/api/surahs/<int:surah_number>/ayahs', methods=['GET'])
@@ -152,14 +190,17 @@ def get_ayahs(surah_number):
     ayahs = []
     for verse_key in quran_text_data.keys():
         if verse_key.startswith(f"{surah_number}:"):
-            ayah_number = verse_key.split(':')[1]
+            ayah_number = int(verse_key.split(':')[1])
             if ayah_number not in ayahs:
                 ayahs.append(ayah_number)
+    ayahs.sort()
     return jsonify(ayahs)
 
 @app.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>', methods=['GET'])
 def get_ayah_text(surah_number, ayah_number):
     quran_text_data = get_quran_text_data()
+
+    # Removed surah name mapping
     verse_key = f"{surah_number}:{ayah_number}"
     if verse_key in quran_text_data:
         ayah_data = quran_text_data[verse_key]
@@ -174,6 +215,10 @@ def get_ayah_text(surah_number, ayah_number):
         for reciter, mapping in reciter_mappings.items():
             if verse_key in mapping:
                 ayah_data['reciters'][reciter] = mapping[verse_key]
+        
+        # Fetch word meanings from the SQLite database
+        word_meanings = get_word_meanings(surah_number, ayah_number)
+        ayah_data['word_meanings'] = word_meanings  # Add meanings to the response
         
         return jsonify(ayah_data)
     return jsonify({"error": "Ayah not found"}), 404
@@ -209,11 +254,13 @@ def index():
     return render_template('index.html')
 
 def get_quran_text_data():
-    source = request.args.get('source','qpc_hafs')
+    source = request.args.get('source', 'qpc_hafs')
     if source == 'digital_khatt':
-        return  digital_khatt_data
+        return digital_khatt_data
     elif source == 'indopak_nastaleeq':
         return indopak_nastaleeq_data
+    elif source == 'tajweed':
+        return tajweed_data
     return qpc_hafs_data
 
 if __name__ == '__main__':
