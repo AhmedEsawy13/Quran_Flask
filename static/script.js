@@ -12,6 +12,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         handleError('Error loading data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
     }
+
+    // Initialize voice recognition
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            handleVoiceCommand(transcript);
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+        };
+
+        document.getElementById('start-voice-command').addEventListener('click', () => {
+            recognition.start();
+        });
+    } else {
+        console.warn('Web Speech API is not supported in this browser.');
+    }
+
+    async function handleVoiceCommand(command) {
+        console.log('Voice command received:', command);
+
+        const surahMatch = command.match(/chapter (\d+)/);
+        const ayahMatch = command.match(/verse (\d+)/);
+
+        if (surahMatch) {
+            const surahNumber = parseInt(surahMatch[1], 10);
+            elements.surahSelect.value = surahNumber;
+            await loadAyahs();
+            // If an Ayah is also specified in the command, update it after loading Ayahs
+            if (ayahMatch) {
+                const ayahNumber = parseInt(ayahMatch[1], 10);
+                elements.ayahSelect.value = ayahNumber;
+                await loadQuranData(surahNumber, ayahNumber);
+            }
+        } else if (ayahMatch) {
+            const ayahNumber = parseInt(ayahMatch[1], 10);
+            elements.ayahSelect.value = ayahNumber;
+            await loadQuranData(elements.surahSelect.value, ayahNumber);
+        }
+    }
+
+    // Initialize Tippy.js on the button
+    tippy('#start-voice-command', {
+        content: ' لطريقة اسرع للتنقل بين السور والايات المختلفة استخدم الاوامر الصوتية بهذا الشكل " Go to chapter ---  verse " ',
+        placement: 'top',
+    });
     
     async function loadInitialData() {
         await loadSurahData();
@@ -24,7 +76,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             quranTextContainer: document.getElementById('quran-text'),
             transliterationContainer: document.getElementById('transliteration'),
             tafseerContainer: document.getElementById('tafseer-text'),
+            wordMeaningContainer: document.getElementById('word-meaning-text'), // New container for word meanings
             audioElement: document.getElementById('quran-audio'),
+            loopSwitch: document.getElementById('loopSwitch'),
             reciterSelect: document.getElementById('reciter-select'),
             surahSelect: document.getElementById('surah-select'),
             ayahSelect: document.getElementById('ayah-select'),
@@ -41,7 +95,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             closeModal: document.getElementsByClassName('close')[0],
             quranTextSelect: document.getElementById('quran-text-select'),
             playPauseButton: document.getElementById('play-pause-button'),
-            downloadButton: document.getElementById('download-button')
+            toggleWordMeaningButton: document.getElementById('toggle-word-meaning-button'), // Updated element for toggling word meanings
+           // downloadButton: document.getElementById('download-button')
         };
     }
 
@@ -65,10 +120,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             await updateDisplayedText();
         });
         elements.playPauseButton.addEventListener('click', togglePlayPause);
-        elements.downloadButton.addEventListener('click', downloadAudio);
+        //elements.downloadButton.addEventListener('click', downloadAudio);
 
         document.getElementById('show-transliteration').addEventListener('click', toggleTransliteration);
         document.getElementById('show-tafseer').addEventListener('click', toggleTafseer);
+        elements.toggleWordMeaningButton.addEventListener('click', toggleWordMeaning); // Listener for the new toggle via button
     }
 
     async function onReciterChange() {
@@ -139,7 +195,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Current Segments:', reciterAudio.segments);
             console.log('Transliteration:', ayahData.transliteration);
             console.log('Tafseers:', ayahData.tafseer);
-
+            console.log('Word Meanings:', ayahData.word_meanings);
+    
             const font = elements.quranTextSelect.value;
             const quranTextUrl = `/api/quran-text?source=${font}`;
             const quranTextData = await fetchData(quranTextUrl);
@@ -147,9 +204,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
             elements.audioElement.src = reciterAudio.audio_url;
             currentSegments = reciterAudio.segments;
-            displayQuranicText(ayahText, currentSegments);
+            displayQuranicText(ayahText, currentSegments, ayahData.word_meanings);
             displayTransliteration(ayahData.transliteration);
             displayTafseers(ayahData.tafseer || {});
+            displayWordMeanings(ayahData.word_meanings || {});
             updatePlayPauseButton();
     
             elements.audioElement.onended = updatePlayPauseButton;
@@ -170,7 +228,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const quranTextUrl = `/api/quran-text?source=${font}`;
             const quranTextData = await fetchData(quranTextUrl);
             const ayahText = quranTextData[verseKey]?.text || ayahData.text;
-            displayQuranicText(ayahText, currentSegments);
+            displayQuranicText(ayahText, currentSegments, ayahData.word_meanings);
+            displayTransliteration(ayahData.transliteration);
+            displayTafseers(ayahData.tafseer || {});
+            if (elements.wordMeaningVisible) {
+                displayWordMeanings(ayahData.word_meanings || {});
+            } else {
+                elements.wordMeaningContainer.innerHTML = '';
+            }
         } catch (error) {
             handleError('Error updating Quran text:', error, elements.quranTextContainer, 'خطأ في تحديث النص. يرجى المحاولة مرة أخرى لاحقًا.');
         }
@@ -181,11 +246,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const words = text.split(' ');
         const wordIndexToSegmentMap = new Map();
 
-        words.forEach((word, index) => {
-            const wordElement = createWordElement(word, index, wordIndexToSegmentMap);
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
+            const wordElement = createWordElement(word, i, wordIndexToSegmentMap);
             elements.quranTextContainer.appendChild(wordElement);
             elements.quranTextContainer.appendChild(document.createTextNode(' '));
-        });
+        }
 
         if (Array.isArray(segments)) {
             mapSegmentsToWords(segments, wordIndexToSegmentMap);
@@ -211,18 +277,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (tafseerEntries.length > 0) {
                 const selectElement = document.getElementById('tafseer-select');
                 const tafseerTextElement = document.getElementById('tafseer-text');
-    
+
                 const tafseerArray = Object.keys(tafseers).map(tafseerName => ({
                    value: tafseerName,
                    text: tafseerName
                 }));
                 populateSelectOptions(tafseerArray, selectElement, 'value', 'text');
-    
+
                 const previouslySelectedTafseer = localStorage.getItem('selectedTafseer');
                 if (previouslySelectedTafseer && tafseers[previouslySelectedTafseer]) {
                     selectElement.value = previouslySelectedTafseer;
                 }
-    
+
                 selectElement.addEventListener('change', () => {
                     const selectedValue = selectElement.value;
                     const selectedTafseer = tafseers[selectedValue] || { text: 'No tafseer available' };
@@ -230,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     console.log('Selected Tafseer:', JSON.stringify(selectedTafseer));
                     localStorage.setItem('selectedTafseer', selectedValue);
                 });
-    
+
                 selectElement.dispatchEvent(new Event('change'));
             } else {
                 elements.tafseerContainer.innerHTML = 'No tafseer available';
@@ -238,14 +304,72 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function displayWordMeanings(wordMeanings) {
+        if (elements.wordMeaningContainer) {
+            elements.wordMeaningContainer.innerHTML = '';
+            const entries = Object.entries(wordMeanings);
+            if (entries.length > 0) {
+                const list = document.createElement('ul');
+                entries.forEach(([word, meaning]) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${word}: ${meaning}`;
+                    list.appendChild(listItem);
+                });
+                elements.wordMeaningContainer.appendChild(list);
+            } else {
+                elements.wordMeaningContainer.innerHTML = 'لا يوجد معاني متاحة';
+            }
+        }
+    }
+
     function toggleTransliteration() {
         const transliterationContainer = document.getElementById('transliteration-container');
         transliterationContainer.style.display = transliterationContainer.style.display === 'none' ? 'block' : 'none';
+        updateTransliterationButton();
     }
 
     function toggleTafseer() {
         const tafseerContainer = document.getElementById('tafseer-container');
         tafseerContainer.style.display = tafseerContainer.style.display === 'none' ? 'block' : 'none';
+        updateTafseerButton();
+    }
+
+    function toggleWordMeaning() {
+        elements.wordMeaningVisible = !elements.wordMeaningVisible;
+        if (elements.wordMeaningVisible) {
+            elements.wordMeaningContainer.style.display = 'block';
+        } else {
+            elements.wordMeaningContainer.style.display = 'none';
+        }
+        updateWordMeaningButton();
+    }
+
+    function updateTransliterationButton() {
+        const transliterationButton = document.getElementById('show-transliteration');
+        const transliterationContainer = document.getElementById('transliteration-container');
+        if (transliterationContainer.style.display === 'none') {
+            transliterationButton.textContent = 'عرض النطق الحرفي ';
+        } else {
+            transliterationButton.textContent = 'اخفاء النطق الحرفي';
+        }
+    }
+
+    function updateTafseerButton() {
+        const tafseerButton = document.getElementById('show-tafseer');
+        const tafseerContainer = document.getElementById('tafseer-container');
+        if (tafseerContainer.style.display === 'none') {
+            tafseerButton.textContent = 'عرض التفسير';
+        } else {
+            tafseerButton.textContent = 'اخفاء التفسير';
+        }
+    }
+
+    function updateWordMeaningButton() {
+        if (elements.wordMeaningVisible) {
+            elements.toggleWordMeaningButton.textContent = 'اخفاء غريب الكلمات';
+        } else {
+            elements.toggleWordMeaningButton.textContent = 'عرض غريب الكلمات';
+        }
     }
 
     function createWordElement(word, index, wordIndexToSegmentMap) {
@@ -312,6 +436,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function toggleLoopSwitch() {
+        updatePlayPauseButton();
+    }
+    
+    elements.loopSwitch.addEventListener('change', toggleLoopSwitch);
+    
+    elements.audioElement.addEventListener('ended', () => {
+        if (elements.loopSwitch.checked) {
+            elements.audioElement.currentTime = 0;
+            elements.audioElement.play();
+        } else {
+            updatePlayPauseButton();
+        }
+    });
+
+
     function toggleDarkMode() {
         document.body?.classList.toggle('dark-mode');
         document.querySelector('.container')?.classList.toggle('dark-mode');
@@ -346,7 +486,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             updatePlayPauseButton();
             closeModal();
 
-            elements.audioElement.addEventListener('ended', async function onEnded() {
+            const onEnded = async () => {
                 if (elements.ayahSelect.selectedIndex < endAyahIndex) {
                     elements.ayahSelect.selectedIndex++;
                     await loadQuranData();
@@ -356,15 +496,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                     elements.audioElement.removeEventListener('ended', onEnded);
                     updatePlayPauseButton();
                 }
-            });
+            };
 
-            elements.playPauseButton.addEventListener('click', function onPlayPause() {
+            elements.audioElement.addEventListener('ended', onEnded);
+
+            const onPlayPause = () => {
                 if (elements.audioElement.paused) {
                     elements.audioElement.play();
                 } else {
                     elements.audioElement.pause();
                 }
                 updatePlayPauseButton();
+            };
+
+            elements.playPauseButton.addEventListener('click', onPlayPause);
+
+            // Clean up event listeners when range ends
+            elements.audioElement.addEventListener('ended', () => {
+                elements.playPauseButton.removeEventListener('click', onPlayPause);
             });
         }
     }
@@ -392,9 +541,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function changeFont(font) {
         const quranText = document.getElementById('quran-text');
-        quranText.className = 'digital_khatt';
+        quranText.className = ''; // Reset all font classes
         if (font !== 'digital_khatt') {
             quranText.classList.add(font);
+        } else {
+            quranText.classList.add('digital_khatt');
         }
     }
 
@@ -420,16 +571,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function downloadAudio() {
-        const response = await fetch(elements.audioElement.src);
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'quran_audio.mp3';
-        link.click();
-        URL.revokeObjectURL(url);
-    }
-    
+    // Initialize word meanings visibility
+    elements.wordMeaningVisible = false;
+    elements.wordMeaningContainer.style.display = 'none';
+    updateWordMeaningButton();
+
     loadAyahs();
 });
