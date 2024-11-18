@@ -4,7 +4,7 @@ import sqlite3
 
 app = Flask(__name__, static_folder='static')
 
-DATABASE = '/Users/mac/Development/WordAlign/QUL_data/word_name.db'  
+DATABASE = 'QUL_data/word_name.db'  
 
 # Load Quranic text data
 with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
@@ -13,7 +13,7 @@ with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
 with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
     qpc_hafs_data = json.load(f)
 
-with open('/Users/mac/Development/WordAlign/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
+with open('QUL_data/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
     indopak_nastaleeq_data = json.load(f)
 
 # Load transliteration and tafseer data
