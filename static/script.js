@@ -303,17 +303,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         const words = text.split(' ');
         const wordIndexToSegmentMap = new Map();
 
+        // Map segments to words first, before creating word elements
+        if (Array.isArray(segments)) {
+            mapSegmentsToWords(segments, wordIndexToSegmentMap);
+        } else {
+            console.error('Invalid segments format:', segments);
+        }
+
+        // Now create word elements with populated segment mapping
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
             const wordElement = createWordElement(word, i, wordIndexToSegmentMap);
             elements.quranTextContainer.appendChild(wordElement);
             elements.quranTextContainer.appendChild(document.createTextNode(' '));
-        }
-
-        if (Array.isArray(segments)) {
-            mapSegmentsToWords(segments, wordIndexToSegmentMap);
-        } else {
-            console.error('Invalid segments format:', segments);
         }
 
         // Remove existing timeupdate listeners to prevent memory leaks
