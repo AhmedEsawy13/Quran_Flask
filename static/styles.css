@@ -66,22 +66,36 @@ body.dark-mode .container {
 }
 
 select, button {
-    padding: 10px;
+    padding: 12px 20px;
     font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #fff;
-    color: #333;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    color: #1e293b;
     font-family: 'Uthmanic Hafs', 'Digital Khatt', serif;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     margin: 5px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+    font-weight: 500;
+}
+
+select:hover, button:hover {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15);
 }
 
 body.dark-mode select, body.dark-mode button {
-    background-color: #555;
-    color: #f4f4f9;
-    border: 1px solid #888;
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    color: #f9fafb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode select:hover, body.dark-mode button:hover {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* Quran Text Styles */
@@ -289,9 +303,38 @@ body.dark-mode .close:focus {
     top: 10px;
     left: 10px;
     cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-#dark-mode-toggle {
+#dark-mode-toggle-label:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+#sepia-mode-toggle-label {
+    position: absolute;
+    top: 10px;
+    left: 50px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#sepia-mode-toggle-label:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+#dark-mode-toggle, #sepia-mode-toggle {
     display: none;
 }
 
@@ -318,30 +361,36 @@ body.dark-mode .close:focus {
 }
 
 .operation-container button {
-    padding: 12px 24px;
-    font-size: 20px;
+    padding: 15px 30px;
+    font-size: 18px;
     border: none;
-    border-radius: 6px;
+    border-radius: 25px;
     color: #fff;
     font-family: 'UthmanicHafs', 'Digital Khatt', serif;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-    margin-bottom: 10px;
-    color: green;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin: 8px;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
 }
 
 .operation-container button:hover {
-    background-color: black;
-    transform: translateY(-2px);
+    background: linear-gradient(135deg, #3730a3 0%, #5b21b6 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4);
 }
 
 .operation-container button:active {
-    background-color: #004494;
-    transform: translateY(0);
+    background: linear-gradient(135deg, #312e81 0%, #4c1d95 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(79, 70, 229, 0.3);
 }
 
 .operation-container #play-pause-button::before,
@@ -364,16 +413,93 @@ body.dark-mode .close:focus {
 }
 
 body.dark-mode .operation-container button {
-    background-color: #555;
-    color: #f4f4f9;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: #f1f5f9;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 body.dark-mode .operation-container button:hover {
-    background-color: #444;
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
 }
 
 body.dark-mode .operation-container button:active {
-    background-color: #333;
+    background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+}
+
+/* Sepia Theme Styles */
+body.sepia-mode {
+    background-color: #f4f1e8;
+    color: #3c2e26;
+}
+
+body.sepia-mode .container {
+    background-color: #faf7f0;
+    color: #3c2e26;
+    box-shadow: 0 0 10px rgba(139, 121, 94, 0.2);
+}
+
+body.sepia-mode select, body.sepia-mode button {
+    background: linear-gradient(135deg, #f5f2e8 0%, #ede5d3 100%);
+    color: #5d4e37;
+    box-shadow: 0 4px 12px rgba(139, 121, 94, 0.2);
+}
+
+body.sepia-mode select:hover, body.sepia-mode button:hover {
+    background: linear-gradient(135deg, #ede5d3 0%, #e6d7c3 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(139, 121, 94, 0.25);
+}
+
+body.sepia-mode .operation-container button {
+    background: linear-gradient(135deg, #cd853f 0%, #a0522d 100%);
+    color: #faf7f0;
+    box-shadow: 0 8px 20px rgba(160, 82, 45, 0.3);
+}
+
+body.sepia-mode .operation-container button:hover {
+    background: linear-gradient(135deg, #b8860b 0%, #8b4513 100%);
+    box-shadow: 0 12px 25px rgba(160, 82, 45, 0.4);
+}
+
+body.sepia-mode .operation-container button:active {
+    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
+    box-shadow: 0 6px 15px rgba(160, 82, 45, 0.3);
+}
+
+body.sepia-mode .highlight {
+    background-color: #daa520 !important;
+    color: #3c2e26 !important;
+    box-shadow: 0 0 5px rgba(218, 165, 32, 0.7);
+}
+
+body.sepia-mode .loading {
+    color: #a0522d;
+}
+
+body.sepia-mode input[type="range"] {
+    background: #d2b48c;
+}
+
+body.sepia-mode input[type="range"]::-webkit-slider-thumb, 
+body.sepia-mode input[type="range"]::-moz-range-thumb {
+    background: #8b4513;
+}
+
+body.sepia-mode .modal-content {
+    background-color: #faf7f0;
+    color: #3c2e26;
+    border: 1px solid #d2b48c;
+}
+
+body.sepia-mode .close {
+    color: #8b4513;
+}
+
+body.sepia-mode .close:hover,
+body.sepia-mode .close:focus {
+    color: #654321;
 }
 
 /* Controls Container Styles */
@@ -389,51 +515,71 @@ body.dark-mode .operation-container button:active {
     display: inline-block;
     width: 60px;
     height: 34px;
-  }
+}
   
-  .switch input {
+.switch input {
     opacity: 0;
     width: 0;
     height: 0;
-  }
+}
   
-  .slider {
+.slider {
     position: absolute;
     cursor: pointer;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-  }
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
   
-  .slider:before {
+.slider:before {
     position: absolute;
     content: "";
     height: 26px;
     width: 26px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
-    transition: .4s;
-  }
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+}
   
-  input:checked + .slider {
-    background-color: #2196F3;
-  }
+input:checked + .slider {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+}
   
-  input:checked + .slider:before {
+input:checked + .slider:before {
     transform: translateX(26px);
-  }
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+}
   
-  .slider.round {
+.slider.round {
     border-radius: 34px;
-  }
+}
   
-  .slider.round:before {
+.slider.round:before {
     border-radius: 50%;
-  }
+}
+
+body.dark-mode .slider {
+    background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+}
+
+body.dark-mode input:checked + .slider {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+body.sepia-mode .slider {
+    background: linear-gradient(135deg, #ede5d3 0%, #e6d7c3 100%);
+}
+
+body.sepia-mode input:checked + .slider {
+    background: linear-gradient(135deg, #cd853f 0%, #a0522d 100%);
+}
 
 #word-meaning-text  {
     margin-top: 20px;
