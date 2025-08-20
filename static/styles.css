@@ -92,6 +92,24 @@ body.dark-mode select, body.dark-mode button {
     text-align: center;
 }
 
+/* Clickable word styles */
+#quran-text span {
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+#quran-text span:hover {
+    background-color: rgba(0, 100, 200, 0.1);
+    color: #0064c8;
+}
+
+body.dark-mode #quran-text span:hover {
+    background-color: rgba(100, 150, 255, 0.1);
+    color: #6496ff;
+}
+
 /* Tafseer Text Styles */
 
 #tafseer-text {
@@ -104,7 +122,15 @@ body.dark-mode select, body.dark-mode button {
 
 /* Highlight and Error Styles */
 .highlight {
-    color: green;
+    background-color: #ffeb3b !important;
+    color: #333 !important;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(255, 235, 59, 0.7);
+}
+
+body.dark-mode .highlight {
+    background-color: #ffc107 !important;
+    color: #000 !important;
 }
 
 .error {

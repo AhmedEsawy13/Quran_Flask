@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const quranTextData = await fetchData(quranTextUrl);
             const ayahText = quranTextData[verseKey]?.text || currentAyahData.text;
     
-            elements.audioElement.src = reciterAudio.audio_url;
+            elements.audioElement.src = `/api/audio-proxy?url=${encodeURIComponent(reciterAudio.audio_url)}`;
             currentSegments = reciterAudio.segments;
             displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
             displayTransliteration(currentAyahData.transliteration);
@@ -302,6 +302,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.quranTextContainer.innerHTML = '';
         const words = text.split(' ');
         const wordIndexToSegmentMap = new Map();
+        const wordElements = []; // Cache word elements for performance
 
         // Map segments to words first, before creating word elements
         if (Array.isArray(segments)) {
@@ -314,6 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
             const wordElement = createWordElement(word, i, wordIndexToSegmentMap);
+            wordElements[i] = wordElement; // Cache reference
             elements.quranTextContainer.appendChild(wordElement);
             elements.quranTextContainer.appendChild(document.createTextNode(' '));
         }
@@ -323,9 +325,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.audioElement.removeEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
         }
 
+        // Create throttled highlight function for better performance
+        let lastHighlightTime = 0;
+        const highlightThrottle = 100; // Throttle to 10 updates per second
+        
         // Create and store the new handler
         elements.audioElement.timeUpdateHandler = () => {
-            highlightWords(words, wordIndexToSegmentMap);
+            const now = Date.now();
+            if (now - lastHighlightTime >= highlightThrottle) {
+                highlightWords(wordElements, wordIndexToSegmentMap);
+                lastHighlightTime = now;
+            }
         };
         
         elements.audioElement.addEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
@@ -471,16 +481,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function highlightWords(words, wordIndexToSegmentMap) {
+    function highlightWords(wordElements, wordIndexToSegmentMap) {
         const currentTime = elements.audioElement.currentTime * 1000;
-        words.forEach((_, index) => {
-            const wordElement = elements.quranTextContainer.querySelector(`[data-index="${index}"]`);
+        
+        // Use cached elements instead of DOM queries for better performance
+        wordElements.forEach((wordElement, index) => {
             if (!wordElement) return;
             const segment = wordIndexToSegmentMap.get(index);
             if (segment && currentTime >= segment.startTime && currentTime <= segment.endTime) {
-                wordElement.classList.add('highlight');
+                if (!wordElement.classList.contains('highlight')) {
+                    wordElement.classList.add('highlight');
+                }
             } else {
-                wordElement.classList.remove('highlight');
+                if (wordElement.classList.contains('highlight')) {
+                    wordElement.classList.remove('highlight');
+                }
             }
         });
     }

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, g
+from flask import Flask, jsonify, render_template, request, g, Response
 import json
 import sqlite3
 import os
@@ -360,6 +360,35 @@ def get_quran_text_data():
     elif source == 'indopak_nastaleeq':
         return indopak_nastaleeq_data
     return qpc_hafs_data
+
+@app.route('/api/audio-proxy')
+def audio_proxy():
+    """Proxy audio files to avoid CSP issues in sandbox environments"""
+    import requests
+    
+    audio_url = request.args.get('url')
+    if not audio_url or not audio_url.startswith('https://audio.qurancdn.com/'):
+        return jsonify({"error": "Invalid audio URL"}), 400
+    
+    try:
+        # Stream the audio file
+        response = requests.get(audio_url, stream=True)
+        response.raise_for_status()
+        
+        # Set appropriate headers
+        def generate():
+            for chunk in response.iter_content(chunk_size=8192):
+                yield chunk
+        
+        return Response(generate(), 
+                       content_type=response.headers.get('content-type', 'audio/mpeg'),
+                       headers={
+                           'Content-Length': response.headers.get('content-length'),
+                           'Accept-Ranges': 'bytes'
+                       })
+    except Exception as e:
+        app.logger.error(f"Error proxying audio: {e}")
+        return jsonify({"error": "Failed to proxy audio"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
