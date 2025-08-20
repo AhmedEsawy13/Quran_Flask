@@ -158,9 +158,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (event.target == elements.modal) closeModal();
         };
         elements.quranTextSelect.addEventListener('change', async () => {
-            changeFont(elements.quranTextSelect.value);
-            await loadQuranTextData();
-            await updateDisplayedText();
+            // Add loading indicator
+            const originalText = elements.quranTextContainer.innerHTML;
+            elements.quranTextContainer.innerHTML = '<div class="loading">جاري تحميل الخط الجديد...</div>';
+            
+            try {
+                changeFont(elements.quranTextSelect.value);
+                await loadQuranTextData();
+                await updateDisplayedText();
+            } catch (error) {
+                console.error('Error changing font:', error);
+                elements.quranTextContainer.innerHTML = originalText;
+                handleError('Error changing font:', error, elements.quranTextContainer, 'خطأ في تغيير الخط. يرجى المحاولة مرة أخرى.');
+            }
         });
         elements.playPauseButton.addEventListener('click', togglePlayPause);
         //elements.downloadButton.addEventListener('click', downloadAudio);
@@ -251,9 +261,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Word Meanings:', currentAyahData.word_meanings);
     
             const font = elements.quranTextSelect.value;
-            const quranTextUrl = `/api/quran-text?source=${font}`;
-            const quranTextData = await fetchData(quranTextUrl);
-            const ayahText = quranTextData[verseKey]?.text || currentAyahData.text;
+            // Use already cached quranTextData instead of making redundant API call
+            const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
     
             elements.audioElement.src = `/api/audio-proxy?url=${encodeURIComponent(reciterAudio.audio_url)}`;
             currentSegments = reciterAudio.segments;
@@ -281,10 +290,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             
             const verseKey = `${surahNumber}:${ayahNumber}`;
-            const font = elements.quranTextSelect.value;
-            const quranTextUrl = `/api/quran-text?source=${font}`;
-            const quranTextData = await fetchData(quranTextUrl);
-            const ayahText = quranTextData[verseKey]?.text || currentAyahData.text;
+            // Use already cached quranTextData instead of making redundant API call
+            const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
             displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
             displayTransliteration(currentAyahData.transliteration);
             displayTafseers(currentAyahData.tafseer || {});
