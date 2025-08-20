@@ -120,7 +120,7 @@ body.dark-mode #quran-text span:hover {
     font-family: 'UthmanicHafs';
 }
 
-/* Highlight and Error Styles */
+/* Highlight, Error and Loading Styles */
 .highlight {
     background-color: #ffeb3b !important;
     color: #333 !important;
@@ -136,6 +136,18 @@ body.dark-mode .highlight {
 .error {
     color: red;
     font-size: 18px;
+}
+
+.loading {
+    color: #0064c8;
+    font-size: 18px;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+body.dark-mode .loading {
+    color: #6496ff;
 }
 
 /* Audio Styles */
