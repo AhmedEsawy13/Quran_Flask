@@ -6,19 +6,35 @@ app = Flask(__name__, static_folder='static')
 
 DATABASE = 'QUL_data/word_name.db'  
 
-# Load Quranic text data
-with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
-    digital_khatt_data = json.load(f)
+# Load Quranic text data with error handling
+try:
+    with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
+        digital_khatt_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Error loading Digital_Khatt_Aya_Space.json: {e}")
+    digital_khatt_data = {}
 
-with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
-    qpc_hafs_data = json.load(f)
+try:
+    with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
+        qpc_hafs_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Error loading QPC Hafs.json: {e}")
+    qpc_hafs_data = {}
 
-with open('QUL_data/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
-    indopak_nastaleeq_data = json.load(f)
+try:
+    with open('QUL_data/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
+        indopak_nastaleeq_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Error loading Indopak Nastaleeq_Waqf.json: {e}")
+    indopak_nastaleeq_data = {}
 
-# Load transliteration and tafseer data
-with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
-    transliteration_data = json.load(f)
+# Load transliteration and tafseer data with error handling
+try:
+    with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
+        transliteration_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Error loading Transliteration.json: {e}")
+    transliteration_data = {}
 
 # Load multiple tafseer data files
 tafseer_files = {
@@ -29,11 +45,15 @@ tafseer_files = {
 
 tafseer_data = {}
 for tafseer_name, tafseer_file in tafseer_files.items():
-    with open(tafseer_file, 'r', encoding='utf-8') as f:
-        tafseer_data[tafseer_name] = json.load(f)
+    try:
+        with open(tafseer_file, 'r', encoding='utf-8') as f:
+            tafseer_data[tafseer_name] = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading {tafseer_file}: {e}")
+        tafseer_data[tafseer_name] = {}
 
 
-# Load audio data for different reciters
+# Load audio data for different reciters with error handling
 reciters = {
     "AbdulBaset AbdulSamad": "QUL_data/AbdulBaset AbdulSamad Recitation.json",
     "Mohamed al-Tablawi": "QUL_data/Mohamed al-Tablawi Recitation.json",
@@ -42,8 +62,12 @@ reciters = {
 
 audio_data = {}
 for reciter, file_name in reciters.items():
-    with open(file_name, 'r', encoding='utf-8') as f:
-        audio_data[reciter] = json.load(f)
+    try:
+        with open(file_name, 'r', encoding='utf-8') as f:
+            audio_data[reciter] = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Error loading {file_name}: {e}")
+        audio_data[reciter] = []
 
 # Function to create the mapping for list-based audio data
 def create_mapping_from_list(quran_text_data, audio_data):
@@ -144,8 +168,12 @@ for reciter, data in audio_data.items():
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row  # To access columns by name
+        try:
+            db = g._database = sqlite3.connect(DATABASE)
+            db.row_factory = sqlite3.Row  # To access columns by name
+        except sqlite3.Error as e:
+            print(f"Database connection error: {e}")
+            return None
     return db
 
 @app.teardown_appcontext
@@ -156,18 +184,25 @@ def close_connection(exception):
 
 def get_word_meanings(surah_number, ayah_number):
     db = get_db()
-    cursor = db.cursor()
-    query = '''
-        SELECT word, meaning
-        FROM verses
-        WHERE surah_number = ? AND ayah_number = ?
-    '''
-    cursor.execute(query, (surah_number, ayah_number))
-    rows = cursor.fetchall()
-    word_meanings = {}
-    for row in rows:
-        word_meanings[row['word']] = row['meaning']
-    return word_meanings
+    if db is None:
+        return {}
+    
+    try:
+        cursor = db.cursor()
+        query = '''
+            SELECT word, meaning
+            FROM verses
+            WHERE surah_number = ? AND ayah_number = ?
+        '''
+        cursor.execute(query, (surah_number, ayah_number))
+        rows = cursor.fetchall()
+        word_meanings = {}
+        for row in rows:
+            word_meanings[row['word']] = row['meaning']
+        return word_meanings
+    except sqlite3.Error as e:
+        print(f"Database query error: {e}")
+        return {}
 
 @app.route('/api/surahs', methods=['GET'])
 def get_surahs():
@@ -182,6 +217,10 @@ def get_surahs():
 
 @app.route('/api/surahs/<int:surah_number>/ayahs', methods=['GET'])
 def get_ayahs(surah_number):
+    # Validate surah number range (1-114)
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number. Must be between 1 and 114."}), 400
+        
     quran_text_data = get_quran_text_data()
     ayahs = []
     for verse_key in quran_text_data.keys():
@@ -194,6 +233,14 @@ def get_ayahs(surah_number):
 
 @app.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>', methods=['GET'])
 def get_ayah_text(surah_number, ayah_number):
+    # Validate surah number range (1-114)
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number. Must be between 1 and 114."}), 400
+    
+    # Validate ayah number (basic range check)
+    if ayah_number < 1 or ayah_number > 286:  # Max ayah in any surah
+        return jsonify({"error": "Invalid ayah number."}), 400
+        
     quran_text_data = get_quran_text_data()
 
     # Removed surah name mapping
@@ -221,6 +268,10 @@ def get_ayah_text(surah_number, ayah_number):
 
 @app.route('/api/reciters/<reciter>/ayahs/<int:ayah_number>/audio', methods=['GET'])
 def get_audio_segments(reciter, ayah_number):
+    # Validate ayah number
+    if ayah_number < 1:
+        return jsonify({"error": "Invalid ayah number."}), 400
+    
     if reciter in reciter_mappings:
         # Find the verse key using the global Ayah number
         verse_key = next((key for key, value in reciter_mappings[reciter].items() if value['id'] == ayah_number), None)
