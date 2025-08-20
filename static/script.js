@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const reciterAudioDataMap = {};
     let quranTextData;
     let currentSegments = [];
+    let currentAyahData = null; // Cache for current ayah data
     const fontCache = {};
 
     addEventListeners();
@@ -13,57 +14,99 @@ document.addEventListener('DOMContentLoaded', async () => {
         handleError('Error loading data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
     }
 
-    // Initialize voice recognition
-    if ('webkitSpeechRecognition' in window) {
-        const recognition = new webkitSpeechRecognition();
-        recognition.lang = 'en-US';
-        recognition.continuous = false;
-        recognition.interimResults = false;
+    // Initialize voice recognition with error handling
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        try {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
 
-        recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript.toLowerCase();
-            handleVoiceCommand(transcript);
-        };
+            recognition.onresult = function(event) {
+                try {
+                    const transcript = event.results[0][0].transcript.toLowerCase();
+                    handleVoiceCommand(transcript);
+                } catch (error) {
+                    console.error('Error processing speech result:', error);
+                }
+            };
 
-        recognition.onerror = function(event) {
-            console.error('Speech recognition error:', event.error);
-        };
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+            };
 
-        document.getElementById('start-voice-command').addEventListener('click', () => {
-            recognition.start();
-        });
+            const voiceButton = document.getElementById('start-voice-command');
+            if (voiceButton) {
+                voiceButton.addEventListener('click', () => {
+                    try {
+                        recognition.start();
+                    } catch (error) {
+                        console.error('Error starting speech recognition:', error);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error initializing speech recognition:', error);
+        }
     } else {
         console.warn('Web Speech API is not supported in this browser.');
+        // Optionally disable the voice command button
+        const voiceButton = document.getElementById('start-voice-command');
+        if (voiceButton) {
+            voiceButton.disabled = true;
+            voiceButton.title = 'Speech recognition not supported in this browser';
+        }
     }
 
     async function handleVoiceCommand(command) {
         console.log('Voice command received:', command);
 
-        const surahMatch = command.match(/chapter (\d+)/);
-        const ayahMatch = command.match(/verse (\d+)/);
+        try {
+            const surahMatch = command.match(/chapter (\d+)/);
+            const ayahMatch = command.match(/verse (\d+)/);
 
-        if (surahMatch) {
-            const surahNumber = parseInt(surahMatch[1], 10);
-            elements.surahSelect.value = surahNumber;
-            await loadAyahs();
-            // If an Ayah is also specified in the command, update it after loading Ayahs
-            if (ayahMatch) {
+            if (surahMatch) {
+                const surahNumber = parseInt(surahMatch[1], 10);
+                if (surahNumber >= 1 && surahNumber <= 114) {
+                    elements.surahSelect.value = surahNumber;
+                    await loadAyahs();
+                    // If an Ayah is also specified in the command, update it after loading Ayahs
+                    if (ayahMatch) {
+                        const ayahNumber = parseInt(ayahMatch[1], 10);
+                        if (ayahNumber >= 1) {
+                            elements.ayahSelect.value = ayahNumber;
+                            await loadQuranData(surahNumber, ayahNumber);
+                        }
+                    }
+                } else {
+                    console.warn('Invalid surah number:', surahNumber);
+                }
+            } else if (ayahMatch) {
                 const ayahNumber = parseInt(ayahMatch[1], 10);
-                elements.ayahSelect.value = ayahNumber;
-                await loadQuranData(surahNumber, ayahNumber);
+                if (ayahNumber >= 1) {
+                    elements.ayahSelect.value = ayahNumber;
+                    await loadQuranData(elements.surahSelect.value, ayahNumber);
+                } else {
+                    console.warn('Invalid ayah number:', ayahNumber);
+                }
             }
-        } else if (ayahMatch) {
-            const ayahNumber = parseInt(ayahMatch[1], 10);
-            elements.ayahSelect.value = ayahNumber;
-            await loadQuranData(elements.surahSelect.value, ayahNumber);
+        } catch (error) {
+            console.error('Error handling voice command:', error);
         }
     }
 
-    // Initialize Tippy.js on the button
-    tippy('#start-voice-command', {
-        content: ' لطريقة اسرع للتنقل بين السور والايات المختلفة استخدم الاوامر الصوتية بهذا الشكل " Go to chapter ---  verse " ',
-        placement: 'top',
-    });
+    // Initialize Tippy.js on the button with fallback
+    try {
+        if (typeof tippy !== 'undefined') {
+            tippy('#start-voice-command', {
+                content: ' لطريقة اسرع للتنقل بين السور والايات المختلفة استخدم الاوامر الصوتية بهذا الشكل " Go to chapter ---  verse " ',
+                placement: 'top',
+            });
+        }
+    } catch (error) {
+        console.warn('Tippy.js not loaded, tooltips disabled:', error);
+    }
     
     async function loadInitialData() {
         await loadSurahData();
@@ -133,12 +176,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadSurahData() {
-        const surahData = await fetchData('https://api.alquran.cloud/v1/surah');
-        const formattedSurahData = surahData.data.map(surah => ({
-            number: surah.number,
-            name: `${surah.number}. ${surah.name}`
-        }));
-        populateSelectOptions(formattedSurahData, elements.surahSelect, 'number', 'name');
+        try {
+            const surahData = await fetchData('https://api.alquran.cloud/v1/surah');
+            const formattedSurahData = surahData.data.map(surah => ({
+                number: surah.number,
+                name: `${surah.number}. ${surah.name}`
+            }));
+            populateSelectOptions(formattedSurahData, elements.surahSelect, 'number', 'name');
+        } catch (error) {
+            console.error('Error loading surah data from external API:', error);
+            // Fallback: Create a basic list of surahs (1-114)
+            const fallbackSurahs = Array.from({length: 114}, (_, i) => ({
+                number: i + 1,
+                name: `${i + 1}. سورة ${i + 1}`
+            }));
+            populateSelectOptions(fallbackSurahs, elements.surahSelect, 'number', 'name');
+        }
     }
 
     async function loadQuranTextData() {
@@ -181,33 +234,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!ayahNumber) return;
     
         try {
-            const ayahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
+            currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
             const verseKey = `${surahNumber}:${ayahNumber}`;
-            const globalAyahNumber = ayahData.id;
+            const globalAyahNumber = currentAyahData.id;
             if (!globalAyahNumber) throw new Error(`No global Ayah number found for Surah ${surahNumber}, Ayah ${ayahNumber}`);
     
             const reciter = elements.reciterSelect.value;
-            const reciterAudio = ayahData.reciters[reciter];
+            const reciterAudio = currentAyahData.reciters[reciter];
             if (!reciterAudio) throw new Error('Reciter audio not found');
     
-            console.log('Quran Text Data:', ayahData);
+            console.log('Quran Text Data:', currentAyahData);
             console.log('Reciter Audio:', reciterAudio);
             console.log('Current Segments:', reciterAudio.segments);
-            console.log('Transliteration:', ayahData.transliteration);
-            console.log('Tafseers:', ayahData.tafseer);
-            console.log('Word Meanings:', ayahData.word_meanings);
+            console.log('Transliteration:', currentAyahData.transliteration);
+            console.log('Tafseers:', currentAyahData.tafseer);
+            console.log('Word Meanings:', currentAyahData.word_meanings);
     
             const font = elements.quranTextSelect.value;
             const quranTextUrl = `/api/quran-text?source=${font}`;
             const quranTextData = await fetchData(quranTextUrl);
-            const ayahText = quranTextData[verseKey]?.text || ayahData.text;
+            const ayahText = quranTextData[verseKey]?.text || currentAyahData.text;
     
             elements.audioElement.src = reciterAudio.audio_url;
             currentSegments = reciterAudio.segments;
-            displayQuranicText(ayahText, currentSegments, ayahData.word_meanings);
-            displayTransliteration(ayahData.transliteration);
-            displayTafseers(ayahData.tafseer || {});
-            displayWordMeanings(ayahData.word_meanings || {});
+            displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
+            displayTransliteration(currentAyahData.transliteration);
+            displayTafseers(currentAyahData.tafseer || {});
+            displayWordMeanings(currentAyahData.word_meanings || {});
             updatePlayPauseButton();
     
             elements.audioElement.onended = updatePlayPauseButton;
@@ -222,17 +275,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!ayahNumber) return;
 
         try {
-            const ayahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
+            // Use cached data if available, otherwise fetch
+            if (!currentAyahData || currentAyahData.surah_number !== parseInt(surahNumber) || currentAyahData.ayah_number !== parseInt(ayahNumber)) {
+                currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
+            }
+            
             const verseKey = `${surahNumber}:${ayahNumber}`;
             const font = elements.quranTextSelect.value;
             const quranTextUrl = `/api/quran-text?source=${font}`;
             const quranTextData = await fetchData(quranTextUrl);
-            const ayahText = quranTextData[verseKey]?.text || ayahData.text;
-            displayQuranicText(ayahText, currentSegments, ayahData.word_meanings);
-            displayTransliteration(ayahData.transliteration);
-            displayTafseers(ayahData.tafseer || {});
+            const ayahText = quranTextData[verseKey]?.text || currentAyahData.text;
+            displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
+            displayTransliteration(currentAyahData.transliteration);
+            displayTafseers(currentAyahData.tafseer || {});
             if (elements.wordMeaningVisible) {
-                displayWordMeanings(ayahData.word_meanings || {});
+                displayWordMeanings(currentAyahData.word_meanings || {});
             } else {
                 elements.wordMeaningContainer.innerHTML = '';
             }
@@ -259,9 +316,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Invalid segments format:', segments);
         }
 
-        elements.audioElement.addEventListener('timeupdate', () => {
+        // Remove existing timeupdate listeners to prevent memory leaks
+        if (elements.audioElement.timeUpdateHandler) {
+            elements.audioElement.removeEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
+        }
+
+        // Create and store the new handler
+        elements.audioElement.timeUpdateHandler = () => {
             highlightWords(words, wordIndexToSegmentMap);
-        });
+        };
+        
+        elements.audioElement.addEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
     }
 
     function displayTransliteration(data) {
@@ -381,11 +446,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function mapSegmentsToWords(segments, wordIndexToSegmentMap) {
+        if (!Array.isArray(segments) || !wordIndexToSegmentMap) {
+            console.error('Invalid segments or wordIndexToSegmentMap');
+            return;
+        }
+        
         segments.forEach(segment => {
             if (typeof segment === 'object' && segment !== null) {
                 const { start_word_index, end_word_index, start_time, end_time } = segment;
-                for (let i = parseInt(start_word_index); i <= parseInt(end_word_index); i++) {
-                    wordIndexToSegmentMap.set(i, { startTime: parseInt(start_time), endTime: parseInt(end_time) });
+                
+                // Validate segment data
+                if (start_word_index != null && end_word_index != null && start_time != null && end_time != null) {
+                    for (let i = parseInt(start_word_index); i <= parseInt(end_word_index); i++) {
+                        wordIndexToSegmentMap.set(i, { startTime: parseInt(start_time), endTime: parseInt(end_time) });
+                    }
+                } else {
+                    console.warn('Incomplete segment data:', segment);
                 }
             } else {
                 console.error('Invalid segment format:', segment);
@@ -453,10 +529,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function toggleDarkMode() {
-        document.body?.classList.toggle('dark-mode');
-        document.querySelector('.container')?.classList.toggle('dark-mode');
-        document.querySelectorAll('button, select').forEach(element => {
-            element?.classList.toggle('dark-mode');
+        const elements = ['body', '.container'];
+        const selectors = ['button', 'select', 'input', 'audio'];
+        
+        elements.forEach(element => {
+            const el = element === 'body' ? document.body : document.querySelector(element);
+            if (el) el.classList.toggle('dark-mode');
+        });
+        
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(element => {
+                if (element) element.classList.toggle('dark-mode');
+            });
         });
     }
 
@@ -486,6 +570,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             updatePlayPauseButton();
             closeModal();
 
+            // Remove existing range handlers to prevent memory leaks
+            if (elements.audioElement.rangeEndedHandler) {
+                elements.audioElement.removeEventListener('ended', elements.audioElement.rangeEndedHandler);
+            }
+            if (elements.playPauseButton.rangePlayPauseHandler) {
+                elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
+            }
+
             const onEnded = async () => {
                 if (elements.ayahSelect.selectedIndex < endAyahIndex) {
                     elements.ayahSelect.selectedIndex++;
@@ -493,12 +585,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     elements.audioElement.play();
                     updatePlayPauseButton();
                 } else {
+                    // Clean up when range ends
                     elements.audioElement.removeEventListener('ended', onEnded);
+                    if (elements.playPauseButton.rangePlayPauseHandler) {
+                        elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
+                    }
                     updatePlayPauseButton();
                 }
             };
-
-            elements.audioElement.addEventListener('ended', onEnded);
 
             const onPlayPause = () => {
                 if (elements.audioElement.paused) {
@@ -509,16 +603,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 updatePlayPauseButton();
             };
 
-            elements.playPauseButton.addEventListener('click', onPlayPause);
+            // Store handlers for cleanup
+            elements.audioElement.rangeEndedHandler = onEnded;
+            elements.playPauseButton.rangePlayPauseHandler = onPlayPause;
 
-            // Clean up event listeners when range ends
-            elements.audioElement.addEventListener('ended', () => {
-                elements.playPauseButton.removeEventListener('click', onPlayPause);
-            });
+            elements.audioElement.addEventListener('ended', onEnded);
+            elements.playPauseButton.addEventListener('click', onPlayPause);
         }
     }
 
     function populateSelectOptions(data, selectElement, valueKey, textKey, prefix = '') {
+        if (!data || !Array.isArray(data) || !selectElement) {
+            console.error('Invalid data or select element for populateSelectOptions');
+            return;
+        }
+        
         selectElement.innerHTML = '';
         data.forEach(item => {
             const option = document.createElement('option');
@@ -534,9 +633,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function fetchData(url) {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return response.json();
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return response.json();
+        } catch (error) {
+            console.error(`Failed to fetch data from ${url}:`, error);
+            throw error;
+        }
     }
 
     function changeFont(font) {
@@ -550,8 +654,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function togglePlayPause() {
+        if (!elements.audioElement) {
+            console.error('Audio element not found');
+            return;
+        }
+        
         if (elements.audioElement.paused) {
-            elements.audioElement.play();
+            elements.audioElement.play().catch(error => {
+                console.error('Error playing audio:', error);
+            });
             elements.playPauseButton.classList.remove('fa-play');
             elements.playPauseButton.classList.add('fa-pause');
         } else {
@@ -562,6 +673,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updatePlayPauseButton() {
+        if (!elements.audioElement || !elements.playPauseButton) {
+            console.error('Audio element or play pause button not found');
+            return;
+        }
+        
         if (elements.audioElement.paused) {
             elements.playPauseButton.classList.remove('fa-pause');
             elements.playPauseButton.classList.add('fa-play');
