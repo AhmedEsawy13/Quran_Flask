@@ -131,6 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             prevAyahButton: document.getElementById('prev-ayah'),
             playRangeButton: document.getElementById('play-range'),
             darkModeToggle: document.getElementById('dark-mode-toggle'),
+            sepiaModeToggle: document.getElementById('sepia-mode-toggle'),
             showRangeSelection: document.getElementById('show-range-selection'),
             rangeSelection: document.getElementById('range-selection'),
             modal: document.getElementById('rangeModal'),
@@ -145,6 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function addEventListeners() {
         elements.darkModeToggle.addEventListener('change', toggleDarkMode);
+        elements.sepiaModeToggle.addEventListener('change', toggleSepiaMode);
         elements.showRangeSelection.addEventListener('click', toggleRangeSelection);
         elements.reciterSelect.addEventListener('change', onReciterChange);
         elements.surahSelect.addEventListener('change', loadAyahs);
@@ -615,10 +617,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function toggleDarkMode() {
-        const elements = ['body', '.container'];
+        // Clear sepia mode if it's active
+        if (document.body.classList.contains('sepia-mode')) {
+            document.body.classList.remove('sepia-mode');
+            const container = document.querySelector('.container');
+            if (container) container.classList.remove('sepia-mode');
+            document.querySelectorAll('button, select, input, audio').forEach(element => {
+                element.classList.remove('sepia-mode');
+            });
+            elements.sepiaModeToggle.checked = false;
+        }
+        
+        const elementsToToggle = ['body', '.container'];
         const selectors = ['button', 'select', 'input', 'audio'];
         
-        elements.forEach(element => {
+        elementsToToggle.forEach(element => {
             const el = element === 'body' ? document.body : document.querySelector(element);
             if (el) el.classList.toggle('dark-mode');
         });
@@ -626,6 +639,33 @@ document.addEventListener('DOMContentLoaded', async () => {
         selectors.forEach(selector => {
             document.querySelectorAll(selector).forEach(element => {
                 if (element) element.classList.toggle('dark-mode');
+            });
+        });
+    }
+
+    function toggleSepiaMode() {
+        // Clear dark mode if it's active
+        if (document.body.classList.contains('dark-mode')) {
+            document.body.classList.remove('dark-mode');
+            const container = document.querySelector('.container');
+            if (container) container.classList.remove('dark-mode');
+            document.querySelectorAll('button, select, input, audio').forEach(element => {
+                element.classList.remove('dark-mode');
+            });
+            elements.darkModeToggle.checked = false;
+        }
+        
+        const elementsToToggle = ['body', '.container'];
+        const selectors = ['button', 'select', 'input', 'audio'];
+        
+        elementsToToggle.forEach(element => {
+            const el = element === 'body' ? document.body : document.querySelector(element);
+            if (el) el.classList.toggle('sepia-mode');
+        });
+        
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(element => {
+                if (element) element.classList.toggle('sepia-mode');
             });
         });
     }
