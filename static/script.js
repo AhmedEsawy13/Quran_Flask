@@ -269,7 +269,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
             displayTransliteration(currentAyahData.transliteration);
             displayTafseers(currentAyahData.tafseer || {});
-            displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
+            // Only display word meanings if they should be visible
+            if (elements.wordMeaningVisible) {
+                displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
+            } else {
+                elements.wordMeaningContainer.innerHTML = '';
+            }
             updatePlayPauseButton();
     
             elements.audioElement.onended = updatePlayPauseButton;
@@ -473,6 +478,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.wordMeaningVisible = !elements.wordMeaningVisible;
         if (elements.wordMeaningVisible) {
             elements.wordMeaningContainer.style.display = 'block';
+            // Refresh word meanings for the current verse when toggling to visible
+            if (currentAyahData) {
+                const verseKey = `${elements.surahSelect.value}:${elements.ayahSelect.value}`;
+                const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
+                displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
+            }
         } else {
             elements.wordMeaningContainer.style.display = 'none';
         }
