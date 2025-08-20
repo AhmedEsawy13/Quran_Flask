@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
             displayTransliteration(currentAyahData.transliteration);
             displayTafseers(currentAyahData.tafseer || {});
-            displayWordMeanings(currentAyahData.word_meanings || {});
+            displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
             updatePlayPauseButton();
     
             elements.audioElement.onended = updatePlayPauseButton;
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayTransliteration(currentAyahData.transliteration);
             displayTafseers(currentAyahData.tafseer || {});
             if (elements.wordMeaningVisible) {
-                displayWordMeanings(currentAyahData.word_meanings || {});
+                displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
             } else {
                 elements.wordMeaningContainer.innerHTML = '';
             }
@@ -388,11 +388,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function displayWordMeanings(wordMeanings) {
+    function displayWordMeanings(wordMeanings, verseText) {
         if (elements.wordMeaningContainer) {
             elements.wordMeaningContainer.innerHTML = '';
             const entries = Object.entries(wordMeanings);
-            if (entries.length > 0) {
+            if (entries.length > 0 && verseText) {
+                const list = document.createElement('ul');
+                // Split verse text into words and clean them for matching
+                const verseWords = verseText.split(' ').filter(word => word.trim() !== '');
+                
+                // Create ordered list based on verse word sequence
+                verseWords.forEach(verseWord => {
+                    // Clean the verse word by removing diacritics and numbers for better matching
+                    const cleanVerseWord = verseWord.replace(/[٠-٩0-9]/g, '').trim();
+                    
+                    // Find matching word in meanings (try exact match first, then partial)
+                    let matchingEntry = null;
+                    for (const [word, meaning] of entries) {
+                        if (word === cleanVerseWord || word === verseWord) {
+                            matchingEntry = [word, meaning];
+                            break;
+                        }
+                    }
+                    
+                    // If exact match not found, try finding word that contains the verse word or vice versa
+                    if (!matchingEntry) {
+                        for (const [word, meaning] of entries) {
+                            if (word.includes(cleanVerseWord) || cleanVerseWord.includes(word)) {
+                                matchingEntry = [word, meaning];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (matchingEntry) {
+                        const [word, meaning] = matchingEntry;
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${word}: ${meaning}`;
+                        list.appendChild(listItem);
+                        // Remove from entries to avoid duplicates
+                        const index = entries.findIndex(([w, m]) => w === word && m === meaning);
+                        if (index > -1) {
+                            entries.splice(index, 1);
+                        }
+                    }
+                });
+                
+                // Add any remaining meanings that weren't matched (shouldn't happen in normal cases)
+                entries.forEach(([word, meaning]) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${word}: ${meaning}`;
+                    list.appendChild(listItem);
+                });
+                
+                elements.wordMeaningContainer.appendChild(list);
+            } else if (entries.length > 0) {
+                // Fallback to original behavior if no verse text provided
                 const list = document.createElement('ul');
                 entries.forEach(([word, meaning]) => {
                     const listItem = document.createElement('li');
