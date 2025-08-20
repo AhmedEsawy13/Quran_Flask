@@ -1,8 +1,35 @@
 from flask import Flask, jsonify, render_template, request, g
 import json
 import sqlite3
+import os
+import logging
 
 app = Flask(__name__, static_folder='static')
+
+# Configure logging
+if not app.debug:
+    logging.basicConfig(level=logging.INFO)
+    app.logger.setLevel(logging.INFO)
+
+# Security improvements
+@app.after_request
+def after_request(response):
+    """Add security headers to all responses"""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com;"
+    return response
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"error": "Resource not found"}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    app.logger.error(f"Internal server error: {error}")
+    return jsonify({"error": "Internal server error"}), 500
 
 DATABASE = 'QUL_data/word_name.db'  
 
@@ -71,20 +98,28 @@ for reciter, file_name in reciters.items():
 
 # Function to create the mapping for list-based audio data
 def create_mapping_from_list(quran_text_data, audio_data):
-    id_to_verse_key = {data['id']: verse_key for verse_key, data in quran_text_data.items()}
+    if not quran_text_data or not audio_data:
+        app.logger.warning("Empty quran_text_data or audio_data provided")
+        return {}
+        
+    id_to_verse_key = {data['id']: verse_key for verse_key, data in quran_text_data.items() if isinstance(data, dict) and 'id' in data}
     verse_key_to_segment_map = {}
 
     for audio_info in audio_data:
         if not isinstance(audio_info, dict):
-            print(f"Warning: Unexpected non-dict entry in audio data: {audio_info}")
+            app.logger.warning(f"Unexpected non-dict entry in audio data: {audio_info}")
             continue
 
         ayah_number = audio_info.get('ayah_number')
         audio_url = audio_info.get('audio_url')
         segments = audio_info.get('segments')
 
-        if not (ayah_number and audio_url and segments):
-            print(f"Warning: Incomplete audio info: {audio_info}")
+        if not (ayah_number and audio_url):
+            app.logger.warning(f"Incomplete audio info (missing ayah_number or audio_url): {audio_info}")
+            continue
+            
+        if segments is None:
+            app.logger.warning(f"Missing segments for ayah {ayah_number}")
             continue
 
         verse_key = id_to_verse_key.get(ayah_number)
@@ -103,30 +138,38 @@ def create_mapping_from_list(quran_text_data, audio_data):
                         'start_time': segment[2],
                         'end_time': segment[3]
                     }
-                    for segment in segments
+                    for segment in segments if isinstance(segment, (list, tuple)) and len(segment) >= 4
                 ]
             }
         else:
-            print(f"Warning: Ayah number {ayah_number} not found in Quranic text data")
+            app.logger.warning(f"Ayah number {ayah_number} not found in Quranic text data")
 
     return verse_key_to_segment_map
 
 # Function to create the mapping for dict-based audio data
 def create_mapping_from_dict(quran_text_data, audio_data):
-    id_to_verse_key = {data['id']: verse_key for verse_key, data in quran_text_data.items()}
+    if not quran_text_data or not audio_data:
+        app.logger.warning("Empty quran_text_data or audio_data provided")
+        return {}
+        
+    id_to_verse_key = {data['id']: verse_key for verse_key, data in quran_text_data.items() if isinstance(data, dict) and 'id' in data}
     verse_key_to_segment_map = {}
 
     for verse_key, audio_info in audio_data.items():
         if not isinstance(audio_info, dict):
-            print(f"Warning: Unexpected non-dict entry in audio data: {audio_info}")
+            app.logger.warning(f"Unexpected non-dict entry in audio data: {audio_info}")
             continue
 
         ayah_number = audio_info.get('ayah_number')
         audio_url = audio_info.get('audio_url')
         segments = audio_info.get('segments')
 
-        if not (ayah_number and audio_url and segments):
-            print(f"Warning: Incomplete audio info: {audio_info}")
+        if not (ayah_number and audio_url):
+            app.logger.warning(f"Incomplete audio info (missing ayah_number or audio_url): {audio_info}")
+            continue
+            
+        if segments is None:
+            app.logger.warning(f"Missing segments for ayah {ayah_number}")
             continue
 
         verse_key_db = id_to_verse_key.get(ayah_number)
@@ -145,23 +188,28 @@ def create_mapping_from_dict(quran_text_data, audio_data):
                         'start_time': segment[2],
                         'end_time': segment[3]
                     }
-                    for segment in segments
+                    for segment in segments if isinstance(segment, (list, tuple)) and len(segment) >= 4
                 ]
             }
         else:
-            print(f"Warning: Ayah number {ayah_number} not found in Quranic text data")
+            app.logger.warning(f"Ayah number {ayah_number} not found in Quranic text data")
 
     return verse_key_to_segment_map
 
-# Create mappings for each reciter
+# Create mappings for each reciter with improved error handling
 reciter_mappings = {}
 for reciter, data in audio_data.items():
-    if isinstance(data, list):
-        reciter_mappings[reciter] = create_mapping_from_list(digital_khatt_data, data)
-    elif isinstance(data, dict):
-        reciter_mappings[reciter] = create_mapping_from_dict(digital_khatt_data, data)
-    else:
-        print(f"Warning: Unexpected data structure for reciter {reciter}")
+    try:
+        if isinstance(data, list):
+            reciter_mappings[reciter] = create_mapping_from_list(digital_khatt_data, data)
+        elif isinstance(data, dict):
+            reciter_mappings[reciter] = create_mapping_from_dict(digital_khatt_data, data)
+        else:
+            app.logger.warning(f"Unexpected data structure for reciter {reciter}: {type(data)}")
+            reciter_mappings[reciter] = {}
+    except Exception as e:
+        app.logger.error(f"Error creating mapping for reciter {reciter}: {e}")
+        reciter_mappings[reciter] = {}
 
 
 # Database helper functions
@@ -302,6 +350,11 @@ def index():
 
 def get_quran_text_data():
     source = request.args.get('source', 'qpc_hafs')
+    # Validate source parameter
+    valid_sources = ['digital_khatt', 'indopak_nastaleeq', 'qpc_hafs']
+    if source not in valid_sources:
+        source = 'qpc_hafs'  # Default fallback
+        
     if source == 'digital_khatt':
         return digital_khatt_data
     elif source == 'indopak_nastaleeq':
