@@ -154,7 +154,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.showRangeSelection.addEventListener('click', toggleRangeSelection);
         elements.reciterSelect.addEventListener('change', onReciterChange);
         elements.surahSelect.addEventListener('change', loadAyahs);
-        elements.ayahSelect.addEventListener('change', loadQuranData);
+        elements.ayahSelect.addEventListener('change', () => {
+            // Clean up range mode if active when user manually changes ayah
+            if (elements.playPauseButton.rangePlayPauseHandler) {
+                cleanupRangeMode();
+            }
+            loadQuranData();
+        });
         elements.nextAyahButton.addEventListener('click', loadNextAyah);
         elements.prevAyahButton.addEventListener('click', loadPrevAyah);
         elements.playRangeButton.addEventListener('click', playRange);
@@ -606,6 +612,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadNextAyah() {
+        // Clean up range mode if active
+        if (elements.playPauseButton.rangePlayPauseHandler) {
+            cleanupRangeMode();
+        }
+        
         const currentAyahIndex = elements.ayahSelect.selectedIndex;
         if (currentAyahIndex < elements.ayahSelect.options.length - 1) {
             elements.ayahSelect.selectedIndex = currentAyahIndex + 1;
@@ -617,6 +628,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadPrevAyah() {
+        // Clean up range mode if active
+        if (elements.playPauseButton.rangePlayPauseHandler) {
+            cleanupRangeMode();
+        }
+        
         const currentAyahIndex = elements.ayahSelect.selectedIndex;
         if (currentAyahIndex > 0) {
             elements.ayahSelect.selectedIndex = currentAyahIndex - 1;
@@ -745,6 +761,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
             }
 
+            // Remove the original play/pause event listener to prevent conflicts
+            elements.playPauseButton.removeEventListener('click', togglePlayPause);
+
             const onEnded = async () => {
                 if (elements.ayahSelect.selectedIndex < endAyahIndex) {
                     elements.ayahSelect.selectedIndex++;
@@ -753,10 +772,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     updatePlayPauseButton();
                 } else {
                     // Clean up when range ends
-                    elements.audioElement.removeEventListener('ended', onEnded);
-                    if (elements.playPauseButton.rangePlayPauseHandler) {
-                        elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
-                    }
+                    cleanupRangeMode();
                     updatePlayPauseButton();
                 }
             };
@@ -777,6 +793,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.audioElement.addEventListener('ended', onEnded);
             elements.playPauseButton.addEventListener('click', onPlayPause);
         }
+    }
+
+    function cleanupRangeMode() {
+        // Remove range-specific event handlers
+        if (elements.audioElement.rangeEndedHandler) {
+            elements.audioElement.removeEventListener('ended', elements.audioElement.rangeEndedHandler);
+            elements.audioElement.rangeEndedHandler = null;
+        }
+        if (elements.playPauseButton.rangePlayPauseHandler) {
+            elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
+            elements.playPauseButton.rangePlayPauseHandler = null;
+        }
+        // Restore the original play/pause event listener
+        elements.playPauseButton.addEventListener('click', togglePlayPause);
     }
 
     function populateSelectOptions(data, selectElement, valueKey, textKey, prefix = '') {
