@@ -56,22 +56,28 @@
                 <div id="tafseer-text"></div>
             </div>
             <div class="operation-container">
-                <button id="prev-ayah">الاية السابقة</button>
-                <audio id="quran-audio" controls></audio>
-                <button id="show-transliteration"> عرض النطق الحرفي</button>
-                <button id="play-pause-button">ايقاف / تشغيل</button>
-               <!-- <button id="download-button">تحميل</button>-->
-                <button id="show-tafseer">عرض التفسير </button>
-                <button id="next-ayah">الاية التالية</button>
-                <button id="toggle-word-meaning-button">عرض غريب الكلمات</button>
-                <div id="word-meaning-text" style="display: none;"></div>
-                    <button id="loop-button">
-                        <span>تكرار الاية</span>
-                        <label class="switch">
-                            <input type="checkbox" id="loopSwitch">
-                            <span class="slider round"></span>
-                        </label>
-                    </button>
+                <div class="main-controls">
+                    <audio id="quran-audio" controls></audio>
+                    <button id="show-transliteration"> عرض النطق الحرفي</button>
+                    <button id="play-pause-button">ايقاف / تشغيل</button>
+                   <!-- <button id="download-button">تحميل</button>-->
+                    <button id="show-tafseer">عرض التفسير </button>
+                    <button id="toggle-word-meaning-button">عرض غريب الكلمات</button>
+                    <div id="word-meaning-text" style="display: none;"></div>
+                    <div class="repeat-control">
+                        <label for="repeat-select">تكرار الاية:</label>
+                        <select id="repeat-select">
+                            <option value="1">مرة واحدة</option>
+                            <option value="2">مرتين</option>
+                            <option value="3">3 مرات</option>
+                            <option value="loop">تكرار مستمر</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="navigation-controls">
+                    <button id="prev-ayah">الاية السابقة</button>
+                    <button id="next-ayah">الاية التالية</button>
+                </div>
             </div>
         </div>
     </div>
