@@ -4,12 +4,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     let quranTextData;
     let currentSegments = [];
     let currentAyahData = null; // Cache for current ayah data
+    let currentRepeatCount = 0; // Track current repeat count
+    let maxRepeats = 1; // Track maximum repeats set by user
     const fontCache = {};
 
     addEventListeners();
 
     try {
         await loadInitialData();
+        // Initialize repeat functionality
+        handleRepeatChange();
     } catch (error) {
         handleError('Error loading data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
     }
@@ -121,7 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             tafseerContainer: document.getElementById('tafseer-text'),
             wordMeaningContainer: document.getElementById('word-meaning-text'), // New container for word meanings
             audioElement: document.getElementById('quran-audio'),
-            loopSwitch: document.getElementById('loopSwitch'),
+            repeatSelect: document.getElementById('repeat-select'),
             reciterSelect: document.getElementById('reciter-select'),
             surahSelect: document.getElementById('surah-select'),
             ayahSelect: document.getElementById('ayah-select'),
@@ -180,6 +184,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('show-transliteration').addEventListener('click', toggleTransliteration);
         document.getElementById('show-tafseer').addEventListener('click', toggleTafseer);
         elements.toggleWordMeaningButton.addEventListener('click', toggleWordMeaning); // Listener for the new toggle via button
+        
+        // Add keyboard event listeners for arrow key navigation
+        document.addEventListener('keydown', handleKeydown);
+    }
+    
+    function handleKeydown(event) {
+        // Only handle arrow keys when not typing in input fields
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' || event.target.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        switch (event.key) {
+            case 'ArrowLeft':
+                event.preventDefault();
+                loadPrevAyah();
+                break;
+            case 'ArrowRight':
+                event.preventDefault();
+                loadNextAyah();
+                break;
+        }
     }
 
     async function onReciterChange() {
@@ -584,6 +609,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currentAyahIndex = elements.ayahSelect.selectedIndex;
         if (currentAyahIndex < elements.ayahSelect.options.length - 1) {
             elements.ayahSelect.selectedIndex = currentAyahIndex + 1;
+            currentRepeatCount = 0; // Reset repeat count on navigation
             await loadQuranData();
             elements.audioElement.play();
             updatePlayPauseButton();
@@ -594,23 +620,38 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currentAyahIndex = elements.ayahSelect.selectedIndex;
         if (currentAyahIndex > 0) {
             elements.ayahSelect.selectedIndex = currentAyahIndex - 1;
+            currentRepeatCount = 0; // Reset repeat count on navigation
             await loadQuranData();
             elements.audioElement.play();
             updatePlayPauseButton();
         }
     }
 
-    function toggleLoopSwitch() {
+    function handleRepeatChange() {
+        const repeatValue = elements.repeatSelect.value;
+        
+        if (repeatValue === 'loop') {
+            maxRepeats = Infinity;
+        } else {
+            maxRepeats = parseInt(repeatValue, 10);
+        }
+        
+        // Reset current repeat count when user changes setting
+        currentRepeatCount = 0;
         updatePlayPauseButton();
     }
     
-    elements.loopSwitch.addEventListener('change', toggleLoopSwitch);
+    elements.repeatSelect.addEventListener('change', handleRepeatChange);
     
     elements.audioElement.addEventListener('ended', () => {
-        if (elements.loopSwitch.checked) {
+        currentRepeatCount++;
+        
+        if (currentRepeatCount < maxRepeats) {
             elements.audioElement.currentTime = 0;
             elements.audioElement.play();
         } else {
+            // Reset for next play
+            currentRepeatCount = 0;
             updatePlayPauseButton();
         }
     });
@@ -786,6 +827,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         if (elements.audioElement.paused) {
+            // Reset repeat count when starting playback
+            currentRepeatCount = 0;
             elements.audioElement.play().catch(error => {
                 console.error('Error playing audio:', error);
             });

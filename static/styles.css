@@ -356,6 +356,57 @@ body.dark-mode .close:focus {
     font-size: 35px;
 }
 
+.operation-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.operation-container .main-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.operation-container .navigation-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.operation-container .repeat-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 10px 15px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.operation-container .repeat-control label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #495057;
+    white-space: nowrap;
+}
+
+.operation-container .repeat-control select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 15px;
+    background: white;
+    font-size: 14px;
+    color: #495057;
+    min-width: 120px;
+}
+
 .operation-container #quran-audio {
     display: none;
 }
@@ -412,6 +463,21 @@ body.dark-mode .close:focus {
     content: ' \f358 '; /* Font Awesome download icon */
 }
 
+body.dark-mode .operation-container .repeat-control {
+    background: linear-gradient(135deg, #343a40 0%, #212529 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .operation-container .repeat-control label {
+    color: #f8f9fa;
+}
+
+body.dark-mode .operation-container .repeat-control select {
+    background: #495057;
+    color: #f8f9fa;
+    border: 1px solid #6c757d;
+}
+
 body.dark-mode .operation-container button {
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     color: #f1f5f9;
@@ -450,6 +516,21 @@ body.sepia-mode select:hover, body.sepia-mode button:hover {
     background: linear-gradient(135deg, #ede5d3 0%, #e6d7c3 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(139, 121, 94, 0.25);
+}
+
+body.sepia-mode .operation-container .repeat-control {
+    background: linear-gradient(135deg, #f5f2e8 0%, #ede5d3 100%);
+    box-shadow: 0 4px 12px rgba(139, 121, 94, 0.2);
+}
+
+body.sepia-mode .operation-container .repeat-control label {
+    color: #5d4e37;
+}
+
+body.sepia-mode .operation-container .repeat-control select {
+    background: #faf7f0;
+    color: #5d4e37;
+    border: 1px solid #d2b48c;
 }
 
 body.sepia-mode .operation-container button {
