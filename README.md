@@ -164,10 +164,9 @@ Quran_Flask/
 ├── static/                        # Static assets
 │   ├── script.js                 # Main JavaScript functionality
 │   ├── styles.css                # Styling and themes
-│   └── fonts/                    # Arabic font files
-│       ├── digitalkhatt.otf
-│       ├── uthmanic_hafs_v20.ttf
-│       └── ...
+│   ├── digitalkhatt.woff2        # Arabic font files
+│   ├── uthmanic_hafs_v20.ttf
+│   └── Naskh-Nastaleeq-IndoPak-QWBW.ttf
 └── templates/                     # HTML templates
     └── index.html                # Main application template
 ```

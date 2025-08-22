@@ -9,10 +9,7 @@
     src: url('uthmanic_hafs_v20.ttf') format('truetype');
 }
 
-@font-face {
-    font-family: 'HafsNastaleeq';
-    src: url('HafsNastaleeq Ver10.otf') format('truetype');
-}
+
 
 @font-face {
     font-family: 'Naskh-Nastaleeq-IndoPak-QWBW';
@@ -289,9 +286,7 @@ body.dark-mode .close:focus {
     font-family: 'UthmanicHafs', serif;
 }
 
-.hafs_nastaleeq {
-    font-family: 'HafsNastaleeq', serif;
-}
+
 
 .indopak_nastaleeq {
     font-family: 'Naskh-Nastaleeq-IndoPak-QWBW', serif;
