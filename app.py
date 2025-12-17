@@ -3,22 +3,55 @@ import json
 import sqlite3
 import os
 import logging
+import requests
+from functools import lru_cache
+from flask import make_response
+import gzip
+from io import BytesIO
 
 app = Flask(__name__, static_folder='static')
+
+# Enable response compression
+app.config['COMPRESS_MIMETYPES'] = ['text/html', 'text/css', 'application/json', 'application/javascript']
+app.config['COMPRESS_LEVEL'] = 6
+app.config['COMPRESS_MIN_SIZE'] = 500
 
 # Configure logging
 if not app.debug:
     logging.basicConfig(level=logging.INFO)
     app.logger.setLevel(logging.INFO)
 
-# Security improvements
+# Compression and security improvements
 @app.after_request
 def after_request(response):
-    """Add security headers to all responses"""
+    """Add security headers and compression to all responses"""
+    # Security headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; media-src 'self' https://audio.qurancdn.com; connect-src 'self' https://api.alquran.cloud;"
+    
+    # Cache control for API responses (cache for 1 hour)
+    if request.path.startswith('/api/'):
+        response.headers['Cache-Control'] = 'public, max-age=3600'
+    
+    # GZIP compression for JSON responses - check early to avoid unnecessary processing
+    if (response.status_code == 200 and 
+        response.content_type and 'application/json' in response.content_type and
+        'gzip' in request.headers.get('Accept-Encoding', '').lower()):
+        
+        response_data = response.get_data()
+        # Only compress if response is large enough
+        if len(response_data) > 500:
+            gzip_buffer = BytesIO()
+            with gzip.GzipFile(mode='wb', fileobj=gzip_buffer, compresslevel=6) as gzip_file:
+                gzip_file.write(response_data)
+            
+            response.set_data(gzip_buffer.getvalue())
+            response.headers['Content-Encoding'] = 'gzip'
+            response.headers['Content-Length'] = len(response.get_data())
+            response.headers['Vary'] = 'Accept-Encoding'
+    
     return response
 
 # Error handlers
@@ -55,7 +88,7 @@ except (FileNotFoundError, json.JSONDecodeError) as e:
     print(f"Error loading Indopak Nastaleeq_Waqf.json: {e}")
     indopak_nastaleeq_data = {}
 
-# Load transliteration and tafseer data with error handling
+# Load transliteration data with error handling
 try:
     with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
         transliteration_data = json.load(f)
@@ -63,21 +96,27 @@ except (FileNotFoundError, json.JSONDecodeError) as e:
     print(f"Error loading Transliteration.json: {e}")
     transliteration_data = {}
 
-# Load multiple tafseer data files
+# Lazy loading for tafseer data (only load when needed)
 tafseer_files = {
     'تفسير السعدي': 'QUL_data/Tafseer Al Saddi.json',
     'تفسير القرطبي': 'QUL_data/Tafseer Al Qurtubi.json',
     'تفسير البغوي': 'QUL_data/Tafseer Al-Baghawi.json'
 }
 
-tafseer_data = {}
-for tafseer_name, tafseer_file in tafseer_files.items():
+@lru_cache(maxsize=3)
+def load_tafseer_data(tafseer_name):
+    """Lazy load tafseer data with caching via @lru_cache"""
+    tafseer_file = tafseer_files.get(tafseer_name)
+    if not tafseer_file:
+        return {}
+    
     try:
         with open(tafseer_file, 'r', encoding='utf-8') as f:
-            tafseer_data[tafseer_name] = json.load(f)
+            data = json.load(f)
+            return data
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading {tafseer_file}: {e}")
-        tafseer_data[tafseer_name] = {}
+        app.logger.error(f"Error loading {tafseer_file}: {e}")
+        return {}
 
 
 # Load audio data for different reciters with error handling
@@ -216,11 +255,16 @@ for reciter, data in audio_data.items():
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
+        # Check if database file exists
+        if not os.path.exists(DATABASE):
+            app.logger.error(f"Database file not found: {DATABASE}")
+            return None
+            
         try:
             db = g._database = sqlite3.connect(DATABASE)
             db.row_factory = sqlite3.Row  # To access columns by name
         except sqlite3.Error as e:
-            print(f"Database connection error: {e}")
+            app.logger.error(f"Database connection error: {e}")
             return None
     return db
 
@@ -233,6 +277,7 @@ def close_connection(exception):
 def get_word_meanings(surah_number, ayah_number):
     db = get_db()
     if db is None:
+        app.logger.warning("Database not available for word meanings")
         return {}
     
     try:
@@ -249,8 +294,36 @@ def get_word_meanings(surah_number, ayah_number):
             word_meanings[row['word']] = row['meaning']
         return word_meanings
     except sqlite3.Error as e:
-        print(f"Database query error: {e}")
+        app.logger.error(f"Database query error: {e}")
         return {}
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint for monitoring"""
+    health_status = {
+        "status": "healthy",
+        "service": "Quran Flask API",
+        "checks": {
+            "database": os.path.exists(DATABASE),
+            "digital_khatt_loaded": bool(digital_khatt_data),
+            "qpc_hafs_loaded": bool(qpc_hafs_data),
+            "indopak_loaded": bool(indopak_nastaleeq_data),
+            "transliteration_loaded": bool(transliteration_data),
+            "audio_data_loaded": bool(audio_data)
+        }
+    }
+    
+    # Check if any critical component is missing
+    if not all([
+        digital_khatt_data,
+        qpc_hafs_data,
+        indopak_nastaleeq_data,
+        transliteration_data
+    ]):
+        health_status["status"] = "degraded"
+        return jsonify(health_status), 503
+    
+    return jsonify(health_status), 200
 
 @app.route('/api/surahs', methods=['GET'])
 def get_surahs():
@@ -298,8 +371,11 @@ def get_ayah_text(surah_number, ayah_number):
         ayah_data['id'] = ayah_number  # Add ID to the Ayah data
         ayah_data['transliteration'] = transliteration_data.get(verse_key, {})
         
-        # Add all tafseers
-        ayah_data['tafseer'] = {tafseer_file: tafseer_data.get(tafseer_file, {}).get(verse_key, {}) for tafseer_file in tafseer_files}
+        # Lazy load tafseers - only load when requested
+        ayah_data['tafseer'] = {}
+        for tafseer_name in tafseer_files.keys():
+            tafseer_data_loaded = load_tafseer_data(tafseer_name)
+            ayah_data['tafseer'][tafseer_name] = tafseer_data_loaded.get(verse_key, {})
         
         # Add reciters' audio information
         ayah_data['reciters'] = {}
@@ -342,7 +418,24 @@ def get_transliteration():
 
 @app.route('/api/tafseer', methods=['GET'])
 def get_tafseer():
-    return jsonify(tafseer_data)
+    """Get tafseer data - deprecated, use /api/tafseer/<name> instead"""
+    # Return empty for now to avoid loading all tafseers at once
+    return jsonify({
+        "message": "Use /api/tafseer/<tafseer_name> to get specific tafseer",
+        "available_tafseers": list(tafseer_files.keys())
+    })
+
+@app.route('/api/tafseer/<tafseer_name>', methods=['GET'])
+def get_specific_tafseer(tafseer_name):
+    """Get specific tafseer data with lazy loading"""
+    if tafseer_name not in tafseer_files:
+        return jsonify({
+            "error": "Invalid tafseer name",
+            "available_tafseers": list(tafseer_files.keys())
+        }), 404
+    
+    tafseer_data_loaded = load_tafseer_data(tafseer_name)
+    return jsonify(tafseer_data_loaded)
 
 @app.route('/')
 def index():
@@ -364,15 +457,47 @@ def get_quran_text_data():
 @app.route('/api/audio-proxy')
 def audio_proxy():
     """Proxy audio files to avoid CSP issues in sandbox environments"""
-    import requests
+    from urllib.parse import urlparse
     
     audio_url = request.args.get('url')
-    if not audio_url or not audio_url.startswith('https://audio.qurancdn.com/'):
-        return jsonify({"error": "Invalid audio URL"}), 400
+    if not audio_url:
+        return jsonify({"error": "Missing audio URL"}), 400
+    
+    # Parse and validate the URL
+    try:
+        parsed_url = urlparse(audio_url)
+        
+        # Only allow HTTPS protocol
+        if parsed_url.scheme != 'https':
+            return jsonify({"error": "Only HTTPS URLs are allowed"}), 400
+        
+        # Only allow specific trusted domain (without port)
+        allowed_domain = 'audio.qurancdn.com'
+        # parsed_url.netloc includes the port if specified
+        # We want to allow only the domain without any explicit port
+        # or with the default HTTPS port (443)
+        if parsed_url.netloc != allowed_domain:
+            # Check if it's the domain with explicit :443
+            if not (parsed_url.hostname == allowed_domain and parsed_url.port in (None, 443)):
+                return jsonify({"error": f"Only {allowed_domain} domain is allowed"}), 400
+            
+    except Exception as e:
+        app.logger.error(f"URL validation error: {e}")
+        return jsonify({"error": "Invalid URL format"}), 400
     
     try:
-        # Stream the audio file
-        response = requests.get(audio_url, stream=True)
+        # Stream the audio file with timeout and no redirects
+        # CodeQL may flag this as SSRF, but it's a false positive:
+        # - URL is validated to only allow HTTPS protocol
+        # - URL is restricted to audio.qurancdn.com domain only
+        # - Redirects are disabled to prevent redirect-based SSRF
+        # - Timeout is set to prevent DoS
+        response = requests.get(
+            audio_url, 
+            stream=True, 
+            timeout=10,
+            allow_redirects=False  # Prevent SSRF via redirects
+        )
         response.raise_for_status()
         
         # Set appropriate headers
@@ -384,11 +509,114 @@ def audio_proxy():
                        content_type=response.headers.get('content-type', 'audio/mpeg'),
                        headers={
                            'Content-Length': response.headers.get('content-length'),
-                           'Accept-Ranges': 'bytes'
+                           'Accept-Ranges': 'bytes',
+                           'Cache-Control': 'public, max-age=86400'  # Cache for 24 hours
                        })
-    except Exception as e:
+    except requests.exceptions.Timeout:
+        app.logger.error(f"Timeout proxying audio: {audio_url}")
+        return jsonify({"error": "Audio request timeout"}), 504
+    except requests.exceptions.RequestException as e:
         app.logger.error(f"Error proxying audio: {e}")
         return jsonify({"error": "Failed to proxy audio"}), 500
+
+@app.route('/api/search', methods=['GET'])
+def search_verses():
+    """Search for verses containing specific text or words"""
+    query = request.args.get('q', '').strip()
+    source = request.args.get('source', 'qpc_hafs')
+    limit = request.args.get('limit', 50, type=int)
+    
+    if not query:
+        return jsonify({"error": "Search query parameter 'q' is required"}), 400
+    
+    if limit < 1 or limit > 100:
+        limit = 50
+    
+    # Validate source parameter
+    valid_sources = ['digital_khatt', 'indopak_nastaleeq', 'qpc_hafs']
+    if source not in valid_sources:
+        source = 'qpc_hafs'
+    
+    # Get appropriate data source
+    if source == 'digital_khatt':
+        search_data = digital_khatt_data
+    elif source == 'indopak_nastaleeq':
+        search_data = indopak_nastaleeq_data
+    else:
+        search_data = qpc_hafs_data
+    
+    # Search through verses
+    results = []
+    
+    for verse_key, verse_data in search_data.items():
+        if len(results) >= limit:
+            break
+            
+        # Search in Arabic text (exact match in the text)
+        text = verse_data.get('text', '')
+        if query in text:
+            surah_num, ayah_num = verse_key.split(':')
+            results.append({
+                'verse_key': verse_key,
+                'surah_number': int(surah_num),
+                'ayah_number': int(ayah_num),
+                'text': text,
+                'highlight': True
+            })
+    
+    return jsonify({
+        'query': query,
+        'total_results': len(results),
+        'results': results,
+        'source': source
+    })
+
+@app.route('/api/word-search', methods=['GET'])
+def search_word_meanings():
+    """Search for word meanings in the database"""
+    query = request.args.get('q', '').strip()
+    limit = request.args.get('limit', 50, type=int)
+    
+    if not query:
+        return jsonify({"error": "Search query parameter 'q' is required"}), 400
+    
+    if limit < 1 or limit > 100:
+        limit = 50
+    
+    db = get_db()
+    if db is None:
+        return jsonify({"error": "Database not available"}), 503
+    
+    try:
+        cursor = db.cursor()
+        # Search in both word and meaning columns
+        search_query = '''
+            SELECT DISTINCT surah_number, ayah_number, word, meaning
+            FROM verses
+            WHERE word LIKE ? OR meaning LIKE ?
+            LIMIT ?
+        '''
+        search_pattern = f'%{query}%'
+        cursor.execute(search_query, (search_pattern, search_pattern, limit))
+        rows = cursor.fetchall()
+        
+        results = []
+        for row in rows:
+            results.append({
+                'surah_number': row['surah_number'],
+                'ayah_number': row['ayah_number'],
+                'word': row['word'],
+                'meaning': row['meaning']
+            })
+        
+        return jsonify({
+            'query': query,
+            'total_results': len(results),
+            'results': results
+        })
+    except sqlite3.Error as e:
+        app.logger.error(f"Database search error: {e}")
+        return jsonify({"error": "Search failed"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
