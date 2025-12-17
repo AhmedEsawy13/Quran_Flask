@@ -35,20 +35,22 @@ def after_request(response):
     if request.path.startswith('/api/'):
         response.headers['Cache-Control'] = 'public, max-age=3600'
     
-    # GZIP compression for JSON responses
+    # GZIP compression for JSON responses - check early to avoid unnecessary processing
     if (response.status_code == 200 and 
-        'application/json' in response.content_type and
-        'gzip' in request.headers.get('Accept-Encoding', '').lower() and
-        len(response.get_data()) > 500):
+        response.content_type and 'application/json' in response.content_type and
+        'gzip' in request.headers.get('Accept-Encoding', '').lower()):
         
-        gzip_buffer = BytesIO()
-        with gzip.GzipFile(mode='wb', fileobj=gzip_buffer, compresslevel=6) as gzip_file:
-            gzip_file.write(response.get_data())
-        
-        response.set_data(gzip_buffer.getvalue())
-        response.headers['Content-Encoding'] = 'gzip'
-        response.headers['Content-Length'] = len(response.get_data())
-        response.headers['Vary'] = 'Accept-Encoding'
+        response_data = response.get_data()
+        # Only compress if response is large enough
+        if len(response_data) > 500:
+            gzip_buffer = BytesIO()
+            with gzip.GzipFile(mode='wb', fileobj=gzip_buffer, compresslevel=6) as gzip_file:
+                gzip_file.write(response_data)
+            
+            response.set_data(gzip_buffer.getvalue())
+            response.headers['Content-Encoding'] = 'gzip'
+            response.headers['Content-Length'] = len(response.get_data())
+            response.headers['Vary'] = 'Accept-Encoding'
     
     return response
 
@@ -101,15 +103,9 @@ tafseer_files = {
     'تفسير البغوي': 'QUL_data/Tafseer Al-Baghawi.json'
 }
 
-# Cache for loaded tafseer data
-_tafseer_cache = {}
-
 @lru_cache(maxsize=3)
 def load_tafseer_data(tafseer_name):
-    """Lazy load tafseer data with caching"""
-    if tafseer_name in _tafseer_cache:
-        return _tafseer_cache[tafseer_name]
-    
+    """Lazy load tafseer data with caching via @lru_cache"""
     tafseer_file = tafseer_files.get(tafseer_name)
     if not tafseer_file:
         return {}
@@ -117,7 +113,6 @@ def load_tafseer_data(tafseer_name):
     try:
         with open(tafseer_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            _tafseer_cache[tafseer_name] = data
             return data
     except (FileNotFoundError, json.JSONDecodeError) as e:
         app.logger.error(f"Error loading {tafseer_file}: {e}")
@@ -476,14 +471,15 @@ def audio_proxy():
         if parsed_url.scheme != 'https':
             return jsonify({"error": "Only HTTPS URLs are allowed"}), 400
         
-        # Only allow specific trusted domain
+        # Only allow specific trusted domain (without port)
         allowed_domain = 'audio.qurancdn.com'
+        # parsed_url.netloc includes the port if specified
+        # We want to allow only the domain without any explicit port
+        # or with the default HTTPS port (443)
         if parsed_url.netloc != allowed_domain:
-            return jsonify({"error": f"Only {allowed_domain} domain is allowed"}), 400
-        
-        # Ensure no port is specified (to avoid localhost tricks)
-        if ':' in parsed_url.netloc and not parsed_url.netloc.endswith(':443'):
-            return jsonify({"error": "Invalid URL format"}), 400
+            # Check if it's the domain with explicit :443
+            if not (parsed_url.hostname == allowed_domain and parsed_url.port in (None, 443)):
+                return jsonify({"error": f"Only {allowed_domain} domain is allowed"}), 400
             
     except Exception as e:
         app.logger.error(f"URL validation error: {e}")
