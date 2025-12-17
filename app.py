@@ -458,7 +458,6 @@ def get_quran_text_data():
 def audio_proxy():
     """Validate and redirect to audio files to avoid firewall issues in sandbox environments"""
     from urllib.parse import urlparse
-    from flask import redirect
     
     audio_url = request.args.get('url')
     if not audio_url:
@@ -489,7 +488,8 @@ def audio_proxy():
     # Redirect to the validated audio URL instead of proxying
     # This allows the client browser to fetch directly from audio.qurancdn.com
     # which is allowed by the CSP media-src directive and avoids firewall issues
-    return redirect(audio_url, code=302)
+    # Using 307 (Temporary Redirect) to preserve request method
+    return redirect(audio_url, code=307)
 
 @app.route('/api/search', methods=['GET'])
 def search_verses():
