@@ -490,5 +490,104 @@ def audio_proxy():
         app.logger.error(f"Error proxying audio: {e}")
         return jsonify({"error": "Failed to proxy audio"}), 500
 
+@app.route('/api/search', methods=['GET'])
+def search_verses():
+    """Search for verses containing specific text or words"""
+    query = request.args.get('q', '').strip()
+    source = request.args.get('source', 'qpc_hafs')
+    limit = request.args.get('limit', 50, type=int)
+    
+    if not query:
+        return jsonify({"error": "Search query parameter 'q' is required"}), 400
+    
+    if limit < 1 or limit > 100:
+        limit = 50
+    
+    # Validate source parameter
+    valid_sources = ['digital_khatt', 'indopak_nastaleeq', 'qpc_hafs']
+    if source not in valid_sources:
+        source = 'qpc_hafs'
+    
+    # Get appropriate data source
+    if source == 'digital_khatt':
+        search_data = digital_khatt_data
+    elif source == 'indopak_nastaleeq':
+        search_data = indopak_nastaleeq_data
+    else:
+        search_data = qpc_hafs_data
+    
+    # Search through verses
+    results = []
+    
+    for verse_key, verse_data in search_data.items():
+        if len(results) >= limit:
+            break
+            
+        # Search in Arabic text (exact match in the text)
+        text = verse_data.get('text', '')
+        if query in text:
+            surah_num, ayah_num = verse_key.split(':')
+            results.append({
+                'verse_key': verse_key,
+                'surah_number': int(surah_num),
+                'ayah_number': int(ayah_num),
+                'text': text,
+                'highlight': True
+            })
+    
+    return jsonify({
+        'query': query,
+        'total_results': len(results),
+        'results': results,
+        'source': source
+    })
+
+@app.route('/api/word-search', methods=['GET'])
+def search_word_meanings():
+    """Search for word meanings in the database"""
+    query = request.args.get('q', '').strip()
+    limit = request.args.get('limit', 50, type=int)
+    
+    if not query:
+        return jsonify({"error": "Search query parameter 'q' is required"}), 400
+    
+    if limit < 1 or limit > 100:
+        limit = 50
+    
+    db = get_db()
+    if db is None:
+        return jsonify({"error": "Database not available"}), 503
+    
+    try:
+        cursor = db.cursor()
+        # Search in both word and meaning columns
+        search_query = '''
+            SELECT DISTINCT surah_number, ayah_number, word, meaning
+            FROM verses
+            WHERE word LIKE ? OR meaning LIKE ?
+            LIMIT ?
+        '''
+        search_pattern = f'%{query}%'
+        cursor.execute(search_query, (search_pattern, search_pattern, limit))
+        rows = cursor.fetchall()
+        
+        results = []
+        for row in rows:
+            results.append({
+                'surah_number': row['surah_number'],
+                'ayah_number': row['ayah_number'],
+                'word': row['word'],
+                'meaning': row['meaning']
+            })
+        
+        return jsonify({
+            'query': query,
+            'total_results': len(results),
+            'results': results
+        })
+    except sqlite3.Error as e:
+        app.logger.error(f"Database search error: {e}")
+        return jsonify({"error": "Search failed"}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
