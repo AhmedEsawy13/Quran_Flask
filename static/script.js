@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentRepeatCount = 0; // Track current repeat count
     let maxRepeats = 1; // Track maximum repeats set by user
     const fontCache = {};
+    
+    // Get loading overlay
+    const loadingOverlay = document.getElementById('loading-overlay');
 
     addEventListeners();
 
@@ -14,8 +17,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadInitialData();
         // Initialize repeat functionality
         handleRepeatChange();
+        // Hide loading overlay after data loads
+        hideLoadingOverlay();
     } catch (error) {
+        hideLoadingOverlay();
         handleError('Error loading data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
+    }
+    
+    // Function to hide loading overlay
+    function hideLoadingOverlay() {
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            // Remove from DOM after animation completes
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 300);
+        }
     }
 
     // Initialize voice recognition with error handling

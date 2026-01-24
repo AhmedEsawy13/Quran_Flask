@@ -1,25 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quranic App</title>
+    <meta name="description" content="تطبيق القرآن الكريم - استمع وتعلم القرآن الكريم مع التفسير والترجمة">
+    <meta name="theme-color" content="#4f46e5">
+    <title>القرآن الكريم - Quranic App</title>
+    <!-- Preload fonts for faster loading -->
+    <link rel="preload" href="{{ url_for('static', filename='uthmanic_hafs_v20.ttf') }}" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="{{ url_for('static', filename='digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
 </head>
 <body>
-    <div id="dark-mode-toggle-label">
-        <label for="dark-mode-toggle">
-            <i class="fas fa-moon"></i>
-        </label>
-        <input type="checkbox" id="dark-mode-toggle">
+    <!-- Loading indicator -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-quran fa-spin"></i>
+            <span>جاري التحميل...</span>
+        </div>
     </div>
-    <div id="sepia-mode-toggle-label">
-        <label for="sepia-mode-toggle">
-            <i class="fas fa-leaf"></i>
-        </label>
-        <input type="checkbox" id="sepia-mode-toggle">
+    
+    <!-- Theme toggle buttons with better visibility -->
+    <div class="theme-toggles">
+        <div id="dark-mode-toggle-label" class="theme-toggle-btn" title="الوضع الليلي">
+            <label for="dark-mode-toggle">
+                <i class="fas fa-moon"></i>
+            </label>
+            <input type="checkbox" id="dark-mode-toggle">
+        </div>
+        <div id="sepia-mode-toggle-label" class="theme-toggle-btn" title="وضع القراءة">
+            <label for="sepia-mode-toggle">
+                <i class="fas fa-leaf"></i>
+            </label>
+            <input type="checkbox" id="sepia-mode-toggle">
+        </div>
     </div>
     <div class="controls-container">
         <div id="controls">
@@ -39,10 +55,9 @@
                 <option value="indopak_nastaleeq">IndoPak Nastaleeq</option>
             </select>
             <select id="tafseer-select">
-                <option value="Tafseer Al Qurtubi"></option>
-                <option value="Tafseer Al Saddi"></option>
-                <option value="Tafseer Al-Bagha"></option>
-                <!-- Add more tafseers here -->
+                <option value="تفسير القرطبي">تفسير القرطبي</option>
+                <option value="تفسير السعدي">تفسير السعدي</option>
+                <option value="تفسير البغوي">تفسير البغوي</option>
             </select>
         </div>
         <div class="ayah-container">
