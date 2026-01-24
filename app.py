@@ -29,7 +29,7 @@ def after_request(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; media-src 'self' https://audio.qurancdn.com; connect-src 'self' https://api.alquran.cloud;"
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; media-src 'self' https://audio.qurancdn.com; connect-src 'self';"
     
     # Cache control for API responses (cache for 1 hour)
     if request.path.startswith('/api/'):
@@ -95,6 +95,14 @@ try:
 except (FileNotFoundError, json.JSONDecodeError) as e:
     print(f"Error loading Transliteration.json: {e}")
     transliteration_data = {}
+
+# Load surah names data (local file to avoid external API dependency)
+try:
+    with open('QUL_data/surahs.json', 'r', encoding='utf-8') as f:
+        surahs_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Error loading surahs.json: {e}")
+    surahs_data = []
 
 # Lazy loading for tafseer data (only load when needed)
 tafseer_files = {
@@ -327,6 +335,11 @@ def health_check():
 
 @app.route('/api/surahs', methods=['GET'])
 def get_surahs():
+    """Get list of surahs with their names (local data, no external API dependency)"""
+    if surahs_data:
+        return jsonify(surahs_data)
+    
+    # Fallback to extracting surah numbers from text data
     quran_text_data = get_quran_text_data()
     surahs = []
     for verse_key in quran_text_data.keys():
