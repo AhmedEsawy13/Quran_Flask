@@ -1,19 +1,165 @@
-/* Font Faces */
+/* Font Faces - with font-display for better loading */
 @font-face {
     font-family: 'Digital Khatt';
-    src: url('digitalkhatt.woff2') format('opentype');
+    src: url('digitalkhatt.woff2') format('woff2');
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'UthmanicHafs';
     src: url('uthmanic_hafs_v20.ttf') format('truetype');
+    font-display: swap;
 }
-
-
 
 @font-face {
     font-family: 'Naskh-Nastaleeq-IndoPak-QWBW';
     src: url('Naskh-Nastaleeq-IndoPak-QWBW.ttf') format('truetype');
+    font-display: swap;
+}
+
+/* CSS Variables for theming */
+:root {
+    --primary-color: #4f46e5;
+    --primary-dark: #3730a3;
+    --primary-light: #818cf8;
+    --bg-primary: #f4f4f9;
+    --bg-secondary: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.08);
+    --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.12);
+    --shadow-lg: 0 8px 24px rgba(15, 23, 42, 0.16);
+    --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius-sm: 12px;
+    --border-radius-md: 16px;
+    --border-radius-lg: 24px;
+    --border-radius-full: 9999px;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(244, 244, 249, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.loading-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: var(--primary-color);
+    font-size: 18px;
+    font-family: 'UthmanicHafs', serif;
+}
+
+.loading-spinner i {
+    font-size: 48px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+}
+
+body.dark-mode .loading-overlay {
+    background: rgba(0, 0, 0, 0.95);
+}
+
+body.dark-mode .loading-spinner {
+    color: var(--primary-light);
+}
+
+/* Theme Toggle Buttons */
+.theme-toggles {
+    position: fixed;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 1000;
+}
+
+.theme-toggle-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--border-radius-full);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+}
+
+.theme-toggle-btn:hover {
+    transform: scale(1.1);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.theme-toggle-btn label {
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.theme-toggle-btn:hover label {
+    color: var(--primary-color);
+}
+
+#dark-mode-toggle, #sepia-mode-toggle {
+    display: none;
+}
+
+body.dark-mode .theme-toggle-btn {
+    background: #1f2937;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .theme-toggle-btn label {
+    color: #9ca3af;
+}
+
+body.dark-mode .theme-toggle-btn:hover label {
+    color: var(--primary-light);
+}
+
+body.sepia-mode .theme-toggle-btn {
+    background: #faf7f0;
+    box-shadow: 0 4px 12px rgba(139, 121, 94, 0.2);
+}
+
+body.sepia-mode .theme-toggle-btn label {
+    color: #8b7355;
+}
+
+body.sepia-mode .theme-toggle-btn:hover label {
+    color: #cd853f;
 }
 
 /* Body Styles */
