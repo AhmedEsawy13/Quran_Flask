@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let maxRepeats = 1; // Track maximum repeats set by user
     const fontCache = {};
 
+    // Load user preferences from localStorage
+    loadUserPreferences();
+    
     addEventListeners();
 
     try {
@@ -16,6 +19,60 @@ document.addEventListener('DOMContentLoaded', async () => {
         handleRepeatChange();
     } catch (error) {
         handleError('Error loading data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
+    }
+    
+    // User preferences management
+    function loadUserPreferences() {
+        // Load theme preference
+        const savedTheme = localStorage.getItem('quranApp_theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            elements.darkModeToggle.checked = true;
+        } else if (savedTheme === 'sepia') {
+            document.body.classList.add('sepia-mode');
+            elements.sepiaModeToggle.checked = true;
+        }
+        
+        // Load font preference
+        const savedFont = localStorage.getItem('quranApp_font');
+        if (savedFont && elements.quranTextSelect) {
+            elements.quranTextSelect.value = savedFont;
+            changeFont(savedFont);
+        }
+        
+        // Load reciter preference
+        const savedReciter = localStorage.getItem('quranApp_reciter');
+        if (savedReciter && elements.reciterSelect) {
+            elements.reciterSelect.value = savedReciter;
+        }
+        
+        // Load last position (surah:ayah)
+        const savedPosition = localStorage.getItem('quranApp_lastPosition');
+        if (savedPosition) {
+            const [surah, ayah] = savedPosition.split(':');
+            // Will be applied after surahs load
+            elements.surahSelect.dataset.savedSurah = surah;
+            elements.ayahSelect.dataset.savedAyah = ayah;
+        }
+    }
+    
+    function saveUserPreferences() {
+        // Save current position
+        const surah = elements.surahSelect.value;
+        const ayah = elements.ayahSelect.value;
+        if (surah && ayah) {
+            localStorage.setItem('quranApp_lastPosition', `${surah}:${ayah}`);
+        }
+        
+        // Save reciter preference
+        if (elements.reciterSelect.value) {
+            localStorage.setItem('quranApp_reciter', elements.reciterSelect.value);
+        }
+        
+        // Save font preference
+        if (elements.quranTextSelect.value) {
+            localStorage.setItem('quranApp_font', elements.quranTextSelect.value);
+        }
     }
 
     // Initialize voice recognition with error handling
@@ -123,7 +180,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             quranTextContainer: document.getElementById('quran-text'),
             transliterationContainer: document.getElementById('transliteration'),
             tafseerContainer: document.getElementById('tafseer-text'),
-            wordMeaningContainer: document.getElementById('word-meaning-text'), // New container for word meanings
+            wordMeaningContainer: document.getElementById('word-meaning-text'),
             audioElement: document.getElementById('quran-audio'),
             repeatSelect: document.getElementById('repeat-select'),
             reciterSelect: document.getElementById('reciter-select'),
@@ -143,8 +200,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             closeModal: document.getElementsByClassName('close')[0],
             quranTextSelect: document.getElementById('quran-text-select'),
             playPauseButton: document.getElementById('play-pause-button'),
-            toggleWordMeaningButton: document.getElementById('toggle-word-meaning-button'), // Updated element for toggling word meanings
-           // downloadButton: document.getElementById('download-button')
+            toggleWordMeaningButton: document.getElementById('toggle-word-meaning-button'),
+            bookmarkButton: document.getElementById('bookmark-button'),
+            showBookmarksButton: document.getElementById('show-bookmarks-button'),
+            bookmarksModal: document.getElementById('bookmarksModal'),
+            bookmarksList: document.getElementById('bookmarks-list'),
+            closeBookmarksModal: document.getElementsByClassName('close-bookmarks')[0]
         };
     }
 
@@ -160,6 +221,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                 cleanupRangeMode();
             }
             loadQuranData();
+        });
+        
+        // Bookmark event listeners
+        if (elements.bookmarkButton) {
+            elements.bookmarkButton.addEventListener('click', addBookmark);
+        }
+        if (elements.showBookmarksButton) {
+            elements.showBookmarksButton.addEventListener('click', showBookmarksModal);
+        }
+        if (elements.closeBookmarksModal) {
+            elements.closeBookmarksModal.addEventListener('click', hideBookmarksModal);
+        }
+        window.addEventListener('click', (event) => {
+            if (event.target === elements.bookmarksModal) {
+                hideBookmarksModal();
+            }
         });
         elements.nextAyahButton.addEventListener('click', loadNextAyah);
         elements.prevAyahButton.addEventListener('click', loadPrevAyah);
@@ -220,14 +297,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadSurahData() {
         try {
-            const surahData = await fetchData('https://api.alquran.cloud/v1/surah');
-            const formattedSurahData = surahData.data.map(surah => ({
+            // Use local API endpoint instead of external API for faster loading
+            const surahData = await fetchData('/api/surahs');
+            const formattedSurahData = surahData.map(surah => ({
                 number: surah.number,
                 name: `${surah.number}. ${surah.name}`
             }));
             populateSelectOptions(formattedSurahData, elements.surahSelect, 'number', 'name');
+            
+            // Restore last saved surah position
+            const savedSurah = elements.surahSelect.dataset.savedSurah;
+            if (savedSurah) {
+                const surahOption = Array.from(elements.surahSelect.options).find(opt => opt.value === savedSurah);
+                if (surahOption) {
+                    elements.surahSelect.value = savedSurah;
+                }
+            }
         } catch (error) {
-            console.error('Error loading surah data from external API:', error);
+            console.error('Error loading surah data:', error);
             // Fallback: Create a basic list of surahs (1-114)
             const fallbackSurahs = Array.from({length: 114}, (_, i) => ({
                 number: i + 1,
@@ -264,10 +351,46 @@ document.addEventListener('DOMContentLoaded', async () => {
             populateSelectOptions(ayahList, elements.ayahSelect, null, null, 'آية');
             populateSelectOptions(ayahList, elements.startAyahSelect, null, null, 'آية');
             populateSelectOptions(ayahList, elements.endAyahSelect, null, null, 'آية');
+            
+            // Restore last saved ayah position if this is the saved surah
+            const savedSurah = elements.surahSelect.dataset.savedSurah;
+            const savedAyah = elements.ayahSelect.dataset.savedAyah;
+            if (savedSurah === surahNumber && savedAyah) {
+                const ayahOption = Array.from(elements.ayahSelect.options).find(opt => opt.value === savedAyah);
+                if (ayahOption) {
+                    elements.ayahSelect.value = savedAyah;
+                }
+                // Clear saved data after restoring
+                delete elements.surahSelect.dataset.savedSurah;
+                delete elements.ayahSelect.dataset.savedAyah;
+            }
+            
             await loadQuranData();
             updatePlayPauseButton();
         } catch (error) {
             handleError('Error loading Ayahs:', error, elements.quranTextContainer, 'خطأ في تحميل الآيات. يرجى المحاولة مرة أخرى لاحقًا.');
+        }
+    }
+
+    // Preload next ayah audio for low latency playback
+    let preloadedAudio = null;
+    function preloadNextAyah() {
+        const currentAyahIndex = elements.ayahSelect.selectedIndex;
+        if (currentAyahIndex < elements.ayahSelect.options.length - 1) {
+            const nextAyahNumber = elements.ayahSelect.options[currentAyahIndex + 1].value;
+            const surahNumber = elements.surahSelect.value;
+            const reciter = elements.reciterSelect.value;
+            
+            // Fetch next ayah data and preload audio
+            fetchData(`/api/surahs/${surahNumber}/ayahs/${nextAyahNumber}`)
+                .then(data => {
+                    if (data.reciters && data.reciters[reciter]) {
+                        preloadedAudio = new Audio();
+                        preloadedAudio.preload = 'auto';
+                        preloadedAudio.src = `/api/audio-proxy?url=${encodeURIComponent(data.reciters[reciter].audio_url)}`;
+                    }
+                })
+                .catch(err => console.log('Preload failed (non-critical):', err));
         }
     }
 
@@ -286,13 +409,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciterAudio = currentAyahData.reciters[reciter];
             if (!reciterAudio) throw new Error('Reciter audio not found');
     
-            console.log('Quran Text Data:', currentAyahData);
-            console.log('Reciter Audio:', reciterAudio);
-            console.log('Current Segments:', reciterAudio.segments);
-            console.log('Transliteration:', currentAyahData.transliteration);
-            console.log('Tafseers:', currentAyahData.tafseer);
-            console.log('Word Meanings:', currentAyahData.word_meanings);
-    
             const font = elements.quranTextSelect.value;
             // Use already cached quranTextData instead of making redundant API call
             const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
@@ -309,6 +425,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 elements.wordMeaningContainer.innerHTML = '';
             }
             updatePlayPauseButton();
+            
+            // Save current position to localStorage
+            saveUserPreferences();
+            
+            // Preload next ayah for low latency navigation
+            preloadNextAyah();
     
             elements.audioElement.onended = updatePlayPauseButton;
         } catch (error) {
@@ -698,6 +820,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (element) element.classList.toggle('dark-mode');
             });
         });
+        
+        // Save theme preference
+        if (document.body.classList.contains('dark-mode')) {
+            localStorage.setItem('quranApp_theme', 'dark');
+        } else {
+            localStorage.setItem('quranApp_theme', 'light');
+        }
     }
 
     function toggleSepiaMode() {
@@ -725,6 +854,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (element) element.classList.toggle('sepia-mode');
             });
         });
+        
+        // Save theme preference
+        if (document.body.classList.contains('sepia-mode')) {
+            localStorage.setItem('quranApp_theme', 'sepia');
+        } else {
+            localStorage.setItem('quranApp_theme', 'light');
+        }
     }
 
     function toggleRangeSelection() {
@@ -885,6 +1021,105 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.playPauseButton.classList.add('fa-pause');
         }
     }
+
+    // Bookmark functions
+    function getBookmarks() {
+        const bookmarks = localStorage.getItem('quranApp_bookmarks');
+        return bookmarks ? JSON.parse(bookmarks) : [];
+    }
+    
+    function saveBookmarks(bookmarks) {
+        localStorage.setItem('quranApp_bookmarks', JSON.stringify(bookmarks));
+    }
+    
+    function addBookmark() {
+        const surah = elements.surahSelect.value;
+        const ayah = elements.ayahSelect.value;
+        const surahName = elements.surahSelect.options[elements.surahSelect.selectedIndex]?.text || `سورة ${surah}`;
+        
+        if (!surah || !ayah) {
+            alert('الرجاء اختيار سورة وآية');
+            return;
+        }
+        
+        const bookmarks = getBookmarks();
+        const bookmarkKey = `${surah}:${ayah}`;
+        
+        // Check if bookmark already exists
+        if (bookmarks.some(b => b.key === bookmarkKey)) {
+            alert('هذه الآية محفوظة بالفعل');
+            return;
+        }
+        
+        bookmarks.push({
+            key: bookmarkKey,
+            surah: surah,
+            ayah: ayah,
+            surahName: surahName,
+            timestamp: new Date().toISOString()
+        });
+        
+        saveBookmarks(bookmarks);
+        
+        // Visual feedback
+        elements.bookmarkButton.innerHTML = '<i class="fas fa-check"></i> تم الحفظ';
+        setTimeout(() => {
+            elements.bookmarkButton.innerHTML = '<i class="fas fa-bookmark"></i> علامة مرجعية';
+        }, 1500);
+    }
+    
+    function removeBookmark(key) {
+        let bookmarks = getBookmarks();
+        bookmarks = bookmarks.filter(b => b.key !== key);
+        saveBookmarks(bookmarks);
+        renderBookmarks();
+    }
+    
+    function goToBookmark(surah, ayah) {
+        elements.surahSelect.value = surah;
+        loadAyahs().then(() => {
+            elements.ayahSelect.value = ayah;
+            loadQuranData();
+        });
+        hideBookmarksModal();
+    }
+    
+    function renderBookmarks() {
+        const bookmarks = getBookmarks();
+        
+        if (bookmarks.length === 0) {
+            elements.bookmarksList.innerHTML = '<p style="text-align: center; color: #888;">لا توجد علامات مرجعية</p>';
+            return;
+        }
+        
+        const html = bookmarks.map(bookmark => `
+            <div class="bookmark-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 5px 0; background: var(--card-bg, #f8f9fa); border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0);">
+                <span style="cursor: pointer; flex: 1;" onclick="window.quranApp.goToBookmark('${bookmark.surah}', '${bookmark.ayah}')">
+                    ${bookmark.surahName} - آية ${bookmark.ayah}
+                </span>
+                <button onclick="window.quranApp.removeBookmark('${bookmark.key}')" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; margin-right: 10px;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+        
+        elements.bookmarksList.innerHTML = html;
+    }
+    
+    function showBookmarksModal() {
+        renderBookmarks();
+        elements.bookmarksModal.classList.add('show');
+    }
+    
+    function hideBookmarksModal() {
+        elements.bookmarksModal.classList.remove('show');
+    }
+    
+    // Expose functions to global scope for bookmark onclick handlers
+    window.quranApp = {
+        goToBookmark: goToBookmark,
+        removeBookmark: removeBookmark
+    };
 
     // Initialize word meanings visibility
     elements.wordMeaningVisible = false;

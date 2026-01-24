@@ -96,6 +96,14 @@ except (FileNotFoundError, json.JSONDecodeError) as e:
     print(f"Error loading Transliteration.json: {e}")
     transliteration_data = {}
 
+# Load surah names data (local file to avoid external API dependency)
+try:
+    with open('QUL_data/surahs.json', 'r', encoding='utf-8') as f:
+        surahs_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    print(f"Error loading surahs.json: {e}")
+    surahs_data = []
+
 # Lazy loading for tafseer data (only load when needed)
 tafseer_files = {
     'تفسير السعدي': 'QUL_data/Tafseer Al Saddi.json',
@@ -327,6 +335,11 @@ def health_check():
 
 @app.route('/api/surahs', methods=['GET'])
 def get_surahs():
+    """Get list of surahs with their names (local data, no external API dependency)"""
+    if surahs_data:
+        return jsonify(surahs_data)
+    
+    # Fallback to extracting surah numbers from text data
     quran_text_data = get_quran_text_data()
     surahs = []
     for verse_key in quran_text_data.keys():

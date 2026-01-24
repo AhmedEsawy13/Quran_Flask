@@ -39,10 +39,9 @@
                 <option value="indopak_nastaleeq">IndoPak Nastaleeq</option>
             </select>
             <select id="tafseer-select">
-                <option value="Tafseer Al Qurtubi"></option>
-                <option value="Tafseer Al Saddi"></option>
-                <option value="Tafseer Al-Bagha"></option>
-                <!-- Add more tafseers here -->
+                <option value="تفسير القرطبي">تفسير القرطبي</option>
+                <option value="تفسير السعدي">تفسير السعدي</option>
+                <option value="تفسير البغوي">تفسير البغوي</option>
             </select>
         </div>
         <div class="ayah-container">
@@ -60,9 +59,10 @@
                     <audio id="quran-audio" controls></audio>
                     <button id="show-transliteration"> عرض النطق الحرفي</button>
                     <button id="play-pause-button">ايقاف / تشغيل</button>
-                   <!-- <button id="download-button">تحميل</button>-->
                     <button id="show-tafseer">عرض التفسير </button>
                     <button id="toggle-word-meaning-button">عرض غريب الكلمات</button>
+                    <button id="bookmark-button" title="إضافة علامة مرجعية"><i class="fas fa-bookmark"></i> علامة مرجعية</button>
+                    <button id="show-bookmarks-button" title="عرض العلامات المرجعية"><i class="fas fa-list"></i> المرجعيات</button>
                     <div id="word-meaning-text" style="display: none;"></div>
                     <div class="repeat-control">
                         <label for="repeat-select">تكرار الاية:</label>
@@ -79,6 +79,14 @@
                     <button id="next-ayah">الاية التالية</button>
                 </div>
             </div>
+        </div>
+    </div>
+    <!-- Bookmarks Modal -->
+    <div id="bookmarksModal" class="modal">
+        <div class="modal-content">
+            <span class="close-bookmarks">&times;</span>
+            <h3>العلامات المرجعية</h3>
+            <div id="bookmarks-list"></div>
         </div>
     </div>
     <div id="rangeModal" class="modal">
