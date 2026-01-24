@@ -1032,13 +1032,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         localStorage.setItem('quranApp_bookmarks', JSON.stringify(bookmarks));
     }
     
+    // Toast notification function
+    function showToast(message, duration = 2000) {
+        // Remove existing toast if any
+        const existingToast = document.querySelector('.toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, duration);
+    }
+    
     function addBookmark() {
         const surah = elements.surahSelect.value;
         const ayah = elements.ayahSelect.value;
         const surahName = elements.surahSelect.options[elements.surahSelect.selectedIndex]?.text || `سورة ${surah}`;
         
         if (!surah || !ayah) {
-            alert('الرجاء اختيار سورة وآية');
+            showToast('الرجاء اختيار سورة وآية');
             return;
         }
         
@@ -1047,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Check if bookmark already exists
         if (bookmarks.some(b => b.key === bookmarkKey)) {
-            alert('هذه الآية محفوظة بالفعل');
+            showToast('هذه الآية محفوظة بالفعل');
             return;
         }
         
@@ -1084,6 +1102,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideBookmarksModal();
     }
     
+    // Sanitize text to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
     function renderBookmarks() {
         const bookmarks = getBookmarks();
         
@@ -1092,18 +1117,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         
-        const html = bookmarks.map(bookmark => `
-            <div class="bookmark-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 5px 0; background: var(--card-bg, #f8f9fa); border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0);">
-                <span style="cursor: pointer; flex: 1;" onclick="window.quranApp.goToBookmark('${bookmark.surah}', '${bookmark.ayah}')">
-                    ${bookmark.surahName} - آية ${bookmark.ayah}
-                </span>
-                <button onclick="window.quranApp.removeBookmark('${bookmark.key}')" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; margin-right: 10px;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
+        // Clear existing content
+        elements.bookmarksList.innerHTML = '';
         
-        elements.bookmarksList.innerHTML = html;
+        // Create bookmark items using DOM methods instead of innerHTML with user data
+        bookmarks.forEach(bookmark => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'bookmark-item';
+            itemDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 5px 0; background: var(--card-bg, #f8f9fa); border-radius: 8px; border: 1px solid var(--border-color, #e2e8f0);';
+            
+            const textSpan = document.createElement('span');
+            textSpan.style.cssText = 'cursor: pointer; flex: 1;';
+            textSpan.textContent = `${bookmark.surahName} - آية ${bookmark.ayah}`;
+            textSpan.addEventListener('click', () => {
+                goToBookmark(bookmark.surah, bookmark.ayah);
+            });
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.style.cssText = 'background: #ef4444; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; margin-right: 10px;';
+            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.addEventListener('click', () => {
+                removeBookmark(bookmark.key);
+            });
+            
+            itemDiv.appendChild(textSpan);
+            itemDiv.appendChild(deleteBtn);
+            elements.bookmarksList.appendChild(itemDiv);
+        });
     }
     
     function showBookmarksModal() {
@@ -1114,12 +1154,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     function hideBookmarksModal() {
         elements.bookmarksModal.classList.remove('show');
     }
-    
-    // Expose functions to global scope for bookmark onclick handlers
-    window.quranApp = {
-        goToBookmark: goToBookmark,
-        removeBookmark: removeBookmark
-    };
 
     // Initialize word meanings visibility
     elements.wordMeaningVisible = false;
