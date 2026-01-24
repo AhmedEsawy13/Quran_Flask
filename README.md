@@ -9,13 +9,14 @@ Quran_Flask is a web application that provides access to the Holy Quran. It is b
 - **Sepia Mode**: Eye-friendly sepia theme for extended reading sessions
 - **Multiple Arabic Fonts**: Choose from UthmanicHafs, Digital Khatt, and IndoPak Nastaleeq fonts
 - **Responsive Design**: Optimized for both mobile and desktop users
+- **Theme Persistence**: Your preferred theme is saved and restored on next visit
 
 ### 📖 **Quranic Text Features**
 - **Word-by-word Highlighting**: Real-time highlighting of words during audio recitation
 - **Word Meanings (غريب الكلمات)**: Display meanings of difficult Arabic words
 - **Clickable Words**: Click on any word to hear its individual pronunciation
 - **Transliteration**: Show phonetic pronunciation of Arabic text
-- **Tafseer Integration**: Access to multiple commentary sources (Al Qurtubi, Al Saddi, Al-Bagha)
+- **Tafseer Integration**: Access to multiple commentary sources (Al Qurtubi, Al Saddi, Al-Baghawi)
 
 ### 🎵 **Advanced Audio Features**
 - **Multiple Reciters**: Choose from renowned reciters (Abdul Basit Abdul Samad, Mohamed al-Tablawi, Mohamed al-Minshawi)
@@ -23,18 +24,31 @@ Quran_Flask is a web application that provides access to the Holy Quran. It is b
 - **Range Selection**: Play multiple consecutive verses
 - **Loop Functionality**: Repeat verses for memorization
 - **Audio Controls**: Play, pause, next/previous verse navigation
+- **Audio Preloading**: Next ayah audio is preloaded for seamless navigation
+
+### 🔖 **Bookmark System**
+- **Save Bookmarks**: Bookmark your favorite verses for quick access
+- **Manage Bookmarks**: View and delete bookmarks from a modal dialog
+- **Quick Navigation**: Click any bookmark to jump directly to that verse
 
 ### 🎤 **Interactive Features**
 - **Voice Commands**: Control the app using speech recognition (English)
-- **Navigation Controls**: Easy verse-by-verse navigation
+- **Navigation Controls**: Easy verse-by-verse navigation with keyboard shortcuts (Arrow keys)
 - **Modal Dialogs**: User-friendly range selection interface
+- **Toast Notifications**: Modern notification system for user feedback
+
+### 💾 **User Preferences**
+- **Auto-save Position**: Your last viewed verse is remembered
+- **Preference Persistence**: Theme, font, and reciter choices are saved locally
+- **No Login Required**: All preferences stored in browser localStorage
 
 ### 🔧 **Technical Features**
 - **RESTful API**: Well-structured API endpoints for data access
 - **Caching System**: Optimized performance with intelligent caching
-- **Security Headers**: Enhanced security with proper HTTP headers
+- **Security Headers**: Enhanced security with proper HTTP headers and CSP
 - **Error Handling**: Robust error handling and logging
 - **SQLite Database**: Local database for word meanings and metadata
+- **Local Surah Data**: All 114 surah names stored locally (no external API dependency)
 
 ## Performance Optimizations
 
@@ -44,6 +58,7 @@ The application is optimized for deployment on Vercel with:
 - **Caching**: Server-side caching with `@lru_cache` and Cache-Control headers
 - **Efficient Data Loading**: Only essential data loaded at startup
 - **CDN Caching**: Static files cached for 1 year, API responses for 1 hour
+- **Audio Preloading**: Next verse audio preloaded for low-latency playback
 
 **Performance Metrics:**
 - Cold start time: ~1.5-3 seconds (60-70% improvement)
@@ -141,7 +156,7 @@ The application uses multiple data sources:
 - **Speech Recognition API** - Voice commands
 - **Audio API** - Advanced audio controls and synchronization
 - **Fetch API** - Modern HTTP requests
-- **LocalStorage** - Client-side caching
+- **LocalStorage** - Client-side caching and preferences
 
 ## Usage
 
@@ -158,13 +173,16 @@ The application uses multiple data sources:
 - **Voice Commands**: Click "امر صوتي" and speak commands in English
 - **Range Selection**: Click "تحديد نطاق" to play multiple consecutive verses
 - **Loop Mode**: Enable "تكرار الاية" to repeat the current verse
+- **Bookmarks**: Click "علامة مرجعية" to save a verse, or "المرجعيات" to view saved bookmarks
+
+### Keyboard Shortcuts
+- **←** (Left Arrow) - Go to previous verse
+- **→** (Right Arrow) - Go to next verse
 
 ### Voice Commands (English)
-- "next" - Go to next verse
-- "previous" - Go to previous verse  
-- "play" - Start audio playback
-- "pause" - Pause audio playback
-- "surah [number]" - Jump to specific surah
+- "chapter [number] verse [number]" - Jump to specific verse
+- "chapter [number]" - Jump to specific surah
+- "verse [number]" - Jump to specific verse in current surah
 
 ## Deployment
 
