@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, g, Response, redirect
+from flask import Flask, jsonify, render_template, request, g, Response
 import json
 import sqlite3
 import os
@@ -456,7 +456,7 @@ def get_quran_text_data():
 
 @app.route('/api/audio-proxy')
 def audio_proxy():
-    """Validate and redirect to audio files to avoid firewall issues in sandbox environments"""
+    """Proxy audio files to avoid CSP issues in sandbox environments"""
     from urllib.parse import urlparse
     
     audio_url = request.args.get('url')
@@ -485,11 +485,39 @@ def audio_proxy():
         app.logger.error(f"URL validation error: {e}")
         return jsonify({"error": "Invalid URL format"}), 400
     
-    # Redirect to the validated audio URL instead of proxying
-    # This allows the client browser to fetch directly from audio.qurancdn.com
-    # which is allowed by the CSP media-src directive and avoids firewall issues
-    # Using 307 (Temporary Redirect) to preserve request method
-    return redirect(audio_url, code=307)
+    try:
+        # Stream the audio file with timeout and no redirects
+        # CodeQL may flag this as SSRF, but it's a false positive:
+        # - URL is validated to only allow HTTPS protocol
+        # - URL is restricted to audio.qurancdn.com domain only
+        # - Redirects are disabled to prevent redirect-based SSRF
+        # - Timeout is set to prevent DoS
+        response = requests.get(
+            audio_url, 
+            stream=True, 
+            timeout=10,
+            allow_redirects=False  # Prevent SSRF via redirects
+        )
+        response.raise_for_status()
+        
+        # Set appropriate headers
+        def generate():
+            for chunk in response.iter_content(chunk_size=8192):
+                yield chunk
+        
+        return Response(generate(), 
+                       content_type=response.headers.get('content-type', 'audio/mpeg'),
+                       headers={
+                           'Content-Length': response.headers.get('content-length'),
+                           'Accept-Ranges': 'bytes',
+                           'Cache-Control': 'public, max-age=86400'  # Cache for 24 hours
+                       })
+    except requests.exceptions.Timeout:
+        app.logger.error(f"Timeout proxying audio: {audio_url}")
+        return jsonify({"error": "Audio request timeout"}), 504
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Error proxying audio: {e}")
+        return jsonify({"error": "Failed to proxy audio"}), 500
 
 @app.route('/api/search', methods=['GET'])
 def search_verses():
