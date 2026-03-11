@@ -2,16 +2,19 @@
 @font-face {
     font-family: 'Digital Khatt';
     src: url('digitalkhatt.woff2') format('opentype');
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'UthmanicHafs';
     src: url('uthmanic_hafs_v20.ttf') format('truetype');
+    font-display: swap;
 }
 
 @font-face {
     font-family: 'Naskh-Nastaleeq-IndoPak-QWBW';
     src: url('Naskh-Nastaleeq-IndoPak-QWBW.ttf') format('truetype');
+    font-display: swap;
 }
 
 /* CSS Variables for Theming */

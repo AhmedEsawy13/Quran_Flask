@@ -262,7 +262,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         elements.playPauseButton.addEventListener('click', togglePlayPause);
-        //elements.downloadButton.addEventListener('click', downloadAudio);
 
         document.getElementById('show-transliteration').addEventListener('click', toggleTransliteration);
         document.getElementById('show-tafseer').addEventListener('click', toggleTafseer);
@@ -380,6 +379,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const nextAyahNumber = elements.ayahSelect.options[currentAyahIndex + 1].value;
             const surahNumber = elements.surahSelect.value;
             const reciter = elements.reciterSelect.value;
+            
+            // Clean up previous preloaded audio to prevent memory leak
+            if (preloadedAudio) {
+                preloadedAudio.src = '';
+                preloadedAudio.load();
+                preloadedAudio = null;
+            }
             
             // Fetch next ayah data and preload audio
             fetchData(`/api/surahs/${surahNumber}/ayahs/${nextAyahNumber}`)
@@ -533,14 +539,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                     selectElement.value = previouslySelectedTafseer;
                 }
 
-                selectElement.addEventListener('change', () => {
+                // Remove old listener to prevent memory leak
+                if (selectElement._tafseerChangeHandler) {
+                    selectElement.removeEventListener('change', selectElement._tafseerChangeHandler);
+                }
+
+                selectElement._tafseerChangeHandler = () => {
                     const selectedValue = selectElement.value;
                     const selectedTafseer = tafseers[selectedValue] || { text: 'No tafseer available' };
                     tafseerTextElement.innerHTML = selectedTafseer.text;
-                    console.log('Selected Tafseer:', JSON.stringify(selectedTafseer));
                     localStorage.setItem('selectedTafseer', selectedValue);
-                });
+                };
 
+                selectElement.addEventListener('change', selectElement._tafseerChangeHandler);
                 selectElement.dispatchEvent(new Event('change'));
             } else {
                 elements.tafseerContainer.innerHTML = 'No tafseer available';
@@ -557,49 +568,55 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Split verse text into words and clean them for matching
                 const verseWords = verseText.split(' ').filter(word => word.trim() !== '');
                 
+                // Build Maps for O(1) lookups instead of O(n) array searches
+                const exactMap = new Map(entries.map(([w, m]) => [w, m]));
+                const usedWords = new Set();
+                
                 // Create ordered list based on verse word sequence
                 verseWords.forEach(verseWord => {
                     // Clean the verse word by removing diacritics and numbers for better matching
                     const cleanVerseWord = verseWord.replace(/[٠-٩0-9]/g, '').trim();
                     
-                    // Find matching word in meanings (try exact match first, then partial)
-                    let matchingEntry = null;
-                    for (const [word, meaning] of entries) {
-                        if (word === cleanVerseWord || word === verseWord) {
-                            matchingEntry = [word, meaning];
-                            break;
-                        }
+                    // Try exact match first using Map (O(1))
+                    let matchWord = null;
+                    let matchMeaning = null;
+                    
+                    if (exactMap.has(cleanVerseWord) && !usedWords.has(cleanVerseWord)) {
+                        matchWord = cleanVerseWord;
+                        matchMeaning = exactMap.get(cleanVerseWord);
+                    } else if (exactMap.has(verseWord) && !usedWords.has(verseWord)) {
+                        matchWord = verseWord;
+                        matchMeaning = exactMap.get(verseWord);
                     }
                     
-                    // If exact match not found, try finding word that contains the verse word or vice versa
-                    if (!matchingEntry) {
-                        for (const [word, meaning] of entries) {
+                    // If exact match not found, try partial matching (fallback)
+                    if (!matchWord) {
+                        for (const [word, meaning] of exactMap) {
+                            if (usedWords.has(word)) continue;
                             if (word.includes(cleanVerseWord) || cleanVerseWord.includes(word)) {
-                                matchingEntry = [word, meaning];
+                                matchWord = word;
+                                matchMeaning = meaning;
                                 break;
                             }
                         }
                     }
                     
-                    if (matchingEntry) {
-                        const [word, meaning] = matchingEntry;
+                    if (matchWord && !usedWords.has(matchWord)) {
+                        usedWords.add(matchWord);
                         const listItem = document.createElement('li');
-                        listItem.textContent = `${word}: ${meaning}`;
+                        listItem.textContent = `${matchWord}: ${matchMeaning}`;
                         list.appendChild(listItem);
-                        // Remove from entries to avoid duplicates
-                        const index = entries.findIndex(([w, m]) => w === word && m === meaning);
-                        if (index > -1) {
-                            entries.splice(index, 1);
-                        }
                     }
                 });
                 
-                // Add any remaining meanings that weren't matched (shouldn't happen in normal cases)
-                entries.forEach(([word, meaning]) => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${word}: ${meaning}`;
-                    list.appendChild(listItem);
-                });
+                // Add any remaining meanings that weren't matched
+                for (const [word, meaning] of exactMap) {
+                    if (!usedWords.has(word)) {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${word}: ${meaning}`;
+                        list.appendChild(listItem);
+                    }
+                }
                 
                 elements.wordMeaningContainer.appendChild(list);
             } else if (entries.length > 0) {

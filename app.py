@@ -64,28 +64,28 @@ def internal_error(error):
     app.logger.error(f"Internal server error: {error}")
     return jsonify({"error": "Internal server error"}), 500
 
-DATABASE = 'QUL_data/word_name.db'  
+DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'word_name.db')
 
 # Load Quranic text data with error handling
 try:
     with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
         digital_khatt_data = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError) as e:
-    print(f"Error loading Digital_Khatt_Aya_Space.json: {e}")
+    app.logger.error(f"Error loading Digital_Khatt_Aya_Space.json: {e}")
     digital_khatt_data = {}
 
 try:
     with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
         qpc_hafs_data = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError) as e:
-    print(f"Error loading QPC Hafs.json: {e}")
+    app.logger.error(f"Error loading QPC Hafs.json: {e}")
     qpc_hafs_data = {}
 
 try:
     with open('QUL_data/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
         indopak_nastaleeq_data = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError) as e:
-    print(f"Error loading Indopak Nastaleeq_Waqf.json: {e}")
+    app.logger.error(f"Error loading Indopak Nastaleeq_Waqf.json: {e}")
     indopak_nastaleeq_data = {}
 
 # Load transliteration data with error handling
@@ -93,7 +93,7 @@ try:
     with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
         transliteration_data = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError) as e:
-    print(f"Error loading Transliteration.json: {e}")
+    app.logger.error(f"Error loading Transliteration.json: {e}")
     transliteration_data = {}
 
 # Load surah names data (local file to avoid external API dependency)
@@ -101,7 +101,7 @@ try:
     with open('QUL_data/surahs.json', 'r', encoding='utf-8') as f:
         surahs_data = json.load(f)
 except (FileNotFoundError, json.JSONDecodeError) as e:
-    print(f"Error loading surahs.json: {e}")
+    app.logger.error(f"Error loading surahs.json: {e}")
     surahs_data = []
 
 # Lazy loading for tafseer data (only load when needed)
@@ -140,7 +140,7 @@ for reciter, file_name in reciters.items():
         with open(file_name, 'r', encoding='utf-8') as f:
             audio_data[reciter] = json.load(f)
     except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading {file_name}: {e}")
+        app.logger.error(f"Error loading {file_name}: {e}")
         audio_data[reciter] = []
 
 # Function to create the mapping for list-based audio data
@@ -514,6 +514,9 @@ def search_verses():
     if not query:
         return jsonify({"error": "Search query parameter 'q' is required"}), 400
     
+    if len(query) > 500:
+        return jsonify({"error": "Search query too long. Maximum 500 characters allowed."}), 400
+    
     if limit < 1 or limit > 100:
         limit = 50
     
@@ -564,6 +567,9 @@ def search_word_meanings():
     
     if not query:
         return jsonify({"error": "Search query parameter 'q' is required"}), 400
+    
+    if len(query) > 500:
+        return jsonify({"error": "Search query too long. Maximum 500 characters allowed."}), 400
     
     if limit < 1 or limit > 100:
         limit = 50
