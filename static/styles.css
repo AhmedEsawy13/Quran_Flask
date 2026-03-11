@@ -1,7 +1,7 @@
 /* Font Faces */
 @font-face {
     font-family: 'Digital Khatt';
-    src: url('digitalkhatt.woff2') format('opentype');
+    src: url('digitalkhatt.woff2') format('woff2');
     font-display: swap;
 }
 
