@@ -2597,6 +2597,45 @@ body.dark-mode .tafseer-group #show-tafseer:hover { background: rgba(51,65,85,0.
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   WAQF SYMBOL COLOR PALETTE
+   Each waqf type gets a distinct color used in both the verse text
+   overlay and the recitation guide.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* لازم  — م  — dark crimson */
+.waqf-color-lazim  { color: #9b1c1c !important; }
+/* قلى  — ق / قلى / ر — amber-orange */
+.waqf-color-qla    { color: #b45309 !important; }
+/* جائز — ج — teal-green */
+.waqf-color-jaiz   { color: #0f766e !important; }
+/* صلى  — ص — royal blue */
+.waqf-color-sla    { color: #1d4ed8 !important; }
+/* لا وقف — لا — purple */
+.waqf-color-la     { color: #7c3aed !important; }
+/* معانقة — ع — deep teal */
+.waqf-color-muanaqah { color: #0e7490 !important; }
+/* Latin (↺ ▶) — Husary repeat symbols */
+.waqf-color-latin  { color: #7c3aed !important; font-family: sans-serif !important; }
+
+/* label variants (slightly muted) */
+.waqf-color-lazim-lbl    { color: #9b1c1c; opacity: 0.8; }
+.waqf-color-qla-lbl      { color: #b45309; opacity: 0.8; }
+.waqf-color-jaiz-lbl     { color: #0f766e; opacity: 0.8; }
+.waqf-color-sla-lbl      { color: #1d4ed8; opacity: 0.8; }
+.waqf-color-la-lbl       { color: #7c3aed; opacity: 0.8; }
+.waqf-color-muanaqah-lbl { color: #0e7490; opacity: 0.8; }
+.waqf-color-latin-lbl    { color: #7c3aed; opacity: 0.8; }
+
+/* Dark-mode lightened variants */
+body.dark-mode .waqf-color-lazim   { color: #fca5a5 !important; }
+body.dark-mode .waqf-color-qla     { color: #fbbf24 !important; }
+body.dark-mode .waqf-color-jaiz    { color: #34d399 !important; }
+body.dark-mode .waqf-color-sla     { color: #60a5fa !important; }
+body.dark-mode .waqf-color-la      { color: #c084fc !important; }
+body.dark-mode .waqf-color-muanaqah{ color: #22d3ee !important; }
+body.dark-mode .waqf-color-latin   { color: #c084fc !important; }
+
+/* ══════════════════════════════════════════════════════════════════
    WAQF ROW — header, controls wrap, legend
    ══════════════════════════════════════════════════════════════════ */
 
@@ -2767,6 +2806,8 @@ body.dark-mode .waqf-legend-note { color: #94a3b8; }
     border-radius: 16px;
     padding: 16px 18px;
     box-shadow: 0 4px 16px rgba(15,23,42,0.07);
+    direction: rtl;
+    text-align: right;
 }
 
 body.dark-mode .recitation-guide {
@@ -2805,10 +2846,11 @@ body.dark-mode .guide-subtitle { color: #94a3b8; }
 /* Segments layout: RTL horizontal scroll */
 .guide-seg-row {
     display: flex;
-    flex-direction: row-reverse;  /* RTL: first segment on right */
+    flex-direction: row;    /* direction:rtl makes right→left natural */
     flex-wrap: wrap;
     gap: 0;
     align-items: stretch;
+    direction: rtl;
 }
 
 .guide-segment {
@@ -2884,30 +2926,25 @@ body.sepia-mode .guide-seg-words { color: #5d4e37; }
 .guide-waqf-sym {
     font-family: 'UthmanicHafs', serif;
     font-size: 1.1rem;
-    color: #c2410c;
     line-height: 1;
+    /* color is set by .waqf-color-* classes */
 }
 
 .guide-waqf-latin {
     font-family: sans-serif !important;
     font-size: 1.1rem;
-    color: #1d4ed8;
 }
-
-body.dark-mode .guide-waqf-sym { color: #fb923c; }
-body.dark-mode .guide-waqf-latin { color: #60a5fa; }
 
 .guide-waqf-lbl {
     font-size: 0.7rem;
-    color: #92400e;
     font-family: 'IBM Plex Sans Arabic', serif;
     font-weight: 600;
     text-align: center;
+    /* color is provided by waqf-color-*-lbl classes */
+    opacity: 0.85;
 }
 
-body.dark-mode .guide-waqf-lbl { color: #fdba74; }
-
-/* Arrow connector between segments */
+/* Arrow connector between segments — points left (next segment to left in RTL) */
 .guide-seg-arrow {
     position: absolute;
     left: -14px;
@@ -2927,6 +2964,7 @@ body.dark-mode .guide-waqf-lbl { color: #fdba74; }
     margin-top: 12px;
     padding-top: 10px;
     border-top: 1px solid rgba(148,163,184,0.2);
+    direction: rtl;
 }
 
 .guide-legend-title {

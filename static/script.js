@@ -983,6 +983,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             .join('');
     }
 
+    // Waqf symbol → { meaning, color class } — single source of truth used everywhere
+    const WAQF_INFO = {
+        'م':   { meaning: 'وقف لازم — الوقف واجب',                                   color: 'waqf-color-lazim'    },
+        'قلى': { meaning: 'قلى — الأفضل الوقف',                                      color: 'waqf-color-qla'      },
+        'قلي': { meaning: 'قلى — الأفضل الوقف',                                      color: 'waqf-color-qla'      },
+        'ق':   { meaning: 'قلى — الأفضل الوقف',                                      color: 'waqf-color-qla'      },
+        'ر':   { meaning: 'راجح — الأفضل الوقف',                                     color: 'waqf-color-qla'      },
+        'ص':   { meaning: 'صلى — الأفضل الوصل',                                      color: 'waqf-color-sla'      },
+        'صلى': { meaning: 'صلى — الأفضل الوصل',                                      color: 'waqf-color-sla'      },
+        'صلي': { meaning: 'صلى — الأفضل الوصل',                                      color: 'waqf-color-sla'      },
+        'ج':   { meaning: 'جائز — يجوز الوقف والوصل',                                color: 'waqf-color-jaiz'     },
+        'لا':  { meaning: 'لا وقف — يجب الوصل',                                      color: 'waqf-color-la'       },
+        'ع':   { meaning: 'معانقة — إذا وقفت على أحدهما لا تقف على الآخر',          color: 'waqf-color-muanaqah' },
+        '↺':   { meaning: 'وقف إعادة — ارجع للبداية',                                color: 'waqf-color-latin'    },
+        '▶':   { meaning: 'بداية الإعادة',                                            color: 'waqf-color-latin'    },
+    };
+
+    function getWaqfInfo(rawSymbol) {
+        const key = (rawSymbol || '').trim();
+        return WAQF_INFO[key] || { meaning: key, color: '' };
+    }
+
+    // kept for backward-compat callers
+    function getWaqfMeaning(rawSymbol) {
+        return getWaqfInfo(rawSymbol).meaning;
+    }
+
     function getWaqfDisplayData(waqfText, mushafVersionOverride = '') {
         const raw = (waqfText || '').toString().trim();
         if (!raw) return null;
@@ -1022,22 +1049,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const stack = getOrCreateWaqfStack(container);
         const symbolSpan = document.createElement('span');
-        symbolSpan.className = 'waqf-symbol' + (displayData.extraClass ? ' ' + displayData.extraClass : '');
+        const info = getWaqfInfo(displayData.title.trim());
+        // Keep Warsh/Latin overrides; otherwise apply per-symbol color class
+        const colorClass = displayData.extraClass === 'waqf-warsh' ? 'waqf-warsh'
+            : (displayData.extraClass === 'waqf-latin' ? 'waqf-color-latin' : info.color);
+        symbolSpan.className = 'waqf-symbol' + (colorClass ? ' ' + colorClass : '');
         if (mushafVersionOverride) symbolSpan.dataset.version = mushafVersionOverride;
         symbolSpan.textContent = displayData.text;
 
-        // Build tooltip: "المصحف: الأزهر | ج (وقف جائز)"
-        const meaningMap = {
-            'م': 'وقف لازم', 'قلى': 'وقف قلى', 'قلي': 'وقف قلى', 'ق': 'وقف قلى',
-            'صلى': 'صلى — أفضل الوصل', 'صلي': 'صلى', 'ص': 'صلى',
-            'ج': 'وقف جائز', 'لا': 'لا وقف', 'ع': 'وقف ممنوع',
-            'ر': 'راجح — أفضل الوقف',
-            '↺': 'وقف إعادة', '▶': 'بداية الإعادة'
-        };
-        const rawTrim = displayData.title.trim();
-        const meaning = meaningMap[rawTrim] || '';
+        // Tooltip: "مصحف: الأزهر | ج — وقف جائز"
         const versionLabel = mushafVersionOverride ? `مصحف: ${mushafVersionOverride}` : '';
-        const symbolLabel = meaning ? `${rawTrim} — ${meaning}` : rawTrim;
+        const symbolLabel = info.meaning || displayData.title.trim();
         symbolSpan.title = [versionLabel, symbolLabel].filter(Boolean).join(' | ');
 
         stack.appendChild(symbolSpan);
@@ -1337,8 +1359,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (guideBtn) {
             guideBtn.classList.toggle('active', isHidden);
-            guideBtn.querySelector('span') &&
-                (guideBtn.querySelector('span').textContent = isHidden ? 'إخفاء دليل التلاوة' : 'دليل التلاوة');
+            const btnText = guideBtn.querySelector('span');
+            if (btnText) btnText.textContent = isHidden ? 'إخفاء دليل التلاوة' : 'دليل التلاوة';
         }
 
         if (isHidden) {
@@ -1355,41 +1377,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         guideContainer.innerHTML = '<div class="guide-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل بيانات الوقف…</div>';
 
         try {
-            const data = await fetchData(`/api/recitation-guide/${surah}/${ayah}`);
+            // Use the currently selected mushaf versions; fall back to Husary (server-side default)
+            const selectedVersions = getSelectedMushafVersions();
+            const params = new URLSearchParams();
+            selectedVersions.forEach(v => params.append('version', v));
+            const qs = params.toString() ? '?' + params.toString() : '';
+
+            const data = await fetchData(`/api/recitation-guide/${surah}/${ayah}${qs}`);
             const verseKey = `${surah}:${ayah}`;
             const verseText = quranTextData?.[verseKey]?.text || currentAyahData?.text || '';
-            buildRecitationGuideHTML(guideContainer, verseText, data.guide || []);
+            buildRecitationGuideHTML(guideContainer, verseText, data.guide || [], data.versions || []);
         } catch (error) {
             guideContainer.innerHTML = '<div class="guide-error"><i class="fas fa-triangle-exclamation"></i> خطأ في تحميل دليل التلاوة</div>';
             console.error('Recitation guide error:', error);
         }
     }
 
-    function getWaqfMeaning(rawSymbol) {
-        const meanings = {
-            'ج': 'وقف جائز', 'م': 'وقف لازم', 'ص': 'صلى', 'ع': 'ممنوع',
-            'ر': 'راجح', 'لا': 'لا وقف', 'قلى': 'قلى', 'قلي': 'قلى',
-            '↺': 'وقف إعادة — ارجع للبداية', '▶': 'بداية الإعادة'
-        };
-        return meanings[(rawSymbol || '').trim()] || rawSymbol;
-    }
-
-    function buildRecitationGuideHTML(container, verseText, husaryWaqfData) {
+    function buildRecitationGuideHTML(container, verseText, waqfData, versions) {
         container.innerHTML = '';
         const words = (verseText || '').split(' ').filter(w => w.trim());
 
-        if (!husaryWaqfData || husaryWaqfData.length === 0) {
-            container.innerHTML = '<p class="guide-empty"><i class="fas fa-circle-info"></i> لا توجد علامات وقف للحصري في هذه الآية.</p>';
+        if (!waqfData || waqfData.length === 0) {
+            container.innerHTML = '<p class="guide-empty"><i class="fas fa-circle-info"></i> لا توجد علامات وقف لهذه الآية في المصحف المختار.</p>';
             return;
         }
 
         // Build waqf map: tokenIndex → [{symbols, version}]
-        const waqfMap = buildWaqfByTokenIndex(husaryWaqfData, words);
+        const waqfMap = buildWaqfByTokenIndex(waqfData, words);
 
-        // Group words into reading segments
+        // Group words into reading segments split at each waqf position
         const segments = [];
         let currentWords = [];
-
         for (let i = 0; i < words.length; i++) {
             currentWords.push(words[i]);
             const waqfEntries = waqfMap.get(i);
@@ -1402,62 +1420,74 @@ document.addEventListener('DOMContentLoaded', async () => {
             segments.push({ words: currentWords, waqf: null });
         }
 
-        // Render
+        // ── Render ──────────────────────────────────────────────────────────
         const wrapper = document.createElement('div');
         wrapper.className = 'recitation-guide';
 
+        // Title
+        const versionLabel = versions.length ? versions.join(' + ') : 'الحصري';
         const titleEl = document.createElement('div');
         titleEl.className = 'guide-title';
-        titleEl.innerHTML = '<i class="fas fa-route"></i> دليل التلاوة — وقف الحصري';
+        titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — وقف ${versionLabel}`;
         wrapper.appendChild(titleEl);
 
         const subtitleEl = document.createElement('p');
         subtitleEl.className = 'guide-subtitle';
-        subtitleEl.textContent = 'الآية مقسّمة إلى مقاطع حسب مواضع الوقف. اقرأ كل مقطع حتى العلامة ثم قف أو استمر.';
+        subtitleEl.textContent = 'الآية مقسّمة إلى مقاطع وفق مواضع الوقف. اقرأ كل مقطع حتى الرمز ثم قف أو استمر حسب الحكم.';
         wrapper.appendChild(subtitleEl);
 
+        // Segments — RTL: rendered right→left naturally inside a dir="rtl" row
         const segRow = document.createElement('div');
         segRow.className = 'guide-seg-row';
+        segRow.dir = 'rtl';
 
         segments.forEach((seg, idx) => {
-            // Segment box
             const segEl = document.createElement('div');
             segEl.className = 'guide-segment';
             if (!seg.waqf) segEl.classList.add('guide-segment-last');
 
+            // Segment number (Arabic-Indic)
             const segNum = document.createElement('span');
             segNum.className = 'guide-seg-num';
-            segNum.textContent = idx + 1;
+            segNum.textContent = String(idx + 1);
             segEl.appendChild(segNum);
 
+            // Verse words for this segment
             const wordsEl = document.createElement('div');
             wordsEl.className = 'guide-seg-words';
+            wordsEl.dir = 'rtl';
             wordsEl.textContent = seg.words.map(w => stripEmbeddedWaqf(w)).join(' ');
             segEl.appendChild(wordsEl);
 
+            // Waqf badge
             if (seg.waqf) {
                 const waqfEl = document.createElement('div');
                 waqfEl.className = 'guide-seg-waqf';
+
                 seg.waqf.forEach(entry => {
                     const raw = (entry.symbols || '').trim();
                     const normalized = normalizeNonWarshWaqfText(raw);
                     const isLatin = /[\u21BA\u25B6]/.test(normalized);
+                    const info = getWaqfInfo(raw);
+
                     const symSpan = document.createElement('span');
-                    symSpan.className = 'guide-waqf-sym' + (isLatin ? ' guide-waqf-latin' : '');
+                    symSpan.className = 'guide-waqf-sym ' + (isLatin ? 'guide-waqf-latin' : info.color);
                     symSpan.textContent = normalized || raw;
-                    symSpan.title = getWaqfMeaning(raw);
+                    symSpan.title = (entry.version ? `مصحف: ${entry.version} | ` : '') + info.meaning;
                     waqfEl.appendChild(symSpan);
+
                     const lblSpan = document.createElement('span');
-                    lblSpan.className = 'guide-waqf-lbl';
-                    lblSpan.textContent = getWaqfMeaning(raw);
+                    lblSpan.className = 'guide-waqf-lbl ' + info.color + '-lbl';
+                    lblSpan.textContent = info.meaning;
                     waqfEl.appendChild(lblSpan);
                 });
+
                 segEl.appendChild(waqfEl);
 
-                // Arrow between segments
+                // Connector arrow pointing right (toward next segment in RTL)
                 const arrow = document.createElement('div');
                 arrow.className = 'guide-seg-arrow';
-                arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
+                arrow.innerHTML = '<i class="fas fa-arrow-right"></i>';
                 segEl.appendChild(arrow);
             }
 
@@ -1466,15 +1496,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         wrapper.appendChild(segRow);
 
-        // Husary legend
-        const legendEl = document.createElement('div');
-        legendEl.className = 'guide-legend';
-        legendEl.innerHTML =
-            '<span class="guide-legend-title">الرموز:</span>' +
-            '<span class="guide-legend-item"><span class="guide-waqf-sym">ج</span> وقف جائز</span>' +
-            '<span class="guide-legend-item"><span class="guide-waqf-sym guide-waqf-latin">↺</span> وقف إعادة</span>' +
-            '<span class="guide-legend-item"><span class="guide-waqf-sym guide-waqf-latin">▶</span> بداية الإعادة</span>';
-        wrapper.appendChild(legendEl);
+        // Dynamic legend — show only symbols that actually appear
+        const seenRaw = new Set(waqfData.map(e => (e.symbols || '').trim()));
+        const legendItems = [];
+        seenRaw.forEach(raw => {
+            const normalized = normalizeNonWarshWaqfText(raw);
+            const isLatin = /[\u21BA\u25B6]/.test(normalized);
+            const info = getWaqfInfo(raw);
+            const sym = normalized || raw;
+            legendItems.push(
+                `<span class="guide-legend-item">` +
+                `<span class="guide-waqf-sym ${isLatin ? 'guide-waqf-latin' : info.color}">${sym}</span>` +
+                ` ${info.meaning}` +
+                `</span>`
+            );
+        });
+
+        if (legendItems.length) {
+            const legendEl = document.createElement('div');
+            legendEl.className = 'guide-legend';
+            legendEl.innerHTML = '<span class="guide-legend-title">الرموز:</span>' + legendItems.join('');
+            wrapper.appendChild(legendEl);
+        }
 
         container.appendChild(wrapper);
     }

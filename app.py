@@ -584,24 +584,33 @@ def get_mushaf_versions():
 
 @app.route('/api/recitation-guide/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_recitation_guide(surah_number, ayah_number):
-    """Return Husary waqf entries for a given ayah to power the recitation-guide panel.
+    """Return waqf entries for a given ayah to power the recitation-guide panel.
 
-    Uses the الحصري column from mushaf_waqf.db which contains:
-      ج  — genuine mid-ayah stop (وقف جائز)
-      ↺  — stop for repetition     (وقف إعادة)
-      ▶  — start of repetition     (بداية الإعادة)
+    Accepts optional ?version=X query params (repeatable). Falls back to
+    الحصري if no version is supplied or none are valid.
     """
     if not (1 <= surah_number <= 114) or ayah_number < 1:
         return jsonify({'error': 'invalid parameters'}), 400
 
-    husary_col = 'الحصري'
-    if not _is_valid_mushaf_version(husary_col):
-        return jsonify({'guide': [], 'note': 'Husary column not available in DB'})
+    requested = request.args.getlist('version')
+    valid = [v for v in requested if _is_valid_mushaf_version(v)]
 
-    entries = _fetch_single_mushaf_waqf(surah_number, ayah_number, husary_col)
-    for e in entries:
-        e['version'] = husary_col
-    return jsonify({'guide': entries})
+    # Default to Husary when nothing valid supplied
+    husary_col = 'الحصري'
+    if not valid:
+        if _is_valid_mushaf_version(husary_col):
+            valid = [husary_col]
+        else:
+            return jsonify({'guide': [], 'versions': [], 'note': 'No valid version available'})
+
+    all_entries = []
+    for ver in valid:
+        rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
+        for r in rows:
+            r['version'] = ver
+        all_entries.extend(rows)
+
+    return jsonify({'guide': all_entries, 'versions': valid})
 
 def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
     """Fetch waqf symbols from Excel-source DB for one or more Mushaf versions.
