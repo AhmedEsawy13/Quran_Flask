@@ -92,6 +92,9 @@
                     <button type="button" id="waqf-legend-toggle" class="waqf-legend-btn" title="شرح رموز الوقف">
                         <i class="fas fa-circle-info"></i> شرح الرموز
                     </button>
+                    <button id="show-recitation-guide" type="button" class="waqf-legend-btn" title="دليل التلاوة وفق علامات الوقف">
+                        <i class="fas fa-route"></i> دليل التلاوة
+                    </button>
                 </div>
 
                 <!-- Mode + version controls -->
@@ -107,14 +110,10 @@
                         <button class="waqf-mode-btn" data-mode="none" type="button"
                             title="إخفاء جميع علامات الوقف">إخفاء الكل</button>
                     </div>
-                    <div class="waqf-version-multiselect" id="mushaf-version-multiselect">
-                        <button type="button" id="mushaf-version-toggle" class="waqf-version-toggle"
-                            title="اختر مصحفاً أو أكثر لعرض وقفه (المدينة، الشمرلي، الأزهر، ورش، الحصري…)">
-                            <i class="fas fa-book-open" style="font-size:0.72em;"></i>
-                            <span id="mushaf-version-summary">اختر مصحفاً</span>
-                            <i class="fas fa-chevron-down" style="font-size:0.68em; margin-right:3px;"></i>
-                        </button>
-                        <div id="mushaf-version-dropdown" class="waqf-version-dropdown" hidden></div>
+                    <!-- Mushaf pills: always visible, no dropdown needed -->
+                    <div class="mushaf-pills-wrap" id="mushaf-version-multiselect">
+                        <span class="mushaf-pills-label">المصاحف:</span>
+                        <div id="mushaf-version-dropdown" class="mushaf-pills-row"></div>
                     </div>
                 </div>
 
@@ -171,6 +170,10 @@
                             <span class="waqf-sym-demo" style="font-family:'UthmanicHafs',serif">ۛ</span>
                             <div class="waqf-legend-text"><strong>ع — معانقة</strong><small>إذا وقف على أحدهما لا يجوز الوقف على الآخر</small></div>
                         </div>
+                        <div class="waqf-legend-item">
+                            <span class="waqf-sym-demo waqf-mushaf-warsh" style="font-family:'UthmanicHafs',serif">ۜ</span>
+                            <div class="waqf-legend-text"><strong>ۜ — ورش</strong><small>توقف — علامة الوقف في مصحف ورش</small></div>
+                        </div>
                     </div>
                     <p class="waqf-legend-note">
                         <i class="fas fa-info-circle"></i>
@@ -192,9 +195,6 @@
                         </select>
                     </div>
                     <button id="toggle-word-meaning-button" type="button">غريب الكلمات</button>
-                    <button id="show-recitation-guide" type="button" title="شاهد كيف تتلو الآية وفق علامات وقف الحصري">
-                        <i class="fas fa-route"></i> دليل التلاوة
-                    </button>
                 </div>
                 <div class="audio-wrap">
                     <audio id="quran-audio" controls></audio>

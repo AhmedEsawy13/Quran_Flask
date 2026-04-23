@@ -177,21 +177,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function getSelectedMushafVersions() {
-        const dropdown = document.getElementById('mushaf-version-dropdown');
-        if (!dropdown) return [];
-        return Array.from(dropdown.querySelectorAll('input[type="checkbox"]:checked')).map((cb) => cb.value);
+        const container = document.getElementById('mushaf-version-dropdown');
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('button.mushaf-pill.active')).map(btn => btn.value);
     }
 
     function updateMushafVersionSummary() {
-        const summary = document.getElementById('mushaf-version-summary');
-        if (!summary) return;
-        const selected = getSelectedMushafVersions();
-        summary.textContent = selected.length === 0 ? 'اختر' : selected.join('، ');
+        // No-op: pills are always visible; summary span is no longer shown.
     }
 
     async function loadMushafVersions() {
         const dropdown = document.getElementById('mushaf-version-dropdown');
-        const toggle = document.getElementById('mushaf-version-toggle');
         if (!dropdown) return;
 
         dropdown.innerHTML = '';
@@ -201,48 +197,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const filtered = versions.filter((v) => !['token_index', 'word_index'].includes(v));
                 const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
                 filtered.forEach((version) => {
-                    const label = document.createElement('label');
-                    label.className = 'waqf-version-option';
-                    const cb = document.createElement('input');
-                    cb.type = 'checkbox';
-                    cb.value = version;
-                    cb.checked = saved.includes(version);
-                    cb.addEventListener('change', () => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.value = version;
+                    btn.textContent = version;
+                    const colorCls = getMushafColorClass(version);
+                    btn.className = 'mushaf-pill ' + colorCls;
+                    if (saved.includes(version)) btn.classList.add('active');
+                    btn.addEventListener('click', () => {
+                        btn.classList.toggle('active');
                         localStorage.setItem('quranApp_mushafVersions',
                             JSON.stringify(getSelectedMushafVersions()));
-                        updateMushafVersionSummary();
                         loadQuranData();
                     });
-                    label.appendChild(cb);
-                    label.appendChild(document.createTextNode(version));
-                    dropdown.appendChild(label);
+                    dropdown.appendChild(btn);
                 });
             }
         } catch (error) {
             console.error('Error loading Mushaf versions:', error);
         }
-        updateMushafVersionSummary();
-
-        // Toggle dropdown open/close
-        if (toggle) {
-            toggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const hidden = dropdown.hasAttribute('hidden');
-                if (hidden) {
-                    dropdown.removeAttribute('hidden');
-                    toggle.setAttribute('aria-expanded', 'true');
-                } else {
-                    dropdown.setAttribute('hidden', '');
-                    toggle.removeAttribute('aria-expanded');
-                }
-            });
-        }
-        document.addEventListener('click', (e) => {
-            const ms = document.getElementById('mushaf-version-multiselect');
-            if (ms && !ms.contains(e.target)) {
-                dropdown.setAttribute('hidden', '');
-            }
-        });
     }
 
     function getElements() {
@@ -970,34 +943,45 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'ج': 'ۚ',
                     'لا': 'ۙ',
                     'ع': 'ۛ',
-                    'ر': 'ۗ',   // Warsh: راجح (preferred stop) ≈ قلى
+                    'ر': 'ۗ',
                     'ۘ': 'ۘ',
                     'ۗ': 'ۗ',
                     'ۖ': 'ۖ',
                     'ۚ': 'ۚ',
                     'ۙ': 'ۙ',
-                    'ۛ': 'ۛ'
+                    'ۛ': 'ۛ',
+                    'ۜ': 'ۜ',   // Warsh stop sign — pass through
                 };
                 return waqfGlyphMap[token] || token;
             })
             .join('');
     }
 
+    // Normalise Warsh waqf raw DB values to the Warsh Unicode stop sign ۜ (U+06DC)
+    function normalizeWarshWaqfText(raw) {
+        if (!raw || !raw.trim()) return '';
+        // If the raw value already is the Warsh glyph, keep it
+        if (raw.trim() === '\u06DC') return '\u06DC';
+        // Any non-empty Warsh waqf indicator = stop → ۜ
+        return '\u06DC';
+    }
+
     // ── Waqf symbol meanings (display only, no color here) ─────────────────
     const WAQF_INFO = {
-        'م':   { meaning: 'وقف لازم — الوقف واجب'                                          },
-        'قلى': { meaning: 'قلى — الأفضل الوقف'                                             },
-        'قلي': { meaning: 'قلى — الأفضل الوقف'                                             },
-        'ق':   { meaning: 'قلى — الأفضل الوقف'                                             },
-        'ر':   { meaning: 'راجح — الأفضل الوقف'                                            },
-        'ص':   { meaning: 'صلى — الأفضل الوصل'                                             },
-        'صلى': { meaning: 'صلى — الأفضل الوصل'                                             },
-        'صلي': { meaning: 'صلى — الأفضل الوصل'                                             },
-        'ج':   { meaning: 'جائز — يجوز الوقف والوصل'                                       },
-        'لا':  { meaning: 'لا وقف — يجب الوصل'                                             },
-        'ع':   { meaning: 'معانقة — إذا وقفت على أحدهما لا تقف على الآخر'                 },
-        '↺':   { meaning: 'وقف إعادة — ارجع للبداية'                                       },
-        '▶':   { meaning: 'بداية الإعادة'                                                   },
+        'م':   { meaning: 'وقف لازم — الوقف واجب'                                              },
+        'قلى': { meaning: 'قلى — الأفضل الوقف'                                                 },
+        'قلي': { meaning: 'قلى — الأفضل الوقف'                                                 },
+        'ق':   { meaning: 'قلى — الأفضل الوقف'                                                 },
+        'ر':   { meaning: 'راجح — الأفضل الوقف'                                                },
+        'ص':   { meaning: 'صلى — الأفضل الوصل'                                                 },
+        'صلى': { meaning: 'صلى — الأفضل الوصل'                                                 },
+        'صلي': { meaning: 'صلى — الأفضل الوصل'                                                 },
+        'ج':   { meaning: 'جائز — يجوز الوقف والوصل'                                           },
+        'لا':  { meaning: 'لا وقف — يجب الوصل'                                                 },
+        'ع':   { meaning: 'معانقة — إذا وقفت على أحدهما لا تقف على الآخر'                     },
+        '↺':   { meaning: 'وقف إعادة — ارجع للبداية'                                           },
+        '▶':   { meaning: 'بداية الإعادة'                                                       },
+        '\u06DC': { meaning: 'توقف — علامة وقف مصحف ورش'                                    },
     };
 
     function getWaqfInfo(rawSymbol) {
@@ -1033,12 +1017,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!raw) return null;
 
         const version = mushafVersionOverride || '';
+        const isWarsh = isWarshMushafVersion(version);
+
+        if (isWarsh) {
+            const warshGlyph = normalizeWarshWaqfText(raw);
+            return { text: warshGlyph, extraClass: 'waqf-warsh', title: raw };
+        }
+
         const normalized = normalizeNonWarshWaqfText(raw);
         const isHusaryRepeat = normalized.includes('\u21BA') || normalized.includes('\u25B6');
-        const isWarsh = isWarshMushafVersion(version);
         return {
             text: normalized,
-            extraClass: isWarsh ? 'waqf-warsh' : (isHusaryRepeat ? 'waqf-latin' : ''),
+            extraClass: isHusaryRepeat ? 'waqf-latin' : '',
             title: raw
         };
     }

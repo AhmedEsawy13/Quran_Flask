@@ -1473,80 +1473,9 @@ body.sepia-mode .waqf-mode-btn.active {
     background: linear-gradient(135deg, #9a3412 0%, #b45309 100%);
 }
 
-/* Mushaf-version dropdown inside the waqf mode control */
-/* ── Multi-select waqf version dropdown ─────────────────────────── */
-.waqf-version-multiselect {
-    position: relative;
-    margin-right: 6px;
-    font-family: 'IBM Plex Sans Arabic', serif;
-}
-
-.waqf-version-toggle {
-    padding: 4px 8px;
-    font-size: 0.78rem;
-    font-family: inherit;
-    border-radius: 7px;
-    border: 1px solid var(--border-color);
-    background: var(--control-bg, #fff);
-    color: var(--text-color);
-    cursor: pointer;
-    white-space: nowrap;
-    max-width: 14ch;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: opacity 0.2s ease;
-}
-
-.waqf-version-toggle:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-}
-
-.waqf-version-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    min-width: 12rem;
-    background: var(--control-bg, #fff);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 6px 0;
-    z-index: 200;
-    font-size: 0.82rem;
-    direction: rtl;
-}
-
-.waqf-version-option {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    cursor: pointer;
-    user-select: none;
-    transition: background 0.15s;
-}
-
-.waqf-version-option:hover {
-    background: rgba(0,0,0,0.05);
-}
-
-.waqf-version-option input[type="checkbox"] {
-    accent-color: var(--accent-color, #c2410c);
-    cursor: pointer;
-}
-
-body.dark-mode .waqf-version-toggle,
-body.dark-mode .waqf-version-dropdown {
-    background: rgba(255,255,255,0.1);
-    color: var(--text-color);
-    border-color: rgba(255,255,255,0.2);
-}
-
-body.sepia-mode .waqf-version-toggle,
-body.sepia-mode .waqf-version-dropdown {
-    background: rgba(60,46,38,0.08);
-}
+/* Mushaf-version pills are handled by .mushaf-pills-wrap / .mushaf-pill above */
+/* The old toggle + dropdown selectors below are kept for fallback safety but no longer rendered */
+.waqf-version-multiselect { display: none; }   /* replaced by .mushaf-pills-wrap */
 
 @media (max-width: 900px) {
     .controls-container {
@@ -2600,35 +2529,43 @@ body.dark-mode .tafseer-group #show-tafseer:hover { background: rgba(51,65,85,0.
    WAQF SYMBOL COLOR PALETTE — PER MUSHAF VERSION
    Each mushaf edition gets its own color so users can instantly
    identify which source a waqf mark belongs to.
+   Colours are tuned for good contrast on all three themes.
    ══════════════════════════════════════════════════════════════════ */
 
-/* المدينة — teal */
-.waqf-mushaf-madinah  { color: #0f766e !important; }
-body.dark-mode .waqf-mushaf-madinah  { color: #2dd4bf !important; }
-
-/* الشمرلي — indigo */
-.waqf-mushaf-shamarly { color: #4338ca !important; }
-body.dark-mode .waqf-mushaf-shamarly { color: #818cf8 !important; }
-
-/* الأزهر — amber */
-.waqf-mushaf-azhar    { color: #b45309 !important; }
-body.dark-mode .waqf-mushaf-azhar    { color: #fbbf24 !important; }
-
-/* ورش — deep violet */
+/* ── Light mode ─────────────────────────────────────────────────── */
+/* المدينة — emerald green */
+.waqf-mushaf-madinah  { color: #047857 !important; }
+/* الشمرلي — deep royal blue */
+.waqf-mushaf-shamarly { color: #1d4ed8 !important; }
+/* الأزهر  — rich orange */
+.waqf-mushaf-azhar    { color: #c2410c !important; }
+/* ورش     — vivid violet */
 .waqf-mushaf-warsh    { color: #7c3aed !important; }
-body.dark-mode .waqf-mushaf-warsh    { color: #c084fc !important; }
-
-/* الحصري — crimson */
+/* الحصري  — deep crimson */
 .waqf-mushaf-husary   { color: #be123c !important; }
-body.dark-mode .waqf-mushaf-husary   { color: #fb7185 !important; }
-
-/* Fallback for unknown / mixed versions */
+/* fallback */
 .waqf-mushaf-other    { color: #475569 !important; }
+
+/* ── Dark mode ───────────────────────────────────────────────────── */
+body.dark-mode .waqf-mushaf-madinah  { color: #34d399 !important; }   /* bright emerald */
+body.dark-mode .waqf-mushaf-shamarly { color: #60a5fa !important; }   /* sky blue       */
+body.dark-mode .waqf-mushaf-azhar    { color: #fb923c !important; }   /* warm orange    */
+body.dark-mode .waqf-mushaf-warsh    { color: #c084fc !important; }   /* lavender       */
+body.dark-mode .waqf-mushaf-husary   { color: #f87171 !important; }   /* coral red      */
 body.dark-mode .waqf-mushaf-other    { color: #94a3b8 !important; }
 
-/* Latin symbols (↺ ▶) keep their own treatment */
+/* ── Sepia mode ──────────────────────────────────────────────────── */
+body.sepia-mode .waqf-mushaf-madinah  { color: #065f46 !important; }  /* dark forest green */
+body.sepia-mode .waqf-mushaf-shamarly { color: #1e40af !important; }  /* dark navy         */
+body.sepia-mode .waqf-mushaf-azhar    { color: #9a3412 !important; }  /* dark burnt orange */
+body.sepia-mode .waqf-mushaf-warsh    { color: #5b21b6 !important; }  /* dark purple       */
+body.sepia-mode .waqf-mushaf-husary   { color: #881337 !important; }  /* dark ruby         */
+body.sepia-mode .waqf-mushaf-other    { color: #57534e !important; }
+
+/* Latin symbols (↺ ▶) follow الحصري color */
 .waqf-color-latin  { color: #be123c !important; font-family: sans-serif !important; }
-body.dark-mode .waqf-color-latin { color: #fb7185 !important; }
+body.dark-mode  .waqf-color-latin { color: #f87171 !important; }
+body.sepia-mode .waqf-color-latin { color: #881337 !important; }
 
 /* Mushaf badge pill used in the guide */
 .guide-mushaf-badge {
@@ -2643,6 +2580,64 @@ body.dark-mode .waqf-color-latin { color: #fb7185 !important; }
     border: 1px solid currentColor;
     vertical-align: middle;
     margin-inline-start: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   MUSHAF VERSION PILLS — always-visible toggle row
+   ══════════════════════════════════════════════════════════════════ */
+
+.mushaf-pills-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.mushaf-pills-label {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #64748b;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    white-space: nowrap;
+}
+body.dark-mode  .mushaf-pills-label { color: #94a3b8; }
+body.sepia-mode .mushaf-pills-label { color: #78716c; }
+
+.mushaf-pills-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+}
+
+/* Individual pill button */
+.mushaf-pill {
+    padding: 3px 10px;
+    font-size: 0.74rem;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    font-weight: 600;
+    border-radius: 20px;
+    border: 1.5px solid currentColor;
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.15s, opacity 0.15s, transform 0.1s;
+    opacity: 0.45;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+.mushaf-pill:hover {
+    opacity: 0.75;
+    transform: translateY(-1px);
+}
+.mushaf-pill.active {
+    opacity: 1;
+    background: color-mix(in srgb, currentColor 14%, transparent);
+}
+/* Fallback for browsers without color-mix */
+@supports not (background: color-mix(in srgb, red 10%, transparent)) {
+    .mushaf-pill.active { background: rgba(0, 0, 0, 0.07); }
+    body.dark-mode .mushaf-pill.active { background: rgba(255,255,255,0.12); }
+    body.sepia-mode .mushaf-pill.active { background: rgba(0,0,0,0.06); }
 }
 
 /* ══════════════════════════════════════════════════════════════════
