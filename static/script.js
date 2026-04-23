@@ -1023,8 +1023,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isWarsh = isWarshMushafVersion(version);
 
         if (isWarsh) {
-            // No normalization — display the raw DB value as-is
-            return { text: raw, extraClass: 'waqf-warsh', title: raw };
+            // Normalize to proper Unicode waqf codepoints, then UthmanicWarsh font renders them correctly
+            const normalized = normalizeNonWarshWaqfText(raw);
+            return { text: normalized, extraClass: 'waqf-warsh', title: raw };
         }
 
         const normalized = normalizeNonWarshWaqfText(raw);
@@ -1061,10 +1062,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stack = getOrCreateWaqfStack(container);
         const symbolSpan = document.createElement('span');
 
-        // Color is always per-mushaf; add waqf-latin only for font
+        // Color is per-mushaf; also apply extraClass (e.g. waqf-warsh font, waqf-latin font)
         const isLatin = /[\u21BA\u25B6]/.test(displayData.text);
         const colorClass = getMushafColorClass(mushafVersionOverride);
-        symbolSpan.className = 'waqf-symbol ' + colorClass + (isLatin ? ' waqf-latin' : '');
+        const extra = [colorClass];
+        if (isLatin) extra.push('waqf-latin');
+        if (displayData.extraClass) extra.push(displayData.extraClass);
+        symbolSpan.className = 'waqf-symbol ' + extra.join(' ');
         if (mushafVersionOverride) symbolSpan.dataset.version = mushafVersionOverride;
         symbolSpan.textContent = displayData.text;
 
@@ -1425,18 +1429,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         const waqfMap = buildWaqfByTokenIndex(waqfData, words);
 
         // ── Group words into reading segments ─────────────────────────────
+        // When a word is marked ▶ (start of repeat section):
+        //   • It becomes the LAST word of the current segment → clip 1 shows ↺▶ badge
+        //   • The next segment gets a repeatStart marker so clip 2 shows ▶ at its top
         const segments = [];
         let currentWords = [];
+        let pendingRepeatStart = null;   // ▶-only entries to annotate the next segment
+
         for (let i = 0; i < words.length; i++) {
-            currentWords.push(words[i]);
             const entries = waqfMap.get(i);
-            if (entries && entries.length > 0) {
+            const hasRepeatStart = entries?.some(e => /\u25B6/.test(e.symbols || ''));
+
+            if (hasRepeatStart) {
+                // This word (e.g. إليكم) is the LAST word of the current segment
+                currentWords.push(words[i]);
+                // Close the segment with the full ↺▶ entries as its waqf badge
                 segments.push({ words: [...currentWords], waqf: entries });
                 currentWords = [];
+                // Carry just ▶ entries as a "repeat start" marker for the next segment
+                pendingRepeatStart = entries.filter(e => /\u25B6/.test(e.symbols || ''));
+                if (pendingRepeatStart.length === 0) pendingRepeatStart = null;
+            } else {
+                currentWords.push(words[i]);
+                if (entries && entries.length > 0) {
+                    segments.push({ words: [...currentWords], waqf: entries, repeatStart: pendingRepeatStart });
+                    pendingRepeatStart = null;
+                    currentWords = [];
+                }
             }
         }
         if (currentWords.length > 0) {
-            segments.push({ words: currentWords, waqf: null });
+            segments.push({ words: currentWords, waqf: null, repeatStart: pendingRepeatStart });
         }
 
         // ── Wrapper ───────────────────────────────────────────────────────
@@ -1478,6 +1501,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             wordsEl.textContent = seg.words.map(w => stripEmbeddedWaqf(w)).join(' ');
             segEl.appendChild(wordsEl);
 
+            // ▶ repeat-start marker (shown at the top of the segment that opens a repeat)
+            if (seg.repeatStart && seg.repeatStart.length > 0) {
+                const repeatEl = document.createElement('div');
+                repeatEl.className = 'guide-seg-repeat-start';
+                seg.repeatStart.forEach(entry => {
+                    const mushafCls = getMushafColorClass(entry.version);
+                    const sym = document.createElement('span');
+                    sym.className = 'guide-waqf-sym ' + mushafCls + ' waqf-latin';
+                    sym.textContent = '\u25B6';
+                    repeatEl.appendChild(sym);
+                    if (entry.version) {
+                        const badge = document.createElement('span');
+                        badge.className = 'guide-mushaf-badge ' + mushafCls;
+                        badge.textContent = entry.version;
+                        repeatEl.appendChild(badge);
+                    }
+                    const lbl = document.createElement('span');
+                    lbl.className = 'guide-waqf-lbl';
+                    lbl.textContent = 'بداية الإعادة';
+                    repeatEl.appendChild(lbl);
+                });
+                segEl.appendChild(repeatEl);
+            }
+
             // Waqf badges — grouped by unique symbol+version combination
             if (seg.waqf) {
                 const waqfEl = document.createElement('div');
@@ -1487,12 +1534,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const raw = (entry.symbols || '').trim();
                     const normalized = normalizeNonWarshWaqfText(raw);
                     const isLatin = /[\u21BA\u25B6]/.test(normalized);
+                    const isWarshEntry = isWarshMushafVersion(entry.version);
                     const info = getWaqfInfo(raw);
-                    const mushafCls = isLatin ? 'waqf-color-latin' : getMushafColorClass(entry.version);
+                    const mushafCls = getMushafColorClass(entry.version);
+                    const fontCls = isLatin ? ' waqf-latin' : (isWarshEntry ? ' waqf-warsh' : '');
 
                     // Symbol glyph
                     const symSpan = document.createElement('span');
-                    symSpan.className = 'guide-waqf-sym ' + mushafCls;
+                    symSpan.className = 'guide-waqf-sym ' + mushafCls + fontCls;
                     symSpan.textContent = normalized || raw;
                     waqfEl.appendChild(symSpan);
 

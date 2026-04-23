@@ -106,6 +106,8 @@ body.dark-mode .ayah-container {
     background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 body.sepia-mode .ayah-container {
@@ -227,6 +229,8 @@ body.dark-mode #controls {
     background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 body.sepia-mode #controls {
@@ -256,19 +260,19 @@ select:hover, button:hover {
 }
 
 body.dark-mode select, body.dark-mode button {
-    background: rgba(55, 65, 81, 0.4);
+    background: #1e2535;
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: #f8fafc;
 }
 
 body.dark-mode select:hover, body.dark-mode button:hover {
-    background: rgba(75, 85, 99, 0.5);
+    background: #2a3348;
     border-color: rgba(255, 255, 255, 0.25);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode select:hover, body.dark-mode button:hover {
-    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    background: #2a3348;
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
@@ -1132,10 +1136,7 @@ body {
 }
 
 body.dark-mode {
-    background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(45, 212, 191, 0.12), transparent 45%),
-        radial-gradient(900px 500px at 90% -5%, rgba(251, 191, 36, 0.1), transparent 45%),
-        linear-gradient(160deg, #020617 0%, #111827 50%, #0b1120 100%);
+    background: #0a0a0a;
 }
 
 body.sepia-mode {
@@ -2120,16 +2121,16 @@ body.sepia-mode #controls .view-mode-label {
 
 body.dark-mode #controls select,
 body.dark-mode #controls button {
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: linear-gradient(135deg, rgba(51, 65, 85, 0.6), rgba(30, 41, 59, 0.4));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #1e2535;
     color: #f1f5f9;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 body.dark-mode #controls select:hover,
 body.dark-mode #controls button:hover {
-    background: linear-gradient(135deg, rgba(71, 85, 105, 0.7), rgba(51, 65, 85, 0.5));
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    background: #2a3348;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 body.sepia-mode #controls select,
@@ -2980,6 +2981,22 @@ body.dark-mode .guide-waqf-lbl { color: #94a3b8; }
     font-size: 0.75rem;
     z-index: 1;
 }
+
+/* ▶ "start of repeat" indicator shown at the top of the segment */
+.guide-seg-repeat-start {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(148, 163, 184, 0.08);
+    border-right: 2px solid currentColor;
+    font-size: 0.78rem;
+    direction: rtl;
+}
+body.dark-mode .guide-seg-repeat-start { background: rgba(255,255,255,0.04); }
 
 /* Legend row at the bottom */
 .guide-legend {
