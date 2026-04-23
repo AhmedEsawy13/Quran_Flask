@@ -123,42 +123,52 @@ def _normalize_for_search(text):
     # Fold common letter variants (hamza forms, alif maqsura, taa marbuta).
     return ''.join(_SEARCH_LETTER_FOLD.get(ch, ch) for ch in cleaned)
 
-# Load Quranic text data with error handling
-try:
-    with open('QUL_data/Digital_Khatt_Aya_Space.json', 'r', encoding='utf-8') as f:
-        digital_khatt_data = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError) as e:
-    app.logger.error(f"Error loading Digital_Khatt_Aya_Space.json: {e}")
-    digital_khatt_data = {}
+# jsDelivr CDN base for large JSON assets (GitHub repo as origin)
+_CDN_BASE = 'https://cdn.jsdelivr.net/gh/AhmedEsawy13/Quran_Flask@main/QUL_data'
 
-try:
-    with open('QUL_data/QPC Hafs.json', 'r', encoding='utf-8') as f:
-        qpc_hafs_data = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError) as e:
-    app.logger.error(f"Error loading QPC Hafs.json: {e}")
-    qpc_hafs_data = {}
+# In-process cache for CDN-fetched JSON blobs
+_cdn_cache: dict = {}
 
-try:
-    with open('QUL_data/Indopak Nastaleeq_Waqf.json', 'r', encoding='utf-8') as f:
-        indopak_nastaleeq_data = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError) as e:
-    app.logger.error(f"Error loading Indopak Nastaleeq_Waqf.json: {e}")
-    indopak_nastaleeq_data = {}
+def _load_json_cdn_or_local(cdn_path: str, local_path: str):
+    """Fetch JSON from jsDelivr CDN with in-process cache; fall back to local file."""
+    if cdn_path in _cdn_cache:
+        return _cdn_cache[cdn_path]
+    url = f'{_CDN_BASE}/{cdn_path}'
+    try:
+        resp = http_requests.get(url, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        _cdn_cache[cdn_path] = data
+        app.logger.info(f'Loaded {cdn_path} from CDN')
+        return data
+    except Exception as e:
+        app.logger.warning(f'CDN fetch failed for {cdn_path}: {e}. Falling back to local.')
+    # Local fallback
+    try:
+        with open(local_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        _cdn_cache[cdn_path] = data
+        return data
+    except (FileNotFoundError, json.JSONDecodeError) as e2:
+        app.logger.error(f'Local fallback also failed for {local_path}: {e2}')
+        return {}
 
-# Load transliteration data with error handling
-try:
-    with open('QUL_data/Transliteration.json', 'r', encoding='utf-8') as f:
-        transliteration_data = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError) as e:
-    app.logger.error(f"Error loading Transliteration.json: {e}")
-    transliteration_data = {}
 
-# Load surah names data (local file to avoid external API dependency)
-try:
-    with open('QUL_data/surahs.json', 'r', encoding='utf-8') as f:
-        surahs_data = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError) as e:
-    app.logger.error(f"Error loading surahs.json: {e}")
+# Load Quranic text data — CDN first, local fallback
+digital_khatt_data = _load_json_cdn_or_local(
+    'Digital_Khatt_Aya_Space.json', 'QUL_data/Digital_Khatt_Aya_Space.json'
+)
+qpc_hafs_data = _load_json_cdn_or_local(
+    'QPC Hafs.json', 'QUL_data/QPC Hafs.json'
+)
+indopak_nastaleeq_data = _load_json_cdn_or_local(
+    'Indopak Nastaleeq_Waqf.json', 'QUL_data/Indopak Nastaleeq_Waqf.json'
+)
+transliteration_data = _load_json_cdn_or_local(
+    'Transliteration.json', 'QUL_data/Transliteration.json'
+)
+surahs_data = _load_json_cdn_or_local('surahs.json', 'QUL_data/surahs.json')
+if not isinstance(surahs_data, list):
     surahs_data = []
 
 # Tafseer API configuration (quran.com v4)
@@ -174,22 +184,22 @@ TAFSEER_API_BASE = 'https://api.quran.com/api/v4/tafsirs/{id}/by_ayah/{verse_key
 _tafseer_cache: dict = {}
 
 
-# Load audio data for different reciters with error handling
+# Load audio data — CDN first, local fallback
 reciters = {
-    "AbdulBaset AbdulSamad": "QUL_data/AbdulBaset AbdulSamad Recitation.json",
-    "Mohamed al-Tablawi": "QUL_data/Mohamed al-Tablawi Recitation.json",
-    "Mohamed al-Minshawi": "QUL_data/Mohamed Siddiq al-Minshawi Recitation.json",
-    "Mahmoud Khalil al-Husary (Muallim)": "QUL_data/mahmoud-khalil-al-husary-muallm-hafs.json",
+    "AbdulBaset AbdulSamad": ("AbdulBaset AbdulSamad Recitation.json",
+                              "QUL_data/AbdulBaset AbdulSamad Recitation.json"),
+    "Mohamed al-Tablawi":    ("Mohamed al-Tablawi Recitation.json",
+                              "QUL_data/Mohamed al-Tablawi Recitation.json"),
+    "Mohamed al-Minshawi":   ("Mohamed Siddiq al-Minshawi Recitation.json",
+                              "QUL_data/Mohamed Siddiq al-Minshawi Recitation.json"),
+    "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
+                                           "QUL_data/mahmoud-khalil-al-husary-muallm-hafs.json"),
 }
 
 audio_data = {}
-for reciter, file_name in reciters.items():
-    try:
-        with open(file_name, 'r', encoding='utf-8') as f:
-            audio_data[reciter] = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        app.logger.error(f"Error loading {file_name}: {e}")
-        audio_data[reciter] = []
+for reciter, (cdn_name, local_path) in reciters.items():
+    data = _load_json_cdn_or_local(cdn_name, local_path)
+    audio_data[reciter] = data if data else []
 
 def _parse_segment(seg):
     """Normalise a raw segment to {start_word_index, end_word_index, start_time, end_time}.
@@ -570,6 +580,28 @@ def _is_valid_mushaf_version(mushaf_version):
 def get_mushaf_versions():
     """Returns available Mushaf versions from the waqf database."""
     return jsonify(sorted(_get_mushaf_version_whitelist()))
+
+
+@app.route('/api/recitation-guide/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_recitation_guide(surah_number, ayah_number):
+    """Return Husary waqf entries for a given ayah to power the recitation-guide panel.
+
+    Uses the الحصري column from mushaf_waqf.db which contains:
+      ج  — genuine mid-ayah stop (وقف جائز)
+      ↺  — stop for repetition     (وقف إعادة)
+      ▶  — start of repetition     (بداية الإعادة)
+    """
+    if not (1 <= surah_number <= 114) or ayah_number < 1:
+        return jsonify({'error': 'invalid parameters'}), 400
+
+    husary_col = 'الحصري'
+    if not _is_valid_mushaf_version(husary_col):
+        return jsonify({'guide': [], 'note': 'Husary column not available in DB'})
+
+    entries = _fetch_single_mushaf_waqf(surah_number, ayah_number, husary_col)
+    for e in entries:
+        e['version'] = husary_col
+    return jsonify({'guide': entries})
 
 def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
     """Fetch waqf symbols from Excel-source DB for one or more Mushaf versions.

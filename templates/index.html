@@ -34,18 +34,15 @@
                     <option value="old_madina">مصحف المدينة القديم</option>
                     <option value="indopak_nastaleeq">هندي / نستعليق</option>
                 </select>
-                <select id="reading-view-select" title="طريقة العرض">
-                    <option value="verse-normal">عرض آية</option>
-                    <option value="verse-mushaf-lines">آية - أسطر المصحف</option>
-                    <option value="page">صفحة كاملة</option>
-                </select>
+                <!-- Display locked to verse-normal; element kept hidden for JS compat -->
+                <select id="reading-view-select" style="display:none" aria-hidden="true"><option value="verse-normal">عرض آية</option></select>
                 <select id="reciter-select" title="اختر القارئ">
                     <option value="AbdulBaset AbdulSamad">عبد الباسط عبد الصمد</option>
                     <option value="Mohamed al-Tablawi">محمد الطبلاوي</option>
                     <option value="Mohamed al-Minshawi">محمد صديق المنشاوي</option>
                     <option value="Mahmoud Khalil al-Husary (Muallim)">محمود خليل الحصري (المعلم)</option>
                 </select>
-                <button id="start-voice-command" type="button" title="أمر صوتي"><i class="fas fa-microphone"></i></button>
+                <button id="start-voice-command" type="button" title="أمر صوتي: 'Go to chapter X verse Y'"><i class="fas fa-microphone"></i></button>
                 <!-- Legacy hidden selects (kept for JS compat) -->
                 <div class="legacy-view-controls" aria-hidden="true">
                     <select id="display-mode-select"><option value="verse">عرض آية</option><option value="page">عرض صفحة</option></select>
@@ -86,21 +83,73 @@
                 </div>
             </div>
 
-            <!-- Row 3: Waqf — dedicated full-width row -->
+            <!-- Row 3: Waqf — explanation + mode selector + version picker -->
             <div class="ctrl-row ctrl-row-waqf">
-                <div id="waqf-mode-control" class="waqf-mode-control" role="group" aria-label="عرض علامات الوقف">
-                    <span class="waqf-mode-label">الوقف</span>
-                    <button class="waqf-mode-btn active" data-mode="both"     type="button" title="المصحف الأصلي + المصحف المختار">الوقفان</button>
-                    <button class="waqf-mode-btn"        data-mode="original" type="button" title="وقف المصحف الأصلي فقط">المصحف</button>
-                    <button class="waqf-mode-btn"        data-mode="selected" type="button" title="وقف المصحف المختار فقط">مختار</button>
-                    <button class="waqf-mode-btn"        data-mode="none"     type="button" title="إخفاء جميع علامات الوقف">لا</button>
+                <!-- Header: label + description + info toggle -->
+                <div class="waqf-row-header">
+                    <span class="waqf-row-title"><i class="fas fa-stop-circle"></i> علامات الوقف</span>
+                    <span class="waqf-row-desc">تُظهر فوق كل كلمة حكم الوقف عندها</span>
+                    <button type="button" id="waqf-legend-toggle" class="waqf-legend-btn" title="شرح رموز الوقف">
+                        <i class="fas fa-circle-info"></i> شرح الرموز
+                    </button>
+                </div>
+
+                <!-- Mode + version controls -->
+                <div class="waqf-controls-wrap">
+                    <div id="waqf-mode-control" class="waqf-mode-control" role="group" aria-label="عرض علامات الوقف">
+                        <span class="waqf-mode-label">عرض</span>
+                        <button class="waqf-mode-btn active" data-mode="both" type="button"
+                            title="عرض علامات الوقف الأصلية (المضمّنة في النص) والمختارة من المصحف معاً">الأصلي والمختار</button>
+                        <button class="waqf-mode-btn" data-mode="original" type="button"
+                            title="عرض علامات الوقف الأصلية المضمّنة في نص الآية فقط">الأصلي فقط</button>
+                        <button class="waqf-mode-btn" data-mode="selected" type="button"
+                            title="عرض علامات الوقف من المصحف الذي تختاره من القائمة فقط">المختار فقط</button>
+                        <button class="waqf-mode-btn" data-mode="none" type="button"
+                            title="إخفاء جميع علامات الوقف">إخفاء الكل</button>
+                    </div>
                     <div class="waqf-version-multiselect" id="mushaf-version-multiselect">
-                        <button type="button" id="mushaf-version-toggle" class="waqf-version-toggle" title="اختر مصاحف الوقف (يمكن اختيار أكثر من مصحف)">
-                            <span id="mushaf-version-summary">اختر المصحف</span>
-                            <i class="fas fa-chevron-down" style="font-size:0.7em; margin-right:4px;"></i>
+                        <button type="button" id="mushaf-version-toggle" class="waqf-version-toggle"
+                            title="اختر مصحفاً أو أكثر لعرض وقفه (المدينة، الشمرلي، الأزهر، ورش، الحصري…)">
+                            <i class="fas fa-book-open" style="font-size:0.72em;"></i>
+                            <span id="mushaf-version-summary">اختر مصحفاً</span>
+                            <i class="fas fa-chevron-down" style="font-size:0.68em; margin-right:3px;"></i>
                         </button>
                         <div id="mushaf-version-dropdown" class="waqf-version-dropdown" hidden></div>
                     </div>
+                </div>
+
+                <!-- Collapsible symbols legend -->
+                <div id="waqf-legend" class="waqf-legend" hidden>
+                    <div class="waqf-legend-grid">
+                        <div class="waqf-legend-item">
+                            <span class="waqf-sym-demo" style="font-family:'UthmanicHafs',serif">ۘ</span>
+                            <div class="waqf-legend-text"><strong>م — لازم</strong><small>الوقف واجب، يُمنع الوصل</small></div>
+                        </div>
+                        <div class="waqf-legend-item">
+                            <span class="waqf-sym-demo" style="font-family:'UthmanicHafs',serif">ۗ</span>
+                            <div class="waqf-legend-text"><strong>قلى / ر — قلى</strong><small>الأفضل الوقف، الوصل جائز</small></div>
+                        </div>
+                        <div class="waqf-legend-item">
+                            <span class="waqf-sym-demo" style="font-family:'UthmanicHafs',serif">ۚ</span>
+                            <div class="waqf-legend-text"><strong>ج — جائز</strong><small>يجوز الوقف والوصل كلاهما</small></div>
+                        </div>
+                        <div class="waqf-legend-item">
+                            <span class="waqf-sym-demo" style="font-family:'UthmanicHafs',serif">ۖ</span>
+                            <div class="waqf-legend-text"><strong>ص — صلى</strong><small>الأفضل الوصل، الوقف جائز اضطراراً</small></div>
+                        </div>
+                        <div class="waqf-legend-item">
+                            <span class="waqf-sym-demo" style="font-family:'UthmanicHafs',serif">ۙ</span>
+                            <div class="waqf-legend-text"><strong>لا — لا وقف</strong><small>لا يجوز الوقف، يجب الوصل</small></div>
+                        </div>
+                        <div class="waqf-legend-item">
+                            <span class="waqf-sym-demo" style="font-family:'UthmanicHafs',serif">ۛ</span>
+                            <div class="waqf-legend-text"><strong>ع — ممنوع</strong><small>الوقف ممنوع تماماً</small></div>
+                        </div>
+                    </div>
+                    <p class="waqf-legend-note">
+                        <i class="fas fa-info-circle"></i>
+                        كل رمز يُنسَب للمصحف الذي جاء منه — مرّر المؤشر فوق الرمز لمعرفة المصحف ومعنى العلامة.
+                    </p>
                 </div>
             </div>
 
@@ -117,6 +166,9 @@
                         </select>
                     </div>
                     <button id="toggle-word-meaning-button" type="button">غريب الكلمات</button>
+                    <button id="show-recitation-guide" type="button" title="شاهد كيف تتلو الآية وفق علامات وقف الحصري">
+                        <i class="fas fa-route"></i> دليل التلاوة
+                    </button>
                 </div>
                 <div class="audio-wrap">
                     <audio id="quran-audio" controls></audio>
@@ -131,6 +183,7 @@
             <div id="transliteration-container" style="display:none;"><h2></h2><div id="transliteration"></div></div>
             <div id="tafseer-container" style="display:none;"><h2></h2><div id="tafseer-text"></div></div>
             <div id="word-meaning-text" style="display:none;"></div>
+            <div id="recitation-guide-container" style="display:none;"></div>
         </div>
     </div>
 
