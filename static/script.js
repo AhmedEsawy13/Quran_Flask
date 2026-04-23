@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentRepeatCount = 0; // Track current repeat count
     let maxRepeats = 1; // Track maximum repeats set by user
     const fontCache = {};
+    const loadedShamarlyFonts = new Set();
 
     // Load user preferences from localStorage
     loadUserPreferences();
@@ -46,6 +47,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.reciterSelect.value = savedReciter;
         }
         
+        // Load waqf mode preference
+        const savedWaqfMode = localStorage.getItem('quranApp_waqfMode') || 'both';
+        setWaqfMode(savedWaqfMode);
+
         // Load last position (surah:ayah)
         const savedPosition = localStorage.getItem('quranApp_lastPosition');
         if (savedPosition) {
@@ -73,6 +78,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (elements.quranTextSelect.value) {
             localStorage.setItem('quranApp_font', elements.quranTextSelect.value);
         }
+
+        localStorage.setItem('quranApp_mushafVersions', JSON.stringify(getSelectedMushafVersions()));
+
+        localStorage.setItem('quranApp_waqfMode', getCurrentWaqfMode());
     }
 
     // Initialize voice recognition with error handling
@@ -170,9 +179,79 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     async function loadInitialData() {
+        await loadMushafVersions();
         await loadSurahData();
         await loadQuranTextData();
         updateGlobalAyahToVerseKey();
+    }
+
+    function getSelectedMushafVersions() {
+        const dropdown = document.getElementById('mushaf-version-dropdown');
+        if (!dropdown) return [];
+        return Array.from(dropdown.querySelectorAll('input[type="checkbox"]:checked')).map((cb) => cb.value);
+    }
+
+    function updateMushafVersionSummary() {
+        const summary = document.getElementById('mushaf-version-summary');
+        if (!summary) return;
+        const selected = getSelectedMushafVersions();
+        summary.textContent = selected.length === 0 ? 'اختر' : selected.join('، ');
+    }
+
+    async function loadMushafVersions() {
+        const dropdown = document.getElementById('mushaf-version-dropdown');
+        const toggle = document.getElementById('mushaf-version-toggle');
+        if (!dropdown) return;
+
+        dropdown.innerHTML = '';
+        try {
+            const versions = await fetchData('/api/mushaf-versions');
+            if (Array.isArray(versions)) {
+                const filtered = versions.filter((v) => !['token_index', 'word_index'].includes(v));
+                const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
+                filtered.forEach((version) => {
+                    const label = document.createElement('label');
+                    label.className = 'waqf-version-option';
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = version;
+                    cb.checked = saved.includes(version);
+                    cb.addEventListener('change', () => {
+                        localStorage.setItem('quranApp_mushafVersions',
+                            JSON.stringify(getSelectedMushafVersions()));
+                        updateMushafVersionSummary();
+                        loadQuranData();
+                    });
+                    label.appendChild(cb);
+                    label.appendChild(document.createTextNode(version));
+                    dropdown.appendChild(label);
+                });
+            }
+        } catch (error) {
+            console.error('Error loading Mushaf versions:', error);
+        }
+        updateMushafVersionSummary();
+
+        // Toggle dropdown open/close
+        if (toggle) {
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const hidden = dropdown.hasAttribute('hidden');
+                if (hidden) {
+                    dropdown.removeAttribute('hidden');
+                    toggle.setAttribute('aria-expanded', 'true');
+                } else {
+                    dropdown.setAttribute('hidden', '');
+                    toggle.removeAttribute('aria-expanded');
+                }
+            });
+        }
+        document.addEventListener('click', (e) => {
+            const ms = document.getElementById('mushaf-version-multiselect');
+            if (ms && !ms.contains(e.target)) {
+                dropdown.setAttribute('hidden', '');
+            }
+        });
     }
 
     function getElements() {
@@ -196,25 +275,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             showRangeSelection: document.getElementById('show-range-selection'),
             rangeSelection: document.getElementById('range-selection'),
             modal: document.getElementById('rangeModal'),
-            modalContent: document.querySelector('.modal-content'),
-            closeModal: document.getElementsByClassName('close')[0],
+            modalContent: document.querySelector('#rangeModal .modal-content'),
+            closeModal: document.querySelector('#rangeModal .close'),
             quranTextSelect: document.getElementById('quran-text-select'),
+            readingViewSelect: document.getElementById('reading-view-select'),
+            mushafVersionMultiselect: document.getElementById('mushaf-version-multiselect'),
+            waqfModeControl: document.getElementById('waqf-mode-control'),
             playPauseButton: document.getElementById('play-pause-button'),
             toggleWordMeaningButton: document.getElementById('toggle-word-meaning-button'),
             bookmarkButton: document.getElementById('bookmark-button'),
             showBookmarksButton: document.getElementById('show-bookmarks-button'),
             bookmarksModal: document.getElementById('bookmarksModal'),
             bookmarksList: document.getElementById('bookmarks-list'),
-            closeBookmarksModal: document.getElementsByClassName('close-bookmarks')[0]
+            closeBookmarksModal: document.querySelector('.close-bookmarks')
         };
     }
 
     function addEventListeners() {
         elements.darkModeToggle.addEventListener('change', toggleDarkMode);
         elements.sepiaModeToggle.addEventListener('change', toggleSepiaMode);
-        elements.showRangeSelection.addEventListener('click', toggleRangeSelection);
+        // Range button opens the modal directly (showModal registered below)
         elements.reciterSelect.addEventListener('change', onReciterChange);
         elements.surahSelect.addEventListener('change', loadAyahs);
+        if (elements.readingViewSelect) {
+            elements.readingViewSelect.addEventListener('change', loadQuranData);
+        }
+        // mushaf-version change listeners are set up in loadMushafVersions()
+        if (elements.waqfModeControl) {
+            elements.waqfModeControl.addEventListener('click', (e) => {
+                const btn = e.target.closest('.waqf-mode-btn');
+                if (btn) setWaqfMode(btn.dataset.mode);
+            });
+        }
         elements.ayahSelect.addEventListener('change', () => {
             // Clean up range mode if active when user manually changes ayah
             if (elements.playPauseButton.rangePlayPauseHandler) {
@@ -241,11 +333,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.nextAyahButton.addEventListener('click', loadNextAyah);
         elements.prevAyahButton.addEventListener('click', loadPrevAyah);
         elements.playRangeButton.addEventListener('click', playRange);
-        elements.showRangeSelection.onclick = showModal;
-        elements.closeModal.onclick = closeModal;
-        window.onclick = (event) => {
-            if (event.target == elements.modal) closeModal();
-        };
+        elements.showRangeSelection.addEventListener('click', showModal);
+        elements.closeModal.addEventListener('click', closeModal);
+        window.addEventListener('click', (event) => {
+            if (event.target === elements.modal) closeModal();
+        });
         elements.quranTextSelect.addEventListener('change', async () => {
             // Add loading indicator
             const originalText = elements.quranTextContainer.innerHTML;
@@ -325,8 +417,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadQuranTextData() {
         const font = elements.quranTextSelect.value;
+        const source = font === 'shamarly' ? 'qpc_hafs' : font;
         if (!fontCache[font]) {
-            quranTextData = await fetchData(`/api/quran-text?source=${font}`);
+            quranTextData = await fetchData(`/api/quran-text?source=${source}`);
             fontCache[font] = quranTextData;
         } else {
             quranTextData = fontCache[font];
@@ -406,7 +499,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!ayahNumber) return;
     
         try {
-            currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
+            const font = elements.quranTextSelect.value;
+            const readingView = elements.readingViewSelect?.value || 'verse-normal';
+            const selectedVersions = getSelectedMushafVersions();
+            const mushafVersion = selectedVersions[0] || '';
+
+            if (font === 'shamarly') {
+                await loadShamarlyQuranData(surahNumber, ayahNumber, readingView, selectedVersions);
+                return;
+            }
+
+            const params = new URLSearchParams();
+            selectedVersions.forEach((v) => params.append('mushaf_version', v));
+            const query = params.toString() ? '?' + params.toString() : '';
+            currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
             const verseKey = `${surahNumber}:${ayahNumber}`;
             const globalAyahNumber = currentAyahData.id;
             if (!globalAyahNumber) throw new Error(`No global Ayah number found for Surah ${surahNumber}, Ayah ${ayahNumber}`);
@@ -415,15 +521,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciterAudio = currentAyahData.reciters[reciter];
             if (!reciterAudio) throw new Error('Reciter audio not found');
     
-            const font = elements.quranTextSelect.value;
             // Use already cached quranTextData instead of making redundant API call
             const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
     
             elements.audioElement.src = `/api/audio-proxy?url=${encodeURIComponent(reciterAudio.audio_url)}`;
             currentSegments = reciterAudio.segments;
-            displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
+            displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
             displayTransliteration(currentAyahData.transliteration);
-            displayTafseers(currentAyahData.tafseer || {});
+            await maybeRefreshTafseer(surahNumber, ayahNumber);
             // Only display word meanings if they should be visible
             if (elements.wordMeaningVisible) {
                 displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
@@ -444,23 +549,98 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    async function loadShamarlyQuranData(surahNumber, ayahNumber, readingView, mushafVersions) {
+        currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
+        const reciter = elements.reciterSelect.value;
+        const reciterAudio = currentAyahData.reciters?.[reciter];
+        if (!reciterAudio) throw new Error('Reciter audio not found');
+
+        const versions = Array.isArray(mushafVersions) ? mushafVersions : (mushafVersions ? [mushafVersions] : []);
+        const params = new URLSearchParams();
+        versions.forEach((v) => params.append('mushaf_version', v));
+        const query = params.toString() ? `?${params.toString()}` : '';
+
+        let shamarlyPayload;
+        if (readingView === 'page') {
+            shamarlyPayload = await fetchData(`/api/shamarly/page-by-ayah/${surahNumber}/${ayahNumber}${query}`);
+        } else {
+            shamarlyPayload = await fetchData(`/api/shamarly/ayah/${surahNumber}/${ayahNumber}${query}`);
+        }
+
+        if (shamarlyPayload?.font_name) {
+            await ensureShamarlyFontLoaded(shamarlyPayload.font_name);
+            elements.quranTextContainer.style.fontFamily = `'${shamarlyPayload.font_name}', 'UthmanicHafs', serif`;
+        }
+
+        if (readingView === 'page') {
+            renderShamarlyPage(shamarlyPayload);
+        } else if (readingView === 'verse-mushaf-lines') {
+            renderShamarlyVerseLines(shamarlyPayload);
+        } else {
+            renderShamarlyVerseWords(shamarlyPayload, reciterAudio.segments || []);
+        }
+
+        elements.audioElement.src = `/api/audio-proxy?url=${encodeURIComponent(reciterAudio.audio_url)}`;
+        currentSegments = reciterAudio.segments || [];
+        displayTransliteration(currentAyahData.transliteration);
+        await maybeRefreshTafseer(surahNumber, ayahNumber);
+        if (elements.wordMeaningVisible) {
+            const verseText = shamarlyPayload?.raw_text || currentAyahData.text || '';
+            displayWordMeanings(currentAyahData.word_meanings || {}, verseText);
+        } else {
+            elements.wordMeaningContainer.innerHTML = '';
+        }
+
+        updatePlayPauseButton();
+        saveUserPreferences();
+        preloadNextAyah();
+        elements.audioElement.onended = updatePlayPauseButton;
+    }
+
+    async function ensureShamarlyFontLoaded(fontName) {
+        if (!fontName || loadedShamarlyFonts.has(fontName)) {
+            return;
+        }
+        try {
+            const font = new FontFace(fontName, `url('/static/${fontName}.ttf') format('truetype')`);
+            const loadedFont = await font.load();
+            document.fonts.add(loadedFont);
+            loadedShamarlyFonts.add(fontName);
+        } catch (error) {
+            // Fall through: the caller will render with a fallback font instead
+            // of erroring out of the whole ayah load. Mark the font as tried so
+            // we don't retry on every navigation.
+            loadedShamarlyFonts.add(fontName);
+            console.warn(`Shamarly font ${fontName} unavailable; using fallback`, error);
+        }
+    }
+
     async function updateDisplayedText() {
         const surahNumber = elements.surahSelect.value;
         const ayahNumber = elements.ayahSelect.value;
         if (!ayahNumber) return;
 
         try {
+            if (elements.quranTextSelect.value === 'shamarly') {
+                await loadQuranData();
+                return;
+            }
+
             // Use cached data if available, otherwise fetch
             if (!currentAyahData || currentAyahData.surah_number !== parseInt(surahNumber) || currentAyahData.ayah_number !== parseInt(ayahNumber)) {
-                currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
+                const _vers = getSelectedMushafVersions();
+                const _p = new URLSearchParams();
+                _vers.forEach((v) => _p.append('mushaf_version', v));
+                const query = _p.toString() ? '?' + _p.toString() : '';
+                currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
             }
             
             const verseKey = `${surahNumber}:${ayahNumber}`;
             // Use already cached quranTextData instead of making redundant API call
             const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
-            displayQuranicText(ayahText, currentSegments, currentAyahData.word_meanings);
+            displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
             displayTransliteration(currentAyahData.transliteration);
-            displayTafseers(currentAyahData.tafseer || {});
+            await maybeRefreshTafseer(surahNumber, ayahNumber);
             if (elements.wordMeaningVisible) {
                 displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
             } else {
@@ -471,10 +651,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function displayQuranicText(text, segments) {
+    function displayQuranicText(text, segments, waqfSymbols = []) {
+        elements.quranTextContainer.style.fontFamily = '';
         elements.quranTextContainer.innerHTML = '';
         const words = text.split(' ');
         const wordIndexToSegmentMap = new Map();
+        const waqfByToken = buildWaqfByTokenIndex(waqfSymbols, words);
         const wordElements = []; // Cache word elements for performance
 
         // Map segments to words first, before creating word elements
@@ -488,6 +670,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (let i = 0; i < words.length; i++) {
             const word = words[i];
             const wordElement = createWordElement(word, i, wordIndexToSegmentMap);
+            const waqfText = waqfByToken.get(i);
+            if (waqfText) {
+                appendWaqfEntries(wordElement, waqfText);
+            }
             wordElements[i] = wordElement; // Cache reference
             elements.quranTextContainer.appendChild(wordElement);
             elements.quranTextContainer.appendChild(document.createTextNode(' '));
@@ -511,6 +697,392 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         };
         
+        elements.audioElement.addEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
+    }
+
+    function renderShamarlyVerseWords(shamarlyPayload, segments) {
+        const words = Array.isArray(shamarlyPayload?.words) ? shamarlyPayload.words : [];
+        const waqfByToken = buildWaqfByTokenIndex(shamarlyPayload?.waqf_symbols, words);
+        const wordIndexToSegmentMap = new Map();
+        const wordElements = [];
+        mapSegmentsToWords(segments, wordIndexToSegmentMap);
+
+        elements.quranTextContainer.innerHTML = '';
+
+        words.forEach((word, index) => {
+            const wordElement = createWordElement(word?.text || '', index, wordIndexToSegmentMap);
+            const waqfSymbols = waqfByToken.get(index);
+            if (waqfSymbols) {
+                appendWaqfEntries(wordElement, waqfSymbols, shamarlyPayload?.mushaf_version || '');
+            }
+            wordElements[index] = wordElement;
+            elements.quranTextContainer.appendChild(wordElement);
+            elements.quranTextContainer.appendChild(document.createTextNode(' '));
+        });
+
+        attachHighlightHandler(wordElements, wordIndexToSegmentMap);
+    }
+
+    function renderShamarlyVerseLines(shamarlyPayload) {
+        const lines = Array.isArray(shamarlyPayload?.verse_lines) ? shamarlyPayload.verse_lines : [];
+        const waqfByToken = buildWaqfByTokenIndex(shamarlyPayload?.waqf_symbols, shamarlyPayload?.words || []);
+        const verseWords = Array.isArray(shamarlyPayload?.words) ? shamarlyPayload.words : [];
+        const coveredTokenIndexes = new Set();
+
+        elements.quranTextContainer.innerHTML = '';
+        lines.forEach((line) => {
+            const lineEl = document.createElement('div');
+            lineEl.className = 'shamarly-line';
+            (line.words || []).forEach((word) => {
+                const span = document.createElement('span');
+                span.className = 'shamarly-word';
+                span.textContent = word.text || '';
+                const waqfSymbols = waqfByToken.get(word.token_index);
+                if (waqfSymbols) {
+                    appendWaqfEntries(span, waqfSymbols, shamarlyPayload?.mushaf_version || '');
+                }
+                if (Number.isInteger(word.token_index)) {
+                    coveredTokenIndexes.add(word.token_index);
+                }
+                lineEl.appendChild(span);
+            });
+            elements.quranTextContainer.appendChild(lineEl);
+        });
+
+        // Fallback: ensure full ayah is visible when layout lines don't cover all tokens.
+        const missingWords = verseWords
+            .map((word, tokenIndex) => ({ word, tokenIndex }))
+            .filter((entry) => !coveredTokenIndexes.has(entry.tokenIndex));
+
+        if ((lines.length === 0 && verseWords.length > 0) || missingWords.length > 0) {
+            const fallbackLine = document.createElement('div');
+            fallbackLine.className = 'shamarly-line';
+            const wordsToRender = lines.length === 0 ? verseWords.map((word, tokenIndex) => ({ word, tokenIndex })) : missingWords;
+
+            wordsToRender.forEach(({ word, tokenIndex }) => {
+                const span = document.createElement('span');
+                span.className = 'shamarly-word';
+                span.textContent = word?.text || '';
+                const waqfSymbols = waqfByToken.get(tokenIndex);
+                if (waqfSymbols) {
+                    appendWaqfEntries(span, waqfSymbols, shamarlyPayload?.mushaf_version || '');
+                }
+                fallbackLine.appendChild(span);
+            });
+
+            elements.quranTextContainer.appendChild(fallbackLine);
+        }
+
+        detachHighlightHandler();
+    }
+
+    function renderShamarlyPage(shamarlyPayload) {
+        const lines = Array.isArray(shamarlyPayload?.lines) ? shamarlyPayload.lines : [];
+        elements.quranTextContainer.innerHTML = '';
+
+        const frame = document.createElement('div');
+        frame.className = 'shamarly-page-frame';
+
+        lines.forEach((line) => {
+            const lineEl = document.createElement('div');
+            lineEl.className = 'shamarly-page-line';
+            const lineType = (line.line_type || '').toString();
+            if (lineType) {
+                lineEl.classList.add(lineType.replace(/_/g, '-'));
+            }
+            if (line.contains_focus_ayah) {
+                lineEl.classList.add('highlight');
+            }
+
+            const words = Array.isArray(line.words) ? line.words : [];
+            if (words.length === 0 && line.raw_text) {
+                lineEl.textContent = line.raw_text;
+            } else {
+                words.forEach((word) => {
+                    const span = document.createElement('span');
+                    span.className = 'shamarly-word';
+                    span.textContent = word.text || '';
+                    if (word.waqf_symbols) {
+                        appendWaqfEntries(span, word.waqf_symbols, shamarlyPayload?.mushaf_version || '');
+                    }
+                    lineEl.appendChild(span);
+                });
+            }
+
+            frame.appendChild(lineEl);
+        });
+
+        elements.quranTextContainer.appendChild(frame);
+
+        if (shamarlyPayload?.page_number) {
+            const indicator = document.createElement('div');
+            indicator.className = 'shamarly-page-indicator';
+            indicator.textContent = `صفحة ${shamarlyPayload.page_number}`;
+            elements.quranTextContainer.appendChild(indicator);
+        }
+
+        detachHighlightHandler();
+    }
+
+    function buildWaqfByTokenIndex(waqfSymbols, words = []) {
+        const map = new Map();
+        if (!Array.isArray(waqfSymbols)) {
+            return map;
+        }
+
+        const getWordText = (wordLike) => {
+            if (typeof wordLike === 'string') {
+                return wordLike;
+            }
+            if (wordLike && typeof wordLike === 'object') {
+                return wordLike.text_original || wordLike.text || wordLike.word || '';
+            }
+            return '';
+        };
+
+        const hasTokenIndexes = waqfSymbols.some((entry) => entry && Number.isInteger(entry.token_index));
+
+        // Strip whitespace AND all Arabic combining diacritics for comparison only.
+        // Covers standard tashkeel, QPC/Warsh marks (U+06D6-U+06ED), and the
+        // Arabic Extended-A combining marks (U+08D0-U+08FF) used by Digital Khatt
+        // (e.g. U+08F1 tanwin instead of U+065E) — ensures base consonants match
+        // regardless of which diacritic encoding the font uses.
+        const normalize = (value) => (value || '')
+            .replace(/\s+/g, '')
+            .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D0-\u08FF]/g, '');
+
+        const hasWordIndexes = words.length > 0 && waqfSymbols.some((entry) => {
+            const pos = Number(entry?.word_index);
+            return Number.isInteger(pos) && pos > 0;
+        });
+
+        if (hasWordIndexes) {
+            const wordPosToTokenIndex = new Map();
+            let contentWordPos = 0;
+
+            for (let i = 0; i < words.length; i++) {
+                const token = getWordText(words[i]);
+                if (normalize(token)) {
+                    contentWordPos += 1;
+                    if (!wordPosToTokenIndex.has(contentWordPos)) {
+                        wordPosToTokenIndex.set(contentWordPos, i);
+                    }
+                }
+            }
+
+            waqfSymbols.forEach((entry) => {
+                if (!entry || !entry.symbols) {
+                    return;
+                }
+                const pos = Number(entry.word_index);
+                if (!Number.isInteger(pos) || pos <= 0) {
+                    return;
+                }
+                const tokenIndex = wordPosToTokenIndex.get(pos);
+                if (Number.isInteger(tokenIndex)) {
+                    map.set(tokenIndex, entry.symbols);
+                }
+            });
+
+            if (map.size > 0) {
+                return map;
+            }
+        }
+
+        if (hasTokenIndexes) {
+            waqfSymbols.forEach((entry) => {
+                if (entry && Number.isInteger(entry.token_index) && entry.symbols) {
+                    map.set(entry.token_index, entry.symbols);
+                }
+            });
+            if (map.size > 0) {
+                return map;
+            }
+        }
+
+        let searchStart = 0;
+
+        waqfSymbols.forEach((entry) => {
+            if (!entry || !entry.symbols) {
+                return;
+            }
+
+            const targetWord = normalize(entry.clean_token || entry.original_token || entry.word || '');
+            if (!targetWord) {
+                return;
+            }
+
+            let foundIndex = -1;
+            for (let i = searchStart; i < words.length; i++) {
+                if (normalize(getWordText(words[i])) === targetWord) {
+                    foundIndex = i;
+                    break;
+                }
+            }
+
+            if (foundIndex === -1) {
+                for (let i = 0; i < words.length; i++) {
+                    if (normalize(getWordText(words[i])) === targetWord) {
+                        foundIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (foundIndex >= 0) {
+                if (!map.has(foundIndex)) map.set(foundIndex, []);
+                map.get(foundIndex).push({ symbols: entry.symbols, version: entry.version || '' });
+                searchStart = foundIndex + 1;
+            }
+        });
+        return map;
+    }
+
+    function isWarshMushafVersion(mushafVersion = '') {
+        return /ورش|warsh/i.test((mushafVersion || '').toString());
+    }
+
+    function normalizeNonWarshWaqfText(raw) {
+        return raw
+            .split(/[،,]/)
+            .map((token) => token.replace(/\s+/g, '').trim())
+            .filter(Boolean)
+            .map((token) => {
+                const waqfGlyphMap = {
+                    'م': 'ۘ',
+                    'قلى': 'ۗ',
+                    'قلي': 'ۗ',
+                    'ق': 'ۗ',
+                    'صلى': 'ۖ',
+                    'صلي': 'ۖ',
+                    'ص': 'ۖ',
+                    'ج': 'ۚ',
+                    'لا': 'ۙ',
+                    'ع': 'ۛ',
+                    'ۘ': 'ۘ',
+                    'ۗ': 'ۗ',
+                    'ۖ': 'ۖ',
+                    'ۚ': 'ۚ',
+                    'ۙ': 'ۙ',
+                    'ۛ': 'ۛ'
+                };
+                return waqfGlyphMap[token] || token;
+            })
+            .join('');
+    }
+
+    function getWaqfDisplayData(waqfText, mushafVersionOverride = '') {
+        const raw = (waqfText || '').toString().trim();
+        if (!raw) return null;
+
+        const version = mushafVersionOverride || '';
+        if (isWarshMushafVersion(version)) {
+            return { text: '\u06D6', extraClass: 'waqf-warsh', title: raw };
+        }
+
+        const normalized = normalizeNonWarshWaqfText(raw);
+        const isHusaryRepeat = normalized.includes('\u21BA') || normalized.includes('\u25B6');
+        return { text: normalized, extraClass: isHusaryRepeat ? 'waqf-latin' : '', title: raw };
+    }
+
+    function getOrCreateWaqfStack(wordEl) {
+        let stack = wordEl.querySelector(':scope > .waqf-stack');
+        if (!stack) {
+            stack = document.createElement('span');
+            stack.className = 'waqf-stack';
+            wordEl.prepend(stack);
+        }
+        return stack;
+    }
+
+    function appendWaqfEntries(container, entriesOrText, fallbackVersion = '') {
+        if (!entriesOrText) return;
+        const entries = Array.isArray(entriesOrText)
+            ? entriesOrText
+            : [{ symbols: entriesOrText, version: fallbackVersion }];
+        entries.forEach((e) => appendWaqfSymbol(container, e.symbols || e, e.version || fallbackVersion));
+    }
+
+    function appendWaqfSymbol(container, waqfText, mushafVersionOverride = '') {
+        const displayData = getWaqfDisplayData(waqfText, mushafVersionOverride);
+        if (!displayData) return;
+
+        const stack = getOrCreateWaqfStack(container);
+        const symbolSpan = document.createElement('span');
+        symbolSpan.className = 'waqf-symbol' + (displayData.extraClass ? ' ' + displayData.extraClass : '');
+        if (mushafVersionOverride) symbolSpan.dataset.version = mushafVersionOverride;
+        symbolSpan.textContent = displayData.text;
+        symbolSpan.title = displayData.title;
+        stack.appendChild(symbolSpan);
+    }
+    function stripEmbeddedWaqf(text) {
+        // Only strip the 7 actual waqf stop marks: U+06D6–U+06DC (ۖۗۘۙۚۛۜ)
+        return (text || '').replace(/[\u06D6-\u06DC]/g, '');
+    }
+
+    function getCurrentWaqfMode() {
+        return document.body.dataset.waqfMode || 'both';
+    }
+
+    function setWaqfMode(mode) {
+        const validModes = ['both', 'original', 'selected', 'none'];
+        if (!validModes.includes(mode)) mode = 'both';
+
+        document.body.dataset.waqfMode = mode;
+        localStorage.setItem('quranApp_waqfMode', mode);
+
+        // Update active button highlight
+        if (elements.waqfModeControl) {
+            elements.waqfModeControl.querySelectorAll('.waqf-mode-btn').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+        }
+
+        // Enable mushaf-version dropdown only when overlay waqf is visible
+        const toggleBtn = document.getElementById('mushaf-version-toggle');
+        if (toggleBtn) {
+            toggleBtn.disabled = (mode === 'original' || mode === 'none');
+        }
+
+        // Swap embedded waqf text in already-rendered word elements
+        const showEmbedded = mode === 'both' || mode === 'original';
+        document.querySelectorAll('.word-token[data-text-original]').forEach((el) => {
+            const newText = showEmbedded ? (el.dataset.textOriginal || '') : (el.dataset.textClean || '');
+            // Find the leading text node (before any .waqf-symbol child span)
+            let textNode = null;
+            for (const child of el.childNodes) {
+                if (child.nodeType === Node.TEXT_NODE) {
+                    textNode = child;
+                    break;
+                }
+            }
+            if (textNode) {
+                textNode.nodeValue = newText;
+            } else {
+                el.insertBefore(document.createTextNode(newText), el.firstChild);
+            }
+        });
+    }
+
+    function detachHighlightHandler() {
+        if (elements.audioElement.timeUpdateHandler) {
+            elements.audioElement.removeEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
+            elements.audioElement.timeUpdateHandler = null;
+        }
+    }
+
+    function attachHighlightHandler(wordElements, wordIndexToSegmentMap) {
+        detachHighlightHandler();
+
+        let lastHighlightTime = 0;
+        const highlightThrottle = 100;
+        elements.audioElement.timeUpdateHandler = () => {
+            const now = Date.now();
+            if (now - lastHighlightTime >= highlightThrottle) {
+                highlightWords(wordElements, wordIndexToSegmentMap);
+                lastHighlightTime = now;
+            }
+        };
         elements.audioElement.addEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
     }
 
@@ -640,10 +1212,46 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateTransliterationButton();
     }
 
-    function toggleTafseer() {
+    async function toggleTafseer() {
         const tafseerContainer = document.getElementById('tafseer-container');
-        tafseerContainer.style.display = tafseerContainer.style.display === 'none' ? 'block' : 'none';
+        const isHidden = tafseerContainer.style.display === 'none';
+        tafseerContainer.style.display = isHidden ? 'block' : 'none';
         updateTafseerButton();
+        if (isHidden) {
+            const surah = elements.surahSelect.value;
+            const ayah = elements.ayahSelect.value;
+            if (surah && ayah) {
+                await fetchAndDisplayTafseer(surah, ayah);
+            }
+        }
+    }
+
+    async function fetchAndDisplayTafseer(surahNumber, ayahNumber) {
+        // Return cached result if already fetched for this ayah
+        if (currentAyahData?.surah_number === parseInt(surahNumber) &&
+            currentAyahData?.ayah_number === parseInt(ayahNumber) &&
+            currentAyahData?.tafseer && Object.keys(currentAyahData.tafseer).length > 0) {
+            displayTafseers(currentAyahData.tafseer);
+            return;
+        }
+        try {
+            const data = await fetchData(`/api/tafseer/${surahNumber}/${ayahNumber}`);
+            if (currentAyahData) {
+                currentAyahData.tafseer = data;
+            }
+            displayTafseers(data);
+        } catch (e) {
+            console.error('Error loading tafseer:', e);
+        }
+    }
+
+    async function maybeRefreshTafseer(surahNumber, ayahNumber) {
+        const tafseerContainer = document.getElementById('tafseer-container');
+        if (tafseerContainer && tafseerContainer.style.display !== 'none') {
+            await fetchAndDisplayTafseer(surahNumber, ayahNumber);
+        } else {
+            displayTafseers({});
+        }
     }
 
     function toggleWordMeaning() {
@@ -692,7 +1300,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function createWordElement(word, index, wordIndexToSegmentMap) {
         const wordElement = document.createElement('span');
-        wordElement.textContent = word;
+        wordElement.className = 'word-token';
+        const cleanText = stripEmbeddedWaqf(word);
+        wordElement.dataset.textOriginal = word;
+        wordElement.dataset.textClean = cleanText;
+        const mode = getCurrentWaqfMode();
+        wordElement.textContent = (mode === 'selected' || mode === 'none') ? cleanText : word;
         wordElement.dataset.index = index;
         wordElement.addEventListener('click', () => playWordSegment(index, wordIndexToSegmentMap));
         return wordElement;
@@ -813,71 +1426,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 
     function toggleDarkMode() {
-        // Clear sepia mode if it's active
         if (document.body.classList.contains('sepia-mode')) {
             document.body.classList.remove('sepia-mode');
-            const container = document.querySelector('.container');
-            if (container) container.classList.remove('sepia-mode');
-            document.querySelectorAll('button, select, input, audio').forEach(element => {
-                element.classList.remove('sepia-mode');
-            });
             elements.sepiaModeToggle.checked = false;
         }
-        
-        const elementsToToggle = ['body', '.container'];
-        const selectors = ['button', 'select', 'input', 'audio'];
-        
-        elementsToToggle.forEach(element => {
-            const el = element === 'body' ? document.body : document.querySelector(element);
-            if (el) el.classList.toggle('dark-mode');
-        });
-        
-        selectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(element => {
-                if (element) element.classList.toggle('dark-mode');
-            });
-        });
-        
-        // Save theme preference
-        if (document.body.classList.contains('dark-mode')) {
-            localStorage.setItem('quranApp_theme', 'dark');
-        } else {
-            localStorage.setItem('quranApp_theme', 'light');
-        }
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('quranApp_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
     }
 
     function toggleSepiaMode() {
-        // Clear dark mode if it's active
         if (document.body.classList.contains('dark-mode')) {
             document.body.classList.remove('dark-mode');
-            const container = document.querySelector('.container');
-            if (container) container.classList.remove('dark-mode');
-            document.querySelectorAll('button, select, input, audio').forEach(element => {
-                element.classList.remove('dark-mode');
-            });
             elements.darkModeToggle.checked = false;
         }
-        
-        const elementsToToggle = ['body', '.container'];
-        const selectors = ['button', 'select', 'input', 'audio'];
-        
-        elementsToToggle.forEach(element => {
-            const el = element === 'body' ? document.body : document.querySelector(element);
-            if (el) el.classList.toggle('sepia-mode');
-        });
-        
-        selectors.forEach(selector => {
-            document.querySelectorAll(selector).forEach(element => {
-                if (element) element.classList.toggle('sepia-mode');
-            });
-        });
-        
-        // Save theme preference
-        if (document.body.classList.contains('sepia-mode')) {
-            localStorage.setItem('quranApp_theme', 'sepia');
-        } else {
-            localStorage.setItem('quranApp_theme', 'light');
-        }
+        document.body.classList.toggle('sepia-mode');
+        localStorage.setItem('quranApp_theme', document.body.classList.contains('sepia-mode') ? 'sepia' : 'light');
     }
 
     function toggleRangeSelection() {
@@ -888,12 +1451,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function showModal() {
         elements.modal.classList.add('show');
-        elements.modalContent.classList.add('show');
     }
 
     function closeModal() {
         elements.modal.classList.remove('show');
-        elements.modalContent.classList.remove('show');
     }
 
     async function playRange() {
@@ -1097,9 +1658,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveBookmarks(bookmarks);
         
         // Visual feedback
-        elements.bookmarkButton.innerHTML = '<i class="fas fa-check"></i> تم الحفظ';
+        elements.bookmarkButton.innerHTML = '<i class="fas fa-check"></i> <span>تم الحفظ</span>';
         setTimeout(() => {
-            elements.bookmarkButton.innerHTML = '<i class="fas fa-bookmark"></i> علامة مرجعية';
+            elements.bookmarkButton.innerHTML = '<i class="fas fa-bookmark"></i> <span>حفظ علامة</span>';
         }, 1500);
     }
     

@@ -53,3 +53,8 @@ htmlcov/
 
 # Vercel
 .vercel
+
+# Generated / large data files — do not commit
+QUL_data/quran_script.backup_*.db
+QUL_data/Tafseer*.json
+reciters/husary/word_alignment.json

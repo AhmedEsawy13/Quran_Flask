@@ -1,106 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quranic App</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta name="description" content="تطبيق قرآني تفاعلي مع تلاوة مصحوبة بتمييز الكلمات وتفسير وخطوط متعددة">
+    <title>تطبيق القرآن الكريم</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=6">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css">
 </head>
 <body>
     <div id="dark-mode-toggle-label">
-        <label for="dark-mode-toggle">
-            <i class="fas fa-moon"></i>
-        </label>
+        <label for="dark-mode-toggle"><i class="fas fa-moon"></i></label>
         <input type="checkbox" id="dark-mode-toggle">
     </div>
     <div id="sepia-mode-toggle-label">
-        <label for="sepia-mode-toggle">
-            <i class="fas fa-leaf"></i>
-        </label>
+        <label for="sepia-mode-toggle"><i class="fas fa-leaf"></i></label>
         <input type="checkbox" id="sepia-mode-toggle">
     </div>
+
     <div class="controls-container">
         <div id="controls">
-            <select id="reciter-select">
-                <option value="AbdulBaset AbdulSamad">عبد الباسط عبد الصمد</option>
-                <option value="Mohamed al-Tablawi">محمد الطبلاوي</option>
-                <option value="Mohamed al-Minshawi"> محمد صديق المنشاوي</option>
-                <!-- Add more reciters here -->
-            </select>
-            <select id="surah-select"></select>
-            <select id="ayah-select"></select>
-            <button id="start-voice-command">امر صوتي</button>
-            <button id="show-range-selection">تحديد نطاق</button>
-            <select id="quran-text-select">
-                <option value="qpc_hafs">UthmanicHafs</option>
-                <option value="digital_khatt">Digital Khatt</option>
-                <option value="indopak_nastaleeq">IndoPak Nastaleeq</option>
-            </select>
-            <select id="tafseer-select">
-                <option value="تفسير القرطبي">تفسير القرطبي</option>
-                <option value="تفسير السعدي">تفسير السعدي</option>
-                <option value="تفسير البغوي">تفسير البغوي</option>
-            </select>
-        </div>
-        <div class="ayah-container">
-            <div id="quran-text"></div>
-            <div id="transliteration-container" style="display: none;">
-                <h2></h2>
-                <div id="transliteration"></div>
+
+            <!-- Row 1: Navigation — surah / ayah / font / reciter / view mode -->
+            <div class="ctrl-row ctrl-row-nav">
+                <select id="surah-select" title="اختر السورة"></select>
+                <select id="ayah-select" title="اختر الآية"></select>
+                <select id="quran-text-select" title="نوع الخط أو المصحف">
+                    <option value="shamarly">مصحف الشمرلي</option>
+                    <option value="qpc_hafs">مجمع الملك فهد (حفص)</option>
+                    <option value="digital_khatt">مصحف المدينة</option>
+                    <option value="old_madina">مصحف المدينة القديم</option>
+                    <option value="indopak_nastaleeq">هندي / نستعليق</option>
+                </select>
+                <select id="reading-view-select" title="طريقة العرض">
+                    <option value="verse-normal">عرض آية</option>
+                    <option value="verse-mushaf-lines">آية - أسطر المصحف</option>
+                    <option value="page">صفحة كاملة</option>
+                </select>
+                <select id="reciter-select" title="اختر القارئ">
+                    <option value="AbdulBaset AbdulSamad">عبد الباسط عبد الصمد</option>
+                    <option value="Mohamed al-Tablawi">محمد الطبلاوي</option>
+                    <option value="Mohamed al-Minshawi">محمد صديق المنشاوي</option>
+                    <option value="Mahmoud Khalil al-Husary (Muallim)">محمود خليل الحصري (المعلم)</option>
+                </select>
+                <button id="start-voice-command" type="button" title="أمر صوتي"><i class="fas fa-microphone"></i></button>
+                <!-- Legacy hidden selects (kept for JS compat) -->
+                <div class="legacy-view-controls" aria-hidden="true">
+                    <select id="display-mode-select"><option value="verse">عرض آية</option><option value="page">عرض صفحة</option></select>
+                    <select id="verse-layout-select"><option value="normal">عادي</option><option value="mushaf-lines">أسطر المصحف</option></select>
+                </div>
             </div>
-            <div id="tafseer-container" style="display: none;">
-                <h2></h2>
-                <div id="tafseer-text"></div>
+
+            <!-- Row 2: Playback + utilities -->
+            <div class="ctrl-row ctrl-row-playback">
+                <div class="playback-btns">
+                    <button id="prev-ayah" type="button" title="الآية السابقة" aria-label="الآية السابقة">
+                        <i class="fas fa-backward-step"></i>
+                    </button>
+                    <button id="play-pause-button" type="button" class="btn-play">
+                        <i class="fas fa-play"></i> <span>تشغيل</span>
+                    </button>
+                    <button id="next-ayah" type="button" title="الآية التالية" aria-label="الآية التالية">
+                        <i class="fas fa-forward-step"></i>
+                    </button>
+                </div>
+                <div class="playback-extra">
+                    <label class="repeat-label" for="repeat-select">تكرار</label>
+                    <select id="repeat-select" title="عدد التكرار">
+                        <option value="1">١</option>
+                        <option value="2">٢</option>
+                        <option value="3">٣</option>
+                        <option value="loop">∞</option>
+                    </select>
+                    <button id="show-range-selection" type="button" title="تشغيل نطاق من الآيات">
+                        <i class="fas fa-layer-group"></i> <span>نطاق</span>
+                    </button>
+                    <button id="bookmark-button" type="button" title="إضافة علامة مرجعية">
+                        <i class="fas fa-bookmark"></i> <span>حفظ</span>
+                    </button>
+                    <button id="show-bookmarks-button" type="button" title="عرض العلامات المرجعية">
+                        <i class="fas fa-list"></i> <span>مرجعيات</span>
+                    </button>
+                </div>
             </div>
-            <div class="operation-container">
-                <div class="main-controls">
-                    <audio id="quran-audio" controls></audio>
-                    <button id="show-transliteration"> عرض النطق الحرفي</button>
-                    <button id="play-pause-button">ايقاف / تشغيل</button>
-                    <button id="show-tafseer">عرض التفسير </button>
-                    <button id="toggle-word-meaning-button">عرض غريب الكلمات</button>
-                    <button id="bookmark-button" title="إضافة علامة مرجعية"><i class="fas fa-bookmark"></i> علامة مرجعية</button>
-                    <button id="show-bookmarks-button" title="عرض العلامات المرجعية"><i class="fas fa-list"></i> المرجعيات</button>
-                    <div id="word-meaning-text" style="display: none;"></div>
-                    <div class="repeat-control">
-                        <label for="repeat-select">تكرار الاية:</label>
-                        <select id="repeat-select">
-                            <option value="1">مرة واحدة</option>
-                            <option value="2">مرتين</option>
-                            <option value="3">3 مرات</option>
-                            <option value="loop">تكرار مستمر</option>
-                        </select>
+
+            <!-- Row 3: Waqf — dedicated full-width row -->
+            <div class="ctrl-row ctrl-row-waqf">
+                <div id="waqf-mode-control" class="waqf-mode-control" role="group" aria-label="عرض علامات الوقف">
+                    <span class="waqf-mode-label">الوقف</span>
+                    <button class="waqf-mode-btn active" data-mode="both"     type="button" title="المصحف الأصلي + المصحف المختار">الوقفان</button>
+                    <button class="waqf-mode-btn"        data-mode="original" type="button" title="وقف المصحف الأصلي فقط">المصحف</button>
+                    <button class="waqf-mode-btn"        data-mode="selected" type="button" title="وقف المصحف المختار فقط">مختار</button>
+                    <button class="waqf-mode-btn"        data-mode="none"     type="button" title="إخفاء جميع علامات الوقف">لا</button>
+                    <div class="waqf-version-multiselect" id="mushaf-version-multiselect">
+                        <button type="button" id="mushaf-version-toggle" class="waqf-version-toggle" title="اختر مصاحف الوقف (يمكن اختيار أكثر من مصحف)">
+                            <span id="mushaf-version-summary">اختر المصحف</span>
+                            <i class="fas fa-chevron-down" style="font-size:0.7em; margin-right:4px;"></i>
+                        </button>
+                        <div id="mushaf-version-dropdown" class="waqf-version-dropdown" hidden></div>
                     </div>
                 </div>
-                <div class="navigation-controls">
-                    <button id="prev-ayah">الاية السابقة</button>
-                    <button id="next-ayah">الاية التالية</button>
+            </div>
+
+            <!-- Row 4: Reading tools + audio -->
+            <div class="ctrl-row ctrl-row-tools">
+                <div class="reading-tool-btns">
+                    <button id="show-transliteration" type="button">النطق الحرفي</button>
+                    <div class="tafseer-group">
+                        <button id="show-tafseer" type="button">التفسير</button>
+                        <select id="tafseer-select" class="tafseer-inline-select" title="اختر التفسير">
+                            <option value="تفسير القرطبي">القرطبي</option>
+                            <option value="تفسير السعدي">السعدي</option>
+                            <option value="تفسير البغوي">البغوي</option>
+                        </select>
+                    </div>
+                    <button id="toggle-word-meaning-button" type="button">غريب الكلمات</button>
+                </div>
+                <div class="audio-wrap">
+                    <audio id="quran-audio" controls></audio>
                 </div>
             </div>
+
+        </div><!-- /#controls -->
+
+        <div class="ayah-container">
+            <div id="quran-text"></div>
+            <div id="page-number-indicator" style="display:none;"></div>
+            <div id="transliteration-container" style="display:none;"><h2></h2><div id="transliteration"></div></div>
+            <div id="tafseer-container" style="display:none;"><h2></h2><div id="tafseer-text"></div></div>
+            <div id="word-meaning-text" style="display:none;"></div>
         </div>
     </div>
-    <!-- Bookmarks Modal -->
-    <div id="bookmarksModal" class="modal">
+
+    <!-- Bookmarks modal -->
+    <div id="bookmarksModal" class="modal" role="dialog" aria-modal="true" aria-label="العلامات المرجعية">
         <div class="modal-content">
-            <span class="close-bookmarks">&times;</span>
+            <button class="modal-close close-bookmarks" aria-label="إغلاق">&times;</button>
             <h3>العلامات المرجعية</h3>
             <div id="bookmarks-list"></div>
         </div>
     </div>
-    <div id="rangeModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <label for="start-ayah-select">بداية النطاق </label>
-            <select id="start-ayah-select"></select>
-            <label for="end-ayah-select">نهاية النطاق</label>
-            <select id="end-ayah-select"></select>
-            <button id="play-range">تشغيل</button>
+
+    <!-- Range modal -->
+    <div id="rangeModal" class="modal" role="dialog" aria-modal="true" aria-label="تشغيل نطاق">
+        <div class="modal-content range-modal-content">
+            <button class="modal-close close" aria-label="إغلاق">&times;</button>
+            <h3><i class="fas fa-layer-group"></i> تشغيل نطاق من الآيات</h3>
+            <div class="range-selects">
+                <div class="range-field">
+                    <label for="start-ayah-select">من الآية</label>
+                    <select id="start-ayah-select"></select>
+                </div>
+                <div class="range-field">
+                    <label for="end-ayah-select">إلى الآية</label>
+                    <select id="end-ayah-select"></select>
+                </div>
+            </div>
+            <button id="play-range" class="btn-play-range">
+                <i class="fas fa-play"></i> تشغيل
+            </button>
         </div>
     </div>
+
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=6"></script>
 </body>
 </html>
