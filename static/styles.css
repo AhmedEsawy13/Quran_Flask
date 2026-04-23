@@ -2597,43 +2597,53 @@ body.dark-mode .tafseer-group #show-tafseer:hover { background: rgba(51,65,85,0.
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   WAQF SYMBOL COLOR PALETTE
-   Each waqf type gets a distinct color used in both the verse text
-   overlay and the recitation guide.
+   WAQF SYMBOL COLOR PALETTE — PER MUSHAF VERSION
+   Each mushaf edition gets its own color so users can instantly
+   identify which source a waqf mark belongs to.
    ══════════════════════════════════════════════════════════════════ */
 
-/* لازم  — م  — dark crimson */
-.waqf-color-lazim  { color: #9b1c1c !important; }
-/* قلى  — ق / قلى / ر — amber-orange */
-.waqf-color-qla    { color: #b45309 !important; }
-/* جائز — ج — teal-green */
-.waqf-color-jaiz   { color: #0f766e !important; }
-/* صلى  — ص — royal blue */
-.waqf-color-sla    { color: #1d4ed8 !important; }
-/* لا وقف — لا — purple */
-.waqf-color-la     { color: #7c3aed !important; }
-/* معانقة — ع — deep teal */
-.waqf-color-muanaqah { color: #0e7490 !important; }
-/* Latin (↺ ▶) — Husary repeat symbols */
-.waqf-color-latin  { color: #7c3aed !important; font-family: sans-serif !important; }
+/* المدينة — teal */
+.waqf-mushaf-madinah  { color: #0f766e !important; }
+body.dark-mode .waqf-mushaf-madinah  { color: #2dd4bf !important; }
 
-/* label variants (slightly muted) */
-.waqf-color-lazim-lbl    { color: #9b1c1c; opacity: 0.8; }
-.waqf-color-qla-lbl      { color: #b45309; opacity: 0.8; }
-.waqf-color-jaiz-lbl     { color: #0f766e; opacity: 0.8; }
-.waqf-color-sla-lbl      { color: #1d4ed8; opacity: 0.8; }
-.waqf-color-la-lbl       { color: #7c3aed; opacity: 0.8; }
-.waqf-color-muanaqah-lbl { color: #0e7490; opacity: 0.8; }
-.waqf-color-latin-lbl    { color: #7c3aed; opacity: 0.8; }
+/* الشمرلي — indigo */
+.waqf-mushaf-shamarly { color: #4338ca !important; }
+body.dark-mode .waqf-mushaf-shamarly { color: #818cf8 !important; }
 
-/* Dark-mode lightened variants */
-body.dark-mode .waqf-color-lazim   { color: #fca5a5 !important; }
-body.dark-mode .waqf-color-qla     { color: #fbbf24 !important; }
-body.dark-mode .waqf-color-jaiz    { color: #34d399 !important; }
-body.dark-mode .waqf-color-sla     { color: #60a5fa !important; }
-body.dark-mode .waqf-color-la      { color: #c084fc !important; }
-body.dark-mode .waqf-color-muanaqah{ color: #22d3ee !important; }
-body.dark-mode .waqf-color-latin   { color: #c084fc !important; }
+/* الأزهر — amber */
+.waqf-mushaf-azhar    { color: #b45309 !important; }
+body.dark-mode .waqf-mushaf-azhar    { color: #fbbf24 !important; }
+
+/* ورش — deep violet */
+.waqf-mushaf-warsh    { color: #7c3aed !important; }
+body.dark-mode .waqf-mushaf-warsh    { color: #c084fc !important; }
+
+/* الحصري — crimson */
+.waqf-mushaf-husary   { color: #be123c !important; }
+body.dark-mode .waqf-mushaf-husary   { color: #fb7185 !important; }
+
+/* Fallback for unknown / mixed versions */
+.waqf-mushaf-other    { color: #475569 !important; }
+body.dark-mode .waqf-mushaf-other    { color: #94a3b8 !important; }
+
+/* Latin symbols (↺ ▶) keep their own treatment */
+.waqf-color-latin  { color: #be123c !important; font-family: sans-serif !important; }
+body.dark-mode .waqf-color-latin { color: #fb7185 !important; }
+
+/* Mushaf badge pill used in the guide */
+.guide-mushaf-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 20px;
+    opacity: 0.85;
+    white-space: nowrap;
+    border: 1px solid currentColor;
+    vertical-align: middle;
+    margin-inline-start: 3px;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    WAQF ROW — header, controls wrap, legend
@@ -2742,13 +2752,33 @@ body.sepia-mode .waqf-legend {
 
 .waqf-sym-demo {
     font-size: 1.35rem;
-    color: #c2410c;
+    color: #64748b;    /* neutral default — overridden by mushaf color classes */
     min-width: 1.5rem;
     text-align: center;
     line-height: 1;
 }
 
-body.dark-mode .waqf-sym-demo { color: #fb923c; }
+body.dark-mode .waqf-sym-demo { color: #94a3b8; }
+
+/* Section label inside the legend (e.g., "ألوان المصاحف") */
+.waqf-legend-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #64748b;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    margin: 8px 0 4px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid rgba(148,163,184,0.25);
+}
+
+body.dark-mode .waqf-legend-section-title { color: #94a3b8; }
+
+/* Mushaf color swatches row */
+.waqf-legend-mushaf-colors .waqf-sym-demo {
+    font-size: 1rem;
+}
 
 .waqf-legend-text {
     display: flex;
@@ -2936,13 +2966,14 @@ body.sepia-mode .guide-seg-words { color: #5d4e37; }
 }
 
 .guide-waqf-lbl {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-family: 'IBM Plex Sans Arabic', serif;
-    font-weight: 600;
+    font-weight: 500;
     text-align: center;
-    /* color is provided by waqf-color-*-lbl classes */
-    opacity: 0.85;
+    color: #64748b;
+    opacity: 0.9;
 }
+body.dark-mode .guide-waqf-lbl { color: #94a3b8; }
 
 /* Arrow connector between segments — points left (next segment to left in RTL) */
 .guide-seg-arrow {
@@ -2998,11 +3029,50 @@ body.dark-mode .guide-legend-item { color: #94a3b8; }
     align-items: center;
     justify-content: center;
     gap: 8px;
+    direction: rtl;
 }
 
 .guide-error { color: #dc2626; }
 body.dark-mode .guide-loading,
 body.dark-mode .guide-empty { color: #94a3b8; }
+
+/* "No waqf — read to end of verse" notice */
+.guide-no-waqf {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 16px;
+    background: rgba(240,253,244,0.85);
+    border: 1px solid rgba(22,163,74,0.25);
+    border-radius: 12px;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    direction: rtl;
+    text-align: center;
+}
+body.dark-mode .guide-no-waqf {
+    background: rgba(15,40,25,0.55);
+    border-color: rgba(22,163,74,0.25);
+}
+.guide-no-waqf-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #166534;
+}
+body.dark-mode .guide-no-waqf-title { color: #4ade80; }
+.guide-no-waqf-body {
+    font-size: 0.82rem;
+    color: #374151;
+    line-height: 1.6;
+}
+body.dark-mode .guide-no-waqf-body { color: #9ca3af; }
+.guide-no-waqf-sym {
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.5rem;
+    color: #15803d;
+    line-height: 1;
+}
+body.dark-mode .guide-no-waqf-sym { color: #4ade80; }
 
 /* ── Modal fixes ──────────────────────────────────────────────── */
 .modal.show {
