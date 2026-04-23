@@ -2956,6 +2956,10 @@ body.sepia-mode .guide-seg-words { color: #5d4e37; }
     /* color is set by .waqf-color-* classes */
 }
 
+.waqf-uthmanic {
+    font-family: 'UthmanicHafs', serif !important;
+}
+
 .guide-waqf-latin {
     font-family: sans-serif !important;
     font-size: 1.1rem;

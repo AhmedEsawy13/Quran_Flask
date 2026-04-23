@@ -593,6 +593,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         updatePlayPauseButton();
+
+        // Refresh recitation guide if visible
+        const guideContainerSh = document.getElementById('recitation-guide-container');
+        if (guideContainerSh && guideContainerSh.style.display !== 'none') {
+            await fetchAndBuildRecitationGuide();
+        }
+
         saveUserPreferences();
         preloadNextAyah();
         elements.audioElement.onended = updatePlayPauseButton;
@@ -1401,12 +1408,160 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const data = await fetchData(`/api/recitation-guide/${surah}/${ayah}${qs}`);
             const verseKey = `${surah}:${ayah}`;
-            const verseText = quranTextData?.[verseKey]?.text || currentAyahData?.text || '';
-            buildRecitationGuideHTML(guideContainer, verseText, data.guide || [], data.versions || []);
+            if (data.segments) {
+                buildRecitationGuideFromSegments(guideContainer, data.segments, data.versions || []);
+            } else {
+                const verseText = quranTextData?.[verseKey]?.text || currentAyahData?.text || '';
+                buildRecitationGuideHTML(guideContainer, verseText, data.guide || [], data.versions || []);
+            }
         } catch (error) {
             guideContainer.innerHTML = '<div class="guide-error"><i class="fas fa-triangle-exclamation"></i> خطأ في تحميل دليل التلاوة</div>';
             console.error('Recitation guide error:', error);
         }
+    }
+
+    // ── positions.db-powered guide (new path) ────────────────────────────────
+    function buildRecitationGuideFromSegments(container, segments, versions) {
+        container.innerHTML = '';
+
+        if (!segments || segments.length === 0) {
+            const noEl = document.createElement('div');
+            noEl.className = 'guide-no-waqf';
+            noEl.innerHTML =
+                `<span class="guide-no-waqf-sym">۝</span>` +
+                `<span class="guide-no-waqf-title">لا توجد علامات وقف لهذه الآية</span>` +
+                `<span class="guide-no-waqf-body">اقرأ الآية كاملةً دون وقف، ثم قف عند رأس الآية</span>`;
+            container.appendChild(noEl);
+            return;
+        }
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'recitation-guide';
+
+        // Title
+        const versionLabel = versions.length ? versions.join(' + ') : 'الحصري';
+        const titleEl = document.createElement('div');
+        titleEl.className = 'guide-title';
+        titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — وقف ${versionLabel}`;
+        wrapper.appendChild(titleEl);
+
+        const subtitleEl = document.createElement('p');
+        subtitleEl.className = 'guide-subtitle';
+        subtitleEl.textContent = 'الآية مقسّمة إلى مقاطع وفق مواضع الوقف. اقرأ كل مقطع حتى الرمز ثم قف أو استمر حسب الحكم.';
+        wrapper.appendChild(subtitleEl);
+
+        const segRow = document.createElement('div');
+        segRow.className = 'guide-seg-row';
+        segRow.dir = 'rtl';
+
+        segments.forEach((seg, idx) => {
+            const isLast = idx === segments.length - 1;
+            const segEl = document.createElement('div');
+            segEl.className = 'guide-segment';
+            if (isLast && (!seg.waqf || seg.waqf.length === 0)) segEl.classList.add('guide-segment-last');
+
+            // Segment number
+            const segNum = document.createElement('span');
+            segNum.className = 'guide-seg-num';
+            segNum.textContent = String(idx + 1);
+            segEl.appendChild(segNum);
+
+            // Verse words (strip any embedded waqf glyphs from positions.db text)
+            const wordsEl = document.createElement('div');
+            wordsEl.className = 'guide-seg-words';
+            wordsEl.dir = 'rtl';
+            wordsEl.textContent = (seg.text || '').split(' ')
+                .filter(w => w.trim())
+                .map(w => stripEmbeddedWaqf(w))
+                .join(' ');
+            segEl.appendChild(wordsEl);
+
+            // ▶ repeat-start marker (shown at the top of segments that begin a repeat)
+            if (seg.is_repeat) {
+                const repeatEl = document.createElement('div');
+                repeatEl.className = 'guide-seg-repeat-start';
+                versions.forEach(ver => {
+                    const mushafCls = getMushafColorClass(ver);
+                    const sym = document.createElement('span');
+                    sym.className = 'guide-waqf-sym ' + mushafCls + ' waqf-latin';
+                    sym.textContent = '\u25B6';
+                    repeatEl.appendChild(sym);
+                    const badge = document.createElement('span');
+                    badge.className = 'guide-mushaf-badge ' + mushafCls;
+                    badge.textContent = ver;
+                    repeatEl.appendChild(badge);
+                });
+                const lbl = document.createElement('span');
+                lbl.className = 'guide-waqf-lbl';
+                lbl.textContent = 'بداية الإعادة';
+                repeatEl.appendChild(lbl);
+                segEl.appendChild(repeatEl);
+            }
+
+            // Waqf badges
+            if (seg.waqf && seg.waqf.length > 0) {
+                const waqfEl = document.createElement('div');
+                waqfEl.className = 'guide-seg-waqf';
+
+                seg.waqf.forEach(entry => {
+                    const raw = (entry.symbols || '').trim();
+                    const normalized = normalizeNonWarshWaqfText(raw);
+                    const isLatin = /[\u21BA\u25B6]/.test(normalized);
+                    const isWarshEntry = isWarshMushafVersion(entry.version);
+                    const info = getWaqfInfo(raw);
+                    const mushafCls = getMushafColorClass(entry.version);
+                    const fontCls = isLatin ? ' waqf-latin' : (isWarshEntry ? ' waqf-warsh' : ' waqf-uthmanic');
+
+                    const symSpan = document.createElement('span');
+                    symSpan.className = 'guide-waqf-sym ' + mushafCls + fontCls;
+                    symSpan.textContent = normalized || raw;
+                    waqfEl.appendChild(symSpan);
+
+                    if (entry.version) {
+                        const badge = document.createElement('span');
+                        badge.className = 'guide-mushaf-badge ' + mushafCls;
+                        badge.textContent = entry.version;
+                        waqfEl.appendChild(badge);
+                    }
+
+                    const lblSpan = document.createElement('span');
+                    lblSpan.className = 'guide-waqf-lbl';
+                    lblSpan.textContent = info.meaning;
+                    waqfEl.appendChild(lblSpan);
+                });
+
+                segEl.appendChild(waqfEl);
+
+                const arrow = document.createElement('div');
+                arrow.className = 'guide-seg-arrow';
+                arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
+                segEl.appendChild(arrow);
+            }
+
+            segRow.appendChild(segEl);
+        });
+
+        wrapper.appendChild(segRow);
+
+        // Legend
+        const seenVersions = [...new Set(
+            segments.flatMap(s => (s.waqf || []).map(e => e.version)).filter(Boolean)
+        )];
+        if (seenVersions.length > 0) {
+            const legendEl = document.createElement('div');
+            legendEl.className = 'guide-legend';
+            legendEl.innerHTML = '<span class="guide-legend-title">الألوان:</span>' +
+                seenVersions.map(v => {
+                    const cls = getMushafColorClass(v);
+                    const isWarsh = isWarshMushafVersion(v);
+                    return `<span class="guide-legend-item">` +
+                        `<span class="guide-waqf-sym ${cls}${isWarsh ? ' waqf-warsh' : ' waqf-uthmanic'}" style="font-size:0.85rem">●</span> ${v}` +
+                        `</span>`;
+                }).join('');
+            wrapper.appendChild(legendEl);
+        }
+
+        container.appendChild(wrapper);
     }
 
     function buildRecitationGuideHTML(container, verseText, waqfData, versions) {
@@ -1537,7 +1692,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const isWarshEntry = isWarshMushafVersion(entry.version);
                     const info = getWaqfInfo(raw);
                     const mushafCls = getMushafColorClass(entry.version);
-                    const fontCls = isLatin ? ' waqf-latin' : (isWarshEntry ? ' waqf-warsh' : '');
+                    const fontCls = isLatin ? ' waqf-latin' : (isWarshEntry ? ' waqf-warsh' : ' waqf-uthmanic');
 
                     // Symbol glyph
                     const symSpan = document.createElement('span');

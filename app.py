@@ -82,6 +82,7 @@ def internal_error(error):
 DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'word_name.db')
 WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'mushaf_waqf.db')
+HUSARY_POSITIONS_DB  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reciters', 'husary', 'positions.db')
 DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'digital-khatt-15-lines.db')
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
@@ -582,12 +583,92 @@ def get_mushaf_versions():
     return jsonify(sorted(_get_mushaf_version_whitelist()))
 
 
+def _get_positions_segments(surah_number, ayah_number):
+    """Return reading segments for a single ayah from positions.db.
+
+    Each segment: {start_word, end_word, text, is_repeat}
+    start_word / end_word are the raw values from the DB (0-based, end exclusive).
+    is_repeat=True when this segment's start_word overlaps the previous segment’s
+    end_word (i.e. the reciter repeats back to that word).
+    Returns [] when positions.db is unavailable or has no rows for this ayah.
+    """
+    if not os.path.exists(HUSARY_POSITIONS_DB):
+        return []
+    try:
+        conn = sqlite3.connect(HUSARY_POSITIONS_DB)
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT start_word, end_word, uthmani_text
+            FROM positions
+            WHERE start_sura = ? AND start_aya = ?
+              AND end_sura   = ? AND end_aya   = ?
+              AND has_quran  = 1
+            ORDER BY CAST(segment_index AS REAL)
+        """, (surah_number, ayah_number, surah_number, ayah_number))
+        rows = cur.fetchall()
+        conn.close()
+
+        segments = []
+        prev_end = None
+        for start_w, end_w, text in rows:
+            start_w = int(start_w)
+            end_w   = int(end_w)
+            is_repeat = prev_end is not None and start_w < prev_end
+            segments.append({
+                'start_word': start_w,
+                'end_word':   end_w,
+                'text':       text or '',
+                'is_repeat':  is_repeat,
+            })
+            prev_end = end_w
+        return segments
+    except Exception as e:
+        app.logger.error(f'Error reading positions.db: {e}')
+        return []
+
+
+def _get_waqf_at_boundary(surah_number, ayah_number, end_word, versions):
+    """Return waqf entries [{symbols, version}] for all versions at a segment boundary.
+
+    The positions.db end_word equals the waqf DB word_index for the last word of
+    that segment.  We try end_word first, then end_word-1 as a 1-off fallback.
+    """
+    result = []
+    if not os.path.exists(MUSHAF_WAQF_DATABASE):
+        return result
+    try:
+        conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        for ver in versions:
+            if not _is_valid_mushaf_version(ver):
+                continue
+            qcol = '"' + ver.replace('"', '""') + '"'
+            for wi in (end_word, end_word - 1):
+                cur.execute(f"""
+                    SELECT {qcol} as symbol FROM waqf
+                    WHERE "السورة" = ? AND "الآية" = ? AND word_index = ?
+                    AND {qcol} IS NOT NULL AND {qcol} != ''
+                """, (surah_number, ayah_number, wi))
+                row = cur.fetchone()
+                if row:
+                    result.append({'symbols': row['symbol'], 'version': ver})
+                    break
+        conn.close()
+    except Exception as e:
+        app.logger.error(f'Error fetching waqf at boundary: {e}')
+    return result
+
+
 @app.route('/api/recitation-guide/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_recitation_guide(surah_number, ayah_number):
-    """Return waqf entries for a given ayah to power the recitation-guide panel.
+    """Return segmented recitation guide powered by positions.db + mushaf waqf DB.
 
-    Accepts optional ?version=X query params (repeatable). Falls back to
-    الحصري if no version is supplied or none are valid.
+    When positions.db has data for this ayah, returns:
+      {versions, segments: [{start_word, end_word, text, is_repeat, waqf: [{symbols, version}]}]}
+
+    Falls back to the old flat-entry format:
+      {versions, guide: [{clean_token, symbols, token_index, word_index, version}]}
     """
     if not (1 <= surah_number <= 114) or ayah_number < 1:
         return jsonify({'error': 'invalid parameters'}), 400
@@ -595,21 +676,37 @@ def get_recitation_guide(surah_number, ayah_number):
     requested = request.args.getlist('version')
     valid = [v for v in requested if _is_valid_mushaf_version(v)]
 
-    # Default to Husary when nothing valid supplied
     husary_col = 'الحصري'
     if not valid:
         if _is_valid_mushaf_version(husary_col):
             valid = [husary_col]
         else:
-            return jsonify({'guide': [], 'versions': [], 'note': 'No valid version available'})
+            return jsonify({'segments': [], 'versions': [], 'note': 'No valid version available'})
 
+    # ── positions.db path ───────────────────────────────────────────────
+    pos_segs = _get_positions_segments(surah_number, ayah_number)
+    if pos_segs:
+        result_segments = []
+        for seg in pos_segs:
+            waqf_entries = _get_waqf_at_boundary(
+                surah_number, ayah_number, seg['end_word'], valid
+            )
+            result_segments.append({
+                'start_word': seg['start_word'],
+                'end_word':   seg['end_word'],
+                'text':       seg['text'],
+                'is_repeat':  seg['is_repeat'],
+                'waqf':       waqf_entries,
+            })
+        return jsonify({'segments': result_segments, 'versions': valid})
+
+    # ── Fallback: old word-index approach ────────────────────────────────────
     all_entries = []
     for ver in valid:
         rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
         for r in rows:
             r['version'] = ver
         all_entries.extend(rows)
-
     return jsonify({'guide': all_entries, 'versions': valid})
 
 def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
