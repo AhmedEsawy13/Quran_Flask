@@ -14,6 +14,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     addEventListeners();
 
+    // ── Per-mushaf color classes ─────────────────────────────────────────────
+    // MUST be declared before the first `await` so the const is initialized
+    // when loadMushafVersions() → getMushafColorClass() runs.
+    const MUSHAF_COLOR_MAP = [
+        { match: /المدينة|مدينة/,  cls: 'waqf-mushaf-madinah'  },
+        { match: /الشمرلي|شمرلي/,  cls: 'waqf-mushaf-shamarly' },
+        { match: /الأزهر|أزهر/,    cls: 'waqf-mushaf-azhar'    },
+        { match: /ورش/,            cls: 'waqf-mushaf-warsh'    },
+        { match: /الحصري|حصري/,    cls: 'waqf-mushaf-husary'   },
+    ];
+
+    function getMushafColorClass(version) {
+        if (!version) return 'waqf-mushaf-other';
+        for (const entry of MUSHAF_COLOR_MAP) {
+            if (entry.match.test(version)) return entry.cls;
+        }
+        return 'waqf-mushaf-other';
+    }
+
     try {
         await loadInitialData();
         // Initialize repeat functionality
@@ -994,23 +1013,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return getWaqfInfo(rawSymbol).meaning;
     }
 
-    // ── Per-mushaf color classes ────────────────────────────────────────────
-    // Maps canonical version name substring → CSS class name
-    const MUSHAF_COLOR_MAP = [
-        { match: /المدينة|مدينة/,          cls: 'waqf-mushaf-madinah'  },
-        { match: /الشمرلي|شمرلي/,          cls: 'waqf-mushaf-shamarly' },
-        { match: /الأزهر|أزهر/,            cls: 'waqf-mushaf-azhar'    },
-        { match: /ورش/,                    cls: 'waqf-mushaf-warsh'    },
-        { match: /الحصري|حصري/,            cls: 'waqf-mushaf-husary'   },
-    ];
-
-    function getMushafColorClass(version) {
-        if (!version) return 'waqf-mushaf-other';
-        for (const entry of MUSHAF_COLOR_MAP) {
-            if (entry.match.test(version)) return entry.cls;
-        }
-        return 'waqf-mushaf-other';
-    }
+    // MUSHAF_COLOR_MAP and getMushafColorClass defined earlier near loadMushafVersions
 
     function getWaqfDisplayData(waqfText, mushafVersionOverride = '') {
         const raw = (waqfText || '').toString().trim();
@@ -1020,8 +1023,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isWarsh = isWarshMushafVersion(version);
 
         if (isWarsh) {
-            const warshGlyph = normalizeWarshWaqfText(raw);
-            return { text: warshGlyph, extraClass: 'waqf-warsh', title: raw };
+            // No normalization — display the raw DB value as-is
+            return { text: raw, extraClass: 'waqf-warsh', title: raw };
         }
 
         const normalized = normalizeNonWarshWaqfText(raw);
@@ -1058,13 +1061,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stack = getOrCreateWaqfStack(container);
         const symbolSpan = document.createElement('span');
 
-        // Color is per-mushaf; Latin symbols keep their own class
+        // Color is always per-mushaf; add waqf-latin only for font
         const isLatin = /[\u21BA\u25B6]/.test(displayData.text);
-        const colorClass = isLatin
-            ? 'waqf-color-latin'
-            : getMushafColorClass(mushafVersionOverride);
-
-        symbolSpan.className = 'waqf-symbol ' + colorClass;
+        const colorClass = getMushafColorClass(mushafVersionOverride);
+        symbolSpan.className = 'waqf-symbol ' + colorClass + (isLatin ? ' waqf-latin' : '');
         if (mushafVersionOverride) symbolSpan.dataset.version = mushafVersionOverride;
         symbolSpan.textContent = displayData.text;
 
@@ -1516,7 +1516,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Arrow connector
                 const arrow = document.createElement('div');
                 arrow.className = 'guide-seg-arrow';
-                arrow.innerHTML = '<i class="fas fa-arrow-right"></i>';
+                arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
                 segEl.appendChild(arrow);
             }
 

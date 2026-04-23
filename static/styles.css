@@ -82,8 +82,8 @@ body {
 }
 
 body.dark-mode {
-    background-color: #000;
-    color: #f4f4f9;
+    background-color: #0a0a0a;
+    color: #e8e8ee;
 }
 
 /* Fix for Long Verses and Modern UI Layout */
@@ -103,9 +103,9 @@ body.dark-mode {
 }
 
 body.dark-mode .ayah-container {
-    background: rgba(30, 30, 30, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: #111111;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
 }
 
 body.sepia-mode .ayah-container {
@@ -224,9 +224,9 @@ body[data-waqf-mode="none"] .waqf-stack {
 }
 
 body.dark-mode #controls {
-    background: rgba(30, 30, 30, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    background: #111111;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 body.sepia-mode #controls {
@@ -310,9 +310,9 @@ body.dark-mode select:hover, body.dark-mode button:hover {
 
 
 body.dark-mode {
-    --bg-color: #0f172a;
-    --card-bg-rgb: 30, 41, 59;
-    --text-color: #f8fafc;
+    --bg-color: #0a0a0a;
+    --card-bg-rgb: 17, 17, 17;
+    --text-color: #e8e8ee;
     --waqf-color: #fbbf24;
 }
 

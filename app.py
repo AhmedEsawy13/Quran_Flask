@@ -2241,4 +2241,4 @@ def get_digital_khatt_page_by_ayah(surah_number, ayah_number):
 
 
 if __name__ == '__main__':
-    app.run(debug=os.getenv('FLASK_ENV') == 'development')
+    app.run(debug=os.getenv('FLASK_ENV') == 'development', port=5001)
