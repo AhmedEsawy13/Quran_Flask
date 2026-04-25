@@ -348,6 +348,72 @@ body.dark-mode #quran-text span:hover {
     font-family: 'Amiri', 'UthmanicHafs', serif;
 }
 
+/* Eerab (Grammatical Analysis) Styles */
+
+#eerab-container h2 {
+    direction: rtl;
+    text-align: right;
+}
+
+#eerab-text {
+    margin-top: 12px;
+    font-size: 1rem;
+    line-height: 1.85;
+    direction: rtl;
+    text-align: right;
+    font-family: 'Amiri', serif;
+}
+
+.eerab-ayah-header {
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.15rem;
+    font-weight: bold;
+    margin-bottom: 0.9rem;
+    padding-right: 0.6rem;
+    border-right: 3px solid #2c5aa0;
+    color: #2c5aa0;
+}
+
+.eerab-entry {
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.eerab-word {
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #2c5aa0;
+}
+
+.eerab-colon {
+    color: #888;
+    margin: 0 0.15rem;
+}
+
+.eerab-analysis {
+    font-size: 0.97rem;
+}
+
+.eerab-line {
+    margin: 0.3rem 0;
+}
+
+.eerab-empty {
+    color: #888;
+    font-style: italic;
+}
+
+body.dark-mode .eerab-ayah-header,
+body.dark-mode .eerab-word {
+    color: #93c5fd;
+    border-right-color: #93c5fd;
+}
+
+body.dark-mode .eerab-entry {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
 /* Quranic quote spans inside tafseer HTML (from quran.com API) */
 #tafseer-text .arabic,
 #tafseer-text .qpc-hafs {
@@ -1054,6 +1120,42 @@ body.sepia-mode input:checked + .slider {
 #word-meaning-text ul {
     list-style-type: none;
     padding-left: 20px;
+}
+
+/* Word meanings definition list */
+.word-meanings-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 16px;
+    text-align: right;
+    direction: rtl;
+    margin: 0;
+    padding: 0;
+}
+
+.word-meanings-list dt {
+    font-weight: 700;
+    color: var(--primary-color, #4f46e5);
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.05em;
+    white-space: nowrap;
+}
+
+.word-meanings-list dd {
+    margin: 0;
+    color: var(--text-color, #334155);
+    font-size: 0.92em;
+    line-height: 1.5;
+}
+
+body.dark-mode .word-meanings-list dd { color: #cbd5e1; }
+body.dark-mode .word-meanings-list dt { color: #818cf8; }
+
+.no-meanings {
+    color: #94a3b8;
+    font-size: 0.9em;
+    text-align: center;
+    margin: 0;
 }
 
 /* Bookmark Styles */
@@ -3211,4 +3313,133 @@ body.dark-mode .range-field label { color: #94a3b8; }
     .ctrl-row-tools { flex-direction: column; }
     .audio-wrap { max-width: 100%; }
     .reading-tool-btns { flex-wrap: wrap; justify-content: center; }
+}
+
+/* ── Pause-Match Panel ─────────────────────────────────────────────────────── */
+.pause-match-panel {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: rgba(248,250,252,0.9);
+    border: 1px solid rgba(148,163,184,0.3);
+    border-radius: 12px;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    direction: rtl;
+}
+body.dark-mode .pause-match-panel {
+    background: rgba(30,41,59,0.8);
+    border-color: rgba(100,116,139,0.3);
+}
+body.sepia-mode .pause-match-panel {
+    background: rgba(245,235,215,0.7);
+    border-color: rgba(120,80,40,0.25);
+}
+
+.pause-match-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+body.dark-mode  .pause-match-title { color: #e2e8f0; }
+body.sepia-mode .pause-match-title { color: #3b2a14; }
+
+.pause-match-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0 0 12px 0;
+}
+body.dark-mode  .pause-match-subtitle { color: #94a3b8; }
+body.sepia-mode .pause-match-subtitle { color: #78716c; }
+
+.pause-match-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pause-match-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.pause-match-label {
+    min-width: 64px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+.pause-match-bar-wrap {
+    flex: 1;
+    background: rgba(203,213,225,0.4);
+    border-radius: 99px;
+    height: 10px;
+    overflow: hidden;
+}
+body.dark-mode .pause-match-bar-wrap {
+    background: rgba(71,85,105,0.5);
+}
+
+.pause-match-bar {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+    opacity: 0.85;
+}
+
+/* Bar fill colours inherit from mushaf color classes via background */
+.pause-match-bar.waqf-mushaf-madinah  { background: #10b981; }
+.pause-match-bar.waqf-mushaf-shamarly { background: #1d4ed8; }
+.pause-match-bar.waqf-mushaf-azhar    { background: #c2410c; }
+.pause-match-bar.waqf-mushaf-warsh    { background: #7c3aed; }
+.pause-match-bar.waqf-mushaf-husary   { background: #be123c; }
+.pause-match-bar.waqf-mushaf-other    { background: #475569; }
+
+body.dark-mode .pause-match-bar.waqf-mushaf-madinah  { background: #34d399; }
+body.dark-mode .pause-match-bar.waqf-mushaf-shamarly { background: #60a5fa; }
+body.dark-mode .pause-match-bar.waqf-mushaf-azhar    { background: #fb923c; }
+body.dark-mode .pause-match-bar.waqf-mushaf-warsh    { background: #c084fc; }
+body.dark-mode .pause-match-bar.waqf-mushaf-husary   { background: #f87171; }
+body.dark-mode .pause-match-bar.waqf-mushaf-other    { background: #94a3b8; }
+
+.pause-match-pct {
+    min-width: 80px;
+    font-size: 0.78rem;
+    color: #475569;
+    text-align: left;
+    white-space: nowrap;
+}
+body.dark-mode  .pause-match-pct { color: #94a3b8; }
+body.sepia-mode .pause-match-pct { color: #78716c; }
+
+/* ── Per-word meaning tooltip ──────────────────────────────────────────────── */
+.word-meaning-tooltip {
+    position: absolute;
+    z-index: 9999;
+    max-width: 260px;
+    background: #1e293b;
+    color: #f1f5f9;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 8px 12px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.35);
+    direction: rtl;
+    text-align: right;
+    pointer-events: none;
+    animation: tooltip-in 0.15s ease;
+    white-space: pre-line;
+}
+body.dark-mode .word-meaning-tooltip {
+    background: #334155;
+    color: #f8fafc;
+}
+@keyframes tooltip-in {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
 }

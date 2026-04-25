@@ -25,6 +25,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         { match: /الحصري|حصري/,    cls: 'waqf-mushaf-husary'   },
     ];
 
+    // Arabic display names for reciters (used in the guide title)
+    const RECITER_ARABIC_NAMES = {
+        'AbdulBaset AbdulSamad':               'عبد الباسط عبد الصمد',
+        'Mohamed al-Tablawi':                  'محمد الطبلاوي',
+        'Mohamed al-Minshawi':                 'محمد صديق المنشاوي',
+        'Mahmoud Khalil al-Husary (Muallim)':  'محمود خليل الحصري',
+        'Ibrahim Al-Akhdar':                   'إبراهيم الأخضر',
+        'Ayman Rushdi Suwaid':                 'أيمن رشدي سويد',
+        'Mahmoud Ali Al-Banna':                'محمود علي البنا',
+        'Mustafa Ismaeel':                     'مصطفى إسماعيل',
+    };
+
     function getMushafColorClass(version) {
         if (!version) return 'waqf-mushaf-other';
         for (const entry of MUSHAF_COLOR_MAP) {
@@ -224,10 +236,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     btn.className = 'mushaf-pill ' + colorCls;
                     if (saved.includes(version)) btn.classList.add('active');
                     btn.addEventListener('click', () => {
+                        const wasPlaying = !elements.audioElement.paused;
+                        const savedTime = elements.audioElement.currentTime;
                         btn.classList.toggle('active');
                         localStorage.setItem('quranApp_mushafVersions',
                             JSON.stringify(getSelectedMushafVersions()));
-                        loadQuranData();
+                        loadQuranData().then(() => {
+                            elements.audioElement.currentTime = savedTime;
+                            if (wasPlaying) {
+                                elements.audioElement.play().catch(() => {});
+                                updatePlayPauseButton();
+                            }
+                        });
                     });
                     dropdown.appendChild(btn);
                 });
@@ -242,6 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             quranTextContainer: document.getElementById('quran-text'),
             transliterationContainer: document.getElementById('transliteration'),
             tafseerContainer: document.getElementById('tafseer-text'),
+            eerabContainer: document.getElementById('eerab-text'),
             wordMeaningContainer: document.getElementById('word-meaning-text'),
             audioElement: document.getElementById('quran-audio'),
             repeatSelect: document.getElementById('repeat-select'),
@@ -340,6 +361,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         document.getElementById('show-transliteration').addEventListener('click', toggleTransliteration);
         document.getElementById('show-tafseer').addEventListener('click', toggleTafseer);
+        const eerabBtn = document.getElementById('show-eerab');
+        if (eerabBtn) eerabBtn.addEventListener('click', toggleEerab);
+        const nuzoolBtn = document.getElementById('show-nuzool');
+        if (nuzoolBtn) nuzoolBtn.addEventListener('click', toggleNuzool);
         elements.toggleWordMeaningButton.addEventListener('click', toggleWordMeaning); // Listener for the new toggle via button
 
         const guideBtn = document.getElementById('show-recitation-guide');
@@ -524,9 +549,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
+            await maybeRefreshEerab(surahNumber, ayahNumber);
             // Only display word meanings if they should be visible
             if (elements.wordMeaningVisible) {
-                displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
+                displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
             } else {
                 elements.wordMeaningContainer.innerHTML = '';
             }
@@ -585,9 +611,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentSegments = reciterAudio.segments || [];
         displayTransliteration(currentAyahData.transliteration);
         await maybeRefreshTafseer(surahNumber, ayahNumber);
+        await maybeRefreshEerab(surahNumber, ayahNumber);
         if (elements.wordMeaningVisible) {
             const verseText = shamarlyPayload?.raw_text || currentAyahData.text || '';
-            displayWordMeanings(currentAyahData.word_meanings || {}, verseText);
+            displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, verseText);
         } else {
             elements.wordMeaningContainer.innerHTML = '';
         }
@@ -649,8 +676,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
+            await maybeRefreshEerab(surahNumber, ayahNumber);
             if (elements.wordMeaningVisible) {
-                displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
+                displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
             } else {
                 elements.wordMeaningContainer.innerHTML = '';
             }
@@ -1036,10 +1064,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const normalized = normalizeNonWarshWaqfText(raw);
-        const isHusaryRepeat = normalized.includes('\u21BA') || normalized.includes('\u25B6');
+        // Suppress repeat-only markers (↺ ▶) — these are recording cues, not Quranic stop signs
+        if (/^[\u21BA\u25B6]+$/.test(normalized)) return null;
         return {
             text: normalized,
-            extraClass: isHusaryRepeat ? 'waqf-latin' : '',
+            extraClass: '',
             title: raw
         };
     }
@@ -1069,11 +1098,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stack = getOrCreateWaqfStack(container);
         const symbolSpan = document.createElement('span');
 
-        // Color is per-mushaf; also apply extraClass (e.g. waqf-warsh font, waqf-latin font)
-        const isLatin = /[\u21BA\u25B6]/.test(displayData.text);
+        // Color is per-mushaf; apply any extraClass (e.g. waqf-warsh font)
         const colorClass = getMushafColorClass(mushafVersionOverride);
         const extra = [colorClass];
-        if (isLatin) extra.push('waqf-latin');
         if (displayData.extraClass) extra.push(displayData.extraClass);
         symbolSpan.className = 'waqf-symbol ' + extra.join(' ');
         if (mushafVersionOverride) symbolSpan.dataset.version = mushafVersionOverride;
@@ -1203,79 +1230,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function displayWordMeanings(wordMeanings, verseText) {
-        if (elements.wordMeaningContainer) {
-            elements.wordMeaningContainer.innerHTML = '';
-            const entries = Object.entries(wordMeanings);
-            if (entries.length > 0 && verseText) {
-                const list = document.createElement('ul');
-                // Split verse text into words and clean them for matching
-                const verseWords = verseText.split(' ').filter(word => word.trim() !== '');
-                
-                // Build Maps for O(1) lookups instead of O(n) array searches
-                const exactMap = new Map(entries.map(([w, m]) => [w, m]));
-                const usedWords = new Set();
-                
-                // Create ordered list based on verse word sequence
-                verseWords.forEach(verseWord => {
-                    // Clean the verse word by removing diacritics and numbers for better matching
-                    const cleanVerseWord = verseWord.replace(/[٠-٩0-9]/g, '').trim();
-                    
-                    // Try exact match first using Map (O(1))
-                    let matchWord = null;
-                    let matchMeaning = null;
-                    
-                    if (exactMap.has(cleanVerseWord) && !usedWords.has(cleanVerseWord)) {
-                        matchWord = cleanVerseWord;
-                        matchMeaning = exactMap.get(cleanVerseWord);
-                    } else if (exactMap.has(verseWord) && !usedWords.has(verseWord)) {
-                        matchWord = verseWord;
-                        matchMeaning = exactMap.get(verseWord);
-                    }
-                    
-                    // If exact match not found, try partial matching (fallback)
-                    if (!matchWord) {
-                        for (const [word, meaning] of exactMap) {
-                            if (usedWords.has(word)) continue;
-                            if (word.includes(cleanVerseWord) || cleanVerseWord.includes(word)) {
-                                matchWord = word;
-                                matchMeaning = meaning;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    if (matchWord && !usedWords.has(matchWord)) {
-                        usedWords.add(matchWord);
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${matchWord}: ${matchMeaning}`;
-                        list.appendChild(listItem);
-                    }
-                });
-                
-                // Add any remaining meanings that weren't matched
-                for (const [word, meaning] of exactMap) {
-                    if (!usedWords.has(word)) {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${word}: ${meaning}`;
-                        list.appendChild(listItem);
-                    }
-                }
-                
-                elements.wordMeaningContainer.appendChild(list);
-            } else if (entries.length > 0) {
-                // Fallback to original behavior if no verse text provided
-                const list = document.createElement('ul');
-                entries.forEach(([word, meaning]) => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${word}: ${meaning}`;
-                    list.appendChild(listItem);
-                });
-                elements.wordMeaningContainer.appendChild(list);
-            } else {
-                elements.wordMeaningContainer.innerHTML = 'لا يوجد معاني متاحة';
-            }
+    function displayWordMeanings(wordMeanings, _verseText) {
+        if (!elements.wordMeaningContainer) return;
+        elements.wordMeaningContainer.innerHTML = '';
+        // Accept ordered array [{word, meaning}] or legacy dict {word: meaning}
+        const entries = Array.isArray(wordMeanings)
+            ? wordMeanings
+            : Object.entries(wordMeanings || {}).map(([word, meaning]) => ({ word, meaning }));
+        if (!entries.length) {
+            elements.wordMeaningContainer.innerHTML = '<p class="no-meanings">لا توجد معاني متاحة لهذه الآية</p>';
+            return;
         }
+        const dl = document.createElement('dl');
+        dl.className = 'word-meanings-list';
+        entries.forEach(({ word, meaning }) => {
+            if (!word || !meaning) return;
+            const dt = document.createElement('dt');
+            dt.textContent = word;
+            const dd = document.createElement('dd');
+            dd.textContent = meaning;
+            dl.appendChild(dt);
+            dl.appendChild(dd);
+        });
+        elements.wordMeaningContainer.appendChild(dl);
     }
 
     function toggleTransliteration() {
@@ -1326,6 +1303,87 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    async function toggleEerab() {
+        const eerabContainer = document.getElementById('eerab-container');
+        if (!eerabContainer) return;
+        const isHidden = eerabContainer.style.display === 'none';
+        eerabContainer.style.display = isHidden ? 'block' : 'none';
+        updateEerabButton();
+        if (isHidden) {
+            const surah = elements.surahSelect.value;
+            const ayah = elements.ayahSelect.value;
+            if (surah && ayah) {
+                await fetchAndDisplayEerab(surah, ayah);
+            }
+        }
+    }
+
+    async function fetchAndDisplayEerab(surahNumber, ayahNumber) {
+        if (currentAyahData?.surah_number === parseInt(surahNumber) &&
+            currentAyahData?.ayah_number === parseInt(ayahNumber) &&
+            currentAyahData?.eerab) {
+            displayEerab(currentAyahData.eerab);
+            return;
+        }
+        try {
+            const data = await fetchData(`/api/eerab/${surahNumber}/${ayahNumber}`);
+            if (currentAyahData) {
+                currentAyahData.eerab = data;
+            }
+            displayEerab(data);
+        } catch (e) {
+            console.error('Error loading eerab:', e);
+        }
+    }
+
+    async function maybeRefreshEerab(surahNumber, ayahNumber) {
+        const eerabContainer = document.getElementById('eerab-container');
+        if (eerabContainer && eerabContainer.style.display !== 'none') {
+            await fetchAndDisplayEerab(surahNumber, ayahNumber);
+        }
+    }
+
+    function displayEerab(data) {
+        const eerabTextEl = document.getElementById('eerab-text');
+        if (!eerabTextEl) return;
+        const content = data?.content || '';
+        if (!content) {
+            eerabTextEl.innerHTML = '<p class="eerab-empty">لا يوجد إعراب متاح لهذه الآية.</p>';
+            return;
+        }
+        const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const html = lines.map(line => {
+            if (line.startsWith('{') && line.includes('}')) {
+                return `<p class="eerab-ayah-header">${line}</p>`;
+            }
+            const colonIdx = line.indexOf(':');
+            if (colonIdx > 0) {
+                const word = line.substring(0, colonIdx).trim();
+                const analysis = line.substring(colonIdx + 1).trim();
+                return `<div class="eerab-entry"><span class="eerab-word">${word}</span><span class="eerab-colon">:</span> <span class="eerab-analysis">${analysis}</span></div>`;
+            }
+            return `<p class="eerab-line">${line}</p>`;
+        }).join('');
+        eerabTextEl.innerHTML = html;
+    }
+
+    function updateEerabButton() {
+        const eerabButton = document.getElementById('show-eerab');
+        const eerabContainer = document.getElementById('eerab-container');
+        if (!eerabButton || !eerabContainer) return;
+        eerabButton.textContent = eerabContainer.style.display === 'none' ? 'الإعراب' : 'إخفاء الإعراب';
+    }
+
+    // ── Nuzool ──────────────────────────────────────────────────────────────────────────
+    function toggleNuzool() {
+        const container = document.getElementById('nuzool-container');
+        if (!container) return;
+        const isHidden = container.style.display === 'none';
+        container.style.display = isHidden ? 'block' : 'none';
+        const btn = document.getElementById('show-nuzool');
+        if (btn) btn.textContent = isHidden ? 'إخفاء نزول الآية' : 'نزول الآية';
+    }
+
     function toggleWordMeaning() {
         elements.wordMeaningVisible = !elements.wordMeaningVisible;
         if (elements.wordMeaningVisible) {
@@ -1334,7 +1392,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (currentAyahData) {
                 const verseKey = `${elements.surahSelect.value}:${elements.ayahSelect.value}`;
                 const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
-                displayWordMeanings(currentAyahData.word_meanings || {}, ayahText);
+                displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
             }
         } else {
             elements.wordMeaningContainer.style.display = 'none';
@@ -1400,19 +1458,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         guideContainer.innerHTML = '<div class="guide-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل بيانات الوقف…</div>';
 
         try {
-            // Use the currently selected mushaf versions; fall back to Husary (server-side default)
-            const selectedVersions = getSelectedMushafVersions();
-            const params = new URLSearchParams();
-            selectedVersions.forEach(v => params.append('version', v));
-            const qs = params.toString() ? '?' + params.toString() : '';
+            const reciter = elements.reciterSelect.value;
+            const qs = reciter ? `?reciter=${encodeURIComponent(reciter)}` : '';
 
-            const data = await fetchData(`/api/recitation-guide/${surah}/${ayah}${qs}`);
-            const verseKey = `${surah}:${ayah}`;
-            if (data.segments) {
-                buildRecitationGuideFromSegments(guideContainer, data.segments, data.versions || []);
-            } else {
-                const verseText = quranTextData?.[verseKey]?.text || currentAyahData?.text || '';
-                buildRecitationGuideHTML(guideContainer, verseText, data.guide || [], data.versions || []);
+            const [data, matchData] = await Promise.all([
+                fetchData(`/api/recitation-guide/${surah}/${ayah}${qs}`),
+                fetchData(`/api/pause-match/${surah}/${ayah}${qs}`).catch(() => null),
+            ]);
+            const reciterName = RECITER_ARABIC_NAMES[reciter] || reciter;
+
+            if (data.has_positions_db === false) {
+                guideContainer.innerHTML =
+                    `<div class="guide-no-waqf">` +
+                    `<span class="guide-no-waqf-sym">🎙</span>` +
+                    `<span class="guide-no-waqf-title">دليل التلاوة غير متاح لهذا القارئ</span>` +
+                    `<span class="guide-no-waqf-body">لا توجد بيانات تسجيل لـ ${reciterName} بعد.</span>` +
+                    `</div>`;
+                return;
+            }
+
+            buildRecitationGuideFromSegments(guideContainer, data.segments || [], reciterName);
+            if (matchData && matchData.has_data) {
+                buildPauseMatchPanel(guideContainer, matchData, reciterName);
             }
         } catch (error) {
             guideContainer.innerHTML = '<div class="guide-error"><i class="fas fa-triangle-exclamation"></i> خطأ في تحميل دليل التلاوة</div>';
@@ -1420,8 +1487,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // ── positions.db-powered guide (new path) ────────────────────────────────
-    function buildRecitationGuideFromSegments(container, segments, versions) {
+    function buildPauseMatchPanel(container, matchData, reciterName) {
+        const { matches, pause_count } = matchData;
+        const versions = Object.keys(matches).sort((a, b) => matches[b].score - matches[a].score);
+        if (!versions.length) return;
+
+        const panel = document.createElement('div');
+        panel.className = 'pause-match-panel';
+
+        const title = document.createElement('div');
+        title.className = 'pause-match-title';
+        title.innerHTML = `<i class="fas fa-chart-bar"></i> تطابق وقوف ${reciterName} مع المصاحف`;
+        panel.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.className = 'pause-match-subtitle';
+        subtitle.textContent = `من أصل ${pause_count} وقفة، كم منها تتوافق مع علامات الوقف في كل مصحف؟`;
+        panel.appendChild(subtitle);
+
+        const rows = document.createElement('div');
+        rows.className = 'pause-match-rows';
+
+        versions.forEach(ver => {
+            const { matched, total, score } = matches[ver];
+            const colorCls = getMushafColorClass(ver);
+
+            const row = document.createElement('div');
+            row.className = 'pause-match-row';
+
+            const label = document.createElement('span');
+            label.className = `pause-match-label ${colorCls}`;
+            label.textContent = ver;
+            row.appendChild(label);
+
+            const barWrap = document.createElement('div');
+            barWrap.className = 'pause-match-bar-wrap';
+
+            const bar = document.createElement('div');
+            bar.className = `pause-match-bar ${colorCls}`;
+            bar.style.width = '0%';
+            // Animate width after append
+            setTimeout(() => { bar.style.width = score + '%'; }, 50);
+            barWrap.appendChild(bar);
+            row.appendChild(barWrap);
+
+            const pct = document.createElement('span');
+            pct.className = 'pause-match-pct';
+            pct.textContent = `${score}٪ (${matched}/${total})`;
+            row.appendChild(pct);
+
+            rows.appendChild(row);
+        });
+
+        panel.appendChild(rows);
+        container.appendChild(panel);
+    }
+
+    // ── positions.db-powered guide ───────────────────────────────────────────
+    function buildRecitationGuideFromSegments(container, segments, reciterName) {
         container.innerHTML = '';
 
         if (!segments || segments.length === 0) {
@@ -1438,11 +1561,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const wrapper = document.createElement('div');
         wrapper.className = 'recitation-guide';
 
-        // Title
-        const versionLabel = versions.length ? versions.join(' + ') : 'الحصري';
+        // Title — shows the reciter name, not mushaf version
         const titleEl = document.createElement('div');
         titleEl.className = 'guide-title';
-        titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — وقف ${versionLabel}`;
+        titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — ${reciterName || 'القارئ'}`;
         wrapper.appendChild(titleEl);
 
         const subtitleEl = document.createElement('p');
@@ -1466,7 +1588,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             segNum.textContent = String(idx + 1);
             segEl.appendChild(segNum);
 
-            // Verse words (strip any embedded waqf glyphs from positions.db text)
+            // Verse words — strip any embedded waqf glyphs from positions.db text
             const wordsEl = document.createElement('div');
             wordsEl.className = 'guide-seg-words';
             wordsEl.dir = 'rtl';
@@ -1476,29 +1598,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .join(' ');
             segEl.appendChild(wordsEl);
 
-            // ▶ repeat-start marker (shown at the top of segments that begin a repeat)
-            if (seg.is_repeat) {
-                const repeatEl = document.createElement('div');
-                repeatEl.className = 'guide-seg-repeat-start';
-                versions.forEach(ver => {
-                    const mushafCls = getMushafColorClass(ver);
-                    const sym = document.createElement('span');
-                    sym.className = 'guide-waqf-sym ' + mushafCls + ' waqf-latin';
-                    sym.textContent = '\u25B6';
-                    repeatEl.appendChild(sym);
-                    const badge = document.createElement('span');
-                    badge.className = 'guide-mushaf-badge ' + mushafCls;
-                    badge.textContent = ver;
-                    repeatEl.appendChild(badge);
-                });
-                const lbl = document.createElement('span');
-                lbl.className = 'guide-waqf-lbl';
-                lbl.textContent = 'بداية الإعادة';
-                repeatEl.appendChild(lbl);
-                segEl.appendChild(repeatEl);
-            }
-
-            // Waqf badges
+            // Waqf symbol + meaning (no mushaf version badge)
             if (seg.waqf && seg.waqf.length > 0) {
                 const waqfEl = document.createElement('div');
                 waqfEl.className = 'guide-seg-waqf';
@@ -1506,23 +1606,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 seg.waqf.forEach(entry => {
                     const raw = (entry.symbols || '').trim();
                     const normalized = normalizeNonWarshWaqfText(raw);
-                    const isLatin = /[\u21BA\u25B6]/.test(normalized);
-                    const isWarshEntry = isWarshMushafVersion(entry.version);
                     const info = getWaqfInfo(raw);
-                    const mushafCls = getMushafColorClass(entry.version);
-                    const fontCls = isLatin ? ' waqf-latin' : (isWarshEntry ? ' waqf-warsh' : ' waqf-uthmanic');
 
                     const symSpan = document.createElement('span');
-                    symSpan.className = 'guide-waqf-sym ' + mushafCls + fontCls;
+                    symSpan.className = 'guide-waqf-sym waqf-uthmanic';
                     symSpan.textContent = normalized || raw;
                     waqfEl.appendChild(symSpan);
-
-                    if (entry.version) {
-                        const badge = document.createElement('span');
-                        badge.className = 'guide-mushaf-badge ' + mushafCls;
-                        badge.textContent = entry.version;
-                        waqfEl.appendChild(badge);
-                    }
 
                     const lblSpan = document.createElement('span');
                     lblSpan.className = 'guide-waqf-lbl';
@@ -1542,98 +1631,57 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         wrapper.appendChild(segRow);
-
-        // Legend
-        const seenVersions = [...new Set(
-            segments.flatMap(s => (s.waqf || []).map(e => e.version)).filter(Boolean)
-        )];
-        if (seenVersions.length > 0) {
-            const legendEl = document.createElement('div');
-            legendEl.className = 'guide-legend';
-            legendEl.innerHTML = '<span class="guide-legend-title">الألوان:</span>' +
-                seenVersions.map(v => {
-                    const cls = getMushafColorClass(v);
-                    const isWarsh = isWarshMushafVersion(v);
-                    return `<span class="guide-legend-item">` +
-                        `<span class="guide-waqf-sym ${cls}${isWarsh ? ' waqf-warsh' : ' waqf-uthmanic'}" style="font-size:0.85rem">●</span> ${v}` +
-                        `</span>`;
-                }).join('');
-            wrapper.appendChild(legendEl);
-        }
-
         container.appendChild(wrapper);
     }
-
     function buildRecitationGuideHTML(container, verseText, waqfData, versions) {
         container.innerHTML = '';
         const words = (verseText || '').split(' ').filter(w => w.trim());
 
-        // ── No waqf data → read to end of verse ──────────────────────────
+        // No waqf data
         if (!waqfData || waqfData.length === 0) {
             const noWaqfEl = document.createElement('div');
             noWaqfEl.className = 'guide-no-waqf';
             noWaqfEl.innerHTML =
-                `<span class="guide-no-waqf-sym">۝</span>` +
-                `<span class="guide-no-waqf-title">لا توجد علامات وقف لهذه الآية</span>` +
-                `<span class="guide-no-waqf-body">اقرأ الآية كاملةً دون وقف، ثم قف عند رأس الآية <span style="font-family:'UthmanicHafs',serif;font-size:1.1rem">۝</span></span>`;
+                `<span class="guide-no-waqf-sym">\u06DD</span>` +
+                `<span class="guide-no-waqf-title">\u0644\u0627 \u062a\u0648\u062c\u062f \u0639\u0644\u0627\u0645\u0627\u062a \u0648\u0642\u0641 \u0644\u0647\u0630\u0647 \u0627\u0644\u0622\u064a\u0629</span>` +
+                `<span class="guide-no-waqf-body">\u0627\u0642\u0631\u0623 \u0627\u0644\u0622\u064a\u0629 \u0643\u0627\u0645\u0644\u0629\u064b \u062f\u0648\u0646 \u0648\u0642\u0641\u060c \u062b\u0645 \u0642\u0641 \u0639\u0646\u062f \u0631\u0623\u0633 \u0627\u0644\u0622\u064a\u0629</span>`;
             container.appendChild(noWaqfEl);
             return;
         }
 
-        // ── Build waqf map: tokenIndex → [{symbols, version}] ────────────
+        // Build waqf map: tokenIndex -> [{symbols, version}]
         const waqfMap = buildWaqfByTokenIndex(waqfData, words);
 
-        // ── Group words into reading segments ─────────────────────────────
-        // When a word is marked ▶ (start of repeat section):
-        //   • It becomes the LAST word of the current segment → clip 1 shows ↺▶ badge
-        //   • The next segment gets a repeatStart marker so clip 2 shows ▶ at its top
+        // Group words into reading segments
         const segments = [];
         let currentWords = [];
-        let pendingRepeatStart = null;   // ▶-only entries to annotate the next segment
 
         for (let i = 0; i < words.length; i++) {
             const entries = waqfMap.get(i);
-            const hasRepeatStart = entries?.some(e => /\u25B6/.test(e.symbols || ''));
-
-            if (hasRepeatStart) {
-                // This word (e.g. إليكم) is the LAST word of the current segment
-                currentWords.push(words[i]);
-                // Close the segment with the full ↺▶ entries as its waqf badge
+            currentWords.push(words[i]);
+            if (entries && entries.length > 0) {
                 segments.push({ words: [...currentWords], waqf: entries });
                 currentWords = [];
-                // Carry just ▶ entries as a "repeat start" marker for the next segment
-                pendingRepeatStart = entries.filter(e => /\u25B6/.test(e.symbols || ''));
-                if (pendingRepeatStart.length === 0) pendingRepeatStart = null;
-            } else {
-                currentWords.push(words[i]);
-                if (entries && entries.length > 0) {
-                    segments.push({ words: [...currentWords], waqf: entries, repeatStart: pendingRepeatStart });
-                    pendingRepeatStart = null;
-                    currentWords = [];
-                }
             }
         }
         if (currentWords.length > 0) {
-            segments.push({ words: currentWords, waqf: null, repeatStart: pendingRepeatStart });
+            segments.push({ words: currentWords, waqf: null });
         }
 
-        // ── Wrapper ───────────────────────────────────────────────────────
         const wrapper = document.createElement('div');
         wrapper.className = 'recitation-guide';
 
-        // Title
-        const versionLabel = versions && versions.length ? versions.join(' + ') : 'الحصري';
+        const versionLabel = versions && versions.length ? versions.join(' + ') : '\u0627\u0644\u062d\u0635\u0631\u064a';
         const titleEl = document.createElement('div');
         titleEl.className = 'guide-title';
-        titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — وقف ${versionLabel}`;
+        titleEl.innerHTML = `<i class="fas fa-route"></i> \u062f\u0644\u064a\u0644 \u0627\u0644\u062a\u0644\u0627\u0648\u0629 \u2014 \u0648\u0642\u0641 ${versionLabel}`;
         wrapper.appendChild(titleEl);
 
         const subtitleEl = document.createElement('p');
         subtitleEl.className = 'guide-subtitle';
-        subtitleEl.textContent = 'الآية مقسّمة إلى مقاطع وفق مواضع الوقف. اقرأ كل مقطع حتى الرمز ثم قف أو استمر حسب الحكم.';
+        subtitleEl.textContent = '\u0627\u0644\u0622\u064a\u0629 \u0645\u0642\u0633\u0651\u0645\u0629 \u0625\u0644\u0649 \u0645\u0642\u0627\u0637\u0639 \u0648\u0641\u0642 \u0645\u0648\u0627\u0636\u0639 \u0627\u0644\u0648\u0642\u0641. \u0627\u0642\u0631\u0623 \u0643\u0644 \u0645\u0642\u0637\u0639 \u062d\u062a\u0649 \u0627\u0644\u0631\u0645\u0632 \u062b\u0645 \u0642\u0641 \u0623\u0648 \u0627\u0633\u062a\u0645\u0631 \u062d\u0633\u0628 \u0627\u0644\u062d\u0643\u0645.';
         wrapper.appendChild(subtitleEl);
 
-        // ── Segments ──────────────────────────────────────────────────────
         const segRow = document.createElement('div');
         segRow.className = 'guide-seg-row';
         segRow.dir = 'rtl';
@@ -1643,44 +1691,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             segEl.className = 'guide-segment';
             if (!seg.waqf) segEl.classList.add('guide-segment-last');
 
-            // Segment number
             const segNum = document.createElement('span');
             segNum.className = 'guide-seg-num';
             segNum.textContent = String(idx + 1);
             segEl.appendChild(segNum);
 
-            // Verse words
             const wordsEl = document.createElement('div');
             wordsEl.className = 'guide-seg-words';
             wordsEl.dir = 'rtl';
             wordsEl.textContent = seg.words.map(w => stripEmbeddedWaqf(w)).join(' ');
             segEl.appendChild(wordsEl);
 
-            // ▶ repeat-start marker (shown at the top of the segment that opens a repeat)
-            if (seg.repeatStart && seg.repeatStart.length > 0) {
-                const repeatEl = document.createElement('div');
-                repeatEl.className = 'guide-seg-repeat-start';
-                seg.repeatStart.forEach(entry => {
-                    const mushafCls = getMushafColorClass(entry.version);
-                    const sym = document.createElement('span');
-                    sym.className = 'guide-waqf-sym ' + mushafCls + ' waqf-latin';
-                    sym.textContent = '\u25B6';
-                    repeatEl.appendChild(sym);
-                    if (entry.version) {
-                        const badge = document.createElement('span');
-                        badge.className = 'guide-mushaf-badge ' + mushafCls;
-                        badge.textContent = entry.version;
-                        repeatEl.appendChild(badge);
-                    }
-                    const lbl = document.createElement('span');
-                    lbl.className = 'guide-waqf-lbl';
-                    lbl.textContent = 'بداية الإعادة';
-                    repeatEl.appendChild(lbl);
-                });
-                segEl.appendChild(repeatEl);
-            }
-
-            // Waqf badges — grouped by unique symbol+version combination
             if (seg.waqf) {
                 const waqfEl = document.createElement('div');
                 waqfEl.className = 'guide-seg-waqf';
@@ -1688,19 +1709,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 seg.waqf.forEach(entry => {
                     const raw = (entry.symbols || '').trim();
                     const normalized = normalizeNonWarshWaqfText(raw);
-                    const isLatin = /[\u21BA\u25B6]/.test(normalized);
                     const isWarshEntry = isWarshMushafVersion(entry.version);
                     const info = getWaqfInfo(raw);
                     const mushafCls = getMushafColorClass(entry.version);
-                    const fontCls = isLatin ? ' waqf-latin' : (isWarshEntry ? ' waqf-warsh' : ' waqf-uthmanic');
+                    const fontCls = isWarshEntry ? ' waqf-warsh' : ' waqf-uthmanic';
 
-                    // Symbol glyph
                     const symSpan = document.createElement('span');
                     symSpan.className = 'guide-waqf-sym ' + mushafCls + fontCls;
                     symSpan.textContent = normalized || raw;
                     waqfEl.appendChild(symSpan);
 
-                    // Mushaf badge pill (colored by mushaf)
                     if (entry.version) {
                         const badge = document.createElement('span');
                         badge.className = 'guide-mushaf-badge ' + mushafCls;
@@ -1708,7 +1726,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                         waqfEl.appendChild(badge);
                     }
 
-                    // Waqf type meaning label (neutral gray)
                     const lblSpan = document.createElement('span');
                     lblSpan.className = 'guide-waqf-lbl';
                     lblSpan.textContent = info.meaning;
@@ -1717,7 +1734,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 segEl.appendChild(waqfEl);
 
-                // Arrow connector
                 const arrow = document.createElement('div');
                 arrow.className = 'guide-seg-arrow';
                 arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
@@ -1729,16 +1745,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         wrapper.appendChild(segRow);
 
-        // ── Legend: show which mushafs are present ─────────────────────────
-        const seenVersions = [...new Set(waqfData.map(e => e.version).filter(Boolean))];
+        const seenVersions = [...new Set(
+            segments.flatMap(s => (s.waqf || []).map(e => e.version)).filter(Boolean)
+        )];
         if (seenVersions.length > 0) {
             const legendEl = document.createElement('div');
             legendEl.className = 'guide-legend';
-            legendEl.innerHTML = '<span class="guide-legend-title">الألوان:</span>' +
+            legendEl.innerHTML = '<span class="guide-legend-title">\u0627\u0644\u0623\u0644\u0648\u0627\u0646:</span>' +
                 seenVersions.map(v => {
                     const cls = getMushafColorClass(v);
+                    const isWarsh = isWarshMushafVersion(v);
                     return `<span class="guide-legend-item">` +
-                        `<span class="guide-waqf-sym ${cls}" style="font-size:0.85rem">●</span> ${v}` +
+                        `<span class="guide-waqf-sym ${cls}${isWarsh ? ' waqf-warsh' : ' waqf-uthmanic'}" style="font-size:0.85rem">\u25cf</span> ${v}` +
                         `</span>`;
                 }).join('');
             wrapper.appendChild(legendEl);
@@ -1756,8 +1774,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         const mode = getCurrentWaqfMode();
         wordElement.textContent = (mode === 'selected' || mode === 'none') ? cleanText : word;
         wordElement.dataset.index = index;
-        wordElement.addEventListener('click', () => playWordSegment(index, wordIndexToSegmentMap));
+        wordElement.addEventListener('click', () => {
+            playWordSegment(index, wordIndexToSegmentMap);
+        });
+        wordElement.addEventListener('mouseenter', () => showWordMeaningTooltip(wordElement));
+        wordElement.addEventListener('mouseleave', () => {
+            document.querySelectorAll('.word-meaning-tooltip').forEach(t => t.remove());
+        });
         return wordElement;
+    }
+
+    function findWordMeaning(wordText, wordMeanings) {
+        if (!wordText || !wordMeanings) return null;
+        const clean = wordText.replace(/[٠-٩0-9]/g, '').trim();
+        if (wordMeanings[clean]) return wordMeanings[clean];
+        if (wordMeanings[wordText]) return wordMeanings[wordText];
+        for (const [key, meaning] of Object.entries(wordMeanings)) {
+            if (key.includes(clean) || clean.includes(key)) return meaning;
+        }
+        return null;
+    }
+
+    function showWordMeaningTooltip(wordEl) {
+        document.querySelectorAll('.word-meaning-tooltip').forEach(t => t.remove());
+        if (!currentAyahData?.word_meanings) return;
+
+        const wordText = wordEl.dataset.textClean || wordEl.textContent;
+        const meaning = findWordMeaning(wordText, currentAyahData.word_meanings);
+        if (!meaning) return;
+
+        const tooltip = document.createElement('div');
+        tooltip.className = 'word-meaning-tooltip';
+        tooltip.textContent = meaning;
+        document.body.appendChild(tooltip);
+
+        const rect = wordEl.getBoundingClientRect();
+        tooltip.style.top  = (rect.bottom + window.scrollY + 6) + 'px';
+        tooltip.style.left = (rect.left  + window.scrollX) + 'px';
     }
 
     function mapSegmentsToWords(segments, wordIndexToSegmentMap) {

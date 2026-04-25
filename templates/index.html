@@ -41,6 +41,10 @@
                     <option value="Mohamed al-Tablawi">محمد الطبلاوي</option>
                     <option value="Mohamed al-Minshawi">محمد صديق المنشاوي</option>
                     <option value="Mahmoud Khalil al-Husary (Muallim)">محمود خليل الحصري (المعلم)</option>
+                    <option value="Ibrahim Al-Akhdar">إبراهيم الأخضر</option>
+                    <option value="Ayman Rushdi Suwaid">أيمن رشدي سويد</option>
+                    <option value="Mahmoud Ali Al-Banna">محمود علي البنا</option>
+                    <option value="Mustafa Ismaeel">مصطفى إسماعيل</option>
                 </select>
                 <button id="start-voice-command" type="button" title="أمر صوتي: 'Go to chapter X verse Y'"><i class="fas fa-microphone"></i></button>
                 <!-- Legacy hidden selects (kept for JS compat) -->
@@ -138,10 +142,6 @@
                             <span class="waqf-sym-demo waqf-mushaf-warsh">●</span>
                             <div class="waqf-legend-text"><strong>ورش</strong></div>
                         </div>
-                        <div class="waqf-legend-item">
-                            <span class="waqf-sym-demo waqf-mushaf-husary">●</span>
-                            <div class="waqf-legend-text"><strong>الحصري</strong></div>
-                        </div>
                     </div>
                     <!-- Waqf symbol meanings -->
                     <div class="waqf-legend-section-title">معاني الرموز</div>
@@ -194,6 +194,7 @@
                             <option value="تفسير البغوي">البغوي</option>
                         </select>
                     </div>
+                    <button id="show-eerab" type="button">الإعراب</button>
                     <button id="toggle-word-meaning-button" type="button">غريب الكلمات</button>
                 </div>
                 <div class="audio-wrap">
@@ -208,6 +209,7 @@
             <div id="page-number-indicator" style="display:none;"></div>
             <div id="transliteration-container" style="display:none;"><h2></h2><div id="transliteration"></div></div>
             <div id="tafseer-container" style="display:none;"><h2></h2><div id="tafseer-text"></div></div>
+            <div id="eerab-container" style="display:none;"><h2>الإعراب</h2><div id="eerab-text"></div></div>
             <div id="word-meaning-text" style="display:none;"></div>
             <div id="recitation-guide-container" style="display:none;"></div>
         </div>

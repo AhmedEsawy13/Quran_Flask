@@ -37,7 +37,7 @@ def after_request(response):
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai; "
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com; "
         "connect-src 'self' https://api.quran.com;"
     )
     
@@ -82,7 +82,33 @@ def internal_error(error):
 DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'word_name.db')
 WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'mushaf_waqf.db')
-HUSARY_POSITIONS_DB  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reciters', 'husary', 'positions.db')
+# Per-reciter guide config: positions.db path + default waqf column from mushaf_waqf DB.
+# Add a new entry here whenever a reciter has segmentation data.
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RECITER_GUIDE_CONFIG = {
+    'Mahmoud Khalil al-Husary (Muallim)': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'positions.db'),
+        'waqf_col': 'الحصري',
+    },
+    'Ibrahim Al-Akhdar': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'ibrahim-al-akhdar', 'positions.db'),
+        'waqf_col': 'المدينة',
+    },
+    'Ayman Rushdi Suwaid': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'ayman-suwaid', 'positions.db'),
+        'waqf_col': 'المدينة',
+    },
+    'Mahmoud Ali Al-Banna': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'mahmoud-ali-al-banna', 'positions.db'),
+        'waqf_col': 'المدينة',
+    },
+    'Mustafa Ismaeel': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'mustafa-ismaeel', 'positions.db'),
+        'waqf_col': 'المدينة',
+    },
+}
+# Keep for backwards compat with any legacy code that may reference it
+HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']['db']
 DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'digital-khatt-15-lines.db')
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
@@ -184,6 +210,11 @@ TAFSEER_API_BASE = 'https://api.quran.com/api/v4/tafsirs/{id}/by_ayah/{verse_key
 # In-process cache: (tafseer_name, verse_key) → {text: "..."}
 _tafseer_cache: dict = {}
 
+# SurahApp API (grammatical analysis / إعراب)
+SURAHAPP_API_BASE = 'https://dev.surahapp.com/api/v1/aya/{slug}/{sura}/{aya}'
+# In-process cache
+_eerab_cache: dict = {}
+
 
 # Load audio data — CDN first, local fallback
 reciters = {
@@ -195,6 +226,14 @@ reciters = {
                               "QUL_data/Mohamed Siddiq al-Minshawi Recitation.json"),
     "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
                                            "QUL_data/mahmoud-khalil-al-husary-muallm-hafs.json"),
+    "Ibrahim Al-Akhdar":        ("ibrahim-al-akhdar.json",
+                                  "QUL_data/ibrahim-al-akhdar.json"),
+    "Ayman Rushdi Suwaid":       ("ayman-rushdi-suwaid.json",
+                                  "QUL_data/ayman-rushdi-suwaid.json"),
+    "Mahmoud Ali Al-Banna":      ("mahmoud-ali-al-banna.json",
+                                  "QUL_data/mahmoud-ali-al-banna.json"),
+    "Mustafa Ismaeel":           ("mustafa-ismaeel.json",
+                                  "QUL_data/mustafa-ismaeel.json"),
 }
 
 audio_data = {}
@@ -551,7 +590,7 @@ def _get_mushaf_version_whitelist():
     # Columns 0-3: Sura, SuraName, Ayah, Word. Versions start at column 4.
     helper_columns = {
         'token_index', 'word_index', 'word_position', 'word_key', 'word_no',
-        'رقم_الكلمة', 'ترتيب_الكلمة'
+        'رقم_الكلمة', 'ترتيب_الكلمة', 'الحصري'
     }
     return frozenset(col for col in cols[4:] if col not in helper_columns)
 
@@ -583,19 +622,20 @@ def get_mushaf_versions():
     return jsonify(sorted(_get_mushaf_version_whitelist()))
 
 
-def _get_positions_segments(surah_number, ayah_number):
-    """Return reading segments for a single ayah from positions.db.
+def _get_positions_segments(surah_number, ayah_number, reciter=None):
+    """Return (segments, has_db) for a single ayah from the reciter's positions.db.
 
     Each segment: {start_word, end_word, text, is_repeat}
-    start_word / end_word are the raw values from the DB (0-based, end exclusive).
-    is_repeat=True when this segment's start_word overlaps the previous segment’s
-    end_word (i.e. the reciter repeats back to that word).
-    Returns [] when positions.db is unavailable or has no rows for this ayah.
+    has_db=False means no positions.db exists for this reciter (guide unavailable).
+    has_db=True with empty segments means the ayah has no segmentation data.
     """
-    if not os.path.exists(HUSARY_POSITIONS_DB):
-        return []
+    cfg = RECITER_GUIDE_CONFIG.get(reciter or '', {})
+    db_path = cfg.get('db')
+    # No fallback to another reciter's DB — missing config means guide is unavailable.
+    if not db_path or not os.path.exists(db_path):
+        return [], False
     try:
-        conn = sqlite3.connect(HUSARY_POSITIONS_DB)
+        conn = sqlite3.connect(db_path)
         cur = conn.cursor()
         cur.execute("""
             SELECT start_word, end_word, uthmani_text
@@ -621,11 +661,10 @@ def _get_positions_segments(surah_number, ayah_number):
                 'is_repeat':  is_repeat,
             })
             prev_end = end_w
-        return segments
+        return segments, True
     except Exception as e:
-        app.logger.error(f'Error reading positions.db: {e}')
-        return []
-
+        app.logger.error(f'Error reading positions.db for reciter {reciter!r}: {e}')
+        return [], True
 
 def _get_waqf_at_boundary(surah_number, ayah_number, end_word, versions):
     """Return waqf entries [{symbols, version}] for all versions at a segment boundary.
@@ -662,52 +701,85 @@ def _get_waqf_at_boundary(surah_number, ayah_number, end_word, versions):
 
 @app.route('/api/recitation-guide/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_recitation_guide(surah_number, ayah_number):
-    """Return segmented recitation guide powered by positions.db + mushaf waqf DB.
+    """Return segmented recitation guide for a reciter, powered by their positions.db.
 
-    When positions.db has data for this ayah, returns:
-      {versions, segments: [{start_word, end_word, text, is_repeat, waqf: [{symbols, version}]}]}
+    Query params:
+      reciter — the reciter key (e.g. 'Mahmoud Khalil al-Husary (Muallim)')
 
-    Falls back to the old flat-entry format:
-      {versions, guide: [{clean_token, symbols, token_index, word_index, version}]}
+    Returns:
+      {reciter, has_positions_db, segments: [{start_word, end_word, text, waqf: [{symbols}]}]}
     """
     if not (1 <= surah_number <= 114) or ayah_number < 1:
         return jsonify({'error': 'invalid parameters'}), 400
 
-    requested = request.args.getlist('version')
-    valid = [v for v in requested if _is_valid_mushaf_version(v)]
+    reciter = request.args.get('reciter', '').strip()
+    cfg = RECITER_GUIDE_CONFIG.get(reciter, {})
+    waqf_col = cfg.get('waqf_col', 'الحصري')
+    valid_versions = [waqf_col] if _is_valid_mushaf_version(waqf_col) else []
 
-    husary_col = 'الحصري'
-    if not valid:
-        if _is_valid_mushaf_version(husary_col):
-            valid = [husary_col]
-        else:
-            return jsonify({'segments': [], 'versions': [], 'note': 'No valid version available'})
+    pos_segs, has_db = _get_positions_segments(surah_number, ayah_number, reciter)
 
-    # ── positions.db path ───────────────────────────────────────────────
-    pos_segs = _get_positions_segments(surah_number, ayah_number)
-    if pos_segs:
-        result_segments = []
-        for seg in pos_segs:
-            waqf_entries = _get_waqf_at_boundary(
-                surah_number, ayah_number, seg['end_word'], valid
-            )
-            result_segments.append({
-                'start_word': seg['start_word'],
-                'end_word':   seg['end_word'],
-                'text':       seg['text'],
-                'is_repeat':  seg['is_repeat'],
-                'waqf':       waqf_entries,
-            })
-        return jsonify({'segments': result_segments, 'versions': valid})
+    if not has_db:
+        return jsonify({'reciter': reciter, 'has_positions_db': False, 'segments': []})
 
-    # ── Fallback: old word-index approach ────────────────────────────────────
-    all_entries = []
-    for ver in valid:
-        rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
-        for r in rows:
-            r['version'] = ver
-        all_entries.extend(rows)
-    return jsonify({'guide': all_entries, 'versions': valid})
+    result_segments = []
+    for seg in pos_segs:
+        waqf_entries = _get_waqf_at_boundary(
+            surah_number, ayah_number, seg['end_word'], valid_versions
+        ) if valid_versions else []
+        # Strip version label — the guide is per-reciter, not per-mushaf
+        for e in waqf_entries:
+            e.pop('version', None)
+        result_segments.append({
+            'start_word': seg['start_word'],
+            'end_word':   seg['end_word'],
+            'text':       seg['text'],
+            'is_repeat':  seg['is_repeat'],
+            'waqf':       waqf_entries,
+        })
+    return jsonify({'reciter': reciter, 'has_positions_db': True, 'segments': result_segments})
+
+
+@app.route('/api/pause-match/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_pause_match(surah_number, ayah_number):
+    """Return how well a reciter's pause positions match each mushaf's waqf marks.
+
+    Query params:
+      reciter — the reciter key
+
+    Returns:
+      {
+        has_data: bool,
+        pause_count: int,
+        matches: { version: {matched, total, score} }
+      }
+    """
+    if not (1 <= surah_number <= 114) or ayah_number < 1:
+        return jsonify({'error': 'invalid parameters'}), 400
+
+    reciter = request.args.get('reciter', '').strip()
+    pos_segs, has_db = _get_positions_segments(surah_number, ayah_number, reciter)
+
+    if not has_db or not pos_segs:
+        return jsonify({'has_data': False, 'pause_count': 0, 'matches': {}})
+
+    versions = sorted(_get_mushaf_version_whitelist())
+
+    pause_count = len(pos_segs)
+    matches = {}
+    for ver in versions:
+        matched = sum(
+            1 for seg in pos_segs
+            if _get_waqf_at_boundary(surah_number, ayah_number, seg['end_word'], [ver])
+        )
+        matches[ver] = {
+            'matched': matched,
+            'total': pause_count,
+            'score': round(matched / pause_count * 100) if pause_count > 0 else 0,
+        }
+
+    return jsonify({'has_data': True, 'pause_count': pause_count, 'matches': matches})
+
 
 def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
     """Fetch waqf symbols from Excel-source DB for one or more Mushaf versions.
@@ -1120,6 +1192,33 @@ def get_tafseer(surah_number, ayah_number):
     return jsonify(result)
 
 
+@app.route('/api/eerab/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_eerab(surah_number, ayah_number):
+    """Fetch grammatical analysis (إعراب) for a single ayah from SurahApp API."""
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number."}), 400
+    if ayah_number < 1 or ayah_number > MAX_AYAH_NUMBER:
+        return jsonify({"error": "Invalid ayah number."}), 400
+
+    cache_key = (surah_number, ayah_number)
+    if cache_key in _eerab_cache:
+        return jsonify(_eerab_cache[cache_key])
+
+    url = SURAHAPP_API_BASE.format(slug='eerab-aya', sura=surah_number, aya=ayah_number)
+    try:
+        resp = http_requests.get(url, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        if 'error' in data:
+            return jsonify({"content": ""}), 404
+        result = {"content": data.get('content', '')}
+        _eerab_cache[cache_key] = result
+        return jsonify(result)
+    except Exception as e:
+        app.logger.error(f"SurahApp eerab API error for {surah_number}:{ayah_number}: {e}")
+        return jsonify({"content": ""}), 500
+
+
 @app.route('/api/reciters/<reciter>/ayahs/<int:ayah_number>/audio', methods=['GET'])
 def get_audio_segments(reciter, ayah_number):
     if ayah_number < 1:
@@ -1190,7 +1289,7 @@ def audio_proxy():
             return jsonify({"error": "Only HTTPS URLs are allowed"}), 400
         
         # Only allow specific trusted domains and default HTTPS port.
-        allowed_domains = {'audio.qurancdn.com', 'audio-cdn.tarteel.ai'}
+        allowed_domains = {'audio.qurancdn.com', 'audio-cdn.tarteel.ai', 'everyayah.com'}
         if parsed_url.hostname not in allowed_domains:
             return jsonify({"error": "Only trusted audio domains are allowed"}), 400
         if parsed_url.port not in (None, 443):
