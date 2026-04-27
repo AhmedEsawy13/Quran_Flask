@@ -141,9 +141,9 @@ body.sepia-mode .ayah-container {
     display: inline-block;
     position: relative;
     vertical-align: baseline;
-    margin: 0 0.15rem;
+    margin: 0 0.05rem;
     line-height: 1.6;
-    padding-top: 0.05em; /* space for waqf symbols above the word */
+    padding-top: 0.15em; /* space for waqf symbols above the word */
     transition: color 0.2s ease, transform 0.2s ease;
 }
 
@@ -638,6 +638,15 @@ body.dark-mode .close:focus {
 
 .indopak_nastaleeq_2 {
     font-family: 'IndoPakNastaleeq2', serif;
+}
+
+body[data-font-type="indopak"] #quran-text {
+    gap: 0.10rem 0.12rem;
+}
+
+body[data-font-type="indopak"] #quran-text .word-token {
+    margin: 0 0.20rem;
+    padding-inline: 0.08em;
 }
 
 .shamarly-word {

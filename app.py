@@ -443,9 +443,6 @@ def normalize_text_and_extract_waqf(raw_text, source_name):
     waqf_entries = []
 
     changed = False
-    # For IndoPak: track the display index (number of non-standalone tokens seen so far)
-    # so that standalone waqf tokens can be associated with the preceding display word.
-    display_index = -1  # incremented when a real (non-standalone) word token is encountered
 
     for original_index, token in enumerate(tokens):
         cleaned_chars = []
@@ -459,18 +456,18 @@ def normalize_text_and_extract_waqf(raw_text, source_name):
 
         cleaned_token = ''.join(cleaned_chars).strip()
         digits_only = bool(cleaned_token) and ARABIC_INDIC_DIGIT_PATTERN.match(cleaned_token)
+        current_word_index = None
 
-        is_standalone_waqf = bool(symbols) and not cleaned_token
+        if cleaned_token and not digits_only:
+            current_word_index = len(cleaned_words) + 1
+        elif cleaned_words:
+            current_word_index = len(cleaned_words)
 
         if symbols:
             changed = True
-            if source_name == 'indopak_nastaleeq' and is_standalone_waqf and display_index >= 0:
-                # Standalone waqf token: attach to the preceding display word
-                effective_index = display_index
-            else:
-                effective_index = original_index
             waqf_entries.append({
-                'token_index': effective_index,
+                'token_index': original_index,
+                'word_index': current_word_index,
                 'symbols': ''.join(symbols),
                 'original_token': token,
                 'clean_token': cleaned_token
@@ -485,10 +482,6 @@ def normalize_text_and_extract_waqf(raw_text, source_name):
             if cleaned_token != token:
                 changed = True
             cleaned_words.append(cleaned_token)
-            display_index += 1
-        elif not is_standalone_waqf:
-            # Non-waqf, non-content token — still advance display_index if it had content
-            pass
 
     return cleaned_words, waqf_entries, changed
 
@@ -537,6 +530,7 @@ def normalize_quran_dataset(source_name, source_data):
                     'surah_number': surah_number,
                     'ayah_number': ayah_number,
                     'token_index': entry['token_index'],
+                    'word_index': entry.get('word_index'),
                     'symbols': entry['symbols'],
                     'original_token': entry['original_token'],
                     'clean_token': entry['clean_token']
@@ -563,11 +557,15 @@ def initialize_waqf_database(waqf_rows):
                 surah_number INTEGER NOT NULL,
                 ayah_number INTEGER NOT NULL,
                 token_index INTEGER NOT NULL,
+                word_index INTEGER,
                 symbols TEXT NOT NULL,
                 original_token TEXT,
                 clean_token TEXT
             )
         ''')
+        existing_columns = {row[1] for row in cursor.execute('PRAGMA table_info(waqf_symbols)').fetchall()}
+        if 'word_index' not in existing_columns:
+            cursor.execute('ALTER TABLE waqf_symbols ADD COLUMN word_index INTEGER')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_waqf_lookup ON waqf_symbols(source, surah_number, ayah_number)')
 
         cursor.execute('DELETE FROM waqf_symbols')
@@ -576,12 +574,12 @@ def initialize_waqf_database(waqf_rows):
                 '''
                 INSERT INTO waqf_symbols (
                     source, verse_key, surah_number, ayah_number, token_index,
-                    symbols, original_token, clean_token
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    word_index, symbols, original_token, clean_token
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''',
                 [(
                     row['source'], row['verse_key'], row['surah_number'], row['ayah_number'],
-                    row['token_index'], row['symbols'], row['original_token'], row['clean_token']
+                    row['token_index'], row.get('word_index'), row['symbols'], row['original_token'], row['clean_token']
                 ) for row in waqf_rows]
             )
 
@@ -916,7 +914,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
                 waqf_src = 'indopak_nastaleeq'
                 cursor.execute(
                     '''
-                    SELECT token_index, symbols, original_token, clean_token
+                    SELECT token_index, word_index, symbols, original_token, clean_token
                     FROM waqf_symbols
                     WHERE source = ? AND surah_number = ? AND ayah_number = ?
                     ORDER BY token_index ASC
@@ -926,6 +924,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
                 indopak_extras = [
                     {
                         'token_index': r['token_index'],
+                        'word_index': r['word_index'],
                         'symbols': r['symbols'],
                         'original_token': r['original_token'],
                         'clean_token': r['clean_token'],
@@ -998,7 +997,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
         waqf_source = 'indopak_nastaleeq' if source == 'indopak_nastaleeq_2' else source
         cursor.execute(
             '''
-            SELECT token_index, symbols, original_token, clean_token
+            SELECT token_index, word_index, symbols, original_token, clean_token
             FROM waqf_symbols
             WHERE source = ? AND surah_number = ? AND ayah_number = ?
             ORDER BY token_index ASC
@@ -1013,6 +1012,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
         return [
             {
                 'token_index': row['token_index'],
+                'word_index': row['word_index'],
                 'symbols': row['symbols'],
                 'original_token': row['original_token'],
                 'clean_token': row['clean_token'],

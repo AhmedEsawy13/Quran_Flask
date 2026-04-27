@@ -359,6 +359,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 changeFont(elements.quranTextSelect.value);
                 await loadQuranTextData();
+                currentAyahData = null; // force re-fetch with correct source param for the new font
                 await updateDisplayedText();
             } catch (error) {
                 console.error('Error changing font:', error);
@@ -454,6 +455,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             quranTextData = fontCache[font];
         }
         updateGlobalAyahToVerseKey();
+    }
+
+    function getDisplayedAyahText(verseEntry = {}, fallbackText = '') {
+        const font = elements.quranTextSelect.value;
+        const waqfMode = getCurrentWaqfMode();
+        const isIndoPak = font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2';
+
+        if (isIndoPak && (waqfMode === 'original' || waqfMode === 'both')) {
+            return verseEntry.raw_text || fallbackText || verseEntry.text || '';
+        }
+
+        return verseEntry.text || fallbackText;
     }
 
     function updateGlobalAyahToVerseKey() {
@@ -556,15 +569,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!reciterAudio) throw new Error('Reciter audio not found');
     
             // Use already cached quranTextData instead of making redundant API call.
-            // For IndoPak font in 'original'/'both' mode, prefer raw_text so the
-            // standalone waqf tokens (ؕ ۚ ۙ …) appear inline in the verse, in the
-            // same colour as the rest of the text — matching how Madina/Hafs render
-            // their embedded waqf marks.
             const _verseEntry = quranTextData?.[verseKey] || {};
-            const _isIndoPakFont = font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2';
-            const _mode = getCurrentWaqfMode();
-            const _useRaw = _isIndoPakFont && (_mode === 'original' || _mode === 'both') && _verseEntry.raw_text;
-            const ayahText = _useRaw ? _verseEntry.raw_text : (_verseEntry.text || currentAyahData.text);
+                const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
     
             elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
             currentSegments = reciterAudio.segments;
@@ -699,15 +705,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             const verseKey = `${surahNumber}:${ayahNumber}`;
             // Use already cached quranTextData instead of making redundant API call.
-            // For IndoPak font in 'original'/'both' mode, prefer raw_text so the
-            // standalone waqf tokens (ؕ ۚ ۙ …) appear inline in the verse, in the
-            // same colour as the rest of the text — matching how Madina/Hafs render
-            // their embedded waqf marks.
             const _verseEntry = quranTextData?.[verseKey] || {};
-            const _isIndoPakFont = font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2';
-            const _mode = getCurrentWaqfMode();
-            const _useRaw = _isIndoPakFont && (_mode === 'original' || _mode === 'both') && _verseEntry.raw_text;
-            const ayahText = _useRaw ? _verseEntry.raw_text : (_verseEntry.text || currentAyahData.text);
+            const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
@@ -722,20 +721,39 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    // Glue standalone waqf-only tokens (e.g. IndoPak's ؕ ۚ ۙ that appear
+    // between words) onto the END of the preceding word, so each waqf
+    // mark visually attaches to the word it actually belongs to —
+    // matching how Hafs/Madina render their combining-mark waqf.
+    // The last token (verse-end marker) is preserved as a separate element.
+    function mergeWaqfOnlyTokensIntoPrev(rawTokens) {
+        const isWaqfOnly = (s) => {
+            if (!s) return false;
+            const stripped = s.replace(
+                /[\u0610-\u061F\u064B-\u065F\u0670\u06D6-\u06ED\u08D0-\u08FF\uF500-\uF6FF\uFE70-\uFEFF]/g,
+                ''
+            ).trim();
+            return stripped === '';
+        };
+        const out = [];
+        for (let i = 0; i < rawTokens.length; i++) {
+            const tok = rawTokens[i];
+            const isLast = i === rawTokens.length - 1;
+            if (isWaqfOnly(tok) && !isLast && out.length > 0) {
+                out[out.length - 1] = out[out.length - 1] + tok;
+            } else {
+                out.push(tok);
+            }
+        }
+        return out;
+    }
+
     function displayQuranicText(text, segments, waqfSymbols = []) {
         elements.quranTextContainer.style.fontFamily = '';
         elements.quranTextContainer.innerHTML = '';
-        const words = text.split(' ');
+        const words = mergeWaqfOnlyTokensIntoPrev(text.split(' '));
         const wordIndexToSegmentMap = new Map();
 
-        // Filter overlay symbols by waqf mode. Embedded waqf in text (Madina/Hafs
-        // combining marks, or IndoPak standalone tokens via raw_text) is rendered by
-        // the verse text itself — so 'original' and 'none' need NO overlays.
-        //   none      → no overlay
-        //   original  → no overlay; verse text alone carries the original marks
-        //   selected  → overlays of mushaf versions user has ticked
-        //   both      → selected overlays + original embedded (in text). For IndoPak,
-        //               exclude الهندي overlays because raw_text already shows them inline.
         const _waqfMode = getCurrentWaqfMode();
         const _isIndoPak = document.body.dataset.fontType === 'indopak';
         let activeSymbols = waqfSymbols;
@@ -802,7 +820,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const mode = getCurrentWaqfMode();
         const isIndoPak = document.body.dataset.fontType === 'indopak';
         if (!Array.isArray(symbols)) return symbols;
-        if (mode === 'none' || mode === 'original') return [];
+        if (mode === 'none') return [];
+        if (mode === 'original') return [];
         const selSet = new Set(getSelectedMushafVersions());
         if (mode === 'selected') {
             return symbols.filter(s => selSet.has(s.version || ''));
@@ -1473,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Refresh word meanings for the current verse when toggling to visible
             if (currentAyahData) {
                 const verseKey = `${elements.surahSelect.value}:${elements.ayahSelect.value}`;
-                const ayahText = quranTextData?.[verseKey]?.text || currentAyahData.text;
+                const ayahText = getDisplayedAyahText(quranTextData?.[verseKey] || {}, currentAyahData.text || currentAyahData.raw_text || '');
                 displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
             }
         } else {
