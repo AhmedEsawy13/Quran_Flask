@@ -1002,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 // Waqf ruling pills
                 for (const ch of waqfChars) {
-                    const info  = getWaqfInfo(ch);
+                    const info  = getWaqfInfo(ch, 'الهندي');
                     const title = (info.meaning && info.meaning !== ch)
                         ? ` title="${info.meaning.replace(/"/g, '&quot;')}"` : '';
                     html += `<span class="waqf-sym-pill waqf-sym-hindi waqf-mushaf-hindi"` +
@@ -1023,7 +1023,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const parts = [...new Set([...symbols]
                     .filter(ch => ch !== VERSE_END_MARKER && !HINDI_NON_WAQF.has(ch) && !isPUA(ch))
                     .map(ch => {
-                        const info = getWaqfInfo(ch);
+                        const info = getWaqfInfo(ch, 'الهندي');
                         return (info.meaning && info.meaning !== ch) ? info.meaning : null;
                     }).filter(Boolean))];
                 return parts.join(' · ');
@@ -1441,28 +1441,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── Waqf symbol meanings (display only, no color here) ─────────────────
+    // Standard waqf meanings (Madina / Hafs / Azhar / Husary etc.)
     const WAQF_INFO = {
-        'م':   { meaning: 'وقف لازم — الوقف واجب'                                              },
-        'قلى': { meaning: 'قلى — الأفضل الوقف'                                                 },
-        'قلي': { meaning: 'قلى — الأفضل الوقف'                                                 },
-        'ق':   { meaning: 'قلى — الأفضل الوقف'                                                 },
-        'ر':   { meaning: 'راجح — الأفضل الوقف'                                                },
-        'ص':   { meaning: 'مرخّص لضرورة (مصحف هندي)'                                           },
-        'صه':  { meaning: 'صه — وقف تام (مصحف ورش)'                                           },
-        'صلى': { meaning: 'صلى — الأفضل الوصل'                                                 },
-        'صلي': { meaning: 'صلى — الأفضل الوصل'                                                 },
-        'ط':   { meaning: 'مطلق — رمز خاص بالمصحف الهندي'                                      },
-        'ز':   { meaning: 'مجوَّز — رمز خاص بالمصحف الهندي'                                     },
-        'ج':   { meaning: 'جائز — يجوز الوقف والوصل'                                           },
-        'لا':  { meaning: 'لا وقف — يجب الوصل'                                                 },
-        'ع':   { meaning: 'معانقة — إذا وقفت على أحدهما لا تقف على الآخر'                     },
-        '↺':   { meaning: 'وقف إعادة — ارجع للبداية'                                           },
-        '▶':   { meaning: 'بداية الإعادة'                                                       },
-        '\u06DC': { meaning: 'توقف — علامة وقف مصحف ورش'                                    },
-        // IndoPak / Pakistani mushaf combining-mark symbols
-        'ؕ':       { meaning: 'وقف مطلق (مصحف هندي/باكستاني)' },
-        'ؗ':       { meaning: 'وقف مجوز لوجه (مصحف هندي)' },
-        '\u06D6': { meaning: 'صلى — الأفضل الوصل (مصحف هندي)' },
+        'م':   { meaning: 'وقف لازم — الوقف واجب' },
+        'قلى': { meaning: 'قلى — الأفضل الوقف' },
+        'قلي': { meaning: 'قلى — الأفضل الوقف' },
+        'ق':   { meaning: 'قلى — الأفضل الوقف' },
+        'ر':   { meaning: 'راجح — الأفضل الوقف' },
+        'ص':   { meaning: 'صلى — الأفضل الوصل' },
+        'صه':  { meaning: 'صه — وقف تام (مصحف ورش)' },
+        'صلى': { meaning: 'صلى — الأفضل الوصل' },
+        'صلي': { meaning: 'صلى — الأفضل الوصل' },
+        'ج':   { meaning: 'جائز — يجوز الوقف والوصل' },
+        'لا':  { meaning: 'لا وقف — يجب الوصل' },
+        'ع':   { meaning: 'معانقة — إذا وقفت على أحدهما لا تقف على الآخر' },
+        '\u21BA':   { meaning: 'وقف إعادة — ارجع للبداية' },
+        '\u25B6':   { meaning: 'بداية الإعادة' },
+        '\u06DC': { meaning: 'توقف — علامة وقف مصحف ورش' },
+        // Standard Unicode waqf glyphs (after normalisation)
+        '\u06D6': { meaning: 'صلى — الأفضل الوصل' },
+        '\u06D7': { meaning: 'قلى — الأفضل الوقف' },
+        '\u06D8': { meaning: 'م — وقف لازم' },
+        '\u06D9': { meaning: 'لا — لا يجوز الوقف' },
+        '\u06DA': { meaning: 'ج — جائز الوقف والوصل' },
+        '\u06DB': { meaning: 'ع — وقف معانقة' },
+    };
+
+    // IndoPak-specific overrides — same letters/glyphs have different rulings.
+    const WAQF_INFO_HINDI = {
+        'م':       { meaning: 'وقف لازم (مصحف هندي)' },
+        'ص':       { meaning: 'مرخّص لضرورة (مصحف هندي)' },
+        'ط':       { meaning: 'مطلق — رمز خاص بالمصحف الهندي' },
+        'ز':       { meaning: 'مجوَّز — رمز خاص بالمصحف الهندي' },
+        'ج':       { meaning: 'ج — جائز الوقف والوصل (مصحف هندي)' },
+        'لا':      { meaning: 'لا — لا يجوز الوقف (مصحف هندي)' },
+        '\u0615': { meaning: 'وقف مطلق (مصحف هندي/باكستاني)' },
+        '\u0617': { meaning: 'وقف مجوز لوجه (مصحف هندي)' },
+        '\u06D6': { meaning: 'صلى — مرخّص لضرورة (مصحف هندي)' },
         '\u06D7': { meaning: 'قلى — الأفضل الوقف (مصحف هندي)' },
         '\u06D8': { meaning: 'م — وقف لازم (مصحف هندي)' },
         '\u06D9': { meaning: 'لا — لا يجوز الوقف (مصحف هندي)' },
@@ -1470,14 +1485,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         '\u06DB': { meaning: 'ع — وقف معانقة (مصحف هندي)' },
         '\u06DF': { meaning: 'رأس الآية أو رمز الوقف الكامل (مصحف هندي)' },
         '\u06E0': { meaning: 'رأس الخمس (مصحف هندي)' },
-        '۪':       { meaning: 'وقف تحتي (مصحف هندي)' },
-        '۫':       { meaning: 'وقف فوقي (مصحف هندي)' },
-        '۬':       { meaning: 'وقف دائري (مصحف هندي)' },
+        '\u06EA': { meaning: 'وقف تحتي (مصحف هندي)' },
+        '\u06EB': { meaning: 'وقف فوقي (مصحف هندي)' },
+        '\u06EC': { meaning: 'وقف دائري (مصحف هندي)' },
     };
 
-    function getWaqfInfo(rawSymbol) {
+    function getWaqfInfo(rawSymbol, version = '') {
         const key = (rawSymbol || '').trim();
-        return WAQF_INFO[key] || { meaning: key };
+        if (version === 'الهندي' && WAQF_INFO_HINDI[key]) return WAQF_INFO_HINDI[key];
+        return WAQF_INFO[key] || WAQF_INFO_HINDI[key] || { meaning: key };
     }
 
     // kept for backward-compat callers
@@ -1554,7 +1570,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             symbolSpan.textContent = sym;
 
             // Tooltip: "مصحف: الأزهر | ج — جائز"
-            const info = getWaqfInfo(sym.trim());
+            const info = getWaqfInfo(sym.trim(), mushafVersionOverride);
             const symbolLabel = info.meaning || displayData.title.trim();
             symbolSpan.title = [versionLabel, symbolLabel].filter(Boolean).join(' | ');
 
@@ -2078,7 +2094,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 waqfEntries.forEach(entry => {
                     const raw = (entry.symbols || '').trim();
                     const normalized = normalizeNonWarshWaqfText(raw);
-                    const info = getWaqfInfo(raw);
+                    const info = getWaqfInfo(raw, entry.version || '');
 
                     const symSpan = document.createElement('span');
                     symSpan.className = 'guide-waqf-sym waqf-uthmanic';
@@ -2227,7 +2243,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const raw = (entry.symbols || '').trim();
                     const normalized = normalizeNonWarshWaqfText(raw);
                     const isWarshEntry = isWarshMushafVersion(entry.version);
-                    const info = getWaqfInfo(raw);
+                    const info = getWaqfInfo(raw, entry.version || '');
                     const mushafCls = getMushafColorClass(entry.version);
                     const fontCls = isWarshEntry ? ' waqf-warsh' : ' waqf-uthmanic';
 
