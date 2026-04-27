@@ -37,7 +37,7 @@ def after_request(response):
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com; "
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://datasets-server.huggingface.co; "
         "connect-src 'self' https://api.quran.com;"
     )
     
@@ -110,6 +110,27 @@ RECITER_GUIDE_CONFIG = {
 # Keep for backwards compat with any legacy code that may reference it
 HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']['db']
 DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'digital-khatt-15-lines.db')
+
+# Buraaq/quran-md-ayahs HuggingFace row-offset index for مصطفى إسماعيل
+# Built by pipeline/build_buraaq_index.py (metadata-only scan, no audio downloads).
+_BURAAQ_INDEX_PATH = os.path.join(_BASE_DIR, 'QUL_data', 'mustafa_ismaeel_row_index.json')
+_buraaq_index: dict = {}
+try:
+    with open(_BURAAQ_INDEX_PATH, 'r', encoding='utf-8') as _bif:
+        _buraaq_index = json.load(_bif)
+except (FileNotFoundError, json.JSONDecodeError):
+    pass  # Pipeline not yet run; /api/audio/mustafa-ismaeel/* will return 404 until built.
+
+# HF datasets-server rows API — returns signed CDN URL for the audio field.
+_HF_ROWS_API = (
+    "https://datasets-server.huggingface.co/rows"
+    "?dataset=Buraaq%2Fquran-md-ayahs&config=default&split=train"
+    "&offset={offset}&length=1"
+)
+# Disk cache: bytes fetched from HF are saved here so subsequent plays are instant.
+_BURAAQ_AUDIO_CACHE_DIR = os.path.join(_BASE_DIR, 'QUL_data', 'audio_cache', 'mustafa_ismaeel')
+os.makedirs(_BURAAQ_AUDIO_CACHE_DIR, exist_ok=True)
+import time as _time
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
 SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
@@ -190,6 +211,9 @@ qpc_hafs_data = _load_json_cdn_or_local(
 )
 indopak_nastaleeq_data = _load_json_cdn_or_local(
     'Indopak Nastaleeq_Waqf.json', 'QUL_data/Indopak Nastaleeq_Waqf.json'
+)
+indopak_nastaleeq_2_data = _load_json_cdn_or_local(
+    'indopak-nastaleeq 2.json', 'QUL_data/indopak-nastaleeq 2.json'
 )
 transliteration_data = _load_json_cdn_or_local(
     'Transliteration.json', 'QUL_data/Transliteration.json'
@@ -419,6 +443,9 @@ def normalize_text_and_extract_waqf(raw_text, source_name):
     waqf_entries = []
 
     changed = False
+    # For IndoPak: track the display index (number of non-standalone tokens seen so far)
+    # so that standalone waqf tokens can be associated with the preceding display word.
+    display_index = -1  # incremented when a real (non-standalone) word token is encountered
 
     for original_index, token in enumerate(tokens):
         cleaned_chars = []
@@ -432,17 +459,18 @@ def normalize_text_and_extract_waqf(raw_text, source_name):
 
         cleaned_token = ''.join(cleaned_chars).strip()
         digits_only = bool(cleaned_token) and ARABIC_INDIC_DIGIT_PATTERN.match(cleaned_token)
-        
-        # In IndoPak, tokens often consist ONLY of waqf/marker symbols.
-        # These should be identified, and IF they are standalone, they might need 
-        # to be associated with the PRECEDING word during extraction to avoid "clean_token = ''" errors
-        # in the database, though the database itself can store them. 
-        # The key is how the frontend uses them.
-        
+
+        is_standalone_waqf = bool(symbols) and not cleaned_token
+
         if symbols:
             changed = True
+            if source_name == 'indopak_nastaleeq' and is_standalone_waqf and display_index >= 0:
+                # Standalone waqf token: attach to the preceding display word
+                effective_index = display_index
+            else:
+                effective_index = original_index
             waqf_entries.append({
-                'token_index': original_index,
+                'token_index': effective_index,
                 'symbols': ''.join(symbols),
                 'original_token': token,
                 'clean_token': cleaned_token
@@ -457,6 +485,10 @@ def normalize_text_and_extract_waqf(raw_text, source_name):
             if cleaned_token != token:
                 changed = True
             cleaned_words.append(cleaned_token)
+            display_index += 1
+        elif not is_standalone_waqf:
+            # Non-waqf, non-content token — still advance display_index if it had content
+            pass
 
     return cleaned_words, waqf_entries, changed
 
@@ -868,6 +900,43 @@ def get_waqf_symbols(surah_number, ayah_number, source):
     # If a specific mushaf version is requested, we use the Excel-sourced data.
     if mushaf_version:
         mushaf_data = get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version)
+        # For IndoPak source, also merge the embedded الهندي waqf symbols — but
+        # ONLY if 'الهندي' itself isn't already among the selected mushaf_version
+        # values, otherwise we'd duplicate every symbol.
+        _mv_list = mushaf_version if isinstance(mushaf_version, list) else [mushaf_version]
+        _hindi_already = 'الهندي' in _mv_list
+        indopak_extras = []
+        if (source in ('indopak_nastaleeq', 'indopak_nastaleeq_2')
+                and not _hindi_already
+                and os.path.exists(WAQF_DATABASE)):
+            try:
+                conn = sqlite3.connect(WAQF_DATABASE)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                waqf_src = 'indopak_nastaleeq'
+                cursor.execute(
+                    '''
+                    SELECT token_index, symbols, original_token, clean_token
+                    FROM waqf_symbols
+                    WHERE source = ? AND surah_number = ? AND ayah_number = ?
+                    ORDER BY token_index ASC
+                    ''',
+                    (waqf_src, surah_number, ayah_number)
+                )
+                indopak_extras = [
+                    {
+                        'token_index': r['token_index'],
+                        'symbols': r['symbols'],
+                        'original_token': r['original_token'],
+                        'clean_token': r['clean_token'],
+                        'version': 'الهندي',
+                    }
+                    for r in cursor.fetchall()
+                ]
+                conn.close()
+            except sqlite3.Error:
+                pass
+
         if mushaf_data:
             verse_key = f"{surah_number}:{ayah_number}"
             verse_text = ''
@@ -882,7 +951,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
             ]
 
             if not words:
-                return mushaf_data
+                return mushaf_data + indopak_extras
 
             aligned = []
             search_start = 0
@@ -908,19 +977,25 @@ def get_waqf_symbols(surah_number, ayah_number, source):
                     'clean_token': token_text
                 })
 
-            return aligned
+            return aligned + indopak_extras
 
-    # Use waqf_symbols.db ONLY for IndoPak source as requested.
-    if source != 'indopak_nastaleeq':
+        if indopak_extras:
+            return indopak_extras
+
+    # For IndoPak sources, also include the embedded waqf symbols labeled as الهندي.
+    if source not in ('indopak_nastaleeq', 'indopak_nastaleeq_2'):
         return []
 
     if not os.path.exists(WAQF_DATABASE):
+        # If mushaf_version data was fetched above, still return it
         return []
 
     try:
         conn = sqlite3.connect(WAQF_DATABASE)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+        # Both indopak variants share the same waqf data in the DB
+        waqf_source = 'indopak_nastaleeq' if source == 'indopak_nastaleeq_2' else source
         cursor.execute(
             '''
             SELECT token_index, symbols, original_token, clean_token
@@ -928,17 +1003,20 @@ def get_waqf_symbols(surah_number, ayah_number, source):
             WHERE source = ? AND surah_number = ? AND ayah_number = ?
             ORDER BY token_index ASC
             ''',
-            (source, surah_number, ayah_number)
+            (waqf_source, surah_number, ayah_number)
         )
         rows = cursor.fetchall()
         conn.close()
 
+        # Label IndoPak embedded waqf symbols with the الهندي mushaf version so
+        # they render with the IndoPak font and the correct mushaf colour class.
         return [
             {
                 'token_index': row['token_index'],
                 'symbols': row['symbols'],
                 'original_token': row['original_token'],
-                'clean_token': row['clean_token']
+                'clean_token': row['clean_token'],
+                'version': 'الهندي',
             }
             for row in rows
         ]
@@ -955,6 +1033,9 @@ qpc_hafs_data_normalized, waqf_rows_qpc, qpc_stats = normalize_quran_dataset(
 )
 indopak_nastaleeq_data_normalized, waqf_rows_indopak, indopak_stats = normalize_quran_dataset(
     'indopak_nastaleeq', indopak_nastaleeq_data
+)
+indopak_nastaleeq_2_data_normalized, waqf_rows_indopak_2, indopak_2_stats = normalize_quran_dataset(
+    'indopak_nastaleeq', indopak_nastaleeq_2_data
 )
 
 initialize_waqf_database(waqf_rows_digital + waqf_rows_qpc + waqf_rows_indopak)
@@ -1050,6 +1131,7 @@ def health_check():
             "digital_khatt_loaded": bool(digital_khatt_data),
             "qpc_hafs_loaded": bool(qpc_hafs_data),
             "indopak_loaded": bool(indopak_nastaleeq_data),
+            "indopak_2_loaded": bool(indopak_nastaleeq_2_data),
             "transliteration_loaded": bool(transliteration_data),
             "audio_data_loaded": bool(audio_data)
         }
@@ -1248,7 +1330,10 @@ def index():
 
 
 def normalize_source(source):
-    valid_sources = ['digital_khatt', 'digital_khatt_2', 'old_madina', 'indopak_nastaleeq', 'qpc_hafs', 'shamarly']
+    valid_sources = [
+        'digital_khatt', 'digital_khatt_2', 'old_madina',
+        'indopak_nastaleeq', 'indopak_nastaleeq_2', 'qpc_hafs', 'shamarly'
+    ]
     if source not in valid_sources:
         return 'qpc_hafs'
     if source in ('digital_khatt_2', 'old_madina'):
@@ -1261,9 +1346,9 @@ def get_quran_text_data_by_source(source):
         return digital_khatt_data_normalized
     if source == 'indopak_nastaleeq':
         return indopak_nastaleeq_data_normalized
+    if source == 'indopak_nastaleeq_2':
+        return indopak_nastaleeq_2_data_normalized
     if source == 'shamarly':
-        # Shamarly rendering comes from dedicated API routes,
-        # but base ayah metadata still uses standard Hafs dataset.
         return qpc_hafs_data_normalized
     return qpc_hafs_data_normalized
 
@@ -1306,6 +1391,69 @@ def audio_proxy():
     # which is allowed by the CSP media-src directive and avoids firewall issues
     # Using 307 (Temporary Redirect) to preserve request method
     return redirect(audio_url, code=307)
+
+
+@app.route('/api/audio/mustafa-ismaeel/<int:surah>/<int:ayah>')
+def audio_mustafa_ismaeel(surah: int, ayah: int):
+    """مصطفى إسماعيل audio proxy (Mostafa_Ismail_128kbps from Buraaq HF dataset).
+    Flask fetches the audio bytes from HF and streams them directly with proper
+    MP3 headers — no client-side redirect needed, no CSP issues.
+    Bytes are cached to disk after the first fetch for instant subsequent plays."""
+    key = f"{surah}:{ayah}"
+    if key not in _buraaq_index:
+        return jsonify({"error": "Ayah not found in index"}), 404
+
+    # Serve from disk cache if available.
+    cache_path = os.path.join(_BURAAQ_AUDIO_CACHE_DIR, f"{surah:03d}_{ayah:03d}.mp3")
+    if os.path.isfile(cache_path):
+        with open(cache_path, 'rb') as cf:
+            audio_bytes = cf.read()
+        resp = Response(audio_bytes, mimetype='audio/mpeg')
+        resp.headers['Content-Length'] = len(audio_bytes)
+        resp.headers['Accept-Ranges'] = 'bytes'
+        resp.headers['Cache-Control'] = 'public, max-age=86400'
+        return resp
+
+    # First play: get signed CDN URL from HF datasets-server, fetch bytes server-side.
+    offset = _buraaq_index[key]  # absolute row offset in the HF split
+
+    try:
+        # Step 1: Get signed CDN URL from HF rows API.
+        hf_resp = http_requests.get(
+            _HF_ROWS_API.format(offset=offset),
+            timeout=12,
+            headers={"User-Agent": "Quran-Flask/1.0"},
+        )
+        hf_resp.raise_for_status()
+        rows = hf_resp.json().get("rows", [])
+        if not rows:
+            return jsonify({"error": "No rows returned from HuggingFace"}), 502
+        audio_field = rows[0]["row"].get("audio", [])
+        if not audio_field:
+            return jsonify({"error": "Audio field missing in HuggingFace response"}), 502
+        signed_url = audio_field[0]["src"]
+
+        # Step 2: Fetch the actual audio bytes server-side (no client redirect).
+        audio_resp = http_requests.get(signed_url, timeout=20)
+        audio_resp.raise_for_status()
+        audio_bytes = audio_resp.content
+
+    except Exception as exc:
+        app.logger.error(f"Buraaq audio error surah={surah} ayah={ayah}: {exc}")
+        return jsonify({"error": "Failed to fetch audio from HuggingFace"}), 502
+
+    # Save to disk cache for subsequent plays.
+    try:
+        with open(cache_path, 'wb') as cf:
+            cf.write(audio_bytes)
+    except Exception as exc:
+        app.logger.warning(f"Buraaq audio cache write failed: {exc}")
+
+    resp = Response(audio_bytes, mimetype='audio/mpeg')
+    resp.headers['Content-Length'] = len(audio_bytes)
+    resp.headers['Accept-Ranges'] = 'bytes'
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
 
 @app.route('/api/search', methods=['GET'])
 def search_verses():
