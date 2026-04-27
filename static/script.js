@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentAyahData = null; // Cache for current ayah data
     let currentRepeatCount = 0; // Track current repeat count
     let maxRepeats = 1; // Track maximum repeats set by user
+    let waqfPanelView = 'mushaf'; // 'mushaf' = per-mushaf cards, 'word' = per-word view
     const fontCache = {};
     const loadedShamarlyFonts = new Set();
 
@@ -389,6 +390,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
+        const waqfTableBtn = document.getElementById('toggle-waqf-table');
+        if (waqfTableBtn) {
+            waqfTableBtn.addEventListener('click', () => {
+                const tableContainer = document.getElementById('waqf-verse-table-container');
+                if (!tableContainer) return;
+                const isHidden = tableContainer.hidden;
+                if (isHidden) {
+                    tableContainer.removeAttribute('hidden');
+                    waqfTableBtn.classList.add('active');
+                    renderWaqfVerseTable();
+                } else {
+                    tableContainer.setAttribute('hidden', '');
+                    waqfTableBtn.classList.remove('active');
+                }
+            });
+        }
+
+        // Tab delegation — switching between mushaf / word view inside the open panel
+        const waqfContainer = document.getElementById('waqf-verse-table-container');
+        if (waqfContainer) {
+            waqfContainer.addEventListener('click', e => {
+                const tab = e.target.closest('[data-waqf-view]');
+                if (!tab) return;
+                waqfPanelView = tab.dataset.waqfView;
+                renderWaqfVerseTable();
+            });
+        }
+
         // Add keyboard event listeners for arrow key navigation
         document.addEventListener('keydown', handleKeydown);
     }
@@ -457,13 +486,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateGlobalAyahToVerseKey();
     }
 
+    // Waqf ruling chars to strip from IndoPak inline text in 'selected'/'none' modes.
+    // Keeps verse-end circle ۟ (U+06DF), structural marks (U+06E0–U+06E6), and PUA
+    // verse-number glyphs (U+E000+) so the verse circle still renders correctly.
+    const INDOPAK_INLINE_WAQF_STRIP = /[\u0614\u0615\u0617\u06D6-\u06DC\u06EA\u06EB\u06ED]/g;
+
     function getDisplayedAyahText(verseEntry = {}, fallbackText = '') {
         const font = elements.quranTextSelect.value;
         const waqfMode = getCurrentWaqfMode();
         const isIndoPak = font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2';
 
-        if (isIndoPak && (waqfMode === 'original' || waqfMode === 'both')) {
-            return verseEntry.raw_text || fallbackText || verseEntry.text || '';
+        if (isIndoPak) {
+            if (waqfMode === 'original' || waqfMode === 'both') {
+                // Show text with embedded waqf marks
+                return verseEntry.text || verseEntry.raw_text || fallbackText || '';
+            }
+            // 'selected' or 'none' — strip only waqf ruling marks, keep verse-end circle + PUA
+            const base = verseEntry.text || verseEntry.raw_text || fallbackText || '';
+            return base.replace(INDOPAK_INLINE_WAQF_STRIP, '');
         }
 
         return verseEntry.text || fallbackText;
@@ -575,6 +615,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
             currentSegments = reciterAudio.segments;
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
+            renderWaqfVerseTable();
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
             await maybeRefreshEerab(surahNumber, ayahNumber);
@@ -708,6 +749,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const _verseEntry = quranTextData?.[verseKey] || {};
             const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
+            renderWaqfVerseTable();
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
             await maybeRefreshEerab(surahNumber, ayahNumber);
@@ -834,6 +876,280 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (isIndoPak && v === 'الهندي') return false;
             return true;
         });
+    }
+
+    function renderWaqfVerseTable() {
+        const container = document.getElementById('waqf-verse-table-container');
+        if (!container || container.hidden) return;
+
+        const allSymbols = currentAyahData?.waqf_symbols || [];
+        const mode = getCurrentWaqfMode();
+
+        let entries;
+        if (mode === 'none') {
+            entries = [];
+        } else if (mode === 'original') {
+            entries = allSymbols;
+        } else if (mode === 'selected') {
+            const selSet = new Set(getSelectedMushafVersions());
+            entries = allSymbols.filter(s => selSet.has(s.version || ''));
+        } else {
+            entries = allSymbols;
+        }
+
+        if (entries.length === 0) {
+            const msg = mode === 'none'
+                ? 'علامات الوقف مخفية — اختر وضع عرض آخر لرؤية البطاقات'
+                : 'لا توجد علامات وقف مسجّلة لهذه الآية';
+            container.innerHTML = `<p class="waqf-panel-empty">${msg}</p>`;
+            return;
+        }
+
+        const font       = elements.quranTextSelect.value;
+        const surahNum   = elements.surahSelect.value;
+        const ayahNum    = elements.ayahSelect.value;
+        const verseKey   = `${surahNum}:${ayahNum}`;
+        const verseEntry = quranTextData?.[verseKey] || {};
+
+        // Clean verse words for IndoPak word-text lookup (word_index is 1-based)
+        const rawVerseText = verseEntry.clean_text || verseEntry.text
+            || currentAyahData?.clean_text || currentAyahData?.text || '';
+        const cleanVerseText = rawVerseText.replace(/[\u06D5-\u06ED\u0610-\u061A\u08D0-\u08FF]/g, '');
+        const verseWords = cleanVerseText.trim().split(/\s+/).filter(Boolean);
+
+        const WORD_FONTS = {
+            indopak_nastaleeq:   "'Naskh-Nastaleeq-IndoPak-QWBW', serif",
+            indopak_nastaleeq_2: "'IndoPakNastaleeq2', serif",
+            qpc_hafs:            "'UthmanicHafs', serif",
+            digital_khatt:       "'UthmanicHafs', 'Digital Khatt', serif",
+            shamarly:            "'UthmanicHafs', serif",
+        };
+        const wordFont       = WORD_FONTS[font] || "'UthmanicHafs', serif";
+        const indopakSymFont = "'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', serif";
+
+        // Strip waqf combining marks to recover clean word text from a token
+        const stripWaqf = s =>
+            (s || '').replace(/[\u06D5-\u06ED\u0610-\u061A\u08D0-\u08FF]/g, '').trim();
+
+        function getWordText(entry) {
+            const isHindi = /الهندي|هندي/.test(entry.version || '');
+            if (!isHindi) {
+                const tok = stripWaqf(entry.clean_token || entry.original_token || '');
+                if (tok) return tok;
+            }
+            // الهندي: clean_token is empty → look up by word_index in verse words
+            const wIdx = Number(entry.word_index);
+            if (wIdx > 0 && wIdx <= verseWords.length) return verseWords[wIdx - 1];
+            return '';
+        }
+
+        // word_index → Set<version>  (to build "shared with" per word)
+        const wordVersionsMap = new Map();
+        for (const e of entries) {
+            const wIdx = Number(e.word_index) || (Number(e.token_index) + 1);
+            if (!wordVersionsMap.has(wIdx)) wordVersionsMap.set(wIdx, new Set());
+            wordVersionsMap.get(wIdx).add(e.version || '');
+        }
+
+        // Group by mushaf version
+        const byMushaf = new Map();
+        for (const e of entries) {
+            const ver = e.version || 'غير محدد';
+            if (!byMushaf.has(ver)) byMushaf.set(ver, []);
+            byMushaf.get(ver).push(e);
+        }
+
+        const ORDER = ['المدينة', 'الشمرلي', 'الأزهر', 'ورش', 'الحصري', 'الهندي'];
+        const sortedMushafs = [...byMushaf.keys()].sort((a, b) => {
+            const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+            if (ia === -1 && ib === -1) return a.localeCompare(b, 'ar');
+            if (ia === -1) return 1;
+            if (ib === -1) return -1;
+            return ia - ib;
+        });
+
+        // Symbol pills — الهندي splits compound symbol into individual characters
+        // IndoPak symbol string structure: ۟(06DF) + waqf_ruling_char + PUA_verse_num(0xF500–0xF699)
+        // ۟ (06DF) = verse-end circle shape.  PUA chars = verse number glyph in IndoPak font.
+        // These chars appear in IndoPak strings but carry no waqf ruling — filter from pills/meanings:
+        const VERSE_END_MARKER = '\u06DF'; // ۟
+        const HINDI_NON_WAQF = new Set([
+            '\u06E0', // ۠ رأس الخمس — structural
+            '\u06E1', // ۡ — not waqf
+            '\u06E2', // ۢ — not waqf
+            '\u06E4', // ۤ — not waqf
+            '\u06E5', // ۥ — not waqf
+            '\u06E6', // ۦ — not waqf
+            '\u06ED', // ۭ — not waqf
+        ]);
+        const isPUA = ch => ch.codePointAt(0) >= 0xE000;
+
+        function buildSymPills(symbols, isHindi, colorCls) {
+            if (isHindi) {
+                const chars = [...symbols];
+                // Only actual waqf ruling chars get pills
+                const waqfChars = chars.filter(ch =>
+                    ch !== VERSE_END_MARKER && !HINDI_NON_WAQF.has(ch) && !isPUA(ch)
+                );
+                if (waqfChars.length === 0) return '';
+
+                let html = '';
+                // Render verse-end circle (۟ + PUA number glyph) dimmed, for context only
+                const puaStr = chars.filter(isPUA).join('');
+                if (chars.includes(VERSE_END_MARKER) || puaStr) {
+                    const circleStr = (chars.includes(VERSE_END_MARKER) ? VERSE_END_MARKER : '') + puaStr;
+                    html += `<span class="waqf-verse-circle" style="font-family:${indopakSymFont}">${circleStr}</span>`;
+                }
+                // Waqf ruling pills
+                for (const ch of waqfChars) {
+                    const info  = getWaqfInfo(ch);
+                    const title = (info.meaning && info.meaning !== ch)
+                        ? ` title="${info.meaning.replace(/"/g, '&quot;')}"` : '';
+                    html += `<span class="waqf-sym-pill waqf-sym-hindi waqf-mushaf-hindi"` +
+                            ` style="font-family:${indopakSymFont}"${title}>${ch}</span>`;
+                }
+                return html;
+            }
+            const info   = getWaqfInfo(symbols);
+            const title  = (info.meaning && info.meaning !== symbols)
+                ? ` title="${info.meaning.replace(/"/g, '&quot;')}"` : '';
+            const symEsc = symbols.replace(/&/g, '&amp;');
+            return `<span class="waqf-sym-pill ${colorCls}"${title}>${symEsc}</span>`;
+        }
+
+        // Human-readable meaning text for a symbol string
+        function buildMeaning(symbols, isHindi) {
+            if (isHindi) {
+                const parts = [...new Set([...symbols]
+                    .filter(ch => ch !== VERSE_END_MARKER && !HINDI_NON_WAQF.has(ch) && !isPUA(ch))
+                    .map(ch => {
+                        const info = getWaqfInfo(ch);
+                        return (info.meaning && info.meaning !== ch) ? info.meaning : null;
+                    }).filter(Boolean))];
+                return parts.join(' · ');
+            }
+            const info = getWaqfInfo(symbols);
+            return (info.meaning && info.meaning !== symbols) ? info.meaning : '';
+        }
+
+        const esc = s => (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+        const cardsHtml = sortedMushafs.map(ver => {
+            const entryList = byMushaf.get(ver);
+            const colorCls  = getMushafColorClass(ver);
+            const isHindi   = /الهندي|هندي/.test(ver);
+
+            const sortedEntries = [...entryList].sort((a, b) =>
+                (Number(a.word_index) || (Number(a.token_index) + 1)) -
+                (Number(b.word_index) || (Number(b.token_index) + 1))
+            );
+
+            const rowsHtml = sortedEntries.map(entry => {
+                const wordText = getWordText(entry);
+                const wIdx     = Number(entry.word_index) || (Number(entry.token_index) + 1);
+                const sym      = entry.symbols || '';
+
+                const symPills = buildSymPills(sym, isHindi, colorCls);
+                // Skip rows that are purely verse-end markers with no waqf ruling
+                if (isHindi && !symPills) return '';
+                const meaning  = buildMeaning(sym, isHindi);
+
+                // Other mushafs that also mark this same word position
+                const sharedVers = [...(wordVersionsMap.get(wIdx) || [])].filter(v => v !== ver);
+                const sharedHtml = sharedVers.length > 0
+                    ? `<span class="waqf-card-shared">↔ ${sharedVers.map(v =>
+                        `<span class="waqf-shared-badge ${getMushafColorClass(v)}">${esc(v)}</span>`
+                      ).join('')}</span>`
+                    : '';
+
+                return `<div class="waqf-card-row">
+                    <span class="waqf-card-word" style="font-family:${wordFont}">${esc(wordText)}</span>
+                    <span class="waqf-card-sym-wrap">${symPills}</span>
+                    <span class="waqf-card-meaning">${esc(meaning)}</span>
+                    ${sharedHtml}
+                </div>`;
+            }).filter(Boolean).join('');
+
+            const countLabel = `${entryList.length} ${entryList.length === 1 ? 'علامة' : 'علامات'}`;
+            return `<div class="waqf-mushaf-card ${colorCls}">
+                <div class="waqf-card-header">
+                    <span class="waqf-card-dot ${colorCls}">●</span>
+                    <span class="waqf-card-name">${esc(ver)}</span>
+                    <span class="waqf-card-count">${countLabel}</span>
+                </div>
+                <div class="waqf-card-body">${rowsHtml}</div>
+            </div>`;
+        }).join('');
+
+        // ── Word view ────────────────────────────────────────────────────────
+        // Groups by word_index: for each word that carries any waqf mark,
+        // lists every mushaf that marks it with its symbol + meaning.
+        function buildWordViewHtml() {
+            const byWord = new Map();
+            for (const e of entries) {
+                const wIdx = Number(e.word_index) || (Number(e.token_index) + 1);
+                if (!byWord.has(wIdx)) byWord.set(wIdx, []);
+                byWord.get(wIdx).push(e);
+            }
+
+            const sortedWords = [...byWord.keys()].sort((a, b) => a - b);
+
+            return sortedWords.map(wIdx => {
+                const wordEntries = byWord.get(wIdx);
+                const wordText    = getWordText(wordEntries[0]);
+
+                // Sort mushaf entries by ORDER
+                const sortedWE = [...wordEntries].sort((a, b) => {
+                    const ia = ORDER.indexOf(a.version || ''), ib = ORDER.indexOf(b.version || '');
+                    if (ia === -1 && ib === -1) return (a.version || '').localeCompare(b.version || '', 'ar');
+                    if (ia === -1) return 1; if (ib === -1) return -1;
+                    return ia - ib;
+                });
+
+                const mushafRowsHtml = sortedWE.map(entry => {
+                    const ver      = entry.version || '';
+                    const colorCls = getMushafColorClass(ver);
+                    const isHindi  = /الهندي|هندي/.test(ver);
+                    const sym      = entry.symbols || '';
+                    const symPills = buildSymPills(sym, isHindi, colorCls);
+                    if (isHindi && !symPills) return '';
+                    const meaning  = buildMeaning(sym, isHindi);
+                    return `<div class="waqf-word-mushaf-row">
+                        <span class="waqf-shared-badge ${colorCls}">${esc(ver)}</span>
+                        <span class="waqf-card-sym-wrap">${symPills}</span>
+                        <span class="waqf-card-meaning">${esc(meaning)}</span>
+                    </div>`;
+                }).filter(Boolean).join('');
+
+                if (!mushafRowsHtml) return '';
+
+                return `<div class="waqf-word-entry">
+                    <span class="waqf-word-text" style="font-family:${wordFont}">${esc(wordText)}</span>
+                    <div class="waqf-word-mushafs">${mushafRowsHtml}</div>
+                </div>`;
+            }).filter(Boolean).join('');
+        }
+
+        // ── Assemble panel ───────────────────────────────────────────────────
+        const tabsHtml = `<div class="waqf-view-tabs">
+            <button class="waqf-view-tab${waqfPanelView === 'mushaf' ? ' active' : ''}" data-waqf-view="mushaf">
+                <i class="fas fa-layer-group"></i> عرض المصاحف
+            </button>
+            <button class="waqf-view-tab${waqfPanelView === 'word' ? ' active' : ''}" data-waqf-view="word">
+                <i class="fas fa-align-right"></i> عرض الكلمات
+            </button>
+        </div>`;
+
+        const viewHtml = waqfPanelView === 'word'
+            ? `<div class="waqf-word-view">${buildWordViewHtml()}</div>`
+            : `<div class="waqf-cards-grid">${cardsHtml}</div>`;
+
+        container.innerHTML =
+            `<div class="waqf-panel-header">` +
+            `<div class="waqf-panel-title"><i class="fas fa-signs-post"></i> وقف هذه الآية</div>` +
+            tabsHtml +
+            `</div>` +
+            viewHtml;
     }
 
     function renderShamarlyVerseWords(shamarlyPayload, segments) {
@@ -1131,21 +1447,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         'قلي': { meaning: 'قلى — الأفضل الوقف'                                                 },
         'ق':   { meaning: 'قلى — الأفضل الوقف'                                                 },
         'ر':   { meaning: 'راجح — الأفضل الوقف'                                                },
-        'ص':   { meaning: 'صلى — الأفضل الوصل'                                                 },
+        'ص':   { meaning: 'مرخّص لضرورة (مصحف هندي)'                                           },
+        'صه':  { meaning: 'صه — وقف تام (مصحف ورش)'                                           },
         'صلى': { meaning: 'صلى — الأفضل الوصل'                                                 },
         'صلي': { meaning: 'صلى — الأفضل الوصل'                                                 },
+        'ط':   { meaning: 'مطلق — رمز خاص بالمصحف الهندي'                                      },
+        'ز':   { meaning: 'مجوَّز — رمز خاص بالمصحف الهندي'                                     },
         'ج':   { meaning: 'جائز — يجوز الوقف والوصل'                                           },
         'لا':  { meaning: 'لا وقف — يجب الوصل'                                                 },
         'ع':   { meaning: 'معانقة — إذا وقفت على أحدهما لا تقف على الآخر'                     },
         '↺':   { meaning: 'وقف إعادة — ارجع للبداية'                                           },
         '▶':   { meaning: 'بداية الإعادة'                                                       },
         '\u06DC': { meaning: 'توقف — علامة وقف مصحف ورش'                                    },
-        // IndoPak / Pakistani mushaf symbols
-        'ؕ':   { meaning: 'وقف لازم — الوقف واجب (مصحف هندي/باكستاني)' },
-        'ؗ':   { meaning: 'وقف ثقيل — علامة الزين (مصحف هندي)' },
-        '۪':   { meaning: 'وقف تحتي (مصحف هندي)' },
-        '۫':   { meaning: 'وقف فوقي (مصحف هندي)' },
-        '۬':   { meaning: 'وقف دائري (مصحف هندي)' },
+        // IndoPak / Pakistani mushaf combining-mark symbols
+        'ؕ':       { meaning: 'وقف مطلق (مصحف هندي/باكستاني)' },
+        'ؗ':       { meaning: 'وقف مجوز لوجه (مصحف هندي)' },
+        '\u06D6': { meaning: 'صلى — الأفضل الوصل (مصحف هندي)' },
+        '\u06D7': { meaning: 'قلى — الأفضل الوقف (مصحف هندي)' },
+        '\u06D8': { meaning: 'م — وقف لازم (مصحف هندي)' },
+        '\u06D9': { meaning: 'لا — لا يجوز الوقف (مصحف هندي)' },
+        '\u06DA': { meaning: 'ج — جائز الوقف والوصل (مصحف هندي)' },
+        '\u06DB': { meaning: 'ع — وقف معانقة (مصحف هندي)' },
+        '\u06DF': { meaning: 'رأس الآية أو رمز الوقف الكامل (مصحف هندي)' },
+        '\u06E0': { meaning: 'رأس الخمس (مصحف هندي)' },
+        '۪':       { meaning: 'وقف تحتي (مصحف هندي)' },
+        '۫':       { meaning: 'وقف فوقي (مصحف هندي)' },
+        '۬':       { meaning: 'وقف دائري (مصحف هندي)' },
     };
 
     function getWaqfInfo(rawSymbol) {
