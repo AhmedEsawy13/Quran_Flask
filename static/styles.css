@@ -3083,6 +3083,21 @@ body[data-font-type="indopak"] .guide-seg-words {
     font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
     font-size: 1.3rem;
 }
+body[data-font-type="digital_khatt"] .guide-seg-words,
+body[data-font-type="digital_khatt"] .rc-diff-chip {
+    font-family: 'Digital Khatt', sans-serif;
+    font-size: 1.2rem;
+}
+body[data-font-type="old_madina"] .guide-seg-words,
+body[data-font-type="old_madina"] .rc-diff-chip {
+    font-family: 'Old Madina', sans-serif;
+    font-size: 1.2rem;
+}
+body[data-font-type="indopak"] .rc-diff-chip {
+    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
+    font-size: 1.0rem;
+    white-space: normal;
+}
 
 /* Waqf badge at the bottom of each segment */
 .guide-seg-waqf {
@@ -3708,11 +3723,13 @@ body.dark-mode .rc-diff-label { color: #94a3b8; }
 
 /* Chip for subject-only stops (solid indigo) */
 .rc-diff-chip {
-    font-size: 0.82rem;
-    padding: 1px 8px;
-    border-radius: 99px;
+    font-size: 0.88rem;
+    padding: 2px 8px;
+    border-radius: 8px;
     direction: rtl;
-    white-space: nowrap;
+    white-space: normal;
+    line-height: 1.5;
+    font-family: 'UthmanicHafs', 'Amiri', serif;
 }
 .rc-diff-chip-a {
     background: rgba(99,102,241,0.12);

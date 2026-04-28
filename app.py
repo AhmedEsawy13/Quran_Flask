@@ -908,13 +908,8 @@ def get_reciter_compare(surah_number, ayah_number):
         return jsonify({'has_data': False, 'comparisons': {}})
 
     verse_end_word = subject_pauses[-1]['end_word']
-    # Mid-pauses only (exclude رأس الآية — every reciter stops there)
-    subject_mid = [s['end_word'] for s in subject_pauses if s['end_word'] != verse_end_word]
-
-    def _pauses_set(segs, verse_end):
-        """Return set of mid-pause end_words for a list of segments."""
-        return {s['end_word'] for s in segs
-                if not s.get('is_repeat') and s['end_word'] != verse_end}
+    # Mid-pause segments only (exclude رأس الآية — every reciter stops there)
+    subject_mid_segs = [s for s in subject_pauses if s['end_word'] != verse_end_word]
 
     def _overlap(a_set, b_set):
         """Fraction of positions in a_set that have a ±1 match in b_set."""
@@ -934,28 +929,26 @@ def get_reciter_compare(surah_number, ayah_number):
         if not other_pauses:
             continue
         other_verse_end = other_pauses[-1]['end_word']
-        other_mid = _pauses_set(other_pauses, other_verse_end)
 
-        a_set = set(subject_mid)
-        a_frac, a_matched, a_total = _overlap(a_set, other_mid)
-        b_frac, b_matched, b_total = _overlap(other_mid, a_set)
+        # Work with full segment objects so diff can show segment text
+        a_segs = [s for s in subject_pauses if s['end_word'] != verse_end_word]
+        b_segs = [s for s in other_pauses  if s['end_word'] != other_verse_end]
+        a_set  = {s['end_word'] for s in a_segs}
+        b_set  = {s['end_word'] for s in b_segs}
 
-        # Compute unmatched words for the diff view
-        def _word_text(idx):
-            """Return Arabic text of word at 0-based index idx from QPC Hafs."""
-            verse_raw = (qpc_hafs_data.get(f'{surah_number}:{ayah_number}') or {}).get('text', '')
-            words = verse_raw.split('\xa0')[0].split()
-            return words[idx] if 0 <= idx < len(words) else ''
+        a_frac, a_matched, a_total = _overlap(a_set, b_set)
+        b_frac, b_matched, b_total = _overlap(b_set, a_set)
 
+        # Unmatched segments for the diff view — carry full uthmani_text from positions.db
         only_in_a = [
-            {'word_index': w, 'text': _word_text(w)}
-            for w in sorted(a_set)
-            if not (w in other_mid or (w - 1) in other_mid or (w + 1) in other_mid)
+            {'word_index': s['end_word'], 'start_word': s['start_word'], 'text': (s.get('text') or '').split('\xa0')[0].strip()}
+            for s in a_segs
+            if not (s['end_word'] in b_set or (s['end_word'] - 1) in b_set or (s['end_word'] + 1) in b_set)
         ]
         only_in_b = [
-            {'word_index': w, 'text': _word_text(w)}
-            for w in sorted(other_mid)
-            if not (w in a_set or (w - 1) in a_set or (w + 1) in a_set)
+            {'word_index': s['end_word'], 'start_word': s['start_word'], 'text': (s.get('text') or '').split('\xa0')[0].strip()}
+            for s in b_segs
+            if not (s['end_word'] in a_set or (s['end_word'] - 1) in a_set or (s['end_word'] + 1) in a_set)
         ]
 
         comparisons[other_reciter] = {
@@ -975,7 +968,7 @@ def get_reciter_compare(surah_number, ayah_number):
 
     return jsonify({
         'has_data': bool(comparisons),
-        'subject_mid_count': len(subject_mid),
+        'subject_mid_count': len(subject_mid_segs),
         'comparisons': comparisons,
     })
 

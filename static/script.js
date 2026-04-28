@@ -2301,8 +2301,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     items.forEach(item => {
                         const chip = document.createElement('span');
                         chip.className = isA ? 'rc-diff-chip rc-diff-chip-a' : 'rc-diff-chip rc-diff-chip-b';
-                        chip.textContent = item.text || `ك${toAr(item.word_index + 1)}`;
-                        chip.title = `الكلمة ${toAr(item.word_index + 1)}`;
+                        // Show segment text (uthmani_text from positions.db) — last 4 words
+                        // are shown so the pause-point (end) is visible; full text on hover
+                        const segWords = (item.text || '').split(' ').filter(Boolean);
+                        const truncated = segWords.length > 4
+                            ? '\u2026 ' + segWords.slice(-4).join(' ')
+                            : (segWords.join(' ') || `ك${toAr(item.word_index + 1)}`);
+                        chip.textContent = truncated;
+                        chip.title = item.text || `الكلمة ${toAr(item.word_index + 1)}`;
                         chips.appendChild(chip);
                     });
                     g.appendChild(chips);
@@ -2917,18 +2923,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     function changeFont(font) {
         const quranText = document.getElementById('quran-text');
         quranText.className = ''; // Reset all font classes
-        if (font !== 'digital_khatt') {
-            quranText.classList.add(font);
-        } else {
-            quranText.classList.add('digital_khatt');
-        }
-        // Track font family so CSS can apply IndoPak/Shamarly-specific rules
+        quranText.classList.add(font);
+        // Track font family so CSS can apply per-font rules to guide-seg-words, diff chips, etc.
         if (font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2') {
             document.body.dataset.fontType = 'indopak';
-        } else if (font === 'shamarly') {
-            document.body.dataset.fontType = 'shamarly';
         } else {
-            document.body.dataset.fontType = '';
+            // Store the exact font name so CSS selectors like body[data-font-type="digital_khatt"] work
+            document.body.dataset.fontType = font;
         }
     }
 
