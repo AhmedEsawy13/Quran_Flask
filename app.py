@@ -128,8 +128,15 @@ _HF_ROWS_API = (
     "&offset={offset}&length=1"
 )
 # Disk cache: bytes fetched from HF are saved here so subsequent plays are instant.
-_BURAAQ_AUDIO_CACHE_DIR = os.path.join(_BASE_DIR, 'QUL_data', 'audio_cache', 'mustafa_ismaeel')
-os.makedirs(_BURAAQ_AUDIO_CACHE_DIR, exist_ok=True)
+# Use /tmp on read-only filesystems (e.g. Vercel serverless); fall back to local QUL_data path.
+_BURAAQ_AUDIO_CACHE_DIR_LOCAL = os.path.join(_BASE_DIR, 'QUL_data', 'audio_cache', 'mustafa_ismaeel')
+_BURAAQ_AUDIO_CACHE_DIR_TMP = os.path.join('/tmp', 'audio_cache', 'mustafa_ismaeel')
+try:
+    os.makedirs(_BURAAQ_AUDIO_CACHE_DIR_LOCAL, exist_ok=True)
+    _BURAAQ_AUDIO_CACHE_DIR = _BURAAQ_AUDIO_CACHE_DIR_LOCAL
+except OSError:
+    os.makedirs(_BURAAQ_AUDIO_CACHE_DIR_TMP, exist_ok=True)
+    _BURAAQ_AUDIO_CACHE_DIR = _BURAAQ_AUDIO_CACHE_DIR_TMP
 import time as _time
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
