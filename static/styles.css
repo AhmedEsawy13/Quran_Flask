@@ -3515,30 +3515,18 @@ body.dark-mode .word-meaning-tooltip {
 .waqf-cards-grid {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 0.5rem;
 }
 
-/* Card — full-width row layout */
+/* Card — column layout: colored header strip on top, word rows below */
 .waqf-mushaf-card {
-    border: none;
-    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    border: 1px solid var(--border-color, #e2e8f0);
     border-right: 4px solid #94a3b8;
-    border-radius: 0;
-    background: transparent;
+    border-radius: 10px;
+    background: var(--bg-card, #ffffff);
     overflow: hidden;
     display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    min-height: 2.6rem;
-}
-
-.waqf-mushaf-card:first-child {
-    border-top: 1px solid var(--border-color, #f1f5f9);
-    border-radius: 8px 8px 0 0;
-}
-
-.waqf-mushaf-card:last-child {
-    border-radius: 0 0 8px 8px;
+    flex-direction: column;
 }
 
 .waqf-mushaf-card.waqf-mushaf-madinah  { border-right-color: #1d4ed8; }
@@ -3548,27 +3536,44 @@ body.dark-mode .word-meaning-tooltip {
 .waqf-mushaf-card.waqf-mushaf-husary   { border-right-color: #0369a1; }
 .waqf-mushaf-card.waqf-mushaf-hindi    { border-right-color: #be185d; }
 
-/* Card header */
+/* Per-mushaf tinted header background */
+.waqf-mushaf-madinah  .waqf-card-header { background: #eff6ff; }
+.waqf-mushaf-shamarly .waqf-card-header { background: #f5f3ff; }
+.waqf-mushaf-azhar    .waqf-card-header { background: #ecfdf5; }
+.waqf-mushaf-warsh    .waqf-card-header { background: #fffbeb; }
+.waqf-mushaf-husary   .waqf-card-header { background: #f0f9ff; }
+.waqf-mushaf-hindi    .waqf-card-header { background: #fdf2f8; }
+
+/* Per-mushaf dot & name color */
+.waqf-card-dot.waqf-mushaf-madinah,  .waqf-mushaf-madinah  .waqf-card-name { color: #1d4ed8; }
+.waqf-card-dot.waqf-mushaf-shamarly, .waqf-mushaf-shamarly .waqf-card-name { color: #7c3aed; }
+.waqf-card-dot.waqf-mushaf-azhar,    .waqf-mushaf-azhar    .waqf-card-name { color: #059669; }
+.waqf-card-dot.waqf-mushaf-warsh,    .waqf-mushaf-warsh    .waqf-card-name { color: #b45309; }
+.waqf-card-dot.waqf-mushaf-husary,   .waqf-mushaf-husary   .waqf-card-name { color: #0369a1; }
+.waqf-card-dot.waqf-mushaf-hindi,    .waqf-mushaf-hindi    .waqf-card-name { color: #be185d; }
+
+/* Card header — full-width strip across the top of each card */
 .waqf-card-header {
     display: flex;
     align-items: center;
     gap: 0.45em;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--border-color, #f1f5f9);
-    background: var(--bg-tertiary, #f8fafc);
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-secondary, #f8fafc);
 }
 
 .waqf-card-dot {
     font-size: 0.7em;
     line-height: 1;
     flex-shrink: 0;
+    color: #94a3b8; /* overridden per-mushaf above */
 }
 
 .waqf-card-name {
     font-weight: 700;
     font-size: 0.88rem;
     flex: 1;
-    color: var(--text-primary, #1e293b);
+    color: var(--text-primary, #1e293b); /* overridden per-mushaf above */
 }
 
 .waqf-card-count {
@@ -3580,30 +3585,32 @@ body.dark-mode .word-meaning-tooltip {
     flex-shrink: 0;
 }
 
-/* Card rows */
+/* Card rows — table-like grid: [word] [symbol] [meaning] */
 .waqf-card-body {
-    padding: 0.45rem 0.6rem;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0;
+    padding: 0;
 }
 
 .waqf-card-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto 1fr;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.35rem 0.3rem;
-    border-radius: 6px;
-    flex-wrap: wrap;
+    column-gap: 0.7rem;
+    row-gap: 0.15rem;
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
 }
 
-.waqf-card-row:hover { background: rgba(0,0,0,0.03); }
+.waqf-card-row:last-child { border-bottom: none; }
+.waqf-card-row:hover { background: rgba(0,0,0,0.025); }
 
 .waqf-card-word {
     font-size: 1.35em;
-    line-height: 1.6;
-    flex-shrink: 0;
-    font-weight: 500;
+    line-height: 1.7;
+    font-weight: 600;
+    color: var(--text-primary, #1e293b);
 }
 
 .waqf-card-sym-wrap {
@@ -3648,23 +3655,21 @@ body.dark-mode .word-meaning-tooltip {
 }
 
 .waqf-card-meaning {
-    font-size: 0.78rem;
-    color: var(--text-muted, #64748b);
+    font-size: 0.80rem;
+    color: var(--text-secondary, #475569);
     line-height: 1.4;
-    flex: 1;
-    min-width: 80px;
+    direction: rtl;
 }
 
-/* "Shared with" badge row */
+/* "Shared with" row — spans all 3 grid columns on a second line */
 .waqf-card-shared {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 0.73rem;
+    font-size: 0.72rem;
     color: var(--text-muted, #94a3b8);
-    flex-basis: 100%;
-    padding-right: 0.3rem;
-    margin-top: -0.1rem;
+    grid-column: 1 / -1;
+    padding-bottom: 0.15rem;
 }
 
 .waqf-shared-badge {
@@ -3838,11 +3843,33 @@ body.dark-mode .waqf-mushaf-card {
 
 body.dark-mode .waqf-card-header {
     background: #162032;
-    border-bottom-color: #334155;
+    border-bottom-color: #2d3f55;
 }
+
+/* Dark mode per-mushaf tinted headers */
+body.dark-mode .waqf-mushaf-madinah  .waqf-card-header { background: #0d1f3c; }
+body.dark-mode .waqf-mushaf-shamarly .waqf-card-header { background: #130f2e; }
+body.dark-mode .waqf-mushaf-azhar    .waqf-card-header { background: #062018; }
+body.dark-mode .waqf-mushaf-warsh    .waqf-card-header { background: #1f1305; }
+body.dark-mode .waqf-mushaf-husary   .waqf-card-header { background: #041b2e; }
+body.dark-mode .waqf-mushaf-hindi    .waqf-card-header { background: #240a18; }
+
+body.dark-mode .waqf-card-dot.waqf-mushaf-madinah,
+body.dark-mode .waqf-mushaf-madinah  .waqf-card-name { color: #93c5fd; }
+body.dark-mode .waqf-card-dot.waqf-mushaf-shamarly,
+body.dark-mode .waqf-mushaf-shamarly .waqf-card-name { color: #c4b5fd; }
+body.dark-mode .waqf-card-dot.waqf-mushaf-azhar,
+body.dark-mode .waqf-mushaf-azhar    .waqf-card-name { color: #6ee7b7; }
+body.dark-mode .waqf-card-dot.waqf-mushaf-warsh,
+body.dark-mode .waqf-mushaf-warsh    .waqf-card-name { color: #fcd34d; }
+body.dark-mode .waqf-card-dot.waqf-mushaf-husary,
+body.dark-mode .waqf-mushaf-husary   .waqf-card-name { color: #7dd3fc; }
+body.dark-mode .waqf-card-dot.waqf-mushaf-hindi,
+body.dark-mode .waqf-mushaf-hindi    .waqf-card-name { color: #f9a8d4; }
 
 body.dark-mode .waqf-card-name  { color: #e2e8f0; }
 body.dark-mode .waqf-card-count { background: #0f172a; color: #64748b; }
+body.dark-mode .waqf-card-row   { border-bottom-color: #1e293b; }
 body.dark-mode .waqf-card-row:hover { background: rgba(255,255,255,0.04); }
 body.dark-mode .waqf-sym-pill   { background: rgba(255,255,255,0.09); }
 body.dark-mode .waqf-sym-hindi  { background: rgba(190,24,93,0.15); }
