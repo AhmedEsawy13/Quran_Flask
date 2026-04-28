@@ -802,13 +802,44 @@ def get_pause_match(surah_number, ayah_number):
 
     versions = sorted(_get_mushaf_version_whitelist())
 
-    pause_count = len(pos_segs)
+    # ── Filter out repeated segments ─────────────────────────────────────────
+    # Repeated segments (reciter backs up and re-reads) are not real pauses.
+    pause_segs = [seg for seg in pos_segs if not seg.get('is_repeat')]
+
+    if not pause_segs:
+        return jsonify({'has_data': False, 'pause_count': 0, 'matches': {}})
+
+    # ── Identify the verse-end stop ──────────────────────────────────────────
+    # The last non-repeat segment always ends at رأس الآية.
+    verse_end_word = pause_segs[-1]['end_word']
+
+    # Symbols that explicitly PROHIBIT stopping (verse-end check only).
+    # U+06D9 (ۙ) = IndoPak glyph for "لا" = لا يجوز الوقف.
+    def _is_prohibited_stop(symbols_str):
+        sym = (symbols_str or '').strip()
+        if not sym:
+            return False
+        return sym == 'لا' or '\u06D9' in sym or 'لا' in sym
+
+    pause_count = len(pause_segs)
     matches = {}
     for ver in versions:
-        matched = sum(
-            1 for seg in pos_segs
-            if _get_waqf_at_boundary(surah_number, ayah_number, seg['end_word'], [ver])
-        )
+        matched = 0
+        for seg in pause_segs:
+            is_verse_end = (seg['end_word'] == verse_end_word)
+            waqf_entries = _get_waqf_at_boundary(
+                surah_number, ayah_number, seg['end_word'], [ver]
+            )
+            if is_verse_end:
+                # Stopping at رأس الآية is universally valid UNLESS the mushaf
+                # explicitly prohibits it with "لا" (or its IndoPak equivalent ۙ).
+                sym = waqf_entries[0]['symbols'] if waqf_entries else ''
+                if not _is_prohibited_stop(sym):
+                    matched += 1
+            else:
+                # Mid-verse pause: any waqf mark at this position = aligned with mushaf.
+                if waqf_entries:
+                    matched += 1
         matches[ver] = {
             'matched': matched,
             'total': pause_count,

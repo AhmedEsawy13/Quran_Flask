@@ -1967,7 +1967,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const subtitle = document.createElement('p');
         subtitle.className = 'pause-match-subtitle';
-        subtitle.textContent = `من أصل ${pause_count} وقفة، كم منها تتوافق مع علامات الوقف في كل مصحف؟`;
+        subtitle.textContent = `من أصل ${pause_count} وقفة داخل الآية، كم منها تتوافق مع علامات الوقف في كل مصحف؟`;
         panel.appendChild(subtitle);
 
         const rows = document.createElement('div');
