@@ -1907,9 +1907,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciter = elements.reciterSelect.value;
             const qs = reciter ? `?reciter=${encodeURIComponent(reciter)}` : '';
 
-            const [data, matchData] = await Promise.all([
+            const [data, matchData, compareData] = await Promise.all([
                 fetchData(`/api/recitation-guide/${surah}/${ayah}${qs}`),
                 fetchData(`/api/pause-match/${surah}/${ayah}${qs}`).catch(() => null),
+                fetchData(`/api/reciter-compare/${surah}/${ayah}${qs}`).catch(() => null),
             ]);
             const reciterName = RECITER_ARABIC_NAMES[reciter] || reciter;
 
@@ -1946,6 +1947,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (matchData && matchData.has_data) {
                 buildPauseMatchPanel(guideContainer, matchData, reciterName);
             }
+            if (compareData && compareData.has_data) {
+                buildReciterComparePanel(guideContainer, compareData, reciterName);
+            }
         } catch (error) {
             guideContainer.innerHTML = '<div class="guide-error"><i class="fas fa-triangle-exclamation"></i> خطأ في تحميل دليل التلاوة</div>';
             console.error('Recitation guide error:', error);
@@ -1954,7 +1958,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function buildPauseMatchPanel(container, matchData, reciterName) {
         const { matches, pause_count } = matchData;
-        // Sort: primary by coverage_score descending, secondary by score
+        // Sort: primary by combined score, secondary by precision
         const versions = Object.keys(matches).sort((a, b) => {
             const ca = matches[b].coverage_score ?? matches[b].score;
             const cb = matches[a].coverage_score ?? matches[a].score;
@@ -1963,90 +1967,314 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).reverse();
         if (!versions.length) return;
 
+        // Helpers ─────────────────────────────────────────────────────────────
+        function toArabicNumerals(n) {
+            return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+        }
+
+        // Build a natural-language verdict sentence for one mushaf entry
+        function buildVerdict(ver, matched, total, score, mushaf_marks, marks_covered, coverage_score) {
+            const recShort = reciterName;     // already short Arabic name
+            const allPrec = matched === total;
+            const allCov  = mushaf_marks === 0 || marks_covered === mushaf_marks;
+            const noPrec  = matched === 0;
+            const noCov   = mushaf_marks > 0 && marks_covered === 0;
+            const m = toArabicNumerals(matched);
+            const t = toArabicNumerals(total);
+            const c = toArabicNumerals(marks_covered);
+            const mk = toArabicNumerals(mushaf_marks);
+
+            let parts = [];
+
+            // Precision sentence
+            if (allPrec) {
+                parts.push(`وافق الشيخ في جميع وقفاته (${m}/${t})`);
+            } else if (noPrec) {
+                parts.push(`لم توافق أيٌّ من وقفاته علامات هذا المصحف`);
+            } else {
+                parts.push(`وافق الشيخ في ${m} من أصل ${t} وقفة`);
+            }
+
+            // Coverage sentence (only when mushaf has marks)
+            if (mushaf_marks > 0) {
+                if (allCov) {
+                    parts.push(`وغطّى جميع علامات الوقف فيه (${c}/${mk})`);
+                } else if (noCov) {
+                    parts.push(`دون أن يمرّ على أيٍّ من علاماته (${mk} علامة)`);
+                } else {
+                    parts.push(`وغطّى ${c} من ${mk} علامة في المصحف`);
+                }
+            } else {
+                parts.push(`(لا علامات وقف مخصّصة في هذا المصحف لهذه الآية)`);
+            }
+
+            return parts.join('، ');
+        }
+
+        // Badge level: 'full' | 'partial' | 'none'
+        function badgeLevel(score, coverage_score, mushaf_marks) {
+            const eff = mushaf_marks > 0 ? Math.min(score, coverage_score) : score;
+            if (eff === 100) return 'full';
+            if (eff === 0)   return 'none';
+            return 'partial';
+        }
+
+        const BADGE = {
+            full:    { label: 'مطابق تماماً', cls: 'pm-badge-full' },
+            partial: { label: 'مطابق جزئياً', cls: 'pm-badge-partial' },
+            none:    { label: 'غير مطابق',    cls: 'pm-badge-none' },
+        };
+
+        // ── Panel shell ───────────────────────────────────────────────────────
         const panel = document.createElement('div');
         panel.className = 'pause-match-panel';
 
         const title = document.createElement('div');
         title.className = 'pause-match-title';
-        title.innerHTML = `<i class="fas fa-chart-bar"></i> تطابق وقوف ${reciterName} مع المصاحف`;
+        title.innerHTML = `<i class="fas fa-book-open"></i> تطابق وقوف ${reciterName} مع المصاحف`;
         panel.appendChild(title);
 
         const subtitle = document.createElement('p');
         subtitle.className = 'pause-match-subtitle';
-        subtitle.textContent = `${pause_count} وقفة — الشريط الأول: وقفاته الصحيحة · الشريط الثاني: علامات المصحف التي وقف عندها`;
+        subtitle.textContent = `${toArabicNumerals(pause_count)} وقفة في هذه الآية — مرتّبة من الأعلى تطابقاً`;
         panel.appendChild(subtitle);
 
         const rows = document.createElement('div');
         rows.className = 'pause-match-rows';
 
-        versions.forEach(ver => {
+        versions.forEach((ver, idx) => {
             const { matched, total, score, mushaf_marks, marks_covered, coverage_score } = matches[ver];
             const colorCls = getMushafColorClass(ver);
+            const badge = BADGE[badgeLevel(score, coverage_score, mushaf_marks)];
 
-            const entry = document.createElement('div');
-            entry.className = 'pause-match-entry';
+            const card = document.createElement('div');
+            card.className = `pause-match-card ${colorCls}`;
 
-            // Mushaf label
-            const label = document.createElement('span');
-            label.className = `pause-match-label ${colorCls}`;
-            label.textContent = ver;
-            entry.appendChild(label);
+            // ── Card header: mushaf name + badge ──────────────────────────
+            const header = document.createElement('div');
+            header.className = 'pause-match-card-header';
 
-            const metrics = document.createElement('div');
-            metrics.className = 'pause-match-metrics';
+            const musName = document.createElement('span');
+            musName.className = `pause-match-mushaf-name ${colorCls}`;
+            musName.textContent = ver;
+            header.appendChild(musName);
 
-            // ── Bar 1: precision (reciter's stops that match mushaf marks) ──
+            const badgeEl = document.createElement('span');
+            badgeEl.className = `pm-badge ${badge.cls}`;
+            badgeEl.textContent = badge.label;
+            header.appendChild(badgeEl);
+            card.appendChild(header);
+
+            // ── Verdict sentence ──────────────────────────────────────────
+            const verdict = document.createElement('p');
+            verdict.className = 'pause-match-verdict';
+            verdict.textContent = buildVerdict(ver, matched, total, score, mushaf_marks, marks_covered, coverage_score);
+            card.appendChild(verdict);
+
+            // ── Bar 1: precision ──────────────────────────────────────────
+            const precSection = document.createElement('div');
+            precSection.className = 'pause-match-bar-section';
+
+            const precHeader = document.createElement('div');
+            precHeader.className = 'pause-match-bar-header';
+            const precTitle = document.createElement('span');
+            precTitle.className = 'pause-match-bar-title';
+            precTitle.textContent = 'صحة وقفاته';
+            const precHint = document.createElement('span');
+            precHint.className = 'pause-match-bar-hint';
+            precHint.textContent = 'كم وقفة منه لها سند في هذا المصحف؟';
+            precHeader.appendChild(precTitle);
+            precHeader.appendChild(precHint);
+            precSection.appendChild(precHeader);
+
             const precRow = document.createElement('div');
             precRow.className = 'pause-match-metric-row';
-
-            const precLbl = document.createElement('span');
-            precLbl.className = 'pause-match-metric-lbl';
-            precLbl.textContent = 'وقفاته';
-            precRow.appendChild(precLbl);
-
             const precWrap = document.createElement('div');
             precWrap.className = 'pause-match-bar-wrap';
             const precBar = document.createElement('div');
             precBar.className = `pause-match-bar ${colorCls}`;
             precBar.style.width = '0%';
-            setTimeout(() => { precBar.style.width = score + '%'; }, 50);
+            setTimeout(() => { precBar.style.width = score + '%'; }, 50 + idx * 20);
             precWrap.appendChild(precBar);
             precRow.appendChild(precWrap);
-
             const precPct = document.createElement('span');
             precPct.className = 'pause-match-pct';
-            precPct.textContent = `${score}٪ (${matched}/${total})`;
+            precPct.textContent = `${toArabicNumerals(score)}٪ (${toArabicNumerals(matched)}/${toArabicNumerals(total)})`;
             precRow.appendChild(precPct);
-            metrics.appendChild(precRow);
+            precSection.appendChild(precRow);
+            card.appendChild(precSection);
 
-            // ── Bar 2: coverage (mushaf marks the reciter stopped at) ──
+            // ── Bar 2: coverage (only when mushaf has marks) ──────────────
             if (mushaf_marks > 0) {
+                const covSection = document.createElement('div');
+                covSection.className = 'pause-match-bar-section';
+
+                const covHeader = document.createElement('div');
+                covHeader.className = 'pause-match-bar-header';
+                const covTitle = document.createElement('span');
+                covTitle.className = 'pause-match-bar-title';
+                covTitle.textContent = 'تغطية علاماته';
+                const covHint = document.createElement('span');
+                covHint.className = 'pause-match-bar-hint';
+                covHint.textContent = 'كم علامة وقف في المصحف وقف عندها الشيخ؟';
+                covHeader.appendChild(covTitle);
+                covHeader.appendChild(covHint);
+                covSection.appendChild(covHeader);
+
                 const covRow = document.createElement('div');
-                covRow.className = 'pause-match-metric-row pause-match-coverage-row';
-
-                const covLbl = document.createElement('span');
-                covLbl.className = 'pause-match-metric-lbl';
-                covLbl.textContent = 'العلامات';
-                covRow.appendChild(covLbl);
-
+                covRow.className = 'pause-match-metric-row';
                 const covWrap = document.createElement('div');
                 covWrap.className = 'pause-match-bar-wrap';
                 const covBar = document.createElement('div');
                 covBar.className = `pause-match-coverage-bar ${colorCls}`;
                 covBar.style.width = '0%';
-                setTimeout(() => { covBar.style.width = coverage_score + '%'; }, 80);
+                setTimeout(() => { covBar.style.width = coverage_score + '%'; }, 90 + idx * 20);
                 covWrap.appendChild(covBar);
                 covRow.appendChild(covWrap);
-
                 const covPct = document.createElement('span');
                 covPct.className = 'pause-match-pct';
-                covPct.textContent = `${coverage_score}٪ (${marks_covered}/${mushaf_marks})`;
+                covPct.textContent = `${toArabicNumerals(coverage_score)}٪ (${toArabicNumerals(marks_covered)}/${toArabicNumerals(mushaf_marks)})`;
                 covRow.appendChild(covPct);
-                metrics.appendChild(covRow);
+                covSection.appendChild(covRow);
+                card.appendChild(covSection);
             }
 
-            entry.appendChild(metrics);
-            rows.appendChild(entry);
+            rows.appendChild(card);
+        });
+
+        panel.appendChild(rows);
+        container.appendChild(panel);
+    }
+
+    // ── Reciter-vs-reciter comparison panel ─────────────────────────────────
+    function buildReciterComparePanel(container, compareData, subjectName) {
+        const { comparisons, subject_mid_count } = compareData;
+        const others = Object.keys(comparisons).sort(
+            (a, b) => comparisons[b].similarity - comparisons[a].similarity
+        );
+        if (!others.length) return;
+
+        function toAr(n) { return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
+
+        const panel = document.createElement('div');
+        panel.className = 'reciter-compare-panel';
+
+        const title = document.createElement('div');
+        title.className = 'pause-match-title';
+        title.innerHTML = `<i class="fas fa-users"></i> مقارنة وقوف ${subjectName} مع القراء`;
+        panel.appendChild(title);
+
+        const subtitle = document.createElement('p');
+        subtitle.className = 'pause-match-subtitle';
+        subtitle.textContent = `${toAr(subject_mid_count)} وقفة وسط الآية (رأس الآية مستثنى) — مرتّبة بحسب التشابه`;
+        panel.appendChild(subtitle);
+
+        const rows = document.createElement('div');
+        rows.className = 'pause-match-rows';
+
+        others.forEach((other, idx) => {
+            const { a_to_b_score, a_to_b_matched, a_to_b_total,
+                    b_to_a_score, b_to_a_matched, b_to_a_total, similarity } = comparisons[other];
+            const otherName = RECITER_ARABIC_NAMES[other] || other;
+
+            const badgeCls = similarity === 100 ? 'pm-badge-full'
+                           : similarity === 0   ? 'pm-badge-none'
+                                                : 'pm-badge-partial';
+            const badgeTxt = similarity === 100 ? 'توافق تام'
+                           : similarity === 0   ? 'لا توافق'
+                                                : `توافق ${toAr(similarity)}٪`;
+
+            const card = document.createElement('div');
+            card.className = 'reciter-compare-card';
+
+            // Header: other reciter name + similarity badge
+            const header = document.createElement('div');
+            header.className = 'pause-match-card-header';
+            const nameEl = document.createElement('span');
+            nameEl.className = 'reciter-compare-name';
+            nameEl.textContent = otherName;
+            header.appendChild(nameEl);
+            const badgeEl = document.createElement('span');
+            badgeEl.className = `pm-badge ${badgeCls}`;
+            badgeEl.textContent = badgeTxt;
+            header.appendChild(badgeEl);
+            card.appendChild(header);
+
+            // Verdict sentence
+            const verdict = document.createElement('p');
+            verdict.className = 'pause-match-verdict';
+            let sentence = '';
+            if (a_to_b_total === 0 && b_to_a_total === 0) {
+                sentence = 'لا توجد وقفات وسط الآية لدى أيٍّ منهما للمقارنة.';
+            } else if (a_to_b_total === 0) {
+                sentence = `${subjectName} لا يقف وسط الآية — لا يمكن تقييم التوافق.`;
+            } else if (b_to_a_total === 0) {
+                sentence = `${otherName} لا يقف وسط الآية — لا يمكن تقييم التوافق.`;
+            } else {
+                const matchAB = a_to_b_matched === a_to_b_total ? 'جميع' : toAr(a_to_b_matched) + ' من ' + toAr(a_to_b_total);
+                const matchBA = b_to_a_matched === b_to_a_total ? 'جميع' : toAr(b_to_a_matched) + ' من ' + toAr(b_to_a_total);
+                sentence = `وقف ${subjectName} عند ${matchAB} وقفات ${otherName} — ووقف ${otherName} عند ${matchBA} وقفات ${subjectName}`;
+            }
+            verdict.textContent = sentence;
+            card.appendChild(verdict);
+
+            // Bar 1: A→B (subject's stops found in other)
+            if (a_to_b_total > 0) {
+                const sec1 = document.createElement('div');
+                sec1.className = 'pause-match-bar-section';
+                const h1 = document.createElement('div');
+                h1.className = 'pause-match-bar-header';
+                const t1 = document.createElement('span');
+                t1.className = 'pause-match-bar-title';
+                t1.textContent = `وقفات ${subjectName}`;
+                const q1 = document.createElement('span');
+                q1.className = 'pause-match-bar-hint';
+                q1.textContent = `كم منها وقف عندها ${otherName} أيضاً؟`;
+                h1.appendChild(t1); h1.appendChild(q1); sec1.appendChild(h1);
+                const r1 = document.createElement('div');
+                r1.className = 'pause-match-metric-row';
+                const w1 = document.createElement('div');
+                w1.className = 'pause-match-bar-wrap';
+                const b1 = document.createElement('div');
+                b1.className = 'reciter-compare-bar-a';
+                b1.style.width = '0%';
+                setTimeout(() => { b1.style.width = a_to_b_score + '%'; }, 50 + idx * 20);
+                w1.appendChild(b1); r1.appendChild(w1);
+                const p1 = document.createElement('span');
+                p1.className = 'pause-match-pct';
+                p1.textContent = `${toAr(a_to_b_score)}٪ (${toAr(a_to_b_matched)}/${toAr(a_to_b_total)})`;
+                r1.appendChild(p1); sec1.appendChild(r1); card.appendChild(sec1);
+            }
+
+            // Bar 2: B→A (other's stops found in subject)
+            if (b_to_a_total > 0) {
+                const sec2 = document.createElement('div');
+                sec2.className = 'pause-match-bar-section';
+                const h2 = document.createElement('div');
+                h2.className = 'pause-match-bar-header';
+                const t2 = document.createElement('span');
+                t2.className = 'pause-match-bar-title';
+                t2.textContent = `وقفات ${otherName}`;
+                const q2 = document.createElement('span');
+                q2.className = 'pause-match-bar-hint';
+                q2.textContent = `كم منها وقف عندها ${subjectName} أيضاً؟`;
+                h2.appendChild(t2); h2.appendChild(q2); sec2.appendChild(h2);
+                const r2 = document.createElement('div');
+                r2.className = 'pause-match-metric-row';
+                const w2 = document.createElement('div');
+                w2.className = 'pause-match-bar-wrap';
+                const b2 = document.createElement('div');
+                b2.className = 'reciter-compare-bar-b';
+                b2.style.width = '0%';
+                setTimeout(() => { b2.style.width = b_to_a_score + '%'; }, 90 + idx * 20);
+                w2.appendChild(b2); r2.appendChild(w2);
+                const p2 = document.createElement('span');
+                p2.className = 'pause-match-pct';
+                p2.textContent = `${toAr(b_to_a_score)}٪ (${toAr(b_to_a_matched)}/${toAr(b_to_a_total)})`;
+                r2.appendChild(p2); sec2.appendChild(r2); card.appendChild(sec2);
+            }
+
+            rows.appendChild(card);
         });
 
         panel.appendChild(rows);

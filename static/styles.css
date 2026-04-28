@@ -3402,48 +3402,126 @@ body.sepia-mode .pause-match-subtitle { color: #78716c; }
 .pause-match-rows {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
-/* One block per mushaf */
-.pause-match-entry {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-
-.pause-match-label {
-    min-width: 64px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    text-align: right;
-    padding-top: 2px;
-}
-
-/* Container for the two metric bars */
-.pause-match-metrics {
-    flex: 1;
+/* ── Card per mushaf ──────────────────────────────────────────────────────── */
+.pause-match-card {
+    border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.6);
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+}
+body.dark-mode .pause-match-card {
+    background: rgba(15,23,42,0.5);
+    border-color: rgba(71,85,105,0.35);
+}
+body.sepia-mode .pause-match-card {
+    background: rgba(255,248,235,0.5);
+    border-color: rgba(120,80,40,0.2);
 }
 
-/* Each metric row: [label] [bar] [pct] */
+/* Left accent stripe by mushaf colour */
+.pause-match-card.waqf-mushaf-madinah  { border-right: 3px solid #10b981; }
+.pause-match-card.waqf-mushaf-shamarly { border-right: 3px solid #1d4ed8; }
+.pause-match-card.waqf-mushaf-azhar    { border-right: 3px solid #c2410c; }
+.pause-match-card.waqf-mushaf-warsh    { border-right: 3px solid #7c3aed; }
+.pause-match-card.waqf-mushaf-husary   { border-right: 3px solid #be123c; }
+.pause-match-card.waqf-mushaf-hindi    { border-right: 3px solid #be185d; }
+.pause-match-card.waqf-mushaf-other    { border-right: 3px solid #475569; }
+
+/* Card header: mushaf name + badge */
+.pause-match-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.pause-match-mushaf-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.pause-match-mushaf-name.waqf-mushaf-madinah  { color: #059669; }
+.pause-match-mushaf-name.waqf-mushaf-shamarly { color: #1d4ed8; }
+.pause-match-mushaf-name.waqf-mushaf-azhar    { color: #c2410c; }
+.pause-match-mushaf-name.waqf-mushaf-warsh    { color: #7c3aed; }
+.pause-match-mushaf-name.waqf-mushaf-husary   { color: #be123c; }
+.pause-match-mushaf-name.waqf-mushaf-hindi    { color: #be185d; }
+.pause-match-mushaf-name.waqf-mushaf-other    { color: #475569; }
+body.dark-mode .pause-match-mushaf-name.waqf-mushaf-madinah  { color: #34d399; }
+body.dark-mode .pause-match-mushaf-name.waqf-mushaf-shamarly { color: #60a5fa; }
+body.dark-mode .pause-match-mushaf-name.waqf-mushaf-azhar    { color: #fb923c; }
+body.dark-mode .pause-match-mushaf-name.waqf-mushaf-warsh    { color: #c084fc; }
+body.dark-mode .pause-match-mushaf-name.waqf-mushaf-husary   { color: #f87171; }
+body.dark-mode .pause-match-mushaf-name.waqf-mushaf-hindi    { color: #f472b6; }
+body.dark-mode .pause-match-mushaf-name.waqf-mushaf-other    { color: #94a3b8; }
+
+/* Verdict badges */
+.pm-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 99px;
+    white-space: nowrap;
+}
+.pm-badge-full    { background: #dcfce7; color: #15803d; }
+.pm-badge-partial { background: #fef9c3; color: #a16207; }
+.pm-badge-none    { background: #fee2e2; color: #b91c1c; }
+body.dark-mode .pm-badge-full    { background: rgba(20,83,45,0.5);  color: #86efac; }
+body.dark-mode .pm-badge-partial { background: rgba(113,63,18,0.45); color: #fde047; }
+body.dark-mode .pm-badge-none    { background: rgba(127,29,29,0.45); color: #fca5a5; }
+body.sepia-mode .pm-badge-full    { background: #d1fae5; color: #065f46; }
+body.sepia-mode .pm-badge-partial { background: #fef3c7; color: #92400e; }
+body.sepia-mode .pm-badge-none    { background: #fee2e2; color: #991b1b; }
+
+/* Verdict sentence */
+.pause-match-verdict {
+    font-size: 0.78rem;
+    color: #475569;
+    margin: 0;
+    line-height: 1.6;
+}
+body.dark-mode  .pause-match-verdict { color: #94a3b8; }
+body.sepia-mode .pause-match-verdict { color: #78716c; }
+
+/* Bar section: header + bar row */
+.pause-match-bar-section {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.pause-match-bar-header {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.pause-match-bar-title {
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #334155;
+}
+body.dark-mode  .pause-match-bar-title { color: #cbd5e1; }
+body.sepia-mode .pause-match-bar-title { color: #3b2a14; }
+
+.pause-match-bar-hint {
+    font-size: 0.67rem;
+    color: #94a3b8;
+}
+body.dark-mode  .pause-match-bar-hint { color: #64748b; }
+body.sepia-mode .pause-match-bar-hint { color: #a0856a; }
+
+/* Each metric row: [bar] [pct] */
 .pause-match-metric-row {
     display: flex;
     align-items: center;
     gap: 8px;
 }
-
-.pause-match-metric-lbl {
-    min-width: 46px;
-    font-size: 0.70rem;
-    color: var(--text-muted, #94a3b8);
-    text-align: right;
-    flex-shrink: 0;
-}
-body.dark-mode  .pause-match-metric-lbl { color: #64748b; }
-body.sepia-mode .pause-match-metric-lbl { color: #a0856a; }
 
 .pause-match-bar-wrap {
     flex: 1;
@@ -3463,7 +3541,7 @@ body.dark-mode .pause-match-bar-wrap {
     opacity: 0.9;
 }
 
-/* Coverage bar — same colors but dashed/striped pattern to visually distinguish */
+/* Coverage bar — same colours, lower opacity */
 .pause-match-coverage-bar {
     height: 100%;
     border-radius: 99px;
@@ -3488,7 +3566,7 @@ body.dark-mode .pause-match-bar.waqf-mushaf-husary   { background: #f87171; }
 body.dark-mode .pause-match-bar.waqf-mushaf-hindi    { background: #f472b6; }
 body.dark-mode .pause-match-bar.waqf-mushaf-other    { background: #94a3b8; }
 
-/* Coverage bar colours — same hues, lower opacity already set on the element */
+/* Coverage bar colours */
 .pause-match-coverage-bar.waqf-mushaf-madinah  { background: #10b981; }
 .pause-match-coverage-bar.waqf-mushaf-shamarly { background: #1d4ed8; }
 .pause-match-coverage-bar.waqf-mushaf-azhar    { background: #c2410c; }
@@ -3506,14 +3584,88 @@ body.dark-mode .pause-match-coverage-bar.waqf-mushaf-hindi    { background: #f47
 body.dark-mode .pause-match-coverage-bar.waqf-mushaf-other    { background: #94a3b8; }
 
 .pause-match-pct {
-    min-width: 80px;
-    font-size: 0.78rem;
+    min-width: 72px;
+    font-size: 0.76rem;
     color: #475569;
     text-align: left;
     white-space: nowrap;
 }
 body.dark-mode  .pause-match-pct { color: #94a3b8; }
 body.sepia-mode .pause-match-pct { color: #78716c; }
+
+/* ── Font normalisation: force IBM Plex Sans Arabic in the entire pause/compare area ── */
+/* .waqf-mushaf-hindi normally sets IndoPakNastaleeq2 — override it inside these panels */
+.pause-match-panel *,
+.reciter-compare-panel * {
+    font-family: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', sans-serif !important;
+}
+
+/* ── Reciter-vs-reciter comparison panel ─────────────────────────────────── */
+.reciter-compare-panel {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: rgba(248,250,252,0.9);
+    border: 1px solid rgba(148,163,184,0.3);
+    border-radius: 12px;
+    font-family: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', sans-serif;
+    direction: rtl;
+}
+body.dark-mode .reciter-compare-panel {
+    background: rgba(30,41,59,0.8);
+    border-color: rgba(100,116,139,0.3);
+}
+body.sepia-mode .reciter-compare-panel {
+    background: rgba(245,235,215,0.7);
+    border-color: rgba(120,80,40,0.25);
+}
+
+.reciter-compare-card {
+    border: 1px solid rgba(148,163,184,0.22);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.55);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-right: 3px solid #6366f1;
+}
+body.dark-mode .reciter-compare-card {
+    background: rgba(15,23,42,0.5);
+    border-color: rgba(71,85,105,0.35);
+    border-right-color: #818cf8;
+}
+body.sepia-mode .reciter-compare-card {
+    background: rgba(255,248,235,0.5);
+    border-right-color: #7c3aed;
+}
+
+.reciter-compare-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #4f46e5;
+}
+body.dark-mode  .reciter-compare-name { color: #a5b4fc; }
+body.sepia-mode .reciter-compare-name { color: #4338ca; }
+
+/* Bar A: subject→other — indigo */
+.reciter-compare-bar-a {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+    background: #6366f1;
+    opacity: 0.9;
+}
+body.dark-mode .reciter-compare-bar-a { background: #818cf8; }
+
+/* Bar B: other→subject — violet, dimmed */
+.reciter-compare-bar-b {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+    background: #6366f1;
+    opacity: 0.45;
+}
+body.dark-mode .reciter-compare-bar-b { background: #818cf8; }
 
 /* ── Per-word meaning tooltip ──────────────────────────────────────────────── */
 .word-meaning-tooltip {

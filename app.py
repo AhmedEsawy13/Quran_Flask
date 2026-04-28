@@ -821,18 +821,13 @@ def get_pause_match(surah_number, ayah_number):
             return False
         return sym == 'لا' or '\u06D9' in sym or 'لا' in sym
 
-    # Symbols that should NOT count as coverage targets.
-    # Includes hard prohibitions + ص (صلى: الوصل أولى — reciter is not expected to stop).
+    # Symbols that should NOT count as coverage targets — only hard prohibitions.
+    # ص (صلى) is treated like ج (جائز): stopping is permissible, so it IS a target.
     def _is_not_coverage_mark(symbols_str):
         sym = (symbols_str or '').strip()
         if not sym:
             return True
-        if _is_prohibited_stop(sym):
-            return True
-        # ص = صلى: continuation is the preferred/recommended action; stopping is barely
-        # permissible. A reciter following the mushaf is not expected to pause here.
-        parts = {p.strip() for p in sym.split(',')}
-        return 'ص' in parts
+        return _is_prohibited_stop(sym)
 
     pause_count = len(pause_segs)
 
@@ -849,25 +844,22 @@ def get_pause_match(surah_number, ayah_number):
                 surah_number, ayah_number, seg['end_word'], [ver]
             )
             if is_verse_end:
-                # Stopping at رأس الآية is universally valid UNLESS the mushaf
-                # explicitly prohibits it with "لا" (or its IndoPak equivalent ۙ).
+                # رأس الآية is always valid unless mushaf explicitly prohibits it.
                 sym = waqf_entries[0]['symbols'] if waqf_entries else ''
                 if not _is_prohibited_stop(sym):
                     matched += 1
             else:
-                # Mid-verse pause: a valid (non-ص, non-prohibited) waqf mark = aligned.
-                # ص (صلى) is excluded — it means "don't stop here", so its presence via
-                # the ±1 fallback should NOT count as the reciter being aligned.
+                # ص (صلى) is treated like ج (جائز) — any permissible mark counts.
                 valid_entries = [
                     e for e in waqf_entries
-                    if not _is_not_coverage_mark(e.get('symbols', ''))
+                    if not _is_prohibited_stop(e.get('symbols', ''))
                 ]
                 if valid_entries:
                     matched += 1
 
         # ── Coverage: how many of the mushaf's marks the reciter stopped at ──
-        # Exclude prohibition marks (لا / ۙ) AND ص (صلى — continuation preferred,
-        # reciter is not expected to stop there).
+        # Exclude only hard prohibition marks (لا / ۙ).
+        # ص (صلى) is treated like ج — it IS a mark the reciter is expected to cover.
         mushaf_rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
         mark_positions = {
             r['word_index'] for r in mushaf_rows
@@ -892,6 +884,81 @@ def get_pause_match(surah_number, ayah_number):
         }
 
     return jsonify({'has_data': True, 'pause_count': pause_count, 'matches': matches})
+
+
+@app.route('/api/reciter-compare/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_reciter_compare(surah_number, ayah_number):
+    """Compare pause positions of one reciter against every other reciter with positions data.
+
+    Returns for each other reciter:
+      a_to_b: fraction of subject's mid-pauses that land within ±1 of other's pauses
+      b_to_a: fraction of other's mid-pauses that land within ±1 of subject's pauses
+    Verse-end stop is excluded (every reciter stops there — trivially 100%).
+    """
+    if not (1 <= surah_number <= 114) or ayah_number < 1:
+        return jsonify({'error': 'invalid parameters'}), 400
+
+    reciter = request.args.get('reciter', '').strip()
+    subject_segs, has_db = _get_positions_segments(surah_number, ayah_number, reciter)
+    if not has_db or not subject_segs:
+        return jsonify({'has_data': False, 'comparisons': {}})
+
+    subject_pauses = [s for s in subject_segs if not s.get('is_repeat')]
+    if not subject_pauses:
+        return jsonify({'has_data': False, 'comparisons': {}})
+
+    verse_end_word = subject_pauses[-1]['end_word']
+    # Mid-pauses only (exclude رأس الآية — every reciter stops there)
+    subject_mid = [s['end_word'] for s in subject_pauses if s['end_word'] != verse_end_word]
+
+    def _pauses_set(segs, verse_end):
+        """Return set of mid-pause end_words for a list of segments."""
+        return {s['end_word'] for s in segs
+                if not s.get('is_repeat') and s['end_word'] != verse_end}
+
+    def _overlap(a_set, b_set):
+        """Fraction of positions in a_set that have a ±1 match in b_set."""
+        if not a_set:
+            return 1.0, len(a_set), len(a_set)
+        matched = sum(1 for w in a_set if w in b_set or (w - 1) in b_set or (w + 1) in b_set)
+        return matched / len(a_set), matched, len(a_set)
+
+    comparisons = {}
+    for other_reciter, cfg in RECITER_GUIDE_CONFIG.items():
+        if other_reciter == reciter:
+            continue
+        other_segs, other_has_db = _get_positions_segments(surah_number, ayah_number, other_reciter)
+        if not other_has_db or not other_segs:
+            continue
+        other_pauses = [s for s in other_segs if not s.get('is_repeat')]
+        if not other_pauses:
+            continue
+        other_verse_end = other_pauses[-1]['end_word']
+        other_mid = _pauses_set(other_pauses, other_verse_end)
+
+        a_set = set(subject_mid)
+        a_frac, a_matched, a_total = _overlap(a_set, other_mid)
+        b_frac, b_matched, b_total = _overlap(other_mid, a_set)
+
+        comparisons[other_reciter] = {
+            'a_to_b_score':   round(a_frac * 100),
+            'a_to_b_matched': a_matched,
+            'a_to_b_total':   a_total,
+            'b_to_a_score':   round(b_frac * 100),
+            'b_to_a_matched': b_matched,
+            'b_to_a_total':   b_total,
+            # Combined similarity: harmonic mean (same logic as F1)
+            'similarity': round(
+                2 * a_frac * b_frac / (a_frac + b_frac) * 100
+                if (a_frac + b_frac) > 0 else 0
+            ),
+        }
+
+    return jsonify({
+        'has_data': bool(comparisons),
+        'subject_mid_count': len(subject_mid),
+        'comparisons': comparisons,
+    })
 
 
 def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
