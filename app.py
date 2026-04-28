@@ -813,13 +813,26 @@ def get_pause_match(surah_number, ayah_number):
     # The last non-repeat segment always ends at رأس الآية.
     verse_end_word = pause_segs[-1]['end_word']
 
-    # Symbols that explicitly PROHIBIT stopping (verse-end check only).
+    # Symbols that explicitly PROHIBIT stopping (verse-end precision check only).
     # U+06D9 (ۙ) = IndoPak glyph for "لا" = لا يجوز الوقف.
     def _is_prohibited_stop(symbols_str):
         sym = (symbols_str or '').strip()
         if not sym:
             return False
         return sym == 'لا' or '\u06D9' in sym or 'لا' in sym
+
+    # Symbols that should NOT count as coverage targets.
+    # Includes hard prohibitions + ص (صلى: الوصل أولى — reciter is not expected to stop).
+    def _is_not_coverage_mark(symbols_str):
+        sym = (symbols_str or '').strip()
+        if not sym:
+            return True
+        if _is_prohibited_stop(sym):
+            return True
+        # ص = صلى: continuation is the preferred/recommended action; stopping is barely
+        # permissible. A reciter following the mushaf is not expected to pause here.
+        parts = {p.strip() for p in sym.split(',')}
+        return 'ص' in parts
 
     pause_count = len(pause_segs)
 
@@ -842,16 +855,23 @@ def get_pause_match(surah_number, ayah_number):
                 if not _is_prohibited_stop(sym):
                     matched += 1
             else:
-                # Mid-verse pause: any waqf mark at this position = aligned with mushaf.
-                if waqf_entries:
+                # Mid-verse pause: a valid (non-ص, non-prohibited) waqf mark = aligned.
+                # ص (صلى) is excluded — it means "don't stop here", so its presence via
+                # the ±1 fallback should NOT count as the reciter being aligned.
+                valid_entries = [
+                    e for e in waqf_entries
+                    if not _is_not_coverage_mark(e.get('symbols', ''))
+                ]
+                if valid_entries:
                     matched += 1
 
         # ── Coverage: how many of the mushaf's marks the reciter stopped at ──
-        # Exclude prohibition marks (لا / ۙ) — those don't need to be "covered"
+        # Exclude prohibition marks (لا / ۙ) AND ص (صلى — continuation preferred,
+        # reciter is not expected to stop there).
         mushaf_rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
         mark_positions = {
             r['word_index'] for r in mushaf_rows
-            if r.get('word_index') and not _is_prohibited_stop(r.get('symbols', ''))
+            if r.get('word_index') and not _is_not_coverage_mark(r.get('symbols', ''))
         }
         # A mark at word_index wi is covered when a pause falls at end_word=wi or wi+1
         # (matching the ±1 fallback logic in _get_waqf_at_boundary)
