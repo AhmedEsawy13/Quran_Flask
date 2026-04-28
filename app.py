@@ -822,8 +822,13 @@ def get_pause_match(surah_number, ayah_number):
         return sym == 'لا' or '\u06D9' in sym or 'لا' in sym
 
     pause_count = len(pause_segs)
+
+    # Build set of pause end_words for coverage computation
+    pause_end_words = {seg['end_word'] for seg in pause_segs}
+
     matches = {}
     for ver in versions:
+        # ── Precision: how many of the reciter's stops match mushaf marks ────
         matched = 0
         for seg in pause_segs:
             is_verse_end = (seg['end_word'] == verse_end_word)
@@ -840,10 +845,30 @@ def get_pause_match(surah_number, ayah_number):
                 # Mid-verse pause: any waqf mark at this position = aligned with mushaf.
                 if waqf_entries:
                     matched += 1
+
+        # ── Coverage: how many of the mushaf's marks the reciter stopped at ──
+        # Exclude prohibition marks (لا / ۙ) — those don't need to be "covered"
+        mushaf_rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
+        mark_positions = {
+            r['word_index'] for r in mushaf_rows
+            if r.get('word_index') and not _is_prohibited_stop(r.get('symbols', ''))
+        }
+        # A mark at word_index wi is covered when a pause falls at end_word=wi or wi+1
+        # (matching the ±1 fallback logic in _get_waqf_at_boundary)
+        marks_covered = sum(
+            1 for wi in mark_positions
+            if wi in pause_end_words or (wi + 1) in pause_end_words
+        )
+        mushaf_marks = len(mark_positions)
+        coverage_score = round(marks_covered / mushaf_marks * 100) if mushaf_marks > 0 else 100
+
         matches[ver] = {
             'matched': matched,
             'total': pause_count,
             'score': round(matched / pause_count * 100) if pause_count > 0 else 0,
+            'mushaf_marks': mushaf_marks,
+            'marks_covered': marks_covered,
+            'coverage_score': coverage_score,
         }
 
     return jsonify({'has_data': True, 'pause_count': pause_count, 'matches': matches})

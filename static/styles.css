@@ -3402,12 +3402,13 @@ body.sepia-mode .pause-match-subtitle { color: #78716c; }
 .pause-match-rows {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
-.pause-match-row {
+/* One block per mushaf */
+.pause-match-entry {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
 }
 
@@ -3416,13 +3417,39 @@ body.sepia-mode .pause-match-subtitle { color: #78716c; }
     font-size: 0.82rem;
     font-weight: 600;
     text-align: right;
+    padding-top: 2px;
 }
+
+/* Container for the two metric bars */
+.pause-match-metrics {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Each metric row: [label] [bar] [pct] */
+.pause-match-metric-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pause-match-metric-lbl {
+    min-width: 46px;
+    font-size: 0.70rem;
+    color: var(--text-muted, #94a3b8);
+    text-align: right;
+    flex-shrink: 0;
+}
+body.dark-mode  .pause-match-metric-lbl { color: #64748b; }
+body.sepia-mode .pause-match-metric-lbl { color: #a0856a; }
 
 .pause-match-bar-wrap {
     flex: 1;
     background: rgba(203,213,225,0.4);
     border-radius: 99px;
-    height: 10px;
+    height: 8px;
     overflow: hidden;
 }
 body.dark-mode .pause-match-bar-wrap {
@@ -3433,10 +3460,18 @@ body.dark-mode .pause-match-bar-wrap {
     height: 100%;
     border-radius: 99px;
     transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
-/* Bar fill colours inherit from mushaf color classes via background */
+/* Coverage bar — same colors but dashed/striped pattern to visually distinguish */
+.pause-match-coverage-bar {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+    opacity: 0.5;
+}
+
+/* Bar fill colours — precision bar */
 .pause-match-bar.waqf-mushaf-madinah  { background: #10b981; }
 .pause-match-bar.waqf-mushaf-shamarly { background: #1d4ed8; }
 .pause-match-bar.waqf-mushaf-azhar    { background: #c2410c; }
@@ -3452,6 +3487,23 @@ body.dark-mode .pause-match-bar.waqf-mushaf-warsh    { background: #c084fc; }
 body.dark-mode .pause-match-bar.waqf-mushaf-husary   { background: #f87171; }
 body.dark-mode .pause-match-bar.waqf-mushaf-hindi    { background: #f472b6; }
 body.dark-mode .pause-match-bar.waqf-mushaf-other    { background: #94a3b8; }
+
+/* Coverage bar colours — same hues, lower opacity already set on the element */
+.pause-match-coverage-bar.waqf-mushaf-madinah  { background: #10b981; }
+.pause-match-coverage-bar.waqf-mushaf-shamarly { background: #1d4ed8; }
+.pause-match-coverage-bar.waqf-mushaf-azhar    { background: #c2410c; }
+.pause-match-coverage-bar.waqf-mushaf-warsh    { background: #7c3aed; }
+.pause-match-coverage-bar.waqf-mushaf-husary   { background: #be123c; }
+.pause-match-coverage-bar.waqf-mushaf-hindi    { background: #be185d; }
+.pause-match-coverage-bar.waqf-mushaf-other    { background: #475569; }
+
+body.dark-mode .pause-match-coverage-bar.waqf-mushaf-madinah  { background: #34d399; }
+body.dark-mode .pause-match-coverage-bar.waqf-mushaf-shamarly { background: #60a5fa; }
+body.dark-mode .pause-match-coverage-bar.waqf-mushaf-azhar    { background: #fb923c; }
+body.dark-mode .pause-match-coverage-bar.waqf-mushaf-warsh    { background: #c084fc; }
+body.dark-mode .pause-match-coverage-bar.waqf-mushaf-husary   { background: #f87171; }
+body.dark-mode .pause-match-coverage-bar.waqf-mushaf-hindi    { background: #f472b6; }
+body.dark-mode .pause-match-coverage-bar.waqf-mushaf-other    { background: #94a3b8; }
 
 .pause-match-pct {
     min-width: 80px;

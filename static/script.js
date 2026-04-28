@@ -1954,7 +1954,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function buildPauseMatchPanel(container, matchData, reciterName) {
         const { matches, pause_count } = matchData;
-        const versions = Object.keys(matches).sort((a, b) => matches[b].score - matches[a].score);
+        // Sort: primary by coverage_score descending, secondary by score
+        const versions = Object.keys(matches).sort((a, b) => {
+            const ca = matches[b].coverage_score ?? matches[b].score;
+            const cb = matches[a].coverage_score ?? matches[a].score;
+            if (ca !== cb) return ca - cb;
+            return matches[b].score - matches[a].score;
+        }).reverse();
         if (!versions.length) return;
 
         const panel = document.createElement('div');
@@ -1967,41 +1973,80 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const subtitle = document.createElement('p');
         subtitle.className = 'pause-match-subtitle';
-        subtitle.textContent = `من أصل ${pause_count} وقفة داخل الآية، كم منها تتوافق مع علامات الوقف في كل مصحف؟`;
+        subtitle.textContent = `${pause_count} وقفة — الشريط الأول: وقفاته الصحيحة · الشريط الثاني: علامات المصحف التي وقف عندها`;
         panel.appendChild(subtitle);
 
         const rows = document.createElement('div');
         rows.className = 'pause-match-rows';
 
         versions.forEach(ver => {
-            const { matched, total, score } = matches[ver];
+            const { matched, total, score, mushaf_marks, marks_covered, coverage_score } = matches[ver];
             const colorCls = getMushafColorClass(ver);
 
-            const row = document.createElement('div');
-            row.className = 'pause-match-row';
+            const entry = document.createElement('div');
+            entry.className = 'pause-match-entry';
 
+            // Mushaf label
             const label = document.createElement('span');
             label.className = `pause-match-label ${colorCls}`;
             label.textContent = ver;
-            row.appendChild(label);
+            entry.appendChild(label);
 
-            const barWrap = document.createElement('div');
-            barWrap.className = 'pause-match-bar-wrap';
+            const metrics = document.createElement('div');
+            metrics.className = 'pause-match-metrics';
 
-            const bar = document.createElement('div');
-            bar.className = `pause-match-bar ${colorCls}`;
-            bar.style.width = '0%';
-            // Animate width after append
-            setTimeout(() => { bar.style.width = score + '%'; }, 50);
-            barWrap.appendChild(bar);
-            row.appendChild(barWrap);
+            // ── Bar 1: precision (reciter's stops that match mushaf marks) ──
+            const precRow = document.createElement('div');
+            precRow.className = 'pause-match-metric-row';
 
-            const pct = document.createElement('span');
-            pct.className = 'pause-match-pct';
-            pct.textContent = `${score}٪ (${matched}/${total})`;
-            row.appendChild(pct);
+            const precLbl = document.createElement('span');
+            precLbl.className = 'pause-match-metric-lbl';
+            precLbl.textContent = 'وقفاته';
+            precRow.appendChild(precLbl);
 
-            rows.appendChild(row);
+            const precWrap = document.createElement('div');
+            precWrap.className = 'pause-match-bar-wrap';
+            const precBar = document.createElement('div');
+            precBar.className = `pause-match-bar ${colorCls}`;
+            precBar.style.width = '0%';
+            setTimeout(() => { precBar.style.width = score + '%'; }, 50);
+            precWrap.appendChild(precBar);
+            precRow.appendChild(precWrap);
+
+            const precPct = document.createElement('span');
+            precPct.className = 'pause-match-pct';
+            precPct.textContent = `${score}٪ (${matched}/${total})`;
+            precRow.appendChild(precPct);
+            metrics.appendChild(precRow);
+
+            // ── Bar 2: coverage (mushaf marks the reciter stopped at) ──
+            if (mushaf_marks > 0) {
+                const covRow = document.createElement('div');
+                covRow.className = 'pause-match-metric-row pause-match-coverage-row';
+
+                const covLbl = document.createElement('span');
+                covLbl.className = 'pause-match-metric-lbl';
+                covLbl.textContent = 'العلامات';
+                covRow.appendChild(covLbl);
+
+                const covWrap = document.createElement('div');
+                covWrap.className = 'pause-match-bar-wrap';
+                const covBar = document.createElement('div');
+                covBar.className = `pause-match-coverage-bar ${colorCls}`;
+                covBar.style.width = '0%';
+                setTimeout(() => { covBar.style.width = coverage_score + '%'; }, 80);
+                covWrap.appendChild(covBar);
+                covRow.appendChild(covWrap);
+
+                const covPct = document.createElement('span');
+                covPct.className = 'pause-match-pct';
+                covPct.textContent = `${coverage_score}٪ (${marks_covered}/${mushaf_marks})`;
+                covRow.appendChild(covPct);
+                metrics.appendChild(covRow);
+            }
+
+            entry.appendChild(metrics);
+            rows.appendChild(entry);
         });
 
         panel.appendChild(rows);
