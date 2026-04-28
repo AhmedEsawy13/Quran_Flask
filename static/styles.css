@@ -3667,6 +3667,78 @@ body.dark-mode .reciter-compare-bar-a { background: #818cf8; }
 }
 body.dark-mode .reciter-compare-bar-b { background: #818cf8; }
 
+/* ── Reciter-compare diff section ────────────────────────────────────────── */
+.rc-diff-wrap {
+    margin-top: 2px;
+}
+.rc-diff-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6366f1;
+    background: transparent;
+    border: 1px solid rgba(99,102,241,0.35);
+    border-radius: 99px;
+    padding: 2px 10px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.rc-diff-toggle:hover { background: rgba(99,102,241,0.08); }
+.rc-diff-toggle.rc-diff-toggle-open { background: rgba(99,102,241,0.1); }
+body.dark-mode .rc-diff-toggle { color: #a5b4fc; border-color: rgba(165,180,252,0.4); }
+body.sepia-mode .rc-diff-toggle { color: #4338ca; }
+
+.rc-diff-chevron { font-size: 0.65rem; transition: transform 0.2s; }
+
+.rc-diff-body { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.rc-diff-body-hidden { display: none; }
+
+.rc-diff-group { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
+.rc-diff-label {
+    font-size: 0.68rem;
+    color: #64748b;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+body.dark-mode .rc-diff-label { color: #94a3b8; }
+
+.rc-diff-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* Chip for subject-only stops (solid indigo) */
+.rc-diff-chip {
+    font-size: 0.82rem;
+    padding: 1px 8px;
+    border-radius: 99px;
+    direction: rtl;
+    white-space: nowrap;
+}
+.rc-diff-chip-a {
+    background: rgba(99,102,241,0.12);
+    color: #4338ca;
+    border: 1px solid rgba(99,102,241,0.3);
+}
+body.dark-mode .rc-diff-chip-a {
+    background: rgba(129,140,248,0.15);
+    color: #a5b4fc;
+    border-color: rgba(129,140,248,0.3);
+}
+/* Chip for other-only stops (dimmed amber) */
+.rc-diff-chip-b {
+    background: rgba(99,102,241,0.06);
+    color: #6366f1;
+    border: 1px solid rgba(99,102,241,0.18);
+    opacity: 0.75;
+}
+body.dark-mode .rc-diff-chip-b {
+    background: rgba(129,140,248,0.08);
+    color: #818cf8;
+    border-color: rgba(129,140,248,0.18);
+}
+body.sepia-mode .rc-diff-chip-a { color: #3730a3; background: rgba(99,102,241,0.1); }
+body.sepia-mode .rc-diff-chip-b { color: #4f46e5; background: rgba(99,102,241,0.05); }
+
 /* ── Per-word meaning tooltip ──────────────────────────────────────────────── */
 .word-meaning-tooltip {
     position: absolute;

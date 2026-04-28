@@ -940,6 +940,24 @@ def get_reciter_compare(surah_number, ayah_number):
         a_frac, a_matched, a_total = _overlap(a_set, other_mid)
         b_frac, b_matched, b_total = _overlap(other_mid, a_set)
 
+        # Compute unmatched words for the diff view
+        def _word_text(idx):
+            """Return Arabic text of word at 0-based index idx from QPC Hafs."""
+            verse_raw = (qpc_hafs_data.get(f'{surah_number}:{ayah_number}') or {}).get('text', '')
+            words = verse_raw.split('\xa0')[0].split()
+            return words[idx] if 0 <= idx < len(words) else ''
+
+        only_in_a = [
+            {'word_index': w, 'text': _word_text(w)}
+            for w in sorted(a_set)
+            if not (w in other_mid or (w - 1) in other_mid or (w + 1) in other_mid)
+        ]
+        only_in_b = [
+            {'word_index': w, 'text': _word_text(w)}
+            for w in sorted(other_mid)
+            if not (w in a_set or (w - 1) in a_set or (w + 1) in a_set)
+        ]
+
         comparisons[other_reciter] = {
             'a_to_b_score':   round(a_frac * 100),
             'a_to_b_matched': a_matched,
@@ -952,6 +970,7 @@ def get_reciter_compare(surah_number, ayah_number):
                 2 * a_frac * b_frac / (a_frac + b_frac) * 100
                 if (a_frac + b_frac) > 0 else 0
             ),
+            'diff': {'only_in_a': only_in_a, 'only_in_b': only_in_b},
         }
 
     return jsonify({

@@ -2274,6 +2274,58 @@ document.addEventListener('DOMContentLoaded', async () => {
                 r2.appendChild(p2); sec2.appendChild(r2); card.appendChild(sec2);
             }
 
+            // Collapsible diff section — only when not 100% match
+            const diff = comparisons[other].diff;
+            if (similarity < 100 && diff && (diff.only_in_a.length || diff.only_in_b.length)) {
+                const diffWrap = document.createElement('div');
+                diffWrap.className = 'rc-diff-wrap';
+
+                const toggle = document.createElement('button');
+                toggle.className = 'rc-diff-toggle';
+                toggle.innerHTML = '<i class="fas fa-chevron-down rc-diff-chevron"></i> عرض الفارق';
+                diffWrap.appendChild(toggle);
+
+                const body = document.createElement('div');
+                body.className = 'rc-diff-body rc-diff-body-hidden';
+
+                function makeDiffGroup(label, items, isA) {
+                    if (!items.length) return;
+                    const g = document.createElement('div');
+                    g.className = 'rc-diff-group';
+                    const lbl = document.createElement('span');
+                    lbl.className = 'rc-diff-label';
+                    lbl.textContent = label;
+                    g.appendChild(lbl);
+                    const chips = document.createElement('span');
+                    chips.className = 'rc-diff-chips';
+                    items.forEach(item => {
+                        const chip = document.createElement('span');
+                        chip.className = isA ? 'rc-diff-chip rc-diff-chip-a' : 'rc-diff-chip rc-diff-chip-b';
+                        chip.textContent = item.text || `ك${toAr(item.word_index + 1)}`;
+                        chip.title = `الكلمة ${toAr(item.word_index + 1)}`;
+                        chips.appendChild(chip);
+                    });
+                    g.appendChild(chips);
+                    body.appendChild(g);
+                }
+
+                if (diff.only_in_a.length) {
+                    makeDiffGroup(`وقف عندها ${subjectName} فقط`, diff.only_in_a, true);
+                }
+                if (diff.only_in_b.length) {
+                    makeDiffGroup(`وقف عندها ${otherName} فقط`, diff.only_in_b, false);
+                }
+
+                toggle.addEventListener('click', () => {
+                    const open = body.classList.toggle('rc-diff-body-hidden');
+                    toggle.classList.toggle('rc-diff-toggle-open', !open);
+                    toggle.querySelector('.rc-diff-chevron').style.transform = open ? '' : 'rotate(180deg)';
+                });
+
+                diffWrap.appendChild(body);
+                card.appendChild(diffWrap);
+            }
+
             rows.appendChild(card);
         });
 
