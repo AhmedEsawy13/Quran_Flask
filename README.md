@@ -67,6 +67,50 @@ The application is optimized for deployment on Vercel with:
 
 See [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md) for detailed information.
 
+## Cold Start & Idle Delay
+
+The app is deployed on **Vercel Serverless Functions**. If the app is idle for ~5–10 minutes, Vercel shuts down the running instance. The next click after idle triggers a **cold start**: a new instance boots up and re-loads all startup data (JSON files, audio maps, etc.), which takes 2–5 seconds.
+
+### Why it feels slow after inactivity
+
+- Vercel serverless shuts down after inactivity (this is normal and by design).
+- On cold start, the server re-initialises all in-memory caches from scratch.
+- The in-process `_cdn_cache` is instance-local — every new instance starts empty.
+
+### How to fix the idle delay (recommended solutions)
+
+1. **Keep-Alive Ping (easiest — no code changes needed)**
+   Use a free cron service such as [UptimeRobot](https://uptimerobot.com) or [cron-job.org](https://cron-job.org) to send a GET request to `/api/health` every **5 minutes**. This keeps the Vercel instance warm and prevents cold starts entirely.
+
+2. **Service Worker / Client-side Cache**
+   Register a Service Worker in the frontend to cache `/api/surahs` and the last-visited ayah data in the browser. On return visits the page shows cached data instantly while fresh data loads in the background (stale-while-revalidate pattern).
+
+3. **Migrate to a Persistent Runtime**
+   Deploy on [Railway](https://railway.app), [Render](https://render.com), or [Fly.io](https://fly.io) (all have free tiers). These run a real, always-on server process that never cold-starts. Change the `Procfile`/start command to `gunicorn app:app`.
+
+4. **Shared External Cache (Redis/Upstash)**
+   Replace the in-process `_cdn_cache` and `_tafseer_cache` dicts with a [Redis](https://upstash.com) client. All serverless instances share one cache, so a cold-start instance immediately gets warm data without re-fetching from CDN.
+
+## Scalability
+
+### Can the app handle many users?
+
+**Yes — with caveats.** Vercel automatically scales by spawning multiple serverless instances in parallel, so the app handles concurrent users well. However, the current architecture has limits at higher scale:
+
+| Component | Current Behavior | At High Load |
+|---|---|---|
+| In-memory caches (`_cdn_cache`, `_tafseer_cache`) | Per-instance only | Every new instance cold-starts empty; CDN/API gets hammered |
+| `@lru_cache` | Per-process | Lost on every cold start |
+| SQLite (word meanings, positions) | Read-only file access | Safe for reads; cannot scale writes |
+| Audio proxy endpoint | Fetches from external CDN per request | May hit rate limits |
+
+### Scalability improvements (in order of impact)
+
+1. **Add `"maxDuration": 60` to `vercel.json`** — prevents request timeouts during cold starts or slow CDN fetches.
+2. **Upstash Redis cache** — free serverless Redis; replace `_cdn_cache` / `_tafseer_cache` so all instances share one warm cache.
+3. **Reverse CDN-vs-local priority** — for Vercel deployments, load JSON data from the bundled local files first (faster) and only fall back to CDN if local is missing.
+4. **Move to gunicorn + persistent host** — for 100 + concurrent users, a persistent multi-worker server (Railway/Render + `gunicorn -w 4 app:app`) is significantly cheaper and faster than serverless.
+
    
 ## Installation
 
