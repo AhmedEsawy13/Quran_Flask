@@ -686,18 +686,22 @@ def _get_positions_segments(surah_number, ayah_number, reciter=None):
         conn.close()
 
         segments = []
-        prev_end = None
+        high_water = 0  # furthest end_word reached so far
         for start_w, end_w, text in rows:
             start_w = int(start_w)
             end_w   = int(end_w)
-            is_repeat = prev_end is not None and start_w < prev_end
+            # A segment is a repeat only when it does NOT advance past the furthest
+            # word already covered.  If end_w > high_water the reciter has moved to a
+            # new stopping point even if start_w backed up into covered territory.
+            is_repeat = end_w <= high_water
             segments.append({
                 'start_word': start_w,
                 'end_word':   end_w,
                 'text':       text or '',
                 'is_repeat':  is_repeat,
             })
-            prev_end = end_w
+            if end_w > high_water:
+                high_water = end_w
         return segments, True
     except Exception as e:
         app.logger.error(f'Error reading positions.db for reciter {reciter!r}: {e}')
