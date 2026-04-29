@@ -905,7 +905,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        const font       = elements.quranTextSelect.value;
         const surahNum   = elements.surahSelect.value;
         const ayahNum    = elements.ayahSelect.value;
         const verseKey   = `${surahNum}:${ayahNum}`;
@@ -917,14 +916,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cleanVerseText = rawVerseText.replace(/[\u06D5-\u06ED\u0610-\u061A\u08D0-\u08FF]/g, '');
         const verseWords = cleanVerseText.trim().split(/\s+/).filter(Boolean);
 
-        const WORD_FONTS = {
-            indopak_nastaleeq:   "'Naskh-Nastaleeq-IndoPak-QWBW', serif",
-            indopak_nastaleeq_2: "'IndoPakNastaleeq2', serif",
-            qpc_hafs:            "'UthmanicHafs', serif",
-            digital_khatt:       "'UthmanicHafs', 'Digital Khatt', serif",
-            shamarly:            "'UthmanicHafs', serif",
-        };
-        const wordFont       = WORD_FONTS[font] || "'UthmanicHafs', serif";
         const indopakSymFont = "'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', serif";
 
         // Strip waqf combining marks to recover clean word text from a token
@@ -1060,16 +1051,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Other mushafs that also mark this same word position
                 const sharedVers = [...(wordVersionsMap.get(wIdx) || [])].filter(v => v !== ver);
                 const sharedHtml = sharedVers.length > 0
-                    ? `<span class="waqf-card-shared">↔ ${sharedVers.map(v =>
+                    ? `<div class="waqf-entry-shared">${sharedVers.map(v =>
                         `<span class="waqf-shared-badge ${getMushafColorClass(v)}">${esc(v)}</span>`
-                      ).join('')}</span>`
+                      ).join('')}</div>`
                     : '';
 
-                return `<div class="waqf-card-row">
-                    <span class="waqf-card-word" style="font-family:${wordFont}">${esc(wordText)}</span>
-                    <span class="waqf-card-sym-wrap">${symPills}</span>
-                    <span class="waqf-card-meaning">${esc(meaning)}</span>
-                    ${sharedHtml}
+                return `<div class="waqf-entry-card">
+                    <div class="waqf-entry-word">${esc(wordText)}</div>
+                    <div class="waqf-entry-footer">
+                        <span class="waqf-card-sym-wrap">${symPills}</span>
+                        ${meaning ? `<span class="waqf-entry-lbl">${esc(meaning)}</span>` : ''}
+                        ${sharedHtml}
+                    </div>
                 </div>`;
             }).filter(Boolean).join('');
 
@@ -1127,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!mushafRowsHtml) return '';
 
                 return `<div class="waqf-word-entry">
-                    <span class="waqf-word-text" style="font-family:${wordFont}">${esc(wordText)}</span>
+                    <span class="waqf-word-text">${esc(wordText)}</span>
                     <div class="waqf-word-mushafs">${mushafRowsHtml}</div>
                 </div>`;
             }).filter(Boolean).join('');
