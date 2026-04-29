@@ -3110,6 +3110,23 @@ body[data-font-type="indopak"] .rc-diff-chip {
     white-space: normal;
 }
 
+/* Waqf table word font overrides — mirrors guide-seg-words per-font rules */
+body[data-font-type="indopak"] .waqf-entry-word,
+body[data-font-type="indopak"] .waqf-word-text {
+    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
+    font-size: 1.3rem;
+}
+body[data-font-type="digital_khatt"] .waqf-entry-word,
+body[data-font-type="digital_khatt"] .waqf-word-text {
+    font-family: 'Digital Khatt', sans-serif;
+    font-size: 1.2rem;
+}
+body[data-font-type="old_madina"] .waqf-entry-word,
+body[data-font-type="old_madina"] .waqf-word-text {
+    font-family: 'Old Madina', sans-serif;
+    font-size: 1.2rem;
+}
+
 /* Waqf badge at the bottom of each segment */
 .guide-seg-waqf {
     margin-top: 8px;
@@ -3922,6 +3939,7 @@ body.dark-mode .word-meaning-tooltip {
 
 /* Word text — large, verse font, centered */
 .waqf-entry-word {
+    font-family: 'UthmanicHafs', 'Amiri', serif;
     font-size: 1.35em;
     line-height: 1.65;
     color: var(--text-primary, #1e293b);
@@ -4094,6 +4112,7 @@ body.dark-mode .word-meaning-tooltip {
 }
 
 .waqf-word-text {
+    font-family: 'UthmanicHafs', 'Amiri', serif;
     font-size: 1.55em;
     font-weight: 600;
     line-height: 1.6;
