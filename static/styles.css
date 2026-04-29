@@ -156,27 +156,35 @@ body.sepia-mode .ayah-container {
     white-space: nowrap;
 }
 
-/* Container for all overlay waqf symbols — sits above the word, side by side (row) */
+/* Container for all overlay waqf symbols — sits above the word, side by side (row).
+   Uses align-items: center so different mushaf fonts (UthmanicHafs / UthmanicWarsh /
+   IndoPakNastaleeq2) line up VISUALLY rather than by their wildly different baselines. */
 .waqf-stack {
     position: absolute;
     top: 0;
-    left: 10%;
+    left: 20%;
     transform: translateX(-50%);
     white-space: nowrap;
     display: inline-flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
-    align-items: baseline;
+    align-items: center;
     pointer-events: none;
-    gap: 0.48em;
+    gap: 0.05em;
     font-size: 0.72em;
-    line-height: 1.15;
+    line-height: 1;
 }
 
-/* Each symbol inside the stack */
+/* Each symbol — fixed-height inline-flex box so glyphs from very different fonts
+   (Hafs combining marks vs Warsh ligatures vs IndoPak Nastaleeq) sit on the same row
+   at the same height instead of one floating above the other. */
 .waqf-symbol {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1em;
+    min-width: 0.7em;
     line-height: 1;
     color: var(--waqf-color, #c2410c);
     font-family: 'UthmanicHafs', serif;
@@ -198,7 +206,10 @@ body.sepia-mode .ayah-container {
 .waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; }
 .waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
 .waqf-symbol[data-version="ورش"]     { color: #b45309; }
-.waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; }
+.waqf-symbol[data-version="الهندي"]  {
+    color: #be185d;
+    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
+}
 
 /* JS now filters symbols per mode (original/selected/both/none); CSS no longer
    needs to hide the stack — empty stacks render to nothing on their own. */
@@ -3878,32 +3889,75 @@ body.dark-mode .word-meaning-tooltip {
     flex-shrink: 0;
 }
 
-/* Card rows — table-like grid: [word] [symbol] [meaning] */
+/* Entry cards — horizontal wrap matching دليل التلاوة segment style */
 .waqf-card-body {
     display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    padding: 0.6rem;
+    direction: rtl;
+}
+
+/* Single entry card — mirrors .guide-segment */
+.waqf-entry-card {
+    display: flex;
     flex-direction: column;
-    gap: 0;
-    padding: 0;
-}
-
-.waqf-card-row {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
     align-items: center;
-    column-gap: 0.7rem;
-    row-gap: 0.15rem;
-    padding: 0.45rem 0.75rem;
-    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    background: var(--bg-secondary, #f8fafc);
+    border: 1px solid rgba(148,163,184,0.22);
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem 0.45rem;
+    min-width: 72px;
+    max-width: 160px;
+    flex: 1 1 auto;
+    gap: 0.2rem;
+    transition: box-shadow 0.15s, background 0.15s;
 }
 
-.waqf-card-row:last-child { border-bottom: none; }
-.waqf-card-row:hover { background: rgba(0,0,0,0.025); }
+.waqf-entry-card:hover {
+    box-shadow: 0 3px 10px rgba(15,23,42,0.09);
+    background: var(--bg-card, #fff);
+}
 
-.waqf-card-word {
+/* Word text — large, verse font, centered */
+.waqf-entry-word {
     font-size: 1.35em;
-    line-height: 1.7;
-    font-weight: 600;
+    line-height: 1.65;
     color: var(--text-primary, #1e293b);
+    text-align: center;
+    direction: rtl;
+}
+
+/* Footer: symbol + label, with top border like guide-seg-waqf */
+.waqf-entry-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border-top: 1px solid rgba(148,163,184,0.2);
+    padding-top: 5px;
+    margin-top: 2px;
+    width: 100%;
+}
+
+/* Meaning label under the symbol */
+.waqf-entry-lbl {
+    font-size: 0.64rem;
+    font-family: 'IBM Plex Sans Arabic', serif;
+    color: var(--text-muted, #64748b);
+    text-align: center;
+    line-height: 1.35;
+    direction: rtl;
+}
+
+/* "Also in" mushaf badges — shown when >1 mushaf marks same word */
+.waqf-entry-shared {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+    padding-top: 3px;
 }
 
 .waqf-card-sym-wrap {
@@ -3913,16 +3967,18 @@ body.dark-mode .word-meaning-tooltip {
     flex-shrink: 0;
 }
 
-/* Individual symbol pill */
+/* Individual symbol pill — UthmanicHafs renders normalized glyphs as full
+   printed mushaf symbols: ۖ=صلى  ۗ=قلى  ۘ=م  ۚ=ج  ۙ=لا  ۛ=ع */
 .waqf-sym-pill {
     display: inline-block;
-    font-size: 1.15em;
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.25em;
     font-weight: 700;
-    padding: 0.08em 0.3em;
+    padding: 0.05em 0.3em;
     border-radius: 5px;
     background: rgba(0,0,0,0.06);
     cursor: default;
-    line-height: 1.8;
+    line-height: 1.6;
     vertical-align: middle;
 }
 
@@ -3947,23 +4003,7 @@ body.dark-mode .word-meaning-tooltip {
     color: var(--text-muted, #64748b);
 }
 
-.waqf-card-meaning {
-    font-size: 0.80rem;
-    color: var(--text-secondary, #475569);
-    line-height: 1.4;
-    direction: rtl;
-}
-
-/* "Shared with" row — spans all 3 grid columns on a second line */
-.waqf-card-shared {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.72rem;
-    color: var(--text-muted, #94a3b8);
-    grid-column: 1 / -1;
-    padding-bottom: 0.15rem;
-}
+/* .waqf-card-meaning and .waqf-card-shared replaced by .waqf-entry-lbl / .waqf-entry-shared */
 
 .waqf-shared-badge {
     font-size: 0.72rem;
@@ -4162,11 +4202,13 @@ body.dark-mode .waqf-mushaf-hindi    .waqf-card-name { color: #f9a8d4; }
 
 body.dark-mode .waqf-card-name  { color: #e2e8f0; }
 body.dark-mode .waqf-card-count { background: #0f172a; color: #64748b; }
-body.dark-mode .waqf-card-row   { border-bottom-color: #1e293b; }
-body.dark-mode .waqf-card-row:hover { background: rgba(255,255,255,0.04); }
-body.dark-mode .waqf-sym-pill   { background: rgba(255,255,255,0.09); }
-body.dark-mode .waqf-sym-hindi  { background: rgba(190,24,93,0.15); }
-body.dark-mode .waqf-card-meaning { color: #94a3b8; }
+body.dark-mode .waqf-entry-card        { background: #1e2d42; border-color: rgba(100,116,139,0.35); }
+body.dark-mode .waqf-entry-card:hover  { background: #233044; }
+body.dark-mode .waqf-entry-word        { color: #e2e8f0; }
+body.dark-mode .waqf-entry-footer      { border-top-color: rgba(100,116,139,0.3); }
+body.dark-mode .waqf-entry-lbl         { color: #94a3b8; }
+body.dark-mode .waqf-sym-pill          { background: rgba(255,255,255,0.09); }
+body.dark-mode .waqf-sym-hindi         { background: rgba(190,24,93,0.15); }
 
 body.dark-mode .waqf-shared-badge.waqf-mushaf-madinah  { background: #1e3a5f; }
 body.dark-mode .waqf-shared-badge.waqf-mushaf-shamarly { background: #2e1a4a; }

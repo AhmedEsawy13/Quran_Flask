@@ -1010,11 +1010,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 return html;
             }
+            // Normalize to the canonical Unicode glyph rendered by UthmanicHafs:
+            // ۖ = صلى, ۗ = قلى, ۘ = م (لازم), ۚ = ج, ۙ = لا, ۛ = ع
+            // This is how the symbol actually appears in the printed mushaf.
+            const normalized = normalizeNonWarshWaqfText(symbols);
             const info   = getWaqfInfo(symbols);
             const title  = (info.meaning && info.meaning !== symbols)
                 ? ` title="${info.meaning.replace(/"/g, '&quot;')}"` : '';
-            const symEsc = symbols.replace(/&/g, '&amp;');
-            return `<span class="waqf-sym-pill ${colorCls}"${title}>${symEsc}</span>`;
+            return `<span class="waqf-sym-pill waqf-uthmanic ${colorCls}"${title}>${normalized}</span>`;
         }
 
         // Human-readable meaning text for a symbol string
@@ -1117,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     return `<div class="waqf-word-mushaf-row">
                         <span class="waqf-shared-badge ${colorCls}">${esc(ver)}</span>
                         <span class="waqf-card-sym-wrap">${symPills}</span>
-                        <span class="waqf-card-meaning">${esc(meaning)}</span>
+                        <span class="waqf-entry-lbl">${esc(meaning)}</span>
                     </div>`;
                 }).filter(Boolean).join('');
 
@@ -1560,7 +1563,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Split multi-character text into individual symbols so they each get
         // their own <span>, preventing Arabic combining marks from overlapping.
-        const symbols = [...displayData.text].filter(ch => ch.trim());
+        // For الهندي: strip verse-end circle (۟ U+06DF) and PUA font-ligature glyphs
+        // (U+E000–U+F8FF) — these are structural font chars embedded by the font
+        // renderer, not actual waqf rulings, and must never appear as waqf overlays.
+        const _isHindi = mushafVersionOverride === 'الهندي';
+        const symbols = [...displayData.text].filter(ch => {
+            if (!ch.trim()) return false;
+            if (_isHindi) {
+                const cp = ch.codePointAt(0);
+                if (ch === '\u06DF') return false;            // ۟ verse-end circle
+                if (cp >= 0xE000 && cp <= 0xF8FF) return false; // PUA glyph
+            }
+            return true;
+        });
         if (symbols.length === 0) return;
 
         for (const sym of symbols) {
@@ -2177,12 +2192,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                     b_to_a_score, b_to_a_matched, b_to_a_total, similarity } = comparisons[other];
             const otherName = RECITER_ARABIC_NAMES[other] || other;
 
-            const badgeCls = similarity === 100 ? 'pm-badge-full'
-                           : similarity === 0   ? 'pm-badge-none'
-                                                : 'pm-badge-partial';
-            const badgeTxt = similarity === 100 ? 'توافق تام'
-                           : similarity === 0   ? 'لا توافق'
-                                                : `توافق ${toAr(similarity)}٪`;
+            const noMidPauses = a_to_b_total === 0 && b_to_a_total === 0;
+            const badgeCls = noMidPauses         ? 'pm-badge-partial'
+                           : similarity === 100  ? 'pm-badge-full'
+                           : similarity === 0    ? 'pm-badge-none'
+                                                 : 'pm-badge-partial';
+            const badgeTxt = noMidPauses         ? 'لا وقوف وسطية'
+                           : similarity === 100  ? 'توافق تام'
+                           : similarity === 0    ? 'لا توافق'
+                                                 : `توافق ${toAr(similarity)}٪`;
 
             const card = document.createElement('div');
             card.className = 'reciter-compare-card';

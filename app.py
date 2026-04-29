@@ -37,7 +37,7 @@ def after_request(response):
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://datasets-server.huggingface.co; "
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com; "
         "connect-src 'self' https://api.quran.com;"
     )
     
@@ -110,34 +110,6 @@ RECITER_GUIDE_CONFIG = {
 # Keep for backwards compat with any legacy code that may reference it
 HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']['db']
 DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'digital-khatt-15-lines.db')
-
-# Buraaq/quran-md-ayahs HuggingFace row-offset index for مصطفى إسماعيل
-# Built by pipeline/build_buraaq_index.py (metadata-only scan, no audio downloads).
-_BURAAQ_INDEX_PATH = os.path.join(_BASE_DIR, 'QUL_data', 'mustafa_ismaeel_row_index.json')
-_buraaq_index: dict = {}
-try:
-    with open(_BURAAQ_INDEX_PATH, 'r', encoding='utf-8') as _bif:
-        _buraaq_index = json.load(_bif)
-except (FileNotFoundError, json.JSONDecodeError):
-    pass  # Pipeline not yet run; /api/audio/mustafa-ismaeel/* will return 404 until built.
-
-# HF datasets-server rows API — returns signed CDN URL for the audio field.
-_HF_ROWS_API = (
-    "https://datasets-server.huggingface.co/rows"
-    "?dataset=Buraaq%2Fquran-md-ayahs&config=default&split=train"
-    "&offset={offset}&length=1"
-)
-# Disk cache: bytes fetched from HF are saved here so subsequent plays are instant.
-# Use /tmp on read-only filesystems (e.g. Vercel serverless); fall back to local QUL_data path.
-_BURAAQ_AUDIO_CACHE_DIR_LOCAL = os.path.join(_BASE_DIR, 'QUL_data', 'audio_cache', 'mustafa_ismaeel')
-_BURAAQ_AUDIO_CACHE_DIR_TMP = os.path.join('/tmp', 'audio_cache', 'mustafa_ismaeel')
-try:
-    os.makedirs(_BURAAQ_AUDIO_CACHE_DIR_LOCAL, exist_ok=True)
-    _BURAAQ_AUDIO_CACHE_DIR = _BURAAQ_AUDIO_CACHE_DIR_LOCAL
-except OSError:
-    os.makedirs(_BURAAQ_AUDIO_CACHE_DIR_TMP, exist_ok=True)
-    _BURAAQ_AUDIO_CACHE_DIR = _BURAAQ_AUDIO_CACHE_DIR_TMP
-import time as _time
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
 SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
@@ -1558,68 +1530,6 @@ def audio_proxy():
     # Using 307 (Temporary Redirect) to preserve request method
     return redirect(audio_url, code=307)
 
-
-@app.route('/api/audio/mustafa-ismaeel/<int:surah>/<int:ayah>')
-def audio_mustafa_ismaeel(surah: int, ayah: int):
-    """مصطفى إسماعيل audio proxy (Mostafa_Ismail_128kbps from Buraaq HF dataset).
-    Flask fetches the audio bytes from HF and streams them directly with proper
-    MP3 headers — no client-side redirect needed, no CSP issues.
-    Bytes are cached to disk after the first fetch for instant subsequent plays."""
-    key = f"{surah}:{ayah}"
-    if key not in _buraaq_index:
-        return jsonify({"error": "Ayah not found in index"}), 404
-
-    # Serve from disk cache if available.
-    cache_path = os.path.join(_BURAAQ_AUDIO_CACHE_DIR, f"{surah:03d}_{ayah:03d}.mp3")
-    if os.path.isfile(cache_path):
-        with open(cache_path, 'rb') as cf:
-            audio_bytes = cf.read()
-        resp = Response(audio_bytes, mimetype='audio/mpeg')
-        resp.headers['Content-Length'] = len(audio_bytes)
-        resp.headers['Accept-Ranges'] = 'bytes'
-        resp.headers['Cache-Control'] = 'public, max-age=86400'
-        return resp
-
-    # First play: get signed CDN URL from HF datasets-server, fetch bytes server-side.
-    offset = _buraaq_index[key]  # absolute row offset in the HF split
-
-    try:
-        # Step 1: Get signed CDN URL from HF rows API.
-        hf_resp = http_requests.get(
-            _HF_ROWS_API.format(offset=offset),
-            timeout=12,
-            headers={"User-Agent": "Quran-Flask/1.0"},
-        )
-        hf_resp.raise_for_status()
-        rows = hf_resp.json().get("rows", [])
-        if not rows:
-            return jsonify({"error": "No rows returned from HuggingFace"}), 502
-        audio_field = rows[0]["row"].get("audio", [])
-        if not audio_field:
-            return jsonify({"error": "Audio field missing in HuggingFace response"}), 502
-        signed_url = audio_field[0]["src"]
-
-        # Step 2: Fetch the actual audio bytes server-side (no client redirect).
-        audio_resp = http_requests.get(signed_url, timeout=20)
-        audio_resp.raise_for_status()
-        audio_bytes = audio_resp.content
-
-    except Exception as exc:
-        app.logger.error(f"Buraaq audio error surah={surah} ayah={ayah}: {exc}")
-        return jsonify({"error": "Failed to fetch audio from HuggingFace"}), 502
-
-    # Save to disk cache for subsequent plays.
-    try:
-        with open(cache_path, 'wb') as cf:
-            cf.write(audio_bytes)
-    except Exception as exc:
-        app.logger.warning(f"Buraaq audio cache write failed: {exc}")
-
-    resp = Response(audio_bytes, mimetype='audio/mpeg')
-    resp.headers['Content-Length'] = len(audio_bytes)
-    resp.headers['Accept-Ranges'] = 'bytes'
-    resp.headers['Cache-Control'] = 'public, max-age=86400'
-    return resp
 
 @app.route('/api/search', methods=['GET'])
 def search_verses():
