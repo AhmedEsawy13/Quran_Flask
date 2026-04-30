@@ -965,6 +965,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // These chars appear in IndoPak strings but carry no waqf ruling — filter from pills/meanings:
         const VERSE_END_MARKER = '\u06DF'; // ۟
         const HINDI_NON_WAQF = new Set([
+            '\u06DC', // ۜ ARABIC SMALL HIGH SEEN — marks ص→س recitation variant (تجويد), not a waqf
             '\u06E0', // ۠ رأس الخمس — structural
             '\u06E1', // ۡ — not waqf
             '\u06E2', // ۢ — not waqf
@@ -1479,6 +1480,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         '\u06D9': { meaning: 'لا — لا يجوز الوقف (مصحف هندي)' },
         '\u06DA': { meaning: 'ج — جائز الوقف والوصل (مصحف هندي)' },
         '\u06DB': { meaning: 'ع — وقف معانقة (مصحف هندي)' },
+        '\u0614': { meaning: 'قف — قف ولا تصل (مصحف هندي/باكستاني)' },
         '\u06DF': { meaning: 'رأس الآية أو رمز الوقف الكامل (مصحف هندي)' },
         '\u06E0': { meaning: 'رأس الخمس (مصحف هندي)' },
         '\u06EA': { meaning: 'وقف تحتي (مصحف هندي)' },
@@ -1565,6 +1567,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (_isHindi) {
                 const cp = ch.codePointAt(0);
                 if (ch === '\u06DF') return false;            // ۟ verse-end circle
+                if (ch === '\u06DC') return false;            // ۜ small high seen — تجويد, not waqf
                 if (cp >= 0xE000 && cp <= 0xF8FF) return false; // PUA glyph
             }
             return true;
