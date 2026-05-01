@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentAyahData = null; // Cache for current ayah data
     let currentRepeatCount = 0; // Track current repeat count
     let maxRepeats = 1; // Track maximum repeats set by user
+    let isRangeMode = false; // True while a verse range is playing
     let waqfPanelView = 'mushaf'; // 'mushaf' = per-mushaf cards, 'word' = per-word view
     const fontCache = {};
     const loadedShamarlyFonts = new Set();
@@ -349,6 +350,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         elements.playRangeButton.addEventListener('click', playRange);
         elements.showRangeSelection.addEventListener('click', showModal);
         elements.closeModal.addEventListener('click', closeModal);
+        elements.startAyahSelect.addEventListener('change', () => {
+            const startIdx = elements.startAyahSelect.selectedIndex;
+            if (elements.endAyahSelect.selectedIndex <= startIdx) {
+                const nextIdx = Math.min(startIdx + 1, elements.endAyahSelect.options.length - 1);
+                elements.endAyahSelect.selectedIndex = nextIdx;
+            }
+        });
         window.addEventListener('click', (event) => {
             if (event.target === elements.modal) closeModal();
         });
@@ -2792,6 +2800,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     elements.repeatSelect.addEventListener('change', handleRepeatChange);
     
     elements.audioElement.addEventListener('ended', () => {
+        // In range mode the range's own onEnded handler manages repeat + advancement
+        if (isRangeMode) return;
+
         currentRepeatCount++;
         
         if (currentRepeatCount < maxRepeats) {
@@ -2841,6 +2852,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const startAyahIndex = elements.startAyahSelect.selectedIndex;
         const endAyahIndex = elements.endAyahSelect.selectedIndex;
         if (startAyahIndex <= endAyahIndex) {
+            isRangeMode = true;
+            currentRepeatCount = 0;
             elements.ayahSelect.selectedIndex = startAyahIndex;
             await loadQuranData();
             elements.audioElement.play();
@@ -2859,6 +2872,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.playPauseButton.removeEventListener('click', togglePlayPause);
 
             const onEnded = async () => {
+                currentRepeatCount++;
+                if (currentRepeatCount < maxRepeats) {
+                    // Repeat the current verse
+                    elements.audioElement.currentTime = 0;
+                    elements.audioElement.play();
+                    return;
+                }
+                // Done repeating this verse — move to next
+                currentRepeatCount = 0;
                 if (elements.ayahSelect.selectedIndex < endAyahIndex) {
                     elements.ayahSelect.selectedIndex++;
                     await loadQuranData();
@@ -2890,6 +2912,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function cleanupRangeMode() {
+        isRangeMode = false;
+        currentRepeatCount = 0;
         // Remove range-specific event handlers
         if (elements.audioElement.rangeEndedHandler) {
             elements.audioElement.removeEventListener('ended', elements.audioElement.rangeEndedHandler);

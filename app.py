@@ -204,11 +204,19 @@ if not isinstance(surahs_data, list):
 # Tafseer API configuration (quran.com v4)
 # IDs confirmed from https://api.quran.com/api/v4/resources/tafsirs
 TAFSEER_API_IDS = {
-    'تفسير السعدي':  91,
-    'تفسير القرطبي': 90,
-    'تفسير البغوي':  94,
+    'تفسير السعدي':   91,
+    'تفسير القرطبي':  90,
+    'تفسير البغوي':   94,
+    'التفسير الميسر': 16,
 }
 TAFSEER_API_BASE = 'https://api.quran.com/api/v4/tafsirs/{id}/by_ayah/{verse_key}'
+
+# quranenc.com API — used for tafseers not on quran.com
+# identifier → Arabic name mapping
+TAFSEER_QURANENC_IDS = {
+    'المختصر في التفسير': 'arabic_mokhtasar',
+}
+TAFSEER_QURANENC_BASE = 'https://quranenc.com/api/v1/translation/aya/{identifier}/{surah}/{ayah}'
 
 # In-process cache: (tafseer_name, verse_key) → {text: "..."}
 _tafseer_cache: dict = {}
@@ -1407,6 +1415,29 @@ def get_tafseer(surah_number, ayah_number):
             result[tafseer_name] = entry
         except Exception as e:
             app.logger.error(f"Tafseer API error for {tafseer_name} {verse_key}: {e}")
+            result[tafseer_name] = {'text': ''}
+
+    for tafseer_name, identifier in TAFSEER_QURANENC_IDS.items():
+        cache_key = (tafseer_name, verse_key)
+        if cache_key in _tafseer_cache:
+            result[tafseer_name] = _tafseer_cache[cache_key]
+            continue
+
+        url = TAFSEER_QURANENC_BASE.format(
+            identifier=identifier,
+            surah=surah_number,
+            ayah=ayah_number,
+        )
+        try:
+            resp = http_requests.get(url, timeout=10)
+            resp.raise_for_status()
+            data = resp.json()
+            text = data.get('result', {}).get('translation', '')
+            entry = {'text': text}
+            _tafseer_cache[cache_key] = entry
+            result[tafseer_name] = entry
+        except Exception as e:
+            app.logger.error(f"Tafseer (quranenc) API error for {tafseer_name} {verse_key}: {e}")
             result[tafseer_name] = {'text': ''}
 
     return jsonify(result)

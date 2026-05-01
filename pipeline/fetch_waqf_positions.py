@@ -96,7 +96,7 @@ def save_to_db(df: pd.DataFrame, path: Path, table: str = "positions") -> None:
 DATASET_ID  = "obadx/muaalem-annotated-v3"
 HF_API_BASE = "https://datasets-server.huggingface.co"
 
-# Only these columns are fetched from parquet — audio is excluded
+# Only these columns are fetched from parquet — audio bytes are excluded
 TEXT_COLUMNS = [
     "segment_index", "moshaf_id", "moshaf_name",
     "reciter_id", "reciter_arabic_name", "reciter_english_name",
@@ -105,6 +105,7 @@ TEXT_COLUMNS = [
     "has_quran", "has_istiaatha", "has_bismillah", "has_sadaka",
     "start_span", "end_span",
     "duration_seconds", "match_ratio",
+    "timestamp_seconds",   # absolute [start, end] of segment in the surah file
 ]
 
 
@@ -254,6 +255,33 @@ def extract_waqf_positions(df: pd.DataFrame) -> pd.DataFrame:
     result["has_sadaka"]     = df.get("has_sadaka")
     result["duration_seconds"] = df.get("duration_seconds")
     result["match_ratio"]    = df.get("match_ratio")
+
+    # Flatten timestamp_seconds: [start, end] array → two scalar columns
+    # Falls back gracefully if the column is absent (older dataset versions).
+    if "timestamp_seconds" in df.columns:
+        def _ts_start(v):
+            if v is None:
+                return None
+            try:
+                arr = list(v)
+                return float(arr[0]) if arr else None
+            except Exception:
+                return None
+
+        def _ts_end(v):
+            if v is None:
+                return None
+            try:
+                arr = list(v)
+                return float(arr[-1]) if arr else None
+            except Exception:
+                return None
+
+        result["timestamp_start"] = df["timestamp_seconds"].apply(_ts_start).values
+        result["timestamp_end"]   = df["timestamp_seconds"].apply(_ts_end).values
+    else:
+        result["timestamp_start"] = None
+        result["timestamp_end"]   = None
 
     return result.reset_index(drop=True)
 
