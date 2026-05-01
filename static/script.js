@@ -2872,24 +2872,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.playPauseButton.removeEventListener('click', togglePlayPause);
 
             const onEnded = async () => {
-                currentRepeatCount++;
-                if (currentRepeatCount < maxRepeats) {
-                    // Repeat the current verse
-                    elements.audioElement.currentTime = 0;
-                    elements.audioElement.play();
-                    return;
-                }
-                // Done repeating this verse — move to next
-                currentRepeatCount = 0;
                 if (elements.ayahSelect.selectedIndex < endAyahIndex) {
+                    // More verses left in this loop — advance to next
                     elements.ayahSelect.selectedIndex++;
                     await loadQuranData();
                     elements.audioElement.play();
                     updatePlayPauseButton();
                 } else {
-                    // Clean up when range ends
-                    cleanupRangeMode();
-                    updatePlayPauseButton();
+                    // Reached end of range — check if we should loop the whole range again
+                    currentRepeatCount++;
+                    if (currentRepeatCount < maxRepeats) {
+                        // Loop back to the start verse
+                        elements.ayahSelect.selectedIndex = startAyahIndex;
+                        await loadQuranData();
+                        elements.audioElement.play();
+                        updatePlayPauseButton();
+                    } else {
+                        // All loops done — clean up
+                        cleanupRangeMode();
+                        updatePlayPauseButton();
+                    }
                 }
             };
 
