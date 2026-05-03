@@ -162,7 +162,7 @@ body.sepia-mode .ayah-container {
 .waqf-stack {
     position: absolute;
     top: 0;
-    left: 20%;
+    left: 50%;
     transform: translateX(-50%);
     white-space: nowrap;
     display: inline-flex;
