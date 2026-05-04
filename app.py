@@ -4,12 +4,25 @@ import sqlite3
 import os
 import logging
 import re
+import threading
 from collections import defaultdict
 from functools import lru_cache
 from flask import make_response
 import gzip
 from io import BytesIO
 import requests as http_requests
+
+# orjson is ~5-8x faster than stdlib json for large files (Rust-based).
+# Fall back gracefully to stdlib if not installed.
+try:
+    import orjson as _orjson
+    def _json_load(fh):
+        """Read file handle and parse with orjson (accepts bytes or str)."""
+        return _orjson.loads(fh.read())
+except ImportError:
+    _orjson = None  # type: ignore
+    def _json_load(fh):  # type: ignore
+        return json.load(fh)
 import concurrent.futures
 
 app = Flask(__name__, static_folder='static')
@@ -180,11 +193,13 @@ def _load_json_cdn_or_local(cdn_path: str, local_path: str):
     abs_local = os.path.join(os.path.dirname(os.path.abspath(__file__)), local_path)
     if os.path.exists(abs_local):
         try:
-            with open(abs_local, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+            # Open in binary mode so orjson can read raw bytes (faster);
+            # stdlib json.load also accepts binary file handles in Python 3.
+            with open(abs_local, 'rb') as f:
+                data = _json_load(f)
             _cdn_cache[cdn_path] = data
             return data
-        except (json.JSONDecodeError, OSError) as e:
+        except Exception as e:
             app.logger.warning(f'Local load failed for {local_path}: {e}')
     if _IS_SERVERLESS:
         app.logger.error(f'Local file missing on serverless deployment: {local_path}')
@@ -269,10 +284,38 @@ reciters = {
                                   "QUL_data/mustafa-ismaeel.json"),
 }
 
-audio_data = {}
-for reciter, (cdn_name, local_path) in reciters.items():
-    data = _load_json_cdn_or_local(cdn_name, local_path)
-    audio_data[reciter] = data if data else []
+# Reciter audio data and mappings are loaded lazily on first use.
+# This defers ~150 ms of JSON parsing out of the cold-start path.
+audio_data: dict = {}
+_reciters_initialized = False
+_reciters_lock = threading.Lock()
+
+
+def _ensure_reciters_initialized():
+    """Idempotent: load reciter JSON files and build mappings on first call."""
+    global _reciters_initialized
+    if _reciters_initialized:
+        return
+    with _reciters_lock:
+        if _reciters_initialized:  # double-checked locking
+            return
+        for reciter, (cdn_name, local_path) in reciters.items():
+            data = _load_json_cdn_or_local(cdn_name, local_path)
+            audio_data[reciter] = data if data else []
+        for reciter, data in audio_data.items():
+            try:
+                reciter_mappings[reciter] = create_audio_mapping(digital_khatt_data, data)
+                reciter_audio_by_global_id[reciter] = {
+                    info['id']: info
+                    for info in reciter_mappings[reciter].values()
+                    if 'id' in info
+                }
+            except Exception as e:
+                app.logger.error(f'Error creating mapping for reciter {reciter}: {e}')
+                reciter_mappings[reciter] = {}
+                reciter_audio_by_global_id[reciter] = {}
+        _reciters_initialized = True
+
 
 def _parse_segment(seg):
     """Normalise a raw segment to {start_word_index, end_word_index, start_time, end_time}.
@@ -377,21 +420,9 @@ def create_audio_mapping(quran_text_data, audio_data):
 
     return verse_key_to_segment_map
 
-# Create mappings for each reciter with improved error handling
-reciter_mappings = {}
-# Secondary index: reciter → {global_ayah_id: audio_info} for O(1) lookup
-# by global ayah number (used by /api/reciters/<r>/ayahs/<id>/audio).
-reciter_audio_by_global_id = {}
-for reciter, data in audio_data.items():
-    try:
-        reciter_mappings[reciter] = create_audio_mapping(digital_khatt_data, data)
-        reciter_audio_by_global_id[reciter] = {
-            info['id']: info for info in reciter_mappings[reciter].values() if 'id' in info
-        }
-    except Exception as e:
-        app.logger.error(f"Error creating mapping for reciter {reciter}: {e}")
-        reciter_mappings[reciter] = {}
-        reciter_audio_by_global_id[reciter] = {}
+# These dicts are populated lazily by _ensure_reciters_initialized().
+reciter_mappings: dict = {}
+reciter_audio_by_global_id: dict = {}
 
 
 def is_waqf_like_char(char, source_name):
@@ -1414,7 +1445,8 @@ def get_ayah_text(surah_number, ayah_number):
         ayah_data['transliteration'] = transliteration_data.get(verse_key, {})
         
         # Tafseer is fetched on-demand via /api/tafseer/<surah>/<ayah>
-        # Add reciters' audio information
+        # Add reciters' audio information (loads reciter files on first call)
+        _ensure_reciters_initialized()
         ayah_data['reciters'] = {}
         for reciter, mapping in reciter_mappings.items():
             if verse_key in mapping:
@@ -1546,6 +1578,7 @@ def get_audio_segments(reciter, ayah_number):
     if ayah_number < 1:
         return jsonify({"error": "Invalid ayah number."}), 400
 
+    _ensure_reciters_initialized()
     by_id = reciter_audio_by_global_id.get(reciter)
     if by_id is None:
         return jsonify({"error": "Reciter not found"}), 404
