@@ -10,6 +10,7 @@ from flask import make_response
 import gzip
 from io import BytesIO
 import requests as http_requests
+import concurrent.futures
 
 app = Flask(__name__, static_folder='static')
 
@@ -62,9 +63,10 @@ def after_request(response):
             with gzip.GzipFile(mode='wb', fileobj=gzip_buffer, compresslevel=6) as gzip_file:
                 gzip_file.write(response_data)
             
-            response.set_data(gzip_buffer.getvalue())
+            compressed = gzip_buffer.getvalue()
+            response.set_data(compressed)
             response.headers['Content-Encoding'] = 'gzip'
-            response.headers['Content-Length'] = str(len(response.get_data()))
+            response.headers['Content-Length'] = str(len(compressed))
             response.headers['Vary'] = 'Accept-Encoding'
     
     return response
@@ -156,10 +158,38 @@ _CDN_BASE = 'https://cdn.jsdelivr.net/gh/AhmedEsawy13/Quran_Flask@main/QUL_data'
 # In-process cache for CDN-fetched JSON blobs
 _cdn_cache: dict = {}
 
+# True when running on Vercel / AWS Lambda — local data files are always bundled
+# so we skip the outbound CDN fetch to eliminate the cold-start latency.
+_IS_SERVERLESS = bool(
+    os.environ.get('VERCEL') or
+    os.environ.get('VERCEL_ENV') or
+    os.environ.get('AWS_LAMBDA_FUNCTION_NAME')
+)
+
 def _load_json_cdn_or_local(cdn_path: str, local_path: str):
-    """Fetch JSON from jsDelivr CDN with in-process cache; fall back to local file."""
+    """Load JSON from local file (preferred) or CDN fallback.
+
+    On serverless deployments (Vercel / Lambda) the data files are always
+    bundled alongside the function, so we read locally and skip the CDN
+    fetch entirely — it would only add latency on cold start.
+    On local dev without the data files we fall back to CDN.
+    """
     if cdn_path in _cdn_cache:
         return _cdn_cache[cdn_path]
+    # Always prefer local file when present (zero network cost).
+    abs_local = os.path.join(os.path.dirname(os.path.abspath(__file__)), local_path)
+    if os.path.exists(abs_local):
+        try:
+            with open(abs_local, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            _cdn_cache[cdn_path] = data
+            return data
+        except (json.JSONDecodeError, OSError) as e:
+            app.logger.warning(f'Local load failed for {local_path}: {e}')
+    if _IS_SERVERLESS:
+        app.logger.error(f'Local file missing on serverless deployment: {local_path}')
+        return {}
+    # Local dev fallback: try CDN when local file is absent.
     url = f'{_CDN_BASE}/{cdn_path}'
     try:
         resp = http_requests.get(url, timeout=15)
@@ -169,15 +199,7 @@ def _load_json_cdn_or_local(cdn_path: str, local_path: str):
         app.logger.info(f'Loaded {cdn_path} from CDN')
         return data
     except Exception as e:
-        app.logger.warning(f'CDN fetch failed for {cdn_path}: {e}. Falling back to local.')
-    # Local fallback
-    try:
-        with open(local_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        _cdn_cache[cdn_path] = data
-        return data
-    except (FileNotFoundError, json.JSONDecodeError) as e2:
-        app.logger.error(f'Local fallback also failed for {local_path}: {e2}')
+        app.logger.error(f'CDN fetch also failed for {cdn_path}: {e}')
         return {}
 
 
@@ -531,7 +553,11 @@ def normalize_quran_dataset(source_name, source_data):
 
 
 def initialize_waqf_database(waqf_rows):
-    """Persist extracted waqf symbols in a dedicated SQLite database."""
+    """Persist extracted waqf symbols in a dedicated SQLite database.
+
+    Skips the full rebuild when the existing row count already matches, so
+    repeated cold starts on serverless don't pay the write cost every time.
+    """
     try:
         conn = sqlite3.connect(WAQF_DATABASE)
         cursor = conn.cursor()
@@ -554,7 +580,16 @@ def initialize_waqf_database(waqf_rows):
         if 'word_index' not in existing_columns:
             cursor.execute('ALTER TABLE waqf_symbols ADD COLUMN word_index INTEGER')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_waqf_lookup ON waqf_symbols(source, surah_number, ayah_number)')
+        conn.commit()
 
+        # Skip expensive rebuild if data is already current.
+        cursor.execute('SELECT COUNT(*) FROM waqf_symbols')
+        if cursor.fetchone()[0] == len(waqf_rows):
+            conn.close()
+            return
+
+        # Rebuild inside a single transaction for crash safety.
+        cursor.execute('BEGIN')
         cursor.execute('DELETE FROM waqf_symbols')
         if waqf_rows:
             cursor.executemany(
@@ -569,8 +604,7 @@ def initialize_waqf_database(waqf_rows):
                     row['token_index'], row.get('word_index'), row['symbols'], row['original_token'], row['clean_token']
                 ) for row in waqf_rows]
             )
-
-        conn.commit()
+        cursor.execute('COMMIT')
         conn.close()
     except sqlite3.Error as e:
         app.logger.error(f"Failed to initialize waqf database: {e}")
@@ -639,6 +673,7 @@ def get_mushaf_versions():
     return jsonify(sorted(_get_mushaf_version_whitelist()))
 
 
+@lru_cache(maxsize=2048)
 def _get_positions_segments(surah_number, ayah_number, reciter=None):
     """Return (segments, has_db) for a single ayah from the reciter's positions.db.
 
@@ -980,10 +1015,21 @@ def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
     return all_rows
 
 
+# In-process cache for mushaf waqf DB lookups.
+# Callers mutate the returned dicts (adding a 'version' key) so we always
+# return a list of fresh dict copies, keeping the cached originals clean.
+_mushaf_waqf_cache: dict = {}
+
+
 def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
-    """Internal: fetch for exactly one validated version."""
+    """Internal: fetch for exactly one validated version, with in-process caching."""
     if not _is_valid_mushaf_version(mushaf_version):
         return []
+
+    cache_key = (surah_number, ayah_number, mushaf_version)
+    cached = _mushaf_waqf_cache.get(cache_key)
+    if cached is not None:
+        return [dict(r) for r in cached]
 
     try:
         conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
@@ -1024,7 +1070,7 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
         rows = cursor.fetchall()
         conn.close()
 
-        return [
+        result = [
             {
                 'clean_token': row['word'],
                 'symbols': row['symbol'],
@@ -1033,6 +1079,8 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
             }
             for row in rows
         ]
+        _mushaf_waqf_cache[cache_key] = result
+        return [dict(r) for r in result]
     except Exception as e:
         app.logger.error(f"Error reading mushaf waqf: {e}")
         return []
@@ -1188,6 +1236,18 @@ initialize_waqf_database(waqf_rows_digital + waqf_rows_qpc + waqf_rows_indopak)
 app.logger.info(
     f"Waqf normalization summary: {digital_stats}, {qpc_stats}, {indopak_stats}"
 )
+
+# Ensure word_name.db has an index on (surah_number, ayah_number) for fast per-ayah
+# lookups. Creates the index if missing; safe to call on every startup.
+try:
+    _wn_conn = sqlite3.connect(DATABASE)
+    _wn_conn.execute(
+        'CREATE INDEX IF NOT EXISTS idx_verses_surah_ayah ON verses(surah_number, ayah_number)'
+    )
+    _wn_conn.commit()
+    _wn_conn.close()
+except sqlite3.Error as _wn_err:
+    app.logger.warning(f'Could not create word_name index: {_wn_err}')
 
 
 # Database helper functions
@@ -1360,10 +1420,10 @@ def get_ayah_text(surah_number, ayah_number):
             if verse_key in mapping:
                 ayah_data['reciters'][reciter] = mapping[verse_key]
         
-        # Fetch word meanings from the SQLite database
-        word_meanings = get_word_meanings(surah_number, ayah_number)
-        ayah_data['word_meanings'] = word_meanings  # Add meanings to the response
-        ayah_data['word_meanings_ordered'] = get_word_meanings_ordered(surah_number, ayah_number)
+        # Fetch word meanings from the SQLite database (single query)
+        ordered_meanings = get_word_meanings_ordered(surah_number, ayah_number)
+        ayah_data['word_meanings_ordered'] = ordered_meanings
+        ayah_data['word_meanings'] = {r['word']: r['meaning'] for r in ordered_meanings}
         ayah_data['waqf_symbols'] = get_waqf_symbols(surah_number, ayah_number, source)
         
         return jsonify(ayah_data)
@@ -1389,56 +1449,67 @@ def get_ayah_waqf_symbols(surah_number, ayah_number):
 
 @app.route('/api/tafseer/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_tafseer(surah_number, ayah_number):
-    """Fetch tafseer for a single ayah from quran.com API, with in-process caching."""
+    """Fetch tafseer for a single ayah in parallel, with in-process caching."""
     if not (1 <= surah_number <= 114):
         return jsonify({"error": "Invalid surah number."}), 400
     if ayah_number < 1 or ayah_number > MAX_AYAH_NUMBER:
         return jsonify({"error": "Invalid ayah number."}), 400
 
     verse_key = f"{surah_number}:{ayah_number}"
-    result = {}
 
-    for tafseer_name, tafseer_id in TAFSEER_API_IDS.items():
-        cache_key = (tafseer_name, verse_key)
-        if cache_key in _tafseer_cache:
-            result[tafseer_name] = _tafseer_cache[cache_key]
-            continue
-
+    def _fetch_qurancom(name, tafseer_id):
+        ck = (name, verse_key)
+        if ck in _tafseer_cache:
+            return name, _tafseer_cache[ck]
         url = TAFSEER_API_BASE.format(id=tafseer_id, verse_key=verse_key)
         try:
             resp = http_requests.get(url, timeout=10)
             resp.raise_for_status()
-            data = resp.json()
-            text = data.get('tafsir', {}).get('text', '')
+            text = resp.json().get('tafsir', {}).get('text', '')
             entry = {'text': text}
-            _tafseer_cache[cache_key] = entry
-            result[tafseer_name] = entry
+            _tafseer_cache[ck] = entry
+            return name, entry
         except Exception as e:
-            app.logger.error(f"Tafseer API error for {tafseer_name} {verse_key}: {e}")
-            result[tafseer_name] = {'text': ''}
+            app.logger.error(f"Tafseer API error for {name} {verse_key}: {e}")
+            return name, {'text': ''}
 
-    for tafseer_name, identifier in TAFSEER_QURANENC_IDS.items():
-        cache_key = (tafseer_name, verse_key)
-        if cache_key in _tafseer_cache:
-            result[tafseer_name] = _tafseer_cache[cache_key]
-            continue
-
+    def _fetch_quranenc(name, identifier):
+        ck = (name, verse_key)
+        if ck in _tafseer_cache:
+            return name, _tafseer_cache[ck]
         url = TAFSEER_QURANENC_BASE.format(
-            identifier=identifier,
-            surah=surah_number,
-            ayah=ayah_number,
+            identifier=identifier, surah=surah_number, ayah=ayah_number
         )
         try:
             resp = http_requests.get(url, timeout=10)
             resp.raise_for_status()
-            data = resp.json()
-            text = data.get('result', {}).get('translation', '')
+            text = resp.json().get('result', {}).get('translation', '')
             entry = {'text': text}
-            _tafseer_cache[cache_key] = entry
-            result[tafseer_name] = entry
+            _tafseer_cache[ck] = entry
+            return name, entry
         except Exception as e:
-            app.logger.error(f"Tafseer (quranenc) API error for {tafseer_name} {verse_key}: {e}")
-            result[tafseer_name] = {'text': ''}
+            app.logger.error(f"Tafseer (quranenc) API error for {name} {verse_key}: {e}")
+            return name, {'text': ''}
+
+    # Fast path: everything already cached, no threads needed.
+    all_names = list(TAFSEER_API_IDS) + list(TAFSEER_QURANENC_IDS)
+    if all((n, verse_key) in _tafseer_cache for n in all_names):
+        return jsonify({n: _tafseer_cache[(n, verse_key)] for n in all_names})
+
+    tasks = (
+        [(n, tid, 'qurancom') for n, tid in TAFSEER_API_IDS.items()] +
+        [(n, ident, 'quranenc') for n, ident in TAFSEER_QURANENC_IDS.items()]
+    )
+    result = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(tasks) or 1) as ex:
+        futures = [
+            ex.submit(_fetch_qurancom, n, src) if t == 'qurancom'
+            else ex.submit(_fetch_quranenc, n, src)
+            for n, src, t in tasks
+        ]
+        for future in concurrent.futures.as_completed(futures):
+            name, entry = future.result()
+            result[name] = entry
 
     return jsonify(result)
 
@@ -1680,8 +1751,8 @@ def get_shamarly_ayah(surah_number, ayah_number):
         layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
         layout_cursor = layout_conn.cursor()
-        
-        # Determine pages from the layout DB for the words
+
+        # Fetch pages and verse-line rows in one connection to avoid re-opening.
         if words:
             first_word_id = words[0]['word_index']
             last_word_id = words[-1]['word_index']
@@ -1691,9 +1762,25 @@ def get_shamarly_ayah(surah_number, ayah_number):
                 OR (first_word_id >= ? AND last_word_id <= ?)
             """, (last_word_id, first_word_id, first_word_id, last_word_id, first_word_id, last_word_id))
             pages = sorted([int(row['page_number']) for row in layout_cursor.fetchall()])
+            layout_cursor.execute(
+                '''
+                SELECT page_number, line_number, first_word_id, last_word_id
+                FROM pages
+                WHERE line_type = 'ayah'
+                  AND (
+                        (first_word_id <= ? AND last_word_id >= ?)
+                     OR (first_word_id <= ? AND last_word_id >= ?)
+                     OR (first_word_id >= ? AND last_word_id <= ?)
+                  )
+                ORDER BY page_number ASC, line_number ASC
+                ''',
+                (last_word_id, first_word_id, first_word_id, last_word_id, first_word_id, last_word_id)
+            )
+            _prefetched_line_rows = [dict(row) for row in layout_cursor.fetchall()]
         else:
             pages = []
-            
+            _prefetched_line_rows = []
+
         layout_conn.close()
         
         glyph_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'glyph_mappings.db'))
@@ -1785,27 +1872,7 @@ def get_shamarly_ayah(surah_number, ayah_number):
             first_word_id = int(words[0]['word_index'])
             last_word_id = int(words[-1]['word_index'])
 
-            layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db'))
-            layout_conn.row_factory = sqlite3.Row
-            layout_cursor = layout_conn.cursor()
-            layout_cursor.execute(
-                '''
-                SELECT page_number, line_number, first_word_id, last_word_id
-                FROM pages
-                WHERE line_type = 'ayah'
-                  AND (
-                        (first_word_id <= ? AND last_word_id >= ?)
-                     OR (first_word_id <= ? AND last_word_id >= ?)
-                     OR (first_word_id >= ? AND last_word_id <= ?)
-                  )
-                ORDER BY page_number ASC, line_number ASC
-                ''',
-                (last_word_id, first_word_id, first_word_id, last_word_id, first_word_id, last_word_id)
-            )
-            line_rows = [dict(row) for row in layout_cursor.fetchall()]
-            layout_conn.close()
-
-            for line in line_rows:
+            for line in _prefetched_line_rows:
                 line_first = int(line['first_word_id'])
                 line_last = int(line['last_word_id'])
                 line_words = []
@@ -2428,6 +2495,7 @@ def _get_surah_name_ar(surah_number):
     return None
 
 
+@lru_cache(maxsize=1)
 def _get_quran_script_layout_offset():
     try:
         conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
