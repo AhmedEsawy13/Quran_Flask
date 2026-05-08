@@ -181,6 +181,21 @@ body[data-font-type="indopak"][data-waqf-mode="original"] #quran-text {
     line-height: 1;
 }
 
+/* For IndoPak font (non-original mode), stack symbols vertically.
+   Anchor the stack BOTTOM to the text top edge (padding-top = 0.9em) and grow
+   upward — keeps symbols flush to the word and any overflow goes into row-gap
+   (not into the word text itself). */
+body[data-font-type="indopak"] .waqf-stack {
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: flex-start;
+    white-space: normal;
+    top: 0.9em;
+    transform: translateX(-50%) translateY(-100%);
+    gap: 0.02em;
+    font-size: 0.65em;
+}
+
 /* Each symbol — fixed-height inline-flex box so glyphs from very different fonts
    (Hafs combining marks vs Warsh ligatures vs IndoPak Nastaleeq) sit on the same row
    at the same height instead of one floating above the other. */
