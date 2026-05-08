@@ -154,6 +154,13 @@ body[data-font-type="indopak"] .word-token {
     padding-top: 0.45em;
 }
 
+/* In "original" mode IndoPak inline waqf marks (ؕ ۚ ۙ …) are embedded directly
+   in the word text. Increase the horizontal gap between words so the mark
+   doesn't visually bleed into the following word. */
+body[data-font-type="indopak"][data-waqf-mode="original"] #quran-text {
+    gap: 0.5rem 0.9rem;
+}
+
 .word-content {
     display: inline;
 }
