@@ -131,7 +131,7 @@ body.sepia-mode .ayah-container {
     display: flex;
     flex-wrap: wrap; /* CRITICAL: Wraps words instead of overflowing */
     justify-content: center;
-    align-items: flex-end; /* align all words at their text baseline */
+    align-items: flex-end; /* text baselines align at the bottom */
     gap: 0.5rem 0.25rem;
     width: 100%;
     margin-left: auto;
@@ -139,12 +139,11 @@ body.sepia-mode .ayah-container {
 }
 
 .word-token {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
+    display: inline-block;
     position: relative;
     margin: 0 0.05rem;
     line-height: 1.6;
+    padding-top: 0.9em; /* fixed reserved space above every word for waqf symbols (symbols are 0.72em tall) */
     transition: color 0.2s ease, transform 0.2s ease;
 }
 
@@ -159,17 +158,20 @@ body.sepia-mode .ayah-container {
 
 /* Container for all overlay waqf symbols — sits above the word, side by side (row). */
 .waqf-stack {
-    display: flex;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    display: inline-flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
-    white-space: nowrap;
     pointer-events: none;
     gap: 0.05em;
     font-size: 0.72em;
     line-height: 1;
-    min-height: 0;
 }
 
 /* Each symbol — fixed-height inline-flex box so glyphs from very different fonts
