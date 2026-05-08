@@ -485,6 +485,74 @@ body.dark-mode #tajweed-container {
     text-align: center;
     padding: 0.4rem 0 1rem;
     word-spacing: 0.1em;
+    position: relative; /* needed for cross-word connector positioning */
+}
+
+/* Colored letter tooltip — feature 1 */
+#tajweed-verse-text tajweed[class]:not(.end),
+#tajweed-verse-text span[class]:not(.end) {
+    position: relative;
+    cursor: help;
+}
+
+#tajweed-verse-text tajweed[class]:not(.end)::after,
+#tajweed-verse-text span[class]:not(.end)::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    background: rgba(30, 27, 18, 0.9);
+    color: #fff;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.68rem;
+    line-height: 1.3;
+    padding: 0.25em 0.55em;
+    border-radius: 5px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    direction: rtl;
+    text-align: center;
+    max-width: 160px;
+    white-space: pre-line;
+}
+
+#tajweed-verse-text tajweed[class]:not(.end):hover::after,
+#tajweed-verse-text span[class]:not(.end):hover::after {
+    opacity: 1;
+}
+
+body.dark-mode #tajweed-verse-text tajweed[class]:not(.end)::after,
+body.dark-mode #tajweed-verse-text span[class]:not(.end)::after {
+    background: rgba(240, 230, 200, 0.95);
+    color: #111;
+}
+
+/* Cross-word connector arc — feature 5 */
+.tj-crossword-wrap {
+    display: inline;
+    position: relative;
+}
+
+.tj-crossword-line {
+    position: absolute;
+    bottom: -0.22em;
+    height: 2px;
+    border-radius: 1px;
+    pointer-events: none;
+    opacity: 0.55;
+}
+
+.tj-crossword-dot {
+    position: absolute;
+    bottom: -0.35em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 #tajweed-rules-heading {
@@ -530,45 +598,53 @@ body.dark-mode .tj-chip { background: rgba(255, 255, 255, 0.07); }
 .tj-chip-name  { font-weight: 700; font-size: 0.72rem; line-height: 1.35; }
 .tj-chip-desc  { font-size: 0.61rem; opacity: 0.7; line-height: 1.2; }
 
-/* Chip border colors — alquran.cloud official color scheme */
-.tj-chip.ghunnah           { border-right-color: #FF7E1E; }
-.tj-chip.ikhafa            { border-right-color: #9400A8; }
-.tj-chip.ikhafa_shafawi    { border-right-color: #D500B7; }
-.tj-chip.iqlab             { border-right-color: #26BFFD; }
-.tj-chip.idgham_ghunnah    { border-right-color: #169777; }
-.tj-chip.idgham_wo_ghunnah { border-right-color: #169200; }
-.tj-chip.idgham_shafawi    { border-right-color: #58B800; }
-.tj-chip.idgham_mutajanisayn  { border-right-color: #A1A1A1; }
-.tj-chip.idgham_mutaqaribayn  { border-right-color: #A1A1A1; }
-.tj-chip.qalaqah           { border-right-color: #DD0008; }
-.tj-chip.madda_normal      { border-right-color: #537FFF; }
-.tj-chip.madda_permissible { border-right-color: #4050FF; }
-.tj-chip.madda_munfasil    { border-right-color: #4050FF; }
-.tj-chip.madda_obligatory  { border-right-color: #2144C1; }
-.tj-chip.madda_necessary   { border-right-color: #000EBC; }
-.tj-chip.ham_wasl          { border-right-color: #AAAAAA; }
-.tj-chip.laam_shamsiyah    { border-right-color: #AAAAAA; }
-.tj-chip.slnt              { border-right-color: #AAAAAA; }
+/* Chip border colors — 3-family color system */
+/* Red gradient: madd rules (light→dark = shorter→longer) */
+.tj-chip.madda_normal      { border-right-color: #E05050; }
+.tj-chip.madda_permissible { border-right-color: #CC2200; }
+.tj-chip.madda_munfasil    { border-right-color: #CC2200; }
+.tj-chip.madda_obligatory  { border-right-color: #AA0000; }
+.tj-chip.madda_necessary   { border-right-color: #7A0000; }
+/* Green: ghunnah / ikhfa / idgham group */
+.tj-chip.ghunnah           { border-right-color: #1A8C3A; }
+.tj-chip.ikhafa            { border-right-color: #2DA84F; }
+.tj-chip.ikhafa_shafawi    { border-right-color: #2DA84F; }
+.tj-chip.iqlab             { border-right-color: #1A8C3A; }
+.tj-chip.idgham_ghunnah    { border-right-color: #1A8C3A; }
+.tj-chip.idgham_wo_ghunnah { border-right-color: #117A30; }
+.tj-chip.idgham_shafawi    { border-right-color: #117A30; }
+.tj-chip.idgham_mutajanisayn  { border-right-color: #117A30; }
+.tj-chip.idgham_mutaqaribayn  { border-right-color: #117A30; }
+/* Dark blue: qalaqah */
+.tj-chip.qalaqah           { border-right-color: #1A3CB0; }
+/* Gray: silent / grammatical markers */
+.tj-chip.ham_wasl          { border-right-color: #999999; }
+.tj-chip.laam_shamsiyah    { border-right-color: #999999; }
+.tj-chip.slnt              { border-right-color: #BBBBBB; }
 
-/* Rule colours — alquran.cloud official color scheme (https://alquran.cloud/tajweed-guide) */
-tajweed.ghunnah,              span.ghunnah              { color: #FF7E1E; }
-tajweed.ikhafa,               span.ikhafa               { color: #9400A8; }
-tajweed.ikhafa_shafawi,       span.ikhafa_shafawi       { color: #D500B7; }
-tajweed.iqlab,                span.iqlab                { color: #26BFFD; }
-tajweed.idgham_ghunnah,       span.idgham_ghunnah       { color: #169777; }
-tajweed.idgham_wo_ghunnah,    span.idgham_wo_ghunnah    { color: #169200; }
-tajweed.idgham_shafawi,       span.idgham_shafawi       { color: #58B800; }
-tajweed.idgham_mutajanisayn,  span.idgham_mutajanisayn  { color: #A1A1A1; }
-tajweed.idgham_mutaqaribayn,  span.idgham_mutaqaribayn  { color: #A1A1A1; }
-tajweed.qalaqah,              span.qalaqah              { color: #DD0008; }
-tajweed.madda_normal,         span.madda_normal         { color: #537FFF; }
-tajweed.madda_permissible,    span.madda_permissible    { color: #4050FF; }
-tajweed.madda_munfasil,       span.madda_munfasil       { color: #4050FF; }
-tajweed.madda_obligatory,     span.madda_obligatory     { color: #2144C1; }
-tajweed.madda_necessary,      span.madda_necessary      { color: #000EBC; }
-tajweed.ham_wasl,             span.ham_wasl             { color: #AAAAAA; }
-tajweed.laam_shamsiyah,       span.laam_shamsiyah       { color: #AAAAAA; }
-tajweed.slnt,                 span.slnt                 { color: #AAAAAA; opacity: 0.6; }
+/* Rule colours — 3-family color system */
+/* Red gradient: madd (lighter = shorter prolongation) */
+tajweed.madda_normal,         span.madda_normal         { color: #E05050; }
+tajweed.madda_permissible,    span.madda_permissible    { color: #CC2200; }
+tajweed.madda_munfasil,       span.madda_munfasil       { color: #CC2200; }
+tajweed.madda_obligatory,     span.madda_obligatory     { color: #AA0000; }
+tajweed.madda_necessary,      span.madda_necessary      { color: #7A0000; }
+/* Green: ghunnah / ikhfa / idgham */
+tajweed.ghunnah,              span.ghunnah              { color: #1A8C3A; }
+tajweed.ikhafa,               span.ikhafa               { color: #2DA84F; }
+tajweed.ikhafa_shafawi,       span.ikhafa_shafawi       { color: #2DA84F; }
+tajweed.iqlab,                span.iqlab                { color: #1A8C3A; }
+tajweed.idgham_ghunnah,       span.idgham_ghunnah       { color: #1A8C3A; }
+tajweed.idgham_wo_ghunnah,    span.idgham_wo_ghunnah    { color: #117A30; }
+tajweed.idgham_shafawi,       span.idgham_shafawi       { color: #117A30; }
+tajweed.idgham_mutajanisayn,  span.idgham_mutajanisayn  { color: #117A30; }
+tajweed.idgham_mutaqaribayn,  span.idgham_mutaqaribayn  { color: #117A30; }
+/* Dark blue: qalaqah */
+tajweed.qalaqah,              span.qalaqah              { color: #1A3CB0; }
+/* Gray: silent / grammatical — subdued, close to text */
+tajweed.ham_wasl,             span.ham_wasl             { color: #999999; }
+tajweed.laam_shamsiyah,       span.laam_shamsiyah       { color: #999999; }
+tajweed.slnt,                 span.slnt                 { color: #BBBBBB; opacity: 0.7; }
 
 .tj-word-text .end,
 .tj-plain-word .end { color: #888; font-size: 0.85em; }

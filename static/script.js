@@ -2008,6 +2008,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             }).join('');
     }
 
+    /**
+     * Reclassify madda_obligatory → madda_munfasil in the raw HTML string for display.
+     * The heuristic mirrors flush() in parseTajweedIntoWords: if the tagged text has no
+     * Arabic hamza character and there is no hamza in the remaining text up to the next
+     * space, it's منفصل.
+     */
+    function _reclassifyMunfasilInHtml(html) {
+        const _hamzaRe = /[\u0621\u0623\u0624\u0625\u0626]/;
+        // Split on word boundaries (spaces between Arabic words)
+        // We process the entire string token by token looking for madda_obligatory tags
+        return html.replace(
+            /(<tajweed\s+class=["']?madda_obligatory["']?>)([\s\S]*?)(<\/tajweed>)([\s\S]*?)(?= |$)/g,
+            (match, open, inner, close, afterInSameWord) => {
+                if (!_hamzaRe.test(inner) && !_hamzaRe.test(afterInSameWord)) {
+                    return `<tajweed class="madda_munfasil">${inner}</tajweed>${afterInSameWord}`;
+                }
+                return match;
+            }
+        );
+    }
+
     function displayTajweed(html) {
         const verseDiv = document.getElementById('tajweed-verse-text');
         const bd       = document.getElementById('tajweed-breakdown');
@@ -2021,9 +2042,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Render the full verse with tajweed colours, stripping the verse-number end marker
-        verseDiv.innerHTML = html.replace(/<span[^>]*class=["']?end["']?[^>]*>.*?<\/span>/gi, '').trim();
+        // Also reclassify madda_munfasil (API sends madda_obligatory for both متصل and منفصل)
+        const cleanHtml = _reclassifyMunfasilInHtml(
+            html.replace(/<span[^>]*class=["']?end["']?[^>]*>.*?<\/span>/gi, '').trim()
+        );
+        verseDiv.innerHTML = cleanHtml;
 
-        // Collect unique rules (preserving TAJWEED_LEGEND_ITEMS display order)
+        // Feature 1: add data-tip to every colored letter span/tajweed for CSS tooltip
+        verseDiv.querySelectorAll('tajweed[class], span[class]').forEach(el => {
+            const cls = (el.getAttribute('class') || '').trim();
+            if (!cls || cls === 'end') return;
+            const info = _ruleInfo[cls];
+            if (info) el.setAttribute('data-tip', `${info.name}\n${info.desc}`);
+        });
+
+        // Feature 5: draw cross-word underline connectors
+        // We need to find pairs: a tajweed element with a cross-word class whose rule
+        // continues into the next word. We use parseTajweedIntoWords to find the pairs,
+        // then locate the actual DOM elements by position and draw an SVG line.
+        _drawCrossWordConnectors(verseDiv, html);
+
+        // Collect unique rules for legend chips
         const words = parseTajweedIntoWords(html);
         const seenRules = new Set();
         for (const { rules } of words) rules.forEach(r => seenRules.add(r));
@@ -2039,6 +2078,59 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (heading) heading.style.display = chips ? '' : 'none';
         bd.innerHTML = chips || '<p style="color:#888;font-size:0.85rem">لا توجد أحكام تجويد في هذه الآية.</p>';
+    }
+
+    /**
+     * Draw colored underline connectors between cross-word rule pairs.
+     * Finds every tajweed/span element with a cross-word class, groups them
+     * into consecutive pairs (first word → next word), then draws an absolutely-
+     * positioned colored <div> line under both.
+     */
+    function _drawCrossWordConnectors(verseDiv, html) {
+        // Remove any old connectors
+        verseDiv.querySelectorAll('.tj-crossword-line').forEach(e => e.remove());
+
+        // For each cross-word rule class, find all tagged elements in DOM order
+        for (const cls of _CROSS_WORD_CLASSES) {
+            const els = Array.from(verseDiv.querySelectorAll(`tajweed.${cls}, span.${cls}`));
+            if (els.length < 2) continue;
+
+            // Group into consecutive pairs that are in adjacent "words" (separated by a space
+            // text node or by being in different word groups per parseTajweedIntoWords).
+            // Simpler heuristic: pair every element with the nearest subsequent same-class element
+            // that is not in the same text run (i.e. there is some plain text between them).
+            let i = 0;
+            while (i < els.length - 1) {
+                const a = els[i];
+                const b = els[i + 1];
+
+                // Check there's a word boundary (space) between them in the rendered text
+                const rangeBetween = document.createRange();
+                rangeBetween.setStartAfter(a);
+                rangeBetween.setEndBefore(b);
+                const textBetween = rangeBetween.toString();
+                if (!textBetween.includes(' ')) { i++; continue; }
+
+                // Draw connector
+                const rectA = a.getBoundingClientRect();
+                const rectB = b.getBoundingClientRect();
+                const rectV = verseDiv.getBoundingClientRect();
+
+                // left/right in container-relative coords (RTL: b is visually to the right of a)
+                const x1 = Math.min(rectA.left, rectB.left) - rectV.left - 2;
+                const x2 = Math.max(rectA.right, rectB.right) - rectV.left + 2;
+                const y  = Math.max(rectA.bottom, rectB.bottom) - rectV.top + 2;
+
+                const line = document.createElement('div');
+                line.className = 'tj-crossword-line';
+                // Get computed color of the element
+                const color = getComputedStyle(a).color;
+                line.style.cssText = `left:${x1}px; width:${x2 - x1}px; top:${y}px; background:${color};`;
+                verseDiv.appendChild(line);
+
+                i += 2; // skip b — it's the second of this pair
+            }
+        }
     }
 
     async function maybeRefreshTajweed(surahNumber, ayahNumber) {
