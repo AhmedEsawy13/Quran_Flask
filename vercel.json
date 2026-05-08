@@ -37,11 +37,5 @@
           }
         ]
       }
-    ],
-    "crons": [
-      {
-        "path": "/api/health",
-        "schedule": "*/5 * * * *"
-      }
     ]
   }
