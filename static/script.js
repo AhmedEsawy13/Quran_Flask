@@ -1598,11 +1598,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const symbolLabel = info.meaning || displayData.title.trim();
             symbolSpan.title = [versionLabel, symbolLabel].filter(Boolean).join(' | ');
 
-            stack.appendChild(symbolSpan);
-        }
-        // Mark the stack so CSS can apply column layout for الهندي only
-        if (_isHindi && symbols.length > 0) {
-            stack.dataset.hasHindi = 'true';
+            if (_isHindi) {
+                // الهندي symbols go into their own inner column group so the
+                // outer row-stack of other mushafs is not affected
+                let hindiGroup = stack.querySelector(':scope > .waqf-hindi-group');
+                if (!hindiGroup) {
+                    hindiGroup = document.createElement('span');
+                    hindiGroup.className = 'waqf-hindi-group';
+                    stack.appendChild(hindiGroup);
+                }
+                hindiGroup.appendChild(symbolSpan);
+            } else {
+                stack.appendChild(symbolSpan);
+            }
         }
     }
     function stripEmbeddedWaqf(text) {
