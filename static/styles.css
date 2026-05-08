@@ -125,12 +125,13 @@ body.sepia-mode .ayah-container {
 #quran-text {
     margin-top: 2rem;
     font-size: clamp(1.8rem, 4vw, 2.5rem); /* Responsive font size */
-    line-height: 2.2; /* waqf now below word via padding-bottom */
+    line-height: 2.2;
     text-align: center;
     direction: rtl;
     display: flex;
     flex-wrap: wrap; /* CRITICAL: Wraps words instead of overflowing */
     justify-content: center;
+    align-items: flex-end; /* align all words at their text baseline */
     gap: 0.5rem 0.25rem;
     width: 100%;
     margin-left: auto;
@@ -138,12 +139,12 @@ body.sepia-mode .ayah-container {
 }
 
 .word-token {
-    display: inline-block;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
     position: relative;
-    vertical-align: baseline;
     margin: 0 0.05rem;
     line-height: 1.6;
-    padding-top: 0.15em; /* space for waqf symbols above the word */
     transition: color 0.2s ease, transform 0.2s ease;
 }
 
@@ -156,24 +157,19 @@ body.sepia-mode .ayah-container {
     white-space: nowrap;
 }
 
-/* Container for all overlay waqf symbols — sits above the word, side by side (row).
-   Uses align-items: center so different mushaf fonts (UthmanicHafs / UthmanicWarsh /
-   IndoPakNastaleeq2) line up VISUALLY rather than by their wildly different baselines. */
+/* Container for all overlay waqf symbols — sits above the word, side by side (row). */
 .waqf-stack {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    display: inline-flex;
+    display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
     align-items: center;
+    white-space: nowrap;
     pointer-events: none;
     gap: 0.05em;
     font-size: 0.72em;
     line-height: 1;
+    min-height: 0;
 }
 
 /* Each symbol — fixed-height inline-flex box so glyphs from very different fonts
