@@ -546,40 +546,40 @@ body.dark-mode .tj-chip { background: rgba(255, 255, 255, 0.07); }
 .tj-chip-name  { font-weight: 700; font-size: 0.72rem; line-height: 1.35; }
 .tj-chip-desc  { font-size: 0.61rem; opacity: 0.7; line-height: 1.2; }
 
-/* Chip border colors match letter rule colors */
+/* Chip border colors — alquran.cloud official color scheme */
 .tj-chip.ghunnah           { border-right-color: #FF7E1E; }
 .tj-chip.ikhafa            { border-right-color: #9400A8; }
-.tj-chip.ikhafa_shafawi    { border-right-color: #D500D5; }
-.tj-chip.iqlab             { border-right-color: #26BFBF; }
-.tj-chip.idgham_ghunnah    { border-right-color: #169200; }
-.tj-chip.idgham_wo_ghunnah { border-right-color: #22AA22; }
-.tj-chip.idgham_shafawi    { border-right-color: #0AAF6A; }
-.tj-chip.idgham_mutajanisayn  { border-right-color: #008B70; }
-.tj-chip.idgham_mutaqaribayn  { border-right-color: #3A7D44; }
+.tj-chip.ikhafa_shafawi    { border-right-color: #D500B7; }
+.tj-chip.iqlab             { border-right-color: #26BFFD; }
+.tj-chip.idgham_ghunnah    { border-right-color: #169777; }
+.tj-chip.idgham_wo_ghunnah { border-right-color: #169200; }
+.tj-chip.idgham_shafawi    { border-right-color: #58B800; }
+.tj-chip.idgham_mutajanisayn  { border-right-color: #A1A1A1; }
+.tj-chip.idgham_mutaqaribayn  { border-right-color: #A1A1A1; }
 .tj-chip.qalaqah           { border-right-color: #DD0008; }
-.tj-chip.madda_normal      { border-right-color: #198FFF; }
-.tj-chip.madda_permissible { border-right-color: #4DB8FF; }
-.tj-chip.madda_obligatory  { border-right-color: #0000CC; }
-.tj-chip.madda_necessary   { border-right-color: #000080; }
+.tj-chip.madda_normal      { border-right-color: #537FFF; }
+.tj-chip.madda_permissible { border-right-color: #4050FF; }
+.tj-chip.madda_obligatory  { border-right-color: #2144C1; }
+.tj-chip.madda_necessary   { border-right-color: #000EBC; }
 .tj-chip.ham_wasl          { border-right-color: #AAAAAA; }
 .tj-chip.laam_shamsiyah    { border-right-color: #AAAAAA; }
 .tj-chip.slnt              { border-right-color: #AAAAAA; }
 
-/* Rule colours — applied to individual letters by the quran.com API HTML */
+/* Rule colours — alquran.cloud official color scheme (https://alquran.cloud/tajweed-guide) */
 tajweed.ghunnah,              span.ghunnah              { color: #FF7E1E; }
 tajweed.ikhafa,               span.ikhafa               { color: #9400A8; }
-tajweed.ikhafa_shafawi,       span.ikhafa_shafawi       { color: #D500D5; }
-tajweed.iqlab,                span.iqlab                { color: #26BFBF; }
-tajweed.idgham_ghunnah,       span.idgham_ghunnah       { color: #169200; }
-tajweed.idgham_wo_ghunnah,    span.idgham_wo_ghunnah    { color: #22AA22; }
-tajweed.idgham_shafawi,       span.idgham_shafawi       { color: #0AAF6A; }
-tajweed.idgham_mutajanisayn,  span.idgham_mutajanisayn  { color: #008B70; }
-tajweed.idgham_mutaqaribayn,  span.idgham_mutaqaribayn  { color: #3A7D44; }
+tajweed.ikhafa_shafawi,       span.ikhafa_shafawi       { color: #D500B7; }
+tajweed.iqlab,                span.iqlab                { color: #26BFFD; }
+tajweed.idgham_ghunnah,       span.idgham_ghunnah       { color: #169777; }
+tajweed.idgham_wo_ghunnah,    span.idgham_wo_ghunnah    { color: #169200; }
+tajweed.idgham_shafawi,       span.idgham_shafawi       { color: #58B800; }
+tajweed.idgham_mutajanisayn,  span.idgham_mutajanisayn  { color: #A1A1A1; }
+tajweed.idgham_mutaqaribayn,  span.idgham_mutaqaribayn  { color: #A1A1A1; }
 tajweed.qalaqah,              span.qalaqah              { color: #DD0008; }
-tajweed.madda_normal,         span.madda_normal         { color: #198FFF; }
-tajweed.madda_permissible,    span.madda_permissible    { color: #4DB8FF; }
-tajweed.madda_obligatory,     span.madda_obligatory     { color: #0000CC; }
-tajweed.madda_necessary,      span.madda_necessary      { color: #000080; }
+tajweed.madda_normal,         span.madda_normal         { color: #537FFF; }
+tajweed.madda_permissible,    span.madda_permissible    { color: #4050FF; }
+tajweed.madda_obligatory,     span.madda_obligatory     { color: #2144C1; }
+tajweed.madda_necessary,      span.madda_necessary      { color: #000EBC; }
 tajweed.ham_wasl,             span.ham_wasl             { color: #AAAAAA; }
 tajweed.laam_shamsiyah,       span.laam_shamsiyah       { color: #AAAAAA; }
 tajweed.slnt,                 span.slnt                 { color: #AAAAAA; opacity: 0.6; }
