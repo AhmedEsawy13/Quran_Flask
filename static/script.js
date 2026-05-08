@@ -1600,6 +1600,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             stack.appendChild(symbolSpan);
         }
+        // Mark the stack so CSS can apply column layout for الهندي only
+        if (_isHindi && symbols.length > 0) {
+            stack.dataset.hasHindi = 'true';
+        }
     }
     function stripEmbeddedWaqf(text) {
         // Only strip the 7 actual waqf stop marks: U+06D6–U+06DC (ۖۗۘۙۚۛۜ)

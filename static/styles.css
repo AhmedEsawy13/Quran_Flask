@@ -181,11 +181,10 @@ body[data-font-type="indopak"][data-waqf-mode="original"] #quran-text {
     line-height: 1;
 }
 
-/* For IndoPak font (non-original mode), stack symbols vertically.
-   Anchor the stack BOTTOM to the text top edge (padding-top = 0.9em) and grow
-   upward — keeps symbols flush to the word and any overflow goes into row-gap
-   (not into the word text itself). */
-body[data-font-type="indopak"] .waqf-stack {
+/* For IndoPak font, stack الهندي symbols vertically.
+   Only stacks that actually contain الهندي symbols get column layout
+   (marked via data-has-hindi by JS). Other mushafs stay in row. */
+body[data-font-type="indopak"] .waqf-stack[data-has-hindi] {
     flex-direction: column-reverse;
     align-items: center;
     justify-content: flex-start;
