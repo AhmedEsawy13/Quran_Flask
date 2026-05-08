@@ -382,6 +382,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('show-tafseer').addEventListener('click', toggleTafseer);
         const eerabBtn = document.getElementById('show-eerab');
         if (eerabBtn) eerabBtn.addEventListener('click', toggleEerab);
+        const tajweedBtn = document.getElementById('show-tajweed');
+        if (tajweedBtn) tajweedBtn.addEventListener('click', toggleTajweed);
         const nuzoolBtn = document.getElementById('show-nuzool');
         if (nuzoolBtn) nuzoolBtn.addEventListener('click', toggleNuzool);
         elements.toggleWordMeaningButton.addEventListener('click', toggleWordMeaning); // Listener for the new toggle via button
@@ -627,6 +629,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
             await maybeRefreshEerab(surahNumber, ayahNumber);
+            await maybeRefreshTajweed(surahNumber, ayahNumber);
             // Only display word meanings if they should be visible
             if (elements.wordMeaningVisible) {
                 displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
@@ -690,6 +693,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         displayTransliteration(currentAyahData.transliteration);
         await maybeRefreshTafseer(surahNumber, ayahNumber);
         await maybeRefreshEerab(surahNumber, ayahNumber);
+        await maybeRefreshTajweed(surahNumber, ayahNumber);
         if (elements.wordMeaningVisible) {
             const verseText = shamarlyPayload?.raw_text || currentAyahData.text || '';
             displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, verseText);
@@ -761,6 +765,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
             await maybeRefreshEerab(surahNumber, ayahNumber);
+            await maybeRefreshTajweed(surahNumber, ayahNumber);
             if (elements.wordMeaningVisible) {
                 displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
             } else {
@@ -1835,6 +1840,213 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eerabContainer = document.getElementById('eerab-container');
         if (!eerabButton || !eerabContainer) return;
         eerabButton.textContent = eerabContainer.style.display === 'none' ? 'الإعراب' : 'إخفاء الإعراب';
+    }
+
+    // ── Tajweed ─────────────────────────────────────────────────────────────────────────
+    // JS-side cache: verse_key → html string
+    const _tajweedHtmlCache = {};
+
+    // Rule metadata used to build word chips
+    const TAJWEED_LEGEND_ITEMS = [
+        { cls: 'ghunnah',              name: 'غنة',                  desc: 'نون أو ميم مشددة • ٢ حركتان من الخيشوم' },
+        { cls: 'ikhafa',               name: 'إخفاء',                desc: 'ن ساكنة أو تنوين قبل ١٥ حرفًا • نطق بين الإظهار والإدغام مع غنة' },
+        { cls: 'ikhafa_shafawi',       name: 'إخفاء شفوي',          desc: 'ميم ساكنة قبل الباء • إخفاء مع غنة' },
+        { cls: 'iqlab',                name: 'إقلاب',                desc: 'ن ساكنة أو تنوين قبل الباء • تُقلب ميمًا مخفاةً مع غنة' },
+        { cls: 'idgham_ghunnah',       name: 'إدغام بغنة',           desc: 'ن ساكنة أو تنوين قبل (ي و م ن) بين كلمتين • إدغام مع غنة' },
+        { cls: 'idgham_wo_ghunnah',    name: 'إدغام بلا غنة',       desc: 'ن ساكنة أو تنوين قبل (ل ر) بين كلمتين • إدغام بلا غنة' },
+        { cls: 'idgham_shafawi',       name: 'إدغام شفوي',          desc: 'ميم ساكنة قبل ميم • إدغام كامل مع غنة ٢ حركتان' },
+        { cls: 'idgham_mutajanisayn',  name: 'إدغام المتجانسين',    desc: 'حرفان من مخرج واحد بين كلمتين • مثل: قَدْ تَبَيَّنَ، وَدَّتْ طَّائِفَةٌ' },
+        { cls: 'idgham_mutaqaribayn',  name: 'إدغام المتقاربين',    desc: 'حرفان متقاربا المخرج بين كلمتين • مثل: لام ساكنة قبل راء — بَلْ رَّفَعَهُ' },
+        { cls: 'qalaqah',              name: 'قلقلة',                desc: 'حروف (ق ط ب ج د) عند السكون • اهتزاز في المخرج عند الوقف أو السكون' },
+        { cls: 'madda_normal',         name: 'مد طبيعي',            desc: 'مد أصلي ٢ حركتان • (ا و ي) لا يليها همز أو سكون • يصير مد عارضًا للسكون عند الوقف' },
+        { cls: 'madda_permissible',    name: 'مد عارض للسكون',     desc: 'حرف مد في آخر كلمة • وقفًا: ٢ أو ٤ أو ٦ حركات • وصلًا مع همزة التالية: ٤–٥ حركات (مد جائز منفصل) • مثل: تَعْمَلُونَ' },
+        { cls: 'madda_obligatory',     name: 'مد واجب متصل',       desc: 'حرف المد وهمزة القطع في كلمة واحدة • متصلتان • ٤–٥ حركات • مثل: جَآءَ، سُوٓءَ' },
+        { cls: 'madda_necessary',      name: 'مد لازم',             desc: 'حرف مد يعقبه سكون أصلي أو شدة • ٦ حركات وجوبًا • مثل: الٓمٓ، ٱلضَّآلِّينَ' },
+        { cls: 'ham_wasl',             name: 'همزة وصل',            desc: 'تُحذف في الوصل وتُنطق في الابتداء فقط • مثل: ٱللَّهُ، ٱقرأ' },
+        { cls: 'laam_shamsiyah',       name: 'لام شمسية',           desc: 'لام ال التعريف تُدغم في أحد الحروف الشمسية الـ١٤ التالية لها' },
+        { cls: 'slnt',                 name: 'حرف صامت',            desc: 'حرف مكتوب لا يُنطق • مثل: ألفات الفرق والزيادة كما في هَٰذَا' },
+    ];
+    const _ruleInfo = Object.fromEntries(TAJWEED_LEGEND_ITEMS.map(r => [r.cls, r]));
+
+    /**
+     * Parse the quran.com tajweed HTML into word segments.
+     *
+     * The API sometimes wraps text that spans word boundaries inside one tag,
+     * e.g. <tajweed class=idgham_ghunnah>ةٌ و</tajweed>  (the space is INSIDE).
+     * We flatten the DOM to a linear token stream first, then split on spaces.
+     *
+     * Returns [{html: string, rules: string[]}]
+     */
+    function parseTajweedIntoWords(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+
+        // Step 1: flatten into tokens [{text, cls}]
+        // cls is the tajweed rule that wraps this text chunk ('' = plain text)
+        const tokens = [];
+        for (const node of tmp.childNodes) {
+            if (node.nodeType === 3 /* TEXT_NODE */) {
+                const t = node.textContent;
+                if (t) tokens.push({ text: t, cls: '' });
+            } else if (node.nodeType === 1 /* ELEMENT_NODE */) {
+                const cls = (node.getAttribute('class') || '').trim();
+                if (cls === 'end') continue; // skip verse-number marker
+                const t = node.textContent;
+                if (t) tokens.push({ text: t, cls });
+            }
+        }
+
+        // Step 2: split each token on spaces to get sub-tokens
+        // [{text: string (no spaces), cls: string, boundary: bool}]
+        // boundary=true means "word ends AFTER this sub-token"
+        const subTokens = [];
+        for (const { text, cls } of tokens) {
+            const parts = text.split(' ');
+            for (let i = 0; i < parts.length; i++) {
+                const isLast = i === parts.length - 1;
+                if (parts[i]) {
+                    subTokens.push({ text: parts[i], cls, boundary: !isLast });
+                } else if (!isLast) {
+                    // empty string before boundary = boundary only
+                    subTokens.push({ text: '', cls, boundary: true });
+                }
+            }
+        }
+
+        // Step 3: group sub-tokens into words
+        const segments = [];
+        let segParts = []; // [{text, cls}]
+        let segRules = new Set();
+
+        const flush = () => {
+            const combined = segParts.map(p => p.text).join('');
+            if (combined.trim()) {
+                // Build word HTML: plain text runs and colored spans
+                const wHtml = segParts.map(p =>
+                    p.cls
+                        ? `<tajweed class="${p.cls}">${p.text}</tajweed>`
+                        : p.text
+                ).join('');
+                segments.push({ html: wHtml, rules: [...segRules] });
+            }
+            segParts = [];
+            segRules = new Set();
+        };
+
+        for (const sub of subTokens) {
+            if (sub.text) {
+                segParts.push({ text: sub.text, cls: sub.cls });
+                if (sub.cls) segRules.add(sub.cls);
+            }
+            if (sub.boundary) flush();
+        }
+        flush(); // final word
+
+        return segments;
+    }
+
+    async function toggleTajweed() {
+        const container = document.getElementById('tajweed-container');
+        if (!container) return;
+        const isHidden = container.style.display === 'none';
+        container.style.display = isHidden ? 'block' : 'none';
+        updateTajweedButton();
+        if (isHidden) {
+            const surah = elements.surahSelect.value;
+            const ayah = elements.ayahSelect.value;
+            if (surah && ayah) await fetchAndDisplayTajweed(surah, ayah);
+        }
+    }
+
+    async function fetchAndDisplayTajweed(surahNumber, ayahNumber) {
+        const verseKey = `${surahNumber}:${ayahNumber}`;
+        if (_tajweedHtmlCache[verseKey]) {
+            displayTajweed(_tajweedHtmlCache[verseKey]);
+            return;
+        }
+        const bd = document.getElementById('tajweed-breakdown');
+        if (bd) bd.innerHTML = '<span style="color:#888;font-size:0.85rem">جارٍ التحميل…</span>';
+        try {
+            const data = await fetchData(`/api/tajweed/${surahNumber}/${ayahNumber}`);
+            const html = data?.html || '';
+            _tajweedHtmlCache[verseKey] = html;
+            displayTajweed(html);
+        } catch (e) {
+            console.error('Error loading tajweed:', e);
+            if (bd) bd.innerHTML = '<p style="color:#888;font-size:0.9rem;">تعذّر تحميل بيانات التجويد.</p>';
+        }
+    }
+
+    const _CROSS_WORD_CLASSES = new Set(['idgham_ghunnah', 'idgham_wo_ghunnah', 'idgham_shafawi', 'idgham_mutajanisayn', 'idgham_mutaqaribayn', 'ikhafa', 'ikhafa_shafawi', 'iqlab', 'madda_permissible']);
+
+    function _makeChips(rules, excludeSet) {
+        return rules
+            .filter(r => !excludeSet || !excludeSet.has(r))
+            .map(rule => {
+                const info = _ruleInfo[rule];
+                if (!info) return '';
+                return `<div class="tj-chip ${rule}"><span class="tj-chip-name">${info.name}</span><span class="tj-chip-desc">${info.desc}</span></div>`;
+            }).join('');
+    }
+
+    function displayTajweed(html) {
+        const bd = document.getElementById('tajweed-breakdown');
+        if (!bd) return;
+        if (!html) { bd.innerHTML = '<p style="color:#888;">لا توجد بيانات تجويد.</p>'; return; }
+
+        const words = parseTajweedIntoWords(html);
+        if (!words.length) { bd.innerHTML = '<p style="color:#888;">لا توجد بيانات تجويد.</p>'; return; }
+
+        const parts = [];
+        for (let i = 0; i < words.length; i++) {
+            const { html: wHtml, rules } = words[i];
+            const crossWordRule = rules.find(r => _CROSS_WORD_CLASSES.has(r));
+
+            if (crossWordRule && i + 1 < words.length) {
+                // Show this word and the next together as a cross-word pair
+                const next = words[i + 1];
+                const crossInfo = _ruleInfo[crossWordRule];
+                const crossChip = crossInfo
+                    ? `<div class="tj-chip ${crossWordRule}"><span class="tj-chip-name">${crossInfo.name}</span><span class="tj-chip-desc">${crossInfo.desc}</span></div>`
+                    : '';
+                const otherChips1 = _makeChips(rules, _CROSS_WORD_CLASSES);
+                const otherChips2 = _makeChips(next.rules, _CROSS_WORD_CLASSES);
+                parts.push(
+                    `<div class="tj-word-card tj-idgham-pair">` +
+                    `<div class="tj-idgham-words">` +
+                    `<span class="tj-word-text">${wHtml}</span>` +
+                    `<span class="tj-idgham-sep">←</span>` +
+                    `<span class="tj-word-text">${next.html}</span>` +
+                    `</div>` +
+                    crossChip + otherChips1 + otherChips2 +
+                    `</div>`
+                );
+                i++; // skip next word — already shown in the pair
+            } else if (!rules.length) {
+                parts.push(`<span class="tj-plain-word">${wHtml}</span>`);
+            } else {
+                const chips = _makeChips(rules, null);
+                parts.push(`<div class="tj-word-card"><div class="tj-word-text">${wHtml}</div>${chips}</div>`);
+            }
+        }
+        bd.innerHTML = parts.join('');
+    }
+
+    async function maybeRefreshTajweed(surahNumber, ayahNumber) {
+        const container = document.getElementById('tajweed-container');
+        if (container && container.style.display !== 'none') {
+            await fetchAndDisplayTajweed(surahNumber, ayahNumber);
+        }
+    }
+
+    function updateTajweedButton() {
+        const btn = document.getElementById('show-tajweed');
+        const container = document.getElementById('tajweed-container');
+        if (!btn || !container) return;
+        const hidden = container.style.display === 'none';
+        btn.innerHTML = hidden
+            ? '<i class="fas fa-palette"></i> التجويد'
+            : '<i class="fas fa-palette"></i> إخفاء التجويد';
     }
 
     // ── Nuzool ──────────────────────────────────────────────────────────────────────────
@@ -2964,6 +3176,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const quranText = document.getElementById('quran-text');
         quranText.className = ''; // Reset all font classes
         quranText.classList.add(font);
+        // Track exact font name so CSS can apply per-font rules (e.g. #tajweed-text)
+        document.body.dataset.quranFont = font;
         // Track font family so CSS can apply per-font rules to guide-seg-words, diff chips, etc.
         if (font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2') {
             document.body.dataset.fontType = 'indopak';
@@ -2999,13 +3213,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Audio element or play pause button not found');
             return;
         }
-        
+        const btn = elements.playPauseButton;
+        const icon = btn.querySelector('i');
+        const label = btn.querySelector('span');
         if (elements.audioElement.paused) {
-            elements.playPauseButton.classList.remove('fa-pause');
-            elements.playPauseButton.classList.add('fa-play');
+            btn.classList.remove('fa-pause');
+            btn.classList.add('fa-play');
+            if (icon)  { icon.classList.remove('fa-pause'); icon.classList.add('fa-play'); }
+            if (label) label.textContent = 'تشغيل';
         } else {
-            elements.playPauseButton.classList.remove('fa-play');
-            elements.playPauseButton.classList.add('fa-pause');
+            btn.classList.remove('fa-play');
+            btn.classList.add('fa-pause');
+            if (icon)  { icon.classList.remove('fa-play'); icon.classList.add('fa-pause'); }
+            if (label) label.textContent = 'إيقاف';
         }
     }
 

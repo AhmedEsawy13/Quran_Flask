@@ -1546,6 +1546,51 @@ def get_tafseer(surah_number, ayah_number):
     return jsonify(result)
 
 
+# Tajweed-annotated text cache: verse_key → {"html": "..."}
+_tajweed_cache: dict = {}
+
+# verse_number param is silently ignored by this endpoint — it always returns
+# all verses of the chapter, so we fetch once per surah and cache everything.
+TAJWEED_API_BASE = 'https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?chapter_number={surah}'
+
+@app.route('/api/tajweed/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_tajweed(surah_number, ayah_number):
+    """Return tajweed-annotated HTML for one ayah from quran.com v4."""
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number."}), 400
+    if ayah_number < 1 or ayah_number > MAX_AYAH_NUMBER:
+        return jsonify({"error": "Invalid ayah number."}), 400
+
+    verse_key = f"{surah_number}:{ayah_number}"
+    if verse_key in _tajweed_cache:
+        resp = jsonify(_tajweed_cache[verse_key])
+        resp.headers['Cache-Control'] = 'public, max-age=86400'
+        return resp
+
+    # Fetch all verses of the surah in one call and cache them all
+    url = TAJWEED_API_BASE.format(surah=surah_number)
+    try:
+        r = http_requests.get(url, timeout=15)
+        r.raise_for_status()
+        data = r.json()
+        verses = data.get('verses', [])
+        if not verses:
+            return jsonify({"error": "Verse not found"}), 404
+        # Cache every verse returned so sibling requests are instant
+        for v in verses:
+            vk = v.get('verse_key', '')
+            if vk:
+                _tajweed_cache[vk] = {"html": v.get('text_uthmani_tajweed', '')}
+        if verse_key not in _tajweed_cache:
+            return jsonify({"error": "Verse not found"}), 404
+        resp = jsonify(_tajweed_cache[verse_key])
+        resp.headers['Cache-Control'] = 'public, max-age=86400'
+        return resp
+    except Exception as e:
+        app.logger.error(f"Tajweed API error for {verse_key}: {e}")
+        return jsonify({"error": "Failed to fetch tajweed data"}), 502
+
+
 @app.route('/api/eerab/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_eerab(surah_number, ayah_number):
     """Fetch grammatical analysis (إعراب) for a single ayah from SurahApp API."""

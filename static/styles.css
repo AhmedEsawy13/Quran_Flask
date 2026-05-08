@@ -438,6 +438,159 @@ body.dark-mode .eerab-entry {
     font-weight: bold;
 }
 
+/* ============================================================
+   Tajweed colors — used in #tajweed-container
+   Class names match quran.com API text_uthmani_tajweed
+   ============================================================ */
+#tajweed-container {
+    display: none;
+    padding: 1rem 1.2rem;
+    background: #fffdf5;
+    border-radius: 10px;
+    border: 1px solid #e5e0c8;
+    margin-top: 0.75rem;
+}
+
+body.dark-mode #tajweed-container {
+    background: #1e1b12;
+    border-color: #3d3820;
+}
+
+/* ── Word-by-word tajweed breakdown ── */
+#tajweed-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.5rem;
+    direction: rtl;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0.25rem 0;
+}
+
+.tj-word-card {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.45rem 0.65rem 0.4rem;
+    border-radius: 10px;
+    border: 1.5px solid rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.025);
+    min-width: 48px;
+}
+
+body.dark-mode .tj-word-card {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tj-word-text {
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.8rem;
+    line-height: 2.2;
+    direction: rtl;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.tj-plain-word {
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.8rem;
+    line-height: 2.2;
+    direction: rtl;
+    color: #bbb;
+    display: inline-block;
+    padding: 0.45rem 0.2rem;
+    align-self: flex-start;
+}
+
+body.dark-mode .tj-plain-word { color: #444; }
+
+.tj-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.15rem 0.45rem;
+    border-radius: 5px;
+    background: rgba(0, 0, 0, 0.05);
+    border-right: 3px solid #ccc;
+    font-size: 0.7rem;
+    line-height: 1.3;
+    text-align: center;
+    width: 100%;
+    max-width: 130px;
+    gap: 0.02rem;
+}
+body.dark-mode .tj-chip { background: rgba(255, 255, 255, 0.07); }
+
+.tj-chip-name  { font-weight: 700; font-size: 0.72rem; line-height: 1.35; }
+.tj-chip-desc  { font-size: 0.61rem; opacity: 0.7; line-height: 1.2; }
+
+/* Chip border colors match letter rule colors */
+.tj-chip.ghunnah           { border-right-color: #FF7E1E; }
+.tj-chip.ikhafa            { border-right-color: #9400A8; }
+.tj-chip.ikhafa_shafawi    { border-right-color: #D500D5; }
+.tj-chip.iqlab             { border-right-color: #26BFBF; }
+.tj-chip.idgham_ghunnah    { border-right-color: #169200; }
+.tj-chip.idgham_wo_ghunnah { border-right-color: #22AA22; }
+.tj-chip.idgham_shafawi    { border-right-color: #0AAF6A; }
+.tj-chip.idgham_mutajanisayn  { border-right-color: #008B70; }
+.tj-chip.idgham_mutaqaribayn  { border-right-color: #3A7D44; }
+.tj-chip.qalaqah           { border-right-color: #DD0008; }
+.tj-chip.madda_normal      { border-right-color: #198FFF; }
+.tj-chip.madda_permissible { border-right-color: #4DB8FF; }
+.tj-chip.madda_obligatory  { border-right-color: #0000CC; }
+.tj-chip.madda_necessary   { border-right-color: #000080; }
+.tj-chip.ham_wasl          { border-right-color: #AAAAAA; }
+.tj-chip.laam_shamsiyah    { border-right-color: #AAAAAA; }
+.tj-chip.slnt              { border-right-color: #AAAAAA; }
+
+/* Rule colours — applied to individual letters by the quran.com API HTML */
+tajweed.ghunnah,              span.ghunnah              { color: #FF7E1E; }
+tajweed.ikhafa,               span.ikhafa               { color: #9400A8; }
+tajweed.ikhafa_shafawi,       span.ikhafa_shafawi       { color: #D500D5; }
+tajweed.iqlab,                span.iqlab                { color: #26BFBF; }
+tajweed.idgham_ghunnah,       span.idgham_ghunnah       { color: #169200; }
+tajweed.idgham_wo_ghunnah,    span.idgham_wo_ghunnah    { color: #22AA22; }
+tajweed.idgham_shafawi,       span.idgham_shafawi       { color: #0AAF6A; }
+tajweed.idgham_mutajanisayn,  span.idgham_mutajanisayn  { color: #008B70; }
+tajweed.idgham_mutaqaribayn,  span.idgham_mutaqaribayn  { color: #3A7D44; }
+tajweed.qalaqah,              span.qalaqah              { color: #DD0008; }
+tajweed.madda_normal,         span.madda_normal         { color: #198FFF; }
+tajweed.madda_permissible,    span.madda_permissible    { color: #4DB8FF; }
+tajweed.madda_obligatory,     span.madda_obligatory     { color: #0000CC; }
+tajweed.madda_necessary,      span.madda_necessary      { color: #000080; }
+tajweed.ham_wasl,             span.ham_wasl             { color: #AAAAAA; }
+tajweed.laam_shamsiyah,       span.laam_shamsiyah       { color: #AAAAAA; }
+tajweed.slnt,                 span.slnt                 { color: #AAAAAA; opacity: 0.6; }
+
+.tj-word-text .end,
+.tj-plain-word .end { color: #888; font-size: 0.85em; }
+
+/* Idgham pair card: two words shown together */
+.tj-idgham-pair {
+    min-width: 100px;
+}
+
+.tj-idgham-words {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.25rem;
+    direction: rtl;
+}
+
+.tj-idgham-sep {
+    font-size: 0.9rem;
+    color: #aaa;
+    line-height: 1;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+body.dark-mode .tj-idgham-sep { color: #555; }
+
+
 #tafseer-text .brown {
     color: #92400e;
 }
@@ -1156,8 +1309,8 @@ body.sepia-mode input:checked + .slider {
 .word-meanings-list dt {
     font-weight: 700;
     color: var(--primary-color, #4f46e5);
-    font-family: 'UthmanicHafs', serif;
-    font-size: 1.05em;
+    font-family: 'Old Madina', serif;
+    font-size: 1.15em;
     white-space: nowrap;
 }
 
