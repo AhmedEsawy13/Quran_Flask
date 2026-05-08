@@ -2041,20 +2041,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
+        // Sync font with currently selected Quran font
+        const _curFont = (document.getElementById('quran-text-select') || {}).value || 'qpc_hafs';
+        verseDiv.className = (_curFont === 'shamarly') ? 'qpc_hafs' : _curFont;
+
         // Render the full verse with tajweed colours, stripping the verse-number end marker
         // Also reclassify madda_munfasil (API sends madda_obligatory for both متصل and منفصل)
         const cleanHtml = _reclassifyMunfasilInHtml(
             html.replace(/<span[^>]*class=["']?end["']?[^>]*>.*?<\/span>/gi, '').trim()
         );
         verseDiv.innerHTML = cleanHtml;
-
-        // Feature 1: add data-tip to every colored letter span/tajweed for CSS tooltip
-        verseDiv.querySelectorAll('tajweed[class], span[class]').forEach(el => {
-            const cls = (el.getAttribute('class') || '').trim();
-            if (!cls || cls === 'end') return;
-            const info = _ruleInfo[cls];
-            if (info) el.setAttribute('data-tip', `${info.name}\n${info.desc}`);
-        });
 
         // Feature 5: draw cross-word underline connectors
         // We need to find pairs: a tajweed element with a cross-word class whose rule
@@ -3277,6 +3273,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const quranText = document.getElementById('quran-text');
         quranText.className = ''; // Reset all font classes
         quranText.classList.add(font);
+        // Apply the same font to the tajweed verse display
+        // (shamarly uses position-encoded glyphs that don’t apply to uthmanic tajweed text,
+        //  so fall back to qpc_hafs for the tajweed panel)
+        const tajweedVerse = document.getElementById('tajweed-verse-text');
+        if (tajweedVerse) {
+            tajweedVerse.className = (font === 'shamarly') ? 'qpc_hafs' : font;
+        }
         // Track exact font name so CSS can apply per-font rules (e.g. #tajweed-text)
         document.body.dataset.quranFont = font;
         // Track font family so CSS can apply per-font rules to guide-seg-words, diff chips, etc.

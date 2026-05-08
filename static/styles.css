@@ -478,7 +478,6 @@ body.dark-mode #tajweed-container {
 
 /* ── Tajweed: verse + rule legend ── */
 #tajweed-verse-text {
-    font-family: 'UthmanicHafs', serif;
     font-size: 2rem;
     line-height: 2.6;
     direction: rtl;
@@ -486,49 +485,6 @@ body.dark-mode #tajweed-container {
     padding: 0.4rem 0 1rem;
     word-spacing: 0.1em;
     position: relative; /* needed for cross-word connector positioning */
-}
-
-/* Colored letter tooltip — feature 1 */
-#tajweed-verse-text tajweed[class]:not(.end),
-#tajweed-verse-text span[class]:not(.end) {
-    position: relative;
-    cursor: help;
-}
-
-#tajweed-verse-text tajweed[class]:not(.end)::after,
-#tajweed-verse-text span[class]:not(.end)::after {
-    content: attr(data-tip);
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    background: rgba(30, 27, 18, 0.9);
-    color: #fff;
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 0.68rem;
-    line-height: 1.3;
-    padding: 0.25em 0.55em;
-    border-radius: 5px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    z-index: 100;
-    direction: rtl;
-    text-align: center;
-    max-width: 160px;
-    white-space: pre-line;
-}
-
-#tajweed-verse-text tajweed[class]:not(.end):hover::after,
-#tajweed-verse-text span[class]:not(.end):hover::after {
-    opacity: 1;
-}
-
-body.dark-mode #tajweed-verse-text tajweed[class]:not(.end)::after,
-body.dark-mode #tajweed-verse-text span[class]:not(.end)::after {
-    background: rgba(240, 230, 200, 0.95);
-    color: #111;
 }
 
 /* Cross-word connector arc — feature 5 */
