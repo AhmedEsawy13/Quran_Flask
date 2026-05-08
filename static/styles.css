@@ -476,70 +476,54 @@ body.dark-mode #tajweed-container {
     border-color: #3d3820;
 }
 
-/* ── Word-by-word tajweed breakdown ── */
+/* ── Tajweed: verse + rule legend ── */
+#tajweed-verse-text {
+    font-family: 'UthmanicHafs', serif;
+    font-size: 2rem;
+    line-height: 2.6;
+    direction: rtl;
+    text-align: center;
+    padding: 0.4rem 0 1rem;
+    word-spacing: 0.1em;
+}
+
+#tajweed-rules-heading {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+    text-align: center;
+}
+
+body.dark-mode #tajweed-rules-heading { color: #666; }
+
 #tajweed-breakdown {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem 0.5rem;
+    gap: 0.5rem;
     direction: rtl;
     justify-content: center;
     align-items: flex-start;
-    padding: 0.25rem 0;
+    padding: 0.1rem 0 0.25rem;
 }
 
-.tj-word-card {
+
+.tj-chip {
     display: inline-flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.2rem;
-    padding: 0.45rem 0.65rem 0.4rem;
-    border-radius: 10px;
-    border: 1.5px solid rgba(0, 0, 0, 0.1);
-    background: rgba(0, 0, 0, 0.025);
-    min-width: 48px;
-}
-
-body.dark-mode .tj-word-card {
-    border-color: rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.tj-word-text {
-    font-family: 'UthmanicHafs', serif;
-    font-size: 1.8rem;
-    line-height: 2.2;
-    direction: rtl;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.tj-plain-word {
-    font-family: 'UthmanicHafs', serif;
-    font-size: 1.8rem;
-    line-height: 2.2;
-    direction: rtl;
-    color: #bbb;
-    display: inline-block;
-    padding: 0.45rem 0.2rem;
-    align-self: flex-start;
-}
-
-body.dark-mode .tj-plain-word { color: #444; }
-
-.tj-chip {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0.15rem 0.45rem;
-    border-radius: 5px;
-    background: rgba(0, 0, 0, 0.05);
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.04);
     border-right: 3px solid #ccc;
     font-size: 0.7rem;
     line-height: 1.3;
     text-align: center;
-    width: 100%;
-    max-width: 130px;
-    gap: 0.02rem;
+    min-width: 80px;
+    max-width: 150px;
+    gap: 0.05rem;
 }
 body.dark-mode .tj-chip { background: rgba(255, 255, 255, 0.07); }
 

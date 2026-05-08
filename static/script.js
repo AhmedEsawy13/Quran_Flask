@@ -2009,46 +2009,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function displayTajweed(html) {
-        const bd = document.getElementById('tajweed-breakdown');
-        if (!bd) return;
-        if (!html) { bd.innerHTML = '<p style="color:#888;">لا توجد بيانات تجويد.</p>'; return; }
-
-        const words = parseTajweedIntoWords(html);
-        if (!words.length) { bd.innerHTML = '<p style="color:#888;">لا توجد بيانات تجويد.</p>'; return; }
-
-        const parts = [];
-        for (let i = 0; i < words.length; i++) {
-            const { html: wHtml, rules } = words[i];
-            const crossWordRule = rules.find(r => _CROSS_WORD_CLASSES.has(r));
-
-            if (crossWordRule && i + 1 < words.length) {
-                // Show this word and the next together as a cross-word pair
-                const next = words[i + 1];
-                const crossInfo = _ruleInfo[crossWordRule];
-                const crossChip = crossInfo
-                    ? `<div class="tj-chip ${crossWordRule}"><span class="tj-chip-name">${crossInfo.name}</span><span class="tj-chip-desc">${crossInfo.desc}</span></div>`
-                    : '';
-                const otherChips1 = _makeChips(rules, _CROSS_WORD_CLASSES);
-                const otherChips2 = _makeChips(next.rules, _CROSS_WORD_CLASSES);
-                parts.push(
-                    `<div class="tj-word-card tj-idgham-pair">` +
-                    `<div class="tj-idgham-words">` +
-                    `<span class="tj-word-text">${wHtml}</span>` +
-                    `<span class="tj-idgham-sep">←</span>` +
-                    `<span class="tj-word-text">${next.html}</span>` +
-                    `</div>` +
-                    crossChip + otherChips1 + otherChips2 +
-                    `</div>`
-                );
-                i++; // skip next word — already shown in the pair
-            } else if (!rules.length) {
-                parts.push(`<span class="tj-plain-word">${wHtml}</span>`);
-            } else {
-                const chips = _makeChips(rules, null);
-                parts.push(`<div class="tj-word-card"><div class="tj-word-text">${wHtml}</div>${chips}</div>`);
-            }
+        const verseDiv = document.getElementById('tajweed-verse-text');
+        const bd       = document.getElementById('tajweed-breakdown');
+        const heading  = document.getElementById('tajweed-rules-heading');
+        if (!verseDiv || !bd) return;
+        if (!html) {
+            verseDiv.innerHTML = '';
+            if (heading) heading.style.display = 'none';
+            bd.innerHTML = '<p style="color:#888;">لا توجد بيانات تجويد.</p>';
+            return;
         }
-        bd.innerHTML = parts.join('');
+
+        // Render the full verse with tajweed colours, stripping the verse-number end marker
+        verseDiv.innerHTML = html.replace(/<span[^>]*class=["']?end["']?[^>]*>.*?<\/span>/gi, '').trim();
+
+        // Collect unique rules (preserving TAJWEED_LEGEND_ITEMS display order)
+        const words = parseTajweedIntoWords(html);
+        const seenRules = new Set();
+        for (const { rules } of words) rules.forEach(r => seenRules.add(r));
+
+        const chips = TAJWEED_LEGEND_ITEMS
+            .filter(item => seenRules.has(item.cls))
+            .map(item =>
+                `<div class="tj-chip ${item.cls}">` +
+                `<span class="tj-chip-name">${item.name}</span>` +
+                `<span class="tj-chip-desc">${item.desc}</span>` +
+                `</div>`
+            ).join('');
+
+        if (heading) heading.style.display = chips ? '' : 'none';
+        bd.innerHTML = chips || '<p style="color:#888;font-size:0.85rem">لا توجد أحكام تجويد في هذه الآية.</p>';
     }
 
     async function maybeRefreshTajweed(surahNumber, ayahNumber) {
