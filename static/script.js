@@ -1859,8 +1859,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         { cls: 'idgham_mutaqaribayn',  name: 'إدغام المتقاربين',    desc: 'إدغام المتقاربين — حرفان متقاربا المخرج والصفة' },
         { cls: 'qalaqah',              name: 'قلقلة',                desc: 'قلقلة — حروف (ق ط ب ج د) عند السكون أو الوقف' },
         { cls: 'madda_normal',         name: 'مد طبيعي',            desc: 'مد طبيعي ٢ حركتان — حرف مد لا يليه همز أو سكون' },
-        { cls: 'madda_permissible',    name: 'مد جائز',             desc: 'مد جائز — ٢ أو ٤ أو ٦ حركات وقفًا، ٤–٥ وصلًا' },
+        { cls: 'madda_permissible',    name: 'مد عارض للسكون',      desc: 'مد عارض للسكون — ٢ أو ٤ أو ٦ حركات عند الوقف على الكلمة' },
         { cls: 'madda_obligatory',     name: 'مد واجب متصل',       desc: 'مد واجب متصل ٤–٥ حركات — حرف المد والهمزة في كلمة واحدة' },
+        { cls: 'madda_munfasil',       name: 'مد جائز منفصل',      desc: 'مد جائز منفصل ٤–٥ حركات — حرف المد في كلمة والهمزة في الكلمة التالية' },
         { cls: 'madda_necessary',      name: 'مد لازم',             desc: 'مد لازم ٦ حركات — حرف مد يعقبه سكون أصلي أو شدة' },
         { cls: 'ham_wasl',             name: 'همزة وصل',            desc: 'همزة الوصل — تُحذف في الوصل وتُنطق في الابتداء' },
         { cls: 'laam_shamsiyah',       name: 'لام شمسية',           desc: 'لام شمسية — لام التعريف تُدغم في الحرف التالي' },
@@ -1921,8 +1922,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const flush = () => {
             const combined = segParts.map(p => p.text).join('');
             if (combined.trim()) {
+                // Detect مد جائز منفصل: the quran.com API mislabels it as madda_obligatory.
+                // When the madda_obligatory tag ends the word with NO Arabic hamza (ء/أ/إ/ؤ/ئ)
+                // in or after the tagged text, the hamza belongs to the next word → منفصل.
+                const _hamzaRe = /[\u0621\u0623\u0624\u0625\u0626]/;
+                let finalParts = segParts;
+                if (segRules.has('madda_obligatory')) {
+                    const madIdx = segParts.map(p => p.cls).lastIndexOf('madda_obligatory');
+                    const textInMad    = segParts[madIdx]?.text || '';
+                    const textAfterMad = segParts.slice(madIdx + 1).map(p => p.text).join('');
+                    if (!_hamzaRe.test(textInMad) && !_hamzaRe.test(textAfterMad)) {
+                        // No hamza found in same word → reclassify as مد جائز منفصل
+                        finalParts = segParts.map(p =>
+                            p.cls === 'madda_obligatory' ? { ...p, cls: 'madda_munfasil' } : p
+                        );
+                        segRules.delete('madda_obligatory');
+                        segRules.add('madda_munfasil');
+                    }
+                }
                 // Build word HTML: plain text runs and colored spans
-                const wHtml = segParts.map(p =>
+                const wHtml = finalParts.map(p =>
                     p.cls
                         ? `<tajweed class="${p.cls}">${p.text}</tajweed>`
                         : p.text
@@ -1977,7 +1996,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    const _CROSS_WORD_CLASSES = new Set(['idgham_ghunnah', 'idgham_wo_ghunnah', 'idgham_shafawi', 'idgham_mutajanisayn', 'idgham_mutaqaribayn', 'ikhafa', 'ikhafa_shafawi', 'iqlab', 'madda_permissible']);
+    const _CROSS_WORD_CLASSES = new Set(['idgham_ghunnah', 'idgham_wo_ghunnah', 'idgham_shafawi', 'idgham_mutajanisayn', 'idgham_mutaqaribayn', 'ikhafa', 'ikhafa_shafawi', 'iqlab', 'madda_munfasil']);
 
     function _makeChips(rules, excludeSet) {
         return rules
