@@ -147,6 +147,13 @@ body.sepia-mode .ayah-container {
     transition: color 0.2s ease, transform 0.2s ease;
 }
 
+/* IndoPak Nastaleeq glyphs have their visual mass lower in the line-height box
+   (thin ascenders reach the padding area; thick consonant strokes start lower).
+   Reduce padding-top so the symbol's bottom sits closer to the visible character tops. */
+body[data-font-type="indopak"] .word-token {
+    padding-top: 0.45em;
+}
+
 .word-content {
     display: inline;
 }
