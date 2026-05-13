@@ -1092,8 +1092,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }).join('');
 
         // ── Word view ────────────────────────────────────────────────────────
-        // Groups by word_index: for each word that carries any waqf mark,
-        // lists every mushaf that marks it with its symbol + meaning.
+        // Table: rows = words that carry at least one waqf mark
+        //        columns = الكلمة + one column per active mushaf
         function buildWordViewHtml() {
             const byWord = new Map();
             for (const e of entries) {
@@ -1104,40 +1104,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const sortedWords = [...byWord.keys()].sort((a, b) => a - b);
 
-            return sortedWords.map(wIdx => {
+            // Ordered list of mushafs actually present in this verse
+            const activeMushafs = sortedMushafs; // already ORDER-sorted from above
+
+            // Header row
+            const headCols = activeMushafs.map(ver => {
+                const colorCls = getMushafColorClass(ver);
+                return `<th class="waqf-tbl-th ${colorCls}">${esc(ver)}</th>`;
+            }).join('');
+
+            // Body rows — one per word
+            const bodyRows = sortedWords.map(wIdx => {
                 const wordEntries = byWord.get(wIdx);
                 const wordText    = getWordText(wordEntries[0]);
 
-                // Sort mushaf entries by ORDER
-                const sortedWE = [...wordEntries].sort((a, b) => {
-                    const ia = ORDER.indexOf(a.version || ''), ib = ORDER.indexOf(b.version || '');
-                    if (ia === -1 && ib === -1) return (a.version || '').localeCompare(b.version || '', 'ar');
-                    if (ia === -1) return 1; if (ib === -1) return -1;
-                    return ia - ib;
-                });
+                // index version → entry for quick lookup
+                const entryByVer = new Map(wordEntries.map(e => [e.version || '', e]));
 
-                const mushafRowsHtml = sortedWE.map(entry => {
-                    const ver      = entry.version || '';
+                const cells = activeMushafs.map(ver => {
+                    const entry    = entryByVer.get(ver);
                     const colorCls = getMushafColorClass(ver);
+                    if (!entry) return `<td class="waqf-tbl-td waqf-tbl-empty">—</td>`;
+
                     const isHindi  = /الهندي|هندي/.test(ver);
                     const sym      = entry.symbols || '';
                     const symPills = buildSymPills(sym, isHindi, colorCls);
-                    if (isHindi && !symPills) return '';
+                    if (isHindi && !symPills) return `<td class="waqf-tbl-td waqf-tbl-empty">—</td>`;
                     const meaning  = buildMeaning(sym, isHindi);
-                    return `<div class="waqf-word-mushaf-row">
-                        <span class="waqf-shared-badge ${colorCls}">${esc(ver)}</span>
+                    return `<td class="waqf-tbl-td">
                         <span class="waqf-card-sym-wrap">${symPills}</span>
-                        <span class="waqf-entry-lbl">${esc(meaning)}</span>
-                    </div>`;
-                }).filter(Boolean).join('');
+                        ${meaning ? `<div class="waqf-tbl-meaning">${esc(meaning)}</div>` : ''}
+                    </td>`;
+                }).join('');
 
-                if (!mushafRowsHtml) return '';
-
-                return `<div class="waqf-word-entry">
-                    <span class="waqf-word-text">${esc(wordText)}</span>
-                    <div class="waqf-word-mushafs">${mushafRowsHtml}</div>
-                </div>`;
+                return `<tr>
+                    <td class="waqf-tbl-word">${esc(wordText)}</td>
+                    ${cells}
+                </tr>`;
             }).filter(Boolean).join('');
+
+            if (!bodyRows) return '<p class="waqf-panel-empty">لا توجد علامات وقف في هذه الآية</p>';
+
+            return `<div class="waqf-tbl-wrap">
+                <table class="waqf-tbl">
+                    <thead><tr>
+                        <th class="waqf-tbl-th waqf-tbl-word-hd">الكلمة</th>
+                        ${headCols}
+                    </tr></thead>
+                    <tbody>${bodyRows}</tbody>
+                </table>
+            </div>`;
         }
 
         // ── Assemble panel ───────────────────────────────────────────────────

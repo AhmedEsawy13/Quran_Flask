@@ -3309,17 +3309,20 @@ body[data-font-type="indopak"] .rc-diff-chip {
 
 /* Waqf table word font overrides — mirrors guide-seg-words per-font rules */
 body[data-font-type="indopak"] .waqf-entry-word,
-body[data-font-type="indopak"] .waqf-word-text {
+body[data-font-type="indopak"] .waqf-word-text,
+body[data-font-type="indopak"] .waqf-tbl-word {
     font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
     font-size: 1.3rem;
 }
 body[data-font-type="digital_khatt"] .waqf-entry-word,
-body[data-font-type="digital_khatt"] .waqf-word-text {
+body[data-font-type="digital_khatt"] .waqf-word-text,
+body[data-font-type="digital_khatt"] .waqf-tbl-word {
     font-family: 'Digital Khatt', sans-serif;
     font-size: 1.2rem;
 }
 body[data-font-type="old_madina"] .waqf-entry-word,
-body[data-font-type="old_madina"] .waqf-word-text {
+body[data-font-type="old_madina"] .waqf-word-text,
+body[data-font-type="old_madina"] .waqf-tbl-word {
     font-family: 'Old Madina', sans-serif;
     font-size: 1.2rem;
 }
@@ -4290,55 +4293,90 @@ body.dark-mode .word-meaning-tooltip {
     border-color: #7dd3fc;
 }
 
-/* ── Word view ────────────────────────────────────────────────────────────── */
-.waqf-word-view {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-}
-
-.waqf-word-entry {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.5rem 0.6rem;
+/* ── Word view — table layout ──────────────────────────────────────────────── */
+.waqf-tbl-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     border-radius: 10px;
     border: 1px solid var(--border-color, #e2e8f0);
-    background: var(--bg-card, #ffffff);
-    flex-wrap: wrap;
 }
 
-.waqf-word-text {
-    font-family: 'UthmanicHafs', 'Amiri', serif;
-    font-size: 1.55em;
-    font-weight: 600;
-    line-height: 1.6;
-    min-width: 3em;
-    flex-shrink: 0;
+.waqf-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
     direction: rtl;
     text-align: right;
-    padding-left: 0.5rem;
+}
+
+.waqf-tbl-th {
+    padding: 0.45rem 0.7rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--border-color, #e2e8f0);
+    background: rgba(0,0,0,0.03);
+}
+
+.waqf-tbl-th.waqf-tbl-word-hd {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-color);
+}
+
+/* Mushaf name headers get their brand color via .waqf-mushaf-* color classes */
+.waqf-tbl-th.waqf-mushaf-madinah  { color: #1d4ed8; }
+.waqf-tbl-th.waqf-mushaf-shamarly { color: #7c3aed; }
+.waqf-tbl-th.waqf-mushaf-azhar    { color: #15803d; }
+.waqf-tbl-th.waqf-mushaf-warsh    { color: #b45309; }
+.waqf-tbl-th.waqf-mushaf-husary   { color: #0369a1; }
+.waqf-tbl-th.waqf-mushaf-hindi    { color: #be185d; }
+
+.waqf-tbl tbody tr:nth-child(even) { background: rgba(0,0,0,0.015); }
+.waqf-tbl tbody tr:hover           { background: rgba(0,0,0,0.04); }
+
+.waqf-tbl-td {
+    padding: 0.35rem 0.7rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+}
+
+.waqf-tbl-empty {
+    color: #bbb;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.waqf-tbl-word {
+    font-family: 'UthmanicHafs', 'Amiri', serif;
+    font-size: 1.4em;
+    font-weight: 600;
+    white-space: nowrap;
+    padding: 0.3rem 0.7rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
     border-left: 3px solid var(--border-color, #e2e8f0);
 }
 
-.waqf-word-mushafs {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    flex: 1;
-    min-width: 180px;
+.waqf-tbl-meaning {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    margin-top: 0.1rem;
+    line-height: 1.2;
 }
 
-.waqf-word-mushaf-row {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    flex-wrap: wrap;
-    padding: 0.2rem 0.2rem;
-    border-radius: 6px;
-}
+/* Dark mode */
+body.dark-mode .waqf-tbl-wrap     { border-color: #334155; }
+body.dark-mode .waqf-tbl-th       { background: rgba(255,255,255,0.04); border-color: #334155; }
+body.dark-mode .waqf-tbl-th.waqf-tbl-word-hd { background: rgba(255,255,255,0.07); }
+body.dark-mode .waqf-tbl-td,
+body.dark-mode .waqf-tbl-word     { border-color: #334155; }
+body.dark-mode .waqf-tbl tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+body.dark-mode .waqf-tbl tbody tr:hover           { background: rgba(255,255,255,0.05); }
+body.dark-mode .waqf-tbl-empty    { color: #475569; }
 
-.waqf-word-mushaf-row:hover { background: rgba(0,0,0,0.03); }
+/* Sepia mode */
+body.sepia-mode .waqf-tbl-th      { background: rgba(120,80,30,0.06); border-color: #d2b48c; }
+body.sepia-mode .waqf-tbl-td,
+body.sepia-mode .waqf-tbl-word    { border-color: #d2b48c; }
 
 /* ── Dark mode additions ─────────────────────────────────────────────────── */
 body.dark-mode .waqf-view-tab {
