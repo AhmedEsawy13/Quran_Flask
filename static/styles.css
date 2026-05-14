@@ -143,7 +143,7 @@ body.sepia-mode .ayah-container {
     position: relative;
     margin: 0 0.05rem;
     line-height: 1.6;
-    padding-top: 0.9em; /* fixed reserved space above every word for waqf symbols (symbols are 0.72em tall) */
+    padding-top: 0.4em; /* fixed reserved space above every word for waqf symbols (symbols are 0.72em tall) */
     transition: color 0.2s ease, transform 0.2s ease;
 }
 
