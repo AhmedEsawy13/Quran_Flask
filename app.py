@@ -52,7 +52,7 @@ def after_request(response):
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
         "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com; "
-        "connect-src 'self' https://api.quran.com https://vercel.live https://vitals.vercel-insights.com;"
+        "connect-src 'self' https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com;"
     )
     
     # Cache control for API responses.
