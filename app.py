@@ -2451,7 +2451,7 @@ def _build_shamarly_page_payload(page_number, focus_surah=None, focus_ayah=None,
                 line_words.append({
                     'word_index': word_pos,
                     'text': rendered_word,
-                    'waqf_symbols': waqf_by_word_index.get(word_pos, '')
+                    'waqf_symbols': waqf_by_word_index.get(word_pos, [])
                 })
 
             if chars:
@@ -2719,7 +2719,7 @@ def _build_digital_khatt_page_payload(page_number, focus_surah=None, focus_ayah=
                 line_words.append({
                     'word_index': word_index,
                     'text': word_text,
-                    'waqf_symbols': waqf_by_word_index.get(word_index, '')
+                    'waqf_symbols': waqf_by_word_index.get(word_index, [])
                 })
             display_text = ' '.join(words)
         elif line_type == 'surah_name':
