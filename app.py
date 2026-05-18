@@ -1281,7 +1281,7 @@ qpc_hafs_data_normalized, waqf_rows_qpc, qpc_stats = normalize_quran_dataset(
 indopak_nastaleeq_data_normalized, waqf_rows_indopak, indopak_stats = normalize_quran_dataset(
     'indopak_nastaleeq', indopak_nastaleeq_data
 )
-indopak_nastaleeq_2_data_normalized, waqf_rows_indopak_2, indopak_2_stats = normalize_quran_dataset(
+indopak_nastaleeq_2_data_normalized, _, _ = normalize_quran_dataset(
     'indopak_nastaleeq', indopak_nastaleeq_2_data
 )
 
