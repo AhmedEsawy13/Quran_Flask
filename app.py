@@ -121,6 +121,18 @@ RECITER_GUIDE_CONFIG = {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'mustafa-ismaeel', 'positions.db'),
         'waqf_col': 'المدينة',
     },
+    'AbdulBaset AbdulSamad (Mujawwad)': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'mujawwad_positions.db'),
+        'waqf_col': 'المدينة',
+    },
+    'AbdulBaset AbdulSamad (Murattal)': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'murattal_positions.db'),
+        'waqf_col': 'المدينة',
+    },
+    'Mohamed al-Minshawi': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'mohammed-siddiq-al-minshawi', 'positions.db'),
+        'waqf_col': 'المدينة',
+    },
 }
 # Keep for backwards compat with any legacy code that may reference it
 HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']['db']
@@ -219,22 +231,23 @@ def _load_json_cdn_or_local(cdn_path: str, local_path: str):
 
 
 # Load Quranic text data — CDN first, local fallback
+# Local files now live under QUL_data/quran_text/
 digital_khatt_data = _load_json_cdn_or_local(
-    'Digital_Khatt_Aya_Space.json', 'QUL_data/Digital_Khatt_Aya_Space.json'
+    'Digital_Khatt_Aya_Space.json', 'QUL_data/quran_text/Digital_Khatt_Aya_Space.json'
 )
 qpc_hafs_data = _load_json_cdn_or_local(
-    'QPC Hafs.json', 'QUL_data/QPC Hafs.json'
+    'QPC Hafs.json', 'QUL_data/quran_text/QPC Hafs.json'
 )
 indopak_nastaleeq_data = _load_json_cdn_or_local(
-    'Indopak Nastaleeq_Waqf.json', 'QUL_data/Indopak Nastaleeq_Waqf.json'
+    'Indopak Nastaleeq_Waqf.json', 'QUL_data/quran_text/Indopak Nastaleeq_Waqf.json'
 )
 indopak_nastaleeq_2_data = _load_json_cdn_or_local(
-    'indopak-nastaleeq 2.json', 'QUL_data/indopak-nastaleeq 2.json'
+    'indopak-nastaleeq 2.json', 'QUL_data/quran_text/indopak-nastaleeq 2.json'
 )
 transliteration_data = _load_json_cdn_or_local(
-    'Transliteration.json', 'QUL_data/Transliteration.json'
+    'Transliteration.json', 'QUL_data/quran_text/Transliteration.json'
 )
-surahs_data = _load_json_cdn_or_local('surahs.json', 'QUL_data/surahs.json')
+surahs_data = _load_json_cdn_or_local('surahs.json', 'QUL_data/quran_text/surahs.json')
 if not isinstance(surahs_data, list):
     surahs_data = []
 
@@ -265,23 +278,26 @@ _eerab_cache: dict = {}
 
 
 # Load audio data — CDN first, local fallback
+# Local files now live under QUL_data/word_timestamps/
 reciters = {
-    "AbdulBaset AbdulSamad": ("AbdulBaset AbdulSamad Recitation.json",
-                              "QUL_data/AbdulBaset AbdulSamad Recitation.json"),
+    "AbdulBaset AbdulSamad (Mujawwad)": ("AbdulBaset AbdulSamad Recitation.json",
+                                         "QUL_data/word_timestamps/AbdulBaset AbdulSamad Recitation.json"),
+    "AbdulBaset AbdulSamad (Murattal)": ("AbdulBaset AbdulSamad Recitation.json",
+                                         "QUL_data/word_timestamps/AbdulBaset AbdulSamad Recitation.json"),
     "Mohamed al-Tablawi":    ("Mohamed al-Tablawi Recitation.json",
-                              "QUL_data/Mohamed al-Tablawi Recitation.json"),
+                              "QUL_data/word_timestamps/Mohamed al-Tablawi Recitation.json"),
     "Mohamed al-Minshawi":   ("Mohamed Siddiq al-Minshawi Recitation.json",
-                              "QUL_data/Mohamed Siddiq al-Minshawi Recitation.json"),
+                              "QUL_data/word_timestamps/Mohamed Siddiq al-Minshawi Recitation.json"),
     "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
-                                           "QUL_data/mahmoud-khalil-al-husary-muallm-hafs.json"),
+                                           "QUL_data/word_timestamps/mahmoud-khalil-al-husary-muallm-hafs.json"),
     "Ibrahim Al-Akhdar":        ("ibrahim-al-akhdar.json",
-                                  "QUL_data/ibrahim-al-akhdar.json"),
+                                  "QUL_data/word_timestamps/ibrahim-al-akhdar.json"),
     "Ayman Rushdi Suwaid":       ("ayman-rushdi-suwaid.json",
-                                  "QUL_data/ayman-rushdi-suwaid.json"),
+                                  "QUL_data/word_timestamps/ayman-rushdi-suwaid.json"),
     "Mahmoud Ali Al-Banna":      ("mahmoud-ali-al-banna.json",
-                                  "QUL_data/mahmoud-ali-al-banna.json"),
+                                  "QUL_data/word_timestamps/mahmoud-ali-al-banna.json"),
     "Mustafa Ismaeel":           ("mustafa-ismaeel.json",
-                                  "QUL_data/mustafa-ismaeel.json"),
+                                  "QUL_data/word_timestamps/mustafa-ismaeel.json"),
 }
 
 # Reciter audio data and mappings are loaded lazily on first use.
