@@ -1443,7 +1443,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     'ج': 'ۚ',
                     'لا': 'ۙ',
                     'ع': 'ۛ',
-                    'ر': 'ۗ',
                     // Standard waqf combining marks — pass through
                     'ۘ': 'ۘ', 'ۗ': 'ۗ', 'ۖ': 'ۖ', 'ۚ': 'ۚ', 'ۙ': 'ۙ', 'ۛ': 'ۛ', 'ۜ': 'ۜ',
                     // IndoPak / Pakistani mushaf symbols — pass through as-is
@@ -1459,13 +1458,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             .join('');
     }
 
-    // Normalise Warsh waqf raw DB values to the Warsh Unicode stop sign ۜ (U+06DC)
+    // Normalise Warsh waqf raw DB values:
+    //   ر  → ۜ (U+06DC) رأس آية — verse-end pause
+    //   ص  → ۖ (U+06D6) وصل أولى — better to continue
     function normalizeWarshWaqfText(raw) {
         if (!raw || !raw.trim()) return '';
-        // If the raw value already is the Warsh glyph, keep it
-        if (raw.trim() === '\u06DC') return '\u06DC';
-        // Any non-empty Warsh waqf indicator = stop → ۜ
-        return '\u06DC';
+        return raw.split(/[،,]/)
+            .map(t => t.trim())
+            .filter(Boolean)
+            .map(t => {
+                if (t === 'ر' || t === '\u06DC') return '\u06DC'; // رأس آية
+                if (t === 'ص' || t === '\u06D6') return '\u06D6'; // وصل أولى
+                return '\u06DC'; // fallback
+            })
+            .join('');
     }
 
     // ── Waqf symbol meanings (display only, no color here) ─────────────────
@@ -1485,7 +1491,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'ع':   { meaning: 'معانقة — إذا وقفت على أحدهما لا تقف على الآخر' },
         '\u21BA':   { meaning: 'وقف إعادة — ارجع للبداية' },
         '\u25B6':   { meaning: 'بداية الإعادة' },
-        '\u06DC': { meaning: 'توقف — علامة وقف مصحف ورش' },
+        '\u06DC': { meaning: 'رأس آية — نهاية الآية وموضع الوقف (مصحف ورش)' },
         // Standard Unicode waqf glyphs (after normalisation)
         '\u06D6': { meaning: 'صلى — الأفضل الوصل' },
         '\u06D7': { meaning: 'قلى — الأفضل الوقف' },
@@ -1541,7 +1547,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (isWarsh) {
             // Normalize to proper Unicode waqf codepoints, then UthmanicWarsh font renders them correctly
-            const normalized = normalizeNonWarshWaqfText(raw);
+            const normalized = normalizeWarshWaqfText(raw);
             return { text: normalized, extraClass: 'waqf-warsh', title: raw };
         }
 
