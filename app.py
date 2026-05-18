@@ -133,10 +133,6 @@ RECITER_GUIDE_CONFIG = {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'murattal_positions.db'),
         'waqf_col': 'المدينة',
     },
-    'Mohamed al-Minshawi (Mujawwad)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'mohammed-siddiq-al-minshawi', 'positions.db'),
-        'waqf_col': 'المدينة',
-    },
     'Mohamed al-Minshawi (Murattal)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'mohammed-siddiq-al-minshawi', 'positions.db'),
         'waqf_col': 'المدينة',
