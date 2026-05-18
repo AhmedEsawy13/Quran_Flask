@@ -129,7 +129,11 @@ RECITER_GUIDE_CONFIG = {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'murattal_positions.db'),
         'waqf_col': 'المدينة',
     },
-    'Mohamed al-Minshawi': {
+    'Mohamed al-Minshawi (Mujawwad)': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'mohammed-siddiq-al-minshawi', 'positions.db'),
+        'waqf_col': 'المدينة',
+    },
+    'Mohamed al-Minshawi (Murattal)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'mohammed-siddiq-al-minshawi', 'positions.db'),
         'waqf_col': 'المدينة',
     },
@@ -286,7 +290,9 @@ reciters = {
                                          "QUL_data/word_timestamps/ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json"),
     "Mohamed al-Tablawi":    ("Mohamed al-Tablawi Recitation.json",
                               "QUL_data/word_timestamps/Mohamed al-Tablawi Recitation.json"),
-    "Mohamed al-Minshawi":   ("ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json",
+    "Mohamed al-Minshawi (Mujawwad)": ("Mohamed Siddiq al-Minshawi Recitation.json",
+                              "QUL_data/word_timestamps/Mohamed Siddiq al-Minshawi Recitation.json"),
+    "Mohamed al-Minshawi (Murattal)": ("ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json",
                               "QUL_data/word_timestamps/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json"),
     "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
                                            "QUL_data/word_timestamps/mahmoud-khalil-al-husary-muallm-hafs.json"),
