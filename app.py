@@ -5,8 +5,48 @@ import os
 import logging
 import re
 import threading
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from functools import lru_cache
+
+
+class _BoundedLRU(OrderedDict):
+    """Thread-safe bounded LRU.
+
+    Python dict ops are atomic under the GIL for single-key access, but the
+    move_to_end + popitem dance below is not — so we guard with a lock to
+    keep multiple Flask worker threads from corrupting the order map. All
+    locked methods call OrderedDict super().* directly to avoid re-entering
+    the lock from one method into another.
+    """
+    def __init__(self, maxsize: int):
+        super().__init__()
+        self._maxsize = maxsize
+        self._lock = threading.Lock()
+
+    def get(self, key, default=None):  # type: ignore[override]
+        with self._lock:
+            if OrderedDict.__contains__(self, key):
+                self.move_to_end(key)
+                return OrderedDict.__getitem__(self, key)
+            return default
+
+    def __contains__(self, key):  # type: ignore[override]
+        with self._lock:
+            return OrderedDict.__contains__(self, key)
+
+    def __getitem__(self, key):  # type: ignore[override]
+        with self._lock:
+            value = OrderedDict.__getitem__(self, key)
+            self.move_to_end(key)
+            return value
+
+    def __setitem__(self, key, value):  # type: ignore[override]
+        with self._lock:
+            if OrderedDict.__contains__(self, key):
+                self.move_to_end(key)
+            OrderedDict.__setitem__(self, key, value)
+            while len(self) > self._maxsize:
+                self.popitem(last=False)
 from flask import make_response
 import gzip
 from io import BytesIO
@@ -27,10 +67,9 @@ import concurrent.futures
 
 app = Flask(__name__, static_folder='static')
 
-# Enable response compression
-app.config['COMPRESS_MIMETYPES'] = ['text/html', 'text/css', 'application/json', 'application/javascript']
-app.config['COMPRESS_LEVEL'] = 6
-app.config['COMPRESS_MIN_SIZE'] = 500
+# (Flask-Compress is not installed/initialised here — the previous
+# COMPRESS_* config keys had no effect and were removed. JSON gzip is
+# handled inline in after_request below.)
 
 # Configure logging
 if not app.debug:
@@ -64,11 +103,14 @@ def after_request(response):
         else:
             response.headers['Cache-Control'] = 'public, max-age=3600'
     
-    # GZIP compression for JSON responses - check early to avoid unnecessary processing
-    if (response.status_code == 200 and 
+    # GZIP compression for JSON responses - check early to avoid unnecessary processing.
+    # Skip if the response is already encoded (e.g. by a downstream middleware) so we
+    # don't double-encode (gzip(gzip(...)) — broken clients).
+    if (response.status_code == 200 and
+        not response.headers.get('Content-Encoding') and
         response.content_type and 'application/json' in response.content_type and
         'gzip' in request.headers.get('Accept-Encoding', '').lower()):
-        
+
         response_data = response.get_data()
         # Only compress if response is large enough
         if len(response_data) > 500:
@@ -153,9 +195,12 @@ INDOPAK_EXTRA_WAQF_SYMBOL_CHARS = set([
     '۟', '۠', 'ۡ', 'ۢ', 'ۤ', 'ۥ', 'ۦ', '۪', '۫', '۬', 'ۭ',
     'ؕ', 'ؔ', 'ؗ'
 ])
-# Markers like Sajda, Rubu, and specific IndoPak indicators that are NOT waqf
+# Markers like Sajda, Rubu, and verse-end that are NOT waqf.
+# (U+06EC was previously listed here too, but it is also in
+# INDOPAK_EXTRA_WAQF_SYMBOL_CHARS — the JS legend treats it as a Hindi waqf, so
+# the duplicate caused U+06EC to be silently dropped from waqf extraction.)
 NON_WAQF_SPECIFIC_CHARS = set([
-    '۩', '۞', '۝', '۬'
+    '۩', '۞', '۝'
 ])
 ARABIC_INDIC_DIGIT_PATTERN = re.compile(r'^[٠-٩]+$')
 ARABIC_DIACRITICS_STRIP_PATTERN = re.compile(r'[\u064B-\u065F\u0670\u06D6-\u06ED]')
@@ -273,12 +318,13 @@ TAFSEER_QURANENC_IDS = {
 TAFSEER_QURANENC_BASE = 'https://quranenc.com/api/v1/translation/aya/{identifier}/{surah}/{ayah}'
 
 # In-process cache: (tafseer_name, verse_key) → {text: "..."}
-_tafseer_cache: dict = {}
+# Bounded so long-running processes don't accumulate every tafseer ever fetched.
+_tafseer_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
 
 # SurahApp API (grammatical analysis / إعراب)
 SURAHAPP_API_BASE = 'https://dev.surahapp.com/api/v1/aya/{slug}/{sura}/{aya}'
-# In-process cache
-_eerab_cache: dict = {}
+# In-process cache (bounded — eerab payloads are small but plentiful).
+_eerab_cache: _BoundedLRU = _BoundedLRU(maxsize=2048)
 
 
 # Load audio data — CDN first, local fallback
@@ -694,7 +740,7 @@ def _get_mushaf_version_whitelist():
     # Columns 0-3: Sura, SuraName, Ayah, Word. Versions start at column 4.
     helper_columns = {
         'token_index', 'word_index', 'word_position', 'word_key', 'word_no',
-        'رقم_الكلمة', 'ترتيب_الكلمة', 'الحصري'
+        'رقم_الكلمة', 'ترتيب_الكلمة',
     }
     return frozenset(col for col in cols[4:] if col not in helper_columns)
 
@@ -823,7 +869,9 @@ def get_recitation_guide(surah_number, ayah_number):
 
     reciter = request.args.get('reciter', '').strip()
     cfg = RECITER_GUIDE_CONFIG.get(reciter, {})
-    waqf_col = cfg.get('waqf_col', 'الحصري')
+    # الحصري column was dropped from mushaf_waqf.db (commit 703521b); fall back
+    # to المدينة so unconfigured reciters still get a guide overlay.
+    waqf_col = cfg.get('waqf_col', 'المدينة')
     valid_versions = [waqf_col] if _is_valid_mushaf_version(waqf_col) else []
 
     pos_segs, has_db = _get_positions_segments(surah_number, ayah_number, reciter)
@@ -888,10 +936,10 @@ def get_pause_match(surah_number, ayah_number):
     # Symbols that explicitly PROHIBIT stopping (verse-end precision check only).
     # U+06D9 (ۙ) = IndoPak glyph for "لا" = لا يجوز الوقف.
     def _is_prohibited_stop(symbols_str):
+        # Exact-match only — substring 'in' would falsely flag arbitrary
+        # composite waqf strings that happen to contain the letters ل-ا.
         sym = (symbols_str or '').strip()
-        if not sym:
-            return False
-        return sym == 'لا' or '\u06D9' in sym or 'لا' in sym
+        return sym == 'لا' or sym == '\u06D9'
 
     # Symbols that should NOT count as coverage targets — only hard prohibitions.
     # ص (صلى) is treated like ج (جائز): stopping is permissible, so it IS a target.
@@ -1071,7 +1119,8 @@ def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
 # In-process cache for mushaf waqf DB lookups.
 # Callers mutate the returned dicts (adding a 'version' key) so we always
 # return a list of fresh dict copies, keeping the cached originals clean.
-_mushaf_waqf_cache: dict = {}
+# Bounded — ~6236 ayahs × ~10 versions = ~62K possible keys.
+_mushaf_waqf_cache: _BoundedLRU = _BoundedLRU(maxsize=8192)
 
 
 def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
@@ -1127,7 +1176,9 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
             {
                 'clean_token': row['word'],
                 'symbols': row['symbol'],
-                'token_index': row['token_index'],
+                # DB stores 1-based word position; convert to 0-based for the JS
+                # word array so map.set(token_index, ...) aligns with words[i].
+                'token_index': (row['token_index'] - 1) if row['token_index'] is not None else None,
                 'word_index': row['word_index']
             }
             for row in rows
@@ -1416,13 +1467,8 @@ def get_surahs():
     
     # Fallback to extracting surah numbers from text data
     quran_text_data = get_quran_text_data()
-    surahs = []
-    for verse_key in quran_text_data.keys():
-        surah_number = int(verse_key.split(':')[0])
-        if surah_number not in surahs:
-            surahs.append(surah_number)
-    surahs.sort()
-    return jsonify(surahs)
+    surahs = {int(vk.split(':')[0]) for vk in quran_text_data.keys()}
+    return jsonify(sorted(surahs))
 
 @app.route('/api/surahs/<int:surah_number>/ayahs', methods=['GET'])
 def get_ayahs(surah_number):
@@ -1431,14 +1477,12 @@ def get_ayahs(surah_number):
         return jsonify({"error": "Invalid surah number. Must be between 1 and 114."}), 400
         
     quran_text_data = get_quran_text_data()
-    ayahs = []
+    prefix = f"{surah_number}:"
+    seen = set()
     for verse_key in quran_text_data.keys():
-        if verse_key.startswith(f"{surah_number}:"):
-            ayah_number = int(verse_key.split(':')[1])
-            if ayah_number not in ayahs:
-                ayahs.append(ayah_number)
-    ayahs.sort()
-    return jsonify(ayahs)
+        if verse_key.startswith(prefix):
+            seen.add(int(verse_key.split(':')[1]))
+    return jsonify(sorted(seen))
 
 @app.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>', methods=['GET'])
 def get_ayah_text(surah_number, ayah_number):
@@ -1569,7 +1613,7 @@ def get_tafseer(surah_number, ayah_number):
 
 
 # Tajweed-annotated text cache: verse_key → {"html": "..."}
-_tajweed_cache: dict = {}
+_tajweed_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
 
 # verse_number param is silently ignored by this endpoint — it always returns
 # all verses of the chapter, so we fetch once per surah and cache everything.
@@ -2326,7 +2370,27 @@ def _build_page_waqf_map(page_word_rows, mushaf_version):
 
 
 def _build_shamarly_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
-    layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db'))
+    # Track every sqlite3 connection opened in this function so an exception
+    # mid-flight (rather than a clean return) still closes them. sqlite3
+    # .close() is idempotent — the existing explicit closes below are kept.
+    _open_conns = []
+    def _track(c):
+        _open_conns.append(c)
+        return c
+    try:
+        return _build_shamarly_page_payload_impl(
+            page_number, focus_surah, focus_ayah, mushaf_version, _track
+        )
+    finally:
+        for c in _open_conns:
+            try:
+                c.close()
+            except Exception:
+                pass
+
+
+def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_version, _track):
+    layout_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db')))
     layout_conn.row_factory = sqlite3.Row
     layout_cursor = layout_conn.cursor()
 
@@ -2367,7 +2431,7 @@ def _build_shamarly_page_payload(page_number, focus_surah=None, focus_ayah=None,
                 if glyph_char:
                     glyph_by_word_pos[word_pos] = glyph_char
         else:
-            glyph_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'glyph_mappings.db'))
+            glyph_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'glyph_mappings.db')))
             glyph_conn.row_factory = sqlite3.Row
             glyph_cursor = glyph_conn.cursor()
             if preferred_legacy_font:
@@ -2401,7 +2465,7 @@ def _build_shamarly_page_payload(page_number, focus_surah=None, focus_ayah=None,
 
     focus_word_range = None
     if focus_surah is not None and focus_ayah is not None:
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -2420,7 +2484,7 @@ def _build_shamarly_page_payload(page_number, focus_surah=None, focus_ayah=None,
     page_word_rows = []
     page_word_by_index = {}
     if min_word_id is not None and max_word_id is not None:
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -2615,7 +2679,25 @@ def _build_digital_khatt_page_payload(page_number, focus_surah=None, focus_ayah=
     if not os.path.exists(DIGITAL_KHATT_LAYOUT_DATABASE):
         return None
 
-    layout_conn = sqlite3.connect(DIGITAL_KHATT_LAYOUT_DATABASE)
+    # See _build_shamarly_page_payload for the _track / try/finally rationale.
+    _open_conns = []
+    def _track(c):
+        _open_conns.append(c)
+        return c
+    try:
+        return _build_digital_khatt_page_payload_impl(
+            page_number, focus_surah, focus_ayah, mushaf_version, _track
+        )
+    finally:
+        for c in _open_conns:
+            try:
+                c.close()
+            except Exception:
+                pass
+
+
+def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_version, _track):
+    layout_conn = _track(sqlite3.connect(DIGITAL_KHATT_LAYOUT_DATABASE))
     layout_conn.row_factory = sqlite3.Row
     layout_cursor = layout_conn.cursor()
     layout_cursor.execute(
@@ -2640,7 +2722,7 @@ def _build_digital_khatt_page_payload(page_number, focus_surah=None, focus_ayah=
 
     focus_layout_word_range = None
     if focus_surah is not None and focus_ayah is not None:
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -2685,7 +2767,7 @@ def _build_digital_khatt_page_payload(page_number, focus_surah=None, focus_ayah=
         script_min = min_layout_word + layout_offset
         script_max = max_layout_word + layout_offset
 
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(

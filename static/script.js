@@ -1469,8 +1469,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             .map(t => {
                 if (t === 'ر' || t === '\u06DC') return '\u06DC'; // رأس آية
                 if (t === 'ص' || t === '\u06D6') return '\u06D6'; // وصل أولى
-                return '\u06DC'; // fallback
+                return ''; // drop unknown tokens \u2014 do not mislabel as \u0631\u0623\u0633 \u0622\u064A\u0629
             })
+            .filter(Boolean)
             .join('');
     }
 
