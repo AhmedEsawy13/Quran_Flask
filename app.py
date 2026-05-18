@@ -288,8 +288,6 @@ reciters = {
                                          "QUL_data/word_timestamps/AbdulBaset AbdulSamad Recitation.json"),
     "AbdulBaset AbdulSamad (Murattal)": ("ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json",
                                          "QUL_data/word_timestamps/ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json"),
-    "Mohamed al-Tablawi":    ("Mohamed al-Tablawi Recitation.json",
-                              "QUL_data/word_timestamps/Mohamed al-Tablawi Recitation.json"),
     "Mohamed al-Minshawi (Mujawwad)": ("Mohamed Siddiq al-Minshawi Recitation.json",
                               "QUL_data/word_timestamps/Mohamed Siddiq al-Minshawi Recitation.json"),
     "Mohamed al-Minshawi (Murattal)": ("ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json",

@@ -38,10 +38,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Arabic display names for reciters (used in the guide title)
     const RECITER_ARABIC_NAMES = {
-        'AbdulBaset AbdulSamad':               'عبد الباسط عبد الصمد',
-        'Mohamed al-Tablawi':                  'محمد الطبلاوي',
-        'Mohamed al-Minshawi':                 'محمد صديق المنشاوي',
-        'Mahmoud Khalil al-Husary (Muallim)':  'محمود خليل الحصري',
+        'AbdulBaset AbdulSamad (Mujawwad)':    'عبد الباسط عبد الصمد (مجود)',
+        'AbdulBaset AbdulSamad (Murattal)':    'عبد الباسط عبد الصمد (مرتل)',
+        'Mohamed al-Minshawi (Mujawwad)':      'محمد صديق المنشاوي (مجود)',
+        'Mohamed al-Minshawi (Murattal)':      'محمد صديق المنشاوي (مرتل)',
+        'Mahmoud Khalil al-Husary (Muallim)':  'محمود خليل الحصري (المعلم)',
         'Ibrahim Al-Akhdar':                   'إبراهيم الأخضر',
         'Ayman Rushdi Suwaid':                 'أيمن رشدي سويد',
         'Mahmoud Ali Al-Banna':                'محمود علي البنا',
