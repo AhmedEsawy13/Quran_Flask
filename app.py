@@ -102,7 +102,7 @@ MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 RECITER_GUIDE_CONFIG = {
     'Mahmoud Khalil al-Husary (Mujawwad)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'positions.db'),
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'mahmoud_khalil_al_husari_0_2_positions.db'),
         'waqf_col': 'الحصري',
     },
     'Mahmoud Khalil al-Husary (Muallim)': {
