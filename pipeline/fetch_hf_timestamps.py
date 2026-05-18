@@ -5,13 +5,13 @@ Fetches per-surah word-level timestamps from the HuggingFace dataset:
   zaibihassan/Quranic-Recitation-Data
 
 Decodes the .pb (protobuf) files using pure Python (no external deps),
-normalises timestamps to be relative to each ayah's start, and merges
-the segments into an existing reciter JSON file (keeping audio_url, etc.).
+normalises timestamps to be relative to each ayah's start, and builds
+the reciter JSON file from scratch (purely from HF data).
 
 Usage:
     python3 pipeline/fetch_hf_timestamps.py
 
-Config is set in the RECITER dict at the top of this file.
+Config is set at the top of this file.
 """
 
 import json
@@ -179,15 +179,9 @@ def fetch_surah_pb(reciter_folder: str, surah: int, retries: int = 3) -> bytes |
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
-    print(f"Loading existing JSON: {TARGET_JSON}")
-    with open(TARGET_JSON, encoding="utf-8") as f:
-        data = json.load(f)
+    print(f"Building JSON from scratch using HF source: {HF_RECITER_FOLDER}")
 
-    # data is {"1:1": {...}, "1:2": {...}, ...}
-    total = len(data)
-    print(f"  {total} verse entries loaded")
-
-    filled = 0
+    new_data = {}
     skipped = 0
     failed_surahs = []
 
@@ -203,38 +197,46 @@ def main():
 
         decoded = decode_surah_pb(raw)
         if not decoded:
-            print(f"empty decode — skipping")
+            print("empty decode — skipping")
             failed_surahs.append(surah)
             continue
 
-        surah_filled = 0
+        surah_added = 0
         for verse_key, raw_segs in decoded.items():
-            if verse_key not in data:
-                # verse exists in HF but not in our JSON — unlikely but safe to skip
+            parts = verse_key.split(":")
+            if len(parts) != 2:
+                skipped += 1
+                continue
+            s, a = int(parts[0]), int(parts[1])
+            if a == 0:
+                # Basmala / isti'aadhah — not a standalone ayah in per-ayah audio
                 skipped += 1
                 continue
             norm = normalise_segments(raw_segs)
-            if norm:
-                data[verse_key]["segments"] = norm
-                # update duration from last segment's end_ms
-                data[verse_key]["duration"] = norm[-1][3]
-                filled += 1
-                surah_filled += 1
+            audio_url = f"https://everyayah.com/data/Ayman_Sowaid_64kbps/{s:03d}{a:03d}.mp3"
+            new_data[verse_key] = {
+                "surah_number": s,
+                "ayah_number": a,
+                "audio_url": audio_url,
+                "duration": norm[-1][3] if norm else 0,
+                "segments": norm,
+            }
+            surah_added += 1
 
-        print(f"filled {surah_filled} verses  ({len(decoded)} in HF)")
+        print(f"added {surah_added} verses  ({len(decoded)} in HF)")
         time.sleep(REQUEST_DELAY)
 
-    print(f"\nDone. Filled: {filled} | Skipped: {skipped} | Failed surahs: {failed_surahs or 'none'}")
+    print(f"\nDone. Added: {len(new_data)} | Skipped: {skipped} | Failed surahs: {failed_surahs or 'none'}")
 
-    print(f"Writing updated JSON to {TARGET_JSON} ...")
+    print(f"Writing JSON to {TARGET_JSON} ...")
     with open(TARGET_JSON, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+        json.dump(new_data, f, ensure_ascii=False, separators=(",", ":"))
     size_kb = os.path.getsize(TARGET_JSON) / 1024
     print(f"Saved ({size_kb:.0f} KB)")
 
     if failed_surahs:
-        print(f"\nWARNING: {len(failed_surahs)} surah(s) failed to fetch: {failed_surahs}")
-        print("Re-run the script to retry only the failed surahs, or fetch manually.")
+        print(f"\nWARNING: {len(failed_surahs)} surah(s) failed: {failed_surahs}")
+        print("Re-run the script to retry.")
 
 
 if __name__ == "__main__":
