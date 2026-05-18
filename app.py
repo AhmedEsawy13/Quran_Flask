@@ -101,6 +101,10 @@ MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 # Add a new entry here whenever a reciter has segmentation data.
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 RECITER_GUIDE_CONFIG = {
+    'Mahmoud Khalil al-Husary (Mujawwad)': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'positions.db'),
+        'waqf_col': 'الحصري',
+    },
     'Mahmoud Khalil al-Husary (Muallim)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'positions.db'),
         'waqf_col': 'الحصري',
@@ -292,6 +296,8 @@ reciters = {
                               "QUL_data/word_timestamps/Mohamed Siddiq al-Minshawi Recitation.json"),
     "Mohamed al-Minshawi (Murattal)": ("ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json",
                               "QUL_data/word_timestamps/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json"),
+    "Mahmoud Khalil al-Husary (Mujawwad)": ("ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json",
+                                           "QUL_data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json"),
     "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
                                            "QUL_data/word_timestamps/mahmoud-khalil-al-husary-muallm-hafs.json"),
     "Ibrahim Al-Akhdar":        ("ibrahim-al-akhdar.json",

@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'AbdulBaset AbdulSamad (Murattal)':    'عبد الباسط عبد الصمد (مرتل)',
         'Mohamed al-Minshawi (Mujawwad)':      'محمد صديق المنشاوي (مجود)',
         'Mohamed al-Minshawi (Murattal)':      'محمد صديق المنشاوي (مرتل)',
+        'Mahmoud Khalil al-Husary (Mujawwad)': 'محمود خليل الحصري (مجود)',
         'Mahmoud Khalil al-Husary (Muallim)':  'محمود خليل الحصري (المعلم)',
         'Ibrahim Al-Akhdar':                   'إبراهيم الأخضر',
         'Ayman Rushdi Suwaid':                 'أيمن رشدي سويد',
