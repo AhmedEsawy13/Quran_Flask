@@ -3025,6 +3025,21 @@ body.dark-mode .waqf-row-desc { color: #94a3b8; }
     color: #1e293b;
 }
 
+/* Guide button: visually dimmed when selected reciter has no guide data */
+#show-recitation-guide[data-guide-unavailable] {
+    opacity: 0.5;
+    cursor: default;
+}
+#show-recitation-guide[data-guide-unavailable]:hover {
+    background: rgba(248,250,252,0.9);
+    color: #475569;
+    box-shadow: none;
+}
+body.dark-mode #show-recitation-guide[data-guide-unavailable]:hover {
+    background: rgba(30,41,59,0.9);
+    color: #94a3b8;
+}
+
 body.dark-mode .waqf-legend-btn {
     background: rgba(30,41,59,0.9);
     border-color: rgba(100,116,139,0.4);
@@ -3223,6 +3238,11 @@ body.dark-mode .guide-subtitle { color: #94a3b8; }
     box-shadow: 0 4px 14px rgba(15,23,42,0.1);
 }
 
+/* Pointer cursor for segments with timing data (click-to-seek) */
+.guide-segment-seekable {
+    cursor: pointer;
+}
+
 /* Progress highlight: segment currently being recited */
 .guide-segment-active {
     background: rgba(79, 70, 229, 0.09) !important;
@@ -3288,6 +3308,33 @@ body.dark-mode .guide-segment-last {
 
 body.dark-mode .guide-seg-words { color: #e2e8f0; }
 body.sepia-mode .guide-seg-words { color: #5d4e37; }
+
+/* Copy-text button — appears on segment hover */
+.guide-seg-copy-btn {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 0.68rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.15s;
+    line-height: 1;
+}
+.guide-segment:hover .guide-seg-copy-btn {
+    opacity: 1;
+}
+.guide-seg-copy-btn:hover {
+    color: #475569;
+}
+body.dark-mode .guide-seg-copy-btn:hover {
+    color: #cbd5e1;
+}
+
 body[data-font-type="indopak"] .guide-seg-words {
     font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
     font-size: 1.3rem;
