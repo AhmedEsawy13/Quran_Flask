@@ -50,6 +50,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         'Mustafa Ismaeel':                     'مصطفى إسماعيل',
     };
 
+    // Set of reciter keys that have positions.db data for the recitation guide
+    const RECITERS_WITH_GUIDE = new Set([
+        'Mahmoud Khalil al-Husary (Mujawwad)',
+        'Mahmoud Khalil al-Husary (Muallim)',
+        'Ibrahim Al-Akhdar',
+        'Ayman Rushdi Suwaid',
+        'Mahmoud Ali Al-Banna',
+        'Mustafa Ismaeel',
+        'AbdulBaset AbdulSamad (Mujawwad)',
+        'AbdulBaset AbdulSamad (Murattal)',
+        'Mohamed al-Minshawi (Murattal)',
+    ]);
+
     function getMushafColorClass(version) {
         if (!version) return 'waqf-mushaf-other';
         for (const entry of MUSHAF_COLOR_MAP) {
@@ -90,7 +103,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (savedReciter && elements.reciterSelect) {
             elements.reciterSelect.value = savedReciter;
         }
-        
+        updateGuideButtonAvailability();
+
         // Load waqf mode preference
         const savedWaqfMode = localStorage.getItem('quranApp_waqfMode') || 'both';
         setWaqfMode(savedWaqfMode);
@@ -453,8 +467,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function onReciterChange() {
+        updateGuideButtonAvailability();
         await loadQuranData();
         updatePlayPauseButton();
+    }
+
+    function updateGuideButtonAvailability() {
+        const guideBtn = document.getElementById('show-recitation-guide');
+        if (!guideBtn) return;
+        const reciter = elements.reciterSelect.value;
+        const hasGuide = RECITERS_WITH_GUIDE.has(reciter);
+        if (hasGuide) {
+            guideBtn.removeAttribute('data-guide-unavailable');
+            guideBtn.title = 'دليل التلاوة وفق علامات الوقف';
+        } else {
+            guideBtn.setAttribute('data-guide-unavailable', '');
+            guideBtn.title = `دليل التلاوة غير متاح لـ ${RECITER_ARABIC_NAMES[reciter] || reciter}`;
+        }
     }
 
     async function loadSurahData() {
@@ -2255,6 +2284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (isHidden) {
             await fetchAndBuildRecitationGuide();
+            guideContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
             detachGuideHighlightHandler();
         }
@@ -2325,11 +2355,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { matches, pause_count } = matchData;
         // Sort: primary by combined score, secondary by precision
         const versions = Object.keys(matches).sort((a, b) => {
-            const ca = matches[b].coverage_score ?? matches[b].score;
-            const cb = matches[a].coverage_score ?? matches[a].score;
-            if (ca !== cb) return ca - cb;
+            const scoreA = matches[a].coverage_score ?? matches[a].score;
+            const scoreB = matches[b].coverage_score ?? matches[b].score;
+            if (scoreA !== scoreB) return scoreB - scoreA;
             return matches[b].score - matches[a].score;
-        }).reverse();
+        });
         if (!versions.length) return;
 
         // Helpers ─────────────────────────────────────────────────────────────
@@ -2712,6 +2742,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         container.innerHTML = '';
         detachGuideHighlightHandler();
 
+        function toArabicNumerals(n) {
+            return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+        }
+
         if (!segments || segments.length === 0) {
             const noEl = document.createElement('div');
             noEl.className = 'guide-no-waqf';
@@ -2765,13 +2799,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (segStartMs !== Infinity) {
                     segEl.dataset.startMs = segStartMs;
                     segEl.dataset.endMs   = segEndMs;
+                    segEl.classList.add('guide-segment-seekable');
+                    segEl.title = 'انقر للانتقال إلى هذا المقطع';
+                    segEl.addEventListener('click', () => {
+                        elements.audioElement.currentTime = segStartMs / 1000;
+                        if (elements.audioElement.paused) elements.audioElement.play().catch(() => {});
+                    });
                 }
             }
 
             // Segment number
             const segNum = document.createElement('span');
             segNum.className = 'guide-seg-num';
-            segNum.textContent = String(idx + 1);
+            segNum.textContent = toArabicNumerals(idx + 1);
             segEl.appendChild(segNum);
 
             // Verse words — strip any embedded waqf glyphs from positions.db text
@@ -2783,6 +2823,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .map(w => stripEmbeddedWaqf(w))
                 .join(' ');
             segEl.appendChild(wordsEl);
+
+            // Copy segment text button
+            const copyBtn = document.createElement('button');
+            copyBtn.type = 'button';
+            copyBtn.className = 'guide-seg-copy-btn';
+            copyBtn.title = 'نسخ نص المقطع';
+            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+            const segText = wordsEl.textContent;
+            let copyResetTimer = null;
+            copyBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(segText).then(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+                    clearTimeout(copyResetTimer);
+                    copyResetTimer = setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+                }).catch(() => {});
+            });
+            segEl.appendChild(copyBtn);
 
             // Waqf symbol + meaning. Last segment always gets رأس الآية marker.
             const waqfEntries = seg.waqf || [];
