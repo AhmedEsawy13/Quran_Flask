@@ -7,7 +7,7 @@ Quran_Flask is a web application that provides access to the Holy Quran. It is b
 ### 🎨 **Theme & Display**
 - **Dark Mode**: Toggle between light and dark themes for comfortable reading
 - **Sepia Mode**: Eye-friendly sepia theme for extended reading sessions
-- **Multiple Arabic Fonts**: Choose from UthmanicHafs, Digital Khatt, and IndoPak Nastaleeq fonts
+- **Multiple Arabic Fonts**: Choose from UthmanicHafs (Hafs & Warsh), Digital Khatt, IndoPak Nastaleeq, and Mushaf (Shemrly page) fonts
 - **Responsive Design**: Optimized for both mobile and desktop users
 - **Theme Persistence**: Your preferred theme is saved and restored on next visit
 
@@ -19,7 +19,7 @@ Quran_Flask is a web application that provides access to the Holy Quran. It is b
 - **Tafseer Integration**: Access to multiple commentary sources (Al Qurtubi, Al Saddi, Al-Baghawi)
 
 ### 🎵 **Advanced Audio Features**
-- **Multiple Reciters**: Choose from renowned reciters (Abdul Basit Abdul Samad, Mohamed al-Tablawi, Mohamed al-Minshawi)
+- **Multiple Reciters**: Choose from 10 recitation styles by Abdul Basit Abdus Samad (Mujawwad/Murattal), Mohamed al-Minshawi (Mujawwad/Murattal), Mahmoud Khalil al-Husary (Mujawwad/Muallim), Ibrahim Al-Akhdar, Ayman Rushdi Suwaid, Mahmoud Ali Al-Banna, and Mustafa Ismaeel
 - **Audio Synchronization**: Precise word-by-word audio timing
 - **Range Selection**: Play multiple consecutive verses
 - **Loop Functionality**: Repeat verses for memorization
@@ -59,13 +59,6 @@ The application is optimized for deployment on Vercel with:
 - **Efficient Data Loading**: Only essential data loaded at startup
 - **CDN Caching**: Static files cached for 1 year, API responses for 1 hour
 - **Audio Preloading**: Next verse audio preloaded for low-latency playback
-
-**Performance Metrics:**
-- Cold start time: ~1.5-3 seconds (60-70% improvement)
-- Memory usage: ~80MB at startup (68% reduction)
-- API response size: ~500KB compressed (75% reduction)
-
-See [OPTIMIZATION_SUMMARY.md](OPTIMIZATION_SUMMARY.md) for detailed information.
 
    
 ## Installation
@@ -133,9 +126,12 @@ The application provides RESTful API endpoints for accessing Quranic data:
 
 ### Data Sources
 The application uses multiple data sources:
-- **QUL_data/Digital_Khatt_Aya_Space.json** - Digital Khatt font text
-- **QUL_data/QPC Hafs.json** - UthmanicHafs font text  
+- **QUL_data/quran_text/** - Quranic text in multiple fonts (Digital Khatt, QPC Hafs, IndoPak Nastaleeq, Transliteration, etc.)
 - **QUL_data/word_name.db** - SQLite database for word meanings
+- **QUL_data/word_timestamps/** - Per-reciter word-level audio timing data
+- **QUL_data/quran_script.db** - Quranic script database
+- **QUL_data/mushaf_waqf.db** - Waqf (stop mark) data for Mushaf layout
+- **QUL_data/digital-khatt-15-lines.db** - Digital Khatt glyph layout database (in `static/`)
 - External APIs for audio recitations and translations
 
 ## Technology Stack
@@ -203,15 +199,33 @@ Quran_Flask/
 ├── vercel.json                    # Vercel deployment configuration
 ├── README.md                      # Project documentation
 ├── QUL_data/                      # Quranic data files
-│   ├── Digital_Khatt_Aya_Space.json
-│   ├── QPC Hafs.json
-│   └── word_name.db              # SQLite database
+│   ├── quran_text/                # Quranic text in multiple fonts (JSON)
+│   ├── word_timestamps/           # Per-reciter word-level audio timing
+│   ├── tafseer/                   # Tafseer (commentary) data files
+│   ├── quran_script.db            # Quranic script database
+│   ├── mushaf_waqf.db             # Waqf (stop mark) data
+│   ├── word_name.db               # Word meanings database
+│   └── waqf_symbols.db            # Waqf symbol data
+├── reciters/                      # Per-reciter word alignment databases
+│   ├── husary/
+│   ├── abdul-basit-abdus-samad/
+│   ├── ayman-suwaid/
+│   ├── ibrahim-al-akhdar/
+│   ├── mahmoud-ali-al-banna/
+│   ├── mohammed-siddiq-al-minshawi/
+│   └── mustafa-ismaeel/
+├── scripts/                       # Utility and maintenance scripts
+├── pipeline/                      # Data pipeline scripts
 ├── static/                        # Static assets
 │   ├── script.js                 # Main JavaScript functionality
 │   ├── styles.css                # Styling and themes
-│   ├── digitalkhatt.woff2        # Arabic font files
-│   ├── uthmanic_hafs_v20.ttf
-│   └── Naskh-Nastaleeq-IndoPak-QWBW.ttf
+│   ├── digitalkhatt.woff2        # Digital Khatt font
+│   ├── indopak.woff2             # IndoPak Nastaleeq font
+│   ├── oldmadina.woff2           # Old Madina font
+│   ├── uthmanic_hafs_v20.woff2   # Uthmanic Hafs font
+│   ├── uthmanic_warsh_v21.woff2  # Uthmanic Warsh font
+│   ├── Shemrly-Page*.ttf         # Mushaf page fonts (Shemrly)
+│   └── digital-khatt-15-lines.db # Digital Khatt glyph layout database
 └── templates/                     # HTML templates
     └── index.html                # Main application template
 ```
