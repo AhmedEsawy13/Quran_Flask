@@ -2752,6 +2752,64 @@ body.dark-mode .ctrl-row-playback #play-pause-button.btn-play {
 }
 
 /* Row 4 — tools + audio */
+/* --- Digital Khatt justification slider row --- */
+.ctrl-row-khatt-justify {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0.75rem;
+    flex-wrap: wrap;
+}
+
+.khatt-justify-label {
+    font-size: 0.82rem;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+
+#khatt-justify-slider {
+    flex: 1;
+    min-width: 120px;
+    max-width: 280px;
+    cursor: pointer;
+    accent-color: var(--accent-color, #6b9e5f);
+    height: 4px;
+}
+
+#khatt-justify-value {
+    font-size: 0.78rem;
+    min-width: 2.8rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+#khatt-justify-reset {
+    font-size: 0.85rem;
+    padding: 0.15rem 0.45rem;
+    cursor: pointer;
+    background: none;
+    border: 1px solid rgba(148,163,184,0.4);
+    border-radius: 5px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    line-height: 1;
+}
+
+#khatt-justify-reset:hover { opacity: 1; }
+
+/* Apply word-spacing CSS variable only for Digital Khatt family fonts */
+body[data-font-type="digital_khatt"] #quran-text,
+body[data-font-type="old_madina"] #quran-text {
+    word-spacing: var(--khatt-word-spacing, 0em);
+}
+
+/* Dark mode adjustments */
+body.dark-mode #khatt-justify-reset {
+    border-color: rgba(100,116,139,0.5);
+    color: #94a3b8;
+}
+/* -------------------------------------------- */
+
 .ctrl-row-tools {
     justify-content: space-between;
     align-items: center;

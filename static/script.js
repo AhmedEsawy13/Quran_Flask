@@ -98,6 +98,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             changeFont(savedFont);
         }
         
+        // Load khatt justification slider preference
+        const savedKhattJustify = parseInt(localStorage.getItem('quranApp_khattJustify') ?? '50', 10);
+        if (elements.khattJustifySlider) elements.khattJustifySlider.value = savedKhattJustify;
+        if (elements.khattJustifyValue) elements.khattJustifyValue.textContent = savedKhattJustify + '%';
+        
         // Load reciter preference
         const savedReciter = localStorage.getItem('quranApp_reciter');
         if (savedReciter && elements.reciterSelect) {
@@ -318,7 +323,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             showBookmarksButton: document.getElementById('show-bookmarks-button'),
             bookmarksModal: document.getElementById('bookmarksModal'),
             bookmarksList: document.getElementById('bookmarks-list'),
-            closeBookmarksModal: document.querySelector('.close-bookmarks')
+            closeBookmarksModal: document.querySelector('.close-bookmarks'),
+            khattJustifyRow: document.getElementById('khatt-justify-row'),
+            khattJustifySlider: document.getElementById('khatt-justify-slider'),
+            khattJustifyValue: document.getElementById('khatt-justify-value'),
         };
     }
 
@@ -393,6 +401,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         elements.playPauseButton.addEventListener('click', togglePlayPause);
+
+        // Digital Khatt justification slider
+        if (elements.khattJustifySlider) {
+            elements.khattJustifySlider.addEventListener('input', () => {
+                const val = parseInt(elements.khattJustifySlider.value, 10);
+                applyKhattJustify(val);
+                if (elements.khattJustifyValue) elements.khattJustifyValue.textContent = val + '%';
+                localStorage.setItem('quranApp_khattJustify', val);
+            });
+        }
+        const khattResetBtn = document.getElementById('khatt-justify-reset');
+        if (khattResetBtn) {
+            khattResetBtn.addEventListener('click', () => {
+                const defaultVal = 50;
+                applyKhattJustify(defaultVal);
+                if (elements.khattJustifySlider) elements.khattJustifySlider.value = defaultVal;
+                if (elements.khattJustifyValue) elements.khattJustifyValue.textContent = defaultVal + '%';
+                localStorage.setItem('quranApp_khattJustify', defaultVal);
+            });
+        }
 
         document.getElementById('show-transliteration').addEventListener('click', toggleTransliteration);
         document.getElementById('show-tafseer').addEventListener('click', toggleTafseer);
@@ -3383,7 +3411,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             // Store the exact font name so CSS selectors like body[data-font-type="digital_khatt"] work
             document.body.dataset.fontType = font;
+        // Show/hide the justification slider for Digital Khatt family fonts
+        const isKhattFont = (font === 'digital_khatt' || font === 'old_madina');
+        if (elements.khattJustifyRow) {
+            elements.khattJustifyRow.style.display = isKhattFont ? '' : 'none';
         }
+        if (!isKhattFont) {
+            document.documentElement.style.removeProperty('--khatt-word-spacing');
+        } else {
+            const saved = parseInt(localStorage.getItem('quranApp_khattJustify') ?? '50', 10);
+            applyKhattJustify(saved);
+            if (elements.khattJustifySlider) elements.khattJustifySlider.value = saved;
+            if (elements.khattJustifyValue) elements.khattJustifyValue.textContent = saved + '%';
+        }
+    }
+
+    /** Apply Digital Khatt word-spacing from a 0-100 slider value.
+     *  50 = natural (0em), 0 = compressed (−0.5em), 100 = expanded (+0.5em). */
+    function applyKhattJustify(value) {
+        const em = (value - 50) / 100;
+        document.documentElement.style.setProperty('--khatt-word-spacing', em + 'em');
     }
 
     function togglePlayPause() {
