@@ -3411,6 +3411,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             // Store the exact font name so CSS selectors like body[data-font-type="digital_khatt"] work
             document.body.dataset.fontType = font;
+        }
         // Show/hide the justification slider for Digital Khatt family fonts
         const isKhattFont = (font === 'digital_khatt' || font === 'old_madina');
         if (elements.khattJustifyRow) {
