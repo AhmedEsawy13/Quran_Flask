@@ -19,11 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const fontCache = {};
     const loadedShamarlyFonts = new Set();
 
-    // Load user preferences from localStorage
-    loadUserPreferences();
-    
-    addEventListeners();
-
     // ── Per-mushaf color classes ─────────────────────────────────────────────
     // MUST be declared before the first `await` so the const is initialized
     // when loadMushafVersions() → getMushafColorClass() runs.
@@ -62,6 +57,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         'AbdulBaset AbdulSamad (Murattal)',
         'Mohamed al-Minshawi (Murattal)',
     ]);
+
+    // Load user preferences and wire UI only after the guide-related consts are initialized.
+    loadUserPreferences();
+    addEventListeners();
 
     function getMushafColorClass(version) {
         if (!version) return 'waqf-mushaf-other';
@@ -1856,6 +1855,104 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function isKhattFontActive() {
+        return document.body.dataset.fontType === 'digital_khatt' || document.body.dataset.fontType === 'old_madina';
+    }
+
+    function getCurrentKhattJustifyValue() {
+        const raw = elements.khattJustifySlider?.value ?? localStorage.getItem('quranApp_khattJustify') ?? '50';
+        const parsed = parseInt(raw, 10);
+        return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : 50;
+    }
+
+    function splitArabicClusters(text) {
+        const marks = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF]/u;
+        const chars = [...(text || '')];
+        const clusters = [];
+        for (const char of chars) {
+            if (!clusters.length || !marks.test(char)) {
+                clusters.push(char);
+            } else {
+                clusters[clusters.length - 1] += char;
+            }
+        }
+        return clusters;
+    }
+
+    function getClusterBaseChar(cluster) {
+        const marks = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF]/u;
+        return [...(cluster || '')].find((char) => !marks.test(char)) || '';
+    }
+
+    function applyKhattTatweel(word, strength) {
+        const text = stripEmbeddedWaqf(word || '');
+        if (!isKhattFontActive() || !text) return text;
+
+        const arabicBase = /[\u0621-\u064A\u066E-\u066F\u0671-\u06D3]/u;
+        const nonConnectingForward = new Set(['ا', 'أ', 'إ', 'آ', 'ٱ', 'د', 'ذ', 'ر', 'ز', 'و', 'ؤ', 'ء', 'ى', 'ة']);
+        const preferredStretch = new Set(['ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'ي', 'ئ']);
+        const clusters = splitArabicClusters(text);
+        if (clusters.length < 2) return text;
+
+        const eligiblePositions = [];
+        for (let index = 0; index < clusters.length - 1; index += 1) {
+            const currentBase = getClusterBaseChar(clusters[index]);
+            const nextBase = getClusterBaseChar(clusters[index + 1]);
+            if (!arabicBase.test(currentBase) || !arabicBase.test(nextBase)) continue;
+            if (nonConnectingForward.has(currentBase)) continue;
+            eligiblePositions.push({
+                index,
+                preferred: preferredStretch.has(currentBase) || preferredStretch.has(nextBase)
+            });
+        }
+
+        if (!eligiblePositions.length) return text;
+
+        const normalizedStrength = Math.max(0, Math.min(100, Number(strength) || 0));
+        const maxPerPosition = normalizedStrength >= 75 ? 2 : 1;
+        const totalTatweels = Math.round((normalizedStrength / 100) * eligiblePositions.length * maxPerPosition);
+        if (totalTatweels <= 0) return text;
+
+        const orderedPositions = eligiblePositions
+            .slice()
+            .sort((left, right) => Number(right.preferred) - Number(left.preferred));
+
+        const tatweelCounts = new Map();
+        for (let index = 0; index < totalTatweels; index += 1) {
+            const target = orderedPositions[index % orderedPositions.length].index;
+            tatweelCounts.set(target, (tatweelCounts.get(target) || 0) + 1);
+        }
+
+        let output = '';
+        clusters.forEach((cluster, index) => {
+            output += cluster;
+            const count = tatweelCounts.get(index) || 0;
+            if (count > 0) {
+                output += '\u0640'.repeat(count);
+            }
+        });
+        return output;
+    }
+
+    function getDisplayedWordText(rawText) {
+        const sourceText = rawText || '';
+        if (!isKhattFontActive()) return sourceText;
+        return applyKhattTatweel(sourceText, getCurrentKhattJustifyValue());
+    }
+
+    function refreshKhattRenderedWords() {
+        const mode = getCurrentWaqfMode();
+        document.querySelectorAll('#quran-text .word-token').forEach((wordEl) => {
+            const rawText = (mode === 'selected' || mode === 'none')
+                ? (wordEl.dataset.textClean || '')
+                : (wordEl.dataset.textOriginal || wordEl.dataset.textClean || '');
+            const baseEl = wordEl.querySelector(':scope > .word-content > .word-base');
+            if (baseEl) {
+                baseEl.textContent = getDisplayedWordText(rawText);
+            }
+        });
+    }
+
     async function maybeRefreshTafseer(surahNumber, ayahNumber) {
         const tafseerContainer = document.getElementById('tafseer-container');
         if (tafseerContainer && tafseerContainer.style.display !== 'none') {
@@ -3090,7 +3187,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         wordElement.dataset.textOriginal = word;
         wordElement.dataset.textClean = cleanText;
         const mode = getCurrentWaqfMode();
-        wordElement.textContent = (mode === 'selected' || mode === 'none') ? cleanText : word;
+        const wordContent = document.createElement('span');
+        wordContent.className = 'word-content';
+        const wordBase = document.createElement('span');
+        wordBase.className = 'word-base';
+        const visibleText = (mode === 'selected' || mode === 'none') ? cleanText : word;
+        wordBase.textContent = getDisplayedWordText(visibleText);
+        wordContent.appendChild(wordBase);
+        wordElement.appendChild(wordContent);
         wordElement.dataset.index = index;
         wordElement.addEventListener('click', () => {
             playWordSegment(index, wordIndexToSegmentMap);
@@ -3418,7 +3522,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.khattJustifyRow.style.display = isKhattFont ? '' : 'none';
         }
         if (!isKhattFont) {
-            document.documentElement.style.removeProperty('--khatt-word-spacing');
+            document.documentElement.style.removeProperty('--khatt-column-gap');
+            document.documentElement.style.removeProperty('--khatt-row-gap');
+            document.documentElement.style.removeProperty('--khatt-word-margin-x');
         } else {
             const saved = parseInt(localStorage.getItem('quranApp_khattJustify') ?? '50', 10);
             applyKhattJustify(saved);
@@ -3427,11 +3533,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    /** Apply Digital Khatt word-spacing from a 0-100 slider value.
-     *  50 = natural (0em), 0 = compressed (−0.5em), 100 = expanded (+0.5em). */
+    /** Apply Digital Khatt tatweel from a 0-100 slider value.
+     *  Chromium does not produce Arabic kashida from CSS justification here,
+     *  so we regenerate the visible word text with explicit tatweel chars. */
     function applyKhattJustify(value) {
-        const em = (value - 50) / 100;
-        document.documentElement.style.setProperty('--khatt-word-spacing', em + 'em');
+        if (!isKhattFontActive()) return;
+        refreshKhattRenderedWords();
     }
 
     function togglePlayPause() {

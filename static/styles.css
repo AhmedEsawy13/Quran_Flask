@@ -2797,10 +2797,16 @@ body.dark-mode .ctrl-row-playback #play-pause-button.btn-play {
 
 #khatt-justify-reset:hover { opacity: 1; }
 
-/* Apply word-spacing CSS variable only for Digital Khatt family fonts */
+/* Apply flex-gap CSS variables only for Digital Khatt family fonts */
 body[data-font-type="digital_khatt"] #quran-text,
 body[data-font-type="old_madina"] #quran-text {
-    word-spacing: var(--khatt-word-spacing, 0em);
+    column-gap: var(--khatt-column-gap, 0.2rem);
+    row-gap: var(--khatt-row-gap, 0.4rem);
+}
+
+body[data-font-type="digital_khatt"] .word-token,
+body[data-font-type="old_madina"] .word-token {
+    margin-inline: var(--khatt-word-margin-x, 0.05rem);
 }
 
 /* Dark mode adjustments */

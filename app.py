@@ -1710,7 +1710,7 @@ def get_transliteration():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
 def normalize_source(source):
