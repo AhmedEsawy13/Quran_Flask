@@ -86,7 +86,7 @@ def after_request(response):
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://vercel.live https://va.vercel-scripts.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://cdnjs.cloudflare.com https://vercel.live https://va.vercel-scripts.com; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
@@ -107,6 +107,7 @@ def after_request(response):
     # Skip if the response is already encoded (e.g. by a downstream middleware) so we
     # don't double-encode (gzip(gzip(...)) — broken clients).
     if (response.status_code == 200 and
+        not response.direct_passthrough and
         not response.headers.get('Content-Encoding') and
         response.content_type and 'application/json' in response.content_type and
         'gzip' in request.headers.get('Accept-Encoding', '').lower()):

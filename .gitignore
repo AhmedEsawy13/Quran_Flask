@@ -41,6 +41,7 @@ Thumbs.db
 # Flask
 instance/
 .webassets-cache
+flask.log
 
 # Environment variables
 .env
@@ -58,3 +59,18 @@ htmlcov/
 QUL_data/quran_script.backup_*.db
 QUL_data/Tafseer*.json
 reciters/husary/word_alignment.json
+
+# Local font-renderer experiment artifacts — do not commit
+static/VisualMetaFontWasm.js
+static/VisualMetaFontWasm.wasm
+static/hb.js
+static/hb.wasm
+static/automedina.fea
+static/ayah.mp
+static/digitalkhatt.mp
+static/medinapages.dat
+static/mfplain.mp
+static/mpguifont.mp
+static/myfontbase.mp
+static/parameters.json
+static/texpages.dat

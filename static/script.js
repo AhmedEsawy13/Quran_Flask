@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     let waqfPanelView = 'mushaf'; // 'mushaf' = per-mushaf cards, 'word' = per-word view
     const fontCache = {};
     const loadedShamarlyFonts = new Set();
+    let khattRenderVersion = 0;
+    let pendingKhattJustifyValue = null;
+    let khattJustifyFrameId = 0;
 
     // ── Per-mushaf color classes ─────────────────────────────────────────────
     // MUST be declared before the first `await` so the const is initialized
@@ -101,6 +104,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const savedKhattJustify = parseInt(localStorage.getItem('quranApp_khattJustify') ?? '50', 10);
         if (elements.khattJustifySlider) elements.khattJustifySlider.value = savedKhattJustify;
         if (elements.khattJustifyValue) elements.khattJustifyValue.textContent = savedKhattJustify + '%';
+
+        document.body.dataset.tajweedEnabled = localStorage.getItem('quranApp_tajweedEnabled') === 'true' ? 'true' : 'false';
+        updateTajweedButton();
         
         // Load reciter preference
         const savedReciter = localStorage.getItem('quranApp_reciter');
@@ -927,6 +933,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
         
         elements.audioElement.addEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
+
+        refreshKhattRenderedWords();
     }
 
     function filterWaqfByMode(symbols) {
@@ -1258,6 +1266,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         attachHighlightHandler(wordElements, wordIndexToSegmentMap);
+        refreshKhattRenderedWords();
     }
 
     function renderShamarlyVerseLines(shamarlyPayload) {
@@ -1859,98 +1868,85 @@ document.addEventListener('DOMContentLoaded', async () => {
         return document.body.dataset.fontType === 'digital_khatt' || document.body.dataset.fontType === 'old_madina';
     }
 
+    function isDigitalKhattFontActive() {
+        return document.body.dataset.fontType === 'digital_khatt';
+    }
+
     function getCurrentKhattJustifyValue() {
         const raw = elements.khattJustifySlider?.value ?? localStorage.getItem('quranApp_khattJustify') ?? '50';
         const parsed = parseInt(raw, 10);
         return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : 50;
     }
 
-    function splitArabicClusters(text) {
-        const marks = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF]/u;
-        const chars = [...(text || '')];
-        const clusters = [];
-        for (const char of chars) {
-            if (!clusters.length || !marks.test(char)) {
-                clusters.push(char);
-            } else {
-                clusters[clusters.length - 1] += char;
+    function getKhattFeatureSequence() {
+        const features = [];
+        for (let level = 1; level <= 5; level += 1) {
+            for (const type of ['jt', 'dc', 'kt']) {
+                features.push(`${type}0${level}`);
             }
         }
-        return clusters;
+        return features;
     }
 
-    function getClusterBaseChar(cluster) {
-        const marks = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D3-\u08FF]/u;
-        return [...(cluster || '')].find((char) => !marks.test(char)) || '';
-    }
-
-    function applyKhattTatweel(word, strength) {
-        const text = stripEmbeddedWaqf(word || '');
-        if (!isKhattFontActive() || !text) return text;
-
-        const arabicBase = /[\u0621-\u064A\u066E-\u066F\u0671-\u06D3]/u;
-        const nonConnectingForward = new Set(['ا', 'أ', 'إ', 'آ', 'ٱ', 'د', 'ذ', 'ر', 'ز', 'و', 'ؤ', 'ء', 'ى', 'ة']);
-        const preferredStretch = new Set(['ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ', 'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'ي', 'ئ']);
-        const clusters = splitArabicClusters(text);
-        if (clusters.length < 2) return text;
-
-        const eligiblePositions = [];
-        for (let index = 0; index < clusters.length - 1; index += 1) {
-            const currentBase = getClusterBaseChar(clusters[index]);
-            const nextBase = getClusterBaseChar(clusters[index + 1]);
-            if (!arabicBase.test(currentBase) || !arabicBase.test(nextBase)) continue;
-            if (nonConnectingForward.has(currentBase)) continue;
-            eligiblePositions.push({
-                index,
-                preferred: preferredStretch.has(currentBase) || preferredStretch.has(nextBase)
-            });
-        }
-
-        if (!eligiblePositions.length) return text;
-
+    function getKhattFeatureSettings(strength) {
         const normalizedStrength = Math.max(0, Math.min(100, Number(strength) || 0));
-        const maxPerPosition = normalizedStrength >= 75 ? 2 : 1;
-        const totalTatweels = Math.round((normalizedStrength / 100) * eligiblePositions.length * maxPerPosition);
-        if (totalTatweels <= 0) return text;
+        if (!isKhattFontActive() || normalizedStrength <= 0) return '';
 
-        const orderedPositions = eligiblePositions
-            .slice()
-            .sort((left, right) => Number(right.preferred) - Number(left.preferred));
-
-        const tatweelCounts = new Map();
-        for (let index = 0; index < totalTatweels; index += 1) {
-            const target = orderedPositions[index % orderedPositions.length].index;
-            tatweelCounts.set(target, (tatweelCounts.get(target) || 0) + 1);
+        if (document.body.dataset.fontType === 'digital_khatt') {
+            const digitalKhattLevels = [
+                `'jalt' 1`,
+                `'jalt' 1, 'cv02' 1`,
+                `'jalt' 1, 'cv01' 1`,
+                `'jalt' 1, 'cv01' 1, 'cv02' 1`
+            ];
+            const level = Math.min(
+                digitalKhattLevels.length,
+                Math.max(1, Math.ceil((normalizedStrength / 100) * digitalKhattLevels.length))
+            );
+            return digitalKhattLevels[level - 1] || '';
         }
 
-        let output = '';
-        clusters.forEach((cluster, index) => {
-            output += cluster;
-            const count = tatweelCounts.get(index) || 0;
-            if (count > 0) {
-                output += '\u0640'.repeat(count);
-            }
-        });
-        return output;
+        const featureSequence = getKhattFeatureSequence();
+        const featureCount = Math.round((normalizedStrength / 100) * featureSequence.length);
+        if (featureCount <= 0) return '';
+
+        return featureSequence
+            .slice(0, featureCount)
+            .map((feature) => `'${feature}'`)
+            .join(',');
     }
 
     function getDisplayedWordText(rawText) {
-        const sourceText = rawText || '';
-        if (!isKhattFontActive()) return sourceText;
-        return applyKhattTatweel(sourceText, getCurrentKhattJustifyValue());
+        return rawText || '';
+    }
+
+    function applyTextKhattWord(baseEl, rawText, featureSettings) {
+        baseEl.textContent = getDisplayedWordText(rawText);
+        baseEl.style.fontFeatureSettings = featureSettings || null;
+        baseEl.dataset.khattRenderMode = 'text';
     }
 
     function refreshKhattRenderedWords() {
         const mode = getCurrentWaqfMode();
+        const renderVersion = ++khattRenderVersion;
+        const strength = getCurrentKhattJustifyValue();
+        const featureSettings = getKhattFeatureSettings(strength);
+        const wordItems = [];
         document.querySelectorAll('#quran-text .word-token').forEach((wordEl) => {
             const rawText = (mode === 'selected' || mode === 'none')
                 ? (wordEl.dataset.textClean || '')
                 : (wordEl.dataset.textOriginal || wordEl.dataset.textClean || '');
             const baseEl = wordEl.querySelector(':scope > .word-content > .word-base');
             if (baseEl) {
-                baseEl.textContent = getDisplayedWordText(rawText);
+                wordItems.push({ wordEl, baseEl, rawText });
             }
         });
+
+        wordItems.forEach((item) => {
+            applyTextKhattWord(item.baseEl, item.rawText, featureSettings);
+        });
+
+        void applyVisibleTajweedToVerseText(wordItems, featureSettings, renderVersion);
     }
 
     async function maybeRefreshTafseer(surahNumber, ayahNumber) {
@@ -2037,28 +2033,63 @@ document.addEventListener('DOMContentLoaded', async () => {
     // JS-side cache: verse_key → html string
     const _tajweedHtmlCache = {};
 
-    // Rule metadata used to build word chips
-    const TAJWEED_LEGEND_ITEMS = [
-        { cls: 'ghunnah',              name: 'غنة',                  desc: 'غنة ٢ حركتان — نون أو ميم مشددة' },
-        { cls: 'ikhafa',               name: 'إخفاء',                desc: 'إخفاء — ن ساكنة أو تنوين قبل ١٥ حرفًا' },
-        { cls: 'ikhafa_shafawi',       name: 'إخفاء شفوي',          desc: 'إخفاء شفوي مع الميم — ميم ساكنة قبل الباء' },
-        { cls: 'iqlab',                name: 'إقلاب',                desc: 'إقلاب — ن ساكنة أو تنوين قبل الباء' },
-        { cls: 'idgham_ghunnah',       name: 'إدغام بغنة',           desc: 'إدغام بغنة — ن ساكنة أو تنوين قبل (ي و م ن)' },
-        { cls: 'idgham_wo_ghunnah',    name: 'إدغام بلا غنة',       desc: 'إدغام بلا غنة — ن ساكنة أو تنوين قبل (ل ر)' },
-        { cls: 'idgham_shafawi',       name: 'إدغام شفوي',          desc: 'إدغام شفوي مع الميم — ميم ساكنة قبل ميم' },
-        { cls: 'idgham_mutajanisayn',  name: 'إدغام المتجانسين',    desc: 'إدغام المتجانسين — حرفان متحدا المخرج مختلفا الصفة' },
-        { cls: 'idgham_mutaqaribayn',  name: 'إدغام المتقاربين',    desc: 'إدغام المتقاربين — حرفان متقاربا المخرج والصفة' },
-        { cls: 'qalaqah',              name: 'قلقلة',                desc: 'قلقلة — حروف (ق ط ب ج د) عند السكون أو الوقف' },
-        { cls: 'madda_normal',         name: 'مد طبيعي',            desc: 'مد طبيعي ٢ حركتان — حرف مد لا يليه همز أو سكون' },
-        { cls: 'madda_permissible',    name: 'مد عارض للسكون',      desc: 'مد عارض للسكون — ٢ أو ٤ أو ٦ حركات عند الوقف على الكلمة' },
-        { cls: 'madda_obligatory',     name: 'مد واجب متصل',       desc: 'مد واجب متصل ٤–٥ حركات — حرف المد والهمزة في كلمة واحدة' },
-        { cls: 'madda_munfasil',       name: 'مد جائز منفصل',      desc: 'مد جائز منفصل ٤–٥ حركات — حرف المد في كلمة والهمزة في الكلمة التالية' },
-        { cls: 'madda_necessary',      name: 'مد لازم',             desc: 'مد لازم ٦ حركات — حرف مد يعقبه سكون أصلي أو شدة' },
-        { cls: 'ham_wasl',             name: 'همزة وصل',            desc: 'همزة الوصل — تُحذف في الوصل وتُنطق في الابتداء' },
-        { cls: 'laam_shamsiyah',       name: 'لام شمسية',           desc: 'لام شمسية — لام التعريف تُدغم في الحرف التالي' },
-        { cls: 'slnt',                 name: 'حرف صامت',            desc: 'حرف صامت — مكتوب لا يُنطق' },
-    ];
-    const _ruleInfo = Object.fromEntries(TAJWEED_LEGEND_ITEMS.map(r => [r.cls, r]));
+    function isTajweedEnabled() {
+        return document.body.dataset.tajweedEnabled === 'true';
+    }
+
+    async function getTajweedHtml(surahNumber, ayahNumber) {
+        const verseKey = `${surahNumber}:${ayahNumber}`;
+        if (_tajweedHtmlCache[verseKey]) {
+            return _tajweedHtmlCache[verseKey];
+        }
+        const data = await fetchData(`/api/tajweed/${surahNumber}/${ayahNumber}`);
+        const html = data?.html || '';
+        _tajweedHtmlCache[verseKey] = html;
+        return html;
+    }
+
+    function getNormalizedTajweedHtml(html) {
+        return _reclassifyMunfasilInHtml(
+            (html || '').replace(/<span[^>]*class=["']?end["']?[^>]*>.*?<\/span>/gi, '').trim()
+        );
+    }
+
+    async function applyVisibleTajweedToVerseText(wordItems, featureSettings, renderVersion) {
+        if (!isTajweedEnabled() || !wordItems.length) return;
+
+        const surahNumber = elements.surahSelect?.value;
+        const ayahNumber = elements.ayahSelect?.value;
+        if (!surahNumber || !ayahNumber) return;
+
+        try {
+            const html = await getTajweedHtml(surahNumber, ayahNumber);
+            if (renderVersion !== khattRenderVersion || !isTajweedEnabled()) return;
+
+            const tajweedWords = parseTajweedIntoWords(getNormalizedTajweedHtml(html));
+            const waqfMode = getCurrentWaqfMode();
+            const hideEmbeddedWaqf = waqfMode === 'selected' || waqfMode === 'none';
+            const contentWordItems = wordItems.filter(({ wordEl }) => {
+                const cleanText = (wordEl.dataset.textClean || '').trim();
+                return /[\u0621-\u064A]/.test(cleanText);
+            });
+
+            if (tajweedWords.length !== contentWordItems.length) {
+                return;
+            }
+
+            contentWordItems.forEach((item, index) => {
+                let renderedHtml = tajweedWords[index].html || getDisplayedWordText(item.wordEl.dataset.textClean || item.rawText);
+                if (hideEmbeddedWaqf) {
+                    renderedHtml = stripEmbeddedWaqf(renderedHtml);
+                }
+                item.baseEl.innerHTML = renderedHtml;
+                item.baseEl.style.fontFeatureSettings = featureSettings || null;
+                item.baseEl.dataset.khattRenderMode = 'text-tajweed';
+            });
+        } catch (error) {
+            console.error('Failed to apply tajweed to verse text:', error);
+        }
+    }
 
     /**
      * Parse the quran.com tajweed HTML into word segments.
@@ -2156,47 +2187,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function toggleTajweed() {
-        const container = document.getElementById('tajweed-container');
-        if (!container) return;
-        const isHidden = container.style.display === 'none';
-        container.style.display = isHidden ? 'block' : 'none';
+        const enabled = !isTajweedEnabled();
+        document.body.dataset.tajweedEnabled = enabled ? 'true' : 'false';
+        localStorage.setItem('quranApp_tajweedEnabled', enabled ? 'true' : 'false');
         updateTajweedButton();
-        if (isHidden) {
+        if (enabled) {
             const surah = elements.surahSelect.value;
             const ayah = elements.ayahSelect.value;
             if (surah && ayah) await fetchAndDisplayTajweed(surah, ayah);
         }
+        refreshKhattRenderedWords();
     }
 
     async function fetchAndDisplayTajweed(surahNumber, ayahNumber) {
-        const verseKey = `${surahNumber}:${ayahNumber}`;
-        if (_tajweedHtmlCache[verseKey]) {
-            displayTajweed(_tajweedHtmlCache[verseKey]);
-            return;
-        }
-        const bd = document.getElementById('tajweed-breakdown');
-        if (bd) bd.innerHTML = '<span style="color:#888;font-size:0.85rem">جارٍ التحميل…</span>';
         try {
-            const data = await fetchData(`/api/tajweed/${surahNumber}/${ayahNumber}`);
-            const html = data?.html || '';
-            _tajweedHtmlCache[verseKey] = html;
-            displayTajweed(html);
+            await getTajweedHtml(surahNumber, ayahNumber);
+            if (isTajweedEnabled()) {
+                refreshKhattRenderedWords();
+            }
+            return;
         } catch (e) {
             console.error('Error loading tajweed:', e);
-            if (bd) bd.innerHTML = '<p style="color:#888;font-size:0.9rem;">تعذّر تحميل بيانات التجويد.</p>';
         }
-    }
-
-    const _CROSS_WORD_CLASSES = new Set(['idgham_ghunnah', 'idgham_wo_ghunnah', 'idgham_shafawi', 'idgham_mutajanisayn', 'idgham_mutaqaribayn', 'ikhafa', 'ikhafa_shafawi', 'iqlab', 'madda_munfasil']);
-
-    function _makeChips(rules, excludeSet) {
-        return rules
-            .filter(r => !excludeSet || !excludeSet.has(r))
-            .map(rule => {
-                const info = _ruleInfo[rule];
-                if (!info) return '';
-                return `<div class="tj-chip ${rule}"><span class="tj-chip-name">${info.name}</span><span class="tj-chip-desc">${info.desc}</span></div>`;
-            }).join('');
     }
 
     /**
@@ -2220,121 +2232,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         );
     }
 
-    function displayTajweed(html) {
-        const verseDiv = document.getElementById('tajweed-verse-text');
-        const bd       = document.getElementById('tajweed-breakdown');
-        const heading  = document.getElementById('tajweed-rules-heading');
-        if (!verseDiv || !bd) return;
-        if (!html) {
-            verseDiv.innerHTML = '';
-            if (heading) heading.style.display = 'none';
-            bd.innerHTML = '<p style="color:#888;">لا توجد بيانات تجويد.</p>';
-            return;
-        }
-
-        // Sync font with currently selected Quran font
-        const _curFont = (document.getElementById('quran-text-select') || {}).value || 'qpc_hafs';
-        verseDiv.className = (_curFont === 'shamarly') ? 'qpc_hafs' : _curFont;
-
-        // Render the full verse with tajweed colours, stripping the verse-number end marker
-        // Also reclassify madda_munfasil (API sends madda_obligatory for both متصل and منفصل)
-        const cleanHtml = _reclassifyMunfasilInHtml(
-            html.replace(/<span[^>]*class=["']?end["']?[^>]*>.*?<\/span>/gi, '').trim()
-        );
-        verseDiv.innerHTML = cleanHtml;
-
-        // Feature 5: draw cross-word underline connectors
-        // We need to find pairs: a tajweed element with a cross-word class whose rule
-        // continues into the next word. We use parseTajweedIntoWords to find the pairs,
-        // then locate the actual DOM elements by position and draw an SVG line.
-        _drawCrossWordConnectors(verseDiv, html);
-
-        // Collect unique rules for legend chips
-        const words = parseTajweedIntoWords(html);
-        const seenRules = new Set();
-        for (const { rules } of words) rules.forEach(r => seenRules.add(r));
-
-        const chips = TAJWEED_LEGEND_ITEMS
-            .filter(item => seenRules.has(item.cls))
-            .map(item =>
-                `<div class="tj-chip ${item.cls}">` +
-                `<span class="tj-chip-name">${item.name}</span>` +
-                `<span class="tj-chip-desc">${item.desc}</span>` +
-                `</div>`
-            ).join('');
-
-        if (heading) heading.style.display = chips ? '' : 'none';
-        bd.innerHTML = chips || '<p style="color:#888;font-size:0.85rem">لا توجد أحكام تجويد في هذه الآية.</p>';
-    }
-
-    /**
-     * Draw colored underline connectors between cross-word rule pairs.
-     * Finds every tajweed/span element with a cross-word class, groups them
-     * into consecutive pairs (first word → next word), then draws an absolutely-
-     * positioned colored <div> line under both.
-     */
-    function _drawCrossWordConnectors(verseDiv, html) {
-        // Remove any old connectors
-        verseDiv.querySelectorAll('.tj-crossword-line').forEach(e => e.remove());
-
-        // For each cross-word rule class, find all tagged elements in DOM order
-        for (const cls of _CROSS_WORD_CLASSES) {
-            const els = Array.from(verseDiv.querySelectorAll(`tajweed.${cls}, span.${cls}`));
-            if (els.length < 2) continue;
-
-            // Group into consecutive pairs that are in adjacent "words" (separated by a space
-            // text node or by being in different word groups per parseTajweedIntoWords).
-            // Simpler heuristic: pair every element with the nearest subsequent same-class element
-            // that is not in the same text run (i.e. there is some plain text between them).
-            let i = 0;
-            while (i < els.length - 1) {
-                const a = els[i];
-                const b = els[i + 1];
-
-                // Check there's a word boundary (space) between them in the rendered text
-                const rangeBetween = document.createRange();
-                rangeBetween.setStartAfter(a);
-                rangeBetween.setEndBefore(b);
-                const textBetween = rangeBetween.toString();
-                if (!textBetween.includes(' ')) { i++; continue; }
-
-                // Draw connector
-                const rectA = a.getBoundingClientRect();
-                const rectB = b.getBoundingClientRect();
-                const rectV = verseDiv.getBoundingClientRect();
-
-                // left/right in container-relative coords (RTL: b is visually to the right of a)
-                const x1 = Math.min(rectA.left, rectB.left) - rectV.left - 2;
-                const x2 = Math.max(rectA.right, rectB.right) - rectV.left + 2;
-                const y  = Math.max(rectA.bottom, rectB.bottom) - rectV.top + 2;
-
-                const line = document.createElement('div');
-                line.className = 'tj-crossword-line';
-                // Get computed color of the element
-                const color = getComputedStyle(a).color;
-                line.style.cssText = `left:${x1}px; width:${x2 - x1}px; top:${y}px; background:${color};`;
-                verseDiv.appendChild(line);
-
-                i += 2; // skip b — it's the second of this pair
-            }
-        }
-    }
-
     async function maybeRefreshTajweed(surahNumber, ayahNumber) {
-        const container = document.getElementById('tajweed-container');
-        if (container && container.style.display !== 'none') {
+        if (isTajweedEnabled()) {
             await fetchAndDisplayTajweed(surahNumber, ayahNumber);
         }
     }
 
     function updateTajweedButton() {
         const btn = document.getElementById('show-tajweed');
-        const container = document.getElementById('tajweed-container');
-        if (!btn || !container) return;
-        const hidden = container.style.display === 'none';
-        btn.innerHTML = hidden
-            ? '<i class="fas fa-palette"></i> التجويد'
-            : '<i class="fas fa-palette"></i> إخفاء التجويد';
+        if (!btn) return;
+        const enabled = isTajweedEnabled();
+        btn.classList.toggle('active', enabled);
+        btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        btn.innerHTML = '<i class="fas fa-palette"></i> التجويد';
     }
 
     // ── Nuzool ──────────────────────────────────────────────────────────────────────────
@@ -2494,7 +2404,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Build a natural-language verdict sentence for one mushaf entry
         function buildVerdict(ver, matched, total, score, mushaf_marks, marks_covered, coverage_score) {
-            const recShort = reciterName;     // already short Arabic name
+            const recShort = reciterName;
             const allPrec = matched === total;
             const allCov  = mushaf_marks === 0 || marks_covered === mushaf_marks;
             const noPrec  = matched === 0;
@@ -2506,7 +2416,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             let parts = [];
 
-            // Precision sentence
             if (allPrec) {
                 parts.push(`وافق الشيخ في جميع وقفاته (${m}/${t})`);
             } else if (noPrec) {
@@ -2515,7 +2424,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 parts.push(`وافق الشيخ في ${m} من أصل ${t} وقفة`);
             }
 
-            // Coverage sentence (only when mushaf has marks)
             if (mushaf_marks > 0) {
                 if (allCov) {
                     parts.push(`وغطّى جميع علامات الوقف فيه (${c}/${mk})`);
@@ -2531,21 +2439,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             return parts.join('، ');
         }
 
-        // Badge level: 'full' | 'partial' | 'none'
         function badgeLevel(score, coverage_score, mushaf_marks) {
             const eff = mushaf_marks > 0 ? Math.min(score, coverage_score) : score;
             if (eff === 100) return 'full';
-            if (eff === 0)   return 'none';
+            if (eff === 0) return 'none';
             return 'partial';
         }
 
         const BADGE = {
             full:    { label: 'مطابق تماماً', cls: 'pm-badge-full' },
             partial: { label: 'مطابق جزئياً', cls: 'pm-badge-partial' },
-            none:    { label: 'غير مطابق',    cls: 'pm-badge-none' },
+            none:    { label: 'غير مطابق', cls: 'pm-badge-none' },
         };
 
-        // ── Panel shell ───────────────────────────────────────────────────────
         const panel = document.createElement('div');
         panel.className = 'pause-match-panel';
 
@@ -2570,7 +2476,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             const card = document.createElement('div');
             card.className = `pause-match-card ${colorCls}`;
 
-            // ── Card header: mushaf name + badge ──────────────────────────
             const header = document.createElement('div');
             header.className = 'pause-match-card-header';
 
@@ -2585,13 +2490,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             header.appendChild(badgeEl);
             card.appendChild(header);
 
-            // ── Verdict sentence ──────────────────────────────────────────
             const verdict = document.createElement('p');
             verdict.className = 'pause-match-verdict';
             verdict.textContent = buildVerdict(ver, matched, total, score, mushaf_marks, marks_covered, coverage_score);
             card.appendChild(verdict);
 
-            // ── Bar 1: precision ──────────────────────────────────────────
             const precSection = document.createElement('div');
             precSection.className = 'pause-match-bar-section';
 
@@ -2624,7 +2527,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             precSection.appendChild(precRow);
             card.appendChild(precSection);
 
-            // ── Bar 2: coverage (only when mushaf has marks) ──────────────
             if (mushaf_marks > 0) {
                 const covSection = document.createElement('div');
                 covSection.className = 'pause-match-bar-section';
@@ -3500,13 +3402,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const quranText = document.getElementById('quran-text');
         quranText.className = ''; // Reset all font classes
         quranText.classList.add(font);
-        // Apply the same font to the tajweed verse display
-        // (shamarly uses position-encoded glyphs that don’t apply to uthmanic tajweed text,
-        //  so fall back to qpc_hafs for the tajweed panel)
-        const tajweedVerse = document.getElementById('tajweed-verse-text');
-        if (tajweedVerse) {
-            tajweedVerse.className = (font === 'shamarly') ? 'qpc_hafs' : font;
-        }
         // Track exact font name so CSS can apply per-font rules (e.g. #tajweed-text)
         document.body.dataset.quranFont = font;
         // Track font family so CSS can apply per-font rules to guide-seg-words, diff chips, etc.
@@ -3525,6 +3420,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             document.documentElement.style.removeProperty('--khatt-column-gap');
             document.documentElement.style.removeProperty('--khatt-row-gap');
             document.documentElement.style.removeProperty('--khatt-word-margin-x');
+            refreshKhattRenderedWords();
         } else {
             const saved = parseInt(localStorage.getItem('quranApp_khattJustify') ?? '50', 10);
             applyKhattJustify(saved);
@@ -3533,12 +3429,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    /** Apply Digital Khatt tatweel from a 0-100 slider value.
-     *  Chromium does not produce Arabic kashida from CSS justification here,
-     *  so we regenerate the visible word text with explicit tatweel chars. */
     function applyKhattJustify(value) {
-        if (!isKhattFontActive()) return;
-        refreshKhattRenderedWords();
+        pendingKhattJustifyValue = value;
+        if (elements.khattJustifySlider) {
+            elements.khattJustifySlider.value = String(value);
+        }
+        if (khattJustifyFrameId) {
+            cancelAnimationFrame(khattJustifyFrameId);
+        }
+        khattJustifyFrameId = requestAnimationFrame(() => {
+            khattJustifyFrameId = 0;
+            if (pendingKhattJustifyValue == null) return;
+            refreshKhattRenderedWords();
+        });
     }
 
     function togglePlayPause() {
