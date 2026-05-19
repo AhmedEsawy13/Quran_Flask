@@ -2803,7 +2803,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     segEl.title = 'انقر للانتقال إلى هذا المقطع';
                     segEl.addEventListener('click', () => {
                         elements.audioElement.currentTime = segStartMs / 1000;
-                        if (elements.audioElement.paused) elements.audioElement.play();
+                        if (elements.audioElement.paused) elements.audioElement.play().catch(() => {});
                     });
                 }
             }
@@ -2831,11 +2831,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             copyBtn.title = 'نسخ نص المقطع';
             copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
             const segText = wordsEl.textContent;
+            let copyResetTimer = null;
             copyBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 navigator.clipboard.writeText(segText).then(() => {
                     copyBtn.innerHTML = '<i class="fas fa-check"></i>';
-                    setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
+                    clearTimeout(copyResetTimer);
+                    copyResetTimer = setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
                 }).catch(() => {});
             });
             segEl.appendChild(copyBtn);
