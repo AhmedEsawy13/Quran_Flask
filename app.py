@@ -2702,7 +2702,7 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
     layout_cursor = layout_conn.cursor()
     layout_cursor.execute(
         '''
-        SELECT page_number, line_number, line_type, is_centered, first_word_id, last_word_id, surah_number
+        SELECT page_number, line_number, line_type, is_centered, first_word_id, last_word_id, surah_number, total_advance, x_offset
         FROM pages
         WHERE page_number = ?
         ORDER BY line_number ASC
@@ -2846,8 +2846,22 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
             'last_word_id': last_word_id,
             'display_text': display_text,
             'contains_focus_ayah': contains_focus_ayah,
-            'words': line_words
+            'words': line_words,
+            'total_advance': line.get('total_advance'),
+            'x_offset': line.get('x_offset', 0)
         })
+
+    # Page content width: median total_advance of justified lines on this page,
+    # used by the frontend to compute per-line scale factors for justification.
+    page_content_width = None
+    justified_advances = [
+        l.get('total_advance') for l in output_lines
+        if l.get('total_advance') and not l.get('x_offset')
+    ]
+    if justified_advances:
+        justified_advances.sort()
+        mid = len(justified_advances) // 2
+        page_content_width = justified_advances[mid]
 
     return {
         'source': 'digital_khatt',
@@ -2855,6 +2869,7 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
         'font_name': (info_row['font_name'] if info_row and 'font_name' in info_row.keys() else 'Digital Khatt'),
         'layout_name': (info_row['name'] if info_row and 'name' in info_row.keys() else 'Digital Khatt layout'),
         'lines_per_page': (int(info_row['lines_per_page']) if info_row and info_row['lines_per_page'] else None),
+        'page_content_width': page_content_width,
         'focus_surah': focus_surah,
         'focus_ayah': focus_ayah,
         'lines': output_lines,
