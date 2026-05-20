@@ -420,53 +420,90 @@ def _parse_segment(seg):
     return None
 
 
-# Matches diacritics/harakat, superscript alef, and in-word quranic marks so we
-# can compare stripped base consonants for يا-vocative detection.
-_HARAKAT_RE = re.compile(r'[\u064B-\u065F\u0670\u0654\u0655\u06D6-\u06DC\u06DF-\u06E4]')
+# Matches diacritics/harakat and quranic marks (NOT the superscript alef ٰ U+0670,
+# which we keep for يا-vocative detection via _YA_NIDA_RE below).
+_HARAKAT_RE = re.compile(r'[\u064B-\u065F\u0654\u0655\u06D6-\u06DC\u06DF-\u06E4]')
+
+# Detects a يا-vocative compound word in the Uthmanic text: starts with ي + optional
+# harakat + superscript alef (ٰ U+0670).  Examples: يَٰٓأَيُّهَا, يَٰٓادَمُ,
+# يَٰبَنِيٓ, يَٰقَوۡمِ, يَٰنِسَآءُ — all forms where يا is written with a superscript
+# alef rather than a full ا.
+_YA_NIDA_RE = re.compile(r'^\u064A[\u064B-\u065F]*\u0670')
 
 
 def _fix_ya_nida_segments(segments, verse_text):
-    """Merge the first two timing segments when the timing source split a
-    يَا-vocative prefix (يا, يَٰٓ …) from the following word into two
-    consecutive segments, while the Uthmanic/DK text stores them as a single
-    merged token (يَٰٓأَيُّهَا, يَٰٓادَمُ, etc.).
+    """Fix word-index alignment when the timing source split يَا-vocative
+    compounds into two consecutive tokens (يَا + following word) while the
+    Uthmanic/DK text stores each compound as a single merged token.
 
-    Detection: the segment list has exactly one more entry than the number of
-    content words in the verse AND the first DK word stripped of diacritics
-    starts with 'يا'.
+    Handles all يا-vocative forms wherever they appear in the verse — at the
+    start or mid-verse — including:
+        يَٰٓأَيُّهَا  (يا + أيها)
+        يَٰٓادَمُ     (يا + آدم)
+        يَٰبَنِيٓ     (يا + بني)
+        يَٰقَوۡمِ     (يا + قوم)
+        يَٰنِسَآءُ   (يا + نساء)
+        … and any other word beginning with ي + superscript-alef (ٰ).
+
+    Algorithm:
+      1. Count DK content words (all tokens except the trailing ayah-number).
+      2. If len(segments) <= content_word_count there is nothing to fix.
+      3. Identify every يا-vocative word position in the DK word list.
+      4. Walk DK positions in order; at each يا position consume TWO timing
+         segments (merge them into one) instead of one, until the surplus is
+         fully absorbed.  All segment word indices are re-assigned from the
+         DK position counter so downstream code always sees a 0-based,
+         gap-free index matching the displayed word list.
     """
-    if len(segments) < 2 or not verse_text:
+    if not segments or not verse_text:
         return segments
 
     verse_words = verse_text.split()
-    # DK text always ends with the ayah-number glyph as the last token; the
-    # timing data never covers that glyph, so content words = total – 1.
+    # DK text ends with the ayah-number glyph as the last space-separated token;
+    # the timing data never covers that glyph, so content words = total – 1.
     content_word_count = len(verse_words) - 1
-    if len(segments) != content_word_count + 1:
-        return segments  # no mismatch — nothing to fix
+    extra = len(segments) - content_word_count
+    if extra <= 0:
+        return segments  # no surplus — nothing to fix
 
-    first_stripped = _HARAKAT_RE.sub('', verse_words[0])
-    if not first_stripped.startswith('يا'):
-        return segments  # first word is not a يا-vocative merged form
-
-    # Merge segment[0] (يا timing) and segment[1] (following word timing) into
-    # one segment that covers the combined يَٰٓ+X token (word index 0).
-    seg0, seg1 = segments[0], segments[1]
-    merged = {
-        'start_word_index': seg0['start_word_index'],
-        'end_word_index':   seg0['end_word_index'],
-        'start_time':       seg0['start_time'],
-        'end_time':         max(seg0['end_time'], seg1['end_time']),
+    # Find 0-based indices of all يا-vocative words in the DK content word list.
+    ya_positions = {
+        i for i, word in enumerate(verse_words[:-1])
+        if _YA_NIDA_RE.match(word)
     }
+    if not ya_positions:
+        return segments  # no يا-vocative tokens found — can't identify splits
 
-    # All subsequent segments were targeting word indices 2, 3, … in the
-    # source data; shift each down by 1 so they align with the DK word list.
-    shifted = [
-        {**seg, 'start_word_index': seg['start_word_index'] - 1,
-                'end_word_index':   seg['end_word_index'] - 1}
-        for seg in segments[2:]
-    ]
-    return [merged] + shifted
+    # Walk DK word positions and timing segments together.
+    # At each يا position we consume two timing slots and merge them into one
+    # (absorbing one unit of surplus).  Stop merging once the surplus is gone.
+    new_segments = []
+    seg_idx = 0
+    merges_left = min(extra, len(ya_positions))
+
+    for dk_idx in range(content_word_count):
+        if seg_idx >= len(segments):
+            break
+
+        if dk_idx in ya_positions and merges_left > 0 and seg_idx + 1 < len(segments):
+            s0, s1 = segments[seg_idx], segments[seg_idx + 1]
+            new_segments.append({
+                'start_word_index': dk_idx,
+                'end_word_index':   dk_idx,
+                'start_time':       s0['start_time'],
+                'end_time':         max(s0['end_time'], s1['end_time']),
+            })
+            seg_idx += 2
+            merges_left -= 1
+        else:
+            new_segments.append({
+                **segments[seg_idx],
+                'start_word_index': dk_idx,
+                'end_word_index':   dk_idx,
+            })
+            seg_idx += 1
+
+    return new_segments
 
 
 def create_audio_mapping(quran_text_data, audio_data):
