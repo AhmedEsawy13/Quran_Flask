@@ -152,6 +152,10 @@ RECITER_GUIDE_CONFIG = {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'positions.db'),
         'waqf_col': 'المدينة',
     },
+    'Mahmoud Khalil al-Husary (Murattal)': {
+        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'mahmoud_khalil_al_husari_0_1_positions.db'),
+        'waqf_col': 'المدينة',
+    },
     'Ibrahim Al-Akhdar': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'ibrahim-al-akhdar', 'positions.db'),
         'waqf_col': 'المدينة',
@@ -341,6 +345,8 @@ reciters = {
                               "QUL_data/word_timestamps/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json"),
     "Mahmoud Khalil al-Husary (Mujawwad)": ("ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json",
                                            "QUL_data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json"),
+    "Mahmoud Khalil al-Husary (Murattal)": ("ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json",
+                                            "QUL_data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json"),
     "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
                                            "QUL_data/word_timestamps/mahmoud-khalil-al-husary-muallm-hafs.json"),
     "Ibrahim Al-Akhdar":        ("ibrahim-al-akhdar.json",
@@ -414,6 +420,55 @@ def _parse_segment(seg):
     return None
 
 
+# Matches diacritics/harakat, superscript alef, and in-word quranic marks so we
+# can compare stripped base consonants for يا-vocative detection.
+_HARAKAT_RE = re.compile(r'[\u064B-\u065F\u0670\u0654\u0655\u06D6-\u06DC\u06DF-\u06E4]')
+
+
+def _fix_ya_nida_segments(segments, verse_text):
+    """Merge the first two timing segments when the timing source split a
+    يَا-vocative prefix (يا, يَٰٓ …) from the following word into two
+    consecutive segments, while the Uthmanic/DK text stores them as a single
+    merged token (يَٰٓأَيُّهَا, يَٰٓادَمُ, etc.).
+
+    Detection: the segment list has exactly one more entry than the number of
+    content words in the verse AND the first DK word stripped of diacritics
+    starts with 'يا'.
+    """
+    if len(segments) < 2 or not verse_text:
+        return segments
+
+    verse_words = verse_text.split()
+    # DK text always ends with the ayah-number glyph as the last token; the
+    # timing data never covers that glyph, so content words = total – 1.
+    content_word_count = len(verse_words) - 1
+    if len(segments) != content_word_count + 1:
+        return segments  # no mismatch — nothing to fix
+
+    first_stripped = _HARAKAT_RE.sub('', verse_words[0])
+    if not first_stripped.startswith('يا'):
+        return segments  # first word is not a يا-vocative merged form
+
+    # Merge segment[0] (يا timing) and segment[1] (following word timing) into
+    # one segment that covers the combined يَٰٓ+X token (word index 0).
+    seg0, seg1 = segments[0], segments[1]
+    merged = {
+        'start_word_index': seg0['start_word_index'],
+        'end_word_index':   seg0['end_word_index'],
+        'start_time':       seg0['start_time'],
+        'end_time':         max(seg0['end_time'], seg1['end_time']),
+    }
+
+    # All subsequent segments were targeting word indices 2, 3, … in the
+    # source data; shift each down by 1 so they align with the DK word list.
+    shifted = [
+        {**seg, 'start_word_index': seg['start_word_index'] - 1,
+                'end_word_index':   seg['end_word_index'] - 1}
+        for seg in segments[2:]
+    ]
+    return [merged] + shifted
+
+
 def create_audio_mapping(quran_text_data, audio_data):
     """Build a verse_key → audio segment map from either list-based or dict-based audio source."""
     if not quran_text_data or not audio_data:
@@ -479,6 +534,8 @@ def create_audio_mapping(quran_text_data, audio_data):
             segments = segs_sorted
 
         verse_info = quran_text_data.get(verse_key, {})
+        verse_text = verse_info.get('text', '') if isinstance(verse_info, dict) else ''
+        segments = _fix_ya_nida_segments(segments, verse_text)
         verse_key_to_segment_map[verse_key] = {
             'id':           verse_info.get('id', audio_info.get('ayah_number')),
             'surah_number': int(verse_key.split(':')[0]),
