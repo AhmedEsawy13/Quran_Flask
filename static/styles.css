@@ -1174,9 +1174,9 @@ body.sepia-mode input:checked + .slider {
 #word-meaning-text  {
     margin-top: 20px;
     font-size: 20px;
-    line-height: 1.6;
-    text-align: center;
-    font-family: 'UthmanicHafs';
+    line-height: 1.9;
+    text-align: right;
+    font-family: 'Amiri', 'UthmanicHafs', serif;
     direction: rtl;
 }
 
@@ -1199,7 +1199,7 @@ body.sepia-mode input:checked + .slider {
 .word-meanings-list dt {
     font-weight: 700;
     color: var(--primary-color, #4f46e5);
-    font-family: 'Old Madina', serif;
+    font-family: 'Amiri', serif;
     font-size: 1.15em;
     white-space: nowrap;
 }
