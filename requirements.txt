@@ -8,3 +8,4 @@ setuptools==70.2.0
 Werkzeug==3.0.4
 requests==2.31.0
 orjson==3.10.12
+gunicorn==23.0.0
