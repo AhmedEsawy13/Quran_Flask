@@ -250,6 +250,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         return Array.from(container.querySelectorAll('button.mushaf-pill.active')).map(btn => btn.value);
     }
 
+    // Each Quran font may carry waqf marks from a specific mushaf tradition.
+    // When the user picks such a font, auto-activate the matching pill so the
+    // marks render without requiring an extra click.
+    const FONT_DEFAULT_MUSHAFS = {
+        amiri_quran: ['الأزهر'],
+    };
+
+    function ensureDefaultMushafsForFont(font) {
+        const defaults = FONT_DEFAULT_MUSHAFS[font];
+        if (!defaults || !defaults.length) return false;
+        const container = document.getElementById('mushaf-version-dropdown');
+        if (!container) return false;
+        let changed = false;
+        defaults.forEach((version) => {
+            const btn = Array.from(container.querySelectorAll('button.mushaf-pill'))
+                .find((b) => b.value === version);
+            if (btn && !btn.classList.contains('active')) {
+                btn.classList.add('active');
+                changed = true;
+            }
+        });
+        if (changed) {
+            localStorage.setItem('quranApp_mushafVersions',
+                JSON.stringify(getSelectedMushafVersions()));
+        }
+        return changed;
+    }
+
     function updateMushafVersionSummary() {
         // No-op: pills are always visible; summary span is no longer shown.
     }
@@ -288,6 +316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     });
                     dropdown.appendChild(btn);
                 });
+                ensureDefaultMushafsForFont(elements.quranTextSelect?.value);
             }
         } catch (error) {
             console.error('Error loading Mushaf versions:', error);
@@ -396,6 +425,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             try {
                 changeFont(elements.quranTextSelect.value);
+                ensureDefaultMushafsForFont(elements.quranTextSelect.value);
                 await loadQuranTextData();
                 currentAyahData = null; // force re-fetch with correct source param for the new font
                 await updateDisplayedText();
