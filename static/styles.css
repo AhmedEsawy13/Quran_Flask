@@ -38,6 +38,12 @@
     font-display: swap;
 }
 
+@font-face {
+    font-family: 'AmiriQuran';
+    src: url('amiri_quran.woff2') format('woff2');
+    font-display: swap;
+}
+
 /* CSS Variables for Theming */
 :root {
     --primary-color: #4f46e5;
@@ -682,6 +688,10 @@ body.dark-mode .close:focus {
 
 .qpc_hafs {
     font-family: 'UthmanicHafs', serif;
+}
+
+.amiri_quran {
+    font-family: 'AmiriQuran', 'UthmanicHafs', serif;
 }
 
 

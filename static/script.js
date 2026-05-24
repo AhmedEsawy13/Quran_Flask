@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadQuranTextData() {
         const font = elements.quranTextSelect.value;
-        const source = font === 'shamarly' ? 'qpc_hafs' : font;
+        const source = (font === 'shamarly' || font === 'amiri_quran') ? 'qpc_hafs' : font;
         if (!fontCache[font]) {
             quranTextData = await fetchData(`/api/quran-text?source=${source}`);
             fontCache[font] = quranTextData;
