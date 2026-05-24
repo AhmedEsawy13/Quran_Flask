@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function loadQuranTextData() {
         const font = elements.quranTextSelect.value;
-        const source = (font === 'shamarly' || font === 'amiri_quran') ? 'qpc_hafs' : font;
+        const source = font === 'shamarly' ? 'qpc_hafs' : font;
         if (!fontCache[font]) {
             quranTextData = await fetchData(`/api/quran-text?source=${source}`);
             fontCache[font] = quranTextData;
@@ -845,6 +845,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const _fontNow = elements.quranTextSelect.value;
                 if (_fontNow === 'indopak_nastaleeq' || _fontNow === 'indopak_nastaleeq_2') {
                     _p.append('source', 'indopak_nastaleeq');
+                } else if (_fontNow === 'amiri_quran') {
+                    _p.append('source', 'amiri_quran');
                 }
                 const query = _p.toString() ? '?' + _p.toString() : '';
                 currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
