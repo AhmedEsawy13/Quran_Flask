@@ -1532,12 +1532,17 @@ def _build_amiri_quran_data(base_data):
         text = verse_copy.get('text', '') or ''
         # Strip the existing inline waqf marks so Azhar's are the only ones shown.
         stripped = ''.join(ch for ch in text if ch not in WAQF_SYMBOL_CHARS)
-        tokens = stripped.split(' ')
+        # Split on every whitespace run (NBSP included) while preserving the
+        # separators, so verses that start with ۞ joined to the next word by
+        # NBSP still tokenise the way the mushaf_waqf DB expects.
+        parts = re.split(r'(\s+)', stripped)
+        token_part_indices = [i for i, p in enumerate(parts) if p and not p.isspace()]
         for tidx, mark in marks_by_verse.get(verse_key, []):
             i = tidx - 1
-            if 0 <= i < len(tokens):
-                tokens[i] = _insert_mark_before_ayah_end(tokens[i], mark)
-        verse_copy['text'] = _wrap_ayah_number_with_end_marker(' '.join(tokens))
+            if 0 <= i < len(token_part_indices):
+                pi = token_part_indices[i]
+                parts[pi] = _insert_mark_before_ayah_end(parts[pi], mark)
+        verse_copy['text'] = _wrap_ayah_number_with_end_marker(''.join(parts))
         out[verse_key] = verse_copy
     return out
 
