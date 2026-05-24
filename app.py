@@ -1471,6 +1471,19 @@ def _insert_mark_before_ayah_end(token, mark):
     return token + mark
 
 
+# Trailing run of Arabic-Indic digits at the very end of a verse — the ayah
+# number. Used to prefix it with U+06DD so the Amiri Quran font draws it
+# enclosed in the verse-end rosette.
+_AYAH_NUMBER_TAIL_PATTERN = re.compile(r'(?<!۝)([٠-٩۰-۹]+)$')
+
+
+def _wrap_ayah_number_with_end_marker(text):
+    match = _AYAH_NUMBER_TAIL_PATTERN.search(text)
+    if not match:
+        return text
+    return text[:match.start()] + '۝' + text[match.start():]
+
+
 def _build_amiri_quran_data(base_data):
     """Bake الأزهر waqf marks into the QPC Hafs text so the Amiri Quran font
     shows them inline in 'original only' mode, matching how other mushaf fonts
@@ -1524,7 +1537,7 @@ def _build_amiri_quran_data(base_data):
             i = tidx - 1
             if 0 <= i < len(tokens):
                 tokens[i] = _insert_mark_before_ayah_end(tokens[i], mark)
-        verse_copy['text'] = ' '.join(tokens)
+        verse_copy['text'] = _wrap_ayah_number_with_end_marker(' '.join(tokens))
         out[verse_key] = verse_copy
     return out
 
