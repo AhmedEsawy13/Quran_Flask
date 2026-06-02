@@ -161,6 +161,16 @@ body[data-font-type="indopak"][data-waqf-mode="original"] #quran-text {
     gap: 0.5rem 0.9rem;
 }
 
+/* Shemrly page-font glyphs are tight word images with almost no side-bearing,
+   so the default 0.25rem gap makes words look glued together. Give the verse
+   view extra horizontal breathing room for comfortable reading. */
+body[data-font-type="shamarly"] #quran-text {
+    gap: 0.7rem 0.85rem;
+}
+body[data-font-type="shamarly"] .word-token {
+    margin: 0 0.2rem;
+}
+
 .word-content {
     display: inline;
 }
@@ -708,7 +718,7 @@ body.dark-mode .close:focus {
 .shamarly-word {
     display: inline-block;
     position: relative;
-    margin: 0 0.08em;
+    margin: 0 0.22em;
     padding-top: 0.62em;
 }
 
