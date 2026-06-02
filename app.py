@@ -1126,12 +1126,30 @@ def get_reciter_compare(surah_number, ayah_number):
     # Mid-pause segments only (exclude رأس الآية — every reciter stops there)
     subject_mid_segs = [s for s in subject_pauses if s['end_word'] != verse_end_word]
 
-    def _overlap(a_set, b_set):
-        """Fraction of positions in a_set that have a ±1 match in b_set."""
-        if not a_set:
-            return 1.0, len(a_set), len(a_set)
-        matched = sum(1 for w in a_set if w in b_set or (w - 1) in b_set or (w + 1) in b_set)
-        return matched / len(a_set), matched, len(a_set)
+    def _match_positions(a_list, b_list):
+        """1-to-1 match of each position in a_list to a position in b_list within
+        ±1 word. Each b-position can satisfy only ONE a-position, so adjacent
+        stops can't be double-counted. Exact matches are claimed first (globally)
+        so a ±1 neighbour never steals a b-position an exact match needs.
+        Returns (matched_count, set_of_matched_a_positions)."""
+        b_sorted = sorted(b_list)
+        b_used = [False] * len(b_sorted)
+        matched_a = set()
+        a_sorted = sorted(a_list)
+        remaining = []
+        for w in a_sorted:  # pass 1: exact
+            j = next((i for i, bw in enumerate(b_sorted) if not b_used[i] and bw == w), None)
+            if j is not None:
+                b_used[j] = True
+                matched_a.add(w)
+            else:
+                remaining.append(w)
+        for w in remaining:  # pass 2: ±1
+            j = next((i for i, bw in enumerate(b_sorted) if not b_used[i] and abs(bw - w) <= 1), None)
+            if j is not None:
+                b_used[j] = True
+                matched_a.add(w)
+        return len(matched_a), matched_a
 
     comparisons = {}
     for other_reciter, cfg in RECITER_GUIDE_CONFIG.items():
@@ -1148,22 +1166,29 @@ def get_reciter_compare(surah_number, ayah_number):
         # Work with full segment objects so diff can show segment text
         a_segs = [s for s in subject_pauses if s['end_word'] != verse_end_word]
         b_segs = [s for s in other_pauses  if s['end_word'] != other_verse_end]
-        a_set  = {s['end_word'] for s in a_segs}
-        b_set  = {s['end_word'] for s in b_segs}
+        a_list = [s['end_word'] for s in a_segs]
+        b_list = [s['end_word'] for s in b_segs]
+        a_total, b_total = len(a_list), len(b_list)
 
-        a_frac, a_matched, a_total = _overlap(a_set, b_set)
-        b_frac, b_matched, b_total = _overlap(b_set, a_set)
+        a_matched, a_matched_set = _match_positions(a_list, b_list)
+        b_matched, b_matched_set = _match_positions(b_list, a_list)
+        # Empty side → fraction is vacuously 1.0 (nothing to disagree on); the
+        # similarity below collapses to 0 via the harmonic mean, and the frontend
+        # labels one-sided cases as "can't evaluate".
+        a_frac = (a_matched / a_total) if a_total else 1.0
+        b_frac = (b_matched / b_total) if b_total else 1.0
 
-        # Unmatched segments for the diff view — carry full uthmani_text from positions.db
+        # Unmatched segments for the diff view — same greedy matching as the score,
+        # so the diff list length always agrees with (total - matched).
         only_in_a = [
             {'word_index': s['end_word'], 'start_word': s['start_word'], 'text': (s.get('text') or '').split('\xa0')[0].strip()}
             for s in a_segs
-            if not (s['end_word'] in b_set or (s['end_word'] - 1) in b_set or (s['end_word'] + 1) in b_set)
+            if s['end_word'] not in a_matched_set
         ]
         only_in_b = [
             {'word_index': s['end_word'], 'start_word': s['start_word'], 'text': (s.get('text') or '').split('\xa0')[0].strip()}
             for s in b_segs
-            if not (s['end_word'] in a_set or (s['end_word'] - 1) in a_set or (s['end_word'] + 1) in a_set)
+            if s['end_word'] not in b_matched_set
         ]
 
         comparisons[other_reciter] = {
@@ -1173,7 +1198,9 @@ def get_reciter_compare(surah_number, ayah_number):
             'b_to_a_score':   round(b_frac * 100),
             'b_to_a_matched': b_matched,
             'b_to_a_total':   b_total,
-            # Combined similarity: harmonic mean (same logic as F1)
+            # Combined similarity: harmonic mean (F1) of the two directions.
+            # Only meaningful when both reciters have mid-verse stops.
+            'comparable': a_total > 0 and b_total > 0,
             'similarity': round(
                 2 * a_frac * b_frac / (a_frac + b_frac) * 100
                 if (a_frac + b_frac) > 0 else 0

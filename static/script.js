@@ -2636,15 +2636,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         others.forEach((other, idx) => {
             const { a_to_b_score, a_to_b_matched, a_to_b_total,
-                    b_to_a_score, b_to_a_matched, b_to_a_total, similarity } = comparisons[other];
+                    b_to_a_score, b_to_a_matched, b_to_a_total, similarity, comparable } = comparisons[other];
             const otherName = RECITER_ARABIC_NAMES[other] || other;
 
             const noMidPauses = a_to_b_total === 0 && b_to_a_total === 0;
-            const badgeCls = noMidPauses         ? 'pm-badge-partial'
+            // Exactly one reciter pauses mid-verse — a symmetric % is meaningless,
+            // so don't show "لا توافق" (which contradicts the verdict sentence).
+            const oneSided = !noMidPauses && comparable === false;
+            const badgeCls = (noMidPauses || oneSided) ? 'pm-badge-partial'
                            : similarity === 100  ? 'pm-badge-full'
                            : similarity === 0    ? 'pm-badge-none'
                                                  : 'pm-badge-partial';
             const badgeTxt = noMidPauses         ? 'لا وقوف وسطية'
+                           : oneSided            ? 'لا يمكن التقييم'
                            : similarity === 100  ? 'توافق تام'
                            : similarity === 0    ? 'لا توافق'
                                                  : `توافق ${toAr(similarity)}٪`;
