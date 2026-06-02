@@ -252,12 +252,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Each Quran font may carry waqf marks from a specific mushaf tradition.
     // When the user picks such a font, auto-activate the matching pill so the
-    // marks render without requiring an extra click.
-    const FONT_DEFAULT_MUSHAFS = {
-        amiri_quran: ['الأزهر'],
-    };
-
+    // marks render without requiring an extra click. Kept inside the function
+    // so it can't be read while still in the temporal dead zone — loadInitialData
+    // is awaited before this scope's top-level const declarations run.
     function ensureDefaultMushafsForFont(font) {
+        const FONT_DEFAULT_MUSHAFS = {
+            amiri_quran: ['الأزهر'],
+        };
         const defaults = FONT_DEFAULT_MUSHAFS[font];
         if (!defaults || !defaults.length) return false;
         const container = document.getElementById('mushaf-version-dropdown');
