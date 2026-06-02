@@ -2209,26 +2209,34 @@ def get_shamarly_ayah(surah_number, ayah_number):
         if mushaf_version:
             mushaf_waqf_rows = get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version)
 
-            search_start = 0
+            # Group rows by mushaf version so each version aligns to the verse
+            # words independently (a shared advancing pointer would skip a later
+            # version's early tokens). Preserve 'version' so the frontend can
+            # show/hide and colour marks per selected mushaf, like other fonts.
+            rows_by_version = {}
             for row in mushaf_waqf_rows:
-                matched_index = _find_mushaf_row_match_index(original_words, row, search_start)
+                rows_by_version.setdefault(row.get('version', ''), []).append(row)
 
-                if matched_index is None:
-                    continue
-
-                search_start = matched_index + 1
-                arabic_clean_token = original_words[matched_index].get('text_original') or original_words[matched_index].get('text') or ''
-                word_position_in_ayah = sum(
-                    1 for i in range(0, matched_index + 1)
-                    if _normalize_mushaf_word_token(_get_word_match_text(original_words[i]))
-                )
-                waqf_symbols.append({
-                    'token_index': matched_index,
-                    'word_index': word_position_in_ayah if word_position_in_ayah > 0 else None,
-                    'symbols': row.get('symbols', ''),
-                    'clean_token': arabic_clean_token,
-                    'original_token': arabic_clean_token
-                })
+            for version, version_rows in rows_by_version.items():
+                search_start = 0
+                for row in version_rows:
+                    matched_index = _find_mushaf_row_match_index(original_words, row, search_start)
+                    if matched_index is None:
+                        continue
+                    search_start = matched_index + 1
+                    arabic_clean_token = original_words[matched_index].get('text_original') or original_words[matched_index].get('text') or ''
+                    word_position_in_ayah = sum(
+                        1 for i in range(0, matched_index + 1)
+                        if _normalize_mushaf_word_token(_get_word_match_text(original_words[i]))
+                    )
+                    waqf_symbols.append({
+                        'token_index': matched_index,
+                        'word_index': word_position_in_ayah if word_position_in_ayah > 0 else None,
+                        'symbols': row.get('symbols', ''),
+                        'version': version,
+                        'clean_token': arabic_clean_token,
+                        'original_token': arabic_clean_token
+                    })
 
         verse_lines = []
         if words:
