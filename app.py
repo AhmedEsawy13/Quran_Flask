@@ -2172,33 +2172,17 @@ def get_shamarly_ayah(surah_number, ayah_number):
         for word in words:
             glyph_char = None
 
+            # Only substitute a page-local glyph when the verse's page actually
+            # has a Shemrly-PageNNN.ttf font loaded in the browser. The old
+            # "legacy" fallback emitted Elgharib glyph codepoints (U+FB50 range)
+            # for pages WITHOUT a font, but no Elgharib font is shipped, so they
+            # rendered as garbage. For those pages we keep the plain verse text
+            # (readable in the UthmanicHafs fallback) instead.
             if shemrly_pages_with_fonts:
                 for page in shemrly_pages_with_fonts:
                     glyph_char = _get_shamarly_glyph_char_for_word(page, int(word['word_index']))
                     if glyph_char:
                         break
-
-            # Legacy compatibility fallback only if no Shemrly page font is available.
-            if not glyph_char and not shemrly_pages_with_fonts:
-                glyph_cursor.execute(
-                    """
-                    SELECT codepoint, codepoint_hex, arabic_word
-                    FROM glyph_mappings
-                    WHERE surah_number = ? AND ayah_number = ? AND word_position = ?
-                    ORDER BY id ASC
-                    """,
-                    (surah_number, ayah_number, word['word_index'])
-                )
-                candidates = glyph_cursor.fetchall()
-                mapping = None
-                best_score = -1
-                for candidate in candidates:
-                    score = _glyph_row_score(candidate['arabic_word'])
-                    if score > best_score:
-                        mapping = candidate
-                        best_score = score
-                if mapping:
-                    glyph_char = chr(mapping['codepoint'])
 
             if glyph_char:
                 word['glyph_char'] = glyph_char

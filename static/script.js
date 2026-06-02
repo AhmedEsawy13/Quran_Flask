@@ -972,17 +972,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     function filterWaqfByMode(symbols) {
         const mode = getCurrentWaqfMode();
         const isIndoPak = document.body.dataset.fontType === 'indopak';
+        // Shemrly word-glyphs don't carry inline waqf marks, so الشمرلي (the
+        // mushaf's own marks) act as the "original" layer — shown as overlays,
+        // mirroring how مصحف الأميرية treats its baked-in الأزهر marks.
+        const isShamarly = document.body.dataset.fontType === 'shamarly';
         if (!Array.isArray(symbols)) return symbols;
         if (mode === 'none') return [];
-        if (mode === 'original') return [];
+        if (mode === 'original') {
+            return isShamarly ? symbols.filter(s => (s.version || '') === 'الشمرلي') : [];
+        }
         const selSet = new Set(getSelectedMushafVersions());
         if (mode === 'selected') {
             return symbols.filter(s => selSet.has(s.version || ''));
         }
-        // 'both' — selected overlays only (original is already in text). For IndoPak,
-        // exclude الهندي to avoid duplicating raw_text inline tokens.
+        // 'both' — selected overlays (plus الشمرلي's own marks for Shemrly).
+        // For IndoPak, exclude الهندي to avoid duplicating raw_text inline tokens.
         return symbols.filter(s => {
             const v = s.version || '';
+            if (isShamarly && v === 'الشمرلي') return true;
             if (!selSet.has(v)) return false;
             if (isIndoPak && v === 'الهندي') return false;
             return true;

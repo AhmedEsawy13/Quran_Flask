@@ -15,7 +15,7 @@
     <link rel="preload" href="{{ url_for('static', filename='uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     <!-- Critical CSS (render-blocking, intentional) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=13">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=14">
 
     <!-- Google Fonts (async, non-render-blocking) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -302,7 +302,7 @@
 
     <script defer src="https://unpkg.com/@popperjs/core@2"></script>
     <script defer src="https://unpkg.com/tippy.js@6"></script>
-    <script defer src="{{ url_for('static', filename='script.js') }}?v=13"></script>
+    <script defer src="{{ url_for('static', filename='script.js') }}?v=14"></script>
 
     {% if enable_vercel_analytics %}
     <!-- Vercel Web Analytics -->
