@@ -480,6 +480,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
+        const tajweedLegendToggle = document.getElementById('tajweed-legend-toggle');
+        if (tajweedLegendToggle) tajweedLegendToggle.addEventListener('click', () => {
+            const legend = document.getElementById('tajweed-legend');
+            if (!legend) return;
+            const hidden = legend.hasAttribute('hidden');
+            if (hidden) { legend.removeAttribute('hidden'); } else { legend.setAttribute('hidden', ''); }
+            tajweedLegendToggle.classList.toggle('active', hidden);
+        });
+
         const waqfTableBtn = document.getElementById('toggle-waqf-table');
         if (waqfTableBtn) {
             waqfTableBtn.addEventListener('click', () => {

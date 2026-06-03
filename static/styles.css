@@ -3082,6 +3082,37 @@ body.dark-mode .waqf-legend-text strong { color: #e2e8f0; }
 
 body.dark-mode .waqf-legend-text small { color: #94a3b8; }
 
+/* Tajweed colour-guide legend (شرح الرموز) ----------------------------------- */
+/* Swatch dot: the colour is inherited from the same tajweed.* / span.* rules
+   used to paint the text, so the guide stays in sync with the rendering. */
+.tajweed-sym-demo {
+    font-size: 1.2rem;
+    min-width: 1.2rem;
+    text-align: center;
+    line-height: 1;
+}
+
+#tajweed-legend-toggle.active {
+    background: rgba(226,232,240,0.95);
+    color: #1e293b;
+}
+body.dark-mode #tajweed-legend-toggle.active {
+    background: rgba(51,65,85,0.95);
+    color: #e2e8f0;
+}
+
+.tajweed-legend-credit {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148,163,184,0.25);
+    font-size: 0.72rem;
+    color: #78716c;
+    font-family: 'IBM Plex Sans Arabic', serif;
+}
+.tajweed-legend-credit a { color: #2563eb; text-decoration: none; }
+.tajweed-legend-credit a:hover { text-decoration: underline; }
+body.dark-mode .tajweed-legend-credit { color: #94a3b8; }
+
 .waqf-legend-note {
     margin: 0;
     font-size: 0.76rem;
