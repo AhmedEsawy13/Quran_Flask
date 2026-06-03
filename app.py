@@ -2485,10 +2485,17 @@ def _get_shamarly_font_supported_codepoints(font_name):
 
 @lru_cache(maxsize=1024)
 def _get_shamarly_page_word_codepoint_map(page_number):
-    """Return {word_position: codepoint} map for a Shemrly page using glyph DB rows.
+    """Return {word_index: codepoint} for a Shemrly page by aligning glyphs to words.
 
-    This preserves page-specific skips/markers in codepoint ordering that cannot be
-    reconstructed by a simple contiguous local-index formula.
+    Each per-page Shemrly font holds exactly one glyph per distinct word printed on
+    the page, in word_index order. Crucially the cmap RESERVES a gap wherever the page
+    has a standalone mark (e.g. the ۛ after رَيۡبَۛ فِيهِۛ on the Al-Baqarah page): those
+    mark codepoints are absent from the font, so a naive base+(word-first+1) formula
+    drifts by one for every word after a mark — rendering each following word with the
+    previous word's glyph (the reported "verse 2 wrong, verses 3-4 words shifted onto
+    the next line"). We instead zip the sorted present codepoints with the sorted word
+    indices 1:1: cmap gaps line up with the marks, so every word keeps its own glyph.
+    On mark-free pages the cmap is contiguous and this reduces to the simple formula.
     """
     first_word_id, last_word_id = _get_shamarly_page_ayah_word_bounds(page_number)
     if first_word_id is None or last_word_id is None:
@@ -2496,68 +2503,53 @@ def _get_shamarly_page_word_codepoint_map(page_number):
 
     font_name = f"Shemrly-Page{int(page_number):03d}"
     supported_codepoints = _get_shamarly_font_supported_codepoints(font_name)
+    if not supported_codepoints:
+        return {}
+    present = sorted(c for c in supported_codepoints if c > SHEMRLY_CODEPOINT_BASE)
 
     try:
-        glyph_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'glyph_mappings.db'))
-        glyph_conn.row_factory = sqlite3.Row
-        glyph_cursor = glyph_conn.cursor()
-        glyph_cursor.execute(
-            '''
-            SELECT word_position, codepoint, arabic_word
-            FROM glyph_mappings
-            WHERE word_position BETWEEN ? AND ?
-              AND font_name LIKE 'Elgharib-A%'
-            ORDER BY word_position ASC, id ASC
-            ''',
+        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn.row_factory = sqlite3.Row
+        words_cursor = words_conn.cursor()
+        words_cursor.execute(
+            'SELECT word_index FROM words WHERE word_index BETWEEN ? AND ? ORDER BY word_index ASC',
             (int(first_word_id), int(last_word_id))
         )
-        rows = glyph_cursor.fetchall()
-        glyph_conn.close()
+        word_indices = [int(r['word_index']) for r in words_cursor.fetchall()]
+        words_conn.close()
     except Exception:
         return {}
 
-    codepoint_map = {}
-    score_map = {}
-    for row in rows:
-        codepoint = int(row['codepoint'])
-        if supported_codepoints is not None and codepoint not in supported_codepoints:
-            continue
+    # The 1:1 alignment only holds when the font carries exactly one glyph per word.
+    # If they disagree (missing font, data drift), bail so the caller can fall back.
+    if not word_indices or len(present) != len(word_indices):
+        return {}
 
-        word_pos = int(row['word_position'])
-        score = _glyph_row_score(row['arabic_word'])
-        if score > score_map.get(word_pos, -1):
-            codepoint_map[word_pos] = codepoint
-            score_map[word_pos] = score
-
-    return codepoint_map
+    return dict(zip(word_indices, present))
 
 
 def _get_shamarly_glyph_char_for_word(page_number, word_position):
-    """Map global word position to Shemrly page-local glyph codepoint."""
+    """Map a global word index to its Shemrly page-local glyph char."""
+    codepoint_map = _get_shamarly_page_word_codepoint_map(page_number)
+    wp = int(word_position)
+    if wp in codepoint_map:
+        return chr(codepoint_map[wp])
+
+    # Fallback for pages where the glyph/word counts could not be aligned (e.g. the
+    # font is absent): use the contiguous local-index formula.
     first_word_id, last_word_id = _get_shamarly_page_ayah_word_bounds(page_number)
     if first_word_id is None or last_word_id is None:
         return None
-
-    if word_position < first_word_id or word_position > last_word_id:
+    if wp < first_word_id or wp > last_word_id:
         return None
-
-    local_index = int(word_position) - first_word_id + 1
+    local_index = wp - first_word_id + 1
     if local_index <= 0:
         return None
 
     codepoint = SHEMRLY_CODEPOINT_BASE + local_index
-    font_name = f"Shemrly-Page{int(page_number):03d}"
-    supported_codepoints = _get_shamarly_font_supported_codepoints(font_name)
-
-    # Prefer native page-local indexing when the target codepoint exists in the page font.
+    supported_codepoints = _get_shamarly_font_supported_codepoints(f"Shemrly-Page{int(page_number):03d}")
     if supported_codepoints is None or codepoint in supported_codepoints:
         return chr(codepoint)
-
-    # Some pages have intentional gaps in local sequence (e.g. marker-only slots); use DB fallback.
-    db_codepoint_map = _get_shamarly_page_word_codepoint_map(page_number)
-    if int(word_position) in db_codepoint_map:
-        return chr(db_codepoint_map[int(word_position)])
-
     return None
 
 
