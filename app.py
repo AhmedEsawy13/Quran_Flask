@@ -2407,25 +2407,52 @@ def _glyph_row_score(arabic_word):
 
 
 @lru_cache(maxsize=1024)
+@lru_cache(maxsize=1024)
 def _get_shamarly_page_ayah_word_bounds(page_number):
-    """Return (first_ayah_word_id, last_ayah_word_id) for a page."""
+    """Return (first_word_id, last_word_id) covering the real words printed on a page.
+
+    The per-page Shemrly font indexes glyph base+1 to the FIRST words-table row
+    physically on the page, in word_index order. We therefore must anchor on the
+    first actual word, not the first 'ayah' line: on the Al-Fatiha page the basmala
+    IS verse 1:1 and its words live in the words table BELOW the first ayah line, so
+    an ayah-only floor shifted every glyph by 5 (basmala rendered as fallback text,
+    later words ran off the end). We take the page's full layout word span (every
+    word-bearing line, incl. basmallah/surah_name reserved slots) and clamp it to
+    the words table — reserved slots and non-Fatiha basmalas (absent from words)
+    drop out automatically, leaving the exact range the font's glyphs cover.
+    """
     try:
         layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
         layout_cursor = layout_conn.cursor()
         layout_cursor.execute(
             '''
-            SELECT MIN(first_word_id) AS first_word_id, MAX(last_word_id) AS last_word_id
+            SELECT MIN(first_word_id) AS lo, MAX(last_word_id) AS hi
             FROM pages
             WHERE page_number = ?
-              AND line_type = 'ayah'
               AND first_word_id IS NOT NULL
               AND last_word_id IS NOT NULL
             ''',
             (int(page_number),)
         )
-        row = layout_cursor.fetchone()
+        span = layout_cursor.fetchone()
         layout_conn.close()
+        if not span or span['lo'] is None or span['hi'] is None:
+            return (None, None)
+
+        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn.row_factory = sqlite3.Row
+        words_cursor = words_conn.cursor()
+        words_cursor.execute(
+            '''
+            SELECT MIN(word_index) AS first_word_id, MAX(word_index) AS last_word_id
+            FROM words
+            WHERE word_index BETWEEN ? AND ?
+            ''',
+            (int(span['lo']), int(span['hi']))
+        )
+        row = words_cursor.fetchone()
+        words_conn.close()
         if not row or row['first_word_id'] is None or row['last_word_id'] is None:
             return (None, None)
         return (int(row['first_word_id']), int(row['last_word_id']))
