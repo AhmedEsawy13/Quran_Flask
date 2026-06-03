@@ -2701,23 +2701,27 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                     glyph_score_by_word_pos[word_pos] = score
             glyph_conn.close()
 
-    focus_word_range = None
+    # Collect the EXACT set of word_index values for the focus ayah rather than a
+    # MIN/MAX range. Some verses in quran_script.db are stored with non-contiguous
+    # word_index (a verse's tail words live after a neighbouring verse, e.g. 59:19,
+    # 60:1, 2:285, 3:7, 38:79, 39:5). A MIN/MAX range for those verses swallows the
+    # neighbour's words, so a line-overlap highlight test lit up the wrong verse.
+    # An exact-set membership test highlights only lines that truly hold the verse.
+    focus_word_indices = set()
     if focus_surah is not None and focus_ayah is not None:
         words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
             '''
-            SELECT MIN(word_index) AS first_word_id, MAX(word_index) AS last_word_id
+            SELECT word_index
             FROM words
             WHERE surah = ? AND ayah = ?
             ''',
             (focus_surah, focus_ayah)
         )
-        row = words_cursor.fetchone()
+        focus_word_indices = {int(row['word_index']) for row in words_cursor.fetchall()}
         words_conn.close()
-        if row and row['first_word_id'] is not None and row['last_word_id'] is not None:
-            focus_word_range = (row['first_word_id'], row['last_word_id'])
 
     page_word_rows = []
     page_word_by_index = {}
@@ -2781,9 +2785,11 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
             if chars:
                 glyph_text = ' '.join(chars)
 
-            if focus_word_range:
-                focus_first, focus_last = focus_word_range
-                contains_focus_ayah = not (last_word_id < focus_first or first_word_id > focus_last)
+            if focus_word_indices:
+                contains_focus_ayah = any(
+                    word_pos in focus_word_indices
+                    for word_pos in range(first_word_id, last_word_id + 1)
+                )
 
         output_lines.append({
             'line_number': line['line_number'],
