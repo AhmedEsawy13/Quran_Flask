@@ -2116,6 +2116,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function applyVisibleTajweedToVerseText(wordItems, featureSettings, renderVersion) {
         if (!isTajweedEnabled() || !wordItems.length) return;
+        // الشمرلي renders page-local glyphs, not real letters, so per-letter
+        // tajweed spans don't apply — skip coloring entirely in that mode.
+        if (document.body.dataset.fontType === 'shamarly') return;
 
         const surahNumber = elements.surahSelect?.value;
         const ayahNumber = elements.ayahSelect?.value;
@@ -2152,9 +2155,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Parse the quran.com tajweed HTML into word segments.
+     * Parse the tajweed HTML (served locally from /api/tajweed) into word segments.
      *
-     * The API sometimes wraps text that spans word boundaries inside one tag,
+     * A rule sometimes wraps text that spans word boundaries inside one tag,
      * e.g. <tajweed class=idgham_ghunnah>ةٌ و</tajweed>  (the space is INSIDE).
      * We flatten the DOM to a linear token stream first, then split on spaces.
      *

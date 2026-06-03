@@ -18,7 +18,11 @@
       "Read(//tmp/**)",
       "Read(//private/tmp/**)",
       "Bash(python3 -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('app.py syntax OK'\\)\")",
-      "Bash(node -e \"require\\('fs'\\).readFileSync\\('static/script.js','utf8'\\); new Function\\(require\\('fs'\\).readFileSync\\('static/script.js','utf8'\\)\\); console.log\\('script.js parses OK'\\)\")"
+      "Bash(node -e \"require\\('fs'\\).readFileSync\\('static/script.js','utf8'\\); new Function\\(require\\('fs'\\).readFileSync\\('static/script.js','utf8'\\)\\); console.log\\('script.js parses OK'\\)\")",
+      "Bash(curl -sL \"https://tajweed.hegz.io/data/rule/iqlab.json\" -o iqlab.json -w \"ct=%{content_type} size=%{size_download}\\\\n\")",
+      "Bash(python3 -)",
+      "Bash(curl -s -o /dev/null -w '%{http_code} %{content_type}\\\\n' https://tajweed.hegz.io/data/rule/__TRACKED_VAR__.json)",
+      "Bash(curl -s \"https://tajweed.hegz.io/data/rule/iqlab/2.json\" -o iqlab2.json -w \"ct=%{content_type} size=%{size_download}\\\\n\")"
     ]
   }
 }

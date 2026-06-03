@@ -188,6 +188,9 @@ RECITER_GUIDE_CONFIG = {
 # Keep for backwards compat with any legacy code that may reference it
 HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']['db']
 DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'digital-khatt-15-lines.db')
+# Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
+# from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
+TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'QUL_data', 'tajweed_local.db')
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
 SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
@@ -1858,13 +1861,15 @@ def get_tafseer(surah_number, ayah_number):
 # Tajweed-annotated text cache: verse_key → {"html": "..."}
 _tajweed_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
 
-# verse_number param is silently ignored by this endpoint — it always returns
-# all verses of the chapter, so we fetch once per surah and cache everything.
-TAJWEED_API_BASE = 'https://api.quran.com/api/v4/quran/verses/uthmani_tajweed?chapter_number={surah}'
-
 @app.route('/api/tajweed/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_tajweed(surah_number, ayah_number):
-    """Return tajweed-annotated HTML for one ayah from quran.com v4."""
+    """Return tajweed-annotated HTML for one ayah from local data.
+
+    Served from QUL_data/tajweed_local.db (built offline by
+    pipeline/build_tajweed_local.py from cpfair/quran-tajweed, CC-BY 4.0). The
+    HTML uses the same `<tajweed class="…">` shape the front-end already parses,
+    so this is a drop-in replacement for the former quran.com call.
+    """
     if not (1 <= surah_number <= 114):
         return jsonify({"error": "Invalid surah number."}), 400
     if ayah_number < 1 or ayah_number > MAX_AYAH_NUMBER:
@@ -1876,28 +1881,25 @@ def get_tajweed(surah_number, ayah_number):
         resp.headers['Cache-Control'] = 'public, max-age=86400'
         return resp
 
-    # Fetch all verses of the surah in one call and cache them all
-    url = TAJWEED_API_BASE.format(surah=surah_number)
     try:
-        r = http_requests.get(url, timeout=15)
-        r.raise_for_status()
-        data = r.json()
-        verses = data.get('verses', [])
-        if not verses:
-            return jsonify({"error": "Verse not found"}), 404
-        # Cache every verse returned so sibling requests are instant
-        for v in verses:
-            vk = v.get('verse_key', '')
-            if vk:
-                _tajweed_cache[vk] = {"html": v.get('text_uthmani_tajweed', '')}
-        if verse_key not in _tajweed_cache:
-            return jsonify({"error": "Verse not found"}), 404
-        resp = jsonify(_tajweed_cache[verse_key])
-        resp.headers['Cache-Control'] = 'public, max-age=86400'
-        return resp
+        conn = sqlite3.connect(TAJWEED_DATABASE)
+        try:
+            row = conn.execute(
+                "SELECT html FROM tajweed WHERE verse_key = ?", (verse_key,)
+            ).fetchone()
+        finally:
+            conn.close()
     except Exception as e:
-        app.logger.error(f"Tajweed API error for {verse_key}: {e}")
-        return jsonify({"error": "Failed to fetch tajweed data"}), 502
+        app.logger.error(f"Tajweed DB error for {verse_key}: {e}")
+        return jsonify({"error": "Failed to load tajweed data"}), 502
+
+    if row is None:
+        return jsonify({"error": "Verse not found"}), 404
+
+    _tajweed_cache[verse_key] = {"html": row[0]}
+    resp = jsonify(_tajweed_cache[verse_key])
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
 
 
 @app.route('/api/eerab/<int:surah_number>/<int:ayah_number>', methods=['GET'])
