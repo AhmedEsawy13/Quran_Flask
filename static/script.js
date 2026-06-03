@@ -775,6 +775,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.quranTextContainer.style.fontFamily = `'${shamarlyPayload.font_name}', 'UthmanicHafs', serif`;
         }
 
+        // A verse can span two font-bearing pages; each page's glyphs are page-local,
+        // so load every referenced page font (not just the first) before rendering.
+        const shamarlyFontPages = Array.isArray(shamarlyPayload?.pages) ? shamarlyPayload.pages : [];
+        await Promise.all(
+            shamarlyFontPages.map((p) => ensureShamarlyFontLoaded(shamarlyFontName(p)))
+        );
+
         if (readingView === 'page') {
             renderShamarlyPage(shamarlyPayload);
         } else if (readingView === 'verse-mushaf-lines') {
@@ -807,6 +814,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         saveUserPreferences();
         preloadNextAyah();
         elements.audioElement.onended = updatePlayPauseButton;
+    }
+
+    function shamarlyFontName(pageNumber) {
+        return `Shemrly-Page${String(pageNumber).padStart(3, '0')}`;
     }
 
     async function ensureShamarlyFontLoaded(fontName) {
@@ -1296,6 +1307,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         words.forEach((word, index) => {
             const wordElement = createWordElement(word?.text || '', index, wordIndexToSegmentMap);
+            // Render each word with the font of the page its (page-local) glyph came from.
+            if (word?.glyph_page) {
+                wordElement.style.fontFamily = `'${shamarlyFontName(word.glyph_page)}', 'UthmanicHafs', serif`;
+            }
             const waqfSymbols = waqfByToken.get(index);
             if (waqfSymbols) {
                 appendWaqfEntries(wordElement, waqfSymbols, shamarlyPayload?.mushaf_version || '');
@@ -1320,6 +1335,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         lines.forEach((line) => {
             const lineEl = document.createElement('div');
             lineEl.className = 'shamarly-line';
+            // Each verse line lives on one mushaf page; its words use that page's
+            // page-local glyphs, so apply that page's font to the whole line.
+            if (line.page_number) {
+                lineEl.style.fontFamily = `'${shamarlyFontName(line.page_number)}', 'UthmanicHafs', serif`;
+            }
             (line.words || []).forEach((word) => {
                 const span = document.createElement('span');
                 span.className = 'shamarly-word';

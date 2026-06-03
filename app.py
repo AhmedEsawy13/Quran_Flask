@@ -2156,7 +2156,7 @@ def get_shamarly_ayah(surah_number, ayah_number):
                 '''
                 SELECT page_number, line_number, first_word_id, last_word_id
                 FROM pages
-                WHERE line_type = 'ayah'
+                WHERE line_type IN ('ayah', 'basmallah')
                   AND (
                         (first_word_id <= ? AND last_word_id >= ?)
                      OR (first_word_id <= ? AND last_word_id >= ?)
@@ -2198,6 +2198,7 @@ def get_shamarly_ayah(surah_number, ayah_number):
 
         for word in words:
             glyph_char = None
+            glyph_page = None
 
             # Only substitute a page-local glyph when the verse's page actually
             # has a Shemrly-PageNNN.ttf font loaded in the browser. The old
@@ -2209,11 +2210,17 @@ def get_shamarly_ayah(surah_number, ayah_number):
                 for page in shemrly_pages_with_fonts:
                     glyph_char = _get_shamarly_glyph_char_for_word(page, int(word['word_index']))
                     if glyph_char:
+                        glyph_page = page
                         break
 
             if glyph_char:
                 word['glyph_char'] = glyph_char
                 word['text'] = glyph_char
+                # Glyph codepoints are PAGE-LOCAL: the same U+FB51 means a different
+                # word in each page font. A verse that spans two font pages must
+                # render each word with the font of the page its glyph came from,
+                # otherwise the second page's words draw the first page's glyphs.
+                word['glyph_page'] = glyph_page
         glyph_conn.close()
 
         waqf_symbols = []
