@@ -248,7 +248,7 @@
                     </div>
                     <button id="show-eerab" type="button">الإعراب</button>
                     <button id="show-tajweed" type="button" title="عرض الألوان التجويدية"><i class="fas fa-palette"></i> التجويد</button>
-                    <button id="tajweed-legend-toggle" type="button" class="waqf-legend-btn" title="شرح ألوان التجويد"><i class="fas fa-circle-info"></i> شرح الرموز</button>
+                    <button id="tajweed-legend-toggle" type="button" class="waqf-legend-btn" title="شرح ألوان التجويد"><i class="fas fa-circle-info"></i> شرح ألوان التجويد</button>
                     <button id="toggle-word-meaning-button" type="button">غريب الكلمات</button>
                     <button id="toggle-waqf-table" type="button" title="عرض جدول علامات الوقف لهذه الآية"><i class="fas fa-table"></i> جدول الوقف</button>
                 </div>
@@ -259,89 +259,107 @@
 
         </div><!-- /#controls -->
 
-        <!-- Collapsible tajweed colour guide (شرح الرموز) -->
+        <!-- Collapsible tajweed colour guide (شرح ألوان التجويد) -->
         <div id="tajweed-legend" class="waqf-legend tajweed-legend" hidden>
             <div class="waqf-legend-section-title">المدود — تدرّج الأحمر حسب طول المدّ</div>
-            <div class="waqf-legend-grid">
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo madda_normal">●</span>
-                    <div class="waqf-legend-text"><strong>مدّ طبيعي</strong><small>يُمدّ حركتين</small></div>
+            <div class="tajweed-legend-list">
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip madda_normal"></span>
+                    <span class="tajweed-legend-name madda_normal">مدّ طبيعي</span>
+                    <span class="tajweed-legend-desc">يُمدّ حركتين</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo madda_munfasil">●</span>
-                    <div class="waqf-legend-text"><strong>مدّ منفصل</strong><small>٤ أو ٥ حركات، حرف المدّ آخر الكلمة والهمزة أول التالية</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip madda_munfasil"></span>
+                    <span class="tajweed-legend-name madda_munfasil">مدّ منفصل</span>
+                    <span class="tajweed-legend-desc">٤ أو ٥ حركات، حرف المدّ آخر الكلمة والهمزة أول التالية</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo madda_obligatory">●</span>
-                    <div class="waqf-legend-text"><strong>مدّ متصل واجب</strong><small>٤ أو ٥ حركات، حرف المدّ والهمزة في كلمة واحدة</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip madda_obligatory"></span>
+                    <span class="tajweed-legend-name madda_obligatory">مدّ متصل واجب</span>
+                    <span class="tajweed-legend-desc">٤ أو ٥ حركات، حرف المدّ والهمزة في كلمة واحدة</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo madda_permissible">●</span>
-                    <div class="waqf-legend-text"><strong>مدّ جائز / عارض</strong><small>يجوز فيه القصر والتوسّط والمدّ</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip madda_permissible"></span>
+                    <span class="tajweed-legend-name madda_permissible">مدّ جائز / عارض</span>
+                    <span class="tajweed-legend-desc">يجوز فيه القصر والتوسّط والمدّ</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo madda_necessary">●</span>
-                    <div class="waqf-legend-text"><strong>مدّ لازم</strong><small>٦ حركات وجوباً</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip madda_necessary"></span>
+                    <span class="tajweed-legend-name madda_necessary">مدّ لازم</span>
+                    <span class="tajweed-legend-desc">٦ حركات وجوباً</span>
                 </div>
             </div>
 
             <div class="waqf-legend-section-title">أحكام النون والميم — الأخضر</div>
-            <div class="waqf-legend-grid">
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo ghunnah">●</span>
-                    <div class="waqf-legend-text"><strong>غنّة</strong><small>غنّة النون والميم المشدّدتين</small></div>
+            <div class="tajweed-legend-list">
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip ghunnah"></span>
+                    <span class="tajweed-legend-name ghunnah">غنّة</span>
+                    <span class="tajweed-legend-desc">غنّة النون والميم المشدّدتين</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo ikhafa">●</span>
-                    <div class="waqf-legend-text"><strong>إخفاء</strong><small>إخفاء النون الساكنة أو التنوين بغنّة</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip ikhafa"></span>
+                    <span class="tajweed-legend-name ikhafa">إخفاء</span>
+                    <span class="tajweed-legend-desc">إخفاء النون الساكنة أو التنوين بغنّة</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo ikhafa_shafawi">●</span>
-                    <div class="waqf-legend-text"><strong>إخفاء شفوي</strong><small>إخفاء الميم الساكنة عند الباء</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip ikhafa_shafawi"></span>
+                    <span class="tajweed-legend-name ikhafa_shafawi">إخفاء شفوي</span>
+                    <span class="tajweed-legend-desc">إخفاء الميم الساكنة عند الباء</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo iqlab">●</span>
-                    <div class="waqf-legend-text"><strong>إقلاب</strong><small>قلب النون الساكنة أو التنوين ميماً عند الباء</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip iqlab"></span>
+                    <span class="tajweed-legend-name iqlab">إقلاب</span>
+                    <span class="tajweed-legend-desc">قلب النون الساكنة أو التنوين ميماً عند الباء</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo idgham_ghunnah">●</span>
-                    <div class="waqf-legend-text"><strong>إدغام بغنّة</strong><small>عند حروف (ينمو)</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip idgham_ghunnah"></span>
+                    <span class="tajweed-legend-name idgham_ghunnah">إدغام بغنّة</span>
+                    <span class="tajweed-legend-desc">عند حروف (ينمو)</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo idgham_wo_ghunnah">●</span>
-                    <div class="waqf-legend-text"><strong>إدغام بغير غنّة</strong><small>عند اللام والراء</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip idgham_wo_ghunnah"></span>
+                    <span class="tajweed-legend-name idgham_wo_ghunnah">إدغام بغير غنّة</span>
+                    <span class="tajweed-legend-desc">عند اللام والراء</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo idgham_shafawi">●</span>
-                    <div class="waqf-legend-text"><strong>إدغام شفوي</strong><small>إدغام الميم الساكنة في الميم</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip idgham_shafawi"></span>
+                    <span class="tajweed-legend-name idgham_shafawi">إدغام شفوي</span>
+                    <span class="tajweed-legend-desc">إدغام الميم الساكنة في الميم</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo idgham_mutajanisayn">●</span>
-                    <div class="waqf-legend-text"><strong>إدغام متجانسين</strong><small>الحرفان من مخرج واحد مختلفا الصفة</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip idgham_mutajanisayn"></span>
+                    <span class="tajweed-legend-name idgham_mutajanisayn">إدغام متجانسين</span>
+                    <span class="tajweed-legend-desc">الحرفان من مخرج واحد مختلفا الصفة</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo idgham_mutaqaribayn">●</span>
-                    <div class="waqf-legend-text"><strong>إدغام متقاربين</strong><small>الحرفان متقاربان مخرجاً وصفة</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip idgham_mutaqaribayn"></span>
+                    <span class="tajweed-legend-name idgham_mutaqaribayn">إدغام متقاربين</span>
+                    <span class="tajweed-legend-desc">الحرفان متقاربان مخرجاً وصفة</span>
                 </div>
             </div>
 
             <div class="waqf-legend-section-title">أحكام أخرى</div>
-            <div class="waqf-legend-grid">
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo qalaqah">●</span>
-                    <div class="waqf-legend-text"><strong>قلقلة</strong><small>اضطراب الحرف الساكن من حروف (قطب جد)</small></div>
+            <div class="tajweed-legend-list">
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip qalaqah"></span>
+                    <span class="tajweed-legend-name qalaqah">قلقلة</span>
+                    <span class="tajweed-legend-desc">اضطراب الحرف الساكن من حروف (قطب جد)</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo ham_wasl">●</span>
-                    <div class="waqf-legend-text"><strong>همزة وصل</strong><small>تُنطق في الابتداء وتسقط في الوصل</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip ham_wasl"></span>
+                    <span class="tajweed-legend-name ham_wasl">همزة وصل</span>
+                    <span class="tajweed-legend-desc">تُنطق في الابتداء وتسقط في الوصل</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo laam_shamsiyah">●</span>
-                    <div class="waqf-legend-text"><strong>لام شمسية</strong><small>لام التعريف لا تُنطق ويُشدّد ما بعدها</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip laam_shamsiyah"></span>
+                    <span class="tajweed-legend-name laam_shamsiyah">لام شمسية</span>
+                    <span class="tajweed-legend-desc">لام التعريف لا تُنطق ويُشدّد ما بعدها</span>
                 </div>
-                <div class="waqf-legend-item">
-                    <span class="tajweed-sym-demo slnt">●</span>
-                    <div class="waqf-legend-text"><strong>حرف لا يُنطق</strong><small>حرف ثابت رسماً ساقط لفظاً</small></div>
+                <div class="tajweed-legend-row">
+                    <span class="tajweed-chip slnt"></span>
+                    <span class="tajweed-legend-name slnt">حرف لا يُنطق</span>
+                    <span class="tajweed-legend-desc">حرف ثابت رسماً ساقط لفظاً</span>
                 </div>
             </div>
 
