@@ -2112,21 +2112,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const LEADING_ORNAMENT_RE = new RegExp('^[' + _ORNAMENT_CLASS + ']+');
     const TRAILING_ORNAMENT_RE = new RegExp('[' + _ORNAMENT_CLASS + ']+$');
 
-    // Arabic combining (non-spacing) marks: harakat, dagger-alef (U+0670),
-    // maddah (U+0653), Quranic annotation marks, etc. A tajweed span containing
-    // ONLY such marks gets shaped in isolation and detaches from its base letter,
-    // so the colour appears to vanish — see _attachCombiningOnlyRuns.
-    function _isArabicCombiningMark(ch) {
-        const cp = ch.codePointAt(0);
-        return (cp >= 0x0610 && cp <= 0x061A) ||
-               (cp >= 0x064B && cp <= 0x065F) ||
-               cp === 0x0670 ||
-               (cp >= 0x06D6 && cp <= 0x06DC) ||
-               (cp >= 0x06DF && cp <= 0x06E4) ||
-               (cp >= 0x06E7 && cp <= 0x06E8) ||
-               (cp >= 0x06EA && cp <= 0x06ED);
-    }
-
     function isTajweedEnabled() {
         return document.body.dataset.tajweedEnabled === 'true';
     }
@@ -2269,25 +2254,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                         segRules.add('madda_munfasil');
                     }
                 }
-                // A colored span that begins with combining marks (e.g. the مدّ
-                // dagger-alef ٰ ٓ in هَٰٓؤُلَآءِ) is shaped on its own, so the mark
-                // detaches from its base letter and loses its colour. Pull the
-                // preceding base grapheme out of the adjacent plain run and into
-                // the span so the mark attaches and renders coloured.
-                const balancedParts = finalParts.map(p => ({ ...p }));
-                for (let i = 1; i < balancedParts.length; i++) {
-                    const part = balancedParts[i];
-                    const prev = balancedParts[i - 1];
-                    if (!part.cls || !part.text || prev.cls || !prev.text) continue;
-                    if (!_isArabicCombiningMark(part.text[0])) continue;
-                    // Walk back over the trailing grapheme (base letter + its marks).
-                    let j = prev.text.length - 1;
-                    while (j > 0 && _isArabicCombiningMark(prev.text[j])) j--;
-                    part.text = prev.text.slice(j) + part.text;
-                    prev.text = prev.text.slice(0, j);
-                }
-                // Build word HTML: plain text runs and colored spans
-                const wHtml = balancedParts.map(p =>
+                // Build word HTML: plain text runs and colored spans. A مدّ tag
+                // often wraps only combining marks (e.g. the dagger-alef ٰ in
+                // ذَٰلِكَ); we colour just that mark and leave the carrier letter in
+                // its normal colour. The marks still attach to the preceding base
+                // across the span boundary, so they render in place (verified in
+                // UthmanicHafs and Amiri) — do NOT pull the base into the span, as
+                // that both mis-colours the consonant and breaks shaping of seats
+                // like the hamza ـَٔ.
+                const wHtml = finalParts.map(p =>
                     p.cls
                         ? `<tajweed class="${p.cls}">${p.text}</tajweed>`
                         : p.text
