@@ -2102,6 +2102,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // JS-side cache: verse_key → html string
     const _tajweedHtmlCache = {};
 
+    // Trailing verse-number cluster: optional NBSP/space, optional end-of-ayah
+    // mark (U+06DD), then Arabic-Indic / extended Arabic-Indic digits.
+    const VERSE_NUMBER_SUFFIX_RE = /[ \s]*۝?[٠-٩۰-۹]+\s*$/;
+
+    // Arabic combining (non-spacing) marks: harakat, dagger-alef (U+0670),
+    // maddah (U+0653), Quranic annotation marks, etc. A tajweed span containing
+    // ONLY such marks gets shaped in isolation and detaches from its base letter,
+    // so the colour appears to vanish — see _attachCombiningOnlyRuns.
+    function _isArabicCombiningMark(ch) {
+        const cp = ch.codePointAt(0);
+        return (cp >= 0x0610 && cp <= 0x061A) ||
+               (cp >= 0x064B && cp <= 0x065F) ||
+               cp === 0x0670 ||
+               (cp >= 0x06D6 && cp <= 0x06DC) ||
+               (cp >= 0x06DF && cp <= 0x06E4) ||
+               (cp >= 0x06E7 && cp <= 0x06E8) ||
+               (cp >= 0x06EA && cp <= 0x06ED);
+    }
+
     function isTajweedEnabled() {
         return document.body.dataset.tajweedEnabled === 'true';
     }
@@ -2154,6 +2173,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (hideEmbeddedWaqf) {
                     renderedHtml = stripEmbeddedWaqf(renderedHtml);
                 }
+                // QPC Hafs / Amiri glue the verse number to the last word via a
+                // non-breaking space (e.g. "…نَ ٣١"). The tajweed source has no
+                // number, so re-append any trailing verse-number suffix; otherwise
+                // it disappears when tajweed replaces the word's innerHTML.
+                const numMatch = (item.wordEl.dataset.textClean || item.rawText || '')
+                    .match(VERSE_NUMBER_SUFFIX_RE);
+                if (numMatch) renderedHtml += numMatch[0];
                 item.baseEl.innerHTML = renderedHtml;
                 item.baseEl.style.fontFeatureSettings = featureSettings || null;
                 item.baseEl.dataset.khattRenderMode = 'text-tajweed';
@@ -2234,8 +2260,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                         segRules.add('madda_munfasil');
                     }
                 }
+                // A colored span that begins with combining marks (e.g. the مدّ
+                // dagger-alef ٰ ٓ in هَٰٓؤُلَآءِ) is shaped on its own, so the mark
+                // detaches from its base letter and loses its colour. Pull the
+                // preceding base grapheme out of the adjacent plain run and into
+                // the span so the mark attaches and renders coloured.
+                const balancedParts = finalParts.map(p => ({ ...p }));
+                for (let i = 1; i < balancedParts.length; i++) {
+                    const part = balancedParts[i];
+                    const prev = balancedParts[i - 1];
+                    if (!part.cls || !part.text || prev.cls || !prev.text) continue;
+                    if (!_isArabicCombiningMark(part.text[0])) continue;
+                    // Walk back over the trailing grapheme (base letter + its marks).
+                    let j = prev.text.length - 1;
+                    while (j > 0 && _isArabicCombiningMark(prev.text[j])) j--;
+                    part.text = prev.text.slice(j) + part.text;
+                    prev.text = prev.text.slice(0, j);
+                }
                 // Build word HTML: plain text runs and colored spans
-                const wHtml = finalParts.map(p =>
+                const wHtml = balancedParts.map(p =>
                     p.cls
                         ? `<tajweed class="${p.cls}">${p.text}</tajweed>`
                         : p.text
