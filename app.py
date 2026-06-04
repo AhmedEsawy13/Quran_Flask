@@ -90,7 +90,7 @@ def after_request(response):
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com; "
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://server13.mp3quran.net; "
         "connect-src 'self' https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com;"
     )
     
@@ -2021,6 +2021,120 @@ def get_quran_text_data():
     source = normalize_source(request.args.get('source', 'qpc_hafs'))
     return get_quran_text_data_by_source(source)
 
+
+# ── Memorization mode (Circular Segmented Repetition) ───────────────────────────
+# Uses the per-surah Husary timestamps (mahmoud_khalil_al_husary_mp3quran). Word
+# timestamps are surah-absolute (one MP3 per surah), so any [start,end] range —
+# a single word, a natural phrase, a verse, or a cumulative run of verses — maps
+# to a direct seek in the surah audio. Phrases are derived from the silence gaps
+# in the alignment itself, i.e. where the reciter actually paused.
+_MEMORIZATION_DIR = os.path.join(_BASE_DIR, 'reciters', 'mahmoud_khalil_al_husary_mp3quran')
+_MEMORIZATION_AUDIO_TMPL = 'https://server13.mp3quran.net/husr/{surah:03d}.mp3'
+_memorization_word_ts = None
+_memorization_lock = threading.Lock()
+
+
+def _load_memorization_word_ts():
+    """Lazy-load + cache the surah-absolute word timestamps (idempotent)."""
+    global _memorization_word_ts
+    if _memorization_word_ts is not None:
+        return _memorization_word_ts
+    with _memorization_lock:
+        if _memorization_word_ts is None:
+            path = os.path.join(_MEMORIZATION_DIR, 'word_timestamps.json.gz')
+            with gzip.open(path, 'rt', encoding='utf-8') as fh:
+                _memorization_word_ts = json.load(fh)
+    return _memorization_word_ts
+
+
+def _segment_phrases(words, gap_ms):
+    """Split a verse's word list into phrases at silence gaps > gap_ms.
+
+    `words` is the source's [[word_index, start_ms, end_ms], ...]. A run of words
+    spoken without a meaningful pause becomes one phrase. Returns a list of
+    {start, end, first_word, last_word} in milliseconds. Repeated-phrase verses
+    (where word_index resets) simply yield extra phrases for the repeated audio,
+    which is faithful to what is actually recited.
+    """
+    phrases = []
+    if not words:
+        return phrases
+    run_start = words[0][1]
+    run_first = words[0][0]
+    prev_end = words[0][2]
+    prev_idx = words[0][0]
+    for idx, s, e in words[1:]:
+        if s - prev_end > gap_ms:
+            phrases.append({'start': run_start, 'end': prev_end,
+                            'first_word': run_first, 'last_word': prev_idx})
+            run_start = s
+            run_first = idx
+        prev_end = e
+        prev_idx = idx
+    phrases.append({'start': run_start, 'end': prev_end,
+                    'first_word': run_first, 'last_word': prev_idx})
+    return phrases
+
+
+@app.route('/api/memorization/<int:surah_number>', methods=['GET'])
+def get_memorization(surah_number):
+    """Per-surah memorization data: audio URL + per-verse timing and phrases.
+
+    All times are returned in SECONDS (audio.currentTime units). Phrase split
+    threshold is tunable via ?gap=<ms> (default 400)."""
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number."}), 400
+    gap_ms = request.args.get('gap', 400, type=int)
+    if gap_ms < 0 or gap_ms > 5000:
+        gap_ms = 400
+
+    try:
+        word_ts = _load_memorization_word_ts()
+    except Exception as e:
+        app.logger.error(f"Memorization data load failed: {e}")
+        return jsonify({"error": "Memorization data unavailable"}), 503
+
+    text_data = get_quran_text_data_by_source('qpc_hafs')
+
+    verses = []
+    ayah = 1
+    while True:
+        vk = f"{surah_number}:{ayah}"
+        if vk not in word_ts:
+            break
+        entry = word_ts[vk]
+        verse_range, words = entry[0], entry[1]
+        phrases = _segment_phrases(words, gap_ms)
+        text = ''
+        td = text_data.get(vk) if isinstance(text_data, dict) else None
+        if isinstance(td, dict):
+            text = td.get('text', '') or ''
+        verses.append({
+            'ayah': ayah,
+            'verse_key': vk,
+            'start': round(verse_range[0] / 1000.0, 3),
+            'end': round(verse_range[1] / 1000.0, 3),
+            'text': text,
+            'phrases': [
+                {'start': round(p['start'] / 1000.0, 3),
+                 'end': round(p['end'] / 1000.0, 3)}
+                for p in phrases
+            ],
+        })
+        ayah += 1
+
+    if not verses:
+        return jsonify({"error": "No memorization data for this surah."}), 404
+
+    return jsonify({
+        'surah_number': surah_number,
+        'reciter': 'Mahmoud Khalil al-Husary',
+        'audio_url': _MEMORIZATION_AUDIO_TMPL.format(surah=surah_number),
+        'gap_ms': gap_ms,
+        'verses': verses,
+    })
+
+
 @app.route('/api/audio-proxy')
 def audio_proxy():
     """Validate and redirect to audio files to avoid firewall issues in sandbox environments"""
@@ -2039,7 +2153,7 @@ def audio_proxy():
             return jsonify({"error": "Only HTTPS URLs are allowed"}), 400
         
         # Only allow specific trusted domains and default HTTPS port.
-        allowed_domains = {'audio.qurancdn.com', 'audio-cdn.tarteel.ai', 'everyayah.com'}
+        allowed_domains = {'audio.qurancdn.com', 'audio-cdn.tarteel.ai', 'everyayah.com', 'server13.mp3quran.net'}
         if parsed_url.hostname not in allowed_domains:
             return jsonify({"error": "Only trusted audio domains are allowed"}), 400
         if parsed_url.port not in (None, 443):

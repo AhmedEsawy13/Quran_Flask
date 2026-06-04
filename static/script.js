@@ -2102,15 +2102,105 @@ document.addEventListener('DOMContentLoaded', async () => {
     // JS-side cache: verse_key → html string
     const _tajweedHtmlCache = {};
 
-    // Ornament characters the tajweed source omits but the display font carries
-    // glued to word tokens: waqf stop marks + end-of-ayah ۝ + rubu ۞ + verse-end
-    // circle ۟ (U+06D6–U+06DF), sajda ۩ (U+06E9), NBSP/space, and the
-    // Arabic-Indic / extended verse-number digits. We peel these off the displayed
-    // word and re-attach them around the coloured tajweed body so they survive the
-    // innerHTML replacement.
-    const _ORNAMENT_CLASS = '\\u0020\\u00A0\\u06D6-\\u06DF\\u06E9\\u0660-\\u0669\\u06F0-\\u06F9';
-    const LEADING_ORNAMENT_RE = new RegExp('^[' + _ORNAMENT_CLASS + ']+');
-    const TRAILING_ORNAMENT_RE = new RegExp('[' + _ORNAMENT_CLASS + ']+$');
+    // The tajweed source (cpfair/quran-tajweed) is written in a Tanzil/Imlaei
+    // orthography that diverges from our QPC Hafs display text in many systematic
+    // ways: standalone hamza+alef ءَا vs أٓ, final ى vs ي, omitted sukun, different
+    // tanwin marks, etc. We must therefore NOT inject the source text — instead we
+    // OVERLAY the tajweed colours onto the unchanged QPC display characters by
+    // aligning the two strings. Stripping the resulting tags always yields the
+    // original display word, so orthography is preserved exactly.
+
+    // Arabic combining (non-spacing) marks: harakat, dagger-alef (U+0670),
+    // maddah/hamza-above (U+0653/U+0654), Quranic annotation marks, etc.
+    function _isCombiningMark(cp) {
+        return (cp >= 0x064B && cp <= 0x065F) || cp === 0x0670 ||
+               (cp >= 0x06D6 && cp <= 0x06ED) || (cp >= 0x0610 && cp <= 0x061A) ||
+               (cp >= 0x0653 && cp <= 0x0658) || cp === 0x06E5 || cp === 0x06E6;
+    }
+
+    // Skeleton class for alignment: fold orthographic variants so equivalent
+    // letters match across the two spellings (alef/hamza family, ya/alef-maqsura,
+    // ta-marbuta).
+    function _alignSkeleton(ch) {
+        const cp = ch.codePointAt(0);
+        if (cp === 0x0622 || cp === 0x0623 || cp === 0x0625 || cp === 0x0627 ||
+            cp === 0x0671 || cp === 0x0621 || cp === 0x0624 || cp === 0x0626) return 'A';
+        if (cp === 0x0649 || cp === 0x064A) return 'Y';
+        if (cp === 0x0629) return 'H';
+        return ch;
+    }
+
+    // Needleman–Wunsch alignment. Returns, for each display-char index, the source
+    // index it aligns to (or -1 for a display-only insertion such as an ornament).
+    function _alignDisplayToSource(srcChars, dispChars) {
+        const n = srcChars.length, m = dispChars.length;
+        const dp = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
+        for (let i = 1; i <= n; i++) dp[i][0] = dp[i - 1][0] - 1;
+        for (let j = 1; j <= m; j++) dp[0][j] = dp[0][j - 1] - 1;
+        for (let i = 1; i <= n; i++) {
+            for (let j = 1; j <= m; j++) {
+                const sc = _alignSkeleton(srcChars[i - 1]) === _alignSkeleton(dispChars[j - 1]) ? 2 : -1;
+                dp[i][j] = Math.max(dp[i - 1][j - 1] + sc, dp[i - 1][j] - 1, dp[i][j - 1] - 1);
+            }
+        }
+        const res = new Array(m).fill(-1);
+        let i = n, j = m;
+        while (i > 0 && j > 0) {
+            const sc = _alignSkeleton(srcChars[i - 1]) === _alignSkeleton(dispChars[j - 1]) ? 2 : -1;
+            if (dp[i][j] === dp[i - 1][j - 1] + sc) { res[j - 1] = i - 1; i--; j--; }
+            else if (dp[i][j] === dp[i - 1][j] - 1) { i--; }
+            else { j--; }
+        }
+        return res;
+    }
+
+    /**
+     * Overlay tajweed colours onto the QPC display word.
+     * @param {string} dispWord  the exact characters currently displayed
+     * @param {{text:string,cls:string}[]} parts  the source word's coloured runs
+     * Returns HTML whose text content equals dispWord (orthography untouched).
+     */
+    function overlayTajweedOnDisplay(dispWord, parts) {
+        const srcChars = [];
+        const srcCls = [];
+        for (const p of (parts || [])) {
+            for (const ch of p.text) { srcChars.push(ch); srcCls.push(p.cls || ''); }
+        }
+        const dispChars = [...dispWord];
+        const dcls = new Array(dispChars.length).fill('');
+        if (srcChars.length && srcCls.some(c => c)) {
+            const amap = _alignDisplayToSource(srcChars, dispChars);
+            for (let j = 0; j < dispChars.length; j++) {
+                const si = amap[j];
+                if (si >= 0) dcls[j] = srcCls[si];
+            }
+            // Cluster unification: a base letter and the combining marks that sit on
+            // it must share one colour, otherwise a mark-only span (e.g. the مدّ
+            // dagger-alef ٰ in ذَٰلِكَ) shapes in isolation and its colour vanishes.
+            // Colouring the whole grapheme cluster is also how printed tajweed
+            // mushafs render the elongated letter.
+            let i = 0;
+            while (i < dispChars.length) {
+                const start = i; i++;
+                while (i < dispChars.length && _isCombiningMark(dispChars[i].codePointAt(0))) i++;
+                let chosen = '';
+                for (let k = start; k < i; k++) { if (dcls[k]) { chosen = dcls[k]; break; } }
+                for (let k = start; k < i; k++) dcls[k] = chosen;
+            }
+        }
+        const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let html = '', cur = null, buf = '';
+        for (let j = 0; j < dispChars.length; j++) {
+            const cl = dcls[j];
+            if (cl !== cur) {
+                if (buf) html += cur ? `<tajweed class="${cur}">${esc(buf)}</tajweed>` : esc(buf);
+                buf = ''; cur = cl;
+            }
+            buf += dispChars[j];
+        }
+        if (buf) html += cur ? `<tajweed class="${cur}">${esc(buf)}</tajweed>` : esc(buf);
+        return html;
+    }
 
     function isTajweedEnabled() {
         return document.body.dataset.tajweedEnabled === 'true';
@@ -2160,21 +2250,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             contentWordItems.forEach((item, index) => {
-                let renderedHtml = tajweedWords[index].html || getDisplayedWordText(item.rawText || item.wordEl.dataset.textClean);
-                if (hideEmbeddedWaqf) {
-                    renderedHtml = stripEmbeddedWaqf(renderedHtml);
-                }
-                // The tajweed source omits ornaments the display font glues to its
-                // word tokens: leading rubu, trailing sajda + verse-end + number,
-                // and (in original/both waqf modes) inline waqf stop marks. rawText
-                // is mode-aware (waqf already stripped in selected/none), so peeling
-                // ornaments off it and re-attaching them stays mode-correct.
-                const src = item.rawText || item.wordEl.dataset.textClean || '';
-                const lead = src.match(LEADING_ORNAMENT_RE);
-                const tail = src.match(TRAILING_ORNAMENT_RE);
-                if (lead) renderedHtml = lead[0] + renderedHtml;
-                if (tail) renderedHtml = renderedHtml + tail[0];
-                item.baseEl.innerHTML = renderedHtml;
+                // Overlay colours onto the unchanged QPC display word (mode-aware:
+                // rawText already has waqf stripped in selected/none). Ornaments,
+                // waqf marks and verse numbers align to nothing in the source and
+                // stay uncoloured — no peeling needed. Stripping the emitted tags
+                // always reproduces the display word, so orthography never changes.
+                let dispWord = item.rawText || item.wordEl.dataset.textClean || '';
+                if (hideEmbeddedWaqf) dispWord = stripEmbeddedWaqf(dispWord);
+                item.baseEl.innerHTML = overlayTajweedOnDisplay(dispWord, tajweedWords[index].parts);
                 item.baseEl.style.fontFeatureSettings = featureSettings || null;
                 item.baseEl.dataset.khattRenderMode = 'text-tajweed';
             });
@@ -2254,20 +2337,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                         segRules.add('madda_munfasil');
                     }
                 }
-                // Build word HTML: plain text runs and colored spans. A مدّ tag
-                // often wraps only combining marks (e.g. the dagger-alef ٰ in
-                // ذَٰلِكَ); we colour just that mark and leave the carrier letter in
-                // its normal colour. The marks still attach to the preceding base
-                // across the span boundary, so they render in place (verified in
-                // UthmanicHafs and Amiri) — do NOT pull the base into the span, as
-                // that both mis-colours the consonant and breaks shaping of seats
-                // like the hamza ـَٔ.
+                // Emit the source word's coloured runs as `parts`; the renderer
+                // (overlayTajweedOnDisplay) aligns these onto the QPC display word
+                // rather than substituting the source text. `html` is kept only as
+                // a source-orthography debug rendering.
                 const wHtml = finalParts.map(p =>
                     p.cls
                         ? `<tajweed class="${p.cls}">${p.text}</tajweed>`
                         : p.text
                 ).join('');
-                segments.push({ html: wHtml, rules: [...segRules] });
+                segments.push({
+                    html: wHtml,
+                    parts: finalParts.map(p => ({ text: p.text, cls: p.cls })),
+                    rules: [...segRules],
+                });
             }
             segParts = [];
             segRules = new Set();
@@ -3789,3 +3872,228 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     loadAyahs();
 });
+
+// ══ Memorization mode — Circular Segmented Repetition ════════════════════════
+// Self-contained: dedicated <audio>, per-surah Husary timeline, schedule of
+// [start,end] ranges (verse / phrase / cumulative-link) played with precise
+// stop-at-end. Does not touch the main per-ayah player.
+(function initMemorizationMode() {
+    if (window.__memoInit) return;
+    window.__memoInit = true;
+
+    function ready() {
+        const modal = document.getElementById('memorizationModal');
+        if (!modal) return;
+        const $ = id => document.getElementById(id);
+        const audio = $('memo-audio');
+        const els = {
+            open: $('show-memorization'),
+            close: modal.querySelector('.memo-close'),
+            startAyah: $('memo-start-ayah'),
+            endAyah: $('memo-end-ayah'),
+            verseReps: $('memo-verse-reps'),
+            linkReps: $('memo-link-reps'),
+            cumulative: $('memo-cumulative'),
+            splitLong: $('memo-split-long'),
+            startBtn: $('memo-start'),
+            pauseBtn: $('memo-pause'),
+            stopBtn: $('memo-stop'),
+            status: $('memo-status'),
+            progressBar: $('memo-progress-bar'),
+            verseList: $('memo-verse-list'),
+        };
+
+        let data = null;        // /api/memorization payload
+        let schedule = [];      // [{start,end,ayah,label,rep,repTotal}]
+        let stepIdx = -1;
+        let monitorId = null;
+        let loadedSurah = null;
+        let pendingSeek = false;
+
+        const LONG_SEC = 12;    // verses longer than this get phrase-split
+        const EPS = 0.05;
+
+        const getCurrentSurah = () => {
+            const sel = document.getElementById('surah-select');
+            return sel && sel.value ? parseInt(sel.value, 10) : 1;
+        };
+        // Strip the trailing verse-number ornament/digits (not recited)
+        const stripNum = t => (t || '').replace(/[\s ۝٠-٩۰-۹۩]+$/u, '').trim();
+
+        const setStatus = (msg, isErr) => {
+            els.status.textContent = msg || '';
+            els.status.classList.toggle('memo-err', !!isErr);
+        };
+
+        async function loadSurah(surah) {
+            setStatus('جارٍ التحميل…');
+            const resp = await fetch(`/api/memorization/${surah}`);
+            if (!resp.ok) throw new Error('load failed');
+            data = await resp.json();
+            loadedSurah = surah;
+            audio.src = data.audio_url;     // CSP media-src whitelists this host
+            audio.load();
+            populateAyahSelects();
+            renderVerseList();
+            setStatus('');
+        }
+
+        function populateAyahSelects() {
+            const opts = data.verses.map(v => `<option value="${v.ayah}">${v.ayah}</option>`).join('');
+            els.startAyah.innerHTML = opts;
+            els.endAyah.innerHTML = opts;
+            els.startAyah.value = data.verses[0].ayah;
+            const defEnd = data.verses[Math.min(data.verses.length - 1, 4)].ayah; // first ~5 verses
+            els.endAyah.value = defEnd;
+        }
+
+        function selectedVerses() {
+            if (!data) return [];
+            let a = parseInt(els.startAyah.value, 10);
+            let b = parseInt(els.endAyah.value, 10);
+            if (b < a) { const t = a; a = b; b = t; }
+            return data.verses.filter(v => v.ayah >= a && v.ayah <= b);
+        }
+
+        function renderVerseList() {
+            const vs = selectedVerses();
+            els.verseList.innerHTML = vs.map(v =>
+                `<div class="memo-verse" data-ayah="${v.ayah}">` +
+                `<span class="memo-vnum">${v.ayah}</span>${stripNum(v.text)}</div>`
+            ).join('');
+        }
+
+        // Build the circular-segmented-repetition schedule.
+        function buildSchedule() {
+            const vs = selectedVerses();
+            const R = parseInt(els.verseReps.value, 10) || 1;
+            const L = parseInt(els.linkReps.value, 10) || 1;
+            const cumulative = els.cumulative.checked;
+            const splitLong = els.splitLong.checked;
+            const steps = [];
+            const firstAyah = vs.length ? vs[0].ayah : null;
+
+            vs.forEach((v, i) => {
+                const dur = v.end - v.start;
+                const usePhrases = splitLong && v.phrases.length > 1 && dur > LONG_SEC;
+                if (usePhrases) {
+                    v.phrases.forEach((p, j) => {
+                        for (let r = 0; r < R; r++)
+                            steps.push({ start: p.start, end: p.end, ayah: v.ayah,
+                                label: `آية ${v.ayah} • مقطع ${j + 1}/${v.phrases.length}`, rep: r + 1, repTotal: R });
+                        if (cumulative && j > 0)
+                            steps.push({ start: v.phrases[0].start, end: p.end, ayah: v.ayah,
+                                label: `آية ${v.ayah} • ربط المقاطع ١–${j + 1}`, rep: 1, repTotal: 1 });
+                    });
+                    steps.push({ start: v.start, end: v.end, ayah: v.ayah,
+                        label: `آية ${v.ayah} • كاملة`, rep: 1, repTotal: 1 });
+                } else {
+                    for (let r = 0; r < R; r++)
+                        steps.push({ start: v.start, end: v.end, ayah: v.ayah,
+                            label: `آية ${v.ayah}`, rep: r + 1, repTotal: R });
+                }
+                if (cumulative && i > 0) {
+                    for (let r = 0; r < L; r++)
+                        steps.push({ start: vs[0].start, end: v.end, ayah: v.ayah,
+                            label: `ربط الآيات ${firstAyah}–${v.ayah}`, rep: r + 1, repTotal: L });
+                }
+            });
+            return steps;
+        }
+
+        function highlightAyah(ayah) {
+            els.verseList.querySelectorAll('.memo-verse').forEach(el => {
+                const on = parseInt(el.dataset.ayah, 10) === ayah;
+                el.classList.toggle('memo-active', on);
+                if (on) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            });
+        }
+
+        function startMonitor() {
+            stopMonitor();
+            monitorId = setInterval(() => {
+                if (pendingSeek || stepIdx < 0 || stepIdx >= schedule.length || audio.paused) return;
+                if (audio.currentTime >= schedule[stepIdx].end - EPS) nextStep();
+            }, 40);
+        }
+        const stopMonitor = () => { if (monitorId) { clearInterval(monitorId); monitorId = null; } };
+
+        function seekTo(t) {
+            pendingSeek = true;
+            const apply = () => { try { audio.currentTime = t; } catch (e) {} audio.play().catch(() => {}); };
+            if (audio.readyState >= 1) apply();
+            else audio.addEventListener('loadedmetadata', apply, { once: true });
+        }
+        audio.addEventListener('seeked', () => { pendingSeek = false; });
+
+        function playStep(k) {
+            stepIdx = k;
+            if (k >= schedule.length) { finish(); return; }
+            const seg = schedule[k];
+            seekTo(seg.start);
+            highlightAyah(seg.ayah);
+            const repTxt = seg.repTotal > 1 ? ` (${seg.rep}/${seg.repTotal})` : '';
+            setStatus(`${seg.label}${repTxt} — ${k + 1}/${schedule.length}`);
+            els.progressBar.style.width = `${Math.round((k / schedule.length) * 100)}%`;
+        }
+        const nextStep = () => playStep(stepIdx + 1);
+        audio.addEventListener('ended', () => { if (stepIdx >= 0 && stepIdx < schedule.length) nextStep(); });
+
+        function start() {
+            schedule = buildSchedule();
+            if (!schedule.length) { setStatus('لا توجد آيات محددة', true); return; }
+            els.startBtn.disabled = true;
+            els.pauseBtn.disabled = false;
+            els.stopBtn.disabled = false;
+            els.pauseBtn.innerHTML = '<i class="fas fa-pause"></i> إيقاف مؤقت';
+            startMonitor();
+            playStep(0);
+        }
+        function togglePause() {
+            if (audio.paused) { audio.play().catch(() => {}); els.pauseBtn.innerHTML = '<i class="fas fa-pause"></i> إيقاف مؤقت'; }
+            else { audio.pause(); els.pauseBtn.innerHTML = '<i class="fas fa-play"></i> متابعة'; }
+        }
+        function stop() {
+            stopMonitor();
+            audio.pause();
+            stepIdx = -1;
+            els.startBtn.disabled = false;
+            els.pauseBtn.disabled = true;
+            els.stopBtn.disabled = true;
+            els.progressBar.style.width = '0';
+            setStatus('');
+            els.verseList.querySelectorAll('.memo-active').forEach(el => el.classList.remove('memo-active'));
+        }
+        function finish() {
+            stopMonitor();
+            audio.pause();
+            els.startBtn.disabled = false;
+            els.pauseBtn.disabled = true;
+            els.stopBtn.disabled = true;
+            els.progressBar.style.width = '100%';
+            setStatus('تم الانتهاء ✓ بارك الله فيك');
+        }
+
+        async function openModal() {
+            modal.classList.add('show');
+            const surah = getCurrentSurah();
+            if (loadedSurah !== surah || !data) {
+                stop();
+                try { await loadSurah(surah); }
+                catch (e) { setStatus('تعذّر تحميل بيانات الحفظ', true); }
+            }
+        }
+        function closeModal() { stop(); modal.classList.remove('show'); }
+
+        els.open && els.open.addEventListener('click', openModal);
+        els.close && els.close.addEventListener('click', closeModal);
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+        els.startBtn.addEventListener('click', start);
+        els.pauseBtn.addEventListener('click', togglePause);
+        els.stopBtn.addEventListener('click', stop);
+        [els.startAyah, els.endAyah].forEach(s => s.addEventListener('change', () => { stop(); renderVerseList(); }));
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready);
+    else ready();
+})();

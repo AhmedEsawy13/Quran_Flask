@@ -4641,3 +4641,95 @@ body.dark-mode #toggle-waqf-table.active {
     color: #38bdf8;
     border-color: #0369a1;
 }
+
+/* ── Memorization mode (Circular Segmented Repetition) ───────────────── */
+.memo-modal-content { max-width: 560px; width: 92%; text-align: right; }
+.memo-sub { font-size: 0.85rem; color: var(--text-color); opacity: 0.75; margin: 0 0 14px; line-height: 1.6; }
+.memo-config {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 14px;
+    margin-bottom: 12px;
+}
+.memo-field { display: flex; flex-direction: column; gap: 4px; }
+.memo-field label { font-size: 0.82rem; font-weight: 600; }
+.memo-field select {
+    padding: 7px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+.memo-toggles { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
+.memo-check { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
+.memo-check input { accent-color: var(--primary-color); width: 16px; height: 16px; }
+.memo-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.memo-btn {
+    padding: 9px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background var(--transition-speed);
+}
+.memo-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.memo-btn:not(:disabled):hover { background: var(--border-color); }
+.memo-status {
+    font-size: 0.95rem;
+    font-weight: 600;
+    min-height: 1.4em;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+}
+.memo-status.memo-err { color: var(--error-color); }
+.memo-progress {
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+#memo-progress-bar {
+    height: 100%;
+    width: 0;
+    background: var(--primary-color);
+    transition: width 0.25s ease;
+}
+.memo-verse-list {
+    max-height: 38vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.memo-verse {
+    padding: 9px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    font-family: 'UthmanicHafs', 'Amiri', serif;
+    font-size: 1.45rem;
+    line-height: 2.1;
+    direction: rtl;
+    transition: background var(--transition-speed), border-color var(--transition-speed);
+}
+.memo-verse .memo-vnum {
+    font-family: system-ui, sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-inline-start: 6px;
+    vertical-align: middle;
+}
+.memo-verse.memo-active {
+    border-color: var(--primary-color);
+    background: color-mix(in srgb, var(--primary-color) 12%, var(--card-bg));
+}
+body.dark-mode .memo-verse.memo-active {
+    background: color-mix(in srgb, var(--primary-color) 28%, var(--card-bg));
+}
