@@ -1047,33 +1047,35 @@ def get_pause_match(surah_number, ayah_number):
             return True
         return _is_prohibited_stop(sym)
 
-    pause_count = len(pause_segs)
+    # ── Discretionary stops only ─────────────────────────────────────────────
+    # Exclude the verse-end stop (رأس الآية): every reciter stops there and it is
+    # trivially valid in every mushaf, so counting it inflates "صحة وقفاته". This
+    # also handles the back-up-and-repeat case (e.g. Suwaid at 12:27, who stops at
+    # فكذبت then re-reads from it to the verse end) — the resumed run terminates at
+    # رأس الآية and must not be counted as a second discretionary waqf.
+    # (reciter-compare already drops the verse-end for the same reason.)
+    mid_pause_segs = [seg for seg in pause_segs if seg['end_word'] != verse_end_word]
+    pause_count = len(mid_pause_segs)
 
-    # Build set of pause end_words for coverage computation
+    # Coverage still credits every real stop (including the verse-end) so a mark on
+    # the final word can be matched.
     pause_end_words = {seg['end_word'] for seg in pause_segs}
 
     matches = {}
     for ver in versions:
-        # ── Precision: how many of the reciter's stops match mushaf marks ────
+        # ── Precision: how many of the reciter's discretionary stops are valid ─
         matched = 0
-        for seg in pause_segs:
-            is_verse_end = (seg['end_word'] == verse_end_word)
+        for seg in mid_pause_segs:
             waqf_entries = _get_waqf_at_boundary(
                 surah_number, ayah_number, seg['end_word'], [ver]
             )
-            if is_verse_end:
-                # رأس الآية is always valid unless mushaf explicitly prohibits it.
-                sym = waqf_entries[0]['symbols'] if waqf_entries else ''
-                if not _is_prohibited_stop(sym):
-                    matched += 1
-            else:
-                # ص (صلى) is treated like ج (جائز) — any permissible mark counts.
-                valid_entries = [
-                    e for e in waqf_entries
-                    if not _is_prohibited_stop(e.get('symbols', ''))
-                ]
-                if valid_entries:
-                    matched += 1
+            # ص (صلى) is treated like ج (جائز) — any permissible mark counts.
+            valid_entries = [
+                e for e in waqf_entries
+                if not _is_prohibited_stop(e.get('symbols', ''))
+            ]
+            if valid_entries:
+                matched += 1
 
         # ── Coverage: how many of the mushaf's marks the reciter stopped at ──
         # Exclude only hard prohibition marks (لا / ۙ).
@@ -1095,7 +1097,9 @@ def get_pause_match(surah_number, ayah_number):
         matches[ver] = {
             'matched': matched,
             'total': pause_count,
-            'score': round(matched / pause_count * 100) if pause_count > 0 else 0,
+            # No discretionary stops → precision is vacuously satisfied (100%);
+            # the frontend renders this case as "no optional stops".
+            'score': round(matched / pause_count * 100) if pause_count > 0 else 100,
             'mushaf_marks': mushaf_marks,
             'marks_covered': marks_covered,
             'coverage_score': coverage_score,

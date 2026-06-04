@@ -2520,6 +2520,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return matches[b].score - matches[a].score;
         });
         if (!versions.length) return;
+        // Nothing to report: the reciter made no discretionary (mid-verse) stops
+        // and no mushaf marks this verse against. (The verse-end stop is excluded.)
+        const anyMarks = versions.some(v => matches[v].mushaf_marks > 0);
+        if (pause_count === 0 && !anyMarks) return;
 
         // Helpers ─────────────────────────────────────────────────────────────
         function toArabicNumerals(n) {
@@ -2540,7 +2544,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             let parts = [];
 
-            if (allPrec) {
+            if (total === 0) {
+                // Only the (excluded) verse-end stop — no optional waqf to judge.
+                parts.push(`لم يقف الشيخ وقوفاً اختيارية داخل الآية`);
+            } else if (allPrec) {
                 parts.push(`وافق الشيخ في جميع وقفاته (${m}/${t})`);
             } else if (noPrec) {
                 parts.push(`لم توافق أيٌّ من وقفاته علامات هذا المصحف`);
@@ -2619,37 +2626,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             verdict.textContent = buildVerdict(ver, matched, total, score, mushaf_marks, marks_covered, coverage_score);
             card.appendChild(verdict);
 
-            const precSection = document.createElement('div');
-            precSection.className = 'pause-match-bar-section';
+            // Precision bar only makes sense when there are discretionary stops.
+            if (total > 0) {
+                const precSection = document.createElement('div');
+                precSection.className = 'pause-match-bar-section';
 
-            const precHeader = document.createElement('div');
-            precHeader.className = 'pause-match-bar-header';
-            const precTitle = document.createElement('span');
-            precTitle.className = 'pause-match-bar-title';
-            precTitle.textContent = 'صحة وقفاته';
-            const precHint = document.createElement('span');
-            precHint.className = 'pause-match-bar-hint';
-            precHint.textContent = 'كم وقفة منه لها سند في هذا المصحف؟';
-            precHeader.appendChild(precTitle);
-            precHeader.appendChild(precHint);
-            precSection.appendChild(precHeader);
+                const precHeader = document.createElement('div');
+                precHeader.className = 'pause-match-bar-header';
+                const precTitle = document.createElement('span');
+                precTitle.className = 'pause-match-bar-title';
+                precTitle.textContent = 'صحة وقفاته';
+                const precHint = document.createElement('span');
+                precHint.className = 'pause-match-bar-hint';
+                precHint.textContent = 'كم وقفة منه لها سند في هذا المصحف؟';
+                precHeader.appendChild(precTitle);
+                precHeader.appendChild(precHint);
+                precSection.appendChild(precHeader);
 
-            const precRow = document.createElement('div');
-            precRow.className = 'pause-match-metric-row';
-            const precWrap = document.createElement('div');
-            precWrap.className = 'pause-match-bar-wrap';
-            const precBar = document.createElement('div');
-            precBar.className = `pause-match-bar ${colorCls}`;
-            precBar.style.width = '0%';
-            setTimeout(() => { precBar.style.width = score + '%'; }, 50 + idx * 20);
-            precWrap.appendChild(precBar);
-            precRow.appendChild(precWrap);
-            const precPct = document.createElement('span');
-            precPct.className = 'pause-match-pct';
-            precPct.textContent = `${toArabicNumerals(score)}٪ (${toArabicNumerals(matched)}/${toArabicNumerals(total)})`;
-            precRow.appendChild(precPct);
-            precSection.appendChild(precRow);
-            card.appendChild(precSection);
+                const precRow = document.createElement('div');
+                precRow.className = 'pause-match-metric-row';
+                const precWrap = document.createElement('div');
+                precWrap.className = 'pause-match-bar-wrap';
+                const precBar = document.createElement('div');
+                precBar.className = `pause-match-bar ${colorCls}`;
+                precBar.style.width = '0%';
+                setTimeout(() => { precBar.style.width = score + '%'; }, 50 + idx * 20);
+                precWrap.appendChild(precBar);
+                precRow.appendChild(precWrap);
+                const precPct = document.createElement('span');
+                precPct.className = 'pause-match-pct';
+                precPct.textContent = `${toArabicNumerals(score)}٪ (${toArabicNumerals(matched)}/${toArabicNumerals(total)})`;
+                precRow.appendChild(precPct);
+                precSection.appendChild(precRow);
+                card.appendChild(precSection);
+            }
 
             if (mushaf_marks > 0) {
                 const covSection = document.createElement('div');
@@ -2932,11 +2942,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const builtSegEls = [];
 
+        // Track the furthest word reached so we can detect a "back-up": a segment
+        // that re-reads words already recited (the reciter stopped at a waqf then
+        // resumed FROM that point rather than continuing past it — e.g. Suwaid at
+        // 12:27 repeats from فكذبت). The waqf itself still counts; this only flags
+        // the repetition so the reader sees it.
+        let guideHighWater = 0;
+
         segments.forEach((seg, idx) => {
             const isLast = idx === segments.length - 1;
             const segEl = document.createElement('div');
             segEl.className = 'guide-segment';
             if (isLast) segEl.classList.add('guide-segment-last');
+
+            const segStartW = parseInt(seg.start_word, 10);
+            const segEndW   = parseInt(seg.end_word, 10);
+            const repeatedCount = Number.isFinite(segStartW)
+                ? Math.max(0, guideHighWater - segStartW)
+                : 0;
+            const isBackUp = repeatedCount > 0;
+            if (Number.isFinite(segEndW)) guideHighWater = Math.max(guideHighWater, segEndW);
+            if (isBackUp) segEl.classList.add('guide-segment-repeat');
 
             // Compute time range for this segment from word alignment timing.
             // positions.db start_word / end_word are 0-based; end_word is exclusive.
@@ -2969,14 +2995,36 @@ document.addEventListener('DOMContentLoaded', async () => {
             segNum.textContent = toArabicNumerals(idx + 1);
             segEl.appendChild(segNum);
 
-            // Verse words — strip any embedded waqf glyphs from positions.db text
+            // Strip any embedded waqf glyphs from the positions.db segment text.
+            const segWords = (seg.text || '').split(' ')
+                .filter(w => w.trim())
+                .map(w => stripEmbeddedWaqf(w));
+
+            // Repetition badge — the reciter resumed by re-reading earlier words.
+            if (isBackUp) {
+                const repBadge = document.createElement('span');
+                repBadge.className = 'guide-seg-repeat-badge';
+                repBadge.innerHTML = '<i class="fas fa-rotate-left"></i> تكرار';
+                const fromWord = segWords.slice(0, repeatedCount).join(' ').trim();
+                repBadge.title = fromWord
+                    ? `أعاد القارئ القراءة من «${fromWord}»`
+                    : 'أعاد القارئ القراءة من هذا الموضع';
+                segEl.appendChild(repBadge);
+            }
+
+            // Verse words. The first `repeatedCount` words were already recited in
+            // an earlier segment (re-read after backing up) — mark them so the
+            // repetition is visible.
             const wordsEl = document.createElement('div');
             wordsEl.className = 'guide-seg-words';
             wordsEl.dir = 'rtl';
-            wordsEl.textContent = (seg.text || '').split(' ')
-                .filter(w => w.trim())
-                .map(w => stripEmbeddedWaqf(w))
-                .join(' ');
+            segWords.forEach((w, wi) => {
+                if (wi > 0) wordsEl.appendChild(document.createTextNode(' '));
+                const wSpan = document.createElement('span');
+                if (isBackUp && wi < repeatedCount) wSpan.className = 'guide-seg-repeated-word';
+                wSpan.textContent = w;
+                wordsEl.appendChild(wSpan);
+            });
             segEl.appendChild(wordsEl);
 
             // Copy segment text button
@@ -2985,7 +3033,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             copyBtn.className = 'guide-seg-copy-btn';
             copyBtn.title = 'نسخ نص المقطع';
             copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-            const segText = wordsEl.textContent;
+            const segText = segWords.join(' ');
             let copyResetTimer = null;
             copyBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
