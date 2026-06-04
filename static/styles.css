@@ -3375,6 +3375,34 @@ body.sepia-mode .guide-seg-repeated-word {
     border-bottom-color: rgba(180,120,40,0.55);
 }
 
+/* Solo waqf: a clean stop-and-continue no other reciter shares. */
+.guide-seg-solo-badge {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 4px;
+    padding: 1px 7px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+    color: #7c3aed;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 999px;
+}
+body.dark-mode .guide-seg-solo-badge {
+    color: #c4b5fd;
+    background: rgba(139,92,246,0.16);
+    border-color: rgba(139,92,246,0.4);
+}
+body.sepia-mode .guide-seg-solo-badge {
+    color: #6d28d9;
+    background: rgba(124,58,237,0.1);
+    border-color: rgba(124,58,237,0.3);
+}
+
 .guide-seg-num {
     font-size: 0.65rem;
     font-weight: 700;

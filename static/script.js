@@ -2497,7 +2497,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            buildRecitationGuideFromSegments(guideContainer, data.segments || [], reciterName, wordTimingMap);
+            // Solo waqfs: stops this reciter makes that no other reciter shares.
+            const uniquePauses = (compareData && compareData.has_data)
+                ? (compareData.unique_pauses || [])
+                : [];
+            buildRecitationGuideFromSegments(guideContainer, data.segments || [], reciterName, wordTimingMap, uniquePauses);
             if (matchData && matchData.has_data) {
                 buildPauseMatchPanel(guideContainer, matchData, reciterName);
             }
@@ -2903,9 +2907,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // ── positions.db-powered guide ───────────────────────────────────────────
-    function buildRecitationGuideFromSegments(container, segments, reciterName, wordTimingMap = new Map()) {
+    function buildRecitationGuideFromSegments(container, segments, reciterName, wordTimingMap = new Map(), uniquePauses = []) {
         container.innerHTML = '';
         detachGuideHighlightHandler();
+        const uniquePauseSet = new Set((uniquePauses || []).map(Number));
 
         function toArabicNumerals(n) {
             return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
@@ -3010,6 +3015,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     ? `أعاد القارئ القراءة من «${fromWord}»`
                     : 'أعاد القارئ القراءة من هذا الموضع';
                 segEl.appendChild(repBadge);
+            } else if (!isLast && Number.isFinite(segEndW) && uniquePauseSet.has(segEndW)) {
+                // Solo waqf — a clean stop-and-continue no other reciter makes.
+                const soloBadge = document.createElement('span');
+                soloBadge.className = 'guide-seg-solo-badge';
+                soloBadge.innerHTML = '<i class="fas fa-star"></i> انفرد بالوقف';
+                soloBadge.title = 'انفرد القارئ بهذا الوقف بين القرّاء — لم يقف عنده غيره';
+                segEl.appendChild(soloBadge);
             }
 
             // Verse words. The first `repeatedCount` words were already recited in

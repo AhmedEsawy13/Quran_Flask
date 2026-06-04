@@ -1159,6 +1159,10 @@ def get_reciter_compare(surah_number, ayah_number):
         return len(matched_a), matched_a
 
     comparisons = {}
+    # Accumulate every other reciter's mid-verse pause positions so we can tell
+    # which of the subject's stops are his alone (انفرد القارئ بهذا الوقف).
+    other_mid_positions = set()
+    other_reciter_count = 0
     for other_reciter, cfg in RECITER_GUIDE_CONFIG.items():
         if other_reciter == reciter:
             continue
@@ -1176,6 +1180,9 @@ def get_reciter_compare(surah_number, ayah_number):
         a_list = [s['end_word'] for s in a_segs]
         b_list = [s['end_word'] for s in b_segs]
         a_total, b_total = len(a_list), len(b_list)
+
+        other_reciter_count += 1
+        other_mid_positions.update(b_list)
 
         a_matched, a_matched_set = _match_positions(a_list, b_list)
         b_matched, b_matched_set = _match_positions(b_list, a_list)
@@ -1215,9 +1222,31 @@ def get_reciter_compare(surah_number, ayah_number):
             'diff': {'only_in_a': only_in_a, 'only_in_b': only_in_b},
         }
 
+    # ── Solo waqfs ───────────────────────────────────────────────────────────
+    # Positions where the subject stopped but NO other reciter did (within ±1).
+    # Only clean stop-and-continue waqfs qualify: mid-verse, the segment itself did
+    # not back up, and the reciter resumed forward from the stop (no repetition).
+    unique_pauses = []
+    if other_reciter_count > 0:
+        high_water = 0
+        for k, seg in enumerate(subject_pauses):
+            end_w = seg['end_word']
+            backed_up = seg['start_word'] < high_water
+            if end_w > high_water:
+                high_water = end_w
+            if end_w == verse_end_word or backed_up:
+                continue
+            nxt = subject_pauses[k + 1] if k + 1 < len(subject_pauses) else None
+            if nxt is None or nxt['start_word'] < end_w:
+                continue  # reciter backed up after this stop → it was repeated
+            if not any((end_w + d) in other_mid_positions for d in (-1, 0, 1)):
+                unique_pauses.append(end_w)
+
     return jsonify({
         'has_data': bool(comparisons),
         'subject_mid_count': len(subject_mid_segs),
+        'other_reciter_count': other_reciter_count,
+        'unique_pauses': unique_pauses,
         'comparisons': comparisons,
     })
 
