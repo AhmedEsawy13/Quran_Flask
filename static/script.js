@@ -2102,9 +2102,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     // JS-side cache: verse_key → html string
     const _tajweedHtmlCache = {};
 
-    // Trailing verse-number cluster: optional NBSP/space, optional end-of-ayah
-    // mark (U+06DD), then Arabic-Indic / extended Arabic-Indic digits.
-    const VERSE_NUMBER_SUFFIX_RE = /[ \s]*۝?[٠-٩۰-۹]+\s*$/;
+    // Ornament characters the tajweed source omits but the display font carries
+    // glued to word tokens: waqf stop marks + end-of-ayah ۝ + rubu ۞ + verse-end
+    // circle ۟ (U+06D6–U+06DF), sajda ۩ (U+06E9), NBSP/space, and the
+    // Arabic-Indic / extended verse-number digits. We peel these off the displayed
+    // word and re-attach them around the coloured tajweed body so they survive the
+    // innerHTML replacement.
+    const _ORNAMENT_CLASS = '\\u0020\\u00A0\\u06D6-\\u06DF\\u06E9\\u0660-\\u0669\\u06F0-\\u06F9';
+    const LEADING_ORNAMENT_RE = new RegExp('^[' + _ORNAMENT_CLASS + ']+');
+    const TRAILING_ORNAMENT_RE = new RegExp('[' + _ORNAMENT_CLASS + ']+$');
 
     // Arabic combining (non-spacing) marks: harakat, dagger-alef (U+0670),
     // maddah (U+0653), Quranic annotation marks, etc. A tajweed span containing
@@ -2169,17 +2175,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             contentWordItems.forEach((item, index) => {
-                let renderedHtml = tajweedWords[index].html || getDisplayedWordText(item.wordEl.dataset.textClean || item.rawText);
+                let renderedHtml = tajweedWords[index].html || getDisplayedWordText(item.rawText || item.wordEl.dataset.textClean);
                 if (hideEmbeddedWaqf) {
                     renderedHtml = stripEmbeddedWaqf(renderedHtml);
                 }
-                // QPC Hafs / Amiri glue the verse number to the last word via a
-                // non-breaking space (e.g. "…نَ ٣١"). The tajweed source has no
-                // number, so re-append any trailing verse-number suffix; otherwise
-                // it disappears when tajweed replaces the word's innerHTML.
-                const numMatch = (item.wordEl.dataset.textClean || item.rawText || '')
-                    .match(VERSE_NUMBER_SUFFIX_RE);
-                if (numMatch) renderedHtml += numMatch[0];
+                // The tajweed source omits ornaments the display font glues to its
+                // word tokens: leading rubu, trailing sajda + verse-end + number,
+                // and (in original/both waqf modes) inline waqf stop marks. rawText
+                // is mode-aware (waqf already stripped in selected/none), so peeling
+                // ornaments off it and re-attaching them stays mode-correct.
+                const src = item.rawText || item.wordEl.dataset.textClean || '';
+                const lead = src.match(LEADING_ORNAMENT_RE);
+                const tail = src.match(TRAILING_ORNAMENT_RE);
+                if (lead) renderedHtml = lead[0] + renderedHtml;
+                if (tail) renderedHtml = renderedHtml + tail[0];
                 item.baseEl.innerHTML = renderedHtml;
                 item.baseEl.style.fontFeatureSettings = featureSettings || null;
                 item.baseEl.dataset.khattRenderMode = 'text-tajweed';

@@ -5,6 +5,21 @@
     font-display: swap;
 }
 
+/* The Digital Khatt (مصحف المدينة) font draws its ayah/sajda markers as COLR
+   colour glyphs with a fixed light palette: a near-white #DCF0FF disc with the
+   verse number painted in the text foreground colour. In dark mode the
+   foreground turns light, so the number vanishes against the pale disc. This
+   palette darkens the disc and lightens the frame so the marker reads on a dark
+   background. Palette indices: 0 frame, 1 inner highlight, 2 main disc, 3 accent. */
+@font-palette-values --digital-khatt-dark {
+    font-family: 'Digital Khatt';
+    override-colors:
+        0 #5bbbde,
+        1 #0c2c3c,
+        2 #0c2c3c,
+        3 #9bd9f0;
+}
+
 @font-face {
     font-family: 'Old Madina';
     src: url('oldmadina.woff2') format('woff2');
@@ -2676,6 +2691,13 @@ body[data-font-type="old_madina"] #quran-text {
 body[data-font-type="digital_khatt"] .word-token,
 body[data-font-type="old_madina"] .word-token {
     margin-inline: var(--khatt-word-margin-x, 0.05rem);
+}
+
+/* Recolour the Digital Khatt COLR verse/sajda markers for dark mode so the
+   verse number stays legible (see @font-palette-values --digital-khatt-dark).
+   font-palette inherits, so setting it on the container covers every word. */
+body.dark-mode[data-font-type="digital_khatt"] #quran-text {
+    font-palette: --digital-khatt-dark;
 }
 
 #show-tajweed.active {
