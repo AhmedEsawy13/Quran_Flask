@@ -4733,3 +4733,19 @@ body.dark-mode #toggle-waqf-table.active {
 body.dark-mode .memo-verse.memo-active {
     background: color-mix(in srgb, var(--primary-color) 28%, var(--card-bg));
 }
+
+/* Memorization split-method controls */
+.memo-split-opts { margin-bottom: 8px; }
+.memo-split-opts input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary-color);
+    cursor: pointer;
+}
+#memo-gap-val { font-weight: 400; opacity: 0.8; font-variant-numeric: tabular-nums; }
+.memo-hint {
+    font-size: 0.8rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    min-height: 1.1em;
+    margin-bottom: 12px;
+}

@@ -3895,6 +3895,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             linkReps: $('memo-link-reps'),
             cumulative: $('memo-cumulative'),
             splitLong: $('memo-split-long'),
+            mode: $('memo-mode'),
+            gap: $('memo-gap'),
+            gapVal: $('memo-gap-val'),
+            hint: $('memo-hint'),
             startBtn: $('memo-start'),
             pauseBtn: $('memo-pause'),
             stopBtn: $('memo-stop'),
@@ -3925,16 +3929,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             els.status.classList.toggle('memo-err', !!isErr);
         };
 
+        // Fetch segment data for `surah` honouring the current split method +
+        // sensitivity. Re-fetching for a param change keeps the same surah/audio
+        // and ayah selection — only the phrase boundaries change.
         async function loadSurah(surah) {
             setStatus('جارٍ التحميل…');
-            const resp = await fetch(`/api/memorization/${surah}`);
+            const mode = els.mode.value;
+            const gap = parseInt(els.gap.value, 10) || 250;
+            const resp = await fetch(`/api/memorization/${surah}?mode=${mode}&gap=${gap}`);
             if (!resp.ok) throw new Error('load failed');
+            const surahChanged = loadedSurah !== surah;
             data = await resp.json();
             loadedSurah = surah;
-            audio.src = data.audio_url;     // CSP media-src whitelists this host
-            audio.load();
-            populateAyahSelects();
+            if (surahChanged) {
+                audio.src = data.audio_url;     // CSP media-src whitelists this host
+                audio.load();
+                populateAyahSelects();
+            }
             renderVerseList();
+            updateHint();
             setStatus('');
         }
 
@@ -3945,6 +3958,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             els.startAyah.value = data.verses[0].ayah;
             const defEnd = data.verses[Math.min(data.verses.length - 1, 4)].ayah; // first ~5 verses
             els.endAyah.value = defEnd;
+        }
+
+        // Live feedback: how the current method/sensitivity splits the selection.
+        function updateHint() {
+            if (!data) { els.hint.textContent = ''; return; }
+            const vs = selectedVerses();
+            let splitVerses = 0, totalPhrases = 0;
+            vs.forEach(v => {
+                const isLong = (v.end - v.start) > LONG_SEC && v.phrases.length > 1;
+                if (isLong) { splitVerses++; totalPhrases += v.phrases.length; }
+            });
+            els.hint.textContent = splitVerses
+                ? `سيُقسَّم ${splitVerses} من الآيات الطويلة إلى ${totalPhrases} مقطعًا`
+                : 'لا توجد آيات طويلة للتقسيم في النطاق المختار';
         }
 
         function selectedVerses() {
@@ -4085,13 +4112,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         function closeModal() { stop(); modal.classList.remove('show'); }
 
+        // Re-fetch phrase data when the split method / sensitivity changes.
+        let reloadTimer = null;
+        async function reloadSegments() {
+            if (loadedSurah == null) return;
+            stop();
+            try { await loadSurah(loadedSurah); }
+            catch (e) { setStatus('تعذّر تحديث المقاطع', true); }
+        }
+
         els.open && els.open.addEventListener('click', openModal);
         els.close && els.close.addEventListener('click', closeModal);
         modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
         els.startBtn.addEventListener('click', start);
         els.pauseBtn.addEventListener('click', togglePause);
         els.stopBtn.addEventListener('click', stop);
-        [els.startAyah, els.endAyah].forEach(s => s.addEventListener('change', () => { stop(); renderVerseList(); }));
+        [els.startAyah, els.endAyah].forEach(s => s.addEventListener('change', () => { stop(); renderVerseList(); updateHint(); }));
+        els.mode.addEventListener('change', reloadSegments);
+        els.gap.addEventListener('input', () => {
+            els.gapVal.textContent = `${els.gap.value}ms`;
+            clearTimeout(reloadTimer);
+            reloadTimer = setTimeout(reloadSegments, 350);
+        });
+        els.splitLong.addEventListener('change', updateHint);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready);

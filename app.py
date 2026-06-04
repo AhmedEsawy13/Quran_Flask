@@ -2030,7 +2030,12 @@ def get_quran_text_data():
 # in the alignment itself, i.e. where the reciter actually paused.
 _MEMORIZATION_DIR = os.path.join(_BASE_DIR, 'reciters', 'mahmoud_khalil_al_husary_mp3quran')
 _MEMORIZATION_AUDIO_TMPL = 'https://server13.mp3quran.net/husr/{surah:03d}.mp3'
+# Husary mushaf-waqf phrase boundaries (sub-verse segments). Used by the
+# 'waqf' segmentation mode, snapped to real pauses in the mp3quran audio.
+_MEMORIZATION_WAQF_DB = os.path.join(_BASE_DIR, 'reciters', 'husary',
+                                     'mahmoud_khalil_al_husari_0_1_positions.db')
 _memorization_word_ts = None
+_memorization_waqf_bounds = None
 _memorization_lock = threading.Lock()
 
 
@@ -2076,17 +2081,88 @@ def _segment_phrases(words, gap_ms):
     return phrases
 
 
+def _load_waqf_boundaries():
+    """Lazy-load per-verse mushaf-waqf phrase boundaries (0-based start_word)
+    from the Husary positions DB. Returns {verse_key: [start_word, ...]}."""
+    global _memorization_waqf_bounds
+    if _memorization_waqf_bounds is not None:
+        return _memorization_waqf_bounds
+    with _memorization_lock:
+        if _memorization_waqf_bounds is None:
+            bounds = defaultdict(list)
+            try:
+                con = sqlite3.connect(_MEMORIZATION_WAQF_DB)
+                for s, a, w in con.execute(
+                    "SELECT start_sura, start_aya, start_word FROM positions "
+                    "WHERE index_type='sura' AND start_sura IS NOT NULL "
+                    "AND start_aya IS NOT NULL AND start_word IS NOT NULL"
+                ):
+                    bounds[f"{int(s)}:{int(a)}"].append(int(w))
+                con.close()
+                bounds = {vk: sorted(set(v)) for vk, v in bounds.items()}
+            except sqlite3.Error as e:
+                app.logger.error(f"Waqf boundaries load failed: {e}")
+                bounds = {}
+            _memorization_waqf_bounds = bounds
+    return _memorization_waqf_bounds
+
+
+def _waqf_aligned_phrases(words, boundaries, snap_floor, snap_window=3):
+    """Phrases from mushaf-waqf word boundaries, each snapped to the nearest
+    real silence (>= snap_floor ms) within +/- snap_window words so audio cuts
+    land on a pause when one is close. If no pause is nearby, the cut stays at
+    the waqf boundary (honouring the mark even mid-flow). This absorbs the small
+    word-index offsets between the waqf DB and the mp3quran source."""
+    n = len(words)
+    if not words:
+        return []
+    starts = [w[1] for w in words]
+    ends = [w[2] for w in words]
+    cuts = {0}
+    for b in boundaries:
+        if b <= 0 or b >= n:
+            continue
+        best_pos, best_gap = b, -1
+        lo, hi = max(1, b - snap_window), min(n - 1, b + snap_window)
+        for pos in range(lo, hi + 1):
+            g = starts[pos] - ends[pos - 1]
+            if g >= snap_floor and g > best_gap:
+                best_gap, best_pos = g, pos
+        cuts.add(best_pos if best_gap >= snap_floor else b)
+    cut_list = sorted(cuts)
+    phrases = []
+    for i, cp in enumerate(cut_list):
+        end_pos = (cut_list[i + 1] - 1) if i + 1 < len(cut_list) else n - 1
+        if end_pos < cp:
+            continue
+        phrases.append({'start': words[cp][1], 'end': words[end_pos][2],
+                        'first_word': words[cp][0], 'last_word': words[end_pos][0]})
+    return phrases
+
+
 @app.route('/api/memorization/<int:surah_number>', methods=['GET'])
 def get_memorization(surah_number):
     """Per-surah memorization data: audio URL + per-verse timing and phrases.
 
-    All times are returned in SECONDS (audio.currentTime units). Phrase split
-    threshold is tunable via ?gap=<ms> (default 400)."""
+    All times are returned in SECONDS (audio.currentTime units).
+      ?gap=<ms>  silence threshold (default 250): a break in 'acoustic' mode,
+                 the snap floor in 'waqf' mode.
+      ?mode=acoustic|waqf  acoustic = split at the reciter's pauses (default);
+                 waqf = split at mushaf-waqf marks, snapped to nearby pauses."""
     if not (1 <= surah_number <= 114):
         return jsonify({"error": "Invalid surah number."}), 400
-    gap_ms = request.args.get('gap', 400, type=int)
+    mode = (request.args.get('mode', 'acoustic') or 'acoustic').lower()
+    if mode not in ('acoustic', 'waqf'):
+        mode = 'acoustic'
+    # 250ms default: validated against the Husary waqf DB
+    # (mahmoud_khalil_al_husari_0_1_positions.db). At 250ms the silence-gap
+    # split matches that DB's phrase boundaries on the verses where Husary
+    # actually pauses (e.g. the 319ms micro-pause before "يَعْلَمُ" in Ayat
+    # al-Kursi → 7 phrases like the DB), while still NOT cutting at the ~65% of
+    # DB boundaries that are meaning-only stops with no audible pause here.
+    gap_ms = request.args.get('gap', 250, type=int)
     if gap_ms < 0 or gap_ms > 5000:
-        gap_ms = 400
+        gap_ms = 250
 
     try:
         word_ts = _load_memorization_word_ts()
@@ -2094,6 +2170,7 @@ def get_memorization(surah_number):
         app.logger.error(f"Memorization data load failed: {e}")
         return jsonify({"error": "Memorization data unavailable"}), 503
 
+    waqf_bounds = _load_waqf_boundaries() if mode == 'waqf' else {}
     text_data = get_quran_text_data_by_source('qpc_hafs')
 
     verses = []
@@ -2104,7 +2181,12 @@ def get_memorization(surah_number):
             break
         entry = word_ts[vk]
         verse_range, words = entry[0], entry[1]
-        phrases = _segment_phrases(words, gap_ms)
+        if mode == 'waqf':
+            phrases = _waqf_aligned_phrases(words, waqf_bounds.get(vk, []), gap_ms)
+            if not phrases:                       # verse missing from waqf DB
+                phrases = _segment_phrases(words, gap_ms)
+        else:
+            phrases = _segment_phrases(words, gap_ms)
         text = ''
         td = text_data.get(vk) if isinstance(text_data, dict) else None
         if isinstance(td, dict):
@@ -2131,6 +2213,7 @@ def get_memorization(surah_number):
         'reciter': 'Mahmoud Khalil al-Husary',
         'audio_url': _MEMORIZATION_AUDIO_TMPL.format(surah=surah_number),
         'gap_ms': gap_ms,
+        'mode': mode,
         'verses': verses,
     })
 
