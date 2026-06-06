@@ -7,6 +7,8 @@
 @font-face { font-family: 'Old Madina';   src: url('oldmadina.woff2')   format('woff2'); font-display: swap; }
 /* Surah-name banners — one glyph per surah (incl. the «سورة» prefix) */
 @font-face { font-family: 'Surah Names';   src: url('surah_names.woff2')  format('woff2'); font-display: swap; }
+/* Calligraphic basmala — the whole «بسم الله الرحمن الرحيم» is one glyph (U+00F3) */
+@font-face { font-family: 'QCF Basmala';   src: url('QCF BSML @Am9li9.ttf') format('truetype'); font-display: swap; }
 
 :root {
     --mz-accent: #4f46e5; --mz-accent-hover: #4338ca;
@@ -225,17 +227,23 @@ body.mz-dark .mz-spread::after { background: radial-gradient(ellipse at center, 
 .mz-page-card[data-side="right"] { padding-inline-end: clamp(14px, 2vw, 22px); }
 .mz-page-card[data-side="left"]  { padding-inline-start: clamp(14px, 2vw, 22px); }
 
-/* running head: surah (right) · juz (left) */
+/* single-page mode — show only the focus page */
+body.mz-single .mz-page-card[data-side="left"] { display: none; }
+body.mz-single .mz-spread::after { display: none; }
+body.mz-single .mz-page-card { width: min(86vw, 470px); padding-inline: clamp(12px, 1.6vw, 18px); }
+
+/* running head: juz (right) · surah names (left, every surah on the page) */
 .mz-page-header {
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 0 4px 7px; margin-bottom: 4px;
     border-bottom: 1px solid color-mix(in srgb, var(--mz-accent) 18%, transparent);
     font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 0.74rem; font-weight: 700; color: var(--mz-text-muted);
-    min-height: 1.4em;
+    min-height: 1.5em;
 }
 .mz-head-juz { color: var(--mz-text-muted); white-space: nowrap; }
-.mz-head-surah { color: var(--mz-accent); white-space: nowrap; }
-.mz-head-surah.mz-head-glyph { font-family: 'Surah Names', serif; font-size: 1.55em; line-height: 1; color: var(--mz-ink); }
+.mz-head-surah { display: inline-flex; align-items: center; gap: 10px; color: var(--mz-accent); white-space: nowrap; overflow: hidden; }
+.mz-head-surah .mz-head-glyph-item { font-family: 'Surah Names', serif; font-size: 1.5em; line-height: 1; color: var(--mz-ink); }
+.mz-head-surah .mz-head-text-item { font-weight: 700; }
 
 .mz-page {
     position: relative; aspect-ratio: 0.66; display: flex; flex-direction: column;
@@ -263,26 +271,28 @@ body.mz-dark .mz-spread::after { background: radial-gradient(ellipse at center, 
 .mz-page.mz-src-qpc-v1 .mz-line-inner, .mz-page.mz-src-qpc-v1 .mz-line-basmala { font-family: 'Old Madina', serif; }
 
 .mz-line-surah { font-family: 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--mz-accent); font-size: calc(var(--dk-fs) * 0.7); white-space: nowrap; }
-/* surah banner glyph in-page */
+/* surah name in-page — compact, framed on a border so it never hogs a line */
 .mz-line-surah.mz-surah-glyph {
     font-family: 'Surah Names', serif; font-weight: 400; color: var(--mz-ink);
-    font-size: calc(var(--dk-fs) * 1.7); line-height: 1;
+    font-size: calc(var(--dk-fs) * 1.0); line-height: 1; white-space: nowrap;
+    padding: 0.12em 1.1em;
+    border: 1px solid color-mix(in srgb, var(--mz-accent) 34%, transparent);
+    border-radius: 7px;
+    background: color-mix(in srgb, var(--mz-accent) 6%, transparent);
+    box-shadow: inset 0 0 0 2px var(--mz-paper);
 }
+/* basmala as the single calligraphic glyph (U+00F3) */
 .mz-line-basmala { font-family: 'Digital Khatt', serif; color: var(--mz-ink); font-size: calc(var(--dk-fs) * 0.86); white-space: nowrap; }
+.mz-line-basmala.mz-basmala-glyph { font-family: 'QCF Basmala', serif; font-size: calc(var(--dk-fs) * 1.7); line-height: 1; }
+.mz-page.mz-src-qpc-v1 .mz-line-basmala.mz-basmala-glyph { font-family: 'QCF Basmala', serif; }
 
-.mz-word { display: inline; position: relative; padding: 0 0.02em; border-radius: 0.18em; transition: background-color 0.3s ease, color 0.25s ease; }
+.mz-word { display: inline-block; position: relative; padding: 0.05em 0.02em 0; border-radius: 0.18em; transition: background-color 0.25s ease, color 0.2s ease; }
 .mz-word.mz-sel { background: var(--mz-select-hl); color: var(--mz-ink); }
 
-/* The verse being repeated breathes gently like a soft bulb — calm, not flashy. */
-.mz-word.mz-act {
-    color: var(--mz-ink); border-radius: 0.18em;
-    animation: mz-bulb 2.6s ease-in-out infinite;
-}
-@keyframes mz-bulb {
-    0%, 100% { background: var(--mz-select-hl); box-shadow: none; }
-    50%      { background: var(--mz-active-hl); box-shadow: 0 0 6px var(--mz-accent-ring); }
-}
-@media (prefers-reduced-motion: reduce) { .mz-word.mz-act { animation: none; background: var(--mz-active-hl); } }
+/* The word currently being recited is simply coloured — a calm static tint,
+   no animation (no "bulb" pulsing). */
+.mz-word.mz-act { color: var(--mz-accent); background: var(--mz-active-hl); }
+.mz-page.mz-tajweed .mz-word.mz-act { color: inherit; }
 
 /* dim non-selected verses to spotlight the target */
 .mz-page.mz-has-selection .mz-word:not(.mz-sel) { opacity: 0.32; }
@@ -313,12 +323,14 @@ body.mz-dark .mz-page.mz-tajweed tajweed.idgham_shafawi,
 body.mz-dark .mz-page.mz-tajweed tajweed.idgham_mutajanisayn,
 body.mz-dark .mz-page.mz-tajweed tajweed.idgham_mutaqaribayn { color: #4fae74; }
 
-/* ── Waqf marks (per selected mushaf) ────────────────────────────── */
+/* ── Waqf marks (per selected mushaf) — a row ABOVE the word, like the main page ── */
 .mz-waqf-stack {
-    display: inline-flex; flex-direction: column; align-items: center; vertical-align: super;
-    line-height: 1; margin: 0 0.04em; font-size: 0.5em; font-family: 'IBM Plex Sans Arabic', 'Amiri Quran', serif;
+    position: absolute; top: -0.02em; left: 50%; transform: translateX(-50%);
+    display: inline-flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: center;
+    gap: 0.06em; white-space: nowrap; pointer-events: none; line-height: 1;
+    font-size: 0.5em; font-family: 'IBM Plex Sans Arabic', 'Amiri Quran', serif;
 }
-.mz-waqf-sym { font-weight: 700; }
+.mz-waqf-sym { font-weight: 700; display: inline-flex; align-items: center; justify-content: center; min-width: 0.6em; }
 .mz-waqf-madinah { color: #047857; } .mz-waqf-shamarly { color: #1d4ed8; }
 .mz-waqf-azhar { color: #c2410c; }   .mz-waqf-warsh { color: #7c3aed; }
 .mz-waqf-hindi { color: #be185d; }   .mz-waqf-other { color: #475569; }

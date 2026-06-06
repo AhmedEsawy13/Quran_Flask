@@ -34,6 +34,7 @@
         gapVal:      $('mz-gap-val'),
         loop:        $('mz-loop'),
         src:         $('mz-src'),
+        layout:      $('mz-layout'),
         start:       $('mz-start'),
         status:      $('mz-status'),
         hint:        $('mz-hint'),
@@ -85,7 +86,10 @@
         mushafVersions: [],
         gapMs: 250,
         splitModeVal: 'acoustic',
+        layoutMode: 'dual',     // 'dual' | 'single'
     };
+
+    const BASMALA_GLYPH = '\u00F3'; // QCF Basmala font: whole basmala in one glyph
 
     /* ── Surah-name banner glyphs (surah_names.woff2): glyph-id rank == surah,
        so surah N → SURAH_HEADER_CP[N-1] (NOT codepoint order). ───────────── */
@@ -175,6 +179,11 @@
         }
         els.src.value = state.src;
         applySrcClass();
+
+        const savedLayout = localStorage.getItem('mz_layout');
+        state.layoutMode = savedLayout === 'single' ? 'single' : 'dual';
+        els.layout.value = state.layoutMode;
+        document.body.classList.toggle('mz-single', state.layoutMode === 'single');
 
         try {
             const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
@@ -408,8 +417,9 @@
                 lineEl.appendChild(inner);
             } else if (type === 'basmallah') {
                 const inner = document.createElement('div');
-                inner.className = 'mz-line-basmala';
-                inner.textContent = line.display_text || '';
+                inner.className = 'mz-line-basmala mz-basmala-glyph';
+                inner.textContent = BASMALA_GLYPH;
+                inner.setAttribute('aria-label', line.display_text || 'بسم الله الرحمن الرحيم');
                 lineEl.appendChild(inner);
             } else {
                 const inner = document.createElement('div');
@@ -446,11 +456,22 @@
         pageEl.innerHTML = '';
         pageEl.appendChild(frag);
 
-        // Running head: surah (right) + juz (left); footer page number.
-        const surahName = surahNameOf(payload.anchor_surah_number);
-        const sGlyph = surahHeaderGlyph(payload.anchor_surah_number);
-        if (sGlyph) { card.surah.classList.add('mz-head-glyph'); card.surah.textContent = sGlyph; card.surah.setAttribute('aria-label', surahName ? `سورة ${surahName}` : ''); }
-        else { card.surah.classList.remove('mz-head-glyph'); card.surah.textContent = surahName ? `سورة ${surahName}` : ''; }
+        // Running head: every surah on the page (left) + juz (right) + page number.
+        const seen = new Set();
+        const surahsOnPage = [];
+        (payload.lines || []).forEach(l => {
+            (l.words || []).forEach(w => { if (w.surah != null && !seen.has(w.surah)) { seen.add(w.surah); surahsOnPage.push(w.surah); } });
+            if (l.line_type === 'surah_name' && l.surah_number != null && !seen.has(l.surah_number)) { seen.add(l.surah_number); surahsOnPage.push(l.surah_number); }
+        });
+        if (!surahsOnPage.length && payload.anchor_surah_number != null) surahsOnPage.push(payload.anchor_surah_number);
+        card.surah.innerHTML = '';
+        surahsOnPage.forEach(sn => {
+            const g = surahHeaderGlyph(sn);
+            const el = document.createElement('span');
+            if (g) { el.className = 'mz-head-glyph-item'; el.textContent = g; el.setAttribute('aria-label', `سورة ${surahNameOf(sn)}`); }
+            else { el.className = 'mz-head-text-item'; el.textContent = surahNameOf(sn) ? `سورة ${surahNameOf(sn)}` : ''; }
+            card.surah.appendChild(el);
+        });
         card.juz.textContent = juzLabel(payload.page_number);
         card.foot.textContent = `صفحة ${toAr(payload.page_number)}`;
     }
@@ -469,16 +490,23 @@
     }
 
     async function renderSpread(focusPage) {
-        const [right, left] = spreadFor(focusPage);
-        state.spread = [right, left];
         state.focusPage = focusPage;
         try {
-            const [rp, lp] = await Promise.all([
-                fetchPageByNumber(right),
-                left !== right && left <= PAGE_MAX ? fetchPageByNumber(left) : Promise.resolve(null),
-            ]);
-            renderCard(cards.right, rp);
-            renderCard(cards.left, lp);
+            if (state.layoutMode === 'single') {
+                // Single page: show the focus page itself in the right card; hide the left.
+                state.spread = [focusPage, null];
+                renderCard(cards.right, await fetchPageByNumber(focusPage));
+                renderCard(cards.left, null);
+            } else {
+                const [right, left] = spreadFor(focusPage);
+                state.spread = [right, left];
+                const [rp, lp] = await Promise.all([
+                    fetchPageByNumber(right),
+                    left !== right && left <= PAGE_MAX ? fetchPageByNumber(left) : Promise.resolve(null),
+                ]);
+                renderCard(cards.right, rp);
+                renderCard(cards.left, lp);
+            }
         } catch (e) {
             setStatus('تعذّر تحميل الصفحة', true);
             return;
@@ -737,9 +765,14 @@
 
     /* ── Navigation ────────────────────────────────────────────────── */
     function updateNavButtons() {
-        const [right] = state.spread;
-        els.prev.disabled = !right || right <= PAGE_MIN;
-        els.next.disabled = !right || right >= PAGE_MAX - 1;
+        if (state.layoutMode === 'single') {
+            els.prev.disabled = !state.focusPage || state.focusPage <= PAGE_MIN;
+            els.next.disabled = !state.focusPage || state.focusPage >= PAGE_MAX;
+        } else {
+            const [right] = state.spread;
+            els.prev.disabled = !right || right <= PAGE_MIN;
+            els.next.disabled = !right || right >= PAGE_MAX - 1;
+        }
     }
     async function gotoSpread(focusPage) {
         focusPage = Math.max(PAGE_MIN, Math.min(PAGE_MAX, focusPage));
@@ -888,8 +921,8 @@
         });
         els.play.addEventListener('click', togglePlay);
         els.stop.addEventListener('click', stopPlayback);
-        els.prev.addEventListener('click', () => state.spread[0] && gotoSpread(state.spread[0] - 2));
-        els.next.addEventListener('click', () => state.spread[0] && gotoSpread(state.spread[0] + 2));
+        els.prev.addEventListener('click', () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage - 1 : state.spread[0] - 2); });
+        els.next.addEventListener('click', () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage + 1 : state.spread[0] + 2); });
 
         els.progress.addEventListener('click', (e) => {
             if (!state.schedule.length) return;
@@ -917,6 +950,13 @@
             state.src = els.src.value;
             saveSetting('mz_src', state.src);
             if (state.focusPage) { stopPlayback(); state.tajweedCache.clear(); renderSpread(state.focusPage); }
+        });
+
+        els.layout.addEventListener('change', () => {
+            state.layoutMode = els.layout.value === 'single' ? 'single' : 'dual';
+            document.body.classList.toggle('mz-single', state.layoutMode === 'single');
+            saveSetting('mz_layout', state.layoutMode);
+            if (state.focusPage) renderSpread(state.focusPage);
         });
 
         // Cumulative controls
@@ -955,6 +995,8 @@
         if (Number.isFinite(jq)) { state.justify = Math.max(0, Math.min(100, jq)); els.justify.value = state.justify; updateJustifyLabel(); saveSetting('quranApp_khattJustify', state.justify); }
         const wq = p.get('waqf');
         if (wq != null) { state.mushafVersions = wq ? wq.split(',').map(s => s.trim()).filter(Boolean) : []; saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions)); }
+        const ly = p.get('layout');
+        if (ly === 'single' || ly === 'dual') { state.layoutMode = ly; els.layout.value = ly; saveSetting('mz_layout', ly); document.body.classList.toggle('mz-single', ly === 'single'); }
         const surah = parseInt(p.get('surah'), 10);
         if (!surah) return false;
         if ([...els.surah.options].some(o => +o.value === surah)) els.surah.value = surah;
