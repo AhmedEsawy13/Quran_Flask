@@ -3169,20 +3169,216 @@ def _get_surah_name_ar(surah_number):
     return None
 
 
-@lru_cache(maxsize=1)
-def _get_quran_script_layout_offset():
+_DK_LAYOUT_WORD_MAP = None
+
+
+def _get_dk_layout_word_map():
+    """Authoritative ``layout_word_id -> token`` map for the Digital Khatt and
+    QPC-v1 15-line layouts (both share the identical 1..83668 word numbering).
+
+    Built from the native Digital Khatt text (`digital_khatt_data`) anchored
+    per-surah on the layout's OWN surah spans (the word ranges between
+    consecutive ``surah_name`` lines). This deliberately does NOT use
+    `quran_script.db.word_index`: that column is non-contiguous (preserved gaps
+    from the Shemrly rebuild) so the old constant-offset mapping drifted by up to
+    ~8 pages toward the end of the mushaf. Anchoring per surah resets any
+    tokenisation drift at every surah boundary, so all 114 surahs land on the
+    right page and each page renders its true words.
+
+    Returns a dict:
+        'id2tok'  : {layout_id: {'surah', 'ayah', 'text'}}
+        'first_id': {(surah, ayah): layout_id}   # first word id of the verse
+        'last_id' : {(surah, ayah): layout_id}
+    Empty dicts if the source text or layout DB is unavailable.
+    """
+    global _DK_LAYOUT_WORD_MAP
+    if _DK_LAYOUT_WORD_MAP is not None:
+        return _DK_LAYOUT_WORD_MAP
+
+    result = {'id2tok': {}, 'first_id': {}, 'last_id': {}}
     try:
-        conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
-        cursor = conn.cursor()
-        cursor.execute('SELECT MIN(word_index) FROM words')
-        min_word_index = cursor.fetchone()[0]
+        if not digital_khatt_data or not os.path.exists(DIGITAL_KHATT_LAYOUT_DATABASE):
+            _DK_LAYOUT_WORD_MAP = result
+            return result
+
+        # Per-surah word-id span from the layout's surah_name partition.
+        conn = sqlite3.connect(DIGITAL_KHATT_LAYOUT_DATABASE)
+        rows = conn.execute(
+            'SELECT line_type, surah_number, first_word_id, last_word_id '
+            'FROM pages ORDER BY page_number, line_number'
+        ).fetchall()
         conn.close()
-        if min_word_index is None:
-            return 0
-        # Layout DB uses 1-based first word while quran_script starts from 3 in this dataset.
-        return int(min_word_index) - 1
-    except Exception:
-        return 0
+
+        span = {}
+        current_surah = None
+        for line_type, surah_number, fw, lw in rows:
+            if line_type == 'surah_name' and surah_number:
+                current_surah = int(surah_number)
+            if line_type == 'ayah' and current_surah and fw not in (None, '') and lw not in (None, ''):
+                fw, lw = int(fw), int(lw)
+                if current_surah not in span:
+                    span[current_surah] = [fw, lw]
+                else:
+                    span[current_surah][0] = min(span[current_surah][0], fw)
+                    span[current_surah][1] = max(span[current_surah][1], lw)
+
+        # Group verses by surah, in ayah order.
+        by_surah = {}
+        for entry in digital_khatt_data.values():
+            try:
+                s, a = map(int, entry['verse_key'].split(':'))
+            except (KeyError, ValueError, AttributeError):
+                continue
+            by_surah.setdefault(s, []).append((a, entry.get('text', '')))
+
+        id2tok = result['id2tok']
+        for s in sorted(by_surah):
+            if s not in span:
+                continue
+            cid, cap = span[s]
+            for a, text in sorted(by_surah[s]):
+                tokens = [w for w in re.split(r'\s+', (text or '').strip()) if w]
+                first = None
+                for tok in tokens:
+                    if cid > cap:
+                        break  # clamp to the surah's span — drift never crosses a surah
+                    if first is None:
+                        first = cid
+                    id2tok[cid] = {'surah': s, 'ayah': a, 'text': tok}
+                    cid += 1
+                if first is not None:
+                    result['first_id'][(s, a)] = first
+                    result['last_id'][(s, a)] = cid - 1
+    except Exception as e:
+        app.logger.error(f'Failed to build Digital Khatt layout word map: {e}')
+
+    _DK_LAYOUT_WORD_MAP = result
+    return result
+
+
+def _layout_page_resolve(layout_db, surah_number, ayah_number):
+    """Return the page number that first displays (surah, ayah) in a 15-line
+    layout DB, using the authoritative word map. None if unresolved."""
+    wmap = _get_dk_layout_word_map()
+    layout_id = wmap['first_id'].get((surah_number, ayah_number))
+    if layout_id is None:
+        return None
+    conn = sqlite3.connect(layout_db)
+    try:
+        row = conn.execute(
+            'SELECT page_number FROM pages '
+            'WHERE first_word_id IS NOT NULL AND first_word_id <> \'\' '
+            'AND CAST(first_word_id AS INTEGER) <= ? AND CAST(last_word_id AS INTEGER) >= ? '
+            'ORDER BY page_number ASC LIMIT 1',
+            (layout_id, layout_id)
+        ).fetchone()
+    finally:
+        conn.close()
+    return row[0] if row else None
+
+
+def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
+                          source, font_name_default, include_advance):
+    """Shared page-payload assembler for the Digital Khatt / QPC-v1 layouts.
+    Words come from the authoritative Digital Khatt word map keyed on the
+    layout's word ids, so the rendered text always matches the page."""
+    id2tok = _get_dk_layout_word_map()['id2tok']
+
+    def to_int_or_none(value):
+        try:
+            if value is None or str(value).strip() == '':
+                return None
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    bismillah = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
+    anchor_surah_number = None
+    anchor_ayah_number = None
+    output_lines = []
+    for line in lines:
+        first_word_id = to_int_or_none(line.get('first_word_id'))
+        last_word_id = to_int_or_none(line.get('last_word_id'))
+        line_type = line.get('line_type')
+        line_surah = line.get('surah_number')
+
+        display_text = ''
+        line_words = []
+        contains_focus_ayah = False
+        if first_word_id is not None and last_word_id is not None:
+            for word_id in range(first_word_id, last_word_id + 1):
+                tok = id2tok.get(word_id)
+                if not tok:
+                    continue
+                line_words.append({
+                    'word_index': word_id,
+                    'text': tok['text'],
+                    'surah': tok['surah'],
+                    'ayah': tok['ayah'],
+                    'waqf_symbols': ''
+                })
+                if anchor_surah_number is None:
+                    anchor_surah_number = tok['surah']
+                    anchor_ayah_number = tok['ayah']
+                if focus_surah is not None and tok['surah'] == focus_surah and tok['ayah'] == focus_ayah:
+                    contains_focus_ayah = True
+            display_text = ' '.join(w['text'] for w in line_words)
+        elif line_type == 'surah_name':
+            surah_name = _get_surah_name_ar(line_surah)
+            display_text = f"سورة {surah_name}" if surah_name else ''
+        elif line_type == 'basmallah':
+            display_text = bismillah
+
+        out_line = {
+            'line_number': to_int_or_none(line.get('line_number')),
+            'line_type': line_type,
+            'is_centered': bool(line.get('is_centered')),
+            'surah_number': line_surah,
+            'first_word_id': first_word_id,
+            'last_word_id': last_word_id,
+            'display_text': display_text,
+            'contains_focus_ayah': contains_focus_ayah,
+            'words': line_words,
+        }
+        if include_advance:
+            out_line['total_advance'] = line.get('total_advance')
+            out_line['x_offset'] = line.get('x_offset', 0)
+        else:
+            out_line['total_advance'] = None
+            out_line['x_offset'] = 0
+        output_lines.append(out_line)
+
+    # Page content width (justified lines only) for frontend per-line scaling.
+    page_content_width = None
+    if include_advance:
+        justified = [l.get('total_advance') for l in output_lines
+                     if l.get('total_advance') and not l.get('x_offset')]
+        if justified:
+            justified.sort()
+            page_content_width = justified[len(justified) // 2]
+
+    def info_get(key, default=None):
+        if info_row is not None:
+            try:
+                if key in info_row.keys():
+                    return info_row[key]
+            except AttributeError:
+                pass
+        return default
+
+    return {
+        'source': source,
+        'page_number': int(page_number),
+        'font_name': info_get('font_name', font_name_default) or font_name_default,
+        'layout_name': info_get('name', font_name_default),
+        'lines_per_page': (int(info_get('lines_per_page')) if info_get('lines_per_page') else 15),
+        'page_content_width': page_content_width,
+        'focus_surah': focus_surah,
+        'focus_ayah': focus_ayah,
+        'lines': output_lines,
+        'anchor_surah_number': anchor_surah_number,
+        'anchor_ayah_number': anchor_ayah_number,
+    }
 
 
 def _build_digital_khatt_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
@@ -3228,168 +3424,14 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
     if not lines:
         return None
 
-    layout_offset = _get_quran_script_layout_offset()
-
-    focus_layout_word_range = None
-    if focus_surah is not None and focus_ayah is not None:
-        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            '''
-            SELECT MIN(word_index) AS first_word_id, MAX(word_index) AS last_word_id
-            FROM words
-            WHERE surah = ? AND ayah = ?
-            ''',
-            (focus_surah, focus_ayah)
-        )
-        focus_row = words_cursor.fetchone()
-        words_conn.close()
-        if focus_row and focus_row['first_word_id'] is not None and focus_row['last_word_id'] is not None:
-            focus_layout_word_range = (
-                int(focus_row['first_word_id']) - layout_offset,
-                int(focus_row['last_word_id']) - layout_offset
-            )
-
-    def to_int_or_none(value):
-        try:
-            if value is None or str(value).strip() == '':
-                return None
-            return int(value)
-        except (TypeError, ValueError):
-            return None
-
-    ranged_lines = []
-    for line in lines:
-        first_word = to_int_or_none(line.get('first_word_id'))
-        last_word = to_int_or_none(line.get('last_word_id'))
-        if first_word is None or last_word is None:
-            continue
-        ranged_lines.append((first_word, last_word))
-
-    min_layout_word = min((pair[0] for pair in ranged_lines), default=None)
-    max_layout_word = max((pair[1] for pair in ranged_lines), default=None)
-
-    script_word_map = {}
-    page_word_rows = []
-    page_word_by_index = {}
-    if min_layout_word is not None and max_layout_word is not None:
-        script_min = min_layout_word + layout_offset
-        script_max = max_layout_word + layout_offset
-
-        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            '''
-            SELECT word_index, surah, ayah, text, text_original
-            FROM words
-            WHERE word_index BETWEEN ? AND ?
-            ORDER BY word_index ASC
-            ''',
-            (script_min, script_max)
-        )
-        for row in words_cursor.fetchall():
-            script_index = int(row['word_index'])
-            script_word_map[script_index] = row['text_original'] or row['text']
-            item = {
-                'word_index': script_index,
-                'surah': int(row['surah']),
-                'ayah': int(row['ayah']),
-                'text': row['text'],
-                'text_original': row['text_original']
-            }
-            page_word_rows.append(item)
-            page_word_by_index[item['word_index']] = item
-        words_conn.close()
-
-    waqf_by_word_index = _build_page_waqf_map(page_word_rows, mushaf_version)
-
-    anchor_surah_number = None
-    anchor_ayah_number = None
-    if page_word_rows:
-        first = min(page_word_rows, key=lambda item: item['word_index'])
-        anchor_surah_number = first['surah']
-        anchor_ayah_number = first['ayah']
-
-    bismillah = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
-    output_lines = []
-    for line in lines:
-        first_word_id = to_int_or_none(line.get('first_word_id'))
-        last_word_id = to_int_or_none(line.get('last_word_id'))
-        line_type = line.get('line_type')
-        line_surah = line.get('surah_number')
-
-        display_text = ''
-        line_words = []
-        if first_word_id is not None and last_word_id is not None:
-            script_range = range(first_word_id + layout_offset, last_word_id + layout_offset + 1)
-            words = []
-            for word_index in script_range:
-                word_text = script_word_map.get(word_index, '')
-                if not word_text:
-                    continue
-                words.append(word_text)
-                word_meta = page_word_by_index.get(word_index)
-                line_words.append({
-                    'word_index': word_index,
-                    'text': word_text,
-                    'surah': (word_meta['surah'] if word_meta else None),
-                    'ayah': (word_meta['ayah'] if word_meta else None),
-                    'waqf_symbols': waqf_by_word_index.get(word_index, '')
-                })
-            display_text = ' '.join(words)
-        elif line_type == 'surah_name':
-            surah_name = _get_surah_name_ar(line_surah)
-            display_text = f"سورة {surah_name}" if surah_name else ''
-        elif line_type == 'basmallah':
-            display_text = bismillah
-
-        contains_focus_ayah = False
-        if focus_layout_word_range and first_word_id is not None and last_word_id is not None:
-            focus_first, focus_last = focus_layout_word_range
-            contains_focus_ayah = not (last_word_id < focus_first or first_word_id > focus_last)
-
-        output_lines.append({
-            'line_number': int(line['line_number']),
-            'line_type': line_type,
-            'is_centered': bool(line.get('is_centered')),
-            'surah_number': line_surah,
-            'first_word_id': first_word_id,
-            'last_word_id': last_word_id,
-            'display_text': display_text,
-            'contains_focus_ayah': contains_focus_ayah,
-            'words': line_words,
-            'total_advance': line.get('total_advance'),
-            'x_offset': line.get('x_offset', 0)
-        })
-
-    # Page content width: median total_advance of justified lines on this page,
-    # used by the frontend to compute per-line scale factors for justification.
-    page_content_width = None
-    justified_advances = [
-        l.get('total_advance') for l in output_lines
-        if l.get('total_advance') and not l.get('x_offset')
-    ]
-    if justified_advances:
-        justified_advances.sort()
-        mid = len(justified_advances) // 2
-        page_content_width = justified_advances[mid]
-
-    return {
-        'source': 'digital_khatt',
-        'page_number': int(page_number),
-        'font_name': (info_row['font_name'] if info_row and 'font_name' in info_row.keys() else 'Digital Khatt'),
-        'layout_name': (info_row['name'] if info_row and 'name' in info_row.keys() else 'Digital Khatt layout'),
-        'lines_per_page': (int(info_row['lines_per_page']) if info_row and info_row['lines_per_page'] else None),
-        'page_content_width': page_content_width,
-        'focus_surah': focus_surah,
-        'focus_ayah': focus_ayah,
-        'lines': output_lines,
-        'anchor_surah_number': anchor_surah_number,
-        'anchor_ayah_number': anchor_ayah_number,
-        'mushaf_version': (mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or ''))
-    }
+    payload = _assemble_layout_page(
+        lines, info_row, page_number, focus_surah, focus_ayah,
+        source='digital_khatt', font_name_default='Digital Khatt', include_advance=True
+    )
+    payload['mushaf_version'] = (
+        mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
+    )
+    return payload
 
 
 @app.route('/api/digital-khatt/page/<int:page_number>', methods=['GET'])
@@ -3412,51 +3454,12 @@ def get_digital_khatt_page_by_ayah(surah_number, ayah_number):
         if not os.path.exists(DIGITAL_KHATT_LAYOUT_DATABASE):
             return jsonify({'error': 'Digital Khatt layout DB not found'}), 404
 
-        layout_offset = _get_quran_script_layout_offset()
-
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            '''
-            SELECT MIN(word_index) AS first_word_id, MAX(word_index) AS last_word_id
-            FROM words
-            WHERE surah = ? AND ayah = ?
-            ''',
-            (surah_number, ayah_number)
-        )
-        word_range = words_cursor.fetchone()
-        words_conn.close()
-
-        if not word_range or word_range['first_word_id'] is None:
-            return jsonify({'error': 'Ayah not found in script DB'}), 404
-
-        layout_first = int(word_range['first_word_id']) - layout_offset
-        layout_last = int(word_range['last_word_id']) - layout_offset
-
-        layout_conn = sqlite3.connect(DIGITAL_KHATT_LAYOUT_DATABASE)
-        layout_conn.row_factory = sqlite3.Row
-        layout_cursor = layout_conn.cursor()
-        layout_cursor.execute(
-            '''
-            SELECT page_number
-            FROM pages
-            WHERE (first_word_id <= ? AND last_word_id >= ?)
-               OR (first_word_id <= ? AND last_word_id >= ?)
-               OR (first_word_id >= ? AND last_word_id <= ?)
-            ORDER BY page_number ASC, line_number ASC
-            LIMIT 1
-            ''',
-            (layout_last, layout_first, layout_first, layout_last, layout_first, layout_last)
-        )
-        row = layout_cursor.fetchone()
-        layout_conn.close()
-
-        if not row:
+        page_number = _layout_page_resolve(DIGITAL_KHATT_LAYOUT_DATABASE, surah_number, ayah_number)
+        if page_number is None:
             return jsonify({'error': 'Page not found for ayah'}), 404
 
         payload = _build_digital_khatt_page_payload(
-            row['page_number'],
+            page_number,
             focus_surah=surah_number,
             focus_ayah=ayah_number,
             mushaf_version=mushaf_version
@@ -3472,19 +3475,15 @@ def get_digital_khatt_page_by_ayah(surah_number, ayah_number):
 def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None):
     """Build a page payload from the QPC V1 (Old Madinah 1405) layout database.
 
-    Schema is the same as digital-khatt but without total_advance / x_offset, so
-    those columns are omitted and page_content_width is left as None (the frontend
-    falls back to DOM-measurement justification).
+    Shares the Digital Khatt word numbering and word map; the only differences are
+    the font and the absence of total_advance / x_offset (page_content_width is
+    left None so the frontend falls back to DOM-measurement justification).
     """
     if not os.path.exists(QPC_V1_LAYOUT_DATABASE):
         return None
 
-    _open_conns = []
-    def _track(c):
-        _open_conns.append(c)
-        return c
+    layout_conn = sqlite3.connect(QPC_V1_LAYOUT_DATABASE)
     try:
-        layout_conn = _track(sqlite3.connect(QPC_V1_LAYOUT_DATABASE))
         layout_conn.row_factory = sqlite3.Row
         lc = layout_conn.cursor()
         lc.execute(
@@ -3495,140 +3494,20 @@ def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None):
         lines = [dict(row) for row in lc.fetchall()]
         lc.execute('SELECT font_name, number_of_pages, lines_per_page, name FROM info LIMIT 1')
         info_row = lc.fetchone()
+    finally:
         layout_conn.close()
 
-        if not lines:
-            return None
+    if not lines:
+        return None
 
-        layout_offset = _get_quran_script_layout_offset()
-
-        def to_int_or_none(value):
-            try:
-                if value is None or str(value).strip() == '':
-                    return None
-                return int(value)
-            except (TypeError, ValueError):
-                return None
-
-        ranged_lines = []
-        for line in lines:
-            fw = to_int_or_none(line.get('first_word_id'))
-            lw = to_int_or_none(line.get('last_word_id'))
-            if fw is not None and lw is not None:
-                ranged_lines.append((fw, lw))
-
-        min_layout_word = min((p[0] for p in ranged_lines), default=None)
-        max_layout_word = max((p[1] for p in ranged_lines), default=None)
-
-        script_word_map = {}
-        page_word_rows = []
-        page_word_by_index = {}
-        if min_layout_word is not None and max_layout_word is not None:
-            script_min = min_layout_word + layout_offset
-            script_max = max_layout_word + layout_offset
-            words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
-            words_conn.row_factory = sqlite3.Row
-            wc = words_conn.cursor()
-            wc.execute(
-                'SELECT word_index, surah, ayah, text, text_original FROM words '
-                'WHERE word_index BETWEEN ? AND ? ORDER BY word_index ASC',
-                (script_min, script_max)
-            )
-            for row in wc.fetchall():
-                si = int(row['word_index'])
-                script_word_map[si] = row['text_original'] or row['text']
-                item = {'word_index': si, 'surah': int(row['surah']), 'ayah': int(row['ayah']),
-                        'text': row['text'], 'text_original': row['text_original']}
-                page_word_rows.append(item)
-                page_word_by_index[si] = item
-            words_conn.close()
-
-        focus_layout_word_range = None
-        if focus_surah is not None and focus_ayah is not None:
-            wc2 = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
-            wc2.row_factory = sqlite3.Row
-            cur2 = wc2.cursor()
-            cur2.execute(
-                'SELECT MIN(word_index) AS fw, MAX(word_index) AS lw FROM words WHERE surah=? AND ayah=?',
-                (focus_surah, focus_ayah)
-            )
-            fr = cur2.fetchone()
-            wc2.close()
-            if fr and fr['fw'] is not None:
-                focus_layout_word_range = (int(fr['fw']) - layout_offset, int(fr['lw']) - layout_offset)
-
-        waqf_by_word_index = _build_page_waqf_map(page_word_rows, '')
-
-        anchor_surah_number = None
-        if page_word_rows:
-            first = min(page_word_rows, key=lambda r: r['word_index'])
-            anchor_surah_number = first['surah']
-
-        bismillah = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
-        output_lines = []
-        for line in lines:
-            fw = to_int_or_none(line.get('first_word_id'))
-            lw = to_int_or_none(line.get('last_word_id'))
-            lt = line.get('line_type')
-            ls = line.get('surah_number')
-
-            display_text = ''
-            line_words = []
-            if fw is not None and lw is not None:
-                for wi in range(fw + layout_offset, lw + layout_offset + 1):
-                    wt = script_word_map.get(wi, '')
-                    if not wt:
-                        continue
-                    wm = page_word_by_index.get(wi)
-                    line_words.append({
-                        'word_index': wi, 'text': wt,
-                        'surah': wm['surah'] if wm else None,
-                        'ayah': wm['ayah'] if wm else None,
-                        'waqf_symbols': waqf_by_word_index.get(wi, '')
-                    })
-                display_text = ' '.join(w['text'] for w in line_words)
-            elif lt == 'surah_name':
-                sn = _get_surah_name_ar(ls)
-                display_text = f"سورة {sn}" if sn else ''
-            elif lt == 'basmallah':
-                display_text = bismillah
-
-            contains_focus = False
-            if focus_layout_word_range and fw is not None and lw is not None:
-                ff, fl = focus_layout_word_range
-                contains_focus = not (lw < ff or fw > fl)
-
-            output_lines.append({
-                'line_number': int(line['line_number']),
-                'line_type': lt,
-                'is_centered': bool(line.get('is_centered')),
-                'surah_number': ls,
-                'first_word_id': fw,
-                'last_word_id': lw,
-                'display_text': display_text,
-                'contains_focus_ayah': contains_focus,
-                'words': line_words,
-                'total_advance': None,
-                'x_offset': 0,
-            })
-
-        return {
-            'source': 'qpc_v1',
-            'page_number': int(page_number),
-            'font_name': 'Old Madina',
-            'layout_name': info_row['name'] if info_row else 'مصحف المدينة القديم ١٤٠٥',
-            'lines_per_page': int(info_row['lines_per_page']) if info_row and info_row['lines_per_page'] else 15,
-            'page_content_width': None,
-            'focus_surah': focus_surah,
-            'focus_ayah': focus_ayah,
-            'lines': output_lines,
-            'anchor_surah_number': anchor_surah_number,
-            'mushaf_version': '',
-        }
-    finally:
-        for c in _open_conns:
-            try: c.close()
-            except Exception: pass
+    payload = _assemble_layout_page(
+        lines, info_row, page_number, focus_surah, focus_ayah,
+        source='qpc_v1', font_name_default='Old Madina', include_advance=False
+    )
+    payload['font_name'] = 'Old Madina'
+    payload['layout_name'] = (info_row['name'] if info_row else 'مصحف المدينة القديم ١٤٠٥')
+    payload['mushaf_version'] = ''
+    return payload
 
 
 @app.route('/api/qpc-v1/page/<int:page_number>', methods=['GET'])
@@ -3649,42 +3528,11 @@ def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
         if not os.path.exists(QPC_V1_LAYOUT_DATABASE):
             return jsonify({'error': 'QPC V1 layout DB not found'}), 404
 
-        layout_offset = _get_quran_script_layout_offset()
-
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
-        words_conn.row_factory = sqlite3.Row
-        wc = words_conn.cursor()
-        wc.execute(
-            'SELECT MIN(word_index) AS fw, MAX(word_index) AS lw FROM words WHERE surah=? AND ayah=?',
-            (surah_number, ayah_number)
-        )
-        word_range = wc.fetchone()
-        words_conn.close()
-
-        if not word_range or word_range['fw'] is None:
-            return jsonify({'error': 'Ayah not found'}), 404
-
-        layout_first = int(word_range['fw']) - layout_offset
-        layout_last = int(word_range['lw']) - layout_offset
-
-        layout_conn = sqlite3.connect(QPC_V1_LAYOUT_DATABASE)
-        layout_conn.row_factory = sqlite3.Row
-        lc = layout_conn.cursor()
-        lc.execute(
-            'SELECT page_number FROM pages '
-            'WHERE (first_word_id <= ? AND last_word_id >= ?) '
-            '   OR (first_word_id <= ? AND last_word_id >= ?) '
-            '   OR (first_word_id >= ? AND last_word_id <= ?) '
-            'ORDER BY page_number ASC, line_number ASC LIMIT 1',
-            (layout_last, layout_first, layout_first, layout_last, layout_first, layout_last)
-        )
-        row = lc.fetchone()
-        layout_conn.close()
-
-        if not row:
+        page_number = _layout_page_resolve(QPC_V1_LAYOUT_DATABASE, surah_number, ayah_number)
+        if page_number is None:
             return jsonify({'error': 'Page not found for ayah'}), 404
 
-        payload = _build_qpc_v1_page_payload(row['page_number'], focus_surah=surah_number, focus_ayah=ayah_number)
+        payload = _build_qpc_v1_page_payload(page_number, focus_surah=surah_number, focus_ayah=ayah_number)
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
