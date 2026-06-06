@@ -69,7 +69,7 @@
         activeKey: null,
         justify: 50,            // 0–100 horizontal-stretch level (shared with main app)
         tajweedOn: false,
-        tajweedCache: new Map(), // 'surah:ayah' → array of per-word class strings
+        tajweedCache: new Map(), // 'surah:ayah' → parsed per-word coloured runs
         src: 'digital_khatt',   // 'digital_khatt' | 'qpc_v1'
     };
 
@@ -127,12 +127,17 @@
         state.tajweedOn = localStorage.getItem('quranApp_tajweedEnabled') === 'true';
         syncTajweedButton();
 
-        // Mushaf source — remembered locally
+        // Mushaf source — a local choice here wins; otherwise inherit the main
+        // app's font so the two pages show the same mushaf by default.
         const savedSrc = localStorage.getItem('mz_src');
         if (savedSrc === 'qpc_v1' || savedSrc === 'digital_khatt') {
             state.src = savedSrc;
-            els.src.value = savedSrc;
+        } else {
+            const mainFont = localStorage.getItem('quranApp_font');
+            if (mainFont === 'old_madina') state.src = 'qpc_v1';
+            else if (mainFont === 'digital_khatt') state.src = 'digital_khatt';
         }
+        els.src.value = state.src;
         applySrcClass();
     }
 
@@ -248,6 +253,10 @@
         state.pageNumber = payload.page_number;
         if (els.empty) els.empty.style.display = 'none';
 
+        // Word position within each ayah, counted across the WHOLE page (a verse
+        // can wrap onto several lines), so tajweed colours align to the right word.
+        const ayahWPos = new Map();
+
         const frag = document.createDocumentFragment();
         (payload.lines || []).forEach(line => {
             const lineEl = document.createElement('div');
@@ -269,12 +278,12 @@
                 inner.className = 'mz-line-inner';
                 const words = line.words || [];
                 if (words.length) {
-                    // Track word position within each ayah for tajweed mapping
-                    const ayahWPos = new Map();
                     words.forEach((w, i) => {
                         const span = document.createElement('span');
                         span.className = 'mz-word';
-                        span.textContent = w.text || '';
+                        const text = w.text || '';
+                        span.textContent = text;
+                        span.dataset.text = text; // original, for tajweed restore
                         if (w.surah != null && w.ayah != null) {
                             const key = `${w.surah}:${w.ayah}`;
                             span.dataset.key  = key;
@@ -308,7 +317,9 @@
         applyFontSize();
         applySelectionHighlight();
         requestAnimationFrame(justifyLines);
-        if (state.tajweedOn) applyTajweedToPage();
+        // Tajweed overlay rewrites each word's HTML and so changes its width;
+        // re-justify once it has been applied.
+        if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
         updateNavButtons();
     }
 
@@ -318,16 +329,54 @@
     }
 
     /* ── Justification ─────────────────────────────────────────────── */
+    /* Real kashida elongation via OpenType features — the exact mapping the
+       main app's slider uses. Digital Khatt exposes 'jalt'/'cv01'/'cv02';
+       the Old Madina (QPC v1) font exposes the 'jt0n'/'dc0n'/'kt0n' family. */
+    function khattFeatureSettings(strength) {
+        const s = Math.max(0, Math.min(100, Number(strength) || 0));
+        if (s <= 0) return '';
+        if (state.src === 'digital_khatt') {
+            const levels = [
+                `'jalt' 1`,
+                `'jalt' 1, 'cv02' 1`,
+                `'jalt' 1, 'cv01' 1`,
+                `'jalt' 1, 'cv01' 1, 'cv02' 1`,
+            ];
+            const level = Math.min(levels.length, Math.max(1, Math.ceil((s / 100) * levels.length)));
+            return levels[level - 1] || '';
+        }
+        // Old Madina: graduated justification-alternate feature sequence
+        const seq = [];
+        for (let lvl = 1; lvl <= 5; lvl += 1) {
+            for (const t of ['jt', 'dc', 'kt']) seq.push(`${t}0${lvl}`);
+        }
+        const count = Math.round((s / 100) * seq.length);
+        if (count <= 0) return '';
+        return seq.slice(0, count).map(f => `'${f}'`).join(',');
+    }
+
     function justifyLines() {
-        const jFrac = state.justify / 100;
+        const jFrac    = state.justify / 100;
+        const features = khattFeatureSettings(state.justify);
         els.page.querySelectorAll('.mz-line').forEach(lineEl => {
             const inner = lineEl.querySelector('.mz-line-inner');
             if (!inner) return;
             inner.style.transform = 'none';
-            const natural = inner.scrollWidth;
-            if (!natural) return;
+            inner.style.fontFeatureSettings = '';
+
             const avail     = lineEl.clientWidth;
             const isJustify = lineEl.dataset.justify === '1';
+            const plain     = inner.scrollWidth;
+            if (!plain) return;
+
+            // Elongate the glyphs with kashida features first — but only when the
+            // line both should be justified and has room to grow. This keeps the
+            // stretch looking like a real mushaf rather than a horizontal squash.
+            if (isJustify && features && plain < avail) {
+                inner.style.fontFeatureSettings = features;
+            }
+
+            const natural = inner.scrollWidth;
             let scale;
             if (isJustify) {
                 const fullScale = Math.max(0.35, Math.min(1.9, avail / natural));
@@ -391,49 +440,191 @@
         els.page.classList.toggle('mz-tajweed', state.tajweedOn);
     }
 
-    // Parse the tajweed API HTML into an array of primary rule names, one per word.
-    function parseTajweedWordClasses(html) {
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        const wordClasses = [];
-        let curClasses = new Set();
-        let hasText    = false;
+    /* Per-letter tajweed overlay — ported verbatim from the main app so the
+       colouring is identical here. The pipeline:
+         1. /api/tajweed/<s>/<a> → source-orthography HTML with <tajweed> spans
+         2. normalise (drop verse-number marker, reclassify منفصل)
+         3. parse into per-word coloured letter runs
+         4. align those runs onto the displayed QPC word and emit <tajweed> spans
+            WITHOUT changing the displayed orthography.                          */
 
-        function flush() {
-            if (hasText) {
-                wordClasses.push(curClasses.size > 0 ? [...curClasses][0] : '');
-                curClasses = new Set();
-                hasText = false;
+    function _isCombiningMark(cp) {
+        return (cp >= 0x064B && cp <= 0x065F) || cp === 0x0670 ||
+               (cp >= 0x06D6 && cp <= 0x06ED) || (cp >= 0x0610 && cp <= 0x061A) ||
+               (cp >= 0x0653 && cp <= 0x0658) || cp === 0x06E5 || cp === 0x06E6;
+    }
+
+    // Fold orthographic variants so equivalent letters match across spellings.
+    function _alignSkeleton(ch) {
+        const cp = ch.codePointAt(0);
+        if (cp === 0x0622 || cp === 0x0623 || cp === 0x0625 || cp === 0x0627 ||
+            cp === 0x0671 || cp === 0x0621 || cp === 0x0624 || cp === 0x0626) return 'A';
+        if (cp === 0x0649 || cp === 0x064A) return 'Y';
+        if (cp === 0x0629) return 'H';
+        return ch;
+    }
+
+    // Needleman–Wunsch: for each display-char, the source index it aligns to (-1 = none).
+    function _alignDisplayToSource(srcChars, dispChars) {
+        const n = srcChars.length, m = dispChars.length;
+        const dp = Array.from({ length: n + 1 }, () => new Int32Array(m + 1));
+        for (let i = 1; i <= n; i++) dp[i][0] = dp[i - 1][0] - 1;
+        for (let j = 1; j <= m; j++) dp[0][j] = dp[0][j - 1] - 1;
+        for (let i = 1; i <= n; i++) {
+            for (let j = 1; j <= m; j++) {
+                const sc = _alignSkeleton(srcChars[i - 1]) === _alignSkeleton(dispChars[j - 1]) ? 2 : -1;
+                dp[i][j] = Math.max(dp[i - 1][j - 1] + sc, dp[i - 1][j] - 1, dp[i][j - 1] - 1);
+            }
+        }
+        const res = new Array(m).fill(-1);
+        let i = n, j = m;
+        while (i > 0 && j > 0) {
+            const sc = _alignSkeleton(srcChars[i - 1]) === _alignSkeleton(dispChars[j - 1]) ? 2 : -1;
+            if (dp[i][j] === dp[i - 1][j - 1] + sc) { res[j - 1] = i - 1; i--; j--; }
+            else if (dp[i][j] === dp[i - 1][j] - 1) { i--; }
+            else { j--; }
+        }
+        return res;
+    }
+
+    function overlayTajweedOnDisplay(dispWord, parts) {
+        const srcChars = [];
+        const srcCls = [];
+        for (const p of (parts || [])) {
+            for (const ch of p.text) { srcChars.push(ch); srcCls.push(p.cls || ''); }
+        }
+        const dispChars = [...dispWord];
+        const dcls = new Array(dispChars.length).fill('');
+        if (srcChars.length && srcCls.some(c => c)) {
+            const amap = _alignDisplayToSource(srcChars, dispChars);
+            for (let j = 0; j < dispChars.length; j++) {
+                const si = amap[j];
+                if (si >= 0) dcls[j] = srcCls[si];
+            }
+            // Keep each base letter and its combining marks one colour.
+            let i = 0;
+            while (i < dispChars.length) {
+                const start = i; i++;
+                while (i < dispChars.length && _isCombiningMark(dispChars[i].codePointAt(0))) i++;
+                let chosen = '';
+                for (let k = start; k < i; k++) { if (dcls[k]) { chosen = dcls[k]; break; } }
+                for (let k = start; k < i; k++) dcls[k] = chosen;
+            }
+        }
+        const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let html = '', cur = null, buf = '';
+        for (let j = 0; j < dispChars.length; j++) {
+            const cl = dcls[j];
+            if (cl !== cur) {
+                if (buf) html += cur ? `<tajweed class="${cur}">${esc(buf)}</tajweed>` : esc(buf);
+                buf = ''; cur = cl;
+            }
+            buf += dispChars[j];
+        }
+        if (buf) html += cur ? `<tajweed class="${cur}">${esc(buf)}</tajweed>` : esc(buf);
+        return html;
+    }
+
+    function _reclassifyMunfasilInHtml(html) {
+        const _hamzaRe = /[ءأؤإئ]/;
+        return (html || '').replace(
+            /(<tajweed\s+class=["']?madda_obligatory["']?>)([\s\S]*?)(<\/tajweed>)([\s\S]*?)(?= |$)/g,
+            (match, open, inner, close, afterInSameWord) => {
+                if (!_hamzaRe.test(inner) && !_hamzaRe.test(afterInSameWord)) {
+                    return `<tajweed class="madda_munfasil">${inner}</tajweed>${afterInSameWord}`;
+                }
+                return match;
+            }
+        );
+    }
+
+    function getNormalizedTajweedHtml(html) {
+        return _reclassifyMunfasilInHtml(
+            (html || '').replace(/<span[^>]*class=["']?end["']?[^>]*>.*?<\/span>/gi, '').trim()
+        );
+    }
+
+    // Parse the normalised HTML into per-word coloured runs: [{parts:[{text,cls}]}]
+    function parseTajweedIntoWords(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+
+        const tokens = [];
+        for (const node of tmp.childNodes) {
+            if (node.nodeType === 3) {
+                const t = node.textContent;
+                if (t) tokens.push({ text: t, cls: '' });
+            } else if (node.nodeType === 1) {
+                const cls = (node.getAttribute('class') || '').trim();
+                if (cls === 'end') continue;
+                const t = node.textContent;
+                if (t) tokens.push({ text: t, cls });
             }
         }
 
-        div.childNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE) {
-                const parts = node.textContent.split(' ');
-                parts.forEach((part, i) => {
-                    if (i > 0) flush();
-                    if (part) hasText = true;
-                });
-            } else if (node.nodeName === 'TAJWEED') {
-                const cls  = node.getAttribute('class') || '';
-                const parts = node.textContent.split(' ');
-                parts.forEach((part, i) => {
-                    if (i > 0) flush();
-                    if (part) {
-                        hasText = true;
-                        if (cls) curClasses.add(cls);
-                    }
-                });
+        const subTokens = [];
+        for (const { text, cls } of tokens) {
+            const parts = text.split(' ');
+            for (let i = 0; i < parts.length; i++) {
+                const isLast = i === parts.length - 1;
+                if (parts[i]) subTokens.push({ text: parts[i], cls, boundary: !isLast });
+                else if (!isLast) subTokens.push({ text: '', cls, boundary: true });
             }
-        });
+        }
+
+        const segments = [];
+        let segParts = [];
+        let segRules = new Set();
+        const flush = () => {
+            const combined = segParts.map(p => p.text).join('');
+            if (combined.trim()) {
+                const _hamzaRe = /[ءأؤإئ]/;
+                let finalParts = segParts;
+                if (segRules.has('madda_obligatory')) {
+                    const madIdx = segParts.map(p => p.cls).lastIndexOf('madda_obligatory');
+                    const textInMad    = segParts[madIdx]?.text || '';
+                    const textAfterMad = segParts.slice(madIdx + 1).map(p => p.text).join('');
+                    if (!_hamzaRe.test(textInMad) && !_hamzaRe.test(textAfterMad)) {
+                        finalParts = segParts.map(p =>
+                            p.cls === 'madda_obligatory' ? { ...p, cls: 'madda_munfasil' } : p
+                        );
+                    }
+                }
+                segments.push({ parts: finalParts.map(p => ({ text: p.text, cls: p.cls })) });
+            }
+            segParts = [];
+            segRules = new Set();
+        };
+        for (const sub of subTokens) {
+            if (sub.text) {
+                segParts.push({ text: sub.text, cls: sub.cls });
+                if (sub.cls) segRules.add(sub.cls);
+            }
+            if (sub.boundary) flush();
+        }
         flush();
-        return wordClasses;
+        return segments;
+    }
+
+    async function getTajweedSegments(surah, ayah) {
+        const key = `${surah}:${ayah}`;
+        if (state.tajweedCache.has(key)) return state.tajweedCache.get(key);
+        let segments = [];
+        try {
+            const resp = await fetch(`/api/tajweed/${surah}/${ayah}`);
+            if (resp.ok) {
+                const data = await resp.json();
+                segments = parseTajweedIntoWords(getNormalizedTajweedHtml(data.html));
+            }
+        } catch (e) { segments = []; }
+        state.tajweedCache.set(key, segments);
+        return segments;
     }
 
     async function applyTajweedToPage() {
         if (!state.tajweedOn) return;
 
-        // Collect word spans grouped by verse key, preserving DOM order
+        // Group word spans by verse key; each span carries its position-in-verse.
         const ayahSpans = new Map(); // 'surah:ayah' → [span, ...]
         els.page.querySelectorAll('.mz-word[data-key]').forEach(span => {
             const key = span.dataset.key;
@@ -442,31 +633,25 @@
         });
 
         for (const [key, spans] of ayahSpans) {
-            let classes;
-            if (state.tajweedCache.has(key)) {
-                classes = state.tajweedCache.get(key);
-            } else {
-                const [surah, ayah] = key.split(':');
-                try {
-                    const resp = await fetch(`/api/tajweed/${surah}/${ayah}`);
-                    if (!resp.ok) continue;
-                    const data = await resp.json();
-                    classes = parseTajweedWordClasses(data.html);
-                    state.tajweedCache.set(key, classes);
-                } catch (e) { continue; }
-            }
-            spans.forEach((span, i) => {
-                // Strip old tajweed classes
-                [...span.classList].forEach(c => { if (c.startsWith('tj-')) span.classList.remove(c); });
-                const cls = classes[i] || '';
-                if (cls) span.classList.add('tj-' + cls);
+            const [surah, ayah] = key.split(':').map(Number);
+            const segments = await getTajweedSegments(surah, ayah);
+            if (!state.tajweedOn) return; // toggled off mid-fetch
+            spans.forEach(span => {
+                const wpos = parseInt(span.dataset.wpos, 10);
+                const seg  = Number.isFinite(wpos) ? segments[wpos] : null;
+                const disp = span.dataset.text || span.textContent || '';
+                if (seg && seg.parts.some(p => p.cls)) {
+                    span.innerHTML = overlayTajweedOnDisplay(disp, seg.parts);
+                } else {
+                    span.textContent = disp;
+                }
             });
         }
     }
 
     function clearTajweedFromPage() {
         els.page.querySelectorAll('.mz-word').forEach(span => {
-            [...span.classList].forEach(c => { if (c.startsWith('tj-')) span.classList.remove(c); });
+            span.textContent = span.dataset.text || span.textContent || '';
         });
     }
 
@@ -684,9 +869,10 @@
             syncTajweedButton();
             saveSetting('quranApp_tajweedEnabled', state.tajweedOn);
             if (state.tajweedOn) {
-                applyTajweedToPage();
+                applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
             } else {
                 clearTajweedFromPage();
+                requestAnimationFrame(justifyLines);
             }
         });
 
@@ -727,9 +913,29 @@
         setStatus('');
     }
 
-    // Optional deep link: /memorize?surah=2&from=255&to=255
+    // Optional deep link: /memorize?surah=2&from=255&to=255&src=qpc_v1
     function applyDeepLink() {
         const p = new URLSearchParams(location.search);
+        const src = p.get('src');
+        if (src === 'qpc_v1' || src === 'digital_khatt') {
+            state.src = src;
+            els.src.value = src;
+            saveSetting('mz_src', src);
+            applySrcClass();
+        }
+        const tj = p.get('tajweed');
+        if (tj === '1' || tj === '0') {
+            state.tajweedOn = tj === '1';
+            syncTajweedButton();
+            saveSetting('quranApp_tajweedEnabled', state.tajweedOn);
+        }
+        const jq = parseInt(p.get('justify'), 10);
+        if (Number.isFinite(jq)) {
+            state.justify = Math.max(0, Math.min(100, jq));
+            els.justify.value = state.justify;
+            updateJustifyLabel();
+            saveSetting('quranApp_khattJustify', state.justify);
+        }
         const surah = parseInt(p.get('surah'), 10);
         if (!surah) return false;
         if ([...els.surah.options].some(o => +o.value === surah)) els.surah.value = surah;

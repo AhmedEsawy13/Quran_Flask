@@ -14,7 +14,7 @@
     <link rel="preload" href="{{ url_for('static', filename='digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=3">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -79,10 +79,13 @@
                         <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
-                <!-- Loop toggle — whole row is the label so clicking text also toggles -->
-                <label class="mz-field mz-field-toggle" for="mz-loop">
+                <!-- Loop toggle — the label wraps the checkbox, so clicking
+                     anywhere on the row toggles it. No `for=` here: pairing an
+                     implicit (wrapping) label with an explicit `for` double-fires
+                     the toggle in some browsers, leaving it stuck. -->
+                <label class="mz-field mz-field-toggle">
                     <span class="mz-toggle-label">تكرار النطاق</span>
-                    <span class="mz-switch" aria-hidden="true">
+                    <span class="mz-switch">
                         <input type="checkbox" id="mz-loop">
                         <span class="mz-switch-track"></span>
                     </span>
@@ -173,6 +176,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=2"></script>
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=3"></script>
 </body>
 </html>
