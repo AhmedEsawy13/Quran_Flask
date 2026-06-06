@@ -8,6 +8,11 @@
     src: url('digitalkhatt.woff2') format('woff2');
     font-display: swap;
 }
+@font-face {
+    font-family: 'Old Madina';
+    src: url('oldmadina.woff2') format('woff2');
+    font-display: swap;
+}
 
 :root {
     --mz-accent: #4f46e5;
@@ -64,6 +69,33 @@ body.mz-dark {
 
     --mz-select-hl: rgba(129, 140, 248, 0.20);
     --mz-active-hl: rgba(129, 140, 248, 0.34);
+}
+
+body.mz-sepia {
+    --mz-accent: #a16207;
+    --mz-accent-hover: #854d0e;
+    --mz-accent-soft: rgba(161, 98, 7, 0.12);
+    --mz-accent-ring: rgba(161, 98, 7, 0.26);
+
+    --mz-bg: #f4ecd8;
+    --mz-surface: #fbf5e6;
+    --mz-surface-2: #f1e7cf;
+    --mz-border: #e3d5b3;
+    --mz-border-strong: #d8c6a0;
+    --mz-text: #3c2e26;
+    --mz-text-muted: #7c6a52;
+    --mz-text-faint: #a89878;
+
+    --mz-paper: #fbf3e0;
+    --mz-paper-edge: #e0cfa8;
+    --mz-ink: #2f241b;
+
+    --mz-shadow-sm: 0 1px 2px rgba(120, 95, 50, 0.10);
+    --mz-shadow: 0 4px 24px rgba(120, 95, 50, 0.12);
+    --mz-shadow-lg: 0 24px 60px rgba(120, 95, 50, 0.18);
+
+    --mz-select-hl: rgba(161, 98, 7, 0.16);
+    --mz-active-hl: rgba(161, 98, 7, 0.30);
 }
 
 * { box-sizing: border-box; }
@@ -240,6 +272,8 @@ body {
     border-radius: var(--mz-radius-sm);
     border: 1px solid var(--mz-border-strong);
     background: var(--mz-surface-2);
+    cursor: pointer;
+    user-select: none;
 }
 .mz-toggle-label { font-size: 0.82rem; font-weight: 600; color: var(--mz-text); }
 .mz-switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
@@ -252,11 +286,13 @@ body {
 }
 .mz-switch-track::before {
     content: ""; position: absolute;
-    height: 18px; width: 18px; inset-inline-end: 3px; top: 3px;
+    height: 18px; width: 18px; inset-inline-start: 3px; top: 3px;
     background: #fff; border-radius: 50%;
     box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     transition: transform 0.2s ease;
 }
+/* RTL page: knob rests at inline-start (right) when off, slides toward
+   inline-end (left) when on. */
 .mz-switch input:checked + .mz-switch-track { background: var(--mz-accent); }
 .mz-switch input:checked + .mz-switch-track::before { transform: translateX(-18px); }
 
@@ -381,6 +417,11 @@ body {
     direction: rtl;
     transform-origin: center center;
     will-change: transform;
+}
+/* Old Madina (QPC V1 1405 print) renders with its own font */
+.mz-page.mz-src-qpc-v1 .mz-line-inner,
+.mz-page.mz-src-qpc-v1 .mz-line-basmala {
+    font-family: 'Old Madina', serif;
 }
 
 /* Surah header band */
@@ -519,8 +560,166 @@ body {
     transition: width 0.12s linear;
 }
 
+/* ── Secondary controls row (tajweed + justification) ────────────── */
+.mz-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 18px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--mz-border);
+}
+.mz-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--mz-border-strong);
+    background: var(--mz-surface-2);
+    color: var(--mz-text);
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.mz-toggle-btn:hover { border-color: var(--mz-accent); transform: translateY(-1px); }
+.mz-toggle-btn.mz-on {
+    background: var(--mz-accent);
+    border-color: var(--mz-accent);
+    color: #fff;
+    box-shadow: 0 6px 16px var(--mz-accent-ring);
+}
+.mz-toggle-btn .mz-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--mz-text-faint);
+    transition: background 0.15s ease;
+}
+.mz-toggle-btn.mz-on .mz-dot { background: #fff; }
+
+.mz-slider-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 200px;
+}
+.mz-slider-field > label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--mz-text-muted);
+    white-space: nowrap;
+}
+.mz-slider-field input[type="range"] {
+    flex: 1;
+    height: 5px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--mz-border-strong);
+    border-radius: 999px;
+    cursor: pointer;
+    accent-color: var(--mz-accent);
+}
+.mz-slider-field input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--mz-accent);
+    border: 2px solid var(--mz-surface);
+    box-shadow: 0 1px 4px var(--mz-accent-ring);
+}
+.mz-slider-field input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px; border: 2px solid var(--mz-surface); border-radius: 50%;
+    background: var(--mz-accent);
+}
+.mz-slider-val {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--mz-accent);
+    min-width: 38px;
+    text-align: center;
+}
+
+/* ── Mushaf source selector (compact inside tools row) ───────────── */
+.mz-field-src {
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.mz-field-src > label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--mz-text-muted);
+    white-space: nowrap;
+}
+.mz-select-wrap-sm select {
+    padding: 8px 12px;
+    padding-inline-start: 28px;
+    font-size: 0.82rem;
+}
+.mz-select-wrap-sm > i {
+    font-size: 0.62rem;
+}
+
+/* ── Tajweed word-level colour classes (one dominant rule per word) ─ */
+/* Applied as .tj-<rule> on .mz-word when tajweed is on              */
+.mz-page.mz-tajweed .mz-word.tj-madda_normal         { color: #C86464; }
+.mz-page.mz-tajweed .mz-word.tj-madda_permissible    { color: #AC3A28; }
+.mz-page.mz-tajweed .mz-word.tj-madda_munfasil       { color: #AC3A28; }
+.mz-page.mz-tajweed .mz-word.tj-madda_obligatory     { color: #8E2A1E; }
+.mz-page.mz-tajweed .mz-word.tj-madda_necessary      { color: #6E1A14; }
+.mz-page.mz-tajweed .mz-word.tj-ghunnah              { color: #2C7848; }
+.mz-page.mz-tajweed .mz-word.tj-ikhafa               { color: #389460; }
+.mz-page.mz-tajweed .mz-word.tj-ikhafa_shafawi       { color: #389460; }
+.mz-page.mz-tajweed .mz-word.tj-iqlab                { color: #2C7848; }
+.mz-page.mz-tajweed .mz-word.tj-idgham_ghunnah       { color: #2C7848; }
+.mz-page.mz-tajweed .mz-word.tj-idgham_wo_ghunnah    { color: #1C6238; }
+.mz-page.mz-tajweed .mz-word.tj-idgham_shafawi       { color: #1C6238; }
+.mz-page.mz-tajweed .mz-word.tj-idgham_mutajanisayn  { color: #1C6238; }
+.mz-page.mz-tajweed .mz-word.tj-idgham_mutaqaribayn  { color: #1C6238; }
+.mz-page.mz-tajweed .mz-word.tj-qalaqah              { color: #2E5AC4; }
+.mz-page.mz-tajweed .mz-word.tj-ham_wasl             { color: #888888; }
+.mz-page.mz-tajweed .mz-word.tj-laam_shamsiyah       { color: #888888; }
+.mz-page.mz-tajweed .mz-word.tj-slnt                 { color: #AAAAAA; opacity: 0.75; }
+/* Dark mode: lift the darkest reds/greens */
+body.mz-dark .mz-page.mz-tajweed .mz-word.tj-madda_obligatory { color: #d4604f; }
+body.mz-dark .mz-page.mz-tajweed .mz-word.tj-madda_necessary  { color: #cf5141; }
+body.mz-dark .mz-page.mz-tajweed .mz-word.tj-idgham_wo_ghunnah,
+body.mz-dark .mz-page.mz-tajweed .mz-word.tj-idgham_shafawi,
+body.mz-dark .mz-page.mz-tajweed .mz-word.tj-idgham_mutajanisayn,
+body.mz-dark .mz-page.mz-tajweed .mz-word.tj-idgham_mutaqaribayn { color: #4fae74; }
+
+/* Legacy: keep <tajweed> element rules for forward compatibility */
+.mz-page tajweed.madda_normal         { color: #C86464; }
+.mz-page tajweed.madda_permissible    { color: #AC3A28; }
+.mz-page tajweed.madda_munfasil       { color: #AC3A28; }
+.mz-page tajweed.madda_obligatory     { color: #8E2A1E; }
+.mz-page tajweed.madda_necessary      { color: #6E1A14; }
+.mz-page tajweed.ghunnah              { color: #2C7848; }
+.mz-page tajweed.ikhafa               { color: #389460; }
+.mz-page tajweed.ikhafa_shafawi       { color: #389460; }
+.mz-page tajweed.iqlab                { color: #2C7848; }
+.mz-page tajweed.idgham_ghunnah       { color: #2C7848; }
+.mz-page tajweed.idgham_wo_ghunnah    { color: #1C6238; }
+.mz-page tajweed.idgham_shafawi       { color: #1C6238; }
+.mz-page tajweed.idgham_mutajanisayn  { color: #1C6238; }
+.mz-page tajweed.idgham_mutaqaribayn  { color: #1C6238; }
+.mz-page tajweed.qalaqah              { color: #2E5AC4; }
+.mz-page tajweed.ham_wasl             { color: #888888; }
+.mz-page tajweed.laam_shamsiyah       { color: #888888; }
+.mz-page tajweed.slnt                 { color: #AAAAAA; opacity: 0.75; }
+body.mz-dark .mz-page tajweed.madda_obligatory { color: #d4604f; }
+body.mz-dark .mz-page tajweed.madda_necessary  { color: #cf5141; }
+body.mz-dark .mz-page tajweed.idgham_wo_ghunnah,
+body.mz-dark .mz-page tajweed.idgham_shafawi,
+body.mz-dark .mz-page tajweed.idgham_mutajanisayn,
+body.mz-dark .mz-page tajweed.idgham_mutaqaribayn { color: #4fae74; }
+.mz-word.mz-act tajweed { filter: brightness(1.05); }
+
 @media (max-width: 560px) {
     .mz-brand-text p { display: none; }
     .mz-brand-text h1 { font-size: 0.92rem; }
     .mz-nav-btn { width: 38px; height: 38px; }
+    .mz-slider-field { min-width: 100%; }
 }

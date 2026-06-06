@@ -10,10 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
-    <!-- Digital Khatt mushaf font, preloaded -->
+    <!-- Mushaf fonts, preloaded -->
     <link rel="preload" href="{{ url_for('static', filename='digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=2">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -78,18 +79,48 @@
                         <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
-                <div class="mz-field mz-field-toggle">
+                <!-- Loop toggle — whole row is the label so clicking text also toggles -->
+                <label class="mz-field mz-field-toggle" for="mz-loop">
                     <span class="mz-toggle-label">تكرار النطاق</span>
-                    <label class="mz-switch">
+                    <span class="mz-switch" aria-hidden="true">
                         <input type="checkbox" id="mz-loop">
                         <span class="mz-switch-track"></span>
-                    </label>
-                </div>
+                    </span>
+                </label>
                 <div class="mz-field mz-field-action">
                     <button id="mz-start" class="mz-btn-primary" type="button">
                         <i class="fas fa-play"></i>
                         <span>ابدأ الحفظ</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- ── Secondary controls ────────────────────────────── -->
+            <div class="mz-tools">
+                <!-- Mushaf source selector -->
+                <div class="mz-field mz-field-src">
+                    <label for="mz-src"><i class="fas fa-book"></i> المصحف</label>
+                    <div class="mz-select-wrap mz-select-wrap-sm">
+                        <select id="mz-src">
+                            <option value="digital_khatt">مصحف المدينة الجديد</option>
+                            <option value="qpc_v1">مصحف المدينة القديم ١٤٠٥</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+
+                <!-- Tajweed toggle -->
+                <button class="mz-toggle-btn" id="mz-tajweed" type="button" aria-pressed="false" title="تلوين أحكام التجويد">
+                    <span class="mz-dot"></span>
+                    <i class="fas fa-palette"></i>
+                    <span>التجويد</span>
+                </button>
+
+                <!-- Word-stretch slider -->
+                <div class="mz-slider-field">
+                    <label for="mz-justify"><i class="fas fa-text-width"></i> تمطيط السطور</label>
+                    <input type="range" id="mz-justify" min="0" max="100" step="5" value="50">
+                    <span class="mz-slider-val" id="mz-justify-val">٥٠٪</span>
                 </div>
             </div>
             <p class="mz-status" id="mz-status" role="status"></p>
@@ -142,6 +173,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=1"></script>
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=2"></script>
 </body>
 </html>

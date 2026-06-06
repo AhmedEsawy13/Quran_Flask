@@ -10,8 +10,11 @@
    Reuses three existing endpoints:
      GET /api/surahs                                  list of surahs
      GET /api/memorization/<surah>                    audio_url + per-verse [start,end] (seconds)
-     GET /api/digital-khatt/page-by-ayah/<s>/<a>      mushaf page payload (lines/words/justification)
-     GET /api/digital-khatt/page/<n>                  mushaf page payload by number
+     GET /api/digital-khatt/page-by-ayah/<s>/<a>      new Madinah mushaf page payload
+     GET /api/digital-khatt/page/<n>
+     GET /api/qpc-v1/page-by-ayah/<s>/<a>             old Madinah 1405 mushaf page payload
+     GET /api/qpc-v1/page/<n>
+     GET /api/tajweed/<s>/<a>                         tajweed-annotated verse HTML
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
     'use strict';
@@ -19,47 +22,55 @@
     const $ = id => document.getElementById(id);
 
     const els = {
-        surah: $('mz-surah'),
-        from: $('mz-from'),
-        to: $('mz-to'),
-        reps: $('mz-reps'),
-        loop: $('mz-loop'),
-        start: $('mz-start'),
-        status: $('mz-status'),
-        page: $('mz-page'),
-        empty: $('mz-empty'),
-        footSurah: $('mz-foot-surah'),
-        footPage: $('mz-foot-page'),
-        footJuz: $('mz-foot-juz'),
-        prev: $('mz-prev'),
-        next: $('mz-next'),
-        player: $('mz-player'),
-        play: $('mz-play'),
-        stop: $('mz-stop'),
-        now: $('mz-now'),
-        progress: $('mz-progress'),
+        surah:        $('mz-surah'),
+        from:         $('mz-from'),
+        to:           $('mz-to'),
+        reps:         $('mz-reps'),
+        loop:         $('mz-loop'),
+        src:          $('mz-src'),
+        start:        $('mz-start'),
+        status:       $('mz-status'),
+        page:         $('mz-page'),
+        empty:        $('mz-empty'),
+        footSurah:    $('mz-foot-surah'),
+        footPage:     $('mz-foot-page'),
+        footJuz:      $('mz-foot-juz'),
+        prev:         $('mz-prev'),
+        next:         $('mz-next'),
+        player:       $('mz-player'),
+        play:         $('mz-play'),
+        stop:         $('mz-stop'),
+        now:          $('mz-now'),
+        progress:     $('mz-progress'),
         progressFill: $('mz-progress-fill'),
-        audio: $('mz-audio'),
-        themeToggle: $('mz-theme-toggle'),
+        audio:        $('mz-audio'),
+        themeToggle:  $('mz-theme-toggle'),
+        tajweed:      $('mz-tajweed'),
+        justify:      $('mz-justify'),
+        justifyVal:   $('mz-justify-val'),
     };
 
-    const EPS = 0.05;       // seconds of slack at a segment end
+    const EPS = 0.05;
     const PAGE_MIN = 1, PAGE_MAX = 604;
 
     const state = {
         surahs: [],
         surah: 1,
-        memo: null,             // /api/memorization payload (verses + audio_url)
-        verseByAyah: new Map(), // ayah -> verse {start,end,...}
-        selectedKeys: new Set(),// "surah:ayah" currently highlighted as target
-        page: null,             // current rendered page payload
+        memo: null,
+        verseByAyah: new Map(),
+        selectedKeys: new Set(),
+        page: null,
         pageNumber: null,
-        schedule: [],           // [{ayah, start, end}]
+        schedule: [],
         stepIdx: -1,
         monitorId: null,
         pendingSeek: false,
         playing: false,
         activeKey: null,
+        justify: 50,            // 0–100 horizontal-stretch level (shared with main app)
+        tajweedOn: false,
+        tajweedCache: new Map(), // 'surah:ayah' → array of per-word class strings
+        src: 'digital_khatt',   // 'digital_khatt' | 'qpc_v1'
     };
 
     /* ── Status helper ─────────────────────────────────────────────── */
@@ -68,26 +79,70 @@
         els.status.classList.toggle('mz-err', !!isErr);
     }
 
-    /* ── Theme ─────────────────────────────────────────────────────── */
+    /* ── Theme (light / dark / sepia) — shared with main app ──────── */
+    const THEMES = ['light', 'dark', 'sepia'];
+    function applyTheme(theme) {
+        document.body.classList.toggle('mz-dark', theme === 'dark');
+        document.body.classList.toggle('mz-sepia', theme === 'sepia');
+        syncThemeIcon(theme);
+    }
+    function currentTheme() {
+        if (document.body.classList.contains('mz-dark')) return 'dark';
+        if (document.body.classList.contains('mz-sepia')) return 'sepia';
+        return 'light';
+    }
     function initTheme() {
-        const saved = localStorage.getItem('mzTheme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const dark = saved ? saved === 'dark' : prefersDark;
-        document.body.classList.toggle('mz-dark', dark);
-        syncThemeIcon();
+        let saved = localStorage.getItem('quranApp_theme');
+        if (!THEMES.includes(saved)) {
+            saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark' : 'light';
+        }
+        applyTheme(saved);
         els.themeToggle.addEventListener('click', () => {
-            const isDark = document.body.classList.toggle('mz-dark');
-            localStorage.setItem('mzTheme', isDark ? 'dark' : 'light');
-            syncThemeIcon();
+            const next = THEMES[(THEMES.indexOf(currentTheme()) + 1) % THEMES.length];
+            applyTheme(next);
+            localStorage.setItem('quranApp_theme', next);
         });
     }
-    function syncThemeIcon() {
-        const dark = document.body.classList.contains('mz-dark');
-        els.themeToggle.querySelector('i').className = dark ? 'fas fa-sun' : 'fas fa-moon';
+    function syncThemeIcon(theme) {
+        const icon  = { light: 'fas fa-moon', dark: 'fas fa-sun', sepia: 'fas fa-leaf' }[theme] || 'fas fa-moon';
+        const title = { light: 'الوضع الليلي', dark: 'الوضع البُنّي (السيبيا)', sepia: 'الوضع النهاري' }[theme] || '';
+        els.themeToggle.querySelector('i').className = icon;
+        els.themeToggle.title = title;
     }
 
-    /* ── Arabic-Indic digit helper for labels ──────────────────────── */
+    /* ── Persist / load shared settings ───────────────────────────── */
+    function saveSetting(key, value) {
+        localStorage.setItem(key, String(value));
+    }
+
+    function loadSettings() {
+        // Justify slider — synced with quranApp_khattJustify (default 50)
+        const rawJ = parseInt(localStorage.getItem('quranApp_khattJustify') ?? '50', 10);
+        state.justify = Number.isFinite(rawJ) ? Math.max(0, Math.min(100, rawJ)) : 50;
+        els.justify.value = state.justify;
+        updateJustifyLabel();
+
+        // Tajweed — synced with quranApp_tajweedEnabled
+        state.tajweedOn = localStorage.getItem('quranApp_tajweedEnabled') === 'true';
+        syncTajweedButton();
+
+        // Mushaf source — remembered locally
+        const savedSrc = localStorage.getItem('mz_src');
+        if (savedSrc === 'qpc_v1' || savedSrc === 'digital_khatt') {
+            state.src = savedSrc;
+            els.src.value = savedSrc;
+        }
+        applySrcClass();
+    }
+
+    /* ── Arabic-Indic digit helper ─────────────────────────────────── */
     const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+    /* ── Justify helpers ───────────────────────────────────────────── */
+    function updateJustifyLabel() {
+        els.justifyVal.textContent = toAr(state.justify) + '٪';
+    }
 
     /* ── Surah list ────────────────────────────────────────────────── */
     async function loadSurahs() {
@@ -95,13 +150,13 @@
         const data = await resp.json();
         state.surahs = Array.isArray(data) ? data : [];
         els.surah.innerHTML = state.surahs.map(s => {
-            const num = s.number ?? s;
+            const num  = s.number ?? s;
             const name = s.name ?? `سورة ${num}`;
             return `<option value="${num}">${toAr(num)}. ${name}</option>`;
         }).join('');
     }
 
-    /* ── Load per-surah memorization timing + populate ayah selects ── */
+    /* ── Load per-surah timing + populate ayah selects ────────────── */
     async function loadSurahMemo(surah) {
         setStatus('جارٍ تحميل بيانات السورة…');
         const resp = await fetch(`/api/memorization/${surah}`);
@@ -113,13 +168,40 @@
 
         const opts = data.verses.map(v => `<option value="${v.ayah}">${toAr(v.ayah)}</option>`).join('');
         els.from.innerHTML = opts;
-        els.to.innerHTML = opts;
-        els.from.value = data.verses[0].ayah;
-        els.to.value = data.verses[Math.min(data.verses.length - 1, 4)].ayah; // first ~5 verses
+        els.to.innerHTML   = opts;
 
-        els.audio.src = data.audio_url; // host whitelisted in CSP media-src
+        // Restore saved last position if this is the right surah
+        const saved = localStorage.getItem('mz_last_pos');
+        if (saved) {
+            const [savedSurah, savedFrom] = saved.split(':').map(Number);
+            if (savedSurah === surah && data.verses.some(v => v.ayah === savedFrom)) {
+                els.from.value = String(savedFrom);
+            } else {
+                els.from.value = String(data.verses[0].ayah);
+            }
+        } else {
+            els.from.value = String(data.verses[0].ayah);
+        }
+        autoSetTo(parseInt(els.from.value, 10), data.verses);
+
+        els.audio.src = data.audio_url;
         els.audio.load();
         setStatus('');
+    }
+
+    /* ── Auto-advance "to" when "from" changes ─────────────────────── */
+    const DEFAULT_RANGE = 4; // verses after "from" to include by default
+
+    function autoSetTo(fromAyah, verses) {
+        const toVal = parseInt(els.to.value, 10);
+        if (toVal >= fromAyah) return; // already valid, leave it
+        const list = verses || [...state.verseByAyah.values()].sort((a, b) => a.ayah - b.ayah);
+        const target = fromAyah + DEFAULT_RANGE;
+        const best = list
+            .map(v => v.ayah)
+            .filter(a => a >= fromAyah)
+            .reduce((acc, a) => (a <= target ? a : acc), fromAyah);
+        els.to.value = String(best);
     }
 
     /* ── Selection helpers ─────────────────────────────────────────── */
@@ -138,22 +220,33 @@
         for (let k = a; k <= b; k++) state.selectedKeys.add(`${state.surah}:${k}`);
     }
 
-    /* ── Page rendering ────────────────────────────────────────────── */
+    /* ── Mushaf source ─────────────────────────────────────────────── */
+    function applySrcClass() {
+        els.page.classList.toggle('mz-src-qpc-v1',      state.src === 'qpc_v1');
+        els.page.classList.toggle('mz-src-digital-khatt', state.src === 'digital_khatt');
+    }
+
+    function pageApiBase() {
+        return state.src === 'qpc_v1' ? '/api/qpc-v1' : '/api/digital-khatt';
+    }
+
+    /* ── Page fetching ─────────────────────────────────────────────── */
     async function fetchPageByAyah(surah, ayah) {
-        const resp = await fetch(`/api/digital-khatt/page-by-ayah/${surah}/${ayah}`);
+        const resp = await fetch(`${pageApiBase()}/page-by-ayah/${surah}/${ayah}`);
         if (!resp.ok) throw new Error('page load failed');
         return resp.json();
     }
     async function fetchPageByNumber(pageNumber) {
-        const resp = await fetch(`/api/digital-khatt/page/${pageNumber}`);
+        const resp = await fetch(`${pageApiBase()}/page/${pageNumber}`);
         if (!resp.ok) throw new Error('page load failed');
         return resp.json();
     }
 
+    /* ── Page rendering ────────────────────────────────────────────── */
     function renderPage(payload) {
-        state.page = payload;
+        state.page       = payload;
         state.pageNumber = payload.page_number;
-        els.empty && (els.empty.style.display = 'none');
+        if (els.empty) els.empty.style.display = 'none';
 
         const frag = document.createDocumentFragment();
         (payload.lines || []).forEach(line => {
@@ -176,18 +269,22 @@
                 inner.className = 'mz-line-inner';
                 const words = line.words || [];
                 if (words.length) {
+                    // Track word position within each ayah for tajweed mapping
+                    const ayahWPos = new Map();
                     words.forEach((w, i) => {
                         const span = document.createElement('span');
                         span.className = 'mz-word';
                         span.textContent = w.text || '';
                         if (w.surah != null && w.ayah != null) {
-                            span.dataset.key = `${w.surah}:${w.ayah}`;
+                            const key = `${w.surah}:${w.ayah}`;
+                            span.dataset.key  = key;
+                            const pos = ayahWPos.get(key) ?? 0;
+                            span.dataset.wpos = String(pos);
+                            ayahWPos.set(key, pos + 1);
                         }
                         inner.appendChild(span);
                         if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
                     });
-                    // justified body lines stretch edge-to-edge; centered/short
-                    // lines (end of surah) keep their natural width.
                     lineEl.dataset.justify = (!line.is_centered) ? '1' : '0';
                 } else {
                     inner.textContent = line.display_text || '';
@@ -201,14 +298,17 @@
         els.page.appendChild(frag);
 
         // Footer
-        els.footPage.textContent = `صفحة ${toAr(payload.page_number)}`;
+        els.footPage.textContent  = `صفحة ${toAr(payload.page_number)}`;
         const surahName = surahNameOf(payload.anchor_surah_number);
         els.footSurah.textContent = surahName ? `سورة ${surahName}` : '';
-        els.footJuz.textContent = payload.layout_name ? 'مصحف المدينة' : '';
+        const isOld = payload.source === 'qpc_v1';
+        els.footJuz.textContent   = isOld ? 'مصحف المدينة ١٤٠٥' : 'مصحف المدينة';
 
+        applySrcClass();
         applyFontSize();
         applySelectionHighlight();
         requestAnimationFrame(justifyLines);
+        if (state.tajweedOn) applyTajweedToPage();
         updateNavButtons();
     }
 
@@ -217,36 +317,40 @@
         return s ? (s.name ?? '') : '';
     }
 
-    // Scale body lines horizontally so each fills the page width (Madinah-style
-    // full justification), using DOM measurement of the natural line width.
+    /* ── Justification ─────────────────────────────────────────────── */
     function justifyLines() {
-        const lines = els.page.querySelectorAll('.mz-line');
-        lines.forEach(lineEl => {
+        const jFrac = state.justify / 100;
+        els.page.querySelectorAll('.mz-line').forEach(lineEl => {
             const inner = lineEl.querySelector('.mz-line-inner');
             if (!inner) return;
             inner.style.transform = 'none';
             const natural = inner.scrollWidth;
             if (!natural) return;
-            const avail = lineEl.clientWidth;
-            const justify = lineEl.dataset.justify === '1';
+            const avail     = lineEl.clientWidth;
+            const isJustify = lineEl.dataset.justify === '1';
             let scale;
-            if (justify) {
-                scale = avail / natural;
-                scale = Math.max(0.35, Math.min(1.9, scale));
+            if (isJustify) {
+                const fullScale = Math.max(0.35, Math.min(1.9, avail / natural));
+                if (natural > avail) {
+                    // Line overflows: always shrink to fit regardless of slider
+                    scale = fullScale;
+                } else {
+                    // Line fits: interpolate between 1× and full justify
+                    scale = 1 + (fullScale - 1) * jFrac;
+                }
             } else {
-                // centered: only shrink if it would overflow
-                scale = natural > avail ? avail / natural : 1;
+                // Centered line (surah header, short last line): only shrink if needed
+                scale = natural > avail ? Math.max(0.35, avail / natural) : 1;
             }
             inner.style.transform = `scaleX(${scale})`;
         });
     }
 
     function applyFontSize() {
-        // Fit 15 lines into the page height; scaleX handles width.
         const h = els.page.clientHeight || 1;
         const linesPerPage = (state.page && state.page.lines_per_page) || 15;
         const lineH = h / linesPerPage;
-        const fs = Math.max(12, Math.round(lineH * 0.6));
+        const fs    = Math.max(12, Math.round(lineH * 0.6));
         els.page.style.setProperty('--dk-fs', fs + 'px');
     }
 
@@ -268,8 +372,6 @@
         els.page.querySelectorAll(`.mz-word[data-key="${key}"]`).forEach(w => w.classList.add('mz-act'));
     }
 
-    // Make sure the verse `surah:ayah` is on the rendered page; fetch its page
-    // if not. Returns true when (after any load) the verse is visible.
     async function ensureVerseVisible(surah, ayah) {
         const key = `${surah}:${ayah}`;
         if (els.page.querySelector(`.mz-word[data-key="${key}"]`)) return true;
@@ -280,6 +382,92 @@
         } catch (e) {
             return false;
         }
+    }
+
+    /* ── Tajweed ───────────────────────────────────────────────────── */
+    function syncTajweedButton() {
+        els.tajweed.classList.toggle('mz-on', state.tajweedOn);
+        els.tajweed.setAttribute('aria-pressed', String(state.tajweedOn));
+        els.page.classList.toggle('mz-tajweed', state.tajweedOn);
+    }
+
+    // Parse the tajweed API HTML into an array of primary rule names, one per word.
+    function parseTajweedWordClasses(html) {
+        const div = document.createElement('div');
+        div.innerHTML = html;
+        const wordClasses = [];
+        let curClasses = new Set();
+        let hasText    = false;
+
+        function flush() {
+            if (hasText) {
+                wordClasses.push(curClasses.size > 0 ? [...curClasses][0] : '');
+                curClasses = new Set();
+                hasText = false;
+            }
+        }
+
+        div.childNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                const parts = node.textContent.split(' ');
+                parts.forEach((part, i) => {
+                    if (i > 0) flush();
+                    if (part) hasText = true;
+                });
+            } else if (node.nodeName === 'TAJWEED') {
+                const cls  = node.getAttribute('class') || '';
+                const parts = node.textContent.split(' ');
+                parts.forEach((part, i) => {
+                    if (i > 0) flush();
+                    if (part) {
+                        hasText = true;
+                        if (cls) curClasses.add(cls);
+                    }
+                });
+            }
+        });
+        flush();
+        return wordClasses;
+    }
+
+    async function applyTajweedToPage() {
+        if (!state.tajweedOn) return;
+
+        // Collect word spans grouped by verse key, preserving DOM order
+        const ayahSpans = new Map(); // 'surah:ayah' → [span, ...]
+        els.page.querySelectorAll('.mz-word[data-key]').forEach(span => {
+            const key = span.dataset.key;
+            if (!ayahSpans.has(key)) ayahSpans.set(key, []);
+            ayahSpans.get(key).push(span);
+        });
+
+        for (const [key, spans] of ayahSpans) {
+            let classes;
+            if (state.tajweedCache.has(key)) {
+                classes = state.tajweedCache.get(key);
+            } else {
+                const [surah, ayah] = key.split(':');
+                try {
+                    const resp = await fetch(`/api/tajweed/${surah}/${ayah}`);
+                    if (!resp.ok) continue;
+                    const data = await resp.json();
+                    classes = parseTajweedWordClasses(data.html);
+                    state.tajweedCache.set(key, classes);
+                } catch (e) { continue; }
+            }
+            spans.forEach((span, i) => {
+                // Strip old tajweed classes
+                [...span.classList].forEach(c => { if (c.startsWith('tj-')) span.classList.remove(c); });
+                const cls = classes[i] || '';
+                if (cls) span.classList.add('tj-' + cls);
+            });
+        }
+    }
+
+    function clearTajweedFromPage() {
+        els.page.querySelectorAll('.mz-word').forEach(span => {
+            [...span.classList].forEach(c => { if (c.startsWith('tj-')) span.classList.remove(c); });
+        });
     }
 
     /* ── Manual page navigation ────────────────────────────────────── */
@@ -352,6 +540,10 @@
 
         const repTxt = step.repTotal > 1 ? ` · تكرار ${toAr(step.rep)}/${toAr(step.repTotal)}` : '';
         els.now.textContent = `${surahNameOf(state.surah)} · آية ${toAr(step.ayah)}${repTxt}`;
+
+        // Save position so main app and next session can continue here
+        saveSetting('mz_last_pos', `${state.surah}:${step.ayah}`);
+        saveSetting('quranApp_lastPosition', `${state.surah}:${step.ayah}`);
     }
     const advanceStep = () => playStep(state.stepIdx + 1);
 
@@ -374,7 +566,6 @@
         state.schedule = buildSchedule();
         if (!state.schedule.length) { setStatus('لا توجد آيات في النطاق المحدد', true); return; }
 
-        // Show the page of the first selected verse with the target highlighted.
         const [a] = selectedAyahRange();
         setStatus('جارٍ فتح صفحة المصحف…');
         const ok = await ensureVerseVisible(state.surah, a);
@@ -442,6 +633,7 @@
         const surah = parseInt(els.surah.value, 10) || 1;
         try {
             await loadSurahMemo(surah);
+            saveSetting('mz_last_pos', `${surah}:1`);
         } catch (e) {
             setStatus('تعذّر تحميل بيانات السورة', true);
         }
@@ -449,31 +641,74 @@
 
     function bindEvents() {
         els.surah.addEventListener('change', onSurahChange);
+
+        // "from" changes → auto-advance "to" if it's now before "from"
+        els.from.addEventListener('change', () => {
+            const fromAyah = parseInt(els.from.value, 10);
+            autoSetTo(fromAyah);
+            if (state.page) {
+                rebuildSelectedKeys();
+                applySelectionHighlight();
+            }
+        });
+
+        // "to" changes → keep selection highlight live
+        els.to.addEventListener('change', () => {
+            if (!state.page) return;
+            rebuildSelectedKeys();
+            applySelectionHighlight();
+        });
+
         els.start.addEventListener('click', () => {
             els.start.disabled = true;
             startPlayback().finally(() => { els.start.disabled = false; });
         });
+
         els.play.addEventListener('click', togglePlay);
         els.stop.addEventListener('click', stopPlayback);
         els.prev.addEventListener('click', () => state.pageNumber && gotoPage(state.pageNumber - 1));
         els.next.addEventListener('click', () => state.pageNumber && gotoPage(state.pageNumber + 1));
 
-        // Seek by clicking the progress bar (within the whole schedule).
+        // Progress bar seek
         els.progress.addEventListener('click', (e) => {
             if (!state.schedule.length) return;
             const rect = els.progress.getBoundingClientRect();
-            // RTL: progress fills from the right edge.
             const frac = Math.max(0, Math.min(1, (rect.right - e.clientX) / rect.width));
             const target = Math.min(state.schedule.length - 1, Math.floor(frac * state.schedule.length));
             playStep(target);
         });
 
-        // Keep highlight in sync if the user tweaks the range before playing.
-        [els.from, els.to].forEach(sel => sel.addEventListener('change', () => {
-            if (!state.page) return;
-            rebuildSelectedKeys();
-            applySelectionHighlight();
-        }));
+        // Tajweed toggle
+        els.tajweed.addEventListener('click', () => {
+            state.tajweedOn = !state.tajweedOn;
+            syncTajweedButton();
+            saveSetting('quranApp_tajweedEnabled', state.tajweedOn);
+            if (state.tajweedOn) {
+                applyTajweedToPage();
+            } else {
+                clearTajweedFromPage();
+            }
+        });
+
+        // Justify slider
+        els.justify.addEventListener('input', () => {
+            state.justify = parseInt(els.justify.value, 10);
+            updateJustifyLabel();
+            saveSetting('quranApp_khattJustify', state.justify);
+            if (state.page) requestAnimationFrame(justifyLines);
+        });
+
+        // Mushaf source selector
+        els.src.addEventListener('change', () => {
+            state.src = els.src.value;
+            saveSetting('mz_src', state.src);
+            // Reload the current page with the new source, if a page is already showing
+            if (state.pageNumber) {
+                stopPlayback();
+                state.tajweedCache.clear();
+                gotoPage(state.pageNumber);
+            }
+        });
 
         let resizeId = 0;
         window.addEventListener('resize', () => {
@@ -482,9 +717,6 @@
         });
     }
 
-    // Render the selected range's mushaf page with the target verses
-    // highlighted, without starting audio (used by deep links and the initial
-    // "show me where these verses are" affordance).
     async function renderSelection() {
         rebuildSelectedKeys();
         const [a] = selectedAyahRange();
@@ -500,26 +732,36 @@
         const p = new URLSearchParams(location.search);
         const surah = parseInt(p.get('surah'), 10);
         if (!surah) return false;
-        if ([...els.surah.options].some(o => +o.value === surah)) {
-            els.surah.value = surah;
-        }
+        if ([...els.surah.options].some(o => +o.value === surah)) els.surah.value = surah;
         return true;
     }
 
     /* ── Init ──────────────────────────────────────────────────────── */
     async function init() {
         initTheme();
+        loadSettings();
         bindEvents();
         try {
             await loadSurahs();
+
+            // Restore last-used surah from local state
+            const savedPos = localStorage.getItem('mz_last_pos');
+            if (savedPos) {
+                const savedSurah = parseInt(savedPos.split(':')[0], 10);
+                if (savedSurah && [...els.surah.options].some(o => +o.value === savedSurah)) {
+                    els.surah.value = String(savedSurah);
+                }
+            }
+
             const hasDeepLink = applyDeepLink();
             await loadSurahMemo(parseInt(els.surah.value, 10) || 1);
+
             if (hasDeepLink) {
                 const p = new URLSearchParams(location.search);
                 const from = parseInt(p.get('from'), 10);
-                const to = parseInt(p.get('to'), 10);
+                const to   = parseInt(p.get('to'),   10);
                 if (from && [...els.from.options].some(o => +o.value === from)) els.from.value = from;
-                if (to && [...els.to.options].some(o => +o.value === to)) els.to.value = to;
+                if (to   && [...els.to.options].some(o   => +o.value === to))   els.to.value   = to;
                 await renderSelection();
             }
         } catch (e) {
