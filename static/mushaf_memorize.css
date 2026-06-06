@@ -13,6 +13,18 @@
     src: url('oldmadina.woff2') format('woff2');
     font-display: swap;
 }
+/* QPC colour surah-name banners (one glyph per surah) */
+@font-face {
+    font-family: 'QCF Surah Header';
+    src: url('QCF_SurahHeader_COLOR-Regular.woff2') format('woff2');
+    font-display: swap;
+}
+/* QPC common glyphs — used here for the per-juz running-head marker */
+@font-face {
+    font-family: 'QCF Common';
+    src: url('quran-common.woff2') format('woff2');
+    font-display: swap;
+}
 
 :root {
     --mz-accent: #4f46e5;
@@ -405,6 +417,14 @@ body {
     text-overflow: ellipsis;
 }
 .mz-head-surah { color: var(--mz-accent); }
+/* Per-juz opening-words marker drawn with the QCF common font */
+.mz-head-juz.mz-juz-glyph {
+    font-family: 'QCF Common', 'IBM Plex Sans Arabic', serif;
+    font-size: 1.5em;
+    line-height: 1;
+    color: var(--mz-ink);
+    max-width: 46%;
+}
 
 .mz-page {
     position: relative;
@@ -456,7 +476,9 @@ body {
     font-family: 'Old Madina', serif;
 }
 
-/* Surah header band — framed like a printed mushaf surah cartouche */
+/* Surah header band — framed like a printed mushaf surah cartouche.
+   Falls back to text styling; when the banner glyph is used (.mz-surah-glyph)
+   the frame is dropped since the QCF glyph carries its own ornament. */
 .mz-line-surah {
     font-family: 'IBM Plex Sans Arabic', serif;
     font-weight: 700;
@@ -471,6 +493,19 @@ body {
     margin: 2px auto;
     letter-spacing: 0.01em;
     white-space: nowrap;
+}
+/* QCF colour surah banner glyph — no extra frame/background needed */
+.mz-line-surah.mz-surah-glyph {
+    font-family: 'QCF Surah Header', serif;
+    font-weight: 400;
+    color: var(--mz-ink);
+    font-size: calc(var(--dk-fs) * 1.7);
+    line-height: 1;
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0 auto;
 }
 .mz-line-basmala {
     font-family: 'Digital Khatt', serif;
@@ -490,13 +525,100 @@ body {
     background: var(--mz-select-hl);
     color: var(--mz-ink);
 }
+/* The verse currently being repeated pulses like a bulb switching on and off,
+   instead of a flat highlight, to draw the eye to it during recitation. */
 .mz-word.mz-act {
-    background: var(--mz-active-hl);
-    box-shadow: 0 0 0 1px var(--mz-accent-ring);
-    color: var(--mz-ink);
+    color: var(--mz-accent);
+    background: transparent;
+    border-radius: 0.18em;
+    animation: mz-bulb 1.15s ease-in-out infinite;
+}
+@keyframes mz-bulb {
+    0%, 100% {   /* bulb off */
+        background: transparent;
+        color: var(--mz-ink);
+        text-shadow: none;
+    }
+    50% {        /* bulb on */
+        background: var(--mz-active-hl);
+        color: var(--mz-accent);
+        text-shadow: 0 0 10px var(--mz-accent-ring), 0 0 22px var(--mz-accent-ring);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mz-word.mz-act { animation: none; background: var(--mz-active-hl); }
 }
 /* dim non-selected verses while a selection is active, to spotlight the target */
 .mz-page.mz-has-selection .mz-word:not(.mz-sel) { opacity: 0.34; }
+
+/* ── Waqf symbols (per selected mushaf) ─────────────────────────────── */
+.mz-word { position: relative; }
+.mz-waqf-stack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: super;
+    line-height: 1;
+    margin: 0 0.04em;
+    font-size: 0.5em;
+    font-family: 'IBM Plex Sans Arabic', 'Amiri Quran', serif;
+}
+.mz-waqf-sym { font-weight: 700; }
+
+/* Waqf mushaf-version selector row in the control panel */
+.mz-waqf-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--mz-border);
+}
+.mz-waqf-label {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--mz-text-muted);
+}
+.mz-waqf-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.mz-waqf-pill {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--mz-border-strong);
+    background: var(--mz-surface-2);
+    color: var(--mz-text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.mz-waqf-pill:hover { border-color: var(--mz-accent); color: var(--mz-text); }
+.mz-waqf-pill.mz-on {
+    background: var(--mz-accent);
+    border-color: var(--mz-accent);
+    color: #fff;
+}
+
+.mz-waqf-madinah  { color: #047857; }
+.mz-waqf-shamarly { color: #1d4ed8; }
+.mz-waqf-azhar    { color: #c2410c; }
+.mz-waqf-warsh    { color: #7c3aed; }
+.mz-waqf-hindi    { color: #be185d; }
+.mz-waqf-other    { color: #475569; }
+body.mz-dark .mz-waqf-madinah  { color: #34d399; }
+body.mz-dark .mz-waqf-shamarly { color: #60a5fa; }
+body.mz-dark .mz-waqf-azhar    { color: #fb923c; }
+body.mz-dark .mz-waqf-warsh    { color: #c084fc; }
+body.mz-dark .mz-waqf-hindi    { color: #f472b6; }
+body.mz-dark .mz-waqf-other    { color: #94a3b8; }
+body.mz-sepia .mz-waqf-madinah  { color: #065f46; }
+body.mz-sepia .mz-waqf-shamarly { color: #1e40af; }
+body.mz-sepia .mz-waqf-azhar    { color: #9a3412; }
+body.mz-sepia .mz-waqf-warsh    { color: #5b21b6; }
+body.mz-sepia .mz-waqf-hindi    { color: #9d174d; }
+body.mz-sepia .mz-waqf-other    { color: #57534e; }
 
 .mz-page-footer {
     position: relative;

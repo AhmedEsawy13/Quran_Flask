@@ -48,6 +48,7 @@
         tajweed:      $('mz-tajweed'),
         justify:      $('mz-justify'),
         justifyVal:   $('mz-justify-val'),
+        waqfPills:    $('mz-waqf-pills'),
     };
 
     const EPS = 0.05;
@@ -71,6 +72,43 @@
         tajweedOn: false,
         tajweedCache: new Map(), // 'surah:ayah' → parsed per-word coloured runs
         src: 'digital_khatt',   // 'digital_khatt' | 'qpc_v1'
+        mushafVersions: [],     // selected mushaf prints for waqf marks
+    };
+
+    /* ── QPC font glyph maps ───────────────────────────────────────────
+       Surah-name colour banners (one glyph per surah) and per-juz opening-
+       words markers (U+E900 + juz-1), both from the QCF fonts. */
+    // Index = surah-1. Ordered by the font's glyph id (NOT codepoint value):
+    // in this QCF font glyph-id rank == surah number, e.g. surah 1 → U+FC45.
+    const SURAH_HEADER_CP = [
+        0xFC45, 0xFC46, 0xFC47, 0xFC4A, 0xFC4B, 0xFC4E, 0xFC4F, 0xFC51, 0xFC52, 0xFC53,
+        0xFC55, 0xFC56, 0xFC58, 0xFC5A, 0xFC5B, 0xFC5C, 0xFC5D, 0xFC5E, 0xFC61, 0xFC62,
+        0xFC64, 0xFB51, 0xFB52, 0xFB54, 0xFB55, 0xFB57, 0xFB58, 0xFB5A, 0xFB5B, 0xFB5D,
+        0xFB5E, 0xFB60, 0xFB61, 0xFB63, 0xFB64, 0xFB66, 0xFB67, 0xFB69, 0xFB6A, 0xFB6C,
+        0xFB6D, 0xFB6F, 0xFB70, 0xFB72, 0xFB73, 0xFB75, 0xFB76, 0xFB78, 0xFB79, 0xFB7B,
+        0xFB7C, 0xFB7E, 0xFB7F, 0xFB81, 0xFB82, 0xFB84, 0xFB85, 0xFB87, 0xFB88, 0xFB8A,
+        0xFB8B, 0xFB8D, 0xFB8E, 0xFB90, 0xFB91, 0xFB93, 0xFB94, 0xFB96, 0xFB97, 0xFB99,
+        0xFB9A, 0xFB9C, 0xFB9D, 0xFB9F, 0xFBA0, 0xFBA2, 0xFBA3, 0xFBA5, 0xFBA6, 0xFBA8,
+        0xFBA9, 0xFBAB, 0xFBAC, 0xFBAE, 0xFBAF, 0xFBB1, 0xFBB2, 0xFBB4, 0xFBB5, 0xFBB7,
+        0xFBB8, 0xFBBA, 0xFBBB, 0xFBBD, 0xFBBE, 0xFBC0, 0xFBC1, 0xFBD3, 0xFBD4, 0xFBD6,
+        0xFBD7, 0xFBD9, 0xFBDA, 0xFBDC, 0xFBDD, 0xFBDF, 0xFBE0, 0xFBE2, 0xFBE3, 0xFBE5,
+        0xFBE6, 0xFBE8, 0xFBE9, 0xFBEB,
+    ];
+    const surahHeaderGlyph = n => (n >= 1 && n <= 114) ? String.fromCodePoint(SURAH_HEADER_CP[n - 1]) : '';
+    const JUZ_GLYPH_BASE = 0xE900;
+    const juzGlyph = j => (j >= 1 && j <= 30) ? String.fromCodePoint(JUZ_GLYPH_BASE + j - 1) : '';
+
+    /* Mushaf-print → waqf colour class (mirrors the main app). */
+    const MUSHAF_COLOR_MAP = [
+        { re: /المدينة|مدينة/, cls: 'mz-waqf-madinah'  },
+        { re: /الشمرلي|شمرلي/, cls: 'mz-waqf-shamarly' },
+        { re: /الأزهر|أزهر/,   cls: 'mz-waqf-azhar'    },
+        { re: /ورش/,           cls: 'mz-waqf-warsh'    },
+        { re: /الهندي|هندي/,   cls: 'mz-waqf-hindi'    },
+    ];
+    const mushafColorClass = v => {
+        for (const e of MUSHAF_COLOR_MAP) if (e.re.test(v || '')) return e.cls;
+        return 'mz-waqf-other';
     };
 
     /* ── Status helper ─────────────────────────────────────────────── */
@@ -139,6 +177,44 @@
         }
         els.src.value = state.src;
         applySrcClass();
+
+        // Waqf mushaf versions — synced with the main app's selection.
+        try {
+            const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
+            if (Array.isArray(saved)) state.mushafVersions = saved.filter(v => typeof v === 'string');
+        } catch (e) { state.mushafVersions = []; }
+    }
+
+    /* ── Waqf mushaf-version pills ─────────────────────────────────── */
+    async function loadWaqfPills() {
+        if (!els.waqfPills) return;
+        let versions = [];
+        try {
+            const resp = await fetch('/api/mushaf-versions');
+            if (resp.ok) versions = await resp.json();
+        } catch (e) { versions = []; }
+        // Drop any saved selection no longer offered by the server.
+        state.mushafVersions = state.mushafVersions.filter(v => versions.includes(v));
+        els.waqfPills.innerHTML = '';
+        versions.forEach(v => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'mz-waqf-pill ' + mushafColorClass(v);
+            btn.textContent = v;
+            btn.classList.toggle('mz-on', state.mushafVersions.includes(v));
+            btn.addEventListener('click', () => toggleWaqfVersion(v, btn));
+            els.waqfPills.appendChild(btn);
+        });
+    }
+
+    function toggleWaqfVersion(version, btn) {
+        const i = state.mushafVersions.indexOf(version);
+        if (i >= 0) state.mushafVersions.splice(i, 1);
+        else state.mushafVersions.push(version);
+        btn.classList.toggle('mz-on', state.mushafVersions.includes(version));
+        saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions));
+        // Reload the current page so waqf marks reflect the new selection.
+        if (state.pageNumber) gotoPage(state.pageNumber);
     }
 
     /* ── Arabic-Indic digit helper ─────────────────────────────────── */
@@ -157,12 +233,15 @@
         'الثامن عشر', 'التاسع عشر', 'العشرون', 'الحادي والعشرون', 'الثاني والعشرون',
         'الثالث والعشرون', 'الرابع والعشرون', 'الخامس والعشرون', 'السادس والعشرون',
         'السابع والعشرون', 'الثامن والعشرون', 'التاسع والعشرون', 'الثلاثون'];
-    function juzLabel(pageNumber) {
+    function juzNumber(pageNumber) {
         let j = 1;
         for (let i = 0; i < JUZ_START_PAGE.length; i++) {
             if (pageNumber >= JUZ_START_PAGE[i]) j = i + 1; else break;
         }
-        return `الجزء ${JUZ_NAME[j - 1]}`;
+        return j;
+    }
+    function juzLabel(pageNumber) {
+        return `الجزء ${JUZ_NAME[juzNumber(pageNumber) - 1]}`;
     }
 
     /* Verse-number ornament: quran_script stores the ayah marker as a bare
@@ -264,16 +343,43 @@
         return state.src === 'qpc_v1' ? '/api/qpc-v1' : '/api/digital-khatt';
     }
 
+    function waqfQuery() {
+        if (!state.mushafVersions.length) return '';
+        return '?' + state.mushafVersions.map(v => 'mushaf_version=' + encodeURIComponent(v)).join('&');
+    }
+
     /* ── Page fetching ─────────────────────────────────────────────── */
     async function fetchPageByAyah(surah, ayah) {
-        const resp = await fetch(`${pageApiBase()}/page-by-ayah/${surah}/${ayah}`);
+        const resp = await fetch(`${pageApiBase()}/page-by-ayah/${surah}/${ayah}${waqfQuery()}`);
         if (!resp.ok) throw new Error('page load failed');
         return resp.json();
     }
     async function fetchPageByNumber(pageNumber) {
-        const resp = await fetch(`${pageApiBase()}/page/${pageNumber}`);
+        const resp = await fetch(`${pageApiBase()}/page/${pageNumber}${waqfQuery()}`);
         if (!resp.ok) throw new Error('page load failed');
         return resp.json();
+    }
+
+    /* Render the selected mushaf's waqf marks as a small coloured stack on a word.
+       `entries` is the payload's waqf_symbols: '' or [{symbols, version}, ...]. */
+    function appendWaqfMarks(span, entries) {
+        if (!Array.isArray(entries) || !entries.length) return;
+        const stack = document.createElement('span');
+        stack.className = 'mz-waqf-stack';
+        entries.forEach(e => {
+            const syms = (e && e.symbols ? String(e.symbols) : '').trim();
+            if (!syms) return;
+            const cls = mushafColorClass(e.version);
+            [...syms].forEach(ch => {
+                if (!ch.trim()) return;
+                const s = document.createElement('span');
+                s.className = 'mz-waqf-sym ' + cls;
+                s.textContent = ch;
+                if (e.version) s.title = `مصحف: ${e.version}`;
+                stack.appendChild(s);
+            });
+        });
+        if (stack.childNodes.length) span.appendChild(stack);
     }
 
     /* ── Page rendering ────────────────────────────────────────────── */
@@ -295,7 +401,14 @@
             if (type === 'surah_name') {
                 const inner = document.createElement('div');
                 inner.className = 'mz-line-surah';
-                inner.textContent = line.display_text || '';
+                const glyph = surahHeaderGlyph(line.surah_number);
+                if (glyph) {
+                    inner.classList.add('mz-surah-glyph');
+                    inner.textContent = glyph;
+                    inner.setAttribute('aria-label', line.display_text || '');
+                } else {
+                    inner.textContent = line.display_text || '';
+                }
                 lineEl.appendChild(inner);
             } else if (type === 'basmallah') {
                 const inner = document.createElement('div');
@@ -320,6 +433,8 @@
                             span.dataset.wpos = String(pos);
                             ayahWPos.set(key, pos + 1);
                         }
+                        span._waqf = w.waqf_symbols;  // kept for re-render after tajweed
+                        appendWaqfMarks(span, w.waqf_symbols);
                         inner.appendChild(span);
                         if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
                     });
@@ -339,7 +454,17 @@
         els.footPage.textContent  = `صفحة ${toAr(payload.page_number)}`;
         const surahName = surahNameOf(payload.anchor_surah_number);
         els.headSurah.textContent = surahName ? `سورة ${surahName}` : '';
-        els.headJuz.textContent   = juzLabel(payload.page_number);
+        const jn = juzNumber(payload.page_number);
+        const jGlyph = juzGlyph(jn);
+        if (jGlyph) {
+            els.headJuz.classList.add('mz-juz-glyph');
+            els.headJuz.textContent = jGlyph;
+            els.headJuz.setAttribute('aria-label', juzLabel(payload.page_number));
+            els.headJuz.title = juzLabel(payload.page_number);
+        } else {
+            els.headJuz.classList.remove('mz-juz-glyph');
+            els.headJuz.textContent = juzLabel(payload.page_number);
+        }
 
         applySrcClass();
         applyFontSize();
@@ -673,6 +798,7 @@
                 } else {
                     span.textContent = disp;
                 }
+                appendWaqfMarks(span, span._waqf);  // overlay wiped them — restore
             });
         }
     }
@@ -680,6 +806,7 @@
     function clearTajweedFromPage() {
         els.page.querySelectorAll('.mz-word').forEach(span => {
             span.textContent = span.dataset.text || span.textContent || '';
+            appendWaqfMarks(span, span._waqf);
         });
     }
 
@@ -964,6 +1091,11 @@
             updateJustifyLabel();
             saveSetting('quranApp_khattJustify', state.justify);
         }
+        const wq = p.get('waqf');
+        if (wq != null) {
+            state.mushafVersions = wq ? wq.split(',').map(s => s.trim()).filter(Boolean) : [];
+            saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions));
+        }
         const surah = parseInt(p.get('surah'), 10);
         if (!surah) return false;
         if ([...els.surah.options].some(o => +o.value === surah)) els.surah.value = surah;
@@ -975,6 +1107,7 @@
         initTheme();
         loadSettings();
         bindEvents();
+        loadWaqfPills();
         try {
             await loadSurahs();
 

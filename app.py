@@ -187,7 +187,10 @@ RECITER_GUIDE_CONFIG = {
 }
 # Keep for backwards compat with any legacy code that may reference it
 HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']['db']
-DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'digital-khatt-15-lines.db')
+# "New Madinah" source now uses the QPC v4 (1441/tajweed) 15-line layout — same
+# 1..83668 word numbering as the older digital-khatt layout but with the proper
+# QPC v4 line breaks. (Schema has no total_advance/x_offset columns.)
+DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'qpc-v4-15-lines.db')
 QPC_V1_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'qpc-v1-15-lines.db')
 # Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
 # from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
@@ -3278,10 +3281,13 @@ def _layout_page_resolve(layout_db, surah_number, ayah_number):
 
 
 def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
-                          source, font_name_default, include_advance):
+                          source, font_name_default, include_advance, mushaf_version=''):
     """Shared page-payload assembler for the Digital Khatt / QPC-v1 layouts.
     Words come from the authoritative Digital Khatt word map keyed on the
-    layout's word ids, so the rendered text always matches the page."""
+    layout's word ids, so the rendered text always matches the page.
+
+    `mushaf_version` (str or list) selects which print's waqf symbols to attach
+    per word — same mechanism the main app uses."""
     id2tok = _get_dk_layout_word_map()['id2tok']
 
     def to_int_or_none(value):
@@ -3296,6 +3302,7 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
     anchor_surah_number = None
     anchor_ayah_number = None
     output_lines = []
+    page_word_rows = []  # flat, for waqf matching (grouped by verse internally)
     for line in lines:
         first_word_id = to_int_or_none(line.get('first_word_id'))
         last_word_id = to_int_or_none(line.get('last_word_id'))
@@ -3310,13 +3317,15 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
                 tok = id2tok.get(word_id)
                 if not tok:
                     continue
-                line_words.append({
+                word = {
                     'word_index': word_id,
                     'text': tok['text'],
                     'surah': tok['surah'],
                     'ayah': tok['ayah'],
                     'waqf_symbols': ''
-                })
+                }
+                line_words.append(word)
+                page_word_rows.append(word)
                 if anchor_surah_number is None:
                     anchor_surah_number = tok['surah']
                     anchor_ayah_number = tok['ayah']
@@ -3347,6 +3356,16 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
             out_line['total_advance'] = None
             out_line['x_offset'] = 0
         output_lines.append(out_line)
+
+    # Attach per-word waqf symbols for the selected mushaf version(s). The word
+    # dicts are shared with output_lines, so backfilling updates them in place.
+    if mushaf_version:
+        waqf_by_word_index = _build_page_waqf_map(page_word_rows, mushaf_version)
+        if waqf_by_word_index:
+            for word in page_word_rows:
+                entries = waqf_by_word_index.get(word['word_index'])
+                if entries:
+                    word['waqf_symbols'] = entries
 
     # Page content width (justified lines only) for frontend per-line scaling.
     page_content_width = None
@@ -3408,7 +3427,7 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
     layout_cursor = layout_conn.cursor()
     layout_cursor.execute(
         '''
-        SELECT page_number, line_number, line_type, is_centered, first_word_id, last_word_id, surah_number, total_advance, x_offset
+        SELECT page_number, line_number, line_type, is_centered, first_word_id, last_word_id, surah_number
         FROM pages
         WHERE page_number = ?
         ORDER BY line_number ASC
@@ -3426,8 +3445,10 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
 
     payload = _assemble_layout_page(
         lines, info_row, page_number, focus_surah, focus_ayah,
-        source='digital_khatt', font_name_default='Digital Khatt', include_advance=True
+        source='digital_khatt', font_name_default='Digital Khatt', include_advance=False,
+        mushaf_version=mushaf_version
     )
+    payload['font_name'] = 'Digital Khatt'  # rendered with the Digital Khatt webfont regardless of layout
     payload['mushaf_version'] = (
         mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
     )
@@ -3472,7 +3493,7 @@ def get_digital_khatt_page_by_ayah(surah_number, ayah_number):
         return jsonify({'error': str(e)}), 500
 
 
-def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None):
+def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
     """Build a page payload from the QPC V1 (Old Madinah 1405) layout database.
 
     Shares the Digital Khatt word numbering and word map; the only differences are
@@ -3502,18 +3523,22 @@ def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None):
 
     payload = _assemble_layout_page(
         lines, info_row, page_number, focus_surah, focus_ayah,
-        source='qpc_v1', font_name_default='Old Madina', include_advance=False
+        source='qpc_v1', font_name_default='Old Madina', include_advance=False,
+        mushaf_version=mushaf_version
     )
     payload['font_name'] = 'Old Madina'
     payload['layout_name'] = (info_row['name'] if info_row else 'مصحف المدينة القديم ١٤٠٥')
-    payload['mushaf_version'] = ''
+    payload['mushaf_version'] = (
+        mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
+    )
     return payload
 
 
 @app.route('/api/qpc-v1/page/<int:page_number>', methods=['GET'])
 def get_qpc_v1_page(page_number):
     try:
-        payload = _build_qpc_v1_page_payload(page_number)
+        mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
+        payload = _build_qpc_v1_page_payload(page_number, mushaf_version=mushaf_version)
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
@@ -3528,11 +3553,13 @@ def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
         if not os.path.exists(QPC_V1_LAYOUT_DATABASE):
             return jsonify({'error': 'QPC V1 layout DB not found'}), 404
 
+        mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
         page_number = _layout_page_resolve(QPC_V1_LAYOUT_DATABASE, surah_number, ayah_number)
         if page_number is None:
             return jsonify({'error': 'Page not found for ayah'}), 404
 
-        payload = _build_qpc_v1_page_payload(page_number, focus_surah=surah_number, focus_ayah=ayah_number)
+        payload = _build_qpc_v1_page_payload(page_number, focus_surah=surah_number, focus_ayah=ayah_number,
+                                             mushaf_version=mushaf_version)
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
