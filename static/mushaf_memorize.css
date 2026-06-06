@@ -357,27 +357,59 @@ body {
 /* Page card — looks like a sheet of mushaf paper */
 .mz-page-card {
     position: relative;
-    width: min(92vw, 460px);
+    width: min(94vw, 560px);
     background: var(--mz-paper);
     border: 1px solid var(--mz-paper-edge);
     border-radius: 14px;
     box-shadow: var(--mz-shadow-lg);
-    padding: clamp(14px, 2.5vw, 22px) clamp(12px, 2.2vw, 20px) 8px;
+    padding: clamp(16px, 2.6vw, 26px) clamp(14px, 2.4vw, 24px) 10px;
     overflow: hidden;
 }
+/* Printed-mushaf double frame around the whole page */
 .mz-page-card::before {
-    /* subtle inner frame like a printed mushaf border */
     content: "";
     position: absolute;
-    inset: 8px;
-    border: 1px solid color-mix(in srgb, var(--mz-paper-edge) 70%, transparent);
-    border-radius: 9px;
+    inset: 7px;
+    border: 2px solid color-mix(in srgb, var(--mz-accent) 30%, var(--mz-paper-edge));
+    border-radius: 10px;
+    pointer-events: none;
+}
+.mz-page-card::after {
+    content: "";
+    position: absolute;
+    inset: 11px;
+    border: 1px solid color-mix(in srgb, var(--mz-accent) 22%, transparent);
+    border-radius: 7px;
     pointer-events: none;
 }
 
+/* Running head: juz (right) · surah (left) */
+.mz-page-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 2px 6px 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid color-mix(in srgb, var(--mz-accent) 22%, transparent);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--mz-text-muted);
+}
+.mz-head-juz, .mz-head-surah {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.mz-head-surah { color: var(--mz-accent); }
+
 .mz-page {
     position: relative;
-    aspect-ratio: 0.64;
+    z-index: 1;
+    aspect-ratio: 0.7;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -424,16 +456,19 @@ body {
     font-family: 'Old Madina', serif;
 }
 
-/* Surah header band */
+/* Surah header band — framed like a printed mushaf surah cartouche */
 .mz-line-surah {
     font-family: 'IBM Plex Sans Arabic', serif;
     font-weight: 700;
     color: var(--mz-accent);
     font-size: calc(var(--dk-fs) * 0.72);
     background: var(--mz-accent-soft);
-    border: 1px solid var(--mz-accent-ring);
+    border: 1.5px solid var(--mz-accent-ring);
     border-radius: 8px;
-    padding: 2px 18px;
+    box-shadow: inset 0 0 0 3px var(--mz-paper),
+                inset 0 0 0 4px color-mix(in srgb, var(--mz-accent) 28%, transparent);
+    padding: 5px 32px;
+    margin: 2px auto;
     letter-spacing: 0.01em;
     white-space: nowrap;
 }
@@ -465,11 +500,13 @@ body {
 
 .mz-page-footer {
     position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 8px;
-    padding: 6px 6px 2px;
+    justify-content: center;
+    margin-top: 6px;
+    padding: 8px 6px 2px;
+    border-top: 1px solid color-mix(in srgb, var(--mz-accent) 22%, transparent);
     font-family: 'IBM Plex Sans Arabic', sans-serif;
     font-size: 0.74rem;
     font-weight: 600;
@@ -478,9 +515,10 @@ body {
 .mz-foot-page {
     background: var(--mz-surface-2);
     color: var(--mz-text);
-    border: 1px solid var(--mz-border);
+    border: 1px solid color-mix(in srgb, var(--mz-accent) 30%, var(--mz-border));
     border-radius: 999px;
-    padding: 3px 12px;
+    padding: 3px 16px;
+    font-weight: 700;
 }
 
 /* ── Audio player bar (fixed) ────────────────────────────────────── */

@@ -32,9 +32,9 @@
         status:       $('mz-status'),
         page:         $('mz-page'),
         empty:        $('mz-empty'),
-        footSurah:    $('mz-foot-surah'),
+        headJuz:      $('mz-head-juz'),
+        headSurah:    $('mz-head-surah'),
         footPage:     $('mz-foot-page'),
-        footJuz:      $('mz-foot-juz'),
         prev:         $('mz-prev'),
         next:         $('mz-next'),
         player:       $('mz-player'),
@@ -143,6 +143,35 @@
 
     /* ── Arabic-Indic digit helper ─────────────────────────────────── */
     const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+
+    /* ── Juz lookup ────────────────────────────────────────────────────
+       Standard 604-page Madinah mushaf juz boundaries (page each juz starts
+       on). Both the 1421 and 1405 prints share these, so it works for either
+       source. Juz label is shown in the running head, e.g. «الجزء الحادي عشر». */
+    const JUZ_START_PAGE = [1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
+        201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+        402, 422, 442, 462, 482, 502, 522, 542, 562, 582];
+    const JUZ_NAME = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس',
+        'السابع', 'الثامن', 'التاسع', 'العاشر', 'الحادي عشر', 'الثاني عشر',
+        'الثالث عشر', 'الرابع عشر', 'الخامس عشر', 'السادس عشر', 'السابع عشر',
+        'الثامن عشر', 'التاسع عشر', 'العشرون', 'الحادي والعشرون', 'الثاني والعشرون',
+        'الثالث والعشرون', 'الرابع والعشرون', 'الخامس والعشرون', 'السادس والعشرون',
+        'السابع والعشرون', 'الثامن والعشرون', 'التاسع والعشرون', 'الثلاثون'];
+    function juzLabel(pageNumber) {
+        let j = 1;
+        for (let i = 0; i < JUZ_START_PAGE.length; i++) {
+            if (pageNumber >= JUZ_START_PAGE[i]) j = i + 1; else break;
+        }
+        return `الجزء ${JUZ_NAME[j - 1]}`;
+    }
+
+    /* Verse-number ornament: quran_script stores the ayah marker as a bare
+       Arabic-Indic digit. Prefixing U+06DD (END OF AYAH) makes the mushaf font
+       draw the decorative circle around it, exactly like the main page. */
+    const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
+    function withAyahOrnament(text) {
+        return ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
+    }
 
     /* ── Justify helpers ───────────────────────────────────────────── */
     function updateJustifyLabel() {
@@ -281,7 +310,7 @@
                     words.forEach((w, i) => {
                         const span = document.createElement('span');
                         span.className = 'mz-word';
-                        const text = w.text || '';
+                        const text = withAyahOrnament(w.text || '');
                         span.textContent = text;
                         span.dataset.text = text; // original, for tajweed restore
                         if (w.surah != null && w.ayah != null) {
@@ -306,12 +335,11 @@
         els.page.innerHTML = '';
         els.page.appendChild(frag);
 
-        // Footer
+        // Running head (juz · right, surah · left) + footer (page number · centre)
         els.footPage.textContent  = `صفحة ${toAr(payload.page_number)}`;
         const surahName = surahNameOf(payload.anchor_surah_number);
-        els.footSurah.textContent = surahName ? `سورة ${surahName}` : '';
-        const isOld = payload.source === 'qpc_v1';
-        els.footJuz.textContent   = isOld ? 'مصحف المدينة ١٤٠٥' : 'مصحف المدينة';
+        els.headSurah.textContent = surahName ? `سورة ${surahName}` : '';
+        els.headJuz.textContent   = juzLabel(payload.page_number);
 
         applySrcClass();
         applyFontSize();

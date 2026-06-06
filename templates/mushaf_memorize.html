@@ -14,7 +14,7 @@
     <link rel="preload" href="{{ url_for('static', filename='digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=4">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -136,16 +136,20 @@
             </button>
 
             <div class="mz-page-card">
+                <!-- Mushaf running head: juz on the right, surah on the left -->
+                <div class="mz-page-header">
+                    <span class="mz-head-juz" id="mz-head-juz"></span>
+                    <span class="mz-head-surah" id="mz-head-surah"></span>
+                </div>
                 <div class="mz-page" id="mz-page" dir="rtl">
                     <div class="mz-page-empty" id="mz-empty">
                         <i class="fas fa-book-quran"></i>
                         <p>اختر السورة ونطاق الآيات، ثم اضغط «ابدأ الحفظ»</p>
                     </div>
                 </div>
+                <!-- Page number, centred like a printed mushaf -->
                 <div class="mz-page-footer">
-                    <span id="mz-foot-surah"></span>
                     <span class="mz-foot-page" id="mz-foot-page"></span>
-                    <span id="mz-foot-juz"></span>
                 </div>
             </div>
 
@@ -176,6 +180,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=3"></script>
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=4"></script>
 </body>
 </html>
