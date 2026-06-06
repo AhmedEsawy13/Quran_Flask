@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="الحفظ بالتصوير الذهني — احفظ الآيات من مكانها الحقيقي على صفحة مصحف المدينة مع تلاوة متزامنة">
+    <title>الحفظ بالتصوير الذهني — مصحف المدينة</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <!-- Digital Khatt mushaf font, preloaded -->
+    <link rel="preload" href="{{ url_for('static', filename='digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=1">
+
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
+
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body>
+    <!-- ── Top bar ─────────────────────────────────────────────── -->
+    <header class="mz-topbar">
+        <a class="mz-back" href="/" title="رجوع إلى التطبيق">
+            <i class="fas fa-arrow-right"></i>
+            <span>رجوع</span>
+        </a>
+        <div class="mz-brand">
+            <span class="mz-brand-icon"><i class="fas fa-book-open"></i></span>
+            <div class="mz-brand-text">
+                <h1>الحفظ بالتصوير الذهني</h1>
+                <p>احفظ الآيات من موضعها الحقيقي على صفحة مصحف المدينة</p>
+            </div>
+        </div>
+        <button class="mz-theme-toggle" id="mz-theme-toggle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
+
+    <main class="mz-main">
+        <!-- ── Control panel ──────────────────────────────────────── -->
+        <section class="mz-panel" aria-label="إعدادات الحفظ">
+            <div class="mz-panel-grid">
+                <div class="mz-field">
+                    <label for="mz-surah">السورة</label>
+                    <div class="mz-select-wrap">
+                        <select id="mz-surah"></select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="mz-field">
+                    <label for="mz-from">من الآية</label>
+                    <div class="mz-select-wrap">
+                        <select id="mz-from"></select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="mz-field">
+                    <label for="mz-to">إلى الآية</label>
+                    <div class="mz-select-wrap">
+                        <select id="mz-to"></select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="mz-field mz-field-reps">
+                    <label for="mz-reps">تكرار كل آية</label>
+                    <div class="mz-select-wrap">
+                        <select id="mz-reps">
+                            <option value="1">مرة واحدة</option>
+                            <option value="2">مرتين</option>
+                            <option value="3" selected>٣ مرات</option>
+                            <option value="5">٥ مرات</option>
+                            <option value="7">٧ مرات</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="mz-field mz-field-toggle">
+                    <span class="mz-toggle-label">تكرار النطاق</span>
+                    <label class="mz-switch">
+                        <input type="checkbox" id="mz-loop">
+                        <span class="mz-switch-track"></span>
+                    </label>
+                </div>
+                <div class="mz-field mz-field-action">
+                    <button id="mz-start" class="mz-btn-primary" type="button">
+                        <i class="fas fa-play"></i>
+                        <span>ابدأ الحفظ</span>
+                    </button>
+                </div>
+            </div>
+            <p class="mz-status" id="mz-status" role="status"></p>
+        </section>
+
+        <!-- ── Mushaf stage ───────────────────────────────────────── -->
+        <section class="mz-stage" aria-label="صفحة المصحف">
+            <button class="mz-nav-btn mz-nav-prev" id="mz-prev" type="button" title="الصفحة السابقة" aria-label="الصفحة السابقة">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <div class="mz-page-card">
+                <div class="mz-page" id="mz-page" dir="rtl">
+                    <div class="mz-page-empty" id="mz-empty">
+                        <i class="fas fa-book-quran"></i>
+                        <p>اختر السورة ونطاق الآيات، ثم اضغط «ابدأ الحفظ»</p>
+                    </div>
+                </div>
+                <div class="mz-page-footer">
+                    <span id="mz-foot-surah"></span>
+                    <span class="mz-foot-page" id="mz-foot-page"></span>
+                    <span id="mz-foot-juz"></span>
+                </div>
+            </div>
+
+            <button class="mz-nav-btn mz-nav-next" id="mz-next" type="button" title="الصفحة التالية" aria-label="الصفحة التالية">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </section>
+    </main>
+
+    <!-- ── Audio player bar ───────────────────────────────────────── -->
+    <div class="mz-player" id="mz-player" aria-hidden="true">
+        <button class="mz-play-btn" id="mz-play" type="button" title="تشغيل/إيقاف" aria-label="تشغيل">
+            <i class="fas fa-play"></i>
+        </button>
+        <div class="mz-player-body">
+            <div class="mz-player-meta">
+                <span class="mz-now" id="mz-now">—</span>
+                <span class="mz-reciter">محمود خليل الحصري</span>
+            </div>
+            <div class="mz-progress" id="mz-progress">
+                <div class="mz-progress-fill" id="mz-progress-fill"></div>
+            </div>
+        </div>
+        <button class="mz-stop-btn" id="mz-stop" type="button" title="إيقاف" aria-label="إيقاف">
+            <i class="fas fa-stop"></i>
+        </button>
+    </div>
+
+    <audio id="mz-audio" preload="auto"></audio>
+
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=1"></script>
+</body>
+</html>

@@ -1991,6 +1991,13 @@ def index():
     return render_template('index.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
+@app.route('/memorize')
+def memorize():
+    """Page-by-page visual memorization on the Digital Khatt (Madinah) mushaf
+    layout, with synced Husary audio. See templates/mushaf_memorize.html."""
+    return render_template('mushaf_memorize.html', enable_vercel_analytics=_IS_SERVERLESS)
+
+
 def normalize_source(source):
     valid_sources = [
         'digital_khatt', 'digital_khatt_2', 'old_madina',
@@ -3322,9 +3329,12 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
                 if not word_text:
                     continue
                 words.append(word_text)
+                word_meta = page_word_by_index.get(word_index)
                 line_words.append({
                     'word_index': word_index,
                     'text': word_text,
+                    'surah': (word_meta['surah'] if word_meta else None),
+                    'ayah': (word_meta['ayah'] if word_meta else None),
                     'waqf_symbols': waqf_by_word_index.get(word_index, '')
                 })
             display_text = ' '.join(words)

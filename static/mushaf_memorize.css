@@ -1,0 +1,526 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Mushaf Memorize — visual memorization on the Digital Khatt layout.
+   Modern, minimal design (Vercel/OpenAI flavour) on the app's indigo theme.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@font-face {
+    font-family: 'Digital Khatt';
+    src: url('digitalkhatt.woff2') format('woff2');
+    font-display: swap;
+}
+
+:root {
+    --mz-accent: #4f46e5;
+    --mz-accent-hover: #4338ca;
+    --mz-accent-soft: rgba(79, 70, 229, 0.10);
+    --mz-accent-ring: rgba(79, 70, 229, 0.28);
+
+    --mz-bg: #fafafa;
+    --mz-surface: #ffffff;
+    --mz-surface-2: #f6f6f7;
+    --mz-border: #ececef;
+    --mz-border-strong: #e0e0e5;
+    --mz-text: #18181b;
+    --mz-text-muted: #71717a;
+    --mz-text-faint: #a1a1aa;
+
+    --mz-paper: #fffdf8;
+    --mz-paper-edge: #efe9dc;
+    --mz-ink: #1c1917;
+
+    --mz-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --mz-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --mz-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.10), 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    --mz-select-hl: rgba(79, 70, 229, 0.13);
+    --mz-active-hl: rgba(79, 70, 229, 0.24);
+
+    --mz-radius: 16px;
+    --mz-radius-sm: 10px;
+}
+
+body.mz-dark {
+    --mz-accent: #818cf8;
+    --mz-accent-hover: #6366f1;
+    --mz-accent-soft: rgba(129, 140, 248, 0.14);
+    --mz-accent-ring: rgba(129, 140, 248, 0.32);
+
+    --mz-bg: #09090b;
+    --mz-surface: #131316;
+    --mz-surface-2: #1a1a1f;
+    --mz-border: #26262b;
+    --mz-border-strong: #34343b;
+    --mz-text: #fafafa;
+    --mz-text-muted: #a1a1aa;
+    --mz-text-faint: #71717a;
+
+    --mz-paper: #16140f;
+    --mz-paper-edge: #2a2620;
+    --mz-ink: #f0ece2;
+
+    --mz-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --mz-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    --mz-shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+
+    --mz-select-hl: rgba(129, 140, 248, 0.20);
+    --mz-active-hl: rgba(129, 140, 248, 0.34);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
+    direction: rtl;
+    background: var(--mz-bg);
+    color: var(--mz-text);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    padding-bottom: 96px; /* room for the fixed player bar */
+    transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────── */
+.mz-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px clamp(16px, 4vw, 40px);
+    background: color-mix(in srgb, var(--mz-bg) 80%, transparent);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--mz-border);
+}
+
+.mz-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--mz-border-strong);
+    background: var(--mz-surface);
+    color: var(--mz-text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    box-shadow: var(--mz-shadow-sm);
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.mz-back:hover { transform: translateY(-1px); border-color: var(--mz-accent); }
+.mz-back i { font-size: 0.75rem; }
+
+.mz-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-inline-start: auto;
+    margin-inline-end: auto;
+}
+.mz-brand-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--mz-accent), var(--mz-accent-hover));
+    color: #fff;
+    font-size: 1rem;
+    box-shadow: 0 6px 16px var(--mz-accent-ring);
+    flex-shrink: 0;
+}
+.mz-brand-text h1 {
+    margin: 0;
+    font-size: 1.02rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+.mz-brand-text p {
+    margin: 2px 0 0;
+    font-size: 0.74rem;
+    color: var(--mz-text-muted);
+    font-weight: 500;
+}
+
+.mz-theme-toggle {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    border: 1px solid var(--mz-border-strong);
+    background: var(--mz-surface);
+    color: var(--mz-text);
+    cursor: pointer;
+    font-size: 0.9rem;
+    box-shadow: var(--mz-shadow-sm);
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.mz-theme-toggle:hover { transform: translateY(-1px); border-color: var(--mz-accent); }
+
+/* ── Main layout ─────────────────────────────────────────────────── */
+.mz-main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: clamp(18px, 3vw, 32px) clamp(16px, 4vw, 40px) 24px;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(18px, 3vw, 28px);
+}
+
+/* ── Control panel ───────────────────────────────────────────────── */
+.mz-panel {
+    background: var(--mz-surface);
+    border: 1px solid var(--mz-border);
+    border-radius: var(--mz-radius);
+    box-shadow: var(--mz-shadow);
+    padding: clamp(16px, 2.5vw, 22px);
+}
+.mz-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 14px;
+    align-items: end;
+}
+.mz-field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+.mz-field > label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--mz-text-muted);
+    letter-spacing: 0.01em;
+}
+
+.mz-select-wrap { position: relative; }
+.mz-select-wrap select {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    padding: 11px 14px;
+    padding-inline-start: 34px;
+    border-radius: var(--mz-radius-sm);
+    border: 1px solid var(--mz-border-strong);
+    background: var(--mz-surface-2);
+    color: var(--mz-text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.mz-select-wrap select:hover { border-color: var(--mz-accent); }
+.mz-select-wrap select:focus {
+    outline: none;
+    border-color: var(--mz-accent);
+    box-shadow: 0 0 0 3px var(--mz-accent-soft);
+}
+.mz-select-wrap > i {
+    position: absolute;
+    inset-inline-start: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.68rem;
+    color: var(--mz-text-faint);
+    pointer-events: none;
+}
+
+.mz-field-toggle {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--mz-radius-sm);
+    border: 1px solid var(--mz-border-strong);
+    background: var(--mz-surface-2);
+}
+.mz-toggle-label { font-size: 0.82rem; font-weight: 600; color: var(--mz-text); }
+.mz-switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+.mz-switch input { opacity: 0; width: 0; height: 0; }
+.mz-switch-track {
+    position: absolute; inset: 0; cursor: pointer;
+    background: var(--mz-border-strong);
+    border-radius: 999px;
+    transition: background 0.2s ease;
+}
+.mz-switch-track::before {
+    content: ""; position: absolute;
+    height: 18px; width: 18px; inset-inline-end: 3px; top: 3px;
+    background: #fff; border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease;
+}
+.mz-switch input:checked + .mz-switch-track { background: var(--mz-accent); }
+.mz-switch input:checked + .mz-switch-track::before { transform: translateX(-18px); }
+
+.mz-field-action { justify-content: flex-end; }
+.mz-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 18px;
+    border: none;
+    border-radius: var(--mz-radius-sm);
+    background: var(--mz-accent);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 20px var(--mz-accent-ring);
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.mz-btn-primary:hover { background: var(--mz-accent-hover); transform: translateY(-1px); }
+.mz-btn-primary:active { transform: translateY(0); }
+.mz-btn-primary:disabled { opacity: 0.55; cursor: default; transform: none; box-shadow: none; }
+
+.mz-status {
+    margin: 12px 2px 0;
+    min-height: 1.1em;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--mz-text-muted);
+}
+.mz-status.mz-err { color: #ef4444; }
+
+/* ── Mushaf stage ────────────────────────────────────────────────── */
+.mz-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(8px, 2vw, 20px);
+}
+
+.mz-nav-btn {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid var(--mz-border-strong);
+    background: var(--mz-surface);
+    color: var(--mz-text);
+    cursor: pointer;
+    font-size: 0.95rem;
+    box-shadow: var(--mz-shadow-sm);
+    transition: transform 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.mz-nav-btn:hover { border-color: var(--mz-accent); color: var(--mz-accent); transform: translateY(-1px); }
+.mz-nav-btn:disabled { opacity: 0.4; cursor: default; transform: none; border-color: var(--mz-border); color: var(--mz-text-faint); }
+
+/* Page card — looks like a sheet of mushaf paper */
+.mz-page-card {
+    position: relative;
+    width: min(92vw, 460px);
+    background: var(--mz-paper);
+    border: 1px solid var(--mz-paper-edge);
+    border-radius: 14px;
+    box-shadow: var(--mz-shadow-lg);
+    padding: clamp(14px, 2.5vw, 22px) clamp(12px, 2.2vw, 20px) 8px;
+    overflow: hidden;
+}
+.mz-page-card::before {
+    /* subtle inner frame like a printed mushaf border */
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border: 1px solid color-mix(in srgb, var(--mz-paper-edge) 70%, transparent);
+    border-radius: 9px;
+    pointer-events: none;
+}
+
+.mz-page {
+    position: relative;
+    aspect-ratio: 0.64;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 6px 8px;
+    --dk-fs: 22px;
+}
+
+.mz-page-empty {
+    margin: auto;
+    text-align: center;
+    color: var(--mz-text-faint);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+}
+.mz-page-empty i { font-size: 2.2rem; opacity: 0.5; }
+.mz-page-empty p { margin: 0; font-size: 0.92rem; font-weight: 500; line-height: 1.6; }
+
+/* A rendered mushaf line */
+.mz-line {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+.mz-line-inner {
+    white-space: nowrap;
+    font-family: 'Digital Khatt', serif;
+    font-size: var(--dk-fs);
+    line-height: 1;
+    color: var(--mz-ink);
+    direction: rtl;
+    transform-origin: center center;
+    will-change: transform;
+}
+
+/* Surah header band */
+.mz-line-surah {
+    font-family: 'IBM Plex Sans Arabic', serif;
+    font-weight: 700;
+    color: var(--mz-accent);
+    font-size: calc(var(--dk-fs) * 0.72);
+    background: var(--mz-accent-soft);
+    border: 1px solid var(--mz-accent-ring);
+    border-radius: 8px;
+    padding: 2px 18px;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.mz-line-basmala {
+    font-family: 'Digital Khatt', serif;
+    color: var(--mz-ink);
+    font-size: calc(var(--dk-fs) * 0.88);
+    white-space: nowrap;
+}
+
+/* Word tokens */
+.mz-word {
+    display: inline;
+    padding: 0 0.02em;
+    border-radius: 0.18em;
+    transition: background-color 0.25s ease, color 0.2s ease;
+}
+.mz-word.mz-sel {
+    background: var(--mz-select-hl);
+    color: var(--mz-ink);
+}
+.mz-word.mz-act {
+    background: var(--mz-active-hl);
+    box-shadow: 0 0 0 1px var(--mz-accent-ring);
+    color: var(--mz-ink);
+}
+/* dim non-selected verses while a selection is active, to spotlight the target */
+.mz-page.mz-has-selection .mz-word:not(.mz-sel) { opacity: 0.34; }
+
+.mz-page-footer {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+    padding: 6px 6px 2px;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--mz-text-muted);
+}
+.mz-foot-page {
+    background: var(--mz-surface-2);
+    color: var(--mz-text);
+    border: 1px solid var(--mz-border);
+    border-radius: 999px;
+    padding: 3px 12px;
+}
+
+/* ── Audio player bar (fixed) ────────────────────────────────────── */
+.mz-player {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    width: calc(100% - 32px);
+    background: color-mix(in srgb, var(--mz-surface) 92%, transparent);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid var(--mz-border-strong);
+    border-radius: 999px;
+    box-shadow: var(--mz-shadow-lg);
+    transform: translateY(140%);
+    opacity: 0;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+}
+.mz-player.mz-show { transform: translateY(0); opacity: 1; }
+
+.mz-play-btn, .mz-stop-btn {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+.mz-play-btn {
+    width: 44px; height: 44px;
+    background: var(--mz-accent); color: #fff;
+    font-size: 1rem;
+    box-shadow: 0 6px 16px var(--mz-accent-ring);
+}
+.mz-play-btn:hover { background: var(--mz-accent-hover); transform: scale(1.05); }
+.mz-stop-btn {
+    width: 38px; height: 38px;
+    background: var(--mz-surface-2); color: var(--mz-text-muted);
+    border: 1px solid var(--mz-border-strong);
+    font-size: 0.8rem;
+}
+.mz-stop-btn:hover { color: #ef4444; border-color: #ef4444; }
+
+.mz-player-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 7px; }
+.mz-player-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.mz-now {
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.85rem; font-weight: 700; color: var(--mz-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mz-reciter { font-size: 0.72rem; font-weight: 500; color: var(--mz-text-faint); white-space: nowrap; }
+
+.mz-progress {
+    position: relative;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--mz-border-strong);
+    cursor: pointer;
+    overflow: hidden;
+}
+.mz-progress-fill {
+    position: absolute; inset-inline-end: 0; top: 0; bottom: 0;
+    width: 0%;
+    background: linear-gradient(90deg, var(--mz-accent-hover), var(--mz-accent));
+    border-radius: 999px;
+    transition: width 0.12s linear;
+}
+
+@media (max-width: 560px) {
+    .mz-brand-text p { display: none; }
+    .mz-brand-text h1 { font-size: 0.92rem; }
+    .mz-nav-btn { width: 38px; height: 38px; }
+}
