@@ -16,7 +16,7 @@
     <link rel="preload" href="{{ url_for('static', filename='surah_names.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='QCF BSML @Am9li9.ttf') }}" as="font" type="font/ttf" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=9">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -27,9 +27,7 @@
 <body>
     <!-- ── Top bar ─────────────────────────────────────────────── -->
     <header class="mz-topbar">
-        <a class="mz-back" href="/" title="رجوع إلى التطبيق">
-            <i class="fas fa-arrow-right"></i><span>رجوع</span>
-        </a>
+        <a class="mz-back" href="/" title="رجوع إلى التطبيق"><i class="fas fa-arrow-right"></i><span>رجوع</span></a>
         <div class="mz-brand">
             <span class="mz-brand-icon"><i class="fas fa-brain"></i></span>
             <div class="mz-brand-text">
@@ -37,133 +35,125 @@
                 <p>الحفظ بالتكرار التراكمي المقطعي على صفحة المصحف</p>
             </div>
         </div>
-        <button class="mz-theme-toggle" id="mz-theme-toggle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي">
-            <i class="fas fa-moon"></i>
-        </button>
+        <button class="mz-sidebar-toggle" id="mz-sidebar-toggle" type="button" title="الإعدادات" aria-label="الإعدادات"><i class="fas fa-sliders"></i></button>
+        <button class="mz-theme-toggle" id="mz-theme-toggle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
     </header>
 
     <main class="mz-main">
-        <!-- ── Control panel ──────────────────────────────────────── -->
-        <section class="mz-panel" aria-label="إعدادات الحفظ">
-            <!-- range + repetitions -->
-            <div class="mz-row mz-row-main">
-                <div class="mz-field mz-field-grow">
-                    <label for="mz-surah">السورة</label>
-                    <div class="mz-select-wrap"><select id="mz-surah"></select><i class="fas fa-chevron-down"></i></div>
-                </div>
-                <div class="mz-field">
-                    <label for="mz-from">من</label>
-                    <div class="mz-select-wrap"><select id="mz-from"></select><i class="fas fa-chevron-down"></i></div>
-                </div>
-                <div class="mz-field">
-                    <label for="mz-to">إلى</label>
-                    <div class="mz-select-wrap"><select id="mz-to"></select><i class="fas fa-chevron-down"></i></div>
-                </div>
-                <div class="mz-field">
-                    <label for="mz-verse-reps">تكرار الآية</label>
-                    <div class="mz-select-wrap">
-                        <select id="mz-verse-reps">
-                            <option value="1">١</option><option value="2">٢</option>
-                            <option value="3" selected>٣</option><option value="5">٥</option>
-                            <option value="7">٧</option><option value="10">١٠</option>
-                        </select><i class="fas fa-chevron-down"></i>
+        <!-- ── Settings sidebar (right) ───────────────────────────── -->
+        <aside class="mz-sidebar" id="mz-sidebar" aria-label="إعدادات الحفظ">
+            <div class="mz-side-scroll">
+                <!-- Range -->
+                <section class="mz-sec">
+                    <h3 class="mz-sec-title"><i class="fas fa-location-dot"></i> النطاق</h3>
+                    <div class="mz-field">
+                        <label for="mz-surah">السورة</label>
+                        <div class="mz-select-wrap"><select id="mz-surah"></select><i class="fas fa-chevron-down"></i></div>
                     </div>
-                </div>
-                <div class="mz-field">
-                    <label for="mz-link-reps">تكرار الربط</label>
-                    <div class="mz-select-wrap">
-                        <select id="mz-link-reps">
-                            <option value="1" selected>١</option><option value="2">٢</option><option value="3">٣</option>
-                        </select><i class="fas fa-chevron-down"></i>
+                    <div class="mz-grid2">
+                        <div class="mz-field">
+                            <label for="mz-from">من الآية</label>
+                            <div class="mz-select-wrap"><select id="mz-from"></select><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="mz-field">
+                            <label for="mz-to">إلى الآية</label>
+                            <div class="mz-select-wrap"><select id="mz-to"></select><i class="fas fa-chevron-down"></i></div>
+                        </div>
                     </div>
-                </div>
-                <button id="mz-start" class="mz-btn-primary" type="button">
-                    <i class="fas fa-play"></i><span>ابدأ الحفظ</span>
-                </button>
+                </section>
+
+                <!-- Repetition -->
+                <section class="mz-sec">
+                    <h3 class="mz-sec-title"><i class="fas fa-repeat"></i> التكرار</h3>
+                    <div class="mz-grid2">
+                        <div class="mz-field">
+                            <label for="mz-verse-reps">تكرار الآية</label>
+                            <div class="mz-select-wrap">
+                                <select id="mz-verse-reps">
+                                    <option value="1">١</option><option value="2">٢</option>
+                                    <option value="3" selected>٣</option><option value="5">٥</option>
+                                    <option value="7">٧</option><option value="10">١٠</option>
+                                </select><i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                        <div class="mz-field">
+                            <label for="mz-link-reps">تكرار الربط</label>
+                            <div class="mz-select-wrap">
+                                <select id="mz-link-reps"><option value="1" selected>١</option><option value="2">٢</option><option value="3">٣</option></select>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <label class="mz-chip-toggle"><input type="checkbox" id="mz-cumulative" checked><span class="mz-chip-dot"></span> ربط الآيات تراكميًا</label>
+                    <label class="mz-chip-toggle"><input type="checkbox" id="mz-split-long" checked><span class="mz-chip-dot"></span> تقسيم الآيات الطويلة</label>
+                    <div class="mz-field mz-split-only">
+                        <label for="mz-split-mode">طريقة التقسيم</label>
+                        <div class="mz-select-wrap">
+                            <select id="mz-split-mode"><option value="acoustic" selected>وقفات القارئ</option><option value="waqf">علامات الوقف</option></select>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+                    <div class="mz-slider-field mz-split-only">
+                        <label for="mz-gap">حساسية المقاطع <span class="mz-slider-val" id="mz-gap-val">250ms</span></label>
+                        <input type="range" id="mz-gap" min="120" max="500" step="10" value="250">
+                    </div>
+                    <label class="mz-chip-toggle"><input type="checkbox" id="mz-loop"><span class="mz-chip-dot"></span> تكرار النطاق كاملًا</label>
+                </section>
+
+                <!-- Display -->
+                <section class="mz-sec">
+                    <h3 class="mz-sec-title"><i class="fas fa-book-open"></i> العرض</h3>
+                    <div class="mz-grid2">
+                        <div class="mz-field">
+                            <label for="mz-src">المصحف</label>
+                            <div class="mz-select-wrap"><select id="mz-src"><option value="digital_khatt">المدينة الجديد</option><option value="qpc_v1">المدينة ١٤٠٥</option></select><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                        <div class="mz-field">
+                            <label for="mz-layout">طريقة العرض</label>
+                            <div class="mz-select-wrap"><select id="mz-layout"><option value="dual">صفحتان</option><option value="single">صفحة واحدة</option></select><i class="fas fa-chevron-down"></i></div>
+                        </div>
+                    </div>
+                    <button class="mz-toggle-btn" id="mz-tajweed" type="button" aria-pressed="false" title="تلوين أحكام التجويد">
+                        <span class="mz-dot"></span><i class="fas fa-palette"></i><span>تلوين التجويد</span>
+                    </button>
+                    <div class="mz-slider-field">
+                        <label for="mz-justify"><i class="fas fa-text-width"></i> تمطيط السطور <span class="mz-slider-val" id="mz-justify-val">٥٠٪</span></label>
+                        <input type="range" id="mz-justify" min="0" max="100" step="5" value="50">
+                    </div>
+                    <div class="mz-field">
+                        <label><i class="fas fa-stop-circle"></i> علامات الوقف حسب المصحف</label>
+                        <div class="mz-waqf-pills" id="mz-waqf-pills" role="group" aria-label="اختر المصحف لعلامات الوقف"></div>
+                    </div>
+                </section>
             </div>
 
-            <!-- cumulative / segmentation toggles -->
-            <div class="mz-row mz-row-toggles">
-                <label class="mz-chip-toggle"><input type="checkbox" id="mz-cumulative" checked><span class="mz-chip-dot"></span> ربط الآيات تراكميًا</label>
-                <label class="mz-chip-toggle"><input type="checkbox" id="mz-split-long" checked><span class="mz-chip-dot"></span> تقسيم الآيات الطويلة</label>
-                <label class="mz-chip-toggle"><input type="checkbox" id="mz-loop"><span class="mz-chip-dot"></span> تكرار النطاق</label>
+            <div class="mz-side-foot">
+                <p class="mz-hint" id="mz-hint"></p>
+                <p class="mz-status" id="mz-status" role="status"></p>
+                <button id="mz-start" class="mz-btn-primary" type="button"><i class="fas fa-play"></i><span>ابدأ الحفظ</span></button>
+            </div>
+        </aside>
 
-                <div class="mz-field mz-split-only">
-                    <label for="mz-split-mode">طريقة التقسيم</label>
-                    <div class="mz-select-wrap mz-select-wrap-sm">
-                        <select id="mz-split-mode">
-                            <option value="acoustic" selected>وقفات القارئ</option>
-                            <option value="waqf">علامات الوقف</option>
-                        </select><i class="fas fa-chevron-down"></i>
+        <!-- ── Mushaf stage (center) ──────────────────────────────── -->
+        <section class="mz-content">
+            <div class="mz-stage" id="mz-stage" aria-label="صفحة المصحف">
+                <button class="mz-nav-btn mz-nav-prev" id="mz-prev" type="button" title="السابق" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
+
+                <div class="mz-spread" id="mz-spread">
+                    <div class="mz-page-card" data-side="right">
+                        <div class="mz-page-header"><span class="mz-head-juz" id="mz-juz-r"></span><span class="mz-head-surah" id="mz-surah-r"></span></div>
+                        <div class="mz-page" id="mz-page-r" dir="rtl"></div>
+                        <div class="mz-page-footer"><span class="mz-foot-page" id="mz-foot-r"></span></div>
+                    </div>
+                    <div class="mz-page-card" data-side="left">
+                        <div class="mz-page-header"><span class="mz-head-juz" id="mz-juz-l"></span><span class="mz-head-surah" id="mz-surah-l"></span></div>
+                        <div class="mz-page" id="mz-page-l" dir="rtl"></div>
+                        <div class="mz-page-footer"><span class="mz-foot-page" id="mz-foot-l"></span></div>
                     </div>
                 </div>
-                <div class="mz-slider-field mz-split-only mz-split-only-acoustic">
-                    <label for="mz-gap">حساسية المقاطع <span class="mz-slider-val" id="mz-gap-val">250ms</span></label>
-                    <input type="range" id="mz-gap" min="120" max="500" step="10" value="250">
-                </div>
+
+                <button class="mz-nav-btn mz-nav-next" id="mz-next" type="button" title="التالي" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
             </div>
-
-            <!-- display tools -->
-            <div class="mz-row mz-row-tools">
-                <div class="mz-field mz-field-src">
-                    <label for="mz-src"><i class="fas fa-book"></i> المصحف</label>
-                    <div class="mz-select-wrap mz-select-wrap-sm">
-                        <select id="mz-src">
-                            <option value="digital_khatt">مصحف المدينة الجديد</option>
-                            <option value="qpc_v1">مصحف المدينة القديم ١٤٠٥</option>
-                        </select><i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-                <div class="mz-field">
-                    <label for="mz-layout"><i class="fas fa-book-open"></i> العرض</label>
-                    <div class="mz-select-wrap mz-select-wrap-sm">
-                        <select id="mz-layout">
-                            <option value="dual">صفحتان</option>
-                            <option value="single">صفحة واحدة</option>
-                        </select><i class="fas fa-chevron-down"></i>
-                    </div>
-                </div>
-                <button class="mz-toggle-btn" id="mz-tajweed" type="button" aria-pressed="false" title="تلوين أحكام التجويد">
-                    <span class="mz-dot"></span><i class="fas fa-palette"></i><span>التجويد</span>
-                </button>
-                <div class="mz-slider-field">
-                    <label for="mz-justify"><i class="fas fa-text-width"></i> تمطيط السطور <span class="mz-slider-val" id="mz-justify-val">٥٠٪</span></label>
-                    <input type="range" id="mz-justify" min="0" max="100" step="5" value="50">
-                </div>
-                <div class="mz-waqf-tools">
-                    <span class="mz-waqf-label"><i class="fas fa-stop-circle"></i> الوقف</span>
-                    <div class="mz-waqf-pills" id="mz-waqf-pills" role="group" aria-label="اختر المصحف لعلامات الوقف"></div>
-                </div>
-            </div>
-
-            <p class="mz-hint" id="mz-hint"></p>
-            <p class="mz-status" id="mz-status" role="status"></p>
-        </section>
-
-        <!-- ── Mushaf two-page spread ─────────────────────────────── -->
-        <section class="mz-stage" aria-label="صفحة المصحف">
-            <button class="mz-nav-btn mz-nav-prev" id="mz-prev" type="button" title="الصفحتان السابقتان" aria-label="السابق">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-
-            <div class="mz-spread" id="mz-spread">
-                <!-- right page (lower / odd number) — juz right, surah(s) left -->
-                <div class="mz-page-card" data-side="right">
-                    <div class="mz-page-header"><span class="mz-head-juz" id="mz-juz-r"></span><span class="mz-head-surah" id="mz-surah-r"></span></div>
-                    <div class="mz-page" id="mz-page-r" dir="rtl"></div>
-                    <div class="mz-page-footer"><span class="mz-foot-page" id="mz-foot-r"></span></div>
-                </div>
-                <!-- left page (higher / even number) -->
-                <div class="mz-page-card" data-side="left">
-                    <div class="mz-page-header"><span class="mz-head-juz" id="mz-juz-l"></span><span class="mz-head-surah" id="mz-surah-l"></span></div>
-                    <div class="mz-page" id="mz-page-l" dir="rtl"></div>
-                    <div class="mz-page-footer"><span class="mz-foot-page" id="mz-foot-l"></span></div>
-                </div>
-            </div>
-
-            <button class="mz-nav-btn mz-nav-next" id="mz-next" type="button" title="الصفحتان التاليتان" aria-label="التالي">
-                <i class="fas fa-chevron-left"></i>
-            </button>
         </section>
     </main>
 
@@ -171,10 +161,7 @@
     <div class="mz-player" id="mz-player" aria-hidden="true">
         <button class="mz-play-btn" id="mz-play" type="button" title="تشغيل/إيقاف" aria-label="تشغيل"><i class="fas fa-play"></i></button>
         <div class="mz-player-body">
-            <div class="mz-player-meta">
-                <span class="mz-now" id="mz-now">—</span>
-                <span class="mz-reciter">محمود خليل الحصري</span>
-            </div>
+            <div class="mz-player-meta"><span class="mz-now" id="mz-now">—</span><span class="mz-reciter">محمود خليل الحصري</span></div>
             <div class="mz-progress" id="mz-progress"><div class="mz-progress-fill" id="mz-progress-fill"></div></div>
         </div>
         <button class="mz-stop-btn" id="mz-stop" type="button" title="إيقاف" aria-label="إيقاف"><i class="fas fa-stop"></i></button>
@@ -182,6 +169,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=8"></script>
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=9"></script>
 </body>
 </html>

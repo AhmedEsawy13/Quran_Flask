@@ -38,7 +38,9 @@
         start:       $('mz-start'),
         status:      $('mz-status'),
         hint:        $('mz-hint'),
+        stage:       $('mz-stage'),
         spread:      $('mz-spread'),
+        sidebarToggle: $('mz-sidebar-toggle'),
         prev:        $('mz-prev'),
         next:        $('mz-next'),
         player:      $('mz-player'),
@@ -512,11 +514,41 @@
             return;
         }
         applySrcClass();
+        sizePages();
         applyFontSize();
         applySelectionHighlight();
         requestAnimationFrame(justifyLines);
         if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
         updateNavButtons();
+    }
+
+    // Make the page(s) as large as the freed centre allows, keeping a mushaf
+    // portrait ratio, fitting both width (n pages) and height.
+    const PAGE_RATIO = 0.66; // width / height
+    function sizePages() {
+        const stage = els.stage;
+        if (!stage) return;
+        const rect = stage.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const playerReserve = 96;                       // fixed player bar room
+        const availH = Math.max(360, vh - rect.top - playerReserve - 12);
+        const n = state.layoutMode === 'single' ? 1 : 2;
+        const navAndGaps = 2 * 46 + 2 * 14 + 8;         // nav buttons + gaps
+        const availW = Math.max(260, stage.clientWidth - navAndGaps);
+        const headFootPad = 78;                          // header + footer + card padding (vertical)
+        const spreadPad = 28, gutter = n > 1 ? 20 : 0;
+
+        let h = availH - headFootPad;
+        let w = h * PAGE_RATIO;
+        const totalW = w * n + gutter + spreadPad;
+        if (totalW > availW) {
+            const s = (availW - gutter - spreadPad) / (w * n);
+            w *= s; h *= s;
+        }
+        w = Math.max(150, Math.floor(w));
+        h = Math.max(230, Math.floor(h));
+        document.documentElement.style.setProperty('--mz-page-w', w + 'px');
+        document.documentElement.style.setProperty('--mz-page-h', h + 'px');
     }
 
     const pageEls = () => [cards.right.page, cards.left.page];
@@ -968,10 +1000,15 @@
         els.gap.addEventListener('input', () => { state.gapMs = parseInt(els.gap.value, 10) || 250; els.gapVal.textContent = state.gapMs + 'ms'; });
         els.gap.addEventListener('change', reloadMemoBoundaries);
 
+        // Sidebar drawer (mobile)
+        if (els.sidebarToggle) {
+            els.sidebarToggle.addEventListener('click', () => document.body.classList.toggle('mz-sidebar-open'));
+        }
+
         let resizeId = 0;
         window.addEventListener('resize', () => {
             clearTimeout(resizeId);
-            resizeId = setTimeout(() => { if (state.focusPage) { applyFontSize(); justifyLines(); } }, 120);
+            resizeId = setTimeout(() => { if (state.focusPage) { sizePages(); applyFontSize(); justifyLines(); } }, 120);
         });
     }
 
