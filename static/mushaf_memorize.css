@@ -96,8 +96,19 @@ body {
     border: 1px solid var(--mz-border-strong); background: var(--mz-surface); color: var(--mz-text);
     cursor: pointer; font-size: 0.95rem; transition: all 0.15s ease;
 }
-.mz-theme-toggle:hover, .mz-sidebar-toggle:hover { color: var(--mz-accent); border-color: var(--mz-accent); }
+.mz-theme-toggle:hover, .mz-sidebar-toggle:hover, .mz-hide-toggle:hover, .mz-focus-toggle:hover { color: var(--mz-accent); border-color: var(--mz-accent); }
 .mz-sidebar-toggle { display: none; }
+.mz-hide-toggle, .mz-focus-toggle {
+    display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px;
+    border: 1px solid var(--mz-border-strong); background: var(--mz-surface); color: var(--mz-text);
+    cursor: pointer; font-size: 0.95rem; transition: all 0.15s ease;
+}
+.mz-hide-toggle[aria-pressed="true"], .mz-focus-toggle[aria-pressed="true"] {
+    background: var(--mz-accent); border-color: var(--mz-accent); color: #fff;
+}
+.mz-sec-note { margin: -2px 0 0; font-size: 0.72rem; color: var(--mz-text-faint); font-family: 'IBM Plex Sans Arabic', sans-serif; line-height: 1.5; }
+.mz-sec-note small, .mz-sec-note:empty { }
+.mz-sec-note:empty { display: none; }
 
 /* ── Main split: sidebar (right) + content (centre) ──────────────── */
 .mz-main {
@@ -267,6 +278,14 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-word.mz-act { color: var(--mz-accent); }
 .mz-page.mz-tajweed .mz-word.mz-act { color: inherit; }
 
+/* Hide-for-testing: blur the words; click a word to reveal its whole verse. */
+.mz-page.mz-hide .mz-word { color: transparent !important; text-shadow: 0 0 0.5em var(--mz-quran); cursor: pointer; user-select: none; }
+.mz-page.mz-hide .mz-word tajweed { color: transparent !important; text-shadow: 0 0 0.5em currentColor; }
+.mz-page.mz-hide .mz-word.mz-reveal { color: var(--mz-quran) !important; text-shadow: none; }
+.mz-page.mz-hide .mz-word.mz-reveal tajweed { text-shadow: none; }
+.mz-page.mz-hide .mz-word .mz-waqf-stack, .mz-page.mz-hide .mz-word .waqf-stack { opacity: 0; }
+.mz-page.mz-hide .mz-word.mz-reveal .waqf-stack { opacity: 1; }
+
 /* ── Tajweed colours (overlay emits <tajweed class="rule">) ──────── */
 .mz-page.mz-tajweed tajweed.madda_normal      { color: #C86464; }
 .mz-page.mz-tajweed tajweed.madda_permissible { color: #AC3A28; }
@@ -340,6 +359,15 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 .mz-reciter { font-size: 0.74rem; color: var(--mz-text-muted); white-space: nowrap; }
 .mz-progress { height: 6px; background: var(--mz-border-strong); border-radius: 999px; cursor: pointer; overflow: hidden; }
 .mz-progress-fill { height: 100%; width: 0; background: var(--mz-accent); border-radius: 999px; transition: width 0.1s linear; }
+
+/* ── Focus mode — distraction-free: hide the sidebar, page fills width ── */
+body.mz-focus .mz-sidebar { display: none; }
+body.mz-focus .mz-main { padding-top: 10px; }
+
+/* recite-&-follow live state on the recite button */
+.mz-toggle-btn.mz-listening { color: #16a34a; border-color: #16a34a; background: rgba(22,163,74,0.10); }
+.mz-toggle-btn.mz-listening .mz-dot { background: #16a34a; animation: mz-pulse 1s ease-in-out infinite; }
+@keyframes mz-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* ── Responsive: sidebar becomes a right-side drawer ─────────────── */
 @media (max-width: 900px) {

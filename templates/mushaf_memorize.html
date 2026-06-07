@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=14">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=15">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -37,6 +37,8 @@
                 <p>الحفظ بالتكرار التراكمي المقطعي على صفحة المصحف</p>
             </div>
         </div>
+        <button class="mz-hide-toggle" id="mz-hide-toggle" type="button" title="إخفاء النص للتسميع" aria-label="إخفاء النص" aria-pressed="false"><i class="fas fa-eye-slash"></i></button>
+        <button class="mz-focus-toggle" id="mz-focus-toggle" type="button" title="وضع التركيز" aria-label="وضع التركيز" aria-pressed="false"><i class="fas fa-expand"></i></button>
         <button class="mz-sidebar-toggle" id="mz-sidebar-toggle" type="button" title="الإعدادات" aria-label="الإعدادات"><i class="fas fa-sliders"></i></button>
         <button class="mz-theme-toggle" id="mz-theme-toggle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
     </header>
@@ -131,6 +133,19 @@
                         <div class="mz-waqf-pills" id="mz-waqf-pills" role="group" aria-label="اختر المصحف لعلامات الوقف"></div>
                     </div>
                 </section>
+
+                <!-- Testing / recitation -->
+                <section class="mz-sec">
+                    <h3 class="mz-sec-title"><i class="fas fa-graduation-cap"></i> التسميع</h3>
+                    <button class="mz-toggle-btn" id="mz-hide-btn" type="button" aria-pressed="false" title="إخفاء النص — انقر الكلمة لكشف آيتها">
+                        <span class="mz-dot"></span><i class="fas fa-eye-slash"></i><span>إخفاء النص للتسميع</span>
+                    </button>
+                    <p class="mz-sec-note">في وضع الإخفاء: انقر أي كلمة لكشف آيتها، أو زر «إظهار الكل».</p>
+                    <button class="mz-toggle-btn" id="mz-recite-btn" type="button" title="سمّع وسيتابع التطبيق تلاوتك (تجريبي)">
+                        <span class="mz-dot"></span><i class="fas fa-microphone"></i><span>سمّع وتابِع <small>(تجريبي)</small></span>
+                    </button>
+                    <p class="mz-sec-note" id="mz-asr-note"></p>
+                </section>
             </div>
 
             <div class="mz-side-foot">
@@ -175,6 +190,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=14"></script>
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=15"></script>
 </body>
 </html>

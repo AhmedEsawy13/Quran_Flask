@@ -52,6 +52,11 @@
         progressFill:$('mz-progress-fill'),
         audio:       $('mz-audio'),
         themeToggle: $('mz-theme-toggle'),
+        hideToggle:  $('mz-hide-toggle'),
+        hideBtn:     $('mz-hide-btn'),
+        focusToggle: $('mz-focus-toggle'),
+        reciteBtn:   $('mz-recite-btn'),
+        asrNote:     $('mz-asr-note'),
         tajweed:     $('mz-tajweed'),
         justify:     $('mz-justify'),
         justifyVal:  $('mz-justify-val'),
@@ -92,7 +97,37 @@
         layoutMode: 'dual',     // 'dual' | 'single'
         reciter: 'husary',
         reciterName: 'محمود خليل الحصري',
+        hideText: false,
+        focusMode: false,
     };
+
+    /* ── Hide-for-testing + focus mode ─────────────────────────────── */
+    function setHideMode(on) {
+        state.hideText = !!on;
+        pageEls().forEach(p => p && p.classList.toggle('mz-hide', state.hideText));
+        if (!state.hideText) wordsInSpread('.mz-word.mz-reveal').forEach(w => w.classList.remove('mz-reveal'));
+        [els.hideToggle, els.hideBtn].forEach(b => { if (b) b.setAttribute('aria-pressed', String(state.hideText)); });
+        if (els.hideBtn) {
+            els.hideBtn.classList.toggle('mz-on', state.hideText);
+            const lbl = els.hideBtn.querySelector('span:last-child');
+            if (lbl) lbl.textContent = state.hideText ? 'إظهار النص' : 'إخفاء النص للتسميع';
+        }
+        if (els.hideToggle) els.hideToggle.querySelector('i').className = state.hideText ? 'fas fa-eye' : 'fas fa-eye-slash';
+    }
+    function revealVerse(key) {
+        if (!key) return;
+        wordsInSpread(`.mz-word[data-key="${key}"]`).forEach(w => w.classList.add('mz-reveal'));
+    }
+    function setFocusMode(on) {
+        state.focusMode = !!on;
+        document.body.classList.toggle('mz-focus', state.focusMode);
+        if (els.focusToggle) {
+            els.focusToggle.setAttribute('aria-pressed', String(state.focusMode));
+            els.focusToggle.querySelector('i').className = state.focusMode ? 'fas fa-compress' : 'fas fa-expand';
+        }
+        // sidebar gone/back → page size changes
+        requestAnimationFrame(() => { if (state.focusPage) { sizePages(); applyFontSize(); justifyLines(); } });
+    }
 
     const BASMALA_GLYPH = '\u00F3'; // QCF Basmala font: whole basmala in one glyph
 
@@ -582,6 +617,7 @@
             return;
         }
         applySrcClass();
+        if (state.hideText) pageEls().forEach(p => p && p.classList.add('mz-hide'));
         sizePages();
         applyFontSize();
         applySelectionHighlight();
@@ -1028,6 +1064,73 @@
     els.audio.addEventListener('seeked', () => { state.pendingSeek = false; });
     els.audio.addEventListener('ended', () => { if (state.stepIdx >= 0 && state.stepIdx < state.schedule.length) advanceStep(); });
 
+    /* ── Recite & follow (streaming ASR, beta) ─────────────────────────
+       Lazy-loads static/mushaf_asr.js (onnxruntime-web + the FastConformer
+       streaming model). The module emits recognised Arabic words; we match
+       them against the selected verses in order to follow / reveal / advance. */
+    let _asrLoaded = false, _asrActive = false;
+    const _arNorm = s => (s || '')
+        .replace(/[ً-ْٰـۖ-ۭ࣐-ࣿ]/g, '') // diacritics, tatweel, marks
+        .replace(/[إأآا]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+        .replace(/\s+/g, ' ').trim();
+
+    function _expectedVerses() {
+        const [a, b] = selectedAyahRange();
+        const out = [];
+        for (let k = a; k <= b; k++) {
+            const v = state.verseByAyah.get(k);
+            if (v) out.push({ ayah: k, words: _arNorm(v.text).split(' ').filter(Boolean) });
+        }
+        return out;
+    }
+
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = src; s.onload = resolve; s.onerror = () => reject(new Error('load failed'));
+            document.head.appendChild(s);
+        });
+    }
+
+    async function startReciteFollow() {
+        if (_asrActive) { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} return; }
+        if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
+        try {
+            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=15'); _asrLoaded = true; }
+            if (!window.MushafASR) throw new Error('module missing');
+
+            const expected = _expectedVerses();
+            let idx = 0; // current expected verse index
+            await window.MushafASR.start({
+                onStatus: (msg) => { if (els.asrNote) els.asrNote.textContent = msg; },
+                onActive: (on) => {
+                    _asrActive = on;
+                    if (els.reciteBtn) els.reciteBtn.classList.toggle('mz-listening', on);
+                },
+                // Called with the running recognised (normalised) transcript.
+                onTranscript: async (text) => {
+                    const heard = _arNorm(text);
+                    if (!heard || idx >= expected.length) return;
+                    const v = expected[idx];
+                    // crude match: the verse's last 2 words appear in the tail of what we heard
+                    const tail = v.words.slice(-2).join(' ');
+                    if (tail && heard.includes(tail)) {
+                        await ensureVerseVisible(state.surah, v.ayah);
+                        revealVerse(`${state.surah}:${v.ayah}`);
+                        markActive(`${state.surah}:${v.ayah}`);
+                        scrollActiveIntoView();
+                        idx++;
+                        if (idx >= expected.length && els.asrNote) els.asrNote.textContent = 'أحسنت! اكتمل التسميع 🌿';
+                    }
+                },
+            });
+        } catch (e) {
+            _asrActive = false;
+            if (els.reciteBtn) els.reciteBtn.classList.remove('mz-listening');
+            if (els.asrNote) els.asrNote.innerHTML = 'تعذّر تشغيل التعرّف على التلاوة. هذه الميزة تجريبية وتتطلب متصفحًا حديثًا وإذن الميكروفون وتحميل النموذج. التفاصيل في <code>static/mushaf_asr.js</code>.';
+        }
+    }
+
     /* ── Wiring ────────────────────────────────────────────────────── */
     async function onSurahChange() {
         stopPlayback();
@@ -1102,6 +1205,21 @@
         els.gap.addEventListener('input', () => { state.gapMs = parseInt(els.gap.value, 10) || 250; els.gapVal.textContent = state.gapMs + 'ms'; });
         els.gap.addEventListener('change', reloadMemoBoundaries);
 
+        // Hide-for-testing toggles (topbar + sidebar)
+        const toggleHide = () => setHideMode(!state.hideText);
+        if (els.hideToggle) els.hideToggle.addEventListener('click', toggleHide);
+        if (els.hideBtn) els.hideBtn.addEventListener('click', toggleHide);
+        // Click a hidden word → reveal its whole verse
+        if (els.stage) els.stage.addEventListener('click', (e) => {
+            if (!state.hideText) return;
+            const w = e.target.closest('.mz-word');
+            if (w && w.dataset.key) revealVerse(w.dataset.key);
+        });
+        // Focus mode
+        if (els.focusToggle) els.focusToggle.addEventListener('click', () => setFocusMode(!state.focusMode));
+        // Recite & follow (lazy-load the ASR module)
+        if (els.reciteBtn) els.reciteBtn.addEventListener('click', startReciteFollow);
+
         // Sidebar drawer (mobile)
         if (els.sidebarToggle) {
             els.sidebarToggle.addEventListener('click', () => document.body.classList.toggle('mz-sidebar-open'));
@@ -1136,6 +1254,8 @@
         if (wq != null) { state.mushafVersions = wq ? wq.split(',').map(s => s.trim()).filter(Boolean) : []; saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions)); }
         const ly = p.get('layout');
         if (ly === 'single' || ly === 'dual') { state.layoutMode = ly; els.layout.value = ly; saveSetting('mz_layout', ly); document.body.classList.toggle('mz-single', ly === 'single'); }
+        if (p.get('hide') === '1') state.hideText = true;
+        if (p.get('focus') === '1') setFocusMode(true);
         const surah = parseInt(p.get('surah'), 10);
         if (!surah) return false;
         if ([...els.surah.options].some(o => +o.value === surah)) els.surah.value = surah;
@@ -1166,6 +1286,7 @@
                 if (to && [...els.to.options].some(o => +o.value === to)) els.to.value = to;
             }
             await renderSelection();
+            if (state.hideText) setHideMode(true);
             // Re-fit once the mushaf fonts are actually loaded (initial measure
             // may have used fallback metrics).
             if (document.fonts && document.fonts.ready) {
