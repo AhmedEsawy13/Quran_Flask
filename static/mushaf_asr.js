@@ -26,7 +26,12 @@
 
     const ORT_URL = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/ort.min.js';
     const ASR_CONFIG = {
-        modelUrl: '/static/asr_model.q8.onnx',    // INT8 streaming model (with encoder), ~132 MB
+        // Tried in order. Local /static is fast in dev; on a host that can't serve
+        // the 132 MB file (e.g. Vercel's Python lambda) it falls back to the HF CDN.
+        modelUrls: [
+            '/static/asr_model.q8.onnx',
+            'https://huggingface.co/Muno459/fastconformer-quran-streaming/resolve/main/model_streaming_with_encoder.q8.onnx',
+        ],
         cmvnUrl:  '/static/asr_cmvn.json',        // {clean_mean,clean_std,tlog_mean,tlog_std}
         vocabUrl: '/static/asr_vocab.json',       // 1024 SentencePiece pieces (id→piece)
         cmvnVariant: 'clean',                     // 'clean' (studio) | 'tlog' (phone)
@@ -181,7 +186,13 @@
             if (!session) {
                 status('تحميل النموذج (~132MB أول مرة)…');
                 window.ort.env.wasm.numThreads = 1; // no COOP/COEP needed (SharedArrayBuffer-free)
-                session = await window.ort.InferenceSession.create(ASR_CONFIG.modelUrl, { executionProviders: ['wasm'] });
+                window.ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
+                let lastErr = null;
+                for (const url of ASR_CONFIG.modelUrls) {
+                    try { session = await window.ort.InferenceSession.create(url, { executionProviders: ['wasm'] }); break; }
+                    catch (e) { lastErr = e; }
+                }
+                if (!session) throw lastErr || new Error('model load failed');
             }
             if (!cmvn) { status('تحميل ثوابت المعايرة…'); try { cmvn = await loadJson(ASR_CONFIG.cmvnUrl); } catch (e) { cmvn = null; } }
             if (!vocab) { status('تحميل المعجم…'); vocab = await loadJson(ASR_CONFIG.vocabUrl); }

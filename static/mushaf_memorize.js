@@ -1096,7 +1096,7 @@
         if (_asrActive) { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} return; }
         if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
         try {
-            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=16'); _asrLoaded = true; }
+            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=18'); _asrLoaded = true; }
             if (!window.MushafASR) throw new Error('module missing');
 
             const expected = _expectedVerses();
@@ -1127,7 +1127,9 @@
         } catch (e) {
             _asrActive = false;
             if (els.reciteBtn) els.reciteBtn.classList.remove('mz-listening');
-            if (els.asrNote) els.asrNote.innerHTML = 'تعذّر تشغيل التعرّف على التلاوة. هذه الميزة تجريبية وتتطلب متصفحًا حديثًا وإذن الميكروفون وتحميل النموذج. التفاصيل في <code>static/mushaf_asr.js</code>.';
+            console.error('[recite] failed:', e);
+            const msg = (e && (e.message || e.name)) ? (e.message || e.name) : String(e);
+            if (els.asrNote) els.asrNote.textContent = 'تعذّر التشغيل: ' + msg;
         }
     }
 
