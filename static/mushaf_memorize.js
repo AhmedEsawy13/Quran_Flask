@@ -33,6 +33,7 @@
         gap:         $('mz-gap'),
         gapVal:      $('mz-gap-val'),
         loop:        $('mz-loop'),
+        reciter:     $('mz-reciter'),
         src:         $('mz-src'),
         layout:      $('mz-layout'),
         start:       $('mz-start'),
@@ -89,6 +90,8 @@
         gapMs: 250,
         splitModeVal: 'acoustic',
         layoutMode: 'dual',     // 'dual' | 'single'
+        reciter: 'husary',
+        reciterName: 'محمود خليل الحصري',
     };
 
     const BASMALA_GLYPH = '\u00F3'; // QCF Basmala font: whole basmala in one glyph
@@ -282,13 +285,38 @@
         }).join('');
     }
 
+    function memoQuery() {
+        return `?reciter=${encodeURIComponent(state.reciter)}&mode=${state.splitModeVal}&gap=${state.gapMs}`;
+    }
+
+    /* ── Reciters ──────────────────────────────────────────────────── */
+    async function loadReciters() {
+        if (!els.reciter) return;
+        let list = [];
+        try {
+            const resp = await fetch('/api/memorization-reciters');
+            if (resp.ok) list = await resp.json();
+        } catch (e) { list = []; }
+        if (!list.length) list = [{ id: 'husary', name_ar: 'محمود خليل الحصري' }];
+        const saved = localStorage.getItem('quranApp_memoReciter');
+        if (list.some(r => r.id === saved)) state.reciter = saved;
+        else if (!list.some(r => r.id === state.reciter)) state.reciter = list[0].id;
+        els.reciter.innerHTML = list.map(r => `<option value="${r.id}">${r.name_ar || r.name_en || r.id}</option>`).join('');
+        els.reciter.value = state.reciter;
+        const cur = list.find(r => r.id === state.reciter);
+        if (cur) state.reciterName = cur.name_ar || cur.name_en || state.reciter;
+    }
+
     async function loadSurahMemo(surah) {
         setStatus('جارٍ تحميل بيانات السورة…');
-        const resp = await fetch(`/api/memorization/${surah}?mode=${state.splitModeVal}&gap=${state.gapMs}`);
+        const resp = await fetch(`/api/memorization/${surah}${memoQuery()}`);
         if (!resp.ok) throw new Error('memo load failed');
         const data = await resp.json();
         state.memo = data;
         state.surah = surah;
+        if (data.reciter_name_ar) state.reciterName = data.reciter_name_ar;
+        const recEl = document.querySelector('.mz-reciter');
+        if (recEl) recEl.textContent = state.reciterName;
         state.verseByAyah = new Map(data.verses.map(v => [v.ayah, v]));
 
         const opts = data.verses.map(v => `<option value="${v.ayah}">${toAr(v.ayah)}</option>`).join('');
@@ -315,7 +343,7 @@
     async function reloadMemoBoundaries() {
         if (!state.memo) return;
         try {
-            const resp = await fetch(`/api/memorization/${state.surah}?mode=${state.splitModeVal}&gap=${state.gapMs}`);
+            const resp = await fetch(`/api/memorization/${state.surah}${memoQuery()}`);
             if (!resp.ok) return;
             const data = await resp.json();
             state.memo = data;
@@ -599,55 +627,46 @@
     };
 
     /* ── Justification (kashida features + scaleX fill) ────────────── */
-    // Justify each line the way Digital Khatt / QUL does: drive the font's
-    // LTAT/RTAT kashida axes (parametric letter-join elongation — NO scaleX
-    // distortion), and fill any remaining gap with word-spacing (the gaps
-    // between words). scaleX is only a last-resort shrink for overflow.
-    const KMAX = 20;
-    const vset = k => `'LTAT' ${k}, 'RTAT' ${k}`;
+    // Justify via the font's discrete kashida/justification features, then fill
+    // the rest with a gentle horizontal stretch (the earlier, preferred logic).
+    function khattFeatureSettings(strength) {
+        const s = Math.max(0, Math.min(100, Number(strength) || 0));
+        if (s <= 0) return '';
+        if (state.src === 'digital_khatt') {
+            const levels = [`'jalt' 1`, `'jalt' 1, 'cv02' 1`, `'jalt' 1, 'cv01' 1`, `'jalt' 1, 'cv01' 1, 'cv02' 1`];
+            const level = Math.min(levels.length, Math.max(1, Math.ceil((s / 100) * levels.length)));
+            return levels[level - 1] || '';
+        }
+        const seq = [];
+        for (let lvl = 1; lvl <= 5; lvl += 1) for (const t of ['jt', 'dc', 'kt']) seq.push(`${t}0${lvl}`);
+        const count = Math.round((s / 100) * seq.length);
+        if (count <= 0) return '';
+        return seq.slice(0, count).map(f => `'${f}'`).join(',');
+    }
     function justifyLines() {
-        const frac = state.justify / 100;
-        const L = [];
+        const jFrac = state.justify / 100;
+        const features = khattFeatureSettings(state.justify);
         wordsInSpread('.mz-line').forEach(lineEl => {
             const inner = lineEl.querySelector('.mz-line-inner');
             if (!inner) return;
             inner.style.transform = 'none';
-            inner.style.wordSpacing = '0px';
-            inner.style.fontVariationSettings = vset(0);
-            L.push({ inner, isJustify: lineEl.dataset.justify === '1', avail: lineEl.clientWidth });
-        });
-        // Pass 1: natural width (LTAT 0).
-        L.forEach(o => { o.n0 = o.inner.scrollWidth; });
-        // Pass 2: max-kashida width (LTAT 20) for justified lines.
-        L.forEach(o => { if (o.isJustify) o.inner.style.fontVariationSettings = vset(KMAX); });
-        L.forEach(o => { o.n20 = o.isJustify ? o.inner.scrollWidth : o.n0; });
-        // Apply.
-        L.forEach(({ inner, isJustify, avail, n0, n20 }) => {
-            if (!avail || !n0) { inner.style.fontVariationSettings = vset(0); return; }
-            if (!isJustify) {
-                inner.style.fontVariationSettings = vset(0);
-                inner.style.transform = n0 > avail ? `scaleX(${Math.max(0.5, avail / n0)})` : 'none';
-                return;
-            }
-            if (n0 >= avail) { // overflows even compact → shrink
-                inner.style.fontVariationSettings = vset(0);
-                inner.style.transform = `scaleX(${Math.max(0.5, avail / n0)})`;
-                return;
-            }
-            const target = n0 + (avail - n0) * frac;
-            inner.style.transform = 'none';
-            if (n20 > n0 && target <= n20) {
-                // kashida alone reaches the target
-                const k = KMAX * (target - n0) / (n20 - n0);
-                inner.style.fontVariationSettings = vset(k.toFixed(1));
-                inner.style.wordSpacing = '0px';
+            inner.style.fontFeatureSettings = '';
+            inner.style.fontVariationSettings = '';
+            inner.style.wordSpacing = '';
+            const avail = lineEl.clientWidth;
+            const isJustify = lineEl.dataset.justify === '1';
+            const plain = inner.scrollWidth;
+            if (!plain) return;
+            if (isJustify && features && plain < avail) inner.style.fontFeatureSettings = features;
+            const natural = inner.scrollWidth;
+            let scale;
+            if (isJustify) {
+                const fullScale = Math.max(0.35, Math.min(1.9, avail / natural));
+                scale = natural > avail ? fullScale : 1 + (fullScale - 1) * jFrac;
             } else {
-                // even max kashida is short → top up with word spacing
-                inner.style.fontVariationSettings = vset(KMAX);
-                const residual = Math.max(0, target - n20);
-                const gaps = Math.max(1, (inner.textContent.match(/ /g) || []).length);
-                inner.style.wordSpacing = `${(residual / gaps).toFixed(2)}px`;
+                scale = natural > avail ? Math.max(0.35, avail / natural) : 1;
             }
+            inner.style.transform = `scaleX(${scale})`;
         });
     }
     // Size the text so a typical line naturally fills the line width — then the
@@ -661,23 +680,23 @@
             let fs = Math.max(11, lineH * 0.62); // line-height baseline
             p.style.setProperty('--dk-fs', fs + 'px');
 
-            // Measure the WIDEST justified lines at natural (no kashida) width and
-            // scale the font so they just fit. Then every shorter line can be
-            // filled by kashida (LTAT) up to full justification without overflow.
+            // Measure justified lines at this size, then scale so the median line
+            // ~fills the width (98%). Proportional scaling keeps the ratio valid.
             const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
             const ratios = [];
             inners.forEach(inner => {
                 inner.style.transform = 'none';
-                inner.style.wordSpacing = '0px';
-                inner.style.fontVariationSettings = vset(0);
+                inner.style.fontFeatureSettings = '';
+                inner.style.fontVariationSettings = '';
+                inner.style.wordSpacing = '';
                 const avail = inner.parentElement.clientWidth;
                 const nat = inner.scrollWidth;
                 if (nat > 0 && avail > 0) ratios.push(avail / nat);
             });
             if (ratios.length) {
-                ratios.sort((a, b) => a - b);  // ascending: smallest ratio = widest line
-                const pick = ratios[Math.floor(ratios.length * 0.12)] || ratios[0];
-                fs = Math.max(11, Math.min(maxFs, fs * pick * 0.99));
+                ratios.sort((a, b) => a - b);
+                const med = ratios[Math.floor(ratios.length / 2)] || 1;
+                fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
                 p.style.setProperty('--dk-fs', fs + 'px');
             }
         });
@@ -1072,6 +1091,13 @@
         els.linkReps.addEventListener('change', updateHint);
         els.cumulative.addEventListener('change', updateHint);
         els.splitLong.addEventListener('change', () => { document.body.classList.toggle('mz-split-on', els.splitLong.checked); updateHint(); });
+        if (els.reciter) els.reciter.addEventListener('change', async () => {
+            state.reciter = els.reciter.value;
+            saveSetting('quranApp_memoReciter', state.reciter);
+            stopPlayback();
+            try { await loadSurahMemo(state.surah); } catch (e) { setStatus('تعذّر تحميل القارئ', true); }
+        });
+
         els.splitMode.addEventListener('change', () => { state.splitModeVal = els.splitMode.value; reloadMemoBoundaries(); });
         els.gap.addEventListener('input', () => { state.gapMs = parseInt(els.gap.value, 10) || 250; els.gapVal.textContent = state.gapMs + 'ms'; });
         els.gap.addEventListener('change', reloadMemoBoundaries);
@@ -1122,6 +1148,7 @@
         loadSettings();
         bindEvents();
         loadWaqfPills();
+        await loadReciters();
         document.body.classList.toggle('mz-split-on', els.splitLong.checked);
         try {
             await loadSurahs();

@@ -2041,26 +2041,64 @@ def get_quran_text_data():
 # in the alignment itself, i.e. where the reciter actually paused.
 _MEMORIZATION_DIR = os.path.join(_BASE_DIR, 'reciters', 'mahmoud_khalil_al_husary_mp3quran')
 _MEMORIZATION_AUDIO_TMPL = 'https://server13.mp3quran.net/husr/{surah:03d}.mp3'
+
+# ── Memorization reciters ────────────────────────────────────────────────
+# Each reciter needs a QUL `word_timestamps.json.gz` (from
+# Wider-Community/quranic-universal-audio — the same format as Husary above) in
+# its `dir`, plus a per-surah audio URL template. Reciters whose data file is
+# present are offered in the UI; the rest are ignored until imported.
+# To add one: drop <reciter>/word_timestamps.json.gz under reciters/ and add an
+# entry here with its mp3 URL (see scripts/import_qul_reciters.py).
+MEMORIZATION_RECITERS = {
+    'husary': {
+        'name_ar': 'محمود خليل الحصري', 'name_en': 'Mahmoud Khalil al-Husary',
+        'dir': _MEMORIZATION_DIR,
+        'audio_tmpl': _MEMORIZATION_AUDIO_TMPL,
+    },
+    'minshawi': {
+        'name_ar': 'محمد صديق المنشاوي', 'name_en': 'Mohamed Siddiq al-Minshawi',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'minshawi_murattal_qul'),
+        'audio_tmpl': 'https://server10.mp3quran.net/minsh/{surah:03d}.mp3',
+    },
+    'abdulbasit': {
+        'name_ar': 'عبد الباسط عبد الصمد', 'name_en': 'AbdulBaset AbdulSamad',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'abdulbasit_murattal_qul'),
+        'audio_tmpl': 'https://server7.mp3quran.net/basit/{surah:03d}.mp3',
+    },
+    'afasy': {
+        'name_ar': 'مشاري راشد العفاسي', 'name_en': 'Mishary Rashid al-Afasy',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'afasy_qul'),
+        'audio_tmpl': 'https://server8.mp3quran.net/afs/{surah:03d}.mp3',
+    },
+}
+_DEFAULT_MEMO_RECITER = 'husary'
+
+def _memo_reciter_cfg(reciter_id):
+    return MEMORIZATION_RECITERS.get(reciter_id) or MEMORIZATION_RECITERS[_DEFAULT_MEMO_RECITER]
+
+def _memo_reciter_installed(reciter_id):
+    cfg = MEMORIZATION_RECITERS.get(reciter_id)
+    return bool(cfg and os.path.exists(os.path.join(cfg['dir'], 'word_timestamps.json.gz')))
 # Husary mushaf-waqf phrase boundaries (sub-verse segments). Used by the
 # 'waqf' segmentation mode, snapped to real pauses in the mp3quran audio.
 _MEMORIZATION_WAQF_DB = os.path.join(_BASE_DIR, 'reciters', 'husary',
                                      'mahmoud_khalil_al_husari_0_1_positions.db')
-_memorization_word_ts = None
+_memorization_word_ts = {}      # reciter_id -> word-timestamps dict (cached)
 _memorization_waqf_bounds = None
 _memorization_lock = threading.Lock()
 
 
-def _load_memorization_word_ts():
-    """Lazy-load + cache the surah-absolute word timestamps (idempotent)."""
-    global _memorization_word_ts
-    if _memorization_word_ts is not None:
-        return _memorization_word_ts
+def _load_memorization_word_ts(reciter_id=_DEFAULT_MEMO_RECITER):
+    """Lazy-load + cache a reciter's surah-absolute word timestamps."""
+    if reciter_id in _memorization_word_ts:
+        return _memorization_word_ts[reciter_id]
     with _memorization_lock:
-        if _memorization_word_ts is None:
-            path = os.path.join(_MEMORIZATION_DIR, 'word_timestamps.json.gz')
+        if reciter_id not in _memorization_word_ts:
+            cfg = _memo_reciter_cfg(reciter_id)
+            path = os.path.join(cfg['dir'], 'word_timestamps.json.gz')
             with gzip.open(path, 'rt', encoding='utf-8') as fh:
-                _memorization_word_ts = json.load(fh)
-    return _memorization_word_ts
+                _memorization_word_ts[reciter_id] = json.load(fh)
+    return _memorization_word_ts[reciter_id]
 
 
 def _segment_phrases(words, gap_ms):
@@ -2175,10 +2213,15 @@ def get_memorization(surah_number):
     if gap_ms < 0 or gap_ms > 5000:
         gap_ms = 250
 
+    reciter_id = (request.args.get('reciter', _DEFAULT_MEMO_RECITER) or _DEFAULT_MEMO_RECITER)
+    if not _memo_reciter_installed(reciter_id):
+        reciter_id = _DEFAULT_MEMO_RECITER
+    reciter_cfg = _memo_reciter_cfg(reciter_id)
+
     try:
-        word_ts = _load_memorization_word_ts()
+        word_ts = _load_memorization_word_ts(reciter_id)
     except Exception as e:
-        app.logger.error(f"Memorization data load failed: {e}")
+        app.logger.error(f"Memorization data load failed for {reciter_id}: {e}")
         return jsonify({"error": "Memorization data unavailable"}), 503
 
     waqf_bounds = _load_waqf_boundaries() if mode == 'waqf' else {}
@@ -2221,12 +2264,24 @@ def get_memorization(surah_number):
 
     return jsonify({
         'surah_number': surah_number,
-        'reciter': 'Mahmoud Khalil al-Husary',
-        'audio_url': _MEMORIZATION_AUDIO_TMPL.format(surah=surah_number),
+        'reciter': reciter_cfg.get('name_en', 'Mahmoud Khalil al-Husary'),
+        'reciter_id': reciter_id,
+        'reciter_name_ar': reciter_cfg.get('name_ar', ''),
+        'audio_url': reciter_cfg['audio_tmpl'].format(surah=surah_number),
         'gap_ms': gap_ms,
         'mode': mode,
         'verses': verses,
     })
+
+
+@app.route('/api/memorization-reciters', methods=['GET'])
+def get_memorization_reciters():
+    """List the memorization reciters whose timestamp data is installed."""
+    out = []
+    for rid, cfg in MEMORIZATION_RECITERS.items():
+        if _memo_reciter_installed(rid):
+            out.append({'id': rid, 'name_ar': cfg.get('name_ar', ''), 'name_en': cfg.get('name_en', '')})
+    return jsonify(out)
 
 
 @app.route('/api/audio-proxy')
