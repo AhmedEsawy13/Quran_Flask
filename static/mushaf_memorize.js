@@ -637,13 +637,34 @@
             inner.style.transform = `scaleX(${scale})`;
         });
     }
+    // Size the text so a typical line naturally fills the line width — then the
+    // justify slider only needs a touch of kashida, instead of big scaleX stretch.
     function applyFontSize() {
         pageEls().forEach(p => {
-            if (!p) return;
+            if (!p || !p.classList.contains('mz-has-page')) return;
             const h = p.clientHeight || 1;
             const lineH = h / 15;
-            const fs = Math.max(11, Math.round(lineH * 0.6));
+            const maxFs = lineH * 0.92;          // never taller than the line slot
+            let fs = Math.max(11, lineH * 0.62); // line-height baseline
             p.style.setProperty('--dk-fs', fs + 'px');
+
+            // Measure justified lines at this size, then scale so the median line
+            // ~fills the width (98%). Proportional scaling keeps the ratio valid.
+            const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
+            const ratios = [];
+            inners.forEach(inner => {
+                inner.style.transform = 'none';
+                inner.style.fontFeatureSettings = '';
+                const avail = inner.parentElement.clientWidth;
+                const nat = inner.scrollWidth;
+                if (nat > 0 && avail > 0) ratios.push(avail / nat);
+            });
+            if (ratios.length) {
+                ratios.sort((a, b) => a - b);
+                const med = ratios[Math.floor(ratios.length / 2)] || 1;
+                fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
+                p.style.setProperty('--dk-fs', fs + 'px');
+            }
         });
     }
 
@@ -1103,6 +1124,13 @@
                 if (to && [...els.to.options].some(o => +o.value === to)) els.to.value = to;
             }
             await renderSelection();
+            // Re-fit once the mushaf fonts are actually loaded (initial measure
+            // may have used fallback metrics).
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(() => {
+                    if (state.focusPage) { applyFontSize(); requestAnimationFrame(justifyLines); }
+                });
+            }
         } catch (e) {
             setStatus('تعذّر تهيئة الصفحة', true);
         }
