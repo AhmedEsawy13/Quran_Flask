@@ -111,17 +111,38 @@
     ];
     const surahHeaderGlyph = n => (n >= 1 && n <= 114) ? String.fromCodePoint(SURAH_HEADER_CP[n - 1]) : '';
 
-    const MUSHAF_COLOR_MAP = [
-        { re: /المدينة|مدينة/, cls: 'mz-waqf-madinah'  },
-        { re: /الشمرلي|شمرلي/, cls: 'mz-waqf-shamarly' },
-        { re: /الأزهر|أزهر/,   cls: 'mz-waqf-azhar'    },
-        { re: /ورش/,           cls: 'mz-waqf-warsh'    },
-        { re: /الهندي|هندي/,   cls: 'mz-waqf-hindi'    },
-    ];
-    const mushafColorClass = v => {
-        for (const e of MUSHAF_COLOR_MAP) if (e.re.test(v || '')) return e.cls;
-        return 'mz-waqf-other';
+    /* ── Waqf symbol normalization — ported from the main app so the memorize
+       page renders the same glyphs in the same fonts. ─────────────────────── */
+    const isWarshMushafVersion = v => /ورش|warsh/i.test((v || '').toString());
+    function normalizeWarshWaqfText(raw) {
+        if (!raw || !raw.trim()) return '';
+        return raw.split(/[،,]/).map(t => t.trim()).filter(Boolean).map(t => {
+            if (t === 'ر' || t === 'ۜ') return 'ۜ';
+            if (t === 'ص' || t === 'ۖ') return 'ۖ';
+            return '';
+        }).filter(Boolean).join('');
+    }
+    const WAQF_GLYPH_MAP = {
+        'م': 'ۘ', 'قلى': 'ۗ', 'قلي': 'ۗ', 'ق': 'ۗ', 'صلى': 'ۖ', 'صلي': 'ۖ', 'ص': 'ۖ',
+        'ج': 'ۚ', 'لا': 'ۙ', 'ع': 'ۛ',
+        'ۘ': 'ۘ', 'ۗ': 'ۗ', 'ۖ': 'ۖ', 'ۚ': 'ۚ', 'ۙ': 'ۙ', 'ۛ': 'ۛ', 'ۜ': 'ۜ',
+        'ؕ': 'ؕ', 'ؗ': 'ؗ', 'ؔ': 'ؔ', '۪': '۪', '۫': '۫', '۬': '۬',
     };
+    function normalizeNonWarshWaqfText(raw) {
+        return raw.split(/[،,]/).map(t => t.replace(/\s+/g, '').trim()).filter(Boolean)
+            .map(t => WAQF_GLYPH_MAP[t] || t).join('');
+    }
+    function getWaqfDisplayData(raw, version) {
+        raw = (raw || '').toString().trim();
+        if (!raw) return null;
+        if (isWarshMushafVersion(version)) {
+            const n = normalizeWarshWaqfText(raw);
+            return n ? { text: n, extraClass: 'waqf-warsh' } : null;
+        }
+        const n = normalizeNonWarshWaqfText(raw);
+        if (/^[↺▶]+$/.test(n)) return null; // recording cues, not waqf
+        return { text: n, extraClass: '' };
+    }
 
     /* ── Status / hint ─────────────────────────────────────────────── */
     function setStatus(msg, isErr) {
@@ -206,7 +227,7 @@
         versions.forEach(v => {
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.className = 'mz-waqf-pill ' + mushafColorClass(v);
+            btn.className = 'mz-waqf-pill';
             btn.textContent = v;
             btn.classList.toggle('mz-on', state.mushafVersions.includes(v));
             btn.addEventListener('click', () => toggleWaqfVersion(v, btn));
@@ -242,6 +263,8 @@
         return j;
     }
     const juzLabel = pageNumber => `الجزء ${JUZ_NAME[juzNumber(pageNumber) - 1]}`;
+    // QCF Common font: each juz NAME is one glyph at U+E000+juz (E01E = الجزء الثلاثون).
+    const juzGlyph = j => (j >= 1 && j <= 30) ? String.fromCodePoint(0xE000 + j) : '';
 
     const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
     const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
@@ -370,22 +393,37 @@
         return resp.json();
     }
 
-    /* ── Waqf marks renderer ───────────────────────────────────────── */
+    /* ── Waqf marks renderer (same structure/fonts/colours as the main page) ─ */
     function appendWaqfMarks(span, entries) {
         if (!Array.isArray(entries) || !entries.length) return;
         const stack = document.createElement('span');
-        stack.className = 'mz-waqf-stack';
+        stack.className = 'waqf-stack';
         entries.forEach(e => {
-            const syms = (e && e.symbols ? String(e.symbols) : '').trim();
-            if (!syms) return;
-            const cls = mushafColorClass(e.version);
-            [...syms].forEach(ch => {
-                if (!ch.trim()) return;
+            const version = (e && e.version) || '';
+            const data = getWaqfDisplayData(e && e.symbols, version);
+            if (!data) return;
+            const isHindi = version === 'الهندي';
+            const symbols = [...data.text].filter(ch => {
+                if (!ch.trim()) return false;
+                if (isHindi) {
+                    const cp = ch.codePointAt(0);
+                    if (ch === '۟' || ch === 'ۜ') return false;
+                    if (cp >= 0xE000 && cp <= 0xF8FF) return false;
+                }
+                return true;
+            });
+            if (!symbols.length) return;
+            const cls = 'waqf-symbol' + (data.extraClass ? ' ' + data.extraClass : '');
+            symbols.forEach(sym => {
                 const s = document.createElement('span');
-                s.className = 'mz-waqf-sym ' + cls;
-                s.textContent = ch;
-                if (e.version) s.title = `مصحف: ${e.version}`;
-                stack.appendChild(s);
+                s.className = cls;
+                if (version) { s.dataset.version = version; s.title = `مصحف: ${version}`; }
+                s.textContent = sym;
+                if (isHindi) {
+                    let g = stack.querySelector(':scope > .waqf-hindi-group');
+                    if (!g) { g = document.createElement('span'); g.className = 'waqf-hindi-group'; stack.appendChild(g); }
+                    g.appendChild(s);
+                } else stack.appendChild(s);
             });
         });
         if (stack.childNodes.length) span.appendChild(stack);
@@ -474,7 +512,9 @@
             else { el.className = 'mz-head-text-item'; el.textContent = surahNameOf(sn) ? `سورة ${surahNameOf(sn)}` : ''; }
             card.surah.appendChild(el);
         });
-        card.juz.textContent = juzLabel(payload.page_number);
+        const jn = juzNumber(payload.page_number), jg = juzGlyph(jn);
+        if (jg) { card.juz.classList.add('mz-juz-glyph'); card.juz.textContent = jg; card.juz.title = juzLabel(payload.page_number); card.juz.setAttribute('aria-label', juzLabel(payload.page_number)); }
+        else { card.juz.classList.remove('mz-juz-glyph'); card.juz.textContent = juzLabel(payload.page_number); }
         card.foot.textContent = `صفحة ${toAr(payload.page_number)}`;
     }
 
