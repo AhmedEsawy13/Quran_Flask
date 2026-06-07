@@ -74,3 +74,6 @@ static/mpguifont.mp
 static/myfontbase.mp
 static/parameters.json
 static/texpages.dat
+static/asr_model.q8.onnx
+tokenizer.model
+streaming_global_cmvn.npz

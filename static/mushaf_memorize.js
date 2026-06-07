@@ -1096,7 +1096,7 @@
         if (_asrActive) { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} return; }
         if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
         try {
-            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=15'); _asrLoaded = true; }
+            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=16'); _asrLoaded = true; }
             if (!window.MushafASR) throw new Error('module missing');
 
             const expected = _expectedVerses();
