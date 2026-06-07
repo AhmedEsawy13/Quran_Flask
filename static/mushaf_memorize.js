@@ -599,42 +599,55 @@
     };
 
     /* ── Justification (kashida features + scaleX fill) ────────────── */
-    function khattFeatureSettings(strength) {
-        const s = Math.max(0, Math.min(100, Number(strength) || 0));
-        if (s <= 0) return '';
-        if (state.src === 'digital_khatt') {
-            const levels = [`'jalt' 1`, `'jalt' 1, 'cv02' 1`, `'jalt' 1, 'cv01' 1`, `'jalt' 1, 'cv01' 1, 'cv02' 1`];
-            const level = Math.min(levels.length, Math.max(1, Math.ceil((s / 100) * levels.length)));
-            return levels[level - 1] || '';
-        }
-        const seq = [];
-        for (let lvl = 1; lvl <= 5; lvl += 1) for (const t of ['jt', 'dc', 'kt']) seq.push(`${t}0${lvl}`);
-        const count = Math.round((s / 100) * seq.length);
-        if (count <= 0) return '';
-        return seq.slice(0, count).map(f => `'${f}'`).join(',');
-    }
+    // Justify each line the way Digital Khatt / QUL does: drive the font's
+    // LTAT/RTAT kashida axes (parametric letter-join elongation — NO scaleX
+    // distortion), and fill any remaining gap with word-spacing (the gaps
+    // between words). scaleX is only a last-resort shrink for overflow.
+    const KMAX = 20;
+    const vset = k => `'LTAT' ${k}, 'RTAT' ${k}`;
     function justifyLines() {
-        const jFrac = state.justify / 100;
-        const features = khattFeatureSettings(state.justify);
+        const frac = state.justify / 100;
+        const L = [];
         wordsInSpread('.mz-line').forEach(lineEl => {
             const inner = lineEl.querySelector('.mz-line-inner');
             if (!inner) return;
             inner.style.transform = 'none';
-            inner.style.fontFeatureSettings = '';
-            const avail = lineEl.clientWidth;
-            const isJustify = lineEl.dataset.justify === '1';
-            const plain = inner.scrollWidth;
-            if (!plain) return;
-            if (isJustify && features && plain < avail) inner.style.fontFeatureSettings = features;
-            const natural = inner.scrollWidth;
-            let scale;
-            if (isJustify) {
-                const fullScale = Math.max(0.35, Math.min(1.9, avail / natural));
-                scale = natural > avail ? fullScale : 1 + (fullScale - 1) * jFrac;
-            } else {
-                scale = natural > avail ? Math.max(0.35, avail / natural) : 1;
+            inner.style.wordSpacing = '0px';
+            inner.style.fontVariationSettings = vset(0);
+            L.push({ inner, isJustify: lineEl.dataset.justify === '1', avail: lineEl.clientWidth });
+        });
+        // Pass 1: natural width (LTAT 0).
+        L.forEach(o => { o.n0 = o.inner.scrollWidth; });
+        // Pass 2: max-kashida width (LTAT 20) for justified lines.
+        L.forEach(o => { if (o.isJustify) o.inner.style.fontVariationSettings = vset(KMAX); });
+        L.forEach(o => { o.n20 = o.isJustify ? o.inner.scrollWidth : o.n0; });
+        // Apply.
+        L.forEach(({ inner, isJustify, avail, n0, n20 }) => {
+            if (!avail || !n0) { inner.style.fontVariationSettings = vset(0); return; }
+            if (!isJustify) {
+                inner.style.fontVariationSettings = vset(0);
+                inner.style.transform = n0 > avail ? `scaleX(${Math.max(0.5, avail / n0)})` : 'none';
+                return;
             }
-            inner.style.transform = `scaleX(${scale})`;
+            if (n0 >= avail) { // overflows even compact → shrink
+                inner.style.fontVariationSettings = vset(0);
+                inner.style.transform = `scaleX(${Math.max(0.5, avail / n0)})`;
+                return;
+            }
+            const target = n0 + (avail - n0) * frac;
+            inner.style.transform = 'none';
+            if (n20 > n0 && target <= n20) {
+                // kashida alone reaches the target
+                const k = KMAX * (target - n0) / (n20 - n0);
+                inner.style.fontVariationSettings = vset(k.toFixed(1));
+                inner.style.wordSpacing = '0px';
+            } else {
+                // even max kashida is short → top up with word spacing
+                inner.style.fontVariationSettings = vset(KMAX);
+                const residual = Math.max(0, target - n20);
+                const gaps = Math.max(1, (inner.textContent.match(/ /g) || []).length);
+                inner.style.wordSpacing = `${(residual / gaps).toFixed(2)}px`;
+            }
         });
     }
     // Size the text so a typical line naturally fills the line width — then the
@@ -648,21 +661,23 @@
             let fs = Math.max(11, lineH * 0.62); // line-height baseline
             p.style.setProperty('--dk-fs', fs + 'px');
 
-            // Measure justified lines at this size, then scale so the median line
-            // ~fills the width (98%). Proportional scaling keeps the ratio valid.
+            // Measure the WIDEST justified lines at natural (no kashida) width and
+            // scale the font so they just fit. Then every shorter line can be
+            // filled by kashida (LTAT) up to full justification without overflow.
             const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
             const ratios = [];
             inners.forEach(inner => {
                 inner.style.transform = 'none';
-                inner.style.fontFeatureSettings = '';
+                inner.style.wordSpacing = '0px';
+                inner.style.fontVariationSettings = vset(0);
                 const avail = inner.parentElement.clientWidth;
                 const nat = inner.scrollWidth;
                 if (nat > 0 && avail > 0) ratios.push(avail / nat);
             });
             if (ratios.length) {
-                ratios.sort((a, b) => a - b);
-                const med = ratios[Math.floor(ratios.length / 2)] || 1;
-                fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
+                ratios.sort((a, b) => a - b);  // ascending: smallest ratio = widest line
+                const pick = ratios[Math.floor(ratios.length * 0.12)] || ratios[0];
+                fs = Math.max(11, Math.min(maxFs, fs * pick * 0.99));
                 p.style.setProperty('--dk-fs', fs + 'px');
             }
         });
