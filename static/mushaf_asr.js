@@ -34,7 +34,7 @@
         ],
         cmvnUrl:  '/static/asr_cmvn.json',        // {clean_mean,clean_std,tlog_mean,tlog_std}
         vocabUrl: '/static/asr_vocab.json',       // 1024 SentencePiece pieces (id→piece)
-        cmvnVariant: 'clean',                     // 'clean' (studio) | 'tlog' (phone)
+        cmvnVariant: 'tlog',                      // 'tlog' (phone/real-world, default) | 'clean' (studio)
         chunkSec: 0.5,                            // validated: 0.5 s chunks decode best (chunked attention)
         blankId: 1024,                            // logprobs has 1025 classes; 1024 = CTC blank
     };

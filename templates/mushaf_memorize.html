@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=20">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=24">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -66,9 +66,13 @@
                     </div>
                 </section>
 
-                <!-- Repetition -->
+                <!-- Listen & repeat (audio memorisation) -->
                 <section class="mz-sec">
-                    <h3 class="mz-sec-title"><i class="fas fa-repeat"></i> التكرار</h3>
+                    <h3 class="mz-sec-title"><i class="fas fa-headphones"></i> الاستماع والتكرار</h3>
+                    <div class="mz-field">
+                        <label for="mz-reciter"><i class="fas fa-microphone-lines"></i> القارئ</label>
+                        <div class="mz-select-wrap"><select id="mz-reciter"></select><i class="fas fa-chevron-down"></i></div>
+                    </div>
                     <div class="mz-grid2">
                         <div class="mz-field">
                             <label for="mz-verse-reps">تكرار الآية</label>
@@ -104,26 +108,16 @@
                     <label class="mz-chip-toggle"><input type="checkbox" id="mz-loop"><span class="mz-chip-dot"></span> تكرار النطاق كاملًا</label>
                 </section>
 
-                <!-- Display -->
+                <!-- Mushaf appearance (quick toggles live in the floating toolbar) -->
                 <section class="mz-sec">
-                    <h3 class="mz-sec-title"><i class="fas fa-book-open"></i> العرض</h3>
+                    <h3 class="mz-sec-title"><i class="fas fa-book-open"></i> عرض المصحف</h3>
                     <div class="mz-field">
-                        <label for="mz-reciter"><i class="fas fa-microphone-lines"></i> القارئ</label>
-                        <div class="mz-select-wrap"><select id="mz-reciter"></select><i class="fas fa-chevron-down"></i></div>
+                        <label for="mz-src">رسم المصحف</label>
+                        <div class="mz-select-wrap"><select id="mz-src"><option value="digital_khatt">المدينة الجديد</option><option value="qpc_v1">المدينة ١٤٠٥</option></select><i class="fas fa-chevron-down"></i></div>
                     </div>
-                    <div class="mz-grid2">
-                        <div class="mz-field">
-                            <label for="mz-src">المصحف</label>
-                            <div class="mz-select-wrap"><select id="mz-src"><option value="digital_khatt">المدينة الجديد</option><option value="qpc_v1">المدينة ١٤٠٥</option></select><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                        <div class="mz-field">
-                            <label for="mz-layout">طريقة العرض</label>
-                            <div class="mz-select-wrap"><select id="mz-layout"><option value="dual">صفحتان</option><option value="single">صفحة واحدة</option></select><i class="fas fa-chevron-down"></i></div>
-                        </div>
-                    </div>
-                    <button class="mz-toggle-btn" id="mz-tajweed" type="button" aria-pressed="false" title="تلوين أحكام التجويد">
-                        <span class="mz-dot"></span><i class="fas fa-palette"></i><span>تلوين التجويد</span>
-                    </button>
+                    <!-- kept for state-sync with the toolbar's dual/single + tajweed buttons -->
+                    <select id="mz-layout" hidden><option value="dual">صفحتان</option><option value="single">صفحة واحدة</option></select>
+                    <button id="mz-tajweed" type="button" aria-pressed="false" hidden></button>
                     <div class="mz-slider-field">
                         <label for="mz-justify"><i class="fas fa-text-width"></i> تمطيط السطور <span class="mz-slider-val" id="mz-justify-val">٥٠٪</span></label>
                         <input type="range" id="mz-justify" min="0" max="100" step="5" value="50">
@@ -202,6 +196,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=20"></script>
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=24"></script>
 </body>
 </html>

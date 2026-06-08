@@ -1106,21 +1106,25 @@
        them against the selected verses in order to follow / reveal / advance. */
     let _asrLoaded = false, _asrActive = false;
     const _arNorm = s => (s || '')
-        .replace(/[ً-ْٰـۖ-ۭ࣐-ࣿ]/g, '') // diacritics, tatweel, marks
-        .replace(/[إأآا]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+        // strip every harakat/mark/tatweel/ayah-ornament + Arabic-Indic digits
+        .replace(/[ً-ٰٟۖ-ۭ࣐-ࣿـ۝٠-٩]/g, '')
+        .replace(/[إأآاٱ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
         .replace(/\s+/g, ' ').trim();
 
-    // Flat list of the expected words across the selected range, each mapped to
-    // its on-page word ({normalised text, verse, word-position-in-verse, key}).
+    // Flat list of the expected words across the selected range, taken straight
+    // from the ON-PAGE word elements (in mushaf reading order) so matches light up
+    // the exact words in their real positions — no QPC↔DK position mismatch.
+    const _isNumWord = t => /^[۝]?[٠-٩]+$/.test((t || '').trim());
     function _expectedFlat() {
         const [a, b] = selectedAyahRange();
         const out = [];
-        for (let k = a; k <= b; k++) {
-            const v = state.verseByAyah.get(k);
-            if (!v) continue;
-            _arNorm(v.text).split(' ').filter(Boolean).forEach((w, i) =>
-                out.push({ norm: w, ayah: k, wpos: i, key: `${state.surah}:${k}` }));
-        }
+        wordsInSpread('.mz-word[data-key]').forEach(el => {
+            const [s, ay] = el.dataset.key.split(':').map(Number);
+            if (s !== state.surah || ay < a || ay > b) return;
+            if (_isNumWord(el.dataset.text || el.textContent)) return; // skip the verse-number ornament
+            const norm = _arNorm(el.dataset.text || el.textContent || '');
+            if (norm) out.push({ norm, el, ayah: ay, key: el.dataset.key });
+        });
         return out;
     }
     const _wmatch = (a, b) => a === b ||
@@ -1143,25 +1147,26 @@
         if (_asrActive) { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} return; }
         if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
         try {
-            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=20'); _asrLoaded = true; }
+            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=21'); _asrLoaded = true; }
             if (!window.MushafASR) throw new Error('module missing');
 
+            // make sure the selected verses are actually on screen before we map words
+            await renderSelection();
             // reset any previous recite highlights
             wordsInSpread('.mz-word.mz-recited').forEach(w => w.classList.remove('mz-recited'));
             const expFlat = _expectedFlat();
-            let ePtr = 0, hPtr = 0, lastAyah = -1, flipping = false;
+            let ePtr = 0, hPtr = 0, lastAyah = -1;
 
             const markRecited = (e) => {
-                const span = wordsInSpread(`.mz-word[data-key="${e.key}"][data-wpos="${e.wpos}"]`)[0];
-                if (span) { span.classList.add('mz-recited'); if (state.hideText) span.classList.add('mz-reveal'); }
+                if (e.el) {
+                    e.el.classList.add('mz-recited');
+                    if (state.hideText) e.el.classList.add('mz-reveal');
+                    e.el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
                 if (e.ayah !== lastAyah) {
                     lastAyah = e.ayah;
                     markActive(e.key);
                     if (state.hideText) revealVerse(e.key);
-                    const act = wordsInSpread('.mz-word.mz-act')[0];
-                    if (act) act.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                    // if the verse isn't on the current spread, flip to it (once)
-                    if (!span && !flipping) { flipping = true; ensureVerseVisible(state.surah, e.ayah).finally(() => { flipping = false; }); }
                 }
             };
 
@@ -1187,6 +1192,7 @@
                         if (found >= 0) { markRecited(e); ePtr++; hPtr = found + 1; }
                         else hPtr++; // skip a noise word
                     }
+                    if (els.asrNote && expFlat.length) els.asrNote.textContent = `طابقت ${toAr(ePtr)} / ${toAr(expFlat.length)} كلمة`;
                     if (ePtr >= expFlat.length && els.asrNote) els.asrNote.textContent = 'أحسنت! اكتمل التسميع 🌿';
                 },
             });
@@ -1204,14 +1210,18 @@
     async function onSurahChange() {
         stopPlayback();
         const surah = parseInt(els.surah.value, 10) || 1;
-        try { await loadSurahMemo(surah); saveSetting('mz_last_pos', `${surah}:1`); }
+        try {
+            await loadSurahMemo(surah);
+            saveSetting('mz_last_pos', `${surah}:1`);
+            await renderSelection();   // jump the mushaf straight to the chosen surah
+        }
         catch (e) { setStatus('تعذّر تحميل بيانات السورة', true); }
     }
     const liveSelection = () => { if (state.focusPage) { rebuildSelectedKeys(); applySelectionHighlight(); } updateHint(); };
 
     function bindEvents() {
         els.surah.addEventListener('change', onSurahChange);
-        els.from.addEventListener('change', () => { autoSetTo(parseInt(els.from.value, 10)); liveSelection(); });
+        els.from.addEventListener('change', () => { autoSetTo(parseInt(els.from.value, 10)); rebuildSelectedKeys(); renderSelection(); });
         els.to.addEventListener('change', liveSelection);
 
         els.start.addEventListener('click', () => {

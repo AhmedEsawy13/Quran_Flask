@@ -32,6 +32,7 @@
     --mz-text: #18181b; --mz-text-muted: #71717a; --mz-text-faint: #a1a1aa;
     --mz-paper: #fffdf8; --mz-paper-edge: #ece4d4; --mz-ink: #1c1917;
     --mz-quran: #333;   /* quran text colour — matches the main page (--text-color) */
+    --mz-surah-frame: #b1923f; --mz-surah-ink: #8a6d28;   /* traditional gold cartouche */
     --mz-shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
     --mz-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     --mz-shadow-lg: 0 30px 70px rgba(0,0,0,0.12), 0 6px 16px rgba(0,0,0,0.06);
@@ -46,6 +47,7 @@ body.mz-dark {
     --mz-border: #26262b; --mz-border-strong: #34343b;
     --mz-text: #fafafa; --mz-text-muted: #a1a1aa; --mz-text-faint: #71717a;
     --mz-paper: #16140f; --mz-paper-edge: #2a2620; --mz-ink: #f0ece2; --mz-quran: #f4f4f9;
+    --mz-surah-frame: #c9a85c; --mz-surah-ink: #e0c47e;
     --mz-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
     --mz-shadow: 0 4px 24px rgba(0,0,0,0.5);
     --mz-shadow-lg: 0 30px 70px rgba(0,0,0,0.65);
@@ -58,6 +60,7 @@ body.mz-sepia {
     --mz-border: #e3d5b3; --mz-border-strong: #d8c6a0;
     --mz-text: #3c2e26; --mz-text-muted: #7c6a52; --mz-text-faint: #a89878;
     --mz-paper: #fbf3e0; --mz-paper-edge: #e0cfa8; --mz-ink: #2f241b; --mz-quran: #3c2e26;
+    --mz-surah-frame: #a8842f; --mz-surah-ink: #7d5f1f;
     --mz-shadow-sm: 0 1px 2px rgba(120,95,50,0.10);
     --mz-shadow: 0 4px 24px rgba(120,95,50,0.12);
     --mz-shadow-lg: 0 30px 70px rgba(120,95,50,0.2);
@@ -225,10 +228,11 @@ body.mz-dark .mz-status.mz-err { color: #f87171; }
 .mz-asr-live[hidden] { display: none; }
 #mz-asr-live-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
 
-/* words recognised during recite-&-follow turn green */
-.mz-word.mz-recited { color: #16a34a !important; }
-.mz-page.mz-tajweed .mz-word.mz-recited, .mz-page.mz-tajweed .mz-word.mz-recited tajweed { color: #16a34a !important; }
+/* words recognised during recite-&-follow turn green (clearly visible) */
+.mz-word.mz-recited { color: #15803d !important; background: rgba(22,163,74,0.16); border-radius: 0.18em; }
+.mz-page.mz-tajweed .mz-word.mz-recited, .mz-page.mz-tajweed .mz-word.mz-recited tajweed { color: #15803d !important; }
 body.mz-dark .mz-word.mz-recited, body.mz-dark .mz-page.mz-tajweed .mz-word.mz-recited tajweed { color: #4ade80 !important; }
+body.mz-dark .mz-word.mz-recited { background: rgba(74,222,128,0.18); }
 .mz-stage { display: flex; align-items: center; justify-content: center; gap: clamp(6px, 1vw, 14px); width: 100%; }
 .mz-nav-btn { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%;
     border: 1px solid var(--mz-border-strong); background: var(--mz-surface); color: var(--mz-text);
@@ -284,11 +288,20 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-line-surah { font-family: 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--mz-accent); font-size: calc(var(--dk-fs) * 0.7); white-space: nowrap; }
 /* full-width surah header band (spans the line), name centred inside the border.
    Vertical margin keeps the border off the neighbouring Quran lines. */
-.mz-line-surah.mz-surah-glyph { width: 100%; display: flex; align-items: center; justify-content: center;
-    font-family: 'Surah Names', serif; font-weight: 400; color: var(--mz-ink); font-size: calc(var(--dk-fs) * 0.96);
-    line-height: 1.2; white-space: nowrap; padding: 0.05em 0; margin: 0.22em 0;
-    border: 1px solid color-mix(in srgb, var(--mz-accent) 32%, transparent); border-radius: 6px;
-    background: color-mix(in srgb, var(--mz-accent) 6%, transparent); box-shadow: inset 0 0 0 2px var(--mz-paper); }
+/* traditional Madinah-style surah cartouche: gold double-frame, name centred */
+.mz-line-surah.mz-surah-glyph { position: relative; width: 96%; margin: 0.18em auto; display: flex;
+    align-items: center; justify-content: center;
+    font-family: 'Surah Names', serif; font-weight: 400; color: var(--mz-surah-ink); font-size: calc(var(--dk-fs) * 0.92);
+    line-height: 1.2; white-space: nowrap; padding: 0.06em 1.6em;
+    border: 1px solid var(--mz-surah-frame); border-radius: 3px;
+    background: color-mix(in srgb, var(--mz-surah-frame) 8%, var(--mz-paper));
+    box-shadow: inset 0 0 0 2px var(--mz-paper), inset 0 0 0 3px color-mix(in srgb, var(--mz-surah-frame) 55%, transparent); }
+/* small ornamental rosettes at each end of the cartouche */
+.mz-line-surah.mz-surah-glyph::before, .mz-line-surah.mz-surah-glyph::after {
+    content: '۞'; position: absolute; top: 50%; transform: translateY(-50%);
+    font-family: 'Digital Khatt', serif; font-size: calc(var(--dk-fs) * 0.7); color: var(--mz-surah-frame); }
+.mz-line-surah.mz-surah-glyph::before { right: 0.45em; }
+.mz-line-surah.mz-surah-glyph::after  { left: 0.45em; }
 .mz-line-basmala { font-family: 'Digital Khatt', serif; color: var(--mz-ink); font-size: calc(var(--dk-fs) * 0.86); white-space: nowrap; }
 .mz-line-basmala.mz-basmala-glyph,
 .mz-page.mz-src-qpc-v1 .mz-line-basmala.mz-basmala-glyph { font-family: 'QCF Basmala', serif; font-size: calc(var(--dk-fs) * 1.7); line-height: 1; }
