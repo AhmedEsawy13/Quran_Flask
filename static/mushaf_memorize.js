@@ -57,6 +57,13 @@
         focusToggle: $('mz-focus-toggle'),
         reciteBtn:   $('mz-recite-btn'),
         asrNote:     $('mz-asr-note'),
+        asrLive:     $('mz-asr-live'),
+        asrLiveText: $('mz-asr-live-text'),
+        tbLayout:    $('mz-tb-layout'),
+        tbTajweed:   $('mz-tb-tajweed'),
+        tbZoomIn:    $('mz-tb-zoomin'),
+        tbZoomOut:   $('mz-tb-zoomout'),
+        tbHide:      $('mz-tb-hide'),
         tajweed:     $('mz-tajweed'),
         justify:     $('mz-justify'),
         justifyVal:  $('mz-justify-val'),
@@ -99,6 +106,7 @@
         reciterName: 'محمود خليل الحصري',
         hideText: false,
         focusMode: false,
+        zoom: 1,                // manual zoom multiplier on top of the auto-fit
     };
 
     /* ── Hide-for-testing + focus mode ─────────────────────────────── */
@@ -113,6 +121,7 @@
             if (lbl) lbl.textContent = state.hideText ? 'إظهار النص' : 'إخفاء النص للتسميع';
         }
         if (els.hideToggle) els.hideToggle.querySelector('i').className = state.hideText ? 'fas fa-eye' : 'fas fa-eye-slash';
+        syncToolbar();
     }
     function revealVerse(key) {
         if (!key) return;
@@ -127,6 +136,29 @@
         }
         // sidebar gone/back → page size changes
         requestAnimationFrame(() => { if (state.focusPage) { sizePages(); applyFontSize(); justifyLines(); } });
+    }
+    function setZoom(z) {
+        state.zoom = Math.max(0.7, Math.min(1.6, +z.toFixed(2)));
+        saveSetting('mz_zoom', state.zoom);
+        if (state.focusPage) { sizePages(); applyFontSize(); requestAnimationFrame(justifyLines); }
+    }
+    function toggleLayout() {
+        state.layoutMode = state.layoutMode === 'single' ? 'dual' : 'single';
+        if (els.layout) els.layout.value = state.layoutMode;
+        document.body.classList.toggle('mz-single', state.layoutMode === 'single');
+        saveSetting('mz_layout', state.layoutMode);
+        syncToolbar();
+        if (state.focusPage) renderSpread(state.focusPage);
+    }
+    // keep the floating toolbar buttons in sync with current state
+    function syncToolbar() {
+        if (els.tbTajweed) els.tbTajweed.classList.toggle('mz-on', state.tajweedOn);
+        if (els.tbHide) els.tbHide.classList.toggle('mz-on', state.hideText);
+        if (els.tbLayout) {
+            els.tbLayout.classList.toggle('mz-on', state.layoutMode === 'single');
+            const i = els.tbLayout.querySelector('i');
+            if (i) i.className = state.layoutMode === 'single' ? 'fas fa-book' : 'fas fa-book-open';
+        }
     }
 
     const BASMALA_GLYPH = '\u00F3'; // QCF Basmala font: whole basmala in one glyph
@@ -245,6 +277,10 @@
         state.layoutMode = savedLayout === 'single' ? 'single' : 'dual';
         els.layout.value = state.layoutMode;
         document.body.classList.toggle('mz-single', state.layoutMode === 'single');
+
+        const z = parseFloat(localStorage.getItem('mz_zoom'));
+        if (Number.isFinite(z)) state.zoom = Math.max(0.7, Math.min(1.6, z));
+        syncToolbar();
 
         try {
             const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
@@ -649,8 +685,8 @@
             const s = (availW - gutter - spreadPad) / (w * n);
             w *= s; h *= s;
         }
-        w = Math.max(150, Math.floor(w));
-        h = Math.max(230, Math.floor(h));
+        w = Math.max(150, Math.floor(w * state.zoom));   // manual zoom on top of the fit
+        h = Math.max(230, Math.floor(h * state.zoom));
         document.documentElement.style.setProperty('--mz-page-w', w + 'px');
         document.documentElement.style.setProperty('--mz-page-h', h + 'px');
     }
@@ -1074,15 +1110,21 @@
         .replace(/[إأآا]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
         .replace(/\s+/g, ' ').trim();
 
-    function _expectedVerses() {
+    // Flat list of the expected words across the selected range, each mapped to
+    // its on-page word ({normalised text, verse, word-position-in-verse, key}).
+    function _expectedFlat() {
         const [a, b] = selectedAyahRange();
         const out = [];
         for (let k = a; k <= b; k++) {
             const v = state.verseByAyah.get(k);
-            if (v) out.push({ ayah: k, words: _arNorm(v.text).split(' ').filter(Boolean) });
+            if (!v) continue;
+            _arNorm(v.text).split(' ').filter(Boolean).forEach((w, i) =>
+                out.push({ norm: w, ayah: k, wpos: i, key: `${state.surah}:${k}` }));
         }
         return out;
     }
+    const _wmatch = (a, b) => a === b ||
+        (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a) || a.includes(b) || b.includes(a)));
 
     function loadScript(src) {
         return new Promise((resolve, reject) => {
@@ -1091,42 +1133,67 @@
             document.head.appendChild(s);
         });
     }
+    function showAsrLive(on) {
+        if (!els.asrLive) return;
+        els.asrLive.hidden = !on;
+        if (on && els.asrLiveText) els.asrLiveText.textContent = 'استمع…';
+    }
 
     async function startReciteFollow() {
         if (_asrActive) { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} return; }
         if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
         try {
-            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=18'); _asrLoaded = true; }
+            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=20'); _asrLoaded = true; }
             if (!window.MushafASR) throw new Error('module missing');
 
-            const expected = _expectedVerses();
-            let idx = 0; // current expected verse index
+            // reset any previous recite highlights
+            wordsInSpread('.mz-word.mz-recited').forEach(w => w.classList.remove('mz-recited'));
+            const expFlat = _expectedFlat();
+            let ePtr = 0, hPtr = 0, lastAyah = -1, flipping = false;
+
+            const markRecited = (e) => {
+                const span = wordsInSpread(`.mz-word[data-key="${e.key}"][data-wpos="${e.wpos}"]`)[0];
+                if (span) { span.classList.add('mz-recited'); if (state.hideText) span.classList.add('mz-reveal'); }
+                if (e.ayah !== lastAyah) {
+                    lastAyah = e.ayah;
+                    markActive(e.key);
+                    if (state.hideText) revealVerse(e.key);
+                    const act = wordsInSpread('.mz-word.mz-act')[0];
+                    if (act) act.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    // if the verse isn't on the current spread, flip to it (once)
+                    if (!span && !flipping) { flipping = true; ensureVerseVisible(state.surah, e.ayah).finally(() => { flipping = false; }); }
+                }
+            };
+
             await window.MushafASR.start({
-                onStatus: (msg) => { if (els.asrNote) els.asrNote.textContent = msg; },
+                onStatus: (msg) => { if (els.asrNote) els.asrNote.textContent = msg; if (els.asrLiveText && /استمع|listen/i.test(msg)) showAsrLive(true); },
                 onActive: (on) => {
                     _asrActive = on;
                     if (els.reciteBtn) els.reciteBtn.classList.toggle('mz-listening', on);
+                    showAsrLive(on);
                 },
-                // Called with the running recognised (normalised) transcript.
-                onTranscript: async (text) => {
-                    const heard = _arNorm(text);
-                    if (!heard || idx >= expected.length) return;
-                    const v = expected[idx];
-                    // crude match: the verse's last 2 words appear in the tail of what we heard
-                    const tail = v.words.slice(-2).join(' ');
-                    if (tail && heard.includes(tail)) {
-                        await ensureVerseVisible(state.surah, v.ayah);
-                        revealVerse(`${state.surah}:${v.ayah}`);
-                        markActive(`${state.surah}:${v.ayah}`);
-                        scrollActiveIntoView();
-                        idx++;
-                        if (idx >= expected.length && els.asrNote) els.asrNote.textContent = 'أحسنت! اكتمل التسميع 🌿';
+                // Running recognised transcript → live display + word-by-word follow.
+                onTranscript: (text) => {
+                    const heardRaw = (text || '').trim();
+                    const heard = _arNorm(text).split(' ').filter(Boolean);
+                    if (els.asrLiveText) els.asrLiveText.textContent = heardRaw ? heardRaw.split(' ').slice(-12).join(' ') : 'استمع…';
+                    // tolerant greedy alignment of heard words to the expected sequence
+                    while (hPtr < heard.length && ePtr < expFlat.length) {
+                        const e = expFlat[ePtr];
+                        if (_wmatch(heard[hPtr], e.norm)) { markRecited(e); ePtr++; hPtr++; continue; }
+                        let found = -1;
+                        for (let k = hPtr + 1; k < Math.min(hPtr + 3, heard.length); k++)
+                            if (_wmatch(heard[k], e.norm)) { found = k; break; }
+                        if (found >= 0) { markRecited(e); ePtr++; hPtr = found + 1; }
+                        else hPtr++; // skip a noise word
                     }
+                    if (ePtr >= expFlat.length && els.asrNote) els.asrNote.textContent = 'أحسنت! اكتمل التسميع 🌿';
                 },
             });
         } catch (e) {
             _asrActive = false;
             if (els.reciteBtn) els.reciteBtn.classList.remove('mz-listening');
+            showAsrLive(false);
             console.error('[recite] failed:', e);
             const msg = (e && (e.message || e.name)) ? (e.message || e.name) : String(e);
             if (els.asrNote) els.asrNote.textContent = 'تعذّر التشغيل: ' + msg;
@@ -1166,6 +1233,7 @@
         els.tajweed.addEventListener('click', () => {
             state.tajweedOn = !state.tajweedOn;
             syncTajweedButton();
+            syncToolbar();
             saveSetting('quranApp_tajweedEnabled', state.tajweedOn);
             if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
             else { clearTajweedFromPage(); requestAnimationFrame(justifyLines); }
@@ -1219,6 +1287,12 @@
         });
         // Focus mode
         if (els.focusToggle) els.focusToggle.addEventListener('click', () => setFocusMode(!state.focusMode));
+        // Floating mushaf toolbar
+        if (els.tbLayout) els.tbLayout.addEventListener('click', toggleLayout);
+        if (els.tbTajweed) els.tbTajweed.addEventListener('click', () => els.tajweed.click());
+        if (els.tbHide) els.tbHide.addEventListener('click', () => setHideMode(!state.hideText));
+        if (els.tbZoomIn) els.tbZoomIn.addEventListener('click', () => setZoom(state.zoom + 0.1));
+        if (els.tbZoomOut) els.tbZoomOut.addEventListener('click', () => setZoom(state.zoom - 0.1));
         // Recite & follow (lazy-load the ASR module)
         if (els.reciteBtn) els.reciteBtn.addEventListener('click', startReciteFollow);
 

@@ -206,7 +206,29 @@ input[type=range]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 
 body.mz-dark .mz-status.mz-err { color: #f87171; }
 
 /* ── Content + stage (the freed centre) ──────────────────────────── */
-.mz-content { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
+.mz-content { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; overflow: auto; }
+
+/* floating mushaf toolbar (dual/tajweed/zoom/hide) */
+.mz-toolbar { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; background: var(--mz-surface);
+    border: 1px solid var(--mz-border); border-radius: 999px; box-shadow: var(--mz-shadow-sm); flex-shrink: 0; }
+.mz-tb-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid transparent;
+    background: transparent; color: var(--mz-text-muted); cursor: pointer; font-size: 0.92rem; transition: all 0.15s ease; }
+.mz-tb-btn:hover { background: var(--mz-surface-2); color: var(--mz-accent); }
+.mz-tb-btn.mz-on { background: var(--mz-accent); color: #fff; }
+.mz-tb-sep { width: 1px; height: 22px; background: var(--mz-border-strong); margin: 0 2px; }
+
+/* live recitation transcript */
+.mz-asr-live { display: flex; align-items: center; gap: 10px; max-width: min(90%, 640px); padding: 8px 16px; border-radius: 12px;
+    background: rgba(22,163,74,0.12); border: 1px solid rgba(22,163,74,0.32); color: var(--mz-text); flex-shrink: 0;
+    font-family: 'IBM Plex Sans Arabic', 'Amiri Quran', serif; font-size: 1.05rem; direction: rtl; }
+.mz-asr-live i { color: #16a34a; flex-shrink: 0; }
+.mz-asr-live[hidden] { display: none; }
+#mz-asr-live-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
+
+/* words recognised during recite-&-follow turn green */
+.mz-word.mz-recited { color: #16a34a !important; }
+.mz-page.mz-tajweed .mz-word.mz-recited, .mz-page.mz-tajweed .mz-word.mz-recited tajweed { color: #16a34a !important; }
+body.mz-dark .mz-word.mz-recited, body.mz-dark .mz-page.mz-tajweed .mz-word.mz-recited tajweed { color: #4ade80 !important; }
 .mz-stage { display: flex; align-items: center; justify-content: center; gap: clamp(6px, 1vw, 14px); width: 100%; }
 .mz-nav-btn { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%;
     border: 1px solid var(--mz-border-strong); background: var(--mz-surface); color: var(--mz-text);

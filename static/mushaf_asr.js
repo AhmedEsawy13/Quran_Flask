@@ -201,10 +201,29 @@
             micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             source = audioCtx.createMediaStreamSource(micStream);
-            const proc = audioCtx.createScriptProcessor(4096, 1, 1);
-            proc.onaudioprocess = e => { if (running) pushPcm(downsample(e.inputBuffer.getChannelData(0), audioCtx.sampleRate)); };
-            source.connect(proc); proc.connect(audioCtx.destination);
-            workletNode = proc;
+            const onPcm = ch => { if (running && ch) pushPcm(downsample(ch, audioCtx.sampleRate)); };
+
+            // Prefer the modern AudioWorklet (off the main thread); fall back to the
+            // deprecated ScriptProcessor on browsers without worklet support.
+            let usedWorklet = false;
+            if (audioCtx.audioWorklet) {
+                try {
+                    const code = "class P extends AudioWorkletProcessor{process(i){const c=i[0]&&i[0][0];if(c)this.port.postMessage(new Float32Array(c));return true}}registerProcessor('mz-mic',P)";
+                    const url = URL.createObjectURL(new Blob([code], { type: 'application/javascript' }));
+                    await audioCtx.audioWorklet.addModule(url);
+                    URL.revokeObjectURL(url);
+                    const node = new AudioWorkletNode(audioCtx, 'mz-mic');
+                    node.port.onmessage = e => onPcm(e.data);
+                    source.connect(node); node.connect(audioCtx.destination); // process() writes no output → silent
+                    workletNode = node; usedWorklet = true;
+                } catch (e) { /* fall through to ScriptProcessor */ }
+            }
+            if (!usedWorklet) {
+                const proc = audioCtx.createScriptProcessor(4096, 1, 1);
+                proc.onaudioprocess = e => onPcm(e.inputBuffer.getChannelData(0));
+                source.connect(proc); proc.connect(audioCtx.destination);
+                workletNode = proc;
+            }
 
             cache = freshCache(); transcriptIds = []; pcmBuffer = new Float32Array(0); lastTok = -1;
             running = true; onActive && onActive(true);

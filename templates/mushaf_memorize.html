@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=18">
+    <link rel="stylesheet" href="{{ url_for('static', filename='mushaf_memorize.css') }}?v=20">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -157,6 +157,16 @@
 
         <!-- ── Mushaf stage (center) ──────────────────────────────── -->
         <section class="mz-content">
+            <!-- floating mushaf toolbar -->
+            <div class="mz-toolbar" id="mz-toolbar">
+                <button class="mz-tb-btn" id="mz-tb-layout" type="button" title="صفحة واحدة / صفحتان" aria-label="عدد الصفحات"><i class="fas fa-book-open"></i></button>
+                <button class="mz-tb-btn" id="mz-tb-tajweed" type="button" title="تلوين التجويد" aria-pressed="false" aria-label="تلوين التجويد"><i class="fas fa-palette"></i></button>
+                <span class="mz-tb-sep"></span>
+                <button class="mz-tb-btn" id="mz-tb-zoomout" type="button" title="تصغير" aria-label="تصغير"><i class="fas fa-magnifying-glass-minus"></i></button>
+                <button class="mz-tb-btn" id="mz-tb-zoomin" type="button" title="تكبير" aria-label="تكبير"><i class="fas fa-magnifying-glass-plus"></i></button>
+                <span class="mz-tb-sep"></span>
+                <button class="mz-tb-btn" id="mz-tb-hide" type="button" title="إخفاء النص للتسميع" aria-pressed="false" aria-label="إخفاء النص"><i class="fas fa-eye-slash"></i></button>
+            </div>
             <div class="mz-stage" id="mz-stage" aria-label="صفحة المصحف">
                 <button class="mz-nav-btn mz-nav-prev" id="mz-prev" type="button" title="السابق" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
 
@@ -175,6 +185,8 @@
 
                 <button class="mz-nav-btn mz-nav-next" id="mz-next" type="button" title="التالي" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
             </div>
+            <!-- live recitation transcript (recite & follow) -->
+            <div class="mz-asr-live" id="mz-asr-live" hidden><i class="fas fa-microphone"></i><span id="mz-asr-live-text"></span></div>
         </section>
     </main>
 
@@ -190,6 +202,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=18"></script>
+    <script src="{{ url_for('static', filename='mushaf_memorize.js') }}?v=20"></script>
 </body>
 </html>
