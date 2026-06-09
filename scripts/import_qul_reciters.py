@@ -34,6 +34,9 @@ TARGET_DIRS = {
     'abdulbasit':  'reciters/abdulbasit_murattal_qul',
     'afasy':       'reciters/afasy_qul',
     'banna':       'reciters/mahmoud_ali_al_banna_qdc',
+    'maher':       'reciters/maher_al_muaiqly_qdc',
+    'shuraim':     'reciters/saud_al_shuraim_mp3quran',
+    'qatami':      'reciters/nasser_al_qatami_mp3quran',
 }
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WANTED = ('word_timestamps.json.gz', 'verse_timestamps.json.gz', 'catalog.json')

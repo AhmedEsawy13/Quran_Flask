@@ -2086,6 +2086,21 @@ MEMORIZATION_RECITERS = {
         # so use the same source (CBR 128 → accurate seeking, supports HTTP range).
         'audio_tmpl': 'https://download.quranicaudio.com/quran/mahmood_ali_albana/{surah:03d}.mp3',
     },
+    'maher': {
+        'name_ar': 'ماهر المعيقلي', 'name_en': 'Maher Al-Muaiqly',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'maher_al_muaiqly_qdc'),
+        'audio_tmpl': 'https://download.quranicaudio.com/quran/maher_almu3aiqly/year1440/{surah:03d}.mp3',
+    },
+    'shuraim': {
+        'name_ar': 'سعود الشريم', 'name_en': 'Saud Al-Shuraim',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'saud_al_shuraim_mp3quran'),
+        'audio_tmpl': 'https://server7.mp3quran.net/shur/{surah:03d}.mp3',
+    },
+    'qatami': {
+        'name_ar': 'ناصر القطامي', 'name_en': 'Nasser Al-Qatami',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'nasser_al_qatami_mp3quran'),
+        'audio_tmpl': 'https://server6.mp3quran.net/qtm/{surah:03d}.mp3',
+    },
     'burhaji': {
         'name_ar': 'محمد برهجي', 'name_en': 'Mohammed Burhaji',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_burhaji_yt'),
