@@ -2274,7 +2274,7 @@ def get_memorization(surah_number):
                 for p in phrases
             ],
             'words': [
-                [w[0], round(w[1] / 1000.0, 3), round(w[2] / 1000.0, 3)]
+                [w[0] - 1, round(w[1] / 1000.0, 3), round(w[2] / 1000.0, 3)]
                 for w in words
             ],
         })
