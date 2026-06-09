@@ -768,16 +768,16 @@
     function sizePages() {
         const stage = els.stage;
         if (!stage) return;
-        const rect = stage.getBoundingClientRect();
         const vh = window.innerHeight;
-        // Height available to the page = from the stage's top down to the bottom of
-        // the scrolling stage-area. The docked player sits BELOW that area, so the
-        // page is always sized to fit above it (no overlap, no reserve guesswork).
+        // Available height = the stage-area's OWN box (a stable, window-derived size),
+        // NOT the stage's live position. The stage is vertically centred, so reading
+        // its top made availH depend on the previously-rendered page's height — which
+        // resized the page frame on every navigation (the "auto-zoom"). The container
+        // box is independent of what's currently rendered, so the frame stays put.
         const area = stage.closest('.mz-stage-area');
-        const areaBottom = area ? area.getBoundingClientRect().bottom : (vh - 12);
-        const availH = Math.max(320, areaBottom - rect.top - 8);
+        const availH = Math.max(320, (area ? area.clientHeight : (vh - 120)) - 16);
         const n = state.layoutMode === 'single' ? 1 : 2;
-        const navAndGaps = 2 * 46 + 2 * 14 + 8;         // nav buttons + gaps
+        const navAndGaps = 2 * 50 + 16;                 // room for the edge nav arrows
         const availW = Math.max(260, stage.clientWidth - navAndGaps);
         const headFootPad = 78;                          // header + footer + card padding (vertical)
         const spreadPad = 28, gutter = n > 1 ? 20 : 0;
@@ -863,16 +863,38 @@
             else if (slack > 0.5) inner.style.transform = `scaleX(${avail / width})`;  // single word
         });
     }
-    // Text size depends ONLY on page geometry (line slot height), so it stays the
-    // SAME on every page — no per-page "auto-zoom" as you navigate. justifyLines
-    // then fills each line's width to the edges. Manual zoom still scales the text
-    // because it enlarges the page frame (and thus the line height) in sizePages.
+    // Size the text so a typical line naturally fills the line width, then let
+    // justifyLines word-space the rest. The page FRAME is stable (sizePages reads
+    // the stage-area's own box, not the stage's live position), so this stays
+    // consistent across navigation instead of zooming per page.
     function applyFontSize() {
         pageEls().forEach(p => {
             if (!p || !p.classList.contains('mz-has-page')) return;
-            const lineH = (p.clientHeight || 1) / 15;
-            const fs = Math.max(11, lineH * 0.82);   // fixed fraction of the line slot
+            const h = p.clientHeight || 1;
+            const lineH = h / 15;
+            const maxFs = lineH * 0.92;          // never taller than the line slot
+            let fs = Math.max(11, lineH * 0.62); // line-height baseline
             p.style.setProperty('--dk-fs', fs + 'px');
+
+            // Measure justified lines at this size, then scale so the median line
+            // ~fills the width (98%). Proportional scaling keeps the ratio valid.
+            const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
+            const ratios = [];
+            inners.forEach(inner => {
+                inner.style.transform = 'none';
+                inner.style.fontFeatureSettings = '';
+                inner.style.fontVariationSettings = '';
+                inner.style.wordSpacing = '';
+                const avail = inner.parentElement.clientWidth;
+                const nat = inner.scrollWidth;
+                if (nat > 0 && avail > 0) ratios.push(avail / nat);
+            });
+            if (ratios.length) {
+                ratios.sort((a, b) => a - b);
+                const med = ratios[Math.floor(ratios.length / 2)] || 1;
+                fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
+                p.style.setProperty('--dk-fs', fs + 'px');
+            }
         });
     }
 
