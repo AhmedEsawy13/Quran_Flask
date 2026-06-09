@@ -4182,20 +4182,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             const repTxt = seg.repTotal > 1 ? ` (${seg.rep}/${seg.repTotal})` : '';
             setOverlayStatus(`${seg.label}${repTxt} — ${k + 1}/${schedule.length}`);
             setOverlayProgress(Math.round((k / schedule.length) * 100));
-            // Navigate main page to this verse (debounced — only when ayah changes)
-            if (seg.ayah !== lastNavigatedAyah && typeof window.__memoNavigate === 'function') {
-                lastNavigatedAyah = seg.ayah;
-                const verse = data.verses.find(x => x.ayah === seg.ayah);
-                window.__memoNavigate(data.surah_number, seg.ayah).then(() => {
+
+            // All verses whose time window overlaps this segment (handles single-verse,
+            // phrase, and cumulative-link steps uniformly).
+            const segVerses = data.verses.filter(v =>
+                v.start < seg.end + 0.1 && v.end > seg.start - 0.1
+            );
+            // Navigate to the FIRST verse of the segment so back-links land correctly.
+            const navAyah = segVerses.length > 0 ? segVerses[0].ayah : seg.ayah;
+            // Combined word timestamps for all overlapping verses.
+            const allWords = segVerses.flatMap(v => v.words || []);
+
+            if (navAyah !== lastNavigatedAyah && typeof window.__memoNavigate === 'function') {
+                lastNavigatedAyah = navAyah;
+                window.__memoNavigate(data.surah_number, navAyah).then(() => {
                     if (typeof window.__memoHighlightWithTimes === 'function') {
-                        window.__memoHighlightWithTimes(verse ? (verse.words || null) : null);
+                        window.__memoHighlightWithTimes(allWords.length ? allWords : null);
                     }
                 }).catch(() => {});
             } else {
-                // Same ayah, different phrase — re-arm highlights (word spans already exist)
-                const verse = data.verses.find(x => x.ayah === seg.ayah);
                 if (typeof window.__memoHighlightWithTimes === 'function') {
-                    window.__memoHighlightWithTimes(verse ? (verse.words || null) : null);
+                    window.__memoHighlightWithTimes(allWords.length ? allWords : null);
                 }
             }
         }
