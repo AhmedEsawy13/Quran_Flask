@@ -473,9 +473,12 @@ body.mz-dark .waqf-symbol[data-version="ورش"]     { color: #fbbf24; }
 body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 
 /* ── Transport cluster (lives in the top bar) ────────────────────── */
-.mz-now { font-size: 0.78rem; font-weight: 700; color: var(--mz-text); letter-spacing: -0.01em; font-family: 'IBM Plex Sans Arabic', sans-serif;
+/* Scoped to the id: the .mz-now CLASS is also used for the recited-word karaoke
+   highlight on the mushaf, which must keep the Quran font — so style the
+   now-playing label by its element id only, never the bare class. */
+#mz-now { font-size: 0.78rem; font-weight: 700; color: var(--mz-text); letter-spacing: -0.01em; font-family: 'IBM Plex Sans Arabic', sans-serif;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 22vw; min-width: 0; }
-.mz-now:empty { display: none; }
+#mz-now:empty { display: none; }
 .mz-transport { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 .mz-play-btn { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border: none; cursor: pointer;
     border-radius: 50%; font-size: 0.95rem; background: var(--mz-accent); color: #fff;
@@ -550,6 +553,6 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
     .mz-only-wide { display: none !important; }
     .mz-bar-chip .mz-chip-label { display: none; }
     .mz-bar { gap: 5px; padding: 8px 10px; }
-    .mz-now { max-width: 30vw; }
+    #mz-now { max-width: 30vw; }
     .mz-main { padding: 10px; }
 }
