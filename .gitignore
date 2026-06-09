@@ -59,6 +59,9 @@ htmlcov/
 QUL_data/quran_script.backup_*.db
 QUL_data/Tafseer*.json
 reciters/husary/word_alignment.json
+# DB backups/snapshots — kept locally only, never committed
+data/*.backup_*.db
+data/*.backup*.db
 
 # Local font-renderer experiment artifacts — do not commit
 static/VisualMetaFontWasm.js

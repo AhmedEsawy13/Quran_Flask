@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=32">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=33">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -155,6 +155,7 @@
 
         <!-- ── Mushaf stage (center) ──────────────────────────────── -->
         <section class="mz-content">
+          <div class="mz-stage-area">
             <!-- floating mushaf toolbar -->
             <div class="mz-toolbar" id="mz-toolbar">
                 <button class="mz-tb-btn" id="mz-tb-layout" type="button" title="صفحة واحدة / صفحتان" aria-label="عدد الصفحات"><i class="fas fa-book-open"></i></button>
@@ -185,12 +186,11 @@
             </div>
             <!-- live recitation transcript (recite & follow) -->
             <div class="mz-asr-live" id="mz-asr-live" hidden><i class="fas fa-microphone"></i><span id="mz-asr-live-text"></span></div>
-        </section>
-    </main>
+          </div><!-- /.mz-stage-area -->
 
-    <!-- ── Audio player bar (modern transport) ────────────────────── -->
-    <div class="mz-player" id="mz-player" aria-hidden="true">
-        <div class="mz-player-inner">
+          <!-- ── Audio player (docked under the page, never over it) ──── -->
+          <div class="mz-player" id="mz-player" aria-hidden="true">
+            <div class="mz-player-inner">
             <div class="mz-player-info">
                 <span class="mz-now" id="mz-now">—</span>
                 <span class="mz-player-reciter" id="mz-player-reciter">محمود خليل الحصري</span>
@@ -209,11 +209,13 @@
                 <button class="mz-ctl" id="mz-next-step" type="button" title="المقطع التالي" aria-label="المقطع التالي"><i class="fas fa-forward-step"></i></button>
                 <button class="mz-ctl mz-ctl-stop" id="mz-stop" type="button" title="إنهاء الجلسة" aria-label="إيقاف"><i class="fas fa-xmark"></i></button>
             </div>
-        </div>
-    </div>
+            </div><!-- /.mz-player-inner -->
+          </div><!-- /.mz-player -->
+        </section>
+    </main>
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=32"></script>
+    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=33"></script>
 </body>
 </html>

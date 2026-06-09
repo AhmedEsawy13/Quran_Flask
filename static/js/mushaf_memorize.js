@@ -748,8 +748,12 @@
         if (!stage) return;
         const rect = stage.getBoundingClientRect();
         const vh = window.innerHeight;
-        const playerReserve = 96;                       // fixed player bar room
-        const availH = Math.max(360, vh - rect.top - playerReserve - 12);
+        // Height available to the page = from the stage's top down to the bottom of
+        // the scrolling stage-area. The docked player sits BELOW that area, so the
+        // page is always sized to fit above it (no overlap, no reserve guesswork).
+        const area = stage.closest('.mz-stage-area');
+        const areaBottom = area ? area.getBoundingClientRect().bottom : (vh - 12);
+        const availH = Math.max(320, areaBottom - rect.top - 8);
         const n = state.layoutMode === 'single' ? 1 : 2;
         const navAndGaps = 2 * 46 + 2 * 14 + 8;         // nav buttons + gaps
         const availW = Math.max(260, stage.clientWidth - navAndGaps);
@@ -1208,6 +1212,15 @@
         if (els.timeDur) els.timeDur.textContent = fmtTime(span);
     }
 
+    // The docked player grows/shrinks the stage area, so refit the page to the new
+    // height — once now and once after the open/close transition settles.
+    function refitForPlayer() {
+        if (!state.focusPage) return;
+        const run = () => { sizePages(); applyFontSize(); requestAnimationFrame(justifyLines); };
+        requestAnimationFrame(run);
+        setTimeout(run, 380);
+    }
+
     async function startPlayback() {
         rebuildSelectedKeys();
         state.schedule = buildSchedule();
@@ -1221,6 +1234,7 @@
         state.playing = true;
         els.player.classList.add('mz-show');
         els.player.setAttribute('aria-hidden', 'false');
+        refitForPlayer();
         setPlayIcon(true);
         syncLoopBtn();
         startMonitor();
@@ -1239,6 +1253,7 @@
         els.progressFill.style.width = '0%';
         els.player.classList.remove('mz-show');
         els.player.setAttribute('aria-hidden', 'true');
+        refitForPlayer();
     }
     function togglePlay() {
         if (els.audio.paused) {
