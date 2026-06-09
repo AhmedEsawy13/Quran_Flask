@@ -206,6 +206,9 @@ body.mz-dark .mz-status.mz-err { color: #f87171; }
 
 /* ── Content + stage (the freed centre) ──────────────────────────── */
 .mz-content { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; overflow: auto; }
+/* When the floating player is up, reserve scroll room at the bottom so a
+   zoomed-in page can scroll clear of it instead of being covered. */
+body:has(.mz-player.mz-show) .mz-content { padding-bottom: clamp(120px, 17vh, 175px); }
 
 /* floating mushaf toolbar (dual/tajweed/zoom/hide) */
 .mz-toolbar { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; background: var(--mz-surface);
@@ -290,12 +293,12 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
     text-align: center; padding: 0 18px; font-family: 'IBM Plex Sans Arabic', sans-serif; }
 .mz-page-empty.mz-page-na i { font-size: 1.6rem; }
 
-.mz-line-surah { font-family: 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--mz-accent); font-size: calc(var(--dk-fs) * 0.7); white-space: nowrap; }
+.mz-line-surah { font-family: 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--mz-accent); font-size: calc(var(--dk-fs) * 0.7); white-space: nowrap; max-width: 92%; overflow: hidden; text-overflow: ellipsis; }
 /* full-width surah header band (spans the line), name centred inside the border.
    Vertical margin keeps the border off the neighbouring Quran lines. */
 /* traditional Madinah-style surah cartouche: gold double-frame, name centred */
-.mz-line-surah.mz-surah-glyph { position: relative; width: 96%; margin: 0.18em auto; display: flex;
-    align-items: center; justify-content: center;
+.mz-line-surah.mz-surah-glyph { position: relative; box-sizing: border-box; width: 92%; max-width: 92%; margin: 0.18em auto; display: flex;
+    align-items: center; justify-content: center; overflow: hidden;
     font-family: 'Surah Names', serif; font-weight: 400; color: var(--mz-surah-ink); font-size: calc(var(--dk-fs) * 0.92);
     line-height: 1.2; white-space: nowrap; padding: 0.06em 1.6em;
     border: 1px solid var(--mz-surah-frame); border-radius: 3px;
@@ -318,24 +321,14 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-word.mz-act { color: var(--mz-accent); }
 .mz-page.mz-tajweed .mz-word.mz-act { color: inherit; }
 
-/* The single word being recited right now — karaoke highlight that tracks the
-   audio. A distinct warm colour (not the indigo verse accent) so it pops out
-   from the surrounding verse-level .mz-act cue and stays visible on small glyphs. */
-.mz-word.mz-now {
-    color: #c2410c !important;
-    background: color-mix(in srgb, #f97316 26%, transparent);
-    box-shadow: 0 0 0 0.07em color-mix(in srgb, #f97316 26%, transparent);
-    border-radius: 0.26em;
-    transition: background 0.1s ease, color 0.1s ease;
-}
-body.mz-dark .mz-word.mz-now {
-    color: #fdba74 !important;
-    background: color-mix(in srgb, #fb923c 30%, transparent);
-    box-shadow: 0 0 0 0.07em color-mix(in srgb, #fb923c 30%, transparent);
-}
+/* The single word being recited right now — a plain colour change (no pill or
+   ring) so it just recolours in place: a distinct warm hue, not the indigo verse
+   accent, so it reads clearly without resizing or boxing the word. */
+.mz-word.mz-now { color: #c2410c !important; transition: color 0.1s ease; }
+body.mz-dark .mz-word.mz-now { color: #fb923c !important; }
 .mz-page.mz-tajweed .mz-word.mz-now,
 .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #c2410c !important; }
-body.mz-dark .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #fdba74 !important; }
+body.mz-dark .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #fb923c !important; }
 
 /* Hide-for-testing: blur the words; click a word to reveal its whole verse. */
 .mz-page.mz-hide .mz-word { color: transparent !important; text-shadow: 0 0 0.5em var(--mz-quran); cursor: pointer; user-select: none; }

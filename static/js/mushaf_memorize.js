@@ -526,8 +526,12 @@
     const nearestShemrlyPage = (page) =>
         SHEMRLY_PAGES.reduce((best, p) => Math.abs(p - page) < Math.abs(best - page) ? p : best, SHEMRLY_PAGES[0]);
     function waqfQuery() {
-        if (!state.mushafVersions.length) return '';
-        return '?' + state.mushafVersions.map(v => 'mushaf_version=' + encodeURIComponent(v)).join('&');
+        // Shemrly always shows its own waqf marks inline (as printed in the original),
+        // regardless of the user's pill selection — like each Madina mushaf shows its own.
+        let versions = state.mushafVersions.slice();
+        if (state.src === 'shamarly' && !versions.includes('الشمرلي')) versions.unshift('الشمرلي');
+        if (!versions.length) return '';
+        return '?' + versions.map(v => 'mushaf_version=' + encodeURIComponent(v)).join('&');
     }
     async function fetchPageByAyah(surah, ayah) {
         const resp = await fetch(`${pageApiBase()}/page-by-ayah/${surah}/${ayah}${waqfQuery()}`);
