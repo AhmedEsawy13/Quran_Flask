@@ -214,6 +214,8 @@ body.mz-dark .mz-status.mz-err { color: #f87171; }
     background: transparent; color: var(--mz-text-muted); cursor: pointer; font-size: 0.92rem; transition: all 0.15s ease; }
 .mz-tb-btn:hover { background: var(--mz-surface-2); color: var(--mz-accent); }
 .mz-tb-btn.mz-on { background: var(--mz-accent); color: #fff; }
+.mz-tb-btn.mz-disabled, .mz-tb-btn:disabled, button.mz-disabled, button.mz-disabled:hover {
+    opacity: 0.38; cursor: not-allowed; pointer-events: none; background: transparent; color: var(--mz-text-faint); }
 .mz-tb-sep { width: 1px; height: 22px; background: var(--mz-border-strong); margin: 0 2px; }
 
 /* live recitation transcript */
@@ -280,6 +282,13 @@ body.mz-single .mz-spread::after { display: none; }
 .mz-page.mz-src-qpc-v1 .mz-line-inner, .mz-page.mz-src-qpc-v1 .mz-line-basmala { font-family: 'Old Madina', serif; }
 /* dark-mode: keep the Digital Khatt COLR verse markers legible (like the main page) */
 body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-dk-dark; }
+/* Shemrly: the page-local font is set inline on .mz-page; inherit it (each page
+   has its own font, so it can't be a fixed family) and give glyphs a bit more room. */
+.mz-page.mz-src-shamarly .mz-line-inner { font-family: inherit; font-size: calc(var(--dk-fs) * 1.12); }
+/* Not-available note when a page has no Shemrly font yet. */
+.mz-page-empty.mz-page-na { flex-direction: column; gap: 10px; font-size: 0.92rem; opacity: 0.7;
+    text-align: center; padding: 0 18px; font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.mz-page-empty.mz-page-na i { font-size: 1.6rem; }
 
 .mz-line-surah { font-family: 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--mz-accent); font-size: calc(var(--dk-fs) * 0.7); white-space: nowrap; }
 /* full-width surah header band (spans the line), name centred inside the border.

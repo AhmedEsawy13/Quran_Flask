@@ -3121,9 +3121,12 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                 if not rendered_word:
                     continue
                 chars.append(rendered_word)
+                src_word = page_word_by_index.get(word_pos, {})
                 line_words.append({
                     'word_index': word_pos,
                     'text': rendered_word,
+                    'surah': src_word.get('surah'),
+                    'ayah': src_word.get('ayah'),
                     'waqf_symbols': waqf_by_word_index.get(word_pos, '')
                 })
 

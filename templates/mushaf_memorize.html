@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=29">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=30">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -113,7 +113,7 @@
                     <h3 class="mz-sec-title"><i class="fas fa-book-open"></i> عرض المصحف</h3>
                     <div class="mz-field">
                         <label for="mz-src">رسم المصحف</label>
-                        <div class="mz-select-wrap"><select id="mz-src"><option value="digital_khatt">المدينة الجديد</option><option value="qpc_v1">المدينة ١٤٠٥</option></select><i class="fas fa-chevron-down"></i></div>
+                        <div class="mz-select-wrap"><select id="mz-src"><option value="digital_khatt">المدينة الجديد</option><option value="qpc_v1">المدينة ١٤٠٥</option><option value="shamarly">الشمرلي (صفحات مختارة)</option></select><i class="fas fa-chevron-down"></i></div>
                     </div>
                     <!-- kept for state-sync with the toolbar's dual/single + tajweed buttons -->
                     <select id="mz-layout" hidden><option value="dual">صفحتان</option><option value="single">صفحة واحدة</option></select>
@@ -214,6 +214,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=29"></script>
+    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=30"></script>
 </body>
 </html>

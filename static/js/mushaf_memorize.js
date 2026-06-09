@@ -274,7 +274,7 @@
         syncTajweedButton();
 
         const savedSrc = localStorage.getItem('mz_src');
-        if (savedSrc === 'qpc_v1' || savedSrc === 'digital_khatt') {
+        if (savedSrc === 'qpc_v1' || savedSrc === 'digital_khatt' || savedSrc === 'shamarly') {
             state.src = savedSrc;
         } else {
             const mainFont = localStorage.getItem('quranApp_font');
@@ -483,10 +483,31 @@
             if (!p) return;
             p.classList.toggle('mz-src-qpc-v1', state.src === 'qpc_v1');
             p.classList.toggle('mz-src-digital-khatt', state.src === 'digital_khatt');
-            p.classList.toggle('mz-tajweed', state.tajweedOn);
+            p.classList.toggle('mz-src-shamarly', state.src === 'shamarly');
+            p.classList.toggle('mz-tajweed', state.tajweedOn && state.src !== 'shamarly');
         });
     }
-    const pageApiBase = () => state.src === 'qpc_v1' ? '/api/qpc-v1' : '/api/digital-khatt';
+    const pageApiBase = () => state.src === 'qpc_v1' ? '/api/qpc-v1'
+        : state.src === 'shamarly' ? '/api/shamarly' : '/api/digital-khatt';
+
+    /* ── الشمرلي (Shemrly) page-local fonts ────────────────────────────
+       Shemrly is a page-image mushaf: each page has its own font whose glyphs
+       draw the words exactly as printed. Only the pages we ship a font for can
+       render; the API tags others 'legacy-word-position' and we show a note.
+       Each word's glyph is page-local, so a card's font = that page's font. */
+    const SHEMRLY_PAGES = [2, 3, 333, 444, 460, 461, 462, 463, 464, 465, 466, 467, 468, 469, 470, 497, 500];
+    const SHEMRLY_PAGE_SET = new Set(SHEMRLY_PAGES);
+    const _shemrlyFontPromises = new Map();
+    function ensureShemrlyFont(fontName) {
+        if (!fontName || !window.FontFace) return Promise.resolve();
+        if (_shemrlyFontPromises.has(fontName)) return _shemrlyFontPromises.get(fontName);
+        const ff = new FontFace(fontName, `url("/static/fonts/${fontName}.ttf")`);
+        const p = ff.load().then(f => document.fonts.add(f)).catch(() => {});
+        _shemrlyFontPromises.set(fontName, p);
+        return p;
+    }
+    const nearestShemrlyPage = (page) =>
+        SHEMRLY_PAGES.reduce((best, p) => Math.abs(p - page) < Math.abs(best - page) ? p : best, SHEMRLY_PAGES[0]);
     function waqfQuery() {
         if (!state.mushafVersions.length) return '';
         return '?' + state.mushafVersions.map(v => 'mushaf_version=' + encodeURIComponent(v)).join('&');
@@ -549,6 +570,21 @@
             pageEl.classList.remove('mz-has-page');
             return;
         }
+        // Shemrly renders only on pages we ship a font for; the API marks the rest
+        // 'legacy-word-position' (glyphs we can't draw) — show a friendly note instead.
+        if (state.src === 'shamarly' && payload.glyph_mapping_mode !== 'shemrly-page-local') {
+            pageEl.classList.remove('mz-has-page');
+            pageEl.style.removeProperty('font-family');
+            pageEl.innerHTML = '<div class="mz-page-empty mz-page-na"><i class="fas fa-circle-info"></i>'
+                + '<span>هذه الصفحة غير متوفرة بخط الشمرلي بعد</span></div>';
+            card.juz.textContent = ''; card.surah.textContent = '';
+            card.foot.textContent = toAr(payload.page_number || '');
+            return;
+        }
+        // Page-local Shemrly font: every word on this page draws with it.
+        if (state.src === 'shamarly' && payload.font_name) pageEl.style.fontFamily = `"${payload.font_name}", serif`;
+        else pageEl.style.removeProperty('font-family');
+
         pageEl.classList.add('mz-has-page');
         const ayahWPos = new Map();
         const frag = document.createDocumentFragment();
@@ -578,7 +614,9 @@
                     words.forEach((w, i) => {
                         const span = document.createElement('span');
                         span.className = 'mz-word';
-                        const text = withAyahOrnament(w.text || '');
+                        // Shemrly glyphs already include the printed ayah marker; only the
+                        // letter-based sources need the ۝ ornament appended.
+                        const text = state.src === 'shamarly' ? (w.text || '') : withAyahOrnament(w.text || '');
                         span.textContent = text;
                         span.dataset.text = text;
                         if (w.surah != null && w.ayah != null) {
@@ -646,7 +684,9 @@
             if (state.layoutMode === 'single') {
                 // Single page: show the focus page itself in the right card; hide the left.
                 state.spread = [focusPage, null];
-                renderCard(cards.right, await fetchPageByNumber(focusPage));
+                const fp = await fetchPageByNumber(focusPage);
+                if (state.src === 'shamarly' && fp) await ensureShemrlyFont(fp.font_name);
+                renderCard(cards.right, fp);
                 renderCard(cards.left, null);
             } else {
                 const [right, left] = spreadFor(focusPage);
@@ -655,6 +695,7 @@
                     fetchPageByNumber(right),
                     left !== right && left <= PAGE_MAX ? fetchPageByNumber(left) : Promise.resolve(null),
                 ]);
+                if (state.src === 'shamarly') await Promise.all([rp, lp].map(p => p && ensureShemrlyFont(p.font_name)));
                 renderCard(cards.right, rp);
                 renderCard(cards.left, lp);
             }
@@ -859,7 +900,19 @@
     function syncTajweedButton() {
         els.tajweed.classList.toggle('mz-on', state.tajweedOn);
         els.tajweed.setAttribute('aria-pressed', String(state.tajweedOn));
-        pageEls().forEach(p => p && p.classList.toggle('mz-tajweed', state.tajweedOn));
+        pageEls().forEach(p => p && p.classList.toggle('mz-tajweed', state.tajweedOn && state.src !== 'shamarly'));
+    }
+    // Tajweed colouring is letter-level; Shemrly draws whole-word glyphs, so it
+    // can't be coloured. Turn it off and disable its toggles while Shemrly is on.
+    function syncSrcCapabilities() {
+        const noTajweed = state.src === 'shamarly';
+        if (noTajweed && state.tajweedOn) { state.tajweedOn = false; syncTajweedButton(); syncToolbar(); }
+        [els.tajweed, els.tbTajweed].forEach(b => {
+            if (!b) return;
+            b.disabled = noTajweed;
+            b.classList.toggle('mz-disabled', noTajweed);
+            b.title = noTajweed ? 'غير متاح مع خط الشمرلي' : 'تلوين التجويد';
+        });
     }
     function _isCombiningMark(cp) {
         return (cp >= 0x064B && cp <= 0x065F) || cp === 0x0670 ||
@@ -984,7 +1037,7 @@
         return segments;
     }
     async function applyTajweedToPage() {
-        if (!state.tajweedOn) return;
+        if (!state.tajweedOn || state.src === 'shamarly') return;  // Shemrly words are single glyphs — no letter-level tajweed
         const ayahSpans = new Map();
         wordsInSpread('.mz-word[data-key]').forEach(span => {
             const key = span.dataset.key;
@@ -1349,7 +1402,16 @@
         els.src.addEventListener('change', () => {
             state.src = els.src.value;
             saveSetting('mz_src', state.src);
-            if (state.focusPage) { stopPlayback(); state.tajweedCache.clear(); renderSpread(state.focusPage); }
+            syncSrcCapabilities();
+            if (state.focusPage) {
+                stopPlayback();
+                state.tajweedCache.clear();
+                // Shemrly only covers select pages — snap onto the nearest one.
+                const target = state.src === 'shamarly' && !SHEMRLY_PAGE_SET.has(state.focusPage)
+                    ? nearestShemrlyPage(state.focusPage) : state.focusPage;
+                if (target !== state.focusPage) { setStatus('خط الشمرلي متاح لصفحات مختارة — تم الانتقال لأقرب صفحة متاحة'); gotoSpread(target); }
+                else renderSpread(state.focusPage);
+            }
         });
 
         els.layout.addEventListener('change', () => {
@@ -1414,7 +1476,13 @@
         const [a] = selectedAyahRange();
         setStatus('جارٍ فتح صفحة المصحف…');
         const ok = await ensureVerseVisible(state.surah, a);
-        if (!ok) { setStatus('تعذّر تحديد موضع الآية في المصحف', true); return; }
+        if (!ok) {
+            // Shemrly only ships select pages; don't treat a missing one as an error.
+            setStatus(state.src === 'shamarly'
+                ? 'هذه الآية غير متوفرة بخط الشمرلي بعد — اختر سورة/آية ضمن الصفحات المتاحة'
+                : 'تعذّر تحديد موضع الآية في المصحف', state.src !== 'shamarly');
+            return;
+        }
         applySelectionHighlight();
         setStatus('');
     }
@@ -1455,6 +1523,7 @@
         initTheme();
         loadSettings();
         gateReciteFeature();
+        syncSrcCapabilities();
         bindEvents();
         loadWaqfPills();
         await loadReciters();

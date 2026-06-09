@@ -83,3 +83,7 @@ streaming_global_cmvn.npz
 static/asr/
 static/asr_test.html
 static/js/mushaf_asr.js
+
+# SQLite transient files (WAL/SHM) created by the running server
+*.db-shm
+*.db-wal
