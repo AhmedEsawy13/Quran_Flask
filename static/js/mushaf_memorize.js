@@ -819,9 +819,15 @@
         if (count <= 0) return '';
         return seq.slice(0, count).map(f => `'${f}'`).join(',');
     }
+    // Full-justify every non-centered line so all lines start and end on the same
+    // edges (real-mushaf look). For the Madinah mushafs we elongate with the font's
+    // kashida features first, then distribute the remaining slack as space BETWEEN
+    // words — no scaleX glyph distortion. Centered lines (is_center=1 → data-justify
+    // "0": surah headers, basmala, short final lines) are left exactly as printed.
+    // Shemrly draws whole-word page glyphs, so it keeps the gentle scaleX fill.
     function justifyLines() {
-        const jFrac = state.justify / 100;
-        const features = khattFeatureSettings(state.justify);
+        const isShamarly = state.src === 'shamarly';
+        const features = isShamarly ? '' : khattFeatureSettings(100);
         wordsInSpread('.mz-line').forEach(lineEl => {
             const inner = lineEl.querySelector('.mz-line-inner');
             if (!inner) return;
@@ -830,19 +836,31 @@
             inner.style.fontVariationSettings = '';
             inner.style.wordSpacing = '';
             const avail = lineEl.clientWidth;
-            const isJustify = lineEl.dataset.justify === '1';
-            const plain = inner.scrollWidth;
-            if (!plain) return;
-            if (isJustify && features && plain < avail) inner.style.fontFeatureSettings = features;
+            if (!avail) return;
+            if (lineEl.dataset.justify !== '1') return;       // centered line: leave as-is
             const natural = inner.scrollWidth;
-            let scale;
-            if (isJustify) {
-                const fullScale = Math.max(0.35, Math.min(1.9, avail / natural));
-                scale = natural > avail ? fullScale : 1 + (fullScale - 1) * jFrac;
-            } else {
-                scale = natural > avail ? Math.max(0.35, avail / natural) : 1;
+            if (!natural) return;
+
+            if (natural > avail + 0.5) {                      // too long → condense to fit
+                inner.style.transform = `scaleX(${Math.max(0.5, avail / natural)})`;
+                return;
             }
-            inner.style.transform = `scaleX(${scale})`;
+            if (isShamarly) {                                 // page glyphs → gentle stretch
+                inner.style.transform = `scaleX(${Math.min(1.5, avail / natural)})`;
+                return;
+            }
+            // Madinah: kashida-elongate (if it doesn't overshoot), then word-space the rest.
+            let width = natural;
+            if (features) {
+                inner.style.fontFeatureSettings = features;
+                const withK = inner.scrollWidth;
+                if (withK <= avail + 0.5) width = withK;
+                else { inner.style.fontFeatureSettings = ''; }
+            }
+            const gaps = inner.querySelectorAll('.mz-word').length - 1;
+            const slack = avail - width;
+            if (slack > 0.5 && gaps > 0) inner.style.wordSpacing = (slack / gaps) + 'px';
+            else if (slack > 0.5) inner.style.transform = `scaleX(${avail / width})`;  // single word
         });
     }
     // Size the text so a typical line naturally fills the line width — then the
