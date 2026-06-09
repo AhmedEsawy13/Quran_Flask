@@ -365,10 +365,9 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-page.mz-src-qpc-v1 .mz-line-basmala.mz-basmala-glyph { font-family: 'QCF Basmala', serif; font-size: calc(var(--dk-fs) * 1.7); line-height: 1; }
 
 .mz-word { display: inline-block; position: relative; padding: 0.55em 0.02em 0; border-radius: 0.18em; transition: color 0.2s ease; }
-/* Selected-verse highlight intentionally OFF for now (no .mz-sel styling, no
-   dimming) — the verses just read as normal mushaf text until a better
-   highlight approach is chosen. The recited word keeps a subtle colour cue. */
-.mz-word.mz-act { color: var(--mz-accent); }
+/* Active-verse marker is used for scroll/follow only — no colour tint, so a
+   recited word reads at the normal Quran colour (the progress cue is opacity). */
+.mz-word.mz-act { color: inherit; }
 .mz-page.mz-tajweed .mz-word.mz-act { color: inherit; }
 
 /* The single word being recited right now — a plain colour change (no pill or
@@ -498,8 +497,10 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 .mz-tappable-empty { cursor: default; }
 
 /* ── Range selection by clicking verses ──────────────────────────── */
-.mz-word.mz-sel { background: color-mix(in srgb, var(--mz-accent) 13%, transparent); border-radius: 0.2em; }
-.mz-word.mz-sel-edge { background: color-mix(in srgb, var(--mz-accent) 22%, transparent); box-shadow: 0 0 0 0.05em color-mix(in srgb, var(--mz-accent) 30%, transparent); }
+/* Verses chosen to memorise are dimmed; as each word is recited it returns to
+   full strength (mz-done) — a progress reveal. The live word (mz-now) is full too. */
+.mz-word.mz-sel { opacity: 0.4; transition: opacity 0.35s ease; }
+.mz-word.mz-sel.mz-done, .mz-word.mz-now { opacity: 1; }
 body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 .mz-select-hint { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 35;
     padding: 7px 15px; border-radius: 999px; font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 0.8rem; font-weight: 600;

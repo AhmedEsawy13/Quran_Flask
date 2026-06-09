@@ -863,36 +863,16 @@
             else if (slack > 0.5) inner.style.transform = `scaleX(${avail / width})`;  // single word
         });
     }
-    // Size the text so a typical line naturally fills the line width — then the
-    // justify slider only needs a touch of kashida, instead of big scaleX stretch.
+    // Text size depends ONLY on page geometry (line slot height), so it stays the
+    // SAME on every page — no per-page "auto-zoom" as you navigate. justifyLines
+    // then fills each line's width to the edges. Manual zoom still scales the text
+    // because it enlarges the page frame (and thus the line height) in sizePages.
     function applyFontSize() {
         pageEls().forEach(p => {
             if (!p || !p.classList.contains('mz-has-page')) return;
-            const h = p.clientHeight || 1;
-            const lineH = h / 15;
-            const maxFs = lineH * 0.92;          // never taller than the line slot
-            let fs = Math.max(11, lineH * 0.62); // line-height baseline
+            const lineH = (p.clientHeight || 1) / 15;
+            const fs = Math.max(11, lineH * 0.82);   // fixed fraction of the line slot
             p.style.setProperty('--dk-fs', fs + 'px');
-
-            // Measure justified lines at this size, then scale so the median line
-            // ~fills the width (98%). Proportional scaling keeps the ratio valid.
-            const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
-            const ratios = [];
-            inners.forEach(inner => {
-                inner.style.transform = 'none';
-                inner.style.fontFeatureSettings = '';
-                inner.style.fontVariationSettings = '';
-                inner.style.wordSpacing = '';
-                const avail = inner.parentElement.clientWidth;
-                const nat = inner.scrollWidth;
-                if (nat > 0 && avail > 0) ratios.push(avail / nat);
-            });
-            if (ratios.length) {
-                ratios.sort((a, b) => a - b);
-                const med = ratios[Math.floor(ratios.length / 2)] || 1;
-                fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
-                p.style.setProperty('--dk-fs', fs + 'px');
-            }
         });
     }
 
@@ -929,13 +909,19 @@
         if (id === state.curWordId) return;
         state.curWordId = id;
         wordsInSpread('.mz-word.mz-now').forEach(el => el.classList.remove('mz-now'));
+        // Words already recited in this run brighten and stay (progress reveal).
+        state.activeWords.forEach(w => {
+            if (w.end <= t + 0.02) wordsInSpread(`.mz-word[data-key="${w.key}"][data-wpos="${w.wpos}"]`)
+                .forEach(el => el.classList.add('mz-done'));
+        });
         if (cur) wordsInSpread(`.mz-word[data-key="${cur.key}"][data-wpos="${cur.wpos}"]`)
-            .forEach(el => el.classList.add('mz-now'));
+            .forEach(el => el.classList.add('mz-now', 'mz-done'));
     }
     function clearWordHighlight() {
         state.curWordId = '';
         wordsInSpread('.mz-word.mz-now').forEach(el => el.classList.remove('mz-now'));
     }
+    function clearDone() { wordsInSpread('.mz-word.mz-done').forEach(el => el.classList.remove('mz-done')); }
     function followTick() {
         const t = els.audio.currentTime;
         const v = state.stepVerses.find(x => t >= x.start - EPS && t < x.end + EPS);
@@ -1263,6 +1249,7 @@
 
     async function startPlayback() {
         rebuildSelectedKeys();
+        clearDone();   // fresh progress reveal for this run
         state.schedule = buildSchedule();
         if (!state.schedule.length) { setStatus('لا توجد آيات في النطاق المحدد', true); return; }
         const [a] = selectedAyahRange();
@@ -1289,7 +1276,7 @@
     }
     function stopPlayback() {
         state.playing = false; state.stepIdx = -1; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
-        clearWordHighlight(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
+        clearWordHighlight(); clearDone(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
         els.progressFill.style.width = '0%';
         els.player.classList.remove('mz-show');
         els.player.setAttribute('aria-hidden', 'true');
@@ -1519,6 +1506,7 @@
     /* ── Click-to-range selection (hide OFF) ───────────────────────── */
     function handleVerseClick(ayah) {
         if (!Number.isFinite(ayah)) return;
+        clearDone();   // re-selecting resets the progress reveal
         if (state.rangeAnchor == null) {
             state.rangeAnchor = ayah;
             els.from.value = String(ayah); els.to.value = String(ayah);
