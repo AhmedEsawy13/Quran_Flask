@@ -2,7 +2,7 @@
 """Import extra memorization reciters from the Quranic Universal Audio (QUL) release.
 
 Source (CC-BY-4.0):
-  https://github.com/Wider-Community/quranic-universal-audio/releases/tag/v1.0.0
+  https://github.com/Wider-Community/quranic-universal-audio/releases/tag/v1.1.0
 
 Each reciter is published as a .zip containing word_timestamps.json.gz (and
 verse/letter variants) + catalog.json. The memorize player only needs
@@ -33,6 +33,7 @@ TARGET_DIRS = {
     'minshawi':    'reciters/minshawi_murattal_qul',
     'abdulbasit':  'reciters/abdulbasit_murattal_qul',
     'afasy':       'reciters/afasy_qul',
+    'banna':       'reciters/mahmoud_ali_al_banna_qdc',
 }
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WANTED = ('word_timestamps.json.gz', 'verse_timestamps.json.gz', 'catalog.json')

@@ -93,7 +93,7 @@ def after_request(response):
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
         # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…); jsdelivr CDN allowed for ort wasm fetch.
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com; "
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com; "
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
         "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com;"
     )
@@ -2079,11 +2079,22 @@ MEMORIZATION_RECITERS = {
         'dir': os.path.join(_BASE_DIR, 'reciters', 'afasy_qul'),
         'audio_tmpl': 'https://server8.mp3quran.net/afs/{surah:03d}.mp3',
     },
+    'banna': {
+        'name_ar': 'محمود علي البنا', 'name_en': 'Mahmoud Ali Al-Banna',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'mahmoud_ali_al_banna_qdc'),
+        # QUL v1.1.0 timestamps were aligned to these QuranicAudio per-surah files,
+        # so use the same source (CBR 128 → accurate seeking, supports HTTP range).
+        'audio_tmpl': 'https://download.quranicaudio.com/quran/mahmood_ali_albana/{surah:03d}.mp3',
+    },
     'burhaji': {
         'name_ar': 'محمد برهجي', 'name_en': 'Mohammed Burhaji',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_burhaji_yt'),
         'audio_tmpl': None,  # YouTube source — no streamable per-surah MP3
     },
+    # Abdullah Al-Buaijan (عبد الله البعيجان) is in QUL v1.1.0 but its audio is a
+    # 2025 YouTube recording: surahs 3–114 are only YouTube video URLs (no
+    # streamable per-surah MP3), so the timestamps can't drive seek-based playback
+    # here. Excluded until an aligned per-surah MP3 source exists.
 }
 _DEFAULT_MEMO_RECITER = 'husary'
 
