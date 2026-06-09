@@ -309,6 +309,18 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-word.mz-act { color: var(--mz-accent); }
 .mz-page.mz-tajweed .mz-word.mz-act { color: inherit; }
 
+/* The single word being recited right now — karaoke highlight that tracks the
+   audio. Sits above the verse-level .mz-act cue. */
+.mz-word.mz-now {
+    color: var(--mz-accent) !important;
+    background: color-mix(in srgb, var(--mz-accent) 15%, transparent);
+    box-shadow: 0 0 0 0.04em color-mix(in srgb, var(--mz-accent) 24%, transparent);
+    border-radius: 0.28em;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+.mz-page.mz-tajweed .mz-word.mz-now,
+.mz-page.mz-tajweed .mz-word.mz-now tajweed { color: var(--mz-accent) !important; }
+
 /* Hide-for-testing: blur the words; click a word to reveal its whole verse. */
 .mz-page.mz-hide .mz-word { color: transparent !important; text-shadow: 0 0 0.5em var(--mz-quran); cursor: pointer; user-select: none; }
 .mz-page.mz-hide .mz-word tajweed { color: transparent !important; text-shadow: 0 0 0.5em currentColor; }
@@ -397,25 +409,51 @@ body.mz-dark .waqf-symbol[data-version="الشمرلي"] { color: #c084fc; }
 body.mz-dark .waqf-symbol[data-version="ورش"]     { color: #fbbf24; }
 body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 
-/* ── Audio player bar (fixed) ────────────────────────────────────── */
-.mz-player { position: fixed; inset-inline: 0; bottom: 0; z-index: 40; display: flex; align-items: center; gap: 14px;
-    max-width: 760px; margin: 0 auto 16px; width: calc(100% - 32px); padding: 12px 18px;
-    background: color-mix(in srgb, var(--mz-surface) 92%, transparent);
-    backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border: 1px solid var(--mz-border-strong); border-radius: 18px; box-shadow: var(--mz-shadow-lg);
-    transform: translateY(140%); opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; }
+/* ── Audio player — modern transport (Apple/Vercel/OpenAI vibe) ─────
+   A floating glass capsule: now-playing line, slim scrubber with time
+   labels, and a centred transport cluster. Monochrome surface + one accent. */
+.mz-player { position: fixed; inset-inline: 0; bottom: 0; z-index: 40;
+    max-width: 540px; margin: 0 auto 18px; width: calc(100% - 32px);
+    background: color-mix(in srgb, var(--mz-surface) 80%, transparent);
+    backdrop-filter: saturate(180%) blur(28px); -webkit-backdrop-filter: saturate(180%) blur(28px);
+    border: 1px solid color-mix(in srgb, var(--mz-border-strong) 70%, transparent);
+    border-radius: 22px; box-shadow: 0 8px 40px -8px rgba(0,0,0,0.28), 0 1px 0 rgba(255,255,255,0.04) inset;
+    transform: translateY(140%); opacity: 0; transition: transform 0.34s cubic-bezier(.22,1,.36,1), opacity 0.34s ease; }
 .mz-player.mz-show { transform: translateY(0); opacity: 1; }
-.mz-play-btn, .mz-stop-btn { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%; border: none; cursor: pointer; font-size: 1rem; transition: all 0.15s ease; }
-.mz-play-btn { background: var(--mz-accent); color: #fff; box-shadow: 0 4px 14px var(--mz-accent-ring); }
+.mz-player-inner { display: flex; flex-direction: column; gap: 11px; padding: 13px 18px 15px; }
+
+.mz-player-info { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    font-family: 'IBM Plex Sans Arabic', sans-serif; }
+.mz-now { font-size: 0.9rem; font-weight: 700; color: var(--mz-text); letter-spacing: -0.01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.mz-player-reciter { font-size: 0.72rem; font-weight: 500; color: var(--mz-text-muted); white-space: nowrap; flex-shrink: 0; }
+
+.mz-scrub { display: flex; align-items: center; gap: 10px; }
+.mz-time { font-size: 0.66rem; font-weight: 600; color: var(--mz-text-muted); font-variant-numeric: tabular-nums;
+    min-width: 2.4em; text-align: center; flex-shrink: 0; }
+.mz-progress { position: relative; flex: 1; height: 5px; border-radius: 999px; cursor: pointer;
+    background: color-mix(in srgb, var(--mz-text-muted) 22%, transparent); }
+.mz-progress-fill { position: absolute; inset-block: 0; inset-inline-start: 0; width: 0;
+    background: var(--mz-accent); border-radius: 999px; transition: width 0.1s linear; }
+.mz-progress-fill::after { content: ''; position: absolute; inset-inline-end: -5px; top: 50%; transform: translateY(-50%) scale(0);
+    width: 11px; height: 11px; border-radius: 50%; background: var(--mz-accent);
+    box-shadow: 0 1px 5px var(--mz-accent-ring); transition: transform 0.15s ease; }
+.mz-progress:hover .mz-progress-fill::after, .mz-progress:focus-visible .mz-progress-fill::after { transform: translateY(-50%) scale(1); }
+.mz-progress:focus-visible { outline: none; }
+
+.mz-transport { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.mz-play-btn { display: grid; place-items: center; width: 48px; height: 48px; flex-shrink: 0; border: none; cursor: pointer;
+    border-radius: 50%; font-size: 1.05rem; background: var(--mz-accent); color: #fff;
+    box-shadow: 0 6px 18px -4px var(--mz-accent-ring); transition: transform 0.12s ease, background 0.15s ease; }
 .mz-play-btn:hover { background: var(--mz-accent-hover); }
-.mz-stop-btn { background: var(--mz-surface-2); color: var(--mz-text-muted); border: 1px solid var(--mz-border-strong); }
-.mz-stop-btn:hover { color: #dc2626; border-color: #dc2626; }
-.mz-player-body { flex: 1; min-width: 0; }
-.mz-player-meta { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 7px; font-family: 'IBM Plex Sans Arabic', sans-serif; }
-.mz-now { font-size: 0.84rem; font-weight: 700; color: var(--mz-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mz-reciter { font-size: 0.74rem; color: var(--mz-text-muted); white-space: nowrap; }
-.mz-progress { height: 6px; background: var(--mz-border-strong); border-radius: 999px; cursor: pointer; overflow: hidden; }
-.mz-progress-fill { height: 100%; width: 0; background: var(--mz-accent); border-radius: 999px; transition: width 0.1s linear; }
+.mz-play-btn:active { transform: scale(0.93); }
+.mz-ctl { display: grid; place-items: center; width: 38px; height: 38px; flex-shrink: 0; cursor: pointer;
+    border-radius: 50%; border: none; background: transparent; color: var(--mz-text-muted); font-size: 0.92rem;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.12s ease; }
+.mz-ctl:hover { color: var(--mz-text); background: color-mix(in srgb, var(--mz-text-muted) 14%, transparent); }
+.mz-ctl:active { transform: scale(0.9); }
+.mz-ctl-loop[aria-pressed="true"] { color: var(--mz-accent); background: color-mix(in srgb, var(--mz-accent) 14%, transparent); }
+.mz-ctl-stop:hover { color: #dc2626; background: color-mix(in srgb, #dc2626 12%, transparent); }
 
 /* ── Focus mode — distraction-free: hide the sidebar, page fills width ── */
 body.mz-focus .mz-sidebar { display: none; }

@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=27">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=29">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -188,18 +188,32 @@
         </section>
     </main>
 
-    <!-- ── Audio player bar ───────────────────────────────────────── -->
+    <!-- ── Audio player bar (modern transport) ────────────────────── -->
     <div class="mz-player" id="mz-player" aria-hidden="true">
-        <button class="mz-play-btn" id="mz-play" type="button" title="تشغيل/إيقاف" aria-label="تشغيل"><i class="fas fa-play"></i></button>
-        <div class="mz-player-body">
-            <div class="mz-player-meta"><span class="mz-now" id="mz-now">—</span><span class="mz-reciter">محمود خليل الحصري</span></div>
-            <div class="mz-progress" id="mz-progress"><div class="mz-progress-fill" id="mz-progress-fill"></div></div>
+        <div class="mz-player-inner">
+            <div class="mz-player-info">
+                <span class="mz-now" id="mz-now">—</span>
+                <span class="mz-player-reciter" id="mz-player-reciter">محمود خليل الحصري</span>
+            </div>
+            <div class="mz-scrub">
+                <span class="mz-time" id="mz-time-cur">٠:٠٠</span>
+                <div class="mz-progress" id="mz-progress" role="slider" aria-label="موضع المقطع" tabindex="0">
+                    <div class="mz-progress-fill" id="mz-progress-fill"></div>
+                </div>
+                <span class="mz-time" id="mz-time-dur">٠:٠٠</span>
+            </div>
+            <div class="mz-transport">
+                <button class="mz-ctl mz-ctl-loop" id="mz-loop-btn" type="button" aria-pressed="false" title="تكرار النطاق كاملًا" aria-label="تكرار"><i class="fas fa-repeat"></i></button>
+                <button class="mz-ctl" id="mz-prev-step" type="button" title="المقطع السابق" aria-label="المقطع السابق"><i class="fas fa-backward-step"></i></button>
+                <button class="mz-play-btn" id="mz-play" type="button" title="تشغيل/إيقاف" aria-label="تشغيل"><i class="fas fa-play"></i></button>
+                <button class="mz-ctl" id="mz-next-step" type="button" title="المقطع التالي" aria-label="المقطع التالي"><i class="fas fa-forward-step"></i></button>
+                <button class="mz-ctl mz-ctl-stop" id="mz-stop" type="button" title="إنهاء الجلسة" aria-label="إيقاف"><i class="fas fa-xmark"></i></button>
+            </div>
         </div>
-        <button class="mz-stop-btn" id="mz-stop" type="button" title="إيقاف" aria-label="إيقاف"><i class="fas fa-stop"></i></button>
     </div>
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=28"></script>
+    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=29"></script>
 </body>
 </html>

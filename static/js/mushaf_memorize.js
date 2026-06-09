@@ -47,7 +47,13 @@
         player:      $('mz-player'),
         play:        $('mz-play'),
         stop:        $('mz-stop'),
+        prevStep:    $('mz-prev-step'),
+        nextStep:    $('mz-next-step'),
+        loopBtn:     $('mz-loop-btn'),
         now:         $('mz-now'),
+        playerReciter: $('mz-player-reciter'),
+        timeCur:     $('mz-time-cur'),
+        timeDur:     $('mz-time-dur'),
         progress:    $('mz-progress'),
         progressFill:$('mz-progress-fill'),
         audio:       $('mz-audio'),
@@ -94,6 +100,11 @@
         pendingSeek: false,
         playing: false,
         activeKey: null,
+        stepVerses: [],         // verses overlapping the current step's [start,end]
+        activeWords: [],        // flat {key,wpos,start,end} for word-by-word follow
+        curWordId: '',          // currently lit word ("key#wpos") — avoids churn
+        curFollowAyah: null,    // verse the audio is currently inside
+        followFlipping: false,  // guard: one page-flip at a time while following
         justify: 50,
         tajweedOn: false,
         tajweedCache: new Map(),
@@ -386,8 +397,7 @@
         state.memo = data;
         state.surah = surah;
         if (data.reciter_name_ar) state.reciterName = data.reciter_name_ar;
-        const recEl = document.querySelector('.mz-reciter');
-        if (recEl) recEl.textContent = state.reciterName;
+        if (els.playerReciter) els.playerReciter.textContent = state.reciterName;
         state.verseByAyah = new Map(data.verses.map(v => [v.ayah, v]));
 
         const opts = data.verses.map(v => `<option value="${v.ayah}">${toAr(v.ayah)}</option>`).join('');
@@ -795,6 +805,46 @@
         if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     }
 
+    /* ── Word-by-word + verse follow while audio plays ─────────────────
+       Each verse carries word timestamps (v.words = [[wpos, start, end], …],
+       surah-absolute seconds, 0-based to match the DOM's data-wpos). The
+       monitor calls followTick() every 40ms: it lights the single word the
+       reciter is on (.mz-now) and moves the verse highlight as the timeline
+       crosses verse boundaries (so cumulative-link steps follow correctly). */
+    function highlightCurrentWord(t) {
+        const cur = state.activeWords.find(w => t >= w.start - 0.02 && t <= w.end + 0.04);
+        const id = cur ? `${cur.key}#${cur.wpos}` : '';
+        if (id === state.curWordId) return;
+        state.curWordId = id;
+        wordsInSpread('.mz-word.mz-now').forEach(el => el.classList.remove('mz-now'));
+        if (cur) wordsInSpread(`.mz-word[data-key="${cur.key}"][data-wpos="${cur.wpos}"]`)
+            .forEach(el => el.classList.add('mz-now'));
+    }
+    function clearWordHighlight() {
+        state.curWordId = '';
+        wordsInSpread('.mz-word.mz-now').forEach(el => el.classList.remove('mz-now'));
+    }
+    function followTick() {
+        const t = els.audio.currentTime;
+        const v = state.stepVerses.find(x => t >= x.start - EPS && t < x.end + EPS);
+        if (v && v.ayah !== state.curFollowAyah) {
+            state.curFollowAyah = v.ayah;
+            const key = `${state.surah}:${v.ayah}`;
+            if (wordsInSpread(`.mz-word[data-key="${key}"]`).length) {
+                markActive(key); scrollActiveIntoView();
+            } else if (!state.followFlipping) {
+                state.followFlipping = true;
+                ensureVerseVisible(state.surah, v.ayah).then(() => {
+                    applySelectionHighlight();
+                    if (state.tajweedOn) applyTajweedToPage();
+                    markActive(key); scrollActiveIntoView();
+                    state.followFlipping = false;
+                }).catch(() => { state.followFlipping = false; });
+            }
+        }
+        highlightCurrentWord(t);
+    }
+
     async function ensureVerseVisible(surah, ayah) {
         const key = `${surah}:${ayah}`;
         if (wordsInSpread(`.mz-word[data-key="${key}"]`).length) return true;
@@ -1020,6 +1070,7 @@
             const step = state.schedule[state.stepIdx];
             if (!step) return;
             updateProgress();
+            followTick();
             if (els.audio.currentTime >= step.end - EPS) advanceStep();
         }, 40);
     }
@@ -1038,8 +1089,20 @@
         }
         state.stepIdx = k;
         const step = state.schedule[k];
-        await ensureVerseVisible(state.surah, step.ayah);
-        markActive(`${state.surah}:${step.ayah}`);
+        // Verses overlapping this step's time window (a cumulative-link step spans
+        // several). The first is where playback begins; the follower advances from it.
+        state.stepVerses = [...state.verseByAyah.values()]
+            .filter(v => v.start < step.end + EPS && v.end > step.start - EPS)
+            .sort((a, b) => a.ayah - b.ayah);
+        state.activeWords = [];
+        state.stepVerses.forEach(v => (v.words || []).forEach(w =>
+            state.activeWords.push({ key: `${state.surah}:${v.ayah}`, wpos: w[0], start: w[1], end: w[2] })));
+        const firstAyah = state.stepVerses.length ? state.stepVerses[0].ayah : step.ayah;
+        state.curFollowAyah = null;
+        clearWordHighlight();
+        await ensureVerseVisible(state.surah, firstAyah);
+        markActive(`${state.surah}:${firstAyah}`);
+        state.curFollowAyah = firstAyah;
         scrollActiveIntoView();
         seekTo(step.start);
         els.now.textContent = `${surahNameOf(state.surah)} · ${step.label}` + (step.repTotal > 1 ? ` (${toAr(step.rep)}/${toAr(step.repTotal)})` : '');
@@ -1048,13 +1111,21 @@
     }
     const advanceStep = () => playStep(state.stepIdx + 1);
 
+    const fmtTime = (sec) => {
+        sec = Math.max(0, Math.floor(sec || 0));
+        const m = Math.floor(sec / 60), s = sec % 60;
+        return `${toAr(m)}:${toAr(String(s).padStart(2, '0'))}`;
+    };
     function updateProgress() {
         const step = state.schedule[state.stepIdx];
         if (!step) return;
         const span = Math.max(0.001, step.end - step.start);
-        const frac = Math.max(0, Math.min(1, (els.audio.currentTime - step.start) / span));
+        const elapsed = Math.max(0, Math.min(span, els.audio.currentTime - step.start));
+        const frac = elapsed / span;
         const overall = (state.stepIdx + frac) / state.schedule.length;
         els.progressFill.style.width = `${Math.round(overall * 100)}%`;
+        if (els.timeCur) els.timeCur.textContent = fmtTime(elapsed);
+        if (els.timeDur) els.timeDur.textContent = fmtTime(span);
     }
 
     async function startPlayback() {
@@ -1071,17 +1142,20 @@
         els.player.classList.add('mz-show');
         els.player.setAttribute('aria-hidden', 'false');
         setPlayIcon(true);
+        syncLoopBtn();
         startMonitor();
         playStep(0);
     }
     function finishPlayback() {
         state.playing = false; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
+        clearWordHighlight();
         els.progressFill.style.width = '100%';
         els.now.textContent = 'تم — أحسنت! 🌿';
         setTimeout(() => { if (!state.playing) els.progressFill.style.width = '0%'; }, 1200);
     }
     function stopPlayback() {
         state.playing = false; state.stepIdx = -1; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
+        clearWordHighlight(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
         els.progressFill.style.width = '0%';
         els.player.classList.remove('mz-show');
         els.player.setAttribute('aria-hidden', 'true');
@@ -1095,6 +1169,10 @@
     function setPlayIcon(playing) {
         const i = els.play.querySelector('i');
         if (i) i.className = playing ? 'fas fa-pause' : 'fas fa-play';
+        els.play.setAttribute('aria-label', playing ? 'إيقاف مؤقت' : 'تشغيل');
+    }
+    function syncLoopBtn() {
+        if (els.loopBtn) els.loopBtn.setAttribute('aria-pressed', String(!!els.loop.checked));
     }
 
     els.audio.addEventListener('seeked', () => { state.pendingSeek = false; });
@@ -1230,6 +1308,18 @@
         });
         els.play.addEventListener('click', togglePlay);
         els.stop.addEventListener('click', stopPlayback);
+        if (els.prevStep) els.prevStep.addEventListener('click', () => {
+            if (!state.schedule.length) return;
+            playStep(state.stepIdx <= 0 ? 0 : state.stepIdx - 1);
+        });
+        if (els.nextStep) els.nextStep.addEventListener('click', () => {
+            if (!state.schedule.length) return;
+            playStep(Math.min(state.schedule.length - 1, Math.max(0, state.stepIdx) + 1));
+        });
+        if (els.loopBtn) els.loopBtn.addEventListener('click', () => {
+            els.loop.checked = !els.loop.checked;
+            syncLoopBtn();
+        });
         els.prev.addEventListener('click', () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage - 1 : state.spread[0] - 2); });
         els.next.addEventListener('click', () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage + 1 : state.spread[0] + 2); });
 
@@ -1274,6 +1364,7 @@
         els.linkReps.addEventListener('change', updateHint);
         els.cumulative.addEventListener('change', updateHint);
         els.splitLong.addEventListener('change', () => { document.body.classList.toggle('mz-split-on', els.splitLong.checked); updateHint(); });
+        if (els.loop) els.loop.addEventListener('change', syncLoopBtn);
         if (els.reciter) els.reciter.addEventListener('change', async () => {
             state.reciter = els.reciter.value;
             saveSetting('quranApp_memoReciter', state.reciter);
