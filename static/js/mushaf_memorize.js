@@ -1426,18 +1426,30 @@
             if (state.focusPage) requestAnimationFrame(justifyLines);
         });
 
-        els.src.addEventListener('change', () => {
+        els.src.addEventListener('change', async () => {
+            // Preserve the reading position by surah/ayah, not page number: Shemrly's
+            // layout-DB pages don't match the 604-page Madina numbering, so keeping the
+            // page number would jump to unrelated content when crossing that boundary.
+            const firstWord = wordsInSpread('.mz-word[data-key]')[0];
+            const anchorKey = firstWord ? firstWord.dataset.key
+                : `${state.surah}:${selectedAyahRange()[0]}`;
             state.src = els.src.value;
             saveSetting('mz_src', state.src);
             syncSrcCapabilities();
-            if (state.focusPage) {
-                stopPlayback();
-                state.tajweedCache.clear();
-                // Shemrly only covers select pages — snap onto the nearest one.
-                const target = state.src === 'shamarly' && !SHEMRLY_PAGE_SET.has(state.focusPage)
-                    ? nearestShemrlyPage(state.focusPage) : state.focusPage;
-                if (target !== state.focusPage) { setStatus('خط الشمرلي متاح لصفحات مختارة — تم الانتقال لأقرب صفحة متاحة'); gotoSpread(target); }
-                else renderSpread(state.focusPage);
+            if (!state.focusPage) return;
+            stopPlayback();
+            state.tajweedCache.clear();
+            try {
+                const [s, a] = anchorKey.split(':').map(Number);
+                const payload = await fetchPageByAyah(s, a);   // page in the NEW source
+                let target = payload.page_number;
+                if (state.src === 'shamarly' && !SHEMRLY_PAGE_SET.has(target)) {
+                    setStatus('خط الشمرلي متاح لصفحات مختارة — تم الانتقال لأقرب صفحة متاحة');
+                    target = nearestShemrlyPage(target);
+                }
+                await gotoSpread(target);
+            } catch (e) {
+                renderSpread(state.focusPage);
             }
         });
 

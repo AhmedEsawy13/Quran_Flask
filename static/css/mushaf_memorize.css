@@ -409,6 +409,10 @@ body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaq
 .waqf-symbol[data-version="المدينة"]  { color: #c2410c; }
 .waqf-symbol[data-version="الأزهر"]   { color: #15803d; }
 .waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; }
+/* On the Shemrly mushaf, its own waqf marks print in the same ink as the text
+   (above the word), so colour them like the Quran text rather than a version hue. */
+.mz-page.mz-src-shamarly .waqf-symbol[data-version="الشمرلي"],
+body.mz-dark .mz-page.mz-src-shamarly .waqf-symbol[data-version="الشمرلي"] { color: var(--mz-quran); }
 .waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
 .waqf-symbol[data-version="ورش"]     { color: #b45309; }
 .waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; }
