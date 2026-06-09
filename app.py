@@ -2273,6 +2273,10 @@ def get_memorization(surah_number):
                  'end': round(p['end'] / 1000.0, 3)}
                 for p in phrases
             ],
+            'words': [
+                [w[0], round(w[1] / 1000.0, 3), round(w[2] / 1000.0, 3)]
+                for w in words
+            ],
         })
         ayah += 1
 

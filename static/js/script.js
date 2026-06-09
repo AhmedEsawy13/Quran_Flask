@@ -706,6 +706,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
+            if (readingView === 'page' && (font === 'digital_khatt' || font === 'old_madina')) {
+                await loadLayoutPageData(surahNumber, ayahNumber, font, selectedVersions);
+                return;
+            }
+
             const params = new URLSearchParams();
             selectedVersions.forEach((v) => params.append('mushaf_version', v));
             // Tell the backend which text source we're using so it can return
@@ -759,6 +764,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             handleError('Error loading Quran data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
         }
+    }
+
+    async function loadLayoutPageData(surahNumber, ayahNumber, font, selectedVersions) {
+        const params = new URLSearchParams();
+        selectedVersions.forEach(v => params.append('mushaf_version', v));
+        const query = params.toString() ? '?' + params.toString() : '';
+        const apiBase = font === 'old_madina' ? '/api/qpc-v1' : '/api/digital-khatt';
+
+        currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
+        const pagePayload = await fetchData(`${apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${query}`);
+        if (!pagePayload) throw new Error('Page data unavailable');
+
+        const fontName = pagePayload.font_name || (font === 'old_madina' ? 'Old Madina' : 'Digital Khatt');
+        elements.quranTextContainer.style.fontFamily = `'${fontName}', 'UthmanicHafs', serif`;
+        renderShamarlyPage(pagePayload);
+
+        const reciter = elements.reciterSelect.value;
+        const reciterAudio = currentAyahData.reciters?.[reciter];
+        if (reciterAudio) {
+            elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
+            currentSegments = reciterAudio.segments || [];
+        }
+        updatePlayPauseButton();
+        displayTransliteration(currentAyahData.transliteration);
+        await maybeRefreshTafseer(surahNumber, ayahNumber);
+        await maybeRefreshEerab(surahNumber, ayahNumber);
+        await maybeRefreshTajweed(surahNumber, ayahNumber);
+        if (elements.wordMeaningVisible) {
+            displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, currentAyahData.text || '');
+        } else {
+            elements.wordMeaningContainer.innerHTML = '';
+        }
+        saveUserPreferences();
+        elements.audioElement.onended = updatePlayPauseButton;
     }
 
     async function loadShamarlyQuranData(surahNumber, ayahNumber, readingView, mushafVersions) {
@@ -3658,6 +3697,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Store the exact font name so CSS selectors like body[data-font-type="digital_khatt"] work
             document.body.dataset.fontType = font;
         }
+        // Enable/disable page mode option based on font support
+        const pageOption = elements.readingViewSelect?.querySelector('option[value="page"]');
+        if (pageOption) {
+            const pageSupported = (font === 'shamarly' || font === 'digital_khatt' || font === 'old_madina');
+            pageOption.disabled = !pageSupported;
+            if (!pageSupported && elements.readingViewSelect.value === 'page') {
+                elements.readingViewSelect.value = 'verse-normal';
+            }
+        }
         // Show/hide the justification slider for Digital Khatt family fonts
         const isKhattFont = (font === 'digital_khatt' || font === 'old_madina');
         if (elements.khattJustifyRow) {
@@ -3887,6 +3935,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.ayahSelect.value = ayah;
             await loadQuranData();
         } catch (e) {}
+    };
+
+    // Called by the memo IIFE to drive word-by-word highlighting on the main page
+    // while memo-audio plays. wordTimes: [[wordIdx, startSec, endSec], ...] or null to clear.
+    window.__memoHighlightWithTimes = function(wordTimes) {
+        const memoAudio = document.getElementById('memo-audio');
+        if (!memoAudio) return;
+        if (memoAudio._memoHlHandler) {
+            memoAudio.removeEventListener('timeupdate', memoAudio._memoHlHandler);
+            memoAudio._memoHlHandler = null;
+        }
+        document.querySelectorAll('#quran-text .word-token.highlight').forEach(el => el.classList.remove('highlight'));
+        if (!wordTimes || !wordTimes.length) return;
+        const timeMap = new Map(wordTimes.map(([idx, s, e]) => [idx, { s, e }]));
+        let lastHlTime = 0;
+        memoAudio._memoHlHandler = () => {
+            const now = Date.now();
+            if (now - lastHlTime < 80) return;
+            lastHlTime = now;
+            const t = memoAudio.currentTime;
+            document.querySelectorAll('#quran-text .word-token[data-index]').forEach(el => {
+                const seg = timeMap.get(parseInt(el.dataset.index, 10));
+                el.classList.toggle('highlight', !!(seg && t >= seg.s && t <= seg.e));
+            });
+        };
+        memoAudio.addEventListener('timeupdate', memoAudio._memoHlHandler);
     };
 });
 
@@ -4159,7 +4233,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Navigate main page to this verse (debounced — only when ayah changes)
             if (seg.ayah !== lastNavigatedAyah && typeof window.__memoNavigate === 'function') {
                 lastNavigatedAyah = seg.ayah;
-                window.__memoNavigate(data.surah_number, seg.ayah);
+                const verse = data.verses.find(x => x.ayah === seg.ayah);
+                window.__memoNavigate(data.surah_number, seg.ayah).then(() => {
+                    if (typeof window.__memoHighlightWithTimes === 'function') {
+                        window.__memoHighlightWithTimes(verse ? (verse.words || null) : null);
+                    }
+                }).catch(() => {});
+            } else {
+                // Same ayah, different phrase — re-arm highlights (word spans already exist)
+                const verse = data.verses.find(x => x.ayah === seg.ayah);
+                if (typeof window.__memoHighlightWithTimes === 'function') {
+                    window.__memoHighlightWithTimes(verse ? (verse.words || null) : null);
+                }
             }
         }
         const nextStep = () => playStep(stepIdx + 1);
@@ -4193,6 +4278,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             els.startBtn.disabled = false;
             hideOverlay();
             els.verseList.querySelectorAll('.memo-active').forEach(el => el.classList.remove('memo-active'));
+            if (typeof window.__memoHighlightWithTimes === 'function') window.__memoHighlightWithTimes(null);
         }
         function finish() {
             stopMonitor();
@@ -4201,6 +4287,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             setOverlayProgress(100);
             setOverlayStatus('تم الانتهاء ✓ بارك الله فيك');
             if (els.overlayPause) { els.overlayPause.classList.remove('playing'); els.overlayPause.innerHTML = '<i class="fas fa-pause"></i>'; }
+            if (typeof window.__memoHighlightWithTimes === 'function') window.__memoHighlightWithTimes(null);
             setTimeout(hideOverlay, 3000);
         }
 
