@@ -74,6 +74,20 @@
         justify:     $('mz-justify'),
         justifyVal:  $('mz-justify-val'),
         waqfPills:   $('mz-waqf-pills'),
+        // redesigned top-bar bits
+        reciterTrigger: $('mz-reciter-trigger'),
+        reciterPanel:   $('mz-reciter-panel'),
+        reciterLabel:   $('mz-reciter-label'),
+        repsBadge:      $('mz-reps-badge'),
+        srcTrigger:     $('mz-src-trigger'),
+        srcPanel:       $('mz-src-panel'),
+        srcLabel:       $('mz-src-label'),
+        picker:         $('mz-picker'),
+        pickerBackdrop: $('mz-picker-backdrop'),
+        pickerClose:    $('mz-picker-close'),
+        pickerTitle:    $('mz-picker-title'),
+        pickerSearch:   $('mz-picker-search'),
+        pickerList:     $('mz-picker-list'),
     };
 
     // The two page panels of the spread (right = lower/odd page, left = higher).
@@ -105,6 +119,7 @@
         curWordId: '',          // currently lit word ("key#wpos") — avoids churn
         curFollowAyah: null,    // verse the audio is currently inside
         followFlipping: false,  // guard: one page-flip at a time while following
+        rangeAnchor: null,      // first verse clicked while picking a range
         justify: 50,
         tajweedOn: false,
         tajweedCache: new Map(),
@@ -124,6 +139,7 @@
     function setHideMode(on) {
         state.hideText = !!on;
         pageEls().forEach(p => p && p.classList.toggle('mz-hide', state.hideText));
+        document.body.classList.toggle('mz-picking', !state.hideText);  // pointer cursor for range-pick
         if (!state.hideText) wordsInSpread('.mz-word.mz-reveal').forEach(w => w.classList.remove('mz-reveal'));
         [els.hideToggle, els.hideBtn].forEach(b => { if (b) b.setAttribute('aria-pressed', String(state.hideText)); });
         if (els.hideBtn) {
@@ -226,9 +242,14 @@
     }
 
     /* ── Status / hint ─────────────────────────────────────────────── */
+    let _statusTimer = 0;
     function setStatus(msg, isErr) {
+        if (!els.status) return;
         els.status.textContent = msg || '';
         els.status.classList.toggle('mz-err', !!isErr);
+        els.status.classList.toggle('mz-show', !!msg);
+        clearTimeout(_statusTimer);
+        if (msg) _statusTimer = setTimeout(() => els.status.classList.remove('mz-show'), isErr ? 4200 : 2200);
     }
 
     /* ── Theme (light / dark / sepia) ──────────────────────────────── */
@@ -415,6 +436,7 @@
         state.surah = surah;
         if (data.reciter_name_ar) state.reciterName = data.reciter_name_ar;
         if (els.playerReciter) els.playerReciter.textContent = state.reciterName;
+        if (els.reciterLabel) els.reciterLabel.textContent = state.reciterName;
         state.verseByAyah = new Map(data.verses.map(v => [v.ayah, v]));
 
         const opts = data.verses.map(v => `<option value="${v.ayah}">${toAr(v.ayah)}</option>`).join('');
@@ -1392,6 +1414,107 @@
     }
     const liveSelection = () => { if (state.focusPage) { rebuildSelectedKeys(); applySelectionHighlight(); } updateHint(); };
 
+    /* ── Top-bar labels (reciter / repeat / mushaf source) ─────────── */
+    const SRC_NAMES = { digital_khatt: 'المدينة الجديد', qpc_v1: 'المدينة ١٤٠٥', shamarly: 'الشمرلي' };
+    function syncBarLabels() {
+        if (els.reciterLabel) els.reciterLabel.textContent = state.reciterName || 'القارئ';
+        if (els.repsBadge) els.repsBadge.textContent = '×' + toAr(parseInt(els.verseReps.value, 10) || 1);
+        if (els.srcLabel) els.srcLabel.textContent = SRC_NAMES[state.src] || 'المصحف';
+    }
+
+    /* ── Popovers (reciter / mushaf source) ────────────────────────── */
+    function closePopovers(except) {
+        [[els.reciterTrigger, els.reciterPanel], [els.srcTrigger, els.srcPanel]].forEach(([t, p]) => {
+            if (!p || p === except) return;
+            p.hidden = true; if (t) t.setAttribute('aria-expanded', 'false');
+        });
+    }
+    function togglePopover(trigger, panel) {
+        if (!trigger || !panel) return;
+        const open = panel.hidden;
+        closePopovers(open ? panel : null);
+        panel.hidden = !open;
+        trigger.setAttribute('aria-expanded', String(open));
+    }
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.mz-pop')) closePopovers();
+    });
+
+    /* ── Tap-to-pick sheet (juz / surah / page) ────────────────────── */
+    let _pickerKind = null;
+    function openPicker(kind) {
+        _pickerKind = kind;
+        const list = els.pickerList; list.innerHTML = '';
+        list.classList.toggle('mz-grid', kind === 'juz' || kind === 'page');
+        const curPage = state.layoutMode === 'single' ? state.focusPage : state.spread[0];
+        if (kind === 'surah') {
+            els.pickerTitle.textContent = 'اختر السورة';
+            els.pickerSearch.hidden = false; els.pickerSearch.value = '';
+            state.surahs.forEach(s => {
+                const n = s.number ?? s; const name = s.name ?? '';
+                list.appendChild(pickerItem(`سورة ${name}`, n, n === state.surah, () => navigateToSurah(n), name));
+            });
+            requestAnimationFrame(() => els.pickerSearch.focus());
+        } else if (kind === 'juz') {
+            els.pickerTitle.textContent = 'اختر الجزء';
+            els.pickerSearch.hidden = true;
+            const curJuz = juzNumber(curPage || 1);
+            for (let j = 1; j <= 30; j++)
+                list.appendChild(pickerItem(JUZ_NAME[j - 1], j, j === curJuz, () => navigateToJuz(j)));
+        } else {
+            els.pickerTitle.textContent = 'اذهب إلى صفحة';
+            els.pickerSearch.hidden = true;
+            const pages = state.src === 'shamarly' ? SHEMRLY_PAGES : Array.from({ length: PAGE_MAX }, (_, i) => i + 1);
+            pages.forEach(p => list.appendChild(pickerItem(toAr(p), p, p === curPage, () => navigateToPage(p))));
+        }
+        els.picker.hidden = false;
+    }
+    function pickerItem(label, num, current, onPick, searchKey) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'mz-picker-item' + (current ? ' mz-current' : '');
+        b.dataset.search = (searchKey || label);
+        b.innerHTML = `<span class="mz-pi-num">${toAr(num)}</span><span>${label}</span>`;
+        b.addEventListener('click', () => { closePicker(); onPick(); });
+        if (current) requestAnimationFrame(() => b.scrollIntoView({ block: 'center' }));
+        return b;
+    }
+    function closePicker() { if (els.picker) els.picker.hidden = true; _pickerKind = null; }
+    function filterPicker() {
+        const q = (els.pickerSearch.value || '').trim();
+        els.pickerList.querySelectorAll('.mz-picker-item').forEach(it => {
+            it.style.display = !q || it.dataset.search.includes(q) ? '' : 'none';
+        });
+    }
+    async function navigateToSurah(n) {
+        els.surah.value = String(n);
+        els.surah.dispatchEvent(new Event('change'));
+    }
+    async function navigateToJuz(j) {
+        stopPlayback();
+        await gotoSpread(JUZ_START_PAGE[j - 1]);
+    }
+    async function navigateToPage(p) {
+        stopPlayback();
+        await gotoSpread(p);
+    }
+
+    /* ── Click-to-range selection (hide OFF) ───────────────────────── */
+    function handleVerseClick(ayah) {
+        if (!Number.isFinite(ayah)) return;
+        if (state.rangeAnchor == null) {
+            state.rangeAnchor = ayah;
+            els.from.value = String(ayah); els.to.value = String(ayah);
+            rebuildSelectedKeys(); applySelectionHighlight(); updateHint();
+            setStatus('اختر آية النهاية…');
+        } else {
+            const a = Math.min(state.rangeAnchor, ayah), b = Math.max(state.rangeAnchor, ayah);
+            state.rangeAnchor = null;
+            els.from.value = String(a); els.to.value = String(b);
+            rebuildSelectedKeys(); applySelectionHighlight(); updateHint();
+            setStatus(a === b ? `الآية ${toAr(a)}` : `النطاق ${toAr(a)}–${toAr(b)} · اضغط ▶`);
+        }
+    }
+
     function bindEvents() {
         els.surah.addEventListener('change', onSurahChange);
         els.from.addEventListener('change', () => { autoSetTo(parseInt(els.from.value, 10)); rebuildSelectedKeys(); renderSelection(); });
@@ -1401,8 +1524,23 @@
             els.start.disabled = true;
             startPlayback().finally(() => { els.start.disabled = false; });
         });
-        els.play.addEventListener('click', togglePlay);
+        els.play.addEventListener('click', () => {
+            if (!state.schedule.length || state.stepIdx < 0) startPlayback(); else togglePlay();
+        });
         els.stop.addEventListener('click', stopPlayback);
+
+        // top-bar popovers
+        if (els.reciterTrigger) els.reciterTrigger.addEventListener('click', () => togglePopover(els.reciterTrigger, els.reciterPanel));
+        if (els.srcTrigger) els.srcTrigger.addEventListener('click', () => togglePopover(els.srcTrigger, els.srcPanel));
+
+        // tap-to-pick chrome + picker sheet
+        [cards.right.juz, cards.left.juz].forEach(el => el && el.addEventListener('click', () => openPicker('juz')));
+        [cards.right.surah, cards.left.surah].forEach(el => el && el.addEventListener('click', () => openPicker('surah')));
+        [cards.right.foot, cards.left.foot].forEach(el => el && el.addEventListener('click', () => openPicker('page')));
+        if (els.pickerClose) els.pickerClose.addEventListener('click', closePicker);
+        if (els.pickerBackdrop) els.pickerBackdrop.addEventListener('click', closePicker);
+        if (els.pickerSearch) els.pickerSearch.addEventListener('input', filterPicker);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePicker(); closePopovers(); } });
         if (els.prevStep) els.prevStep.addEventListener('click', () => {
             if (!state.schedule.length) return;
             playStep(state.stepIdx <= 0 ? 0 : state.stepIdx - 1);
@@ -1451,6 +1589,8 @@
             state.src = els.src.value;
             saveSetting('mz_src', state.src);
             syncSrcCapabilities();
+            syncBarLabels();
+            closePopovers();
             if (!state.focusPage) return;
             stopPlayback();
             state.tajweedCache.clear();
@@ -1476,7 +1616,7 @@
         });
 
         // Cumulative controls
-        els.verseReps.addEventListener('change', updateHint);
+        els.verseReps.addEventListener('change', () => { updateHint(); syncBarLabels(); });
         els.linkReps.addEventListener('change', updateHint);
         els.cumulative.addEventListener('change', updateHint);
         els.splitLong.addEventListener('change', () => { document.body.classList.toggle('mz-split-on', els.splitLong.checked); updateHint(); });
@@ -1485,7 +1625,7 @@
             state.reciter = els.reciter.value;
             saveSetting('quranApp_memoReciter', state.reciter);
             stopPlayback();
-            try { await loadSurahMemo(state.surah); } catch (e) { setStatus('تعذّر تحميل القارئ', true); }
+            try { await loadSurahMemo(state.surah); syncBarLabels(); } catch (e) { setStatus('تعذّر تحميل القارئ', true); }
         });
 
         els.splitMode.addEventListener('change', () => { state.splitModeVal = els.splitMode.value; reloadMemoBoundaries(); });
@@ -1496,11 +1636,13 @@
         const toggleHide = () => setHideMode(!state.hideText);
         if (els.hideToggle) els.hideToggle.addEventListener('click', toggleHide);
         if (els.hideBtn) els.hideBtn.addEventListener('click', toggleHide);
-        // Click a hidden word → reveal its whole verse
+        // Click a word: hide ON → reveal its verse; hide OFF → pick the range.
         if (els.stage) els.stage.addEventListener('click', (e) => {
-            if (!state.hideText) return;
             const w = e.target.closest('.mz-word');
-            if (w && w.dataset.key) revealVerse(w.dataset.key);
+            if (!w || !w.dataset.key) return;
+            if (state.hideText) { revealVerse(w.dataset.key); return; }
+            const [s, a] = w.dataset.key.split(':').map(Number);
+            if (s === state.surah) handleVerseClick(a);
         });
         // Focus mode
         if (els.focusToggle) els.focusToggle.addEventListener('click', () => setFocusMode(!state.focusMode));
@@ -1579,8 +1721,12 @@
         gateReciteFeature();
         syncSrcCapabilities();
         bindEvents();
-        loadWaqfPills();
+        // واقف-marks-by-mushaf feature removed from the UI: keep no version selected
+        // (Shemrly still injects its own marks via waqfQuery).
+        state.mushafVersions = [];
+        document.body.classList.toggle('mz-picking', !state.hideText);
         await loadReciters();
+        syncBarLabels();
         document.body.classList.toggle('mz-split-on', els.splitLong.checked);
         try {
             await loadSurahs();
