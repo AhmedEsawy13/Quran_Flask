@@ -706,11 +706,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            if (readingView === 'page' && (font === 'digital_khatt' || font === 'old_madina')) {
-                await loadLayoutPageData(surahNumber, ayahNumber, font, selectedVersions);
-                return;
-            }
-
             const params = new URLSearchParams();
             selectedVersions.forEach((v) => params.append('mushaf_version', v));
             // Tell the backend which text source we're using so it can return
@@ -764,40 +759,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             handleError('Error loading Quran data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
         }
-    }
-
-    async function loadLayoutPageData(surahNumber, ayahNumber, font, selectedVersions) {
-        const params = new URLSearchParams();
-        selectedVersions.forEach(v => params.append('mushaf_version', v));
-        const query = params.toString() ? '?' + params.toString() : '';
-        const apiBase = font === 'old_madina' ? '/api/qpc-v1' : '/api/digital-khatt';
-
-        currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
-        const pagePayload = await fetchData(`${apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${query}`);
-        if (!pagePayload) throw new Error('Page data unavailable');
-
-        const fontName = pagePayload.font_name || (font === 'old_madina' ? 'Old Madina' : 'Digital Khatt');
-        elements.quranTextContainer.style.fontFamily = `'${fontName}', 'UthmanicHafs', serif`;
-        renderShamarlyPage(pagePayload);
-
-        const reciter = elements.reciterSelect.value;
-        const reciterAudio = currentAyahData.reciters?.[reciter];
-        if (reciterAudio) {
-            elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
-            currentSegments = reciterAudio.segments || [];
-        }
-        updatePlayPauseButton();
-        displayTransliteration(currentAyahData.transliteration);
-        await maybeRefreshTafseer(surahNumber, ayahNumber);
-        await maybeRefreshEerab(surahNumber, ayahNumber);
-        await maybeRefreshTajweed(surahNumber, ayahNumber);
-        if (elements.wordMeaningVisible) {
-            displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, currentAyahData.text || '');
-        } else {
-            elements.wordMeaningContainer.innerHTML = '';
-        }
-        saveUserPreferences();
-        elements.audioElement.onended = updatePlayPauseButton;
     }
 
     async function loadShamarlyQuranData(surahNumber, ayahNumber, readingView, mushafVersions) {
@@ -3697,15 +3658,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Store the exact font name so CSS selectors like body[data-font-type="digital_khatt"] work
             document.body.dataset.fontType = font;
         }
-        // Enable/disable page mode option based on font support
-        const pageOption = elements.readingViewSelect?.querySelector('option[value="page"]');
-        if (pageOption) {
-            const pageSupported = (font === 'shamarly' || font === 'digital_khatt' || font === 'old_madina');
-            pageOption.disabled = !pageSupported;
-            if (!pageSupported && elements.readingViewSelect.value === 'page') {
-                elements.readingViewSelect.value = 'verse-normal';
-            }
-        }
         // Show/hide the justification slider for Digital Khatt family fonts
         const isKhattFont = (font === 'digital_khatt' || font === 'old_madina');
         if (elements.khattJustifyRow) {
@@ -4101,19 +4053,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             return data.verses.filter(v => v.ayah >= a && v.ayah <= b);
         }
 
+        // Strip waqf pause marks (ۖ–ۜ, ۞, ۩) — not needed in memorization display.
+        const stripWaqf = t => (t || '').replace(/[ۖ-ۜ۞۩]/g, '');
+
         // Build word-span HTML matching the main page's font rendering.
         // Uses quranTextData (global) when available; falls back to raw text.
         function buildVerseHTML(v) {
             const rawText = stripNum(v.text || '');
-            // quranTextData is keyed by "surah:ayah"; it's loaded by the main page
             const entry = window.quranTextData && data
                 ? (window.quranTextData[`${data.surah_number}:${v.ayah}`] || null)
                 : null;
-            const text = (entry && (entry.text || entry.raw_text)) || rawText;
+            const text = stripWaqf((entry && (entry.text || entry.raw_text)) || rawText);
             if (!text) return '';
             const words = text.trim().split(/\s+/).filter(Boolean);
-            // Strip trailing verse-number ornament from last word
-            if (words.length > 0) words[words.length - 1] = words[words.length - 1].replace(/[ۖ-ۭ٠-٩۰-۹]+$/, '').trim();
+            if (words.length > 0) words[words.length - 1] = words[words.length - 1].replace(/[٠-٩۰-۹]+$/, '').trim();
             const spans = words.filter(Boolean).map(w =>
                 `<span class="word-base">${w}</span>`
             ).join(' ');
@@ -4198,7 +4151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const entry = window.quranTextData
                 ? (window.quranTextData[`${data.surah_number}:${ayah}`] || null)
                 : null;
-            const text = (entry && (entry.text || entry.raw_text)) || stripNum(v.text || '');
+            const text = stripWaqf(stripNum((entry && (entry.text || entry.raw_text)) || v.text || ''));
             els.overlayVerse.textContent = text;
         }
 
