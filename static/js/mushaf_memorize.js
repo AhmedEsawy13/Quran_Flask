@@ -1349,9 +1349,21 @@
     }
 
     /* ── Init ──────────────────────────────────────────────────────── */
+    // Recite & follow (تسميع) is experimental and its engine files are kept local
+    // (gitignored). Reveal its controls only behind a dev flag so the published app
+    // doesn't show a feature whose model isn't deployed.
+    function gateReciteFeature() {
+        const dev = new URLSearchParams(location.search).get('asr') === '1'
+            || localStorage.getItem('mz_asr_dev') === '1';
+        if (dev) localStorage.setItem('mz_asr_dev', '1');
+        const box = $('mz-asr-dev');
+        if (box) box.hidden = !dev;
+    }
+
     async function init() {
         initTheme();
         loadSettings();
+        gateReciteFeature();
         bindEvents();
         loadWaqfPills();
         await loadReciters();

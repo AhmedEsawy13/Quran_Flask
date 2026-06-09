@@ -135,10 +135,14 @@
                         <span class="mz-dot"></span><i class="fas fa-eye-slash"></i><span>إخفاء النص للتسميع</span>
                     </button>
                     <p class="mz-sec-note">في وضع الإخفاء: انقر أي كلمة لكشف آيتها، أو زر «إظهار الكل».</p>
-                    <button class="mz-toggle-btn" id="mz-recite-btn" type="button" title="سمّع وسيتابع التطبيق تلاوتك (تجريبي)">
-                        <span class="mz-dot"></span><i class="fas fa-microphone"></i><span>سمّع وتابِع <small>(تجريبي)</small></span>
-                    </button>
-                    <p class="mz-sec-note" id="mz-asr-note"></p>
+                    <!-- Recite & follow (mic ASR) — experimental, hidden until ready to publish.
+                         Enable locally with ?asr=1 or localStorage.mz_asr_dev='1'. -->
+                    <div class="mz-asr-dev" id="mz-asr-dev" hidden>
+                        <button class="mz-toggle-btn" id="mz-recite-btn" type="button" title="سمّع وسيتابع التطبيق تلاوتك (تجريبي)">
+                            <span class="mz-dot"></span><i class="fas fa-microphone"></i><span>سمّع وتابِع <small>(تجريبي)</small></span>
+                        </button>
+                        <p class="mz-sec-note" id="mz-asr-note"></p>
+                    </div>
                 </section>
             </div>
 
@@ -196,6 +200,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=25"></script>
+    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=28"></script>
 </body>
 </html>

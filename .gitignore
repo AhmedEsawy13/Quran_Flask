@@ -78,3 +78,8 @@ static/asr_model.q8.onnx
 static/asr/asr_model.q8.onnx
 tokenizer.model
 streaming_global_cmvn.npz
+
+# Recitation (تسميع) feature — experimental, kept local until ready to publish
+static/asr/
+static/asr_test.html
+static/js/mushaf_asr.js

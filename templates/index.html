@@ -101,11 +101,8 @@
                     <button id="show-range-selection" type="button" title="تشغيل نطاق من الآيات">
                         <i class="fas fa-layer-group"></i> <span>نطاق</span>
                     </button>
-                    <button id="show-memorization" type="button" title="وضع الحفظ بالتكرار التراكمي المقطعي">
-                        <i class="fas fa-brain"></i> <span>حفظ تراكمي</span>
-                    </button>
-                    <a id="open-visual-memorize" href="/memorize" title="الحفظ بالتصوير الذهني على صفحة مصحف المدينة" role="button">
-                        <i class="fas fa-book-open"></i> <span>حفظ بصري</span>
+                    <a id="open-visual-memorize" href="/memorize" title="وضع الحفظ: تكرار تراكمي مقطعي على صفحة المصحف" role="button">
+                        <i class="fas fa-brain"></i> <span>الحفظ</span>
                     </a>
                     <button id="bookmark-button" type="button" title="إضافة علامة مرجعية">
                         <i class="fas fa-bookmark"></i> <span>حفظ</span>
@@ -418,86 +415,9 @@
         </div>
     </div>
 
-    <!-- Memorization (Circular Segmented Repetition) modal -->
-    <div id="memorizationModal" class="modal" role="dialog" aria-modal="true" aria-label="وضع الحفظ التراكمي">
-        <div class="modal-content memo-modal-content">
-            <button class="modal-close memo-close" aria-label="إغلاق">&times;</button>
-            <h3><i class="fas fa-brain"></i> الحفظ بالتكرار التراكمي المقطعي</h3>
-            <p class="memo-sub">كرّر كل آية، ثم اربطها بما قبلها تراكميًا.</p>
-
-            <div class="memo-config memo-config-top">
-                <div class="memo-field memo-field-reciter">
-                    <label for="memo-reciter-select">القارئ</label>
-                    <select id="memo-reciter-select" title="اختر القارئ للحفظ">
-                        <option value="husary">محمود خليل الحصري</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="memo-config">
-                <div class="memo-field">
-                    <label for="memo-start-ayah">من الآية</label>
-                    <select id="memo-start-ayah"></select>
-                </div>
-                <div class="memo-field">
-                    <label for="memo-end-ayah">إلى الآية</label>
-                    <select id="memo-end-ayah"></select>
-                </div>
-                <div class="memo-field">
-                    <label for="memo-verse-reps">تكرار الآية</label>
-                    <select id="memo-verse-reps">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3" selected>3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="7">7</option>
-                        <option value="10">10</option>
-                    </select>
-                </div>
-                <div class="memo-field">
-                    <label for="memo-link-reps">تكرار الربط</label>
-                    <select id="memo-link-reps">
-                        <option value="1" selected>1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                    </select>
-                </div>
-            </div>
-            <div class="memo-toggles">
-                <label class="memo-check"><input type="checkbox" id="memo-cumulative" checked> ربط الآيات تراكميًا</label>
-                <label class="memo-check"><input type="checkbox" id="memo-split-long" checked> تقسيم الآيات الطويلة إلى مقاطع</label>
-            </div>
-
-            <div id="memo-hint" class="memo-hint"></div>
-
-            <div class="memo-actions">
-                <button id="memo-start" type="button" class="btn-play-range"><i class="fas fa-play"></i> ابدأ على الصفحة</button>
-            </div>
-
-            <div id="memo-verse-list" class="memo-verse-list"></div>
-            <audio id="memo-audio" preload="auto"></audio>
-        </div>
-    </div>
-
-    <!-- Memorization floating overlay bar (shown when session is running on main page) -->
-    <div id="memo-overlay" class="memo-overlay" hidden>
-        <div class="memo-overlay-inner">
-            <div class="memo-overlay-verse" id="memo-overlay-verse" dir="rtl"></div>
-            <div class="memo-overlay-info">
-                <span id="memo-overlay-status" class="memo-overlay-status"></span>
-                <div class="memo-overlay-prog"><div id="memo-overlay-bar" class="memo-overlay-bar-fill"></div></div>
-            </div>
-            <div class="memo-overlay-btns">
-                <button id="memo-overlay-pause" type="button" title="إيقاف مؤقت"><i class="fas fa-pause"></i></button>
-                <button id="memo-overlay-stop" type="button" title="إنهاء الجلسة"><i class="fas fa-stop"></i></button>
-            </div>
-        </div>
-    </div>
-
     <script defer src="https://unpkg.com/@popperjs/core@2"></script>
     <script defer src="https://unpkg.com/tippy.js@6"></script>
-    <script defer src="{{ url_for('static', filename='js/script.js') }}?v=24"></script>
+    <script defer src="{{ url_for('static', filename='js/script.js') }}?v=25"></script>
 
     {% if enable_vercel_analytics %}
     <!-- Vercel Web Analytics -->
