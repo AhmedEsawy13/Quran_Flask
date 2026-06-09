@@ -1571,8 +1571,19 @@
             els.loop.checked = !els.loop.checked;
             syncLoopBtn();
         });
-        els.prev.addEventListener('click', () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage - 1 : state.spread[0] - 2); });
-        els.next.addEventListener('click', () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage + 1 : state.spread[0] + 2); });
+        const navPrev = () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage - 1 : state.spread[0] - 2); };
+        const navNext = () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage + 1 : state.spread[0] + 2); };
+        els.prev.addEventListener('click', navPrev);
+        els.next.addEventListener('click', navNext);
+        // Keyboard page-turn (RTL): → previous page, ← next page.
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+            if (!els.picker.hidden) return;                                    // picker open
+            if (e.target.closest('input, select, textarea')) return;          // typing
+            if (e.metaKey || e.ctrlKey || e.altKey) return;
+            e.preventDefault();
+            (e.key === 'ArrowRight' ? navPrev : navNext)();
+        });
 
         els.progress.addEventListener('click', (e) => {
             if (!state.schedule.length) return;

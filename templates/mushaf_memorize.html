@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=34">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=36">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -132,10 +132,10 @@
     <main class="mz-main">
         <!-- ── Mushaf stage (center) ──────────────────────────────── -->
         <section class="mz-content">
+          <button class="mz-nav-btn mz-nav-prev" id="mz-prev" type="button" title="السابق (→)" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
+          <button class="mz-nav-btn mz-nav-next" id="mz-next" type="button" title="التالي (←)" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
           <div class="mz-stage-area">
             <div class="mz-stage" id="mz-stage" aria-label="صفحة المصحف">
-                <button class="mz-nav-btn mz-nav-prev" id="mz-prev" type="button" title="السابق" aria-label="السابق"><i class="fas fa-chevron-right"></i></button>
-
                 <div class="mz-spread" id="mz-spread">
                     <div class="mz-page-card" data-side="right">
                         <div class="mz-page-header"><span class="mz-head-juz" id="mz-juz-r"></span><span class="mz-head-surah" id="mz-surah-r"></span></div>
@@ -148,8 +148,6 @@
                         <div class="mz-page-footer"><span class="mz-foot-page" id="mz-foot-l"></span></div>
                     </div>
                 </div>
-
-                <button class="mz-nav-btn mz-nav-next" id="mz-next" type="button" title="التالي" aria-label="التالي"><i class="fas fa-chevron-left"></i></button>
             </div>
             <!-- live recitation transcript (recite & follow) -->
             <div class="mz-asr-live" id="mz-asr-live" hidden><i class="fas fa-microphone"></i><span id="mz-asr-live-text"></span></div>
@@ -172,6 +170,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=35"></script>
+    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=36"></script>
 </body>
 </html>

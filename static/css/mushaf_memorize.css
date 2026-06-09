@@ -250,9 +250,9 @@ body.mz-dark .mz-status.mz-err { color: #f87171; }
 /* ── Content column = stage area (scrolls) + docked player ───────────
    The player is a sibling BELOW the page area, not an overlay, so it can never
    cover the Quran page — the page just fits the space that's left above it. */
-.mz-content { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.mz-content { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .mz-stage-area { flex: 1 1 auto; min-height: 0; width: 100%; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 10px; overflow: auto; }
+    align-items: center; justify-content: safe center; gap: 10px; overflow: auto; }
 
 /* floating mushaf toolbar (dual/tajweed/zoom/hide) */
 .mz-toolbar { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; background: var(--mz-surface);
@@ -278,12 +278,18 @@ body.mz-dark .mz-status.mz-err { color: #f87171; }
 .mz-page.mz-tajweed .mz-word.mz-recited, .mz-page.mz-tajweed .mz-word.mz-recited tajweed { color: #15803d !important; }
 body.mz-dark .mz-word.mz-recited, body.mz-dark .mz-page.mz-tajweed .mz-word.mz-recited tajweed { color: #4ade80 !important; }
 body.mz-dark .mz-word.mz-recited { background: rgba(74,222,128,0.18); }
-.mz-stage { display: flex; align-items: center; justify-content: center; gap: clamp(6px, 1vw, 14px); width: 100%; }
-.mz-nav-btn { display: grid; place-items: center; width: 46px; height: 46px; flex-shrink: 0; border-radius: 50%;
-    border: 1px solid var(--mz-border-strong); background: var(--mz-surface); color: var(--mz-text);
-    cursor: pointer; font-size: 1rem; box-shadow: var(--mz-shadow-sm); transition: all 0.15s ease; }
-.mz-nav-btn:hover { border-color: var(--mz-accent); color: var(--mz-accent); transform: translateY(-1px); }
-.mz-nav-btn:disabled { opacity: 0.3; cursor: default; transform: none; }
+.mz-stage { display: flex; align-items: center; justify-content: center; width: 100%; }
+/* Nav arrows overlay the content edges (not the scrolling stage), so they stay
+   put and visible even when the page is zoomed in and the stage scrolls. */
+.mz-nav-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 20;
+    display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--mz-border-strong); background: color-mix(in srgb, var(--mz-surface) 90%, transparent);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    color: var(--mz-text); cursor: pointer; font-size: 1rem; box-shadow: var(--mz-shadow); transition: all 0.15s ease; }
+.mz-nav-prev { inset-inline-start: 4px; }
+.mz-nav-next { inset-inline-end: 4px; }
+.mz-nav-btn:hover { border-color: var(--mz-accent); color: var(--mz-accent); }
+.mz-nav-btn:disabled { opacity: 0; pointer-events: none; }
 
 .mz-spread { display: flex; flex-direction: row; gap: 0; position: relative;
     background: var(--mz-paper); border: 1px solid var(--mz-paper-edge); border-radius: 16px;
