@@ -3938,7 +3938,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             linkReps: $('memo-link-reps'),
             cumulative: $('memo-cumulative'),
             splitLong: $('memo-split-long'),
-            mode: $('memo-mode'),
+
             gap: $('memo-gap'),
             gapVal: $('memo-gap-val'),
             hint: $('memo-hint'),
@@ -4002,7 +4002,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // and ayah selection — only the phrase boundaries change.
         async function loadSurah(surah) {
             setStatus('جارٍ التحميل…');
-            const mode = els.mode.value;
+            const mode = 'acoustic';
             const gap = parseInt(els.gap.value, 10) || 250;
             const reciter = getCurrentReciter();
             const fontType = getCurrentFontType();
@@ -4053,20 +4053,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             return data.verses.filter(v => v.ayah >= a && v.ayah <= b);
         }
 
-        // Strip waqf pause marks (ۖ–ۜ, ۞, ۩) — not needed in memorization display.
-        const stripWaqf = t => (t || '').replace(/[ۖ-ۜ۞۩]/g, '');
-
         // Build word-span HTML matching the main page's font rendering.
         // Uses quranTextData (global) when available; falls back to raw text.
         function buildVerseHTML(v) {
             const rawText = stripNum(v.text || '');
+            // quranTextData is keyed by "surah:ayah"; it's loaded by the main page
             const entry = window.quranTextData && data
                 ? (window.quranTextData[`${data.surah_number}:${v.ayah}`] || null)
                 : null;
-            const text = stripWaqf((entry && (entry.text || entry.raw_text)) || rawText);
+            const text = (entry && (entry.text || entry.raw_text)) || rawText;
             if (!text) return '';
             const words = text.trim().split(/\s+/).filter(Boolean);
-            if (words.length > 0) words[words.length - 1] = words[words.length - 1].replace(/[٠-٩۰-۹]+$/, '').trim();
+            // Strip trailing verse-number ornament from last word
+            if (words.length > 0) words[words.length - 1] = words[words.length - 1].replace(/[ۖ-ۭ٠-٩۰-۹]+$/, '').trim();
             const spans = words.filter(Boolean).map(w =>
                 `<span class="word-base">${w}</span>`
             ).join(' ');
@@ -4151,7 +4150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const entry = window.quranTextData
                 ? (window.quranTextData[`${data.surah_number}:${ayah}`] || null)
                 : null;
-            const text = stripWaqf(stripNum((entry && (entry.text || entry.raw_text)) || v.text || ''));
+            const text = (entry && (entry.text || entry.raw_text)) || stripNum(v.text || '');
             els.overlayVerse.textContent = text;
         }
 
@@ -4274,7 +4273,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         els.overlayPause && els.overlayPause.addEventListener('click', togglePause);
         els.overlayStop  && els.overlayStop.addEventListener('click', stop);
         [els.startAyah, els.endAyah].forEach(s => s.addEventListener('change', () => { stop(); renderVerseList(); updateHint(); }));
-        els.mode.addEventListener('change', reloadSegments);
+
         els.gap.addEventListener('input', () => {
             els.gapVal.textContent = `${els.gap.value}ms`;
             clearTimeout(reloadTimer);
