@@ -343,6 +343,32 @@ body.mz-dark .mz-page.mz-tajweed tajweed.idgham_shafawi,
 body.mz-dark .mz-page.mz-tajweed tajweed.idgham_mutajanisayn,
 body.mz-dark .mz-page.mz-tajweed tajweed.idgham_mutaqaribayn { color: #4fae74; }
 
+/* Restore tajweed colours for revealed words in hide mode — specificity 0,4,1+!important beats line 316's 0,3,1+!important */
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.madda_normal      { color: #C86464 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.madda_permissible { color: #AC3A28 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.madda_munfasil    { color: #AC3A28 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.madda_obligatory  { color: #8E2A1E !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.madda_necessary   { color: #6E1A14 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.ghunnah           { color: #2C7848 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.ikhafa            { color: #389460 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.ikhafa_shafawi    { color: #389460 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.iqlab             { color: #2C7848 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_ghunnah    { color: #2C7848 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_wo_ghunnah { color: #1C6238 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_shafawi    { color: #1C6238 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutajanisayn { color: #1C6238 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaqaribayn { color: #1C6238 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.qalaqah           { color: #2E5AC4 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.ham_wasl          { color: #888888 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.laam_shamsiyah    { color: #888888 !important; }
+.mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.slnt              { color: #AAAAAA !important; opacity: 0.75; }
+body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.madda_obligatory { color: #d4604f !important; }
+body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.madda_necessary  { color: #cf5141 !important; }
+body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_wo_ghunnah,
+body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_shafawi,
+body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutajanisayn,
+body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaqaribayn { color: #4fae74 !important; }
+
 /* ── Waqf marks — ported verbatim from the main page (fonts + colours) ──
    A row above the word; each symbol is a normalized waqf glyph rendered in the
    same fonts the main app uses (UthmanicHafs / UthmanicWarsh / IndoPak). */
