@@ -313,7 +313,7 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-page.mz-hide .mz-word { color: transparent !important; text-shadow: 0 0 0.5em var(--mz-quran); cursor: pointer; user-select: none; }
 .mz-page.mz-hide .mz-word tajweed { color: transparent !important; text-shadow: 0 0 0.5em currentColor; }
 .mz-page.mz-hide .mz-word.mz-reveal { color: var(--mz-quran) !important; text-shadow: none; }
-.mz-page.mz-hide .mz-word.mz-reveal tajweed { text-shadow: none; }
+.mz-page.mz-hide .mz-word.mz-reveal tajweed { text-shadow: none !important; color: unset !important; }
 .mz-page.mz-hide .mz-word .mz-waqf-stack, .mz-page.mz-hide .mz-word .waqf-stack { opacity: 0; }
 .mz-page.mz-hide .mz-word.mz-reveal .waqf-stack { opacity: 1; }
 

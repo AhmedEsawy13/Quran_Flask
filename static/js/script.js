@@ -3492,7 +3492,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         if (currentRepeatCount < maxRepeats) {
             elements.audioElement.currentTime = 0;
-            elements.audioElement.play();
+            elements.audioElement.play().then(updatePlayPauseButton).catch(() => {});
         } else {
             // Reset for next play
             currentRepeatCount = 0;
@@ -3939,8 +3939,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             cumulative: $('memo-cumulative'),
             splitLong: $('memo-split-long'),
 
-            gap: $('memo-gap'),
-            gapVal: $('memo-gap-val'),
+
             hint: $('memo-hint'),
             startBtn: $('memo-start'),
             reciterSelect: $('memo-reciter-select'),
@@ -4003,7 +4002,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         async function loadSurah(surah) {
             setStatus('جارٍ التحميل…');
             const mode = 'acoustic';
-            const gap = parseInt(els.gap.value, 10) || 250;
+            const gap = 250;
             const reciter = getCurrentReciter();
             const fontType = getCurrentFontType();
             const resp = await fetch(`/api/memorization/${surah}?mode=${mode}&gap=${gap}&reciter=${encodeURIComponent(reciter)}&font_type=${encodeURIComponent(fontType)}`);
@@ -4154,12 +4153,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             els.overlayVerse.textContent = text;
         }
 
+        // During multi-verse segments, follow the audio and navigate when a new
+        // verse starts. Stored per-step so stop() can tear it down.
+        let verseFollowerVerses = [];
+        let verseFollowerCurrent = null;
+        function verseFollowerTick() {
+            if (!verseFollowerVerses.length || audio.paused) return;
+            const t = audio.currentTime;
+            const cur = verseFollowerVerses.find(v => t >= v.start - 0.05 && t < v.end + 0.05);
+            if (!cur || cur.ayah === verseFollowerCurrent) return;
+            verseFollowerCurrent = cur.ayah;
+            updateOverlayVerse(cur.ayah);
+            highlightAyah(cur.ayah);
+            if (typeof window.__memoNavigate === 'function') {
+                window.__memoNavigate(data.surah_number, cur.ayah).then(() => {
+                    if (typeof window.__memoHighlightWithTimes === 'function') {
+                        window.__memoHighlightWithTimes(cur.words || null);
+                    }
+                }).catch(() => {});
+            }
+        }
+
         function startMonitor() {
             stopMonitor();
             monitorId = setInterval(() => {
                 if (pendingSeek || stepIdx < 0 || stepIdx >= schedule.length || audio.paused) return;
+                verseFollowerTick();
                 if (audio.currentTime >= schedule[stepIdx].end - EPS) nextStep();
-            }, 40);
+            }, 80);
         }
         const stopMonitor = () => { if (monitorId) { clearInterval(monitorId); monitorId = null; } };
 
@@ -4192,6 +4213,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const navAyah = segVerses.length > 0 ? segVerses[0].ayah : seg.ayah;
             // Combined word timestamps for all overlapping verses.
             const allWords = segVerses.flatMap(v => v.words || []);
+
+            // Arm verse-follower for multi-verse segments; single-verse = no-op.
+            verseFollowerVerses = segVerses.length > 1 ? segVerses : [];
+            verseFollowerCurrent = navAyah;
 
             if (navAyah !== lastNavigatedAyah && typeof window.__memoNavigate === 'function') {
                 lastNavigatedAyah = navAyah;
@@ -4234,6 +4259,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             audio.pause();
             stepIdx = -1;
             lastNavigatedAyah = null;
+            verseFollowerVerses = [];
+            verseFollowerCurrent = null;
             els.startBtn.disabled = false;
             hideOverlay();
             els.verseList.querySelectorAll('.memo-active').forEach(el => el.classList.remove('memo-active'));
@@ -4281,11 +4308,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         els.overlayStop  && els.overlayStop.addEventListener('click', stop);
         [els.startAyah, els.endAyah].forEach(s => s.addEventListener('change', () => { stop(); renderVerseList(); updateHint(); }));
 
-        els.gap.addEventListener('input', () => {
-            els.gapVal.textContent = `${els.gap.value}ms`;
-            clearTimeout(reloadTimer);
-            reloadTimer = setTimeout(reloadSegments, 350);
-        });
         els.splitLong.addEventListener('change', updateHint);
         els.reciterSelect && els.reciterSelect.addEventListener('change', reloadSegments);
     }
