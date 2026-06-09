@@ -1147,7 +1147,7 @@
         if (_asrActive) { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} return; }
         if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
         try {
-            if (!_asrLoaded) { await loadScript('/static/mushaf_asr.js?v=21'); _asrLoaded = true; }
+            if (!_asrLoaded) { await loadScript('/static/js/mushaf_asr.js?v=25'); _asrLoaded = true; }
             if (!window.MushafASR) throw new Error('module missing');
 
             // make sure the selected verses are actually on screen before we map words

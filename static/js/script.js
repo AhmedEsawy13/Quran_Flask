@@ -597,6 +597,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             quranTextData = fontCache[font];
         }
+        window.quranTextData = quranTextData; // expose for memo overlay
         updateGlobalAyahToVerseKey();
     }
 
@@ -834,7 +835,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         try {
-            const font = new FontFace(fontName, `url('/static/${fontName}.ttf') format('truetype')`);
+            const font = new FontFace(fontName, `url('/static/fonts/${fontName}.ttf') format('truetype')`);
             const loadedFont = await font.load();
             document.fonts.add(loadedFont);
             loadedShamarlyFonts.add(fontName);
@@ -3871,6 +3872,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateWordMeaningButton();
 
     loadAyahs();
+
+    // Expose a hook so the memorization overlay can navigate the main page to a verse.
+    // Called with (surah, ayah); updates selects + loads verse data without auto-playing.
+    window.__memoNavigate = async function(surah, ayah) {
+        try {
+            if (String(elements.surahSelect.value) !== String(surah)) {
+                elements.surahSelect.value = surah;
+                const opts = await fetchData(`/api/surahs/${surah}/ayahs`).catch(() => null);
+                if (opts) {
+                    elements.ayahSelect.innerHTML = opts.map(a => `<option value="${a.ayah_number}">${a.ayah_number}</option>`).join('');
+                }
+            }
+            elements.ayahSelect.value = ayah;
+            await loadQuranData();
+        } catch (e) {}
+    };
 });
 
 // ══ Memorization mode — Circular Segmented Repetition ════════════════════════
@@ -3900,11 +3917,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             gapVal: $('memo-gap-val'),
             hint: $('memo-hint'),
             startBtn: $('memo-start'),
-            pauseBtn: $('memo-pause'),
-            stopBtn: $('memo-stop'),
-            status: $('memo-status'),
-            progressBar: $('memo-progress-bar'),
+            reciterSelect: $('memo-reciter-select'),
             verseList: $('memo-verse-list'),
+            // overlay bar elements
+            overlay: $('memo-overlay'),
+            overlayVerse: $('memo-overlay-verse'),
+            overlayStatus: $('memo-overlay-status'),
+            overlayBar: $('memo-overlay-bar'),
+            overlayPause: $('memo-overlay-pause'),
+            overlayStop: $('memo-overlay-stop'),
         };
 
         let data = null;        // /api/memorization payload
@@ -3912,6 +3933,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let stepIdx = -1;
         let monitorId = null;
         let loadedSurah = null;
+        let loadedReciter = null;
         let pendingSeek = false;
 
         const LONG_SEC = 12;    // verses longer than this get phrase-split
@@ -3921,12 +3943,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             const sel = document.getElementById('surah-select');
             return sel && sel.value ? parseInt(sel.value, 10) : 1;
         };
+        const getCurrentFontType = () => document.body.dataset.fontType || 'qpc_hafs';
+        const getCurrentReciter = () => els.reciterSelect ? els.reciterSelect.value : 'husary';
+
+        let recitersFetched = false;
+        async function loadReciters() {
+            if (recitersFetched || !els.reciterSelect) return;
+            try {
+                const resp = await fetch('/api/memorization-reciters');
+                if (!resp.ok) return;
+                const list = await resp.json();
+                if (!list.length) return;
+                els.reciterSelect.innerHTML = list
+                    .map(r => `<option value="${r.id}">${r.name_ar}</option>`)
+                    .join('');
+                recitersFetched = true;
+            } catch (e) {}
+        }
         // Strip the trailing verse-number ornament/digits (not recited)
         const stripNum = t => (t || '').replace(/[\s ۝٠-٩۰-۹۩]+$/u, '').trim();
 
+        // setStatus: shows loading/error messages in the hint area (non-overlay context)
         const setStatus = (msg, isErr) => {
-            els.status.textContent = msg || '';
-            els.status.classList.toggle('memo-err', !!isErr);
+            if (!els.hint) return;
+            els.hint.textContent = msg || '';
+            els.hint.style.color = isErr ? 'var(--error-color)' : '';
+            els.hint.style.opacity = msg ? '1' : '0.7';
         };
 
         // Fetch segment data for `surah` honouring the current split method +
@@ -3936,13 +3978,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             setStatus('جارٍ التحميل…');
             const mode = els.mode.value;
             const gap = parseInt(els.gap.value, 10) || 250;
-            const resp = await fetch(`/api/memorization/${surah}?mode=${mode}&gap=${gap}`);
+            const reciter = getCurrentReciter();
+            const fontType = getCurrentFontType();
+            const resp = await fetch(`/api/memorization/${surah}?mode=${mode}&gap=${gap}&reciter=${encodeURIComponent(reciter)}&font_type=${encodeURIComponent(fontType)}`);
             if (!resp.ok) throw new Error('load failed');
-            const surahChanged = loadedSurah !== surah;
+            const surahChanged = loadedSurah !== surah || loadedReciter !== reciter;
             data = await resp.json();
             loadedSurah = surah;
+            loadedReciter = reciter;
             if (surahChanged) {
-                audio.src = data.audio_url;     // CSP media-src whitelists this host
+                audio.src = data.audio_url;
                 audio.load();
                 populateAyahSelects();
             }
@@ -3982,11 +4027,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             return data.verses.filter(v => v.ayah >= a && v.ayah <= b);
         }
 
+        // Build word-span HTML matching the main page's font rendering.
+        // Uses quranTextData (global) when available; falls back to raw text.
+        function buildVerseHTML(v) {
+            const rawText = stripNum(v.text || '');
+            // quranTextData is keyed by "surah:ayah"; it's loaded by the main page
+            const entry = window.quranTextData && data
+                ? (window.quranTextData[`${data.surah_number}:${v.ayah}`] || null)
+                : null;
+            const text = (entry && (entry.text || entry.raw_text)) || rawText;
+            if (!text) return '';
+            const words = text.trim().split(/\s+/).filter(Boolean);
+            // Strip trailing verse-number ornament from last word
+            if (words.length > 0) words[words.length - 1] = words[words.length - 1].replace(/[ۖ-ۭ٠-٩۰-۹]+$/, '').trim();
+            const spans = words.filter(Boolean).map(w =>
+                `<span class="word-base">${w}</span>`
+            ).join(' ');
+            return spans;
+        }
+
         function renderVerseList() {
             const vs = selectedVerses();
             els.verseList.innerHTML = vs.map(v =>
                 `<div class="memo-verse" data-ayah="${v.ayah}">` +
-                `<span class="memo-vnum">${v.ayah}</span>${stripNum(v.text)}</div>`
+                `<span class="memo-vnum">${v.ayah}</span>` +
+                `<span class="memo-verse-words">${buildVerseHTML(v)}</span></div>`
             ).join('');
         }
 
@@ -4028,12 +4093,39 @@ document.addEventListener('DOMContentLoaded', async () => {
             return steps;
         }
 
+        function setOverlayStatus(msg) {
+            if (els.overlayStatus) els.overlayStatus.textContent = msg || '';
+        }
+        function setOverlayProgress(pct) {
+            if (els.overlayBar) els.overlayBar.style.width = `${pct}%`;
+        }
+        function showOverlay() {
+            if (els.overlay) els.overlay.removeAttribute('hidden');
+        }
+        function hideOverlay() {
+            if (els.overlay) els.overlay.setAttribute('hidden', '');
+            setOverlayProgress(0);
+            setOverlayStatus('');
+            if (els.overlayVerse) els.overlayVerse.textContent = '';
+        }
+
         function highlightAyah(ayah) {
             els.verseList.querySelectorAll('.memo-verse').forEach(el => {
                 const on = parseInt(el.dataset.ayah, 10) === ayah;
                 el.classList.toggle('memo-active', on);
                 if (on) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             });
+        }
+
+        function updateOverlayVerse(ayah) {
+            if (!els.overlayVerse || !data) return;
+            const v = data.verses.find(x => x.ayah === ayah);
+            if (!v) return;
+            const entry = window.quranTextData
+                ? (window.quranTextData[`${data.surah_number}:${ayah}`] || null)
+                : null;
+            const text = (entry && (entry.text || entry.raw_text)) || stripNum(v.text || '');
+            els.overlayVerse.textContent = text;
         }
 
         function startMonitor() {
@@ -4053,15 +4145,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         audio.addEventListener('seeked', () => { pendingSeek = false; });
 
+        let lastNavigatedAyah = null;
         function playStep(k) {
             stepIdx = k;
             if (k >= schedule.length) { finish(); return; }
             const seg = schedule[k];
             seekTo(seg.start);
             highlightAyah(seg.ayah);
+            updateOverlayVerse(seg.ayah);
             const repTxt = seg.repTotal > 1 ? ` (${seg.rep}/${seg.repTotal})` : '';
-            setStatus(`${seg.label}${repTxt} — ${k + 1}/${schedule.length}`);
-            els.progressBar.style.width = `${Math.round((k / schedule.length) * 100)}%`;
+            setOverlayStatus(`${seg.label}${repTxt} — ${k + 1}/${schedule.length}`);
+            setOverlayProgress(Math.round((k / schedule.length) * 100));
+            // Navigate main page to this verse (debounced — only when ayah changes)
+            if (seg.ayah !== lastNavigatedAyah && typeof window.__memoNavigate === 'function') {
+                lastNavigatedAyah = seg.ayah;
+                window.__memoNavigate(data.surah_number, seg.ayah);
+            }
         }
         const nextStep = () => playStep(stepIdx + 1);
         audio.addEventListener('ended', () => { if (stepIdx >= 0 && stepIdx < schedule.length) nextStep(); });
@@ -4070,49 +4169,56 @@ document.addEventListener('DOMContentLoaded', async () => {
             schedule = buildSchedule();
             if (!schedule.length) { setStatus('لا توجد آيات محددة', true); return; }
             els.startBtn.disabled = true;
-            els.pauseBtn.disabled = false;
-            els.stopBtn.disabled = false;
-            els.pauseBtn.innerHTML = '<i class="fas fa-pause"></i> إيقاف مؤقت';
+            closeModal();
+            showOverlay();
+            lastNavigatedAyah = null;
+            if (els.overlayPause) els.overlayPause.classList.add('playing');
             startMonitor();
             playStep(0);
         }
         function togglePause() {
-            if (audio.paused) { audio.play().catch(() => {}); els.pauseBtn.innerHTML = '<i class="fas fa-pause"></i> إيقاف مؤقت'; }
-            else { audio.pause(); els.pauseBtn.innerHTML = '<i class="fas fa-play"></i> متابعة'; }
+            if (audio.paused) {
+                audio.play().catch(() => {});
+                if (els.overlayPause) { els.overlayPause.classList.add('playing'); els.overlayPause.innerHTML = '<i class="fas fa-pause"></i>'; }
+            } else {
+                audio.pause();
+                if (els.overlayPause) { els.overlayPause.classList.remove('playing'); els.overlayPause.innerHTML = '<i class="fas fa-play"></i>'; }
+            }
         }
         function stop() {
             stopMonitor();
             audio.pause();
             stepIdx = -1;
+            lastNavigatedAyah = null;
             els.startBtn.disabled = false;
-            els.pauseBtn.disabled = true;
-            els.stopBtn.disabled = true;
-            els.progressBar.style.width = '0';
-            setStatus('');
+            hideOverlay();
             els.verseList.querySelectorAll('.memo-active').forEach(el => el.classList.remove('memo-active'));
         }
         function finish() {
             stopMonitor();
             audio.pause();
             els.startBtn.disabled = false;
-            els.pauseBtn.disabled = true;
-            els.stopBtn.disabled = true;
-            els.progressBar.style.width = '100%';
-            setStatus('تم الانتهاء ✓ بارك الله فيك');
+            setOverlayProgress(100);
+            setOverlayStatus('تم الانتهاء ✓ بارك الله فيك');
+            if (els.overlayPause) { els.overlayPause.classList.remove('playing'); els.overlayPause.innerHTML = '<i class="fas fa-pause"></i>'; }
+            setTimeout(hideOverlay, 3000);
         }
 
         async function openModal() {
             modal.classList.add('show');
+            await loadReciters();
             const surah = getCurrentSurah();
-            if (loadedSurah !== surah || !data) {
-                stop();
+            const reciter = getCurrentReciter();
+            if (loadedSurah !== surah || loadedReciter !== reciter || !data) {
+                setStatus('جارٍ تحضير الآيات…');
                 try { await loadSurah(surah); }
                 catch (e) { setStatus('تعذّر تحميل بيانات الحفظ', true); }
             }
         }
-        function closeModal() { stop(); modal.classList.remove('show'); }
+        // closeModal only hides the modal; stop() is separate so Start can close without stopping.
+        function closeModal() { modal.classList.remove('show'); }
 
-        // Re-fetch phrase data when the split method / sensitivity changes.
+        // Re-fetch phrase data when the split method / sensitivity / reciter changes.
         let reloadTimer = null;
         async function reloadSegments() {
             if (loadedSurah == null) return;
@@ -4122,11 +4228,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         els.open && els.open.addEventListener('click', openModal);
-        els.close && els.close.addEventListener('click', closeModal);
-        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+        els.close && els.close.addEventListener('click', () => { closeModal(); stop(); });
+        modal.addEventListener('click', e => { if (e.target === modal) { closeModal(); stop(); } });
         els.startBtn.addEventListener('click', start);
-        els.pauseBtn.addEventListener('click', togglePause);
-        els.stopBtn.addEventListener('click', stop);
+        els.overlayPause && els.overlayPause.addEventListener('click', togglePause);
+        els.overlayStop  && els.overlayStop.addEventListener('click', stop);
         [els.startAyah, els.endAyah].forEach(s => s.addEventListener('change', () => { stop(); renderVerseList(); updateHint(); }));
         els.mode.addEventListener('change', reloadSegments);
         els.gap.addEventListener('input', () => {
@@ -4135,6 +4241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             reloadTimer = setTimeout(reloadSegments, 350);
         });
         els.splitLong.addEventListener('change', updateHint);
+        els.reciterSelect && els.reciterSelect.addEventListener('change', reloadSegments);
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready);

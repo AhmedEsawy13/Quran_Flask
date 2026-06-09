@@ -1,7 +1,7 @@
 /* Font Faces */
 @font-face {
     font-family: 'Digital Khatt';
-    src: url('digitalkhatt.woff2') format('woff2');
+    src: url('../fonts/digitalkhatt.woff2') format('woff2');
     font-display: swap;
 }
 
@@ -22,40 +22,40 @@
 
 @font-face {
     font-family: 'Old Madina';
-    src: url('oldmadina.woff2') format('woff2');
+    src: url('../fonts/oldmadina.woff2') format('woff2');
     font-display: swap;
 }
 
 @font-face {
     font-family: 'UthmanicHafs';
-    src: url('uthmanic_hafs_v20.woff2') format('woff2'),
-         url('uthmanic_hafs_v20.ttf') format('truetype');
+    src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'),
+         url('../fonts/uthmanic_hafs_v20.ttf') format('truetype');
     font-display: swap;
 }
 
 @font-face {
     font-family: 'Naskh-Nastaleeq-IndoPak-QWBW';
-    src: url('Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'),
-         url('Naskh-Nastaleeq-IndoPak-QWBW.ttf') format('truetype');
+    src: url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'),
+         url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.ttf') format('truetype');
     font-display: swap;
 }
 
 @font-face {
     font-family: 'IndoPakNastaleeq2';
-    src: url('indopak.woff2') format('woff2');
+    src: url('../fonts/indopak.woff2') format('woff2');
     font-display: swap;
 }
 
 @font-face {
     font-family: 'UthmanicWarsh';
-    src: url('uthmanic_warsh_v21.woff2') format('woff2'),
-         url('uthmanic_warsh_v21.ttf') format('truetype');
+    src: url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'),
+         url('../fonts/uthmanic_warsh_v21.ttf') format('truetype');
     font-display: swap;
 }
 
 @font-face {
     font-family: 'AmiriQuran';
-    src: url('amiri_quran.woff2') format('woff2');
+    src: url('../fonts/amiri_quran.woff2') format('woff2');
     font-display: swap;
 }
 
@@ -4649,8 +4649,24 @@ body.dark-mode #toggle-waqf-table.active {
 }
 
 /* ── Memorization mode (Circular Segmented Repetition) ───────────────── */
-.memo-modal-content { max-width: 560px; width: 92%; text-align: right; }
+.memo-modal-content { max-width: 580px; width: 92%; text-align: right; }
 .memo-sub { font-size: 0.85rem; color: var(--text-color); opacity: 0.75; margin: 0 0 14px; line-height: 1.6; }
+.memo-config-top {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px 14px;
+    margin-bottom: 12px;
+}
+.memo-field-reciter select {
+    font-size: 0.95rem;
+    padding: 8px 10px;
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    cursor: pointer;
+    width: 100%;
+}
 .memo-config {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -4724,6 +4740,20 @@ body.dark-mode #toggle-waqf-table.active {
     direction: rtl;
     transition: background var(--transition-speed), border-color var(--transition-speed);
 }
+body[data-font-type="amiri_quran"] .memo-verse {
+    font-family: 'AmiriQuran', 'Amiri', serif;
+    font-size: 1.5rem;
+}
+body[data-font-type="digital_khatt"] .memo-verse,
+body[data-font-type="old_madina"] .memo-verse {
+    font-family: 'Digital Khatt', serif;
+    font-size: 1.45rem;
+}
+body[data-font-type="indopak_nastaleeq_2"] .memo-verse {
+    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', serif;
+    font-size: 1.6rem;
+    line-height: 2.6;
+}
 .memo-verse .memo-vnum {
     font-family: system-ui, sans-serif;
     font-size: 0.7rem;
@@ -4755,3 +4785,56 @@ body.dark-mode .memo-verse.memo-active {
     min-height: 1.1em;
     margin-bottom: 12px;
 }
+
+/* ── Memorization overlay bar (floats at bottom while session is running) ─ */
+.memo-overlay {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 2000;
+    background: var(--card-bg);
+    border-top: 2px solid var(--primary-color);
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+    padding: 10px 16px 12px;
+    animation: memo-overlay-in 0.3s ease;
+}
+@keyframes memo-overlay-in {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);   opacity: 1; }
+}
+.memo-overlay-inner {
+    max-width: 860px; margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 4px 14px; align-items: center;
+}
+.memo-overlay-verse {
+    grid-column: 1; grid-row: 1;
+    font-family: 'UthmanicHafs','Amiri',serif;
+    font-size: 1.5rem; line-height: 2.2; direction: rtl; text-align: right;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+body[data-font-type="amiri_quran"]        .memo-overlay-verse { font-family:'AmiriQuran','Amiri',serif; font-size:1.55rem; }
+body[data-font-type="digital_khatt"]      .memo-overlay-verse,
+body[data-font-type="old_madina"]         .memo-overlay-verse { font-family:'Digital Khatt',serif; }
+body[data-font-type="indopak_nastaleeq_2"].memo-overlay-verse { font-family:'IndoPakNastaleeq2','Naskh-Nastaleeq-IndoPak-QWBW',serif; font-size:1.65rem; line-height:2.8; }
+.memo-overlay-info {
+    grid-column: 1; grid-row: 2;
+    display: flex; flex-direction: column; gap: 4px;
+}
+.memo-overlay-status { font-size:0.8rem; color:var(--primary-color); font-weight:600; }
+.memo-overlay-prog { height:4px; background:var(--border-color); border-radius:3px; overflow:hidden; }
+.memo-overlay-bar-fill { height:100%; width:0; background:var(--primary-color); transition:width 0.25s ease; }
+.memo-overlay-btns {
+    grid-column: 2; grid-row: 1 / span 2;
+    display: flex; gap: 8px; align-items: center;
+}
+.memo-overlay-btns button {
+    width:40px; height:40px; border-radius:50%;
+    border:1px solid var(--border-color); background:var(--card-bg);
+    color:var(--text-color); font-size:1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background var(--transition-speed);
+}
+.memo-overlay-btns button:hover { background:var(--border-color); }
+#memo-overlay-pause.playing { color:var(--primary-color); border-color:var(--primary-color); }

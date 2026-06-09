@@ -93,7 +93,7 @@ def after_request(response):
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
         # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…); jsdelivr CDN allowed for ort wasm fetch.
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net; "
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com; "
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
         "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com;"
     )
@@ -141,9 +141,9 @@ def internal_error(error):
     app.logger.error(f"Internal server error: {error}")
     return jsonify({"error": "Internal server error"}), 500
 
-DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'word_name.db')
-WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'waqf_symbols.db')
-MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'mushaf_waqf.db')
+DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'word_name.db')
+WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'waqf_symbols.db')
+MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'mushaf_waqf.db')
 # Per-reciter guide config: positions.db path + default waqf column from mushaf_waqf DB.
 # Add a new entry here whenever a reciter has segmentation data.
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -194,11 +194,11 @@ HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']
 # "New Madinah" source now uses the QPC v4 (1441/tajweed) 15-line layout — same
 # 1..83668 word numbering as the older digital-khatt layout but with the proper
 # QPC v4 line breaks. (Schema has no total_advance/x_offset columns.)
-DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'qpc-v4-15-lines.db')
-QPC_V1_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'QUL_data', 'qpc-v1-15-lines.db')
+DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'qpc-v4-15-lines.db')
+QPC_V1_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'qpc-v1-15-lines.db')
 # Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
 # from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
-TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'QUL_data', 'tajweed_local.db')
+TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
 SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
@@ -296,23 +296,23 @@ def _load_json_cdn_or_local(cdn_path: str, local_path: str):
 
 
 # Load Quranic text data — CDN first, local fallback
-# Local files now live under QUL_data/quran_text/
+# Local files now live under data/quran_text/
 digital_khatt_data = _load_json_cdn_or_local(
-    'Digital_Khatt_Aya_Space.json', 'QUL_data/quran_text/Digital_Khatt_Aya_Space.json'
+    'Digital_Khatt_Aya_Space.json', 'data/quran_text/Digital_Khatt_Aya_Space.json'
 )
 qpc_hafs_data = _load_json_cdn_or_local(
-    'QPC Hafs.json', 'QUL_data/quran_text/QPC Hafs.json'
+    'QPC Hafs.json', 'data/quran_text/QPC Hafs.json'
 )
 indopak_nastaleeq_data = _load_json_cdn_or_local(
-    'Indopak Nastaleeq_Waqf.json', 'QUL_data/quran_text/Indopak Nastaleeq_Waqf.json'
+    'Indopak Nastaleeq_Waqf.json', 'data/quran_text/Indopak Nastaleeq_Waqf.json'
 )
 indopak_nastaleeq_2_data = _load_json_cdn_or_local(
-    'indopak-nastaleeq 2.json', 'QUL_data/quran_text/indopak-nastaleeq 2.json'
+    'indopak-nastaleeq 2.json', 'data/quran_text/indopak-nastaleeq 2.json'
 )
 transliteration_data = _load_json_cdn_or_local(
-    'Transliteration.json', 'QUL_data/quran_text/Transliteration.json'
+    'Transliteration.json', 'data/quran_text/Transliteration.json'
 )
-surahs_data = _load_json_cdn_or_local('surahs.json', 'QUL_data/quran_text/surahs.json')
+surahs_data = _load_json_cdn_or_local('surahs.json', 'data/quran_text/surahs.json')
 if not isinstance(surahs_data, list):
     surahs_data = []
 
@@ -344,30 +344,30 @@ _eerab_cache: _BoundedLRU = _BoundedLRU(maxsize=2048)
 
 
 # Load audio data — CDN first, local fallback
-# Local files now live under QUL_data/word_timestamps/
+# Local files now live under data/word_timestamps/
 reciters = {
     "AbdulBaset AbdulSamad (Mujawwad)": ("AbdulBaset AbdulSamad Recitation.json",
-                                         "QUL_data/word_timestamps/AbdulBaset AbdulSamad Recitation.json"),
+                                         "data/word_timestamps/AbdulBaset AbdulSamad Recitation.json"),
     "AbdulBaset AbdulSamad (Murattal)": ("ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json",
-                                         "QUL_data/word_timestamps/ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json"),
+                                         "data/word_timestamps/ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json"),
     "Mohamed al-Minshawi (Mujawwad)": ("Mohamed Siddiq al-Minshawi Recitation.json",
-                              "QUL_data/word_timestamps/Mohamed Siddiq al-Minshawi Recitation.json"),
+                              "data/word_timestamps/Mohamed Siddiq al-Minshawi Recitation.json"),
     "Mohamed al-Minshawi (Murattal)": ("ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json",
-                              "QUL_data/word_timestamps/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json"),
+                              "data/word_timestamps/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json"),
     "Mahmoud Khalil al-Husary (Mujawwad)": ("ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json",
-                                           "QUL_data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json"),
+                                           "data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json"),
     "Mahmoud Khalil al-Husary (Murattal)": ("ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json",
-                                            "QUL_data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json"),
+                                            "data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json"),
     "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
-                                           "QUL_data/word_timestamps/mahmoud-khalil-al-husary-muallm-hafs.json"),
+                                           "data/word_timestamps/mahmoud-khalil-al-husary-muallm-hafs.json"),
     "Ibrahim Al-Akhdar":        ("ibrahim-al-akhdar.json",
-                                  "QUL_data/word_timestamps/ibrahim-al-akhdar.json"),
+                                  "data/word_timestamps/ibrahim-al-akhdar.json"),
     "Ayman Rushdi Suwaid":       ("ayman-rushdi-suwaid.json",
-                                  "QUL_data/word_timestamps/ayman-rushdi-suwaid.json"),
+                                  "data/word_timestamps/ayman-rushdi-suwaid.json"),
     "Mahmoud Ali Al-Banna":      ("mahmoud-ali-al-banna.json",
-                                  "QUL_data/word_timestamps/mahmoud-ali-al-banna.json"),
+                                  "data/word_timestamps/mahmoud-ali-al-banna.json"),
     "Mustafa Ismaeel":           ("mustafa-ismaeel.json",
-                                  "QUL_data/word_timestamps/mustafa-ismaeel.json"),
+                                  "data/word_timestamps/mustafa-ismaeel.json"),
 }
 
 # Reciter audio data and mappings are loaded lazily on first use.
@@ -1906,7 +1906,7 @@ _tajweed_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
 def get_tajweed(surah_number, ayah_number):
     """Return tajweed-annotated HTML for one ayah from local data.
 
-    Served from QUL_data/tajweed_local.db (built offline by
+    Served from data/tajweed_local.db (built offline by
     pipeline/build_tajweed_local.py from cpfair/quran-tajweed, CC-BY 4.0). The
     HTML uses the same `<tajweed class="…">` shape the front-end already parses,
     so this is a drop-in replacement for the former quran.com call.
@@ -2059,6 +2059,11 @@ MEMORIZATION_RECITERS = {
         'dir': _MEMORIZATION_DIR,
         'audio_tmpl': _MEMORIZATION_AUDIO_TMPL,
     },
+    'ahmed_amer': {
+        'name_ar': 'أحمد محمد عامر', 'name_en': 'Ahmed Mohamed Amer',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'ahmed_amer_tvquran'),
+        'audio_tmpl': 'https://download.tvquran.com/download/recitations/197/143/{surah:03d}.mp3',
+    },
     'minshawi': {
         'name_ar': 'محمد صديق المنشاوي', 'name_en': 'Mohamed Siddiq al-Minshawi',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'minshawi_murattal_qul'),
@@ -2074,6 +2079,11 @@ MEMORIZATION_RECITERS = {
         'dir': os.path.join(_BASE_DIR, 'reciters', 'afasy_qul'),
         'audio_tmpl': 'https://server8.mp3quran.net/afs/{surah:03d}.mp3',
     },
+    'burhaji': {
+        'name_ar': 'محمد برهجي', 'name_en': 'Mohammed Burhaji',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_burhaji_yt'),
+        'audio_tmpl': None,  # YouTube source — no streamable per-surah MP3
+    },
 }
 _DEFAULT_MEMO_RECITER = 'husary'
 
@@ -2082,7 +2092,9 @@ def _memo_reciter_cfg(reciter_id):
 
 def _memo_reciter_installed(reciter_id):
     cfg = MEMORIZATION_RECITERS.get(reciter_id)
-    return bool(cfg and os.path.exists(os.path.join(cfg['dir'], 'word_timestamps.json.gz')))
+    if not cfg or not cfg.get('audio_tmpl'):
+        return False
+    return bool(os.path.exists(os.path.join(cfg['dir'], 'word_timestamps.json.gz')))
 # Husary mushaf-waqf phrase boundaries (sub-verse segments). Used by the
 # 'waqf' segmentation mode, snapped to real pauses in the mp3quran audio.
 _MEMORIZATION_WAQF_DB = os.path.join(_BASE_DIR, 'reciters', 'husary',
@@ -2229,7 +2241,8 @@ def get_memorization(surah_number):
         return jsonify({"error": "Memorization data unavailable"}), 503
 
     waqf_bounds = _load_waqf_boundaries() if mode == 'waqf' else {}
-    text_data = get_quran_text_data_by_source('qpc_hafs')
+    font_type = normalize_source(request.args.get('font_type', 'qpc_hafs') or 'qpc_hafs')
+    text_data = get_quran_text_data_by_source(font_type)
 
     verses = []
     ayah = 1
@@ -2433,14 +2446,14 @@ def get_shamarly_ayah(surah_number, ayah_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
 
-        conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'quran_script.db'))
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM words WHERE surah = ? AND ayah = ? ORDER BY word_index ASC", (surah_number, ayah_number))
         words = [dict(row) for row in cursor.fetchall()]
         conn.close()
         
-        layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db'))
+        layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
         layout_cursor = layout_conn.cursor()
 
@@ -2475,7 +2488,7 @@ def get_shamarly_ayah(surah_number, ayah_number):
 
         layout_conn.close()
         
-        glyph_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'glyph_mappings.db'))
+        glyph_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'glyph_mappings.db'))
         glyph_conn.row_factory = sqlite3.Row
         glyph_cursor = glyph_conn.cursor()
         font_name = None
@@ -2731,7 +2744,7 @@ def _get_shamarly_page_ayah_word_bounds(page_number):
     drop out automatically, leaving the exact range the font's glyphs cover.
     """
     try:
-        layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db'))
+        layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
         layout_cursor = layout_conn.cursor()
         layout_cursor.execute(
@@ -2749,7 +2762,7 @@ def _get_shamarly_page_ayah_word_bounds(page_number):
         if not span or span['lo'] is None or span['hi'] is None:
             return (None, None)
 
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'quran_script.db'))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -2777,7 +2790,7 @@ def _get_shamarly_font_supported_codepoints(font_name):
         set[int] when loaded successfully,
         None when the font file does not exist or cannot be parsed.
     """
-    font_path = os.path.join(os.path.dirname(__file__), 'static', f'{font_name}.ttf')
+    font_path = os.path.join(os.path.dirname(__file__), 'static', 'fonts', f'{font_name}.ttf')
     if not os.path.exists(font_path):
         return None
 
@@ -2817,7 +2830,7 @@ def _get_shamarly_page_word_codepoint_map(page_number):
     present = sorted(c for c in supported_codepoints if c > SHEMRLY_CODEPOINT_BASE)
 
     try:
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'quran_script.db'))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -2872,7 +2885,7 @@ def _get_preferred_legacy_glyph_font_for_range(min_word_id, max_word_id):
         return None
 
     try:
-        glyph_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'glyph_mappings.db'))
+        glyph_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'glyph_mappings.db'))
         glyph_conn.row_factory = sqlite3.Row
         glyph_cursor = glyph_conn.cursor()
         glyph_cursor.execute(
@@ -2956,7 +2969,7 @@ def _build_shamarly_page_payload(page_number, focus_surah=None, focus_ayah=None,
 
 
 def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_version, _track):
-    layout_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db')))
+    layout_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'mushaf_layout_inferred.db')))
     layout_conn.row_factory = sqlite3.Row
     layout_cursor = layout_conn.cursor()
 
@@ -2997,7 +3010,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                 if glyph_char:
                     glyph_by_word_pos[word_pos] = glyph_char
         else:
-            glyph_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'glyph_mappings.db')))
+            glyph_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'glyph_mappings.db')))
             glyph_conn.row_factory = sqlite3.Row
             glyph_cursor = glyph_conn.cursor()
             if preferred_legacy_font:
@@ -3037,7 +3050,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
     # An exact-set membership test highlights only lines that truly hold the verse.
     focus_word_indices = set()
     if focus_surah is not None and focus_ayah is not None:
-        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
+        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'quran_script.db')))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -3054,7 +3067,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
     page_word_rows = []
     page_word_by_index = {}
     if min_word_id is not None and max_word_id is not None:
-        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db')))
+        words_conn = _track(sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'quran_script.db')))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -3163,7 +3176,7 @@ def get_shamarly_page(page_number):
 def get_shamarly_page_by_ayah(surah_number, ayah_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
-        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'quran_script.db'))
+        words_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'quran_script.db'))
         words_conn.row_factory = sqlite3.Row
         words_cursor = words_conn.cursor()
         words_cursor.execute(
@@ -3183,7 +3196,7 @@ def get_shamarly_page_by_ayah(surah_number, ayah_number):
         first_word_id = word_range['first_word_id']
         last_word_id = word_range['last_word_id']
 
-        layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'QUL_data', 'mushaf_layout_inferred.db'))
+        layout_conn = sqlite3.connect(os.path.join(os.path.dirname(__file__), 'data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
         layout_cursor = layout_conn.cursor()
         layout_cursor.execute(

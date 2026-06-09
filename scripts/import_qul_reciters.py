@@ -27,9 +27,12 @@ import zipfile
 
 # reciter_id -> target dir (must match app.py MEMORIZATION_RECITERS[*]['dir'])
 TARGET_DIRS = {
-    'minshawi':   'reciters/minshawi_murattal_qul',
-    'abdulbasit': 'reciters/abdulbasit_murattal_qul',
-    'afasy':      'reciters/afasy_qul',
+    'husary':      'reciters/mahmoud_khalil_al_husary_mp3quran',
+    'ahmed_amer':  'reciters/ahmed_amer_tvquran',
+    'burhaji':     'reciters/mohammed_burhaji_yt',
+    'minshawi':    'reciters/minshawi_murattal_qul',
+    'abdulbasit':  'reciters/abdulbasit_murattal_qul',
+    'afasy':       'reciters/afasy_qul',
 }
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WANTED = ('word_timestamps.json.gz', 'verse_timestamps.json.gz', 'catalog.json')

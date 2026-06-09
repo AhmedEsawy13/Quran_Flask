@@ -29,11 +29,11 @@
         // Tried in order. Local /static is fast in dev; on a host that can't serve
         // the 132 MB file (e.g. Vercel's Python lambda) it falls back to the HF CDN.
         modelUrls: [
-            '/static/asr_model.q8.onnx',
+            '/static/asr/asr_model.q8.onnx',
             'https://huggingface.co/Muno459/fastconformer-quran-streaming/resolve/main/model_streaming_with_encoder.q8.onnx',
         ],
-        cmvnUrl:  '/static/asr_cmvn.json',        // {clean_mean,clean_std,tlog_mean,tlog_std}
-        vocabUrl: '/static/asr_vocab.json',       // 1024 SentencePiece pieces (id→piece)
+        cmvnUrl:  '/static/asr/asr_cmvn.json',
+        vocabUrl: '/static/asr/asr_vocab.json',
         cmvnVariant: 'tlog',                      // 'tlog' (phone/real-world, default) | 'clean' (studio)
         chunkSec: 0.5,                            // validated: 0.5 s chunks decode best (chunked attention)
         blankId: 1024,                            // logprobs has 1025 classes; 1024 = CTC blank

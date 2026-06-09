@@ -12,10 +12,10 @@
     <link rel="preconnect" href="https://unpkg.com">
 
     <!-- Preload critical Quranic font -->
-    <link rel="preload" href="{{ url_for('static', filename='uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     <!-- Critical CSS (render-blocking, intentional) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}?v=18">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=19">
 
     <!-- Google Fonts (async, non-render-blocking) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -423,7 +423,16 @@
         <div class="modal-content memo-modal-content">
             <button class="modal-close memo-close" aria-label="إغلاق">&times;</button>
             <h3><i class="fas fa-brain"></i> الحفظ بالتكرار التراكمي المقطعي</h3>
-            <p class="memo-sub">بصوت الشيخ محمود خليل الحصري — كرّر كل آية، ثم اربطها بما قبلها تراكميًا.</p>
+            <p class="memo-sub">كرّر كل آية، ثم اربطها بما قبلها تراكميًا.</p>
+
+            <div class="memo-config memo-config-top">
+                <div class="memo-field memo-field-reciter">
+                    <label for="memo-reciter-select">القارئ</label>
+                    <select id="memo-reciter-select" title="اختر القارئ للحفظ">
+                        <option value="husary">محمود خليل الحصري</option>
+                    </select>
+                </div>
+            </div>
 
             <div class="memo-config">
                 <div class="memo-field">
@@ -476,21 +485,32 @@
             <div id="memo-hint" class="memo-hint"></div>
 
             <div class="memo-actions">
-                <button id="memo-start" type="button" class="btn-play-range"><i class="fas fa-play"></i> ابدأ</button>
-                <button id="memo-pause" type="button" class="memo-btn" disabled><i class="fas fa-pause"></i> إيقاف مؤقت</button>
-                <button id="memo-stop" type="button" class="memo-btn" disabled><i class="fas fa-stop"></i> إنهاء</button>
+                <button id="memo-start" type="button" class="btn-play-range"><i class="fas fa-play"></i> ابدأ على الصفحة</button>
             </div>
 
-            <div id="memo-status" class="memo-status" aria-live="polite"></div>
-            <div class="memo-progress"><div id="memo-progress-bar"></div></div>
             <div id="memo-verse-list" class="memo-verse-list"></div>
             <audio id="memo-audio" preload="auto"></audio>
         </div>
     </div>
 
+    <!-- Memorization floating overlay bar (shown when session is running on main page) -->
+    <div id="memo-overlay" class="memo-overlay" hidden>
+        <div class="memo-overlay-inner">
+            <div class="memo-overlay-verse" id="memo-overlay-verse" dir="rtl"></div>
+            <div class="memo-overlay-info">
+                <span id="memo-overlay-status" class="memo-overlay-status"></span>
+                <div class="memo-overlay-prog"><div id="memo-overlay-bar" class="memo-overlay-bar-fill"></div></div>
+            </div>
+            <div class="memo-overlay-btns">
+                <button id="memo-overlay-pause" type="button" title="إيقاف مؤقت"><i class="fas fa-pause"></i></button>
+                <button id="memo-overlay-stop" type="button" title="إنهاء الجلسة"><i class="fas fa-stop"></i></button>
+            </div>
+        </div>
+    </div>
+
     <script defer src="https://unpkg.com/@popperjs/core@2"></script>
     <script defer src="https://unpkg.com/tippy.js@6"></script>
-    <script defer src="{{ url_for('static', filename='script.js') }}?v=18"></script>
+    <script defer src="{{ url_for('static', filename='js/script.js') }}?v=19"></script>
 
     {% if enable_vercel_analytics %}
     <!-- Vercel Web Analytics -->

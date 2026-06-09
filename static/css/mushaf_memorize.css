@@ -3,19 +3,15 @@
    mushaf. Right settings sidebar; the centre is all for the page(s).
    ═══════════════════════════════════════════════════════════════════ */
 
-@font-face { font-family: 'Digital Khatt'; src: url('digitalkhatt.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Old Madina';   src: url('oldmadina.woff2')   format('woff2'); font-display: swap; }
-/* Surah-name banners — one glyph per surah (incl. the «سورة» prefix) */
-@font-face { font-family: 'Surah Names';   src: url('surah_names.woff2')  format('woff2'); font-display: swap; }
-/* Calligraphic basmala — the whole «بسم الله الرحمن الرحيم» is one glyph (U+00F3) */
-@font-face { font-family: 'QCF Basmala';   src: url('QCF BSML @Am9li9.ttf') format('truetype'); font-display: swap; }
-/* QPC common glyphs — per-juz NAME marker (U+E000+juz, e.g. E01E = الجزء الثلاثون) */
-@font-face { font-family: 'QCF Common';    src: url('quran-common.woff2') format('woff2'); font-display: swap; }
-/* Waqf-symbol fonts — identical set to the main page so marks render the same */
-@font-face { font-family: 'UthmanicHafs';  src: url('uthmanic_hafs_v20.woff2') format('woff2'), url('uthmanic_hafs_v20.ttf') format('truetype'); font-display: swap; }
-@font-face { font-family: 'UthmanicWarsh'; src: url('uthmanic_warsh_v21.woff2') format('woff2'), url('uthmanic_warsh_v21.ttf') format('truetype'); font-display: swap; }
-@font-face { font-family: 'IndoPakNastaleeq2'; src: url('indopak.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Naskh-Nastaleeq-IndoPak-QWBW'; src: url('Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Digital Khatt'; src: url('../fonts/digitalkhatt.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')   format('woff2'); font-display: swap; }
+@font-face { font-family: 'Surah Names';   src: url('../fonts/surah_names.woff2')  format('woff2'); font-display: swap; }
+@font-face { font-family: 'QCF Basmala';   src: url('../fonts/QCF BSML @Am9li9.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'QCF Common';    src: url('../fonts/quran-common.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'UthmanicHafs';  src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'), url('../fonts/uthmanic_hafs_v20.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'UthmanicWarsh'; src: url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'), url('../fonts/uthmanic_warsh_v21.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'IndoPakNastaleeq2'; src: url('../fonts/indopak.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Naskh-Nastaleeq-IndoPak-QWBW'; src: url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'); font-display: swap; }
 
 /* Digital Khatt verse/sajda COLR markers: darken the disc in dark mode so the
    number stays legible (same palette the main page uses). */
