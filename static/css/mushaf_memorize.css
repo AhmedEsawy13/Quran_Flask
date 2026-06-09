@@ -319,16 +319,23 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-page.mz-tajweed .mz-word.mz-act { color: inherit; }
 
 /* The single word being recited right now — karaoke highlight that tracks the
-   audio. Sits above the verse-level .mz-act cue. */
+   audio. A distinct warm colour (not the indigo verse accent) so it pops out
+   from the surrounding verse-level .mz-act cue and stays visible on small glyphs. */
 .mz-word.mz-now {
-    color: var(--mz-accent) !important;
-    background: color-mix(in srgb, var(--mz-accent) 15%, transparent);
-    box-shadow: 0 0 0 0.04em color-mix(in srgb, var(--mz-accent) 24%, transparent);
-    border-radius: 0.28em;
-    transition: background 0.12s ease, color 0.12s ease;
+    color: #c2410c !important;
+    background: color-mix(in srgb, #f97316 26%, transparent);
+    box-shadow: 0 0 0 0.07em color-mix(in srgb, #f97316 26%, transparent);
+    border-radius: 0.26em;
+    transition: background 0.1s ease, color 0.1s ease;
+}
+body.mz-dark .mz-word.mz-now {
+    color: #fdba74 !important;
+    background: color-mix(in srgb, #fb923c 30%, transparent);
+    box-shadow: 0 0 0 0.07em color-mix(in srgb, #fb923c 30%, transparent);
 }
 .mz-page.mz-tajweed .mz-word.mz-now,
-.mz-page.mz-tajweed .mz-word.mz-now tajweed { color: var(--mz-accent) !important; }
+.mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #c2410c !important; }
+body.mz-dark .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #fdba74 !important; }
 
 /* Hide-for-testing: blur the words; click a word to reveal its whole verse. */
 .mz-page.mz-hide .mz-word { color: transparent !important; text-shadow: 0 0 0.5em var(--mz-quran); cursor: pointer; user-select: none; }

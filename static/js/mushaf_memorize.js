@@ -351,6 +351,23 @@
     // QCF Common font: each juz NAME is one glyph at U+E000+juz (E01E = الجزء الثلاثون).
     const juzGlyph = j => (j >= 1 && j <= 30) ? String.fromCodePoint(0xE000 + j) : '';
 
+    // Juz' start boundaries as [surah, ayah] (Hafs/Madina, Tanzil standard). Used
+    // when the page number isn't the 604-page Madina numbering — e.g. Shemrly,
+    // whose layout-DB pages don't line up with JUZ_START_PAGE — so the juz can be
+    // derived from the surah/ayah on the page instead.
+    const JUZ_START_AYAH = [[1,1],[2,142],[2,253],[3,92],[4,24],[4,148],[5,82],[6,111],
+        [7,88],[8,41],[9,93],[11,6],[12,53],[15,1],[17,1],[18,75],[21,1],[23,1],[25,21],
+        [27,56],[29,46],[33,31],[36,28],[39,32],[41,47],[46,1],[51,31],[58,1],[67,1],[78,1]];
+    function juzFromAyah(surah, ayah) {
+        if (!surah) return 1;
+        let j = 1;
+        for (let i = 0; i < JUZ_START_AYAH.length; i++) {
+            const [s, a] = JUZ_START_AYAH[i];
+            if (surah > s || (surah === s && ayah >= a)) j = i + 1; else break;
+        }
+        return j;
+    }
+
     const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
     const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
 
@@ -659,9 +676,15 @@
             else { el.className = 'mz-head-text-item'; el.textContent = surahNameOf(sn) ? `سورة ${surahNameOf(sn)}` : ''; }
             card.surah.appendChild(el);
         });
-        const jn = juzNumber(payload.page_number), jg = juzGlyph(jn);
-        if (jg) { card.juz.classList.add('mz-juz-glyph'); card.juz.textContent = jg; card.juz.title = juzLabel(payload.page_number); card.juz.setAttribute('aria-label', juzLabel(payload.page_number)); }
-        else { card.juz.classList.remove('mz-juz-glyph'); card.juz.textContent = juzLabel(payload.page_number); }
+        // Shemrly's layout-DB page numbers don't match the 604-page Madina numbering,
+        // so derive its juz from the page's first ayah instead of the page number.
+        const jn = state.src === 'shamarly'
+            ? juzFromAyah(payload.anchor_surah_number, payload.anchor_ayah_number)
+            : juzNumber(payload.page_number);
+        const jg = juzGlyph(jn);
+        const jl = `الجزء ${JUZ_NAME[jn - 1]}`;
+        if (jg) { card.juz.classList.add('mz-juz-glyph'); card.juz.textContent = jg; card.juz.title = jl; card.juz.setAttribute('aria-label', jl); }
+        else { card.juz.classList.remove('mz-juz-glyph'); card.juz.textContent = jl; }
         card.foot.textContent = `صفحة ${toAr(payload.page_number)}`;
     }
 
