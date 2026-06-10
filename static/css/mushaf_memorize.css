@@ -379,6 +379,71 @@ body.mz-dark .mz-word.mz-now { color: #fb923c !important; }
 .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #c2410c !important; }
 body.mz-dark .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #fb923c !important; }
 
+/* ── Breathing guide (دليل التنفس) — marks words after which at least one
+   installed reciter actually pauses. The dot's opacity scales with how many
+   reciters agree (--breath-strength, set by JS), so consensus stops stand out. */
+/* ── Breathing-guide panel (دليل التنفس) — a separate reader docked at the
+   bottom: the chosen verse, segmented at the points reciters actually stop,
+   plus a list of where reciters repeat. ─────────────────────────────────── */
+.mz-breath-panel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    max-height: 46vh; display: flex; flex-direction: column;
+    background: var(--mz-surface); border-top: 1px solid var(--mz-border-strong);
+    box-shadow: 0 -10px 30px -12px rgba(0,0,0,0.28); direction: rtl;
+    font-family: 'IBM Plex Sans Arabic', sans-serif; animation: mz-breath-rise 0.22s ease; }
+@keyframes mz-breath-rise { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.mz-breath-panel[hidden] { display: none; }
+.mz-breath-head { display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+    border-bottom: 1px solid var(--mz-border); }
+.mz-breath-title { font-weight: 700; font-size: 0.92rem; color: var(--mz-text); }
+.mz-breath-nav { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%;
+    border: 1px solid var(--mz-border-strong); background: var(--mz-surface-2); color: var(--mz-text);
+    cursor: pointer; transition: all 0.14s ease; }
+.mz-breath-nav:hover:not(:disabled) { border-color: var(--mz-accent); color: var(--mz-accent); }
+.mz-breath-nav:disabled { opacity: 0.35; cursor: not-allowed; }
+.mz-breath-close { margin-inline-start: auto; width: 32px; height: 32px; display: grid; place-items: center;
+    border-radius: 50%; border: 1px solid transparent; background: transparent; color: var(--mz-text-muted);
+    cursor: pointer; font-size: 1rem; }
+.mz-breath-close:hover { color: var(--mz-accent); border-color: var(--mz-border-strong); }
+.mz-breath-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 6px 16px;
+    font-size: 0.72rem; color: var(--mz-text-muted); border-bottom: 1px solid var(--mz-border); }
+.mz-breath-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.mz-lg-dot { width: 0.7em; height: 0.7em; border-radius: 50%; display: inline-block; }
+.mz-lg-stop { background: #0ea5e9; }
+.mz-lg-solo { background: transparent; border: 2px solid #d97706; }
+.mz-lg-repeat { background: #a855f7; }
+.mz-breath-body { padding: 14px 16px 18px; overflow: auto; }
+.mz-breath-empty { color: var(--mz-text-muted); text-align: center; padding: 18px 0; margin: 0; }
+
+/* the segmented verse */
+.mz-breath-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; line-height: 2.1; }
+.mz-breath-word { font-family: 'UthmanicHafs', 'Amiri Quran', serif; font-size: 1.7rem; color: var(--mz-quran);
+    padding: 0 0.08em; }
+.mz-breath-flow.mz-src-qpc-v1 .mz-breath-word { font-family: 'Old Madina', 'UthmanicHafs', serif; }
+.mz-breath-word-stop { color: var(--mz-text); }
+
+/* a stop marker between two segments */
+.mz-breath-chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px;
+    background: color-mix(in srgb, #0ea5e9 12%, transparent); border: 1px solid color-mix(in srgb, #0ea5e9 42%, transparent);
+    color: var(--mz-text); font-size: 0.74rem; white-space: nowrap; vertical-align: middle; }
+.mz-breath-chip i { color: #0ea5e9; font-size: 0.7em; }
+.mz-breath-chip b { color: #0284c7; font-weight: 700; }
+.mz-breath-chip .mz-chip-pct { color: var(--mz-text-muted); }
+.mz-breath-chip .mz-chip-dur { color: var(--mz-text-muted); font-variant-numeric: tabular-nums; }
+.mz-breath-chip-solo { background: color-mix(in srgb, #d97706 12%, transparent);
+    border-color: color-mix(in srgb, #d97706 48%, transparent); }
+.mz-breath-chip-solo i, .mz-breath-chip-solo b { color: #d97706; }
+body.mz-dark .mz-breath-chip b { color: #38bdf8; }
+body.mz-dark .mz-breath-chip-solo i, body.mz-dark .mz-breath-chip-solo b { color: #fbbf24; }
+
+/* repeats list */
+.mz-breath-repeats { margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--mz-border-strong); }
+.mz-breath-repeats h4 { margin: 0 0 8px; font-size: 0.82rem; color: #a855f7; display: flex; align-items: center; gap: 6px; }
+.mz-breath-repeats ul { margin: 0; padding-inline-start: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.mz-breath-repeats li { font-size: 0.82rem; color: var(--mz-text-muted); }
+.mz-breath-repeats li b { color: var(--mz-text); font-weight: 600; }
+body.mz-dark .mz-breath-repeats h4 { color: #c084fc; }
+@media (max-width: 700px) { .mz-breath-panel { max-height: 56vh; } .mz-breath-word { font-size: 1.45rem; } }
+
 /* Hide-for-testing: blur the words; click a word to reveal its whole verse. */
 .mz-page.mz-hide .mz-word { color: transparent !important; text-shadow: 0 0 0.5em var(--mz-quran); cursor: pointer; user-select: none; }
 .mz-page.mz-hide .mz-word tajweed { color: transparent !important; text-shadow: 0 0 0.5em currentColor; }

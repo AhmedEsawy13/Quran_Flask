@@ -5,7 +5,7 @@ import os
 import logging
 import re
 import threading
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, Counter
 from functools import lru_cache
 
 
@@ -2229,6 +2229,139 @@ def _waqf_aligned_phrases(words, boundaries, snap_floor, snap_window=3):
         phrases.append({'start': words[cp][1], 'end': words[end_pos][2],
                         'first_word': words[cp][0], 'last_word': words[end_pos][0]})
     return phrases
+
+
+_memorization_breathing_cache = {}
+
+
+def _forward_waqf_stops(words, gap_ms):
+    """Split a reciter's verse pauses into genuine FORWARD waqfs vs. 'pause
+    then go back to repeat' artifacts.
+
+    A pause after a phrase is a real waqf only if recitation then continues
+    FORWARD. If the next phrase resumes at or before the word we paused on
+    (first_word <= last_word), the reciter stopped to re-recite (a correction /
+    repeat), not to breathe at a stopping point — so it isn't a waqf. Those
+    repeats are returned separately so the UI can show "this reciter repeated
+    from word X" instead of mistaking it for a stop.
+
+    Returns (stops, repeats):
+      stops   = {word_idx: end_ms_from_verse_start}  (1-based word_idx)
+      repeats = [(paused_after_word_idx, resumed_at_word_idx), ...]  (1-based)"""
+    stops, repeats = {}, []
+    if not words:
+        return stops, repeats
+    phrases = _segment_phrases(words, gap_ms)
+    vstart = words[0][1]
+    for i in range(len(phrases) - 1):
+        cur, nxt = phrases[i], phrases[i + 1]
+        if nxt['first_word'] <= cur['last_word']:
+            repeats.append((cur['last_word'], nxt['first_word']))
+            continue  # reciter went back to repeat — not a forward waqf
+        w = cur['last_word']
+        dur = cur['end'] - vstart
+        if w not in stops or dur < stops[w]:
+            stops[w] = dur
+    return stops, repeats
+
+
+def _build_breathing_guide(surah_number, gap_ms=250):
+    """Per-verse 'breathing guide': word positions where at least one of the
+    installed reciters makes a real FORWARD pause (a waqf), with how many
+    reciters pause there, WHICH reciters do, and the average cumulative
+    duration (seconds from verse start) to that point.
+
+    These are real, attested reciter stops — never algorithmically invented,
+    and 'pause-to-repeat' artifacts are filtered out (see _forward_waqf_stops)
+    — so a memorizer can pick the latest one within their own breath capacity
+    and stop there, the way a professional reciter would. Stops only one
+    reciter makes (انفرد) are flagged so the user knows they're uncommon."""
+    reciter_ids = tuple(sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid)))
+    cache_key = (surah_number, gap_ms, reciter_ids)
+    if cache_key in _memorization_breathing_cache:
+        return _memorization_breathing_cache[cache_key]
+
+    per_reciter_ts = {}
+    for rid in reciter_ids:
+        try:
+            per_reciter_ts[rid] = _load_memorization_word_ts(rid)
+        except Exception as e:
+            app.logger.error(f"Breathing guide: failed to load {rid}: {e}")
+
+    verses = {}
+    ayah = 1
+    while True:
+        vk = f"{surah_number}:{ayah}"
+        present = [(rid, wts[vk]) for rid, wts in per_reciter_ts.items() if vk in wts]
+        if not present:
+            break
+        word_reciters = defaultdict(list)   # word_idx -> [reciter_id, ...] (who pauses)
+        word_durs = defaultdict(list)       # word_idx -> [cumulative seconds, ...]
+        repeats = []                        # [{reciter_id, from_wpos, to_wpos}]
+        verse_durs = []
+        for rid, entry in present:
+            words = entry[1]
+            if not words:
+                continue
+            verse_durs.append((words[-1][2] - words[0][1]) / 1000.0)
+            r_stops, r_repeats = _forward_waqf_stops(words, gap_ms)
+            for w, dur_ms in r_stops.items():
+                word_reciters[w].append(rid)
+                word_durs[w].append(dur_ms / 1000.0)
+            for frm, to in r_repeats:
+                repeats.append({'reciter_id': rid, 'from_wpos': frm - 1, 'to_wpos': to - 1})
+
+        stops = []
+        for word_idx in sorted(word_reciters):
+            who = word_reciters[word_idx]
+            durs = word_durs[word_idx]
+            stops.append({
+                'wpos': word_idx - 1,
+                'duration': round(sum(durs) / len(durs), 2),
+                'reciters': len(who),
+                'reciter_ids': who,
+                'solo': len(who) == 1,   # انفرد — only this one reciter pauses here
+            })
+        verses[ayah] = {
+            'full_duration': round(sum(verse_durs) / len(verse_durs), 2) if verse_durs else None,
+            'reciters_total': len(verse_durs),
+            'stops': stops,
+            'repeats': repeats,
+        }
+        ayah += 1
+
+    result = {
+        'surah_number': surah_number,
+        'gap_ms': gap_ms,
+        'reciters': [
+            {'id': rid, 'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', '')}
+            for rid in reciter_ids
+        ],
+        'verses': verses,
+    }
+    _memorization_breathing_cache[cache_key] = result
+    return result
+
+
+@app.route('/api/memorization/<int:surah_number>/breathing', methods=['GET'])
+def get_memorization_breathing(surah_number):
+    """Validated 'breathing guide' for a surah: per verse, word positions where
+    at least one installed reciter actually pauses, with consensus count and
+    average cumulative duration — so a user with a shorter or longer breath can
+    pick a real, attested stopping point instead of guessing where to pause."""
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number."}), 400
+    gap_ms = request.args.get('gap', 250, type=int)
+    if gap_ms < 0 or gap_ms > 5000:
+        gap_ms = 250
+    try:
+        data = _build_breathing_guide(surah_number, gap_ms)
+    except Exception as e:
+        app.logger.error(f"Breathing guide failed for surah {surah_number}: {e}")
+        return jsonify({"error": "Breathing guide unavailable"}), 503
+    if not data['verses']:
+        return jsonify({"error": "No memorization data for this surah."}), 404
+    return jsonify(data)
 
 
 @app.route('/api/memorization/<int:surah_number>', methods=['GET'])
