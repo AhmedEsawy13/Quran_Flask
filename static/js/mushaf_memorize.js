@@ -71,12 +71,6 @@
         tbZoomOut:   $('mz-tb-zoomout'),
         tbHide:      $('mz-tb-hide'),
         tbBreath:    $('mz-tb-breath'),
-        breathPanel: $('mz-breath-panel'),
-        breathTitle: $('mz-breath-title'),
-        breathBody:  $('mz-breath-body'),
-        breathPrev:  $('mz-breath-prev'),
-        breathNext:  $('mz-breath-next'),
-        breathClose: $('mz-breath-close'),
         tajweed:     $('mz-tajweed'),
         justify:     $('mz-justify'),
         justifyVal:  $('mz-justify-val'),
@@ -138,10 +132,6 @@
         reciter: 'husary',
         reciterName: 'محمود خليل الحصري',
         hideText: false,
-        breathOn: false,
-        breathAyah: null,       // verse currently shown in the breathing panel
-        breathing: new Map(),   // ayah -> {full_duration, reciters_total, stops: Map(wpos -> {…}), repeats: [...]}
-        breathReciterNames: new Map(),  // reciter id -> Arabic name
         focusMode: false,
         zoom: 1,                // manual zoom multiplier on top of the auto-fit
     };
@@ -165,164 +155,13 @@
         if (!key) return;
         wordsInSpread(`.mz-word[data-key="${key}"]`).forEach(w => w.classList.add('mz-reveal'));
     }
-    /* ── Breathing guide (دليل التنفس) ─────────────────────────────────
-       A SEPARATE reader (not page underlines): pick a verse → see the verse
-       segmented at the points where reciters actually stop (with how many
-       reciters / who, and the cumulative time), plus where reciters repeat.
-       All stops are real, attested pauses — never algorithmically invented. */
-    const reciterNameOf = id => state.breathReciterNames.get(id) || id;
-
-    function setBreathMode(on) {
-        state.breathOn = !!on;
-        if (els.breathPanel) els.breathPanel.hidden = !state.breathOn;
-        if (els.tbBreath) els.tbBreath.setAttribute('aria-pressed', String(state.breathOn));
-        saveSetting('mz_breath', state.breathOn ? '1' : '0');
-        if (state.breathOn) {
-            // open on the first selected verse by default
-            const [a] = selectedAyahRange();
-            showBreathVerse(state.breathAyah && state.verseByAyah.has(state.breathAyah) ? state.breathAyah : a);
-        }
-        syncToolbar();
-    }
-
-    function maxAyahOfSurah() {
-        let m = 1;
-        state.verseByAyah.forEach((_, k) => { if (k > m) m = k; });
-        return m;
-    }
-
-    // Collect a verse's on-page words (text + position), in recitation order.
-    function verseWordsFromDom(vk) {
-        const seen = new Set(), out = [];
-        wordsInSpread(`.mz-word[data-key="${vk}"]`).forEach(w => {
-            const wpos = parseInt(w.dataset.wpos, 10);
-            if (seen.has(wpos)) return;
-            seen.add(wpos);
-            out.push({ wpos, text: (w.dataset.text || w.textContent || '').trim() });
-        });
-        out.sort((a, b) => a.wpos - b.wpos);
-        return out;
-    }
-
-    async function showBreathVerse(ayah) {
-        if (!ayah) return;
-        state.breathAyah = ayah;
-        // make sure the verse is on the spread so we can read its words
-        await ensureVerseVisible(state.surah, ayah);
-        buildBreathPanel(ayah);
-    }
-    async function stepBreathVerse(delta) {
-        const next = (state.breathAyah || 1) + delta;
-        if (next < 1 || next > maxAyahOfSurah()) return;
-        await showBreathVerse(next);
-    }
-
-    function makeStopChip(stop, total) {
-        const chip = document.createElement('span');
-        chip.className = 'mz-breath-chip' + (stop.solo ? ' mz-breath-chip-solo' : '');
-        const names = (stop.reciter_ids || []).map(reciterNameOf).join('، ');
-        const dur = `~${toAr(stop.duration.toFixed(1))}ث`;
-        if (stop.solo) {
-            chip.innerHTML = `<i class="fas fa-pause"></i><b>انفرد</b><span>${reciterNameOf(stop.reciter_ids[0])}</span><span class="mz-chip-dur">${dur}</span>`;
-        } else {
-            const pct = total ? Math.round((stop.reciters / total) * 100) : 0;
-            chip.innerHTML = `<i class="fas fa-pause"></i><b>${toAr(stop.reciters)}/${toAr(total)}</b><span class="mz-chip-pct">${toAr(pct)}٪</span><span class="mz-chip-dur">${dur}</span>`;
-        }
-        chip.title = stop.solo ? `انفرد به: ${names}` : `يقف عنده: ${names} — ${dur} من بداية الآية`;
-        return chip;
-    }
-
-    function buildBreathPanel(ayah) {
-        const body = els.breathBody;
-        if (!body) return;
-        const vk = `${state.surah}:${ayah}`;
-        const verse = state.breathing.get(ayah);
-        els.breathTitle.textContent = `دليل التنفس — ${surahNameOf(state.surah) ? 'سورة ' + surahNameOf(state.surah) + ' ' : ''}آية ${toAr(ayah)}`;
-        if (els.breathPrev) els.breathPrev.disabled = ayah <= 1;
-        if (els.breathNext) els.breathNext.disabled = ayah >= maxAyahOfSurah();
-        body.innerHTML = '';
-
-        if (!verse || (!verse.stops.size && !(verse.repeats || []).length)) {
-            const p = document.createElement('p');
-            p.className = 'mz-breath-empty';
-            p.textContent = verse
-                ? 'لا يقف القرّاء داخل هذه الآية — تُقرأ بنفَس واحد.'
-                : 'لا توجد بيانات تنفّس لهذه الآية.';
-            body.appendChild(p);
-            if (!verse) return;
-        }
-
-        const words = verseWordsFromDom(vk);
-        const wordText = wp => { const f = words.find(w => w.wpos === wp); return f ? f.text : `كلمة ${toAr(wp + 1)}`; };
-        const total = verse.reciters_total;
-
-        // Segmented verse: words flow RTL; a stop chip follows every stop word.
-        const flow = document.createElement('div');
-        flow.className = 'mz-breath-flow';
-        flow.dir = 'rtl';
-        flow.classList.toggle('mz-src-qpc-v1', state.src === 'qpc_v1');
-        if (words.length) {
-            words.forEach(w => {
-                const ws = document.createElement('span');
-                ws.className = 'mz-breath-word';
-                ws.textContent = w.text;
-                const stop = verse.stops.get(w.wpos);
-                if (stop) ws.classList.add('mz-breath-word-stop');
-                flow.appendChild(ws);
-                if (stop) flow.appendChild(makeStopChip(stop, total));
-            });
-        } else {
-            // verse off the available pages (e.g. Shemrly) — list stops by position
-            verse.stops.forEach(stop => flow.appendChild(makeStopChip(stop, total)));
-        }
-        body.appendChild(flow);
-
-        // Repeats: where a reciter paused and went back to re-recite.
-        if ((verse.repeats || []).length) {
-            const box = document.createElement('div');
-            box.className = 'mz-breath-repeats';
-            const h = document.createElement('h4');
-            h.innerHTML = `<i class="fas fa-rotate-left"></i> تكرارات القرّاء`;
-            box.appendChild(h);
-            const ul = document.createElement('ul');
-            verse.repeats.forEach(r => {
-                const li = document.createElement('li');
-                const name = `<b>${reciterNameOf(r.reciter_id)}</b>`;
-                li.innerHTML = r.from_wpos === r.to_wpos
-                    ? `${name} كرّر «${wordText(r.from_wpos)}»`
-                    : `${name} وقف عند «${wordText(r.from_wpos)}» ثم أعاد من «${wordText(r.to_wpos)}»`;
-                ul.appendChild(li);
-            });
-            box.appendChild(ul);
-            body.appendChild(box);
-        }
-    }
-
-    async function loadBreathingGuide(surah) {
-        try {
-            const resp = await fetch(`/api/memorization/${surah}/breathing`);
-            if (!resp.ok) { state.breathing = new Map(); return; }
-            const data = await resp.json();
-            state.breathReciterNames = new Map((data.reciters || []).map(r => [r.id, r.name_ar || r.id]));
-            const map = new Map();
-            Object.entries(data.verses || {}).forEach(([ayah, v]) => {
-                map.set(Number(ayah), {
-                    full_duration: v.full_duration,
-                    reciters_total: v.reciters_total,
-                    stops: new Map((v.stops || []).map(s => [s.wpos, s])),
-                    repeats: v.repeats || [],
-                });
-            });
-            state.breathing = map;
-        } catch (e) {
-            state.breathing = new Map();
-        }
-        // a new surah loaded — reset the panel's verse and refresh if open
-        state.breathAyah = null;
-        if (state.breathOn) {
-            const [a] = selectedAyahRange();
-            showBreathVerse(a);
-        }
+    /* ── Waqf comparison (مواضع وقوف القرّاء) ───────────────────────────
+       The detailed breathing/waqf view now lives on its own page (/waqf),
+       which compares how every reciter stops in a verse. The 🫁 toolbar
+       button opens it for the currently selected verse. */
+    function openWaqfPage() {
+        const [a] = selectedAyahRange();
+        window.open(`/waqf?surah=${state.surah}&ayah=${a}`, '_blank', 'noopener');
     }
     function setFocusMode(on) {
         state.focusMode = !!on;
@@ -351,7 +190,6 @@
     function syncToolbar() {
         if (els.tbTajweed) els.tbTajweed.classList.toggle('mz-on', state.tajweedOn);
         if (els.tbHide) els.tbHide.classList.toggle('mz-on', state.hideText);
-        if (els.tbBreath) els.tbBreath.classList.toggle('mz-on', state.breathOn);
         if (els.tbLayout) {
             els.tbLayout.classList.toggle('mz-on', state.layoutMode === 'single');
             const i = els.tbLayout.querySelector('i');
@@ -484,8 +322,6 @@
         const z = parseFloat(localStorage.getItem('mz_zoom'));
         if (Number.isFinite(z)) state.zoom = Math.max(0.7, Math.min(1.6, z));
 
-        // restore the flag only; the panel is opened after the verse data loads
-        state.breathOn = localStorage.getItem('mz_breath') === '1';
         syncToolbar();
 
         try {
@@ -631,7 +467,6 @@
         els.audio.load();
         updateHint();
         setStatus('');
-        loadBreathingGuide(surah);
     }
 
     // Reload segment boundaries when split mode/sensitivity changes (same surah/audio).
@@ -1859,16 +1694,13 @@
             if (s === state.surah) handleVerseClick(a);
         });
         // Breathing panel: verse stepper + close
-        if (els.breathPrev) els.breathPrev.addEventListener('click', () => stepBreathVerse(-1));
-        if (els.breathNext) els.breathNext.addEventListener('click', () => stepBreathVerse(1));
-        if (els.breathClose) els.breathClose.addEventListener('click', () => setBreathMode(false));
         // Focus mode
         if (els.focusToggle) els.focusToggle.addEventListener('click', () => setFocusMode(!state.focusMode));
         // Floating mushaf toolbar
         if (els.tbLayout) els.tbLayout.addEventListener('click', toggleLayout);
         if (els.tbTajweed) els.tbTajweed.addEventListener('click', () => els.tajweed.click());
         if (els.tbHide) els.tbHide.addEventListener('click', () => setHideMode(!state.hideText));
-        if (els.tbBreath) els.tbBreath.addEventListener('click', () => setBreathMode(!state.breathOn));
+        if (els.tbBreath) els.tbBreath.addEventListener('click', openWaqfPage);
         if (els.tbZoomIn) els.tbZoomIn.addEventListener('click', () => setZoom(state.zoom + 0.1));
         if (els.tbZoomOut) els.tbZoomOut.addEventListener('click', () => setZoom(state.zoom - 0.1));
         // Recite & follow (lazy-load the ASR module)
@@ -1915,7 +1747,6 @@
         const ly = p.get('layout');
         if (ly === 'single' || ly === 'dual') { state.layoutMode = ly; els.layout.value = ly; saveSetting('mz_layout', ly); document.body.classList.toggle('mz-single', ly === 'single'); }
         if (p.get('hide') === '1') state.hideText = true;
-        if (p.get('breath') === '1') state.breathOn = true;
         if (p.get('focus') === '1') setFocusMode(true);
         const surah = parseInt(p.get('surah'), 10);
         if (!surah) return false;
@@ -1965,7 +1796,6 @@
             }
             await renderSelection();
             if (state.hideText) setHideMode(true);
-            if (state.breathOn) { state.breathOn = false; setBreathMode(true); }
             // Re-fit once the mushaf fonts are actually loaded (initial measure
             // may have used fallback metrics).
             if (document.fonts && document.fonts.ready) {

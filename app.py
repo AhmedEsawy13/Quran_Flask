@@ -2364,6 +2364,110 @@ def get_memorization_breathing(surah_number):
     return jsonify(data)
 
 
+_ARABIC_INDIC_DIGITS = set('٠١٢٣٤٥٦٧٨٩')
+
+
+def _verse_word_texts(verse_key):
+    """Per-word text for a verse, aligned to the QUL word indices (token[i] =
+    word i+1). Uses the qpc_hafs (Uthmanic) text and drops the trailing ayah
+    number token, which `text.split()` always yields as the last element."""
+    td = qpc_hafs_data_normalized.get(verse_key)
+    text = (td.get('text', '') if isinstance(td, dict) else '') or ''
+    toks = text.split()
+    if toks and all(ch in _ARABIC_INDIC_DIGITS for ch in toks[-1]):
+        toks = toks[:-1]
+    return text, toks
+
+
+def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
+    """Full per-reciter waqf detail for ONE verse, for the comparison page.
+
+    Returns the verse text/words plus, for every installed reciter, their own
+    forward-waqf stops (with each reciter's cumulative time) and repeats, and a
+    union view (which reciters align at each stop, and which stops are solo)."""
+    reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
+    vk = f"{surah}:{ayah}"
+    text, words = _verse_word_texts(vk)
+
+    per_reciter = {}
+    union = defaultdict(lambda: {'reciters': [], 'durs': []})
+    verse_durs = []
+    for rid in reciter_ids:
+        try:
+            wts = _load_memorization_word_ts(rid)
+        except Exception:
+            continue
+        if vk not in wts:
+            continue
+        w = wts[vk][1]
+        if not w:
+            continue
+        full = (w[-1][2] - w[0][1]) / 1000.0
+        verse_durs.append(full)
+        stops, repeats = _forward_waqf_stops(w, gap_ms)
+        per_reciter[rid] = {
+            'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', ''),
+            'stops': [{'wpos': k - 1, 'time': round(v / 1000.0, 2)} for k, v in sorted(stops.items())],
+            'repeats': [{'from_wpos': f - 1, 'to_wpos': t - 1} for f, t in repeats],
+            'duration': round(full, 2),
+        }
+        for k, v in stops.items():
+            union[k - 1]['reciters'].append(rid)
+            union[k - 1]['durs'].append(v / 1000.0)
+
+    union_stops = []
+    for wpos in sorted(union):
+        u = union[wpos]
+        union_stops.append({
+            'wpos': wpos,
+            'reciters': u['reciters'],
+            'count': len(u['reciters']),
+            'solo': len(u['reciters']) == 1,
+            'avg_duration': round(sum(u['durs']) / len(u['durs']), 2),
+        })
+
+    return {
+        'surah': surah,
+        'ayah': ayah,
+        'verse_key': vk,
+        'gap_ms': gap_ms,
+        'text': text,
+        'words': words,
+        'reciters_total': len(per_reciter),
+        'full_duration': round(sum(verse_durs) / len(verse_durs), 2) if verse_durs else None,
+        'reciters': [
+            {'id': rid, 'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', '')}
+            for rid in reciter_ids if rid in per_reciter
+        ],
+        'per_reciter': per_reciter,
+        'union_stops': union_stops,
+    }
+
+
+@app.route('/api/waqf/<int:surah>/<int:ayah>', methods=['GET'])
+def get_verse_waqf(surah, ayah):
+    """Per-verse reciter-waqf comparison: how each installed reciter stops in
+    this verse, who aligns vs. who is alone (انفرد), and where they repeat."""
+    if not (1 <= surah <= 114) or ayah < 1:
+        return jsonify({"error": "Invalid verse."}), 400
+    gap_ms = request.args.get('gap', 250, type=int)
+    if gap_ms < 0 or gap_ms > 5000:
+        gap_ms = 250
+    try:
+        data = _build_verse_waqf_detail(surah, ayah, gap_ms)
+    except Exception as e:
+        app.logger.error(f"Waqf detail failed for {surah}:{ayah}: {e}")
+        return jsonify({"error": "Waqf data unavailable"}), 503
+    if not data['per_reciter']:
+        return jsonify({"error": "No data for this verse."}), 404
+    return jsonify(data)
+
+
+@app.route('/waqf')
+def waqf_guide():
+    return render_template('waqf_guide.html', enable_vercel_analytics=_IS_SERVERLESS)
+
+
 @app.route('/api/memorization/<int:surah_number>', methods=['GET'])
 def get_memorization(surah_number):
     """Per-surah memorization data: audio URL + per-verse timing and phrases.

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="مواضع وقوف القرّاء — قارن كيف يقف كبار القرّاء في كل آية: أين يتفقون، ومن انفرد بوقف، وأين أعادوا">
+    <title>مواضع وقوف القرّاء — مقارنة</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=1">
+
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body>
+    <header class="wq-bar">
+        <a class="wq-back" href="/memorize" title="رجوع إلى الحفظ" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
+        <h1 class="wq-title"><i class="fas fa-lungs"></i> مواضع وقوف القرّاء</h1>
+        <button class="wq-icon-btn" id="wq-theme" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
+    </header>
+
+    <!-- verse picker -->
+    <section class="wq-picker">
+        <div class="wq-field">
+            <label for="wq-surah">السورة</label>
+            <div class="wq-select-wrap"><select id="wq-surah"></select><i class="fas fa-chevron-down"></i></div>
+        </div>
+        <div class="wq-field">
+            <label for="wq-ayah">الآية</label>
+            <div class="wq-select-wrap"><select id="wq-ayah"></select><i class="fas fa-chevron-down"></i></div>
+        </div>
+        <div class="wq-field wq-field-search">
+            <label for="wq-search">بحث سريع</label>
+            <div class="wq-search-wrap">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="search" id="wq-search" placeholder="مثال: ٢:٢٥٥ أو «البقرة ٢٥٥»" autocomplete="off">
+            </div>
+        </div>
+        <div class="wq-stepper">
+            <button class="wq-icon-btn" id="wq-prev" type="button" aria-label="الآية السابقة"><i class="fas fa-chevron-right"></i></button>
+            <button class="wq-icon-btn" id="wq-next" type="button" aria-label="الآية التالية"><i class="fas fa-chevron-left"></i></button>
+        </div>
+    </section>
+
+    <div class="wq-toast" id="wq-status" role="status"></div>
+
+    <main class="wq-main" id="wq-main">
+        <!-- A) verse overview -->
+        <section class="wq-card wq-verse-card" id="wq-verse-card" hidden>
+            <div class="wq-card-head">
+                <h2 id="wq-verse-title"></h2>
+                <span class="wq-verse-meta" id="wq-verse-meta"></span>
+            </div>
+            <div class="wq-verse-flow" id="wq-verse-flow" dir="rtl"></div>
+            <div class="wq-legend">
+                <span><span class="wq-lg wq-lg-cons"></span> موضع وقف (كلما زاد العدد زاد الاتفاق)</span>
+                <span><span class="wq-lg wq-lg-solo"></span> انفرد به قارئ واحد</span>
+                <span><span class="wq-lg wq-lg-rep"></span> أعاد القارئ</span>
+            </div>
+        </section>
+
+        <!-- B) comparison matrix -->
+        <section class="wq-card" id="wq-matrix-card" hidden>
+            <div class="wq-card-head"><h2><i class="fas fa-table-cells"></i> مقارنة وقوف القرّاء</h2></div>
+            <div class="wq-matrix-scroll"><table class="wq-matrix" id="wq-matrix"></table></div>
+            <p class="wq-matrix-hint">كل عمود = موضع وقف. الخلية المملوءة تعني أن القارئ وقف عنده (والزمن من بداية الآية). العمود البرتقالي = انفراد.</p>
+        </section>
+
+        <!-- C) per-reciter detail -->
+        <section class="wq-card" id="wq-reciters-card" hidden>
+            <div class="wq-card-head"><h2><i class="fas fa-microphone-lines"></i> كيف قرأها كل قارئ</h2></div>
+            <div class="wq-reciters" id="wq-reciters"></div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=1"></script>
+</body>
+</html>
