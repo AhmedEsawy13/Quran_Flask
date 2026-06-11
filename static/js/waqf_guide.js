@@ -232,12 +232,21 @@
         if (saktah.size) summary += ` <span class="wq-sakt-note">السكتة (س) ليست موضع تنفّس.</span>`;
         els.recSummary.innerHTML = summary;
 
+        // attestation + repeats from the reciters, keyed by word position
+        const uByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u]));
+        const repeatsByWpos = new Map();   // from_wpos → [{name, to_wpos}]
+        d.reciters.forEach(r => (d.per_reciter[r.id].repeats || []).forEach(rp => {
+            if (!repeatsByWpos.has(rp.from_wpos)) repeatsByWpos.set(rp.from_wpos, []);
+            repeatsByWpos.get(rp.from_wpos).push({ name: r.name_ar, to_wpos: rp.to_wpos });
+        }));
+
         els.recPlan.innerHTML = '';
         for (let k = 0; k < bounds.length - 1; k++) {
             const from = bounds[k] + 1, to = bounds[k + 1];
             const segDur = cumAt(d, to) - (k === 0 ? 0 : cumAt(d, bounds[k]));
             const isLast = k === bounds.length - 2;
             const endsMandatory = !isLast && mandatory.has(to);
+            const u = uByWpos.get(to);
             const line = document.createElement('div');
             line.className = 'wq-rec-line' + (segDur > L + 0.5 ? ' wq-rec-over' : '');
 
@@ -254,16 +263,40 @@
                 play.addEventListener('click', () => playSegment(ref.audio_url, absStart, absEnd, play));
             } else play.disabled = true;
 
+            const main = document.createElement('div');
+            main.className = 'wq-rec-main';
             const words = document.createElement('span');
             words.className = 'wq-rec-words';
             words.textContent = d.words.slice(from, to + 1).join(' ');
+            main.appendChild(words);
 
-            const dur = document.createElement('span');
-            dur.className = 'wq-rec-dur';
-            dur.innerHTML = (endsMandatory ? '<span class="wq-must-badge">لازم</span> ' : '')
-                + `<i class="fas fa-${isLast ? 'flag-checkered' : 'lungs'}"></i> ${toAr(segDur.toFixed(1))}ث`;
+            // any reciter repeats that happen inside this breath segment
+            const tags = document.createElement('span');
+            tags.className = 'wq-rec-tags';
+            for (let w = from; w <= to; w++) {
+                (repeatsByWpos.get(w) || []).forEach(rp => {
+                    const t = document.createElement('span');
+                    t.className = 'wq-rep-mini';
+                    t.innerHTML = `<i class="fas fa-rotate-left"></i> ${rp.name}`;
+                    t.title = `${rp.name} وقف عند «${d.words[w] || ''}» ثم أعاد من «${d.words[rp.to_wpos] || ''}»`;
+                    tags.appendChild(t);
+                });
+            }
+            if (tags.childNodes.length) main.appendChild(tags);
 
-            line.append(num, play, words, dur);
+            const meta = document.createElement('span');
+            meta.className = 'wq-rec-meta';
+            // a mandatory stop is always flagged (even when reciters also stop there);
+            // otherwise show how many of the reciters actually stop at this point.
+            let attest = '';
+            if (!isLast) {
+                if (endsMandatory) attest += '<span class="wq-must-badge">لازم</span>';
+                if (u) attest += `<span class="wq-rec-cons${u.solo ? ' wq-rec-cons-solo' : ''}" title="عدد القرّاء الذين يقفون هنا">${u.solo ? 'انفرد' : toAr(u.count) + '/' + toAr(d.reciters_total)} <i class="fas fa-users"></i></span>`;
+            }
+            meta.innerHTML = attest
+                + `<span class="wq-rec-dur"><i class="fas fa-${isLast ? 'flag-checkered' : 'lungs'}"></i> ${toAr(segDur.toFixed(1))}ث</span>`;
+
+            line.append(num, play, main, meta);
             els.recPlan.appendChild(line);
         }
     }

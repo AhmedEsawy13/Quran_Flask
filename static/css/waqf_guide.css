@@ -113,8 +113,17 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
     background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
 .wq-rec-num { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
     background: var(--wq-accent); color: #fff; font-size: 0.8rem; font-weight: 700; }
-.wq-rec-words { flex: 1; font-family: 'UthmanicHafs', serif; font-size: 1.55rem; color: var(--wq-quran); line-height: 1.9; }
-.wq-rec-dur { flex-shrink: 0; font-size: 0.78rem; color: var(--wq-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wq-rec-main { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.wq-rec-words { font-family: 'UthmanicHafs', serif; font-size: 1.55rem; color: var(--wq-quran); line-height: 1.9; }
+.wq-rec-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.wq-rep-mini { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 999px; font-size: 0.68rem;
+    background: var(--wq-repeat-soft); color: var(--wq-repeat); border: 1px solid color-mix(in srgb, var(--wq-repeat) 40%, transparent); white-space: nowrap; }
+.wq-rec-meta { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; }
+.wq-rec-cons { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;
+    color: var(--wq-accent-strong); background: var(--wq-accent-soft); border: 1px solid color-mix(in srgb, var(--wq-accent) 38%, transparent); white-space: nowrap; }
+.wq-rec-cons i { font-size: 0.82em; opacity: 0.8; }
+.wq-rec-cons-solo { color: var(--wq-solo); background: var(--wq-solo-soft); border-color: color-mix(in srgb, var(--wq-solo) 42%, transparent); }
+.wq-rec-dur { font-size: 0.78rem; color: var(--wq-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .wq-rec-dur i { color: var(--wq-accent); margin-inline-end: 3px; }
 .wq-rec-line.wq-rec-over { border-color: color-mix(in srgb, var(--wq-solo) 50%, transparent); background: var(--wq-solo-soft); }
 .wq-rec-line.wq-rec-over .wq-rec-num { background: var(--wq-solo); }
