@@ -28,6 +28,19 @@
     };
     const symMeta = s => WAQF_SYM[s] || { name: s, cls: 'ok', desc: s };
 
+    // The printed-mushaf DB stores abbreviations (ج/ق/ص/م/لا/س/ع); show the
+    // real Uthmanic-Hafs waqf glyph instead (as the main page does).
+    const WAQF_GLYPH = {
+        'م':  'ۘ',  // ۘ  وقف لازم
+        'لا': 'ۙ',  // ۙ  لا وقف
+        'ق':  'ۗ',  // ۗ  قلى — الوقف أولى
+        'ص':  'ۖ',  // ۖ  صلى — الوصل أولى
+        'ج':  'ۚ',  // ۚ  جائز
+        'س':  'ۜ',  // ۜ  سكتة
+        'ع':  'ۛ',  // ۛ  معانقة
+    };
+    const waqfGlyph = s => WAQF_GLYPH[s] || s;
+
     // Breath presets (max comfortable seconds per breath).
     const BREATH = { short: 7, medium: 13, long: 20 };
 
@@ -377,7 +390,7 @@
                 const sym = markOf(m, wpos);
                 if (sym) {
                     const meta = symMeta(sym);
-                    body += `<td><span class="wq-wsym wq-w-${meta.cls}" title="${meta.name} — ${meta.desc}">${sym}</span></td>`;
+                    body += `<td><span class="wq-wsym waqf-uthmanic wq-w-${meta.cls}" title="${meta.name} — ${meta.desc}">${waqfGlyph(sym)}</span></td>`;
                 } else body += `<td><span class="wq-cell-empty">·</span></td>`;
             });
             body += '</tr>';
@@ -416,7 +429,7 @@
         if (!els.matrixLegend) return;
         const parts = (d.mushafs || []).map(m => `<span><span class="wq-lg wq-mushaf-dot" data-m="${m.id}"></span> ${m.name}</span>`);
         syms.sort((a, b) => Object.keys(WAQF_SYM).indexOf(a) - Object.keys(WAQF_SYM).indexOf(b))
-            .forEach(s => { const mt = symMeta(s); parts.push(`<span><span class="wq-wsym wq-w-${mt.cls}">${s}</span> ${mt.name}</span>`); });
+            .forEach(s => { const mt = symMeta(s); parts.push(`<span><span class="wq-wsym waqf-uthmanic wq-w-${mt.cls}">${waqfGlyph(s)}</span> ${mt.name}</span>`); });
         els.matrixLegend.innerHTML = parts.join('');
     }
 
@@ -531,7 +544,7 @@
                 if (isLast) {
                     foot.innerHTML = '<span class="wq-guide-sym wq-guide-ras">۝</span><span class="wq-guide-lbl wq-guide-ras">رأس الآية</span>';
                 } else if (sym) {
-                    foot.innerHTML = `<span class="wq-guide-sym">${sym}</span><span class="wq-guide-lbl">${symMeta(sym).name}</span>`;
+                    foot.innerHTML = `<span class="wq-guide-sym waqf-uthmanic">${waqfGlyph(sym)}</span><span class="wq-guide-lbl">${symMeta(sym).name}</span>`;
                 } else {
                     foot.innerHTML = `<span class="wq-guide-lbl">${isBackUp ? 'موضع الإعادة' : 'وقف'}</span>`;
                 }

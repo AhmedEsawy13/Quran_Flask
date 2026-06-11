@@ -1,4 +1,5 @@
 @font-face { font-family: 'UthmanicHafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'), url('../fonts/uthmanic_hafs_v20.ttf') format('truetype'); font-display: swap; }
+.waqf-uthmanic { font-family: 'UthmanicHafs', serif; }
 
 :root {
     --wq-bg: #f4f4f9; --wq-surface: #ffffff; --wq-surface-2: #f0f1f7;
