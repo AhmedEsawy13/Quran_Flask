@@ -2066,13 +2066,15 @@ MEMORIZATION_RECITERS = {
     },
     'minshawi': {
         'name_ar': 'محمد صديق المنشاوي', 'name_en': 'Mohamed Siddiq al-Minshawi',
-        'dir': os.path.join(_BASE_DIR, 'reciters', 'minshawi_murattal_qul'),
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_siddiq_al_minshawi_mp3quran'),
         'audio_tmpl': 'https://server10.mp3quran.net/minsh/{surah:03d}.mp3',
     },
     'abdulbasit': {
         'name_ar': 'عبد الباسط عبد الصمد', 'name_en': 'AbdulBaset AbdulSamad',
-        'dir': os.path.join(_BASE_DIR, 'reciters', 'abdulbasit_murattal_qul'),
-        'audio_tmpl': 'https://server7.mp3quran.net/basit/{surah:03d}.mp3',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'abdulbasit_abdulsamad_tarteel'),
+        # Timestamps are aligned to the Tarteel CDN murattal recording (not the
+        # mp3quran one), so the audio source must match for accurate seeking.
+        'audio_tmpl': 'https://audio-cdn.tarteel.ai/quran/surah/abdulBasit/murattal/mp3/{surah:03d}.mp3',
     },
     'afasy': {
         'name_ar': 'مشاري راشد العفاسي', 'name_en': 'Mishary Rashid al-Afasy',
@@ -2091,15 +2093,20 @@ MEMORIZATION_RECITERS = {
         'dir': os.path.join(_BASE_DIR, 'reciters', 'maher_al_muaiqly_qdc'),
         'audio_tmpl': 'https://download.quranicaudio.com/quran/maher_almu3aiqly/year1440/{surah:03d}.mp3',
     },
-    'shuraim': {
-        'name_ar': 'سعود الشريم', 'name_en': 'Saud Al-Shuraim',
-        'dir': os.path.join(_BASE_DIR, 'reciters', 'saud_al_shuraim_mp3quran'),
-        'audio_tmpl': 'https://server7.mp3quran.net/shur/{surah:03d}.mp3',
+    'sufi': {
+        'name_ar': 'عبد الرشيد صوفي', 'name_en': 'Abdur-Rashid Sufi',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'abdur_rashid_sufi_qdc'),
+        'audio_tmpl': 'https://download.quranicaudio.com/quran/abdurrashid_sufi/{surah:03d}.mp3',
     },
-    'qatami': {
-        'name_ar': 'ناصر القطامي', 'name_en': 'Nasser Al-Qatami',
-        'dir': os.path.join(_BASE_DIR, 'reciters', 'nasser_al_qatami_mp3quran'),
-        'audio_tmpl': 'https://server6.mp3quran.net/qtm/{surah:03d}.mp3',
+    'maasaraawi': {
+        'name_ar': 'أحمد عيسى المعصراوي', 'name_en': 'Ahmed Issa Al-Maasaraawi',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'ahmed_issa_al_maasaraawi_mp3quran'),
+        'audio_tmpl': 'https://server16.mp3quran.net/a_maasaraawi/Rewayat-Hafs-A-n-Assem/{surah:03d}.mp3',
+    },
+    'abdulhakam': {
+        'name_ar': 'محمود عبدالحكم', 'name_en': 'Mahmoud Abdul Hakam',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'mahmoud_abdul_hakam_mp3quran'),
+        'audio_tmpl': 'https://server16.mp3quran.net/m_abdelhakam/Rewayat-Hafs-A-n-Assem/{surah:03d}.mp3',
     },
     'burhaji': {
         'name_ar': 'محمد برهجي', 'name_en': 'Mohammed Burhaji',

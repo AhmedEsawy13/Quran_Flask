@@ -30,13 +30,14 @@ TARGET_DIRS = {
     'husary':      'reciters/mahmoud_khalil_al_husary_mp3quran',
     'ahmed_amer':  'reciters/ahmed_amer_tvquran',
     'burhaji':     'reciters/mohammed_burhaji_yt',
-    'minshawi':    'reciters/minshawi_murattal_qul',
-    'abdulbasit':  'reciters/abdulbasit_murattal_qul',
+    'minshawi':    'reciters/mohammed_siddiq_al_minshawi_mp3quran',
+    'abdulbasit':  'reciters/abdulbasit_abdulsamad_tarteel',
     'afasy':       'reciters/afasy_qul',
     'banna':       'reciters/mahmoud_ali_al_banna_qdc',
     'maher':       'reciters/maher_al_muaiqly_qdc',
-    'shuraim':     'reciters/saud_al_shuraim_mp3quran',
-    'qatami':      'reciters/nasser_al_qatami_mp3quran',
+    'sufi':        'reciters/abdur_rashid_sufi_qdc',
+    'maasaraawi':  'reciters/ahmed_issa_al_maasaraawi_mp3quran',
+    'abdulhakam':  'reciters/mahmoud_abdul_hakam_mp3quran',
 }
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WANTED = ('word_timestamps.json.gz', 'verse_timestamps.json.gz', 'catalog.json')
