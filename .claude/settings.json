@@ -34,7 +34,8 @@
       "Bash(python3 -m venv /tmp/pwenv)",
       "Bash(/tmp/pwenv/bin/pip install *)",
       "Bash(/tmp/pwenv/bin/playwright install *)",
-      "Bash(/tmp/pwenv/bin/python /tmp/test_rec.py)"
+      "Bash(/tmp/pwenv/bin/python /tmp/test_rec.py)",
+      "Bash(git checkout *)"
     ],
     "additionalDirectories": [
       "/tmp",

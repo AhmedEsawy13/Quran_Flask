@@ -131,6 +131,13 @@
     function clearPlaying() {
         if (playingBtn) { const i = playingBtn.querySelector('i'); if (i) i.className = playingBtn.dataset.icon || 'fas fa-play'; playingBtn.classList.remove('wq-playing'); }
         playingBtn = null;
+        document.querySelectorAll('.wq-guide-seg.wq-guide-active').forEach(el => el.classList.remove('wq-guide-active'));
+    }
+    // Play a guide-segment card (bounded) and highlight the card while it plays.
+    function playGuideSeg(card, btn, url, absStart, absEnd) {
+        const wasPlaying = playingBtn === btn && !audio.paused;
+        playSegment(url, absStart, absEnd, btn);
+        if (!wasPlaying && card) card.classList.add('wq-guide-active');
     }
     audio.addEventListener('timeupdate', () => {
         if (audioStopAt != null && audio.currentTime >= audioStopAt) { audio.pause(); audioStopAt = null; clearPlaying(); }
@@ -421,13 +428,20 @@
         // all positions any printed mushaf marks as a waqf — to measure how
         // closely a reciter stops only where a mushaf prescribes.
         const mushafPos = new Set((d.mushafs || []).flatMap(m => m.marks.map(mk => mk.wpos)));
+        // waqf symbol at each position (المدينة first, then others) so each
+        // reciter stop can show its printed waqf rule like the main-page guide.
+        const markByWpos = new Map();
+        ['المدينة', 'الشمرلي', 'الأزهر'].forEach(id => {
+            const m = (d.mushafs || []).find(x => x.id === id);
+            if (m) m.marks.forEach(mk => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
+        });
+        const lastW = d.words.length - 1;
 
         d.reciters.forEach(r => {
             const det = d.per_reciter[r.id];
             const card = document.createElement('div');
             card.className = 'wq-reciter';
 
-            const stopSet = new Map((det.stops || []).map(s => [s.wpos, s]));
             const soloSet = new Set(d.union_stops.filter(u => u.solo).map(u => u.wpos));
             const nStops = det.stops.length;
             const onMushaf = (det.stops || []).filter(s => mushafPos.has(s.wpos)).length;
@@ -441,29 +455,94 @@
                 + `<span>~<b>${toAr(det.duration.toFixed(0))}</b>ث</span></span>`;
             card.appendChild(head);
 
-            // segmented verse for this reciter
-            const flow = document.createElement('div');
-            flow.className = 'wq-reciter-flow';
-            flow.dir = 'rtl';
-            d.words.forEach((text, wpos) => {
-                const w = document.createElement('span');
-                w.className = 'wq-word';
-                w.style.fontSize = '1.5rem';
-                w.textContent = text;
-                flow.appendChild(w);
-                const s = stopSet.get(wpos);
-                if (s) {
-                    const chip = document.createElement('button');
-                    chip.type = 'button';
-                    chip.className = 'wq-mini-stop' + (soloSet.has(wpos) ? ' wq-solo' : '');
-                    chip.title = `استمع لمقطع ${r.name_ar} حتى هنا`;
-                    chip.innerHTML = `<i class="fas fa-play" style="margin-inline-end:3px"></i>${toAr(s.time.toFixed(1))}ث`;
-                    if (det.audio_url) chip.addEventListener('click', () => playReciterStop(d, r.id, wpos, chip));
-                    else chip.disabled = true;
-                    flow.appendChild(chip);
+            // Segment cards — the verse split at this reciter's stops, in the
+            // same readable card style as the main-page دليل التلاوة.
+            const stops = (det.stops || []).slice().sort((a, b) => a.wpos - b.wpos);
+            const bounds = stops.map(s => ({ wpos: s.wpos, time: s.time, isStop: true }));
+            if (!bounds.length || bounds[bounds.length - 1].wpos !== lastW) {
+                bounds.push({ wpos: lastW, time: det.duration, isStop: false });
+            }
+            const repeatFrom = new Set((det.repeats || []).map(rp => rp.from_wpos));
+
+            const row = document.createElement('div');
+            row.className = 'wq-guide-row';
+            row.dir = 'rtl';
+
+            let from = 0;
+            bounds.forEach((b, k) => {
+                const isLast = k === bounds.length - 1;
+                const seg = document.createElement('div');
+                seg.className = 'wq-guide-seg' + (isLast ? ' wq-guide-seg-last' : '');
+
+                // number
+                const num = document.createElement('span');
+                num.className = 'wq-guide-num';
+                num.textContent = toAr(k + 1);
+                seg.appendChild(num);
+
+                // solo / repeat badge
+                if (repeatFrom.has(b.wpos)) {
+                    const bdg = document.createElement('span');
+                    bdg.className = 'wq-guide-badge wq-guide-badge-repeat';
+                    bdg.innerHTML = '<i class="fas fa-rotate-left"></i> أعاد';
+                    seg.appendChild(bdg);
+                } else if (b.isStop && soloSet.has(b.wpos)) {
+                    const bdg = document.createElement('span');
+                    bdg.className = 'wq-guide-badge wq-guide-badge-solo';
+                    bdg.innerHTML = '<i class="fas fa-star"></i> انفرد';
+                    seg.appendChild(bdg);
                 }
+
+                // words
+                const wordsEl = document.createElement('div');
+                wordsEl.className = 'wq-guide-words';
+                wordsEl.dir = 'rtl';
+                wordsEl.textContent = d.words.slice(from, b.wpos + 1).join(' ');
+                seg.appendChild(wordsEl);
+                from = b.wpos + 1;
+
+                // waqf rule + time + play
+                const foot = document.createElement('div');
+                foot.className = 'wq-guide-foot';
+                const sym = markByWpos.get(b.wpos);
+                if (isLast) {
+                    foot.innerHTML = '<span class="wq-guide-sym wq-guide-ras">۝</span><span class="wq-guide-lbl wq-guide-ras">رأس الآية</span>';
+                } else if (sym) {
+                    const mt = symMeta(sym);
+                    foot.innerHTML = `<span class="wq-guide-sym">${sym}</span><span class="wq-guide-lbl">${mt.name}</span>`;
+                } else {
+                    foot.innerHTML = '<span class="wq-guide-lbl">وقف</span>';
+                }
+                const time = document.createElement('span');
+                time.className = 'wq-guide-time';
+                time.textContent = '~' + toAr(b.time.toFixed(1)) + 'ث';
+                foot.appendChild(time);
+                seg.appendChild(foot);
+
+                // play this segment in the reciter's voice
+                if (det.audio_url) {
+                    const play = document.createElement('button');
+                    play.type = 'button';
+                    play.className = 'wq-guide-play';
+                    play.title = `استمع لمقطع ${r.name_ar}`;
+                    play.innerHTML = '<i class="fas fa-play"></i>';
+                    const startT = k === 0 ? 0 : bounds[k - 1].time;
+                    play.addEventListener('click', () => playGuideSeg(seg, play, det.audio_url, det.verse_start + startT, det.verse_start + b.time));
+                    seg.appendChild(play);
+                    seg.classList.add('wq-guide-seg-seekable');
+                }
+
+                // arrow connector (not after the last)
+                if (!isLast) {
+                    const arrow = document.createElement('span');
+                    arrow.className = 'wq-guide-arrow';
+                    arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
+                    seg.appendChild(arrow);
+                }
+
+                row.appendChild(seg);
             });
-            card.appendChild(flow);
+            card.appendChild(row);
 
             // repeats for this reciter
             if (det.repeats.length) {
