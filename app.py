@@ -2367,16 +2367,34 @@ def get_memorization_breathing(surah_number):
 _ARABIC_INDIC_DIGITS = set('٠١٢٣٤٥٦٧٨٩')
 
 
+def _has_arabic_letter(tok):
+    """True if a token contains an actual Arabic letter (so it is a recited
+    word, not an ornament like the rub‑el‑hizb ۞, a sajda ۩, or an ayah number)."""
+    return any(0x0621 <= ord(ch) <= 0x064A or 0x0671 <= ord(ch) <= 0x06D3 for ch in tok)
+
+
 def _verse_word_texts(verse_key):
-    """Per-word text for a verse, aligned to the QUL word indices (token[i] =
-    word i+1). Uses the qpc_hafs (Uthmanic) text and drops the trailing ayah
-    number token, which `text.split()` always yields as the last element."""
+    """Per-word text for a verse, aligned to the QUL/reciter word indices
+    (words[i] = recited word i+1).
+
+    Uses the qpc_hafs (Uthmanic) text. `text.split()` also yields NON-word
+    tokens — the trailing ayah number and ornaments such as the rub‑el‑hizb ۞ —
+    which the reciters do NOT count as words, so they must be dropped or the
+    reciter stops shift out of alignment with the mushaf marks (e.g. 2:26).
+
+    Returns (text, words, raw_to_wpos) where raw_to_wpos[i] maps a raw split
+    index (the basis the printed-mushaf waqf DB token_index uses, which DOES
+    count ornaments) to the stripped word index, or None for a dropped token."""
     td = qpc_hafs_data_normalized.get(verse_key)
     text = (td.get('text', '') if isinstance(td, dict) else '') or ''
-    toks = text.split()
-    if toks and all(ch in _ARABIC_INDIC_DIGITS for ch in toks[-1]):
-        toks = toks[:-1]
-    return text, toks
+    words, raw_to_wpos = [], []
+    for tok in text.split():
+        if _has_arabic_letter(tok):
+            raw_to_wpos.append(len(words))
+            words.append(tok)
+        else:
+            raw_to_wpos.append(None)
+    return text, words, raw_to_wpos
 
 
 def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
@@ -2387,7 +2405,7 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
     union view (which reciters align at each stop, and which stops are solo)."""
     reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
     vk = f"{surah}:{ayah}"
-    text, words = _verse_word_texts(vk)
+    text, words, raw_to_wpos = _verse_word_texts(vk)
 
     per_reciter = {}
     union = defaultdict(lambda: {'reciters': [], 'durs': []})
@@ -2405,11 +2423,15 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
         full = (w[-1][2] - w[0][1]) / 1000.0
         verse_durs.append(full)
         stops, repeats = _forward_waqf_stops(w, gap_ms)
+        cfg = MEMORIZATION_RECITERS[rid]
         per_reciter[rid] = {
-            'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', ''),
+            'name_ar': cfg.get('name_ar', ''),
             'stops': [{'wpos': k - 1, 'time': round(v / 1000.0, 2)} for k, v in sorted(stops.items())],
             'repeats': [{'from_wpos': f - 1, 'to_wpos': t - 1} for f, t in repeats],
             'duration': round(full, 2),
+            # absolute seek info for in-page segment playback
+            'audio_url': cfg['audio_tmpl'].format(surah=surah) if cfg.get('audio_tmpl') else None,
+            'verse_start': round(w[0][1] / 1000.0, 3),
         }
         for k, v in stops.items():
             union[k - 1]['reciters'].append(rid)
@@ -2426,6 +2448,27 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
             'avg_duration': round(sum(u['durs']) / len(u['durs']), 2),
         })
 
+    # Reference timeline: a single reciter's cumulative time at EVERY word, so
+    # the breath recommendation can size any chosen segment consistently (the
+    # per-stop averages mix different reciters). Pick the cleanest reciter —
+    # fewest repeats, then pace closest to the group average.
+    ref_times, ref_full, ref_reciter = _reference_timeline(per_reciter, words, vk, verse_durs)
+
+    # Mushaf waqf marks (المدينة / الأزهر / الشمرلي): the *prescribed* stops, so
+    # we can compare how closely the reciters follow each printed mushaf.
+    mushafs = []
+    for ver in _WAQF_COMPARE_MUSHAFS:
+        marks = []
+        for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+            ti = r.get('token_index')   # 0-based in the raw-split basis (counts ornaments)
+            if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
+                continue
+            wpos = raw_to_wpos[ti]
+            if wpos is not None:
+                marks.append({'wpos': wpos, 'symbol': r['symbols']})
+        if marks:
+            mushafs.append({'id': ver, 'name': ver, 'marks': marks})
+
     return {
         'surah': surah,
         'ayah': ayah,
@@ -2435,13 +2478,54 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
         'words': words,
         'reciters_total': len(per_reciter),
         'full_duration': round(sum(verse_durs) / len(verse_durs), 2) if verse_durs else None,
+        'ref_times': ref_times,
+        'ref_full': ref_full,
+        'ref_reciter': ref_reciter,
         'reciters': [
             {'id': rid, 'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', '')}
             for rid in reciter_ids if rid in per_reciter
         ],
         'per_reciter': per_reciter,
         'union_stops': union_stops,
+        'mushafs': mushafs,
     }
+
+
+# Printed mushafs whose waqf marks we compare the reciters against.
+_WAQF_COMPARE_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي')
+
+
+def _reference_timeline(per_reciter, words, vk, verse_durs):
+    """Cumulative seconds to the end of each word for one representative
+    reciter, used to size breath segments consistently. Returns
+    (ref_times[wpos], ref_full_seconds, reciter_id)."""
+    if not per_reciter or not words:
+        return None, None, None
+    avg = (sum(verse_durs) / len(verse_durs)) if verse_durs else 0
+    # rank: fewest repeats first, then closest pace to the average
+    ranked = sorted(
+        per_reciter.keys(),
+        key=lambda rid: (len(per_reciter[rid]['repeats']), abs(per_reciter[rid]['duration'] - avg)),
+    )
+    ref_rid = ranked[0]
+    try:
+        w = _load_memorization_word_ts(ref_rid)[vk][1]
+    except Exception:
+        return None, None, None
+    vstart = w[0][1]
+    times = [None] * len(words)
+    for idx, _s, e in w:                       # first (forward) occurrence per word
+        i = idx - 1
+        if 0 <= i < len(times) and times[i] is None:
+            times[i] = round((e - vstart) / 1000.0, 2)
+    # fill any gaps (shouldn't happen) by carrying the previous value forward
+    last = 0.0
+    for i in range(len(times)):
+        if times[i] is None:
+            times[i] = last
+        else:
+            last = times[i]
+    return times, times[-1] if times else None, ref_rid
 
 
 @app.route('/api/waqf/<int:surah>/<int:ayah>', methods=['GET'])

@@ -11,7 +11,7 @@
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=4">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -65,11 +65,26 @@
             </div>
         </section>
 
+        <!-- A2) breath recommendation -->
+        <section class="wq-card" id="wq-rec-card" hidden>
+            <div class="wq-card-head">
+                <h2><i class="fas fa-lungs"></i> ترشيح القراءة حسب نَفَسك</h2>
+                <div class="wq-breath-picker" id="wq-breath-picker" role="group" aria-label="سعة النفَس">
+                    <button class="wq-breath-btn" data-l="7" type="button">قصير</button>
+                    <button class="wq-breath-btn wq-on" data-l="13" type="button">متوسط</button>
+                    <button class="wq-breath-btn" data-l="20" type="button">طويل</button>
+                </div>
+            </div>
+            <p class="wq-rec-summary" id="wq-rec-summary"></p>
+            <div class="wq-rec-plan" id="wq-rec-plan"></div>
+        </section>
+
         <!-- B) comparison matrix -->
         <section class="wq-card" id="wq-matrix-card" hidden>
-            <div class="wq-card-head"><h2><i class="fas fa-table-cells"></i> مقارنة وقوف القرّاء</h2></div>
+            <div class="wq-card-head"><h2><i class="fas fa-table-cells"></i> مقارنة القرّاء بمصاحف الوقف</h2></div>
             <div class="wq-matrix-scroll"><table class="wq-matrix" id="wq-matrix"></table></div>
-            <p class="wq-matrix-hint">كل عمود = موضع وقف. الخلية المملوءة تعني أن القارئ وقف عنده (والزمن من بداية الآية). العمود البرتقالي = انفراد.</p>
+            <div class="wq-matrix-legend" id="wq-matrix-legend"></div>
+            <p class="wq-matrix-hint">صفوف المصاحف تعرض رمز الوقف المطبوع، وصفوف القرّاء تعرض زمن الوقف من بداية الآية. العمود البرتقالي = انفراد قارئ، والعمود المظلَّل = موضعٌ في المصحف لم يقف عنده أحد القرّاء.</p>
         </section>
 
         <!-- C) per-reciter detail -->
@@ -79,6 +94,6 @@
         </section>
     </main>
 
-    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=1"></script>
+    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=4"></script>
 </body>
 </html>

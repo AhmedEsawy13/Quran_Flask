@@ -99,6 +99,39 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
 .wq-lg-solo { background: transparent; border: 2px solid var(--wq-solo); }
 .wq-lg-rep { background: var(--wq-repeat); }
 
+/* ── A2) breath recommendation ───────────────────────────────── */
+.wq-breath-picker { display: inline-flex; gap: 4px; padding: 3px; border-radius: 999px;
+    background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
+.wq-breath-btn { padding: 5px 14px; border: none; border-radius: 999px; background: transparent;
+    color: var(--wq-text-muted); font-family: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.14s ease; }
+.wq-breath-btn:hover { color: var(--wq-text); }
+.wq-breath-btn.wq-on { background: var(--wq-accent); color: #fff; box-shadow: var(--wq-shadow-sm); }
+.wq-rec-summary { margin: 0 0 12px; font-size: 0.86rem; color: var(--wq-text); }
+.wq-rec-summary b { color: var(--wq-accent-strong); }
+.wq-rec-plan { display: flex; flex-direction: column; gap: 7px; }
+.wq-rec-line { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 11px;
+    background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
+.wq-rec-num { flex-shrink: 0; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%;
+    background: var(--wq-accent); color: #fff; font-size: 0.8rem; font-weight: 700; }
+.wq-rec-words { flex: 1; font-family: 'UthmanicHafs', serif; font-size: 1.55rem; color: var(--wq-quran); line-height: 1.9; }
+.wq-rec-dur { flex-shrink: 0; font-size: 0.78rem; color: var(--wq-text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wq-rec-dur i { color: var(--wq-accent); margin-inline-end: 3px; }
+.wq-rec-line.wq-rec-over { border-color: color-mix(in srgb, var(--wq-solo) 50%, transparent); background: var(--wq-solo-soft); }
+.wq-rec-line.wq-rec-over .wq-rec-num { background: var(--wq-solo); }
+.wq-rec-line.wq-rec-over .wq-rec-dur i { color: var(--wq-solo); }
+.wq-must-note { color: #dc2626; font-weight: 600; }
+.wq-sakt-note { color: #7c3aed; font-weight: 600; }
+.wq-must-badge { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
+    color: #fff; background: #dc2626; vertical-align: middle; }
+
+/* play buttons */
+.wq-play { flex-shrink: 0; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
+    border: 1px solid var(--wq-border-strong); background: var(--wq-surface); color: var(--wq-accent);
+    cursor: pointer; font-size: 0.78rem; transition: all 0.14s ease; }
+.wq-play:hover { background: var(--wq-accent); color: #fff; border-color: var(--wq-accent); }
+.wq-play.wq-playing { background: var(--wq-accent); color: #fff; border-color: var(--wq-accent); }
+.wq-play:disabled { opacity: 0.4; cursor: not-allowed; }
+
 /* ── B) comparison matrix ────────────────────────────────────── */
 .wq-matrix-scroll { overflow-x: auto; }
 .wq-matrix { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 0.82rem; }
@@ -112,6 +145,11 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
 .wq-matrix tbody tr:hover .wq-rname { background: var(--wq-surface-2); }
 .wq-cell-stop { color: var(--wq-accent-strong); font-weight: 700; font-variant-numeric: tabular-nums; }
 .wq-cell-stop i { color: var(--wq-accent); margin-inline-end: 3px; font-size: 0.85em; }
+button.wq-cell-play { font-family: inherit; font-size: inherit; border: 1px solid transparent; border-radius: 7px;
+    padding: 3px 7px; background: transparent; cursor: pointer; transition: all 0.12s ease; }
+button.wq-cell-play:hover { background: var(--wq-accent-soft); border-color: color-mix(in srgb, var(--wq-accent) 40%, transparent); }
+button.wq-cell-play.wq-playing { background: var(--wq-accent); color: #fff; }
+button.wq-cell-play.wq-playing i { color: #fff; }
 .wq-cell-empty { color: var(--wq-text-faint); }
 .wq-col-solo { background: var(--wq-solo-soft); }
 .wq-col-solo.wq-col-word, th.wq-col-solo { color: var(--wq-solo); }
@@ -120,6 +158,35 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
 .wq-row-consensus td { font-weight: 700; color: var(--wq-text); background: var(--wq-surface-2); }
 .wq-row-consensus .wq-rname { background: var(--wq-surface-2); }
 .wq-matrix-hint { margin: 10px 0 0; font-size: 0.74rem; color: var(--wq-text-muted); }
+.wq-col-mushaf-only { background: color-mix(in srgb, var(--wq-text-faint) 10%, transparent); }
+
+/* printed-mushaf rows + waqf symbols */
+.wq-row-mushaf td { background: color-mix(in srgb, var(--wq-accent) 4%, transparent); }
+.wq-mushaf-name { font-weight: 700; white-space: nowrap; }
+.wq-mushaf-name i { font-size: 0.85em; margin-inline-end: 4px; }
+.wq-mushaf-name[data-m="المدينة"] { color: #16a34a; }
+.wq-mushaf-name[data-m="الأزهر"]  { color: #ea580c; }
+.wq-mushaf-name[data-m="الشمرلي"] { color: #2563eb; }
+.wq-mushaf-dot[data-m="المدينة"] { background: #16a34a; }
+.wq-mushaf-dot[data-m="الأزهر"]  { background: #ea580c; }
+.wq-mushaf-dot[data-m="الشمرلي"] { background: #2563eb; }
+.wq-wsym { display: inline-grid; place-items: center; min-width: 1.7em; height: 1.7em; padding: 0 0.3em;
+    border-radius: 7px; font-family: 'UthmanicHafs', serif; font-size: 1.05rem; font-weight: 700;
+    background: var(--wq-surface-2); border: 1px solid var(--wq-border-strong); }
+.wq-w-must  { color: #dc2626; border-color: color-mix(in srgb, #dc2626 50%, transparent); background: rgba(220,38,38,0.1); }
+.wq-w-no    { color: #b91c1c; border-color: color-mix(in srgb, #b91c1c 45%, transparent); background: rgba(185,28,28,0.08); }
+.wq-w-pstop { color: #16a34a; border-color: color-mix(in srgb, #16a34a 45%, transparent); background: rgba(22,163,74,0.1); }
+.wq-w-pcont { color: #d97706; border-color: color-mix(in srgb, #d97706 45%, transparent); background: rgba(217,119,6,0.1); }
+.wq-w-ok    { color: var(--wq-accent-strong); border-color: color-mix(in srgb, var(--wq-accent) 42%, transparent); background: var(--wq-accent-soft); }
+.wq-w-sakt  { color: #7c3aed; border-color: color-mix(in srgb, #7c3aed 45%, transparent); background: rgba(124,58,237,0.1); }
+.wq-w-muan  { color: #0891b2; border-color: color-mix(in srgb, #0891b2 45%, transparent); background: rgba(8,145,178,0.1); }
+.wq-matrix-legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--wq-border); font-size: 0.74rem; color: var(--wq-text-muted); }
+.wq-matrix-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.wq-matrix-legend .wq-wsym { font-size: 0.85rem; min-width: 1.5em; height: 1.5em; }
+.wq-adhere { color: var(--wq-text-muted); }
+.wq-adhere i { color: #16a34a; margin-inline-end: 3px; }
+.wq-adhere b { color: var(--wq-text); }
 
 /* ── C) per-reciter detail ───────────────────────────────────── */
 .wq-reciters { display: flex; flex-direction: column; gap: 14px; }
@@ -134,9 +201,14 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
     color: var(--wq-repeat); white-space: nowrap; }
 .wq-reciter-reps { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 0.78rem; color: var(--wq-text-muted); }
 .wq-reciter-reps b { color: var(--wq-text); font-weight: 600; }
-.wq-mini-stop { display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 999px; font-size: 0.7rem;
+.wq-mini-stop { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem;
     background: var(--wq-accent-soft); color: var(--wq-accent-strong); border: 1px solid color-mix(in srgb, var(--wq-accent) 38%, transparent);
-    font-variant-numeric: tabular-nums; vertical-align: middle; }
+    font-variant-numeric: tabular-nums; vertical-align: middle; font-family: inherit; cursor: pointer; transition: all 0.12s ease; }
+.wq-mini-stop:hover { background: var(--wq-accent); color: #fff; border-color: var(--wq-accent); }
+.wq-mini-stop:hover i { color: #fff; }
+.wq-mini-stop.wq-playing { background: var(--wq-accent); color: #fff; border-color: var(--wq-accent); }
+.wq-mini-stop.wq-playing i { color: #fff; }
+.wq-mini-stop:disabled { cursor: not-allowed; opacity: 0.6; }
 .wq-mini-stop.wq-solo { background: var(--wq-solo-soft); color: var(--wq-solo); border-color: color-mix(in srgb, var(--wq-solo) 42%, transparent); }
 
 .wq-empty { color: var(--wq-text-muted); text-align: center; padding: 26px 0; }
