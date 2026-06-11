@@ -2424,10 +2424,21 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
         verse_durs.append(full)
         stops, repeats = _forward_waqf_stops(w, gap_ms)
         cfg = MEMORIZATION_RECITERS[rid]
+        vstart = w[0][1]
+        # The reciter's actual recited phrases IN ORDER (incl. back-ups where
+        # they paused then re-read). Lets the UI render each phrase — repeats
+        # included — as its own card, faithfully and in recitation order.
+        phrases = [
+            {'first_wpos': ph['first_word'] - 1, 'last_wpos': ph['last_word'] - 1,
+             'start': round((ph['start'] - vstart) / 1000.0, 2),
+             'end': round((ph['end'] - vstart) / 1000.0, 2)}
+            for ph in _segment_phrases(w, gap_ms)
+        ]
         per_reciter[rid] = {
             'name_ar': cfg.get('name_ar', ''),
             'stops': [{'wpos': k - 1, 'time': round(v / 1000.0, 2)} for k, v in sorted(stops.items())],
             'repeats': [{'from_wpos': f - 1, 'to_wpos': t - 1} for f, t in repeats],
+            'phrases': phrases,
             'duration': round(full, 2),
             # absolute seek info for in-page segment playback
             'audio_url': cfg['audio_tmpl'].format(surah=surah) if cfg.get('audio_tmpl') else None,

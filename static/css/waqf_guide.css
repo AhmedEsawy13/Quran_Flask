@@ -243,6 +243,11 @@ body.wq-dark .wq-guide-sym.wq-guide-ras, body.wq-dark .wq-guide-lbl.wq-guide-ras
 .wq-guide-play.wq-playing { background: var(--wq-accent); color: #fff; border-color: var(--wq-accent); }
 .wq-guide-play.wq-playing i { color: #fff; }
 .wq-guide-arrow { position: absolute; left: -13px; top: 50%; transform: translateY(-50%); color: var(--wq-text-faint); font-size: 0.72rem; z-index: 1; }
+/* back-up (إعادة) card: a re-read of earlier words */
+.wq-guide-seg-repeat { background: var(--wq-repeat-soft); border-color: color-mix(in srgb, var(--wq-repeat) 34%, transparent); }
+.wq-guide-w-repeat { color: var(--wq-repeat); border-bottom: 2px dotted color-mix(in srgb, var(--wq-repeat) 55%, transparent); }
+.wq-reciters-note { margin: 0 0 12px; font-size: 0.74rem; color: var(--wq-text-muted); line-height: 1.6; }
+.wq-reciters-note i { color: var(--wq-accent); margin-inline-end: 5px; }
 /* the waqf-symbol colour classes (wq-w-*) are defined in the matrix section */
 
 .wq-rep-tag { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px;
