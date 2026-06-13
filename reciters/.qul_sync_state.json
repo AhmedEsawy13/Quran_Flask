@@ -15,6 +15,16 @@
       "slug": "ahmed_amer_tvquran",
       "ts_version": "6a2c16d9871c005b5352b3f6"
     },
+    "akhdar": {
+      "content_hash": "bba74a9c93c4a205061510d22d60bdfd881d5b2132bec4606790764d20f4acaa",
+      "slug": "ibrahim_al_akhdar_drive",
+      "ts_version": "6a2c174b7c68f455eff13b7f"
+    },
+    "ayyub": {
+      "content_hash": "a90536dd4e103ef2f31fee9d02f111fe848c45cda2e0b5d1a6d8a9722c80de57",
+      "slug": "mohammed_ayyub_drive",
+      "ts_version": "6a2c129c871c005b5352b3af"
+    },
     "banna": {
       "content_hash": "9f095ee4eaa65241c95d834741699b34d933aa5ed392494e5b4629e3e1a22810",
       "slug": "mahmoud_ali_al_banna_qdc",
@@ -30,6 +40,11 @@
       "slug": "mahmoud_khalil_al_husary_mp3quran",
       "ts_version": "6a2c17167c68f455eff13b79"
     },
+    "huthaifi": {
+      "content_hash": "a94482af813a21e21472d0fba7c65fd19d2142417cd653d3bfeda63531516b00",
+      "slug": "ali_al_huthaifi_mp3quran",
+      "ts_version": "6a2c175f7c68f455eff13b87"
+    },
     "maasaraawi": {
       "content_hash": "dc8cc302f355f3f898de10414a23ca4ccd03c86c625d2296231df9ae769a7e92",
       "slug": "ahmed_issa_al_maasaraawi_mp3quran",
@@ -44,6 +59,11 @@
       "content_hash": "e827807ead58a23f1056b587eca9523b7af71566b10d9d28a7b7477a0a083e08",
       "slug": "mohammed_siddiq_al_minshawi_mp3quran",
       "ts_version": "6a2c16e97c68f455eff13b6f"
+    },
+    "shaheen": {
+      "content_hash": "86c56c86a5b08e097d0572a9135886a723edc271c1f7b688e82d0bd799dd1f3d",
+      "slug": "ahmed_shaheen_mp3quran",
+      "ts_version": "6a2c1289871c005b5352b3ab"
     },
     "sufi": {
       "content_hash": "7297b92c1b9084b90af99664a4889e0afece3b0ef08e2fef28f12ed9309d4efd",

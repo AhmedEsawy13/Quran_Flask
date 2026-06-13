@@ -2113,6 +2113,33 @@ MEMORIZATION_RECITERS = {
         'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_burhaji_yt'),
         'audio_tmpl': None,  # YouTube source — no streamable per-surah MP3
     },
+    'shaheen': {
+        'name_ar': 'أحمد خليل شاهين', 'name_en': 'Ahmed Khalil Shaheen',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'ahmed_shaheen_mp3quran'),
+        'audio_tmpl': 'https://server16.mp3quran.net/shaheen/Rewayat-Hafs-A-n-Assem/{surah:03d}.mp3',
+    },
+    'huthaifi': {
+        'name_ar': 'علي بن عبد الرحمن الحذيفي', 'name_en': 'Ali Al-Huthaifi',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'ali_al_huthaifi_mp3quran'),
+        'audio_tmpl': 'https://server9.mp3quran.net/hthfi/{surah:03d}.mp3',
+    },
+    'akhdar': {
+        'name_ar': 'إبراهيم الأخضر', 'name_en': 'Ibrahim Al-Akhdar',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'ibrahim_al_akhdar_drive'),
+        # QUL's own chapter_urls for this slug are mostly Google Drive "view" pages
+        # (not direct streams). This mp3quran murattal closely matches the QUL
+        # timestamps (e.g. 36:83 ends 1235.7s vs file duration 1241.3s — only the
+        # trailing-silence outro differs), so it's used for seek-based playback.
+        'audio_tmpl': 'https://server6.mp3quran.net/akdr/{surah:03d}.mp3',
+    },
+    'ayyub': {
+        'name_ar': 'محمد أيوب', 'name_en': 'Mohammed Ayyub',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_ayyub_drive'),
+        # Same situation as 'akhdar': QUL's chapter_urls are mostly Google Drive
+        # "view" pages, but this mp3quran murattal matches the timestamps closely
+        # (36:83 ends 1060.1s vs file duration 1065.4s).
+        'audio_tmpl': 'https://server8.mp3quran.net/ayyub/{surah:03d}.mp3',
+    },
     # Abdullah Al-Buaijan (عبد الله البعيجان) is in QUL v1.1.0 but its audio is a
     # 2025 YouTube recording: surahs 3–114 are only YouTube video URLs (no
     # streamable per-surah MP3), so the timestamps can't drive seek-based playback
