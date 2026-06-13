@@ -1307,9 +1307,10 @@
         setTimeout(() => { if (!state.playing) els.progressFill.style.width = '0%'; }, 1200);
     }
     function stopPlayback() {
-        state.playing = false; state.stepIdx = -1; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
+        state.playing = false; state.stepIdx = -1; state.schedule = []; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
         clearWordHighlight(); clearDone(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
         els.progressFill.style.width = '0%';
+        els.now.textContent = '';
         els.player.classList.remove('mz-show');
         els.player.setAttribute('aria-hidden', 'true');
         refitForPlayer();
