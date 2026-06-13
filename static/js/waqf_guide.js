@@ -294,19 +294,40 @@
         // its re-read text from that same word (e.g. 59:2: «...مِّنَ ٱللَّهِ
         // فَأَتَىٰهُمُ» then «ٱللَّهُ ... يَحۡتَسِبُواْ ↩إعادة فَأَتَىٰهُمُ ...»).
         const leadInEnds = new Set();   // index k whose segment gains bounds[k+1]+1
+        const consumedRepeats = new Set(); // "from-to" pairs already shown via duplication below
         for (let k = 0; k < bounds.length - 2; k++) {
             const to = bounds[k + 1], nextTo = bounds[k + 2];
             const cands = repeatsByToWpos.get(to + 1) || [];
-            if (cands.some(rp => rp.from_wpos <= nextTo)) leadInEnds.add(k);
+            const hit = cands.filter(rp => rp.from_wpos <= nextTo);
+            if (hit.length) {
+                leadInEnds.add(k);
+                // a true single-word self-repeat is fully represented by the
+                // duplicated word at the start of the next segment below
+                hit.filter(rp => rp.from_wpos === to + 1)
+                    .forEach(rp => consumedRepeats.add(rp.from_wpos + '-' + (to + 1)));
+            }
+        }
+
+        // If a segment's start is exactly where some reciter resumes after
+        // backing up to the start of the PREVIOUS segment (i.e. they re-read
+        // that whole segment before continuing), re-show the previous
+        // segment's words, prefixed onto this one — same idea as above but
+        // for a multi-word repeat spanning a full breath segment.
+        const prependRanges = new Map(); // k -> [first_wpos, last_wpos] to re-show before this segment
+        for (let k = 1; k < bounds.length - 1; k++) {
+            const prevFrom = bounds[k - 1] + 1, prevTo = bounds[k];
+            const hit = (repeatsByWpos.get(prevTo) || []).find(rp => rp.to_wpos === prevFrom);
+            if (hit) {
+                prependRanges.set(k, [prevFrom, prevTo]);
+                consumedRepeats.add(prevTo + '-' + prevFrom);
+            }
         }
 
         els.recPlan.innerHTML = '';
         for (let k = 0; k < bounds.length - 1; k++) {
             const from = bounds[k] + 1, to = bounds[k + 1];
-            let fromDisp = from, toDisp = to;
-            if (leadInEnds.has(k)) toDisp = to + 1;
-            if (k > 0 && leadInEnds.has(k - 1)) fromDisp = from + 1;
-            if (fromDisp > toDisp) fromDisp = from;
+            const fromDisp = from;
+            const toDisp = leadInEnds.has(k) ? to + 1 : to;
             const segDur = cumAt(d, to) - (k === 0 ? 0 : cumAt(d, bounds[k]));
             const isLast = k === bounds.length - 2;
             const endsMandatory = !isLast && mandatory.has(to);
@@ -333,15 +354,35 @@
             const words = document.createElement('span');
             words.className = 'wq-rec-words';
 
+            // If some reciter backs up to re-read this whole segment's
+            // natural lead-in (a multi-word repeat ending exactly where this
+            // segment starts), show that re-read text first, dotted-underlined.
+            const prepend = prependRanges.get(k);
+            if (prepend) {
+                const [pFrom, pTo] = prepend;
+                for (let wi = pFrom; wi <= pTo; wi++) {
+                    if (wi > pFrom) words.appendChild(document.createTextNode(' '));
+                    const rs = document.createElement('span');
+                    rs.className = 'wq-guide-w-repeat';
+                    rs.textContent = d.words[wi] || '';
+                    rs.title = 'يعيد بعض القرّاء قراءة هذا المقطع قبل الاستمرار';
+                    words.appendChild(rs);
+                }
+                words.appendChild(document.createTextNode(' '));
+            }
+
             // Any reciter repeats (pause → back up → re-read) that fall inside
             // this breath segment are shown IN PLACE, as part of the natural
             // recitation flow: a small "إعادة" marker followed by the re-read
             // words (dotted-underline, same style as the per-reciter cards) —
             // rather than attributing the repeat to a specific reciter's name.
             // Identical repeat spans from multiple reciters are merged into one.
+            // Repeats already represented above (lead-in duplication / prepend)
+            // are skipped here to avoid showing the same re-read text twice.
             const patterns = new Map();   // "to-from" → {from_wpos, to_wpos, names:[]}
             for (let w = fromDisp; w <= toDisp; w++) {
                 (repeatsByWpos.get(w) || []).forEach(rp => {
+                    if (consumedRepeats.has(rp.from_wpos + '-' + rp.to_wpos)) return;
                     const key = rp.to_wpos + '-' + w;
                     let p = patterns.get(key);
                     if (!p) { p = { from_wpos: w, to_wpos: rp.to_wpos, names: [] }; patterns.set(key, p); }
@@ -354,9 +395,21 @@
                 repeatsAt.get(p.from_wpos).push(p);
             });
 
+            // If the previous segment was extended to lead into this one (a
+            // single-word self-repeat), this segment's first word repeats
+            // that lead-in word — style it the same as other re-read text.
+            const dupFirst = k > 0 && leadInEnds.has(k - 1);
             for (let wi = fromDisp; wi <= toDisp; wi++) {
-                if (wi > fromDisp) words.appendChild(document.createTextNode(' '));
-                words.appendChild(document.createTextNode(d.words[wi] || ''));
+                if (wi > fromDisp || prepend) words.appendChild(document.createTextNode(' '));
+                if (wi === fromDisp && dupFirst) {
+                    const rs = document.createElement('span');
+                    rs.className = 'wq-guide-w-repeat';
+                    rs.textContent = d.words[wi] || '';
+                    rs.title = 'يعيد بعض القرّاء قراءة هذه الكلمة بعد الوقف';
+                    words.appendChild(rs);
+                } else {
+                    words.appendChild(document.createTextNode(d.words[wi] || ''));
+                }
                 (repeatsAt.get(wi) || []).forEach(p => {
                     const mark = document.createElement('span');
                     mark.className = 'wq-rec-repeat-mark';
