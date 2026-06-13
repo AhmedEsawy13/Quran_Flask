@@ -278,14 +278,35 @@
         // attestation + repeats from the reciters, keyed by word position
         const uByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u]));
         const repeatsByWpos = new Map();   // from_wpos → [{name, to_wpos}]
+        const repeatsByToWpos = new Map(); // to_wpos → [{name, from_wpos}]
         d.reciters.forEach(r => (d.per_reciter[r.id].repeats || []).forEach(rp => {
             if (!repeatsByWpos.has(rp.from_wpos)) repeatsByWpos.set(rp.from_wpos, []);
             repeatsByWpos.get(rp.from_wpos).push({ name: r.name_ar, to_wpos: rp.to_wpos });
+            if (!repeatsByToWpos.has(rp.to_wpos)) repeatsByToWpos.set(rp.to_wpos, []);
+            repeatsByToWpos.get(rp.to_wpos).push({ name: r.name_ar, from_wpos: rp.from_wpos });
         }));
+
+        // If a breath segment's first word is also where some reciter's later
+        // repeat resumes from (to_wpos), and that repeat's pause point
+        // (from_wpos) falls within the SAME segment, show that word at the end
+        // of the PREVIOUS segment too — its reading naturally continues from
+        // there, and the "إعادة" marker later in this segment already starts
+        // its re-read text from that same word (e.g. 59:2: «...مِّنَ ٱللَّهِ
+        // فَأَتَىٰهُمُ» then «ٱللَّهُ ... يَحۡتَسِبُواْ ↩إعادة فَأَتَىٰهُمُ ...»).
+        const leadInEnds = new Set();   // index k whose segment gains bounds[k+1]+1
+        for (let k = 0; k < bounds.length - 2; k++) {
+            const to = bounds[k + 1], nextTo = bounds[k + 2];
+            const cands = repeatsByToWpos.get(to + 1) || [];
+            if (cands.some(rp => rp.from_wpos <= nextTo)) leadInEnds.add(k);
+        }
 
         els.recPlan.innerHTML = '';
         for (let k = 0; k < bounds.length - 1; k++) {
             const from = bounds[k] + 1, to = bounds[k + 1];
+            let fromDisp = from, toDisp = to;
+            if (leadInEnds.has(k)) toDisp = to + 1;
+            if (k > 0 && leadInEnds.has(k - 1)) fromDisp = from + 1;
+            if (fromDisp > toDisp) fromDisp = from;
             const segDur = cumAt(d, to) - (k === 0 ? 0 : cumAt(d, bounds[k]));
             const isLast = k === bounds.length - 2;
             const endsMandatory = !isLast && mandatory.has(to);
@@ -319,7 +340,7 @@
             // rather than attributing the repeat to a specific reciter's name.
             // Identical repeat spans from multiple reciters are merged into one.
             const patterns = new Map();   // "to-from" → {from_wpos, to_wpos, names:[]}
-            for (let w = from; w <= to; w++) {
+            for (let w = fromDisp; w <= toDisp; w++) {
                 (repeatsByWpos.get(w) || []).forEach(rp => {
                     const key = rp.to_wpos + '-' + w;
                     let p = patterns.get(key);
@@ -333,8 +354,8 @@
                 repeatsAt.get(p.from_wpos).push(p);
             });
 
-            for (let wi = from; wi <= to; wi++) {
-                if (wi > from) words.appendChild(document.createTextNode(' '));
+            for (let wi = fromDisp; wi <= toDisp; wi++) {
+                if (wi > fromDisp) words.appendChild(document.createTextNode(' '));
                 words.appendChild(document.createTextNode(d.words[wi] || ''));
                 (repeatsAt.get(wi) || []).forEach(p => {
                     const mark = document.createElement('span');

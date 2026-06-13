@@ -2151,7 +2151,7 @@ def _load_memorization_word_ts(reciter_id=_DEFAULT_MEMO_RECITER):
 
 
 def _segment_phrases(words, gap_ms, force_breaks=None):
-    """Split a verse's word list into phrases at silence gaps > gap_ms.
+    """Split a verse's word list into phrases at silence gaps >= gap_ms.
 
     `words` is the source's [[word_index, start_ms, end_ms], ...]. A run of words
     spoken without a meaningful pause becomes one phrase. Returns a list of
@@ -2175,7 +2175,7 @@ def _segment_phrases(words, gap_ms, force_breaks=None):
     prev_end = words[0][2]
     prev_idx = words[0][0]
     for idx, s, e in words[1:]:
-        if s - prev_end > gap_ms or (prev_idx in force_breaks and idx > prev_idx):
+        if s - prev_end >= gap_ms or (prev_idx in force_breaks and idx > prev_idx):
             phrases.append({'start': run_start, 'end': prev_end,
                             'first_word': run_first, 'last_word': prev_idx})
             run_start = s
@@ -2321,6 +2321,14 @@ def _apply_consensus_rescue(per_reciter_raw, gap_ms, rescue_floor_ms=_CONSENSUS_
     too — their 'stops'/'repeats' are recomputed with that word forced as a
     phrase break, so per-reciter segment cards/phrases stay consistent.
 
+    A second, independent rescue handles a different miss: a word where SEVERAL
+    reciters each pause only briefly (none individually reaching gap_ms, so
+    none registers a stop at all and there's no majority to anchor on) — e.g.
+    74:19 «فَقُتِلَ»: أحمد عامر pauses 250ms, المعصراوي 40ms and بنا 390ms, all
+    after the same word, but only بنا's alone crossed the old threshold. Any
+    word where >= 2 reciters share SOME nonzero forward gap is treated as a
+    real shared pause for all of them, regardless of gap_ms.
+
     `per_reciter_raw` maps reciter_id -> {'w': words, 'stops': {...},
     'repeats': [...], 'gaps': _forward_gap_map(w)}. Updated in place; entries
     that get rescued also gain 'force_breaks' (set of 1-based word indices)."""
@@ -2328,12 +2336,24 @@ def _apply_consensus_rescue(per_reciter_raw, gap_ms, rescue_floor_ms=_CONSENSUS_
     if total < 2:
         return
     majority_n = total // 2 + 1
+    force_breaks = defaultdict(set)
+
+    gap_words = defaultdict(set)
+    for rid, info in per_reciter_raw.items():
+        for word_idx, g in info['gaps'].items():
+            if g > 0:
+                gap_words[word_idx].add(rid)
+    for word_idx, rids in gap_words.items():
+        if len(rids) < 2:
+            continue
+        for rid in rids:
+            force_breaks[rid].add(word_idx)
+
     union_words = defaultdict(set)
     for rid, info in per_reciter_raw.items():
         for w in info['stops']:
             union_words[w].add(rid)
 
-    force_breaks = defaultdict(set)
     for word_idx, rids in union_words.items():
         if len(rids) < majority_n:
             continue
