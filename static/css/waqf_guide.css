@@ -9,6 +9,7 @@
     --wq-accent: #0ea5e9; --wq-accent-soft: rgba(14,165,233,0.12); --wq-accent-strong: #0284c7;
     --wq-solo: #d97706; --wq-solo-soft: rgba(217,119,6,0.12);
     --wq-repeat: #a855f7; --wq-repeat-soft: rgba(168,85,247,0.12);
+    --wq-consensus: #16a34a; --wq-consensus-soft: rgba(22,163,74,0.12);
     --wq-shadow: 0 8px 24px -14px rgba(20,22,40,0.3);
     --wq-shadow-sm: 0 2px 8px -4px rgba(20,22,40,0.22);
 }
@@ -20,6 +21,7 @@ body.wq-dark {
     --wq-accent: #38bdf8; --wq-accent-soft: rgba(56,189,248,0.16); --wq-accent-strong: #7dd3fc;
     --wq-solo: #fbbf24; --wq-solo-soft: rgba(251,191,36,0.16);
     --wq-repeat: #c084fc; --wq-repeat-soft: rgba(192,132,252,0.16);
+    --wq-consensus: #4ade80; --wq-consensus-soft: rgba(74,222,128,0.16);
     --wq-shadow: 0 10px 28px -14px rgba(0,0,0,0.6);
 }
 
@@ -156,9 +158,12 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
 .wq-rec-line.wq-rec-over .wq-rec-num { background: var(--wq-solo); }
 .wq-rec-line.wq-rec-over .wq-rec-dur i { color: var(--wq-solo); }
 .wq-must-note { color: #dc2626; font-weight: 600; }
+.wq-consensus-note { color: var(--wq-consensus); font-weight: 600; }
 .wq-sakt-note { color: #7c3aed; font-weight: 600; }
 .wq-must-badge { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
     color: #fff; background: #dc2626; vertical-align: middle; }
+.wq-consensus-badge { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
+    color: #fff; background: var(--wq-consensus); vertical-align: middle; cursor: help; }
 
 /* play buttons */
 .wq-play { flex-shrink: 0; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;

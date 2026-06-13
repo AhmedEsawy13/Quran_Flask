@@ -1,0 +1,75 @@
+name: Sync QUL reciter data
+
+# Periodically checks the latest release of
+# https://github.com/Wider-Community/quranic-universal-audio for updated
+# per-reciter word/verse/letter timestamps and opens a PR with any changes.
+
+on:
+  schedule:
+    - cron: '0 5 * * 1'   # every Monday at 05:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-qul-reciters
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Check for QUL updates
+        id: check
+        run: |
+          set +e
+          python3 scripts/import_qul_reciters.py --sync --check
+          code=$?
+          set -e
+          case $code in
+            0) echo "changed=false" >> "$GITHUB_OUTPUT" ;;
+            1) echo "changed=true" >> "$GITHUB_OUTPUT" ;;
+            *) exit $code ;;
+          esac
+
+      - name: Download updated reciter data
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          {
+            echo "Auto-sync from https://github.com/Wider-Community/quranic-universal-audio releases."
+            echo
+            python3 scripts/import_qul_reciters.py --sync
+          } | tee /tmp/sync.log
+
+      - name: Open pull request
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- reciters/; then
+            echo "sync produced no file changes; nothing to commit."
+            exit 0
+          fi
+
+          branch="qul-sync-$(date -u +%Y%m%d%H%M%S)"
+          git checkout -b "$branch"
+          git add reciters/
+          git commit -m "chore(reciters): sync timestamps from QUL release"
+          git push -u origin "$branch"
+
+          gh pr create \
+            --title "Sync reciter timestamps from QUL release" \
+            --body-file /tmp/sync.log

@@ -1,0 +1,55 @@
+{
+  "reciters": {
+    "abdulbasit": {
+      "content_hash": "f31374237372e25dbc880a9c089d6a9d0d09b4b472d3ce5a44e58392d3778a6e",
+      "slug": "abdulbasit_abdulsamad_tarteel",
+      "ts_version": "6a2c16c67c68f455eff13b63"
+    },
+    "abdulhakam": {
+      "content_hash": "4efbd392aa47dfb7087af7dcd33fcc62e9e53559ca3bf7fb3f80f32ecd428275",
+      "slug": "mahmoud_abdul_hakam_mp3quran",
+      "ts_version": "6a2c171f871c005b5352b3fe"
+    },
+    "ahmed_amer": {
+      "content_hash": "63d042125cc24631e0efa4d5df684246e4c0318c76c6efca905cca4e89f4a448",
+      "slug": "ahmed_amer_tvquran",
+      "ts_version": "6a2c16d9871c005b5352b3f6"
+    },
+    "banna": {
+      "content_hash": "9f095ee4eaa65241c95d834741699b34d933aa5ed392494e5b4629e3e1a22810",
+      "slug": "mahmoud_ali_al_banna_qdc",
+      "ts_version": "6a2c17117c68f455eff13b77"
+    },
+    "burhaji": {
+      "content_hash": "3e05a36388937c767b48b0ddb3a08e6360655d5ab8b7b141e09e7752ec97d011",
+      "slug": "mohammed_burhaji_yt",
+      "ts_version": "6a2c23907c68f455eff13cc0"
+    },
+    "husary": {
+      "content_hash": "f63ec5558bed03c31780cced514b6f9829b911b07697417c64562108427cae0a",
+      "slug": "mahmoud_khalil_al_husary_mp3quran",
+      "ts_version": "6a2c17167c68f455eff13b79"
+    },
+    "maasaraawi": {
+      "content_hash": "dc8cc302f355f3f898de10414a23ca4ccd03c86c625d2296231df9ae769a7e92",
+      "slug": "ahmed_issa_al_maasaraawi_mp3quran",
+      "ts_version": "6a2c1738871c005b5352b404"
+    },
+    "maher": {
+      "content_hash": "477d3c91998e8120c71a82041c7b7fc35ff72881fb4d42ade19911299858ba89",
+      "slug": "maher_al_muaiqly_qdc",
+      "ts_version": "6a2c1726871c005b5352b400"
+    },
+    "minshawi": {
+      "content_hash": "e827807ead58a23f1056b587eca9523b7af71566b10d9d28a7b7477a0a083e08",
+      "slug": "mohammed_siddiq_al_minshawi_mp3quran",
+      "ts_version": "6a2c16e97c68f455eff13b6f"
+    },
+    "sufi": {
+      "content_hash": "7297b92c1b9084b90af99664a4889e0afece3b0ef08e2fef28f12ed9309d4efd",
+      "slug": "abdur_rashid_sufi_qdc",
+      "ts_version": "6a2c172b7c68f455eff13b7b"
+    }
+  },
+  "release_version": "v2.0.0"
+}

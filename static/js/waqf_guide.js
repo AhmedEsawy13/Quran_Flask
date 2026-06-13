@@ -211,14 +211,30 @@
     function recommendBreaths(d, L) {
         const cats = waqfCategories(d);
         const lastW = d.words.length - 1;
-        const mandatory = [...cats.lazim].filter(w => w < lastW).sort((a, b) => a - b);
+        const total = d.reciters_total || 0;
+        const majorityN = Math.floor(total / 2) + 1;
+        // A stop where the majority (or all) of the reciters agree — even if
+        // it isn't a printed وقف لازم — reflects a real consensus on where to
+        // breathe. For متوسط/طويل this becomes a hard cut too, so e.g. سورة
+        // يوسف ١ always breaks after «الر» (كل القرّاء يقفون بعدها) even
+        // though the whole verse could otherwise fit in one طويل نفَس.
+        const consensusMandatory = (L >= BREATH.medium)
+            ? new Set((d.union_stops || [])
+                .filter(u => u.count >= majorityN && u.wpos < lastW
+                    && !cats.lazim.has(u.wpos) && !cats.saktah.has(u.wpos) && !cats.forbidden.has(u.wpos))
+                .map(u => u.wpos))
+            : new Set();
+        const hardCuts = consensusMandatory.size
+            ? new Set([...cats.lazim, ...consensusMandatory])
+            : cats.lazim;
+        const mandatory = [...hardCuts].filter(w => w < lastW).sort((a, b) => a - b);
         let optional = (d.union_stops || []).map(u => u.wpos)
-            .filter(w => !cats.saktah.has(w) && !cats.forbidden.has(w) && !cats.lazim.has(w))
+            .filter(w => !cats.saktah.has(w) && !cats.forbidden.has(w) && !hardCuts.has(w))
             .sort((a, b) => a - b);
 
         const breaths = [];
         let prevWpos = -1, prevCum = 0;
-        for (const spanEnd of [...mandatory, lastW]) {       // lazim points are hard cuts
+        for (const spanEnd of [...mandatory, lastW]) {       // hard-cut points (لازم + اتفاق القرّاء)
             const opts = optional.filter(w => w > prevWpos && w < spanEnd);
             let curCum = prevCum, i = 0;
             while (i < opts.length) {
@@ -230,17 +246,17 @@
                 if (pick === -1) pick = i;                   // nothing within L → forced stop
                 breaths.push(opts[pick]); curCum = cumAt(d, opts[pick]); i = pick + 1;
             }
-            if (spanEnd !== lastW) breaths.push(spanEnd);    // the mandatory breath itself
+            if (spanEnd !== lastW) breaths.push(spanEnd);    // the hard-cut breath itself
             prevWpos = spanEnd; prevCum = cumAt(d, spanEnd);
         }
-        return { breaths, mandatory: cats.lazim, saktah: cats.saktah };
+        return { breaths, mandatory: cats.lazim, consensusMandatory, saktah: cats.saktah };
     }
     function renderRecommendation(d) {
         const canPlan = !!d.ref_times && d.words.length > 0;
         els.recCard.hidden = !canPlan;
         if (!canPlan) return;
         const L = state.breathL;
-        const { breaths, mandatory, saktah } = recommendBreaths(d, L);
+        const { breaths, mandatory, consensusMandatory, saktah } = recommendBreaths(d, L);
         const lastW = d.words.length - 1;
         const bounds = [-1, ...breaths, lastW];
         const nBreaths = bounds.length - 1;
@@ -251,6 +267,7 @@
             + `<b>${toAr(nBreaths)}</b> ${nBreaths === 1 ? 'نفَس واحد' : (nBreaths === 2 ? 'نفَسين' : 'أنفاس')}`
             + ` — قِف عند المواضع المُبيّنة.`;
         if (mandatory.size) summary += ` <span class="wq-must-note">يجب الوقف عند علامة اللزوم (م).</span>`;
+        if (consensusMandatory.size) summary += ` <span class="wq-consensus-note">اتفق أغلب القرّاء على الوقف في مواضع، فاعتُمدت نقاط وقف ثابتة.</span>`;
         if (saktah.size) summary += ` <span class="wq-sakt-note">السكتة (س) ليست موضع تنفّس.</span>`;
         if (ref && ref.name_ar) {
             summary += `<br><span class="wq-ref-note" title="اخترنا قراءة هذا القارئ لأنه الأقرب لمتوسط زمن القرّاء وأقلّهم إعادات، فتُستخدم وتيرته لتقسيم الأنفاس بدقّة بصرف النظر عن طول النفَس المختار">`
@@ -272,6 +289,7 @@
             const segDur = cumAt(d, to) - (k === 0 ? 0 : cumAt(d, bounds[k]));
             const isLast = k === bounds.length - 2;
             const endsMandatory = !isLast && mandatory.has(to);
+            const endsConsensus = !isLast && !endsMandatory && consensusMandatory.has(to);
             const u = uByWpos.get(to);
             const line = document.createElement('div');
             line.className = 'wq-rec-line' + (segDur > L + 0.5 ? ' wq-rec-over' : '');
@@ -342,6 +360,7 @@
             let attest = '';
             if (!isLast) {
                 if (endsMandatory) attest += '<span class="wq-must-badge">لازم</span>';
+                else if (endsConsensus) attest += `<span class="wq-consensus-badge" title="اتفق أغلب القرّاء (${toAr(u ? u.count : 0)}/${toAr(d.reciters_total)}) على الوقف هنا، فاعتُمد نقطة وقف ثابتة بصرف النظر عن طول النفَس">وقف الأغلبية</span>`;
                 if (u) attest += `<span class="wq-rec-cons${u.solo ? ' wq-rec-cons-solo' : ''}" title="عدد القرّاء الذين يقفون هنا">${u.solo ? 'انفرد' : toAr(u.count) + '/' + toAr(d.reciters_total)} <i class="fas fa-users"></i></span>`;
             }
             meta.innerHTML = attest
