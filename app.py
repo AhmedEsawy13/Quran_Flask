@@ -2150,32 +2150,23 @@ def _load_memorization_word_ts(reciter_id=_DEFAULT_MEMO_RECITER):
     return _memorization_word_ts[reciter_id]
 
 
-def _segment_phrases(words, gap_ms, force_breaks=None):
+def _segment_phrases(words, gap_ms):
     """Split a verse's word list into phrases at silence gaps >= gap_ms.
 
     `words` is the source's [[word_index, start_ms, end_ms], ...]. A run of words
     spoken without a meaningful pause becomes one phrase. Returns a list of
     {start, end, first_word, last_word} in milliseconds. Repeated-phrase verses
     (where word_index resets) simply yield extra phrases for the repeated audio,
-    which is faithful to what is actually recited.
-
-    `force_breaks` (optional set of 1-based word indices) additionally forces a
-    phrase break right after that word — provided recitation continues FORWARD
-    from it — even if this reciter's own gap there is <= gap_ms. Used by the
-    cross-reciter consensus 'rescue' (see _apply_consensus_rescue): a reciter
-    whose pause at a majority-agreed stop is real but shorter than gap_ms still
-    gets that stop reflected in their phrase/segment list.
-    """
+    which is faithful to what is actually recited."""
     phrases = []
     if not words:
         return phrases
-    force_breaks = force_breaks or ()
     run_start = words[0][1]
     run_first = words[0][0]
     prev_end = words[0][2]
     prev_idx = words[0][0]
     for idx, s, e in words[1:]:
-        if s - prev_end >= gap_ms or (prev_idx in force_breaks and idx > prev_idx):
+        if s - prev_end >= gap_ms:
             phrases.append({'start': run_start, 'end': prev_end,
                             'first_word': run_first, 'last_word': prev_idx})
             run_start = s
@@ -2185,21 +2176,6 @@ def _segment_phrases(words, gap_ms, force_breaks=None):
     phrases.append({'start': run_start, 'end': prev_end,
                     'first_word': run_first, 'last_word': prev_idx})
     return phrases
-
-
-def _forward_gap_map(words):
-    """{word_idx: gap_ms} — for every word whose recitation continues FORWARD
-    to the next word (no backtrack/repeat), the silence before that next word,
-    in milliseconds, REGARDLESS of size (including 0). Used by
-    _apply_consensus_rescue to find a reciter's real-but-small pause at a
-    position most other reciters already treat as a waqf."""
-    gaps = {}
-    for i in range(len(words) - 1):
-        idx, _s, e = words[i]
-        nidx, ns, _ne = words[i + 1]
-        if nidx > idx:
-            gaps[idx] = ns - e
-    return gaps
 
 
 def _load_waqf_boundaries():
@@ -2264,7 +2240,7 @@ def _waqf_aligned_phrases(words, boundaries, snap_floor, snap_window=3):
 _memorization_breathing_cache = {}
 
 
-def _forward_waqf_stops(words, gap_ms, force_breaks=None):
+def _forward_waqf_stops(words, gap_ms):
     """Split a reciter's verse pauses into genuine FORWARD waqfs vs. 'pause
     then go back to repeat' artifacts.
 
@@ -2275,17 +2251,13 @@ def _forward_waqf_stops(words, gap_ms, force_breaks=None):
     repeats are returned separately so the UI can show "this reciter repeated
     from word X" instead of mistaking it for a stop.
 
-    `force_breaks` is forwarded to _segment_phrases (see there) so a
-    cross-reciter consensus 'rescue' can add extra forward-waqf stops below
-    the normal gap_ms threshold.
-
     Returns (stops, repeats):
       stops   = {word_idx: end_ms_from_verse_start}  (1-based word_idx)
       repeats = [(paused_after_word_idx, resumed_at_word_idx), ...]  (1-based)"""
     stops, repeats = {}, []
     if not words:
         return stops, repeats
-    phrases = _segment_phrases(words, gap_ms, force_breaks=force_breaks)
+    phrases = _segment_phrases(words, gap_ms)
     vstart = words[0][1]
     for i in range(len(phrases) - 1):
         cur, nxt = phrases[i], phrases[i + 1]
@@ -2299,78 +2271,19 @@ def _forward_waqf_stops(words, gap_ms, force_breaks=None):
     return stops, repeats
 
 
-# A forward gap shorter than this is treated as pure alignment noise, even at
-# a position where the majority of other reciters pause (see below).
-_CONSENSUS_RESCUE_FLOOR_MS = 50
+# Cross-reciter consensus waqf detection (the /waqf comparison page and the
+# memorization breathing guide) doesn't use a duration threshold at all: ANY
+# nonzero forward gap counts as that reciter's phrase break. Empirically,
+# gap==0 is the overwhelming default (~95% of reciter/word pairs across a
+# 300-verse sample), so even a 10-40ms gap reflects a real, if brief, pause —
+# and a verse-by-verse sweep showed gap_ms=1 reproduces the old 250ms+rescue
+# results almost exactly (2/315 verses differed, each gaining one extra solo
+# stop at a plausible phrase boundary). Consensus COUNT across reciters is
+# what signals a genuine waqf, not how long any one of them paused.
+_WAQF_CONSENSUS_GAP_MS = 1
 
 
-def _apply_consensus_rescue(per_reciter_raw, gap_ms, rescue_floor_ms=_CONSENSUS_RESCUE_FLOOR_MS):
-    """Cross-reciter consensus 'rescue' for borderline silence gaps.
-
-    Each individual reciter's stops are found with a fixed gap_ms threshold
-    (default 250ms), but recording/alignment pace varies — some reciters'
-    genuine pauses at a shared waqf come in just under that, so they look like
-    they "don't stop" where everyone else clearly does (e.g. سورة يوسف ١: most
-    reciters pause >250ms after «الر», but one reciter's real pause there is
-    only ~150ms and was being dropped entirely).
-
-    If a MAJORITY (>50%) of reciters with data for this verse already register
-    a forward-waqf stop after the same word at the normal threshold, any
-    remaining reciter whose own forward gap there is real-but-smaller
-    (>= rescue_floor_ms, so not just 0ms alignment noise) is promoted to a stop
-    too — their 'stops'/'repeats' are recomputed with that word forced as a
-    phrase break, so per-reciter segment cards/phrases stay consistent.
-
-    A second, independent rescue handles a different miss: a word where SEVERAL
-    reciters each pause only briefly (none individually reaching gap_ms, so
-    none registers a stop at all and there's no majority to anchor on) — e.g.
-    74:19 «فَقُتِلَ»: أحمد عامر pauses 250ms, المعصراوي 40ms and بنا 390ms, all
-    after the same word, but only بنا's alone crossed the old threshold. Any
-    word where >= 2 reciters share SOME nonzero forward gap is treated as a
-    real shared pause for all of them, regardless of gap_ms.
-
-    `per_reciter_raw` maps reciter_id -> {'w': words, 'stops': {...},
-    'repeats': [...], 'gaps': _forward_gap_map(w)}. Updated in place; entries
-    that get rescued also gain 'force_breaks' (set of 1-based word indices)."""
-    total = len(per_reciter_raw)
-    if total < 2:
-        return
-    majority_n = total // 2 + 1
-    force_breaks = defaultdict(set)
-
-    gap_words = defaultdict(set)
-    for rid, info in per_reciter_raw.items():
-        for word_idx, g in info['gaps'].items():
-            if g > 0:
-                gap_words[word_idx].add(rid)
-    for word_idx, rids in gap_words.items():
-        if len(rids) < 2:
-            continue
-        for rid in rids:
-            force_breaks[rid].add(word_idx)
-
-    union_words = defaultdict(set)
-    for rid, info in per_reciter_raw.items():
-        for w in info['stops']:
-            union_words[w].add(rid)
-
-    for word_idx, rids in union_words.items():
-        if len(rids) < majority_n:
-            continue
-        for rid, info in per_reciter_raw.items():
-            if rid in rids:
-                continue
-            g = info['gaps'].get(word_idx)
-            if g is not None and g >= rescue_floor_ms:
-                force_breaks[rid].add(word_idx)
-
-    for rid, fb in force_breaks.items():
-        info = per_reciter_raw[rid]
-        info['stops'], info['repeats'] = _forward_waqf_stops(info['w'], gap_ms, force_breaks=fb)
-        info['force_breaks'] = fb
-
-
-def _build_breathing_guide(surah_number, gap_ms=250):
+def _build_breathing_guide(surah_number):
     """Per-verse 'breathing guide': word positions where at least one of the
     installed reciters makes a real FORWARD pause (a waqf), with how many
     reciters pause there, WHICH reciters do, and the average cumulative
@@ -2382,7 +2295,7 @@ def _build_breathing_guide(surah_number, gap_ms=250):
     and stop there, the way a professional reciter would. Stops only one
     reciter makes (انفرد) are flagged so the user knows they're uncommon."""
     reciter_ids = tuple(sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid)))
-    cache_key = (surah_number, gap_ms, reciter_ids)
+    cache_key = (surah_number, reciter_ids)
     if cache_key in _memorization_breathing_cache:
         return _memorization_breathing_cache[cache_key]
 
@@ -2407,10 +2320,8 @@ def _build_breathing_guide(surah_number, gap_ms=250):
             if not words:
                 continue
             verse_durs.append((words[-1][2] - words[0][1]) / 1000.0)
-            stops_r, repeats_r = _forward_waqf_stops(words, gap_ms)
-            raw[rid] = {'w': words, 'stops': stops_r, 'repeats': repeats_r,
-                         'gaps': _forward_gap_map(words)}
-        _apply_consensus_rescue(raw, gap_ms)
+            stops_r, repeats_r = _forward_waqf_stops(words, _WAQF_CONSENSUS_GAP_MS)
+            raw[rid] = {'stops': stops_r, 'repeats': repeats_r}
 
         word_reciters = defaultdict(list)   # word_idx -> [reciter_id, ...] (who pauses)
         word_durs = defaultdict(list)       # word_idx -> [cumulative seconds, ...]
@@ -2443,7 +2354,6 @@ def _build_breathing_guide(surah_number, gap_ms=250):
 
     result = {
         'surah_number': surah_number,
-        'gap_ms': gap_ms,
         'reciters': [
             {'id': rid, 'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', '')}
             for rid in reciter_ids
@@ -2462,11 +2372,8 @@ def get_memorization_breathing(surah_number):
     pick a real, attested stopping point instead of guessing where to pause."""
     if not (1 <= surah_number <= 114):
         return jsonify({"error": "Invalid surah number."}), 400
-    gap_ms = request.args.get('gap', 250, type=int)
-    if gap_ms < 0 or gap_ms > 5000:
-        gap_ms = 250
     try:
-        data = _build_breathing_guide(surah_number, gap_ms)
+        data = _build_breathing_guide(surah_number)
     except Exception as e:
         app.logger.error(f"Breathing guide failed for surah {surah_number}: {e}")
         return jsonify({"error": "Breathing guide unavailable"}), 503
@@ -2508,7 +2415,7 @@ def _verse_word_texts(verse_key):
     return text, words, raw_to_wpos
 
 
-def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
+def _build_verse_waqf_detail(surah, ayah):
     """Full per-reciter waqf detail for ONE verse, for the comparison page.
 
     Returns the verse text/words plus, for every installed reciter, their own
@@ -2532,15 +2439,8 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
             continue
         full = (w[-1][2] - w[0][1]) / 1000.0
         verse_durs.append(full)
-        stops, repeats = _forward_waqf_stops(w, gap_ms)
-        raw[rid] = {'w': w, 'stops': stops, 'repeats': repeats, 'gaps': _forward_gap_map(w), 'full': full}
-
-    # Cross-reciter consensus rescue: if most reciters confirm a stop after a
-    # word, promote any other reciter's real-but-smaller pause there too (see
-    # _apply_consensus_rescue) — fixes e.g. سورة يوسف ١ where some reciters'
-    # pause after «الر» is just under the 250ms threshold while most others'
-    # clearly exceed it.
-    _apply_consensus_rescue(raw, gap_ms)
+        stops, repeats = _forward_waqf_stops(w, _WAQF_CONSENSUS_GAP_MS)
+        raw[rid] = {'w': w, 'stops': stops, 'repeats': repeats, 'full': full}
 
     per_reciter = {}
     union = defaultdict(lambda: {'reciters': [], 'durs': []})
@@ -2555,7 +2455,7 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
             {'first_wpos': ph['first_word'] - 1, 'last_wpos': ph['last_word'] - 1,
              'start': round((ph['start'] - vstart) / 1000.0, 2),
              'end': round((ph['end'] - vstart) / 1000.0, 2)}
-            for ph in _segment_phrases(w, gap_ms, force_breaks=info.get('force_breaks'))
+            for ph in _segment_phrases(w, _WAQF_CONSENSUS_GAP_MS)
         ]
         per_reciter[rid] = {
             'name_ar': cfg.get('name_ar', ''),
@@ -2607,7 +2507,6 @@ def _build_verse_waqf_detail(surah, ayah, gap_ms=250):
         'surah': surah,
         'ayah': ayah,
         'verse_key': vk,
-        'gap_ms': gap_ms,
         'text': text,
         'words': words,
         'reciters_total': len(per_reciter),
@@ -2668,11 +2567,8 @@ def get_verse_waqf(surah, ayah):
     this verse, who aligns vs. who is alone (انفرد), and where they repeat."""
     if not (1 <= surah <= 114) or ayah < 1:
         return jsonify({"error": "Invalid verse."}), 400
-    gap_ms = request.args.get('gap', 250, type=int)
-    if gap_ms < 0 or gap_ms > 5000:
-        gap_ms = 250
     try:
-        data = _build_verse_waqf_detail(surah, ayah, gap_ms)
+        data = _build_verse_waqf_detail(surah, ayah)
     except Exception as e:
         app.logger.error(f"Waqf detail failed for {surah}:{ayah}: {e}")
         return jsonify({"error": "Waqf data unavailable"}), 503
