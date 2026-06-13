@@ -11,7 +11,7 @@
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=10">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=11">
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -21,7 +21,10 @@
 <body>
     <header class="wq-bar">
         <a class="wq-back" href="/memorize" title="رجوع إلى الحفظ" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
-        <h1 class="wq-title"><i class="fas fa-lungs"></i> مواضع وقوف القرّاء</h1>
+        <div class="wq-bar-title">
+            <h1 class="wq-title"><i class="fas fa-lungs"></i> مواضع وقوف القرّاء</h1>
+            <span class="wq-bar-verse" id="wq-bar-verse"></span>
+        </div>
         <button class="wq-icon-btn" id="wq-theme" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
     </header>
 
@@ -36,11 +39,13 @@
             <div class="wq-select-wrap"><select id="wq-ayah"></select><i class="fas fa-chevron-down"></i></div>
         </div>
         <div class="wq-field wq-field-search">
-            <label for="wq-search">بحث سريع</label>
+            <label for="wq-search">بحث</label>
             <div class="wq-search-wrap">
                 <i class="fas fa-magnifying-glass"></i>
-                <input type="search" id="wq-search" placeholder="مثال: ٢:٢٥٥ أو «البقرة ٢٥٥»" autocomplete="off">
+                <input type="search" id="wq-search" placeholder="٢:٢٥٥ … أو «البقرة ٢٥٥» … أو كلمات من الآية" autocomplete="off">
+                <button class="wq-search-clear" id="wq-search-clear" type="button" aria-label="مسح البحث" hidden><i class="fas fa-xmark"></i></button>
             </div>
+            <div class="wq-search-results" id="wq-search-results" hidden></div>
         </div>
         <div class="wq-stepper">
             <button class="wq-icon-btn" id="wq-prev" type="button" aria-label="الآية السابقة"><i class="fas fa-chevron-right"></i></button>
@@ -94,6 +99,6 @@
         </section>
     </main>
 
-    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=10"></script>
+    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=11"></script>
 </body>
 </html>

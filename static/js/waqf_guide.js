@@ -46,7 +46,9 @@
 
     const els = {
         surah: $('wq-surah'), ayah: $('wq-ayah'), search: $('wq-search'),
+        searchClear: $('wq-search-clear'), searchResults: $('wq-search-results'),
         prev: $('wq-prev'), next: $('wq-next'), theme: $('wq-theme'), status: $('wq-status'),
+        barVerse: $('wq-bar-verse'),
         verseCard: $('wq-verse-card'), verseTitle: $('wq-verse-title'), verseMeta: $('wq-verse-meta'),
         verseFlow: $('wq-verse-flow'),
         recCard: $('wq-rec-card'), breathPicker: $('wq-breath-picker'),
@@ -250,6 +252,10 @@
             + ` — قِف عند المواضع المُبيّنة.`;
         if (mandatory.size) summary += ` <span class="wq-must-note">يجب الوقف عند علامة اللزوم (م).</span>`;
         if (saktah.size) summary += ` <span class="wq-sakt-note">السكتة (س) ليست موضع تنفّس.</span>`;
+        if (ref && ref.name_ar) {
+            summary += `<br><span class="wq-ref-note" title="اخترنا قراءة هذا القارئ لأنه الأقرب لمتوسط زمن القرّاء وأقلّهم إعادات، فتُستخدم وتيرته لتقسيم الأنفاس بدقّة بصرف النظر عن طول النفَس المختار">`
+                + `<i class="fas fa-circle-info"></i> الأزمنة مقاسة على قراءة <b>${ref.name_ar}</b>، وزر <i class="fas fa-play"></i> يشغّل من صوته</span>`;
+        }
         els.recSummary.innerHTML = summary;
 
         // attestation + repeats from the reciters, keyed by word position
@@ -287,22 +293,47 @@
             main.className = 'wq-rec-main';
             const words = document.createElement('span');
             words.className = 'wq-rec-words';
-            words.textContent = d.words.slice(from, to + 1).join(' ');
-            main.appendChild(words);
 
-            // any reciter repeats that happen inside this breath segment
-            const tags = document.createElement('span');
-            tags.className = 'wq-rec-tags';
+            // Any reciter repeats (pause → back up → re-read) that fall inside
+            // this breath segment are shown IN PLACE, as part of the natural
+            // recitation flow: a small "إعادة" marker followed by the re-read
+            // words (dotted-underline, same style as the per-reciter cards) —
+            // rather than attributing the repeat to a specific reciter's name.
+            // Identical repeat spans from multiple reciters are merged into one.
+            const patterns = new Map();   // "to-from" → {from_wpos, to_wpos, names:[]}
             for (let w = from; w <= to; w++) {
                 (repeatsByWpos.get(w) || []).forEach(rp => {
-                    const t = document.createElement('span');
-                    t.className = 'wq-rep-mini';
-                    t.innerHTML = `<i class="fas fa-rotate-left"></i> ${rp.name}`;
-                    t.title = `${rp.name} وقف عند «${d.words[w] || ''}» ثم أعاد من «${d.words[rp.to_wpos] || ''}»`;
-                    tags.appendChild(t);
+                    const key = rp.to_wpos + '-' + w;
+                    let p = patterns.get(key);
+                    if (!p) { p = { from_wpos: w, to_wpos: rp.to_wpos, names: [] }; patterns.set(key, p); }
+                    p.names.push(rp.name);
                 });
             }
-            if (tags.childNodes.length) main.appendChild(tags);
+            const repeatsAt = new Map();  // from_wpos → [patterns]
+            patterns.forEach(p => {
+                if (!repeatsAt.has(p.from_wpos)) repeatsAt.set(p.from_wpos, []);
+                repeatsAt.get(p.from_wpos).push(p);
+            });
+
+            for (let wi = from; wi <= to; wi++) {
+                if (wi > from) words.appendChild(document.createTextNode(' '));
+                words.appendChild(document.createTextNode(d.words[wi] || ''));
+                (repeatsAt.get(wi) || []).forEach(p => {
+                    const mark = document.createElement('span');
+                    mark.className = 'wq-rec-repeat-mark';
+                    mark.innerHTML = '<i class="fas fa-rotate-left"></i> إعادة';
+                    mark.title = `يعيد ${p.names.join('، ')} القراءة من «${d.words[p.to_wpos] || ''}»`;
+                    words.append(' ', mark, ' ');
+                    for (let rw = p.to_wpos; rw <= p.from_wpos; rw++) {
+                        if (rw > p.to_wpos) words.appendChild(document.createTextNode(' '));
+                        const rs = document.createElement('span');
+                        rs.className = 'wq-guide-w-repeat';
+                        rs.textContent = d.words[rw] || '';
+                        words.appendChild(rs);
+                    }
+                });
+            }
+            main.appendChild(words);
 
             const meta = document.createElement('span');
             meta.className = 'wq-rec-meta';
@@ -340,6 +371,9 @@
     function renderVerse(d) {
         els.verseCard.hidden = false;
         els.verseTitle.textContent = `${surahName(d.surah) ? 'سورة ' + surahName(d.surah) + ' · ' : ''}آية ${toAr(d.ayah)}`;
+        if (els.barVerse) {
+            els.barVerse.innerHTML = surahName(d.surah) ? `${surahName(d.surah)} · آية <b>${toAr(d.ayah)}</b>` : '';
+        }
         const nStops = d.union_stops.length;
         els.verseMeta.textContent =
             `${toAr(d.reciters_total)} قرّاء · ${toAr(nStops)} ${nStops === 1 ? 'موضع وقف' : 'مواضع وقف'}`
@@ -673,13 +707,71 @@
         return hit ? (hit.number ?? null) : null;
     }
     async function doSearch() {
-        const parsed = parseSearch(els.search.value);
-        if (!parsed) { setStatus('اكتب رقم السورة والآية، مثل ٢:٢٥٥', true); return; }
-        if (parsed.surah < 1 || parsed.surah > 114) { setStatus('رقم سورة غير صحيح', true); return; }
-        await loadAyahOptions(parsed.surah);
-        const max = state.ayahCount[parsed.surah] || 1;
-        const ayah = Math.min(Math.max(1, parsed.ayah), max);
-        await loadVerse(parsed.surah, ayah);
+        const raw = els.search.value.trim();
+        if (!raw) { hideSearchResults(); return; }
+        const parsed = parseSearch(raw);
+        if (parsed) {
+            if (parsed.surah < 1 || parsed.surah > 114) { setStatus('رقم سورة غير صحيح', true); return; }
+            hideSearchResults();
+            await loadAyahOptions(parsed.surah);
+            const max = state.ayahCount[parsed.surah] || 1;
+            const ayah = Math.min(Math.max(1, parsed.ayah), max);
+            await loadVerse(parsed.surah, ayah);
+            return;
+        }
+        // not a verse reference → search the Quran text for these words
+        if (wordQueryOf(raw).length >= 2) { await showWordResults(raw); return; }
+        setStatus('اكتب رقم السورة والآية، أو اسم السورة، أو كلمات من الآية', true);
+    }
+
+    /* ── search by words ──────────────────────────────────────── */
+    // strip everything but Arabic letters/spaces, to decide if a query is
+    // "word-ish" enough to send to the text search endpoint.
+    function wordQueryOf(raw) {
+        return fromAr(raw).replace(/[^؀-ۿ\s]/g, '').trim();
+    }
+    function hideSearchResults() {
+        if (!els.searchResults) return;
+        els.searchResults.hidden = true;
+        els.searchResults.innerHTML = '';
+    }
+    async function showWordResults(query) {
+        if (!els.searchResults) return;
+        els.searchResults.hidden = false;
+        els.searchResults.innerHTML = '<div class="wq-search-loading">جارٍ البحث…</div>';
+        try {
+            const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=8`);
+            const data = await resp.json();
+            const results = data.results || [];
+            if (!results.length) {
+                els.searchResults.innerHTML = '<div class="wq-search-empty">لا توجد نتائج لهذه الكلمات</div>';
+                return;
+            }
+            els.searchResults.innerHTML = '';
+            results.forEach(r => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'wq-search-result';
+                const ref = document.createElement('span');
+                ref.className = 'wq-sr-ref';
+                const sName = surahName(r.surah_number);
+                ref.textContent = `${sName ? 'سورة ' + sName : 'سورة ' + toAr(r.surah_number)} · آية ${toAr(r.ayah_number)}`;
+                const txt = document.createElement('span');
+                txt.className = 'wq-sr-text';
+                txt.textContent = r.text;
+                btn.append(ref, txt);
+                btn.addEventListener('click', async () => {
+                    hideSearchResults();
+                    els.search.value = '';
+                    els.searchClear.hidden = true;
+                    await loadAyahOptions(r.surah_number);
+                    await loadVerse(r.surah_number, r.ayah_number);
+                });
+                els.searchResults.appendChild(btn);
+            });
+        } catch (e) {
+            els.searchResults.innerHTML = '<div class="wq-search-empty">تعذّر البحث الآن</div>';
+        }
     }
 
     /* ── events ───────────────────────────────────────────────── */
@@ -691,7 +783,47 @@
     els.ayah.addEventListener('change', () => loadVerse(+els.surah.value, +els.ayah.value));
     els.prev.addEventListener('click', () => { if (state.ayah > 1) loadVerse(state.surah, state.ayah - 1); });
     els.next.addEventListener('click', () => loadVerse(state.surah, state.ayah + 1));
-    els.search.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    let searchDebounce = null;
+    els.search.addEventListener('input', () => {
+        const raw = els.search.value;
+        if (els.searchClear) els.searchClear.hidden = !raw;
+        clearTimeout(searchDebounce);
+        if (!raw.trim()) { hideSearchResults(); return; }
+        if (parseSearch(raw)) { hideSearchResults(); return; }   // looks like a verse ref — wait for Enter
+        if (wordQueryOf(raw).length < 2) { hideSearchResults(); return; }
+        searchDebounce = setTimeout(() => showWordResults(raw), 350);
+    });
+    els.search.addEventListener('keydown', e => {
+        const results = (els.searchResults && !els.searchResults.hidden)
+            ? [...els.searchResults.querySelectorAll('.wq-search-result')] : [];
+        if (e.key === 'ArrowDown' && results.length) {
+            e.preventDefault();
+            let idx = results.findIndex(r => r.classList.contains('wq-sr-active'));
+            idx = (idx + 1) % results.length;
+            results.forEach(r => r.classList.remove('wq-sr-active'));
+            results[idx].classList.add('wq-sr-active');
+            results[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'ArrowUp' && results.length) {
+            e.preventDefault();
+            let idx = results.findIndex(r => r.classList.contains('wq-sr-active'));
+            idx = idx <= 0 ? results.length - 1 : idx - 1;
+            results.forEach(r => r.classList.remove('wq-sr-active'));
+            results[idx].classList.add('wq-sr-active');
+            results[idx].scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const active = results.find(r => r.classList.contains('wq-sr-active'));
+            if (active) active.click(); else doSearch();
+        } else if (e.key === 'Escape') {
+            hideSearchResults();
+        }
+    });
+    if (els.searchClear) els.searchClear.addEventListener('click', () => {
+        els.search.value = ''; els.searchClear.hidden = true; hideSearchResults(); els.search.focus();
+    });
+    document.addEventListener('click', e => {
+        if (els.searchResults && !els.searchResults.hidden && !e.target.closest('.wq-field-search')) hideSearchResults();
+    });
     if (els.breathPicker) els.breathPicker.addEventListener('click', e => {
         const btn = e.target.closest('.wq-breath-btn');
         if (!btn) return;
