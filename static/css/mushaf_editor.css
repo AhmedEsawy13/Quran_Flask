@@ -156,6 +156,20 @@ body {
 }
 .ed-word.ed-diff .ed-waqf-mark { color: var(--ed-diff); }
 
+/* ركوع: not an inline mark — a small badge above the ayah-end circle.
+   `.ed-line`/`.ed-page` clip overflow, so this must stay inside `.ed-word`'s
+   own box (its 0.5em top padding) rather than translating above it. */
+.ed-waqf-mark.ed-mark-above {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    font-family: 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+    font-size: 0.3em; line-height: 1; white-space: nowrap; margin: 0; z-index: 2;
+    padding: 0.05em 0.35em; border-radius: 999px;
+    background: var(--ed-accent-soft); border: 1px solid var(--ed-accent); color: var(--ed-accent);
+}
+.ed-word.ed-diff .ed-waqf-mark.ed-mark-above {
+    background: var(--ed-diff-soft); border-color: var(--ed-diff); color: var(--ed-diff);
+}
+
 /* ── Legend ──────────────────────────────────────────────────────── */
 .ed-legend {
     display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;

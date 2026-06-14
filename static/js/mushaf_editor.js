@@ -44,10 +44,15 @@
         'ج':  { name: 'جائز' },
         'س':  { name: 'سكتة' },
         'ع':  { name: 'معانقة' },
+        'ركوع': { name: 'يصلح الوقف هنا (ركوع)' },
     };
     const WAQF_GLYPH = {
         'م': 'ۘ', 'لا': 'ۙ', 'ق': 'ۗ', 'ص': 'ۖ', 'ج': 'ۚ', 'س': 'ۜ', 'ع': 'ۛ',
+        'ركوع': 'ركوع',
     };
+    // ركوع marks are anchored to the ayah-end number rather than appearing
+    // inline like other waqf marks — render them as a small badge above it.
+    const ABOVE_VERSE_MARKS = new Set(['ركوع']);
 
     const els = {
         pageR: $('ed-page-r'), pageL: $('ed-page-l'),
@@ -337,6 +342,7 @@
                 span.appendChild(mark);
             }
             mark.textContent = WAQF_GLYPH[editionSym] || editionSym;
+            mark.classList.toggle('ed-mark-above', ABOVE_VERSE_MARKS.has(editionSym));
         } else if (mark) {
             mark.remove();
         }

@@ -103,7 +103,10 @@ def after_request(response):
     if request.path.startswith('/api/'):
         # Waqf overlays can be adjusted at runtime and are sensitive to
         # matching logic updates. Avoid stale browser cache for these requests.
-        if request.args.get('mushaf_version'):
+        # /api/mushaf-editor/* is a live editing tool (spread/progress reads
+        # reflect edits made seconds earlier via /api/mushaf-editor/waqf) — a
+        # 1-hour cache made just-saved marks appear to "not save" on reload.
+        if request.args.get('mushaf_version') or request.path.startswith('/api/mushaf-editor/'):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
         else:
             response.headers['Cache-Control'] = 'public, max-age=3600'
