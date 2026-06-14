@@ -402,6 +402,13 @@
     const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
     const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
 
+    // The Digital Khatt / QPC-v1 source text embeds مصحف المدينة's printed waqf
+    // mark as a combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word
+    // carries it. appendWaqfMarks() renders each version's mark separately (from
+    // the `waqf` table), so strip the embedded one to avoid showing it twice.
+    const EMBEDDED_WAQF_RE = /[ۖ-ۜ]/g;
+    const stripEmbeddedWaqf = text => text.replace(EMBEDDED_WAQF_RE, '');
+
     const updateJustifyLabel = () => { els.justifyVal.textContent = toAr(state.justify) + '٪'; };
 
     /* ── Surah list + per-surah memo ───────────────────────────────── */
@@ -669,7 +676,7 @@
                         span.className = 'mz-word';
                         // Shemrly glyphs already include the printed ayah marker; only the
                         // letter-based sources need the ۝ ornament appended.
-                        const text = state.src === 'shamarly' ? (w.text || '') : withAyahOrnament(w.text || '');
+                        const text = state.src === 'shamarly' ? (w.text || '') : withAyahOrnament(stripEmbeddedWaqf(w.text || ''));
                         span.textContent = text;
                         span.dataset.text = text;
                         if (w.surah != null && w.ayah != null) {

@@ -5,6 +5,7 @@ import os
 import logging
 import re
 import threading
+import unicodedata
 from collections import defaultdict, OrderedDict, Counter
 from functools import lru_cache
 
@@ -144,6 +145,8 @@ def internal_error(error):
 DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'word_name.db')
 WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'mushaf_waqf.db')
+# مصاحف being adjusted from the Madinah v1 layout via /mushaf-editor.
+EDITOR_EDITIONS = {'قطر', 'الكويت'}
 # Per-reciter guide config: positions.db path + default waqf column from mushaf_waqf DB.
 # Add a new entry here whenever a reciter has segmentation data.
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -219,7 +222,18 @@ NON_WAQF_SPECIFIC_CHARS = set([
     '۩', '۞', '۝'
 ])
 ARABIC_INDIC_DIGIT_PATTERN = re.compile(r'^[٠-٩]+$')
-ARABIC_DIACRITICS_STRIP_PATTERN = re.compile(r'[\u064B-\u065F\u0670\u06D6-\u06ED]')
+# \u08F0-\u08FF: Arabic Extended-A tanween/diacritic variants (e.g. \u08F0
+# "open fathatan") used by the Digital Khatt source text but not by the waqf
+# DB's "\u0627\u0644\u0643\u0644\u0645\u0629" column \u2014 without stripping these, _normalize_mushaf_word_token
+# leaves a stray mark on the Digital Khatt token, the hint-based match in
+# _find_mushaf_row_match_index fails, and the fallback scan can land on an
+# earlier word with the same consonant skeleton (e.g. surah 2:138's repeated
+# "\u0635\u0628\u063A\u0629"), displacing the waqf mark onto the wrong word.
+# \u0640: tatweel and \u034F: combining grapheme joiner are zero-width/
+# formatting characters that appear in some Digital Khatt tokens (e.g. around
+# the decomposed hamza in "\u0627\u0644\u0652\u0640\u0670\u0623\u062E\u0650\u0631") but never in the waqf DB's
+# "\u0627\u0644\u0643\u0644\u0645\u0629" column \u2014 stripped here so normalization can match across both.
+ARABIC_DIACRITICS_STRIP_PATTERN = re.compile(r'[\u0640\u064B-\u065F\u0670\u06D6-\u06ED\u08F0-\u08FF\u034F]')
 
 # Broader pattern used for search normalisation: strip diacritics, tatweel,
 # ayah-end markers, and Quranic annotation marks so user queries like "الله"
@@ -3024,6 +3038,10 @@ def _normalize_mushaf_word_token(value):
     text = (value or '').strip()
     if not text:
         return ''
+    # NFD-decompose precomposed hamza letters (أ/إ/ؤ/آ) into base letter +
+    # combining hamza/maddah so they strip down to the same skeleton as the
+    # Digital Khatt source text, which spells those letters in decomposed form.
+    text = unicodedata.normalize('NFD', text)
     text = ARABIC_DIACRITICS_STRIP_PATTERN.sub('', text)
     return ''.join(ch for ch in text if not ch.isspace())
 
@@ -3088,10 +3106,16 @@ def _find_mushaf_row_match_index(words, row, search_start=0):
     target_raw = _compact_mushaf_word_token(target_text)
     target_norm = _normalize_mushaf_word_token(target_text)
 
+    hinted_by_word_index = _word_index_hint_to_list_index(words, row)
+
     if not target_raw and not target_norm:
+        # Some rows carry no "الكلمة" text at all (a data-entry gap) but do
+        # have a usable word_index hint — trust it rather than dropping the
+        # mark entirely.
+        if hinted_by_word_index is not None and 0 <= hinted_by_word_index < len(words):
+            return hinted_by_word_index
         return None
 
-    hinted_by_word_index = _word_index_hint_to_list_index(words, row)
     if hinted_by_word_index is not None and 0 <= hinted_by_word_index < len(words):
         hinted_text = _get_word_match_text(words[hinted_by_word_index])
         hinted_raw = _compact_mushaf_word_token(hinted_text)
@@ -3354,6 +3378,110 @@ def _build_page_waqf_map(page_word_rows, mushaf_version):
                 waqf_map[word_index] = [entry]
 
     return waqf_map
+
+
+def _ayah_word_list_for_editor(surah_number, ayah_number):
+    """Ordered list of {'word_id', 'text'} for every layout word in an ayah,
+    using the same authoritative Digital Khatt / QPC-v1 word numbering as the
+    page payloads (so word_id lines up with first_word_id/last_word_id)."""
+    wmap = _get_dk_layout_word_map()
+    first_id = wmap['first_id'].get((surah_number, ayah_number))
+    last_id = wmap['last_id'].get((surah_number, ayah_number))
+    if first_id is None or last_id is None:
+        return []
+    id2tok = wmap['id2tok']
+    words = []
+    for word_id in range(first_id, last_id + 1):
+        tok = id2tok.get(word_id)
+        if tok:
+            words.append({'word_id': word_id, 'text': tok['text']})
+    return words
+
+
+def _get_or_set_word_waqf(global_word_id, edition, symbol):
+    """Read or write the mushaf_waqf.db waqf symbol for one word/edition.
+
+    `symbol`: None reads the current value without writing; '' clears the
+    mark; any other string sets it. Returns the resulting symbol (possibly
+    None), or None if the word/edition cannot be resolved.
+
+    Rows in `waqf` are sparse (only words with a mark in *some* edition have a
+    row). If the targeted word has no row yet and `symbol` is non-empty, a new
+    row is inserted with token_index/word_index computed from the layout word
+    map — the same scheme `migrate_mushaf_waqf_token_index.py` used, so the
+    existing match-by-word_index logic keeps working for renders.
+    """
+    if edition not in EDITOR_EDITIONS:
+        return None
+
+    wmap = _get_dk_layout_word_map()
+    tok = wmap['id2tok'].get(global_word_id)
+    if not tok:
+        return None
+    surah_number, ayah_number = tok['surah'], tok['ayah']
+    first_id = wmap['first_id'].get((surah_number, ayah_number))
+    if first_id is None:
+        return None
+    target_index = global_word_id - first_id
+
+    words = _ayah_word_list_for_editor(surah_number, ayah_number)
+    if not (0 <= target_index < len(words)):
+        return None
+
+    quoted_col = f'"{edition}"'
+    conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute(
+            f'SELECT rowid, "الكلمة" AS word, token_index, word_index, {quoted_col} AS current '
+            'FROM waqf WHERE "السورة" = ? AND "الآية" = ? ORDER BY rowid ASC',
+            (surah_number, ayah_number)
+        )
+        rows = [dict(r) for r in cur.fetchall()]
+
+        matched_row = None
+        search_start = 0
+        for row in rows:
+            idx = _find_mushaf_row_match_index(words, row, search_start)
+            if idx == target_index:
+                matched_row = row
+                break
+            if idx is not None:
+                search_start = idx + 1
+
+        if symbol is None:
+            return matched_row['current'] if matched_row else None
+
+        clean_symbol = (symbol or '').strip() or None
+
+        if matched_row is not None:
+            cur.execute(f'UPDATE waqf SET {quoted_col} = ? WHERE rowid = ?', (clean_symbol, matched_row['rowid']))
+            conn.commit()
+            _mushaf_waqf_cache.pop((surah_number, ayah_number, edition), None)
+            return clean_symbol
+
+        if clean_symbol is None:
+            return None  # nothing to clear — no row covers this word in any edition
+
+        word_index_hint = 1 + sum(
+            1 for w in words[:target_index] if _normalize_mushaf_word_token(w['text'])
+        )
+        used_token_indexes = {r['token_index'] for r in rows if r.get('token_index') is not None}
+        token_index = target_index + 1
+        while token_index in used_token_indexes:
+            token_index += 1
+
+        cur.execute(
+            f'INSERT INTO waqf ("السورة","الآية","الكلمة",token_index,word_index,{quoted_col}) '
+            'VALUES (?, ?, ?, ?, ?, ?)',
+            (surah_number, ayah_number, words[target_index]['text'], token_index, word_index_hint, clean_symbol)
+        )
+        conn.commit()
+        _mushaf_waqf_cache.pop((surah_number, ayah_number, edition), None)
+        return clean_symbol
+    finally:
+        conn.close()
 
 
 def _build_shamarly_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
@@ -4049,6 +4177,106 @@ def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
     except Exception as e:
         app.logger.error(f"Error fetching QPC V1 page by ayah {surah_number}:{ayah_number}: {e}")
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/mushaf-editor')
+def mushaf_editor_page():
+    return render_template('mushaf_editor.html', enable_vercel_analytics=_IS_SERVERLESS)
+
+
+@app.route('/api/mushaf-editor/spread/<int:spread_number>', methods=['GET'])
+def get_mushaf_editor_spread(spread_number):
+    """Two facing pages of the Madinah v1 layout, carrying both the selected
+    edition's current waqf marks and the المدينة baseline (for diffing)."""
+    edition = (request.args.get('edition') or '').strip()
+    if edition not in EDITOR_EDITIONS:
+        return jsonify({'error': 'invalid edition'}), 400
+    try:
+        spread_number = max(1, int(spread_number))
+        right_page = min(604, spread_number * 2 - 1)
+        left_page = right_page + 1
+        versions = [edition, 'المدينة']
+        right = _build_qpc_v1_page_payload(right_page, mushaf_version=versions)
+        left = _build_qpc_v1_page_payload(left_page, mushaf_version=versions) if left_page <= 604 else None
+        return jsonify({
+            'spread_number': spread_number,
+            'edition': edition,
+            'right': right,
+            'left': left,
+            'max_spread': 302,
+        })
+    except Exception as e:
+        app.logger.error(f"Error fetching mushaf-editor spread {spread_number}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/mushaf-editor/waqf', methods=['POST'])
+def set_mushaf_editor_waqf():
+    """Set or clear the waqf mark for one word in one edition.
+
+    Body: {"word_id": <global layout word id>, "edition": "قطر"|"الكويت",
+           "symbol": "<one of م لا ق ص ج س ع>" | "" (clear)}
+    """
+    data = request.get_json(silent=True) or {}
+    try:
+        word_id = int(data.get('word_id'))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid word_id'}), 400
+    edition = (data.get('edition') or '').strip()
+    if edition not in EDITOR_EDITIONS:
+        return jsonify({'error': 'invalid edition'}), 400
+    symbol = data.get('symbol')
+    symbol = '' if symbol is None else str(symbol).strip()
+
+    result = _get_or_set_word_waqf(word_id, edition, symbol)
+    if result is None and symbol:
+        return jsonify({'error': 'word not found'}), 404
+    return jsonify({'word_id': word_id, 'edition': edition, 'symbol': result or ''})
+
+
+@app.route('/api/mushaf-editor/progress', methods=['GET', 'POST'])
+def mushaf_editor_progress():
+    """Track which spreads of the 604-page layout have been manually reviewed
+    for each new edition, so the comparison work can be paused/resumed."""
+    if request.method == 'GET':
+        edition = (request.args.get('edition') or '').strip()
+    else:
+        edition = (request.get_json(silent=True) or {}).get('edition', '')
+        edition = (edition or '').strip()
+
+    if edition not in EDITOR_EDITIONS:
+        return jsonify({'error': 'invalid edition'}), 400
+
+    conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+    try:
+        cur = conn.cursor()
+        if request.method == 'GET':
+            cur.execute(
+                'SELECT page_number FROM mushaf_editor_progress WHERE edition = ? AND reviewed = 1',
+                (edition,)
+            )
+            pages = sorted(row[0] for row in cur.fetchall())
+            return jsonify({'edition': edition, 'reviewed_pages': pages})
+
+        body = request.get_json(silent=True) or {}
+        try:
+            page_number = int(body.get('page_number'))
+        except (TypeError, ValueError):
+            return jsonify({'error': 'invalid page_number'}), 400
+        reviewed = 1 if body.get('reviewed') else 0
+        cur.execute(
+            'INSERT INTO mushaf_editor_progress (page_number, edition, reviewed, updated_at) '
+            'VALUES (?, ?, ?, datetime("now")) '
+            'ON CONFLICT(page_number, edition) DO UPDATE SET reviewed = excluded.reviewed, updated_at = excluded.updated_at',
+            (page_number, edition, reviewed)
+        )
+        conn.commit()
+        return jsonify({'ok': True, 'page_number': page_number, 'edition': edition, 'reviewed': bool(reviewed)})
+    except Exception as e:
+        app.logger.error(f"Error in mushaf-editor progress: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
 
 
 if __name__ == '__main__':

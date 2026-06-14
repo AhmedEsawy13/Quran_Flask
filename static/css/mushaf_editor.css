@@ -1,0 +1,216 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Mushaf Editor — adjust مواضع الوقف والابتداء for مصحف قطر / الكويت الحديث
+   starting from the Madinah v1 (1405) layout.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')      format('woff2'); font-display: swap; }
+@font-face { font-family: 'Uthmanic Hafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'); font-display: swap; }
+
+:root {
+    --ed-accent: #4f46e5;
+    --ed-accent-soft: rgba(79,70,229,0.12);
+    --ed-diff: #ea580c;
+    --ed-diff-soft: rgba(234,88,12,0.16);
+    --ed-bg: #f5f1e8;
+    --ed-paper: #fffdf8;
+    --ed-paper-2: #f7f2e7;
+    --ed-border: #e0d6c2;
+    --ed-ink: #1c1917;
+    --ed-muted: #8a8275;
+    /* Fallback sizes before JS measures the available space (sizePages). */
+    --ed-page-w: clamp(230px, 40vw, 460px);
+    --ed-page-h: clamp(348px, 60.6vw, 697px);
+    --ed-fs: 22px;
+}
+body.ed-dark {
+    --ed-accent: #818cf8;
+    --ed-accent-soft: rgba(129,140,248,0.18);
+    --ed-diff: #fb923c;
+    --ed-diff-soft: rgba(251,146,60,0.20);
+    --ed-bg: #151310;
+    --ed-paper: #1d1a16;
+    --ed-paper-2: #262220;
+    --ed-border: #38332c;
+    --ed-ink: #f0ece2;
+    --ed-muted: #948c7e;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+    font-family: 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+    background: var(--ed-bg); color: var(--ed-ink);
+    min-height: 100vh; display: flex; flex-direction: column;
+    transition: background 0.2s, color 0.2s;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────── */
+.ed-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 14px; background: var(--ed-paper);
+    border-bottom: 1px solid var(--ed-border);
+    position: sticky; top: 0; z-index: 20;
+    flex-wrap: wrap;
+}
+.ed-back, .ed-bar-btn, .ed-nav button, .ed-jump button {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--ed-border); background: var(--ed-paper-2);
+    color: var(--ed-ink); text-decoration: none; cursor: pointer; font-size: 0.95rem;
+}
+.ed-back:hover, .ed-bar-btn:hover, .ed-nav button:hover, .ed-jump button:hover {
+    border-color: var(--ed-accent); color: var(--ed-accent);
+}
+.ed-edition-toggle { display: flex; gap: 6px; }
+.ed-edition-btn {
+    padding: 7px 16px; border-radius: 999px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper-2); color: var(--ed-ink); cursor: pointer;
+    font-family: inherit; font-size: 0.92rem; font-weight: 600;
+}
+.ed-edition-btn.ed-active { background: var(--ed-accent); border-color: var(--ed-accent); color: #fff; }
+.ed-bar-spacer { flex: 1 1 auto; }
+.ed-progress { font-size: 0.85rem; color: var(--ed-muted); font-weight: 600; white-space: nowrap; }
+.ed-reviewed-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; cursor: pointer; white-space: nowrap; }
+.ed-reviewed-toggle input { width: 16px; height: 16px; accent-color: var(--ed-accent); cursor: pointer; }
+.ed-jump { display: flex; gap: 4px; }
+.ed-jump input {
+    width: 84px; border-radius: 8px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper-2); color: var(--ed-ink); padding: 0 8px;
+    font-family: inherit; font-size: 0.88rem; text-align: center;
+}
+.ed-nav { display: flex; align-items: center; gap: 6px; }
+.ed-spread-label { font-size: 0.88rem; font-weight: 600; min-width: 64px; text-align: center; }
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+.ed-toast {
+    position: fixed; top: 56px; left: 50%; transform: translateX(-50%) translateY(-12px);
+    background: var(--ed-ink); color: var(--ed-paper); padding: 8px 18px; border-radius: 999px;
+    font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+    z-index: 60;
+}
+.ed-toast.ed-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.ed-toast.ed-err { background: #b91c1c; color: #fff; }
+
+/* ── Spread / pages ──────────────────────────────────────────────── */
+.ed-main { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 18px 10px; }
+.ed-spread {
+    display: flex; flex-direction: row; gap: 0; position: relative;
+}
+.ed-spread::after {
+    content: ''; position: absolute; top: 6px; bottom: 6px; left: 50%; width: 18px;
+    transform: translateX(-50%); background: linear-gradient(to right, transparent, rgba(0,0,0,0.10), transparent);
+    pointer-events: none;
+}
+.ed-page-card { position: relative; display: flex; flex-direction: column; }
+.ed-page-card[data-side="right"] { padding-inline-end: 10px; }
+.ed-page-card[data-side="left"]  { padding-inline-start: 10px; }
+.ed-page-header {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    text-align: center; font-size: 0.8rem; color: var(--ed-muted); margin-bottom: 4px; font-weight: 600;
+}
+.ed-ref-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 6px; padding: 0;
+    border: 1px solid var(--ed-border); background: var(--ed-paper-2);
+    color: var(--ed-muted); cursor: pointer; font-size: 0.75rem;
+}
+.ed-ref-btn:hover { border-color: var(--ed-accent); color: var(--ed-accent); }
+/* Sized in JS (sizePages) to fit the available space at a real mushaf ratio
+   (width/height ≈ 0.66) — overflow:hidden is a last-resort safety net, the
+   per-page font-size (applyFontSize) + per-line fit (justifyLines) below are
+   what actually keep every word inside the border. */
+.ed-page {
+    width: var(--ed-page-w); height: var(--ed-page-h); background: var(--ed-paper);
+    border: 1px solid var(--ed-border); border-radius: 6px;
+    padding: 14px 12px; display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden;
+}
+.ed-line { flex: 1 1 0; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; direction: rtl; }
+
+.ed-line-special {
+    font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
+    color: var(--ed-accent); font-size: calc(var(--ed-fs) * 0.7);
+    white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Holds every word of one line; sized as a single nowrap run so applyFontSize
+   can measure its natural width and justifyLines can scale/space it to fit. */
+.ed-line-inner {
+    white-space: nowrap; font-size: var(--ed-fs); line-height: 1;
+    direction: rtl; transform-origin: center center; will-change: transform;
+}
+
+/* ── Words ───────────────────────────────────────────────────────── */
+.ed-word {
+    font-family: 'Old Madina', serif;
+    line-height: 1; padding: 0.5em 0.06em 0.15em; border-radius: 0.2em;
+    cursor: pointer; position: relative; transition: background 0.12s;
+}
+.ed-word:hover { background: var(--ed-accent-soft); }
+.ed-word.ed-diff { background: var(--ed-diff-soft); }
+.ed-word.ed-diff:hover { background: var(--ed-diff-soft); filter: brightness(0.95); }
+.ed-word.ed-selected { outline: 2px solid var(--ed-accent); outline-offset: 1px; background: var(--ed-accent-soft); }
+.ed-waqf-mark {
+    font-family: 'Uthmanic Hafs', serif;
+    font-size: 0.8em; color: var(--ed-accent); margin-inline-start: 0.04em;
+}
+.ed-word.ed-diff .ed-waqf-mark { color: var(--ed-diff); }
+
+/* ── Legend ──────────────────────────────────────────────────────── */
+.ed-legend {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    padding: 8px 14px 14px; font-size: 0.82rem; color: var(--ed-muted);
+}
+.ed-legend-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 1px solid var(--ed-border); border-radius: 999px; padding: 4px 10px;
+    background: var(--ed-paper);
+}
+.ed-legend-chip .ed-legend-glyph { font-family: 'Uthmanic Hafs', serif; font-size: 1.1em; color: var(--ed-accent); }
+.ed-legend-chip.ed-legend-diff { background: var(--ed-diff-soft); border-color: var(--ed-diff); color: var(--ed-ink); }
+.ed-legend-chip.ed-legend-diff .ed-legend-swatch {
+    width: 14px; height: 14px; border-radius: 3px; background: var(--ed-diff-soft); border: 1px solid var(--ed-diff);
+}
+
+/* ── Word edit popup (bottom sheet) ─────────────────────────────────*/
+.ed-popup-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 40;
+}
+.ed-popup {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    background: var(--ed-paper); border-top: 1px solid var(--ed-border);
+    border-radius: 16px 16px 0 0; padding: 14px 16px 20px;
+    box-shadow: 0 -6px 24px rgba(0,0,0,0.18);
+    max-width: 520px; margin: 0 auto;
+}
+.ed-popup-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.ed-popup-title { font-family: 'Old Madina', serif; font-size: 1.6rem; }
+.ed-popup-close {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper-2); color: var(--ed-ink); cursor: pointer;
+}
+.ed-popup-baseline { font-size: 0.8rem; color: var(--ed-muted); margin-bottom: 10px; }
+.ed-popup-baseline .ed-baseline-glyph { font-family: 'Uthmanic Hafs', serif; font-size: 1.1em; color: var(--ed-ink); }
+.ed-popup-syms { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px; }
+.ed-sym-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 8px 14px; border-radius: 10px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper-2); color: var(--ed-ink); cursor: pointer; font-family: inherit;
+    min-width: 64px;
+}
+.ed-sym-btn .ed-sym-glyph { font-family: 'Uthmanic Hafs', serif; font-size: 1.5rem; color: var(--ed-accent); }
+.ed-sym-btn .ed-sym-name { font-size: 0.74rem; }
+.ed-sym-btn.ed-active { border-color: var(--ed-accent); background: var(--ed-accent-soft); }
+.ed-popup-clear {
+    display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
+    padding: 9px; border-radius: 10px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper-2); color: var(--ed-ink); cursor: pointer; font-family: inherit; font-size: 0.88rem;
+}
+.ed-popup-clear:hover { border-color: var(--ed-diff); color: var(--ed-diff); }
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+/* --ed-page-w/h are recomputed by sizePages() on resize; only chrome tweaks here. */
+@media (max-width: 720px) {
+    .ed-bar { gap: 6px; }
+    .ed-progress, .ed-reviewed-toggle span { display: none; }
+}

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>محرر مواضع الوقف — قطر / الكويت</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <link rel="preload" href="{{ url_for('static', filename='fonts/oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_editor.css') }}?v=4">
+
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
+
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body>
+    <header class="ed-bar">
+        <a class="ed-back" href="/" title="رجوع إلى التطبيق" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
+
+        <div class="ed-edition-toggle" id="ed-edition-toggle">
+            <button class="ed-edition-btn" data-edition="قطر" type="button">مصحف قطر</button>
+            <button class="ed-edition-btn" data-edition="الكويت" type="button">الكويت الحديث</button>
+        </div>
+
+        <div class="ed-bar-spacer"></div>
+
+        <div class="ed-progress" id="ed-progress" title="عدد الصفحات المراجَعة"></div>
+
+        <label class="ed-reviewed-toggle" title="وضع علامة على هاتين الصفحتين كمُراجَعتين">
+            <input type="checkbox" id="ed-reviewed">
+            <span>تمت المراجعة</span>
+        </label>
+
+        <div class="ed-jump">
+            <input type="number" id="ed-jump-page" min="1" max="604" placeholder="رقم الصفحة" aria-label="الانتقال إلى صفحة">
+            <button id="ed-jump-go" type="button" title="انتقال"><i class="fas fa-arrow-left"></i></button>
+        </div>
+
+        <div class="ed-nav">
+            <button id="ed-prev" type="button" title="السابق"><i class="fas fa-chevron-right"></i></button>
+            <span class="ed-spread-label" id="ed-spread-label"></span>
+            <button id="ed-next" type="button" title="التالي"><i class="fas fa-chevron-left"></i></button>
+        </div>
+
+        <button class="ed-bar-btn" id="ed-theme" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
+    </header>
+
+    <div class="ed-toast" id="ed-status" role="status"></div>
+
+    <main class="ed-main">
+        <div class="ed-spread" id="ed-spread">
+            <div class="ed-page-card" data-side="right">
+                <div class="ed-page-header">
+                    <span class="ed-page-num" id="ed-page-r-num"></span>
+                    <button class="ed-ref-btn" id="ed-ref-r" type="button" hidden><i class="fas fa-book-open"></i></button>
+                </div>
+                <div class="ed-page" id="ed-page-r" dir="rtl"></div>
+            </div>
+            <div class="ed-page-card" data-side="left">
+                <div class="ed-page-header">
+                    <span class="ed-page-num" id="ed-page-l-num"></span>
+                    <button class="ed-ref-btn" id="ed-ref-l" type="button" hidden><i class="fas fa-book-open"></i></button>
+                </div>
+                <div class="ed-page" id="ed-page-l" dir="rtl"></div>
+            </div>
+        </div>
+    </main>
+
+    <div class="ed-legend" id="ed-legend"></div>
+
+    <!-- word edit popup (bottom sheet) -->
+    <div class="ed-popup-backdrop" id="ed-popup-backdrop" hidden></div>
+    <div class="ed-popup" id="ed-popup" hidden role="dialog" aria-label="تعديل علامة الوقف">
+        <div class="ed-popup-head">
+            <span class="ed-popup-title" id="ed-popup-title"></span>
+            <button class="ed-popup-close" id="ed-popup-close" type="button" aria-label="إغلاق"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="ed-popup-baseline" id="ed-popup-baseline"></div>
+        <div class="ed-popup-syms" id="ed-popup-syms"></div>
+        <button class="ed-popup-clear" id="ed-popup-clear" type="button"><i class="fas fa-eraser"></i> بلا علامة</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/mushaf_editor.js') }}?v=4"></script>
+</body>
+</html>
