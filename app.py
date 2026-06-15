@@ -3876,6 +3876,62 @@ def _get_dk_layout_word_map():
     return result
 
 
+_QPC_HAFS_LAYOUT_WORD_MAP = None
+
+
+def _get_qpc_hafs_layout_word_map():
+    """Like ``_get_dk_layout_word_map`` but with QPC Hafs (``qpc_hafs_data``)
+    text — the script مصحف قطر's own layout is set in.
+
+    Reuses the Digital Khatt map's word-id ranges per (surah, ayah) (the
+    1..83668 numbering used by every 15-line layout DB), since switching text
+    source must not move any word_id used by mushaf_waqf.db. QPC Hafs
+    tokenises a small number of verses differently (e.g. a leading ۞ is its
+    own token, vs glued to the next word in the Digital Khatt source) — for
+    those verses we keep the Digital Khatt tokens so the per-verse word count
+    still matches the layout's ranges.
+
+    Unlike the Digital Khatt map, the ayah-end token here is the BARE digit
+    string with no leading ۝ (U+06DD): in the Uthmanic Hafs font the digits
+    already render inside their own end-of-ayah circle, and prefixing ۝ (which
+    renders as its own empty circle in this font, unlike Old Madina where it
+    ligates) produces two adjacent circles.
+    """
+    global _QPC_HAFS_LAYOUT_WORD_MAP
+    if _QPC_HAFS_LAYOUT_WORD_MAP is not None:
+        return _QPC_HAFS_LAYOUT_WORD_MAP
+
+    dk_map = _get_dk_layout_word_map()
+    result = {'id2tok': {}, 'first_id': dk_map['first_id'], 'last_id': dk_map['last_id']}
+    id2tok = result['id2tok']
+    dk_id2tok = dk_map['id2tok']
+
+    try:
+        for (s, a), first in dk_map['first_id'].items():
+            last = dk_map['last_id'][(s, a)]
+            count = last - first + 1
+            entry = qpc_hafs_data.get(f'{s}:{a}')
+            tokens = [w for w in re.split(r'\s+', (entry.get('text') or '').strip()) if w] if entry else []
+            if len(tokens) == count:
+                for i in range(count):
+                    id2tok[first + i] = {'surah': s, 'ayah': a, 'text': tokens[i]}
+            else:
+                # Tokenisation mismatch (e.g. leading ۞ split differently) —
+                # fall back to the Digital Khatt tokens for this verse.
+                for wid in range(first, last + 1):
+                    if wid in dk_id2tok:
+                        tok = dk_id2tok[wid]
+                        if wid == last and tok['text'].startswith('۝'):
+                            tok = {**tok, 'text': tok['text'][1:]}
+                        id2tok[wid] = tok
+    except Exception as e:
+        app.logger.error(f'Failed to build QPC Hafs layout word map: {e}')
+        return dk_map
+
+    _QPC_HAFS_LAYOUT_WORD_MAP = result
+    return result
+
+
 def _layout_page_resolve(layout_db, surah_number, ayah_number):
     """Return the page number that first displays (surah, ayah) in a 15-line
     layout DB, using the authoritative word map. None if unresolved."""
@@ -3898,14 +3954,16 @@ def _layout_page_resolve(layout_db, surah_number, ayah_number):
 
 
 def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
-                          source, font_name_default, include_advance, mushaf_version=''):
-    """Shared page-payload assembler for the Digital Khatt / QPC-v1 layouts.
-    Words come from the authoritative Digital Khatt word map keyed on the
-    layout's word ids, so the rendered text always matches the page.
+                          source, font_name_default, include_advance, mushaf_version='',
+                          word_map=None):
+    """Shared page-payload assembler for the Digital Khatt / QPC-v1 / قطر layouts.
+    Words come from the authoritative Digital Khatt word map (or `word_map`,
+    if given) keyed on the layout's word ids, so the rendered text always
+    matches the page.
 
     `mushaf_version` (str or list) selects which print's waqf symbols to attach
     per word — same mechanism the main app uses."""
-    id2tok = _get_dk_layout_word_map()['id2tok']
+    id2tok = (word_map or _get_dk_layout_word_map())['id2tok']
 
     def to_int_or_none(value):
         try:
@@ -4152,10 +4210,8 @@ def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None, m
 
 
 def _build_qatar_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
-    """Build a page payload from مصحف قطر's own 15-line layout database.
-
-    Shares the Digital Khatt word numbering and word map with the QPC-v1
-    payload above — only the page/line breaks (and rendering font) differ."""
+    """Build a page payload from مصحف قطر's own 15-line layout database,
+    rendered with QPC Hafs script text (matching its font_name='qpc-hafs')."""
     if not os.path.exists(QATAR_LAYOUT_DATABASE):
         return None
 
@@ -4180,7 +4236,7 @@ def _build_qatar_page_payload(page_number, focus_surah=None, focus_ayah=None, mu
     payload = _assemble_layout_page(
         lines, info_row, page_number, focus_surah, focus_ayah,
         source='mushaf_qatar', font_name_default='Old Madina', include_advance=False,
-        mushaf_version=mushaf_version
+        mushaf_version=mushaf_version, word_map=_get_qpc_hafs_layout_word_map()
     )
     payload['layout_name'] = (info_row['name'] if info_row else 'مصحف قطر')
     payload['mushaf_version'] = (

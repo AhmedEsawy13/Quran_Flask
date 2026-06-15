@@ -25,8 +25,6 @@
     //   page 1 (سورة الفاتحة), so PDF page = Madinah page + 4.
     const KUWAIT_PDF_ID = 'kweat--h4794794946945969';
     const KUWAIT_PAGE_OFFSET = 4;
-    const AYAH_END_RE = /^[٠-٩]+$/;
-    const withAyahOrnament = text => AYAH_END_RE.test(text) ? '۝' + text : text;
 
     // The Digital Khatt source text embeds مصحف المدينة's printed waqf mark as a
     // combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word carries it.
@@ -117,6 +115,8 @@
     /* ── Edition toggle ──────────────────────────────────────────── */
     function updateEditionUI() {
         els.editionBtns.forEach(b => b.classList.toggle('ed-active', b.dataset.edition === state.edition));
+        // مصحف قطر's layout (mushaf-qatar-layout.db) declares font_name "qpc-hafs".
+        document.body.classList.toggle('ed-font-hafs', state.edition === 'قطر');
     }
     els.editionBtns.forEach(btn => btn.addEventListener('click', () => {
         if (btn.dataset.edition === state.edition) return;
@@ -318,7 +318,7 @@
         span.dataset.wordId = String(w.word_index);
         const cleanText = stripEmbeddedWaqf(w.text || '');
         span.dataset.text = cleanText;
-        span.textContent = withAyahOrnament(cleanText);
+        span.textContent = cleanText;
 
         const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
         const editionEntry = entries.find(e => e.version === state.edition);

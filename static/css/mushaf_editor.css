@@ -146,6 +146,10 @@ body {
     line-height: 1; padding: 0.5em 0.06em 0.15em; border-radius: 0.2em;
     cursor: pointer; position: relative; transition: background 0.12s;
 }
+/* مصحف قطر's layout DB declares font_name "qpc-hafs" — render its pages in
+   Uthmanic Hafs instead of Old Madina (already loaded for the waqf glyphs). */
+body.ed-font-hafs .ed-word,
+body.ed-font-hafs .ed-popup-title { font-family: 'Uthmanic Hafs', serif; }
 .ed-word:hover { background: var(--ed-accent-soft); }
 .ed-word.ed-diff { background: var(--ed-diff-soft); }
 .ed-word.ed-diff:hover { background: var(--ed-diff-soft); filter: brightness(0.95); }
