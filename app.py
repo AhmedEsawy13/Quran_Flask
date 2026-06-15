@@ -202,6 +202,9 @@ HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']
 # QPC v4 line breaks. (Schema has no total_advance/x_offset columns.)
 DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'qpc-v4-15-lines.db')
 QPC_V1_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'qpc-v1-15-lines.db')
+# مصحف قطر's own 15-line layout (same 1..83668 word numbering, different line
+# breaks than the Old Madina 1405 print). Used only by the mushaf-editor.
+QATAR_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'mushaf-qatar-layout.db')
 # Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
 # from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
 TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')
@@ -4148,6 +4151,44 @@ def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None, m
     return payload
 
 
+def _build_qatar_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
+    """Build a page payload from مصحف قطر's own 15-line layout database.
+
+    Shares the Digital Khatt word numbering and word map with the QPC-v1
+    payload above — only the page/line breaks (and rendering font) differ."""
+    if not os.path.exists(QATAR_LAYOUT_DATABASE):
+        return None
+
+    layout_conn = sqlite3.connect(QATAR_LAYOUT_DATABASE)
+    try:
+        layout_conn.row_factory = sqlite3.Row
+        lc = layout_conn.cursor()
+        lc.execute(
+            'SELECT page_number, line_number, line_type, is_centered, first_word_id, last_word_id, surah_number '
+            'FROM pages WHERE page_number = ? ORDER BY line_number ASC',
+            (page_number,)
+        )
+        lines = [dict(row) for row in lc.fetchall()]
+        lc.execute('SELECT font_name, number_of_pages, lines_per_page, name FROM info LIMIT 1')
+        info_row = lc.fetchone()
+    finally:
+        layout_conn.close()
+
+    if not lines:
+        return None
+
+    payload = _assemble_layout_page(
+        lines, info_row, page_number, focus_surah, focus_ayah,
+        source='mushaf_qatar', font_name_default='Old Madina', include_advance=False,
+        mushaf_version=mushaf_version
+    )
+    payload['layout_name'] = (info_row['name'] if info_row else 'مصحف قطر')
+    payload['mushaf_version'] = (
+        mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
+    )
+    return payload
+
+
 @app.route('/api/qpc-v1/page/<int:page_number>', methods=['GET'])
 def get_qpc_v1_page(page_number):
     try:
@@ -4199,8 +4240,9 @@ def get_mushaf_editor_spread(spread_number):
         right_page = min(604, spread_number * 2 - 1)
         left_page = right_page + 1
         versions = [edition, 'المدينة']
-        right = _build_qpc_v1_page_payload(right_page, mushaf_version=versions)
-        left = _build_qpc_v1_page_payload(left_page, mushaf_version=versions) if left_page <= 604 else None
+        build_page = _build_qatar_page_payload if edition == 'قطر' else _build_qpc_v1_page_payload
+        right = build_page(right_page, mushaf_version=versions)
+        left = build_page(left_page, mushaf_version=versions) if left_page <= 604 else None
         return jsonify({
             'spread_number': spread_number,
             'edition': edition,
