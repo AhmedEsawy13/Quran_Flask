@@ -161,30 +161,17 @@ h1, h2, h3, .athar-heading {
   background: var(--athar-accent);
 }
 
-/* Theme toggles relocated into the bar (reading page) */
-.athar-bar .athar-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-inline-start: 6px;
+/* The universal head holds ONLY the brand + nav. Each page's own controls
+ * bar starts on the next line; if it is sticky, offset it below the head so
+ * the two stack cleanly instead of overlapping. */
+body .mz-bar,
+body .wq-bar,
+body .ed-bar {
+  top: var(--athar-bar-h);
 }
-.athar-bar #dark-mode-toggle-label,
-.athar-bar #sepia-mode-toggle-label {
-  position: static;
-  inset: auto;
-  top: auto; left: auto;
-  background: transparent;
-  box-shadow: none;
-  padding: 7px;
-  color: var(--athar-bar-muted);
-}
-.athar-bar #dark-mode-toggle-label:hover,
-.athar-bar #sepia-mode-toggle-label:hover {
-  background: rgba(31, 122, 90, 0.10);
-  transform: none;
-}
-.athar-bar #dark-mode-toggle-label input,
-.athar-bar #sepia-mode-toggle-label input { display: none; }
+/* Reading page: its floating theme toggles sit just below the head. */
+#dark-mode-toggle-label { top: calc(var(--athar-bar-h) + 10px); }
+#sepia-mode-toggle-label { top: calc(var(--athar-bar-h) + 10px); }
 
 /* ---- Dark / sepia adaptation (matches the per-page theme classes) ---- */
 body.dark-mode .athar-bar,
@@ -209,45 +196,6 @@ body.wq-sepia .athar-bar {
   --athar-accent:     #1f7a5a;
 }
 
-/* ---------------------------------------------------------------------------
- * Compact brand logo embedded inside a page's own existing top bar
- * (تثبيت / مُكْث / editor already have their own .mz-bar/.wq-bar/.ed-bar).
- * ------------------------------------------------------------------------- */
-.athar-brand--inbar {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  text-decoration: none;
-  margin-inline-end: 4px;
-  padding-inline-end: 12px;
-  border-inline-end: 1px solid currentColor;
-  flex: 0 0 auto;
-}
-.athar-brand--inbar { border-inline-end-color: rgba(127,127,127,0.18); }
-.athar-brand--inbar .athar-logo {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.24rem;
-  line-height: 1;
-  color: var(--athar-accent);
-  letter-spacing: -0.02em;
-}
-.athar-brand--inbar .athar-mod {
-  font-family: var(--font-ui);
-  font-weight: 500;
-  font-size: 0.78rem;
-  color: var(--athar-bar-muted, rgba(29,29,31,0.6));
-}
-@media (max-width: 640px) {
-  .athar-brand--inbar .athar-mod { display: none; }
-  .athar-brand--inbar { padding-inline-end: 8px; margin-inline-end: 2px; }
-}
-
-/* Compact module nav inside a page's own bar (sits beside the in-bar logo). */
-.athar-nav--inbar { margin-inline-start: 0; gap: 4px; }
-.athar-nav--inbar a { font-size: 0.84rem; font-weight: 500; padding: 5px 9px; }
-.athar-nav--inbar a.is-active { font-weight: 600; }
-@media (max-width: 880px) { .athar-nav--inbar { display: none; } }
 
 /* ---- Mobile ---- */
 @media (max-width: 640px) {

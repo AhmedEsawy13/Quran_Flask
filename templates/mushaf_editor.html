@@ -15,7 +15,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_editor.css') }}?v=6">
     <!-- أثَر shared brand identity (fonts + logo) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=3">
     <script src="{{ url_for('static', filename='js/theme.js') }}?v=2"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -25,17 +25,20 @@
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
 <body>
-    <header class="ed-bar">
-        <a class="athar-brand--inbar" href="/" title="أثَر — مع القرآن">
+    <!-- أثَر universal app-bar (brand + module nav only — identical on all pages) -->
+    <header class="athar-bar">
+        <a class="athar-brand" href="/" title="أثَر — مع القرآن">
             <span class="athar-logo">أثَر</span>
-            <span class="athar-mod">محرّر المصحف</span>
+            <span class="athar-tag">مع القرآن</span>
         </a>
-        <nav class="athar-nav athar-nav--inbar">
+        <nav class="athar-nav">
             <a href="/">المصحف</a>
             <a href="/memorize">تثبيت</a>
             <a href="/waqf">مُكْث</a>
         </nav>
+    </header>
 
+    <header class="ed-bar">
         <div class="ed-edition-toggle" id="ed-edition-toggle">
             <button class="ed-edition-btn" data-edition="قطر" type="button">مصحف قطر</button>
             <button class="ed-edition-btn" data-edition="الكويت" type="button">الكويت الحديث</button>
