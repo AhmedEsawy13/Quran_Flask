@@ -17,8 +17,8 @@
     <!-- Critical CSS (render-blocking, intentional) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=24">
     <!-- أثَر shared brand identity (fonts + app-bar) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=1">
-    <script src="{{ url_for('static', filename='js/theme.js') }}?v=1"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=2">
+    <script src="{{ url_for('static', filename='js/theme.js') }}?v=2"></script>
 
     <!-- Google Fonts (async, non-render-blocking) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -118,9 +118,6 @@
                     <button id="show-range-selection" type="button" title="تشغيل نطاق من الآيات">
                         <i class="fas fa-layer-group"></i> <span>نطاق</span>
                     </button>
-                    <a id="open-visual-memorize" href="/memorize" title="وضع الحفظ: تكرار تراكمي مقطعي على صفحة المصحف" role="button">
-                        <i class="fas fa-brain"></i> <span>الحفظ</span>
-                    </a>
                     <button id="bookmark-button" type="button" title="إضافة علامة مرجعية">
                         <i class="fas fa-bookmark"></i> <span>حفظ</span>
                     </button>

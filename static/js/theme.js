@@ -14,6 +14,7 @@
 (function () {
   var KEY = 'quranApp_theme';
   var DARK  = ['dark-mode', 'mz-dark', 'wq-dark', 'ed-dark'];
+  // editor (ed) supports light/dark only; everything else supports sepia too.
   var SEPIA = ['sepia-mode', 'mz-sepia', 'wq-sepia'];
   var ALL = DARK.concat(SEPIA);
 
