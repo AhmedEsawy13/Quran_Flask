@@ -70,21 +70,17 @@
         if (!isErr) toastId = setTimeout(() => els.status.classList.remove('wq-show'), 1600);
     }
 
-    /* ── theme ────────────────────────────────────────────────── */
+    /* ── theme (shared أثَر engine: cycles white → dark → sepia) ─── */
+    function themeIcon(t) {
+        return t === 'dark' ? 'fas fa-moon' : t === 'sepia' ? 'fas fa-leaf' : 'fas fa-sun';
+    }
     function initTheme() {
-        const saved = localStorage.getItem('quranApp_theme');
-        const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        applyTheme(dark);
+        // theme.js already applied the shared theme on load; just sync the icon.
+        const i = els.theme.querySelector('i');
+        if (i) i.className = themeIcon(window.AtharTheme.get());
     }
-    function applyTheme(dark) {
-        document.body.classList.toggle('wq-dark', dark);
-        els.theme.querySelector('i').className = dark ? 'fas fa-sun' : 'fas fa-moon';
-    }
-    els.theme.addEventListener('click', () => {
-        const dark = !document.body.classList.contains('wq-dark');
-        applyTheme(dark);
-        localStorage.setItem('quranApp_theme', dark ? 'dark' : 'light');
-    });
+    els.theme.addEventListener('click', () => { window.AtharTheme.cycle(); });
+    document.addEventListener('athar:theme', initTheme);
 
     /* ── data loading ─────────────────────────────────────────── */
     async function loadSurahs() {

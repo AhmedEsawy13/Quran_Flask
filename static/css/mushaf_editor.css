@@ -38,7 +38,7 @@ body.ed-dark {
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-    font-family: 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
     background: var(--ed-bg); color: var(--ed-ink);
     min-height: 100vh; display: flex; flex-direction: column;
     transition: background 0.2s, color 0.2s;
@@ -128,7 +128,7 @@ body {
 .ed-line { flex: 1 1 0; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; direction: rtl; }
 
 .ed-line-special {
-    font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
+    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
     color: var(--ed-accent); font-size: calc(var(--ed-fs) * 0.7);
     white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
 }
@@ -165,7 +165,7 @@ body.ed-font-hafs .ed-popup-title { font-family: 'Uthmanic Hafs', serif; }
    own box (its 0.5em top padding) rather than translating above it. */
 .ed-waqf-mark.ed-mark-above {
     position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    font-family: 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
+    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
     font-size: 0.3em; line-height: 1; white-space: nowrap; margin: 0; z-index: 2;
     padding: 0.05em 0.35em; border-radius: 999px;
     background: var(--ed-accent-soft); border: 1px solid var(--ed-accent); color: var(--ed-accent);

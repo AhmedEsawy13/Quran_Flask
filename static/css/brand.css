@@ -52,11 +52,11 @@
   --athar-accent:      #1f7a5a;   /* deep green — calm, Quranic */
   --athar-accent-soft: #2e9c76;
   --athar-ink:         #14201b;
-  --athar-bar-bg:      rgba(255, 255, 255, 0.82);
-  --athar-bar-border:  rgba(20, 32, 27, 0.10);
-  --athar-bar-fg:      #1d2b25;
-  --athar-bar-muted:   #5d6f67;
-  --athar-bar-h:       58px;
+  --athar-bar-bg:      rgba(250, 250, 252, 0.72);
+  --athar-bar-border:  rgba(20, 32, 27, 0.08);
+  --athar-bar-fg:      #1d1d1f;
+  --athar-bar-muted:   rgba(29, 29, 31, 0.62);
+  --athar-bar-h:       50px;
 }
 
 /* ---- Base UI typography (no !important: Quran-text selectors stay) ---- */
@@ -81,12 +81,12 @@ h1, h2, h3, .athar-heading {
   z-index: 1200;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 22px;
   height: var(--athar-bar-h);
-  padding: 0 clamp(14px, 4vw, 32px);
+  padding: 0 clamp(16px, 4vw, 34px);
   background: var(--athar-bar-bg);
-  -webkit-backdrop-filter: saturate(180%) blur(14px);
-  backdrop-filter: saturate(180%) blur(14px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid var(--athar-bar-border);
   direction: rtl;
 }
@@ -95,58 +95,70 @@ h1, h2, h3, .athar-heading {
 .athar-bar .athar-brand {
   display: inline-flex;
   align-items: baseline;
-  gap: 9px;
+  gap: 8px;
   text-decoration: none;
   color: var(--athar-bar-fg);
   white-space: nowrap;
 }
 .athar-bar .athar-brand .athar-logo {
   font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.62rem;
+  font-weight: 800;
+  font-size: 1.42rem;
   line-height: 1;
   color: var(--athar-accent);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 .athar-bar .athar-brand .athar-tag {
   font-family: var(--font-ui);
   font-weight: 500;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--athar-bar-muted);
 }
 
 /* a small separator dot before the page/module name */
 .athar-bar .athar-sep {
-  width: 5px; height: 5px; border-radius: 50%;
-  background: var(--athar-accent-soft); opacity: .55;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--athar-accent-soft); opacity: .5;
   flex: 0 0 auto;
 }
 
-/* Module navigation */
+/* Module navigation — minimal, Apple-style: no pills, color/opacity only */
 .athar-bar .athar-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin-inline-start: auto;   /* push nav to the far (left in RTL) side */
 }
 .athar-bar .athar-nav a {
+  position: relative;
   font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 0.92rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: -0.006em;
   text-decoration: none;
   color: var(--athar-bar-muted);
-  padding: 7px 13px;
-  border-radius: 9px;
-  transition: background .15s ease, color .15s ease;
+  padding: 6px 10px;
+  border-radius: 7px;
+  transition: color .18s ease, background .18s ease;
   white-space: nowrap;
 }
 .athar-bar .athar-nav a:hover {
   color: var(--athar-bar-fg);
-  background: rgba(31, 122, 90, 0.08);
+  background: rgba(127, 127, 127, 0.07);
 }
 .athar-bar .athar-nav a.is-active {
-  color: var(--athar-accent);
-  background: rgba(31, 122, 90, 0.12);
+  color: var(--athar-bar-fg);
+  font-weight: 600;
+}
+/* subtle active indicator — a short rounded underline (Apple-like) */
+.athar-bar .athar-nav a.is-active::after {
+  content: "";
+  position: absolute;
+  inset-inline: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--athar-accent);
 }
 
 /* Theme toggles relocated into the bar (reading page) */
@@ -211,20 +223,20 @@ body.wq-sepia .athar-bar {
   border-inline-end: 1px solid currentColor;
   flex: 0 0 auto;
 }
-.athar-brand--inbar { border-inline-end-color: rgba(127,127,127,0.22); }
+.athar-brand--inbar { border-inline-end-color: rgba(127,127,127,0.18); }
 .athar-brand--inbar .athar-logo {
   font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.32rem;
+  font-weight: 800;
+  font-size: 1.24rem;
   line-height: 1;
   color: var(--athar-accent);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 .athar-brand--inbar .athar-mod {
   font-family: var(--font-ui);
-  font-weight: 600;
-  font-size: 0.82rem;
-  color: var(--athar-bar-muted, #5d6f67);
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--athar-bar-muted, rgba(29,29,31,0.6));
 }
 @media (max-width: 640px) {
   .athar-brand--inbar .athar-mod { display: none; }
@@ -232,8 +244,9 @@ body.wq-sepia .athar-bar {
 }
 
 /* Compact module nav inside a page's own bar (sits beside the in-bar logo). */
-.athar-nav--inbar { margin-inline-start: 0; gap: 2px; }
-.athar-nav--inbar a { font-size: 0.86rem; font-weight: 600; padding: 6px 10px; }
+.athar-nav--inbar { margin-inline-start: 0; gap: 4px; }
+.athar-nav--inbar a { font-size: 0.84rem; font-weight: 500; padding: 5px 9px; }
+.athar-nav--inbar a.is-active { font-weight: 600; }
 @media (max-width: 880px) { .athar-nav--inbar { display: none; } }
 
 /* ---- Mobile ---- */
