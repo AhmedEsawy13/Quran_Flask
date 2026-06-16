@@ -1,9 +1,0 @@
-# These reciter files are only used by offline pipeline/sync scripts
-# (scripts/import_qul_reciters.py, pipeline/build_husary_mushaf.py,
-# pipeline/analyze_waqf_patterns.py) — app.py never reads them at runtime.
-# Excluding them keeps the Lambda bundle under Vercel's 245MB limit.
-reciters/**/letter_timestamps.json.gz
-reciters/**/verse_timestamps.json.gz
-reciters/husary/transitions.db
-reciters/husary/transitions_v0.db
-reciters/husary/positions_v0.db

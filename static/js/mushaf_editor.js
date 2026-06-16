@@ -503,12 +503,11 @@
         if (w) { openPopup(w); return; }
     });
 
-    /* ── Theme ───────────────────────────────────────────────────── */
+    /* ── Theme (shared أثَر engine — editor supports light/dark) ──── */
     els.theme.addEventListener('click', () => {
-        const dark = document.body.classList.toggle('ed-dark');
-        localStorage.setItem('ed_theme', dark ? 'dark' : 'light');
+        window.AtharTheme.set(window.AtharTheme.get() === 'dark' ? 'light' : 'dark');
     });
-    if (localStorage.getItem('ed_theme') === 'dark') document.body.classList.add('ed-dark');
+    // initial class is applied by theme.js from the shared 'quranApp_theme' key
 
     /* ── Resize ──────────────────────────────────────────────────── */
     let _resizeId = 0;

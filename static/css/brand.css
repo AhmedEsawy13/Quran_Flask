@@ -1,0 +1,245 @@
+/* ===========================================================================
+ * أثَر — shared brand identity layer
+ * Loaded on every page (reading / تثبيت / مُكْث / editor) to give the app one
+ * consistent typographic identity and a shared top app-bar.
+ *
+ * Typography: Thmanyah (https://font.thmanyah.com/)
+ *   • Thmanyah Display  → logo, page headings (serif display)
+ *   • Thmanyah Sans     → UI / body text, controls
+ *   • Thmanyah Text     → long-form reading (serif text)
+ * Quran/mushaf text keeps its own fonts — those selectors are more specific,
+ * so the base font-family below never overrides actual Quranic script.
+ * ======================================================================== */
+
+/* ---- Thmanyah Sans (UI / body) ---- */
+@font-face { font-family:'Thmanyah Sans'; font-weight:300; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahsans/woff2/thmanyahsans-Light.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Sans'; font-weight:400; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahsans/woff2/thmanyahsans-Regular.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Sans'; font-weight:500; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahsans/woff2/thmanyahsans-Medium.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Sans'; font-weight:700; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahsans/woff2/thmanyahsans-Bold.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Sans'; font-weight:900; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahsans/woff2/thmanyahsans-Black.woff2') format('woff2'); }
+
+/* ---- Thmanyah Serif Display (logo / headings) ---- */
+@font-face { font-family:'Thmanyah Display'; font-weight:300; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Light.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Display'; font-weight:400; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Regular.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Display'; font-weight:500; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Medium.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Display'; font-weight:700; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Bold.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Display'; font-weight:900; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Black.woff2') format('woff2'); }
+
+/* ---- Thmanyah Serif Text (long-form reading) ---- */
+@font-face { font-family:'Thmanyah Text'; font-weight:400; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahseriftext/woff2/thmanyahseriftext-Regular.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Text'; font-weight:500; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahseriftext/woff2/thmanyahseriftext-Medium.woff2') format('woff2'); }
+@font-face { font-family:'Thmanyah Text'; font-weight:700; font-style:normal; font-display:swap;
+  src:url('../fonts/thmanyahseriftext/woff2/thmanyahseriftext-Bold.woff2') format('woff2'); }
+
+/* ---- Design tokens ---- */
+:root {
+  --font-display: 'Thmanyah Display', 'Amiri', Georgia, serif;
+  --font-ui:      'Thmanyah Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --font-serif:   'Thmanyah Text', 'Thmanyah Display', Georgia, serif;
+
+  --athar-accent:      #1f7a5a;   /* deep green — calm, Quranic */
+  --athar-accent-soft: #2e9c76;
+  --athar-ink:         #14201b;
+  --athar-bar-bg:      rgba(255, 255, 255, 0.82);
+  --athar-bar-border:  rgba(20, 32, 27, 0.10);
+  --athar-bar-fg:      #1d2b25;
+  --athar-bar-muted:   #5d6f67;
+  --athar-bar-h:       58px;
+}
+
+/* ---- Base UI typography (no !important: Quran-text selectors stay) ---- */
+body {
+  font-family: var(--font-ui);
+}
+button, input, select, textarea, .btn {
+  font-family: var(--font-ui);
+}
+h1, h2, h3, .athar-heading {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* ===========================================================================
+ * Shared top app-bar  (.athar-bar)
+ * ======================================================================== */
+.athar-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: var(--athar-bar-h);
+  padding: 0 clamp(14px, 4vw, 32px);
+  background: var(--athar-bar-bg);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--athar-bar-border);
+  direction: rtl;
+}
+
+/* Brand logo */
+.athar-bar .athar-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 9px;
+  text-decoration: none;
+  color: var(--athar-bar-fg);
+  white-space: nowrap;
+}
+.athar-bar .athar-brand .athar-logo {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.62rem;
+  line-height: 1;
+  color: var(--athar-accent);
+  letter-spacing: -0.015em;
+}
+.athar-bar .athar-brand .athar-tag {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 0.72rem;
+  color: var(--athar-bar-muted);
+}
+
+/* a small separator dot before the page/module name */
+.athar-bar .athar-sep {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--athar-accent-soft); opacity: .55;
+  flex: 0 0 auto;
+}
+
+/* Module navigation */
+.athar-bar .athar-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;   /* push nav to the far (left in RTL) side */
+}
+.athar-bar .athar-nav a {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  color: var(--athar-bar-muted);
+  padding: 7px 13px;
+  border-radius: 9px;
+  transition: background .15s ease, color .15s ease;
+  white-space: nowrap;
+}
+.athar-bar .athar-nav a:hover {
+  color: var(--athar-bar-fg);
+  background: rgba(31, 122, 90, 0.08);
+}
+.athar-bar .athar-nav a.is-active {
+  color: var(--athar-accent);
+  background: rgba(31, 122, 90, 0.12);
+}
+
+/* Theme toggles relocated into the bar (reading page) */
+.athar-bar .athar-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 6px;
+}
+.athar-bar #dark-mode-toggle-label,
+.athar-bar #sepia-mode-toggle-label {
+  position: static;
+  inset: auto;
+  top: auto; left: auto;
+  background: transparent;
+  box-shadow: none;
+  padding: 7px;
+  color: var(--athar-bar-muted);
+}
+.athar-bar #dark-mode-toggle-label:hover,
+.athar-bar #sepia-mode-toggle-label:hover {
+  background: rgba(31, 122, 90, 0.10);
+  transform: none;
+}
+.athar-bar #dark-mode-toggle-label input,
+.athar-bar #sepia-mode-toggle-label input { display: none; }
+
+/* ---- Dark / sepia adaptation (matches the per-page theme classes) ---- */
+body.dark-mode .athar-bar,
+body.mz-dark .athar-bar,
+body.wq-dark .athar-bar,
+body.ed-dark .athar-bar,
+[data-theme="dark"] .athar-bar {
+  --athar-bar-bg:     rgba(18, 24, 21, 0.78);
+  --athar-bar-border: rgba(255, 255, 255, 0.10);
+  --athar-bar-fg:     #e8efeb;
+  --athar-bar-muted:  #9fb3ab;
+  --athar-accent:     #46c79a;
+  --athar-accent-soft:#46c79a;
+}
+body.sepia-mode .athar-bar,
+body.mz-sepia .athar-bar,
+body.wq-sepia .athar-bar {
+  --athar-bar-bg:     rgba(244, 236, 220, 0.86);
+  --athar-bar-border: rgba(90, 70, 40, 0.16);
+  --athar-bar-fg:     #4a3b24;
+  --athar-bar-muted:  #7c6a4d;
+  --athar-accent:     #1f7a5a;
+}
+
+/* ---------------------------------------------------------------------------
+ * Compact brand logo embedded inside a page's own existing top bar
+ * (تثبيت / مُكْث / editor already have their own .mz-bar/.wq-bar/.ed-bar).
+ * ------------------------------------------------------------------------- */
+.athar-brand--inbar {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  text-decoration: none;
+  margin-inline-end: 4px;
+  padding-inline-end: 12px;
+  border-inline-end: 1px solid currentColor;
+  flex: 0 0 auto;
+}
+.athar-brand--inbar { border-inline-end-color: rgba(127,127,127,0.22); }
+.athar-brand--inbar .athar-logo {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.32rem;
+  line-height: 1;
+  color: var(--athar-accent);
+  letter-spacing: -0.015em;
+}
+.athar-brand--inbar .athar-mod {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--athar-bar-muted, #5d6f67);
+}
+@media (max-width: 640px) {
+  .athar-brand--inbar .athar-mod { display: none; }
+  .athar-brand--inbar { padding-inline-end: 8px; margin-inline-end: 2px; }
+}
+
+/* Compact module nav inside a page's own bar (sits beside the in-bar logo). */
+.athar-nav--inbar { margin-inline-start: 0; gap: 2px; }
+.athar-nav--inbar a { font-size: 0.86rem; font-weight: 600; padding: 6px 10px; }
+@media (max-width: 880px) { .athar-nav--inbar { display: none; } }
+
+/* ---- Mobile ---- */
+@media (max-width: 640px) {
+  .athar-bar { gap: 10px; --athar-bar-h: 52px; }
+  .athar-bar .athar-brand .athar-tag { display: none; }
+  .athar-bar .athar-nav a { padding: 6px 9px; font-size: 0.84rem; }
+  .athar-bar .athar-brand .athar-logo { font-size: 1.4rem; }
+}

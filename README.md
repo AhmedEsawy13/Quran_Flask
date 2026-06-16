@@ -276,7 +276,6 @@ Quran_Flask/
 ├── Procfile                        # Heroku entrypoint (gunicorn app:app)
 ├── requirements.txt                # Python dependencies
 ├── runtime.txt                     # Python runtime version
-├── vercel.json                     # (legacy) serverless deployment config
 ├── README.md                       # Project documentation
 ├── data/                           # Quranic data files
 │   ├── quran_text/                 # Quranic text in multiple fonts (JSON)

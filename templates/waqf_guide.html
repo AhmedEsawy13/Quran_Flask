@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="مواضع وقوف القرّاء — قارن كيف يقف كبار القرّاء في كل آية: أين يتفقون، ومن انفرد بوقف، وأين أعادوا">
-    <title>مواضع وقوف القرّاء — مقارنة</title>
+    <title>أثَر · مُكْث — مواضع وقوف القرّاء</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +12,9 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=12">
+    <!-- أثَر shared brand identity (fonts + logo) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=1">
+    <script src="{{ url_for('static', filename='js/theme.js') }}?v=1"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -20,7 +23,15 @@
 </head>
 <body>
     <header class="wq-bar">
-        <a class="wq-back" href="/memorize" title="رجوع إلى الحفظ" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
+        <a class="athar-brand--inbar" href="/" title="أثَر — مع القرآن">
+            <span class="athar-logo">أثَر</span>
+            <span class="athar-mod">مُكْث</span>
+        </a>
+        <nav class="athar-nav athar-nav--inbar">
+            <a href="/">المصحف</a>
+            <a href="/memorize">تثبيت</a>
+            <a href="/waqf" class="is-active">مُكْث</a>
+        </nav>
         <div class="wq-bar-title">
             <h1 class="wq-title"><i class="fas fa-lungs"></i> مواضع وقوف القرّاء</h1>
             <span class="wq-bar-verse" id="wq-bar-verse"></span>
