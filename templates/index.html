@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="تطبيق قرآني تفاعلي مع تلاوة مصحوبة بتمييز الكلمات وتفسير وخطوط متعددة">
-    <title>تطبيق القرآن الكريم</title>
+    <title>أثَر · المصحف</title>
     <!-- Preconnect to third-party origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,9 @@
 
     <!-- Critical CSS (render-blocking, intentional) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=24">
+    <!-- أثَر shared brand identity (fonts + app-bar) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=1">
+    <script src="{{ url_for('static', filename='js/theme.js') }}?v=1"></script>
 
     <!-- Google Fonts (async, non-render-blocking) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -30,14 +33,28 @@
     <noscript><link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"></noscript>
 </head>
 <body>
-    <div id="dark-mode-toggle-label">
-        <label for="dark-mode-toggle"><i class="fas fa-moon"></i></label>
-        <input type="checkbox" id="dark-mode-toggle">
-    </div>
-    <div id="sepia-mode-toggle-label">
-        <label for="sepia-mode-toggle"><i class="fas fa-leaf"></i></label>
-        <input type="checkbox" id="sepia-mode-toggle">
-    </div>
+    <!-- أثَر brand app-bar (shared identity across all pages) -->
+    <header class="athar-bar">
+        <a class="athar-brand" href="/" title="أثَر — مع القرآن">
+            <span class="athar-logo">أثَر</span>
+            <span class="athar-tag">مع القرآن</span>
+        </a>
+        <nav class="athar-nav">
+            <a href="/" class="is-active">المصحف</a>
+            <a href="/memorize">تثبيت</a>
+            <a href="/waqf">مُكْث</a>
+        </nav>
+        <div class="athar-actions">
+            <div id="dark-mode-toggle-label">
+                <label for="dark-mode-toggle"><i class="fas fa-moon"></i></label>
+                <input type="checkbox" id="dark-mode-toggle">
+            </div>
+            <div id="sepia-mode-toggle-label">
+                <label for="sepia-mode-toggle"><i class="fas fa-leaf"></i></label>
+                <input type="checkbox" id="sepia-mode-toggle">
+            </div>
+        </div>
+    </header>
 
     <div class="controls-container">
         <div id="controls">

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>محرر مواضع الوقف — قطر / الكويت</title>
+    <title>أثَر · محرّر المصحف — مواضع الوقف</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +14,9 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_editor.css') }}?v=6">
+    <!-- أثَر shared brand identity (fonts + logo) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=1">
+    <script src="{{ url_for('static', filename='js/theme.js') }}?v=1"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -23,7 +26,15 @@
 </head>
 <body>
     <header class="ed-bar">
-        <a class="ed-back" href="/" title="رجوع إلى التطبيق" aria-label="رجوع"><i class="fas fa-arrow-right"></i></a>
+        <a class="athar-brand--inbar" href="/" title="أثَر — مع القرآن">
+            <span class="athar-logo">أثَر</span>
+            <span class="athar-mod">محرّر المصحف</span>
+        </a>
+        <nav class="athar-nav athar-nav--inbar">
+            <a href="/">المصحف</a>
+            <a href="/memorize">تثبيت</a>
+            <a href="/waqf">مُكْث</a>
+        </nav>
 
         <div class="ed-edition-toggle" id="ed-edition-toggle">
             <button class="ed-edition-btn" data-edition="قطر" type="button">مصحف قطر</button>
