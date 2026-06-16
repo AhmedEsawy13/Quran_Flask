@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, g, Response, redirect
+from flask import Flask, jsonify, render_template, request, g, Response, redirect, Blueprint
 import json
 import sqlite3
 import os
@@ -67,6 +67,20 @@ except ImportError:
 import concurrent.futures
 
 app = Flask(__name__, static_folder='static')
+
+# Feature blueprints. Routes are attached to these below (one per feature area)
+# so each feature can be enabled/disabled per deployment via the FEATURES env
+# var — and the write-capable editor can be gated to localhost only.
+#   core      — shared Quran text, search, and mushaf page-rendering (read-only)
+#   reading   — main mushaf reading page + tafseer/tajweed/eerab aids
+#   memorize  — repeat-verses player
+#   breathing — reciter-validated waqf stops (دليل التنفس)
+#   editor    — /mushaf-editor click-to-edit waqf tool (the ONLY writer)
+core_bp = Blueprint('core', __name__)
+reading_bp = Blueprint('reading', __name__)
+memorize_bp = Blueprint('memorize', __name__)
+breathing_bp = Blueprint('breathing', __name__)
+editor_bp = Blueprint('editor', __name__)
 
 # (Flask-Compress is not installed/initialised here — the previous
 # COMPRESS_* config keys had no effect and were removed. JSON gzip is
@@ -145,112 +159,15 @@ def internal_error(error):
     app.logger.error(f"Internal server error: {error}")
     return jsonify({"error": "Internal server error"}), 500
 
-DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'word_name.db')
-WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'waqf_symbols.db')
-MUSHAF_WAQF_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'mushaf_waqf.db')
-# مصاحف being adjusted from the Madinah v1 layout via /mushaf-editor.
-EDITOR_EDITIONS = {'قطر', 'الكويت'}
-# Per-reciter guide config: positions.db path + default waqf column from mushaf_waqf DB.
-# Add a new entry here whenever a reciter has segmentation data.
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-RECITER_GUIDE_CONFIG = {
-    'Mahmoud Khalil al-Husary (Mujawwad)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'mahmoud_khalil_al_husari_0_2_positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'Mahmoud Khalil al-Husary (Muallim)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'Mahmoud Khalil al-Husary (Murattal)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'mahmoud_khalil_al_husari_0_1_positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'Ibrahim Al-Akhdar': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'ibrahim-al-akhdar', 'positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'Ayman Rushdi Suwaid': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'ayman-suwaid', 'positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'Mahmoud Ali Al-Banna': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'mahmoud-ali-al-banna', 'positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'Mustafa Ismaeel': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'mustafa-ismaeel', 'positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'AbdulBaset AbdulSamad (Mujawwad)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'mujawwad_positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'AbdulBaset AbdulSamad (Murattal)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'murattal_positions.db'),
-        'waqf_col': 'المدينة',
-    },
-    'Mohamed al-Minshawi (Murattal)': {
-        'db':       os.path.join(_BASE_DIR, 'reciters', 'mohammed-siddiq-al-minshawi', 'positions.db'),
-        'waqf_col': 'المدينة',
-    },
-}
-# Keep for backwards compat with any legacy code that may reference it
-HUSARY_POSITIONS_DB = RECITER_GUIDE_CONFIG['Mahmoud Khalil al-Husary (Muallim)']['db']
-# "New Madinah" source now uses the QPC v4 (1441/tajweed) 15-line layout — same
-# 1..83668 word numbering as the older digital-khatt layout but with the proper
-# QPC v4 line breaks. (Schema has no total_advance/x_offset columns.)
-DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'qpc-v4-15-lines.db')
-QPC_V1_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'qpc-v1-15-lines.db')
-# مصحف قطر's own 15-line layout (same 1..83668 word numbering, different line
-# breaks than the Old Madina 1405 print). Used only by the mushaf-editor.
-QATAR_LAYOUT_DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'mushaf-qatar-layout.db')
-# Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
-# from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
-TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')
-
-MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
-SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
-
-# True waqf stop symbols only (ayah/sajda/rubu markers are handled separately).
-WAQF_SYMBOL_CHARS = set([
-    'ۖ', 'ۗ', 'ۘ', 'ۙ', 'ۚ', 'ۛ', 'ۜ'
-])
-INDOPAK_EXTRA_WAQF_SYMBOL_CHARS = set([
-    '۟', '۠', 'ۡ', 'ۢ', 'ۤ', 'ۥ', 'ۦ', '۪', '۫', '۬', 'ۭ',
-    'ؕ', 'ؔ', 'ؗ'
-])
-# Markers like Sajda, Rubu, and verse-end that are NOT waqf.
-# (U+06EC was previously listed here too, but it is also in
-# INDOPAK_EXTRA_WAQF_SYMBOL_CHARS — the JS legend treats it as a Hindi waqf, so
-# the duplicate caused U+06EC to be silently dropped from waqf extraction.)
-NON_WAQF_SPECIFIC_CHARS = set([
-    '۩', '۞', '۝'
-])
-ARABIC_INDIC_DIGIT_PATTERN = re.compile(r'^[٠-٩]+$')
-# \u08F0-\u08FF: Arabic Extended-A tanween/diacritic variants (e.g. \u08F0
-# "open fathatan") used by the Digital Khatt source text but not by the waqf
-# DB's "\u0627\u0644\u0643\u0644\u0645\u0629" column \u2014 without stripping these, _normalize_mushaf_word_token
-# leaves a stray mark on the Digital Khatt token, the hint-based match in
-# _find_mushaf_row_match_index fails, and the fallback scan can land on an
-# earlier word with the same consonant skeleton (e.g. surah 2:138's repeated
-# "\u0635\u0628\u063A\u0629"), displacing the waqf mark onto the wrong word.
-# \u0640: tatweel and \u034F: combining grapheme joiner are zero-width/
-# formatting characters that appear in some Digital Khatt tokens (e.g. around
-# the decomposed hamza in "\u0627\u0644\u0652\u0640\u0670\u0623\u062E\u0650\u0631") but never in the waqf DB's
-# "\u0627\u0644\u0643\u0644\u0645\u0629" column \u2014 stripped here so normalization can match across both.
-ARABIC_DIACRITICS_STRIP_PATTERN = re.compile(r'[\u0640\u064B-\u065F\u0670\u06D6-\u06ED\u08F0-\u08FF\u034F]')
-
-# Broader pattern used for search normalisation: strip diacritics, tatweel,
-# ayah-end markers, and Quranic annotation marks so user queries like "الله"
-# match the fully-vocalised text "ٱللَّهِ" in the Quranic JSON sources.
-_SEARCH_STRIP_PATTERN = re.compile(
-    r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640\u06DD\u08F0-\u08FF\ufbb2-\ufbc1\u00A0]'
+from core.config import (
+    DATABASE, WAQF_DATABASE, MUSHAF_WAQF_DATABASE, EDITOR_EDITIONS,
+    _BASE_DIR, RECITER_GUIDE_CONFIG, HUSARY_POSITIONS_DB,
+    DIGITAL_KHATT_LAYOUT_DATABASE, QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
+    TAJWEED_DATABASE, MAX_AYAH_NUMBER, SHEMRLY_CODEPOINT_BASE,
+    WAQF_SYMBOL_CHARS, INDOPAK_EXTRA_WAQF_SYMBOL_CHARS, NON_WAQF_SPECIFIC_CHARS,
+    ARABIC_INDIC_DIGIT_PATTERN, ARABIC_DIACRITICS_STRIP_PATTERN,
+    _SEARCH_STRIP_PATTERN, _SEARCH_LETTER_FOLD,
 )
-_SEARCH_LETTER_FOLD = {
-    'ٱ': 'ا', 'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ى': 'ي', 'ئ': 'ي',
-    'ؤ': 'و', 'ة': 'ه', 'ي': 'ي', 'ك': 'ك',
-}
 
 
 def _normalize_for_search(text):
@@ -892,7 +809,7 @@ def _is_valid_mushaf_version(mushaf_version):
     return bool(mushaf_version) and mushaf_version in _get_mushaf_version_whitelist()
 
 
-@app.route('/api/mushaf-versions', methods=['GET'])
+@core_bp.route('/api/mushaf-versions', methods=['GET'])
 def get_mushaf_versions():
     """Returns available Mushaf versions from the waqf database."""
     return jsonify(sorted(_get_mushaf_version_whitelist()))
@@ -980,7 +897,7 @@ def _get_waqf_at_boundary(surah_number, ayah_number, end_word, versions):
     return result
 
 
-@app.route('/api/recitation-guide/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@breathing_bp.route('/api/recitation-guide/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_recitation_guide(surah_number, ayah_number):
     """Return segmented recitation guide for a reciter, powered by their positions.db.
 
@@ -1023,7 +940,7 @@ def get_recitation_guide(surah_number, ayah_number):
     return jsonify({'reciter': reciter, 'has_positions_db': True, 'segments': result_segments})
 
 
-@app.route('/api/pause-match/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@breathing_bp.route('/api/pause-match/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_pause_match(surah_number, ayah_number):
     """Return how well a reciter's pause positions match each mushaf's waqf marks.
 
@@ -1136,7 +1053,7 @@ def get_pause_match(surah_number, ayah_number):
     return jsonify({'has_data': True, 'pause_count': pause_count, 'matches': matches})
 
 
-@app.route('/api/reciter-compare/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@breathing_bp.route('/api/reciter-compare/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_reciter_compare(surah_number, ayah_number):
     """Compare pause positions of one reciter against every other reciter with positions data.
 
@@ -1661,28 +1578,10 @@ except sqlite3.Error as _wn_err:
     app.logger.warning(f'Could not create word_name index: {_wn_err}')
 
 
-# Database helper functions
-def get_db():
-    db = getattr(g, '_database', None)
-    if db is None:
-        # Check if database file exists
-        if not os.path.exists(DATABASE):
-            app.logger.error(f"Database file not found: {DATABASE}")
-            return None
-            
-        try:
-            db = g._database = sqlite3.connect(DATABASE)
-            db.row_factory = sqlite3.Row  # To access columns by name
-        except sqlite3.Error as e:
-            app.logger.error(f"Database connection error: {e}")
-            return None
-    return db
-
-@app.teardown_appcontext
-def close_connection(exception):
-    db = getattr(g, '_database', None)
-    if db is not None:
-        db.close()
+# Database helper functions (moved to core.db so feature blueprints can share
+# the per-request connection without importing the main app module).
+from core.db import get_db, close_connection
+app.teardown_appcontext(close_connection)
 
 def get_word_meanings(surah_number, ayah_number):
     db = get_db()
@@ -1736,7 +1635,7 @@ def get_word_meanings_ordered(surah_number, ayah_number):
         app.logger.error(f"Database ordered query error: {e}")
         return []
 
-@app.route('/api/health', methods=['GET'])
+@core_bp.route('/api/health', methods=['GET'])
 def health_check():
     """Health check endpoint for monitoring"""
     health_status = {
@@ -1766,7 +1665,7 @@ def health_check():
     
     return jsonify(health_status), 200
 
-@app.route('/api/surahs', methods=['GET'])
+@core_bp.route('/api/surahs', methods=['GET'])
 def get_surahs():
     """Get list of surahs with their names (local data, no external API dependency)"""
     if surahs_data:
@@ -1777,7 +1676,7 @@ def get_surahs():
     surahs = {int(vk.split(':')[0]) for vk in quran_text_data.keys()}
     return jsonify(sorted(surahs))
 
-@app.route('/api/surahs/<int:surah_number>/ayahs', methods=['GET'])
+@core_bp.route('/api/surahs/<int:surah_number>/ayahs', methods=['GET'])
 def get_ayahs(surah_number):
     # Validate surah number range (1-114)
     if not (1 <= surah_number <= 114):
@@ -1791,7 +1690,7 @@ def get_ayahs(surah_number):
             seen.add(int(verse_key.split(':')[1]))
     return jsonify(sorted(seen))
 
-@app.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>', methods=['GET'])
+@core_bp.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>', methods=['GET'])
 def get_ayah_text(surah_number, ayah_number):
     # Validate surah number range (1-114)
     if not (1 <= surah_number <= 114):
@@ -1835,7 +1734,7 @@ def get_ayah_text(surah_number, ayah_number):
     return jsonify({"error": "Ayah not found"}), 404
 
 
-@app.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>/waqf', methods=['GET'])
+@reading_bp.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>/waqf', methods=['GET'])
 def get_ayah_waqf_symbols(surah_number, ayah_number):
     """Expose waqf metadata independent from word-level data for frontend/UI consumers."""
     if not (1 <= surah_number <= 114):
@@ -1852,7 +1751,7 @@ def get_ayah_waqf_symbols(surah_number, ayah_number):
         'waqf_symbols': data
     })
 
-@app.route('/api/tafseer/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@reading_bp.route('/api/tafseer/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_tafseer(surah_number, ayah_number):
     """Fetch tafseer for a single ayah in parallel, with in-process caching."""
     if not (1 <= surah_number <= 114):
@@ -1922,7 +1821,7 @@ def get_tafseer(surah_number, ayah_number):
 # Tajweed-annotated text cache: verse_key → {"html": "..."}
 _tajweed_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
 
-@app.route('/api/tajweed/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@reading_bp.route('/api/tajweed/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_tajweed(surah_number, ayah_number):
     """Return tajweed-annotated HTML for one ayah from local data.
 
@@ -1963,7 +1862,7 @@ def get_tajweed(surah_number, ayah_number):
     return resp
 
 
-@app.route('/api/eerab/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@reading_bp.route('/api/eerab/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_eerab(surah_number, ayah_number):
     """Fetch grammatical analysis (إعراب) for a single ayah from SurahApp API."""
     if not (1 <= surah_number <= 114):
@@ -1990,7 +1889,7 @@ def get_eerab(surah_number, ayah_number):
         return jsonify({"content": ""}), 500
 
 
-@app.route('/api/reciters/<reciter>/ayahs/<int:ayah_number>/audio', methods=['GET'])
+@core_bp.route('/api/reciters/<reciter>/ayahs/<int:ayah_number>/audio', methods=['GET'])
 def get_audio_segments(reciter, ayah_number):
     if ayah_number < 1:
         return jsonify({"error": "Invalid ayah number."}), 400
@@ -2005,21 +1904,21 @@ def get_audio_segments(reciter, ayah_number):
         return jsonify(audio_info)
     return jsonify({"error": "Audio not found"}), 404
 
-@app.route('/api/quran-text', methods=['GET'])
+@core_bp.route('/api/quran-text', methods=['GET'])
 def get_quran_text():
     quran_text_data = get_quran_text_data()
     return jsonify(quran_text_data)
 
-@app.route('/api/transliteration', methods=['GET'])
+@core_bp.route('/api/transliteration', methods=['GET'])
 def get_transliteration():
     return jsonify(transliteration_data)
 
-@app.route('/')
+@reading_bp.route('/')
 def index():
     return render_template('index.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
-@app.route('/memorize')
+@memorize_bp.route('/memorize')
 def memorize():
     """Page-by-page visual memorization on the Digital Khatt (Madinah) mushaf
     layout, with synced Husary audio. See templates/mushaf_memorize.html."""
@@ -2411,7 +2310,7 @@ def _build_breathing_guide(surah_number):
     return result
 
 
-@app.route('/api/memorization/<int:surah_number>/breathing', methods=['GET'])
+@memorize_bp.route('/api/memorization/<int:surah_number>/breathing', methods=['GET'])
 def get_memorization_breathing(surah_number):
     """Validated 'breathing guide' for a surah: per verse, word positions where
     at least one installed reciter actually pauses, with consensus count and
@@ -2608,7 +2507,7 @@ def _reference_timeline(per_reciter, words, vk, verse_durs):
     return times, times[-1] if times else None, ref_rid
 
 
-@app.route('/api/waqf/<int:surah>/<int:ayah>', methods=['GET'])
+@breathing_bp.route('/api/waqf/<int:surah>/<int:ayah>', methods=['GET'])
 def get_verse_waqf(surah, ayah):
     """Per-verse reciter-waqf comparison: how each installed reciter stops in
     this verse, who aligns vs. who is alone (انفرد), and where they repeat."""
@@ -2624,12 +2523,12 @@ def get_verse_waqf(surah, ayah):
     return jsonify(data)
 
 
-@app.route('/waqf')
+@breathing_bp.route('/waqf')
 def waqf_guide():
     return render_template('waqf_guide.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
-@app.route('/api/memorization/<int:surah_number>', methods=['GET'])
+@memorize_bp.route('/api/memorization/<int:surah_number>', methods=['GET'])
 def get_memorization(surah_number):
     """Per-surah memorization data: audio URL + per-verse timing and phrases.
 
@@ -2719,7 +2618,7 @@ def get_memorization(surah_number):
     })
 
 
-@app.route('/api/memorization-reciters', methods=['GET'])
+@memorize_bp.route('/api/memorization-reciters', methods=['GET'])
 def get_memorization_reciters():
     """List the memorization reciters whose timestamp data is installed."""
     out = []
@@ -2729,7 +2628,7 @@ def get_memorization_reciters():
     return jsonify(out)
 
 
-@app.route('/api/audio-proxy')
+@core_bp.route('/api/audio-proxy')
 def audio_proxy():
     """Validate and redirect to audio files to avoid firewall issues in sandbox environments"""
     from urllib.parse import urlparse
@@ -2766,7 +2665,7 @@ def audio_proxy():
     return redirect(audio_url, code=307)
 
 
-@app.route('/api/search', methods=['GET'])
+@core_bp.route('/api/search', methods=['GET'])
 def search_verses():
     """Search for verses containing specific text or words"""
     query = request.args.get('q', '').strip()
@@ -2819,7 +2718,7 @@ def search_verses():
         'source': source
     })
 
-@app.route('/api/word-search', methods=['GET'])
+@core_bp.route('/api/word-search', methods=['GET'])
 def search_word_meanings():
     """Search for word meanings in the database"""
     query = request.args.get('q', '').strip()
@@ -2869,7 +2768,7 @@ def search_word_meanings():
         app.logger.error(f"Database search error: {e}")
         return jsonify({"error": "Search failed"}), 500
 
-@app.route('/api/shamarly/ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@core_bp.route('/api/shamarly/ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_shamarly_ayah(surah_number, ayah_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
@@ -3704,7 +3603,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
     }
 
 
-@app.route('/api/shamarly/page/<int:page_number>', methods=['GET'])
+@core_bp.route('/api/shamarly/page/<int:page_number>', methods=['GET'])
 def get_shamarly_page(page_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
@@ -3717,7 +3616,7 @@ def get_shamarly_page(page_number):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/api/shamarly/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@core_bp.route('/api/shamarly/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_shamarly_page_by_ayah(surah_number, ayah_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
@@ -4130,7 +4029,7 @@ def _build_digital_khatt_page_payload_impl(page_number, focus_surah, focus_ayah,
     return payload
 
 
-@app.route('/api/digital-khatt/page/<int:page_number>', methods=['GET'])
+@core_bp.route('/api/digital-khatt/page/<int:page_number>', methods=['GET'])
 def get_digital_khatt_page(page_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
@@ -4143,7 +4042,7 @@ def get_digital_khatt_page(page_number):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/digital-khatt/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@core_bp.route('/api/digital-khatt/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_digital_khatt_page_by_ayah(surah_number, ayah_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
@@ -4245,7 +4144,7 @@ def _build_qatar_page_payload(page_number, focus_surah=None, focus_ayah=None, mu
     return payload
 
 
-@app.route('/api/qpc-v1/page/<int:page_number>', methods=['GET'])
+@core_bp.route('/api/qpc-v1/page/<int:page_number>', methods=['GET'])
 def get_qpc_v1_page(page_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
@@ -4258,7 +4157,7 @@ def get_qpc_v1_page(page_number):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/qpc-v1/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+@core_bp.route('/api/qpc-v1/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
     try:
         if not os.path.exists(QPC_V1_LAYOUT_DATABASE):
@@ -4279,12 +4178,12 @@ def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/mushaf-editor')
+@editor_bp.route('/mushaf-editor')
 def mushaf_editor_page():
     return render_template('mushaf_editor.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
-@app.route('/api/mushaf-editor/spread/<int:spread_number>', methods=['GET'])
+@editor_bp.route('/api/mushaf-editor/spread/<int:spread_number>', methods=['GET'])
 def get_mushaf_editor_spread(spread_number):
     """Two facing pages of the Madinah v1 layout, carrying both the selected
     edition's current waqf marks and the المدينة baseline (for diffing)."""
@@ -4311,7 +4210,7 @@ def get_mushaf_editor_spread(spread_number):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/mushaf-editor/waqf', methods=['POST'])
+@editor_bp.route('/api/mushaf-editor/waqf', methods=['POST'])
 def set_mushaf_editor_waqf():
     """Set or clear the waqf mark for one word in one edition.
 
@@ -4335,7 +4234,7 @@ def set_mushaf_editor_waqf():
     return jsonify({'word_id': word_id, 'edition': edition, 'symbol': result or ''})
 
 
-@app.route('/api/mushaf-editor/progress', methods=['GET', 'POST'])
+@editor_bp.route('/api/mushaf-editor/progress', methods=['GET', 'POST'])
 def mushaf_editor_progress():
     """Track which spreads of the 604-page layout have been manually reviewed
     for each new edition, so the comparison work can be paused/resumed."""
@@ -4378,6 +4277,61 @@ def mushaf_editor_progress():
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Blueprint registration / app factory
+#
+# Each Heroku app (or domain) can serve a subset of features by setting the
+# FEATURES env var, e.g. FEATURES="reading" or FEATURES="memorize,breathing".
+# 'core' is always included (shared text/search/page-rendering the others need).
+# The write-capable 'editor' is OFF by default and only mounts when
+# ENABLE_EDITOR is set — keep that to localhost so production stays read-only.
+# ---------------------------------------------------------------------------
+ALL_BLUEPRINTS = {
+    'core': core_bp,
+    'reading': reading_bp,
+    'memorize': memorize_bp,
+    'breathing': breathing_bp,
+    'editor': editor_bp,
+}
+_DEFAULT_FEATURES = {'core', 'reading', 'memorize', 'breathing'}
+
+
+def enabled_features():
+    """Resolve the feature set for this process from the environment."""
+    raw = os.environ.get('FEATURES', '').strip()
+    feats = {f.strip() for f in raw.split(',') if f.strip()} if raw else set(_DEFAULT_FEATURES)
+    feats.add('core')  # shared foundation is always required
+    if os.environ.get('ENABLE_EDITOR'):
+        feats.add('editor')
+    else:
+        feats.discard('editor')  # never expose the writer unless explicitly enabled
+    return feats
+
+
+def register_blueprints(flask_app, features=None):
+    features = features if features is not None else enabled_features()
+    for name, bp in ALL_BLUEPRINTS.items():
+        # Idempotent: skip blueprints already mounted (create_app may be called
+        # after the module-level registration below).
+        if name in features and name not in flask_app.blueprints:
+            flask_app.register_blueprint(bp)
+    flask_app.logger.info(f"Enabled features: {sorted(features)}")
+    return flask_app
+
+
+def create_app(features=None):
+    """Return the configured application, mounting the selected features.
+
+    Exposed for WSGI entrypoints / future per-feature deployments. The module
+    also configures the shared ``app`` object at import for ``gunicorn app:app``.
+    """
+    return register_blueprints(app, features)
+
+
+# Configure the default module-level app (used by `gunicorn app:app`).
+register_blueprints(app)
 
 
 if __name__ == '__main__':
