@@ -2651,9 +2651,12 @@ def get_memorization(surah_number):
         if mode == 'waqf':
             phrases = _waqf_aligned_phrases(words, waqf_bounds.get(vk, []), gap_ms)
             if not phrases:                       # verse missing from waqf DB
-                phrases = _segment_phrases(words, gap_ms)
+                phrases = _segment_phrases(words, _WAQF_CONSENSUS_GAP_MS)
         else:
-            phrases = _segment_phrases(words, gap_ms)
+            # Acoustic mode: use the same consensus gap (1 ms) as the مكث guide
+            # so phrase boundaries match exactly what مكث shows — any forward
+            # pause in the reciter's audio is a real stop point.
+            phrases = _segment_phrases(words, _WAQF_CONSENSUS_GAP_MS)
         text = ''
         td = text_data.get(vk) if isinstance(text_data, dict) else None
         if isinstance(td, dict):
