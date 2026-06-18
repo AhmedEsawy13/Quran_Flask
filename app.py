@@ -108,9 +108,11 @@ def after_request(response):
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
-        # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…); jsdelivr CDN allowed for ort wasm fetch.
-        # *.googlevideo.com → YouTube audio streams resolved by /api/yt-audio (yt-dlp redirects here).
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com https://*.googlevideo.com; "
+        # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…).
+        # *.googlevideo.com → YouTube audio streams (IFrame Player API).
+        # drive.usercontent.google.com → Google Drive direct-download MP3s (_gd_ reciters).
+        # huggingface.co → HuggingFace direct MP3s (_gd_ reciters).
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com https://*.googlevideo.com https://drive.usercontent.google.com https://huggingface.co https://*.huggingface.co; "
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
         "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com https://www.youtube.com https://www.googleapis.com;"
     )
@@ -2018,6 +2020,48 @@ def _yt_audio_url(reciter_id: str, surah: int) -> str | None:
     chapter_urls = _YT_CHAPTER_URLS.get(reciter_id, {})
     return chapter_urls.get(str(surah))
 
+
+# ── Google Drive / HuggingFace catalog-based reciters (_gd_ sentinel) ───────
+# Some reciters have per-surah URLs that are a mix of:
+#   • HuggingFace direct MP3 links (serve immediately, no conversion needed)
+#   • Google Drive "view" pages  (must convert to download URL)
+# audio_tmpl = '_gd_' tells the helpers below to call _gd_audio_url() which
+# converts Drive view URLs to direct-download URLs and passes HF URLs through.
+
+_GD_FILE_ID_RE = re.compile(r'/file/d/([A-Za-z0-9_-]+)')
+
+
+def _convert_gdrive_url(url: str) -> str:
+    """Convert a Google Drive file/view URL to a direct-download URL.
+
+    drive.usercontent.google.com/download serves the file directly without the
+    virus-scan confirmation page that drive.google.com/uc triggers for larger
+    files, so <audio> can stream it without an extra round-trip.
+    """
+    m = _GD_FILE_ID_RE.search(url)
+    if not m:
+        return url  # not a standard /file/d/ URL — pass through as-is
+    file_id = m.group(1)
+    return f'https://drive.usercontent.google.com/download?id={file_id}&export=download&authuser=0'
+
+
+# Map reciter_id -> {str(surah): url} for _gd_ sentinel reciters.
+_GD_CHAPTER_URLS: dict = {}
+
+
+def _gd_audio_url(reciter_id: str, surah: int) -> str | None:
+    """Return a playable audio URL for a catalog-based (_gd_) reciter's surah.
+
+    HuggingFace direct-MP3 URLs are returned as-is.
+    Google Drive view URLs are converted to direct-download URLs.
+    """
+    raw = _GD_CHAPTER_URLS.get(reciter_id, {}).get(str(surah))
+    if not raw:
+        return None
+    if 'drive.google.com' in raw:
+        return _convert_gdrive_url(raw)
+    return raw  # HuggingFace or other direct MP3
+
 # ── Memorization reciters ────────────────────────────────────────────────
 # Each reciter needs a QUL `word_timestamps.json.gz` (from
 # Wider-Community/quranic-universal-audio — the same format as Husary above) in
@@ -2098,19 +2142,16 @@ MEMORIZATION_RECITERS = {
     'akhdar': {
         'name_ar': 'إبراهيم الأخضر', 'name_en': 'Ibrahim Al-Akhdar',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'ibrahim_al_akhdar_drive'),
-        # QUL's own chapter_urls for this slug are mostly Google Drive "view" pages
-        # (not direct streams). This mp3quran murattal closely matches the QUL
-        # timestamps (e.g. 36:83 ends 1235.7s vs file duration 1241.3s — only the
-        # trailing-silence outro differs), so it's used for seek-based playback.
-        'audio_tmpl': 'https://server6.mp3quran.net/akdr/{surah:03d}.mp3',
+        # Per-surah catalog: HuggingFace direct MP3 (71 surahs) + Google Drive
+        # view pages (43 surahs). _gd_audio_url() converts Drive URLs to direct
+        # download links so <audio> can stream them natively.
+        'audio_tmpl': '_gd_',
     },
     'ayyub': {
         'name_ar': 'محمد أيوب', 'name_en': 'Mohammed Ayyub',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_ayyub_drive'),
-        # Same situation as 'akhdar': QUL's chapter_urls are mostly Google Drive
-        # "view" pages, but this mp3quran murattal matches the timestamps closely
-        # (36:83 ends 1060.1s vs file duration 1065.4s).
-        'audio_tmpl': 'https://server8.mp3quran.net/ayyub/{surah:03d}.mp3',
+        # Same as akhdar: HF direct MP3 (71 surahs) + Drive view pages (43).
+        'audio_tmpl': '_gd_',
     },
     # Abdullah Al-Buaijan (عبد الله البعيجان) is in QUL v1.1.0 but its audio is a
     # 2025 YouTube recording: surahs 3–114 are only YouTube video URLs (no
@@ -2118,11 +2159,13 @@ MEMORIZATION_RECITERS = {
     # here. Excluded until an aligned per-surah MP3 source exists.
 }
 
-# Populate _YT_CHAPTER_URLS for every _yt_-sentinel reciter.
+# Populate _YT_CHAPTER_URLS and _GD_CHAPTER_URLS at startup.
 for _rid, _rcfg in MEMORIZATION_RECITERS.items():
+    _slug = os.path.basename(_rcfg['dir'])
     if _rcfg.get('audio_tmpl') == '_yt_':
-        _slug = os.path.basename(_rcfg['dir'])
         _YT_CHAPTER_URLS[_rid] = _load_yt_chapter_urls(_slug)
+    elif _rcfg.get('audio_tmpl') == '_gd_':
+        _GD_CHAPTER_URLS[_rid] = _load_yt_chapter_urls(_slug)  # same catalog format
 
 _DEFAULT_MEMO_RECITER = 'husary'
 
@@ -2140,6 +2183,10 @@ def _memo_reciter_installed(reciter_id):
     # longer required because audio plays client-side via the IFrame Player API.
     if tmpl == '_yt_':
         if not _YT_CHAPTER_URLS.get(reciter_id):
+            return False
+    # Catalog-based (Drive/HF) reciters need their chapter URLs loaded.
+    if tmpl == '_gd_':
+        if not _GD_CHAPTER_URLS.get(reciter_id):
             return False
     return bool(os.path.exists(os.path.join(cfg['dir'], 'word_timestamps.json.gz')))
 # Husary mushaf-waqf phrase boundaries (sub-verse segments). Used by the
@@ -2478,12 +2525,15 @@ def _build_verse_waqf_detail(surah, ayah):
             'phrases': phrases,
             'duration': round(info['full'], 2),
             # absolute seek info for in-page segment playback
-            # YouTube-sourced reciters (_yt_ sentinel) are not yet supported in
-            # the waqf guide player (which uses a native <audio> element); set
-            # audio_url=None so the play buttons are hidden for those reciters.
-            'audio_url': (cfg['audio_tmpl'].format(surah=surah)
-                          if cfg.get('audio_tmpl') and cfg['audio_tmpl'] != '_yt_'
-                          else None),
+            # YouTube-sourced reciters (_yt_ sentinel) are not supported in the
+            # waqf guide player (native <audio> can't play YT URLs); hide them.
+            # Catalog-based reciters (_gd_) use direct MP3/Drive-download URLs
+            # which native <audio> can stream fine.
+            'audio_url': (_gd_audio_url(rid, surah)
+                          if cfg.get('audio_tmpl') == '_gd_'
+                          else (cfg['audio_tmpl'].format(surah=surah)
+                                if cfg.get('audio_tmpl') and cfg['audio_tmpl'] != '_yt_'
+                                else None)),
             'verse_start': round(w[0][1] / 1000.0, 3),
         }
         for k, v in stops.items():
@@ -2685,6 +2735,8 @@ def get_memorization(surah_number):
     tmpl = reciter_cfg.get('audio_tmpl', '')
     if tmpl == '_yt_':
         audio_url = _yt_audio_url(reciter_id, surah_number)
+    elif tmpl == '_gd_':
+        audio_url = _gd_audio_url(reciter_id, surah_number)
     else:
         audio_url = tmpl.format(surah=surah_number) if tmpl else None
 
