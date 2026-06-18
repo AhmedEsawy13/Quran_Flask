@@ -461,9 +461,10 @@
             this._ready = false;
             this._pendingSeeked = false;
             this._listeners = {};
-            // Invisible 1×1 container that the IFrame API replaces with an iframe.
+            // Invisible off-screen container. YouTube requires minimum ~200×200;
+            // a 1×1 or zero-size player silently refuses to initialize.
             this._div = document.createElement('div');
-            this._div.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;';
+            this._div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:320px;height:180px;pointer-events:none;z-index:-1;';
             document.body.appendChild(this._div);
             this._loadAPI();
         }
@@ -488,6 +489,8 @@
 
         _createPlayer() {
             this._player = new YT.Player(this._div, {
+                width: 320,
+                height: 180,
                 videoId: this._videoId,
                 playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, playsinline: 1 },
                 events: {

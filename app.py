@@ -112,7 +112,7 @@ def after_request(response):
         # *.googlevideo.com → YouTube audio streams resolved by /api/yt-audio (yt-dlp redirects here).
         "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com https://*.googlevideo.com; "
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
-        "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com;"
+        "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com https://www.youtube.com https://www.googleapis.com;"
     )
     
     # Cache control for API responses.
@@ -2136,10 +2136,9 @@ def _memo_reciter_installed(reciter_id):
     tmpl = cfg.get('audio_tmpl')
     if not tmpl:
         return False
-    # YouTube-sourced reciters also need yt-dlp and at least one mapped URL.
+    # YouTube-sourced reciters only need chapter URLs to be loaded; yt-dlp is no
+    # longer required because audio plays client-side via the IFrame Player API.
     if tmpl == '_yt_':
-        if not _YT_DLP_AVAILABLE:
-            return False
         if not _YT_CHAPTER_URLS.get(reciter_id):
             return False
     return bool(os.path.exists(os.path.join(cfg['dir'], 'word_timestamps.json.gz')))
