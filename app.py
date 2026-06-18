@@ -2031,20 +2031,6 @@ def _yt_audio_url(reciter_id: str, surah: int) -> str | None:
 _GD_FILE_ID_RE = re.compile(r'/file/d/([A-Za-z0-9_-]+)')
 
 
-def _convert_gdrive_url(url: str) -> str:
-    """Convert a Google Drive file/view URL to a direct-download URL.
-
-    drive.usercontent.google.com/download serves the file directly without the
-    virus-scan confirmation page that drive.google.com/uc triggers for larger
-    files, so <audio> can stream it without an extra round-trip.
-    """
-    m = _GD_FILE_ID_RE.search(url)
-    if not m:
-        return url  # not a standard /file/d/ URL — pass through as-is
-    file_id = m.group(1)
-    return f'https://drive.usercontent.google.com/download?id={file_id}&export=download&authuser=0'
-
-
 # Map reciter_id -> {str(surah): url} for _gd_ sentinel reciters.
 _GD_CHAPTER_URLS: dict = {}
 
@@ -2053,13 +2039,17 @@ def _gd_audio_url(reciter_id: str, surah: int) -> str | None:
     """Return a playable audio URL for a catalog-based (_gd_) reciter's surah.
 
     HuggingFace direct-MP3 URLs are returned as-is.
-    Google Drive view URLs are converted to direct-download URLs.
+    Google Drive view URLs 403 on cross-origin requests, so we use the
+    reciter's fallback_tmpl (an mp3quran per-surah URL) for those surahs.
     """
     raw = _GD_CHAPTER_URLS.get(reciter_id, {}).get(str(surah))
     if not raw:
         return None
     if 'drive.google.com' in raw:
-        return _convert_gdrive_url(raw)
+        # Drive blocks cross-origin audio — fall back to the mp3quran URL.
+        cfg = MEMORIZATION_RECITERS.get(reciter_id, {})
+        fallback = cfg.get('fallback_tmpl')
+        return fallback.format(surah=surah) if fallback else None
     return raw  # HuggingFace or other direct MP3
 
 # ── Memorization reciters ────────────────────────────────────────────────
@@ -2143,15 +2133,17 @@ MEMORIZATION_RECITERS = {
         'name_ar': 'إبراهيم الأخضر', 'name_en': 'Ibrahim Al-Akhdar',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'ibrahim_al_akhdar_drive'),
         # Per-surah catalog: HuggingFace direct MP3 (71 surahs) + Google Drive
-        # view pages (43 surahs). _gd_audio_url() converts Drive URLs to direct
-        # download links so <audio> can stream them natively.
+        # view pages (43 surahs). Drive URLs 403 on cross-origin audio requests;
+        # fallback_tmpl is used for those surahs.
         'audio_tmpl': '_gd_',
+        'fallback_tmpl': 'https://server6.mp3quran.net/akdr/{surah:03d}.mp3',
     },
     'ayyub': {
         'name_ar': 'محمد أيوب', 'name_en': 'Mohammed Ayyub',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_ayyub_drive'),
         # Same as akhdar: HF direct MP3 (71 surahs) + Drive view pages (43).
         'audio_tmpl': '_gd_',
+        'fallback_tmpl': 'https://server8.mp3quran.net/ayyub/{surah:03d}.mp3',
     },
     # Abdullah Al-Buaijan (عبد الله البعيجان) is in QUL v1.1.0 but its audio is a
     # 2025 YouTube recording: surahs 3–114 are only YouTube video URLs (no
