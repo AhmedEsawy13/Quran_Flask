@@ -102,8 +102,9 @@ def after_request(response):
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
         # cdn.jsdelivr.net + blob: → onnxruntime-web (recitation ASR); wasm needs 'unsafe-eval'/'wasm-unsafe-eval'.
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://vercel.live https://va.vercel-scripts.com; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://vercel.live https://va.vercel-scripts.com https://www.youtube.com; "
         "worker-src 'self' blob:; "
+        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
@@ -2007,13 +2008,15 @@ except ImportError:
 
 
 def _yt_audio_url(reciter_id: str, surah: int) -> str | None:
-    """Return the /api/yt-audio proxy URL for a YouTube-sourced reciter's surah."""
+    """Return the raw YouTube watch URL for a surah.
+
+    The frontend (mushaf_memorize.js) detects youtube.com URLs and routes them
+    through the YouTube IFrame Player API instead of a native <audio> element.
+    This works on every deployment including Heroku (no server-side stream
+    extraction; YouTube datacenter IP blocking is irrelevant).
+    """
     chapter_urls = _YT_CHAPTER_URLS.get(reciter_id, {})
-    yt_url = chapter_urls.get(str(surah))
-    if not yt_url:
-        return None
-    from urllib.parse import quote
-    return f'/api/yt-audio?url={quote(yt_url, safe="")}'
+    return chapter_urls.get(str(surah))
 
 # ── Memorization reciters ────────────────────────────────────────────────
 # Each reciter needs a QUL `word_timestamps.json.gz` (from
@@ -2476,7 +2479,12 @@ def _build_verse_waqf_detail(surah, ayah):
             'phrases': phrases,
             'duration': round(info['full'], 2),
             # absolute seek info for in-page segment playback
-            'audio_url': cfg['audio_tmpl'].format(surah=surah) if cfg.get('audio_tmpl') else None,
+            # YouTube-sourced reciters (_yt_ sentinel) are not yet supported in
+            # the waqf guide player (which uses a native <audio> element); set
+            # audio_url=None so the play buttons are hidden for those reciters.
+            'audio_url': (cfg['audio_tmpl'].format(surah=surah)
+                          if cfg.get('audio_tmpl') and cfg['audio_tmpl'] != '_yt_'
+                          else None),
             'verse_start': round(w[0][1] / 1000.0, 3),
         }
         for k, v in stops.items():
