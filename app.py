@@ -108,7 +108,8 @@ def after_request(response):
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         "img-src 'self' data:; "
         # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…); jsdelivr CDN allowed for ort wasm fetch.
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com; "
+        # *.googlevideo.com → YouTube audio streams resolved by /api/yt-audio (yt-dlp redirects here).
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com https://*.googlevideo.com; "
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
         "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com;"
     )
@@ -1965,6 +1966,55 @@ def get_quran_text_data():
 _MEMORIZATION_DIR = os.path.join(_BASE_DIR, 'reciters', 'mahmoud_khalil_al_husary_mp3quran')
 _MEMORIZATION_AUDIO_TMPL = 'https://server13.mp3quran.net/husr/{surah:03d}.mp3'
 
+# ── YouTube-sourced reciter catalogs ────────────────────────────────────────
+# Some reciters have per-surah YouTube video URLs instead of direct MP3 URLs.
+# Load their catalog.json at startup so we can map surah -> YouTube URL without
+# touching the disk on every request.
+#
+# audio_tmpl for these entries is set to the sentinel '_yt_' so the helpers
+# below know to call _yt_audio_url(reciter_id, surah) instead.
+
+def _load_yt_chapter_urls(slug: str) -> dict:
+    """Return {str(surah_number): youtube_url} from a reciter's catalog.json."""
+    catalog_path = os.path.join(_BASE_DIR, 'reciters', slug, 'catalog.json')
+    if not os.path.exists(catalog_path):
+        return {}
+    try:
+        with open(catalog_path, encoding='utf-8') as fh:
+            cat = json.load(fh)
+        return cat.get('audio', {}).get('chapter_urls', {})
+    except Exception as e:
+        app.logger.warning(f'Could not load YT catalog for {slug}: {e}')
+        return {}
+
+# Map reciter_id -> {str(surah): yt_url} for YouTube-sourced reciters.
+_YT_CHAPTER_URLS: dict = {}
+
+# yt-dlp stream URL cache: (reciter_id, surah) -> {'url': str, 'expires': float}
+# YouTube direct-stream URLs are typically valid for ~6 h; we cache for 4 h.
+import time as _time
+_YT_STREAM_CACHE: dict = {}
+_YT_STREAM_LOCK = threading.Lock()
+_YT_STREAM_TTL = 4 * 3600  # seconds
+
+try:
+    import yt_dlp as _yt_dlp
+    _YT_DLP_AVAILABLE = True
+except ImportError:
+    _yt_dlp = None  # type: ignore
+    _YT_DLP_AVAILABLE = False
+    app.logger.warning('yt-dlp not installed — YouTube-sourced reciters will be unavailable.')
+
+
+def _yt_audio_url(reciter_id: str, surah: int) -> str | None:
+    """Return the /api/yt-audio proxy URL for a YouTube-sourced reciter's surah."""
+    chapter_urls = _YT_CHAPTER_URLS.get(reciter_id, {})
+    yt_url = chapter_urls.get(str(surah))
+    if not yt_url:
+        return None
+    from urllib.parse import quote
+    return f'/api/yt-audio?url={quote(yt_url, safe="")}'
+
 # ── Memorization reciters ────────────────────────────────────────────────
 # Each reciter needs a QUL `word_timestamps.json.gz` (from
 # Wider-Community/quranic-universal-audio — the same format as Husary above) in
@@ -2030,7 +2080,7 @@ MEMORIZATION_RECITERS = {
     'burhaji': {
         'name_ar': 'محمد برهجي', 'name_en': 'Mohammed Burhaji',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_burhaji_yt'),
-        'audio_tmpl': None,  # YouTube source — no streamable per-surah MP3
+        'audio_tmpl': '_yt_',  # per-surah YouTube videos; resolved via _yt_audio_url()
     },
     'shaheen': {
         'name_ar': 'أحمد خليل شاهين', 'name_en': 'Ahmed Khalil Shaheen',
@@ -2064,6 +2114,13 @@ MEMORIZATION_RECITERS = {
     # streamable per-surah MP3), so the timestamps can't drive seek-based playback
     # here. Excluded until an aligned per-surah MP3 source exists.
 }
+
+# Populate _YT_CHAPTER_URLS for every _yt_-sentinel reciter.
+for _rid, _rcfg in MEMORIZATION_RECITERS.items():
+    if _rcfg.get('audio_tmpl') == '_yt_':
+        _slug = os.path.basename(_rcfg['dir'])
+        _YT_CHAPTER_URLS[_rid] = _load_yt_chapter_urls(_slug)
+
 _DEFAULT_MEMO_RECITER = 'husary'
 
 def _memo_reciter_cfg(reciter_id):
@@ -2071,8 +2128,17 @@ def _memo_reciter_cfg(reciter_id):
 
 def _memo_reciter_installed(reciter_id):
     cfg = MEMORIZATION_RECITERS.get(reciter_id)
-    if not cfg or not cfg.get('audio_tmpl'):
+    if not cfg:
         return False
+    tmpl = cfg.get('audio_tmpl')
+    if not tmpl:
+        return False
+    # YouTube-sourced reciters also need yt-dlp and at least one mapped URL.
+    if tmpl == '_yt_':
+        if not _YT_DLP_AVAILABLE:
+            return False
+        if not _YT_CHAPTER_URLS.get(reciter_id):
+            return False
     return bool(os.path.exists(os.path.join(cfg['dir'], 'word_timestamps.json.gz')))
 # Husary mushaf-waqf phrase boundaries (sub-verse segments). Used by the
 # 'waqf' segmentation mode, snapped to real pauses in the mp3quran audio.
@@ -2606,12 +2672,18 @@ def get_memorization(surah_number):
     if not verses:
         return jsonify({"error": "No memorization data for this surah."}), 404
 
+    tmpl = reciter_cfg.get('audio_tmpl', '')
+    if tmpl == '_yt_':
+        audio_url = _yt_audio_url(reciter_id, surah_number)
+    else:
+        audio_url = tmpl.format(surah=surah_number) if tmpl else None
+
     return jsonify({
         'surah_number': surah_number,
         'reciter': reciter_cfg.get('name_en', 'Mahmoud Khalil al-Husary'),
         'reciter_id': reciter_id,
         'reciter_name_ar': reciter_cfg.get('name_ar', ''),
-        'audio_url': reciter_cfg['audio_tmpl'].format(surah=surah_number),
+        'audio_url': audio_url,
         'gap_ms': gap_ms,
         'mode': mode,
         'verses': verses,
@@ -2663,6 +2735,76 @@ def audio_proxy():
     # which is allowed by the CSP media-src directive and avoids firewall issues
     # Using 307 (Temporary Redirect) to preserve request method
     return redirect(audio_url, code=307)
+
+
+@core_bp.route('/api/yt-audio')
+def yt_audio():
+    """Resolve a YouTube watch URL to a direct audio-stream URL via yt-dlp,
+    cache the result for up to 4 hours (stream URLs expire ~6 h), and redirect
+    the browser to the stream so it can seek normally with Range requests.
+
+    Only YouTube URLs stored in _YT_CHAPTER_URLS are accepted; arbitrary
+    YouTube URLs cannot be submitted.
+    """
+    if not _YT_DLP_AVAILABLE:
+        return jsonify({'error': 'yt-dlp is not installed on this server'}), 503
+
+    from urllib.parse import urlparse, unquote
+
+    raw_url = request.args.get('url', '').strip()
+    if not raw_url:
+        return jsonify({'error': 'Missing url parameter'}), 400
+
+    # Decode if percent-encoded (e.g. from _yt_audio_url helper)
+    yt_url = unquote(raw_url)
+
+    # Security: only allow URLs that are actually in our YT chapter-URL catalogs.
+    allowed_yt_urls = {
+        url
+        for chapter_map in _YT_CHAPTER_URLS.values()
+        for url in chapter_map.values()
+    }
+    if yt_url not in allowed_yt_urls:
+        return jsonify({'error': 'URL not in approved reciter catalog'}), 403
+
+    # Additional structural check
+    parsed = urlparse(yt_url)
+    if parsed.scheme != 'https' or parsed.hostname not in ('www.youtube.com', 'youtube.com', 'youtu.be'):
+        return jsonify({'error': 'Only YouTube URLs are allowed'}), 400
+
+    # Check cache first (keyed by the watch URL itself)
+    now = _time.time()
+    with _YT_STREAM_LOCK:
+        cached = _YT_STREAM_CACHE.get(yt_url)
+        if cached and cached['expires'] > now:
+            return redirect(cached['url'], code=307)
+
+    # Resolve with yt-dlp (runs synchronously; typically < 1 s)
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'quiet': True,
+        'no_warnings': True,
+        'skip_download': True,
+        'noplaylist': True,
+    }
+    try:
+        with _yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(yt_url, download=False)
+        # Prefer the top-level url; fall back to the last format's url.
+        stream_url = info.get('url')
+        if not stream_url:
+            formats = info.get('formats') or []
+            stream_url = formats[-1].get('url') if formats else None
+        if not stream_url:
+            return jsonify({'error': 'yt-dlp could not extract a stream URL'}), 502
+    except Exception as exc:
+        app.logger.error(f'yt-dlp extraction failed for {yt_url}: {exc}')
+        return jsonify({'error': 'Failed to resolve YouTube audio stream'}), 502
+
+    with _YT_STREAM_LOCK:
+        _YT_STREAM_CACHE[yt_url] = {'url': stream_url, 'expires': now + _YT_STREAM_TTL}
+
+    return redirect(stream_url, code=307)
 
 
 @core_bp.route('/api/search', methods=['GET'])
