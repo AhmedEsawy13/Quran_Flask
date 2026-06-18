@@ -444,6 +444,161 @@
         if (cur) state.reciterName = cur.name_ar || cur.name_en || state.reciter;
     }
 
+    // ── YouTube IFrame Audio Adapter ─────────────────────────────────────────
+    // Wraps the YouTube IFrame Player API to expose the same interface as
+    // HTMLAudioElement so all seek/play/pause/currentTime logic works unchanged.
+    // Used automatically when audio_url is a youtube.com watch URL.
+
+    function extractYoutubeId(url) {
+        if (!url) return null;
+        const m = url.match(/[?&]v=([A-Za-z0-9_-]{11})/) || url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+        return m ? m[1] : null;
+    }
+
+    class YTAudioAdapter {
+        constructor(videoId) {
+            this._videoId = videoId;
+            this._ready = false;
+            this._pendingSeeked = false;
+            this._listeners = {};
+            // Invisible 1×1 container that the IFrame API replaces with an iframe.
+            this._div = document.createElement('div');
+            this._div.style.cssText = 'position:fixed;bottom:0;right:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;';
+            document.body.appendChild(this._div);
+            this._loadAPI();
+        }
+
+        _loadAPI() {
+            if (window.YT && window.YT.Player) {
+                this._createPlayer();
+            } else {
+                if (!document.getElementById('yt-iframe-api')) {
+                    const s = document.createElement('script');
+                    s.id = 'yt-iframe-api';
+                    s.src = 'https://www.youtube.com/iframe_api';
+                    document.head.appendChild(s);
+                }
+                const prev = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = () => {
+                    if (typeof prev === 'function') prev();
+                    this._createPlayer();
+                };
+            }
+        }
+
+        _createPlayer() {
+            this._player = new YT.Player(this._div, {
+                videoId: this._videoId,
+                playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, playsinline: 1 },
+                events: {
+                    onReady: () => {
+                        this._ready = true;
+                        this._dispatch('loadedmetadata');
+                    },
+                    onStateChange: e => {
+                        if (e.data === YT.PlayerState.ENDED) {
+                            this._dispatch('ended');
+                        }
+                        // Fire 'seeked' as soon as playback resumes or pauses at
+                        // the new position — covers both seek-then-play and
+                        // seek-while-paused cases.
+                        if (this._pendingSeeked &&
+                            (e.data === YT.PlayerState.PLAYING ||
+                             e.data === YT.PlayerState.PAUSED)) {
+                            this._pendingSeeked = false;
+                            this._dispatch('seeked');
+                        }
+                    },
+                    onError: e => console.warn('YT player error code:', e.data),
+                },
+            });
+        }
+
+        _dispatch(event) {
+            (this._listeners[event] || []).forEach(cb => { try { cb({ type: event }); } catch (e) {} });
+        }
+
+        addEventListener(event, callback, opts) {
+            if (!this._listeners[event]) this._listeners[event] = [];
+            if (opts && opts.once) {
+                const wrapped = (ev) => {
+                    callback(ev);
+                    this._listeners[event] = (this._listeners[event] || []).filter(f => f !== wrapped);
+                };
+                this._listeners[event].push(wrapped);
+                // If already ready and caller is waiting for loadedmetadata, fire immediately.
+                if (event === 'loadedmetadata' && this._ready) setTimeout(() => this._dispatch('loadedmetadata'), 0);
+            } else {
+                this._listeners[event].push(callback);
+            }
+        }
+
+        removeEventListener(event, callback) {
+            if (this._listeners[event])
+                this._listeners[event] = this._listeners[event].filter(f => f !== callback);
+        }
+
+        get src() { return this._videoId ? `https://www.youtube.com/watch?v=${this._videoId}` : ''; }
+        set src(url) {
+            const vid = extractYoutubeId(url);
+            if (!vid || vid === this._videoId) return;
+            this._videoId = vid;
+            this._ready = false;
+            if (this._player && typeof this._player.loadVideoById === 'function')
+                this._player.loadVideoById({ videoId: vid, startSeconds: 0 });
+        }
+        load() {} // no-op; YT player loads when the IFrame is created
+
+        get currentTime() {
+            if (!this._player || !this._ready) return 0;
+            try { return this._player.getCurrentTime() || 0; } catch (e) { return 0; }
+        }
+        set currentTime(t) {
+            if (!this._player || !this._ready) return;
+            this._pendingSeeked = true;
+            try { this._player.seekTo(t, true); } catch (e) {}
+            // Fallback: fire 'seeked' after 500 ms in case state-change never fires
+            // (e.g. seek happens while the player is already at the right state).
+            setTimeout(() => {
+                if (this._pendingSeeked) { this._pendingSeeked = false; this._dispatch('seeked'); }
+            }, 500);
+        }
+
+        get paused() {
+            if (!this._player || !this._ready) return true;
+            try { return this._player.getPlayerState() !== YT.PlayerState.PLAYING; } catch (e) { return true; }
+        }
+        get readyState() { return this._ready ? 4 : 0; }
+
+        play() {
+            return new Promise(resolve => {
+                const doPlay = () => { try { this._player.playVideo(); } catch (e) {} resolve(); };
+                if (this._ready) doPlay();
+                else this.addEventListener('loadedmetadata', () => doPlay(), { once: true });
+            });
+        }
+        pause() { if (this._player && this._ready) try { this._player.pauseVideo(); } catch (e) {} }
+
+        destroy() {
+            try { if (this._player && this._player.destroy) this._player.destroy(); } catch (e) {}
+            if (this._div && this._div.parentNode) this._div.parentNode.removeChild(this._div);
+            this._listeners = {};
+        }
+    }
+
+    // Named audio event callbacks so they can be re-attached to a fresh adapter
+    // whenever the reciter switches between native-MP3 and YouTube backends.
+    function _onAudioSeeked() { state.pendingSeek = false; }
+    function _onAudioEnded() { if (state.stepIdx >= 0 && state.stepIdx < state.schedule.length) advanceStep(); }
+    function attachAudioEvents(obj) {
+        obj.addEventListener('seeked', _onAudioSeeked);
+        obj.addEventListener('ended', _onAudioEnded);
+    }
+
+    // Keep a reference to the original <audio> element so we can restore it
+    // when switching away from a YouTube reciter back to an MP3 reciter.
+    const _nativeAudio = $('mz-audio');
+
     async function loadSurahMemo(surah) {
         setStatus('جارٍ تحميل بيانات السورة…');
         const resp = await fetch(`/api/memorization/${surah}${memoQuery()}`);
@@ -470,8 +625,19 @@
         }
         autoSetTo(parseInt(els.from.value, 10), data.verses);
 
-        els.audio.src = data.audio_url;
-        els.audio.load();
+        // Swap audio backend: use YouTube IFrame adapter for youtube.com URLs,
+        // native <audio> for everything else (MP3 streams).
+        const _ytId = extractYoutubeId(data.audio_url);
+        if (_ytId) {
+            if (els.audio !== _nativeAudio && typeof els.audio.destroy === 'function') els.audio.destroy();
+            els.audio = new YTAudioAdapter(_ytId);
+            attachAudioEvents(els.audio);
+        } else {
+            if (els.audio !== _nativeAudio && typeof els.audio.destroy === 'function') els.audio.destroy();
+            els.audio = _nativeAudio;
+            els.audio.src = data.audio_url;
+            els.audio.load();
+        }
         updateHint();
         setStatus('');
     }
@@ -1337,8 +1503,9 @@
         if (els.loopBtn) els.loopBtn.setAttribute('aria-pressed', String(!!els.loop.checked));
     }
 
-    els.audio.addEventListener('seeked', () => { state.pendingSeek = false; });
-    els.audio.addEventListener('ended', () => { if (state.stepIdx >= 0 && state.stepIdx < state.schedule.length) advanceStep(); });
+    // Attach 'seeked' and 'ended' listeners to the initial native audio element.
+    // loadSurahMemo calls attachAudioEvents() again whenever the backend switches.
+    attachAudioEvents(els.audio);
 
     /* ── Recite & follow (streaming ASR, beta) ─────────────────────────
        Lazy-loads static/mushaf_asr.js (onnxruntime-web + the FastConformer
