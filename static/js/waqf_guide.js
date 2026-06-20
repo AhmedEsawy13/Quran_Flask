@@ -494,13 +494,23 @@
         const uByWpos = new Map(d.union_stops.map(u => [u.wpos, u]));
         const markOf = (m, wpos) => { const f = m.marks.find(x => x.wpos === wpos); return f ? f.symbol : null; };
         const reciterStops = wpos => d.reciters.some(r => (d.per_reciter[r.id].stops || []).some(s => s.wpos === wpos));
+        // a position carrying a printed waqf mark in ANY shown mushaf
+        const mushafMarked = wpos => mushafs.some(m => markOf(m, wpos));
+        // أقوى وقف: every reciter stops here AND every shown mushaf prescribes it
+        const isStrong = wpos => {
+            const u = uByWpos.get(wpos);
+            return !!u && u.count === d.reciters_total && mushafs.length > 0 && mushafs.every(m => markOf(m, wpos));
+        };
 
         // header
         let head = '<thead><tr><th class="wq-rname">الموضع ←</th>';
         cols.forEach(wpos => {
             const u = uByWpos.get(wpos);
-            const cls = u && u.solo ? ' wq-col-solo' : (!reciterStops(wpos) ? ' wq-col-mushaf-only' : '');
-            head += `<th class="${cls}"><div class="wq-col-word">${d.words[wpos] || ''}</div>`
+            const strong = isStrong(wpos);
+            const cls = (strong ? ' wq-col-strong' : '') + (u && u.solo ? ' wq-col-solo' : (!reciterStops(wpos) ? ' wq-col-mushaf-only' : ''));
+            head += `<th class="${cls}">`
+                + (strong ? '<div class="wq-col-strong-tag" title="أقوى وقف: يقف عنده كل القرّاء ويوافق كل المصاحف المعروضة"><i class="fas fa-star"></i> أقوى وقف</div>' : '')
+                + `<div class="wq-col-word">${d.words[wpos] || ''}</div>`
                 + `<div class="wq-col-meta">كلمة ${toAr(wpos + 1)}</div></th>`;
         });
         head += '</tr></thead>';
@@ -510,11 +520,12 @@
         mushafs.forEach(m => {
             body += `<tr class="wq-row-mushaf"><td class="wq-rname"><span class="wq-mushaf-name" data-m="${m.id}"><i class="fas fa-book-quran"></i> ${m.name}</span></td>`;
             cols.forEach(wpos => {
+                const strong = isStrong(wpos) ? ' wq-col-strong' : '';
                 const sym = markOf(m, wpos);
                 if (sym) {
                     const meta = symMeta(sym);
-                    body += `<td><span class="wq-wsym waqf-uthmanic wq-w-${meta.cls}" title="${meta.name} — ${meta.desc}">${waqfGlyph(sym)}</span></td>`;
-                } else body += `<td><span class="wq-cell-empty">·</span></td>`;
+                    body += `<td class="${strong}"><span class="wq-wsym waqf-uthmanic wq-w-${meta.cls}" title="${meta.name} — ${meta.desc}">${waqfGlyph(sym)}</span></td>`;
+                } else body += `<td class="${strong}"><span class="wq-cell-empty">·</span></td>`;
             });
             body += '</tr>';
         });
@@ -522,21 +533,26 @@
         body += '<tr class="wq-row-consensus"><td class="wq-rname">اتفاق القرّاء</td>';
         cols.forEach(wpos => {
             const u = uByWpos.get(wpos);
-            body += `<td class="${u && u.solo ? 'wq-col-solo' : ''}">${u ? toAr(u.count) + '/' + toAr(d.reciters_total) : '<span class="wq-cell-empty">·</span>'}</td>`;
+            const cls = ((isStrong(wpos) ? 'wq-col-strong ' : '') + (u && u.solo ? 'wq-col-solo' : '')).trim();
+            body += `<td class="${cls}">${u ? toAr(u.count) + '/' + toAr(d.reciters_total) : '<span class="wq-cell-empty">·</span>'}</td>`;
         });
         body += '</tr>';
         // one row per reciter
         d.reciters.forEach(r => {
             const det = d.per_reciter[r.id];
             const timeByWpos = new Map((det.stops || []).map(s => [s.wpos, s.time]));
-            body += `<tr><td class="wq-rname">${r.name_ar}</td>`;
+            const qasr = det.qasr_munfasil ? ' <span class="wq-qasr-mini" title="يقرأ بقصر المدّ المنفصل (حركتان) — قراءته أسرع">قصر</span>' : '';
+            body += `<tr><td class="wq-rname">${r.name_ar}${qasr}</td>`;
             cols.forEach(wpos => {
                 const u = uByWpos.get(wpos);
-                const solo = u && u.solo ? ' wq-col-solo' : '';
+                const strong = isStrong(wpos) ? ' wq-col-strong' : '';
+                const isSolo = u && u.solo;
+                const onMushaf = isSolo && mushafMarked(wpos);
+                const cls = (strong + (isSolo ? ' wq-col-solo' : '')).trim();
                 if (timeByWpos.has(wpos)) {
-                    body += `<td class="${solo}"><button class="wq-cell-stop wq-cell-play${u && u.solo ? ' wq-solo' : ''}" type="button" data-rid="${r.id}" data-wpos="${wpos}" title="استمع لمقطع ${r.name_ar} حتى هذا الموضع"><i class="fas fa-play"></i>${toAr(timeByWpos.get(wpos).toFixed(1))}</button></td>`;
+                    body += `<td class="${cls}"><button class="wq-cell-stop wq-cell-play${isSolo ? ' wq-solo' : ''}${onMushaf ? ' wq-solo-onmushaf' : ''}" type="button" data-rid="${r.id}" data-wpos="${wpos}" title="${onMushaf ? 'انفرد بالوقف هنا، لكنه يوافق علامة مطبوعة في أحد المصاحف · ' : ''}استمع لمقطع ${r.name_ar} حتى هذا الموضع"><i class="fas fa-play"></i>${toAr(timeByWpos.get(wpos).toFixed(1))}${onMushaf ? '<i class="fas fa-book-quran wq-cell-onmushaf"></i>' : ''}</button></td>`;
                 } else {
-                    body += `<td class="${solo}"><span class="wq-cell-empty">·</span></td>`;
+                    body += `<td class="${cls}"><span class="wq-cell-empty">·</span></td>`;
                 }
             });
             body += '</tr>';
@@ -545,12 +561,19 @@
         els.matrix.innerHTML = head + body;
 
         const symsHere = [...new Set(mushafs.flatMap(m => m.marks.map(mk => mk.symbol)))];
-        renderMatrixLegend(d, symsHere);
+        const hasStrong = cols.some(isStrong);
+        const hasOnMushaf = d.reciters.some(r => (d.per_reciter[r.id].stops || []).some(s => {
+            const u = uByWpos.get(s.wpos); return u && u.solo && mushafMarked(s.wpos);
+        }));
+        renderMatrixLegend(d, symsHere, { strong: hasStrong, onMushaf: hasOnMushaf });
     }
 
-    function renderMatrixLegend(d, syms) {
+    function renderMatrixLegend(d, syms, flags) {
         if (!els.matrixLegend) return;
-        const parts = (d.mushafs || []).map(m => `<span><span class="wq-lg wq-mushaf-dot" data-m="${m.id}"></span> ${m.name}</span>`);
+        const parts = [];
+        if (flags && flags.strong) parts.push('<span><span class="wq-lg-star"><i class="fas fa-star"></i></span> أقوى وقف (كل القرّاء + كل المصاحف)</span>');
+        if (flags && flags.onMushaf) parts.push('<span><i class="fas fa-book-quran wq-lg-onmushaf"></i> انفراد يوافق علامة مصحف</span>');
+        (d.mushafs || []).forEach(m => parts.push(`<span><span class="wq-lg wq-mushaf-dot" data-m="${m.id}"></span> ${m.name}</span>`));
         syms.sort((a, b) => Object.keys(WAQF_SYM).indexOf(a) - Object.keys(WAQF_SYM).indexOf(b))
             .forEach(s => { const mt = symMeta(s); parts.push(`<span><span class="wq-wsym waqf-uthmanic wq-w-${mt.cls}">${waqfGlyph(s)}</span> ${mt.name}</span>`); });
         els.matrixLegend.innerHTML = parts.join('');
