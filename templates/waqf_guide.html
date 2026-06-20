@@ -11,7 +11,7 @@
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=15">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=16">
     <!-- أثَر shared brand identity (fonts + logo) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=3">
     <script src="{{ url_for('static', filename='js/theme.js') }}?v=2"></script>
@@ -81,15 +81,15 @@
                 <div class="wq-research-presets">
                     <div class="wq-research-group">
                         <span class="wq-research-glabel">حروف الردع والجواب</span>
-                        <button class="wq-research-chip" data-word="كلا" type="button">كلا</button>
+                        <button class="wq-research-chip" data-word="كلا" data-exact="1" type="button">كلا</button>
                         <button class="wq-research-chip" data-word="بلى" type="button">بلى</button>
-                        <button class="wq-research-chip" data-word="نعم" type="button">نعم</button>
+                        <button class="wq-research-chip" data-word="نعم" data-exact="1" type="button">نعم</button>
                     </div>
                     <div class="wq-research-group">
                         <span class="wq-research-glabel">أسماء الإشارة</span>
-                        <button class="wq-research-chip" data-word="ذلك" type="button">ذلك</button>
-                        <button class="wq-research-chip" data-word="كذلك" type="button">كذلك</button>
-                        <button class="wq-research-chip" data-word="هذا" type="button">هذا</button>
+                        <button class="wq-research-chip" data-word="ذلك" data-exact="1" type="button">ذلك</button>
+                        <button class="wq-research-chip" data-word="كذلك" data-exact="1" type="button">كذلك</button>
+                        <button class="wq-research-chip" data-word="هذا" data-exact="1" type="button">هذا</button>
                     </div>
                     <div class="wq-research-free">
                         <i class="fas fa-magnifying-glass"></i>
@@ -144,6 +144,6 @@
         </section>
     </main>
 
-    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=17"></script>
+    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=18"></script>
 </body>
 </html>

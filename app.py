@@ -2696,11 +2696,15 @@ def waqf_research():
     word = request.args.get('word', '').strip()
     if not word:
         return jsonify({'error': "query parameter 'word' is required"}), 400
+    # exact=1: pre-select the form matching the (vocalised) query, so a preset
+    # like كَلَّا lands on the 33 particle occurrences, not كُلّاً.
+    exact = request.args.get('exact') in ('1', 'true', 'yes')
     nt = _normalize_for_search(word)
     if not nt:
-        return jsonify({'word': word, 'normalized': '', 'count': 0, 'forms': [], 'occurrences': []})
+        return jsonify({'word': word, 'normalized': '', 'count': 0, 'forms': [], 'occurrences': [], 'active_form': None})
 
-    cached = _waqf_research_cache.get(nt)
+    cache_key = (nt, exact)
+    cached = _waqf_research_cache.get(cache_key)
     if cached is not None:
         return jsonify(cached)
 
@@ -2708,7 +2712,10 @@ def waqf_research():
         """Coarse form: drop waqf symbols and fold alef/hamza variants, but KEEP
         harakat — so كَلَّا/كَلَّآ/كَلَّاۖ collapse to one form while كُلّٗا (each)
         stays distinct from كَلَّا (the particle)."""
-        out = ''.join(c for c in token if c not in WAQF_SYMBOL_CHARS and c not in ('ـ', 'ٓ'))
+        # drop: waqf symbols, tatweel, maddah, both sukun glyphs (ْ / ۡ); keep the
+        # short vowels (fatha/damma/kasra/shadda) that carry the meaning.
+        drop = set(WAQF_SYMBOL_CHARS) | {'ـ', 'ٓ', 'ْ', 'ۡ', 'ۤ'}
+        out = ''.join(c for c in token if c not in drop)
         for a in ('آ', 'أ', 'إ', 'ٱ'):
             out = out.replace(a, 'ا')
         return out
@@ -2732,14 +2739,18 @@ def waqf_research():
             })
             forms[fk] += 1
 
+    # For a preset (exact=1) default to the dominant form — which for these
+    # particles is the waqf-relevant one (كَلَّا not كُلّاً، نَعَم not نِعْمَ).
+    active_form = forms.most_common(1)[0][0] if (exact and forms) else None
     result = {
         'word': word,
         'normalized': nt,
         'count': len(occ),
         'forms': [{'word': w, 'count': c} for w, c in forms.most_common()],
         'occurrences': occ,
+        'active_form': active_form,
     }
-    _waqf_research_cache[nt] = result
+    _waqf_research_cache[cache_key] = result
     return jsonify(result)
 
 

@@ -140,7 +140,7 @@
     /* ── waqf research by word (للدراسة) ──────────────────────────── */
     let researchState = { word: '', forms: [], occ: [], form: null };
 
-    async function runResearch(word) {
+    async function runResearch(word, exact) {
         word = (word || '').trim();
         if (!word) return;
         document.querySelectorAll('.wq-research-chip').forEach(c =>
@@ -148,9 +148,9 @@
         els.researchForms.innerHTML = '';
         els.researchResults.innerHTML = '<div class="wq-research-loading">…جارٍ البحث</div>';
         try {
-            const resp = await fetch('/api/waqf-research?word=' + encodeURIComponent(word));
+            const resp = await fetch('/api/waqf-research?word=' + encodeURIComponent(word) + (exact ? '&exact=1' : ''));
             const d = await resp.json();
-            researchState = { word, forms: d.forms || [], occ: d.occurrences || [], form: null };
+            researchState = { word, forms: d.forms || [], occ: d.occurrences || [], form: d.active_form || null };
             renderResearch();
         } catch (e) {
             els.researchResults.innerHTML = '<div class="wq-research-empty">تعذّر البحث</div>';
@@ -185,7 +185,7 @@
             els.researchToggle.setAttribute('aria-expanded', String(open));
         });
         document.querySelectorAll('.wq-research-chip').forEach(c =>
-            c.addEventListener('click', () => runResearch(c.dataset.word)));
+            c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1')));
         if (els.researchInput) els.researchInput.addEventListener('keydown', e => {
             if (e.key === 'Enter') runResearch(els.researchInput.value);
         });
