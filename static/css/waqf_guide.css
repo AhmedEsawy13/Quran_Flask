@@ -254,6 +254,43 @@ button.wq-cell-play.wq-playing i { color: #fff; }
     cursor: pointer; transition: all 0.14s ease; }
 .wq-reciter-chip:hover { color: var(--wq-text); border-color: var(--wq-border-strong); }
 .wq-reciter-chip-active { color: var(--wq-accent-strong); background: var(--wq-accent-soft); border-color: color-mix(in srgb, var(--wq-accent) 42%, transparent); }
+.wq-reciter-chip-qasr { border-color: color-mix(in srgb, var(--wq-accent) 45%, transparent); }
+
+/* ── قصر المنفصل badge ─────────────────────────────────────────── */
+.wq-qasr {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.7rem; font-weight: 700; line-height: 1; white-space: nowrap;
+    padding: 4px 9px; border-radius: 999px;
+    color: var(--wq-accent-strong); background: var(--wq-accent-soft);
+    border: 1px solid color-mix(in srgb, var(--wq-accent) 32%, transparent);
+}
+.wq-qasr[hidden] { display: none; }
+.wq-qasr i { font-size: 0.82em; }
+
+/* ── per-reciter انفراد detail (solo stops + printed-mushaf match) ── */
+.wq-solo-detail { margin: 4px 0 10px; }
+.wq-solo-detail:empty { display: none; }
+.wq-solo-head { display: flex; align-items: center; gap: 7px; margin-bottom: 7px;
+    font-size: 0.8rem; font-weight: 700; color: var(--wq-solo); }
+.wq-solo-head i { font-size: 0.9em; }
+.wq-solo-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px;
+    padding: 0 5px; border-radius: 9px; font-size: 0.72rem;
+    background: var(--wq-solo-soft); color: var(--wq-solo); }
+.wq-solo-items { display: flex; flex-direction: column; gap: 6px; }
+.wq-solo-item { display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    padding: 7px 11px; border-radius: 10px; background: var(--wq-surface-2);
+    border: 1px solid var(--wq-border); border-inline-start: 3px solid var(--wq-solo); }
+.wq-solo-item-matched { border-inline-start-color: var(--wq-consensus); }
+.wq-solo-word { font-family: 'UthmanicHafs', 'Amiri', serif; font-size: 1.12rem;
+    color: var(--wq-quran); }
+.wq-solo-time { font-size: 0.74rem; color: var(--wq-text-muted); font-weight: 600; }
+.wq-mushaf-match { display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.74rem; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+    color: var(--wq-consensus); background: var(--wq-consensus-soft); }
+.wq-mushaf-match b { font-family: 'UthmanicHafs', serif; font-size: 1.1em; font-weight: 400; }
+.wq-solo-nomatch { font-size: 0.72rem; color: var(--wq-text-faint); font-weight: 500;
+    padding: 3px 9px; border-radius: 999px; background: var(--wq-surface);
+    border: 1px dashed var(--wq-border-strong); }
 .wq-reciter-count { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; font-weight: 700;
     color: var(--wq-accent-strong); background: var(--wq-accent-soft); border: 1px solid color-mix(in srgb, var(--wq-accent) 38%, transparent); }
 .wq-reciter-count i { color: var(--wq-accent); }

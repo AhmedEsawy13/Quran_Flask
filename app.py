@@ -2564,6 +2564,43 @@ def _build_verse_waqf_detail(surah, ayah):
         if marks:
             mushafs.append({'id': ver, 'name': ver, 'marks': marks})
 
+    # Build a broad mushaf-mark lookup (wpos -> {mushaf_id: symbol}) across EVERY
+    # printed mushaf we have, so a reciter's solo stop can be validated against
+    # any edition's printed waqf — not just the three shown in the matrix.
+    mushaf_mark_by_wpos = {}
+    for ver in _WAQF_MATCH_MUSHAFS:
+        for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+            ti = r.get('token_index')
+            if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
+                continue
+            wpos = raw_to_wpos[ti]
+            if wpos is None:
+                continue
+            mushaf_mark_by_wpos.setdefault(wpos, {})[ver] = r['symbols']
+
+    # Enrich per_reciter with derived fields used by the waqf guide UI:
+    #  solo_stops_detail – this reciter's mid-verse stops that NO other reciter
+    #                      made (انفرد), each tagged with any printed mushaf that
+    #                      prescribes a waqf there (validates the lone stop).
+    #  qasr_munfasil     – known Hafs bi-qasr al-munfasil reciters (config), whose
+    #                      shorter disconnected madd makes their pace faster.
+    for rid, det in per_reciter.items():
+        solo_detail = []
+        for s in det.get('stops', []):
+            wpos = s['wpos']
+            u = next((u for u in union_stops if u['wpos'] == wpos), None)
+            if u and u['solo']:
+                mm = [{'mushaf': mid, 'symbol': sym}
+                      for mid, sym in mushaf_mark_by_wpos.get(wpos, {}).items()]
+                solo_detail.append({
+                    'wpos': wpos,
+                    'time': s['time'],
+                    'word': words[wpos] if 0 <= wpos < len(words) else '',
+                    'mushaf_matches': mm,
+                })
+        det['solo_stops_detail'] = solo_detail
+        det['qasr_munfasil'] = rid in QASR_MUNFASIL_RECITERS
+
     return {
         'surah': surah,
         'ayah': ayah,
@@ -2585,8 +2622,15 @@ def _build_verse_waqf_detail(surah, ayah):
     }
 
 
-# Printed mushafs whose waqf marks we compare the reciters against.
+# Printed mushafs whose waqf marks we compare the reciters against (matrix view).
 _WAQF_COMPARE_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي')
+# Broader set used only to validate a reciter's *solo* stop against any printed
+# waqf (e.g. "انفرد القارئ، لكنه يوافق علامة الأزهر").
+_WAQF_MATCH_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي', 'ورش', 'الهندي')
+# Reciters known to recite Hafs bi-qasr al-munfasil (short disconnected madd) —
+# their pace is legitimately faster, surfaced as a badge so the timing reads
+# correctly. Keyed by MEMORIZATION_RECITERS id.
+QASR_MUNFASIL_RECITERS = {'banna', 'ahmed_amer', 'maasaraawi', 'burhaji', 'shaheen'}
 
 
 def _reference_timeline(per_reciter, words, vk, verse_durs):

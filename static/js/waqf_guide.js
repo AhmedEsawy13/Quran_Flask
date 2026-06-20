@@ -718,7 +718,14 @@
             head.className = 'wq-reciter-head';
 
             let activeId = group.members.includes(d.ref_reciter) ? d.ref_reciter : group.members[0];
-            let row;
+            let row, soloBlock;
+
+            // قصر المنفصل badge — reflects the active reciter (updates on switch).
+            const qasrEl = document.createElement('span');
+            qasrEl.className = 'wq-qasr';
+            qasrEl.innerHTML = '<i class="fas fa-gauge-high"></i> قصر المنفصل';
+            qasrEl.title = 'يقرأ بقصر المدّ المنفصل (حركتان)، فتكون قراءته أسرع من قارئ الإشباع';
+            const syncQasr = () => { qasrEl.hidden = !(d.per_reciter[activeId] || {}).qasr_munfasil; };
 
             if (group.members.length === 1) {
                 const nameEl = document.createElement('span');
@@ -732,11 +739,13 @@
                 const namesWrap = document.createElement('div');
                 namesWrap.className = 'wq-reciter-names';
                 group.members.forEach(id => {
+                    const qasr = !!(d.per_reciter[id] && d.per_reciter[id].qasr_munfasil);
                     const chip = document.createElement('button');
                     chip.type = 'button';
-                    chip.className = 'wq-reciter-chip' + (id === activeId ? ' wq-reciter-chip-active' : '');
+                    chip.className = 'wq-reciter-chip' + (id === activeId ? ' wq-reciter-chip-active' : '')
+                        + (qasr ? ' wq-reciter-chip-qasr' : '');
                     chip.textContent = nameById.get(id);
-                    chip.title = 'استمع بصوت ' + nameById.get(id);
+                    chip.title = (qasr ? 'قصر المنفصل · ' : '') + 'استمع بصوت ' + nameById.get(id);
                     chip.addEventListener('click', () => {
                         if (id === activeId) return;
                         activeId = id;
@@ -744,11 +753,17 @@
                         const newRow = buildSegmentRow(d, d.per_reciter[activeId], nameById.get(activeId), lastW, markByWpos, soloSet);
                         row.replaceWith(newRow);
                         row = newRow;
+                        const newSolo = buildSoloBlock(d.per_reciter[activeId]);
+                        soloBlock.replaceWith(newSolo);
+                        soloBlock = newSolo;
+                        syncQasr();
                     });
                     namesWrap.appendChild(chip);
                 });
                 head.appendChild(namesWrap);
             }
+            head.appendChild(qasrEl);
+            syncQasr();
 
             const stats = document.createElement('span');
             stats.className = 'wq-reciter-stats';
@@ -760,10 +775,45 @@
             head.appendChild(stats);
 
             card.appendChild(head);
+            soloBlock = buildSoloBlock(d.per_reciter[activeId]);
+            card.appendChild(soloBlock);
             row = buildSegmentRow(d, d.per_reciter[activeId], nameById.get(activeId), lastW, markByWpos, soloSet);
             card.appendChild(row);
             wrap.appendChild(card);
         });
+    }
+
+    // What did this reciter pause at that NO other reciter did (انفرد), and does
+    // a printed mushaf prescribe a waqf there? Returns an element (empty when the
+    // reciter has no solo stops — hidden via CSS :empty).
+    function buildSoloBlock(det) {
+        const block = document.createElement('div');
+        block.className = 'wq-solo-detail';
+        const items = (det && det.solo_stops_detail) || [];
+        if (!items.length) return block;
+        const head = document.createElement('div');
+        head.className = 'wq-solo-head';
+        head.innerHTML = `<i class="fas fa-user-tag"></i> انفرد بالوقف <span class="wq-solo-count">${toAr(items.length)}</span>`;
+        block.appendChild(head);
+        const list = document.createElement('div');
+        list.className = 'wq-solo-items';
+        items.forEach(it => {
+            const el = document.createElement('div');
+            el.className = 'wq-solo-item' + (it.mushaf_matches && it.mushaf_matches.length ? ' wq-solo-item-matched' : '');
+            let html = `<span class="wq-solo-word">${it.word || 'موضع'}</span>`
+                     + `<span class="wq-solo-time">${toAr((it.time || 0).toFixed(1))}ث</span>`;
+            if (it.mushaf_matches && it.mushaf_matches.length) {
+                html += it.mushaf_matches.map(m =>
+                    `<span class="wq-mushaf-match" title="يوافق علامة وقف مطبوعة في مصحف ${m.mushaf}">يوافق ${m.mushaf} <b>${m.symbol}</b></span>`
+                ).join('');
+            } else {
+                html += `<span class="wq-solo-nomatch" title="لا توجد علامة وقف مطبوعة عند هذا الموضع في المصاحف المتوفرة">بلا علامة مطبوعة</span>`;
+            }
+            el.innerHTML = html;
+            list.appendChild(el);
+        });
+        block.appendChild(list);
+        return block;
     }
 
     const reciterName = id => {
