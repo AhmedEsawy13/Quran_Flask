@@ -51,6 +51,7 @@
         nextStep:    $('mz-next-step'),
         loopBtn:     $('mz-loop-btn'),
         now:         $('mz-now'),
+        remaining:   $('mz-remaining'),
         playerReciter: $('mz-player-reciter'),
         timeCur:     $('mz-time-cur'),
         timeDur:     $('mz-time-dur'),
@@ -725,6 +726,9 @@
     }
 
     /* ── Expected session duration ─────────────────────────────────── */
+    const STEP_GAP = 0.4;  // small transition/breath pad added per step, so the
+                           // estimate is closer to real wall-clock time
+    const stepSec = s => Math.max(0, s.end - s.start) + STEP_GAP;
     function fmtDur(sec) {
         sec = Math.round(sec);
         const m = Math.floor(sec / 60), s = sec % 60;
@@ -735,7 +739,7 @@
     function updateEstimate() {
         if (!els.est) return;
         let sec = 0;
-        try { if (state.memo) buildSchedule().forEach(s => { sec += Math.max(0, s.end - s.start); }); } catch (e) { sec = 0; }
+        try { if (state.memo) buildSchedule().forEach(s => { sec += stepSec(s); }); } catch (e) { sec = 0; }
         els.est.innerHTML = sec ? `<i class="fas fa-clock"></i> المدة المتوقعة للجلسة: <b>${fmtDur(sec)}</b>` : '';
     }
 
@@ -1482,6 +1486,14 @@
         els.progressFill.style.width = `${Math.round(overall * 100)}%`;
         if (els.timeCur) els.timeCur.textContent = fmtTime(elapsed);
         if (els.timeDur) els.timeDur.textContent = fmtTime(span);
+        // remaining time for the whole repetition session (shown beside now-playing)
+        if (els.remaining) {
+            let prior = 0;
+            for (let i = 0; i < state.stepIdx; i++) prior += stepSec(state.schedule[i]);
+            const total = state.schedule.reduce((acc, st) => acc + stepSec(st), 0);
+            const left = Math.max(0, total - (prior + elapsed));
+            els.remaining.textContent = left > 0 ? `باقٍ ${fmtTime(left)}` : '';
+        }
     }
 
     // The docked player grows/shrinks the stage area, so refit the page to the new
@@ -1518,6 +1530,7 @@
         clearWordHighlight();
         els.progressFill.style.width = '100%';
         els.now.textContent = 'تم — أحسنت! 🌿';
+        if (els.remaining) els.remaining.textContent = '';
         setTimeout(() => { if (!state.playing) els.progressFill.style.width = '0%'; }, 1200);
     }
     function stopPlayback() {
@@ -1525,6 +1538,7 @@
         clearWordHighlight(); clearDone(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
         els.progressFill.style.width = '0%';
         els.now.textContent = '';
+        if (els.remaining) els.remaining.textContent = '';
         els.player.classList.remove('mz-show');
         els.player.setAttribute('aria-hidden', 'true');
         refitForPlayer();
