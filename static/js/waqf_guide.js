@@ -150,7 +150,7 @@
         try {
             const resp = await fetch('/api/waqf-research?word=' + encodeURIComponent(word) + (exact ? '&exact=1' : ''));
             const d = await resp.json();
-            researchState = { word, forms: d.forms || [], occ: d.occurrences || [], form: d.active_form || null };
+            researchState = { word, forms: d.forms || [], occ: d.occurrences || [], form: d.active_form || null, waqf: null };
             renderResearch();
         } catch (e) {
             els.researchResults.innerHTML = '<div class="wq-research-empty">تعذّر البحث</div>';
@@ -158,20 +158,44 @@
     }
 
     function renderResearch() {
-        const { forms, occ, form } = researchState;
-        els.researchForms.innerHTML = forms.length > 1
-            ? `<button class="wq-form-chip${!form ? ' wq-form-chip-active' : ''}" data-form="">الكل <b>${toAr(occ.length)}</b></button>`
-              + forms.map(f => `<button class="wq-form-chip${form === f.word ? ' wq-form-chip-active' : ''}" data-form="${f.word}"><span class="wq-form-word">${f.word}</span> <b>${toAr(f.count)}</b></button>`).join('')
-            : '';
-        const list = form ? occ.filter(o => o.form === form) : occ;
+        const { forms, occ, form, waqf } = researchState;
+        const byForm = form ? occ.filter(o => o.form === form) : occ;
+        const wWith = byForm.filter(o => o.has_waqf).length;
+        const wWithout = byForm.length - wWith;
+
+        // filter chips: by exact form, then by waqf behavior
+        let bar = '';
+        if (forms.length > 1) {
+            bar += '<div class="wq-research-frow"><span class="wq-research-flabel">الصيغة</span>'
+                + `<button class="wq-form-chip${!form ? ' wq-form-chip-active' : ''}" data-form="">الكل <b>${toAr(occ.length)}</b></button>`
+                + forms.map(f => `<button class="wq-form-chip${form === f.word ? ' wq-form-chip-active' : ''}" data-form="${f.word}"><span class="wq-form-word">${f.word}</span> <b>${toAr(f.count)}</b></button>`).join('')
+                + '</div>';
+        }
+        if (wWith && wWithout) {
+            bar += '<div class="wq-research-frow"><span class="wq-research-flabel">الوقف</span>'
+                + `<button class="wq-wfilter${!waqf ? ' wq-wfilter-active' : ''}" data-waqf="">الكل</button>`
+                + `<button class="wq-wfilter${waqf === 'yes' ? ' wq-wfilter-active' : ''}" data-waqf="yes"><i class="fas fa-pause"></i> بعلامة وقف <b>${toAr(wWith)}</b></button>`
+                + `<button class="wq-wfilter${waqf === 'no' ? ' wq-wfilter-active' : ''}" data-waqf="no">بلا علامة <b>${toAr(wWithout)}</b></button>`
+                + '</div>';
+        }
+        els.researchForms.innerHTML = bar;
+
+        let list = byForm;
+        if (waqf === 'yes') list = list.filter(o => o.has_waqf);
+        else if (waqf === 'no') list = list.filter(o => !o.has_waqf);
         if (!list.length) { els.researchResults.innerHTML = '<div class="wq-research-empty">لا نتائج</div>'; return; }
+
         els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>` + list.map(o => {
             const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
             const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
-            const waqf = o.waqf ? `<span class="wq-research-waqf waqf-uthmanic" title="علامة وقف المدينة على الكلمة">${o.waqf}</span>` : '';
+            const ent = Object.entries(o.marks || {});
+            const marks = ent.length
+                ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
+                  + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>'
+                : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
             return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref} لرؤية وقوف القرّاء والمصاحف">
                 <span class="wq-research-ref">${sname} <b>${ref}</b></span>
-                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${waqf}
+                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
                 <i class="fas fa-chevron-left wq-research-go"></i>
             </button>`;
         }).join('');
@@ -190,9 +214,10 @@
             if (e.key === 'Enter') runResearch(els.researchInput.value);
         });
         els.researchForms.addEventListener('click', e => {
-            const b = e.target.closest('.wq-form-chip'); if (!b) return;
-            researchState.form = b.dataset.form || null;
-            renderResearch();
+            const fb = e.target.closest('.wq-form-chip');
+            if (fb) { researchState.form = fb.dataset.form || null; researchState.waqf = null; renderResearch(); return; }
+            const wb = e.target.closest('.wq-wfilter');
+            if (wb) { researchState.waqf = wb.dataset.waqf || null; renderResearch(); }
         });
         els.researchResults.addEventListener('click', async e => {
             const b = e.target.closest('.wq-research-item'); if (!b) return;

@@ -281,6 +281,25 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-research-waqf { flex: 0 0 auto; font-family: 'UthmanicHafs', serif; font-size: 1.2rem; color: var(--wq-accent-strong); }
 .wq-research-go { flex: 0 0 auto; color: var(--wq-text-faint); font-size: 0.8em; }
 .wq-research-loading, .wq-research-empty { padding: 14px; text-align: center; color: var(--wq-text-muted); font-size: 0.85rem; }
+.wq-research-frow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 6px; }
+.wq-research-flabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 4px; }
+.wq-wfilter { font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--wq-text-muted);
+    padding: 4px 11px; border-radius: 8px; border: 1px solid var(--wq-border); background: var(--wq-surface);
+    cursor: pointer; transition: all 0.14s ease; }
+.wq-wfilter:hover { border-color: var(--wq-border-strong); color: var(--wq-text); }
+.wq-wfilter i { font-size: 0.82em; margin-inline-end: 3px; color: var(--wq-accent); }
+.wq-wfilter-active { color: var(--wq-accent-strong); background: var(--wq-accent-soft);
+    border-color: color-mix(in srgb, var(--wq-accent) 40%, transparent); }
+.wq-wfilter b { font-weight: 800; }
+.wq-research-marks { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 3px; }
+.wq-rmark { font-family: 'UthmanicHafs', serif; font-size: 1.05rem; line-height: 1; min-width: 1.25em;
+    text-align: center; color: var(--wq-text-muted); }
+.wq-rmark[data-m="المدينة"] { color: #16a34a; }
+.wq-rmark[data-m="الأزهر"]  { color: #ea580c; }
+.wq-rmark[data-m="الشمرلي"] { color: #2563eb; }
+.wq-rmark[data-m="ورش"]     { color: #9333ea; }
+.wq-rmark[data-m="الهندي"]  { color: #0891b2; }
+.wq-research-nomark { flex: 0 0 auto; color: var(--wq-text-faint); font-size: 0.9rem; min-width: 1.25em; text-align: center; }
 
 /* printed-mushaf rows + waqf symbols */
 .wq-row-mushaf td { background: color-mix(in srgb, var(--wq-accent) 4%, transparent); }

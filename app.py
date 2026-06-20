@@ -2723,19 +2723,34 @@ def waqf_research():
     occ = []
     forms = Counter()
     for vk in qpc_hafs_data_normalized:
-        text, words, _ = _verse_word_texts(vk)
+        text, words, raw_to_wpos = _verse_word_texts(vk)
         if not words or nt not in _normalize_for_search(text):
             continue  # quick reject — most verses don't contain the word
+        s, a = vk.split(':')
+        s, a = int(s), int(a)
+        marks_by_wpos = None  # built lazily — only for verses that actually match
         for i, w in enumerate(words):
             if _normalize_for_search(w) != nt:
                 continue
-            s, a = vk.split(':')
+            if marks_by_wpos is None:
+                marks_by_wpos = {}
+                for ver in _WAQF_MATCH_MUSHAFS:
+                    for r in get_mushaf_waqf_symbols(s, a, ver):
+                        ti = r.get('token_index')
+                        if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
+                            continue
+                        wp = raw_to_wpos[ti]
+                        if wp is not None:
+                            marks_by_wpos.setdefault(wp, {})[ver] = r['symbols']
             wsym = ''.join(c for c in w if c in WAQF_SYMBOL_CHARS)
+            marks = marks_by_wpos.get(i, {})
             fk = _form_key(w)
             lo, hi = max(0, i - 1), min(len(words), i + 3)
             occ.append({
-                'surah': int(s), 'ayah': int(a), 'wpos': i,
-                'word': w, 'form': fk, 'waqf': wsym, 'context': ' '.join(words[lo:hi]),
+                'surah': s, 'ayah': a, 'wpos': i,
+                'word': w, 'form': fk, 'waqf': wsym,
+                'marks': marks, 'has_waqf': bool(marks or wsym),
+                'context': ' '.join(words[lo:hi]),
             })
             forms[fk] += 1
 
