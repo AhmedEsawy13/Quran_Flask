@@ -70,7 +70,10 @@
         tbZoomIn:    $('mz-tb-zoomin'),
         tbZoomOut:   $('mz-tb-zoomout'),
         tbHide:      $('mz-tb-hide'),
-        tbBreath:    $('mz-tb-breath'),
+        volume:      $('mz-volume'),
+        volBtn:      $('mz-vol-btn'),
+        volIcon:     $('mz-vol-icon'),
+        est:         $('mz-est'),
         tajweed:     $('mz-tajweed'),
         justify:     $('mz-justify'),
         justifyVal:  $('mz-justify-val'),
@@ -99,7 +102,6 @@
 
     const EPS = 0.05;
     const PAGE_MIN = 1, PAGE_MAX = 604;
-    const LONG_SEC = 12;   // verses longer than this get phrase-split
 
     const state = {
         surahs: [],
@@ -154,14 +156,6 @@
     function revealVerse(key) {
         if (!key) return;
         wordsInSpread(`.mz-word[data-key="${key}"]`).forEach(w => w.classList.add('mz-reveal'));
-    }
-    /* ── Waqf comparison (مواضع وقوف القرّاء) ───────────────────────────
-       The detailed breathing/waqf view now lives on its own page (/waqf),
-       which compares how every reciter stops in a verse. The 🫁 toolbar
-       button opens it for the currently selected verse. */
-    function openWaqfPage() {
-        const [a] = selectedAyahRange();
-        window.open(`/waqf?surah=${state.surah}&ayah=${a}`, '_blank', 'noopener');
     }
     function setFocusMode(on) {
         state.focusMode = !!on;
@@ -496,6 +490,7 @@
                 events: {
                     onReady: () => {
                         this._ready = true;
+                        if (this._vol != null) this.volume = this._vol;  // apply pending volume
                         this._dispatch('loadedmetadata');
                     },
                     onStateChange: e => {
@@ -582,6 +577,17 @@
         }
         pause() { if (this._player && this._ready) try { this._player.pauseVideo(); } catch (e) {} }
 
+        get volume() {
+            if (this._player && this._ready) { try { return (this._player.getVolume() || 0) / 100; } catch (e) {} }
+            return this._vol != null ? this._vol : 1;
+        }
+        set volume(v) {
+            this._vol = v;
+            if (this._player && this._ready) {
+                try { this._player.setVolume(Math.round(v * 100)); if (v > 0) this._player.unMute(); else this._player.mute(); } catch (e) {}
+            }
+        }
+
         destroy() {
             try { if (this._player && this._player.destroy) this._player.destroy(); } catch (e) {}
             if (this._div && this._div.parentNode) this._div.parentNode.removeChild(this._div);
@@ -641,6 +647,7 @@
             els.audio.src = data.audio_url;
             els.audio.load();
         }
+        setVolume(state.volume != null ? state.volume : 1);  // carry volume across backends
         updateHint();
         setStatus('');
     }
@@ -690,16 +697,46 @@
 
     // Live feedback on how the current split settings divide the selection.
     function updateHint() {
+        updateEstimate();
         if (!els.hint) return;
         if (!state.memo || !els.splitLong.checked) { els.hint.textContent = ''; return; }
         let splitVerses = 0, totalPhrases = 0;
         selectedVerses().forEach(v => {
-            const isLong = (v.end - v.start) > LONG_SEC && (v.phrases || []).length > 1;
-            if (isLong) { splitVerses++; totalPhrases += v.phrases.length; }
+            if ((v.phrases || []).length > 1) { splitVerses++; totalPhrases += v.phrases.length; }
         });
         els.hint.textContent = splitVerses
-            ? `سيُقسَّم ${toAr(splitVerses)} من الآيات الطويلة إلى ${toAr(totalPhrases)} مقطعًا`
+            ? `سيُقسَّم ${toAr(splitVerses)} ${splitVerses === 1 ? 'آية' : 'آيات'} حسب الوقف إلى ${toAr(totalPhrases)} مقطعًا`
             : '';
+    }
+
+    /* ── Volume ───────────────────────────────────────────────────── */
+    function setVolume(v) {
+        v = Math.max(0, Math.min(1, isFinite(v) ? v : 1));
+        state.volume = v;
+        try { els.audio.volume = v; } catch (e) {}
+        if (els.volIcon) els.volIcon.className = v === 0 ? 'fas fa-volume-xmark' : v < 0.5 ? 'fas fa-volume-low' : 'fas fa-volume-high';
+        if (els.volume && Math.round(+els.volume.value) !== Math.round(v * 100)) els.volume.value = String(Math.round(v * 100));
+    }
+    function setupVolume() {
+        if (state.volume == null) state.volume = 1;
+        if (els.volume) els.volume.addEventListener('input', () => setVolume((+els.volume.value || 0) / 100));
+        if (els.volBtn) els.volBtn.addEventListener('click', () => setVolume(state.volume > 0 ? 0 : 1));
+        setVolume(state.volume);
+    }
+
+    /* ── Expected session duration ─────────────────────────────────── */
+    function fmtDur(sec) {
+        sec = Math.round(sec);
+        const m = Math.floor(sec / 60), s = sec % 60;
+        if (m && s) return `${toAr(m)} د ${toAr(s)} ث`;
+        if (m) return `${toAr(m)} دقيقة`;
+        return `${toAr(s)} ثانية`;
+    }
+    function updateEstimate() {
+        if (!els.est) return;
+        let sec = 0;
+        try { if (state.memo) buildSchedule().forEach(s => { sec += Math.max(0, s.end - s.start); }); } catch (e) { sec = 0; }
+        els.est.innerHTML = sec ? `<i class="fas fa-clock"></i> المدة المتوقعة للجلسة: <b>${fmtDur(sec)}</b>` : '';
     }
 
     /* ── Mushaf source ─────────────────────────────────────────────── */
@@ -1359,9 +1396,10 @@
         const firstAyah = vs.length ? vs[0].ayah : null;
 
         vs.forEach((v, i) => {
-            const dur = v.end - v.start;
             const phrases = v.phrases || [];
-            const usePhrases = splitLong && phrases.length > 1 && dur > LONG_SEC;
+            // split at every waqf-phrase boundary (the reciter's own pauses),
+            // regardless of verse length — short verses with an internal waqf split too.
+            const usePhrases = splitLong && phrases.length > 1;
             if (usePhrases) {
                 phrases.forEach((p, j) => {
                     for (let r = 0; r < R; r++)
@@ -1878,7 +1916,7 @@
         if (els.tbLayout) els.tbLayout.addEventListener('click', toggleLayout);
         if (els.tbTajweed) els.tbTajweed.addEventListener('click', () => els.tajweed.click());
         if (els.tbHide) els.tbHide.addEventListener('click', () => setHideMode(!state.hideText));
-        if (els.tbBreath) els.tbBreath.addEventListener('click', openWaqfPage);
+        setupVolume();
         if (els.tbZoomIn) els.tbZoomIn.addEventListener('click', () => setZoom(state.zoom + 0.1));
         if (els.tbZoomOut) els.tbZoomOut.addEventListener('click', () => setZoom(state.zoom - 0.1));
         // Recite & follow (lazy-load the ASR module)
