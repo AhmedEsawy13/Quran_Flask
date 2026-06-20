@@ -11,7 +11,7 @@
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=14">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/waqf_guide.css') }}?v=15">
     <!-- أثَر shared brand identity (fonts + logo) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=3">
     <script src="{{ url_for('static', filename='js/theme.js') }}?v=2"></script>
@@ -71,6 +71,36 @@
     <div class="wq-toast" id="wq-status" role="status"></div>
 
     <main class="wq-main" id="wq-main">
+        <!-- D) waqf research by word — pick a particle, browse every verse it occurs in -->
+        <section class="wq-card wq-research" id="wq-research-card">
+            <button class="wq-research-toggle" id="wq-research-toggle" type="button" aria-expanded="false">
+                <span><i class="fas fa-flask"></i> بحث الوقف بالكلمة — للدراسة</span>
+                <i class="fas fa-chevron-down wq-research-caret"></i>
+            </button>
+            <div class="wq-research-body" id="wq-research-body" hidden>
+                <div class="wq-research-presets">
+                    <div class="wq-research-group">
+                        <span class="wq-research-glabel">حروف الردع والجواب</span>
+                        <button class="wq-research-chip" data-word="كلا" type="button">كلا</button>
+                        <button class="wq-research-chip" data-word="بلى" type="button">بلى</button>
+                        <button class="wq-research-chip" data-word="نعم" type="button">نعم</button>
+                    </div>
+                    <div class="wq-research-group">
+                        <span class="wq-research-glabel">أسماء الإشارة</span>
+                        <button class="wq-research-chip" data-word="ذلك" type="button">ذلك</button>
+                        <button class="wq-research-chip" data-word="كذلك" type="button">كذلك</button>
+                        <button class="wq-research-chip" data-word="هذا" type="button">هذا</button>
+                    </div>
+                    <div class="wq-research-free">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input type="search" id="wq-research-input" placeholder="أو ابحث عن أي كلمة…" autocomplete="off">
+                    </div>
+                </div>
+                <div class="wq-research-forms" id="wq-research-forms"></div>
+                <div class="wq-research-results" id="wq-research-results"></div>
+            </div>
+        </section>
+
         <!-- A) verse overview -->
         <section class="wq-card wq-verse-card" id="wq-verse-card" hidden>
             <div class="wq-card-head">
@@ -114,6 +144,6 @@
         </section>
     </main>
 
-    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=16"></script>
+    <script src="{{ url_for('static', filename='js/waqf_guide.js') }}?v=17"></script>
 </body>
 </html>

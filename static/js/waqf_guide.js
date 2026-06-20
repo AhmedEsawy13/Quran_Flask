@@ -55,6 +55,9 @@
         recSummary: $('wq-rec-summary'), recPlan: $('wq-rec-plan'),
         matrixCard: $('wq-matrix-card'), matrix: $('wq-matrix'), matrixLegend: $('wq-matrix-legend'),
         recitersCard: $('wq-reciters-card'), reciters: $('wq-reciters'),
+        researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
+        researchInput: $('wq-research-input'), researchForms: $('wq-research-forms'),
+        researchResults: $('wq-research-results'),
     };
 
     const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
@@ -132,6 +135,72 @@
     function updateStepper() {
         els.prev.disabled = state.ayah <= 1;
         els.next.disabled = state.ayah >= (state.ayahCount[state.surah] || Infinity);
+    }
+
+    /* ── waqf research by word (للدراسة) ──────────────────────────── */
+    let researchState = { word: '', forms: [], occ: [], form: null };
+
+    async function runResearch(word) {
+        word = (word || '').trim();
+        if (!word) return;
+        document.querySelectorAll('.wq-research-chip').forEach(c =>
+            c.classList.toggle('wq-research-chip-active', c.dataset.word === word));
+        els.researchForms.innerHTML = '';
+        els.researchResults.innerHTML = '<div class="wq-research-loading">…جارٍ البحث</div>';
+        try {
+            const resp = await fetch('/api/waqf-research?word=' + encodeURIComponent(word));
+            const d = await resp.json();
+            researchState = { word, forms: d.forms || [], occ: d.occurrences || [], form: null };
+            renderResearch();
+        } catch (e) {
+            els.researchResults.innerHTML = '<div class="wq-research-empty">تعذّر البحث</div>';
+        }
+    }
+
+    function renderResearch() {
+        const { forms, occ, form } = researchState;
+        els.researchForms.innerHTML = forms.length > 1
+            ? `<button class="wq-form-chip${!form ? ' wq-form-chip-active' : ''}" data-form="">الكل <b>${toAr(occ.length)}</b></button>`
+              + forms.map(f => `<button class="wq-form-chip${form === f.word ? ' wq-form-chip-active' : ''}" data-form="${f.word}"><span class="wq-form-word">${f.word}</span> <b>${toAr(f.count)}</b></button>`).join('')
+            : '';
+        const list = form ? occ.filter(o => o.form === form) : occ;
+        if (!list.length) { els.researchResults.innerHTML = '<div class="wq-research-empty">لا نتائج</div>'; return; }
+        els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>` + list.map(o => {
+            const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
+            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const waqf = o.waqf ? `<span class="wq-research-waqf waqf-uthmanic" title="علامة وقف المدينة على الكلمة">${o.waqf}</span>` : '';
+            return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref} لرؤية وقوف القرّاء والمصاحف">
+                <span class="wq-research-ref">${sname} <b>${ref}</b></span>
+                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${waqf}
+                <i class="fas fa-chevron-left wq-research-go"></i>
+            </button>`;
+        }).join('');
+    }
+
+    function setupResearch() {
+        if (!els.researchToggle) return;
+        els.researchToggle.addEventListener('click', () => {
+            const open = els.researchBody.hidden;
+            els.researchBody.hidden = !open;
+            els.researchToggle.setAttribute('aria-expanded', String(open));
+        });
+        document.querySelectorAll('.wq-research-chip').forEach(c =>
+            c.addEventListener('click', () => runResearch(c.dataset.word)));
+        if (els.researchInput) els.researchInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') runResearch(els.researchInput.value);
+        });
+        els.researchForms.addEventListener('click', e => {
+            const b = e.target.closest('.wq-form-chip'); if (!b) return;
+            researchState.form = b.dataset.form || null;
+            renderResearch();
+        });
+        els.researchResults.addEventListener('click', async e => {
+            const b = e.target.closest('.wq-research-item'); if (!b) return;
+            const s = +b.dataset.s, a = +b.dataset.a;
+            if (s !== state.surah) await loadAyahOptions(s);
+            await loadVerse(s, a);
+            if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
     }
 
     /* ── render ───────────────────────────────────────────────── */
@@ -1003,6 +1072,7 @@
     /* ── init ─────────────────────────────────────────────────── */
     async function init() {
         initTheme();
+        setupResearch();
         try {
             await loadSurahs();
             const p = new URLSearchParams(location.search);

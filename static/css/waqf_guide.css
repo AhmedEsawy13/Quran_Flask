@@ -236,6 +236,52 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-lg-star i { color: var(--wq-consensus); }
 .wq-lg-onmushaf { color: var(--wq-consensus); margin-inline-end: 2px; }
 
+/* ── waqf research-by-word panel (للدراسة) ────────────────────── */
+.wq-research { padding: 0; overflow: hidden; }
+.wq-research-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 14px 16px; background: none; border: 0; cursor: pointer;
+    font-family: inherit; font-size: 0.95rem; font-weight: 700; color: var(--wq-text); }
+.wq-research-toggle > span { display: inline-flex; align-items: center; gap: 9px; }
+.wq-research-toggle .fa-flask { color: var(--wq-accent); }
+.wq-research-caret { transition: transform 0.18s ease; color: var(--wq-text-muted); font-size: 0.85em; }
+.wq-research-toggle[aria-expanded="true"] .wq-research-caret { transform: rotate(180deg); }
+.wq-research-body { padding: 4px 16px 16px; border-top: 1px solid var(--wq-border); }
+.wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
+.wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }
+.wq-research-chip { font-family: inherit; font-size: 1rem; font-weight: 700; color: var(--wq-text);
+    padding: 5px 15px; border-radius: 999px; border: 1px solid var(--wq-border-strong);
+    background: var(--wq-surface-2); cursor: pointer; transition: all 0.14s ease; }
+.wq-research-chip:hover { border-color: var(--wq-accent); color: var(--wq-accent-strong); }
+.wq-research-chip-active { background: var(--wq-accent); color: #fff; border-color: var(--wq-accent); }
+.wq-research-free { display: inline-flex; align-items: center; gap: 6px; padding: 5px 13px;
+    border-radius: 999px; border: 1px solid var(--wq-border-strong); background: var(--wq-surface); }
+.wq-research-free i { color: var(--wq-text-faint); font-size: 0.85em; }
+.wq-research-free input { border: 0; background: none; outline: none; font-family: inherit;
+    font-size: 0.9rem; color: var(--wq-text); width: 150px; }
+.wq-research-forms { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.wq-form-chip { font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--wq-text-muted);
+    padding: 4px 10px; border-radius: 8px; border: 1px solid var(--wq-border); background: var(--wq-surface);
+    cursor: pointer; transition: all 0.14s ease; }
+.wq-form-chip:hover { border-color: var(--wq-border-strong); color: var(--wq-text); }
+.wq-form-chip-active { color: var(--wq-accent-strong); background: var(--wq-accent-soft);
+    border-color: color-mix(in srgb, var(--wq-accent) 40%, transparent); }
+.wq-form-chip b { font-weight: 800; }
+.wq-form-word { font-family: 'UthmanicHafs', serif; font-size: 1.05rem; }
+.wq-research-count { font-size: 0.74rem; color: var(--wq-text-muted); font-weight: 600; margin-bottom: 8px; }
+.wq-research-results { display: flex; flex-direction: column; gap: 6px; max-height: 440px; overflow-y: auto; }
+.wq-research-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: start;
+    padding: 9px 12px; border-radius: 10px; border: 1px solid var(--wq-border); background: var(--wq-surface);
+    cursor: pointer; transition: all 0.14s ease; font-family: inherit; }
+.wq-research-item:hover { border-color: var(--wq-accent); background: var(--wq-accent-soft); }
+.wq-research-ref { flex: 0 0 auto; font-size: 0.78rem; color: var(--wq-text-muted); font-weight: 600; min-width: 96px; }
+.wq-research-ref b { color: var(--wq-accent-strong); }
+.wq-research-ctx { flex: 1; font-family: 'UthmanicHafs', 'Amiri', serif; font-size: 1.15rem;
+    color: var(--wq-quran); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wq-research-waqf { flex: 0 0 auto; font-family: 'UthmanicHafs', serif; font-size: 1.2rem; color: var(--wq-accent-strong); }
+.wq-research-go { flex: 0 0 auto; color: var(--wq-text-faint); font-size: 0.8em; }
+.wq-research-loading, .wq-research-empty { padding: 14px; text-align: center; color: var(--wq-text-muted); font-size: 0.85rem; }
+
 /* printed-mushaf rows + waqf symbols */
 .wq-row-mushaf td { background: color-mix(in srgb, var(--wq-accent) 4%, transparent); }
 .wq-mushaf-name { font-weight: 700; white-space: nowrap; }

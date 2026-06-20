@@ -2682,6 +2682,67 @@ def get_verse_waqf(surah, ayah):
     return jsonify(data)
 
 
+_waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
+
+
+@breathing_bp.route('/api/waqf-research', methods=['GET'])
+def waqf_research():
+    """Research tool: every verse where a given word occurs, with the exact
+    vocalised form, the printed Madinah waqf symbol embedded on it, and a small
+    context snippet. Diacritic-insensitive match (so كَلَّا and كُلّاً both come
+    back) but each occurrence keeps its exact form, plus a form breakdown, so the
+    researcher can isolate the particle they want. Reciter waqf + the full mushaf
+    comparison are shown by clicking through to the verse."""
+    word = request.args.get('word', '').strip()
+    if not word:
+        return jsonify({'error': "query parameter 'word' is required"}), 400
+    nt = _normalize_for_search(word)
+    if not nt:
+        return jsonify({'word': word, 'normalized': '', 'count': 0, 'forms': [], 'occurrences': []})
+
+    cached = _waqf_research_cache.get(nt)
+    if cached is not None:
+        return jsonify(cached)
+
+    def _form_key(token):
+        """Coarse form: drop waqf symbols and fold alef/hamza variants, but KEEP
+        harakat — so كَلَّا/كَلَّآ/كَلَّاۖ collapse to one form while كُلّٗا (each)
+        stays distinct from كَلَّا (the particle)."""
+        out = ''.join(c for c in token if c not in WAQF_SYMBOL_CHARS and c not in ('ـ', 'ٓ'))
+        for a in ('آ', 'أ', 'إ', 'ٱ'):
+            out = out.replace(a, 'ا')
+        return out
+
+    occ = []
+    forms = Counter()
+    for vk in qpc_hafs_data_normalized:
+        text, words, _ = _verse_word_texts(vk)
+        if not words or nt not in _normalize_for_search(text):
+            continue  # quick reject — most verses don't contain the word
+        for i, w in enumerate(words):
+            if _normalize_for_search(w) != nt:
+                continue
+            s, a = vk.split(':')
+            wsym = ''.join(c for c in w if c in WAQF_SYMBOL_CHARS)
+            fk = _form_key(w)
+            lo, hi = max(0, i - 1), min(len(words), i + 3)
+            occ.append({
+                'surah': int(s), 'ayah': int(a), 'wpos': i,
+                'word': w, 'form': fk, 'waqf': wsym, 'context': ' '.join(words[lo:hi]),
+            })
+            forms[fk] += 1
+
+    result = {
+        'word': word,
+        'normalized': nt,
+        'count': len(occ),
+        'forms': [{'word': w, 'count': c} for w, c in forms.most_common()],
+        'occurrences': occ,
+    }
+    _waqf_research_cache[nt] = result
+    return jsonify(result)
+
+
 @breathing_bp.route('/waqf')
 def waqf_guide():
     return render_template('waqf_guide.html', enable_vercel_analytics=_IS_SERVERLESS)
