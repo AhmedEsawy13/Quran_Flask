@@ -71,6 +71,7 @@
         tbZoomIn:    $('mz-tb-zoomin'),
         tbZoomOut:   $('mz-tb-zoomout'),
         tbHide:      $('mz-tb-hide'),
+        tbWaqf:      $('mz-tb-waqf'),
         volume:      $('mz-volume'),
         volBtn:      $('mz-vol-btn'),
         volIcon:     $('mz-vol-icon'),
@@ -334,6 +335,7 @@
             if (resp.ok) versions = await resp.json();
         } catch (e) { versions = []; }
         state.mushafVersions = state.mushafVersions.filter(v => versions.includes(v));
+        if (els.tbWaqf) els.tbWaqf.checked = waqfMarksOn();
         els.waqfPills.innerHTML = '';
         versions.forEach(v => {
             const btn = document.createElement('button');
@@ -351,6 +353,19 @@
         else state.mushafVersions.push(version);
         btn.classList.toggle('mz-on', state.mushafVersions.includes(version));
         saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions));
+        if (state.focusPage) renderSpread(state.focusPage);
+    }
+
+    // Simple on/off for the current mushaf's printed waqf marks (مصحف المدينة —
+    // applies to المدينة الجديد / المدينة ١٤٠٥ / Digital Khatt). Backed by the
+    // mushaf-version overlay: showing = "المدينة" is in the active versions.
+    const waqfMarksOn = () => state.mushafVersions.includes('المدينة');
+    function setWaqfMarks(on) {
+        const i = state.mushafVersions.indexOf('المدينة');
+        if (on && i < 0) state.mushafVersions.push('المدينة');
+        else if (!on && i >= 0) state.mushafVersions.splice(i, 1);
+        saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions));
+        if (els.tbWaqf) els.tbWaqf.checked = waqfMarksOn();
         if (state.focusPage) renderSpread(state.focusPage);
     }
 
@@ -1443,7 +1458,7 @@
         else els.audio.addEventListener('loadedmetadata', apply, { once: true });
     }
 
-    async function playStep(k) {
+    async function playStep(k, atTime) {
         if (k >= state.schedule.length) {
             if (els.loop.checked) { k = 0; } else { finishPlayback(); return; }
         }
@@ -1464,7 +1479,7 @@
         markActive(`${state.surah}:${firstAyah}`);
         state.curFollowAyah = firstAyah;
         scrollActiveIntoView();
-        seekTo(step.start);
+        seekTo(atTime != null ? atTime : step.start);
         els.now.textContent = `${surahNameOf(state.surah)} · ${step.label}` + (step.repTotal > 1 ? ` (${toAr(step.rep)}/${toAr(step.repTotal)})` : '');
         saveSetting('mz_last_pos', `${state.surah}:${step.ayah}`);
         saveSetting('quranApp_lastPosition', `${state.surah}:${step.ayah}`);
@@ -1494,6 +1509,19 @@
             const left = Math.max(0, total - (prior + elapsed));
             els.remaining.textContent = left > 0 ? `باقٍ ${fmtTime(left)}` : '';
         }
+    }
+
+    // Click anywhere on the session progress bar to jump within the schedule.
+    function seekOverall(frac) {
+        const n = state.schedule.length;
+        if (!n) return;
+        frac = Math.max(0, Math.min(0.99999, frac));
+        const idx = Math.min(n - 1, Math.floor(frac * n));
+        const within = frac * n - idx;                      // 0..1 inside the target step
+        const step = state.schedule[idx];
+        const t = step.start + within * Math.max(0, step.end - step.start);
+        if (!state.playing) { state.playing = true; setPlayIcon(true); startMonitor(); }
+        playStep(idx, t);
     }
 
     // The docked player grows/shrinks the stage area, so refit the page to the new
@@ -1929,7 +1957,18 @@
         // Floating mushaf toolbar
         if (els.tbLayout) els.tbLayout.addEventListener('click', toggleLayout);
         if (els.tbTajweed) els.tbTajweed.addEventListener('click', () => els.tajweed.click());
+        if (els.progress) els.progress.addEventListener('click', e => {
+            const rect = els.progress.getBoundingClientRect();
+            if (!rect.width) return;
+            let f = (e.clientX - rect.left) / rect.width;
+            if (getComputedStyle(els.progress).direction === 'rtl') f = 1 - f;
+            seekOverall(f);
+        });
         if (els.tbHide) els.tbHide.addEventListener('click', () => setHideMode(!state.hideText));
+        if (els.tbWaqf) {
+            els.tbWaqf.checked = waqfMarksOn();
+            els.tbWaqf.addEventListener('change', () => setWaqfMarks(els.tbWaqf.checked));
+        }
         setupVolume();
         if (els.tbZoomIn) els.tbZoomIn.addEventListener('click', () => setZoom(state.zoom + 0.1));
         if (els.tbZoomOut) els.tbZoomOut.addEventListener('click', () => setZoom(state.zoom - 0.1));

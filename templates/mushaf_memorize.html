@@ -18,7 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=45">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=46">
     <!-- أثَر shared brand identity (fonts + logo) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=3">
     <script src="{{ url_for('static', filename='js/theme.js') }}?v=2"></script>
@@ -95,6 +95,7 @@
                         <option value="shamarly">الشمرلي (صفحات مختارة)</option>
                     </select><i class="fas fa-chevron-down"></i></div>
                 </div>
+                <label class="mz-chip-toggle"><input type="checkbox" id="mz-tb-waqf"><span class="mz-chip-dot"></span> إظهار علامات الوقف (المدينة)</label>
             </div>
         </div>
 
@@ -116,7 +117,7 @@
             <button class="mz-play-btn" id="mz-play" type="button" title="تشغيل" aria-label="تشغيل"><i class="fas fa-play"></i></button>
             <button class="mz-ctl mz-only-wide" id="mz-next-step" type="button" title="المقطع التالي" aria-label="المقطع التالي"><i class="fas fa-forward-step"></i></button>
             <button class="mz-ctl mz-ctl-stop" id="mz-stop" type="button" title="إنهاء الجلسة" aria-label="إيقاف"><i class="fas fa-xmark"></i></button>
-            <div class="mz-vol mz-only-wide" title="مستوى الصوت">
+            <div class="mz-vol" title="مستوى الصوت">
                 <button class="mz-bar-btn" id="mz-vol-btn" type="button" aria-label="كتم الصوت"><i class="fas fa-volume-high" id="mz-vol-icon"></i></button>
                 <input type="range" id="mz-volume" class="mz-vol-range" min="0" max="100" value="100" dir="ltr" aria-label="مستوى الصوت">
             </div>
@@ -191,6 +192,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=47"></script>
+    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=48"></script>
 </body>
 </html>

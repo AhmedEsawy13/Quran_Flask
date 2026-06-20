@@ -138,6 +138,8 @@ body {
     background: color-mix(in srgb, var(--mz-text-muted) 16%, transparent); }
 .mz-bar-progress-fill { height: 100%; width: 0; background: var(--mz-accent); transition: width 0.1s linear; }
 .mz-bar-progress:hover { height: 5px; }
+/* taller transparent hit-zone so the thin bar is easy to click-to-seek */
+.mz-bar-progress::before { content: ''; position: absolute; inset-inline: 0; top: -9px; bottom: -2px; }
 
 .mz-sec-note { margin: -2px 0 0; font-size: 0.72rem; color: var(--mz-text-faint); font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; line-height: 1.5; }
 .mz-sec-note:empty { display: none; }
@@ -513,6 +515,7 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 .mz-remaining:empty { display: none; }
 /* volume now lives inside the transport group */
 .mz-transport .mz-vol { margin-inline-start: 6px; padding-inline-start: 8px; border-inline-start: 1px solid var(--mz-border); }
+@media (max-width: 700px) { .mz-vol-range { width: 52px; } .mz-transport .mz-vol { margin-inline-start: 3px; padding-inline-start: 5px; } }
 
 /* ── Tappable page chrome (juz / surah / page → pickers) ─────────── */
 .mz-head-juz, .mz-head-surah, .mz-foot-page { cursor: pointer; border-radius: 8px; transition: background 0.15s ease, color 0.15s ease; }
