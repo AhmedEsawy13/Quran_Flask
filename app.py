@@ -2623,10 +2623,10 @@ def _build_verse_waqf_detail(surah, ayah):
 
 
 # Printed mushafs whose waqf marks we compare the reciters against (matrix view).
-_WAQF_COMPARE_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي')
+_WAQF_COMPARE_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي', 'قطر', 'الكويت')
 # Broader set used only to validate a reciter's *solo* stop against any printed
 # waqf (e.g. "انفرد القارئ، لكنه يوافق علامة الأزهر").
-_WAQF_MATCH_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي', 'ورش', 'الهندي')
+_WAQF_MATCH_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي', 'ورش', 'الهندي', 'قطر', 'الكويت')
 # Reciters known to recite Hafs bi-qasr al-munfasil (short disconnected madd) —
 # their pace is legitimately faster, surfaced as a badge so the timing reads
 # correctly. Keyed by MEMORIZATION_RECITERS id.
@@ -2685,6 +2685,41 @@ def get_verse_waqf(surah, ayah):
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
 
+def _before_word_marks(s, a, i, words, marks_by_wpos):
+    """Resolve waqf marks for the word preceding position *i*.
+
+    When i > 0, uses the same verse's marks map.  When i == 0, loads the
+    last word of the previous ayah (same surah) so cross-verse boundaries
+    are covered — essential for interrogatives at verse start."""
+    if i > 0:
+        bw = words[i - 1]
+        bmarks = marks_by_wpos.get(i - 1, {})
+        bwsym = ''.join(c for c in bw if c in WAQF_SYMBOL_CHARS)
+        return bw, bmarks, bwsym
+
+    if a <= 1:
+        return '', {}, ''
+
+    prev_vk = f"{s}:{a - 1}"
+    _, prev_words, prev_r2w = _verse_word_texts(prev_vk)
+    if not prev_words:
+        return '', {}, ''
+
+    prev_marks = {}
+    for ver in _WAQF_MATCH_MUSHAFS:
+        for r in get_mushaf_waqf_symbols(s, a - 1, ver):
+            ti = r.get('token_index')
+            if ti is None or not r.get('symbols') or not (0 <= ti < len(prev_r2w)):
+                continue
+            wp = prev_r2w[ti]
+            if wp is not None:
+                prev_marks.setdefault(wp, {})[ver] = r['symbols']
+
+    last_i = len(prev_words) - 1
+    bw = prev_words[last_i]
+    return bw, prev_marks.get(last_i, {}), ''.join(c for c in bw if c in WAQF_SYMBOL_CHARS)
+
+
 @breathing_bp.route('/api/waqf-research', methods=['GET'])
 def waqf_research():
     """Research tool: every verse where a given word occurs, with the exact
@@ -2699,11 +2734,14 @@ def waqf_research():
     # exact=1: pre-select the form matching the (vocalised) query, so a preset
     # like كَلَّا lands on the 33 particle occurrences, not كُلّاً.
     exact = request.args.get('exact') in ('1', 'true', 'yes')
+    # mode=before: show waqf marks on the word BEFORE the searched word
+    # (useful for studying waqf before interrogatives like هل/كيف).
+    before = request.args.get('mode') == 'before'
     nt = _normalize_for_search(word)
     if not nt:
         return jsonify({'word': word, 'normalized': '', 'count': 0, 'forms': [], 'occurrences': [], 'active_form': None})
 
-    cache_key = (nt, exact)
+    cache_key = (nt, exact, before)
     cached = _waqf_research_cache.get(cache_key)
     if cached is not None:
         return jsonify(cached)
@@ -2742,15 +2780,25 @@ def waqf_research():
                         wp = raw_to_wpos[ti]
                         if wp is not None:
                             marks_by_wpos.setdefault(wp, {})[ver] = r['symbols']
-            wsym = ''.join(c for c in w if c in WAQF_SYMBOL_CHARS)
-            marks = marks_by_wpos.get(i, {})
             fk = _form_key(w)
-            lo, hi = max(0, i - 1), min(len(words), i + 3)
+            if before:
+                bw, bmarks, bwsym = _before_word_marks(
+                    s, a, i, words, marks_by_wpos)
+                marks, wsym = bmarks, bwsym
+                lo, hi = max(0, i - 2), min(len(words), i + 2)
+                ctx = ' '.join(words[lo:hi])
+                if i == 0 and bw:
+                    ctx = bw + ' ۞ ' + ctx
+            else:
+                wsym = ''.join(c for c in w if c in WAQF_SYMBOL_CHARS)
+                marks = marks_by_wpos.get(i, {})
+                lo, hi = max(0, i - 1), min(len(words), i + 3)
+                ctx = ' '.join(words[lo:hi])
             occ.append({
                 'surah': s, 'ayah': a, 'wpos': i,
                 'word': w, 'form': fk, 'waqf': wsym,
                 'marks': marks, 'has_waqf': bool(marks or wsym),
-                'context': ' '.join(words[lo:hi]),
+                'context': ctx,
             })
             forms[fk] += 1
 
@@ -4662,4 +4710,6 @@ register_blueprints(app)
 
 
 if __name__ == '__main__':
+    os.environ.setdefault('ENABLE_EDITOR', '1')
+    register_blueprints(app)
     app.run(debug=os.getenv('FLASK_ENV') == 'development', port=5001)

@@ -269,6 +269,7 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-form-chip b { font-weight: 800; }
 .wq-form-word { font-family: 'UthmanicHafs', serif; font-size: 1.05rem; }
 .wq-research-count { font-size: 0.74rem; color: var(--wq-text-muted); font-weight: 600; margin-bottom: 8px; }
+.wq-research-mode-note { font-size: 0.78rem; color: var(--wq-text-muted); margin-bottom: 10px; padding: 6px 10px; background: var(--wq-bg-card, #f8f9fa); border-radius: 6px; border-inline-start: 3px solid var(--wq-accent, #2563eb); }
 .wq-research-results { display: flex; flex-direction: column; gap: 6px; max-height: 440px; overflow-y: auto; }
 .wq-research-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: start;
     padding: 9px 12px; border-radius: 10px; border: 1px solid var(--wq-border); background: var(--wq-surface);
@@ -299,6 +300,8 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-rmark[data-m="الشمرلي"] { color: #2563eb; }
 .wq-rmark[data-m="ورش"]     { color: #9333ea; }
 .wq-rmark[data-m="الهندي"]  { color: #0891b2; }
+.wq-rmark[data-m="قطر"]     { color: #dc2626; }
+.wq-rmark[data-m="الكويت"]  { color: #7c3aed; }
 .wq-research-nomark { flex: 0 0 auto; color: var(--wq-text-faint); font-size: 0.9rem; min-width: 1.25em; text-align: center; }
 
 /* printed-mushaf rows + waqf symbols */
@@ -308,9 +311,13 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-mushaf-name[data-m="المدينة"] { color: #16a34a; }
 .wq-mushaf-name[data-m="الأزهر"]  { color: #ea580c; }
 .wq-mushaf-name[data-m="الشمرلي"] { color: #2563eb; }
+.wq-mushaf-name[data-m="قطر"]     { color: #dc2626; }
+.wq-mushaf-name[data-m="الكويت"]  { color: #7c3aed; }
 .wq-mushaf-dot[data-m="المدينة"] { background: #16a34a; }
 .wq-mushaf-dot[data-m="الأزهر"]  { background: #ea580c; }
 .wq-mushaf-dot[data-m="الشمرلي"] { background: #2563eb; }
+.wq-mushaf-dot[data-m="قطر"]     { background: #dc2626; }
+.wq-mushaf-dot[data-m="الكويت"]  { background: #7c3aed; }
 .wq-wsym { display: inline-grid; place-items: center; min-width: 1.8em; min-height: 1.9em; padding: 0.2em 0.35em;
     border-radius: 7px; font-family: 'UthmanicHafs', serif; font-size: 1.35rem; line-height: 1.3; font-weight: 700;
     background: var(--wq-surface-2); border: 1px solid var(--wq-border-strong); }

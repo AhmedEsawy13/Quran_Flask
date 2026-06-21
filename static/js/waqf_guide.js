@@ -138,19 +138,23 @@
     }
 
     /* ── waqf research by word (للدراسة) ──────────────────────────── */
-    let researchState = { word: '', forms: [], occ: [], form: null };
+    let researchState = { word: '', mode: '', forms: [], occ: [], form: null };
 
-    async function runResearch(word, exact) {
+    async function runResearch(word, exact, mode) {
         word = (word || '').trim();
+        mode = mode || '';
         if (!word) return;
         document.querySelectorAll('.wq-research-chip').forEach(c =>
-            c.classList.toggle('wq-research-chip-active', c.dataset.word === word));
+            c.classList.toggle('wq-research-chip-active', c.dataset.word === word && (c.dataset.mode || '') === mode));
         els.researchForms.innerHTML = '';
         els.researchResults.innerHTML = '<div class="wq-research-loading">…جارٍ البحث</div>';
         try {
-            const resp = await fetch('/api/waqf-research?word=' + encodeURIComponent(word) + (exact ? '&exact=1' : ''));
+            let url = '/api/waqf-research?word=' + encodeURIComponent(word);
+            if (exact) url += '&exact=1';
+            if (mode) url += '&mode=' + mode;
+            const resp = await fetch(url);
             const d = await resp.json();
-            researchState = { word, forms: d.forms || [], occ: d.occurrences || [], form: d.active_form || null, waqf: null };
+            researchState = { word, mode, forms: d.forms || [], occ: d.occurrences || [], form: d.active_form || null, waqf: null };
             renderResearch();
         } catch (e) {
             els.researchResults.innerHTML = '<div class="wq-research-empty">تعذّر البحث</div>';
@@ -185,7 +189,9 @@
         else if (waqf === 'no') list = list.filter(o => !o.has_waqf);
         if (!list.length) { els.researchResults.innerHTML = '<div class="wq-research-empty">لا نتائج</div>'; return; }
 
-        els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>` + list.map(o => {
+        const modeNote = researchState.mode === 'before'
+            ? `<div class="wq-research-mode-note">علامات الوقف على الكلمة <b>قبل</b> «${researchState.word}»</div>` : '';
+        els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>` + modeNote + list.map(o => {
             const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
             const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
             const ent = Object.entries(o.marks || {});
@@ -209,7 +215,7 @@
             els.researchToggle.setAttribute('aria-expanded', String(open));
         });
         document.querySelectorAll('.wq-research-chip').forEach(c =>
-            c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1')));
+            c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1', c.dataset.mode || '')));
         if (els.researchInput) els.researchInput.addEventListener('keydown', e => {
             if (e.key === 'Enter') runResearch(els.researchInput.value);
         });
@@ -796,7 +802,7 @@
         // waqf symbol at each position (المدينة first, then others) so each
         // reciter stop can show its printed waqf rule like the main-page guide.
         const markByWpos = new Map();
-        ['المدينة', 'الشمرلي', 'الأزهر'].forEach(id => {
+        ['المدينة', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت'].forEach(id => {
             const m = (d.mushafs || []).find(x => x.id === id);
             if (m) m.marks.forEach(mk => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
         });
