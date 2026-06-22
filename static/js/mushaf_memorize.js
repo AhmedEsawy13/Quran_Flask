@@ -364,8 +364,15 @@
         } else {
             // Re-render from the cached payloads (no network) — the word text is
             // rebuilt with embedded waqf stripped or kept per the new state.
+            // Keep the EXISTING page size and font (--dk-fs): waqf marks are
+            // above-line diacritics, so re-fitting the font to the slightly
+            // different line width would wrongly grow/shrink the page. Only the
+            // line justification needs a refresh.
             [cards.right, cards.left].forEach(c => renderCard(c, c._payload || null));
-            sizePages(); applyFontSize(); requestAnimationFrame(justifyLines);
+            if (state.hideText) pageEls().forEach(p => p && p.classList.add('mz-hide'));
+            applySelectionHighlight();
+            requestAnimationFrame(justifyLines);
+            if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
         }
     }
 
