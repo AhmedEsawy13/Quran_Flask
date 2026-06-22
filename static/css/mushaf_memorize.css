@@ -458,10 +458,6 @@ body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_shafa
 body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutajanisayn,
 body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaqaribayn { color: #4fae74 !important; }
 
-/* ── Embedded waqf chars (ۖ-ۜ from QPC text) — shown/hidden by toggle ── */
-.mz-waqf-char { color: #c2410c; }
-.mz-page:not(.mz-waqf-on) .mz-waqf-char { display: none; }
-
 /* ── Waqf marks — ported verbatim from the main page (fonts + colours) ──
    A row above the word; each symbol is a normalized waqf glyph rendered in the
    same fonts the main app uses (UthmanicHafs / UthmanicWarsh / IndoPak). */

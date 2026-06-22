@@ -355,15 +355,17 @@
         _waqfVisible = !!on;
         saveSetting('quranApp_waqfVisible', _waqfVisible ? '1' : '');
         if (els.tbWaqf) els.tbWaqf.checked = _waqfVisible;
-        // For non-Shemrly: toggle CSS visibility of embedded waqf chars (no re-fetch).
-        // For Shemrly: re-render to fetch/drop DB overlay.
         if (state.src === 'shamarly') {
+            // Shemrly draws its own marks via the DB overlay — needs a re-fetch.
             const i = state.mushafVersions.indexOf('الشمرلي');
             if (on && i < 0) state.mushafVersions.push('الشمرلي');
             else if (!on && i >= 0) state.mushafVersions.splice(i, 1);
             if (state.focusPage) renderSpread(state.focusPage);
         } else {
-            document.querySelectorAll('.mz-page').forEach(p => p.classList.toggle('mz-waqf-on', _waqfVisible));
+            // Re-render from the cached payloads (no network) — the word text is
+            // rebuilt with embedded waqf stripped or kept per the new state.
+            [cards.right, cards.left].forEach(c => renderCard(c, c._payload || null));
+            sizePages(); applyFontSize(); requestAnimationFrame(justifyLines);
         }
     }
 
@@ -412,8 +414,8 @@
 
     // The Digital Khatt / QPC-v1 source text embeds مصحف المدينة's printed waqf
     // mark as a combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word
-    // carries it. We keep these in the text and control visibility via CSS class
-    // mz-waqf-on on the page container — no DB overlay needed.
+    // carries it. These are the source of truth — we keep them when the waqf
+    // toggle is on and strip them when off (re-rendering on toggle). No DB overlay.
     const EMBEDDED_WAQF_RE = /[ۖ-ۜ]/g;
     const stripEmbeddedWaqf = text => text.replace(EMBEDDED_WAQF_RE, '');
 
@@ -846,6 +848,7 @@
     /* ── Render one page into a card ───────────────────────────────── */
     function renderCard(card, payload) {
         const pageEl = card.page;
+        card._payload = payload;   // cache for cheap re-render (e.g. waqf toggle)
         if (!payload) {
             pageEl.innerHTML = '<div class="mz-page-empty"><i class="fas fa-book-quran"></i></div>';
             card.juz.textContent = '';
@@ -870,7 +873,6 @@
         else pageEl.style.removeProperty('font-family');
 
         pageEl.classList.add('mz-has-page');
-        pageEl.classList.toggle('mz-waqf-on', waqfMarksOn());
         const ayahWPos = new Map();
         const frag = document.createDocumentFragment();
 
@@ -902,23 +904,14 @@
                         // Shemrly glyphs already include the printed ayah marker; only the
                         // letter-based sources need the ۝ ornament appended.
                         const raw = w.text || '';
-                        if (state.src === 'shamarly') {
-                            span.textContent = raw;
-                        } else {
-                            const processed = withAyahOrnament(raw);
-                            let last = 0;
-                            for (const m of processed.matchAll(/[ۖ-ۜ]/g)) {
-                                if (m.index > last) span.appendChild(document.createTextNode(processed.slice(last, m.index)));
-                                const wm = document.createElement('span');
-                                wm.className = 'mz-waqf-char';
-                                wm.textContent = m[0];
-                                span.appendChild(wm);
-                                last = m.index + m[0].length;
-                            }
-                            if (last < processed.length) span.appendChild(document.createTextNode(processed.slice(last)));
-                            if (last === 0) span.textContent = processed;
-                        }
-                        const text = span.textContent;
+                        // Embedded waqf chars (ۖ-ۜ) live in the QPC text. They're
+                        // Unicode combining marks, so wrapping them in a span and
+                        // hiding it is unreliable (the mark still shapes onto the
+                        // base letter). Instead strip them outright when the waqf
+                        // toggle is off, and re-render on toggle (cheap, no fetch).
+                        const text = state.src === 'shamarly' ? raw
+                            : withAyahOrnament(waqfMarksOn() ? raw : stripEmbeddedWaqf(raw));
+                        span.textContent = text;
                         span.dataset.text = text;
                         if (w.surah != null && w.ayah != null) {
                             const key = `${w.surah}:${w.ayah}`;
