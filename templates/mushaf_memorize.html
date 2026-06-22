@@ -18,10 +18,10 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mushaf_memorize.css') }}?v=46">
+    <link rel="stylesheet" href="{{ static_hash('css/mushaf_memorize.css') }}">
     <!-- أثَر shared brand identity (fonts + logo) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=3">
-    <script src="{{ url_for('static', filename='js/theme.js') }}?v=2"></script>
+    <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
+    <script src="{{ static_hash('js/theme.js') }}"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -192,6 +192,6 @@
 
     <audio id="mz-audio" preload="auto"></audio>
 
-    <script src="{{ url_for('static', filename='js/mushaf_memorize.js') }}?v=48"></script>
+    <script src="{{ static_hash('js/mushaf_memorize.js') }}"></script>
 </body>
 </html>

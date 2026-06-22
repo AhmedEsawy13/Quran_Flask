@@ -15,10 +15,10 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     <!-- Critical CSS (render-blocking, intentional) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v=24">
+    <link rel="stylesheet" href="{{ static_hash('css/styles.css') }}">
     <!-- أثَر shared brand identity (fonts + app-bar) -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/brand.css') }}?v=3">
-    <script src="{{ url_for('static', filename='js/theme.js') }}?v=2"></script>
+    <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
+    <script src="{{ static_hash('js/theme.js') }}"></script>
 
     <!-- Google Fonts (async, non-render-blocking) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -430,7 +430,7 @@
 
     <script defer src="https://unpkg.com/@popperjs/core@2"></script>
     <script defer src="https://unpkg.com/tippy.js@6"></script>
-    <script defer src="{{ url_for('static', filename='js/script.js') }}?v=25"></script>
+    <script defer src="{{ static_hash('js/script.js') }}"></script>
 
     {% if enable_vercel_analytics %}
     <!-- Vercel Web Analytics -->

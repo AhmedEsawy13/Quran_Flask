@@ -91,6 +91,25 @@ if not app.debug:
     logging.basicConfig(level=logging.INFO)
     app.logger.setLevel(logging.INFO)
 
+# Auto cache-busting: hash the file contents so browsers always fetch the
+# latest version after a deploy — no more manual ?v=N bumps.
+import hashlib as _hashlib
+_static_hash_cache: dict[str, str] = {}
+
+@app.template_global()
+def static_hash(filename: str) -> str:
+    """Return /static/<filename>?h=<8-char content hash>."""
+    h = _static_hash_cache.get(filename)
+    if h is None:
+        path = os.path.join(app.static_folder, filename)
+        try:
+            with open(path, 'rb') as f:
+                h = _hashlib.md5(f.read()).hexdigest()[:8]
+        except OSError:
+            h = '0'
+        _static_hash_cache[filename] = h
+    return f'/static/{filename}?h={h}'
+
 # Compression and security improvements
 @app.after_request
 def after_request(response):
