@@ -178,6 +178,9 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
     color: #fff; background: #dc2626; vertical-align: middle; }
 .wq-consensus-badge { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
     color: #fff; background: var(--wq-consensus); vertical-align: middle; cursor: help; }
+.wq-mushaf-badge { display: inline-block; padding: 0 7px; border-radius: 999px; font-size: 0.68rem; font-weight: 700;
+    color: #fff; background: #2563eb; vertical-align: middle; cursor: help; }
+.wq-mushaf-note { color: #2563eb; }
 
 /* play buttons */
 .wq-play { flex-shrink: 0; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%;
