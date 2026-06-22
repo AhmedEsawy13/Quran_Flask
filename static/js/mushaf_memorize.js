@@ -68,8 +68,6 @@
         asrLiveText: $('mz-asr-live-text'),
         tbLayout:    $('mz-tb-layout'),
         tbTajweed:   $('mz-tb-tajweed'),
-        tbZoomIn:    $('mz-tb-zoomin'),
-        tbZoomOut:   $('mz-tb-zoomout'),
         tbHide:      $('mz-tb-hide'),
         tbWaqf:      $('mz-tb-waqf'),
         volume:      $('mz-volume'),
@@ -137,7 +135,6 @@
         reciterName: 'محمود خليل الحصري',
         hideText: false,
         focusMode: false,
-        zoom: 1,                // manual zoom multiplier on top of the auto-fit
     };
 
     /* ── Hide-for-testing + focus mode ─────────────────────────────── */
@@ -168,11 +165,6 @@
         }
         // sidebar gone/back → page size changes
         requestAnimationFrame(() => { if (state.focusPage) { sizePages(); applyFontSize(); justifyLines(); } });
-    }
-    function setZoom(z) {
-        state.zoom = Math.max(0.7, Math.min(1.6, +z.toFixed(2)));
-        saveSetting('mz_zoom', state.zoom);
-        if (state.focusPage) { sizePages(); applyFontSize(); requestAnimationFrame(justifyLines); }
     }
     function toggleLayout() {
         state.layoutMode = state.layoutMode === 'single' ? 'dual' : 'single';
@@ -315,15 +307,13 @@
         els.layout.value = state.layoutMode;
         document.body.classList.toggle('mz-single', state.layoutMode === 'single');
 
-        const z = parseFloat(localStorage.getItem('mz_zoom'));
-        if (Number.isFinite(z)) state.zoom = Math.max(0.7, Math.min(1.6, z));
-
         syncToolbar();
 
         try {
             const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
             if (Array.isArray(saved)) state.mushafVersions = saved.filter(v => typeof v === 'string');
         } catch (e) { state.mushafVersions = []; }
+        _waqfVisible = !!(localStorage.getItem('quranApp_waqfVisible') ?? (state.mushafVersions.includes('المدينة') ? '1' : ''));
     }
 
     /* ── Waqf mushaf-version pills ─────────────────────────────────── */
@@ -359,19 +349,21 @@
     // Simple on/off for the current mushaf's printed waqf marks (مصحف المدينة —
     // applies to المدينة الجديد / المدينة ١٤٠٥ / Digital Khatt). Backed by the
     // mushaf-version overlay: showing = "المدينة" is in the active versions.
-    const waqfMarksOn = () => state.mushafVersions.includes('المدينة');
+    let _waqfVisible = false;
+    const waqfMarksOn = () => _waqfVisible;
     function setWaqfMarks(on) {
-        const i = state.mushafVersions.indexOf('المدينة');
-        if (on && i < 0) state.mushafVersions.push('المدينة');
-        else if (!on && i >= 0) state.mushafVersions.splice(i, 1);
-        saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions));
-        if (els.tbWaqf) els.tbWaqf.checked = waqfMarksOn();
+        _waqfVisible = !!on;
+        saveSetting('quranApp_waqfVisible', _waqfVisible ? '1' : '');
+        if (els.tbWaqf) els.tbWaqf.checked = _waqfVisible;
         // For non-Shemrly: toggle CSS visibility of embedded waqf chars (no re-fetch).
         // For Shemrly: re-render to fetch/drop DB overlay.
         if (state.src === 'shamarly') {
+            const i = state.mushafVersions.indexOf('الشمرلي');
+            if (on && i < 0) state.mushafVersions.push('الشمرلي');
+            else if (!on && i >= 0) state.mushafVersions.splice(i, 1);
             if (state.focusPage) renderSpread(state.focusPage);
         } else {
-            document.querySelectorAll('.mz-page').forEach(p => p.classList.toggle('mz-waqf-on', waqfMarksOn()));
+            document.querySelectorAll('.mz-page').forEach(p => p.classList.toggle('mz-waqf-on', _waqfVisible));
         }
     }
 
@@ -1057,8 +1049,8 @@
             const s = (availW - gutter - spreadPad) / (w * n);
             w *= s; h *= s;
         }
-        w = Math.max(150, Math.floor(w * state.zoom));   // manual zoom on top of the fit
-        h = Math.max(230, Math.floor(h * state.zoom));
+        w = Math.max(150, w);
+        h = Math.max(230, h);
         document.documentElement.style.setProperty('--mz-page-w', w + 'px');
         document.documentElement.style.setProperty('--mz-page-h', h + 'px');
     }
@@ -1992,12 +1984,10 @@
         });
         if (els.tbHide) els.tbHide.addEventListener('click', () => setHideMode(!state.hideText));
         if (els.tbWaqf) {
-            els.tbWaqf.checked = waqfMarksOn();
+            els.tbWaqf.checked = _waqfVisible;
             els.tbWaqf.addEventListener('change', () => setWaqfMarks(els.tbWaqf.checked));
         }
         setupVolume();
-        if (els.tbZoomIn) els.tbZoomIn.addEventListener('click', () => setZoom(state.zoom + 0.1));
-        if (els.tbZoomOut) els.tbZoomOut.addEventListener('click', () => setZoom(state.zoom - 0.1));
         // Recite & follow (lazy-load the ASR module)
         if (els.reciteBtn) els.reciteBtn.addEventListener('click', startReciteFollow);
 
