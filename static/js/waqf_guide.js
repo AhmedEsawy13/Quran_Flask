@@ -512,30 +512,25 @@
     }
 
     function renderCluster() {
-        const groups = clusterCache.groups || [];
-        const topPairs = clusterCache.pairs || [];
-        let html = '<div class="wq-solos-desc">تشابه أنماط التنفّس والوقف بين القرّاء عبر القرآن كله (مؤشر جاكار)</div>';
+        const groups = (clusterCache.groups || []).slice().sort((a, b) => {
+            const aTop = a.peers[0] ? a.peers[0].similarity : 0;
+            const bTop = b.peers[0] ? b.peers[0].similarity : 0;
+            return bTop - aTop;
+        });
+        let html = '<div class="wq-solos-desc">تشابه أنماط التنفّس والوقف بين القرّاء عبر القرآن كله</div>';
 
-        if (topPairs.length) {
-            html += '<div class="wq-cluster-top"><span class="wq-research-flabel">أقرب القرّاء تشابهًا</span>';
-            html += topPairs.slice(0, 10).map(p =>
-                `<div class="wq-cluster-pair">
-                    <span class="wq-cluster-name">${p.n1}</span>
-                    <span class="wq-cluster-sim">${Math.round(p.similarity * 100)}٪</span>
-                    <span class="wq-cluster-name">${p.n2}</span>
-                </div>`
-            ).join('') + '</div>';
-        }
-
-        html += '<div class="wq-solos-grid">' + groups.map(g => {
-            const peersHtml = g.peers.map(p =>
-                `<span class="wq-cluster-peer">${p.name_ar} <b>${Math.round(p.similarity * 100)}٪</b></span>`
-            ).join('');
-            return `<div class="wq-cluster-card">
-                <span class="wq-solos-name">${g.name_ar}</span>
-                <span class="wq-solos-count">${toAr(g.total_breaths)}</span>
-                <span class="wq-solos-label">موضع تنفّس</span>
-                <div class="wq-cluster-peers">${peersHtml}</div>
+        html += '<div class="wq-cluster-list">' + groups.map(g => {
+            const bar = g.peers.map(p => {
+                const pct = Math.round(p.similarity * 100);
+                return `<div class="wq-cl-peer">
+                    <span class="wq-cl-peer-name">${p.name_ar}</span>
+                    <span class="wq-cl-bar"><span class="wq-cl-fill" style="width:${pct}%"></span></span>
+                    <span class="wq-cl-pct">${toAr(pct)}٪</span>
+                </div>`;
+            }).join('');
+            return `<div class="wq-cl-row">
+                <div class="wq-cl-reciter">${g.name_ar}</div>
+                <div class="wq-cl-peers">${bar}</div>
             </div>`;
         }).join('') + '</div>';
 

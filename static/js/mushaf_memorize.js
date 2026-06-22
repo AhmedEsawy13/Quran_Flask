@@ -366,7 +366,13 @@
         else if (!on && i >= 0) state.mushafVersions.splice(i, 1);
         saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions));
         if (els.tbWaqf) els.tbWaqf.checked = waqfMarksOn();
-        if (state.focusPage) renderSpread(state.focusPage);
+        // For non-Shemrly: toggle CSS visibility of embedded waqf chars (no re-fetch).
+        // For Shemrly: re-render to fetch/drop DB overlay.
+        if (state.src === 'shamarly') {
+            if (state.focusPage) renderSpread(state.focusPage);
+        } else {
+            document.querySelectorAll('.mz-page').forEach(p => p.classList.toggle('mz-waqf-on', waqfMarksOn()));
+        }
     }
 
     /* ── Arabic-Indic digits + juz ─────────────────────────────────── */
@@ -414,8 +420,8 @@
 
     // The Digital Khatt / QPC-v1 source text embeds مصحف المدينة's printed waqf
     // mark as a combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word
-    // carries it. appendWaqfMarks() renders each version's mark separately (from
-    // the `waqf` table), so strip the embedded one to avoid showing it twice.
+    // carries it. We keep these in the text and control visibility via CSS class
+    // mz-waqf-on on the page container — no DB overlay needed.
     const EMBEDDED_WAQF_RE = /[ۖ-ۜ]/g;
     const stripEmbeddedWaqf = text => text.replace(EMBEDDED_WAQF_RE, '');
 
@@ -790,10 +796,11 @@
     const nearestShemrlyPage = (page) =>
         SHEMRLY_PAGES.reduce((best, p) => Math.abs(p - page) < Math.abs(best - page) ? p : best, SHEMRLY_PAGES[0]);
     function waqfQuery() {
-        // Shemrly always shows its own waqf marks inline (as printed in the original),
-        // regardless of the user's pill selection — like each Madina mushaf shows its own.
+        // Non-Shemrly sources use embedded waqf chars from QPC text (no DB needed).
+        // Shemrly needs its own DB overlay since the font renders its own marks.
+        if (state.src !== 'shamarly') return '';
         let versions = state.mushafVersions.slice();
-        if (state.src === 'shamarly' && !versions.includes('الشمرلي')) versions.unshift('الشمرلي');
+        if (!versions.includes('الشمرلي')) versions.unshift('الشمرلي');
         if (!versions.length) return '';
         return '?' + versions.map(v => 'mushaf_version=' + encodeURIComponent(v)).join('&');
     }
@@ -871,6 +878,7 @@
         else pageEl.style.removeProperty('font-family');
 
         pageEl.classList.add('mz-has-page');
+        pageEl.classList.toggle('mz-waqf-on', waqfMarksOn());
         const ayahWPos = new Map();
         const frag = document.createDocumentFragment();
 
@@ -902,9 +910,23 @@
                         // Shemrly glyphs already include the printed ayah marker; only the
                         // letter-based sources need the ۝ ornament appended.
                         const raw = w.text || '';
-                        const text = state.src === 'shamarly' ? raw
-                            : withAyahOrnament(waqfMarksOn() ? stripEmbeddedWaqf(raw) : raw);
-                        span.textContent = text;
+                        if (state.src === 'shamarly') {
+                            span.textContent = raw;
+                        } else {
+                            const processed = withAyahOrnament(raw);
+                            let last = 0;
+                            for (const m of processed.matchAll(/[ۖ-ۜ]/g)) {
+                                if (m.index > last) span.appendChild(document.createTextNode(processed.slice(last, m.index)));
+                                const wm = document.createElement('span');
+                                wm.className = 'mz-waqf-char';
+                                wm.textContent = m[0];
+                                span.appendChild(wm);
+                                last = m.index + m[0].length;
+                            }
+                            if (last < processed.length) span.appendChild(document.createTextNode(processed.slice(last)));
+                            if (last === 0) span.textContent = processed;
+                        }
+                        const text = span.textContent;
                         span.dataset.text = text;
                         if (w.surah != null && w.ayah != null) {
                             const key = `${w.surah}:${w.ayah}`;
@@ -913,8 +935,10 @@
                             span.dataset.wpos = String(pos);
                             ayahWPos.set(key, pos + 1);
                         }
-                        span._waqf = w.waqf_symbols;
-                        appendWaqfMarks(span, w.waqf_symbols);
+                        if (state.src === 'shamarly') {
+                            span._waqf = w.waqf_symbols;
+                            appendWaqfMarks(span, w.waqf_symbols);
+                        }
                         inner.appendChild(span);
                         if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
                     });
