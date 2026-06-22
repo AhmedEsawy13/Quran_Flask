@@ -62,6 +62,7 @@ TARGET_DIRS = {
     'huthaifi':    'reciters/ali_al_huthaifi_mp3quran',
     'akhdar':      'reciters/ibrahim_al_akhdar_drive',
     'ayyub':       'reciters/mohammed_ayyub_drive',
+    'mustafa_ismail': 'reciters/mustafa_ismail_mp3quran',
 }
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WANTED = ('word_timestamps.json.gz', 'verse_timestamps.json.gz',

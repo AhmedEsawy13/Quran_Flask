@@ -2145,6 +2145,11 @@ MEMORIZATION_RECITERS = {
         'audio_tmpl': '_gd_',
         'fallback_tmpl': 'https://server8.mp3quran.net/ayyub/{surah:03d}.mp3',
     },
+    'mustafa_ismail': {
+        'name_ar': 'مصطفى إسماعيل', 'name_en': 'Mustafa Ismail',
+        'dir': os.path.join(_BASE_DIR, 'reciters', 'mustafa_ismail_mp3quran'),
+        'audio_tmpl': 'https://server8.mp3quran.net/mustafa/{surah:03d}.mp3',
+    },
     # Abdullah Al-Buaijan (عبد الله البعيجان) is in QUL v1.1.0 but its audio is a
     # 2025 YouTube recording: surahs 3–114 are only YouTube video URLs (no
     # streamable per-surah MP3), so the timestamps can't drive seek-based playback
