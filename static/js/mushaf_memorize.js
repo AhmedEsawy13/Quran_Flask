@@ -1020,6 +1020,19 @@
         requestAnimationFrame(justifyLines);
         if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
         updateNavButtons();
+
+        // font-display:swap means the source's web-font may not be loaded yet on
+        // the first switch to it — applyFontSize() above then measured fallback
+        // metrics and over-fit the size, so the page "grows" when the real font
+        // swaps in. Re-fit once the font is ready (no-op when already loaded).
+        const srcFont = state.src === 'digital_khatt' ? 'Digital Khatt'
+            : state.src === 'qpc_v1' ? 'Old Madina' : null;
+        if (srcFont && document.fonts && !document.fonts.check(`16px "${srcFont}"`)) {
+            const fp = focusPage;
+            document.fonts.load(`16px "${srcFont}"`).then(() => {
+                if (state.focusPage === fp) { applyFontSize(); requestAnimationFrame(justifyLines); }
+            }).catch(() => {});
+        }
     }
 
     // Make the page(s) as large as the freed centre allows, keeping a mushaf
