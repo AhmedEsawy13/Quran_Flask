@@ -627,37 +627,48 @@
         const lastW = d.words.length - 1;
         const total = d.reciters_total || 1;
         const majorityN = Math.floor(total / 2) + 1;
-        const countByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u.count]));
 
-        // Mushaf marks at each wpos (any positive mark from any mushaf).
+        // Effective breath count: forward stops + repeat from_wpos.
+        // A reciter who pauses at word 10 and backs up to re-read BREATHED at
+        // word 10 — that's a valid breathing point even though it's not a waqf.
+        const breathCount = new Map();
+        (d.union_stops || []).forEach(u => breathCount.set(u.wpos, u.count));
+        (d.reciters || []).forEach(r => {
+            (d.per_reciter[r.id].repeats || []).forEach(rp => {
+                breathCount.set(rp.from_wpos, (breathCount.get(rp.from_wpos) || 0) + 1);
+            });
+        });
+
+        // Mushaf marks at each wpos.
         const mushafAtWpos = new Set();
         (d.mushafs || []).forEach(m => m.marks.forEach(mk => {
             if (['م', 'ج', 'ق', 'ص', 'ع'].includes(mk.symbol)) mushafAtWpos.add(mk.wpos);
         }));
 
-        // Mushaf-backed stops: any mushaf mark + at least one reciter confirms.
-        const mushafBacked = new Set((d.union_stops || [])
-            .filter(u => mushafAtWpos.has(u.wpos) && u.wpos < lastW
-                && !cats.lazim.has(u.wpos) && !cats.saktah.has(u.wpos) && !cats.forbidden.has(u.wpos))
-            .map(u => u.wpos));
+        // Mushaf-backed stops: any mushaf mark + at least one reciter breathes.
+        const mushafBacked = new Set([...breathCount.keys()]
+            .filter(w => mushafAtWpos.has(w) && w < lastW
+                && !cats.lazim.has(w) && !cats.saktah.has(w) && !cats.forbidden.has(w)));
 
+        // Consensus: majority of reciters breathe at this position (forward OR repeat).
         const consensusMandatory = (L >= BREATH.medium)
-            ? new Set((d.union_stops || [])
-                .filter(u => u.count >= majorityN && u.wpos < lastW
-                    && !cats.lazim.has(u.wpos) && !cats.saktah.has(u.wpos) && !cats.forbidden.has(u.wpos))
-                .map(u => u.wpos))
+            ? new Set([...breathCount.entries()]
+                .filter(([w, c]) => c >= majorityN && w < lastW
+                    && !cats.lazim.has(w) && !cats.saktah.has(w) && !cats.forbidden.has(w))
+                .map(([w]) => w))
             : new Set();
 
-        // For short breath: use mushaf-backed stops as anchors (soft hard cuts)
-        // when the verse is long enough to need them (duration > 3 × L).
+        // For short breath on long verses: mushaf-backed positions as anchors.
         const verseDur = d.ref_full || 0;
         const needAnchors = L < BREATH.medium && verseDur > L * 3;
         const anchors = needAnchors ? mushafBacked : new Set();
 
         const hardCuts = new Set([...cats.lazim, ...consensusMandatory, ...anchors]);
         const mandatory = [...hardCuts].filter(w => w < lastW).sort((a, b) => a - b);
-        const optional = (d.union_stops || []).map(u => u.wpos)
-            .filter(w => !cats.saktah.has(w) && !cats.forbidden.has(w) && !hardCuts.has(w))
+
+        // All breathing positions (forward + repeat) as optional candidates.
+        const optional = [...breathCount.keys()]
+            .filter(w => w < lastW && !cats.saktah.has(w) && !cats.forbidden.has(w) && !hardCuts.has(w))
             .sort((a, b) => a - b);
 
         const breaths = [];
@@ -682,7 +693,7 @@
                 for (const j of cands) {
                     const dur = cumAt(d, opts[j]) - curCum;
                     const posRatio = maxDur > 0 ? dur / maxDur : 1;
-                    const consRatio = (countByWpos.get(opts[j]) || 1) / total;
+                    const consRatio = (breathCount.get(opts[j]) || 1) / total;
                     const hasMushaf = mushafBacked.has(opts[j]) ? 1 : 0;
                     const score = consRatio * 0.3 + hasMushaf * 0.2 + posRatio * 0.5;
                     if (score > bestScore) { bestScore = score; bestJ = j; }
@@ -692,14 +703,14 @@
             if (spanEnd !== lastW) breaths.push(spanEnd);
             prevWpos = spanEnd; prevCum = cumAt(d, spanEnd);
         }
-        return { breaths, mandatory: cats.lazim, consensusMandatory, mushafBacked: anchors, saktah: cats.saktah };
+        return { breaths, breathCount, mandatory: cats.lazim, consensusMandatory, mushafBacked: anchors, saktah: cats.saktah };
     }
     function renderRecommendation(d) {
         const canPlan = !!d.ref_times && d.words.length > 0;
         els.recCard.hidden = !canPlan;
         if (!canPlan) return;
         const L = state.breathL;
-        const { breaths, mandatory, consensusMandatory, mushafBacked, saktah } = recommendBreaths(d, L);
+        const { breaths, breathCount, mandatory, consensusMandatory, mushafBacked, saktah } = recommendBreaths(d, L);
         const lastW = d.words.length - 1;
         const bounds = [-1, ...breaths, lastW];
         const nBreaths = bounds.length - 1;
@@ -881,7 +892,8 @@
                 if (endsMandatory) attest += '<span class="wq-must-badge">لازم</span>';
                 else if (endsConsensus) attest += `<span class="wq-consensus-badge" title="اتفق أغلب القرّاء (${toAr(u ? u.count : 0)}/${toAr(d.reciters_total)}) على الوقف هنا، فاعتُمد نقطة وقف ثابتة بصرف النظر عن طول النفَس">وقف الأغلبية</span>`;
                 else if (endsMushaf) attest += '<span class="wq-mushaf-badge" title="علامة وقف مطبوعة في المصحف يوافقها قارئ">يوافق مصحفًا</span>';
-                if (u) attest += `<span class="wq-rec-cons${u.solo ? ' wq-rec-cons-solo' : ''}" title="عدد القرّاء الذين يقفون هنا">${u.solo ? 'انفرد' : toAr(u.count) + '/' + toAr(d.reciters_total)} <i class="fas fa-users"></i></span>`;
+                const bc = breathCount.get(to) || (u ? u.count : 0);
+                if (bc > 0) attest += `<span class="wq-rec-cons${bc === 1 ? ' wq-rec-cons-solo' : ''}" title="عدد القرّاء الذين يتنفّسون هنا (وقف أو إعادة)">${bc === 1 ? 'انفرد' : toAr(bc) + '/' + toAr(d.reciters_total)} <i class="fas fa-users"></i></span>`;
             }
             meta.innerHTML = attest
                 + `<span class="wq-rec-dur"><i class="fas fa-${isLast ? 'flag-checkered' : 'lungs'}"></i> ${toAr(segDur.toFixed(1))}ث</span>`;
