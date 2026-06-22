@@ -2906,10 +2906,65 @@ def _build_mandatory_index():
                     'surah': s, 'ayah': a, 'word': word or '', 'context': ctx,
                     'marks': marks, 'agreement': 'full' if all_same else 'partial',
                 })
+
+        # وقف المعانقة (ع) — embracing stop pairs.
+        where_ain = ' OR '.join(f'"{v}" = ?' for v in versions)
+        cur.execute(
+            f'SELECT "السورة", "الآية", "الكلمة", token_index, {cols_sql} '
+            f'FROM waqf WHERE {where_ain} ORDER BY "السورة", "الآية", token_index',
+            tuple('ع' for _ in versions)
+        )
+        raw_ain = []
+        for row in cur.fetchall():
+            s, a, word, ti = row[0], row[1], row[2], row[3]
+            marks = {}
+            for i, ver in enumerate(versions):
+                val = row[4 + i]
+                if val:
+                    marks[ver] = val
+            vk = f"{s}:{a}"
+            _, words, _ = _verse_word_texts(vk)
+            if words:
+                wpos = min(ti, len(words) - 1) if ti is not None else 0
+                lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
+                ctx = ' '.join(words[lo:hi])
+            else:
+                ctx = word or ''
+            all_same = len(set(marks.values())) == 1 and len(marks) == len(versions)
+            raw_ain.append({
+                'surah': s, 'ayah': a, 'word': word or '', 'context': ctx,
+                'marks': marks, 'agreement': 'full' if all_same else 'partial',
+            })
+
+        # Group ع marks into pairs (consecutive marks in the same verse).
+        embracing = []
+        i_ain = 0
+        while i_ain < len(raw_ain):
+            a1 = raw_ain[i_ain]
+            if i_ain + 1 < len(raw_ain) and raw_ain[i_ain + 1]['surah'] == a1['surah'] and raw_ain[i_ain + 1]['ayah'] == a1['ayah']:
+                a2 = raw_ain[i_ain + 1]
+                vk = f"{a1['surah']}:{a1['ayah']}"
+                _, words, _ = _verse_word_texts(vk)
+                embracing.append({
+                    'surah': a1['surah'], 'ayah': a1['ayah'],
+                    'pair': [
+                        {'word': a1['word'], 'context': a1['context'], 'marks': a1['marks']},
+                        {'word': a2['word'], 'context': a2['context'], 'marks': a2['marks']},
+                    ],
+                    'agreement': 'full' if a1['agreement'] == 'full' and a2['agreement'] == 'full' else 'partial',
+                })
+                i_ain += 2
+            else:
+                embracing.append({
+                    'surah': a1['surah'], 'ayah': a1['ayah'],
+                    'pair': [{'word': a1['word'], 'context': a1['context'], 'marks': a1['marks']}],
+                    'agreement': a1['agreement'],
+                })
+                i_ain += 1
     finally:
         conn.close()
 
-    _mandatory_cache = {'mandatory': mandatory, 'forbidden': forbidden}
+    _mandatory_cache = {'mandatory': mandatory, 'forbidden': forbidden, 'embracing': embracing}
     return _mandatory_cache
 
 

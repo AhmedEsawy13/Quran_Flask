@@ -289,6 +289,11 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
     font-family: 'UthmanicHafs', serif; font-size: 0.9rem; font-weight: 700; line-height: 1; }
 .wq-mand-agree { color: #16a34a; margin-inline-start: 4px; font-size: 0.85rem; }
 .wq-mand-partial { color: #ea580c; margin-inline-start: 4px; font-size: 0.85rem; }
+.wq-w-muan { color: #7c3aed; border-color: color-mix(in srgb, #7c3aed 50%, transparent); background: rgba(124,58,237,0.1); }
+.wq-muan-pair { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.wq-muan-word { font-family: 'UthmanicHafs', serif; font-size: 1.05rem; font-weight: 700; }
+.wq-muan-or { font-size: 0.7rem; color: var(--wq-text-faint); font-weight: 700; }
+.wq-muan-item { flex-wrap: wrap; }
 .wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
 .wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }

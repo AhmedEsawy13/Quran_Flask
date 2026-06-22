@@ -396,21 +396,53 @@
     function renderMandatory() {
         const mand = mandatoryCache.mandatory || [];
         const forb = mandatoryCache.forbidden || [];
+        const embr = mandatoryCache.embracing || [];
         let tabs = `<div class="wq-stats-subtabs">
             <button class="wq-stats-subtab${mandView === 'mandatory' ? ' wq-lab-tab-active' : ''}" data-mv="mandatory">
-                <span class="wq-mand-chip wq-w-must">م</span> الوقف اللازم <b>${toAr(mand.length)}</b>
+                <span class="wq-mand-chip wq-w-must">م</span> اللازم <b>${toAr(mand.length)}</b>
             </button>
             <button class="wq-stats-subtab${mandView === 'forbidden' ? ' wq-lab-tab-active' : ''}" data-mv="forbidden">
-                <span class="wq-mand-chip wq-w-no">لا</span> الوقف الممنوع <b>${toAr(forb.length)}</b>
+                <span class="wq-mand-chip wq-w-no">لا</span> الممنوع <b>${toAr(forb.length)}</b>
+            </button>
+            <button class="wq-stats-subtab${mandView === 'embracing' ? ' wq-lab-tab-active' : ''}" data-mv="embracing">
+                <span class="wq-mand-chip wq-w-muan">ع</span> المعانقة <b>${toAr(embr.length)}</b>
             </button>
         </div>`;
-        const list = mandView === 'mandatory' ? mand : forb;
-        const desc = mandView === 'mandatory'
-            ? 'مواضع الوقف اللازم (م) في المصاحف — يجب الوقف عليها'
-            : 'مواضع الوقف الممنوع (لا) في المصاحف — لا يصح الوقف عليها';
-        let body = `<div class="wq-solos-desc">${desc}</div>`;
-        body += '<div class="wq-solos-list">' + renderMandItems(list) + '</div>';
+        const descs = {
+            mandatory: 'مواضع الوقف اللازم (م) — يجب الوقف عليها',
+            forbidden: 'مواضع الوقف الممنوع (لا) — لا يصح الوقف عليها',
+            embracing: 'وقف المعانقة (ع) — يُوقف على أحد الموضعين فقط، لا كليهما',
+        };
+        let body = `<div class="wq-solos-desc">${descs[mandView]}</div>`;
+        if (mandView === 'embracing') {
+            body += '<div class="wq-solos-list">' + renderEmbracingItems(embr) + '</div>';
+        } else {
+            body += '<div class="wq-solos-list">' + renderMandItems(mandView === 'mandatory' ? mand : forb) + '</div>';
+        }
         els.mandatoryContent.innerHTML = tabs + body;
+    }
+
+    function renderEmbracingItems(list) {
+        if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
+        return list.map(o => {
+            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
+            const pair = o.pair || [];
+            const pairHtml = pair.map(p => {
+                const ent = Object.entries(p.marks || {});
+                const marks = ent.length
+                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('')}</span>` : '';
+                return `<span class="wq-muan-word">${p.word}</span>${marks}`;
+            }).join('<span class="wq-muan-or">أو</span>');
+            const agree = o.agreement === 'full'
+                ? '<span class="wq-mand-agree" title="جميع المصاحف متفقة"><i class="fas fa-check-double"></i></span>'
+                : '<span class="wq-mand-partial" title="اختلاف بين المصاحف"><i class="fas fa-exclamation-triangle"></i></span>';
+            return `<button class="wq-research-item wq-muan-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
+                <span class="wq-research-ref">${sname} <b>${ref}</b></span>
+                <span class="wq-muan-pair" dir="rtl">${pairHtml}</span>${agree}
+                <i class="fas fa-chevron-left wq-research-go"></i>
+            </button>`;
+        }).join('');
     }
 
     function renderMandItems(list) {
@@ -578,19 +610,21 @@
         const t = d.ref_times && d.ref_times[wpos];
         return (typeof t === 'number') ? t : 0;
     }
-    // Greedy plan: keep each breath ≤ L seconds, breathing only at attested
+    // Breath plan: keep each breath ≤ L seconds, breathing only at attested
     // reciter stops — but ALWAYS stop at a وقف لازم (م, mandatory hard-cut),
     // and NEVER breathe at a سكتة (س, pause-without-breath) or a لا (no-stop).
+    //
+    // Within each span between hard cuts, prefer stops with higher reciter
+    // consensus: among all stops that keep the segment ≤ L seconds, pick the
+    // one closest to L that has the best consensus (most reciters agreeing).
+    // This yields more balanced segments and naturally lands on stronger stops.
     function recommendBreaths(d, L) {
         const cats = waqfCategories(d);
         const lastW = d.words.length - 1;
-        const total = d.reciters_total || 0;
+        const total = d.reciters_total || 1;
         const majorityN = Math.floor(total / 2) + 1;
-        // A stop where the majority (or all) of the reciters agree — even if
-        // it isn't a printed وقف لازم — reflects a real consensus on where to
-        // breathe. For متوسط/طويل this becomes a hard cut too, so e.g. سورة
-        // يوسف ١ always breaks after «الر» (كل القرّاء يقفون بعدها) even
-        // though the whole verse could otherwise fit in one طويل نفَس.
+        const countByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u.count]));
+
         const consensusMandatory = (L >= BREATH.medium)
             ? new Set((d.union_stops || [])
                 .filter(u => u.count >= majorityN && u.wpos < lastW
@@ -601,25 +635,44 @@
             ? new Set([...cats.lazim, ...consensusMandatory])
             : cats.lazim;
         const mandatory = [...hardCuts].filter(w => w < lastW).sort((a, b) => a - b);
-        let optional = (d.union_stops || []).map(u => u.wpos)
+        const optional = (d.union_stops || []).map(u => u.wpos)
             .filter(w => !cats.saktah.has(w) && !cats.forbidden.has(w) && !hardCuts.has(w))
             .sort((a, b) => a - b);
 
         const breaths = [];
         let prevWpos = -1, prevCum = 0;
-        for (const spanEnd of [...mandatory, lastW]) {       // hard-cut points (لازم + اتفاق القرّاء)
+        for (const spanEnd of [...mandatory, lastW]) {
             const opts = optional.filter(w => w > prevWpos && w < spanEnd);
             let curCum = prevCum, i = 0;
             while (i < opts.length) {
-                if (cumAt(d, spanEnd) - curCum <= L) break;  // rest of span fits in one breath
-                let pick = -1;
+                const remaining = cumAt(d, spanEnd) - curCum;
+                if (remaining <= L) break;
+
+                // Collect all candidates within L seconds
+                const cands = [];
                 for (let j = i; j < opts.length; j++) {
-                    if (cumAt(d, opts[j]) - curCum <= L) pick = j; else break;
+                    const dur = cumAt(d, opts[j]) - curCum;
+                    if (dur > L) break;
+                    cands.push(j);
                 }
-                if (pick === -1) pick = i;                   // nothing within L → forced stop
-                breaths.push(opts[pick]); curCum = cumAt(d, opts[pick]); i = pick + 1;
+                if (!cands.length) { // nothing within L → forced stop
+                    breaths.push(opts[i]); curCum = cumAt(d, opts[i]); i += 1; continue;
+                }
+                // Among candidates, prefer: higher consensus, then further position.
+                // Score = consensus_ratio * 0.4 + position_ratio * 0.6
+                // This balances landing on strong stops with filling the breath.
+                let bestJ = cands[cands.length - 1], bestScore = -1;
+                const maxDur = cumAt(d, opts[cands[cands.length - 1]]) - curCum;
+                for (const j of cands) {
+                    const dur = cumAt(d, opts[j]) - curCum;
+                    const posRatio = maxDur > 0 ? dur / maxDur : 1;
+                    const consRatio = (countByWpos.get(opts[j]) || 1) / total;
+                    const score = consRatio * 0.4 + posRatio * 0.6;
+                    if (score > bestScore) { bestScore = score; bestJ = j; }
+                }
+                breaths.push(opts[bestJ]); curCum = cumAt(d, opts[bestJ]); i = bestJ + 1;
             }
-            if (spanEnd !== lastW) breaths.push(spanEnd);    // the hard-cut breath itself
+            if (spanEnd !== lastW) breaths.push(spanEnd);
             prevWpos = spanEnd; prevCum = cumAt(d, spanEnd);
         }
         return { breaths, mandatory: cats.lazim, consensusMandatory, saktah: cats.saktah };

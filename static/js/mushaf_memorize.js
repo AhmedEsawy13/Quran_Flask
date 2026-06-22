@@ -901,7 +901,9 @@
                         span.className = 'mz-word';
                         // Shemrly glyphs already include the printed ayah marker; only the
                         // letter-based sources need the ۝ ornament appended.
-                        const text = state.src === 'shamarly' ? (w.text || '') : withAyahOrnament(stripEmbeddedWaqf(w.text || ''));
+                        const raw = w.text || '';
+                        const text = state.src === 'shamarly' ? raw
+                            : withAyahOrnament(waqfMarksOn() ? stripEmbeddedWaqf(raw) : raw);
                         span.textContent = text;
                         span.dataset.text = text;
                         if (w.surah != null && w.ayah != null) {
