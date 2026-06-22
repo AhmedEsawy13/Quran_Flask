@@ -59,7 +59,9 @@
         researchInput: $('wq-research-input'), researchForms: $('wq-research-forms'),
         researchResults: $('wq-research-results'),
         panelWord: $('wq-panel-word'), panelSolos: $('wq-panel-solos'),
+        panelStats: $('wq-panel-stats'), panelMandatory: $('wq-panel-mandatory'),
         solosContent: $('wq-solos-content'),
+        statsContent: $('wq-stats-content'), mandatoryContent: $('wq-mandatory-content'),
     };
 
     const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
@@ -294,6 +296,142 @@
         }).join('');
     }
 
+    /* ── إحصائيات (stats tab) ──────────────────────────────────── */
+    let statsCache = null, consensusCache = null, statsView = 'surahs';
+
+    async function loadStats() {
+        if (statsCache) { renderStats(); return; }
+        els.statsContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/stats');
+            statsCache = await resp.json();
+            statsView = 'surahs';
+            renderStats();
+        } catch { els.statsContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    async function loadConsensus() {
+        if (consensusCache) { renderConsensus(); return; }
+        els.statsContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/stats?view=consensus');
+            consensusCache = await resp.json();
+            renderConsensus();
+        } catch { els.statsContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderStats() {
+        const surahs = (statsCache.surahs || []).slice().sort((a, b) => b.divergent - a.divergent);
+        const topV = statsCache.top_divergent || [];
+        const totalDiv = surahs.reduce((s, x) => s + x.divergent, 0);
+        const totalCons = surahs.reduce((s, x) => s + x.consensus, 0);
+
+        let tabs = `<div class="wq-stats-subtabs">
+            <button class="wq-stats-subtab${statsView === 'surahs' ? ' wq-lab-tab-active' : ''}" data-sv="surahs">السور</button>
+            <button class="wq-stats-subtab${statsView === 'verses' ? ' wq-lab-tab-active' : ''}" data-sv="verses">أكثر الآيات اختلافًا</button>
+            <button class="wq-stats-subtab${statsView === 'consensus' ? ' wq-lab-tab-active' : ''}" data-sv="consensus">مواضع الاتفاق</button>
+        </div>`;
+
+        let body = '';
+        if (statsView === 'surahs') {
+            body = `<div class="wq-stats-summary">${toAr(totalDiv)} موضع اختلاف · ${toAr(totalCons)} موضع اتفاق تام</div>`
+                + '<div class="wq-stats-list">' + surahs.filter(s => s.total > 0).map(s => {
+                    const pct = s.total ? Math.round(s.consensus / s.total * 100) : 0;
+                    return `<div class="wq-stats-row">
+                        <span class="wq-stats-sname">${s.name} <b>${toAr(s.surah)}</b></span>
+                        <span class="wq-stats-bar"><span class="wq-stats-fill" style="width:${pct}%"></span></span>
+                        <span class="wq-stats-nums"><span class="wq-stats-cons">${toAr(s.consensus)}</span> / <span class="wq-stats-div">${toAr(s.divergent)}</span></span>
+                    </div>`;
+                }).join('') + '</div>';
+        } else if (statsView === 'verses') {
+            body = '<div class="wq-solos-list">' + topV.slice(0, 60).map(v => {
+                const sname = (state.surahs.find(s => s.number === v.surah) || {}).name || '';
+                return `<button class="wq-research-item" type="button" data-s="${v.surah}" data-a="${v.ayah}">
+                    <span class="wq-research-ref">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></span>
+                    <span class="wq-stats-badge wq-stats-div">${toAr(v.divergent)} اختلاف</span>
+                    <span class="wq-stats-badge wq-stats-cons">${toAr(v.consensus)} اتفاق</span>
+                    <i class="fas fa-chevron-left wq-research-go"></i>
+                </button>`;
+            }).join('') + '</div>';
+        }
+        els.statsContent.innerHTML = tabs + body;
+    }
+
+    function renderConsensus() {
+        const items = consensusCache.consensus || [];
+        let tabs = `<div class="wq-stats-subtabs">
+            <button class="wq-stats-subtab" data-sv="surahs">السور</button>
+            <button class="wq-stats-subtab" data-sv="verses">أكثر الآيات اختلافًا</button>
+            <button class="wq-stats-subtab wq-lab-tab-active" data-sv="consensus">مواضع الاتفاق</button>
+        </div>`;
+        let body = `<div class="wq-solos-desc">مواضع وقف اتفق عليها جميع القرّاء ولها علامة مطبوعة في المصاحف</div>`
+            + `<div class="wq-research-count">${toAr(items.length)} موضعًا</div>`
+            + '<div class="wq-solos-list">' + items.map(o => {
+                const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+                const ent = Object.entries(o.marks || {});
+                const marks = ent.length
+                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('')}</span>` : '';
+                return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
+                    <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
+                    <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
+                    <i class="fas fa-chevron-left wq-research-go"></i>
+                </button>`;
+            }).join('') + '</div>';
+        els.statsContent.innerHTML = tabs + body;
+    }
+
+    /* ── الوقف اللازم والممنوع (mandatory tab) ──────────────────── */
+    let mandatoryCache = null, mandView = 'mandatory';
+
+    async function loadMandatory() {
+        if (mandatoryCache) { renderMandatory(); return; }
+        els.mandatoryContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/mandatory');
+            mandatoryCache = await resp.json();
+            renderMandatory();
+        } catch { els.mandatoryContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderMandatory() {
+        const mand = mandatoryCache.mandatory || [];
+        const forb = mandatoryCache.forbidden || [];
+        let tabs = `<div class="wq-stats-subtabs">
+            <button class="wq-stats-subtab${mandView === 'mandatory' ? ' wq-lab-tab-active' : ''}" data-mv="mandatory">
+                <span class="wq-mand-chip wq-w-must">م</span> الوقف اللازم <b>${toAr(mand.length)}</b>
+            </button>
+            <button class="wq-stats-subtab${mandView === 'forbidden' ? ' wq-lab-tab-active' : ''}" data-mv="forbidden">
+                <span class="wq-mand-chip wq-w-no">لا</span> الوقف الممنوع <b>${toAr(forb.length)}</b>
+            </button>
+        </div>`;
+        const list = mandView === 'mandatory' ? mand : forb;
+        const desc = mandView === 'mandatory'
+            ? 'مواضع الوقف اللازم (م) في المصاحف — يجب الوقف عليها'
+            : 'مواضع الوقف الممنوع (لا) في المصاحف — لا يصح الوقف عليها';
+        let body = `<div class="wq-solos-desc">${desc}</div>`;
+        body += '<div class="wq-solos-list">' + renderMandItems(list) + '</div>';
+        els.mandatoryContent.innerHTML = tabs + body;
+    }
+
+    function renderMandItems(list) {
+        if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
+        return list.map(o => {
+            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const ent = Object.entries(o.marks || {});
+            const marks = ent.length
+                ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
+                  + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>' : '';
+            const agree = o.agreement === 'full'
+                ? '<span class="wq-mand-agree" title="جميع المصاحف متفقة"><i class="fas fa-check-double"></i></span>'
+                : '<span class="wq-mand-partial" title="اختلاف بين المصاحف"><i class="fas fa-exclamation-triangle"></i></span>';
+            return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
+                <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
+                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}${agree}
+                <i class="fas fa-chevron-left wq-research-go"></i>
+            </button>`;
+        }).join('');
+    }
+
     function setupResearch() {
         if (!els.researchToggle) return;
         els.researchToggle.addEventListener('click', () => {
@@ -307,7 +445,11 @@
             const which = tab.dataset.tab;
             els.panelWord.hidden = which !== 'word';
             els.panelSolos.hidden = which !== 'solos';
+            els.panelStats.hidden = which !== 'stats';
+            els.panelMandatory.hidden = which !== 'mandatory';
             if (which === 'solos') loadSolosSummary();
+            if (which === 'stats') loadStats();
+            if (which === 'mandatory') loadMandatory();
         }));
         document.querySelectorAll('.wq-research-chip').forEach(c =>
             c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1', c.dataset.mode || '')));
@@ -326,6 +468,33 @@
             if (s !== state.surah) await loadAyahOptions(s);
             await loadVerse(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        els.statsContent.addEventListener('click', async e => {
+            const st = e.target.closest('.wq-stats-subtab');
+            if (st) {
+                const sv = st.dataset.sv;
+                if (sv === 'consensus') { statsView = 'consensus'; loadConsensus(); }
+                else { statsView = sv; renderStats(); }
+                return;
+            }
+            const item = e.target.closest('.wq-research-item');
+            if (item) {
+                const s = +item.dataset.s, a = +item.dataset.a;
+                if (s !== state.surah) await loadAyahOptions(s);
+                await loadVerse(s, a);
+                if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+        els.mandatoryContent.addEventListener('click', async e => {
+            const mt = e.target.closest('.wq-stats-subtab');
+            if (mt) { mandView = mt.dataset.mv; renderMandatory(); return; }
+            const item = e.target.closest('.wq-research-item');
+            if (item) {
+                const s = +item.dataset.s, a = +item.dataset.a;
+                if (s !== state.surah) await loadAyahOptions(s);
+                await loadVerse(s, a);
+                if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
         els.solosContent.addEventListener('click', async e => {
             const back = e.target.closest('.wq-solos-back');

@@ -2772,6 +2772,153 @@ def waqf_research_solos():
     })
 
 
+_waqf_stats_cache: dict | None = None
+
+
+def _build_waqf_stats():
+    """Per-surah reciter-divergence stats + top consensus positions."""
+    global _waqf_stats_cache
+    if _waqf_stats_cache is not None:
+        return _waqf_stats_cache
+
+    surah_names = {s['number']: s['name'] for s in surahs_data} if surahs_data else {}
+    surahs_out = []
+    top_divergent = []
+    top_consensus = []
+
+    for surah in range(1, 115):
+        guide = _build_breathing_guide(surah)
+        s_cons, s_div, s_total = 0, 0, 0
+
+        for ayah_str, vdata in guide.get('verses', {}).items():
+            ayah = int(ayah_str)
+            rt = vdata.get('reciters_total', 0)
+            if rt < 2:
+                continue
+            v_cons, v_div = 0, 0
+            for stop in vdata.get('stops', []):
+                s_total += 1
+                if stop['reciters'] == rt:
+                    v_cons += 1
+                else:
+                    v_div += 1
+            s_cons += v_cons
+            s_div += v_div
+            if v_div > 0:
+                top_divergent.append({'surah': surah, 'ayah': ayah,
+                                      'divergent': v_div, 'consensus': v_cons,
+                                      'total': v_cons + v_div})
+            if v_cons > 0:
+                vk = f"{surah}:{ayah}"
+                _, words, raw_to_wpos = _verse_word_texts(vk)
+                if not words:
+                    continue
+                mm_by_wpos = {}
+                for ver in _WAQF_COMPARE_MUSHAFS:
+                    for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+                        ti = r.get('token_index')
+                        if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
+                            continue
+                        wp = raw_to_wpos[ti]
+                        if wp is not None:
+                            mm_by_wpos.setdefault(wp, {})[ver] = r['symbols']
+                for stop in vdata.get('stops', []):
+                    if stop['reciters'] == rt:
+                        wpos = stop['wpos']
+                        mm = mm_by_wpos.get(wpos, {})
+                        if mm:
+                            lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
+                            top_consensus.append({
+                                'surah': surah, 'ayah': ayah, 'wpos': wpos,
+                                'word': words[wpos] if 0 <= wpos < len(words) else '',
+                                'context': ' '.join(words[lo:hi]),
+                                'marks': mm, 'reciters': rt,
+                            })
+
+        surahs_out.append({
+            'surah': surah, 'name': surah_names.get(surah, ''),
+            'consensus': s_cons, 'divergent': s_div, 'total': s_total,
+        })
+
+    top_divergent.sort(key=lambda v: v['divergent'], reverse=True)
+    top_consensus.sort(key=lambda v: v['reciters'], reverse=True)
+
+    _waqf_stats_cache = {
+        'surahs': surahs_out,
+        'top_divergent': top_divergent[:80],
+        'top_consensus': top_consensus,
+    }
+    return _waqf_stats_cache
+
+
+@breathing_bp.route('/api/waqf-research/stats', methods=['GET'])
+def waqf_research_stats():
+    """Surah-level reciter divergence stats + consensus positions."""
+    data = _build_waqf_stats()
+    view = request.args.get('view', '').strip()
+    if view == 'consensus':
+        return jsonify({'consensus': data['top_consensus']})
+    return jsonify({'surahs': data['surahs'], 'top_divergent': data['top_divergent']})
+
+
+_mandatory_cache: dict | None = None
+
+
+def _build_mandatory_index():
+    """All م (mandatory) and لا (forbidden) waqf positions across all mushafs."""
+    global _mandatory_cache
+    if _mandatory_cache is not None:
+        return _mandatory_cache
+
+    versions = list(_WAQF_COMPARE_MUSHAFS)
+    cols_sql = ', '.join(f'"{v}"' for v in versions)
+    where_m = ' OR '.join(f'"{v}" = ?' for v in versions)
+    where_la = ' OR '.join(f'"{v}" = ?' for v in versions)
+
+    conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+    try:
+        cur = conn.cursor()
+        mandatory, forbidden = [], []
+
+        for symbol, target_list in [('م', mandatory), ('لا', forbidden)]:
+            cur.execute(
+                f'SELECT "السورة", "الآية", "الكلمة", token_index, {cols_sql} '
+                f'FROM waqf WHERE {where_m} ORDER BY "السورة", "الآية", token_index',
+                tuple(symbol for _ in versions)
+            )
+            for row in cur.fetchall():
+                s, a, word, ti = row[0], row[1], row[2], row[3]
+                marks = {}
+                for i, ver in enumerate(versions):
+                    val = row[4 + i]
+                    if val:
+                        marks[ver] = val
+                vk = f"{s}:{a}"
+                _, words, _ = _verse_word_texts(vk)
+                if words:
+                    wpos = min(ti, len(words) - 1) if ti is not None else 0
+                    lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
+                    ctx = ' '.join(words[lo:hi])
+                else:
+                    ctx = word or ''
+                all_same = len(set(marks.values())) == 1 and len(marks) == len(versions)
+                target_list.append({
+                    'surah': s, 'ayah': a, 'word': word or '', 'context': ctx,
+                    'marks': marks, 'agreement': 'full' if all_same else 'partial',
+                })
+    finally:
+        conn.close()
+
+    _mandatory_cache = {'mandatory': mandatory, 'forbidden': forbidden}
+    return _mandatory_cache
+
+
+@breathing_bp.route('/api/waqf-research/mandatory', methods=['GET'])
+def waqf_research_mandatory():
+    """All م (وقف لازم) and لا (وقف ممنوع) positions with mushaf agreement."""
+    return jsonify(_build_mandatory_index())
+
+
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
 
