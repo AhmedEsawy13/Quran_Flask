@@ -58,6 +58,8 @@
         researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
         researchInput: $('wq-research-input'), researchForms: $('wq-research-forms'),
         researchResults: $('wq-research-results'),
+        panelWord: $('wq-panel-word'), panelSolos: $('wq-panel-solos'),
+        solosContent: $('wq-solos-content'),
     };
 
     const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
@@ -207,6 +209,91 @@
         }).join('');
     }
 
+    /* ── solo stops (انفرادات القرّاء) ────────────────────────────── */
+    let solosCache = null;
+    let solosReciterCache = {};
+
+    async function loadSolosSummary() {
+        if (solosCache) { renderSolosSummary(); return; }
+        els.solosContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/solos');
+            solosCache = await resp.json();
+            renderSolosSummary();
+        } catch { els.solosContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderSolosSummary() {
+        const reciters = (solosCache.reciters || []).slice().sort((a, b) => b.solo_count - a.solo_count);
+        if (!reciters.length) { els.solosContent.innerHTML = '<div class="wq-research-empty">لا بيانات</div>'; return; }
+        els.solosContent.innerHTML =
+            '<div class="wq-solos-desc">مواضع وقف كل قارئ التي لم يشاركه فيها أحد من بقية القرّاء</div>'
+            + '<div class="wq-solos-grid">' + reciters.map(r =>
+                `<button class="wq-solos-card" data-rid="${r.id}" type="button">
+                    <span class="wq-solos-name">${r.name_ar}</span>
+                    <span class="wq-solos-count">${toAr(r.solo_count)}</span>
+                    <span class="wq-solos-label">انفراد</span>
+                </button>`
+            ).join('') + '</div>';
+    }
+
+    async function loadSolosDetail(rid) {
+        if (solosReciterCache[rid]) { renderSolosDetail(solosReciterCache[rid]); return; }
+        els.solosContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/solos?reciter=' + encodeURIComponent(rid));
+            const d = await resp.json();
+            solosReciterCache[rid] = d;
+            renderSolosDetail(d);
+        } catch { els.solosContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderSolosDetail(d) {
+        const stops = d.stops || [];
+        const withMark = stops.filter(o => o.has_waqf).length;
+        const withoutMark = stops.length - withMark;
+        let header = `<div class="wq-solos-header">
+            <button class="wq-solos-back" type="button"><i class="fas fa-arrow-right"></i></button>
+            <span class="wq-solos-title">${d.reciter.name_ar}</span>
+            <span class="wq-research-count">${toAr(stops.length)} انفراد</span>
+        </div>`;
+        if (withMark && withoutMark) {
+            header += '<div class="wq-research-frow"><span class="wq-research-flabel">الوقف المطبوع</span>'
+                + `<button class="wq-wfilter wq-wfilter-active" data-sf="">الكل</button>`
+                + `<button class="wq-wfilter" data-sf="yes"><i class="fas fa-pause"></i> يوافق مصحفًا <b>${toAr(withMark)}</b></button>`
+                + `<button class="wq-wfilter" data-sf="no">بلا علامة <b>${toAr(withoutMark)}</b></button></div>`;
+        }
+        let list = stops;
+        els.solosContent.innerHTML = header + '<div class="wq-solos-list">' + renderSoloItems(list) + '</div>';
+        const frow = els.solosContent.querySelector('.wq-research-frow');
+        if (frow) frow.addEventListener('click', e => {
+            const btn = e.target.closest('.wq-wfilter'); if (!btn) return;
+            frow.querySelectorAll('.wq-wfilter').forEach(b => b.classList.remove('wq-wfilter-active'));
+            btn.classList.add('wq-wfilter-active');
+            const f = btn.dataset.sf;
+            const filtered = !f ? stops : f === 'yes' ? stops.filter(o => o.has_waqf) : stops.filter(o => !o.has_waqf);
+            els.solosContent.querySelector('.wq-solos-list').innerHTML = renderSoloItems(filtered);
+        });
+    }
+
+    function renderSoloItems(list) {
+        if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
+        return list.map(o => {
+            const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
+            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const ent = Object.entries(o.marks || {});
+            const marks = ent.length
+                ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
+                  + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>'
+                : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
+            return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref}">
+                <span class="wq-research-ref">${sname} <b>${ref}</b></span>
+                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
+                <i class="fas fa-chevron-left wq-research-go"></i>
+            </button>`;
+        }).join('');
+    }
+
     function setupResearch() {
         if (!els.researchToggle) return;
         els.researchToggle.addEventListener('click', () => {
@@ -214,6 +301,14 @@
             els.researchBody.hidden = !open;
             els.researchToggle.setAttribute('aria-expanded', String(open));
         });
+        document.querySelectorAll('.wq-lab-tab').forEach(tab => tab.addEventListener('click', () => {
+            document.querySelectorAll('.wq-lab-tab').forEach(t => t.classList.remove('wq-lab-tab-active'));
+            tab.classList.add('wq-lab-tab-active');
+            const which = tab.dataset.tab;
+            els.panelWord.hidden = which !== 'word';
+            els.panelSolos.hidden = which !== 'solos';
+            if (which === 'solos') loadSolosSummary();
+        }));
         document.querySelectorAll('.wq-research-chip').forEach(c =>
             c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1', c.dataset.mode || '')));
         if (els.researchInput) els.researchInput.addEventListener('keydown', e => {
@@ -231,6 +326,19 @@
             if (s !== state.surah) await loadAyahOptions(s);
             await loadVerse(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        els.solosContent.addEventListener('click', async e => {
+            const back = e.target.closest('.wq-solos-back');
+            if (back) { renderSolosSummary(); return; }
+            const card = e.target.closest('.wq-solos-card');
+            if (card) { loadSolosDetail(card.dataset.rid); return; }
+            const item = e.target.closest('.wq-research-item');
+            if (item) {
+                const s = +item.dataset.s, a = +item.dataset.a;
+                if (s !== state.surah) await loadAyahOptions(s);
+                await loadVerse(s, a);
+                if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
     }
 

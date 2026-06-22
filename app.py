@@ -2687,6 +2687,91 @@ def get_verse_waqf(surah, ayah):
     return jsonify(data)
 
 
+_solo_stops_index: dict | None = None
+
+
+def _build_solo_stops_index():
+    """Scan all 114 surahs and collect every reciter's solo stops.
+
+    Returns {reciter_id: [{'surah', 'ayah', 'wpos', 'word', 'context', 'marks'}]}.
+    Cached after first computation (data is static at runtime)."""
+    global _solo_stops_index
+    if _solo_stops_index is not None:
+        return _solo_stops_index
+
+    reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
+    per_reciter = defaultdict(list)
+
+    for surah in range(1, 115):
+        guide = _build_breathing_guide(surah)
+        for ayah_str, vdata in guide.get('verses', {}).items():
+            ayah = int(ayah_str)
+            vk = f"{surah}:{ayah}"
+            _, words, raw_to_wpos = _verse_word_texts(vk)
+            if not words:
+                continue
+
+            mushaf_marks = None
+            for stop in vdata.get('stops', []):
+                if not stop['solo'] or not stop.get('reciter_ids'):
+                    continue
+                rid = stop['reciter_ids'][0]
+                wpos = stop['wpos']
+                if not (0 <= wpos < len(words)):
+                    continue
+
+                if mushaf_marks is None:
+                    mushaf_marks = {}
+                    for ver in _WAQF_MATCH_MUSHAFS:
+                        for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+                            ti = r.get('token_index')
+                            if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
+                                continue
+                            wp = raw_to_wpos[ti]
+                            if wp is not None:
+                                mushaf_marks.setdefault(wp, {})[ver] = r['symbols']
+
+                lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
+                per_reciter[rid].append({
+                    'surah': surah, 'ayah': ayah, 'wpos': wpos,
+                    'word': words[wpos],
+                    'context': ' '.join(words[lo:hi]),
+                    'marks': mushaf_marks.get(wpos, {}),
+                    'has_waqf': bool(mushaf_marks.get(wpos)),
+                })
+
+    _solo_stops_index = dict(per_reciter)
+    return _solo_stops_index
+
+
+@breathing_bp.route('/api/waqf-research/solos', methods=['GET'])
+def waqf_research_solos():
+    """Solo stops (انفرادات) per reciter across the entire Quran.
+
+    GET /api/waqf-research/solos           → summary (counts per reciter)
+    GET /api/waqf-research/solos?reciter=X → full list for reciter X"""
+    idx = _build_solo_stops_index()
+    rid = request.args.get('reciter', '').strip()
+    if rid:
+        if rid not in MEMORIZATION_RECITERS:
+            return jsonify({'error': 'unknown reciter'}), 400
+        stops = idx.get(rid, [])
+        return jsonify({
+            'reciter': {'id': rid, 'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', '')},
+            'count': len(stops),
+            'stops': stops,
+        })
+
+    reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
+    return jsonify({
+        'reciters': [
+            {'id': r, 'name_ar': MEMORIZATION_RECITERS[r].get('name_ar', ''),
+             'solo_count': len(idx.get(r, []))}
+            for r in reciter_ids
+        ],
+    })
+
+
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
 

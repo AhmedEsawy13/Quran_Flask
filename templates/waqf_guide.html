@@ -74,40 +74,49 @@
         <!-- D) waqf research by word — pick a particle, browse every verse it occurs in -->
         <section class="wq-card wq-research" id="wq-research-card">
             <button class="wq-research-toggle" id="wq-research-toggle" type="button" aria-expanded="false">
-                <span><i class="fas fa-flask"></i> بحث الوقف بالكلمة — للدراسة</span>
+                <span><i class="fas fa-flask"></i> مختبر الوقف — للدراسة</span>
                 <i class="fas fa-chevron-down wq-research-caret"></i>
             </button>
             <div class="wq-research-body" id="wq-research-body" hidden>
-                <div class="wq-research-presets">
-                    <div class="wq-research-group">
-                        <span class="wq-research-glabel">حروف الردع والجواب</span>
-                        <button class="wq-research-chip" data-word="كلا" data-exact="1" type="button">كلا</button>
-                        <button class="wq-research-chip" data-word="بلى" type="button">بلى</button>
-                        <button class="wq-research-chip" data-word="نعم" data-exact="1" type="button">نعم</button>
-                    </div>
-                    <div class="wq-research-group">
-                        <span class="wq-research-glabel">أسماء الإشارة</span>
-                        <button class="wq-research-chip" data-word="ذلك" data-exact="1" type="button">ذلك</button>
-                        <button class="wq-research-chip" data-word="كذلك" data-exact="1" type="button">كذلك</button>
-                        <button class="wq-research-chip" data-word="هذا" data-exact="1" type="button">هذا</button>
-                    </div>
-                    <div class="wq-research-group">
-                        <span class="wq-research-glabel">الوقف قبل الاستفهام</span>
-                        <button class="wq-research-chip" data-word="هل" data-mode="before" type="button">هل</button>
-                        <button class="wq-research-chip" data-word="فهل" data-mode="before" data-exact="1" type="button">فهل</button>
-                        <button class="wq-research-chip" data-word="كيف" data-mode="before" type="button">كيف</button>
-                        <button class="wq-research-chip" data-word="فكيف" data-mode="before" data-exact="1" type="button">فكيف</button>
-                        <button class="wq-research-chip" data-word="أين" data-mode="before" type="button">أين</button>
-                        <button class="wq-research-chip" data-word="أنى" data-mode="before" type="button">أنّى</button>
-                        <button class="wq-research-chip" data-word="ماذا" data-mode="before" data-exact="1" type="button">ماذا</button>
-                    </div>
-                    <div class="wq-research-free">
-                        <i class="fas fa-magnifying-glass"></i>
-                        <input type="search" id="wq-research-input" placeholder="أو ابحث عن أي كلمة…" autocomplete="off">
-                    </div>
+                <div class="wq-lab-tabs">
+                    <button class="wq-lab-tab wq-lab-tab-active" data-tab="word" type="button"><i class="fas fa-magnifying-glass"></i> بحث بالكلمة</button>
+                    <button class="wq-lab-tab" data-tab="solos" type="button"><i class="fas fa-fingerprint"></i> انفرادات القرّاء</button>
                 </div>
-                <div class="wq-research-forms" id="wq-research-forms"></div>
-                <div class="wq-research-results" id="wq-research-results"></div>
+                <div class="wq-lab-panel" id="wq-panel-word">
+                    <div class="wq-research-presets">
+                        <div class="wq-research-group">
+                            <span class="wq-research-glabel">حروف الردع والجواب</span>
+                            <button class="wq-research-chip" data-word="كلا" data-exact="1" type="button">كلا</button>
+                            <button class="wq-research-chip" data-word="بلى" type="button">بلى</button>
+                            <button class="wq-research-chip" data-word="نعم" data-exact="1" type="button">نعم</button>
+                        </div>
+                        <div class="wq-research-group">
+                            <span class="wq-research-glabel">أسماء الإشارة</span>
+                            <button class="wq-research-chip" data-word="ذلك" data-exact="1" type="button">ذلك</button>
+                            <button class="wq-research-chip" data-word="كذلك" data-exact="1" type="button">كذلك</button>
+                            <button class="wq-research-chip" data-word="هذا" data-exact="1" type="button">هذا</button>
+                        </div>
+                        <div class="wq-research-group">
+                            <span class="wq-research-glabel">الوقف قبل الاستفهام</span>
+                            <button class="wq-research-chip" data-word="هل" data-mode="before" type="button">هل</button>
+                            <button class="wq-research-chip" data-word="فهل" data-mode="before" data-exact="1" type="button">فهل</button>
+                            <button class="wq-research-chip" data-word="كيف" data-mode="before" type="button">كيف</button>
+                            <button class="wq-research-chip" data-word="فكيف" data-mode="before" data-exact="1" type="button">فكيف</button>
+                            <button class="wq-research-chip" data-word="أين" data-mode="before" type="button">أين</button>
+                            <button class="wq-research-chip" data-word="أنى" data-mode="before" type="button">أنّى</button>
+                            <button class="wq-research-chip" data-word="ماذا" data-mode="before" data-exact="1" type="button">ماذا</button>
+                        </div>
+                        <div class="wq-research-free">
+                            <i class="fas fa-magnifying-glass"></i>
+                            <input type="search" id="wq-research-input" placeholder="أو ابحث عن أي كلمة…" autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="wq-research-forms" id="wq-research-forms"></div>
+                    <div class="wq-research-results" id="wq-research-results"></div>
+                </div>
+                <div class="wq-lab-panel" id="wq-panel-solos" hidden>
+                    <div id="wq-solos-content"></div>
+                </div>
             </div>
         </section>
 

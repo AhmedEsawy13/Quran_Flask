@@ -246,6 +246,25 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-research-caret { transition: transform 0.18s ease; color: var(--wq-text-muted); font-size: 0.85em; }
 .wq-research-toggle[aria-expanded="true"] .wq-research-caret { transform: rotate(180deg); }
 .wq-research-body { padding: 4px 16px 16px; border-top: 1px solid var(--wq-border); }
+.wq-lab-tabs { display: flex; gap: 4px; margin-bottom: 10px; padding-top: 6px; }
+.wq-lab-tab { font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--wq-text-muted);
+    background: none; border: 0; border-bottom: 2px solid transparent; padding: 7px 14px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; transition: all 0.14s ease; }
+.wq-lab-tab:hover { color: var(--wq-text); }
+.wq-lab-tab-active { color: var(--wq-accent-strong); border-bottom-color: var(--wq-accent); }
+.wq-solos-desc { font-size: 0.78rem; color: var(--wq-text-muted); margin-bottom: 12px; }
+.wq-solos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.wq-solos-card { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px;
+    border-radius: 10px; border: 1px solid var(--wq-border-strong); background: var(--wq-surface-2);
+    cursor: pointer; transition: all 0.14s ease; font-family: inherit; color: var(--wq-text); text-align: center; }
+.wq-solos-card:hover { border-color: var(--wq-accent); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.wq-solos-name { font-size: 0.85rem; font-weight: 700; }
+.wq-solos-count { font-size: 1.6rem; font-weight: 800; color: var(--wq-accent-strong); line-height: 1.1; }
+.wq-solos-label { font-size: 0.68rem; color: var(--wq-text-faint); }
+.wq-solos-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.wq-solos-back { background: none; border: 0; cursor: pointer; color: var(--wq-accent); font-size: 1.1rem; padding: 4px; }
+.wq-solos-title { font-size: 1rem; font-weight: 700; }
+.wq-solos-list { display: flex; flex-direction: column; gap: 6px; max-height: 440px; overflow-y: auto; }
 .wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
 .wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }
