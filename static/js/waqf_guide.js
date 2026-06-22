@@ -50,7 +50,7 @@
         prev: $('wq-prev'), next: $('wq-next'), theme: $('wq-theme'), status: $('wq-status'),
         barVerse: $('wq-bar-verse'),
         verseCard: $('wq-verse-card'), verseTitle: $('wq-verse-title'), verseMeta: $('wq-verse-meta'),
-        verseFlow: $('wq-verse-flow'),
+        bestStops: $('wq-best-stops'), verseFlow: $('wq-verse-flow'),
         recCard: $('wq-rec-card'), breathPicker: $('wq-breath-picker'),
         recSummary: $('wq-rec-summary'), recPlan: $('wq-rec-plan'),
         matrixCard: $('wq-matrix-card'), matrix: $('wq-matrix'), matrixLegend: $('wq-matrix-legend'),
@@ -60,8 +60,10 @@
         researchResults: $('wq-research-results'),
         panelWord: $('wq-panel-word'), panelSolos: $('wq-panel-solos'),
         panelStats: $('wq-panel-stats'), panelMandatory: $('wq-panel-mandatory'),
+        panelPatterns: $('wq-panel-patterns'), panelCluster: $('wq-panel-cluster'),
         solosContent: $('wq-solos-content'),
         statsContent: $('wq-stats-content'), mandatoryContent: $('wq-mandatory-content'),
+        patternsContent: $('wq-patterns-content'), clusterContent: $('wq-cluster-content'),
     };
 
     const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
@@ -464,6 +466,82 @@
         }).join('');
     }
 
+    /* ── اختلاف المصاحف (cross-verse patterns) ─────────────────── */
+    let patternsCache = null;
+
+    async function loadPatterns() {
+        if (patternsCache) { renderPatterns(); return; }
+        els.patternsContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/patterns');
+            patternsCache = await resp.json();
+            renderPatterns();
+        } catch { els.patternsContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderPatterns() {
+        const items = patternsCache.disagreements || [];
+        els.patternsContent.innerHTML =
+            `<div class="wq-solos-desc">مواضع وضع فيها كل مصحف علامة وقف مختلفة عن الآخر</div>`
+            + `<div class="wq-research-count">${toAr(items.length)} موضع اختلاف</div>`
+            + '<div class="wq-solos-list">' + items.map(o => {
+                const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+                const ent = Object.entries(o.marks || {});
+                const marks = ent.length
+                    ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ': ' + v).join(' · ')}">`
+                      + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>' : '';
+                return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
+                    <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
+                    <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
+                    <i class="fas fa-chevron-left wq-research-go"></i>
+                </button>`;
+            }).join('') + '</div>';
+    }
+
+    /* ── تشابه القرّاء (reciter clustering) ────────────────────── */
+    let clusterCache = null;
+
+    async function loadCluster() {
+        if (clusterCache) { renderCluster(); return; }
+        els.clusterContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/clustering');
+            clusterCache = await resp.json();
+            renderCluster();
+        } catch { els.clusterContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderCluster() {
+        const groups = clusterCache.groups || [];
+        const topPairs = clusterCache.pairs || [];
+        let html = '<div class="wq-solos-desc">تشابه أنماط التنفّس والوقف بين القرّاء عبر القرآن كله (مؤشر جاكار)</div>';
+
+        if (topPairs.length) {
+            html += '<div class="wq-cluster-top"><span class="wq-research-flabel">أقرب القرّاء تشابهًا</span>';
+            html += topPairs.slice(0, 10).map(p =>
+                `<div class="wq-cluster-pair">
+                    <span class="wq-cluster-name">${p.n1}</span>
+                    <span class="wq-cluster-sim">${Math.round(p.similarity * 100)}٪</span>
+                    <span class="wq-cluster-name">${p.n2}</span>
+                </div>`
+            ).join('') + '</div>';
+        }
+
+        html += '<div class="wq-solos-grid">' + groups.map(g => {
+            const peersHtml = g.peers.map(p =>
+                `<span class="wq-cluster-peer">${p.name_ar} <b>${Math.round(p.similarity * 100)}٪</b></span>`
+            ).join('');
+            return `<div class="wq-cluster-card">
+                <span class="wq-solos-name">${g.name_ar}</span>
+                <span class="wq-solos-count">${toAr(g.total_breaths)}</span>
+                <span class="wq-solos-label">موضع تنفّس</span>
+                <div class="wq-cluster-peers">${peersHtml}</div>
+            </div>`;
+        }).join('') + '</div>';
+
+        els.clusterContent.innerHTML = html;
+    }
+
     function setupResearch() {
         if (!els.researchToggle) return;
         els.researchToggle.addEventListener('click', () => {
@@ -479,9 +557,13 @@
             els.panelSolos.hidden = which !== 'solos';
             els.panelStats.hidden = which !== 'stats';
             els.panelMandatory.hidden = which !== 'mandatory';
+            els.panelPatterns.hidden = which !== 'patterns';
+            els.panelCluster.hidden = which !== 'cluster';
             if (which === 'solos') loadSolosSummary();
             if (which === 'stats') loadStats();
             if (which === 'mandatory') loadMandatory();
+            if (which === 'patterns') loadPatterns();
+            if (which === 'cluster') loadCluster();
         }));
         document.querySelectorAll('.wq-research-chip').forEach(c =>
             c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1', c.dataset.mode || '')));
@@ -497,6 +579,13 @@
         els.researchResults.addEventListener('click', async e => {
             const b = e.target.closest('.wq-research-item'); if (!b) return;
             const s = +b.dataset.s, a = +b.dataset.a;
+            if (s !== state.surah) await loadAyahOptions(s);
+            await loadVerse(s, a);
+            if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        els.patternsContent.addEventListener('click', async e => {
+            const item = e.target.closest('.wq-research-item'); if (!item) return;
+            const s = +item.dataset.s, a = +item.dataset.a;
             if (s !== state.surah) await loadAyahOptions(s);
             await loadVerse(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -929,6 +1018,38 @@
         els.verseMeta.textContent =
             `${toAr(d.reciters_total)} قرّاء · ${toAr(nStops)} ${nStops === 1 ? 'موضع وقف' : 'مواضع وقف'}`
             + (d.full_duration ? ` · ~${toAr(d.full_duration.toFixed(0))}ث` : '');
+
+        // Best stops: merge forward + repeat counts, rank by strength, show top stops.
+        const breathAll = new Map();
+        (d.union_stops || []).forEach(u => breathAll.set(u.wpos, u.count));
+        (d.reciters || []).forEach(r => {
+            (d.per_reciter[r.id].repeats || []).forEach(rp => {
+                breathAll.set(rp.from_wpos, (breathAll.get(rp.from_wpos) || 0) + 1);
+            });
+        });
+        const mushafAt = new Set();
+        (d.mushafs || []).forEach(m => m.marks.forEach(mk => mushafAt.add(mk.wpos)));
+        const lastW = d.words.length - 1;
+        const ranked = [...breathAll.entries()]
+            .filter(([w]) => w < lastW)
+            .map(([w, c]) => ({ wpos: w, count: c, mushaf: mushafAt.has(w) }))
+            .sort((a, b) => b.count - a.count || (b.mushaf ? 1 : 0) - (a.mushaf ? 1 : 0));
+        const majorityN = Math.floor((d.reciters_total || 1) / 2) + 1;
+        const best = ranked.filter(s => s.count >= majorityN || s.mushaf).slice(0, 6);
+        if (best.length && d.words.length > 5) {
+            els.bestStops.hidden = false;
+            els.bestStops.innerHTML = '<span class="wq-best-label"><i class="fas fa-star"></i> أفضل مواضع الوقف</span> '
+                + best.map(s => {
+                    const word = d.words[s.wpos] || '';
+                    const pct = Math.round(s.count / d.reciters_total * 100);
+                    return `<span class="wq-best-chip${s.mushaf ? ' wq-best-mushaf' : ''}" title="${toAr(s.count)}/${toAr(d.reciters_total)} قرّاء${s.mushaf ? ' + علامة مطبوعة' : ''}">`
+                        + `<span class="wq-best-word">${word}</span>`
+                        + `<span class="wq-best-pct">${toAr(pct)}٪</span></span>`;
+                }).join('');
+        } else {
+            els.bestStops.hidden = true;
+            els.bestStops.innerHTML = '';
+        }
 
         const flow = els.verseFlow;
         flow.innerHTML = '';

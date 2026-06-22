@@ -2993,6 +2993,135 @@ def waqf_research_mandatory():
     return jsonify(_build_mandatory_index())
 
 
+_cross_verse_cache: dict | None = None
+
+
+def _build_cross_verse_patterns():
+    """Find mushaf marks where editions systematically disagree on the same word."""
+    global _cross_verse_cache
+    if _cross_verse_cache is not None:
+        return _cross_verse_cache
+
+    versions = list(_WAQF_COMPARE_MUSHAFS)
+    cols_sql = ', '.join(f'"{v}"' for v in versions)
+
+    conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            f'SELECT "السورة", "الآية", "الكلمة", token_index, {cols_sql} FROM waqf '
+            f'ORDER BY "السورة", "الآية", token_index'
+        )
+        # Track per-word-root how each mushaf marks it.
+        # "Disagreement" = at least 2 mushafs give different non-empty symbols.
+        disagree = []
+        for row in cur.fetchall():
+            s, a, word, ti = row[0], row[1], row[2], row[3]
+            marks = {}
+            for i, ver in enumerate(versions):
+                val = row[4 + i]
+                if val:
+                    marks[ver] = val
+            if len(marks) < 2:
+                continue
+            syms = set(marks.values())
+            if len(syms) > 1:
+                vk = f"{s}:{a}"
+                _, words, _ = _verse_word_texts(vk)
+                if words:
+                    wpos = min(ti, len(words) - 1) if ti is not None else 0
+                    lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
+                    ctx = ' '.join(words[lo:hi])
+                else:
+                    ctx = word or ''
+                disagree.append({
+                    'surah': s, 'ayah': a, 'word': word or '', 'context': ctx,
+                    'marks': marks,
+                })
+    finally:
+        conn.close()
+
+    _cross_verse_cache = {'disagreements': disagree, 'count': len(disagree)}
+    return _cross_verse_cache
+
+
+@breathing_bp.route('/api/waqf-research/patterns', methods=['GET'])
+def waqf_research_patterns():
+    """Cross-verse mushaf disagreement patterns."""
+    return jsonify(_build_cross_verse_patterns())
+
+
+_clustering_cache: dict | None = None
+
+
+def _build_reciter_clustering():
+    """Cluster reciters by how similar their waqf patterns are.
+
+    For each pair of installed reciters, compute a similarity score based on
+    how often they breathe at the same word across all verses.  Returns a
+    ranked list of pairs (most similar first) and per-reciter groups."""
+    global _clustering_cache
+    if _clustering_cache is not None:
+        return _clustering_cache
+
+    reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
+    # Build per-reciter breath set: all word positions where they breathe
+    # (forward stop OR repeat from_wpos), keyed as "surah:ayah:wpos".
+    breath_sets: dict[str, set] = {rid: set() for rid in reciter_ids}
+
+    for surah in range(1, 115):
+        guide = _build_breathing_guide(surah)
+        for ayah_str, vdata in guide.get('verses', {}).items():
+            for stop in vdata.get('stops', []):
+                for rid in stop.get('reciter_ids', []):
+                    breath_sets[rid].add(f"{surah}:{ayah_str}:{stop['wpos']}")
+            for rp in vdata.get('repeats', []):
+                rid = rp.get('reciter_id')
+                if rid:
+                    breath_sets[rid].add(f"{surah}:{ayah_str}:{rp['from_wpos']}")
+
+    # Jaccard similarity for each pair.
+    pairs = []
+    for i, r1 in enumerate(reciter_ids):
+        s1 = breath_sets[r1]
+        for r2 in reciter_ids[i + 1:]:
+            s2 = breath_sets[r2]
+            inter = len(s1 & s2)
+            union = len(s1 | s2)
+            sim = round(inter / union, 3) if union else 0
+            pairs.append({
+                'r1': r1, 'r2': r2,
+                'n1': MEMORIZATION_RECITERS[r1].get('name_ar', ''),
+                'n2': MEMORIZATION_RECITERS[r2].get('name_ar', ''),
+                'similarity': sim, 'shared': inter, 'union': union,
+            })
+    pairs.sort(key=lambda p: p['similarity'], reverse=True)
+
+    # Simple clustering: each reciter's top-3 most similar peers.
+    groups = []
+    for rid in reciter_ids:
+        my_pairs = [p for p in pairs if p['r1'] == rid or p['r2'] == rid]
+        top = sorted(my_pairs, key=lambda p: p['similarity'], reverse=True)[:3]
+        peers = []
+        for p in top:
+            other = p['r2'] if p['r1'] == rid else p['r1']
+            peers.append({'id': other, 'name_ar': MEMORIZATION_RECITERS[other].get('name_ar', ''),
+                          'similarity': p['similarity']})
+        groups.append({
+            'id': rid, 'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', ''),
+            'total_breaths': len(breath_sets[rid]), 'peers': peers,
+        })
+
+    _clustering_cache = {'pairs': pairs[:30], 'groups': groups}
+    return _clustering_cache
+
+
+@breathing_bp.route('/api/waqf-research/clustering', methods=['GET'])
+def waqf_research_clustering():
+    """Reciter similarity clustering based on waqf/breath patterns."""
+    return jsonify(_build_reciter_clustering())
+
+
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
 

@@ -115,6 +115,17 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
 .wq-card-head h2 i { color: var(--wq-accent); font-size: 0.9em; }
 .wq-verse-meta { font-size: 0.78rem; color: var(--wq-text-muted); white-space: nowrap; }
 
+/* best-stops summary */
+.wq-best-stops { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px;
+    background: color-mix(in srgb, var(--wq-accent) 6%, transparent); border-radius: 8px; margin-bottom: 12px; }
+.wq-best-label { font-size: 0.72rem; font-weight: 700; color: var(--wq-accent-strong); white-space: nowrap; }
+.wq-best-label i { margin-inline-end: 3px; }
+.wq-best-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px;
+    background: var(--wq-surface); border: 1px solid var(--wq-border-strong); font-size: 0.82rem; }
+.wq-best-chip.wq-best-mushaf { border-color: var(--wq-accent); }
+.wq-best-word { font-family: 'UthmanicHafs', serif; font-size: 1rem; font-weight: 700; }
+.wq-best-pct { font-size: 0.68rem; font-weight: 800; color: var(--wq-accent-strong); }
+
 /* ── A) verse flow with stop chips ───────────────────────────── */
 .wq-verse-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 5px; line-height: 2.2; margin-bottom: 14px; }
 .wq-word { font-family: 'UthmanicHafs', 'Amiri Quran', serif; font-size: 1.9rem; color: var(--wq-quran); padding: 0 0.05em; }
@@ -297,6 +308,19 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-muan-word { font-family: 'UthmanicHafs', serif; font-size: 1.05rem; font-weight: 700; }
 .wq-muan-or { font-size: 0.7rem; color: var(--wq-text-faint); font-weight: 700; }
 .wq-muan-item { flex-wrap: wrap; }
+/* reciter clustering */
+.wq-cluster-top { margin-bottom: 16px; }
+.wq-cluster-pair { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 0.82rem; }
+.wq-cluster-name { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wq-cluster-sim { flex: 0 0 auto; font-weight: 800; color: var(--wq-accent-strong); font-size: 0.9rem;
+    background: color-mix(in srgb, var(--wq-accent) 10%, transparent); padding: 2px 10px; border-radius: 999px; }
+.wq-cluster-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px;
+    border-radius: 10px; border: 1px solid var(--wq-border-strong); background: var(--wq-surface-2);
+    font-family: inherit; color: var(--wq-text); text-align: center; }
+.wq-cluster-peers { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 4px; }
+.wq-cluster-peer { font-size: 0.68rem; padding: 2px 7px; border-radius: 999px;
+    background: var(--wq-surface); border: 1px solid var(--wq-border); white-space: nowrap; }
+.wq-cluster-peer b { color: var(--wq-accent-strong); }
 .wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
 .wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }
@@ -506,4 +530,41 @@ body.wq-dark .wq-guide-sym.wq-guide-ras, body.wq-dark .wq-guide-lbl.wq-guide-ras
 @media (max-width: 640px) {
     .wq-word { font-size: 1.6rem; }
     .wq-select-wrap select { min-width: 120px; }
+    /* lab tabs scroll horizontally */
+    .wq-lab-tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 2px; }
+    .wq-lab-tabs::-webkit-scrollbar { display: none; }
+    .wq-lab-tab { white-space: nowrap; flex-shrink: 0; font-size: 0.74rem; padding: 6px 10px; }
+    /* matrix: tighter cells on mobile */
+    .wq-matrix th, .wq-matrix td { padding: 5px 6px; font-size: 0.74rem; }
+    .wq-matrix .wq-col-word { font-size: 1rem; }
+    .wq-matrix .wq-rname { font-size: 0.7rem; max-width: 60px; overflow: hidden; text-overflow: ellipsis; }
+    .wq-mushaf-name { font-size: 0.72rem; }
+    /* legend wraps tighter */
+    .wq-matrix-legend { gap: 6px 10px; font-size: 0.72rem; }
+    .wq-matrix-legend .wq-wsym { font-size: 0.85rem; min-width: 1.4em; min-height: 1.4em; }
+    /* research items: stack on mobile */
+    .wq-research-item { flex-wrap: wrap; gap: 4px 8px; padding: 8px 10px; }
+    .wq-research-ref { flex: 0 0 100%; }
+    .wq-research-ctx { font-size: 0.92rem; }
+    /* stats / solos grid */
+    .wq-solos-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+    .wq-solos-name { font-size: 0.78rem; }
+    .wq-solos-count { font-size: 1.3rem; }
+    /* best stops */
+    .wq-best-stops { padding: 6px 8px; gap: 4px; }
+    .wq-best-chip { padding: 2px 7px; font-size: 0.76rem; }
+    .wq-best-word { font-size: 0.9rem; }
+    /* breath recommendation */
+    .wq-rec-line { gap: 6px; }
+    .wq-rec-meta { flex-wrap: wrap; gap: 3px; }
+    /* cluster pairs */
+    .wq-cluster-pair { font-size: 0.76rem; }
+    .wq-cluster-sim { font-size: 0.78rem; padding: 1px 7px; }
+    /* stats subtabs */
+    .wq-stats-subtabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .wq-stats-subtabs::-webkit-scrollbar { display: none; }
+    .wq-stats-subtab { white-space: nowrap; flex-shrink: 0; font-size: 0.72rem; padding: 4px 10px; }
+    /* presets */
+    .wq-research-presets { gap: 6px 10px; }
+    .wq-research-chip { font-size: 0.88rem; padding: 4px 11px; }
 }

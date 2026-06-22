@@ -83,6 +83,8 @@
                     <button class="wq-lab-tab" data-tab="solos" type="button"><i class="fas fa-fingerprint"></i> انفرادات القرّاء</button>
                     <button class="wq-lab-tab" data-tab="stats" type="button"><i class="fas fa-chart-bar"></i> إحصائيات</button>
                     <button class="wq-lab-tab" data-tab="mandatory" type="button"><i class="fas fa-ban"></i> اللازم والممنوع والمعانقة</button>
+                    <button class="wq-lab-tab" data-tab="patterns" type="button"><i class="fas fa-code-compare"></i> اختلاف المصاحف</button>
+                    <button class="wq-lab-tab" data-tab="cluster" type="button"><i class="fas fa-people-group"></i> تشابه القرّاء</button>
                 </div>
                 <div class="wq-lab-panel" id="wq-panel-word">
                     <div class="wq-research-presets">
@@ -125,6 +127,12 @@
                 <div class="wq-lab-panel" id="wq-panel-mandatory" hidden>
                     <div id="wq-mandatory-content"></div>
                 </div>
+                <div class="wq-lab-panel" id="wq-panel-patterns" hidden>
+                    <div id="wq-patterns-content"></div>
+                </div>
+                <div class="wq-lab-panel" id="wq-panel-cluster" hidden>
+                    <div id="wq-cluster-content"></div>
+                </div>
             </div>
         </section>
 
@@ -134,6 +142,7 @@
                 <h2 id="wq-verse-title"></h2>
                 <span class="wq-verse-meta" id="wq-verse-meta"></span>
             </div>
+            <div class="wq-best-stops" id="wq-best-stops" dir="rtl"></div>
             <div class="wq-verse-flow" id="wq-verse-flow" dir="rtl"></div>
             <div class="wq-legend">
                 <span><span class="wq-lg wq-lg-cons"></span> موضع وقف (كلما زاد العدد زاد الاتفاق)</span>
