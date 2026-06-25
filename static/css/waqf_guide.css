@@ -364,6 +364,20 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-research-go { flex: 0 0 auto; color: var(--wq-text-faint); font-size: 0.8em; }
 .wq-research-loading, .wq-research-empty { padding: 14px; text-align: center; color: var(--wq-text-muted); font-size: 0.85rem; }
 
+/* السكتات */
+.wq-skt-item { flex-wrap: wrap; align-items: flex-start; }
+.wq-skt-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1 1 100%; }
+.wq-skt-cat { font-size: 0.7rem; font-weight: 700; padding: 1px 9px; border-radius: 999px; }
+.wq-skt-wajiba { background: var(--wq-accent-soft); color: var(--wq-accent-strong); }
+.wq-skt-jaiza { background: var(--wq-solo-soft); color: var(--wq-solo); }
+.wq-skt-cross { font-size: 0.7rem; color: var(--wq-text-faint); }
+.wq-skt-flow { flex: 1 1 100%; font-family: 'UthmanicHafs', 'Amiri', serif; font-size: 1.15rem;
+    color: var(--wq-text-muted); line-height: 2; }
+.wq-skt-on { font-size: 1.3rem; color: var(--wq-accent-strong); font-weight: 700; }
+.wq-skt-next { font-size: 1.3rem; color: var(--wq-quran); font-weight: 700; }
+.wq-skt-reason { flex: 1 1 100%; font-size: 0.9rem; color: var(--wq-text-muted); line-height: 1.85;
+    border-top: 1px dashed var(--wq-border); padding-top: 7px; margin-top: 3px; }
+
 /* الابتداء بما قبله */
 .wq-ibt-controls { display: flex; gap: 8px; margin: 8px 0 12px; flex-wrap: wrap; }
 .wq-ibt-item { flex-wrap: wrap; align-items: flex-start; }

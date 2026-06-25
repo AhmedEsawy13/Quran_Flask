@@ -3220,6 +3220,68 @@ def waqf_research_ibtidaa():
     return jsonify(_build_ibtidaa_index())
 
 
+# السكتات (obligatory brief pauses-without-breath) in Hafs ʿan ʿAsim. Unlike a
+# waqf these are FIXED, well-established positions — not derived from audio — so
+# they are a curated reference. The four السكتات الواجبة come from the
+# Shāṭibiyyah; «مَالِيَهۡ هَلَكَ» is the fifth, read by Hafs with two valid wajh
+# (السكت with iẓhār, or idghām). Each carries the riwāyah's reason for the sakta.
+HAFS_SAKTAT = [
+    {
+        'surah': 18, 'ayah': 1, 'wpos': 10, 'on_word': 'عِوَجَا',
+        'next': {'surah': 18, 'ayah': 2, 'wpos': 0}, 'next_word': 'قَيِّمٗا',
+        'category': 'واجبة', 'cross_verse': True,
+        'reason': 'لئلّا يُتوهَّم أنّ «قَيِّمٗا» صفةٌ لـ«عِوَجَا»؛ فالسكتة تُبيّن أنّ '
+                  'الكلام تمّ عند نفي العِوَج، و«قَيِّمٗا» حالٌ مستأنفة.',
+    },
+    {
+        'surah': 36, 'ayah': 52, 'wpos': 5, 'on_word': 'مَّرۡقَدِنَا',
+        'next': {'surah': 36, 'ayah': 52, 'wpos': 6}, 'next_word': 'هَٰذَا',
+        'category': 'واجبة', 'cross_verse': False,
+        'reason': 'للفصل بين كلام الكفّار «مَن بَعَثَنَا مِن مَّرۡقَدِنَا» وجواب '
+                  'الملائكة والمؤمنين «هَٰذَا مَا وَعَدَ ٱلرَّحۡمَٰنُ».',
+    },
+    {
+        'surah': 75, 'ayah': 27, 'wpos': 1, 'on_word': 'مَنۡ',
+        'next': {'surah': 75, 'ayah': 27, 'wpos': 2}, 'next_word': 'رَاقٖ',
+        'category': 'واجبة', 'cross_verse': False,
+        'reason': 'لإظهار النون ومنع إدغامها في الراء؛ إذ لو وُصِلت لأُدغمت «مَن رَاقٍ» '
+                  'فالتبس بيان الكلمتين.',
+    },
+    {
+        'surah': 83, 'ayah': 14, 'wpos': 1, 'on_word': 'بَلۡ',
+        'next': {'surah': 83, 'ayah': 14, 'wpos': 2}, 'next_word': 'رَانَ',
+        'category': 'واجبة', 'cross_verse': False,
+        'reason': 'لإظهار اللام ومنع إدغامها في الراء «بَلۡ رَانَ»، حفاظًا على بيان «بَلۡ».',
+    },
+    {
+        'surah': 69, 'ayah': 28, 'wpos': 3, 'on_word': 'مَالِيَهۡ',
+        'next': {'surah': 69, 'ayah': 29, 'wpos': 0}, 'next_word': 'هَلَكَ',
+        'category': 'جائزة', 'cross_verse': True,
+        'reason': 'بإظهار هاء السكت ومنع إدغامها في الهاء بعدها. وفيها لحفص وجهان: '
+                  'السكت (مع الإظهار) والإدغام، وكلاهما صحيح.',
+    },
+]
+
+
+@breathing_bp.route('/api/waqf-research/saktat', methods=['GET'])
+def waqf_research_saktat():
+    """السكتات: the fixed obligatory (and one optional) saktat in Hafs ʿan ʿAsim,
+    each with the verse context and the riwāyah's reason for the pause."""
+    surah_names = {s['number']: s['name'] for s in surahs_data} if surahs_data else {}
+    out = []
+    for sk in HAFS_SAKTAT:
+        vk = f"{sk['surah']}:{sk['ayah']}"
+        _, words, _ = _verse_word_texts(vk)
+        lo, hi = max(0, sk['wpos'] - 2), min(len(words), sk['wpos'] + 2)
+        context = ' '.join(words[lo:hi]) if words else ''
+        out.append({**sk, 'name': surah_names.get(sk['surah'], ''), 'context': context})
+    return jsonify({
+        'count': len(out),
+        'obligatory': sum(1 for x in out if x['category'] == 'واجبة'),
+        'saktat': out,
+    })
+
+
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
 

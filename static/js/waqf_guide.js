@@ -61,11 +61,11 @@
         panelWord: $('wq-panel-word'), panelSolos: $('wq-panel-solos'),
         panelStats: $('wq-panel-stats'), panelMandatory: $('wq-panel-mandatory'),
         panelPatterns: $('wq-panel-patterns'), panelCluster: $('wq-panel-cluster'),
-        panelIbtidaa: $('wq-panel-ibtidaa'),
+        panelIbtidaa: $('wq-panel-ibtidaa'), panelSaktat: $('wq-panel-saktat'),
         solosContent: $('wq-solos-content'),
         statsContent: $('wq-stats-content'), mandatoryContent: $('wq-mandatory-content'),
         patternsContent: $('wq-patterns-content'), clusterContent: $('wq-cluster-content'),
-        ibtidaaContent: $('wq-ibtidaa-content'),
+        ibtidaaContent: $('wq-ibtidaa-content'), saktatContent: $('wq-saktat-content'),
     };
 
     const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
@@ -500,6 +500,44 @@
             }).join('') + '</div>';
     }
 
+    /* ── السكتات (Hafs obligatory pauses-without-breath) ───────── */
+    let saktatCache = null;
+
+    async function loadSaktat() {
+        if (saktatCache) { renderSaktat(); return; }
+        els.saktatContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/saktat');
+            saktatCache = await resp.json();
+            renderSaktat();
+        } catch { els.saktatContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderSaktat() {
+        const items = saktatCache.saktat || [];
+        const head = `<div class="wq-solos-desc">السكتة وقفةٌ يسيرة بلا تنفّس ثم يُوصَل. هذه سكتات حفص عن عاصم
+            الثابتة (من طريق الشاطبية): <b>${toAr(saktatCache.obligatory)}</b> واجبة، وسكتة «مَالِيَهۡ هَلَكَ» جائزة بوجهين.</div>`;
+        els.saktatContent.innerHTML = head + '<div class="wq-solos-list">' + items.map(o => {
+            const cat = o.category === 'واجبة'
+                ? '<span class="wq-skt-cat wq-skt-wajiba">واجبة</span>'
+                : '<span class="wq-skt-cat wq-skt-jaiza">جائزة بوجهين</span>';
+            const cross = o.cross_verse
+                ? `<span class="wq-skt-cross" title="السكتة على رأس الآية">بين ${toAr(o.surah)}:${toAr(o.ayah)} و${toAr(o.next.surah)}:${toAr(o.next.ayah)}</span>` : '';
+            return `<button class="wq-research-item wq-skt-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
+                <span class="wq-skt-head">
+                    <span class="wq-research-ref">${o.name} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
+                    ${cat}${cross}
+                </span>
+                <span class="wq-skt-flow" dir="rtl">
+                    سكتة على <span class="wq-skt-on">${o.on_word}</span>
+                    ثم <span class="wq-skt-next">${o.next_word}</span>
+                </span>
+                <span class="wq-skt-reason" dir="rtl">${o.reason}</span>
+                <i class="fas fa-chevron-left wq-research-go"></i>
+            </button>`;
+        }).join('') + '</div>';
+    }
+
     /* ── الابتداء بما قبله (attested back-up points) ───────────── */
     let ibtidaaCache = null, ibtidaaOnlyMulti = true;
 
@@ -600,12 +638,14 @@
             els.panelSolos.hidden = which !== 'solos';
             els.panelStats.hidden = which !== 'stats';
             els.panelMandatory.hidden = which !== 'mandatory';
+            els.panelSaktat.hidden = which !== 'saktat';
             els.panelPatterns.hidden = which !== 'patterns';
             els.panelIbtidaa.hidden = which !== 'ibtidaa';
             els.panelCluster.hidden = which !== 'cluster';
             if (which === 'solos') loadSolosSummary();
             if (which === 'stats') loadStats();
             if (which === 'mandatory') loadMandatory();
+            if (which === 'saktat') loadSaktat();
             if (which === 'patterns') loadPatterns();
             if (which === 'ibtidaa') loadIbtidaa();
             if (which === 'cluster') loadCluster();
@@ -638,6 +678,13 @@
         els.ibtidaaContent.addEventListener('click', async e => {
             const sub = e.target.closest('.wq-stats-subtab');
             if (sub) { ibtidaaOnlyMulti = sub.dataset.im === 'multi'; renderIbtidaa(); return; }
+            const item = e.target.closest('.wq-research-item'); if (!item) return;
+            const s = +item.dataset.s, a = +item.dataset.a;
+            if (s !== state.surah) await loadAyahOptions(s);
+            await loadVerse(s, a);
+            if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        els.saktatContent.addEventListener('click', async e => {
             const item = e.target.closest('.wq-research-item'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
             if (s !== state.surah) await loadAyahOptions(s);
