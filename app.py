@@ -3140,6 +3140,86 @@ def waqf_research_clustering():
     return jsonify(_build_reciter_clustering())
 
 
+_ibtidaa_cache: dict | None = None
+
+
+def _build_ibtidaa_index():
+    """الابتداء — empirically-attested 'back-up and re-read' points.
+
+    When a reciter pauses after a word and then RESUMES from an earlier word
+    (rather than continuing forward), they are demonstrating ابتداء بما قبله:
+    stopping on that word was improper enough (وقف قبيح / breaks the meaning) that
+    they restart from before it. We harvest every such back-up across the Quran
+    from the reciters' own audio (the `repeats` already computed by the breathing
+    guide) and aggregate by position. Spots where SEVERAL reciters independently
+    back up are the strongest evidence that الابتداء should be from before — a
+    purely attested signal, never an invented rule."""
+    global _ibtidaa_cache
+    if _ibtidaa_cache is not None:
+        return _ibtidaa_cache
+
+    surah_names = {s['number']: s['name'] for s in surahs_data} if surahs_data else {}
+    # key (surah, ayah, from_wpos, to_wpos) -> set of reciter ids
+    agg: dict[tuple, set] = defaultdict(set)
+
+    for surah in range(1, 115):
+        guide = _build_breathing_guide(surah)
+        for ayah_str, vdata in guide.get('verses', {}).items():
+            ayah = int(ayah_str)
+            for rp in vdata.get('repeats', []):
+                rid = rp.get('reciter_id')
+                frm, to = rp.get('from_wpos'), rp.get('to_wpos')
+                if rid is None or frm is None or to is None or to > frm:
+                    continue
+                agg[(surah, ayah, frm, to)].add(rid)
+
+    items = []
+    for (surah, ayah, frm, to), rids in agg.items():
+        vk = f"{surah}:{ayah}"
+        _, words, raw_to_wpos = _verse_word_texts(vk)
+        if not words or not (0 <= to <= frm < len(words)):
+            continue
+        lo, hi = max(0, to - 1), min(len(words), frm + 2)
+        # Is there ANY printed mushaf that marks a waqf on the word they paused
+        # at? token_index is in the raw-split basis (counts ornaments), so map it
+        # through raw_to_wpos before comparing to the recited-word position frm.
+        stop_marked = False
+        for ver in _WAQF_MATCH_MUSHAFS:
+            for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+                ti = r.get('token_index')
+                if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
+                    continue
+                if raw_to_wpos[ti] == frm:
+                    stop_marked = True
+                    break
+            if stop_marked:
+                break
+        items.append({
+            'surah': surah, 'ayah': ayah,
+            'name': surah_names.get(surah, ''),
+            'stop_word': words[frm],
+            'resume_word': words[to],
+            'back_distance': frm - to,
+            'context': ' '.join(words[lo:hi]),
+            'reciters': sorted(MEMORIZATION_RECITERS[r].get('name_ar', r) for r in rids),
+            'count': len(rids),
+            'stop_marked': stop_marked,
+        })
+
+    # Multi-reciter back-ups first (strongest ابتداء-بما-قبله evidence), then by
+    # how far back they go, then mushaf order.
+    items.sort(key=lambda x: (-x['count'], -x['back_distance'], x['surah'], x['ayah']))
+    multi = sum(1 for x in items if x['count'] >= 2)
+    _ibtidaa_cache = {'count': len(items), 'multi_reciter': multi, 'items': items}
+    return _ibtidaa_cache
+
+
+@breathing_bp.route('/api/waqf-research/ibtidaa', methods=['GET'])
+def waqf_research_ibtidaa():
+    """الابتداء: attested 'back-up and re-read' points harvested from reciter audio."""
+    return jsonify(_build_ibtidaa_index())
+
+
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
 

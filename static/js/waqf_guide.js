@@ -61,9 +61,11 @@
         panelWord: $('wq-panel-word'), panelSolos: $('wq-panel-solos'),
         panelStats: $('wq-panel-stats'), panelMandatory: $('wq-panel-mandatory'),
         panelPatterns: $('wq-panel-patterns'), panelCluster: $('wq-panel-cluster'),
+        panelIbtidaa: $('wq-panel-ibtidaa'),
         solosContent: $('wq-solos-content'),
         statsContent: $('wq-stats-content'), mandatoryContent: $('wq-mandatory-content'),
         patternsContent: $('wq-patterns-content'), clusterContent: $('wq-cluster-content'),
+        ibtidaaContent: $('wq-ibtidaa-content'),
     };
 
     const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
@@ -498,6 +500,52 @@
             }).join('') + '</div>';
     }
 
+    /* ── الابتداء بما قبله (attested back-up points) ───────────── */
+    let ibtidaaCache = null, ibtidaaOnlyMulti = true;
+
+    async function loadIbtidaa() {
+        if (ibtidaaCache) { renderIbtidaa(); return; }
+        els.ibtidaaContent.innerHTML = '<div class="wq-research-loading">…جارٍ تحليل تلاوات القرّاء</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/ibtidaa');
+            ibtidaaCache = await resp.json();
+            renderIbtidaa();
+        } catch { els.ibtidaaContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderIbtidaa() {
+        const all = ibtidaaCache.items || [];
+        const items = (ibtidaaOnlyMulti ? all.filter(o => o.count >= 2) : all).slice(0, 300);
+        const head =
+            `<div class="wq-solos-desc">مواضع وقف عليها القارئ ثم <b>عاد فقرأ من كلمة قبلها</b> — دليلٌ عملي على أنّ الابتداء ينبغي أن يكون بما قبل موضع الوقف (مأخوذ من تلاوات القرّاء أنفسهم، لا من قاعدة مفروضة). كلّما زاد عدد القرّاء الذين رجعوا في الموضع نفسه قوي الدليل.</div>`
+            + `<div class="wq-ibt-controls">
+                 <button class="wq-stats-subtab${ibtidaaOnlyMulti ? ' wq-lab-tab-active' : ''}" data-im="multi">قارئان فأكثر (${toAr(ibtidaaCache.multi_reciter)})</button>
+                 <button class="wq-stats-subtab${ibtidaaOnlyMulti ? '' : ' wq-lab-tab-active'}" data-im="all">الكل (${toAr(ibtidaaCache.count)})</button>
+               </div>`;
+        els.ibtidaaContent.innerHTML = head + '<div class="wq-solos-list">' + items.map(o => {
+            const sname = o.name || (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const dist = o.back_distance === 0
+                ? 'أعاد الكلمة نفسها'
+                : `رجع ${toAr(o.back_distance)} ${o.back_distance <= 2 ? 'كلمة' : 'كلمات'}`;
+            const markTag = o.stop_marked
+                ? '<span class="wq-ibt-marked" title="يوجد في أحد المصاحف علامة وقف على هذا الموضع">عليه علامة</span>'
+                : '<span class="wq-ibt-unmarked" title="لا مصحف يضع علامة وقف هنا — والرجوع يؤكّد قبح الوقف عليه">بلا علامة</span>';
+            return `<button class="wq-research-item wq-ibt-item" type="button" data-s="${o.surah}" data-a="${o.ayah}"
+                        title="${o.reciters.join('، ')}">
+                <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b>
+                    <span class="wq-ibt-count">${toAr(o.count)} قارئ</span></span>
+                <span class="wq-ibt-flow" dir="rtl">
+                    يقف على <span class="wq-ibt-stop">${o.stop_word}</span>
+                    ثم يبدأ من <span class="wq-ibt-resume">${o.resume_word}</span>
+                    <span class="wq-ibt-dist">(${dist})</span>
+                </span>
+                <span class="wq-research-ctx" dir="rtl">${o.context}</span>
+                ${markTag}
+                <i class="fas fa-chevron-left wq-research-go"></i>
+            </button>`;
+        }).join('') + '</div>';
+    }
+
     /* ── تشابه القرّاء (reciter clustering) ────────────────────── */
     let clusterCache = null;
 
@@ -553,11 +601,13 @@
             els.panelStats.hidden = which !== 'stats';
             els.panelMandatory.hidden = which !== 'mandatory';
             els.panelPatterns.hidden = which !== 'patterns';
+            els.panelIbtidaa.hidden = which !== 'ibtidaa';
             els.panelCluster.hidden = which !== 'cluster';
             if (which === 'solos') loadSolosSummary();
             if (which === 'stats') loadStats();
             if (which === 'mandatory') loadMandatory();
             if (which === 'patterns') loadPatterns();
+            if (which === 'ibtidaa') loadIbtidaa();
             if (which === 'cluster') loadCluster();
         }));
         document.querySelectorAll('.wq-research-chip').forEach(c =>
@@ -579,6 +629,15 @@
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         els.patternsContent.addEventListener('click', async e => {
+            const item = e.target.closest('.wq-research-item'); if (!item) return;
+            const s = +item.dataset.s, a = +item.dataset.a;
+            if (s !== state.surah) await loadAyahOptions(s);
+            await loadVerse(s, a);
+            if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        els.ibtidaaContent.addEventListener('click', async e => {
+            const sub = e.target.closest('.wq-stats-subtab');
+            if (sub) { ibtidaaOnlyMulti = sub.dataset.im === 'multi'; renderIbtidaa(); return; }
             const item = e.target.closest('.wq-research-item'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
             if (s !== state.surah) await loadAyahOptions(s);
