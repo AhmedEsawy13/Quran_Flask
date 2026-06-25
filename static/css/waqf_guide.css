@@ -188,6 +188,18 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
 .wq-rec-line.wq-rec-over { border-color: color-mix(in srgb, var(--wq-solo) 50%, transparent); background: var(--wq-solo-soft); }
 .wq-rec-line.wq-rec-over .wq-rec-num { background: var(--wq-solo); }
 .wq-rec-line.wq-rec-over .wq-rec-dur i { color: var(--wq-solo); }
+
+/* «إعادة» segment — a re-read phrase, set apart from the reading segments */
+.wq-rec-repeat-line { background: var(--wq-repeat-soft);
+    border-color: color-mix(in srgb, var(--wq-repeat) 35%, transparent);
+    border-style: dashed; margin-inline-start: 22px; }
+.wq-rec-repeat-num { background: var(--wq-repeat) !important; }
+.wq-rec-repeat-tag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 9px; border-radius: 999px;
+    font-size: 0.66rem; font-weight: 700; white-space: nowrap; align-self: center;
+    color: var(--wq-repeat); background: color-mix(in srgb, var(--wq-repeat) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--wq-repeat) 38%, transparent); }
+.wq-rec-repeat-words { font-size: 1.4rem; }
+.wq-rec-repeat-line .wq-rec-dur i { color: var(--wq-repeat); }
 .wq-must-note { color: #dc2626; font-weight: 600; }
 .wq-consensus-note { color: var(--wq-consensus); font-weight: 600; }
 .wq-sakt-note { color: #7c3aed; font-weight: 600; }
