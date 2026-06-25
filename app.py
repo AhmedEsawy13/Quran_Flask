@@ -2492,6 +2492,32 @@ def _verse_word_texts(verse_key):
     return text, words, raw_to_wpos
 
 
+def _mark_word_context(verse_key, token_index, span=2):
+    """Map a printed-mushaf 1-based DB token_index to the recited-word position
+    and a small surrounding context snippet, the way the per-verse comparison
+    view does it.
+
+    The waqf DB's token_index is 1-based and COUNTS ornaments (rub‑el‑hizb, the
+    ayah-end marker), whereas `_verse_word_texts` drops those — so the index must
+    be mapped through raw_to_wpos rather than used directly as a word index, or
+    the context lands a word or two past the actual mark. Returns (wpos, context)
+    where wpos is the 0-based recited-word index (or None if it can't be mapped).
+    """
+    _, words, raw_to_wpos = _verse_word_texts(verse_key)
+    if not words:
+        return None, ''
+    wpos = None
+    if token_index is not None and 0 <= token_index - 1 < len(raw_to_wpos):
+        wpos = raw_to_wpos[token_index - 1]
+    if wpos is None:
+        # Token mapped to a dropped ornament or fell out of range — clamp the
+        # raw index into the recited-word range so context is still sensible.
+        ti0 = (token_index - 1) if token_index else 0
+        wpos = min(max(ti0, 0), len(words) - 1)
+    lo, hi = max(0, wpos - span), min(len(words), wpos + span + 1)
+    return wpos, ' '.join(words[lo:hi])
+
+
 def _build_verse_waqf_detail(surah, ayah):
     """Full per-reciter waqf detail for ONE verse, for the comparison page.
 
@@ -2892,7 +2918,6 @@ def _build_mandatory_index():
     versions = list(_WAQF_COMPARE_MUSHAFS)
     cols_sql = ', '.join(f'"{v}"' for v in versions)
     where_m = ' OR '.join(f'"{v}" = ?' for v in versions)
-    where_la = ' OR '.join(f'"{v}" = ?' for v in versions)
 
     conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
     try:
@@ -2913,12 +2938,8 @@ def _build_mandatory_index():
                     if val:
                         marks[ver] = val
                 vk = f"{s}:{a}"
-                _, words, _ = _verse_word_texts(vk)
-                if words:
-                    wpos = min(ti, len(words) - 1) if ti is not None else 0
-                    lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
-                    ctx = ' '.join(words[lo:hi])
-                else:
+                _, ctx = _mark_word_context(vk, ti)
+                if not ctx:
                     ctx = word or ''
                 all_same = len(set(marks.values())) == 1 and len(marks) == len(versions)
                 target_list.append({
@@ -2942,12 +2963,8 @@ def _build_mandatory_index():
                 if val:
                     marks[ver] = val
             vk = f"{s}:{a}"
-            _, words, _ = _verse_word_texts(vk)
-            if words:
-                wpos = min(ti, len(words) - 1) if ti is not None else 0
-                lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
-                ctx = ' '.join(words[lo:hi])
-            else:
+            _, ctx = _mark_word_context(vk, ti)
+            if not ctx:
                 ctx = word or ''
             all_same = len(set(marks.values())) == 1 and len(marks) == len(versions)
             raw_ain.append({
@@ -3027,12 +3044,8 @@ def _build_cross_verse_patterns():
             syms = set(marks.values())
             if len(syms) > 1:
                 vk = f"{s}:{a}"
-                _, words, _ = _verse_word_texts(vk)
-                if words:
-                    wpos = min(ti, len(words) - 1) if ti is not None else 0
-                    lo, hi = max(0, wpos - 2), min(len(words), wpos + 3)
-                    ctx = ' '.join(words[lo:hi])
-                else:
+                _, ctx = _mark_word_context(vk, ti)
+                if not ctx:
                     ctx = word or ''
                 disagree.append({
                     'surah': s, 'ayah': a, 'word': word or '', 'context': ctx,
