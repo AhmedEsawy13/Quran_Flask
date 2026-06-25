@@ -145,6 +145,11 @@ def after_request(response):
         # 1-hour cache made just-saved marks appear to "not save" on reload.
         if request.args.get('mushaf_version') or request.path.startswith('/api/mushaf-editor/'):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
+        elif response.status_code >= 400:
+            # Never cache error responses: a transient 404/500/503 (e.g. during a
+            # deploy, or the breathing guide's 503) must not be pinned in the
+            # browser/CDN for an hour and shadow the endpoint once it recovers.
+            response.headers['Cache-Control'] = 'no-store, max-age=0'
         else:
             response.headers['Cache-Control'] = 'public, max-age=3600'
     
