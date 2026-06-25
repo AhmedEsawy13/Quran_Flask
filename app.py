@@ -3731,23 +3731,39 @@ def _build_mutashabihat_index():
     return _mutashabihat_index
 
 
+# A shared run only makes two verses genuinely متشابهين (confusable for a
+# memorizer) if it is DISTINCTIVE — sharing a ubiquitous formula like
+# «يَٰأَيُّهَا ٱلَّذِينَ ءَامَنُوا» (≈90 verses) is not a متشابه. We measure the
+# rarity of the shared run by its corpus document-frequency (how many verses
+# contain that exact word-sequence): real متشابهات share runs found in just a
+# handful of verses (DF≈2–3), the generic openers in dozens. The one exception
+# is near-DUPLICATE verses (the فبأي آلاء / ويل يومئذ refrains): their run is
+# common precisely because the whole verse repeats, so a high coverage ratio
+# keeps them even when the run itself isn't rare.
+_MUTASHABIHAT_DISTINCT_DF = 18   # shared run in ≤ this many verses ⇒ distinctive
+_MUTASHABIHAT_HIGH_COVERAGE = 0.66  # ≥ this share of the verse matches ⇒ near-duplicate
+
+
 @lru_cache(maxsize=2048)
 def _find_mutashabihat(verse_key, min_run, limit):
-    """Verses most similar to verse_key, ranked by longest shared contiguous run.
+    """Verses genuinely متشابهة (confusable) with verse_key.
 
-    Returns a list of dicts: the candidate verse's display words plus the diff
-    opcodes aligning the query (i) to the candidate (j), the longest shared run,
-    and the total number of shared words."""
+    Candidates share a contiguous run of ≥ min_run words; a candidate is kept
+    only if that shared run is DISTINCTIVE (rare across the corpus) or the verses
+    are near-duplicates (high coverage), so generic-formula matches are dropped.
+    Returns the candidate's display words, the diff opcodes aligning the query
+    (i) to the candidate (j), the longest shared run, total shared words, the
+    coverage ratio, and the rarity (document-frequency) of the shared run."""
     idx = _build_mutashabihat_index()
     q_norm = idx['norm'].get(verse_key)
-    q_disp = idx['disp'].get(verse_key)
     if not q_norm or len(q_norm) < min_run:
         return []
-
+    ngram = idx['ngram']
     n = _MUTASHABIHAT_NGRAM
+
     candidates = set()
     for i in range(len(q_norm) - n + 1):
-        candidates |= idx['ngram'].get(tuple(q_norm[i:i + n]), set())
+        candidates |= ngram.get(tuple(q_norm[i:i + n]), set())
     candidates.discard(verse_key)
 
     out = []
@@ -3759,17 +3775,37 @@ def _find_mutashabihat(verse_key, min_run, limit):
         if longest < min_run:
             continue
         shared = sum(b.size for b in blocks)
+        coverage = shared / min(len(q_norm), len(c_norm))
+
+        # Rarest 3-gram lying inside any shared run of length ≥ n: the
+        # document-frequency of the most distinctive thing the two verses share.
+        run_df = None
+        for b in blocks:
+            for i in range(b.a, b.a + b.size - n + 1):
+                d = len(ngram.get(tuple(q_norm[i:i + n]), ()))
+                run_df = d if run_df is None else min(run_df, d)
+
+        distinctive = run_df is not None and run_df <= _MUTASHABIHAT_DISTINCT_DF
+        near_duplicate = coverage >= _MUTASHABIHAT_HIGH_COVERAGE
+        if not (distinctive or near_duplicate):
+            continue  # only a generic formula in common — not a real متشابه
+
         cs, ca = cvk.split(':')
         out.append({
             'surah': int(cs), 'ayah': int(ca), 'verse_key': cvk,
             'words': idx['disp'][cvk],
             'longest_run': longest, 'shared': shared,
+            'coverage': round(coverage, 2),
+            'run_df': run_df if run_df is not None else 0,
+            'near_duplicate': near_duplicate,
             # opcodes align query word indices (i1,i2) to candidate (j1,j2);
             # tag is 'equal' | 'replace' | 'delete' | 'insert'.
             'opcodes': [[t, i1, i2, j1, j2] for t, i1, i2, j1, j2 in sm.get_opcodes()],
         })
 
-    out.sort(key=lambda m: (-m['longest_run'], -m['shared'], m['surah'], m['ayah']))
+    # Best matches first: longest shared run, then most overlap, then the most
+    # distinctive (rarest) run.
+    out.sort(key=lambda m: (-m['longest_run'], -m['shared'], m['run_df'], m['surah'], m['ayah']))
     return out[:limit]
 
 

@@ -2167,13 +2167,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             const opt = elements.surahSelect?.querySelector(`option[value="${n}"]`);
             return opt ? opt.textContent.replace(/^\s*\d+\s*[-.]?\s*/, '').trim() : `سورة ${n}`;
         };
+        const runWord = (n) => n <= 2 ? 'كلمتان' : n <= 10 ? 'كلمات' : 'كلمة';
         const html = matches.map(m => {
             const ref = `${surahName(m.surah)} ${m.surah}:${m.ayah}`;
+            const badge = m.near_duplicate
+                ? '<span class="mut-badge mut-badge-dup" title="آية تكاد تطابق هذه الآية">شبه مطابقة</span>'
+                : `<span class="mut-badge" title="أطول تتابع لفظي مشترك">${m.longest_run} ${runWord(m.longest_run)} متتالية</span>`;
             return `<button class="mutashabihat-item" type="button" data-s="${m.surah}" data-a="${m.ayah}"
                         title="انتقل إلى ${ref}">
                 <span class="mut-head">
                     <span class="mut-ref">${ref}</span>
-                    <span class="mut-meta">تطابق ${m.longest_run} كلمات متتالية · ${m.shared} مشتركة</span>
+                    <span class="mut-meta">${badge}</span>
                 </span>
                 <span class="mut-verse" dir="rtl">${_renderMutashabihatWords(m.words, m.opcodes)}</span>
             </button>`;
