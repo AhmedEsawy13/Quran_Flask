@@ -462,6 +462,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('show-tafseer').addEventListener('click', toggleTafseer);
         const eerabBtn = document.getElementById('show-eerab');
         if (eerabBtn) eerabBtn.addEventListener('click', toggleEerab);
+        const mutashabihatBtn = document.getElementById('show-mutashabihat');
+        if (mutashabihatBtn) mutashabihatBtn.addEventListener('click', toggleMutashabihat);
         const tajweedBtn = document.getElementById('show-tajweed');
         if (tajweedBtn) tajweedBtn.addEventListener('click', toggleTajweed);
         const nuzoolBtn = document.getElementById('show-nuzool');
@@ -735,6 +737,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await maybeRefreshTafseer(surahNumber, ayahNumber);
             await maybeRefreshEerab(surahNumber, ayahNumber);
             await maybeRefreshTajweed(surahNumber, ayahNumber);
+            await maybeRefreshMutashabihat(surahNumber, ayahNumber);
             // Only display word meanings if they should be visible
             if (elements.wordMeaningVisible) {
                 displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
@@ -806,6 +809,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await maybeRefreshTafseer(surahNumber, ayahNumber);
         await maybeRefreshEerab(surahNumber, ayahNumber);
         await maybeRefreshTajweed(surahNumber, ayahNumber);
+        await maybeRefreshMutashabihat(surahNumber, ayahNumber);
         if (elements.wordMeaningVisible) {
             const verseText = shamarlyPayload?.raw_text || currentAyahData.text || '';
             displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, verseText);
@@ -884,6 +888,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             await maybeRefreshTafseer(surahNumber, ayahNumber);
             await maybeRefreshEerab(surahNumber, ayahNumber);
             await maybeRefreshTajweed(surahNumber, ayahNumber);
+            await maybeRefreshMutashabihat(surahNumber, ayahNumber);
             if (elements.wordMeaningVisible) {
                 displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
             } else {
@@ -2097,6 +2102,106 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eerabContainer = document.getElementById('eerab-container');
         if (!eerabButton || !eerabContainer) return;
         eerabButton.textContent = eerabContainer.style.display === 'none' ? 'الإعراب' : 'إخفاء الإعراب';
+    }
+
+    // ── المتشابهات (similar verses, للحفظ) ────────────────────────────────────
+    const _mutashabihatCache = {};   // verse_key → API payload
+
+    async function toggleMutashabihat() {
+        const container = document.getElementById('mutashabihat-container');
+        if (!container) return;
+        const isHidden = container.style.display === 'none';
+        container.style.display = isHidden ? 'block' : 'none';
+        updateMutashabihatButton();
+        if (isHidden) {
+            const surah = elements.surahSelect.value;
+            const ayah = elements.ayahSelect.value;
+            if (surah && ayah) await fetchAndDisplayMutashabihat(surah, ayah);
+        }
+    }
+
+    async function fetchAndDisplayMutashabihat(surahNumber, ayahNumber) {
+        const key = `${surahNumber}:${ayahNumber}`;
+        const el = document.getElementById('mutashabihat-text');
+        if (_mutashabihatCache[key]) { displayMutashabihat(_mutashabihatCache[key]); return; }
+        if (el) el.innerHTML = '<p class="mutashabihat-empty">…جارٍ البحث</p>';
+        try {
+            const data = await fetchData(`/api/mutashabihat/${surahNumber}/${ayahNumber}`);
+            _mutashabihatCache[key] = data;
+            displayMutashabihat(data);
+        } catch (e) {
+            console.error('Error loading mutashabihat:', e);
+            if (el) el.innerHTML = '<p class="mutashabihat-empty">تعذّر تحميل المتشابهات.</p>';
+        }
+    }
+
+    async function maybeRefreshMutashabihat(surahNumber, ayahNumber) {
+        const container = document.getElementById('mutashabihat-container');
+        if (container && container.style.display !== 'none') {
+            await fetchAndDisplayMutashabihat(surahNumber, ayahNumber);
+        }
+    }
+
+    // Render a candidate verse word-by-word from the diff opcodes: words that
+    // are 'equal' to the query are plain, everything else (replace/insert) is
+    // flagged as a divergence — that is precisely the spot a memorizer slips.
+    function _renderMutashabihatWords(words, opcodes) {
+        const cls = new Array(words.length).fill('m');   // 'm' = matches query
+        for (const [tag, , , j1, j2] of opcodes) {
+            if (tag !== 'equal') for (let j = j1; j < j2; j++) cls[j] = 'd'; // d = differs
+        }
+        return words.map((w, j) =>
+            `<span class="mut-w${cls[j] === 'd' ? ' mut-diff' : ''}">${w}</span>`
+        ).join(' ');
+    }
+
+    function displayMutashabihat(data) {
+        const el = document.getElementById('mutashabihat-text');
+        if (!el) return;
+        const matches = (data && data.matches) || [];
+        if (!matches.length) {
+            el.innerHTML = '<p class="mutashabihat-empty">لا توجد آيات متشابهة بدرجة معتبرة لهذه الآية.</p>';
+            return;
+        }
+        const surahName = (n) => {
+            const opt = elements.surahSelect?.querySelector(`option[value="${n}"]`);
+            return opt ? opt.textContent.replace(/^\s*\d+\s*[-.]?\s*/, '').trim() : `سورة ${n}`;
+        };
+        const html = matches.map(m => {
+            const ref = `${surahName(m.surah)} ${m.surah}:${m.ayah}`;
+            return `<button class="mutashabihat-item" type="button" data-s="${m.surah}" data-a="${m.ayah}"
+                        title="انتقل إلى ${ref}">
+                <span class="mut-head">
+                    <span class="mut-ref">${ref}</span>
+                    <span class="mut-meta">تطابق ${m.longest_run} كلمات متتالية · ${m.shared} مشتركة</span>
+                </span>
+                <span class="mut-verse" dir="rtl">${_renderMutashabihatWords(m.words, m.opcodes)}</span>
+            </button>`;
+        }).join('');
+        el.innerHTML = html;
+        el.querySelectorAll('.mutashabihat-item').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const s = btn.dataset.s, a = btn.dataset.a;
+                if (elements.surahSelect.value !== s) {
+                    elements.surahSelect.value = s;
+                    elements.surahSelect.dispatchEvent(new Event('change'));
+                    setTimeout(() => { elements.ayahSelect.value = a; elements.ayahSelect.dispatchEvent(new Event('change')); }, 250);
+                } else {
+                    elements.ayahSelect.value = a;
+                    elements.ayahSelect.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    }
+
+    function updateMutashabihatButton() {
+        const btn = document.getElementById('show-mutashabihat');
+        const container = document.getElementById('mutashabihat-container');
+        if (!btn || !container) return;
+        const on = container.style.display !== 'none';
+        btn.innerHTML = on
+            ? '<i class="fas fa-clone"></i> إخفاء المتشابهات'
+            : '<i class="fas fa-clone"></i> المتشابهات';
     }
 
     // ── Tajweed ─────────────────────────────────────────────────────────────────────────

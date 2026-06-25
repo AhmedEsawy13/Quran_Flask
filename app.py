@@ -3596,6 +3596,121 @@ def search_word_meanings():
         app.logger.error(f"Database search error: {e}")
         return jsonify({"error": "Search failed"}), 500
 
+
+# ── المتشابهات (similar verses) ───────────────────────────────────────────────
+# A memorization aid: given a verse, find OTHER verses that share a long
+# contiguous run of words with it — the near-identical passages that huffāẓ
+# most often confuse (e.g. the repeated قصص openings, "فَبِأَيِّ آلَآءِ
+# رَبِّكُمَا تُكَذِّبَانِ", the وَيۡل / مُكَذِّبِين refrains). Words are folded to a
+# diacritic-free skeleton (the same fold as search) so رغدا/رَغَدٗا match, then a
+# word-level diff surfaces exactly where the two verses diverge.
+import difflib
+
+_mutashabihat_index = None
+_mutashabihat_lock = threading.Lock()
+_MUTASHABIHAT_NGRAM = 3   # prefilter shingle size; any run >= this shares a shingle
+
+
+def _build_mutashabihat_index():
+    """Lazy-build the similar-verse index: per-verse normalized + display word
+    lists, plus an inverted n-gram index for candidate prefiltering."""
+    global _mutashabihat_index
+    if _mutashabihat_index is not None:
+        return _mutashabihat_index
+    with _mutashabihat_lock:
+        if _mutashabihat_index is not None:
+            return _mutashabihat_index
+        norm_words, disp_words = {}, {}
+        ngram_index = defaultdict(set)
+        n = _MUTASHABIHAT_NGRAM
+        for vk, td in qpc_hafs_data_normalized.items():
+            text = (td.get('text', '') if isinstance(td, dict) else '') or ''
+            disp, norm = [], []
+            for tok in text.split():
+                if not _has_arabic_letter(tok):  # drop the trailing ayah number / ornaments
+                    continue
+                folded = _normalize_for_search(tok)
+                if not folded:
+                    continue
+                disp.append(tok)
+                norm.append(folded)
+            if not norm:
+                continue
+            norm_words[vk] = norm
+            disp_words[vk] = disp
+            for i in range(len(norm) - n + 1):
+                ngram_index[tuple(norm[i:i + n])].add(vk)
+        _mutashabihat_index = {
+            'norm': norm_words, 'disp': disp_words, 'ngram': dict(ngram_index),
+        }
+    return _mutashabihat_index
+
+
+@lru_cache(maxsize=2048)
+def _find_mutashabihat(verse_key, min_run, limit):
+    """Verses most similar to verse_key, ranked by longest shared contiguous run.
+
+    Returns a list of dicts: the candidate verse's display words plus the diff
+    opcodes aligning the query (i) to the candidate (j), the longest shared run,
+    and the total number of shared words."""
+    idx = _build_mutashabihat_index()
+    q_norm = idx['norm'].get(verse_key)
+    q_disp = idx['disp'].get(verse_key)
+    if not q_norm or len(q_norm) < min_run:
+        return []
+
+    n = _MUTASHABIHAT_NGRAM
+    candidates = set()
+    for i in range(len(q_norm) - n + 1):
+        candidates |= idx['ngram'].get(tuple(q_norm[i:i + n]), set())
+    candidates.discard(verse_key)
+
+    out = []
+    for cvk in candidates:
+        c_norm = idx['norm'][cvk]
+        sm = difflib.SequenceMatcher(a=q_norm, b=c_norm, autojunk=False)
+        blocks = sm.get_matching_blocks()
+        longest = max((b.size for b in blocks), default=0)
+        if longest < min_run:
+            continue
+        shared = sum(b.size for b in blocks)
+        cs, ca = cvk.split(':')
+        out.append({
+            'surah': int(cs), 'ayah': int(ca), 'verse_key': cvk,
+            'words': idx['disp'][cvk],
+            'longest_run': longest, 'shared': shared,
+            # opcodes align query word indices (i1,i2) to candidate (j1,j2);
+            # tag is 'equal' | 'replace' | 'delete' | 'insert'.
+            'opcodes': [[t, i1, i2, j1, j2] for t, i1, i2, j1, j2 in sm.get_opcodes()],
+        })
+
+    out.sort(key=lambda m: (-m['longest_run'], -m['shared'], m['surah'], m['ayah']))
+    return out[:limit]
+
+
+@reading_bp.route('/api/mutashabihat/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_mutashabihat(surah_number, ayah_number):
+    """المتشابهات: other verses sharing a long contiguous run of words with this
+    one — the look-alike passages huffāẓ confuse. Query params: min_run (shared
+    run length threshold, default 3, clamped 3..8), limit (default 30, max 60)."""
+    if not (1 <= surah_number <= 114) or ayah_number < 1:
+        return jsonify({'error': 'invalid parameters'}), 400
+    vk = f"{surah_number}:{ayah_number}"
+    if vk not in qpc_hafs_data_normalized:
+        return jsonify({'error': 'unknown verse'}), 404
+    min_run = max(3, min(8, request.args.get('min_run', 3, type=int)))
+    limit = max(1, min(60, request.args.get('limit', 30, type=int)))
+    idx = _build_mutashabihat_index()
+    matches = _find_mutashabihat(vk, min_run, limit)
+    return jsonify({
+        'surah': surah_number, 'ayah': ayah_number, 'verse_key': vk,
+        'words': idx['disp'].get(vk, []),
+        'min_run': min_run,
+        'count': len(matches),
+        'matches': matches,
+    })
+
+
 @core_bp.route('/api/shamarly/ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_shamarly_ayah(surah_number, ayah_number):
     try:

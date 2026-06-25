@@ -478,6 +478,121 @@ body.dark-mode .eerab-entry {
     border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Mutashabihat (similar verses, memorization aid) */
+#mutashabihat-container h2 {
+    direction: rtl;
+    text-align: right;
+}
+
+.mutashabihat-hint {
+    direction: rtl;
+    text-align: right;
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0.2rem 0 0.9rem;
+    line-height: 1.7;
+}
+
+#mutashabihat-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.mutashabihat-item {
+    display: block;
+    width: 100%;
+    text-align: right;
+    direction: rtl;
+    background: var(--bg-card, #fff);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-right: 3px solid #2c5aa0;
+    border-radius: 8px;
+    padding: 0.7rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+}
+
+.mutashabihat-item:hover {
+    background: rgba(44, 90, 160, 0.06);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.mut-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.mut-ref {
+    font-weight: 700;
+    color: #2c5aa0;
+    font-size: 0.98rem;
+}
+
+.mut-meta {
+    font-size: 0.78rem;
+    color: #888;
+}
+
+.mut-verse {
+    font-family: 'UthmanicHafs', 'Amiri', serif;
+    font-size: 1.45rem;
+    line-height: 2.1;
+    color: var(--text-primary, #1a1a1a);
+}
+
+.mut-w {
+    transition: color 0.15s;
+}
+
+/* Words that differ from the current verse — where memorizers slip */
+.mut-diff {
+    color: #c0392b;
+    font-weight: 700;
+    background: rgba(192, 57, 43, 0.09);
+    border-radius: 4px;
+    padding: 0 2px;
+}
+
+.mutashabihat-empty {
+    color: #888;
+    font-style: italic;
+    direction: rtl;
+    text-align: right;
+}
+
+body.dark-mode .mutashabihat-item {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+    border-right-color: #93c5fd;
+}
+
+body.dark-mode .mutashabihat-item:hover {
+    background: rgba(147, 197, 253, 0.1);
+}
+
+body.dark-mode .mut-ref {
+    color: #93c5fd;
+}
+
+body.dark-mode .mut-verse {
+    color: #e8e8e8;
+}
+
+body.dark-mode .mut-diff {
+    color: #ff8a80;
+    background: rgba(255, 138, 128, 0.14);
+}
+
+body.dark-mode .mutashabihat-hint {
+    color: #aaa;
+}
+
 /* Quranic quote spans inside tafseer HTML (from quran.com API) */
 #tafseer-text .arabic,
 #tafseer-text .qpc-hafs {
