@@ -75,6 +75,26 @@ def test_mushaf_agreement_cases_drilldown(client):
                       "?mushaf=X&reciter=Y&mark=Z").status_code == 400
 
 
+def test_clustering_matrix_shape(client):
+    """تشابه القرّاء returns an ordered full similarity matrix + clusters."""
+    j = client.get("/api/waqf-research/clustering").get_json()
+    order = [o["id"] for o in j["order"]]
+    assert len(order) >= 2
+    # symmetric matrix, self-similarity = 1.
+    for a in order:
+        assert j["matrix"][a][a] == 1.0
+        for b in order:
+            assert j["matrix"][a][b] == j["matrix"][b][a]
+    assert j["range"]["min"] <= j["range"]["max"]
+    assert sum(c["size"] for c in j["clusters"]) == len(order)  # every reciter placed
+
+
+def test_research_endpoints_not_browser_cached(client):
+    """Heavy Quran-wide analyses are server-cached, so don't pin them in the browser."""
+    r = client.get("/api/waqf-research/clustering")
+    assert "no-store" in r.headers.get("Cache-Control", "")
+
+
 def test_error_responses_are_not_cached(client):
     """A transient API error must never be pinned in the browser/CDN."""
     r = client.get("/api/this-route-does-not-exist")

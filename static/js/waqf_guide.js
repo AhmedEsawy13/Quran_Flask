@@ -678,30 +678,59 @@
         } catch { els.clusterContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
     }
 
+    // Heat colour for a similarity, scaled to the actual [min,max] range so the
+    // subtle differences (everyone shares the strong stops) become visible.
+    function clusterHeat(sim, lo, hi, self) {
+        if (self) return 'background:var(--wq-accent-strong);color:#fff';
+        const t = hi > lo ? Math.max(0, Math.min(1, (sim - lo) / (hi - lo))) : 0.5;
+        // light (low) → strong accent (high)
+        const alpha = (0.08 + t * 0.92).toFixed(2);
+        return `background:color-mix(in srgb, var(--wq-accent) ${Math.round(alpha * 100)}%, transparent);`
+            + (t > 0.6 ? 'color:#fff;' : 'color:var(--wq-text);');
+    }
+
     function renderCluster() {
-        const groups = (clusterCache.groups || []).slice().sort((a, b) => {
-            const aTop = a.peers[0] ? a.peers[0].similarity : 0;
-            const bTop = b.peers[0] ? b.peers[0].similarity : 0;
-            return bTop - aTop;
+        const d = clusterCache;
+        const order = d.order || [];
+        const lo = d.range.min, hi = d.range.max;
+        const idx = order.map((o, i) => i);
+
+        const desc = '<div class="wq-solos-desc">تشابه أنماط الوقف/التنفّس بين القرّاء عبر القرآن كله (مقياس جاكار). '
+            + 'القرّاء مرتّبون بحيث يتجاور المتشابهون، فتظهر المجموعات ككتل مضيئة. كلّما اشتدّ اللون زاد التشابه.</div>';
+
+        // Clusters summary.
+        const clusters = (d.clusters || []).filter(c => c.size > 1);
+        const singles = (d.clusters || []).filter(c => c.size === 1).flatMap(c => c.members.map(m => m.name_ar));
+        let clHtml = '<div class="wq-cl-groups">';
+        clusters.forEach((c, i) => {
+            clHtml += `<div class="wq-cl-group"><span class="wq-cl-gtag">المجموعة ${toAr(i + 1)} · تماسك ${toAr(Math.round(c.cohesion * 100))}٪</span>`
+                + c.members.map(m => `<span class="wq-cl-chip">${m.name_ar}</span>`).join('') + '</div>';
         });
-        let html = '<div class="wq-solos-desc">تشابه أنماط التنفّس والوقف بين القرّاء عبر القرآن كله</div>';
+        if (singles.length) clHtml += `<div class="wq-cl-group"><span class="wq-cl-gtag wq-cl-gtag-out">قرّاء متفرّدون (نمط مستقل)</span>`
+            + singles.map(n => `<span class="wq-cl-chip wq-cl-chip-out">${n}</span>`).join('') + '</div>';
+        clHtml += '</div>';
 
-        html += '<div class="wq-cluster-list">' + groups.map(g => {
-            const bar = g.peers.map(p => {
-                const pct = Math.round(p.similarity * 100);
-                return `<div class="wq-cl-peer">
-                    <span class="wq-cl-peer-name">${p.name_ar}</span>
-                    <span class="wq-cl-bar"><span class="wq-cl-fill" style="width:${pct}%"></span></span>
-                    <span class="wq-cl-pct">${toAr(pct)}٪</span>
-                </div>`;
+        // Heatmap matrix.
+        const headCells = idx.map(i => `<th class="wq-cl-hth" title="${order[i].name_ar}">${toAr(i + 1)}</th>`).join('');
+        const rows = order.map((ro, ri) => {
+            const cells = order.map((co, ci) => {
+                const s = d.matrix[ro.id][co.id];
+                const self = ri === ci;
+                return `<td class="wq-cl-cell" style="${clusterHeat(s, lo, hi, self)}" title="${ro.name_ar} × ${co.name_ar}: ${toAr(Math.round(s * 100))}٪">${self ? '' : toAr(Math.round(s * 100))}</td>`;
             }).join('');
-            return `<div class="wq-cl-row">
-                <div class="wq-cl-reciter">${g.name_ar}</div>
-                <div class="wq-cl-peers">${bar}</div>
-            </div>`;
-        }).join('') + '</div>';
+            const q = ro.qasr ? '<span class="wq-cl-q" title="قصر المنفصل">قصر</span>' : '';
+            return `<tr><td class="wq-cl-rh"><span class="wq-cl-rnum">${toAr(ri + 1)}</span> ${ro.name_ar}${q}</td>${cells}</tr>`;
+        }).join('');
+        const heat = `<div class="wq-cl-heatwrap"><table class="wq-cl-heat"><thead><tr><th></th>${headCells}</tr></thead><tbody>${rows}</tbody></table></div>`;
 
-        els.clusterContent.innerHTML = html;
+        // Most-different pairs (the outliers — most interesting).
+        const diff = (d.different || []).slice(0, 6).map(p =>
+            `<span class="wq-cl-pair">
+                <span class="wq-cl-pair-pct">${toAr(Math.round(p.similarity * 100))}٪</span>
+                <span>${p.n1} ↔ ${p.n2}</span></span>`).join('');
+        const diffHtml = `<div class="wq-cl-sub">أبعد القرّاء تشابهًا</div><div class="wq-cl-pairs">${diff}</div>`;
+
+        els.clusterContent.innerHTML = desc + clHtml + heat + diffHtml;
     }
 
     function setupResearch() {

@@ -145,6 +145,12 @@ def after_request(response):
         # 1-hour cache made just-saved marks appear to "not save" on reload.
         if request.args.get('mushaf_version') or request.path.startswith('/api/mushaf-editor/'):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
+        elif request.path.startswith('/api/waqf-research/'):
+            # Heavy Quran-wide analyses are cached SERVER-side (instant after the
+            # first build), so don't pin them in the browser for an hour — a
+            # redeploy that changes the computation must show up immediately
+            # instead of serving a stale aggregate.
+            response.headers['Cache-Control'] = 'no-store, max-age=0'
         elif response.status_code >= 400:
             # Never cache error responses: a transient 404/500/503 (e.g. during a
             # deploy, or the breathing guide's 503) must not be pinned in the
@@ -3102,7 +3108,8 @@ def _build_reciter_clustering():
                 if rid:
                     breath_sets[rid].add(f"{surah}:{ayah_str}:{rp['from_wpos']}")
 
-    # Jaccard similarity for each pair.
+    # Jaccard similarity for every pair → a full symmetric matrix.
+    sim = {r: {r: 1.0 for r in reciter_ids} for r in reciter_ids}
     pairs = []
     for i, r1 in enumerate(reciter_ids):
         s1 = breath_sets[r1]
@@ -3110,31 +3117,90 @@ def _build_reciter_clustering():
             s2 = breath_sets[r2]
             inter = len(s1 & s2)
             union = len(s1 | s2)
-            sim = round(inter / union, 3) if union else 0
+            s = round(inter / union, 3) if union else 0.0
+            sim[r1][r2] = sim[r2][r1] = s
             pairs.append({
                 'r1': r1, 'r2': r2,
                 'n1': MEMORIZATION_RECITERS[r1].get('name_ar', ''),
                 'n2': MEMORIZATION_RECITERS[r2].get('name_ar', ''),
-                'similarity': sim, 'shared': inter, 'union': union,
+                'similarity': s, 'shared': inter, 'union': union,
             })
     pairs.sort(key=lambda p: p['similarity'], reverse=True)
+    sim_values = [p['similarity'] for p in pairs]
+    lo = min(sim_values) if sim_values else 0.0
+    hi = max(sim_values) if sim_values else 1.0
 
-    # Simple clustering: each reciter's top-3 most similar peers.
-    groups = []
-    for rid in reciter_ids:
-        my_pairs = [p for p in pairs if p['r1'] == rid or p['r2'] == rid]
-        top = sorted(my_pairs, key=lambda p: p['similarity'], reverse=True)[:3]
-        peers = []
-        for p in top:
-            other = p['r2'] if p['r1'] == rid else p['r1']
-            peers.append({'id': other, 'name_ar': MEMORIZATION_RECITERS[other].get('name_ar', ''),
-                          'similarity': p['similarity']})
-        groups.append({
-            'id': rid, 'name_ar': MEMORIZATION_RECITERS[rid].get('name_ar', ''),
-            'total_breaths': len(breath_sets[rid]), 'peers': peers,
+    # Order reciters so similar ones sit next to each other (a greedy nearest-
+    # neighbour chain seeded at the most "central" reciter). This turns the
+    # matrix into a heat-map where clusters show up as bright blocks.
+    avg_sim = {r: sum(sim[r][o] for o in reciter_ids if o != r) / max(1, len(reciter_ids) - 1)
+               for r in reciter_ids}
+    order = [max(reciter_ids, key=lambda r: avg_sim[r])]
+    remaining = set(reciter_ids) - set(order)
+    while remaining:
+        last = order[-1]
+        nxt = max(remaining, key=lambda r: sim[last][r])
+        order.append(nxt)
+        remaining.discard(nxt)
+
+    # Clusters: union-find linking pairs whose similarity is in the top tier
+    # (≥ mean + 0.5·std). Reveals the natural groupings across the whole Quran.
+    mean = sum(sim_values) / len(sim_values) if sim_values else 0.0
+    var = sum((x - mean) ** 2 for x in sim_values) / len(sim_values) if sim_values else 0.0
+    thr = round(mean + 0.5 * (var ** 0.5), 3)
+    parent = {r: r for r in reciter_ids}
+
+    def _find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for p in pairs:
+        if p['similarity'] >= thr:
+            parent[_find(p['r1'])] = _find(p['r2'])
+    cluster_map = defaultdict(list)
+    for r in reciter_ids:
+        cluster_map[_find(r)].append(r)
+    clusters = []
+    for members in cluster_map.values():
+        # intra-cluster average similarity (cohesion)
+        if len(members) > 1:
+            cs = [sim[a][b] for i, a in enumerate(members) for b in members[i + 1:]]
+            cohesion = round(sum(cs) / len(cs), 3)
+        else:
+            cohesion = 0.0
+        clusters.append({
+            'members': [{'id': m, 'name_ar': MEMORIZATION_RECITERS[m].get('name_ar', '')} for m in members],
+            'size': len(members), 'cohesion': cohesion,
+        })
+    clusters.sort(key=lambda c: (-c['size'], -c['cohesion']))
+
+    # Per-reciter nearest & farthest peer (for the "who reads like whom" summary).
+    profiles = []
+    for r in reciter_ids:
+        others = [(o, sim[r][o]) for o in reciter_ids if o != r]
+        nearest = max(others, key=lambda t: t[1])
+        farthest = min(others, key=lambda t: t[1])
+        profiles.append({
+            'id': r, 'name_ar': MEMORIZATION_RECITERS[r].get('name_ar', ''),
+            'total_breaths': len(breath_sets[r]),
+            'qasr': r in QASR_MUNFASIL_RECITERS,
+            'nearest': {'id': nearest[0], 'name_ar': MEMORIZATION_RECITERS[nearest[0]].get('name_ar', ''), 'similarity': nearest[1]},
+            'farthest': {'id': farthest[0], 'name_ar': MEMORIZATION_RECITERS[farthest[0]].get('name_ar', ''), 'similarity': farthest[1]},
         })
 
-    _clustering_cache = {'pairs': pairs[:30], 'groups': groups}
+    _clustering_cache = {
+        'order': [{'id': r, 'name_ar': MEMORIZATION_RECITERS[r].get('name_ar', ''),
+                   'qasr': r in QASR_MUNFASIL_RECITERS} for r in order],
+        'matrix': {r: sim[r] for r in reciter_ids},
+        'range': {'min': lo, 'max': hi},
+        'pairs': pairs[:12],
+        'different': list(reversed(pairs[-8:])),
+        'clusters': clusters,
+        'cluster_threshold': thr,
+        'profiles': profiles,
+    }
     return _clustering_cache
 
 
