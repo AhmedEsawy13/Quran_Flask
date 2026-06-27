@@ -3317,10 +3317,13 @@ _AGREE_CASE_CAP = 400   # max disagreement verses stored per (mushaf, reciter, m
 
 
 def _agree_canonical_mark(ver, sym):
-    """Map a raw DB symbol to this mushaf's canonical mark sym, or None to skip.
-    Handles ورش's combined cells (e.g. 'ر,ص' → ص)."""
+    """Map a raw DB symbol to this mushaf's canonical mark sym, or None to skip."""
     sym = (sym or '').strip()
     if ver == 'ورش':
+        # ر = رأس آية (verse-end marker in the Warsh riwāyah), not a waqf
+        # directive — skip it (and the 'ر,ص' verse-end cells). Only صه counts.
+        if 'ر' in sym:
+            return None
         return 'ص' if 'ص' in sym else None
     if sym == 'ج':
         return 'ج'
