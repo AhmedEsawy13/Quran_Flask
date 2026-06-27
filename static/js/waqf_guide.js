@@ -734,34 +734,116 @@
     }
 
     /* ── render ───────────────────────────────────────────────── */
-    /* ── segment audio (seek-and-stop in a reciter's surah mp3) ─────── */
+    /* ── segment audio (seek-and-stop in a reciter's surah mp3 OR YouTube) ──
+       MP3 reciters play through a native <audio>; YouTube-sourced reciters
+       (e.g. محمد برهجي) play through the YouTube IFrame API via a small adapter
+       that mimics the <audio> interface — same approach as the memorize page, so
+       برهجي works here too. A single poll loop enforces the segment end for
+       whichever backend is active (YT doesn't fire timeupdate). */
     const audio = new Audio();
     audio.preload = 'none';
-    let audioStopAt = null, playingBtn = null;
+    let ytPlayer = null;          // lazily-created YouTube adapter (one, reused)
+    let activeBackend = null;     // backend currently playing
+    let audioStopAt = null, playingBtn = null, pollTimer = null;
+
+    function isYouTubeUrl(url) { return /youtube\.com|youtu\.be/.test(url || ''); }
+    function extractYoutubeId(url) {
+        const m = (url || '').match(/[?&]v=([A-Za-z0-9_-]{11})/) || (url || '').match(/youtu\.be\/([A-Za-z0-9_-]{11})/);
+        return m ? m[1] : null;
+    }
+
+    // Minimal YouTube IFrame adapter exposing the <audio> bits we use.
+    class YTAudioAdapter {
+        constructor(videoId) {
+            this._videoId = videoId; this._ready = false; this._listeners = {};
+            this._div = document.createElement('div');
+            this._div.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:320px;height:180px;pointer-events:none;z-index:-1;';
+            document.body.appendChild(this._div);
+            if (window.YT && window.YT.Player) this._create();
+            else {
+                if (!document.getElementById('yt-iframe-api')) {
+                    const s = document.createElement('script'); s.id = 'yt-iframe-api';
+                    s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+                }
+                const prev = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = () => { if (typeof prev === 'function') prev(); this._create(); };
+            }
+        }
+        _create() {
+            this._player = new YT.Player(this._div, {
+                width: 320, height: 180, videoId: this._videoId,
+                playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, playsinline: 1 },
+                events: {
+                    onReady: () => { this._ready = true; this._dispatch('loadedmetadata'); },
+                    onStateChange: e => { if (e.data === YT.PlayerState.ENDED) this._dispatch('ended'); },
+                },
+            });
+        }
+        _dispatch(ev) { (this._listeners[ev] || []).forEach(cb => { try { cb({ type: ev }); } catch (e) {} }); }
+        addEventListener(ev, cb, opts) {
+            (this._listeners[ev] = this._listeners[ev] || []).push(cb);
+            if (opts && opts.once) { const w = e => { cb(e); this._listeners[ev] = this._listeners[ev].filter(f => f !== w); }; this._listeners[ev].pop(); this._listeners[ev].push(w); if (ev === 'loadedmetadata' && this._ready) setTimeout(() => this._dispatch('loadedmetadata'), 0); }
+        }
+        set src(url) { const v = extractYoutubeId(url); if (!v || v === this._videoId) return; this._videoId = v; this._ready = false; if (this._player && this._player.loadVideoById) this._player.loadVideoById({ videoId: v, startSeconds: 0 }); }
+        get readyState() { return this._ready ? 4 : 0; }
+        get currentTime() { try { return (this._ready && this._player.getCurrentTime()) || 0; } catch (e) { return 0; } }
+        set currentTime(t) { try { if (this._ready) this._player.seekTo(t, true); } catch (e) {} }
+        get paused() { try { return !this._ready || this._player.getPlayerState() !== YT.PlayerState.PLAYING; } catch (e) { return true; } }
+        play() { return new Promise(res => { const go = () => { try { this._player.playVideo(); } catch (e) {} res(); }; if (this._ready) go(); else this.addEventListener('loadedmetadata', go, { once: true }); }); }
+        pause() { try { if (this._ready) this._player.pauseVideo(); } catch (e) {} }
+    }
+
+    function backendFor(url) {
+        if (isYouTubeUrl(url)) {
+            if (!ytPlayer) ytPlayer = new YTAudioAdapter(extractYoutubeId(url));
+            else ytPlayer.src = url;
+            return ytPlayer;
+        }
+        return audio;
+    }
+    function stopPoll() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
     function clearPlaying() {
         if (playingBtn) { const i = playingBtn.querySelector('i'); if (i) i.className = playingBtn.dataset.icon || 'fas fa-play'; playingBtn.classList.remove('wq-playing'); }
-        playingBtn = null;
+        playingBtn = null; stopPoll();
         document.querySelectorAll('.wq-guide-seg.wq-guide-active').forEach(el => el.classList.remove('wq-guide-active'));
     }
     // Play a guide-segment card (bounded) and highlight the card while it plays.
     function playGuideSeg(card, btn, url, absStart, absEnd) {
-        const wasPlaying = playingBtn === btn && !audio.paused;
+        const wasPlaying = playingBtn === btn && activeBackend && !activeBackend.paused;
         playSegment(url, absStart, absEnd, btn);
         if (!wasPlaying && card) card.classList.add('wq-guide-active');
     }
-    audio.addEventListener('timeupdate', () => {
-        if (audioStopAt != null && audio.currentTime >= audioStopAt) { audio.pause(); audioStopAt = null; clearPlaying(); }
-    });
     audio.addEventListener('ended', () => { audioStopAt = null; clearPlaying(); });
+
     function playSegment(url, absStart, absEnd, btn) {
         if (!url || absEnd <= absStart) return;
-        if (playingBtn === btn && !audio.paused) { audio.pause(); audioStopAt = null; clearPlaying(); return; }
+        const backend = backendFor(url);
+        if (playingBtn === btn && activeBackend && !activeBackend.paused) { activeBackend.pause(); audioStopAt = null; clearPlaying(); return; }
         clearPlaying();
-        const begin = () => { try { audio.currentTime = absStart; } catch (e) {} audioStopAt = absEnd; audio.play().catch(() => {}); };
+        if (activeBackend && activeBackend !== backend) activeBackend.pause();
+        activeBackend = backend;
         playingBtn = btn;
         if (btn) { btn.classList.add('wq-playing'); const i = btn.querySelector('i'); if (i) { btn.dataset.icon = i.className; i.className = 'fas fa-pause'; } }
-        if (audio.src !== url) { audio.src = url; audio.addEventListener('loadedmetadata', begin, { once: true }); audio.load(); }
-        else begin();
+        const begin = () => {
+            try { backend.currentTime = absStart; } catch (e) {}
+            audioStopAt = absEnd;
+            const p = backend.play(); if (p && p.catch) p.catch(() => {});
+            stopPoll();
+            pollTimer = setInterval(() => {
+                if (activeBackend && audioStopAt != null && activeBackend.currentTime >= audioStopAt) {
+                    activeBackend.pause(); audioStopAt = null; clearPlaying();
+                }
+            }, 120);
+        };
+        if (backend === audio) {
+            if (audio.src !== url) { audio.src = url; audio.addEventListener('loadedmetadata', begin, { once: true }); audio.load(); }
+            else begin();
+        } else {
+            backend.src = url;
+            if (backend.readyState >= 1) begin();
+            else backend.addEventListener('loadedmetadata', begin, { once: true });
+        }
     }
     // play a reciter's own segment that ENDS at one of their stop words
     function playReciterStop(d, rid, toWpos, btn) {

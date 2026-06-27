@@ -2571,16 +2571,18 @@ def _build_verse_waqf_detail(surah, ayah):
             'repeats': [{'from_wpos': f - 1, 'to_wpos': t - 1} for f, t in repeats],
             'phrases': phrases,
             'duration': round(info['full'], 2),
-            # absolute seek info for in-page segment playback
-            # YouTube-sourced reciters (_yt_ sentinel) are not supported in the
-            # waqf guide player (native <audio> can't play YT URLs); hide them.
+            # absolute seek info for in-page segment playback.
+            # _yt_ reciters return their per-surah YouTube watch URL; the waqf
+            # guide player routes youtube.com URLs through the IFrame adapter
+            # (same as the memorize page) instead of a native <audio> element.
             # Catalog-based reciters (_gd_) use direct MP3/Drive-download URLs
             # which native <audio> can stream fine.
             'audio_url': (_gd_audio_url(rid, surah)
                           if cfg.get('audio_tmpl') == '_gd_'
-                          else (cfg['audio_tmpl'].format(surah=surah)
-                                if cfg.get('audio_tmpl') and cfg['audio_tmpl'] != '_yt_'
-                                else None)),
+                          else (_yt_audio_url(rid, surah)
+                                if cfg.get('audio_tmpl') == '_yt_'
+                                else (cfg['audio_tmpl'].format(surah=surah)
+                                      if cfg.get('audio_tmpl') else None))),
             'verse_start': round(w[0][1] / 1000.0, 3),
         }
         for k, v in stops.items():
