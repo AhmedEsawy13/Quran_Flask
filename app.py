@@ -3284,6 +3284,90 @@ def waqf_research_saktat():
     })
 
 
+_mushaf_agreement_cache: dict | None = None
+
+
+def _build_mushaf_agreement_index():
+    """اتفاق القرّاء مع المصاحف — how each reciter's actual stopping behaviour
+    agrees with each printed mushaf's waqf marks, Quran-wide.
+
+    For every position a mushaf marks, the directive is: م (لازم) and ق (قلى /
+    الوقف أولى) ⇒ STOP; ص (صلى / الوصل أولى) and لا (ممنوع) ⇒ DO NOT stop; ج
+    (جائز) ⇒ either (neutral, counted only as opportunities). A reciter "agrees"
+    when his behaviour matches the directive. Tallied PER MARK TYPE rather than
+    blended, because م/ق are honoured almost universally while ص is where reciters
+    genuinely differ (عامر/الحصري break at most صلى; أيوب/الأخضر connect through
+    them) and لا surfaces the rare real violations.
+
+    "Stops here" uses the same forward-waqf detection as the rest of the guide
+    (the breathing guide's per-reciter stops at _WAQF_CONSENSUS_GAP_MS = 1 ms), so
+    a reciter who breaks at a صلى boundary counts as stopping there."""
+    global _mushaf_agreement_cache
+    if _mushaf_agreement_cache is not None:
+        return _mushaf_agreement_cache
+
+    MARKS = ('م', 'ق', 'ص', 'لا')
+    STOP_MARKS = {'م', 'ق'}            # directive: stop here
+    versions = list(_WAQF_COMPARE_MUSHAFS)
+    reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
+
+    # agree/total counters: [ver][rid][mark] = [agree, total]; jaiz[ver] = count
+    agree = {v: {r: {m: [0, 0] for m in MARKS} for r in reciter_ids} for v in versions}
+    jaiz = {v: 0 for v in versions}
+
+    for surah in range(1, 115):
+        guide = _build_breathing_guide(surah)
+        present = [r['id'] for r in guide.get('reciters', [])]
+        for ayah_str, vdata in guide.get('verses', {}).items():
+            ayah = int(ayah_str)
+            stoppers = defaultdict(set)   # wpos → reciters who forward-stop there
+            for st in vdata.get('stops', []):
+                for rid in st.get('reciter_ids', []):
+                    stoppers[st['wpos']].add(rid)
+            vk = f"{surah}:{ayah}"
+            _, words, raw_to_wpos = _verse_word_texts(vk)
+            if not words:
+                continue
+            for ver in versions:
+                for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+                    ti = r.get('token_index')
+                    sym = (r.get('symbols') or '').strip()
+                    if ti is None or not (0 <= ti < len(raw_to_wpos)):
+                        continue
+                    wp = raw_to_wpos[ti]
+                    if wp is None:
+                        continue
+                    if sym == 'ج':
+                        jaiz[ver] += 1
+                        continue
+                    if sym not in MARKS:
+                        continue
+                    want_stop = sym in STOP_MARKS
+                    here = stoppers.get(wp, ())
+                    for rid in present:
+                        cell = agree[ver][rid][sym]
+                        cell[1] += 1
+                        if (rid in here) == want_stop:
+                            cell[0] += 1
+
+    _mushaf_agreement_cache = {
+        'mushafs': versions,
+        'marks': list(MARKS),
+        'gap_ms': _WAQF_CONSENSUS_GAP_MS,
+        'reciters': [{'id': r, 'name_ar': MEMORIZATION_RECITERS[r].get('name_ar', r),
+                      'qasr': r in QASR_MUNFASIL_RECITERS} for r in reciter_ids],
+        'agreement': agree,
+        'jaiz': jaiz,
+    }
+    return _mushaf_agreement_cache
+
+
+@breathing_bp.route('/api/waqf-research/mushaf-agreement', methods=['GET'])
+def waqf_research_mushaf_agreement():
+    """اتفاق القرّاء مع المصاحف: per-reciter, per-mushaf agreement by mark type."""
+    return jsonify(_build_mushaf_agreement_index())
+
+
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
 

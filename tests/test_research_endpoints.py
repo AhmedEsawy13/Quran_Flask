@@ -33,6 +33,33 @@ def test_ibtidaa_back_ups_are_well_formed(client):
     assert counts == sorted(counts, reverse=True)
 
 
+def test_mushaf_agreement_shape_and_invariants(client):
+    """اتفاق القرّاء مع المصاحف: per-reciter, per-mushaf, per-mark agree/total.
+    م (لازم) compliance is near-universal; ص (صلى) genuinely varies across reciters."""
+    j = client.get("/api/waqf-research/mushaf-agreement").get_json()
+    assert j["gap_ms"] == 1
+    assert set(j["marks"]) == {"م", "ق", "ص", "لا"}
+    assert "المدينة" in j["mushafs"]
+    ag = j["agreement"]["المدينة"]
+    # Every reciter present with all four mark buckets.
+    for r in j["reciters"]:
+        cell = ag[r["id"]]
+        assert set(cell) == {"م", "ق", "ص", "لا"}
+        for m, (a, t) in cell.items():
+            assert 0 <= a <= t  # agreements never exceed opportunities
+
+    def rate(rid, m):
+        a, t = ag[rid]["م" if m == "م" else m]
+        return a / t if t else None
+
+    # م (mandatory) is honoured by essentially everyone.
+    lazim_rates = [rate(r["id"], "م") for r in j["reciters"] if ag[r["id"]]["م"][1]]
+    assert all(x >= 0.9 for x in lazim_rates)
+    # ص (continue-preferred) is the discriminating signal: a real spread exists.
+    sila_rates = [rate(r["id"], "ص") for r in j["reciters"] if ag[r["id"]]["ص"][1]]
+    assert max(sila_rates) - min(sila_rates) > 0.3
+
+
 def test_error_responses_are_not_cached(client):
     """A transient API error must never be pinned in the browser/CDN."""
     r = client.get("/api/this-route-does-not-exist")

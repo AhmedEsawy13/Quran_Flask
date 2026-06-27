@@ -62,10 +62,12 @@
         panelStats: $('wq-panel-stats'), panelMandatory: $('wq-panel-mandatory'),
         panelPatterns: $('wq-panel-patterns'), panelCluster: $('wq-panel-cluster'),
         panelIbtidaa: $('wq-panel-ibtidaa'), panelSaktat: $('wq-panel-saktat'),
+        panelAgreement: $('wq-panel-agreement'),
         solosContent: $('wq-solos-content'),
         statsContent: $('wq-stats-content'), mandatoryContent: $('wq-mandatory-content'),
         patternsContent: $('wq-patterns-content'), clusterContent: $('wq-cluster-content'),
         ibtidaaContent: $('wq-ibtidaa-content'), saktatContent: $('wq-saktat-content'),
+        agreementContent: $('wq-agreement-content'),
     };
 
     const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
@@ -500,6 +502,57 @@
             }).join('') + '</div>';
     }
 
+    /* ── اتفاق القرّاء مع المصاحف ──────────────────────────────── */
+    let agreementCache = null, agreementMushaf = null;
+    // Mark directive + how "agreement" is read for each.
+    const AGREE_MARKS = [
+        { sym: 'م', glyph: 'ۘ', name: 'لازم', verb: 'يقف', desc: 'يجب الوقف — نَعُدّه موافقًا إذا وقف' },
+        { sym: 'ق', glyph: 'ۗ', name: 'قلى', verb: 'يقف', desc: 'الوقف أولى — موافق إذا وقف' },
+        { sym: 'ص', glyph: 'ۖ', name: 'صلى', verb: 'يصِل', desc: 'الوصل أولى — موافق إذا وصَل (لم يقف)' },
+        { sym: 'لا', glyph: 'ۙ', name: 'لا وقف', verb: 'يصِل', desc: 'لا يوقف عليه — موافق إذا لم يقف' },
+    ];
+
+    async function loadAgreement() {
+        if (agreementCache) { renderAgreement(); return; }
+        els.agreementContent.innerHTML = '<div class="wq-research-loading">…جارٍ تحليل وقوف القرّاء عبر المصحف كاملًا</div>';
+        try {
+            const resp = await fetch('/api/waqf-research/mushaf-agreement');
+            agreementCache = await resp.json();
+            agreementMushaf = (agreementCache.mushafs || [])[0] || null;
+            renderAgreement();
+        } catch { els.agreementContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    function renderAgreement() {
+        const d = agreementCache;
+        const ver = agreementMushaf;
+        const pct = (cell) => cell && cell[1] ? Math.round(cell[0] / cell[1] * 100) : null;
+        const tabs = (d.mushafs || []).map(m =>
+            `<button class="wq-stats-subtab${m === ver ? ' wq-lab-tab-active' : ''}" data-mushaf="${m}">${m}</button>`).join('');
+        const legend = '<div class="wq-agree-legend">'
+            + AGREE_MARKS.map(m => `<span class="wq-agree-leg"><span class="waqf-uthmanic wq-agree-glyph" data-m="${m.sym}">${m.glyph}</span> <b>${m.name}</b> — ${m.desc}</span>`).join('')
+            + `<span class="wq-agree-leg wq-agree-leg-j"><b>ج (جائز)</b> — الوقف والوصل سواء، فلا يُحتسب (في هذا المصحف ${toAr(d.jaiz[ver] || 0)} موضعًا)</span>`
+            + '</div>';
+        const head = `<div class="wq-solos-desc">مدى موافقة وقوف كل قارئ لعلامات المصحف عبر القرآن كله — لكل علامة على حدة (النسبة = المواضع الموافقة ÷ مجموع مواضع العلامة). م/ق غالبًا قرب ١٠٠٪ لاتفاق القرّاء عليها؛ <b>ص</b> هي الأكشف للفروق: مَن يقف كثيرًا تنخفض نسبته، ومَن يَصِل تطول.</div>`;
+        // table: rows = reciters, cols = marks
+        const rows = (d.reciters || []).map(r => {
+            const ag = d.agreement[ver][r.id];
+            const cells = AGREE_MARKS.map(m => {
+                const c = ag[m.sym], p = pct(c);
+                if (p === null) return '<td class="wq-agree-cell wq-agree-na">—</td>';
+                const lvl = p >= 80 ? 'hi' : p >= 50 ? 'mid' : 'lo';
+                return `<td class="wq-agree-cell wq-agree-${lvl}" title="${m.name}: وافق في ${toAr(c[0])} من ${toAr(c[1])} (${m.desc})"><b>${toAr(p)}٪</b><span class="wq-agree-frac">${toAr(c[0])}/${toAr(c[1])}</span></td>`;
+            }).join('');
+            const qasr = r.qasr ? '<span class="wq-agree-qasr" title="قصر المنفصل — أداء أسرع">قصر</span>' : '';
+            return `<tr><td class="wq-agree-rname">${r.name_ar}${qasr}</td>${cells}</tr>`;
+        }).join('');
+        const header = `<tr><th>القارئ</th>${AGREE_MARKS.map(m => `<th title="${m.desc}"><span class="waqf-uthmanic wq-agree-glyph" data-m="${m.sym}">${m.glyph}</span><span class="wq-agree-th">${m.name}<br><small>${m.verb}</small></span></th>`).join('')}</tr>`;
+        els.agreementContent.innerHTML = head
+            + `<div class="wq-agree-tabs">${tabs}</div>`
+            + legend
+            + `<div class="wq-agree-scroll"><table class="wq-agree-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`;
+    }
+
     /* ── السكتات (Hafs obligatory pauses-without-breath) ───────── */
     let saktatCache = null;
 
@@ -640,6 +693,7 @@
             els.panelMandatory.hidden = which !== 'mandatory';
             els.panelSaktat.hidden = which !== 'saktat';
             els.panelPatterns.hidden = which !== 'patterns';
+            els.panelAgreement.hidden = which !== 'agreement';
             els.panelIbtidaa.hidden = which !== 'ibtidaa';
             els.panelCluster.hidden = which !== 'cluster';
             if (which === 'solos') loadSolosSummary();
@@ -647,6 +701,7 @@
             if (which === 'mandatory') loadMandatory();
             if (which === 'saktat') loadSaktat();
             if (which === 'patterns') loadPatterns();
+            if (which === 'agreement') loadAgreement();
             if (which === 'ibtidaa') loadIbtidaa();
             if (which === 'cluster') loadCluster();
         }));
@@ -690,6 +745,10 @@
             if (s !== state.surah) await loadAyahOptions(s);
             await loadVerse(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        els.agreementContent.addEventListener('click', e => {
+            const tab = e.target.closest('.wq-stats-subtab[data-mushaf]');
+            if (tab) { agreementMushaf = tab.dataset.mushaf; renderAgreement(); }
         });
         els.statsContent.addEventListener('click', async e => {
             const st = e.target.closest('.wq-stats-subtab');
