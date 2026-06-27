@@ -523,6 +523,7 @@
         const d = agreementCache;
         const ver = agreementMushaf;
         const marks = d.mark_config[ver] || [];
+        const glyphCls = ver === 'ورش' ? 'waqf-warsh' : 'waqf-uthmanic';   // Warsh font for صه
         const pct = (cell) => cell && cell[1] ? Math.round(cell[0] / cell[1] * 100) : null;
         const tabs = (d.mushafs || []).map(m =>
             `<button class="wq-stats-subtab${m === ver ? ' wq-lab-tab-active' : ''}" data-mushaf="${m}">${m}</button>`).join('');
@@ -530,7 +531,7 @@
             ? '<span class="wq-agree-leg wq-agree-leg-j"><b>صه</b> في الورش = «اصمت / قف هنا» (عكس صلى عند حفص) — فالموافقة هنا أن يقف القارئ.</span>'
             : '';
         const legend = '<div class="wq-agree-legend">'
-            + marks.map(m => `<span class="wq-agree-leg"><span class="waqf-uthmanic wq-agree-glyph">${m.glyph}</span> <b>${m.name}</b> — ${agreeDesc(m)}</span>`).join('')
+            + marks.map(m => `<span class="wq-agree-leg"><span class="${glyphCls} wq-agree-glyph">${m.glyph}</span> <b>${m.name}</b> — ${agreeDesc(m)}</span>`).join('')
             + warsh
             + `<span class="wq-agree-leg wq-agree-leg-j"><b>ج (جائز)</b> — الوقف والوصل سواء، فلا يُحتسب (في هذا المصحف ${toAr(d.jaiz[ver] || 0)} موضعًا)</span>`
             + '</div>';
@@ -549,7 +550,7 @@
             const qasr = r.qasr ? '<span class="wq-agree-qasr" title="يقرأ بقصر المدّ المنفصل — أداء أسرع">قصر المنفصل</span>' : '';
             return `<tr><td class="wq-agree-rname">${r.name_ar}${qasr}</td>${cells}</tr>`;
         }).join('');
-        const header = `<tr><th>القارئ</th>${marks.map(m => `<th title="${agreeDesc(m)}"><span class="waqf-uthmanic wq-agree-glyph">${m.glyph}</span><span class="wq-agree-th">${m.name}<br><small>${agreeVerb(m)}</small></span></th>`).join('')}</tr>`;
+        const header = `<tr><th>القارئ</th>${marks.map(m => `<th title="${agreeDesc(m)}"><span class="${glyphCls} wq-agree-glyph">${m.glyph}</span><span class="wq-agree-th">${m.name}<br><small>${agreeVerb(m)}</small></span></th>`).join('')}</tr>`;
         els.agreementContent.innerHTML = head
             + `<div class="wq-agree-tabs">${tabs}</div>`
             + legend
@@ -1000,65 +1001,19 @@
         summary += `<br><span class="wq-ref-note"><i class="fas fa-circle-info"></i> اختر سعة نفَسك أعلاه؛ نعرض قارئًا نفَسه قصير/متوسط/طويل فعلاً — لا تقسيمًا مصطنعًا — وزر <i class="fas fa-play"></i> يشغّل من صوته.</span>`;
         els.recSummary.innerHTML = summary;
 
-        // Annotate each stop with printed-mushaf mark + how many reciters stop there.
-        const uByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u]));
-        const mushafByWpos = new Map();
-        (d.mushafs || []).forEach(m => m.marks.forEach(mk => { if (!mushafByWpos.has(mk.wpos)) mushafByWpos.set(mk.wpos, mk.symbol); }));
+        // Render the picked reciter's ACTUAL segments using the very same builder
+        // as the per-reciter cards (buildSegmentRow → getPhrases + highWater), so
+        // back-ups (إعادة) are reconstructed identically and never double-counted.
         const lastW = d.words.length - 1;
+        const markByWpos = new Map();
+        ['المدينة', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت'].forEach(id => {
+            const m = (d.mushafs || []).find(x => x.id === id);
+            if (m) m.marks.forEach(mk => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
+        });
+        const soloSet = new Set((d.union_stops || []).filter(u => u.solo).map(u => u.wpos));
 
         els.recPlan.innerHTML = '';
-        let prevLast = -1, segNo = 0;
-        pick.phrases.forEach((p, i) => {
-            const isRepeat = p.first_wpos <= prevLast;     // backed up to re-read
-            const isLast = i === pick.phrases.length - 1;
-            const line = document.createElement('div');
-            line.className = 'wq-rec-line' + (isRepeat ? ' wq-rec-repeat-line' : '');
-
-            const badge = document.createElement('span');
-            if (isRepeat) { badge.className = 'wq-rec-num wq-rec-repeat-num'; badge.innerHTML = '<i class="fas fa-rotate-left"></i>'; badge.title = 'أعاد القارئ القراءة من هنا'; }
-            else { segNo += 1; badge.className = 'wq-rec-num'; badge.textContent = toAr(segNo); }
-
-            const play = document.createElement('button');
-            play.className = 'wq-play'; play.type = 'button';
-            play.title = 'استمع لهذا المقطع'; play.setAttribute('aria-label', 'استماع');
-            play.innerHTML = '<i class="fas fa-play"></i>';
-            if (pick.pr.audio_url) {
-                const absStart = pick.pr.verse_start + p.start;
-                const absEnd = pick.pr.verse_start + p.end;
-                play.addEventListener('click', () => playSegment(pick.pr.audio_url, absStart, absEnd, play));
-            } else play.disabled = true;
-
-            const main = document.createElement('div');
-            main.className = 'wq-rec-main';
-            if (isRepeat) { const tag = document.createElement('span'); tag.className = 'wq-rec-repeat-tag'; tag.innerHTML = '<i class="fas fa-rotate-left"></i> إعادة'; main.appendChild(tag); }
-            const words = document.createElement('span');
-            words.className = 'wq-rec-words' + (isRepeat ? ' wq-rec-repeat-words' : '');
-            for (let wi = p.first_wpos; wi <= p.last_wpos; wi++) {
-                if (wi > p.first_wpos) words.appendChild(document.createTextNode(' '));
-                if (isRepeat) { const rs = document.createElement('span'); rs.className = 'wq-guide-w-repeat'; rs.textContent = d.words[wi] || ''; words.appendChild(rs); }
-                else words.appendChild(document.createTextNode(d.words[wi] || ''));
-            }
-            main.appendChild(words);
-
-            const meta = document.createElement('span');
-            meta.className = 'wq-rec-meta';
-            const dur = p.end - p.start;
-            let attest = '';
-            const stopW = p.last_wpos;
-            if (!isLast && !isRepeat && stopW < lastW) {
-                const sym = mushafByWpos.get(stopW);
-                if (sym === 'م') attest += '<span class="wq-must-badge">لازم</span>';
-                else if (sym && ['ج', 'ق', 'ص', 'ع'].includes(sym)) attest += `<span class="wq-mushaf-badge" title="علامة وقف مطبوعة في المصحف (${sym})">يوافق مصحفًا</span>`;
-                const u = uByWpos.get(stopW);
-                if (u && u.count > 0) attest += `<span class="wq-rec-cons${u.count === 1 ? ' wq-rec-cons-solo' : ''}" title="عدد القرّاء الذين يقفون هنا">${u.count === 1 ? 'انفرد' : toAr(u.count) + '/' + toAr(d.reciters_total)} <i class="fas fa-users"></i></span>`;
-            }
-            meta.innerHTML = attest
-                + `<span class="wq-rec-dur"><i class="fas fa-${isLast ? 'flag-checkered' : (isRepeat ? 'rotate-left' : 'lungs')}"></i> ${toAr(dur.toFixed(1))}ث</span>`;
-
-            line.append(badge, play, main, meta);
-            els.recPlan.appendChild(line);
-            prevLast = Math.max(prevLast, p.last_wpos);
-        });
+        els.recPlan.appendChild(buildSegmentRow(d, pick.pr, pick.name, lastW, markByWpos, soloSet));
     }
 
 

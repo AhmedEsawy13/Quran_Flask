@@ -1,5 +1,9 @@
 @font-face { font-family: 'UthmanicHafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'), url('../fonts/uthmanic_hafs_v20.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'UthmanicWarsh'; src: url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'), url('../fonts/uthmanic_warsh_v21.ttf') format('truetype'); font-display: swap; }
 .waqf-uthmanic { font-family: 'UthmanicHafs', serif; }
+/* ورش marks (e.g. صه) use the Warsh font so the glyph is the correct Warsh
+   waqf shape rather than the Hafs صلى. */
+.waqf-warsh { font-family: 'UthmanicWarsh', 'UthmanicHafs', serif; }
 
 :root {
     --wq-bg: #f4f4f9; --wq-surface: #ffffff; --wq-surface-2: #f0f1f7;
