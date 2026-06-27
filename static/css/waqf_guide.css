@@ -189,6 +189,10 @@ body { margin: 0; background: var(--wq-bg); color: var(--wq-text);
 .wq-rec-line.wq-rec-over .wq-rec-num { background: var(--wq-solo); }
 .wq-rec-line.wq-rec-over .wq-rec-dur i { color: var(--wq-solo); }
 
+.wq-rec-cap { color: var(--wq-text-muted); font-size: 0.85rem; font-weight: 600; }
+.wq-qasr-note { display: inline-block; font-size: 0.7rem; font-weight: 700; padding: 1px 9px; border-radius: 999px;
+    color: var(--wq-solo); background: var(--wq-solo-soft); cursor: help; white-space: nowrap; }
+
 /* «إعادة» segment — a re-read phrase, set apart from the reading segments */
 .wq-rec-repeat-line { background: var(--wq-repeat-soft);
     border-color: color-mix(in srgb, var(--wq-repeat) 35%, transparent);

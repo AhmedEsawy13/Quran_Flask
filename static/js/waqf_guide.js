@@ -856,283 +856,116 @@
         playSegment(det.audio_url, det.verse_start + startT, det.verse_start + stops[idx].time, btn);
     }
 
-    // Classify printed-mushaf marks into breath rules.
-    function waqfCategories(d) {
-        const lazim = new Set(), forbidden = new Set(), saktah = new Set(), positive = new Set();
-        (d.mushafs || []).forEach(m => m.marks.forEach(mk => {
-            if (mk.symbol === 'م') lazim.add(mk.wpos);
-            else if (mk.symbol === 'لا') forbidden.add(mk.wpos);
-            else if (mk.symbol === 'س') saktah.add(mk.wpos);
-            if (['م', 'ج', 'ق', 'ص', 'ع'].includes(mk.symbol)) positive.add(mk.wpos);
-        }));
-        forbidden.forEach(w => { if (positive.has(w)) forbidden.delete(w); }); // a real stop elsewhere wins
-        return { lazim, forbidden, saktah };
-    }
-
     function render(d) {
-        clearPlaying(); audio.pause();
+        clearPlaying(); audio.pause(); if (ytPlayer) ytPlayer.pause(); audioStopAt = null;
         renderVerse(d);
         renderRecommendation(d);
         renderMatrix(d);
         renderReciters(d);
     }
 
-    /* ── breath recommendation ─────────────────────────────────── */
-    function cumAt(d, wpos) {
-        const t = d.ref_times && d.ref_times[wpos];
-        return (typeof t === 'number') ? t : 0;
-    }
-    // Breath plan: keep each breath ≤ L seconds, breathing only at attested
-    // reciter stops — but ALWAYS stop at a وقف لازم (م, mandatory hard-cut),
-    // and NEVER breathe at a سكتة (س, pause-without-breath) or a لا (no-stop).
-    //
-    // For short breath on long verses (e.g. 4:23, 72s), mushaf-backed stops
-    // (where any mushaf has ص/ج/ق AND at least one reciter confirms) become
-    // anchor points — giving the plan structure even when few reciters agree.
-    //
-    // Within each span between hard cuts, prefer stops with higher reciter
-    // consensus + mushaf backing: score = consensus_ratio * 0.3 + mushaf * 0.2
-    // + position_ratio * 0.5, so stops where reciters AND mushafs agree land
-    // naturally on the strongest positions.
-    function recommendBreaths(d, L) {
-        const cats = waqfCategories(d);
-        const lastW = d.words.length - 1;
-        const total = d.reciters_total || 1;
-        const majorityN = Math.floor(total / 2) + 1;
-
-        // Effective breath count: forward stops + repeat from_wpos.
-        // A reciter who pauses at word 10 and backs up to re-read BREATHED at
-        // word 10 — that's a valid breathing point even though it's not a waqf.
-        const breathCount = new Map();
-        (d.union_stops || []).forEach(u => breathCount.set(u.wpos, u.count));
-        (d.reciters || []).forEach(r => {
-            (d.per_reciter[r.id].repeats || []).forEach(rp => {
-                breathCount.set(rp.from_wpos, (breathCount.get(rp.from_wpos) || 0) + 1);
-            });
+    /* ── ترشيح القراءة حسب نَفَسك ───────────────────────────────────
+       Instead of synthesising a plan, pick a REAL reciter whose natural breath
+       matches the chosen level and show exactly how HE recites the verse — his
+       own phrases, his own audio. Breath capacity is measured in WORDS held per
+       single breath (the longest phrase), not seconds, so a fast قصر-المنفصل
+       reciter isn't mislabeled "short-breathed" merely for reciting the same
+       words faster (his shorter clip is pace, not lung). قصير/متوسط/طويل = the
+       reciter with the fewest / median / most words in his longest breath. */
+    function reciterBreathProfile(d, r) {
+        const pr = d.per_reciter[r.id];
+        const phs = (pr.phrases || []).filter(p => p.last_wpos >= p.first_wpos);
+        if (!phs.length) return null;
+        let maxW = 0, maxWsec = 0;
+        phs.forEach(p => {
+            const w = p.last_wpos - p.first_wpos + 1, s = p.end - p.start;
+            if (w > maxW || (w === maxW && s > maxWsec)) { maxW = w; maxWsec = s; }
         });
-
-        // Mushaf marks at each wpos.
-        const mushafAtWpos = new Set();
-        (d.mushafs || []).forEach(m => m.marks.forEach(mk => {
-            if (['م', 'ج', 'ق', 'ص', 'ع'].includes(mk.symbol)) mushafAtWpos.add(mk.wpos);
-        }));
-
-        // Mushaf-backed stops: any mushaf mark + at least one reciter breathes.
-        const mushafBacked = new Set([...breathCount.keys()]
-            .filter(w => mushafAtWpos.has(w) && w < lastW
-                && !cats.lazim.has(w) && !cats.saktah.has(w) && !cats.forbidden.has(w)));
-
-        // Consensus: majority of reciters breathe at this position (forward OR repeat).
-        const consensusMandatory = (L >= BREATH.medium)
-            ? new Set([...breathCount.entries()]
-                .filter(([w, c]) => c >= majorityN && w < lastW
-                    && !cats.lazim.has(w) && !cats.saktah.has(w) && !cats.forbidden.has(w))
-                .map(([w]) => w))
-            : new Set();
-
-        // For short breath on long verses: mushaf-backed positions as anchors.
-        const verseDur = d.ref_full || 0;
-        const needAnchors = L < BREATH.medium && verseDur > L * 3;
-        const anchors = needAnchors ? mushafBacked : new Set();
-
-        const hardCuts = new Set([...cats.lazim, ...consensusMandatory, ...anchors]);
-        const mandatory = [...hardCuts].filter(w => w < lastW).sort((a, b) => a - b);
-
-        // All breathing positions (forward + repeat) as optional candidates.
-        const optional = [...breathCount.keys()]
-            .filter(w => w < lastW && !cats.saktah.has(w) && !cats.forbidden.has(w) && !hardCuts.has(w))
-            .sort((a, b) => a - b);
-
-        const breaths = [];
-        let prevWpos = -1, prevCum = 0;
-        for (const spanEnd of [...mandatory, lastW]) {
-            const opts = optional.filter(w => w > prevWpos && w < spanEnd);
-            let curCum = prevCum, i = 0;
-            while (i < opts.length) {
-                const remaining = cumAt(d, spanEnd) - curCum;
-                if (remaining <= L) break;
-
-                const cands = [];
-                for (let j = i; j < opts.length; j++) {
-                    const dur = cumAt(d, opts[j]) - curCum;
-                    if (dur > L) break;
-                    cands.push(j);
-                }
-                if (!cands.length) { breaths.push(opts[i]); curCum = cumAt(d, opts[i]); i += 1; continue; }
-
-                let bestJ = cands[cands.length - 1], bestScore = -1;
-                const maxDur = cumAt(d, opts[cands[cands.length - 1]]) - curCum;
-                for (const j of cands) {
-                    const dur = cumAt(d, opts[j]) - curCum;
-                    const posRatio = maxDur > 0 ? dur / maxDur : 1;
-                    const consRatio = (breathCount.get(opts[j]) || 1) / total;
-                    const hasMushaf = mushafBacked.has(opts[j]) ? 1 : 0;
-                    const score = consRatio * 0.3 + hasMushaf * 0.2 + posRatio * 0.5;
-                    if (score > bestScore) { bestScore = score; bestJ = j; }
-                }
-                breaths.push(opts[bestJ]); curCum = cumAt(d, opts[bestJ]); i = bestJ + 1;
-            }
-            if (spanEnd !== lastW) breaths.push(spanEnd);
-            prevWpos = spanEnd; prevCum = cumAt(d, spanEnd);
-        }
-        return { breaths, breathCount, mandatory: cats.lazim, consensusMandatory, mushafBacked: anchors, saktah: cats.saktah };
+        return { id: r.id, name: pr.name_ar || r.name_ar, pr, phrases: phs,
+                 maxW, maxWsec, nseg: phs.length, qasr: !!pr.qasr_munfasil };
     }
-    function renderRecommendation(d) {
-        const canPlan = !!d.ref_times && d.words.length > 0;
-        els.recCard.hidden = !canPlan;
-        if (!canPlan) return;
-        const L = state.breathL;
-        const { breaths, breathCount, mandatory, consensusMandatory, mushafBacked, saktah } = recommendBreaths(d, L);
-        const lastW = d.words.length - 1;
-        const bounds = [-1, ...breaths, lastW];
-        const nBreaths = bounds.length - 1;
-        const ref = d.per_reciter[d.ref_reciter];
 
+    function renderRecommendation(d) {
+        const profiles = (d.reciters || []).map(r => reciterBreathProfile(d, r)).filter(Boolean);
+        els.recCard.hidden = !profiles.length || !d.words.length;
+        if (els.recCard.hidden) return;
+
+        // Rank by breath capacity: words per breath (pace-fair), ties → seconds.
+        profiles.sort((a, b) => a.maxW - b.maxW || a.maxWsec - b.maxWsec);
+        const L = state.breathL;
+        const pick = L <= BREATH.short ? profiles[0]
+            : L >= BREATH.long ? profiles[profiles.length - 1]
+                : profiles[Math.floor((profiles.length - 1) / 2)];
         const label = L <= BREATH.short ? 'قصير' : L >= BREATH.long ? 'طويل' : 'متوسط';
-        let summary = `بنَفَس <b>${label}</b> (~${toAr(L)}ث للنفَس) تُقرأ الآية في `
-            + `<b>${toAr(nBreaths)}</b> ${nBreaths === 1 ? 'نفَس واحد' : (nBreaths === 2 ? 'نفَسين' : 'أنفاس')}`
-            + ` — قِف عند المواضع المُبيّنة.`;
-        if (mandatory.size) summary += ` <span class="wq-must-note">يجب الوقف عند علامة اللزوم (م).</span>`;
-        if (consensusMandatory.size) summary += ` <span class="wq-consensus-note">اتفق أغلب القرّاء على الوقف في مواضع، فاعتُمدت نقاط وقف ثابتة.</span>`;
-        if (mushafBacked && mushafBacked.size) summary += ` <span class="wq-mushaf-note">استُخدمت علامات المصحف المطبوعة (ص/ج/ق) التي يؤكدها قارئ كنقاط وقف.</span>`;
-        if (saktah.size) summary += ` <span class="wq-sakt-note">السكتة (س) ليست موضع تنفّس.</span>`;
-        if (ref && ref.name_ar) {
-            summary += `<br><span class="wq-ref-note" title="اخترنا قراءة هذا القارئ لأنه الأقرب لمتوسط زمن القرّاء وأقلّهم إعادات، فتُستخدم وتيرته لتقسيم الأنفاس بدقّة بصرف النظر عن طول النفَس المختار">`
-                + `<i class="fas fa-circle-info"></i> الأزمنة مقاسة على قراءة <b>${ref.name_ar}</b>، وزر <i class="fas fa-play"></i> يشغّل من صوته</span>`;
-        }
+        const wWord = n => n <= 2 ? 'كلمتان' : n <= 10 ? 'كلمات' : 'كلمة';
+
+        let summary = `نَفَس <b>${label}</b> — هكذا يقرؤها <b>${pick.name}</b>`
+            + `<span class="wq-rec-cap"> أطول نفَس ${toAr(pick.maxW)} ${wWord(pick.maxW)} (~${toAr(pick.maxWsec.toFixed(1))}ث) · ${toAr(pick.nseg)} مقاطع</span>`;
+        if (pick.qasr) summary += ` <span class="wq-qasr-note" title="يقرأ بقصر المدّ المنفصل (حركتان)، فأداؤه أسرع ويسع كلماتٍ أكثر في النفَس الواحد">قصر المنفصل</span>`;
+        summary += `<br><span class="wq-ref-note"><i class="fas fa-circle-info"></i> اختر سعة نفَسك أعلاه؛ نعرض قارئًا نفَسه قصير/متوسط/طويل فعلاً — لا تقسيمًا مصطنعًا — وزر <i class="fas fa-play"></i> يشغّل من صوته.</span>`;
         els.recSummary.innerHTML = summary;
 
+        // Annotate each stop with printed-mushaf mark + how many reciters stop there.
         const uByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u]));
-        const total = d.reciters_total || 1;
-        const majorityN = Math.floor(total / 2) + 1;
-
-        // Reciter repeats (pause → back up → re-read a phrase), merged by span.
-        // A repeat is an INDIVIDUAL choice: at a strong waqf most reciters simply
-        // breathe and continue (وصل), and only a few back up to re-read. The breath
-        // plan recommends the MAJORITY reading, so a repeat is shown as its own
-        // «إعادة» segment ONLY when most reciters actually do it — a back-up by one
-        // or two قرّاء is not a recommendation and must not break the flow.
-        const repeatSpans = new Map();   // "to-from" → {to_wpos, from_wpos, names:Set}
-        d.reciters.forEach(r => (d.per_reciter[r.id].repeats || []).forEach(rp => {
-            const key = rp.to_wpos + '-' + rp.from_wpos;
-            let p = repeatSpans.get(key);
-            if (!p) { p = { to_wpos: rp.to_wpos, from_wpos: rp.from_wpos, names: new Set() }; repeatSpans.set(key, p); }
-            p.names.add(r.name_ar);
-        }));
-        const allRepeats = [...repeatSpans.values()].filter(p => p.names.size >= majorityN);
+        const mushafByWpos = new Map();
+        (d.mushafs || []).forEach(m => m.marks.forEach(mk => { if (!mushafByWpos.has(mk.wpos)) mushafByWpos.set(mk.wpos, mk.symbol); }));
+        const lastW = d.words.length - 1;
 
         els.recPlan.innerHTML = '';
-        for (let k = 0; k < bounds.length - 1; k++) {
-            const from = bounds[k] + 1, to = bounds[k + 1];
-            const segDur = cumAt(d, to) - (k === 0 ? 0 : cumAt(d, bounds[k]));
-            const isLast = k === bounds.length - 2;
-            const endsMandatory = !isLast && mandatory.has(to);
-            const endsConsensus = !isLast && !endsMandatory && consensusMandatory.has(to);
-            const endsMushaf = !isLast && !endsMandatory && !endsConsensus && mushafBacked && mushafBacked.has(to);
-            const u = uByWpos.get(to);
+        let prevLast = -1, segNo = 0;
+        pick.phrases.forEach((p, i) => {
+            const isRepeat = p.first_wpos <= prevLast;     // backed up to re-read
+            const isLast = i === pick.phrases.length - 1;
             const line = document.createElement('div');
-            line.className = 'wq-rec-line' + (segDur > L + 0.5 ? ' wq-rec-over' : '');
+            line.className = 'wq-rec-line' + (isRepeat ? ' wq-rec-repeat-line' : '');
 
-            const num = document.createElement('span');
-            num.className = 'wq-rec-num'; num.textContent = toAr(k + 1);
+            const badge = document.createElement('span');
+            if (isRepeat) { badge.className = 'wq-rec-num wq-rec-repeat-num'; badge.innerHTML = '<i class="fas fa-rotate-left"></i>'; badge.title = 'أعاد القارئ القراءة من هنا'; }
+            else { segNo += 1; badge.className = 'wq-rec-num'; badge.textContent = toAr(segNo); }
 
             const play = document.createElement('button');
             play.className = 'wq-play'; play.type = 'button';
             play.title = 'استمع لهذا المقطع'; play.setAttribute('aria-label', 'استماع');
             play.innerHTML = '<i class="fas fa-play"></i>';
-            if (ref && ref.audio_url) {
-                const absStart = ref.verse_start + (from > 0 ? cumAt(d, from - 1) : 0);
-                const absEnd = ref.verse_start + cumAt(d, to);
-                play.addEventListener('click', () => playSegment(ref.audio_url, absStart, absEnd, play));
+            if (pick.pr.audio_url) {
+                const absStart = pick.pr.verse_start + p.start;
+                const absEnd = pick.pr.verse_start + p.end;
+                play.addEventListener('click', () => playSegment(pick.pr.audio_url, absStart, absEnd, play));
             } else play.disabled = true;
 
-            // The segment text, exactly as recited — one clean phrase, no inline marks.
             const main = document.createElement('div');
             main.className = 'wq-rec-main';
+            if (isRepeat) { const tag = document.createElement('span'); tag.className = 'wq-rec-repeat-tag'; tag.innerHTML = '<i class="fas fa-rotate-left"></i> إعادة'; main.appendChild(tag); }
             const words = document.createElement('span');
-            words.className = 'wq-rec-words';
-            for (let wi = from; wi <= to; wi++) {
-                if (wi > from) words.appendChild(document.createTextNode(' '));
-                words.appendChild(document.createTextNode(d.words[wi] || ''));
+            words.className = 'wq-rec-words' + (isRepeat ? ' wq-rec-repeat-words' : '');
+            for (let wi = p.first_wpos; wi <= p.last_wpos; wi++) {
+                if (wi > p.first_wpos) words.appendChild(document.createTextNode(' '));
+                if (isRepeat) { const rs = document.createElement('span'); rs.className = 'wq-guide-w-repeat'; rs.textContent = d.words[wi] || ''; words.appendChild(rs); }
+                else words.appendChild(document.createTextNode(d.words[wi] || ''));
             }
             main.appendChild(words);
 
             const meta = document.createElement('span');
             meta.className = 'wq-rec-meta';
-            // a mandatory stop is always flagged (even when reciters also stop there);
-            // otherwise show how many of the reciters actually stop at this point.
+            const dur = p.end - p.start;
             let attest = '';
-            if (!isLast) {
-                if (endsMandatory) attest += '<span class="wq-must-badge">لازم</span>';
-                else if (endsConsensus) attest += `<span class="wq-consensus-badge" title="اتفق أغلب القرّاء (${toAr(u ? u.count : 0)}/${toAr(d.reciters_total)}) على الوقف هنا، فاعتُمد نقطة وقف ثابتة بصرف النظر عن طول النفَس">وقف الأغلبية</span>`;
-                else if (endsMushaf) attest += '<span class="wq-mushaf-badge" title="علامة وقف مطبوعة في المصحف يوافقها قارئ">يوافق مصحفًا</span>';
-                const bc = breathCount.get(to) || (u ? u.count : 0);
-                if (bc > 0) attest += `<span class="wq-rec-cons${bc === 1 ? ' wq-rec-cons-solo' : ''}" title="عدد القرّاء الذين يتنفّسون هنا (وقف أو إعادة)">${bc === 1 ? 'انفرد' : toAr(bc) + '/' + toAr(d.reciters_total)} <i class="fas fa-users"></i></span>`;
+            const stopW = p.last_wpos;
+            if (!isLast && !isRepeat && stopW < lastW) {
+                const sym = mushafByWpos.get(stopW);
+                if (sym === 'م') attest += '<span class="wq-must-badge">لازم</span>';
+                else if (sym && ['ج', 'ق', 'ص', 'ع'].includes(sym)) attest += `<span class="wq-mushaf-badge" title="علامة وقف مطبوعة في المصحف (${sym})">يوافق مصحفًا</span>`;
+                const u = uByWpos.get(stopW);
+                if (u && u.count > 0) attest += `<span class="wq-rec-cons${u.count === 1 ? ' wq-rec-cons-solo' : ''}" title="عدد القرّاء الذين يقفون هنا">${u.count === 1 ? 'انفرد' : toAr(u.count) + '/' + toAr(d.reciters_total)} <i class="fas fa-users"></i></span>`;
             }
             meta.innerHTML = attest
-                + `<span class="wq-rec-dur"><i class="fas fa-${isLast ? 'flag-checkered' : 'lungs'}"></i> ${toAr(segDur.toFixed(1))}ث</span>`;
+                + `<span class="wq-rec-dur"><i class="fas fa-${isLast ? 'flag-checkered' : (isRepeat ? 'rotate-left' : 'lungs')}"></i> ${toAr(dur.toFixed(1))}ث</span>`;
 
-            line.append(num, play, main, meta);
+            line.append(badge, play, main, meta);
             els.recPlan.appendChild(line);
-
-            // Emit any repeat whose pause point (from_wpos) falls in this segment,
-            // as its own distinct «إعادة» card, right after the reading segment.
-            allRepeats
-                .filter(p => p.from_wpos >= from && p.from_wpos <= to)
-                .sort((a, b) => a.to_wpos - b.to_wpos || a.from_wpos - b.from_wpos)
-                .forEach(p => els.recPlan.appendChild(buildRepeatSegment(d, p, ref)));
-        }
+            prevLast = Math.max(prevLast, p.last_wpos);
+        });
     }
 
-    // A standalone «إعادة» segment: the phrase a reciter re-reads after backing
-    // up (words to_wpos..from_wpos), styled distinctly from a reading segment.
-    function buildRepeatSegment(d, p, ref) {
-        const line = document.createElement('div');
-        line.className = 'wq-rec-line wq-rec-repeat-line';
-
-        const badge = document.createElement('span');
-        badge.className = 'wq-rec-num wq-rec-repeat-num';
-        badge.innerHTML = '<i class="fas fa-rotate-left"></i>';
-        badge.title = 'مقطع إعادة';
-
-        const play = document.createElement('button');
-        play.className = 'wq-play'; play.type = 'button';
-        play.title = 'استمع لمقطع الإعادة'; play.setAttribute('aria-label', 'استماع');
-        play.innerHTML = '<i class="fas fa-play"></i>';
-        if (ref && ref.audio_url) {
-            const absStart = ref.verse_start + (p.to_wpos > 0 ? cumAt(d, p.to_wpos - 1) : 0);
-            const absEnd = ref.verse_start + cumAt(d, p.from_wpos);
-            play.addEventListener('click', () => playSegment(ref.audio_url, absStart, absEnd, play));
-        } else play.disabled = true;
-
-        const main = document.createElement('div');
-        main.className = 'wq-rec-main';
-        const tag = document.createElement('span');
-        tag.className = 'wq-rec-repeat-tag';
-        tag.innerHTML = '<i class="fas fa-rotate-left"></i> إعادة';
-        const words = document.createElement('span');
-        words.className = 'wq-rec-words wq-rec-repeat-words';
-        for (let wi = p.to_wpos; wi <= p.from_wpos; wi++) {
-            if (wi > p.to_wpos) words.appendChild(document.createTextNode(' '));
-            const rs = document.createElement('span');
-            rs.className = 'wq-guide-w-repeat';
-            rs.textContent = d.words[wi] || '';
-            words.appendChild(rs);
-        }
-        main.append(tag, words);
-
-        const meta = document.createElement('span');
-        meta.className = 'wq-rec-meta';
-        const names = [...p.names];
-        const repDur = cumAt(d, p.from_wpos) - (p.to_wpos > 0 ? cumAt(d, p.to_wpos - 1) : 0);
-        meta.innerHTML =
-            `<span class="wq-rec-cons wq-rec-cons-solo" title="يعيد قراءة هذا المقطع: ${names.join('، ')}">`
-            + `${names.length === 1 ? 'انفرد' : toAr(names.length) + '/' + toAr(d.reciters_total)} <i class="fas fa-rotate-left"></i></span>`
-            + `<span class="wq-rec-dur"><i class="fas fa-rotate-left"></i> ${toAr(repDur.toFixed(1))}ث</span>`;
-
-        line.append(badge, play, main, meta);
-        return line;
-    }
 
     function stopChip(u, total) {
         const chip = document.createElement('span');
