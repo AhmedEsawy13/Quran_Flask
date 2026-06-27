@@ -921,12 +921,15 @@
         els.recSummary.innerHTML = summary;
 
         const uByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u]));
+        const total = d.reciters_total || 1;
+        const majorityN = Math.floor(total / 2) + 1;
 
-        // Reciter repeats (pause → back up → re-read a phrase). Each becomes its
-        // OWN «إعادة» segment — shown right after the reading segment whose end is
-        // the pause point — instead of being mashed into the reading line. Each
-        // breath segment therefore reads as the reciter would actually recite it.
-        // Identical spans from several reciters merge into one card.
+        // Reciter repeats (pause → back up → re-read a phrase), merged by span.
+        // A repeat is an INDIVIDUAL choice: at a strong waqf most reciters simply
+        // breathe and continue (وصل), and only a few back up to re-read. The breath
+        // plan recommends the MAJORITY reading, so a repeat is shown as its own
+        // «إعادة» segment ONLY when most reciters actually do it — a back-up by one
+        // or two قرّاء is not a recommendation and must not break the flow.
         const repeatSpans = new Map();   // "to-from" → {to_wpos, from_wpos, names:Set}
         d.reciters.forEach(r => (d.per_reciter[r.id].repeats || []).forEach(rp => {
             const key = rp.to_wpos + '-' + rp.from_wpos;
@@ -934,7 +937,7 @@
             if (!p) { p = { to_wpos: rp.to_wpos, from_wpos: rp.from_wpos, names: new Set() }; repeatSpans.set(key, p); }
             p.names.add(r.name_ar);
         }));
-        const allRepeats = [...repeatSpans.values()];
+        const allRepeats = [...repeatSpans.values()].filter(p => p.names.size >= majorityN);
 
         els.recPlan.innerHTML = '';
         for (let k = 0; k < bounds.length - 1; k++) {
