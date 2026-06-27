@@ -38,18 +38,19 @@ def test_mushaf_agreement_shape_and_invariants(client):
     م (لازم) compliance is near-universal; ص (صلى) genuinely varies across reciters."""
     j = client.get("/api/waqf-research/mushaf-agreement").get_json()
     assert j["gap_ms"] == 1
-    assert set(j["marks"]) == {"م", "ق", "ص", "لا"}
-    assert "المدينة" in j["mushafs"]
+    # المدينة follows the Hafs مارks; ورش has only صه (a STOP mark).
+    assert {m["sym"] for m in j["mark_config"]["المدينة"]} == {"م", "ق", "ص", "لا"}
+    assert [m["sym"] for m in j["mark_config"]["ورش"]] == ["ص"]
+    assert j["mark_config"]["ورش"][0]["dir"] == "stop"      # صه = قف, opposite of حفص صلى
+    assert {m["sym"] for m in j["mark_config"]["الأزهر"]} == {"م", "لا"}  # ج only otherwise
+    assert "ورش" in j["mushafs"]
     ag = j["agreement"]["المدينة"]
-    # Every reciter present with all four mark buckets.
     for r in j["reciters"]:
-        cell = ag[r["id"]]
-        assert set(cell) == {"م", "ق", "ص", "لا"}
-        for m, (a, t) in cell.items():
+        for m, (a, t) in ag[r["id"]].items():
             assert 0 <= a <= t  # agreements never exceed opportunities
 
     def rate(rid, m):
-        a, t = ag[rid]["م" if m == "م" else m]
+        a, t = ag[rid][m]
         return a / t if t else None
 
     # م (mandatory) is honoured by essentially everyone.
@@ -58,6 +59,20 @@ def test_mushaf_agreement_shape_and_invariants(client):
     # ص (continue-preferred) is the discriminating signal: a real spread exists.
     sila_rates = [rate(r["id"], "ص") for r in j["reciters"] if ag[r["id"]]["ص"][1]]
     assert max(sila_rates) - min(sila_rates) > 0.3
+
+
+def test_mushaf_agreement_cases_drilldown(client):
+    """Drill-down lists the verses where a reciter went against a mark."""
+    j = client.get("/api/waqf-research/mushaf-agreement/cases"
+                   "?mushaf=الشمرلي&reciter=ahmed_amer&mark=لا").get_json()
+    assert j["directive"] == "nostop"
+    assert j["disagreed"] >= 0
+    assert j["shown"] == len(j["verses"])
+    for v in j["verses"]:
+        assert 1 <= v["surah"] <= 114 and v["ayah"] >= 1
+    # bad params → 400
+    assert client.get("/api/waqf-research/mushaf-agreement/cases"
+                      "?mushaf=X&reciter=Y&mark=Z").status_code == 400
 
 
 def test_error_responses_are_not_cached(client):

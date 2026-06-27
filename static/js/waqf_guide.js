@@ -504,13 +504,9 @@
 
     /* ── اتفاق القرّاء مع المصاحف ──────────────────────────────── */
     let agreementCache = null, agreementMushaf = null;
-    // Mark directive + how "agreement" is read for each.
-    const AGREE_MARKS = [
-        { sym: 'م', glyph: 'ۘ', name: 'لازم', verb: 'يقف', desc: 'يجب الوقف — نَعُدّه موافقًا إذا وقف' },
-        { sym: 'ق', glyph: 'ۗ', name: 'قلى', verb: 'يقف', desc: 'الوقف أولى — موافق إذا وقف' },
-        { sym: 'ص', glyph: 'ۖ', name: 'صلى', verb: 'يصِل', desc: 'الوصل أولى — موافق إذا وصَل (لم يقف)' },
-        { sym: 'لا', glyph: 'ۙ', name: 'لا وقف', verb: 'يصِل', desc: 'لا يوقف عليه — موافق إذا لم يقف' },
-    ];
+    // How "agreement" reads, derived from each mark's directive (per mushaf).
+    const agreeVerb = m => m.dir === 'stop' ? 'يقف' : 'يصِل';
+    const agreeDesc = m => `${m.name} — موافق إذا ${m.dir === 'stop' ? 'وقف' : 'وصَل (لم يقف)'}`;
 
     async function loadAgreement() {
         if (agreementCache) { renderAgreement(); return; }
@@ -526,31 +522,62 @@
     function renderAgreement() {
         const d = agreementCache;
         const ver = agreementMushaf;
+        const marks = d.mark_config[ver] || [];
         const pct = (cell) => cell && cell[1] ? Math.round(cell[0] / cell[1] * 100) : null;
         const tabs = (d.mushafs || []).map(m =>
             `<button class="wq-stats-subtab${m === ver ? ' wq-lab-tab-active' : ''}" data-mushaf="${m}">${m}</button>`).join('');
+        const warsh = ver === 'ورش'
+            ? '<span class="wq-agree-leg wq-agree-leg-j"><b>صه</b> في الورش = «اصمت / قف هنا» (عكس صلى عند حفص) — فالموافقة هنا أن يقف القارئ.</span>'
+            : '';
         const legend = '<div class="wq-agree-legend">'
-            + AGREE_MARKS.map(m => `<span class="wq-agree-leg"><span class="waqf-uthmanic wq-agree-glyph" data-m="${m.sym}">${m.glyph}</span> <b>${m.name}</b> — ${m.desc}</span>`).join('')
+            + marks.map(m => `<span class="wq-agree-leg"><span class="waqf-uthmanic wq-agree-glyph">${m.glyph}</span> <b>${m.name}</b> — ${agreeDesc(m)}</span>`).join('')
+            + warsh
             + `<span class="wq-agree-leg wq-agree-leg-j"><b>ج (جائز)</b> — الوقف والوصل سواء، فلا يُحتسب (في هذا المصحف ${toAr(d.jaiz[ver] || 0)} موضعًا)</span>`
             + '</div>';
-        const head = `<div class="wq-solos-desc">مدى موافقة وقوف كل قارئ لعلامات المصحف عبر القرآن كله — لكل علامة على حدة (النسبة = المواضع الموافقة ÷ مجموع مواضع العلامة). م/ق غالبًا قرب ١٠٠٪ لاتفاق القرّاء عليها؛ <b>ص</b> هي الأكشف للفروق: مَن يقف كثيرًا تنخفض نسبته، ومَن يَصِل تطول.</div>`;
-        // table: rows = reciters, cols = marks
+        const head = `<div class="wq-solos-desc">مدى موافقة وقوف كل قارئ لعلامات هذا المصحف عبر القرآن كله — لكل علامة على حدة (النسبة = المواضع الموافقة ÷ مجموعها). <b>اضغط أي خلية</b> لعرض الآيات التي خالف فيها القارئ العلامة.</div>`;
         const rows = (d.reciters || []).map(r => {
             const ag = d.agreement[ver][r.id];
-            const cells = AGREE_MARKS.map(m => {
+            const cells = marks.map(m => {
                 const c = ag[m.sym], p = pct(c);
                 if (p === null) return '<td class="wq-agree-cell wq-agree-na">—</td>';
                 const lvl = p >= 80 ? 'hi' : p >= 50 ? 'mid' : 'lo';
-                return `<td class="wq-agree-cell wq-agree-${lvl}" title="${m.name}: وافق في ${toAr(c[0])} من ${toAr(c[1])} (${m.desc})"><b>${toAr(p)}٪</b><span class="wq-agree-frac">${toAr(c[0])}/${toAr(c[1])}</span></td>`;
+                const diff = c[1] - c[0];
+                return `<td class="wq-agree-cell wq-agree-${lvl}" data-rid="${r.id}" data-mark="${m.sym}"
+                    title="${m.name}: وافق ${toAr(c[0])} من ${toAr(c[1])} — خالف في ${toAr(diff)} (اضغط للعرض)">
+                    <b>${toAr(p)}٪</b><span class="wq-agree-frac">${toAr(c[0])}/${toAr(c[1])}</span></td>`;
             }).join('');
-            const qasr = r.qasr ? '<span class="wq-agree-qasr" title="قصر المنفصل — أداء أسرع">قصر</span>' : '';
+            const qasr = r.qasr ? '<span class="wq-agree-qasr" title="يقرأ بقصر المدّ المنفصل — أداء أسرع">قصر المنفصل</span>' : '';
             return `<tr><td class="wq-agree-rname">${r.name_ar}${qasr}</td>${cells}</tr>`;
         }).join('');
-        const header = `<tr><th>القارئ</th>${AGREE_MARKS.map(m => `<th title="${m.desc}"><span class="waqf-uthmanic wq-agree-glyph" data-m="${m.sym}">${m.glyph}</span><span class="wq-agree-th">${m.name}<br><small>${m.verb}</small></span></th>`).join('')}</tr>`;
+        const header = `<tr><th>القارئ</th>${marks.map(m => `<th title="${agreeDesc(m)}"><span class="waqf-uthmanic wq-agree-glyph">${m.glyph}</span><span class="wq-agree-th">${m.name}<br><small>${agreeVerb(m)}</small></span></th>`).join('')}</tr>`;
         els.agreementContent.innerHTML = head
             + `<div class="wq-agree-tabs">${tabs}</div>`
             + legend
-            + `<div class="wq-agree-scroll"><table class="wq-agree-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`;
+            + `<div class="wq-agree-scroll"><table class="wq-agree-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`
+            + '<div id="wq-agree-cases"></div>';
+    }
+
+    // Drill-down: the verses where a reciter went against a mushaf's mark.
+    async function showAgreementCases(rid, mark) {
+        const box = document.getElementById('wq-agree-cases');
+        if (!box) return;
+        const r = (agreementCache.reciters || []).find(x => x.id === rid);
+        const m = (agreementCache.mark_config[agreementMushaf] || []).find(x => x.sym === mark);
+        const went = m && m.dir === 'stop' ? 'لم يقف عند' : 'وقف عند';
+        box.innerHTML = '<div class="wq-research-loading">…جارٍ الجلب</div>';
+        try {
+            const q = `mushaf=${encodeURIComponent(agreementMushaf)}&reciter=${encodeURIComponent(rid)}&mark=${encodeURIComponent(mark)}`;
+            const j = await (await fetch('/api/waqf-research/mushaf-agreement/cases?' + q)).json();
+            if (!j.verses || !j.verses.length) { box.innerHTML = '<div class="wq-research-empty">لا مخالفات — وافق العلامة في كل المواضع.</div>'; return; }
+            const chips = j.verses.map(v => {
+                const sname = v.name || (state.surahs.find(s => s.number === v.surah) || {}).name || '';
+                return `<button class="wq-agree-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></button>`;
+            }).join('');
+            box.innerHTML = `<div class="wq-agree-cases-head">${r ? r.name_ar : ''} — <b>${m ? m.name : mark}</b>: `
+                + `${went} العلامة في <b>${toAr(j.disagreed)}</b> موضعًا`
+                + `${j.capped ? ` (عُرض أول ${toAr(j.shown)})` : ''}</div>`
+                + `<div class="wq-agree-cases-list">${chips}</div>`;
+        } catch { box.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
     }
 
     /* ── السكتات (Hafs obligatory pauses-without-breath) ───────── */
@@ -746,9 +773,18 @@
             await loadVerse(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-        els.agreementContent.addEventListener('click', e => {
+        els.agreementContent.addEventListener('click', async e => {
             const tab = e.target.closest('.wq-stats-subtab[data-mushaf]');
-            if (tab) { agreementMushaf = tab.dataset.mushaf; renderAgreement(); }
+            if (tab) { agreementMushaf = tab.dataset.mushaf; renderAgreement(); return; }
+            const cell = e.target.closest('.wq-agree-cell[data-rid]');
+            if (cell) { showAgreementCases(cell.dataset.rid, cell.dataset.mark); return; }
+            const cs = e.target.closest('.wq-agree-case');
+            if (cs) {
+                const s = +cs.dataset.s, a = +cs.dataset.a;
+                if (s !== state.surah) await loadAyahOptions(s);
+                await loadVerse(s, a);
+                if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
         els.statsContent.addEventListener('click', async e => {
             const st = e.target.closest('.wq-stats-subtab');
@@ -1158,7 +1194,7 @@
         d.reciters.forEach(r => {
             const det = d.per_reciter[r.id];
             const timeByWpos = new Map((det.stops || []).map(s => [s.wpos, s.time]));
-            const qasr = det.qasr_munfasil ? ' <span class="wq-qasr-mini" title="يقرأ بقصر المدّ المنفصل (حركتان) — قراءته أسرع">قصر</span>' : '';
+            const qasr = det.qasr_munfasil ? ' <span class="wq-qasr-mini" title="يقرأ بقصر المدّ المنفصل (حركتان) — قراءته أسرع">قصر المنفصل</span>' : '';
             body += `<tr><td class="wq-rname">${r.name_ar}${qasr}</td>`;
             cols.forEach(wpos => {
                 const u = uByWpos.get(wpos);
