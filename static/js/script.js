@@ -1599,20 +1599,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Normalise Warsh waqf raw DB values:
-    //   ر  → ۜ (U+06DC) رأس آية — verse-end pause
-    //   ص  → ۖ (U+06D6) وصل أولى — better to continue
+    //   ص  → ۖ (U+06D6) صه — "قف هنا" (وقف تام في الورش)
+    //   ر  → ۝ (U+06DD) رأس آية — verse end (ورش numbers verses differently from حفص)
     function normalizeWarshWaqfText(raw) {
         if (!raw || !raw.trim()) return '';
-        return raw.split(/[،,]/)
+        // A word may carry both (e.g. ٱلۡقَيُّومُ in 2:255 = "ر,ص"): emit صه, then ۝.
+        const out = [];
+        raw.split(/[،,]/)
             .map(t => t.trim())
             .filter(Boolean)
-            .map(t => {
-                if (t === 'ر' || t === '\u06DC') return '\u06DC'; // رأس آية
-                if (t === 'ص' || t === '\u06D6') return '\u06D6'; // وصل أولى
-                return ''; // drop unknown tokens \u2014 do not mislabel as \u0631\u0623\u0633 \u0622\u064A\u0629
-            })
-            .filter(Boolean)
-            .join('');
+            .forEach(t => {
+                if (t === 'ص' || t === '\u06D6') out.push('\u06D6'); // صه — قف هنا
+                else if (t === 'ر' || t === '\u06DD') out.push('\u06DD'); // رأس آية (۝)
+                // drop unknown tokens — do not mislabel
+            });
+        return out.join('');
     }
 
     // ── Waqf symbol meanings (display only, no color here) ─────────────────
@@ -1633,6 +1634,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         '\u21BA':   { meaning: 'وقف إعادة — ارجع للبداية' },
         '\u25B6':   { meaning: 'بداية الإعادة' },
         '\u06DC': { meaning: 'رأس آية — نهاية الآية وموضع الوقف (مصحف ورش)' },
+        '\u06DD': { meaning: 'رأس آية — نهاية الآية في عدّ ورش وموضع الوقف' },
         // Standard Unicode waqf glyphs (after normalisation)
         '\u06D6': { meaning: 'صلى — الأفضل الوصل' },
         '\u06D7': { meaning: 'قلى — الأفضل الوقف' },

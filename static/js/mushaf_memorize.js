@@ -210,11 +210,15 @@
     const isWarshMushafVersion = v => /ورش|warsh/i.test((v || '').toString());
     function normalizeWarshWaqfText(raw) {
         if (!raw || !raw.trim()) return '';
-        return raw.split(/[،,]/).map(t => t.trim()).filter(Boolean).map(t => {
-            if (t === 'ر' || t === 'ۜ') return 'ۜ';
-            if (t === 'ص' || t === 'ۖ') return 'ۖ';
-            return '';
-        }).filter(Boolean).join('');
+        // In ورش: ص → صه (ۖ, "قف هنا"), ر → رأس آية (the ۝ end-of-ayah rosette,
+        // U+06DD — ورش numbers verses differently from حفص). A word can carry both
+        // (e.g. ٱلۡقَيُّومُ in 2:255 = "ر,ص") — show صه first, then the ۝.
+        const out = [];
+        raw.split(/[،,]/).map(t => t.trim()).filter(Boolean).forEach(t => {
+            if (t === 'ص' || t === 'ۖ') out.push('ۖ');
+            else if (t === 'ر' || t === '۝') out.push('۝');
+        });
+        return out.join('');
     }
     const WAQF_GLYPH_MAP = {
         'م': 'ۘ', 'قلى': 'ۗ', 'قلي': 'ۗ', 'ق': 'ۗ', 'صلى': 'ۖ', 'صلي': 'ۖ', 'ص': 'ۖ',
@@ -236,6 +240,12 @@
         const n = normalizeNonWarshWaqfText(raw);
         if (/^[↺▶]+$/.test(n)) return null; // recording cues, not waqf
         return { text: n, extraClass: '' };
+    }
+    // The combining glyph(s) for an in-text (folded) waqf entry — used to render
+    // المدينة القديم exactly like the embedded المدينة الجديد marks.
+    function integratedWaqfGlyph(entry) {
+        const data = getWaqfDisplayData(entry && entry.symbols, entry && entry.version);
+        return data ? data.text : '';
     }
 
     /* ── Status / hint ─────────────────────────────────────────────── */
@@ -908,13 +918,30 @@
                         // Shemrly glyphs already include the printed ayah marker; only the
                         // letter-based sources need the ۝ ornament appended.
                         const raw = w.text || '';
+                        const entries = (w.waqf_symbols && Array.isArray(w.waqf_symbols)) ? w.waqf_symbols : [];
                         // Embedded waqf chars (ۖ-ۜ) live in the QPC text. They're
                         // Unicode combining marks, so wrapping them in a span and
                         // hiding it is unreliable (the mark still shapes onto the
                         // base letter). Instead strip them outright when the waqf
                         // toggle is off, and re-render on toggle (cheap, no fetch).
-                        const text = state.src === 'shamarly' ? raw
-                            : withAyahOrnament(waqfMarksOn() ? raw : stripEmbeddedWaqf(raw));
+                        //
+                        // المدينة القديم is rendered the SAME way as the embedded
+                        // المدينة الجديد marks — its glyph is folded INTO the word
+                        // text as a combining mark (replacing the new-print mark),
+                        // not drawn as a separate overlay box. Combining marks carry
+                        // no advance width, so the page metrics — and the fitted font
+                        // size — stay identical when switching between the two prints.
+                        const oldMadinah = entries.find(e => e && e.version === 'المدينة القديم');
+                        let text;
+                        if (state.src === 'shamarly') {
+                            text = raw;
+                        } else if (!waqfMarksOn()) {
+                            text = withAyahOrnament(stripEmbeddedWaqf(raw));
+                        } else if (oldMadinah) {
+                            text = withAyahOrnament(stripEmbeddedWaqf(raw) + integratedWaqfGlyph(oldMadinah));
+                        } else {
+                            text = withAyahOrnament(raw);   // embedded المدينة الجديد marks
+                        }
                         span.textContent = text;
                         span.dataset.text = text;
                         if (w.surah != null && w.ayah != null) {
@@ -924,9 +951,13 @@
                             span.dataset.wpos = String(pos);
                             ayahWPos.set(key, pos + 1);
                         }
-                        if (w.waqf_symbols && (Array.isArray(w.waqf_symbols) ? w.waqf_symbols.length : true)) {
-                            span._waqf = w.waqf_symbols;
-                            if (waqfMarksOn()) appendWaqfMarks(span, w.waqf_symbols);
+                        // Other selected prints (ورش، الأزهر، …) ride above the word
+                        // as an overlay stack. Both Madinah prints are drawn in-text
+                        // above, so keep them out of the overlay to avoid doubling.
+                        const overlay = entries.filter(e => e && e.version !== 'المدينة القديم' && e.version !== 'المدينة الجديد');
+                        if (overlay.length) {
+                            span._waqf = overlay;
+                            if (waqfMarksOn()) appendWaqfMarks(span, overlay);
                         }
                         inner.appendChild(span);
                         if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
@@ -1148,6 +1179,12 @@
 
             // Measure justified lines at this size, then scale so the median line
             // ~fills the width (98%). Proportional scaling keeps the ratio valid.
+            // Overlay waqf stacks are position:absolute and centred above the word;
+            // a wide one can overflow and inflate scrollWidth, which would shrink
+            // the fit (the page "jumps" when a mushaf overlay is switched on). Hide
+            // them for the measurement so the size depends only on the printed line.
+            const stacks = [...p.querySelectorAll('.waqf-stack')];
+            stacks.forEach(s => { s.style.display = 'none'; });
             const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
             const ratios = [];
             inners.forEach(inner => {
@@ -1159,6 +1196,7 @@
                 const nat = inner.scrollWidth;
                 if (nat > 0 && avail > 0) ratios.push(avail / nat);
             });
+            stacks.forEach(s => { s.style.display = ''; });
             if (ratios.length) {
                 ratios.sort((a, b) => a - b);
                 const med = ratios[Math.floor(ratios.length / 2)] || 1;
