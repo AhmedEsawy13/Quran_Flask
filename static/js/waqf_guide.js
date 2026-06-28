@@ -40,6 +40,7 @@
         'ع':  'ۛ',  // ۛ  معانقة
     };
     const waqfGlyph = s => WAQF_GLYPH[s] || s;
+    const waqfFontCls = mushafId => /ورش|warsh/i.test(mushafId || '') ? 'waqf-warsh' : 'waqf-uthmanic';
 
     // Breath presets (max comfortable seconds per breath).
     const BREATH = { short: 7, medium: 13, long: 20 };
@@ -207,7 +208,7 @@
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>'
+                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${v}</span>`).join('') + '</span>'
                 : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
             return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref} لرؤية وقوف القرّاء والمصاحف">
                 <span class="wq-research-ref">${sname} <b>${ref}</b></span>
@@ -292,7 +293,7 @@
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>'
+                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${v}</span>`).join('') + '</span>'
                 : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
             return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref}">
                 <span class="wq-research-ref">${sname} <b>${ref}</b></span>
@@ -376,7 +377,7 @@
                 const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
                 const ent = Object.entries(o.marks || {});
                 const marks = ent.length
-                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('')}</span>` : '';
+                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${v}</span>`).join('')}</span>` : '';
                 return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
                     <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
                     <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
@@ -437,7 +438,7 @@
             const pairHtml = pair.map(p => {
                 const ent = Object.entries(p.marks || {});
                 const marks = ent.length
-                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('')}</span>` : '';
+                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${v}</span>`).join('')}</span>` : '';
                 return `<span class="wq-muan-word">${p.word}</span>${marks}`;
             }).join('<span class="wq-muan-or">أو</span>');
             const agree = o.agreement === 'full'
@@ -458,7 +459,7 @@
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>' : '';
+                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${v}</span>`).join('') + '</span>' : '';
             const agree = o.agreement === 'full'
                 ? '<span class="wq-mand-agree" title="جميع المصاحف متفقة"><i class="fas fa-check-double"></i></span>'
                 : '<span class="wq-mand-partial" title="اختلاف بين المصاحف"><i class="fas fa-exclamation-triangle"></i></span>';
@@ -493,7 +494,7 @@
                 const ent = Object.entries(o.marks || {});
                 const marks = ent.length
                     ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ': ' + v).join(' · ')}">`
-                      + ent.map(([k, v]) => `<span class="wq-rmark waqf-uthmanic" data-m="${k}">${v}</span>`).join('') + '</span>' : '';
+                      + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${v}</span>`).join('') + '</span>' : '';
                 return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
                     <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
                     <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
@@ -1185,7 +1186,7 @@
                 const sym = markOf(m, wpos);
                 if (sym) {
                     const meta = symMeta(sym);
-                    body += `<td class="${strong}"><span class="wq-wsym waqf-uthmanic wq-w-${meta.cls}" title="${meta.name} — ${meta.desc}">${waqfGlyph(sym)}</span></td>`;
+                    body += `<td class="${strong}"><span class="wq-wsym ${waqfFontCls(m.id)} wq-w-${meta.cls}" title="${meta.name} — ${meta.desc}">${waqfGlyph(sym)}</span></td>`;
                 } else body += `<td class="${strong}"><span class="wq-cell-empty">·</span></td>`;
             });
             body += '</tr>';

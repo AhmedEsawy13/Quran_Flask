@@ -3,7 +3,7 @@
 .waqf-uthmanic { font-family: 'UthmanicHafs', serif; }
 /* ورش marks (e.g. صه) use the Warsh font so the glyph is the correct Warsh
    waqf shape rather than the Hafs صلى. */
-.waqf-warsh { font-family: 'UthmanicWarsh', 'UthmanicHafs', serif; }
+.waqf-warsh, .wq-wsym.waqf-warsh, .wq-rmark.waqf-warsh { font-family: 'UthmanicWarsh', 'UthmanicHafs', serif; }
 
 :root {
     --wq-bg: #f4f4f9; --wq-surface: #ffffff; --wq-surface-2: #f0f1f7;

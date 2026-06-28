@@ -797,11 +797,8 @@
     const nearestShemrlyPage = (page) =>
         SHEMRLY_PAGES.reduce((best, p) => Math.abs(p - page) < Math.abs(best - page) ? p : best, SHEMRLY_PAGES[0]);
     function waqfQuery() {
-        // Non-Shemrly sources use embedded waqf chars from QPC text (no DB needed).
-        // Shemrly needs its own DB overlay since the font renders its own marks.
-        if (state.src !== 'shamarly') return '';
         let versions = state.mushafVersions.slice();
-        if (!versions.includes('الشمرلي')) versions.unshift('الشمرلي');
+        if (state.src === 'shamarly' && !versions.includes('الشمرلي')) versions.unshift('الشمرلي');
         if (!versions.length) return '';
         return '?' + versions.map(v => 'mushaf_version=' + encodeURIComponent(v)).join('&');
     }
@@ -927,9 +924,9 @@
                             span.dataset.wpos = String(pos);
                             ayahWPos.set(key, pos + 1);
                         }
-                        if (state.src === 'shamarly') {
+                        if (w.waqf_symbols && (Array.isArray(w.waqf_symbols) ? w.waqf_symbols.length : true)) {
                             span._waqf = w.waqf_symbols;
-                            appendWaqfMarks(span, w.waqf_symbols);
+                            if (waqfMarksOn()) appendWaqfMarks(span, w.waqf_symbols);
                         }
                         inner.appendChild(span);
                         if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
@@ -2070,9 +2067,7 @@
         gateReciteFeature();
         syncSrcCapabilities();
         bindEvents();
-        // واقف-marks-by-mushaf feature removed from the UI: keep no version selected
-        // (Shemrly still injects its own marks via waqfQuery).
-        state.mushafVersions = [];
+        await loadWaqfPills();
         document.body.classList.toggle('mz-picking', !state.hideText);
         await loadReciters();
         syncBarLabels();
