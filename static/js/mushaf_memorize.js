@@ -1082,14 +1082,16 @@
     function sizePages() {
         const stage = els.stage;
         if (!stage) return;
-        const vh = window.innerHeight;
-        // Available height = the stage-area's OWN box (a stable, window-derived size),
-        // NOT the stage's live position. The stage is vertically centred, so reading
-        // its top made availH depend on the previously-rendered page's height — which
-        // resized the page frame on every navigation (the "auto-zoom"). The container
-        // box is independent of what's currently rendered, so the frame stays put.
-        const area = stage.closest('.mz-stage-area');
-        const availH = Math.max(320, (area ? area.clientHeight : (vh - 120)) - 16);
+        // Available height is derived ONLY from the viewport + fixed chrome — never
+        // from a rendered element's height. Reading the stage-area's clientHeight
+        // created a feedback loop (a taller page grew the scroll area, which grew the
+        // next page…), so the frame crept larger on every navigation. A pure
+        // window-based formula gives ONE fixed page box that stays put — the page
+        // simply sits centred in the stage.
+        const topbar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--mz-topbar-h')) || 64;
+        const toolbarReserve = 58;   // floating mushaf toolbar + its gap, above the stage
+        const vMargin = 24;          // breathing room top + bottom
+        const availH = Math.max(320, window.innerHeight - topbar - toolbarReserve - vMargin);
         const n = state.layoutMode === 'single' ? 1 : 2;
         const navAndGaps = 2 * 50 + 16;                 // room for the edge nav arrows
         const availW = Math.max(260, stage.clientWidth - navAndGaps);
