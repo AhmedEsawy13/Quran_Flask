@@ -505,8 +505,10 @@
     /* ── اتفاق القرّاء مع المصاحف ──────────────────────────────── */
     let agreementCache = null, agreementMushaf = null;
     // How "agreement" reads, derived from each mark's directive (per mushaf).
-    const agreeVerb = m => m.dir === 'stop' ? 'يقف' : 'يصِل';
-    const agreeDesc = m => `${m.name} — موافق إذا ${m.dir === 'stop' ? 'وقف' : 'وصَل (لم يقف)'}`;
+    const agreeVerb = m => m.dir === 'choice' ? 'نسبة الوقف' : m.dir === 'stop' ? 'يقف' : 'يصِل';
+    const agreeDesc = m => m.dir === 'choice'
+        ? 'جائز — نسبة وقفه عنده؛ الأعلى يعامله كقلى (يقف)، الأدنى كصلى (يصِل)'
+        : `${m.name} — موافق إذا ${m.dir === 'stop' ? 'وقف' : 'وصَل (لم يقف)'}`;
 
     async function loadAgreement() {
         if (agreementCache) { renderAgreement(); return; }
@@ -531,16 +533,34 @@
             ? '<span class="wq-agree-leg wq-agree-leg-j"><b>صه</b> في الورش = «اصمت / قف هنا» (عكس صلى عند حفص) — فالموافقة هنا أن يقف القارئ.</span>'
             : '';
         const legend = '<div class="wq-agree-legend">'
-            + marks.map(m => `<span class="wq-agree-leg"><span class="${glyphCls} wq-agree-glyph">${m.glyph}</span> <b>${m.name}</b> — ${agreeDesc(m)}</span>`).join('')
+            + marks.map(m => {
+                let desc = agreeDesc(m);
+                if (m.dir === 'choice') desc += ` (${toAr(d.jaiz[ver] || 0)} موضعًا)`;
+                return `<span class="wq-agree-leg"><span class="${glyphCls} wq-agree-glyph">${m.glyph}</span> <b>${m.name}</b> — ${desc}</span>`;
+            }).join('')
             + warsh
-            + `<span class="wq-agree-leg wq-agree-leg-j"><b>ج (جائز)</b> — الوقف والوصل سواء، فلا يُحتسب (في هذا المصحف ${toAr(d.jaiz[ver] || 0)} موضعًا)</span>`
             + '</div>';
-        const head = `<div class="wq-solos-desc">مدى موافقة وقوف كل قارئ لعلامات هذا المصحف عبر القرآن كله — لكل علامة على حدة (النسبة = المواضع الموافقة ÷ مجموعها). <b>اضغط أي خلية</b> لعرض الآيات التي خالف فيها القارئ العلامة.</div>`;
+        const head = `<div class="wq-solos-desc">مدى موافقة وقوف كل قارئ لعلامات هذا المصحف عبر القرآن كله — لكل علامة على حدة. عمود <b>ج</b> ليس صوابًا/خطأً بل <b>نسبة وقفه عند الجائز</b> (الأعلى يعامله كقلى، الأدنى كصلى). <b>اضغط أي خلية</b> لعرض آياتها.</div>`;
+        // ج column range, to scale its diverging colour (صلى-green → قلى-amber).
+        let jLo = 1, jHi = 0;
+        (d.reciters || []).forEach(r => {
+            const c = d.agreement[ver][r.id]['ج'];
+            if (c && c[1]) { const p = c[0] / c[1]; jLo = Math.min(jLo, p); jHi = Math.max(jHi, p); }
+        });
         const rows = (d.reciters || []).map(r => {
             const ag = d.agreement[ver][r.id];
             const cells = marks.map(m => {
                 const c = ag[m.sym], p = pct(c);
                 if (p === null) return '<td class="wq-agree-cell wq-agree-na">—</td>';
+                if (m.dir === 'choice') {
+                    const rate = c[0] / c[1];
+                    const t = jHi > jLo ? (rate - jLo) / (jHi - jLo) : 0.5;
+                    const lean = t >= 0.6 ? 'كقلى' : t <= 0.4 ? 'كصلى' : 'متوسط';
+                    const bg = `color-mix(in srgb, var(--wq-solo) ${Math.round(t * 100)}%, var(--wq-consensus))`;
+                    return `<td class="wq-agree-cell wq-agree-jaiz" data-rid="${r.id}" data-mark="ج"
+                        style="background:${bg};color:#fff" title="يقف عند الجائز ${toAr(p)}٪ (${toAr(c[0])}/${toAr(c[1])}) — يعامله ${lean} نسبيًّا (اضغط لعرض وقوفه)">
+                        <b>${toAr(p)}٪</b><span class="wq-agree-frac">${lean}</span></td>`;
+                }
                 const lvl = p >= 80 ? 'hi' : p >= 50 ? 'mid' : 'lo';
                 const diff = c[1] - c[0];
                 return `<td class="wq-agree-cell wq-agree-${lvl}" data-rid="${r.id}" data-mark="${m.sym}"
@@ -564,12 +584,16 @@
         if (!box) return;
         const r = (agreementCache.reciters || []).find(x => x.id === rid);
         const m = (agreementCache.mark_config[agreementMushaf] || []).find(x => x.sym === mark);
-        const went = m && m.dir === 'stop' ? 'لم يقف عند' : 'وقف عند';
+        const went = m && m.dir === 'choice' ? 'وقف عند'
+            : m && m.dir === 'stop' ? 'لم يقف عند' : 'وقف عند';
         box.innerHTML = '<div class="wq-research-loading">…جارٍ الجلب</div>';
         try {
             const q = `mushaf=${encodeURIComponent(agreementMushaf)}&reciter=${encodeURIComponent(rid)}&mark=${encodeURIComponent(mark)}`;
             const j = await (await fetch('/api/waqf-research/mushaf-agreement/cases?' + q)).json();
-            if (!j.verses || !j.verses.length) { box.innerHTML = '<div class="wq-research-empty">لا مخالفات — وافق العلامة في كل المواضع.</div>'; return; }
+            if (!j.verses || !j.verses.length) {
+                const msg = m && m.dir === 'choice' ? 'لم يقف عند أيٍّ من مواضع الجائز.' : 'لا مخالفات — وافق العلامة في كل المواضع.';
+                box.innerHTML = `<div class="wq-research-empty">${msg}</div>`; return;
+            }
             const chips = j.verses.map(v => {
                 const sname = v.name || (state.surahs.find(s => s.number === v.surah) || {}).name || '';
                 return `<button class="wq-agree-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></button>`;

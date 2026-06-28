@@ -3358,13 +3358,17 @@ _mushaf_agreement_cache: dict | None = None
 # Per-mushaf waqf-mark systems (directive + display glyph). Most follow the Hafs
 # Sajāwandī set. ورش (the North-African Warsh print) uses ص = صه = STOP — the
 # OPPOSITE of the Hafs صلى — and الأزهر marks every discretionary stop with ج
-# (no قلى/صلى), so the م/ق/ص/لا columns differ per mushaf. dir: 'stop' ⇒ the
-# reciter agrees by stopping; 'nostop' ⇒ agrees by continuing.
+# (no قلى/صلى), so the columns differ per mushaf. dir: 'stop' ⇒ the reciter
+# agrees by stopping; 'nostop' ⇒ agrees by continuing; 'choice' (ج, جائز) ⇒ no
+# right/wrong — we instead measure his STOP-RATE, which reveals whether he
+# treats the جائز like قلى (often stops) or like صلى (usually connects).
+_JAIZ_MARK = {'sym': 'ج', 'dir': 'choice', 'name': 'جائز', 'glyph': 'ۚ'}
 _HAFS_AGREE_MARKS = [
     {'sym': 'م',  'dir': 'stop',   'name': 'لازم',   'glyph': 'ۘ'},
     {'sym': 'ق',  'dir': 'stop',   'name': 'قلى',    'glyph': 'ۗ'},
     {'sym': 'ص',  'dir': 'nostop', 'name': 'صلى',    'glyph': 'ۖ'},
     {'sym': 'لا', 'dir': 'nostop', 'name': 'لا وقف', 'glyph': 'ۙ'},
+    _JAIZ_MARK,
 ]
 MUSHAF_AGREE_MARKS = {
     'المدينة': _HAFS_AGREE_MARKS,
@@ -3374,6 +3378,7 @@ MUSHAF_AGREE_MARKS = {
     'الأزهر': [
         {'sym': 'م',  'dir': 'stop',   'name': 'لازم',   'glyph': 'ۘ'},
         {'sym': 'لا', 'dir': 'nostop', 'name': 'لا وقف', 'glyph': 'ۙ'},
+        _JAIZ_MARK,
     ],
     'ورش': [
         {'sym': 'ص', 'dir': 'stop', 'name': 'صه', 'glyph': 'ۖ'},
@@ -3444,13 +3449,25 @@ def _build_mushaf_agreement_index():
                     if wp is None:
                         continue
                     csym = _agree_canonical_mark(ver, r.get('symbols'))
-                    if csym is None:
+                    if csym is None or csym not in dir_of[ver]:
                         continue
+                    directive = dir_of[ver][csym]
+                    here = stoppers.get(wp, ())
                     if csym == 'ج':
                         jaiz[ver] += 1
+                    if directive == 'choice':
+                        # ج: no right/wrong — cell[0] counts how often he STOPS
+                        # (his stop-rate), and the cases list his stop choices.
+                        for rid in present:
+                            cell = agree[ver][rid][csym]
+                            cell[1] += 1
+                            if rid in here:
+                                cell[0] += 1
+                                lst = cases[ver][rid][csym]
+                                if len(lst) < _AGREE_CASE_CAP and (not lst or lst[-1] != vk):
+                                    lst.append(vk)
                         continue
-                    want_stop = dir_of[ver][csym] == 'stop'
-                    here = stoppers.get(wp, ())
+                    want_stop = directive == 'stop'
                     for rid in present:
                         cell = agree[ver][rid][csym]
                         cell[1] += 1
@@ -3495,7 +3512,10 @@ def waqf_research_mushaf_agreement_cases():
     except KeyError:
         return jsonify({'error': 'unknown mushaf/reciter/mark'}), 400
     cell = data['agreement'][ver][rid][mark]
-    disagreed = cell[1] - cell[0]
+    directive = next((m['dir'] for m in data['mark_config'][ver] if m['sym'] == mark), None)
+    # ج (choice): the recorded cases are his STOP choices (cell[0]); for the
+    # other marks they are disagreements (total − agreed).
+    total = cell[0] if directive == 'choice' else cell[1] - cell[0]
     surah_names = {s['number']: s['name'] for s in surahs_data} if surahs_data else {}
     verses = []
     for vk in vks:
@@ -3503,8 +3523,8 @@ def waqf_research_mushaf_agreement_cases():
         verses.append({'surah': int(s), 'ayah': int(a), 'name': surah_names.get(int(s), '')})
     return jsonify({
         'mushaf': ver, 'reciter': rid, 'mark': mark,
-        'directive': next((m['dir'] for m in data['mark_config'][ver] if m['sym'] == mark), None),
-        'disagreed': disagreed, 'shown': len(verses), 'capped': disagreed > len(verses),
+        'directive': directive,
+        'disagreed': total, 'shown': len(verses), 'capped': total > len(verses),
         'verses': verses,
     })
 

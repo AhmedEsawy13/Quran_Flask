@@ -38,11 +38,13 @@ def test_mushaf_agreement_shape_and_invariants(client):
     م (لازم) compliance is near-universal; ص (صلى) genuinely varies across reciters."""
     j = client.get("/api/waqf-research/mushaf-agreement").get_json()
     assert j["gap_ms"] == 1
-    # المدينة follows the Hafs مارks; ورش has only صه (a STOP mark).
-    assert {m["sym"] for m in j["mark_config"]["المدينة"]} == {"م", "ق", "ص", "لا"}
+    # المدينة follows the Hafs marks (+ ج as a stop-rate column); ورش has only صه.
+    assert {m["sym"] for m in j["mark_config"]["المدينة"]} == {"م", "ق", "ص", "لا", "ج"}
     assert [m["sym"] for m in j["mark_config"]["ورش"]] == ["ص"]
     assert j["mark_config"]["ورش"][0]["dir"] == "stop"      # صه = قف, opposite of حفص صلى
-    assert {m["sym"] for m in j["mark_config"]["الأزهر"]} == {"م", "لا"}  # ج only otherwise
+    assert {m["sym"] for m in j["mark_config"]["الأزهر"]} == {"م", "لا", "ج"}
+    # ج is a "choice" column (stop-rate), not pass/fail.
+    assert next(m["dir"] for m in j["mark_config"]["المدينة"] if m["sym"] == "ج") == "choice"
     assert "ورش" in j["mushafs"]
     ag = j["agreement"]["المدينة"]
     for r in j["reciters"]:
