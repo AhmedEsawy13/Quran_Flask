@@ -39,14 +39,19 @@ def test_mushaf_agreement_shape_and_invariants(client):
     j = client.get("/api/waqf-research/mushaf-agreement").get_json()
     assert j["gap_ms"] == 1
     # المدينة follows the Hafs marks (+ ج as a stop-rate column); ورش has only صه.
-    assert {m["sym"] for m in j["mark_config"]["المدينة"]} == {"م", "ق", "ص", "لا", "ج"}
+    assert {m["sym"] for m in j["mark_config"]["المدينة الجديد"]} == {"م", "ق", "ص", "لا", "ج"}
     assert [m["sym"] for m in j["mark_config"]["ورش"]] == ["ص"]
     assert j["mark_config"]["ورش"][0]["dir"] == "stop"      # صه = قف, opposite of حفص صلى
     assert {m["sym"] for m in j["mark_config"]["الأزهر"]} == {"م", "لا", "ج"}
     # ج is a "choice" column (stop-rate), not pass/fail.
-    assert next(m["dir"] for m in j["mark_config"]["المدينة"] if m["sym"] == "ج") == "choice"
+    assert next(m["dir"] for m in j["mark_config"]["المدينة الجديد"] if m["sym"] == "ج") == "choice"
     assert "ورش" in j["mushafs"]
-    ag = j["agreement"]["المدينة"]
+    # المدينة القديم (old Madinah) keeps the لا sign the new print dropped.
+    assert "المدينة القديم" in j["mushafs"]
+    old_la = sum(j["agreement"]["المدينة القديم"][r["id"]]["لا"][1] for r in j["reciters"][:1])
+    new_la = sum(j["agreement"]["المدينة الجديد"][r["id"]]["لا"][1] for r in j["reciters"][:1])
+    assert old_la > 0 and new_la == 0
+    ag = j["agreement"]["المدينة الجديد"]
     for r in j["reciters"]:
         for m, (a, t) in ag[r["id"]].items():
             assert 0 <= a <= t  # agreements never exceed opportunities

@@ -313,7 +313,7 @@
             const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
             if (Array.isArray(saved)) state.mushafVersions = saved.filter(v => typeof v === 'string');
         } catch (e) { state.mushafVersions = []; }
-        _waqfVisible = !!(localStorage.getItem('quranApp_waqfVisible') ?? (state.mushafVersions.includes('المدينة') ? '1' : ''));
+        _waqfVisible = !!(localStorage.getItem('quranApp_waqfVisible') ?? (state.mushafVersions.some(v => v.indexOf('المدينة') === 0) ? '1' : ''));
     }
 
     /* ── Waqf mushaf-version pills ─────────────────────────────────── */

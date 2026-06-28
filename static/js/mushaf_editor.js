@@ -322,7 +322,7 @@
 
         const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
         const editionEntry = entries.find(e => e.version === state.edition);
-        const baselineEntry = entries.find(e => e.version === 'المدينة');
+        const baselineEntry = entries.find(e => e.version === 'المدينة الجديد');
         const editionSym = (editionEntry && editionEntry.symbols) || '';
         const baselineSym = (baselineEntry && baselineEntry.symbols) || '';
 

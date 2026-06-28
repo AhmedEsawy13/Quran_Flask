@@ -947,8 +947,8 @@ def get_recitation_guide(surah_number, ayah_number):
     reciter = request.args.get('reciter', '').strip()
     cfg = RECITER_GUIDE_CONFIG.get(reciter, {})
     # الحصري column was dropped from mushaf_waqf.db (commit 703521b); fall back
-    # to المدينة so unconfigured reciters still get a guide overlay.
-    waqf_col = cfg.get('waqf_col', 'المدينة')
+    # to المدينة الجديد so unconfigured reciters still get a guide overlay.
+    waqf_col = cfg.get('waqf_col', 'المدينة الجديد')
     valid_versions = [waqf_col] if _is_valid_mushaf_version(waqf_col) else []
 
     pos_segs, has_db = _get_positions_segments(surah_number, ayah_number, reciter)
@@ -2688,10 +2688,10 @@ def _build_verse_waqf_detail(surah, ayah):
 # Printed mushafs whose waqf marks we compare the reciters against (matrix view).
 # ورش (North-African Warsh print) is included too — note its ص = صه = STOP, the
 # opposite of the Hafs صلى; the agreement analysis handles that per-mushaf.
-_WAQF_COMPARE_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي', 'قطر', 'الكويت', 'ورش')
+_WAQF_COMPARE_MUSHAFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي', 'قطر', 'الكويت', 'ورش')
 # Broader set used only to validate a reciter's *solo* stop against any printed
 # waqf (e.g. "انفرد القارئ، لكنه يوافق علامة الأزهر").
-_WAQF_MATCH_MUSHAFS = ('المدينة', 'الأزهر', 'الشمرلي', 'ورش', 'الهندي', 'قطر', 'الكويت')
+_WAQF_MATCH_MUSHAFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي', 'ورش', 'الهندي', 'قطر', 'الكويت')
 # Reciters known to recite Hafs bi-qasr al-munfasil (short disconnected madd) —
 # their pace is legitimately faster, surfaced as a badge so the timing reads
 # correctly. Keyed by MEMORIZATION_RECITERS id.
@@ -3371,7 +3371,8 @@ _HAFS_AGREE_MARKS = [
     _JAIZ_MARK,
 ]
 MUSHAF_AGREE_MARKS = {
-    'المدينة': _HAFS_AGREE_MARKS,
+    'المدينة الجديد': _HAFS_AGREE_MARKS,
+    'المدينة القديم': _HAFS_AGREE_MARKS,
     'الشمرلي': _HAFS_AGREE_MARKS,
     'قطر':     _HAFS_AGREE_MARKS,
     'الكويت':  _HAFS_AGREE_MARKS,
@@ -5567,7 +5568,7 @@ def get_mushaf_editor_spread(spread_number):
         spread_number = max(1, int(spread_number))
         right_page = min(604, spread_number * 2 - 1)
         left_page = right_page + 1
-        versions = [edition, 'المدينة']
+        versions = [edition, 'المدينة الجديد']
         build_page = _build_qatar_page_payload if edition == 'قطر' else _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)
         left = build_page(left_page, mushaf_version=versions) if left_page <= 604 else None

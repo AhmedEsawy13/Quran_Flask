@@ -1095,7 +1095,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             byMushaf.get(ver).push(e);
         }
 
-        const ORDER = ['المدينة', 'الشمرلي', 'الأزهر', 'ورش', 'الحصري', 'الهندي'];
+        const ORDER = ['المدينة الجديد', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'ورش', 'الحصري', 'الهندي'];
         const sortedMushafs = [...byMushaf.keys()].sort((a, b) => {
             const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
             if (ia === -1 && ib === -1) return a.localeCompare(b, 'ar');

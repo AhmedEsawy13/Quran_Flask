@@ -23,43 +23,43 @@ EDITOR_EDITIONS = {'قطر', 'الكويت'}
 RECITER_GUIDE_CONFIG = {
     'Mahmoud Khalil al-Husary (Mujawwad)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'mahmoud_khalil_al_husari_0_2_positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'Mahmoud Khalil al-Husary (Muallim)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'Mahmoud Khalil al-Husary (Murattal)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'husary', 'mahmoud_khalil_al_husari_0_1_positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'Ibrahim Al-Akhdar': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'ibrahim-al-akhdar', 'positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'Ayman Rushdi Suwaid': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'ayman-suwaid', 'positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'Mahmoud Ali Al-Banna': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'mahmoud-ali-al-banna', 'positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'Mustafa Ismaeel': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'mustafa-ismaeel', 'positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'AbdulBaset AbdulSamad (Mujawwad)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'mujawwad_positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'AbdulBaset AbdulSamad (Murattal)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'abdul-basit-abdus-samad', 'murattal_positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
     'Mohamed al-Minshawi (Murattal)': {
         'db':       os.path.join(_BASE_DIR, 'reciters', 'mohammed-siddiq-al-minshawi', 'positions.db'),
-        'waqf_col': 'المدينة',
+        'waqf_col': 'المدينة الجديد',
     },
 }
 # Keep for backwards compat with any legacy code that may reference it
