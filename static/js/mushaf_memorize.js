@@ -164,7 +164,7 @@
             els.focusToggle.querySelector('i').className = state.focusMode ? 'fas fa-compress' : 'fas fa-expand';
         }
         // sidebar gone/back → page size changes
-        requestAnimationFrame(() => { if (state.focusPage) { sizePages(); applyFontSize(); justifyLines(); } });
+        requestAnimationFrame(() => { if (state.focusPage) { sizePages(); applyFontSize(true); justifyLines(); } });
     }
     function toggleLayout() {
         state.layoutMode = state.layoutMode === 'single' ? 'dual' : 'single';
@@ -320,13 +320,18 @@
         syncToolbar();
 
         try {
-            const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
+            const saved = JSON.parse(localStorage.getItem('mz_waqf_print') || '[]');
             if (Array.isArray(saved)) state.mushafVersions = saved.filter(v => typeof v === 'string');
         } catch (e) { state.mushafVersions = []; }
         _waqfVisible = !!(localStorage.getItem('quranApp_waqfVisible') ?? (state.mushafVersions.some(v => v.indexOf('المدينة') === 0) ? '1' : ''));
     }
 
-    /* ── Waqf mushaf-version pills ─────────────────────────────────── */
+    /* ── Waqf mushaf-version pills ─────────────────────────────────────
+       تثبيت shows ONLY the two Madinah prints' own waqf, each drawn IN the text
+       (new = embedded source marks, old = folded-in via the DB) — never an overlay
+       of other mushafs. The two are mutually exclusive (radio): pick which print's
+       stops to read by. */
+    const MADINAH_WAQF = ['المدينة الجديد', 'المدينة القديم'];
     async function loadWaqfPills() {
         if (!els.waqfPills) return;
         let versions = [];
@@ -334,7 +339,10 @@
             const resp = await fetch('/api/mushaf-versions');
             if (resp.ok) versions = await resp.json();
         } catch (e) { versions = []; }
-        state.mushafVersions = state.mushafVersions.filter(v => versions.includes(v));
+        versions = MADINAH_WAQF.filter(v => versions.includes(v));
+        // Keep at most one Madinah print selected; drop any stale (overlay) versions.
+        state.mushafVersions = state.mushafVersions.filter(v => versions.includes(v)).slice(0, 1);
+        saveSetting('mz_waqf_print', JSON.stringify(state.mushafVersions));
         if (els.tbWaqf) els.tbWaqf.checked = waqfMarksOn();
         els.waqfPills.innerHTML = '';
         versions.forEach(v => {
@@ -348,11 +356,13 @@
         });
     }
     function toggleWaqfVersion(version, btn) {
-        const i = state.mushafVersions.indexOf(version);
-        if (i >= 0) state.mushafVersions.splice(i, 1);
-        else state.mushafVersions.push(version);
-        btn.classList.toggle('mz-on', state.mushafVersions.includes(version));
-        saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions));
+        // Radio behaviour: clicking the active print clears it (back to new-Madinah
+        // embedded default); clicking the other switches to it. Only one at a time.
+        const wasOn = state.mushafVersions.includes(version);
+        state.mushafVersions = wasOn ? [] : [version];
+        els.waqfPills.querySelectorAll('.mz-waqf-pill').forEach(b =>
+            b.classList.toggle('mz-on', state.mushafVersions.includes(b.textContent)));
+        saveSetting('mz_waqf_print', JSON.stringify(state.mushafVersions));
         if (state.focusPage) renderSpread(state.focusPage);
     }
 
@@ -1058,7 +1068,7 @@
         if (srcFont && document.fonts && !document.fonts.check(`16px "${srcFont}"`)) {
             const fp = focusPage;
             document.fonts.load(`16px "${srcFont}"`).then(() => {
-                if (state.focusPage === fp) { applyFontSize(); requestAnimationFrame(justifyLines); }
+                if (state.focusPage === fp) { applyFontSize(true); requestAnimationFrame(justifyLines); }
             }).catch(() => {});
         }
     }
@@ -1164,13 +1174,23 @@
             else if (slack > 0.5) inner.style.transform = `scaleX(${avail / width})`;  // single word
         });
     }
-    // Size the text so a typical line naturally fills the line width, then let
-    // justifyLines word-space the rest. The page FRAME is stable (sizePages reads
-    // the stage-area's own box, not the stage's live position), so this stays
-    // consistent across navigation instead of zooming per page.
-    function applyFontSize() {
-        pageEls().forEach(p => {
-            if (!p || !p.classList.contains('mz-has-page')) return;
+    // ONE stable font size per (source + layout + page box). Once fitted, every
+    // page reuses the SAME --dk-fs, so paging (prev/next) or switching the Madinah
+    // print never rescales the text — justifyLines() then fills each line's own
+    // width. Only a viewport/source/layout change (new key) or an explicit
+    // `force` (e.g. a web-font just swapped in) re-measures.
+    let _fitFs = 0, _fitKey = '';
+    function applyFontSize(force) {
+        const pages = pageEls().filter(p => p && p.classList.contains('mz-has-page'));
+        if (!pages.length) return;
+        const ref = pages[0];
+        const key = `${state.src}|${state.layoutMode}|${Math.round(ref.clientHeight)}|${Math.round(ref.clientWidth)}`;
+        if (!force && key === _fitKey && _fitFs) {
+            pages.forEach(p => p.style.setProperty('--dk-fs', _fitFs + 'px'));
+            return;
+        }
+        let chosen = 0;
+        pages.forEach(p => {
             const h = p.clientHeight || 1;
             const lineH = h / 15;
             const maxFs = lineH * 0.92;          // never taller than the line slot
@@ -1179,12 +1199,6 @@
 
             // Measure justified lines at this size, then scale so the median line
             // ~fills the width (98%). Proportional scaling keeps the ratio valid.
-            // Overlay waqf stacks are position:absolute and centred above the word;
-            // a wide one can overflow and inflate scrollWidth, which would shrink
-            // the fit (the page "jumps" when a mushaf overlay is switched on). Hide
-            // them for the measurement so the size depends only on the printed line.
-            const stacks = [...p.querySelectorAll('.waqf-stack')];
-            stacks.forEach(s => { s.style.display = 'none'; });
             const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
             const ratios = [];
             inners.forEach(inner => {
@@ -1196,14 +1210,19 @@
                 const nat = inner.scrollWidth;
                 if (nat > 0 && avail > 0) ratios.push(avail / nat);
             });
-            stacks.forEach(s => { s.style.display = ''; });
             if (ratios.length) {
                 ratios.sort((a, b) => a - b);
                 const med = ratios[Math.floor(ratios.length / 2)] || 1;
                 fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
-                p.style.setProperty('--dk-fs', fs + 'px');
             }
+            // Take the SMALLEST fit across the visible spread so the densest page
+            // never overflows; sparser pages are filled out by justifyLines.
+            chosen = chosen ? Math.min(chosen, fs) : fs;
         });
+        if (chosen) {
+            _fitFs = chosen; _fitKey = key;
+            pages.forEach(p => p.style.setProperty('--dk-fs', chosen + 'px'));
+        }
     }
 
     /* ── Highlighting ──────────────────────────────────────────────── */
@@ -1594,7 +1613,7 @@
     // height — once now and once after the open/close transition settles.
     function refitForPlayer() {
         if (!state.focusPage) return;
-        const run = () => { sizePages(); applyFontSize(); requestAnimationFrame(justifyLines); };
+        const run = () => { sizePages(); applyFontSize(true); requestAnimationFrame(justifyLines); };
         requestAnimationFrame(run);
         setTimeout(run, 380);
     }
@@ -2047,7 +2066,7 @@
         let resizeId = 0;
         window.addEventListener('resize', () => {
             clearTimeout(resizeId);
-            resizeId = setTimeout(() => { if (state.focusPage) { sizePages(); applyFontSize(); justifyLines(); } }, 120);
+            resizeId = setTimeout(() => { if (state.focusPage) { sizePages(); applyFontSize(true); justifyLines(); } }, 120);
         });
     }
 
@@ -2076,7 +2095,7 @@
         const jq = parseInt(p.get('justify'), 10);
         if (Number.isFinite(jq)) { state.justify = Math.max(0, Math.min(100, jq)); els.justify.value = state.justify; updateJustifyLabel(); saveSetting('quranApp_khattJustify', state.justify); }
         const wq = p.get('waqf');
-        if (wq != null) { state.mushafVersions = wq ? wq.split(',').map(s => s.trim()).filter(Boolean) : []; saveSetting('quranApp_mushafVersions', JSON.stringify(state.mushafVersions)); }
+        if (wq != null) { state.mushafVersions = wq ? wq.split(',').map(s => s.trim()).filter(Boolean) : []; saveSetting('mz_waqf_print', JSON.stringify(state.mushafVersions)); }
         const ly = p.get('layout');
         if (ly === 'single' || ly === 'dual') { state.layoutMode = ly; els.layout.value = ly; saveSetting('mz_layout', ly); document.body.classList.toggle('mz-single', ly === 'single'); }
         if (p.get('hide') === '1') state.hideText = true;
@@ -2131,7 +2150,7 @@
             // may have used fallback metrics).
             if (document.fonts && document.fonts.ready) {
                 document.fonts.ready.then(() => {
-                    if (state.focusPage) { applyFontSize(); requestAnimationFrame(justifyLines); }
+                    if (state.focusPage) { applyFontSize(true); requestAnimationFrame(justifyLines); }
                 });
             }
         } catch (e) {
