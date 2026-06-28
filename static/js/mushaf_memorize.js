@@ -937,18 +937,21 @@
                         //
                         // المدينة القديم is rendered the SAME way as the embedded
                         // المدينة الجديد marks — its glyph is folded INTO the word
-                        // text as a combining mark (replacing the new-print mark),
-                        // not drawn as a separate overlay box. Combining marks carry
-                        // no advance width, so the page metrics — and the fitted font
-                        // size — stay identical when switching between the two prints.
-                        const oldMadinah = entries.find(e => e && e.version === 'المدينة القديم');
+                        // text as a combining mark, not drawn as a separate overlay.
+                        // When القديم is the chosen print we strip the embedded NEW
+                        // marks from EVERY word and re-add only the old print's own
+                        // marks (a word with no old mark shows none — that's the whole
+                        // point of the لا the new print dropped); otherwise the words
+                        // keep their embedded new-Madinah marks.
+                        const oldSelected = state.mushafVersions.includes('المدينة القديم');
                         let text;
                         if (state.src === 'shamarly') {
                             text = raw;
                         } else if (!waqfMarksOn()) {
                             text = withAyahOrnament(stripEmbeddedWaqf(raw));
-                        } else if (oldMadinah) {
-                            text = withAyahOrnament(stripEmbeddedWaqf(raw) + integratedWaqfGlyph(oldMadinah));
+                        } else if (oldSelected) {
+                            const oldMark = entries.find(e => e && e.version === 'المدينة القديم');
+                            text = withAyahOrnament(stripEmbeddedWaqf(raw) + (oldMark ? integratedWaqfGlyph(oldMark) : ''));
                         } else {
                             text = withAyahOrnament(raw);   // embedded المدينة الجديد marks
                         }
