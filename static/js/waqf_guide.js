@@ -823,35 +823,135 @@
             + `<g class="wq-dnd-links">${seg.join('')}</g>${forks.join('')}${leafEls}</svg></div>`;
     }
 
+    let mushafSimView = 'overview';
+    let mushafCompare = { a: null, b: null };
+    const MSP_TABS = [
+        ['overview', 'نظرة عامة', 'fa-sitemap'],
+        ['marks', 'التوافق لكل علامة', 'fa-list-check'],
+        ['profiles', 'ما يميّز كل مصحف', 'fa-id-card'],
+        ['compare', 'قارن مصحفين', 'fa-code-compare'],
+    ];
     function renderMushafSim() {
         const d = mushafSimCache;
-        const desc = '<div class="wq-solos-desc">مدى تقارب <b>أنظمة الوقف</b> في المصاحف المطبوعة عبر القرآن كله. '
-            + 'النسبة = أن يضعا العلامة على <b>نفس الكلمة وبنفس الحكم</b> (بعد توحيد الرموز: الأزهر يكتب كل وقفٍ جائزٍ «ج»، '
-            + 'و«ص» في الورش = صه أي «قف»، عكس صلى عند حفص). الشجرة تتفرّع يسارًا كلما قلّ الاتفاق؛ الرقم على كل عقدة هو نسبة اتفاق الفرعين. '
-            + 'الرقم بجانب كل مصحف = عدد مواضع الوقف فيه.</div>';
-        const dnd = buildDendrogram(d);
-        // ranked closest pairs (meaning + placement bars)
+        const bar = '<div class="wq-msp-subtabs">' + MSP_TABS.map(([k, l, ic]) =>
+            `<button class="wq-msp-subtab${mushafSimView === k ? ' wq-msp-subtab-on' : ''}" data-view="${k}"><i class="fas ${ic}"></i> ${l}</button>`).join('') + '</div>';
+        const body = mushafSimView === 'marks' ? mspViewMarks(d)
+            : mushafSimView === 'profiles' ? mspViewProfiles(d)
+            : mushafSimView === 'compare' ? mspViewCompare(d)
+            : mspViewOverview(d);
+        els.mushafSimContent.innerHTML = bar + body;
+        if (mushafSimView === 'compare') mspWireCompare(d);
+    }
+
+    /* نظرة عامة — dendrogram + closest pairs */
+    function mspViewOverview(d) {
+        const desc = '<div class="wq-solos-desc">شجرة تقارب <b>أنظمة الوقف</b> عبر القرآن كله. المصحفان يلتقيان عند نسبة '
+            + '<b>اتفاقهما في الحكم</b> (نفس الكلمة ونفس الحكم، بعد توحيد الرموز). كلما كان الالتقاء أقرب لليمين كانا أشبه.</div>';
         const pairs = (d.pairs || []).slice(0, 12);
         const rows = pairs.map(p => {
             const mp = Math.round(p.meaning * 100), pl = Math.round(p.place * 100);
-            return `<div class="wq-msp-row">`
-                + `<div class="wq-msp-names"><b>${p.a}</b> <span class="wq-msp-x">↔</span> <b>${p.b}</b></div>`
-                + `<div class="wq-msp-bars">`
-                + `<div class="wq-msp-bar" title="نفس الموضع ونفس الحكم"><span style="width:${mp}%"></span></div>`
+            return `<div class="wq-msp-row"><div class="wq-msp-names"><b>${p.a}</b> <span class="wq-msp-x">↔</span> <b>${p.b}</b></div>`
+                + `<div class="wq-msp-bars"><div class="wq-msp-bar" title="نفس الموضع ونفس الحكم"><span style="width:${mp}%"></span></div>`
                 + `<div class="wq-msp-val">${toAr(mp)}٪ <small>حكمًا</small></div>`
-                + `<div class="wq-msp-place" title="يضعان وقفًا في نفس الموضع (بغضّ النظر عن الحكم)">${toAr(pl)}٪ موضعًا</div>`
-                + `</div></div>`;
+                + `<div class="wq-msp-place" title="يضعان وقفًا في نفس الموضع بغضّ النظر عن الحكم">${toAr(pl)}٪ موضعًا</div></div></div>`;
         }).join('');
-        els.mushafSimContent.innerHTML = desc
-            + buildDendrogramLegend()
-            + dnd
+        return desc + buildDendrogram(d)
             + '<div class="wq-msp-head"><i class="fas fa-ranking-star"></i> أقرب المصاحف بعضها لبعض</div>'
             + `<div class="wq-msp-list">${rows}</div>`;
     }
-    function buildDendrogramLegend() {
-        return '<div class="wq-dnd-note"><i class="fas fa-circle-info"></i> '
-            + 'كلما كان الالتقاء أقربَ إلى اليمين (نسبة أعلى) كان المصحفان أشبه. '
-            + 'مثال: المدينة الجديد والكويت يلتقيان عند ١٠٠٪ (متطابقان)، ثم قطر، ثم الشمرلي…</div>';
+
+    /* التوافق لكل علامة — per-mark agreement + per-mushaf counts */
+    function mspViewMarks(d) {
+        const std = d.standard || [];
+        const desc = '<div class="wq-solos-desc">لكل علامة وقف: كم موضعًا يَسِمه كل مصحف قياسي بها، ونسبة اتفاق المصاحف عند المواضع التي تحملها. '
+            + '<b>الأزهر</b> يوحّد قلى وصلى في «ج»، فأعمدته في «ق» و«ص» صفر. (ورش والهندي نظامان مختلفان — انظر «ما يميّز كل مصحف».)</div>';
+        const rows = (d.mark_consensus || []).map(m => {
+            const ag = Math.round(m.agreement * 100);
+            const meta = WAQF_SYM[m.sym] || { name: m.sym };
+            const chips = std.map(v => {
+                const n = m.counts[v] || 0;
+                return `<span class="wq-mk-chip${n ? '' : ' wq-mk-zero'}"><b>${toAr(n)}</b><span>${v}</span></span>`;
+            }).join('');
+            return `<div class="wq-mk-row"><div class="wq-mk-head">`
+                + `<span class="wq-wsym waqf-uthmanic wq-w-${meta.cls || 'ok'}">${m.glyph}</span>`
+                + `<div class="wq-mk-meta"><div class="wq-mk-name">${meta.name} <small>(${m.sym})</small></div>`
+                + `<div class="wq-mk-desc">${m.desc}</div></div>`
+                + `<div class="wq-mk-agree"><div class="wq-mk-bar"><span style="width:${ag}%"></span></div>`
+                + `<span class="wq-mk-agtxt">${toAr(ag)}٪ اتفاق · ${toAr(m.positions)} موضعًا</span></div></div>`
+                + `<div class="wq-mk-chips">${chips}</div></div>`;
+        }).join('');
+        return desc + `<div class="wq-mk-list">${rows}</div>`;
+    }
+
+    /* ما يميّز كل مصحف — per-mushaf signature cards */
+    function mspViewProfiles(d) {
+        const sysLabel = { standard: 'نظام حفص القياسي', warsh: 'رواية ورش', indopak: 'النظام الباكستاني (IndoPak)' };
+        const cards = (d.order || d.mushafs || []).map(id => {
+            const p = (d.profiles || []).find(x => x.id === id);
+            if (!p) return '';
+            const sp = (p.special || []).map(s => `<li>${s}</li>`).join('')
+                || '<li class="wq-pf-none">يتبع النظام القياسي دون تفرّدٍ بارز.</li>';
+            const dist = (d.marks || []).filter(m => p.counts[m]).map(m =>
+                `<span class="wq-mk-chip"><b>${toAr(p.counts[m])}</b><span>${m}</span></span>`).join('');
+            return `<div class="wq-pf-card wq-pf-${p.system}"><div class="wq-pf-top">`
+                + `<span class="wq-pf-name"><i class="fas fa-book-quran"></i> ${id}</span>`
+                + `<span class="wq-pf-sys">${sysLabel[p.system] || ''}</span></div>`
+                + `<div class="wq-pf-stat">${toAr(p.total)} موضع وقف</div>`
+                + `<ul class="wq-pf-special">${sp}</ul>`
+                + (dist ? `<div class="wq-mk-chips wq-pf-dist">${dist}</div>` : '')
+                + `</div>`;
+        }).join('');
+        return '<div class="wq-solos-desc">ما الذي يميّز كل مصحف؟ سطورٌ مستخلصة آليًّا من مقارنة علاماته ببقيّة المصاحف.</div>'
+            + `<div class="wq-pf-grid">${cards}</div>`;
+    }
+
+    /* قارن مصحفين — pick two → every differing word */
+    function mspViewCompare(d) {
+        const ms = d.mushafs || [];
+        const a = mushafCompare.a || ms[0], b = mushafCompare.b || ms[1];
+        const opts = sel => ms.map(m => `<option value="${m}"${m === sel ? ' selected' : ''}>${m}</option>`).join('');
+        return '<div class="wq-solos-desc">اختر مصحفين لعرض كل كلمة اختلفا في حكم الوقف عليها (اضغط أي كلمة لفتح آيتها).</div>'
+            + `<div class="wq-cmp-pick"><select id="wq-cmp-a">${opts(a)}</select>`
+            + `<span class="wq-cmp-vs">مقابل</span><select id="wq-cmp-b">${opts(b)}</select>`
+            + `<button id="wq-cmp-go" class="wq-cmp-go" type="button"><i class="fas fa-code-compare"></i> قارن</button></div>`
+            + '<div id="wq-cmp-result"></div>';
+    }
+    function mspWireCompare() {
+        const go = document.getElementById('wq-cmp-go');
+        if (go) go.onclick = mspRunCompare;
+        if (mushafCompare.a && mushafCompare.b && mushafCompare.a !== mushafCompare.b) mspRunCompare();
+    }
+    async function mspRunCompare() {
+        const a = document.getElementById('wq-cmp-a').value, b = document.getElementById('wq-cmp-b').value;
+        const res = document.getElementById('wq-cmp-result');
+        if (a === b) { res.innerHTML = '<div class="wq-research-empty">اختر مصحفين مختلفين.</div>'; return; }
+        mushafCompare = { a, b };
+        res.innerHTML = '<div class="wq-research-loading">…جارٍ المقارنة</div>';
+        try {
+            const j = await (await fetch('/api/waqf-research/mushaf-diff?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b))).json();
+            mspRenderDiff(j);
+        } catch { res.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+    const mspSym = s => (!s || s === '∅') ? '<span class="wq-cmp-none">بلا</span>' : s;
+    function mspRenderDiff(j) {
+        const res = document.getElementById('wq-cmp-result');
+        if (!res) return;
+        const agree = Math.round((j.meaning || 0) * 100);
+        const groups = (j.groups || []).map(g =>
+            `<span class="wq-cmp-group"><b class="wq-cmp-ga">${mspSym(g.a_sym)}</b><i class="fas fa-arrows-left-right"></i>`
+            + `<b class="wq-cmp-gb">${mspSym(g.b_sym)}</b><span class="wq-cmp-gn">${toAr(g.count)}</span></span>`).join('');
+        const chips = (j.verses || []).map(v => {
+            const sname = (state.surahs.find(s => s.number === v.surah) || {}).name || '';
+            return `<button class="wq-research-item wq-cmp-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">`
+                + `<span class="wq-cmp-w">${v.word || ''}</span>`
+                + `<span class="wq-cmp-ref">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></span>`
+                + `<span class="wq-cmp-syms"><b class="wq-cmp-ga">${mspSym(v.a_sym)}</b><i class="fas fa-arrows-left-right"></i><b class="wq-cmp-gb">${mspSym(v.b_sym)}</b></span></button>`;
+        }).join('');
+        res.innerHTML = `<div class="wq-cmp-summary"><b>${j.a}</b> و<b>${j.b}</b> يتفقان حكمًا بنسبة <b>${toAr(agree)}٪</b>، `
+            + `ويختلفان في <b>${toAr(j.differences)}</b> موضعًا${j.capped ? ` (عُرض أول ${toAr(j.shown)})` : ''}.</div>`
+            + `<div class="wq-cmp-legend"><span class="wq-cmp-ga">يمين = ${j.a}</span> · <span class="wq-cmp-gb">يسار = ${j.b}</span></div>`
+            + `<div class="wq-cmp-groups">${groups}</div>`
+            + (chips ? `<div class="wq-cmp-list">${chips}</div>` : '<div class="wq-research-empty">لا اختلاف بينهما في الحكم.</div>');
     }
 
     function setupResearch() {
@@ -905,6 +1005,15 @@
         });
         els.patternsContent.addEventListener('click', async e => {
             const item = e.target.closest('.wq-research-item'); if (!item) return;
+            const s = +item.dataset.s, a = +item.dataset.a;
+            if (s !== state.surah) await loadAyahOptions(s);
+            await loadVerse(s, a);
+            if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        if (els.mushafSimContent) els.mushafSimContent.addEventListener('click', async e => {
+            const sub = e.target.closest('.wq-msp-subtab');
+            if (sub) { mushafSimView = sub.dataset.view; renderMushafSim(); return; }
+            const item = e.target.closest('.wq-research-item'); if (!item || !item.dataset.s) return;
             const s = +item.dataset.s, a = +item.dataset.a;
             if (s !== state.surah) await loadAyahOptions(s);
             await loadVerse(s, a);

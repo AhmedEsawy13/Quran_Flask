@@ -124,6 +124,41 @@ def test_mushaf_similarity_tree_and_pairs(client):
     assert {top["a"], top["b"]} == {"المدينة الجديد", "الكويت"}
     assert top["meaning"] >= 0.99
     assert [p["meaning"] for p in j["pairs"]] == sorted((p["meaning"] for p in j["pairs"]), reverse=True)
+    # position keys must be verse-unique, not the per-verse token/word index that
+    # collapses the whole Quran onto ~155 slots — so totals are the real counts.
+    assert j["counts"]["المدينة الجديد"] > 4000
+
+
+def test_mushaf_similarity_marks_and_profiles(client):
+    """Per-mark consensus + per-mushaf 'what makes it special' signatures."""
+    j = client.get("/api/waqf-research/mushaf-similarity").get_json()
+    mc = {m["sym"]: m for m in j["mark_consensus"]}
+    # الأزهر collapses قلى/صلى into ج → zero ق and ص, a large ج.
+    assert mc["ق"]["counts"]["الأزهر"] == 0 and mc["ص"]["counts"]["الأزهر"] == 0
+    assert mc["ج"]["counts"]["الأزهر"] > mc["ج"]["counts"]["المدينة الجديد"]
+    # new Madinah dropped لا; the old print keeps it.
+    assert mc["لا"]["counts"]["المدينة الجديد"] == 0
+    assert mc["لا"]["counts"]["المدينة القديم"] > 0
+    profs = {p["id"]: p for p in j["profiles"]}
+    assert profs["ورش"]["system"] == "warsh" and profs["الهندي"]["system"] == "indopak"
+    assert profs["المدينة القديم"]["special"]   # has at least one signature line
+
+
+def test_mushaf_diff_pairwise(client):
+    """قارن مصحفين: grouped, verse-tagged differences; bad/equal pairs rejected."""
+    import urllib.parse as u
+    q = "a=" + u.quote("المدينة الجديد") + "&b=" + u.quote("المدينة القديم")
+    j = client.get("/api/waqf-research/mushaf-diff?" + q).get_json()
+    assert 0.0 <= j["meaning"] <= 1.0
+    assert j["differences"] > 0
+    assert j["shown"] == len(j["verses"])
+    for v in j["verses"]:
+        assert 1 <= v["surah"] <= 114 and v["ayah"] >= 1
+        assert v["a_sym"] != v["b_sym"]      # only genuine disagreements listed
+    # same mushaf, or an unknown one → 400
+    assert client.get("/api/waqf-research/mushaf-diff?a=X&b=Y").status_code == 400
+    same = "a=" + u.quote("الكويت") + "&b=" + u.quote("الكويت")
+    assert client.get("/api/waqf-research/mushaf-diff?" + same).status_code == 400
 
 
 def test_research_endpoints_not_browser_cached(client):

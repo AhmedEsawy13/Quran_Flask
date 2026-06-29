@@ -3239,37 +3239,76 @@ def _mushaf_sem_class(version, raw):
             'لا': 'NOSTOP', 'ع': 'EMBRACE', 'س': 'SAKTA'}.get(base)
 
 
+# Canonical waqf marks (display order) → glyph + meaning. ورش/الهندي use their
+# own systems and are compared by MEANING, not by these symbols.
+_MARK_INFO = [
+    ('م',  'ۘ', 'لازم — يجب الوقف، والوصل قد يُحيل المعنى'),
+    ('ق',  'ۗ', 'الوقف أولى (قلى) — يُفضّل الوقف'),
+    ('ص',  'ۖ', 'الوصل أولى (صلى) — يُفضّل الوصل'),
+    ('ج',  'ۚ', 'جائز — يستوي الوقف والوصل'),
+    ('لا', 'ۙ', 'لا وقف — لا يُوقف عليه (وقفٌ قبيح)'),
+    ('ع',  'ۛ', 'المعانقة — يقف على أحد الموضعين فقط'),
+    ('س',  'ۜ', 'سكتة — وقفة يسيرة بلا تنفّس'),
+]
+_MARK_SET = {m for m, _, _ in _MARK_INFO}
+_AR_DIGITS = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
+_to_arabic_digits = lambda n: str(n).translate(_AR_DIGITS)
+_mushaf_pos_data: dict | None = None   # per-position raw/sem/verse, for the diff endpoint
+
+
+def _mushaf_base_mark(raw):
+    """Leading canonical mark of a raw DB value ('ر,ص' → 'ر', 'قلى'→'ق' etc.)."""
+    raw = (raw or '').strip()
+    if not raw:
+        return ''
+    return raw.split(',')[0].strip()
+
+
 def _build_mushaf_similarity():
     """Compare the printed mushafs' waqf systems to each other across the whole
     Quran. Two lenses: PLACEMENT (do they put a stop at the same word at all) and
     MEANING (same word AND same ruling, after normalising notation). Returns the
-    matrices, the ranked closest pairs, and an average-linkage dendrogram built on
-    the meaning distance so the natural families show up as a tree."""
-    global _mushaf_sim_cache
+    matrices, the ranked closest pairs, an average-linkage dendrogram, the
+    per-mark consensus among the standard prints, and a 'what makes each special'
+    profile."""
+    global _mushaf_sim_cache, _mushaf_pos_data
     if _mushaf_sim_cache is not None:
         return _mushaf_sim_cache
 
     versions = sorted(_get_mushaf_version_whitelist())
     place: dict[str, set] = {v: set() for v in versions}
     sem: dict[str, dict] = {v: {} for v in versions}
+    raw_by: dict[str, dict] = {v: {} for v in versions}   # pos -> raw DB symbol
+    verse_of: dict = {}                                    # pos -> (surah, ayah, word)
 
     if os.path.exists(MUSHAF_WAQF_DATABASE):
         conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
         try:
             cols = ', '.join('"' + v.replace('"', '""') + '"' for v in versions)
-            cur = conn.execute(f'SELECT token_index, word_index, {cols} FROM waqf')
+            cur = conn.execute(
+                f'SELECT token_index, word_index, "السورة", "الآية", "الكلمة", {cols} FROM waqf')
             col_names = [d[0] for d in cur.description]
+            vi = {v: col_names.index(v) for v in versions}
             for row in cur.fetchall():
-                pos = (row[0], row[1])
-                for idx, v in enumerate(versions):
-                    raw = row[col_names.index(v)]
+                # token_index/word_index reset every verse, so they are NOT unique
+                # on their own — key each position by (surah, ayah, word_index).
+                pos = (row[2], row[3], row[1])
+                verse_of[pos] = (row[2], row[3], row[4])
+                for v in versions:
+                    raw = row[vi[v]]
                     if raw and str(raw).strip():
+                        raw = str(raw).strip()
                         place[v].add(pos)
+                        raw_by[v][pos] = raw
                         cls = _mushaf_sem_class(v, raw)
                         if cls:
                             sem[v][pos] = cls
         finally:
             conn.close()
+
+    std = [v for v in versions if v not in ('ورش', 'الهندي')]   # standard Arabic-symbol prints
+    _mushaf_pos_data = {'versions': versions, 'std': std, 'raw': raw_by, 'sem': sem,
+                        'verse': verse_of}
 
     def jac(a, b):
         A, B = place[a], place[b]
@@ -3330,22 +3369,145 @@ def _build_mushaf_similarity():
     order = []
     leaf_order(tree, order)
 
+    # ── Per-mark consensus among the STANDARD prints ────────────────────────
+    # Canonical mark per position for each standard print, then per position the
+    # plurality mark + how many agree. Bucketed by mark → positions + agreement.
+    std_mark = {v: {p: _mushaf_base_mark(r) for p, r in raw_by[v].items()
+                    if _mushaf_base_mark(r) in _MARK_SET} for v in std}
+    all_std_pos = set().union(*[set(std_mark[v]) for v in std]) if std else set()
+    agg = {m: [0, 0.0] for m, _, _ in _MARK_INFO}
+    for p in all_std_pos:
+        votes = Counter(std_mark[v][p] for v in std if p in std_mark[v])
+        if not votes:
+            continue
+        top, topn = votes.most_common(1)[0]
+        agg[top][0] += 1
+        agg[top][1] += topn / sum(votes.values())
+    mark_consensus = []
+    for m, glyph, desc in _MARK_INFO:
+        npos, sa = agg[m]
+        mark_consensus.append({
+            'sym': m, 'glyph': glyph, 'desc': desc,
+            'positions': npos,
+            'agreement': round(sa / npos, 3) if npos else 0.0,
+            'counts': {v: sum(1 for p in std_mark[v] if std_mark[v][p] == m) for v in std},
+        })
+
+    # ── What makes each mushaf special ──────────────────────────────────────
+    profiles = []
+    max_la = max((sum(1 for x in std_mark.get(v, {}).values() if x == 'لا') for v in std), default=0)
+    max_q = max((sum(1 for x in std_mark.get(v, {}).values() if x == 'ق') for v in std), default=0)
+    for v in versions:
+        cnt = Counter()
+        for p, r in raw_by[v].items():
+            b = _mushaf_base_mark(r)
+            cnt[b] += 1
+        special = []
+        system = 'standard'
+        if v == 'ورش':
+            system = 'warsh'
+            special.append('رواية ورش — «ص» تعني صه أي «قِف» (عكس صلى عند حفص)، و«ر» رأس آية في عدّ ورش.')
+            special.append('نظامٌ مختلف عن حفص؛ يضع الوقف في مواضع متقاربة لكنه يحكم عليها بحكمٍ آخر.')
+        elif v == 'الهندي':
+            system = 'indopak'
+            special.append('النظام الباكستاني (IndoPak) برموزٍ مختلفة كليًّا (ؕ ۚ ۙ ؗ …) — لا يقارَن رمزًا برمز.')
+        else:
+            nb_la, nb_q, nb_s, nb_j = cnt.get('لا', 0), cnt.get('ق', 0), cnt.get('ص', 0), cnt.get('ج', 0)
+            if nb_q == 0 and nb_s == 0 and nb_j > 0:
+                special.append('يوحّد كل وقفٍ اختياري في علامة «ج» — لا يفرّق بين قلى (الوقف أولى) وصلى (الوصل أولى).')
+            if nb_la == 0:
+                special.append('أسقط علامة «لا وقف» تمامًا — لا يَسِمها في أي موضع.')
+            else:
+                extra = ' (أكثر المصاحف)' if nb_la == max_la and max_la > 0 else ''
+                special.append(f'يحافظ على علامة «لا وقف» في {_to_arabic_digits(nb_la)} موضعًا{extra} — حيث أسقطها بعض المطبوعات.')
+            if nb_q > 0 and nb_q == max_q and max_q > 0:
+                special.append(f'أكثرها استعمالًا لـ«قلى» (الوقف أولى): {_to_arabic_digits(nb_q)} موضعًا.')
+        # lone-dissenter positions (only among standard prints): where this print's
+        # ruling differs from every other standard print that marks the same word.
+        lone = 0
+        if v in std_mark:
+            for p, m in std_mark[v].items():
+                others = [std_mark[o][p] for o in std if o != v and p in std_mark[o]]
+                if others and all(o != m for o in others):
+                    lone += 1
+            if lone:
+                special.append(f'ينفرد بحكمٍ يخالف بقيّة المصاحف القياسية في {_to_arabic_digits(lone)} موضعًا.')
+        profiles.append({
+            'id': v, 'system': system, 'total': len(place[v]), 'lone': lone,
+            'counts': {m: cnt.get(m, 0) for m, _, _ in _MARK_INFO},
+            'special': special,
+        })
+
     _mushaf_sim_cache = {
         'mushafs': versions,
+        'standard': std,
         'order': order or versions,
         'meaning_matrix': mean_m,
         'place_matrix': place_m,
         'counts': {v: len(place[v]) for v in versions},
         'pairs': pairs,
         'tree': tree,
+        'marks': [m for m, _, _ in _MARK_INFO],
+        'mark_consensus': mark_consensus,
+        'profiles': profiles,
     }
     return _mushaf_sim_cache
+
+
+def _mushaf_diff(a, b, limit=200):
+    """Every word where two mushafs give a DIFFERENT waqf ruling, with verse refs
+    for drill-down. Grouped by the kind of disagreement (a's mark → b's mark)."""
+    _build_mushaf_similarity()                 # ensure per-position data is built
+    d = _mushaf_pos_data or {}
+    raw_by, sem, verse = d.get('raw', {}), d.get('sem', {}), d.get('verse', {})
+    if a not in raw_by or b not in raw_by:
+        return None
+    positions = set(sem.get(a, {})) | set(sem.get(b, {}))
+    items, groups = [], Counter()
+    same = 0
+    for p in positions:
+        ca, cb = sem[a].get(p), sem[b].get(p)
+        if ca and cb and ca == cb:
+            same += 1
+            continue
+        sa_, ay, word = verse.get(p, (None, None, ''))
+        ra = raw_by[a].get(p, '')
+        rb = raw_by[b].get(p, '')
+        groups[(ra or '∅', rb or '∅')] += 1
+        items.append({'surah': sa_, 'ayah': ay, 'word': word,
+                      'a_sym': ra, 'b_sym': rb, 'wpos_key': p})
+    items.sort(key=lambda it: ((it['surah'] or 0), (it['ayah'] or 0)))
+    union = len(positions)
+    return {
+        'a': a, 'b': b,
+        'meaning': round(same / union, 3) if union else 0.0,
+        'differences': len(items),
+        'shown': min(limit, len(items)),
+        'capped': len(items) > limit,
+        'groups': [{'a_sym': k[0], 'b_sym': k[1], 'count': n}
+                   for k, n in groups.most_common()],
+        'verses': [{'surah': it['surah'], 'ayah': it['ayah'], 'word': it['word'],
+                    'a_sym': it['a_sym'], 'b_sym': it['b_sym']} for it in items[:limit]],
+    }
 
 
 @breathing_bp.route('/api/waqf-research/mushaf-similarity', methods=['GET'])
 def waqf_research_mushaf_similarity():
     """How close the printed mushafs' waqf systems are to one another."""
     return jsonify(_build_mushaf_similarity())
+
+
+@breathing_bp.route('/api/waqf-research/mushaf-diff', methods=['GET'])
+def waqf_research_mushaf_diff():
+    """Word-by-word differences between two mushafs' waqf rulings."""
+    a = request.args.get('a', '')
+    b = request.args.get('b', '')
+    if not (_is_valid_mushaf_version(a) and _is_valid_mushaf_version(b)) or a == b:
+        return jsonify({'error': 'invalid mushaf pair'}), 400
+    res = _mushaf_diff(a, b)
+    if res is None:
+        return jsonify({'error': 'not found'}), 404
+    return jsonify(res)
 
 
 _ibtidaa_cache: dict | None = None

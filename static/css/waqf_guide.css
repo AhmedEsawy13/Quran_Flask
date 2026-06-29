@@ -423,6 +423,78 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
     .wq-msp-names { flex-basis: 100%; }
     .wq-msp-place { flex-basis: 100%; }
 }
+
+/* sub-tabs inside تقارب المصاحف */
+.wq-msp-subtabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.wq-msp-subtab { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+    border: 1px solid var(--wq-border-strong); background: var(--wq-surface); color: var(--wq-text-muted);
+    font-family: inherit; font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: all 0.15s ease; }
+.wq-msp-subtab:hover { color: var(--wq-accent); border-color: var(--wq-accent); }
+.wq-msp-subtab-on { background: var(--wq-accent); color: #fff; border-color: var(--wq-accent); }
+
+/* per-mark rows */
+.wq-mk-list { display: flex; flex-direction: column; gap: 10px; }
+.wq-mk-row { padding: 12px 14px; border-radius: 12px; background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
+.wq-mk-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.wq-mk-head .wq-wsym { font-size: 1.5rem; min-width: 1.6em; }
+.wq-mk-meta { flex: 1 1 180px; }
+.wq-mk-name { font-weight: 800; color: var(--wq-text); }
+.wq-mk-name small { color: var(--wq-text-faint); font-weight: 600; }
+.wq-mk-desc { font-size: 0.8rem; color: var(--wq-text-muted); margin-top: 2px; }
+.wq-mk-agree { flex: 1 1 200px; display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+.wq-mk-bar { height: 9px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--wq-accent) 14%, transparent); }
+.wq-mk-bar span { display: block; height: 100%; border-radius: 999px; background: var(--wq-accent); }
+.wq-mk-agtxt { font-size: 0.76rem; color: var(--wq-text-muted); font-weight: 600; }
+.wq-mk-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.wq-mk-chip { display: inline-flex; flex-direction: column; align-items: center; gap: 1px; padding: 4px 9px; border-radius: 9px;
+    background: var(--wq-surface); border: 1px solid var(--wq-border); min-width: 52px; }
+.wq-mk-chip b { font-size: 0.9rem; color: var(--wq-accent-strong); }
+.wq-mk-chip span { font-size: 0.66rem; color: var(--wq-text-muted); }
+.wq-mk-chip.wq-mk-zero { opacity: 0.45; }
+.wq-mk-chip.wq-mk-zero b { color: var(--wq-text-faint); }
+
+/* per-mushaf profile cards */
+.wq-pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.wq-pf-card { padding: 14px; border-radius: 14px; background: var(--wq-surface-2); border: 1px solid var(--wq-border);
+    border-inline-start: 4px solid var(--wq-accent); }
+.wq-pf-warsh { border-inline-start-color: #b45309; }
+.wq-pf-indopak { border-inline-start-color: #be185d; }
+.wq-pf-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.wq-pf-name { font-weight: 800; color: var(--wq-text); }
+.wq-pf-name i { color: var(--wq-accent); margin-inline-end: 4px; }
+.wq-pf-sys { font-size: 0.72rem; color: var(--wq-text-muted); background: var(--wq-surface); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--wq-border); }
+.wq-pf-stat { font-size: 0.8rem; color: var(--wq-text-muted); margin: 6px 0 8px; font-weight: 600; }
+.wq-pf-special { margin: 0; padding-inline-start: 18px; display: flex; flex-direction: column; gap: 6px; }
+.wq-pf-special li { font-size: 0.84rem; color: var(--wq-text); line-height: 1.55; }
+.wq-pf-special li.wq-pf-none { color: var(--wq-text-faint); list-style: none; margin-inline-start: -18px; }
+.wq-pf-dist { margin-top: 10px; }
+
+/* compare two */
+.wq-cmp-pick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 14px; }
+.wq-cmp-pick select { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--wq-border-strong);
+    background: var(--wq-surface); color: var(--wq-text); font-family: inherit; font-size: 0.86rem; font-weight: 700; }
+.wq-cmp-vs { color: var(--wq-text-faint); font-weight: 700; }
+.wq-cmp-go { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; border: none;
+    background: var(--wq-accent); color: #fff; font-family: inherit; font-weight: 800; cursor: pointer; }
+.wq-cmp-go:hover { background: var(--wq-accent-strong); }
+.wq-cmp-summary { font-size: 0.9rem; color: var(--wq-text); margin-bottom: 8px; line-height: 1.6; }
+.wq-cmp-legend { font-size: 0.76rem; color: var(--wq-text-muted); margin-bottom: 10px; }
+.wq-cmp-ga { color: var(--wq-accent-strong); }
+.wq-cmp-gb { color: #be185d; }
+.wq-cmp-groups { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+.wq-cmp-group { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+    background: var(--wq-surface-2); border: 1px solid var(--wq-border); font-size: 0.84rem; }
+.wq-cmp-group i { color: var(--wq-text-faint); font-size: 0.7rem; }
+.wq-cmp-gn { background: var(--wq-accent); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 0.72rem; font-weight: 800; }
+.wq-cmp-none { color: var(--wq-text-faint); font-weight: 600; }
+.wq-cmp-list { display: flex; flex-direction: column; gap: 6px; }
+.wq-cmp-case { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: start;
+    padding: 9px 13px; border-radius: 10px; background: var(--wq-surface-2); border: 1px solid var(--wq-border); cursor: pointer; }
+.wq-cmp-case:hover { border-color: var(--wq-accent); background: color-mix(in srgb, var(--wq-accent) 8%, var(--wq-surface-2)); }
+.wq-cmp-w { font-family: 'UthmanicHafs', serif; font-size: 1.15rem; color: var(--wq-text); flex: 1 1 auto; }
+.wq-cmp-ref { font-size: 0.78rem; color: var(--wq-text-muted); white-space: nowrap; }
+.wq-cmp-syms { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 0.95rem; }
+.wq-cmp-syms i { color: var(--wq-text-faint); font-size: 0.7rem; }
 .wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
 .wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }
