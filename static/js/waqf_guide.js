@@ -79,7 +79,8 @@
         panelStats: $('wq-panel-stats'), panelMandatory: $('wq-panel-mandatory'),
         panelPatterns: $('wq-panel-patterns'), panelCluster: $('wq-panel-cluster'),
         panelIbtidaa: $('wq-panel-ibtidaa'), panelSaktat: $('wq-panel-saktat'),
-        panelAgreement: $('wq-panel-agreement'),
+        panelAgreement: $('wq-panel-agreement'), panelMushafSim: $('wq-panel-mushafsim'),
+        mushafSimContent: $('wq-mushafsim-content'),
         solosContent: $('wq-solos-content'),
         statsContent: $('wq-stats-content'), mandatoryContent: $('wq-mandatory-content'),
         patternsContent: $('wq-patterns-content'), clusterContent: $('wq-cluster-content'),
@@ -774,6 +775,85 @@
         els.clusterContent.innerHTML = desc + clHtml + heat + diffHtml;
     }
 
+    /* ── تقارب المصاحف (mushaf-system similarity → dendrogram) ──────── */
+    let mushafSimCache = null;
+    async function loadMushafSim() {
+        if (mushafSimCache) { renderMushafSim(); return; }
+        els.mushafSimContent.innerHTML = '<div class="wq-research-loading">…جارٍ مقارنة أنظمة الوقف</div>';
+        try {
+            mushafSimCache = await (await fetch('/api/waqf-research/mushaf-similarity')).json();
+            renderMushafSim();
+        } catch { els.mushafSimContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+    }
+
+    // A horizontal dendrogram (RTL): leaves on the right, the tree branches left
+    // as the agreement drops — each fork is labelled with the % at which the two
+    // sides still issue the SAME ruling. Reads top-to-bottom as "who joins whom".
+    function buildDendrogram(d) {
+        const order = d.order || [];
+        const tree = d.tree;
+        if (!tree) return '';
+        const rowH = 40, padTop = 18, padBot = 10;
+        const W = 600, labelW = 150, xLeaf = W - labelW, xRoot = 30;
+        const yOf = {};
+        order.forEach((id, i) => { yOf[id] = padTop + i * rowH + rowH / 2; });
+        const sims = [];
+        (function collect(n) { if (n.type === 'node') { sims.push(n.similarity); n.children.forEach(collect); } })(tree);
+        const minSim = Math.min(1, ...sims);
+        const sx = s => (minSim >= 1) ? xRoot : (xLeaf - (1 - s) / (1 - minSim) * (xLeaf - xRoot));
+        const seg = [], forks = [], leaves = [];
+        (function place(n) {
+            if (n.type === 'leaf') { n._x = xLeaf; n._y = yOf[n.id]; leaves.push(n); return; }
+            n.children.forEach(place);
+            n._x = sx(n.similarity);
+            const cy = n.children.map(c => c._y);
+            n._y = (Math.min(...cy) + Math.max(...cy)) / 2;
+            seg.push(`<line x1="${n._x}" y1="${Math.min(...cy)}" x2="${n._x}" y2="${Math.max(...cy)}"/>`);
+            n.children.forEach(c => seg.push(`<line x1="${n._x}" y1="${c._y}" x2="${c._x}" y2="${c._y}"/>`));
+            forks.push(`<g class="wq-dnd-fork"><circle cx="${n._x}" cy="${n._y}" r="13"/>`
+                + `<text x="${n._x}" y="${n._y}" dy="0.32em">${toAr(Math.round(n.similarity * 100))}</text></g>`);
+        })(tree);
+        const H = padTop + order.length * rowH + padBot;
+        const leafEls = leaves.map(l => {
+            const cnt = (d.counts && d.counts[l.id] != null) ? `<tspan class="wq-dnd-cnt"> · ${toAr(d.counts[l.id])}</tspan>` : '';
+            return `<g class="wq-dnd-leaf"><circle cx="${l._x}" cy="${l._y}" r="3.5"/>`
+                + `<text x="${xLeaf + 12}" y="${l._y}" dy="0.32em">${l.name}${cnt}</text></g>`;
+        }).join('');
+        return `<div class="wq-dnd-wrap"><svg viewBox="0 0 ${W} ${H}" class="wq-dnd" role="img" aria-label="شجرة تقارب المصاحف">`
+            + `<g class="wq-dnd-links">${seg.join('')}</g>${forks.join('')}${leafEls}</svg></div>`;
+    }
+
+    function renderMushafSim() {
+        const d = mushafSimCache;
+        const desc = '<div class="wq-solos-desc">مدى تقارب <b>أنظمة الوقف</b> في المصاحف المطبوعة عبر القرآن كله. '
+            + 'النسبة = أن يضعا العلامة على <b>نفس الكلمة وبنفس الحكم</b> (بعد توحيد الرموز: الأزهر يكتب كل وقفٍ جائزٍ «ج»، '
+            + 'و«ص» في الورش = صه أي «قف»، عكس صلى عند حفص). الشجرة تتفرّع يسارًا كلما قلّ الاتفاق؛ الرقم على كل عقدة هو نسبة اتفاق الفرعين. '
+            + 'الرقم بجانب كل مصحف = عدد مواضع الوقف فيه.</div>';
+        const dnd = buildDendrogram(d);
+        // ranked closest pairs (meaning + placement bars)
+        const pairs = (d.pairs || []).slice(0, 12);
+        const rows = pairs.map(p => {
+            const mp = Math.round(p.meaning * 100), pl = Math.round(p.place * 100);
+            return `<div class="wq-msp-row">`
+                + `<div class="wq-msp-names"><b>${p.a}</b> <span class="wq-msp-x">↔</span> <b>${p.b}</b></div>`
+                + `<div class="wq-msp-bars">`
+                + `<div class="wq-msp-bar" title="نفس الموضع ونفس الحكم"><span style="width:${mp}%"></span></div>`
+                + `<div class="wq-msp-val">${toAr(mp)}٪ <small>حكمًا</small></div>`
+                + `<div class="wq-msp-place" title="يضعان وقفًا في نفس الموضع (بغضّ النظر عن الحكم)">${toAr(pl)}٪ موضعًا</div>`
+                + `</div></div>`;
+        }).join('');
+        els.mushafSimContent.innerHTML = desc
+            + buildDendrogramLegend()
+            + dnd
+            + '<div class="wq-msp-head"><i class="fas fa-ranking-star"></i> أقرب المصاحف بعضها لبعض</div>'
+            + `<div class="wq-msp-list">${rows}</div>`;
+    }
+    function buildDendrogramLegend() {
+        return '<div class="wq-dnd-note"><i class="fas fa-circle-info"></i> '
+            + 'كلما كان الالتقاء أقربَ إلى اليمين (نسبة أعلى) كان المصحفان أشبه. '
+            + 'مثال: المدينة الجديد والكويت يلتقيان عند ١٠٠٪ (متطابقان)، ثم قطر، ثم الشمرلي…</div>';
+    }
+
     function setupResearch() {
         if (!els.researchToggle) return;
         els.researchToggle.addEventListener('click', () => {
@@ -794,6 +874,7 @@
             els.panelAgreement.hidden = which !== 'agreement';
             els.panelIbtidaa.hidden = which !== 'ibtidaa';
             els.panelCluster.hidden = which !== 'cluster';
+            els.panelMushafSim.hidden = which !== 'mushafsim';
             if (which === 'solos') loadSolosSummary();
             if (which === 'stats') loadStats();
             if (which === 'mandatory') loadMandatory();
@@ -802,6 +883,7 @@
             if (which === 'agreement') loadAgreement();
             if (which === 'ibtidaa') loadIbtidaa();
             if (which === 'cluster') loadCluster();
+            if (which === 'mushafsim') loadMushafSim();
         }));
         document.querySelectorAll('.wq-research-chip').forEach(c =>
             c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1', c.dataset.mode || '')));

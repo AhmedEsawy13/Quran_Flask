@@ -3210,6 +3210,144 @@ def waqf_research_clustering():
     return jsonify(_build_reciter_clustering())
 
 
+_mushaf_sim_cache: dict | None = None
+
+
+def _mushaf_sem_class(version, raw):
+    """Normalise a printed mushaf's raw waqf symbol to WHAT IT TELLS THE RECITER
+    TO DO, so different notations can be compared by meaning rather than glyph.
+
+    Key subtleties: ورش's ص is صه = STOP (the opposite of حفص's صلى = prefer to
+    continue); ورش's lone ر is رأس آية (verse end), not a waqf ruling; الأزهر
+    writes every discretionary stop as ج; الهندي uses the IndoPak glyph set."""
+    raw = (raw or '').strip()
+    if not raw:
+        return None
+    if 'ورش' in version:
+        base = raw.split(',')[0].strip()
+        if base in ('ر', '۝') and 'ص' not in raw:
+            return None                      # رأس آية only — not a stop ruling
+        return 'STOP'                        # صه = قف هنا
+    if version == 'الهندي':
+        return {
+            'ۙ': 'NOSTOP', 'ۚ': 'CHOICE', 'ۘ': 'MUST',
+            'ۗ': 'STOP', 'ۖ': 'CONT', 'ؕ': 'ABS',
+            'ؗ': 'CHOICE', 'ۜ': 'SAKTA',
+        }.get(raw[0])                        # leading IndoPak glyph; rare marks → None
+    base = raw.split(',')[0].strip()
+    return {'م': 'MUST', 'ق': 'STOP', 'ص': 'CONT', 'ج': 'CHOICE',
+            'لا': 'NOSTOP', 'ع': 'EMBRACE', 'س': 'SAKTA'}.get(base)
+
+
+def _build_mushaf_similarity():
+    """Compare the printed mushafs' waqf systems to each other across the whole
+    Quran. Two lenses: PLACEMENT (do they put a stop at the same word at all) and
+    MEANING (same word AND same ruling, after normalising notation). Returns the
+    matrices, the ranked closest pairs, and an average-linkage dendrogram built on
+    the meaning distance so the natural families show up as a tree."""
+    global _mushaf_sim_cache
+    if _mushaf_sim_cache is not None:
+        return _mushaf_sim_cache
+
+    versions = sorted(_get_mushaf_version_whitelist())
+    place: dict[str, set] = {v: set() for v in versions}
+    sem: dict[str, dict] = {v: {} for v in versions}
+
+    if os.path.exists(MUSHAF_WAQF_DATABASE):
+        conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+        try:
+            cols = ', '.join('"' + v.replace('"', '""') + '"' for v in versions)
+            cur = conn.execute(f'SELECT token_index, word_index, {cols} FROM waqf')
+            col_names = [d[0] for d in cur.description]
+            for row in cur.fetchall():
+                pos = (row[0], row[1])
+                for idx, v in enumerate(versions):
+                    raw = row[col_names.index(v)]
+                    if raw and str(raw).strip():
+                        place[v].add(pos)
+                        cls = _mushaf_sem_class(v, raw)
+                        if cls:
+                            sem[v][pos] = cls
+        finally:
+            conn.close()
+
+    def jac(a, b):
+        A, B = place[a], place[b]
+        u = len(A | B)
+        return round(len(A & B) / u, 3) if u else 0.0
+
+    def meaning(a, b):
+        A, B = set(sem[a]), set(sem[b])
+        u = len(A | B)
+        if not u:
+            return 0.0
+        same = sum(1 for p in (A & B) if sem[a][p] == sem[b][p])
+        return round(same / u, 3)
+
+    place_m = {a: {b: (1.0 if a == b else jac(a, b)) for b in versions} for a in versions}
+    mean_m = {a: {b: (1.0 if a == b else meaning(a, b)) for b in versions} for a in versions}
+
+    pairs = []
+    for i, a in enumerate(versions):
+        for b in versions[i + 1:]:
+            pairs.append({'a': a, 'b': b, 'meaning': mean_m[a][b], 'place': place_m[a][b]})
+    pairs.sort(key=lambda p: (p['meaning'], p['place']), reverse=True)
+
+    # Average-linkage agglomerative clustering on the MEANING distance (1 − sim).
+    dist = {(a, b): 1 - mean_m[a][b] for a in versions for b in versions}
+    clusters = {v: {'type': 'leaf', 'id': v, 'name': v, 'members': [v]} for v in versions}
+
+    def cdist(ca, cb):
+        vals = [dist[(a, b)] for a in ca['members'] for b in cb['members']]
+        return sum(vals) / len(vals)
+
+    nid = 0
+    while len(clusters) > 1:
+        ks = list(clusters)
+        best = None
+        for i in range(len(ks)):
+            for j in range(i + 1, len(ks)):
+                d = cdist(clusters[ks[i]], clusters[ks[j]])
+                if best is None or d < best[0]:
+                    best = (d, ks[i], ks[j])
+        d, ka, kb = best
+        ca, cb = clusters.pop(ka), clusters.pop(kb)
+        clusters[f'_n{nid}'] = {
+            'type': 'node', 'height': round(d, 3), 'similarity': round(1 - d, 3),
+            'children': [ca, cb], 'members': ca['members'] + cb['members'],
+        }
+        nid += 1
+    tree = next(iter(clusters.values())) if clusters else None
+
+    def leaf_order(node, out):
+        if node is None:
+            return
+        if node['type'] == 'leaf':
+            out.append(node['id'])
+        else:
+            for ch in node['children']:
+                leaf_order(ch, out)
+    order = []
+    leaf_order(tree, order)
+
+    _mushaf_sim_cache = {
+        'mushafs': versions,
+        'order': order or versions,
+        'meaning_matrix': mean_m,
+        'place_matrix': place_m,
+        'counts': {v: len(place[v]) for v in versions},
+        'pairs': pairs,
+        'tree': tree,
+    }
+    return _mushaf_sim_cache
+
+
+@breathing_bp.route('/api/waqf-research/mushaf-similarity', methods=['GET'])
+def waqf_research_mushaf_similarity():
+    """How close the printed mushafs' waqf systems are to one another."""
+    return jsonify(_build_mushaf_similarity())
+
+
 _ibtidaa_cache: dict | None = None
 
 

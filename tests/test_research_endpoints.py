@@ -96,6 +96,36 @@ def test_clustering_matrix_shape(client):
     assert sum(c["size"] for c in j["clusters"]) == len(order)  # every reciter placed
 
 
+def test_mushaf_similarity_tree_and_pairs(client):
+    """تقارب المصاحف: full meaning/placement matrices + an agglomerative dendrogram.
+    المدينة الجديد and الكويت are effectively the same print (top pair, ~100%);
+    ورش/الهندي are the outliers that join last."""
+    j = client.get("/api/waqf-research/mushaf-similarity").get_json()
+    ms = j["mushafs"]
+    assert {"المدينة الجديد", "الكويت", "ورش", "الهندي"} <= set(ms)
+    # symmetric meaning matrix, self-similarity = 1.
+    for a in ms:
+        assert j["meaning_matrix"][a][a] == 1.0
+        for b in ms:
+            assert j["meaning_matrix"][a][b] == j["meaning_matrix"][b][a]
+    # every leaf appears once in the dendrogram.
+    leaves = []
+    def walk(n):
+        if n["type"] == "leaf":
+            leaves.append(n["id"])
+        else:
+            assert 0.0 <= n["similarity"] <= 1.0
+            for c in n["children"]:
+                walk(c)
+    walk(j["tree"])
+    assert sorted(leaves) == sorted(ms)
+    # closest pair is the Madinah/Kuwait twin; pairs are sorted strongest-first.
+    top = j["pairs"][0]
+    assert {top["a"], top["b"]} == {"المدينة الجديد", "الكويت"}
+    assert top["meaning"] >= 0.99
+    assert [p["meaning"] for p in j["pairs"]] == sorted((p["meaning"] for p in j["pairs"]), reverse=True)
+
+
 def test_research_endpoints_not_browser_cached(client):
     """Heavy Quran-wide analyses are server-cached, so don't pin them in the browser."""
     r = client.get("/api/waqf-research/clustering")

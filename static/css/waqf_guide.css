@@ -393,6 +393,36 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
     padding: 3px 10px; border-radius: 999px; border: 1px solid var(--wq-border); background: var(--wq-surface);
     color: var(--wq-text); }
 .wq-cl-pair-pct { font-weight: 800; color: var(--wq-accent-strong); }
+
+/* ── تقارب المصاحف: dendrogram + closest-pairs ─────────────────── */
+.wq-dnd-note { font-size: 0.82rem; color: var(--wq-text-muted); margin: 10px 0; line-height: 1.6; }
+.wq-dnd-note i { color: var(--wq-accent); margin-inline-end: 4px; }
+.wq-dnd-wrap { overflow-x: auto; padding: 6px 0 2px; }
+.wq-dnd { width: 100%; min-width: 420px; height: auto; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; }
+.wq-dnd-links line { stroke: var(--wq-border-strong); stroke-width: 1.6; }
+.wq-dnd-fork circle { fill: var(--wq-accent); }
+.wq-dnd-fork text { fill: #fff; font-size: 11px; font-weight: 800; text-anchor: middle; }
+.wq-dnd-leaf circle { fill: var(--wq-accent-strong); }
+.wq-dnd-leaf text { fill: var(--wq-text); font-size: 14px; font-weight: 700; }
+.wq-dnd-leaf .wq-dnd-cnt { fill: var(--wq-text-faint); font-weight: 600; font-size: 11px; }
+
+.wq-msp-head { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; font-weight: 800; color: var(--wq-text); }
+.wq-msp-head i { color: var(--wq-accent); }
+.wq-msp-list { display: flex; flex-direction: column; gap: 7px; }
+.wq-msp-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 12px; border-radius: 10px;
+    background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
+.wq-msp-names { flex: 0 0 230px; font-size: 0.9rem; }
+.wq-msp-x { color: var(--wq-text-faint); margin: 0 4px; }
+.wq-msp-bars { display: flex; align-items: center; gap: 10px; flex: 1 1 240px; }
+.wq-msp-bar { flex: 1; height: 9px; border-radius: 999px; background: color-mix(in srgb, var(--wq-accent) 14%, transparent); overflow: hidden; min-width: 80px; }
+.wq-msp-bar span { display: block; height: 100%; border-radius: 999px; background: var(--wq-accent); }
+.wq-msp-val { font-weight: 800; color: var(--wq-accent-strong); white-space: nowrap; font-size: 0.86rem; }
+.wq-msp-val small { color: var(--wq-text-faint); font-weight: 600; }
+.wq-msp-place { white-space: nowrap; font-size: 0.78rem; color: var(--wq-text-muted); }
+@media (max-width: 620px) {
+    .wq-msp-names { flex-basis: 100%; }
+    .wq-msp-place { flex-basis: 100%; }
+}
 .wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
 .wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }
