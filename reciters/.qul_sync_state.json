@@ -1,80 +1,80 @@
 {
   "reciters": {
     "abdulbasit": {
-      "content_hash": "707d0eac1495ffe8790122fcddf899e032edca595d7a45514103651d49cecb36",
+      "content_hash": "749e809667a47630d7d49331f38c23b293dcb4b95c2cc172f1e833491ed4a298",
       "slug": "abdulbasit_abdulsamad_tarteel",
-      "ts_version": "6a2c16c67c68f455eff13b63"
+      "ts_version": "6a1b82225c8d10ffa1109685"
     },
     "abdulhakam": {
-      "content_hash": "b950acc3ff365ee75f312842c43c0b3b2d559ac3b4da3043a9f54368d29498cf",
+      "content_hash": "dcca363409bf7f82232cfdecbbcae6af35901a5998d561840b43e13a9b130da7",
       "slug": "mahmoud_abdul_hakam_mp3quran",
       "ts_version": "6a2c171f871c005b5352b3fe"
     },
     "ahmed_amer": {
-      "content_hash": "b6338ff19c6c720cfa4267ca969eb01a15d923bc04e00fd78e67c048288c11e1",
+      "content_hash": "87ef4b9fb2fae91cfc209205c9e4ba2c64f0a7732b94fdd2baa9426aa65f6e15",
       "slug": "ahmed_amer_tvquran",
       "ts_version": "6a2c16d9871c005b5352b3f6"
     },
     "akhdar": {
-      "content_hash": "63dae829020803508f2450bb202d0c70a525ad1fb307ddb3b7fa96634bb5e175",
+      "content_hash": "a5e33f89ffd8ccd225225748cf6b111ab19b506a121e3f2427a311906c0321ac",
       "slug": "ibrahim_al_akhdar_drive",
       "ts_version": "6a2c174b7c68f455eff13b7f"
     },
     "ayyub": {
-      "content_hash": "95e62cc697be2f46ebb0a43e4de853c06afcad4ee6880a0165fe09a7f3bd1cd7",
+      "content_hash": "3aae53e524b4e8dde480e3cc5ac8f35d5de87487887fa4fd4d690dc7d596d2e0",
       "slug": "mohammed_ayyub_drive",
       "ts_version": "6a2c129c871c005b5352b3af"
     },
     "banna": {
-      "content_hash": "c5e7559597e5627c5b4a2a753269dce413b65a5ab31b4f4be9f4f16b198db740",
+      "content_hash": "cd1909c056596ca4376bfb5539550952e5c2e5abe1e2db38b0f22219a01b9c57",
       "slug": "mahmoud_ali_al_banna_qdc",
       "ts_version": "6a2c17117c68f455eff13b77"
     },
     "burhaji": {
-      "content_hash": "24f45ee3864b044d3b32e4d48a9c5b59167f04779a9a7b82419a5cf431cc569c",
+      "content_hash": "dd11b0236816e74de5922765073a76dbd2eb418a90b2b262276504a7f3410a88",
       "slug": "mohammed_burhaji_yt",
       "ts_version": "6a2c23907c68f455eff13cc0"
     },
     "husary": {
-      "content_hash": "4421a2ab138104a7fbb32f72d1189257e16bfa49b5415763b0ac99b1de257370",
+      "content_hash": "70f2cdb2dbd68c3273cac5efc4cf38dfd71ef2cf7b562a1186bfd3b584a7464e",
       "slug": "mahmoud_khalil_al_husary_mp3quran",
-      "ts_version": "6a2c17167c68f455eff13b79"
+      "ts_version": "6a1bc5885c8d10ffa1109a38"
     },
     "huthaifi": {
-      "content_hash": "7a7c535db7f662790075646d70496479774f97a69583f6c607b8b648621cca02",
+      "content_hash": "eb171e31dc6199958c5dc74d05abc8f68684aae03db7f34c80d35b01bc83070e",
       "slug": "ali_al_huthaifi_mp3quran",
       "ts_version": "6a2c175f7c68f455eff13b87"
     },
     "maasaraawi": {
-      "content_hash": "81fe51007722f97f4deeffdbcd5ad2d19eb6d78dc6dea8ec43b336d64b121ad7",
+      "content_hash": "87218a94a1403fba486660d9c2a7eec7138ef5f11c9f291bb2a28791fa9f8668",
       "slug": "ahmed_issa_al_maasaraawi_mp3quran",
       "ts_version": "6a2c1738871c005b5352b404"
     },
     "maher": {
-      "content_hash": "8ea17278df149cb0e9582c11ad6ae09eb69fed62ee00e91c78f59d2e14904040",
+      "content_hash": "e37b48c76f9a07d7b70b1232af9c478cd9e370c48af02dbc045e0e4532a6d80d",
       "slug": "maher_al_muaiqly_qdc",
       "ts_version": "6a2c1726871c005b5352b400"
     },
     "minshawi": {
-      "content_hash": "7bce0649c915c3a219b491820c514e953cf8f69dad1ef285ce4dec1e5c1111f7",
+      "content_hash": "f0f2a010803a7c1445cfa043b7f195064071db732136ad0b23c21ff72bb68d1e",
       "slug": "mohammed_siddiq_al_minshawi_mp3quran",
-      "ts_version": "6a2c16e97c68f455eff13b6f"
+      "ts_version": "6a1b818e3a4b8cae6044ee0f"
     },
     "mustafa_ismail": {
-      "content_hash": "90535c94228613eff7cdd2c054f4f7a69b258949331f9af37fa4b09547dd3354",
+      "content_hash": "36d813e0f173578e435a74f94c88133fc60eb887e48577e39eb14391340831d5",
       "slug": "mustafa_ismail_mp3quran",
       "ts_version": "6a30d3395ff0a6cf94f9e864"
     },
     "shaheen": {
-      "content_hash": "6d81f458455fde82f324cf739ee55e43c175b7bee67b67ea89aa890838278f19",
+      "content_hash": "3505d789b50a236fefde57db8524f66768ca8dbc08a712c5cab1c0dcef6a4577",
       "slug": "ahmed_shaheen_mp3quran",
       "ts_version": "6a2c1289871c005b5352b3ab"
     },
     "sufi": {
-      "content_hash": "ba300d6df662ba6486ea31fda71324f0837dfe2d7ee3aa008f7024c3858e7609",
+      "content_hash": "3f77acca827be3582698bede44fedf5b30241e5de500cde0317b512f685ab584",
       "slug": "abdur_rashid_sufi_qdc",
       "ts_version": "6a2c172b7c68f455eff13b7b"
     }
   },
-  "release_version": "v2.1.0"
+  "release_version": "v2.2.0"
 }
