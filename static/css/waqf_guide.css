@@ -1,9 +1,12 @@
 @font-face { font-family: 'UthmanicHafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'), url('../fonts/uthmanic_hafs_v20.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'UthmanicWarsh'; src: url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'), url('../fonts/uthmanic_warsh_v21.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'IndoPakNastaleeq2'; src: url('../fonts/indopak.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Naskh-Nastaleeq-IndoPak-QWBW'; src: url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'); font-display: swap; }
 .waqf-uthmanic { font-family: 'UthmanicHafs', serif; }
 /* ورش marks (e.g. صه) use the Warsh font so the glyph is the correct Warsh
-   waqf shape rather than the Hafs صلى. */
-.waqf-warsh, .wq-wsym.waqf-warsh, .wq-rmark.waqf-warsh { font-family: 'UthmanicWarsh', 'UthmanicHafs', serif; }
+   waqf shape rather than the Hafs صلى. الهندي uses the IndoPak waqf glyphs. */
+.waqf-warsh, .wq-wsym.waqf-warsh, .wq-rmark.waqf-warsh, .wq-mk-glyph.waqf-warsh { font-family: 'UthmanicWarsh', 'UthmanicHafs', serif; }
+.waqf-hindi, .wq-wsym.waqf-hindi, .wq-rmark.waqf-hindi, .wq-mk-glyph.waqf-hindi { font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', serif; }
 
 :root {
     --wq-bg: #f4f4f9; --wq-surface: #ffffff; --wq-surface-2: #f0f1f7;
@@ -452,6 +455,9 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-mk-chip span { font-size: 0.66rem; color: var(--wq-text-muted); }
 .wq-mk-chip.wq-mk-zero { opacity: 0.45; }
 .wq-mk-chip.wq-mk-zero b { color: var(--wq-text-faint); }
+/* a single waqf mark drawn as its printed glyph (in chips, compare rows, …) */
+.wq-mk-glyph { font-size: 1.15rem; line-height: 1; color: var(--wq-text); }
+.wq-mk-chip .wq-mk-glyph { font-size: 1rem; color: var(--wq-text-muted); }
 
 /* per-mushaf profile cards */
 .wq-pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }

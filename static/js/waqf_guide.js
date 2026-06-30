@@ -41,12 +41,15 @@
     };
     const waqfGlyph = s => WAQF_GLYPH[s] || s;
     const isWarshId = id => /ورش|warsh/i.test(id || '');
-    const waqfFontCls = mushafId => isWarshId(mushafId) ? 'waqf-warsh' : 'waqf-uthmanic';
+    const isHindiId = id => /الهندي|hindi|indopak/i.test(id || '');
+    const waqfFontCls = mushafId => isWarshId(mushafId) ? 'waqf-warsh'
+        : isHindiId(mushafId) ? 'waqf-hindi' : 'waqf-uthmanic';
     // Printed-mushaf glyph for a (possibly comma-joined) DB symbol. ورش is special:
     // ص → صه (ۖ) and ر → رأس آية (the ۝ rosette, U+06DD); a word can carry both
     // (e.g. ٱلۡقَيُّومُ 2:255 = "ر,ص") so emit صه then ۝.
     function mushafGlyph(sym, mushafId) {
-        const parts = String(sym == null ? '' : sym).split(/[،,]/).map(t => t.trim()).filter(Boolean);
+        const raw = String(sym == null ? '' : sym).trim();
+        const parts = raw.split(/[،,]/).map(t => t.trim()).filter(Boolean);
         if (isWarshId(mushafId)) {
             const out = [];
             parts.forEach(t => {
@@ -55,7 +58,20 @@
             });
             return out.join('');
         }
+        // الهندي already stores the IndoPak waqf GLYPHS (ؕ ۚ ۙ ؗ …); render as-is,
+        // dropping only the verse-end circle (۟) and any PUA font-ligature glyphs.
+        if (isHindiId(mushafId)) {
+            return [...raw].filter(ch => ch.trim() && ch !== '۟'
+                && !(ch.codePointAt(0) >= 0xE000 && ch.codePointAt(0) <= 0xF8FF)).join('');
+        }
         return parts.map(waqfGlyph).join('');
+    }
+    // One mark rendered as its printed glyph in the right font; '∅'/empty → dash.
+    function markGlyph(sym, mushafId, cls) {
+        if (sym == null || sym === '' || sym === '∅') return '<span class="wq-cmp-none">بلا</span>';
+        const g = mushafGlyph(sym, mushafId);
+        if (!g) return '<span class="wq-cmp-none">بلا</span>';
+        return `<span class="wq-mk-glyph ${waqfFontCls(mushafId)}${cls ? ' ' + cls : ''}">${g}</span>`;
     }
 
     // Breath presets (max comfortable seconds per breath).
@@ -225,7 +241,7 @@
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${isWarshId(k) ? mushafGlyph(v, k) : v}</span>`).join('') + '</span>'
+                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>'
                 : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
             return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref} لرؤية وقوف القرّاء والمصاحف">
                 <span class="wq-research-ref">${sname} <b>${ref}</b></span>
@@ -310,7 +326,7 @@
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${isWarshId(k) ? mushafGlyph(v, k) : v}</span>`).join('') + '</span>'
+                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>'
                 : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
             return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref}">
                 <span class="wq-research-ref">${sname} <b>${ref}</b></span>
@@ -394,7 +410,7 @@
                 const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
                 const ent = Object.entries(o.marks || {});
                 const marks = ent.length
-                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${isWarshId(k) ? mushafGlyph(v, k) : v}</span>`).join('')}</span>` : '';
+                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('')}</span>` : '';
                 return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
                     <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
                     <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
@@ -455,7 +471,7 @@
             const pairHtml = pair.map(p => {
                 const ent = Object.entries(p.marks || {});
                 const marks = ent.length
-                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${isWarshId(k) ? mushafGlyph(v, k) : v}</span>`).join('')}</span>` : '';
+                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('')}</span>` : '';
                 return `<span class="wq-muan-word">${p.word}</span>${marks}`;
             }).join('<span class="wq-muan-or">أو</span>');
             const agree = o.agreement === 'full'
@@ -476,7 +492,7 @@
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${isWarshId(k) ? mushafGlyph(v, k) : v}</span>`).join('') + '</span>' : '';
+                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>' : '';
             const agree = o.agreement === 'full'
                 ? '<span class="wq-mand-agree" title="جميع المصاحف متفقة"><i class="fas fa-check-double"></i></span>'
                 : '<span class="wq-mand-partial" title="اختلاف بين المصاحف"><i class="fas fa-exclamation-triangle"></i></span>';
@@ -511,7 +527,7 @@
                 const ent = Object.entries(o.marks || {});
                 const marks = ent.length
                     ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ': ' + v).join(' · ')}">`
-                      + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${isWarshId(k) ? mushafGlyph(v, k) : v}</span>`).join('') + '</span>' : '';
+                      + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>' : '';
                 return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
                     <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
                     <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
@@ -892,7 +908,7 @@
             const sp = (p.special || []).map(s => `<li>${s}</li>`).join('')
                 || '<li class="wq-pf-none">يتبع النظام القياسي دون تفرّدٍ بارز.</li>';
             const dist = (d.marks || []).filter(m => p.counts[m]).map(m =>
-                `<span class="wq-mk-chip"><b>${toAr(p.counts[m])}</b><span>${m}</span></span>`).join('');
+                `<span class="wq-mk-chip"><b>${toAr(p.counts[m])}</b>${markGlyph(m, id)}</span>`).join('');
             return `<div class="wq-pf-card wq-pf-${p.system}"><div class="wq-pf-top">`
                 + `<span class="wq-pf-name"><i class="fas fa-book-quran"></i> ${id}</span>`
                 + `<span class="wq-pf-sys">${sysLabel[p.system] || ''}</span></div>`
@@ -932,20 +948,21 @@
             mspRenderDiff(j);
         } catch { res.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
     }
-    const mspSym = s => (!s || s === '∅') ? '<span class="wq-cmp-none">بلا</span>' : s;
     function mspRenderDiff(j) {
         const res = document.getElementById('wq-cmp-result');
         if (!res) return;
         const agree = Math.round((j.meaning || 0) * 100);
+        // each side's mark is drawn as its printed glyph in that mushaf's own font.
+        const ga = s => markGlyph(s, j.a, 'wq-cmp-ga'), gb = s => markGlyph(s, j.b, 'wq-cmp-gb');
         const groups = (j.groups || []).map(g =>
-            `<span class="wq-cmp-group"><b class="wq-cmp-ga">${mspSym(g.a_sym)}</b><i class="fas fa-arrows-left-right"></i>`
-            + `<b class="wq-cmp-gb">${mspSym(g.b_sym)}</b><span class="wq-cmp-gn">${toAr(g.count)}</span></span>`).join('');
+            `<span class="wq-cmp-group">${ga(g.a_sym)}<i class="fas fa-arrows-left-right"></i>`
+            + `${gb(g.b_sym)}<span class="wq-cmp-gn">${toAr(g.count)}</span></span>`).join('');
         const chips = (j.verses || []).map(v => {
             const sname = (state.surahs.find(s => s.number === v.surah) || {}).name || '';
             return `<button class="wq-research-item wq-cmp-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">`
                 + `<span class="wq-cmp-w">${v.word || ''}</span>`
                 + `<span class="wq-cmp-ref">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></span>`
-                + `<span class="wq-cmp-syms"><b class="wq-cmp-ga">${mspSym(v.a_sym)}</b><i class="fas fa-arrows-left-right"></i><b class="wq-cmp-gb">${mspSym(v.b_sym)}</b></span></button>`;
+                + `<span class="wq-cmp-syms">${ga(v.a_sym)}<i class="fas fa-arrows-left-right"></i>${gb(v.b_sym)}</span></button>`;
         }).join('');
         res.innerHTML = `<div class="wq-cmp-summary"><b>${j.a}</b> و<b>${j.b}</b> يتفقان حكمًا بنسبة <b>${toAr(agree)}٪</b>، `
             + `ويختلفان في <b>${toAr(j.differences)}</b> موضعًا${j.capped ? ` (عُرض أول ${toAr(j.shown)})` : ''}.</div>`
