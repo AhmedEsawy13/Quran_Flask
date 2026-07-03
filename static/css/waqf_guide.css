@@ -501,6 +501,25 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-cmp-ref { font-size: 0.78rem; color: var(--wq-text-muted); white-space: nowrap; }
 .wq-cmp-syms { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 0.95rem; }
 .wq-cmp-syms i { color: var(--wq-text-faint); font-size: 0.7rem; }
+
+/* ── المكتفى للداني (classical grades) ──────────────────────────── */
+.wq-muktafa-src { font-size: 0.76rem; color: var(--wq-text-faint); margin: -4px 0 12px; }
+.wq-muktafa { display: flex; flex-direction: column; gap: 8px; }
+.wq-mk3-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 9px 13px;
+    border-radius: 11px; background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
+.wq-mk3-word { font-size: 1.35rem; color: var(--wq-text); line-height: 1.6; }
+.wq-mk3-grade { font-size: 0.8rem; font-weight: 800; padding: 2px 12px; border-radius: 999px; white-space: nowrap; }
+.wq-mk3-tamm  { background: rgba(22,163,74,0.14);  color: #15803d; }
+.wq-mk3-kafi  { background: rgba(2,132,199,0.13);  color: #0369a1; }
+.wq-mk3-hasan { background: rgba(217,119,6,0.14);  color: #b45309; }
+.wq-mk3-qabih { background: rgba(220,38,38,0.12);  color: #b91c1c; }
+body.wq-dark .wq-mk3-tamm  { color: #4ade80; }
+body.wq-dark .wq-mk3-kafi  { color: #7dd3fc; }
+body.wq-dark .wq-mk3-hasan { color: #fbbf24; }
+body.wq-dark .wq-mk3-qabih { color: #f87171; }
+.wq-mk3-note { flex: 1 1 100%; }
+.wq-mk3-note summary { cursor: pointer; font-size: 0.78rem; color: var(--wq-accent); font-weight: 700; }
+.wq-mk3-note p { margin: 6px 0 0; font-size: 0.88rem; line-height: 1.9; color: var(--wq-text-muted); }
 .wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
 .wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }

@@ -151,7 +151,7 @@ from core.config import (
     DATABASE, WAQF_DATABASE, MUSHAF_WAQF_DATABASE, EDITOR_EDITIONS,
     _BASE_DIR, RECITER_GUIDE_CONFIG, HUSARY_POSITIONS_DB,
     DIGITAL_KHATT_LAYOUT_DATABASE, QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
-    TAJWEED_DATABASE, MAX_AYAH_NUMBER, SHEMRLY_CODEPOINT_BASE,
+    TAJWEED_DATABASE, CLASSICAL_WAQF_DATABASE, MAX_AYAH_NUMBER, SHEMRLY_CODEPOINT_BASE,
     WAQF_SYMBOL_CHARS, INDOPAK_EXTRA_WAQF_SYMBOL_CHARS, NON_WAQF_SPECIFIC_CHARS,
     ARABIC_INDIC_DIGIT_PATTERN, ARABIC_DIACRITICS_STRIP_PATTERN,
     _SEARCH_STRIP_PATTERN, _SEARCH_LETTER_FOLD,
@@ -3512,6 +3512,42 @@ def waqf_research():
     }
     _waqf_research_cache[cache_key] = result
     return jsonify(result)
+
+
+_MUKTAFA_SOURCE = {
+    'title': 'المكتفى في الوقف والابتدا',
+    'author': 'أبو عمرو عثمان بن سعيد الداني (ت 444هـ)',
+    'edition': 'تحقيق محيي الدين عبد الرحمن رمضان، دار عمار، ط1 1422هـ/2001م',
+    'via': 'OpenITI (Shamela 0026461)',
+}
+
+
+@breathing_bp.route('/api/classical-waqf/<int:surah>/<int:ayah>', methods=['GET'])
+def classical_waqf(surah, ayah):
+    """الداني's graded stops for one verse, aligned to recited-word positions
+    (built by pipeline/build_muktafa.py). Only high-confidence alignments are
+    returned — comparative citations the book quotes from elsewhere are kept
+    in the DB but flagged conf=0 and excluded here."""
+    if not (1 <= surah <= 114) or ayah < 1:
+        return jsonify({'error': 'invalid verse'}), 400
+    entries = []
+    if os.path.exists(CLASSICAL_WAQF_DATABASE):
+        conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
+        try:
+            conn.row_factory = sqlite3.Row
+            for r in conn.execute(
+                    'SELECT wpos, stop_word, quote, grade, grade_raw, note '
+                    'FROM muktafa WHERE surah=? AND ayah=? AND conf=1 '
+                    'ORDER BY seq', (surah, ayah)):
+                entries.append({
+                    'wpos': r['wpos'], 'stop_word': r['stop_word'],
+                    'quote': r['quote'], 'grade': r['grade'],
+                    'grade_raw': r['grade_raw'], 'note': r['note'] or '',
+                })
+        finally:
+            conn.close()
+    return jsonify({'surah': surah, 'ayah': ayah, 'source': _MUKTAFA_SOURCE,
+                    'count': len(entries), 'entries': entries})
 
 
 @breathing_bp.route('/waqf')

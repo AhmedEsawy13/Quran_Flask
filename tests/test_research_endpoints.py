@@ -161,6 +161,30 @@ def test_mushaf_diff_pairwise(client):
     assert client.get("/api/waqf-research/mushaf-diff?" + same).status_code == 400
 
 
+def test_classical_waqf_muktafa(client):
+    """المكتفى للداني aligned to recited-word positions: known anchors hold and
+    wpos always lands inside the verse's word list."""
+    j = client.get("/api/classical-waqf/2/2").get_json()
+    assert j["source"]["title"].startswith("المكتفى")
+    got = {(e["wpos"], e["grade"]) for e in j["entries"]}
+    # {لا ريب فيه} كاف on فيه (w4); {هدى للمتقين} تام on للمتقين (w6),
+    # re-graded كاف in the following discussion.
+    assert (4, "كاف") in got and (6, "تام") in got and (6, "كاف") in got
+    # آية الكرسي: the five classical stops at their exact words.
+    j = client.get("/api/classical-waqf/2/255").get_json()
+    ws = {e["wpos"] for e in j["entries"]}
+    assert {11, 18, 25, 31, 39} <= ws          # نوم، الأرض، بإذنه، خلفهم، شاء
+    _, words, _ = app._verse_word_texts("2:255")
+    for e in j["entries"]:
+        assert 0 <= e["wpos"] < len(words)
+        assert e["grade"] in ("تام", "كاف", "حسن", "صالح", "قبيح", "لا")
+    # الفاتحة: {مالك يوم الدين} تام.
+    j = client.get("/api/classical-waqf/1/4").get_json()
+    assert any(e["grade"] == "تام" for e in j["entries"])
+    # bounds validation
+    assert client.get("/api/classical-waqf/115/1").status_code == 400
+
+
 def test_research_disk_cache_is_served_verbatim(client):
     """The baked research caches (pipeline/precompute_research.py) exist and the
     endpoint serves exactly that payload — no silent drift between the baked

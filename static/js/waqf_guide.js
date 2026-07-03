@@ -88,6 +88,7 @@
         recSummary: $('wq-rec-summary'), recPlan: $('wq-rec-plan'),
         matrixCard: $('wq-matrix-card'), matrix: $('wq-matrix'), matrixLegend: $('wq-matrix-legend'),
         recitersCard: $('wq-reciters-card'), reciters: $('wq-reciters'),
+        muktafaCard: $('wq-muktafa-card'), muktafa: $('wq-muktafa'), muktafaSrc: $('wq-muktafa-src'),
         researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
         researchInput: $('wq-research-input'), researchForms: $('wq-research-forms'),
         researchResults: $('wq-research-results'),
@@ -165,6 +166,7 @@
             els.surah.value = String(surah);
             els.ayah.value = String(ayah);
             render(state.data);
+            loadMuktafa(surah, ayah);
             setStatus('');
             const url = new URL(location.href);
             url.searchParams.set('surah', surah); url.searchParams.set('ayah', ayah);
@@ -179,6 +181,48 @@
     function updateStepper() {
         els.prev.disabled = state.ayah <= 1;
         els.next.disabled = state.ayah >= (state.ayahCount[state.surah] || Infinity);
+    }
+
+    /* ── المكتفى للداني: classical grades + reasoning per stop ───────── */
+    const MUKTAFA_GRADE = {
+        'تام':  { cls: 'tamm',  desc: 'وقفٌ تام — يُوقف عليه ويُبتدأ بما بعده' },
+        'كاف':  { cls: 'kafi',  desc: 'وقفٌ كافٍ — يُوقف عليه، وما بعده متعلقٌ به معنًى' },
+        'حسن':  { cls: 'hasan', desc: 'وقفٌ حسن — يَحسُن الوقف ولا يَحسُن الابتداء بما بعده' },
+        'صالح': { cls: 'kafi',  desc: 'وقفٌ صالح' },
+        'قبيح': { cls: 'qabih', desc: 'وقفٌ قبيح — لا يُوقف عليه' },
+        'لا':   { cls: 'qabih', desc: 'ليس بوقف' },
+    };
+    async function loadMuktafa(surah, ayah) {
+        if (!els.muktafaCard) return;
+        els.muktafaCard.hidden = true;
+        try {
+            const j = await (await fetch(`/api/classical-waqf/${surah}/${ayah}`)).json();
+            if (surah !== state.surah || ayah !== state.ayah) return;   // stale response
+            if (!j.count) return;
+            const words = (state.data && state.data.words) || [];
+            // dedupe re-grades of the same spot+grade (keep the richer note)
+            const seen = new Map();
+            j.entries.forEach(e => {
+                const k = e.wpos + '|' + e.grade;
+                if (!seen.has(k) || (e.note || '').length > (seen.get(k).note || '').length) seen.set(k, e);
+            });
+            const rows = [...seen.values()].sort((a, b) => a.wpos - b.wpos).map(e => {
+                const g = MUKTAFA_GRADE[e.grade] || { cls: 'kafi', desc: e.grade };
+                const w = words[e.wpos] || e.stop_word || '';
+                let note = (e.note || '').trim();
+                if (note.length < 18) note = '';   // chain residue («ومثله») — not a real علّة
+                const noteHtml = note
+                    ? `<details class="wq-mk3-note"><summary>العلّة</summary><p>${note}</p></details>` : '';
+                return `<div class="wq-mk3-row">`
+                    + `<span class="wq-mk3-word waqf-uthmanic">${w}</span>`
+                    + `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${g.desc}">${e.grade_raw}</span>`
+                    + noteHtml + `</div>`;
+            }).join('');
+            els.muktafa.innerHTML = rows;
+            const src = j.source || {};
+            els.muktafaSrc.textContent = `${src.title} — ${src.author} · ${src.edition}`;
+            els.muktafaCard.hidden = false;
+        } catch (e) { /* classical layer is optional — stay hidden */ }
     }
 
     /* ── waqf research by word (للدراسة) ──────────────────────────── */

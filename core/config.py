@@ -75,6 +75,9 @@ QATAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-qatar-layout.db')
 # Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
 # from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
 TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')
+# Classical وقف-وابتدا literature aligned to QPC word positions — built by
+# pipeline/build_muktafa.py from the OpenITI edition of الداني's المكتفى.
+CLASSICAL_WAQF_DATABASE = os.path.join(_BASE_DIR, 'data', 'classical_waqf.db')
 
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
 SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
