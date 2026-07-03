@@ -51,6 +51,15 @@ jobs:
             python3 scripts/import_qul_reciters.py --sync
           } | tee /tmp/sync.log
 
+      # The baked research analyses (clustering / agreement / ibtidaa) derive
+      # from the reciter timestamps, so they must be rebuilt with the new data
+      # or deployments would serve stale numbers.
+      - name: Rebake research caches
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          pip install -r requirements.txt
+          python3 pipeline/precompute_research.py
+
       - name: Open pull request
         if: steps.check.outputs.changed == 'true'
         env:
@@ -59,14 +68,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if git diff --quiet -- reciters/; then
+          if git diff --quiet -- reciters/ data/research_cache/; then
             echo "sync produced no file changes; nothing to commit."
             exit 0
           fi
 
           branch="qul-sync-$(date -u +%Y%m%d%H%M%S)"
           git checkout -b "$branch"
-          git add reciters/
+          git add reciters/ data/research_cache/
           git commit -m "chore(reciters): sync timestamps from QUL release"
           git push -u origin "$branch"
 

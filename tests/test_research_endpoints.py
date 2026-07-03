@@ -161,6 +161,19 @@ def test_mushaf_diff_pairwise(client):
     assert client.get("/api/waqf-research/mushaf-diff?" + same).status_code == 400
 
 
+def test_research_disk_cache_is_served_verbatim(client):
+    """The baked research caches (pipeline/precompute_research.py) exist and the
+    endpoint serves exactly that payload — no silent drift between the baked
+    file and a live compute."""
+    import json as _json
+    import os as _os
+    path = _os.path.join(app._RESEARCH_CACHE_DIR, "mushaf_similarity.json")
+    assert _os.path.exists(path), "run pipeline/precompute_research.py"
+    with open(path, encoding="utf-8") as f:
+        baked = _json.load(f)
+    assert client.get("/api/waqf-research/mushaf-similarity").get_json() == baked
+
+
 def test_research_endpoints_not_browser_cached(client):
     """Heavy Quran-wide analyses are server-cached, so don't pin them in the browser."""
     r = client.get("/api/waqf-research/clustering")
