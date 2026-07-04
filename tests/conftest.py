@@ -16,7 +16,10 @@ import app as quran_app  # noqa: E402
 
 @pytest.fixture(scope="session")
 def app():
-    return quran_app.create_app()
+    # Mount every feature (incl. the write-capable editor) so the suite can
+    # exercise all modules. register_blueprints is idempotent; blueprints must
+    # be added before the first request, which is why this happens once here.
+    return quran_app.create_app({'core', 'reading', 'memorize', 'breathing', 'editor'})
 
 
 @pytest.fixture(scope="session")

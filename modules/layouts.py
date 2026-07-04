@@ -18,7 +18,7 @@ from flask import jsonify, request
 
 from core.blueprints import core_bp
 from core.config import (
-    MUSHAF_WAQF_DATABASE, DIGITAL_KHATT_LAYOUT_DATABASE,
+    DIGITAL_KHATT_LAYOUT_DATABASE,
     QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
     SHEMRLY_CODEPOINT_BASE, ARABIC_DIACRITICS_STRIP_PATTERN,
     ARABIC_INDIC_DIGIT_PATTERN, _BASE_DIR,
@@ -26,7 +26,7 @@ from core.config import (
 from core.text import is_waqf_like_char
 from core.datasets import digital_khatt_data, qpc_hafs_data, surahs_data
 from core.mushaf_waqf import (
-    get_mushaf_waqf_symbols, _is_valid_mushaf_version,
+    get_mushaf_waqf_symbols,
 )
 
 logger = logging.getLogger(__name__)

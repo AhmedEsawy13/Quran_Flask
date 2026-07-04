@@ -1,16 +1,13 @@
-from flask import Flask, jsonify, render_template, request, g, Response, redirect, Blueprint
+from flask import Flask, jsonify, render_template, request, g, redirect
 import json
 import sqlite3
 import os
 import logging
 import re
 import threading
-import unicodedata
-from collections import defaultdict, OrderedDict, Counter
+from collections import defaultdict, Counter
 from functools import lru_cache
 
-
-from flask import make_response
 import gzip
 from io import BytesIO
 import requests as http_requests
@@ -21,7 +18,6 @@ from core.loader import (
     _json_load,
     load_json_cdn_or_local as _load_json_cdn_or_local,
     IS_SERVERLESS as _IS_SERVERLESS,
-    _cdn_cache,
 )
 
 app = Flask(__name__, static_folder='static')
@@ -148,40 +144,28 @@ def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
 from core.config import (
-    DATABASE, WAQF_DATABASE, MUSHAF_WAQF_DATABASE, EDITOR_EDITIONS,
-    _BASE_DIR, RECITER_GUIDE_CONFIG, HUSARY_POSITIONS_DB,
-    DIGITAL_KHATT_LAYOUT_DATABASE, QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
-    TAJWEED_DATABASE, CLASSICAL_WAQF_DATABASE, MAX_AYAH_NUMBER, SHEMRLY_CODEPOINT_BASE,
-    WAQF_SYMBOL_CHARS, INDOPAK_EXTRA_WAQF_SYMBOL_CHARS, NON_WAQF_SPECIFIC_CHARS,
-    ARABIC_INDIC_DIGIT_PATTERN, ARABIC_DIACRITICS_STRIP_PATTERN,
-    _SEARCH_STRIP_PATTERN, _SEARCH_LETTER_FOLD,
+    DATABASE, WAQF_DATABASE, MUSHAF_WAQF_DATABASE,
+    _BASE_DIR, RECITER_GUIDE_CONFIG,
+    TAJWEED_DATABASE, CLASSICAL_WAQF_DATABASE, MAX_AYAH_NUMBER,
+    WAQF_SYMBOL_CHARS,
 )
 from core.text import (
     _normalize_for_search,
-    is_waqf_like_char,
-    build_aligned_text,
-    normalize_text_and_extract_waqf,
     normalize_quran_dataset,
     initialize_waqf_database,
 )
 from core.mushaf_waqf import (
-    _get_mushaf_table_columns,
     _get_mushaf_version_whitelist,
-    _get_mushaf_position_column,
     _is_valid_mushaf_version,
     _get_waqf_at_boundary,
     get_mushaf_waqf_symbols,
     _fetch_single_mushaf_waqf,
-    _mushaf_waqf_cache,
 )
 
 
 import modules.editor  # noqa: F401 — attaches editor routes to editor_bp
-from modules.layouts import (
-    _build_qatar_page_payload,
-    _build_qpc_v1_page_payload,
+from modules.layouts import (  # noqa: F401 — importing also registers layout routes
     _find_mushaf_row_match_index,
-    _get_dk_layout_word_map,
     _normalize_mushaf_word_token,
 )
 from core.datasets import (
@@ -1121,7 +1105,7 @@ except sqlite3.Error as _wn_err:
 
 # Database helper functions (moved to core.db so feature blueprints can share
 # the per-request connection without importing the main app module).
-from core.db import get_db, close_connection
+from core.db import get_db, close_connection, connect as _sqlite_connect
 app.teardown_appcontext(close_connection)
 
 def get_word_meanings(surah_number, ayah_number):
@@ -3599,9 +3583,9 @@ _CLASSICAL_STOP_VERDICT = {
 _CLASSICAL_NAME = {'muktafa': 'الداني', 'manar': 'الأشموني'}
 
 
-def _mushaf_marks_by_wpos(surah, ayah, mushaf):
-    """{wpos: canonical_symbol} for one printed mushaf at one verse."""
-    _, _, raw_to_wpos = _verse_word_texts(f'{surah}:{ayah}')
+def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos):
+    """{wpos: canonical_symbol} for one printed mushaf at one verse. Takes the
+    verse's raw_to_wpos so the caller's _verse_word_texts result is reused."""
     out = {}
     for r in get_mushaf_waqf_symbols(surah, ayah, mushaf):
         ti = r.get('token_index')
@@ -3613,20 +3597,22 @@ def _mushaf_marks_by_wpos(surah, ayah, mushaf):
     return out
 
 
-def _classical_grades_by_wpos(surah, ayah):
-    """{wpos: [{'source','name','grade'}]} from both classical books (conf=1)."""
+def _classical_grades_for_range(surah, from_ayah, to_ayah):
+    """{(ayah, wpos): [{'source','name','grade'}]} for a verse range in ONE
+    query/connection (the practice grader walks a whole passage)."""
     out = defaultdict(list)
     if os.path.exists(CLASSICAL_WAQF_DATABASE):
-        conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
+        conn = _sqlite_connect(CLASSICAL_WAQF_DATABASE)
         try:
             conn.row_factory = sqlite3.Row
             for r in conn.execute(
-                    'SELECT source, wpos, grade FROM classical '
-                    'WHERE surah=? AND ayah=? AND conf=1 AND wpos IS NOT NULL',
-                    (surah, ayah)):
-                out[r['wpos']].append({'source': r['source'],
-                                       'name': _CLASSICAL_NAME.get(r['source'], r['source']),
-                                       'grade': r['grade']})
+                    'SELECT ayah, source, wpos, grade FROM classical '
+                    'WHERE surah=? AND ayah BETWEEN ? AND ? AND conf=1 AND wpos IS NOT NULL',
+                    (surah, from_ayah, to_ayah)):
+                out[(r['ayah'], r['wpos'])].append({
+                    'source': r['source'],
+                    'name': _CLASSICAL_NAME.get(r['source'], r['source']),
+                    'grade': r['grade']})
         finally:
             conn.close()
     return out
@@ -3673,21 +3659,21 @@ def _grade_waqf_practice(surah, from_ayah, to_ayah, mushaf, stops):
     graded, broken_lazim, ideal = [], [], []
     counts = {'excellent': 0, 'good': 0, 'ok': 0, 'unmarked': 0, 'caution': 0, 'error': 0}
 
+    classical_all = _classical_grades_for_range(surah, from_ayah, to_ayah)
     for ayah in range(from_ayah, to_ayah + 1):
         vk = f'{surah}:{ayah}'
         if vk not in qpc_hafs_data_normalized:
             continue
-        _, words, _ = _verse_word_texts(vk)
+        _, words, raw_to_wpos = _verse_word_texts(vk)
         if not words:
             continue
         last = len(words) - 1
-        marks = _mushaf_marks_by_wpos(surah, ayah, mushaf)
-        classical = _classical_grades_by_wpos(surah, ayah)
+        marks = _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos)
 
         for wpos in range(len(words)):
             here = (ayah, wpos)
             sym = marks.get(wpos, '')
-            cls = classical.get(wpos, [])
+            cls = classical_all.get((ayah, wpos), [])
             is_end = wpos == last
             if here in stop_set:
                 verdict, label, sources = _grade_one_stop(sym, cls, is_end)

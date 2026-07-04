@@ -5,7 +5,6 @@ QPC-v1 left page), and reading/writing a single word's waqf symbol in
 mushaf_waqf.db. Gated behind ENABLE_EDITOR at registration time (app.py).
 """
 import logging
-import os
 import sqlite3
 
 from flask import jsonify, render_template, request
@@ -13,7 +12,8 @@ from flask import jsonify, render_template, request
 from core.blueprints import editor_bp
 from core.config import EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
-from core.mushaf_waqf import _is_valid_mushaf_version, _mushaf_waqf_cache
+from core.db import connect as _sqlite_connect
+from core.mushaf_waqf import _mushaf_waqf_cache
 from modules.layouts import (
     _build_qatar_page_payload,
     _build_qpc_v1_page_payload,
@@ -74,7 +74,7 @@ def _get_or_set_word_waqf(global_word_id, edition, symbol):
         return None
 
     quoted_col = f'"{edition}"'
-    conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+    conn = _sqlite_connect(MUSHAF_WAQF_DATABASE)
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -200,7 +200,7 @@ def mushaf_editor_progress():
     if edition not in EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
 
-    conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+    conn = _sqlite_connect(MUSHAF_WAQF_DATABASE)
     try:
         cur = conn.cursor()
         if request.method == 'GET':
