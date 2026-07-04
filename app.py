@@ -3514,20 +3514,30 @@ def waqf_research():
     return jsonify(result)
 
 
-_MUKTAFA_SOURCE = {
-    'title': 'المكتفى في الوقف والابتدا',
-    'author': 'أبو عمرو عثمان بن سعيد الداني (ت 444هـ)',
-    'edition': 'تحقيق محيي الدين عبد الرحمن رمضان، دار عمار، ط1 1422هـ/2001م',
-    'via': 'OpenITI (Shamela 0026461)',
+_CLASSICAL_SOURCES = {
+    'muktafa': {
+        'name': 'الداني',
+        'title': 'المكتفى في الوقف والابتدا',
+        'author': 'أبو عمرو عثمان بن سعيد الداني (ت 444هـ)',
+        'edition': 'تحقيق محيي الدين عبد الرحمن رمضان، دار عمار، ط1 1422هـ/2001م',
+        'via': 'OpenITI (Shamela 0026461)',
+    },
+    'manar': {
+        'name': 'الأشموني',
+        'title': 'منار الهدى في بيان الوقف والابتدا',
+        'author': 'أحمد بن محمد بن عبد الكريم الأشموني (ق 11هـ)',
+        'edition': 'ضبط شريف أبو العلا العدوي، دار الكتب العلمية',
+        'via': 'OpenITI (Shamela 0006496)',
+    },
 }
 
 
 @breathing_bp.route('/api/classical-waqf/<int:surah>/<int:ayah>', methods=['GET'])
 def classical_waqf(surah, ayah):
-    """الداني's graded stops for one verse, aligned to recited-word positions
-    (built by pipeline/build_muktafa.py). Only high-confidence alignments are
-    returned — comparative citations the book quotes from elsewhere are kept
-    in the DB but flagged conf=0 and excluded here."""
+    """Classical graded stops (الداني's المكتفى + الأشموني's منار الهدى) for one
+    verse, aligned to recited-word positions by pipeline/build_classical_waqf.py.
+    Only high-confidence alignments are returned — comparative citations the
+    books quote from elsewhere stay in the DB flagged conf=0."""
     if not (1 <= surah <= 114) or ayah < 1:
         return jsonify({'error': 'invalid verse'}), 400
     entries = []
@@ -3536,17 +3546,18 @@ def classical_waqf(surah, ayah):
         try:
             conn.row_factory = sqlite3.Row
             for r in conn.execute(
-                    'SELECT wpos, stop_word, quote, grade, grade_raw, note '
-                    'FROM muktafa WHERE surah=? AND ayah=? AND conf=1 '
-                    'ORDER BY seq', (surah, ayah)):
+                    'SELECT source, wpos, stop_word, quote, grade, grade_raw, note '
+                    'FROM classical WHERE surah=? AND ayah=? AND conf=1 '
+                    'ORDER BY wpos, source, seq', (surah, ayah)):
                 entries.append({
+                    'source': r['source'],
                     'wpos': r['wpos'], 'stop_word': r['stop_word'],
                     'quote': r['quote'], 'grade': r['grade'],
                     'grade_raw': r['grade_raw'], 'note': r['note'] or '',
                 })
         finally:
             conn.close()
-    return jsonify({'surah': surah, 'ayah': ayah, 'source': _MUKTAFA_SOURCE,
+    return jsonify({'surah': surah, 'ayah': ayah, 'sources': _CLASSICAL_SOURCES,
                     'count': len(entries), 'entries': entries})
 
 

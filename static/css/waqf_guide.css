@@ -513,10 +513,13 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-mk3-kafi  { background: rgba(2,132,199,0.13);  color: #0369a1; }
 .wq-mk3-hasan { background: rgba(217,119,6,0.14);  color: #b45309; }
 .wq-mk3-qabih { background: rgba(220,38,38,0.12);  color: #b91c1c; }
+.wq-mk3-jaiz  { background: rgba(124,58,237,0.12); color: #6d28d9; }
 body.wq-dark .wq-mk3-tamm  { color: #4ade80; }
 body.wq-dark .wq-mk3-kafi  { color: #7dd3fc; }
 body.wq-dark .wq-mk3-hasan { color: #fbbf24; }
 body.wq-dark .wq-mk3-qabih { color: #f87171; }
+body.wq-dark .wq-mk3-jaiz  { color: #c4b5fd; }
+.wq-mk3-grade small { font-weight: 600; opacity: 0.75; }
 .wq-mk3-note { flex: 1 1 100%; }
 .wq-mk3-note summary { cursor: pointer; font-size: 0.78rem; color: var(--wq-accent); font-weight: 700; }
 .wq-mk3-note p { margin: 6px 0 0; font-size: 0.88rem; line-height: 1.9; color: var(--wq-text-muted); }

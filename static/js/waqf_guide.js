@@ -183,11 +183,12 @@
         els.next.disabled = state.ayah >= (state.ayahCount[state.surah] || Infinity);
     }
 
-    /* ── المكتفى للداني: classical grades + reasoning per stop ───────── */
+    /* ── كتب الوقف والابتداء: classical grades + العلل per stop ───────── */
     const MUKTAFA_GRADE = {
         'تام':  { cls: 'tamm',  desc: 'وقفٌ تام — يُوقف عليه ويُبتدأ بما بعده' },
         'كاف':  { cls: 'kafi',  desc: 'وقفٌ كافٍ — يُوقف عليه، وما بعده متعلقٌ به معنًى' },
         'حسن':  { cls: 'hasan', desc: 'وقفٌ حسن — يَحسُن الوقف ولا يَحسُن الابتداء بما بعده' },
+        'جائز': { cls: 'jaiz',  desc: 'وقفٌ جائز' },
         'صالح': { cls: 'kafi',  desc: 'وقفٌ صالح' },
         'قبيح': { cls: 'qabih', desc: 'وقفٌ قبيح — لا يُوقف عليه' },
         'لا':   { cls: 'qabih', desc: 'ليس بوقف' },
@@ -200,27 +201,33 @@
             if (surah !== state.surah || ayah !== state.ayah) return;   // stale response
             if (!j.count) return;
             const words = (state.data && state.data.words) || [];
-            // dedupe re-grades of the same spot+grade (keep the richer note)
-            const seen = new Map();
+            const srcName = id => (j.sources && j.sources[id] && j.sources[id].name) || id;
+            // group by word position; within a stop, dedupe (source, grade)
+            // keeping the richer علّة.
+            const byPos = new Map();
             j.entries.forEach(e => {
-                const k = e.wpos + '|' + e.grade;
-                if (!seen.has(k) || (e.note || '').length > (seen.get(k).note || '').length) seen.set(k, e);
+                if (!byPos.has(e.wpos)) byPos.set(e.wpos, new Map());
+                const k = e.source + '|' + e.grade;
+                const g = byPos.get(e.wpos);
+                if (!g.has(k) || (e.note || '').length > (g.get(k).note || '').length) g.set(k, e);
             });
-            const rows = [...seen.values()].sort((a, b) => a.wpos - b.wpos).map(e => {
-                const g = MUKTAFA_GRADE[e.grade] || { cls: 'kafi', desc: e.grade };
-                const w = words[e.wpos] || e.stop_word || '';
-                let note = (e.note || '').trim();
-                if (note.length < 18) note = '';   // chain residue («ومثله») — not a real علّة
-                const noteHtml = note
-                    ? `<details class="wq-mk3-note"><summary>العلّة</summary><p>${note}</p></details>` : '';
+            const rows = [...byPos.keys()].sort((a, b) => a - b).map(wpos => {
+                const list = [...byPos.get(wpos).values()];
+                const w = words[wpos] || list[0].stop_word || '';
+                const chips = list.map(e => {
+                    const g = MUKTAFA_GRADE[e.grade] || { cls: 'kafi', desc: e.grade };
+                    return `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${g.desc}">`
+                        + `${e.grade_raw} <small>· ${srcName(e.source)}</small></span>`;
+                }).join('');
+                const notes = list.filter(e => (e.note || '').trim().length >= 18).map(e =>
+                    `<details class="wq-mk3-note"><summary>العلّة — ${srcName(e.source)}</summary>`
+                    + `<p>${e.note.trim()}</p></details>`).join('');
                 return `<div class="wq-mk3-row">`
-                    + `<span class="wq-mk3-word waqf-uthmanic">${w}</span>`
-                    + `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${g.desc}">${e.grade_raw}</span>`
-                    + noteHtml + `</div>`;
+                    + `<span class="wq-mk3-word waqf-uthmanic">${w}</span>${chips}${notes}</div>`;
             }).join('');
             els.muktafa.innerHTML = rows;
-            const src = j.source || {};
-            els.muktafaSrc.textContent = `${src.title} — ${src.author} · ${src.edition}`;
+            const meta = Object.values(j.sources || {}).map(s2 => `${s2.title} — ${s2.author}`).join(' · ');
+            els.muktafaSrc.textContent = meta;
             els.muktafaCard.hidden = false;
         } catch (e) { /* classical layer is optional — stay hidden */ }
     }

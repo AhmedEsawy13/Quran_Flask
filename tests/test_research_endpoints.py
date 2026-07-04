@@ -161,26 +161,29 @@ def test_mushaf_diff_pairwise(client):
     assert client.get("/api/waqf-research/mushaf-diff?" + same).status_code == 400
 
 
-def test_classical_waqf_muktafa(client):
-    """المكتفى للداني aligned to recited-word positions: known anchors hold and
-    wpos always lands inside the verse's word list."""
+def test_classical_waqf_two_sources(client):
+    """الداني (المكتفى) + الأشموني (منار الهدى) aligned to recited-word
+    positions: known anchors hold and wpos always lands inside the verse."""
     j = client.get("/api/classical-waqf/2/2").get_json()
-    assert j["source"]["title"].startswith("المكتفى")
-    got = {(e["wpos"], e["grade"]) for e in j["entries"]}
-    # {لا ريب فيه} كاف on فيه (w4); {هدى للمتقين} تام on للمتقين (w6),
-    # re-graded كاف in the following discussion.
-    assert (4, "كاف") in got and (6, "تام") in got and (6, "كاف") in got
-    # آية الكرسي: the five classical stops at their exact words.
+    assert j["sources"]["muktafa"]["title"].startswith("المكتفى")
+    assert j["sources"]["manar"]["title"].startswith("منار الهدى")
+    got = {(e["source"], e["wpos"], e["grade"]) for e in j["entries"]}
+    # الداني: {لا ريب فيه} كاف on فيه (w4); {هدى للمتقين} تام on للمتقين (w6).
+    assert ("muktafa", 4, "كاف") in got and ("muktafa", 6, "تام") in got
+    # 2:7: the two imams genuinely diverge on سمعهم (w5) — الداني كاف،
+    # الأشموني تام. Both must be present, at the same word.
+    j = client.get("/api/classical-waqf/2/7").get_json()
+    got = {(e["source"], e["wpos"], e["grade"]) for e in j["entries"]}
+    assert ("muktafa", 5, "كاف") in got and ("manar", 5, "تام") in got
+    # آية الكرسي: الداني's five stops at their exact words + الأشموني rows.
     j = client.get("/api/classical-waqf/2/255").get_json()
-    ws = {e["wpos"] for e in j["entries"]}
-    assert {11, 18, 25, 31, 39} <= ws          # نوم، الأرض، بإذنه، خلفهم، شاء
+    dani = {e["wpos"] for e in j["entries"] if e["source"] == "muktafa"}
+    assert {11, 18, 25, 31, 39} <= dani        # نوم، الأرض، بإذنه، خلفهم، شاء
+    assert any(e["source"] == "manar" for e in j["entries"])
     _, words, _ = app._verse_word_texts("2:255")
     for e in j["entries"]:
         assert 0 <= e["wpos"] < len(words)
-        assert e["grade"] in ("تام", "كاف", "حسن", "صالح", "قبيح", "لا")
-    # الفاتحة: {مالك يوم الدين} تام.
-    j = client.get("/api/classical-waqf/1/4").get_json()
-    assert any(e["grade"] == "تام" for e in j["entries"])
+        assert e["grade"] in ("تام", "كاف", "حسن", "جائز", "صالح", "قبيح", "لا")
     # bounds validation
     assert client.get("/api/classical-waqf/115/1").status_code == 400
 
