@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="تدريب الوقف — تدرّب على مواضع الوقف والابتداء: علّم أين وقفت، وقيّم وقوفك على علامات المصاحف وأحكام الأئمة (الداني والأشموني)">
+    <title>أثَر · تدريب الوقف</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="{{ static_hash('css/waqf_guide.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/waqf_practice.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
+    <script src="{{ static_hash('js/theme.js') }}"></script>
+
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body>
+    <header class="athar-bar">
+        <a class="athar-brand" href="/" title="أثَر — مع القرآن">
+            <span class="athar-logo">أثَر</span>
+            <span class="athar-tag">مع القرآن</span>
+        </a>
+        <nav class="athar-nav">
+            <a href="/">المصحف</a>
+            <a href="/memorize">تثبيت</a>
+            <a href="/waqf">مُكْث</a>
+            <a href="/waqf-practice" class="is-active">تدريب</a>
+        </nav>
+    </header>
+
+    <header class="wq-bar">
+        <div class="wq-bar-title">
+            <h1 class="wq-title"><i class="fas fa-graduation-cap"></i> تدريب الوقف</h1>
+            <span class="wq-bar-verse" id="wp-bar-verse"></span>
+        </div>
+        <button class="wq-icon-btn" data-athar-theme="cycle" type="button" title="تبديل الوضع" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
+    </header>
+
+    <main class="wp-main">
+        <section class="wp-controls">
+            <div class="wp-field">
+                <label for="wp-surah">السورة</label>
+                <select id="wp-surah"></select>
+            </div>
+            <div class="wp-field">
+                <label for="wp-from">من الآية</label>
+                <select id="wp-from"></select>
+            </div>
+            <div class="wp-field">
+                <label for="wp-to">إلى الآية</label>
+                <select id="wp-to"></select>
+            </div>
+            <div class="wp-field">
+                <label for="wp-mushaf">المصحف</label>
+                <select id="wp-mushaf"></select>
+            </div>
+            <button class="wp-btn wp-btn-primary" id="wp-load" type="button"><i class="fas fa-play"></i> ابدأ التدريب</button>
+        </section>
+
+        <p class="wp-hint" id="wp-hint" hidden>
+            <i class="fas fa-hand-pointer"></i>
+            اقرأ المقطع، ثم اضغط على كل كلمةٍ <b>وقفتَ عندها</b> (تُعلَّم بخطٍّ تحتها). ثم قيّم وقوفك.
+        </p>
+
+        <section class="wp-passage-card" id="wp-passage-card" hidden>
+            <div class="wp-passage" id="wp-passage" dir="rtl"></div>
+            <div class="wp-actions">
+                <span class="wp-count" id="wp-count">لم تُعلّم أي وقف بعد</span>
+                <span class="wp-actions-spacer"></span>
+                <button class="wp-btn wp-btn-ghost" id="wp-clear" type="button"><i class="fas fa-eraser"></i> مسح</button>
+                <button class="wp-btn wp-btn-primary" id="wp-grade" type="button"><i class="fas fa-clipboard-check"></i> قيّم وقوفي</button>
+            </div>
+        </section>
+
+        <section class="wp-result-card" id="wp-result-card" hidden>
+            <div class="wp-scorewrap">
+                <div class="wp-score" id="wp-score"><span id="wp-score-num">0</span><small>٪</small></div>
+                <div class="wp-score-meta">
+                    <div class="wp-score-title" id="wp-score-title"></div>
+                    <div class="wp-tallies">
+                        <span class="wp-tally wp-tally-good"><b id="wp-t-good">0</b> وقف صحيح</span>
+                        <span class="wp-tally wp-tally-note"><b id="wp-t-note">0</b> تنبيه</span>
+                        <span class="wp-tally wp-tally-err"><b id="wp-t-err">0</b> خطأ</span>
+                    </div>
+                </div>
+            </div>
+            <div class="wp-legend" id="wp-legend"></div>
+            <div class="wp-passage wp-passage-graded" id="wp-graded" dir="rtl"></div>
+            <div id="wp-followups"></div>
+        </section>
+    </main>
+
+    <script src="{{ static_hash('js/waqf_practice.js') }}"></script>
+</body>
+</html>

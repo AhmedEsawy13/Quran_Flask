@@ -188,6 +188,41 @@ def test_classical_waqf_two_sources(client):
     assert client.get("/api/classical-waqf/115/1").status_code == 400
 
 
+def test_waqf_practice_grading(client):
+    """تدريب الوقف grades chosen stops against mushaf marks + classical rulings."""
+    # passage words render for the picker.
+    p = client.get("/api/waqf-practice/passage/2/1/3").get_json()
+    assert [v["ayah"] for v in p["verses"]] == [1, 2, 3]
+    assert all(v["words"] for v in p["verses"])
+
+    def grade(stops, mushaf="المدينة الجديد", s=2, f=1, t=5):
+        return client.post("/api/waqf-practice/grade", json={
+            "surah": s, "from_ayah": f, "to_ayah": t, "mushaf": mushaf, "stops": stops
+        }).get_json()
+
+    # {هدى للمتقين} تام (الداني) → excellent; {المفلحون} تام (both) → excellent.
+    r = grade([{"ayah": 2, "wpos": 6}, {"ayah": 5, "wpos": 7}])
+    v = {(x["ayah"], x["wpos"]): x["verdict"] for x in r["stops"]}
+    assert v[(2, 6)] == "excellent" and v[(5, 7)] == "excellent"
+    assert r["score"] == 100 and r["summary"]["errors"] == 0
+
+    # 2:5 w4 رَّبِّهِمۡ: mushaf ص (tolerable) but الأشموني «ليس بوقف» → خلاف/caution,
+    # NOT a clean pass and NOT a hard error.
+    r = grade([{"ayah": 5, "wpos": 4}], s=2, f=5, t=5)
+    assert r["stops"][0]["verdict"] == "caution"
+    assert 0 < r["score"] < 100
+
+    # a mid-phrase stop with no ruling anywhere is a soft note, not an error.
+    r = grade([{"ayah": 3, "wpos": 2}], s=2, f=3, t=3)
+    assert r["stops"][0]["verdict"] == "unmarked"
+    assert r["summary"]["errors"] == 0
+
+    # bounds + range guards.
+    assert client.post("/api/waqf-practice/grade",
+                       json={"surah": 2, "from_ayah": 5, "to_ayah": 1}).status_code == 400
+    assert client.get("/api/waqf-practice/passage/2/1/99").status_code == 400
+
+
 def test_research_disk_cache_is_served_verbatim(client):
     """The baked research caches (pipeline/precompute_research.py) exist and the
     endpoint serves exactly that payload — no silent drift between the baked
