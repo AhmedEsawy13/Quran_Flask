@@ -3513,6 +3513,13 @@ _CLASSICAL_SOURCES = {
         'edition': 'ضبط شريف أبو العلا العدوي، دار الكتب العلمية',
         'via': 'OpenITI (Shamela 0006496)',
     },
+    'nahhas': {
+        'name': 'النحاس',
+        'title': 'القطع والائتناف',
+        'author': 'أبو جعفر أحمد بن محمد النحاس (ت 338هـ)',
+        'edition': 'تحقيق عبد الرحمن بن إبراهيم المطرودي، دار عالم الكتب، ط1 1413هـ/1992م',
+        'via': 'OpenITI (Shamela 0020966)',
+    },
 }
 
 
@@ -3580,7 +3587,7 @@ _CLASSICAL_STOP_VERDICT = {
     'قبيح': ('error',     'وقف قبيح'),
     'لا':   ('error',     'ليس بوقف'),
 }
-_CLASSICAL_NAME = {'muktafa': 'الداني', 'manar': 'الأشموني'}
+_CLASSICAL_NAME = {'muktafa': 'الداني', 'manar': 'الأشموني', 'nahhas': 'النحاس'}
 
 
 def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos):

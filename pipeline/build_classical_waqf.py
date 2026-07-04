@@ -39,6 +39,7 @@ OUT_DB = os.path.join(app._BASE_DIR, 'data', 'classical_waqf.db')
 SOURCES = {
     'muktafa': 'muktafa_dani_shamela26461.md',
     'manar':   'manar_ashmuni_shamela6496.md',
+    'nahhas':  'qatc_nahhas_sham19_20966.md',
 }
 
 # Surah-name aliases the books use that differ from surahs.json names.
@@ -352,6 +353,73 @@ def harvest_manar(body, rows, seq0):
     return seq, unmatched
 
 
+# ─────────────────────── النحاس (discursive, cursor-based) ────────────────────
+# القطع والائتناف is prose, not a stop list. His signature is the grade-BEFORE
+# form «التمام {X}» / «الكافي {X}» (definite article = "THE perfect stop IS X"),
+# plus a grade-after «{X} تمام / كاف / ليس بوقف». Two precision guards:
+#  · grade-before is taken ONLY with the definite article — bare «تمام {X}» is
+#    almost always a NEGATION («غير تمام», «ليس بتمام»).
+#  · grade-after is checked FIRST (it grades THIS quote); a definite grade-before
+#    is the fallback. So «غير تمام {X} كاف» → كاف (after), not تام.
+_NAHHAS_AFTER = [('ليس بموضع قطع', 'لا'), ('ليس بوقف', 'لا'), ('لا يوقف عليه', 'لا'),
+                 ('تمام', 'تام'), ('تام', 'تام'), ('كافٍ', 'كاف'), ('كاف', 'كاف'),
+                 ('حسن', 'حسن'), ('صالح', 'صالح')]
+_NAHHAS_BEFORE = [('والتمام', 'تام'), ('التمام', 'تام'), ('فالتمام', 'تام'),
+                  ('والتام', 'تام'), ('التام', 'تام'),
+                  ('والكافي', 'كاف'), ('الكافي', 'كاف'), ('فالكافي', 'كاف'),
+                  ('والحسن', 'حسن'), ('الحسن', 'حسن')]
+_NAHHAS_AFTER_RE = re.compile(
+    r'\{([^{}]{1,90})\}[\s،]{0,3}(' + '|'.join(re.escape(g) for g, _ in _NAHHAS_AFTER) + r')(?=[\s،.]|$)')
+_NAHHAS_BEFORE_RE = re.compile(
+    r'(?:^|[\s،.])(' + '|'.join(re.escape(g) for g, _ in _NAHHAS_BEFORE) + r')\s{0,2}\{([^{}]{1,90})\}')
+_AFTER_MAP = dict(_NAHHAS_AFTER)
+_BEFORE_MAP = dict(_NAHHAS_BEFORE)
+
+
+def harvest_nahhas(body, rows, seq0):
+    seq = seq0
+    unmatched = 0
+    last_num = 0
+    for sec in re.split(r'\n### \|+ ?', body):
+        title, _, text = sec.partition('\n')
+        title = re.sub(r'^(AUTO|CHECK)\s*', '', title.strip())
+        if 'سورة' not in title:
+            continue
+        num = surah_number(title, last_num)
+        if num is None:
+            continue
+        last_num = num
+        stream = build_stream(num)
+        cursor = 0
+        # collect entries (quote, grade) by position, after-grade wins over before.
+        entries = {}   # start-offset → (quote, grade)
+        for m in _NAHHAS_AFTER_RE.finditer(text):
+            entries[m.start(1)] = (m.group(1), _AFTER_MAP[m.group(2)], m.end())
+        for m in _NAHHAS_BEFORE_RE.finditer(text):
+            entries.setdefault(m.start(2), (m.group(2), _BEFORE_MAP[m.group(1)], m.end()))
+        for pos in sorted(entries):
+            quote, grade, note_from = entries[pos]
+            qwords = quote_words(quote)
+            if not qwords:
+                continue
+            cursor_before = cursor
+            hit, cursor = align_cursor(stream, cursor, qwords)
+            seq += 1
+            note = clean_note(text[note_from:note_from + 400])
+            if hit is None:
+                unmatched += 1
+                rows.append(('nahhas', num, None, None, None, quote, grade, grade, note, seq, 0))
+                continue
+            conf = 1
+            if cursor_before > 0 and (hit < cursor_before - _BACK_WINDOW or hit > cursor_before + 300):
+                conf = 0
+                cursor = cursor_before
+            ayah, wpos, _ = stream[hit]
+            _, words, _ = app._verse_word_texts(f'{num}:{ayah}')
+            rows.append(('nahhas', num, ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf))
+    return seq, unmatched
+
+
 # ────────────────────────────────── main ─────────────────────────────────────
 
 def main():
@@ -359,9 +427,10 @@ def main():
     rows = []
     seq, un_muk = harvest_muktafa(load_book(SOURCES['muktafa']), rows, 0)
     seq, un_man = harvest_manar(load_book(SOURCES['manar']), rows, seq)
+    seq, un_nah = harvest_nahhas(load_book(SOURCES['nahhas']), rows, seq)
 
     from collections import Counter
-    for src, un in (('muktafa', un_muk), ('manar', un_man)):
+    for src, un in (('muktafa', un_muk), ('manar', un_man), ('nahhas', un_nah)):
         sub = [r for r in rows if r[0] == src]
         conf = sum(1 for r in sub if r[10])
         print(f'{src:8} entries: {len(sub):5}  matched: {len(sub) - un} '

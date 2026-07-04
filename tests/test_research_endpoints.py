@@ -162,14 +162,18 @@ def test_mushaf_diff_pairwise(client):
 
 
 def test_classical_waqf_two_sources(client):
-    """الداني (المكتفى) + الأشموني (منار الهدى) aligned to recited-word
-    positions: known anchors hold and wpos always lands inside the verse."""
+    """الداني (المكتفى) + الأشموني (منار الهدى) + النحاس (القطع والائتناف)
+    aligned to recited-word positions: known anchors hold and wpos always
+    lands inside the verse."""
     j = client.get("/api/classical-waqf/2/2").get_json()
     assert j["sources"]["muktafa"]["title"].startswith("المكتفى")
     assert j["sources"]["manar"]["title"].startswith("منار الهدى")
+    assert j["sources"]["nahhas"]["title"].startswith("القطع")
     got = {(e["source"], e["wpos"], e["grade"]) for e in j["entries"]}
     # الداني: {لا ريب فيه} كاف on فيه (w4); {هدى للمتقين} تام on للمتقين (w6).
     assert ("muktafa", 4, "كاف") in got and ("muktafa", 6, "تام") in got
+    # النحاس: «التمام {ذلك الكتاب}» → تام on الكتاب (w1).
+    assert ("nahhas", 1, "تام") in got
     # 2:7: the two imams genuinely diverge on سمعهم (w5) — الداني كاف،
     # الأشموني تام. Both must be present, at the same word.
     j = client.get("/api/classical-waqf/2/7").get_json()
