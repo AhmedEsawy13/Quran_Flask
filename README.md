@@ -135,6 +135,15 @@ To run this project locally, follow these steps:
    pip install -r requirements.txt
    ```
 
+3b. **Restore the reciter timestamp data** (not tracked in git — 52 MB
+   refreshed weekly upstream; downloads the release pinned in
+   `reciters/.qul_sync_state.json`):
+   ```bash
+   python scripts/import_qul_reciters.py --restore
+   ```
+   On **Heroku** this happens automatically on every build via
+   `bin/post_compile`.
+
 4. **Run the Flask application:**
    ```bash
    python app.py            # serves on http://localhost:5001

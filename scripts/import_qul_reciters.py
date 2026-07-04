@@ -145,6 +145,70 @@ def fetch_latest_manifest(token: str | None = None) -> dict:
     raise RuntimeError(f"latest release of {QUL_REPO} has no manifest.json asset")
 
 
+def fetch_manifest_for(version: str, token: str | None) -> dict:
+    """manifest.json of a SPECIFIC release tag; falls back to latest if the
+    pinned tag is gone (old releases may be pruned upstream)."""
+    try:
+        release = _get_json(f"{GITHUB_API}/repos/{QUL_REPO}/releases/tags/{version}", token)
+        for asset in release.get('assets') or []:
+            if asset.get('name') == 'manifest.json':
+                return _get_json(asset['browser_download_url'], token)
+        raise RuntimeError('release has no manifest.json asset')
+    except Exception as exc:                                    # noqa: BLE001
+        print(f"  ! pinned release {version} unavailable ({exc}); using latest",
+              file=sys.stderr)
+        return fetch_latest_manifest(token)
+
+
+def restore(token: str | None) -> int:
+    """Re-download timestamp files that are missing locally.
+
+    The QUL .json.gz files are deliberately NOT tracked in git (52 MB that
+    the weekly sync would churn); this restores the release pinned in
+    reciters/.qul_sync_state.json. Used by Heroku's bin/post_compile and by
+    fresh clones. Never fails the caller hard: the app degrades gracefully
+    (a reciter without files simply doesn't appear in the memorize list)."""
+    state = load_state()
+    pinned = state.get('reciters') or {}
+    missing = [rid for rid in pinned
+               if rid in TARGET_DIRS and not os.path.exists(
+                   os.path.join(ROOT, TARGET_DIRS[rid], 'word_timestamps.json.gz'))]
+    if not missing:
+        print('all pinned reciter timestamp files present — nothing to restore.')
+        return 0
+    version = state.get('release_version')
+    if not version:
+        print('error: reciters/.qul_sync_state.json has no pinned release', file=sys.stderr)
+        return 0
+    try:
+        manifest = fetch_manifest_for(version, token)
+    except (urllib.error.URLError, RuntimeError) as exc:
+        print(f"  ! could not reach QUL releases ({exc}) — skipping restore", file=sys.stderr)
+        return 0
+    recs = manifest.get('recitations') or {}
+    print(f"restoring {len(missing)} reciter(s) from QUL release "
+          f"{manifest.get('release_version')} ...")
+    for rid in missing:
+        slug = os.path.basename(TARGET_DIRS[rid])
+        rec = recs.get(slug)
+        if not rec or not rec.get('zip_url'):
+            print(f"  ! {rid} ({slug}) not in release — skipped", file=sys.stderr)
+            continue
+        out_dir = os.path.join(ROOT, TARGET_DIRS[rid])
+        os.makedirs(out_dir, exist_ok=True)
+        zip_path = os.path.join(out_dir, f'{slug}.zip')
+        print(f"  downloading {slug}.zip ...")
+        try:
+            _download(rec['zip_url'], zip_path, token)
+            _extract(zip_path, out_dir)
+        except Exception as exc:                                # noqa: BLE001
+            print(f"  ! {rid} failed: {exc}", file=sys.stderr)
+        finally:
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+    return 0
+
+
 def load_state() -> dict:
     if os.path.exists(STATE_PATH):
         with open(STATE_PATH, encoding='utf-8') as fh:
@@ -247,6 +311,9 @@ def main() -> int:
                                       formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--sync', action='store_true',
                          help='auto-sync from the latest QUL GitHub release')
+    parser.add_argument('--restore', action='store_true',
+                         help='download missing timestamp files at the PINNED release '
+                              '(Heroku build / fresh clone; gz files are not in git)')
     parser.add_argument('--check', action='store_true',
                          help='with --sync: only report changes (exit 1 if any), do not download')
     parser.add_argument('--reciters', help='comma-separated reciter_ids to sync (default: all installed)')
@@ -255,8 +322,10 @@ def main() -> int:
     parser.add_argument('zip_path', nargs='?', help='(manual mode) path to a downloaded .zip')
     args = parser.parse_args()
 
+    token = args.token or os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
+    if args.restore:
+        return restore(token)
     if args.sync:
-        token = args.token or os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
         return sync(args.check, _scope_reciters(args.reciters), token)
 
     if not args.reciter_id or not args.zip_path:

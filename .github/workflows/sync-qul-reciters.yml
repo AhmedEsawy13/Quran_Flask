@@ -29,6 +29,13 @@ jobs:
         with:
           python-version: '3.x'
 
+      # The .json.gz timestamp files are not tracked in git — bring the pinned
+      # release down first so --sync's diff and the cache rebake see full data.
+      - name: Restore pinned reciter timestamps
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/import_qul_reciters.py --restore
+
       - name: Check for QUL updates
         id: check
         run: |

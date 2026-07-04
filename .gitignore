@@ -90,3 +90,10 @@ static/js/mushaf_asr.js
 # SQLite transient files (WAL/SHM) created by the running server
 *.db-shm
 *.db-wal
+
+# QUL reciter timestamps: 52 MB refreshed weekly upstream — NOT tracked.
+# Restored at the pinned release by `import_qul_reciters.py --restore`
+# (Heroku bin/post_compile runs it on every build; run it after fresh clones).
+reciters/**/word_timestamps.json.gz
+reciters/**/verse_timestamps.json.gz
+reciters/**/letter_timestamps.json.gz

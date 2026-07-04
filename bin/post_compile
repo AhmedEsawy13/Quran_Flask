@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Heroku Python buildpack hook (runs after pip install on every build).
+#
+# The QUL reciter timestamp files (reciters/**/*_timestamps.json.gz, ~52 MB,
+# refreshed weekly upstream) are deliberately NOT tracked in git — this
+# restores the exact release pinned in reciters/.qul_sync_state.json so the
+# slug ships complete. If the download fails the build still succeeds: the
+# app degrades gracefully (reciters without files don't appear in تثبيت).
+set -uo pipefail
+echo "-----> Restoring QUL reciter timestamps (pinned release)"
+python scripts/import_qul_reciters.py --restore \
+  || echo " !     QUL restore failed — memorize reciters may be missing from this build"
