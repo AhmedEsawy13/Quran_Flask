@@ -7,6 +7,13 @@
 # slug ships complete. If the download fails the build still succeeds: the
 # app degrades gracefully (reciters without files don't appear in تثبيت).
 set -uo pipefail
-echo "-----> Restoring QUL reciter timestamps (pinned release)"
-python scripts/import_qul_reciters.py --restore \
+# The Heroku Python buildpack puts `python` on PATH, but resolve robustly
+# (python → python3) so this also works locally and survives buildpack changes.
+PY="$(command -v python || command -v python3 || true)"
+if [ -z "$PY" ]; then
+  echo " !     no python interpreter on PATH — skipping QUL restore"
+  exit 0
+fi
+echo "-----> Restoring QUL reciter timestamps (pinned release) via $PY"
+"$PY" scripts/import_qul_reciters.py --restore \
   || echo " !     QUL restore failed — memorize reciters may be missing from this build"
