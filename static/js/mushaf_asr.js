@@ -58,6 +58,45 @@
     const status = m => { try { onStatus && onStatus(m); } catch (e) {} };
     const loadJson = async url => { const r = await fetch(url); if (!r.ok) throw new Error('fetch ' + url + ' → ' + r.status); return r.json(); };
 
+    /* ── model bytes: Cache-Storage-persisted + streamed progress ──────────── */
+    const MODEL_CACHE = 'mushaf-asr-model-v1';
+    async function readWithProgress(resp, label) {
+        const total = +(resp.headers.get('content-length') || 0);
+        if (!resp.body || !total) return new Uint8Array(await resp.arrayBuffer());
+        const reader = resp.body.getReader();
+        const chunks = []; let got = 0, lastPct = -1;
+        for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            chunks.push(value); got += value.length;
+            const pct = Math.floor(got * 100 / total);
+            if (pct !== lastPct) { lastPct = pct; status(`${label} ${pct}% (${(total / 1048576) | 0}MB)`); }
+        }
+        const out = new Uint8Array(got); let off = 0;
+        for (const c of chunks) { out.set(c, off); off += c.length; }
+        return out;
+    }
+    // Try each URL; serve from Cache Storage if present, else download once and
+    // persist so later sessions (and offline use) start instantly.
+    async function fetchModelBytes() {
+        let lastErr = null;
+        const cache = window.caches ? await caches.open(MODEL_CACHE).catch(() => null) : null;
+        for (const url of ASR_CONFIG.modelUrls) {
+            try {
+                if (cache) {
+                    const hit = await cache.match(url);
+                    if (hit) { status('تحميل النموذج من الذاكرة…'); return new Uint8Array(await hit.arrayBuffer()); }
+                }
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                const bytes = await readWithProgress(resp.clone(), 'تنزيل النموذج');
+                if (cache) { try { await cache.put(url, new Response(bytes)); } catch (e) {} }
+                return bytes;
+            } catch (e) { lastErr = e; }
+        }
+        throw lastErr || new Error('model fetch failed');
+    }
+
     /* ── mel filterbank — librosa/NeMo "slaney" mel scale + slaney norm ────── */
     const SF = 200 / 3, MIN_LOG_HZ = 1000, MIN_LOG_MEL = MIN_LOG_HZ / SF, LOGSTEP = Math.log(6.4) / 27;
     const hz2mel = hz => hz < MIN_LOG_HZ ? hz / SF : MIN_LOG_MEL + Math.log(hz / MIN_LOG_HZ) / LOGSTEP;
@@ -226,15 +265,11 @@
         try {
             if (!window.ort) { status('تحميل محرك التعرّف…'); await new Promise((res, rej) => { const s = document.createElement('script'); s.src = ORT_URL; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
             if (!session) {
-                status('تحميل النموذج (~132MB أول مرة)…');
                 window.ort.env.wasm.numThreads = 1; // no COOP/COEP needed (SharedArrayBuffer-free)
                 window.ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
-                let lastErr = null;
-                for (const url of ASR_CONFIG.modelUrls) {
-                    try { session = await window.ort.InferenceSession.create(url, { executionProviders: ['wasm'] }); break; }
-                    catch (e) { lastErr = e; }
-                }
-                if (!session) throw lastErr || new Error('model load failed');
+                const modelBytes = await fetchModelBytes();   // cached after first run
+                status('تهيئة النموذج…');
+                session = await window.ort.InferenceSession.create(modelBytes, { executionProviders: ['wasm'] });
             }
             if (!cmvn) { status('تحميل ثوابت المعايرة…'); try { cmvn = await loadJson(ASR_CONFIG.cmvnUrl); } catch (e) { cmvn = null; } }
             if (!vocab) { status('تحميل المعجم…'); vocab = await loadJson(ASR_CONFIG.vocabUrl); }
