@@ -21,6 +21,11 @@
 .wp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .wp-btn-ghost { background: var(--wq-surface-2); color: var(--wq-text-muted); border-color: var(--wq-border); }
 .wp-btn-ghost:hover { color: var(--wq-accent); border-color: var(--wq-accent); }
+.wp-btn-rec { background: var(--wq-surface-2); color: var(--wq-text-muted); border-color: var(--wq-border); }
+.wp-btn-rec:hover { color: var(--wq-accent); border-color: var(--wq-accent); }
+.wp-btn-rec.is-rec { background: #d9483b; color: #fff; border-color: #d9483b; animation: wp-rec-pulse 1.3s ease-in-out infinite; }
+@keyframes wp-rec-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #d9483b 55%, transparent); } 50% { box-shadow: 0 0 0 6px transparent; } }
+.wp-rec-note { font-size: 0.8rem; color: var(--wq-text-muted); font-weight: 600; }
 
 .wp-hint { font-size: 0.86rem; color: var(--wq-text-muted); line-height: 1.7; margin: 16px 2px 8px; }
 .wp-hint i { color: var(--wq-accent); margin-inline-end: 4px; }

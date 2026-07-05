@@ -65,14 +65,17 @@
 
         <p class="wp-hint" id="wp-hint" hidden>
             <i class="fas fa-hand-pointer"></i>
-            اقرأ المقطع، ثم اضغط على كل كلمةٍ <b>وقفتَ عندها</b> (تُعلَّم بخطٍّ تحتها). ثم قيّم وقوفك.
+            اضغط على كل كلمةٍ <b>وقفتَ عندها</b> (تُعلَّم بخطٍّ تحتها) — أو اضغط
+            <b>سجّل وقوفي</b> وتلاوةً، فتُعلَّم مواضع وقوفك تلقائيًّا. ثم قيّم وقوفك.
         </p>
 
         <section class="wp-passage-card" id="wp-passage-card" hidden>
             <div class="wp-passage" id="wp-passage" dir="rtl"></div>
             <div class="wp-actions">
                 <span class="wp-count" id="wp-count">لم تُعلّم أي وقف بعد</span>
+                <span class="wp-rec-note" id="wp-rec-note"></span>
                 <span class="wp-actions-spacer"></span>
+                <button class="wp-btn wp-btn-rec" id="wp-rec" type="button"><i class="fas fa-microphone"></i> سجّل وقوفي</button>
                 <button class="wp-btn wp-btn-ghost" id="wp-clear" type="button"><i class="fas fa-eraser"></i> مسح</button>
                 <button class="wp-btn wp-btn-primary" id="wp-grade" type="button"><i class="fas fa-clipboard-check"></i> قيّم وقوفي</button>
             </div>
@@ -96,6 +99,7 @@
         </section>
     </main>
 
+    <script src="{{ static_hash('js/mushaf_asr.js') }}"></script>
     <script src="{{ static_hash('js/waqf_practice.js') }}"></script>
 </body>
 </html>

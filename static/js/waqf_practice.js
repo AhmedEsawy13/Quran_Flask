@@ -5,17 +5,28 @@
     const $ = id => document.getElementById(id);
     const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 
+    // Same Arabic folding + tolerant word match the memorize page uses for ASR follow.
+    const _arNorm = s => (s || '')
+        .replace(/[ً-ٰٟۖ-ۭ࣐-ࣿـ۝٠-٩]/g, '')
+        .replace(/[إأآاٱ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
+        .replace(/\s+/g, ' ').trim();
+    const _wmatch = (a, b) => a === b ||
+        (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a) || a.includes(b) || b.includes(a)));
+
     const els = {
         surah: $('wp-surah'), from: $('wp-from'), to: $('wp-to'), mushaf: $('wp-mushaf'),
         load: $('wp-load'), hint: $('wp-hint'), barVerse: $('wp-bar-verse'),
         passageCard: $('wp-passage-card'), passage: $('wp-passage'),
         count: $('wp-count'), clear: $('wp-clear'), grade: $('wp-grade'),
+        rec: $('wp-rec'), recNote: $('wp-rec-note'),
         resultCard: $('wp-result-card'), score: $('wp-score'), scoreNum: $('wp-score-num'),
         scoreTitle: $('wp-score-title'), tGood: $('wp-t-good'), tNote: $('wp-t-note'),
         tErr: $('wp-t-err'), legend: $('wp-legend'), graded: $('wp-graded'), followups: $('wp-followups'),
     };
 
     const state = { surahs: [], ayahCount: {}, verses: [], stops: new Set() /* "ayah:wpos" */ };
+    // ASR follow: flat expected words + monotonic alignment cursor.
+    const rec = { on: false, exp: [], pos: 0, lastIdx: -1 };
 
     // verdict → display. Order = legend order.
     const VERDICT = {
@@ -45,6 +56,7 @@
         els.load.addEventListener('click', loadPassage);
         els.clear.addEventListener('click', clearStops);
         els.grade.addEventListener('click', gradeStops);
+        if (els.rec) els.rec.addEventListener('click', toggleRecord);
         await onSurah();
         // deep link ?surah=&from=&to=
         const p = new URLSearchParams(location.search);
@@ -75,9 +87,11 @@
         if (t - f > 20) { alert('المقطع طويل — اختر ٢١ آية أو أقل.'); return; }
         els.load.disabled = true;
         try {
+            if (rec.on) stopRecord();
             const j = await fetch(`/api/waqf-practice/passage/${s}/${f}/${t}`).then(r => r.json());
             state.verses = j.verses || [];
             state.stops.clear();
+            buildExpected();
             renderPassage();
             const name = (state.surahs.find(x => (x.number ?? x) === s) || {}).name || '';
             els.barVerse.textContent = `${name} · ${toAr(f)}${t > f ? '–' + toAr(t) : ''}`;
@@ -161,6 +175,67 @@
         } finally {
             els.grade.disabled = false;
         }
+    }
+
+    /* ── recite & auto-mark stops (FastConformer in-browser ASR) ───── */
+    // Flat expected-word list in reading order; wpos = word index within its ayah.
+    function buildExpected() {
+        rec.exp = [];
+        state.verses.forEach(v => (v.words || []).forEach((w, i) => {
+            if (/^[۝٠-٩]+$/.test((w || '').trim())) return;   // skip verse-number ornaments
+            const norm = _arNorm(w);
+            if (norm) rec.exp.push({ ayah: v.ayah, wpos: i, norm });
+        }));
+        rec.pos = 0; rec.lastIdx = -1;
+    }
+    const setRecNote = m => { if (els.recNote) els.recNote.textContent = m || ''; };
+
+    async function toggleRecord() {
+        if (rec.on) { stopRecord(); return; }
+        if (!window.MushafASR) { setRecNote('وحدة التعرّف غير متوفرة'); return; }
+        if (!state.verses.length) { setRecNote('حمّل مقطعًا أولًا'); return; }
+        rec.pos = 0; rec.lastIdx = -1;
+        try {
+            await window.MushafASR.start({
+                onStatus: setRecNote,
+                onActive: on => {
+                    rec.on = on;
+                    els.rec.classList.toggle('is-rec', on);
+                    els.rec.innerHTML = on
+                        ? '<i class="fas fa-stop"></i> إيقاف التسجيل'
+                        : '<i class="fas fa-microphone"></i> سجّل وقوفي';
+                },
+                onWord: alignWord,
+                onStop: markAutoStop,
+            });
+        } catch (e) {
+            setRecNote('تعذّر التشغيل: ' + ((e && (e.message || e.name)) || e));
+        }
+    }
+    function stopRecord() { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} }
+
+    // Monotonic forward match of a recited word onto the expected sequence.
+    function alignWord(w) {
+        const target = _arNorm(w && w.text || '');
+        if (!target) return;
+        for (let k = rec.pos; k < Math.min(rec.exp.length, rec.pos + 4); k++) {
+            if (_wmatch(target, rec.exp[k].norm)) {
+                rec.lastIdx = k; rec.pos = k + 1;
+                setRecNote(`تابعتُ ${toAr(rec.pos)} / ${toAr(rec.exp.length)} كلمة`);
+                return;
+            }
+        }
+        // no match within the look-ahead window → treat as noise, keep the cursor
+    }
+    // A detected pause seals the last-matched word as a stop and lights it up.
+    function markAutoStop() {
+        if (rec.lastIdx < 0 || rec.lastIdx >= rec.exp.length) return;
+        const e = rec.exp[rec.lastIdx], key = e.ayah + ':' + e.wpos;
+        if (state.stops.has(key)) return;
+        state.stops.add(key);
+        const b = els.passage.querySelector(`.wp-word[data-key="${key.replace(/"/g, '\\"')}"]`);
+        if (b) b.classList.add('wp-stopped');
+        updateCount();
     }
 
     function scoreTitle(score, errors) {
