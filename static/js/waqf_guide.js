@@ -211,9 +211,25 @@
                 const g = byPos.get(e.wpos);
                 if (!g.has(k) || (e.note || '').length > (g.get(k).note || '').length) g.set(k, e);
             });
-            const rows = [...byPos.keys()].sort((a, b) => a - b).map(wpos => {
+            const qwc = q => ((q || '').match(/[؀-ۿ]{2,}/g) || []).length;   // words in a quote
+            const stopList = [...byPos.keys()].sort((a, b) => a - b);
+            let prev = -1;
+            const rows = stopList.map(wpos => {
                 const list = [...byPos.get(wpos).values()];
-                const w = words[wpos] || list[0].stop_word || '';
+                // Show the PHRASE the imams graded, not a lone word: the mushaf
+                // words up to the stop (its own last word emphasised), starting
+                // from the longest quote among the sources but never crossing the
+                // previous graded stop.
+                const maxW = Math.min(8, Math.max(1, ...list.map(e => qwc(e.quote))));
+                let start = Math.max(prev + 1, wpos - maxW + 1, 0);
+                prev = wpos;
+                let phrase;
+                if (words.length && wpos < words.length) {
+                    phrase = words.slice(start, wpos + 1).map((w, i, arr) =>
+                        i === arr.length - 1 ? `<span class="wq-mk3-stopw">${w}</span>` : w).join(' ');
+                } else {
+                    phrase = `<span class="wq-mk3-stopw">${list[0].stop_word || ''}</span>`;
+                }
                 const chips = list.map(e => {
                     const g = MUKTAFA_GRADE[e.grade] || { cls: 'kafi', desc: e.grade };
                     return `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${g.desc}">`
@@ -223,7 +239,7 @@
                     `<details class="wq-mk3-note"><summary>العلّة — ${srcName(e.source)}</summary>`
                     + `<p>${e.note.trim()}</p></details>`).join('');
                 return `<div class="wq-mk3-row">`
-                    + `<span class="wq-mk3-word waqf-uthmanic">${w}</span>${chips}${notes}</div>`;
+                    + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl">${phrase}</span>${chips}${notes}</div>`;
             }).join('');
             els.muktafa.innerHTML = rows;
             const meta = Object.values(j.sources || {}).map(s2 => `${s2.title} — ${s2.author}`).join(' · ');

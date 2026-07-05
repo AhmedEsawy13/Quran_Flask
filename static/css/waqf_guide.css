@@ -508,6 +508,9 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-mk3-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 9px 13px;
     border-radius: 11px; background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
 .wq-mk3-word { font-size: 1.35rem; color: var(--wq-text); line-height: 1.6; }
+/* the phrase the imams graded, with its stop word emphasised */
+.wq-mk3-phrase { font-size: 1.35rem; color: var(--wq-text-muted); line-height: 1.9; flex: 1 1 240px; min-width: 200px; }
+.wq-mk3-stopw { color: var(--wq-text); font-weight: 700; box-shadow: inset 0 -0.12em 0 0 var(--wq-accent); border-radius: 2px; padding: 0 0.05em; }
 .wq-mk3-grade { font-size: 0.8rem; font-weight: 800; padding: 2px 12px; border-radius: 999px; white-space: nowrap; }
 .wq-mk3-tamm  { background: rgba(22,163,74,0.14);  color: #15803d; }
 .wq-mk3-kafi  { background: rgba(2,132,199,0.13);  color: #0369a1; }
