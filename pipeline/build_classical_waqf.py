@@ -485,17 +485,19 @@ def harvest_nahhas(body, rows, seq0):
 
 
 # ─────────────────── ابن الأنباري (parenthesised, ayah-anchored) ──────────────
-# إيضاح الوقف والابتداء quotes verses in ( … ), usually with the ayah number in
-# [n], and grades after with an optional «وقف» prefix: «(X) [n] وقف حسن». Covers
-# ~83 surahs (the extant portion). «غير تام» is deliberately NOT extracted — it
-# means "not a COMPLETE stop", which is ambiguous (may still be كاف), so only
-# the clear grades are taken.
+# إيضاح الوقف والابتداء quotes verses in ( … ) and grades DENSELY, often several
+# stops per verse in prose: «الوقف على (بسم) قبيح … والوقف على (الرحيم) تام».
+# So we must capture قبيح (his commonest ruling!) and أحسن/أتم — and his [n]
+# markers are frequent enough that a single-word stop in the current ayah is
+# trustworthy. «غير تام»/«لا يتم» are NOT extracted (ambiguous: "not COMPLETE"
+# ≠ forbidden; may still be كاف).
 _ANBARI_ENTRY_RE = re.compile(r'\(([^()]{2,120})\)\s*(?:\[(\d{1,3})\])?([^()]{0,60})')
 _ANBARI_GRADE_RE = re.compile(
-    r'^[\s،:؛]*(?:وقف\s+)?(التمام|التام|تمام|تام|كافٍ|كاف|حسن|صالح|ليس بوقف|لا يوقف)(?=[\s،.]|$)')
-_ANBARI_MAP = {'التمام': 'تام', 'التام': 'تام', 'تمام': 'تام', 'تام': 'تام',
-               'كافٍ': 'كاف', 'كاف': 'كاف', 'حسن': 'حسن', 'صالح': 'صالح',
-               'ليس بوقف': 'لا', 'لا يوقف': 'لا'}
+    r'^[\s،:؛]*(?:وقف\s+)?(لا يحسن الوقف|ليس بوقف|لا يوقف|التمام|التام|أتم|تمام|تام'
+    r'|كافٍ|كاف|أحسن|حسن|صالح|قبيح)(?=[\s،.]|$)')
+_ANBARI_MAP = {'التمام': 'تام', 'التام': 'تام', 'أتم': 'تام', 'تمام': 'تام', 'تام': 'تام',
+               'كافٍ': 'كاف', 'كاف': 'كاف', 'أحسن': 'حسن', 'حسن': 'حسن', 'صالح': 'صالح',
+               'قبيح': 'قبيح', 'لا يحسن الوقف': 'قبيح', 'ليس بوقف': 'لا', 'لا يوقف': 'لا'}
 
 
 def harvest_anbari(body, rows, seq0):
@@ -505,7 +507,10 @@ def harvest_anbari(body, rows, seq0):
     for sec in re.split(r'\n### \|+ ?', body):
         title, _, text = sec.partition('\n')
         title = re.sub(r'^(AUTO|CHECK)\s*', '', title.strip())
-        if 'سورة' not in title:
+        # ابن الأنباري titles surahs three ways: «سورة X» (مريم onward),
+        # «السورة التي تذكر فيها X» (early surahs), and «فاتحة الكتاب» for
+        # الفاتحة — which lacks «سورة» and was being skipped entirely.
+        if 'سورة' not in title and 'فاتحة' not in title:
             continue
         num = surah_number(title, last_num)
         if num is None:
@@ -551,10 +556,13 @@ def harvest_anbari(body, rows, seq0):
                 unmatched += 1
                 rows.append(('anbari', num, None, None, None, quote, grade, grade, note, seq, 0))
                 continue
+            # ابن الأنباري anchors densely ([n] most verses) and grades stop by
+            # stop, so a hit in the intended ayah is trustworthy even for a
+            # single word (align_in_ayah takes the last occurrence = the stop).
             if own is not None:
                 conf = 1 if hit_ayah == own else 0
             else:
-                conf = 1 if (hit_ayah == ayah and len(qwords) >= 2) else 0
+                conf = 1 if hit_ayah == ayah else 0
             _, words, _ = app._verse_word_texts(f'{num}:{hit_ayah}')
             rows.append(('anbari', num, hit_ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf))
     return seq, unmatched
