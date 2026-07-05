@@ -3520,6 +3520,13 @@ _CLASSICAL_SOURCES = {
         'edition': 'تحقيق عبد الرحمن بن إبراهيم المطرودي، دار عالم الكتب، ط1 1413هـ/1992م',
         'via': 'OpenITI (Shamela 0020966)',
     },
+    'anbari': {
+        'name': 'ابن الأنباري',
+        'title': 'إيضاح الوقف والابتداء',
+        'author': 'أبو بكر محمد بن القاسم الأنباري (ت 328هـ)',
+        'edition': 'تحقيق محيي الدين عبد الرحمن رمضان، مجمع اللغة العربية بدمشق',
+        'via': 'OpenITI (Shamela 0014255)',
+    },
 }
 
 
@@ -3587,7 +3594,8 @@ _CLASSICAL_STOP_VERDICT = {
     'قبيح': ('error',     'وقف قبيح'),
     'لا':   ('error',     'ليس بوقف'),
 }
-_CLASSICAL_NAME = {'muktafa': 'الداني', 'manar': 'الأشموني', 'nahhas': 'النحاس'}
+_CLASSICAL_NAME = {'muktafa': 'الداني', 'manar': 'الأشموني', 'nahhas': 'النحاس',
+                   'anbari': 'ابن الأنباري'}
 
 
 def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos):

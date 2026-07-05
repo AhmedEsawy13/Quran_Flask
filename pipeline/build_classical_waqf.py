@@ -40,6 +40,7 @@ SOURCES = {
     'muktafa': 'muktafa_dani_shamela26461.md',
     'manar':   'manar_ashmuni_shamela6496.md',
     'nahhas':  'qatc_nahhas_sham19_20966.md',
+    'anbari':  'idah_anbari_sham19_14255.md',
 }
 
 # Surah-name aliases the books use that differ from surahs.json names.
@@ -161,7 +162,16 @@ def quote_words(quote):
 
 def clean_note(text, limit=500):
     text = re.sub(r'\(\s*\d+\s*\)', '', text)
-    return re.sub(r'\s+', ' ', text).strip(' .،:؛')[:limit]
+    text = re.sub(r'\s+', ' ', text).strip(' .،:؛')
+    if len(text) <= limit:
+        return text
+    # Cut on a WORD boundary (never mid-word) and mark the elision, so the
+    # displayed علّة never ends on a half-word.
+    cut = text[:limit]
+    sp = cut.rfind(' ')
+    if sp > limit * 0.6:
+        cut = cut[:sp]
+    return cut.rstrip(' .،:؛') + ' …'
 
 
 # ─────────────────────────── المكتفى (cursor-based) ───────────────────────────
@@ -197,6 +207,18 @@ def parse_muktafa_entries(section_text):
         end = out[i + 1]['pos'] if i + 1 < len(out) else min(len(section_text), e['note_from'] + 600)
         e['note'] = clean_note(section_text[e['note_from']:end])
     return out
+
+
+_AYAH_COUNT = {}
+
+
+def surah_ayah_count(surah):
+    if surah not in _AYAH_COUNT:
+        n = 0
+        while f'{surah}:{n + 1}' in app.qpc_hafs_data_normalized:
+            n += 1
+        _AYAH_COUNT[surah] = n
+    return _AYAH_COUNT[surah]
 
 
 def build_stream(surah):
@@ -282,9 +304,12 @@ def harvest_muktafa(body, rows, seq0):
 
 
 # ─────────────────────── منار الهدى (ayah-anchored) ───────────────────────────
-
-MANAR_ENTRY_RE = re.compile(
-    r'\{([^{}]{1,120})\}\s*\[(\d{1,3})\]([^{}]{0,80})', re.S)
+# منار quotes verses in BOTH {…} and «…» (the guillemet form is ~half its
+# quotes — mostly the «الوقف على «X» تام» / «ومثله «X»» references that lack
+# their own [n] and belong to the ayah currently under discussion).
+_MANAR_QUOTE_RE = re.compile(r'\{([^{}]{1,120})\}|«([^«»]{1,80})»')
+_MANAR_AYAH_RE = re.compile(r'\[(\d{1,3})\]')
+_MITHL_RE = re.compile(r'(ومثله|ومثلها|وكذلك|ونحوه|ونحوها)\s*[:،]?\s*$')
 
 
 def align_in_ayah(surah, ayah, qwords):
@@ -321,17 +346,52 @@ def harvest_manar(body, rows, seq0):
             current, last_num = num, num
         if current is None:
             continue
-        entries = list(MANAR_ENTRY_RE.finditer(text))
-        for idx, m in enumerate(entries):
-            quote, ayah_s, tail = m.group(1).strip(), m.group(2), m.group(3) or ''
-            gm = GRADE_RE.match(tail)
-            if not gm:
+        # the ayah under discussion at any text offset = the most recent [n].
+        # Filter footnote markers: منار's [n] is usually the ayah number but
+        # sometimes a footnote (e.g. «لا ريب فيه» [9] in سورة البقرة), so only
+        # keep [n] that is a plausible ayah for this surah.
+        acount = surah_ayah_count(current)
+        markers = [(m.start(), int(m.group(1))) for m in _MANAR_AYAH_RE.finditer(text)
+                   if 1 <= int(m.group(1)) <= acount]
+
+        def ayah_at(pos):
+            a = None
+            for mp, mv in markers:
+                if mp <= pos:
+                    a = mv
+                else:
+                    break
+            return a
+
+        quotes = list(_MANAR_QUOTE_RE.finditer(text))
+        prev = None      # (raw, grade) for ومثله inheritance
+        for idx, m in enumerate(quotes):
+            quote = (m.group(1) or m.group(2) or '').strip()
+            nxt = quotes[idx + 1].start() if idx + 1 < len(quotes) else len(text)
+            after = text[m.end():min(nxt, m.end() + 90)]
+            own = re.match(r'[\s،:]{0,3}\[(\d{1,3})\]', after)   # the quote's own [n]?
+            own_ayah = int(own.group(1)) if own else None
+            if own_ayah is not None and not (1 <= own_ayah <= acount):
+                own_ayah = None                                  # footnote, not an ayah
+            gtail = (after[own.end():] if own else after).lstrip(' ،:؛')
+            gm = GRADE_RE.match(gtail)
+            before = text[max(0, m.start() - 14):m.start()]
+            is_mithl = bool(_MITHL_RE.search(before))
+            if gm:
+                raw = gm.group(1)
+                grade = dict(GRADES)[raw]
+            elif is_mithl and prev:
+                raw, grade = prev
+            else:
                 continue
-            ayah = int(ayah_s)
-            raw = gm.group(1)
-            note_end = entries[idx + 1].start() if idx + 1 < len(entries) else min(len(text), m.end() + 600)
-            note = clean_note(text[m.start(3) + gm.end():note_end])
+            prev = (raw, grade)
+            ayah = own_ayah if own_ayah is not None else ayah_at(m.start())
+            if not ayah:
+                continue
             qwords = quote_words(quote)
+            if not qwords:
+                continue
+            note = clean_note(text[m.end():min(nxt, m.end() + 600)])
             seq += 1
             wpos, hit_ayah = None, None
             for a in (ayah, ayah + 1, ayah - 1):        # tolerate verse-count drift
@@ -343,13 +403,17 @@ def harvest_manar(body, rows, seq0):
                     break
             if wpos is None:
                 unmatched += 1
-                rows.append(('manar', current, None, None, None, quote,
-                             dict(GRADES)[raw], raw, note, seq, 0))
+                rows.append(('manar', current, None, None, None, quote, grade, raw, note, seq, 0))
+                continue
+            # High confidence: the entry had its own [n] and matched it, OR a
+            # multi-word reference landed in the discussed ayah. Single-word
+            # guillemet refs (ambiguous placement) stay conf=0.
+            if own_ayah is not None:
+                conf = 1 if hit_ayah == own_ayah else 0
             else:
-                _, words, _ = app._verse_word_texts(f'{current}:{hit_ayah}')
-                conf = 1 if hit_ayah == ayah else 0
-                rows.append(('manar', current, hit_ayah, wpos, words[wpos], quote,
-                             dict(GRADES)[raw], raw, note, seq, conf))
+                conf = 1 if (hit_ayah == ayah and len(qwords) >= 2) else 0
+            _, words, _ = app._verse_word_texts(f'{current}:{hit_ayah}')
+            rows.append(('manar', current, hit_ayah, wpos, words[wpos], quote, grade, raw, note, seq, conf))
     return seq, unmatched
 
 
@@ -420,6 +484,82 @@ def harvest_nahhas(body, rows, seq0):
     return seq, unmatched
 
 
+# ─────────────────── ابن الأنباري (parenthesised, ayah-anchored) ──────────────
+# إيضاح الوقف والابتداء quotes verses in ( … ), usually with the ayah number in
+# [n], and grades after with an optional «وقف» prefix: «(X) [n] وقف حسن». Covers
+# ~83 surahs (the extant portion). «غير تام» is deliberately NOT extracted — it
+# means "not a COMPLETE stop", which is ambiguous (may still be كاف), so only
+# the clear grades are taken.
+_ANBARI_ENTRY_RE = re.compile(r'\(([^()]{2,120})\)\s*(?:\[(\d{1,3})\])?([^()]{0,60})')
+_ANBARI_GRADE_RE = re.compile(
+    r'^[\s،:؛]*(?:وقف\s+)?(التمام|التام|تمام|تام|كافٍ|كاف|حسن|صالح|ليس بوقف|لا يوقف)(?=[\s،.]|$)')
+_ANBARI_MAP = {'التمام': 'تام', 'التام': 'تام', 'تمام': 'تام', 'تام': 'تام',
+               'كافٍ': 'كاف', 'كاف': 'كاف', 'حسن': 'حسن', 'صالح': 'صالح',
+               'ليس بوقف': 'لا', 'لا يوقف': 'لا'}
+
+
+def harvest_anbari(body, rows, seq0):
+    seq = seq0
+    unmatched = 0
+    last_num = 0
+    for sec in re.split(r'\n### \|+ ?', body):
+        title, _, text = sec.partition('\n')
+        title = re.sub(r'^(AUTO|CHECK)\s*', '', title.strip())
+        if 'سورة' not in title:
+            continue
+        num = surah_number(title, last_num)
+        if num is None:
+            continue
+        last_num = num
+        acount = surah_ayah_count(num)
+        cur_ayah = 1                       # ayah context for entries lacking [n]
+        prev = None                        # (raw, grade) for ومثله inheritance
+        entries = list(_ANBARI_ENTRY_RE.finditer(text))
+        for idx, m in enumerate(entries):
+            quote = m.group(1).strip()
+            own = int(m.group(2)) if m.group(2) and 1 <= int(m.group(2)) <= acount else None
+            gm = _ANBARI_GRADE_RE.match(m.group(3) or '')
+            before = text[max(0, m.start() - 14):m.start()]
+            is_mithl = bool(_MITHL_RE.search(before))
+            if gm:
+                raw = gm.group(1)
+                grade = _ANBARI_MAP[raw]
+            elif is_mithl and prev:
+                raw, grade = prev
+            else:
+                if own is not None:
+                    cur_ayah = own
+                continue
+            prev = (raw, grade)
+            ayah = own if own is not None else cur_ayah
+            cur_ayah = ayah
+            qwords = quote_words(quote)
+            if not qwords:
+                continue
+            nxt = entries[idx + 1].start() if idx + 1 < len(entries) else len(text)
+            note = clean_note(text[m.end():min(nxt, m.end() + 600)])
+            seq += 1
+            wpos, hit_ayah = None, None
+            for a in (ayah, ayah + 1, ayah - 1):
+                if a < 1:
+                    continue
+                wpos = align_in_ayah(num, a, qwords)
+                if wpos is not None:
+                    hit_ayah = a
+                    break
+            if wpos is None:
+                unmatched += 1
+                rows.append(('anbari', num, None, None, None, quote, grade, grade, note, seq, 0))
+                continue
+            if own is not None:
+                conf = 1 if hit_ayah == own else 0
+            else:
+                conf = 1 if (hit_ayah == ayah and len(qwords) >= 2) else 0
+            _, words, _ = app._verse_word_texts(f'{num}:{hit_ayah}')
+            rows.append(('anbari', num, hit_ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf))
+    return seq, unmatched
+
+
 # ────────────────────────────────── main ─────────────────────────────────────
 
 def main():
@@ -428,9 +568,10 @@ def main():
     seq, un_muk = harvest_muktafa(load_book(SOURCES['muktafa']), rows, 0)
     seq, un_man = harvest_manar(load_book(SOURCES['manar']), rows, seq)
     seq, un_nah = harvest_nahhas(load_book(SOURCES['nahhas']), rows, seq)
+    seq, un_anb = harvest_anbari(load_book(SOURCES['anbari']), rows, seq)
 
     from collections import Counter
-    for src, un in (('muktafa', un_muk), ('manar', un_man), ('nahhas', un_nah)):
+    for src, un in (('muktafa', un_muk), ('manar', un_man), ('nahhas', un_nah), ('anbari', un_anb)):
         sub = [r for r in rows if r[0] == src]
         conf = sum(1 for r in sub if r[10])
         print(f'{src:8} entries: {len(sub):5}  matched: {len(sub) - un} '

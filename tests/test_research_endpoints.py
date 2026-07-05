@@ -169,11 +169,18 @@ def test_classical_waqf_two_sources(client):
     assert j["sources"]["muktafa"]["title"].startswith("المكتفى")
     assert j["sources"]["manar"]["title"].startswith("منار الهدى")
     assert j["sources"]["nahhas"]["title"].startswith("القطع")
+    assert j["sources"]["anbari"]["title"].startswith("إيضاح")
     got = {(e["source"], e["wpos"], e["grade"]) for e in j["entries"]}
     # الداني: {لا ريب فيه} كاف on فيه (w4); {هدى للمتقين} تام on للمتقين (w6).
     assert ("muktafa", 4, "كاف") in got and ("muktafa", 6, "تام") in got
     # النحاس: «التمام {ذلك الكتاب}» → تام on الكتاب (w1).
     assert ("nahhas", 1, "تام") in got
+    # ابن الأنباري (parenthesised source): سورة مريم «(قال ربك هو على هين) وقف
+    # تام» → تام on هين (19:21 w6).
+    j2 = client.get("/api/classical-waqf/19/21").get_json()
+    assert ("anbari", 6, "تام") in {(e["source"], e["wpos"], e["grade"]) for e in j2["entries"]}
+    # علّة notes never end mid-word: truncated ones close on the elision mark.
+    assert all(not e["note"] or e["note"] == e["note"].rstrip() for e in j["entries"])
     # 2:7: the two imams genuinely diverge on سمعهم (w5) — الداني كاف،
     # الأشموني تام. Both must be present, at the same word.
     j = client.get("/api/classical-waqf/2/7").get_json()
