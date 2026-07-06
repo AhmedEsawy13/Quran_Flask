@@ -5,14 +5,6 @@
     const $ = id => document.getElementById(id);
     const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
 
-    // Same Arabic folding + tolerant word match the memorize page uses for ASR follow.
-    const _arNorm = s => (s || '')
-        .replace(/[ً-ٰٟۖ-ۭ࣐-ࣿـ۝٠-٩]/g, '')
-        .replace(/[إأآاٱ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
-        .replace(/\s+/g, ' ').trim();
-    const _wmatch = (a, b) => a === b ||
-        (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a) || a.includes(b) || b.includes(a)));
-
     const els = {
         surah: $('wp-surah'), from: $('wp-from'), to: $('wp-to'), mushaf: $('wp-mushaf'),
         load: $('wp-load'), hint: $('wp-hint'), barVerse: $('wp-bar-verse'),
@@ -26,8 +18,8 @@
     };
 
     const state = { surahs: [], ayahCount: {}, verses: [], stops: new Set() /* "ayah:wpos" */ };
-    // ASR follow: flat expected words + monotonic alignment cursor.
-    const rec = { on: false, exp: [], pos: 0, lastIdx: -1 };
+    // Phoneme recite-follow: reference entries {skel,ayah,wpos} + alignment cursor.
+    const rec = { on: false, ref: [], ri: 0, si: 0, cur: null };
 
     // verdict → display. Order = legend order.
     const VERDICT = {
@@ -96,7 +88,6 @@
             const j = await fetch(`/api/waqf-practice/passage/${s}/${f}/${t}`).then(r => r.json());
             state.verses = j.verses || [];
             state.stops.clear();
-            buildExpected();
             // Madinah page-layout view (optional) renders the real mushaf lines;
             // it keys words the same way (ayah:wpos) so tap/grade/ASR are unchanged.
             if (els.layout && els.layout.checked && isMadinah()) await renderMushafLayout(s, f, t, els.mushaf.value);
@@ -271,26 +262,48 @@
         }
     }
 
-    /* ── recite & auto-mark stops (FastConformer in-browser ASR) ───── */
-    // Flat expected-word list in reading order; wpos = word index within its ayah.
-    function buildExpected() {
-        rec.exp = [];
-        state.verses.forEach(v => (v.words || []).forEach((w, i) => {
-            if (/^[۝٠-٩]+$/.test((w || '').trim())) return;   // skip verse-number ornaments
-            const norm = _arNorm(w);
-            if (norm) rec.exp.push({ ayah: v.ayah, wpos: i, norm });
-        }));
-        rec.pos = 0; rec.lastIdx = -1; rec.miss = 0;
-    }
+    /* ── recite & auto-mark stops — zipformer PHONEME ASR ──────────────
+       The model emits phonemes; we DP-align the recited phoneme stream to the
+       passage's reference phonemes (fetched per-word from the backend) to follow
+       position, and the model's silence token gives وقف stops. */
     const setRecNote = m => { if (els.recNote) els.recNote.textContent = m || ''; };
+    const _PH_KEEP = 'ءابتثجحخدذرزسشصضطظعغفقكلمنهوي';
+    function _phSkel(s) {           // consonant skeleton (matches the backend)
+        s = (s || '').replace(/[ٱأإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+        let out = '';
+        for (const c of s) if (_PH_KEEP.indexOf(c) >= 0 && out[out.length - 1] !== c) out += c;
+        return out;
+    }
+    function _ed(a, b) {            // edit distance (small strings)
+        const m = a.length, n = b.length;
+        if (!m) return n; if (!n) return m;
+        let prev = Array.from({ length: n + 1 }, (_, j) => j);
+        for (let i = 1; i <= m; i++) {
+            const cur = [i];
+            for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] !== b[j - 1] ? 1 : 0));
+            prev = cur;
+        }
+        return prev[n];
+    }
+
+    // Fetch the passage's reference phoneme entries {ph, ayah, wpos}.
+    async function buildPhonemeRef() {
+        rec.ref = []; rec.ri = 0; rec.si = 0; rec.cur = null;
+        const s = +els.surah.value, f = +els.from.value, t = +els.to.value;
+        try {
+            const j = await fetch(`/api/waqf-practice/phonemes/${s}/${f}/${t}`).then(r => r.json());
+            rec.ref = (j.entries || []).map(e => ({ skel: _phSkel(e.ph), ayah: e.ayah, wpos: e.wpos }));
+        } catch (e) { rec.ref = []; }
+    }
 
     async function toggleRecord() {
         if (rec.on) { stopRecord(); return; }
-        if (!window.MushafASR) { setRecNote('وحدة التعرّف غير متوفرة'); return; }
+        if (!window.MushafZipformer) { setRecNote('وحدة التعرّف غير متوفرة'); return; }
         if (!state.verses.length) { setRecNote('حمّل مقطعًا أولًا'); return; }
-        rec.pos = 0; rec.lastIdx = -1; rec.miss = 0;
+        await buildPhonemeRef();
+        if (!rec.ref.length) { setRecNote('تعذّر تجهيز مرجع التلاوة'); return; }
         try {
-            await window.MushafASR.start({
+            await window.MushafZipformer.start({
                 onStatus: setRecNote,
                 onActive: on => {
                     rec.on = on;
@@ -300,55 +313,54 @@
                         : '<i class="fas fa-microphone"></i> سجّل وقوفي';
                     if (!on) clearReciting();
                 },
-                onWord: alignWord,
-                onStop: markAutoStop,
+                onPhonemes: alignPhonemes,
+                onSilence: markAutoStop,
             });
         } catch (e) {
             setRecNote('تعذّر التشغيل: ' + ((e && (e.message || e.name)) || e));
         }
     }
-    function stopRecord() { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} }
+    function stopRecord() { try { window.MushafZipformer && window.MushafZipformer.stop(); } catch (e) {} }
 
-    // Live "currently reciting" highlight on the passage word (toggle option).
-    function highlightReciting(idx) {
+    function highlightWord(ayah, wpos) {
         if (!els.follow || !els.follow.checked) return;
         els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting'));
-        if (idx < 0 || idx >= rec.exp.length) return;
-        const e = rec.exp[idx], b = els.passage.querySelector(`.wp-word[data-key="${e.ayah + ':' + e.wpos}"]`);
+        const b = els.passage.querySelector(`.wp-word[data-key="${ayah}:${wpos}"]`);
         if (b) { b.classList.add('wp-reciting'); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
     }
     function clearReciting() { els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting')); }
 
-    function _advanceTo(k) {
-        rec.lastIdx = k; rec.pos = k + 1; rec.miss = 0;
-        highlightReciting(k);
-        setRecNote(`تابعتُ ${toAr(rec.pos)} / ${toAr(rec.exp.length)} كلمة`);
-    }
-    // Monotonic forward match of a recited word onto the expected sequence.
-    function alignWord(w) {
-        const target = _arNorm(w && w.text || '');
-        if (!target) return;
-        // near look-ahead — normal case
-        for (let k = rec.pos; k < Math.min(rec.exp.length, rec.pos + 6); k++) {
-            if (_wmatch(target, rec.exp[k].norm)) { _advanceTo(k); return; }
+    // Greedy monotonic alignment of the recited phoneme skeleton to the reference
+    // entries. Consumes one entry when a nearby window matches; skips a garbled
+    // entry once the recited tail runs well past it (so it never wedges).
+    function alignPhonemes(recited) {
+        const rs = _phSkel(recited);
+        let advanced = false;
+        while (rec.ri < rec.ref.length) {
+            const es = rec.ref[rec.ri].skel;
+            if (!es) { rec.ri++; continue; }
+            const tail = rs.length - rec.si;
+            if (tail < es.length - 1) break;                   // wait until this entry is (nearly) fully recited
+            let bestK = -1, bestD = 1e9;
+            const lo = Math.max(1, es.length - 2), hi = Math.min(tail, es.length + 4);
+            for (let k = lo; k <= hi; k++) { const d = _ed(rs.substr(rec.si, k), es); if (d < bestD) { bestD = d; bestK = k; } }
+            if (bestK > 0 && bestD <= Math.max(1, es.length * 0.4)) {
+                rec.si += bestK; rec.ri++; advanced = true;
+                rec.cur = rec.ref[rec.ri - 1];
+                highlightWord(rec.cur.ayah, rec.cur.wpos);
+            } else if (tail > es.length * 1.8) {               // mispronounced → skip, don't wedge
+                rec.ri++;
+            } else break;
         }
-        // Missed nearby. A single garbled/mis-heard word shouldn't wedge the cursor
-        // (the old +4 window would stick until you re-recited). After a couple of
-        // misses, resync over a wide range so we can jump past a skipped stretch.
-        rec.miss = (rec.miss || 0) + 1;
-        if (rec.miss >= 2) {
-            for (let k = rec.pos; k < Math.min(rec.exp.length, rec.pos + 25); k++) {
-                if (_wmatch(target, rec.exp[k].norm)) { _advanceTo(k); return; }
-            }
-        }
+        if (advanced) setRecNote(`تابعتُ ${toAr(rec.ri)} / ${toAr(rec.ref.length)}`);
     }
-    // A detected pause seals the last-matched word as a stop and lights it up.
+    // A detected pause (model silence) seals the current word as a stop.
     function markAutoStop() {
-        if (rec.lastIdx < 0 || rec.lastIdx >= rec.exp.length) return;
-        const e = rec.exp[rec.lastIdx], key = e.ayah + ':' + e.wpos;
+        if (!rec.cur) return;
+        const key = rec.cur.ayah + ':' + rec.cur.wpos;
         if (state.stops.has(key)) return;
         state.stops.add(key);
-        const b = els.passage.querySelector(`.wp-word[data-key="${key.replace(/"/g, '\\"')}"]`);
+        const b = els.passage.querySelector(`.wp-word[data-key="${key}"]`);
         if (b) b.classList.add('wp-stopped');
         updateCount();
     }

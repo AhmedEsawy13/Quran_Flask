@@ -79,6 +79,10 @@ TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')
 # pipeline/build_muktafa.py from the OpenITI edition of الداني's المكتفى.
 CLASSICAL_WAQF_DATABASE = os.path.join(_BASE_DIR, 'data', 'classical_waqf.db')
 
+# Per-ayah Quran phonemes (surah:ayah → aya_phonemes_list) for the zipformer
+# phoneme-ASR reference (تدريب recite-follow). Source: ReciteQuran ordered set.
+QURAN_PHONEMES_JSON = os.path.join(_BASE_DIR, 'data', 'quran_phonemes_by_ayah.json')
+
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
 SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
 

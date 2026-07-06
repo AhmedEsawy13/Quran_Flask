@@ -147,7 +147,7 @@ from core.config import (
     DATABASE, WAQF_DATABASE, MUSHAF_WAQF_DATABASE,
     _BASE_DIR, RECITER_GUIDE_CONFIG,
     TAJWEED_DATABASE, CLASSICAL_WAQF_DATABASE, MAX_AYAH_NUMBER,
-    WAQF_SYMBOL_CHARS,
+    WAQF_SYMBOL_CHARS, QURAN_PHONEMES_JSON,
 )
 from core.text import (
     _normalize_for_search,
@@ -3732,6 +3732,97 @@ def waqf_practice_passage(surah, from_ayah, to_ayah):
         if words:
             verses.append({'ayah': ayah, 'words': words})
     return jsonify({'surah': surah, 'verses': verses})
+
+
+# ── phoneme reference (zipformer recite-follow) ────────────────────────────
+_QURAN_PHONEMES = None
+_PH_KEEP = set('ءابتثجحخدذرزسشصضطظعغفقكلمنهوي')
+
+def _load_quran_phonemes():
+    """Lazy-load surah:ayah → {aya_phonemes_list} (ReciteQuran ordered set)."""
+    global _QURAN_PHONEMES
+    if _QURAN_PHONEMES is None:
+        try:
+            with open(QURAN_PHONEMES_JSON, encoding='utf-8') as fh:
+                _QURAN_PHONEMES = json.load(fh)
+        except Exception:
+            _QURAN_PHONEMES = {}
+    return _QURAN_PHONEMES
+
+def _ph_skel(s):
+    """Consonant skeleton (drop vowels/diacritics/alef, collapse repeats) for
+    aligning phoneme entries to words regardless of orthography."""
+    out = []
+    for c in (s or '').replace('ٱ', 'ا').replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا').replace('ة', 'ه').replace('ى', 'ي'):
+        if c in _PH_KEEP and (not out or out[-1] != c):
+            out.append(c)
+    return ''.join(out)
+
+def _edit_dist(a, b):
+    if not a:
+        return len(b)
+    if not b:
+        return len(a)
+    prev = list(range(len(b) + 1))
+    for i in range(1, len(a) + 1):
+        cur = [i] + [0] * len(b)
+        for j in range(1, len(b) + 1):
+            cur[j] = min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] != b[j - 1]))
+        prev = cur
+    return prev[len(b)]
+
+def _align_entries_to_words(entries, words):
+    """DP-tile N phoneme entries over M words (each entry → a contiguous word
+    group; idghaam/waṣl merges two words into one entry). Returns, per entry,
+    the index of the LAST word it covers — where a stop after it is attributed."""
+    N, M = len(entries), len(words)
+    if N == 0 or M == 0:
+        return []
+    if N == M:
+        return list(range(N))
+    es = [_ph_skel(e) for e in entries]
+    ws = [_ph_skel(w) for w in words]
+    INF = float('inf')
+    dp = [[INF] * (M + 1) for _ in range(N + 1)]
+    bk = [[0] * (M + 1) for _ in range(N + 1)]
+    dp[0][0] = 0
+    for i in range(1, N + 1):
+        for j in range(i, M - (N - i) + 1):          # each entry ≥ 1 word
+            for a in range(i - 1, j):
+                c = dp[i - 1][a] + _edit_dist(es[i - 1], ''.join(ws[a:j]))
+                if c < dp[i][j]:
+                    dp[i][j] = c
+                    bk[i][j] = a
+    res = [0] * N
+    j = M
+    for i in range(N, 0, -1):
+        res[i - 1] = j - 1
+        j = bk[i][j]
+    return res
+
+
+@breathing_bp.route('/api/waqf-practice/phonemes/<int:surah>/<int:from_ayah>/<int:to_ayah>')
+def waqf_practice_phonemes(surah, from_ayah, to_ayah):
+    """Reference phoneme entries for a range, each tagged with the (ayah, wpos)
+    of the word it ends on — the zipformer glue DP-aligns the recited phoneme
+    stream to these to follow position and attribute stops."""
+    if not (1 <= surah <= 114) or from_ayah < 1 or to_ayah < from_ayah or to_ayah - from_ayah > 20:
+        return jsonify({'error': 'invalid range'}), 400
+    ph = _load_quran_phonemes()
+    entries = []
+    for ayah in range(from_ayah, to_ayah + 1):
+        vk = f'{surah}:{ayah}'
+        if vk not in qpc_hafs_data_normalized:
+            break
+        _, words, _ = _verse_word_texts(vk)
+        rec = ph.get(vk)
+        if not words or not rec:
+            continue
+        plist = rec.get('aya_phonemes_list') or []
+        ends = _align_entries_to_words(plist, words)
+        for i, p in enumerate(plist):
+            entries.append({'ph': p, 'ayah': ayah, 'wpos': ends[i] if i < len(ends) else len(words) - 1})
+    return jsonify({'surah': surah, 'entries': entries})
 
 
 @breathing_bp.route('/api/waqf-practice/grade', methods=['POST'])
