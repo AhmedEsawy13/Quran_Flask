@@ -280,7 +280,7 @@
             const norm = _arNorm(w);
             if (norm) rec.exp.push({ ayah: v.ayah, wpos: i, norm });
         }));
-        rec.pos = 0; rec.lastIdx = -1;
+        rec.pos = 0; rec.lastIdx = -1; rec.miss = 0;
     }
     const setRecNote = m => { if (els.recNote) els.recNote.textContent = m || ''; };
 
@@ -288,7 +288,7 @@
         if (rec.on) { stopRecord(); return; }
         if (!window.MushafASR) { setRecNote('وحدة التعرّف غير متوفرة'); return; }
         if (!state.verses.length) { setRecNote('حمّل مقطعًا أولًا'); return; }
-        rec.pos = 0; rec.lastIdx = -1;
+        rec.pos = 0; rec.lastIdx = -1; rec.miss = 0;
         try {
             await window.MushafASR.start({
                 onStatus: setRecNote,
@@ -319,19 +319,28 @@
     }
     function clearReciting() { els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting')); }
 
+    function _advanceTo(k) {
+        rec.lastIdx = k; rec.pos = k + 1; rec.miss = 0;
+        highlightReciting(k);
+        setRecNote(`تابعتُ ${toAr(rec.pos)} / ${toAr(rec.exp.length)} كلمة`);
+    }
     // Monotonic forward match of a recited word onto the expected sequence.
     function alignWord(w) {
         const target = _arNorm(w && w.text || '');
         if (!target) return;
-        for (let k = rec.pos; k < Math.min(rec.exp.length, rec.pos + 4); k++) {
-            if (_wmatch(target, rec.exp[k].norm)) {
-                rec.lastIdx = k; rec.pos = k + 1;
-                highlightReciting(k);
-                setRecNote(`تابعتُ ${toAr(rec.pos)} / ${toAr(rec.exp.length)} كلمة`);
-                return;
+        // near look-ahead — normal case
+        for (let k = rec.pos; k < Math.min(rec.exp.length, rec.pos + 6); k++) {
+            if (_wmatch(target, rec.exp[k].norm)) { _advanceTo(k); return; }
+        }
+        // Missed nearby. A single garbled/mis-heard word shouldn't wedge the cursor
+        // (the old +4 window would stick until you re-recited). After a couple of
+        // misses, resync over a wide range so we can jump past a skipped stretch.
+        rec.miss = (rec.miss || 0) + 1;
+        if (rec.miss >= 2) {
+            for (let k = rec.pos; k < Math.min(rec.exp.length, rec.pos + 25); k++) {
+                if (_wmatch(target, rec.exp[k].norm)) { _advanceTo(k); return; }
             }
         }
-        // no match within the look-ahead window → treat as noise, keep the cursor
     }
     // A detected pause seals the last-matched word as a stop and lights it up.
     function markAutoStop() {

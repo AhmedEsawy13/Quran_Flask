@@ -63,6 +63,7 @@
     let words = [];                     // [{ text, startSec, endSec }] closed words, in order
     let curWord = null;                 // word currently being built from sub-word pieces
     let clockSec = 0;                   // audio timeline cursor (start of the next chunk)
+    let asrBusy = false;                // serialises runChunk so chunks never overlap on the shared cache
     let blankSec = 0;                   // length of the current run of consecutive blank frames
     let peakRms = 0;                    // decaying recent-peak audio level (adaptive silence reference)
     // Silero VAD — neural silence detection driving stop (وقف) events.
@@ -313,13 +314,28 @@
         const merged = new Float32Array(pcmBuffer.length + chunk.length);
         merged.set(pcmBuffer); merged.set(chunk, pcmBuffer.length);
         pcmBuffer = merged;
-        const need = Math.round(MEL.sr * ASR_CONFIG.chunkSec);
-        const ov = MEL.win - MEL.hop;            // small overlap so boundary frames aren't lost
-        if (pcmBuffer.length >= need) {
-            runChunk(pcmBuffer.subarray(0, need).slice(), clockSec);
-            clockSec += (need - ov) / MEL.sr;    // advance the timeline by the NEW audio consumed
-            pcmBuffer = pcmBuffer.subarray(need - ov).slice();
-        }
+        drainAsr();                              // serialised — never runs two chunks at once
+    }
+    // Run ASR chunks strictly one at a time. Previously runChunk was fire-and-
+    // forget: a second chunk could start before the first's session.run resolved,
+    // and both mutate the shared streaming `cache` → corrupted state that stalls
+    // the decode ("stuck on a word"). The busy guard serialises them; audio just
+    // buffers in pcmBuffer until the model catches up.
+    async function drainAsr() {
+        if (asrBusy || !session) return;
+        asrBusy = true;
+        try {
+            const need = Math.round(MEL.sr * ASR_CONFIG.chunkSec);
+            const ov = MEL.win - MEL.hop;        // small overlap so boundary frames aren't lost
+            while (running && pcmBuffer.length >= need) {
+                const chunkStart = clockSec;
+                const chunk = pcmBuffer.slice(0, need);
+                pcmBuffer = pcmBuffer.slice(need - ov);
+                clockSec += (need - ov) / MEL.sr; // advance timeline by the NEW audio consumed
+                await runChunk(chunk, chunkStart);
+            }
+        } catch (e) { /* one bad chunk shouldn't kill the stream */ }
+        finally { asrBusy = false; }
     }
     function downsample(buf, inRate) {
         if (inRate === MEL.sr) return buf;
@@ -380,7 +396,7 @@
             }
 
             cache = freshCache(); transcriptIds = []; pcmBuffer = new Float32Array(0); lastTok = -1;
-            words = []; curWord = null; clockSec = 0; blankSec = 0; peakRms = 0;
+            words = []; curWord = null; clockSec = 0; blankSec = 0; peakRms = 0; asrBusy = false;
             if (vadSession) freshVadState();
             vadBuf = new Float32Array(0); vadClockSec = 0; vadSilentSec = 0; vadBusy = false;
             running = true; onActive && onActive(true);
