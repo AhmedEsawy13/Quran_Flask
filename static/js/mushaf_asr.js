@@ -38,12 +38,16 @@
         chunkSec: 0.5,                            // validated: 0.5 s chunks decode best (chunked attention)
         blankId: 1024,                            // logprobs has 1025 classes; 1024 = CTC blank
         silenceSec: 0.55,                         // a QUIET pause of ≥ this long after a word = a STOP (وقف)
-        // Adaptive silence (librosa top_db style): a chunk is "silent" when its
-        // RMS drops far below a DECAYING recent peak — independent of mic gain,
-        // unlike a fixed absolute threshold. Tune silenceRatio if over/under-firing.
-        silenceRatio: 0.1,                        // quiet when chunk RMS < 10% of recent peak (~ −20 dB)
-        silenceFloor: 0.006,                      // absolute RMS below which it's silence regardless of peak
-        peakDecay: 0.94,                          // per-chunk decay of the recent-peak reference (~2 s memory)
+        // Silence is detected by Silero VAD (a real neural voice-activity model)
+        // running per 512-sample frame; a وقف = sustained non-speech after a word.
+        vadUrl: '/static/asr/silero_vad.onnx',    // ~1.8 MB Silero VAD v4 (h/c state)
+        vadWindow: 512,                           // samples per VAD frame (32 ms @ 16 kHz)
+        vadThreshold: 0.5,                        // speech prob ≥ this = voice; below = silence
+        // Fallback only (when the VAD model can't load): adaptive energy gate,
+        // librosa top_db style — quiet when chunk RMS < ratio × decaying peak.
+        silenceRatio: 0.1,
+        silenceFloor: 0.006,
+        peakDecay: 0.94,
     };
     // NeMo AudioToMelSpectrogram defaults (slaney mel scale, hann, preemph, log).
     const MEL = { sr: 16000, nFft: 512, win: 400, hop: 160, nMels: 80, fMin: 0, fMax: 8000,
@@ -61,6 +65,10 @@
     let clockSec = 0;                   // audio timeline cursor (start of the next chunk)
     let blankSec = 0;                   // length of the current run of consecutive blank frames
     let peakRms = 0;                    // decaying recent-peak audio level (adaptive silence reference)
+    // Silero VAD — neural silence detection driving stop (وقف) events.
+    let vadSession = null, vadH = null, vadC = null, vadSr = null;
+    let vadBuf = new Float32Array(0);   // 16 kHz samples awaiting 512-frame VAD
+    let vadClockSec = 0, vadSilentSec = 0, vadBusy = false;
 
     const status = m => { try { onStatus && onStatus(m); } catch (e) {} };
     const loadJson = async url => { const r = await fetch(url); if (!r.ok) throw new Error('fetch ' + url + ' → ' + r.status); return r.json(); };
@@ -192,7 +200,47 @@
         const idx = words.length;                // the index this word will occupy
         closeWord(atSec);
         try { onStop && onStop({ wordIndex: idx, word: words[idx], atSec }); } catch (e) {}
-        blankSec = 0;                            // don't re-fire within the same silence
+        blankSec = 0; vadSilentSec = 0;          // don't re-fire within the same silence
+    }
+
+    /* ── Silero VAD: neural silence → stop events ─────────────────────────────
+       Runs continuously on 512-sample frames (own buffer, independent of the ASR
+       chunking). A sustained non-speech run after a spoken word fires a stop —
+       far more reliable than energy thresholds. Falls back to the energy gate in
+       runChunk when the model isn't loaded. */
+    function freshVadState() {
+        const ort = window.ort;
+        vadH = new ort.Tensor('float32', new Float32Array(2 * 1 * 64), [2, 1, 64]);
+        vadC = new ort.Tensor('float32', new Float32Array(2 * 1 * 64), [2, 1, 64]);
+        vadSr = new ort.Tensor('int64', new BigInt64Array([BigInt(MEL.sr)]), []);
+    }
+    async function drainVad() {
+        if (vadBusy || !vadSession) return;
+        vadBusy = true;
+        try {
+            const ort = window.ort, win = ASR_CONFIG.vadWindow, dur = win / MEL.sr;
+            while (vadBuf.length >= win) {
+                const frame = vadBuf.slice(0, win);
+                vadBuf = vadBuf.slice(win);
+                const out = await vadSession.run({ input: new ort.Tensor('float32', frame, [1, win]), sr: vadSr, h: vadH, c: vadC });
+                vadH = out.hn; vadC = out.cn;
+                vadClockSec += dur;
+                if (out.output.data[0] >= ASR_CONFIG.vadThreshold) {
+                    vadSilentSec = 0;            // speech
+                } else {
+                    vadSilentSec += dur;         // silence
+                    if (curWord && vadSilentSec >= ASR_CONFIG.silenceSec) fireStop(vadClockSec);
+                }
+            }
+        } catch (e) { /* a bad frame shouldn't kill the stream */ }
+        finally { vadBusy = false; }
+    }
+    function feedVad(chunk) {
+        if (!vadSession) return;
+        const merged = new Float32Array(vadBuf.length + chunk.length);
+        merged.set(vadBuf); merged.set(chunk, vadBuf.length);
+        vadBuf = merged;
+        drainVad();                              // fire-and-forget (guarded by vadBusy)
     }
     async function runChunk(pcm, chunkStartSec) {
         const ort = window.ort;
@@ -214,23 +262,25 @@
         const lp = out.logprobs;                 // [1, T', 1025]
         const [, Tp, V] = lp.dims, d = lp.data;
         const frameDur = (pcm.length / MEL.sr) / Tp;   // seconds per output frame
-        // A وقف is a QUIET pause. The CTC emits blank frames even mid-recitation
-        // (between/inside voiced words), so a blank-run alone gives false stops —
-        // gate the pause timer on audio energy dropping below a recent-peak-
-        // relative threshold (adaptive to mic gain; see ASR_CONFIG above).
-        let sumSq = 0; for (let i = 0; i < pcm.length; i++) sumSq += pcm[i] * pcm[i];
-        const chunkRms = Math.sqrt(sumSq / Math.max(1, pcm.length));
-        peakRms = Math.max(chunkRms, peakRms * ASR_CONFIG.peakDecay);
-        const quiet = chunkRms < Math.max(ASR_CONFIG.silenceFloor, peakRms * ASR_CONFIG.silenceRatio);
+        // Stops come from Silero VAD (feedVad). Only when the VAD model isn't
+        // loaded do we fall back to an adaptive energy gate on the CTC blanks.
+        const useEnergy = !vadSession;
+        let quiet = false;
+        if (useEnergy) {
+            let sumSq = 0; for (let i = 0; i < pcm.length; i++) sumSq += pcm[i] * pcm[i];
+            const chunkRms = Math.sqrt(sumSq / Math.max(1, pcm.length));
+            peakRms = Math.max(chunkRms, peakRms * ASR_CONFIG.peakDecay);
+            quiet = chunkRms < Math.max(ASR_CONFIG.silenceFloor, peakRms * ASR_CONFIG.silenceRatio);
+        }
         for (let t = 0; t < Tp; t++) {
             let best = 0, bv = -Infinity;
             for (let v = 0; v < V; v++) { const x = d[t * V + v]; if (x > bv) { bv = x; best = v; } }
             const tSec = chunkStartSec + t * frameDur;
             if (best === ASR_CONFIG.blankId) {
-                if (quiet) {                         // silence → accumulate toward a stop
+                if (useEnergy && quiet) {            // fallback: silence → toward a stop
                     blankSec += frameDur;
                     if (curWord && blankSec >= ASR_CONFIG.silenceSec) fireStop(tSec);
-                } else {
+                } else if (useEnergy) {
                     blankSec = 0;                    // voice present → not a وقف
                 }
             } else {
@@ -244,7 +294,7 @@
                         curWord.text += piece;               // continuation of the same word
                     }
                 }
-                blankSec = 0;
+                if (useEnergy) blankSec = 0;
             }
             lastTok = best;
         }
@@ -259,6 +309,7 @@
 
     /* ── mic capture (downsample to 16 kHz) ───────────────────────────────── */
     function pushPcm(chunk) {
+        feedVad(chunk);                          // continuous neural silence detection
         const merged = new Float32Array(pcmBuffer.length + chunk.length);
         merged.set(pcmBuffer); merged.set(chunk, pcmBuffer.length);
         pcmBuffer = merged;
@@ -292,6 +343,13 @@
             }
             if (!cmvn) { status('تحميل ثوابت المعايرة…'); try { cmvn = await loadJson(ASR_CONFIG.cmvnUrl); } catch (e) { cmvn = null; } }
             if (!vocab) { status('تحميل المعجم…'); vocab = await loadJson(ASR_CONFIG.vocabUrl); }
+            if (!vadSession) {
+                status('تحميل كاشف الوقف…');
+                try {
+                    const vb = new Uint8Array(await (await fetch(ASR_CONFIG.vadUrl)).arrayBuffer());
+                    vadSession = await window.ort.InferenceSession.create(vb, { executionProviders: ['wasm'] });
+                } catch (e) { vadSession = null; }   // fall back to the energy gate
+            }
 
             status('طلب إذن الميكروفون…');
             micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
@@ -323,6 +381,8 @@
 
             cache = freshCache(); transcriptIds = []; pcmBuffer = new Float32Array(0); lastTok = -1;
             words = []; curWord = null; clockSec = 0; blankSec = 0; peakRms = 0;
+            if (vadSession) freshVadState();
+            vadBuf = new Float32Array(0); vadClockSec = 0; vadSilentSec = 0; vadBusy = false;
             running = true; onActive && onActive(true);
             status('🎙️ استمع… ابدأ التلاوة');
         } catch (e) {
