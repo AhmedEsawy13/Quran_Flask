@@ -1,5 +1,6 @@
 /* تدريب الوقف — practice page. Reuses the --wq-* theme vars + fonts from
    waqf_guide.css (loaded before this file). */
+@font-face { font-family: 'Old Madina'; src: url('../fonts/oldmadina.woff2') format('woff2'); font-display: swap; }
 
 .wp-main { max-width: 900px; margin: 0 auto; padding: 18px clamp(12px, 3vw, 28px) 60px;
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; }
@@ -50,6 +51,22 @@
     box-shadow: 0 0 0 2px color-mix(in srgb, #e0a83a 55%, transparent); border-radius: 6px; }
 .wp-ayah-num { font-size: 0.62em; color: var(--wq-text-faint); margin: 0 .15em; vertical-align: middle;
     border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .28em; }
+
+/* Madinah page-layout view (منظر المصحف) — real mushaf lines, Old-Madina font */
+.wp-layout-toggle { display: inline-flex; align-items: center; gap: 5px; align-self: flex-end; margin-bottom: 4px;
+    font-size: 0.82rem; font-weight: 700; color: var(--wq-text-muted); cursor: pointer; user-select: none; white-space: nowrap; }
+.wp-layout-toggle i { color: var(--wq-accent); }
+.wp-layout-toggle input { accent-color: var(--wq-accent); cursor: pointer; }
+.wp-passage.wp-ml { font-family: 'Old Madina', 'UthmanicHafs', serif; line-height: 2.35; text-align: center; }
+.wp-ml-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 .35em; direction: rtl; }
+.wp-ml-line.is-centered { justify-content: center; }
+.wp-ml-line:last-child { justify-content: center; }        /* last line isn't stretched on a real page */
+.wp-ml .wp-word { padding: 0 .04em; }
+.wp-ml-ctx { color: var(--wq-text-faint); opacity: 0.5; padding: 0 .04em; }   /* out-of-range context word */
+.wp-ml-num { color: var(--wq-accent-strong); font-size: 0.72em; margin: 0 .1em; }
+.wp-ml-surah { font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--wq-accent);
+    text-align: center; font-size: 0.86em; margin: .3em 0; padding: .15em 0; border-top: 1px solid var(--wq-border); border-bottom: 1px solid var(--wq-border); }
+.wp-ml-basmala { text-align: center; color: var(--wq-text-muted); font-size: 0.9em; margin: .2em 0; }
 
 .wp-actions { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--wq-border); }
 .wp-actions-spacer { flex: 1; }

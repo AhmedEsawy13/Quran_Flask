@@ -19,6 +19,7 @@
         passageCard: $('wp-passage-card'), passage: $('wp-passage'),
         count: $('wp-count'), clear: $('wp-clear'), grade: $('wp-grade'),
         rec: $('wp-rec'), recNote: $('wp-rec-note'), follow: $('wp-follow'),
+        layout: $('wp-layout'), layoutWrap: $('wp-layout-wrap'),
         resultCard: $('wp-result-card'), score: $('wp-score'), scoreNum: $('wp-score-num'),
         scoreTitle: $('wp-score-title'), tGood: $('wp-t-good'), tNote: $('wp-t-note'),
         tErr: $('wp-t-err'), legend: $('wp-legend'), graded: $('wp-graded'), followups: $('wp-followups'),
@@ -51,6 +52,9 @@
         const ordered = [...prefer.filter(v => versions.includes(v)),
                          ...versions.filter(v => !prefer.includes(v))];
         els.mushaf.innerHTML = ordered.map(v => `<option value="${v}">${v}</option>`).join('');
+        updateLayoutToggle();
+        els.mushaf.addEventListener('change', updateLayoutToggle);
+        if (els.layout) els.layout.addEventListener('change', () => { if (state.verses.length) loadPassage(); });
         els.surah.addEventListener('change', onSurah);
         els.from.addEventListener('change', () => { if (+els.to.value < +els.from.value) els.to.value = els.from.value; });
         els.load.addEventListener('click', loadPassage);
@@ -93,7 +97,10 @@
             state.verses = j.verses || [];
             state.stops.clear();
             buildExpected();
-            renderPassage();
+            // Madinah page-layout view (optional) renders the real mushaf lines;
+            // it keys words the same way (ayah:wpos) so tap/grade/ASR are unchanged.
+            if (els.layout && els.layout.checked && isMadinah()) await renderMushafLayout(s, f, t, els.mushaf.value);
+            else renderPassage();
             const name = (state.surahs.find(x => (x.number ?? x) === s) || {}).name || '';
             els.barVerse.textContent = `${name} · ${toAr(f)}${t > f ? '–' + toAr(t) : ''}`;
             els.hint.hidden = false;
@@ -118,7 +125,19 @@
         return b;
     }
 
+    // Tap a word to toggle a stop — shared by the plain and mushaf-layout views.
+    function wirePassageClicks() {
+        els.passage.onclick = e => {
+            const b = e.target.closest('.wp-word'); if (!b) return;
+            const k = b.dataset.key;
+            if (state.stops.has(k)) { state.stops.delete(k); b.classList.remove('wp-stopped'); }
+            else { state.stops.add(k); b.classList.add('wp-stopped'); }
+            updateCount();
+        };
+    }
+
     function renderPassage() {
+        els.passage.className = 'wp-passage';
         els.passage.innerHTML = '';
         state.verses.forEach(v => {
             const line = document.createElement('div');
@@ -134,13 +153,87 @@
             line.appendChild(num);
             els.passage.appendChild(line);
         });
-        els.passage.onclick = e => {
-            const b = e.target.closest('.wp-word'); if (!b) return;
-            const k = b.dataset.key;
-            if (state.stops.has(k)) { state.stops.delete(k); b.classList.remove('wp-stopped'); }
-            else { state.stops.add(k); b.classList.add('wp-stopped'); }
-            updateCount();
-        };
+        wirePassageClicks();
+    }
+
+    /* ── Madinah page-layout view (المدينة الجديد / القديم) ─────────────
+       Reuses the qpc-v1 604-page layout + Old-Madina font that تثبيت uses.
+       The layout words align 1:1 with the passage words per ayah (verified),
+       so wpos = running count of real words per ayah maps to the grader. */
+    const isMadinah = () => ['المدينة الجديد', 'المدينة القديم'].includes(els.mushaf.value);
+    // The mushaf-page view only exists for the two Madinah prints (qpc-v1 layout).
+    function updateLayoutToggle() { if (els.layoutWrap) els.layoutWrap.hidden = !isMadinah(); }
+    const _hasArabic = s => /[ء-ي]/.test(s || '');
+    const _maxAyahOnPage = (page, s) => {
+        let mx = 0;
+        (page.lines || []).forEach(ln => (ln.words || []).forEach(w => { if (w.surah === s && w.ayah > mx) mx = w.ayah; }));
+        return mx;
+    };
+
+    async function renderMushafLayout(s, f, t, mushaf) {
+        const mv = 'mushaf_version=' + encodeURIComponent(mushaf);
+        let page;
+        try { page = await fetch(`/api/qpc-v1/page-by-ayah/${s}/${f}?${mv}`).then(r => r.json()); }
+        catch (e) { renderPassage(); return; }
+        if (!page || !page.lines) { renderPassage(); return; }
+        const pages = [page];
+        let guard = 0;
+        while (guard++ < 8 && _maxAyahOnPage(page, s) < t) {
+            const next = (page.page_number | 0) + 1;
+            try { page = await fetch(`/api/qpc-v1/page/${next}?${mv}`).then(r => r.json()); }
+            catch (e) { break; }
+            if (!page || !page.lines) break;
+            pages.push(page);
+        }
+        const lines = [];
+        pages.forEach(p => (p.lines || []).forEach(ln => lines.push(ln)));
+        renderLayoutLines(lines, s, f, t);
+    }
+
+    const _lineTouchesRange = (ln, s, f, t) =>
+        (ln.words || []).some(w => w.surah === s && w.ayah >= f && w.ayah <= t);
+
+    function renderLayoutLines(lines, s, f, t) {
+        // render window: first → last line that touches the selected range
+        let start = lines.findIndex(ln => _lineTouchesRange(ln, s, f, t));
+        let end = -1;
+        for (let i = lines.length - 1; i >= 0; i--) { if (_lineTouchesRange(lines[i], s, f, t)) { end = i; break; } }
+        if (start < 0) { renderPassage(); return; }        // range not found on page → fall back
+        // pull in a leading surah header / basmala when the passage opens a surah
+        while (start > 0 && ['surah_name', 'basmallah'].includes(lines[start - 1].line_type)) start--;
+
+        els.passage.className = 'wp-passage wp-ml';
+        els.passage.innerHTML = '';
+        const wpos = new Map();                             // ayah → next real-word index
+        for (let i = start; i <= end; i++) {
+            const ln = lines[i];
+            if (ln.line_type === 'surah_name') {
+                const d = document.createElement('div'); d.className = 'wp-ml-surah'; d.textContent = ln.display_text || ''; els.passage.appendChild(d); continue;
+            }
+            if (ln.line_type === 'basmallah') {
+                const d = document.createElement('div'); d.className = 'wp-ml-basmala'; d.textContent = ln.display_text || 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'; els.passage.appendChild(d); continue;
+            }
+            const lineEl = document.createElement('div');
+            lineEl.className = 'wp-ml-line' + (ln.is_centered ? ' is-centered' : '');
+            (ln.words || []).forEach(w => {
+                const raw = w.text || '';
+                if (!_hasArabic(raw)) {                     // ۝N ayah-number glyph — not a word
+                    const g = document.createElement('span'); g.className = 'wp-ml-num'; g.textContent = raw; lineEl.appendChild(g); return;
+                }
+                const pos = wpos.get(w.ayah) ?? 0; wpos.set(w.ayah, pos + 1);
+                const el = document.createElement('span');
+                if (w.surah === s && w.ayah >= f && w.ayah <= t) {
+                    el.className = 'wp-word';
+                    el.dataset.key = w.ayah + ':' + pos; el.dataset.ayah = w.ayah; el.dataset.wpos = pos;
+                } else {
+                    el.className = 'wp-ml-ctx';            // out-of-range context word (dimmed, inert)
+                }
+                el.textContent = raw;
+                lineEl.appendChild(el);
+            });
+            els.passage.appendChild(lineEl);
+        }
+        wirePassageClicks();
     }
 
     function clearStops() {
