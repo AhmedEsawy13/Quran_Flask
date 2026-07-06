@@ -37,8 +37,13 @@
         cmvnVariant: 'tlog',                      // 'tlog' (phone/real-world, default) | 'clean' (studio)
         chunkSec: 0.5,                            // validated: 0.5 s chunks decode best (chunked attention)
         blankId: 1024,                            // logprobs has 1025 classes; 1024 = CTC blank
-        silenceSec: 0.6,                          // a QUIET pause of ≥ this long after a word = a STOP (وقف)
-        silenceRms: 0.015,                        // audio RMS below this = silence (gates false stops mid-recitation)
+        silenceSec: 0.55,                         // a QUIET pause of ≥ this long after a word = a STOP (وقف)
+        // Adaptive silence (librosa top_db style): a chunk is "silent" when its
+        // RMS drops far below a DECAYING recent peak — independent of mic gain,
+        // unlike a fixed absolute threshold. Tune silenceRatio if over/under-firing.
+        silenceRatio: 0.1,                        // quiet when chunk RMS < 10% of recent peak (~ −20 dB)
+        silenceFloor: 0.006,                      // absolute RMS below which it's silence regardless of peak
+        peakDecay: 0.94,                          // per-chunk decay of the recent-peak reference (~2 s memory)
     };
     // NeMo AudioToMelSpectrogram defaults (slaney mel scale, hann, preemph, log).
     const MEL = { sr: 16000, nFft: 512, win: 400, hop: 160, nMels: 80, fMin: 0, fMax: 8000,
@@ -55,6 +60,7 @@
     let curWord = null;                 // word currently being built from sub-word pieces
     let clockSec = 0;                   // audio timeline cursor (start of the next chunk)
     let blankSec = 0;                   // length of the current run of consecutive blank frames
+    let peakRms = 0;                    // decaying recent-peak audio level (adaptive silence reference)
 
     const status = m => { try { onStatus && onStatus(m); } catch (e) {} };
     const loadJson = async url => { const r = await fetch(url); if (!r.ok) throw new Error('fetch ' + url + ' → ' + r.status); return r.json(); };
@@ -210,9 +216,12 @@
         const frameDur = (pcm.length / MEL.sr) / Tp;   // seconds per output frame
         // A وقف is a QUIET pause. The CTC emits blank frames even mid-recitation
         // (between/inside voiced words), so a blank-run alone gives false stops —
-        // gate the pause timer on actual audio energy being low.
+        // gate the pause timer on audio energy dropping below a recent-peak-
+        // relative threshold (adaptive to mic gain; see ASR_CONFIG above).
         let sumSq = 0; for (let i = 0; i < pcm.length; i++) sumSq += pcm[i] * pcm[i];
-        const quiet = Math.sqrt(sumSq / Math.max(1, pcm.length)) < ASR_CONFIG.silenceRms;
+        const chunkRms = Math.sqrt(sumSq / Math.max(1, pcm.length));
+        peakRms = Math.max(chunkRms, peakRms * ASR_CONFIG.peakDecay);
+        const quiet = chunkRms < Math.max(ASR_CONFIG.silenceFloor, peakRms * ASR_CONFIG.silenceRatio);
         for (let t = 0; t < Tp; t++) {
             let best = 0, bv = -Infinity;
             for (let v = 0; v < V; v++) { const x = d[t * V + v]; if (x > bv) { bv = x; best = v; } }
@@ -313,7 +322,7 @@
             }
 
             cache = freshCache(); transcriptIds = []; pcmBuffer = new Float32Array(0); lastTok = -1;
-            words = []; curWord = null; clockSec = 0; blankSec = 0;
+            words = []; curWord = null; clockSec = 0; blankSec = 0; peakRms = 0;
             running = true; onActive && onActive(true);
             status('🎙️ استمع… ابدأ التلاوة');
         } catch (e) {
