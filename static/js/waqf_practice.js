@@ -18,7 +18,7 @@
         load: $('wp-load'), hint: $('wp-hint'), barVerse: $('wp-bar-verse'),
         passageCard: $('wp-passage-card'), passage: $('wp-passage'),
         count: $('wp-count'), clear: $('wp-clear'), grade: $('wp-grade'),
-        rec: $('wp-rec'), recNote: $('wp-rec-note'),
+        rec: $('wp-rec'), recNote: $('wp-rec-note'), follow: $('wp-follow'),
         resultCard: $('wp-result-card'), score: $('wp-score'), scoreNum: $('wp-score-num'),
         scoreTitle: $('wp-score-title'), tGood: $('wp-t-good'), tNote: $('wp-t-note'),
         tErr: $('wp-t-err'), legend: $('wp-legend'), graded: $('wp-graded'), followups: $('wp-followups'),
@@ -57,6 +57,7 @@
         els.clear.addEventListener('click', clearStops);
         els.grade.addEventListener('click', gradeStops);
         if (els.rec) els.rec.addEventListener('click', toggleRecord);
+        if (els.follow) els.follow.addEventListener('change', () => { if (!els.follow.checked) clearReciting(); });
         await onSurah();
         // deep link ?surah=&from=&to=
         const p = new URLSearchParams(location.search);
@@ -204,6 +205,7 @@
                     els.rec.innerHTML = on
                         ? '<i class="fas fa-stop"></i> إيقاف التسجيل'
                         : '<i class="fas fa-microphone"></i> سجّل وقوفي';
+                    if (!on) clearReciting();
                 },
                 onWord: alignWord,
                 onStop: markAutoStop,
@@ -214,6 +216,16 @@
     }
     function stopRecord() { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} }
 
+    // Live "currently reciting" highlight on the passage word (toggle option).
+    function highlightReciting(idx) {
+        if (!els.follow || !els.follow.checked) return;
+        els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting'));
+        if (idx < 0 || idx >= rec.exp.length) return;
+        const e = rec.exp[idx], b = els.passage.querySelector(`.wp-word[data-key="${e.ayah + ':' + e.wpos}"]`);
+        if (b) { b.classList.add('wp-reciting'); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    }
+    function clearReciting() { els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting')); }
+
     // Monotonic forward match of a recited word onto the expected sequence.
     function alignWord(w) {
         const target = _arNorm(w && w.text || '');
@@ -221,6 +233,7 @@
         for (let k = rec.pos; k < Math.min(rec.exp.length, rec.pos + 4); k++) {
             if (_wmatch(target, rec.exp[k].norm)) {
                 rec.lastIdx = k; rec.pos = k + 1;
+                highlightReciting(k);
                 setRecNote(`تابعتُ ${toAr(rec.pos)} / ${toAr(rec.exp.length)} كلمة`);
                 return;
             }

@@ -26,6 +26,10 @@
 .wp-btn-rec.is-rec { background: #d9483b; color: #fff; border-color: #d9483b; animation: wp-rec-pulse 1.3s ease-in-out infinite; }
 @keyframes wp-rec-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #d9483b 55%, transparent); } 50% { box-shadow: 0 0 0 6px transparent; } }
 .wp-rec-note { font-size: 0.8rem; color: var(--wq-text-muted); font-weight: 600; }
+.wp-follow-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 700;
+    color: var(--wq-text-muted); cursor: pointer; user-select: none; }
+.wp-follow-toggle i { color: #e0a83a; }
+.wp-follow-toggle input { accent-color: var(--wq-accent); cursor: pointer; }
 
 .wp-hint { font-size: 0.86rem; color: var(--wq-text-muted); line-height: 1.7; margin: 16px 2px 8px; }
 .wp-hint i { color: var(--wq-accent); margin-inline-end: 4px; }
@@ -41,6 +45,9 @@
 .wp-word:hover { background: color-mix(in srgb, var(--wq-accent) 12%, transparent); }
 .wp-word-end { color: var(--wq-accent-strong); }
 .wp-stopped { box-shadow: inset 0 -3px 0 0 var(--wq-accent); background: color-mix(in srgb, var(--wq-accent) 14%, transparent); }
+/* live "currently reciting" word (follow-along) */
+.wp-word.wp-reciting { background: color-mix(in srgb, #e0a83a 30%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, #e0a83a 55%, transparent); border-radius: 6px; }
 .wp-ayah-num { font-size: 0.62em; color: var(--wq-text-faint); margin: 0 .15em; vertical-align: middle;
     border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .28em; }
 

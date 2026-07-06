@@ -37,7 +37,8 @@
         cmvnVariant: 'tlog',                      // 'tlog' (phone/real-world, default) | 'clean' (studio)
         chunkSec: 0.5,                            // validated: 0.5 s chunks decode best (chunked attention)
         blankId: 1024,                            // logprobs has 1025 classes; 1024 = CTC blank
-        silenceSec: 0.45,                         // a run of ≥ this much CTC-blank after a word = a STOP (وقف)
+        silenceSec: 0.6,                          // a QUIET pause of ≥ this long after a word = a STOP (وقف)
+        silenceRms: 0.015,                        // audio RMS below this = silence (gates false stops mid-recitation)
     };
     // NeMo AudioToMelSpectrogram defaults (slaney mel scale, hann, preemph, log).
     const MEL = { sr: 16000, nFft: 512, win: 400, hop: 160, nMels: 80, fMin: 0, fMax: 8000,
@@ -207,13 +208,22 @@
         const lp = out.logprobs;                 // [1, T', 1025]
         const [, Tp, V] = lp.dims, d = lp.data;
         const frameDur = (pcm.length / MEL.sr) / Tp;   // seconds per output frame
+        // A وقف is a QUIET pause. The CTC emits blank frames even mid-recitation
+        // (between/inside voiced words), so a blank-run alone gives false stops —
+        // gate the pause timer on actual audio energy being low.
+        let sumSq = 0; for (let i = 0; i < pcm.length; i++) sumSq += pcm[i] * pcm[i];
+        const quiet = Math.sqrt(sumSq / Math.max(1, pcm.length)) < ASR_CONFIG.silenceRms;
         for (let t = 0; t < Tp; t++) {
             let best = 0, bv = -Infinity;
             for (let v = 0; v < V; v++) { const x = d[t * V + v]; if (x > bv) { bv = x; best = v; } }
             const tSec = chunkStartSec + t * frameDur;
             if (best === ASR_CONFIG.blankId) {
-                blankSec += frameDur;
-                if (curWord && blankSec >= ASR_CONFIG.silenceSec) fireStop(tSec);
+                if (quiet) {                         // silence → accumulate toward a stop
+                    blankSec += frameDur;
+                    if (curWord && blankSec >= ASR_CONFIG.silenceSec) fireStop(tSec);
+                } else {
+                    blankSec = 0;                    // voice present → not a وقف
+                }
             } else {
                 if (best !== lastTok) {
                     transcriptIds.push(best);
