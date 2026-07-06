@@ -83,8 +83,9 @@ tokenizer.model
 streaming_global_cmvn.npz
 
 # Recitation (تسميع) feature — the JS is shipped (used by /waqf-practice), but
-# the model binaries stay local; the browser falls back to the HF CDN in prod.
-static/asr/
+# the model binaries stay local. Ignore the folder CONTENTS (not the dir) so the
+# tiny derived config below can be negated back in.
+static/asr/*
 static/asr_test.html
 
 # SQLite transient files (WAL/SHM) created by the running server
@@ -97,3 +98,8 @@ static/asr_test.html
 reciters/**/word_timestamps.json.gz
 reciters/**/verse_timestamps.json.gz
 reciters/**/letter_timestamps.json.gz
+
+# Zipformer phoneme ASR: ship the tiny derived config, keep the 73MB model + gated
+# source jsons (phoneme_units/quran_text2phoneme) local.
+!static/asr/zipformer_meta.json
+!static/asr/zipformer_phonemes.json
