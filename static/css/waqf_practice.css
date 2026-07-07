@@ -32,6 +32,23 @@
 .wp-follow-toggle i { color: #e0a83a; }
 .wp-follow-toggle input { accent-color: var(--wq-accent); cursor: pointer; }
 
+/* tajweed error detection */
+.wp-tajweed-card { margin-top: 14px; background: var(--wq-surface); border: 1px solid var(--wq-border);
+    border-radius: 16px; padding: 18px 20px; box-shadow: var(--wq-shadow-sm); }
+.wp-tajweed-title { font-size: 1rem; font-weight: 800; color: var(--wq-text); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+.wp-tajweed-title i { color: var(--wq-accent); }
+.wp-tj-ok { color: #2e9c6b; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.wp-tj-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--wq-border); }
+.wp-tj-row:first-child { border-top: none; }
+.wp-tj-w { font-family: 'UthmanicHafs', serif; font-size: 1.5rem; color: var(--wq-text); min-width: 2.5em; text-align: center; }
+.wp-tj-a { font-size: 0.62rem; color: var(--wq-text-faint); border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .3em; height: fit-content; margin-top: .5em; }
+.wp-tj-list { margin: 0; padding: 0 1em 0 0; list-style: none; flex: 1; }
+.wp-tj-list li { font-size: 0.88rem; line-height: 1.7; color: var(--wq-text-muted); }
+.wp-tj-list li::before { content: '•'; color: var(--wq-accent); margin-inline-end: 6px; }
+.wp-tj-list li.wp-tj-tajweed { color: #b5651d; }        /* madd / ghunna / qalqala */
+.wp-tj-list li.wp-tj-normal { color: #c0392b; }         /* wrong letter (مخرج) */
+.wp-word.wp-tj-err, .wp-gword.wp-tj-err { box-shadow: inset 0 -3px 0 0 #c0392b; background: color-mix(in srgb, #c0392b 12%, transparent); }
+
 .wp-hint { font-size: 0.86rem; color: var(--wq-text-muted); line-height: 1.7; margin: 16px 2px 8px; }
 .wp-hint i { color: var(--wq-accent); margin-inline-end: 4px; }
 

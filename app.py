@@ -3825,6 +3825,137 @@ def waqf_practice_phonemes(surah, from_ayah, to_ayah):
     return jsonify({'surah': surah, 'entries': entries})
 
 
+# ── tajweed error detection (obadx/quran-transcript) ───────────────────────
+_QT_MOSHAF = None
+
+def _qt_moshaf():
+    """Standard Ḥafṣ moshaf attributes (madd lengths matching the reference
+    phonetization). Lazy so quran_transcript is only imported on demand."""
+    global _QT_MOSHAF
+    if _QT_MOSHAF is None:
+        import quran_transcript as qt
+        _QT_MOSHAF = qt.MoshafAttributes(
+            rewaya='hafs', madd_monfasel_len=4, madd_mottasel_len=4,
+            madd_mottasel_waqf=4, madd_aared_len=4)
+    return _QT_MOSHAF
+
+
+def _split_predicted_by_verse(predicted, verse_refs):
+    """Split the full recited phoneme string into per-verse segments by char-level
+    alignment (Needleman-Wunsch) to the concatenated reference — precise at the
+    verse boundaries where a per-entry skeleton split leaks a letter."""
+    ref = ''.join(r for _, r in verse_refs)
+    vtag = []
+    for vi, (_, r) in enumerate(verse_refs):
+        vtag.extend([vi] * len(r))
+    m, n = len(predicted), len(ref)
+    if not m or not n:
+        return [''] * len(verse_refs)
+    prev = list(range(n + 1))
+    back = [[0] * (n + 1) for _ in range(m + 1)]   # 0=diag 1=up(del pred) 2=left(ins ref)
+    for j in range(n + 1):
+        back[0][j] = 2
+    for i in range(1, m + 1):
+        cur = [i] + [0] * n
+        back[i][0] = 1
+        pi = predicted[i - 1]
+        for j in range(1, n + 1):
+            diag = prev[j - 1] + (0 if pi == ref[j - 1] else 1)
+            up = prev[j] + 1
+            left = cur[j - 1] + 1
+            best = diag; b = 0
+            if up < best:
+                best = up; b = 1
+            if left < best:
+                best = left; b = 2
+            cur[j] = best; back[i][j] = b
+        prev = cur
+    # backtrace: assign each predicted char to the verse of its aligned ref char
+    segs = [''] * len(verse_refs)
+    i, j = m, n
+    while i > 0 or j > 0:
+        b = back[i][j]
+        if i > 0 and (j == 0 or b == 1):        # predicted char with no ref → nearest verse
+            vi = vtag[j - 1] if j > 0 else 0
+            segs[vi] = predicted[i - 1] + segs[vi]
+            i -= 1
+        elif j > 0 and (i == 0 or b == 2):      # ref char, no predicted
+            j -= 1
+        else:
+            segs[vtag[j - 1]] = predicted[i - 1] + segs[vtag[j - 1]]
+            i -= 1; j -= 1
+    return segs
+
+
+@breathing_bp.route('/api/waqf-practice/tajweed', methods=['POST'])
+def waqf_practice_tajweed():
+    """Detect tajweed/pronunciation errors: split the recited phoneme stream per
+    verse, phonetize each reference (quran_transcript) and diff against it —
+    returning rule-named errors (Madd length, Qalqalah, Ghonnah, wrong letter…)
+    mapped to the word (wpos) they occur on."""
+    try:
+        import quran_transcript as qt
+    except Exception:
+        return jsonify({'available': False, 'errors': []})
+    data = request.get_json(silent=True) or {}
+    surah = int(data.get('surah') or 0)
+    from_ayah = int(data.get('from_ayah') or 0)
+    to_ayah = int(data.get('to_ayah') or 0)
+    predicted = (data.get('phonemes') or '').strip()
+    if not (1 <= surah <= 114) or from_ayah < 1 or to_ayah < from_ayah or to_ayah - from_ayah > 20:
+        return jsonify({'error': 'invalid range'}), 400
+    if not predicted:
+        return jsonify({'available': True, 'errors': []})
+    moshaf = _qt_moshaf()
+
+    def rule_names(rules):
+        out = []
+        for r in (rules or []):
+            nm = getattr(r, 'name', None)
+            out.append(getattr(nm, 'ar', None) or getattr(nm, 'en', None) or str(nm))
+        return out
+
+    # phonetize each verse's reference, then split the recited stream to match
+    verse_refs = []                              # (ayah, ut, ref_out)
+    for ayah in range(from_ayah, to_ayah + 1):
+        try:
+            ut = qt.Aya(surah, ayah).get().uthmani
+            ref = qt.quran_phonetizer(ut, moshaf)
+        except Exception:
+            continue
+        verse_refs.append((ayah, ut, ref))
+    if not verse_refs:
+        return jsonify({'available': True, 'errors': []})
+    segs = _split_predicted_by_verse(predicted, [(a, r.phonemes) for a, _, r in verse_refs])
+
+    errors = []
+    for (ayah, ut, ref), pred in zip(verse_refs, segs):
+        pred = (pred or '').strip()
+        if not pred:
+            continue
+        try:
+            errs = qt.explain_error(ut, ref.phonemes, pred, ref.mappings)
+        except Exception:
+            continue
+        nwords = ut.count(' ') + 1
+        for e in errs:
+            try:
+                wpos = min(ut[:e.uthmani_pos[0]].count(' '), nwords - 1)
+            except Exception:
+                wpos = 0
+            rules = rule_names(getattr(e, 'ref_tajweed_rules', None)) or \
+                rule_names(getattr(e, 'missing_tajweed_rules', None)) or \
+                rule_names(getattr(e, 'replaced_tajweed_rules', None))
+            errors.append({
+                'ayah': ayah, 'wpos': wpos,
+                'type': e.error_type, 'op': e.speech_error_type,
+                'expected': e.expected_ph, 'got': e.preditected_ph,
+                'exp_len': e.expected_len, 'got_len': e.predicted_len,
+                'rules': rules,
+            })
+    return jsonify({'available': True, 'errors': errors})
+
+
 @breathing_bp.route('/api/waqf-practice/grade', methods=['POST'])
 def waqf_practice_grade():
     """Grade the learner's chosen stops against the mushaf + classical rulings."""

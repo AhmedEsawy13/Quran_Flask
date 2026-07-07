@@ -12,6 +12,7 @@
         count: $('wp-count'), clear: $('wp-clear'), grade: $('wp-grade'),
         rec: $('wp-rec'), recNote: $('wp-rec-note'), follow: $('wp-follow'),
         layout: $('wp-layout'), layoutWrap: $('wp-layout-wrap'),
+        tajweed: $('wp-tajweed'), tajweedCard: $('wp-tajweed-card'), tajweedBody: $('wp-tajweed-body'),
         resultCard: $('wp-result-card'), score: $('wp-score'), scoreNum: $('wp-score-num'),
         scoreTitle: $('wp-score-title'), tGood: $('wp-t-good'), tNote: $('wp-t-note'),
         tErr: $('wp-t-err'), legend: $('wp-legend'), graded: $('wp-graded'), followups: $('wp-followups'),
@@ -268,7 +269,7 @@
        position, and the model's silence token gives وقف stops. */
     const setRecNote = m => { if (els.recNote) els.recNote.textContent = m || ''; };
     const _PH_KEEP = 'ءابتثجحخدذرزسشصضطظعغفقكلمنهوي';
-    function _phSkel(s) {           // consonant skeleton (matches the backend)
+    function _phSkel(s) {           // consonant skeleton (matches the backend aligner)
         s = (s || '').replace(/[ٱأإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
         let out = '';
         for (const c of s) if (_PH_KEEP.indexOf(c) >= 0 && out[out.length - 1] !== c) out += c;
@@ -288,11 +289,11 @@
 
     // Fetch the passage's reference phoneme entries {ph, ayah, wpos}.
     async function buildPhonemeRef() {
-        rec.ref = []; rec.ri = 0; rec.si = 0; rec.cur = null;
+        rec.ref = []; rec.ri = 0; rec.si = 0; rec.cur = null; rec.lastPhonemes = '';
         const s = +els.surah.value, f = +els.from.value, t = +els.to.value;
         try {
             const j = await fetch(`/api/waqf-practice/phonemes/${s}/${f}/${t}`).then(r => r.json());
-            rec.ref = (j.entries || []).map(e => ({ skel: _phSkel(e.ph), ayah: e.ayah, wpos: e.wpos }));
+            rec.ref = (j.entries || []).map(e => ({ ph: e.ph, skel: _phSkel(e.ph), ayah: e.ayah, wpos: e.wpos }));
         } catch (e) { rec.ref = []; }
     }
 
@@ -311,7 +312,7 @@
                     els.rec.innerHTML = on
                         ? '<i class="fas fa-stop"></i> إيقاف التسجيل'
                         : '<i class="fas fa-microphone"></i> سجّل وقوفي';
-                    if (!on) clearReciting();
+                    if (!on) { clearReciting(); if (els.tajweed && els.tajweed.checked) requestTajweed(); }
                 },
                 onPhonemes: alignPhonemes,
                 onSilence: markAutoStop,
@@ -334,6 +335,7 @@
     // entries. Consumes one entry when a nearby window matches; skips a garbled
     // entry once the recited tail runs well past it (so it never wedges).
     function alignPhonemes(recited) {
+        rec.lastPhonemes = recited || '';
         const rs = _phSkel(recited);
         let advanced = false;
         while (rec.ri < rec.ref.length) {
@@ -363,6 +365,64 @@
         const b = els.passage.querySelector(`.wp-word[data-key="${key}"]`);
         if (b) b.classList.add('wp-stopped');
         updateCount();
+    }
+
+    /* ── tajweed error detection (quran-transcript, server-side) ───────
+       POST the full recited phoneme stream; the backend splits it per verse
+       (char-level alignment to the reference) and diffs each against the
+       rule-correct phonetization → rule-named errors mapped to words. */
+    async function requestTajweed() {
+        const ph = (rec.lastPhonemes || '').trim();
+        if (!ph) { renderTajweed(null); return; }
+        setRecNote('تحليل التجويد…');
+        try {
+            const j = await fetch('/api/waqf-practice/tajweed', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    surah: +els.surah.value, from_ayah: +els.from.value,
+                    to_ayah: +els.to.value, phonemes: ph,
+                }),
+            }).then(r => r.json());
+            renderTajweed(j);
+        } catch (e) { renderTajweed(null); }
+    }
+    function _tjMessage(e) {
+        const rule = (e.rules && e.rules[0]) || '';
+        if (e.type === 'tajweed' && e.exp_len != null && e.got_len != null) {
+            const kind = e.got_len < e.exp_len ? 'قصّرتَ' : 'أطلتَ';
+            return `${rule ? rule + ' — ' : 'مدّ — '}${kind} (الصواب ${toAr(e.exp_len)} حركات، قرأتَ ${toAr(e.got_len)})`;
+        }
+        if (e.op === 'delete') return `أسقطتَ «${e.expected}»${rule ? ' — ' + rule : ''}`;
+        if (e.op === 'insert') return `زدتَ «${e.got}»${rule ? ' — ' + rule : ''}`;
+        if (e.type === 'tashkeel') return `ضبط: «${e.expected}» ← قرأتَ «${e.got}»`;
+        return `نطق: الصواب «${e.expected}»، قرأتَ «${e.got}»`;  // normal replace = letter/مخرج
+    }
+    function renderTajweed(j) {
+        if (!els.tajweedCard) return;
+        setRecNote('');
+        els.passage.querySelectorAll('.wp-tj-err').forEach(b => b.classList.remove('wp-tj-err'));
+        if (!j || j.available === false) { els.tajweedCard.hidden = true; return; }
+        const errs = (j.errors || []).filter(e => e.type !== 'tashkeel');   // hide bare harakat noise
+        els.tajweedCard.hidden = false;
+        if (!errs.length) {
+            els.tajweedBody.innerHTML = '<div class="wp-tj-ok"><i class="fas fa-circle-check"></i> لم تُرصد أخطاء تجويد ظاهرة — أحسنت 🌿</div>';
+            return;
+        }
+        // group by word
+        const byWord = new Map();
+        errs.forEach(e => { const k = e.ayah + ':' + e.wpos; (byWord.get(k) || byWord.set(k, []).get(k)).push(e); });
+        let html = '';
+        byWord.forEach((list, key) => {
+            const b = els.passage.querySelector(`.wp-word[data-key="${key}"]`);
+            if (b) b.classList.add('wp-tj-err');
+            const word = b ? b.textContent : '';
+            const [ay] = key.split(':');
+            html += `<div class="wp-tj-row"><span class="wp-tj-w">${word}</span>`
+                + `<span class="wp-tj-a">${toAr(ay)}</span><ul class="wp-tj-list">`
+                + list.map(e => `<li class="wp-tj-${e.type}">${_tjMessage(e)}</li>`).join('') + '</ul></div>';
+        });
+        els.tajweedBody.innerHTML = html;
+        els.tajweedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function scoreTitle(score, errors) {

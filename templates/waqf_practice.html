@@ -80,11 +80,19 @@
                 <label class="wp-follow-toggle" title="إبراز الكلمة أثناء تلاوتها لمتابعة موضعك">
                     <input type="checkbox" id="wp-follow" checked> <i class="fas fa-highlighter"></i> تتبّع الكلمة
                 </label>
+                <label class="wp-follow-toggle" title="رصد أخطاء التجويد والنطق بعد التلاوة">
+                    <input type="checkbox" id="wp-tajweed" checked> <i class="fas fa-magnifying-glass"></i> كشف أخطاء التجويد
+                </label>
                 <span class="wp-actions-spacer"></span>
                 <button class="wp-btn wp-btn-rec" id="wp-rec" type="button"><i class="fas fa-microphone"></i> سجّل وقوفي</button>
                 <button class="wp-btn wp-btn-ghost" id="wp-clear" type="button"><i class="fas fa-eraser"></i> مسح</button>
                 <button class="wp-btn wp-btn-primary" id="wp-grade" type="button"><i class="fas fa-clipboard-check"></i> قيّم وقوفي</button>
             </div>
+        </section>
+
+        <section class="wp-tajweed-card" id="wp-tajweed-card" hidden>
+            <h2 class="wp-tajweed-title"><i class="fas fa-magnifying-glass"></i> كشف أخطاء التجويد والنطق</h2>
+            <div id="wp-tajweed-body"></div>
         </section>
 
         <section class="wp-result-card" id="wp-result-card" hidden>
