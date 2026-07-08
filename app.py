@@ -3544,7 +3544,7 @@ def classical_waqf(surah, ayah):
         try:
             conn.row_factory = sqlite3.Row
             for r in conn.execute(
-                    'SELECT source, wpos, stop_word, quote, grade, grade_raw, note '
+                    'SELECT source, wpos, stop_word, quote, grade, grade_raw, note, reported_from '
                     'FROM classical WHERE surah=? AND ayah=? AND conf=1 '
                     'ORDER BY wpos, source, seq', (surah, ayah)):
                 entries.append({
@@ -3552,6 +3552,11 @@ def classical_waqf(surah, ayah):
                     'wpos': r['wpos'], 'stop_word': r['stop_word'],
                     'quote': r['quote'], 'grade': r['grade'],
                     'grade_raw': r['grade_raw'], 'note': r['note'] or '',
+                    # When set, this grade is the book RELAYING a named
+                    # scholar's ruling («وقال ابن الأنباري: {…} تام»), not
+                    # necessarily the book's own author's settled view —
+                    # must not be displayed as a flat "SOURCE: grade".
+                    'reported_from': r['reported_from'],
                 })
         finally:
             conn.close()

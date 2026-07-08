@@ -168,15 +168,57 @@ def quote_words(quote):
     return [w for w in (norm(t) for t in re.findall(r'[؀-ۿ]+', q)) if w]
 
 
+# These books constantly RELAY other scholars' rulings — «وقال ابن الأنباري:
+# {X} تام» means ابن الأنباري said تام, not necessarily that الداني (the book
+# whose name lands in the `source` column) endorses it himself. Attributing
+# every extracted grade flatly to the book's own author erases that, and can
+# make a RELAYED (possibly even a view the author goes on to disagree with)
+# opinion look like the author's own settled ruling — a real "wrong waqf
+# type" risk, not just a display nicety.
+#
+# Deliberately CONSERVATIVE: only tag a citation as reported when it is the
+# immediate, unambiguous direct object of «وقال/وقالت NAME:» — nothing else
+# between the colon and the quote. Later citations in the same paragraph
+# that might ALSO still be in that scholar's voice are left untagged (no
+# reliable way to detect where reported speech ends in this prose without
+# real semantic understanding) — under-tagging is safe, over-tagging isn't.
+_REPORTED_RE = re.compile(r'وقالت?\s+([^:؛.{}()\d]{2,35}):\s*$')
+
+
+def reported_scholar(text, pos, window=50, self_names=()):
+    """If `text[pos]` is immediately preceded (only whitespace/punct of the
+    quote's own delimiter between) by «وقال NAME:», return NAME — else None.
+    `self_names` excludes a book referring to ITS OWN author by kunya (e.g.
+    النحاس calls himself «أبو جعفر» within القطع والائتناف — that is his own
+    voice, not a citation of someone else)."""
+    lead = text[max(0, pos - window):pos]
+    m = _REPORTED_RE.search(lead)
+    if not m:
+        return None
+    name = re.sub(r'^(الشيخ|الإمام)\s+', '', m.group(1).strip())
+    if not name or name in self_names:
+        return None
+    return name
+
+
 def clean_note(text, limit=500):
     """Shared cleaner for BOTH the note (علّة) and the quote itself — a quote
     is stored/displayed raw from the regex capture, so any source noise inside
     it (footnote digits, a page marker load_book() missed, a raw newline from
     an un-marked line break) leaked straight to the user looking like a
     corrupted/cut-off phrase. Strip it here too, not just for notes."""
-    text = re.sub(r'\(\s*\d+\s*\)', '', text)        # footnote / ayah-end digit, e.g. «الم (1)»
+    # footnote / ayah-end digit, e.g. «الم (1)». `\(+` (not `\(`) because منار's
+    # source has 13 malformed doubled-open markers like «((24)» (one closing
+    # paren short) — a single-paren pattern only ate the inner "(24)" and left
+    # a dangling "(" in the displayed text.
+    text = re.sub(r'\(+\s*\d+\s*\)', '', text)
     text = re.sub(r'\[\s*\d+\s*/\s*\d+\s*\]', '', text)  # defensive: page marker safety net
     text = re.sub(r'\s+', ' ', text).strip(' .،:؛')
+    # Some منار entries end (or START — «{(إلاما علمتنا}», same missing-digit
+    # markup gap) on a bare, digit-less «(». No legitimate Arabic sentence
+    # opens or trails off on a lone paren; strip it at either edge.
+    text = re.sub(r'\s*\($', '', text)
+    text = re.sub(r'^\(\s*', '', text).strip()
     if len(text) <= limit:
         return text
     # Cut on a WORD boundary (never mid-word) and mark the elision, so the
@@ -210,13 +252,16 @@ def parse_muktafa_entries(section_text):
             lead = section_text[max(0, m.start() - 14):m.start()]
             if out and re.search(r'(ومثله|وكذلك|ومثلها|ونحوه)\s*[:،]?\s*$', lead):
                 prev = out[-1]
+                # «ومثله» continues the SAME train of thought/attribution as
+                # the entry it inherits from — including a reported scholar.
                 out.append({'quote': quote, 'grade_raw': prev['grade_raw'],
                             'grade': prev['grade'], 'pos': m.start(),
-                            'note_from': m.start(3)})
+                            'note_from': m.start(3), 'reported_from': prev.get('reported_from')})
             continue
         raw = gm.group(1)
         out.append({'quote': quote, 'grade_raw': raw, 'grade': dict(GRADES)[raw],
-                    'pos': m.start(), 'note_from': m.start(3) + gm.end()})
+                    'pos': m.start(), 'note_from': m.start(3) + gm.end(),
+                    'reported_from': reported_scholar(section_text, m.start())})
     for i, e in enumerate(out):
         end = out[i + 1]['pos'] if i + 1 < len(out) else min(len(section_text), e['note_from'] + 600)
         e['note'] = clean_note(section_text[e['note_from']:end])
@@ -297,7 +342,7 @@ def harvest_muktafa(body, rows, seq0):
             if hit is None:
                 unmatched += 1
                 rows.append(('muktafa', num, None, None, None, e['quote'],
-                             e['grade'], e['grade_raw'], e['note'], seq, 0))
+                             e['grade'], e['grade_raw'], e['note'], seq, 0, e['reported_from']))
                 continue
             # Confidence: comparative citations (quotes from elsewhere) show up
             # as jumps; flag them AND keep the cursor put — one leap otherwise
@@ -313,7 +358,7 @@ def harvest_muktafa(body, rows, seq0):
             ayah, wpos, _ = stream[hit]
             _, words, _ = app._verse_word_texts(f'{num}:{ayah}')
             rows.append(('muktafa', num, ayah, wpos, words[wpos], e['quote'],
-                         e['grade'], e['grade_raw'], e['note'], seq, conf))
+                         e['grade'], e['grade_raw'], e['note'], seq, conf, e['reported_from']))
     return seq, unmatched
 
 
@@ -397,9 +442,10 @@ def harvest_manar(body, rows, seq0):
                 prev_scan = True
         qualifying_starts = [quotes[i].start() for i in range(len(quotes)) if qualifies[i]]
 
-        prev = None      # (raw, grade) for ومثله inheritance
+        prev = None      # (raw, grade, reported_from) for ومثله inheritance
         for idx, m in enumerate(quotes):
             quote = clean_note(m.group(1) or m.group(2) or '', limit=200)
+            reported_from = reported_scholar(text, m.start())
             nxt_raw = quotes[idx + 1].start() if idx + 1 < len(quotes) else len(text)
             # NOTE boundary = next QUALIFYING entry (skips inline word-quotes
             # that never become their own row); grade/marker detection right
@@ -419,10 +465,10 @@ def harvest_manar(body, rows, seq0):
                 raw = gm.group(1)
                 grade = dict(GRADES)[raw]
             elif is_mithl and prev:
-                raw, grade = prev
+                raw, grade, reported_from = prev  # «ومثله» inherits attribution too
             else:
                 continue
-            prev = (raw, grade)
+            prev = (raw, grade, reported_from)
             ayah = own_ayah if own_ayah is not None else ayah_at(m.start())
             if not ayah:
                 continue
@@ -441,7 +487,7 @@ def harvest_manar(body, rows, seq0):
                     break
             if wpos is None:
                 unmatched += 1
-                rows.append(('manar', current, None, None, None, quote, grade, raw, note, seq, 0))
+                rows.append(('manar', current, None, None, None, quote, grade, raw, note, seq, 0, reported_from))
                 continue
             # High confidence: the entry had its own [n] and matched it, OR a
             # multi-word reference landed in the discussed ayah. Single-word
@@ -451,7 +497,7 @@ def harvest_manar(body, rows, seq0):
             else:
                 conf = 1 if (hit_ayah == ayah and len(qwords) >= 2) else 0
             _, words, _ = app._verse_word_texts(f'{current}:{hit_ayah}')
-            rows.append(('manar', current, hit_ayah, wpos, words[wpos], quote, grade, raw, note, seq, conf))
+            rows.append(('manar', current, hit_ayah, wpos, words[wpos], quote, grade, raw, note, seq, conf, reported_from))
     return seq, unmatched
 
 
@@ -500,14 +546,19 @@ def harvest_nahhas(body, rows, seq0):
         # the note boundary must be the latter, or it always dangles at the
         # NEXT entry's opening brace («…والتمام {»), never showing prose that
         # is genuinely there.
-        entries = {}   # content-start → (quote, grade, note_from, match_start)
+        # النحاس refers to HIMSELF in third person by his own kunya «أبو
+        # جعفر» throughout this book — that's his own voice, not a citation
+        # of someone else, so it's excluded from reported_scholar() below.
+        entries = {}   # content-start → (quote, grade, note_from, match_start, reported_from)
         for m in _NAHHAS_AFTER_RE.finditer(text):
-            entries[m.start(1)] = (m.group(1), _AFTER_MAP[m.group(2)], m.end(), m.start())
+            entries[m.start(1)] = (m.group(1), _AFTER_MAP[m.group(2)], m.end(), m.start(),
+                                    reported_scholar(text, m.start(), self_names={'أبو جعفر'}))
         for m in _NAHHAS_BEFORE_RE.finditer(text):
-            entries.setdefault(m.start(2), (m.group(2), _BEFORE_MAP[m.group(1)], m.end(), m.start()))
+            entries.setdefault(m.start(2), (m.group(2), _BEFORE_MAP[m.group(1)], m.end(), m.start(),
+                                             reported_scholar(text, m.start(), self_names={'أبو جعفر'})))
         positions = sorted(entries)
         for i, pos in enumerate(positions):
-            quote, grade, note_from, _ = entries[pos]
+            quote, grade, note_from, _, reported_from = entries[pos]
             quote = clean_note(quote, limit=200)
             qwords = quote_words(quote)
             if not qwords:
@@ -524,7 +575,7 @@ def harvest_nahhas(body, rows, seq0):
             note = clean_note(text[note_from:min(nxt, note_from + 700)])
             if hit is None:
                 unmatched += 1
-                rows.append(('nahhas', num, None, None, None, quote, grade, grade, note, seq, 0))
+                rows.append(('nahhas', num, None, None, None, quote, grade, grade, note, seq, 0, reported_from))
                 continue
             conf = 1
             if cursor_before > 0 and (hit < cursor_before - _BACK_WINDOW or hit > cursor_before + 300):
@@ -532,7 +583,7 @@ def harvest_nahhas(body, rows, seq0):
                 cursor = cursor_before
             ayah, wpos, _ = stream[hit]
             _, words, _ = app._verse_word_texts(f'{num}:{ayah}')
-            rows.append(('nahhas', num, ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf))
+            rows.append(('nahhas', num, ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf, reported_from))
     return seq, unmatched
 
 
@@ -585,7 +636,7 @@ def harvest_anbari(body, rows, seq0):
                 prev_scan = True
         qualifying_starts = [entries[i].start() for i in range(len(entries)) if qualifies[i]]
 
-        prev = None                        # (raw, grade) for ومثله inheritance
+        prev = None                        # (raw, grade, reported_from) for ومثله inheritance
         for idx, m in enumerate(entries):
             quote = clean_note(m.group(1), limit=200)
             own = int(m.group(2)) if m.group(2) and 1 <= int(m.group(2)) <= acount else None
@@ -595,13 +646,14 @@ def harvest_anbari(body, rows, seq0):
             if gm:
                 raw = gm.group(1)
                 grade = _ANBARI_MAP[raw]
+                reported_from = reported_scholar(text, m.start())
             elif is_mithl and prev:
-                raw, grade = prev
+                raw, grade, reported_from = prev
             else:
                 if own is not None:
                     cur_ayah = own
                 continue
-            prev = (raw, grade)
+            prev = (raw, grade, reported_from)
             ayah = own if own is not None else cur_ayah
             cur_ayah = ayah
             qwords = quote_words(quote)
@@ -621,7 +673,7 @@ def harvest_anbari(body, rows, seq0):
                     break
             if wpos is None:
                 unmatched += 1
-                rows.append(('anbari', num, None, None, None, quote, grade, grade, note, seq, 0))
+                rows.append(('anbari', num, None, None, None, quote, grade, grade, note, seq, 0, reported_from))
                 continue
             # ابن الأنباري anchors densely ([n] most verses) and grades stop by
             # stop, so a hit in the intended ayah is trustworthy even for a
@@ -631,7 +683,7 @@ def harvest_anbari(body, rows, seq0):
             else:
                 conf = 1 if hit_ayah == ayah else 0
             _, words, _ = app._verse_word_texts(f'{num}:{hit_ayah}')
-            rows.append(('anbari', num, hit_ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf))
+            rows.append(('anbari', num, hit_ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf, reported_from))
     return seq, unmatched
 
 
@@ -663,11 +715,11 @@ def main():
         id INTEGER PRIMARY KEY, source TEXT NOT NULL, surah INTEGER NOT NULL,
         ayah INTEGER, wpos INTEGER, stop_word TEXT, quote TEXT NOT NULL,
         grade TEXT NOT NULL, grade_raw TEXT NOT NULL, note TEXT, seq INTEGER,
-        conf INTEGER NOT NULL DEFAULT 1)''')
+        conf INTEGER NOT NULL DEFAULT 1, reported_from TEXT)''')
     conn.execute('CREATE INDEX idx_classical_verse ON classical(surah, ayah)')
     conn.executemany(
         'INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, '
-        'grade, grade_raw, note, seq, conf) VALUES (?,?,?,?,?,?,?,?,?,?,?)', rows)
+        'grade, grade_raw, note, seq, conf, reported_from) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', rows)
     conn.commit()
     conn.close()
     print(f'wrote {OUT_DB}')

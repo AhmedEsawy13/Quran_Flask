@@ -523,6 +523,10 @@ body.wq-dark .wq-mk3-hasan { color: #fbbf24; }
 body.wq-dark .wq-mk3-qabih { color: #f87171; }
 body.wq-dark .wq-mk3-jaiz  { color: #c4b5fd; }
 .wq-mk3-grade small { font-weight: 600; opacity: 0.75; }
+/* the grade is a RELAYED opinion the book quotes («وقال ابن الأنباري: …
+   تام»), not necessarily its own author's settled view — flag distinctly
+   so it never reads like a flat "SOURCE: grade" endorsement. */
+.wq-mk3-relayed { font-style: italic; opacity: 0.85; }
 .wq-mk3-note { flex: 1 1 100%; }
 .wq-mk3-note summary { cursor: pointer; font-size: 0.78rem; color: var(--wq-accent); font-weight: 700; }
 .wq-mk3-note p { margin: 6px 0 0; font-size: 0.88rem; line-height: 1.9; color: var(--wq-text-muted); }

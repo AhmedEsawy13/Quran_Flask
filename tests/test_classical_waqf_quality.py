@@ -79,6 +79,19 @@ def test_no_footnote_digits_in_quotes(rows):
     assert not bad, f'footnote digits leaked into {len(bad)} quotes, e.g. {bad[:5]}'
 
 
+def test_no_dangling_paren_at_quote_or_note_edges(rows):
+    """منار's source has ~37 malformed footnote markers missing their digit —
+    «{قد ضلوا من قبل (}» (trailing) and «{(إلاما علمتنا}» (leading) — leaving
+    a bare, un-strippable-by-digit-regex paren at the edge of the text."""
+    bad = []
+    for r in rows:
+        for field in ('quote', 'note'):
+            v = (r[field] or '').strip()
+            if v and (v.startswith('(') or v.endswith('(')):
+                bad.append((r['source'], r['surah'], r['ayah'], field, v[:20]))
+    assert not bad, f'{len(bad)} rows have a dangling paren at an edge, e.g. {bad[:5]}'
+
+
 def test_no_raw_whitespace_artifacts(rows):
     bad = []
     for r in rows:

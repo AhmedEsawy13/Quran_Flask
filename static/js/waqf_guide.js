@@ -234,13 +234,25 @@
                 } else {
                     phrase = `<span class="wq-mk3-stopw">${list[0].stop_word || ''}</span>`;
                 }
+                // These books constantly RELAY other scholars' rulings
+                // («وقال ابن الأنباري: {X} تام»). When the backend flags
+                // that, the grade is NOT necessarily the book's own author's
+                // settled view — show it as "SOURCE ← عن SCHOLAR" rather
+                // than a flat "SOURCE", or a relayed opinion reads as if the
+                // book itself endorses it, which is the wrong waqf-type risk.
+                const attrib = e => e.reported_from
+                    ? `${srcName(e.source)} <span class="wq-mk3-relayed">نقلاً عن ${e.reported_from}</span>`
+                    : srcName(e.source);
                 const chips = list.map(e => {
                     const g = MUKTAFA_GRADE[e.grade] || { cls: 'kafi', desc: e.grade };
-                    return `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${g.desc}">`
-                        + `${e.grade_raw} <small>· ${srcName(e.source)}</small></span>`;
+                    const title = e.reported_from
+                        ? `${g.desc} — نقل ${srcName(e.source)} هذا عن ${e.reported_from}، وليس بالضرورة رأيه الخاص`
+                        : g.desc;
+                    return `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${title}">`
+                        + `${e.grade_raw} <small>· ${attrib(e)}</small></span>`;
                 }).join('');
                 const notes = list.filter(e => (e.note || '').trim().length >= 18).map(e =>
-                    `<details class="wq-mk3-note"><summary>العلّة — ${srcName(e.source)}</summary>`
+                    `<details class="wq-mk3-note"><summary>العلّة — ${attrib(e)}</summary>`
                     + `<p>${e.note.trim()}</p></details>`).join('');
                 return `<div class="wq-mk3-row">`
                     + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl">${phrase}</span>${chips}${notes}</div>`;
