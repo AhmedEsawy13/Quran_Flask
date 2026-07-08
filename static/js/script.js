@@ -83,16 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // User preferences management
     function loadUserPreferences() {
-        // Load theme preference
-        const savedTheme = localStorage.getItem('quranApp_theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
-            elements.darkModeToggle.checked = true;
-        } else if (savedTheme === 'sepia') {
-            document.body.classList.add('sepia-mode');
-            elements.sepiaModeToggle.checked = true;
-        }
-        
+        // Theme is applied by the shared AtharTheme engine (theme.js) on load.
+
         // Load font preference
         const savedFont = localStorage.getItem('quranApp_font');
         if (savedFont && elements.quranTextSelect) {
@@ -341,8 +333,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             nextAyahButton: document.getElementById('next-ayah'),
             prevAyahButton: document.getElementById('prev-ayah'),
             playRangeButton: document.getElementById('play-range'),
-            darkModeToggle: document.getElementById('dark-mode-toggle'),
-            sepiaModeToggle: document.getElementById('sepia-mode-toggle'),
             showRangeSelection: document.getElementById('show-range-selection'),
             rangeSelection: document.getElementById('range-selection'),
             modal: document.getElementById('rangeModal'),
@@ -366,8 +356,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function addEventListeners() {
-        elements.darkModeToggle.addEventListener('change', toggleDarkMode);
-        elements.sepiaModeToggle.addEventListener('change', toggleSepiaMode);
         // Range button opens the modal directly (showModal registered below)
         elements.reciterSelect.addEventListener('change', onReciterChange);
         elements.surahSelect.addEventListener('change', loadAyahs);
@@ -3611,24 +3599,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-
-    function toggleDarkMode() {
-        if (document.body.classList.contains('sepia-mode')) {
-            document.body.classList.remove('sepia-mode');
-            elements.sepiaModeToggle.checked = false;
-        }
-        document.body.classList.toggle('dark-mode');
-        localStorage.setItem('quranApp_theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
-    }
-
-    function toggleSepiaMode() {
-        if (document.body.classList.contains('dark-mode')) {
-            document.body.classList.remove('dark-mode');
-            elements.darkModeToggle.checked = false;
-        }
-        document.body.classList.toggle('sepia-mode');
-        localStorage.setItem('quranApp_theme', document.body.classList.contains('sepia-mode') ? 'sepia' : 'light');
-    }
 
     function toggleRangeSelection() {
         if (elements.rangeSelection) {

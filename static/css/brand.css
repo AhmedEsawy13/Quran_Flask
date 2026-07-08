@@ -161,17 +161,37 @@ h1, h2, h3, .athar-heading {
   background: var(--athar-accent);
 }
 
-/* The universal head holds ONLY the brand + nav. Each page's own controls
- * bar starts on the next line; if it is sticky, offset it below the head so
- * the two stack cleanly instead of overlapping. */
+/* The universal head holds the brand + nav + one theme toggle. Each page's
+ * own controls bar starts on the next line; if it is sticky, offset it below
+ * the head so the two stack cleanly instead of overlapping. */
 body .mz-bar,
 body .wq-bar,
 body .ed-bar {
   top: var(--athar-bar-h);
 }
-/* Reading page: its floating theme toggles sit just below the head. */
-#dark-mode-toggle-label { top: calc(var(--athar-bar-h) + 10px); }
-#sepia-mode-toggle-label { top: calc(var(--athar-bar-h) + 10px); }
+
+/* Shared icon-only button (theme toggle, etc.) living inside .athar-nav —
+ * one instance per page, consistent everywhere instead of a page-specific
+ * control. */
+.athar-bar .athar-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-inline-start: 4px;
+  border: 1px solid var(--athar-bar-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--athar-bar-muted);
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, border-color .18s ease;
+  flex-shrink: 0;
+}
+.athar-bar .athar-icon-btn:hover {
+  color: var(--athar-bar-fg);
+  border-color: var(--athar-accent);
+  background: rgba(127, 127, 127, 0.07);
+}
 
 /* ---- Dark / sepia adaptation (matches the per-page theme classes) ---- */
 body.dark-mode .athar-bar,
