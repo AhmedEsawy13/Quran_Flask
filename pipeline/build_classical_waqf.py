@@ -238,6 +238,22 @@ def clean_note(text, limit=500):
 ENTRY_RE = re.compile(r'(?:\{([^{}]{1,120})\}|\(\(([^()]{1,80})\)\))([^{}(]{0,90})', re.S)
 _BACK_WINDOW = 40
 
+# الداني occasionally breaks from his usual grade-AFTER style («{X} تام») to
+# assert his OWN verdict with grade-BEFORE + «عندي» ("in MY view") — e.g.
+# «والتمام عندي: ((وقليل ما هم))» on 38:24, right after quoting ابن الأنباري's
+# extended discussion of the same stop. ENTRY_RE only ever looks at the TAIL
+# (text AFTER a quote), so this construction was invisible — the stop simply
+# never appeared. «عندي»/«عندنا» (first person) is an unambiguous signal this
+# is الداني's OWN voice — NOT «عنده» (his, third person, still ambiguous
+# whom it refers to — deliberately not handled).
+_MUKTAFA_OWN = [('التمام', 'تام'), ('والتمام', 'تام'), ('فالتمام', 'تام'),
+                ('الكافي', 'كاف'), ('والكافي', 'كاف'), ('فالكافي', 'كاف'),
+                ('الحسن', 'حسن'), ('والحسن', 'حسن')]
+_MUKTAFA_OWN_RE = re.compile(
+    r'(' + '|'.join(re.escape(g) for g, _ in _MUKTAFA_OWN) + r')\s*عند(?:ي|نا)\s*:?\s*'
+    r'(?:\{([^{}]{1,120})\}|\(\(([^()]{1,80})\)\))')
+_MUKTAFA_OWN_MAP = dict(_MUKTAFA_OWN)
+
 
 def parse_muktafa_entries(section_text):
     out = []
@@ -262,6 +278,16 @@ def parse_muktafa_entries(section_text):
         out.append({'quote': quote, 'grade_raw': raw, 'grade': dict(GRADES)[raw],
                     'pos': m.start(), 'note_from': m.start(3) + gm.end(),
                     'reported_from': reported_scholar(section_text, m.start())})
+    for m in _MUKTAFA_OWN_RE.finditer(section_text):
+        quote = clean_note(m.group(2) or m.group(3) or '', limit=200)
+        if not quote:
+            continue
+        raw = m.group(1)
+        # reported_from is explicitly None — «عندي» IS الداني resuming his
+        # own voice, even immediately after quoting someone else.
+        out.append({'quote': quote, 'grade_raw': raw, 'grade': _MUKTAFA_OWN_MAP[raw],
+                    'pos': m.start(), 'note_from': m.end(), 'reported_from': None})
+    out.sort(key=lambda e: e['pos'])
     for i, e in enumerate(out):
         end = out[i + 1]['pos'] if i + 1 < len(out) else min(len(section_text), e['note_from'] + 600)
         e['note'] = clean_note(section_text[e['note_from']:end])

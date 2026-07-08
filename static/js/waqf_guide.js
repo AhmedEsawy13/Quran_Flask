@@ -243,6 +243,31 @@
                 const attrib = e => e.reported_from
                     ? `${srcName(e.source)} <span class="wq-mk3-relayed">نقلاً عن ${e.reported_from}</span>`
                     : srcName(e.source);
+                // The reported_from tag only covers the OUTER attribution
+                // («وقال ابن الأنباري: {X} تام»). Inside that same relayed
+                // passage, the classical author often cites a FURTHER, nested
+                // scholar for one specific point — «و ((ما)) صلة للكلام، وهو
+                // قول الأخفش وأبي حاتم» — which never gets its own row (it's
+                // not attached to a graded citation), but should still be
+                // visually distinguishable when reading the علّة, not buried
+                // as plain prose indistinguishable from the rest.
+                // Trigger is narrow ON PURPOSE: bare «قول X» is too common for
+                // non-attribution uses («في قول الله»: the WORDING of a verse,
+                // not a scholar's opinion — verified false-positive on a real
+                // sample) to highlight safely. «وهو قول X» ("AND IT IS the
+                // opinion of X") is specifically the survey-of-views idiom
+                // these books use, so require the «وهو» — never optional.
+                // The name span stops at the next clause-continuation word
+                // (plain prose after the name(s), verified against every real
+                // «وهو قول» occurrence in the corpus) — imperfect on a few
+                // longer sentences, but it's a readability aid over free text,
+                // not structured data, so "mostly right" is an acceptable
+                // trade-off. NOTE: \b does NOT work on Arabic letters in JS
+                // regex (only recognises the ASCII word-char set), so the
+                // stoppers are bounded by an explicit lookahead instead.
+                const highlightCitedScholars = note => note.replace(
+                    /(وهو\s+قول\s+)([^.,،؛:{}()\n]{2,35}?)(?=[.,،؛:]|\s+(?:لم|أو|إذ|لأن|حتى|قال|إلا|على)(?=[\s.,،؛:]|$)|$)/g,
+                    (_, lead, name) => `${lead}<span class="wq-mk3-cited">${name}</span>`);
                 const chips = list.map(e => {
                     const g = MUKTAFA_GRADE[e.grade] || { cls: 'kafi', desc: e.grade };
                     const title = e.reported_from
@@ -253,7 +278,7 @@
                 }).join('');
                 const notes = list.filter(e => (e.note || '').trim().length >= 18).map(e =>
                     `<details class="wq-mk3-note"><summary>العلّة — ${attrib(e)}</summary>`
-                    + `<p>${e.note.trim()}</p></details>`).join('');
+                    + `<p>${highlightCitedScholars(e.note.trim())}</p></details>`).join('');
                 return `<div class="wq-mk3-row">`
                     + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl">${phrase}</span>${chips}${notes}</div>`;
             }).join('');

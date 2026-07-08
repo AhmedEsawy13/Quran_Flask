@@ -530,6 +530,10 @@ body.wq-dark .wq-mk3-jaiz  { color: #c4b5fd; }
 .wq-mk3-note { flex: 1 1 100%; }
 .wq-mk3-note summary { cursor: pointer; font-size: 0.78rem; color: var(--wq-accent); font-weight: 700; }
 .wq-mk3-note p { margin: 6px 0 0; font-size: 0.88rem; line-height: 1.9; color: var(--wq-text-muted); }
+/* a scholar cited WITHIN the علّة prose itself («وهو قول الأخفش وأبي حاتم»)
+   — a nested attribution below the row's own, distinguished so it doesn't
+   read as anonymous prose alongside the author's own reasoning. */
+.wq-mk3-cited { font-weight: 700; color: var(--wq-text); border-bottom: 1px dashed var(--wq-accent); }
 .wq-research-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 12px 0; }
 .wq-research-group { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .wq-research-glabel { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-muted); margin-inline-end: 2px; }

@@ -103,6 +103,37 @@ def test_the_reported_example_is_tagged(rows):
     assert row['reported_from'] == 'ابن الأنباري'
 
 
+def test_muktafa_grade_before_ana_construction_is_extracted(rows):
+    """Same 38:24 passage, a few sentences later: «والتمام عندي: ((وقليل ما
+    هم))» — ENTRY_RE only ever looks at the text AFTER a quote for a grade
+    word, so this grade-BEFORE construction was invisible; the stop simply
+    never appeared. «عندي» ("in MY view") is unambiguously الداني's OWN
+    voice — even though it comes right after quoting ابن الأنباري — so this
+    row must have grade=تام AND reported_from=None (not still tagged as
+    ابن الأنباري's relayed opinion)."""
+    row = next((r for r in rows if r['source'] == 'muktafa' and r['surah'] == 38
+                and r['ayah'] == 24 and r['quote'] == 'وقليل ما هم'), None)
+    assert row is not None, 'expected «والتمام عندي» row not found'
+    assert row['grade'] == 'تام'
+    assert row['reported_from'] is None
+    assert row['wpos'] == 22  # the last word of «وقليل ما هم» — هُمْ
+
+
+def test_muktafa_own_re_unit():
+    text = 'والتمام عندي: ((وقليل ما هم)) لأن ذلك من الكلام الأول'
+    m = pcw._MUKTAFA_OWN_RE.search(text)
+    assert m is not None
+    assert (m.group(2) or m.group(3)) == 'وقليل ما هم'
+    assert m.group(1) == 'والتمام'
+
+
+def test_muktafa_own_re_ignores_ambiguous_third_person():
+    """«عنده» (his view, third person) is deliberately NOT handled — it's
+    ambiguous whom "he" refers to without deeper context tracking."""
+    text = 'والتمام عنده: ((وقليل ما هم)) لأن ذلك'
+    assert pcw._MUKTAFA_OWN_RE.search(text) is None
+
+
 def test_manar_own_analysis_on_the_same_ayah_is_not_tagged(rows):
     """منار's OWN independent entry for «وقليل ما هم» on the same ayah is
     stated directly («تام، ف «قليل» خبر مقدم...») — no «وقال X:» prefix, so
