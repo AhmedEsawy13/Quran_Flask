@@ -324,23 +324,35 @@ def build_stream(surah):
 
 
 def align_cursor(stream, cursor, qwords):
-    """Consecutive tail match near/after cursor. Precise (strict+prefix) runs
+    """Consecutive tail match nearest the cursor. Precise (strict+prefix) runs
     position-first everywhere before fuzzy, so a fuzzy near-miss can never
-    shadow the true exact position."""
+    shadow the true exact position. Longer tails are strictly preferred over
+    shorter, and exact matching over fuzzy (the level/k priority order);
+    WITHIN a given (level, k) the occurrence CLOSEST to the cursor wins, not
+    just the first one a scan happens to reach in a fixed direction.
+
+    A common short word can repeat on both sides of the cursor (e.g.
+    «الأرض», twice within 2:255 — «وما في الأرض» then, 25 words later,
+    «السماوات والأرض»), and always preferring one scan direction silently
+    locks onto the wrong occurrence: scanning a back-window start-to-end
+    picked the FIRST (too-early) hit; scanning forward-only — when the true
+    match actually sat just *behind* the cursor — kept going with no upper
+    bound and locked onto a coincidental, unrelated later occurrence of the
+    same word far down the surah. Picking by absolute distance to the cursor
+    avoids both failure modes without needing a fixed window at all."""
     for level in (1, 2):
         for k in (min(3, len(qwords)), 2, 1):
             if k > len(qwords) or k < 1:
                 continue
             tail = qwords[-k:]
-            for start in (max(0, cursor - _BACK_WINDOW), 0):
-                i = start
-                while i <= len(stream) - k:
-                    if all(match_word(tail[j], stream[i + j][2], level) for j in range(k)):
-                        end = i + k - 1
-                        return end, max(cursor, end + 1)
-                    i += 1
-                if start == 0:
-                    break
+            best = None
+            for i in range(0, len(stream) - k + 1):
+                if all(match_word(tail[j], stream[i + j][2], level) for j in range(k)):
+                    if best is None or abs(i - cursor) < abs(best - cursor):
+                        best = i
+            if best is not None:
+                end = best + k - 1
+                return end, max(cursor, end + 1)
     return None, cursor
 
 
@@ -394,20 +406,32 @@ def harvest_muktafa(body, rows, seq0):
 # their own [n] and belong to the ayah currently under discussion).
 _MANAR_QUOTE_RE = re.compile(r'\{([^{}]{1,120})\}|«([^«»]{1,80})»')
 _MANAR_AYAH_RE = re.compile(r'\[(\d{1,3})\]')
-_MITHL_RE = re.compile(r'(ومثله|ومثلها|وكذلك|ونحوه|ونحوها)\s*[:،]?\s*$')
+_MITHL_RE = re.compile(r'(ومثله|ومثلها|وكذلك|وكذا(?:\s+ب)?|ونحوه|ونحوها)\s*[:،]?\s*$')
+# منار sometimes chains 3+ stops under ONE trigger — «وكذا ب «X»، و «Y»، و
+# «Z»» — only the FIRST item («X») sits right after the trigger; Y/Z are
+# introduced by a bare «، و», which is FAR too common elsewhere in the corpus
+# (comparing قراءات, cross-referencing other surahs, grammatical examples —
+# verified false positives) to treat as a chain-continuation signal on its
+# own. Only trust it CLOSE to a recent explicit trigger.
+_CHAIN_GAP_RE = re.compile(r'^[\s،]*و[\s،]*$')
+_CHAIN_WINDOW = 150
 
 
 def align_in_ayah(surah, ayah, qwords):
     """Match the quote tail inside ONE ayah (the book gives the verse number).
-    Returns wpos or None. If the cleaned quote had no words (pure ayah-end
-    marker like {(4)}), the stop is the verse's last word."""
+    Returns (wpos, level) or (None, None) — level is 1 for exact/prefix, 2 for
+    fuzzy, so callers can withhold trust from a fuzzy-only hit (e.g. «يعدلون»
+    loosely matching «يعملون» — a different word, one letter apart; level 1
+    correctly rejects it, level 2's tight-but-real fuzz doesn't). If the
+    cleaned quote had no words (pure ayah-end marker like {(4)}), the stop is
+    the verse's last word (level 1: nothing was actually fuzzed)."""
     vk = f'{surah}:{ayah}'
     if vk not in app.qpc_hafs_data_normalized:
-        return None
+        return None, None
     _, words, _ = app._verse_word_texts(vk)
     wnorm = [norm(w) for w in words]
     if not qwords:
-        return len(words) - 1 if words else None
+        return (len(words) - 1, 1) if words else (None, None)
     for level in (1, 2):
         for k in (min(3, len(qwords)), 2, 1):
             if k > len(qwords) or k < 1:
@@ -415,8 +439,8 @@ def align_in_ayah(surah, ayah, qwords):
             tail = qwords[-k:]
             for i in range(len(wnorm) - k, -1, -1):     # prefer the LAST occurrence
                 if all(match_word(tail[j], wnorm[i + j], level) for j in range(k)):
-                    return i + k - 1
-    return None
+                    return i + k - 1, level
+    return None, None
 
 
 def harvest_manar(body, rows, seq0):
@@ -456,19 +480,26 @@ def harvest_manar(body, rows, seq0):
         # Using EVERY raw match as the note-boundary truncated the PRECEDING
         # entry's explanation right at that inline word, mid-thought.
         qualifies, prev_scan = [], None
+        chain_end, prev_end = -1, -1   # chain-continuation state (see _CHAIN_GAP_RE above)
         for idx, m in enumerate(quotes):
             nxt_raw = quotes[idx + 1].start() if idx + 1 < len(quotes) else len(text)
             after0 = text[m.end():min(nxt_raw, m.end() + 90)]
             own0 = re.match(r'[\s،:]{0,3}\[(\d{1,3})\]', after0)
             gtail0 = (after0[own0.end():] if own0 else after0).lstrip(' ،:؛')
-            ok = bool(GRADE_RE.match(gtail0)) or (
-                bool(_MITHL_RE.search(text[max(0, m.start() - 14):m.start()])) and prev_scan)
+            explicit0 = bool(_MITHL_RE.search(text[max(0, m.start() - 14):m.start()]))
+            chain0 = (prev_end >= 0 and m.start() <= chain_end
+                      and bool(_CHAIN_GAP_RE.match(text[prev_end:m.start()])))
+            ok = bool(GRADE_RE.match(gtail0)) or ((explicit0 or chain0) and prev_scan)
             qualifies.append(ok)
             if ok:
                 prev_scan = True
+                prev_end = m.end()
+                if explicit0:
+                    chain_end = m.start() + _CHAIN_WINDOW
         qualifying_starts = [quotes[i].start() for i in range(len(quotes)) if qualifies[i]]
 
         prev = None      # (raw, grade, reported_from) for ومثله inheritance
+        chain_end, prev_end = -1, -1
         for idx, m in enumerate(quotes):
             quote = clean_note(m.group(1) or m.group(2) or '', limit=200)
             reported_from = reported_scholar(text, m.start())
@@ -486,15 +517,26 @@ def harvest_manar(body, rows, seq0):
             gtail = (after[own.end():] if own else after).lstrip(' ،:؛')
             gm = GRADE_RE.match(gtail)
             before = text[max(0, m.start() - 14):m.start()]
-            is_mithl = bool(_MITHL_RE.search(before))
+            explicit = bool(_MITHL_RE.search(before))
+            # «وكذا ب X» starts a chain; subsequent items («، و Y», «، و Z»)
+            # carry NO trigger word of their own — only a bare «، و», which is
+            # far too common elsewhere (comparing قراءات, cross-referencing
+            # other surahs — verified false positives) to trust on its own.
+            # Only accept it CLOSE to a trigger we just saw.
+            chain = (prev_end >= 0 and m.start() <= chain_end
+                     and bool(_CHAIN_GAP_RE.match(text[prev_end:m.start()])))
+            is_mithl = explicit or chain
             if gm:
                 raw = gm.group(1)
                 grade = dict(GRADES)[raw]
             elif is_mithl and prev:
-                raw, grade, reported_from = prev  # «ومثله» inherits attribution too
+                raw, grade, reported_from = prev  # «ومثله»/«وكذا» inherits attribution too
             else:
                 continue
             prev = (raw, grade, reported_from)
+            prev_end = m.end()
+            if explicit:
+                chain_end = m.start() + _CHAIN_WINDOW
             ayah = own_ayah if own_ayah is not None else ayah_at(m.start())
             if not ayah:
                 continue
@@ -503,11 +545,11 @@ def harvest_manar(body, rows, seq0):
                 continue
             note = clean_note(text[m.end():min(nxt, m.end() + 600)])
             seq += 1
-            wpos, hit_ayah = None, None
+            wpos, hit_ayah, hit_level = None, None, None
             for a in (ayah, ayah + 1, ayah - 1):        # tolerate verse-count drift
                 if a < 1:
                     continue
-                wpos = align_in_ayah(current, a, qwords)
+                wpos, hit_level = align_in_ayah(current, a, qwords)
                 if wpos is not None:
                     hit_ayah = a
                     break
@@ -516,12 +558,28 @@ def harvest_manar(body, rows, seq0):
                 rows.append(('manar', current, None, None, None, quote, grade, raw, note, seq, 0, reported_from))
                 continue
             # High confidence: the entry had its own [n] and matched it, OR a
-            # multi-word reference landed in the discussed ayah. Single-word
-            # guillemet refs (ambiguous placement) stay conf=0.
+            # multi-word reference landed in the discussed ayah, OR it's a
+            # single word but explicitly chain-linked (ومثله/وكذا) to a
+            # trusted grade — the trigger itself is corroborating evidence.
+            # This trusts level-2 (fuzzy) hits for chain items exactly as
+            # every OTHER confident row already does — own_ayah/multi-word
+            # rows were never level-gated, so holding chain items to a
+            # stricter standard is inconsistent, not safer: level 2 is
+            # deliberately tight (Uthmani dagger-alif residue, e.g. «الغافرين»
+            # vs mushaf «ٱلۡغَٰفِرِينَ» — a real, common, SAFE case a level-1
+            # gate would have wrongly suppressed) with a rare, pre-existing
+            # false-match tail shared by the whole pipeline (verified:
+            # «يعدلون» loosely matching unrelated «يعملون» in 7:180 — one
+            # already-latent bad row, present in the corpus either way).
+            # Sampled 40 chain-linked single-word matches at scale: only that
+            # one bad row, vs ~5000 correct, incl. 2:255's «الأرض» landing
+            # correctly on its LAST occurrence, wpos 43. An unlinked single-
+            # word guillemet ref (no [n], no chain trigger) still stays
+            # conf=0 — the trigger is what earns the trust, not the fuzz.
             if own_ayah is not None:
                 conf = 1 if hit_ayah == own_ayah else 0
             else:
-                conf = 1 if (hit_ayah == ayah and len(qwords) >= 2) else 0
+                conf = 1 if (hit_ayah == ayah and (len(qwords) >= 2 or is_mithl)) else 0
             _, words, _ = app._verse_word_texts(f'{current}:{hit_ayah}')
             rows.append(('manar', current, hit_ayah, wpos, words[wpos], quote, grade, raw, note, seq, conf, reported_from))
     return seq, unmatched
@@ -693,7 +751,7 @@ def harvest_anbari(body, rows, seq0):
             for a in (ayah, ayah + 1, ayah - 1):
                 if a < 1:
                     continue
-                wpos = align_in_ayah(num, a, qwords)
+                wpos, _ = align_in_ayah(num, a, qwords)
                 if wpos is not None:
                     hit_ayah = a
                     break
