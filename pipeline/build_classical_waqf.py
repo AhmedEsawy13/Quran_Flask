@@ -21,6 +21,7 @@ column. Unmatched entries are kept (wpos NULL) for coverage audits.
 Run:  python3 pipeline/build_classical_waqf.py          # build + stats
       python3 pipeline/build_classical_waqf.py --dry    # stats only
 """
+import bisect
 import difflib
 import os
 import re
@@ -377,11 +378,35 @@ def harvest_manar(body, rows, seq0):
             return a
 
         quotes = list(_MANAR_QUOTE_RE.finditer(text))
+        # Pre-scan: which raw matches will actually BECOME a stop-citation
+        # entry (own grade, or ومثله-inherited)? A guillemet/brace quote can
+        # also be the author citing a single WORD inline within his OWN prose
+        # — e.g. «وكررت "لا" في قوله...» — which never becomes its own row.
+        # Using EVERY raw match as the note-boundary truncated the PRECEDING
+        # entry's explanation right at that inline word, mid-thought.
+        qualifies, prev_scan = [], None
+        for idx, m in enumerate(quotes):
+            nxt_raw = quotes[idx + 1].start() if idx + 1 < len(quotes) else len(text)
+            after0 = text[m.end():min(nxt_raw, m.end() + 90)]
+            own0 = re.match(r'[\s،:]{0,3}\[(\d{1,3})\]', after0)
+            gtail0 = (after0[own0.end():] if own0 else after0).lstrip(' ،:؛')
+            ok = bool(GRADE_RE.match(gtail0)) or (
+                bool(_MITHL_RE.search(text[max(0, m.start() - 14):m.start()])) and prev_scan)
+            qualifies.append(ok)
+            if ok:
+                prev_scan = True
+        qualifying_starts = [quotes[i].start() for i in range(len(quotes)) if qualifies[i]]
+
         prev = None      # (raw, grade) for ومثله inheritance
         for idx, m in enumerate(quotes):
             quote = clean_note(m.group(1) or m.group(2) or '', limit=200)
-            nxt = quotes[idx + 1].start() if idx + 1 < len(quotes) else len(text)
-            after = text[m.end():min(nxt, m.end() + 90)]
+            nxt_raw = quotes[idx + 1].start() if idx + 1 < len(quotes) else len(text)
+            # NOTE boundary = next QUALIFYING entry (skips inline word-quotes
+            # that never become their own row); grade/marker detection right
+            # below still uses the raw next match, unchanged.
+            j = bisect.bisect_right(qualifying_starts, m.start())
+            nxt = qualifying_starts[j] if j < len(qualifying_starts) else len(text)
+            after = text[m.end():min(nxt_raw, m.end() + 90)]
             own = re.match(r'[\s،:]{0,3}\[(\d{1,3})\]', after)   # the quote's own [n]?
             own_ayah = int(own.group(1)) if own else None
             if own_ayah is not None and not (1 <= own_ayah <= acount):
@@ -468,14 +493,21 @@ def harvest_nahhas(body, rows, seq0):
         last_num = num
         stream = build_stream(num)
         cursor = 0
-        # collect entries (quote, grade) by position, after-grade wins over before.
-        entries = {}   # start-offset → (quote, grade)
+        # collect entries (quote, grade) by CONTENT position (dedup key — same
+        # convention for both patterns, right after the opening brace), but
+        # also keep each match's own START (m.start(), which for the البلاغ
+        # -pattern INCLUDES the leading grade word «والتمام ») separately —
+        # the note boundary must be the latter, or it always dangles at the
+        # NEXT entry's opening brace («…والتمام {»), never showing prose that
+        # is genuinely there.
+        entries = {}   # content-start → (quote, grade, note_from, match_start)
         for m in _NAHHAS_AFTER_RE.finditer(text):
-            entries[m.start(1)] = (m.group(1), _AFTER_MAP[m.group(2)], m.end())
+            entries[m.start(1)] = (m.group(1), _AFTER_MAP[m.group(2)], m.end(), m.start())
         for m in _NAHHAS_BEFORE_RE.finditer(text):
-            entries.setdefault(m.start(2), (m.group(2), _BEFORE_MAP[m.group(1)], m.end()))
-        for pos in sorted(entries):
-            quote, grade, note_from = entries[pos]
+            entries.setdefault(m.start(2), (m.group(2), _BEFORE_MAP[m.group(1)], m.end(), m.start()))
+        positions = sorted(entries)
+        for i, pos in enumerate(positions):
+            quote, grade, note_from, _ = entries[pos]
             quote = clean_note(quote, limit=200)
             qwords = quote_words(quote)
             if not qwords:
@@ -483,7 +515,13 @@ def harvest_nahhas(body, rows, seq0):
             cursor_before = cursor
             hit, cursor = align_cursor(stream, cursor, qwords)
             seq += 1
-            note = clean_note(text[note_from:note_from + 400])
+            # Bound the note by the NEXT entry's WHOLE MATCH, not a flat
+            # 400-char slice — a hard pre-slice defeats clean_note()'s own
+            # word-boundary/ellipsis truncation (400 < its 500 default, so
+            # that safety net never engaged): 91% of نحاس's notes were
+            # silently cut mid-word.
+            nxt = entries[positions[i + 1]][3] if i + 1 < len(positions) else len(text)
+            note = clean_note(text[note_from:min(nxt, note_from + 700)])
             if hit is None:
                 unmatched += 1
                 rows.append(('nahhas', num, None, None, None, quote, grade, grade, note, seq, 0))
@@ -532,8 +570,22 @@ def harvest_anbari(body, rows, seq0):
         last_num = num
         acount = surah_ayah_count(num)
         cur_ayah = 1                       # ayah context for entries lacking [n]
-        prev = None                        # (raw, grade) for ومثله inheritance
         entries = list(_ANBARI_ENTRY_RE.finditer(text))
+        # Pre-scan for the note boundary, same reasoning as منار: a parenthesised
+        # word quoted WITHIN the author's own prose (common in commentary) never
+        # becomes its own row, so it must not truncate the PRECEDING entry's
+        # note just because it's the next `(...)` match in raw text order.
+        qualifies, prev_scan = [], None
+        for m in entries:
+            gm0 = _ANBARI_GRADE_RE.match(m.group(3) or '')
+            ok = bool(gm0) or (
+                bool(_MITHL_RE.search(text[max(0, m.start() - 14):m.start()])) and prev_scan)
+            qualifies.append(ok)
+            if ok:
+                prev_scan = True
+        qualifying_starts = [entries[i].start() for i in range(len(entries)) if qualifies[i]]
+
+        prev = None                        # (raw, grade) for ومثله inheritance
         for idx, m in enumerate(entries):
             quote = clean_note(m.group(1), limit=200)
             own = int(m.group(2)) if m.group(2) and 1 <= int(m.group(2)) <= acount else None
@@ -555,7 +607,8 @@ def harvest_anbari(body, rows, seq0):
             qwords = quote_words(quote)
             if not qwords:
                 continue
-            nxt = entries[idx + 1].start() if idx + 1 < len(entries) else len(text)
+            j = bisect.bisect_right(qualifying_starts, m.start())
+            nxt = qualifying_starts[j] if j < len(qualifying_starts) else len(text)
             note = clean_note(text[m.end():min(nxt, m.end() + 600)])
             seq += 1
             wpos, hit_ayah = None, None

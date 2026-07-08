@@ -89,6 +89,42 @@ def test_no_raw_whitespace_artifacts(rows):
     assert not bad, f'{len(bad)} rows have raw newlines/double-spaces, e.g. {bad[:5]}'
 
 
+# ── note truncation regressions (2026-07 second pass) ────────────────────
+# «...ولما يأت» / «...وكررت» reports: notes were being cut mid-thought at a
+# harvester-internal boundary — not clean_note()'s own word-boundary/ellipsis
+# logic, which only ever engages past its 500-char limit. Two distinct causes,
+# both in build_classical_waqf.py: نحاس pre-sliced every note to a flat 400
+# raw chars BEFORE clean_note() ever saw it (91% of его notes landed in
+# [390,400] and never got an ellipsis); منار/ابن الأنباري bounded a note by
+# the RAW next quote-delimiter match, which can be the author citing a single
+# word inline within his OWN prose (e.g. «وكررت "لا" في قوله...») rather than
+# a genuine next citation.
+
+def test_no_note_dangles_at_an_open_bracket(rows):
+    """A note ending with a literal `{`/`(` is unambiguous — Arabic prose
+    never legitimately ends a sentence there, so this can only mean the
+    extraction window cut off right as the NEXT citation's quote began.
+    (A word-list check for BARE grade-connectors like «التمام»/«الحسن» was
+    tried and dropped — both are also ordinary vocabulary, «التمام» as a
+    sentence predicate and «الحسن» as a scholar's name, الحسن البصري — so it
+    false-positived on legitimate prose. Only the bracket itself is safe.)"""
+    bad = [(r['source'], r['surah'], r['ayah'], (r['note'] or '')[-20:]) for r in rows
+           if (r['note'] or '').rstrip().endswith(('{', '('))]
+    assert not bad, f'{len(bad)} notes dangle at an open bracket, e.g. {bad[:5]}'
+
+
+def test_nahhas_notes_are_not_clustered_at_a_flat_length_cap(rows):
+    """Regression guard for the specific 400-char hard pre-slice bug: 91% of
+    نحاس's notes used to land in exactly [390, 400] chars. A healthy
+    boundary-based extraction produces a spread of lengths, not a wall."""
+    lens = [len(r['note']) for r in rows if r['source'] == 'nahhas' and r['note']]
+    clustered = sum(1 for l in lens if 390 <= l <= 400)
+    assert clustered / len(lens) < 0.10, (
+        f'{clustered}/{len(lens)} نحاس notes are clustered at 390-400 chars — '
+        f'looks like the flat note_from+400 slice bug is back'
+    )
+
+
 def test_quotes_and_notes_are_not_empty_or_whitespace(rows):
     bad = [(r['source'], r['surah'], r['ayah']) for r in rows if not (r['quote'] or '').strip()]
     assert not bad, f'{len(bad)} rows have a blank quote, e.g. {bad[:5]}'
