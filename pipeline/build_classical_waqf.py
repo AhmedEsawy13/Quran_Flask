@@ -91,6 +91,13 @@ def load_book(fname):
     body = raw.split('#META#Header#End#', 1)[1]
     body = re.sub(r'PageV\d+P\d+', ' ', body)
     body = re.sub(r'\bms\d+\b', ' ', body)
+    # النحاس's edition marks page breaks as «[vol/ page]» (e.g. [1/ 57]) — a
+    # DIFFERENT format from PageV\dP\d above, so it slipped straight into 465
+    # notes and 21 quotes verbatim, splitting sentences mid-word visually
+    # («وإذ واعدنا[1/ 57]موسى»). NOT the same as the [n] ayah-position marker
+    # منار/ابن الأنباري use for alignment (that's a bare `[digit]`, no slash) —
+    # confirmed zero collisions before adding this.
+    body = re.sub(r'\[\s*\d+\s*/\s*\d+\s*\]', ' ', body)
     # join OpenITI ~~ continuation lines, drop the '# ' paragraph markers
     body = body.replace('\n~~', ' ').replace('\n# ', '\n')
     return body
@@ -161,7 +168,13 @@ def quote_words(quote):
 
 
 def clean_note(text, limit=500):
-    text = re.sub(r'\(\s*\d+\s*\)', '', text)
+    """Shared cleaner for BOTH the note (علّة) and the quote itself — a quote
+    is stored/displayed raw from the regex capture, so any source noise inside
+    it (footnote digits, a page marker load_book() missed, a raw newline from
+    an un-marked line break) leaked straight to the user looking like a
+    corrupted/cut-off phrase. Strip it here too, not just for notes."""
+    text = re.sub(r'\(\s*\d+\s*\)', '', text)        # footnote / ayah-end digit, e.g. «الم (1)»
+    text = re.sub(r'\[\s*\d+\s*/\s*\d+\s*\]', '', text)  # defensive: page marker safety net
     text = re.sub(r'\s+', ' ', text).strip(' .،:؛')
     if len(text) <= limit:
         return text
@@ -186,7 +199,7 @@ _BACK_WINDOW = 40
 def parse_muktafa_entries(section_text):
     out = []
     for m in ENTRY_RE.finditer(section_text):
-        quote = (m.group(1) or m.group(2) or '').strip()
+        quote = clean_note(m.group(1) or m.group(2) or '', limit=200)
         tail = m.group(3) or ''
         gm = GRADE_RE.match(tail)
         if not quote:
@@ -366,7 +379,7 @@ def harvest_manar(body, rows, seq0):
         quotes = list(_MANAR_QUOTE_RE.finditer(text))
         prev = None      # (raw, grade) for ومثله inheritance
         for idx, m in enumerate(quotes):
-            quote = (m.group(1) or m.group(2) or '').strip()
+            quote = clean_note(m.group(1) or m.group(2) or '', limit=200)
             nxt = quotes[idx + 1].start() if idx + 1 < len(quotes) else len(text)
             after = text[m.end():min(nxt, m.end() + 90)]
             own = re.match(r'[\s،:]{0,3}\[(\d{1,3})\]', after)   # the quote's own [n]?
@@ -463,6 +476,7 @@ def harvest_nahhas(body, rows, seq0):
             entries.setdefault(m.start(2), (m.group(2), _BEFORE_MAP[m.group(1)], m.end()))
         for pos in sorted(entries):
             quote, grade, note_from = entries[pos]
+            quote = clean_note(quote, limit=200)
             qwords = quote_words(quote)
             if not qwords:
                 continue
@@ -521,7 +535,7 @@ def harvest_anbari(body, rows, seq0):
         prev = None                        # (raw, grade) for ومثله inheritance
         entries = list(_ANBARI_ENTRY_RE.finditer(text))
         for idx, m in enumerate(entries):
-            quote = m.group(1).strip()
+            quote = clean_note(m.group(1), limit=200)
             own = int(m.group(2)) if m.group(2) and 1 <= int(m.group(2)) <= acount else None
             gm = _ANBARI_GRADE_RE.match(m.group(3) or '')
             before = text[max(0, m.start() - 14):m.start()]

@@ -219,8 +219,12 @@
                 // Show the PHRASE the imams graded, not a lone word: the mushaf
                 // words up to the stop (its own last word emphasised), starting
                 // from the longest quote among the sources but never crossing the
-                // previous graded stop.
-                const maxW = Math.min(8, Math.max(1, ...list.map(e => qwc(e.quote))));
+                // previous graded stop. The cap is a safety net against a
+                // pathological quote, NOT a routine limit — نحاس alone quotes up
+                // to 16 words (confirmed against the DB); an 8-word cap here used
+                // to silently lop the FRONT off ~4% of his citations with no
+                // indication anything was missing.
+                const maxW = Math.min(24, Math.max(1, ...list.map(e => qwc(e.quote))));
                 let start = Math.max(prev + 1, wpos - maxW + 1, 0);
                 prev = wpos;
                 let phrase;
