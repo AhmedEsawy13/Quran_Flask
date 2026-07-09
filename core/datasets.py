@@ -9,6 +9,8 @@ import re
 import sqlite3
 import logging
 
+from flask import request
+
 from core.loader import load_json_cdn_or_local as _load
 from core.config import MUSHAF_WAQF_DATABASE, WAQF_SYMBOL_CHARS
 from core.text import normalize_quran_dataset, initialize_waqf_database
@@ -174,3 +176,35 @@ initialize_waqf_database(waqf_rows_digital + waqf_rows_qpc + waqf_rows_indopak)
 logger.info(
     f"Waqf normalization summary: {digital_stats}, {qpc_stats}, {indopak_stats}, {amiri_stats}"
 )
+
+
+def normalize_source(source):
+    valid_sources = [
+        'digital_khatt', 'digital_khatt_2', 'old_madina',
+        'indopak_nastaleeq', 'indopak_nastaleeq_2', 'qpc_hafs', 'shamarly',
+        'amiri_quran'
+    ]
+    if source not in valid_sources:
+        return 'qpc_hafs'
+    if source in ('digital_khatt_2', 'old_madina'):
+        return 'digital_khatt'
+    return source
+
+
+def get_quran_text_data_by_source(source):
+    if source == 'digital_khatt':
+        return digital_khatt_data_normalized
+    if source == 'indopak_nastaleeq':
+        return indopak_nastaleeq_data_normalized
+    if source == 'indopak_nastaleeq_2':
+        return indopak_nastaleeq_2_data_normalized
+    if source == 'shamarly':
+        return qpc_hafs_data_normalized
+    if source == 'amiri_quran':
+        return amiri_quran_data_normalized
+    return qpc_hafs_data_normalized
+
+
+def get_quran_text_data():
+    source = normalize_source(request.args.get('source', 'qpc_hafs'))
+    return get_quran_text_data_by_source(source)
