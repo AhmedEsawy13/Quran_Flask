@@ -90,9 +90,12 @@ pause" guide:
 
 ## Architecture
 
-The app is a single codebase split into a shared `core` package, per-feature
-`modules/`, and the routes that haven't been extracted yet still living in
-[`app.py`](app.py), assembled by an application factory:
+The app is a single codebase split into a shared `core` package and
+per-feature `modules/`, assembled by an application factory in
+[`app.py`](app.py) — which is now just the factory itself (243 lines):
+static-asset hashing, the CSP/caching `after_request` hook, error handlers,
+and env-driven blueprint registration. Every blueprint's routes live in
+`modules/`:
 
 ```
 core/
@@ -104,10 +107,11 @@ core/
 ├── lru.py             # Bounded LRU cache used across modules
 ├── mushaf_waqf.py      # Waqf DB access layer (mushaf_waqf.db / mushaf-qatar-layout.db)
 ├── memorization.py     # Reciter catalog, audio-URL resolution, breathing-guide builder
-│                       #   (shared by memorize_bp in app.py AND breathing_bp below)
+│                       #   (shared by modules/memorize.py AND modules/breathing.py)
 └── text.py            # Search normalisation + waqf-mark extraction
 
 modules/
+├── quran_api.py        # core_bp: surah/ayah text, audio (proxy/YouTube/reciters), search
 ├── layouts.py         # Mushaf page builders + reading-page routes
 ├── editor.py          # /mushaf-editor blueprint — the ONLY write path
 ├── breathing.py        # مُكْث: pause guide, classical waqf books, waqf-practice grader
@@ -115,9 +119,7 @@ modules/
 ├── reading.py          # المصحف: tafseer, tajweed, i'rab, waqf symbols, المتشابهات
 └── memorize.py         # تثبيت: the Circular Segmented Repetition player + routes
 
-app.py                 # create_app() factory + env-driven blueprint registration
-                        # + core_bp's routes (candidate for future extraction
-                        # into core/, following the same pattern)
+app.py                 # create_app() factory + env-driven blueprint registration only
 ```
 
 ### Selecting modules per deployment
