@@ -99,19 +99,23 @@ core/
 ├── config.py        # DB paths, reciter config, layout constants, waqf/search regexes
 ├── blueprints.py     # Blueprint objects: core_bp, reading_bp, memorize_bp, breathing_bp, editor_bp
 ├── db.py             # Shared per-request word_name.db connection (get_db / teardown)
-├── datasets.py        # Dataset registry (JSON text sources, CDN fallback)
+├── datasets.py        # Raw + normalised Quran text datasets (JSON, CDN fallback)
 ├── loader.py          # JSON loading + CDN-or-local fetch helpers
 ├── lru.py             # Bounded LRU cache used across modules
 ├── mushaf_waqf.py      # Waqf DB access layer (mushaf_waqf.db / mushaf-qatar-layout.db)
+├── memorization.py     # Reciter catalog, audio-URL resolution, breathing-guide builder
+│                       #   (shared by memorize_bp in app.py AND breathing_bp below)
 └── text.py            # Search normalisation + waqf-mark extraction
 
 modules/
 ├── layouts.py         # Mushaf page builders + reading-page routes
-└── editor.py          # /mushaf-editor blueprint — the ONLY write path
+├── editor.py          # /mushaf-editor blueprint — the ONLY write path
+├── breathing.py        # مُكْث: pause guide, classical waqf books, waqf-practice grader
+└── waqf_research.py    # مُكْث research tabs: the /api/waqf-research/* analytics family
 
 app.py                 # create_app() factory + env-driven blueprint registration
-                        # + the remaining reading/memorize/breathing routes
-                        # (candidates for further extraction — see Roadmap)
+                        # + the remaining reading/memorize routes (candidates for
+                        # future extraction, following the same pattern)
 ```
 
 ### Selecting modules per deployment
