@@ -34,6 +34,10 @@ venv.bak/
 *.swo
 *~
 
+# AI coding tools — local session/index state, not project config
+.qoder/
+.claude/launch.json
+
 # OS
 .DS_Store
 Thumbs.db
