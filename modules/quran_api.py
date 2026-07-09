@@ -645,14 +645,3 @@ def search_word_meanings():
     except sqlite3.Error as e:
         logger.error(f"Database search error: {e}")
         return jsonify({"error": "Search failed"}), 500
-
-
-
-# ---------------------------------------------------------------------------
-# Blueprint registration / app factory
-#
-# Each Heroku app (or domain) can serve a subset of features by setting the
-# FEATURES env var, e.g. FEATURES="reading" or FEATURES="memorize,breathing".
-# 'core' is always included (shared text/search/page-rendering the others need).
-# The write-capable 'editor' is OFF by default and only mounts when
-# ENABLE_EDITOR is set — keep that to localhost so production stays read-only.
