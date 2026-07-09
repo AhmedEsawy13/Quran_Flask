@@ -10,12 +10,11 @@ import threading
 from collections import defaultdict
 from functools import lru_cache
 
-import concurrent.futures
 import requests as http_requests
 from flask import jsonify, render_template, request
 
 from core.blueprints import reading_bp
-from core.config import WAQF_DATABASE, TAJWEED_DATABASE, MAX_AYAH_NUMBER
+from core.config import WAQF_DATABASE, TAJWEED_DATABASE, TAFSEER_LOCAL_DATABASE, MAX_AYAH_NUMBER
 from core.text import _normalize_for_search
 from core.mushaf_waqf import get_mushaf_waqf_symbols
 from core.datasets import (
@@ -30,25 +29,20 @@ from modules.layouts import _find_mushaf_row_match_index, _normalize_mushaf_word
 logger = logging.getLogger(__name__)
 
 
-# Tafseer API configuration (quran.com v4)
-# IDs confirmed from https://api.quran.com/api/v4/resources/tafsirs
-TAFSEER_API_IDS = {
-    'تفسير السعدي':   91,
-    'تفسير القرطبي':  90,
-    'تفسير البغوي':   94,
-    'التفسير الميسر': 16,
-}
-TAFSEER_API_BASE = 'https://api.quran.com/api/v4/tafsirs/{id}/by_ayah/{verse_key}'
-
-# quranenc.com API — used for tafseers not on quran.com
-# identifier → Arabic name mapping
-TAFSEER_QURANENC_IDS = {
-    'المختصر في التفسير': 'arabic_mokhtasar',
-}
-TAFSEER_QURANENC_BASE = 'https://quranenc.com/api/v1/translation/aya/{identifier}/{surah}/{ayah}'
+# The 5 Arabic tafsirs shown on the reading page — served from local data
+# (data/tafseer_local.db, built offline by pipeline/build_tafseer_local.py
+# from QUL exports; see that file's docstring for the source/schema). Names
+# must match the SOURCES keys there.
+TAFSEER_NAMES = (
+    'تفسير السعدي',
+    'تفسير القرطبي',
+    'تفسير البغوي',
+    'التفسير الميسر',
+    'المختصر في التفسير',
+)
 
 # In-process cache: (tafseer_name, verse_key) → {text: "..."}
-# Bounded so long-running processes don't accumulate every tafseer ever fetched.
+# Bounded so long-running processes don't accumulate every tafseer ever read.
 _tafseer_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
 
 # SurahApp API (grammatical analysis / إعراب)
@@ -234,70 +228,52 @@ def get_ayah_waqf_symbols(surah_number, ayah_number):
         'waqf_symbols': data
     })
 
+def get_local_tafseer(verse_key):
+    """Look up all 5 tafsirs for verse_key from data/tafseer_local.db.
+
+    Two-step lookup: tafseer_verse maps every ayah to its group's
+    representative verse_key (a tafsir discussing several ayat under one
+    heading, e.g. Baghawi's 1:1-1:7, stores the text once on the
+    representative row; every other member ayah just points at it), and
+    tafseer_group holds each group's text exactly once. Missing entries
+    (Saadi has ~1% gaps with no source text) come back as an empty string.
+    """
+    result = {n: {'text': ''} for n in TAFSEER_NAMES}
+    try:
+        conn = sqlite3.connect(TAFSEER_LOCAL_DATABASE)
+        try:
+            rows = conn.execute(
+                'SELECT tv.name, tg.text FROM tafseer_verse tv '
+                'JOIN tafseer_group tg ON tg.name = tv.name AND tg.group_key = tv.group_key '
+                'WHERE tv.verse_key = ?',
+                (verse_key,)
+            ).fetchall()
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.error(f"Tafseer DB error for {verse_key}: {e}")
+        return result
+
+    for name, text in rows:
+        result[name] = {'text': text}
+    return result
+
+
 @reading_bp.route('/api/tafseer/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_tafseer(surah_number, ayah_number):
-    """Fetch tafseer for a single ayah in parallel, with in-process caching."""
+    """Return all 5 Arabic tafsirs for a single ayah, from local data."""
     if not (1 <= surah_number <= 114):
         return jsonify({"error": "Invalid surah number."}), 400
     if ayah_number < 1 or ayah_number > MAX_AYAH_NUMBER:
         return jsonify({"error": "Invalid ayah number."}), 400
 
     verse_key = f"{surah_number}:{ayah_number}"
+    if all((n, verse_key) in _tafseer_cache for n in TAFSEER_NAMES):
+        return jsonify({n: _tafseer_cache[(n, verse_key)] for n in TAFSEER_NAMES})
 
-    def _fetch_qurancom(name, tafseer_id):
-        ck = (name, verse_key)
-        if ck in _tafseer_cache:
-            return name, _tafseer_cache[ck]
-        url = TAFSEER_API_BASE.format(id=tafseer_id, verse_key=verse_key)
-        try:
-            resp = http_requests.get(url, timeout=10)
-            resp.raise_for_status()
-            text = resp.json().get('tafsir', {}).get('text', '')
-            entry = {'text': text}
-            _tafseer_cache[ck] = entry
-            return name, entry
-        except Exception as e:
-            logger.error(f"Tafseer API error for {name} {verse_key}: {e}")
-            return name, {'text': ''}
-
-    def _fetch_quranenc(name, identifier):
-        ck = (name, verse_key)
-        if ck in _tafseer_cache:
-            return name, _tafseer_cache[ck]
-        url = TAFSEER_QURANENC_BASE.format(
-            identifier=identifier, surah=surah_number, ayah=ayah_number
-        )
-        try:
-            resp = http_requests.get(url, timeout=10)
-            resp.raise_for_status()
-            text = resp.json().get('result', {}).get('translation', '')
-            entry = {'text': text}
-            _tafseer_cache[ck] = entry
-            return name, entry
-        except Exception as e:
-            logger.error(f"Tafseer (quranenc) API error for {name} {verse_key}: {e}")
-            return name, {'text': ''}
-
-    # Fast path: everything already cached, no threads needed.
-    all_names = list(TAFSEER_API_IDS) + list(TAFSEER_QURANENC_IDS)
-    if all((n, verse_key) in _tafseer_cache for n in all_names):
-        return jsonify({n: _tafseer_cache[(n, verse_key)] for n in all_names})
-
-    tasks = (
-        [(n, tid, 'qurancom') for n, tid in TAFSEER_API_IDS.items()] +
-        [(n, ident, 'quranenc') for n, ident in TAFSEER_QURANENC_IDS.items()]
-    )
-    result = {}
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(tasks) or 1) as ex:
-        futures = [
-            ex.submit(_fetch_qurancom, n, src) if t == 'qurancom'
-            else ex.submit(_fetch_quranenc, n, src)
-            for n, src, t in tasks
-        ]
-        for future in concurrent.futures.as_completed(futures):
-            name, entry = future.result()
-            result[name] = entry
-
+    result = get_local_tafseer(verse_key)
+    for name, entry in result.items():
+        _tafseer_cache[(name, verse_key)] = entry
     return jsonify(result)
 
 

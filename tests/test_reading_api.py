@@ -2,11 +2,10 @@
 in-process caching, and word-meaning ordering. المتشابهات is covered
 separately in test_mutashabihat.py.
 
-Tafseer and eerab hit external APIs (quran.com, quranenc.com, SurahApp) —
-this suite deliberately does not make live network calls. Instead it
-pre-populates the module's own LRU caches and verifies the route serves the
-cached entry verbatim, which exercises the real caching/lookup logic without
-depending on a third party being up.
+Tafseer is served from local data (data/tafseer_local.db) and exercised for
+real. Eerab still hits an external API (SurahApp) — this suite deliberately
+does not make live network calls for it, instead pre-populating the module's
+own LRU cache and verifying the route serves the cached entry verbatim.
 """
 import modules.reading as reading
 from core.text import _normalize_for_search
@@ -49,16 +48,21 @@ def test_get_waqf_symbols_indopak_embedded_marks_labelled_hindi(app):
         assert reading.get_waqf_symbols(1, 1, 'qpc_hafs') == []
 
 
-def test_tafseer_serves_from_cache_without_network(client):
-    """Pre-populate the in-process cache directly, then confirm the route
-    returns exactly that payload — proves the cache-hit path works without
-    ever making an HTTP request."""
-    verse_key = '114:1'  # an obscure verse unlikely to collide with other tests
-    for name in list(reading.TAFSEER_API_IDS) + list(reading.TAFSEER_QURANENC_IDS):
-        reading._tafseer_cache[(name, verse_key)] = {'text': f'cached-{name}'}
-    j = client.get('/api/tafseer/114/1').get_json()
-    for name in reading.TAFSEER_API_IDS:
-        assert j[name]['text'] == f'cached-{name}'
+def test_tafseer_returns_all_five_local_tafsirs(client):
+    j = client.get('/api/tafseer/1/1').get_json()
+    assert set(j) == set(reading.TAFSEER_NAMES)
+    for name in reading.TAFSEER_NAMES:
+        assert j[name]['text'], name
+
+
+def test_tafseer_resolves_grouped_verse_to_its_representative_text(client):
+    """Baghawi covers all of al-Fatiha (1:1-1:7) under a single heading — a
+    member ayah like 1:2 must resolve to the same stored text as 1:1's own
+    row, proving the verse->group->text lookup actually joins correctly."""
+    j1 = client.get('/api/tafseer/1/1').get_json()
+    j2 = client.get('/api/tafseer/1/2').get_json()
+    assert j1['تفسير البغوي']['text']
+    assert j1['تفسير البغوي']['text'] == j2['تفسير البغوي']['text']
 
 
 def test_tafseer_bounds(client):

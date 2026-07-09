@@ -107,3 +107,8 @@ reciters/**/letter_timestamps.json.gz
 # source jsons (phoneme_units/quran_text2phoneme) local.
 !static/asr/zipformer_meta.json
 !static/asr/zipformer_phonemes.json
+
+# QUL tafsir SQLite exports (~65MB total) — one-time input to
+# pipeline/build_tafseer_local.py, requires a QUL account to re-download.
+# The BUILT data/tafseer_local.db is what ships, this raw source isn't.
+pipeline/tafseer_source/

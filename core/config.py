@@ -78,6 +78,10 @@ TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')
 # Classical وقف-وابتدا literature aligned to QPC word positions — built by
 # pipeline/build_muktafa.py from the OpenITI edition of الداني's المكتفى.
 CLASSICAL_WAQF_DATABASE = os.path.join(_BASE_DIR, 'data', 'classical_waqf.db')
+# Local tafseer data (5 Arabic tafsirs), built offline by
+# pipeline/build_tafseer_local.py from QUL (qul.tarteel.ai) SQLite exports.
+# Replaces the former per-request quran.com/quranenc.com network calls.
+TAFSEER_LOCAL_DATABASE = os.path.join(_BASE_DIR, 'data', 'tafseer_local.db')
 
 # Per-ayah Quran phonemes (surah:ayah → aya_phonemes_list) for the zipformer
 # phoneme-ASR reference (تدريب recite-follow). Source: ReciteQuran ordered set.

@@ -60,7 +60,7 @@ pause" guide:
 - **Word Meanings (غريب الكلمات)**: display meanings of difficult Arabic words
 - **Clickable Words**: click any word to hear its individual pronunciation
 - **Transliteration**: phonetic pronunciation of Arabic text
-- **Tafseer Integration**: multiple commentary sources (Al Qurtubi, Al Saddi, Al-Baghawi)
+- **Tafseer Integration**: 5 Arabic commentary sources (Al Qurtubi, Al Saddi, Al-Baghawi, Al-Muyassar, Al-Mukhtasar), served from local data — no live API calls
 
 ### 🎵 **Advanced Audio Features**
 - **Multiple Reciters**: Abdul Basit Abdus Samad (Mujawwad/Murattal), Mohamed al-Minshawi (Mujawwad/Murattal), Mahmoud Khalil al-Husary (Mujawwad/Muallim), Ibrahim Al-Akhdar, Ayman Rushdi Suwaid, Mahmoud Ali Al-Banna, Mustafa Ismaeel, and more
@@ -222,7 +222,7 @@ Representative endpoints — see `app.py` (routes not yet split out) and
 - `GET /api/audio-proxy?url=<audio_url>`
 
 ### Tafseer
-- `GET /api/tafseer` · `GET /api/tafseer/<name>`
+- `GET /api/tafseer/<surah>/<ayah>` — all 5 Arabic tafsirs, served from local data
 
 ### Waqf & Pause Science (`مُكْث` / `تدريب`)
 - `GET /api/waqf/<surah>/<ayah>` — mushaf waqf marks for a verse
@@ -345,7 +345,8 @@ Quran_Flask/
 - `qpc-v4-15-lines.db` / `qpc-v1-15-lines.db` / `mushaf-qatar-layout.db` / `digital-khatt-15-lines.db` — page-layout databases
 - `glyph_mappings.db` / `mushaf_layout_inferred.db` — Shemrly page rendering
 - `tajweed_local.db` — tajweed coloring rules
-- `word_timestamps/`, `tafseer/`, `research_cache/` — additional per-feature datasets
+- `tafseer_local.db` — 5 Arabic tafsirs, built by `pipeline/build_tafseer_local.py` from QUL (qul.tarteel.ai) exports
+- `word_timestamps/`, `research_cache/` — additional per-feature datasets
 - `reciters/<reciter>/*.json.gz` — per-reciter word/verse/letter timing (restored at build time, not tracked)
 
 ## License
