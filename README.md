@@ -111,11 +111,13 @@ modules/
 ├── layouts.py         # Mushaf page builders + reading-page routes
 ├── editor.py          # /mushaf-editor blueprint — the ONLY write path
 ├── breathing.py        # مُكْث: pause guide, classical waqf books, waqf-practice grader
-└── waqf_research.py    # مُكْث research tabs: the /api/waqf-research/* analytics family
+├── waqf_research.py    # مُكْث research tabs: the /api/waqf-research/* analytics family
+├── reading.py          # المصحف: tafseer, tajweed, i'rab, waqf symbols, المتشابهات
+└── memorize.py         # تثبيت: the Circular Segmented Repetition player + routes
 
 app.py                 # create_app() factory + env-driven blueprint registration
-                        # + the remaining reading/memorize routes (candidates for
-                        # future extraction, following the same pattern)
+                        # + core_bp's routes (candidate for future extraction
+                        # into core/, following the same pattern)
 ```
 
 ### Selecting modules per deployment
