@@ -2,8 +2,19 @@
    waqf_guide.css (loaded before this file). */
 @font-face { font-family: 'Old Madina'; src: url('../fonts/oldmadina.woff2') format('woff2'); font-display: swap; }
 
-.wp-main { max-width: 900px; margin: 0 auto; padding: 18px clamp(12px, 3vw, 28px) 60px;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; }
+/* ── Fit the page to the viewport, تثبيت-style: sticky bars stay put, only
+   .wp-main scrolls internally — no whole-page scroll. Only this page loads
+   waqf_practice.css, so overriding `body` here is safe (doesn't touch /waqf,
+   which shares waqf_guide.css's normal long-scroll layout). Sized with flex
+   instead of a hardcoded bar-height constant (as تثبيت does) so it can't
+   drift out of sync if either sticky bar's own height ever changes. */
+html, body { height: 100%; }
+body { display: flex; flex-direction: column; overflow: hidden; }
+.athar-bar, .wq-bar { flex: 0 0 auto; }
+
+.wp-main { max-width: 900px; margin: 0 auto; width: 100%; padding: 18px clamp(12px, 3vw, 28px) 26px;
+    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif;
+    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
 /* controls */
 .wp-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px;

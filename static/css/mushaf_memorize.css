@@ -148,7 +148,7 @@ body {
 .mz-sec-note:empty { display: none; }
 
 /* transient status toast */
-.mz-toast { position: fixed; top: calc(var(--mz-topbar-h) + 12px); left: 50%; transform: translateX(-50%) translateY(-8px);
+.mz-toast { position: fixed; top: calc(var(--mz-topbar-h) + var(--athar-bar-h, 50px) + 12px); left: 50%; transform: translateX(-50%) translateY(-8px);
     z-index: 70; padding: 8px 16px; border-radius: 999px; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif;
     font-size: 0.8rem; font-weight: 600; color: var(--mz-text); background: var(--mz-surface);
     border: 1px solid var(--mz-border-strong); box-shadow: var(--mz-shadow); opacity: 0; pointer-events: none;
@@ -161,7 +161,7 @@ body.mz-dark .mz-toast.mz-err { color: #f87171; }
 .mz-main {
     display: flex; flex-direction: row; align-items: stretch; gap: 18px;
     max-width: 1640px; margin: 0 auto; padding: 14px clamp(10px, 2vw, 22px) 18px;
-    min-height: calc(100vh - var(--mz-topbar-h));
+    min-height: calc(100vh - var(--mz-topbar-h) - var(--athar-bar-h, 50px));
 }
 
 .mz-sidebar {

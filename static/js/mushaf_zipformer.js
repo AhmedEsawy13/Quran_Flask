@@ -193,7 +193,7 @@
 
     /* ── LIVE streaming from the mic ──────────────────────────────────────── */
     let pcm = new Float32Array(0), frames = [], fc = 0, states = null;
-    let silentSec = 0, sawPhoneme = false, busy = false, phonemeStr = '';
+    let silentSec = 0, sawPhoneme = false, busy = false, phonemeStr = '', lastId = -1;
     function downsample(buf, inRate) {
         if (inRate === SR) return buf;
         const ratio = inRate / SR, n = Math.floor(buf.length / ratio), out = new Float32Array(n);
@@ -218,6 +218,7 @@
                 frames.push(fbankFrame(pcm, pcm.length, frames.length));
             }
             while (frames.length >= fc + T) {
+                if (!running) break;   // stop() fired mid-drain — don't emit stray post-stop events
                 const block = frames.slice(fc, fc + T);
                 const ids = await step(states, block);
                 fc += shift;
@@ -226,10 +227,20 @@
                     if (id === meta.blank) {
                         silentSec += frameDur;
                         if (sawPhoneme && silentSec >= CFG.silenceSec) { try { onSilence && onSilence({ atSec: fc * FSHIFT / SR }); } catch (e) {} sawPhoneme = false; }
+                        lastId = id;
                     } else {
                         silentSec = 0; sawPhoneme = true;
-                        const sym = phon[id] || '';
-                        if (sym) { phonemeStr += sym; try { onPhonemes && onPhonemes(phonemeStr, id); } catch (e) {} }
+                        // CTC collapse: only emit on a genuine symbol transition (matches
+                        // transcribe()'s offline raw[i]!==raw[i-1] pass) — a phoneme spans
+                        // several consecutive frames, and a real repeat (e.g. madd length)
+                        // is only distinct once a blank frame has separated the two runs.
+                        // Without this, every phoneme is emitted 3-5x over, corrupting both
+                        // word-follow alignment and (far worse) madd-length tajweed detection.
+                        if (id !== lastId) {
+                            const sym = phon[id] || '';
+                            if (sym) { phonemeStr += sym; try { onPhonemes && onPhonemes(phonemeStr, id); } catch (e) {} }
+                        }
+                        lastId = id;
                     }
                 }
             }
@@ -265,7 +276,7 @@
                 source.connect(proc); proc.connect(audioCtx.destination); workletNode = proc;
             }
             pcm = new Float32Array(0); frames = []; fc = 0; states = freshStates();
-            silentSec = 0; sawPhoneme = false; busy = false; phonemeStr = '';
+            silentSec = 0; sawPhoneme = false; busy = false; phonemeStr = ''; lastId = -1;
             running = true; onActive && onActive(true);
             status('🎙️ استمع… ابدأ التلاوة');
         } catch (e) { stop(); throw e; }
