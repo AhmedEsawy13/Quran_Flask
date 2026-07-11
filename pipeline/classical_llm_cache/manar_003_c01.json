@@ -1,0 +1,331 @@
+[
+ {
+  "ayah": 13,
+  "stop_phrase": "رَأۡيَ ٱلۡعَيۡنِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "رَأۡيَ ٱلۡعَيۡنِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "قيل"
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مَن يَشَآءُۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "لِأُوْلِي ٱلۡأَبۡصَٰرِ",
+  "grade": "تام",
+  "reason": "أتم منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَٱلۡأَنۡعَٰمِ وَٱلۡحَرۡثِۗ",
+  "grade": "لا",
+  "reason": "لأنَّ العطف صيرها كالشيء الواحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَٱلۡحَرۡثِۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱلدُّنۡيَاۖ",
+  "grade": "حسن",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱلۡمَـَٔابِ",
+  "grade": "تام",
+  "reason": "حسن المنقلب هو الجنة، أصل المآب: المأوب، نقلت حركة الواو إلى الهمزة الساكنة قبلها، فقلبت الواو ألفًا، وهو هنا اسم مصدر، أي: حسن الرجوع",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "مِّن ذَٰلِكُمۡۖ",
+  "grade": "كاف",
+  "reason": "لتناهي الاستفهام إلى الإخبار، ثم يبتدئ «للذين اتقوا عند ربهم جنات» برفع «جنات» على الابتداء، و «للذين» خبره، والكلام مستأنف في جواب سؤال مقدر، كأنَّه قيل: ما الخير؟ فقيل: للذين اتقوا عند ربهم جنت",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱلۡأَنۡهَٰرُ",
+  "grade": "جائز",
+  "reason": "لأنَّ «تجري» في محل رفع، أو نصب، أو جر على حسب القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "مِّنَ ٱللَّهِۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "بِٱلۡعِبَادِ",
+  "grade": "تام",
+  "reason": "فمن رفعه خبر مبتدأ محذوف، أو نصبه بمقدر -كان الوقف على «بالعباد» تامًّا، أو كافيًا، وليس بوقف لمن جره بدلًا من قوله: «للذين اتقوا»، أو نعتًا للعباد",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "بِٱلۡعِبَادِ",
+  "grade": "كاف",
+  "reason": "فمن رفعه خبر مبتدأ محذوف، أو نصبه بمقدر -كان الوقف على «بالعباد» تامًّا، أو كافيًا، وليس بوقف لمن جره بدلًا من قوله: «للذين اتقوا»، أو نعتًا للعباد",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ذُنُوبَنَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "كاف",
+  "reason": "إن نصب ما بعده على المدح بإضمار أعني، أو أمدح، وليس بوقف إن جعل بدلًا من «الذين يقولون»، أو مخفوضًا نعتًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "بِٱلۡأَسۡحَارِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "بِٱلۡقِسۡطِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡحَكِيمُ",
+  "grade": "تام",
+  "reason": "لمن قرأ: «إن الدين» بكسر الهمزة، وليس بوقف لمن فتحها، وهو الكسائي ؛ لأنَّ محلها نصب؛ لأنها مع مدخولها معمول لـ «شهد»",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "ٱلۡإِسۡلَٰمُۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "بَيۡنَهُمۡۗ",
+  "grade": "كاف",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "ٱلۡحِسَابِ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱتَّبَعَنِۗ",
+  "grade": "حسن",
+  "reason": "للابتداء بأمر يشمل أهل الكتاب والعرب، والأول مختص بأهل الكتاب، فلم يكن الثاني من جملة الشرط",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ءَأَسۡلَمۡتُمۡۚ",
+  "grade": "حسن",
+  "reason": "لتناهي الاستفهام إلى الشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ءَأَسۡلَمۡتُمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱهۡتَدَواْۖ",
+  "grade": "حسن",
+  "reason": "للابتداء بشرط آخر",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱهۡتَدَواْۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلۡبَلَٰغُۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "بِٱلۡعِبَادِ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "بِغَيۡرِ حَقّٖ",
+  "grade": "جائز",
+  "reason": "لمن قرأ: «ويقاتلون» بألف بعد القاف؛ لعدول المعنى عن قوله: «ويقتلون» بغير ألف، وليس بوقف لمن قرأ: «ويقتلون» بغير ألف ؛ لفصله بين اسم «إنَّ» وخبرها",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "أَلِيمٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "وَٱلۡأٓخِرَةِ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "وَٱلۡأٓخِرَةِ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي، مع اتحاد المقصود",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "نَّٰصِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "مُّعۡرِضُونَ",
+  "grade": "تام",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "مَّعۡدُودَٰتٖۖ",
+  "grade": "صالح",
+  "reason": "لأنَّ الواو بعده تصلح للعطف وللحال، أي: وقد غرهم، أو قالوا مغرورين",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "يَفۡتَرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "لَّا رَيۡبَ فِيهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "لَّا رَيۡبَ فِيهِ",
+  "grade": "تام",
+  "reason": "وخولف في هذا؛ لأنَّ ما بعده معطوف على الجملة قبله، فهو من عطف الجمل",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "يُظۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "تَشَآءُ",
+  "grade": "جائز",
+  "reason": "في المواضع الأربعة، وقد نص بعضهم على الأول منها والأخير، والوجه أنها شيء واحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡخَيۡرُۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "قَدِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلنَّهَارِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلنَّهَارِ",
+  "grade": "لا",
+  "reason": "لا يوقف على أحد المتقابلين حتى يؤتى بالثاني، ومثله «من الميت»، و «من الحي»",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "حِسَابٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَۖ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "شَيۡءٍ",
+  "grade": "كاف",
+  "reason": "لعل وجه هذا الوقف أنه رأى الجملة مركبة من الشرط والجزاء، وهو قوله: «ومن يفعل ذلك فليس من الله في شيء»، استأنف بعده «إلا»، على معنى: إلَّا أن يكون الخوف يحمله عليه، فعلى هذا التأويل يسوغ الوقف على شيء",
+  "reported_from": "أبو حاتم السجستاني"
+ }
+]

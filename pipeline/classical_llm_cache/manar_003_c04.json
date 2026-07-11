@@ -1,0 +1,282 @@
+[
+ {
+  "ayah": 46,
+  "stop_phrase": "ٱلصَّٰلِحِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بَشَرٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "يَشَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "كُن",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "فَيَكُونُ",
+  "grade": "تام",
+  "reason": "لمن قرأ: «ونعلمه» بالنون، على الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "فَيَكُونُ",
+  "grade": "كاف",
+  "reason": "لمن قرأ بالياء التحتية عطفًا على «يبشرك» من عطف الجمل",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "وَٱلۡإِنجِيلَ",
+  "grade": "حسن",
+  "reason": "إن نصب «ورسولًا» بمقدر، أي: ونجعله رسولًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "وَٱلۡإِنجِيلَ",
+  "grade": "لا",
+  "reason": "لمن عطفه على «وجيهًا»، فيكون حالًا... وكذا على قراءة البزي، و «رسولٍ» بالجر عطفًا على «بكلمة منه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "مِّن رَّبِّكُمۡ",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «إني أخلق» بكسر الهمزة، وهو نافع ؛ على الاستئناف، أو على التفسير، فسر بهذه الجملة قوله: «بآية»",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "مِّن رَّبِّكُمۡ",
+  "grade": "لا",
+  "reason": "لمن قرأ بفتحها بدلًا من «أني قد جئتكم»، أو جعله في موضع خفض بدلًا من آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "بِإِذۡنِ ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "في الموضعين",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "فِي بُيُوتِكُمْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "إن نصب «مصدقًا» بفعل مقدر، أي: وجئتكم مصدقًا لما بين يديَّ",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "لا",
+  "reason": "إن نصب عطفًا على «رسولًا»، أو على الحال مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "حُرِّمَ عَلَيۡكُمۡ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "حُرِّمَ عَلَيۡكُمۡ",
+  "grade": "لا",
+  "reason": "إن عطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "مِّن رَّبِّكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "فَٱعۡبُدُوهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "فَٱعۡبُدُوهُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مُّسۡتَقِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "إِلَى ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "الأول حسن، والثاني ليس بوقف؛ لأنَّ «آمنا» في نظم الاستئناف، مع إمكان الحال، أي: قد آمنا كذلك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مُسۡلِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلشَّٰهِدِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "وَمَكَرَ ٱللَّهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "ٱلۡمَٰكِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "مُتَوَفِّيكَ",
+  "grade": "جائز",
+  "reason": "وليس منصوصًا عليهما، والأولى وصلهما، وقيل: هو من المقدم والمؤخر، أي: رافعك إليَّ حيًّا، ومتوفيك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "إِلَيَّ",
+  "grade": "جائز",
+  "reason": "وليس منصوصًا عليهما، والأولى وصلهما، وقيل: هو من المقدم والمؤخر، أي: رافعك إليَّ حيًّا، ومتوفيك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "حسن",
+  "reason": "إن جعل الخطاب في «اتبعوك» للنبي - صلى الله عليه وسلم -، والذين اتبعوه هم المسلمون... فهو منقطع عما قبله في اللفظ، وفي المعنى؛ لأنَّه استئناف خبر له",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "لا",
+  "reason": "إن جعل الخطاب لعيسى عليه وعلى نبينا أفضل الصلاة والسلام",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "تَخۡتَلِفُونَ",
+  "grade": "كاف",
+  "reason": "التفصيل بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "وَٱلۡأٓخِرَةِ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "نَّٰصِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "أُجُورَهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "لأنَّ «ذلك» مبتدأ، و «من الآيات» في محل رفع خبر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلۡحَكِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ءَادَمَ",
+  "grade": "حسن",
+  "reason": "وليس بتام، ولا كاف؛ لأنَّ «خلقه من تراب» تفسير للمثل، وهو متعلق به، فلا يقطع منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ءَادَمَ",
+  "grade": "تام",
+  "reason": "«خلقه من تراب» مستأنف",
+  "reported_from": "يعقوب"
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "كُن",
+  "grade": "جائز",
+  "reason": "لاستئناف ما بعده، وما بعد الأمر ليس جوابًا له، وإنما أراد تعالى، فهو يكون",
+  "reported_from": null
+ }
+]

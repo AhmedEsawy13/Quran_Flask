@@ -1,0 +1,156 @@
+[
+ {
+  "ayah": 28,
+  "stop_phrase": "تُقَىٰةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "تُقَىٰةٗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "نَفۡسَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "يَعۡلَمۡهُ ٱللَّهُ",
+  "grade": "كاف",
+  "reason": "لاستئناف ما بعده، وليس معطوفًا على جواب الشرط؛ لأنَّ علمه تعالى بما في السموات وما في الأرض غير متوقف على شرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "لاستئناف ما بعده، وليس معطوفًا على جواب الشرط؛ لأنَّ علمه تعالى بما في السموات وما في الأرض غير متوقف على شرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "قَدِيرٞ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» باذكر مقدرًا مفعولًا به",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "قَدِيرٞ",
+  "grade": "لا",
+  "reason": "إن نصب بـ «يحذركم» الأولى، وكذا إن نصب بـ «المصير»؛ للفصل بين المصدر ومعموله",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مُّحۡضَرٗا",
+  "grade": "تام",
+  "reason": "إن جعلت «ما» مبتدأ، وخبرها «تود»",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مُّحۡضَرٗا",
+  "grade": "لا",
+  "reason": "إن عطف «وما عملت من سوء» على «ما عملت من خير»",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "بَعِيدٗا",
+  "grade": "حسن",
+  "reason": "وكرر التحذير تفخيمًا وتوكيدًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "نَفۡسَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "بٱلۡعِبَادِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "يُغۡفِرۡ لَكُمۡ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ذُنُوبَكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "وَٱلرَّسُولَ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط مع الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "تَوَلَّوۡاْ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب الشرط لم يأتِ بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "عَلَى ٱلۡعَٰلَمِينَ",
+  "grade": "جائز",
+  "reason": "من حيث كونه رأس آية، وليس بمنصوص عليه؛ لأنَّ «ذرية» حال من «اصطفى»، أي: اصطفاهم حال كونهم ذرية بعضها من بعض، أو بدل من «آدم» وما عطف عليه على قول من يطلق الذرية على الآباء والأبناء، فلا يفصل بين الحال وذيها، ولا بين البدل والمبدل منه، فإن نصبت «ذرية» على المدح كان الوقف على «العالمين» كافيًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "بَعۡضٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "على قول أبي عبيدة معمر بن المثنى أن «إذ» زائدة لا موضع لها من الإعراب، والتقدير: عنده قالت امرأة عمران رب إني نذرت؛ على أنه مستأنف",
+  "reported_from": null
+ }
+]

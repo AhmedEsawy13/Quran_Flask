@@ -1,0 +1,219 @@
+[
+ {
+  "ayah": 59,
+  "stop_phrase": "فَيَكُونُ",
+  "grade": "تام",
+  "reason": "انقطع عما قبله، وليس بوقف على قراءة الكسائي من نصب ما بعد الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "الْحَقُّ مِنْ رَبِّكَ",
+  "grade": "جائز",
+  "reason": "أي: الذي أنبأك به في قصة عيسى الحق من ربك، أو هو الحق من ربك، أو أمر عيسى فهو خبر مبتدأ محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "الْمُمْتَرِينَ",
+  "grade": "تام",
+  "reason": "ولا وقف من قوله: «فمن حاجك» إلى «الكاذبين»، فلا يوقف على «من العلم»؛ لأنَّ جواب الشرط لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "الْكَٰذِبِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "الْحَقُّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "إِلَّا اللَّهُ",
+  "grade": "حسن",
+  "reason": "لأنَّ «من إله» مبتدأ، و «من» زائدة، و «إلَّا الله» خبر، أي: ما إله إلَّا الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "الْحَكِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "بِٱلۡمُفۡسِدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "بَيۡنَنَا وَبَيۡنَكُمۡ",
+  "grade": "تام",
+  "reason": "إن رفع ما بعده؛ على أنه خبر مبتدأ محذوف",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "بَيۡنَكُمۡ",
+  "grade": "لا",
+  "reason": "إن جعلت «أن» وما في حيزها في محل رفع بالابتداء، والظرف قبلها خبر، وكذا لا يوقف على «بينكم» إن جعلت «أن» فاعلًا بالظرف قبلها، وكذا لا يوقف عليه إن جر على أنه بدل من كلمة بتقدير: تعالوا إلى كلمة، وإلى «ألَّا نعبد إلَّا الله»؛ لأنَّ ما بعده معطوف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "دُونِ اللَّهِ",
+  "grade": "تام",
+  "reason": "للابتداء بعده بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "مُّسۡلِمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "إِلَّا مِنۢ بَعۡدِهِۦٓ",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "تَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "عِلۡمٞ",
+  "grade": "جائز",
+  "reason": "للاستفهام بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "عِلۡمٞ",
+  "grade": "كاف",
+  "reason": "لاستئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالنفي بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "نَصۡرَانِيّٗا",
+  "grade": "لا",
+  "reason": "لأنَّ «لكن» حرف يقع بين نقيضين، وهما هنا اعتقاد الباطل والحق",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "مُّسۡلِمٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "ٱلۡمُشۡرِكِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ءَامَنُواْ",
+  "grade": "كاف",
+  "reason": "فـ «أولى الناس» في محل نصب اسم «إنَّ»، و «للذين» في محل رفع خبرها، واللام في «للذين» لام التوكيد، و «هذا النبي» عطف على «للذين»، و «الذين آمنوا» في محل رفع بالعطف على «النبي» والوقف على «آمنوا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ٱتَّبَعُوهُ",
+  "grade": "كاف",
+  "reason": "ويبتدأ «وهذا النبي» على الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ءَامَنُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "يُضِلُّونَكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "يَشۡعُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "تَشۡهَدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ءَاخِرَهُۥ",
+  "grade": "لا",
+  "reason": "لحرف الترجي بعده؛ لأنَّ الإنسان يترجى بها شيئًا يصل إليه بسبب من الأسباب",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "يَرۡجِعُونَ",
+  "grade": "صالح",
+  "reason": "لأنَّ ما بعده من جملة الحكاية عن اليهود، وأنَّ الواو بعده للعطف، فإن جعلت للاستئناف كان الوقف على «ترجعون» كافيًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "دِينَكُمۡ",
+  "grade": "تام",
+  "reason": "يبنى الوقف على «هدى الله»، ووصله بما بعده على اختلاف القراء والمعربين، فاللَّقراء في محل «أن يؤتى» خمسة أوجه، وللمعربين فيه تسعة أوجه، والوقف تابع لها في تلك الأوجه",
+  "reported_from": null
+ }
+]

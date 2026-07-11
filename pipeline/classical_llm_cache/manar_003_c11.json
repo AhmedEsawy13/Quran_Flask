@@ -1,0 +1,520 @@
+[
+ {
+  "ayah": 154,
+  "stop_phrase": "بِذَاتِ ٱلصُّدُورِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 155,
+  "stop_phrase": "ٱلۡجَمۡعَانِ",
+  "grade": "لا",
+  "reason": "لأنَّ «إنما» خبر إن",
+  "reported_from": null
+ },
+ {
+  "ayah": 155,
+  "stop_phrase": "مَا كَسَبُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 155,
+  "stop_phrase": "عَفَا ٱللَّهُ عَنۡهُمۡ",
+  "grade": "كاف",
+  "reason": "للابتداء بعدُ بإن",
+  "reported_from": null
+ },
+ {
+  "ayah": 155,
+  "stop_phrase": "حَلِيمٌ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «يا» النداء",
+  "reported_from": null
+ },
+ {
+  "ayah": 156,
+  "stop_phrase": "وَمَا قُتِلُواْ",
+  "grade": "تام",
+  "reason": "لأنه آخر كلام المنافقين، واللام في «ليجعل» متعلقة بمحذوف، أي: لا تكونوا كهؤلاء؛ ليجعل الله ذلك حسرة في قلوبهم دونكم",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 156,
+  "stop_phrase": "وَمَا قُتِلُواْ",
+  "grade": "لا",
+  "reason": "إن علقت بـ «قالوا»، أي: أنهم لم يقولوا لجعل الحسرة، إنما قالوا ذلك لعلة، فصار مآل ذلك إلى الحسرة والندامة",
+  "reported_from": null
+ },
+ {
+  "ayah": 156,
+  "stop_phrase": "فِي قُلُوبِهِمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 156,
+  "stop_phrase": "وَيُمِيتُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 156,
+  "stop_phrase": "بَصِيرٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 157,
+  "stop_phrase": "يَجۡمَعُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 158,
+  "stop_phrase": "تُحۡشَرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "لِنتَ لَهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "مِنۡ حَوۡلِكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "فِي ٱلۡأَمۡرِ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "عَلَى ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "ٱلۡمُتَوَكِّلِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "فَلَا غَالِبَ لَكُمۡ",
+  "grade": "تام",
+  "reason": "للابتداء بعده بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "مِّنۢ بَعۡدِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "ٱلۡمُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "أَن يَغُلَّ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "يَوۡمَ ٱلۡقِيَٰمَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "لَا يُظۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 162,
+  "stop_phrase": "وَمَأۡوَىٰهُ جَهَنَّمُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 162,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "عِندَ ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "بِمَا يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "عَلَى ٱلۡمُؤۡمِنِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ العامل في «إذ منَّ» بتقدير: لمن منَّ الله على المؤمنين منه أو بعثه، فبعثه مبتدأ، ومحل الظرف خبر",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "مُّبِينٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "مِّثۡلَيۡهَا",
+  "grade": "لا",
+  "reason": "لأنَّ الاستفهام الإنكاري دخل على «قلتم»، أي: أقلتم أنى هذا لما أصابتكم مصيبة",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "أَنَّىٰ هَٰذَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "مِنۡ عِندِ أَنفُسِكُمۡ",
+  "grade": "كاف",
+  "reason": "للابتداء بإن",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "ٱلۡجَمۡعَانِ",
+  "grade": "لا",
+  "reason": "لأنَّ اللام في «وليعلم المؤمنين» من تمام خبر المبتدأ الذي هو «وما أصابكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "فَبِإِذۡنِ ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأنَّ اللام في «وليعلم المؤمنين» من تمام خبر المبتدأ الذي هو «وما أصابكم»؛ لأنَّ «ما» بمعنى: الذي، وهي مبتدأ، وخبرها «فبإذن الله»، وقوله: «وليعلم المؤمنين» عطف على «فبإذن الله» من جهة المعنى",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "لا",
+  "reason": "إذا كان «وليعلم المؤمنين» من جملة الخبر لم يفصل بينه وبين المبتدأ، أي: فلا يوقف على «فبإذن الله»، ولا «على المؤمنين»، ولا على «نافقوا»؛ لما ذكره",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "نَافَقُواْ",
+  "grade": "لا",
+  "reason": "إذا كان «وليعلم المؤمنين» من جملة الخبر لم يفصل بينه وبين المبتدأ، أي: فلا يوقف على «فبإذن الله»، ولا «على المؤمنين»، ولا على «نافقوا»؛ لما ذكره",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "أَوِ ٱدۡفَعُواْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "لَّٱتَّبَعۡنَٰكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "لِّلۡإِيمَٰنِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "فِي قُلُوبِهِمۡ",
+  "grade": "كاف",
+  "reason": "إن رفع ما بعده خبر مبتدأ محذوف، أو جعل في موضع رفع بالابتداء، وما بعده الخبر، أو في موضع نصب بإضمار أعني",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "فِي قُلُوبِهِمۡ",
+  "grade": "لا",
+  "reason": "إن نصب ذلك بدلًا من «الذين نافقوا»، أو جعل في موضع رفع بدلًا من الضمير في «يكتمون»، أو جعل نعتًا لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "يَكۡتُمُونَ",
+  "grade": "كاف",
+  "reason": "إن رفع ما بعده خبر مبتدأ محذوف، أو جعل في موضع رفع بالابتداء، وما بعده الخبر، أو في موضع نصب بإضمار أعني",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "يَكۡتُمُونَ",
+  "grade": "لا",
+  "reason": "إن نصب ذلك بدلًا من «الذين نافقوا»، أو جعل في موضع رفع بدلًا من الضمير في «يكتمون»، أو جعل نعتًا لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 168,
+  "stop_phrase": "وَقَعَدُواْ",
+  "grade": "لا",
+  "reason": "لأنَّ «لو أطاعونا ما قتلوا» معمول «قالوا»، والتقدير: قالوا لإخوانهم: لو أطاعونا ما قتلوا وقعدوا عن القتال؛ على التقديم والتأخير",
+  "reported_from": null
+ },
+ {
+  "ayah": 168,
+  "stop_phrase": "مَا قُتِلُواْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 168,
+  "stop_phrase": "صَٰدِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "أَمۡوَٰتَۢا",
+  "grade": "كاف",
+  "reason": "لأنَّ «بل» بعد «أمواتًا» ليست عاطفة، ولو كانت عاطفة لاختل المعنى، وتقدير الكلام: بل هم أحياء، وهو عطف جملة على جملة، وهو في حكم الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "أَمۡوَٰتَۢا",
+  "grade": "تام",
+  "reason": "لأنَّ «بل» بعد «أمواتًا» ليست عاطفة، ولو كانت عاطفة لاختل المعنى، وتقدير الكلام: بل هم أحياء، وهو عطف جملة على جملة، وهو في حكم الاستئناف",
+  "reported_from": "محمد بن عيسى"
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "بَلۡ أَحۡيَآءٌ",
+  "grade": "جائز",
+  "reason": "إن جعل «عند ربهم» ظرفًا لـ «يرزقون»، كأنه قال: يرزقون عند ربهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "بَلۡ أَحۡيَآءٌ",
+  "grade": "لا",
+  "reason": "إن جعل ذلك ظرفًا لقوله: «أحياء»، كأنه قال: بل هم عند ربهم أحياء؛ لأنَّ فيه الفصل بين الظرف وما عمل فيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "يُرۡزَقُونَ",
+  "grade": "جائز",
+  "reason": "لكونه رأس آية، وليس بجيد؛ لأنَّ «فرحين» حال من فاعل «يرزقون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "مِن فَضۡلِهِۦ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "مِّنۡ خَلۡفِهِمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ أن وما بعدها في تأويل مصدر مجرور؛ على أنه بدل اشتمال من «الذين»، فلا يفصل بين البدل والمبدل منه بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "يَحۡزَنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَفَضۡلٖ",
+  "grade": "تام",
+  "reason": "على قراءة من كسر همزة «إنَّ» على الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَفَضۡلٖ",
+  "grade": "لا",
+  "reason": "على قراءة من فتحها؛ عطفًا على ما قبلها، والتقدير: يستبشرون بنعمة من الله وفضل، وبأنَّ الله لا يضيع",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "أَجۡرَ ٱلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "إن رفع «الذين» بالابتداء، وما بعده الخبر، أو رفع خبر مبتدأ محذوف، أي: هم الذين استجابوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "أَجۡرَ ٱلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "إن نصب على المدح، بتقدير: أعني",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "أَجۡرَ ٱلۡمُؤۡمِنِينَ",
+  "grade": "لا",
+  "reason": "إن جر نعت المؤمنين، أو بدلًا منهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "أَصَابَهُمُ ٱلۡقَرۡحُ",
+  "grade": "حسن",
+  "reason": "إن جعل «الذين استجابوا» نعت المؤمنين، أو نصب على المدح",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "أَصَابَهُمُ ٱلۡقَرۡحُ",
+  "grade": "لا",
+  "reason": "إن جعل ذلك مبتدأ، و «للذين أحسنوا منهم واتقوا» خبرًا؛ لأنه لا يفصل بين المبتدأ والخبر بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "أَجۡرٌ عَظِيمٌ",
+  "grade": "تام",
+  "reason": "على أنَّ ما بعده مبتدأ، وخبر مبتدأ محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "أَجۡرٌ عَظِيمٌ",
+  "grade": "لا",
+  "reason": "إن جعل ذلك بدلًا من «الذين استجابوا» قبله، ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "فَٱخۡشَوۡهُمۡ",
+  "grade": "جائز",
+  "reason": "لأنَّ هذا عطف جملة على جملة، وهو في حكم الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "إِيمَٰنٗا",
+  "grade": "جائز",
+  "reason": "لأنَّ هذا عطف جملة على جملة، وهو في حكم الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "ٱلۡوَكِيلُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "وَفَضۡلٖ",
+  "grade": "لا",
+  "reason": "لأنَّ «لم يمسسهم سوء» في موضع الحال تقديره: فانقلبوا سالمين لم يمسهم سوء",
+  "reported_from": null
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "لَمۡ يَمۡسَسۡهُمۡ سُوٓءٞ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "رِضۡوَٰنَ ٱللَّهِ",
+  "grade": "تام",
+  "reason": "أتم من الوقف على لم يمسسهم سوء",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "عَظِيمٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 175,
+  "stop_phrase": "يُخَوِّفُ أَوۡلِيَآءَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 175,
+  "stop_phrase": "يُخَوِّفُ أَوۡلِيَآءَهُۥ",
+  "grade": "تام",
+  "reason": "لأنَّ المعنى: يخوف الناس أولياءه، أو يخوفونكم أولياءه، أو بأوليائه",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 175,
+  "stop_phrase": "فَلَا تَخَافُوهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "غيره"
+ }
+]
