@@ -244,7 +244,8 @@ def call_gemini_api(book, surah, name, prose, verses):
     resp = client.models.generate_content(
         model=GEMINI_MODEL, contents=user,
         config=types.GenerateContentConfig(
-            system_instruction=system, response_mime_type='application/json'))
+            system_instruction=system, response_mime_type='application/json',
+            max_output_tokens=8192))
     return parse_json_array(resp.text or '[]')
 
 
@@ -259,14 +260,56 @@ def call_api(provider, book, surah, name, prose, verses):
 
 
 def parse_json_array(text):
-    text = text.strip()
+    text = (text or '').strip()
     if text.startswith('```'):
         text = re.sub(r'^```(?:json)?|```$', '', text, flags=re.M).strip()
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        m = re.search(r'\[.*\]', text, re.S)
-        return json.loads(m.group(0)) if m else []
+        pass
+    m = re.search(r'\[.*\]', text, re.S)
+    if m:
+        try:
+            return json.loads(m.group(0))
+        except json.JSONDecodeError:
+            pass
+    # Salvage path: seen even with Gemini's response_mime_type='application/json'
+    # and finish_reason=STOP (not MAX_TOKENS) — the response is a syntactically
+    # complete array of objects except the FINAL closing "]" is simply missing.
+    # Rather than discard an entire surah's extraction over one dropped
+    # character, walk the text with a bracket-depth/string-aware scanner and
+    # keep every top-level {...} object that parses on its own; a genuinely
+    # truncated LAST object (cut off mid-field) is silently dropped, not kept
+    # half-formed — align_stops()'s validation gate would reject it anyway.
+    return _salvage_json_objects(text)
+
+
+def _salvage_json_objects(text):
+    objs, depth, start, in_str, esc = [], 0, None, False, False
+    for i, c in enumerate(text):
+        if in_str:
+            if esc:
+                esc = False
+            elif c == '\\':
+                esc = True
+            elif c == '"':
+                in_str = False
+            continue
+        if c == '"':
+            in_str = True
+        elif c == '{':
+            if depth == 0:
+                start = i
+            depth += 1
+        elif c == '}':
+            depth -= 1
+            if depth == 0 and start is not None:
+                try:
+                    objs.append(json.loads(text[start:i + 1]))
+                except json.JSONDecodeError:
+                    pass
+                start = None
+    return objs
 
 
 # ── deterministic align + validate (the anti-hallucination gate) ─────────────
@@ -337,7 +380,7 @@ def main():
     only = set(int(x) for x in args.surahs.split(',')) if args.surahs else None
     tag = args.source_tag or f'{args.book}_llm'
 
-    all_rows, totals = [], {'in': 0, 'bad_grade': 0, 'bad_ayah': 0, 'unaligned': 0, 'ok': 0, 'surahs': 0, 'missing': 0}
+    all_rows, totals = [], {'in': 0, 'bad_grade': 0, 'bad_ayah': 0, 'unaligned': 0, 'ok': 0, 'surahs': 0, 'missing': 0, 'failed': 0}
     for surah, name, prose in surah_blocks(args.book):
         if only and surah not in only:
             continue
@@ -346,7 +389,14 @@ def main():
         if stops is None:
             if args.api:
                 print(f'  · surah {surah:3} — calling {args.provider}…', flush=True)
-                stops = call_api(args.provider, args.book, surah, name, prose, verses)
+                try:
+                    stops = call_api(args.provider, args.book, surah, name, prose, verses)
+                except Exception as e:
+                    # One flaky call must not abort a 100+-surah run — leave this
+                    # surah UNCACHED so the next invocation retries just it.
+                    print(f'  surah {surah:3} {name[:22]:22}  FAILED: {e} — left uncached, will retry next run')
+                    totals['failed'] += 1
+                    continue
             else:
                 totals['missing'] += 1
                 continue
@@ -359,7 +409,8 @@ def main():
         print(f'  surah {surah:3} {name[:22]:22}  stops {st["in"]:3} → confident {st["ok"]:3}'
               f'  (with علّة {with_reason:3})  [reject: grade {st["bad_grade"]}, ayah {st["bad_ayah"]}, unaligned {st["unaligned"]}]')
 
-    print(f'\n{args.book}: {totals["surahs"]} surahs processed, {totals["missing"]} not cached (skipped).')
+    print(f'\n{args.book}: {totals["surahs"]} surahs processed, {totals["missing"]} not cached (skipped), '
+          f'{totals["failed"]} API call(s) failed (re-run to retry just those).')
     print(f'  {totals["in"]} raw stops → {totals["ok"]} confident rows '
           f'({totals["unaligned"]} rejected as unaligned, {totals["bad_grade"]} bad grade, {totals["bad_ayah"]} bad ayah).')
     with_reason = sum(1 for r in all_rows if len((r[8] or '').strip()) >= 18)
