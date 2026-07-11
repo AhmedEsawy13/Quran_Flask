@@ -30,8 +30,12 @@ shipped book is not touched until you approve the diff.
 Run (pilot, منار only):
     # 1. no key needed — replays cached responses (e.g. the inline-verified surahs):
     python3 pipeline/build_classical_llm.py --book manar
-    # 2. full run — needs an API key; caches each surah so it's resumable & re-runs are free:
-    ANTHROPIC_API_KEY=sk-... python3 pipeline/build_classical_llm.py --book manar --api
+    # 2. full run — needs an API key; caches each surah so it's resumable & re-runs are free.
+    #    Put the key in a project-root .env file (already gitignored) — NEVER paste a key
+    #    into a chat/terminal command that gets logged. .env is auto-loaded if present:
+    #        ANTHROPIC_API_KEY=sk-...     # for --provider anthropic (default)
+    #        GEMINI_API_KEY=...           # for --provider gemini
+    python3 pipeline/build_classical_llm.py --book manar --api --provider gemini
     # limit to specific surahs:  --surahs 1,103,108,112,113,114
     # write into the DB (default is dry / stats-only):  --write
 """
@@ -44,6 +48,12 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 
+try:
+    from dotenv import load_dotenv                        # optional: auto-load a local .env
+    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), '.env'))
+except ImportError:
+    pass
+
 # Reuse the vetted helpers from the regex builder (grades, normalisation, the
 # per-ayah phrase→wpos aligner, source loading, surah-title resolution).
 import build_classical_waqf as rx  # noqa: E402
@@ -55,7 +65,8 @@ SHIPPED_DB = rx.OUT_DB
 # live, unfiltered by source) is never touched with unreviewed rows. Point --db at
 # the shipped db only once the extraction is approved for release.
 PILOT_DB = os.path.join(app._BASE_DIR, 'data', 'classical_waqf_llm.db')
-MODEL = os.environ.get('CLASSICAL_LLM_MODEL', 'claude-sonnet-5')
+ANTHROPIC_MODEL = os.environ.get('CLASSICAL_LLM_MODEL', 'claude-sonnet-5')
+GEMINI_MODEL = os.environ.get('CLASSICAL_LLM_GEMINI_MODEL', 'gemini-2.5-flash')
 
 _SCHEMA = ('CREATE TABLE IF NOT EXISTS classical ('
            'id INTEGER PRIMARY KEY, source TEXT NOT NULL, surah INTEGER NOT NULL, '
@@ -214,15 +225,34 @@ def load_cached(book, surah):
     return None
 
 
-def call_api(book, surah, name, prose, verses):
+def call_anthropic_api(book, surah, name, prose, verses):
     import anthropic                                       # lazy: only needed for --api
     system, user = build_messages(book, surah, name, prose, verses)
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic()                         # reads ANTHROPIC_API_KEY from env
     msg = client.messages.create(
-        model=MODEL, max_tokens=8192, system=system,
+        model=ANTHROPIC_MODEL, max_tokens=8192, system=system,
         messages=[{'role': 'user', 'content': user}])
     text = ''.join(b.text for b in msg.content if getattr(b, 'type', '') == 'text')
-    stops = parse_json_array(text)
+    return parse_json_array(text)
+
+
+def call_gemini_api(book, surah, name, prose, verses):
+    from google import genai                               # lazy: pip install google-genai
+    from google.genai import types
+    system, user = build_messages(book, surah, name, prose, verses)
+    client = genai.Client()                                # reads GEMINI_API_KEY from env
+    resp = client.models.generate_content(
+        model=GEMINI_MODEL, contents=user,
+        config=types.GenerateContentConfig(
+            system_instruction=system, response_mime_type='application/json'))
+    return parse_json_array(resp.text or '[]')
+
+
+_PROVIDERS = {'anthropic': call_anthropic_api, 'gemini': call_gemini_api}
+
+
+def call_api(provider, book, surah, name, prose, verses):
+    stops = _PROVIDERS[provider](book, surah, name, prose, verses)
     os.makedirs(CACHE_DIR, exist_ok=True)
     json.dump(stops, open(cache_path(book, surah), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     return stops
@@ -282,7 +312,10 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--book', default='manar', choices=list(rx.SOURCES))
     ap.add_argument('--surahs', help='comma list to limit (e.g. 1,103,112); default all')
-    ap.add_argument('--api', action='store_true', help='call the Claude API for surahs not cached')
+    ap.add_argument('--api', action='store_true', help='call the LLM API for surahs not cached')
+    ap.add_argument('--provider', default='anthropic', choices=list(_PROVIDERS),
+                    help='which API to call with --api (needs ANTHROPIC_API_KEY or GEMINI_API_KEY '
+                         'set — e.g. in a project-root .env file, auto-loaded)')
     ap.add_argument('--write', action='store_true', help='store rows in the db (else dry / stats-only)')
     ap.add_argument('--source-tag', default=None, help='DB source column value (default <book>_llm)')
     ap.add_argument('--db', default=PILOT_DB,
@@ -312,8 +345,8 @@ def main():
         stops = load_cached(args.book, surah)
         if stops is None:
             if args.api:
-                print(f'  · surah {surah:3} — calling API…', flush=True)
-                stops = call_api(args.book, surah, name, prose, verses)
+                print(f'  · surah {surah:3} — calling {args.provider}…', flush=True)
+                stops = call_api(args.provider, args.book, surah, name, prose, verses)
             else:
                 totals['missing'] += 1
                 continue

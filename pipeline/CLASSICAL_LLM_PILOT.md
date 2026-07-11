@@ -65,16 +65,35 @@ markdown — unaffected.
 
 ## Run the full منار build (needs an API key)
 
-```bash
-# resumable + cached per surah, so re-runs are free and a crash just continues:
-ANTHROPIC_API_KEY=sk-... python3 pipeline/build_classical_llm.py --book manar --api --write
+**Never paste an API key into a chat or a shell one-liner — it ends up sitting in
+plain text in terminal history / conversation logs.** Put it in a `.env` file in
+the project root instead (already gitignored, never committed); the script
+auto-loads it via `python-dotenv`:
+
+```
+# .env  (create this file yourself; it's already in .gitignore)
+GEMINI_API_KEY=your-key-here
+# or: ANTHROPIC_API_KEY=your-key-here
 ```
 
+Then:
+```bash
+pip install -r requirements-dev.txt   # installs anthropic, google-genai, python-dotenv
+python3 pipeline/build_classical_llm.py --book manar --api --provider gemini --write
+```
+
+- `--provider anthropic` (default) or `--provider gemini` — picks which SDK/env var
+  it reads. `CLASSICAL_LLM_MODEL` / `CLASSICAL_LLM_GEMINI_MODEL` override the model
+  (default `claude-sonnet-5` / `gemini-2.5-flash` — override if your account uses a
+  different Gemini flash version).
+- Resumable and re-run-free: each surah's response is cached to
+  `pipeline/classical_llm_cache/manar_NNN.json` as soon as it's extracted, so a
+  crash or a stopped run just continues where it left off next time; delete a file
+  to force re-extraction of that surah.
 - Writes to the **pilot db** `data/classical_waqf_llm.db` (NOT the shipped
   `classical_waqf.db`), under `source=manar_llm`, so nothing changes live yet.
-- `--surahs 1,2,3` limits the run. `CLASSICAL_LLM_MODEL=…` overrides the model.
-- Cached surahs (`pipeline/classical_llm_cache/manar_NNN.json`) are reused; delete a
-  file to force re-extraction of that surah.
+- `--surahs 1,2,3` limits a run to specific surahs (useful for a first small batch
+  to sanity-check quality before committing to all 104 remaining).
 
 ## Review before releasing
 

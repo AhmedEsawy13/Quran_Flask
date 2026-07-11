@@ -2,3 +2,9 @@
 # Install with:  pip install -r requirements-dev.txt
 -r requirements.txt
 pytest>=8.0
+
+# pipeline/build_classical_llm.py --api only (classical waqf AI re-extraction).
+# Pick whichever provider you're using — only the one you call needs installing.
+anthropic>=0.40.0     # --provider anthropic (default)
+google-genai>=0.3.0   # --provider gemini
+python-dotenv>=1.0.0  # auto-loads ANTHROPIC_API_KEY / GEMINI_API_KEY from a local .env
