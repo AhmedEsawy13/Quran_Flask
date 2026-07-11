@@ -1,0 +1,331 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "مِّنَ ٱلۡمُشۡرِكِينَ",
+  "grade": "كاف",
+  "reason": "رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "غَيۡرُ مُعۡجِزِي ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لعطف «وأنَّ الله» على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "إن لم يعطف «وأذان» على «براءة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلۡأَكۡبَرِ",
+  "grade": "حسن",
+  "reason": "على قراءة الحسن البصري : «إنَّ الله» بكسر الهمزة على إضمار القول، وليس بوقف لمن فتحها على تقدير: بأن؛ لأنَّ «أن» متعلقة بما قبلها، وموضعها إما نصب أو جر، وهي قراءة الجماعة",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "وَرَسُولُهُۥ",
+  "grade": "كاف",
+  "reason": "إن رفع «ورسوله» عطفًا على مدخول «إن» قبل دخولها؛ إذ هو قبلها رفع على الابتداء، أو رفع عطفًا على الضمير المستكن في «بريء»، أي: بريء هو ورسوله، وإن رفع على الابتداء، والخبر محذوف تقديره: ورسوله بريء منهم، وحذف الخبر؛ لدلالة ما قبله عليه، فعليه يحسن الوقف على «المشركين»، ولا يحسن على «ورسوله»، وقد اجتمع القراء على رفع «ورسولَه» إلَّا عيسى بن عمر، وابن أبي إسحاق ؛ فإنَّهما كانا ينصبان، فعلى مذهبهما يحسن الوقف على «ورسوله»، ولا يحسن على «المشركين»؛ لأنَّ «ورسوله» عطف على لفظ الجلالة، أو على أنَّه مفعول معه",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "خَيۡرٞ لَّكُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "غَيۡرُ مُعۡجِزِي ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "أَلِيمٍ",
+  "grade": "لا",
+  "reason": "للاستثناء بعده، وقيل: يجوز بجعل «إلَّا» بمعنى: الواو، ويبتدأ بها، ويسند إليها",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "إِلَىٰ مُدَّتِهِمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "مَرۡصَدٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "سَبِيلَهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "مَأۡمَنَهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلۡحَرَامِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "فَٱسۡتَقِيمُواْ لَهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ذِمَّةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "قُلُوبُهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "فَٰسِقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "سَبِيلِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ذِمَّةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡمُعۡتَدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلۡكُفۡرِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "يَنتَهُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مَرَّةٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "أَتَخۡشَوۡنَهُمۡ",
+  "grade": "جائز",
+  "reason": "لأنَّ اسم الله مبتدأ مع الفاء، وخبره «أحق»، أو «أن تخشوه» مبتدأ، و «أحق» خبره قُدِّم عليه، والجملة خبر الأول",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "قُلُوبِهِمۡ",
+  "grade": "حسن",
+  "reason": "على القراءة المتواترة برفع : «يتوبُ» مستأنفًا، وليس بوقف على قراءة ابن أبي إسحاق : «ويتوبَ» بالنصب، على إضمار: (أن) وجوبًا؛ للأمر بالواو، فيكون القتال سببًا للتوبة",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "يَشَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "وَلِيجَةٗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "بِٱلۡكُفۡرِ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، أي: ما كان لهم أن يعمروه في حال إقرارهم بالكفر، وليس بوقف إن جعل ما بعده جملة في موضع الحال من قوله: «للمشركين»، وعليه فلا يوقف على «بالكفر»، ولا على «أعمالهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡمُهۡتَدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "عِندَ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "لانقطاع ما بعده عما قبله لفظًا ومعنى",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "عِندَ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلۡفَآئِزُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "وَجَنَّٰتٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ }
+]

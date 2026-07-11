@@ -1,0 +1,471 @@
+[
+ {
+  "ayah": 94,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "لِتُعۡرِضُواْ عَنۡهُمۡۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "فَأَعۡرِضُواْ عَنۡهُمۡۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "رِجۡسٞۖ",
+  "grade": "جائز",
+  "reason": "لأنَّ ما بعده منصوب بما قبله في المعنى؛ لأنَّه إما مفعول له، أو مفعول لمحذوف، أي: يجزون جزاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "لِتَرۡضَوۡاْ عَنۡهُمۡۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "ٱلۡفَٰسِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "رَسُولِهِۦۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "ٱلدَّوَآئِرَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "ٱلسَّوۡءِۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "عَلِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "ٱلرَّسُولِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "لَّهُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "رَحۡمَتِهِۦٓۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "بِإِحۡسَٰنٖ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «رضي الله عنهم» خبر «والسابقون»، فلا يفصل بين المبتدأ والخبر بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "وَرَضُواْ عَنۡهُ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "أَبَدٗاۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "ٱلۡعَظِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "مُنَٰفِقُونَۖ",
+  "grade": "كاف",
+  "reason": "إن جعل «وممن حولكم» خبرًا مقدمًا، و «منافقون» مبتدأ مؤخرًا، و «من الإعراب»؛ لبيان الجنس، أو جعل «ومن أهل المدينة» خبرًا مقدمًا، والمبتدأ بعده محذوفًا -قامت صفته مقامه، والتقدير: ومن أهل المدينة قوم مردوا على النفاق، ويجوز حذف هذا المبتدأ الموصوف بالفعل، ويكون الموصوف بالتمرد منافقو المدينة، ويكون من عطف المفردات إذا عطفت خبرًا على خبر، وليس بوقف إن جعلت «مردوا» جملة في موضع النعت لقوله: «منافقون»، أي: وممن حولكم من الأعراب منافقون مردوا على النفاق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "ٱلۡمَدِينَةِ",
+  "grade": "جائز",
+  "reason": "والأولى وصله بما بعده؛ لتعلقه به.",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "تَعۡلَمُهُمۡۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "نَعۡلَمُهُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "عَظِيمٖ",
+  "grade": "تام",
+  "reason": "وقيل: كاف؛ لأنَّ قوله: «وآخرون» معطوف على قوله: «منافقون» إن وقف على «المدينة»، ومن لم يقف كان معطوفًا على قوم المقدر، أو خبر مبتدأ محذوف، أي: ومنهم آخرون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "سَيِّئًا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "عَلَيۡهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "عَلَيۡهِمۡۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "لَّهُمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "وَٱلۡمُؤۡمِنُونَۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "وما بعده عطف على الأول، أي: ومنهم آخرون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "عَلَيۡهِمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "حَكِيمٞ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وهو مبتدأ محذوف الخبر، تقديره: منهم، أو فيما يتلى عليكم، أو فيما يقص عليكم؛ على قراءة من قرأ: «والذين» بغير واو، وبالواو عطفًا على ما قبله؛ لأنَّه عطف جملة على جملة، فكأنّه استئناف كلام على آخر، وليس بوقف على قراءة نافع، وابن عامر بغير واو، وإن أعرب بدلًا من قوله: «وآخرون مرجون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "قَبۡلُۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "ٱلۡحُسۡنَىٰۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "لَكَٰذِبُونَ",
+  "grade": "تام",
+  "reason": "إن لم تجعل «لا تقم فيه أبدًا» خبر قوله: «والذين اتخذوا»، وليس وقفًا إن جعل «الذين» مبتدأ، وخبره «لا يزال بنيانهم»، فلا يوقف عليه، ولا على شيء قبل الخبر، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "أَبَدٗاۚ",
+  "grade": "حسن",
+  "reason": "للابتداء بلام الابتداء، أو جواب قسم محذوف، وعلى التقديرين يكون «لمسجد» مبتدأ، و «أسس» في محل رفع نعتًا له، و «أحق» خبره، ونائب الفاعل ضمير «المسجد» على حذف مضاف، أي: أسس بنيانه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "تَقُومَ فِيهِۚ",
+  "grade": "حسن",
+  "reason": "إن جعل «فيه» الثانية خبرًا مقدمًا، و «رجال» مبتدأ مؤخر، وليس وقفًا إن جعل صفة «لمسجد»، و «رجال» فاعل بها، وهو أولى من حيث إنَّ الوصف بالمفرد أصل، والجار قريب من المفرد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "يَتَطَهَّرُواْۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "ٱلۡمُطَّهِّرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "خَيۡرٌ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "جَهَنَّمَۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "على أنَّ قوله: «لا تقم فيه أبدًا» خبر «الذين»، أو على تقدير: ومنهم الذين، فإن جعلت «لا يزال» خبر «الذين» -فلا يتم الوقف على «الظالمين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "قُلُوبِهِمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "ٱلۡجَنَّةَۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "وَٱلۡقُرۡءَانِۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بعدُ بالشرط، والاستفهام التقريري، أي: لا أحد أوفى بعهده من الله تعالى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "بَايَعۡتُم بِهِۦۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "ٱلۡعَظِيمُ",
+  "grade": "تام",
+  "reason": "إن رفع ما بعده على الاستئناف، أو نصب على المدح، وليس بوقف إن جر بدلًا من «المؤمنين»، ومن حيث كونه رأس آية يجوز، ولا وقف من قوله: «التائبون» إلى «لحدود الله»، ولم يأت بعاطف بين هذه الأوصاف؛ لمناسبتها لبعضها إلَّا في صفة الأمر بالمعروف والنهي عن المنكر؛ لتباين ما بينهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "لِحُدُودِ ٱللَّهِۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 113,
+  "stop_phrase": "ٱلۡجَحِيمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "وَعَدَهَآ إِيَّاهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "تَبَرَّأَ مِنۡهُۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "حَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "يَتَّقُونَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "وَٱلۡأَرۡضِۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "وَيُمِيتُۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "نَصِيرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "فَرِيقٖ مِّنۡهُمۡ",
+  "grade": "جائز",
+  "reason": "والأولى وصله؛ لتنوع توبة التائبين، والتوبة تشعر بذنب، وأما النبي فملازم للترقي، فتوبته رجوع من طاعة إلى أكمل منها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "عَلَيۡهِمۡۚ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على قوله: «والأنصار»، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على قوله: «والأنصار»، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "خُلِّفُواْ",
+  "grade": "جائز",
+  "reason": "لأنَّ المعنى: لقد تاب الله على النبيِّ وعلى الثلاثة، ويرتقي لدرجة الحسن بهذا التقدير.",
+  "reported_from": null
+ }
+]

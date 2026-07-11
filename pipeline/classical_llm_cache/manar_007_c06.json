@@ -1,0 +1,338 @@
+[
+ {
+  "ayah": 185,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 186,
+  "stop_phrase": "فَلَا هَادِيَ لَهُۥ",
+  "grade": "كاف",
+  "reason": "على قراءة: «ونذرُهم» بالنون والرفع على الاستفهام؛ لأنَّه منقطع عنه، وبها قرأ ابن كثير، وابن عامر، ونافع ، وليس بوقف لمن قرأ : «ويذرْهم» بالياء والجزم؛ لأنَّه معطوف على موضع الفاء، وذلك أنَّ موضعها جزم؛ لأنَّها جواب الشرط، وجوابه مجزوم",
+  "reported_from": null
+ },
+ {
+  "ayah": 186,
+  "stop_phrase": "يَعۡمَهُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "مُرۡسَىٰهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "عِندَ رَبِّي",
+  "grade": "جائز",
+  "reason": "لاختلاف الجملتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "كاف",
+  "reason": "عند أبي عمرو، وعند نافع: تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "إِلَّا بَغۡتَةٗ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "حَفِيٌّ عَنۡهَا",
+  "grade": "كاف",
+  "reason": "للأمر بعده، أي: عالم، ومعتن بها، وبالسؤال عنها",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "عِندَ ٱللَّهِ",
+  "grade": "لا",
+  "reason": "الأولى وصله؛ للاستدراك بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "لَا يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 188,
+  "stop_phrase": "إِلَّا مَا شَآءَ ٱللَّهُ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 188,
+  "stop_phrase": "مِنَ ٱلۡخَيۡرِ",
+  "grade": "لا",
+  "reason": "لعطف «وما مسني السوء» على جواب «لو»",
+  "reported_from": null
+ },
+ {
+  "ayah": 188,
+  "stop_phrase": "ٱلسُّوٓءُ",
+  "grade": "تام",
+  "reason": "إن فسر «السوء» بالجنون الذي نسبوه إليه، فكان ابتداء بنفي بعد وقف، أي: ما بي جنون إن أنا إلَّا نذير وبشير لقوم يؤمنون، أو المعنى: لو علمت الغيب من أمر القحط لاستكثرت من الطعام، وما مسني الجوع، والأولى أن يحمل السوء على الجنون الذي نسبوه إليه",
+  "reported_from": null
+ },
+ {
+  "ayah": 188,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "إِلَيۡهَا",
+  "grade": "حسن",
+  "reason": "ومثله «فمرت به»",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "بِهِۦ",
+  "grade": "حسن",
+  "reason": "موافق لقوله: ومثله «فمرت به»",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "ٱلشَّٰكِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 190,
+  "stop_phrase": "ءَاتَىٰهُمَا",
+  "grade": "كاف",
+  "reason": "لانقضاء قصة آدم وحواء -عليهما السلام-، وما بعده تخلص إلى قصة العرب وإشراكهم، ولو كانت القصة واحدة لقال عما يشركون، كقوله: {دَعَوَا اللَّهَ رَبَّهُمَا}",
+  "reported_from": null
+ },
+ {
+  "ayah": 190,
+  "stop_phrase": "يُشۡرِكُونَ",
+  "grade": "كاف",
+  "reason": "ومثله «يخلقون»، و «ينصرون»، و «لا يتْبعوكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 191,
+  "stop_phrase": "يُخۡلَقُونَ",
+  "grade": "كاف",
+  "reason": "لأنه مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 192,
+  "stop_phrase": "يَنصُرُونَ",
+  "grade": "كاف",
+  "reason": "لأنه مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 193,
+  "stop_phrase": "يَتَّبِعُوكُمۡ",
+  "grade": "كاف",
+  "reason": "لأنه مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 193,
+  "stop_phrase": "صَٰمِتُونَ",
+  "grade": "تام",
+  "reason": "ومثله «أمثالكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 194,
+  "stop_phrase": "أَمۡثَالُكُمۡ",
+  "grade": "تام",
+  "reason": "لأنه مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 194,
+  "stop_phrase": "صَٰدِقِينَ",
+  "grade": "كاف",
+  "reason": "وكذا «بها» الأخيرة [آية 195]، وفي المواضع الثلاثة لا يجوز الوقف؛ لأنَّ «أم» عاطفة، والمعنى: يقتضي الوصل؛ لأنَّ الاستفهام قد يحمل على الابتداء به",
+  "reported_from": null
+ },
+ {
+  "ayah": 195,
+  "stop_phrase": "بِهَا",
+  "grade": "لا",
+  "reason": "لا يجوز الوقف؛ لأنَّ «أم» عاطفة، والمعنى: يقتضي الوصل؛ لأنَّ الاستفهام قد يحمل على الابتداء به",
+  "reported_from": null
+ },
+ {
+  "ayah": 195,
+  "stop_phrase": "تُنظِرُونِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلۡكِتَٰبَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلصَّٰلِحِينَ",
+  "grade": "تام",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "يَنصُرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "يَسۡمَعُواْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "يُبۡصِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 199,
+  "stop_phrase": "ٱلۡجَٰهِلِينَ",
+  "grade": "كاف",
+  "reason": "ومثله «بالله» [آية 200]",
+  "reported_from": null
+ },
+ {
+  "ayah": 200,
+  "stop_phrase": "بِٱللَّهِ",
+  "grade": "كاف",
+  "reason": "لأنه مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 200,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 201,
+  "stop_phrase": "مُبۡصِرُونَ",
+  "grade": "كاف",
+  "reason": "لأنَّ «وإخوانهم» مبتدأ، و «يمدونهم» خبر",
+  "reported_from": null
+ },
+ {
+  "ayah": 202,
+  "stop_phrase": "يُقۡصِرُونَ",
+  "grade": "كاف",
+  "reason": "ومثله «اجتبيتها» [آية 203]، وكذا «من ربي» [آية 203]",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "ٱجۡتَبَيۡتَهَا",
+  "grade": "كاف",
+  "reason": "لأنه مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "رَّبِّي",
+  "grade": "كاف",
+  "reason": "لأنه مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "وَرَحۡمَةٌ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لتعلق ما بعده بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 204,
+  "stop_phrase": "وَأَنصِتُواْ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لحرف الترجي بعده، وتعلقه كتعلق (لام كي)",
+  "reported_from": null
+ },
+ {
+  "ayah": 204,
+  "stop_phrase": "تُرۡحَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 205,
+  "stop_phrase": "وَٱلۡأٓصَالِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 205,
+  "stop_phrase": "ٱلۡغَٰفِلِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 206,
+  "stop_phrase": "وَيُسَبِّحُونَهُۥ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 206,
+  "stop_phrase": "يَسۡجُدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

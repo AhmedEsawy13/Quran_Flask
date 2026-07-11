@@ -1,0 +1,394 @@
+[
+ {
+  "ayah": 21,
+  "stop_phrase": "نَّعِيمٞ مُّقِيمٌ",
+  "grade": "لا",
+  "reason": "لأنَّ «خالدين» حال مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "أَبَدًاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "أَجۡرٌ عَظِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "عَلَى ٱلۡإِيمَٰنِۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بعده بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلظَّٰلِمُونَ",
+  "grade": "تام",
+  "reason": "ولا وقف من قوله: «قل إن كان» إلى قوله: «بأمره»؛ لعطف المذكورات على «آباؤكم»، وخبر «كان» أحب، ولا يوقف على اسم كان دون خبرها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "بِأَمۡرِهِۦۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡفَٰسِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "كَثِيرَةٖ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف، على إضمار فعل تقديره: ونصركم يوم حنين، وليس بوقف إن جعل «ويوم حنين» معطوفًا على قوله: «في مواطن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده جملة في موضع الحال.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "رَحُبَتۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مُّدۡبِرِينَ",
+  "grade": "حسن",
+  "reason": "و «ثم»؛ لترتيب الأخبار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "لَّمۡ تَرَوۡهَا",
+  "grade": "صالح",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف ما بعده على ما قبله، ولكنه من عطف الجمل المتغايرة المعنى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "كَفَرُواْۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مَن يَشَآءُۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "رَّحِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "نَجَسٞ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "هَٰذَاۚ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "إِن شَآءَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "حَكِيمٞ",
+  "grade": "تام",
+  "reason": "ولا وقف إلى «صاغرون»؛ لأنَّ العطف يُصيِّر الأشياء كالشيء الواحد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "صَٰغِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱبۡنُ ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "لتناهي مقول الفريقين",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "بِأَفۡوَٰهِهِمۡۖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده جملة في موضع الحال من «الفريقين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "قَبۡلُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "يُؤۡفَكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱبۡنَ مَرۡيَمَ",
+  "grade": "حسن",
+  "reason": "وقيل: تام، إن جعل ما بعده مبتدأ، وليس بوقف إن جعل حالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "إِلَٰهٗا وَٰحِدٗاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "يُشۡرِكُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده جملة في موضع الحال، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلۡكَٰفِرُونَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وإن جعل ما بعده متعلقًا بما قبله لم يتم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "أَن يُتِمَّ نُورَهُۥ",
+  "grade": "لا",
+  "reason": "لأنَّ «لو» قد اكتفى عن جوابها بما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "ٱلدِّينِ كُلِّهِۦ",
+  "grade": "لا",
+  "reason": "لأنَّ «لو» قد اكتفى عن جوابها بما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "ٱلۡمُشۡرِكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "سَبِيلِ ٱللَّهِۗ",
+  "grade": "حسن",
+  "reason": "إن جعل «والذين يكنزون» في محل رفع بالابتداء، وخبره «فبشرهم»، وليس بوقف إن جعل في محل نصب عطفًا على «إنَّ كثيرًا»",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "سَبِيلِ ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لمكان الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَلِيمٖ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» بمحذوف يدل عليه «عذاب»، أي: يعذبون يوم يحمى، أو نصب مقدرًا، وليس بوقف إن نصب «يوم» بقوله: «أليم»، أو «بعذاب»",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "وَظُهُورُهُمۡۖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده؛ لأنَّ ما بعده قولًا محذوفًا تقديره: فيقال هذا الكي جزاء ما كنزتم لأنفسكم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "لِأَنفُسِكُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "تَكۡنِزُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "وَٱلۡأَرۡضَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "حُرُمٌۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلۡقَيِّمُۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "أَنفُسَكُمۡۚ",
+  "grade": "كاف",
+  "reason": "على أنَّ الضمير في «فيهن» يعود على «أربعة»، فلا يوقف من قوله: «منها أربعة» إلى قوله: «أنفسكم»، وإن جعل الضمير في «فيهن» يعود على «اثنا عشر» -لم يوقف من قوله: «يوم خلق السموات والأرض» إلى قوله: «ذلك الدين القيم». والصحيح في ذلك أنَّ عود الضمير لا يمنع الوقف على ما قبله؛ لأنَّ بعض التام والكافي جميعه كذلك",
+  "reported_from": "يعقوب والنكزاوي"
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "كَآفَّةٗۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "فِي ٱلۡكُفۡرِۖ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «يُضَل» بضم الياء وفتح الضاد مبنيًّا للمفعول، وليس بوقف لمن قرأ بفتح الياء وكسر الضاد يجعل الضلالة والزيادة من فعلهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "حَرَّمَ ٱللَّهُۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "أَعۡمَٰلِهِمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "إِلَى ٱلۡأَرۡضِۚ",
+  "grade": "حسن",
+  "reason": "وقيل: للاستفهام بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "مِنَ ٱلۡأٓخِرَةِۚ",
+  "grade": "حسن",
+  "reason": "أحسن منه (أي من الوقف على \"إلى الأرض\").",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "إِلَّا قَلِيلٌ",
+  "grade": "كاف",
+  "reason": "للابتداء بعده بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "غَيۡرَكُمۡ",
+  "grade": "حسن",
+  "reason": "ومثله «شيئًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "إِنَّ ٱللَّهَ مَعَنَاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "كاف",
+  "reason": "إن جعل الضمير في «عليه» للصديق - رضي الله عنه - وهو المختار، وإن جعل الضمير في «عليه» للنبيِّ - صلى الله عليه وسلم - لم يكف الوقف عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلسُّفۡلَىٰۗ",
+  "grade": "تام",
+  "reason": "لمن قرأ: «وكلمةُ الله» بالرفع، وهي أحسن، وليس بوقف لمن قرأه بالنصب عطفًا على «كلمة الذين كفروا هي السفلى».",
+  "reported_from": null
+ }
+]

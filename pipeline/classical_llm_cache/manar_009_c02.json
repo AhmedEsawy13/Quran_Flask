@@ -1,0 +1,352 @@
+[
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلسُّفۡلَىٰۗ",
+  "grade": "كاف",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "للابتداء بالأمر، وانتصب «خفافًا وثقالًا» على الحال من فاعل «انفروا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "سَبِيلِ ٱللَّهِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، أي يقولون: بالله لو استطعنا، أو «بالله» متعلق بـ «سيحلفون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "ٱلشُّقَّةُۚ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، أي يقولون: بالله لو استطعنا، أو «بالله» متعلق بـ «سيحلفون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مَعَكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "أَنفُسَهُمۡ",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "لَكَٰذِبُونَ",
+  "grade": "كاف",
+  "reason": "وزعم بعضهم أنَّ الوقف على «عفا الله عنك»، وغرَّه أنَّ الاستفهام افتتاح كلام، وليس كما زعم؛ لشدة تعلق ما بعده به، ووصله بما بعده أولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "عَنكَ",
+  "grade": "لا",
+  "reason": "ليس كما زعم؛ لشدة تعلق ما بعده به، ووصله بما بعده أولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱلۡكَٰذِبِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "وَأَنفُسِهِمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "بِٱلۡمُتَّقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "يَتَرَدَّدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "عُدَّةٗ",
+  "grade": "لا",
+  "reason": "وصله بما بعده أولى؛ لحرف الاستدراك بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "فَثَبَّطَهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ٱلۡقَٰعِدِينَ",
+  "grade": "كاف",
+  "reason": "قيل: هو من كلام بعضهم لبعض، وقيل: من كلام النبي - صلى الله عليه وسلم -",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ٱلۡفِتۡنَةَ",
+  "grade": "حسن",
+  "reason": "على أنَّ الواو للاستئناف، وليس بوقف إن جعلت الجملة حالًا من مفعول «يبغونكم»، أو من فاعله",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "لَهُمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بِٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "كَٰرِهُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "تَفۡتِنِّيٓۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "سَقَطُواْۗ",
+  "grade": "حسن",
+  "reason": "معناه: في الإثم الذي حصل بسبب تخلفهم عن النبي - صلى الله عليه وسلم -",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "بِٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "تَسُؤۡهُمۡۖ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "فَرِحُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "لَنَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مَوۡلَىٰنَاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "ٱلۡمُؤۡمِنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلۡحُسۡنَيَيْنِۖ",
+  "grade": "حسن",
+  "reason": "يعني: الغنيمة، أو الشهادة",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "بِأَيۡدِينَاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "فَتَرَبَّصُوٓاْ",
+  "grade": "حسن",
+  "reason": "أحسن منه؛ للابتداء بعدُ بـ «إنَّا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مُّتَرَبِّصُونَ",
+  "grade": "حسن",
+  "reason": "أحسن منهما، وقيل: لا وقف من قوله: «قل هل تربصون» إلى «متربصون»؛ لأنَّ ذلك كله داخل تحت المقول المأمور به، والوقف على المواضع المذكورة في هذه الآية؛ للفصل بين الجمل المتغايرة المعنى",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "مِنكُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "فَٰسِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "كَٰرِهُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "أَوۡلَٰدُهُمۡۚ",
+  "grade": "حسن",
+  "reason": "إن جعل «في الحياة الدنيا» متصلًا بالعذاب، كأنَّه قال: إنَّما يريد الله ليعذبهم بها، أي: بالتعب في جمعها وإنفاقها كرهًا، وهو قول أبي حاتم، وقيل: ليس بوقف؛ لأنَّ الآية من التقديم والتأخير؛ لاتصال الكلام بعضه ببعض",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "كَٰفِرُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "لَمِنكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "يَفۡرَقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "يَجۡمَحُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلصَّدَقَٰتِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "رَضُواْ",
+  "grade": "جائز",
+  "reason": "للفصل بين الشرطين، وجواب الأول لا يلزم فيه المقارنة بخلاف الثاني، فجاء بـ «إذا» الفجائية، وإنَّهم إذا لم يعطوا فاجأ سخطهم، ولم يكن تأخيره لما جبلوا عليه من محبة الدنيا والشره في تحصيلها، ومفعول «رضوا» محذوف، أي: رضوا ما أعطوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "يَسۡخَطُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وقيل: ليس بوقف؛ لأنَّ من قوله: «ولو أنَّهم رضوا» إلى «راغبون» -متعلق بـ «لو»، وجواب «لو» محذوف تقديره: لكان خيرًا لهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "وَرَسُولُهُۥٓ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وقيل: ليس بوقف؛ لأنَّ من قوله: «ولو أنَّهم رضوا» إلى «راغبون» -متعلق بـ «لو»، وجواب «لو» محذوف تقديره: لكان خيرًا لهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "رَٰغِبُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱلسَّبِيلِۖ",
+  "grade": "جائز",
+  "reason": "لأنَّ ما بعده منصوب في المعنى بما قبله؛ لأنَّه في معنى المصدر المؤكد، أي: فرض الله هذه الأشياء عليكم فريضة",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱللَّهِۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "أُذُنٌۚ",
+  "grade": "حسن",
+  "reason": "وكاف إن نوّن «أذنٌ»، و «خيرٌ» ورفعا",
+  "reported_from": null
+ }
+]

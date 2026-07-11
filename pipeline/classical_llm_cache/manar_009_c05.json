@@ -1,0 +1,268 @@
+[
+ {
+  "ayah": 118,
+  "stop_phrase": "إِلَّا إِلَيۡهِ",
+  "grade": "جائز",
+  "reason": "لترتيب الأخبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "لِّيَتُوبُوٓاْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "ٱلصَّٰدِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "عَن نَّفۡسِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": "أحمد بن موسى"
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "عَمَلٞ صَٰلِحٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «ولا ينفقون نفقة» معطوف على «ولا ينالون»",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف ما بعده على قوله: «لا يصيبهم»، ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "إِلَّا كُتِبَ لَهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ لام «ليجزيهم الله» (لام كي)، وهي لا يبتدأ بها؛ لأنَّها متعلقة بما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "إِلَّا كُتِبَ لَهُمۡ",
+  "grade": "تام",
+  "reason": "لأنَّ اللام لام قسم حذفت منه النون تخفيفًا",
+  "reported_from": "أبو حاتم السجستاني"
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "كَآفَّةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "فِي ٱلدِّينِ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "إِلَيۡهِمۡ",
+  "grade": "لا",
+  "reason": "لأنَّه لا يبتدأ بحرف الترجي؛ لأنَّها في التعلق كـ (لام كي)",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "يَحۡذَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "غِلۡظَةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 124,
+  "stop_phrase": "إِيمَٰنٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 124,
+  "stop_phrase": "يَسۡتَبۡشِرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 125,
+  "stop_phrase": "رِجۡسًا إِلَىٰ رِجۡسِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 125,
+  "stop_phrase": "كَٰفِرُونَ",
+  "grade": "تام",
+  "reason": "على قراءة من قرأ: «أو لا ترون» بالتاء الفوقية، يعنى به: المؤمنين؛ لأنَّه استئناف وإخبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 125,
+  "stop_phrase": "كَٰفِرُونَ",
+  "grade": "لا",
+  "reason": "من قراءة بالتحتية لم يقف على «كافرون» ؛ لأنَّ ما بعده راجع إلى الكفار، وهو متعلق به، وأيضًا فإنَّ الواو واو عطف دخلت عليها همزة الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 126,
+  "stop_phrase": "أَوۡ مَرَّتَيۡنِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 126,
+  "stop_phrase": "يَذَّكَّرُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله، ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "ثُمَّ ٱنصَرَفُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "ثُمَّ ٱنصَرَفُواْ",
+  "grade": "كاف",
+  "reason": "لأنَّ المعنى عنده: وإذا ما أنزلت سورة فيها ذكر المنافقين وعيبهم -قال بعضهم لبعض: هل يراكم من أحد إن قمتم، فإن لم يرهم أحد خرجوا من المسجد",
+  "reported_from": "الفراء"
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "صَرَفَ ٱللَّهُ قُلُوبَهُم",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده متصل بالصرف إن جعل خبرًا، وإن جعل دعاء عليهم جاز",
+  "reported_from": null
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "يَفۡقَهُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "مِّنۡ أَنفُسِكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "عَزِيزٌ",
+  "grade": "جائز",
+  "reason": "لأنَّه صفة «رسول»، وفيه تقديم غير الوصف الصريح، وهو من أنفسكم؛ لأنه جملة على الوصف الصريح، وهو عزيز؛ لأنَّه مفرد",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "حَرِيصٌ عَلَيۡكُم",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "حَرِيصٌ عَلَيۡكُم",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "رَءُوفٌ رَّحِيمٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "رَءُوفٌ رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 129,
+  "stop_phrase": "حَسۡبِيَ ٱللَّهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 129,
+  "stop_phrase": "إِلَّا هُوَۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 129,
+  "stop_phrase": "عَلَيۡهِ تَوَكَّلۡتُۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 129,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]
