@@ -1,0 +1,499 @@
+[
+ {
+  "ayah": 83,
+  "stop_phrase": "يَسْتَنْبِطُونَهُ مِنْهُمْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "إِلَّا قَلِيلًا",
+  "grade": "تام",
+  "reason": "للابتداء بالأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "فِي سَبِيلِ اللَّهِ",
+  "grade": "جائز",
+  "reason": "لأنَّ ما بعده يصلح مستأنفًا وحالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "الْمُؤْمِنِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "كَفَرُوا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "تَنْكِيلًا",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "نَصِيبٌ مِنْهَا",
+  "grade": "جائز",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "نَصِيبٌ مِنْهَا",
+  "grade": "لا",
+  "reason": "على قاعدة يحيى بن نصير: لا يوقف على أحد المزدوجين حتى يأتي بالثاني، وهو «كفل منها»",
+  "reported_from": "يحيى بن نصير"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "كِفْلٌ مِنْهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "مُقِيتًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "أَوْ رُدُّوهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "حَسِيبًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "لَا رَيْبَ فِيهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "حَدِيثًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "فِئَتَيْنِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "فِئَتَيْنِ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: والله أركسهم بما كسبوا من تمام المعنى",
+  "reported_from": "النكزاوي"
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "مَنْ أَضَلَّ اللَّهُ",
+  "grade": "كاف",
+  "reason": "لانتهاء الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "سَبِيلًا",
+  "grade": "كاف",
+  "reason": "أكفى مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "سَوَاءً",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "فِي سَبِيلِ اللَّهِ",
+  "grade": "حسن",
+  "reason": "حسن مما قبله؛ للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "وَجَدْتُمُوهُمْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "وَلِيًّا وَلَا نَصِيرًا",
+  "grade": "لا",
+  "reason": "لاتصال الكلام بعضه ببعض، فلا وقف من قوله: «ولا تتخذوا منهم وليًّا» إلى «أو يقاتلوا قومهم»، فلا يوقف على «نصيرًا»، ولا على «ميثاق»، ولا «على صدورهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "أَوْ يُقَاتِلُوا قَوْمَهُمْ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط مع الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "السَّلَمَ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «فإن» لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "سَبِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "قَوْمَهُمْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "أُرْكِسُوا فِيهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "حَيْثُ ثَقِفْتُمُوهُمْ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "مُبِينًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "إِلَّا خَتَأً",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "إِلَّا أَنْ يَصَّدَّقُوا",
+  "grade": "كاف",
+  "reason": "للابتداء بحكم آخر، ومثله «مؤمنة» في الموضعين",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "مُتَتَابِعَيْنِ",
+  "grade": "جائز",
+  "reason": "إن نصب «توبة» بفعل مقدر، أي: يتوب الله عليه توبة",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "مُتَتَابِعَيْنِ",
+  "grade": "لا",
+  "reason": "أن نصب بما قبله؛ لأنه مصدر وضع موضع الحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "تَوْبَةً مِنَ اللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "حَكِيمًا",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط، ومثله «عظيمًا»؛ للابتداء بـ «يا» النداء",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "فَتَبَيَّنُوا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "لَسْتَ مُؤْمِنًا",
+  "grade": "صالح",
+  "reason": "لأنَّ ما بعده يصلح أن يكون حالًا، أي: لا تقولوا مبتغين، أو استفهامًا بإضمار همزة الاستفهام، أي: أتبتغون؟",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "الدُّنْيَا",
+  "grade": "حسن",
+  "reason": "ومثله «كثيرة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "فَتَبَيَّنُوا",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "خَبِيراً",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "غَيْرُ أُولِي الضَّرَرِ",
+  "grade": "لا",
+  "reason": "سواء قرئ: بالرفع صفة لقوله: «القاعدون»، أو بالنصب حالًا مما قبله، أو بالجر صفة «للمؤمنين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "وَأَنْفُسِهِمْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "وَأَنْفُسِهِمْ",
+  "grade": "تام",
+  "reason": "لأنَّ المعنى: لا يستوي القاعدون والمجاهدون؛ لأنَّ الله قسم المؤمنين قسمين: قاعد، ومجاهد، وذكر عدم التساوي بينهما",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "دَرَجَةً",
+  "grade": "حسن",
+  "reason": "ومثله «الحسنى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "أَجْرًا عَظِيمًا",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده بدل من «أجرًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "أَجْرًا عَظِيمًا",
+  "grade": "حسن",
+  "reason": "وإن نصب بإضمار فعل حسن الوقف على «عظيمًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "وَرَحْمَةً",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "رَحِيمًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "فِيمَ كُنْتُمْ",
+  "grade": "جائز",
+  "reason": "ومثله «في الأرض»",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "فِيهَا",
+  "grade": "كاف",
+  "reason": "لتناهي الاستفهام بجوابه",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "جَهَنَّمُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "مَصِيرًا",
+  "grade": "حسن",
+  "reason": "وإن جعل منقطعًا، وأنَّ هؤلاء المتوفين إما كفار، أو عصاة بالتخلف، فلم يندرج فيهم المستضعفون، وهذا أوجه وحسن الوقف على «مصيرا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "سَبِيلًا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "عَنْهُمْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "عَفُوًّا غَفُورًا",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "وَسَعَةً",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط أيضًا، ولا وقف من قوله: «ومن يخرج من بيته» إلى «فقد وقع أجره على الله»، فلا يوقف على «ورسوله»، ولا على «الموت»؛ لأنَّ جواب الشرط لم يأت",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "رَحِيمًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "أَنْ تَقْصُرُوا مِنَ الصَّلَاةِ",
+  "grade": "تام",
+  "reason": "لتمام الكلام على قصر صلاة المسافر، وابتدئ «إن خفتم»؛ على أنهما آتيان، والشرط لا مفهوم له",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "مُبِينًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "أَسْلِحَتَهُمْ",
+  "grade": "حسن",
+  "reason": "ومثله «من ورائكم»، وكذا «أسلحتهم»، وهو أحسن؛ لانقطاع النظم مع اتصال المعنى",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "مَيْلَةً وَاحِدَةً",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "وَخُذُوا حِذْرَكُمْ",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "مُهِينًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "وَعَلَى جُنُوبِكُمْ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط، ومثله «فأقيموا الصلاة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "مَوْقُوتًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "فِي ابْتِغَاءِ الْقَوْمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "كَمَا تَأْلَمُونَ",
+  "grade": "حسن",
+  "reason": "لأنَّ قوله: «وترجون» مستأنف، غير متعلق بقوله: «إن تكونوا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "كَمَا تَأْلَمُونَ",
+  "grade": "لا",
+  "reason": "إن جعلت الواو للحال، أي: والحال أنتم ترجون",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "مَا لَا يَرْجُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "حَكِيمًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

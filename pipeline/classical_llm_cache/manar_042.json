@@ -46,7 +46,7 @@
   "stop_phrase": "فَوۡقِهِنَّۚ",
   "grade": "كاف",
   "reason": "على استئناف ما بعده",
-  "reported_from": "أبو حاتم"
+  "reported_from": null
  },
  {
   "ayah": 5,
@@ -501,7 +501,7 @@
   "stop_phrase": "ٱلۡقُرۡبَىٰۗ",
   "grade": "كاف",
   "reason": "",
-  "reported_from": "أبو حاتم"
+  "reported_from": null
  },
  {
   "ayah": 23,

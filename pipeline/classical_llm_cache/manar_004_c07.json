@@ -1,0 +1,233 @@
+[
+ {
+  "ayah": 157,
+  "stop_phrase": "شُبِّهَ لَهُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 157,
+  "stop_phrase": "مِّنۡ عِلۡمٍ",
+  "grade": "جائز",
+  "reason": "وجعل الاستثناء منقطعًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 157,
+  "stop_phrase": "وَمَا قَتَلُوهُ",
+  "grade": "تام",
+  "reason": "إن جعل «يقينًا» متعلقًا بما بعده، أي: بل رفعه الله إليه يقينًا، وإلَّا فليس بوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 158,
+  "stop_phrase": "إِلَيۡهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 158,
+  "stop_phrase": "حَكِيمٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "قَبۡلَ مَوۡتِهِۦۖ",
+  "grade": "جائز",
+  "reason": "لأنَّ قوله: «ويوم القيامة» ظرف كونه شهيد إلَّا ظرف إيمانهم، وللاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "شَهِيدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "أُحِلَّتۡ لَهُمۡ",
+  "grade": "لا",
+  "reason": "لاتساق ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "كَثِيرٗا",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "عَنۡهُ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "بِٱلۡبَٰطِلِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "أَلِيمٗا",
+  "grade": "تام",
+  "reason": "إذا كان بعد لكن جملة صلح الابتداء كما هنا",
+  "reported_from": null
+ },
+ {
+  "ayah": 162,
+  "stop_phrase": "مِن قَبۡلِكَۚ",
+  "grade": "حسن",
+  "reason": "إن نصب ما بعده على المدح، أي: أمدح المقيمين، وليس بوقف إن عطف على «بما أنزل إليك» أو عطف على «ما من» قوله: «وما أنزل من قبلك» أو عطف على الضمير في «منهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 162,
+  "stop_phrase": "ٱلصَّلَوٰةَۚ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده بالابتداء، والخبر فيما بعده، أو جعل خبر مبتدأ محذوف، وليس بوقف إن عطف على «الراسخون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 162,
+  "stop_phrase": "وَٱلۡيَوۡمِ ٱلۡأٓخِرِ",
+  "grade": "كاف",
+  "reason": "إن جعل «أولئك» مبتدأ وخبر، وليس بوقف إن جعل خبر «الراسخون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 162,
+  "stop_phrase": "عَظِيمًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "مِنۢ بَعۡدِهِۦۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "مِنۢ بَعۡدِهِۦۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "وَسُلَيۡمَٰنَۚ",
+  "grade": "حسن",
+  "reason": "إن نصب «رسلًا» بإضمار فعل يفسره ما بعده، وليس بوقف إن عطف على معنى ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "زَبُورٗا",
+  "grade": "حسن",
+  "reason": "إن نصب «رسلًا» بإضمار فعل يفسره ما بعده، وليس بوقف إن عطف على معنى ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "عَلَيۡكَ",
+  "grade": "حسن",
+  "reason": "إن نصب «رسلًا» على المدح، وليس بوقف إن نصب ذلك على الحال من مفعول «أوحينا»، أو بدلًا من «رسله» قبله، ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "تَكۡلِيمٗا",
+  "grade": "حسن",
+  "reason": "إن نصب «رسلًا» على المدح، وليس بوقف إن نصب ذلك على الحال من مفعول «أوحينا»، أو بدلًا من «رسله» قبله، ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "ٱلرُّسُلِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "حَكِيمٗا",
+  "grade": "تام",
+  "reason": "لأنَّ «لكن» إذا كان بعدها ما يصلح جملة -صلح الابتداء بما بعدها",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "بِعِلۡمِهِۦۖ",
+  "grade": "صالح",
+  "reason": "لأنَّ ما بعده يصلح أن يكون مبتدأ، وحالًا مع اتحاد المقصود",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "يَشۡهَدُونَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "شَهِيدًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "بَعِيدًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 168,
+  "stop_phrase": "طَرِيقًا",
+  "grade": "لا",
+  "reason": "إن أريد بالطريق الأولى العموم، وكان استثناء متصلًا، وإن أريد بها شيئًا خاصًّا وهو العمل الصالح -كان منقطعًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "أَبَدٗاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "يَسِيرٗا",
+  "grade": "تام",
+  "reason": "للابتداء بعد بالنداء",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "خَيۡرٗا لَّكُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "وَٱلۡأَرۡضِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ }
+]

@@ -130,7 +130,7 @@
   "stop_phrase": "قَبۡلُ",
   "grade": "جائز",
   "reason": "لأنَّ ما بعده معطوف عليه، والظاهر أنَّه جائز؛ لاختلاف معنى الجملتين",
-  "reported_from": "نافع"
+  "reported_from": null
  },
  {
   "ayah": 77,
@@ -382,7 +382,7 @@
   "stop_phrase": "وَٱحۡذَرُواْۚ",
   "grade": "كاف",
   "reason": "مثيل لـ «منتهون»، وقال نافع: تام؛ للابتداء بالشرط",
-  "reported_from": "نافع"
+  "reported_from": null
  },
  {
   "ayah": 92,

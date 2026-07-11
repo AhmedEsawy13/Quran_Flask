@@ -284,7 +284,7 @@
   "stop_phrase": "وَأَصۡلَحُواْ",
   "grade": "حسن",
   "reason": "قال السجاوندي: ليس بوقف لتكرار «إن» مع اتحاد الخبر. وحسنه أبو العلاء الهمداني.",
-  "reported_from": "السجاوندي"
+  "reported_from": null
  },
  {
   "ayah": 119,
@@ -347,7 +347,7 @@
   "stop_phrase": "فِيهِ",
   "grade": "كاف",
   "reason": "وقال نافع: تام.",
-  "reported_from": "نافع"
+  "reported_from": null
  },
  {
   "ayah": 124,

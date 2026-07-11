@@ -1,0 +1,212 @@
+[
+ {
+  "ayah": 170,
+  "stop_phrase": "حَكِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "إِلَّا ٱلۡحَقَّۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "رَّسُولُ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَكَلِمَتُهُۥٓ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله إن عطف «وروح منه» على الضمير المرفوع في «ألقاها»",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَكَلِمَتُهُۥٓ",
+  "grade": "لا",
+  "reason": "إن جعل «ألقاها» نعتًا لقوله: «وكلمته»، وهي معرفة، والجملة في تأويل النكرة، وفي موضع الحال من الهاء المجرورة، والعامل فيها معنى الإضافة",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَرُوحٞ مِّنۡهُۖ",
+  "grade": "تام",
+  "reason": "لأنه آخر القصة",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَرُسُلِهِۦۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "ثَلَٰثَةٌۚ",
+  "grade": "جائز",
+  "reason": "أي: هم ثلاثة",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "خَيۡرٗا لَّكُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "خَيۡرٗا لَّكُمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "خَيۡرٗا لَّكُمۡۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "إِلَٰهٞ وَٰحِدٞۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "سُبۡحَٰنَهُۥٓ",
+  "grade": "لا",
+  "reason": "لأنَّ «أن» متعلقة بما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَلَدٞۘ",
+  "grade": "تام",
+  "reason": "ولا يجوز وصله بما بعده؛ لأنه لو وصله لصار صفة له، فكان المنفي ولدًا موصوفًا بأنه يملك السموات والأرض، والمراد: نفي الولد مطلقًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَٱلۡأَرۡضِۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَكِيلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "ٱلۡمُقَرَّبُونَۚ",
+  "grade": "كاف",
+  "reason": "للشرط بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "جَمِيعٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "فَضۡلِهِۦۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "أَلِيمٗا",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "نَصِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 175,
+  "stop_phrase": "مُّسۡتَقِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "ٱلۡكَلَٰلَةِۚ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده؛ لأنَّ «في الكلالة» متعلق بـ «يفتيكم»، وهو من أعمال الثاني؛ لأنَّ «في الكلالة» يطلبها «يستفتونك»، و «يفتيكم» فأعمل الثاني",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "مَا تَرَكَۚ",
+  "grade": "كاف",
+  "reason": "لأنَّ ما بعده مبتدأ",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "وَلَدٞۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "تَرَكَۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط بحكم جامع للصنفين",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "ٱلۡأُنثَيَيۡنِۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "أَن تَضِلُّواْۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "لَكُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ «أن» متعلقة بما قبلها على قول الجماعة",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "عَلِيمُۢ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

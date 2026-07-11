@@ -1,0 +1,394 @@
+[
+ {
+  "ayah": 62,
+  "stop_phrase": "وَتَوْفِيقًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "قُلُوبِهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "بَلِيغٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "بِإِذۡنِ ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "رَّحِيمٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "تَسۡلِيمٗا",
+  "grade": "كاف",
+  "reason": "أكد الفعل بمصدره؛ لرفع توهم المجاز فيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "تَثۡبِيتٗا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «وإذا لآتيناهم»، «ولهديناهم» من جواب لو، قاله السجاوندي مع زيادة للإيضاح.",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "تَثۡبِيتٗا",
+  "grade": "حسن",
+  "reason": "قال الزمخشري: و «إذا» جواب سؤال مقدر، كأنه قيل: وماذا يكون لهم بعد التثبيت؟ فقيل: وإذا لو ثبتوا لآتيناهم؛ لأنَّ «إذا» جواب وجزاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "مُّسۡتَقِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "وَٱلصَّٰلِحِينَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "رَفِيقٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "عَلِيمٗا",
+  "grade": "تام",
+  "reason": "للابتداء بـ «يا» النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "جَمِيعٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "لَّيُبَطِّئَنَّ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "شَهِيدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "مَوَدَّةٞ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «كأن لم تكن بينكم وبينه مودة» معترضة بين قوله: «ليقولن»، ومعمول القول، وهو: «يا ليتني»",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "مَوَدَّةٞ",
+  "grade": "جائز",
+  "reason": "لعله فرق به بين الجملتين.",
+  "reported_from": "شيخ الإسلام"
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "مَعَهُمۡ",
+  "grade": "كاف",
+  "reason": "لمن رفع ما بعد الفاء على الاستئناف، أي: فأنا أفوز، وبها قرأ الحسن",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "عَظِيمٗا",
+  "grade": "تام",
+  "reason": "للأمر بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "بِٱلۡأٓخِرَةِۚ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "أَهۡلُهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "وَلِيّٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "وَلِيّٗا",
+  "grade": "لا",
+  "reason": "لا يوقف على أحد المزدوجين حتى يؤتى بالثاني",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "نَصِيرًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "سَبِيلِ ٱللَّهِۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "ٱلشَّيۡطَٰنِۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «إن».",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "ضَعِيفًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "ٱلزَّكَوٰةَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "قَرِيبٖۗ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "قَلِيلٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "قَلِيلٞ",
+  "grade": "تام",
+  "reason": "لأنَّ الجملتين -وإن اتفقتا- فالفصل بين وصفي الدارين؛ لتضادهما مستحسن.",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "ٱتَّقَىٰ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "فَتِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "تَكُونُواْ",
+  "grade": "جائز",
+  "reason": "يجوز أن يتصل بقوله: «ولا تظلمون»، ثم يبتدئ بـ «يدرككم الموت»",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱلۡمَوۡتُ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده مبالغة فيما قبله، فلا يقطع عنه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "مُّشَيَّدَةٖۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱللَّهِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "عِندِ اللَّهِۖ",
+  "grade": "كاف",
+  "reason": "أي: خلقًا وتقديرًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "حَدِيثٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "ٱللَّهِۖ",
+  "grade": "حسن",
+  "reason": "فصلًا بين النقيضين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "نَّفۡسِكَۚ",
+  "grade": "كاف",
+  "reason": "أي: وأنا كتبتها عليك",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "رَسُولٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "شَهِيدٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "ٱللَّهَۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "حَفِيظٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "طَاعَةٞ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وارتفع «طاعة» على أنه خبر مبتدأ محذوف، أي: أمرنا طاعةٌ لك",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "طَاعَةٞ",
+  "grade": "لا",
+  "reason": "لأنَّ الوقف عليه يوهم أنَّ المنافقين موحدون، وليس كذلك، وسياق الكلام في بيان نفاقهم، وذلك لا يتم إلَّا بوصله إلى «تقول».",
+  "reported_from": "بعضهم"
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "تَقُولُۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "وَكِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "ٱلۡقُرۡءَانَۚ",
+  "grade": "حسن",
+  "reason": "لانتهاء الاستفهام على قول من قال: المعنى ولو كان ما تخبرونه مما ترون من عند غير الله -لاختلف فيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "ٱلۡقُرۡءَانَۚ",
+  "grade": "كاف",
+  "reason": "من قال: المعنى ولو كان القرآن من عند غير الله -لوجدوا فيه اختلافًا كثيرا، فعلى هذا يكون كافيا؛ لأنَّ كلام الناس يختلف فيه، ويتناقض",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "كَثِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "بِهِۦۖ",
+  "grade": "تام",
+  "reason": "على القول بأن «إلا قليلا» مستثنى من فاعل «اتبعتم»، فيتم الكلام على «أذاعوا به»",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "مِنۡهُمۡۗ",
+  "grade": "لا",
+  "reason": "حتى يبلغ قليلًا؛ لأنَّ الأمر إذا ردوه إلى الرسول، وإلى أولي الأمر منهم -لعلمه الجماعة، ولم يكن للاستثناء من المستنبطين معنا",
+  "reported_from": null
+ }
+]

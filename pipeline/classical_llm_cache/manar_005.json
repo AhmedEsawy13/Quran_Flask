@@ -18,7 +18,7 @@
   "stop_phrase": "حُرُمٌۗ",
   "grade": "كاف",
   "reason": "",
-  "reported_from": "نافع"
+  "reported_from": null
  },
  {
   "ayah": 1,
@@ -319,7 +319,7 @@
   "stop_phrase": "بِٱلۡقِسۡطِۖ",
   "grade": "صالح",
   "reason": "",
-  "reported_from": "نافع"
+  "reported_from": null
  },
  {
   "ayah": 8,
