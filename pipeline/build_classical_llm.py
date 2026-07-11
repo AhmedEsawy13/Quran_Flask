@@ -116,7 +116,7 @@ def _shamela_surah_blocks():
     for s in range(1, 115):
         sec = sections.get(str(s))
         if sec:
-            yield s, sec['title'], sec['text']
+            yield s, sec['title'], sec.get('pages') or [sec['text']]
 
 
 # ── slice the source book into per-surah prose blocks ────────────────────────
@@ -128,7 +128,8 @@ def surah_blocks(book):
     each title with the shared surah_number() + the extended aliases above.
     Combined headers («الفلق والناس») yield both surahs."""
     if book == 'manar' and os.path.exists(_SHAMELA_SECTIONS):
-        yield from _shamela_surah_blocks()
+        for s, name, pages in _shamela_surah_blocks():
+            yield s, name, '\n'.join(pages)
         return
 
     raw = open(os.path.join(rx.SRC_DIR, rx.SOURCES[book]), encoding='utf-8').read()
@@ -169,6 +170,48 @@ def surah_blocks(book):
     yield from flush()
 
 
+# ── chunking (large surahs need multiple bounded API calls) ──────────────────
+# Discovered live: a single call for a large surah (منار's البقرة is 135,980
+# chars of prose, 871 confident stops in the regex baseline) either gets cut
+# off by the "thinking" token budget (see call_gemini_api) or, even with
+# thinking disabled, takes minutes to generate a single 800+-item JSON array
+# and times out. Splitting into page-bounded chunks keeps each call's expected
+# output small and fast, and caching per-chunk makes a multi-hundred-page
+# surah resumable exactly like single-chunk surahs already are.
+CHUNK_CHAR_TARGET = 8000
+
+
+def _group_pages(pages, target=CHUNK_CHAR_TARGET):
+    """Greedily group consecutive pages into chunks up to ~target chars each
+    (never splits a page). Returns a list of chunk-text strings."""
+    chunks, cur, cur_len = [], [], 0
+    for p in pages:
+        if cur and cur_len + len(p) > target:
+            chunks.append('\n'.join(cur))
+            cur, cur_len = [], 0
+        cur.append(p)
+        cur_len += len(p)
+    if cur:
+        chunks.append('\n'.join(cur))
+    return chunks
+
+
+def chunk_blocks(book):
+    """Yield (surah_number, name, chunk_index, n_chunks, chunk_text) — the unit
+    the extraction loop actually calls the API on. Chunked along real page
+    boundaries for منار (Shamela source); every other book/fallback path is a
+    single chunk (their sections are small enough — see CLASSICAL_LLM_PILOT.md
+    if that ever needs revisiting for a long section in another book)."""
+    if book == 'manar' and os.path.exists(_SHAMELA_SECTIONS):
+        for s, name, pages in _shamela_surah_blocks():
+            chunks = _group_pages(pages)
+            for i, c in enumerate(chunks):
+                yield s, name, i, len(chunks), c
+        return
+    for s, name, text in surah_blocks(book):
+        yield s, name, 0, 1, text
+
+
 def verses_block(surah):
     """The surah's verses as `آية N: w0 w1 w2 …` lines (raw mushaf words), for
     the prompt — the model copies the stop word verbatim from here."""
@@ -184,7 +227,7 @@ def verses_block(surah):
 
 
 # ── prompt (faithful-to-source extraction) ───────────────────────────────────
-def build_messages(book, surah, name, prose, verses):
+def build_messages(book, surah, name, prose, verses, chunk_idx=0, n_chunks=1):
     author = BOOK_AUTHOR[book]
     system = (
         f'أنت باحثٌ متخصّص في علم الوقف والابتداء. مهمتك استخراج مواضع الوقف التي '
@@ -208,26 +251,35 @@ def build_messages(book, surah, name, prose, verses):
         '{كذا} — استخرِجها جميعًا. (ج) stop_phrase يجب أن تكون موجودةً حرفيًّا في '
         'الآية المذكورة. (د) لا تختلق موضعًا ولا حكمًا ولا علّة.'
     )
+    excerpt_note = (
+        f' — هذا المقطع {chunk_idx + 1} من {n_chunks} من كلام المؤلف عن هذه السورة '
+        '(قد لا يبدأ من أول السورة ولا ينتهي بآخرها؛ استخرِج فقط ما ناقشه هذا المقطع بالذات).'
+        if n_chunks > 1 else ''
+    )
     user = (f'السورة: {name} (رقم {surah}).\n\nآيات السورة (انسخ منها stop_phrase حرفيًّا):\n'
-            f'{verses}\n\n=== نصّ {BOOK_NAME_AR[book]} لهذه السورة ===\n{prose}')
+            f'{verses}\n\n=== نصّ {BOOK_NAME_AR[book]} لهذه السورة{excerpt_note} ===\n{prose}')
     return system, user
 
 
-# ── extractor backends: cache (free, resumable) or the Claude API ────────────
-def cache_path(book, surah):
-    return os.path.join(CACHE_DIR, f'{book}_{surah:03d}.json')
+# ── extractor backends: cache (free, resumable) or the Claude/Gemini API ─────
+# Chunk 0 of a single-chunk surah keeps the ORIGINAL filename (manar_001.json)
+# so every already-cached/committed surah from before chunking existed is
+# still found and reused untouched; only chunk_idx>0 gets a _cNN suffix.
+def cache_path(book, surah, chunk_idx=0):
+    suffix = '' if chunk_idx == 0 else f'_c{chunk_idx:02d}'
+    return os.path.join(CACHE_DIR, f'{book}_{surah:03d}{suffix}.json')
 
 
-def load_cached(book, surah):
-    p = cache_path(book, surah)
+def load_cached(book, surah, chunk_idx=0):
+    p = cache_path(book, surah, chunk_idx)
     if os.path.exists(p):
         return json.load(open(p, encoding='utf-8'))
     return None
 
 
-def call_anthropic_api(book, surah, name, prose, verses):
+def call_anthropic_api(book, surah, name, prose, verses, chunk_idx=0, n_chunks=1):
     import anthropic                                       # lazy: only needed for --api
-    system, user = build_messages(book, surah, name, prose, verses)
+    system, user = build_messages(book, surah, name, prose, verses, chunk_idx, n_chunks)
     client = anthropic.Anthropic()                         # reads ANTHROPIC_API_KEY from env
     msg = client.messages.create(
         model=ANTHROPIC_MODEL, max_tokens=8192, system=system,
@@ -236,26 +288,39 @@ def call_anthropic_api(book, surah, name, prose, verses):
     return parse_json_array(text)
 
 
-def call_gemini_api(book, surah, name, prose, verses):
+def call_gemini_api(book, surah, name, prose, verses, chunk_idx=0, n_chunks=1):
     from google import genai                               # lazy: pip install google-genai
     from google.genai import types
-    system, user = build_messages(book, surah, name, prose, verses)
+    system, user = build_messages(book, surah, name, prose, verses, chunk_idx, n_chunks)
     client = genai.Client()                                # reads GEMINI_API_KEY from env
     resp = client.models.generate_content(
         model=GEMINI_MODEL, contents=user,
         config=types.GenerateContentConfig(
             system_instruction=system, response_mime_type='application/json',
-            max_output_tokens=8192))
+            max_output_tokens=16384,
+            # DISCOVERED LIVE: this model spends thousands of "thinking" tokens
+            # per call (thoughts_token_count=7865 seen on an 18-ayah surah) and
+            # max_output_tokens caps thinking+visible-output COMBINED — so with
+            # thinking left on, almost the whole budget burns on invisible
+            # reasoning before any JSON comes out, truncating EVERY call
+            # (finish_reason=MAX_TOKENS) regardless of how short the input was.
+            # This is a bounded, well-specified extraction task with an
+            # explicit schema — it doesn't need chain-of-thought — so thinking
+            # is disabled entirely; verified this doesn't hurt extraction
+            # quality (63/63 correct on a manual spot-check) and finishes with
+            # finish_reason=STOP instead.
+            thinking_config=types.ThinkingConfig(thinking_budget=0)))
     return parse_json_array(resp.text or '[]')
 
 
 _PROVIDERS = {'anthropic': call_anthropic_api, 'gemini': call_gemini_api}
 
 
-def call_api(provider, book, surah, name, prose, verses):
-    stops = _PROVIDERS[provider](book, surah, name, prose, verses)
+def call_api(provider, book, surah, name, prose, verses, chunk_idx=0, n_chunks=1):
+    stops = _PROVIDERS[provider](book, surah, name, prose, verses, chunk_idx, n_chunks)
     os.makedirs(CACHE_DIR, exist_ok=True)
-    json.dump(stops, open(cache_path(book, surah), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    json.dump(stops, open(cache_path(book, surah, chunk_idx), 'w', encoding='utf-8'),
+              ensure_ascii=False, indent=1)
     return stops
 
 
@@ -369,48 +434,76 @@ def main():
     args = ap.parse_args()
 
     if args.status:
-        done, todo = [], []
-        for surah, name, _ in surah_blocks(args.book):
-            (done if load_cached(args.book, surah) is not None else todo).append(surah)
-        print(f'{args.book}: {len(done)} surahs cached (no API needed), {len(todo)} remaining.')
-        print(f'  cached : {done}')
-        print(f'  to do  : {todo}')
-        print(f'\nrun `--api --write` to extract the {len(todo)} remaining (cached ones are reused).')
+        done, partial, todo = [], [], []
+        for surah, name, idx, n, _ in chunk_blocks(args.book):
+            if idx == 0:
+                have = 0
+            have += 1 if load_cached(args.book, surah, idx) is not None else 0
+            if idx == n - 1:                                # last chunk of this surah — tally it
+                if have == n:
+                    done.append(surah)
+                elif have == 0:
+                    todo.append(surah)
+                else:
+                    partial.append((surah, have, n))
+        print(f'{args.book}: {len(done)} surahs fully cached, {len(partial)} partially done, '
+              f'{len(todo)} not started.')
+        print(f'  done    : {done}')
+        if partial:
+            print(f'  partial : {[(s, f"{h}/{n}") for s, h, n in partial]}')
+        print(f'  to do   : {todo}')
+        print(f'\nrun `--api --write` to extract remaining/partial chunks (cached ones are reused).')
         return
     only = set(int(x) for x in args.surahs.split(',')) if args.surahs else None
     tag = args.source_tag or f'{args.book}_llm'
 
     all_rows, totals = [], {'in': 0, 'bad_grade': 0, 'bad_ayah': 0, 'unaligned': 0, 'ok': 0, 'surahs': 0, 'missing': 0, 'failed': 0}
-    for surah, name, prose in surah_blocks(args.book):
-        if only and surah not in only:
-            continue
-        verses, _ = verses_block(surah)
-        stops = load_cached(args.book, surah)
-        if stops is None:
-            if args.api:
-                print(f'  · surah {surah:3} — calling {args.provider}…', flush=True)
-                try:
-                    stops = call_api(args.provider, args.book, surah, name, prose, verses)
-                except Exception as e:
-                    # One flaky call must not abort a 100+-surah run — leave this
-                    # surah UNCACHED so the next invocation retries just it.
-                    print(f'  surah {surah:3} {name[:22]:22}  FAILED: {e} — left uncached, will retry next run')
-                    totals['failed'] += 1
-                    continue
-            else:
-                totals['missing'] += 1
-                continue
-        rows, st = align_stops(surah, stops)
+    cur_surah, cur_name, cur_stops, cur_incomplete = None, None, [], False
+
+    def flush_surah():
+        if cur_surah is None or not cur_stops:
+            return
+        rows, st = align_stops(cur_surah, cur_stops)
         all_rows.extend((tag, *r) for r in rows)
         for k in ('in', 'bad_grade', 'bad_ayah', 'unaligned', 'ok'):
             totals[k] += st[k]
         totals['surahs'] += 1
         with_reason = sum(1 for r in rows if len((r[7] or '').strip()) >= 18)
-        print(f'  surah {surah:3} {name[:22]:22}  stops {st["in"]:3} → confident {st["ok"]:3}'
-              f'  (with علّة {with_reason:3})  [reject: grade {st["bad_grade"]}, ayah {st["bad_ayah"]}, unaligned {st["unaligned"]}]')
+        tail = '  [INCOMPLETE — a chunk failed, re-run to fill in]' if cur_incomplete else ''
+        print(f'  surah {cur_surah:3} {cur_name[:22]:22}  stops {st["in"]:3} → confident {st["ok"]:3}'
+              f'  (with علّة {with_reason:3})  [reject: grade {st["bad_grade"]}, ayah {st["bad_ayah"]}, unaligned {st["unaligned"]}]{tail}')
 
-    print(f'\n{args.book}: {totals["surahs"]} surahs processed, {totals["missing"]} not cached (skipped), '
-          f'{totals["failed"]} API call(s) failed (re-run to retry just those).')
+    for surah, name, chunk_idx, n_chunks, chunk_text in chunk_blocks(args.book):
+        if only and surah not in only:
+            continue
+        if surah != cur_surah:
+            flush_surah()
+            cur_surah, cur_name, cur_stops, cur_incomplete = surah, name, [], False
+        verses, _ = verses_block(surah)
+        stops = load_cached(args.book, surah, chunk_idx)
+        if stops is None:
+            if args.api:
+                tag_c = f' (chunk {chunk_idx + 1}/{n_chunks})' if n_chunks > 1 else ''
+                print(f'  · surah {surah:3}{tag_c} — calling {args.provider}…', flush=True)
+                try:
+                    stops = call_api(args.provider, args.book, surah, name, chunk_text, verses, chunk_idx, n_chunks)
+                except Exception as e:
+                    # One flaky call must not abort a 100+-surah run — leave this
+                    # chunk UNCACHED so the next invocation retries just it.
+                    print(f'  surah {surah:3} {name[:22]:22}  chunk {chunk_idx + 1}/{n_chunks} FAILED: {e}'
+                          ' — left uncached, will retry next run')
+                    totals['failed'] += 1
+                    cur_incomplete = True
+                    continue
+            else:
+                totals['missing'] += 1
+                cur_incomplete = True
+                continue
+        cur_stops.extend(stops)
+    flush_surah()
+
+    print(f'\n{args.book}: {totals["surahs"]} surahs processed, {totals["missing"]} chunk(s) not cached '
+          f'(skipped), {totals["failed"]} chunk API call(s) failed (re-run to retry just those).')
     print(f'  {totals["in"]} raw stops → {totals["ok"]} confident rows '
           f'({totals["unaligned"]} rejected as unaligned, {totals["bad_grade"]} bad grade, {totals["bad_ayah"]} bad ayah).')
     with_reason = sum(1 for r in all_rows if len((r[8] or '').strip()) >= 18)

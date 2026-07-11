@@ -107,10 +107,11 @@ def main():
         missing = [i for i in range(start_id, end_id) if i not in text_rows]
         if missing:
             missing_pages_report.append((title, missing))
-        text = clean_text('\n'.join(text_rows[i] for i in sorted(chunk_ids)))
+        pages = [clean_text(text_rows[i]) for i in sorted(chunk_ids)]
+        text = '\n'.join(pages)
 
         for n in nums:
-            sections[str(n)] = {'title': title, 'text': text,
+            sections[str(n)] = {'title': title, 'text': text, 'pages': pages,
                                 'combined_with': [x for x in nums if x != n]}
 
     os.makedirs(os.path.dirname(OUT_PATH), exist_ok=True)
