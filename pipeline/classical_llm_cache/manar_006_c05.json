@@ -1,0 +1,604 @@
+[
+ {
+  "ayah": 109,
+  "stop_phrase": "يَشۡعُرُكُمۡ",
+  "grade": "جائز",
+  "reason": "يوقف على «يشعركم»، وقد قرأ أبو عمرو بإسكان الراء، وقرأ الدوري راويه بالاختلاس مع كسر همزة «إنها» فيهما، وقرأ ابن كثير بصلة الميم بالضم مع كسر همزة «إنَّها»، وقرأ الباقون بضم الراء مع فتح همزة «إنها»... وروي عن قنبل أنه قال: سمعت أحمد بن محمد القواس يقول: نحن نقف حيث انقطع النفس إلَّا في ثلاثة مواضع نتعمد الوقف عليها: منها: {وَمَا يُشْعِرُكُمْ}، ثم نبتدئ {أَنَّهَا إِذَا جَاءَتْ لَا يُؤْمِنُونَ} بكسر الهمزة.",
+  "reported_from": "أحمد بن محمد القواس"
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "مَرَّةٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "يَعۡمَهُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لحرف الاستدراك بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "يَجۡهَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "غُرُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "فَعَلُوهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "يَفۡتَرُونَ",
+  "grade": "كاف",
+  "reason": "على أنَّ قوله: «ولتصغى» متعلق بمحذوف تقديره: وفعلوا ذلك، وقيل: لا يوقف على هذه المواضع الثلاثة؛ لأنَّ قوله: «ولتصغى» معطوف على «زخرف القول»، وهو من عطف المصدر المسبوك على المصدر المفكوك، فلا يفصل بين المعطوف والمعطوف عليه؛ لأنَّ ترتيب هذه المفاعيل في غاية الفصاحة؛ لأنَّه أوَّلًا يكون الخداع فيكون الميل، فيكون الرضا، فيكون فعل الاقتراف، فكأنَّ كل واحد مسبب عما قبله فلا يفصل بينهما بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 113,
+  "stop_phrase": "مُّقۡتَرِفُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "حَكَمٗا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "مُفَصَّلٗا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده ومثله مفصلاً",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "ٱلۡمُمۡتَرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "وَعَدۡلٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "لِكَلِمَٰتِهِۦ",
+  "grade": "كاف",
+  "reason": "للابتداء بالضمير المنفصل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "ٱلۡعَلِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "يَخۡرُصُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "سَبِيلِهِۦ",
+  "grade": "كاف",
+  "reason": "للابتداء بالضمير المنفصل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "بِٱلۡمُهۡتَدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "مُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "إِلَيۡهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "عِلۡمٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "بِٱلۡمُعۡتَدِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "وَبَاطِنَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "يَقۡتَرِفُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "لَفِسۡقٌ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "لِيُجَٰدِلُوكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "لَمُشۡرِكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "مِّنۡهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "فِيهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "يَشۡعُرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 124,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 124,
+  "stop_phrase": "رِسَالَتَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 124,
+  "stop_phrase": "يَمۡكُرُونَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 125,
+  "stop_phrase": "لِلۡإِسۡلَٰمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 125,
+  "stop_phrase": "ٱلسَّمَآءِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 125,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 126,
+  "stop_phrase": "مُسۡتَقِيمٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 126,
+  "stop_phrase": "يَذَّكَّرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "لمن قرأ: «نحشرهم» بالنون؛ لأنَّه استئناف، وإخبار من الله تعالى بلفظ الجمع، فهو منقطع عما قبله، ومن قرأه بالتحتية: يقف على «يعملون» أيضًا؛ لأنَّه إخبار عن الله في قوله: «وهو وليهم»، فهو متعلق به من جهة المعنى، فهو أنزل من التام فلا يقطع عنه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "ٱلۡإِنسِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "لَنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 129,
+  "stop_phrase": "يَكۡسِبُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 130,
+  "stop_phrase": "هَٰذَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 130,
+  "stop_phrase": "أَنفُسِنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 130,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 130,
+  "stop_phrase": "كَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 131,
+  "stop_phrase": "غَٰفِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 132,
+  "stop_phrase": "عَمِلُواْ",
+  "grade": "تام",
+  "reason": "على قراءة «تعملون» بالفوقية؛ لأنه استئناف خطاب، على معنى: قل لهم يا محمد، وليس بوقف على قراءته بالتحتية؛ حملاً على ما قبله من الغيبة؛ لتعلقه بما قبله وهو «ولكل درجات مما عملوا»، فلا يفصل بعضه من بعض.",
+  "reported_from": null
+ },
+ {
+  "ayah": 132,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 133,
+  "stop_phrase": "ٱلرَّحۡمَةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 133,
+  "stop_phrase": "ءَاخَرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 134,
+  "stop_phrase": "لَأٓتٖ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف، اتفق علماء الرسم على أنَّ «إن ما» كلمتان: إنَّ كلمة، وما كلمة في هذا المحل، وليس في القرآن غيره.",
+  "reported_from": null
+ },
+ {
+  "ayah": 134,
+  "stop_phrase": "بِمُعۡجِزِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "عَامِلٌ",
+  "grade": "حسن",
+  "reason": "لأنَّ «سوف» للتهديد، فيبتدأ بها الكلام؛ لأنها لتأكيد الواقع.",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "إن جعلت «من» مبتدأ، والخبر محذوف تقديره: من له عاقبة الدار فله جزاء الحسنى، وليس بوقف إن جعلت «مَن» في موضع نصب؛ لأنَّ «مَن» للاستفهام، ووقوع «تعلمون» على الجملة الاستفهامية، أي: فسوف تعلمون أيكم تكون له عاقبة الدار، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "ٱلدَّارِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "ٱلظَّٰلِمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 136,
+  "stop_phrase": "نَصِيبٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 136,
+  "stop_phrase": "بِزَعۡمِهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 136,
+  "stop_phrase": "لِشُرَكَآئِنَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 136,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "للفصل بين الجملتين المتضادتين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 136,
+  "stop_phrase": "شُرَكَآئِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 136,
+  "stop_phrase": "يَحۡكُمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 137,
+  "stop_phrase": "دِينَهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 137,
+  "stop_phrase": "فَعَلُوهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 137,
+  "stop_phrase": "يَفۡتَرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 138,
+  "stop_phrase": "حِجۡرٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 138,
+  "stop_phrase": "عَلَيۡهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 138,
+  "stop_phrase": "يَفۡتَرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 139,
+  "stop_phrase": "أَزۡوَٰجِنَا",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 139,
+  "stop_phrase": "شُرَكَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 139,
+  "stop_phrase": "وَصۡفَهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 139,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 140,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 140,
+  "stop_phrase": "مُهۡتَدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 141,
+  "stop_phrase": "أُكُلُهُ",
+  "grade": "تام",
+  "reason": "وخالف؛ لأنَّ ما بعده معطوف على ما قبله.",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 141,
+  "stop_phrase": "مُتَشَٰبِهٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 141,
+  "stop_phrase": "حَصَادِهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 141,
+  "stop_phrase": "تُسۡرِفُواْ",
+  "grade": "حسن",
+  "reason": "أحسن",
+  "reported_from": null
+ },
+ {
+  "ayah": 141,
+  "stop_phrase": "ٱلۡمُسۡرِفِينَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وإن عطف على «جنات»، أي: وأنشأ من الأنعام حمولة وفرشًا -كان جائزًا؛ لكونه رأس آية.",
+  "reported_from": null
+ }
+]

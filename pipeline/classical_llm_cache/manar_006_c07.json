@@ -1,0 +1,317 @@
+[
+ {
+  "ayah": 152,
+  "stop_phrase": "أَشُدَّهُۥۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "بِٱلۡقِسۡطِۖ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده؛ للفصل بين الحكمين، وليس بوقف إن جعل ما بعده حالًا، أي: أوفوا غير مكلفين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "إِلَّا وُسۡعَهَاۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "فَٱعۡدِلُواْ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله ولو كان مبالغة فيما قبله بالأمر بالعدل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "قُرۡبَىٰۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "أَوۡفُواْۚ",
+  "grade": "كاف",
+  "reason": "لأنَّه آخر جواب «إذا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "تَذَكَّرُونَ",
+  "grade": "تام",
+  "reason": "على قراءة حمزة والكسائي: «وإن هذا» بكسر همزة «إنّ»، وتشديد النون، ويؤيدها قراءة الأعمش : «وهذا صراطي» بدون «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "تَذَكَّرُونَ",
+  "grade": "جائز",
+  "reason": "على قراءة من فتح الهمزة وشدد «أنّ»، وبها قرأ نافع، وأبو عمرو، وابن كثير، وعاصم، وكذا على قراءة ابن عامر، ويعقوب : «وأنْ هذا» بفتح الهمزة، وإسكان النون، وعلى قراءتهما تكون «أن» معطوفة على «أن لا تشركوا»، فلا يوقف على «تعقلون»، وجائز أيضًا على قراءة ابن عامر غير أنه يحرك الياء من «صراطيَ» ، وإن عطفتها على «أتل ما حرم»، أي: وأتل عليكم إنَّ هذا، فلا يوقف على ما قبله إلى قوله: فاتبعوه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 153,
+  "stop_phrase": "فَٱتَّبِعُوهُۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 153,
+  "stop_phrase": "سَبِيلِهِۦۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 153,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 154,
+  "stop_phrase": "وَرَحۡمَةٗ",
+  "grade": "لا",
+  "reason": "لأنَّه لا يبدأ بحرف الترجي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 154,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 155,
+  "stop_phrase": "فَٱتَّبِعُوهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 155,
+  "stop_phrase": "تُرۡحَمُونَ",
+  "grade": "جائز",
+  "reason": "وما بعده متعلق بما قبله، أي: فاتبعوه؛ لئلَّا تقولوا؛ لأنَّ «أن» منصوبة بالإنزال، كأنه قال: وهذا كتاب أنزلناه لئلَّا تقولوا إنما أنزل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 156,
+  "stop_phrase": "قَبۡلِنَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 156,
+  "stop_phrase": "لَغَٰفِلِينَ",
+  "grade": "لا",
+  "reason": "لعطف «أو تقولوا» على «أن تقولوا»، ومن حيث كونها رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 157,
+  "stop_phrase": "وَرَحۡمَةٞۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 157,
+  "stop_phrase": "وَرَحۡمَةٞۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 157,
+  "stop_phrase": "عَنۡهَاۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 157,
+  "stop_phrase": "يَصۡدِفُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 158,
+  "stop_phrase": "رَبِّكَۗ",
+  "grade": "حسن",
+  "reason": "و «يوم» منصوب بـ «لا ينفع»، و «إيمانها» فاعل «ينفع» واجب تأخيره؛ لعود الضمير على المفعول نحو: ضرب زيدًا غلامه، ونحو: وإذ ابتلى إبراهيم ربه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 158,
+  "stop_phrase": "خَيۡرٗاۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 158,
+  "stop_phrase": "مُّنتَظِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "شَيۡءٍۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 159,
+  "stop_phrase": "يَفۡعَلُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "أَمۡثَالِهَاۖ",
+  "grade": "كاف",
+  "reason": "على القراءتين، أعني: تنوين «عشرٌ»، ورفع «أمثالُها»، أو بالإضافة .",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "مِثۡلَهَا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده في موضع الحال من «الفريقين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "أَمۡثَالِهَاۖ",
+  "grade": "لا",
+  "reason": "لأنَّ العطف يصير الشيئين كالشيء الواحد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 160,
+  "stop_phrase": "يُظۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "مُّسۡتَقِيمٖ",
+  "grade": "جائز",
+  "reason": "إن نصب «دينًا» بإضمار فعل تقديره: هداني دينًا قيمًا، أو على أنَّه مصدر على المعنى، أي: هداني هداية دين قيم، أو نصب على الإغراء، أي: ألزموا دينًا، وليس بوقف إن جعل بدلًا من محل إلى «صراط مستقيم»؛ لأنَّ هدى تارة يتعدى بإلى، كقوله: «إلى صراط»، وتارة بنفسه إلى مفعول ثان",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "حَنِيفٗاۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 161,
+  "stop_phrase": "ٱلۡمُشۡرِكِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 162,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "لَهُۥۖ",
+  "grade": "حسن",
+  "reason": "لانتهاء التنزيه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "أُمِرۡتُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "ٱلۡمُسۡلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "شَيۡءٖۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "عَلَيۡهَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "أُخۡرَىٰۚ",
+  "grade": "حسن",
+  "reason": "لأنَّ «ثم»؛ لترتيب الأخبار مع اتحاد المقصود.",
+  "reported_from": null
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "تَخۡتَلِفُونَ",
+  "grade": "تام",
+  "reason": "هو من الوقوف المنصوص عليها، ولعل إسقاط شيخ الإسلام له سبق قلم، أو أنه تبع فيه الأصل الذي اختصره.",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "ءَاتَىٰكُمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "ٱلۡعِقَابِ",
+  "grade": "جائز",
+  "reason": "فصلًا بين التحذير والتبشير، وارتضاه بعضهم فرقًا بين الفريقين المقابلين، ولا يخلط أحدهما بالآخر",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "ٱلۡعِقَابِ",
+  "grade": "لا",
+  "reason": "لأنَّ الكلام مقرون بالأول، وهو بمنزلة قوله: {نَبِّئْ عِبَادِي أَنِّي أَنَا الْغَفُورُ الرَّحِيمُ (49) وَأَنَّ عَذَابِي هُوَ الْعَذَابُ الْأَلِيمُ (50)}؛ فإنَّ الثاني مقرون بالأول، ومحمول عليه، فلا يوقف على أحدهما حتى يؤتى بالثاني",
+  "reported_from": "أبو حاتم السجستاني"
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "رَّحِيمُۢ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

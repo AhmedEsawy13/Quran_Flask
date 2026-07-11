@@ -1,0 +1,415 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "بِٱلۡعُقُودِۚ",
+  "grade": "تام",
+  "reason": "للاستئناف بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "عَلَيۡكُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّه غير منصوب على الحال من الواو في «أوفوا»، أو من الكاف في «أحلت لكم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "حُرُمٌۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "يُرِيدُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَرِضۡوَٰنٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "فَٱصۡطَادُواْۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡحَرَامِ",
+  "grade": "لا",
+  "reason": "لا وقف من قوله: {وَلَا يَجْرِمَنَّكُمْ} إلى {أَنْ تَعْتَدُوا} فلا يوقف على «المسجد الحرام».",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "تَعۡتَدُواْۘ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَٱلتَّقۡوَىٰۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَٱلۡعُدۡوَٰنِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱللَّهَۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡعِقَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "بِهِۦ",
+  "grade": "لا",
+  "reason": "لا وقف من قوله: «حرمت عليكم» إلى «الأزلام»؛ فلا يوقف على «به»...؛ لاتساق بعضها على بعض.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلسَّبُعُ",
+  "grade": "لا",
+  "reason": "لاتساق بعضها على بعض.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ذَكَّيۡتُمۡ",
+  "grade": "لا",
+  "reason": "لاتساق بعضها على بعض.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلنُّصُبِ",
+  "grade": "لا",
+  "reason": "لاتساق بعضها على بعض.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "بِٱلۡأَزۡلَٰمِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "فِسۡقٌۗ",
+  "grade": "تام",
+  "reason": "«ذلكم فسق» انقطع الكلام عنده.",
+  "reported_from": "الفراء"
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "دِينِكُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "وَٱخۡشَوۡنِۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "دِينٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "لِّإِثۡمٖ",
+  "grade": "لا",
+  "reason": "لاتصال الجزاء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "لَهُمۡۖ",
+  "grade": "حسن",
+  "reason": "فصلًا بين السؤال والجواب، وقيل: لا يوقف عليه حتى يؤتى بالجواب.",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلطَّيِّبَٰتُ",
+  "grade": "لا",
+  "reason": "للعطف؛ فإن التقدير: وصيد ما علمتم، بحذف المضاف.",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مُكَلِّبِينَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل في موضع الحال من الضمير في «مكلبين»، و «مكلبين» حال من الضمير في «علمتم» فلا يوقف على ذلك كله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱللَّهُۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "عَلَيۡهِۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱللَّهَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡحِسَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلطَّيِّبَٰتُۖ",
+  "grade": "كاف",
+  "reason": "لأنَّ ما بعده مبتدأ خبره «حل لكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "لَّهُمۡۖ",
+  "grade": "كاف",
+  "reason": "إن جعل «والمحصنات» مستأنفًا، وليس بوقف إن عطف على «الطيبات»، ولا يوقف على شيء بعده إلى «أخدان».",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَخۡدَانٖۗ",
+  "grade": "تام",
+  "reason": "للابتداء بعدُ بالشرط",
+  "reported_from": "أحمد بن موسى"
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "عَمَلُهُۥ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلۡخَٰسِرِينَ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «يا» النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "بِرُءُوسِكُمْ",
+  "grade": "جائز",
+  "reason": "لمن قرأ : «وأرجلَكم» بالنصب عطفًا على «فاغسلوا وجوهكم وأيديكم»؛ إيذانًا بأنَّ فرض الرجلين الغسل، لا المسح",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡكَعۡبَيۡنِۚ",
+  "grade": "حسن",
+  "reason": "لابتداء شرط في ابتداء حكم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "فَٱطَّهَّرُواْۚ",
+  "grade": "كاف",
+  "reason": "ولا وقف من قوله: «وإن كنتم مرضى» إلى «وأيديكم منه»؛ فلا يوقف على «سفر»، ولا على «الغائط»، ولا على «طيبًا»؛ لاتساق الكلام بعضه ببعض.",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "مِّنۡهُۚ",
+  "grade": "تام",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "حَرَجٖ",
+  "grade": "لا",
+  "reason": "لحرف الاستدراك بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "تَشۡكُرُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "بِهِۦٓ",
+  "grade": "لا",
+  "reason": "لأنَّ «إذ» ظرف المواثقة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "وَأَطَعْنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱللَّهَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلصُّدُورِ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «يا» النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "بِٱلۡقِسۡطِۖ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "تَعۡدِلُواْۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "لِلتَّقۡوَىٰۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱللَّهَۚ",
+  "grade": "كاف",
+  "reason": "الوقوف إذا تقاربت يوقف على أحسنها، ولا يجمع بينها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلصَّٰلِحَٰتِ",
+  "grade": "تام",
+  "reason": "لأنَّ قوله: «لهم مغفرة» بيان وتفسير للوعد، كأنَّه قدم لهم وعدًا، فقيل: أي شيء وعده لهم؟ فقيل: لهم مغفرة وأجر عظيم",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "عَظِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡجَحِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "عَنكُمۡۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱللَّهَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡمُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "إِسۡرَٰٓءِيلَ",
+  "grade": "جائز",
+  "reason": "للعدول عن الإخبار إلى الحكاية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "نَقِيبٗاۖ",
+  "grade": "جائز",
+  "reason": "لأنَّ ما بعده معطوف على ما قبله؛ لأنه عدول عن الحكاية إلى الإخبار، عكس ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "مَعَكُمۡۖ",
+  "grade": "تام",
+  "reason": "للابتداء بلام القسم، وجوابه: «لأكفرن».",
+  "reported_from": null
+ }
+]

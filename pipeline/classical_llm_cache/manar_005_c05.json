@@ -1,0 +1,408 @@
+[
+ {
+  "ayah": 103,
+  "stop_phrase": "وَلَا حَامٖ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ ما بعده استدراك بعد نفي، والمعنى: ولكن الذين كفروا يفترون على الله الكذب يجعلون البحيرة وما بعدها من جعل، نسبوا ذلك الجعل لله تعالى افتراء على الله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "لَا يَعۡقِلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "ءَابَآءَنَآ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "يَهۡتَدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "أَنفُسَكُمۡ",
+  "grade": "صالح",
+  "reason": "أي: يصلح أن يكون ما بعده مستأنفًا وحالًا، أي: احفظوا أنفسكم غير مضرورين",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "ٱهۡتَدَيۡتُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "حِينَ ٱلۡوَصِيَّةِ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر المبتدأ، وهو: «شهادة» لم يأت",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "مِّنكُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر المبتدأ، وهو: «شهادة» لم يأت",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "غَيۡرِكُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر المبتدأ، وهو: «شهادة» لم يأت",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "ٱلۡأَرۡضِ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر المبتدأ، وهو: «شهادة» لم يأت",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "مُّصِيبَةُ ٱلۡمَوۡتِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "ٱلصَّلَوٰةِ",
+  "grade": "لا",
+  "reason": "للعطف؛ لأنَّ «ولا نكتم شهادة الله» عطف على قوله: «لا نشتري»، فتكون من جملة المقسم عليه فلا يفصل بينهما بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "ذَا قُرۡبَىٰ",
+  "grade": "لا",
+  "reason": "للعطف؛ لأنَّ «ولا نكتم شهادة الله» عطف على قوله: «لا نشتري»، فتكون من جملة المقسم عليه فلا يفصل بينهما بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "شَهَٰدَةَ ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "ٱلۡأٓثِمِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "ٱلۡأَوۡلَيَٰنِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "أَيۡمَٰنِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "وَٱسۡمَعُواْ",
+  "grade": "حسن",
+  "reason": "أحسن منه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "ٱلۡفَٰسِقِينَ",
+  "grade": "تام",
+  "reason": "إن نصب «يوم» باذكر مقدرًا مفعولًا به، وليس بوقف إن نصب بـ «اتقوا»، أي: اتقوا الله يوم جمعه الرسل؛ لأنَّ أمرهم بالتقوى يوم القيامة لا يكون؛ إذ لا تكليف فيه، وإن جعل بدلًا من الجلالة كان غير جيد؛ لأنَّ الاشتمال لا يوصف به الباري.",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "أُجِبۡتُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "لَا عِلۡمَ لَنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "ٱلۡغُيُوبِ",
+  "grade": "تام",
+  "reason": "إن علق «إذ» باذكر مقدرًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "وَعَلَىٰ وَٰلِدَتِكَ",
+  "grade": "كاف",
+  "reason": "إن علق «إذ» باذكر مقدرة، لا بـ «اذكر» المذكورة قبل، أي: واذكر إذ أيدتك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "وَكَهۡلٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "وَٱلۡإِنجِيلَ",
+  "grade": "حسن",
+  "reason": "ومثله الإنجيل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "بِإِذۡنِي",
+  "grade": "جائز",
+  "reason": "في المواضع الأربعة جائز، على أنَّ «إذ» في كل من الأربعة منصوبة باذكر مقدرة، فيسوغ الوقف على «الإنجيل»، وعلى «بإذني» في المواضع الأربعة؛ لتفصيل النعم، وإن لم تعلق «إذ» بمقدرة فلا يوقف على واحدة منها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "بِٱلۡبَيِّنَٰتِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "مُّبِينٌ",
+  "grade": "كاف",
+  "reason": "إن علق «إذ» باذكر مقدرة، أي: اذكر إذ، أو حيث.",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "وَبِرَسُولِي",
+  "grade": "صالح",
+  "reason": "لاحتمال أن عامل «إذ» كلمة «قالوا»، ويحتمل أنَّ كلمة «قالوا» مستأنفة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "مُّسۡلِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "ومثله مؤمنين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "مَّآئِدَةٗ مِّنَ ٱالسَّمَآءِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 113,
+  "stop_phrase": "ٱلشَّٰهِدِينَ",
+  "grade": "كاف",
+  "reason": "ومثله من الشاهدين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "مَّآئِدَةٗ مِّنَ ٱلسَّمَآءِ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ جملة «تكون لنا» في محل نصب صفة لـ «مائدة»، والصفة والموصوف كالشيء الواحد فلا يفصل بينهما بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "وَءَايَةٗ مِّنكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "ٱلرَّٰزِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "عَلَيۡكُمۡ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "إن علق «إذ» باذكر مقدرًا مفعولًا به.",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "دُونِ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "بِحَقٍّ",
+  "grade": "حسن",
+  "reason": "ومثله بحق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "فَقَدۡ عَلِمۡتَهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "فِي نَفۡسِي",
+  "grade": "حسن",
+  "reason": "ومثله ما في نفسك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "ٱلۡغُيُوبِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "أَنِ ٱعۡبُدُواْ ٱللَّهَ",
+  "grade": "جائز",
+  "reason": "بناءً على أنَّ قوله: ربي وربكم من كلام عيسى على إضمار أعني، لا على أنَّه صفة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "رَبِّي وَرَبَّكُمْ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "فِيهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "ٱلرَّقِيبَ عَلَيۡهِمۡ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "شَهِيدٌ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "عِبَادُكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "ٱلۡحَكِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "صِدۡقُهُمۡ",
+  "grade": "كاف",
+  "reason": "لاختلاف الجملتين من غير عطف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "أَبَدٗا",
+  "grade": "حسن",
+  "reason": "وقيل: كاف، على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "وَرَضُواْ عَنۡهُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "ٱلۡعَظِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "وَمَا فِيهِنَّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "قَدِيرُۢ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

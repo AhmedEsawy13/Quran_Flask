@@ -1,0 +1,492 @@
+[
+ {
+  "ayah": 27,
+  "stop_phrase": "مِنَ ٱلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "مِن قَبۡلُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "لِمَا نُهُواْ عَنۡهُ",
+  "grade": "جائز",
+  "reason": "على أنَّ التكذيب إخبار من الله على عادتهم، وما هم عليه من الكذب في مخاطبة الرسول - صلى الله عليه وسلم -، فيكون منقطعًا عما قبله، وليس بوقف إن رجع إلى ما تضمنته جملة التمني بالوعد بالإيمان؛ إذ التقدير: يا ليتنا يكون لنا رد مع انتفاء التكذيب، وكوننا من المؤمنين",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "لَكَٰذِبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "حسن",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "بِمَبۡعُوثِينَ",
+  "grade": "كاف",
+  "reason": "لأنَّ الوقف على ذلك كله وما أشبهه مما ظاهره كفر، تقدم أنَّ الابتداء بما ظاهره ذلك غير معتقد لمعناه لا يكره ولا يحرم؛ لأنَّ ذلك حكاية قول قائلها، حكاها الله عنهم، ووعيد ألحقه الله بالكفار، والوقف والوصل في ذلك في المعتقد سواء، بل ومثل ذلك المستمع أيضًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "عَلَىٰ رَبِّهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "حسن",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "وَرَبِّنَا",
+  "grade": "حسن",
+  "reason": "وكذا",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "تَكۡفُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "بِلِقَآءِ ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "إن جعلت «حتى» ابتدائية، وليس بوقف إن جعلت غائية؛ لتكذيبهم، لا لخسرانهم؛ لأنَّه لا يزال بهم التكذيب إلى قولهم: يا حسرتنا وقت مجيء الساعة، فالساعة ظرف للحسرة، والعامل في «إذا» قوله: «يا حسرتنا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "فَرَّطۡنَا فِيهَا",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده جملة حالية، وذو الحال الضمير في «قالوا».",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ظُهُورِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "يَزِرُونَ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "وَلَهۡوٌ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "يَتَّقُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "تَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "وعند من قرأ : «تعقلون» بالفوقية أتم",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يَقُولُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "لا يُكَذِّبُونَكَ",
+  "grade": "جائز",
+  "reason": "قال بعضهم: لكن إذا كان بعدها جملة صلح الابتداء بها",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يَجۡحَدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "نَصۡرُنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "لِكَلِمَٰتِ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "بِـَٔايَةٖ",
+  "grade": "حسن",
+  "reason": "لأنَّ جواب الشرط محذوف تقديره: فافعل أحد الأمرين ابتغاء النفق، وابتغاء السلم",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡهُدَىٰ",
+  "grade": "حسن",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡجَٰهِلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يَسۡمَعُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يَبۡعَثُهُمُ ٱللَّهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يُرۡجَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "مِّن رَّبِّهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "أَن يُنَزِّلَ ءَايَةٗ",
+  "grade": "لا",
+  "reason": "لحرف الاستدراك",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "لَا يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "أُمَمٌ أَمۡثَالُكُم",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "مِن شَيۡءٖ",
+  "grade": "حسن",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "يُحۡشَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "فِي ٱلظُّلُمَٰتِ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "يُضۡلِلۡهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "مُّسۡتَقِيمٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "صَٰدِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "إِيَّاهُ تَدۡعُونَ",
+  "grade": "جائز",
+  "reason": "لأنَّ جواب «إن» الشرطية منتظر محذوف تقديره: إن كنتم صادقين فأجيبوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "إِن شَآءَ",
+  "grade": "حسن",
+  "reason": "ومفعول «شاء» محذوف تقديره: إن شاء كشفه",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "مَا تُشۡرِكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "يَتَضَرَّعُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "تَضَرَّعُواْ",
+  "grade": "جائز",
+  "reason": "كذا قيل",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "قُلُوبُهُمۡ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعلت الجملة داخلة تحت الاستدراك، فيكون الحامل على ترك التضرع قسوة قلوبهم، وإعجابهم بأعمالهم التي كان الشيطان سببًا في تحسينها لهم، وهذا أولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "أَبۡوَٰبَ كُلِّ شَيۡءٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "مُّبۡلِسُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "ٱلَّذِينَ ظَلَمُواْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "رَبِّ ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "يَأۡتِيكُم بِهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "يَصۡدِفُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "أَوۡ جَهۡرَةً",
+  "grade": "جائز",
+  "reason": "لأنَّ جملة «هل يهلك» معناها النفي، أي: ما يهلك إلَّا القوم الظالمون، ولذلك دخلت «إلَّا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ٱلظَّٰلِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "وَمُنذِرِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "فَلَا خَوۡفٌ عَلَيۡهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "يَحۡزَنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "يَفۡسُقُونَ",
+  "grade": "تام",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "خَزَآئِنُ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "ٱلۡغَيۡبَ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "إِنِّي مَلَكٌ",
+  "grade": "جائز",
+  "reason": "وهذه الأجوبة الثلاثة لما سأله المشركون: فالأول جواب لقولهم: إن كنت رسولًا فاسأل الله يوسع علينا خيرات الدنيا. والثاني جواب: إن كنت رسولًا فأخبرنا بما يقع في المستقبل من المصالح والمضار، فنستعد لتحصيل تلك ودفع هذه. والثالث جواب قولهم: مال هذا الرسول يأكل الطعام ويمشي في الأسواق",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "مَا يُوحَىٰٓ إِلَيَّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "وَٱلۡبَصِيرُ",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "تَتَفَكَّرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "إِلَىٰ ربِّهِمۡ",
+  "grade": "لا",
+  "reason": "لأن ليس لهم في موضع الحال وذو الحال الواو في «يحشرون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "وَلَا شَفِيعٞ",
+  "grade": "لا",
+  "reason": "الابتداء بحرف الترجي وهو في التعلق كـ (لام كي)، أي: وأنذرهم رجاء أن تحصل لهم التقوى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "يَتَّقُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مِّن شَيۡءٖ",
+  "grade": "لا",
+  "reason": "لأنَّ «فتطردهم» جواب للنفي، و «فتكون» جواب النهي؛ لأنَّ «ولا تطرد» نهي، وجوابه «فتكون»، و «بعده» في التقدير: ما عليك من حسابهم من شيء، فهو نفي مقدم من تأخير؛ لأنَّه لو تأخر لكان في موضع الصفة، و «عليك» في موضع خبر المبتدأ، كأنَّه قال: ما شيء من حسابهم عليك، وجواب النفي «فتطردهم» على التقديم والتأخير، فينتفي الحساب والطرد، وصار جواب كل من النهي والنفي على ما يناسبه؛ فجملة النفي وجوابه معترضة بين النهي وجوابه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "مِّنۢ بَيۡنِنَآ",
+  "grade": "حسن",
+  "reason": "للاستفهام بعده",
+  "reported_from": null
+ }
+]

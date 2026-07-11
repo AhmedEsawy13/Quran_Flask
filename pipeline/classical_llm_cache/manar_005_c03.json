@@ -1,0 +1,443 @@
+[
+ {
+  "ayah": 48,
+  "stop_phrase": "جَمِيعٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لفاء العطف بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "تَخۡتَلِفُونَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وقطعه عما قبله، ويكون موضع «وأن احكم» رفعًا بالابتداء، والخبر محذوف تقديره: ومن الواجب أن احكم بينهم بما أنزل الله، وليس بوقف إن جعل «وأن احكم» في موضع نصب عطفًا على الكتاب، أي: وأنزلنا إليك الكتاب أن احكم بينهم، ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "بِمَآ أَنزَلَ ٱللَّهُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "ذُنُوبِهِمۡۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "لَفَٰسِقُونَ",
+  "grade": "كاف",
+  "reason": "على قراءة: «تبغون» بالفوقية؛ لأنَّه خطاب بتقدير: قل لهم أفحكم الجاهلية تبغون؛ فهو منقطع عما قبله، وليس بوقف لمن قرأ: «يبغون» بالتحتية ؛ لأنَّه راجع إلى ما تقدمه من قوله: «وإنَّ كثيرًا من الناس لفاسقون»؛ فهو متعلق به، فلا يقطع عنه، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "يُوقِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "أَوۡلِيَآءَۘ",
+  "grade": "حسن",
+  "reason": "لأنَّه لو وصل لصارت الجملة صفة لـ «أولياء»، فيكون النهي عن اتخاذ أولياء صفتهم: إنَّ بعضهم أولياء بعض، فإذا انتفى هذا الوصف جاز اتخاذهم أولياء، وهو محال، وإنما النهي عن اتخاذهم أولياء مطلقًا",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "بَعۡضٖۚ",
+  "grade": "حسن",
+  "reason": "لأنه مثله [أي مثل الوقف على أولياء للتفصيل المذكور]",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "ف weإِنَّهُۥ مِنۡهُمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "ومثله الظالمين",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "دَآئِرَةٞۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "عِندِهِۦ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لفاء العطف بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "نَٰدِمِينَ",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «ويقول» بالرفع مع الواو، وبها قرأ الكوفيون وبدونها، وبها قرأ الحرميون، وابن عامر على الاستئناف، وليس بوقف لمن قرأ بالنصب عطفًا على «يأتي»، وبها قرأ أبو عمرو، ومن حيث كونه رأس آية يجوز .",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "جَهۡدَ أَيۡمَٰنِهِمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ قوله: «إنهم» جواب القسم، فلا يفصل بين القسم وجوابه بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "إِنَّهُمۡ لَمَعَكُمْۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "خَٰسِرِينَ",
+  "grade": "تام",
+  "reason": "ولا يوقف على «ويحبونه»؛ لأنَّ «أذلة» نعت لقوله: «بقوم»، واستدل بعضهم على جواز تقديم الصفة غير الصريحة على الصفة الصريحة بهذه الآية؛ فإن قوله: «يحبهم» صفة، وهي غير صريحة؛ لأنها جملة مؤولة، وقوله: «أذلة» و «أعزة» صفتان صريحتان؛ لأنهما مفردتان، و «يحبهم ويحبونه» معترض بين الصفة وموصوفها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "عَلَى ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل في موضع النعت لقوله: «بقوم»؛ لأنَّه لا يفصل بين النعت والمنعوت بالوقف، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "لَوۡمَةَ لَآئِمٖۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "يَشَآءُۚ",
+  "grade": "كاف",
+  "reason": "ومثله من يشاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "رَٰكِعُونَ",
+  "grade": "تام",
+  "reason": "ومثله راكعون",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱلۡغَٰلِبُونَ",
+  "grade": "تام",
+  "reason": "ومثله الغالبون",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "أَوۡلِيَآءَۚ",
+  "grade": "تام",
+  "reason": "لأنَّه لو وصله لصارت الجملة صفة لـ «أولياء» كما تقدم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "وَلَعِبٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "يَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "قَبۡلُ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لعطف «وأنَّ أكثركم» على «أنَّ آمنا»، أي: لا يعيبون منا شيئًا إلَّا الإيمان بالله",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "فَٰسِقُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "عِندِهِۦۚ",
+  "grade": "كاف",
+  "reason": "لتناهي الاستفهام، وعلى أنَّ ما بعده مرفوع خبر مبتدأ محذوف تقديره: هو من لعنة الله، وليس بوقف إن جعل «من» في موضع خفض بدلًا من قوله: «بشر»، وفي موضع نصب بمعنى: قل هل أنبئكم من لعنه الله، أو في موضع نصب أيضًا بدلًا من قوله: «بشر» على الموضع.",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱلطَّٰغُوتَۚ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «وعَبَدَ الطاغوت» فعلًا ماضيًا .",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱلسَّبِيلِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "بِهِۦۚ",
+  "grade": "كاف",
+  "reason": "وكذا خرجوا به",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "يَكۡتُمُونَ",
+  "grade": "كاف",
+  "reason": "ومثله يكتمون",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "ٱلسُّحۡتَۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلسُّحۡتَۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "يَصۡنَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "مَغۡلُولَةٌۚ",
+  "grade": "جائز",
+  "reason": "عند بعضهم، أي: ممنوعة من الإنفاق، وهذا سبٌّ لله تعالى بغير ما كفروا به، وتجاوزه أولى؛ ليتصل قوله: «غلت أيديهم»، وهو جزاء قولهم: «يد الله مغلولة» .",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "قَالُواْۘ",
+  "grade": "حسن",
+  "reason": "ولا يجوز وصله بما بعده؛ لأنَّه يصير قوله: «بل يداه مبسوطتان» من مقول اليهود، ومفعول «قالوا»، وليس كذلك، بل هو ردٌّ لقولهم: «يد الله مغلولة».",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "مَبۡسُوطَتَانِ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ قوله: «ينفق» من مقصود الكلام، فلا يستأنف",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "يَشَآءُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "وَكُفۡرٗاۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡقِيَٰمَةِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱللَّهُۚ",
+  "grade": "حسن",
+  "reason": "ومثله «أطفأها الله»؛ على استئناف ما بعده، وليس بوقف إن جعلت الواو للحال، أي: وهم يسعون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "فَسَادٗاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡمُفۡسِدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "ٱلنَّعِيمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "أَرۡجُلِهِمۚ",
+  "grade": "كاف",
+  "reason": "ومثله أرجلهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "مُّقۡتَصِدَةٌۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بعد بـ «يا» النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "رَّبِّكَۖ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "رِسَالَتَهُۥۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "ٱلنَّاسِۗ",
+  "grade": "كاف",
+  "reason": "ومثله من الناس.",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "رَّبِّكُمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "وَكُفۡرٗاۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "وَٱلنَّصَٰرَىٰ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ خبر إن لم يأت بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "يَحۡزَنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "رُسُلٗاۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "أَنفُسُهُمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ ما بعده جواب كلما، أي: كلما جاءهم رسول كذبوه وقتلوه، أي: كذبوا فريقًا، وقتلوا فريقًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "يَقۡتُلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "عَلَيۡهِمۡ",
+  "grade": "كاف",
+  "reason": "ومثله: «وصموا» إذا رفع «كثير» على الاستئناف خبر مبتدأ محذوف، أي: ذلك كثير منهم، وليس بوقف إن جعل بدلًا من الواو في «عموا وصموا»؛ لأنَّه لا يفصل بين المبدل والمبدل منه",
+  "reported_from": null
+ }
+]

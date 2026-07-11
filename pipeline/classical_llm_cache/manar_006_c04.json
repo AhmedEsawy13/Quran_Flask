@@ -1,0 +1,415 @@
+[
+ {
+  "ayah": 93,
+  "stop_phrase": "غَمَرَٰتِ ٱلۡمَوۡتِ",
+  "grade": "كاف",
+  "reason": "وجواب «لو» محذوف تقديره: لرأيت أمرًا عظيمًا، و «الظالمون» مبتدأ خبره «في غمرات الموت»",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "بَاسِطُوٓاْ أَيۡدِيهِمۡ",
+  "grade": "جائز",
+  "reason": "قال ابن عباس: باسطو أيديهم بالعذاب",
+  "reported_from": "ابن عباس"
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "أَنفُسَكُمُ",
+  "grade": "حسن",
+  "reason": "على تقدير محذوف، أي يقولون: أخرجوا أنفسكم، وهذا القول في الدنيا، وقيل: في الآخرة، والمعنى: خلصوا أنفسكم من العذاب، والوقف على قوله: «اليوم»، والابتداء بقوله: «تجزون عذاب الهون»، وقيل: «اليوم» منصوب بـ «تجزون»، والوقف حينئذ على «أنفسكم»، والابتداء بقوله: «اليوم»، والمراد بـ «اليوم»: وقت الاحتضار، أو يوم القيامة",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "غَيۡرَ ٱلۡحَقِّ",
+  "grade": "كاف",
+  "reason": "إن جعل ما بعده مستأنفًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "غَيۡرَ ٱلۡحَقِّ",
+  "grade": "لا",
+  "reason": "إن عطف على بـ «ما كنتم»، معللًا جزاء العذاب بكذبهم على الله، وباستكبارهم عن آياته",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "تَسۡتَكۡبِرُونَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ لأنَّه آخر كلام الملائكة",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "وَرَآءَ ظُهُورِكُمۡ",
+  "grade": "حسن",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "شُرَكَٰٓؤُاْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "بَيۡنَكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "تَزۡعُمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "وَٱلنَّوَىٰ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف، على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "مِنَ ٱلۡحَيِّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "تُؤۡفَكُونَ",
+  "grade": "حسن",
+  "reason": "وقيل: وصله أحسن؛ لأنَّ «فالق الإصباح» تابع لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "فَالِقُ ٱلۡإِصۡبَاحِ",
+  "grade": "حسن",
+  "reason": "على قراءة: «وجعل» فعلًا ماضيًا، أي: فلق وجعل ونصب الليل والشمس والقمر، وهي قراءة الكوفيين",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "حُسۡبَانٗا",
+  "grade": "حسن",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "ٱلۡعَلِيمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "وَٱلۡبَحۡرِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "وَمُسۡتَوۡدَعٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "يَفۡقَهُونَ",
+  "grade": "تام",
+  "reason": "قال ابن عباس : مستقر في الأرض ومستودع عند الله، وقال ابن مسعود : مستقر في الرحم، ومستودع في القبر، أو مستودع في الدنيا",
+  "reported_from": "ابن عباس"
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "كُلِّ شَيۡءٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "خَضِرٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "مُّتَرَاكِبٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "دَانِيَةٞ",
+  "grade": "كاف",
+  "reason": "لمن رفع «جناتٌ» مبتدأ، والخبر محذوف تقديره: لهم جنات، أو مبتدأ والخبر محذوف تقديره: وجنات من أعناب أخرجناها، وهي قراءة الأعمش، ولا يصح رفعه عطفًا على «قنوان»؛ لأنَّ الجنة من الأعناب لا تكون من القنوان",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "دَانِيَةٞ",
+  "grade": "لا",
+  "reason": "لمن نصب «جنات» عطفًا على «حبًّا»، أو على «نبات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "مِّنۡ أَعۡنَابٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "وَغَيۡرَ مُتَشَٰبِهٍ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "وَيَنۡعِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "شُرَكَآءَ ٱلۡجِنَّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "وَخَلَقَهُمۡ",
+  "grade": "كاف",
+  "reason": "وهو أكفى لمن قرأ، و «خلَقهم» بفتح اللام",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "بِغَيۡرِ عِلۡمٖ",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ للابتداء بالتنزيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "يَصِفُونَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده خبر مبتدأ محذوف، أي: هو بديع، أو مبتدأ وخبره ما بعده من قوله: «أنى يكون له ولد»، وعليه فلا يوقف على «الأرض»؛ لئلاَّ يفصل بين المبتدأ وخبره، وإن جعل «بديع» بدلًا من قوله: «لله»، أو من الهاء في «سبحانه»، أو نصب على المدح -جاز الوقف على «الأرض»",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "صَٰحِبَةٞ",
+  "grade": "حسن",
+  "reason": "ومثله «كل شيء»",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "خَلَقَ كُلَّ شَيۡءٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "عَلِيمٞ",
+  "grade": "حسن",
+  "reason": "أحسن منهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "فَٱعۡبُدُوهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "وَكِيلٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "ٱلۡأَبۡصَٰرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "ٱلۡخَبِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "مِن رَّبِّكُمۡ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "فَعَلَيۡهَا",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي، ومثله «بحفيظ»",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "بِحَفِيظٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "مِن رَّبِّكَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "ٱلۡمُشۡرِكِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "مَآ أَشۡرَكُواْ",
+  "grade": "حسن",
+  "reason": "ومثله «حفيظًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "حَفِيظٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "بِوَكِيلٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "مِن دُونِ ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "بِغَيۡرِ عِلۡمٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "عَمَلَهُمۡ",
+  "grade": "حسن",
+  "reason": "و «ثم» لترتيب الأخبار، لا لترتيب الفعل",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "ومثله «ليؤمنن بها»",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "لَّيُؤۡمِنُنَّ بِهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "عِندَ ٱللَّهِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "وَمَا يُشۡعِرُكُمۡ",
+  "grade": "تام",
+  "reason": "على قراءة «إنها» بكسر الهمزة، وبها قرأ ابن كثير، وأبو عمرو، استئناف أخبار عنهم أنهم لا يؤمنون إذا جاءت الآية، «وما يشعركم»، أي: وما يدريكم إيمانهم إذا جاءت، فأخبر الله عنهم بما علمه منهم، فقال: إنَّها إذا جاءت «لا يؤمنون» على الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "وَمَا يُشۡعِرُكُمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف على قراءتها بالفتح",
+  "reported_from": null
+ }
+]
