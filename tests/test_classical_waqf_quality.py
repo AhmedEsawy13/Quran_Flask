@@ -52,7 +52,13 @@ def rows():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     try:
-        return conn.execute('SELECT * FROM classical').fetchall()
+        # Scope to the four regex-extracted books. AI-re-extracted rows (source
+        # ending in _llm, built by build_classical_llm.py) are a separate track
+        # with their own gates in test_classical_llm.py — their `quote` is a
+        # mushaf phrase, not a verbatim book excerpt, so the source-traceability
+        # rules here don't apply to them.
+        return conn.execute(
+            "SELECT * FROM classical WHERE source NOT LIKE '%\\_llm' ESCAPE '\\'").fetchall()
     finally:
         conn.close()
 

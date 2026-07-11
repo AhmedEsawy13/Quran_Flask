@@ -112,3 +112,14 @@ reciters/**/letter_timestamps.json.gz
 # pipeline/build_tafseer_local.py, requires a QUL account to re-download.
 # The BUILT data/tafseer_local.db is what ships, this raw source isn't.
 pipeline/tafseer_source/
+
+# Classical waqf AI re-extraction (pipeline/build_classical_llm.py):
+# the PILOT output db and bulk model responses are regenerable → not tracked;
+# but keep the few hand-verified pilot extractions so the pilot is reproducible
+# without an API key.
+data/classical_waqf_llm.db
+pipeline/classical_llm_cache/*
+!pipeline/classical_llm_cache/manar_001.json
+!pipeline/classical_llm_cache/manar_108.json
+!pipeline/classical_llm_cache/manar_110.json
+!pipeline/classical_llm_cache/manar_112.json

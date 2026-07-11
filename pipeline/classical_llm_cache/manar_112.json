@@ -1,0 +1,6 @@
+[
+ {"ayah": 1, "stop_phrase": "أحد", "grade": "حسن", "reason": "حسنٌ عند أبي عمرو؛ إذ جملة «الله الصمد» قد تكون بدلًا من الجملة الأولى في تتمّة البيان، ومن وصَلَ نوّن «أحد».", "reported_from": "أبو عمرو"},
+ {"ayah": 2, "stop_phrase": "الصمد", "grade": "كاف", "reason": "على استئناف ما بعده.", "reported_from": null},
+ {"ayah": 3, "stop_phrase": "ولم يولد", "grade": "كاف", "reason": "ومثله «الصمد»؛ وسمه بعضهم بالكافي، ولعلّه لكونه من عطف الجمل.", "reported_from": null},
+ {"ayah": 4, "stop_phrase": "أحد", "grade": "تام", "reason": "آخر السورة.", "reported_from": null}
+]
