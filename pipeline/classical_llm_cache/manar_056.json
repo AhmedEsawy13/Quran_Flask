@@ -1,0 +1,184 @@
+[
+ {
+  "ayah": 2,
+  "stop_phrase": "كَابِتَةٌ",
+  "grade": "تام",
+  "reason": "لمن قرأ ما بعده بالرفع خبر مبتدأ محذوف، ولم تعلق «إذا رجَّت» بـ «وقعت»",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "كَابِتَةٌ",
+  "grade": "لا",
+  "reason": "إذا علق «إذا رجَّت» بـ «وقعت»؛ وكذا إذا أعربت «إذًا» الثانية بدلًا من الأولى، وليس بوقف أيضًا لمن قرأ: «خافضة رافعة» بالنصب؛ ومثله في عدم الوقف أيضًا إذا أعربت «إذًا» الأولى مبتدأ، و «إذًا» الثانية خبرها في قراءة من نصب «خافضة رافعة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "كَابِتَةٌ",
+  "grade": "كاف",
+  "reason": "لمن نصب «خافضة رافعة» على المدح بفعل مقدَّر",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "رَّافِعَةٌ",
+  "grade": "جائز",
+  "reason": "على القراءتين، أعني رفع: «خافضة رافعة» ونصبهما، و «إذا» الأولى شرطية، وجوابها الجملة المصدرة بـ «ليس»، أو جوابها محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ثَلَٰثَةٗ",
+  "grade": "حسن",
+  "reason": "ثم فسَّر «الثلاثة» فقال: «فأصحاب الميمنة ما أصحاب الميمنة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "مَآ أَصۡحَٰبُ ٱلۡمَيۡمَنَةِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "مَآ أَصۡحَٰبُ ٱلۡمَشۡـَٔمَةِ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل: ما أصحاب الميمنة)",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلسَّٰبِقُونَ ٱلسَّٰبِقُونَ",
+  "grade": "لا",
+  "reason": "إن جعل الثاني منهما نعتًا للأوَّل، و «أولئك المقربون» خبرًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلنَّعِيمِ",
+  "grade": "كاف",
+  "reason": "إن جعل الثاني منهما نعتًا للأوَّل، و «أولئك المقربون» خبرًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱلۡأٓخِرِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «على سررٍ موضونة» ظرف لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱلۡأٓخِرِينَ",
+  "grade": "حسن",
+  "reason": "إن جعل «على سرر» متصلًا بـ «متكئين» ونصب «متكئين» بفعل مضمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "مُتَقَٰبِلِينَ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "مُتَقَٰبِلِينَ",
+  "grade": "لا",
+  "reason": "إن جعل حالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "يَشۡتَهُونَ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «وحور عين» بالرفع، أي: وعندهم حور، أو: ولهم حور عين؛ ومثله في الحسن على قراءة أُبيّ بن كعب: «وحورًا عينًا» بالنصب؛ بمعنى: ويزوّجون حورًا عينًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "يَشۡتَهُونَ",
+  "grade": "لا",
+  "reason": "لمن قرأ: «وحور» بالجرّ عطفًا على «بأكواب وأباريق»",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "عِينٞ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «كأمثال» من نعت «عين» والكاف زائدة",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡمَكۡنُونِ",
+  "grade": "جائز",
+  "reason": "لأنَّ «جزاء» يصلح مفعولًا له، أي: للجزاء ويصلح مصدرًا، أي: جوزوا جزاء، أو: جزيناهم جزاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡمَكۡنُونِ",
+  "grade": "لا",
+  "reason": "إن نصب بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "في الوجوه كلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "سَلَٰمٗا سَلَٰمٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مَآ أَصۡحَٰبُ ٱلۡيَمِينِ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل: سلامًا سلامًا)",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "مَّرۡفُوعَةٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "ٱلۡيَمِينِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلۡأٓخِرِينَ",
+  "grade": "تام",
+  "reason": "مثله (أي مثل: لأصحاب اليمين)",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "مَآ أَصۡحَٰبُ ٱلشِّمَالِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "كَرِيمٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ }
+]

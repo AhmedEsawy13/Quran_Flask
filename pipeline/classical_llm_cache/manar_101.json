@@ -1,0 +1,58 @@
+[
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡقَارِعَةُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلۡقَارِعَةُ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» بفعل مقدر، أي: تقع القارعة في هذا اليوم، أو تكون القارعة، أو تقرعهم يوم يكون، فخرج بذلك عن الظرفية وصار مفعولًا به، ولتمام المبتدأ والخبر لتمام المبالغة في التعظيم بالمعظم",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡمَبۡثُوثِ",
+  "grade": "جائز",
+  "reason": "لتفصيل أسباب الخوف، وإلا فهو معطوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلۡمَنفُوشِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "رَّاضِيَةٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "هَاوِيَةٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "هِيَهۡ",
+  "grade": "كاف",
+  "reason": "لأنه مثل: «هاوية»",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "حَامِيَةُۢ",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

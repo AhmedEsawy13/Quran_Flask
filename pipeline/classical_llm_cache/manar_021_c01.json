@@ -1,0 +1,317 @@
+[
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "فَفَتَقۡنَٰهُمَا",
+  "grade": "حسن",
+  "reason": "وقرأ ابن كثير : «ألم ير الذين» بغير واو، وعليها فهو أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "حَيٍّ",
+  "grade": "كاف",
+  "reason": "للاستفهام بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وإن عطف على ما قبله لم يوقف على قوله: «يؤمنون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "رَوَٰسِيَ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «أن تميد» موضعه نصب بالـ (جعل)",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "سُبُلٗا",
+  "grade": "لا",
+  "reason": "وذلك أنَّ قوله: «يهتدون» في معنى: ليهتدوا، وهذا إذا جعلت (لعل) من صلة (جعل) الأول، وإن جعلت من صلة (جعل) الثاني، كان الوقف على «بهم» حسنًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "يَهۡتَدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "مَّحۡفُوظٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "مُعۡرِضُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "وَٱلۡقَمَرَ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعلت الجملة في محل نصب حالًا من «الشمس والقمر» واستبد الحال بهما دون «الليل والنهار»",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يَسۡبَحُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡخُلۡدَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡخَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡمَوۡتِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "وَٱلۡخَيۡرِ",
+  "grade": "جائز",
+  "reason": "إن نصب «فتنة» بفعل مقدر، وليس بمرضى؛ لأنَّه يصير المعنى: فتنتكم فتنة، وليس بوقف؛ إن نصبت «فتنة» مفعولًا لأجله، أو مصدرًا في موضع الحال، أي: فاتنين، وتجاوزه إلى «فتنة» أولى؛ لأنَّ (إلى) التي بعده من صلة «ترجعون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "تُرۡجَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "هُزُوًا",
+  "grade": "حسن",
+  "reason": "إن جعل قوله: «إن يتخذونك إلّا هزوًا»، وهو الجواب، وإذا لم يحتج إلى الفاء في الجواب بخلاف أدوات الشرط... وليس بوقف إن جعل جواب: «إذا» محذوفًا تقديره: وإذ رآك الذين كفروا قالوا هذا القول",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ءَالِهَتَكُمۡ",
+  "grade": "حسن",
+  "reason": "متعلق «يذكر»، محذوف تقديره: بسوء",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "كَٰفِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "عَجَلٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "تَسۡتَعۡجِلُونِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "صَٰدِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "يُنصَرُونَ",
+  "grade": "كاف",
+  "reason": "وجواب: «لو» محذوف، تقديره: لو يعلم الذين كفروا ما ينزل بهم من العذاب يوم القيامة ما استعجلوا به، ولِمَا قالوا متى هذا الوعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "بَغۡتَةٗ",
+  "grade": "جائز",
+  "reason": "لأنَّ ما بعد الفاء تفسير لها، ومثله: «فتبهتهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يُنظَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "قَبۡلِكَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده كالجواب لما قبله، ومعنى حاق: وجب ونزل بهم العذاب الذي كانوا يستهزؤن بالرسل من أجل إلايعاد به",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "يَسۡتَهۡزِءُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "ٱلرَّحۡمَٰنِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مُّعۡرِضُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "دُونِنَا",
+  "grade": "كاف",
+  "reason": "فصلاً بين الاستفهام والإخبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "يُصۡحَبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلۡعُمُرُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "أَطۡرَافِهَآ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلۡغَٰلِبُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "بِٱلۡوَحۡيِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "يُنذَرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "رَّبِّكَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده جواب لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ظَٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "حسن",
+  "reason": "ومن قرأ : «مثقالُ» بالرفع كان أحسن",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "خَرۡدَلٍ",
+  "grade": "لا",
+  "reason": "لأنَّ «أتينا»، جواب الشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بِهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "حَٰسيبينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "ٱلۡفُرۡقَانَ",
+  "grade": "حسن",
+  "reason": "«وضياءً» منصوب بفعل مقدر تقديره: وجعلناه ضياءً... وليس بوقف إن جعلت الواو عاطفة، أو زائدة",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "لِّلۡمُتَّقِينَ",
+  "grade": "كاف",
+  "reason": "إن رفع «الذين» خبر مبتدأ محذوف، أي: هم الذين، أو نصب بتقدير: أعني، أو أمدح، وليس بوقف إن جعل نعتًا، أو بدلًا",
+  "reported_from": null
+ }
+]

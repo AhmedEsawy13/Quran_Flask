@@ -1,0 +1,114 @@
+[
+ {
+  "ayah": 70,
+  "stop_phrase": "ٱلۡأَسۡرَىٰٓ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده مقول قول",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "لَكُمۡ",
+  "grade": "كاف",
+  "reason": "كاف، ومثله «رحيم»، وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "كاف",
+  "reason": "ومثله «رحيم»، وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "مِنۡهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "بَعۡضٖ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف، وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "يُهَاجِرُواْ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "مِّيثَٰقٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "بَصِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "بَعۡضٍ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ للابتداء بالشرط، أي: إن لم تفعلوه تكن فتنة في الأرض وفساد كبير.",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "كَبِيرٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "حَقّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "كَرِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "مِنكُمۡ",
+  "grade": "كاف",
+  "reason": "كاف، ومثله «في كتاب الله».",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "ومثله «في كتاب الله».",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "عَلِيمُۢ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

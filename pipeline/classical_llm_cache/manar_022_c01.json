@@ -1,0 +1,415 @@
+[
+ {
+  "ayah": 20,
+  "stop_phrase": "بُطُونِهِمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده معطوف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "وَٱلۡجُلُودُ",
+  "grade": "جائز",
+  "reason": "ورأس آية في الكوفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "حَدِيدٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "فِيهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "ٱلۡحَرِيقِ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡأَنۡهَٰرُ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «ولؤلؤًا» بالنصب، أي: ويؤتون لؤلؤًا، وليس بوقف لمن قرأه: بالجر ، عطفًا على محل «من ذهب»",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "وَلُؤۡلُؤٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "حَرِيرٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡحَمِيدِ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر القصة",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "لِلنَّاسِ",
+  "grade": "حسن",
+  "reason": "إن رفع «سواءٌ» مبتدأ، وما بعده جملة في محل رفع خبر وكذا إن جعل خبرًا مقدّمًا، و «العاكف» مبتدأ مؤخرًا، وبالرفع قرأ: العامة، وليس بوقف لمن نصب «سواءً» مفعولًا ثانيًا، لـ «جعلناه»، وهو حفص ، أو بالرفع على جعل الجملة مفعولًا ثانيًا لـ «جعلنا» لاتصاله بما قبله، فلا يقطع منه، وخبر «إنّ الذين كفروا» محذوف، أي: هلكوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "وَٱلۡبَادِ",
+  "grade": "تام",
+  "reason": "في الوجوه كلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "بِظُلۡمٖ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب الشرط لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "أَلِيمٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡبَيۡتِ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده منصوب بما قبله، بناءً على أنَّ الخطاب في قوله: «أن لا تشرك بي شيئًا»؛ لإبراهيم - عليه السلام -، وعلى أنَّه خطاب لنبينا -عليه الصلاة والسلام- يكون الوقف على «البيت» تامًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "حسن",
+  "reason": "على استئناف الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلسُّجُودِ",
+  "grade": "كاف",
+  "reason": "وليس بوقف على أنّ الخطاب لإبراهيم وعليه، فلا يوقف من قوله: «وإذ بوأنا لإبراهيم»، إلى «عميق»، فلا يوقف على «شيئًا»، ولا على «السجود»؛ لأنَّ العطف يصيّرهما كالشيء الواحد، ولا يوقف على الحجج؛ لأنَّ «يأتوك» جواب الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "عَمِيقٖ",
+  "grade": "جائز",
+  "reason": "وقيل: لا يجوز؛ لأنَّ ما بعد اللام سبب في إيجاب ما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "لَّهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده معطوف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡأَنۡعَٰمِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡفَقِيرَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلۡعَتِيقِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ذَٰلِكَ",
+  "grade": "جائز",
+  "reason": "وقيل: الوقف على ذلك بجعل ذلك مبتدأ حذف خبره، أو خبر مبتدأ محذوف، أي: وذلك لازم لكم، أو الأمر ذلك، أو ألزموا ذلك الأمر الذي وصفناه، ثم تبتدئ: ومن يعظم حرمات الله فهو خير له عند ربه",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "رَبِّهِۦ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "عَلَيۡكُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱلۡأَوۡثَٰنِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱلزُّورِ",
+  "grade": "جائز",
+  "reason": "وفيه الفصل بين الحال وذيّها؛ لأنَّ قوله: «حنفاء» حال من فاعل (اجتنبوا)، والأَوْلَى وصله، ومثله الوقف على «لله»؛ لأنَّ «غير مشركين به» حال مؤكدة، إذ يلزم من كونهم «حنفاء» عدم الإشراك",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "بِهِۦ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلسَّمَآءِ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فتخطفه الطير» بيان لما قبله، ولا يوقف على «الطير»؛ لأنَّ «أو تهوى» عطف على (تخطفه)",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "سَحِيقٖ",
+  "grade": "جائز",
+  "reason": "وقيل: الوقف على ذلك إشارة إلى اجتناب الرجس والزور",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب الشرط لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلۡقُلُوبِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "مُّسَمّٗى",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "ٱلۡعَتِيقِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡأَنۡعَٰمِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "وَٰحِدٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَسۡلِمُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡمُخۡبِتِينَ",
+  "grade": "تام",
+  "reason": "فإن رفعت «الذين» خبر مبتدأ محذوف، كان الوقف على «المخبتين» تامًا، وكذا إن رفع مبتدأ، والخبر محذوف، أو جعل في محل نصب بتقدير: أعني، وليس بوقف إن جعل نعتًا، أو بدلًا أو بيانًا لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "أَصَابَهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «والمقيمي الصلاة» عطف على «الصابرين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "يُنفِقُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "خَيۡرٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "صَوَآفَّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "جُنُوبُهَا",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعد الفاء جواب (إذا)، وكذا «فكلوا منها»؛ لأنَّ «وأطعموا القانع والمعتر» معطوف على «فكلوا»، ومثله: «سخرناها لكم»؛ لأنَّ قوله: «لعلكم تشكرون»؛ معناه: لتشكروا، فإنَّما وقع التسخير للشكر",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "وَٱلۡمُعۡتَرَّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "تَشۡرُون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "مِنكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "هَدَىٰكُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "ءَامَنُوٓاْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "كَفُورٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ظُلِمُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "لَقَدِيرٌ",
+  "grade": "تام",
+  "reason": "فإن رفع خبر مبتدأ محذوف، أي: هم الذين، أو رفع بالابتداء، والخبر محذوف، أو نصب بتقدير: أعني، كان تامًا، وليس بوقف إن جعل بدلًا من «الذين» الأول، أو نعتًا «للذين يقاتلون» فلا يفصل بين البدل والمبدل منه، ولا بين النعت والمنعوت بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "حَقٍّ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «إلّا أن يقولوا» موضعه جر صفة لـ «حق» فلا يقطع عنه؛ كأنّه قال: ما أخرجوا من ديارهم، إلّا بقولهم: ربنا الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "بِبَعۡضٖ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «لهدمت» جواب: «لو»",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "وَصَلَوَٰتٞ",
+  "grade": "جائز",
+  "reason": "ثم تبتدئ: «ومساجد» بإضمار خبر، أي: ومساجد كذلك، أو بإعادة الفعل للتخصيص، أي: لهدمت؛ لأنَّ الله خصّ المساجد بذكر الله، أو لأنَّ الضمير بعد يعود عليها خاصة كما عاد على الصلاة في قوله: «واستعينوا بالصبر والصلاة»، وإنَّها ومن جعل الضمير عائدًا على جميعها؛ أراد: لهدمت كنائس زمن موسى، وصوامع، وبيع زمن عيسى، ومساجد زمن نبينا، وكان الوقف «كثيرًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يَنصُرُهُۥٓ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "عَزِيزٌ",
+  "grade": "تام",
+  "reason": "إن رفع «الذين» بالابتداء، والخبر محذوف، أو عكسه، وحسن إن جر بدلًا أو نعتًا لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "ٱلۡمُنكَرِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "ٱلۡأُمُورِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

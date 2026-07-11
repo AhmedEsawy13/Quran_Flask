@@ -1,0 +1,233 @@
+[
+ {
+  "ayah": 44,
+  "stop_phrase": "وَعَرَبِيٌّ",
+  "grade": "تام",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "وَشِفَآءٌ",
+  "grade": "تام",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "وَقۡرٌ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "عَمًى",
+  "grade": "حسن",
+  "reason": "مثله، وقيل: كاف على استئناف ما بعده، ومن جعل خبر: إن أولئك ينادون، لم يوقف على شيء من قوله: «بصير» إلى «بعيد» لاتصال الكلام بعضه ببعض من جهة المعنى",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "بَعِيدٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "فِيهِ",
+  "grade": "تام",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "بَيۡنَهُمۡ",
+  "grade": "جائز",
+  "reason": "وكاف على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مُرِيبٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "فَلِنَفۡسِهِۦ",
+  "grade": "جائز",
+  "reason": "الأصح الفصل بينهما ولا يخلط أحدهما مع الآخر",
+  "reported_from": "ابن نصير النحوي"
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "فَعَلَيۡهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "لِّلۡعَبِيدِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ٱلسَّاعَةِ",
+  "grade": "حسن",
+  "reason": "وتام عند أبي حاتم",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بِعِلۡمِهِۦ",
+  "grade": "تام",
+  "reason": "على القراءتين؛ أعني: «ثمرات» بالجمع، وبها قرأ نافع وابن عامر، والباقون: «ثمرة» بالأفراد",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "شُرَكَآءِي",
+  "grade": "لا",
+  "reason": "لأنَّ «قالوا» عامل «ويوم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ءَاذَنَّٰكَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده في موضع نصب به، وجّوز أبو حاتم الوقف على «آذناك»، وعلى «ظنوا» والابتداء بالنفي بعدهما على سبيل الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "شَهِيدٖ",
+  "grade": "كاف",
+  "reason": "و «منا» خبر مقدم، و «من شهيد» مبتدأ مؤخر، أو «شهيد» فاعل بالجار قبله لاعتماده على النفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "وَظَنُّواْ",
+  "grade": "تام",
+  "reason": "والأجود الوقف على «من قبل»، والابتداء بقوله: «وظنوا»",
+  "reported_from": "أبو حاتم السجستاني"
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "مَّحِيصٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "ٱلۡخَيۡرِ",
+  "grade": "حسن",
+  "reason": "وكاف عند أبي حاتم، وهو مصدر مضاف لمفعوله، وفاعله محذوف، أي: هو",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "قَنُوطٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "لِي",
+  "grade": "لا",
+  "reason": "لكراهية الابتداء بما لا يقوله المسلم، وهو: وما أظن الساعة قائمة، وتأويله أن الوقف على جميع ذلك القارئ غير معتقد لمعناه، وإنما ذلك حكاية عن قول قائله حكاه الله عمن قاله",
+  "reported_from": "النكزاوي"
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "لَلۡحُسۡنَىٰ",
+  "grade": "كاف",
+  "reason": "للابتداء بالوعيد",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "غَلِيظٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "بِجَانِبِهِۦ",
+  "grade": "جائز",
+  "reason": "الأصح التفريق بينهما",
+  "reported_from": "ابن نصير النحوي"
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "عَرِيضٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "بِهِۦ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «من أضل» في موضع المفعول الثاني: (لا رأيتم)",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "بَعِيدٖ",
+  "grade": "تام",
+  "reason": "للابتداء بالسين",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلۡأٓفَاقِ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده معطوف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "أَنفُسِهِمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ الذي بعده قد عمل فيه ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلۡحَقُّ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "شَهِيدٌ",
+  "grade": "تام",
+  "reason": "مثله في التمام",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "تام",
+  "reason": "وكذا",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "مُّحِيطُۢ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

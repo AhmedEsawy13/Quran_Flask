@@ -1,0 +1,450 @@
+[
+ {
+  "ayah": 23,
+  "stop_phrase": "مَّنثُورًا",
+  "grade": "تام",
+  "reason": "ممنثوراً تام، ومثله: «مقيلًا» إن نصب «يوم تشقق» بمحذوف، أو بالظرفية، لقوله: الملك، وإن جعل توكيداً اليوم يرون فكافيان.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "تَنزِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "لِلرَّحۡمَٰنِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "عَسِيرٗا",
+  "grade": "تام",
+  "reason": "إن نصب «يوم» بمحذوف، وجائز إن عطف على «يوم تشقق»",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "خَلِيلٗا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "جَآءَنِيۗ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر كلام الظالم، وما بعده من كلام الله تعالى، وهذا إن جعل ما بعده مستأنفًا، فإن جعل الكلام متصلًا من قوله: «يا ليتني اتخذت» إلى آخر كلامه فلا وقف إلّا على آخره.",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "خَذُولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مهجورًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡمُجۡرِمِينَۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "وَنَصِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "جُمۡلَةٗ وَٰحِدَةٗۚ",
+  "grade": "كاف",
+  "reason": "إن جعل التشبيه من تمام الكلام، أي: هلا نزل القرآن على محمد - صلى الله عليه وسلم - جملة واحدة، كما أنزلت التوراة على موسى كغيرها من الكتب... والأحسن الوقف على جملة واحدة، ثم تبتدئ بـ «كذلك»، فكذلك على الأول من قول المشركين، وعلى الثاني من قول الله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "فُؤَادَكَۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "تَرۡتِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "تَفۡسِيرًا",
+  "grade": "تام",
+  "reason": "لعدم تعلق ما بعده؛ لأنَّه مبتدأ باتفاق، وخبره «أولئك» فلا يوقف على «جهنم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "وَزِيرٗا",
+  "grade": "جائز",
+  "reason": "والوصل أولى لمكان الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "بِـَٔايَٰتِنَا",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «فدمرنَاهم»، وهي قراءة العامة؛ فعل ماض معطوف على محذوف، أي: فذهبا فبلغا الرسالة فكذبوهما، قال تعالى: فدمرناهم، أي: أدت الرسالة إلى دمارهم، وليس بوقف على قراءة من قرأ: «فدمَّرنَّهم» بالأمر وتشديد النون؛ لأنَّه كلام واحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "تَدۡمِيرٗا",
+  "grade": "كاف",
+  "reason": "إن نصب «قوم نوح» بفعل مضمر، تقديره: وأغرقنا قوم نوح أغرقناهم؛ على الاشتغال، وليس بوقف إن نصب عطفًا على الضمير المنصوب في «دمرناهم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ءَايَةٗۖ",
+  "grade": "حسن",
+  "reason": "لأن «وأعتدنا» مستأنف غير معطوف ولا متصل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "أَلِيمٗا",
+  "grade": "كاف",
+  "reason": "إن نصب ما بعده بفعل مقدر، وليس بوقف إن عطف على الضمير في «جعلناهم»، وحينئذ لا يوقف على آية، ولا على «أليمًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "كَثِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱلۡأَمۡثَٰلَۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "تَتۡبِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلسَّوۡءِۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يَرَوۡنَهَاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "نُشُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "هُزُوًا",
+  "grade": "حسن",
+  "reason": "وقال غيره: لا يحسن؛ لأنَّ الكلام متصل من قوله: «وإذا رأوك»، وعليه لا يوقف على «هزوًا»، ولا على «رسولًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "رَسُولًا",
+  "grade": "لا",
+  "reason": "وقال غيره: لا يحسن؛ لأنَّ الكلام متصل من قوله: «وإذا رأوك»، وعليه لا يوقف على «هزوًا»، ولا على «رسولًا».",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "عَلَيۡهَاۚ",
+  "grade": "تام",
+  "reason": "لتناهي مقولهم، وجواب «لولا» محذوف، تقديره: لأضلنا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "سَبِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "هَوَىٰهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "وَكِيلًا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، على أنّ «أم» منقطعة، تتقدر: ببل، والهمزة؛ كأنَّه قيل: بل أتحسب كان هذا المذمة أشدَّ من التي تقدمتها حتى خفت بالإضراب عنها إليها، وهو كونهم مسلوبي الأسماع.",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "يَعۡقِلُونَۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي المقدر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "كَٱلۡأَنۡعَٰمِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "سَبِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "ٱلظِّلَّ",
+  "grade": "كاف",
+  "reason": "لتناهي الاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "سَاكِنٗا",
+  "grade": "جائز",
+  "reason": "لعدوله من الغيبة إلى التكلم؛ لأنَّ ذلك من أسباب الوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "دَلِيلٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «ثُمَّ» لترتيب الفعل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "يَسِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "سُبَاتٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "نُشُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "رَحۡمَتِهِۦۚ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "طَهُورٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ قوله: «لنحيي به» متعلق بما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "كَثِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "لِيَذَّكَّرُواْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "كُفُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "نَذِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "كَبِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلۡبَحۡرَيۡنِ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "أُجَاجٞ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "مَّحۡجُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "وَصِهۡرٗاۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "قَدِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "يَضُرُّهُمۡۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "ظَهِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "وَنَذِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "يَمُوتُ",
+  "grade": "جائز",
+  "reason": "للابتداء بالأمر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "بِحَمۡدِهِۦۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "خَبِيرًا",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ إن جعل ما بعده مبتدأ، والخبر قوله: «الرحمن»، وإن جعل «الذين» خبر مبتدأ محذوف، أو نصب بتقدير: أعني، كان كافياً، وليس بوقف إن جعل «الذي» في محل جر بدلاً من الهاء في «به» لأنه لا يفصل بين البدل والمبدل منه بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ٱلۡعَرۡشِۖ",
+  "grade": "تام",
+  "reason": "إن رفع «الرحمنُ» خبر مبتدأ محذوف، أو مبتدأ وما بعده الخبر، وليس بوقف إن رفع بدلاً من الضمير في «استوى»، والوقف على هذا التقدير على «الرحمن» كاف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "خَبِيرٗا",
+  "grade": "تام",
+  "reason": "والباء في «به» صلة، و «خبيرًا» مفعول «اسأل»، أو حال من فاعل «اسأل»؛ لأنَّ الخبير لا يسأل إلّا عن جهة التوكيد، وقيل: الباء بمعنى: عن",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,114 @@
+[
+ {
+  "ayah": 30,
+  "stop_phrase": "وَيَمۡكُرُ ٱللَّهُۖ",
+  "grade": "حسن",
+  "reason": "أحسن من {وَيَمْكُرُونَ}",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱلۡمَٰكِرِينَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "مِثۡلَ هَٰذَآ",
+  "grade": "حسن",
+  "reason": "ولا بشاعة في الابتداء بما بعده؛ لأنَّه حكاية عن قائلي ذلك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡأَوَّلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "أَلِيمٖ",
+  "grade": "كاف",
+  "reason": "ومثله «أليم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "وَأَنتَ فِيهِمۡۚ",
+  "grade": "حسن",
+  "reason": "على أنَّ الضمير في «معذبهم» للمؤمنين، والضمير في «ليعذبهم» للكفار؛ ليفرق بينهما، وليس بوقف على قول من جعله فيهما للكفار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يَسۡتَغۡفِرُونَ",
+  "grade": "تام",
+  "reason": "لأنَّ الله لا يهلك قرية وفيها نبيها، وما كان الله معذبهم لو استغفروه من شركهم، وما لهم أن لا يعذبهم الله وهم لا يستغفرون من كفرهم، بل هم مصرون على الكفر والذنوب .",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَوۡلِيَآءَهُۥٓۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡمُتَّقُونَ",
+  "grade": "لا",
+  "reason": "لحرف الاستدراك بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "وَتَصۡدِيَةٗۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "تَكۡفُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "سَبِيلِ ٱللَّهِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يُغۡلَبُونَۗ",
+  "grade": "كاف",
+  "reason": "ورأس آية في البصري والشامي؛ لأنَّ «والذين» مبتدأ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يُحۡشَرُونَ",
+  "grade": "لا",
+  "reason": "لتعلق لام «ليميز» بقوله: «يحشرون»، ومن حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "مِنَ ٱلطَّيِّبِ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ }
+]

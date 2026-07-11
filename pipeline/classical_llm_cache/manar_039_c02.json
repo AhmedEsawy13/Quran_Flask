@@ -1,0 +1,212 @@
+[
+ {
+  "ayah": 65,
+  "stop_phrase": "عملك",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده مع الذي قبله جواب القسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "ٱلۡخَٰسِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "فَٱعۡبُدۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "ٱلشَّٰكِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "قَدۡرِهِۦ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "حسن",
+  "reason": "لمن رفع «مطوياتٌ» خبر «والسموات»، والعامة على رفع «مطوياتٌ» خبرًا و «بيمينه» متعلق بـ «مطويات»، أو حال من الضمير في «مطويات»، أو خبر ثان، وليس بوقف لمن عطف، «والسموات» على «والأرض» و «مطويات» بالنصب على الحال من «السموات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "بِيَمِينِهِۦ",
+  "grade": "تام",
+  "reason": "للابتداء بالتنزيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "يُشۡرِكُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالتنزيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "يَنظُرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "رَبِّهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "يُظۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "عَمِلَتۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "يَفۡعَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "زُمَرًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "أَبۡوَٰبُهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "هَٰذَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "فِيهَا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ٱلۡمُتَكَبِّرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "زُمَرًا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "أَبۡوَٰبُهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "خَٰلِدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "نَشَآءُ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "ٱلۡعَٰمِلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "ٱلۡعَرۡشِ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن علق ما بعده بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "تام",
+  "reason": "لأنَّ الماضي لا يعطف على المستقبل",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

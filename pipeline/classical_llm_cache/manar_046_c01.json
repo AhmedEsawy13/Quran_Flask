@@ -1,0 +1,205 @@
+[
+ {
+  "ayah": 26,
+  "stop_phrase": "بِـَٔايَٰتِ ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "يَسۡتَهۡزِءُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مِنَ ٱلۡقُرَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "يَرۡجِعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ءَالِهَةَۢ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "عَنۡهُمۡ",
+  "grade": "حسن",
+  "reason": "لعطف الجملتين المختلفتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "إِفۡكُهُمۡ",
+  "grade": "لا",
+  "reason": "بكسر الهمزة وضم الكاف ، وروي عن ابن عباس : «أَفَكُهم»؛ بفتح الهمزة والفاء وضم الكاف؛ على أنَّه مصدر: لإفك، وقرأ عكرمة : «أَفَكَهُم» بثلاث فتحات فعلًا ماضيًا، أي: صرفهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "يَفۡتَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلۡقُرۡءَانَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "أَنصِتُواْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "مُّنذِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مُوسَىٰ",
+  "grade": "لا",
+  "reason": "ليس بوقف، ومثله في عدم الوقف «مصدقًا» لما بين يديه إن جعل ما بعده منصوبًا على الصفة؛ كأنَّه قال: هاديًا إلى الحق، ومثله في عدم الوقف إن جعل «يهدي» خبرًا ثانيًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مُّسۡتَقِيمٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ذُنُوبِكُمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف لعطف ما بعده على جواب الأمر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "أَلِيمٖ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "فِي ٱلۡأَرۡضِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "أَوۡلِيَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "مُّبِينٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "ٱلۡمَوۡتَىٰ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "قَدِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "عَلَى ٱالنَّارِ",
+  "grade": "جائز",
+  "reason": "أي: يقال لهم أليس هذا بالحق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "وَرَبِّنَا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "تَكۡفُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "مِنَ ٱلرُّسُلِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "تَسۡتَعۡجِل لَّهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "يُوعَدُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر كان قوله: «لم يلبثوا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "نَّهَارِۭ",
+  "grade": "كاف",
+  "reason": "ويبتدئ: «بلاغ» خبر مبتدأ محذوف، أي: هذا القرآن بلاغ للناس، وقيل: «بلاغ» مبتدأ خبره «لهم» الواقع بعد قوله: «ولا تستعجل لهم»، أي: لهم بلاغ، والوقف على قوله: «تستعجل» ثم تبتدئ: «لهم بلاغ»، قال أبو جعفر: وهذا لا أعرفه، ولا أدري كيف تفسيره، وهو عندي غير جائز، وقال غيره: لا وجه له؛ لأنَّ المعنى: ولا تستعجل للمشركين بالعذاب، والتام عند أحمد بن موسى: «ولا تستعجل لهم»، وقرأ عيسى بن عمر : «بلاغًا» بالنصب، بتقدير: إلا ساعة بلاغًا، قال الكسائي: المعنى فعلناه بلاغًا، وقال بعضهم: نصب على المصدر، أي: بلّغ بلاغًا، فمن نصبه بما قبله لم يوقف على «من نهار»، ومن نصبه بإضمار فعل وقف عليه، وقرئ : «بلاغٍ» بالجر بدلًا من «نهار» فعلى هذا الوقف على «بلاغ»، وكذلك على قراءة من قرأ : «بَلِّغْ» على الأمر، أي: بلغ ما أنزل إليك من ربك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡفَٰسِقُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,345 @@
+[
+ {
+  "ayah": 40,
+  "stop_phrase": "مِّن شَيۡءٖ",
+  "grade": "كاف",
+  "reason": "وإذا قرئ : «يشركون» بالتحتية كان تامًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يُشۡرِكُونَ",
+  "grade": "تام",
+  "reason": "أتم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "أَيۡدِي ٱلنَّاسِ",
+  "grade": "كاف",
+  "reason": "لأنَّ اللام في «ليذيقهم» لام قسم، وكانت مفتوحة، فلما حذفت النون للتخفيف، كسرت اللام فأشبهت (لام كي)، وخولف أبو حاتم في هذا: لأنَّ «ليذيقهم» متعلق بما قبله، فلا يقطع منه، وما قاله لا يجوز في العربية؛ لأنَّ لام القسم لا تكون مكسورة، قال بعضهم: ولا نعلم أن أحدًا من أهل العربية وافق أبا حاتم في هذا القول كما تقدم.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "يَرۡجِعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مِن قَبۡلُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مُّشۡرِكِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "مِنَ ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "إن جعل موضع «يومئذ» نصبًا، وليس بوقف إن جعل موضعه رفعًا؛ على البدل من قوله: «يوم لا مردَّ له من الله»",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "يَصَّدَّعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "كُفۡرُهُۥ",
+  "grade": "جائز",
+  "reason": "لعطف جملتي الشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "يَمۡهَدُونَ",
+  "grade": "كاف",
+  "reason": "على مذهب أبي حاتم القائل إنَّ اللام في «ليجزي» بمنزلة لام القسم، وتقدم ما فيه والأجود وصله.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مِن فَضۡلِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "ولا وقف من قوله: «ومن آياته» إلى «تشكرون» فلا يوقف على «من رحمته» ولا على «بأمره» لـ (لام كي) فيهما، ولا على «من فضله»؛ لحرف الترجي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "تَشۡكُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بِٱلۡبَيِّنَٰتِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "أَجۡرَمُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "وَكَانَ حَقًّا",
+  "grade": "جائز",
+  "reason": "أي: وكان الانتقام منهم حقًا، فاسم «كان» مضمر، و «حقًا» خبرها، ثم تبتدئ: «علينا نصر المؤمنين» فـ «نصر» مبتدأ، و «علينا» خبره، وليس بوقف إن جعل «نصر» اسم «كان» و «حقًا» خبرها و «علينا» متعلق بـ «حقًا»، والتقدير: وكان نصر المؤمنين حقًا علينا، قال أبو حاتم: وهذا أوجه من الأول لوجهين، أحدهما: أنَّه لا يحتاج إلى تقدير محذوف، والثاني: من حيث المعنى؛ وذلك أي: الوقف على «حقًا» يوجب الانتقام، ويوجب «نصر المؤمنين»، قاله الكواشي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "نَصۡرُ ٱلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "مِنۡ خِلَٰلِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "يَسۡتَبۡشِرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "لَمُبۡلِسِينَ",
+  "grade": "كاف",
+  "reason": "لك أن تجعل «أن» بمعنى: ما، واللام بمعنى: إلَّا، أي: ما كانوا من قبل نزول المطر إلَّا مبلسين، أي: آيسين من نزوله .",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "بَعۡدِ مَوۡتِهَآ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "ٱلۡمَوۡتَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مُصۡفَرّٗا",
+  "grade": "لا",
+  "reason": "لأنَّ اللام في «ولئن» مؤذنة بقسم محذوف، وجوابه: لظلوا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "يَكۡفُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلۡمَوۡتَىٰ",
+  "grade": "حسن",
+  "reason": "على قراءة ابن كثير: «ولا يَسمَع» الثانية بالياء المفتوحة وفتح الميم، و «الصمُّ» بالرفع، و «الدعاء» ليس بوقف؛ على قراءة: «تُسمِع» بالفوقية المضمومة وكسر الميم، و «الصمَّ» بالنصب؛ لتعلق ما بعده بما قبله من الخطاب .",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مُدۡبِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ضَلَٰلَتِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "بِـَٔايَٰتِنَا",
+  "grade": "حسن",
+  "reason": "ومثله: «بآياتنا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "مُّسۡلِمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "ضَعۡفٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "قُوَّةٗ",
+  "grade": "جائز",
+  "reason": "ومثله: «قوة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "وَشَيۡبَةٗ",
+  "grade": "جائز",
+  "reason": "وكذا «وشيبة».",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "يَخۡلُقُ مَا يَشَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "ٱلۡقَدِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "ٱلۡمُجۡرِمُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ الذي بعده جواب القسم، وهو: «ما لبثوا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "سَاعَةٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "يُؤۡفَكُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "إِلَىٰ يَوۡمِ ٱلۡبَعۡثِ",
+  "grade": "كاف",
+  "reason": "لاختلاف الجملتين، والفاء في قوله: «فهذا يوم البعث»، جواب شرط مقدر يدل عليه الكلام، تقديره: إن كنتم شاكين، أو منكرين في يوم البعث فهذا يوم البعث .",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "يَوْمِ الْبَعْثِ",
+  "grade": "لا",
+  "reason": "لحرف الاستدراك بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "لَا تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "مَعۡذِرَتُهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "يُسۡتَعۡتَبُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "مِن كُلِّ مَثَلٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "بِـَٔايَةٖ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده قد قام مقام جواب القسم والجزاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "مُبۡطِلُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "لَا يَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "حَقّٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "يُوقِنُونَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

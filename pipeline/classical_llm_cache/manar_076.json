@@ -1,0 +1,359 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "مَّذۡكُورًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "أَمۡشَاجٖ",
+  "grade": "حسن",
+  "reason": "عند بعضهم، و «نبتليه» جواب بعد سؤال سائل، قال: كيف كان خلق الإنسان؟ فقال: نبتليه، أي: نختبره، فجعلناه سميعًا بصيرًا، وقال جمع أمشاج نبتليه، آخرون الوقف على آخر الآية، على التقديم والتأخير، أي: فجعلناه سميعًا بصيرًا لنبتليه، وهو الكافي",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "نَّبۡتَلِيهِ",
+  "grade": "تام",
+  "reason": "وبه يتم المعنى؛ لأنَّه في موضع الحال من فاعل «خلقنا»، أي: خلقناه حال كوننا مبتلين له، أو من الإنسان",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "نَّبۡتَلِيهِ",
+  "grade": "لا",
+  "reason": "لأنَّ المعنى على التقديم والتأخير، أي: فجعلناه سميعًا بصيرًا لنبتليه في الدنيا بالتكليف",
+  "reported_from": "الفراء"
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "بَصِيرًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "كَفُورًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "وَسَعِيرًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "كَافُورًا",
+  "grade": "لا",
+  "reason": "لأنَّ عينًا منصوب بدلًا من «كافورًا»، أي: وماء عين، أو بدلًا من محل «من كأس» أو مفعول «يشربون» أو حالًا من الضمير في «مزاجها» وإن نصب على الاختصاص جاز الوقف على «كافورًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "تَذۡلِيلٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "بِٱلنَّذۡرِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "يَوۡمٗا",
+  "grade": "لا",
+  "reason": "ونصب على أنَّه مفعول به فليس هو بمعنى: في",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "مُسۡتَطِيرٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "عَلَىٰ حُبِّهِۦ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده مفعول ثان لـ «يطعمون» فلا يقطع منه، وهو مصدر مضاف للمفعول، أي: على حب الطعام، فهو حال من الطعام أو من الفاعل",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "وَأَسِيرًا",
+  "grade": "حسن",
+  "reason": "لأنَّ الكلام متحد في صفة الأبرار",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "لأنَّ الكلام متحد في صفة الأبرار",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "شُكُورًا",
+  "grade": "حسن",
+  "reason": "لأنَّ الكلام متحد في صفة الأبرار",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "قَمۡطَرِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡيَوۡمِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "وَسُرُورًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "وَحَرِيرًا",
+  "grade": "لا",
+  "reason": "لأنَّ «متكئين» حال من مفعول «جزاهم» ولا يجوز أن يكون صفة لـ «جنة» عند البصريين؛ لأنَّه كان يلزم بروز الضمير، فيقال: متكئين هم فيها، لجريان الصفة على غير من هي له، خلافًا للزمخشري، حيث جوّز أن يكون «متكئين» و «لا يرون» و «دانية» كلها صفات لـ «جنة» ولا يجوز أن يكون حالًا من فاعل «صبروا»؛ لأنَّ الصبر كان في الدنيا، واتكاؤهم إنَّما هو في الآخرة",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "ٱلۡأَرَآئِكِۖ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "زَمۡهَرِيرٗا",
+  "grade": "لا",
+  "reason": "لأنَّ «ودانيةً» منصوب بالعطف على «جنة»؛ كأنَّه قال: جزاؤهم جنة، «ودانية عليهم ظلالها»، أي: وشجرة دانية عليهم ظلالها",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "تَذۡلِيلٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "قَوَارِيرَا۠",
+  "grade": "كاف",
+  "reason": "أي: أنَّ أهل الجنة قدَّروا الأواني في أنفسهم على أشكال مخصوصة، فجاءت كما قدّورها تكرمة لهم، جعلها السقاة على قد رويّ شاربيها",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "زَنجَبِيلًا",
+  "grade": "لا",
+  "reason": "لأنَّ عينًا بدل من «زنجبيلًا» فلا يفصل بين البدل والمبدل منه بالوقف، وإن نصبت «عينًا» على الاختصاص جاز",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "سَلۡسَبِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ثَمَّ",
+  "grade": "لا",
+  "reason": "وقف عليه بعضهم على حذف الجواب تعظيمًا لوصف ما رأى، وما أرادوه ليس بشيء؛ لأنَّ «ثَمَّ» ظرف لا يتصرف، فلا يقع فاعلًا ولا مفعولًا، وغلط من أعربه مفعولًا لـ «رأيت»؛ لأنَّه لا مفعول لها، لا ظاهرًا ولا مقدرًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "كَبِيرًا",
+  "grade": "جائز",
+  "reason": "لمن قرأ: «عاليْهم» بإسكان الياء، مبتدأ خبره «ثياب»، وهو حمزة ونافع. وليس بوقف لمن قرأ: «عاليَهم» بالنصب على الحال مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "وَإِسۡتَبۡرَقٞۖ",
+  "grade": "كاف",
+  "reason": "على القراءتين، أعني: برفعه أو جره، فمن رفعه عطفه على «ثياب» ومن جره عطفه على «سندس»",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "فِضَّةٖ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "طَهُورًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "جَزَآءٗ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مَّشۡكُورًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "تَنزِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "كَفُورٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "وَأَصِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "لَهُۥ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "طَوِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلۡعَاجِلَةَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ثَقِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "أَسۡرَهُمۡۖ",
+  "grade": "حسن",
+  "reason": "ومعناه: خلقهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "تَبۡدِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "تَذۡتِكِرَةٞۖ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط مع الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱللَّهُۚ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "حَكِيمٗا",
+  "grade": "كاف",
+  "reason": "وقيل: تام على استئناف ما بعده، وليس بوقف إن جعل متصلًا بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "رَحۡمَتِهِۦۚ",
+  "grade": "كاف",
+  "reason": "«والظالمين» منصوب بمقدر، أي: وعذب الظالمين، ولا يجوز أن يكون معطوفًا على «مَن»، أي: يدخل من يشاء في رحمته، ويدخل الظالمين، أو وعذب الظالمين أعدَّ لهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "رَحۡمَتِهِۦۚ",
+  "grade": "تام",
+  "reason": "على قراءة الحسن: «والظالمون» بالرفع",
+  "reported_from": "الحسن"
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "أَلِيمَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

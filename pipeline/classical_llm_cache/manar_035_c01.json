@@ -1,0 +1,324 @@
+[
+ {
+  "ayah": 32,
+  "stop_phrase": "بِإِذۡنِ ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلۡكَبِيرُ",
+  "grade": "كاف",
+  "reason": "وليس بتام؛ لأن «جنات عدن يدخلونها»، تفسير للفضل الكبير؛ كأنه قال: هو جنات عدن، فلا يفصل بينهما، واغتفر الفصل من حيث كونه رأس آية، وكاف أيضًا لمن رفع «جنات» مبتدأ، والجملة خبر، ومثله أيضًا لمن رفع «جنات» خبر مبتدأ محذوف، أي: ذلك جنات عدن، وكذا لو جعل «جنات» خبرًا ثانيًا، لاسم الإشارة، وليس بوقف إن أعرب بدلًا من «الفضل الكبير»، وليس بوقف أيضًا على قراءة عاصم والجحدري : «جناتِ عدن»، بكسر التاء بدلًا من قوله: «بالخيرات»، وعلى قراءته فلا يوقف على «بإن الله»، ولا على «الكبير»؛ لأنه لا بفصل بين البدل والمبدل منه بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "وَلُؤۡلُؤٗاۖ",
+  "grade": "كاف",
+  "reason": "لمن قرأه بالجر عطفًا على «من ذهب»، وبها قرأ ابن كثير وأهل مكة وحمزة والكسائي وابن عامر وأبو عمرو، وقرأ نافع وحفص : «ولؤلؤًا» بالنصب؛ على محل «من أساور»؛ كأنه قال: يحلون أساور من ذهب ولؤلؤًا؛ فعلى قراءتهما يوقف عليه بالألف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "حَرِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡحَزَنَۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "شَكُورٌ",
+  "grade": "تام",
+  "reason": "في محل «الذي» الحركات الثلاث؛ فإن جعل في محل رفع خبر مبتدأ محذوف، أي: هو الذي، أو جعل في محل نصب بتقدير: أعني، كان كافيًا فيهما، وليس بوقف في أربعة أوجه: 1 - إن جعل «الذي» في محل خفض نعتًا لاسم الله في قوله: «الحمد لله». 2 - أو جعل في محل نصب نعتًا لاسم «إن» في قوله: «إنَّ ربنا لغفور شكور». 3 - أو في محل رفع بدلًا من «غفور». 4 - أو بدلًا من الضمير في «شكور».",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "مِن فَضۡلِهِۦ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "الحمد لله",
+  "grade": "لا",
+  "reason": "لا وقف من قوله: «الحمد لله» إلى «لغوب»",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "لُغُوبٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "جَهَنَّمَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده خبرًا ثانيًا، أو حالًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "عَذَابِهَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "كَفُورٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "فِيهَا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، أي: «يقولون ربنا»، وخولف في هذا؛ لأنّ المعنى: يصطرخون يقولون، فيحتاج إلى ما بعده، وكذا إن أضمرت القول؛ لأن ما قبله دل عليه.",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "نَعۡمَلُۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ٱلنَّذِيرُۖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "فَذُوقُواْ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "نَّصِيرٍ",
+  "grade": "تام",
+  "reason": "ومثله: «من نصير».",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "وَٱلۡأَرۡضِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "ٱلصُّدُورِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "فِي ٱلۡأَرۡضِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "كُفۡرُهُۥۖ",
+  "grade": "حسن",
+  "reason": "ومثله: «فعليه كفره»",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "مَقۡتٗاۖ",
+  "grade": "حسن",
+  "reason": "وكذا «إلا مقتًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "خَسَارٗا",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ لأنه آخر قصة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "دُونِ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "لتناهي الاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلسَّمَٰوَٰتِ",
+  "grade": "جائز",
+  "reason": "لأن «أم»؛ بمعنى: ألف الاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "مِّنۡهُۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "غُرُورًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "تَزُولَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "بَعۡدِهِۦٓۚ",
+  "grade": "كاف",
+  "reason": "وكذا «من بعده».",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "غَفُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "ٱلۡأُمَمِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "نُفُورًا",
+  "grade": "حسن",
+  "reason": "إن نصب «استكبارًا»؛ على المصدر بفعل مضمر؛ كأنه قال: يستكبرون استكبارًا، وليس بوقف؛ إن نصب «استكبارًا»؛ على أنه مفعول من أجله، أو جعل حالًا؛ فيكون متعلقًا بـ «نفورًا»، أو بدلًا من «نفورًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱلسَّيِّيِٕۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱلسَّيِّئُ",
+  "grade": "لا",
+  "reason": "لأن ما بعده حرف الاستثناء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "بِأَهۡلِهِۦۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱلۡأَوَّلِينَۚ",
+  "grade": "كاف",
+  "reason": "لتانهي الاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "تَبۡدِيلٗاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "تَحۡوِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "قَبۡلِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "قُوَّةٗۚ",
+  "grade": "حسن",
+  "reason": "ومثله: «قوة».",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلۡأَرۡضِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "قَدِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "دَآبَّةٖ",
+  "grade": "لا",
+  "reason": "لتعلق ما بعده بما قبله استدراكًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مُّسَمّٗىۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "أَجَلُهُمۡ",
+  "grade": "لا",
+  "reason": "لأن قوله: «فإن الله» جواب: «إذا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "بَصِيرَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

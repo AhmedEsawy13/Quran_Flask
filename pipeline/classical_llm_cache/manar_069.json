@@ -1,0 +1,408 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡحَآقَّةُ",
+  "grade": "كاف",
+  "reason": "ومثله: «ما الحآقَّة» وكذا: «وعادٌ بالقارعة».",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡحَآقَّةُ",
+  "grade": "كاف",
+  "reason": "وكذا: «وعادٌ بالقارعة».",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "بِٱلۡقَارِعَةِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "بِٱلطَّاغِيَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "عَاتِيَةٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "حُسُومٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "صَرۡعَىٰ",
+  "grade": "لا",
+  "reason": "لأنَّ بعده كاف التشبيه، وهو صفة لـ «صرعى» كأنَّه قال: فترى القوم فيها صرعى، مثل: «أعجاز نخل خاوية».",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "خَاوِيَةٖ",
+  "grade": "حسن",
+  "reason": "وقيل: تام؛ على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "بَاقِيَةٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "بِٱلۡخَاطِئَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "لا",
+  "reason": "لمكن الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "رَّابِيَةً",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡجَارِيَةِ",
+  "grade": "لا",
+  "reason": "لتعلق اللام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "وَٰعِيَةٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَٰحِدَةٞ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله، ومثله في عدم الوقف على «دكَّةٍ واحدة»؛ لأنَّ قوله: «فيومئذ» جواب «إذا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَٰحِدَةٗ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فيومئذ» جواب «إذا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱلۡوَاقِعَةُ",
+  "grade": "كاف",
+  "reason": "ومثله: «واهية».",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "وَاهِيَةٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "أَرۡجَآئِهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ثَمَٰنِيَةٞ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده؛ لأنَّ «يومئذ» ليس بدلًا من الأول لاختلاف عاملهما، وليس بوقف إن أبدل مما قبله؛ لأن «تعرضون» جواب «فإذا نفخ»، وقيل جوابها: «وقعت الواقعة»، و «تعرضون» مستأنف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "خَافِيَةٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "هَآؤُمُ",
+  "grade": "حسن",
+  "reason": "ثم تبتدئ: «اقرؤوا كتابيه»، ومعنى هاؤم: تناولوا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "كِتَٰبِيَهۡ",
+  "grade": "كاف",
+  "reason": "ومثله: «حسابيه» وكذا: «عالية» و «دانية».",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "حِسَابِيَهۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "عَالِيَةٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "دَانِيَةٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡخَالِيَةِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "بِشِمَالِهِۦ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «أمَّا» ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "كِتَٰبِيَهۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "حِسَابِيَهۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلۡقَاضِيَةَ",
+  "grade": "حسن",
+  "reason": "ومثله: «ماليه».",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "مَالِيَهۡۜ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "سُلۡطَٰنِيَهۡ",
+  "grade": "كاف",
+  "reason": "ولا وقف من قوله: «خذوه» إلى «فاسلكوه» لاتساق الكلام بعضه ببعض، فلا يوقف على «فغلوه» ولا على «صلوه» ولا على «ذراعًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "فَغُلُّوهُ",
+  "grade": "لا",
+  "reason": "لاتساق الكلام بعضه ببعض، فلا يوقف على «فغلوه» ولا على «صلوه» ولا على «ذراعًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "صَلُّوهُ",
+  "grade": "لا",
+  "reason": "لاتساق الكلام بعضه ببعض، فلا يوقف على «فغلوه» ولا على «صلوه» ولا على «ذراعًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ذِرَاعٗا",
+  "grade": "لا",
+  "reason": "لاتساق الكلام بعضه ببعض، فلا يوقف على «فغلوه» ولا على «صلوه» ولا على «ذراعًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "فَٱسۡلُكُوهُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡمِسۡكِينِ",
+  "grade": "كاف",
+  "reason": "ولا يوقف على قوله: «فليس له اليوم» إلى «الخاطئون» فلا يوقف على «حميم» لعطف ما بعده على ما قبله، ولا على «غسلين»؛ لأنَّ ما بعده صفة له فلا يفصل بين الصفة والموصوف بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "حَمِيمٞ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "غِسۡلِينٖ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده صفة له فلا يفصل بين الصفة والموصوف بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ٱلۡخَٰطِـُٔونَ",
+  "grade": "كاف",
+  "reason": "ووصله أولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "فَلَآ",
+  "grade": "جائز",
+  "reason": "ردًّا لكلام المشركين، ثم يبتدئ: «أقسم» ووصله أولى، وإن كان له معنى",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "تُبۡصِرُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب القسم لم يأت بعد، وهو قوله: «إنَّه لقول رسول كريم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "كَرِيمٖ",
+  "grade": "كاف",
+  "reason": "ومثله: «بقول شاعر»، وكذا: «ما تؤمنون» ومثله: «بقول كاهن»، وكذا: «ما تذكرون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "شَاعِرٖۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "تُؤۡمِنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "كَاهِنٖۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "تَذَكَّرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلۡأَقَاوِيلِ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «لو» لم يأت، وهو: «لأخذنا»، ومثله في عدم الوقف «باليمين» لاتساقه على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "بِٱلۡيَمِينِ",
+  "grade": "لا",
+  "reason": "لاتساقه على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ٱلۡوَتِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "حَٰجِزِينَ",
+  "grade": "كاف",
+  "reason": "ومثله: «للمتقين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "لِّلۡمُتَّقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "مُّكَذِّبِينَ",
+  "grade": "جائز",
+  "reason": "وقيل: لا يجوز لأنَّ المعنى: وإن التكذيب يوم القيامة لحسرة وندامة على الكافرين، وهو كاف على الوجهين، ومثله: «لحقُّ اليقين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "ٱلۡيَقِينِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,212 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "الٓمٓرۚ",
+  "grade": "تام",
+  "reason": "لأنَّ المراد معنى هذه الحروف، وقيل: هي قسم، كأنَّه قال: والله إن تلك آيات الكتاب، فعلى هذا التقدير لا يوقف عليها",
+  "reported_from": "أبو روق"
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "الٓمٓرۚ",
+  "grade": "لا",
+  "reason": "إن جعلت الحروف قسمًا وجوابه ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡكِتَٰبِۗ",
+  "grade": "تام",
+  "reason": "إن جعل «الذي» مبتدأ، و «الحق» خبره",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡكِتَٰبِۗ",
+  "grade": "لا",
+  "reason": "إن جعل «والذي» في محل جر بالعطف على «الكتاب»، أو إن جر «الذي» بالقسم وجوابه ما قبله، أو إن جعل «الذي» صفة للكتاب",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡحَقُّ",
+  "grade": "كاف",
+  "reason": "على أنَّه خبر مبتدأ محذوف، أي: هو الحق، وكذا إن جعل «الذي» مبتدأ، و «الحق» خبرًا، وإن جعل «المر» مبتدأ، و «تلك آيات» خبرًا، و «الذي أنزل» عطف عليه -جاز الوقف على «من ربك»، ثم يبتدئ «الحق»، أي: هو الحق، وكذا إن جعل «الحق» مبتدأ، و «من ربك» خبره، أو على أنَّ «من ربك الحق» كلاهما خبر واحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡحَقُّ",
+  "grade": "لا",
+  "reason": "إن جر «الحق» على أنَّه نعت لـ «ربك»؛ لأنَّه لا يفصل بين النعت والمنعوت بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلسَّمَٰوَٰتِ",
+  "grade": "كاف",
+  "reason": "إذا جعلنا «ترونها» في موضع الصفة لـ «عمد»، والتقدير: بغير عمد مرئية، ثم يبتدئ: «بغير عمد ترونها»، أي: ترونها بلا عمد",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "تَرَوۡنَهَاۖ",
+  "grade": "حسن",
+  "reason": "على أنَّ «بغير عمد» متعلق بـ «رفع»، أي: رفع السموات بغير عمد ترونها؛ فالضمير من «ترونها» يعود على «عمد»، كأنَّه قال: للسموات عمد، ولكن لا ترى",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "عَمَدٖ",
+  "grade": "جائز",
+  "reason": "ليبين أحد التأويلين من الآخر، ثم يبتدئ: «ترونها»، أي: ترونها كذلك. فـ «ترونها» مستأنف، فيتعين أن لا عمد لها ألبتة",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡعَرۡشِۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَٱلۡقَمَرَۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "مُّسَمّٗىۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡأٓيَٰتِ",
+  "grade": "لا",
+  "reason": "لحرف الترجي، وهو في التعلق كـ (لام كي)",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "تُوقِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "وَأَنۡهَٰرٗاۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱثۡنَيۡنِۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "يَتَفَكَّرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مُّتَجَٰوِرَٰتٞ",
+  "grade": "كاف",
+  "reason": "إن جعل «وجنات» مبتدأ، وخبره محذوف تقديره: وفيها جنات. أو إذا جر «جناتٍ» عطفًا على ما عمل فيه «سخر»، أي: وسخر لكم جنات من أعناب",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مُّتَجَٰوِرَٰتٞ",
+  "grade": "لا",
+  "reason": "إن عطفت «جنات» على «قطع»",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "أَعۡنَٰبٖ",
+  "grade": "كاف",
+  "reason": "لمن رفع ما بعده بالابتداء",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "صِنۡوَانٖ",
+  "grade": "جائز",
+  "reason": "لمن قرأ: «تسقى» بالتاء الفوقية، و «يفضل» بالتحتية، أو بالنون، أو قرأ: «يسقى» بالتحتية، و «نفضل» بالنون. فإن قرئا معًا بالتحتية كان كافيًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "وَٰحِدٖ",
+  "grade": "كاف",
+  "reason": "لمن قرأ: و «نفضل» بالنون",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡأُكُلِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "يَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "جَدِيدٍۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "بِرَبِّهِمۡۖ",
+  "grade": "جائز",
+  "reason": "لعطف الجمل مع تكرار «أولئك»؛ للتفضيل دلالة على عظم الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَعۡنَاقِهِمۡۖ",
+  "grade": "جائز",
+  "reason": "لعطف الجمل مع تكرار «أولئك»؛ للتفضيل دلالة على عظم الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلنَّارِۖ",
+  "grade": "جائز",
+  "reason": "لعطف الجمل مع تكرار «أولئك»؛ للتفضيل دلالة على عظم الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

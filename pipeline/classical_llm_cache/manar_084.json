@@ -1,0 +1,149 @@
+[
+ {
+  "ayah": 2,
+  "stop_phrase": "وَحُقَّتۡ",
+  "grade": "تام",
+  "reason": "على أن جواب «إذًا»، «وحقت»، والواو زائدة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "مُدَّتۡ",
+  "grade": "لا",
+  "reason": "لأن الجواب بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "وَتَخَلَّتۡ",
+  "grade": "حسن",
+  "reason": "إن كانت الواو في: «وألقت» زائدة، والتقدير: وإذا الأرض مدت ألقت ما فيها وتخلت، وليس بوقف إن لم تجعل زائدة",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "وَحُقَّتۡ",
+  "grade": "تام",
+  "reason": "إن لم يجعل الجواب «فملاقيه».",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "فَمُلَٰقِيهِ",
+  "grade": "تام",
+  "reason": "إن لم يجعل الجواب «فأما من أوتي كتابه بيمينه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "يَسِيرٗا",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "مَسۡرُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ثُبُورٗا",
+  "grade": "لا",
+  "reason": "لعطف مابعده عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "سَعِيرًا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مَسۡرُورًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "يَحُورَ",
+  "grade": "تام",
+  "reason": "قيل: الوقف «لن يجور» [أي يحور]، ومستأنف «بلى»، «إنَّ ربه كان به بصيرًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "بَلَىٰٓۚ",
+  "grade": "حسن",
+  "reason": "وتام عند نافع؛ لأن النفي في قوله: «لن يحور» من مقتضيات الوقف عليها",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "بَصِيرٗا",
+  "grade": "تام",
+  "reason": "ولا يوقف على شيء من قوله: «فلا أقسم» إلى قوله: «عن طبق».",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "طَبَقٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ الاستفهام الإنكاري واقع على الجملتين فلا يفصل بينهما بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "يَسۡجُدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "يُكَذِّبُونَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل الوقف على الآية السابقة: «لا يسجدون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "يُوعُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده؛ ومثله الوقف على الآية السابقة: «يكذبون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "أَلِيمٍ",
+  "grade": "لا",
+  "reason": "تجاوزه ووصله بما بعده أولى، سواء كان الاستثناء متصلًا أو منقطعًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "ٱلصَّٰلِحَٰتِ",
+  "grade": "حسن",
+  "reason": "وما بعده مستأنف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مَمۡنُونِۭ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

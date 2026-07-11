@@ -1,0 +1,114 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡأَعۡلَى",
+  "grade": "كاف",
+  "reason": "يجوز في «الأعلى» الجر صفة لـ «ربك» والنصب صفة لاسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَحۡوَىٰ",
+  "grade": "تام",
+  "reason": "معنى أحوى: أسود، وأحوى: حال من المرعى، ولا يوقف على «فلا تنسى» للاستثناء. وإن جعل «إلا ما شاء الله» مستثنى من: «غثاء أحوى» فلا يوقف على «أحوى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "تَنسَىٰٓ",
+  "grade": "لا",
+  "reason": "للاستثناء",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱللَّهُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "يَخۡفَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "لِلۡيُسۡرَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلذِّكۡرَىٰ",
+  "grade": "كاف",
+  "reason": "وليس بوقف إن جعلت شرطًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "يَخۡشَىٰ",
+  "grade": "كاف",
+  "reason": "لأنه مثل «الذكرى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلۡكُبۡرَىٰ",
+  "grade": "جائز",
+  "reason": "لأنَّ «ثمَّ» لترتيب الأخبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "يَحۡيَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "تَزَكَّىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "فَصَلَّىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "وَأَبۡقَىٰٓ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡأُولَىٰ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «صحف إبراهيم وموسى» بدل من «الصحف الأولى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "وَمُوسَىٰ",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

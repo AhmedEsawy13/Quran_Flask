@@ -1,0 +1,464 @@
+[
+ {
+  "ayah": 16,
+  "stop_phrase": "يَهۡتَدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "كَمَن لَّا يَخۡلُقُۚ",
+  "grade": "حسن",
+  "reason": "للاستفهام بعده، وجيء بـ «من» في الثاني؛ لاعتقاد الكفار أنَّ لها تأثير، فعوملت معاملة أولي العلم",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "تَذَكَّرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "لَا تُحۡصُوهَآۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "رَّحِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "تُعۡلِنُونَ",
+  "grade": "كاف",
+  "reason": "على قراءة عاصم بالتحتية، وحسن لمن قرأ: «تعلنون» بالفوقية، وما بعده بالتحتية",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "يُخۡلَقُونَ",
+  "grade": "كاف",
+  "reason": "إذا رفعت «أموات» على أنه خبر مبتدأ محذوف، أي: هم أموات",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "يُخۡلَقُونَ",
+  "grade": "لا",
+  "reason": "إن جعل «أموات» خبرًا ثانيًا لقوله: «وهم يخلقون»، وكذا إن جعل «يخلقون»، و «أموات» خبرين. وليس «يخلقون» بوقف أيضًا إن جعل «والذين» مبتدأ، أو «أموات» خبرًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "يَبۡعَثُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "وَٰحِدٞۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مُّنكِرَةٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مُّسۡتَكۡبِرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "تُعۡلِنُونَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡمُسۡتَكۡبِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "رَبُّكُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ «قالوا» جواب «ماذا»، فلا يفصل بينهما بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡأَوَّلِينَ",
+  "grade": "حسن",
+  "reason": "إن جعلت اللام في «ليحملوا» لام الأمر الجازمة للمضارع",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡأَوَّلِينَ",
+  "grade": "لا",
+  "reason": "إن جعلت لام العاقبة والصيرورة، وهي التي يكون ما بعدها نقيضًا لما قبلها، أي: لأنَّ عاقبة قولهم ذلك؛ لأنهم لم يقولوا أساطير الأولين ليحملوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "جائز",
+  "reason": "بتقدير: ويحملون من أوزار الذين يضلونهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "عِلۡمٍۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "يَزِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "فَوۡقِهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "يَشۡعُرُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "يُخۡزِيهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "فِيهِمۡۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "إن جعل «الذين» مبتدأ خبره «فألقوا السلم»، وزيدت الفاء في الخبر، أو جعل خبر مبتدأ محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "إن نصب على الذم",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "لا",
+  "reason": "إن جرَّ صفة لـ «الكافرين»، أو أبدل مما قبله، أو جعل بيانًا له",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "أَنفُسِهِمۡۖ",
+  "grade": "جائز",
+  "reason": "إن جعل ما بعده مستأنفًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "أَنفُسِهِمۡۖ",
+  "grade": "لا",
+  "reason": "إن جعل خبر «الذين»، أو عطف على «الذين تتوفاهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "سُوٓءِۭۚ",
+  "grade": "تام",
+  "reason": "لانقضاء كلام الكفار. فـ «من سوء» مفعول «نعمل» زيدت فيه «من»، أي: ما كنا نعمل سوءًا، فرد الله أو الملائكة عليهم بـ «بلى»، أي: كنتم تعملون السوء",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "فِيهَاۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبي حاتم"
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "فِيهَاۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلۡمُتَكَبِّرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "رَبُّكُمۡۚ",
+  "grade": "كاف",
+  "reason": "لأنَّ «قالوا» مستأنف",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "خَيۡرٗاۗ",
+  "grade": "تام",
+  "reason": "أي: قالوا أنزل خيرًا؛ فـ «خيرًا» مفعول «أنزل»، فإن قلت: لِمَ رفع «أساطير»، ونصب «خيرًا»؟ قلت: فصلًا بين جواب المقر وجواب الجاحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "خَيۡرٗاۗ",
+  "grade": "لا",
+  "reason": "إن جعل ما بعده جملة مندرجة تحت القول مفسرة لقوله: «خيرًا»... وكذا إن جعل بدلًا من قوله: «خيرًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "حَسَنَةٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "خَيۡرٞۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "تام",
+  "reason": "إن رفع «جنات» خبر مبتدأ محذوف، أي: لهم جنات، أو جعل مبتدأ، و «يدخلونها» في موضع الخبر",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "جائز",
+  "reason": "إن رفعت «جنات» نعتًا، أو بدلًا مما قبلها؛ لكونه رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡأَنۡهَٰرُۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "يَشَآءُونَۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "تام",
+  "reason": "إن رفع «الذين» بالابتداء، والخبر «يقول»",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "طَيِّبِينَ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "طَيِّبِينَ",
+  "grade": "لا",
+  "reason": "إن جعل ما بعده متعلقًا بما قبله، و «طيبين» حال من مفعول «تتوفاهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "عَلَيۡكُمُ",
+  "grade": "لا",
+  "reason": "لأنَّ «ادخلوا» مفعول «يقولون»، أي: تقول خزنة الجنة: ادخلوا الجنة بما كنتم تعملون",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "رَبِّكَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "قَبۡلِهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يَظۡلِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "عَمِلُواْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "يَسۡتَهۡءِءُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ءَابَآؤُنَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "شَيۡءٖۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "قَبۡلِهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡمُبِينُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلطَّٰغُوتَۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلضَّلَٰلَةُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلۡمُكَذِّبِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "يُضِلُّۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "نَّٰصِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "أَيۡمَٰنِهِمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده جواب القسم، كأنَّه قال: قد حلفوا لا يبعث الله من يموت",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "يَمُوتُۚ",
+  "grade": "كاف",
+  "reason": "لأنَّه انقضاء كلام الكفار، ثم يبتدئ «بلى» يبعث الله الرَّسول؛ ليبين لهم الذي يختلفون فيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ }
+]

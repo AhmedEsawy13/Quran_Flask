@@ -1,0 +1,310 @@
+[
+ {
+  "ayah": 108,
+  "stop_phrase": "فَفِي ٱلۡجَنَّةِ",
+  "grade": "لا",
+  "reason": "لأنَّ «خالدين» حال، فلا يفصل بين الحال وذيها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "وَٱلۡأَرۡضُ",
+  "grade": "لا",
+  "reason": "لحرف الاستثناء بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "إِلَّا مَا شَآءَ رَبُّكَ",
+  "grade": "حسن",
+  "reason": "إن نصب «عطاء» بفعل مضمر، أي: يعطون عطاء، وليس بوقف إن نصب بما قبله؛ لأنَّ المصدر يعمل فيه معنى ما قبله، ومعنى «عطاءً»: إعطاء، كـ (نباتًا، أي: إنباتًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "غَيۡرَ مَجۡذُوذٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "هَٰٓؤُلَآءِ",
+  "grade": "تام",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "مِن قَبۡلُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "غَيۡرَ مَنقُوصٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "فَاخۡتُلِفَ فِيهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "لَقُضِيَ بَيۡنَهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "مُرِيبٖ",
+  "grade": "تام",
+  "reason": "على قراءة من شدَّد النون والميم، وقرئ: «إن» مخففة، و «لا» اسمها، وإعمالها مخففة ثابت في لسان العرب",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "أَعۡمَٰلَهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "خَبِيرٞ",
+  "grade": "تام",
+  "reason": "للابتداء بعده بالأمر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "وَمَن تَابَ مَعَكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "وَلَا تَطۡغَوۡاْ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "بَصِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 113,
+  "stop_phrase": "فَتَمَسَّكُمُ ٱلنَّارُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 113,
+  "stop_phrase": "أَوۡلِيَآءَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 113,
+  "stop_phrase": "لَا تُنصَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "مِنَ ٱلَّيۡلِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "ٱلسَّيِّـَٔاتِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "لِلذَّٰكِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "وَٱصۡبِرۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "مِّمَّنۡ أَنجَيۡنَا مِنۡهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "فِيهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "مُجۡرِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "مُصۡلِحُونَ",
+  "grade": "تام",
+  "reason": "أي: ما كان الله ليهلكهم وهذه حالتهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "أُمَّةٗ وَٰحِدَةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "مَن رَّحِمَ رَبُّكَ",
+  "grade": "كاف",
+  "reason": "على التقديم والتأخير (ولذلك خلقهم؛ على التقديم والتأخير - كان الوقف على من «رحم ربك» كافيًا)",
+  "reported_from": "النكزاوي"
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "خَلَقَهُمۡ",
+  "grade": "تام",
+  "reason": "إن جعل قوله: «ولذلك خلقهم» بمعنى: وللاختلاف في الشقاء والسعادة خلقهم، وإنَّ قدرته بمعنى: {وَتَمَّتْ كَلِمَةُ رَبِّكَ لَأَمْلَأَنَّ جَهَنَّمَ مِنَ الْجِنَّةِ وَالنَّاسِ أَجْمَعِينَ (119)} ، ولذلك خلقهم؛ على التقديم والتأخير -كان الوقف على من «رحم ربك» كافيًا، وابتدأت «ولذلك خلقهم» إلى «أجمعين»، ويكون الوقف على «أجمعين» كافيًا",
+  "reported_from": "النكزاوي"
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "كَلِمَةُ رَبِّكَ",
+  "grade": "لا",
+  "reason": "لأنَّ «لأملأن» تفسير للكلمة، فلا يفصل بين المفسر والمفسر بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "أَجۡمَعِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "فُؤَادَكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "ٱلۡحَقُّ",
+  "grade": "لا",
+  "reason": "لأنَّ «وموعظة» معطوفة على «الحق».",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "وَمَوۡعِظَةٞ",
+  "grade": "حسن",
+  "reason": "إن جعل ما بعدها منصوبًا بفعل مقدر، أو جعل «وذكرى» مبتدأ، والخبر ما بعدها، وليس بوقف إن رفع ما بعدها عطفًا عليها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "لِلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "عَلَىٰ مَكَانَتِكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "عَٰمِلُونَ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "وَٱنتَظِرُوٓاْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "مُنتَظِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "فَٱعۡبُدۡهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "وَتَوَكَّلۡ عَلَيۡهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

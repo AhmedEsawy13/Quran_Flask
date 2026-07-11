@@ -517,13 +517,22 @@ def main():
     conn = sqlite3.connect(args.db)
     conn.execute(_SCHEMA)                              # no-op if it already exists (shipped db)
     conn.execute('CREATE INDEX IF NOT EXISTS idx_classical_verse ON classical(surah, ayah)')
-    conn.execute('DELETE FROM classical WHERE source = ?', (tag,))
+    # Scope the delete to the surahs THIS RUN actually processed — a --surahs-
+    # limited re-run (e.g. retrying one failed chunk) must not wipe every other
+    # surah already written under this tag. (Caught live: a --surahs 18,19
+    # retry after a transient network failure silently deleted the other 92
+    # surahs' 8712 rows because this used to delete the whole tag unconditionally.)
+    written_surahs = sorted({r[1] for r in all_rows})
+    if written_surahs:
+        qmarks = ','.join('?' * len(written_surahs))
+        conn.execute(f'DELETE FROM classical WHERE source = ? AND surah IN ({qmarks})',
+                     (tag, *written_surahs))
     conn.executemany(
         'INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, '
         'grade_raw, note, seq, conf, reported_from) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', all_rows)
     conn.commit()
     conn.close()
-    print(f'\nwrote {len(all_rows)} rows under source={tag} into {args.db}')
+    print(f'\nwrote {len(all_rows)} rows under source={tag} into {args.db} (surahs: {written_surahs})')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,37 @@
+[
+ {
+  "ayah": 84,
+  "stop_phrase": "فَٱلۡحَقُّ",
+  "grade": "جائز",
+  "reason": "يوقف على الحق الأول على قراءة رفع الأول ونصب الثاني، حيث رفع الأول إما خبر مبتدأ محذوف أو مبتدأ خبره محذوف أو مبتدأ خبره لأملأن، ونصب الثاني بأقول. وليس بوقف لمن نصبه بأقول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "أَجۡمَعِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "ٱلۡمُتَكَلِّفِينَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل أجمعين في الآية التي قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "لِّلۡعَٰلَمِينَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "حِينِۭ",
+  "grade": "تام",
+  "reason": "آخر السورة.",
+  "reported_from": null
+ }
+]

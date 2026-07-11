@@ -1,0 +1,30 @@
+[
+ {
+  "ayah": 2,
+  "stop_phrase": "تَعۡبُدُونَ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل توكيدًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "أَعۡبُدُ",
+  "grade": "كاف",
+  "reason": "في الموضعين كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَعۡبُدُ",
+  "grade": "كاف",
+  "reason": "في الموضعين كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "دِينِ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

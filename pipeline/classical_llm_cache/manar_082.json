@@ -1,0 +1,135 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱنفَطَرَتۡ",
+  "grade": "لا",
+  "reason": "لا وقف من أولها إلى قوله: «وأخرت»، فلا يوقف على: «انفطرت» ولا على: «انتثرت» ولا على: «فجرت»",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱنتَثَرَتۡ",
+  "grade": "لا",
+  "reason": "لا وقف من أولها إلى قوله: «وأخرت»، فلا يوقف على: «انفطرت» ولا على: «انتثرت» ولا على: «فجرت»",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "فُجِّرَتۡ",
+  "grade": "لا",
+  "reason": "لا وقف من أولها إلى قوله: «وأخرت»، فلا يوقف على: «انفطرت» ولا على: «انتثرت» ولا على: «فجرت»",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "وَأَخَّرَتۡ",
+  "grade": "تام",
+  "reason": "لأنه جواب «إذًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡكَرِيمِ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأن الذي بعده نعت له، أو بدل منه، ويجوز القطع إلى الرفع، أو إلى النصب",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "فَعَدَلَكَ",
+  "grade": "جائز",
+  "reason": "جوز بعضهم الوقف على: «فسواك» لمن خفف، «فعدلك»، أي: «قوّمَك»، وقيل: عدلك عن الكفر إلى الإيمان",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "رَكَّبَكَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "بِٱلدِّينِ",
+  "grade": "كاف",
+  "reason": "كاف على استئناف مابعده، وليس بوقف إن جعل جملة حالية، والواو «واو» الحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "لَحَٰفِظِينَ",
+  "grade": "لا",
+  "reason": "لأن «كرامًا» صفة «حافظين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "كَٰتِبِينَ",
+  "grade": "لا",
+  "reason": "لأن «يعلمون» حال من ضمير «كاتبين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "تَفۡعَلُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بإن",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "نَعِيمٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "جَحِيمٖ",
+  "grade": "جائز",
+  "reason": "إن جعل «يصلونها» مستأنفًا، وليس بوقف إن جعل حالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "بِغَآئِبِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "لا",
+  "reason": "الأوّل ليس بوقف؛ لعطف ما بعده عليه",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "تام",
+  "reason": "الثاني تام؛ لمن قرأ: «يومُ لا تملك» بالرفع ؛ على أنه خبر مبتدأ محذوف، أو هو بدل من: «يوم الدين» الأول، وعليه فلا وقف، وبها قرأ ابن كثير وأبو عمرو. وليس بوقف لمن قرأه بالنصب ؛ ظرفًا لما دل عليه",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "شَيۡـٔٗاۖ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده في موضع الحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "لِّلَّهِ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

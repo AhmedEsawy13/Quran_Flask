@@ -1,0 +1,373 @@
+[
+ {
+  "ayah": 45,
+  "stop_phrase": "مُتۡرَفِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "كاف",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "لَمَبۡعُوثُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ: «أو آباؤنا» معطوف على الضمير في «مبعوثون» والذي جوّز العطف عليه الفصل بهمزة الاستفهام والمعنى: أتبعث أيضًا آباؤنا، على زيادة الاستبعاد، يعنون: أنَّ آباءهم أقدم فبعثهم أبعد وأبطل. قاله الزمخشري، قال أبو حيان: وما قاله الزمخشري لا يجوز؛ لأنَّ عطفه على الضمير لا يراه نحويّ؛ لأنَّ همزة الاستفهام لا تدخل إلَّا على الجمل لا على المفرد؛ لأنَّه إذا عطف على المفرد كان الفعل عاملًا في المفرد بواسطة حرف العطف، وهمزة الاستفهام لا يعمل ما قبلها فيما بعدها، فقوله: «أو آباؤنا» مبتدأ، خبره محذوف، تقديره: مبعوثون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "ٱلۡأَوَّلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "لَمَجۡمُوعُونَ",
+  "grade": "لا",
+  "reason": "ليس بوقف وإن كان رأس آية، وتعلقه هنا بما قبله، ثم قال تعالى: «إلى ميقات»، أي: يجمعهم لميقات يوم معلوم.",
+  "reported_from": "أبو جعفر"
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "مَّعۡلُومٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "ٱلۡمُكَذِّبُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر أن لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "زَقُّومٖ",
+  "grade": "لا",
+  "reason": "لأن قوله: «فمالئون» مرفوع بالعطف على «لآكلون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلۡبُطُونَ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "ٱلۡحَمِيمِ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "ٱلۡهِيمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "خَلَقۡنَٰكُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "تُصَدِّقُونَ",
+  "grade": "تام",
+  "reason": "متعلق التصديق محذوف، أي: فلولا تصدقون بخلقنا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "تُمۡنُونَ",
+  "grade": "جائز",
+  "reason": "لتناهي الاستفهام وللابتداء باستفهام آخر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ٱلۡخَٰلِقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱلۡمَوۡتَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "بِمَسۡبُوقِينَ",
+  "grade": "لا",
+  "reason": "لتعلق الجار",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "ٱلۡأُولَىٰ",
+  "grade": "كاف",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "تَذَكَّرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "تَحۡرُثُونَ",
+  "grade": "حسن",
+  "reason": "للابتداء بالاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلزَّٰرِعُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "حُطَٰمٗا",
+  "grade": "لا",
+  "reason": "لمكان الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "تَفَكَّهُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "لَمُغۡرَمُونَ",
+  "grade": "كاف",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "مَحۡرُومُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "تَشۡرَبُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "ٱلۡمُزۡنِ",
+  "grade": "لا",
+  "reason": "للعطف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "ٱلۡمُنزِلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "أُجَاجٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "تَشۡكُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "تُورُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "شَجَرَتَهَآ",
+  "grade": "لا",
+  "reason": "للعطف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ٱلۡمُنشِـُٔونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "لِّلۡمُقۡوِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "ٱلنُّجُومِ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب القسم لم يأت، وهو قوله: «إنه لقرآن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "عَظِيمٌ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب القسم لم يأت، وهو قوله: «إنه لقرآن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "كَرِيمٞ",
+  "grade": "لا",
+  "reason": "لتعلق حرف الجر",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "مَّكۡنُونٖ",
+  "grade": "لا",
+  "reason": "لأنَّ الجملة بعده صفة «لقرآن»، أو لكتاب.",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "ٱلۡمُطَهَّرُونَ",
+  "grade": "كاف",
+  "reason": "إن رفع «تنزيل» على أنَّه خبر مبتدأ محذوف، أي: «هو»، أو مبتدأ خبره الجار بعده، وليس بوقف إن جعل نعتًا لكتاب.",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "مُّدۡهِنُونَ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "تُكَذِّبُونَ",
+  "grade": "كاف",
+  "reason": "ولا وقف من قوله: «فلولا إذا بلغت الحلقوم» إلى «صادقين»؛ لأنَّ قوله: «ترجعونها» جواب «لولا» الأولى، والثانية توكيد للأولى، فكأنَّه قال: إذا بلغت الروح إلى هذا الموضع وأنتم مشاهدون لهذا الميت فردّوها إن كنتم صادقين في قيلكم إنَّا غير محاسبين",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ٱلۡمُقَرَّبِينَ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "نَعِيمٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "ٱلۡيَمِينِ",
+  "grade": "كاف",
+  "reason": "مثله في الكفاية [أي مثل: نَعِيمٖ]",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "ٱلضَّآلِّينَ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "حَمِيمٖ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "جَحِيمٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "ٱلۡيَقِينِ",
+  "grade": "كاف",
+  "reason": "مثله [أي مثل: جَحِيمٍ]",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

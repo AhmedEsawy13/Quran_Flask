@@ -1,0 +1,366 @@
+[
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «ليضلوا» متعلق بقوله: «آتيت».",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "سَبِيلِكَۖ",
+  "grade": "كاف",
+  "reason": "لأنَّ موسى استأنف الدعاء، فقال: «ربنا اطمس على أموالهم واشدد على قلوبهم فلا يؤمنوا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ٱلۡأَلِيمَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "فَٱسۡتَقِيمَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "فَٱسۡتَقِيمَا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "وَعَدۡوٗاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "ٱلۡغَرَقُ",
+  "grade": "لا",
+  "reason": "لأنَّ قال جواب إذا، فلا يفصل بينها وبين جوابها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "قَالَ ءَامَنتُ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «إنه» بكسر الهمزة، على الاستئناف، وبها قرأ حمزة، والكسائي، ويحيى بن وثاب، والأعمش",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "قَالَ ءَامَنتُ",
+  "grade": "لا",
+  "reason": "على قراءته بفتحها [أي فتح همزة إنه] لا يوقف على «آمنت»؛ لأنَّ «أن» منصوبة به؛ لأنَّ الفعل لا يلغى إذا قدر على إعماله",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "إِسۡرَٰٓءِيلَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "ٱلۡمُسۡلِمِينَ",
+  "grade": "كاف",
+  "reason": "لأنَّ ما بعده ليس من كلام فرعون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "ٱلۡمُسۡلِمِينَ",
+  "grade": "تام",
+  "reason": "لأنَّ ما بعده ليس من كلام فرعون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "ٱلۡمُفۡسِدِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "ءَايَةٗۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "لَغَٰفِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "ٱلطَّيِّبَٰتِ",
+  "grade": "حسن",
+  "reason": "للابتداء بالنفي مع الفاء، ومثله «جاءهم العلم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "يَخۡتَلِفُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "قَبۡلِكَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "رَّبِّكَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "ٱلۡمُمۡتَرِينَ",
+  "grade": "كاف",
+  "reason": "على استئناف النهي بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "ٱلۡمُمۡتَرِينَ",
+  "grade": "لا",
+  "reason": "إن جعل ما بعده معطوفًا على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "ٱلۡخَٰسِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ «لو» تعلقها بما قبلها، أي: لو جاءتهم كل آية لا يؤمنون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "ٱلۡأَلِيمَ",
+  "grade": "تام",
+  "reason": "وليس بجيد؛ لأنَّ الكلام متصل بعضه ببعض، وكذا عنده فنفعها إيمانها، وجعل يعقوب الاستثناء منقطعًا من غير الجنس",
+  "reported_from": "يعقوب"
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "حِينٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "جَمِيعًاۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "مُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "حسن",
+  "reason": "وحسن لمن قرأه بالتحتية؛ لتعلقه بما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «ونجعل الرجس» بالنون",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "يَعۡقِلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "وَٱلۡأَرۡضِۚ",
+  "grade": "حسن",
+  "reason": "يجوز في «ماذا» أن تكون كلمة واحدة استفهامًا مبتدأ، «وفي السموات» خبره، ويجوز أن تكون «ما» وحدها مبتدأ، و «ذا» كلمة وحدها، وذا: اسم موصول بمعنى: الذي، «وفي السموات» صلتها، وهو خبر المبتدأ",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "كاف",
+  "reason": "ومثله «من قبلهم»، وكذا «من المنتظرين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "قَبۡلِهِمۡۚ",
+  "grade": "كاف",
+  "reason": "لأنه مثل «لا يؤمنون» في الآية السابقة",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "ٱلۡمُنتَظِرِينَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل «لا يؤمنون» في الآية 101",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "وَٱلَّذِينَ ءَامَنُواْۚ",
+  "grade": "تام",
+  "reason": "على أنَّ الكاف في محل رفع، أي: الأمر كذلك يحق علينا ننج المؤمنين، وعلى أنها في محل نصب نعتًا لمصدر محذوف، أي: إنجاء مثل ذلك يحق علينا ننج المؤمنين، فيوقف على «كذلك»، ثم يبتدأ به؛ لتعلقه بما بعده من جهة المعنى فقط، وعلى أنَّها متعلقة بما قبلها، كأنَّه قال: ننجي رسلنا والذين آمنوا كذلك، فالتشبيه من تمام الكلام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "يَتَوَفَّىٰكُمۡۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "إن جعل ما بعده بمعنى: وقيل لي أن أقم وجهك، أي: وأوحي إليَّ أن أقم، فـ «أن أقم» معمولة بقوله: «وأمرت» مراعى فيها المعنى؛ لأنَّ معنى قوله: أن أكون -كن من المؤمنين؛ فهما أمران",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "حَنِيفٗا",
+  "grade": "جائز",
+  "reason": "وهو حال من الضمير في «أقم»، أو من المفعول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "ٱلۡمُشۡرِكِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "يَضُرُّكَۖ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط، وهي جملة استئنافية، ويجوز أن تكون معطوفة على جملة الأمر، وهي «أقم»، فتكون داخلة في صلة «أن» بوجهيها",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "ومثله «إلَّا هو»؛ للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "إِلَّا هُوَۖ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "لِفَضۡلِهِۦۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أحمد بن جعفر"
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "تام",
+  "reason": "أتم منهما [أي من الوقف على إلَّا هو، والوقف على لفضله].",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "رَّبِّكُمۡۖ",
+  "grade": "حسن",
+  "reason": "ومثله «لنفسه».",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "لِنَفۡسِهِۦۖ",
+  "grade": "حسن",
+  "reason": "أما قول يحيى بن نصير النحوي: لا يوقف على الأول من المقابلين والمزدوجين حتى يؤتى بالثاني، فالأولى الفصل بالوقف بينهما، ولا يخلط أحدهما مع الآخر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "عَلَيۡهَاۖ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "بِوَكِيلٖ",
+  "grade": "تام",
+  "reason": "يجوز في «ما» أن تكون حجازية، أو تميمية لخفاء النصب في الخبر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "يَحۡكُمَ ٱللَّهُۚ",
+  "grade": "صالح",
+  "reason": "لاحتمال الواو، وللاستئناف والعطف، والوصل أظهر؛ لشدة اتصال المعنى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "ٱلۡحَٰكِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

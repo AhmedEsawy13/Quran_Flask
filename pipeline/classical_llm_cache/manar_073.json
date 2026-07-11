@@ -1,0 +1,268 @@
+[
+ {
+  "ayah": 4,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "تَرۡتِيلًا",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ثَقِيلًا",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ثَقِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "قِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "طَوِيلٗا",
+  "grade": "كاف",
+  "reason": "على استثناء ما بعده، وحسن إن عطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "تَبۡتِيلٗا",
+  "grade": "تام",
+  "reason": "لمن قرأ: «ربُّ» بالرفع خبر مبتدأ محذوف، أو رفعه بالابتداء والخبر جملة: «لا إله إلا هو» وبها قرأ أبو عمرو وعبد الله بن كثير ونافع وحفص عن عاصم",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "تَبۡتِيلٗا",
+  "grade": "لا",
+  "reason": "لمن جره على البدل من «ربك»، ومثله في عدم الوقف من جره بقسم مضمر كقولك الله لأفعلنَّ، وجوابه: لا إله إلَّا هو، ومن قرأه بالجر وهو حمزة والكسائي وابن عامر وأبو بكر عن عاصم فلا يقف على «تبتيلًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "وَكِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "جَمِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "قَلِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "أَلِيمًا",
+  "grade": "جائز",
+  "reason": "إن نصب «يوم» بمقدر مفعولًا به، وكان من عطف الجمل",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "أَلِيمًا",
+  "grade": "لا",
+  "reason": "إن جعل ظرفًا لقوله: «إن لدينا أنكالًا»، والمعنى: أن لدينا أنكالًا في هذا اليوم",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَٱلۡجِبَالُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "مَّهِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "رَسُولًا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "وَبِيلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "كَفَرۡتُمۡ",
+  "grade": "تام",
+  "reason": "قال نافع تام، وغلّطه في ذلك جماعة منهم: أبو حاتم، وجعلوا «يومًا» منصوبًا بـ «تتقون» نصب المفعول به على المجاز، على حذف مضاف... وقال الأخفش: الوقف كفرتم، وجعل «يومًا» منصوبًا على الظرف، وجعل الفعل لله تعالى، والتقدير: يجعل الله الولدان شيبًا في يوم، وهذا ليس بمختار، والأصح: أنَّ الضمير في يجعل لليوم، ولا يجوز نصبه على الظرف",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "جائز",
+  "reason": "بتقدير: إحذروا يومًا يجعل الولدان شيبًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "شيبًا",
+  "grade": "جائز",
+  "reason": "على أنَّ في الآية تقديمًا وتأخيرًا، والمعنى: فكيف تتقون يومًا يجعل الولدان شيبًا إن كفرتم في الدنيا، والأجود: أن لا يوقف عليه؛ لأنَّ ما بعده صفة «يومًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "بِهِۦۚ",
+  "grade": "جائز",
+  "reason": "أي: بذلك اليوم، وقيل الوقف عليه",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "بِهِۦۚ",
+  "grade": "تام",
+  "reason": "أي بذلك اليوم، أو فيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "مَفۡعُولًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "تَذۡكِرَةٞۖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "سَبِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مَعَكَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "وَٱلنَّهَارَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "عَلَيۡكُمۡۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلۡقُرۡءَانِۚ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مَّرۡضَىٰ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "للفصل بين الجملتين؛ لأنَّ الضاربين في الأرض للتجارة، غير المجاهدين في سبيل الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مِنۡهُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلزَّكَوٰةَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "حَسَنٗاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "أَجۡرٗاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱللَّهَۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "رَّحِيمُۢ",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

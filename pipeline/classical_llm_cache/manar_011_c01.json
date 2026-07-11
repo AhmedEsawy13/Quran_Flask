@@ -1,0 +1,485 @@
+[
+ {
+  "ayah": 20,
+  "stop_phrase": "يُبۡصِرُونَ",
+  "grade": "كاف",
+  "reason": "على القولين في «ما»",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "أَنفُسَهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "يَفۡتَرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "لَا جَرَمَ",
+  "grade": "لا",
+  "reason": "لإنكارهم البعث، وإنَّهم يستحقون النار، كأنَّه قال: حق وجوب النار لهم. وقال الفراء: «جرم» مع «لا» كلمة واحدة، معناها: لا بدَّ، فحينئذ لا يوقف على «لا» دون «جرم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "ٱلۡأَخۡسَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "أَصۡحَٰبُ ٱلۡجَنَّةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "وَٱلسَّمِيعِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "مَثَلًا",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "تَذَكَّرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "إِلَىٰ قَوۡمِهِۦٓ",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «إنِّي لكم» بكسر الهمزة، على إضمار القول، وبها قرأ نافع، وابن عامر، وعاصم، وحمزة؛ على أنَّ قوله: «أن لا تعبدوا إلَّا الله» متعلق بما بعد «إنِّي»، وليس بوقف لمن فتحها، وجعلها متعلقة بـ «أرسلنا»، وبفتحها قرأ ابن كثير، وأبو عمرو، والكسائي؛ لأنَّ «أن لا تعبدوا» بدل من قوله: «إنَّي لكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مُّبِينٌ",
+  "grade": "كاف",
+  "reason": "على أنَّ ما بعده في موضع رفع خبر مبتدأ محذوف، وليس بوقف إن جعل بدلًا مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "إِلَّا ٱللَّهَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "أَلِيمٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "بَادِيَ ٱلرَّأۡيِ",
+  "grade": "جائز",
+  "reason": "وقيل: حسن؛ للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "فَضۡلِۭ",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "كَٰذِبِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "فَعُمِّيَتۡ عَلَيۡكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "كَٰرِهُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "مَالًا",
+  "grade": "حسن",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "عَلَى ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ءَامَنُوٓاْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "مُّلَٰقُواْ رَبِّهِمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لحرف الاستدراك بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "تَجۡهَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "طَرَدتُّهُمۡ",
+  "grade": "كاف",
+  "reason": "وكذا",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "تَذَكَّرُونَ",
+  "grade": "كاف",
+  "reason": "وكذا",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "إِنِّي مَلَكٌ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "خَيۡرًا",
+  "grade": "حسن",
+  "reason": "وقيل: كاف، وقيل: تام، وقيل: ليس بوقف؛ لأنَّ قوله: «ولا أقول للذين تزدري أعينكم» إلخ جوابه «إني إذًا لمن الظالمين»، وقوله: «الله أعلم بما في أنفسهم» اعتراض بينهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "جِدَٰلَنَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلصَّٰلِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "إِن شَآءَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "بِمُعۡجِزِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَن يُغۡوِيَكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَنۡ أَنصَحَ لَكُمۡ",
+  "grade": "كاف",
+  "reason": "على أنَّ في الآية تقديمًا وتأخيرًا، وتقدير الكلام: إن كان الله يريد أن يغويكم لا ينفعكم نصحي إن أردت أن أنصح لكم؛ فجواب الشرط الأول محذوف، أو الشرط الثاني هو جواب الشرط الأول",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "تُرۡجَعُونَ",
+  "grade": "كاف",
+  "reason": "لأنَّ «أم» بمعنى: ألف الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱفۡتَرَىٰهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "تُجۡرِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "مَن قَدۡ ءَامَنَ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يَفۡعَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "وَوَحۡيِنَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ظَلَمُوٓاْ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده؛ لأنَّ «أن» كالتعليل لما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "مُّغۡرَقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "سَخِرُواْ مِنۡهُ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ لأنَّه جواب «كلما»، وقوله: «قال» مستأنف على تقدير سؤال سائل",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "كَمَا تَسۡخَرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "ومثله: «فسوف تعلمون»؛ لأنَّ «فسوف» للتهديد، فيبدأ بها الكلام؛ لأنَّها لتأكيد الواقع إن جعلت «من» في محل رفع بالابتداء، والخبر «يخزيه»، وليس بوقف لمن جعلها في موضع نصب مفعولًا لقوله: «تعلمون» وليست رأس آية؛ لتعلق ما بعدها بما قبلها، ولا يفصل بين العامل والمعمول بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "مُّقِيمٌ",
+  "grade": "كاف",
+  "reason": "لأنَّ «حتى» للابتداء إذا كان بعدها (إذا)",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلتَّنُّورُ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «قلنا» جواب «إذا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "اثْنَيْنِ",
+  "grade": "جائز",
+  "reason": "ثم يبتدئ «وأهلك»، أي: وأهلك اللهُ -من الهلاك- جميع الخلائق إلَّا من سبق عليه القول؛ فما بعد الاستثناء خارج مما قبله، يعني: إبليس ومن آمن",
+  "reported_from": "أبو العلاء الهمداني"
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "وَأَهۡلَكَ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ الوقف يشعر بأنَّه أمر بحمل جميع أهله، وتعلق الاستثناء أيضًا يوجب عدم الوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "وَمَنۡ ءَامَنَ",
+  "grade": "تام",
+  "reason": "اتفاقًا؛ للابتداء بالنفي، وأيضًا «من» مفعول به عطف على مفعول «احمل»",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "إِلَّا قَلِيلٌ",
+  "grade": "تام",
+  "reason": "أتم",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "وَمُرۡسَىٰهَآ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "كاف",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "كَٱلۡجِبَالِ",
+  "grade": "كاف",
+  "reason": "وكذا",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "فِي مَعۡزِلٖ",
+  "grade": "حسن",
+  "reason": "إن جعل ما بعده على إضمار قول، وليس بوقف إن جعل متصلًا بـ «نادى»، ومعنى «في معزل» أي: من جانب من دين أبيه، وقيل: من السفينة",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مَعَ ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "مِنَ ٱلۡمَآءِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "مِنۡ أَمۡرِ ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "على أنَّ الاستثناء منقطع، أي: لكن من رحمة الله معصوم، والصحيح أنَّه متصل",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "مَن رَّحِمَ",
+  "grade": "حسن",
+  "reason": "وخبر «لا» محذوف، أي: لا عاصم موجود، ولا يجوز أن يكون الخبر «اليوم»؛ لأنَّ ظرف الزمان لا يكون خبرًا عن الجثة، ويجوز أن يكون الفاعل بمعنى المفعول، والمفعول بمعنى الفاعل",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "مِنَ ٱلۡمُغۡرَقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "أَقۡلِعِي",
+  "grade": "كاف",
+  "reason": "وكذا",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "وَغِيضَ ٱلۡمَآءُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلۡأَمۡرُ",
+  "grade": "جائز",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "عَلَى ٱلۡجُودِيِّ",
+  "grade": "كاف",
+  "reason": "والواو بعده؛ للاستئناف، لا للعطف؛ لأنَّه فرغ من صفة الماء وجفافه",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مِنۡ أَهۡلِي",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "وَإِنَّ وَعۡدَكَ ٱلۡحَقُّ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "ٱلۡحَٰكِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "لَيۡسَ مِنۡ أَهۡلِكَ",
+  "grade": "كاف",
+  "reason": "على قراءة من قرأ: «إنَّه عمل غير صالح» برفع «عمَلٌ» وتنوينه وفتح الميم، وبها قرأ ابن كثير، ونافع، وعاصم، وأبو عمرو، وحمزة، وابن عامر؛ وذلك على أنَّ الضمير في «إنَّه» الثاني يعود إلى السؤال، كأنَّه قال: سؤالك يا نوح إياي أن أنجيه كافرًا ما ليس لك به",
+  "reported_from": null
+ }
+]

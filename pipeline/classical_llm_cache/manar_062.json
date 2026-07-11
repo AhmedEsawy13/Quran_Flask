@@ -1,0 +1,219 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "وَمَا فِي ٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "إن رفع ما بعده على إضمار مبتدأ محذوف، أي: هو الملك، وبها قرأ أبو وائل شقيق بن سلمة والخليل، وليس بوقف على قراءة العامة بالجر في الأربعة على النعت لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡحَكِيمِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "رَسُولٗا مِّنۡهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَٱلۡحِكۡمَةَ",
+  "grade": "جائز",
+  "reason": "إن جعلت أن قوله: «وإن كانوا» مخففة من الثقيلة أو نافية واللام، بمعنى: إلَّا، أي: ما كانوا إلا في ضلال مبين من عبادة الأوثان وغيرها",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "مُّبِينٖ",
+  "grade": "جائز",
+  "reason": "لأنه رأس آية، ولولا ذلك لما جاز؛ لأنَّ قوله: «وآخرين» مجرور عطفًا على «الأميين» أو هو منصوب عطفًا على الهاء في «ويعلمهم»، أي: ويعلم آخرين",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "بِهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلۡحَكِيمُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "يَشَآءُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَسۡفَارَۢاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلنَّاسِ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فتمنوا الموت» جواب الشرط، وهو قوله: «إن زعمتم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "صَٰدِقِينَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "أَيۡدِيهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "بِٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "مِنۡهُ",
+  "grade": "جائز",
+  "reason": "وقف بعضهم على «منه»، وجعل «فإنه» استئنافًا بعد الخبر الأول، ويعضد هذا ما قرئ: «إنَّه ملاقيكم» وهو وجيه ولكن وصله أوجه",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "مُلَٰقِيكُمۡۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "وَٱلشَّهَٰدَةِ",
+  "grade": "لا",
+  "reason": "ليس بوقف لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلۡجُمُعَةِ",
+  "grade": "لا",
+  "reason": "لأنَّ الذي بعده جواب «إذا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلۡبَيۡعَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡأَرۡضِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "تُفۡلِحُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "قَآئِمٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "قَآئِمٗاۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "محمد بن عيسى"
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلتِّجَٰرَةِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلرَّٰزِقِينَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

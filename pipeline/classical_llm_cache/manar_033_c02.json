@@ -1,0 +1,191 @@
+[
+ {
+  "ayah": 59,
+  "stop_phrase": "رَّحِيمًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "مَّرَضٞ",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "بِهِمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ «ملعونين» حال من الضمير في «يجاورونك»؛ فكأنه قال: ثم لا يجاورونك إلَّا في حال ما قد لعنوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "قَلِيلٗا",
+  "grade": "تام",
+  "reason": "من نصب «ملعونين»؛ على الذم كان الوقف على «قليلًا» تامًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "تَقۡتِيلٗا",
+  "grade": "تام",
+  "reason": "لمن نصب «سُنَّةَ» بفعل مقدر، وجائز لمن نصبها بـ «أخذوا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "قَبۡلُۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "تَبۡدِيلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلسَّاعَةِۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "قَرِيبًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "سَعِيرًا",
+  "grade": "لا",
+  "reason": "لأنَّ «خالدين» حال من الضمير في «لهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "أَبَدٗاۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "نَصِيرٗا",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» بمضمر، وليس بوقف إن جعل العامل فيه ما قبله، أي: ولا يجدون لهم من دون الله أولياء، ولا نصيرًا في ذلك اليوم. ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "ٱلرَّسُولَا۠",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "ٱلسَّبِيلَا۠",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ٱلۡعَذَابِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "كَبِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "قَالُواْۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "وَجِيهٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "سَدِيدٗا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «يصلح» جواب الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "ذُنُوبَكُمۡۗ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "عَظِيمًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "مِنۡهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ٱلۡإِنسَٰنُۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "جَهُولٗا",
+  "grade": "لا",
+  "reason": "الصحيح؛ أنَّه ليس بوقف، وأن اللام لام الصيرورة والمآل؛ لأنَّه لم يحمل الأمانة؛ لأنَّ (يعذب) لكنه حملها، فآل الأمر إلى: أن يعذب، من نافق، وأشرك، ويتوب على من آمن، وكذا ليس بوقف لمن جعل اللام (لام كي) متعلقة بما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "وَٱلۡمُؤۡمِنَٰتِۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "رَّحِيمَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

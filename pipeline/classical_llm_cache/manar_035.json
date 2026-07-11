@@ -1,0 +1,499 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "وَثُلَٰثَ وَرُبَٰعَۚ",
+  "grade": "كاف",
+  "reason": "عند أبي حاتم، وقال نافع: تام؛ على استئناف ما بعده.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "مَا يَشَآءُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "قَدِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "فَلَا مُمۡسِكَ لَهَاۖ",
+  "grade": "حسن",
+  "reason": "ومثله: «من بعده».",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡحَكِيمُ",
+  "grade": "تام",
+  "reason": "للابتداء بياء النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "عَلَيۡكُمۡۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام، ومثله: «والأرض».",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "إِلَّا هُوَۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "تُؤۡفَكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "قَبۡلِكَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡأُمُورُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "حَقّٞۖ",
+  "grade": "حسن",
+  "reason": "ومثله: «الحياة الدنيا»؛ للفصل بين الموعظتين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلۡغَرُورُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "عَدُوًّاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلسَّعِيرِ",
+  "grade": "تام",
+  "reason": "إن جعل «الذين» مبتدأ، خبره «عذاب شديد»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلسَّعِيرِ",
+  "grade": "لا",
+  "reason": "إن جعل في موضع رفع بدلًا من الواو في «ليكونوا»، وكذا إن جعل في موضع نصب نعتًا لـ «حزبه»، أو في موضع جر نعتًا؛ لـ «أصحاب السعير».",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "شَدِيدٞۖ",
+  "grade": "تام",
+  "reason": "ومثله: «كبير»، قال قتادة: أجر كبير؛ الجنة .",
+  "reported_from": "قتادة"
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "حَسَنٗاۖ",
+  "grade": "حسن",
+  "reason": "إن قدِّر جواب الاستفهام كمن هداه الله بقرينة، «ويهدي» ومن قدّر الجواب: ذهبت نفسك عليه حسرة، بقرينه فلا تذهب نفسك، ويكون قوله: «فلا تذهب نفسك»، دليل الجواب، فلا يوقف على «حسنًا» حتى يأتي بقوله: «فلا تذهب نفسك»",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "حَسَنٗاۖ",
+  "grade": "لا",
+  "reason": "قال الحسين بن الفضل: في الآية تقديم وتأخير، تقديره: أفمن زين له سوء عمله فرآه حسنًا، فلا تذهب، وعلى هذا فالوصل أولى للتعقيب؛ فإنه يؤذن بالسلب، أي: لاتنحسر على من يضل؛ فإنه يضله",
+  "reported_from": "الحسين بن الفضل"
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "حَسَرَٰتٍۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "يَصۡنَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "مَوۡتِهَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلنُّشُورُ",
+  "grade": "تام",
+  "reason": "والكاف في محل رفع، أي: مثل إخراج النبات يخرجون من قبورهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡعِزَّةَ",
+  "grade": "تام",
+  "reason": "من شرط جوابه مقدر، ويختلف تقديره باختلاف التفسير، قيل: من كان يريد العزة بعبادة الأوثان، فيكون تقديره: فليطلبها، ومن كان يريد العزة بالطريق القويم، فيكون تقديره: فليطلبها، ومن كان يريد علم العزة فيكون تقديره: فلينسب ذلك إلى الله، ودل على ذلك كله قوله: {فَلِلَّهِ الْعِزَّةُ جَمِيعًا}.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "جَمِيعًاۚ",
+  "grade": "كاف",
+  "reason": "ومثله: «الكلم الطيب».",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "يَرۡفَعُهُۥۚ",
+  "grade": "تام",
+  "reason": "إن كان الرافع للعمل الصالح الله تعالى، وإن كان الرافع للعمل الصالح الكلم الطيب، وأراد: أن الكلم الطيب، يرفعه العمل الصالح",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلطَّيِّبُ",
+  "grade": "لا",
+  "reason": "فلا يحسن الوقف على «الطيب» في الوجهين، وليس «الطيب» بوقف إن عطف، والعمل «الصالح» على «الكلم الطيب»، ومفهوم «الصالح» إن «الكلم» لا يقبل لعدم مقارنته للعمل الصالح",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "شَدِيدٞۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "يَبُورُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "أَزۡوَٰجٗاۚ",
+  "grade": "حسن",
+  "reason": "ومثله: «بعلمه».",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "كِتَٰبٍۚ",
+  "grade": "تام",
+  "reason": "عند أبي حاتم، وحسن عند غيره.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "يَسِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلۡبَحۡرَانِ",
+  "grade": "جائز",
+  "reason": "وليس حسنًا؛ لأن ما بعده تفسير لهما؛ لأن الجملتين مع ما حذف حال من «البحرين»، أي: «وما يستوي البحران» مقولًا لهما: هذا عذب فرات وهذا ملح أجاج.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "أُجَاجٞۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "تَلۡبَسُونَهَاۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "مَوَاخِرَ",
+  "grade": "لا",
+  "reason": "لأن اللام من قوله: «لتبتغوا» متعلقة بـ «مواخر» فلا يفصل بينهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "تَشۡكُرُونَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "فِي ٱلَّيۡلِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَٱلۡقَمَرَۖ",
+  "grade": "حسن",
+  "reason": "لأن «كل» مستأنف مبتدأ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مُّسَمّٗىۚ",
+  "grade": "كاف",
+  "reason": "وكذا «له الملك»، ومثله: «من قطمير» للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "دُعَآءَكُمۡ",
+  "grade": "حسن",
+  "reason": "ومثله: «ما استجابوا لكم»، وكذا «بشرككم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "خَبِيرٖ",
+  "grade": "تام",
+  "reason": "للابتداء بياء النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "إِلَى ٱللَّهِۖ",
+  "grade": "كاف",
+  "reason": "فصلًا بين وصف الخلق، ووصف الحق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱلۡحَمِيدُ",
+  "grade": "كاف",
+  "reason": "ومثله: «جديد».",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "بِعَزِيزٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "وِزۡرَ أُخۡرَىٰۚ",
+  "grade": "كاف",
+  "reason": "لاستئناف الشرط، ولا يوقف على منه شيء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ذَا قُرۡبَىٰٓۗ",
+  "grade": "كاف",
+  "reason": "وفي كان ضمير هو اسمها، وإنما أراد ولو كان المدعوّ ذا قربى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "وَأَقَامُواْ ٱلصَّلَوٰةَۚ",
+  "grade": "كاف",
+  "reason": "ومثله: «لنفسه».",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "وَٱلۡبَصِيرُ",
+  "grade": "جائز",
+  "reason": "وهما المؤمن والكافر، ومثله: «ولا النور»، وقيل: لاوقف من قوله: «وما يستوي الأعمى» إلى «الحرور» وبه يتم المعطوف والمعطوف عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "وَلَا ٱلۡحَرُورُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "وَلَا ٱلۡأَمۡوَٰتُۚ",
+  "grade": "حسن",
+  "reason": "ومثله: «من يشاء»، وتام عند أبي حاتم: للعدول عن الإثبات إلى النفي.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "ٱلۡقُبُورِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "نَذِيرٌ",
+  "grade": "تام",
+  "reason": "ومثله: «ونذيراً»، وكذا «نذير».",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مِن قَبۡلِهِمۡ",
+  "grade": "جائز",
+  "reason": "لأن «جاءتهم» يصلح حالًا واستئنافًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "ٱلۡمُنِيرِ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "كَفَرُواْۖ",
+  "grade": "جائز",
+  "reason": "لاستئناف التوبيخ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "نَكِيرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "أَلۡوَٰنُهَاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "أَلۡوَٰنُهَا",
+  "grade": "لا",
+  "reason": "لأن قوله: «وغرابيب سود» معطوف على «بيض».",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "سُودٞ",
+  "grade": "كاف",
+  "reason": "إن رفع «مختلف» بالابتداء، وما قبله خبره، وليس بوقف إن عطف على «مختلفًا» الأول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "كَذَٰلِكَۗ",
+  "grade": "جائز",
+  "reason": "إن كان لتشبيه تمام الكلام قبله، والمعنى: أن فيما خلقنا من الناس والدواب والأنعام مختلفًا مثل اختلاف الثمرات والجبال. وهذا توجيه حسن .",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡعُلَمَٰٓؤُاْۗ",
+  "grade": "كاف",
+  "reason": "ورسموا: {العلماؤا} بواو وألف بعد الميم كما ترى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "غَفُورٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "وَعَلَانِيَةٗ",
+  "grade": "لا",
+  "reason": "لأن خبر «إنّ» لم يأت، وهو جملة «يرجون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "تَبُورَ",
+  "grade": "كاف",
+  "reason": "إن جعلت لام «ليوفيهم» لام القسم، كما يقول أبو حاتم، وليس بوقف إن علقت بـ «لن تبور»، أي: تجارة غيرها هالكة تنفق في طاعة الله ليوفيهم.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مِّن فَضۡلِهِۦٓۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "شَكُورٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "بَيۡنَ يَدَيۡهِۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "بَصِيرٞ",
+  "grade": "تام",
+  "reason": "للفصل بين الجملتين تعريضًا للاعتبار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "عِبَادِنَاۖ",
+  "grade": "حسن",
+  "reason": "ومثله: «ظالم لنفسه»؛ إن فسّر الظالم بالكافر، كما رواه عمرو بن دينار عن ابن عباس، وجائز: إن فسّر بالعاصي، وهو المشهور.",
+  "reported_from": "ابن عباس"
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "مُّقۡتَصِدٞ",
+  "grade": "جائز",
+  "reason": "للفصل بين الأوصاف",
+  "reported_from": null
+ }
+]

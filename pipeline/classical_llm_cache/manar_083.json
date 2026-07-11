@@ -1,0 +1,296 @@
+[
+ {
+  "ayah": 2,
+  "stop_phrase": "يَسۡتَوۡفُونَ",
+  "grade": "جائز",
+  "reason": "للفصل بين تناقض الحالين للاعتبار والوصل أولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "يُخۡسِرُونَ",
+  "grade": "تام",
+  "reason": "وهو جواب «إذًا»، ومفعولا «يخسرون» محذوفان، أي: يخسرون الناس متاعهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مَّبۡعُوثُونَ",
+  "grade": "لا",
+  "reason": "لتعلق اللام",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "عَظِيمٖ",
+  "grade": "لا",
+  "reason": "إن جعل «يوم» في موضع جر بدلًا من «يوم عظيم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "عَظِيمٖ",
+  "grade": "حسن",
+  "reason": "وإن نصب بفعل مقدر حسن الوقف على «عظيم» وكذا إن رفع على المحل خبر مبتدأ محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "«كلَّا» عنده بمعنى: «ألا» التي للتنبيه يبتدأ بها الكلام",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "سِجِّينٖ",
+  "grade": "كاف",
+  "reason": "الأول كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "سِجِّينٞ",
+  "grade": "جائز",
+  "reason": "لكونه رأس آية؛ على أن «كتاب» بدل من «سجين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "سِجِّينٞ",
+  "grade": "كاف",
+  "reason": "أن جعل خبر مبتدأ محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "مَّرۡقُومٞ",
+  "grade": "تام",
+  "reason": "الأول تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "لِّلۡمُكَذِّبِينَ",
+  "grade": "كاف",
+  "reason": "إن رفع «الذين» أو نصب على الذم",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "لِّلۡمُكَذِّبِينَ",
+  "grade": "لا",
+  "reason": "إن جر نعتًا أو بدلًا أو بيانًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "أَثِيمٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "ٱلۡأَوَّلِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "يَكۡسِبُونَ",
+  "grade": "تام",
+  "reason": "مثله (أي مثل الأولين تام)، ولا مقتضى يوجب الوقف على «كلَّا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "لَّمَحۡجُوبُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱلۡجَحِيمِ",
+  "grade": "جائز",
+  "reason": "مثله (أي مثل لمحجوبون جائز)",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "تُكَذِّبُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "عِلِّيِّينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "عِلِّيُّونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مَّرۡقُومٞ",
+  "grade": "لا",
+  "reason": "الثاني ليس بوقف؛ لأن الجملة بعده صفته",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "ٱلۡمُقَرَّبُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "نَعِيمٍ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "يَنظُرُونَ",
+  "grade": "كاف",
+  "reason": "إن جعل «ينظرون» حالًا، وكذا إن جعل على «الأرائك» متعلقًا بـ «ينظرون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡأَرَآئِكِ",
+  "grade": "حسن",
+  "reason": "إن جعل على «الأرائك» متعلقًا بقوله: «لفي نعيم» كان الوقف على «الأرائك» حسنًا، ولم يحسن على «نعيم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلنَّعِيمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مَّخۡتُومٍ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مَّخۡتُومٍ",
+  "grade": "لا",
+  "reason": "ليس بوقف إن جعل متصلًا بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "مِسۡكٞۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡمُتَنَٰفِسُونَ",
+  "grade": "كاف",
+  "reason": "كافٍ من «تسنيم» (أي لتعلقه بما بعده)، وليس بوقف؛ لأن «عينًا» حال من «تسنيم»، ومفعول ثان لـ «يسقون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡمُقَرَّبُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "يَضۡحَكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "يَتَغَامَزُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "فَكِهِينَ",
+  "grade": "حسن",
+  "reason": "مثله (أي مثل يتغامزون حسن) على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "لَضَآلُّونَ",
+  "grade": "تام",
+  "reason": "لأنه آخر كلام الكفار، والذي بعده من كلام الله تعالى",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "حَٰفِظِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "يَضۡحَكُونَ",
+  "grade": "جائز",
+  "reason": "إن جعل «ينظرون» حالًا من الضمير في «يضحكون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "يَضۡحَكُونَ",
+  "grade": "لا",
+  "reason": "ليس بوقف إن جعل على «الأرائك» ظرفًا لـ «يضحكون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡأَرَآئِكِ",
+  "grade": "جائز",
+  "reason": "لك أن تقف على «الأرائك» وتجعل «يضحكون» عاملًا فيها، والتقدير: يضحكون على الأرائك، ثم تبتدئ: ينظرون",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "يَنظُرُونَ",
+  "grade": "حسن",
+  "reason": "للإبتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يَفۡعَلُونَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

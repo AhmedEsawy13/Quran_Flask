@@ -1,0 +1,149 @@
+[
+ {
+  "ayah": 162,
+  "stop_phrase": "بِفَٰتِنِينَ",
+  "grade": "لا",
+  "reason": "ليس بوقف للاستثناء",
+  "reported_from": null
+ },
+ {
+  "ayah": 163,
+  "stop_phrase": "ٱلۡجَحِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "الأخفش وأبي حاتم"
+ },
+ {
+  "ayah": 164,
+  "stop_phrase": "مَّعۡلُومٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "ٱلصَّآفُّونَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل معلوم",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "ٱلۡمُسَبِّحُونَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل معلوم",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "ٱلۡمُخۡلَصِينَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل معلوم",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "بِهِۦ",
+  "grade": "حسن",
+  "reason": "للابتداء بالتهديد",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "جائز",
+  "reason": "لأن ما بعده تفسير للكلمة",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "ٱلۡمَنصُورُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "ٱلۡغَٰلِبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "حِينٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 175,
+  "stop_phrase": "يُبۡصِرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "يَسۡتَعۡجِلُونَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل يبصرون",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "ٱلۡمُنذَرِينَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل يبصرون",
+  "reported_from": null
+ },
+ {
+  "ayah": 178,
+  "stop_phrase": "حِينٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 179,
+  "stop_phrase": "يُبۡصِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 180,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأن ما بعده بدل منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 180,
+  "stop_phrase": "يَصِفُونَ",
+  "grade": "كاف",
+  "reason": "للابتداء بالحمد الذي يبتدأ به الكلام وبه يختم",
+  "reported_from": null
+ },
+ {
+  "ayah": 181,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل يصفون للابتداء بالحمد الذي يبتدأ به الكلام وبه يختم",
+  "reported_from": null
+ },
+ {
+  "ayah": 182,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

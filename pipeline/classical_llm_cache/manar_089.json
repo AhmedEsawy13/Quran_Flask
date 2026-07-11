@@ -1,0 +1,163 @@
+[
+ {
+  "ayah": 4,
+  "stop_phrase": "يَسۡرِ",
+  "grade": "كاف",
+  "reason": "عند نافع على أنَّ جواب القسم محذوف تقديره: «لتبعثنَّ»، أو «لتعذبنَّ» يدل على ذلك قوله: «فصب عليهم ربك سوط عذاب»، وقال أبو حاتم: «لذي حجر»، وقال الأخفش جواب القسم: «إنَّ ربَّك لبالمرصاد» وهو التام.",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "بِعادٍ",
+  "grade": "جائز",
+  "reason": "قال الكسائي: جيد، يقال: عاد الذين هم بإرم. وقال السدي: إرم قبيلة من عاد كانت تدعى إرم ذات العماد، يعني: أصحاب خيام لا يقيمون بعاد إرم، ليس بوقف؛ لأنَّ ما بعده نعت له",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلۡبِلَٰدِ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «وثمود» عطف على «عاد»، وهكذا إلى قوله: «سوط عذاب»",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡأَوۡتَادِ",
+  "grade": "لا",
+  "reason": "لأنَّ العطف يصير الأشياء كالشيء الواحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡبِلَٰدِ",
+  "grade": "لا",
+  "reason": "لأنَّ العطف يصير الأشياء كالشيء الواحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلۡفَسَادَ",
+  "grade": "لا",
+  "reason": "لأنَّ العطف يصير الأشياء كالشيء الواحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "لَبِٱلۡمِرۡصَادِ",
+  "grade": "تام",
+  "reason": "الوقف الذي لاخلاف فيه",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "أَكۡرَمَنِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "أَهَٰنَنِ",
+  "grade": "كاف",
+  "reason": "لأنه مثل أَكۡرَمَنِ",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "كـَلَّاۖ",
+  "grade": "تام",
+  "reason": "في الموضعين (آية 17 وآية 21)؛ لأنهما بمعنى: لا، وقال غيره: لا يوقف عليها في الموضعين؛ لأنه لامقتضى للوقف عليها.",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلۡيَتِيمَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡمِسۡكِينِ",
+  "grade": "جائز",
+  "reason": "مثله (أي مثل الوقف على اليتيم)",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "لَّمّٗا",
+  "grade": "جائز",
+  "reason": "وكذا (أي مثل الوقف على اليتيم والمسكين)",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "جَمّٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "دَكّٗا",
+  "grade": "حسن",
+  "reason": "المراد دكًّا الثاني",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "صَفّٗا",
+  "grade": "حسن",
+  "reason": "مثله (أي مثل دكًّا الثاني وهو صَفّٗا الثاني)",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "بِجَهَنَّمَۚ",
+  "grade": "لا",
+  "reason": "لا وقف من قوله: «وجيء يومئذ»، إلى «الذكرى» فلا يوقف على «بجهنم»؛ لأنَّ «يومئذ» بعده بدل من إذ قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلذِّكۡرَىٰ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "لِحَيَاتِي",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "أَحَدٞ",
+  "grade": "تام",
+  "reason": "الثاني تام على القراءتين (يعني الموضع الثاني في الآية 26 وهو أحدٌ بعد وثاقَهُ)",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "مَّرۡضِيَّةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "عِبَٰدِي",
+  "grade": "حسن",
+  "reason": "مثله (أي مثل مرضيَّةً)",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "جَنَّتِي",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,128 @@
+[
+ {
+  "ayah": 88,
+  "stop_phrase": "لِلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "ٱلۡمُبِينُ",
+  "grade": "حسن",
+  "reason": "إن علقت الكاف بمصدر محذوف تقديره: آتيناك سبعًا من المثاني إيتاءً كما أنزلنا، أو إنزالًا كما أنزلنا، أو أنزلنا عليهم العذاب كما أنزلنا؛ لأنَّ «آتيناك» بمعنى: أنزلنا عليك، أو علقت بمصدر محذوف، العامل فيه مقدر تقديره: متعناهم تمتيعًا كما أنزلنا",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "ٱلۡمُبِينُ",
+  "grade": "لا",
+  "reason": "إن نصب بالنذير، أي: النذير عذابًا كما أنزلنا على المقتسمين",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "ٱلۡمُقۡتَسِمِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ «الذين» من نعتهم، أو بدل",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "عِضِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "أَجۡمَعِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده مفعول ثان لقوله: «لنسألنهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "ٱلۡمُشۡرِكِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "ٱلۡمُسۡتَهۡزِءِينَ",
+  "grade": "تام",
+  "reason": "إن جعل «الذي» مبتدأ خبره «فسوف يعلمون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "ٱلۡمُسۡتَهۡزِءِينَ",
+  "grade": "لا",
+  "reason": "إن جعل «الذين» بدلًا من «المستهزئين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "لا",
+  "reason": "إن جعل صفة لـ «المستهزئين»، ويكون الوقف على «إلهًا آخر»",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "ءَاخَرَ",
+  "grade": "حسن",
+  "reason": "للابتداء بالتهديد والوعيد على استهزائهم، وجعلهم إلهًا مع الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "يَقُولُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "ٱلسَّٰجِدِينَ",
+  "grade": "كاف",
+  "reason": "للابتداء بالأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "رَبَّكَ",
+  "grade": "لا",
+  "reason": "لاتصال ما بعده بما قبله؛ لأنَّ العبادة وقتت بالموت، أي: دم على التسبيح والعبادة حتى يأتيك الموت",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "ٱلۡيَقِينُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

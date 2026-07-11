@@ -1,0 +1,170 @@
+[
+ {
+  "ayah": 72,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "لَهُۥ",
+  "grade": "كاف",
+  "reason": "وليس بوقف إن جعل ما بعده تفسيرًا للمثل إلى قوله: «يستنقذوه منه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "لَهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "مِنۡهُ",
+  "grade": "تام",
+  "reason": "لأنه آخر المثل، ومثله: «المطلوب»",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "وَٱلۡمَطۡلُوبُ",
+  "grade": "تام",
+  "reason": "لأنه آخر المثل، ومثله: «المطلوب»",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "قَدۡرِهِۦٓ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "عَزِيزٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "وَمِنَ ٱلنَّاسِ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ لأنَّ ما بعده يصلح مستأنفًا وصفة",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "بَصِيرٞ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ لأنَّ ما بعده يصلح مستأنفًا وصفة",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "خَلۡفَهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "ٱلۡأُمُورُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "رَبَّكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "ٱلۡخَيۡرَ",
+  "grade": "لا",
+  "reason": "لأنَّ (لعل) في التعلق كـ (لام كي)",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "تُفۡلِحُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "جِهَادِهِۦ",
+  "grade": "كاف",
+  "reason": "ومثله: «اجتباكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱجۡتَبَىٰكُمۡ",
+  "grade": "كاف",
+  "reason": "ومثله: «اجتباكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "حَرَجٖ",
+  "grade": "كاف",
+  "reason": "إن نصب «ملةً» بالإغراء، أي: الزموا ملة أبيكم، وليس بوقف إن نصب بنزع الخافض، أو نصب «ملةً» بدلًا من «الخير»",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "حَرَجٖ",
+  "grade": "لا",
+  "reason": "لأنَّ التقدير عنده كـ «ملة أبيكم» ثم حذفت الكاف؛ لأنَّ معنى: وما جعل عليكم في الدين من حرج؛ وسّع الله عليكم الدين كملة أبيكم، فلما حذفت الكاف انتصبت «ملة» لاتصالها بما قبلها",
+  "reported_from": "الفراء"
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "قَبۡلُ",
+  "grade": "كاف",
+  "reason": "على الأول الوقف على «ما هو سماكم المسلمين من قبل»، وفي هذا تام، وعلى الثاني الوقف على «هو سماكم المسلمين من قبل»، كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱلنَّاسِ",
+  "grade": "كاف",
+  "reason": "وقيل: تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱلزَّكَوٰةَ",
+  "grade": "جائز",
+  "reason": "ومثله: «هو مولاكم»، وقيل: كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "مَوۡلَىٰكُمۡ",
+  "grade": "جائز",
+  "reason": "ومثله: «هو مولاكم»، وقيل: كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱلنَّصِيرُ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

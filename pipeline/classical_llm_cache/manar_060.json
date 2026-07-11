@@ -1,0 +1,359 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "أَوۡلِيَآءَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل «تلقون» نعت «أولياء» أو مفعولًا ثانيًا لـ «تتخذوا» أو حالًا من فاعل «تتخذوا»، أي: لا تتخذوا ملقين المودة، وكذا إن جعل «تلقون» تفسير «لاتخاذهم أولياء»؛ لأنَّ تفسير الشيء لاحق به ومتمم له",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "بِٱلۡمَوَدَّةِ",
+  "grade": "لا",
+  "reason": "لاتصال الكلام بعضه ببعض، فلا يوقف على «بالمودة» الأولى؛ لأنَّ «وقد كفروا» جملة حالية، وذوا لحال الضمير في «تلقون»، أي: توادونهم، وهذه حالتهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡحَقِّ",
+  "grade": "لا",
+  "reason": "لاتصال الكلام بعضه ببعض",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلرَّسُولَ",
+  "grade": "لا",
+  "reason": "لاتصال الكلام بعضه ببعض",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "وَإِيَّاكُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّه معطوف على «الرسول»، أي: يخرجون الرسول ويخرجونكم، وأيضًا قوله: «أن تؤمنوا بالله» مفعول «يخرجون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "بِٱلۡمَوَدَّةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "أَعۡلَنتُمۡ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلسَّبِيلِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَأَلۡسِنَتَهُم بِٱلسُّوٓءِ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "تَكۡفُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "أَوۡلَٰدُكُمۡ",
+  "grade": "تام",
+  "reason": "إن جعل «يوم القيامة» ظرفًا للفصل، وليس بوقف إن علق بـ «تنفعكم»، وحينئذ لا يوقف على «بينكم» بل على «يوم القيامة» إذ يصير ظرفًا لما قبله فكأنَّه قال: لن تنفعكم أرحامكم ولا أولادكم في هذا اليوم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "بَصِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "وَحۡدَهُۥٓ",
+  "grade": "جائز",
+  "reason": "من جعله منقطعًا وقف على قوله: «وحده»",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "شَيۡءٖ",
+  "grade": "تام",
+  "reason": "على الوجهين",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "أَنَبۡنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "رَّبَّنَآ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلۡحَكِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "حَسَنَةٞ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «لمن كان يرجو الله» بدل من ضمير الخطاب وهو «لكم» بدل بعض من كل",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡأٓخِرَ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡحَمِيدُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "مَّوَدَّةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "قَدِيرٞ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "رَّحِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "تَبَرُّوهُمۡ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "إِلَيۡهِمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلۡمُقۡسِطِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "تَوَلَّوۡهُمۡ",
+  "grade": "كاف",
+  "reason": "فإن «تولوهم» و «أن تبروهم» بدلان مما قبلهما فلا يوقف على ما قبلهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلظَّٰلِمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "فٱمۡتَحِنُوهُنَّ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "بِإِيمَٰنِهِنَّ",
+  "grade": "تام",
+  "reason": "أتم مما قبله، قال ابن نصير: أكره أن أقف على النون المشددة.",
+  "reported_from": "ابن نصير"
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡكُفَّارِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "لَّهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "أَنفَقُواْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "أُجُورَهُنَّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡكَوَافِرِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "أَنفَقُواْ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "بَيۡنَكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "حَكِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "أَنفَقُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "مُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذًا» قوله: «فبايعهن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "أَوۡلَٰدَهُنَّ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذًا» قوله: «فبايعهن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "وَأَرۡجُلِهِنَّ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذًا» قوله: «فبايعهن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "مَعۡرُوفٖ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذًا» قوله: «فبايعهن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "فَبَايِعۡهُنَّ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "رَّحِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "عَلَيۡهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "ٱلۡقُبُورِ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

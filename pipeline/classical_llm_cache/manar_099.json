@@ -1,0 +1,58 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "زِلۡزَالَهَا",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "أَثۡقَالَهَا",
+  "grade": "لا",
+  "reason": "لأن قوله يومئذ تحدث أخبارها جواب إذا فلا يفصل بينهما بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "لَهَا",
+  "grade": "لا",
+  "reason": "لأن قوله يومئذ تحدث أخبارها جواب إذا فلا يفصل بينهما بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "أَخۡبَارَهَا",
+  "grade": "لا",
+  "reason": "لأن ما بعده متعلق بما قبله أي تحدث بأخبارها بوحي الله إليها",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "لَهَا",
+  "grade": "كاف",
+  "reason": "إن نصب ما بعده بمقدار، وليس بوقف إن جعل بدلا مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "أَعۡمَٰلَهُمۡ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط مع الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "يَرَهُۥ",
+  "grade": "كاف",
+  "reason": "مثل قوله أعمالهم كاف للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "يَرَهُۥ",
+  "grade": "كاف",
+  "reason": "مثل قوله أعمالهم كاف للابتداء بالشرط",
+  "reported_from": null
+ }
+]

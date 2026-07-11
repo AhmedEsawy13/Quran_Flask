@@ -1,0 +1,499 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡقَمَرُ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "مُّسۡتَمِرّٞ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "أَهۡوَآءَهُمۡۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "مُّسۡتَقِرّٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مُزۡدَجَرٌ",
+  "grade": "كاف",
+  "reason": "إن رفعت «حكمةٌ» بتقدير: هي، وليس بوقف إن رفعتها بدلًا من قوله: «ما فيه» أو نصبتها حالًا من «ما» وهي موصولة، أو موصولة، أو موصوفة، وتخصصت بالصفة؛ فنصب عنها الحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "بَٰلِغَةٞۖ",
+  "grade": "كاف",
+  "reason": "عند أبي حاتم، وقال نافع: تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلنُّذُرُ",
+  "grade": "كاف",
+  "reason": "أكفى مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "عَنۡهُمۡۘ",
+  "grade": "تام",
+  "reason": "لأنَّه لو وصل بما بعده صار «يوم يدع» ظرفًا للتولي عنهم، وليس كذلك بل هو ظرف «يخرجون»، والمعنى عندهم: على التقديم والتأخير، أي: يخرجون من الأجداث يوم يدع الدَّاع، فإذا كان كذلك فالتام «فتول عنهم»؛ لأنَّ الظرف إذا تعلق بشيء قبله لم يوقف على ما قبله",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "نُّكُرٍ",
+  "grade": "لا",
+  "reason": "لأنَّ الظرف إذا تعلق بشيء قبله لم يوقف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "أَبۡصَٰرُهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ «خاشعًا»، أو «خشعًا» ، منصوب على الحال من الضمير في «يخرجون»، أي: يخرجون خشعًا أبصارهم يوم يدع الداع",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "مُّنتَشِرٞ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «مهطعين» منصوب على الحال من فاعل «يخرجون» فهي حال متداخلة",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلدَّاعِۖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "عَسِرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "وَٱزۡدُجِرَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده متصلًا بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "فَٱنتَصِرۡ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده متصلًا بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "مُّنۡهَمِرٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "عيونٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "قَدۡ قُدِرَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَدُسُرٖ",
+  "grade": "كاف",
+  "reason": "على استئناف «تجري»، وليس بوقف إن جعل في موضع نصب أو جر",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "بِأَعۡيُنِنَا",
+  "grade": "جائز",
+  "reason": "لأنَّ «جزاء» يصلح مفعولًا للجزاء، أو مصدر محذوف، أي: جوز واجزاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "كُفِرَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ءَايَةٗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "مُّدَّكِرٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "وَنُذُرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مُّدَّكِرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "وَنُذُرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "مُّسۡتَمِرّٖ",
+  "grade": "لا",
+  "reason": "لأنَّ «تنزع» صفة للريح",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلنَّاسَ",
+  "grade": "لا",
+  "reason": "لم يذكر علة صريحة سوى عطفه بـ «ومثله في عدم الوقف» على مستمر الموصوف بالجملة",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مُّنقَعِرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "وَنُذُرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مُّدَّكِرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "بِٱلنُّذُرِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "نَّتَّبِعُهُۥٓ",
+  "grade": "جائز",
+  "reason": "ولا كراهة ولا بشاعة بالابتداء بما بعده؛ لأنَّ القارئ غير معتقد معنى ذلك، وإنَّما هو حكاية قول قائلها حكاها الله عنهم، وليس بوقف إن عاق «إذًا» بـ «نتبعه» أي: إنَّا إذًا نتبعه فنحن في ضلال وسعر",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "وَسُعُرٍ",
+  "grade": "كاف",
+  "reason": "على استئناف الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "أَشِرٞ",
+  "grade": "كاف",
+  "reason": "على استئناف الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡأَشِرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "لَّهُمۡ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "وَٱصۡطَبِرۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "بَيۡنَهُمۡۖ",
+  "grade": "كاف",
+  "reason": "لأنَّ «كُلُّ» مبتدأ",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "مُّحۡتَضَرٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "فَعَقَرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "وَنُذُرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡمُحۡتَظِرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "مُّدَّكِرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "بِٱلنُّذُرِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "لُوطٖۖ",
+  "grade": "جائز",
+  "reason": "لأنَّ الجملة لا تصلح صفة للمعرفة، ولا عامل يجعلها حالًا",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "بِسَحَرٖ",
+  "grade": "تام",
+  "reason": "إن نصب «نعمةً» بفعل مضمر، وليس بوقف إن نصب بمعنى ما قبله، على المصدر، أو على المفعول من أجله",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "شَكَرَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "بِٱلنُّذُرِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "أَعۡيُنَهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "وَنُذُرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "مُّسۡتَقِرّٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "وَنُذُرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "مُّدَّكِرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "ٱلنُّذُرُ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "كُلِّهَا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مُّقۡتَدِرٍ",
+  "grade": "تام",
+  "reason": "لأنَّه انتقل من قصص الأنبياء عليهم الصَّلاة والسَّلام، ثم استأنف فقال: يا أهل مكة أكفاركم خير من أولائكم",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "أُوْلَٰٓئِكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱلزُّبُرِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "مُّنتَصِرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "ٱلدُّبُرَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "موعدهم",
+  "grade": "كاف",
+  "reason": "أكفى منه [أي مما قبله «الدبر»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "وَأَمَرُّ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «إنْ»",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "وَسُعُرٖ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم يذوقوا» على التقديم والتأخير، أي: يقال لهم ذوقوا مس سقر يوم يسحبون، وليس «يوم» ظرف (إضلالهم)؛ فإن جعل الظرف متعلقًا بما قبله ومتصلًا به لم يوقف على «سُعُر»",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "بِقَدَرٖ",
+  "grade": "تام",
+  "reason": "ونصب «كل» على الاشتغال، والنصب أولى لدلالته على عموم الخلق، والرفع لا يدل على عمومه، قال: أهل الزيغ إن ثَم مخلوقات لغير الله تعالى، فرفع «كل» يوهم مالا يجوز، وذلك إنه إذا رفع «كل» كان مبتدأ، و «خلقناه» صفة لـ «كل»، أو لـ «شيء» و «بقدر» خبر، وحينئذ يكون له مفهوم لا يخفى على متأمله؛ لأنَّ «خلقناه» صفة، وهي قيد فيفيد أنَّه إذا انتفى فيلزم أن يكون الشيء الذي ليس مخلوقًا لله لابقدر",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "بِٱلۡبَصَرِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مُّدَّكِرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلزُّبُرِ",
+  "grade": "تام",
+  "reason": "و «فعلوه» صفة، والصفة لا تعمل في الموصوف، ومن ثَم لم يجز تسليط العامل على ما قبله، إذ لو صح لكان تقديره: فعلوا كل شيء في الزبر، وهو باطل، فرفع «كل» واجب على الابتداء، وجملة «فعلوه» في موضع رفع صفة لـ «كل» وفي موضع جر صفة لـ «شيء» وفي «الزبر» خبر «كل»، والمعنى: وكل شيء مفعول ثابت في الزبر، أي: في الكتب",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "مُّسۡتَطَرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "وَنَهَرٖ",
+  "grade": "جائز",
+  "reason": "وقيل: لا يجوز؛ لأنَّ ما بعده ظرف لما قبله لأنَّ الجار بدل من الأول",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "مُّقۡتَدِرِۭ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,450 @@
+[
+ {
+  "ayah": 78,
+  "stop_phrase": "إِلَيۡهِ",
+  "grade": "حسن",
+  "reason": "ومثله: «السيئات»، وكذا «هن أطهر لكم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ضَيۡفِي",
+  "grade": "كاف",
+  "reason": "على استئناف الاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "رَّشِيدٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "حَقّٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "نُرِيدُ",
+  "grade": "حسن",
+  "reason": "وهو إتيان الذكورة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "شَدِيدٖ",
+  "grade": "كاف",
+  "reason": "وجواب «لو» محذوف تقديره: لبطشت بكم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "إِلَيۡكَ",
+  "grade": "حسن",
+  "reason": "ومثله: «بقطع من الليل» على قراءة من قرأ: «إلَّا امرأتُك» بالرفع بدلًا من «أحد»، وبها قرأ ابن كثير، وأبو عمرو ، وليس بوقف لمن قرأ بالنصب استثناءً من قوله: «فأسر بأهلك»، وهي قراءة الباقين ، ويجوز نصبه استثناءً من «واحد». والوقف على «الليل»، كما قرئ : «ما فعلوه إلَّا قليلًا» بالنصب.",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "ٱمۡرَأَتَكَ",
+  "grade": "حسن",
+  "reason": "على القراءتين .",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "أَصَابَهُمۡ",
+  "grade": "حسن",
+  "reason": "ومثله: «موعدهم الصبح»؛ فهو منقطع عما قبله، وذلك أنه روي أنَّ الملائكة لما قالت للوط عليه السلام: إنهم يهلكون في الصبح -قال لهم لوط: لا تؤخروهم إلى الصبح، كأنه يريد العجلة -قالوا له: «أليس الصبح بقريب»، وإنَّما قربوا عليه؛ لأنَّ قلوب الإبدال لا تحتمل الانتظار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "بِقَرِيبٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "مَّنضُودٖ",
+  "grade": "حسن",
+  "reason": "إن نصب «مسومة» بفعل مقدر، وليس بوقف إن نصب نعتًا لـ «الحجارة»، كأنه قال: وأمطرنا عليهم حجارة مسومة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "بِبَعِيدٖ",
+  "grade": "تام",
+  "reason": "لانتهاء القصة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "شُعَيۡبٗا",
+  "grade": "جائز",
+  "reason": "ومثله: «من إله غيره»، على القراءتين ؛ رفعه نعتًا لـ «إله» على المحل، وجره نعت له على اللفظ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "ٱلۡمِيزَانَ",
+  "grade": "حسن",
+  "reason": "ومثله: «بخير»، أي: برخص الأسعار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "مُّحِيطٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "بِٱلۡقِسۡطِ",
+  "grade": "حسن",
+  "reason": "ومثله: «أشياءهم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "مُفۡسِدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "ورسموا: «بقيت الله» بالتاء المجرورة كما ترى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "بِحَفِيظٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "مَا نَشَٰٓؤُاْ",
+  "grade": "كاف",
+  "reason": "ورسموا: «نشؤا» بواو وألف بعد الشين كما ترى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱلرَّشِيدُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "حَسَنٗا",
+  "grade": "تام",
+  "reason": "وفي الكلام حذف تقديره: ورزقني منه رزقًا حسنًا، أفتأمرونني أن أعصيه مع هذه النعم التي له عليَّ؟! ",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "عَنۡهُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "مَا ٱسۡتَطَعۡتُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "بِٱللَّهِ",
+  "grade": "كاف",
+  "reason": "ومثله: «أنيب».",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "صَٰلِحٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "بِبَعِيدٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "إِلَيۡهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "وَدُودٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "ضَعِيفٗا",
+  "grade": "حسن",
+  "reason": "للابتداء بـ «لولا»، ومثله: «لرجمناك».",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "بِعَزِيزٖ",
+  "grade": "كاف",
+  "reason": "ومثله: «من الله» فصلًا بين الاستخبار والإخبار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "ظِهۡرِيًّا",
+  "grade": "كاف",
+  "reason": "ومثله: «محيط».",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "عَٰمِلٌ",
+  "grade": "حسن",
+  "reason": "ثم يبتدئ «سوف تعلمون»؛ لأنَّه وعيد، فهو منقطع عما قبله، و «تعلمون» ليس بوقف، ولا رأس آية؛ لأنَّ «من» في موضع نصب مفعول «تعلمون»، وإن جعلت «من» في محل رفع بالابتداء، والخبر «يخزيه»، قال الفضل بن العباس: كان تامًّا، ورأس آية أيضًا على الاستئناف، وردَّ بأنَّه ليس رأس آية إجماعًا، ويجوز أن تكون «من» استفهامية، وما بعدها الخبر، أي: سوف تعلمون الشقي الذي يأتيه عذاب يخزيه، والذي هو كاذب، أم غيرهما .",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "كَٰذِبٌ",
+  "grade": "حسن",
+  "reason": "ومثله: «وارتقبوا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "رَقِيبٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "مِّنَّا",
+  "grade": "حسن",
+  "reason": "ومثله: «جاثمين»، إن جعلت الكاف متعلقة بمحذوف، وليس بوقف إن جعلت ما بعدها متعلقًا بما قبلها بدلًا من «جاثمين»، أو حالًا من الضمير في «أصبحوا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "فِيهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "ثَمُودُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "مُّبِينٍ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ حرف الجر وما بعده موضعه نصب بـ «أرسلنا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "وَمَلَإِيْهِۦ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "فِرۡعَوۡنَ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "بِرَشِيدٖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده في موضع الحال.",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "ٱلنَّارَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "ٱلۡمَوۡرُودُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "لَعۡنَةٗ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «ويوم القيامة» معطوف على موضع «في هذه»، كأنه قال: وألحقوا لعنة في الدنيا، ولعنة يوم القيامة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "تام",
+  "reason": "ويبتدئ «بئس الرفد»، وقيل: لعنة واحدة في الدنيا ويوم القيامة بئس ما يوعدون به؛ فهي لعنة واحدة، وهذا لا يصح؛ لأنَّه يؤدي إلى إعمال «بئس» فيما تقدم عليها، وذلك لا يجوز؛ لعدم تصرفها، أما لو تأخر لجاز .",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "ٱلۡمَرۡفُودُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "عَلَيۡكَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "وَحَصِيدٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "أَنفُسَهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "كاف",
+  "reason": "وكذا «تتبيب»، وكذا «ظالمة».",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "شَدِيدٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "ٱلۡأٓخِرَةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "مَّجۡمُوعٞ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «الناس» مرفوع به، كأنه قال: مجموع الناس له، أي: فيه، أي: ستجمع له الناس.",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "ٱلنَّاسُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "مَّشۡهُودٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "مَّعۡدُودٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "بِإِذۡنِهِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "وَسَعِيدٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "وَشَهِيقٌ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «خالدين» حال مقدرة مما قبله، و «الأرض» ليس بوقف؛ لحرف الاستثناء بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "رَبُّكَ",
+  "grade": "كاف",
+  "reason": "ومثله: «فعال لما يريد»، وفي هذا الاستثناء أربعة عشر قولًا أظهرها: أنَّه استثناء من قوله: «ففي النار»، «وفي الجنة»، أي: إلَّا لزمان الذي شاءه الله، فلا يكونون في النار ولا",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,219 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "فَلَا تَسۡتَعۡجِلُوهُۚ",
+  "grade": "تام",
+  "reason": "لمن قرأ : «تشركون» بالفوقية، ومن قرأ : بالتحتية كان أتم. قال أبو عبد الله إبراهيم بن محمد بن عرفة نفطويه العرب : تقول أتاك الأمر وهو متوقع بعد، ومنه أتى أمر الله، أي: أتى أمر وعده فلا تستعجلوه وقوعًا.",
+  "reported_from": "إبراهيم بن محمد بن عرفة"
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "يُشۡرِكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "مِنۡ عِبَادِهِۦٓ",
+  "grade": "جائز",
+  "reason": "على أنَّ ما بعده بدل من مقدر محذوف، أي يقال لهم: أن أنذروا قومكم، وليس بوقف إن أبدل «أن أنذروا» من قوله: «بالروح»، أو جعلت تفسيرية بمعنى: أي.",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "فَٱتَّقُونِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "بِٱلۡحَقِّۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "يُشۡرِكُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مُّبِينٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "خَلَقَهَاۖ",
+  "grade": "كاف",
+  "reason": "وقيل: الوقف على «لكم»؛ فعلى الأول «الأنعام» منصوبة بـ «خلقها» على الاشتغال، وعلى الثاني منصوبة بفعل مقدر معطوف على «الإنسان».",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "وَمَنَٰفِعُ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، ومثله: «ومنها تأكلون»",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "تَأۡكُلُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "تَسۡرَحُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلۡأَنفُسِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "رَّحِيمٞ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله، أي: وخلق الخيل لتركبوها وزينة، وهو تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم ويعقوب"
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلسَّبِيلِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "جَآئِرٞۚ",
+  "grade": "حسن",
+  "reason": "فـ «قصد السبيل»: طريق الجنة، و «منها جائر»: طريق النار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "أَجۡمَعِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "مَآءٗۖ",
+  "grade": "جائز",
+  "reason": "على أنَّ «لكم» مستأنف، و «شراب» مبتدأ، وإن جعل في موضع الصفة متعلقًا بمحذوف صفة لـ «ماء»، و «شراب» مرفوع به، فلا وقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "تُسِيمُونَ",
+  "grade": "كاف",
+  "reason": "على قراءة من قرأ: «ننبت» بالنون، وهي أعلى من قراءته بالتحتية، وبها قرأ عاصم . وقيل: كاف أيضًا على قراءته بالنون، أو بالتحتية .",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلثَّمَرَٰتِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "يَتَفَكَّرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "وَٱلنَّهَارَ",
+  "grade": "حسن",
+  "reason": "لمن رفع ما بعده بالابتداء، أو الخبر. وليس بوقف لمن نصبه ، وعليه فوقفه على «بأمره»، وعلى قراءة حفص : «والنجومُ مسخراتٌ» برفعهما فوقفه على «والقمر».",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "يَعۡقِلُونَ",
+  "grade": "كاف",
+  "reason": "إن نصب ما بعده بالإغراء، أي: اتقوا ما ذرأ لكم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "أَلۡوَٰنُهُۥٓۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "يَذَّكَّرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "تَلۡبَسُونَهَاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "فِيهِ",
+  "grade": "جائز",
+  "reason": "لأنَّه في مقام تعداد النعم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "تَشۡكُرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "وَسُبُلٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لحرف الترجي، وهو في التعلق كـ (لام كي).",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "تَهْتَدُونَ",
+  "grade": "جائز",
+  "reason": "لكونه رأس آية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "وَعَلَٰمَٰتٖۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "الأخفش"
+ }
+]

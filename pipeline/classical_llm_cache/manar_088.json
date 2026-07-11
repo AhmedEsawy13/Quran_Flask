@@ -1,0 +1,177 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡغَٰشِيَةِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "نَّاصِبَةٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "حَامِيَةٗ",
+  "grade": "جائز",
+  "reason": "مثله (أي مثل ناصبة)",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ءَانِيَةٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ضَرِيعٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "جُوعٖ",
+  "grade": "تام",
+  "reason": "وما بعده على حذف العاطف، أي: ووجوه؛ لأنَّ الذي تقدم «وجوه يومئذ خاشعة» وهذا الثاني معطوف عليه، وحذف لدلالة الكلام عليه",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "نَّاعِمَةٞ",
+  "grade": "لا",
+  "reason": "لتعلق اللام",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "رَاضِيَةٞ",
+  "grade": "لا",
+  "reason": "لأنه لا يبتدأ بحرف الجر",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "عَالِيَةٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "لَٰغِيَةٗ",
+  "grade": "كاف",
+  "reason": "على القراءتين، قرأ ابن كثير وأبو عمرو و «لا يُسمع» بالياء التحتية المضمومة مبنيًا للمفعول، «لاغيةٌ» بالرفع نائب الفاعل، وقرأ نافع كذلك إلا أنه بالتاء الفوقية والباقون بفتح التاء الفوقية ونصب «لاغيةً»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "جَارِيَةٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مَّرۡفُوعَةٞ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده معطوف على ما قبله وهكذا إلى: «مبثوثة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "مَّوۡضُوعَةٞ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده معطوف على ما قبله وهكذا إلى: «مبثوثة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "مَصۡفُوفَةٞ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده معطوف على ما قبله وهكذا إلى: «مبثوثة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "مَبۡثُوثَةٌ",
+  "grade": "تام",
+  "reason": "لتناهي صفة الأواني والفرش",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "خُلِقَتۡ",
+  "grade": "كاف",
+  "reason": "للتفصيل بين أسباب الاعتبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "رُفِعَتۡ",
+  "grade": "كاف",
+  "reason": "للتفصيل بين أسباب الاعتبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "نُصِبَتۡ",
+  "grade": "كاف",
+  "reason": "للتفصيل بين أسباب الاعتبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "سُطِحَتۡ",
+  "grade": "كاف",
+  "reason": "للتفصيل بين أسباب الاعتبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "مُذَكِّرٞ",
+  "grade": "حسن",
+  "reason": "ويجوز «فذكر» لمكان الفاء والوصل أولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "بِمُصَيۡطِرٍ",
+  "grade": "جائز",
+  "reason": "تجاوزه أولى، وعلى قراءة ابن عباس : «ألَا من تولى» بفتح الهمزة وتخفيف اللام يوقف على «بمسيطر»",
+  "reported_from": "ابن عباس"
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "وَكَفَرَ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡأَكۡبَرَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "إِيَابَهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ ثمَّ لترتيب الفعل",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "حِسَابَهُم",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

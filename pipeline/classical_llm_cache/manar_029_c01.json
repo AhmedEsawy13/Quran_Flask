@@ -1,0 +1,422 @@
+[
+ {
+  "ayah": 45,
+  "stop_phrase": "أَكۡبَرُۗ",
+  "grade": "كاف",
+  "reason": "أي: ولذكر الله إياكم أكبر من ذكركم إياه، قاله ابن عباس .",
+  "reported_from": "ابن عباس"
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "تَصۡنَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "أَحۡسَنُ",
+  "grade": "لا",
+  "reason": "للاستثناء بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "مِنۡهُمۡۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "إِلَيۡكُمۡ",
+  "grade": "حسن",
+  "reason": "ومثله: «وإلاهكم واحد».",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "مُسۡلِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ٱلۡكِتَٰبَۚ",
+  "grade": "حسن",
+  "reason": "لأنَّ فـ «الذين» مبتدأ، و «يؤمنون به» خبر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بِهِۦۖ",
+  "grade": "جائز",
+  "reason": "فصلًا بين الفريقين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بِهِۦۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ٱلۡكَٰفِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "بِيَمِينِكَۖ",
+  "grade": "جائز",
+  "reason": "وقيل: جائز، وليس بحسن؛ لأنَّ الذي بعده في تأويل الجواب كأنَّه قال: لو كنت تتلو كتابًا، أو كتبت بيمينك لارتاب المبطلون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "ٱلۡمُبۡطِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "ٱلۡعِلۡمَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "ٱلظَّٰلِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "رَّبِّهِۦۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "مُبِينٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "عَلَيۡهِمۡۚ",
+  "grade": "كاف",
+  "reason": "وتام عند أبي حاتم.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "شَهِيدٗاۖ",
+  "grade": "صالح",
+  "reason": "لأنَّ ما بعده يصلح وصفًا واستئنافًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "وَٱلۡأَرۡضِۗ",
+  "grade": "كاف",
+  "reason": "لأنَّ «والذين» مبتدأ، خبره: «أولئك».",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "بِٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر «الذين» لم يأت.",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلۡخَٰسِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "بِٱلۡعَذَابِ",
+  "grade": "حسن",
+  "reason": "حسن في الموضعين (آية 53 وآية 54).",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلۡعَذَابُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "بَغۡتَةٗ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "يَشۡعُرُونَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "بِٱلۡعَذَابِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "بِٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» بمقدر، وليس بوقف إن نصب بـ (محيطة)؛ لأنَّ «يوم» ظرف للإحاطة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "أَرۡجُلِهِمۡ",
+  "grade": "كاف",
+  "reason": "كاف؛ لمن قرأ: «ونقول» بالنون، وجائز لمن قرأ: «ويقول» بالياء التحتية، وهو نافع وأهل الكوفة، والباقون بالنون .",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بياء النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "وَٰسِعَةٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "فَٱعۡبُدُونِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "ٱلۡمَوۡتِۖ",
+  "grade": "جائز",
+  "reason": "جائز؛ لمن قرأ: «يرجعون» بالتحتية، وكاف؛ لمن قرأ: بالفوقية .",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلۡأَنۡهَٰرُ",
+  "grade": "لا",
+  "reason": "لأنَّ «خالدين» حال مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "فِيهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلۡعَٰمِلِينَ",
+  "grade": "كاف",
+  "reason": "إن جعل ما بعده خبر مبتدأ محذوف، أي: هم الذين، أو مبتدأ خبره: «وعلى ربهم يتوكلون»، وكذا «إن» نصب بإضمار أعني، وليس بوقف إن جرّ نعتًا للـ (عاملين) أو بدلًا منهم أو نعتًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "يَتَوَكَّلُونَ",
+  "grade": "تام",
+  "reason": "وقيل: كاف، وكذا «رزقها»، أي: كم من دابة مفتقرة إلى الغداء لا تدخر شيًا لغد، ولا يدخر من الحيوانات إلَّا الآدمي والفأرة والنملة .",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "يَرۡزُقُهَا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «وإياكم» معطوف على ما عمل فيه الرزق، إذ لم يرد أنَّه لم يرد أنَّه يرزق بعض الدواب دون بعض بل يرزق القوي والضعيف .",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "وَإِيَّاكُمۡۚ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱلۡعَلِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "ٱللَّهُۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "يُؤۡفَكُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "لَهُۥٓۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱللَّهُۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "لِلَّهِۚ",
+  "grade": "تام",
+  "reason": "لأنَّه تمام المقول، ومثله: «لا يعقلون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "وَلَعِبٞۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡحَيَوَانُۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "أي: لو علموا حقيقة الدارين لما اختاروا اللهو الفاني على الحيوان الباقي، ولو وصل لصار وصف «الحيوان» معلقًا بشرط إن لو علموا ذلك وهو محال، قاله السجاوندي.",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "ٱلدِّينَ",
+  "grade": "كاف",
+  "reason": "ومثله: «يشركون» لمن جعل لام «ليكفروا» لام الأمر بمعنى: التهديد، وليس بوقف لمن جعلها (لام كي).",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "ءَاتَيۡنَٰهُمۡ",
+  "grade": "حسن",
+  "reason": "لمن سكن لام «وليتمتعوا»؛ على استئناف الأمر، بمعنى: التهديد، وبها قرأ ابن كثير وحمزة والكسائي، وليس بوقف لمن كسرها عطفًا على «ليكفروا» ويوقف على «وليتمتعوا» وبكسرها قرأ نافع وعاصم وابن عامر وأبو عمرو ، وهي محتملة لأن تكون لام الأمر أو (لام كي)، والمعنى: لا فائدة لهم في الإشراك إلَّا الكفر والتمتع.",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "وَلِيَتَمَتَّعُواْۚ",
+  "grade": "كاف",
+  "reason": "كاف على الوجهين؛ لأنَّ (سوف) للتهديد، فيبتدأ بها الكلام؛ لأنَّها التأكيد الواقع.",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "حَوۡلِهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "يَكۡفُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "جَآءَهُۥٓۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "لِّلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "لأنَّ «والذين» مبتدأ خبره جملة القسم المحذوف، وجوابه:» لنهديهم» خلافًا لثعلب حيث زعم أنَّ جملة القسم لا تقع خبرًا للمبتدأ.",
+  "reported_from": "ثعلب"
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "سُبُلَنَاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,184 @@
+[
+ {
+  "ayah": 3,
+  "stop_phrase": "وَمَشۡهُودٖ",
+  "grade": "تام",
+  "reason": "على أنَّ جواب القسم محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "شُهُودٞ",
+  "grade": "تام",
+  "reason": "على أنَّ جواب القسم «قتل أصحاب الأخدود»، وحذفت اللام من الجواب، أي: لقد قتل، بناء على أنَّه خبر لادعاء، وقيل هو: «أن الذين فتنوا» فالوقف على «الحريق»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "قُعُودٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "شُهُودٞ",
+  "grade": "كاف",
+  "reason": "لأنه قال ومثله: «شهود»",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلۡحَمِيدِ",
+  "grade": "لا",
+  "reason": "ليس بوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "وَٱلۡأَرۡضِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "شَهِيدٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "جَهَنَّمَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡحَرِيقِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡأَنۡهَٰرُۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡكَبِيرُ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، فإن جعل ما بعده جواب القسم لم يوقف على شيء من أوَّل السورة إلى هذا الموضع لاتساق الكلام، فإن ضاق نفس القارئ عاد من أوَّل الكلام ليكون الكلام متصلًا بعضه ببعض",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "لَشَدِيدٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَيُعِيدُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱلۡوَدُودُ",
+  "grade": "حسن",
+  "reason": "إن جعل «ذو» خبر لمبتدأ محذوف",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱلۡوَدُودُ",
+  "grade": "لا",
+  "reason": "إن جعل ذو صفة لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ذُو ٱلۡعَرۡشِ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «المجيدُ» بالرفع ؛ على الإبتداء",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ذُو ٱلۡعَرۡشِ",
+  "grade": "لا",
+  "reason": "إن جعل نعتًا لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱلۡمَجِيدُ",
+  "grade": "كاف",
+  "reason": "بالجرِّ نعتٌ للعرش أو لربك، في قوله: «إنَّ بطش ربك»، وهي قراءة الأخوين، والباقون بالرفع خبر بعد خبر، أو نعت لـ «ذو»",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "يُرِيدُ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلۡجُنُودِ",
+  "grade": "حسن",
+  "reason": "إنَّ نصب «فرعون وثمود» بفعل مضمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلۡجُنُودِ",
+  "grade": "لا",
+  "reason": "إن جرَّ بدلًا من «الجنود»",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "تَكۡذِيبٖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "تَكۡذِيبٖ",
+  "grade": "لا",
+  "reason": "إن جعل ما بعده في موضع الحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مُّحِيطُۢ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "مَّجِيدٞ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده صفته",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مَّحۡفُوظِۭ",
+  "grade": "تام",
+  "reason": "على القراءتين؛ أعني: الرفع والجرّ، قرأ نافع «محفوظٌ» بالرفع نعت لـ «قرآن»، والباقون بالجرِّ نعت لـ «لوح»",
+  "reported_from": null
+ }
+]

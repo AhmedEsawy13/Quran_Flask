@@ -1,0 +1,408 @@
+[
+ {
+  "ayah": 87,
+  "stop_phrase": "رَّبِّكَۚ",
+  "grade": "كاف",
+  "reason": "غير مذهوب بالقرآن امتنانًا من الله ببقائه محفوظًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "كَبِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "بِمِثۡلِهِۦ",
+  "grade": "لا",
+  "reason": "لأنَّ ما قبله قد قام مقام جواب «لو»، فكأنه قال: لو كان بعضهم لبعض ظهيرًا لا يأتون بمثله. و «لا يأتون» جواب القسم المحذوف، وقيل: جواب الشرط... لفصله بين الشرط وجوابه",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ظَهِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "مَثَلٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "كُفُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "يَنۢبُوعًا",
+  "grade": "جائز",
+  "reason": "لأنَّ كلًّا منهما رأس آية، وجميع الأفعال معطوفة على ما عملت فيه «حتى»، فكأنه قال: حتى تفجر لنا، أو تكون لك، أو ترقى في السماء",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "تَفۡجِيرًا",
+  "grade": "جائز",
+  "reason": "لأنه رأس آية، وجميع الأفعال معطوفة على ما عملت فيه «حتى»، فكأنه قال: حتى تفجر لنا، أو تكون لك، أو ترقى في السماء",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "قَبِيلٗا",
+  "grade": "جائز",
+  "reason": "لأنه رأس آية، وجميع الأفعال معطوفة على ما عملت فيه «حتى»، فكأنه قال: حتى تفجر لنا، أو تكون لك، أو ترقى في السماء",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "ٱلسَّمَآءِ",
+  "grade": "جائز",
+  "reason": "للابتداء بالنفي بعد طول القصة",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "نَّقۡرَؤُهُۥۗ",
+  "grade": "تام",
+  "reason": "لتناهي المعطوفات، ولمن قرأ : «قل سبحان ربي» بالأمر، وكاف لمن قرأ : «قال سبحان ربي»؛ لأنَّ ما بعده خبر عن الرَّسول، فهو متصل بذلك",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "رَّسُولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "ٱلۡهُدَىٰٓ",
+  "grade": "لا",
+  "reason": "لأنَّ فاعل «منع» لم يأت بعد، وهو «أن قالوا»، و «أن يؤمنوا» مفعول ثانٍ لـ «منع»، والتقدير: وما منع الناس من الإيمان وقت مجيء الهدى إياهم إلَّا قولهم: أبعث الله بشرًا رسولًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "رَّسُولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "مُطۡمَئِنِّينَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده جواب «لو»",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "رَّسُولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "بَيۡنِي وَبَيۡنَكُمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "بَصِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "ٱلۡمُهۡتَدِۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "دُونِهِۦۖ",
+  "grade": "كاف",
+  "reason": "لأنَّ الواو لا تحتمل الحال والعطف، فكانت استئنافًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "وَصُمّٗاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "جَهَنَّمُۖ",
+  "grade": "حسن",
+  "reason": "أحسن من الوقف على «وصمًا»؛ لأنَّ «كلما» منصوبة بما بعدها، ومعنى «خبت»: سكن لهبها بعد أن أكلت لحومهم وجلودهم، فإذا بُدِّلُوا غيرها عادت كما كانت",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "سَعِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "وَرُفَٰتًا",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده بقية القول",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "جَدِيدًا",
+  "grade": "تام",
+  "reason": "لتمام القول",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "رَيۡبَ فِيهِ",
+  "grade": "حسن",
+  "reason": "لانتهاء الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "كُفُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "ٱلۡإِنفَاقِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "قَتُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "بَيِّنَٰتٖۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "إِسۡرَٰٓءِيلَ",
+  "grade": "جائز",
+  "reason": "إن نصب «إذ» باذكر مقدرًا، أي: فاسأل عن قصة بني إسرائيل إذ جاءهم، سلَّى نبيه محمَّدًا بما جرى لموسى مع فرعون وقومه، وليس بوقف إن جعل «إذ» معمولًا لـ «آتينا»، ويكون قوله: «فاسأل بني إسرائيل» اعتراضًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "مَسۡحُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "بَصَآئِرَ",
+  "grade": "حسن",
+  "reason": "أنزلها بصائر، فبصائر حال من مقدر بناء على أنَّ ما بعد «إلَّا» لا يكون معمولًا لما قبلها، وقيل: ما قبلها يعمل فيما بعدها وإن لم يكن مستثنى ولا مستثنى منه ولا تابعًا له",
+  "reported_from": "الدينوري"
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "عَلِمۡتَ",
+  "grade": "لا",
+  "reason": "ليس بوقف على القراءتين في «علمت»؛ فقد قرأ الجمهور : «علمتَ» بفتح التاء على خطاب موسى لفرعون وتبكيته في قوله: إنه مسحور، أي: قد علمت أن ما جئت به ليس سحرًا. وقرأ الكسائي : «علمتُ» بضم التاء، بإسناد الفعل لضمير موسى، أي: إني متحقق أن ما جئت به هو منزل من عند الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "مَثۡبُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "جَمِيعٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "ٱلۡأَرۡضَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "لَفِيفٗا",
+  "grade": "كاف",
+  "reason": "ما قبل «لفيفًا» بيان وعد الآخرة في المآل، وما بعده بيان حقيقة القرآن في الحال بأنَّه حق وما جاء به حق",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "أَنزَلۡنَٰهُ",
+  "grade": "حسن",
+  "reason": "للمغايرة بين الحقين؛ فالأول: التوحيد. والثاني: الوعد، والوعيد",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "نَزَلَۗ",
+  "grade": "تام",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "وَنَذِيرٗا",
+  "grade": "كاف",
+  "reason": "إن نصبت «قرآنًا» بفعل مقدر، فكأنَّه قال: وفرقنا قرآنًا فرقناه، وليس بوقف إن نصبته عطفًا على ما قبله، ويكون من عطف المفردات، أو نصب بـ «فرقناه»، أو نصب بـ «أرسلناك»، أي: وما أرسلناك إلَّا مبشرًا ونذيرًا، وقرآنًا، أي: رحمة لهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "مُكۡثٖ",
+  "grade": "جائز",
+  "reason": "أي: تؤدة وتطاول في المدة شيئًا بعد شيء",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "تَنزِيلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "تُؤۡمِنُوٓاْۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "سُجَّدٗا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على «يخرون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "رَبِّنَآ",
+  "grade": "حسن",
+  "reason": "و «إن» مخففة من الثقيلة، واللام هي الفارقة، والمعنى: أن ما وعد به من إرسال محمَّد - صلى الله عليه وسلم - وإنزال القرآن عليه قد فعله وأنجزه؛ فـ «إن» بمعنى: قد",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "لَمَفۡعُولٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "يَبۡكُونَ",
+  "grade": "جائز",
+  "reason": "وهو حال من الضمير في «ويخرون»، فكأنه قال: ويخرون للأذقان باكين",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "خُشُوعٗا۩",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "ٱلرَّحۡمَٰنَۖ",
+  "grade": "حسن",
+  "reason": "ثم يبتدئ «أيًّا ما تدعوا»؛ وذلك أن «أيًّا» منصوبة بـ «تدعوا» على المفعول به، والمضاف إليه محذوف، أي: أيُّ الاسمين، وهما: لفظ الله، والرحمن. و «تدعوا» مجزوم بها، فهي عاملة معمولة",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "تَدۡعُواْ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده جواب الشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "ٱلۡحُسۡنَىٰۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "تُخَافِتۡ بِهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "وَلَدٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "ٱلۡمُلۡكِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "ٱلذُّلِّۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "تَكْبِيرًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

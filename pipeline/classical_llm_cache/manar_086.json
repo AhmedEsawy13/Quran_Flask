@@ -1,0 +1,107 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "وَٱلطَّارِقِ",
+  "grade": "لا",
+  "reason": "لأنََّ جواب القسم لم يأت وهو: «أنَّ كل نفس» وقيل جواب القسم: أنه على رجعه لقادر وما بينهما اعتراض",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلطَّارِقُ",
+  "grade": "لا",
+  "reason": "لأنََّ جواب القسم لم يأت وهو: «أنَّ كل نفس» وقيل جواب القسم: أنه على رجعه لقادر وما بينهما اعتراض",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلثَّاقِبُ",
+  "grade": "لا",
+  "reason": "لأنََّ جواب القسم لم يأت وهو: «أنَّ كل نفس» وقيل جواب القسم: أنه على رجعه لقادر وما بينهما اعتراض",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "حَافِظٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "خُلِقَ",
+  "grade": "تام",
+  "reason": "إن جعل: {خُلِقَ} الثاني مستأنفًا، وليس وقفًا، إن جعل تفسيرًا للأوَّل إذ لا يفصل بين المفسر والمفسر بالوقف ومثله: «مم خلق»",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "وَالتَّرَآئِبِ",
+  "grade": "تام",
+  "reason": "إن لم يجعل إنه على رجعه جواب القسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "لَقَادِرٞ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» بقوله: «ولا ناصر»، وليس بوقف إن نصب بـ «قادر»",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلسَّرَآئِرُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "نَاصِرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلرَّجۡعِ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلصَّدۡعِ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "فَصۡلٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "بِٱلۡهَزۡلِ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "كَيۡدٗا",
+  "grade": "جائز",
+  "reason": "للابتداء بالأمر مع الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "رُوَيۡدَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

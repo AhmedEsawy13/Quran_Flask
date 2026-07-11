@@ -1,0 +1,506 @@
+[
+ {
+  "ayah": 77,
+  "stop_phrase": "أَنْتُمْ شَرٌّ مَكَانًا",
+  "grade": "كاف",
+  "reason": "قال قتادة: هي الكلمة التي أسرها يوسف في نفسه، أي: أنتم شر مكانًا في السرقة؛ لأنكم سرقتم أخاكم وبعتموه.",
+  "reported_from": "قتادة"
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "بِمَا تَصِفُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "فَخُذْ أَحَدَنَا مَكَانَهُ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده داخلًا في القول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "مَتَاعَنَا عِنْدَهُ",
+  "grade": "لا",
+  "reason": "لتعلق «إذ» بما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "لَظَالِمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "نَجِيًّا",
+  "grade": "حسن",
+  "reason": "يبنى الوقف على «موثقًا من الله»، والوصل على اختلاف المعربين في «ما»، وخبرها من قوله: «ما فرطتم»، وفيها خمسة أوجه: وهي كونها مصدرية مبتدأ، والخبر «من قبل»، أو مصدرية أيضًا مبتدأ، والخبر «في يوسف»، أو زائدة مؤكدة، أو مصدرية في محل نصب، أو مصدرية في محل نصب أيضًا، فإن جعلت مصدرية في محل رفع مبتدأ، والخبر «من قبل»، أي: وقع من قبل تفريطكم في يوسف كان كافيًا، وكذا إن جعلت مصدرية في محل رفع مبتدأ، أو الخبر قوله: «في يوسف»، أي: وتفريطكم كائن أو مستقر في يوسف، فيتعلق الظرفان، وهما: «من قبل»، و «في يوسف» بالفعل الذي هو فرطتم، أو جعلت زائدة للتوكيد، فيتعلق الظرف بالفعل بعدها، أي: ومن قبل فرطتم في يوسف، وليس بوقف إن جعلت «ما» مصدرية محلها نصب معطوفة؛ على أنَّ «أباكم» قد أخذ، أي: ألم تعلموا أخذ أبيكم الميثاق وتفريطكم في يوسف. وليس بوقف أيضًا إن جعلت مصدرية محلها نصب عطفًا على اسم «أن»، أي: ألم تعلموا أن أباكم، وأن تفريطكم من قبل في يوسف، وحينئذ يكون في خبر (أن) هذه المقدرة وجهان: أحدهما: هو «من قبل». والثاني: هو «في يوسف». وليس بوقف أيضًا إن جعلت مصدرية، على أن محلها نصب بـ «تعلموا» بتقدير: ألم تعلموا أنَّ أباكم قد أخذ عليكم موثقًا من الله وأنتم تعلمون تفريطكم في يوسف .",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "فِي يُوسُفَ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "أَوْ يَحْكُمَ اللَّهُ لِي",
+  "grade": "جائز",
+  "reason": "لأنَّ الواو تصلح للحال والاستئناف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "الْحَاكِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "إِنَّ ابْنَكَ سَرَقَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "بِمَا عَمِلْنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "حَافِظِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "أَقْبَلْنَا فِيهَا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "لَصَادِقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "أَمْرًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "فَصَبْرٌ جَمِيلٌ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "جَمِيعًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "الْحَكِيمُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "عَلَى يُوسُفَ",
+  "grade": "جائز",
+  "reason": "على انقطاع ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "كَظِيمٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "الْهَالِكِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "إِلَى اللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "مَا لَا تَعْلَمُونَ",
+  "grade": "كاف",
+  "reason": "أكفى منهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "مِنْ رَوْحِ اللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "الْكَافِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "مُزْجَاةٍ",
+  "grade": "لا",
+  "reason": "للعطف بالفاء، ومعنى «مزجاة»: مدفوعة يدفعها عنه كل أحد، وألفها منقلبة عن واو.",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "عَلَيْنَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ٱلۡمُتَصَدِّقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "جَٰهِلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "لَأَنْتَ يُوسُفُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "قَالَ أَنَا يُوسُفُ وَهَذَا أَخِي",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "قَدْ مَنَّ اللَّهُ عَلَيْنَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "الْمُحْسِنِينَ",
+  "grade": "كاف",
+  "reason": "أكفى منه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "لَخَاطِئِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "لَا تَثْرِيبَ عَلَيْكُمُ",
+  "grade": "جائز",
+  "reason": "بيان بيَّن به أن قوله: «اليوم» ليس ظرفًا لقوله: «لا تثريب»، وإنَّما هو متعلق بمحذوف، أي: ادعوا، ثم استأنف «اليوم يغفر الله لكم» بشرهم بالمغفرة؛ لما اعترفوا بذنبهم، وتابوا فتيب عليهم، وقيل: متعلق بقوله: «لا تثريب».",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "الْيَوْمَ",
+  "grade": "جائز",
+  "reason": "ثم ابتدأ «يوسف»، فقال: «يغفر الله لكم»، فدعا لهم بالمغفرة لما فرط منهم",
+  "reported_from": "نافع ويعقوب"
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "الرَّاحِمِينَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "يَأْتِ بَصِيرًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "أَجْمَعِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "تُفَنِّدُونِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "الْقَدِيمِ",
+  "grade": "كاف",
+  "reason": "قيل: أرادوا بذلك حبه ليوسف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "فَارْتَدَّ بَصِيرًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "مَا لَا تَعْلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "ذُنُوبَنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "خَاطِئِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "أَسْتَغْفِرُ لَكُمْ رَبِّي",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "الرَّحِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "آَوَى إِلَيْهِ أَبَوَيْهِ",
+  "grade": "جائز",
+  "reason": "لانتهاء جواب «لما».",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "آَمِنِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "سُجَّدًا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "من قبل",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "حقًّا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "من السجن",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، ولم يقل «من الجب» استعمالًا للكرم؛ لئلَّا يذكر أخوته صنيعهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "بَيْنِي وَبَيْنَ إِخْوَتِي",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "لما يشاء",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "الْحَكِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "مِنْ تَأْوِيلِ الْأَحَادِيثِ",
+  "grade": "كاف",
+  "reason": "إن نصب «فاطرًا» بنداء ثان، أو نصب بأعني مقدرًا، وليس بوقف إن جعل نعتًا لما قبله، أو بدلًا منه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "وَالْأَرْضِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "وَالْأٓخِرَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "مُسْلِمًا",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "بِالصَّالِحِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "نُوحِيهِ إِلَيْكَ",
+  "grade": "حسن",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "وَهُمْ يَمْكُرُونَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "بِمُؤْمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "مِنْ أَجْرٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "لِلْعَالَمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "فِي السَّمَاوَاتِ",
+  "grade": "جائز",
+  "reason": "على قراءة عكرمة : «والأرضُ» بالرفع مبتدأ، والخبر جملة «يمرون عليها»، وكذا من قرأ بالنصب ؛ على الاشتغال، أي: يطؤن الأرض، ويروى عن ابن جريج: أنه كان ينصب «الأرض» بفعل مقدر، أي: يجوزون الأرض، وهذه القراءة ضعيفة في المعنى؛ لأنَّ الآيات في السموات وفي الأرض، والضمير في «عليها» للآية، فتكون «يمرون» حالًا منها... وليس بوقف لمن جرها عطفًا على ما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "يَمُرُّونَ عَلَيهَا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده جملة في موضع الحال.",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "مُعْرِضُونَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "مُّشۡرِكُونَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "يَشۡعُرُونَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "أَدْعُو إِلَى اللَّهِ",
+  "grade": "حسن",
+  "reason": "تقدم أنه - صلى الله عليه وسلم - كان يتعمد الوقف على ذلك، ثم يبتدئ «على بصيرة أنا ومن اتبعني» إن اجعل «أنا» مبتدأ، و «على بصيرة» خبرًا. وليس بوقف إن جعل «على بصيرة» متعلقًا [بأدعو].",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,114 @@
+[
+ {
+  "ayah": 82,
+  "stop_phrase": "وَيَقۡدِرُ",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «لولا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "بِنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "ٱلۡكَٰفِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "فَسَادٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "لِلۡمُتَّقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "مِّنۡهَا",
+  "grade": "جائز",
+  "reason": "وقال يحيى بن نصير النحوي: لا يوقف على أحد المزدوجين والمعادلين حتى يؤتى بالثاني، والأَوْلَى الفصل بينهما ولا يخلطهما.",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "مَعَادٖ",
+  "grade": "كاف",
+  "reason": "قال ابن عباس: أي إلى مكة ظاهرًا، من غير خوف، وقيل: إلى الجنة، وقيل: إلى الموت .",
+  "reported_from": "ابن عباس"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "مُّبِينٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "رَّبِّكَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "لِّلۡكَٰفِرِينَ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس النهي موجبًا شيئًا، ومثله: «فلن أكون ظهيرًا للمجرمين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "إِلَيۡكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱلۡمُشۡرِكِينَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ءَاخَرَ",
+  "grade": "حسن",
+  "reason": "ولا يوصل بما بعده؛ لأنَّ وصله يوهم: أن لا إله إلَّا هو صفة لإلهًا آخر، وليس كذلك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "تام",
+  "reason": "ومثله: «إلَّا وجهه»، والمراد بالوجه: الذات.آخر السورة تام، والعامة ببناء «ترجعون» للمفعول، و «عيسى» على بنائه للفاعل.",
+  "reported_from": null
+ }
+]

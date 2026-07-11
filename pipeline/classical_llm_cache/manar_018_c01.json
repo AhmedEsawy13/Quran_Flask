@@ -1,0 +1,247 @@
+[
+ {
+  "ayah": 24,
+  "stop_phrase": "نَسِيتَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "رَشَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "تِسۡعٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "لَبِثُواْ",
+  "grade": "حسن",
+  "reason": "ومثله: «الأرض»",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "وَأَسۡمِعۡ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي، و «من وليِّ» فاعل، أو مبتدأ",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "وَلِيّٖ",
+  "grade": "حسن",
+  "reason": "على قراءة من قرأ: «ولا يشرك» بالتحتية ورفع الكاف؛ مستأنفًا لاختلاف الجملتين، وليس بوقف لمن قرأه: بالفوقية وجزم الكاف؛ على النهي، وحينئذ فلا يوقف من قوله: «أبصر به وأسمع»، إلى «أحدًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "أَحَدَۢا",
+  "grade": "تام",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "جائز",
+  "reason": "ومثله: «لكلماته»",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مُلۡتَحَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "وَٱلۡعَشِيِّ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «يريدون وجهه» في موضع الحال؛ كأنَّه قال: واصبر نفسك مع الذين يدعون ربهم يريدون وجهه، أي: يدعون الله في هذه الحالة",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "وَجۡهَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "عَنۡهُمۡ",
+  "grade": "جائز",
+  "reason": "لأنَّ ما بعده يصلح حالًا؛ لأنَّ الخطاب للنّبيّ - صلى الله عليه وسلم -، أي: لا تصرف عيناك النظر عن عمار وصهيب وسلّمان ونحوهم؛ لمَّا قال المشركون: إنَّ ريح جباههم تؤذينا، ويصلح استفهامًا محذوفًا، أي: أتريد زينة الحياة الدنيا",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "حسن",
+  "reason": "ومثله: «عن ذكرنا»، وكذا: «واتّبع هواه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "فُرُطٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "رَّبِّكُمۡ",
+  "grade": "حسن",
+  "reason": "والحق: خبر مبتدأ محذوف، تقديره: هذا الحق، أو «الحق» مبتدأ، و «من ربكم» الخبر",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "فَلۡيَكۡفُرۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "نَارًا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "سُرَادِقُهَا",
+  "grade": "كاف",
+  "reason": "والسرادق: حائط من نار محيط، ولا يوقف على «كالمهل»؛ لأنَّ ما بعده صفة لـ «ما»",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلۡوُجُوهَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلشَّرَابُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "مُرۡتَفَقًا",
+  "grade": "تام",
+  "reason": "لتناهي صفة النار",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "عَمَلًا",
+  "grade": "تام",
+  "reason": "إن جعل «إنّا لا نضيع» خبر «إن» الأولى، وليس بوقف إن جعل قوله: «أولئك لهم جنات عدن» خبر «إن» الأولى؛ لأنَّ لا يوقف على اسم دون خبرها، وجملة: «إنَّا لا نضيع» اعتراض بين اسم «إنَّ» وخبرها",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "وَإِسۡتَبۡرَقٖ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده حال مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡأَرَآئِكِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلثَّوَابُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "مُرۡتَفَقٗا",
+  "grade": "تام",
+  "reason": "ومعناه: حسنت الجنة مرتفقًا",
+  "reported_from": "أبو حاتم السجستاني"
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "رَّجُلَيۡنِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "زَرۡعٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "أُكُلَهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "نَهَرٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ثَمَرٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "نَفَرٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "لِّنَفۡسِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "أَبَدٗا",
+  "grade": "حسن",
+  "reason": "ولا وقف بعد قوله: «ظالم لنفسه» إلى «منقلبًا» فلا يوقف على «أبدًا» ولا على «قائمة» لتعلق بعضه ببعض من جهة المعنى",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,212 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "لَرَسُولُ ٱللَّهِۗ",
+  "grade": "كاف",
+  "reason": "ولا يجوز وصله؛ لأنَّه لو وصله لصار قوله: «والله يعلم إنَّك» من مقول المنافقين، وليس الأمر كذلك، بل هو ردٌّ لكلامهم إنَّ رسول الله غير رسول، فكذبهم الله بقوله: «والله يعلم إنَّك لرسوله»",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "لَرَسُولُهُۥ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "لَكَٰذِبُونَ",
+  "grade": "تام",
+  "reason": "إن جعل «اتخذوا أيمانهم» خبرًا مستأنفًا، وليس بوقف إن جعل جواب «إذا» وهو بعيد، وتام إن جعل جوابها «قالوا» أو جعل محذوفًا، و «قالوا» حالًا، أي: إذا جاؤك قائلين كيت وكيت، فلا تقبل منهم",
+  "reported_from": "أبو عبيدة"
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "يَفۡقَهُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "أَجۡسَامُهُمۡۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "لِقَوۡلِهِمۡۖ",
+  "grade": "جائز",
+  "reason": "إن جعل موضع الكاف رفعًا، أي: هم خشب، أو هي جملة مستأنفة لا محل لها من الإعراب",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مُّسَنَّدَةٞۖ",
+  "grade": "جائز",
+  "reason": "مثله في الجواز",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "عَلَيۡهِمۡۚ",
+  "grade": "حسن",
+  "reason": "وصفهم الله بالجبن عن القتال، بحيث لو نادى مناد في العسكر، أو انفلتت دابة، أو أنشدت ضالة، أو نثرت حثالة؛ لظنوا أنَّهم المرادون لما في قلوبهم من الرعب",
+  "reported_from": "يحيى بن سلام"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "فَاحْذَرْهُمْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "يُؤۡفَكُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأنَّ الذي بعده جواب «إذا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "رُءُوسَهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "مُّسۡتَكۡبِرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "تَسۡتَغۡفِرۡ لَهُمۡ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «آستغفرت» بهمزة ممدودة ثم ألف، وبها قرأ يزيد بن القعقاع ، وليس بوقف لمن قرأه بهمزة مفتوحة من غير مد، وهي قراءة العامة",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "لَهُمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡفَٰسِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "يَنفَضُّواْۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "لَا يَفۡقَهُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلۡأَذَلَّۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "لَا يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر قصة عبد الله بن أُبيّ ابن سلول رأس المنافقين فهي قصة واحدة",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلۡخَٰسِرُونَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡمَوۡتُ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فأصدق» منصوب على جواب التمني، وهو «لولا أخرتني»؛ لأنَّ معناه السؤال والدعاء، فكأنَّه قال: أخرني إلى أجل قريب فأصدَّق وأكون",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "قَرِيبٖ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فأصدق» منصوب على جواب التمني، وهو «لولا أخرتني»؛ لأنَّ معناه السؤال والدعاء، فكأنَّه قال: أخرني إلى أجل قريب فأصدَّق وأكون",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلصَّٰلِحِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "أَجَلُهَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

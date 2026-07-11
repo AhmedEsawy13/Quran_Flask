@@ -1,0 +1,590 @@
+[
+ {
+  "ayah": 3,
+  "stop_phrase": "الأرض",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "سيغلبون",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «في بضع سنين» ظرف لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "سنين",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "بعد",
+  "grade": "كاف",
+  "reason": "إن لم يجعل ما بعده منصوبًا بما قبله",
+  "reported_from": "الأخفش ونافع وأبو حاتم"
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "الله",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "يشاء",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله، وهو رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "الرحيم",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ إن نصب ما بعده بفعل مضمر، وليس بوقف إن جعل العامل في المصدر ما قبله، وحينئذ لا يوقف على «من يشاء» ولا على «الرحيم» بل على «وعد الله»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "وعده",
+  "grade": "لا",
+  "reason": "لحرف الاستدراك، وهو: استدراك الإثبات بعد النفي، أو النفي بعد الإثبات، فما بعده متعلق بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "يعلمون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "الدنيا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "غافلون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "أنفسهم",
+  "grade": "جائز",
+  "reason": "لأنَّ الفكرة لا تكون إلا في النفس، وقيل: ليس بوقف بل هو متصل بقوله: «ما خلق الله السموات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "مسمى",
+  "grade": "حسن",
+  "reason": "وقيل: تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "لكافرون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "قبلهم",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "الأرض",
+  "grade": "حسن",
+  "reason": "هو أحسن مما قبله؛ على استئناف ما بعده",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "عمروها",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "بالبينات",
+  "grade": "جائز",
+  "reason": "وقال ابن نصير: تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "يظلمون",
+  "grade": "كاف",
+  "reason": "و «ثُمَّ» لترتيب الأخبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "الله",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "يستهزءون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "يعيده",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «ترجعون» بالفوقية؛ لأنَّتقاله من الغيبية إلى الخطاب، وهي قراءة العامة، وليس بوقف لمن قرأه: بالتحتية، وهي قراءة أبي عمرو ابن العلاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ترجعون",
+  "grade": "تام",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "المجرمون",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "شفعؤا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "كافرين",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "يتفرقون",
+  "grade": "تام",
+  "reason": "مثل كافرين",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "يحبرون",
+  "grade": "كاف",
+  "reason": "وقال ابن نصير: لا يوقف على أحد المتعادلين حتى يؤتى بالثاني، والأَوْلَى الفصل بين الفريقين، ولا يخلط أحدهما مع الآخر",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "محضرون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "تصبحون",
+  "grade": "حسن",
+  "reason": "لمن جعل التسبيح دعاء، كما فسّر ذلك ابن عباس... وليس بوقف لمن جعله الصلاة",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "تظهرون",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "الحي",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "موتها",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "تخرجون",
+  "grade": "تام",
+  "reason": "وكذلك نعت مصدر محذوف، أي: فعلنا مثل ذلك الإخراج",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "تنتشرون",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "إليها",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "ورحمة",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "يتفكرون",
+  "grade": "تام",
+  "reason": "إن جعل كل آية قائمة بنفسها مستقلة من بدء خلق الإنسان إلى حين بعثه من القبر",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "وألوانكم",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "للعالمين",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "فضله",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "يسمعون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "وطمعا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "موتها",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "يعقلون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "بأمره",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "الأرض",
+  "grade": "جائز",
+  "reason": "قال نافع وغيره: هذا وقف يحق على العالم علمه، وعند أهل العربية هذا الوقف قبيح؛ لأنَّ ما بعد «إذا» لا يعمل فيما قبلها",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "تخرجون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "والأرض",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "قانتون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "يعيده",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "عليه",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "والأرض",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "الحكيم",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "أنفسكم",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "أنفسكم",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "يعقلون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "علم",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "الله",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ناصرين",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "حنيفا",
+  "grade": "كاف",
+  "reason": "لأنَّ «فطرت» منصوب؛ على الإغراء، أي: الزموا فطرة الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "عليها",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "الله",
+  "grade": "حسن",
+  "reason": "ومثله: فطرة الله التي فطر الناس عليها",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "القيم",
+  "grade": "لا",
+  "reason": "لحرف الاستدراك بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "يعلمون",
+  "grade": "كاف",
+  "reason": "إن نصب ما بعده بمقدر تقديره: كونوا منيبين إليه... وليس «يعلمون» وقفًا إن نصب «منيبين» حالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "واتقوه",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "الصلاة",
+  "grade": "جائز",
+  "reason": "مثله (أي مثل واتقوه)",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "المشركين",
+  "grade": "جائز",
+  "reason": "وقيل: لا يجوز؛ لأنَّ ما بعده بيان لهم، أو بدل من المشركين بإعادة العامل",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "شيعا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "فرحون",
+  "grade": "تام",
+  "reason": "ولا وقف إلى «يشركون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يشركون",
+  "grade": "جائز",
+  "reason": "لأنَّه رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "آتيناهم",
+  "grade": "كاف",
+  "reason": "ثم خاطب الذين فعلوا هذا بخطاب وعيد وتهديد، فقال: «فتمتعوا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "تعلمون",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "يشركون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "بها",
+  "grade": "حسن",
+  "reason": "فصلًا بين النقيضين",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يقنطون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ويقدر",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "يؤمنون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "السبيل",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "الله",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "المفلحون",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "الله",
+  "grade": "حسن",
+  "reason": "لأنَّه رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "المضعفون",
+  "grade": "تام",
+  "reason": "ولا وقف من قوله: «الله الذي خلقكم» إلى «يحييكم»؛ لأنَّ «ثُمَّ» لترتيب الفعل لا لترتيب الأخبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يحييكم",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ }
+]

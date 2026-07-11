@@ -1,0 +1,121 @@
+[
+ {
+  "ayah": 32,
+  "stop_phrase": "حَقّٞ",
+  "grade": "لا",
+  "reason": "ليس بوقف سواء نصبت «الساعة» أو رفعتها، فحمزة قرأ: بنصبها عطفًا على «وعد الله»، والباقون: برفعها ؛ على الابتداء، وما بعدها من الجملة المنفية خبرها، ومثله في عدم الوقف «لا ريب فيها» لأن جواب: إذا لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "فِيهَا",
+  "grade": "لا",
+  "reason": "لأن جواب: إذا لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلسَّاعَةُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ظَنّٗا",
+  "grade": "حسن",
+  "reason": "ولا كراهة في الإبتداء بقول الكفار، لأن القارئ غير معتقد معنى ذلك، وإنما هو حكاية حكاها الله عمن قاله من منكري البعث كما تقدم غير مرة .",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "بِمُسۡتَيۡقِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "عَمِلُواْ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يَسۡتَهۡزِءُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "هَٰذَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلنَّارُ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "نَّٰصِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "هُزُوٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "مِنۡهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "يُسۡتَعۡتَبُونَ",
+  "grade": "تام",
+  "reason": "أي: وإن طلبوا الرضا فلا يجابون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "كاف",
+  "reason": "قرأ العامة: «ربِّ» الثلاثة بالجر تبعًا للجلالة بيانًا، أو بدلًا، أو نعتًا، وقرأ ابن محيصن : برفع الثلاثة على المدح باضمار (هو).",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "ٱلۡحَكِيمُ",
+  "grade": "تام",
+  "reason": "آخر السورة.",
+  "reported_from": null
+ }
+]

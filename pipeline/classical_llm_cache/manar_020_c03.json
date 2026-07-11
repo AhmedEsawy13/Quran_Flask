@@ -1,0 +1,100 @@
+[
+ {
+  "ayah": 131,
+  "stop_phrase": "فِيهِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 131,
+  "stop_phrase": "وَأَبۡقَىٰ",
+  "grade": "تام",
+  "reason": "مثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 132,
+  "stop_phrase": "عَلَيۡهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 132,
+  "stop_phrase": "رِزۡقٗا",
+  "grade": "حسن",
+  "reason": "ومثله: «رزقًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 132,
+  "stop_phrase": "نَرۡزُقُكَ",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 132,
+  "stop_phrase": "لِلتَّقۡوَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 133,
+  "stop_phrase": "رَّبِّهِۦٓ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 133,
+  "stop_phrase": "ٱلۡأُولَىٰ",
+  "grade": "كاف",
+  "reason": "ومثله",
+  "reported_from": null
+ },
+ {
+  "ayah": 134,
+  "stop_phrase": "قَبۡلِهِۦ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «لقالوا»، جواب: «لو»",
+  "reported_from": null
+ },
+ {
+  "ayah": 134,
+  "stop_phrase": "رَسُولٗا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فنتبعَ» منصوب بإضمار أن بعد الفاء؛ لأنه في تأويل: (هلا أرسلت إلينا رسولًا)، وهذا معناه التحضيض والأمر، وهو يكون لمن فوق المخاطب سؤالًا وطلبًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 134,
+  "stop_phrase": "وَنَخۡزَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "فَتَرَبَّصُواْ",
+  "grade": "حسن",
+  "reason": "لأنَّ ما بعده في تأويل الجواب لما قبله، وهو وعيد من الله تعالى فلا يفصل جوابه عنه؛ لأنَّه لتأكيد الواقع",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "مُّتَرَبِّصٞ",
+  "grade": "حسن",
+  "reason": "لأنَّ جملة التهديد داخلة في الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "وَمنِ ٱهۡتَدَىٰ",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

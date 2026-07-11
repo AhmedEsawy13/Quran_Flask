@@ -1,0 +1,100 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡبَلَدِ",
+  "grade": "لا",
+  "reason": "لا وقف من أولها إلى: {لَقَدْ خَلَقْنَا الْإِنْسَانَ} [4] وهو جواب القسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "كَبَدٍ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَحَدٞ",
+  "grade": "تام",
+  "reason": "لأنه لو وصل لصار يقول وصفًا للإنسان، والمراد به آدم وجميع ولده",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "لُّبَدًا",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "أَحَدٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلنَّجۡدَيۡنِ",
+  "grade": "جائز",
+  "reason": "للابتداء بالنفي مع الفاء، والمعنى: لم يقتحم",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡعَقَبَةَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلۡعَقَبَةُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "رَقَبَةٍ",
+  "grade": "لا",
+  "reason": "ولا وقف من قوله: «فك رقبة» إلى «متربة» وهو جائز، ولا يرتقي إلى الحسن، وقد وسمه أبو حاتم وغيره بالتمام، وفيه نظر؛ لأنه كله كلام واحد؛ لأنَّ: فك الرقبة، وإطعام اليتامى والمساكين لا تنفع إلاَّ مع الإيمان بالله",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "مَسۡغَبَةٖ",
+  "grade": "لا",
+  "reason": "لأنَّ «يتيمًا» نصب بـ «إطعام» وفيه دليل على إعمال المصدر منونًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "مَقۡرَبَةٍ",
+  "grade": "لا",
+  "reason": "للعطف بأو",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "بِٱلۡمَرۡحَمَةِ",
+  "grade": "كاف",
+  "reason": "لأن «أولئك» مبتدأ، و «أصحاب» خبره",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡمَيۡمَنَةِ",
+  "grade": "تام",
+  "reason": "لأنَّ «والذين» بعده مبتدأ خبره «هم أصحاب المشأمة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "ٱلۡمَشۡـَٔمَةِ",
+  "grade": "جائز",
+  "reason": "لأنَّ الجار بعده متعلق بما بعده، و «نار» مبتدأ مؤخر و «عليهم» خبر مقدم و «مؤصدة» صفة",
+  "reported_from": null
+ }
+]

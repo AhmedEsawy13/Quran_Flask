@@ -1,0 +1,485 @@
+[
+ {
+  "ayah": 26,
+  "stop_phrase": "وَٱلَّذِينَ ءَامَنُواْ وَعَمِلُواْ ٱلصَّٰلِحَٰتِ",
+  "grade": "جائز",
+  "reason": "موضع نصب مفعول «يستجب» والفاعل مضمر يعود على «الله» كان جائزًا، قال النخعى: ويستجيب الذين آمنوا؛ يشفعهم في إخوانهم.",
+  "reported_from": "النخعي"
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "مِّن فَضۡلِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "شَدِيدٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "فِي ٱلۡأَرۡضِ",
+  "grade": "لا",
+  "reason": "للاستدراك بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مَّا يَشَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "بَصِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "مَا قَنَطُواْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "رَحۡمَتَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡحَمِيدُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "لا",
+  "reason": "لأن قوله: «ومابث فيهما» موضعه رفع بالعطف على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "دَآبَّةٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "قَدِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "عَن كَثِيرٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "فِي ٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "مثله مثل «عن كثير» بآية 30.",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "وَلَا نَصِيرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "كَٱلۡأَعۡلَٰمِ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "عَلَىٰ ظَهۡرِهِۦٓ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "شَكُورٍ",
+  "grade": "لا",
+  "reason": "لأن قوله: «أو يوبقهن» مجزوم بالعطف على «يسكن» ولكونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "عَن كَثِيرٖ",
+  "grade": "تام",
+  "reason": "لمن قرأ: «ويعلمُ» بالرفع، وبها قرأ نافع وابن عامر، على الاستئناف وليس بوقف لمن نصبه أو جزمه؛ فنصبه باضمار (أن)؛ كأنه قال: وإن يعلم الذين، وجزمه عطفًا على «أو يوبقهن» وهما كلام واحد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "مَّحِيصٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "وَأَبۡقَىٰ",
+  "grade": "حسن",
+  "reason": "مثل «الدنيا» في الحسن.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يَتَوَكَّلُونَ",
+  "grade": "كاف",
+  "reason": "إن جعل ما بعده مستأنفًا وإن عطف على «للذين آمنوا» كان جائزًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "وَٱلۡفَوَٰحِشَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "هُمۡ يَغۡفِرُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، ورسموا: «غضبوا» كلمة وحدها و «هم» كلمة وحدها كما ترى، وموضع «هم» رفع لأنه مؤكد للضمير المرفوع في «غضبوا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "يُنفِقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "يَنتَصِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "مِّثۡلُهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "مِّثۡلُهَا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "فَأَجۡرُهُۥ عَلَى ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "بَعۡدِ ظُلۡمِهِۦ",
+  "grade": "لا",
+  "reason": "لأن خبر المبتدأ، وهو: «مِن» لم يأت بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "مِّن سَبِيلٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "بِغَيۡرِ ٱلۡحَقِّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "أَلِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "عَزۡمِ ٱلۡأُمُورِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "مِّن بَعۡدِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "مِن سَبِيلٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مِنَ ٱلذُّلِّ",
+  "grade": "جائز",
+  "reason": "اختلف في قوله: {مِنَ الذُّلِّ} بماذا يتعلق؟ فإن علق بـ «خاشعين»؛ كأنك قلت: من الذل خاشعين، كان الوقف على «من الذل».",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "خَٰشِعِينَ",
+  "grade": "جائز",
+  "reason": "وإن علقته بـ «ينظرون»؛ كأنك قلت: من الذل ينظرون، كان الوقف على «خاشعين»، ثم تبتدئ: «من الذل ينظرون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "طَرۡفٍ خَفِيٍّ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "يَوۡمَ ٱلۡقِيَٰمَةِ",
+  "grade": "كاف",
+  "reason": "سواء علقت «يوم القيامة» بـ «خسروا»، ويكون: المؤمنون قد قالوا ذلك في الدنيا، أو يقال: ويكون معناه: يقول المؤمنون هذا القول يوم القيامة إذا رأوا الكفار في تلك الحالة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مُّقِيمٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "مِن دُونِ ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "مِن سَبِيلٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "مِنَ ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "يَوۡمَئِذٖ",
+  "grade": "كاف",
+  "reason": "مثله مثل «من الله».",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "مِّن نَّكِيرٖ",
+  "grade": "كاف",
+  "reason": "مثله مثل «من الله».",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "حَفِيظًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "إِلَّا ٱلۡبَلَٰغُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "فَرِحَ بِهَا",
+  "grade": "كاف",
+  "reason": "وقال ابن نصير النحوي: لا يوقف على أحد المعادلين حتى يؤتى بالثاني، والأولى الفصل بالوقف بينهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "بِمَا قَدَّمَتۡ أَيۡدِيهِمۡ",
+  "grade": "لا",
+  "reason": "لمكان الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "كَفُورٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "يَخۡلُقُ مَا يَشَآءُ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "ٱلذُّكُورَ",
+  "grade": "لا",
+  "reason": "للعطف بـ «أو».",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "ذُكۡرَانٗا وَإِنَٰثٗا",
+  "grade": "جائز",
+  "reason": "لأن ما بعده يصلح عطفًا ومستأنفًا؛ أي: وهو يجعل، بدلالة تكرار المشيئة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "عَقِيمًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "حِجَابٍ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «أو يرسلُ» بالرفع؛ على الاستئناف، وبها قرأ: نافع وابن عامر، وليس بوقف لمن قرأ: بنصبه لأنّ ما بعد «أو» معطوف على ما قبلها، وقيل: أو يرسل فيوحي معطوفان على «وحيًا»، أي: إلّا موحيًا، أو مرسلًا، فيكون من عطف المصدر الصريح على المصدر المسبوك. ولا يجوز عطفه على «يكلمه» لفساد المعنى، إذ يصير التقدير: وما كان لبشر أن يرسل رسولًا، ويلزم عليه نفي الرسل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مَا يَشَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مِنۡ أَمۡرِنَا",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "وَلَا ٱلۡإِيمَٰنُ",
+  "grade": "لا",
+  "reason": "لأنّ «لكن» يستدرك بها الإثبات بعد النفي، والنفي بعد الإثبات فهي لابد أن تقع بين متناقضين، ولا يصح الكلام إلا بها كما تقدم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "نُّورٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مِنۡ عِبَادِنَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مُّسۡتَقِيمٖ",
+  "grade": "لا",
+  "reason": "لأن الذي بعده بدل من «صراط» الأوّل قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "وَمَا فِي ٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلۡأُمُورُ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

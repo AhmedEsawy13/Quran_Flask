@@ -1,0 +1,366 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡمُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "إن جعل «الذين» مبتدأ، خبره «أولئك هم الوارثون»، وكذا إن جعل خبر مبتدأ محذوف تقديره: هم الذين، وكذا إن نصب بتقدير: أعني",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "خَٰشِعُونَ",
+  "grade": "لا",
+  "reason": "على الأول [أن يكون الذين مبتدأ وخبره أولئك هم الوارثون] لا وقف من قوله: «خاشعون» إلى «الوارثون»، ومن حيث كونها رؤوس آيات يجوز ولا يؤثر فيها كون كل منها معطوفًا، أو نعتًا، أو بدلًا؛ لأنَّ الوقف على رؤوس الآيات سنة متبعة",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡفِرۡدَوۡسَ",
+  "grade": "تام",
+  "reason": "إن جعل ما بعده جملة مستقلة من مبتدأ وخبر، وليس بوقف إن جعل في موضع نصب حالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "في الحديث: «ما منكم من أحد، إلّا له منزلان، منزل في الجنة، ومنزل في النار، فإن مات ودخل النار ورث منزله أهل الجنة، وذلك قوله: (هم الوارثون)»",
+  "reported_from": "البغوي"
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "طِينٖ",
+  "grade": "كاف",
+  "reason": "والمراد بالإنسان: آدم دون ذريته؛ لأنَّه انسل من طين، وقوله: «جعلناه نطفة» عائد على ذريته، وإن كان لم يذكر لشهرته، وليس عائدًا على آدم؛ لأنَّه لم يخلق من نطفة، بل انسل من الطين، أي: استخرج منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مَّكِينٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "لَحۡمٗا",
+  "grade": "جائز",
+  "reason": "مثله [أي مثل قرار مكين]",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ءَاخَرَۚ",
+  "grade": "جائز",
+  "reason": "وكذا [أي مثل قرار مكين]",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱلۡخَٰلِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "لَمَيِّتُونَ",
+  "grade": "كاف",
+  "reason": "مثله [أي مثل الخالقين]",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "تُبۡعَثُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "طَرَآئِقَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "غَٰفِلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡأَرۡضِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "لَقَٰدِرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "وَأَعۡنَٰبٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "كَثِيرةٞ",
+  "grade": "جائز",
+  "reason": "ومثله [أي مثل وأعناب]",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "تَأۡكُلُونَ",
+  "grade": "كاف",
+  "reason": "على أنَّ قوله: «وشجرة» منصوب بفعل مضمر تقديره: وأنشأنا شجرة، أو أنبتنا شجرة، وليس بوقف إن عطفت «شجرة» على «جنات»، وحينئذ لا يوقف على «وأعناب» ولا على «كثيرة» ولا على «تأكلون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "لِّلۡأٓكِلِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "لَعِبۡرَةٗۖ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ على استئناف ما بعده، وليس بوقف إن جعل ما بعده متعلقًا بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "بُطُونِهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "كَثِيرَةٞ",
+  "grade": "حسن",
+  "reason": "ومثله [أي مثل بطونها]",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "تَأۡكُلُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "تُحۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "غَيۡرُهُۥٓۚ",
+  "grade": "حسن",
+  "reason": "على القراءتين؛ جره نعتًا لا على اللفظ، ورفعه نعتًا له على المحل",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "مِّثۡلُكُمۡ",
+  "grade": "لا",
+  "reason": "صفة «بشر» فلا يقطع عنه",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "عَلَيۡكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "مَلَٰٓئِكَةٗ",
+  "grade": "جائز",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡأَوَّلِينَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "جِنَّةٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "حِينٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "كَذَّبُونِ",
+  "grade": "كاف",
+  "reason": "ومثله [أي مثل حتى حين]",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "وَوَحۡيِنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلتَّنُّورُ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فاسلك» جواب «فإذا»، وليس رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "وَأَهۡلَكَ",
+  "grade": "لا",
+  "reason": "وصله أولى؛ لأنَّ حرف الاستثناء هو الذي به يصح معنى الكلام، فما بعده كالعلة لما قبله، ومنهم من وقف على «زوجين اثنين» ثم قال: «وأهلك»، أي: وأهلك الله، من الهلاك جميع الخلائق، إلّا من سبق عليه القول منهم، فما بعد الاستثناء خارج مما قبله؛ يعني: إبليس",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مِنۡهُمۡۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ظَلَمُوٓاْ",
+  "grade": "جائز",
+  "reason": "لأنَّ إنَّهم كالتعليل لما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مُّغۡرَقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وجائز إن عطف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلۡمُنزِلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "لَأٓآيَٰتٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "لَمُبۡتَلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ءَاخَرِينَ",
+  "grade": "كاف",
+  "reason": "ومثله [أي مثل لمبتلين]",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "مِّنۡهُمۡ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "غَيۡرُهُۥٓۚ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "كاف",
+  "reason": "ولا وقف من قوله: «وقال الملأ من قومه» إلى «مما تشربون»، فلا يوقف على «بلقاء الآخرة» لعطف ما بعده على ما قبله، ولا على «وأترفناهم في الحياة الدنيا»؛ لأنَّ قوله: ما هذا مقول الذين كفروا، فلا يفصل بين القول والمقول، ولا على «بشر مثلكم»؛ لأنَّ ما بعده صفة «بشر» فلا يقطع منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "تَشۡرَبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "لَّخَٰسِرُونَ",
+  "grade": "كاف",
+  "reason": "ومثله [أي مثل مما تشربون]",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "وَعِظَٰمًا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «إنَّكم مخرجون» متعلق بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "مُّخۡرَجُونَ",
+  "grade": "جائز",
+  "reason": "وقيل: لا وقف إلى «بمؤمنين»؛ لأنَّ الكلام مقول الكفار، فلا يقطع بعضه عن بعض، وإنَّ «هيهاتَ هيهات» إنكار واستبعاد للبعث بعد أن ماتوا بقولهم: «وما نحن له بمؤمنين»",
+  "reported_from": null
+ }
+]

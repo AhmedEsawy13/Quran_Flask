@@ -1,0 +1,331 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "وَما فِي الأَرضِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "وَلَهُ الحَمدُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "قَديرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "مُؤمِنٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "بَصيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "بِالحَقِّ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "صُوَرَكُم",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "المَصيرُ",
+  "grade": "كاف",
+  "reason": "ومثله: «المصير».",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "وَالأَرضِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "تُعلِنونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "الصُّدورِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "قَبلُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَمرِهِم",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده متصلًا بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَليمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "يَهدونَنا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "وَتَوَلَّوا",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "وَاستَغنى اللَّهُ",
+  "grade": "حسن",
+  "reason": "أحسن منهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "حَميدٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "يُبعَثوا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده متصلًا بما قبله، وتقدم أنَّه متى اتصلت بلى بشرط نحو: «بلى من كسب» «بلى من أسلم» «بلى أن تصبروا»، وكذا إن اتصلت بقسم نحو ما هنا: «قل بلى وربي» «قالوا بلى وربنا» لم يوقف عليها؛ لأنَّها إثبات للنفي السابق عليها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "لَتُبعَثُنَّ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "عَمِلتُم",
+  "grade": "جائز",
+  "reason": "ومثله: «بما عملتم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "يَسيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "أَنزَلنا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "خَبيرٌ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» بمقدَّر، وقيل: ليس بوقف؛ لأنَّ قوله: «يوم يجمعكم» ظرف لما قبله، فلا يوقف من «زعم الذين كفروا» إلى قوله: «ليوم الجمع»، إذ المعنى: وربي لتبعثنَّ يوم يجمعكم في هذا اليوم فيجازيكم على حسب أعمالكم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "التَّغابُنِ",
+  "grade": "تام",
+  "reason": "وسُمّي يوم القيامة: يوم التغابن؛ لأنَّه يغبن فيه أهل الجنة أهل النار، ويغبن فيه من كثرت طاعته من كثرت معاصيه .",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "أَبَدًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "العَظيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "بِآياتِنا",
+  "grade": "لا",
+  "reason": "لأن خبر «والذين» لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "خالِدينَ فيها",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "المَصيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "بِإِذنِ اللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "بِإِذنِ اللَّهِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "قَلبَهُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "عَليمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "الرَّسولَ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "المُبينُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "إِلّا هُوَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "المُؤمِنونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "فَاحذَروهُم",
+  "grade": "تام",
+  "reason": "ومثله: «فاحذروهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "غَفورٌ رَحيمٌ",
+  "grade": "تام",
+  "reason": "وكذا: «غفور رحيم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "فِتنَةٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "عَظيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "مَا استَطَعتُم",
+  "grade": "حسن",
+  "reason": "تام للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "المُفلِحونَ",
+  "grade": "تام",
+  "reason": "ومثله: «المفلحون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "وَيَغفِر لَكُم",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "حَليمٌ",
+  "grade": "تام",
+  "reason": "إن جعل «عالم» مبتدأ، وقوله: «العزيز» خبره، وكاف إن جعل خبر مبتدأ محذوف، وكذا إن نصب «بأغنى» وليس بوقف إن جعل نعتًا لما قبله، أو بدلًا منه أو خبرًا بعد خبر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "الحَكيمُ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

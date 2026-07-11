@@ -1,0 +1,478 @@
+[
+ {
+  "ayah": 39,
+  "stop_phrase": "مَكَانَتِكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "عَٰمِلٌ",
+  "grade": "حسن",
+  "reason": "أحسن منه للابتداء بالتهديد مع الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ جملة الاستفهام مفعول «تعملون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يُخۡزِيهِ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "مُّقِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "فَلِنَفۡسِهِۦ",
+  "grade": "جائز",
+  "reason": "ومثله: «فلنفسه»، وكذا «عليها»، وقال يحيى بن نصير النحوي: لا يوقف على أحد المقابلين حتى يؤتى بالثاني، والأولى الفصل بين الفريقين بالوقف، ولا يخلطهما.",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "عَلَيۡهَا",
+  "grade": "جائز",
+  "reason": "ومثله: «فلنفسه»، وكذا «عليها»، وقال يحيى بن نصير النحوي: لا يوقف على أحد المقابلين حتى يؤتى بالثاني، والأولى الفصل بين الفريقين بالوقف، ولا يخلطهما.",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "بِوَكِيلٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مَوْتِهَا",
+  "grade": "لا",
+  "reason": "ليس بوقف لعطف ما بعده على ما قبله، أي: ويتوفى الأنفس التي لم تمت في منامها",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مَنَامِهَا",
+  "grade": "كاف",
+  "reason": "كاف على القراءتين؛ أعني: «قضى» مبينًا للفاعل ونصب «الموت» والفاعل مستتر في «قضى»، وقرأ حمزة والكسائي: «قضى» مبنيًا للمفعول، و «الموت» نائب الفاعل، والباقون بفتح القاف والضاد وألف بعدها ونصب «الموت»",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مُّسَمًّى",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "يَتَفَكَّرُونَ",
+  "grade": "كاف",
+  "reason": "أكفى",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "شُفَعَآءَ",
+  "grade": "جائز",
+  "reason": "وقيل: حسن لتناهي الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "يَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "جَمِيعٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "جائز",
+  "reason": "جائز، ومثله: «ترجعون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "تُرۡجَعُونَ",
+  "grade": "جائز",
+  "reason": "جائز، ومثله: «ترجعون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "بِٱلۡأٓخِرَةِ",
+  "grade": "جائز",
+  "reason": "للفصل بين تنافي الجملتين معنى مع اتفاقهما نظمًا، ولا يوقف على «وحده» ولا على «من دونه»؛ لأنَّ جواب «إذا» الأولى لم يأت وهو قوله: «إذا هم يستبشرون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "وَحۡدَهُ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذا» الأولى لم يأت وهو قوله: «إذا هم يستبشرون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "دُونِهِۦٓ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذا» الأولى لم يأت وهو قوله: «إذا هم يستبشرون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "يَسۡتَبۡشِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "لا",
+  "reason": "لأنَّ «عالم» صفة «فاطر»",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "وَٱلشَّهَٰدَةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "عِبَادِكَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده ظرف للحكم",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "يَخۡتَلِفُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "مَعَهُۥ",
+  "grade": "لا",
+  "reason": "لأن جواب «لو» لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "يَوۡمَ ٱلۡقِيَٰمَةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "يَحۡتَسِبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "كَسَبُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "يَسۡتَهۡزِءُونَ",
+  "grade": "تام",
+  "reason": "تام على استئناف ما بعده، ومن قال: هذه الآية صفة للكافر المتقدم ذكره، فلا يوقف من قوله: «وإذا ذكر الله وحده اشمأزت» إلى هنا، إلا على سبيل التسامح لطول الكلام، ولا شك أن أرباب هذا الفن: صرحوا أن بين قوله: «وإذا ذكر الله وحده»، وبين قوله: «إذا مسّ الإنسان» وقوفًا تامة، وكافية، والأول أصح",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "مِّنَّا",
+  "grade": "لا",
+  "reason": "لأن «قال» جواب «إذا» الثانية",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "عِلۡمِۭ",
+  "grade": "كاف",
+  "reason": "للابتداء بحرف الإضراب، ولا يوقف على «فتنة»؛ لأنَّ لكن حرف يستدرك به الإثبات بعد النفي والنفي بعد الإثبات فلا يبتدأ به",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "فِتۡنَةٞ",
+  "grade": "لا",
+  "reason": "لأنَّ لكن حرف يستدرك به الإثبات بعد النفي والنفي بعد الإثبات فلا يبتدأ به",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "كاف، ومثله: «يكسبون»، و «كسبوا» الأولى والثانية تام فيهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "يَكۡسِبُونَ",
+  "grade": "تام",
+  "reason": "كاف، ومثله: «يكسبون»، و «كسبوا» الأولى والثانية تام فيهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "كَسَبُواْ",
+  "grade": "تام",
+  "reason": "كاف، ومثله: «يكسبون»، و «كسبوا» الأولى والثانية تام فيهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "بِمُعۡجِزِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "وَيَقۡدِرُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "كاف، ومثله: «جميعًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "جَمِيعًا",
+  "grade": "كاف",
+  "reason": "كاف، ومثله: «جميعًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "لَهُۥ",
+  "grade": "لا",
+  "reason": "لأن الظرف الذي بعده متعلق به",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "ٱلۡعَذَابُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "تُنصَرُونَ",
+  "grade": "كاف",
+  "reason": "كاف، ولا وقف من قوله: «واتبعوا أحسن ما أنزل إليكم» إلى «المحسنين» لاتصال الكلام، وتعلقه ببعضه إن كان في نفسه طول يبلغ به إلى ذلك، وإلا وقف على رؤوس الآي، ثم يعود من أول الكلام؛ ليكون الكلام متصلًا بعضه ببعض",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "رَّبِّكُم",
+  "grade": "لا",
+  "reason": "لتعلق الظرف بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "بَغۡتَةٗ",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "تَشۡعُرُونَ",
+  "grade": "لا",
+  "reason": "لأن «أن» منصوبة بما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱلسَّٰخِرِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ «أو تقول» معطوف على ما عملت فيه «إن» الأولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "هَدَىٰنِي",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «لكنت» جواب «لو»",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "لا",
+  "reason": "لأن «تقول» الثانية معطوفة على الأولى، وجواب لو: «أنَّ لي كرة» محذوف، تقديره: لنجوت",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "بَلَىٰ",
+  "grade": "لا",
+  "reason": "لأنَّها لم تسبق بنفي ملفوظ به، ولا شيء من مقتضيات الوقف، ولا من موجباته، بل هي هنا جواب لنفي مقدر... فصارت «بلى» هي وما بعدها جوابًا لما قبلها، فلا يوقف عليها؛ لأنَّ النفي مقدر",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "مُّسۡوَدَّةٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "لِّلۡمُتَكَبِّرِينَ",
+  "grade": "تام",
+  "reason": "تام على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "بِمَفَازَتِهِمۡ",
+  "grade": "حسن",
+  "reason": "حسن على القراءتين بالجمع والأفراد، ومثله: «لا يمسهم السوء»",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "ٱلسُّوٓءُ",
+  "grade": "حسن",
+  "reason": "حسن على القراءتين بالجمع والأفراد، ومثله: «لا يمسهم السوء»",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "يَحۡزَنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "شَيۡءٖ",
+  "grade": "كاف",
+  "reason": "للفصل بين الوصفين تعظيمًا مع اتفاق الجملتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "وَكِيلٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "كاف، ومثله: «والأرض»، وقال بعضهم: «والذين كفروا» متصل بقوله: «وينجي الله» وما بين الآيتين معترض، أي: وينجي الله المؤمنين، والكافرون مخصوصون بالخسار؛ فعلى هذا لا وقف بين الآيتين إلا على سبيل التسامح، والأول أجود",
+  "reported_from": "بعضهم"
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأنَّ خبر «والذين» لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلۡخَٰسِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡجَٰهِلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "قَبۡلِكَ",
+  "grade": "جائز",
+  "reason": "لإبتداء بلام القسم والموحى محذوف، أي: أوحى ما أوحى مع احتمال: أنَّ الموحى جملة «لئن»، وعليه فليس بوقف؛ لأنَّ معمول «أوحى» لم يأت",
+  "reported_from": null
+ }
+]

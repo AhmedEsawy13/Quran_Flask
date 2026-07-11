@@ -1,0 +1,688 @@
+[
+ {
+  "ayah": 46,
+  "stop_phrase": "عَنۡ ءَالِهَتِي",
+  "grade": "تام",
+  "reason": "عَلَى الِاسْتِئْنَافِ.",
+  "reported_from": "نافع وأحمد بن جعفر"
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "لَأَرۡجُمَنَّكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "مَلِيّٗا",
+  "grade": "كاف",
+  "reason": "وَمِثْلُهُ: «سَلَامٌ عَلَيْكَ» لِلِابْتِدَاءِ بِسِينِ الِاسْتِقْبَالِ، وَمِثْلُهُ: «رَبِّي»، وَكَذَا «بِي حَفِيًّا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "عَلَيۡكَ",
+  "grade": "كاف",
+  "reason": "لِلِابْتِدَاءِ بِسِينِ الِاسْتِقْبَالِ",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "رَبِّيٓ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "حَفِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "دُونِ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "رَبِّي",
+  "grade": "جائز",
+  "reason": "وَالْوَصْلُ أَوْلَى؛ لِأَنَّ «عَسَى» كَلِمَةُ تَرَجٍّ لِلْإِجَابَةِ فَتُوصَلُ بِالدُّعَاءِ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "شَقِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "دُونِ ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لِأَنَّ «وَهَبْنَا لَهُ» جَوَابُ «فَلَمَّا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "وَيَعۡقُوبَ",
+  "grade": "حسن",
+  "reason": "لِأَنَّ «كُلًّا» مَنْصُوبٌ بِـ «جَعَلْنَا»، وَلِذَلِكَ لَمْ يَكُنْ مَعْطُوفًا عَلَى مَا قَبْلَهُ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "نَبِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "رَّحۡمَتِنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "عَلِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مُوسَىٰٓ",
+  "grade": "جائز",
+  "reason": "لِلِابْتِدَاءِ بِـ «إِنْ»",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مُخۡلَصٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "نَبِيًّا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ٱلۡأَيۡمَنِ",
+  "grade": "حسن",
+  "reason": "وَمِثْلُهُ: «نَجِيًّا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "نَجِيّٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "نَبِيّٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "إِسۡمَٰعِيلَ",
+  "grade": "جائز",
+  "reason": "وَمِثْلُهُ: «صَادِقَ الْوَعْدِ».",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "ٱلۡوَعۡدِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "نَبِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "وَٱلزَّكَوٰةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "مَرۡضِيّٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "إِدۡرِيسَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "نَبِيّٗا",
+  "grade": "كاف",
+  "reason": "وَمِثْلُهُ: «عَلِيًّا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "عَلِيًّا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "نُوحٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "وَٱجۡتَبَيۡنَآ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "وَبُكِيًّا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ٱلشَّهَوَٰتِ",
+  "grade": "جائز",
+  "reason": "لِلِابْتِدَاءِ بِالتَّهْدِيدِ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "غَيًّا",
+  "grade": "جائز",
+  "reason": "لِكَوْنِهِ رَأْسَ آيَةٍ",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱلۡجَنَّةَ",
+  "grade": "لا",
+  "reason": "الأَوْلَى وَصْلُهُ، وَمَا بَعْدَهُ إِلَى «بِالْغَيْبِ» فَلَا يُوقَفُ عَلَى «شَيْئًا»؛ لِأَنَّ «جَنَّاتِ عَدْنٍ» بَدَلٌ مِنَ «الْجَنَّةِ» وَإِنْ نُصِبَ «جَنَّاتِ» بِفِعْلٍ مُقَدَّرٍ حَسُنَ الْوَقْفُ عَلَى «شَيْئًا»، وَكَذَا يَحْسُنُ الْوَقْفُ عَلَيْهِ عَلَى قِرَاءَةِ مَنْ قَرَأَ: «جَنَّاتُ» بِالرَّفْعِ عَلَى إِضْمَارِ مُبْتَدَأٍ مَحْذُوفٍ، تَقْدِيرُهُ: تِلْكَ جَنَّاتُ عَدْنٍ",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "حسن",
+  "reason": "إِنْ نُصِبَ «جَنَّاتِ» بِفِعْلٍ مُقَدَّرٍ حَسُنَ الْوَقْفُ عَلَى «شَيْئًا»، وَكَذَا يَحْسُنُ الْوَقْفُ عَلَيْهِ عَلَى قِرَاءَةِ مَنْ قَرَأَ: «جَنَّاتُ» بِالرَّفْعِ عَلَى إِضْمَارِ مُبْتَدَأٍ مَحْذُوفٍ، تَقْدِيرُهُ: تِلْكَ جَنَّاتُ عَدْنٍ",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "بِٱلۡغَيۡبِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "مَأۡتِيًّا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "سَلَٰمٗا",
+  "grade": "حسن",
+  "reason": "اسْتِثْنَاءٌ مُنْقَطِعٌ؛ لِأَنَّ: سَلَامَ الْمَلَائِكَةِ، لَيْسَ مِنْ جِنْسِ اللَّغْوِ",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "عَشِيًّا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "تَقِيّٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "حسن",
+  "reason": "وَمِثْلُهُ: «مَا بَيْنَ ذَلِكَ».",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ذَٰلِكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "نَسِيًّا",
+  "grade": "تام",
+  "reason": "تَامٌّ، إِنْ جُعِلَ (رَبُّ) خَبَرَ مُبْتَدَأٍ مَحْذُوفٍ، أَيْ: ذَلِكَ رَبُّ، وَجَائِزٌ: إِنْ جُعِلَ بَدَلًا مِنْ «رَبِّكَ»، وَجَائِزٌ إِنْ تَعَلَّقَ بِهِ ذَلِكَ؛ لِأَنَّهُ رَأْسُ آيَةٍ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "وَمَا بَيۡنَهُمَا",
+  "grade": "كاف",
+  "reason": "وَمِثْلُهُ: «لِعِبَادَتِهِ».",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "لِعِبَٰدَتِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "سَمِيًّا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "مِتُّ",
+  "grade": "لا",
+  "reason": "لِفَصْلِهِ بَيْنَ الْقَوْلِ وَالْمَقُولِ، وَهُمَا كَشَيْءٍ وَاحِدٍ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "حَيًّا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "قَبۡلُ",
+  "grade": "لا",
+  "reason": "لَا يَحْسُنُ الْوَقْفُ عَلَيْهِ؛ لِأَنَّ «وَلَمْ يَكُ شَيْئًا» مَعْطُوفٌ عَلَى مَا قَبْلَهُ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "حسن",
+  "reason": "وَقِيلَ: تَامٌّ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "وَٱلشَّيَٰطِينَ",
+  "grade": "جائز",
+  "reason": "وَمِثْلُهُ: «جُثِيًّا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "جِثِيًّا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "شِيعَةٍ",
+  "grade": "لا",
+  "reason": "لِأَنَّ مَوْضِعَ «أَيُّهُمْ» نَصْبٌ، وَإِنْ كَانَتْ فِي اللَّفْظِ مَرْفُوعَةً... وَمَنْ قَرَأَ: «أَيَّهُمْ» بِالنَّصْبِ، لَا يَسُوغُ لَهُ الْوَقْفُ عَلَى «شِيعَةٍ» عَلَى حَالَةٍ مِنَ الْأَحْوَالِ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "عِتِيًّا",
+  "grade": "جائز",
+  "reason": "لِأَنَّهُمَا رَأْسَا آيَةٍ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "صِلِيًّا",
+  "grade": "جائز",
+  "reason": "لِأَنَّهُمَا رَأْسَا آيَةٍ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "وَارِدُهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "مَّقۡضِيًّا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "جِثِيًّا",
+  "grade": "تام",
+  "reason": "تَامٌّ، وَلَا وَقْفَ إِلَى قَوْلِهِ: «نَدِيًّا» فَلَا يُوقَفُ عَلَى «بَيِّنَاتٍ»؛ لِأَنَّ: «قَالَ» جَوَابُ «إِذَا» وَلَا عَلَى «الَّذِينَ آمَنُوا»؛ لِأَنَّ مَا بَعْدَهُ مَقُولُ «قَالَ».",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "بَيِّنَٰتٖ",
+  "grade": "لا",
+  "reason": "لِأَنَّ: «قَالَ» جَوَابُ «إِذَا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "ءَامَنُوٓاْ",
+  "grade": "لا",
+  "reason": "لِأَنَّ مَا بَعْدَهُ مَقُولُ «قَالَ».",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "نَدِيًّا",
+  "grade": "كاف",
+  "reason": "وَمِثْلُهُ: «مِنْ قَرْنٍ»، وَكَذَا «وَرِئْيًا»، وَكَذَا «مَدًّا» وَجَوَابُ «إِذَا» مَحْذُوفٌ، تَقْدِيرُهُ: إِذَا رَأَوُا الْعَذَابَ، أَوِ السَّاعَةَ آمَنُوا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "قَرۡنٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "وَرِءۡيٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "مَدّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "ٱلسَّاعَةَ",
+  "grade": "جائز",
+  "reason": "لِلِابْتِدَاءِ بِالتَّهْدِيدِ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "جُنْدًا",
+  "grade": "تام",
+  "reason": "تَامٌّ، وَمِثْلُهُ: «هُدًى» عِنْدَ أَبِي حَاتِمٍ، وَكَذَا «مَرَدًّا»، وَ «وَلَدًا»؛ لِأَنَّهُ آخِرُ كَلَامِهِمْ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "هُدٗى",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبي حاتم"
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "مَّرَدًّا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "وَلَدًا",
+  "grade": "تام",
+  "reason": "لِأَنَّهُ آخِرُ كَلَامِهِمْ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱلۡغَيۡبَ",
+  "grade": "لا",
+  "reason": "لِأَنَّ «أَمْ» مُعَادِلَةٌ لِلْهَمْزَةِ فِي «أَطَّلَعَ» فَلَا يُفْصَلُ بَيْنَهُمَا؛ لِأَنَّهُمَا كَالشَّيْءِ الْوَاحِدِ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "عَهۡدٗا",
+  "grade": "تام",
+  "reason": "وَ «كَلَّا» أَتَمُّ مِنْهُ؛ لِأَنَّهَا لِلرَّدْعِ وَالزَّجْرِ",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "كـَلَّا",
+  "grade": "تام",
+  "reason": "لِأَنَّهَا لِلرَّدْعِ وَالزَّجْرِ",
+  "reported_from": "الخليل وسيبويه"
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "مَدّٗا",
+  "grade": "جائز",
+  "reason": "وَلَا يُوقَفُ عَلَى «يَقُولُ» لِعَطْفِ مَا بَعْدَهُ عَلَى مَا قَبْلَهُ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "يَقُولُ",
+  "grade": "لا",
+  "reason": "لِعَطْفِ مَا بَعْدَهُ عَلَى مَا قَبْلَهُ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "فَرۡدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "عِزّٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "كـَلَّا",
+  "grade": "تام",
+  "reason": "لِأَنَّهَا لِلرَّدْعِ، وَلِلزَّجْرِ كَالَّتِي قَبْلَهَا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "ضِدًّا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "أَزّٗا",
+  "grade": "جائز",
+  "reason": "وَمِثْلُهُ: «فَلَا تَعْجَلْ عَلَيْهِمْ».",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "عَلَيۡهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "عَدّٗا",
+  "grade": "كاف",
+  "reason": "إِنْ نُصِبَ «يَوْمَ» بِمُضْمَرٍ، أَوْ قُطِعَ عَمَّا قَبْلَهُ بِالْإِغْرَاءِ، وَجَائِزٌ إِنْ نُصِبَ بِـ «نَعُدُّ لَهُمْ» وَإِنَّمَا جَازَ؛ لِأَنَّهُ رَأْسُ آيَةٍ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "وَفۡدٗا",
+  "grade": "جائز",
+  "reason": "وَإِنَّمَا جَازَ مَعَ الْعَطْفِ؛ لِأَنَّ هَذَا مِنْ عَطْفِ الْجُمَلِ عِنْدَ بَعْضِهِمْ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "وِرۡدٗا",
+  "grade": "حسن",
+  "reason": "لِئَلَّا تَشْتَبِهَ بِالْجُمْلَةِ بَعْدُ الَّتِي لِنَفْيِ شَفَاعَةِ مَعْبُودَاتِهِمْ، وَرَدًّا لِقَوْلِهِمْ هَؤُلَاءِ شُفَعَاؤُنَا عِنْدَ اللَّهِ بِالْوَصْفِ لَهُمْ بِالْجُمْلَةِ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "عَهۡدٗا",
+  "grade": "جائز",
+  "reason": "وَقِيلَ: تَامٌّ؛ لِأَنَّهُ لَوْ وَصَلَ لَا يَعْطِفُ: «وَقَالُوا اتَّخَذَ الرَّحْمَنُ وَلَدًا» عَلَى «اتَّخَذَ عِنْدَ الرَّحْمَنِ عَهْدًا»... لِأَنَّ مَنْ يَصْلُحُ لِلْجَمْعِ فَيُؤَدِّي إِذًا إِلَى إِثْبَاتِ الشَّفَاعَةِ لِمَنْ قَالَ اتَّخَذَ الرَّحْمَنُ وَلَدًا",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "وَلَدًا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "إِدّٗا",
+  "grade": "كاف",
+  "reason": "وَمَعْنَى: «إِدًّا»؛ أَيْ: مُنْكَرًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "مِنۡهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "هَدًّا",
+  "grade": "لا",
+  "reason": "لِأَنَّ «أَنْ» مَوْضِعُهَا نَصْبٌ بِمَا قَبْلَهَا، أَيْ: بِأَنْ دَعَوْا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "وَلَدًا",
+  "grade": "كاف",
+  "reason": "وَقِيلَ: تَامٌّ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "وَلَدًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "عَبۡدٗا",
+  "grade": "كاف",
+  "reason": "وَمِثْلُهُ: «عَدًّا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "عَدّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "فَرۡدًا",
+  "grade": "تام",
+  "reason": "تَامٌّ، وَمِثْلُهُ: «وُدًّا» وَكَذَا «لُدًّا»؛ أَيْ: شِدَادًا فِي الْخُصُومَةِ وَهُمُ الْكُفَّارُ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "وُدّٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "لُّدًّا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "قَرۡنٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "أَحَدٍ",
+  "grade": "لا",
+  "reason": "لِعَطْفِ مَا بَعْدَهُ بِأَوْ عَلَى مَا قَبْلَهُ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "رِكۡزَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

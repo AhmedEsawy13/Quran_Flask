@@ -1,0 +1,394 @@
+[
+ {
+  "ayah": 62,
+  "stop_phrase": "شَيۡءٖ",
+  "grade": "حسن",
+  "reason": "لأنَّه لو وصله لصارت جملة: «لا إله إلا هو» صفة لـ «شيء» وهذا خطأ ظاهر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "إِلَّا هُوَۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "تُؤۡفَكُونَ",
+  "grade": "حسن",
+  "reason": "أحسن.",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "يَجۡحَدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلطَّيِّبَٰتِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "رَبُّكُمۡۖ",
+  "grade": "حسن",
+  "reason": "مثله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "ٱلدِّينَۗ",
+  "grade": "حسن",
+  "reason": "مثله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "مِن رَّبِّي",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "تُرَابٖ",
+  "grade": "لا",
+  "reason": "لأنَّ «ثُمَّ» في المواضع الخمس للعطف، فلا يوقف على «من تراب» ولا على «من نطفة» ولا على «من علقة» ولا على «طفلًا» ولا على «أشدكم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "نُّطۡفَةٖ",
+  "grade": "لا",
+  "reason": "لأنَّ «ثُمَّ» في المواضع الخمس للعطف، فلا يوقف على «من تراب» ولا على «من نطفة» ولا على «من علقة» ولا على «طفلًا» ولا على «أشدكم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "عَلَقَةٖ",
+  "grade": "لا",
+  "reason": "لأنَّ «ثُمَّ» في المواضع الخمس للعطف، فلا يوقف على «من تراب» ولا على «من نطفة» ولا على «من علقة» ولا على «طفلًا» ولا على «أشدكم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "طِفۡلٗا",
+  "grade": "لا",
+  "reason": "لأنَّ «ثُمَّ» في المواضع الخمس للعطف، فلا يوقف على «من تراب» ولا على «من نطفة» ولا على «من علقة» ولا على «طفلًا» ولا على «أشدكم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "أَشُدَّكُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ «ثُمَّ» في المواضع الخمس للعطف، فلا يوقف على «من تراب» ولا على «من نطفة» ولا على «من علقة» ولا على «طفلًا» ولا على «أشدكم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "شُيُوخٗاۚ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "قَبۡلُۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "تَعۡقِلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "وَيُمِيتُۖ",
+  "grade": "حسن",
+  "reason": "لأنَّ «إذا» أجيبت بالفاء فكانت بمعنى الشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "كُن",
+  "grade": "حسن",
+  "reason": "إن رفع «فيكونُ» خبر مبتدأ محذوف تقديره: فهو يكون، أو فإنه يكون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "فَيَكُونُ",
+  "grade": "تام",
+  "reason": "تام على القراءتين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "يُصۡرَفُونَ",
+  "grade": "تام",
+  "reason": "إن جعلت «الذين» في محل رفع على الابتداء، وإلى هذا ذهب جماعة من المفسرين؛ لأنهم جعلوا: «الذين يجادلوا في آيات الله» القدرية، وليس «يصرفون» بوقف إن جعل «الذين كذبوا» بدلًا من «الذين يجادلون»، وإن جعل «الذين كذبوا» في موضع رفع خبر مبتدأ محذوف، أو في موضع نصب بتقدير: أعني، كان كافيًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "رُسُلَنَاۖ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف على استئناف التهديد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ «فسوف يعلمون» تهديد للمكذبين، فينبغي أن يتصل بهم؛ لأنَّ «إذ» منصوبة بقوله: «فسوف يعلمون» فهي متصرفة وجوزوا في «إذ» أن تكون بمعنى: إذا؛ لأنَّ العامل فيها محقق الاستقبال، وهو: «فسوف يعلمون» وغالب المعربين يقولون: «إذ» منصوبة بـ (اذكر) مقدرة، ولا تكون حينئذ إلا مفعولًا به لاستحالة عمل المستقبل في الزمن الماضي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "وَٱلسَّلَٰسِلُ",
+  "grade": "تام",
+  "reason": "لمن رفع «السلاسلُ» بالعطف على «الأغلال» ثم يبتدئ: «يسحبون» أي: هم يسحبون، وهي قراءة العامة، وكذا يوقف على «السلاسل» على قراءة ابن عباس : «والا سلاسلِ» بالجر [الجر لفظا المحل جر بالعطف]، وأما على قراءة النصب فلا يوقف عليها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "يُسۡجَرُونَ",
+  "grade": "جائز",
+  "reason": "لأنه آخر آية، أي: يصيرون وقودًا للنار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "ٱللَّهِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "عَنَّا",
+  "grade": "حسن",
+  "reason": "مثله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "شَيۡـٔٗاۚ",
+  "grade": "تام",
+  "reason": "لأنه انقضاء كلامهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "تَمۡرَحُونَ",
+  "grade": "كاف",
+  "reason": "مثله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "فِيهَاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "ٱلۡمُتَكَبِّرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "حَقّٞۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "نَتَوَفَّيَنَّكَ",
+  "grade": "لا",
+  "reason": "لمكان الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "يُرۡجَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "قَبۡلِكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "عَلَيۡكَۗ",
+  "grade": "حسن",
+  "reason": "مثله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "ٱلۡمُبۡطِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "تَأۡكُلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "تُحۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "مثله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "ءَايَٰتِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "تُنكِرُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام، «فأي» منصوبة بـ «تنكرون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "قَبۡلِهِمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "ٱلۡأَرۡضِ",
+  "grade": "حسن",
+  "reason": "مثله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "يَكۡسِبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "ٱلۡعِلۡمِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "يَسۡتَهۡزِءُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "وَحۡدَهُۥ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "مُشۡرِكِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "بَأۡسَنَاۖ",
+  "grade": "تام",
+  "reason": "على أنَّ «سنة» منصوبة بفعل مقدر، أي: سنّ الله ذلك سنة، فلما حذف الفعل أضيف المصدر إلى الفاعل.",
+  "reported_from": "أبي حاتم"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "عِبَادِهِۦۖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبي حاتم"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "ٱلۡكَٰفِرُونَ",
+  "grade": "تام",
+  "reason": "وآخر السورة تام، وفيه رد على من يقول: إن «حم» قسم وجوابه ما قبله، وإن تقديره: وخسر هنالك الكافرون والله؛ لأنه يلزم عليه أنه لا يجوز الوقف على آخرها، فلا يلتفت إلى قوله، لأنَّا لا نعلم أحدًا من الأئمة الذين أخذ عنهم تأويل القرآن أخذ به وهو جائز عربية.",
+  "reported_from": null
+ }
+]

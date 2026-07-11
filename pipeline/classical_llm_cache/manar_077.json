@@ -1,0 +1,247 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "عُرۡفٗا",
+  "grade": "لا",
+  "reason": "لاتصال الجواب بالقسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "عَصۡفٗا",
+  "grade": "لا",
+  "reason": "لاتصال الجواب بالقسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "نَشۡرٗا",
+  "grade": "لا",
+  "reason": "لاتصال الجواب بالقسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "فَرۡقٗا",
+  "grade": "لا",
+  "reason": "لاتصال الجواب بالقسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "أَوۡ نُذۡرًا",
+  "grade": "لا",
+  "reason": "لاتصال الجواب بالقسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "لَوَٰقِعٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "أُقِّتَتۡ",
+  "grade": "لا",
+  "reason": "إن جعل مع قوله: «ليوم الفصل» فعل محذوف، تقديره: أجلت ليوم الفصل؛ فتكون اللام الأولى: التي في قوله: «لأيّ يوم» صلة للفعل الظاهر، والثانية: صلة للفعل المضمر وإن جعلت اللام الثانية في «ليوم الفصل» تأكيدًا للام الأولى في «لأيّ يوم» لم يحسن الوقف على «أجلت» وهذا على كون جواب «إذًا» محذوفًا، تقديره: فإذا طمست النجوم، وقع ما توعدون، وإن جعل جوابها: «ويل يومئذ» لم يحسن الوقف إلى قوله: «للمكذبين»",
+  "reported_from": "مكي"
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "لِيَوۡمِ ٱلۡفَصۡلِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "مَا يَوۡمُ ٱلۡفَصۡلِ",
+  "grade": "تام",
+  "reason": "مثله (أي مثل ليوم الفصل)",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "لِّلۡمُكَذِّبِينَ",
+  "grade": "تام",
+  "reason": "ومثله فيما يأتي في هذه السورة بعد كل جملة «وعيد للمكذبين» بالويل في الآخرة، كرّر في عشرة مواضع وليس تكرارها تأكيدًا بل أتبع كل قصة: «ويل يومئذ للمكذبين»؛ كأنَّه ذكر في كل موضع شيئًا، ثم قال: ويل لهذا المذكور قبله، وكرّر ليكون نصًا فيما يليه وظاهرًا في غيره، وليس التكرار إطنابًا لما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱلۡأَوَّلِينَ",
+  "grade": "كاف",
+  "reason": "على قراءة من قرأ: «ثم نتبعهم» بالرفع ، على الاستئناف، وليس بوقف لمن قرأه بسكون العين ؛ عطفًا على «نهلك»، ومن قدر حذف الضمة تخفيفًا كما في: «يأمركم» جاز له الوقف على «الأولين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلۡأٓخِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "بِٱلۡمُجۡرِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مَّهِينٖ",
+  "grade": "لا",
+  "reason": "فلا يوقف على «مهين» ولا على «مكين» ولا على «معلوم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "مَّكِينٍ",
+  "grade": "لا",
+  "reason": "فلا يوقف على «مهين» ولا على «مكين» ولا على «معلوم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مَّعۡلُومٖ",
+  "grade": "لا",
+  "reason": "فلا يوقف على «مهين» ولا على «مكين» ولا على «معلوم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "فَقَدَرۡنَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡقَٰدِرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "كِفَاتًا",
+  "grade": "لا",
+  "reason": "لأنَّ «أحياء وأمواتًا» منصوبان بـ «كفاتا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "وَأَمۡوَٰتٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "فُرَاتٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "تُكَذِّبُونَ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده متصلًا بما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "مِنَ ٱللَّهَبِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "كَٱلۡقَصۡرِ",
+  "grade": "لا",
+  "reason": "لتعلق التشبيه بما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "صُفۡرٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "فَيَعۡتَذِرُونَ",
+  "grade": "كاف",
+  "reason": "وهو عطف على «ولا يؤذن لهم»، أي: لا يؤذن ولا يعتذرون، وليس بوقف إن جعل جوابًا للنفي، إذ لو كان جوابًا له لقال: فيعتذرون.",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "فَكِيدُونِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "وَعُيُونٖ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "يَشۡتَهُونَ",
+  "grade": "كاف",
+  "reason": "لأنَّ بعده إضمار القول، أي يقال لهم: كلوا واشربوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل يشتهون)",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "قَلِيلًا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "مُّجۡرِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "لَا يَرۡكَعُونَ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل مجرمون)",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

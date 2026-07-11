@@ -1,0 +1,212 @@
+[
+ {
+  "ayah": 60,
+  "stop_phrase": "وَمَا ٱلرَّحْمَٰنُ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «تأمرنا» بالفوقية، وهي قراءة العامة، وليس بوقف لمن قرأه بالتحتية، وهي قراءة الأخوان، أي: أنسجد لما يأمرنا به محمد؛ لتعلق ما بعده بما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "تَأۡمُرُنَا",
+  "grade": "جائز",
+  "reason": "لمن قرأ: بالتاء الفوقية، «وزادهم» مستأنف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "نُفُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "بُرُوجٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "مُّنِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "خِلۡفَةٗ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده تفسير لما قبله، ولا يوقف على المفسَّر بالفتح دون المفسِّر بالكسر، ومعنى خلفة: إنّ كل واحد منهما يخلف صاحبه، فمن فاته شيء من الأعمال قضاه في الآخر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "يَذَّكَّرَ",
+  "grade": "لا",
+  "reason": "للعطف بعده بـ «أو».",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "شُكُورٗا",
+  "grade": "تام",
+  "reason": "إن رفع «وعباد» مبتدأ، والخبر «أولئك يجزون الغرفة»، وكان الوقف على «مقامًا»، وعليه فلا يوقف من قوله: «وعباد الرحمن» إلى «حسنت مستقرًا ومقامًا» إلّا لضيق النفس، ومن جعل الخبر محذوفًا، أو جعل «الذين يمشون» خبرًا، وقف على «هونًا»، وهو جائز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "سَلَٰمٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "وَقِيَٰمٗا",
+  "grade": "كاف",
+  "reason": "لأنه مثله أي مثل «سلامًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "جَهَنَّمَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "غَرَامًا",
+  "grade": "كاف",
+  "reason": "إن لم يجعل ما بعده من تمام كلام الوقف، وليس بوقف إن جعل من كلامهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "قَوَامٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "يَزۡنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "أَثَامٗا",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «يضاعفُ» بالرفع؛ على الاستئناف، وهو عاصم، وقرأ ابن عامر: «يضعفُ» بالرفع؛ على الاستئناف أيضًا، وليس بوقف لمن جزمه بدلًا من «يلق» بدل اشتمال، بدل فعل من فعل؛ لأنّ تضعيف العذاب هو لفي الآثام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "مُهَانًا",
+  "grade": "جائز",
+  "reason": "والوصل أولى؛ لأنَّ «إلّا» لا يبتدأ بها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "حَسَنَٰتٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "رَّحِيمٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "مَتَابٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ٱلزُّورَ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "كِرَامٗا",
+  "grade": "كاف",
+  "reason": "ومعنى: كرامًا، أي: معرضين عن أهل اللغو.",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "وَعُمۡيَانٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "أَعۡيُنٖ",
+  "grade": "جائز",
+  "reason": "للابتداء بعد بالجملة الفعلية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "إِمَامًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "صَبَرُواْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "فِيهَا",
+  "grade": "كاف",
+  "reason": "لاتصال الحال بذيّها.",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "وَمُقَامٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "دُعَآؤُكُمۡ",
+  "grade": "كاف",
+  "reason": "لاختلاف الجملتين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "كَذَّبۡتُمۡ",
+  "grade": "جائز",
+  "reason": "للابتداء بالتهديد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "لِزَامَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

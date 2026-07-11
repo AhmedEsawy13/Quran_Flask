@@ -1,0 +1,65 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "لُّمَزَةٍ",
+  "grade": "حسن",
+  "reason": "إن رفع ما بعده خبر مبتدأ محذوف، أي: هو الذي جمع، أو نصب؛ على الذم، وليس بوقف إن جعل بدل معرفة من نكرة",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَعَدَّدَهُۥ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف، إن جعل حالًا من فاعل «جمع»",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "أَخۡلَدَهُۥ",
+  "grade": "تام",
+  "reason": "لأنَّ «كلَّا» هنا حرف ردع وزجر عن حسبانه الفاسد، فهي بمعنى: النفي، أي: لا يخلده ماله",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡحُطَمَةِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلۡحُطَمَةُ",
+  "grade": "كاف",
+  "reason": "أكفى مما قبله، ويبتدئ: «نار الله»، بتقدير: هي نار الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡمُوقَدَةُ",
+  "grade": "قبيح",
+  "reason": "لأنَّ ما بعده صفة والصفة والموصوف كالشيء الواحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلۡأَفۡـِٔدَةِ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "مُّؤۡصَدَةٞ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ ما بعده صفة لـ «نار الله»",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "مُّمَدَّدَةِ",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

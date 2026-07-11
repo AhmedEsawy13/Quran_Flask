@@ -1,0 +1,282 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "وَفَرَضۡنَٰهَا",
+  "grade": "حسن",
+  "reason": "فإن جعل «لعلكم تذكرون» متصلًا بـ «أنزلنا» حسن الوقف عليه، وإن جعل متصلًا بـ «فرضناها» لا يحسن الوقف عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "جَلۡدَةٖۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأنَّ الشرط الذي بعده، ما قبله قد قام مقام جوابه، وهو فعل النهي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡأٓخِرِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "مُشۡرِكَةٗ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "مُشۡرِكٞۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "جَلۡدَةٗ",
+  "grade": "جائز",
+  "reason": "إن كان القاذف حرًّا، وإن كان عبدًا أربعين، ولابد أن يكون المقذوف عفيفًا من الزنا حتى لو زنى في عمره مرة واحدة، وقذفه قاذف فلا حدّ عليه",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "أَبَدٗاۚ",
+  "grade": "تام",
+  "reason": "إن جعل الاستثناء من قوله: «الفاسقون» بناءً على أنَّ شهادة القاذف لا تقبل وإن تاب، وليس بوقف إن جعل الاستثناء من قوله: «ولا تقبلوا لهم شهادة أبدًا» بناءً على أنَّ شهادة القاذف تقبل إذا تاب وأنَّ بالتوبة يرتفع اسم الفسق عنه",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "رَّحِيمٞ",
+  "grade": "تام",
+  "reason": "على سائر الأوجه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "أَنفُسُهُمۡ",
+  "grade": "لا",
+  "reason": "لأن قوله: «فشهادة أحدهم» وما بعده خبر «والذين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "بِٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأنَّ (أنَّ) جواب القسم، فإنَّها وإن كانت مكسورة فإنّ الفعل الأول قد عمل في موضعها",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلصَّٰدِقِينَ",
+  "grade": "كاف",
+  "reason": "لمن قرأ : «والخامسةُ» بالرفع؛ على الابتداء والخبر فيما بعد، وجائز لمن نصبها عطفًا على «أربع شهادات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده شرط فيما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلۡكَٰذِبِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلۡكَٰذِبِينَ",
+  "grade": "كاف",
+  "reason": "فمن قرأ : {وَالْخَامِسَةَ} بالرفع؛ على الابتداء والخبر فيما بعده، كان الوقف على «الكاذبين» كافيًا، ومن قرأ : «والخامسةَ» بالنصب؛ عطفًا على «أربع» كان جائزًا؛ لكونه رأس آية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلصَّٰدِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "وَرَحۡمَتُهُۥ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله بعد «وإنَّ الله» في موضع رفع عطفًا على ما قبله، وجواب «لولا» محذوف، تقديره: لأهلككم",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "لَّكُمۖ",
+  "grade": "جائز",
+  "reason": "وقيل: كاف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "لَّكُمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡإِثۡمِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "عَظِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "خَيۡرٗا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «وقالوا» عطف على «ظن» داخل تحت «لولا» التحضيضية، أي: هلا ظنوا وقالوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "مُّبِينٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "شُهَدَآءَۚ",
+  "grade": "جائز",
+  "reason": "لأنَّ (إذ) أجيبت بالفاء فكانت شرطًا في ابتداء حكم، فكانت الفاء للاستئناف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "ٱلۡكَٰذِبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَٱلۡأٓخِرَةِ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب (لولا) لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "عَظِيمٌ",
+  "grade": "كاف",
+  "reason": "إن علق «إذ» بـ (اذكر) مقدرًا، وكان من عطف الجمل، وجائز إن علق بما قبله لكونه رأس آية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "هَيِّنٗا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، وليس بوقف إن علق ما بعده بما قبله؛ لأنَّ الواو للحال والوصل أولى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "عَظِيمٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "بِهَٰذَا",
+  "grade": "جائز",
+  "reason": "على استئناف التنزيه، وليس بوقف إن علق ما بعده بما قبله، وجعل داخلًا في القول تحت «لولا» التحضيضية، أي: هلا قلتم سبحانك هذا بهتان عظيم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "عَظِيمٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "أَبَدًا",
+  "grade": "لا",
+  "reason": "لأنَّ ما قبله جواب لما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡأٓيَٰتِۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "أَلِيمٞ",
+  "grade": "لا",
+  "reason": "لتعلق الظرف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "وَٱلۡأٓخِرَةِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ }
+]

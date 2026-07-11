@@ -1,0 +1,247 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "عَمَّ يَتَسَآءَلُونَ",
+  "grade": "حسن",
+  "reason": "عند بعضهم، ثم قال تعالى: {عَنِ النَّبَإِ الْعَظِيمِ}، فقوله: «عن النبأ العظيم» مفعول: «يتساءلون»، و «عمَّ» متعلق بـ «يتساءلون»، فالاستفهام للتعجب، وهذا كقوله: «لمن الملك اليوم» ثمَّ ردَّ على نفسه فقال: «لله الواحد القهار» فهو: كشيء يبهم ثم يفسر، ففي هذا الوجه جعل عن الأولى صفةً للفعل الظاهر والثانية صلةً لفعل مضمر والتقدير: عن أيِّ شيء يتساءلون، أعن النبأ العظيم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "عَمَّ يَتَسَآءَلُونَ",
+  "grade": "لا",
+  "reason": "إن جعلت «عن» الثانية توكيد للأولى، وترجمةً وبيانًا لـ «عمَّ» وكان وقفة مختلفون، وهو الكافي في الوجهين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "مُخۡتَلِفُونَ",
+  "grade": "كاف",
+  "reason": "وهو الكافي في الوجهين [أي: في توجيه جعل عن الثانية توكيداً أو ترجمة وبياناً]، والمشهور أنَّ الكلام تمَّ على: «مختلفون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "كـَلَّا",
+  "grade": "حسن",
+  "reason": "وجعلها ردًّا للنفي في اختلافهم في النبأ وهل هو إنكارهم البعث بعد الموت، أو إنكارهم القرآن. قال يحيى بن نصير النحوي: «كلاَّ» ردُّ أي: لا اختلاف... فعلى هذا صح الوقف على «كلَّا»، أي: لا اختلاف فيه.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "كـَلَّا",
+  "grade": "لا",
+  "reason": "لا يوقف على «كلَّا» في الموضعين؛ لأنَّهما بمعنى: إلّا التي؛ بمعنى: التنبيه، فيبتدئ بهما، والثاني توكيد في الوعيد، والمعنى: ألا سيعلمون، ثمَّ ألا سيعلمون، ما يحل بهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "سَيَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "الثاني تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "أَوۡتَادٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "أَزۡوَٰجٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "سُبَاتٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "مَعَاشٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "شِدَادٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَهَّاجٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ثَجَّاجٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ بعده لام العلة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "وَنَبَاتٗا",
+  "grade": "لا",
+  "reason": "ولا يوقف على: «نباتًا» لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "أَلۡفَافًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مِيقَٰتٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «يوم» بدل من «يوم الفصل»، أو عطف بيان وإن نصب بـ «أغنى» مقدارًا جاز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "أَفۡوَاجٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "أَبۡوَٰبٗا",
+  "grade": "حسن",
+  "reason": "ومثله: «أبوابًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَهَّاجٗا",
+  "grade": "حسن",
+  "reason": "وكذا «سراجًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مَـَٔابٗا",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ: «لابثين» حال من الضمير المستتر في «الطَّاغين» وهي حال مقدرة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "أَحۡقَابٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "شَرَابًا",
+  "grade": "جائز",
+  "reason": "تجاوزه أولى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "وَغَسَّاقٗا",
+  "grade": "حسن",
+  "reason": "إن نصب «جزاء» بفعل مقدر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "وَغَسَّاقٗا",
+  "grade": "لا",
+  "reason": "وليس بوقف إن جعل صفة لما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "وِفَاقًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "حِسَابٗا",
+  "grade": "كاف",
+  "reason": "ومثله: «حسابًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "كِذَّابٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "كِتَٰبٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "عَذَابًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "مَفَازًا",
+  "grade": "لا",
+  "reason": "ولا وقف من قوله: «إنَّ للمتقين» إلى قوله: «دهاقًا» فلا يوقف على: «مفازًا»؛ لأنَّ «حدائق» بدل من: «مفازًا» بدل اشتمال، أو بدل كل من كل.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "أَعۡنَٰبٗا",
+  "grade": "لا",
+  "reason": "ولا يوقف على «وأعنابًا»؛ لأنَّ ما بعده معطوف عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "أَتۡرَابٗا",
+  "grade": "لا",
+  "reason": "ولا يوقف على «أترابًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "دِهَاقٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "كِذَّٰبٗا",
+  "grade": "جائز",
+  "reason": "جائز على القراءتين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "حِسَابٗا",
+  "grade": "حسن",
+  "reason": "يبنى الوقف على «حسابًا» على اختلاف القراء في «رب» فقرأ نافع وابن كثير وأبو عمرو برفع: «رب» و «الرحمن»، وقرأ ابن عامر وعاصم بخفضهما.",
+  "reported_from": null
+ }
+]

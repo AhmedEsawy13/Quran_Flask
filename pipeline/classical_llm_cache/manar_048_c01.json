@@ -1,0 +1,226 @@
+[
+ {
+  "ayah": 25,
+  "stop_phrase": "لَّمۡ تَعۡلَمُوهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «أن تطئوهم» موضعه نصب، أو رفع؛ لأنه بدل اشتمال من الضمير المنصوب في «تعلموهم» أو من رجال",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "أَن تَطَـُٔوهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده منصوب معطوف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "بِغَيۡرِ عِلۡمٖ",
+  "grade": "لا",
+  "reason": "لأنَّ بعده (لام كي)",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مَن يَشَآءُ",
+  "grade": "جائز",
+  "reason": "إن جعل جواب «لو» الثانية «لعذبنا»، وليس بوقف إن جعل جوابًا لـ (لولا) الأولى والثانية",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "أَلِيمًا",
+  "grade": "جائز",
+  "reason": "وليس بوقف إن جعل «لعذبنا» متصلًا بقوله: «إذ جعل الذين كفروا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡحَمِيَّةَ",
+  "grade": "لا",
+  "reason": "لأن (حمية) بدل من الأولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡجَٰهِلِيَّةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلتَّقۡوَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "وَأَهۡلَهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "عَلِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ءَامِنِينَ",
+  "grade": "جائز",
+  "reason": "«آمنين» حال من فاعل «لتدخلن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "وَمُقَصِّرِينَ",
+  "grade": "جائز",
+  "reason": "يجوز أن يكون «محلقين» حالًا من «آمنين» فتكون متداخلة",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "لَا تَخَافُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "لَمۡ تَعۡلَمُواْ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "قَرِيبًا",
+  "grade": "تام",
+  "reason": "وهذا الفتح فتح خيبر لا فتح مكة",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "كُلِّهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "شَهِيدٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "رَّسُولُ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "إن جعل «محمد» مبتدأ و «رسول الله» خبره، وليس بوقف إن جعل «رسول الله» نعتًا لـ «محمد» أو بدلًا، ومثله في عدم الوقف إن جعل «والذين معه» معطوفًا على «محمد» والخبر «أشداء» والوقف حينئذ على «الكفار»",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "عَلَى ٱلۡكُفَّارِ",
+  "grade": "حسن",
+  "reason": "يوقف على «الكفار» أيضًا إن جعل «والذين معه» مبتدأ خبره «أشداء» ومثله في حسن الوقف إن جعل «رحماء» خبر مبتدأ محذوف، أو مبتدأ خبره «تراهم»، وليس «الكفار» بوقف إن جعل «رحماء» من نعت «أشداء» وكان وقفه بينهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "سُجَّدٗا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل «يبتغون» في موضع الحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "وَرِضۡوَٰنٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلسُّجُودِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "فِي ٱلتَّوۡرَىٰةِ",
+  "grade": "تام",
+  "reason": "أي: مثلهم في التوارة أنهم أشداء على الكفار رحماء بينهم الخ، وقيل: الوقف على «الإنجيل» وإن المثلين لشيء واحد، قال محمد بن جرير: لو كانا لشيء واحد؛ لكان و «كزرع» بالواو، والقول الأول أوضح، وأيضًا لو كانا لشيء واحد لبقي قوله: «كزرع» منفردًا محتاجًا إلى إضمار، أي: هم كزرع، وما لا يحتاج إلى إضمار أولى",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "شَطۡـَٔهُۥ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "فَـَٔازَرَهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "عَلَىٰ سُوقِهِۦ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل حالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلزُّرَّاعَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده (ام كي)",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلۡكُفَّارَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلصَّٰلِحَٰتِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "عَظِيمَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

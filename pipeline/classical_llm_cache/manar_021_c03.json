@@ -1,0 +1,506 @@
+[
+ {
+  "ayah": 80,
+  "stop_phrase": "شَٰكِرُونَ",
+  "grade": "كاف",
+  "reason": "إن نصب «الرِّيحَ» ؛ بفعل مضمر، أي: وسخرنا الريح لسليمان",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "شَٰكِرُونَ",
+  "grade": "تام",
+  "reason": "وعلى قراءة عبد الرحمن بن هرمز بالرفع",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "بَٰرَكۡنَا فِيهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "عَٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "دُونَ ذَٰلِكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "حَٰفِظِينَ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر القصة، «وأيوب» منصوب بفعل مضمر، أي: واذكر أيوب",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "ٱلرَّٰحِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "مِن ضُرّٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "لِلۡعَٰبِدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "وَذَا ٱلۡكِفۡلِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "ٱلصَّٰبِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "ٱلصَّٰلِحِينَ",
+  "grade": "تام",
+  "reason": "إن نصب «ذا النون» بفعل مضمر، أي: واذكر ذا النون",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "مُغَٰضِبٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "لا",
+  "reason": "وقيل: ليس بوقف؛ لأنَّه يحتاج إلى ما بعده ليبين معناه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "أَنتَ",
+  "grade": "لا",
+  "reason": "لأنَّه كله داخل في حكاية النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "سُبۡحَٰنَكَ",
+  "grade": "لا",
+  "reason": "لأنَّه كله داخل في حكاية النداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "فَٱسۡتَجَبۡنَا لَهُۥ",
+  "grade": "لا",
+  "reason": "لاتصال الفجأة بالإجابة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ٱلۡغَمِّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "لأنه آخر القصة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "نَادَىٰ رَبَّهُۥ",
+  "grade": "حسن",
+  "reason": "إذ أضمر القول بعده، أي: قال رب لا تذرني فردًا، وليس بوقف إن جعلت الجملة متصلة بالنداء؛ لأنَّ فيه معنى القول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "فَرۡدٗا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعلت الجملة بعده حالًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "ٱلۡوَٰرِثِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "فَٱسۡتَجَبۡنَا لَهُۥ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "يَحۡيَىٰ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "زَوۡجَهُۥٓ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "ٱلۡخَيۡرَٰتِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "وَرَهَبٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "خَٰشِعِينَ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر قصة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "رُّوحِنَا",
+  "grade": "حسن",
+  "reason": "المراد بفرجها: فرج القميص، أي: لم يعلق بثوبها ريبة",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "لِّلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "فَٱعۡبُدُونِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "بَيۡنَهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "رَٰجِعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "لِسَعۡيِهِۦ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "كَٰتِبُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "أَهۡلَكۡنَٰهَآ",
+  "grade": "لا",
+  "reason": "لأنَّ (أن) منصوبة بما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "يَرۡجِعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "يَنسِلُونَ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل جواب «إذا»، اقترب الوعد، والواو زائدة، وإن جعل جوابها: «يا ويلنا» لا وقف من قوله: «حتى إذا فتحت» إلى «ظالمين»، وهو: كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "حَصَبُ جَهَنَّمَ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل في موضع الحال.",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "وَٰرِدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "ءَالِهَةٗ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «ما وردوها» جواب «لو».",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "وَردُوهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "زَفِيرٞ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "يَسۡمَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "ٱلۡحُسۡنَىٰٓ",
+  "grade": "لا",
+  "reason": "لأنَّ «أولئك» خبر «إن».",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "مُبۡعَدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "حَسِيسَهَا",
+  "grade": "حسن",
+  "reason": "لأنَّ بعده مبتدأ خبره «خالدون»، والمبتدأ في حكم الانفصال عما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "ٱلۡأَكۡبَرُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "ٱلۡمَلَٰٓئِكَةُ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل «هذا يومكم» معه إضمار قول، أي: قائلين لكم هذا يومكم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "تُوعَدُونَ",
+  "grade": "كاف",
+  "reason": "إن نصب «يوم» بفعل مضمر، وليس بوقف إن نصب بما قبله، والتقدير: وتتلقاهم الملائكة يوم نطوي السماء، وحينئذ فلا يوقف على «الملائكة» ولا على «توعدون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "لِلۡكُتُبِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "نُّعِيدُهُۥ",
+  "grade": "كاف",
+  "reason": "إن نصب «وعدًا» بفعل مقدر، وليس بوقف إن نصب بـ «نعيده».",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "عَلَيۡنَآ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "فَٰعِلِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "ٱلذِّكۡرِ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «أنَّ الأرض» في موضع نصب بـ «كتبنا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "ٱلصَّٰلِحُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "عَٰبِدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "لِّلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "إِلَيَّ",
+  "grade": "لا",
+  "reason": "لأنَّ «إنَّما» موضعها رفع؛ لأنَّه قد قام مقام الفاعل في «يوحي».",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "وَٰحِدٌ",
+  "grade": "حسن",
+  "reason": "للابتداء بالاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "مُّسۡلِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "سَوَآءٖ",
+  "grade": "تام",
+  "reason": "للابتداء بالنفي؛ لأنَّ (إن) بمعنى: ما، أي: ما أدري، و «ما» في قوله: «ما توعدون» فاعل بـ (قريب)، أي: أيقرب ما توعدون أم يبعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "تُوعَدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "ٱلۡقَوۡلِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "تَكۡتُمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "حِينٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "حسن",
+  "reason": "لأنَّ قوله: «وربنا» مبتدأ خارج عن المقول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "تَصِفُونَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

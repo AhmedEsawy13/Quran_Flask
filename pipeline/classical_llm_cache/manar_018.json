@@ -1,0 +1,352 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "عِوَجَا",
+  "grade": "حسن",
+  "reason": "هو رأس آية باتفاق، ثم تبتديء: «قيمًا»، أي: أنزله قيمًا، فـ «قيمًا» حال من الهاء في (أنزله) المحذوف دل عليه «أنزل» بين الوقف على «عوجًا» أنَّ «قيمًا» منفصل عن «عوجًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "أَبَدًا",
+  "grade": "جائز",
+  "reason": "ما بعده معطوف على ما قبله؛ لأنَّ هذا من عطف الجمل عند بعضهم.",
+  "reported_from": "شيخ الإسلام"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "وَلَدًا",
+  "grade": "تام",
+  "reason": "لأنَّه قد تم قول الكفار وانقضى، ثم استأنف: «ما لهم به من علم ولا لآبائهم»؛ وذلك نفي لما قالوه، فهو كالمتعلق به من جهة المعنى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "لِأٓبَآئِهِمۡ",
+  "grade": "حسن",
+  "reason": "لأنَّه قد تمّ الرّد عليهم، ثم بدأ الأخبار عن مقالتهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَفۡوَٰهِهِمۡ",
+  "grade": "حسن",
+  "reason": "وهي مقالتهم اتخذ الله ولدًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "كَذِبًا",
+  "grade": "كاف",
+  "reason": "وهو رأس آية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "أَسَفًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "لَّهَا",
+  "grade": "لا",
+  "reason": "لأنَّ اللام بعده موضعها نصب بالجعل، وكذا: «لنبلوهم»؛ لأنَّ «أيهم»، وإن كان ظاهرها الاستفهام فهي في المعنى متصلة بما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "عَمَلًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "جُرُزًا",
+  "grade": "كاف",
+  "reason": "لتمام القصة، وأيضًا الابتداء بـ «أم»، وهي بمعنى: ألف الاستفهام التقريري.",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "عَجَبًا",
+  "grade": "تام",
+  "reason": "على أن «إذ» بمعنى: اذكر إذ أوى",
+  "reported_from": "العباس بن الفضل"
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "رَحۡمَةٗ",
+  "grade": "جائز",
+  "reason": "فصلًا بين الدعوتين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "رَشَدًا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "عَدَدًا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "أَمَدًا",
+  "grade": "تام",
+  "reason": "و «أي الحزبين» مبتدأ ومضاف إليه، و «أحصى» أفعل تفضيل خبر و «أمدًا» تمييز؛ لأنَّ الأمد هو: الغاية، وهو عبارة عن: المدة، وليس هو: محصيًا، بل يحصى",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "بِٱلۡحَقِّ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وهو رأس آية في غير الشامي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "هُدًى",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وهو رأس آية في غير الشامي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "قُلُوبِهِمۡ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "إِلَٰهًا",
+  "grade": "حسن",
+  "reason": "والام في «لقد» للتوكيد، أي: لقد قلنا إذ دعونا من دونه إلهًا قولًا ذا شطط، أي: جور.",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "شَطَطًا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ءَالِهَةٗ",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «لولا»، وهي هنا للتحضيض؛ بمعنى: هلاَّ يأتون على عبادتهم الأصنام بحجة واضحة، ولا يجوز أن تكون هذه الجملة التحضيضية صفةً لآلهة لفساده معنى وصناعة؛ لأنَّها جملة طلبية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "بَيِّنٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "كَذِبًا",
+  "grade": "كاف",
+  "reason": "لأنَّ «ذا» منصوبة بفعل محذوف، تقديره: فقال بعضهم لبعض وقت اعتزالهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وليس بوقف إن علق ما بعده بما قبله؛ لأنَّ قوله: «فأووا» عند الفراء جواب: «إذ»؛ لأنّها قد تكون للمستقبل كـ «إذا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "مِّرۡفَقٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلشِّمَالِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مِنۡهُ",
+  "grade": "تام",
+  "reason": "لأنَّ «ذلك» مبتدأ، و «من آيات الله» الخبر، أو «ذلك» خبر مبتدأ محذوف، أي: الأمر ذلك، و «من آيات الله» حال.",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلۡمُهۡتَدِ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مُّرۡشِدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "رُقُودٞ",
+  "grade": "حسن",
+  "reason": "لأنَّ ما بعده يصلح مستأنفًا وحالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "لَبِثۡتُمۡ",
+  "grade": "لا",
+  "reason": "لمكان الفاء فيهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "ٱلۡمَدِينَةِ",
+  "grade": "لا",
+  "reason": "لمكان الفاء فيهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "وَلۡيَتَلَطَّفۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "أَحَدًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مِلَّتِهِمۡ",
+  "grade": "جائز",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "أَبَدًا",
+  "grade": "كاف",
+  "reason": "ولا وقف من قوله: «وكذلك أعثرنا عليهم» إلى «بينهم أمرهم» فلا يوقف على «حق» لعطف وإن على ما قبلها، ولا على «لا ريب فيها»؛ لأنَّ «إذ» ظرف لـ «أعثرنا»، فهي ظرف للإثار عليهم، أو معمولة «ليعلموا»، والأَوْلَى أن تكون مفعولًا لمحذوف، أي: اذكر إذ يتنازعون بينهم أمرهم، فيكون من عطف الجمل",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "بُنۡيَٰنٗا",
+  "grade": "حسن",
+  "reason": "وكذا: «ربهم أعلم بهم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "مَّسۡجِدٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "كَلۡبُهُمۡ",
+  "grade": "جائز",
+  "reason": "للفصل بين المقالتين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "بِٱلۡغَيۡبِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": "الزجاج"
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "سَبۡعَةٞ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر كلام المتنازعين في حديثهم، قبل: ظهورهم عليهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "كَلۡبُهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "بِعِدَّتِهِم",
+  "grade": "جائز",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "قَلِيلٞ",
+  "grade": "كاف",
+  "reason": "ورأس آية في المدني الأخير.",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "ظَٰهِرٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "تام",
+  "reason": "لتوكيد الفعل بعده بالنون، وما قبله مطلق",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "غَدًا",
+  "grade": "لا",
+  "reason": "لوجود الاستثناء بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "تام",
+  "reason": "اعلم أنَّه لا يصح رجوع الاستثناء لقوله: «إنَّي فاعل ذلك غدًا»؛ لأنَّ مفعول «يشاء» إما الفعل، وإما الترك، فإن كان الفعل؛ فالمعنى: إنَّي فاعل ذلك غدًا، إلاَّ أن يشاء الله",
+  "reported_from": null
+ }
+]

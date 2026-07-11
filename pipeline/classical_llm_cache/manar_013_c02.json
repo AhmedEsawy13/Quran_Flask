@@ -1,0 +1,310 @@
+[
+ {
+  "ayah": 30,
+  "stop_phrase": "أَوْحَيْنَا إِلَيْكَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "بِالرَّحْمَنِ",
+  "grade": "حسن",
+  "reason": "وكاف عند أبي حاتم",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "حسن",
+  "reason": "وقال أبو عمرو: كاف",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مَتَابِ",
+  "grade": "تام",
+  "reason": "إن جعل جواب «لو» محذوفًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مَتَابِ",
+  "grade": "لا",
+  "reason": "إن جعل مقدمًا، والتقدير: ولو أنَّ قرآنًا سيرت به الجبال، أو كذا وكذا -لكان هذا القرآن، أو آمنوا؛ ومن قال معناه: وهم يكفرون بالرحمن، وإن أجيبوا إلى ما سألوا؛ لشدة عنادهم، فلا يوقف على «الرحمن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "الْمَوْتَى",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "جَمِيعًا",
+  "grade": "كاف",
+  "reason": "كاف، ومثله: «جميعًا» الأول، وكذا الثاني. ولا وقف إلى قوله: «وعد الله»",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "الْمِيعَادَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ثُمَّ أَخَذْتُهُمْ",
+  "grade": "كاف",
+  "reason": "للابتداء بالتوبيخ",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "عِقَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "بِمَا كَسَبَتْ",
+  "grade": "كاف",
+  "reason": "وقال الأخفش: تام؛ لأنَّ «من» استفهامية مبتدأ خبرها محذوف تقديره: كمن ليس كذلك من شركائهم التي لا تضر ولا تنفع، وما بعده مستأنف، وجائز لمن جعل قوله: «وجعلوا» حالًا بإضمار: قد",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "شُرَكَاءَ",
+  "grade": "جائز",
+  "reason": "ومثله: «قل سموهم»، وتام عند أحمد بن جعفر؛ للاستفهام",
+  "reported_from": "أحمد بن جعفر"
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "مِنَ الْقَوْلِ",
+  "grade": "كاف",
+  "reason": "ومثله: «مكرهم» لمن قرأ: «وصدوا» ببنائه للفاعل",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "مِنَ الْقَوْلِ",
+  "grade": "لا",
+  "reason": "ليس بوقف لمن قرأ ببنائه للمفعول، أي: بضم الصاد؛ لعطفه على «زين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "مِنْ هَادِ",
+  "grade": "كاف",
+  "reason": "ومثله: «في الحياة الدنيا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَشَقُّ",
+  "grade": "حسن",
+  "reason": "وقال أبو عمرو: لاتفاق الجملتين مع النفي في الثانية",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "مِنْ وَاقِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "الْمُتَّقُونَ",
+  "grade": "حسن",
+  "reason": "إن جعل «مثل» مبتدأ محذوف الخبر، أي: فيما نقص عليك مثل الجنة، وكذا إن جعل «تجري» مستأنفًا، أو جعل لفظة «مثل» زائدة، فيقال: الجنة التي وعد المتقون كيت وكيت",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "الْمُتَّقُونَ",
+  "grade": "لا",
+  "reason": "ليس بوقف إن جعل مبتدأ خبره «تجري»؛ وكذا ليس «المتقون» وقفًا إن جعل «تجري» حالًا من الضمير في «وعد»، أو جعل «تجري» تفسيرًا؛ للمثل فلا يفصل بين المفسر والمفسر بالوقف",
+  "reported_from": "الفراء"
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "الْأَنْهَارُ",
+  "grade": "جائز",
+  "reason": "ووصله أولى؛ لأنَّ ما بعده تفسير لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "وَظِلُّهَا",
+  "grade": "تام",
+  "reason": "عند من جعل «تجري» خبر المثل بإضمار «إن»، أي: إن تجري",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "اتَّقَوْا",
+  "grade": "جائز",
+  "reason": "والوصل أحسن؛ لأنَّ الجمع بين الحالتين أدل على الانتباه",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "النَّارُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "أُنْزِلَ إِلَيْكَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "بَعْضَهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "وَلَا أُشْرِكَ بِهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "مَآَبِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "عَرَبِيًّا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "مِنَ الْعِلْمِ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ للفصل بين الشرط وجوابه؛ لأنَّ اللام في «ولئن» مؤذنة بقسم مقدر قبلها، ولذلك جاء الجواب «مالك»",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "وَلَا وَاقِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "وَذُرِّيَّةً",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "إِلَّا بِإِذْنِ اللَّهِ",
+  "grade": "كاف",
+  "reason": "تم الكلام، ومثله: «لكل أجل كتاب»",
+  "reported_from": "أبو حاتم ويحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "وَيُثْبِتُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "الْكِتَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "وَعَلَيْنَا الْحِسَابُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "مِنْ أَطْرَافِهَا",
+  "grade": "حسن",
+  "reason": "حسن، ومثله: «لحكمه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "الْحِسَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مِنْ قَبْلِهِمْ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "جَمِيعًا",
+  "grade": "حسن",
+  "reason": "حسن، ومثله: «كل نفس»",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "عُقْبَى الدَّارِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "لَسْتَ مُرْسَلًا",
+  "grade": "حسن",
+  "reason": "حسن، ومثله: «وبينكم» لمن قرأ: «ومِن عندِه» بكسر ميم «مِن» وكسر الدال",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "بَيْنِي وَبَيْنَكُمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف لمن قرأ: «ومَن عندَه» بفتح الميم والدال، وعليها فالوقف آخر السورة؛ لاتصال الكلام بعضه ببعض، ولا يوقف على «بينكم»؛ لأنَّه تعالى عطف «ومن عنده علم الكتاب» في الشهادة على اسمه تعالى",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "بَيْنِي وَبَيْنَكُمۡ",
+  "grade": "حسن",
+  "reason": "وقرأ الحسن وابن السميفع: «مِن عندِهِ عُلِمَ الكتابُ» بـ «من» الجارة، و «علم» مبنى للمفعول، وعليها يحسن الوقف على «بينكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "الْكِتَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,233 @@
+[
+ {
+  "ayah": 5,
+  "stop_phrase": "أَمۡرٗا",
+  "grade": "تام",
+  "reason": "إن جعل جواب القسم محذوفًا تقديره: لتعبثن أو لتحشرن، فحذف هذا الجواب؛ لأنَّ قوله: {يَقُولُونَ أَئِنَّا لَمَرْدُودُونَ} فيه دلالة على أنهم أنكروا البعث والحشر فحذف؛ لأن ما يدل على الشيء يقوم مقامه",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "خَٰشِعَةٞ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡحَافِرَةِ",
+  "grade": "لا",
+  "reason": "لأن لـ «مردودون» دليل العامل في: إذا أرادوا الحياة التي ماتوا بعدها",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "نَّخِرَةٗ",
+  "grade": "حسن",
+  "reason": "على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "خَاسِرَةٞ",
+  "grade": "لا",
+  "reason": "لأن ما بعدها جوابه ما قبله، أي: إن رددنا إلى الحافرة كانت ردتنا خاسرة",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "بِٱلﺴَّاهِرَةِ",
+  "grade": "حسن",
+  "reason": "وهي التي لم توطأ، وقيل وجه الأرض",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "مُوسَىٰٓ",
+  "grade": "تام",
+  "reason": "لأنه لو وصله بما بعده لصار إذا ظرفًا لإتيان الحديث وهو محال بل هو مفعول بفعل محذوف، أي: اذكر إذا ناداه ربه بالواد المقدس طوى",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "طُوًى",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "طَغَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "تَزَكَّىٰ",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "فَتَخۡشَىٰ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "فَنَادَىٰ",
+  "grade": "جائز",
+  "reason": "ومعنى: حشر، أي: جمع السحرة وأرباب دولته",
+  "reported_from": "السخاوي"
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلۡأَعۡلَىٰ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "وَٱلۡأُولَىٰٓ",
+  "grade": "تام",
+  "reason": "على أن جواب القسم محذوف وإن جعل جوابه: «إن في ذلك لعبرة» لا يوقف على شيء من أول السورة إلى هذا الموضع؛ لأنه لا يفصل بين القسم وجوابه الوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "يَخۡشَىٰٓ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "بَنَىٰهَا",
+  "grade": "لا",
+  "reason": "إن جعل بناها صلة للسماء، أي: التي بناها، فعلى هذا لا يوقف على بناها؛ لأن المسؤول عنه إنما هو: عن أنتم والسماء، لا عن أشد، وجملة «بناها» ليست صفة للسماء؛ لأن الجملة لا تكون صفة للمعرفة",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "فَسَوَّىٰهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ضُحَىٰهَا",
+  "grade": "كاف",
+  "reason": "ثم استأنف قصة الأرض",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "دَحَىٰهَآ",
+  "grade": "جائز",
+  "reason": "لأن قوله: «أخرج» حال بإضمار «قد»",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "وَمَرۡعَىٰهَا",
+  "grade": "جائز",
+  "reason": "إن نصب «الجبال» بفعل مقدر، أي: وأرسى الجبال أرساها",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "أَرۡسَىٰهَا",
+  "grade": "كاف",
+  "reason": "أن نصب «متاعًا» بعامل مقدر، أي: متعكم متاعًا، وليس بوقف أن نصب على الحال مما قبله أو مفعولًا له",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "وَلِأَنۡعَٰمِكُمۡ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡكُبۡرَىٰ",
+  "grade": "لا",
+  "reason": "إن جعل جواب فإذا قوله: «فأما من طغى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "سَعَىٰ",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يَرَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "لا",
+  "reason": "لأن ما بعده جواب فأما",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱلۡمَأۡوَىٰ",
+  "grade": "كاف",
+  "reason": "الأولى كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "ٱلۡمَأۡوَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "مُرۡسَىٰهَا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده وهو «فيم» خبر مقدم، و «أنت» مبتدأ مؤخر",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "مِن ذِكۡرَىٰهَآ",
+  "grade": "جائز",
+  "reason": "وقيل: الوقف على قوله: «فيم» وهو خبر مبتدأ محذوف، أي: فيم هذا السؤال الذي يسألونه، ثم تبتدئ بقوله: «أنت من ذكراها»",
+  "reported_from": "الزمخشري"
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "مُنۡتَهَىٰهَآ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "يَخۡشَىٰهَا",
+  "grade": "جائز",
+  "reason": "قرأ العامة: «منذر من يخشاها» بإضافة الصفة لمعمولها تخفيفًا فـ «من» في محل جر بالإضافة، وعلى القراءة بالتنوين فـ «من» في محل نصب مفعولًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ضُحَىٰهَا",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

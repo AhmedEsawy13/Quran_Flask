@@ -1,0 +1,415 @@
+[
+ {
+  "ayah": 14,
+  "stop_phrase": "عَصِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "حَيّٗا",
+  "grade": "تام",
+  "reason": "«إذ» ظرف لما مضى لا يعمل فيه «اذكر»؛ لأنَّه مستقبل، بل التقدير: اذكر ما جرى لمريم وقت كذا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "شَرۡقِيّٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "حِجَابٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "سَوِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "مِنكَ",
+  "grade": "كاف",
+  "reason": "لأنَّ قوله: «إن كنت تقيًّا» شرطًا، وجوابه محذوف، دل عليه ما قبله، أي: فإني عائدة منك، أو فلا تتعرض لي، أو فستتعظ، وقيل: إنَّ تقيًّا كان رجلًا فاسقًا، فظنت أنَّه هو ذلك الرجل، فمن ذلك تعوذت منه، ويجوز أن تكون للمبالغة، أي: إن كنت تقيًّا، فإني أعوذ منك، فكيف إذا لم تكن كذلك، فعلى هذا لا يجوز الوقف على «منك»",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "تَقِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "زَكِيّٗا",
+  "grade": "كاف",
+  "reason": "مثله [أي: مثل «تَقِيًّا»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "بَغِيّٗا",
+  "grade": "كاف",
+  "reason": "كذا [أي: مثل «تَقِيًّا»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "هَيِّنٞ",
+  "grade": "جائز",
+  "reason": "إن جعلت اللام للقسم، وهو غير جيد؛ لأنَّ لام القسم لا تكون إلَّا مفتوحة، وليس بوقف إن جعلت (لام كي) معطوفة على تعليل محذوف، تقديره: لنبين به قدرتنا ولنجعله، وهو أوضح",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "مِّنَّاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "مَّقۡضِيّٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "قَصِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلنَّخۡلَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "هَٰذَا",
+  "grade": "جائز",
+  "reason": "مثله [أي: مثل الوقف على «النخلة»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "مَّنسِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "تَحۡزَنِي",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "سَرِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "جَنِيّٗا",
+  "grade": "كاف",
+  "reason": "وأباه بعضهم؛ لأنَّ ما بعده جواب الأمر، وهو قوله: «فكلي».",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "عَيۡنٗاۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل جواب الشرط «فقولي»، وبين هذا الجواب وشرطه جملة محذوفة تقديرها: فإما ترينّ من البشر أحدًا، فسألك الكلام فقولي، وبهذا المقدر يتخلص من إشكال وهو: أنَّ قولها «فلن أكلم اليوم إنسيًّا» كلام فيكون تناقضًا؛ لأنَّها كلمت إنسيًّا بكلام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "إِنسِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "تَحۡمِلُهُۥۖ",
+  "grade": "حسن",
+  "reason": "بمعنى: حاملة له.",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "فَرِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "سَوۡءٖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "بَغِيّٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "إِلَيۡهِۖ",
+  "grade": "كاف",
+  "reason": "كذا [أي: مثل «بَغِيًّا»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "صَبِيّٗا",
+  "grade": "كاف",
+  "reason": "مثله [أي: مثل «بَغِيًّا»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "نَبِيّٗا",
+  "grade": "جائز",
+  "reason": "مثله [أي: مثل الوقف على «الله»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "كُنتُ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "حَيّٗا",
+  "grade": "حسن",
+  "reason": "إن نصب «برًّا» بمقدر، أو على قراءة من قرأ : «وبِرًّا بوالدتي»، وعلى قراءة العامة : «وبرًّا» بالنصب عطفًا على «مباركًا» من حيث كونه رأس آية يجوز.",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "بِوَٰلِدَتِي",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "شَقِيّٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "حَيّٗا",
+  "grade": "تام",
+  "reason": "مثله [أي: مثل «شَقِيًّا»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "مَرۡيَمَۖ",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «قول الحق» بالنصب، وهو عاصم وحمزة وابن عامر ؛ على أنَّ قول مصدر مؤكد لمضمون الجملة، أي: هذا الإخبار عن عيسى ابن مريم ثابت صدق، فهو من إضافة الموصوف إلى الصفة، كقولهم: وعد الصدق، أي: الوعد الصدق، وكذا كافٍ؛ إن رفع «قول» على قراءة من قرأه برفع اللام ؛ على أنَّه خبر مبتدأ محذوف، أي: ذلك قول الحق، أو ذلك الكلام قول الحق، أو هو قول الحق، يراد به: عيسى ابن مريم لا ما تدعونه عليه، فليس هو بابن الله تعالى كما تزعم النصارى، ولا لغير رشدة كما تزعم اليهود، وليس بوقف إن رفع «قول» بدلًا من «عيسى»؛ لأنَّه لا يفصل بين البدل والمبدل منه بالوقف .",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "يَمۡتَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "سُبۡحَٰنَهُۥٓۚ",
+  "grade": "حسن",
+  "reason": "ولو وقف على «من ولد»، وابتدئ: بـ «سبحانه» كان الوقف حسنًا أيضًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "كُن",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "فَيَكُونُ",
+  "grade": "تام",
+  "reason": "لمن قرأ : «وإن الله» بكسر الهمزة؛ على الابتداء، أو خبر مبتدأ محذوف، أي: والأمر أنَّ الله، قاله الكسائي. وليس بوقف لمن قرأ : بفتحها، عطفًا على الصلاة، فتكون «إن» في موضع خفض بإضمار الجار، أي: وأوصاني بالصلاة وبالزكاة وبأنَّ الله ربي؛ فعلى هذا لا يوقف على «فيكون» ولا على ما بين أول القصة إلى هنا، إلاَّ على سبيل التسامح لطول الكلام، وقياس سيبويه: أنَّ هذه الآية تكون من المقدم والمؤخر، فتكون «أن» منصوبة بقوله: «فاعبدوه»؛ فكأنَّه قال: فاعبدوا الله؛ لأنَّه ربي وربكم، أو نصب «إن» عطفًا على قوله: «إذا قضى أمرًا»، أي: وقضى بأنَّ الله ربي وربكم، فتكون «أن» في محل نصب.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "فَٱعۡبُدُوهُۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "مُّسۡتَقِيمٞ",
+  "grade": "تام",
+  "reason": "مثله [أي: مثل «فَاعْبُدُوهُ»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "بَيۡنِهِمۡۖ",
+  "grade": "حسن",
+  "reason": "لأنَّ ما بعده مبتدأ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "عَظِيمٍ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "يَأۡتُونَنَا",
+  "grade": "لا",
+  "reason": "تجاوزه أجود؛ للاستدراك بعده، ولجواز الوقف مدخل لقوم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "مُّبِينٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱلۡأَمۡرُ",
+  "grade": "حسن",
+  "reason": "ومثله: «وهم في غفلة»، وليس بوقف إن جعلا حالين من الضمير المستتر: «في ضلال مبين»، أي: استقروا في ضلال مبين، على هاتين الحالتين السيئتين، وكذا إن جعلا حالين من مفعول «أنذرهم»، أي: أنذرهم على هذه الحالة وما بعدها، وعلى الأول يكون قوله: «وأنذرهم» اعتراضًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "غَفۡلَةٖ",
+  "grade": "حسن",
+  "reason": "ومثله: «إِذْ قُضِيَ الْأَمْرُ»",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "عَلَيۡهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يُرۡجَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "إِبۡرَٰهِيمَۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "نَّبِيًّا",
+  "grade": "كاف",
+  "reason": "إن علق «إذ» بـ «اذكر» مقدرًا، وليس بوقف إن جعل «إذ» منصوبًا بـ «كان» أو «صديقًا»، أي: كان جامعًا لمقام الصديقين والأنبياء حين خاطب أباه بتلك المخاطبات.",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "يَأۡتِكَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "سَوِيًّا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلشَّيۡطَٰنَۖ",
+  "grade": "كاف",
+  "reason": "ومثله: «سويًّا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "عَصِيًّا",
+  "grade": "كاف",
+  "reason": "وكذا [أي: مثل «سويًّا»]",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "وَلِيّٗا",
+  "grade": "كاف",
+  "reason": "وكذا [أي: مثل «سويًّا»]، وقال بعضهم: ليس «وليًّا» بوقف، وإنَّما الوقف عن «آلهتي» [آية 46]، وقال بعضهم: الوقف على «إبراهيم» [آية 46]",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,359 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ءَايَٰتِنَآۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡبَصِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "وَكِيلٗا",
+  "grade": "كاف",
+  "reason": "لمن قرأ : «تتخذوا» بالفوقية، وما بعده منصوب بأعني، أو بتقدير النداء، أي: يا ذرية من حملنا؛ لأنَّه يصير في الثلاث منقطعًا عما قبله، وليس بوقف لمن قرأه : بالتحتية ونصب «ذريةً» مفعولًا ثانيًا؛ ليتخذوا، وكذا ليس بوقف لمن نصب «ذرية» بقوله: «أن لا تتخذوا»، أو رفع «ذرية» بدلًا من الضمير في «يتخذوا» على قراءته بالتحتية، وكان وقفه على ذلك «مع نوح».",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "شَكُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "كَبِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلدِّيَارِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "مَّفۡعُولٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "نَفِيرًا",
+  "grade": "كاف",
+  "reason": "ومثله «نفيرًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "لِأَنفُسِكُمۡۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "فَلَهَاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "أَوَّلَ مَرَّةٖ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده موضعه نصب بالنسق على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "تَتۡبِيرًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "أَن يَرۡحَمَكُمۡۚ",
+  "grade": "كاف",
+  "reason": "أكفى؛ للابتداء بعده بالشرط. والمعنى: إن تبتم وانزجرتم عن المعاصي فعسى ربكم أن يرحمكم، وإن عدتم إلى المعصية مرَّة ثالثة عدنا إلى العقوبة .",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "عُدۡنَاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "حَصِيرًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "أَقۡوَمُ",
+  "grade": "كاف",
+  "reason": "لاستئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "كَبِيرٗا",
+  "grade": "لا",
+  "reason": "لعطف «وإن» على ما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "أَلِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "بِٱلۡخَيۡرِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "عَجُولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ءَايَتَيۡنِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "مُبۡصِرَةٗ",
+  "grade": "لا",
+  "reason": "لأنَّ بعده لام العلة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "وَٱلۡحِسَابَۚ",
+  "grade": "كاف",
+  "reason": "وانتصب «كل شيء» بفعل مضمر دل عليه ما بعده، كأنَّه قال: وفصلنا كل شيء فصلناه",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "تَفۡصِيلٗا",
+  "grade": "كاف",
+  "reason": "كالذي قبله؛ لأنَّ «كل» الثانية منصوبة بفعل مقدر أيضًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "عُنُقِهِۦۖ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «ويخرج» بالتحتية، أي: يخرج الطائر كتابًا، وهي قراءة أبي جعفر ، وكذا على قراءة: «ونخرج» بالنون مضارع أخرج، وبها قرأ أبو عمرو",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "مَنشُورًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "كِتَٰبَكَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "حَسِيبٗا",
+  "grade": "تام",
+  "reason": "للابتداء بعدُ بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "لِنَفۡسِهِۦۖ",
+  "grade": "جائز",
+  "reason": "والأولى وصله؛ لعطف جملتي الشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "عَلَيۡهَاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "أُخۡرَىٰۗ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنفي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "رَسُولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "مُتۡرَفِيهَا",
+  "grade": "جائز",
+  "reason": "لمن قرأ: «آمَرْنَا» بالمد والتخفيف، وهي قراءة الحسن، وقتادة، ويعقوب ؛ بمعنى: كثرنا. وكذا من قرأ: «أمّرنا» بالقصر والتشديد بمعنى: سلطنا من الإمارة، وهي قراءة أبي عثمان النهدي، وأبي العالية، ومجاهد، وهي شاذة ، وليس بوقف لمن قرأ: «أمَرْنَا» بالقصر والتخفيف، أي: أمرناهم بالطاعة فخالفوا، وهي قراءة العامة .",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "تَدۡمِيرٗا",
+  "grade": "كاف",
+  "reason": "ومثله: «من بعد نوح».",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "نُوحٖۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "بَصِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "نُّرِيدُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "جَهَنَّمَ",
+  "grade": "كاف",
+  "reason": "لأنَّ قوله: «يصلاها» يصلح مستأنفًا، أي: هو يصلاها، ويصلح حالًا من الضمير في «له»، أي: جعلنا جهنم له حال كونه صاليًا، قاله السجاوندي.",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "مَّدۡحُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "مُؤۡمِنٞ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب الشرط لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "مَّشۡكُورٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "نُّمِدُّ",
+  "grade": "جائز",
+  "reason": "على أن ما بعده مبتدأ، و «من عطاء ربك» الخبر، وليس بوقف إن جعل «هؤلاء وهؤلاء» بدلين من «كلًّا» بدل كل من كل على جهة التفصيل؛ فـ «من عطاء ربك» موصول بما قبله، والمعنى: يرزق المؤمن والكافر من عطاء ربك.",
+  "reported_from": "يعقوب"
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "رَبِّكَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مَحۡظُورًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "بَعۡضٖۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "تَفۡضِيلٗا",
+  "grade": "تام",
+  "reason": "ومثله «مخذولًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مَّخۡذُولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "إِيَّاهُ",
+  "grade": "كاف",
+  "reason": "لأنَّ قوله: «وبالوالدين إحسانًا» معه إضمار فعل تقديره: وأحسنوا بالوالدين إحسانًا، أو أوصيكم بالوالدين إحسانًا، وحذف هذا الفعل؛ لأنَّ المصدر يدل عليه، وليس بوقف إن جعل «وبالوالدين إحسانًا» معطوفًا على الأول، وداخلًا فيما دخل فيه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "إِحۡسَانًاۚ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡكِبَرَ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فلا تقل لهما أف» جواب الشرط؛ لأنَّ «إن» هي الشرطية زيدت عليها «ما» توكيدًا لها، فكأنَّه قال: إن بلغ أحدهما، أو كلاهما الكبر -فلا تقل لهما أف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "كِلَاهُمَا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فلا تقل لهما أف» جواب الشرط؛ لأنَّ «إن» هي الشرطية زيدت عليها «ما» توكيدًا لها، فكأنَّه قال: إن بلغ أحدهما، أو كلاهما الكبر -فلا تقل لهما أف.",
+  "reported_from": null
+ }
+]

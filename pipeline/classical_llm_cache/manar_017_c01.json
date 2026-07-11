@@ -1,0 +1,436 @@
+[
+ {
+  "ayah": 23,
+  "stop_phrase": "أُفّٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "تَنۡهَرۡهُمَا",
+  "grade": "حسن",
+  "reason": "لأنه مثله (أي مثل الوقف على أُفٍّ)",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "كَرِيمٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ٱلرَّحۡمَةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "صَغِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "نُفُوسِكُمۡۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "صَٰلِحِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب الشرط لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "غَفُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلسَّبِيلِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "تَبۡذِيرًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلشَّيَٰطِينِۖ",
+  "grade": "جائز",
+  "reason": "وقيل: كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "كَفُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "تَرۡجُوهَا",
+  "grade": "لا",
+  "reason": "لأنَّ جواب الشرط لم يأت بعد، وهو: «فقل لهم قولًا ميسورًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "مَّيۡسُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "عُنُقِكَ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب النهي لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلۡبَسۡطِ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب النهي لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "مَّحۡسُورًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "وَيَقۡدِرُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "بَصِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "إِمۡلَٰقٖۖ",
+  "grade": "جائز",
+  "reason": "ومثله «وإياكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "وَإِيَّاكُمۡۚ",
+  "grade": "جائز",
+  "reason": "مثله (أي مثل الوقف على إملاق)",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "كَبِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلزِّنَىٰٓۖ",
+  "grade": "جائز",
+  "reason": "وكذا «فاحشةً»",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "فَٰحِشَةٗ",
+  "grade": "جائز",
+  "reason": "وكذا (أي مثل الوقف على الزنى)",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "بِٱلۡحَقِّۗ",
+  "grade": "كاف",
+  "reason": "كاف عند أبي حاتم، وتام عند العباس بن الفضل",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "سُلۡطَٰنٗا",
+  "grade": "جائز",
+  "reason": "وقيل: كاف على قراءة من قرأ : «فلا تسرف» بالتاء الفوقية خطابًا للولي، أي: فلا تسرف أيها الولي، فتقتل من لم يقتل، أو في التمثيل بالقاتل، فعلى هذا التقدير لا يوقف على «سلطانًا»، بل على «في القتل»، وهو حسن.",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "ٱلۡقَتۡلِۖ",
+  "grade": "كاف",
+  "reason": "ومثله «منصورًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "مَنصُورٗا",
+  "grade": "كاف",
+  "reason": "ومثله (أي مثل الوقف على القتل)",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَشُدَّهُۥۚ",
+  "grade": "حسن",
+  "reason": "ومثله «بالعهد» على تقدير مضاف، أي: فإنَّ ذا العهد كان مسئولًا إن لم يف للمعاهد. وظاهر الآية أنَّ العهد هو المسئول من المعاهد أن يفي به ولا يضيعه",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "بِٱلۡعَهۡدِۖ",
+  "grade": "حسن",
+  "reason": "ومثله (أي مثل الوقف على أشدّه) على تقدير مضاف، أي: فإنَّ ذا العهد كان مسئولًا إن لم يف للمعاهد. وظاهر الآية أنَّ العهد هو المسئول من المعاهد أن يفي به ولا يضيعه",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "مَسۡـُٔولٗا",
+  "grade": "كاف",
+  "reason": "ومثله «المستقيم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡمُسۡتَقِيمِۚ",
+  "grade": "كاف",
+  "reason": "ومثله (أي مثل الوقف على مسئولاً)",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "تَأۡوِيلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "عِلۡمٌۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "مَسۡـُٔولٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "مَرَحًاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "طُولٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "حسن",
+  "reason": "على قراءة من قرأ : «سيئَةً» بالتأنيث والنصب، وجعله خبر كان، وينصب «مكروهًا» بفعل مقدر تقديره: وكان مكروهًا، ففصل بينهما؛ لئلا يتوهم أنَّه نعت لما قبله، وليس بوقف إن جعل «مكروهًا» خبرًا ثانيًا، وأما من قرأ: «سيئُهُ» بالرفع والتذكير؛ على أنَّه اسم كان، و «مكروهًا» الخبر -فالوقف عليه كاف، وبها قرأ ابن عامر، وعليها فلا يوقف على «سيئه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱلۡحِكۡمَةِۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ءَاخَرَ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب النهي لم يأت",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "مَّدۡحُورًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "إِنَٰثًاۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "عَظِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "لِيَذَّكَّرُواْ",
+  "grade": "جائز",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "نُفُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "يَقُولُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «إذًا لابتغوا» جواب «لو»",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "حسن",
+  "reason": "ومثله «كبيرًا» على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "كَبِيرٗا",
+  "grade": "حسن",
+  "reason": "ومثله (أي مثل الوقف على سبيلاً) على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "فِيهِنَّۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "بِحَمۡدِهِۦ",
+  "grade": "لا",
+  "reason": "لتعلق ما بعده به استدراكًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "تَسۡبِيحَهُمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "غَفُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مَّسۡتُورٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "وَقۡرٗاۚ",
+  "grade": "حسن",
+  "reason": "وقيل: كاف؛ للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "نُفُورٗا",
+  "grade": "تام",
+  "reason": "ومثله «مسحورًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "مَّسۡحُورًا",
+  "grade": "تام",
+  "reason": "ومثله (أي مثل الوقف على نفوراً)",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "فَضَلُّواْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "سَبِيلٗا",
+  "grade": "كاف",
+  "reason": "ومثله «جديدًا» على استئناف ما بعده، وجائز إن علق ما بعده بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "جَدِيدٗا",
+  "grade": "كاف",
+  "reason": "ومثله (أي مثل الوقف على سبيلاً) على استئناف ما بعده، وجائز إن علق ما بعده بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "حَدِيدًا",
+  "grade": "لا",
+  "reason": "لأنَّ «أو خلقًا» منصوب بالعطف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "صُدُورِكُمۡۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ }
+]

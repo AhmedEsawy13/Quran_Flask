@@ -1,0 +1,205 @@
+[
+ {
+  "ayah": 80,
+  "stop_phrase": "ٱلۡمَوَٰتَىٰ",
+  "grade": "لا",
+  "reason": "ليس بوقف، لمن قرأ: «تُسمِع» الثانية بالفوقية المضمومة وكسر الميم، و «الصمَّ» بالنصب؛ لأنَّ ما بعده معطوف على ما قبله من الخطاب، ومن قرأ: «يَسمَع» بالتحتية المفتوحة وفتح الميم، ورفع: «الصمُّ» كان حسنًا .",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "مُّدۡبِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "ضَلَٰلَتِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "بِـَٔايَٰتِنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "مُّسۡلِمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "تُكَلِّمُهُمۡ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «إنَّ الناس» بكسر الهمزة على الاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "ظَلَمُواْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "يَنطِقُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "مُبۡصِرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "إن نصب «يوم» بفعل مضمر، وإن عطف على «ويوم نحشر» لا يوقف من «يوم» الأول إلى «يوم» الثاني؛ لاتصال الكلام بعضه ببعض.",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "دَٰخِرِينَ",
+  "grade": "تام",
+  "reason": "ومثله: «داخرين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "ٱلسَّحَابِ",
+  "grade": "حسن",
+  "reason": "ثم يبتدئ: «صنع الله»، والعامل فيه مضمر، أي: صنع الله ذلك صنعًا، ثم أضيف إلى فاعله بعد حذف عامله، وقيل: منصوب على الإغراء، أي: انظروا صنع الله عليكم، ومن قرأ : «صنعُ الله» بالرفع، خبر مبتدأ محذوف تقديره: ذلك صنع الله، كان الوقف على «السحاب» أحسن.",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "شَيۡءٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "تَفۡعَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "مِنۡهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "ءَامِنُونَ",
+  "grade": "كاف",
+  "reason": "والأَوْلَى الفصل بين الفريقين، ولا يخلط أحدهما مع الآخر.",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "حسن",
+  "reason": "للابتداء بالاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "حَرَّمَهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "شَيۡءٖ",
+  "grade": "حسن",
+  "reason": "ومثله: «كل شيء»",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "ٱلۡمُسۡلِمِينَ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأنَّ «أن» بعده موضعها نصب بالعطف؛ على «أنَّ» الأُولى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "ٱلۡقُرۡءَانَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "لِنَفۡسِهِۦ",
+  "grade": "جائز",
+  "reason": "لا يوقف على أحد المتعادلين حتى يؤتى بالثاني.",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "ٱلۡمُنذِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "لِلَّهِ",
+  "grade": "جائز",
+  "reason": "لأنَّ الابتداء بالسين من مقتضيات الابتداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "فَتَعۡرِفُونَهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

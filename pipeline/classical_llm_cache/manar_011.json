@@ -1,0 +1,338 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "الٓرۚ",
+  "grade": "تام",
+  "reason": "إن جعل «كتاب» خبر مبتدأ محذوف تقديره: هذا كتاب ... وكذا إن جعل «كتاب» مبتدأ حذف خبره، وليس بوقف إن جعل «الر» مبتدأ، و «كتاب» خبره؛ لأنَّه لا يفصل بين المبتدأ وخبره بالوقف، وكذا إن جعلت «الر» مقسمًا بها، وما بعدها جواب.",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "خَبِيرٍ",
+  "grade": "كاف",
+  "reason": "إن رفع ما بعده مبتدأ، وليس بوقف إن نصب تفسيرًا لما قبله، أو جر كما تقدم",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "إِلَّا ٱللَّهَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "فَضۡلَهُۥۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بعده بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "كَبِيرٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مَرۡجِعُكُمۡۖ",
+  "grade": "صالح",
+  "reason": "لاحتمال الواو بعده للحال، والاستئناف",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "مِنۡهُۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ثِيَابَهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ عامل «حين» قوله بعدُ «يعلم»، أي: ألا يعلم سرَّهم وعلنهم حين يفعلون كذا",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "وَمَا يُعۡلِنُونَۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلصُّدُورِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "رِزۡقُهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "وَمُسۡتَوۡدَعَهَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "مُّبِينٖ",
+  "grade": "تام",
+  "reason": "أي: في اللوح المحفوظ قبل أن يخلقها",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "عَمَلٗاۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "مُّبِينٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "يَحۡبِسُهُۥٓۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "عَنۡهُمۡ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "يَسۡتَهۡزِءُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "كَفُورٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "عَنِّيٓۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "فَخُورٌ",
+  "grade": "كاف",
+  "reason": "على أنَّ الاستثناء منقطع بمعنى: لكن الذين صبروا، فـ «الذين» مبتدأ، والخبر «أولئك لهم مغفرة»، وهو قول الأخفش، وقال الفراء: هو متصل، وعليه فلا يوقف على «فخور»، بل على «الصالحات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلصَّٰلِحَٰتِ",
+  "grade": "لا",
+  "reason": "على قول الأخفش لا يوقف على «الصالحات»؛ لفصله بين المبتدأ وخبره",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "كَبِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "مَلَكٌۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "نَذِيرٞۚ",
+  "grade": "حسن",
+  "reason": "أحسن منه [أي من الوقف على ملك]",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "وَكِيلٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "ٱفۡتَرَىٰهُۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "صَّٰدِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لاتساق الكلام ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "مُّسۡلِمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "يُبۡخَسُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱلنَّارُۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "فِيهَا",
+  "grade": "حسن",
+  "reason": "أحسن منه، على قراءة من رفع: «وباطلٌ» على الاستئناف... وليس بوقف على قراءة ابن مسعود، وأنس بالنصب، وكذا ليس وقفًا لمن قرأ وبطل بالفتح.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مِنۡهُ",
+  "grade": "كاف",
+  "reason": "وقيل: تام، أي: ويتلو القرآن شاهد من الله تعالى، وهو جبريل، وهذا على قراءة العامة برفع «كتابُ»",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "بِهِۦۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مَوۡعِدهُۥۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "مِنۡهُۚ",
+  "grade": "حسن",
+  "reason": "على قراءة: «إنه» بكسر الهمزة، وليس بوقف لمن فتحها",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "لا",
+  "reason": "وصله؛ لحرف الاستدراك بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "كَذِبًاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "كاف",
+  "reason": "الأول كاف، على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "رَبِّهِمۡۚ",
+  "grade": "لا",
+  "reason": "على قوله [أي ابن جرير] لا يوقف على «الظالمين»؛ لأنَّ الله إنما لعن الظالمين الذين وصفهم خاصة بقوله: «الذين يصدون عن سبيل الله» الآية",
+  "reported_from": "محمد بن جرير"
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "كَٰفِرُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلۡأَرۡضِ",
+  "grade": "حسن",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "أَوۡلِيَآءَۘ",
+  "grade": "تام",
+  "reason": "عند نافع، وكذا «العذاب» ... وقيل: «ما» بمعنى: الذي، ومعها حرف جرٍّ محذوف ... وعلى هذا لا يوقف على «العذاب»",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلۡعَذَابُۚ",
+  "grade": "تام",
+  "reason": "عند نافع، ثم يبتدأ: «ما كانوا يستطيعون السمع...» ... وقيل: «ما» بمعنى: الذي، ومعها حرف جرٍّ محذوف ... وعلى هذا لا يوقف على «العذاب»",
+  "reported_from": "نافع"
+ }
+]

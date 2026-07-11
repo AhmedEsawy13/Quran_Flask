@@ -1,0 +1,240 @@
+[
+ {
+  "ayah": 2,
+  "stop_phrase": "فَـَٔامَنَّا بِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "كاف",
+  "reason": "لمن قرأ «وإنَّه» بالكسر، وليس بوقف فيهما لمن قرأه بالفتح؛ بمعنى: قل أوحي إليَّ أنَّه استمع، وأنَّه تعالى جدُّ ربنا، إلى آخرها، وملخصه: ما كان بمعنى القول كسر، وما كان بمعنى الوحي فتح",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "وَلَا وَلَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "شَطَطٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "كَذِبٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "رَهَقٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "وَشُهُبٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "رَّصَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "رَشَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "قِدَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "هَرَبٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَلَا رَهَقٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "رَشَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "حَطَبٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "غَدَقٗا",
+  "grade": "لا",
+  "reason": "لتعلق اللام",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "فِيهِۚ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "صَعَدٗا",
+  "grade": "كاف",
+  "reason": "على قراءة من قرأ و «إنَّه بكسر» الهمزة، وليس بوقف لمن فتحها عطفًا على ما قبلها، أي: فلا تدعوا مع الله أحدًا لأنَّ المساجد لله",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «وإنَّه» بالكسر، وليس بوقف لمن عطفه على «وأنَّ المساجد»",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "لِبَدٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "أَدۡعُواْ رَبِّي",
+  "grade": "لا",
+  "reason": "لاتساق ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "رَشَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "أَحَدٞ",
+  "grade": "لا",
+  "reason": "لاتساق ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "مُلۡتَحَدًا",
+  "grade": "لا",
+  "reason": "للاستثناء",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "وَرِسَٰلَٰتِهِۦۚ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "أَبَدًا",
+  "grade": "كاف",
+  "reason": "إن علقت «حتى» بمحذوف، أو جعلت حرف ابتداء يصلح أن يجيء بعدها المبتدأ والخبر، ومع ذلك فيها معنى الغاية، فهي متعلقة بقوله: «لبدًا»، أي: يكونون متظاهرين حتى إذا رأوا العذاب فسيعلمون عند حلوله من أضعف ناصرًا وأقل عددًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "عَدَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "أَمَدًا",
+  "grade": "كاف",
+  "reason": "إن رفع «عالم الغيب» خبر مبتدأ محذوف، أي: هو عالم، وليس بوقف إن جعل نعتًا لـ «ربي» أو بدلًا منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "رَّسُولٖ",
+  "grade": "لا",
+  "reason": "للاستثناء ومنهم من جعل «إلا» بمعنى: الواو، وأن التقدير: فلا يظهر على غيبه أحدًا ومن ارتضى من رسول فإنَّه يسلك. قاله الهمداني، وهو يفيد نفي إطلاع الرسل على غيبه؛ لأنَّ غيبه مفرد مضاف فيعم كل فردٍ فرد من المخلوقات، إذا الغيوب كلها لم يطلع عليها أحدٌ من خلقه، وهو مخالف للآية، ومفاد الآية على أنَّه متصل، فلا يظهر على غيبه المخصوص أحدًا إلَّا من ارتضى من رسول",
+  "reported_from": "الهمداني"
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "رَصَدٗا",
+  "grade": "لا",
+  "reason": "لتعلق اللام",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "لَدَيۡهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "عَدَدَۢا",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

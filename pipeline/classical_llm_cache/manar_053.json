@@ -1,0 +1,394 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "هَوَىٰ",
+  "grade": "لا",
+  "reason": "قسمٌ، وجوابه: «ما ضلَّ صاحبكم وما غوى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلۡهَوَىٰٓ",
+  "grade": "كاف",
+  "reason": "لأنَّ «وما ينطق عن الهوى» داخل في القسم، وواقع عليه، وهو كاف إن جعل ما بعده مستأنفًا، وليس بوقف إن جعل «إن هو» بدلًا من قوله «ما ضلَّ صاحبكم»",
+  "reported_from": "الأخفش وغيره"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "يُوحَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱلۡقُوَىٰ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده من نعته",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "مِرَّةٖ",
+  "grade": "كاف",
+  "reason": "لأنَّه نعت «شديد القوى»، ثم تبتدئ: «فاستوى» كذا عند بعضهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "فَسْتَوَىٰ",
+  "grade": "لا",
+  "reason": "على قول الكوفيين؛ لأنَّ فيه العطف على الضمير المرفوع المتصل من غير تأكيد بالمنفصل، والمعنى: أنَّ جبريل استوى مع محمد بالأفق الأعلى. وهو ضعيف",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلۡأَعۡلَىٰ",
+  "grade": "كاف",
+  "reason": "يجوز أن جعل «وهو» مبتدأ، و «بالأفق» خبر",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "فَتَدَلَّىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "أَدۡنَىٰ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "أَوْحَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "رَأَىٰٓ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل: فأوحى إلى عبده ما أوحى)",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "يَرَىٰ",
+  "grade": "كاف",
+  "reason": "كذا (أي مثل: فأوحى إلى عبده ما أوحى)",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "أُخۡرَىٰ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «سدرة المنتهى» ظرف للرؤية",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱلۡمَأۡوَىٰٓ",
+  "grade": "لا",
+  "reason": "لأنَّ «إذ يغشى» ظرف لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "يَغۡشَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "طَغَىٰ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل: إذ يغشى السدرة ما يغشى)",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡكُبۡرَىٰٓ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "وَٱلۡعُزَّىٰ",
+  "grade": "لا",
+  "reason": "لأنَّ {وَمَنَاةَ} منصوب بالعطف على «العُزَّى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلۡأُخۡرَىٰٓ",
+  "grade": "حسن",
+  "reason": "وقيل: تام للابتداء بالاستفهام الإنكاري",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "ٱلۡأُنثَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "ضِيزَىٰٓ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل: ألكُمُ الذَّكر وله الأنثى)، وقيل: تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "وَءَابَآؤُكُم",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "سُلۡطَٰنٍۚ",
+  "grade": "حسن",
+  "reason": "مثله (أي مثل: سميتموها أنتم وآباؤكم)",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡأَنفُسُۖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡهَدَىٰٓ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده متصلًا بقوله: «وما تهوى الأنفس»، أي: أبل للإنسان ما تمنى، أي: ليست الأشياء بالتمني، بل الأمر لله تعالى",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "تَمَنَّىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "وَٱلۡأُولَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "وَيَرۡضَىٰٓ",
+  "grade": "تام",
+  "reason": "مثله (أي مثل: فللّهِ الآخرةُ والأُولى)",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "ٱلۡأُنثَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "عِلۡمٍۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلظَّنَّۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "حسن",
+  "reason": "مثله (أي مثل: إن يتبعون إلا الظن)",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱلۡعِلۡمِۚ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل: إلا الحياة الدنيا)",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱهۡتَدَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡأَرۡضِ",
+  "grade": "تام",
+  "reason": "على أنَّ اللام متعلقة بمحذوف، تقديره: فهو يضل من يشاء ويهدي من يشاء ليجزي الذين أسائوا بما عملوا، وقال السمين: اللام للصيرورة، أي: عاقبة أمرهم جميعًا للجزاء بما عملوا",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "بِٱلۡحُسۡنَى",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده بدل مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱللَّمَمَۚ",
+  "grade": "كاف",
+  "reason": "على أنَّ الاستثناء منقطع؛ لأنَّه لم يدخل تحت ما قبله، وهو: صغار الذنوب، وقيل: متصل؛ لأنَّ ما بعده متصل بما قبله، والمعنى عند المفسرين: إن ربك واسع المغفرة لمن أتى اللمم",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱلۡمَغۡفِرَةِۚ",
+  "grade": "تام",
+  "reason": "ولا يوقف على «بكم» ولا على «من الأرض»",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "أُمَّهَٰتِكُمۡۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "أَنفُسَكُمۡۖ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله (أي أحسن من الوقف على: أمهاتكم)",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "ٱتَّقَىٰٓ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "وَأَكْدَىٰٓ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "يَرَىٰٓ",
+  "grade": "كاف",
+  "reason": "مثله (أي مثل: وأعطى قليلًا وأكدى)، ولا يوقف هنا؛ لأنَّ «أم» في قوله: «أم لم ينبأ»، هي «أم» العاقبة لألف الاستفهام؛ كأنَّه قال: أيعلم الغيب أم لم يخبر بما في صحف موسى",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "مُوسَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "وَفَّىٰٓ",
+  "grade": "كاف",
+  "reason": "على استئناف سؤال كأنَّ قائلًا قال: وما في صحفهما؟ فأجيب ألّا تزر وازرة وزر أخرى، وجائز: إن جعل ما بعده بدلًا من «ما» في قوله: «بما في صحف»، وكذا لا وقف إن جعل ما بعده في محل نصب، والعامل فيه «ينبأ»؛ فعلى هذين التقديرين لا يوقف على «وفّي»",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "قَبۡلُۖ",
+  "grade": "جائز",
+  "reason": "وقيل: يوقف على رأس كل آية، وإن كان البعض معطوفًا على البعض؛ لأنَّ الوقف على رؤوس الآيات سنة",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "وَأَطۡغَىٰ",
+  "grade": "جائز",
+  "reason": "لمن رفع «والمؤتفكة»، أو نصبها بـ «أهوى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "أَهۡوَىٰ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "غَشَّىٰ",
+  "grade": "حسن",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "تَتَمَارَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱلۡأُولَىٰٓ",
+  "grade": "تام",
+  "reason": "مثله (أي مثل: فبأي آلاء ربك تتمارى)",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "ٱلۡأٓزِفَةُ",
+  "grade": "تام",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل حالًا، أي: أزفت الآزفة غير مكشوفة",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "كَاشِفَةٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "سَٰمِدُونَ",
+  "grade": "تام",
+  "reason": "أي: لاهون، وقيل: الحزين",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "وَٱعۡبُدُواْ۩",
+  "grade": "تام",
+  "reason": "آخر السورة",
+  "reported_from": null
+ }
+]

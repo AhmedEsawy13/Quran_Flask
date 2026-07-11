@@ -1,0 +1,499 @@
+[
+ {
+  "ayah": 36,
+  "stop_phrase": "مُنقَلَبٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "تُرَابٖ",
+  "grade": "لا",
+  "reason": "لأنَّ ثم للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "رَجُلٗا",
+  "grade": "كاف",
+  "reason": "لتمام الاستفهام، ولكن إن تلتها جملة صلح الابتداء بها على بعد، وإذا تلاها مفرد كانت عاطفة، فلا يصلح الابتداء بها، وهنا تلتها جملة",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "بِٱللَّهِ",
+  "grade": "حسن",
+  "reason": "لتمام المقول",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "وَلَدٗا",
+  "grade": "جائز",
+  "reason": "وجواب: «إنّ» محذوف، تقديره: إن ترني أنا أقل منك مالًا وولدًا تحتقرني لقلة المال، مع اتحاد القائل والمقول له",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "جَنَّتِكَ",
+  "grade": "لا",
+  "reason": "للعطف في كلٍّ، واتصال الكلام بعضه ببعض",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلسَّمَآءِ",
+  "grade": "لا",
+  "reason": "للعطف في كلٍّ، واتصال الكلام بعضه ببعض",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "زَلَقًا",
+  "grade": "لا",
+  "reason": "للعطف في كلٍّ، واتصال الكلام بعضه ببعض",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "طَلَبٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "بِثَمَرِهِۦ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "فِيهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "عُرُوشِهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "مُنتَصِرًا",
+  "grade": "تام",
+  "reason": "على استئناف الجملة بعده، وقطعها عما قبلها بأنَّ تقدر هنالك بجملة فعلية، و «الولاية» فاعل بالظرف قبلها، أي: استقرت الولاية لله، على رأي الأخفش من حيث أنَّ الظرف رفع الفاعل، من غير اعتماد على نفي، أو استفهام، ولا يوقف على «من دون الله» ولا على «منتصرًا» إن جعل «هنالك» من تتمة ما قبله، أي: ولم تكن له فئة ينصرونه من دون الله هنالك، والابتداء بقوله: الولاية لله، فتكون جملة من مبتدأ وخبر، أي: في تلك الحالة يتبين نصر الله وليه",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ٱلۡحَقِّ",
+  "grade": "تام",
+  "reason": "لمن رفعه، وهو: أبو عمرو والكسائي، ورفعه من ثلاثة أوجه، أحدها: أنَّه صفة للولاية، الثاني: أنه خبر مبتدأ محذوف، أي: هو أي ما أوحيناه إليك الحق، الثالث: أنَّه مبتدأ، وخبره محذوف، أي: الحق ذلك، وحسن لمن جره صفة للجلالة",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ثَوَابٗا",
+  "grade": "لا",
+  "reason": "لعطف «وخير» على «خير» الأول",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "عُقۡبٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "ٱلرِّيَٰحُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مُّقۡتَدِرًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "كاف",
+  "reason": "فصلاً بين المعجل الفاني، والمؤجل الباقي، مع اتفاق الجملتين لفظاً",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "خَيۡرٌ",
+  "grade": "لا",
+  "reason": "لتعلق الظرف بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "أَمَلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بَارِزَةٗ",
+  "grade": "لا",
+  "reason": "لأنَّ التقدير: وقد حشرناهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "صَفّٗا",
+  "grade": "جائز",
+  "reason": "لأنَّ «بل» قد يبتدأ بها مع أنّ الكلام متحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "مَرَّةِۭ",
+  "grade": "جائز",
+  "reason": "لأنَّ «بل» قد يبتدأ بها مع أنّ الكلام متحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "مَّوۡعِدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "فِيهِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "أَحۡصَىٰهَا",
+  "grade": "كاف",
+  "reason": "لاستئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "حَاضِرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "أَحَدٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "إِبۡلِيسَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "رَبِّهِۦٓ",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "دُونِي",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "عَدُوُّۢ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "بَدَلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "أَنفُسِهِمۡ",
+  "grade": "حسن",
+  "reason": "ومن قرأ: «وما كنتَ» بفتح الفوقية، كان أحسن، وبها قرأ الحسن والجحدري وأبو جعفر خطابًا للنَّبيّ - صلى الله عليه وسلم - ، وقرأ العامة: بضمها",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "عَضُدٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "لَهُمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مَّوۡبِقٗا",
+  "grade": "كاف",
+  "reason": "أي: سجنًا، وقال عكرمة: (نهر في النار يسيل نارًا، على حافته حيَّات مثل البغال الدهم، فإذا ثارت لتأخذهم! استغاثوا بالاقتحام في النار منها) ، وأصل الموبق: الهلاك",
+  "reported_from": "عكرمة"
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "مُّوَاقِعُوهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "مَصۡرِفٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "مَثَلٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "جَدَلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "قُبُلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "وَمُنذِرِينَۚ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱلۡحَقَّۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "هُزُوًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "يَدَاهُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "وَقۡرٗاۖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "أَبَدٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلرَّحۡمَةِۖ",
+  "grade": "كاف",
+  "reason": "عند أبي عمرو",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلۡعَذَابَۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "مَّوۡعِدٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "مَوۡئِلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "ظَلَمُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "مَّوۡعِدٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "حُقُبٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "حُوتَهُمَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "سَرَبٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "غَدَآءَنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "نَصَبٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلۡحُوتَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلشَّيۡطَٰنُ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «أن أذكره» بدل من الهاء في «أنسانيه» بدل ظاهر من مضمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "أَنۡ أَذۡكُرَهُۥۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلۡبَحۡرِ",
+  "grade": "كاف",
+  "reason": "إن جعل عجبًا من كلام موسى، ويقوي this خبر كان للحوت سربًا، ولموسى ولفتاه عجبًا؛ فكأنَّه قال: أعجب لسيره في البحر؟! قالوا: وكان مشويًا مأكولًا بعضه، فلذلك كان مضيه وذهابه عجبًا، وليس بوقف إن جعل من تتمة كلام يوشع؛ لأنَّ ذلك كلام واحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "عَجَبٗا",
+  "grade": "كاف",
+  "reason": "أي: أعجب لذلك عجبًا، فعجبًا منصوب على المصدرية",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "نَبۡغِۚ",
+  "grade": "حسن",
+  "reason": "حذف: نافع وأبو عمرو والكسائي الياء وقفًا، وأثبتوها وصلًا",
+  "reported_from": "نافع وأبو عمرو والكسائي"
+ }
+]

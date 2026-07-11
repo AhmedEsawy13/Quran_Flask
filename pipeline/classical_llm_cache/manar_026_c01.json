@@ -1,0 +1,765 @@
+[
+ {
+  "ayah": 59,
+  "stop_phrase": "إِسۡرَٰٓءِيلَ",
+  "grade": "لا",
+  "reason": "ليس بوقف لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "مُّشۡرِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "لَمُدۡرَكُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده جواب لما قبله؛ لأن موسى نفى الإدراك أصلًا؛ لأنَّ الله وعده النصر والخلاص منهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "سَيَهۡدِينِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلۡبَحۡرَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡأٓخَرِينَ",
+  "grade": "كاف",
+  "reason": "لأنه مثل الوقف على العظيم",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "أَجۡمَعِينَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "ٱلۡأٓخَرِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "لَأٓيَةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 68,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 69,
+  "stop_phrase": "إِبۡرَٰهِيمَ",
+  "grade": "تام",
+  "reason": "لأنَّه لو وصله لصار «إذ» ظرفًا لقوله: «واتل»، وهو محال؛ لأنَّ «إذ» ظرف لما مضى لا يعمل فيه «اتل»؛ لأنَّه مستقبل، وهو لا يعمل في الماضي، بل هو ظرف لمقدر، والتقدير: اذكر قصة إبراهيم، وما جرى له مع قومه، وليس بوقف إن جعل «إذ» بدلًا من «نبأ» بدل اشتمال",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "تَعۡبُدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "عَٰكِفِينَ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على تعبدون في الآية 70",
+  "reported_from": null
+ },
+ {
+  "ayah": 73,
+  "stop_phrase": "يَضُرُّونَ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على تعبدون في الآية 70",
+  "reported_from": null
+ },
+ {
+  "ayah": 74,
+  "stop_phrase": "يَفۡعَلُونَ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على تعبدون في الآية 70",
+  "reported_from": null
+ },
+ {
+  "ayah": 75,
+  "stop_phrase": "تَعۡبُدُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ «أنتم» توكيد واو الضمير",
+  "reported_from": null
+ },
+ {
+  "ayah": 76,
+  "stop_phrase": "ٱلۡأَقۡدَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "إن رفع الذي بالابتداء، وما بعده الخبر؛ كان الوقف على «العالمين» تامًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "كاف",
+  "reason": "إن رفع «الذي» خبر مبتدأ محذوف، أو نصب بتقدير: أعني؛ كان كافيًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "لا",
+  "reason": "وليس بوقف إن جعل «الذي» نعتًا لما قبله، أو بدلًا، أو عطف بيان",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "يَهۡدِينِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "وَيَسۡقِينِ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على يهدين في الآية 78",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "يَشۡفِينِ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على يهدين في الآية 78",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "يُحۡيِينِ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على يهدين في الآية 78",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على يهدين في الآية 78",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "بِٱلصَّٰلِحِينَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "ٱلۡأٓخِرِينَ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على بالصالحين في الآية 83",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "ٱلنَّعِيمِ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على بالصالحين في الآية 83",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "ٱلضَّآلِّينَ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على بالصالحين في الآية 83",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "سَلِيمٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "سَلِيمٖ",
+  "grade": "حسن",
+  "reason": "إن جعل كل جملة فيها ذكر الدعاء مسئلة قائمة بنفسها حسن الوقف على آخر كل آية من قوله: «رب هب لي حكمًا» إلى قوله: «بقلب سليم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "لِلۡمُتَّقِينَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "لِلۡغَاوِينَ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على للمتقين في الآية 90",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "تَعۡبُدُونَ",
+  "grade": "جائز",
+  "reason": "يوقف عليه بناء على أنَّ الجار والمجرور الذي بعده متعلق بمحذوف، أي: هل ينصرونكم من دون الله، أو يكون في الكلام تقديم وتأخير",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "تَعۡبُدُونَ",
+  "grade": "لا",
+  "reason": "إن جعل متعلقًا بما قبله لم يوقف عليه",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "يَنتَصِرُونَ",
+  "grade": "تام",
+  "reason": "لتناهي الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "وَٱلۡغَاوُۥنَ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «وجنود إبليس» مرفوع عطفًا على «الغاوون»",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "أَجۡمَعُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "يَخۡتَصِمُونَ",
+  "grade": "لا",
+  "reason": "لأنَّ فيه الفصل بين القول والمقول؛ لأنَّ قوله: «تالله» مقولهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "مُّبِينٍ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «إذ نسوّيكم»، ظرف لما قبله؛ كأنَّهم قالوا ما كنا إلَّا في ضلال مبين، إذ عبدناكم فسوَّيناكم برب العالمين",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "ٱلۡمُجۡرِمُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "حَمِيمٖ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على المجرمون في الآية 99",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "لَأٓيَةٗۖ",
+  "grade": "حسن",
+  "reason": "مثل الوقف على المؤمنين في الآية 102",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "كاف",
+  "reason": "إن علق «إذ» بـ (اذكر) مقدرًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "جائز",
+  "reason": "إن جعل العامل في «إذ» ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على تتقون في الآية 106",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "أَجۡرٍۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "ٱلۡأَرۡذَلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 113,
+  "stop_phrase": "تَشۡعُرُونَ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على يعملون في الآية 112",
+  "reported_from": null
+ },
+ {
+  "ayah": 114,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على يعملون في الآية 112",
+  "reported_from": null
+ },
+ {
+  "ayah": 115,
+  "stop_phrase": "مُّبِينٞ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على يعملون في الآية 112",
+  "reported_from": null
+ },
+ {
+  "ayah": 116,
+  "stop_phrase": "ٱلۡمَرۡجُومِينَ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على يعملون في الآية 112",
+  "reported_from": null
+ },
+ {
+  "ayah": 117,
+  "stop_phrase": "كَذَّبُونِ",
+  "grade": "جائز",
+  "reason": "مثل الوقف على يعملون في الآية 112 والوصل فيه أولى للفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "فَتۡحٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 118,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ لأنَّه آخر كلام نوح، وآخر كلام قومه، وليس في قصة نوح وقف تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 119,
+  "stop_phrase": "ٱلۡمَشۡحُونِ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 120,
+  "stop_phrase": "ٱلۡبَاقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "لَأٓيَةٗۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 121,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 122,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "كاف",
+  "reason": "إن علق «إذ» بـ (اذكر) مقدرًا، ويكون من عطف الجمل",
+  "reported_from": null
+ },
+ {
+  "ayah": 123,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "جائز",
+  "reason": "إن علق بما قبله لكونه رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 124,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 125,
+  "stop_phrase": "أَمِينٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 126,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "أَجۡرٍۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 127,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 128,
+  "stop_phrase": "تَعۡبُثُونَ",
+  "grade": "لا",
+  "reason": "للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 129,
+  "stop_phrase": "تَخۡلُدُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 130,
+  "stop_phrase": "جَبَّارِينَ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على تخلدون في الآية 129",
+  "reported_from": null
+ },
+ {
+  "ayah": 131,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 132,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "جائز",
+  "reason": "لأنَّ الجملة الثانية بعده بيان وتفسير للأولى، أو أن قوله: «بأنعام»، بدل من قوله: «بما تعلمون»، وكلاهما يقتضي عدم الوقف، ومن حيث كونه رأس آية يجوز",
+  "reported_from": null
+ },
+ {
+  "ayah": 133,
+  "stop_phrase": "وَبَنِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده مجرور عطفًا على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 134,
+  "stop_phrase": "وَعُيُونٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 135,
+  "stop_phrase": "عَظِيمٖ",
+  "grade": "حسن",
+  "reason": "أحسن",
+  "reported_from": null
+ },
+ {
+  "ayah": 136,
+  "stop_phrase": "ٱلۡوَٰعِظِينَ",
+  "grade": "كاف",
+  "reason": "ولا كراهة في الابتداء بما بعده كما قاله بعضهم؛ لأنَّ هذا وما أشبهه غير معتقد للقارئ، وإنَّما هو حكاية قول قائليها حكاها الله عنهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 137,
+  "stop_phrase": "ٱلۡأَوَّلِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 138,
+  "stop_phrase": "بِمُعَذَّبِينَ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على الأولين في الآية 137",
+  "reported_from": null
+ },
+ {
+  "ayah": 139,
+  "stop_phrase": "فَأَهۡلَكۡنَٰهُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 139,
+  "stop_phrase": "لَأٓيَةٗۖ",
+  "grade": "حسن",
+  "reason": "مثل الوقف على فأهلكناهم في الآية 139",
+  "reported_from": null
+ },
+ {
+  "ayah": 139,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 140,
+  "stop_phrase": "ٱلرَّحِيمُ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر قصة",
+  "reported_from": null
+ },
+ {
+  "ayah": 141,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "كاف",
+  "reason": "إن علق «إذ» بـ (اذكر) مقدرًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 141,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "لا",
+  "reason": "ليس بوقف إن جعل العامل في «إذ» ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 142,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 143,
+  "stop_phrase": "أَمِينٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 144,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 145,
+  "stop_phrase": "أَجۡرٍۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 145,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 146,
+  "stop_phrase": "ءَامِنِينَ",
+  "grade": "جائز",
+  "reason": "وإن تعلق الجار والمجرور بما قبله لأنَّه رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 148,
+  "stop_phrase": "هَضِيمٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 149,
+  "stop_phrase": "فَٰرِهِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 150,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على فارهين في الآية 149",
+  "reported_from": null
+ },
+ {
+  "ayah": 151,
+  "stop_phrase": "ٱلۡمُسۡرِفِينَ",
+  "grade": "لا",
+  "reason": "لأن «الذين» بعده نعت للمسرفين",
+  "reported_from": null
+ },
+ {
+  "ayah": 152,
+  "stop_phrase": "يُصۡلِحُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 153,
+  "stop_phrase": "ٱلۡمُسَحَّرِينَ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على يصلحون في الآية 152",
+  "reported_from": null
+ },
+ {
+  "ayah": 154,
+  "stop_phrase": "مِّثۡلُنَا",
+  "grade": "كاف",
+  "reason": "مثل الوقف على يصلحون في الآية 152",
+  "reported_from": null
+ },
+ {
+  "ayah": 154,
+  "stop_phrase": "ٱلصَّٰدِقِينَ",
+  "grade": "كاف",
+  "reason": "مثل الوقف على يصلحون في الآية 152",
+  "reported_from": null
+ },
+ {
+  "ayah": 155,
+  "stop_phrase": "نَاقَةٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ }
+]

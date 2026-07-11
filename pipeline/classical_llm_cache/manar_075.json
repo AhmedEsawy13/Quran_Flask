@@ -1,0 +1,247 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "لَآ",
+  "grade": "حسن",
+  "reason": "وقيل: نافية لكلام تقدَّم عن الكفار من إنكار البعث، فقيل لهم: لا ليس الأمر كما زعمتم؛ فعلى هذا يحسن الوقف على «لا» وليس بوقف لمن جعلها زائدة",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "ٱللَّوَّامَةِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "عِظَامَهُۥ",
+  "grade": "كاف",
+  "reason": "بجعل «بلى» متعلقة بما بعدها، وقال أبو عمرو: والوقف على «بلى» كاف، والمعنى: بلى نجمعها قادرين",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "بَنَانَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "أَمَامَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱلۡبَصَرُ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذا» لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلۡقَمَرُ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذا» لم يأت بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱلۡمَفَرُّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "وَزَرَ",
+  "grade": "جائز",
+  "reason": "وقيل: كلًّا زجر عن طلب الفرار، وقال نافع وجماعة: الوقف «لا وزر»، أي: ملجأ ولا مهرب",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلۡمُسۡتَقَرُّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَأَخَّرَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "مَعَاذِيرَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "بِهِۦٓ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "وَقُرۡءَانَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "قُرۡءَانَهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "بَيَانَهُۥ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "كـَلَّا",
+  "grade": "لا",
+  "reason": "ولا يوقف على «كلَّا» هذه لأنّها ليست بمعنى: الردع والزجر، بل هي بمعنى: ألا التي للتنبيه فيبتدأ بها",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "ٱلۡأٓخِرَةَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "نَاظِرَةٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "بَاسِرَةٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "فَاقِرَةٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلتَّرَاقِيَ",
+  "grade": "لا",
+  "reason": "لعطف كل واحد على ما قبله، فلا يوقف على «التراقي» ولا على «من راق» ولا على «الفراق»",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "رَاقٖ",
+  "grade": "لا",
+  "reason": "لعطف كل واحد على ما قبله، فلا يوقف على «التراقي» ولا على «من راق» ولا على «الفراق»",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "ٱلۡفِرَاقُ",
+  "grade": "لا",
+  "reason": "لعطف كل واحد على ما قبله، فلا يوقف على «التراقي» ولا على «من راق» ولا على «الفراق»",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱلۡمَسَاقُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "صَلَّىٰ",
+  "grade": "لا",
+  "reason": "ولا يوقف على «صَلَّى» للاستدراك بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "وَتَوَلَّىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "يَتَمَطَّىٰٓ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "فَأَوْلَىٰٓ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "سُدًى",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "يُمۡنَىٰ",
+  "grade": "لا",
+  "reason": "لأنَّ «ثُمَّ» هنا لترتيب الفعل، فليس بوقف سواء قرئ: «تمنى» بالفوقية أو بالتحتية",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "فَسَوَّىٰ",
+  "grade": "لا",
+  "reason": "لمكان الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "وَٱلۡأُنثَىٰٓ",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلۡمَوۡتَىٰ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]

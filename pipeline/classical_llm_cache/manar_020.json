@@ -1,0 +1,436 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "طه",
+  "grade": "كاف",
+  "reason": "لمن جعلها اسمًا أو افتتاحًا للسورة، فتكون في موضع نصب بفعل مضمر، تقديره: اتل، أو اقرأ",
+  "reported_from": null
+ },
+ {
+  "ayah": 1,
+  "stop_phrase": "طه",
+  "grade": "لا",
+  "reason": "لمن فسّر «طه» بـ (يا إنسان) لاتصاله بما بعده، أو سكن الهاء بمعنى: طأ الأرض بقدميك، فهو فعل أمر، والهاء مفعول، أو للسكت، أو مبدلة من الهمزة، أي: قلبوا الهمزة هاء فصار «طه»، وليس «طه» بوقف إن جعل «طه» قسمًا، جوابه: «ما أنزلنا عليك القرآن لتشقى»، فلا يفصل بين القسم وجوابه",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "لِتَشۡقَىٰٓ",
+  "grade": "لا",
+  "reason": "للاستثناء بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "يَخۡشَىٰ",
+  "grade": "كاف",
+  "reason": "إن نصب ما بعده بفعل مقدر، أي: نزله تنزيلًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "يَخۡشَىٰ",
+  "grade": "لا",
+  "reason": "إن نصب «تنزيلًا» بدل اشتمال من «تذكرة»، أو جعل «تنزيلًا» حالًا لا مفعولًا له؛ لأنَّ الشيء لا يعلل بنفسه، إذ يصير التقدير: ما أنزلنا القرآن إلا للتنزيل",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡعُلَى",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "ٱسۡتَوَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلثَّرَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "وَأَخۡفَى",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "إِلَّا هُوَۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "ٱلۡحُسۡنَىٰ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "مُوسَىٰٓ",
+  "grade": "لا",
+  "reason": "لأنَّ «إذ» ظرف منصوب بما قبله، وهو: الإتيان",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "نَارٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱمۡكُثُوٓاْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "هُدٗى",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "يَٰمُوسَىٰٓ",
+  "grade": "حسن",
+  "reason": "لمن قرأ : «إنّي» بكسر الهمزة؛ بمعنى: القول، وهي تكسر بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "يَٰمُوسَىٰٓ",
+  "grade": "لا",
+  "reason": "لمن فتحها [أنّي]، وهي قراءة ابن كثير وأبي عمرو ، وموضعها رفع؛ لأنّه قام مقام الفاعل في: «نودي»، وحذف تعظيمًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "نَعۡلَيۡكَ",
+  "grade": "جائز",
+  "reason": "للابتداء بـ «إن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "طُوٗى",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَأَنَا ٱخۡتَرۡتُكَ",
+  "grade": "كاف",
+  "reason": "لمن قرأ: «وأنَا اخترتك» بالتخفيف ، فـ «أنا» مبتدأ",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَأَنَا ٱخۡتَرۡتُكَ",
+  "grade": "لا",
+  "reason": "على قراءة حمزة: «وأنَّا اخترنَاك» بفتح الهمزة، «وأنّا» بالتشديد عطفًا على (أن) بفتح الهمزة",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "يُوحَىٰٓ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «إنَّني أنا الله لا إله إلَّا أنا» بيان وتفسير للإبهام في «لما يوحى» فلا يفصل بين المفسِّر والمفسَّر",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "فَاعۡبُدۡنِي",
+  "grade": "جائز",
+  "reason": "وقيل: لا يجوز للعطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "لِذِكْرِيٓ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "تَسۡعَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "فَتَرۡدَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "يَٰمُوسَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "غَنَمِي",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "أُخۡرَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "يَٰمُوسَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "تَسۡعَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "ٱلۡأُولَىٰ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "ٱلۡأُولَىٰ",
+  "grade": "لا",
+  "reason": "إن عطف على «خذها»، وعليه فلا يوقف على «لا تخف» ولا على «الأولى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "أُخۡرَىٰ",
+  "grade": "جائز",
+  "reason": "إن أضمر فعل بعدها، أي: فعلنا ذلك لنريك من آياتنا، مفعول «لنريك»، والثاني: «الكبرى»، أو «من آياتنا» المفعول الثاني، و «الكبرى» صفة لـ «آياتنا»، وهو المختار",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ٱلۡكُبۡرَى",
+  "grade": "تام",
+  "reason": "لاستئناف الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "طَغَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "لِّسَانِي",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «يفقهوا قولي»، جواب قوله: «واحلل عقدة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "قَوۡلِي",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "أَهۡلِي",
+  "grade": "جائز",
+  "reason": "إن نصب «هارون» بفعل مقدر، أي: أخص هرون، وكذا يوقف على «أهلي» إن جعل «أخي» مبتدأ، و «اشدد» خبره. ويوقف على «أهلي» إن جعلت همزة «اشدد» همزة وصل",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "أَهۡلِي",
+  "grade": "لا",
+  "reason": "إن جعل «هارون» بدلًا من «وزيرًا»؛ وكذا لا يوقف على «أهلي» وكذا «أخي» على قراءة ابن عامر : «أشدد» بفتح همزة المتكلم، وجزم الفعل جوابًا للأمر في قوله: «واجعل لي وزيرًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "أَزۡرِي",
+  "grade": "حسن",
+  "reason": "على قراءة غير ابن عامر؛ وذلك أنّ «وأشركه» دعاء ثان فالوقف فاصل بين الدعوتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "أَزۡرِي",
+  "grade": "لا",
+  "reason": "على قراءة ابن عامر؛ لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "كَثِيرًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "بَصِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "يَٰمُوسَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "أُخۡرَىٰٓ",
+  "grade": "لا",
+  "reason": "للتعليل بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "يُوحَىٰٓ",
+  "grade": "لا",
+  "reason": "لأنَّ: «أن اقذفيه» تفسير: «ما يوحى» فلا يفصل بين المفسِّر والمفسَّر، أو «أن» مصدرية ومحلها نصب بدل من «ما» في «ما يوحى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱلۡيَمِّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "بِٱلسَّاحِلِ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «يأخذه»، جواب الأمر، وهو قوله: «فليلقه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "وَعَدُوّٞ لَّهُۥۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "مَّنِّي",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله على قراءة الجمهور، «ولِتصنع» بكسر (لام كي) ونصب الفعل. ومن قرأ : «ولِتَصْنَعَ» بفتح التاء والنصب، أي: لتعمل أنت يا موسى بمرأى مني",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "عَيۡنِيٓ",
+  "grade": "جائز",
+  "reason": "لمن قرأ: «ولْتصنعْ» بسكون اللام والجزم، وقف على «عيني»، ولو وصله لصار «إذ» ظرفًا «لتصنع»، وليس بظرف له",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يَكۡفُلُهُۥۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "تَحۡزَنَۚ",
+  "grade": "كاف",
+  "reason": "لأنَّه آخر الكلام ورأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "فُتُونٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "يَٰمُوسَىٰ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "لِنَفۡسِي",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "بِـَٔايَٰتِي",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "ذِكۡرِي",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "طَغَىٰ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "لَّيِّنٗا",
+  "grade": "لا",
+  "reason": "لحرف الترجي بعده، وهو في التعلق كـ (لام كي)",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "يَخۡشَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ }
+]

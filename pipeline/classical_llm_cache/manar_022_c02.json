@@ -1,0 +1,436 @@
+[
+ {
+  "ayah": 44,
+  "stop_phrase": "مَدۡيَنَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "مُوسَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "أَخَذۡتُهُمۡ",
+  "grade": "حسن",
+  "reason": "للابتداء بالتهديد والتوبيخ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "نَكِيرِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "ظَالِمَةٞ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "عُرُوشِهَا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «وبئر معطلة» مجرور عطفًا على من «قرية» ولا يوقف على «معطلة»؛ لأنَّ قوله: «وقصر» مجرور عطفًا على «بئر».",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "مَّشِيدٍ",
+  "grade": "كاف",
+  "reason": "وقيل: تام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "يَسۡمَعُونَ بِهَا",
+  "grade": "جائز",
+  "reason": "وقيل: كاف؛ للابتداء بـ (إن) مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ٱلۡأَبۡصَٰرُ",
+  "grade": "لا",
+  "reason": "لأنَّ «لكن» لابد أن تقع بين متباينين، وهنا ما بعدها مباين لما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 46,
+  "stop_phrase": "ٱلصُّدُورِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "بِٱلۡعَذَابِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "وَعۡدَهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "تَعُدُّونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "أَخَذۡتُهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "تام",
+  "reason": "ومثله: «مبين» [في الآية 49]، وكذا «كريم» [في الآية 50].",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "مُعَٰجِزِينَ",
+  "grade": "لا",
+  "reason": "أي: مثبطين، ليس بوقف، وهكذا إلى «الجحيم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "ٱلۡجَحِيمِ",
+  "grade": "تام",
+  "reason": "لتناهي خبر «الذين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "نَبِيٍّ",
+  "grade": "لا",
+  "reason": "لأنَّ حرف الاستثناء بعده، وهو الذي به يصح معنى الكلام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "أُمۡنِيَّتِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "ءَايَٰتِهِۦ",
+  "grade": "كاف",
+  "reason": "ومثله: «حكيم» إن علقت اللام بعده بمحذوف، وليس بوقف إن علقت بـ «يحكم»، وحينئذ لا يوقف على «آياته»، ولا على «حكيم»، ولا على «مرض» لارتباط الكلام بما بعده؛ لأنَّ قوله: «والقاسية» مجرور عطفًا على «للذين في قلوبهم مرض».",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "قُلُوبُهُمۡ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "بَعِيدٖ",
+  "grade": "جائز",
+  "reason": "لكونه رأس آية.",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "بِهِۦ",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «فتخبت» منصوب عطفًا على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "قُلُوبُهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "مُّسۡتَقِيمٖ",
+  "grade": "تام",
+  "reason": "ومثله: «عقيم» [في الآية 55] على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "بَيۡنَهُمۡ",
+  "grade": "حسن",
+  "reason": "وإن كان ما بعده متصلًا بما قبله في المعنى؛ لكونه بيانًا للحكم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱلنَّعِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "بِـَٔايَٰتِنَا",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعد الفاء خبر لما قبلها، وإنَّما دخلت الفاء في خبر «الذين» لما تضمن المبتدأ معنى الشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 57,
+  "stop_phrase": "مُّهِينٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "مَاتُواْ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده خبر «الذين» وإن كان معه قسم محذوف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "حَسَنٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 58,
+  "stop_phrase": "ٱلرَّٰزِقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "يَرۡضَوۡنَهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 59,
+  "stop_phrase": "حَلِيمٌ",
+  "grade": "تام",
+  "reason": "وقيل: الوقف على ذلك، أي: ذلك لهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "لا",
+  "reason": "لأنَّ الذي بعده قد قام مقام جواب الشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 60,
+  "stop_phrase": "غَفُورٞ",
+  "grade": "تام",
+  "reason": "ولا وقف إلى «بصير» فلا يوقف على «ويولج النهار في الليل»؛ لأنَّ (أن) في موضعها جر بالعطف على ما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 61,
+  "stop_phrase": "بَصِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "ٱلۡحَقُّ",
+  "grade": "لا",
+  "reason": "وكذا لا يوقف على «الباطل»؛ لأنَّ «وأن الله» موضعها جر بالعطف على ما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 62,
+  "stop_phrase": "ٱلۡكَبِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "مَآءٗ",
+  "grade": "حسن",
+  "reason": "لأنَّ قوله: «فتصبح» ليس في جواب الاستفهام في قوله: «ألم تر أنَّ الله أنزل من السماء ماءً فتصبح الأرض مخضرة» لا يتسبب عما دخل عليه الاستفهام، وهي رؤية المطر، وإنَّما تسبب ذلك عن نزول المطر نفسه",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "مُخۡضَرَّةً",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 63,
+  "stop_phrase": "خَبِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡأَرۡضِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 64,
+  "stop_phrase": "ٱلۡحَمِيدُ",
+  "grade": "تام",
+  "reason": "وكذا «سخر لكم ما في الأرض» على قراءة عبد الرحمن بن هرمز : «والفُلْكُ» بالرفع، والإجماع على خلافها، وليس بوقف على قراءة العامة : «والفلكَ» بالنصب عطفًا على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "بِأَمۡرِهِۦ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "بِإِذۡنِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 65,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "يُحۡيِيكُمۡ",
+  "grade": "جائز",
+  "reason": "في الثلاث جائز؛ لأنَّ كل جملة من الثلاث مستأنفة؛ لأنَّ «ثُمَّ» لترتيب الأخبار لا لترتيب الفعل",
+  "reported_from": null
+ },
+ {
+  "ayah": 66,
+  "stop_phrase": "لَكَفُورٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "نَاسِكُوهُ",
+  "grade": "جائز",
+  "reason": "ومثله: «في الأمر».",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "رَبِّكَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 67,
+  "stop_phrase": "مُّسۡتَقِيمٖ",
+  "grade": "تام",
+  "reason": "ومثله: «تعملون» [في الآية 68]، وكذا «تختلفون» [في الآية 69].",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "وكذا «في كتاب».",
+  "reported_from": null
+ },
+ {
+  "ayah": 70,
+  "stop_phrase": "يَسِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "سُلۡطَٰنٗا",
+  "grade": "لا",
+  "reason": "لأنَّ قوله: «وما ليس لهم به علم» موضعه نصب بالعطف على «ما» الأولى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "عِلۡمٞ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 71,
+  "stop_phrase": "نَّصِيرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "بَيِّنَٰتٖ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده جواب «إذا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ٱلۡمُنكَرَ",
+  "grade": "جائز",
+  "reason": "وقيل: كاف؛ على استئناف ما بعده، وليس بوقف إن جعل جملة مفسرة لما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ءَايَٰتِنَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 72,
+  "stop_phrase": "ذَٰلِكُمُ",
+  "grade": "تام",
+  "reason": "إن رفعت «النارُ» بالابتداء ، وما بعدها خبرًا، وعكسه، أي: هي النار",
+  "reported_from": null
+ }
+]

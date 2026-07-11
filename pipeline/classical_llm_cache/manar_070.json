@@ -1,0 +1,282 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "وَاقِعٖ",
+  "grade": "حسن",
+  "reason": "وقيل: الوقف «بعذاب واقع» وهو رأس آية، ثم قال: «للكافرين ليس له دافع»، أي: ليس له دافع من الكافرين في الآخرة، ويجوز أن يجعل «للكافرين» جوابًا بعد سؤال؛ كأنَّه قال: قل يا محمد لهذا السائل يقع العذاب للكافرين، أي: بعذاب كائن للكافرين، أو هو للكافرين، فقوله: «للكافرين» صفة لـ «عذاب»",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "ٱلۡمَعَارِجِ",
+  "grade": "جائز",
+  "reason": "وقوله: «تعرج الملائكة» مستأنف",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "سَنَةٖ",
+  "grade": "تام",
+  "reason": "وقيل: لا يوقف من أول السورة إلى «ألف سنة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "جَمِيلًا",
+  "grade": "تام",
+  "reason": "مثله أي مثل ألف سنة",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "قَرِيبٗا",
+  "grade": "تام",
+  "reason": "إن نصب «يوم» بمقدَّر، أي: احذر ويوم تكون السماء كالمهل",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "قَرِيبٗا",
+  "grade": "لا",
+  "reason": "إن أبدل من ضمير «نراه»، إذا كان عائدًا على «يوم القيامة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "كَٱلۡعِهْنِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "حَمِيمٗا",
+  "grade": "حسن",
+  "reason": "وما بعده استئناف كلام",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "يُبَصَّرُونَهُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "يُنجِيهِ",
+  "grade": "حسن",
+  "reason": "و «كلًّا»، بمعنى: لا؛ فكأنَّه قال: لا ينجيه أحد من عذاب الله، ثم ابتدأ «أنَّها لظى»",
+  "reported_from": "الأخفش والفراء وأبي حاتم السجستاني"
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "لَظَىٰ",
+  "grade": "كاف",
+  "reason": "لمن رفع : «نزاعةٌ» خبر مبتدأ محذوف، أي: هي نزاعة، وكذا من نصبها بتقدير: أعني، أو نصبها على الاختصاص",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "لَظَىٰ",
+  "grade": "لا",
+  "reason": "لمن رفعها؛ على أنَّها خبر «لظى» وجعل الهاء في «أنَّها» للقصة كأنَّه قال: كلا إنَّ القصة لظى نزاعة للشوى، ومثل ذلك من جعل «نزاعة» بدلًا من «لظى» أو جعلها خبرًا ثانيًا لأن، وقرأ حفص: «نزاعةً» بالنصب ، حالًا من الضمير المستكن في «لظى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "لِّلشَّوَىٰ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "فَأَوْعَىٰٓ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "هَلُوعًا",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده تفسير له؛ لأنَّ الإنسان لما كان الجزع والمنع متمكنين فيه جعل كأنَّه خلق مجبولًا عليهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "مَنُوعًا",
+  "grade": "لا",
+  "reason": "للاستثناء",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "ٱلۡمُصَلِّينَ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده من صفتهم",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "دَآئِمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "وَٱلۡمَحۡرُومِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلدِّينِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "مُّشۡفِقُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "مَأۡمُونٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "حَٰفِظُونَ",
+  "grade": "لا",
+  "reason": "للاستثناء",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مَلُومِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "ٱلۡعَادُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "رَٰعُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "قَآئِمُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "يُحَافِظُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "مُّكۡرَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "عِزِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "نَعِيمٖ",
+  "grade": "تام",
+  "reason": "ردًّا لما قبلها، ويجوز الوقف على «نعيم» والابتداء بما بعدها على معنى: إلا",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "لَقَٰدِرُونَ",
+  "grade": "لا",
+  "reason": "لتعلق الجار",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "مِّنۡهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ الواو للحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "بِمَسۡبُوقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "يُوعَدُونَ",
+  "grade": "جائز",
+  "reason": "لأنَّ «يوم» بدل من «يومهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "يُوفِضُونَ",
+  "grade": "كاف",
+  "reason": "إن نصب «خاشعةً» بـ «ترهقهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "يُوفِضُونَ",
+  "grade": "لا",
+  "reason": "إن نصب على الحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ذِلَّةٞۚ",
+  "grade": "تام",
+  "reason": "على قراءة الجمهور «ذلةٌ» منونًا و «ذلِكَ الْيَوْمُ» برفع الميم مبتدأ وخبر",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "ذِلَّةٞۚ",
+  "grade": "لا",
+  "reason": "على قراءة يعقوب بإضافة «ذلة» إلى «ذلك» وجر الميم؛ لأنَّه صفة لـ «ذلك» و «الذي» نعت لليوم",
+  "reported_from": null
+ }
+]

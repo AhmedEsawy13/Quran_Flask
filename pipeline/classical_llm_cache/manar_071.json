@@ -1,0 +1,268 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "أَلِيمٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "مُّبِينٌ",
+  "grade": "حسن",
+  "reason": "إن جعلت «أن» تفسيرية بمعنى: أي اعبدوا الله، وليس بوقف إن جعلت مصدرية، أي: أرسلناه بأن قلنا له أنذر، أي: أرسلناه بالأمر بالإنذار",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "وَاتَّقُوهُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "وَأَطِيعُونِ",
+  "grade": "لا",
+  "reason": "لأن «يغفر» بعده مجزوم؛ لأنَّه جواب الأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "مُّسَمًّى",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "لَا يُؤَخَّرُ",
+  "grade": "جائز",
+  "reason": "لأنَّ «لو» جوابها محذوف، تقديره: لو كنتم تعلمون لبادرتم إلى طاعته وتقواه",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "وَنَهَارًا",
+  "grade": "حسن",
+  "reason": "مقتبس من قوله: ومثله: «ونهارًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "فِرَارًا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "ٱسۡتِكۡبَارًا",
+  "grade": "كاف",
+  "reason": "مقتبس من قوله: ومثله: «استكبارًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "جِهَارًا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "إِسۡرَارًا",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ماقبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "غَفَّارًا",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ماقبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "مِّدۡرَارًا",
+  "grade": "لا",
+  "reason": "لعطفهما على الجواب",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "وَبَنِينَ",
+  "grade": "لا",
+  "reason": "لعطفهما على الجواب",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "أَنۡهَارًا",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَقَارًا",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "أَطۡوَارًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "طِبَاقًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "نُورًا",
+  "grade": "حسن",
+  "reason": "مقتبس من قوله: ومثله: «نورًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "سِرَاجًا",
+  "grade": "حسن",
+  "reason": "مقتبس من قوله: وكذا: «سراجًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "نَبَاتًا",
+  "grade": "حسن",
+  "reason": "مقتبس من قوله: ومثله: «نباتًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "إِخۡرَاجًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "بِسَاطًا",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "فِجَاجًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "عَصَوْنِي",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "خَسَارًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "كُبَّارًا",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن عطف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "ءَالِهَتَكُمْ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "وَنَسۡرًا",
+  "grade": "تام",
+  "reason": "لأنَّ ما بعده ليس معطوفًا على المقول",
+  "reported_from": "الأخفش ونافع"
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "كَثِيرًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "ضَلَٰلًا",
+  "grade": "حسن",
+  "reason": "مقتبس من قوله: ومثله: «إلَّا ضلالًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "نَارًا",
+  "grade": "جائز",
+  "reason": "على القراءتين، قرئ: «خطيآتهم» جمع تصحيح مجرور بالكسرة الظاهرة، وقرأ أبو عمرو: «خطاياهم» جمع تكسير مجرور بالكسرة المقدرة على الألف وهو بدلٌ من «ما»",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "أَنصَارًا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "دَيَّارًا",
+  "grade": "حسن",
+  "reason": "مقتبس من قوله: ومثله: «ديارًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "كَفَّارًا",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله؛ لأنَّ الله أخبر نوحًا أنَّهم لا يلدون مؤمنًا، كان الرجل منهم ينطلق إلى نوحٍ بابنه فيقول له احذر هذا فإنَّ أبي حذَّرنيه فيموت الكبير وينشأ الصغير على ذلك",
+  "reported_from": "النكزاوي"
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "وَٱلۡمُؤۡمِنَٰتِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "تَبَارًا",
+  "grade": "تام",
+  "reason": "مقتبس من قوله: ومثله آخر السورة",
+  "reported_from": null
+ }
+]

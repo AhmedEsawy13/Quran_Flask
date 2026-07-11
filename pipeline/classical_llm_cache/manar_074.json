@@ -1,0 +1,345 @@
+[
+ {
+  "ayah": 2,
+  "stop_phrase": "قُمۡ فَأَنذِرۡ",
+  "grade": "كاف",
+  "reason": "ثمَّ كلُّ آيةٍ بعدها كذلك إلى «فاصبر» وهو التام",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "وَلِرَبِّكَ فَٱصۡبِرۡ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "فِي ٱلنَّاقُورِ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «إذا» لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "غَيۡرُ يَسِيرٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "وَحِيدٗا",
+  "grade": "لا",
+  "reason": "العطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "مَّمۡدُودٗا",
+  "grade": "لا",
+  "reason": "لأنَّ «وبنين» منصوب عطفًا على «مالًا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "وَبَنِينَ شُهُودٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "تَمۡهِيدٗا",
+  "grade": "كاف",
+  "reason": "وقوله: «ثم يطمع» ليس بعطف، بل هو تعجب وإنكار كقوله في سورة الأنعام: «ثم الذين كفروا بربهم يعدلون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "أَنۡ أَزِيدَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "الأكثر"
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "عَنِيدٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "صَعُودًا",
+  "grade": "كاف",
+  "reason": "أكفى مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "وَقَدَّرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "قَدَّرَ",
+  "grade": "حسن",
+  "reason": "مثله: «كيف قدر»",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "قَدَّرَ",
+  "grade": "حسن",
+  "reason": "وكذا: «كيف قدَّر» الثاني",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "ثُمَّ نَظَرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "وَبَسَرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "وَٱسۡتَكۡبَرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "يُؤۡثَرُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "ٱلۡبَشَرِ",
+  "grade": "تام",
+  "reason": "لأنَّه آخر ما ذكره الله عن الوليد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "سَقَرَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبي حاتم"
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "سَقَرُ",
+  "grade": "تام",
+  "reason": "ومثله: «وما أدراك ما سقر».",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "تَذَرُ",
+  "grade": "كاف",
+  "reason": "ويبتدئ: «لوَّاحة» بمعنى: هي لوَّاحة، وليس بوقف لمن قرأ : «لواحةً» بالنصب حالًا من: «سقر» ومن ضمير: «لا تبقي» أو من ضمير: «لا تذر».",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "لِلۡبَشَرِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "عَشَرَ",
+  "grade": "كاف",
+  "reason": "ومثله: «تسعة عشر».",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "مَلَٰٓئِكَةٗۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "لا",
+  "reason": "لأنَّ بعده لام «كي» وهكذا لا يوقف على «شيء» إلى «مثلًا» فلا يوقف على «إيمانًا» ولا على «والمؤمنون».",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "مَثَلٗاۚ",
+  "grade": "كاف",
+  "reason": "والتشبيه أول الكلام؛ لأنَّ الكاف في محل نصب نعت لمصدر محذوف، أي: مثل ذلك المذكور من الإضلال والهدى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "مَن يَشَآءُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "هُوَۚ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "لِلۡبَشَرِ",
+  "grade": "تام",
+  "reason": "ومثله: «للبشر»",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "كـَلَّا",
+  "grade": "لا",
+  "reason": "والأجود: الابتداء بها على معنى: «ألا» بالتخفيف حرف تنبيه، فلا يوقف عليها؛ لأنَّ «والقمر» متعلق بما قبله من التنبيه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "أَسۡفَرَ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب القسم لم يأت، وقوله: «لإحدى الكبر» جواب القسم الأول، والقسم لا يكون له جوابان، الأعلى جهة الاشتراك، وليس في الكلام واو عطف",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "ٱلۡكُبَرِ",
+  "grade": "كاف",
+  "reason": "إن نصب «نذيرًا» بفعل مقدر، أو نصب على القطع، أو نصب على المصدر، على معنى الإنذار، كالنكير، بمعنى: الإنكار، وليس بوقف: إن نصب حالًا من «سقر» أو «تبقى» أو من الضمير في: «وما يعلم جنود ربك إلَّا هو»، أو هو مفعول من أجله، أو من بعض الضمائر التي تقدمت، وإن جعل من ضمير: قم، فلا يوقف على شيء منه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "لِّلۡبَشَرِ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن أبدل من قوله: للبشر، بإعادة الجار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "يَتَأَخَّرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱلۡيَمِينِ",
+  "grade": "تام",
+  "reason": "ورأس آية أيضًا، ثم تبتدئ: «في جنات» أي: هم في جنات، فالاستثناء متصل، إذ المراد بهم: المسلمون المخلصون، أو منقطع، والمراد بهم: الأطفال، أو الملائكة .",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "ٱلۡمُجۡرِمِينَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "سَقَرَ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله، ولا وقف من قوله: «قالوا لم تك من المصلين» إلى «اليقين» فلا يوقف على «المصلين» ولا على «المسكين» ولا على «الخائضين» ولا على «بيوم الدين»؛ لأنَّ العطف صيّرها كالشيء الواحد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 47,
+  "stop_phrase": "ٱلۡيَقِينُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 48,
+  "stop_phrase": "ٱلشَّٰفِعِينَ",
+  "grade": "كاف",
+  "reason": "ومثله: «الشافعين».",
+  "reported_from": null
+ },
+ {
+  "ayah": 49,
+  "stop_phrase": "مُعۡرِضِينَ",
+  "grade": "لا",
+  "reason": "لتعلق التشبيه بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 50,
+  "stop_phrase": "مُّسۡتَنفِرَةٞ",
+  "grade": "لا",
+  "reason": "ومثله في عدم الوقف «مستنفرة»؛ لأنَّ الجملة بعده صفة لما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 51,
+  "stop_phrase": "قَسۡوَرَةِۭ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 52,
+  "stop_phrase": "مُّنَشَّرَةٗ",
+  "grade": "كاف",
+  "reason": "ومثله: «منشرة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 53,
+  "stop_phrase": "ٱلۡأٓخِرَةَ",
+  "grade": "كاف",
+  "reason": "وقيل: «كلّا» على أنَّها للردع، على معنى: أنَّ الكفار لا يعطون الصحف التي أرادوها، ثم استأنف: «بل لا يخافون الآخرة» وإن جعلت «كلّا» بمعنى: ألا التي للتنبيه، حسن الابتداء بها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 54,
+  "stop_phrase": "تَذۡكِرَةٞ",
+  "grade": "كاف",
+  "reason": "ومثله: «تذكرة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 55,
+  "stop_phrase": "ذَكَرَهُۥ",
+  "grade": "كاف",
+  "reason": "وكذا: «ذكره»",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱللَّهُۚ",
+  "grade": "كاف",
+  "reason": "وكذلك: «إلَّا أن يشاء الله».",
+  "reported_from": null
+ },
+ {
+  "ayah": 56,
+  "stop_phrase": "ٱلۡمَغۡفِرَةِ",
+  "grade": "تام",
+  "reason": "آخر السورة تام.",
+  "reported_from": null
+ }
+]

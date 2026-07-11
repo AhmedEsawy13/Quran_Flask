@@ -1,0 +1,499 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "مُّبِينٗا",
+  "grade": "تام",
+  "reason": "عند أبي حاتم بجعل لام «ليغفر» لام القسم، قال أبو جعفر: ورأيت الحسن بن كيسان ينكر مثل هذا على أبي حاتم، ويخطئه فيه ويعيب عليه هذا القول، ويذهب إلى أنها (لام كي) فلا يوقف على «مبينًا»؛ لأنَّ الله أراد أن يجمع لنبيه - صلى الله عليه وسلم - الفتح في الدنيا والمغفرة في الآخرة، فلما انضم إلى المغفرة شيء حازت حسن معنى (كي)، قاله ثعلب.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "عَزِيزًا",
+  "grade": "تام",
+  "reason": "وهو رأس ثلاث آيات من أولها متعلقة بالفتح.",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "لا",
+  "reason": "لأنَّ اللام بعده (لام كي).",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "إِيمَٰنِهِمۡۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "وَٱلۡأَرۡضِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "حَكِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "فِيهَا",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "سَيِّـَٔاتِهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "عَظِيمٗا",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده منصوب عطفًا على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "وَٱلۡمُشۡرِكَٰتِ",
+  "grade": "لا",
+  "reason": "لأن الذي بعده نعت لما قبله : «ظن السَّوء» بفتح السين والإضافة",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلسَّوۡءِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "ٱلسَّوۡءِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "وَلَعَنَهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "جَهَنَّمَۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "مَصِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "وَٱلۡأَرۡضِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "حَكِيمًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "وَنَذِيرًا",
+  "grade": "تام",
+  "reason": "لانتقاله من مخاطبة الرسول إلى مخاطبة المرسل إليهم، وذلك من مقتضيات الوقف عند غيره؛ لأنَّ بعده (لام كي) فلا يوقف من قوله: «إنا أرسلناك» إلى «وأصيلًا»؛ لأن الضمائر كلها «لله» فلا يفصل بينها بالوقف، ووقف أبو حاتم السجستاني على «ونذيرًا» وعلى «ويوقروه» فرقًا بين ما هو صفة «لله»، وبين ما هو صفة للنبي - صلى الله عليه وسلم - ووسمه بالتام، وقال: لأن التعزير والتوقير للنبي - صلى الله عليه وسلم - والتسبيح لا يكون إلا لله تعالى",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "وَتُوَقِّرُوهُۚ",
+  "grade": "تام",
+  "reason": "فرقًا بين ما هو صفة «لله»، وبين ما هو صفة للنبي - صلى الله عليه وسلم - ووسمه بالتام، وقال: لأن التعزير والتوقير للنبي - صلى الله عليه وسلم - والتسبيح لا يكون إلا لله تعالى",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "أَصِيلًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "أَيْدِيهِمۡۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "نَفۡسِهِۦۖ",
+  "grade": "كاف",
+  "reason": "أكفى مما قبله، وعند ابن نصير لا يوقف عليه حتى يأتي بالثاني، والأَوْلَى الفصل بين الفريقين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "عَظِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡأَعۡرَابِ",
+  "grade": "لا",
+  "reason": "للفصل بين القول والمقول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "لَنَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "قُلُوبِهِمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "نَفۡعَۢاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "خَبِيرَۢا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "أَبَدٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "قُلُوبِكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "ٱلسَّوۡءِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 12,
+  "stop_phrase": "بُورٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 13,
+  "stop_phrase": "سَعِيرٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَٱلۡأَرۡضِۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "يَشَآءُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "رَّحِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "لِتَأۡخُذُوهَا",
+  "grade": "لا",
+  "reason": "لأن المحكي لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "نتَّبِعۡكُمۡۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "تَتَّبِعُونَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "قَبۡلُۖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل في معنى الجواب لما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "تَحۡسُدُونَنَاۚ",
+  "grade": "كاف",
+  "reason": "لأن «بل» الثانية لرد مقولهم، والأولى من جملة المقول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "قَلِيلٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱلۡأَعۡرَابِ",
+  "grade": "لا",
+  "reason": "للفصل بين القول والمقول.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "يُسۡلِمُونَۖ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "حَسَنٗاۖ",
+  "grade": "حسن",
+  "reason": "وعند ابن نصير: لا يوقف عليه من قبل، ليس بوقف؛ لأن جواب الشرط لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "أَلِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "حَرَجٞۗ",
+  "grade": "كاف",
+  "reason": "الموضع الثالث: «ولا على المريض حرج»",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "ٱلۡأَنۡهَٰرُۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "أَلِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلۡمُؤۡمِنِينَ",
+  "grade": "لا",
+  "reason": "لأن قوله: «إذ يبايعونك»، أراد: وقت يبايعونك، فهو ظرف لما قبله، وهذه بيعة الرضوان، واستحالة عمل في الزمن الماضي معلومة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "ٱلشَّجَرَةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "عَلَيۡهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "قَرِيبٗا",
+  "grade": "حسن",
+  "reason": "إن نصب ما بعده بفعل مقدر، وليس بوقف إن نصب بالعطف على «فتحًا»، أي: أثابهم فتحًا وأثابهم مغانم، أي: جعله ثوابًا لهم.",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "يَأۡخُذُونَهَاۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "حَكِيمٗا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "تَأۡخُذُونَهَا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "عَنكُمۡ",
+  "grade": "تام",
+  "reason": "وليس بوقف عند غيره.",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "مُّسۡتَقِيمٗا",
+  "grade": "حسن",
+  "reason": "وقيل: ليس بوقف؛ لأن «وأخرى» معطوفة على «ومغانم»، أي: ومغانم أخرى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "بِهَاۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "قَدِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "ٱلۡأَدۡبَٰرَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "نَصِيرٗا",
+  "grade": "تام",
+  "reason": "إن نصب «سنة الله» بفعل مقدر، أي: سن الله سنة، فلما حذف الفعل أضيف المصدر لفاعله، وليس بوقف إن نصب بما قبلها.",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "قَبۡلُۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "تَبۡدِيلٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "عَلَيۡهِمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "بَصِيرًا",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "ٱلۡحَرَامِ",
+  "grade": "لا",
+  "reason": "لأن قوله: «والهدى» معطوف على الكاف في «صدوركم» (كذا في النص والصدد صدّوكم).",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مَحِلَّهُۥۚ",
+  "grade": "تام",
+  "reason": "ولا وقف من قوله: «ولولا رجال» إلى «بغير علم»، وجواب «لولا»، محذوف تقديره: لأذن لكم في القتال، أو ما كف أيديكم عنهم، وحذف جواب «لولا»؛ لدلالة الكلام عليه، وما تعلق به «لولا» الأولى غير ما تعلق به الثانية، فالمعنى في الأولى: ولولا وطئ، أي: قتل قوم مؤمنين، والمعنى في الثانية: لو تميزوا من الكفار، وهذا معنى مغاير للأول، قاله أبو حيان. وقيل: تعلقهما واحد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "عِلۡمٖۖ",
+  "grade": "لا",
+  "reason": "ولا وقف من قوله: «ولولا رجال» إلى «بغير علم»",
+  "reported_from": null
+ }
+]

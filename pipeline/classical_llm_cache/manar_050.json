@@ -1,0 +1,499 @@
+[
+ {
+  "ayah": 1,
+  "stop_phrase": "ٱلۡمَجِيدِ",
+  "grade": "حسن",
+  "reason": "إن جعل جواب القسم «ق»، أو محذوفًا، أي: والله لتبعثن، وليس بوقف إن جعل «ق» قسمًا، «والقرآن» قسمًا آخر",
+  "reported_from": null
+ },
+ {
+  "ayah": 2,
+  "stop_phrase": "عَجِيبٌ",
+  "grade": "جائز",
+  "reason": "إن لم يجعل ما بعده جواب القسم، وكذا يقال في كل وقف فلا يوقف بين القسم وجوابه",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "تُرَابٗاۖ",
+  "grade": "حسن",
+  "reason": "إن لم يجعل جواب القسم بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 3,
+  "stop_phrase": "بَعِيدٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 4,
+  "stop_phrase": "حَفِيظُۢ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 5,
+  "stop_phrase": "مَّرِيجٍ",
+  "grade": "تام",
+  "reason": "على أن جواب القسم فيما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "وَزَيَّنَّٰهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 6,
+  "stop_phrase": "فُرُوجٖ",
+  "grade": "تام",
+  "reason": "على أن جواب القسم فيما تقدم، وإن نصب «والأرض» بفعل مقدر، أي: ومددنا الأرض مددناها",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "رَوَٰسِيَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 7,
+  "stop_phrase": "بَهِيجٖ",
+  "grade": "حسن",
+  "reason": "إن نصب «تبصرة» بفعل مضمر، أي: فعلنا ذلك تبصرة، وليس بوقف إن نصب على الحال، أو على أنها مفعول",
+  "reported_from": null
+ },
+ {
+  "ayah": 8,
+  "stop_phrase": "مُّنِيبٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "مُّبَٰرَكٗا",
+  "grade": "لا",
+  "reason": "لاتصال الكلام بعضه ببعض، فلا يوقف على «مباركًا» ولا على «الحصيد» للعطف فيهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 9,
+  "stop_phrase": "ٱلۡحَصِيدِ",
+  "grade": "لا",
+  "reason": "لاتصال الكلام بعضه ببعض، فلا يوقف على «مباركًا» ولا على «الحصيد» للعطف فيهما",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "بَاسِقَٰتٖ",
+  "grade": "جائز",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل ما بعده متعلقًا بما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 10,
+  "stop_phrase": "نَّضِيدٞ",
+  "grade": "لا",
+  "reason": "على أن «رزقًا» مفعول له",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "لِّلۡعِبَادِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "مَّيۡتٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 11,
+  "stop_phrase": "ٱلۡخُرُوجُ",
+  "grade": "تام",
+  "reason": "الكاف في محل رفع مبتدأ، أي: كذلك الخروج من الأرض أحياء بعد الموت",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "تُبَّعٖۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 14,
+  "stop_phrase": "وَعِيدِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "ٱلۡأَوَّلِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 15,
+  "stop_phrase": "جَدِيدٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "نَفۡسُهُۥۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 16,
+  "stop_phrase": "ٱلۡوَرِيدِ",
+  "grade": "جائز",
+  "reason": "لأنَّ «إذ» معها فعل مضمر قد عمل فيها، وليس بوقف إن جعل العامل في «إذ» «أقرب»، أي: ونحن أقرب إليه بعلمنا مما يوسوس به نفسه من حبل الوريد",
+  "reported_from": null
+ },
+ {
+  "ayah": 17,
+  "stop_phrase": "قَعِيدٞ",
+  "grade": "كاف",
+  "reason": "المعنى عن اليمين قعيد وعن الشمال قعيد، ثم حذف الأول لدلالة الثاني عليه، وقال: قعيد يؤدي عن الإثنين والجمع",
+  "reported_from": "الكسائي"
+ },
+ {
+  "ayah": 18,
+  "stop_phrase": "عَتِيدٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "بِٱلۡحَقِّۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 19,
+  "stop_phrase": "تَحِيدُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلصُّورِۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 20,
+  "stop_phrase": "ٱلۡوَعِيدِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 21,
+  "stop_phrase": "وَشَهِيدٞ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 22,
+  "stop_phrase": "حَدِيدٞ",
+  "grade": "تام",
+  "reason": "مخاطبة للبَّر والفاجر، وعليه فالوقف على «حديد» تام",
+  "reported_from": null
+ },
+ {
+  "ayah": 23,
+  "stop_phrase": "عَتِيدٌ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 24,
+  "stop_phrase": "عَنِيدٖ",
+  "grade": "جائز",
+  "reason": "لكونه رأس آية",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "لِّلۡخَيۡرِ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده صفته فلا يقطع عنها",
+  "reported_from": null
+ },
+ {
+  "ayah": 25,
+  "stop_phrase": "مُّريبٍ",
+  "grade": "جائز",
+  "reason": "في محل «الذي» الحركات الثلاث: الرفع والنصب والجر، فتام إن جعل مبتدأ، وقوله: «فألقياه» الخبر، وكذلك إن جعل خبر مبتدأ محذوف، أي: هو الذي، وكاف إن نصب بفعل مقدر، وليس بوقف إن جرَّ بدلًا من «كفار»",
+  "reported_from": null
+ },
+ {
+  "ayah": 26,
+  "stop_phrase": "ٱلشَّدِيدِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "أَطۡغَيۡتُهُۥ",
+  "grade": "لا",
+  "reason": "الأّوْلّى وصله",
+  "reported_from": null
+ },
+ {
+  "ayah": 27,
+  "stop_phrase": "بَعِيدٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 28,
+  "stop_phrase": "بِٱلۡوَعِيدِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "لَدَيَّ",
+  "grade": "حسن",
+  "reason": "للابتداء بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 29,
+  "stop_phrase": "لِّلۡعَبِيدِ",
+  "grade": "تام",
+  "reason": "إن جعل العامل في «يوم» مضمرًا، وليس بوقف إن جعل العامل فيه «ظلام»؛ كأنَّه قال: وما أنا بظلام للعبيد يوم نقول لجهنم، أو نفخ",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "ٱمۡتَلَأۡتِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 30,
+  "stop_phrase": "مَّزِيدٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 31,
+  "stop_phrase": "بَعِيدٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 32,
+  "stop_phrase": "حَفِيظٖ",
+  "grade": "تام",
+  "reason": "إن جعلت «مَن» مبتدأ، خبرها قول مضمر ناصب لقوله: «ادخلوها» أي: «من خشي الرحمن»، يقال: لهم ادخلوها، وحذف القول جائز، وكذا إن جعل «من خشي» منادى حذف منه حرف النداء، أو جعلت «مَن» شرطية، وجوابها محذوف، وإن دخلت «مَن» في موضع رفع خبر مبتدأ محذوف، أو نصب بفعل مقدر كان كافيًا، وليس بوقف إن جعلت «من خشي» نعتًا، أو بدلًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "بِٱلۡغَيۡبِ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 33,
+  "stop_phrase": "مُّنِيبٍ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "بِسَلَٰمٖۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 34,
+  "stop_phrase": "ٱلۡخُلُودِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "فِيهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 35,
+  "stop_phrase": "مَزِيدٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "قَرۡنٍ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "بَطۡشٗا",
+  "grade": "حسن",
+  "reason": "لمن قرأ : «فَنَقِبوا» بتخفيف القاف، ومثله في الحسن قراءة ابن عباس وغيره : «فنقِّبوا» بكسر القاف المشددة؛ على الأمر خطابًا، وليس بوقف لمن قرأ بتشديد القاف المفتوحة، وهي قراءة الأمصار",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "ٱلۡبِلَٰدِ",
+  "grade": "حسن",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 36,
+  "stop_phrase": "مَحِيصٍ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 37,
+  "stop_phrase": "شَهِيدٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "أَيَّامٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 38,
+  "stop_phrase": "لُّغُوبٖ",
+  "grade": "كاف",
+  "reason": "أي: إعياء",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "يَقُولُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 39,
+  "stop_phrase": "ٱلۡغُرُوبِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 40,
+  "stop_phrase": "ٱلسُّجُودِ",
+  "grade": "تام",
+  "reason": "تام على القراءتين",
+  "reported_from": null
+ },
+ {
+  "ayah": 41,
+  "stop_phrase": "قَرِيبٖ",
+  "grade": "حسن",
+  "reason": "إن نصب «يوم» بفعل مضمر، وليس بوقف إن تعلق «يوم» الثاني بالظرف قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "بِٱلۡحَقِّۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 42,
+  "stop_phrase": "ٱلۡخُرُوجِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "وَنُمِيتُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 43,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "كاف",
+  "reason": "إن علق الظرف بمضمر، وليس بوقف إن جعل العامل فيه ما قبله بل الوقف على «سراعًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 44,
+  "stop_phrase": "يسير",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "يَقُولُونَۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "بِجَبَّارٖۖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 45,
+  "stop_phrase": "وَعِيدِ",
+  "grade": "تام",
+  "reason": "آخر السورة تام",
+  "reported_from": null
+ }
+]
