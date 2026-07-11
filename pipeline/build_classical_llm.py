@@ -72,26 +72,90 @@ GRADE_SET = sorted(set(v for _, v in rx.GRADES))          # تام كاف حسن
 _GRADE_LABEL = {'لا': 'ليس بوقف'}
 
 
+# Surah name variants the source uses that the shipped ALIASES map lacks — the
+# regex منار build inherits the SAME gap and silently drops these surahs (النساء
+# is even worse: its header is single-hash «# سورة النساء», stripped by load_book).
+# Extend the shared resolver so the AI run covers the WHOLE book, not ~105 surahs.
+rx.ALIASES.update({
+    'النساء': 4, 'المنافقين': 63, 'المنافقون': 63, 'الانشراح': 94, 'الشرح': 94,
+    'لإيلاف قريش': 106, 'قريش': 106, 'الفلق': 113, 'الناس': 114, 'المطففين': 83,
+    'التطفيف': 83, 'الرحيق': 83,   # منار titles المطففين «سورة الرحيق»
+})
+
+# A surah header line at ANY heading level (OpenITI paragraphs all start with «# »,
+# so require the title to START with سورة/فاتحة or be a known combined title —
+# a prose line like «# قال في سورة النساء…» is excluded because it starts with قال).
+_HEADER_RE = re.compile(r'^#{1,3}[ \t]*\|?[ \t]*((?:سورة|فاتحة)\b.*|الفلق والناس)$')
+_COMBINED = {'الفلق والناس': (113, 114)}
+
+# Authoritative per-surah source for منار — converted (pipeline/convert_manar_
+# shamela.py) from الأشموني's OWN Shamela book database (the primary source
+# OpenITI's plaintext dump was itself digitized from), keyed by the book's own
+# table of contents (exact page boundaries, no title-matching guesswork). Fixes
+# real gaps the OpenITI-markdown slicer had even after the header-detection fix
+# below: النساء and 5 other surahs were silently dropped, and قريش's absence
+# (no separate heading — it's discussed inside سورة الفيل's section) turned out
+# to be a genuine authorial choice, independently confirmed by Shamela's own
+# TOC, not a parsing bug. See pipeline/CLASSICAL_LLM_PILOT.md.
+_SHAMELA_SECTIONS = os.path.join(rx.SRC_DIR, 'manar_shamela_sections.json')
+
+
+def _shamela_surah_blocks():
+    sections = json.load(open(_SHAMELA_SECTIONS, encoding='utf-8'))
+    for s in range(1, 115):
+        sec = sections.get(str(s))
+        if sec:
+            yield s, sec['title'], sec['text']
+
+
 # ── slice the source book into per-surah prose blocks ────────────────────────
 def surah_blocks(book):
-    """Yield (surah_number, name, prose_text) per surah section of the book,
-    reusing the same `### |`-section split + surah_number() resolver the regex
-    harvesters use, so slicing stays identical to the shipped pipeline."""
-    body = rx.load_book(rx.SOURCES[book])
+    """Yield (surah_number, name, prose_text) per surah of the book. Prefers
+    the authoritative Shamela-derived JSON for منار when present (see above);
+    falls back to detecting headers in the OpenITI markdown at any hash level
+    (so single-hash «# سورة النساء» is caught, not just «### |»), resolving
+    each title with the shared surah_number() + the extended aliases above.
+    Combined headers («الفلق والناس») yield both surahs."""
+    if book == 'manar' and os.path.exists(_SHAMELA_SECTIONS):
+        yield from _shamela_surah_blocks()
+        return
+
+    raw = open(os.path.join(rx.SRC_DIR, rx.SOURCES[book]), encoding='utf-8').read()
+    raw = raw.split('#META#Header#End#', 1)[1]
+    raw = re.sub(r'PageV\d+P\d+|\bms\d+\b|\[\s*\d+\s*/\s*\d+\s*\]', ' ', raw)
+
+    def clean(lines):
+        t = '\n'.join(lines)
+        t = t.replace('\n~~', ' ').replace('\n# ', '\n')   # OpenITI: join continuations, drop para marks
+        return t.strip()
+
     last = 0
-    cur_num = cur_name = None
+    pending = []          # (surah, name) awaiting their shared body (for combined headers)
     buf = []
-    for sec in re.split(r'\n### \| ', body):
-        title, _, text = sec.partition('\n')
-        num = rx.surah_number(title, last) if 'سورة' in title or 'فاتحة' in title else None
-        if num is not None:
-            if cur_num is not None and buf:
-                yield cur_num, cur_name, '\n'.join(buf).strip()
-            cur_num, cur_name, last, buf = num, title.strip(), num, [text]
-        elif cur_num is not None:
-            buf.append(sec)                                # non-surah aside inside a surah
-    if cur_num is not None and buf:
-        yield cur_num, cur_name, '\n'.join(buf).strip()
+
+    def flush():
+        for s, nm in pending:
+            yield s, nm, clean(buf)
+
+    for line in raw.split('\n'):
+        m = _HEADER_RE.match(line.strip())
+        title = m.group(1).strip() if m else None
+        nums = None
+        if title:
+            if title in _COMBINED:
+                nums = _COMBINED[title]
+            else:
+                n = rx.surah_number(title, last)
+                nums = (n,) if n else None
+        # Boundary only if it resolves to a LATER surah — the book runs in mushaf
+        # order, so this rejects a prose line that merely opens with «سورة X»
+        # (which would resolve to an already-passed surah, not a new one).
+        if nums and min(nums) > last:
+            yield from flush()
+            pending, buf, last = [(s, title) for s in nums], [], max(nums)
+        elif pending:
+            buf.append(line)
+    yield from flush()
 
 
 def verses_block(surah):
@@ -224,7 +288,19 @@ def main():
     ap.add_argument('--db', default=PILOT_DB,
                     help=f'target sqlite db (default the PILOT db {os.path.basename(PILOT_DB)}; '
                          'pass the shipped classical_waqf.db only when releasing)')
+    ap.add_argument('--status', action='store_true',
+                    help='list which surahs are already extracted (cached) vs still to do, then exit')
     args = ap.parse_args()
+
+    if args.status:
+        done, todo = [], []
+        for surah, name, _ in surah_blocks(args.book):
+            (done if load_cached(args.book, surah) is not None else todo).append(surah)
+        print(f'{args.book}: {len(done)} surahs cached (no API needed), {len(todo)} remaining.')
+        print(f'  cached : {done}')
+        print(f'  to do  : {todo}')
+        print(f'\nrun `--api --write` to extract the {len(todo)} remaining (cached ones are reused).')
+        return
     only = set(int(x) for x in args.surahs.split(',')) if args.surahs else None
     tag = args.source_tag or f'{args.book}_llm'
 
