@@ -19,8 +19,9 @@
     };
 
     const state = { surahs: [], ayahCount: {}, verses: [], stops: new Set() /* "ayah:wpos" */ };
-    // Phoneme recite-follow: reference entries {skel,ayah,wpos} + alignment cursor.
-    const rec = { on: false, ref: [], ri: 0, si: 0, cur: null };
+    // Phoneme recite-follow: reference entries {skel,ayah,wpos} + a resync cursor
+    // (wi = word we're on, anchor = index into the recited skeleton where it begins).
+    const rec = { on: false, ref: [], wi: 0, anchor: 0, cur: null };
 
     // verdict → display. Order = legend order.
     const VERDICT = {
@@ -275,21 +276,43 @@
         for (const c of s) if (_PH_KEEP.indexOf(c) >= 0 && out[out.length - 1] !== c) out += c;
         return out;
     }
-    function _ed(a, b) {            // edit distance (small strings)
+    // Phonetically-similar consonants the acoustic model confuses (nasals, sibilants,
+    // emphatics, throat letters, glides). A substitution WITHIN a group is cheap so a
+    // single model slip doesn't break the alignment.
+    const _SIM = {};
+    for (const g of ['من', 'سصز', 'تطدض', 'ذظث', 'هحخ', 'عغءه', 'قك', 'ويا', 'رل'])
+        for (const c of g) _SIM[c] = (_SIM[c] || '') + g;
+    const _subCost = (a, b) => a === b ? 0 : (_SIM[a] && _SIM[a].indexOf(b) >= 0 ? 0.4 : 1);
+    function _wed(a, b) {           // weighted edit distance (similar subs discounted)
         const m = a.length, n = b.length;
         if (!m) return n; if (!n) return m;
         let prev = Array.from({ length: n + 1 }, (_, j) => j);
         for (let i = 1; i <= m; i++) {
             const cur = [i];
-            for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] !== b[j - 1] ? 1 : 0));
+            for (let j = 1; j <= n; j++)
+                cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + _subCost(a[i - 1], b[j - 1]));
             prev = cur;
         }
         return prev[n];
     }
+    // Best local match of reference skeleton `es` inside `rs` near index `from` (the
+    // start may slip ±2 to absorb an extra/dropped char, length varies around |es|).
+    function _bestMatch(rs, from, es) {
+        let best = { sim: -1, start: from, len: es.length };
+        const s0 = Math.max(0, from - 2), s1 = Math.min(rs.length, from + 2);
+        for (let start = s0; start <= s1; start++) {
+            const loK = Math.max(1, es.length - 2), hiK = Math.min(rs.length - start, es.length + 3);
+            for (let k = loK; k <= hiK; k++) {
+                const sim = 1 - _wed(rs.substr(start, k), es) / es.length;
+                if (sim > best.sim) best = { sim, start, len: k };
+            }
+        }
+        return best;
+    }
 
     // Fetch the passage's reference phoneme entries {ph, ayah, wpos}.
     async function buildPhonemeRef() {
-        rec.ref = []; rec.ri = 0; rec.si = 0; rec.cur = null; rec.lastPhonemes = '';
+        rec.ref = []; rec.wi = 0; rec.anchor = 0; rec.cur = null; rec.lastPhonemes = '';
         const s = +els.surah.value, f = +els.from.value, t = +els.to.value;
         try {
             const j = await fetch(`/api/waqf-practice/phonemes/${s}/${f}/${t}`).then(r => r.json());
@@ -331,30 +354,52 @@
     }
     function clearReciting() { els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting')); }
 
-    // Greedy monotonic alignment of the recited phoneme skeleton to the reference
-    // entries. Consumes one entry when a nearby window matches; skips a garbled
-    // entry once the recited tail runs well past it (so it never wedges).
+    // Sliding-window resync alignment of the recited phoneme skeleton to the reference
+    // word entries. Unlike a committed cursor, it RE-ANCHORS on every advance and can
+    // look ahead to skip a garbled word and resync — so a single bad match never wedges
+    // the follow. (The old greedy cursor advanced its word pointer on a skip WITHOUT
+    // moving the recited cursor, cascading into a permanent stall — verified it froze
+    // the highlight for the rest of the passage after ~6 words even on clean input.)
+    // Mirrors the reference project (Iam-Muslim/ReciteQuran) phonetic matcher.
+    const _WP_ACCEPT = 0.5;        // confirm the current word at/above this similarity
+    const _WP_JUMP = 0.6;          // resync forward only on a clearly-strong lookahead
+    const _WP_LOOK = 5;            // upcoming words scanned when resyncing
+    const _WP_PRIOR = 0.06;        // per-word penalty for jumping ahead (favour chronological)
     function alignPhonemes(recited) {
         rec.lastPhonemes = recited || '';
         const rs = _phSkel(recited);
-        let advanced = false;
-        while (rec.ri < rec.ref.length) {
-            const es = rec.ref[rec.ri].skel;
-            if (!es) { rec.ri++; continue; }
-            const tail = rs.length - rec.si;
-            if (tail < es.length - 1) break;                   // wait until this entry is (nearly) fully recited
-            let bestK = -1, bestD = 1e9;
-            const lo = Math.max(1, es.length - 2), hi = Math.min(tail, es.length + 4);
-            for (let k = lo; k <= hi; k++) { const d = _ed(rs.substr(rec.si, k), es); if (d < bestD) { bestD = d; bestK = k; } }
-            if (bestK > 0 && bestD <= Math.max(1, es.length * 0.4)) {
-                rec.si += bestK; rec.ri++; advanced = true;
-                rec.cur = rec.ref[rec.ri - 1];
-                highlightWord(rec.cur.ayah, rec.cur.wpos);
-            } else if (tail > es.length * 1.8) {               // mispronounced → skip, don't wedge
-                rec.ri++;
-            } else break;
+        let advanced = false, guard = 0;
+        while (rec.wi < rec.ref.length && guard++ < rec.ref.length + _WP_LOOK) {
+            const es = rec.ref[rec.wi].skel;
+            if (!es) { rec.wi++; continue; }
+            const tail = rs.length - rec.anchor;
+            if (tail < es.length - 1) break;                   // wait for more recited input
+
+            const m = _bestMatch(rs, rec.anchor, es);
+            if (m.sim >= _WP_ACCEPT) {                          // current word matched here
+                rec.anchor = m.start + m.len;
+                rec.cur = rec.ref[rec.wi]; highlightWord(rec.cur.ayah, rec.cur.wpos); rec.wi++; advanced = true; continue;
+            }
+            // current word didn't match — has the reciter already moved ahead of it?
+            let jump = null, expStart = rec.anchor;
+            for (let i = rec.wi + 1; i <= Math.min(rec.wi + _WP_LOOK, rec.ref.length - 1); i++) {
+                expStart += rec.ref[i - 1].skel.length;
+                if (rs.length - expStart < rec.ref[i].skel.length - 1) break;   // not recited yet
+                const mi = _bestMatch(rs, expStart, rec.ref[i].skel);
+                const score = mi.sim - (i - rec.wi) * _WP_PRIOR;
+                if (score >= _WP_JUMP && (!jump || score > jump.score)) jump = { score, i, end: mi.start + mi.len };
+            }
+            if (jump) {                                         // resync forward to where the reciter is
+                rec.anchor = jump.end; rec.wi = jump.i + 1;
+                rec.cur = rec.ref[jump.i]; highlightWord(rec.cur.ayah, rec.cur.wpos); advanced = true; continue;
+            }
+            if (tail > es.length + 6) {                         // waited too long: step past, keep pace
+                rec.anchor = Math.min(rs.length, rec.anchor + es.length);
+                rec.cur = rec.ref[rec.wi]; highlightWord(rec.cur.ayah, rec.cur.wpos); rec.wi++; advanced = true; continue;
+            }
+            break;
         }
-        if (advanced) setRecNote(`تابعتُ ${toAr(rec.ri)} / ${toAr(rec.ref.length)}`);
+        if (advanced) setRecNote(`تابعتُ ${toAr(rec.wi)} / ${toAr(rec.ref.length)}`);
     }
     // A detected pause (model silence) seals the current word as a stop.
     function markAutoStop() {
