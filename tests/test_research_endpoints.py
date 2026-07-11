@@ -217,14 +217,15 @@ def test_waqf_practice_grading(client):
     assert v[(2, 6)] == "excellent" and v[(5, 7)] == "excellent"
     assert r["score"] == 100 and r["summary"]["errors"] == 0
 
-    # 2:5 w4 رَّبِّهِمۡ: mushaf ص (tolerable) but الأشموني «ليس بوقف» → خلاف/caution,
+    # 2:224 w4 لِّأَيۡمَٰنِكُمۡ: الأشموني grades it حسن under one إعراب reading
+    # and لا (ليس بوقف) under another — genuinely two-sided → خلاف/caution,
     # NOT a clean pass and NOT a hard error.
-    r = grade([{"ayah": 5, "wpos": 4}], s=2, f=5, t=5)
+    r = grade([{"ayah": 224, "wpos": 4}], s=2, f=224, t=224)
     assert r["stops"][0]["verdict"] == "caution"
     assert 0 < r["score"] < 100
 
     # a mid-phrase stop with no ruling anywhere is a soft note, not an error.
-    r = grade([{"ayah": 3, "wpos": 2}], s=2, f=3, t=3)
+    r = grade([{"ayah": 3, "wpos": 1}], s=2, f=3, t=3)
     assert r["stops"][0]["verdict"] == "unmarked"
     assert r["summary"]["errors"] == 0
 

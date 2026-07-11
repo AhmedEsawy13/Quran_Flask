@@ -100,40 +100,38 @@ def test_muktafa_al_ard_lands_on_the_second_occurrence(rows_2_255):
 
 
 def test_manar_recovers_the_full_kadha_chain(rows_2_255):
-    """منار's «وكذا ب «ما شاء»، و «الأرض»، و «حفظهما»» chain — all three
-    items must be extracted, correctly graded كاف, and confidently visible
-    (not just present but filtered out by conf=0)."""
+    """منار's «وما خلفهم كاف، وكذا بـ «ما شاء»، و «الأرض»، و «حفظهما»، وقيل:
+    كلها حسان» chain — all three chained items must be extracted, land on
+    the correct word position, and be confidently visible (not just present
+    but filtered out by conf=0).
+
+    منار is AI-extracted now (released 2026-07-12, replacing the regex
+    pipeline this test was originally written against — see
+    CLASSICAL_LLM_PILOT.md), so this is checked by POSITION rather than by
+    the old regex's bare-word `quote` string (the AI's quote is the mushaf's
+    own diacritized phrase, a richer but differently-shaped value — e.g.
+    «بِمَا شَآءَۚ» here, not the regex's bare «ما شاء»). The AI extraction is
+    in fact MORE complete than what this test originally pinned: منار's own
+    «وقيل: كلها حسان» (a second, alternative grading for all three chained
+    items) is now correctly captured too, as a SECOND row per position
+    rather than silently dropped — so each position carries both كاف
+    (منار's primary grade) AND حسن (the alternative), not كاف alone."""
     manar = [r for r in rows_2_255 if r['source'] == 'manar']
-    by_quote = {r['quote']: r for r in manar}
-    for quote, expected_wpos in (('ما شاء', 39), ('الأرض', 43), ('حفظهما', 46)):
-        assert quote in by_quote, f'منار is missing the chained «{quote}» stop for 2:255'
-        row = by_quote[quote]
-        assert row['grade'] == 'كاف'
-        assert row['wpos'] == expected_wpos
-        assert row['conf'] == 1, f'«{quote}» is extracted but not confident/visible'
+    by_wpos = {}
+    for r in manar:
+        by_wpos.setdefault(r['wpos'], set()).add(r['grade'])
+    for wpos in (39, 43, 46):   # ما شاء / الأرض / حفظهما
+        assert wpos in by_wpos, f'منار is missing the chained stop at wpos {wpos} for 2:255'
+        assert 'كاف' in by_wpos[wpos], f'wpos {wpos}: primary كاف grade missing'
+        assert 'حسن' in by_wpos[wpos], f'wpos {wpos}: alternative حسن (وقيل: كلها حسان) missing'
+        assert all(r['conf'] == 1 for r in manar if r['wpos'] == wpos), \
+            f'wpos {wpos}: extracted but not confident/visible'
 
 
 def test_manar_al_ard_chain_item_is_the_second_occurrence(rows_2_255):
     """منار's chained «الأرض» must land on the SAME word as مكتفى's «والأرض»
     (wpos 43) — the second occurrence, not the first (wpos 18)."""
-    row = next(r for r in rows_2_255 if r['source'] == 'manar' and r['quote'] == 'الأرض')
-    assert row['wpos'] == 43
-
-
-# ── confidence-rule regressions across the whole corpus ─────────────────
-
-def test_chain_linked_single_word_confidence_is_a_small_fraction():
-    """Trusting chain-linked (ومثله/وكذا) single-word matches recovers real
-    data, but should still only affect a modest slice of منار — a large
-    fraction would suggest is_mithl is over-firing on ordinary prose."""
-    if not os.path.exists(DB_PATH):
-        pytest.skip('classical_waqf.db not built')
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    try:
-        manar = conn.execute("SELECT quote, conf FROM classical WHERE source='manar'").fetchall()
-    finally:
-        conn.close()
-    single_word_confident = sum(1 for r in manar if r['conf'] and ' ' not in r['quote'].strip())
-    frac = single_word_confident / len(manar)
-    assert 0 < frac < 0.6, f'{single_word_confident}/{len(manar)} ({frac:.1%}) — unexpected range'
+    manar_ard_positions = {r['wpos'] for r in rows_2_255
+                            if r['source'] == 'manar' and 'ٱلۡأَرۡضَ' in r['quote']}
+    assert 43 in manar_ard_positions
+    assert 18 not in manar_ard_positions

@@ -137,10 +137,19 @@ def test_muktafa_own_re_ignores_ambiguous_third_person():
 def test_manar_own_analysis_on_the_same_ayah_is_not_tagged(rows):
     """منار's OWN independent entry for «وقليل ما هم» on the same ayah is
     stated directly («تام، ف «قليل» خبر مقدم...») — no «وقال X:» prefix, so
-    it must NOT be (mis-)tagged as anyone else's relayed opinion."""
+    it must NOT be (mis-)tagged as anyone else's relayed opinion.
+
+    منار is AI-extracted now (released, see CLASSICAL_LLM_PILOT.md); its
+    `quote` for this stop is the aligned mushaf word at wpos 22 («هُمۡۗ»,
+    the last word of «وقليل ما هم»), not the regex pipeline's bare
+    multi-word phrase — so this is matched by position, and by the note
+    carrying the same «قليل» إعراب analysis, rather than by a `quote`
+    substring."""
     row = next((r for r in rows if r['source'] == 'manar' and r['surah'] == 38
-                and r['ayah'] == 24 and 'وقليل' in r['quote']), None)
+                and r['ayah'] == 24 and r['wpos'] == 22), None)
     assert row is not None
+    assert row['grade'] == 'تام'
+    assert 'قليل' in (row['note'] or '')
     assert row['reported_from'] is None
 
 

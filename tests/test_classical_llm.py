@@ -1,7 +1,18 @@
-"""Guards for the AI-re-extracted classical waqf rows (source ending in _llm),
-built by pipeline/build_classical_llm.py. These verify the DETERMINISTIC gates
-the pipeline applies — they don't call any model. Skips cleanly if no _llm rows
-are present yet (the pilot only builds a few surahs)."""
+"""Guards for the AI-re-extracted classical waqf rows, built by
+pipeline/build_classical_llm.py. These verify the DETERMINISTIC gates the
+pipeline applies — they don't call any model.
+
+Covers TWO forms of the same data: any pilot `source` ending in `_llm` (a
+book still being trialled, written to the sibling pilot db so the shipped db
+stays untouched until release), AND the bare `source='manar'` rows in the
+shipped db itself — منار's own regex extraction was RETIRED and replaced by
+this AI extraction on 2026-07-12 (see CLASSICAL_LLM_PILOT.md), so what's now
+live in production needs these same gates to keep guarding it, not just the
+pre-release pilot data. ALSO_AI_SOURCES lists which bare source keys (beyond
+any `_llm` suffix) are AI-shaped once released — add to it if another book's
+pilot is ever promoted the same way.
+
+Skips cleanly if neither pilot nor released AI rows are present yet."""
 import os
 import sqlite3
 
@@ -10,19 +21,21 @@ import pytest
 from core.config import CLASSICAL_WAQF_DATABASE
 
 # The pilot writes to a sibling db (data/classical_waqf_llm.db) so the shipped db
-# stays pristine until release; test whichever one actually holds the _llm rows.
+# stays pristine until release; test whichever one actually holds the AI rows.
 _PILOT_DB = os.path.join(os.path.dirname(CLASSICAL_WAQF_DATABASE), 'classical_waqf_llm.db')
+ALSO_AI_SOURCES = {'manar'}  # released bare-source keys that are now AI-shaped
 
 
 def _rows(where=''):
+    also = ' OR '.join(f"source = '{s}'" for s in ALSO_AI_SOURCES)
+    cond = f"(source LIKE '%\\_llm' ESCAPE '\\'" + (f' OR {also}' if also else '') + ')'
     for db in (CLASSICAL_WAQF_DATABASE, _PILOT_DB):
         if not os.path.exists(db):
             continue
         conn = sqlite3.connect(db)
         conn.row_factory = sqlite3.Row
         try:
-            r = conn.execute(
-                "SELECT * FROM classical WHERE source LIKE '%\\_llm' ESCAPE '\\' " + where).fetchall()
+            r = conn.execute(f'SELECT * FROM classical WHERE {cond} ' + where).fetchall()
         finally:
             conn.close()
         if r:

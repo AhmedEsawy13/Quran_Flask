@@ -39,7 +39,14 @@ os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 import build_classical_waqf as pcw  # noqa: E402
 
 DB_PATH = os.path.join(_ROOT, 'data', 'classical_waqf.db')
+# منار is no longer regex-extracted (released 2026-07-12 — see
+# pipeline/build_classical_llm.py / CLASSICAL_LLM_PILOT.md): its `quote` is
+# now a mushaf phrase, not a verbatim OpenITI-book excerpt, so the
+# source-traceability rules in this file don't apply to it any more — its own
+# gates live in test_classical_llm.py, which now also covers the live
+# `source='manar'` rows (see that file's ALSO_AI_SOURCES).
 SOURCES = ('muktafa', 'manar', 'nahhas', 'anbari')
+REGEX_SOURCES = ('muktafa', 'nahhas', 'anbari')
 
 _PAGE_MARKER_RE = re.compile(r'\[\s*\d+\s*/\s*\d+\s*\]')
 _FOOTNOTE_DIGIT_RE = re.compile(r'\(\s*\d+\s*\)')
@@ -52,21 +59,37 @@ def rows():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     try:
-        # Scope to the four regex-extracted books. AI-re-extracted rows (source
-        # ending in _llm, built by build_classical_llm.py) are a separate track
-        # with their own gates in test_classical_llm.py — their `quote` is a
-        # mushaf phrase, not a verbatim book excerpt, so the source-traceability
-        # rules here don't apply to them.
+        # Scope to the regex-extracted books only. AI-re-extracted rows —
+        # both any pilot `_llm`-suffixed source AND the now-live `manar`
+        # (released 2026-07-12) — are a separate track with their own gates
+        # in test_classical_llm.py.
         return conn.execute(
-            "SELECT * FROM classical WHERE source NOT LIKE '%\\_llm' ESCAPE '\\'").fetchall()
+            "SELECT * FROM classical WHERE source NOT LIKE '%\\_llm' ESCAPE '\\' "
+            "AND source != 'manar'").fetchall()
     finally:
         conn.close()
 
 
 def test_db_has_all_four_books(rows):
+    """Three regex books scoped here (منار is AI-sourced now — checked
+    separately below) — all four canonical source keys must still exist
+    SOMEWHERE in the full table."""
     present = {r['source'] for r in rows}
-    assert present == set(SOURCES)
-    assert len(rows) > 15000  # sanity floor; each book harvests thousands
+    assert present == set(REGEX_SOURCES)
+    assert len(rows) > 7000  # sanity floor; each of the 3 books harvests thousands
+
+
+def test_manar_is_present_and_ai_sourced():
+    """منار itself: not scoped by the `rows` fixture above (AI-sourced,
+    different shape), but must still exist and have real coverage."""
+    if not os.path.exists(DB_PATH):
+        pytest.skip('classical_waqf.db not built')
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        n = conn.execute("SELECT COUNT(*) FROM classical WHERE source='manar'").fetchone()[0]
+    finally:
+        conn.close()
+    assert n > 10000  # the AI extraction covers ~13,008 rows across all 114 surahs
 
 
 # ── text-quality regressions ────────────────────────────────────────────
@@ -189,7 +212,7 @@ def source_word_streams():
     return streams
 
 
-@pytest.mark.parametrize('source', SOURCES)
+@pytest.mark.parametrize('source', REGEX_SOURCES)
 def test_quotes_are_traceable_to_the_source_book(source, rows, source_word_streams):
     """The whole point of citing a classical book is that the citation is
     real. Every CONFIDENT row's quote — normalised the same way the aligner
