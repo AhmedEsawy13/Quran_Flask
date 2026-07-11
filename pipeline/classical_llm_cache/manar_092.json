@@ -1,0 +1,14 @@
+[
+ {"ayah": 4, "stop_phrase": "لشتى", "grade": "تام", "reason": "جواب القسم.", "reported_from": null},
+ {"ayah": 7, "stop_phrase": "لليسرى", "grade": "كاف", "reason": "كافٍ.", "reported_from": null},
+ {"ayah": 10, "stop_phrase": "للعسرى", "grade": "كاف", "reason": "ومثله «لليسرى».", "reported_from": null},
+ {"ayah": 11, "stop_phrase": "تردى", "grade": "كاف", "reason": "وكذا «لليسرى»؛ للابتداء بـ«إنّ».", "reported_from": null},
+ {"ayah": 12, "stop_phrase": "للهدى", "grade": "جائز", "reason": "جائزٌ.", "reported_from": null},
+ {"ayah": 13, "stop_phrase": "والأولى", "grade": "كاف", "reason": "كافٍ.", "reported_from": null},
+ {"ayah": 14, "stop_phrase": "تلظى", "grade": "جائز", "reason": "لأن ما بعده يصلح استئنافًا وصفةً.", "reported_from": null},
+ {"ayah": 16, "stop_phrase": "وتولى", "grade": "تام", "reason": "تامٌّ؛ ولا يوقف على «الأتقى» لأن ما بعده صفة، والصفة والموصوف كالشيء الواحد.", "reported_from": null},
+ {"ayah": 18, "stop_phrase": "يتزكى", "grade": "حسن", "reason": "حسنٌ.", "reported_from": null},
+ {"ayah": 19, "stop_phrase": "تجزى", "grade": "حسن", "reason": "ومثله «يتزكى»، وتجاوزه أولى.", "reported_from": null},
+ {"ayah": 20, "stop_phrase": "الأعلى", "grade": "تام", "reason": "تامٌّ.", "reported_from": null},
+ {"ayah": 21, "stop_phrase": "يرضى", "grade": "تام", "reason": "آخر السورة.", "reported_from": null}
+]

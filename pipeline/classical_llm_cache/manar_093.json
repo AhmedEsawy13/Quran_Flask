@@ -1,0 +1,11 @@
+[
+ {"ayah": 3, "stop_phrase": "قلى", "grade": "حسن", "reason": "حسنٌ؛ ولا يوقف على «سجى» لأن ما بعده جواب القسم، ولا يُفصل بين القسم وجوابه بالوقف.", "reported_from": null},
+ {"ayah": 4, "stop_phrase": "الأولى", "grade": "كاف", "reason": "كافٍ؛ للابتداء بـ«ولسوف».", "reported_from": null},
+ {"ayah": 5, "stop_phrase": "فترضى", "grade": "تام", "reason": "تامٌّ.", "reported_from": null},
+ {"ayah": 6, "stop_phrase": "فآوى", "grade": "جائز", "reason": "جائزٌ؛ لتعداد النعم.", "reported_from": null},
+ {"ayah": 7, "stop_phrase": "فهدى", "grade": "جائز", "reason": "ومثله «فآوى»؛ لتعداد النعم.", "reported_from": null},
+ {"ayah": 8, "stop_phrase": "فأغنى", "grade": "كاف", "reason": "كافٍ.", "reported_from": null},
+ {"ayah": 9, "stop_phrase": "تقهر", "grade": "جائز", "reason": "جائزٌ.", "reported_from": null},
+ {"ayah": 10, "stop_phrase": "تنهر", "grade": "جائز", "reason": "ومثله «فلا تقهر».", "reported_from": null},
+ {"ayah": 11, "stop_phrase": "فحدث", "grade": "تام", "reason": "آخر السورة.", "reported_from": null}
+]

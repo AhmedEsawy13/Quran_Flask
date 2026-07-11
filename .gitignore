@@ -114,12 +114,7 @@ reciters/**/letter_timestamps.json.gz
 pipeline/tafseer_source/
 
 # Classical waqf AI re-extraction (pipeline/build_classical_llm.py):
-# the PILOT output db and bulk model responses are regenerable → not tracked;
-# but keep the few hand-verified pilot extractions so the pilot is reproducible
-# without an API key.
+# the per-surah extraction JSONs in classical_llm_cache/ ARE the deliverable
+# (hand-verified, or model output) and are tracked; the built db is regenerable
+# from them, so only it is ignored.
 data/classical_waqf_llm.db
-pipeline/classical_llm_cache/*
-!pipeline/classical_llm_cache/manar_001.json
-!pipeline/classical_llm_cache/manar_108.json
-!pipeline/classical_llm_cache/manar_110.json
-!pipeline/classical_llm_cache/manar_112.json

@@ -1,0 +1,7 @@
+[
+ {"ayah": 4, "stop_phrase": "تقويم", "grade": "كاف", "reason": "كافٍ إن أُريد بالإنسان جميعُ الناس؛ وإن أُريد به النبيُّ ﷺ كان الوقف على «تقويم» أكفى.", "reported_from": "أبو حاتم"},
+ {"ayah": 5, "stop_phrase": "سافلين", "grade": "جائز", "reason": "جائزٌ إن عُني بالإنسان الكافر؛ وليس بوقف إن جُعل «أسفل سافلين» بمعنى أرذل العمر.", "reported_from": null},
+ {"ayah": 6, "stop_phrase": "ممنون", "grade": "تام", "reason": "تامٌّ؛ لانتقاله من الغيبة إلى الخطاب.", "reported_from": null},
+ {"ayah": 7, "stop_phrase": "بالدين", "grade": "تام", "reason": "ومثله «ممنون» في التمام؛ للابتداء بالاستفهام.", "reported_from": null},
+ {"ayah": 8, "stop_phrase": "الحاكمين", "grade": "تام", "reason": "وكذا آخر السورة.", "reported_from": null}
+]

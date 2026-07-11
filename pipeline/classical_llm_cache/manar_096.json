@@ -1,0 +1,20 @@
+[
+ {"ayah": 1, "stop_phrase": "خلق", "grade": "كاف", "reason": "كافٍ إن جُعل «خلق» الثاني مستأنفًا؛ وليس بوقف إن جُعل تفسيرًا للخلق الأول.", "reported_from": null},
+ {"ayah": 2, "stop_phrase": "علق", "grade": "تام", "reason": "تامٌّ.", "reported_from": null},
+ {"ayah": 4, "stop_phrase": "بالقلم", "grade": "كاف", "reason": "كافٍ.", "reported_from": null},
+ {"ayah": 5, "stop_phrase": "يعلم", "grade": "تام", "reason": "تامٌّ.", "reported_from": null},
+ {"ayah": 6, "stop_phrase": "ليطغى", "grade": "لا", "reason": "ليس بوقف؛ لأن موضعها نصبٌ بما قبلها.", "reported_from": null},
+ {"ayah": 7, "stop_phrase": "استغنى", "grade": "تام", "reason": "تامٌّ؛ للابتداء بـ«إنّ».", "reported_from": null},
+ {"ayah": 8, "stop_phrase": "الرجعى", "grade": "تام", "reason": "ومثله «استغنى»؛ للابتداء بالاستفهام.", "reported_from": null},
+ {"ayah": 10, "stop_phrase": "صلى", "grade": "كاف", "reason": "كافٍ.", "reported_from": null},
+ {"ayah": 11, "stop_phrase": "الهدى", "grade": "لا", "reason": "ليس بوقف؛ للعطف بعده بـ«أو».", "reported_from": null},
+ {"ayah": 12, "stop_phrase": "بالتقوى", "grade": "كاف", "reason": "كافٍ.", "reported_from": null},
+ {"ayah": 13, "stop_phrase": "وتولى", "grade": "لا", "reason": "ليس بوقف؛ لأن ما بعده في معنى الجواب لما قبله.", "reported_from": null},
+ {"ayah": 14, "stop_phrase": "يرى", "grade": "تام", "reason": "تامٌّ.", "reported_from": null},
+ {"ayah": 15, "stop_phrase": "بالناصية", "grade": "لا", "reason": "ليس بوقف؛ لأن «ناصية» الثانية بدلٌ من «الناصية» الأولى.", "reported_from": null},
+ {"ayah": 16, "stop_phrase": "خاطئة", "grade": "كاف", "reason": "كافٍ.", "reported_from": null},
+ {"ayah": 17, "stop_phrase": "ناديه", "grade": "كاف", "reason": "ومثله «خاطئة».", "reported_from": null},
+ {"ayah": 18, "stop_phrase": "الزبانية", "grade": "كاف", "reason": "وكذا؛ ومثله «خاطئة».", "reported_from": null},
+ {"ayah": 19, "stop_phrase": "تطعه", "grade": "حسن", "reason": "حسنٌ.", "reported_from": null},
+ {"ayah": 19, "stop_phrase": "واقترب", "grade": "تام", "reason": "آخر السورة.", "reported_from": null}
+]
