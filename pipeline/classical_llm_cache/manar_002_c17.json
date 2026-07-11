@@ -1,0 +1,443 @@
+[
+ {
+  "ayah": 269,
+  "stop_phrase": "كَثِيرٗا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 269,
+  "stop_phrase": "ٱلۡأَلۡبَٰبِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 270,
+  "stop_phrase": "يَعۡلَمُهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 270,
+  "stop_phrase": "أَنصَارٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 271,
+  "stop_phrase": "هِىَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 271,
+  "stop_phrase": "لَّكُمۡ",
+  "grade": "تام",
+  "reason": "على قراءة من قرأ: «ونكفر» بالنون والرفع ، أي: نحن نكفر، وكاف لمن قرأه بالتحتية والرفع ، أي: والله يكفر، وليس بوقف لمن قرأ: «نُكفرْ» بالجزم ، وعطفه على محل الفاء من قوله: «فهو»، وكذا من قرأه بالياء والرفع، أو النون والرفع ، وجعله معطوفًا على ما بعد الفاء إلَّا أن يجعله من عطف الجمل؛ فيكون كافيًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 271,
+  "stop_phrase": "سَيِّـَٔاتِكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 271,
+  "stop_phrase": "خَبِيرٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 272,
+  "stop_phrase": "هُدَىٰهُمۡ",
+  "grade": "لا",
+  "reason": "لاستدراك بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 272,
+  "stop_phrase": "يَشَآءُ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 272,
+  "stop_phrase": "يَشَآءُ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": "أبو حاتم"
+ },
+ {
+  "ayah": 272,
+  "stop_phrase": "فَلِأَنفُسِكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 272,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 272,
+  "stop_phrase": "تُظۡلَمُونَ",
+  "grade": "تام",
+  "reason": "إن علق ما بعده بمحذوف متأخر عنه، أي: للفقراء حق واجب في أموالكم",
+  "reported_from": null
+ },
+ {
+  "ayah": 272,
+  "stop_phrase": "تُظۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "إن علق ذلك بمحذوف متقدم، أي: والإنفاق للفقراء",
+  "reported_from": null
+ },
+ {
+  "ayah": 273,
+  "stop_phrase": "ٱلۡأَرۡضِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 273,
+  "stop_phrase": "ٱلتَّعَفُّفِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 273,
+  "stop_phrase": "بِسِيمَٰهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 273,
+  "stop_phrase": "إِلۡحَافٗا",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 273,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 274,
+  "stop_phrase": "وَعَلَانِيَةٗ",
+  "grade": "لا",
+  "reason": "لأن ما بعد الفاء خبر لما قبلها، وكل ما كان من القرآن يستقبله فاء -فالوقف عليه أضعف منه إذا استقبله واو",
+  "reported_from": null
+ },
+ {
+  "ayah": 274,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 274,
+  "stop_phrase": "عَلَيۡهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 274,
+  "stop_phrase": "يَحۡزَنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "ٱلۡمَسِّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "ٱلۡبَيۡعُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "ٱلرِّبَوٰاْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "ٱلرِّبَوٰاْ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "سَلَفَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 275,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 276,
+  "stop_phrase": "ٱلصَّدَقَٰتِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 276,
+  "stop_phrase": "أَثِيمٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 277,
+  "stop_phrase": "رَبِّهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 277,
+  "stop_phrase": "عَلَيۡهِمۡ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 277,
+  "stop_phrase": "يَحۡزَنُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بـ «يا» النداء، ومثله «مؤمنين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 279,
+  "stop_phrase": "وَرَسُولِهِۦ",
+  "grade": "جائز",
+  "reason": "على القراءتين، «فآذنوا» بالمد وكسر الذال من آذن، أي: أعلموا غيركم بحرب من الله ورسوله، وبها قرأ حمزة، «فأْذَنوا» بإسكان الهمزة، وفتح الذال، والقصر من: أذن بكسر الذال، وهي قراءة الباقين",
+  "reported_from": null
+ },
+ {
+  "ayah": 279,
+  "stop_phrase": "أَمۡوَٰلِكُمۡ",
+  "grade": "حسن",
+  "reason": "لاستئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 279,
+  "stop_phrase": "تُظۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 280,
+  "stop_phrase": "مَيۡسَرَةٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 280,
+  "stop_phrase": "مَيۡسَرَةٖ",
+  "grade": "تام",
+  "reason": "لأن ما بعده في موضع رفع بالابتداء، تقديره: وتصدقكم على المعسر بما عليه من الدين خير لكم",
+  "reported_from": "الأخفش"
+ },
+ {
+  "ayah": 280,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 281,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "على قراءة أبي عمرو و «تَرجِعون» ببناء الفعل للفاعل بفتح التاء وكسر الجيم، و «توفى» مبني للمفعول بلا خلاف، فحسن الفصل بالوقف؛ لاختلاف لفظ الفعلين في البناء، وأما على قراءة الباقين: «تُرجَعون» ببناء الفعل للمفعول موافقة لـ «توفي»، فالأحسن الجمع بينهما بالوصل؛ لأن الفعلين على بناء واحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 281,
+  "stop_phrase": "يُظۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "فَاكۡتُبُوهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "بِٱلۡعَدۡلِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "فَلۡيَكۡتُبۡ",
+  "grade": "حسن",
+  "reason": "إذا علقنا الكاف في «كما» بقوله: «فليكتب»، ومن وقف على «ولا يأب كاتب أن يكتب»، ثم يبتدئ «كما علمه الله فليكتب» فقد تعسف",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "ٱلۡحَقُّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "رَبَّهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "شَيۡـٔٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "بِٱلۡعَدۡلِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "رِّجَالِكُمۡ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط مع الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "ٱلشُّهَدَآءِ",
+  "grade": "كاف",
+  "reason": "إن قرئ «إن تضل» بكسر الهمزة؛ على أنها شرطية، وجوابها «فتذكّرُ» بشد الكاف ورفع الراء استئنافًا، وبها قرأ حمزة ورفع الفعل؛ لأنه على إضمار مبتدأ، أي: فهي تذكر، وليس بوقف إن قرئ بفتح الهمزة على أنها أن المصدرية، وبها قرأ الباقون ؛ لتعلقها بما قبلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "ٱلۡأُخۡرَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "دُعُواْ",
+  "grade": "كاف",
+  "reason": "لإثبات الشهادة وبذل خطوطهم إذا دعاهم صاحب الدين إلى ذلك، وهذا قول قتادة، وقيل: إذا ما دعوا لإقامة الشهادة عند الحاكم -فليس لهم أن يكتموا شهادة تحملوها، وهو قول مجاهد، والشعبي، وعطاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "أَجَلِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "بَيۡنَكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "تَكۡتُبُوهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "تَكۡتُبُوهَا",
+  "grade": "كاف",
+  "reason": "للابتداء بالأمر",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "تَبَايَعۡتُمۡ",
+  "grade": "كاف",
+  "reason": "للابتداء بالنهي بعده، ومثله «ولا شهيد»، وكذا «فسوق بكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "جائز",
+  "reason": "وليس بمنصوص عليه",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,247 @@
+[
+ {
+  "ayah": 282,
+  "stop_phrase": "وَيُعَلِّمُكُمُ ٱللَّهُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 282,
+  "stop_phrase": "عَلِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 283,
+  "stop_phrase": "مَّقۡبُوضَةٞ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط، واستئناف معنى آخر",
+  "reported_from": null
+ },
+ {
+  "ayah": 283,
+  "stop_phrase": "رَّبَّهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 283,
+  "stop_phrase": "ٱلشَّهَٰدَةَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 283,
+  "stop_phrase": "قَلۡبُهُۥ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 283,
+  "stop_phrase": "عَلِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 284,
+  "stop_phrase": "وَٱلۡأَرۡضِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 284,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "كاف",
+  "reason": "إن رفع ما بعده على الاستئناف، أي: فهو يغفر",
+  "reported_from": null
+ },
+ {
+  "ayah": 284,
+  "stop_phrase": "ٱللَّهُ",
+  "grade": "لا",
+  "reason": "إن جزم عطفًا على «يحاسبكم» فلا يفصل بينهما بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 284,
+  "stop_phrase": "يَشَآءُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 284,
+  "stop_phrase": "يَشَآءُ",
+  "grade": "لا",
+  "reason": "لا يوقف على أحد المتقابلين حتى يؤتى بالثاني",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 284,
+  "stop_phrase": "يَشَآءُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 284,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 285,
+  "stop_phrase": "وَٱلۡمُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "إن رفع «والمؤمنون» بالفعلية عطفًا على الرسول",
+  "reported_from": null
+ },
+ {
+  "ayah": 285,
+  "stop_phrase": "رَّبِّهِۦ",
+  "grade": "حسن",
+  "reason": "لاستئناف ما بعده، والوجه كونها للعطف؛ ليدخل المؤمنون فيما دخل فيه الرسول من الإيمان بالله وملائكته وكتبه ورسله",
+  "reported_from": null
+ },
+ {
+  "ayah": 285,
+  "stop_phrase": "رُّسُلِهِۦ",
+  "grade": "حسن",
+  "reason": "لمن قرأ «نفرِّق» بالنون",
+  "reported_from": null
+ },
+ {
+  "ayah": 285,
+  "stop_phrase": "رُّسُلِهِۦ",
+  "grade": "لا",
+  "reason": "لمن قرأ «لا يفرق» بالياء بالبناء للفاعل، أي: لا يفرق الرسول، ومن أرجع الضمير في «يفرق» بالياء لله تعالى كان متصلًا بما بعدها، فلا يوقف على «رسله»؛ لتقدم ذكره تعالى فلا يقطع عنه",
+  "reported_from": null
+ },
+ {
+  "ayah": 285,
+  "stop_phrase": "وَأَطَعۡنَا",
+  "grade": "كاف",
+  "reason": "لأن ما بعده منصوب على المصدر بفعل مضمر، كأنهم قالوا: اغفر لنا غفرانًا، أي: مغفرة، أو نسألك غفرانك، أو أوجب لنا غفرانك، أي: مغفرتك، فيكون منصوبًا على المفعول به، فلا يكون له تعلق بما قبله على كل تقدير",
+  "reported_from": null
+ },
+ {
+  "ayah": 285,
+  "stop_phrase": "ٱلۡمَصِيرُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "وُسۡعَهَا",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "كَسَبَتۡ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "ٱكۡتَسَبَتۡ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "وُسۡعَهَا",
+  "grade": "لا",
+  "reason": "لا يوقف على الأول حتى يؤتى بالثاني",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "أَخۡطَأۡنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "قَبۡلِنَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "بِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "أَخۡطَأۡنَا",
+  "grade": "كاف",
+  "reason": "للابتداء فيها بالنداء، ولكن الواو لعطف السؤال على السؤال، وتؤذن بأن كل كلمة «ربنا» تكرار",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "قَبۡلِنَا",
+  "grade": "كاف",
+  "reason": "للابتداء فيها بالنداء، ولكن الواو لعطف السؤال على السؤال، وتؤذن بأن كل كلمة «ربنا» تكرار",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "بِهِۦ",
+  "grade": "كاف",
+  "reason": "للابتداء فيها بالنداء، ولكن الواو لعطف السؤال على السؤال، وتؤذن بأن كل كلمة «ربنا» تكرار",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "عَنَّا",
+  "grade": "حسن",
+  "reason": "لأنه طلب بعد طلب، ودعاء بعد دعاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "لَنَا",
+  "grade": "حسن",
+  "reason": "لأنه طلب بعد طلب، ودعاء بعد دعاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "وَٱرۡحَمۡنَآ",
+  "grade": "حسن",
+  "reason": "لأنه طلب بعد طلب، ودعاء بعد دعاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "مَوۡلَىٰنَا",
+  "grade": "لا",
+  "reason": "لمكان الفاء بعده، واتصال ما بعدها بما قبلها على جهة الجزاء، ولو كان بدل الفاء واو لحسن الوقف والابتداء بما بعدها",
+  "reported_from": null
+ },
+ {
+  "ayah": 286,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ }
+]

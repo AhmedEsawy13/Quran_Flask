@@ -1,0 +1,492 @@
+[
+ {
+  "ayah": 76,
+  "stop_phrase": "أَفَلَا تَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 77,
+  "stop_phrase": "وَمَا يُعۡلِنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "أَمَانِيَّ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 78,
+  "stop_phrase": "يَظُنُّونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "قَلِيلٗا",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "أَيۡدِيهِمۡ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 79,
+  "stop_phrase": "يَكۡسِبُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "مَّعۡدُودَةٗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "عَهۡدٗا",
+  "grade": "لا",
+  "reason": "لأن ما قبل أم المتصلة وما بعدها لا يستغنى بأحدهما عن الآخر، وهما بمنزلة حرف واحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "عَهۡدَهُۥ",
+  "grade": "لا",
+  "reason": "لأن ما قبل أم المتصلة وما بعدها لا يستغنى بأحدهما عن الآخر، وهما بمنزلة حرف واحد",
+  "reported_from": null
+ },
+ {
+  "ayah": 80,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "بَلَىٰ",
+  "grade": "قبيح",
+  "reason": "الوقف على «بلى» خطأ؛ لأن «بلى» وما بعدها جواب للنفي السابق قبلهما، وهو «لن» في قوله: «لن تمسنا»، وفي الثاني: «لن يدخل الجنة»",
+  "reported_from": "شيخ الإسلام"
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "بَلَىٰ",
+  "grade": "جائز",
+  "reason": "يوقف على بلى في جميع القرآن ما لم يتصل بها شرط أو قسم",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 81,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "ٱلۡجَنَّةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "فِيهَا",
+  "grade": "جائز",
+  "reason": "الوقف على أنها جملة مستأنفة من مبتدأ وخبر بعد كل منهما، وليس وقفًا إن أعربت حالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 82,
+  "stop_phrase": "خَٰلِدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "حسن",
+  "reason": "و «إحسانًا» مصدر في معنى الأمر، أي: وأحسنوا، أو استوصوا بالوالدين إحسانًا، وكذا يقال في «قولوا للناس حسنًا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "وَٱلۡمَسَٰكِينِ",
+  "grade": "جائز",
+  "reason": "ووصله أولى؛ لأنَّ ما بعده معطوف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "حُسۡنٗا",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "ٱلصَّلَوٰةَ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "ٱلزَّكَوٰةَ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 83,
+  "stop_phrase": "مُّعۡرِضُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 84,
+  "stop_phrase": "تَشۡهَدُونَ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل جملة في موضع الحال بمعنى متظاهرين",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "وَٱلۡعُدۡوَٰنِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "وَٱلۡعُدۡوَٰنِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "إِخۡرَاجُهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "إِخۡرَاجُهُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "بِبَعۡضٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "بِبَعۡضٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "ٱلدُّنۡيَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "ٱلۡعَذَابِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 85,
+  "stop_phrase": "تَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "سواء قرئ بالفوقية أو بالتحتية، وتمامه على استئناف ما بعده، وجائز إن جعل ما بعده صفة لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "بِٱلۡأٓخِرَةِ",
+  "grade": "جائز",
+  "reason": "على أن الفعل بعده مستأنف، وعلى أن الفاء للسبب والجزاء يجب الوصل",
+  "reported_from": null
+ },
+ {
+  "ayah": 86,
+  "stop_phrase": "يُنصَرُونَ",
+  "grade": "تام",
+  "reason": "أتم مما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "بِٱلرُّسُلِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱلۡبَيِّنَٰتِ",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱلۡقُدُسِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "ٱسۡتَكۡبَرۡتُمۡ",
+  "grade": "صالح",
+  "reason": "وقوله: «ففريقًا» منصوب بالفعل بعده، أي: كذبتم وقتلتم فريقًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 87,
+  "stop_phrase": "تَقْتُلُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "غُلۡفُۢ",
+  "grade": "صالح",
+  "reason": "لأنَّ «بل» إعراض عن الأول، وتحقيق للثاني",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "بِكُفۡرِهِمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف إن نصب «قليلًا» حالًا من فاعل «يؤمنون»، أي: فجمعًا قليلًا يؤمنون، أي: المؤمن منهم قليل",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "بِكُفۡرِهِمۡ",
+  "grade": "جائز",
+  "reason": "إن نصب بمصدر محذوف أي: فإيمانًا قليلًا، أو نصب صفة لزمان محذوف، أي: فزمانًا قليلًا يؤمنون",
+  "reported_from": null
+ },
+ {
+  "ayah": 88,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "مَعَهُمۡ",
+  "grade": "لا",
+  "reason": "لأنَّ الواو بعده للحال",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "لا",
+  "reason": "لأنَّ جواب «لما» الأولى دل عليه جواب الثانية",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "بِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "بِهِۦ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 89,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "أَنفُسَهُمۡ",
+  "grade": "تام",
+  "reason": "إن جعل محل أن رفعًا خبر مبتدأ محذوف، أي: هو أن يكفروا، أو جعل مبتدأ محذوف الخبر، وليس بوقف إن جعلت أن مبتدأ محذوف وما قبلها خبرًا، أو جعلت بدلًا من الضمير في «به» إن جعلت «ما» تامة",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "عِبَادِهِۦ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "غَضَبٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 90,
+  "stop_phrase": "مُّهِينٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "عَلَيۡنَا",
+  "grade": "جائز",
+  "reason": "لأنَّ ما بعده جملة مستأنفة الأخبار، وكذا بما رواه لفصله بين الحكاية وبين كلام الله",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "مَعَهُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "قَبۡلُ",
+  "grade": "لا",
+  "reason": "لأن ما بعده شرط جوابه محذوف، أي: إن كنتم آمنتم بما أنزل عليكم -فلِمَ قتلتم أنبياء الله؟ فهي جملة سيقت توكيدًا لما قبلها، وقيل: إنْ نافية بمعنى: ما، أي: ما كنتم مؤمنين؛ لمنافاة ما صدر منكم الإيمان",
+  "reported_from": null
+ },
+ {
+  "ayah": 91,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 92,
+  "stop_phrase": "ظَٰلِمُونَ",
+  "grade": "كاف",
+  "reason": "و «ثم»؛ لترتيب الأخبار",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "ٱلطُّورَ",
+  "grade": "جائز",
+  "reason": "لأن ما بعده على إضمار القول، أي قلنا: خذوا",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "وَٱسۡمَعُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "وَعَصَيۡنَا",
+  "grade": "صالح",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "بِكُفۡرِهِمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 93,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 94,
+  "stop_phrase": "صَٰدِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "أَيۡدِيهِمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "بِٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 95,
+  "stop_phrase": "بِٱلظَّٰلِمِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "حَيَوٰةٖ",
+  "grade": "تام",
+  "reason": "لأنَّ قوله: «يود أحدهم» عنده جملة في موضع الحال من قوله: «ومن الذين أشركوا»، ويجوز أن يكون «ومن الذين أشركوا» في موضع رفع خبرًا مقدمًا",
+  "reported_from": "نافع"
+ }
+]

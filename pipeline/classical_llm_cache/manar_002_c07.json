@@ -1,0 +1,457 @@
+[
+ {
+  "ayah": 96,
+  "stop_phrase": "حَيَوٰةٖ",
+  "grade": "تام",
+  "reason": "على أن يكون التقدير قوم يود أحدهم لو يعمر ألف سنة",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "أَشۡرَكُواْۚ",
+  "grade": "تام",
+  "reason": "وهم المجوس، كان الرجل منهم إذا عطس قيل له: زي هزا رسال، أي: عش ألف سنة؛ فاليهود أحرص على الحياة من المجوس الذين يقولون ذلك",
+  "reported_from": "الأكثر"
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "سَنَةٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "سَنَةٖ",
+  "grade": "كاف",
+  "reason": "لأن ما بعده يصلح أن يكون مستأنفًا وحالًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "يُعَمَّرَۗ",
+  "grade": "حسن",
+  "reason": "أحسن منه [أي من ألف سنة]",
+  "reported_from": null
+ },
+ {
+  "ayah": 96,
+  "stop_phrase": "يَعۡمَلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "يَدَيۡهِ",
+  "grade": "حسن",
+  "reason": "إن رفعت «هدى»",
+  "reported_from": null
+ },
+ {
+  "ayah": 97,
+  "stop_phrase": "لِلۡمُؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "وَمِيكَىٰلَ",
+  "grade": "لا",
+  "reason": "لأن جواب الشرط لم يأت",
+  "reported_from": null
+ },
+ {
+  "ayah": 98,
+  "stop_phrase": "لِّلۡكَٰفِرِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "بَيِّنَٰتٖۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 99,
+  "stop_phrase": "ٱلۡفَٰسِقُونَ",
+  "grade": "تام",
+  "reason": "للاستفهام بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "عَهۡدٗا",
+  "grade": "لا",
+  "reason": "لأن «نبذه» جواب لما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "مِّنۡهُمۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 100,
+  "stop_phrase": "يُؤۡمِنُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "مَعَهُمۡ",
+  "grade": "لا",
+  "reason": "لأن جواب «لما» منتظر",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "ٱلۡكِتَٰبَ",
+  "grade": "جائز",
+  "reason": "إن جعل مفعول «أوتوا» الواو، والثاني «الكتاب»",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "ٱلۡكِتَٰبَ",
+  "grade": "لا",
+  "reason": "إن جعل «الكتاب» مفعولًا أول، و «كتاب الله» مفعول «نبذ»",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "ظُهُورِهِمۡ",
+  "grade": "لا",
+  "reason": "لأن «كأنهم لا يعلمون» جملة حالية، وصاحبها «فريق»، والعامل فيها «نبذ»، والتقدير: مشبهين للجهال",
+  "reported_from": null
+ },
+ {
+  "ayah": 101,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "سُلَيۡمَٰنَۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "سُلَيۡمَٰنَۖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "نافع"
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "سُلَيۡمَٰنَۖ",
+  "grade": "حسن",
+  "reason": "بل حسن، وعلى كل قول فيه البداءة بـ «لكن»، وهي كلمة استدراك، يستدرك بها الإثبات بعد النفي، أو النفي بعد الإثبات، وواقعة بين كلامين متغايرين فما بعدها متعلق بما قبلها استدراكًا وعطفًا",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "حسن",
+  "reason": "على استئناف ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "كَفَرُواْ",
+  "grade": "لا",
+  "reason": "إن جعل ما بعده في موضع نصب على الحال، أو خبر «لكن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "ٱلسِّحۡرَ",
+  "grade": "كاف",
+  "reason": "إن جعلت «ما» نافية، ثم يبتدئ: «وما أنزل على الملكين»، أي: لم ينزل عليهما سحر ولا باطل",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "ٱلسِّحۡرَ",
+  "grade": "لا",
+  "reason": "إن جعلت «ما» بمعنى الذي، أي: «ولكن الشياطين كفروا يعلمون الناس السحر والذي أنزل على الملكين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "وَمَٰرُوتَۚ",
+  "grade": "تام",
+  "reason": "سواء جعلت «ما» نافية، أو بمعنى الذي",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "يَقُولَآ",
+  "grade": "لا",
+  "reason": "لفصله بين القول والمقول",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "تَكۡفُرۡۖ",
+  "grade": "كاف",
+  "reason": "إن جعل ما بعده معطوفًا على «يعلمون الناس السحر»، وعلى المعنى أي: فلا تكفر فيأتون فيتعلمون، وقيل: عطف على محل «ولكن الشياطين كفروا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "وَزَوۡجِهِۦۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "ٱللَّهِۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "يَنفَعُهُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "ٱشۡتَرَىٰهُ",
+  "grade": "لا",
+  "reason": "لأن قوله: «ماله» جواب القسم؛ فإن اللام في «لمن اشتراه» موطئة للقسم، و «من» شرطية في محل رفع بالابتداء، و «ماله في الآخرة من خلاق» جواب القسم",
+  "reported_from": null
+ },
+ {
+  "ayah": 102,
+  "stop_phrase": "خَلَٰقٖۚ",
+  "grade": "حسن",
+  "reason": "وكذا «يعلمون» الأول [أي: لو كانوا يعلمون]",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "وَٱتَّقَوۡاْ",
+  "grade": "لا",
+  "reason": "لأن جواب «لو» بعد",
+  "reported_from": null
+ },
+ {
+  "ayah": 103,
+  "stop_phrase": "يَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "لأنه آخر القصة",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "رَٰعِنَا",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "رَٰعِنَا",
+  "grade": "جائز",
+  "reason": "لمن قرأ : «راعنًا» بالتنوين، وتفسيرها: لا تقولوا حمقًا؛ مأخوذ من الرعونة، والوقف عليها في هذه القراءة سائغ",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "وَٱسۡمَعُواْۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 104,
+  "stop_phrase": "أَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "رَّبِّكُمۡۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "يَشَآءُۚ",
+  "grade": "حسن",
+  "reason": "أكفى [أي كافٍ وهو أحسن مما قبله]",
+  "reported_from": null
+ },
+ {
+  "ayah": 105,
+  "stop_phrase": "ٱلۡعَظِيمِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "نُنسِهَا",
+  "grade": "لا",
+  "reason": "لأن قوله: «نأت بخير منها» جواب الشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "مِثۡلِهَآۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "مِثۡلِهَآۗ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم السجستاني"
+ },
+ {
+  "ayah": 106,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "تام",
+  "reason": "للاستفهام بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "وَٱلۡأَرۡضِۗ",
+  "grade": "كاف",
+  "reason": "للابتداء بعده بالنفي",
+  "reported_from": null
+ },
+ {
+  "ayah": 107,
+  "stop_phrase": "نَصِيرٍ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "قَبۡلُۗ",
+  "grade": "تام",
+  "reason": "للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 108,
+  "stop_phrase": "ٱلسَّبِيلِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "كُفَّارًا",
+  "grade": "كاف",
+  "reason": "إن نصب «حسدًا» بمضمر غير الظاهر؛ لأن حسدًا مصدر فعل محذوف، أي: يحسدونكم حسدًا، وهو مفعول له",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "كُفَّارًا",
+  "grade": "لا",
+  "reason": "إن نصب «حسدًا» على أنه مصدرًا، أو أنه مفعول له؛ إذ لا يفصل بين العامل والمعمول بالوقف",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "ٱلۡحَقُّۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "بِأَمۡرِهِۦٓۗ",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 109,
+  "stop_phrase": "قَدِيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "ٱلزَّكَوٰةَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "ٱللَّهِۗ",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 110,
+  "stop_phrase": "بَصِيرٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "نَصَٰرَىٰۗ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "أَمَانِيُّهُمۡۗ",
+  "grade": "حسن",
+  "reason": "أحسن منه",
+  "reported_from": null
+ },
+ {
+  "ayah": 111,
+  "stop_phrase": "صَٰدِقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 112,
+  "stop_phrase": "بَلَىٰۚ",
+  "grade": "لا",
+  "reason": "لأن «بلى» وما بعدها جواب للنفي السابق، والمعنى: أن اليهود قالوا [أي نفي دخول غيرهم الجنة]",
+  "reported_from": null
+ }
+]

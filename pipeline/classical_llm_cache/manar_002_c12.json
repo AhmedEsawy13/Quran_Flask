@@ -1,0 +1,534 @@
+[
+ {
+  "ayah": 179,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "تام",
+  "reason": "حذف مفعوله تقديره: القتل بالخوف من القصاص",
+  "reported_from": null
+ },
+ {
+  "ayah": 180,
+  "stop_phrase": "خَيۡرًا",
+  "grade": "حسن",
+  "reason": "أنها مرفوعة بالابتداء وما بعدها، وهو قوله: «للوالدين» خبرها، ومفعول «كتب» محذوف، أي: كتب عليكم أن توصوا، ثم بيََّن لمن الوصية، أو خبره محذوف، أي: الإيصاء كتب، أي: فرض عليكم الوصية للوالدين والأقربين، فعلى هذا يحسن الوقف على خيرًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 180,
+  "stop_phrase": "بِٱلۡمَعۡرُوفِ",
+  "grade": "كاف",
+  "reason": "إن نصب «حقًّا» على المصدر، كأنه قال: أحق ذلك اليوم عليكم حقًّا، أو وجب وجوبًا، أو كتب عليكم الوصية حقًّا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 180,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 181,
+  "stop_phrase": "يُبَدِّلُونَهُۥٓ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 181,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 182,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 182,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "للابتداء بالنداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 183,
+  "stop_phrase": "تَتَّقُونَ",
+  "grade": "جائز",
+  "reason": "لأنه رأس آية، وليس بحسن؛ لأن ما بعده متعلق بـ «كتب»؛ لأن «أيامًا» منصوب على الظرف، أي: كتب عليكم الصيام في أيام معدودات؛ فلا يفصل بين الظرف وبين ما عمل فيه من الفعل، وقيل: منصوب؛ على أنه مفعول ثان لـ «كتب»، أي: كتب عليكم أن تصوموا أيامًا معدودات.",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "مَّعۡدُودَٰتٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "أُخَرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "مِسۡكِينٖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "لَّهُۥ",
+  "grade": "حسن",
+  "reason": "أحسن مما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "إن رفع «شهر» بالابتداء، وخبره «الذي أنزل فيه القرآن»",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "إن رفع على أنه خبر مبتدأ محذوف، أي: المفترض عليكم، أو هي، أو الأيام شهر رمضان، ومثل ذلك من نصبه على الإغراء",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "حسن",
+  "reason": "إن نصب بفعل مقدر، أي: صوموا شهر رمضان",
+  "reported_from": null
+ },
+ {
+  "ayah": 184,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "لا",
+  "reason": "إن جعل بدلًا من «أيام معدودات»، كأنه قال: أيامًا معدودات شهر رمضان، والبدل والمبدل منه كالشيء الواحد، أو بدلًا من «الصيام» على أن تجعله اسم ما لم يسم فاعله، أي: كتب عليكم شهر رمضان.",
+  "reported_from": null
+ },
+ {
+  "ayah": 185,
+  "stop_phrase": "وَٱلۡفُرۡقَانِ",
+  "grade": "كاف",
+  "reason": "وقيل: تام؛ للابتداء بالشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 185,
+  "stop_phrase": "فَلۡيَصُمۡهُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 185,
+  "stop_phrase": "أُخَرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 185,
+  "stop_phrase": "ٱلۡعُسۡرَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 185,
+  "stop_phrase": "ٱلۡعُسۡرَ",
+  "grade": "كاف",
+  "reason": "على أن اللام في قوله: «ولتكملوا العدة» متعلقة بمحذوف تقديره: وفعل هذا لتكملوا العدة، وهو مذهب الفراء، وقال غيره: اللام متعلقة بيريد مضمرة، والتقدير: ويريد لتكملوا العدة",
+  "reported_from": "أحمد بن حسان"
+ },
+ {
+  "ayah": 185,
+  "stop_phrase": "تَشۡكُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 186,
+  "stop_phrase": "قَرِيبٌ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 186,
+  "stop_phrase": "دَعَانِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 186,
+  "stop_phrase": "يَرۡشُدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "نِّسَآئِكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "نِّسَآئِكُمۡ",
+  "grade": "كاف",
+  "reason": "لأن «هن» مبتدأ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "لَّهُنَّ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "عَنكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "لَكُمۡ",
+  "grade": "حسن",
+  "reason": "الأخير أحسن منهما؛ لعطف الجملتين المتفقتين مع اتفاق المعنى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "ٱلۡفَجۡرِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "ٱلَّيۡلِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "ٱلۡمَسَٰجِدِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "تَقۡرَبُوهَا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "تَقۡرَبُوهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 187,
+  "stop_phrase": "يَتَّقُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 188,
+  "stop_phrase": "ٱلۡحُكَّامِ",
+  "grade": "لا",
+  "reason": "للام العلة في الأول",
+  "reported_from": null
+ },
+ {
+  "ayah": 188,
+  "stop_phrase": "بِٱلۡإِثۡمِ",
+  "grade": "لا",
+  "reason": "لواو الحال في الثاني",
+  "reported_from": null
+ },
+ {
+  "ayah": 188,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "ٱلۡأَهِلَّةِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "ٱلۡأَهِلَّةِ",
+  "grade": "لا",
+  "reason": "لأنَّ ما بعده جوابه فلا يفصل بينهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "وَٱلۡحَجِّ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "ظُهُورِهَا",
+  "grade": "لا",
+  "reason": "لتعلق ما بعده به عطفًا، واستدراكًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "ٱتَّقَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "أَبۡوَٰبِهَا",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 189,
+  "stop_phrase": "تُفۡلِحُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 190,
+  "stop_phrase": "تَعۡتَدُوٓاْ",
+  "grade": "صالح",
+  "reason": "لأن قوله: «إن الله» جواب للنهي قبله فله به بعض تعلق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 190,
+  "stop_phrase": "ٱلۡمُعۡتَدِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 191,
+  "stop_phrase": "أَخۡرَجُوكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 191,
+  "stop_phrase": "ٱلۡقَتۡلِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 191,
+  "stop_phrase": "فِيهِ",
+  "grade": "كاف",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 191,
+  "stop_phrase": "فَٱقۡتُلُوهُمۡ",
+  "grade": "جائز",
+  "reason": "لأنَّ قوله: «كذلك جزاء الكافرين» منقطع في اللفظ متصل المعنى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 191,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 192,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "كاف",
+  "reason": "أكفى منه [من الوقف على الكافرين].",
+  "reported_from": null
+ },
+ {
+  "ayah": 193,
+  "stop_phrase": "فِتۡنَةٌ",
+  "grade": "لا",
+  "reason": "لأن ما بعده معطوف على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 193,
+  "stop_phrase": "لِلَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 193,
+  "stop_phrase": "ٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 194,
+  "stop_phrase": "قِصَاصٌ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 194,
+  "stop_phrase": "عَلَيۡكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 194,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "حسن",
+  "reason": "أحسن.",
+  "reported_from": null
+ },
+ {
+  "ayah": 194,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 195,
+  "stop_phrase": "ٱلتَّهۡلُكَةِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 195,
+  "stop_phrase": "وَأَحۡسِنُوٓاْ",
+  "grade": "جائز",
+  "reason": "لأنَّ «إن» جواب الأمر؛ فهو منقطع لفظًا متصل معنى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 195,
+  "stop_phrase": "ٱلۡمُحۡسِنِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلۡحَجَّ",
+  "grade": "حسن",
+  "reason": "لمن رفع و «العمرةُ» على الاستئناف، فلا تكون العمرة واجبة، وبها قرأ الشعبي وعامر، وتأولها أهل العلم بأن الله أمر بتمام الحج إلى انتهاء مناسكه، ثم استأنف الأخبار بأن العمرة لله؛ ليدل على كثرة ثوابها، وللترغيب في فعلها",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلۡحَجَّ",
+  "grade": "لا",
+  "reason": "لمن نصبها عطفًا على «الحج»، فتكون داخلة في الوجوب وبهذه القراءة قرأ العامة",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "لِلَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلۡهَدۡيِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "مَحِلَّهُۥ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "نُسُكٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلۡهَدۡيِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "إِلَى ٱلۡحَجِّ",
+  "grade": "لا",
+  "reason": "لأن قوله: «فما استيسر» جواب الشرط، وموضع «ما» رفع، فكأنه قال: فعليه ما استيسر من الهدى، فحذف الخبر؛ لأن الكلام يدل عليه، وقيل: موضعها نصب بفعل مضمر، كأنه قال: فيذبح ما استيسر من الهدي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "رَجَعۡتُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "كَامِلَةٌ",
+  "grade": "حسن",
+  "reason": "أحسن منه [من الوقف على رجعتم].",
+  "reported_from": null
+ },
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلۡحَرَامِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ }
+]

@@ -1,0 +1,562 @@
+[
+ {
+  "ayah": 196,
+  "stop_phrase": "ٱلۡعِقَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "مَّعۡلُومَٰتٞ",
+  "grade": "كاف",
+  "reason": "يبني الوقف على «فسوقٌ»، ووصله على اختلاف القراء والمعربين في رفع «رفثٌ» وما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "فُسُوقَ",
+  "grade": "تام",
+  "reason": "فمن قرأ برفعهما والتنوين وفتح «جدالَ»، وبها قرأ أبو عمرو وابن كثير ، فوقفه على «فسوق» تام، ولا يوقف على شيء قبله، ثم يبتدئ «ولا جدال في الحج»",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "فُسُوقَ",
+  "grade": "لا",
+  "reason": "وليس «فسوق» بوقف لمن نصب الثلاثة",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "فُسُوقَ",
+  "grade": "كاف",
+  "reason": "واختلف في رفع «رفث»، و «فسوق»، فقيل بالابتداء، والخبر محذوف تقديره: كائن أو مستقر في الحج، أو رفعهما على أن «لا» بمعنى: ليس، والخبر محذوف أيضًا، ففي «الحج» على الأول خبر ليس، وعلى الثاني خبر المبتدأ. وعليهما الوقف على {فُسُوقَ} كاف",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "فِي ٱلۡحَجِّ",
+  "grade": "كاف",
+  "reason": "وقيل: تام على جميع القراءات، أي: لا شك في الحج أنه ثبت في ذي الحجة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "فِي ٱلۡحَجِّ",
+  "grade": "تام",
+  "reason": "وقيل: تام على جميع القراءات، أي: لا شك في الحج أنه ثبت في ذي الحجة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "خَيۡرٖ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأن «يعلمه الله» جواب الشرط.",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "يَعۡلَمۡهُ ٱللَّهُ",
+  "grade": "تام",
+  "reason": "ووقف بعضهم على «وتزودوا» فارقًا بين الزادين؛ لأن أحدهما زاد الدنيا، والآخر زاد الآخرة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "ٱلتَّقۡوَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "وَٱتَّقُونِ",
+  "grade": "لا",
+  "reason": "وعند قوم «واتقون»، ثم يبتدئ: «يا أولي الألباب»، وليس بشيء؛ لأن الابتداء بالنداء المجرد لا يفيد إلَّا أن يقرن بالسبب الذي من أجله نودي.",
+  "reported_from": null
+ },
+ {
+  "ayah": 197,
+  "stop_phrase": "ٱلۡأَلۡبَٰبِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "جُنَاحٌ",
+  "grade": "لا",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "رَّبِّكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "ٱلۡحَرَامِ",
+  "grade": "حسن",
+  "reason": "ومثله «الحرام» أي كالموضع السابق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "هَدَىٰكُمۡ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لأن الواو بعده للحال، وقال الفراء: إن «أن» بمعنى: «ما»، واللام بمعنى إلَّا، أي: وما كنتم من قبله إلَّا من الضالين، والهاء في قبله راجعة إلى الهدى، أو إلى الرسول - صلى الله عليه وسلم -",
+  "reported_from": null
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "هَدَىٰكُمۡ",
+  "grade": "جائز",
+  "reason": "لأنَّ الواو تصلح حالًا واستئنافًا، و «أن» بمعنى: قد، قاله السجاوندي، وعلى هذا يجوز الوقف عليه، والصحيح أنها مخففة من الثقيلة.",
+  "reported_from": "السجاوندي"
+ },
+ {
+  "ayah": 198,
+  "stop_phrase": "ٱلضَّآلِّينَ",
+  "grade": "كاف",
+  "reason": "و «ثم» لترتيب الأخبار.",
+  "reported_from": null
+ },
+ {
+  "ayah": 199,
+  "stop_phrase": "ٱلنَّاسُ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 199,
+  "stop_phrase": "ٱللَّهَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 199,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 200,
+  "stop_phrase": "ذِكۡرٗا",
+  "grade": "تام",
+  "reason": "ومثله «ذكرًا» أي كالموضع السابق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 200,
+  "stop_phrase": "خَلَٰقٖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 201,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "كاف",
+  "reason": "وكذا «عذاب النار»",
+  "reported_from": null
+ },
+ {
+  "ayah": 202,
+  "stop_phrase": "كَسَبُواْ",
+  "grade": "كاف",
+  "reason": "ومثله «كسبوا»",
+  "reported_from": null
+ },
+ {
+  "ayah": 202,
+  "stop_phrase": "ٱلۡحِسَابِ",
+  "grade": "تام",
+  "reason": "باتفاق",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "مَّعۡدُودَٰتٖ",
+  "grade": "كاف",
+  "reason": "لأن الشرط في بيان حكم آخر",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "جائز",
+  "reason": "الأول جائز",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "لا",
+  "reason": "وقال يحيى بن نصير النحوي: لا يوقف على الأول حتى يؤتى بالثاني",
+  "reported_from": "يحيى بن نصير النحوي"
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "عَلَيۡهِ",
+  "grade": "لا",
+  "reason": "الثاني ليس بوقف؛ لتعلق ما بعده به، أي: لمن اتقى الله في حجه وغيره.",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "ٱتَّقَىٰ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "ٱتَّقَىٰ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 203,
+  "stop_phrase": "تُحۡشَرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 204,
+  "stop_phrase": "قَلۡبِهِۦ",
+  "grade": "لا",
+  "reason": "قيل: ليس بوقف؛ لأن الواو بعده للحال.",
+  "reported_from": null
+ },
+ {
+  "ayah": 204,
+  "stop_phrase": "ٱلۡخِصَامِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 205,
+  "stop_phrase": "فِيهَا",
+  "grade": "كاف",
+  "reason": "ومثله «ليفسد» فيها لمن رفع، و «يهلك» بضم الياء، والكاف من «أهلك» على الاستئناف، أو خبر مبتدأ، أي: وهو يهلك.",
+  "reported_from": null
+ },
+ {
+  "ayah": 205,
+  "stop_phrase": "وَٱلنَّسۡلَ",
+  "grade": "لا",
+  "reason": "وليس بوقف لمن رفعه عطفًا على «يشهد»، أو نصبه نسقًا على «ليفسد»",
+  "reported_from": null
+ },
+ {
+  "ayah": 205,
+  "stop_phrase": "وَٱلنَّسۡلَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 205,
+  "stop_phrase": "ٱلۡفَسَادَ",
+  "grade": "كاف",
+  "reason": "ومثله «الفساد».",
+  "reported_from": null
+ },
+ {
+  "ayah": 206,
+  "stop_phrase": "بِٱلۡإِثۡمِ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 206,
+  "stop_phrase": "جَهَنَّمُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 206,
+  "stop_phrase": "ٱلۡمِهَادُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 207,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 207,
+  "stop_phrase": "بِٱلۡعِبَادِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 208,
+  "stop_phrase": "كَآفَّةٗ",
+  "grade": "جائز",
+  "reason": "و «كافة» حال من الضمير في «ادخلوا»، أي: ادخلوا في الإسلام في هذه الحالة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 208,
+  "stop_phrase": "ٱلشَّيۡطَٰنِ",
+  "grade": "كاف",
+  "reason": "للابتداء بـ «إنه»",
+  "reported_from": null
+ },
+ {
+  "ayah": 208,
+  "stop_phrase": "مُّبِينٌ",
+  "grade": "كاف",
+  "reason": "ومثله «مبين»",
+  "reported_from": null
+ },
+ {
+  "ayah": 209,
+  "stop_phrase": "حَكِيمٌ",
+  "grade": "تام",
+  "reason": "للابتداء بالاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 210,
+  "stop_phrase": "ٱلۡغَمَامِ",
+  "grade": "كاف",
+  "reason": "كاف لمن رفع «الملائكة» على إضمار الفعل، أي: وتأتيهم الملائكة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 210,
+  "stop_phrase": "ٱلۡغَمَامِ",
+  "grade": "لا",
+  "reason": "وليس بوقف لمن قرأ بالجر ، وهو أبو جعفر يزيد بن القعقاع عطفًا على «الغمام»",
+  "reported_from": null
+ },
+ {
+  "ayah": 210,
+  "stop_phrase": "وَٱلۡمَلَٰٓئِكَةُ",
+  "grade": "حسن",
+  "reason": "سواء كانت «الملائكة» مرفوعة، أو مجرورة؛ لعطفها على فاعل «يأتيهم»، أي: وأتتهم الملائكة",
+  "reported_from": null
+ },
+ {
+  "ayah": 210,
+  "stop_phrase": "وَٱلۡمَلَٰٓئِكَةُ",
+  "grade": "لا",
+  "reason": "وليس بوقف لمن قرأ بالجر ، وهو أبو جعفر يزيد بن القعقاع عطفًا على «الغمام»",
+  "reported_from": null
+ },
+ {
+  "ayah": 210,
+  "stop_phrase": "ٱلۡأَمۡرُ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 210,
+  "stop_phrase": "ٱلۡأُمُورُ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 211,
+  "stop_phrase": "بَيِّنَةٖ",
+  "grade": "حسن",
+  "reason": "لانتهاء الاستفهام",
+  "reported_from": null
+ },
+ {
+  "ayah": 211,
+  "stop_phrase": "ٱلۡعِقَابِ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 212,
+  "stop_phrase": "ءَامَنُواْ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 212,
+  "stop_phrase": "ٱلۡقِيَٰمَةِ",
+  "grade": "حسن",
+  "reason": "ومثله «يوم القيامة»",
+  "reported_from": null
+ },
+ {
+  "ayah": 212,
+  "stop_phrase": "حِسَابٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 213,
+  "stop_phrase": "وَٰحِدَةٗ",
+  "grade": "لا",
+  "reason": "ليس بوقف؛ لفاء العطف بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 213,
+  "stop_phrase": "وَمُنذِرِينَ",
+  "grade": "جائز",
+  "reason": "لأن «مبشرين ومنذرين» حالان من «النبيين» حال مقارنة؛ لأن بعثهم كان وقت البشارة والنذارة، وقيل: حال مقدرة.",
+  "reported_from": null
+ },
+ {
+  "ayah": 213,
+  "stop_phrase": "فِيهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 213,
+  "stop_phrase": "بَيۡنَهُمۡ",
+  "grade": "حسن",
+  "reason": "ومثله «بغيًا بينهم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 213,
+  "stop_phrase": "بِإِذۡنِهِۦ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 213,
+  "stop_phrase": "مُّسۡتَقِيمٍ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 214,
+  "stop_phrase": "قَبۡلِكُم",
+  "grade": "حسن",
+  "reason": "للفصل بين الاستفهام والإخبار، لأن «ولما يأتكم» عطف على «أم حسبتم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 214,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 214,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "كاف",
+  "reason": "للابتداء بأداة التنبيه",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 214,
+  "stop_phrase": "قَرِيبٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 215,
+  "stop_phrase": "يُنفِقُونَ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 215,
+  "stop_phrase": "ٱلسَّبِيلِ",
+  "grade": "حسن",
+  "reason": "أحسن منه؛ للابتداء بالشرط",
+  "reported_from": null
+ },
+ {
+  "ayah": 215,
+  "stop_phrase": "عَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 216,
+  "stop_phrase": "كُرۡهٞ لَّكُمۡ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 216,
+  "stop_phrase": "خَيۡرٞ لَّكُمۡ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 216,
+  "stop_phrase": "شَرّٞ لَّكمۡ",
+  "grade": "كاف",
+  "reason": "ومثله «شر لكم»",
+  "reported_from": null
+ },
+ {
+  "ayah": 216,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 217,
+  "stop_phrase": "فِيهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 217,
+  "stop_phrase": "كَبِيرٌ",
+  "grade": "تام",
+  "reason": "لأن «وصد» مرفوع بالابتداء، وما بعده معطوف عليه، وخبر هذه الأشياء كلها «أكبر عند الله»؛ فلا يوقف على «المسجد الحرام»؛ لأن خبر المبتدأ لم يأت فلا يفصل بينهما بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 217,
+  "stop_phrase": "ٱلۡحَرَامِ",
+  "grade": "لا",
+  "reason": "لأن خبر المبتدأ لم يأت فلا يفصل بينهما بالوقف.",
+  "reported_from": null
+ },
+ {
+  "ayah": 217,
+  "stop_phrase": "عِندَ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ }
+]

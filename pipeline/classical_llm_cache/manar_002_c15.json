@@ -1,0 +1,464 @@
+[
+ {
+  "ayah": 234,
+  "stop_phrase": "بِٱلۡمَعۡرُوفِۗ",
+  "grade": "لا",
+  "reason": "فموصول باتفاق.",
+  "reported_from": null
+ },
+ {
+  "ayah": 241,
+  "stop_phrase": "بِٱلۡمَعۡرُوفِۖ",
+  "grade": "جائز",
+  "reason": "إن نصب «حقًّا» بفعل مقدر، أي: أحق ذلك حقًّا، وليس بمنصوص عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 241,
+  "stop_phrase": "ٱلۡمُتَّقِينَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 242,
+  "stop_phrase": "تَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 243,
+  "stop_phrase": "حَذَرَ ٱلۡمَوۡتِۚ",
+  "grade": "لا",
+  "reason": "لوجود الفاء",
+  "reported_from": null
+ },
+ {
+  "ayah": 243,
+  "stop_phrase": "أَحۡيَٰهُمۡۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 243,
+  "stop_phrase": "ٱلنَّاسِ",
+  "grade": "لا",
+  "reason": "للاستدراك بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 243,
+  "stop_phrase": "يَشۡكُرُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 244,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "جائز",
+  "reason": "وليس بمنصوص عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 244,
+  "stop_phrase": "عَلِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 245,
+  "stop_phrase": "حَسَنٗا",
+  "grade": "حسن",
+  "reason": "لمن رفع ما بعده على الاستئناف، وليس بوقف لمن نصبه جوابًا للاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 245,
+  "stop_phrase": "كَثِيرَةٗۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 245,
+  "stop_phrase": "كَثِيرَةٗۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 245,
+  "stop_phrase": "تُرۡجَعُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 246,
+  "stop_phrase": "مُوسَىٰٓ",
+  "grade": "جائز",
+  "reason": "لأنه لو وصله لصار «إذ» ظرفًا لقوله: «ألم تر»، وهو محال؛ إذ يصير العامل in «إذ تر»، بل العامل فيها محذوف، أي: إلى قصة الملأ، ويصير المعنى: ألم تر إلى ما جرى للملأ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 246,
+  "stop_phrase": "ٱللَّهِۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 246,
+  "stop_phrase": "تُقَٰتِلُواْۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 246,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأن الجملة المنفية بعده في محل نصب حال مما قبله، كأنه قيل: مالنا غير مقاتلين.",
+  "reported_from": null
+ },
+ {
+  "ayah": 246,
+  "stop_phrase": "وَأَبۡنَآئِنَاۖ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 246,
+  "stop_phrase": "مِّنۡهُمۡۚ",
+  "grade": "حسن",
+  "reason": "ومثله «وأبنائنا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 246,
+  "stop_phrase": "بِٱلظَّٰلِمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 247,
+  "stop_phrase": "مَلِكٗاۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 247,
+  "stop_phrase": "ٱلۡمَالِۚ",
+  "grade": "حسن",
+  "reason": "ومثله «ملكا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 247,
+  "stop_phrase": "وَٱلۡجِسۡمِۖ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 247,
+  "stop_phrase": "يَشَآءُۚ",
+  "grade": "كاف",
+  "reason": "ومثله «والجسم».",
+  "reported_from": null
+ },
+ {
+  "ayah": 247,
+  "stop_phrase": "عَلِيمٞ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 248,
+  "stop_phrase": "رَّبِّكُمۡ",
+  "grade": "جائز",
+  "reason": "وليس بمنصوص عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 248,
+  "stop_phrase": "ٱلۡمَلَٰٓئِكَةُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 248,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "كاف",
+  "reason": "ومثله «الملائكة».",
+  "reported_from": null
+ },
+ {
+  "ayah": 248,
+  "stop_phrase": "مُّؤۡمِنِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو عمرو"
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "بِٱلۡجُنُودِ",
+  "grade": "لا",
+  "reason": "لأن قال جواب لما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "بِنَهَرٖ",
+  "grade": "حسن",
+  "reason": "للابتداء بالشرط مع الفاء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "مِنِّي",
+  "grade": "جائز",
+  "reason": "للابتداء بشرط آخر مع الواو.",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "مِنِّيٓ",
+  "grade": "حسن",
+  "reason": "لأن ما بعده من الاستثناء في قوة لكن، فيكون ما بعده ليس من جنس ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "بِيَدِهِۦۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "مِّنۡهُمۡۚ",
+  "grade": "كاف",
+  "reason": "ومثله «بيده».",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "مَعَهُۥ",
+  "grade": "لا",
+  "reason": "لأن «قالوا» جواب لما فلا يفصل بينهما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "وَجُنُودِهِۦۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "ٱللَّهِ",
+  "grade": "لا",
+  "reason": "للفصل بين القول ومقوله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "بِإِذۡنِ ٱللَّهِۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 249,
+  "stop_phrase": "ٱلصَّٰبِرِينَ",
+  "grade": "كاف",
+  "reason": "ومثله «بإذن الله».",
+  "reported_from": null
+ },
+ {
+  "ayah": 250,
+  "stop_phrase": "وَجُنُودِهِۦ",
+  "grade": "لا",
+  "reason": "لأن قالوا جواب لما.",
+  "reported_from": null
+ },
+ {
+  "ayah": 250,
+  "stop_phrase": "صَبۡرٗا",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 250,
+  "stop_phrase": "أَقۡدَامَنَا",
+  "grade": "جائز",
+  "reason": "ومثله «صبرا».",
+  "reported_from": null
+ },
+ {
+  "ayah": 250,
+  "stop_phrase": "ٱلۡكَٰفِرِينَ",
+  "grade": "كاف",
+  "reason": "لفصله بين الإنشاء والخبر؛ لأن ما قبله دعاء، وما بعده خبر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 251,
+  "stop_phrase": "بِإِذۡنِ ٱللَّهِ",
+  "grade": "حسن",
+  "reason": "وإن كانت الواو في «وقتل» للعطف؛ لأنه عطف جملة على جملة، فهو كالمنفصل عنه",
+  "reported_from": null
+ },
+ {
+  "ayah": 251,
+  "stop_phrase": "يَشَآءُۗ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 251,
+  "stop_phrase": "ٱلۡأَرۡضُ",
+  "grade": "لا",
+  "reason": "للاستدراك بعده.",
+  "reported_from": null
+ },
+ {
+  "ayah": 251,
+  "stop_phrase": "ٱلۡعَٰلَمِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 252,
+  "stop_phrase": "بِٱلۡحَقِّۚ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 252,
+  "stop_phrase": "ٱلۡمُرۡسَلِينَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "بَعۡضٖۘ",
+  "grade": "تام",
+  "reason": "وجه تمامه أنه لما قال: «فضلنا بعضهم على بعض»، أي: بالطاعات -انقطع الكلام، واستأنف كلامًا في صفة منازل الأنبياء مفصلًا فضيلة كل واحد بخصيصية ليست لغيره... ولو وصل لصار الجار وما عطف عليه صفة لـ «بعض»",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "بَعۡضٖۘ",
+  "grade": "حسن",
+  "reason": "وقيل: الوقف على «بعض» حسن",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "ٱللَّهُۖ",
+  "grade": "حسن",
+  "reason": "ومثله «من كلم الله»",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "دَرَجَٰتٖۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "ٱلۡبَيِّنَٰتِ",
+  "grade": "حسن",
+  "reason": "ومثله «درجات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "ٱلۡقُدُسِۗ",
+  "grade": "حسن",
+  "reason": "ومثله «درجات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "ٱخۡتَلَفُواْ",
+  "grade": "حسن",
+  "reason": "ومثله «درجات»",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "كَفَرَۚ",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "مَا ٱقۡتَتَلُواْ",
+  "grade": "لا",
+  "reason": "الأولى وصله؛ لأن «لكن» حرف استدراك يقع بين ضدين",
+  "reported_from": null
+ },
+ {
+  "ayah": 253,
+  "stop_phrase": "يُرِيدُ",
+  "grade": "تام",
+  "reason": "للابتداء بعده بالنداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 254,
+  "stop_phrase": "شَفَٰعَةٞۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 254,
+  "stop_phrase": "ٱلظَّٰلِمُونَ",
+  "grade": "تام",
+  "reason": "لأنَّ ما بعده مبتدأ، و «لا إله إلَّا هو» خبر.",
+  "reported_from": null
+ },
+ {
+  "ayah": 255,
+  "stop_phrase": "إِلَّا هُوَ",
+  "grade": "كاف",
+  "reason": "إن رفع ما بعده مبتدأ وخبرًا، أو خبر مبتدأ محذوف، أي: هو الحي، أو جعل «الحي» مبتدأ، وخبره «لا تأخذه»، وليس بوقف إن جعل بدلًا من «لا إله إلَّا هو»، أو بدلًا من «هو» وحده",
+  "reported_from": null
+ },
+ {
+  "ayah": 255,
+  "stop_phrase": "ٱلۡقَيُّومُۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 255,
+  "stop_phrase": "نَوۡمٞۚ",
+  "grade": "حسن",
+  "reason": "وكررت «لا» في قوله: «ولا نوم» تأكيدًا، وفائدتها انتفاء كل منهما",
+  "reported_from": null
+ }
+]

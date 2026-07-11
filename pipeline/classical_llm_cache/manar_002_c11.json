@@ -1,0 +1,310 @@
+[
+ {
+  "ayah": 165,
+  "stop_phrase": "ٱلۡعَذَابَ",
+  "grade": "حسن",
+  "reason": "لمن قرأ: «ولو ترى» بالتاء الفوقية، وكسر الهمزة من «أن القوة لله ... وأن الله شديد العذاب»، وهو نافع ومن وافقه من المدينة ، وحذف جواب «لو» تقديره: لرأيت كذا وكذا، والفاعل السامع مضمرًا",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "ٱلۡعَذَابَ",
+  "grade": "لا",
+  "reason": "ومن فتح «أن» فالوصل أولى؛ لأن التقدير: ولو يرى الذين ظلموا إذ يرون العذاب لعلموا أن القوة لله؛ فـ «أن» من صلة الجواب إلَّا أنه حذف الجواب؛ لأن في الكلام ما يدل عليه، أو هي منصوبة بـ «يرى»، أي: ولو يرى الذين ظلموا وقت رؤيتهم العذاب أن القوة لله جميعًا -لرأيتهم يقولون: إن القوة لله جميعًا، فعلى هذين لا يوقف على «العذاب».",
+  "reported_from": null
+ },
+ {
+  "ayah": 165,
+  "stop_phrase": "ٱلۡعَذَابِ",
+  "grade": "حسن",
+  "reason": "من حيث كونه رأس آية، وليس وقفًا؛ لأن «إذ» بدل من «إذ» قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 166,
+  "stop_phrase": "ٱلۡأَسۡبَابُ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "مِنَّاۗ",
+  "grade": "حسن",
+  "reason": "لأن العامل في «كذلك يريهم»؛ فكأنه قال: يريهم الله أعمالهم السيئة كتبرى بعضهم من بعض، والمعنى: تمني الاتباع لو رجعوا إلى الدنيا؛ حتى يطيعوا، وتبرءوا من المتبوعين مثل ما تبرأ المتبوعون منهم أولًا.",
+  "reported_from": "الكلبي"
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "عَلَيۡهِمۡۖ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل حالًا.",
+  "reported_from": null
+ },
+ {
+  "ayah": 167,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "تام",
+  "reason": "للابتداء بالنداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 168,
+  "stop_phrase": "طَيِّبٗا",
+  "grade": "حسن",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 168,
+  "stop_phrase": "ٱلشَّيۡطَٰنِۚ",
+  "grade": "حسن",
+  "reason": "أحسن منه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 168,
+  "stop_phrase": "مُّبِينٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "وَٱلۡفَحۡشَآءِ",
+  "grade": "لا",
+  "reason": "لعطف ما بعده على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 169,
+  "stop_phrase": "تَعۡلَمُونَ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "ءَابَآءَنَآۚ",
+  "grade": "كاف",
+  "reason": "للابتداء بالاستفهام.",
+  "reported_from": null
+ },
+ {
+  "ayah": 170,
+  "stop_phrase": "يَهۡتَدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "وَنِدَآءٗۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 171,
+  "stop_phrase": "يَعۡقِلُونَ",
+  "grade": "تام",
+  "reason": "للابتداء بالنداء.",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "رَزَقۡنَٰكُمۡ",
+  "grade": "جائز",
+  "reason": "وليس منصوصًا عليه.",
+  "reported_from": null
+ },
+ {
+  "ayah": 172,
+  "stop_phrase": "تَعۡبُدُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "ٱللَّهِۖ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "عَلَيۡهِۚ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 173,
+  "stop_phrase": "رَّحِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "قَلِيلًا",
+  "grade": "لا",
+  "reason": "لأن خبر «إن» لم يأت بعد.",
+  "reported_from": null
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "ٱلنَّارَ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "يُزَكِّيهِمۡ",
+  "grade": "كاف",
+  "reason": "على استئناف ما بعده، وليس بوقف إن جعل في موضع الحال لا يوقف عليه، ولا على «النار» قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 174,
+  "stop_phrase": "أَلِيمٌ",
+  "grade": "تام",
+  "reason": "ومثله «بالمغفرة»، وكذا «على النار».",
+  "reported_from": null
+ },
+ {
+  "ayah": 175,
+  "stop_phrase": "بِٱلۡمَغۡفِرَةِۚ",
+  "grade": "تام",
+  "reason": "ومثله «بالمغفرة»، وكذا «على النار».",
+  "reported_from": null
+ },
+ {
+  "ayah": 175,
+  "stop_phrase": "ٱلنَّارِ",
+  "grade": "تام",
+  "reason": "ومثله «بالمغفرة»، وكذا «على النار».",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "بِٱلۡحَقِّۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "بَعِيدٖ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "وَٱلۡمَغۡرِبِ",
+  "grade": "لا",
+  "reason": "لاتصال الكلام بعضه ببعض، فلا يوقف على «والمغرب»؛ لاستدراك ما بعده",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "بِٱللَّهِ",
+  "grade": "لا",
+  "reason": "لأن الإيمان بالله منفردًا من غير تصديق بالرسل، وبالكتب، وبالملائكة -لا ينفع",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "ٱلۡأٓخِرِ",
+  "grade": "لا",
+  "reason": "لأن ما بعده معطوف على ما قبله",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "وَٱلنَّبِيِّـۧنَ",
+  "grade": "جائز",
+  "reason": "لطول الكلام، ولا يوقف على «وابن السبيل»؛ لأن ما بعده معطوف على ما قبله.",
+  "reported_from": "بعضهم"
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "ٱلسَّبِيلِ",
+  "grade": "لا",
+  "reason": "لأن ما بعده معطوف على ما قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "ٱلزَّكَوٰةَ",
+  "grade": "تام",
+  "reason": "«والموفون» مرفوع خبر مبتدأ محذوف، أي: وهم الموفون، والعامل في «إذا» الموفون، أي: لا يتأخر إيفاؤهم بالعهد عن وقت إيقاعه، قاله أبو حيان، وليس بوقف إن عطف على الضمير المستتر في «من آمن»، كأنه قال: ولكن ذوي البر من آمن ومن أقام الصلاة، ومن آتى الزكاة، ومن أوفى.",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "عَٰهَدُواْۖ",
+  "grade": "حسن",
+  "reason": "و «الصابرين» منصوب على المدح",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "ٱلۡبَأۡسِۗ",
+  "grade": "كاف",
+  "reason": "كاف غير تام، وقال السخاوي: وما قاله (أبو حاتم) خطأ؛ لأن قوله: «أولئك الذين صدقوا» خبر، وحديث عنهم فلا يتم الوقف قبله.",
+  "reported_from": null
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "ٱلۡبَأۡسِۗ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": "أبو حاتم السجستاني"
+ },
+ {
+  "ayah": 177,
+  "stop_phrase": "ٱلۡمُتَّقُونَ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 178,
+  "stop_phrase": "ٱلۡقَتۡلَىۖ",
+  "grade": "حسن",
+  "reason": "إن رفع ما بعده بالابتداء، وليس بوقف إن رفع بالفعل المقدر، والتقدير: أن يقاص الحر بالحر، ومثله «الأنثى بالأنثى».",
+  "reported_from": null
+ },
+ {
+  "ayah": 178,
+  "stop_phrase": "بِإِحۡسَٰنٖۗ",
+  "grade": "جائز",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 178,
+  "stop_phrase": "وَرَحۡمَةٌۗ",
+  "grade": "كاف",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 178,
+  "stop_phrase": "أَلِيمٌ",
+  "grade": "تام",
+  "reason": "",
+  "reported_from": null
+ },
+ {
+  "ayah": 179,
+  "stop_phrase": "حَيَوٰةٌ",
+  "grade": "لا",
+  "reason": "كذا قيل، وليس بشيء؛ لأن الابتداء بالنداء المجرد لا يفيد، إلَّا أن يقترن بالسبب الذي من أجله نودي، فتقول: يأيها الناس اتقوا ربكم، يا أيها الذين آمنوا أطيعوا الله، ومن قال: يضمر قبل النداء فعل تقديره: اعلموا يا أولي الألباب -قوله فاسد",
+  "reported_from": null
+ }
+]
