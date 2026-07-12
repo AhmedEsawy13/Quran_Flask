@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentRepeatCount = 0; // Track current repeat count
     let maxRepeats = 1; // Track maximum repeats set by user
     let isRangeMode = false; // True while a verse range is playing
+    let isScrubbingAudio = false; // True while the user is dragging the seek slider
     let waqfPanelView = 'mushaf'; // 'mushaf' = per-mushaf cards, 'word' = per-word view
     const fontCache = {};
     const loadedShamarlyFonts = new Set();
@@ -352,6 +353,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             khattJustifyRow: document.getElementById('khatt-justify-row'),
             khattJustifySlider: document.getElementById('khatt-justify-slider'),
             khattJustifyValue: document.getElementById('khatt-justify-value'),
+            audioSeekSlider: document.getElementById('audio-seek-slider'),
+            audioCurrentTimeLabel: document.getElementById('audio-current-time'),
+            audioDurationLabel: document.getElementById('audio-duration-time'),
+            audioMuteButton: document.getElementById('audio-mute-toggle'),
         };
     }
 
@@ -404,6 +409,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 elements.endAyahSelect.selectedIndex = nextIdx;
             }
         });
+        // Mirror of the guard above: picking an end-ayah AT OR BEFORE the
+        // current start left playRange() silently doing nothing (its own
+        // startIdx <= endIdx check would fail with no feedback to the user)
+        // — clamp start backward instead, same auto-correct the start select
+        // already gets.
+        elements.endAyahSelect.addEventListener('change', () => {
+            const endIdx = elements.endAyahSelect.selectedIndex;
+            if (elements.startAyahSelect.selectedIndex >= endIdx) {
+                const prevIdx = Math.max(endIdx - 1, 0);
+                elements.startAyahSelect.selectedIndex = prevIdx;
+            }
+        });
         window.addEventListener('click', (event) => {
             if (event.target === elements.modal) closeModal();
         });
@@ -425,6 +442,44 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
         elements.playPauseButton.addEventListener('click', togglePlayPause);
+        // Keep the button's icon/label correct no matter WHAT started or
+        // stopped playback — the custom button's own click handler, the
+        // native <audio controls> bar rendered alongside it, or a media key.
+        // Bound on the audio element itself (not the button), so this stays
+        // correct through range-mode's own click-handler swap too (see
+        // playRange()/cleanupRangeMode(), which only replace the button's
+        // click listener, never these).
+        elements.audioElement.addEventListener('play', updatePlayPauseButton);
+        elements.audioElement.addEventListener('pause', updatePlayPauseButton);
+
+        // Unified player's seek bar + time labels + mute button — replaces
+        // the native <audio controls> UI that used to render separately.
+        if (elements.audioSeekSlider) {
+            elements.audioElement.addEventListener('timeupdate', updateAudioSeekUI);
+            elements.audioElement.addEventListener('loadedmetadata', updateAudioSeekUI);
+            elements.audioElement.addEventListener('durationchange', updateAudioSeekUI);
+            elements.audioSeekSlider.addEventListener('input', () => {
+                isScrubbingAudio = true;
+                const duration = elements.audioElement.duration;
+                if (isFinite(duration) && duration > 0 && elements.audioCurrentTimeLabel) {
+                    const previewTime = (elements.audioSeekSlider.value / 1000) * duration;
+                    elements.audioCurrentTimeLabel.textContent = formatAudioTime(previewTime);
+                }
+            });
+            elements.audioSeekSlider.addEventListener('change', () => {
+                const duration = elements.audioElement.duration;
+                if (isFinite(duration) && duration > 0) {
+                    elements.audioElement.currentTime = (elements.audioSeekSlider.value / 1000) * duration;
+                }
+                isScrubbingAudio = false;
+            });
+        }
+        if (elements.audioMuteButton) {
+            elements.audioMuteButton.addEventListener('click', () => {
+                elements.audioElement.muted = !elements.audioElement.muted;
+                updateAudioMuteButton();
+            });
+        }
 
         // Digital Khatt justification slider
         if (elements.khattJustifySlider) {
@@ -718,6 +773,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
     
             elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
+            resetAudioSeekUI();
             currentSegments = reciterAudio.segments;
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
             renderWaqfVerseTable();
@@ -792,6 +848,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
+        resetAudioSeekUI();
         currentSegments = reciterAudio.segments || [];
         displayTransliteration(currentAyahData.transliteration);
         await maybeRefreshTafseer(surahNumber, ayahNumber);
@@ -3548,6 +3605,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             await loadQuranData();
             elements.audioElement.play();
             updatePlayPauseButton();
+        } else {
+            // Last ayah of the surah — roll into the next surah's first ayah
+            // rather than silently doing nothing (the button gave no other
+            // sign it had hit a boundary).
+            const currentSurahIndex = elements.surahSelect.selectedIndex;
+            if (currentSurahIndex < elements.surahSelect.options.length - 1) {
+                elements.surahSelect.selectedIndex = currentSurahIndex + 1;
+                currentRepeatCount = 0;
+                await loadAyahs(); // repopulates ayah-select, lands on ayah 1, loads + plays it
+                elements.audioElement.play();
+                updatePlayPauseButton();
+            }
         }
     }
 
@@ -3556,7 +3625,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (elements.playPauseButton.rangePlayPauseHandler) {
             cleanupRangeMode();
         }
-        
+
         const currentAyahIndex = elements.ayahSelect.selectedIndex;
         if (currentAyahIndex > 0) {
             elements.ayahSelect.selectedIndex = currentAyahIndex - 1;
@@ -3564,6 +3633,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             await loadQuranData();
             elements.audioElement.play();
             updatePlayPauseButton();
+        } else {
+            // First ayah of the surah — roll back into the previous surah's
+            // last ayah, mirroring loadNextAyah()'s forward rollover.
+            const currentSurahIndex = elements.surahSelect.selectedIndex;
+            if (currentSurahIndex > 0) {
+                elements.surahSelect.selectedIndex = currentSurahIndex - 1;
+                currentRepeatCount = 0;
+                await loadAyahs(); // repopulates ayah-select for the previous surah, defaults to ayah 1
+                elements.ayahSelect.selectedIndex = elements.ayahSelect.options.length - 1; // ...move to its last ayah
+                await loadQuranData();
+                elements.audioElement.play();
+                updatePlayPauseButton();
+            }
         }
     }
 
@@ -3784,13 +3866,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.audioElement.play().catch(error => {
                 console.error('Error playing audio:', error);
             });
-            elements.playPauseButton.classList.remove('fa-play');
-            elements.playPauseButton.classList.add('fa-pause');
         } else {
             elements.audioElement.pause();
-            elements.playPauseButton.classList.remove('fa-pause');
-            elements.playPauseButton.classList.add('fa-play');
         }
+        // Icon/label update happens via the audioElement 'play'/'pause'
+        // listeners (see addEventListeners()) — not here, so it stays
+        // correct even when play()/pause() resolves asynchronously.
     }
 
     function updatePlayPauseButton() {
@@ -3812,6 +3893,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (icon)  { icon.classList.remove('fa-play'); icon.classList.add('fa-pause'); }
             if (label) label.textContent = 'إيقاف';
         }
+    }
+
+    const _ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩';
+    function formatAudioTime(seconds) {
+        if (!isFinite(seconds) || seconds < 0) seconds = 0;
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        const toArabicDigits = (str) => String(str).replace(/[0-9]/g, (d) => _ARABIC_DIGITS[d]);
+        return `${toArabicDigits(m)}:${toArabicDigits(String(s).padStart(2, '0'))}`;
+    }
+
+    function updateAudioSeekUI() {
+        const audio = elements.audioElement;
+        if (!audio || !elements.audioSeekSlider) return;
+        const duration = audio.duration;
+        if (isFinite(duration) && duration > 0) {
+            if (!isScrubbingAudio) {
+                elements.audioSeekSlider.value = String(Math.round((audio.currentTime / duration) * 1000));
+            }
+            if (elements.audioDurationLabel) elements.audioDurationLabel.textContent = formatAudioTime(duration);
+        }
+        if (!isScrubbingAudio && elements.audioCurrentTimeLabel) {
+            elements.audioCurrentTimeLabel.textContent = formatAudioTime(audio.currentTime);
+        }
+    }
+
+    function resetAudioSeekUI() {
+        isScrubbingAudio = false;
+        if (elements.audioSeekSlider) elements.audioSeekSlider.value = '0';
+        if (elements.audioCurrentTimeLabel) elements.audioCurrentTimeLabel.textContent = formatAudioTime(0);
+        if (elements.audioDurationLabel) elements.audioDurationLabel.textContent = formatAudioTime(0);
+    }
+
+    function updateAudioMuteButton() {
+        if (!elements.audioMuteButton || !elements.audioElement) return;
+        const icon = elements.audioMuteButton.querySelector('i');
+        if (!icon) return;
+        icon.classList.remove('fa-volume-up', 'fa-volume-mute');
+        icon.classList.add(elements.audioElement.muted ? 'fa-volume-mute' : 'fa-volume-up');
     }
 
     // Bookmark functions

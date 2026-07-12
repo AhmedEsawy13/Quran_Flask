@@ -479,9 +479,6 @@ body.dark-mode .tafseer-group { background: rgba(30,41,59,0.9); border-color: rg
 body.dark-mode .tafseer-group #show-tafseer, body.dark-mode .tafseer-inline-select { color: #94a3b8; border-color: rgba(100,116,139,0.4) !important; }
 body.dark-mode .tafseer-group #show-tafseer:hover { background: rgba(51,65,85,0.8); }
 
-.audio-wrap { flex: 1 1 240px; max-width: 360px; }
-.audio-wrap audio { width: 100%; border-radius: 10px; height: 36px; }
-
 /* ---- Waqf mode segmented control ---- */
 .waqf-mode-control { display: inline-flex; align-items: center; gap: 0; background: rgba(0, 0, 0, 0.06); border-radius: 10px; padding: 3px; border: 1px solid var(--border-color); }
 .waqf-mode-label { font-size: 0.78rem; color: var(--text-color); opacity: 0.65; padding: 0 6px 0 2px; white-space: nowrap; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif; }
@@ -2195,8 +2192,7 @@ body.sepia-mode #controls .waqf-mode-btn.active {
     }
 
     .operation-container button,
-    select,
-    button {
+    .operation-container select {
         width: 100%;
         margin: 4px 0;
     }
@@ -3131,6 +3127,73 @@ body.dark-mode .ctrl-row-playback #play-pause-button.btn-play {
     box-shadow: 0 4px 14px rgba(2,132,199,0.25);
 }
 
+/* Unified player — merges what used to be a separate native <audio controls>
+   bar (Row 4) with the custom play/pause/prev/next buttons (Row 2) into one
+   consistently-styled control, so there's a single source of truth for
+   playback state instead of two differently-styled players on screen. */
+.playback-main {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.playback-seek {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 200px;
+    min-width: 160px;
+}
+
+.playback-time {
+    font-size: 0.78rem;
+    color: #64748b;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    min-width: 34px;
+    text-align: center;
+}
+
+body.dark-mode .playback-time { color: #94a3b8; }
+body.sepia-mode .playback-time { color: #78716c; }
+
+.audio-seek-slider {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    accent-color: #0ea5e9;
+    cursor: pointer;
+}
+
+.audio-mute-btn {
+    border-radius: 8px;
+    padding: 7px 9px;
+    border: 1px solid rgba(148,163,184,0.3);
+    background: rgba(248,250,252,0.9);
+    color: #475569;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.audio-mute-btn:hover { background: rgba(226,232,240,0.95); }
+
+body.dark-mode .audio-mute-btn {
+    background: rgba(30,41,59,0.9);
+    border-color: rgba(100,116,139,0.4);
+    color: #94a3b8;
+}
+
+body.sepia-mode .audio-mute-btn {
+    background: rgba(255,247,237,0.9);
+    border-color: rgba(180,140,90,0.35);
+    color: #78716c;
+}
+
 /* Row 3 — waqf */
 .ctrl-row-waqf {
     justify-content: flex-start;
@@ -3304,17 +3367,6 @@ body.dark-mode .tafseer-inline-select {
 }
 
 body.dark-mode .tafseer-group #show-tafseer:hover { background: rgba(51,65,85,0.8); }
-
-.audio-wrap {
-    flex: 1 1 240px;
-    max-width: 360px;
-}
-
-.audio-wrap audio {
-    width: 100%;
-    border-radius: 10px;
-    height: 36px;
-}
 
 /* ══════════════════════════════════════════════════════════════════
    WAQF SYMBOL COLOR PALETTE — PER MUSHAF VERSION
@@ -4263,11 +4315,12 @@ body.dark-mode .range-field label { color: #94a3b8; }
     #controls { padding: 12px; gap: 6px; border-radius: 16px; }
     .ctrl-row-nav select { min-width: 90px; }
     .ctrl-row-playback { flex-direction: column; align-items: stretch; }
+    .playback-main { flex-wrap: wrap; }
     .playback-btns { justify-content: center; }
+    .playback-seek { flex: 1 1 100%; min-width: 0; }
     .playback-extra { justify-content: center; }
     .ctrl-row-playback #play-pause-button.btn-play { width: 100%; }
     .ctrl-row-tools { flex-direction: column; }
-    .audio-wrap { max-width: 100%; }
     .reading-tool-btns { flex-wrap: wrap; justify-content: center; }
 }
 

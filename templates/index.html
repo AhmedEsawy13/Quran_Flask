@@ -88,16 +88,26 @@
 
             <!-- Row 2: Playback + utilities -->
             <div class="ctrl-row ctrl-row-playback">
-                <div class="playback-btns">
-                    <button id="prev-ayah" type="button" title="الآية السابقة" aria-label="الآية السابقة">
-                        <i class="fas fa-backward-step"></i>
-                    </button>
-                    <button id="play-pause-button" type="button" class="btn-play">
-                        <i class="fas fa-play"></i> <span>تشغيل</span>
-                    </button>
-                    <button id="next-ayah" type="button" title="الآية التالية" aria-label="الآية التالية">
-                        <i class="fas fa-forward-step"></i>
-                    </button>
+                <div class="playback-main">
+                    <div class="playback-btns">
+                        <button id="prev-ayah" type="button" title="الآية السابقة" aria-label="الآية السابقة">
+                            <i class="fas fa-backward-step"></i>
+                        </button>
+                        <button id="play-pause-button" type="button" class="btn-play">
+                            <i class="fas fa-play"></i> <span>تشغيل</span>
+                        </button>
+                        <button id="next-ayah" type="button" title="الآية التالية" aria-label="الآية التالية">
+                            <i class="fas fa-forward-step"></i>
+                        </button>
+                    </div>
+                    <div class="playback-seek" id="playback-seek">
+                        <span id="audio-current-time" class="playback-time">٠:٠٠</span>
+                        <input type="range" id="audio-seek-slider" class="audio-seek-slider" min="0" max="1000" value="0" step="1" aria-label="موضع التشغيل داخل الآية">
+                        <span id="audio-duration-time" class="playback-time">٠:٠٠</span>
+                        <button id="audio-mute-toggle" type="button" class="audio-mute-btn" title="كتم الصوت" aria-label="كتم الصوت">
+                            <i class="fas fa-volume-up"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="playback-extra">
                     <label class="repeat-label" for="repeat-select">تكرار</label>
@@ -262,9 +272,8 @@
                     <button id="toggle-word-meaning-button" type="button">غريب الكلمات</button>
                     <button id="toggle-waqf-table" type="button" title="عرض جدول علامات الوقف لهذه الآية"><i class="fas fa-table"></i> جدول الوقف</button>
                 </div>
-                <div class="audio-wrap">
-                    <audio id="quran-audio" controls></audio>
-                </div>
+                <!-- Playback engine only — the visible player lives in Row 2 (.playback-seek) now -->
+                <audio id="quran-audio" style="display:none"></audio>
             </div>
 
         </div><!-- /#controls -->
