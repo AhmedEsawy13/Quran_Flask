@@ -14,6 +14,7 @@ from core.config import EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.db import connect as _sqlite_connect
 from core.mushaf_waqf import _mushaf_waqf_cache
+from modules.breathing import _verse_waqf_cache
 from modules.layouts import (
     _build_qatar_page_payload,
     _build_qpc_v1_page_payload,
@@ -104,6 +105,7 @@ def _get_or_set_word_waqf(global_word_id, edition, symbol):
             cur.execute(f'UPDATE waqf SET {quoted_col} = ? WHERE rowid = ?', (clean_symbol, matched_row['rowid']))
             conn.commit()
             _mushaf_waqf_cache.pop((surah_number, ayah_number, edition), None)
+            _verse_waqf_cache.pop((surah_number, ayah_number), None)
             return clean_symbol
 
         if clean_symbol is None:
@@ -124,6 +126,7 @@ def _get_or_set_word_waqf(global_word_id, edition, symbol):
         )
         conn.commit()
         _mushaf_waqf_cache.pop((surah_number, ayah_number, edition), None)
+        _verse_waqf_cache.pop((surah_number, ayah_number), None)
         return clean_symbol
     finally:
         conn.close()

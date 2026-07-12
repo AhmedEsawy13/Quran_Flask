@@ -21,6 +21,7 @@ from core.mushaf_waqf import (
     _is_valid_mushaf_version,
     get_mushaf_waqf_symbols,
 )
+from core.lru import _BoundedLRU
 from core.db import connect as _sqlite_connect
 from core.datasets import qpc_hafs_data_normalized
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
@@ -83,12 +84,31 @@ def _mark_word_context(verse_key, token_index, span=2):
     return wpos, ' '.join(words[lo:hi])
 
 
+# Recomputing this means re-running forward-waqf-stop detection for all 15
+# installed reciters plus mushaf-mark lookups across 8 editions on every
+# request — now hit by both مُكْث's /waqf page and المصحف's دليل التلاوة, so
+# it's cached per verse. Invalidated by modules/editor.py whenever a mark for
+# this (surah, ayah) is edited (editor writes only touch قطر/الكويت, but the
+# cache key isn't per-edition, so any edit for the verse drops the whole entry).
+_verse_waqf_cache: _BoundedLRU = _BoundedLRU(maxsize=2048)
+
+
 def _build_verse_waqf_detail(surah, ayah):
     """Full per-reciter waqf detail for ONE verse, for the comparison page.
 
     Returns the verse text/words plus, for every installed reciter, their own
     forward-waqf stops (with each reciter's cumulative time) and repeats, and a
     union view (which reciters align at each stop, and which stops are solo)."""
+    cache_key = (surah, ayah)
+    cached = _verse_waqf_cache.get(cache_key)
+    if cached is not None:
+        return cached
+    data = _build_verse_waqf_detail_uncached(surah, ayah)
+    _verse_waqf_cache[cache_key] = data
+    return data
+
+
+def _build_verse_waqf_detail_uncached(surah, ayah):
     reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
     vk = f"{surah}:{ayah}"
     text, words, raw_to_wpos = _verse_word_texts(vk)
