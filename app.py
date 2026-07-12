@@ -161,13 +161,6 @@ from core.datasets import (
 
 
 
-# Load audio data — CDN first, local fallback
-# Local files now live under data/word_timestamps/
-
-
-
-
-
 
 # Ensure word_name.db has an index on (surah_number, ayah_number) for fast per-ayah
 # lookups. Creates the index if missing; safe to call on every startup.

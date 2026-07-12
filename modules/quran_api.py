@@ -1,12 +1,14 @@
 """Shared Quran data API (core_bp): surah/ayah text + waqf-symbol lookup,
-per-reciter word-audio mapping, mushaf-version listing, health check,
-quran-text/transliteration by source, audio streaming (proxy + YouTube via
-yt-dlp), and full-text/word-meaning search. The foundational routes every
-other module builds on top of.
+mushaf-version listing, health check, quran-text/transliteration by source,
+audio streaming (proxy + YouTube via yt-dlp), and full-text/word-meaning
+search. The foundational routes every other module builds on top of.
+
+Reciter audio is served by core/memorization.py's per-surah system (same
+one مُكْث/تثبيت use — see /api/memorization, /api/memorization-reciters,
+/api/waqf) — this module no longer carries its own per-ayah audio data.
 """
 import logging
 import os
-import re
 import sqlite3
 import threading
 
@@ -22,269 +24,10 @@ from core.datasets import (
     normalize_source, get_quran_text_data_by_source, get_quran_text_data,
 )
 from core.memorization import _YT_CHAPTER_URLS
-from core.loader import load_json_cdn_or_local as _load_json_cdn_or_local
 from core.db import get_db
 from modules.reading import get_waqf_symbols, get_word_meanings_ordered
 
 logger = logging.getLogger(__name__)
-
-
-reciters = {
-    "AbdulBaset AbdulSamad (Mujawwad)": ("AbdulBaset AbdulSamad Recitation.json",
-                                         "data/word_timestamps/AbdulBaset AbdulSamad Recitation.json"),
-    "AbdulBaset AbdulSamad (Murattal)": ("ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json",
-                                         "data/word_timestamps/ayah-recitation-abdul-basit-abdul-samad-murattal-hafs-950.json"),
-    "Mohamed al-Minshawi (Mujawwad)": ("Mohamed Siddiq al-Minshawi Recitation.json",
-                              "data/word_timestamps/Mohamed Siddiq al-Minshawi Recitation.json"),
-    "Mohamed al-Minshawi (Murattal)": ("ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json",
-                              "data/word_timestamps/ayah-recitation-muhammad-siddiq-al-minshawi-murattal-hafs-959.json"),
-    "Mahmoud Khalil al-Husary (Mujawwad)": ("ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json",
-                                           "data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-mujawwad-hafs-956.json"),
-    "Mahmoud Khalil al-Husary (Murattal)": ("ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json",
-                                            "data/word_timestamps/ayah-recitation-mahmoud-khalil-al-husary-murattal-hafs-957.json"),
-    "Mahmoud Khalil al-Husary (Muallim)": ("mahmoud-khalil-al-husary-muallm-hafs.json",
-                                           "data/word_timestamps/mahmoud-khalil-al-husary-muallm-hafs.json"),
-    "Ibrahim Al-Akhdar":        ("ibrahim-al-akhdar.json",
-                                  "data/word_timestamps/ibrahim-al-akhdar.json"),
-    "Ayman Rushdi Suwaid":       ("ayman-rushdi-suwaid.json",
-                                  "data/word_timestamps/ayman-rushdi-suwaid.json"),
-    "Mahmoud Ali Al-Banna":      ("mahmoud-ali-al-banna.json",
-                                  "data/word_timestamps/mahmoud-ali-al-banna.json"),
-    "Mustafa Ismaeel":           ("mustafa-ismaeel.json",
-                                  "data/word_timestamps/mustafa-ismaeel.json"),
-}
-
-# Reciter audio data and mappings are loaded lazily on first use.
-# This defers ~150 ms of JSON parsing out of the cold-start path.
-audio_data: dict = {}
-_reciters_initialized = False
-_reciters_lock = threading.Lock()
-
-
-def _ensure_reciters_initialized():
-    """Idempotent: load reciter JSON files and build mappings on first call."""
-    global _reciters_initialized
-    if _reciters_initialized:
-        return
-    with _reciters_lock:
-        if _reciters_initialized:  # double-checked locking
-            return
-        for reciter, (cdn_name, local_path) in reciters.items():
-            data = _load_json_cdn_or_local(cdn_name, local_path)
-            audio_data[reciter] = data if data else []
-        for reciter, data in audio_data.items():
-            try:
-                reciter_mappings[reciter] = create_audio_mapping(digital_khatt_data, data)
-                reciter_audio_by_global_id[reciter] = {
-                    info['id']: info
-                    for info in reciter_mappings[reciter].values()
-                    if 'id' in info
-                }
-            except Exception as e:
-                logger.error(f'Error creating mapping for reciter {reciter}: {e}')
-                reciter_mappings[reciter] = {}
-                reciter_audio_by_global_id[reciter] = {}
-        _reciters_initialized = True
-
-
-def _parse_segment(seg):
-    """Normalise a raw segment to {start_word_index, end_word_index, start_time, end_time}.
-
-    Accepts two layouts:
-      4-element [start_word_0based, end_word_0based, start_ms, end_ms]  (qurancdn format)
-      3-element [word_1based, start_ms, end_ms]                         (tarteel format)
-    Returns None for anything else.
-    """
-    if not isinstance(seg, (list, tuple)):
-        return None
-    if len(seg) == 4:
-        return {
-            'start_word_index': seg[0],
-            'end_word_index':   seg[1],
-            'start_time':       seg[2],
-            'end_time':         seg[3],
-        }
-    if len(seg) == 3:
-        w = max(0, int(seg[0]) - 1)   # convert 1-based → 0-based
-        return {
-            'start_word_index': w,
-            'end_word_index':   w,
-            'start_time':       seg[1],
-            'end_time':         seg[2],
-        }
-    return None
-
-
-# Matches diacritics/harakat and quranic marks (NOT the superscript alef ٰ U+0670,
-# which we keep for يا-vocative detection via _YA_NIDA_RE below).
-_HARAKAT_RE = re.compile(r'[\u064B-\u065F\u0654\u0655\u06D6-\u06DC\u06DF-\u06E4]')
-
-# Detects a يا-vocative compound word in the Uthmanic text: starts with ي + optional
-# harakat + superscript alef (ٰ U+0670).  Examples: يَٰٓأَيُّهَا, يَٰٓادَمُ,
-# يَٰبَنِيٓ, يَٰقَوۡمِ, يَٰنِسَآءُ — all forms where يا is written with a superscript
-# alef rather than a full ا.
-_YA_NIDA_RE = re.compile(r'^\u064A[\u064B-\u065F]*\u0670')
-
-
-def _fix_ya_nida_segments(segments, verse_text):
-    """Fix word-index alignment when the timing source split يَا-vocative
-    compounds into two consecutive tokens (يَا + following word) while the
-    Uthmanic/DK text stores each compound as a single merged token.
-
-    Handles all يا-vocative forms wherever they appear in the verse — at the
-    start or mid-verse — including:
-        يَٰٓأَيُّهَا  (يا + أيها)
-        يَٰٓادَمُ     (يا + آدم)
-        يَٰبَنِيٓ     (يا + بني)
-        يَٰقَوۡمِ     (يا + قوم)
-        يَٰنِسَآءُ   (يا + نساء)
-        … and any other word beginning with ي + superscript-alef (ٰ).
-
-    Algorithm:
-      1. Count DK content words (all tokens except the trailing ayah-number).
-      2. If len(segments) <= content_word_count there is nothing to fix.
-      3. Identify every يا-vocative word position in the DK word list.
-      4. Walk DK positions in order; at each يا position consume TWO timing
-         segments (merge them into one) instead of one, until the surplus is
-         fully absorbed.  All segment word indices are re-assigned from the
-         DK position counter so downstream code always sees a 0-based,
-         gap-free index matching the displayed word list.
-    """
-    if not segments or not verse_text:
-        return segments
-
-    verse_words = verse_text.split()
-    # DK text ends with the ayah-number glyph as the last space-separated token;
-    # the timing data never covers that glyph, so content words = total – 1.
-    content_word_count = len(verse_words) - 1
-    extra = len(segments) - content_word_count
-    if extra <= 0:
-        return segments  # no surplus — nothing to fix
-
-    # Find 0-based indices of all يا-vocative words in the DK content word list.
-    ya_positions = {
-        i for i, word in enumerate(verse_words[:-1])
-        if _YA_NIDA_RE.match(word)
-    }
-    if not ya_positions:
-        return segments  # no يا-vocative tokens found — can't identify splits
-
-    # Walk DK word positions and timing segments together.
-    # At each يا position we consume two timing slots and merge them into one
-    # (absorbing one unit of surplus).  Stop merging once the surplus is gone.
-    new_segments = []
-    seg_idx = 0
-    merges_left = min(extra, len(ya_positions))
-
-    for dk_idx in range(content_word_count):
-        if seg_idx >= len(segments):
-            break
-
-        if dk_idx in ya_positions and merges_left > 0 and seg_idx + 1 < len(segments):
-            s0, s1 = segments[seg_idx], segments[seg_idx + 1]
-            new_segments.append({
-                'start_word_index': dk_idx,
-                'end_word_index':   dk_idx,
-                'start_time':       s0['start_time'],
-                'end_time':         max(s0['end_time'], s1['end_time']),
-            })
-            seg_idx += 2
-            merges_left -= 1
-        else:
-            new_segments.append({
-                **segments[seg_idx],
-                'start_word_index': dk_idx,
-                'end_word_index':   dk_idx,
-            })
-            seg_idx += 1
-
-    return new_segments
-
-
-def create_audio_mapping(quran_text_data, audio_data):
-    """Build a verse_key → audio segment map from either list-based or dict-based audio source."""
-    if not quran_text_data or not audio_data:
-        logger.warning("Empty quran_text_data or audio_data provided")
-        return {}
-
-    id_to_verse_key = {
-        data['id']: verse_key
-        for verse_key, data in quran_text_data.items()
-        if isinstance(data, dict) and 'id' in data
-    }
-
-    # If the dict keys already look like verse keys ('1:1', '2:168' …) use them
-    # directly instead of going through the global-id lookup, which breaks when
-    # ayah_number stores a within-surah ordinal rather than a global id.
-    use_dict_keys = (
-        isinstance(audio_data, dict) and
-        bool(audio_data) and
-        bool(re.match(r'^\d+:\d+$', str(next(iter(audio_data)))))
-    )
-
-    if use_dict_keys:
-        pairs = audio_data.items()
-    elif isinstance(audio_data, list):
-        pairs = ((None, item) for item in audio_data)
-    else:
-        pairs = ((None, item) for item in audio_data.values())
-
-    verse_key_to_segment_map = {}
-
-    for item_key, audio_info in pairs:
-        if not isinstance(audio_info, dict):
-            logger.warning(f"Unexpected non-dict entry in audio data: {audio_info}")
-            continue
-
-        audio_url = audio_info.get('audio_url')
-        if not audio_url:
-            logger.warning(f"Missing audio_url in audio info: {audio_info}")
-            continue
-
-        # Resolve verse key
-        if item_key is not None:
-            verse_key = item_key
-        else:
-            ayah_number = audio_info.get('ayah_number')
-            verse_key = id_to_verse_key.get(ayah_number)
-            if not verse_key:
-                logger.warning(f"Ayah number {ayah_number} not found in Quranic text data")
-                continue
-
-        raw_segments = audio_info.get('segments') or []
-        segments = [s for seg in raw_segments if (s := _parse_segment(seg)) is not None]
-
-        # For per-word Tarteel segments (3-element format), fill timing gaps between
-        # consecutive words so highlighting stays continuous instead of going dark
-        # during natural pauses between words.
-        if len(segments) > 1 and all(s['start_word_index'] == s['end_word_index'] for s in segments):
-            segs_sorted = sorted(segments, key=lambda s: s['start_time'])
-            for i in range(len(segs_sorted) - 1):
-                next_start = segs_sorted[i + 1]['start_time']
-                if segs_sorted[i]['end_time'] < next_start - 10:
-                    segs_sorted[i] = {**segs_sorted[i], 'end_time': next_start - 10}
-            segments = segs_sorted
-
-        verse_info = quran_text_data.get(verse_key, {})
-        verse_text = verse_info.get('text', '') if isinstance(verse_info, dict) else ''
-        segments = _fix_ya_nida_segments(segments, verse_text)
-        verse_key_to_segment_map[verse_key] = {
-            'id':           verse_info.get('id', audio_info.get('ayah_number')),
-            'surah_number': int(verse_key.split(':')[0]),
-            'ayah_number':  int(verse_key.split(':')[1]),
-            'audio_url':    audio_url,
-            'segments':     segments,
-        }
-
-    return verse_key_to_segment_map
-
-# These dicts are populated lazily by _ensure_reciters_initialized().
-reciter_mappings: dict = {}
-reciter_audio_by_global_id: dict = {}
-
-
-
-
 
 
 @core_bp.route('/api/mushaf-versions', methods=['GET'])
@@ -307,7 +50,6 @@ def health_check():
             "indopak_loaded": bool(indopak_nastaleeq_data),
             "indopak_2_loaded": bool(indopak_nastaleeq_2_data),
             "transliteration_loaded": bool(transliteration_data),
-            "audio_data_loaded": bool(audio_data)
         }
     }
     
@@ -375,13 +117,9 @@ def get_ayah_text(surah_number, ayah_number):
         ayah_data['transliteration'] = transliteration_data.get(verse_key, {})
         
         # Tafseer is fetched on-demand via /api/tafseer/<surah>/<ayah>
-        # Add reciters' audio information (loads reciter files on first call)
-        _ensure_reciters_initialized()
-        ayah_data['reciters'] = {}
-        for reciter, mapping in reciter_mappings.items():
-            if verse_key in mapping:
-                ayah_data['reciters'][reciter] = mapping[verse_key]
-        
+        # Reciter audio is served separately by /api/memorization (per-surah,
+        # same system مُكْث/تثبيت use) — not carried in this payload.
+
         # Fetch word meanings from the SQLite database (single query)
         ordered_meanings = get_word_meanings_ordered(surah_number, ayah_number)
         ayah_data['word_meanings_ordered'] = ordered_meanings
@@ -391,23 +129,6 @@ def get_ayah_text(surah_number, ayah_number):
         return jsonify(ayah_data)
     return jsonify({"error": "Ayah not found"}), 404
 
-
-
-
-@core_bp.route('/api/reciters/<reciter>/ayahs/<int:ayah_number>/audio', methods=['GET'])
-def get_audio_segments(reciter, ayah_number):
-    if ayah_number < 1:
-        return jsonify({"error": "Invalid ayah number."}), 400
-
-    _ensure_reciters_initialized()
-    by_id = reciter_audio_by_global_id.get(reciter)
-    if by_id is None:
-        return jsonify({"error": "Reciter not found"}), 404
-
-    audio_info = by_id.get(ayah_number)
-    if audio_info:
-        return jsonify(audio_info)
-    return jsonify({"error": "Audio not found"}), 404
 
 @core_bp.route('/api/quran-text', methods=['GET'])
 def get_quran_text():

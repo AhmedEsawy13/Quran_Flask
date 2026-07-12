@@ -1,8 +1,9 @@
 """core_bp (modules/quran_api.py): surah/ayah data, waqf-symbol enrichment,
 audio-URL security allowlists, and search. This is the foundational layer
-every other module builds on — get_ayah_text alone pulls in word meanings,
-waqf symbols, and reciter audio via three separate subsystems, so a
-regression here is invisible to any single-module test.
+every other module builds on — get_ayah_text alone pulls in word meanings
+and waqf symbols via two separate subsystems, so a regression here is
+invisible to any single-module test. Reciter audio moved to
+core/memorization.py's per-surah system — see test_memorize_api.py.
 """
 import urllib.parse as _u
 
@@ -27,8 +28,9 @@ def test_get_ayahs_matches_known_surah_lengths(client):
 
 def test_get_ayah_text_shape_and_content(client):
     """1:1 pulls together text, word meanings (ordered + dict), transliteration,
-    reciter audio, and waqf symbols in one payload — verify all five are present
-    and mutually consistent, not just that the route returns 200."""
+    and waqf symbols in one payload — verify all four are present and mutually
+    consistent, not just that the route returns 200. Reciter audio is served
+    separately by /api/memorization (see test_memorize_api.py), not carried here."""
     j = client.get('/api/surahs/1/ayahs/1').get_json()
     assert j['verse_key'] == '1:1'
     assert j['surah_number'] == 1 and j['ayah_number'] == 1
@@ -37,11 +39,6 @@ def test_get_ayah_text_shape_and_content(client):
     # word_meanings_ordered and word_meanings must agree (dict is built FROM the list).
     assert j['word_meanings'] == {r['word']: r['meaning'] for r in j['word_meanings_ordered']}
     assert len(j['word_meanings_ordered']) >= 3
-    # every installed reciter with data for 1:1 appears under 'reciters'.
-    assert 'Mahmoud Khalil al-Husary (Murattal)' in j['reciters']
-    seg = j['reciters']['Mahmoud Khalil al-Husary (Murattal)']
-    assert seg['surah_number'] == 1 and seg['ayah_number'] == 1
-    assert seg['segments'], 'husary murattal must have word-level segments for 1:1'
 
 
 def test_get_ayah_text_bounds_and_missing(client):
@@ -141,8 +138,3 @@ def test_yt_audio_rejects_urls_outside_the_reciter_catalog(client):
     assert r.status_code in (403, 503)  # 403 = not in catalog, 503 = yt-dlp not installed
     r = client.get('/api/yt-audio?url=' + _q('https://evil.example.com/watch?v=x'))
     assert r.status_code in (403, 503)
-
-
-def test_audio_segments_reciter_not_found(client):
-    assert client.get('/api/reciters/not-a-real-reciter/ayahs/1/audio').status_code == 404
-    assert client.get('/api/reciters/husary/ayahs/0/audio').status_code == 400
