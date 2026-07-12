@@ -526,7 +526,6 @@ body.sepia-mode .waqf-mushaf-other    { color: #57534e !important; }
 body.dark-mode .waqf-color-latin { color: #f87171 !important; }
 body.sepia-mode .waqf-color-latin { color: #881337 !important; }
 
-.guide-mushaf-badge { display: inline-block; font-size: 0.6rem; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif; font-weight: 700; padding: 1px 5px; border-radius: 20px; opacity: 0.85; white-space: nowrap; border: 1px solid currentColor; vertical-align: middle; margin-inline-start: 3px; }
 
 /* ---- Mushaf version pills ---- */
 .mushaf-pills-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -3414,21 +3413,6 @@ body.sepia-mode .waqf-mushaf-other    { color: #57534e !important; }
 body.dark-mode  .waqf-color-latin { color: #f87171 !important; }
 body.sepia-mode .waqf-color-latin { color: #881337 !important; }
 
-/* Mushaf badge pill used in the guide */
-.guide-mushaf-badge {
-    display: inline-block;
-    font-size: 0.6rem;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif;
-    font-weight: 700;
-    padding: 1px 5px;
-    border-radius: 20px;
-    opacity: 0.85;
-    white-space: nowrap;
-    border: 1px solid currentColor;
-    vertical-align: middle;
-    margin-inline-start: 3px;
-}
-
 /* ══════════════════════════════════════════════════════════════════
    MUSHAF VERSION PILLS — always-visible toggle row
    ══════════════════════════════════════════════════════════════════ */
@@ -3796,237 +3780,6 @@ body.sepia-mode .guide-title { color: #5d4e37; }
 
 body.dark-mode .guide-subtitle { color: #94a3b8; }
 
-/* Segments layout: RTL horizontal scroll */
-.guide-seg-row {
-    display: flex;
-    flex-direction: row;    /* direction:rtl makes right→left natural */
-    flex-wrap: wrap;
-    gap: 0;
-    align-items: stretch;
-    direction: rtl;
-}
-
-.guide-segment {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    background: rgba(248,250,252,0.95);
-    border: 1px solid rgba(148,163,184,0.25);
-    border-radius: 12px;
-    padding: 10px 12px 8px;
-    margin: 4px;
-    min-width: 120px;
-    max-width: 260px;
-    flex: 1 1 auto;
-    transition: box-shadow 0.2s;
-}
-
-.guide-segment:hover {
-    box-shadow: 0 4px 14px rgba(15,23,42,0.1);
-}
-
-/* Pointer cursor for segments with timing data (click-to-seek) */
-.guide-segment-seekable {
-    cursor: pointer;
-}
-
-/* Progress highlight: segment currently being recited */
-.guide-segment-active {
-    background: rgba(79, 70, 229, 0.09) !important;
-    border-color: rgba(79, 70, 229, 0.45) !important;
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.25), 0 4px 14px rgba(15,23,42,0.1);
-    transition: background 0.15s ease, border-color 0.15s ease;
-}
-body.dark-mode .guide-segment-active {
-    background: rgba(99, 102, 241, 0.18) !important;
-    border-color: rgba(99, 102, 241, 0.5) !important;
-}
-body.sepia-mode .guide-segment-active {
-    background: rgba(180, 140, 50, 0.14) !important;
-    border-color: rgba(180, 140, 50, 0.45) !important;
-}
-
-.guide-segment-last {
-    background: rgba(240,253,244,0.95);
-    border-color: rgba(22,163,74,0.4);
-}
-
-/* رأس الآية marker in last guide segment */
-.guide-waqf-ras-aya {
-    color: #16a34a !important;
-    font-size: 1.25rem;
-}
-.guide-waqf-ras-aya-lbl {
-    color: #16a34a !important;
-    font-weight: 600;
-}
-body.dark-mode .guide-waqf-ras-aya     { color: #4ade80 !important; }
-body.dark-mode .guide-waqf-ras-aya-lbl { color: #4ade80 !important; }
-
-body.dark-mode .guide-segment {
-    background: rgba(30,41,59,0.85);
-    border-color: rgba(100,116,139,0.35);
-}
-
-body.dark-mode .guide-segment-last {
-    background: rgba(20,40,25,0.6);
-    border-color: rgba(22,163,74,0.3);
-}
-
-/* Repetition: a segment where the reciter backed up and re-read earlier words.
-   The waqf still counts — this only surfaces that the reciter repeated. */
-.guide-segment-repeat {
-    background: rgba(255,247,237,0.95);
-    border-color: rgba(217,119,6,0.45);
-}
-body.dark-mode .guide-segment-repeat {
-    background: rgba(60,40,15,0.55);
-    border-color: rgba(251,146,60,0.4);
-}
-body.sepia-mode .guide-segment-repeat {
-    background: rgba(245,235,215,0.95);
-    border-color: rgba(180,120,40,0.45);
-}
-
-.guide-seg-repeat-badge {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    margin-bottom: 4px;
-    padding: 1px 7px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    line-height: 1.5;
-    white-space: nowrap;
-    color: #b45309;
-    background: rgba(217,119,6,0.12);
-    border: 1px solid rgba(217,119,6,0.3);
-    border-radius: 999px;
-}
-body.dark-mode .guide-seg-repeat-badge {
-    color: #fdba74;
-    background: rgba(251,146,60,0.15);
-    border-color: rgba(251,146,60,0.35);
-}
-body.sepia-mode .guide-seg-repeat-badge {
-    color: #8a5a1a;
-    background: rgba(180,120,40,0.12);
-    border-color: rgba(180,120,40,0.3);
-}
-
-/* The re-read (repeated) leading words inside a back-up segment */
-.guide-seg-repeated-word {
-    color: #b45309;
-    border-bottom: 2px dotted rgba(217,119,6,0.55);
-}
-body.dark-mode .guide-seg-repeated-word {
-    color: #fdba74;
-    border-bottom-color: rgba(251,146,60,0.55);
-}
-body.sepia-mode .guide-seg-repeated-word {
-    color: #8a5a1a;
-    border-bottom-color: rgba(180,120,40,0.55);
-}
-
-/* Solo waqf: a clean stop-and-continue no other reciter shares. */
-.guide-seg-solo-badge {
-    align-self: flex-start;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    margin-bottom: 4px;
-    padding: 1px 7px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    line-height: 1.5;
-    white-space: nowrap;
-    color: #7c3aed;
-    background: rgba(124,58,237,0.1);
-    border: 1px solid rgba(124,58,237,0.3);
-    border-radius: 999px;
-}
-body.dark-mode .guide-seg-solo-badge {
-    color: #c4b5fd;
-    background: rgba(139,92,246,0.16);
-    border-color: rgba(139,92,246,0.4);
-}
-body.sepia-mode .guide-seg-solo-badge {
-    color: #6d28d9;
-    background: rgba(124,58,237,0.1);
-    border-color: rgba(124,58,237,0.3);
-}
-
-.guide-seg-num {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #94a3b8;
-    align-self: flex-start;
-    margin-bottom: 4px;
-    line-height: 1;
-}
-
-.guide-seg-words {
-    font-family: 'UthmanicHafs', 'Amiri', serif;
-    font-size: 1.15rem;
-    line-height: 1.7;
-    color: #1e293b;
-    text-align: center;
-    direction: rtl;
-    flex: 1;
-    padding: 2px 0;
-}
-
-body.dark-mode .guide-seg-words { color: #e2e8f0; }
-body.sepia-mode .guide-seg-words { color: #5d4e37; }
-
-/* Copy-text button — appears on segment hover */
-.guide-seg-copy-btn {
-    position: absolute;
-    top: 5px;
-    left: 5px;
-    background: none;
-    border: none;
-    color: #94a3b8;
-    font-size: 0.68rem;
-    cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 4px;
-    opacity: 0;
-    transition: opacity 0.2s, color 0.15s;
-    line-height: 1;
-}
-.guide-segment:hover .guide-seg-copy-btn {
-    opacity: 1;
-}
-.guide-seg-copy-btn:hover {
-    color: #475569;
-}
-body.dark-mode .guide-seg-copy-btn:hover {
-    color: #cbd5e1;
-}
-
-body[data-font-type="indopak"] .guide-seg-words {
-    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
-    font-size: 1.3rem;
-}
-body[data-font-type="digital_khatt"] .guide-seg-words,
-body[data-font-type="digital_khatt"] .rc-diff-chip {
-    font-family: 'Digital Khatt', sans-serif;
-    font-size: 1.2rem;
-}
-body[data-font-type="old_madina"] .guide-seg-words,
-body[data-font-type="old_madina"] .rc-diff-chip {
-    font-family: 'Old Madina', sans-serif;
-    font-size: 1.2rem;
-}
-body[data-font-type="indopak"] .rc-diff-chip {
-    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
-    font-size: 1.0rem;
-    white-space: normal;
-}
-
 /* Waqf table word font overrides — mirrors guide-seg-words per-font rules */
 body[data-font-type="indopak"] .waqf-entry-word,
 body[data-font-type="indopak"] .waqf-word-text,
@@ -4047,100 +3800,9 @@ body[data-font-type="old_madina"] .waqf-tbl-word {
     font-size: 1.2rem;
 }
 
-/* Waqf badge at the bottom of each segment */
-.guide-seg-waqf {
-    margin-top: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    border-top: 1px solid rgba(194,65,12,0.18);
-    padding-top: 6px;
-    width: 100%;
-}
-
-.guide-waqf-sym {
-    font-family: 'UthmanicHafs', serif;
-    font-size: 1.1rem;
-    line-height: 1;
-    /* color is set by .waqf-color-* classes */
-}
-
 .waqf-uthmanic {
     font-family: 'UthmanicHafs', serif !important;
 }
-
-.guide-waqf-latin {
-    font-family: sans-serif !important;
-    font-size: 1.1rem;
-}
-
-.guide-waqf-lbl {
-    font-size: 0.68rem;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif;
-    font-weight: 500;
-    text-align: center;
-    color: #64748b;
-    opacity: 0.9;
-}
-body.dark-mode .guide-waqf-lbl { color: #94a3b8; }
-
-/* Arrow connector between segments — points left (next segment to left in RTL) */
-.guide-seg-arrow {
-    position: absolute;
-    left: -14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 0.75rem;
-    z-index: 1;
-}
-
-/* ▶ "start of repeat" indicator shown at the top of the segment */
-.guide-seg-repeat-start {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 4px;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: rgba(148, 163, 184, 0.08);
-    border-right: 2px solid currentColor;
-    font-size: 0.78rem;
-    direction: rtl;
-}
-body.dark-mode .guide-seg-repeat-start { background: rgba(255,255,255,0.04); }
-
-/* Legend row at the bottom */
-.guide-legend {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(148,163,184,0.2);
-    direction: rtl;
-}
-
-.guide-legend-title {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #64748b;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif;
-}
-
-.guide-legend-item {
-    font-size: 0.75rem;
-    color: #475569;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif;
-}
-
-body.dark-mode .guide-legend-item { color: #94a3b8; }
 
 /* Loading / error states */
 .guide-loading,
@@ -4323,387 +3985,6 @@ body.dark-mode .range-field label { color: #94a3b8; }
     .ctrl-row-tools { flex-direction: column; }
     .reading-tool-btns { flex-wrap: wrap; justify-content: center; }
 }
-
-/* ── Pause-Match Panel ─────────────────────────────────────────────────────── */
-.pause-match-panel {
-    margin-top: 16px;
-    padding: 14px 16px;
-    background: rgba(248,250,252,0.9);
-    border: 1px solid rgba(148,163,184,0.3);
-    border-radius: 12px;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif;
-    direction: rtl;
-}
-body.dark-mode .pause-match-panel {
-    background: rgba(30,41,59,0.8);
-    border-color: rgba(100,116,139,0.3);
-}
-body.sepia-mode .pause-match-panel {
-    background: rgba(245,235,215,0.7);
-    border-color: rgba(120,80,40,0.25);
-}
-
-.pause-match-title {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 4px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-body.dark-mode  .pause-match-title { color: #e2e8f0; }
-body.sepia-mode .pause-match-title { color: #3b2a14; }
-
-.pause-match-subtitle {
-    font-size: 0.75rem;
-    color: #64748b;
-    margin: 0 0 12px 0;
-}
-body.dark-mode  .pause-match-subtitle { color: #94a3b8; }
-body.sepia-mode .pause-match-subtitle { color: #78716c; }
-
-.pause-match-rows {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* ── Card per mushaf ──────────────────────────────────────────────────────── */
-.pause-match-card {
-    border: 1px solid rgba(148,163,184,0.25);
-    border-radius: 10px;
-    padding: 10px 12px;
-    background: rgba(255,255,255,0.6);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-body.dark-mode .pause-match-card {
-    background: rgba(15,23,42,0.5);
-    border-color: rgba(71,85,105,0.35);
-}
-body.sepia-mode .pause-match-card {
-    background: rgba(255,248,235,0.5);
-    border-color: rgba(120,80,40,0.2);
-}
-
-/* Left accent stripe by mushaf colour */
-.pause-match-card.waqf-mushaf-madinah  { border-right: 3px solid #10b981; }
-.pause-match-card.waqf-mushaf-shamarly { border-right: 3px solid #1d4ed8; }
-.pause-match-card.waqf-mushaf-azhar    { border-right: 3px solid #c2410c; }
-.pause-match-card.waqf-mushaf-warsh    { border-right: 3px solid #7c3aed; }
-.pause-match-card.waqf-mushaf-husary   { border-right: 3px solid #be123c; }
-.pause-match-card.waqf-mushaf-hindi    { border-right: 3px solid #be185d; }
-.pause-match-card.waqf-mushaf-other    { border-right: 3px solid #475569; }
-
-/* Card header: mushaf name + badge */
-.pause-match-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-}
-
-.pause-match-mushaf-name {
-    font-size: 0.85rem;
-    font-weight: 700;
-}
-.pause-match-mushaf-name.waqf-mushaf-madinah  { color: #059669; }
-.pause-match-mushaf-name.waqf-mushaf-shamarly { color: #1d4ed8; }
-.pause-match-mushaf-name.waqf-mushaf-azhar    { color: #c2410c; }
-.pause-match-mushaf-name.waqf-mushaf-warsh    { color: #7c3aed; }
-.pause-match-mushaf-name.waqf-mushaf-husary   { color: #be123c; }
-.pause-match-mushaf-name.waqf-mushaf-hindi    { color: #be185d; }
-.pause-match-mushaf-name.waqf-mushaf-other    { color: #475569; }
-body.dark-mode .pause-match-mushaf-name.waqf-mushaf-madinah  { color: #34d399; }
-body.dark-mode .pause-match-mushaf-name.waqf-mushaf-shamarly { color: #60a5fa; }
-body.dark-mode .pause-match-mushaf-name.waqf-mushaf-azhar    { color: #fb923c; }
-body.dark-mode .pause-match-mushaf-name.waqf-mushaf-warsh    { color: #c084fc; }
-body.dark-mode .pause-match-mushaf-name.waqf-mushaf-husary   { color: #f87171; }
-body.dark-mode .pause-match-mushaf-name.waqf-mushaf-hindi    { color: #f472b6; }
-body.dark-mode .pause-match-mushaf-name.waqf-mushaf-other    { color: #94a3b8; }
-
-/* Verdict badges */
-.pm-badge {
-    font-size: 0.68rem;
-    font-weight: 600;
-    padding: 2px 8px;
-    border-radius: 99px;
-    white-space: nowrap;
-}
-.pm-badge-full    { background: #dcfce7; color: #15803d; }
-.pm-badge-partial { background: #fef9c3; color: #a16207; }
-.pm-badge-none    { background: #fee2e2; color: #b91c1c; }
-body.dark-mode .pm-badge-full    { background: rgba(20,83,45,0.5);  color: #86efac; }
-body.dark-mode .pm-badge-partial { background: rgba(113,63,18,0.45); color: #fde047; }
-body.dark-mode .pm-badge-none    { background: rgba(127,29,29,0.45); color: #fca5a5; }
-body.sepia-mode .pm-badge-full    { background: #d1fae5; color: #065f46; }
-body.sepia-mode .pm-badge-partial { background: #fef3c7; color: #92400e; }
-body.sepia-mode .pm-badge-none    { background: #fee2e2; color: #991b1b; }
-
-/* Verdict sentence */
-.pause-match-verdict {
-    font-size: 0.78rem;
-    color: #475569;
-    margin: 0;
-    line-height: 1.6;
-}
-body.dark-mode  .pause-match-verdict { color: #94a3b8; }
-body.sepia-mode .pause-match-verdict { color: #78716c; }
-
-/* Bar section: header + bar row */
-.pause-match-bar-section {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.pause-match-bar-header {
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-}
-
-.pause-match-bar-title {
-    font-size: 0.73rem;
-    font-weight: 600;
-    color: #334155;
-}
-body.dark-mode  .pause-match-bar-title { color: #cbd5e1; }
-body.sepia-mode .pause-match-bar-title { color: #3b2a14; }
-
-.pause-match-bar-hint {
-    font-size: 0.67rem;
-    color: #94a3b8;
-}
-body.dark-mode  .pause-match-bar-hint { color: #64748b; }
-body.sepia-mode .pause-match-bar-hint { color: #a0856a; }
-
-/* Each metric row: [bar] [pct] */
-.pause-match-metric-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.pause-match-bar-wrap {
-    flex: 1;
-    background: rgba(203,213,225,0.4);
-    border-radius: 99px;
-    height: 8px;
-    overflow: hidden;
-}
-body.dark-mode .pause-match-bar-wrap {
-    background: rgba(71,85,105,0.5);
-}
-
-.pause-match-bar {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
-    opacity: 0.9;
-}
-
-/* Coverage bar — same colours, lower opacity */
-.pause-match-coverage-bar {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
-    opacity: 0.5;
-}
-
-/* Bar fill colours — precision bar */
-.pause-match-bar.waqf-mushaf-madinah  { background: #10b981; }
-.pause-match-bar.waqf-mushaf-shamarly { background: #1d4ed8; }
-.pause-match-bar.waqf-mushaf-azhar    { background: #c2410c; }
-.pause-match-bar.waqf-mushaf-warsh    { background: #7c3aed; }
-.pause-match-bar.waqf-mushaf-husary   { background: #be123c; }
-.pause-match-bar.waqf-mushaf-hindi    { background: #be185d; }
-.pause-match-bar.waqf-mushaf-other    { background: #475569; }
-
-body.dark-mode .pause-match-bar.waqf-mushaf-madinah  { background: #34d399; }
-body.dark-mode .pause-match-bar.waqf-mushaf-shamarly { background: #60a5fa; }
-body.dark-mode .pause-match-bar.waqf-mushaf-azhar    { background: #fb923c; }
-body.dark-mode .pause-match-bar.waqf-mushaf-warsh    { background: #c084fc; }
-body.dark-mode .pause-match-bar.waqf-mushaf-husary   { background: #f87171; }
-body.dark-mode .pause-match-bar.waqf-mushaf-hindi    { background: #f472b6; }
-body.dark-mode .pause-match-bar.waqf-mushaf-other    { background: #94a3b8; }
-
-/* Coverage bar colours */
-.pause-match-coverage-bar.waqf-mushaf-madinah  { background: #10b981; }
-.pause-match-coverage-bar.waqf-mushaf-shamarly { background: #1d4ed8; }
-.pause-match-coverage-bar.waqf-mushaf-azhar    { background: #c2410c; }
-.pause-match-coverage-bar.waqf-mushaf-warsh    { background: #7c3aed; }
-.pause-match-coverage-bar.waqf-mushaf-husary   { background: #be123c; }
-.pause-match-coverage-bar.waqf-mushaf-hindi    { background: #be185d; }
-.pause-match-coverage-bar.waqf-mushaf-other    { background: #475569; }
-
-body.dark-mode .pause-match-coverage-bar.waqf-mushaf-madinah  { background: #34d399; }
-body.dark-mode .pause-match-coverage-bar.waqf-mushaf-shamarly { background: #60a5fa; }
-body.dark-mode .pause-match-coverage-bar.waqf-mushaf-azhar    { background: #fb923c; }
-body.dark-mode .pause-match-coverage-bar.waqf-mushaf-warsh    { background: #c084fc; }
-body.dark-mode .pause-match-coverage-bar.waqf-mushaf-husary   { background: #f87171; }
-body.dark-mode .pause-match-coverage-bar.waqf-mushaf-hindi    { background: #f472b6; }
-body.dark-mode .pause-match-coverage-bar.waqf-mushaf-other    { background: #94a3b8; }
-
-.pause-match-pct {
-    min-width: 72px;
-    font-size: 0.76rem;
-    color: #475569;
-    text-align: left;
-    white-space: nowrap;
-}
-body.dark-mode  .pause-match-pct { color: #94a3b8; }
-body.sepia-mode .pause-match-pct { color: #78716c; }
-
-/* ── Font normalisation: force IBM Plex Sans Arabic in the entire pause/compare area ── */
-/* .waqf-mushaf-hindi normally sets IndoPakNastaleeq2 — override it inside these panels */
-.pause-match-panel *,
-.reciter-compare-panel * {
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', 'Noto Sans Arabic', sans-serif !important;
-}
-
-/* ── Reciter-vs-reciter comparison panel ─────────────────────────────────── */
-.reciter-compare-panel {
-    margin-top: 12px;
-    padding: 14px 16px;
-    background: rgba(248,250,252,0.9);
-    border: 1px solid rgba(148,163,184,0.3);
-    border-radius: 12px;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', 'Noto Sans Arabic', sans-serif;
-    direction: rtl;
-}
-body.dark-mode .reciter-compare-panel {
-    background: rgba(30,41,59,0.8);
-    border-color: rgba(100,116,139,0.3);
-}
-body.sepia-mode .reciter-compare-panel {
-    background: rgba(245,235,215,0.7);
-    border-color: rgba(120,80,40,0.25);
-}
-
-.reciter-compare-card {
-    border: 1px solid rgba(148,163,184,0.22);
-    border-radius: 10px;
-    padding: 10px 12px;
-    background: rgba(255,255,255,0.55);
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    border-right: 3px solid #6366f1;
-}
-body.dark-mode .reciter-compare-card {
-    background: rgba(15,23,42,0.5);
-    border-color: rgba(71,85,105,0.35);
-    border-right-color: #818cf8;
-}
-body.sepia-mode .reciter-compare-card {
-    background: rgba(255,248,235,0.5);
-    border-right-color: #7c3aed;
-}
-
-.reciter-compare-name {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #4f46e5;
-}
-body.dark-mode  .reciter-compare-name { color: #a5b4fc; }
-body.sepia-mode .reciter-compare-name { color: #4338ca; }
-
-/* Bar A: subject→other — indigo */
-.reciter-compare-bar-a {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
-    background: #6366f1;
-    opacity: 0.9;
-}
-body.dark-mode .reciter-compare-bar-a { background: #818cf8; }
-
-/* Bar B: other→subject — violet, dimmed */
-.reciter-compare-bar-b {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
-    background: #6366f1;
-    opacity: 0.45;
-}
-body.dark-mode .reciter-compare-bar-b { background: #818cf8; }
-
-/* ── Reciter-compare diff section ────────────────────────────────────────── */
-.rc-diff-wrap {
-    margin-top: 2px;
-}
-.rc-diff-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #6366f1;
-    background: transparent;
-    border: 1px solid rgba(99,102,241,0.35);
-    border-radius: 99px;
-    padding: 2px 10px;
-    cursor: pointer;
-    transition: background 0.15s;
-}
-.rc-diff-toggle:hover { background: rgba(99,102,241,0.08); }
-.rc-diff-toggle.rc-diff-toggle-open { background: rgba(99,102,241,0.1); }
-body.dark-mode .rc-diff-toggle { color: #a5b4fc; border-color: rgba(165,180,252,0.4); }
-body.sepia-mode .rc-diff-toggle { color: #4338ca; }
-
-.rc-diff-chevron { font-size: 0.65rem; transition: transform 0.2s; }
-
-.rc-diff-body { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
-.rc-diff-body-hidden { display: none; }
-
-.rc-diff-group { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; }
-.rc-diff-label {
-    font-size: 0.68rem;
-    color: #64748b;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-body.dark-mode .rc-diff-label { color: #94a3b8; }
-
-.rc-diff-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-
-/* Chip for subject-only stops (solid indigo) */
-.rc-diff-chip {
-    font-size: 0.88rem;
-    padding: 2px 8px;
-    border-radius: 8px;
-    direction: rtl;
-    white-space: normal;
-    line-height: 1.5;
-    font-family: 'UthmanicHafs', 'Amiri', serif;
-}
-.rc-diff-chip-a {
-    background: rgba(99,102,241,0.12);
-    color: #4338ca;
-    border: 1px solid rgba(99,102,241,0.3);
-}
-body.dark-mode .rc-diff-chip-a {
-    background: rgba(129,140,248,0.15);
-    color: #a5b4fc;
-    border-color: rgba(129,140,248,0.3);
-}
-/* Chip for other-only stops (dimmed amber) */
-.rc-diff-chip-b {
-    background: rgba(99,102,241,0.06);
-    color: #6366f1;
-    border: 1px solid rgba(99,102,241,0.18);
-    opacity: 0.75;
-}
-body.dark-mode .rc-diff-chip-b {
-    background: rgba(129,140,248,0.08);
-    color: #818cf8;
-    border-color: rgba(129,140,248,0.18);
-}
-body.sepia-mode .rc-diff-chip-a { color: #3730a3; background: rgba(99,102,241,0.1); }
-body.sepia-mode .rc-diff-chip-b { color: #4f46e5; background: rgba(99,102,241,0.05); }
 
 /* ── Per-word meaning tooltip ──────────────────────────────────────────────── */
 .word-meaning-tooltip {
@@ -5388,3 +4669,311 @@ body[data-font-type="indopak_nastaleeq_2"].memo-overlay-verse { font-family:'Ind
 }
 .memo-overlay-btns button:hover { background:var(--border-color); }
 #memo-overlay-pause.playing { color:var(--primary-color); border-color:var(--primary-color); }
+
+
+/* ══════════════════════════════════════════════════════════════════
+   دليل التلاوة — segment cards, مقارنة القرّاء بمصاحف الوقف, كيف قرأها كل قارئ
+   Data comes from مُكْث's /api/waqf/<surah>/<ayah>, but the visuals here are
+   this page's own (same look the old positions.db-powered guide had, plus
+   the site's existing .waqf-tbl-* table language for the new matrix) —
+   deliberately NOT مُكْث's own wq-* design.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── segment cards (one per phrase/stop) ─────────────────────────── */
+.guide-seg-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0;
+    align-items: stretch;
+    direction: rtl;
+}
+
+.guide-segment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    background: rgba(248,250,252,0.95);
+    border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 12px;
+    padding: 10px 12px 8px;
+    margin: 4px;
+    min-width: 120px;
+    max-width: 260px;
+    flex: 1 1 auto;
+    transition: box-shadow 0.2s;
+}
+.guide-segment:hover { box-shadow: 0 4px 14px rgba(15,23,42,0.1); }
+.guide-segment-seekable { cursor: default; }
+
+.guide-segment-active {
+    background: rgba(79, 70, 229, 0.09) !important;
+    border-color: rgba(79, 70, 229, 0.45) !important;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.25), 0 4px 14px rgba(15,23,42,0.1);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+body.dark-mode .guide-segment-active {
+    background: rgba(99, 102, 241, 0.18) !important;
+    border-color: rgba(99, 102, 241, 0.5) !important;
+}
+body.sepia-mode .guide-segment-active {
+    background: rgba(180, 140, 50, 0.14) !important;
+    border-color: rgba(180, 140, 50, 0.45) !important;
+}
+
+.guide-segment-last {
+    background: rgba(240,253,244,0.95);
+    border-color: rgba(22,163,74,0.4);
+}
+body.dark-mode .guide-segment {
+    background: rgba(30,41,59,0.85);
+    border-color: rgba(100,116,139,0.35);
+}
+body.dark-mode .guide-segment-last {
+    background: rgba(20,40,25,0.6);
+    border-color: rgba(22,163,74,0.3);
+}
+
+.guide-waqf-ras-aya     { color: #16a34a !important; font-size: 1.25rem; }
+.guide-waqf-ras-aya-lbl { color: #16a34a !important; font-weight: 600; }
+body.dark-mode .guide-waqf-ras-aya     { color: #4ade80 !important; }
+body.dark-mode .guide-waqf-ras-aya-lbl { color: #4ade80 !important; }
+
+/* back-up (إعادة) segment — a re-read of earlier words */
+.guide-segment-repeat {
+    background: rgba(255,247,237,0.95);
+    border-color: rgba(217,119,6,0.45);
+}
+body.dark-mode .guide-segment-repeat {
+    background: rgba(60,40,15,0.55);
+    border-color: rgba(251,146,60,0.4);
+}
+body.sepia-mode .guide-segment-repeat {
+    background: rgba(245,235,215,0.95);
+    border-color: rgba(180,120,40,0.45);
+}
+
+.guide-seg-repeat-badge {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 3px;
+    margin-bottom: 4px; padding: 1px 7px;
+    font-size: 0.6rem; font-weight: 700; line-height: 1.5; white-space: nowrap;
+    color: #b45309; background: rgba(217,119,6,0.12);
+    border: 1px solid rgba(217,119,6,0.3); border-radius: 999px;
+}
+body.dark-mode .guide-seg-repeat-badge {
+    color: #fdba74; background: rgba(251,146,60,0.15); border-color: rgba(251,146,60,0.35);
+}
+body.sepia-mode .guide-seg-repeat-badge {
+    color: #8a5a1a; background: rgba(180,120,40,0.12); border-color: rgba(180,120,40,0.3);
+}
+
+.guide-seg-repeated-word {
+    color: #b45309;
+    border-bottom: 2px dotted rgba(217,119,6,0.55);
+}
+body.dark-mode .guide-seg-repeated-word { color: #fdba74; border-bottom-color: rgba(251,146,60,0.55); }
+body.sepia-mode .guide-seg-repeated-word { color: #8a5a1a; border-bottom-color: rgba(180,120,40,0.55); }
+
+.guide-seg-solo-badge {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 3px;
+    margin-bottom: 4px; padding: 1px 7px;
+    font-size: 0.6rem; font-weight: 700; line-height: 1.5; white-space: nowrap;
+    color: #7c3aed; background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.3); border-radius: 999px;
+}
+body.dark-mode .guide-seg-solo-badge {
+    color: #c4b5fd; background: rgba(139,92,246,0.16); border-color: rgba(139,92,246,0.4);
+}
+body.sepia-mode .guide-seg-solo-badge {
+    color: #6d28d9; background: rgba(124,58,237,0.1); border-color: rgba(124,58,237,0.3);
+}
+
+.guide-seg-num {
+    font-size: 0.65rem; font-weight: 700; color: #94a3b8;
+    align-self: flex-start; margin-bottom: 4px; line-height: 1;
+}
+
+.guide-seg-words {
+    font-family: 'UthmanicHafs', 'Amiri', serif;
+    font-size: 1.15rem; line-height: 1.7; color: #1e293b;
+    text-align: center; direction: rtl; flex: 1; padding: 2px 0;
+}
+body.dark-mode .guide-seg-words  { color: #e2e8f0; }
+body.sepia-mode .guide-seg-words { color: #5d4e37; }
+body[data-font-type="indopak"] .guide-seg-words {
+    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; font-size: 1.3rem;
+}
+body[data-font-type="digital_khatt"] .guide-seg-words,
+body[data-font-type="old_madina"] .guide-seg-words {
+    font-family: 'Digital Khatt', sans-serif; font-size: 1.2rem;
+}
+
+.guide-seg-waqf {
+    margin-top: 8px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    border-top: 1px solid rgba(194,65,12,0.18);
+    padding-top: 6px;
+    width: 100%;
+}
+.guide-waqf-sym { font-family: 'UthmanicHafs', serif; font-size: 1.1rem; line-height: 1; color: var(--waqf-color, #c2410c); }
+.guide-waqf-lbl {
+    font-size: 0.68rem; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif;
+    font-weight: 500; text-align: center; color: #64748b; opacity: 0.9;
+}
+body.dark-mode .guide-waqf-lbl { color: #94a3b8; }
+.guide-seg-time { font-size: 0.62rem; color: #94a3b8; font-variant-numeric: tabular-nums; }
+
+/* play button — same footprint/position the old copy button used */
+.guide-seg-play-btn {
+    position: absolute; top: 5px; left: 5px;
+    width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%;
+    border: none; background: none; color: #94a3b8;
+    font-size: 0.68rem; cursor: pointer; padding: 0;
+    opacity: 0; transition: opacity 0.2s, color 0.15s, background 0.15s;
+}
+.guide-segment:hover .guide-seg-play-btn { opacity: 1; }
+.guide-seg-play-btn:hover { color: var(--primary-color); background: rgba(15,118,110,0.1); }
+.guide-seg-play-btn.guide-seg-playing {
+    opacity: 1; color: #fff; background: var(--primary-color);
+}
+body.dark-mode .guide-seg-play-btn:hover { color: var(--primary-color); background: rgba(45,212,191,0.12); }
+
+.guide-seg-arrow {
+    position: absolute; left: -14px; top: 50%; transform: translateY(-50%);
+    color: #94a3b8; font-size: 0.75rem; z-index: 1;
+}
+
+/* ── solo-stop detail (انفرد بالوقف) ─────────────────────────────── */
+.guide-solo-detail { margin: 6px 0 12px; }
+.guide-solo-detail:empty { display: none; }
+.guide-solo-head {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+    font-size: 0.78rem; font-weight: 700; color: #b45309;
+}
+body.dark-mode .guide-solo-head { color: #fdba74; }
+.guide-solo-count {
+    display: inline-grid; place-items: center; min-width: 17px; height: 17px;
+    padding: 0 5px; border-radius: 9px; font-size: 0.7rem;
+    background: rgba(217,119,6,0.12); color: #b45309;
+}
+.guide-solo-items { display: flex; flex-direction: column; gap: 5px; }
+.guide-solo-item {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 7px;
+    padding: 6px 10px; border-radius: 9px;
+    background: rgba(248,250,252,0.9); border: 1px solid var(--border-color, #e2e8f0);
+    border-right: 3px solid #b45309;
+}
+body.dark-mode .guide-solo-item { background: rgba(30,41,59,0.6); }
+.guide-solo-item-matched { border-right-color: #16a34a; }
+.guide-solo-word { font-family: 'UthmanicHafs', 'Amiri', serif; font-size: 1.05rem; color: var(--text-color); }
+.guide-solo-time { font-size: 0.7rem; color: #94a3b8; font-weight: 600; }
+.guide-mushaf-match {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+    color: #15803d; background: rgba(22,163,74,0.1);
+}
+body.dark-mode .guide-mushaf-match { color: #4ade80; background: rgba(74,222,128,0.14); }
+.guide-solo-nomatch {
+    font-size: 0.68rem; color: #94a3b8; font-weight: 500;
+    padding: 2px 8px; border-radius: 999px; border: 1px dashed var(--border-color, #cbd5e1);
+}
+
+/* ── مقارنة القرّاء بمصاحف الوقف — reuses the site's own .waqf-tbl look ── */
+.guide-matrix-panel { margin-top: 18px; }
+.guide-matrix-panel .waqf-tbl-word { font-size: 1.15em; padding: 0.35rem 0.5rem; }
+.guide-matrix-panel .waqf-tbl-th:first-child,
+.guide-matrix-panel .waqf-tbl-td:first-child {
+    position: sticky; inset-inline-start: 0; background: var(--card-bg); text-align: start; min-width: 120px;
+    box-shadow: 1px 0 0 var(--border-color, #e2e8f0);
+}
+.guide-matrix-panel .waqf-tbl-td, .guide-matrix-panel .waqf-tbl-th { text-align: center; white-space: nowrap; }
+.guide-matrix-row-consensus td { font-weight: 700; background: rgba(0,0,0,0.03); }
+body.dark-mode .guide-matrix-row-consensus td { background: rgba(255,255,255,0.04); }
+.guide-matrix-solo { background: rgba(217,119,6,0.08); }
+.guide-matrix-strong { background: rgba(22,163,74,0.1); }
+th.guide-matrix-strong { box-shadow: inset 0 3px 0 #16a34a; }
+.guide-matrix-strong-tag {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    font-size: 0.6rem; font-weight: 800; color: #16a34a; margin-bottom: 3px; white-space: nowrap;
+}
+body.dark-mode .guide-matrix-strong-tag { color: #4ade80; }
+button.guide-matrix-play {
+    font-family: inherit; font-size: 0.82rem; border: 1px solid transparent; border-radius: 7px;
+    padding: 3px 8px; background: transparent; cursor: pointer; color: var(--primary-color);
+    font-variant-numeric: tabular-nums; transition: all 0.12s ease;
+}
+button.guide-matrix-play:hover { background: rgba(15,118,110,0.08); border-color: rgba(15,118,110,0.25); }
+button.guide-matrix-play.guide-seg-playing { background: var(--primary-color); color: #fff; }
+button.guide-matrix-play.guide-matrix-solo-cell { color: #b45309; }
+.guide-matrix-empty { color: #cbd5e1; }
+.guide-matrix-qasr {
+    display: inline-block; font-size: 0.58rem; font-weight: 800; line-height: 1;
+    padding: 2px 6px; border-radius: 999px; vertical-align: middle; margin-inline-start: 4px;
+    color: var(--primary-color); background: rgba(15,118,110,0.1);
+}
+.guide-matrix-legend {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+    font-size: 0.72rem; color: #64748b;
+}
+body.dark-mode .guide-matrix-legend { color: #94a3b8; }
+.guide-matrix-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.guide-matrix-legend .waqf-tbl-word { font-size: 0.9rem; padding: 0; }
+
+/* ── كيف قرأها كل قارئ — reciter comparison cards ────────────────── */
+.guide-reciters-note { margin: 0 0 12px; font-size: 0.76rem; color: #64748b; line-height: 1.6; }
+body.dark-mode .guide-reciters-note { color: #94a3b8; }
+.guide-reciters-list { display: flex; flex-direction: column; gap: 12px; }
+.guide-reciter-card {
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-right: 4px solid var(--primary-color);
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: var(--card-bg, #fff);
+}
+.guide-reciter-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.guide-reciter-name { font-weight: 700; font-size: 0.9rem; color: var(--text-color); }
+.guide-reciter-names { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.guide-reciter-chip {
+    font-family: inherit; font-size: 0.85rem; font-weight: 700; color: #64748b;
+    padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border-color, #e2e8f0);
+    background: rgba(0,0,0,0.02); cursor: pointer; transition: all 0.14s ease;
+}
+body.dark-mode .guide-reciter-chip { background: rgba(255,255,255,0.04); color: #94a3b8; }
+.guide-reciter-chip:hover { color: var(--text-color); }
+.guide-reciter-chip-active {
+    color: var(--primary-color); background: rgba(15,118,110,0.1);
+    border-color: rgba(15,118,110,0.35);
+}
+.guide-qasr-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.66rem; font-weight: 700; white-space: nowrap;
+    padding: 3px 8px; border-radius: 999px;
+    color: var(--primary-color); background: rgba(15,118,110,0.1);
+}
+.guide-qasr-badge[hidden] { display: none; }
+.guide-reciter-stats { font-size: 0.72rem; color: #64748b; display: inline-flex; gap: 10px; flex-wrap: wrap; }
+body.dark-mode .guide-reciter-stats { color: #94a3b8; }
+.guide-reciter-stats b { color: var(--text-color); font-weight: 600; }
+.guide-adhere i { color: #16a34a; margin-inline-end: 3px; }
+.guide-reciter-count {
+    display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-weight: 700;
+    color: var(--primary-color); background: rgba(15,118,110,0.1);
+}
+
+/* ── shared section headings ──────────────────────────────────────── */
+.guide-section-title {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.9rem; font-weight: 700; color: var(--text-color);
+    margin: 18px 0 10px;
+}
+.guide-section-title i { color: var(--primary-color); font-size: 0.85em; }
+
+@media (max-width: 640px) {
+    .guide-matrix-panel .waqf-tbl-th, .guide-matrix-panel .waqf-tbl-td { padding: 4px 6px; font-size: 0.74rem; }
+    .guide-matrix-panel .waqf-tbl-word { font-size: 1em; }
+    .guide-reciter-stats { gap: 5px; }
+}

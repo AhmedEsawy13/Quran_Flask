@@ -38,39 +38,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         { match: /الهندي|هندي/,    cls: 'waqf-mushaf-hindi'    },
     ];
 
-    // Arabic display names for reciters (used in the guide title). Seeded with
-    // the legacy full-name keys /api/reciter-compare still returns (it
-    // iterates the older RECITER_GUIDE_CONFIG set server-side); the new
-    // تثبيت-style short ids driving reciter-select are merged in by
-    // populateReciterSelect() at init.
-    const RECITER_ARABIC_NAMES = {
-        'AbdulBaset AbdulSamad (Mujawwad)':    'عبد الباسط عبد الصمد (مجود)',
-        'AbdulBaset AbdulSamad (Murattal)':    'عبد الباسط عبد الصمد (مرتل)',
-        'Mohamed al-Minshawi (Mujawwad)':      'محمد صديق المنشاوي (مجود)',
-        'Mohamed al-Minshawi (Murattal)':      'محمد صديق المنشاوي (مرتل)',
-        'Mahmoud Khalil al-Husary (Mujawwad)': 'محمود خليل الحصري (مجود)',
-        'Mahmoud Khalil al-Husary (Muallim)':  'محمود خليل الحصري (المعلم)',
-        'Ibrahim Al-Akhdar':                   'إبراهيم الأخضر',
-        'Ayman Rushdi Suwaid':                 'أيمن رشدي سويد',
-        'Mahmoud Ali Al-Banna':                'محمود علي البنا',
-        'Mustafa Ismaeel':                     'مصطفى إسماعيل',
-    };
-
-    // The recitation guide's positions.db data is keyed by the OLDER
-    // Mujawwad/Murattal/Muallim-style reciter names (RECITER_GUIDE_CONFIG in
-    // core/config.py), while reciter-select now uses تثبيت/مُكْث's shorter
-    // per-surah reciter ids (see /api/memorization-reciters). Only these ids
-    // have overlapping guide data; map new id -> old guide key so the guide
-    // feature keeps working for them instead of silently losing it.
-    const RECITER_GUIDE_KEY_MAP = {
-        husary: 'Mahmoud Khalil al-Husary (Muallim)',
-        minshawi: 'Mohamed al-Minshawi (Murattal)',
-        abdulbasit: 'AbdulBaset AbdulSamad (Murattal)',
-        banna: 'Mahmoud Ali Al-Banna',
-        akhdar: 'Ibrahim Al-Akhdar',
-        mustafa_ismail: 'Mustafa Ismaeel',
-    };
-    const RECITERS_WITH_GUIDE = new Set(Object.keys(RECITER_GUIDE_KEY_MAP));
+    // دليل التلاوة now runs on مُكْث/تثبيت's own /api/waqf/<surah>/<ayah>
+    // endpoint, which covers every installed reciter (same set as
+    // reciter-select) — no more separate guide-only reciter roster or
+    // name-key bridging.
 
     // Load user preferences and wire UI only after the guide-related consts are initialized.
     loadUserPreferences();
@@ -252,7 +223,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const reciterList = await fetchData('/api/memorization-reciters');
             populateSelectOptions(reciterList, elements.reciterSelect, 'id', 'name_ar');
-            reciterList.forEach((r) => { RECITER_ARABIC_NAMES[r.id] = r.name_ar; });
             // loadUserPreferences() ran before this select had any options, so its
             // elements.reciterSelect.value = savedReciter assignment was a silent
             // no-op — reapply the saved preference now that options exist.
@@ -625,17 +595,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateGuideButtonAvailability() {
+        // /api/waqf/<surah>/<ayah> covers every installed reciter (same set as
+        // reciter-select), so the guide is always available now — the only
+        // per-verse "no data" case (e.g. a verse with no attested stops at all)
+        // is handled inside fetchAndBuildRecitationGuide() itself.
         const guideBtn = document.getElementById('show-recitation-guide');
         if (!guideBtn) return;
-        const reciter = elements.reciterSelect.value;
-        const hasGuide = RECITERS_WITH_GUIDE.has(reciter);
-        if (hasGuide) {
-            guideBtn.removeAttribute('data-guide-unavailable');
-            guideBtn.title = 'دليل التلاوة وفق علامات الوقف';
-        } else {
-            guideBtn.setAttribute('data-guide-unavailable', '');
-            guideBtn.title = `دليل التلاوة غير متاح لـ ${RECITER_ARABIC_NAMES[reciter] || reciter}`;
-        }
+        guideBtn.removeAttribute('data-guide-unavailable');
+        guideBtn.title = 'دليل التلاوة وفق علامات الوقف';
     }
 
     async function loadSurahData() {
@@ -2711,8 +2678,431 @@ document.addEventListener('DOMContentLoaded', async () => {
             await fetchAndBuildRecitationGuide();
             guideContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
-            detachGuideHighlightHandler();
+            clearGuidePlaying();
         }
+    }
+
+    const guideToAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    const isGuideYoutubeUrl = url => /youtube\.com|youtu\.be/.test(url || '');
+
+    // Printed-mushaf waqf symbols → meaning + glyph (data comes from مُكْث's
+    // /api/waqf; the look here is this page's own — same styling the old
+    // positions.db-powered guide used, not مُكْث's own wq-* design).
+    const GUIDE_WAQF_MEANING = {
+        'م': 'وقف لازم', 'لا': 'لا وقف', 'ق': 'الوقف أولى', 'ص': 'الوصل أولى',
+        'ج': 'جائز', 'س': 'سكتة', 'ع': 'معانقة',
+    };
+    const guideSymName = s => GUIDE_WAQF_MEANING[s] || s;
+    const GUIDE_WAQF_GLYPH = { 'م': 'ۘ', 'لا': 'ۙ', 'ق': 'ۗ', 'ص': 'ۖ', 'ج': 'ۚ', 'س': 'ۜ', 'ع': 'ۛ' };
+    const guideWaqfGlyph = s => GUIDE_WAQF_GLYPH[s] || s;
+    // Printed-mushaf glyph for a (possibly comma-joined) DB symbol — ورش is
+    // special (ص → صه, ر → رأس آية); الهندي already stores display glyphs.
+    function guideMushafGlyph(sym, mushafId) {
+        const raw = String(sym == null ? '' : sym).trim();
+        const parts = raw.split(/[،,]/).map(t => t.trim()).filter(Boolean);
+        if (isWarshMushafVersion(mushafId)) {
+            const out = [];
+            parts.forEach(t => {
+                if (t === 'ص' || t === 'ۖ') out.push('ۖ');
+                else if (t === 'ر' || t === '۝') out.push('۝');
+            });
+            return out.join('');
+        }
+        return parts.map(guideWaqfGlyph).join('');
+    }
+
+    /* ── segment preview audio ────────────────────────────────────────────
+       Matrix/reciters cards can show a DIFFERENT reciter than the one
+       currently loaded in the main player, so segment previews play through
+       a small dedicated <audio> instead of elements.audioElement — this never
+       disturbs the user's actual listening position. Pauses the main player
+       first so the two never sound at once. YouTube-sourced reciters (محمد
+       برهجي) have no play button here — the main page has no IFrame adapter. */
+    const guideAudio = new Audio();
+    guideAudio.preload = 'none';
+    let guideAudioStopAt = null, guidePlayingBtn = null, guidePollTimer = null;
+
+    function clearGuidePlaying() {
+        if (guidePlayingBtn) {
+            const i = guidePlayingBtn.querySelector('i');
+            if (i) i.className = guidePlayingBtn.dataset.icon || 'fas fa-play';
+            guidePlayingBtn.classList.remove('guide-seg-playing');
+        }
+        guidePlayingBtn = null;
+        if (guidePollTimer) { clearInterval(guidePollTimer); guidePollTimer = null; }
+        guideAudioStopAt = null;
+        document.querySelectorAll('.guide-segment.guide-segment-active').forEach(el => el.classList.remove('guide-segment-active'));
+    }
+    guideAudio.addEventListener('ended', clearGuidePlaying);
+
+    function playGuideSegment(url, absStart, absEnd, btn, cardEl) {
+        if (!url || absEnd <= absStart) return;
+        if (guidePlayingBtn === btn && !guideAudio.paused) { guideAudio.pause(); clearGuidePlaying(); return; }
+        clearGuidePlaying();
+        if (!elements.audioElement.paused) elements.audioElement.pause();
+        guidePlayingBtn = btn;
+        if (btn) {
+            btn.classList.add('guide-seg-playing');
+            const i = btn.querySelector('i');
+            if (i) { btn.dataset.icon = i.className; i.className = 'fas fa-pause'; }
+        }
+        if (cardEl) cardEl.classList.add('guide-segment-active');
+        const begin = () => {
+            try { guideAudio.currentTime = absStart; } catch (e) {}
+            guideAudioStopAt = absEnd;
+            const p = guideAudio.play();
+            if (p && p.catch) p.catch(() => {});
+            if (guidePollTimer) clearInterval(guidePollTimer);
+            guidePollTimer = setInterval(() => {
+                if (guideAudioStopAt != null && guideAudio.currentTime >= guideAudioStopAt) {
+                    guideAudio.pause();
+                    clearGuidePlaying();
+                }
+            }, 120);
+        };
+        if (guideAudio.src !== url) {
+            guideAudio.src = url;
+            guideAudio.addEventListener('loadedmetadata', begin, { once: true });
+            guideAudio.load();
+        } else {
+            begin();
+        }
+    }
+
+    // Phrase list for a reciter — from the backend, or derived from `stops` as a fallback.
+    function getGuidePhrases(det, lastW) {
+        if (det.phrases && det.phrases.length) return det.phrases;
+        const stops = (det.stops || []).slice().sort((a, b) => a.wpos - b.wpos);
+        return stops.map((s, i) => ({
+            first_wpos: i === 0 ? 0 : stops[i - 1].wpos + 1, last_wpos: s.wpos,
+            start: i === 0 ? 0 : stops[i - 1].time, end: s.time,
+        })).concat([{
+            first_wpos: stops.length ? stops[stops.length - 1].wpos + 1 : 0, last_wpos: lastW,
+            start: stops.length ? stops[stops.length - 1].time : 0, end: det.duration,
+        }]);
+    }
+
+    // One row of segment-cards for a single reciter's phrases — the SAME
+    // visual style the old positions.db-powered guide used, now sourced from
+    // مُكْث's richer per-verse data.
+    function buildSegmentRow(d, det, name, lastW, markByWpos, soloSet) {
+        const phrases = getGuidePhrases(det, lastW);
+        const row = document.createElement('div');
+        row.className = 'guide-seg-row';
+        row.dir = 'rtl';
+        const seekable = det.audio_url && !isGuideYoutubeUrl(det.audio_url);
+
+        let highWater = 0;
+        phrases.forEach((ph, k) => {
+            const isLast = k === phrases.length - 1;
+            const first = ph.first_wpos, last = ph.last_wpos;
+            const repeatedCount = Math.max(0, highWater - first);
+            const isBackUp = repeatedCount > 0;
+            highWater = Math.max(highWater, last + 1);
+            const next = phrases[k + 1];
+            const forwardStop = !isLast && next && next.first_wpos > last;
+
+            const seg = document.createElement('div');
+            seg.className = 'guide-segment' + (isLast ? ' guide-segment-last' : '') + (isBackUp ? ' guide-segment-repeat' : '');
+
+            const num = document.createElement('span');
+            num.className = 'guide-seg-num';
+            num.textContent = guideToAr(k + 1);
+            seg.appendChild(num);
+
+            if (isBackUp) {
+                const bdg = document.createElement('span');
+                bdg.className = 'guide-seg-repeat-badge';
+                bdg.innerHTML = '<i class="fas fa-rotate-left"></i> تكرار';
+                bdg.title = `أعاد القارئ القراءة من «${d.words[first] || ''}»`;
+                seg.appendChild(bdg);
+            } else if (forwardStop && soloSet.has(last)) {
+                const bdg = document.createElement('span');
+                bdg.className = 'guide-seg-solo-badge';
+                bdg.innerHTML = '<i class="fas fa-star"></i> انفرد بالوقف';
+                bdg.title = 'انفرد القارئ بهذا الوقف بين القرّاء — لم يقف عنده غيره';
+                seg.appendChild(bdg);
+            }
+
+            const wordsEl = document.createElement('div');
+            wordsEl.className = 'guide-seg-words';
+            wordsEl.dir = 'rtl';
+            for (let wi = first; wi <= last; wi++) {
+                if (wi > first) wordsEl.appendChild(document.createTextNode(' '));
+                const ws = document.createElement('span');
+                if (isBackUp && wi < first + repeatedCount) ws.className = 'guide-seg-repeated-word';
+                ws.textContent = d.words[wi] || '';
+                wordsEl.appendChild(ws);
+            }
+            seg.appendChild(wordsEl);
+
+            if (seekable) {
+                const play = document.createElement('button');
+                play.type = 'button';
+                play.className = 'guide-seg-play-btn';
+                play.title = `استمع لمقطع ${name}`;
+                play.innerHTML = '<i class="fas fa-play"></i>';
+                play.addEventListener('click', (e) => { e.stopPropagation(); playGuideSegment(det.audio_url, det.verse_start + ph.start, det.verse_start + ph.end, play, seg); });
+                seg.appendChild(play);
+                seg.classList.add('guide-segment-seekable');
+            }
+
+            const foot = document.createElement('div');
+            foot.className = 'guide-seg-waqf';
+            const sym = markByWpos.get(last);
+            if (isLast) {
+                foot.innerHTML = '<span class="guide-waqf-sym guide-waqf-ras-aya">۝</span><span class="guide-waqf-lbl guide-waqf-ras-aya-lbl">رأس الآية</span>';
+            } else if (sym) {
+                foot.innerHTML = `<span class="guide-waqf-sym waqf-uthmanic">${guideWaqfGlyph(sym)}</span><span class="guide-waqf-lbl">${guideSymName(sym)}</span>`;
+            } else {
+                foot.innerHTML = `<span class="guide-waqf-lbl">${isBackUp ? 'موضع الإعادة' : 'وقف'}</span>`;
+            }
+            const time = document.createElement('span');
+            time.className = 'guide-seg-time';
+            time.textContent = '~' + guideToAr((ph.end - ph.start).toFixed(1)) + 'ث';
+            foot.appendChild(time);
+            seg.appendChild(foot);
+
+            if (!isLast) {
+                const arrow = document.createElement('span');
+                arrow.className = 'guide-seg-arrow';
+                arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
+                seg.appendChild(arrow);
+            }
+            row.appendChild(seg);
+        });
+        return row;
+    }
+
+    // What did this reciter pause at that NO other reciter did (انفرد), and does
+    // a printed mushaf prescribe a waqf there?
+    function buildGuideSoloBlock(det) {
+        const block = document.createElement('div');
+        block.className = 'guide-solo-detail';
+        const items = (det && det.solo_stops_detail) || [];
+        if (!items.length) return block;
+        const head = document.createElement('div');
+        head.className = 'guide-solo-head';
+        head.innerHTML = `<i class="fas fa-user-tag"></i> انفرد بالوقف <span class="guide-solo-count">${guideToAr(items.length)}</span>`;
+        block.appendChild(head);
+        const list = document.createElement('div');
+        list.className = 'guide-solo-items';
+        items.forEach(it => {
+            const el = document.createElement('div');
+            el.className = 'guide-solo-item' + (it.mushaf_matches && it.mushaf_matches.length ? ' guide-solo-item-matched' : '');
+            let html = `<span class="guide-solo-word">${it.word || 'موضع'}</span>`
+                     + `<span class="guide-solo-time">${guideToAr((it.time || 0).toFixed(1))}ث</span>`;
+            if (it.mushaf_matches && it.mushaf_matches.length) {
+                html += it.mushaf_matches.map(m =>
+                    `<span class="guide-mushaf-match" title="يوافق علامة وقف مطبوعة في مصحف ${m.mushaf}">يوافق ${m.mushaf} <b>${m.symbol}</b></span>`
+                ).join('');
+            } else {
+                html += `<span class="guide-solo-nomatch" title="لا توجد علامة وقف مطبوعة عند هذا الموضع في المصاحف المتوفرة">بلا علامة مطبوعة</span>`;
+            }
+            el.innerHTML = html;
+            list.appendChild(el);
+        });
+        block.appendChild(list);
+        return block;
+    }
+
+    // مقارنة القرّاء بمصاحف الوقف — printed-mushaf rows + a consensus row +
+    // one row per reciter, each cell a clickable play-segment button. Reuses
+    // the site's own .waqf-tbl table look (same one the word-view waqf table
+    // already uses) rather than a separate visual language.
+    function buildGuideMatrix(d) {
+        const mushafs = d.mushafs || [];
+        const posSet = new Set((d.union_stops || []).map(u => u.wpos));
+        mushafs.forEach(m => m.marks.forEach(mk => posSet.add(mk.wpos)));
+        const cols = [...posSet].sort((a, b) => a - b);
+        if (!cols.length) return null;
+
+        const uByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u]));
+        const markOf = (m, wpos) => { const f = m.marks.find(x => x.wpos === wpos); return f ? f.symbol : null; };
+        const mushafMarked = wpos => mushafs.some(m => markOf(m, wpos));
+        const isStrong = wpos => {
+            const u = uByWpos.get(wpos);
+            return !!u && u.count === d.reciters_total && mushafs.length > 0 && mushafs.every(m => markOf(m, wpos));
+        };
+
+        let head = '<thead><tr><th class="waqf-tbl-th waqf-tbl-word-hd">الموضع ←</th>';
+        cols.forEach(wpos => {
+            const strong = isStrong(wpos) ? ' guide-matrix-strong' : '';
+            head += `<th class="waqf-tbl-th${strong}">`
+                + (isStrong(wpos) ? '<div class="guide-matrix-strong-tag" title="أقوى وقف: يقف عنده كل القرّاء ويوافق كل المصاحف المعروضة"><i class="fas fa-star"></i> أقوى وقف</div>' : '')
+                + `<div class="waqf-tbl-word">${d.words[wpos] || ''}</div>`
+                + `<div class="waqf-tbl-meaning">كلمة ${guideToAr(wpos + 1)}</div></th>`;
+        });
+        head += '</tr></thead>';
+
+        let body = '<tbody>';
+        mushafs.forEach(m => {
+            const colorCls = getMushafColorClass(m.name);
+            body += `<tr><td class="waqf-tbl-td waqf-tbl-word-hd"><span class="${colorCls}"><i class="fas fa-book-quran"></i> ${m.name}</span></td>`;
+            cols.forEach(wpos => {
+                const strong = isStrong(wpos) ? ' guide-matrix-strong' : '';
+                const sym = markOf(m, wpos);
+                if (sym) {
+                    body += `<td class="waqf-tbl-td${strong}"><span class="guide-waqf-sym waqf-uthmanic" title="${guideSymName(sym)}">${guideMushafGlyph(sym, m.name)}</span></td>`;
+                } else body += `<td class="waqf-tbl-td${strong}"><span class="guide-matrix-empty">·</span></td>`;
+            });
+            body += '</tr>';
+        });
+        body += '<tr class="guide-matrix-row-consensus"><td class="waqf-tbl-td waqf-tbl-word-hd">اتفاق القرّاء</td>';
+        cols.forEach(wpos => {
+            const u = uByWpos.get(wpos);
+            const cls = ((isStrong(wpos) ? 'guide-matrix-strong ' : '') + (u && u.solo ? 'guide-matrix-solo' : '')).trim();
+            body += `<td class="waqf-tbl-td ${cls}">${u ? guideToAr(u.count) + '/' + guideToAr(d.reciters_total) : '<span class="guide-matrix-empty">·</span>'}</td>`;
+        });
+        body += '</tr>';
+        d.reciters.forEach(r => {
+            const det = d.per_reciter[r.id];
+            const timeByWpos = new Map((det.stops || []).map(s => [s.wpos, s.time]));
+            const qasr = det.qasr_munfasil ? ' <span class="guide-matrix-qasr" title="يقرأ بقصر المدّ المنفصل (حركتان) — قراءته أسرع">قصر المنفصل</span>' : '';
+            body += `<tr><td class="waqf-tbl-td waqf-tbl-word-hd">${r.name_ar}${qasr}</td>`;
+            cols.forEach(wpos => {
+                const u = uByWpos.get(wpos);
+                const strong = isStrong(wpos) ? ' guide-matrix-strong' : '';
+                const isSolo = u && u.solo;
+                const onMushaf = isSolo && mushafMarked(wpos);
+                const cls = (strong + (isSolo ? ' guide-matrix-solo' : '')).trim();
+                if (timeByWpos.has(wpos) && det.audio_url && !isGuideYoutubeUrl(det.audio_url)) {
+                    body += `<td class="waqf-tbl-td ${cls}"><button class="guide-matrix-play${isSolo ? ' guide-matrix-solo-cell' : ''}" type="button" data-rid="${r.id}" data-wpos="${wpos}" title="${onMushaf ? 'انفرد بالوقف هنا، لكنه يوافق علامة مطبوعة في أحد المصاحف · ' : ''}استمع لمقطع ${r.name_ar} حتى هذا الموضع"><i class="fas fa-play"></i> ${guideToAr(timeByWpos.get(wpos).toFixed(1))}${onMushaf ? '<i class="fas fa-book-quran" style="margin-inline-start:3px;color:#16a34a;font-size:0.72em"></i>' : ''}</button></td>`;
+                } else if (timeByWpos.has(wpos)) {
+                    body += `<td class="waqf-tbl-td ${cls}"><span${isSolo ? ' style="color:#b45309"' : ''}>${guideToAr(timeByWpos.get(wpos).toFixed(1))}ث</span></td>`;
+                } else {
+                    body += `<td class="waqf-tbl-td ${cls}"><span class="guide-matrix-empty">·</span></td>`;
+                }
+            });
+            body += '</tr>';
+        });
+        body += '</tbody>';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'guide-matrix-panel';
+        wrap.innerHTML = '<div class="guide-section-title"><i class="fas fa-table-cells"></i> مقارنة القرّاء بمصاحف الوقف</div>'
+            + '<div class="waqf-tbl-wrap"><table class="waqf-tbl"></table></div>'
+            + '<div class="guide-matrix-legend"></div>';
+        wrap.querySelector('.waqf-tbl').innerHTML = head + body;
+        wrap.querySelectorAll('.guide-matrix-play[data-rid]').forEach(btn => {
+            const rid = btn.dataset.rid, wpos = parseInt(btn.dataset.wpos, 10);
+            const det = d.per_reciter[rid];
+            const stops = (det.stops || []).slice().sort((a, b) => a.wpos - b.wpos);
+            const idx = stops.findIndex(s => s.wpos === wpos);
+            if (idx < 0) return;
+            const startT = idx > 0 ? stops[idx - 1].time : 0;
+            btn.addEventListener('click', () => playGuideSegment(det.audio_url, det.verse_start + startT, det.verse_start + stops[idx].time, btn));
+        });
+
+        const symsHere = [...new Set(mushafs.flatMap(m => m.marks.map(mk => mk.symbol)))];
+        const hasStrong = cols.some(isStrong);
+        const legendParts = [];
+        if (hasStrong) legendParts.push('<span><i class="fas fa-star" style="color:#16a34a"></i> أقوى وقف (كل القرّاء + كل المصاحف)</span>');
+        mushafs.forEach(m => legendParts.push(`<span><i class="fas fa-circle ${getMushafColorClass(m.name)}" style="font-size:0.6em"></i> ${m.name}</span>`));
+        symsHere.sort((a, b) => Object.keys(GUIDE_WAQF_MEANING).indexOf(a) - Object.keys(GUIDE_WAQF_MEANING).indexOf(b))
+            .forEach(s => legendParts.push(`<span><span class="waqf-tbl-word" style="font-size:0.9rem">${guideWaqfGlyph(s)}</span> ${guideSymName(s)}</span>`));
+        wrap.querySelector('.guide-matrix-legend').innerHTML = legendParts.join('');
+        return wrap;
+    }
+
+    // كيف قرأها كل قارئ — reciters who pause/back up at the same word positions
+    // are grouped into one row of cards instead of repeating per reciter.
+    function buildGuideReciters(d, lastW, markByWpos, soloSet) {
+        if (!d.reciters || !d.reciters.length) return null;
+        const mushafPos = new Set((d.mushafs || []).flatMap(m => m.marks.map(mk => mk.wpos)));
+        const nameById = new Map(d.reciters.map(r => [r.id, r.name_ar]));
+
+        const groups = [];
+        const bySig = new Map();
+        d.reciters.forEach(r => {
+            const det = d.per_reciter[r.id];
+            const sig = getGuidePhrases(det, lastW).map(p => `${p.first_wpos}-${p.last_wpos}`).join(',');
+            let g = bySig.get(sig);
+            if (!g) { g = { members: [] }; bySig.set(sig, g); groups.push(g); }
+            g.members.push(r.id);
+        });
+        groups.sort((a, b) => b.members.length - a.members.length);
+
+        const wrap = document.createElement('div');
+        wrap.innerHTML = '<div class="guide-section-title"><i class="fas fa-users"></i> كيف قرأها كل قارئ</div>'
+            + '<p class="guide-reciters-note"><i class="fas fa-circle-info"></i> تختلف الأزمنة بين القرّاء تبعًا لأدائهم (قصر المدّ المنفصل يجعل القراءة أسرع)؛ الزمن المعروض هو مدّة كل مقطع.</p>';
+        const list = document.createElement('div');
+        list.className = 'guide-reciters-list';
+        wrap.appendChild(list);
+
+        groups.forEach(group => {
+            const card = document.createElement('div');
+            card.className = 'guide-reciter-card';
+
+            const det0 = d.per_reciter[group.members[0]];
+            const nStops = det0.stops.length;
+            const onMushaf = (det0.stops || []).filter(s => mushafPos.has(s.wpos)).length;
+            const nReps = det0.repeats.length;
+            const durations = group.members.map(id => d.per_reciter[id].duration);
+            const minD = Math.round(Math.min(...durations)), maxD = Math.round(Math.max(...durations));
+            const durText = minD === maxD ? `~${guideToAr(minD)}ث` : `~${guideToAr(minD)}–${guideToAr(maxD)}ث`;
+
+            const head = document.createElement('div');
+            head.className = 'guide-reciter-head';
+            let activeId = group.members[0];
+            let row, soloBlock;
+
+            const qasrEl = document.createElement('span');
+            qasrEl.className = 'guide-qasr-badge';
+            qasrEl.innerHTML = '<i class="fas fa-gauge-high"></i> قصر المنفصل';
+            qasrEl.title = 'يقرأ بقصر المدّ المنفصل (حركتان)، فتكون قراءته أسرع من قارئ الإشباع';
+            const syncQasr = () => { qasrEl.hidden = !(d.per_reciter[activeId] || {}).qasr_munfasil; };
+
+            if (group.members.length === 1) {
+                const nameEl = document.createElement('span');
+                nameEl.className = 'guide-reciter-name';
+                nameEl.textContent = nameById.get(activeId);
+                head.appendChild(nameEl);
+            } else {
+                const namesWrap = document.createElement('div');
+                namesWrap.className = 'guide-reciter-names';
+                group.members.forEach(id => {
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'guide-reciter-chip' + (id === activeId ? ' guide-reciter-chip-active' : '');
+                    chip.textContent = nameById.get(id);
+                    chip.title = 'استمع بصوت ' + nameById.get(id);
+                    chip.addEventListener('click', () => {
+                        if (id === activeId) return;
+                        activeId = id;
+                        namesWrap.querySelectorAll('.guide-reciter-chip').forEach(c => c.classList.toggle('guide-reciter-chip-active', c === chip));
+                        const newRow = buildSegmentRow(d, d.per_reciter[activeId], nameById.get(activeId), lastW, markByWpos, soloSet);
+                        row.replaceWith(newRow);
+                        row = newRow;
+                        const newSolo = buildGuideSoloBlock(d.per_reciter[activeId]);
+                        soloBlock.replaceWith(newSolo);
+                        soloBlock = newSolo;
+                        syncQasr();
+                    });
+                    namesWrap.appendChild(chip);
+                });
+                head.appendChild(namesWrap);
+            }
+            head.appendChild(qasrEl);
+            syncQasr();
+
+            const stats = document.createElement('span');
+            stats.className = 'guide-reciter-stats';
+            stats.innerHTML = `<span><b>${guideToAr(nStops)}</b> ${nStops === 1 ? 'وقفة' : 'وقفات'}</span>`
+                + (mushafPos.size ? `<span class="guide-adhere" title="عدد وقفاته الواقعة على موضع وقف في أحد المصاحف"><i class="fas fa-book-quran"></i> موافقة المصحف <b>${guideToAr(onMushaf)}/${guideToAr(nStops)}</b></span>` : '')
+                + (nReps ? `<span><b>${guideToAr(nReps)}</b> ${nReps === 1 ? 'إعادة' : 'إعادات'}</span>` : '')
+                + `<span>${durText}</span>`
+                + (group.members.length > 1 ? `<span class="guide-reciter-count" title="عدد القرّاء الذين قرؤوا الآية بنفس مواضع الوقف"><i class="fas fa-users"></i> ${guideToAr(group.members.length)}/${guideToAr(d.reciters_total)}</span>` : '');
+            head.appendChild(stats);
+
+            card.appendChild(head);
+            soloBlock = buildGuideSoloBlock(d.per_reciter[activeId]);
+            card.appendChild(soloBlock);
+            row = buildSegmentRow(d, d.per_reciter[activeId], nameById.get(activeId), lastW, markByWpos, soloSet);
+            card.appendChild(row);
+            list.appendChild(card);
+        });
+        return wrap;
     }
 
     async function fetchAndBuildRecitationGuide() {
@@ -2722,820 +3112,69 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const guideContainer = document.getElementById('recitation-guide-container');
         guideContainer.innerHTML = '<div class="guide-loading"><i class="fas fa-spinner fa-spin"></i> جاري تحميل بيانات الوقف…</div>';
+        clearGuidePlaying();
 
         try {
-            const reciter = elements.reciterSelect.value;
-            // The guide backend still expects the older full-name reciter key.
-            const guideKey = RECITER_GUIDE_KEY_MAP[reciter] || reciter;
-            const qs = guideKey ? `?reciter=${encodeURIComponent(guideKey)}` : '';
+            const d = await fetchData(`/api/waqf/${surah}/${ayah}`);
+            guideContainer.innerHTML = '';
 
-            const [data, matchData, compareData] = await Promise.all([
-                fetchData(`/api/recitation-guide/${surah}/${ayah}${qs}`),
-                fetchData(`/api/pause-match/${surah}/${ayah}${qs}`).catch(() => null),
-                fetchData(`/api/reciter-compare/${surah}/${ayah}${qs}`).catch(() => null),
-            ]);
-            const reciterName = RECITER_ARABIC_NAMES[reciter] || reciter;
-
-            if (data.has_positions_db === false) {
+            if (!d.reciters || !d.reciters.length || !d.words || !d.words.length) {
                 guideContainer.innerHTML =
-                    `<div class="guide-no-waqf">` +
-                    `<span class="guide-no-waqf-sym">🎙</span>` +
-                    `<span class="guide-no-waqf-title">دليل التلاوة غير متاح لهذا القارئ</span>` +
-                    `<span class="guide-no-waqf-body">لا توجد بيانات تسجيل لـ ${reciterName} بعد.</span>` +
-                    `</div>`;
+                    '<div class="guide-no-waqf">' +
+                    '<span class="guide-no-waqf-sym">۝</span>' +
+                    '<span class="guide-no-waqf-title">لا توجد بيانات وقف لهذه الآية بعد</span>' +
+                    '<span class="guide-no-waqf-body">لا تتوفر تسجيلات محاذاة لهذه الآية حتى الآن.</span>' +
+                    '</div>';
                 return;
             }
 
-            // Build word → time map from the reciter's word-alignment segments
-            // so we can highlight the current guide segment as audio plays.
-            const wordTimingMap = new Map();
-            if (Array.isArray(currentSegments)) {
-                currentSegments.forEach((seg) => {
-                    const start = parseInt(seg.start_word_index, 10);
-                    const end   = parseInt(seg.end_word_index,   10);
-                    const sMs   = parseInt(seg.start_time, 10);
-                    const eMs   = parseInt(seg.end_time,   10);
-                    if (!isNaN(start) && !isNaN(end) && !isNaN(sMs) && !isNaN(eMs)) {
-                        for (let i = start; i <= end; i++) {
-                            if (!wordTimingMap.has(i)) {
-                                wordTimingMap.set(i, { startMs: sMs, endMs: eMs });
-                            }
-                        }
-                    }
-                });
+            const reciter = elements.reciterSelect.value;
+            const lastW = d.words.length - 1;
+            const markByWpos = new Map();
+            ['المدينة الجديد', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت'].forEach((id) => {
+                const m = (d.mushafs || []).find((x) => x.id === id);
+                if (m) m.marks.forEach((mk) => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
+            });
+            const soloSet = new Set((d.union_stops || []).filter((u) => u.solo).map((u) => u.wpos));
+
+            // 1) The currently-selected reciter's own segment row — same visual
+            // language as the old per-reciter guide, sourced from مُكْث's data.
+            const currentDet = d.per_reciter[reciter];
+            if (currentDet) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'recitation-guide';
+                const titleEl = document.createElement('div');
+                titleEl.className = 'guide-title';
+                titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — ${currentDet.name_ar || reciter}`;
+                wrapper.appendChild(titleEl);
+                const subtitleEl = document.createElement('p');
+                subtitleEl.className = 'guide-subtitle';
+                subtitleEl.textContent = 'الآية مقسّمة إلى مقاطع وفق مواضع وقف هذا القارئ. اقرأ كل مقطع حتى الرمز ثم قف أو استمر حسب الحكم.';
+                wrapper.appendChild(subtitleEl);
+                wrapper.appendChild(buildSegmentRow(d, currentDet, currentDet.name_ar || reciter, lastW, markByWpos, soloSet));
+                const soloBlock = buildGuideSoloBlock(currentDet);
+                if (soloBlock.childElementCount) wrapper.appendChild(soloBlock);
+                guideContainer.appendChild(wrapper);
+            } else {
+                guideContainer.innerHTML +=
+                    '<div class="guide-no-waqf">' +
+                    '<span class="guide-no-waqf-sym">🎙</span>' +
+                    '<span class="guide-no-waqf-title">دليل التلاوة غير متاح لهذا القارئ</span>' +
+                    '<span class="guide-no-waqf-body">لا توجد بيانات تسجيل لهذا القارئ في هذه الآية بعد.</span>' +
+                    '</div>';
             }
 
-            // Solo waqfs: stops this reciter makes that no other reciter shares.
-            const uniquePauses = (compareData && compareData.has_data)
-                ? (compareData.unique_pauses || [])
-                : [];
-            buildRecitationGuideFromSegments(guideContainer, data.segments || [], reciterName, wordTimingMap, uniquePauses);
-            if (matchData && matchData.has_data) {
-                buildPauseMatchPanel(guideContainer, matchData, reciterName);
-            }
-            if (compareData && compareData.has_data) {
-                buildReciterComparePanel(guideContainer, compareData, reciterName);
-            }
+            // 2) مقارنة القرّاء بمصاحف الوقف
+            const matrixWrap = buildGuideMatrix(d);
+            if (matrixWrap) guideContainer.appendChild(matrixWrap);
+
+            // 3) كيف قرأها كل قارئ
+            const recitersWrap = buildGuideReciters(d, lastW, markByWpos, soloSet);
+            if (recitersWrap) guideContainer.appendChild(recitersWrap);
         } catch (error) {
             guideContainer.innerHTML = '<div class="guide-error"><i class="fas fa-triangle-exclamation"></i> خطأ في تحميل دليل التلاوة</div>';
             console.error('Recitation guide error:', error);
         }
-    }
-
-    function buildPauseMatchPanel(container, matchData, reciterName) {
-        const { matches, pause_count } = matchData;
-        // Sort: primary by combined score, secondary by precision
-        const versions = Object.keys(matches).sort((a, b) => {
-            const scoreA = matches[a].coverage_score ?? matches[a].score;
-            const scoreB = matches[b].coverage_score ?? matches[b].score;
-            if (scoreA !== scoreB) return scoreB - scoreA;
-            return matches[b].score - matches[a].score;
-        });
-        if (!versions.length) return;
-        // Nothing to report: the reciter made no discretionary (mid-verse) stops
-        // and no mushaf marks this verse against. (The verse-end stop is excluded.)
-        const anyMarks = versions.some(v => matches[v].mushaf_marks > 0);
-        if (pause_count === 0 && !anyMarks) return;
-
-        // Helpers ─────────────────────────────────────────────────────────────
-        function toArabicNumerals(n) {
-            return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-        }
-
-        // Build a natural-language verdict sentence for one mushaf entry
-        function buildVerdict(ver, matched, total, score, mushaf_marks, marks_covered, coverage_score) {
-            const recShort = reciterName;
-            const allPrec = matched === total;
-            const allCov  = mushaf_marks === 0 || marks_covered === mushaf_marks;
-            const noPrec  = matched === 0;
-            const noCov   = mushaf_marks > 0 && marks_covered === 0;
-            const m = toArabicNumerals(matched);
-            const t = toArabicNumerals(total);
-            const c = toArabicNumerals(marks_covered);
-            const mk = toArabicNumerals(mushaf_marks);
-
-            let parts = [];
-
-            if (total === 0) {
-                // Only the (excluded) verse-end stop — no optional waqf to judge.
-                parts.push(`لم يقف الشيخ وقوفاً اختيارية داخل الآية`);
-            } else if (allPrec) {
-                parts.push(`وافق الشيخ في جميع وقفاته (${m}/${t})`);
-            } else if (noPrec) {
-                parts.push(`لم توافق أيٌّ من وقفاته علامات هذا المصحف`);
-            } else {
-                parts.push(`وافق الشيخ في ${m} من أصل ${t} وقفة`);
-            }
-
-            if (mushaf_marks > 0) {
-                if (allCov) {
-                    parts.push(`وغطّى جميع علامات الوقف فيه (${c}/${mk})`);
-                } else if (noCov) {
-                    parts.push(`دون أن يمرّ على أيٍّ من علاماته (${mk} علامة)`);
-                } else {
-                    parts.push(`وغطّى ${c} من ${mk} علامة في المصحف`);
-                }
-            } else {
-                parts.push(`(لا علامات وقف مخصّصة في هذا المصحف لهذه الآية)`);
-            }
-
-            return parts.join('، ');
-        }
-
-        function badgeLevel(score, coverage_score, mushaf_marks) {
-            const eff = mushaf_marks > 0 ? Math.min(score, coverage_score) : score;
-            if (eff === 100) return 'full';
-            if (eff === 0) return 'none';
-            return 'partial';
-        }
-
-        const BADGE = {
-            full:    { label: 'مطابق تماماً', cls: 'pm-badge-full' },
-            partial: { label: 'مطابق جزئياً', cls: 'pm-badge-partial' },
-            none:    { label: 'غير مطابق', cls: 'pm-badge-none' },
-        };
-
-        const panel = document.createElement('div');
-        panel.className = 'pause-match-panel';
-
-        const title = document.createElement('div');
-        title.className = 'pause-match-title';
-        title.innerHTML = `<i class="fas fa-book-open"></i> تطابق وقوف ${reciterName} مع المصاحف`;
-        panel.appendChild(title);
-
-        const subtitle = document.createElement('p');
-        subtitle.className = 'pause-match-subtitle';
-        subtitle.textContent = `${toArabicNumerals(pause_count)} وقفة في هذه الآية — مرتّبة من الأعلى تطابقاً`;
-        panel.appendChild(subtitle);
-
-        const rows = document.createElement('div');
-        rows.className = 'pause-match-rows';
-
-        versions.forEach((ver, idx) => {
-            const { matched, total, score, mushaf_marks, marks_covered, coverage_score } = matches[ver];
-            const colorCls = getMushafColorClass(ver);
-            const badge = BADGE[badgeLevel(score, coverage_score, mushaf_marks)];
-
-            const card = document.createElement('div');
-            card.className = `pause-match-card ${colorCls}`;
-
-            const header = document.createElement('div');
-            header.className = 'pause-match-card-header';
-
-            const musName = document.createElement('span');
-            musName.className = `pause-match-mushaf-name ${colorCls}`;
-            musName.textContent = ver;
-            header.appendChild(musName);
-
-            const badgeEl = document.createElement('span');
-            badgeEl.className = `pm-badge ${badge.cls}`;
-            badgeEl.textContent = badge.label;
-            header.appendChild(badgeEl);
-            card.appendChild(header);
-
-            const verdict = document.createElement('p');
-            verdict.className = 'pause-match-verdict';
-            verdict.textContent = buildVerdict(ver, matched, total, score, mushaf_marks, marks_covered, coverage_score);
-            card.appendChild(verdict);
-
-            // Precision bar only makes sense when there are discretionary stops.
-            if (total > 0) {
-                const precSection = document.createElement('div');
-                precSection.className = 'pause-match-bar-section';
-
-                const precHeader = document.createElement('div');
-                precHeader.className = 'pause-match-bar-header';
-                const precTitle = document.createElement('span');
-                precTitle.className = 'pause-match-bar-title';
-                precTitle.textContent = 'صحة وقفاته';
-                const precHint = document.createElement('span');
-                precHint.className = 'pause-match-bar-hint';
-                precHint.textContent = 'كم وقفة منه لها سند في هذا المصحف؟';
-                precHeader.appendChild(precTitle);
-                precHeader.appendChild(precHint);
-                precSection.appendChild(precHeader);
-
-                const precRow = document.createElement('div');
-                precRow.className = 'pause-match-metric-row';
-                const precWrap = document.createElement('div');
-                precWrap.className = 'pause-match-bar-wrap';
-                const precBar = document.createElement('div');
-                precBar.className = `pause-match-bar ${colorCls}`;
-                precBar.style.width = '0%';
-                setTimeout(() => { precBar.style.width = score + '%'; }, 50 + idx * 20);
-                precWrap.appendChild(precBar);
-                precRow.appendChild(precWrap);
-                const precPct = document.createElement('span');
-                precPct.className = 'pause-match-pct';
-                precPct.textContent = `${toArabicNumerals(score)}٪ (${toArabicNumerals(matched)}/${toArabicNumerals(total)})`;
-                precRow.appendChild(precPct);
-                precSection.appendChild(precRow);
-                card.appendChild(precSection);
-            }
-
-            if (mushaf_marks > 0) {
-                const covSection = document.createElement('div');
-                covSection.className = 'pause-match-bar-section';
-
-                const covHeader = document.createElement('div');
-                covHeader.className = 'pause-match-bar-header';
-                const covTitle = document.createElement('span');
-                covTitle.className = 'pause-match-bar-title';
-                covTitle.textContent = 'تغطية علاماته';
-                const covHint = document.createElement('span');
-                covHint.className = 'pause-match-bar-hint';
-                covHint.textContent = 'كم علامة وقف في المصحف وقف عندها الشيخ؟';
-                covHeader.appendChild(covTitle);
-                covHeader.appendChild(covHint);
-                covSection.appendChild(covHeader);
-
-                const covRow = document.createElement('div');
-                covRow.className = 'pause-match-metric-row';
-                const covWrap = document.createElement('div');
-                covWrap.className = 'pause-match-bar-wrap';
-                const covBar = document.createElement('div');
-                covBar.className = `pause-match-coverage-bar ${colorCls}`;
-                covBar.style.width = '0%';
-                setTimeout(() => { covBar.style.width = coverage_score + '%'; }, 90 + idx * 20);
-                covWrap.appendChild(covBar);
-                covRow.appendChild(covWrap);
-                const covPct = document.createElement('span');
-                covPct.className = 'pause-match-pct';
-                covPct.textContent = `${toArabicNumerals(coverage_score)}٪ (${toArabicNumerals(marks_covered)}/${toArabicNumerals(mushaf_marks)})`;
-                covRow.appendChild(covPct);
-                covSection.appendChild(covRow);
-                card.appendChild(covSection);
-            }
-
-            rows.appendChild(card);
-        });
-
-        panel.appendChild(rows);
-        container.appendChild(panel);
-    }
-
-    // ── Reciter-vs-reciter comparison panel ─────────────────────────────────
-    function buildReciterComparePanel(container, compareData, subjectName) {
-        const { comparisons, subject_mid_count } = compareData;
-        const others = Object.keys(comparisons).sort(
-            (a, b) => comparisons[b].similarity - comparisons[a].similarity
-        );
-        if (!others.length) return;
-
-        function toAr(n) { return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
-
-        const panel = document.createElement('div');
-        panel.className = 'reciter-compare-panel';
-
-        const title = document.createElement('div');
-        title.className = 'pause-match-title';
-        title.innerHTML = `<i class="fas fa-users"></i> مقارنة وقوف ${subjectName} مع القراء`;
-        panel.appendChild(title);
-
-        const subtitle = document.createElement('p');
-        subtitle.className = 'pause-match-subtitle';
-        subtitle.textContent = `${toAr(subject_mid_count)} وقفة وسط الآية (رأس الآية مستثنى) — مرتّبة بحسب التشابه`;
-        panel.appendChild(subtitle);
-
-        const rows = document.createElement('div');
-        rows.className = 'pause-match-rows';
-
-        others.forEach((other, idx) => {
-            const { a_to_b_score, a_to_b_matched, a_to_b_total,
-                    b_to_a_score, b_to_a_matched, b_to_a_total, similarity, comparable } = comparisons[other];
-            const otherName = RECITER_ARABIC_NAMES[other] || other;
-
-            const noMidPauses = a_to_b_total === 0 && b_to_a_total === 0;
-            // Exactly one reciter pauses mid-verse — a symmetric % is meaningless,
-            // so don't show "لا توافق" (which contradicts the verdict sentence).
-            const oneSided = !noMidPauses && comparable === false;
-            const badgeCls = (noMidPauses || oneSided) ? 'pm-badge-partial'
-                           : similarity === 100  ? 'pm-badge-full'
-                           : similarity === 0    ? 'pm-badge-none'
-                                                 : 'pm-badge-partial';
-            const badgeTxt = noMidPauses         ? 'لا وقوف وسطية'
-                           : oneSided            ? 'لا يمكن التقييم'
-                           : similarity === 100  ? 'توافق تام'
-                           : similarity === 0    ? 'لا توافق'
-                                                 : `توافق ${toAr(similarity)}٪`;
-
-            const card = document.createElement('div');
-            card.className = 'reciter-compare-card';
-
-            // Header: other reciter name + similarity badge
-            const header = document.createElement('div');
-            header.className = 'pause-match-card-header';
-            const nameEl = document.createElement('span');
-            nameEl.className = 'reciter-compare-name';
-            nameEl.textContent = otherName;
-            header.appendChild(nameEl);
-            const badgeEl = document.createElement('span');
-            badgeEl.className = `pm-badge ${badgeCls}`;
-            badgeEl.textContent = badgeTxt;
-            header.appendChild(badgeEl);
-            card.appendChild(header);
-
-            // Verdict sentence
-            const verdict = document.createElement('p');
-            verdict.className = 'pause-match-verdict';
-            let sentence = '';
-            if (a_to_b_total === 0 && b_to_a_total === 0) {
-                sentence = 'لا توجد وقفات وسط الآية لدى أيٍّ منهما للمقارنة.';
-            } else if (a_to_b_total === 0) {
-                sentence = `${subjectName} لا يقف وسط الآية — لا يمكن تقييم التوافق.`;
-            } else if (b_to_a_total === 0) {
-                sentence = `${otherName} لا يقف وسط الآية — لا يمكن تقييم التوافق.`;
-            } else {
-                const matchAB = a_to_b_matched === a_to_b_total ? 'جميع' : toAr(a_to_b_matched) + ' من ' + toAr(a_to_b_total);
-                const matchBA = b_to_a_matched === b_to_a_total ? 'جميع' : toAr(b_to_a_matched) + ' من ' + toAr(b_to_a_total);
-                sentence = `وقف ${subjectName} عند ${matchAB} وقفات ${otherName} — ووقف ${otherName} عند ${matchBA} وقفات ${subjectName}`;
-            }
-            verdict.textContent = sentence;
-            card.appendChild(verdict);
-
-            // Bar 1: A→B (subject's stops found in other)
-            if (a_to_b_total > 0) {
-                const sec1 = document.createElement('div');
-                sec1.className = 'pause-match-bar-section';
-                const h1 = document.createElement('div');
-                h1.className = 'pause-match-bar-header';
-                const t1 = document.createElement('span');
-                t1.className = 'pause-match-bar-title';
-                t1.textContent = `وقفات ${subjectName}`;
-                const q1 = document.createElement('span');
-                q1.className = 'pause-match-bar-hint';
-                q1.textContent = `كم منها وقف عندها ${otherName} أيضاً؟`;
-                h1.appendChild(t1); h1.appendChild(q1); sec1.appendChild(h1);
-                const r1 = document.createElement('div');
-                r1.className = 'pause-match-metric-row';
-                const w1 = document.createElement('div');
-                w1.className = 'pause-match-bar-wrap';
-                const b1 = document.createElement('div');
-                b1.className = 'reciter-compare-bar-a';
-                b1.style.width = '0%';
-                setTimeout(() => { b1.style.width = a_to_b_score + '%'; }, 50 + idx * 20);
-                w1.appendChild(b1); r1.appendChild(w1);
-                const p1 = document.createElement('span');
-                p1.className = 'pause-match-pct';
-                p1.textContent = `${toAr(a_to_b_score)}٪ (${toAr(a_to_b_matched)}/${toAr(a_to_b_total)})`;
-                r1.appendChild(p1); sec1.appendChild(r1); card.appendChild(sec1);
-            }
-
-            // Bar 2: B→A (other's stops found in subject)
-            if (b_to_a_total > 0) {
-                const sec2 = document.createElement('div');
-                sec2.className = 'pause-match-bar-section';
-                const h2 = document.createElement('div');
-                h2.className = 'pause-match-bar-header';
-                const t2 = document.createElement('span');
-                t2.className = 'pause-match-bar-title';
-                t2.textContent = `وقفات ${otherName}`;
-                const q2 = document.createElement('span');
-                q2.className = 'pause-match-bar-hint';
-                q2.textContent = `كم منها وقف عندها ${subjectName} أيضاً؟`;
-                h2.appendChild(t2); h2.appendChild(q2); sec2.appendChild(h2);
-                const r2 = document.createElement('div');
-                r2.className = 'pause-match-metric-row';
-                const w2 = document.createElement('div');
-                w2.className = 'pause-match-bar-wrap';
-                const b2 = document.createElement('div');
-                b2.className = 'reciter-compare-bar-b';
-                b2.style.width = '0%';
-                setTimeout(() => { b2.style.width = b_to_a_score + '%'; }, 90 + idx * 20);
-                w2.appendChild(b2); r2.appendChild(w2);
-                const p2 = document.createElement('span');
-                p2.className = 'pause-match-pct';
-                p2.textContent = `${toAr(b_to_a_score)}٪ (${toAr(b_to_a_matched)}/${toAr(b_to_a_total)})`;
-                r2.appendChild(p2); sec2.appendChild(r2); card.appendChild(sec2);
-            }
-
-            // Collapsible diff section — only when not 100% match
-            const diff = comparisons[other].diff;
-            if (similarity < 100 && diff && (diff.only_in_a.length || diff.only_in_b.length)) {
-                const diffWrap = document.createElement('div');
-                diffWrap.className = 'rc-diff-wrap';
-
-                const toggle = document.createElement('button');
-                toggle.className = 'rc-diff-toggle';
-                toggle.innerHTML = '<i class="fas fa-chevron-down rc-diff-chevron"></i> عرض الفارق';
-                diffWrap.appendChild(toggle);
-
-                const body = document.createElement('div');
-                body.className = 'rc-diff-body rc-diff-body-hidden';
-
-                function makeDiffGroup(label, items, isA) {
-                    if (!items.length) return;
-                    const g = document.createElement('div');
-                    g.className = 'rc-diff-group';
-                    const lbl = document.createElement('span');
-                    lbl.className = 'rc-diff-label';
-                    lbl.textContent = label;
-                    g.appendChild(lbl);
-                    const chips = document.createElement('span');
-                    chips.className = 'rc-diff-chips';
-                    items.forEach(item => {
-                        const chip = document.createElement('span');
-                        chip.className = isA ? 'rc-diff-chip rc-diff-chip-a' : 'rc-diff-chip rc-diff-chip-b';
-                        // Show segment text (uthmani_text from positions.db) — last 4 words
-                        // are shown so the pause-point (end) is visible; full text on hover
-                        const segWords = (item.text || '').split(' ').filter(Boolean);
-                        const truncated = segWords.length > 4
-                            ? '\u2026 ' + segWords.slice(-4).join(' ')
-                            : (segWords.join(' ') || `ك${toAr(item.word_index + 1)}`);
-                        chip.textContent = truncated;
-                        chip.title = item.text || `الكلمة ${toAr(item.word_index + 1)}`;
-                        chips.appendChild(chip);
-                    });
-                    g.appendChild(chips);
-                    body.appendChild(g);
-                }
-
-                if (diff.only_in_a.length) {
-                    makeDiffGroup(`وقف عندها ${subjectName} فقط`, diff.only_in_a, true);
-                }
-                if (diff.only_in_b.length) {
-                    makeDiffGroup(`وقف عندها ${otherName} فقط`, diff.only_in_b, false);
-                }
-
-                toggle.addEventListener('click', () => {
-                    const open = body.classList.toggle('rc-diff-body-hidden');
-                    toggle.classList.toggle('rc-diff-toggle-open', !open);
-                    toggle.querySelector('.rc-diff-chevron').style.transform = open ? '' : 'rotate(180deg)';
-                });
-
-                diffWrap.appendChild(body);
-                card.appendChild(diffWrap);
-            }
-
-            rows.appendChild(card);
-        });
-
-        panel.appendChild(rows);
-        container.appendChild(panel);
-    }
-
-    // ── positions.db-powered guide ───────────────────────────────────────────
-    function buildRecitationGuideFromSegments(container, segments, reciterName, wordTimingMap = new Map(), uniquePauses = []) {
-        container.innerHTML = '';
-        detachGuideHighlightHandler();
-        const uniquePauseSet = new Set((uniquePauses || []).map(Number));
-
-        function toArabicNumerals(n) {
-            return String(n).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-        }
-
-        if (!segments || segments.length === 0) {
-            const noEl = document.createElement('div');
-            noEl.className = 'guide-no-waqf';
-            noEl.innerHTML =
-                `<span class="guide-no-waqf-sym">۝</span>` +
-                `<span class="guide-no-waqf-title">لا توجد علامات وقف لهذه الآية</span>` +
-                `<span class="guide-no-waqf-body">اقرأ الآية كاملةً دون وقف، ثم قف عند رأس الآية</span>`;
-            container.appendChild(noEl);
-            return;
-        }
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'recitation-guide';
-
-        // Title — shows the reciter name, not mushaf version
-        const titleEl = document.createElement('div');
-        titleEl.className = 'guide-title';
-        titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — ${reciterName || 'القارئ'}`;
-        wrapper.appendChild(titleEl);
-
-        const subtitleEl = document.createElement('p');
-        subtitleEl.className = 'guide-subtitle';
-        subtitleEl.textContent = 'الآية مقسّمة إلى مقاطع وفق مواضع الوقف. اقرأ كل مقطع حتى الرمز ثم قف أو استمر حسب الحكم.';
-        wrapper.appendChild(subtitleEl);
-
-        const segRow = document.createElement('div');
-        segRow.className = 'guide-seg-row';
-        segRow.dir = 'rtl';
-
-        const builtSegEls = [];
-
-        // Track the furthest word reached so we can detect a "back-up": a segment
-        // that re-reads words already recited (the reciter stopped at a waqf then
-        // resumed FROM that point rather than continuing past it — e.g. Suwaid at
-        // 12:27 repeats from فكذبت). The waqf itself still counts; this only flags
-        // the repetition so the reader sees it.
-        let guideHighWater = 0;
-
-        segments.forEach((seg, idx) => {
-            const isLast = idx === segments.length - 1;
-            const segEl = document.createElement('div');
-            segEl.className = 'guide-segment';
-            if (isLast) segEl.classList.add('guide-segment-last');
-
-            const segStartW = parseInt(seg.start_word, 10);
-            const segEndW   = parseInt(seg.end_word, 10);
-            const repeatedCount = Number.isFinite(segStartW)
-                ? Math.max(0, guideHighWater - segStartW)
-                : 0;
-            const isBackUp = repeatedCount > 0;
-            if (Number.isFinite(segEndW)) guideHighWater = Math.max(guideHighWater, segEndW);
-            if (isBackUp) segEl.classList.add('guide-segment-repeat');
-
-            // Compute time range for this segment from word alignment timing.
-            // positions.db start_word / end_word are 0-based; end_word is exclusive.
-            if (wordTimingMap.size > 0 && seg.start_word != null && seg.end_word != null) {
-                let segStartMs = Infinity, segEndMs = -Infinity;
-                const wStart = parseInt(seg.start_word, 10);                 // 0-based, inclusive
-                const wEnd   = Math.max(0, parseInt(seg.end_word, 10) - 1);  // exclusive → inclusive
-                for (let wi = wStart; wi <= wEnd; wi++) {
-                    const t = wordTimingMap.get(wi);
-                    if (t) {
-                        segStartMs = Math.min(segStartMs, t.startMs);
-                        segEndMs   = Math.max(segEndMs,   t.endMs);
-                    }
-                }
-                if (segStartMs !== Infinity) {
-                    segEl.dataset.startMs = segStartMs;
-                    segEl.dataset.endMs   = segEndMs;
-                    segEl.classList.add('guide-segment-seekable');
-                    segEl.title = 'انقر للانتقال إلى هذا المقطع';
-                    segEl.addEventListener('click', () => {
-                        elements.audioElement.currentTime = segStartMs / 1000;
-                        if (elements.audioElement.paused) elements.audioElement.play().catch(() => {});
-                    });
-                }
-            }
-
-            // Segment number
-            const segNum = document.createElement('span');
-            segNum.className = 'guide-seg-num';
-            segNum.textContent = toArabicNumerals(idx + 1);
-            segEl.appendChild(segNum);
-
-            // Strip any embedded waqf glyphs from the positions.db segment text.
-            const segWords = (seg.text || '').split(' ')
-                .filter(w => w.trim())
-                .map(w => stripEmbeddedWaqf(w));
-
-            // Repetition badge — the reciter resumed by re-reading earlier words.
-            if (isBackUp) {
-                const repBadge = document.createElement('span');
-                repBadge.className = 'guide-seg-repeat-badge';
-                repBadge.innerHTML = '<i class="fas fa-rotate-left"></i> تكرار';
-                const fromWord = segWords.slice(0, repeatedCount).join(' ').trim();
-                repBadge.title = fromWord
-                    ? `أعاد القارئ القراءة من «${fromWord}»`
-                    : 'أعاد القارئ القراءة من هذا الموضع';
-                segEl.appendChild(repBadge);
-            } else if (!isLast && Number.isFinite(segEndW) && uniquePauseSet.has(segEndW)) {
-                // Solo waqf — a clean stop-and-continue no other reciter makes.
-                const soloBadge = document.createElement('span');
-                soloBadge.className = 'guide-seg-solo-badge';
-                soloBadge.innerHTML = '<i class="fas fa-star"></i> انفرد بالوقف';
-                soloBadge.title = 'انفرد القارئ بهذا الوقف بين القرّاء — لم يقف عنده غيره';
-                segEl.appendChild(soloBadge);
-            }
-
-            // Verse words. The first `repeatedCount` words were already recited in
-            // an earlier segment (re-read after backing up) — mark them so the
-            // repetition is visible.
-            const wordsEl = document.createElement('div');
-            wordsEl.className = 'guide-seg-words';
-            wordsEl.dir = 'rtl';
-            segWords.forEach((w, wi) => {
-                if (wi > 0) wordsEl.appendChild(document.createTextNode(' '));
-                const wSpan = document.createElement('span');
-                if (isBackUp && wi < repeatedCount) wSpan.className = 'guide-seg-repeated-word';
-                wSpan.textContent = w;
-                wordsEl.appendChild(wSpan);
-            });
-            segEl.appendChild(wordsEl);
-
-            // Copy segment text button
-            const copyBtn = document.createElement('button');
-            copyBtn.type = 'button';
-            copyBtn.className = 'guide-seg-copy-btn';
-            copyBtn.title = 'نسخ نص المقطع';
-            copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
-            const segText = segWords.join(' ');
-            let copyResetTimer = null;
-            copyBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                navigator.clipboard.writeText(segText).then(() => {
-                    copyBtn.innerHTML = '<i class="fas fa-check"></i>';
-                    clearTimeout(copyResetTimer);
-                    copyResetTimer = setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i>'; }, 1500);
-                }).catch(() => {});
-            });
-            segEl.appendChild(copyBtn);
-
-            // Waqf symbol + meaning. Last segment always gets رأس الآية marker.
-            const waqfEntries = seg.waqf || [];
-            if (waqfEntries.length > 0 || isLast) {
-                const waqfEl = document.createElement('div');
-                waqfEl.className = 'guide-seg-waqf';
-
-                waqfEntries.forEach(entry => {
-                    const raw = (entry.symbols || '').trim();
-                    const normalized = normalizeNonWarshWaqfText(raw);
-                    const info = getWaqfInfo(raw, entry.version || '');
-
-                    const symSpan = document.createElement('span');
-                    symSpan.className = 'guide-waqf-sym waqf-uthmanic';
-                    symSpan.textContent = normalized || raw;
-                    waqfEl.appendChild(symSpan);
-
-                    const lblSpan = document.createElement('span');
-                    lblSpan.className = 'guide-waqf-lbl';
-                    lblSpan.textContent = info.meaning;
-                    waqfEl.appendChild(lblSpan);
-                });
-
-                // رأس الآية — always valid to stop at the end of a verse
-                if (isLast) {
-                    const rasSymSpan = document.createElement('span');
-                    rasSymSpan.className = 'guide-waqf-sym guide-waqf-ras-aya';
-                    rasSymSpan.textContent = '\u06DD';
-                    waqfEl.appendChild(rasSymSpan);
-
-                    const rasLblSpan = document.createElement('span');
-                    rasLblSpan.className = 'guide-waqf-lbl guide-waqf-ras-aya-lbl';
-                    rasLblSpan.textContent = '\u0631\u0623\u0633 \u0627\u0644\u0622\u064a\u0629';
-                    waqfEl.appendChild(rasLblSpan);
-                }
-
-                segEl.appendChild(waqfEl);
-
-                // Arrow connector only between segments, not after the last
-                if (!isLast) {
-                    const arrow = document.createElement('div');
-                    arrow.className = 'guide-seg-arrow';
-                    arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
-                    segEl.appendChild(arrow);
-                }
-            }
-
-            segRow.appendChild(segEl);
-            builtSegEls.push(segEl);
-        });
-
-        wrapper.appendChild(segRow);
-        container.appendChild(wrapper);
-
-        // Attach audio progress highlight if timing data is available.
-        const hasTimingData = builtSegEls.some(el => el.dataset.startMs !== undefined);
-        if (hasTimingData) {
-            attachGuideHighlightHandler(builtSegEls);
-        }
-    }
-
-    function attachGuideHighlightHandler(segmentEls) {
-        detachGuideHighlightHandler();
-        elements.audioElement._guideTimeUpdateHandler = () => {
-            const ms = elements.audioElement.currentTime * 1000;
-            segmentEls.forEach((el) => {
-                const start = parseFloat(el.dataset.startMs);
-                const end   = parseFloat(el.dataset.endMs);
-                if (!isNaN(start) && !isNaN(end)) {
-                    el.classList.toggle('guide-segment-active', ms >= start && ms <= end);
-                }
-            });
-        };
-        elements.audioElement.addEventListener('timeupdate', elements.audioElement._guideTimeUpdateHandler);
-    }
-
-    function detachGuideHighlightHandler() {
-        if (elements.audioElement._guideTimeUpdateHandler) {
-            elements.audioElement.removeEventListener('timeupdate', elements.audioElement._guideTimeUpdateHandler);
-            elements.audioElement._guideTimeUpdateHandler = null;
-        }
-    }
-    function buildRecitationGuideHTML(container, verseText, waqfData, versions) {
-        container.innerHTML = '';
-        const words = (verseText || '').split(' ').filter(w => w.trim());
-
-        // No waqf data
-        if (!waqfData || waqfData.length === 0) {
-            const noWaqfEl = document.createElement('div');
-            noWaqfEl.className = 'guide-no-waqf';
-            noWaqfEl.innerHTML =
-                `<span class="guide-no-waqf-sym">\u06DD</span>` +
-                `<span class="guide-no-waqf-title">\u0644\u0627 \u062a\u0648\u062c\u062f \u0639\u0644\u0627\u0645\u0627\u062a \u0648\u0642\u0641 \u0644\u0647\u0630\u0647 \u0627\u0644\u0622\u064a\u0629</span>` +
-                `<span class="guide-no-waqf-body">\u0627\u0642\u0631\u0623 \u0627\u0644\u0622\u064a\u0629 \u0643\u0627\u0645\u0644\u0629\u064b \u062f\u0648\u0646 \u0648\u0642\u0641\u060c \u062b\u0645 \u0642\u0641 \u0639\u0646\u062f \u0631\u0623\u0633 \u0627\u0644\u0622\u064a\u0629</span>`;
-            container.appendChild(noWaqfEl);
-            return;
-        }
-
-        // Build waqf map: tokenIndex -> [{symbols, version}]
-        const waqfMap = buildWaqfByTokenIndex(waqfData, words);
-
-        // Group words into reading segments
-        const segments = [];
-        let currentWords = [];
-
-        for (let i = 0; i < words.length; i++) {
-            const entries = waqfMap.get(i);
-            currentWords.push(words[i]);
-            if (entries && entries.length > 0) {
-                segments.push({ words: [...currentWords], waqf: entries });
-                currentWords = [];
-            }
-        }
-        if (currentWords.length > 0) {
-            segments.push({ words: currentWords, waqf: null });
-        }
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'recitation-guide';
-
-        const versionLabel = versions && versions.length ? versions.join(' + ') : '\u0627\u0644\u062d\u0635\u0631\u064a';
-        const titleEl = document.createElement('div');
-        titleEl.className = 'guide-title';
-        titleEl.innerHTML = `<i class="fas fa-route"></i> \u062f\u0644\u064a\u0644 \u0627\u0644\u062a\u0644\u0627\u0648\u0629 \u2014 \u0648\u0642\u0641 ${versionLabel}`;
-        wrapper.appendChild(titleEl);
-
-        const subtitleEl = document.createElement('p');
-        subtitleEl.className = 'guide-subtitle';
-        subtitleEl.textContent = '\u0627\u0644\u0622\u064a\u0629 \u0645\u0642\u0633\u0651\u0645\u0629 \u0625\u0644\u0649 \u0645\u0642\u0627\u0637\u0639 \u0648\u0641\u0642 \u0645\u0648\u0627\u0636\u0639 \u0627\u0644\u0648\u0642\u0641. \u0627\u0642\u0631\u0623 \u0643\u0644 \u0645\u0642\u0637\u0639 \u062d\u062a\u0649 \u0627\u0644\u0631\u0645\u0632 \u062b\u0645 \u0642\u0641 \u0623\u0648 \u0627\u0633\u062a\u0645\u0631 \u062d\u0633\u0628 \u0627\u0644\u062d\u0643\u0645.';
-        wrapper.appendChild(subtitleEl);
-
-        const segRow = document.createElement('div');
-        segRow.className = 'guide-seg-row';
-        segRow.dir = 'rtl';
-
-        segments.forEach((seg, idx) => {
-            const segEl = document.createElement('div');
-            segEl.className = 'guide-segment';
-            if (!seg.waqf) segEl.classList.add('guide-segment-last');
-
-            const segNum = document.createElement('span');
-            segNum.className = 'guide-seg-num';
-            segNum.textContent = String(idx + 1);
-            segEl.appendChild(segNum);
-
-            const wordsEl = document.createElement('div');
-            wordsEl.className = 'guide-seg-words';
-            wordsEl.dir = 'rtl';
-            wordsEl.textContent = seg.words.map(w => stripEmbeddedWaqf(w)).join(' ');
-            segEl.appendChild(wordsEl);
-
-            if (seg.waqf) {
-                const waqfEl = document.createElement('div');
-                waqfEl.className = 'guide-seg-waqf';
-
-                seg.waqf.forEach(entry => {
-                    const raw = (entry.symbols || '').trim();
-                    const normalized = normalizeNonWarshWaqfText(raw);
-                    const isWarshEntry = isWarshMushafVersion(entry.version);
-                    const info = getWaqfInfo(raw, entry.version || '');
-                    const mushafCls = getMushafColorClass(entry.version);
-                    const fontCls = isWarshEntry ? ' waqf-warsh' : ' waqf-uthmanic';
-
-                    const symSpan = document.createElement('span');
-                    symSpan.className = 'guide-waqf-sym ' + mushafCls + fontCls;
-                    symSpan.textContent = normalized || raw;
-                    waqfEl.appendChild(symSpan);
-
-                    if (entry.version) {
-                        const badge = document.createElement('span');
-                        badge.className = 'guide-mushaf-badge ' + mushafCls;
-                        badge.textContent = entry.version;
-                        waqfEl.appendChild(badge);
-                    }
-
-                    const lblSpan = document.createElement('span');
-                    lblSpan.className = 'guide-waqf-lbl';
-                    lblSpan.textContent = info.meaning;
-                    waqfEl.appendChild(lblSpan);
-                });
-
-                segEl.appendChild(waqfEl);
-
-                const arrow = document.createElement('div');
-                arrow.className = 'guide-seg-arrow';
-                arrow.innerHTML = '<i class="fas fa-arrow-left"></i>';
-                segEl.appendChild(arrow);
-            }
-
-            segRow.appendChild(segEl);
-        });
-
-        wrapper.appendChild(segRow);
-
-        const seenVersions = [...new Set(
-            segments.flatMap(s => (s.waqf || []).map(e => e.version)).filter(Boolean)
-        )];
-        if (seenVersions.length > 0) {
-            const legendEl = document.createElement('div');
-            legendEl.className = 'guide-legend';
-            legendEl.innerHTML = '<span class="guide-legend-title">\u0627\u0644\u0623\u0644\u0648\u0627\u0646:</span>' +
-                seenVersions.map(v => {
-                    const cls = getMushafColorClass(v);
-                    const isWarsh = isWarshMushafVersion(v);
-                    return `<span class="guide-legend-item">` +
-                        `<span class="guide-waqf-sym ${cls}${isWarsh ? ' waqf-warsh' : ' waqf-uthmanic'}" style="font-size:0.85rem">\u25cf</span> ${v}` +
-                        `</span>`;
-                }).join('');
-            wrapper.appendChild(legendEl);
-        }
-
-        container.appendChild(wrapper);
     }
 
     function createWordElement(word, index, wordIndexToSegmentMap) {
