@@ -65,19 +65,8 @@
                 </select>
                 <!-- kept hidden; shamarly page mode uses it via loadShamarlyQuranData -->
                 <select id="reading-view-select" style="display:none" aria-hidden="true"><option value="verse-normal">عرض آية</option></select>
-                <select id="reciter-select" title="اختر القارئ">
-                    <option value="AbdulBaset AbdulSamad (Mujawwad)">عبد الباسط عبد الصمد (مجود)</option>
-                    <option value="AbdulBaset AbdulSamad (Murattal)">عبد الباسط عبد الصمد (مرتل)</option>
-                    <option value="Mohamed al-Minshawi (Mujawwad)">محمد صديق المنشاوي (مجود)</option>
-                    <option value="Mohamed al-Minshawi (Murattal)">محمد صديق المنشاوي (مرتل)</option>
-                    <option value="Mahmoud Khalil al-Husary (Mujawwad)">محمود خليل الحصري (مجود)</option>
-                    <option value="Mahmoud Khalil al-Husary (Murattal)">محمود خليل الحصري (مرتل)</option>
-                    <option value="Mahmoud Khalil al-Husary (Muallim)">محمود خليل الحصري (المعلم)</option>
-                    <option value="Ibrahim Al-Akhdar">إبراهيم الأخضر</option>
-                    <option value="Ayman Rushdi Suwaid">أيمن رشدي سويد</option>
-                    <option value="Mahmoud Ali Al-Banna">محمود علي البنا</option>
-                    <option value="Mustafa Ismaeel">مصطفى إسماعيل</option>
-                </select>
+                <!-- populated from /api/memorization-reciters — same reciter catalog as تثبيت/مُكْث -->
+                <select id="reciter-select" title="اختر القارئ"></select>
                 <button id="start-voice-command" type="button" title="أمر صوتي: 'Go to chapter X verse Y'"><i class="fas fa-microphone"></i></button>
                 <!-- Legacy hidden selects (kept for JS compat) -->
                 <div class="legacy-view-controls" aria-hidden="true">

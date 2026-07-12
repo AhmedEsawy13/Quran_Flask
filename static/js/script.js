@@ -1,11 +1,3 @@
-// Return the correct src for an audio_url: local /api/* paths are used directly;
-// external https:// URLs are routed through the server-side audio-proxy.
-function resolveAudioSrc(audioUrl) {
-    if (!audioUrl) return '';
-    if (audioUrl.startsWith('/')) return audioUrl;          // already a local path
-    return `/api/audio-proxy?url=${encodeURIComponent(audioUrl)}`;
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
     const elements = getElements();
     const reciterAudioDataMap = {};
@@ -16,6 +8,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     let maxRepeats = 1; // Track maximum repeats set by user
     let isRangeMode = false; // True while a verse range is playing
     let isScrubbingAudio = false; // True while the user is dragging the seek slider
+    // Per-surah audio+word-timestamp bundle — one <audio> file per surah (same
+    // source تثبيت/مُكْث already use), cached so ayah navigation seeks within
+    // it instead of re-fetching a clip per ayah. {surah, reciter, audio_url,
+    // verses: Map(ayahNumber -> {ayah, start, end, words})}
+    let currentSurahAudio = null;
+    // Surah-absolute seconds at which the current ayah/range-step should stop
+    // (repeat or advance) — checked on 'timeupdate' since one shared file means
+    // 'ended' only fires at the surah's very end, not per ayah.
+    let ayahStopAt = null;
+    let ayahBoundaryCallback = null;
+    let ayahStopAtArmedAt = 0; // Date.now() when ayahStopAt was last (re)armed
     let waqfPanelView = 'mushaf'; // 'mushaf' = per-mushaf cards, 'word' = per-word view
     const fontCache = {};
     const loadedShamarlyFonts = new Set();
@@ -35,7 +38,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         { match: /الهندي|هندي/,    cls: 'waqf-mushaf-hindi'    },
     ];
 
-    // Arabic display names for reciters (used in the guide title)
+    // Arabic display names for reciters (used in the guide title). Seeded with
+    // the legacy full-name keys /api/reciter-compare still returns (it
+    // iterates the older RECITER_GUIDE_CONFIG set server-side); the new
+    // تثبيت-style short ids driving reciter-select are merged in by
+    // populateReciterSelect() at init.
     const RECITER_ARABIC_NAMES = {
         'AbdulBaset AbdulSamad (Mujawwad)':    'عبد الباسط عبد الصمد (مجود)',
         'AbdulBaset AbdulSamad (Murattal)':    'عبد الباسط عبد الصمد (مرتل)',
@@ -49,18 +56,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         'Mustafa Ismaeel':                     'مصطفى إسماعيل',
     };
 
-    // Set of reciter keys that have positions.db data for the recitation guide
-    const RECITERS_WITH_GUIDE = new Set([
-        'Mahmoud Khalil al-Husary (Mujawwad)',
-        'Mahmoud Khalil al-Husary (Muallim)',
-        'Ibrahim Al-Akhdar',
-        'Ayman Rushdi Suwaid',
-        'Mahmoud Ali Al-Banna',
-        'Mustafa Ismaeel',
-        'AbdulBaset AbdulSamad (Mujawwad)',
-        'AbdulBaset AbdulSamad (Murattal)',
-        'Mohamed al-Minshawi (Murattal)',
-    ]);
+    // The recitation guide's positions.db data is keyed by the OLDER
+    // Mujawwad/Murattal/Muallim-style reciter names (RECITER_GUIDE_CONFIG in
+    // core/config.py), while reciter-select now uses تثبيت/مُكْث's shorter
+    // per-surah reciter ids (see /api/memorization-reciters). Only these ids
+    // have overlapping guide data; map new id -> old guide key so the guide
+    // feature keeps working for them instead of silently losing it.
+    const RECITER_GUIDE_KEY_MAP = {
+        husary: 'Mahmoud Khalil al-Husary (Muallim)',
+        minshawi: 'Mohamed al-Minshawi (Murattal)',
+        abdulbasit: 'AbdulBaset AbdulSamad (Murattal)',
+        banna: 'Mahmoud Ali Al-Banna',
+        akhdar: 'Ibrahim Al-Akhdar',
+        mustafa_ismail: 'Mustafa Ismaeel',
+    };
+    const RECITERS_WITH_GUIDE = new Set(Object.keys(RECITER_GUIDE_KEY_MAP));
 
     // Load user preferences and wire UI only after the guide-related consts are initialized.
     loadUserPreferences();
@@ -233,8 +243,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadInitialData() {
         await loadMushafVersions();
         await loadSurahData();
+        await populateReciterSelect();
         await loadQuranTextData();
         updateGlobalAyahToVerseKey();
+    }
+
+    async function populateReciterSelect() {
+        try {
+            const reciterList = await fetchData('/api/memorization-reciters');
+            populateSelectOptions(reciterList, elements.reciterSelect, 'id', 'name_ar');
+            reciterList.forEach((r) => { RECITER_ARABIC_NAMES[r.id] = r.name_ar; });
+            // loadUserPreferences() ran before this select had any options, so its
+            // elements.reciterSelect.value = savedReciter assignment was a silent
+            // no-op — reapply the saved preference now that options exist.
+            const savedReciter = localStorage.getItem('quranApp_reciter');
+            if (savedReciter && Array.from(elements.reciterSelect.options).some((o) => o.value === savedReciter)) {
+                elements.reciterSelect.value = savedReciter;
+            }
+            updateGuideButtonAvailability();
+        } catch (error) {
+            console.error('Error loading reciters:', error);
+        }
     }
 
     function getSelectedMushafVersions() {
@@ -472,6 +501,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     elements.audioElement.currentTime = (elements.audioSeekSlider.value / 1000) * duration;
                 }
                 isScrubbingAudio = false;
+                // The seek bar spans the whole surah now — a manual scrub is
+                // the user explicitly taking control, so drop the current
+                // ayah's auto-stop/repeat boundary rather than yanking
+                // playback back to it on the next timeupdate tick.
+                if (!isRangeMode) clearAyahStopAt();
             });
         }
         if (elements.audioMuteButton) {
@@ -706,33 +740,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Preload next ayah audio for low latency playback
-    let preloadedAudio = null;
-    function preloadNextAyah() {
-        const currentAyahIndex = elements.ayahSelect.selectedIndex;
-        if (currentAyahIndex < elements.ayahSelect.options.length - 1) {
-            const nextAyahNumber = elements.ayahSelect.options[currentAyahIndex + 1].value;
-            const surahNumber = elements.surahSelect.value;
-            const reciter = elements.reciterSelect.value;
-            
-            // Clean up previous preloaded audio to prevent memory leak
-            if (preloadedAudio) {
-                preloadedAudio.src = '';
-                preloadedAudio.load();
-                preloadedAudio = null;
-            }
-            
-            // Fetch next ayah data and preload audio
-            fetchData(`/api/surahs/${surahNumber}/ayahs/${nextAyahNumber}`)
-                .then(data => {
-                    if (data.reciters && data.reciters[reciter]) {
-                        preloadedAudio = new Audio();
-                        preloadedAudio.preload = 'auto';
-                        preloadedAudio.src = resolveAudioSrc(data.reciters[reciter].audio_url);
-                    }
-                })
-                .catch(err => console.log('Preload failed (non-critical):', err));
+    // Fetch + cache one surah's audio_url + per-ayah word timestamps (same
+    // /api/memorization endpoint تثبيت/مُكْث already use). No-op if the
+    // requested surah+reciter is already the cached one — ayah navigation
+    // within a surah just seeks, no re-fetch. Sets audio.src only when the
+    // surah or reciter actually changed.
+    async function ensureSurahAudioLoaded(surahNumber, reciterId) {
+        const surahNum = parseInt(surahNumber, 10);
+        if (currentSurahAudio && currentSurahAudio.surah === surahNum && currentSurahAudio.reciter === reciterId) {
+            return currentSurahAudio;
         }
+        const data = await fetchData(`/api/memorization/${surahNum}?reciter=${encodeURIComponent(reciterId)}`);
+        const verses = new Map();
+        (data.verses || []).forEach((v) => verses.set(v.ayah, v));
+        currentSurahAudio = { surah: surahNum, reciter: reciterId, audio_url: data.audio_url, verses };
+        if (elements.audioElement.src !== data.audio_url) {
+            elements.audioElement.src = data.audio_url;
+            resetAudioSeekUI();
+        }
+        return currentSurahAudio;
+    }
+
+    // One segment per word (already surah-absolute seconds) — matches the
+    // {start_word_index, end_word_index, start_time, end_time} shape
+    // mapSegmentsToWords()/highlightWords() already consume, unchanged.
+    function buildAyahSegments(verse) {
+        if (!verse || !Array.isArray(verse.words)) return [];
+        return verse.words.map(([idx, startSec, endSec]) => ({
+            start_word_index: idx, end_word_index: idx,
+            start_time: Math.round(startSec * 1000), end_time: Math.round(endSec * 1000),
+        }));
+    }
+
+    // Every ayahStopAt assignment goes through here so the grace-period guard
+    // (see the 'timeupdate' listener below) can never be forgotten at a call
+    // site. Needed because seeking elements.audioElement.currentTime back to
+    // an ayah's start doesn't apply instantly — the very next 'timeupdate'
+    // tick can still report the pre-seek currentTime, which would otherwise
+    // immediately re-trigger the boundary we just reset and fire the repeat
+    // callback multiple times per real loop.
+    function setAyahStopAt(seconds, callback) {
+        ayahStopAt = seconds;
+        ayahBoundaryCallback = callback;
+        ayahStopAtArmedAt = Date.now();
+    }
+
+    function clearAyahStopAt() {
+        ayahStopAt = null;
+        ayahBoundaryCallback = null;
     }
 
     async function loadQuranData() {
@@ -763,18 +818,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const verseKey = `${surahNumber}:${ayahNumber}`;
             const globalAyahNumber = currentAyahData.id;
             if (!globalAyahNumber) throw new Error(`No global Ayah number found for Surah ${surahNumber}, Ayah ${ayahNumber}`);
-    
+
             const reciter = elements.reciterSelect.value;
-            const reciterAudio = currentAyahData.reciters[reciter];
-            if (!reciterAudio) throw new Error('Reciter audio not found');
-    
+            const surahAudio = await ensureSurahAudioLoaded(surahNumber, reciter);
+            const verse = surahAudio.verses.get(parseInt(ayahNumber, 10));
+            if (!verse) throw new Error('Reciter audio not found for this ayah');
+            elements.audioElement.currentTime = verse.start;
+            if (!isRangeMode) setAyahStopAt(verse.end, handleAyahEndedNormal);
+
             // Use already cached quranTextData instead of making redundant API call.
             const _verseEntry = quranTextData?.[verseKey] || {};
                 const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
-    
-            elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
-            resetAudioSeekUI();
-            currentSegments = reciterAudio.segments;
+
+            currentSegments = buildAyahSegments(verse);
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
             renderWaqfVerseTable();
             displayTransliteration(currentAyahData.transliteration);
@@ -789,7 +845,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 elements.wordMeaningContainer.innerHTML = '';
             }
             updatePlayPauseButton();
-            
+
             // Refresh recitation guide if visible
             const guideContainer = document.getElementById('recitation-guide-container');
             if (guideContainer && guideContainer.style.display !== 'none') {
@@ -798,11 +854,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Save current position to localStorage
             saveUserPreferences();
-            
-            // Preload next ayah for low latency navigation
-            preloadNextAyah();
-    
-            elements.audioElement.onended = updatePlayPauseButton;
         } catch (error) {
             handleError('Error loading Quran data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
         }
@@ -811,8 +862,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadShamarlyQuranData(surahNumber, ayahNumber, readingView, mushafVersions) {
         currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
         const reciter = elements.reciterSelect.value;
-        const reciterAudio = currentAyahData.reciters?.[reciter];
-        if (!reciterAudio) throw new Error('Reciter audio not found');
+        const surahAudio = await ensureSurahAudioLoaded(surahNumber, reciter);
+        const verse = surahAudio.verses.get(parseInt(ayahNumber, 10));
+        if (!verse) throw new Error('Reciter audio not found for this ayah');
 
         const versions = Array.isArray(mushafVersions) ? mushafVersions : (mushafVersions ? [mushafVersions] : []);
         // Always include الشمرلي so "original" mode can show Shamarly's own symbols
@@ -839,17 +891,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             shamarlyFontPages.map((p) => ensureShamarlyFontLoaded(shamarlyFontName(p)))
         );
 
+        elements.audioElement.currentTime = verse.start;
+        if (!isRangeMode) setAyahStopAt(verse.end, handleAyahEndedNormal);
+        currentSegments = buildAyahSegments(verse);
+
         if (readingView === 'page') {
             renderShamarlyPage(shamarlyPayload);
         } else if (readingView === 'verse-mushaf-lines') {
             renderShamarlyVerseLines(shamarlyPayload);
         } else {
-            renderShamarlyVerseWords(shamarlyPayload, reciterAudio.segments || []);
+            renderShamarlyVerseWords(shamarlyPayload, currentSegments);
         }
 
-        elements.audioElement.src = resolveAudioSrc(reciterAudio.audio_url);
-        resetAudioSeekUI();
-        currentSegments = reciterAudio.segments || [];
         displayTransliteration(currentAyahData.transliteration);
         await maybeRefreshTafseer(surahNumber, ayahNumber);
         await maybeRefreshEerab(surahNumber, ayahNumber);
@@ -871,8 +924,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         saveUserPreferences();
-        preloadNextAyah();
-        elements.audioElement.onended = updatePlayPauseButton;
     }
 
     function shamarlyFontName(pageNumber) {
@@ -2674,7 +2725,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             const reciter = elements.reciterSelect.value;
-            const qs = reciter ? `?reciter=${encodeURIComponent(reciter)}` : '';
+            // The guide backend still expects the older full-name reciter key.
+            const guideKey = RECITER_GUIDE_KEY_MAP[reciter] || reciter;
+            const qs = guideKey ? `?reciter=${encodeURIComponent(guideKey)}` : '';
 
             const [data, matchData, compareData] = await Promise.all([
                 fetchData(`/api/recitation-guide/${surah}/${ayah}${qs}`),
@@ -3664,22 +3717,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     elements.repeatSelect.addEventListener('change', handleRepeatChange);
-    
-    elements.audioElement.addEventListener('ended', () => {
-        // In range mode the range's own onEnded handler manages repeat + advancement
-        if (isRangeMode) return;
 
-        currentRepeatCount++;
-        
-        if (currentRepeatCount < maxRepeats) {
-            elements.audioElement.currentTime = 0;
-            elements.audioElement.play().then(updatePlayPauseButton).catch(() => {});
-        } else {
-            // Reset for next play
-            currentRepeatCount = 0;
-            updatePlayPauseButton();
+    // With one shared per-surah audio file, 'ended' only fires at the surah's
+    // very end — not per ayah — so ayah/range boundaries are watched via
+    // 'timeupdate' against ayahStopAt instead (set by loadQuranData() for a
+    // single ayah, or scheduleRangeStop() while a range is playing).
+    // 200ms grace period after (re)arming: seeking currentTime back to an
+    // ayah's start doesn't apply instantly, so the very next 'timeupdate'
+    // tick can still report the pre-seek currentTime — without this guard
+    // that stale tick immediately re-triggers the boundary we just reset,
+    // firing the repeat callback multiple times per real loop (confirmed
+    // live: currentRepeatCount was observed oscillating instead of
+    // monotonically increasing before this guard was added).
+    const AYAH_BOUNDARY_GRACE_MS = 200;
+    elements.audioElement.addEventListener('timeupdate', () => {
+        if (ayahStopAt !== null
+            && Date.now() - ayahStopAtArmedAt > AYAH_BOUNDARY_GRACE_MS
+            && elements.audioElement.currentTime >= ayahStopAt) {
+            const cb = ayahBoundaryCallback;
+            clearAyahStopAt();
+            if (cb) cb();
         }
     });
+
+    // Non-range single-ayah repeat: fires when the current ayah's own end
+    // boundary is crossed (see loadQuranData()/loadShamarlyQuranData()).
+    function handleAyahEndedNormal() {
+        elements.audioElement.pause(); // stop before it drifts into the next ayah's audio
+        currentRepeatCount++;
+        const ayahNumber = parseInt(elements.ayahSelect.value, 10);
+        const verse = currentSurahAudio && currentSurahAudio.verses.get(ayahNumber);
+        if (currentRepeatCount < maxRepeats && verse) {
+            elements.audioElement.currentTime = verse.start;
+            setAyahStopAt(verse.end, handleAyahEndedNormal);
+            elements.audioElement.play().then(updatePlayPauseButton).catch(() => {});
+        } else {
+            currentRepeatCount = 0;
+            // Keep the boundary armed at this same ayah's end (rather than
+            // clearing it) so a plain "play" click — not a fresh
+            // loadQuranData() navigation — still stops here instead of
+            // drifting into the next ayah's audio.
+            if (verse) setAyahStopAt(verse.end, handleAyahEndedNormal);
+            updatePlayPauseButton();
+        }
+    }
 
 
     function toggleRangeSelection() {
@@ -3699,76 +3780,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function playRange() {
         const startAyahIndex = elements.startAyahSelect.selectedIndex;
         const endAyahIndex = elements.endAyahSelect.selectedIndex;
-        if (startAyahIndex <= endAyahIndex) {
-            isRangeMode = true;
-            currentRepeatCount = 0;
-            elements.ayahSelect.selectedIndex = startAyahIndex;
-            await loadQuranData();
-            elements.audioElement.play();
+        if (startAyahIndex > endAyahIndex) return;
+
+        isRangeMode = true;
+        currentRepeatCount = 0;
+        clearAyahStopAt(); // drop any stale boundary from prior single-ayah playback
+        elements.ayahSelect.selectedIndex = startAyahIndex;
+        await loadQuranData();
+        scheduleRangeStop(startAyahIndex, endAyahIndex);
+        elements.audioElement.play();
+        updatePlayPauseButton();
+        closeModal();
+
+        if (elements.playPauseButton.rangePlayPauseHandler) {
+            elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
+        }
+        // Remove the original play/pause event listener to prevent conflicts
+        elements.playPauseButton.removeEventListener('click', togglePlayPause);
+
+        const onPlayPause = () => {
+            if (elements.audioElement.paused) {
+                elements.audioElement.play();
+            } else {
+                elements.audioElement.pause();
+            }
             updatePlayPauseButton();
-            closeModal();
+        };
+        elements.playPauseButton.rangePlayPauseHandler = onPlayPause;
+        elements.playPauseButton.addEventListener('click', onPlayPause);
+    }
 
-            // Remove existing range handlers to prevent memory leaks
-            if (elements.audioElement.rangeEndedHandler) {
-                elements.audioElement.removeEventListener('ended', elements.audioElement.rangeEndedHandler);
-            }
-            if (elements.playPauseButton.rangePlayPauseHandler) {
-                elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
-            }
-
-            // Remove the original play/pause event listener to prevent conflicts
-            elements.playPauseButton.removeEventListener('click', togglePlayPause);
-
-            const onEnded = async () => {
-                if (elements.ayahSelect.selectedIndex < endAyahIndex) {
-                    // More verses left in this loop — advance to next
-                    elements.ayahSelect.selectedIndex++;
+    // Sets ayahStopAt/ayahBoundaryCallback for the CURRENTLY-selected ayah
+    // while a range is playing — on boundary, advances to the next ayah in
+    // the range, loops the whole range, or finishes. Re-called after every
+    // step since loadQuranData() (isRangeMode=true) doesn't set these itself.
+    function scheduleRangeStop(startAyahIndex, endAyahIndex) {
+        const ayahNumber = parseInt(elements.ayahSelect.value, 10);
+        const verse = currentSurahAudio && currentSurahAudio.verses.get(ayahNumber);
+        if (!verse) { clearAyahStopAt(); return; }
+        setAyahStopAt(verse.end, async () => {
+            elements.audioElement.pause();
+            if (elements.ayahSelect.selectedIndex < endAyahIndex) {
+                // More verses left in this loop — advance to next
+                elements.ayahSelect.selectedIndex++;
+                await loadQuranData();
+                scheduleRangeStop(startAyahIndex, endAyahIndex);
+                elements.audioElement.play();
+                updatePlayPauseButton();
+            } else {
+                // Reached end of range — check if we should loop the whole range again
+                currentRepeatCount++;
+                if (currentRepeatCount < maxRepeats) {
+                    elements.ayahSelect.selectedIndex = startAyahIndex;
                     await loadQuranData();
+                    scheduleRangeStop(startAyahIndex, endAyahIndex);
                     elements.audioElement.play();
                     updatePlayPauseButton();
                 } else {
-                    // Reached end of range — check if we should loop the whole range again
-                    currentRepeatCount++;
-                    if (currentRepeatCount < maxRepeats) {
-                        // Loop back to the start verse
-                        elements.ayahSelect.selectedIndex = startAyahIndex;
-                        await loadQuranData();
-                        elements.audioElement.play();
-                        updatePlayPauseButton();
-                    } else {
-                        // All loops done — clean up
-                        cleanupRangeMode();
-                        updatePlayPauseButton();
-                    }
+                    cleanupRangeMode();
+                    updatePlayPauseButton();
                 }
-            };
-
-            const onPlayPause = () => {
-                if (elements.audioElement.paused) {
-                    elements.audioElement.play();
-                } else {
-                    elements.audioElement.pause();
-                }
-                updatePlayPauseButton();
-            };
-
-            // Store handlers for cleanup
-            elements.audioElement.rangeEndedHandler = onEnded;
-            elements.playPauseButton.rangePlayPauseHandler = onPlayPause;
-
-            elements.audioElement.addEventListener('ended', onEnded);
-            elements.playPauseButton.addEventListener('click', onPlayPause);
-        }
+            }
+        });
     }
 
     function cleanupRangeMode() {
         isRangeMode = false;
         currentRepeatCount = 0;
-        // Remove range-specific event handlers
-        if (elements.audioElement.rangeEndedHandler) {
-            elements.audioElement.removeEventListener('ended', elements.audioElement.rangeEndedHandler);
-            elements.audioElement.rangeEndedHandler = null;
-        }
+        clearAyahStopAt();
         if (elements.playPauseButton.rangePlayPauseHandler) {
             elements.playPauseButton.removeEventListener('click', elements.playPauseButton.rangePlayPauseHandler);
             elements.playPauseButton.rangePlayPauseHandler = null;
