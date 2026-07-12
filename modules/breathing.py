@@ -351,14 +351,21 @@ _CLASSICAL_SOURCES = {
         'via': 'OpenITI (Shamela 0014255)',
     },
 }
+# Serving-layer allowlist, NOT a data deletion: منار (الأشموني) is the only
+# source with full 114/114-surah coverage and zero low-confidence rows — the
+# other three are missing 20-23 surahs each and have measurably more
+# unreviewed extractions (see pipeline/build_classical_waqf.py). Their data
+# and pipeline stay in place; widen this set once a source is fully reviewed.
+_ACTIVE_CLASSICAL_SOURCES = {'manar'}
 
 
 @breathing_bp.route('/api/classical-waqf/<int:surah>/<int:ayah>', methods=['GET'])
 def classical_waqf(surah, ayah):
-    """Classical graded stops (الداني's المكتفى + الأشموني's منار الهدى) for one
-    verse, aligned to recited-word positions by pipeline/build_classical_waqf.py.
-    Only high-confidence alignments are returned — comparative citations the
-    books quote from elsewhere stay in the DB flagged conf=0."""
+    """Classical graded stops (currently just الأشموني's منار الهدى — see
+    _ACTIVE_CLASSICAL_SOURCES) for one verse, aligned to recited-word
+    positions by pipeline/build_classical_waqf.py. Only high-confidence
+    alignments are returned — comparative citations the books quote from
+    elsewhere stay in the DB flagged conf=0."""
     if not (1 <= surah <= 114) or ayah < 1:
         return jsonify({'error': 'invalid verse'}), 400
     entries = []
@@ -366,10 +373,12 @@ def classical_waqf(surah, ayah):
         conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
         try:
             conn.row_factory = sqlite3.Row
+            placeholders = ','.join('?' * len(_ACTIVE_CLASSICAL_SOURCES))
             for r in conn.execute(
                     'SELECT source, wpos, stop_word, quote, grade, grade_raw, note, reported_from '
-                    'FROM classical WHERE surah=? AND ayah=? AND conf=1 '
-                    'ORDER BY wpos, source, seq', (surah, ayah)):
+                    f'FROM classical WHERE surah=? AND ayah=? AND conf=1 AND source IN ({placeholders}) '
+                    'ORDER BY wpos, source, seq',
+                    (surah, ayah, *_ACTIVE_CLASSICAL_SOURCES)):
                 entries.append({
                     'source': r['source'],
                     'wpos': r['wpos'], 'stop_word': r['stop_word'],
@@ -383,7 +392,8 @@ def classical_waqf(surah, ayah):
                 })
         finally:
             conn.close()
-    return jsonify({'surah': surah, 'ayah': ayah, 'sources': _CLASSICAL_SOURCES,
+    active_sources = {k: v for k, v in _CLASSICAL_SOURCES.items() if k in _ACTIVE_CLASSICAL_SOURCES}
+    return jsonify({'surah': surah, 'ayah': ayah, 'sources': active_sources,
                     'count': len(entries), 'entries': entries})
 
 
@@ -442,16 +452,20 @@ def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos):
 
 def _classical_grades_for_range(surah, from_ayah, to_ayah):
     """{(ayah, wpos): [{'source','name','grade'}]} for a verse range in ONE
-    query/connection (the practice grader walks a whole passage)."""
+    query/connection (the practice grader walks a whole passage). Restricted
+    to _ACTIVE_CLASSICAL_SOURCES — an unreviewed extraction from an
+    incomplete source shouldn't be able to mark a learner's correct stop
+    as wrong (or vice versa)."""
     out = defaultdict(list)
     if os.path.exists(CLASSICAL_WAQF_DATABASE):
         conn = _sqlite_connect(CLASSICAL_WAQF_DATABASE)
         try:
             conn.row_factory = sqlite3.Row
+            placeholders = ','.join('?' * len(_ACTIVE_CLASSICAL_SOURCES))
             for r in conn.execute(
                     'SELECT ayah, source, wpos, grade FROM classical '
-                    'WHERE surah=? AND ayah BETWEEN ? AND ? AND conf=1 AND wpos IS NOT NULL',
-                    (surah, from_ayah, to_ayah)):
+                    f'WHERE surah=? AND ayah BETWEEN ? AND ? AND conf=1 AND wpos IS NOT NULL AND source IN ({placeholders})',
+                    (surah, from_ayah, to_ayah, *_ACTIVE_CLASSICAL_SOURCES)):
                 out[(r['ayah'], r['wpos'])].append({
                     'source': r['source'],
                     'name': _CLASSICAL_NAME.get(r['source'], r['source']),

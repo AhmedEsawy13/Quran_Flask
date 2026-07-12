@@ -1,5 +1,8 @@
 """السكتات, الابتداء, and the API cache-control behaviour."""
+import sqlite3
+
 import app
+from core.config import CLASSICAL_WAQF_DATABASE
 
 
 def test_saktat_dataset_integrity(client):
@@ -161,40 +164,65 @@ def test_mushaf_diff_pairwise(client):
     assert client.get("/api/waqf-research/mushaf-diff?" + same).status_code == 400
 
 
-def test_classical_waqf_two_sources(client):
-    """الداني (المكتفى) + الأشموني (منار الهدى) + النحاس (القطع والائتناف)
-    aligned to recited-word positions: known anchors hold and wpos always
-    lands inside the verse."""
-    j = client.get("/api/classical-waqf/2/2").get_json()
-    assert j["sources"]["muktafa"]["title"].startswith("المكتفى")
-    assert j["sources"]["manar"]["title"].startswith("منار الهدى")
-    assert j["sources"]["nahhas"]["title"].startswith("القطع")
-    assert j["sources"]["anbari"]["title"].startswith("إيضاح")
-    got = {(e["source"], e["wpos"], e["grade"]) for e in j["entries"]}
+def _classical_rows(surah, ayah):
+    """Query the classical DB directly, bypassing /api/classical-waqf's
+    _ACTIVE_CLASSICAL_SOURCES allowlist — alignment quality across ALL four
+    books (منار is the only one currently served in production; the other
+    three's pipeline output still needs to hold up while they're finished)."""
+    conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
+    conn.row_factory = sqlite3.Row
+    try:
+        return [dict(r) for r in conn.execute(
+            'SELECT source, wpos, grade, note FROM classical '
+            'WHERE surah=? AND ayah=? AND conf=1', (surah, ayah))]
+    finally:
+        conn.close()
+
+
+def test_classical_waqf_alignment_quality(client):
+    """الداني (المكتفى) + الأشموني (منار الهدى) + النحاس (القطع والائتناف) +
+    ابن الأنباري (إيضاح الوقف) aligned to recited-word positions: known
+    anchors hold and wpos always lands inside the verse. Checked directly
+    against the DB since only منار is currently exposed via the API
+    (see test_classical_waqf_api_serves_active_sources_only)."""
+    rows = _classical_rows(2, 2)
+    got = {(r["source"], r["wpos"], r["grade"]) for r in rows}
     # الداني: {لا ريب فيه} كاف on فيه (w4); {هدى للمتقين} تام on للمتقين (w6).
     assert ("muktafa", 4, "كاف") in got and ("muktafa", 6, "تام") in got
     # النحاس: «التمام {ذلك الكتاب}» → تام on الكتاب (w1).
     assert ("nahhas", 1, "تام") in got
     # ابن الأنباري (parenthesised source): سورة مريم «(قال ربك هو على هين) وقف
     # تام» → تام on هين (19:21 w6).
-    j2 = client.get("/api/classical-waqf/19/21").get_json()
-    assert ("anbari", 6, "تام") in {(e["source"], e["wpos"], e["grade"]) for e in j2["entries"]}
+    got19 = {(r["source"], r["wpos"], r["grade"]) for r in _classical_rows(19, 21)}
+    assert ("anbari", 6, "تام") in got19
     # علّة notes never end mid-word: truncated ones close on the elision mark.
-    assert all(not e["note"] or e["note"] == e["note"].rstrip() for e in j["entries"])
+    assert all(not r["note"] or r["note"] == r["note"].rstrip() for r in rows)
     # 2:7: the two imams genuinely diverge on سمعهم (w5) — الداني كاف،
     # الأشموني تام. Both must be present, at the same word.
-    j = client.get("/api/classical-waqf/2/7").get_json()
-    got = {(e["source"], e["wpos"], e["grade"]) for e in j["entries"]}
-    assert ("muktafa", 5, "كاف") in got and ("manar", 5, "تام") in got
+    got7 = {(r["source"], r["wpos"], r["grade"]) for r in _classical_rows(2, 7)}
+    assert ("muktafa", 5, "كاف") in got7 and ("manar", 5, "تام") in got7
     # آية الكرسي: الداني's five stops at their exact words + الأشموني rows.
-    j = client.get("/api/classical-waqf/2/255").get_json()
-    dani = {e["wpos"] for e in j["entries"] if e["source"] == "muktafa"}
+    rows255 = _classical_rows(2, 255)
+    dani = {r["wpos"] for r in rows255 if r["source"] == "muktafa"}
     assert {11, 18, 25, 31, 39} <= dani        # نوم، الأرض، بإذنه، خلفهم، شاء
-    assert any(e["source"] == "manar" for e in j["entries"])
+    assert any(r["source"] == "manar" for r in rows255)
     _, words, _ = app._verse_word_texts("2:255")
-    for e in j["entries"]:
-        assert 0 <= e["wpos"] < len(words)
-        assert e["grade"] in ("تام", "كاف", "حسن", "جائز", "صالح", "قبيح", "لا")
+    for r in rows255:
+        assert 0 <= r["wpos"] < len(words)
+        assert r["grade"] in ("تام", "كاف", "حسن", "جائز", "صالح", "قبيح", "لا")
+
+
+def test_classical_waqf_api_serves_active_sources_only(client):
+    """Production only exposes منار (الأشموني) — see modules/breathing.py's
+    _ACTIVE_CLASSICAL_SOURCES: it's the only source with full 114/114-surah
+    coverage and zero low-confidence rows. The other three (الداني، النحاس،
+    ابن الأنباري) stay aligned in the DB (previous test) but are withheld
+    from both the citation card and تدريب's grader until reviewed."""
+    j = client.get("/api/classical-waqf/2/255").get_json()
+    assert set(j["sources"].keys()) == {"manar"}
+    assert j["sources"]["manar"]["title"].startswith("منار الهدى")
+    assert j["entries"], "منار should still have entries for آية الكرسي"
+    assert all(e["source"] == "manar" for e in j["entries"])
     # bounds validation
     assert client.get("/api/classical-waqf/115/1").status_code == 400
 
@@ -211,7 +239,8 @@ def test_waqf_practice_grading(client):
             "surah": s, "from_ayah": f, "to_ayah": t, "mushaf": mushaf, "stops": stops
         }).get_json()
 
-    # {هدى للمتقين} تام (الداني) → excellent; {المفلحون} تام (both) → excellent.
+    # {هدى للمتقين} تام (الأشموني — grading is منار-only, see
+    # _ACTIVE_CLASSICAL_SOURCES) → excellent; {المفلحون} تام → excellent.
     r = grade([{"ayah": 2, "wpos": 6}, {"ayah": 5, "wpos": 7}])
     v = {(x["ayah"], x["wpos"]): x["verdict"] for x in r["stops"]}
     assert v[(2, 6)] == "excellent" and v[(5, 7)] == "excellent"
