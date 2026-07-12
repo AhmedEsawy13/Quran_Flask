@@ -14,6 +14,7 @@ pilot is ever promoted the same way.
 
 Skips cleanly if neither pilot nor released AI rows are present yet."""
 import os
+import re
 import sqlite3
 
 import pytest
@@ -76,6 +77,24 @@ def test_stop_phrase_words_occur_in_the_verse(app, llm_rows):
             if wpos is None:
                 miss.append((r['surah'], r['ayah'], r['quote']))
     assert not miss, f'phrases not found in their verse: {miss[:5]}'
+
+
+_LATIN_RUN_RE = re.compile(r'[A-Za-z]{2,}')
+
+
+def test_no_stray_latin_words(llm_rows):
+    """Found live in production منار data (2026-07-12): the model occasionally
+    code-switches a single word into English mid-Arabic-sentence instead of
+    copying the source verbatim — e.g. سورة الكهف 18:63's note read «ويقوي
+    this خبر» where the source says «ويقوي هذا خبر». Rare (6/13,008 rows on
+    the released book) but a real data-quality defect the alignment/lexicon
+    gates don't catch (they check grade validity and word position, not
+    language purity) — guard against it recurring in any future AI-sourced
+    book."""
+    bad = [(r['surah'], r['ayah'], r['wpos'], field, r[field])
+           for r in llm_rows for field in ('quote', 'note', 'reported_from')
+           if r[field] and _LATIN_RUN_RE.search(r[field])]
+    assert not bad, f'stray Latin-script text in Arabic fields: {bad[:5]}'
 
 
 def test_alfatiha_repeated_alayhim_disambiguates(llm_rows):
