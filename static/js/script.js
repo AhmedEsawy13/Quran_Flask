@@ -2695,24 +2695,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const guideSymName = s => GUIDE_WAQF_MEANING[s] || s;
     const GUIDE_WAQF_GLYPH = { 'م': 'ۘ', 'لا': 'ۙ', 'ق': 'ۗ', 'ص': 'ۖ', 'ج': 'ۚ', 'س': 'ۜ', 'ع': 'ۛ' };
     const guideWaqfGlyph = s => GUIDE_WAQF_GLYPH[s] || s;
-    // Printed-mushaf glyph for a (possibly comma-joined) DB symbol — ورش is
-    // special (ص → صه, ر → رأس آية); الهندي already stores display glyphs.
-    function guideMushafGlyph(sym, mushafId) {
-        const raw = String(sym == null ? '' : sym).trim();
-        const parts = raw.split(/[،,]/).map(t => t.trim()).filter(Boolean);
-        if (isWarshMushafVersion(mushafId)) {
-            const out = [];
-            parts.forEach(t => {
-                if (t === 'ص' || t === 'ۖ') out.push('ۖ');
-                else if (t === 'ر' || t === '۝') out.push('۝');
-            });
-            return out.join('');
-        }
-        return parts.map(guideWaqfGlyph).join('');
-    }
 
     /* ── segment preview audio ────────────────────────────────────────────
-       Matrix/reciters cards can show a DIFFERENT reciter than the one
+       Reciters-comparison cards can show a DIFFERENT reciter than the one
        currently loaded in the main player, so segment previews play through
        a small dedicated <audio> instead of elements.audioElement — this never
        disturbs the user's actual listening position. Pauses the main player
@@ -2906,105 +2891,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return block;
     }
 
-    // مقارنة القرّاء بمصاحف الوقف — printed-mushaf rows + a consensus row +
-    // one row per reciter, each cell a clickable play-segment button. Reuses
-    // the site's own .waqf-tbl table look (same one the word-view waqf table
-    // already uses) rather than a separate visual language.
-    function buildGuideMatrix(d) {
-        const mushafs = d.mushafs || [];
-        const posSet = new Set((d.union_stops || []).map(u => u.wpos));
-        mushafs.forEach(m => m.marks.forEach(mk => posSet.add(mk.wpos)));
-        const cols = [...posSet].sort((a, b) => a - b);
-        if (!cols.length) return null;
-
-        const uByWpos = new Map((d.union_stops || []).map(u => [u.wpos, u]));
-        const markOf = (m, wpos) => { const f = m.marks.find(x => x.wpos === wpos); return f ? f.symbol : null; };
-        const mushafMarked = wpos => mushafs.some(m => markOf(m, wpos));
-        const isStrong = wpos => {
-            const u = uByWpos.get(wpos);
-            return !!u && u.count === d.reciters_total && mushafs.length > 0 && mushafs.every(m => markOf(m, wpos));
-        };
-
-        let head = '<thead><tr><th class="waqf-tbl-th waqf-tbl-word-hd">الموضع ←</th>';
-        cols.forEach(wpos => {
-            const strong = isStrong(wpos) ? ' guide-matrix-strong' : '';
-            head += `<th class="waqf-tbl-th${strong}">`
-                + (isStrong(wpos) ? '<div class="guide-matrix-strong-tag" title="أقوى وقف: يقف عنده كل القرّاء ويوافق كل المصاحف المعروضة"><i class="fas fa-star"></i> أقوى وقف</div>' : '')
-                + `<div class="waqf-tbl-word">${d.words[wpos] || ''}</div>`
-                + `<div class="waqf-tbl-meaning">كلمة ${guideToAr(wpos + 1)}</div></th>`;
-        });
-        head += '</tr></thead>';
-
-        let body = '<tbody>';
-        mushafs.forEach(m => {
-            const colorCls = getMushafColorClass(m.name);
-            body += `<tr><td class="waqf-tbl-td waqf-tbl-word-hd"><span class="${colorCls}"><i class="fas fa-book-quran"></i> ${m.name}</span></td>`;
-            cols.forEach(wpos => {
-                const strong = isStrong(wpos) ? ' guide-matrix-strong' : '';
-                const sym = markOf(m, wpos);
-                if (sym) {
-                    body += `<td class="waqf-tbl-td${strong}"><span class="guide-waqf-sym waqf-uthmanic" title="${guideSymName(sym)}">${guideMushafGlyph(sym, m.name)}</span></td>`;
-                } else body += `<td class="waqf-tbl-td${strong}"><span class="guide-matrix-empty">·</span></td>`;
-            });
-            body += '</tr>';
-        });
-        body += '<tr class="guide-matrix-row-consensus"><td class="waqf-tbl-td waqf-tbl-word-hd">اتفاق القرّاء</td>';
-        cols.forEach(wpos => {
-            const u = uByWpos.get(wpos);
-            const cls = ((isStrong(wpos) ? 'guide-matrix-strong ' : '') + (u && u.solo ? 'guide-matrix-solo' : '')).trim();
-            body += `<td class="waqf-tbl-td ${cls}">${u ? guideToAr(u.count) + '/' + guideToAr(d.reciters_total) : '<span class="guide-matrix-empty">·</span>'}</td>`;
-        });
-        body += '</tr>';
-        d.reciters.forEach(r => {
-            const det = d.per_reciter[r.id];
-            const timeByWpos = new Map((det.stops || []).map(s => [s.wpos, s.time]));
-            const qasr = det.qasr_munfasil ? ' <span class="guide-matrix-qasr" title="يقرأ بقصر المدّ المنفصل (حركتان) — قراءته أسرع">قصر المنفصل</span>' : '';
-            body += `<tr><td class="waqf-tbl-td waqf-tbl-word-hd">${r.name_ar}${qasr}</td>`;
-            cols.forEach(wpos => {
-                const u = uByWpos.get(wpos);
-                const strong = isStrong(wpos) ? ' guide-matrix-strong' : '';
-                const isSolo = u && u.solo;
-                const onMushaf = isSolo && mushafMarked(wpos);
-                const cls = (strong + (isSolo ? ' guide-matrix-solo' : '')).trim();
-                if (timeByWpos.has(wpos) && det.audio_url && !isGuideYoutubeUrl(det.audio_url)) {
-                    body += `<td class="waqf-tbl-td ${cls}"><button class="guide-matrix-play${isSolo ? ' guide-matrix-solo-cell' : ''}" type="button" data-rid="${r.id}" data-wpos="${wpos}" title="${onMushaf ? 'انفرد بالوقف هنا، لكنه يوافق علامة مطبوعة في أحد المصاحف · ' : ''}استمع لمقطع ${r.name_ar} حتى هذا الموضع"><i class="fas fa-play"></i> ${guideToAr(timeByWpos.get(wpos).toFixed(1))}${onMushaf ? '<i class="fas fa-book-quran" style="margin-inline-start:3px;color:#16a34a;font-size:0.72em"></i>' : ''}</button></td>`;
-                } else if (timeByWpos.has(wpos)) {
-                    body += `<td class="waqf-tbl-td ${cls}"><span${isSolo ? ' style="color:#b45309"' : ''}>${guideToAr(timeByWpos.get(wpos).toFixed(1))}ث</span></td>`;
-                } else {
-                    body += `<td class="waqf-tbl-td ${cls}"><span class="guide-matrix-empty">·</span></td>`;
-                }
-            });
-            body += '</tr>';
-        });
-        body += '</tbody>';
-
-        const wrap = document.createElement('div');
-        wrap.className = 'guide-matrix-panel';
-        wrap.innerHTML = '<div class="guide-section-title"><i class="fas fa-table-cells"></i> مقارنة القرّاء بمصاحف الوقف</div>'
-            + '<div class="waqf-tbl-wrap"><table class="waqf-tbl"></table></div>'
-            + '<div class="guide-matrix-legend"></div>';
-        wrap.querySelector('.waqf-tbl').innerHTML = head + body;
-        wrap.querySelectorAll('.guide-matrix-play[data-rid]').forEach(btn => {
-            const rid = btn.dataset.rid, wpos = parseInt(btn.dataset.wpos, 10);
-            const det = d.per_reciter[rid];
-            const stops = (det.stops || []).slice().sort((a, b) => a.wpos - b.wpos);
-            const idx = stops.findIndex(s => s.wpos === wpos);
-            if (idx < 0) return;
-            const startT = idx > 0 ? stops[idx - 1].time : 0;
-            btn.addEventListener('click', () => playGuideSegment(det.audio_url, det.verse_start + startT, det.verse_start + stops[idx].time, btn));
-        });
-
-        const symsHere = [...new Set(mushafs.flatMap(m => m.marks.map(mk => mk.symbol)))];
-        const hasStrong = cols.some(isStrong);
-        const legendParts = [];
-        if (hasStrong) legendParts.push('<span><i class="fas fa-star" style="color:#16a34a"></i> أقوى وقف (كل القرّاء + كل المصاحف)</span>');
-        mushafs.forEach(m => legendParts.push(`<span><i class="fas fa-circle ${getMushafColorClass(m.name)}" style="font-size:0.6em"></i> ${m.name}</span>`));
-        symsHere.sort((a, b) => Object.keys(GUIDE_WAQF_MEANING).indexOf(a) - Object.keys(GUIDE_WAQF_MEANING).indexOf(b))
-            .forEach(s => legendParts.push(`<span><span class="waqf-tbl-word" style="font-size:0.9rem">${guideWaqfGlyph(s)}</span> ${guideSymName(s)}</span>`));
-        wrap.querySelector('.guide-matrix-legend').innerHTML = legendParts.join('');
-        return wrap;
-    }
-
     // كيف قرأها كل قارئ — reciters who pause/back up at the same word positions
     // are grouped into one row of cards instead of repeating per reciter.
     function buildGuideReciters(d, lastW, markByWpos, soloSet) {
@@ -3164,11 +3050,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     '</div>';
             }
 
-            // 2) مقارنة القرّاء بمصاحف الوقف
-            const matrixWrap = buildGuideMatrix(d);
-            if (matrixWrap) guideContainer.appendChild(matrixWrap);
+            // مقارنة القرّاء بمصاحف الوقف (the comparison matrix) stays exclusive
+            // to مُكْث's /waqf page — the main page only gets the per-reciter
+            // segment row above and the reciters-comparison section below.
 
-            // 3) كيف قرأها كل قارئ
+            // كيف قرأها كل قارئ
             const recitersWrap = buildGuideReciters(d, lastW, markByWpos, soloSet);
             if (recitersWrap) guideContainer.appendChild(recitersWrap);
         } catch (error) {

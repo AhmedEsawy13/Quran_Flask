@@ -4881,48 +4881,6 @@ body.dark-mode .guide-mushaf-match { color: #4ade80; background: rgba(74,222,128
     padding: 2px 8px; border-radius: 999px; border: 1px dashed var(--border-color, #cbd5e1);
 }
 
-/* ── مقارنة القرّاء بمصاحف الوقف — reuses the site's own .waqf-tbl look ── */
-.guide-matrix-panel { margin-top: 18px; }
-.guide-matrix-panel .waqf-tbl-word { font-size: 1.15em; padding: 0.35rem 0.5rem; }
-.guide-matrix-panel .waqf-tbl-th:first-child,
-.guide-matrix-panel .waqf-tbl-td:first-child {
-    position: sticky; inset-inline-start: 0; background: var(--card-bg); text-align: start; min-width: 120px;
-    box-shadow: 1px 0 0 var(--border-color, #e2e8f0);
-}
-.guide-matrix-panel .waqf-tbl-td, .guide-matrix-panel .waqf-tbl-th { text-align: center; white-space: nowrap; }
-.guide-matrix-row-consensus td { font-weight: 700; background: rgba(0,0,0,0.03); }
-body.dark-mode .guide-matrix-row-consensus td { background: rgba(255,255,255,0.04); }
-.guide-matrix-solo { background: rgba(217,119,6,0.08); }
-.guide-matrix-strong { background: rgba(22,163,74,0.1); }
-th.guide-matrix-strong { box-shadow: inset 0 3px 0 #16a34a; }
-.guide-matrix-strong-tag {
-    display: flex; align-items: center; justify-content: center; gap: 4px;
-    font-size: 0.6rem; font-weight: 800; color: #16a34a; margin-bottom: 3px; white-space: nowrap;
-}
-body.dark-mode .guide-matrix-strong-tag { color: #4ade80; }
-button.guide-matrix-play {
-    font-family: inherit; font-size: 0.82rem; border: 1px solid transparent; border-radius: 7px;
-    padding: 3px 8px; background: transparent; cursor: pointer; color: var(--primary-color);
-    font-variant-numeric: tabular-nums; transition: all 0.12s ease;
-}
-button.guide-matrix-play:hover { background: rgba(15,118,110,0.08); border-color: rgba(15,118,110,0.25); }
-button.guide-matrix-play.guide-seg-playing { background: var(--primary-color); color: #fff; }
-button.guide-matrix-play.guide-matrix-solo-cell { color: #b45309; }
-.guide-matrix-empty { color: #cbd5e1; }
-.guide-matrix-qasr {
-    display: inline-block; font-size: 0.58rem; font-weight: 800; line-height: 1;
-    padding: 2px 6px; border-radius: 999px; vertical-align: middle; margin-inline-start: 4px;
-    color: var(--primary-color); background: rgba(15,118,110,0.1);
-}
-.guide-matrix-legend {
-    display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; padding-top: 10px;
-    border-top: 1px solid var(--border-color, #e2e8f0);
-    font-size: 0.72rem; color: #64748b;
-}
-body.dark-mode .guide-matrix-legend { color: #94a3b8; }
-.guide-matrix-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.guide-matrix-legend .waqf-tbl-word { font-size: 0.9rem; padding: 0; }
-
 /* ── كيف قرأها كل قارئ — reciter comparison cards ────────────────── */
 .guide-reciters-note { margin: 0 0 12px; font-size: 0.76rem; color: #64748b; line-height: 1.6; }
 body.dark-mode .guide-reciters-note { color: #94a3b8; }
@@ -4973,7 +4931,5 @@ body.dark-mode .guide-reciter-stats { color: #94a3b8; }
 .guide-section-title i { color: var(--primary-color); font-size: 0.85em; }
 
 @media (max-width: 640px) {
-    .guide-matrix-panel .waqf-tbl-th, .guide-matrix-panel .waqf-tbl-td { padding: 4px 6px; font-size: 0.74rem; }
-    .guide-matrix-panel .waqf-tbl-word { font-size: 1em; }
     .guide-reciter-stats { gap: 5px; }
 }
