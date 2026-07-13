@@ -16,6 +16,13 @@ def test_all_features_including_editor_boot(client):
         assert client.get(url).status_code == 200, url
 
 
+def test_practice_page_links_specialist_recitation_tools(client):
+    page = client.get('/waqf-practice').get_data(as_text=True)
+    assert 'https://www.tarteel.ai/quran-feedback' in page
+    assert 'https://quran.com/learn/tajweed' in page
+    assert page.count('rel="noopener noreferrer"') >= 2
+
+
 def test_enabled_features_env(monkeypatch):
     monkeypatch.setenv('FEATURES', 'reading,memorize')
     monkeypatch.delenv('ENABLE_EDITOR', raising=False)

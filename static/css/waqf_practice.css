@@ -60,6 +60,13 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .wp-tj-list li.wp-tj-normal { color: #c0392b; }         /* wrong letter (مخرج) */
 .wp-word.wp-tj-err, .wp-gword.wp-tj-err { box-shadow: inset 0 -3px 0 0 #c0392b; background: color-mix(in srgb, #c0392b 12%, transparent); }
 
+.wp-specialist-tools { margin-top: 14px; padding: 15px 18px; border: 1px solid var(--wq-border);
+    border-radius: 16px; background: var(--wq-surface-2); color: var(--wq-text-muted); line-height: 1.8; }
+.wp-specialist-tools h2 { margin: 0 0 5px; color: var(--wq-text); font-size: .95rem; font-weight: 800; }
+.wp-specialist-tools h2 i, .wp-specialist-tools a { color: var(--wq-accent); }
+.wp-specialist-tools p { margin: 0; font-size: .86rem; }
+.wp-specialist-tools a { font-weight: 800; }
+
 .wp-hint { font-size: 0.86rem; color: var(--wq-text-muted); line-height: 1.7; margin: 16px 2px 8px; }
 .wp-hint i { color: var(--wq-accent); margin-inline-end: 4px; }
 
