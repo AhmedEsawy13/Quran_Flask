@@ -3102,6 +3102,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function showWordMeaningTooltip(wordEl) {
         document.querySelectorAll('.word-meaning-tooltip').forEach(t => t.remove());
+        // Mutually exclusive with the عرض غريب الكلمات list: once that's open it
+        // already shows every word's meaning, so a hover tooltip on top would
+        // just duplicate the same text right next to it.
+        if (elements.wordMeaningVisible) return;
         if (!currentAyahData?.word_meanings) return;
 
         const wordText = wordEl.dataset.textClean || wordEl.textContent;
