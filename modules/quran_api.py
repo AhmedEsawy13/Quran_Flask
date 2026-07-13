@@ -20,7 +20,7 @@ from core.text import _normalize_for_search
 from core.mushaf_waqf import _get_mushaf_version_whitelist
 from core.datasets import (
     digital_khatt_data, qpc_hafs_data, indopak_nastaleeq_data,
-    indopak_nastaleeq_2_data, transliteration_data, surahs_data,
+    transliteration_data, surahs_data,
     normalize_source, get_quran_text_data_by_source, get_quran_text_data,
 )
 from core.memorization import _YT_CHAPTER_URLS
@@ -48,7 +48,6 @@ def health_check():
             "digital_khatt_loaded": bool(digital_khatt_data),
             "qpc_hafs_loaded": bool(qpc_hafs_data),
             "indopak_loaded": bool(indopak_nastaleeq_data),
-            "indopak_2_loaded": bool(indopak_nastaleeq_2_data),
             "transliteration_loaded": bool(transliteration_data),
         }
     }

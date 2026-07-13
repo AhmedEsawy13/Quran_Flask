@@ -68,7 +68,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
         _mv_list = mushaf_version if isinstance(mushaf_version, list) else [mushaf_version]
         _hindi_already = 'الهندي' in _mv_list
         indopak_extras = []
-        if (source in ('indopak_nastaleeq', 'indopak_nastaleeq_2')
+        if (source == 'indopak_nastaleeq'
                 and not _hindi_already
                 and os.path.exists(WAQF_DATABASE)):
             try:
@@ -146,7 +146,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
             return indopak_extras
 
     # For IndoPak sources, also include the embedded waqf symbols labeled as الهندي.
-    if source not in ('indopak_nastaleeq', 'indopak_nastaleeq_2'):
+    if source != 'indopak_nastaleeq':
         return []
 
     if not os.path.exists(WAQF_DATABASE):
@@ -157,8 +157,7 @@ def get_waqf_symbols(surah_number, ayah_number, source):
         conn = sqlite3.connect(WAQF_DATABASE)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        # Both indopak variants share the same waqf data in the DB
-        waqf_source = 'indopak_nastaleeq' if source == 'indopak_nastaleeq_2' else source
+        waqf_source = source
         cursor.execute(
             '''
             SELECT token_index, word_index, symbols, original_token, clean_token

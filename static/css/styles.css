@@ -8,7 +8,6 @@
 @font-palette-values --digital-khatt-dark { font-family:'Digital Khatt'; override-colors: 0 #5bbbde, 1 #0c2c3c, 2 #0c2c3c, 3 #9bd9f0; }
 @font-face { font-family:'Old Madina'; src:url('../fonts/oldmadina.woff2') format('woff2'); font-display:swap; }
 @font-face { font-family:'UthmanicHafs'; src:url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'), url('../fonts/uthmanic_hafs_v20.ttf') format('truetype'); font-display:swap; }
-@font-face { font-family:'Naskh-Nastaleeq-IndoPak-QWBW'; src:url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'), url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.ttf') format('truetype'); font-display:swap; }
 @font-face { font-family:'IndoPakNastaleeq2'; src:url('../fonts/indopak.woff2') format('woff2'); font-display:swap; }
 @font-face { font-family:'UthmanicWarsh'; src:url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'), url('../fonts/uthmanic_warsh_v21.ttf') format('truetype'); font-display:swap; }
 @font-face { font-family:'AmiriQuran'; src:url('../fonts/amiri_quran.woff2') format('woff2'); font-display:swap; }
@@ -202,7 +201,7 @@ body.dark-mode #quran-text span:hover { background-color: rgba(100, 150, 255, 0.
 .waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; }
 .waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
 .waqf-symbol[data-version="ورش"]     { color: #b45309; }
-.waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; }
+.waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', sans-serif; }
 
 .marker-symbol {
     display: inline-block;
@@ -222,7 +221,6 @@ body.sepia-mode .marker-symbol { color: #1d4ed8; }
 .old_madina { font-family: 'Old Madina', sans-serif; }
 .qpc_hafs { font-family: 'UthmanicHafs', serif; }
 .amiri_quran { font-family: 'AmiriQuran', 'UthmanicHafs', serif; }
-.indopak_nastaleeq { font-family: 'Naskh-Nastaleeq-IndoPak-QWBW', serif; }
 .indopak_nastaleeq_2 { font-family: 'IndoPakNastaleeq2', serif; }
 
 /* ---- Shamarly page mode ---- */
@@ -510,7 +508,7 @@ body.sepia-mode #controls .waqf-mode-btn.active { background: linear-gradient(13
 .waqf-mushaf-azhar    { color: #c2410c !important; }
 .waqf-mushaf-warsh    { color: #7c3aed !important; }
 .waqf-mushaf-husary   { color: #be123c !important; }
-.waqf-mushaf-hindi    { color: #be185d !important; font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; }
+.waqf-mushaf-hindi    { color: #be185d !important; font-family: 'IndoPakNastaleeq2', sans-serif; }
 .waqf-mushaf-other    { color: #475569 !important; }
 
 body.dark-mode .waqf-mushaf-madinah  { color: #34d399 !important; }
@@ -585,13 +583,6 @@ body.sepia-mode .mushaf-pills-label { color: #78716c; }
     font-family: 'UthmanicHafs';
     src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'),
          url('../fonts/uthmanic_hafs_v20.ttf') format('truetype');
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Naskh-Nastaleeq-IndoPak-QWBW';
-    src: url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'),
-         url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.ttf') format('truetype');
     font-display: swap;
 }
 
@@ -785,7 +776,7 @@ body[data-font-type="shamarly"] .word-token {
 .waqf-symbol[data-version="ورش"]     { color: #b45309; }
 .waqf-symbol[data-version="الهندي"]  {
     color: #be185d;
-    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
+    font-family: 'IndoPakNastaleeq2', sans-serif;
 }
 
 /* JS now filters symbols per mode (original/selected/both/none); CSS no longer
@@ -1362,10 +1353,6 @@ body.dark-mode .close:focus {
 }
 
 
-
-.indopak_nastaleeq {
-    font-family: 'Naskh-Nastaleeq-IndoPak-QWBW', serif;
-}
 
 .indopak_nastaleeq_2 {
     font-family: 'IndoPakNastaleeq2', serif;
@@ -3400,7 +3387,7 @@ body.dark-mode .tafseer-group #show-tafseer:hover { background: rgba(51,65,85,0.
 /* الحصري  — deep crimson */
 .waqf-mushaf-husary   { color: #be123c !important; }
 /* الهندي  — hot pink (IndoPak) */
-.waqf-mushaf-hindi    { color: #be185d !important; font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; }
+.waqf-mushaf-hindi    { color: #be185d !important; font-family: 'IndoPakNastaleeq2', sans-serif; }
 /* fallback */
 .waqf-mushaf-other    { color: #475569 !important; }
 
@@ -3798,7 +3785,7 @@ body.dark-mode .guide-subtitle { color: #94a3b8; }
 body[data-font-type="indopak"] .waqf-entry-word,
 body[data-font-type="indopak"] .waqf-word-text,
 body[data-font-type="indopak"] .waqf-tbl-word {
-    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif;
+    font-family: 'IndoPakNastaleeq2', sans-serif;
     font-size: 1.3rem;
 }
 body[data-font-type="digital_khatt"] .waqf-entry-word,
@@ -4595,7 +4582,7 @@ body[data-font-type="old_madina"] .memo-verse {
     font-size: 1.45rem;
 }
 body[data-font-type="indopak_nastaleeq_2"] .memo-verse {
-    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', serif;
+    font-family: 'IndoPakNastaleeq2', serif;
     font-size: 1.6rem;
     line-height: 2.6;
 }
@@ -4662,7 +4649,7 @@ body.dark-mode .memo-verse.memo-active {
 body[data-font-type="amiri_quran"]        .memo-overlay-verse { font-family:'AmiriQuran','Amiri',serif; font-size:1.55rem; }
 body[data-font-type="digital_khatt"]      .memo-overlay-verse,
 body[data-font-type="old_madina"]         .memo-overlay-verse { font-family:'Digital Khatt',serif; }
-body[data-font-type="indopak_nastaleeq_2"].memo-overlay-verse { font-family:'IndoPakNastaleeq2','Naskh-Nastaleeq-IndoPak-QWBW',serif; font-size:1.65rem; line-height:2.8; }
+body[data-font-type="indopak_nastaleeq_2"].memo-overlay-verse { font-family:'IndoPakNastaleeq2',serif; font-size:1.65rem; line-height:2.8; }
 .memo-overlay-info {
     grid-column: 1; grid-row: 2;
     display: flex; flex-direction: column; gap: 4px;
@@ -4818,7 +4805,7 @@ body.sepia-mode .guide-seg-solo-badge {
 body.dark-mode .guide-seg-words  { color: #e2e8f0; }
 body.sepia-mode .guide-seg-words { color: #5d4e37; }
 body[data-font-type="indopak"] .guide-seg-words {
-    font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; font-size: 1.3rem;
+    font-family: 'IndoPakNastaleeq2', sans-serif; font-size: 1.3rem;
 }
 body[data-font-type="digital_khatt"] .guide-seg-words,
 body[data-font-type="old_madina"] .guide-seg-words {

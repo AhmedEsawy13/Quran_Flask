@@ -27,9 +27,6 @@ qpc_hafs_data = _load(
 indopak_nastaleeq_data = _load(
     'Indopak Nastaleeq_Waqf.json', 'data/quran_text/Indopak Nastaleeq_Waqf.json'
 )
-indopak_nastaleeq_2_data = _load(
-    'indopak-nastaleeq 2.json', 'data/quran_text/indopak-nastaleeq 2.json'
-)
 transliteration_data = _load(
     'Transliteration.json', 'data/quran_text/Transliteration.json'
 )
@@ -46,9 +43,6 @@ qpc_hafs_data_normalized, waqf_rows_qpc, qpc_stats = normalize_quran_dataset(
 )
 indopak_nastaleeq_data_normalized, waqf_rows_indopak, indopak_stats = normalize_quran_dataset(
     'indopak_nastaleeq', indopak_nastaleeq_data
-)
-indopak_nastaleeq_2_data_normalized, _, _ = normalize_quran_dataset(
-    'indopak_nastaleeq', indopak_nastaleeq_2_data
 )
 
 
@@ -188,6 +182,8 @@ def normalize_source(source):
         return 'qpc_hafs'
     if source in ('digital_khatt_2', 'old_madina'):
         return 'digital_khatt'
+    if source == 'indopak_nastaleeq_2':
+        return 'indopak_nastaleeq'
     return source
 
 
@@ -196,8 +192,6 @@ def get_quran_text_data_by_source(source):
         return digital_khatt_data_normalized
     if source == 'indopak_nastaleeq':
         return indopak_nastaleeq_data_normalized
-    if source == 'indopak_nastaleeq_2':
-        return indopak_nastaleeq_2_data_normalized
     if source == 'shamarly':
         return qpc_hafs_data_normalized
     if source == 'amiri_quran':

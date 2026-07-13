@@ -14,7 +14,6 @@
 @font-face { font-family: 'UthmanicHafs';  src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'), url('../fonts/uthmanic_hafs_v20.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'UthmanicWarsh'; src: url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'), url('../fonts/uthmanic_warsh_v21.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'IndoPakNastaleeq2'; src: url('../fonts/indopak.woff2') format('woff2'); font-display: swap; }
-@font-face { font-family: 'Naskh-Nastaleeq-IndoPak-QWBW'; src: url('../fonts/Naskh-Nastaleeq-IndoPak-QWBW.woff2') format('woff2'); font-display: swap; }
 
 /* Digital Khatt verse/sajda COLR markers: darken the disc in dark mode so the
    number stays legible (same palette the main page uses). */
@@ -486,7 +485,7 @@ body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaq
 body.mz-dark .mz-page.mz-src-shamarly .waqf-symbol[data-version="الشمرلي"] { color: var(--mz-quran); }
 .waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
 .waqf-symbol[data-version="ورش"]     { color: #b45309; }
-.waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', sans-serif; }
+.waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', sans-serif; }
 body.mz-dark .waqf-symbol[data-version="المدينة"] { color: #fb923c; }
 body.mz-dark .waqf-symbol[data-version="الأزهر"]  { color: #4ade80; }
 body.mz-dark .waqf-symbol[data-version="الشمرلي"] { color: #c084fc; }

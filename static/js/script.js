@@ -1124,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cleanVerseText = rawVerseText.replace(/[\u06D5-\u06ED\u0610-\u061A\u08D0-\u08FF]/g, '');
         const verseWords = cleanVerseText.trim().split(/\s+/).filter(Boolean);
 
-        const indopakSymFont = "'IndoPakNastaleeq2', 'Naskh-Nastaleeq-IndoPak-QWBW', serif";
+        const indopakSymFont = "'IndoPakNastaleeq2', serif";
 
         // Strip waqf combining marks to recover clean word text from a token
         const stripWaqf = s =>
