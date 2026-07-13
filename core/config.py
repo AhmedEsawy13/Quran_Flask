@@ -41,6 +41,15 @@ TAFSEER_LOCAL_DATABASE = os.path.join(_BASE_DIR, 'data', 'tafseer_local.db')
 # phoneme-ASR reference (تدريب recite-follow). Source: ReciteQuran ordered set.
 QURAN_PHONEMES_JSON = os.path.join(_BASE_DIR, 'data', 'quran_phonemes_by_ayah.json')
 
+# المتشابهات (repeated-phrase) corpus — curated shared word-runs across the
+# whole Quran, word positions 1-based inclusive over the same QPC Hafs
+# tokenization as core.datasets.qpc_hafs_data_normalized. Source: "Mutashabihat
+# ul Quran" dataset. phrases.json: {phrase_id: {source, ayah: {verse_key:
+# [[from,to],...]}, count, ayahs, surahs}}. phrase_verses.json: {verse_key:
+# [phrase_id,...]} — reverse index for fast per-verse lookup.
+MUTASHABIHAT_PHRASES_JSON = os.path.join(_BASE_DIR, 'data', 'mutashabihat', 'phrases.json')
+MUTASHABIHAT_PHRASE_VERSES_JSON = os.path.join(_BASE_DIR, 'data', 'mutashabihat', 'phrase_verses.json')
+
 MAX_AYAH_NUMBER = 286  # Al-Baqarah, the longest surah
 SHEMRLY_CODEPOINT_BASE = 0xFB50  # Shemrly fonts index glyphs from U+FB51 (base + 1)
 
