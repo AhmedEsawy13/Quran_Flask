@@ -2018,14 +2018,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return Number.isFinite(parsed) ? Math.max(0, Math.min(100, parsed)) : 50;
     }
 
+    // المدينة القديم (oldmadinafont) doesn't implement the jt/dc/kt tags the
+    // previous alshamiyafont-based file used for this slider — it exposes
+    // character-variant alternates instead (cv01-cv04, cv10-cv19; cv05-cv09
+    // aren't defined in this font).
     function getKhattFeatureSequence() {
-        const features = [];
-        for (let level = 1; level <= 5; level += 1) {
-            for (const type of ['jt', 'dc', 'kt']) {
-                features.push(`${type}0${level}`);
-            }
-        }
-        return features;
+        return ['cv01', 'cv02', 'cv03', 'cv04', 'cv10', 'cv11', 'cv12', 'cv13', 'cv14', 'cv15', 'cv16', 'cv17', 'cv18', 'cv19'];
     }
 
     function getKhattFeatureSettings(strength) {
