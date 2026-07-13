@@ -157,7 +157,14 @@ body.dark-mode #quran-text span:hover { background-color: rgba(100, 150, 255, 0.
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
-    align-items: center;
+    /* Bottom-align, not center: الهندي's column-group can be 2 symbols tall
+       (multi-char compound marks stacked vertically) — far taller than the
+       single-row-height marks from every other mushaf. Centering the row let
+       that extra height push the other mushafs' marks away from their usual
+       spot depending on whether الهندي happened to be selected. Bottom-aligning
+       keeps every mushaf's marks pinned to the same baseline right above the
+       word regardless of الهندي — its extra height only grows upward. */
+    align-items: flex-end;
     pointer-events: none;
     gap: 0.05em;
     font-size: 0.72em;
@@ -720,7 +727,14 @@ body[data-font-type="shamarly"] .word-token {
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
-    align-items: center;
+    /* Bottom-align, not center: الهندي's column-group can be 2 symbols tall
+       (multi-char compound marks stacked vertically) — far taller than the
+       single-row-height marks from every other mushaf. Centering the row let
+       that extra height push the other mushafs' marks away from their usual
+       spot depending on whether الهندي happened to be selected. Bottom-aligning
+       keeps every mushaf's marks pinned to the same baseline right above the
+       word regardless of الهندي — its extra height only grows upward. */
+    align-items: flex-end;
     pointer-events: none;
     gap: 0.05em;
     font-size: 0.72em;
