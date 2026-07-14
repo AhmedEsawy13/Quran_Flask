@@ -7,16 +7,39 @@
 
     const els = {
         surah: $('wp-surah'), from: $('wp-from'), to: $('wp-to'), mushaf: $('wp-mushaf'),
-        load: $('wp-load'), hint: $('wp-hint'), barVerse: $('wp-bar-verse'),
-        passageCard: $('wp-passage-card'), passage: $('wp-passage'),
+        load: $('wp-load'), hint: $('wp-hint'), rangeLabel: $('wp-range-label'),
+        rangeTrigger: $('wp-range-trigger'), rangePanel: $('wp-range-panel'),
+        mushafTrigger: $('wp-mushaf-trigger'), mushafPanel: $('wp-mushaf-panel'), mushafLabel: $('wp-mushaf-label'),
+        passageSec: $('wp-passage-sec'), passage: $('wp-passage'),
         count: $('wp-count'), clear: $('wp-clear'), grade: $('wp-grade'),
-        rec: $('wp-rec'), recNote: $('wp-rec-note'), follow: $('wp-follow'),
-        layout: $('wp-layout'), layoutWrap: $('wp-layout-wrap'),
-        tajweed: $('wp-tajweed'), tajweedCard: $('wp-tajweed-card'), tajweedBody: $('wp-tajweed-body'),
-        resultCard: $('wp-result-card'), score: $('wp-score'), scoreNum: $('wp-score-num'),
+        rec: $('wp-rec'), recIcon: $('wp-rec-icon'), recLabel: $('wp-rec-label'), recNote: $('wp-rec-note'),
+        follow: $('wp-follow'), layout: $('wp-layout'),
+        tajweed: $('wp-tajweed'), tajweedSec: $('wp-tajweed-sec'), tajweedBody: $('wp-tajweed-body'),
+        resultSec: $('wp-result-sec'), score: $('wp-score'), scoreNum: $('wp-score-num'),
         scoreTitle: $('wp-score-title'), tGood: $('wp-t-good'), tNote: $('wp-t-note'),
         tErr: $('wp-t-err'), legend: $('wp-legend'), graded: $('wp-graded'), followups: $('wp-followups'),
     };
+
+    // Button state helpers (follow/tajweed/layout are now aria-pressed buttons,
+    // not checkboxes) + a small popover pair mirroring mushaf_memorize.js's
+    // togglePopover/closePopovers pattern for the new المقطع/المصحف chips.
+    const isPressed = btn => !!btn && btn.getAttribute('aria-pressed') === 'true';
+    const setPressed = (btn, val) => { if (btn) btn.setAttribute('aria-pressed', val ? 'true' : 'false'); };
+    const POPOVERS = [];
+    function registerPopover(trigger, panel) { if (trigger && panel) POPOVERS.push({ trigger, panel }); }
+    function closePopovers(except) {
+        POPOVERS.forEach(({ trigger, panel }) => {
+            if (panel === except) return;
+            panel.hidden = true;
+            trigger.setAttribute('aria-expanded', 'false');
+        });
+    }
+    function togglePopover(trigger, panel) {
+        const opening = panel.hidden;
+        closePopovers(opening ? panel : null);
+        panel.hidden = !opening;
+        trigger.setAttribute('aria-expanded', String(opening));
+    }
 
     const state = { surahs: [], ayahCount: {}, verses: [], stops: new Set() /* "ayah:wpos" */ };
     // Phoneme recite-follow: reference entries {skel,ayah,wpos} + a resync cursor
@@ -46,16 +69,32 @@
         const ordered = [...prefer.filter(v => versions.includes(v)),
                          ...versions.filter(v => !prefer.includes(v))];
         els.mushaf.innerHTML = ordered.map(v => `<option value="${v}">${v}</option>`).join('');
+        if (els.mushafLabel) els.mushafLabel.textContent = els.mushaf.value;
         updateLayoutToggle();
-        els.mushaf.addEventListener('change', updateLayoutToggle);
-        if (els.layout) els.layout.addEventListener('change', () => { if (state.verses.length) loadPassage(); });
+        els.mushaf.addEventListener('change', () => {
+            if (els.mushafLabel) els.mushafLabel.textContent = els.mushaf.value;
+            updateLayoutToggle();
+        });
+        if (els.layout) els.layout.addEventListener('click', () => {
+            setPressed(els.layout, !isPressed(els.layout));
+            if (state.verses.length) loadPassage();
+        });
         els.surah.addEventListener('change', onSurah);
         els.from.addEventListener('change', () => { if (+els.to.value < +els.from.value) els.to.value = els.from.value; });
         els.load.addEventListener('click', loadPassage);
         els.clear.addEventListener('click', clearStops);
         els.grade.addEventListener('click', gradeStops);
         if (els.rec) els.rec.addEventListener('click', toggleRecord);
-        if (els.follow) els.follow.addEventListener('change', () => { if (!els.follow.checked) clearReciting(); });
+        if (els.follow) els.follow.addEventListener('click', () => {
+            setPressed(els.follow, !isPressed(els.follow));
+            if (!isPressed(els.follow)) clearReciting();
+        });
+        if (els.tajweed) els.tajweed.addEventListener('click', () => setPressed(els.tajweed, !isPressed(els.tajweed)));
+        registerPopover(els.rangeTrigger, els.rangePanel);
+        registerPopover(els.mushafTrigger, els.mushafPanel);
+        if (els.rangeTrigger) els.rangeTrigger.addEventListener('click', () => togglePopover(els.rangeTrigger, els.rangePanel));
+        if (els.mushafTrigger) els.mushafTrigger.addEventListener('click', () => togglePopover(els.mushafTrigger, els.mushafPanel));
+        document.addEventListener('click', e => { if (!e.target.closest('.mz-pop')) closePopovers(); });
         await onSurah();
         // deep link ?surah=&from=&to=
         const p = new URLSearchParams(location.search);
@@ -92,15 +131,15 @@
             state.stops.clear();
             // Madinah page-layout view (optional) renders the real mushaf lines;
             // it keys words the same way (ayah:wpos) so tap/grade/ASR are unchanged.
-            if (els.layout && els.layout.checked && isMadinah()) await renderMushafLayout(s, f, t, els.mushaf.value);
+            if (els.layout && isPressed(els.layout) && isMadinah()) await renderMushafLayout(s, f, t, els.mushaf.value);
             else renderPassage();
             const name = (state.surahs.find(x => (x.number ?? x) === s) || {}).name || '';
-            els.barVerse.textContent = `${name} · ${toAr(f)}${t > f ? '–' + toAr(t) : ''}`;
+            if (els.rangeLabel) els.rangeLabel.textContent = `${name} · ${toAr(f)}${t > f ? '–' + toAr(t) : ''}`;
             els.hint.hidden = false;
-            els.passageCard.hidden = false;
-            els.resultCard.hidden = true;
+            els.passageSec.hidden = false;
+            els.resultSec.hidden = true;
             updateCount();
-            els.passageCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            els.passageSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (e) {
             alert('تعذّر تحميل المقطع.');
         } finally {
@@ -155,7 +194,14 @@
        so wpos = running count of real words per ayah maps to the grader. */
     const isMadinah = () => ['المدينة الجديد', 'المدينة القديم'].includes(els.mushaf.value);
     // The mushaf-page view only exists for the two Madinah prints (qpc-v1 layout).
-    function updateLayoutToggle() { if (els.layoutWrap) els.layoutWrap.hidden = !isMadinah(); }
+    // Defaults back on every time the selection lands on a Madinah print, since
+    // "مشاف page styling" is the whole point of this page's design.
+    function updateLayoutToggle() {
+        if (!els.layout) return;
+        const madinah = isMadinah();
+        els.layout.hidden = !madinah;
+        if (madinah) setPressed(els.layout, true);
+    }
     const _hasArabic = s => /[ء-ي]/.test(s || '');
     const _maxAyahOnPage = (page, s) => {
         let mx = 0;
@@ -331,11 +377,10 @@
                 onStatus: setRecNote,
                 onActive: on => {
                     rec.on = on;
-                    els.rec.classList.toggle('is-rec', on);
-                    els.rec.innerHTML = on
-                        ? '<i class="fas fa-stop"></i> إيقاف التسجيل'
-                        : '<i class="fas fa-microphone"></i> سجّل وقوفي';
-                    if (!on) { clearReciting(); if (els.tajweed && els.tajweed.checked) requestTajweed(); }
+                    els.rec.classList.toggle('mz-listening', on);
+                    if (els.recIcon) els.recIcon.className = on ? 'fas fa-stop' : 'fas fa-microphone';
+                    if (els.recLabel) els.recLabel.textContent = on ? 'إيقاف التسجيل' : 'سجّل وقوفي';
+                    if (!on) { clearReciting(); if (els.tajweed && isPressed(els.tajweed)) requestTajweed(); }
                 },
                 onPhonemes: alignPhonemes,
                 onSilence: markAutoStop,
@@ -347,7 +392,7 @@
     function stopRecord() { try { window.MushafZipformer && window.MushafZipformer.stop(); } catch (e) {} }
 
     function highlightWord(ayah, wpos) {
-        if (!els.follow || !els.follow.checked) return;
+        if (!els.follow || !isPressed(els.follow)) return;
         els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting'));
         const b = els.passage.querySelector(`.wp-word[data-key="${ayah}:${wpos}"]`);
         if (b) { b.classList.add('wp-reciting'); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
@@ -443,12 +488,12 @@
         return `نطق: الصواب «${e.expected}»، قرأتَ «${e.got}»`;  // normal replace = letter/مخرج
     }
     function renderTajweed(j) {
-        if (!els.tajweedCard) return;
+        if (!els.tajweedSec) return;
         setRecNote('');
         els.passage.querySelectorAll('.wp-tj-err').forEach(b => b.classList.remove('wp-tj-err'));
-        if (!j || j.available === false) { els.tajweedCard.hidden = true; return; }
+        if (!j || j.available === false) { els.tajweedSec.hidden = true; return; }
         const errs = (j.errors || []).filter(e => e.type !== 'tashkeel');   // hide bare harakat noise
-        els.tajweedCard.hidden = false;
+        els.tajweedSec.hidden = false;
         if (!errs.length) {
             els.tajweedBody.innerHTML = '<div class="wp-tj-ok"><i class="fas fa-circle-check"></i> لم تُرصد أخطاء تجويد ظاهرة — أحسنت 🌿</div>';
             return;
@@ -467,7 +512,7 @@
                 + list.map(e => `<li class="wp-tj-${e.type}">${_tjMessage(e)}</li>`).join('') + '</ul></div>';
         });
         els.tajweedBody.innerHTML = html;
-        els.tajweedCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        els.tajweedSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function scoreTitle(score, errors) {
@@ -545,8 +590,8 @@
                 + j.ideal.map(b => `<span class="wp-fu-w">${b.word}</span> <small>${toAr(b.ayah)}</small>`).join('، ') + '</div>';
         }
         els.followups.innerHTML = fu;
-        els.resultCard.hidden = false;
-        els.resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        els.resultSec.hidden = false;
+        els.resultSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);

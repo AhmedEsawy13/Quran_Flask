@@ -1,104 +1,74 @@
-/* تدريب الوقف — practice page. Reuses the --wq-* theme vars + fonts from
-   waqf_guide.css (loaded before this file). */
-@font-face { font-family: 'Old Madina'; src: url('../fonts/oldmadina.woff2') format('woff2'); font-display: swap; }
+/* تدريب الوقف — practice page. Chrome/components (bar, popovers, buttons,
+   sections, --mz-* tokens) come from mushaf_memorize.css (linked before this
+   file); only the practice-domain-specific rules (tappable words, tajweed
+   error list, score/verdict styling) live here. */
 
 /* ── Fit the page to the viewport, تثبيت-style: sticky bars stay put, only
    .wp-main scrolls internally — no whole-page scroll. Only this page loads
    waqf_practice.css, so overriding `body` here is safe (doesn't touch /waqf,
    which shares waqf_guide.css's normal long-scroll layout). Sized with flex
-   instead of a hardcoded bar-height constant (as تثبيت does) so it can't
-   drift out of sync if either sticky bar's own height ever changes. */
+   instead of a hardcoded bar-height constant so it can't drift out of sync
+   if either sticky bar's own height ever changes. تدريب's content
+   (passage + optional tajweed results + optional grade results) is
+   variable-height and can exceed the viewport, unlike تثبيت's single
+   fixed-size page — so this internal-scroll pattern is kept deliberately,
+   not swapped for تثبيت's whole-body-scrolls model. */
 html, body { height: 100%; }
 body { display: flex; flex-direction: column; overflow: hidden; }
-.athar-bar, .wq-bar { flex: 0 0 auto; }
+.athar-bar, .mz-bar { flex: 0 0 auto; }
+/* mushaf_memorize.css's `.mz-sec { display:flex }` has the same specificity as
+   the UA `[hidden] { display:none }` and loads after it, so it wins the tie —
+   تثبيت never combines .mz-sec with [hidden] so this never surfaced there. */
+.mz-sec[hidden] { display: none; }
 
 .wp-main { max-width: 900px; margin: 0 auto; width: 100%; padding: 18px clamp(12px, 3vw, 28px) 26px;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif;
+    display: flex; flex-direction: column; gap: 18px;
     flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 
-/* controls */
-.wp-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px;
-    background: var(--wq-surface); border: 1px solid var(--wq-border); border-radius: 16px;
-    padding: 16px; box-shadow: var(--wq-shadow-sm); }
-.wp-field { display: flex; flex-direction: column; gap: 5px; }
-.wp-field label { font-size: 0.76rem; font-weight: 700; color: var(--wq-text-muted); }
-.wp-field select { padding: 9px 12px; border-radius: 10px; border: 1px solid var(--wq-border-strong);
-    background: var(--wq-surface-2); color: var(--wq-text); font-family: inherit; font-size: 0.9rem; font-weight: 600; min-width: 92px; }
-.wp-field:first-child select { min-width: 150px; }
-
-.wp-btn { display: inline-flex; align-items: center; gap: 7px; padding: 10px 18px; border-radius: 11px;
-    border: 1px solid transparent; font-family: inherit; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: all 0.15s ease; }
-.wp-btn-primary { background: var(--wq-accent); color: #fff; }
-.wp-btn-primary:hover { background: var(--wq-accent-strong); }
-.wp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-.wp-btn-ghost { background: var(--wq-surface-2); color: var(--wq-text-muted); border-color: var(--wq-border); }
-.wp-btn-ghost:hover { color: var(--wq-accent); border-color: var(--wq-accent); }
-.wp-btn-rec { background: var(--wq-surface-2); color: var(--wq-text-muted); border-color: var(--wq-border); }
-.wp-btn-rec:hover { color: var(--wq-accent); border-color: var(--wq-accent); }
-.wp-btn-rec.is-rec { background: #d9483b; color: #fff; border-color: #d9483b; animation: wp-rec-pulse 1.3s ease-in-out infinite; }
-@keyframes wp-rec-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, #d9483b 55%, transparent); } 50% { box-shadow: 0 0 0 6px transparent; } }
-.wp-rec-note { font-size: 0.8rem; color: var(--wq-text-muted); font-weight: 600; }
-.wp-follow-toggle { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; font-weight: 700;
-    color: var(--wq-text-muted); cursor: pointer; user-select: none; }
-.wp-follow-toggle i { color: #e0a83a; }
-.wp-follow-toggle input { accent-color: var(--wq-accent); cursor: pointer; }
-
 /* tajweed error detection */
-.wp-tajweed-card { margin-top: 14px; background: var(--wq-surface); border: 1px solid var(--wq-border);
-    border-radius: 16px; padding: 18px 20px; box-shadow: var(--wq-shadow-sm); }
-.wp-tajweed-title { font-size: 1rem; font-weight: 800; color: var(--wq-text); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
-.wp-tajweed-title i { color: var(--wq-accent); }
 .wp-tj-ok { color: #2e9c6b; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
-.wp-tj-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--wq-border); }
+.wp-tj-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--mz-border); }
 .wp-tj-row:first-child { border-top: none; }
-.wp-tj-w { font-family: 'UthmanicHafs', serif; font-size: 1.5rem; color: var(--wq-text); min-width: 2.5em; text-align: center; }
-.wp-tj-a { font-size: 0.62rem; color: var(--wq-text-faint); border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .3em; height: fit-content; margin-top: .5em; }
+.wp-tj-w { font-family: 'UthmanicHafs', serif; font-size: 1.5rem; color: var(--mz-text); min-width: 2.5em; text-align: center; }
+.wp-tj-a { font-size: 0.62rem; color: var(--mz-text-faint); border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .3em; height: fit-content; margin-top: .5em; }
 .wp-tj-list { margin: 0; padding: 0 1em 0 0; list-style: none; flex: 1; }
-.wp-tj-list li { font-size: 0.88rem; line-height: 1.7; color: var(--wq-text-muted); }
-.wp-tj-list li::before { content: '•'; color: var(--wq-accent); margin-inline-end: 6px; }
+.wp-tj-list li { font-size: 0.88rem; line-height: 1.7; color: var(--mz-text-muted); }
+.wp-tj-list li::before { content: '•'; color: var(--mz-accent); margin-inline-end: 6px; }
 .wp-tj-list li.wp-tj-tajweed { color: #b5651d; }        /* madd / ghunna / qalqala */
 .wp-tj-list li.wp-tj-normal { color: #c0392b; }         /* wrong letter (مخرج) */
 .wp-word.wp-tj-err, .wp-gword.wp-tj-err { box-shadow: inset 0 -3px 0 0 #c0392b; background: color-mix(in srgb, #c0392b 12%, transparent); }
 
-.wp-hint { font-size: 0.86rem; color: var(--wq-text-muted); line-height: 1.7; margin: 16px 2px 8px; }
-.wp-hint i { color: var(--wq-accent); margin-inline-end: 4px; }
-
 /* passage — tappable words */
-.wp-passage-card, .wp-result-card { margin-top: 14px; background: var(--wq-surface); border: 1px solid var(--wq-border);
-    border-radius: 16px; padding: 20px; box-shadow: var(--wq-shadow-sm); }
 .wp-passage { font-family: 'UthmanicHafs', serif; font-size: clamp(1.6rem, 4.4vw, 2.15rem); line-height: 2.5;
-    color: var(--wq-text); text-align: justify; }
+    color: var(--mz-quran); text-align: justify; }
 .wp-verse { display: block; }
 .wp-word { font: inherit; color: inherit; background: none; border: none; padding: 0 .06em; margin: 0; cursor: pointer;
     border-radius: 6px; transition: background 0.12s ease, box-shadow 0.12s ease; -webkit-tap-highlight-color: transparent; }
-.wp-word:hover { background: color-mix(in srgb, var(--wq-accent) 12%, transparent); }
-.wp-word-end { color: var(--wq-accent-strong); }
-.wp-stopped { box-shadow: inset 0 -3px 0 0 var(--wq-accent); background: color-mix(in srgb, var(--wq-accent) 14%, transparent); }
+.wp-word:hover { background: color-mix(in srgb, var(--mz-accent) 12%, transparent); }
+.wp-word-end { color: var(--mz-accent); }
+.wp-stopped { box-shadow: inset 0 -3px 0 0 var(--mz-accent); background: color-mix(in srgb, var(--mz-accent) 14%, transparent); }
 /* live "currently reciting" word (follow-along) */
 .wp-word.wp-reciting { background: color-mix(in srgb, #e0a83a 30%, transparent);
     box-shadow: 0 0 0 2px color-mix(in srgb, #e0a83a 55%, transparent); border-radius: 6px; }
-.wp-ayah-num { font-size: 0.62em; color: var(--wq-text-faint); margin: 0 .15em; vertical-align: middle;
+.wp-ayah-num { font-size: 0.62em; color: var(--mz-text-faint); margin: 0 .15em; vertical-align: middle;
     border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .28em; }
 
-/* Madinah page-layout view (منظر المصحف) — real mushaf lines, Old-Madina font */
-.wp-layout-toggle { display: inline-flex; align-items: center; gap: 5px; align-self: flex-end; margin-bottom: 4px;
-    font-size: 0.82rem; font-weight: 700; color: var(--wq-text-muted); cursor: pointer; user-select: none; white-space: nowrap; }
-.wp-layout-toggle i { color: var(--wq-accent); }
-.wp-layout-toggle input { accent-color: var(--wq-accent); cursor: pointer; }
+/* Madinah page-layout view (منظر المصحف) — real mushaf lines, Old-Madina font,
+   values aligned to تثبيت's own .mz-word/.mz-line-inner (no page/paper frame —
+   this is a cropped passage, not a physical page). */
 .wp-passage.wp-ml { font-family: 'Old Madina', 'UthmanicHafs', serif; line-height: 2.35; text-align: center; }
 .wp-ml-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 .35em; direction: rtl; }
 .wp-ml-line.is-centered { justify-content: center; }
 .wp-ml-line:last-child { justify-content: center; }        /* last line isn't stretched on a real page */
-.wp-ml .wp-word { padding: 0 .04em; }
-.wp-ml-ctx { color: var(--wq-text-faint); opacity: 0.5; padding: 0 .04em; }   /* out-of-range context word */
-.wp-ml-num { color: var(--wq-accent-strong); font-size: 0.72em; margin: 0 .1em; }
-.wp-ml-surah { font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--wq-accent);
-    text-align: center; font-size: 0.86em; margin: .3em 0; padding: .15em 0; border-top: 1px solid var(--wq-border); border-bottom: 1px solid var(--wq-border); }
-.wp-ml-basmala { text-align: center; color: var(--wq-text-muted); font-size: 0.9em; margin: .2em 0; }
+.wp-ml .wp-word { padding: 0.55em .04em 0; }
+.wp-ml-ctx { color: var(--mz-quran); opacity: 0.4; padding: 0.55em .04em 0; }   /* out-of-range context word */
+.wp-ml-num { color: var(--mz-accent); font-size: 0.72em; margin: 0 .1em; }
+.wp-ml-surah { font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--mz-accent);
+    text-align: center; font-size: 0.86em; margin: .3em 0; padding: .15em 0; border-top: 1px solid var(--mz-border); border-bottom: 1px solid var(--mz-border); }
+.wp-ml-basmala { text-align: center; color: var(--mz-text-muted); font-size: 0.9em; margin: .2em 0; }
 
-.wp-actions { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--wq-border); }
+.wp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--mz-border); }
 .wp-actions-spacer { flex: 1; }
-.wp-count { font-size: 0.84rem; color: var(--wq-text-muted); font-weight: 600; }
 
 /* result */
 .wp-scorewrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
@@ -108,7 +78,7 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .wp-score-hi  { background: linear-gradient(135deg, #16a34a, #15803d); }
 .wp-score-mid { background: linear-gradient(135deg, #d97706, #b45309); }
 .wp-score-lo  { background: linear-gradient(135deg, #dc2626, #b91c1c); }
-.wp-score-title { font-size: 1.02rem; font-weight: 800; color: var(--wq-text); margin-bottom: 8px; }
+.wp-score-title { font-size: 1.02rem; font-weight: 800; color: var(--mz-text); margin-bottom: 8px; }
 .wp-tallies { display: flex; flex-wrap: wrap; gap: 8px; }
 .wp-tally { font-size: 0.8rem; padding: 4px 11px; border-radius: 999px; font-weight: 600; }
 .wp-tally b { font-weight: 800; }
@@ -116,11 +86,11 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .wp-tally-note { background: rgba(217,119,6,0.14); color: #b45309; }
 .wp-tally-err  { background: rgba(220,38,38,0.12); color: #b91c1c; }
 
-.wp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 16px 0 4px; padding: 12px 0; border-top: 1px solid var(--wq-border); border-bottom: 1px solid var(--wq-border); }
-.wp-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--wq-text-muted); }
+.wp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0 4px; padding: 12px 0; border-top: 1px solid var(--mz-border); border-bottom: 1px solid var(--mz-border); }
+.wp-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--mz-text-muted); }
 .wp-dot { width: 13px; height: 13px; border-radius: 4px; }
 
-.wp-passage-graded { margin-top: 16px; cursor: default; }
+.wp-passage-graded { cursor: default; }
 .wp-gword { padding: 0 .06em; border-radius: 6px; }
 /* a marked stop, coloured by verdict (underline so the base text stays legible) */
 .wp-stop { box-shadow: inset 0 -3px 0 0 currentColor; }
@@ -138,24 +108,23 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 
 .wp-fu { margin-top: 12px; font-size: 0.88rem; line-height: 2; padding: 11px 14px; border-radius: 11px; }
 .wp-fu i { margin-inline-end: 5px; }
-.wp-fu-err { background: rgba(220,38,38,0.09); color: var(--wq-text); }
+.wp-fu-err { background: rgba(220,38,38,0.09); color: var(--mz-text); }
 .wp-fu-err i { color: #dc2626; }
-.wp-fu-tip { background: rgba(22,163,74,0.09); color: var(--wq-text); }
+.wp-fu-tip { background: rgba(22,163,74,0.09); color: var(--mz-text); }
 .wp-fu-tip i { color: #d97706; }
 .wp-fu-w { font-family: 'UthmanicHafs', serif; font-size: 1.15em; }
-.wp-fu-w + small { color: var(--wq-text-faint); }
+.wp-fu-w + small { color: var(--mz-text-faint); }
 
-/* dark-mode verdict hues (waqf_guide.css sets body.wq-dark) */
-body.wq-dark .wp-w-ex   { color: #4ade80; } body.wq-dark .wp-dot.wp-w-ex   { background: #4ade80; }
-body.wq-dark .wp-w-good { color: #7dd3fc; } body.wq-dark .wp-dot.wp-w-good { background: #7dd3fc; }
-body.wq-dark .wp-w-ok   { color: #5eead4; } body.wq-dark .wp-dot.wp-w-ok   { background: #5eead4; }
-body.wq-dark .wp-w-caut { color: #fbbf24; } body.wq-dark .wp-dot.wp-w-caut { background: #fbbf24; }
-body.wq-dark .wp-w-err, body.wq-dark .wp-missed-lazim { color: #f87171; }
-body.wq-dark .wp-dot.wp-w-err { background: #f87171; }
-body.wq-dark .wp-tally-good { color: #4ade80; } body.wq-dark .wp-tally-note { color: #fbbf24; } body.wq-dark .wp-tally-err { color: #f87171; }
+/* dark-mode verdict hues */
+body.mz-dark .wp-w-ex   { color: #4ade80; } body.mz-dark .wp-dot.wp-w-ex   { background: #4ade80; }
+body.mz-dark .wp-w-good { color: #7dd3fc; } body.mz-dark .wp-dot.wp-w-good { background: #7dd3fc; }
+body.mz-dark .wp-w-ok   { color: #5eead4; } body.mz-dark .wp-dot.wp-w-ok   { background: #5eead4; }
+body.mz-dark .wp-w-caut { color: #fbbf24; } body.mz-dark .wp-dot.wp-w-caut { background: #fbbf24; }
+body.mz-dark .wp-w-err, body.mz-dark .wp-missed-lazim { color: #f87171; }
+body.mz-dark .wp-dot.wp-w-err { background: #f87171; }
+body.mz-dark .wp-tally-good { color: #4ade80; } body.mz-dark .wp-tally-note { color: #fbbf24; } body.mz-dark .wp-tally-err { color: #f87171; }
 
 @media (max-width: 560px) {
-    .wp-controls { gap: 9px; }
-    .wp-field:first-child select { min-width: 120px; }
-    .wp-load, .wp-controls .wp-btn { width: 100%; justify-content: center; }
+    .wp-actions { gap: 8px; }
+    .wp-actions .mz-toggle-btn, .wp-actions .mz-btn-primary { flex: 1 1 auto; justify-content: center; }
 }
