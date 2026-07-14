@@ -53,10 +53,14 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .wp-ayah-num { font-size: 0.62em; color: var(--mz-text-faint); margin: 0 .15em; vertical-align: middle;
     border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .28em; }
 
-/* Madinah page-layout view (منظر المصحف) — real mushaf lines, Old-Madina font,
-   values aligned to تثبيت's own .mz-word/.mz-line-inner (no page/paper frame —
-   this is a cropped passage, not a physical page). */
-.wp-passage.wp-ml { font-family: 'Old Madina', 'UthmanicHafs', serif; line-height: 2.35; text-align: center; }
+/* Madinah page-layout view (منظر المصحف) — real mushaf lines, values aligned
+   to تثبيت's own .mz-word/.mz-line-inner (no page/paper frame — this is a
+   cropped passage, not a physical page). Digital Khatt (المدينة الجديد) is
+   the unscoped default, matching mushaf_memorize.css's own convention;
+   qpc-v1/Old Madina (المدينة القديم) is a scoped override — see
+   MADINAH_LAYOUT_SRC in waqf_practice.js. */
+.wp-passage.wp-ml { font-family: 'Digital Khatt', 'UthmanicHafs', serif; line-height: 2.35; text-align: center; }
+.wp-passage.wp-ml.wp-ml-src-qpc-v1 { font-family: 'Old Madina', 'UthmanicHafs', serif; }
 .wp-ml-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 .35em; direction: rtl; }
 .wp-ml-line.is-centered { justify-content: center; }
 .wp-ml-line:last-child { justify-content: center; }        /* last line isn't stretched on a real page */

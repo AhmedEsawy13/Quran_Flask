@@ -192,9 +192,15 @@
        Reuses the qpc-v1 604-page layout + Old-Madina font that تثبيت uses.
        The layout words align 1:1 with the passage words per ayah (verified),
        so wpos = running count of real words per ayah maps to the grader. */
-    const isMadinah = () => ['المدينة الجديد', 'المدينة القديم'].includes(els.mushaf.value);
-    // The mushaf-page view only exists for the two Madinah prints (qpc-v1 layout).
-    // Defaults back on every time the selection lands on a Madinah print, since
+    // Each Madinah print maps to its own page-layout source/font — تثبيت's
+    // own mz-src convention: المدينة الجديد → Digital Khatt, المدينة القديم →
+    // qpc-v1/Old Madina. Both routes share the same JSON shape (backend's
+    // _assemble_layout_page), confirmed in modules/layouts.py, so only the
+    // API base + font differ, not the rendering logic below.
+    const MADINAH_LAYOUT_SRC = { 'المدينة الجديد': 'digital_khatt', 'المدينة القديم': 'qpc_v1' };
+    const isMadinah = () => Object.prototype.hasOwnProperty.call(MADINAH_LAYOUT_SRC, els.mushaf.value);
+    // The mushaf-page view only exists for the two Madinah prints. Defaults
+    // back on every time the selection lands on a Madinah print, since
     // "مشاف page styling" is the whole point of this page's design.
     function updateLayoutToggle() {
         if (!els.layout) return;
@@ -210,29 +216,30 @@
     };
 
     async function renderMushafLayout(s, f, t, mushaf) {
+        const base = MushafLayoutCore.pageApiBase(MADINAH_LAYOUT_SRC[mushaf]);
         const mv = 'mushaf_version=' + encodeURIComponent(mushaf);
         let page;
-        try { page = await fetch(`/api/qpc-v1/page-by-ayah/${s}/${f}?${mv}`).then(r => r.json()); }
+        try { page = await MushafLayoutCore.fetchPageByAyah(base, s, f, mv); }
         catch (e) { renderPassage(); return; }
         if (!page || !page.lines) { renderPassage(); return; }
         const pages = [page];
         let guard = 0;
         while (guard++ < 8 && _maxAyahOnPage(page, s) < t) {
             const next = (page.page_number | 0) + 1;
-            try { page = await fetch(`/api/qpc-v1/page/${next}?${mv}`).then(r => r.json()); }
+            try { page = await MushafLayoutCore.fetchPageByNumber(base, next, mv); }
             catch (e) { break; }
             if (!page || !page.lines) break;
             pages.push(page);
         }
         const lines = [];
         pages.forEach(p => (p.lines || []).forEach(ln => lines.push(ln)));
-        renderLayoutLines(lines, s, f, t);
+        renderLayoutLines(lines, s, f, t, mushaf);
     }
 
     const _lineTouchesRange = (ln, s, f, t) =>
         (ln.words || []).some(w => w.surah === s && w.ayah >= f && w.ayah <= t);
 
-    function renderLayoutLines(lines, s, f, t) {
+    function renderLayoutLines(lines, s, f, t, mushaf) {
         // render window: first → last line that touches the selected range
         let start = lines.findIndex(ln => _lineTouchesRange(ln, s, f, t));
         let end = -1;
@@ -241,7 +248,10 @@
         // pull in a leading surah header / basmala when the passage opens a surah
         while (start > 0 && ['surah_name', 'basmallah'].includes(lines[start - 1].line_type)) start--;
 
-        els.passage.className = 'wp-passage wp-ml';
+        // Digital Khatt is the unscoped default (matches mushaf_memorize.css's
+        // own convention); qpc-v1/Old Madina is a scoped override — see waqf_practice.css.
+        const src = MADINAH_LAYOUT_SRC[mushaf] || 'digital_khatt';
+        els.passage.className = 'wp-passage wp-ml' + (src === 'qpc_v1' ? ' wp-ml-src-qpc-v1' : '');
         els.passage.innerHTML = '';
         const wpos = new Map();                             // ayah → next real-word index
         for (let i = start; i <= end; i++) {
