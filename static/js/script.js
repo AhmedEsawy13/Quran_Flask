@@ -848,9 +848,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         // quran_script.db keeps the ayah number as its own trailing "word" entry,
         // while the generic pipeline's qpc_hafs-based tokenization glues it (via
         // NBSP) onto the last real word instead — so it never appears as a
-        // separate .word-token. Drop it before aligning, else counts mismatch
-        // and every real word in the ayah loses its glyph enhancement.
-        const words = allWords.filter((w) => !/^[٠-٩]+$/.test((w?.text_original || '').trim()));
+        // separate .word-token. Pull it out before aligning the rest 1:1 against
+        // .word-token elements, but hold onto it: it carries its own page-local
+        // ornament glyph, which must be re-attached to that same token below
+        // instead of being silently erased by the word substitution.
+        const ayahNumWord = allWords.find((w) => /^[٠-٩]+$/.test((w?.text_original || '').trim()));
+        const words = allWords.filter((w) => w !== ayahNumWord);
         const wordEls = elements.quranTextContainer.querySelectorAll(':scope > .word-token');
         // Alignment guard: both lists must describe the same ayah word-for-word
         // (confirmed same underlying qpc_hafs-equivalent text) — if they don't
@@ -867,7 +870,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             const wordEl = wordEls[index];
             const baseEl = wordEl?.querySelector(':scope > .word-content > .word-base');
             if (!baseEl) return;
-            baseEl.textContent = word.text || baseEl.textContent;
+            // The ayah-number suffix already sitting in baseEl's current text
+            // (glued on via NBSP by the generic pipeline) would otherwise be wiped
+            // out by the textContent overwrite below — carry it forward. Upgrade
+            // it to its own page-local ornament glyph only when that glyph is on
+            // the SAME page as this word's own glyph (mixed-page fonts would
+            // render the wrong page's cmap); otherwise keep the plain digit.
+            let suffix = '';
+            const isLastWord = index === words.length - 1;
+            if (isLastWord) {
+                const existingSuffix = (baseEl.textContent || '').match(/ [٠-٩]+$/);
+                suffix = existingSuffix ? existingSuffix[0] : '';
+                if (ayahNumWord?.glyph_char && ayahNumWord.glyph_page === word.glyph_page) {
+                    suffix = ' ' + ayahNumWord.glyph_char;
+                }
+            }
+            baseEl.textContent = (word.text || baseEl.textContent.replace(/ [٠-٩]+$/, '')) + suffix;
             wordEl.style.fontFamily = `'${shamarlyFontName(word.glyph_page)}', 'UthmanicHafs', serif`;
             wordEl.dataset.shamarlyGlyph = '1';
         });
