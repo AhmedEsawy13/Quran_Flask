@@ -107,7 +107,7 @@ def get_shamarly_ayah(surah_number, ayah_number):
             glyph_page = None
 
             # Only substitute a page-local glyph when the verse's page actually
-            # has a Shemrly-PageNNN.ttf font loaded in the browser. The old
+            # has a Shemrly-PageNNN.woff2 font loaded in the browser. The old
             # "legacy" fallback emitted Elgharib glyph codepoints (U+FB50 range)
             # for pages WITHOUT a font, but no Elgharib font is shipped, so they
             # rendered as garbage. For those pages we keep the plain verse text
@@ -391,7 +391,7 @@ def _get_shamarly_font_supported_codepoints(font_name):
         set[int] when loaded successfully,
         None when the font file does not exist or cannot be parsed.
     """
-    font_path = os.path.join(_BASE_DIR, 'static', 'fonts', f'{font_name}.ttf')
+    font_path = os.path.join(_BASE_DIR, 'static', 'fonts', f'{font_name}.woff2')
     if not os.path.exists(font_path):
         return None
 

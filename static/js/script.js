@@ -832,7 +832,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // الشمرلي enhancement: the generic pipeline already rendered this ayah's
     // words as plain (qpc_hafs-identical) text via displayQuranicText(). This
     // upgrades whichever words have a genuine page-local Shemrly glyph
-    // available (only ~17/521 pages ship a font) — every other word is left
+    // available (~200/521 pages ship a font) — every other word is left
     // exactly as the generic pipeline rendered it. `/api/shamarly/ayah/...` is
     // purely positional (surah/ayah/word_index → page → font → codepoint), so
     // it needs no mushaf_version query — waqf-symbol overlay is already
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         try {
-            const font = new FontFace(fontName, `url('/static/fonts/${fontName}.ttf') format('truetype')`);
+            const font = new FontFace(fontName, `url('/static/fonts/${fontName}.woff2') format('woff2')`);
             const loadedFont = await font.load();
             document.fonts.add(loadedFont);
             loadedShamarlyFonts.add(fontName);
