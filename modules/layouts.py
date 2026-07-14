@@ -763,6 +763,27 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
     }
 
 
+@core_bp.route('/api/shamarly/pages', methods=['GET'])
+def get_shamarly_available_pages():
+    """List mushaf page numbers that ship a real Shemrly-PageNNN.woff2 font.
+
+    Scans static/fonts/ instead of a hardcoded list so newly-added font files
+    are picked up automatically without touching frontend code.
+    """
+    fonts_dir = os.path.join(_BASE_DIR, 'static', 'fonts')
+    pages = []
+    try:
+        for name in os.listdir(fonts_dir):
+            m = re.match(r'^Shemrly-Page(\d+)\.woff2$', name)
+            if m:
+                pages.append(int(m.group(1)))
+    except OSError as e:
+        logger.error(f"Error listing Shemrly fonts: {e}")
+        return jsonify({"error": str(e)}), 500
+    pages.sort()
+    return jsonify({'pages': pages})
+
+
 @core_bp.route('/api/shamarly/page/<int:page_number>', methods=['GET'])
 def get_shamarly_page(page_number):
     try:
