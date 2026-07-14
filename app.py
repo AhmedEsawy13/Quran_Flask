@@ -9,6 +9,14 @@ from io import BytesIO
 
 app = Flask(__name__, static_folder='static')
 
+# Re-check template files' mtimes on every render (default is tied to
+# app.debug, which is off outside FLASK_ENV=development — see the app.run()
+# call below) so template edits show up without a process restart. Must be
+# set before anything touches app.jinja_env (e.g. the @app.template_global()
+# decorator below), which creates and caches the Jinja environment from
+# whatever this config says at that moment.
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
 # Feature blueprints. Routes are attached to these below (one per feature area)
 # so each feature can be enabled/disabled per deployment via the FEATURES env
 # var — and the write-capable editor can be gated to localhost only.
@@ -29,22 +37,28 @@ if not app.debug:
     app.logger.setLevel(logging.INFO)
 
 # Auto cache-busting: hash the file contents so browsers always fetch the
-# latest version after a deploy — no more manual ?v=N bumps.
+# latest version after a deploy — no more manual ?v=N bumps. Keyed on mtime
+# so an edited file gets a new hash (and therefore URL) immediately, even in
+# a long-running process that's never restarted — a stale mtime->hash pairing
+# here is what used to make static edits invisible until a hard refresh.
 import hashlib as _hashlib
-_static_hash_cache: dict[str, str] = {}
+_static_hash_cache: dict[str, tuple[float, str]] = {}
 
 @app.template_global()
 def static_hash(filename: str) -> str:
     """Return /static/<filename>?h=<8-char content hash>."""
-    h = _static_hash_cache.get(filename)
-    if h is None:
-        path = os.path.join(app.static_folder, filename)
-        try:
-            with open(path, 'rb') as f:
-                h = _hashlib.md5(f.read()).hexdigest()[:8]
-        except OSError:
-            h = '0'
-        _static_hash_cache[filename] = h
+    path = os.path.join(app.static_folder, filename)
+    try:
+        mtime = os.path.getmtime(path)
+    except OSError:
+        return f'/static/{filename}?h=0'
+    cached = _static_hash_cache.get(filename)
+    if cached is None or cached[0] != mtime:
+        with open(path, 'rb') as f:
+            h = _hashlib.md5(f.read()).hexdigest()[:8]
+        _static_hash_cache[filename] = (mtime, h)
+    else:
+        h = cached[1]
     return f'/static/{filename}?h={h}'
 
 # Compression and security improvements
