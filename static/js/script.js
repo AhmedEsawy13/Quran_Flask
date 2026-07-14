@@ -764,13 +764,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     
         try {
             const font = elements.quranTextSelect.value;
-            const readingView = elements.readingViewSelect?.value || 'verse-normal';
-            const selectedVersions = getSelectedMushafVersions();
+            let selectedVersions = getSelectedMushafVersions();
             const mushafVersion = selectedVersions[0] || '';
 
-            if (font === 'shamarly') {
-                await loadShamarlyQuranData(surahNumber, ayahNumber, readingView, selectedVersions);
-                return;
+            // الشمرلي's own waqf marks can't be embedded inline in the (borrowed
+            // qpc_hafs) text, so always request them regardless of which mushaf
+            // pills the user has checked — matches the "original" mode's need to
+            // show شمرلي's own symbols even when nothing else is selected.
+            if (font === 'shamarly' && !selectedVersions.includes('الشمرلي')) {
+                selectedVersions = ['الشمرلي', ...selectedVersions];
             }
 
             const params = new URLSearchParams();
@@ -799,6 +801,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             currentSegments = buildAyahSegments(verse);
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
+            if (font === 'shamarly') await applyShamarlyGlyphs(surahNumber, ayahNumber);
             renderWaqfVerseTable();
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
@@ -826,71 +829,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    async function loadShamarlyQuranData(surahNumber, ayahNumber, readingView, mushafVersions) {
-        currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}`);
-        const reciter = elements.reciterSelect.value;
-        const surahAudio = await ensureSurahAudioLoaded(surahNumber, reciter);
-        const verse = surahAudio.verses.get(parseInt(ayahNumber, 10));
-        if (!verse) throw new Error('Reciter audio not found for this ayah');
-
-        const versions = Array.isArray(mushafVersions) ? mushafVersions : (mushafVersions ? [mushafVersions] : []);
-        // Always include الشمرلي so "original" mode can show Shamarly's own symbols
-        const versionsWithOwn = versions.includes('الشمرلي') ? versions : ['الشمرلي', ...versions];        const params = new URLSearchParams();
-        versionsWithOwn.forEach((v) => params.append('mushaf_version', v));
-        const query = params.toString() ? `?${params.toString()}` : '';
-
-        let shamarlyPayload;
-        if (readingView === 'page') {
-            shamarlyPayload = await fetchData(`/api/shamarly/page-by-ayah/${surahNumber}/${ayahNumber}${query}`);
-        } else {
-            shamarlyPayload = await fetchData(`/api/shamarly/ayah/${surahNumber}/${ayahNumber}${query}`);
+    // الشمرلي enhancement: the generic pipeline already rendered this ayah's
+    // words as plain (qpc_hafs-identical) text via displayQuranicText(). This
+    // upgrades whichever words have a genuine page-local Shemrly glyph
+    // available (only ~17/521 pages ship a font) — every other word is left
+    // exactly as the generic pipeline rendered it. `/api/shamarly/ayah/...` is
+    // purely positional (surah/ayah/word_index → page → font → codepoint), so
+    // it needs no mushaf_version query — waqf-symbol overlay is already
+    // handled generically via currentAyahData.waqf_symbols.
+    async function applyShamarlyGlyphs(surahNumber, ayahNumber) {
+        let payload;
+        try {
+            payload = await fetchData(`/api/shamarly/ayah/${surahNumber}/${ayahNumber}`);
+        } catch (error) {
+            return; // plain text already rendered — nothing to enhance
         }
+        const allWords = Array.isArray(payload?.words) ? payload.words : [];
+        // quran_script.db keeps the ayah number as its own trailing "word" entry,
+        // while the generic pipeline's qpc_hafs-based tokenization glues it (via
+        // NBSP) onto the last real word instead — so it never appears as a
+        // separate .word-token. Drop it before aligning, else counts mismatch
+        // and every real word in the ayah loses its glyph enhancement.
+        const words = allWords.filter((w) => !/^[٠-٩]+$/.test((w?.text_original || '').trim()));
+        const wordEls = elements.quranTextContainer.querySelectorAll(':scope > .word-token');
+        // Alignment guard: both lists must describe the same ayah word-for-word
+        // (confirmed same underlying qpc_hafs-equivalent text) — if they don't
+        // line up for some reason, skip the enhancement rather than mismatch glyphs.
+        if (!words.length || words.length !== wordEls.length) return;
 
-        if (shamarlyPayload?.font_name) {
-            await ensureShamarlyFontLoaded(shamarlyPayload.font_name);
-            elements.quranTextContainer.style.fontFamily = `'${shamarlyPayload.font_name}', 'UthmanicHafs', serif`;
-        }
+        // A verse can span two font-bearing pages; load every referenced page's
+        // font before touching any DOM, so words don't flash plain-then-glyph.
+        const pages = Array.isArray(payload?.pages) ? payload.pages : [];
+        await Promise.all(pages.map((p) => ensureShamarlyFontLoaded(shamarlyFontName(p))));
 
-        // A verse can span two font-bearing pages; each page's glyphs are page-local,
-        // so load every referenced page font (not just the first) before rendering.
-        const shamarlyFontPages = Array.isArray(shamarlyPayload?.pages) ? shamarlyPayload.pages : [];
-        await Promise.all(
-            shamarlyFontPages.map((p) => ensureShamarlyFontLoaded(shamarlyFontName(p)))
-        );
-
-        elements.audioElement.currentTime = verse.start;
-        if (!isRangeMode) setAyahStopAt(verse.end, handleAyahEndedNormal);
-        currentSegments = buildAyahSegments(verse);
-
-        if (readingView === 'page') {
-            renderShamarlyPage(shamarlyPayload);
-        } else if (readingView === 'verse-mushaf-lines') {
-            renderShamarlyVerseLines(shamarlyPayload);
-        } else {
-            renderShamarlyVerseWords(shamarlyPayload, currentSegments);
-        }
-
-        displayTransliteration(currentAyahData.transliteration);
-        await maybeRefreshTafseer(surahNumber, ayahNumber);
-        await maybeRefreshEerab(surahNumber, ayahNumber);
-        await maybeRefreshTajweed(surahNumber, ayahNumber);
-        await maybeRefreshMutashabihat(surahNumber, ayahNumber);
-        if (elements.wordMeaningVisible) {
-            const verseText = shamarlyPayload?.raw_text || currentAyahData.text || '';
-            displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, verseText);
-        } else {
-            elements.wordMeaningContainer.innerHTML = '';
-        }
-
-        updatePlayPauseButton();
-
-        // Refresh recitation guide if visible
-        const guideContainerSh = document.getElementById('recitation-guide-container');
-        if (guideContainerSh && guideContainerSh.style.display !== 'none') {
-            await fetchAndBuildRecitationGuide();
-        }
-
-        saveUserPreferences();
+        words.forEach((word, index) => {
+            if (!word?.glyph_page) return;
+            const wordEl = wordEls[index];
+            const baseEl = wordEl?.querySelector(':scope > .word-content > .word-base');
+            if (!baseEl) return;
+            baseEl.textContent = word.text || baseEl.textContent;
+            wordEl.style.fontFamily = `'${shamarlyFontName(word.glyph_page)}', 'UthmanicHafs', serif`;
+            wordEl.dataset.shamarlyGlyph = '1';
+        });
     }
 
     function shamarlyFontName(pageNumber) {
@@ -921,17 +901,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!ayahNumber) return;
 
         try {
-            if (elements.quranTextSelect.value === 'shamarly') {
-                await loadQuranData();
-                return;
-            }
+            const _fontNow = elements.quranTextSelect.value;
 
             // Use cached data if available, otherwise fetch
             if (!currentAyahData || currentAyahData.surah_number !== parseInt(surahNumber) || currentAyahData.ayah_number !== parseInt(ayahNumber)) {
-                const _vers = getSelectedMushafVersions();
+                let _vers = getSelectedMushafVersions();
+                if (_fontNow === 'shamarly' && !_vers.includes('الشمرلي')) {
+                    _vers = ['الشمرلي', ..._vers];
+                }
                 const _p = new URLSearchParams();
                 _vers.forEach((v) => _p.append('mushaf_version', v));
-                const _fontNow = elements.quranTextSelect.value;
                 if (_fontNow === 'indopak_nastaleeq' || _fontNow === 'indopak_nastaleeq_2') {
                     _p.append('source', 'indopak_nastaleeq');
                 } else if (_fontNow === 'amiri_quran') {
@@ -940,12 +919,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const query = _p.toString() ? '?' + _p.toString() : '';
                 currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
             }
-            
+
             const verseKey = `${surahNumber}:${ayahNumber}`;
             // Use already cached quranTextData instead of making redundant API call.
             const _verseEntry = quranTextData?.[verseKey] || {};
             const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
             displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
+            if (_fontNow === 'shamarly') await applyShamarlyGlyphs(surahNumber, ayahNumber);
             renderWaqfVerseTable();
             displayTransliteration(currentAyahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
@@ -995,23 +975,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const words = mergeWaqfOnlyTokensIntoPrev(text.split(' '));
         const wordIndexToSegmentMap = new Map();
 
-        const _waqfMode = getCurrentWaqfMode();
-        const _isIndoPak = document.body.dataset.fontType === 'indopak';
-        let activeSymbols = waqfSymbols;
-        if (_waqfMode === 'none' || _waqfMode === 'original') {
-            activeSymbols = [];
-        } else if (_waqfMode === 'selected') {
-            const selSet = new Set(getSelectedMushafVersions());
-            activeSymbols = waqfSymbols.filter(s => selSet.has(s.version || ''));
-        } else if (_waqfMode === 'both') {
-            const selSet = new Set(getSelectedMushafVersions());
-            activeSymbols = waqfSymbols.filter(s => {
-                const v = s.version || '';
-                if (!selSet.has(v)) return false;
-                if (_isIndoPak && v === 'الهندي') return false;
-                return true;
-            });
-        }
+        // filterWaqfByMode() already encodes every font's special case (IndoPak's
+        // embedded marks in 'both', الشمرلي's own marks as its 'original' layer).
+        const activeSymbols = filterWaqfByMode(waqfSymbols);
 
         const waqfByToken = buildWaqfByTokenIndex(activeSymbols, words);
         const wordElements = []; // Cache word elements for performance
@@ -1371,142 +1337,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             tabsHtml +
             `</div>` +
             viewHtml;
-    }
-
-    function renderShamarlyVerseWords(shamarlyPayload, segments) {
-        const words = Array.isArray(shamarlyPayload?.words) ? shamarlyPayload.words : [];
-        const filtered = filterWaqfByMode(shamarlyPayload?.waqf_symbols || []);
-        const waqfByToken = buildWaqfByTokenIndex(filtered, words);
-        const wordIndexToSegmentMap = new Map();
-        const wordElements = [];
-        mapSegmentsToWords(segments, wordIndexToSegmentMap);
-
-        elements.quranTextContainer.innerHTML = '';
-
-        words.forEach((word, index) => {
-            const wordElement = createWordElement(word?.text || '', index, wordIndexToSegmentMap);
-            // Render each word with the font of the page its (page-local) glyph came from.
-            if (word?.glyph_page) {
-                wordElement.style.fontFamily = `'${shamarlyFontName(word.glyph_page)}', 'UthmanicHafs', serif`;
-            }
-            const waqfSymbols = waqfByToken.get(index);
-            if (waqfSymbols) {
-                appendWaqfEntries(wordElement, waqfSymbols, shamarlyPayload?.mushaf_version || '');
-            }
-            wordElements[index] = wordElement;
-            elements.quranTextContainer.appendChild(wordElement);
-            elements.quranTextContainer.appendChild(document.createTextNode(' '));
-        });
-
-        attachHighlightHandler(wordElements, wordIndexToSegmentMap);
-        refreshKhattRenderedWords();
-    }
-
-    function renderShamarlyVerseLines(shamarlyPayload) {
-        const lines = Array.isArray(shamarlyPayload?.verse_lines) ? shamarlyPayload.verse_lines : [];
-        const filteredSyms = filterWaqfByMode(shamarlyPayload?.waqf_symbols || []);
-        const waqfByToken = buildWaqfByTokenIndex(filteredSyms, shamarlyPayload?.words || []);
-        const verseWords = Array.isArray(shamarlyPayload?.words) ? shamarlyPayload.words : [];
-        const coveredTokenIndexes = new Set();
-
-        elements.quranTextContainer.innerHTML = '';
-        lines.forEach((line) => {
-            const lineEl = document.createElement('div');
-            lineEl.className = 'shamarly-line';
-            // Each verse line lives on one mushaf page; its words use that page's
-            // page-local glyphs, so apply that page's font to the whole line.
-            if (line.page_number) {
-                lineEl.style.fontFamily = `'${shamarlyFontName(line.page_number)}', 'UthmanicHafs', serif`;
-            }
-            (line.words || []).forEach((word) => {
-                const span = document.createElement('span');
-                span.className = 'shamarly-word';
-                span.textContent = word.text || '';
-                const waqfSymbols = waqfByToken.get(word.token_index);
-                if (waqfSymbols) {
-                    appendWaqfEntries(span, waqfSymbols, shamarlyPayload?.mushaf_version || '');
-                }
-                if (Number.isInteger(word.token_index)) {
-                    coveredTokenIndexes.add(word.token_index);
-                }
-                lineEl.appendChild(span);
-            });
-            elements.quranTextContainer.appendChild(lineEl);
-        });
-
-        // Fallback: ensure full ayah is visible when layout lines don't cover all tokens.
-        const missingWords = verseWords
-            .map((word, tokenIndex) => ({ word, tokenIndex }))
-            .filter((entry) => !coveredTokenIndexes.has(entry.tokenIndex));
-
-        if ((lines.length === 0 && verseWords.length > 0) || missingWords.length > 0) {
-            const fallbackLine = document.createElement('div');
-            fallbackLine.className = 'shamarly-line';
-            const wordsToRender = lines.length === 0 ? verseWords.map((word, tokenIndex) => ({ word, tokenIndex })) : missingWords;
-
-            wordsToRender.forEach(({ word, tokenIndex }) => {
-                const span = document.createElement('span');
-                span.className = 'shamarly-word';
-                span.textContent = word?.text || '';
-                const waqfSymbols = waqfByToken.get(tokenIndex);
-                if (waqfSymbols) {
-                    appendWaqfEntries(span, waqfSymbols, shamarlyPayload?.mushaf_version || '');
-                }
-                fallbackLine.appendChild(span);
-            });
-
-            elements.quranTextContainer.appendChild(fallbackLine);
-        }
-
-        detachHighlightHandler();
-    }
-
-    function renderShamarlyPage(shamarlyPayload) {
-        const lines = Array.isArray(shamarlyPayload?.lines) ? shamarlyPayload.lines : [];
-        elements.quranTextContainer.innerHTML = '';
-
-        const frame = document.createElement('div');
-        frame.className = 'shamarly-page-frame';
-
-        lines.forEach((line) => {
-            const lineEl = document.createElement('div');
-            lineEl.className = 'shamarly-page-line';
-            const lineType = (line.line_type || '').toString();
-            if (lineType) {
-                lineEl.classList.add(lineType.replace(/_/g, '-'));
-            }
-            if (line.contains_focus_ayah) {
-                lineEl.classList.add('highlight');
-            }
-
-            const words = Array.isArray(line.words) ? line.words : [];
-            if (words.length === 0 && line.raw_text) {
-                lineEl.textContent = line.raw_text;
-            } else {
-                words.forEach((word) => {
-                    const span = document.createElement('span');
-                    span.className = 'shamarly-word';
-                    span.textContent = word.text || '';
-                    if (word.waqf_symbols) {
-                        appendWaqfEntries(span, word.waqf_symbols, shamarlyPayload?.mushaf_version || '');
-                    }
-                    lineEl.appendChild(span);
-                });
-            }
-
-            frame.appendChild(lineEl);
-        });
-
-        elements.quranTextContainer.appendChild(frame);
-
-        if (shamarlyPayload?.page_number) {
-            const indicator = document.createElement('div');
-            indicator.className = 'shamarly-page-indicator';
-            indicator.textContent = `صفحة ${shamarlyPayload.page_number}`;
-            elements.quranTextContainer.appendChild(indicator);
-        }
-
-        detachHighlightHandler();
     }
 
     function buildWaqfByTokenIndex(waqfSymbols, words = []) {
@@ -1873,28 +1703,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function detachHighlightHandler() {
-        if (elements.audioElement.timeUpdateHandler) {
-            elements.audioElement.removeEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
-            elements.audioElement.timeUpdateHandler = null;
-        }
-    }
-
-    function attachHighlightHandler(wordElements, wordIndexToSegmentMap) {
-        detachHighlightHandler();
-
-        let lastHighlightTime = 0;
-        const highlightThrottle = 100;
-        elements.audioElement.timeUpdateHandler = () => {
-            const now = Date.now();
-            if (now - lastHighlightTime >= highlightThrottle) {
-                highlightWords(wordElements, wordIndexToSegmentMap);
-                lastHighlightTime = now;
-            }
-        };
-        elements.audioElement.addEventListener('timeupdate', elements.audioElement.timeUpdateHandler);
-    }
-
     function displayTransliteration(data) {
         if (elements.transliterationContainer) {
             elements.transliterationContainer.innerHTML = data?.t || 'No transliteration available';
@@ -2081,6 +1889,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         wordItems.forEach((item) => {
+            // شمرلي page-local glyph substitution (applyShamarlyGlyphs) already
+            // set this word's text/font — dataset.textOriginal/textClean is the
+            // plain qpc_hafs text underneath, not what should be displayed.
+            if (item.wordEl.dataset.shamarlyGlyph === '1') return;
             applyTextKhattWord(item.baseEl, item.rawText, featureSettings);
         });
 
@@ -2398,9 +2210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function applyVisibleTajweedToVerseText(wordItems, featureSettings, renderVersion) {
         if (!isTajweedEnabled() || !wordItems.length) return;
-        // الشمرلي renders page-local glyphs, not real letters, so per-letter
-        // tajweed spans don't apply — skip coloring entirely in that mode.
-        if (document.body.dataset.fontType === 'shamarly') return;
 
         const surahNumber = elements.surahSelect?.value;
         const ayahNumber = elements.ayahSelect?.value;
@@ -2423,6 +2232,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             contentWordItems.forEach((item, index) => {
+                // شمرلي page-local glyph substitution: baseEl currently holds an
+                // opaque glyph char, not the real letter — colouring it would
+                // both look wrong and clobber the substitution. Skipped here
+                // (not filtered out above) so tajweedWords' index alignment with
+                // the rest of the ayah's real words stays correct.
+                if (item.wordEl.dataset.shamarlyGlyph === '1') return;
                 // Overlay colours onto the unchanged QPC display word (mode-aware:
                 // rawText already has waqf stripped in selected/none). Ornaments,
                 // waqf marks and verse numbers align to nothing in the source and
@@ -3268,7 +3083,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Non-range single-ayah repeat: fires when the current ayah's own end
-    // boundary is crossed (see loadQuranData()/loadShamarlyQuranData()).
+    // boundary is crossed (see loadQuranData()).
     function handleAyahEndedNormal() {
         elements.audioElement.pause(); // stop before it drifts into the next ayah's audio
         currentRepeatCount++;
