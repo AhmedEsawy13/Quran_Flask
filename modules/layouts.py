@@ -79,9 +79,6 @@ def get_shamarly_ayah(surah_number, ayah_number):
 
         layout_conn.close()
         
-        glyph_conn = sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'glyph_mappings.db'))
-        glyph_conn.row_factory = sqlite3.Row
-        glyph_cursor = glyph_conn.cursor()
         font_name = None
         if pages:
             # Shemrly font naming follows actual Mushaf page numbering.
@@ -127,7 +124,6 @@ def get_shamarly_ayah(surah_number, ayah_number):
                 # render each word with the font of the page its glyph came from,
                 # otherwise the second page's words draw the first page's glyphs.
                 word['glyph_page'] = glyph_page
-        glyph_conn.close()
 
         waqf_symbols = []
         if mushaf_version:
@@ -1125,8 +1121,8 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
     # Page content width (justified lines only) for frontend per-line scaling.
     page_content_width = None
     if include_advance:
-        justified = [l.get('total_advance') for l in output_lines
-                     if l.get('total_advance') and not l.get('x_offset')]
+        justified = [line.get('total_advance') for line in output_lines
+                     if line.get('total_advance') and not line.get('x_offset')]
         if justified:
             justified.sort()
             page_content_width = justified[len(justified) // 2]

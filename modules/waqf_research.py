@@ -49,7 +49,6 @@ def _build_solo_stops_index():
     if _solo_stops_index is not None:
         return _solo_stops_index
 
-    reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
     per_reciter = defaultdict(list)
 
     for surah in range(1, 115):
@@ -569,7 +568,8 @@ _MARK_INFO = [
 ]
 _MARK_SET = {m for m, _, _ in _MARK_INFO}
 _AR_DIGITS = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
-_to_arabic_digits = lambda n: str(n).translate(_AR_DIGITS)
+def _to_arabic_digits(n):
+    return str(n).translate(_AR_DIGITS)
 _mushaf_pos_data: dict | None = None   # per-position raw/sem/verse, for the diff endpoint
 
 
