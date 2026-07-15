@@ -5,6 +5,9 @@
 
 @font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')      format('woff2'); font-display: swap; }
 @font-face { font-family: 'Uthmanic Hafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'); font-display: swap; }
+/* Running-head glyphs (shared with تثبيت — same static font files). */
+@font-face { font-family: 'QCF Common';  src: url('../fonts/quran-common.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'Surah Names'; src: url('../fonts/surah_names.woff2?v=2') format('woff2'); font-display: swap; }
 
 /* Colors ride on أثَر's shared editorial palette (brand.css --athar-*) so this
  * page's identity stays in sync as the rest of the app migrates onto it —
@@ -107,9 +110,18 @@ body {
 .ed-page-card[data-side="right"] { padding-inline-end: 10px; }
 .ed-page-card[data-side="left"]  { padding-inline-start: 10px; }
 .ed-page-header {
-    display: flex; align-items: center; justify-content: center; gap: 6px;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
     text-align: center; font-size: 0.8rem; color: var(--ed-muted); margin-bottom: 4px; font-weight: 600;
 }
+.ed-head-info { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+/* Running head — informational only (this page already has its own jump/
+   prev-next nav, so unlike تثبيت's tap-to-pick juz/surah/page sheet, these
+   aren't interactive here). */
+.ed-head-juz { color: var(--ed-muted); white-space: nowrap; }
+.ed-head-juz.ed-juz-glyph { font-family: 'QCF Common', serif; font-size: 1.5em; line-height: 1.4; color: var(--ed-ink); }
+.ed-head-surah { display: inline-flex; align-items: center; gap: 8px; color: var(--ed-accent); white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ed-head-surah .ed-head-glyph-item { font-family: 'Surah Names', serif; font-size: 1.2em; line-height: 1.5; color: var(--ed-ink); display: inline-block; }
+.ed-head-surah .ed-head-text-item { font-weight: 700; }
 .ed-ref-btn {
     display: inline-flex; align-items: center; justify-content: center;
     width: 24px; height: 24px; border-radius: 6px; padding: 0;

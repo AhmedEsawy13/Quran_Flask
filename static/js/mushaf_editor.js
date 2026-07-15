@@ -13,8 +13,8 @@
 (function () {
     'use strict';
     const $ = id => document.getElementById(id);
-    const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
     const { normalizeNonWarshWaqfText, stripEmbeddedWaqf } = window.AtharMushaf;
+    const { toAr, juzNumber, juzGlyph, surahHeaderGlyph, JUZ_NAME } = window.AtharPageChrome;
 
     const MAX_SPREAD = 302;
     const MAX_PAGE = 604;
@@ -46,6 +46,8 @@
     const els = {
         pageR: $('ed-page-r'), pageL: $('ed-page-l'),
         pageRNum: $('ed-page-r-num'), pageLNum: $('ed-page-l-num'),
+        juzR: $('ed-juz-r'), juzL: $('ed-juz-l'),
+        surahR: $('ed-surah-r'), surahL: $('ed-surah-l'),
         refR: $('ed-ref-r'), refL: $('ed-ref-l'),
         spreadLabel: $('ed-spread-label'),
         progress: $('ed-progress'),
@@ -153,17 +155,19 @@
     els.refL.addEventListener('click', () => openReference(els.refL));
 
     /* ── Page rendering ──────────────────────────────────────────── */
-    function renderPage(container, numEl, refBtn, payload) {
+    function renderPage(container, numEl, refBtn, juzEl, surahEl, payload) {
         container.innerHTML = '';
         if (!payload) {
             numEl.textContent = '';
+            juzEl.textContent = ''; juzEl.classList.remove('ed-juz-glyph');
+            surahEl.innerHTML = '';
             refBtn.hidden = true;
             delete refBtn.dataset.page;
             delete refBtn.dataset.surah;
             delete refBtn.dataset.ayah;
             return;
         }
-        numEl.textContent = `صفحة ${toAr(payload.page_number)}`;
+        numEl.textContent = window.AtharPageChrome.pageNumberLabel(payload.page_number);
         refBtn.dataset.page = payload.page_number;
         if (payload.anchor_surah_number && payload.anchor_ayah_number) {
             refBtn.dataset.surah = payload.anchor_surah_number;
@@ -202,6 +206,30 @@
                 applyWordMark(wordElement, editionSym, baselineSym);
             },
         });
+
+        // Running head: every surah on the page + its juz — informational only
+        // (this page already has its own jump/prev-next nav, unlike تثبيت's
+        // tap-to-pick sheet for the same running head).
+        const seen = new Set();
+        const surahsOnPage = [];
+        (payload.lines || []).forEach(l => {
+            (l.words || []).forEach(w => { if (w.surah != null && !seen.has(w.surah)) { seen.add(w.surah); surahsOnPage.push(w.surah); } });
+            if (l.line_type === 'surah_name' && l.surah_number != null && !seen.has(l.surah_number)) { seen.add(l.surah_number); surahsOnPage.push(l.surah_number); }
+        });
+        if (!surahsOnPage.length && payload.anchor_surah_number != null) surahsOnPage.push(payload.anchor_surah_number);
+        surahEl.innerHTML = '';
+        surahsOnPage.forEach(sn => {
+            const g = surahHeaderGlyph(sn);
+            const item = document.createElement('span');
+            if (g) { item.className = 'ed-head-glyph-item'; item.textContent = g; item.setAttribute('aria-label', `سورة ${sn}`); }
+            else { item.className = 'ed-head-text-item'; item.textContent = `سورة ${sn}`; }
+            surahEl.appendChild(item);
+        });
+        const jn = juzNumber(payload.page_number);
+        const jg = juzGlyph(jn);
+        const jl = `الجزء ${JUZ_NAME[jn - 1]}`;
+        if (jg) { juzEl.classList.add('ed-juz-glyph'); juzEl.textContent = jg; juzEl.title = jl; juzEl.setAttribute('aria-label', jl); }
+        else { juzEl.classList.remove('ed-juz-glyph'); juzEl.textContent = jl; }
     }
 
     /* ── Page sizing & line-fit ──────────────────────────────────────
@@ -282,8 +310,8 @@
             const query = window.AtharMushaf.buildQuery({ params: { edition } });
             const data = await window.AtharApi.json(`/api/mushaf-editor/spread/${spread}${query}`);
             if (!spreadRequests.isCurrent(request)) return false;
-            renderPage(els.pageR, els.pageRNum, els.refR, data.right);
-            renderPage(els.pageL, els.pageLNum, els.refL, data.left);
+            renderPage(els.pageR, els.pageRNum, els.refR, els.juzR, els.surahR, data.right);
+            renderPage(els.pageL, els.pageLNum, els.refL, els.juzL, els.surahL, data.left);
             els.spreadLabel.textContent = `${toAr(spread)} / ${toAr(MAX_SPREAD)}`;
             state.currentPages = [data.right, data.left].filter(Boolean).map(p => p.page_number);
             updateReviewedCheckbox();
