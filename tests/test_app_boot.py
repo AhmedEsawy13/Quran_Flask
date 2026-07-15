@@ -56,3 +56,42 @@ def test_error_responses_stay_uncached_across_modules(client):
     r = client.get('/api/waqf-practice/passage/999/1/1')
     assert r.status_code == 400
     assert 'no-store' in r.headers.get('Cache-Control', '')
+
+
+def test_editor_rejects_out_of_bounds_and_unknown_symbols(client):
+    assert client.get('/api/mushaf-editor/spread/303?edition=%D9%82%D8%B7%D8%B1').status_code == 400
+    assert client.post('/api/mushaf-editor/progress', json={
+        'edition': 'قطر', 'page_number': 605, 'reviewed': True,
+    }).status_code == 400
+    assert client.post('/api/mushaf-editor/waqf', json={
+        'word_id': 1, 'edition': 'قطر', 'symbol': '<script>',
+    }).status_code == 400
+
+
+def test_shared_frontend_layers_are_mounted(client):
+    reading = client.get('/read').get_data(as_text=True)
+    assert 'css/reading_athar.css' in reading
+    assert 'js/athar-api.js' in reading
+    assert '<body class="athar-reading">' in reading
+    for url in ('/waqf', '/waqf-practice', '/memorize', '/mushaf-editor'):
+        assert 'js/athar-api.js' in client.get(url).get_data(as_text=True)
+    for url in ('/waqf', '/waqf-practice', '/memorize', '/mushaf-editor'):
+        assert 'js/athar-ui.js' in client.get(url).get_data(as_text=True)
+    for url in ('/read', '/memorize', '/mushaf-editor', '/waqf', '/waqf-practice'):
+        assert 'js/athar-mushaf.js' in client.get(url).get_data(as_text=True)
+    assert 'js/mushaf-layout-core.js' not in client.get('/waqf-practice').get_data(as_text=True)
+
+
+def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
+    page = client.get('/waqf').get_data(as_text=True)
+    assert 'role="tablist"' in page
+    assert page.count('role="tab"') == 10
+    assert page.count('role="tabpanel"') == 10
+    assert 'id="wq-status" role="status" aria-live="polite" hidden' in page
+
+
+def test_memorization_exposes_live_status(client):
+    page = client.get('/memorize').get_data(as_text=True)
+    assert 'id="mz-status" role="status" aria-live="polite" hidden' in page
+    assert 'id="mz-asr-dev" hidden' in page
+    assert 'id="mz-recite-btn"' in page

@@ -7,7 +7,7 @@
 
     const els = {
         surah: $('wp-surah'), from: $('wp-from'), to: $('wp-to'), mushaf: $('wp-mushaf'),
-        load: $('wp-load'), hint: $('wp-hint'), rangeLabel: $('wp-range-label'),
+        load: $('wp-load'), hint: $('wp-hint'), intro: $('wp-intro'), rangeLabel: $('wp-range-label'),
         rangeTrigger: $('wp-range-trigger'), rangePanel: $('wp-range-panel'),
         mushafTrigger: $('wp-mushaf-trigger'), mushafPanel: $('wp-mushaf-panel'), mushafLabel: $('wp-mushaf-label'),
         passageSec: $('wp-passage-sec'), passage: $('wp-passage'),
@@ -20,28 +20,16 @@
         tErr: $('wp-t-err'), legend: $('wp-legend'), graded: $('wp-graded'), followups: $('wp-followups'),
     };
 
-    // Button state helpers (follow/tajweed/layout are now aria-pressed buttons,
-    // not checkboxes) + a small popover pair mirroring mushaf_memorize.js's
-    // togglePopover/closePopovers pattern for the new المقطع/المصحف chips.
+    // Button state helpers (follow/tajweed/layout are aria-pressed buttons,
+    // not checkboxes). Popover behavior is shared with the memorization page.
     const isPressed = btn => !!btn && btn.getAttribute('aria-pressed') === 'true';
     const setPressed = (btn, val) => { if (btn) btn.setAttribute('aria-pressed', val ? 'true' : 'false'); };
-    const POPOVERS = [];
-    function registerPopover(trigger, panel) { if (trigger && panel) POPOVERS.push({ trigger, panel }); }
-    function closePopovers(except) {
-        POPOVERS.forEach(({ trigger, panel }) => {
-            if (panel === except) return;
-            panel.hidden = true;
-            trigger.setAttribute('aria-expanded', 'false');
-        });
-    }
-    function togglePopover(trigger, panel) {
-        const opening = panel.hidden;
-        closePopovers(opening ? panel : null);
-        panel.hidden = !opening;
-        trigger.setAttribute('aria-expanded', String(opening));
-    }
+    const popovers = window.AtharUi.createPopoverGroup();
 
     const state = { surahs: [], ayahCount: {}, verses: [], stops: new Set() /* "ayah:wpos" */ };
+    const surahRequests = window.AtharMushaf.createRequestGate();
+    const passageRequests = window.AtharMushaf.createRequestGate();
+    const gradeRequests = window.AtharMushaf.createRequestGate();
     // Phoneme recite-follow: reference entries {skel,ayah,wpos} + a resync cursor
     // (wi = word we're on, anchor = index into the recited skeleton where it begins).
     const rec = { on: false, ref: [], wi: 0, anchor: 0, cur: null };
@@ -59,8 +47,8 @@
     /* ── setup ──────────────────────────────────────────────────────── */
     async function init() {
         const [surahs, versions] = await Promise.all([
-            fetch('/api/surahs').then(r => r.json()).catch(() => []),
-            fetch('/api/mushaf-versions').then(r => r.json()).catch(() => []),
+            window.AtharApi.json('/api/surahs').catch(() => []),
+            window.AtharApi.json('/api/mushaf-versions').catch(() => []),
         ]);
         state.surahs = Array.isArray(surahs) ? surahs : [];
         els.surah.innerHTML = state.surahs.map(s =>
@@ -74,6 +62,7 @@
         els.mushaf.addEventListener('change', () => {
             if (els.mushafLabel) els.mushafLabel.textContent = els.mushaf.value;
             updateLayoutToggle();
+            if (state.verses.length) loadPassage();
         });
         if (els.layout) els.layout.addEventListener('click', () => {
             setPressed(els.layout, !isPressed(els.layout));
@@ -90,11 +79,11 @@
             if (!isPressed(els.follow)) clearReciting();
         });
         if (els.tajweed) els.tajweed.addEventListener('click', () => setPressed(els.tajweed, !isPressed(els.tajweed)));
-        registerPopover(els.rangeTrigger, els.rangePanel);
-        registerPopover(els.mushafTrigger, els.mushafPanel);
-        if (els.rangeTrigger) els.rangeTrigger.addEventListener('click', () => togglePopover(els.rangeTrigger, els.rangePanel));
-        if (els.mushafTrigger) els.mushafTrigger.addEventListener('click', () => togglePopover(els.mushafTrigger, els.mushafPanel));
-        document.addEventListener('click', e => { if (!e.target.closest('.mz-pop')) closePopovers(); });
+        popovers.register(els.rangeTrigger, els.rangePanel);
+        popovers.register(els.mushafTrigger, els.mushafPanel);
+        if (els.rangeTrigger) els.rangeTrigger.addEventListener('click', () => popovers.toggle(els.rangeTrigger, els.rangePanel));
+        if (els.mushafTrigger) els.mushafTrigger.addEventListener('click', () => popovers.toggle(els.mushafTrigger, els.mushafPanel));
+        document.addEventListener('click', e => { if (!e.target.closest('.mz-pop')) popovers.close(); });
         await onSurah();
         // deep link ?surah=&from=&to=
         const p = new URLSearchParams(location.search);
@@ -105,11 +94,13 @@
     }
 
     async function onSurah() {
+        const request = surahRequests.next();
         const s = +els.surah.value || 1;
         if (!state.ayahCount[s]) {
-            const list = await fetch(`/api/surahs/${s}/ayahs`).then(r => r.json()).catch(() => []);
+            const list = await window.AtharApi.json(`/api/surahs/${s}/ayahs`).catch(() => []);
             state.ayahCount[s] = Array.isArray(list) ? list.length : 0;
         }
+        if (!surahRequests.isCurrent(request)) return;
         const n = state.ayahCount[s] || 0;
         const opts = Array.from({ length: n }, (_, i) => `<option value="${i + 1}">${toAr(i + 1)}</option>`).join('');
         els.from.innerHTML = opts;
@@ -121,29 +112,39 @@
     /* ── load a passage as tappable words ──────────────────────────── */
     async function loadPassage() {
         const s = +els.surah.value, f = +els.from.value, t = +els.to.value;
+        const mushaf = els.mushaf.value;
+        const useLayout = !!els.layout && isPressed(els.layout) && isMadinah();
         if (t < f) { els.to.value = els.from.value; return; }
         if (t - f > 20) { alert('المقطع طويل — اختر ٢١ آية أو أقل.'); return; }
+        const request = passageRequests.next();
+        gradeRequests.cancel();
         els.load.disabled = true;
         try {
             if (rec.on) stopRecord();
-            const j = await fetch(`/api/waqf-practice/passage/${s}/${f}/${t}`).then(r => r.json());
+            const j = await window.AtharApi.json(`/api/waqf-practice/passage/${s}/${f}/${t}`);
+            if (!passageRequests.isCurrent(request)) return;
             state.verses = j.verses || [];
             state.stops.clear();
             // Madinah page-layout view (optional) renders the real mushaf lines;
             // it keys words the same way (ayah:wpos) so tap/grade/ASR are unchanged.
-            if (els.layout && isPressed(els.layout) && isMadinah()) await renderMushafLayout(s, f, t, els.mushaf.value);
-            else renderPassage();
+            let renderedLayout = false;
+            if (useLayout) {
+                renderedLayout = await renderMushafLayout(s, f, t, mushaf, request);
+                if (!passageRequests.isCurrent(request)) return;
+            }
+            if (!renderedLayout) renderPassage();
             const name = (state.surahs.find(x => (x.number ?? x) === s) || {}).name || '';
             if (els.rangeLabel) els.rangeLabel.textContent = `${name} · ${toAr(f)}${t > f ? '–' + toAr(t) : ''}`;
             els.hint.hidden = false;
+            if (els.intro) els.intro.hidden = true;
             els.passageSec.hidden = false;
             els.resultSec.hidden = true;
             updateCount();
             els.passageSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (e) {
-            alert('تعذّر تحميل المقطع.');
+            if (passageRequests.isCurrent(request)) alert('تعذّر تحميل المقطع.');
         } finally {
-            els.load.disabled = false;
+            if (passageRequests.isCurrent(request)) els.load.disabled = false;
         }
     }
 
@@ -206,83 +207,58 @@
         if (!els.layout) return;
         const madinah = isMadinah();
         els.layout.hidden = !madinah;
-        if (madinah) setPressed(els.layout, true);
+        setPressed(els.layout, madinah);
     }
     const _hasArabic = s => /[ء-ي]/.test(s || '');
-    const _maxAyahOnPage = (page, s) => {
-        let mx = 0;
-        (page.lines || []).forEach(ln => (ln.words || []).forEach(w => { if (w.surah === s && w.ayah > mx) mx = w.ayah; }));
-        return mx;
-    };
-
-    async function renderMushafLayout(s, f, t, mushaf) {
-        const base = MushafLayoutCore.pageApiBase(MADINAH_LAYOUT_SRC[mushaf]);
-        const mv = 'mushaf_version=' + encodeURIComponent(mushaf);
-        let page;
-        try { page = await MushafLayoutCore.fetchPageByAyah(base, s, f, mv); }
-        catch (e) { renderPassage(); return; }
-        if (!page || !page.lines) { renderPassage(); return; }
-        const pages = [page];
-        let guard = 0;
-        while (guard++ < 8 && _maxAyahOnPage(page, s) < t) {
-            const next = (page.page_number | 0) + 1;
-            try { page = await MushafLayoutCore.fetchPageByNumber(base, next, mv); }
-            catch (e) { break; }
-            if (!page || !page.lines) break;
-            pages.push(page);
+    async function renderMushafLayout(s, f, t, mushaf, request) {
+        const source = MADINAH_LAYOUT_SRC[mushaf];
+        const client = window.AtharMushaf.createPageClient({
+            getSource: () => source,
+            getVersions: () => [mushaf],
+        });
+        let pages;
+        try {
+            pages = await window.AtharMushaf.loadPageRange({
+                client, surah: s, fromAyah: f, toAyah: t, maxPages: 8,
+                isCurrent: () => passageRequests.isCurrent(request),
+            });
+        } catch (e) {
+            return false;
         }
+        if (!pages || !pages.length) return false;
+        if (window.AtharMushaf.maxAyahOnPage(pages[pages.length - 1], s) < t) return false;
         const lines = [];
         pages.forEach(p => (p.lines || []).forEach(ln => lines.push(ln)));
-        renderLayoutLines(lines, s, f, t, mushaf);
+        return renderLayoutLines(lines, s, f, t, mushaf);
     }
 
-    const _lineTouchesRange = (ln, s, f, t) =>
-        (ln.words || []).some(w => w.surah === s && w.ayah >= f && w.ayah <= t);
-
     function renderLayoutLines(lines, s, f, t, mushaf) {
-        // render window: first → last line that touches the selected range
-        let start = lines.findIndex(ln => _lineTouchesRange(ln, s, f, t));
-        let end = -1;
-        for (let i = lines.length - 1; i >= 0; i--) { if (_lineTouchesRange(lines[i], s, f, t)) { end = i; break; } }
-        if (start < 0) { renderPassage(); return; }        // range not found on page → fall back
-        // pull in a leading surah header / basmala when the passage opens a surah
-        while (start > 0 && ['surah_name', 'basmallah'].includes(lines[start - 1].line_type)) start--;
+        const selectedLines = window.AtharMushaf.sliceLinesForAyahRange(lines, s, f, t);
+        if (!selectedLines.length) return false;
 
         // Digital Khatt is the unscoped default (matches mushaf_memorize.css's
         // own convention); qpc-v1/Old Madina is a scoped override — see waqf_practice.css.
         const src = MADINAH_LAYOUT_SRC[mushaf] || 'digital_khatt';
         els.passage.className = 'wp-passage wp-ml' + (src === 'qpc_v1' ? ' wp-ml-src-qpc-v1' : '');
-        els.passage.innerHTML = '';
-        const wpos = new Map();                             // ayah → next real-word index
-        for (let i = start; i <= end; i++) {
-            const ln = lines[i];
-            if (ln.line_type === 'surah_name') {
-                const d = document.createElement('div'); d.className = 'wp-ml-surah'; d.textContent = ln.display_text || ''; els.passage.appendChild(d); continue;
-            }
-            if (ln.line_type === 'basmallah') {
-                const d = document.createElement('div'); d.className = 'wp-ml-basmala'; d.textContent = ln.display_text || 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'; els.passage.appendChild(d); continue;
-            }
-            const lineEl = document.createElement('div');
-            lineEl.className = 'wp-ml-line' + (ln.is_centered ? ' is-centered' : '');
-            (ln.words || []).forEach(w => {
-                const raw = w.text || '';
-                if (!_hasArabic(raw)) {                     // ۝N ayah-number glyph — not a word
-                    const g = document.createElement('span'); g.className = 'wp-ml-num'; g.textContent = raw; lineEl.appendChild(g); return;
-                }
-                const pos = wpos.get(w.ayah) ?? 0; wpos.set(w.ayah, pos + 1);
-                const el = document.createElement('span');
-                if (w.surah === s && w.ayah >= f && w.ayah <= t) {
-                    el.className = 'wp-word';
-                    el.dataset.key = w.ayah + ':' + pos; el.dataset.ayah = w.ayah; el.dataset.wpos = pos;
-                } else {
-                    el.className = 'wp-ml-ctx';            // out-of-range context word (dimmed, inert)
-                }
-                el.textContent = raw;
-                lineEl.appendChild(el);
-            });
-            els.passage.appendChild(lineEl);
-        }
+        window.AtharMushaf.renderMushafLines(els.passage, selectedLines, {
+            lineClass: 'wp-ml-line', centeredClass: 'is-centered',
+            surahClass: 'wp-ml-surah', basmalaClass: 'wp-ml-basmala',
+            wrapContent: false, wrapSpecial: false, separator: '',
+            countWord: ({ raw }) => _hasArabic(raw),
+            classForWord: ({ counted, word }) => {
+                if (!counted) return 'wp-ml-num';
+                return Number(word.surah) === s && Number(word.ayah) >= f && Number(word.ayah) <= t
+                    ? 'wp-word' : 'wp-ml-ctx';
+            },
+            identityKey: ({ word, position }) => Number(word.surah) === s
+                && Number(word.ayah) >= f && Number(word.ayah) <= t ? `${word.ayah}:${position}` : null,
+            decorateWord: (element, { counted, word }) => {
+                if (!counted || element.className !== 'wp-word') return;
+                element.dataset.ayah = String(word.ayah);
+            },
+        });
         wirePassageClicks();
+        return true;
     }
 
     function clearStops() {
@@ -299,24 +275,26 @@
 
     /* ── grade ─────────────────────────────────────────────────────── */
     async function gradeStops() {
+        const request = gradeRequests.next();
         const stops = [...state.stops].map(k => {
             const [ayah, wpos] = k.split(':').map(Number);
             return { ayah, wpos };
         });
         els.grade.disabled = true;
         try {
-            const j = await fetch('/api/waqf-practice/grade', {
+            const j = await window.AtharApi.json('/api/waqf-practice/grade', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     surah: +els.surah.value, from_ayah: +els.from.value,
                     to_ayah: +els.to.value, mushaf: els.mushaf.value, stops,
                 }),
-            }).then(r => r.json());
+            });
+            if (!gradeRequests.isCurrent(request)) return;
             renderResult(j);
         } catch (e) {
-            alert('تعذّر التقييم.');
+            if (gradeRequests.isCurrent(request)) alert('تعذّر التقييم.');
         } finally {
-            els.grade.disabled = false;
+            if (gradeRequests.isCurrent(request)) els.grade.disabled = false;
         }
     }
 
@@ -371,7 +349,7 @@
         rec.ref = []; rec.wi = 0; rec.anchor = 0; rec.cur = null; rec.lastPhonemes = '';
         const s = +els.surah.value, f = +els.from.value, t = +els.to.value;
         try {
-            const j = await fetch(`/api/waqf-practice/phonemes/${s}/${f}/${t}`).then(r => r.json());
+            const j = await window.AtharApi.json(`/api/waqf-practice/phonemes/${s}/${f}/${t}`);
             rec.ref = (j.entries || []).map(e => ({ ph: e.ph, skel: _phSkel(e.ph), ayah: e.ayah, wpos: e.wpos }));
         } catch (e) { rec.ref = []; }
     }
@@ -476,13 +454,13 @@
         if (!ph) { renderTajweed(null); return; }
         setRecNote('تحليل التجويد…');
         try {
-            const j = await fetch('/api/waqf-practice/tajweed', {
+            const j = await window.AtharApi.json('/api/waqf-practice/tajweed', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     surah: +els.surah.value, from_ayah: +els.from.value,
                     to_ayah: +els.to.value, phonemes: ph,
                 }),
-            }).then(r => r.json());
+            });
             renderTajweed(j);
         } catch (e) { renderTajweed(null); }
     }

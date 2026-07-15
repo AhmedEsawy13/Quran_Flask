@@ -17,6 +17,9 @@
     <!-- أثَر shared brand identity (fonts + logo) -->
     <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
     <script src="{{ static_hash('js/theme.js') }}"></script>
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <script src="{{ static_hash('js/athar-ui.js') }}"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -55,33 +58,33 @@
 
         <div class="ed-jump">
             <input type="number" id="ed-jump-page" min="1" max="604" placeholder="رقم الصفحة" aria-label="الانتقال إلى صفحة">
-            <button id="ed-jump-go" type="button" title="انتقال"><i class="fas fa-arrow-left"></i></button>
+            <button id="ed-jump-go" type="button" title="انتقال" aria-label="انتقال"><i class="fas fa-arrow-left"></i></button>
         </div>
 
         <div class="ed-nav">
-            <button id="ed-prev" type="button" title="السابق"><i class="fas fa-chevron-right"></i></button>
+            <button id="ed-prev" type="button" title="السابق" aria-label="الصفحتان السابقتان"><i class="fas fa-chevron-right"></i></button>
             <span class="ed-spread-label" id="ed-spread-label"></span>
-            <button id="ed-next" type="button" title="التالي"><i class="fas fa-chevron-left"></i></button>
+            <button id="ed-next" type="button" title="التالي" aria-label="الصفحتان التاليتان"><i class="fas fa-chevron-left"></i></button>
         </div>
 
-        <button class="ed-bar-btn" id="ed-theme" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
+        <button class="ed-bar-btn" id="ed-theme" data-athar-theme="cycle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
     </header>
 
-    <div class="ed-toast" id="ed-status" role="status"></div>
+    <div class="ed-toast" id="ed-status" role="status" aria-live="polite" hidden></div>
 
     <main class="ed-main">
         <div class="ed-spread" id="ed-spread">
             <div class="ed-page-card" data-side="right">
                 <div class="ed-page-header">
                     <span class="ed-page-num" id="ed-page-r-num"></span>
-                    <button class="ed-ref-btn" id="ed-ref-r" type="button" hidden><i class="fas fa-book-open"></i></button>
+                    <button class="ed-ref-btn" id="ed-ref-r" type="button" aria-label="فتح مرجع الصفحة" hidden><i class="fas fa-book-open"></i></button>
                 </div>
                 <div class="ed-page" id="ed-page-r" dir="rtl"></div>
             </div>
             <div class="ed-page-card" data-side="left">
                 <div class="ed-page-header">
                     <span class="ed-page-num" id="ed-page-l-num"></span>
-                    <button class="ed-ref-btn" id="ed-ref-l" type="button" hidden><i class="fas fa-book-open"></i></button>
+                    <button class="ed-ref-btn" id="ed-ref-l" type="button" aria-label="فتح مرجع الصفحة" hidden><i class="fas fa-book-open"></i></button>
                 </div>
                 <div class="ed-page" id="ed-page-l" dir="rtl"></div>
             </div>

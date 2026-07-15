@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const elements = getElements();
+    const { normalizeNonWarshWaqfText, stripEmbeddedWaqf } = window.AtharMushaf;
+    const quranRequests = window.AtharMushaf.createRequestGate();
     const reciterAudioDataMap = {};
     let quranTextData;
     let currentSegments = [];
@@ -758,6 +760,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function loadQuranData() {
+        const request = quranRequests.next();
         const surahNumber = elements.surahSelect.value;
         const ayahNumber = elements.ayahSelect.value;
         if (!ayahNumber) return;
@@ -765,7 +768,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const font = elements.quranTextSelect.value;
             let selectedVersions = getSelectedMushafVersions();
-            const mushafVersion = selectedVersions[0] || '';
 
             // الشمرلي's own waqf marks can't be embedded inline in the (borrowed
             // qpc_hafs) text, so always request them regardless of which mushaf
@@ -775,42 +777,47 @@ document.addEventListener('DOMContentLoaded', async () => {
                 selectedVersions = ['الشمرلي', ...selectedVersions];
             }
 
-            const params = new URLSearchParams();
-            selectedVersions.forEach((v) => params.append('mushaf_version', v));
             // Tell the backend which text source we're using so it can return
             // the correct embedded waqf symbols (e.g. الهندي for IndoPak fonts).
-            if (font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2') {
-                params.append('source', 'indopak_nastaleeq');
-            }
-            const query = params.toString() ? '?' + params.toString() : '';
-            currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
+            const source = font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2'
+                ? 'indopak_nastaleeq' : '';
+            const query = window.AtharMushaf.buildQuery({ versions: selectedVersions, source });
+            const ayahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
+            if (!quranRequests.isCurrent(request)) return false;
             const verseKey = `${surahNumber}:${ayahNumber}`;
-            const globalAyahNumber = currentAyahData.id;
+            const globalAyahNumber = ayahData.id;
             if (!globalAyahNumber) throw new Error(`No global Ayah number found for Surah ${surahNumber}, Ayah ${ayahNumber}`);
 
             const reciter = elements.reciterSelect.value;
             const surahAudio = await ensureSurahAudioLoaded(surahNumber, reciter);
+            if (!quranRequests.isCurrent(request)) return false;
             const verse = surahAudio.verses.get(parseInt(ayahNumber, 10));
             if (!verse) throw new Error('Reciter audio not found for this ayah');
+            currentAyahData = ayahData;
             elements.audioElement.currentTime = verse.start;
             if (!isRangeMode) setAyahStopAt(verse.end, handleAyahEndedNormal);
 
             // Use already cached quranTextData instead of making redundant API call.
             const _verseEntry = quranTextData?.[verseKey] || {};
-                const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
+            const ayahText = getDisplayedAyahText(_verseEntry, ayahData.text || ayahData.raw_text || '');
 
             currentSegments = buildAyahSegments(verse);
-            displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
+            displayQuranicText(ayahText, currentSegments, ayahData.waqf_symbols || []);
             if (font === 'shamarly') await applyShamarlyGlyphs(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             renderWaqfVerseTable();
-            displayTransliteration(currentAyahData.transliteration);
+            displayTransliteration(ayahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshEerab(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshTajweed(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshMutashabihat(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             // Only display word meanings if they should be visible
             if (elements.wordMeaningVisible) {
-                displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
+                displayWordMeanings(ayahData.word_meanings_ordered || ayahData.word_meanings || {}, ayahText);
             } else {
                 elements.wordMeaningContainer.innerHTML = '';
             }
@@ -820,12 +827,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             const guideContainer = document.getElementById('recitation-guide-container');
             if (guideContainer && guideContainer.style.display !== 'none') {
                 await fetchAndBuildRecitationGuide();
+                if (!quranRequests.isCurrent(request)) return false;
             }
 
             // Save current position to localStorage
             saveUserPreferences();
+            return true;
         } catch (error) {
+            if (!quranRequests.isCurrent(request)) return false;
             handleError('Error loading Quran data:', error, elements.quranTextContainer, 'خطأ في تحميل البيانات. يرجى المحاولة مرة أخرى لاحقًا.');
+            return false;
         }
     }
 
@@ -862,7 +873,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // A verse can span two font-bearing pages; load every referenced page's
         // font before touching any DOM, so words don't flash plain-then-glyph.
-        const pages = Array.isArray(payload?.pages) ? payload.pages : [];
+        const pages = Array.isArray(payload?.font_pages) ? payload.font_pages : [];
         await Promise.all(pages.map((p) => ensureShamarlyFontLoaded(shamarlyFontName(p))));
 
         words.forEach((word, index) => {
@@ -914,49 +925,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function updateDisplayedText() {
+        const request = quranRequests.next();
         const surahNumber = elements.surahSelect.value;
         const ayahNumber = elements.ayahSelect.value;
         if (!ayahNumber) return;
 
         try {
             const _fontNow = elements.quranTextSelect.value;
+            let ayahData = currentAyahData;
 
             // Use cached data if available, otherwise fetch
-            if (!currentAyahData || currentAyahData.surah_number !== parseInt(surahNumber) || currentAyahData.ayah_number !== parseInt(ayahNumber)) {
+            if (!ayahData || ayahData.surah_number !== parseInt(surahNumber) || ayahData.ayah_number !== parseInt(ayahNumber)) {
                 let _vers = getSelectedMushafVersions();
                 if (_fontNow === 'shamarly' && !_vers.includes('الشمرلي')) {
                     _vers = ['الشمرلي', ..._vers];
                 }
-                const _p = new URLSearchParams();
-                _vers.forEach((v) => _p.append('mushaf_version', v));
+                let source = '';
                 if (_fontNow === 'indopak_nastaleeq' || _fontNow === 'indopak_nastaleeq_2') {
-                    _p.append('source', 'indopak_nastaleeq');
+                    source = 'indopak_nastaleeq';
                 } else if (_fontNow === 'amiri_quran') {
-                    _p.append('source', 'amiri_quran');
+                    source = 'amiri_quran';
                 }
-                const query = _p.toString() ? '?' + _p.toString() : '';
-                currentAyahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
+                const query = window.AtharMushaf.buildQuery({ versions: _vers, source });
+                ayahData = await fetchData(`/api/surahs/${surahNumber}/ayahs/${ayahNumber}${query}`);
+                if (!quranRequests.isCurrent(request)) return false;
+                currentAyahData = ayahData;
             }
 
             const verseKey = `${surahNumber}:${ayahNumber}`;
             // Use already cached quranTextData instead of making redundant API call.
             const _verseEntry = quranTextData?.[verseKey] || {};
-            const ayahText = getDisplayedAyahText(_verseEntry, currentAyahData.text || currentAyahData.raw_text || '');
-            displayQuranicText(ayahText, currentSegments, currentAyahData.waqf_symbols || []);
+            const ayahText = getDisplayedAyahText(_verseEntry, ayahData.text || ayahData.raw_text || '');
+            displayQuranicText(ayahText, currentSegments, ayahData.waqf_symbols || []);
             if (_fontNow === 'shamarly') await applyShamarlyGlyphs(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             renderWaqfVerseTable();
-            displayTransliteration(currentAyahData.transliteration);
+            displayTransliteration(ayahData.transliteration);
             await maybeRefreshTafseer(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshEerab(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshTajweed(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshMutashabihat(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             if (elements.wordMeaningVisible) {
-                displayWordMeanings(currentAyahData.word_meanings_ordered || currentAyahData.word_meanings || {}, ayahText);
+                displayWordMeanings(ayahData.word_meanings_ordered || ayahData.word_meanings || {}, ayahText);
             } else {
                 elements.wordMeaningContainer.innerHTML = '';
             }
+            return true;
         } catch (error) {
+            if (!quranRequests.isCurrent(request)) return false;
             handleError('Error updating Quran text:', error, elements.quranTextContainer, 'خطأ في تحديث النص. يرجى المحاولة مرة أخرى لاحقًا.');
+            return false;
         }
     }
 
@@ -1473,60 +1495,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return map;
     }
 
-    function isWarshMushafVersion(mushafVersion = '') {
-        return /ورش|warsh/i.test((mushafVersion || '').toString());
-    }
-
-    function normalizeNonWarshWaqfText(raw) {
-        return raw
-            .split(/[،,]/)
-            .map((token) => token.replace(/\s+/g, '').trim())
-            .filter(Boolean)
-            .map((token) => {
-                const waqfGlyphMap = {
-                    'م': 'ۘ',
-                    'قلى': 'ۗ',
-                    'قلي': 'ۗ',
-                    'ق': 'ۗ',
-                    'صلى': 'ۖ',
-                    'صلي': 'ۖ',
-                    'ص': 'ۖ',
-                    'ج': 'ۚ',
-                    'لا': 'ۙ',
-                    'ع': 'ۛ',
-                    // Standard waqf combining marks — pass through
-                    'ۘ': 'ۘ', 'ۗ': 'ۗ', 'ۖ': 'ۖ', 'ۚ': 'ۚ', 'ۙ': 'ۙ', 'ۛ': 'ۛ', 'ۜ': 'ۜ',
-                    // IndoPak / Pakistani mushaf symbols — pass through as-is
-                    'ؕ': 'ؕ',  // U+0615  mandatory stop (لازم)
-                    'ؗ': 'ؗ',  // U+0617  zain marker
-                    'ؔ': 'ؔ',  // U+0614  takhallus
-                    '۪': '۪',  // U+06EA  empty centre low stop
-                    '۫': '۫',  // U+06EB  empty centre high stop
-                    '۬': '۬',  // U+06EC  rounded high stop
-                };
-                return waqfGlyphMap[token] || token;
-            })
-            .join('');
-    }
-
-    // Normalise Warsh waqf raw DB values:
-    //   ص  → ۖ (U+06D6) صه — "قف هنا" (وقف تام في الورش)
-    //   ر  → ۝ (U+06DD) رأس آية — verse end (ورش numbers verses differently from حفص)
-    function normalizeWarshWaqfText(raw) {
-        if (!raw || !raw.trim()) return '';
-        // A word may carry both (e.g. ٱلۡقَيُّومُ in 2:255 = "ر,ص"): emit صه, then ۝.
-        const out = [];
-        raw.split(/[،,]/)
-            .map(t => t.trim())
-            .filter(Boolean)
-            .forEach(t => {
-                if (t === 'ص' || t === '\u06D6') out.push('\u06D6'); // صه — قف هنا
-                else if (t === 'ر' || t === '\u06DD') out.push('\u06DD'); // رأس آية (۝)
-                // drop unknown tokens — do not mislabel
-            });
-        return out.join('');
-    }
-
     // ── Waqf symbol meanings (display only, no color here) ─────────────────
     // Standard waqf meanings (Madina / Hafs / Azhar / Husary etc.)
     const WAQF_INFO = {
@@ -1592,108 +1560,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // MUSHAF_COLOR_MAP and getMushafColorClass defined earlier near loadMushafVersions
 
-    function getWaqfDisplayData(waqfText, mushafVersionOverride = '') {
-        const raw = (waqfText || '').toString().trim();
-        if (!raw) return null;
-
-        const version = mushafVersionOverride || '';
-        const isWarsh = isWarshMushafVersion(version);
-
-        if (isWarsh) {
-            // Normalize to proper Unicode waqf codepoints, then UthmanicWarsh font renders them correctly
-            const normalized = normalizeWarshWaqfText(raw);
-            return { text: normalized, extraClass: 'waqf-warsh', title: raw };
-        }
-
-        const normalized = normalizeNonWarshWaqfText(raw);
-        // Suppress repeat-only markers (↺ ▶) — these are recording cues, not Quranic stop signs
-        if (/^[\u21BA\u25B6]+$/.test(normalized)) return null;
-        return {
-            text: normalized,
-            extraClass: '',
-            title: raw
-        };
-    }
-
-    function getOrCreateWaqfStack(wordEl) {
-        let stack = wordEl.querySelector(':scope > .waqf-stack');
-        if (!stack) {
-            stack = document.createElement('span');
-            stack.className = 'waqf-stack';
-            wordEl.prepend(stack);
-        }
-        return stack;
-    }
-
     function appendWaqfEntries(container, entriesOrText, fallbackVersion = '') {
-        if (!entriesOrText) return;
-        const entries = Array.isArray(entriesOrText)
-            ? entriesOrText
-            : [{ symbols: entriesOrText, version: fallbackVersion }];
-        entries.forEach((e) => appendWaqfSymbol(container, e.symbols || e, e.version || fallbackVersion));
-    }
-
-    function appendWaqfSymbol(container, waqfText, mushafVersionOverride = '') {
-        const displayData = getWaqfDisplayData(waqfText, mushafVersionOverride);
-        if (!displayData) return;
-
-        const stack = getOrCreateWaqfStack(container);
-
-        // Color is per-mushaf; apply any extraClass (e.g. waqf-warsh font)
-        const colorClass = getMushafColorClass(mushafVersionOverride);
-        const extra = [colorClass];
-        if (displayData.extraClass) extra.push(displayData.extraClass);
-        const className = 'waqf-symbol ' + extra.join(' ');
-
-        const versionLabel = mushafVersionOverride ? `مصحف: ${mushafVersionOverride}` : '';
-
-        // Split multi-character text into individual symbols so they each get
-        // their own <span>, preventing Arabic combining marks from overlapping.
-        // For الهندي: strip verse-end circle (۟ U+06DF) and PUA font-ligature glyphs
-        // (U+E000–U+F8FF) — these are structural font chars embedded by the font
-        // renderer, not actual waqf rulings, and must never appear as waqf overlays.
-        const _isHindi = mushafVersionOverride === 'الهندي';
-        const symbols = [...displayData.text].filter(ch => {
-            if (!ch.trim()) return false;
-            if (_isHindi) {
-                const cp = ch.codePointAt(0);
-                if (ch === '\u06DF') return false;            // ۟ verse-end circle
-                if (ch === '\u06DC') return false;            // ۜ small high seen — تجويد, not waqf
-                if (cp >= 0xE000 && cp <= 0xF8FF) return false; // PUA glyph
-            }
-            return true;
+        window.AtharMushaf.appendWaqfEntries(container, entriesOrText, {
+            fallbackVersion,
+            stackPosition: 'prepend',
+            classFor: version => getMushafColorClass(version),
+            titleFor: (symbol, version, data) => {
+                const versionLabel = version ? `مصحف: ${version}` : '';
+                const info = getWaqfInfo(symbol.trim(), version);
+                const symbolLabel = info.meaning || data.title.trim();
+                return [versionLabel, symbolLabel].filter(Boolean).join(' | ');
+            },
         });
-        if (symbols.length === 0) return;
-
-        for (const sym of symbols) {
-            const symbolSpan = document.createElement('span');
-            symbolSpan.className = className;
-            if (mushafVersionOverride) symbolSpan.dataset.version = mushafVersionOverride;
-            symbolSpan.textContent = sym;
-
-            // Tooltip: "مصحف: الأزهر | ج — جائز"
-            const info = getWaqfInfo(sym.trim(), mushafVersionOverride);
-            const symbolLabel = info.meaning || displayData.title.trim();
-            symbolSpan.title = [versionLabel, symbolLabel].filter(Boolean).join(' | ');
-
-            if (_isHindi) {
-                // الهندي symbols go into their own inner column group so the
-                // outer row-stack of other mushafs is not affected
-                let hindiGroup = stack.querySelector(':scope > .waqf-hindi-group');
-                if (!hindiGroup) {
-                    hindiGroup = document.createElement('span');
-                    hindiGroup.className = 'waqf-hindi-group';
-                    stack.appendChild(hindiGroup);
-                }
-                hindiGroup.appendChild(symbolSpan);
-            } else {
-                stack.appendChild(symbolSpan);
-            }
-        }
-    }
-    function stripEmbeddedWaqf(text) {
-        // Only strip the 7 actual waqf stop marks: U+06D6–U+06DC (ۖۗۘۙۚۛۜ)
-        return (text || '').replace(/[\u06D6-\u06DC]/g, '');
     }
 
     function getCurrentWaqfMode() {
@@ -2524,8 +2402,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'ج': 'جائز', 'س': 'سكتة', 'ع': 'معانقة',
     };
     const guideSymName = s => GUIDE_WAQF_MEANING[s] || s;
-    const GUIDE_WAQF_GLYPH = { 'م': 'ۘ', 'لا': 'ۙ', 'ق': 'ۗ', 'ص': 'ۖ', 'ج': 'ۚ', 'س': 'ۜ', 'ع': 'ۛ' };
-    const guideWaqfGlyph = s => GUIDE_WAQF_GLYPH[s] || s;
+    const guideWaqfGlyph = normalizeNonWarshWaqfText;
 
     /* ── segment preview audio ────────────────────────────────────────────
        Reciters-comparison cards can show a DIFFERENT reciter than the one
@@ -3238,9 +3115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     async function fetchData(url) {
         try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
+            return await window.AtharApi.json(url);
         } catch (error) {
             console.error(`Failed to fetch data from ${url}:`, error);
             throw error;

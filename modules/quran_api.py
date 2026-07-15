@@ -202,9 +202,6 @@ def yt_audio():
     Only YouTube URLs stored in _YT_CHAPTER_URLS are accepted; arbitrary
     YouTube URLs cannot be submitted.
     """
-    if not _YT_DLP_AVAILABLE:
-        return jsonify({'error': 'yt-dlp is not installed on this server'}), 503
-
     from urllib.parse import urlparse, unquote
 
     raw_url = request.args.get('url', '').strip()
@@ -227,6 +224,12 @@ def yt_audio():
     parsed = urlparse(yt_url)
     if parsed.scheme != 'https' or parsed.hostname not in ('www.youtube.com', 'youtube.com', 'youtu.be'):
         return jsonify({'error': 'Only YouTube URLs are allowed'}), 400
+
+    # Validate the request before reporting an optional server dependency. This
+    # keeps malformed/unapproved input deterministic and prevents deployment
+    # details from masking the API contract.
+    if not _YT_DLP_AVAILABLE:
+        return jsonify({'error': 'yt-dlp is not installed on this server'}), 503
 
     # Check cache first (keyed by the watch URL itself)
     now = _time.time()

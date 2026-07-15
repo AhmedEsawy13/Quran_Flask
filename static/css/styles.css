@@ -13,6 +13,10 @@
 @font-face { font-family:'AmiriQuran'; src:url('../fonts/amiri_quran.woff2') format('woff2'); font-display:swap; }
 
 /* ---- CSS Variables for Theming ---- */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 :root {
     --primary-color: #0f766e;
     --primary-hover: #115e59;
@@ -3825,13 +3829,26 @@ body.dark-mode .range-field label { color: #94a3b8; }
 
 @media (max-width: 640px) {
     #controls { padding: 12px; gap: 6px; border-radius: 16px; }
-    .ctrl-row-nav select { min-width: 90px; }
+    .ctrl-row,
+    .playback-main,
+    .playback-seek,
+    .playback-extra,
+    .waqf-row-header,
+    .waqf-controls-wrap,
+    .waqf-mode-control,
+    .mushaf-pills-wrap,
+    .mushaf-pills-row,
+    .reading-tool-btns { width: 100%; min-width: 0; max-width: 100%; }
+    .ctrl-row-nav select { min-width: 0; max-width: 100%; flex: 1 1 120px; }
     .ctrl-row-playback { flex-direction: column; align-items: stretch; }
     .playback-main { flex-wrap: wrap; }
     .playback-btns { justify-content: center; }
     .playback-seek { flex: 1 1 100%; min-width: 0; }
     .playback-extra { justify-content: center; }
     .ctrl-row-playback #play-pause-button.btn-play { width: 100%; }
+    .waqf-mode-control { flex-wrap: wrap; }
+    #controls .waqf-mode-btn { flex: 1 1 calc(50% - 3px); min-width: 0; white-space: normal; }
+    .waqf-mode-label { flex: 1 0 100%; padding-bottom: 2px; }
     .ctrl-row-tools { flex-direction: column; }
     .reading-tool-btns { flex-wrap: wrap; justify-content: center; }
 }

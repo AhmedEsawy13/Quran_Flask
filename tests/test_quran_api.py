@@ -62,6 +62,19 @@ def test_ayah_text_waqf_symbols_align_with_known_ayat_al_kursi_marks(client):
     assert by_token.get(6) == 'ج'    # القيوم
 
 
+def test_shamarly_api_only_advertises_bundled_page_fonts(client):
+    with_font = client.get('/api/shamarly/ayah/1/1').get_json()
+    assert with_font['pages'] == [2]
+    assert with_font['font_pages'] == [2]
+    assert with_font['font_name'] == 'Shemrly-Page002'
+
+    without_font = client.get('/api/shamarly/ayah/2/255').get_json()
+    assert without_font['pages'] == [36]
+    assert without_font['font_pages'] == []
+    assert without_font['font_name'] is None
+    assert not any(word.get('glyph_page') for word in without_font['words'])
+
+
 def test_ayah_waqf_symbols_route_bounds(client):
     assert client.get('/api/surahs/115/ayahs/1/waqf').status_code == 400
     assert client.get('/api/surahs/1/ayahs/0/waqf').status_code == 400

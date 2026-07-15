@@ -23,46 +23,27 @@
 }
 
 :root {
-    --mz-accent: #4f46e5; --mz-accent-hover: #4338ca;
-    --mz-accent-soft: rgba(79,70,229,0.10); --mz-accent-ring: rgba(79,70,229,0.28);
-    --mz-bg: #f3f3f5; --mz-surface: #ffffff; --mz-surface-2: #f4f4f6;
-    --mz-border: #ececef; --mz-border-strong: #e0e0e5;
-    --mz-text: #18181b; --mz-text-muted: #71717a; --mz-text-faint: #a1a1aa;
-    --mz-paper: #fffdf8; --mz-paper-edge: #ece4d4; --mz-ink: #1c1917;
-    --mz-quran: #333;   /* quran text colour — matches the main page (--text-color) */
-    --mz-surah-frame: #b1923f; --mz-surah-ink: #8a6d28;   /* traditional gold cartouche */
-    --mz-shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
-    --mz-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    --mz-shadow-lg: 0 30px 70px rgba(0,0,0,0.12), 0 6px 16px rgba(0,0,0,0.06);
-    --mz-select-hl: rgba(79,70,229,0.12); --mz-active-hl: rgba(79,70,229,0.22);
+    /* Shared أثَر structure. Quran/tajweed/recitation state colors below stay
+       module-specific because they encode content rather than branding. */
+    --mz-accent: var(--athar-accent);
+    --mz-accent-hover: color-mix(in srgb, var(--athar-accent) 82%, var(--athar-ink));
+    --mz-accent-soft: color-mix(in srgb, var(--athar-accent) 10%, transparent);
+    --mz-accent-ring: color-mix(in srgb, var(--athar-accent) 28%, transparent);
+    --mz-on-accent: var(--athar-on-accent);
+    --mz-bg: var(--athar-parchment); --mz-surface: var(--athar-surface); --mz-surface-2: var(--athar-parchment-2);
+    --mz-border: var(--athar-line-soft); --mz-border-strong: var(--athar-line);
+    --mz-text: var(--athar-ink); --mz-text-muted: var(--athar-ink-soft); --mz-text-faint: var(--athar-ink-faint);
+    --mz-paper: var(--athar-surface); --mz-paper-edge: var(--athar-line); --mz-ink: var(--athar-ink);
+    --mz-quran: var(--athar-ink);
+    --mz-surah-frame: var(--athar-gold);
+    --mz-surah-ink: color-mix(in srgb, var(--athar-gold) 78%, var(--athar-ink));
+    --mz-shadow-sm: 0 1px 2px color-mix(in srgb, var(--athar-ink) 8%, transparent);
+    --mz-shadow: 0 4px 24px color-mix(in srgb, var(--athar-ink) 12%, transparent), 0 1px 2px color-mix(in srgb, var(--athar-ink) 8%, transparent);
+    --mz-shadow-lg: 0 30px 70px color-mix(in srgb, var(--athar-ink) 22%, transparent), 0 6px 16px color-mix(in srgb, var(--athar-ink) 10%, transparent);
+    --mz-select-hl: color-mix(in srgb, var(--athar-accent) 12%, transparent);
+    --mz-active-hl: color-mix(in srgb, var(--athar-accent) 22%, transparent);
     --mz-radius: 18px; --mz-radius-sm: 11px;
     --mz-topbar-h: 64px;
-}
-body.mz-dark {
-    --mz-accent: #818cf8; --mz-accent-hover: #6366f1;
-    --mz-accent-soft: rgba(129,140,248,0.14); --mz-accent-ring: rgba(129,140,248,0.32);
-    --mz-bg: #0a0a0c; --mz-surface: #131316; --mz-surface-2: #1a1a1f;
-    --mz-border: #26262b; --mz-border-strong: #34343b;
-    --mz-text: #fafafa; --mz-text-muted: #a1a1aa; --mz-text-faint: #71717a;
-    --mz-paper: #16140f; --mz-paper-edge: #2a2620; --mz-ink: #f0ece2; --mz-quran: #f4f4f9;
-    --mz-surah-frame: #c9a85c; --mz-surah-ink: #e0c47e;
-    --mz-shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-    --mz-shadow: 0 4px 24px rgba(0,0,0,0.5);
-    --mz-shadow-lg: 0 30px 70px rgba(0,0,0,0.65);
-    --mz-select-hl: rgba(129,140,248,0.18); --mz-active-hl: rgba(129,140,248,0.32);
-}
-body.mz-sepia {
-    --mz-accent: #a16207; --mz-accent-hover: #854d0e;
-    --mz-accent-soft: rgba(161,98,7,0.12); --mz-accent-ring: rgba(161,98,7,0.26);
-    --mz-bg: #ede3cc; --mz-surface: #fbf5e6; --mz-surface-2: #f1e7cf;
-    --mz-border: #e3d5b3; --mz-border-strong: #d8c6a0;
-    --mz-text: #3c2e26; --mz-text-muted: #7c6a52; --mz-text-faint: #a89878;
-    --mz-paper: #fbf3e0; --mz-paper-edge: #e0cfa8; --mz-ink: #2f241b; --mz-quran: #3c2e26;
-    --mz-surah-frame: #a8842f; --mz-surah-ink: #7d5f1f;
-    --mz-shadow-sm: 0 1px 2px rgba(120,95,50,0.10);
-    --mz-shadow: 0 4px 24px rgba(120,95,50,0.12);
-    --mz-shadow-lg: 0 30px 70px rgba(120,95,50,0.2);
-    --mz-select-hl: rgba(161,98,7,0.15); --mz-active-hl: rgba(161,98,7,0.28);
 }
 
 * { box-sizing: border-box; }
@@ -77,7 +58,7 @@ body {
 /* ── Top control bar ─────────────────────────────────────────────── */
 .mz-compat { display: none !important; }
 .mz-bar {
-    position: sticky; top: 0; z-index: 50; min-height: var(--mz-topbar-h);
+    position: sticky; top: var(--athar-bar-h); z-index: 50; min-height: var(--mz-topbar-h);
     display: flex; align-items: center; gap: 7px; padding: 9px clamp(10px, 2vw, 20px);
     background: color-mix(in srgb, var(--mz-surface) 88%, transparent);
     backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
@@ -132,7 +113,7 @@ body {
 .mz-est:empty { display: none; }
 .mz-est b { color: var(--mz-accent); font-weight: 700; }
 .mz-est i { margin-inline-end: 5px; color: var(--mz-accent); }
-.mz-bar-btn[aria-pressed="true"], .mz-bar-btn.mz-on { background: var(--mz-accent); border-color: var(--mz-accent); color: #fff; }
+.mz-bar-btn[aria-pressed="true"], .mz-bar-btn.mz-on { background: var(--mz-accent); border-color: var(--mz-accent); color: var(--mz-on-accent); }
 .mz-bar-btn.mz-disabled, .mz-bar-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
 /* slim progress along the bar's bottom edge */
@@ -167,7 +148,7 @@ body.mz-dark .mz-toast.mz-err { color: #f87171; }
     width: 320px; flex-shrink: 0; display: flex; flex-direction: column;
     background: var(--mz-surface); border: 1px solid var(--mz-border);
     border-radius: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 16px 40px -22px rgba(0,0,0,0.30);
-    position: sticky; top: calc(var(--mz-topbar-h) + 16px);
+    position: sticky; top: calc(var(--athar-bar-h) + var(--mz-topbar-h) + 16px);
     max-height: calc(100vh - var(--mz-topbar-h) - 32px); overflow: hidden;
 }
 .mz-side-scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 18px; display: flex; flex-direction: column; gap: 20px; }
@@ -210,9 +191,9 @@ body.mz-dark .mz-toast.mz-err { color: #f87171; }
 .mz-select-wrap:hover i { color: var(--mz-accent); }
 
 .mz-btn-primary { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; padding: 12px 22px;
-    border: none; border-radius: 13px; color: #fff; font-weight: 700;
+    border: none; border-radius: 13px; color: var(--mz-on-accent); font-weight: 700;
     font-size: 0.92rem; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; cursor: pointer;
-    background: linear-gradient(135deg, var(--mz-accent), color-mix(in srgb, var(--mz-accent) 72%, #7c3aed));
+    background: linear-gradient(135deg, var(--mz-accent), var(--mz-accent-hover));
     box-shadow: 0 6px 18px -6px var(--mz-accent-ring); transition: transform 0.14s ease, box-shadow 0.18s ease, filter 0.15s ease; }
 .mz-btn-primary:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 11px 26px -8px var(--mz-accent-ring); }
 .mz-btn-primary:active { transform: translateY(0); filter: brightness(0.98); }
@@ -225,7 +206,7 @@ body.mz-dark .mz-toast.mz-err { color: #f87171; }
 .mz-chip-toggle input { position: absolute; opacity: 0; width: 0; height: 0; }
 .mz-chip-dot { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; border: 2px solid var(--mz-border-strong);
     background: var(--mz-surface); display: grid; place-items: center; transition: all 0.15s ease; }
-.mz-chip-dot::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #fff; transform: scale(0); transition: transform 0.15s ease; }
+.mz-chip-dot::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--mz-on-accent); transform: scale(0); transition: transform 0.15s ease; }
 .mz-chip-toggle:has(input:checked) { color: var(--mz-text); border-color: var(--mz-accent); background: var(--mz-accent-soft); }
 .mz-chip-toggle:has(input:checked) .mz-chip-dot { background: var(--mz-accent); border-color: var(--mz-accent); }
 .mz-chip-toggle:has(input:checked) .mz-chip-dot::after { transform: scale(1); }
@@ -258,7 +239,7 @@ input[type=range]:hover::-moz-range-thumb { transform: scale(1.14); }
     border-radius: 999px; border: 1px solid var(--mz-border-strong); background: var(--mz-surface-2);
     color: var(--mz-text-muted); cursor: pointer; transition: all 0.15s ease; }
 .mz-waqf-pill:hover { border-color: var(--mz-accent); color: var(--mz-text); }
-.mz-waqf-pill.mz-on { background: var(--mz-accent); border-color: var(--mz-accent); color: #fff; }
+.mz-waqf-pill.mz-on { background: var(--mz-accent); border-color: var(--mz-accent); color: var(--mz-on-accent); }
 
 .mz-hint { margin: 0; font-size: 0.78rem; color: var(--mz-accent); font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; min-height: 0; }
 .mz-hint:empty { display: none; }
@@ -280,7 +261,7 @@ body.mz-dark .mz-status.mz-err { color: #f87171; }
 .mz-tb-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid transparent;
     background: transparent; color: var(--mz-text-muted); cursor: pointer; font-size: 0.92rem; transition: all 0.15s ease; }
 .mz-tb-btn:hover { background: var(--mz-surface-2); color: var(--mz-accent); }
-.mz-tb-btn.mz-on { background: var(--mz-accent); color: #fff; }
+.mz-tb-btn.mz-on { background: var(--mz-accent); color: var(--mz-on-accent); }
 .mz-tb-btn.mz-disabled, .mz-tb-btn:disabled, button.mz-disabled, button.mz-disabled:hover {
     opacity: 0.38; cursor: not-allowed; pointer-events: none; background: transparent; color: var(--mz-text-faint); }
 .mz-tb-sep { width: 1px; height: 22px; background: var(--mz-border-strong); margin: 0 2px; }
@@ -292,6 +273,12 @@ body.mz-dark .mz-status.mz-err { color: #f87171; }
 .mz-asr-live i { color: #16a34a; flex-shrink: 0; }
 .mz-asr-live[hidden] { display: none; }
 #mz-asr-live-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
+.mz-bar-asr { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.mz-bar-asr[hidden] { display: none; }
+.mz-asr-note { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--mz-text-muted); font-size: 0.72rem; }
+.mz-bar-btn.mz-listening { color: #16a34a; background: rgba(22,163,74,0.10); }
+.mz-bar-btn.mz-listening i { animation: mz-pulse 1s ease-in-out infinite; }
 
 /* words recognised during recite-&-follow turn green (clearly visible) */
 .mz-word.mz-recited { color: #15803d !important; background: rgba(22,163,74,0.16); border-radius: 0.18em; }
@@ -501,7 +488,7 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 #mz-now:empty { display: none; }
 .mz-transport { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
 .mz-play-btn { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border: none; cursor: pointer;
-    border-radius: 50%; font-size: 0.95rem; background: var(--mz-accent); color: #fff;
+    border-radius: 50%; font-size: 0.95rem; background: var(--mz-accent); color: var(--mz-on-accent);
     box-shadow: 0 5px 14px -4px var(--mz-accent-ring); transition: transform 0.12s ease, background 0.15s ease; }
 .mz-play-btn:hover { background: var(--mz-accent-hover); }
 .mz-play-btn:active { transform: scale(0.92); }
@@ -532,7 +519,7 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 .mz-select-hint { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 35;
     padding: 7px 15px; border-radius: 999px; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-size: 0.8rem; font-weight: 600;
-    color: #fff; background: var(--mz-accent); box-shadow: 0 6px 18px -6px var(--mz-accent-ring);
+    color: var(--mz-on-accent); background: var(--mz-accent); box-shadow: 0 6px 18px -6px var(--mz-accent-ring);
     opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
 .mz-select-hint.mz-show { opacity: 1; }
 
@@ -565,7 +552,7 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 .mz-picker-item.mz-current { border-color: var(--mz-accent); background: color-mix(in srgb, var(--mz-accent) 10%, transparent); color: var(--mz-accent); }
 .mz-picker-item .mz-pi-num { display: grid; place-items: center; min-width: 26px; height: 26px; padding: 0 6px; border-radius: 8px;
     background: color-mix(in srgb, var(--mz-text-muted) 12%, transparent); color: var(--mz-text-muted); font-size: 0.76rem; font-weight: 700; }
-.mz-picker-item.mz-current .mz-pi-num { background: var(--mz-accent); color: #fff; }
+.mz-picker-item.mz-current .mz-pi-num { background: var(--mz-accent); color: var(--mz-on-accent); }
 .mz-picker-list.mz-grid .mz-picker-item { justify-content: center; padding: 12px 6px; flex-direction: column; gap: 4px; }
 
 /* hide leftover/unused chrome from the old layout */
@@ -582,7 +569,15 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
        labels collapse to icons only. */
     .mz-only-wide { display: none !important; }
     .mz-bar-chip .mz-chip-label { display: none; }
+    .mz-asr-note { display: none; }
     .mz-bar { gap: 5px; padding: 8px 10px; }
+    .mz-vol .mz-vol-range { display: none; }
     #mz-now { max-width: 30vw; }
     .mz-main { padding: 10px; }
+}
+@media (max-width: 480px) {
+    /* تثبيت has more persistent transport controls than تدريب. Give its
+       toolbar a deliberate second row instead of pushing controls off-screen. */
+    #mz-bar { flex-wrap: wrap; }
+    #mz-bar .mz-bar-spacer { flex: 0 0 100%; width: 100%; height: 0; min-width: 100%; }
 }

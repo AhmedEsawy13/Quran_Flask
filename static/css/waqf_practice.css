@@ -19,11 +19,23 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 /* mushaf_memorize.css's `.mz-sec { display:flex }` has the same specificity as
    the UA `[hidden] { display:none }` and loads after it, so it wins the tie —
    تثبيت never combines .mz-sec with [hidden] so this never surfaced there. */
-.mz-sec[hidden] { display: none; }
+.mz-sec[hidden], #wp-layout[hidden] { display: none; }
 
 .wp-main { max-width: 900px; margin: 0 auto; width: 100%; padding: 18px clamp(12px, 3vw, 28px) 26px;
     display: flex; flex-direction: column; gap: 18px;
     flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+
+.wp-intro { max-width: 820px; margin: clamp(3.5rem, 10vh, 8rem) auto 0; padding: clamp(1.5rem, 4vw, 3rem);
+    text-align: center; background: color-mix(in srgb, var(--athar-surface) 92%, transparent);
+    border-color: var(--athar-line); }
+.wp-intro-kicker { display: inline-block; color: var(--athar-gold); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; }
+.wp-intro h1 { margin: 0.55rem 0 0.65rem; color: var(--athar-ink); font-family: var(--font-display);
+    font-size: clamp(1.8rem, 5vw, 3.2rem); line-height: 1.2; }
+.wp-intro p { max-width: 650px; margin: 0 auto; color: var(--athar-ink-soft); line-height: 1.9; }
+.wp-intro-steps { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.5rem; }
+.wp-intro-steps span { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--athar-ink-soft); font-size: 0.86rem; }
+.wp-intro-steps b { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border-radius: 50%;
+    background: var(--athar-accent); color: var(--athar-on-accent); }
 
 /* tajweed error detection */
 .wp-tj-ok { color: #2e9c6b; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
@@ -48,8 +60,8 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .wp-word-end { color: var(--mz-accent); }
 .wp-stopped { box-shadow: inset 0 -3px 0 0 var(--mz-accent); background: color-mix(in srgb, var(--mz-accent) 14%, transparent); }
 /* live "currently reciting" word (follow-along) */
-.wp-word.wp-reciting { background: color-mix(in srgb, #e0a83a 30%, transparent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, #e0a83a 55%, transparent); border-radius: 6px; }
+.wp-word.wp-reciting { background: color-mix(in srgb, var(--athar-gold) 30%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--athar-gold) 55%, transparent); border-radius: 6px; }
 .wp-ayah-num { font-size: 0.62em; color: var(--mz-text-faint); margin: 0 .15em; vertical-align: middle;
     border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .28em; }
 
@@ -129,6 +141,8 @@ body.mz-dark .wp-dot.wp-w-err { background: #f87171; }
 body.mz-dark .wp-tally-good { color: #4ade80; } body.mz-dark .wp-tally-note { color: #fbbf24; } body.mz-dark .wp-tally-err { color: #f87171; }
 
 @media (max-width: 560px) {
+    #wp-load { width: 42px; height: 38px; padding: 0; justify-content: center; font-size: 0; }
+    #wp-load i { font-size: 0.9rem; }
     .wp-actions { gap: 8px; }
     .wp-actions .mz-toggle-btn, .wp-actions .mz-btn-primary { flex: 1 1 auto; justify-content: center; }
 }

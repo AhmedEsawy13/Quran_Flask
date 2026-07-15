@@ -14,6 +14,7 @@
     'use strict';
     const $ = id => document.getElementById(id);
     const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    const { normalizeNonWarshWaqfText, stripEmbeddedWaqf } = window.AtharMushaf;
 
     const MAX_SPREAD = 302;
     const MAX_PAGE = 604;
@@ -26,13 +27,6 @@
     const KUWAIT_PDF_ID = 'kweat--h4794794946945969';
     const KUWAIT_PAGE_OFFSET = 4;
 
-    // The Digital Khatt source text embeds مصحف المدينة's printed waqf mark as a
-    // combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word carries it.
-    // This editor renders the active edition's mark separately as .ed-waqf-mark
-    // (from the `waqf` table), so strip the embedded one to avoid showing it twice.
-    const EMBEDDED_WAQF_RE = /[ۖ-ۜ]/g;
-    const stripEmbeddedWaqf = text => text.replace(EMBEDDED_WAQF_RE, '');
-
     // Printed-mushaf waqf symbols → meaning + glyph (same as waqf_guide.js).
     const WAQF_SYM = {
         'م':  { name: 'لازم' },
@@ -44,10 +38,7 @@
         'ع':  { name: 'معانقة' },
         'ركوع': { name: 'يصلح الوقف هنا (ركوع)' },
     };
-    const WAQF_GLYPH = {
-        'م': 'ۘ', 'لا': 'ۙ', 'ق': 'ۗ', 'ص': 'ۖ', 'ج': 'ۚ', 'س': 'ۜ', 'ع': 'ۛ',
-        'ركوع': 'ركوع',
-    };
+    const waqfGlyph = symbol => symbol === 'ركوع' ? symbol : normalizeNonWarshWaqfText(symbol);
     // ركوع marks are anchored to the ayah-end number rather than appearing
     // inline like other waqf marks — render them as a small badge above it.
     const ABOVE_VERSE_MARKS = new Set(['ركوع']);
@@ -77,6 +68,8 @@
         activeWord: null,
         currentPages: [],
     };
+    const spreadRequests = window.AtharMushaf.createRequestGate();
+    const progressRequests = window.AtharMushaf.createRequestGate();
 
     function clampSpread(n) {
         if (!Number.isFinite(n)) return 1;
@@ -88,13 +81,11 @@
         localStorage.setItem('ed_spread', String(state.spread));
     }
 
-    let _toastTimer = 0;
+    const status = window.AtharUi.createStatus(els.status, {
+        visibleClass: 'ed-show', errorClass: 'ed-err', defaultDuration: 2200,
+    });
     function setStatus(msg, isErr) {
-        els.status.textContent = msg;
-        els.status.classList.toggle('ed-err', !!isErr);
-        els.status.classList.add('ed-show');
-        clearTimeout(_toastTimer);
-        _toastTimer = setTimeout(() => els.status.classList.remove('ed-show'), 2200);
+        status.show(msg, { error: !!isErr });
     }
 
     /* ── Legend ──────────────────────────────────────────────────── */
@@ -103,7 +94,7 @@
         Object.entries(WAQF_SYM).forEach(([sym, meta]) => {
             const chip = document.createElement('span');
             chip.className = 'ed-legend-chip';
-            chip.innerHTML = `<span class="ed-legend-glyph">${WAQF_GLYPH[sym]}</span><span>${meta.name} (${sym})</span>`;
+            chip.innerHTML = `<span class="ed-legend-glyph">${waqfGlyph(sym)}</span><span>${meta.name} (${sym})</span>`;
             els.legend.appendChild(chip);
         });
         const diff = document.createElement('span');
@@ -141,6 +132,7 @@
         [els.refR, els.refL].forEach(btn => {
             if (btn.hidden) return;
             btn.title = refTitle(state.edition);
+            btn.setAttribute('aria-label', refTitle(state.edition));
         });
     }
     function openReference(btn) {
@@ -182,6 +174,7 @@
         }
         refBtn.hidden = false;
         refBtn.title = refTitle(state.edition);
+        refBtn.setAttribute('aria-label', refTitle(state.edition));
         const frag = document.createDocumentFragment();
         (payload.lines || []).forEach(line => {
             const lineEl = document.createElement('div');
@@ -341,7 +334,7 @@
                 mark.className = 'ed-waqf-mark';
                 span.appendChild(mark);
             }
-            mark.textContent = WAQF_GLYPH[editionSym] || editionSym;
+            mark.textContent = waqfGlyph(editionSym);
             mark.classList.toggle('ed-mark-above', ABOVE_VERSE_MARKS.has(editionSym));
         } else if (mark) {
             mark.remove();
@@ -349,25 +342,30 @@
         const baseline = baselineSym !== undefined ? baselineSym : span.dataset.baseline;
         span.classList.toggle('ed-diff', (editionSym || '') !== (baseline || ''));
         span.title = baseline
-            ? `المدينة: ${WAQF_GLYPH[baseline] || baseline} (${baseline})`
+            ? `المدينة: ${waqfGlyph(baseline)} (${baseline})`
             : 'المدينة: بلا علامة';
     }
 
     /* ── Loading a spread ────────────────────────────────────────── */
     async function loadSpread() {
+        const request = spreadRequests.next();
+        const spread = state.spread;
+        const edition = state.edition;
         try {
-            const resp = await fetch(`/api/mushaf-editor/spread/${state.spread}?edition=${encodeURIComponent(state.edition)}`);
-            if (!resp.ok) throw new Error('spread load failed');
-            const data = await resp.json();
+            const query = window.AtharMushaf.buildQuery({ params: { edition } });
+            const data = await window.AtharApi.json(`/api/mushaf-editor/spread/${spread}${query}`);
+            if (!spreadRequests.isCurrent(request)) return false;
             renderPage(els.pageR, els.pageRNum, els.refR, data.right);
             renderPage(els.pageL, els.pageLNum, els.refL, data.left);
-            els.spreadLabel.textContent = `${toAr(state.spread)} / ${toAr(MAX_SPREAD)}`;
+            els.spreadLabel.textContent = `${toAr(spread)} / ${toAr(MAX_SPREAD)}`;
             state.currentPages = [data.right, data.left].filter(Boolean).map(p => p.page_number);
             updateReviewedCheckbox();
             updateNavButtons();
             fitPages();
+            return true;
         } catch (e) {
-            setStatus('تعذّر تحميل الصفحة', true);
+            if (spreadRequests.isCurrent(request)) setStatus('تعذّر تحميل الصفحة', true);
+            return false;
         }
     }
 
@@ -378,11 +376,15 @@
 
     /* ── Progress tracking ───────────────────────────────────────── */
     async function loadProgress() {
+        const request = progressRequests.next();
+        const edition = state.edition;
         try {
-            const resp = await fetch(`/api/mushaf-editor/progress?edition=${encodeURIComponent(state.edition)}`);
-            const data = await resp.json();
+            const query = window.AtharMushaf.buildQuery({ params: { edition } });
+            const data = await window.AtharApi.json(`/api/mushaf-editor/progress${query}`);
+            if (!progressRequests.isCurrent(request)) return;
             state.reviewedPages = new Set(data.reviewed_pages || []);
         } catch (e) {
+            if (!progressRequests.isCurrent(request)) return;
             state.reviewedPages = new Set();
         }
         updateProgressLabel();
@@ -399,7 +401,7 @@
         const reviewed = els.reviewed.checked;
         for (const page of state.currentPages) {
             try {
-                await fetch('/api/mushaf-editor/progress', {
+                await window.AtharApi.json('/api/mushaf-editor/progress', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ edition: state.edition, page_number: page, reviewed }),
                 });
@@ -444,7 +446,7 @@
         Object.entries(WAQF_SYM).forEach(([sym, meta]) => {
             const b = document.createElement('button');
             b.type = 'button'; b.className = 'ed-sym-btn'; b.dataset.sym = sym;
-            b.innerHTML = `<span class="ed-sym-glyph">${WAQF_GLYPH[sym]}</span><span class="ed-sym-name">${meta.name}</span>`;
+            b.innerHTML = `<span class="ed-sym-glyph">${waqfGlyph(sym)}</span><span class="ed-sym-name">${meta.name}</span>`;
             b.addEventListener('click', () => setSymbol(sym));
             els.popupSyms.appendChild(b);
         });
@@ -461,7 +463,7 @@
         els.popupTitle.textContent = wordEl.dataset.text || wordEl.textContent;
         const baseline = wordEl.dataset.baseline || '';
         els.popupBaseline.innerHTML = baseline
-            ? `وقف المدينة هنا: <span class="ed-baseline-glyph">${WAQF_GLYPH[baseline] || baseline}</span> (${baseline})`
+            ? `وقف المدينة هنا: <span class="ed-baseline-glyph">${waqfGlyph(baseline)}</span> (${baseline})`
             : 'لا توجد علامة وقف في المدينة عند هذه الكلمة';
 
         const current = wordEl.dataset.symbol || '';
@@ -484,12 +486,10 @@
         if (!wordEl) return;
         const wordId = wordEl.dataset.wordId;
         try {
-            const resp = await fetch('/api/mushaf-editor/waqf', {
+            const data = await window.AtharApi.json('/api/mushaf-editor/waqf', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ word_id: wordId, edition: state.edition, symbol: sym }),
             });
-            if (!resp.ok) throw new Error('save failed');
-            const data = await resp.json();
             applyWordMark(wordEl, data.symbol || '');
             requestAnimationFrame(justifyLines); // mark glyph can shift the line's width
         } catch (e) {
@@ -502,12 +502,6 @@
         const w = e.target.closest('.ed-word');
         if (w) { openPopup(w); return; }
     });
-
-    /* ── Theme (shared أثَر engine — editor supports light/dark) ──── */
-    els.theme.addEventListener('click', () => {
-        window.AtharTheme.set(window.AtharTheme.get() === 'dark' ? 'light' : 'dark');
-    });
-    // initial class is applied by theme.js from the shared 'quranApp_theme' key
 
     /* ── Resize ──────────────────────────────────────────────────── */
     let _resizeId = 0;

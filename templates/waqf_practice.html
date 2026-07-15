@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="{{ static_hash('css/waqf_practice.css') }}">
     <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
     <script src="{{ static_hash('js/theme.js') }}"></script>
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <script src="{{ static_hash('js/athar-ui.js') }}"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -88,6 +91,17 @@
     </header>
 
     <main class="wp-main">
+        <section class="mz-sec wp-intro" id="wp-intro">
+            <span class="wp-intro-kicker">تدريب تطبيقي</span>
+            <h1>اختبر مواضع وقفك، ثم افهم النتيجة.</h1>
+            <p>اختر مقطعًا ومصحفًا من الشريط، ثم ابدأ التدريب. علِّم الكلمات التي وقفتَ عندها يدويًا، أو سجّل تلاوتك، وبعدها قارن اختيارك بعلامات المصاحف وأقوال أهل الوقف.</p>
+            <div class="wp-intro-steps" aria-label="خطوات التدريب">
+                <span><b>١</b> اختر المقطع</span>
+                <span><b>٢</b> علِّم وقوفك</span>
+                <span><b>٣</b> راجع التقييم</span>
+            </div>
+        </section>
+
         <p class="mz-hint" id="wp-hint" hidden>
             <i class="fas fa-hand-pointer"></i>
             اضغط على كل كلمةٍ <b>وقفتَ عندها</b> (تُعلَّم بخطٍّ تحتها) — أو اضغط
@@ -136,7 +150,6 @@
     </main>
 
     <script src="{{ static_hash('js/mushaf_zipformer.js') }}"></script>
-    <script src="{{ static_hash('js/mushaf-layout-core.js') }}"></script>
     <script src="{{ static_hash('js/waqf_practice.js') }}"></script>
 </body>
 </html>

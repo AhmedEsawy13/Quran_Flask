@@ -15,6 +15,9 @@
     <!-- أثَر shared brand identity (fonts + logo) -->
     <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
     <script src="{{ static_hash('js/theme.js') }}"></script>
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <script src="{{ static_hash('js/athar-ui.js') }}"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -38,60 +41,60 @@
 
     <header class="wq-bar">
         <div class="wq-bar-title">
-            <h1 class="wq-title"><i class="fas fa-lungs"></i> مواضع وقوف القرّاء</h1>
+            <h1 class="wq-title"><i class="fas fa-lungs" aria-hidden="true"></i> مواضع وقوف القرّاء</h1>
             <span class="wq-bar-verse" id="wq-bar-verse"></span>
         </div>
-        <button class="wq-icon-btn" id="wq-theme" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
+        <button class="wq-icon-btn" id="wq-theme" data-athar-theme="cycle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon" aria-hidden="true"></i></button>
     </header>
 
     <!-- verse picker -->
     <section class="wq-picker">
         <div class="wq-field">
             <label for="wq-surah">السورة</label>
-            <div class="wq-select-wrap"><select id="wq-surah"></select><i class="fas fa-chevron-down"></i></div>
+            <div class="wq-select-wrap"><select id="wq-surah"></select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
         </div>
         <div class="wq-field">
             <label for="wq-ayah">الآية</label>
-            <div class="wq-select-wrap"><select id="wq-ayah"></select><i class="fas fa-chevron-down"></i></div>
+            <div class="wq-select-wrap"><select id="wq-ayah"></select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
         </div>
         <div class="wq-field wq-field-search">
             <label for="wq-search">بحث</label>
             <div class="wq-search-wrap">
-                <i class="fas fa-magnifying-glass"></i>
+                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
                 <input type="search" id="wq-search" placeholder="٢:٢٥٥ … أو «البقرة ٢٥٥» … أو كلمات من الآية" autocomplete="off">
-                <button class="wq-search-clear" id="wq-search-clear" type="button" aria-label="مسح البحث" hidden><i class="fas fa-xmark"></i></button>
+                <button class="wq-search-clear" id="wq-search-clear" type="button" aria-label="مسح البحث" hidden><i class="fas fa-xmark" aria-hidden="true"></i></button>
             </div>
             <div class="wq-search-results" id="wq-search-results" hidden></div>
         </div>
         <div class="wq-stepper">
-            <button class="wq-icon-btn" id="wq-prev" type="button" aria-label="الآية السابقة"><i class="fas fa-chevron-right"></i></button>
-            <button class="wq-icon-btn" id="wq-next" type="button" aria-label="الآية التالية"><i class="fas fa-chevron-left"></i></button>
+            <button class="wq-icon-btn" id="wq-prev" type="button" aria-label="الآية السابقة"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+            <button class="wq-icon-btn" id="wq-next" type="button" aria-label="الآية التالية"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
         </div>
     </section>
 
-    <div class="wq-toast" id="wq-status" role="status"></div>
+    <div class="wq-toast" id="wq-status" role="status" aria-live="polite" hidden></div>
 
     <main class="wq-main" id="wq-main">
         <!-- D) waqf research by word — pick a particle, browse every verse it occurs in -->
         <section class="wq-card wq-research" id="wq-research-card">
             <button class="wq-research-toggle" id="wq-research-toggle" type="button" aria-expanded="false">
-                <span><i class="fas fa-flask"></i> مختبر الوقف — للدراسة</span>
-                <i class="fas fa-chevron-down wq-research-caret"></i>
+                <span><i class="fas fa-flask" aria-hidden="true"></i> مختبر الوقف — للدراسة</span>
+                <i class="fas fa-chevron-down wq-research-caret" aria-hidden="true"></i>
             </button>
             <div class="wq-research-body" id="wq-research-body" hidden>
-                <div class="wq-lab-tabs">
-                    <button class="wq-lab-tab wq-lab-tab-active" data-tab="word" type="button"><i class="fas fa-magnifying-glass"></i> بحث بالكلمة</button>
-                    <button class="wq-lab-tab" data-tab="solos" type="button"><i class="fas fa-fingerprint"></i> انفرادات القرّاء</button>
-                    <button class="wq-lab-tab" data-tab="stats" type="button"><i class="fas fa-chart-bar"></i> إحصائيات</button>
-                    <button class="wq-lab-tab" data-tab="mandatory" type="button"><i class="fas fa-ban"></i> اللازم والممنوع والمعانقة</button>
-                    <button class="wq-lab-tab" data-tab="saktat" type="button"><i class="fas fa-hand"></i> السكتات</button>
-                    <button class="wq-lab-tab" data-tab="patterns" type="button"><i class="fas fa-code-compare"></i> اختلاف المصاحف</button>
-                    <button class="wq-lab-tab" data-tab="agreement" type="button"><i class="fas fa-check-to-slot"></i> اتفاق القرّاء مع المصاحف</button>
-                    <button class="wq-lab-tab" data-tab="ibtidaa" type="button"><i class="fas fa-rotate-left"></i> الابتداء بما قبله</button>
-                    <button class="wq-lab-tab" data-tab="cluster" type="button"><i class="fas fa-people-group"></i> تشابه القرّاء</button>
-                    <button class="wq-lab-tab" data-tab="mushafsim" type="button"><i class="fas fa-sitemap"></i> تقارب المصاحف</button>
+                <div class="wq-lab-tabs" role="tablist" aria-label="أقسام مختبر الوقف">
+                    <button class="wq-lab-tab wq-lab-tab-active" id="wq-tab-word" data-tab="word" type="button" role="tab" aria-controls="wq-panel-word" aria-selected="true"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> بحث بالكلمة</button>
+                    <button class="wq-lab-tab" id="wq-tab-solos" data-tab="solos" type="button" role="tab" aria-controls="wq-panel-solos" aria-selected="false" tabindex="-1"><i class="fas fa-fingerprint" aria-hidden="true"></i> انفرادات القرّاء</button>
+                    <button class="wq-lab-tab" id="wq-tab-stats" data-tab="stats" type="button" role="tab" aria-controls="wq-panel-stats" aria-selected="false" tabindex="-1"><i class="fas fa-chart-bar" aria-hidden="true"></i> إحصائيات</button>
+                    <button class="wq-lab-tab" id="wq-tab-mandatory" data-tab="mandatory" type="button" role="tab" aria-controls="wq-panel-mandatory" aria-selected="false" tabindex="-1"><i class="fas fa-ban" aria-hidden="true"></i> اللازم والممنوع والمعانقة</button>
+                    <button class="wq-lab-tab" id="wq-tab-saktat" data-tab="saktat" type="button" role="tab" aria-controls="wq-panel-saktat" aria-selected="false" tabindex="-1"><i class="fas fa-hand" aria-hidden="true"></i> السكتات</button>
+                    <button class="wq-lab-tab" id="wq-tab-patterns" data-tab="patterns" type="button" role="tab" aria-controls="wq-panel-patterns" aria-selected="false" tabindex="-1"><i class="fas fa-code-compare" aria-hidden="true"></i> اختلاف المصاحف</button>
+                    <button class="wq-lab-tab" id="wq-tab-agreement" data-tab="agreement" type="button" role="tab" aria-controls="wq-panel-agreement" aria-selected="false" tabindex="-1"><i class="fas fa-check-to-slot" aria-hidden="true"></i> اتفاق القرّاء مع المصاحف</button>
+                    <button class="wq-lab-tab" id="wq-tab-ibtidaa" data-tab="ibtidaa" type="button" role="tab" aria-controls="wq-panel-ibtidaa" aria-selected="false" tabindex="-1"><i class="fas fa-rotate-left" aria-hidden="true"></i> الابتداء بما قبله</button>
+                    <button class="wq-lab-tab" id="wq-tab-cluster" data-tab="cluster" type="button" role="tab" aria-controls="wq-panel-cluster" aria-selected="false" tabindex="-1"><i class="fas fa-people-group" aria-hidden="true"></i> تشابه القرّاء</button>
+                    <button class="wq-lab-tab" id="wq-tab-mushafsim" data-tab="mushafsim" type="button" role="tab" aria-controls="wq-panel-mushafsim" aria-selected="false" tabindex="-1"><i class="fas fa-sitemap" aria-hidden="true"></i> تقارب المصاحف</button>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-word">
+                <div class="wq-lab-panel" id="wq-panel-word" role="tabpanel" aria-labelledby="wq-tab-word">
                     <div class="wq-research-presets">
                         <div class="wq-research-group">
                             <span class="wq-research-glabel">حروف الردع والجواب</span>
@@ -123,31 +126,31 @@
                     <div class="wq-research-forms" id="wq-research-forms"></div>
                     <div class="wq-research-results" id="wq-research-results"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-solos" hidden>
+                <div class="wq-lab-panel" id="wq-panel-solos" role="tabpanel" aria-labelledby="wq-tab-solos" hidden>
                     <div id="wq-solos-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-stats" hidden>
+                <div class="wq-lab-panel" id="wq-panel-stats" role="tabpanel" aria-labelledby="wq-tab-stats" hidden>
                     <div id="wq-stats-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-mandatory" hidden>
+                <div class="wq-lab-panel" id="wq-panel-mandatory" role="tabpanel" aria-labelledby="wq-tab-mandatory" hidden>
                     <div id="wq-mandatory-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-saktat" hidden>
+                <div class="wq-lab-panel" id="wq-panel-saktat" role="tabpanel" aria-labelledby="wq-tab-saktat" hidden>
                     <div id="wq-saktat-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-patterns" hidden>
+                <div class="wq-lab-panel" id="wq-panel-patterns" role="tabpanel" aria-labelledby="wq-tab-patterns" hidden>
                     <div id="wq-patterns-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-agreement" hidden>
+                <div class="wq-lab-panel" id="wq-panel-agreement" role="tabpanel" aria-labelledby="wq-tab-agreement" hidden>
                     <div id="wq-agreement-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-ibtidaa" hidden>
+                <div class="wq-lab-panel" id="wq-panel-ibtidaa" role="tabpanel" aria-labelledby="wq-tab-ibtidaa" hidden>
                     <div id="wq-ibtidaa-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-cluster" hidden>
+                <div class="wq-lab-panel" id="wq-panel-cluster" role="tabpanel" aria-labelledby="wq-tab-cluster" hidden>
                     <div id="wq-cluster-content"></div>
                 </div>
-                <div class="wq-lab-panel" id="wq-panel-mushafsim" hidden>
+                <div class="wq-lab-panel" id="wq-panel-mushafsim" role="tabpanel" aria-labelledby="wq-tab-mushafsim" hidden>
                     <div id="wq-mushafsim-content"></div>
                 </div>
             </div>

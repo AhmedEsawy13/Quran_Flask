@@ -18,9 +18,21 @@
   var SEPIA = ['sepia-mode', 'mz-sepia', 'wq-sepia'];
   var ALL = DARK.concat(SEPIA);
 
+  var THEMES = ['light', 'dark', 'sepia'];
+  var NEXT_CONTROL = {
+    light: { icon: 'fas fa-moon', title: 'الوضع الليلي' },
+    dark:  { icon: 'fas fa-leaf', title: 'الوضع البُنّي' },
+    sepia: { icon: 'fas fa-sun',  title: 'الوضع النهاري' }
+  };
+
+  function normalize(theme) {
+    return THEMES.indexOf(theme) >= 0 ? theme : 'light';
+  }
+
   function get() {
-    // migrate the editor's former standalone key on first run
-    return localStorage.getItem(KEY) || localStorage.getItem('ed_theme') || 'light';
+    // Migrate the editor's former standalone key on first run, but never let
+    // malformed storage values leave the document in an undefined theme.
+    return normalize(localStorage.getItem(KEY) || localStorage.getItem('ed_theme'));
   }
 
   function apply(theme) {
@@ -34,8 +46,10 @@
   }
 
   function set(theme) {
+    theme = normalize(theme);
     localStorage.setItem(KEY, theme);
     apply(theme);
+    syncControls(document, theme);
     try { document.dispatchEvent(new CustomEvent('athar:theme', { detail: theme })); } catch (e) {}
   }
 
@@ -45,7 +59,8 @@
   }
 
   function bind(root) {
-    (root || document).querySelectorAll('[data-athar-theme]').forEach(function (el) {
+    root = root || document;
+    root.querySelectorAll('[data-athar-theme]').forEach(function (el) {
       if (el.__atBound) return;
       el.__atBound = true;
       el.addEventListener('click', function (e) {
@@ -54,9 +69,20 @@
         if (v === 'cycle' || !v) cycle(); else set(v);
       });
     });
+    syncControls(root, get());
   }
 
-  window.AtharTheme = { get: get, set: set, apply: apply, cycle: cycle, bind: bind };
+  function syncControls(root, theme) {
+    var meta = NEXT_CONTROL[normalize(theme)];
+    (root || document).querySelectorAll('[data-athar-theme="cycle"]').forEach(function (el) {
+      var icon = el.querySelector('i');
+      if (icon) icon.className = meta.icon;
+      el.title = meta.title;
+      el.setAttribute('aria-label', meta.title);
+    });
+  }
+
+  window.AtharTheme = { get: get, set: set, apply: apply, cycle: cycle, bind: bind, syncControls: syncControls };
 
   // Apply as early as possible, then again once the DOM is ready.
   apply(get());

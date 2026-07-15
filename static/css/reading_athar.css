@@ -1,0 +1,169 @@
+/* ==========================================================================
+ * أثَر · المصحف — editorial design layer
+ *
+ * Deliberately loaded after styles.css + brand.css. The legacy stylesheet
+ * still owns Quran-font/layout mechanics; this small, page-scoped layer owns
+ * the visual language so future cleanup can remove old theme generations
+ * without hunting through the 4,800-line cascade.
+ * ======================================================================= */
+
+body.athar-reading {
+    --primary-color: var(--athar-accent);
+    --primary-hover: var(--athar-accent-soft);
+    --secondary-color: var(--athar-gold);
+    --bg-color: var(--athar-parchment);
+    --text-color: var(--athar-ink);
+    --card-bg: var(--athar-surface);
+    --border-color: var(--athar-line);
+    --shadow-color: rgba(24, 23, 15, 0.08);
+    --waqf-color: var(--athar-gold);
+
+    background:
+        radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--athar-gold) 8%, transparent), transparent 30rem),
+        var(--athar-parchment);
+    color: var(--athar-ink);
+}
+
+body.athar-reading .controls-container {
+    width: min(1120px, calc(100% - clamp(20px, 5vw, 64px)));
+    margin: clamp(24px, 5vw, 52px) auto 20px;
+}
+
+body.athar-reading #controls {
+    width: 100%;
+    margin: 0;
+    padding: clamp(12px, 2vw, 18px);
+    gap: 9px;
+    border: 1px solid var(--athar-line);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--athar-surface) 94%, transparent);
+    box-shadow: 0 18px 50px -38px rgba(24, 23, 15, 0.48);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+body.athar-reading .ctrl-row + .ctrl-row {
+    border-top-color: var(--athar-line-soft);
+}
+
+body.athar-reading #controls select,
+body.athar-reading #controls button,
+body.athar-reading .tafseer-group {
+    border-color: var(--athar-line);
+    background: var(--athar-parchment);
+    color: var(--athar-ink-soft);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+body.athar-reading #controls select:hover,
+body.athar-reading #controls button:hover {
+    border-color: color-mix(in srgb, var(--athar-accent) 42%, var(--athar-line));
+    background: color-mix(in srgb, var(--athar-accent) 7%, var(--athar-surface));
+    color: var(--athar-ink);
+    box-shadow: none;
+}
+
+body.athar-reading #controls select:focus-visible,
+body.athar-reading #controls button:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--athar-accent) 52%, transparent);
+    outline-offset: 2px;
+}
+
+body.athar-reading .ctrl-row-playback #play-pause-button.btn-play,
+body.athar-reading #controls .waqf-mode-btn.active {
+    border-color: var(--athar-accent);
+    background: var(--athar-accent);
+    color: var(--athar-on-accent);
+    box-shadow: none;
+}
+
+body.athar-reading .ctrl-row-playback #play-pause-button.btn-play:hover,
+body.athar-reading #controls .waqf-mode-btn.active:hover {
+    border-color: var(--athar-accent-soft);
+    background: var(--athar-accent-soft);
+    color: var(--athar-on-accent);
+}
+
+body.athar-reading .waqf-row-title,
+body.athar-reading .waqf-card-name,
+body.athar-reading .waqf-panel-title {
+    color: var(--athar-gold);
+}
+
+body.athar-reading .waqf-row-desc,
+body.athar-reading .repeat-label,
+body.athar-reading .playback-time,
+body.athar-reading .khatt-justify-label {
+    color: var(--athar-ink-faint);
+}
+
+body.athar-reading .mushaf-pill {
+    border-color: var(--athar-line);
+    background: transparent;
+    color: var(--athar-ink-soft);
+}
+
+body.athar-reading .mushaf-pill.active {
+    border-color: color-mix(in srgb, var(--athar-accent) 42%, var(--athar-line));
+    background: color-mix(in srgb, var(--athar-accent) 10%, var(--athar-surface));
+    color: var(--athar-accent);
+}
+
+body.athar-reading .ayah-container {
+    width: min(1120px, calc(100% - clamp(20px, 5vw, 64px)));
+    margin: 0 auto clamp(28px, 6vw, 64px);
+    padding: clamp(22px, 4vw, 48px);
+    border: 1px solid var(--athar-line);
+    border-radius: 18px;
+    background: var(--athar-surface);
+    box-shadow: 0 24px 70px -55px rgba(24, 23, 15, 0.58);
+}
+
+body.athar-reading #quran-text {
+    color: var(--athar-ink);
+}
+
+body.athar-reading #transliteration-container,
+body.athar-reading #tafseer-container,
+body.athar-reading #eerab-container,
+body.athar-reading #mutashabihat-container,
+body.athar-reading #word-meaning-text,
+body.athar-reading #recitation-guide-container,
+body.athar-reading #waqf-verse-table-container {
+    color: var(--athar-ink-soft);
+    border-color: var(--athar-line);
+}
+
+body.athar-reading .modal-content {
+    border: 1px solid var(--athar-line);
+    background: var(--athar-surface);
+    color: var(--athar-ink);
+    box-shadow: 0 28px 80px -35px rgba(24, 23, 15, 0.55);
+}
+
+body.athar-reading .word-meaning-tooltip {
+    background: var(--athar-ink);
+    color: var(--athar-surface);
+}
+
+@media (max-width: 640px) {
+    body.athar-reading .controls-container,
+    body.athar-reading .ayah-container {
+        width: calc(100% - 16px);
+    }
+
+    body.athar-reading .controls-container {
+        margin-top: 16px;
+    }
+
+    body.athar-reading #controls,
+    body.athar-reading .ayah-container {
+        border-radius: 14px;
+    }
+
+    body.athar-reading .ayah-container {
+        padding: 18px 12px 32px;
+    }
+}

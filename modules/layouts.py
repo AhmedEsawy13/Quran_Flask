@@ -79,17 +79,18 @@ def get_shamarly_ayah(surah_number, ayah_number):
 
         layout_conn.close()
         
-        font_name = None
-        if pages:
-            # Shemrly font naming follows actual Mushaf page numbering.
-            effective_page = max(1, int(pages[0]))
-            font_name = f"Shemrly-Page{effective_page:03d}"
-
         shemrly_pages_with_fonts = []
         for page in pages:
             candidate_font = f"Shemrly-Page{int(page):03d}"
             if _get_shamarly_font_supported_codepoints(candidate_font) is not None:
                 shemrly_pages_with_fonts.append(int(page))
+
+        # A verse can have a valid layout page without a bundled page-local font.
+        # Only advertise fonts that actually exist; otherwise the browser attempts
+        # a guaranteed 404 before falling back to the readable Uthmanic text.
+        font_name = None
+        if shemrly_pages_with_fonts:
+            font_name = f"Shemrly-Page{int(shemrly_pages_with_fonts[0]):03d}"
 
         # Keep original Arabic words for waqf matching before replacing with glyph chars.
         original_words = [dict(word) for word in words]
@@ -190,6 +191,7 @@ def get_shamarly_ayah(surah_number, ayah_number):
             'raw_text': raw_arabic_text,
             'verse_lines': verse_lines,
             'pages': pages,
+            'font_pages': shemrly_pages_with_fonts,
             'font_name': font_name,
             'waqf_symbols': waqf_symbols,
             'mushaf_version': (mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or ''))

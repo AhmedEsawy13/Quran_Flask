@@ -25,6 +25,10 @@ from modules.layouts import (
 
 logger = logging.getLogger(__name__)
 
+_MAX_MUSHAF_PAGE = 604
+_MAX_MUSHAF_SPREAD = 302
+_EDITOR_SYMBOLS = {'', 'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع', 'ركوع'}
+
 
 def _ayah_word_list_for_editor(surah_number, ayah_number):
     """Ordered list of {'word_id', 'text'} for every layout word in an ayah,
@@ -146,20 +150,21 @@ def get_mushaf_editor_spread(spread_number):
     edition = (request.args.get('edition') or '').strip()
     if edition not in EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
+    if not (1 <= spread_number <= _MAX_MUSHAF_SPREAD):
+        return jsonify({'error': f'spread_number must be between 1 and {_MAX_MUSHAF_SPREAD}'}), 400
     try:
-        spread_number = max(1, int(spread_number))
-        right_page = min(604, spread_number * 2 - 1)
+        right_page = spread_number * 2 - 1
         left_page = right_page + 1
         versions = [edition, 'المدينة الجديد']
         build_page = _build_qatar_page_payload if edition == 'قطر' else _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)
-        left = build_page(left_page, mushaf_version=versions) if left_page <= 604 else None
+        left = build_page(left_page, mushaf_version=versions) if left_page <= _MAX_MUSHAF_PAGE else None
         return jsonify({
             'spread_number': spread_number,
             'edition': edition,
             'right': right,
             'left': left,
-            'max_spread': 302,
+            'max_spread': _MAX_MUSHAF_SPREAD,
         })
     except Exception as e:
         logger.error(f"Error fetching mushaf-editor spread {spread_number}: {e}")
@@ -183,6 +188,8 @@ def set_mushaf_editor_waqf():
         return jsonify({'error': 'invalid edition'}), 400
     symbol = data.get('symbol')
     symbol = '' if symbol is None else str(symbol).strip()
+    if symbol not in _EDITOR_SYMBOLS:
+        return jsonify({'error': 'invalid symbol'}), 400
 
     result = _get_or_set_word_waqf(word_id, edition, symbol)
     if result is None and symbol:
@@ -219,6 +226,8 @@ def mushaf_editor_progress():
             page_number = int(body.get('page_number'))
         except (TypeError, ValueError):
             return jsonify({'error': 'invalid page_number'}), 400
+        if not (1 <= page_number <= _MAX_MUSHAF_PAGE):
+            return jsonify({'error': f'page_number must be between 1 and {_MAX_MUSHAF_PAGE}'}), 400
         reviewed = 1 if body.get('reviewed') else 0
         cur.execute(
             'INSERT INTO mushaf_editor_progress (page_number, edition, reviewed, updated_at) '

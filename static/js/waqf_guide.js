@@ -15,6 +15,10 @@
     const $ = id => document.getElementById(id);
     const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
     const fromAr = s => String(s).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const {
+        displaySymbols, getWaqfDisplayData, isHindiVersion, isWarshVersion,
+        normalizeNonWarshWaqfText,
+    } = window.AtharMushaf;
 
     // Printed-mushaf waqf symbols → meaning + style class.
     const WAQF_SYM = {
@@ -28,43 +32,17 @@
     };
     const symMeta = s => WAQF_SYM[s] || { name: s, cls: 'ok', desc: s };
 
-    // The printed-mushaf DB stores abbreviations (ج/ق/ص/م/لا/س/ع); show the
-    // real Uthmanic-Hafs waqf glyph instead (as the main page does).
-    const WAQF_GLYPH = {
-        'م':  'ۘ',  // ۘ  وقف لازم
-        'لا': 'ۙ',  // ۙ  لا وقف
-        'ق':  'ۗ',  // ۗ  قلى — الوقف أولى
-        'ص':  'ۖ',  // ۖ  صلى — الوصل أولى
-        'ج':  'ۚ',  // ۚ  جائز
-        'س':  'ۜ',  // ۜ  سكتة
-        'ع':  'ۛ',  // ۛ  معانقة
-    };
-    const waqfGlyph = s => WAQF_GLYPH[s] || s;
-    const isWarshId = id => /ورش|warsh/i.test(id || '');
-    const isHindiId = id => /الهندي|hindi|indopak/i.test(id || '');
+    const waqfGlyph = s => normalizeNonWarshWaqfText(s);
+    const isWarshId = isWarshVersion;
+    const isHindiId = isHindiVersion;
     const waqfFontCls = mushafId => isWarshId(mushafId) ? 'waqf-warsh'
         : isHindiId(mushafId) ? 'waqf-hindi' : 'waqf-uthmanic';
     // Printed-mushaf glyph for a (possibly comma-joined) DB symbol. ورش is special:
     // ص → صه (ۖ) and ر → رأس آية (the ۝ rosette, U+06DD); a word can carry both
     // (e.g. ٱلۡقَيُّومُ 2:255 = "ر,ص") so emit صه then ۝.
     function mushafGlyph(sym, mushafId) {
-        const raw = String(sym == null ? '' : sym).trim();
-        const parts = raw.split(/[،,]/).map(t => t.trim()).filter(Boolean);
-        if (isWarshId(mushafId)) {
-            const out = [];
-            parts.forEach(t => {
-                if (t === 'ص' || t === 'ۖ') out.push('ۖ');
-                else if (t === 'ر' || t === '۝') out.push('۝');
-            });
-            return out.join('');
-        }
-        // الهندي already stores the IndoPak waqf GLYPHS (ؕ ۚ ۙ ؗ …); render as-is,
-        // dropping only the verse-end circle (۟) and any PUA font-ligature glyphs.
-        if (isHindiId(mushafId)) {
-            return [...raw].filter(ch => ch.trim() && ch !== '۟'
-                && !(ch.codePointAt(0) >= 0xE000 && ch.codePointAt(0) <= 0xF8FF)).join('');
-        }
-        return parts.map(waqfGlyph).join('');
+        const data = getWaqfDisplayData(sym, mushafId);
+        return data ? displaySymbols(data.text, mushafId).join('') : '';
     }
     // One mark rendered as its printed glyph in the right font; '∅'/empty → dash.
     function markGlyph(sym, mushafId, cls) {
@@ -80,7 +58,7 @@
     const els = {
         surah: $('wq-surah'), ayah: $('wq-ayah'), search: $('wq-search'),
         searchClear: $('wq-search-clear'), searchResults: $('wq-search-results'),
-        prev: $('wq-prev'), next: $('wq-next'), theme: $('wq-theme'), status: $('wq-status'),
+        prev: $('wq-prev'), next: $('wq-next'), theme: $('wq-theme'), status: $('wq-status'), main: $('wq-main'),
         barVerse: $('wq-bar-verse'),
         verseCard: $('wq-verse-card'), verseTitle: $('wq-verse-title'), verseMeta: $('wq-verse-meta'),
         bestStops: $('wq-best-stops'), verseFlow: $('wq-verse-flow'),
@@ -105,35 +83,22 @@
         agreementContent: $('wq-agreement-content'),
     };
 
-    const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, busy: false, breathL: BREATH.medium };
+    const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, breathL: BREATH.medium };
+    const navigationRequests = window.AtharMushaf.createRequestGate();
 
     /* ── status toast ─────────────────────────────────────────── */
-    let toastId = 0;
+    const status = window.AtharUi.createStatus(els.status, {
+        visibleClass: 'wq-show', errorClass: 'wq-err', defaultDuration: 1600,
+    });
     function setStatus(msg, isErr) {
-        clearTimeout(toastId);
-        if (!msg) { els.status.classList.remove('wq-show'); return; }
-        els.status.textContent = msg;
-        els.status.classList.toggle('wq-err', !!isErr);
-        els.status.classList.add('wq-show');
-        if (!isErr) toastId = setTimeout(() => els.status.classList.remove('wq-show'), 1600);
+        if (!msg) { status.clear(); return; }
+        status.show(msg, { error: !!isErr, duration: isErr ? 0 : 1600 });
     }
-
-    /* ── theme (shared أثَر engine: cycles white → dark → sepia) ─── */
-    function themeIcon(t) {
-        return t === 'dark' ? 'fas fa-moon' : t === 'sepia' ? 'fas fa-leaf' : 'fas fa-sun';
-    }
-    function initTheme() {
-        // theme.js already applied the shared theme on load; just sync the icon.
-        const i = els.theme.querySelector('i');
-        if (i) i.className = themeIcon(window.AtharTheme.get());
-    }
-    els.theme.addEventListener('click', () => { window.AtharTheme.cycle(); });
-    document.addEventListener('athar:theme', initTheme);
+    const showState = (container, kind, message) => window.AtharUi.renderState(container, kind, message);
 
     /* ── data loading ─────────────────────────────────────────── */
     async function loadSurahs() {
-        const resp = await fetch('/api/surahs');
-        state.surahs = await resp.json();
+        state.surahs = await window.AtharApi.json('/api/surahs');
         els.surah.innerHTML = state.surahs.map(s => {
             const num = s.number ?? s, name = s.name ?? `سورة ${num}`;
             return `<option value="${num}">${toAr(num)}. ${name}</option>`;
@@ -143,44 +108,63 @@
         const s = state.surahs.find(x => (x.number ?? x) === num);
         return s ? (s.name ?? '') : '';
     }
-    async function loadAyahOptions(surah) {
+    async function getAyahCount(surah) {
         if (!state.ayahCount[surah]) {
-            const resp = await fetch(`/api/surahs/${surah}/ayahs`);
-            const list = await resp.json();
+            const list = await window.AtharApi.json(`/api/surahs/${surah}/ayahs`);
             state.ayahCount[surah] = Array.isArray(list) ? list.length : 0;
         }
+        return state.ayahCount[surah] || 0;
+    }
+    function renderAyahOptions(surah) {
         const n = state.ayahCount[surah] || 0;
         els.ayah.innerHTML = Array.from({ length: n }, (_, i) =>
             `<option value="${i + 1}">${toAr(i + 1)}</option>`).join('');
     }
 
-    async function loadVerse(surah, ayah) {
-        if (state.busy) return;
-        state.busy = true;
+    async function navigateTo(surah, ayah) {
+        const request = navigationRequests.next();
+        window.AtharUi.setBusy(els.main, true);
         setStatus('جارٍ التحميل…');
         try {
-            const resp = await fetch(`/api/waqf/${surah}/${ayah}`);
-            if (!resp.ok) throw new Error('load failed');
-            state.data = await resp.json();
-            state.surah = surah; state.ayah = ayah;
+            const count = await getAyahCount(surah);
+            if (!navigationRequests.isCurrent(request)) return;
+            renderAyahOptions(surah);
+            ayah = Math.min(Math.max(1, Number(ayah) || 1), count || 1);
             els.surah.value = String(surah);
             els.ayah.value = String(ayah);
-            render(state.data);
+            const data = await window.AtharApi.json(`/api/waqf/${surah}/${ayah}`);
+            if (!navigationRequests.isCurrent(request)) return;
+            state.data = data;
+            state.surah = surah;
+            state.ayah = ayah;
+            els.surah.value = String(surah);
+            els.ayah.value = String(ayah);
+            render(data);
             loadMuktafa(surah, ayah);
             setStatus('');
             const url = new URL(location.href);
             url.searchParams.set('surah', surah); url.searchParams.set('ayah', ayah);
             history.replaceState(null, '', url);
         } catch (e) {
-            setStatus('تعذّر تحميل بيانات هذه الآية', true);
+            if (navigationRequests.isCurrent(request)) {
+                els.surah.value = String(state.surah);
+                renderAyahOptions(state.surah);
+                els.ayah.value = String(state.ayah);
+                setStatus('تعذّر تحميل بيانات هذه الآية', true);
+            }
         } finally {
-            state.busy = false;
-            updateStepper();
+            if (navigationRequests.isCurrent(request)) {
+                window.AtharUi.setBusy(els.main, false);
+                updateStepper();
+            }
         }
     }
     function updateStepper() {
-        els.prev.disabled = state.ayah <= 1;
-        els.next.disabled = state.ayah >= (state.ayahCount[state.surah] || Infinity);
+        const edges = window.AtharMushaf.verseEdges(state, {
+            ayahCount: state.ayahCount[state.surah],
+        });
+        els.prev.disabled = edges.atStart;
+        els.next.disabled = edges.atEnd;
     }
 
     /* ── كتب الوقف والابتداء: classical grades + العلل per stop ───────── */
@@ -197,7 +181,7 @@
         if (!els.muktafaCard) return;
         els.muktafaCard.hidden = true;
         try {
-            const j = await (await fetch(`/api/classical-waqf/${surah}/${ayah}`)).json();
+            const j = await window.AtharApi.json(`/api/classical-waqf/${surah}/${ayah}`);
             if (surah !== state.surah || ayah !== state.ayah) return;   // stale response
             if (!j.count) return;
             const words = (state.data && state.data.words) || [];
@@ -299,17 +283,16 @@
         document.querySelectorAll('.wq-research-chip').forEach(c =>
             c.classList.toggle('wq-research-chip-active', c.dataset.word === word && (c.dataset.mode || '') === mode));
         els.researchForms.innerHTML = '';
-        els.researchResults.innerHTML = '<div class="wq-research-loading">…جارٍ البحث</div>';
+        showState(els.researchResults, 'loading', 'جارٍ البحث…');
         try {
             let url = '/api/waqf-research?word=' + encodeURIComponent(word);
             if (exact) url += '&exact=1';
             if (mode) url += '&mode=' + mode;
-            const resp = await fetch(url);
-            const d = await resp.json();
+            const d = await window.AtharApi.json(url);
             researchState = { word, mode, forms: d.forms || [], occ: d.occurrences || [], form: d.active_form || null, waqf: null };
             renderResearch();
         } catch (e) {
-            els.researchResults.innerHTML = '<div class="wq-research-empty">تعذّر البحث</div>';
+            showState(els.researchResults, 'error', 'تعذّر البحث');
         }
     }
 
@@ -365,12 +348,11 @@
 
     async function loadSolosSummary() {
         if (solosCache) { renderSolosSummary(); return; }
-        els.solosContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        showState(els.solosContent, 'loading', 'جارٍ التحليل…');
         try {
-            const resp = await fetch('/api/waqf-research/solos');
-            solosCache = await resp.json();
+            solosCache = await window.AtharApi.json('/api/waqf-research/solos');
             renderSolosSummary();
-        } catch { els.solosContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.solosContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderSolosSummary() {
@@ -389,13 +371,12 @@
 
     async function loadSolosDetail(rid) {
         if (solosReciterCache[rid]) { renderSolosDetail(solosReciterCache[rid]); return; }
-        els.solosContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        showState(els.solosContent, 'loading', 'جارٍ التحميل…');
         try {
-            const resp = await fetch('/api/waqf-research/solos?reciter=' + encodeURIComponent(rid));
-            const d = await resp.json();
+            const d = await window.AtharApi.json('/api/waqf-research/solos?reciter=' + encodeURIComponent(rid));
             solosReciterCache[rid] = d;
             renderSolosDetail(d);
-        } catch { els.solosContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.solosContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderSolosDetail(d) {
@@ -449,23 +430,21 @@
 
     async function loadStats() {
         if (statsCache) { renderStats(); return; }
-        els.statsContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        showState(els.statsContent, 'loading', 'جارٍ التحليل…');
         try {
-            const resp = await fetch('/api/waqf-research/stats');
-            statsCache = await resp.json();
+            statsCache = await window.AtharApi.json('/api/waqf-research/stats');
             statsView = 'surahs';
             renderStats();
-        } catch { els.statsContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.statsContent, 'error', 'تعذّر التحميل'); }
     }
 
     async function loadConsensus() {
         if (consensusCache) { renderConsensus(); return; }
-        els.statsContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        showState(els.statsContent, 'loading', 'جارٍ التحميل…');
         try {
-            const resp = await fetch('/api/waqf-research/stats?view=consensus');
-            consensusCache = await resp.json();
+            consensusCache = await window.AtharApi.json('/api/waqf-research/stats?view=consensus');
             renderConsensus();
-        } catch { els.statsContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.statsContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderStats() {
@@ -533,12 +512,11 @@
 
     async function loadMandatory() {
         if (mandatoryCache) { renderMandatory(); return; }
-        els.mandatoryContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        showState(els.mandatoryContent, 'loading', 'جارٍ التحميل…');
         try {
-            const resp = await fetch('/api/waqf-research/mandatory');
-            mandatoryCache = await resp.json();
+            mandatoryCache = await window.AtharApi.json('/api/waqf-research/mandatory');
             renderMandatory();
-        } catch { els.mandatoryContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.mandatoryContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderMandatory() {
@@ -617,12 +595,11 @@
 
     async function loadPatterns() {
         if (patternsCache) { renderPatterns(); return; }
-        els.patternsContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        showState(els.patternsContent, 'loading', 'جارٍ التحليل…');
         try {
-            const resp = await fetch('/api/waqf-research/patterns');
-            patternsCache = await resp.json();
+            patternsCache = await window.AtharApi.json('/api/waqf-research/patterns');
             renderPatterns();
-        } catch { els.patternsContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.patternsContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderPatterns() {
@@ -654,13 +631,12 @@
 
     async function loadAgreement() {
         if (agreementCache) { renderAgreement(); return; }
-        els.agreementContent.innerHTML = '<div class="wq-research-loading">…جارٍ تحليل وقوف القرّاء عبر المصحف كاملًا</div>';
+        showState(els.agreementContent, 'loading', 'جارٍ تحليل وقوف القرّاء عبر المصحف كاملًا…');
         try {
-            const resp = await fetch('/api/waqf-research/mushaf-agreement');
-            agreementCache = await resp.json();
+            agreementCache = await window.AtharApi.json('/api/waqf-research/mushaf-agreement');
             agreementMushaf = (agreementCache.mushafs || [])[0] || null;
             renderAgreement();
-        } catch { els.agreementContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.agreementContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderAgreement() {
@@ -728,10 +704,10 @@
         const m = (agreementCache.mark_config[agreementMushaf] || []).find(x => x.sym === mark);
         const went = m && m.dir === 'choice' ? 'وقف عند'
             : m && m.dir === 'stop' ? 'لم يقف عند' : 'وقف عند';
-        box.innerHTML = '<div class="wq-research-loading">…جارٍ الجلب</div>';
+        showState(box, 'loading', 'جارٍ الجلب…');
         try {
             const q = `mushaf=${encodeURIComponent(agreementMushaf)}&reciter=${encodeURIComponent(rid)}&mark=${encodeURIComponent(mark)}`;
-            const j = await (await fetch('/api/waqf-research/mushaf-agreement/cases?' + q)).json();
+            const j = await window.AtharApi.json('/api/waqf-research/mushaf-agreement/cases?' + q);
             if (!j.verses || !j.verses.length) {
                 const msg = m && m.dir === 'choice' ? 'لم يقف عند أيٍّ من مواضع الجائز.' : 'لا مخالفات — وافق العلامة في كل المواضع.';
                 box.innerHTML = `<div class="wq-research-empty">${msg}</div>`; return;
@@ -744,7 +720,7 @@
                 + `${went} العلامة في <b>${toAr(j.disagreed)}</b> موضعًا`
                 + `${j.capped ? ` (عُرض أول ${toAr(j.shown)})` : ''}</div>`
                 + `<div class="wq-agree-cases-list">${chips}</div>`;
-        } catch { box.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(box, 'error', 'تعذّر التحميل'); }
     }
 
     /* ── السكتات (Hafs obligatory pauses-without-breath) ───────── */
@@ -752,12 +728,11 @@
 
     async function loadSaktat() {
         if (saktatCache) { renderSaktat(); return; }
-        els.saktatContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحميل</div>';
+        showState(els.saktatContent, 'loading', 'جارٍ التحميل…');
         try {
-            const resp = await fetch('/api/waqf-research/saktat');
-            saktatCache = await resp.json();
+            saktatCache = await window.AtharApi.json('/api/waqf-research/saktat');
             renderSaktat();
-        } catch { els.saktatContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.saktatContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderSaktat() {
@@ -790,12 +765,11 @@
 
     async function loadIbtidaa() {
         if (ibtidaaCache) { renderIbtidaa(); return; }
-        els.ibtidaaContent.innerHTML = '<div class="wq-research-loading">…جارٍ تحليل تلاوات القرّاء</div>';
+        showState(els.ibtidaaContent, 'loading', 'جارٍ تحليل تلاوات القرّاء…');
         try {
-            const resp = await fetch('/api/waqf-research/ibtidaa');
-            ibtidaaCache = await resp.json();
+            ibtidaaCache = await window.AtharApi.json('/api/waqf-research/ibtidaa');
             renderIbtidaa();
-        } catch { els.ibtidaaContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.ibtidaaContent, 'error', 'تعذّر التحميل'); }
     }
 
     function renderIbtidaa() {
@@ -836,12 +810,11 @@
 
     async function loadCluster() {
         if (clusterCache) { renderCluster(); return; }
-        els.clusterContent.innerHTML = '<div class="wq-research-loading">…جارٍ التحليل</div>';
+        showState(els.clusterContent, 'loading', 'جارٍ التحليل…');
         try {
-            const resp = await fetch('/api/waqf-research/clustering');
-            clusterCache = await resp.json();
+            clusterCache = await window.AtharApi.json('/api/waqf-research/clustering');
             renderCluster();
-        } catch { els.clusterContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.clusterContent, 'error', 'تعذّر التحميل'); }
     }
 
     // Heat colour for a similarity, scaled to the actual [min,max] range so the
@@ -903,11 +876,11 @@
     let mushafSimCache = null;
     async function loadMushafSim() {
         if (mushafSimCache) { renderMushafSim(); return; }
-        els.mushafSimContent.innerHTML = '<div class="wq-research-loading">…جارٍ مقارنة أنظمة الوقف</div>';
+        showState(els.mushafSimContent, 'loading', 'جارٍ مقارنة أنظمة الوقف…');
         try {
-            mushafSimCache = await (await fetch('/api/waqf-research/mushaf-similarity')).json();
+            mushafSimCache = await window.AtharApi.json('/api/waqf-research/mushaf-similarity');
             renderMushafSim();
-        } catch { els.mushafSimContent.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(els.mushafSimContent, 'error', 'تعذّر التحميل'); }
     }
 
     // A horizontal dendrogram (RTL): leaves on the right, the tree branches left
@@ -1050,11 +1023,11 @@
         const res = document.getElementById('wq-cmp-result');
         if (a === b) { res.innerHTML = '<div class="wq-research-empty">اختر مصحفين مختلفين.</div>'; return; }
         mushafCompare = { a, b };
-        res.innerHTML = '<div class="wq-research-loading">…جارٍ المقارنة</div>';
+        showState(res, 'loading', 'جارٍ المقارنة…');
         try {
-            const j = await (await fetch('/api/waqf-research/mushaf-diff?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b))).json();
+            const j = await window.AtharApi.json('/api/waqf-research/mushaf-diff?a=' + encodeURIComponent(a) + '&b=' + encodeURIComponent(b));
             mspRenderDiff(j);
-        } catch { res.innerHTML = '<div class="wq-research-empty">تعذّر التحميل</div>'; }
+        } catch { showState(res, 'error', 'تعذّر التحميل'); }
     }
     function mspRenderDiff(j) {
         const res = document.getElementById('wq-cmp-result');
@@ -1082,13 +1055,15 @@
     function setupResearch() {
         if (!els.researchToggle) return;
         els.researchToggle.addEventListener('click', () => {
-            const open = els.researchBody.hidden;
-            els.researchBody.hidden = !open;
-            els.researchToggle.setAttribute('aria-expanded', String(open));
+            window.AtharUi.setDisclosure(els.researchToggle, els.researchBody);
         });
         document.querySelectorAll('.wq-lab-tab').forEach(tab => tab.addEventListener('click', () => {
-            document.querySelectorAll('.wq-lab-tab').forEach(t => t.classList.remove('wq-lab-tab-active'));
-            tab.classList.add('wq-lab-tab-active');
+            document.querySelectorAll('.wq-lab-tab').forEach(t => {
+                const active = t === tab;
+                t.classList.toggle('wq-lab-tab-active', active);
+                t.setAttribute('aria-selected', String(active));
+                t.tabIndex = active ? 0 : -1;
+            });
             const which = tab.dataset.tab;
             els.panelWord.hidden = which !== 'word';
             els.panelSolos.hidden = which !== 'solos';
@@ -1110,6 +1085,19 @@
             if (which === 'cluster') loadCluster();
             if (which === 'mushafsim') loadMushafSim();
         }));
+        els.researchBody.addEventListener('keydown', e => {
+            if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
+            const tabs = [...document.querySelectorAll('.wq-lab-tab')];
+            const current = tabs.indexOf(document.activeElement);
+            if (current < 0) return;
+            e.preventDefault();
+            let next = current;
+            if (e.key === 'Home') next = 0;
+            else if (e.key === 'End') next = tabs.length - 1;
+            else next = (current + (e.key === 'ArrowLeft' ? 1 : -1) + tabs.length) % tabs.length;
+            tabs[next].focus();
+            tabs[next].click();
+        });
         document.querySelectorAll('.wq-research-chip').forEach(c =>
             c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1', c.dataset.mode || '')));
         if (els.researchInput) els.researchInput.addEventListener('keydown', e => {
@@ -1124,15 +1112,13 @@
         els.researchResults.addEventListener('click', async e => {
             const b = e.target.closest('.wq-research-item'); if (!b) return;
             const s = +b.dataset.s, a = +b.dataset.a;
-            if (s !== state.surah) await loadAyahOptions(s);
-            await loadVerse(s, a);
+            await navigateTo(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         els.patternsContent.addEventListener('click', async e => {
             const item = e.target.closest('.wq-research-item'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            if (s !== state.surah) await loadAyahOptions(s);
-            await loadVerse(s, a);
+            await navigateTo(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         if (els.mushafSimContent) els.mushafSimContent.addEventListener('click', async e => {
@@ -1140,8 +1126,7 @@
             if (sub) { mushafSimView = sub.dataset.view; renderMushafSim(); return; }
             const item = e.target.closest('.wq-research-item'); if (!item || !item.dataset.s) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            if (s !== state.surah) await loadAyahOptions(s);
-            await loadVerse(s, a);
+            await navigateTo(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         els.ibtidaaContent.addEventListener('click', async e => {
@@ -1149,15 +1134,13 @@
             if (sub) { ibtidaaOnlyMulti = sub.dataset.im === 'multi'; renderIbtidaa(); return; }
             const item = e.target.closest('.wq-research-item'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            if (s !== state.surah) await loadAyahOptions(s);
-            await loadVerse(s, a);
+            await navigateTo(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         els.saktatContent.addEventListener('click', async e => {
             const item = e.target.closest('.wq-research-item'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            if (s !== state.surah) await loadAyahOptions(s);
-            await loadVerse(s, a);
+            await navigateTo(s, a);
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         els.agreementContent.addEventListener('click', async e => {
@@ -1168,8 +1151,7 @@
             const cs = e.target.closest('.wq-agree-case');
             if (cs) {
                 const s = +cs.dataset.s, a = +cs.dataset.a;
-                if (s !== state.surah) await loadAyahOptions(s);
-                await loadVerse(s, a);
+                await navigateTo(s, a);
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
@@ -1184,8 +1166,7 @@
             const item = e.target.closest('.wq-research-item');
             if (item) {
                 const s = +item.dataset.s, a = +item.dataset.a;
-                if (s !== state.surah) await loadAyahOptions(s);
-                await loadVerse(s, a);
+                await navigateTo(s, a);
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
@@ -1195,8 +1176,7 @@
             const item = e.target.closest('.wq-research-item');
             if (item) {
                 const s = +item.dataset.s, a = +item.dataset.a;
-                if (s !== state.surah) await loadAyahOptions(s);
-                await loadVerse(s, a);
+                await navigateTo(s, a);
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
@@ -1208,8 +1188,7 @@
             const item = e.target.closest('.wq-research-item');
             if (item) {
                 const s = +item.dataset.s, a = +item.dataset.a;
-                if (s !== state.surah) await loadAyahOptions(s);
-                await loadVerse(s, a);
+                await navigateTo(s, a);
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
@@ -1869,10 +1848,7 @@
         if (parsed) {
             if (parsed.surah < 1 || parsed.surah > 114) { setStatus('رقم سورة غير صحيح', true); return; }
             hideSearchResults();
-            await loadAyahOptions(parsed.surah);
-            const max = state.ayahCount[parsed.surah] || 1;
-            const ayah = Math.min(Math.max(1, parsed.ayah), max);
-            await loadVerse(parsed.surah, ayah);
+            await navigateTo(parsed.surah, parsed.ayah);
             return;
         }
         // not a verse reference → search the Quran text for these words
@@ -1886,18 +1862,21 @@
     function wordQueryOf(raw) {
         return fromAr(raw).replace(/[^؀-ۿ\s]/g, '').trim();
     }
+    const searchRequests = window.AtharMushaf.createRequestGate();
     function hideSearchResults() {
+        searchRequests.cancel();
         if (!els.searchResults) return;
         els.searchResults.hidden = true;
         els.searchResults.innerHTML = '';
     }
     async function showWordResults(query) {
         if (!els.searchResults) return;
+        const request = searchRequests.next();
         els.searchResults.hidden = false;
         els.searchResults.innerHTML = '<div class="wq-search-loading">جارٍ البحث…</div>';
         try {
-            const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}&limit=8`);
-            const data = await resp.json();
+            const data = await window.AtharApi.json(`/api/search?q=${encodeURIComponent(query)}&limit=8`);
+            if (!searchRequests.isCurrent(request)) return;
             const results = data.results || [];
             if (!results.length) {
                 els.searchResults.innerHTML = '<div class="wq-search-empty">لا توجد نتائج لهذه الكلمات</div>';
@@ -1920,25 +1899,24 @@
                     hideSearchResults();
                     els.search.value = '';
                     els.searchClear.hidden = true;
-                    await loadAyahOptions(r.surah_number);
-                    await loadVerse(r.surah_number, r.ayah_number);
+                    await navigateTo(r.surah_number, r.ayah_number);
                 });
                 els.searchResults.appendChild(btn);
             });
         } catch (e) {
-            els.searchResults.innerHTML = '<div class="wq-search-empty">تعذّر البحث الآن</div>';
+            if (searchRequests.isCurrent(request)) els.searchResults.innerHTML = '<div class="wq-search-empty">تعذّر البحث الآن</div>';
         }
     }
 
     /* ── events ───────────────────────────────────────────────── */
-    els.surah.addEventListener('change', async () => {
-        const s = +els.surah.value;
-        await loadAyahOptions(s);
-        await loadVerse(s, 1);
-    });
-    els.ayah.addEventListener('change', () => loadVerse(+els.surah.value, +els.ayah.value));
-    els.prev.addEventListener('click', () => { if (state.ayah > 1) loadVerse(state.surah, state.ayah - 1); });
-    els.next.addEventListener('click', () => loadVerse(state.surah, state.ayah + 1));
+    els.surah.addEventListener('change', () => navigateTo(+els.surah.value, 1));
+    els.ayah.addEventListener('change', () => navigateTo(+els.surah.value, +els.ayah.value));
+    async function stepVerse(delta) {
+        const target = await window.AtharMushaf.stepVerse(state, delta, { getAyahCount });
+        if (target) await navigateTo(target.surah, target.ayah);
+    }
+    els.prev.addEventListener('click', () => stepVerse(-1));
+    els.next.addEventListener('click', () => stepVerse(1));
     let searchDebounce = null;
     els.search.addEventListener('input', () => {
         const raw = els.search.value;
@@ -1996,16 +1974,13 @@
 
     /* ── init ─────────────────────────────────────────────────── */
     async function init() {
-        initTheme();
         setupResearch();
         try {
             await loadSurahs();
             const p = new URLSearchParams(location.search);
             const surah = Math.min(Math.max(1, parseInt(p.get('surah'), 10) || 2), 114);
-            await loadAyahOptions(surah);
-            const ayah = Math.min(Math.max(1, parseInt(p.get('ayah'), 10) || (surah === 2 ? 255 : 1)),
-                state.ayahCount[surah] || 1);
-            await loadVerse(surah, ayah);
+            const ayah = parseInt(p.get('ayah'), 10) || (surah === 2 ? 255 : 1);
+            await navigateTo(surah, ayah);
         } catch (e) {
             setStatus('تعذّر تهيئة الصفحة', true);
         }

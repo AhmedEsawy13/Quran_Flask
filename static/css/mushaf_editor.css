@@ -6,33 +6,32 @@
 @font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')      format('woff2'); font-display: swap; }
 @font-face { font-family: 'Uthmanic Hafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'); font-display: swap; }
 
+/* Colors ride on أثَر's shared editorial palette (brand.css --athar-*) so this
+ * page's identity stays in sync as the rest of the app migrates onto it —
+ * only --ed-diff (a semantic "this word differs from the baseline" marker,
+ * not a brand accent) stays independently defined, in both themes. */
 :root {
-    --ed-accent: #4f46e5;
-    --ed-accent-soft: rgba(79,70,229,0.12);
+    --ed-accent: var(--athar-accent);
+    --ed-accent-soft: color-mix(in srgb, var(--athar-accent) 12%, transparent);
     --ed-diff: #ea580c;
     --ed-diff-soft: rgba(234,88,12,0.16);
-    --ed-bg: #f5f1e8;
-    --ed-paper: #fffdf8;
-    --ed-paper-2: #f7f2e7;
-    --ed-border: #e0d6c2;
-    --ed-ink: #1c1917;
-    --ed-muted: #8a8275;
+    --ed-bg: var(--athar-parchment);
+    --ed-paper: var(--athar-surface);
+    --ed-paper-2: var(--athar-parchment-2);
+    --ed-border: var(--athar-line);
+    --ed-ink: var(--athar-ink);
+    --ed-muted: var(--athar-ink-faint);
     /* Fallback sizes before JS measures the available space (sizePages). */
     --ed-page-w: clamp(230px, 40vw, 460px);
     --ed-page-h: clamp(348px, 60.6vw, 697px);
     --ed-fs: 22px;
 }
 body.ed-dark {
-    --ed-accent: #818cf8;
-    --ed-accent-soft: rgba(129,140,248,0.18);
+    /* --ed-accent/-bg/-paper/-paper-2/-border/-ink/-muted follow --athar-*
+       automatically (theme.js sets [data-theme="dark"] on <html> alongside
+       this class) — only the semantic diff color needs its own dark tuning. */
     --ed-diff: #fb923c;
     --ed-diff-soft: rgba(251,146,60,0.20);
-    --ed-bg: #151310;
-    --ed-paper: #1d1a16;
-    --ed-paper-2: #262220;
-    --ed-border: #38332c;
-    --ed-ink: #f0ece2;
-    --ed-muted: #948c7e;
 }
 
 * { box-sizing: border-box; }
@@ -49,7 +48,7 @@ body {
     display: flex; align-items: center; gap: 10px;
     padding: 8px 14px; background: var(--ed-paper);
     border-bottom: 1px solid var(--ed-border);
-    position: sticky; top: 0; z-index: 20;
+    position: sticky; top: var(--athar-bar-h); z-index: 20;
     flex-wrap: wrap;
 }
 .ed-back, .ed-bar-btn, .ed-nav button, .ed-jump button {
@@ -67,7 +66,10 @@ body {
     background: var(--ed-paper-2); color: var(--ed-ink); cursor: pointer;
     font-family: inherit; font-size: 0.92rem; font-weight: 600;
 }
-.ed-edition-btn.ed-active { background: var(--ed-accent); border-color: var(--ed-accent); color: #fff; }
+.ed-edition-btn.ed-active {
+    background: var(--ed-accent); border-color: var(--ed-accent);
+    color: var(--athar-on-accent);
+}
 .ed-bar-spacer { flex: 1 1 auto; }
 .ed-progress { font-size: 0.85rem; color: var(--ed-muted); font-weight: 600; white-space: nowrap; }
 .ed-reviewed-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; cursor: pointer; white-space: nowrap; }

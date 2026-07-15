@@ -18,7 +18,10 @@
     <link rel="stylesheet" href="{{ static_hash('css/styles.css') }}">
     <!-- أثَر shared brand identity (fonts + app-bar) -->
     <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/reading_athar.css') }}">
     <script src="{{ static_hash('js/theme.js') }}"></script>
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
 
     <!-- Google Fonts (async, non-render-blocking) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -32,7 +35,7 @@
     <link rel="preload" href="https://unpkg.com/tippy.js@6/dist/tippy.css" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"></noscript>
 </head>
-<body>
+<body class="athar-reading">
     <!-- أثَر universal app-bar (brand + module nav only — identical on all pages) -->
     <header class="athar-bar">
         <a class="athar-brand" href="/" title="أثَر — مع القرآن">

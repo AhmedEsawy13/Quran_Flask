@@ -20,6 +20,7 @@
     'use strict';
 
     const $ = id => document.getElementById(id);
+    const { getWaqfDisplayData, stripEmbeddedWaqf } = window.AtharMushaf;
 
     const els = {
         surah:       $('mz-surah'),
@@ -114,6 +115,8 @@
         schedule: [],
         stepIdx: -1,
         monitorId: null,
+        playbackGeneration: 0,
+        finishTimer: null,
         pendingSeek: false,
         playing: false,
         activeKey: null,
@@ -207,40 +210,6 @@
 
     /* ── Waqf symbol normalization — ported from the main app so the memorize
        page renders the same glyphs in the same fonts. ─────────────────────── */
-    const isWarshMushafVersion = v => /ورش|warsh/i.test((v || '').toString());
-    function normalizeWarshWaqfText(raw) {
-        if (!raw || !raw.trim()) return '';
-        // In ورش: ص → صه (ۖ, "قف هنا"), ر → رأس آية (the ۝ end-of-ayah rosette,
-        // U+06DD — ورش numbers verses differently from حفص). A word can carry both
-        // (e.g. ٱلۡقَيُّومُ in 2:255 = "ر,ص") — show صه first, then the ۝.
-        const out = [];
-        raw.split(/[،,]/).map(t => t.trim()).filter(Boolean).forEach(t => {
-            if (t === 'ص' || t === 'ۖ') out.push('ۖ');
-            else if (t === 'ر' || t === '۝') out.push('۝');
-        });
-        return out.join('');
-    }
-    const WAQF_GLYPH_MAP = {
-        'م': 'ۘ', 'قلى': 'ۗ', 'قلي': 'ۗ', 'ق': 'ۗ', 'صلى': 'ۖ', 'صلي': 'ۖ', 'ص': 'ۖ',
-        'ج': 'ۚ', 'لا': 'ۙ', 'ع': 'ۛ',
-        'ۘ': 'ۘ', 'ۗ': 'ۗ', 'ۖ': 'ۖ', 'ۚ': 'ۚ', 'ۙ': 'ۙ', 'ۛ': 'ۛ', 'ۜ': 'ۜ',
-        'ؕ': 'ؕ', 'ؗ': 'ؗ', 'ؔ': 'ؔ', '۪': '۪', '۫': '۫', '۬': '۬',
-    };
-    function normalizeNonWarshWaqfText(raw) {
-        return raw.split(/[،,]/).map(t => t.replace(/\s+/g, '').trim()).filter(Boolean)
-            .map(t => WAQF_GLYPH_MAP[t] || t).join('');
-    }
-    function getWaqfDisplayData(raw, version) {
-        raw = (raw || '').toString().trim();
-        if (!raw) return null;
-        if (isWarshMushafVersion(version)) {
-            const n = normalizeWarshWaqfText(raw);
-            return n ? { text: n, extraClass: 'waqf-warsh' } : null;
-        }
-        const n = normalizeNonWarshWaqfText(raw);
-        if (/^[↺▶]+$/.test(n)) return null; // recording cues, not waqf
-        return { text: n, extraClass: '' };
-    }
     // The combining glyph(s) for an in-text (folded) waqf entry — used to render
     // المدينة القديم exactly like the embedded المدينة الجديد marks.
     function integratedWaqfGlyph(entry) {
@@ -249,45 +218,14 @@
     }
 
     /* ── Status / hint ─────────────────────────────────────────────── */
-    let _statusTimer = 0;
+    const status = window.AtharUi.createStatus(els.status, {
+        visibleClass: 'mz-show',
+        errorClass: 'mz-err',
+        defaultDuration: 2200,
+    });
     function setStatus(msg, isErr) {
-        if (!els.status) return;
-        els.status.textContent = msg || '';
-        els.status.classList.toggle('mz-err', !!isErr);
-        els.status.classList.toggle('mz-show', !!msg);
-        clearTimeout(_statusTimer);
-        if (msg) _statusTimer = setTimeout(() => els.status.classList.remove('mz-show'), isErr ? 4200 : 2200);
-    }
-
-    /* ── Theme (light / dark / sepia) ──────────────────────────────── */
-    const THEMES = ['light', 'dark', 'sepia'];
-    function applyTheme(theme) {
-        document.body.classList.toggle('mz-dark', theme === 'dark');
-        document.body.classList.toggle('mz-sepia', theme === 'sepia');
-        syncThemeIcon(theme);
-    }
-    function currentTheme() {
-        if (document.body.classList.contains('mz-dark')) return 'dark';
-        if (document.body.classList.contains('mz-sepia')) return 'sepia';
-        return 'light';
-    }
-    function initTheme() {
-        let saved = localStorage.getItem('quranApp_theme');
-        if (!THEMES.includes(saved)) {
-            saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        applyTheme(saved);
-        els.themeToggle.addEventListener('click', () => {
-            const next = THEMES[(THEMES.indexOf(currentTheme()) + 1) % THEMES.length];
-            applyTheme(next);
-            localStorage.setItem('quranApp_theme', next);
-        });
-    }
-    function syncThemeIcon(theme) {
-        const icon  = { light: 'fas fa-moon', dark: 'fas fa-sun', sepia: 'fas fa-leaf' }[theme] || 'fas fa-moon';
-        const title = { light: 'الوضع الليلي', dark: 'الوضع البُنّي', sepia: 'الوضع النهاري' }[theme] || '';
-        els.themeToggle.querySelector('i').className = icon;
-        els.themeToggle.title = title;
+        if (!msg) { status.clear(); return; }
+        status.show(msg, { error: !!isErr, duration: isErr ? 4200 : (/^جارٍ/.test(msg) ? 0 : 2200) });
     }
 
     const saveSetting = (k, v) => localStorage.setItem(k, String(v));
@@ -336,8 +274,7 @@
         if (!els.waqfPills) return;
         let versions = [];
         try {
-            const resp = await fetch('/api/mushaf-versions');
-            if (resp.ok) versions = await resp.json();
+            versions = await window.AtharApi.json('/api/mushaf-versions');
         } catch (e) { versions = []; }
         versions = MADINAH_WAQF.filter(v => versions.includes(v));
         // Keep at most one Madinah print selected; drop any stale (overlay) versions.
@@ -443,15 +380,11 @@
     // mark as a combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word
     // carries it. These are the source of truth — we keep them when the waqf
     // toggle is on and strip them when off (re-rendering on toggle). No DB overlay.
-    const EMBEDDED_WAQF_RE = /[ۖ-ۜ]/g;
-    const stripEmbeddedWaqf = text => text.replace(EMBEDDED_WAQF_RE, '');
-
     const updateJustifyLabel = () => { els.justifyVal.textContent = toAr(state.justify) + '٪'; };
 
     /* ── Surah list + per-surah memo ───────────────────────────────── */
     async function loadSurahs() {
-        const resp = await fetch('/api/surahs');
-        const data = await resp.json();
+        const data = await window.AtharApi.json('/api/surahs');
         state.surahs = Array.isArray(data) ? data : [];
         els.surah.innerHTML = state.surahs.map(s => {
             const num = s.number ?? s, name = s.name ?? `سورة ${num}`;
@@ -468,8 +401,7 @@
         if (!els.reciter) return;
         let list = [];
         try {
-            const resp = await fetch('/api/memorization-reciters');
-            if (resp.ok) list = await resp.json();
+            list = await window.AtharApi.json('/api/memorization-reciters');
         } catch (e) { list = []; }
         if (!list.length) list = [{ id: 'husary', name_ar: 'محمود خليل الحصري' }];
         const saved = localStorage.getItem('quranApp_memoReciter');
@@ -496,7 +428,10 @@
         constructor(videoId) {
             this._videoId = videoId;
             this._ready = false;
+            this._destroyed = false;
             this._pendingSeeked = false;
+            this._seekTimer = 0;
+            this._pendingPlayResolves = new Set();
             this._listeners = {};
             // Invisible off-screen container. YouTube requires minimum ~200×200;
             // a 1×1 or zero-size player silently refuses to initialize.
@@ -525,6 +460,7 @@
         }
 
         _createPlayer() {
+            if (this._destroyed || !this._div || !this._div.isConnected) return;
             this._player = new YT.Player(this._div, {
                 width: 320,
                 height: 180,
@@ -532,11 +468,13 @@
                 playerVars: { autoplay: 0, controls: 0, disablekb: 1, fs: 0, rel: 0, playsinline: 1 },
                 events: {
                     onReady: () => {
+                        if (this._destroyed) return;
                         this._ready = true;
                         if (this._vol != null) this.volume = this._vol;  // apply pending volume
                         this._dispatch('loadedmetadata');
                     },
                     onStateChange: e => {
+                        if (this._destroyed) return;
                         if (e.data === YT.PlayerState.ENDED) {
                             this._dispatch('ended');
                         }
@@ -556,7 +494,10 @@
         }
 
         _dispatch(event) {
-            (this._listeners[event] || []).forEach(cb => { try { cb({ type: event }); } catch (e) {} });
+            if (this._destroyed) return;
+            (this._listeners[event] || []).forEach(cb => {
+                try { cb({ type: event, target: this, currentTarget: this }); } catch (e) {}
+            });
         }
 
         addEventListener(event, callback, opts) {
@@ -595,12 +536,13 @@
             try { return this._player.getCurrentTime() || 0; } catch (e) { return 0; }
         }
         set currentTime(t) {
-            if (!this._player || !this._ready) return;
+            if (this._destroyed || !this._player || !this._ready) return;
             this._pendingSeeked = true;
             try { this._player.seekTo(t, true); } catch (e) {}
             // Fallback: fire 'seeked' after 500 ms in case state-change never fires
             // (e.g. seek happens while the player is already at the right state).
-            setTimeout(() => {
+            clearTimeout(this._seekTimer);
+            this._seekTimer = setTimeout(() => {
                 if (this._pendingSeeked) { this._pendingSeeked = false; this._dispatch('seeked'); }
             }, 500);
         }
@@ -613,7 +555,13 @@
 
         play() {
             return new Promise(resolve => {
-                const doPlay = () => { try { this._player.playVideo(); } catch (e) {} resolve(); };
+                if (this._destroyed) { resolve(); return; }
+                this._pendingPlayResolves.add(resolve);
+                const doPlay = () => {
+                    this._pendingPlayResolves.delete(resolve);
+                    if (!this._destroyed) try { this._player.playVideo(); } catch (e) {}
+                    resolve();
+                };
                 if (this._ready) doPlay();
                 else this.addEventListener('loadedmetadata', () => doPlay(), { once: true });
             });
@@ -632,6 +580,10 @@
         }
 
         destroy() {
+            this._destroyed = true;
+            clearTimeout(this._seekTimer);
+            this._pendingPlayResolves.forEach(resolve => resolve());
+            this._pendingPlayResolves.clear();
             try { if (this._player && this._player.destroy) this._player.destroy(); } catch (e) {}
             if (this._div && this._div.parentNode) this._div.parentNode.removeChild(this._div);
             this._listeners = {};
@@ -640,8 +592,13 @@
 
     // Named audio event callbacks so they can be re-attached to a fresh adapter
     // whenever the reciter switches between native-MP3 and YouTube backends.
-    function _onAudioSeeked() { state.pendingSeek = false; }
-    function _onAudioEnded() { if (state.stepIdx >= 0 && state.stepIdx < state.schedule.length) advanceStep(); }
+    function _onAudioSeeked(event) {
+        if (!event || event.currentTarget === els.audio) state.pendingSeek = false;
+    }
+    function _onAudioEnded(event) {
+        if (event && event.currentTarget !== els.audio) return;
+        if (state.playing && state.stepIdx >= 0 && state.stepIdx < state.schedule.length) advanceStep();
+    }
     function attachAudioEvents(obj) {
         obj.addEventListener('seeked', _onAudioSeeked);
         obj.addEventListener('ended', _onAudioEnded);
@@ -651,11 +608,16 @@
     // when switching away from a YouTube reciter back to an MP3 reciter.
     const _nativeAudio = $('mz-audio');
 
+    let _memoRequest = 0;
+    let _boundaryRequest = 0;
     async function loadSurahMemo(surah) {
+        const request = ++_memoRequest;
+        ++_boundaryRequest;
+        const query = memoQuery();
         setStatus('جارٍ تحميل بيانات السورة…');
-        const resp = await fetch(`/api/memorization/${surah}${memoQuery()}`);
-        if (!resp.ok) throw new Error('memo load failed');
-        const data = await resp.json();
+        const data = await window.AtharApi.json(`/api/memorization/${surah}${query}`);
+        if (request !== _memoRequest) return false;
+        if (!data || !Array.isArray(data.verses) || !data.verses.length) throw new Error('memo load failed');
         state.memo = data;
         state.surah = surah;
         if (data.reciter_name_ar) state.reciterName = data.reciter_name_ar;
@@ -693,15 +655,19 @@
         setVolume(state.volume != null ? state.volume : 1);  // carry volume across backends
         updateHint();
         setStatus('');
+        return true;
     }
 
     // Reload segment boundaries when split mode/sensitivity changes (same surah/audio).
     async function reloadMemoBoundaries() {
         if (!state.memo) return;
+        const request = ++_boundaryRequest;
+        const surah = state.surah;
+        const query = memoQuery();
         try {
-            const resp = await fetch(`/api/memorization/${state.surah}${memoQuery()}`);
-            if (!resp.ok) return;
-            const data = await resp.json();
+            const data = await window.AtharApi.json(`/api/memorization/${surah}${query}`);
+            if (request !== _boundaryRequest || surah !== state.surah || query !== memoQuery()) return;
+            if (!data || !Array.isArray(data.verses) || !data.verses.length) return;
             state.memo = data;
             state.verseByAyah = new Map(data.verses.map(v => [v.ayah, v]));
             updateHint();
@@ -795,9 +761,6 @@
             p.classList.toggle('mz-tajweed', state.tajweedOn && state.src !== 'shamarly');
         });
     }
-    const pageApiBase = () => state.src === 'qpc_v1' ? '/api/qpc-v1'
-        : state.src === 'shamarly' ? '/api/shamarly' : '/api/digital-khatt';
-
     /* ── الشمرلي (Shemrly) page-local fonts ────────────────────────────
        Shemrly is a page-image mushaf: each page has its own font whose glyphs
        draw the words exactly as printed. Only the pages we ship a font for can
@@ -810,9 +773,7 @@
     let SHEMRLY_PAGE_SET = new Set();
     async function loadShemrlyPages() {
         try {
-            const resp = await fetch('/api/shamarly/pages');
-            if (!resp.ok) return;
-            const data = await resp.json();
+            const data = await window.AtharApi.json('/api/shamarly/pages');
             if (Array.isArray(data.pages) && data.pages.length) {
                 SHEMRLY_PAGES = data.pages;
                 SHEMRLY_PAGE_SET = new Set(SHEMRLY_PAGES);
@@ -830,57 +791,25 @@
     }
     const nearestShemrlyPage = (page) =>
         SHEMRLY_PAGES.reduce((best, p) => Math.abs(p - page) < Math.abs(best - page) ? p : best, SHEMRLY_PAGES[0]);
-    function waqfQuery() {
+    function pageVersions() {
         let versions = state.mushafVersions.slice();
         if (state.src === 'shamarly' && !versions.includes('الشمرلي')) versions.unshift('الشمرلي');
-        if (!versions.length) return '';
-        return '?' + versions.map(v => 'mushaf_version=' + encodeURIComponent(v)).join('&');
+        return versions;
     }
+    const mushafPages = window.AtharMushaf.createPageClient({
+        getSource: () => state.src,
+        getVersions: pageVersions,
+    });
     async function fetchPageByAyah(surah, ayah) {
-        const resp = await fetch(`${pageApiBase()}/page-by-ayah/${surah}/${ayah}${waqfQuery()}`);
-        if (!resp.ok) throw new Error('page load failed');
-        return resp.json();
+        return mushafPages.byAyah(surah, ayah);
     }
     async function fetchPageByNumber(pageNumber) {
-        const resp = await fetch(`${pageApiBase()}/page/${pageNumber}${waqfQuery()}`);
-        if (!resp.ok) throw new Error('page load failed');
-        return resp.json();
+        return mushafPages.byNumber(pageNumber);
     }
 
     /* ── Waqf marks renderer (same structure/fonts/colours as the main page) ─ */
     function appendWaqfMarks(span, entries) {
-        if (!Array.isArray(entries) || !entries.length) return;
-        const stack = document.createElement('span');
-        stack.className = 'waqf-stack';
-        entries.forEach(e => {
-            const version = (e && e.version) || '';
-            const data = getWaqfDisplayData(e && e.symbols, version);
-            if (!data) return;
-            const isHindi = version === 'الهندي';
-            const symbols = [...data.text].filter(ch => {
-                if (!ch.trim()) return false;
-                if (isHindi) {
-                    const cp = ch.codePointAt(0);
-                    if (ch === '۟' || ch === 'ۜ') return false;
-                    if (cp >= 0xE000 && cp <= 0xF8FF) return false;
-                }
-                return true;
-            });
-            if (!symbols.length) return;
-            const cls = 'waqf-symbol' + (data.extraClass ? ' ' + data.extraClass : '');
-            symbols.forEach(sym => {
-                const s = document.createElement('span');
-                s.className = cls;
-                if (version) { s.dataset.version = version; s.title = `مصحف: ${version}`; }
-                s.textContent = sym;
-                if (isHindi) {
-                    let g = stack.querySelector(':scope > .waqf-hindi-group');
-                    if (!g) { g = document.createElement('span'); g.className = 'waqf-hindi-group'; stack.appendChild(g); }
-                    g.appendChild(s);
-                } else stack.appendChild(s);
-            });
-        });
-        if (stack.childNodes.length) span.appendChild(stack);
+        window.AtharMushaf.appendWaqfEntries(span, entries);
     }
 
     /* ── Render one page into a card ───────────────────────────────── */
@@ -911,95 +840,40 @@
         else pageEl.style.removeProperty('font-family');
 
         pageEl.classList.add('mz-has-page');
-        const ayahWPos = new Map();
-        const frag = document.createDocumentFragment();
-
-        (payload.lines || []).forEach(line => {
-            const lineEl = document.createElement('div');
-            lineEl.className = 'mz-line';
-            const type = line.line_type;
-            if (type === 'surah_name') {
-                const inner = document.createElement('div');
-                inner.className = 'mz-line-surah';
-                const glyph = surahHeaderGlyph(line.surah_number);
-                if (glyph) { inner.classList.add('mz-surah-glyph'); inner.textContent = glyph; inner.setAttribute('aria-label', line.display_text || ''); }
-                else inner.textContent = line.display_text || '';
-                lineEl.appendChild(inner);
-            } else if (type === 'basmallah') {
-                const inner = document.createElement('div');
-                inner.className = 'mz-line-basmala mz-basmala-glyph';
-                inner.textContent = BASMALA_GLYPH;
-                inner.setAttribute('aria-label', line.display_text || 'بسم الله الرحمن الرحيم');
-                lineEl.appendChild(inner);
-            } else {
-                const inner = document.createElement('div');
-                inner.className = 'mz-line-inner';
-                const words = line.words || [];
-                if (words.length) {
-                    words.forEach((w, i) => {
-                        const span = document.createElement('span');
-                        span.className = 'mz-word';
-                        // Shemrly glyphs already include the printed ayah marker; only the
-                        // letter-based sources need the ۝ ornament appended.
-                        const raw = w.text || '';
-                        const entries = (w.waqf_symbols && Array.isArray(w.waqf_symbols)) ? w.waqf_symbols : [];
-                        // Embedded waqf chars (ۖ-ۜ) live in the QPC text. They're
-                        // Unicode combining marks, so wrapping them in a span and
-                        // hiding it is unreliable (the mark still shapes onto the
-                        // base letter). Instead strip them outright when the waqf
-                        // toggle is off, and re-render on toggle (cheap, no fetch).
-                        //
-                        // المدينة القديم is rendered the SAME way as the embedded
-                        // المدينة الجديد marks — its glyph is folded INTO the word
-                        // text as a combining mark, not drawn as a separate overlay.
-                        // When القديم is the chosen print we strip the embedded NEW
-                        // marks from EVERY word and re-add only the old print's own
-                        // marks (a word with no old mark shows none — that's the whole
-                        // point of the لا the new print dropped); otherwise the words
-                        // keep their embedded new-Madinah marks.
-                        const oldSelected = state.mushafVersions.includes('المدينة القديم');
-                        let text;
-                        if (state.src === 'shamarly') {
-                            text = raw;
-                        } else if (!waqfMarksOn()) {
-                            text = withAyahOrnament(stripEmbeddedWaqf(raw));
-                        } else if (oldSelected) {
-                            const oldMark = entries.find(e => e && e.version === 'المدينة القديم');
-                            text = withAyahOrnament(stripEmbeddedWaqf(raw) + (oldMark ? integratedWaqfGlyph(oldMark) : ''));
-                        } else {
-                            text = withAyahOrnament(raw);   // embedded المدينة الجديد marks
-                        }
-                        span.textContent = text;
-                        span.dataset.text = text;
-                        if (w.surah != null && w.ayah != null) {
-                            const key = `${w.surah}:${w.ayah}`;
-                            span.dataset.key = key;
-                            const pos = ayahWPos.get(key) ?? 0;
-                            span.dataset.wpos = String(pos);
-                            ayahWPos.set(key, pos + 1);
-                        }
-                        // Other selected prints (ورش، الأزهر، …) ride above the word
-                        // as an overlay stack. Both Madinah prints are drawn in-text
-                        // above, so keep them out of the overlay to avoid doubling.
-                        const overlay = entries.filter(e => e && e.version !== 'المدينة القديم' && e.version !== 'المدينة الجديد');
-                        if (overlay.length) {
-                            span._waqf = overlay;
-                            if (waqfMarksOn()) appendWaqfMarks(span, overlay);
-                        }
-                        inner.appendChild(span);
-                        if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
-                    });
-                    lineEl.dataset.justify = (!line.is_centered) ? '1' : '0';
-                } else {
-                    inner.textContent = line.display_text || '';
+        window.AtharMushaf.renderMushafLines(pageEl, payload.lines || [], {
+            lineClass: 'mz-line', contentClass: 'mz-line-inner', wordClass: 'mz-word',
+            surahClass: 'mz-line-surah', basmalaClass: 'mz-line-basmala mz-basmala-glyph',
+            textForSpecial: ({ line, kind }) => kind === 'surah'
+                ? (surahHeaderGlyph(line.surah_number) || line.display_text || '')
+                : BASMALA_GLYPH,
+            decorateSpecial: (element, { line, kind }) => {
+                if (kind === 'surah' && surahHeaderGlyph(line.surah_number)) element.classList.add('mz-surah-glyph');
+                element.setAttribute('aria-label', line.display_text || (kind === 'basmala' ? 'بسم الله الرحمن الرحيم' : ''));
+            },
+            textForWord: ({ word, raw }) => {
+                const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
+                const oldSelected = state.mushafVersions.includes('المدينة القديم');
+                if (state.src === 'shamarly') return raw;
+                if (!waqfMarksOn()) return withAyahOrnament(stripEmbeddedWaqf(raw));
+                if (oldSelected) {
+                    const oldMark = entries.find(entry => entry && entry.version === 'المدينة القديم');
+                    return withAyahOrnament(stripEmbeddedWaqf(raw) + (oldMark ? integratedWaqfGlyph(oldMark) : ''));
                 }
-                lineEl.appendChild(inner);
-            }
-            frag.appendChild(lineEl);
+                return withAyahOrnament(raw);
+            },
+            decorateWord: (element, { word }) => {
+                element.dataset.text = element.textContent;
+                const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
+                const overlay = entries.filter(entry => entry
+                    && entry.version !== 'المدينة القديم' && entry.version !== 'المدينة الجديد');
+                if (!overlay.length) return;
+                element._waqf = overlay;
+                if (waqfMarksOn()) appendWaqfMarks(element, overlay);
+            },
+            decorateLine: (element, { line }) => {
+                if ((line.words || []).length) element.dataset.justify = line.is_centered ? '0' : '1';
+            },
         });
-
-        pageEl.innerHTML = '';
-        pageEl.appendChild(frag);
 
         // Running head: every surah on the page (left) + juz (right) + page number.
         const seen = new Set();
@@ -1042,30 +916,36 @@
         return [Math.max(PAGE_MIN, right), Math.min(PAGE_MAX, left)];
     }
 
-    async function renderSpread(focusPage) {
-        state.focusPage = focusPage;
+    const pageRequests = window.AtharMushaf.createRequestGate();
+    async function renderSpread(focusPage, intent) {
+        const request = intent == null ? pageRequests.next() : intent;
         try {
             if (state.layoutMode === 'single') {
                 // Single page: show the focus page itself in the right card; hide the left.
-                state.spread = [focusPage, null];
                 const fp = await fetchPageByNumber(focusPage);
                 if (state.src === 'shamarly' && fp) await ensureShemrlyFont(fp.font_name);
+                if (!pageRequests.isCurrent(request)) return false;
+                state.focusPage = focusPage;
+                state.spread = [focusPage, null];
                 renderCard(cards.right, fp);
                 renderCard(cards.left, null);
             } else {
                 const [right, left] = spreadFor(focusPage);
-                state.spread = [right, left];
+                const canLoad = page => state.src !== 'shamarly' || SHEMRLY_PAGE_SET.has(page);
                 const [rp, lp] = await Promise.all([
-                    fetchPageByNumber(right),
-                    left !== right && left <= PAGE_MAX ? fetchPageByNumber(left) : Promise.resolve(null),
+                    canLoad(right) ? fetchPageByNumber(right) : Promise.resolve(null),
+                    left !== right && left <= PAGE_MAX && canLoad(left) ? fetchPageByNumber(left) : Promise.resolve(null),
                 ]);
                 if (state.src === 'shamarly') await Promise.all([rp, lp].map(p => p && ensureShemrlyFont(p.font_name)));
+                if (!pageRequests.isCurrent(request)) return false;
+                state.focusPage = focusPage;
+                state.spread = [right, left];
                 renderCard(cards.right, rp);
                 renderCard(cards.left, lp);
             }
         } catch (e) {
-            setStatus('تعذّر تحميل الصفحة', true);
-            return;
+            if (pageRequests.isCurrent(request)) setStatus('تعذّر تحميل الصفحة', true);
+            return false;
         }
         applySrcClass();
         if (state.hideText) pageEls().forEach(p => p && p.classList.add('mz-hide'));
@@ -1088,6 +968,7 @@
                 if (state.focusPage === fp) { applyFontSize(true); requestAnimationFrame(justifyLines); }
             }).catch(() => {});
         }
+        return true;
     }
 
     // Make the page(s) as large as the freed centre allows, keeping a mushaf
@@ -1314,9 +1195,12 @@
     async function ensureVerseVisible(surah, ayah) {
         const key = `${surah}:${ayah}`;
         if (wordsInSpread(`.mz-word[data-key="${key}"]`).length) return true;
+        const intent = pageRequests.next();
         try {
             const payload = await fetchPageByAyah(surah, ayah);
-            await renderSpread(payload.page_number);
+            if (!pageRequests.isCurrent(intent)) return false;
+            const rendered = await renderSpread(payload.page_number, intent);
+            if (!rendered || !pageRequests.isCurrent(intent)) return false;
             return wordsInSpread(`.mz-word[data-key="${key}"]`).length > 0;
         } catch (e) { return false; }
     }
@@ -1455,8 +1339,8 @@
         if (state.tajweedCache.has(key)) return state.tajweedCache.get(key);
         let segments = [];
         try {
-            const resp = await fetch(`/api/tajweed/${surah}/${ayah}`);
-            if (resp.ok) { const data = await resp.json(); segments = parseTajweedIntoWords(getNormalizedTajweedHtml(data.html)); }
+            const data = await window.AtharApi.json(`/api/tajweed/${surah}/${ayah}`);
+            segments = parseTajweedIntoWords(getNormalizedTajweedHtml(data.html));
         } catch (e) { segments = []; }
         state.tajweedCache.set(key, segments);
         return segments;
@@ -1492,6 +1376,11 @@
 
     /* ── Navigation ────────────────────────────────────────────────── */
     function updateNavButtons() {
+        if (state.src === 'shamarly' && SHEMRLY_PAGES.length) {
+            els.prev.disabled = !state.focusPage || state.focusPage <= SHEMRLY_PAGES[0];
+            els.next.disabled = !state.focusPage || state.focusPage >= SHEMRLY_PAGES[SHEMRLY_PAGES.length - 1];
+            return;
+        }
         if (state.layoutMode === 'single') {
             els.prev.disabled = !state.focusPage || state.focusPage <= PAGE_MIN;
             els.next.disabled = !state.focusPage || state.focusPage >= PAGE_MAX;
@@ -1502,10 +1391,13 @@
         }
     }
     async function gotoSpread(focusPage) {
+        const intent = pageRequests.next();
         focusPage = Math.max(PAGE_MIN, Math.min(PAGE_MAX, focusPage));
         setStatus('جارٍ تحميل الصفحة…');
-        await renderSpread(focusPage);
+        const rendered = await renderSpread(focusPage, intent);
+        if (!rendered || !pageRequests.isCurrent(intent)) return false;
         setStatus('');
+        return true;
     }
 
     /* ── Cumulative segmented-repetition schedule (merged الحفظ التراكمي) ── */
@@ -1545,7 +1437,7 @@
     function startMonitor() {
         stopMonitor();
         state.monitorId = setInterval(() => {
-            if (state.pendingSeek || state.stepIdx < 0 || els.audio.paused) return;
+            if (!state.playing || state.pendingSeek || state.stepIdx < 0 || els.audio.paused) return;
             const step = state.schedule[state.stepIdx];
             if (!step) return;
             updateProgress();
@@ -1555,17 +1447,25 @@
     }
     const stopMonitor = () => { if (state.monitorId) { clearInterval(state.monitorId); state.monitorId = null; } };
 
-    function seekTo(t) {
+    function seekTo(t, generation) {
         state.pendingSeek = true;
-        const apply = () => { try { els.audio.currentTime = t; } catch (e) {} els.audio.play().catch(() => {}); };
-        if (els.audio.readyState >= 1) apply();
-        else els.audio.addEventListener('loadedmetadata', apply, { once: true });
+        const audio = els.audio;
+        const apply = () => {
+            if (generation !== state.playbackGeneration || audio !== els.audio || state.stepIdx < 0) return;
+            try { audio.currentTime = t; } catch (e) {}
+            audio.play().catch(() => {});
+        };
+        if (audio.readyState >= 1) apply();
+        else audio.addEventListener('loadedmetadata', apply, { once: true });
     }
 
-    async function playStep(k, atTime) {
+    async function playStep(k, atTime, generation) {
+        generation = generation == null ? state.playbackGeneration : generation;
+        if (generation !== state.playbackGeneration || !state.schedule.length) return;
         if (k >= state.schedule.length) {
-            if (els.loop.checked) { k = 0; } else { finishPlayback(); return; }
+            if (els.loop.checked) { k = 0; } else { finishPlayback(generation); return; }
         }
+        state.pendingSeek = true;
         state.stepIdx = k;
         const step = state.schedule[k];
         // Verses overlapping this step's time window (a cumulative-link step spans
@@ -1580,15 +1480,19 @@
         state.curFollowAyah = null;
         clearWordHighlight();
         await ensureVerseVisible(state.surah, firstAyah);
+        if (generation !== state.playbackGeneration || state.stepIdx !== k || !state.schedule.length) return;
         markActive(`${state.surah}:${firstAyah}`);
         state.curFollowAyah = firstAyah;
         scrollActiveIntoView();
-        seekTo(atTime != null ? atTime : step.start);
+        seekTo(atTime != null ? atTime : step.start, generation);
         els.now.textContent = `${surahNameOf(state.surah)} · ${step.label}` + (step.repTotal > 1 ? ` (${toAr(step.rep)}/${toAr(step.repTotal)})` : '');
         saveSetting('mz_last_pos', `${state.surah}:${step.ayah}`);
         saveSetting('quranApp_lastPosition', `${state.surah}:${step.ayah}`);
     }
-    const advanceStep = () => playStep(state.stepIdx + 1);
+    const advanceStep = () => {
+        if (!state.playing || state.pendingSeek || state.stepIdx < 0) return;
+        playStep(state.stepIdx + 1, null, state.playbackGeneration);
+    };
 
     const fmtTime = (sec) => {
         sec = Math.max(0, Math.floor(sec || 0));
@@ -1638,6 +1542,12 @@
     }
 
     async function startPlayback() {
+        const generation = ++state.playbackGeneration;
+        window.clearTimeout(state.finishTimer);
+        state.finishTimer = null;
+        state.pendingSeek = false;
+        try { els.audio.pause(); } catch (e) {}
+        stopMonitor();
         rebuildSelectedKeys();
         clearDone();   // fresh progress reveal for this run
         state.schedule = buildSchedule();
@@ -1645,6 +1555,7 @@
         const [a] = selectedAyahRange();
         setStatus('جارٍ فتح صفحة المصحف…');
         const ok = await ensureVerseVisible(state.surah, a);
+        if (generation !== state.playbackGeneration) return;
         if (!ok) { setStatus('تعذّر تحديد موضع الآية في المصحف', true); return; }
         applySelectionHighlight();
         setStatus('');
@@ -1655,18 +1566,27 @@
         setPlayIcon(true);
         syncLoopBtn();
         startMonitor();
-        playStep(0);
+        playStep(0, null, generation);
     }
-    function finishPlayback() {
+    function finishPlayback(generation) {
+        if (generation != null && generation !== state.playbackGeneration) return;
         state.playing = false; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
+        state.pendingSeek = false;
         clearWordHighlight();
         els.progressFill.style.width = '100%';
         els.now.textContent = 'تم — أحسنت! 🌿';
         if (els.remaining) els.remaining.textContent = '';
-        setTimeout(() => { if (!state.playing) els.progressFill.style.width = '0%'; }, 1200);
+        window.clearTimeout(state.finishTimer);
+        const completedGeneration = state.playbackGeneration;
+        state.finishTimer = setTimeout(() => {
+            if (!state.playing && completedGeneration === state.playbackGeneration) els.progressFill.style.width = '0%';
+        }, 1200);
     }
     function stopPlayback() {
-        state.playing = false; state.stepIdx = -1; state.schedule = []; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
+        ++state.playbackGeneration;
+        window.clearTimeout(state.finishTimer);
+        state.finishTimer = null;
+        state.playing = false; state.stepIdx = -1; state.schedule = []; state.pendingSeek = false; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
         clearWordHighlight(); clearDone(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
         els.progressFill.style.width = '0%';
         els.now.textContent = '';
@@ -1677,7 +1597,7 @@
     }
     function togglePlay() {
         if (els.audio.paused) {
-            if (state.stepIdx < 0) playStep(0); else els.audio.play().catch(() => {});
+            if (state.stepIdx < 0) playStep(0, null, state.playbackGeneration); else els.audio.play().catch(() => {});
             state.playing = true; setPlayIcon(true); startMonitor();
         } else { els.audio.pause(); state.playing = false; setPlayIcon(false); }
     }
@@ -1698,7 +1618,7 @@
        Lazy-loads static/mushaf_asr.js (onnxruntime-web + the FastConformer
        streaming model). The module emits recognised Arabic words; we match
        them against the selected verses in order to follow / reveal / advance. */
-    let _asrLoaded = false, _asrActive = false;
+    let _asrLoaded = false, _asrActive = false, _asrStarting = false, _asrSession = 0;
     const _arNorm = s => (s || '')
         // strip every harakat/mark/tatweel/ayah-ornament + Arabic-Indic digits
         .replace(/[ً-ٰٟۖ-ۭ࣐-ࣿـ۝٠-٩]/g, '')
@@ -1737,15 +1657,35 @@
         if (on && els.asrLiveText) els.asrLiveText.textContent = 'استمع…';
     }
 
+    function stopReciteFollow(showMessage) {
+        ++_asrSession;
+        _asrStarting = false;
+        _asrActive = false;
+        try { if (window.MushafASR) window.MushafASR.stop(); } catch (e) {}
+        if (els.reciteBtn) {
+            window.AtharUi.setBusy(els.reciteBtn, false);
+            els.reciteBtn.classList.remove('mz-listening');
+            els.reciteBtn.setAttribute('aria-pressed', 'false');
+            els.reciteBtn.setAttribute('aria-label', 'بدء التسميع والمتابعة');
+        }
+        showAsrLive(false);
+        if (showMessage && els.asrNote) els.asrNote.textContent = 'تم إيقاف التسميع';
+    }
+
     async function startReciteFollow() {
-        if (_asrActive) { try { window.MushafASR && window.MushafASR.stop(); } catch (e) {} return; }
+        if (_asrActive || _asrStarting) { stopReciteFollow(true); return; }
+        const session = ++_asrSession;
+        _asrStarting = true;
+        window.AtharUi.setBusy(els.reciteBtn, true);
         if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
         try {
             if (!_asrLoaded) { await loadScript('/static/js/mushaf_asr.js?v=25'); _asrLoaded = true; }
+            if (session !== _asrSession) return;
             if (!window.MushafASR) throw new Error('module missing');
 
             // make sure the selected verses are actually on screen before we map words
             await renderSelection();
+            if (session !== _asrSession) return;
             // reset any previous recite highlights
             wordsInSpread('.mz-word.mz-recited').forEach(w => w.classList.remove('mz-recited'));
             const expFlat = _expectedFlat();
@@ -1765,14 +1705,26 @@
             };
 
             await window.MushafASR.start({
-                onStatus: (msg) => { if (els.asrNote) els.asrNote.textContent = msg; if (els.asrLiveText && /استمع|listen/i.test(msg)) showAsrLive(true); },
+                onStatus: (msg) => {
+                    if (session !== _asrSession) return;
+                    if (els.asrNote) els.asrNote.textContent = msg;
+                    if (els.asrLiveText && /استمع|listen/i.test(msg)) showAsrLive(true);
+                },
                 onActive: (on) => {
+                    if (session !== _asrSession) return;
+                    _asrStarting = false;
                     _asrActive = on;
-                    if (els.reciteBtn) els.reciteBtn.classList.toggle('mz-listening', on);
+                    if (els.reciteBtn) {
+                        window.AtharUi.setBusy(els.reciteBtn, false);
+                        els.reciteBtn.classList.toggle('mz-listening', on);
+                        els.reciteBtn.setAttribute('aria-pressed', String(on));
+                        els.reciteBtn.setAttribute('aria-label', on ? 'إيقاف التسميع والمتابعة' : 'بدء التسميع والمتابعة');
+                    }
                     showAsrLive(on);
                 },
                 // Running recognised transcript → live display + word-by-word follow.
                 onTranscript: (text) => {
+                    if (session !== _asrSession || !_asrActive) return;
                     const heardRaw = (text || '').trim();
                     const heard = _arNorm(text).split(' ').filter(Boolean);
                     if (els.asrLiveText) els.asrLiveText.textContent = heardRaw ? heardRaw.split(' ').slice(-12).join(' ') : 'استمع…';
@@ -1790,9 +1742,17 @@
                     if (ePtr >= expFlat.length && els.asrNote) els.asrNote.textContent = 'أحسنت! اكتمل التسميع 🌿';
                 },
             });
+            if (session === _asrSession) _asrStarting = false;
         } catch (e) {
+            if (session !== _asrSession) return;
+            _asrStarting = false;
             _asrActive = false;
-            if (els.reciteBtn) els.reciteBtn.classList.remove('mz-listening');
+            if (els.reciteBtn) {
+                window.AtharUi.setBusy(els.reciteBtn, false);
+                els.reciteBtn.classList.remove('mz-listening');
+                els.reciteBtn.setAttribute('aria-pressed', 'false');
+                els.reciteBtn.setAttribute('aria-label', 'بدء التسميع والمتابعة');
+            }
             showAsrLive(false);
             console.error('[recite] failed:', e);
             const msg = (e && (e.message || e.name)) ? (e.message || e.name) : String(e);
@@ -1802,16 +1762,22 @@
 
     /* ── Wiring ────────────────────────────────────────────────────── */
     async function onSurahChange() {
+        stopReciteFollow(false);
         stopPlayback();
         const surah = parseInt(els.surah.value, 10) || 1;
         try {
-            await loadSurahMemo(surah);
+            const loaded = await loadSurahMemo(surah);
+            if (!loaded) return;
             saveSetting('mz_last_pos', `${surah}:1`);
             await renderSelection();   // jump the mushaf straight to the chosen surah
         }
         catch (e) { setStatus('تعذّر تحميل بيانات السورة', true); }
     }
-    const liveSelection = () => { if (state.focusPage) { rebuildSelectedKeys(); applySelectionHighlight(); } updateHint(); };
+    const liveSelection = () => {
+        stopReciteFollow(false);
+        if (state.focusPage) { rebuildSelectedKeys(); applySelectionHighlight(); }
+        updateHint();
+    };
 
     /* ── Top-bar labels (reciter / repeat / mushaf source) ─────────── */
     const SRC_NAMES = { digital_khatt: 'المدينة الجديد', qpc_v1: 'المدينة ١٤٠٥', shamarly: 'الشمرلي' };
@@ -1822,18 +1788,12 @@
     }
 
     /* ── Popovers (reciter / mushaf source) ────────────────────────── */
-    function closePopovers(except) {
-        [[els.reciterTrigger, els.reciterPanel], [els.srcTrigger, els.srcPanel]].forEach(([t, p]) => {
-            if (!p || p === except) return;
-            p.hidden = true; if (t) t.setAttribute('aria-expanded', 'false');
-        });
-    }
+    const popovers = window.AtharUi.createPopoverGroup();
+    popovers.register(els.reciterTrigger, els.reciterPanel);
+    popovers.register(els.srcTrigger, els.srcPanel);
+    function closePopovers(except) { popovers.close(except); }
     function togglePopover(trigger, panel) {
-        if (!trigger || !panel) return;
-        const open = panel.hidden;
-        closePopovers(open ? panel : null);
-        panel.hidden = !open;
-        trigger.setAttribute('aria-expanded', String(open));
+        popovers.toggle(trigger, panel);
     }
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.mz-pop')) closePopovers();
@@ -1917,7 +1877,12 @@
 
     function bindEvents() {
         els.surah.addEventListener('change', onSurahChange);
-        els.from.addEventListener('change', () => { autoSetTo(parseInt(els.from.value, 10)); rebuildSelectedKeys(); renderSelection(); });
+        els.from.addEventListener('change', () => {
+            stopReciteFollow(false);
+            autoSetTo(parseInt(els.from.value, 10));
+            rebuildSelectedKeys();
+            renderSelection();
+        });
         els.to.addEventListener('change', liveSelection);
 
         els.start.addEventListener('click', () => {
@@ -1953,8 +1918,17 @@
             els.loop.checked = !els.loop.checked;
             syncLoopBtn();
         });
-        const navPrev = () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage - 1 : state.spread[0] - 2); };
-        const navNext = () => { if (state.focusPage) gotoSpread(state.layoutMode === 'single' ? state.focusPage + 1 : state.spread[0] + 2); };
+        const adjacentPage = direction => {
+            if (!state.focusPage) return null;
+            if (state.src === 'shamarly' && SHEMRLY_PAGES.length) {
+                const pages = SHEMRLY_PAGES.filter(page => direction < 0 ? page < state.focusPage : page > state.focusPage);
+                return direction < 0 ? pages[pages.length - 1] : pages[0];
+            }
+            const step = state.layoutMode === 'single' ? 1 : 2;
+            return state.focusPage + direction * step;
+        };
+        const navPrev = () => { const page = adjacentPage(-1); if (page) gotoSpread(page); };
+        const navNext = () => { const page = adjacentPage(1); if (page) gotoSpread(page); };
         els.prev.addEventListener('click', navPrev);
         els.next.addEventListener('click', navNext);
         // Keyboard page-turn (RTL): → previous page, ← next page.
@@ -1991,6 +1965,7 @@
         });
 
         els.src.addEventListener('change', async () => {
+            stopReciteFollow(false);
             // Preserve the reading position by surah/ayah, not page number: Shemrly's
             // layout-DB pages don't match the 604-page Madina numbering, so keeping the
             // page number would jump to unrelated content when crossing that boundary.
@@ -2005,17 +1980,21 @@
             if (!state.focusPage) return;
             stopPlayback();
             state.tajweedCache.clear();
+            const intent = pageRequests.next();
             try {
                 const [s, a] = anchorKey.split(':').map(Number);
                 const payload = await fetchPageByAyah(s, a);   // page in the NEW source
+                if (!pageRequests.isCurrent(intent)) return;
                 let target = payload.page_number;
                 if (state.src === 'shamarly' && !SHEMRLY_PAGE_SET.has(target)) {
                     setStatus('خط الشمرلي متاح لصفحات مختارة — تم الانتقال لأقرب صفحة متاحة');
                     target = nearestShemrlyPage(target);
                 }
-                await gotoSpread(target);
+                setStatus('جارٍ تحميل الصفحة…');
+                const rendered = await renderSpread(target, intent);
+                if (rendered && pageRequests.isCurrent(intent)) setStatus('');
             } catch (e) {
-                renderSpread(state.focusPage);
+                if (pageRequests.isCurrent(intent)) renderSpread(state.focusPage, intent);
             }
         });
 
@@ -2036,7 +2015,10 @@
             state.reciter = els.reciter.value;
             saveSetting('quranApp_memoReciter', state.reciter);
             stopPlayback();
-            try { await loadSurahMemo(state.surah); syncBarLabels(); } catch (e) { setStatus('تعذّر تحميل القارئ', true); }
+            try {
+                const loaded = await loadSurahMemo(state.surah);
+                if (loaded) syncBarLabels();
+            } catch (e) { setStatus('تعذّر تحميل القارئ', true); }
         });
 
         els.splitMode.addEventListener('change', () => { state.splitModeVal = els.splitMode.value; reloadMemoBoundaries(); });
@@ -2076,6 +2058,7 @@
         setupVolume();
         // Recite & follow (lazy-load the ASR module)
         if (els.reciteBtn) els.reciteBtn.addEventListener('click', startReciteFollow);
+        window.addEventListener('pagehide', () => stopReciteFollow(false));
 
         // Sidebar drawer (mobile)
         if (els.sidebarToggle) {
@@ -2089,11 +2072,14 @@
         });
     }
 
+    let _selectionRequest = 0;
     async function renderSelection() {
+        const request = ++_selectionRequest;
         rebuildSelectedKeys();
         const [a] = selectedAyahRange();
         setStatus('جارٍ فتح صفحة المصحف…');
         const ok = await ensureVerseVisible(state.surah, a);
+        if (request !== _selectionRequest) return false;
         if (!ok) {
             // Shemrly only ships select pages; don't treat a missing one as an error.
             setStatus(state.src === 'shamarly'
@@ -2103,6 +2089,7 @@
         }
         applySelectionHighlight();
         setStatus('');
+        return true;
     }
 
     function applyDeepLink() {
@@ -2130,15 +2117,15 @@
     // (gitignored). Reveal its controls only behind a dev flag so the published app
     // doesn't show a feature whose model isn't deployed.
     function gateReciteFeature() {
-        const dev = new URLSearchParams(location.search).get('asr') === '1'
-            || localStorage.getItem('mz_asr_dev') === '1';
-        if (dev) localStorage.setItem('mz_asr_dev', '1');
+        const flag = new URLSearchParams(location.search).get('asr');
+        if (flag === '1') localStorage.setItem('mz_asr_dev', '1');
+        else if (flag === '0') localStorage.removeItem('mz_asr_dev');
+        const dev = flag === '1' || (flag !== '0' && localStorage.getItem('mz_asr_dev') === '1');
         const box = $('mz-asr-dev');
         if (box) box.hidden = !dev;
     }
 
     async function init() {
-        initTheme();
         loadSettings();
         gateReciteFeature();
         syncSrcCapabilities();
@@ -2157,7 +2144,8 @@
                 if (savedSurah && [...els.surah.options].some(o => +o.value === savedSurah)) els.surah.value = String(savedSurah);
             }
             const hasDeepLink = applyDeepLink();
-            await loadSurahMemo(parseInt(els.surah.value, 10) || 1);
+            const loaded = await loadSurahMemo(parseInt(els.surah.value, 10) || 1);
+            if (!loaded) return;
             if (hasDeepLink) {
                 const p = new URLSearchParams(location.search);
                 const from = parseInt(p.get('from'), 10), to = parseInt(p.get('to'), 10);

@@ -10,5 +10,6 @@ requests==2.31.0
 orjson==3.10.12
 gunicorn==23.0.0
 fonttools==4.63.0
+brotli>=1.1.0
 yt-dlp>=2026.6.9
 quran-transcript
