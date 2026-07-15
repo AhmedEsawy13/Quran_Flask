@@ -175,29 +175,33 @@
         refBtn.hidden = false;
         refBtn.title = refTitle(state.edition);
         refBtn.setAttribute('aria-label', refTitle(state.edition));
-        const frag = document.createDocumentFragment();
-        (payload.lines || []).forEach(line => {
-            const lineEl = document.createElement('div');
-            const words = line.words || [];
-            if (line.line_type === 'surah_name' || line.line_type === 'basmallah') {
-                lineEl.className = 'ed-line ed-line-special';
-                lineEl.textContent = line.display_text || '';
-            } else {
-                lineEl.className = 'ed-line';
-                // Non-centered lines are full-justified edge-to-edge by justifyLines();
-                // centered lines (surah-end, etc.) keep their natural width.
-                lineEl.dataset.justify = line.is_centered ? '0' : '1';
-                const inner = document.createElement('div');
-                inner.className = 'ed-line-inner';
-                words.forEach((w, i) => {
-                    inner.appendChild(buildWordEl(w));
-                    if (i < words.length - 1) inner.appendChild(document.createTextNode(' '));
-                });
-                lineEl.appendChild(inner);
-            }
-            frag.appendChild(lineEl);
+        window.AtharMushaf.renderMushafLines(container, payload.lines || [], {
+            lineClass: 'ed-line',
+            surahClass: 'ed-line ed-line-special',
+            basmalaClass: 'ed-line ed-line-special',
+            wrapSpecial: false,        // one flat element, not nested — matches the plain-text special line this page has always used
+            contentClass: 'ed-line-inner',
+            separator: ' ',
+            wordClass: 'ed-word',
+            countWord: () => false,    // this page keys words by word_index (dataset.wordId), not verse position — skip the shared verseKey/dataset.key tagging entirely
+            textForWord: context => stripEmbeddedWaqf(context.raw),
+            // Non-centered lines are full-justified edge-to-edge by justifyLines();
+            // centered lines (surah-end, etc.) keep their natural width.
+            decorateLine: (root, { line }) => { root.dataset.justify = line.is_centered ? '0' : '1'; },
+            decorateWord: (wordElement, context) => {
+                const w = context.word;
+                const cleanText = stripEmbeddedWaqf(w.text || '');
+                wordElement.dataset.wordId = String(w.word_index);
+                wordElement.dataset.text = cleanText;
+                const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
+                const editionEntry = entries.find(e => e.version === state.edition);
+                const baselineEntry = entries.find(e => e.version === 'المدينة الجديد');
+                const editionSym = (editionEntry && editionEntry.symbols) || '';
+                const baselineSym = (baselineEntry && baselineEntry.symbols) || '';
+                wordElement.dataset.baseline = baselineSym;
+                applyWordMark(wordElement, editionSym, baselineSym);
+            },
         });
-        container.appendChild(frag);
     }
 
     /* ── Page sizing & line-fit (ported from mushaf_memorize.js) ──────
@@ -303,26 +307,6 @@
         sizePages();
         applyFontSize();
         requestAnimationFrame(justifyLines);
-    }
-
-    function buildWordEl(w) {
-        const span = document.createElement('span');
-        span.className = 'ed-word';
-        span.dataset.wordId = String(w.word_index);
-        const cleanText = stripEmbeddedWaqf(w.text || '');
-        span.dataset.text = cleanText;
-        span.textContent = cleanText;
-
-        const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
-        const editionEntry = entries.find(e => e.version === state.edition);
-        const baselineEntry = entries.find(e => e.version === 'المدينة الجديد');
-        const editionSym = (editionEntry && editionEntry.symbols) || '';
-        const baselineSym = (baselineEntry && baselineEntry.symbols) || '';
-
-        span.dataset.symbol = editionSym;
-        span.dataset.baseline = baselineSym;
-        applyWordMark(span, editionSym, baselineSym);
-        return span;
     }
 
     function applyWordMark(span, editionSym, baselineSym) {
