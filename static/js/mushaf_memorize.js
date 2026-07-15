@@ -190,23 +190,9 @@
 
     const BASMALA_GLYPH = '\u00F3'; // QCF Basmala font: whole basmala in one glyph
 
-    /* ── Surah-name banner glyphs (surah_names.woff2): glyph-id rank == surah,
-       so surah N → SURAH_HEADER_CP[N-1] (NOT codepoint order). ───────────── */
-    const SURAH_HEADER_CP = [
-        0xFC45, 0xFC46, 0xFC47, 0xFC4A, 0xFC4B, 0xFC4E, 0xFC4F, 0xFC51, 0xFC52, 0xFC53,
-        0xFC55, 0xFC56, 0xFC58, 0xFC5A, 0xFC5B, 0xFC5C, 0xFC5D, 0xFC5E, 0xFC61, 0xFC62,
-        0xFC64, 0xFB51, 0xFB52, 0xFB54, 0xFB55, 0xFB57, 0xFB58, 0xFB5A, 0xFB5B, 0xFB5D,
-        0xFB5E, 0xFB60, 0xFB61, 0xFB63, 0xFB64, 0xFB66, 0xFB67, 0xFB69, 0xFB6A, 0xFB6C,
-        0xFB6D, 0xFB6F, 0xFB70, 0xFB72, 0xFB73, 0xFB75, 0xFB76, 0xFB78, 0xFB79, 0xFB7B,
-        0xFB7C, 0xFB7E, 0xFB7F, 0xFB81, 0xFB82, 0xFB84, 0xFB85, 0xFB87, 0xFB88, 0xFB8A,
-        0xFB8B, 0xFB8D, 0xFB8E, 0xFB90, 0xFB91, 0xFB93, 0xFB94, 0xFB96, 0xFB97, 0xFB99,
-        0xFB9A, 0xFB9C, 0xFB9D, 0xFB9F, 0xFBA0, 0xFBA2, 0xFBA3, 0xFBA5, 0xFBA6, 0xFBA8,
-        0xFBA9, 0xFBAB, 0xFBAC, 0xFBAE, 0xFBAF, 0xFBB1, 0xFBB2, 0xFBB4, 0xFBB5, 0xFBB7,
-        0xFBB8, 0xFBBA, 0xFBBB, 0xFBBD, 0xFBBE, 0xFBC0, 0xFBC1, 0xFBD3, 0xFBD4, 0xFBD6,
-        0xFBD7, 0xFBD9, 0xFBDA, 0xFBDC, 0xFBDD, 0xFBDF, 0xFBE0, 0xFBE2, 0xFBE3, 0xFBE5,
-        0xFBE6, 0xFBE8, 0xFBE9, 0xFBEB,
-    ];
-    const surahHeaderGlyph = n => (n >= 1 && n <= 114) ? String.fromCodePoint(SURAH_HEADER_CP[n - 1]) : '';
+    // Surah-name banner glyph data + function now live in athar-page-chrome.js
+    // (shared with مصحف-editor, which was re-porting a drifted copy of this).
+    const { surahHeaderGlyph } = window.AtharPageChrome;
 
     /* ── Waqf symbol normalization — ported from the main app so the memorize
        page renders the same glyphs in the same fonts. ─────────────────────── */
@@ -333,45 +319,10 @@
         }
     }
 
-    /* ── Arabic-Indic digits + juz ─────────────────────────────────── */
-    const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
-
-    const JUZ_START_PAGE = [1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
-        201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
-        402, 422, 442, 462, 482, 502, 522, 542, 562, 582];
-    const JUZ_NAME = ['الأول', 'الثاني', 'الثالث', 'الرابع', 'الخامس', 'السادس',
-        'السابع', 'الثامن', 'التاسع', 'العاشر', 'الحادي عشر', 'الثاني عشر',
-        'الثالث عشر', 'الرابع عشر', 'الخامس عشر', 'السادس عشر', 'السابع عشر',
-        'الثامن عشر', 'التاسع عشر', 'العشرون', 'الحادي والعشرون', 'الثاني والعشرون',
-        'الثالث والعشرون', 'الرابع والعشرون', 'الخامس والعشرون', 'السادس والعشرون',
-        'السابع والعشرون', 'الثامن والعشرون', 'التاسع والعشرون', 'الثلاثون'];
-    function juzNumber(pageNumber) {
-        let j = 1;
-        for (let i = 0; i < JUZ_START_PAGE.length; i++) {
-            if (pageNumber >= JUZ_START_PAGE[i]) j = i + 1; else break;
-        }
-        return j;
-    }
-    const juzLabel = pageNumber => `الجزء ${JUZ_NAME[juzNumber(pageNumber) - 1]}`;
-    // QCF Common font: each juz NAME is one glyph at U+E000+juz (E01E = الجزء الثلاثون).
-    const juzGlyph = j => (j >= 1 && j <= 30) ? String.fromCodePoint(0xE000 + j) : '';
-
-    // Juz' start boundaries as [surah, ayah] (Hafs/Madina, Tanzil standard). Used
-    // when the page number isn't the 604-page Madina numbering — e.g. Shemrly,
-    // whose layout-DB pages don't line up with JUZ_START_PAGE — so the juz can be
-    // derived from the surah/ayah on the page instead.
-    const JUZ_START_AYAH = [[1,1],[2,142],[2,253],[3,92],[4,24],[4,148],[5,82],[6,111],
-        [7,88],[8,41],[9,93],[11,6],[12,53],[15,1],[17,1],[18,75],[21,1],[23,1],[25,21],
-        [27,56],[29,46],[33,31],[36,28],[39,32],[41,47],[46,1],[51,31],[58,1],[67,1],[78,1]];
-    function juzFromAyah(surah, ayah) {
-        if (!surah) return 1;
-        let j = 1;
-        for (let i = 0; i < JUZ_START_AYAH.length; i++) {
-            const [s, a] = JUZ_START_AYAH[i];
-            if (surah > s || (surah === s && ayah >= a)) j = i + 1; else break;
-        }
-        return j;
-    }
+    /* ── Arabic-Indic digits + juz ─────────────────────────────────────
+       Data + functions now live in athar-page-chrome.js (shared with
+       مصحف-editor, which was re-porting a drifted copy of this). */
+    const { toAr, juzNumber, juzFromAyah, juzGlyph, JUZ_NAME, JUZ_START_PAGE } = window.AtharPageChrome;
 
     const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
     const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
@@ -817,7 +768,7 @@
         const pageEl = card.page;
         card._payload = payload;   // cache for cheap re-render (e.g. waqf toggle)
         if (!payload) {
-            pageEl.innerHTML = '<div class="mz-page-empty"><i class="fas fa-book-quran"></i></div>';
+            window.AtharPageChrome.renderEmptyState(pageEl, { baseClass: 'mz-page-empty' });
             card.juz.textContent = '';
             card.surah.textContent = '';
             card.foot.textContent = '';
@@ -829,8 +780,10 @@
         if (state.src === 'shamarly' && payload.glyph_mapping_mode !== 'shemrly-page-local') {
             pageEl.classList.remove('mz-has-page');
             pageEl.style.removeProperty('font-family');
-            pageEl.innerHTML = '<div class="mz-page-empty mz-page-na"><i class="fas fa-circle-info"></i>'
-                + '<span>هذه الصفحة غير متوفرة بخط الشمرلي بعد</span></div>';
+            window.AtharPageChrome.renderEmptyState(pageEl, {
+                baseClass: 'mz-page-empty', extraClass: 'mz-page-na', icon: 'fa-circle-info',
+                message: 'هذه الصفحة غير متوفرة بخط الشمرلي بعد',
+            });
             card.juz.textContent = ''; card.surah.textContent = '';
             card.foot.textContent = toAr(payload.page_number || '');
             return;
@@ -900,7 +853,7 @@
         const jl = `الجزء ${JUZ_NAME[jn - 1]}`;
         if (jg) { card.juz.classList.add('mz-juz-glyph'); card.juz.textContent = jg; card.juz.title = jl; card.juz.setAttribute('aria-label', jl); }
         else { card.juz.classList.remove('mz-juz-glyph'); card.juz.textContent = jl; }
-        card.foot.textContent = `صفحة ${toAr(payload.page_number)}`;
+        card.foot.textContent = window.AtharPageChrome.pageNumberLabel(payload.page_number);
     }
 
     function surahNameOf(num) {
@@ -972,38 +925,29 @@
     }
 
     // Make the page(s) as large as the freed centre allows, keeping a mushaf
-    // portrait ratio, fitting both width (n pages) and height.
+    // portrait ratio, fitting both width (n pages) and height. Fit MATH lives in
+    // athar-page-chrome.js (shared with مصحف-editor); the measurement strategy
+    // below is تثبيت's own — deliberately the viewport + fixed chrome, NEVER a
+    // rendered element's height (reading the stage-area's clientHeight created a
+    // feedback loop: a taller page grew the scroll area, which grew the next
+    // page…), so a pure window-based formula gives ONE fixed page box that stays
+    // put — the page simply sits centred in the stage.
     const PAGE_RATIO = 0.66; // width / height
     function sizePages() {
         const stage = els.stage;
         if (!stage) return;
-        // Available height is derived ONLY from the viewport + fixed chrome — never
-        // from a rendered element's height. Reading the stage-area's clientHeight
-        // created a feedback loop (a taller page grew the scroll area, which grew the
-        // next page…), so the frame crept larger on every navigation. A pure
-        // window-based formula gives ONE fixed page box that stays put — the page
-        // simply sits centred in the stage.
         const topbar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--mz-topbar-h')) || 64;
         const toolbarReserve = 58;   // floating mushaf toolbar + its gap, above the stage
         const vMargin = 24;          // breathing room top + bottom
-        const availH = Math.max(320, window.innerHeight - topbar - toolbarReserve - vMargin);
-        const n = state.layoutMode === 'single' ? 1 : 2;
-        const navAndGaps = 2 * 50 + 16;                 // room for the edge nav arrows
-        const availW = Math.max(260, stage.clientWidth - navAndGaps);
-        const headFootPad = 78;                          // header + footer + card padding (vertical)
-        const spreadPad = 28, gutter = n > 1 ? 20 : 0;
-
-        let h = availH - headFootPad;
-        let w = h * PAGE_RATIO;
-        const totalW = w * n + gutter + spreadPad;
-        if (totalW > availW) {
-            const s = (availW - gutter - spreadPad) / (w * n);
-            w *= s; h *= s;
-        }
-        w = Math.max(150, w);
-        h = Math.max(230, h);
-        document.documentElement.style.setProperty('--mz-page-w', w + 'px');
-        document.documentElement.style.setProperty('--mz-page-h', h + 'px');
+        const headFootPad = 78;      // header + footer + card padding (vertical)
+        const navAndGaps = 2 * 50 + 16; // room for the edge nav arrows
+        window.AtharPageChrome.sizePages({
+            cssVarPrefix: 'mz',
+            pages: state.layoutMode === 'single' ? 1 : 2,
+            ratio: PAGE_RATIO, gutter: 20, spreadPad: 28,
+            getAvailH: () => Math.max(320, window.innerHeight - topbar - toolbarReserve - vMargin) - headFootPad,
+            getAvailW: () => Math.max(260, stage.clientWidth - navAndGaps),
+        });
     }
 
     const pageEls = () => [cards.right.page, cards.left.page];
@@ -1013,9 +957,10 @@
         return out;
     };
 
-    /* ── Justification (kashida features + scaleX fill) ────────────── */
-    // Justify via the font's discrete kashida/justification features, then fill
-    // the rest with a gentle horizontal stretch (the earlier, preferred logic).
+    /* ── Justification (kashida features + scaleX fill) ─────────────────
+       Shared algorithm lives in athar-page-chrome.js; only the font-specific
+       OpenType feature tags (Digital Khatt vs. the generic jt/dc/kt Madinah
+       set) and the شمرلي gentle-stretch opt-out are تثبيت's own. */
     function khattFeatureSettings(strength) {
         const s = Math.max(0, Math.min(100, Number(strength) || 0));
         if (s <= 0) return '';
@@ -1030,100 +975,23 @@
         if (count <= 0) return '';
         return seq.slice(0, count).map(f => `'${f}'`).join(',');
     }
-    // Full-justify every non-centered line so all lines start and end on the same
-    // edges (real-mushaf look). For the Madinah mushafs we elongate with the font's
-    // kashida features first, then distribute the remaining slack as space BETWEEN
-    // words — no scaleX glyph distortion. Centered lines (is_center=1 → data-justify
-    // "0": surah headers, basmala, short final lines) are left exactly as printed.
-    // Shemrly draws whole-word page glyphs, so it keeps the gentle scaleX fill.
-    function justifyLines() {
-        const isShamarly = state.src === 'shamarly';
-        const features = isShamarly ? '' : khattFeatureSettings(100);
-        wordsInSpread('.mz-line').forEach(lineEl => {
-            const inner = lineEl.querySelector('.mz-line-inner');
-            if (!inner) return;
-            inner.style.transform = 'none';
-            inner.style.fontFeatureSettings = '';
-            inner.style.fontVariationSettings = '';
-            inner.style.wordSpacing = '';
-            const avail = lineEl.clientWidth;
-            if (!avail) return;
-            if (lineEl.dataset.justify !== '1') return;       // centered line: leave as-is
-            const natural = inner.scrollWidth;
-            if (!natural) return;
-
-            if (natural > avail + 0.5) {                      // too long → condense to fit
-                inner.style.transform = `scaleX(${Math.max(0.5, avail / natural)})`;
-                return;
-            }
-            if (isShamarly) {                                 // page glyphs → gentle stretch
-                inner.style.transform = `scaleX(${Math.min(1.5, avail / natural)})`;
-                return;
-            }
-            // Madinah: kashida-elongate (if it doesn't overshoot), then word-space the rest.
-            let width = natural;
-            if (features) {
-                inner.style.fontFeatureSettings = features;
-                const withK = inner.scrollWidth;
-                if (withK <= avail + 0.5) width = withK;
-                else { inner.style.fontFeatureSettings = ''; }
-            }
-            const gaps = inner.querySelectorAll('.mz-word').length - 1;
-            const slack = avail - width;
-            if (slack > 0.5 && gaps > 0) inner.style.wordSpacing = (slack / gaps) + 'px';
-            else if (slack > 0.5) inner.style.transform = `scaleX(${avail / width})`;  // single word
-        });
-    }
+    const justifyLines = window.AtharPageChrome.createLineJustifier({
+        containerEls: pageEls,
+        lineSelector: '.mz-line', innerSelector: '.mz-line-inner', wordSelector: '.mz-word',
+        featureSettings: () => khattFeatureSettings(100),
+        stretchOnly: () => state.src === 'shamarly',
+    });
     // ONE stable font size per (source + layout + page box). Once fitted, every
     // page reuses the SAME --dk-fs, so paging (prev/next) or switching the Madinah
     // print never rescales the text — justifyLines() then fills each line's own
     // width. Only a viewport/source/layout change (new key) or an explicit
     // `force` (e.g. a web-font just swapped in) re-measures.
-    let _fitFs = 0, _fitKey = '';
-    function applyFontSize(force) {
-        const pages = pageEls().filter(p => p && p.classList.contains('mz-has-page'));
-        if (!pages.length) return;
-        const ref = pages[0];
-        const key = `${state.src}|${state.layoutMode}|${Math.round(ref.clientHeight)}|${Math.round(ref.clientWidth)}`;
-        if (!force && key === _fitKey && _fitFs) {
-            pages.forEach(p => p.style.setProperty('--dk-fs', _fitFs + 'px'));
-            return;
-        }
-        let chosen = 0;
-        pages.forEach(p => {
-            const h = p.clientHeight || 1;
-            const lineH = h / 15;
-            const maxFs = lineH * 0.92;          // never taller than the line slot
-            let fs = Math.max(11, lineH * 0.62); // line-height baseline
-            p.style.setProperty('--dk-fs', fs + 'px');
-
-            // Measure justified lines at this size, then scale so the median line
-            // ~fills the width (98%). Proportional scaling keeps the ratio valid.
-            const inners = [...p.querySelectorAll('.mz-line[data-justify="1"] .mz-line-inner')];
-            const ratios = [];
-            inners.forEach(inner => {
-                inner.style.transform = 'none';
-                inner.style.fontFeatureSettings = '';
-                inner.style.fontVariationSettings = '';
-                inner.style.wordSpacing = '';
-                const avail = inner.parentElement.clientWidth;
-                const nat = inner.scrollWidth;
-                if (nat > 0 && avail > 0) ratios.push(avail / nat);
-            });
-            if (ratios.length) {
-                ratios.sort((a, b) => a - b);
-                const med = ratios[Math.floor(ratios.length / 2)] || 1;
-                fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
-            }
-            // Take the SMALLEST fit across the visible spread so the densest page
-            // never overflows; sparser pages are filled out by justifyLines.
-            chosen = chosen ? Math.min(chosen, fs) : fs;
-        });
-        if (chosen) {
-            _fitFs = chosen; _fitKey = key;
-            pages.forEach(p => p.style.setProperty('--dk-fs', chosen + 'px'));
-        }
-    }
+    const applyFontSize = window.AtharPageChrome.createFontSizer({
+        pageEls: () => pageEls().filter(p => p && p.classList.contains('mz-has-page')),
+        lineSelector: '.mz-line', innerSelector: '.mz-line-inner',
+        cssVarName: '--dk-fs', linesPerPage: 15,
+        cacheKey: () => `${state.src}|${state.layoutMode}`,
+    });
 
     /* ── Highlighting ──────────────────────────────────────────────── */
     function applySelectionHighlight() {
