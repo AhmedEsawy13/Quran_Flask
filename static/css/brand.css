@@ -57,6 +57,95 @@
   --athar-bar-fg:      #1d1d1f;
   --athar-bar-muted:   rgba(29, 29, 31, 0.62);
   --athar-bar-h:       50px;
+
+  /* ---- Editorial palette (landing page, and later pages as they migrate) ----
+   * "Parchment → ink": a warm paper ground with near-black ink, echoing a
+   * mushaf page rather than a generic app background. --athar-accent (the
+   * existing Quranic green above) stays THE accent; gold is a rare second
+   * accent for small marks only (tags, dividers) — never competes with green. */
+  --athar-parchment:   #F6F1E2;
+  --athar-parchment-2: #ECE3CC;
+  --athar-surface:     #FFFDF6;
+  --athar-ink:         #18170F;
+  --athar-ink-soft:    #55503E;
+  --athar-ink-faint:   #857E66;
+  --athar-gold:        #A9782F;
+  --athar-line:        rgba(24, 23, 15, 0.13);
+  --athar-line-soft:   rgba(24, 23, 15, 0.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --athar-parchment:   #15140D;
+    --athar-parchment-2: #1D1C13;
+    --athar-surface:     #1B1A12;
+    --athar-ink:         #EDE7D6;
+    --athar-ink-soft:    #B9B29C;
+    --athar-ink-faint:   #837C66;
+    --athar-gold:        #D1A55A;
+    --athar-line:        rgba(237, 231, 214, 0.14);
+    --athar-line-soft:   rgba(237, 231, 214, 0.07);
+  }
+}
+:root[data-theme="dark"] {
+  --athar-parchment:   #15140D;
+  --athar-parchment-2: #1D1C13;
+  --athar-surface:     #1B1A12;
+  --athar-ink:         #EDE7D6;
+  --athar-ink-soft:    #B9B29C;
+  --athar-ink-faint:   #837C66;
+  --athar-gold:        #D1A55A;
+  --athar-line:        rgba(237, 231, 214, 0.14);
+  --athar-line-soft:   rgba(237, 231, 214, 0.07);
+}
+:root[data-theme="light"] {
+  --athar-parchment:   #F6F1E2;
+  --athar-parchment-2: #ECE3CC;
+  --athar-surface:     #FFFDF6;
+  --athar-ink:         #18170F;
+  --athar-ink-soft:    #55503E;
+  --athar-ink-faint:   #857E66;
+  --athar-gold:        #A9782F;
+  --athar-line:        rgba(24, 23, 15, 0.13);
+  --athar-line-soft:   rgba(24, 23, 15, 0.07);
+}
+
+/* ---- Shared editorial components (landing page today; any page can adopt
+ * these later instead of hand-rolling its own button/headline CSS) ---- */
+.athar-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-ui);
+  font-size: 0.86rem;
+  font-weight: 700;
+  padding: 11px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--athar-ink);
+  color: var(--athar-parchment);
+  border: 1px solid var(--athar-ink);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.athar-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -10px rgba(24, 23, 15, 0.35);
+}
+.athar-pill.ghost {
+  background: transparent;
+  color: var(--athar-ink);
+  border-color: var(--athar-line);
+}
+.athar-pill.ghost:hover {
+  border-color: var(--athar-ink-soft);
+  box-shadow: none;
+}
+
+.athar-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-feature-settings: "ss01" 1;
+  letter-spacing: -0.01em;
 }
 
 /* ---- Base UI typography (no !important: Quran-text selectors stay) ---- */

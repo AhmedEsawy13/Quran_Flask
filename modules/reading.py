@@ -351,9 +351,13 @@ def get_eerab(surah_number, ayah_number):
         logger.error(f"SurahApp eerab API error for {surah_number}:{ayah_number}: {e}")
         return jsonify({"content": ""}), 500
 
-@reading_bp.route('/')
+@reading_bp.route('/read')
 def index():
     return render_template('index.html', enable_vercel_analytics=_IS_SERVERLESS)
+
+@reading_bp.route('/')
+def landing():
+    return render_template('landing.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
 # ── المتشابهات (similar verses) ───────────────────────────────────────────────

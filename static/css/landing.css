@@ -1,0 +1,170 @@
+/* ===========================================================================
+ * أثَر — landing page (/) only.
+ *
+ * "Parchment → ink": a warm paper ground with near-black ink, punctuated by
+ * the app's own Quranic green (--athar-accent, from brand.css) and a rare
+ * muted gold. Tokens (--athar-parchment/-ink/-gold/-line) and the shared
+ * .athar-pill / .athar-display components live in brand.css so later pages
+ * can adopt the same language — this file only holds this page's own
+ * hero/cards/closer layout, the same "shared tokens + page-specific layout"
+ * split every other page already follows (mz-*, wq-*, ed-*).
+ * ======================================================================== */
+
+body.athar-landing {
+  background: var(--athar-parchment);
+  color: var(--athar-ink);
+  font-family: var(--font-ui);
+  transition: background .25s ease, color .25s ease;
+}
+body.athar-landing ::selection { background: var(--athar-accent); color: var(--athar-surface); }
+
+.lp-wrap { max-width: 1120px; margin: 0 auto; padding-inline: clamp(20px, 5vw, 48px); }
+
+/* the shared .athar-bar covers the header/nav; only override its background
+   here so it reads as parchment-glass instead of the reading page's white-glass */
+body.athar-landing .athar-bar {
+  background: color-mix(in srgb, var(--athar-parchment) 82%, transparent);
+}
+
+/* ---------------------------------------------------------------- hero */
+.lp-hero { padding: clamp(56px, 10vw, 112px) 0 clamp(48px, 8vw, 80px); }
+
+.lp-eyebrow {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  font-size: .86rem; color: var(--athar-ink-faint); font-variant-numeric: tabular-nums;
+  margin: 0 0 26px;
+}
+.lp-eyebrow b { color: var(--athar-ink-soft); font-weight: 700; }
+.lp-eyebrow .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--athar-accent-soft); opacity: .75; }
+
+.lp-headline {
+  font-size: clamp(2.6rem, 6.4vw, 5.4rem);
+  line-height: 1.07;
+  max-width: 15.5ch;
+  text-wrap: balance;
+  margin: 0 0 28px;
+}
+.lp-headline .lp-mark {
+  color: var(--athar-accent);
+  font-size: .58em;
+  vertical-align: .04em;
+  margin-inline-end: .08em;
+}
+.lp-headline em { font-style: normal; color: var(--athar-ink-faint); }
+
+.lp-lede {
+  max-width: 60ch;
+  font-size: clamp(1.02rem, 1.6vw, 1.18rem);
+  color: var(--athar-ink-soft);
+  margin: 0 0 34px;
+}
+
+.lp-cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.lp-metrics {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--athar-line); border: 1px solid var(--athar-line);
+  border-radius: 18px; overflow: hidden;
+  margin-top: clamp(48px, 8vw, 84px);
+}
+.lp-metric { background: var(--athar-surface); padding: 26px clamp(14px, 3vw, 30px); text-align: center; }
+.lp-metric b {
+  display: block; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(1.7rem, 3.4vw, 2.4rem); color: var(--athar-ink);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+.lp-metric span { font-size: .82rem; color: var(--athar-ink-faint); }
+
+/* ------------------------------------------------------------- sections */
+.lp-section { padding: clamp(56px, 9vw, 96px) 0; }
+.lp-section-head { max-width: 48ch; margin-bottom: clamp(32px, 5vw, 52px); }
+.lp-eyebrow-label {
+  display: block; font-size: .78rem; font-weight: 700; color: var(--athar-gold);
+  letter-spacing: .04em; margin-bottom: 12px;
+}
+.lp-section-title {
+  font-size: clamp(1.85rem, 3.4vw, 2.6rem); line-height: 1.16;
+  text-wrap: balance; margin: 0;
+}
+
+.lp-cards {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
+  background: var(--athar-line); border: 1px solid var(--athar-line);
+  border-radius: 20px; overflow: hidden;
+}
+.lp-card {
+  background: var(--athar-surface); padding: clamp(26px, 3.4vw, 38px);
+  display: flex; flex-direction: column; gap: 16px;
+  text-decoration: none; color: inherit;
+  opacity: 0; transform: translateY(14px);
+  transition: opacity .5s ease, transform .5s ease, background .18s ease;
+}
+.lp-card.in-view { opacity: 1; transform: none; }
+.lp-card:hover { background: var(--athar-parchment-2); }
+.lp-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lp-card-icon {
+  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px;
+  background: color-mix(in srgb, var(--athar-accent) 12%, transparent);
+  color: var(--athar-accent); font-size: 1rem; flex: 0 0 auto;
+}
+.lp-card-verb {
+  font-size: .74rem; font-weight: 700; color: var(--athar-ink-faint);
+  border: 1px solid var(--athar-line); border-radius: 999px; padding: 4px 11px;
+}
+.lp-card h3 {
+  font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(1.35rem, 2.1vw, 1.7rem); margin: 0; letter-spacing: -0.008em;
+}
+.lp-card p { margin: 0; color: var(--athar-ink-soft); font-size: .95rem; max-width: 46ch; }
+.lp-card-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.lp-card-tags span {
+  font-size: .74rem; color: var(--athar-ink-faint); border: 1px solid var(--athar-line);
+  border-radius: 999px; padding: 4px 10px;
+}
+.lp-card-link {
+  margin-top: auto; align-self: flex-start; font-size: .88rem; font-weight: 700;
+  color: var(--athar-ink); display: inline-flex; align-items: center; gap: 6px;
+}
+.lp-card:hover .lp-card-link { color: var(--athar-accent); }
+.lp-card-link svg { transition: transform .18s ease; }
+.lp-card:hover .lp-card-link svg { transform: translateX(-3px); }
+
+/* ----------------------------------------------------------------- closer
+   Deliberately fixed, not theme-token-driven: the parchment→ink shift is
+   this page's one aesthetic thesis (أثَر = the trace ink leaves), so it
+   reads the same in light and dark viewer themes alike. */
+.lp-closer {
+  --closer-bg: #16150E;
+  --closer-fg: #F6F1E2;
+  --closer-fg-soft: #B9B29C;
+  background: var(--closer-bg); color: var(--closer-fg);
+  padding: clamp(64px, 11vw, 116px) 0; text-align: center;
+}
+.lp-closer .lp-wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.lp-closer-title {
+  font-size: clamp(2.05rem, 4.8vw, 3.4rem); line-height: 1.14;
+  max-width: 16ch; text-wrap: balance; margin: 0;
+}
+.lp-closer p { color: var(--closer-fg-soft); max-width: 48ch; margin: 0; font-size: 1rem; }
+.lp-closer .athar-pill { background: var(--closer-fg); color: var(--closer-bg); border-color: var(--closer-fg); }
+.lp-closer .athar-pill:hover { box-shadow: 0 10px 24px -10px rgba(0,0,0,0.5); }
+
+/* ---------------------------------------------------------------- footer */
+.lp-foot {
+  padding: 26px clamp(20px, 5vw, 48px) 44px; display: flex; align-items: center;
+  justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  font-size: .82rem; color: var(--athar-ink-faint);
+}
+.lp-foot-links { display: flex; gap: 16px; flex-wrap: wrap; }
+.lp-foot a { color: inherit; text-decoration: none; }
+.lp-foot a:hover { color: var(--athar-ink); }
+
+@media (max-width: 720px) {
+  .lp-metrics { grid-template-columns: 1fr; }
+  .lp-cards { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-card { transition: none; opacity: 1; transform: none; }
+  .athar-pill, .lp-card-link svg { transition: none; }
+}

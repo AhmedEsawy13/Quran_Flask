@@ -83,3 +83,7 @@ def test_eerab_bounds(client):
 
 def test_index_page_renders(client):
     assert client.get('/').status_code == 200
+
+
+def test_read_page_renders(client):
+    assert client.get('/read').status_code == 200
