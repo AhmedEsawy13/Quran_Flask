@@ -204,63 +204,34 @@
         });
     }
 
-    /* ── Page sizing & line-fit (ported from mushaf_memorize.js) ──────
-       sizePages: fit both pages into the available centre space at the real
-       mushaf ratio (width/height ≈ 0.66). applyFontSize: pick a per-page font
-       size so a typical line nearly fills the line width. justifyLines: make
-       every non-centered line span edge-to-edge — condense via scaleX if it's
-       still too wide, otherwise elongate with Old Madina's kashida features
-       and fill the remainder with word-spacing. Together these keep every
-       word inside the page border regardless of how many words a line has. */
+    /* ── Page sizing & line-fit ──────────────────────────────────────
+       Shared fit-math/algorithms live in athar-page-chrome.js (this page's
+       own sizePages/applyFontSize/justifyLines used to be a hand-ported,
+       already-drifted copy of تثبيت's — see mushaf_memorize.js for the
+       equivalent, more heavily-commented version). Only the measurement
+       strategy (this page's own .ed-main element, unchanged) and the font
+       features (Old Madina only, this page never renders شمرلي or Digital
+       Khatt) stay page-specific. */
     const PAGE_RATIO = 0.66; // width / height
     function sizePages() {
         const main = document.querySelector('.ed-main');
         if (!main) return;
-        const headPad = 24;   // .ed-page-header height + margin
-        const gutter = 20;    // gap between right/left page cards
-        const availH = Math.max(230, main.clientHeight - 36 - headPad);
-        const availW = Math.max(300, main.clientWidth - 20 - gutter);
-        let h = availH;
-        let w = h * PAGE_RATIO;
-        if (w * 2 > availW) {
-            const s = availW / (w * 2);
-            w *= s; h *= s;
-        }
-        w = Math.max(150, Math.floor(w));
-        h = Math.max(230, Math.floor(h));
-        document.documentElement.style.setProperty('--ed-page-w', w + 'px');
-        document.documentElement.style.setProperty('--ed-page-h', h + 'px');
-    }
-
-    function applyFontSize() {
-        [els.pageR, els.pageL].forEach(p => {
-            if (!p || !p.children.length) return;
-            const h = p.clientHeight || 1;
-            const lineH = h / 15;
-            const maxFs = lineH * 0.92;          // never taller than the line slot
-            let fs = Math.max(11, lineH * 0.62); // line-height baseline
-            p.style.setProperty('--ed-fs', fs + 'px');
-
-            // Measure justified lines at this size, then scale so the median line
-            // ~fills the width (98%). Proportional scaling keeps the ratio valid.
-            const inners = [...p.querySelectorAll('.ed-line[data-justify="1"] .ed-line-inner')];
-            const ratios = [];
-            inners.forEach(inner => {
-                inner.style.transform = 'none';
-                inner.style.fontFeatureSettings = '';
-                inner.style.wordSpacing = '';
-                const avail = inner.parentElement.clientWidth;
-                const nat = inner.scrollWidth;
-                if (nat > 0 && avail > 0) ratios.push(avail / nat);
-            });
-            if (ratios.length) {
-                ratios.sort((a, b) => a - b);
-                const med = ratios[Math.floor(ratios.length / 2)] || 1;
-                fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
-                p.style.setProperty('--ed-fs', fs + 'px');
-            }
+        window.AtharPageChrome.sizePages({
+            cssVarPrefix: 'ed', pages: 2, ratio: PAGE_RATIO,
+            gutter: 20, floor: true,
+            getAvailH: () => main.clientHeight - 36 - 24, // 24 = .ed-page-header height + margin
+            getAvailW: () => main.clientWidth - 20,
         });
     }
+
+    const applyFontSize = window.AtharPageChrome.createFontSizer({
+        pageEls: () => [els.pageR, els.pageL].filter(p => p && p.children.length),
+        lineSelector: '.ed-line', innerSelector: '.ed-line-inner',
+        cssVarName: '--ed-fs', linesPerPage: 15,
+        // قطر renders in Uthmanic Hafs, الكويت in Old Madina (body.ed-font-hafs) —
+        // different glyph metrics, so a source switch must re-fit like تثبيت's own.
+        cacheKey: () => state.edition,
+    });
 
     // Old Madina kashida/justification OpenType features, strongest setting.
     function khattFeatureSettings() {
@@ -269,39 +240,11 @@
         return seq.map(f => `'${f}'`).join(',');
     }
 
-    function justifyLines() {
-        const features = khattFeatureSettings();
-        [els.pageR, els.pageL].forEach(p => {
-            if (!p) return;
-            p.querySelectorAll('.ed-line').forEach(lineEl => {
-                const inner = lineEl.querySelector('.ed-line-inner');
-                if (!inner) return;
-                inner.style.transform = 'none';
-                inner.style.fontFeatureSettings = '';
-                inner.style.wordSpacing = '';
-                const avail = lineEl.clientWidth;
-                if (!avail || lineEl.dataset.justify !== '1') return;
-                const natural = inner.scrollWidth;
-                if (!natural) return;
-
-                if (natural > avail + 0.5) {              // too long → condense to fit
-                    inner.style.transform = `scaleX(${Math.max(0.5, avail / natural)})`;
-                    return;
-                }
-                // Kashida-elongate (if it doesn't overshoot), then word-space the rest.
-                let width = natural;
-                inner.style.fontFeatureSettings = features;
-                const withK = inner.scrollWidth;
-                if (withK <= avail + 0.5) width = withK;
-                else inner.style.fontFeatureSettings = '';
-
-                const gaps = inner.querySelectorAll('.ed-word').length - 1;
-                const slack = avail - width;
-                if (slack > 0.5 && gaps > 0) inner.style.wordSpacing = (slack / gaps) + 'px';
-                else if (slack > 0.5) inner.style.transform = `scaleX(${avail / width})`; // single word
-            });
-        });
-    }
+    const justifyLines = window.AtharPageChrome.createLineJustifier({
+        containerEls: () => [els.pageR, els.pageL],
+        lineSelector: '.ed-line', innerSelector: '.ed-line-inner', wordSelector: '.ed-word',
+        featureSettings: khattFeatureSettings,
+    });
 
     function fitPages() {
         sizePages();
