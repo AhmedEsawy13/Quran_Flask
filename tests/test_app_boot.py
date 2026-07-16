@@ -94,6 +94,11 @@ def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
     assert 'id="wq-status" role="status" aria-live="polite" hidden' in page
 
 
+def test_waqf_practice_exposes_live_async_state(client):
+    page = client.get('/waqf-practice').get_data(as_text=True)
+    assert 'id="wp-page-state" role="status" aria-live="polite" hidden' in page
+
+
 def test_memorization_exposes_live_status(client):
     page = client.get('/memorize').get_data(as_text=True)
     assert 'id="mz-status" role="status" aria-live="polite" hidden' in page

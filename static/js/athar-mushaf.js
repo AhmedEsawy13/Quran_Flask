@@ -74,6 +74,91 @@
         });
     }
 
+    function toArabicDigits(value) {
+        return String(value).replace(/[0-9]/g, digit => '٠١٢٣٤٥٦٧٨٩'[digit]);
+    }
+
+    // Shared Quran navigation catalog. Pages keep ownership of their selected
+    // verse/range and request gates; this object owns the repeated API/cache and
+    // select-option assembly used to reach that state.
+    function createVerseCatalog(options) {
+        const config = Object.assign({
+            loadJson: path => window.AtharApi.json(path),
+            surahsPath: '/api/surahs',
+            ayahsPath: surah => `/api/surahs/${surah}/ayahs`,
+        }, options || {});
+        let surahs = [];
+        const ayahCounts = new Map();
+        const entryNumber = entry => Number(entry && typeof entry === 'object' ? entry.number : entry);
+        const entryName = entry => entry && typeof entry === 'object' ? String(entry.name || '') : '';
+
+        async function loadSurahs() {
+            const data = await config.loadJson(config.surahsPath);
+            surahs = Array.isArray(data) ? data : [];
+            return surahs;
+        }
+
+        async function getAyahCount(surah) {
+            const number = Number(surah);
+            if (!Number.isInteger(number) || number < 1) return 0;
+            if (!ayahCounts.has(number)) {
+                const data = await config.loadJson(config.ayahsPath(number));
+                ayahCounts.set(number, Array.isArray(data) ? data.length : 0);
+            }
+            return ayahCounts.get(number) || 0;
+        }
+
+        function renderSurahOptions(select, renderOptions) {
+            if (!select) return;
+            const opts = Object.assign({ selected: null, labelFor: null }, renderOptions || {});
+            const fragment = document.createDocumentFragment();
+            surahs.forEach(entry => {
+                const number = entryNumber(entry);
+                if (!Number.isInteger(number)) return;
+                const option = document.createElement('option');
+                option.value = String(number);
+                option.textContent = typeof opts.labelFor === 'function'
+                    ? opts.labelFor(entry, number)
+                    : `${toArabicDigits(number)}. ${entryName(entry) || `سورة ${toArabicDigits(number)}`}`;
+                fragment.appendChild(option);
+            });
+            select.replaceChildren(fragment);
+            if (opts.selected != null) select.value = String(opts.selected);
+        }
+
+        function renderAyahOptions(select, count, renderOptions) {
+            if (!select) return;
+            const opts = Object.assign({ selected: null, labelFor: null }, renderOptions || {});
+            const total = Math.max(0, Number(count) || 0);
+            const fragment = document.createDocumentFragment();
+            for (let ayah = 1; ayah <= total; ayah += 1) {
+                const option = document.createElement('option');
+                option.value = String(ayah);
+                option.textContent = typeof opts.labelFor === 'function'
+                    ? opts.labelFor(ayah) : toArabicDigits(ayah);
+                fragment.appendChild(option);
+            }
+            select.replaceChildren(fragment);
+            if (opts.selected != null) select.value = String(opts.selected);
+        }
+
+        function nameOf(surah) {
+            const number = Number(surah);
+            const entry = surahs.find(item => entryNumber(item) === number);
+            return entryName(entry);
+        }
+
+        return Object.freeze({
+            get entries() { return surahs.slice(); },
+            getAyahCount,
+            getCachedAyahCount: surah => ayahCounts.get(Number(surah)) || 0,
+            loadSurahs,
+            nameOf,
+            renderAyahOptions,
+            renderSurahOptions,
+        });
+    }
+
     // Some sources emit a standalone combining-waqf token between words. Attach
     // it to the preceding token so every renderer treats the mark as belonging
     // to the word it annotates. The final token is preserved because it can be
@@ -168,16 +253,17 @@
     function renderWordRun(container, words, options) {
         if (!container) throw new Error('word container is required');
         const config = Object.assign({
-            wordClass: '', separator: ' ', classForWord: null,
+            tagName: 'span', wordClass: '', separator: ' ', classForWord: null,
             textForWord: context => context.raw,
-            renderWord: null, decorateWord: null,
+            renderWord: null, decorateWord: null, afterWord: null,
         }, options || {});
         const fragment = document.createDocumentFragment();
         const elements = [];
         (Array.isArray(words) ? words : []).forEach((word, index) => {
-            const raw = typeof word === 'string' ? word : String(word && word.text || '');
+            const raw = typeof word === 'string' ? word
+                : String(word && (word.text_original || word.text || word.word) || '');
             const context = { word, index, raw };
-            const element = document.createElement('span');
+            const element = document.createElement(config.tagName || 'span');
             element.className = typeof config.classForWord === 'function'
                 ? (config.classForWord(context) || '') : config.wordClass;
             if (typeof config.renderWord === 'function') config.renderWord(element, context);
@@ -185,6 +271,12 @@
             if (typeof config.decorateWord === 'function') config.decorateWord(element, context);
             if (index && config.separator) fragment.appendChild(document.createTextNode(config.separator));
             fragment.appendChild(element);
+            if (typeof config.afterWord === 'function') {
+                const result = config.afterWord(element, context);
+                (Array.isArray(result) ? result : [result]).forEach(extra => {
+                    if (extra && typeof extra.nodeType === 'number') fragment.appendChild(extra);
+                });
+            }
             elements.push(element);
         });
         container.replaceChildren(fragment);
@@ -480,6 +572,7 @@
         buildQuery,
         createPageClient,
         createRequestGate,
+        createVerseCatalog,
         displaySymbols,
         getWaqfDisplayData,
         indexWaqfEntries,
@@ -497,6 +590,7 @@
         sourceApiBase,
         stepVerse,
         stripEmbeddedWaqf,
+        toArabicDigits,
         verseEdges,
     });
 })();

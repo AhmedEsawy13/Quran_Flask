@@ -13,7 +13,7 @@
 (function () {
     'use strict';
     const $ = id => document.getElementById(id);
-    const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    const toAr = window.AtharMushaf.toArabicDigits;
     const fromAr = s => String(s).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
     const {
         displaySymbols, getWaqfDisplayData, isHindiVersion, isWarshVersion,
@@ -83,7 +83,8 @@
         agreementContent: $('wq-agreement-content'),
     };
 
-    const state = { surahs: [], surah: 2, ayah: 255, ayahCount: {}, data: null, breathL: BREATH.medium };
+    const state = { surah: 2, ayah: 255, data: null, breathL: BREATH.medium };
+    const catalog = window.AtharMushaf.createVerseCatalog();
     const navigationRequests = window.AtharMushaf.createRequestGate();
 
     /* ── status toast ─────────────────────────────────────────── */
@@ -98,27 +99,13 @@
 
     /* ── data loading ─────────────────────────────────────────── */
     async function loadSurahs() {
-        state.surahs = await window.AtharApi.json('/api/surahs');
-        els.surah.innerHTML = state.surahs.map(s => {
-            const num = s.number ?? s, name = s.name ?? `سورة ${num}`;
-            return `<option value="${num}">${toAr(num)}. ${name}</option>`;
-        }).join('');
+        await catalog.loadSurahs();
+        catalog.renderSurahOptions(els.surah);
     }
-    function surahName(num) {
-        const s = state.surahs.find(x => (x.number ?? x) === num);
-        return s ? (s.name ?? '') : '';
-    }
-    async function getAyahCount(surah) {
-        if (!state.ayahCount[surah]) {
-            const list = await window.AtharApi.json(`/api/surahs/${surah}/ayahs`);
-            state.ayahCount[surah] = Array.isArray(list) ? list.length : 0;
-        }
-        return state.ayahCount[surah] || 0;
-    }
+    const surahName = num => catalog.nameOf(num);
+    const getAyahCount = surah => catalog.getAyahCount(surah);
     function renderAyahOptions(surah) {
-        const n = state.ayahCount[surah] || 0;
-        els.ayah.innerHTML = Array.from({ length: n }, (_, i) =>
-            `<option value="${i + 1}">${toAr(i + 1)}</option>`).join('');
+        catalog.renderAyahOptions(els.ayah, catalog.getCachedAyahCount(surah));
     }
 
     async function navigateTo(surah, ayah) {
@@ -161,7 +148,7 @@
     }
     function updateStepper() {
         const edges = window.AtharMushaf.verseEdges(state, {
-            ayahCount: state.ayahCount[state.surah],
+            ayahCount: catalog.getCachedAyahCount(state.surah),
         });
         els.prev.disabled = edges.atStart;
         els.next.disabled = edges.atEnd;
@@ -328,7 +315,7 @@
             ? `<div class="wq-research-mode-note">علامات الوقف على الكلمة <b>قبل</b> «${researchState.word}»</div>` : '';
         els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>` + modeNote + list.map(o => {
             const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
-            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const sname = surahName(o.surah);
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
@@ -411,7 +398,7 @@
         if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
         return list.map(o => {
             const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
-            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const sname = surahName(o.surah);
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
@@ -472,7 +459,7 @@
                 }).join('') + '</div>';
         } else if (statsView === 'verses') {
             body = '<div class="wq-solos-list">' + topV.slice(0, 60).map(v => {
-                const sname = (state.surahs.find(s => s.number === v.surah) || {}).name || '';
+                const sname = surahName(v.surah);
                 return `<button class="wq-research-item" type="button" data-s="${v.surah}" data-a="${v.ayah}">
                     <span class="wq-research-ref">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></span>
                     <span class="wq-stats-badge wq-stats-div">${toAr(v.divergent)} اختلاف</span>
@@ -494,7 +481,7 @@
         let body = `<div class="wq-solos-desc">مواضع وقف اتفق عليها جميع القرّاء ولها علامة مطبوعة في المصاحف</div>`
             + `<div class="wq-research-count">${toAr(items.length)} موضعًا</div>`
             + '<div class="wq-solos-list">' + items.map(o => {
-                const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+                const sname = surahName(o.surah);
                 const ent = Object.entries(o.marks || {});
                 const marks = ent.length
                     ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('')}</span>` : '';
@@ -551,7 +538,7 @@
     function renderEmbracingItems(list) {
         if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
         return list.map(o => {
-            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const sname = surahName(o.surah);
             const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
             const pair = o.pair || [];
             const pairHtml = pair.map(p => {
@@ -574,7 +561,7 @@
     function renderMandItems(list) {
         if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
         return list.map(o => {
-            const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const sname = surahName(o.surah);
             const ent = Object.entries(o.marks || {});
             const marks = ent.length
                 ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
@@ -608,7 +595,7 @@
             `<div class="wq-solos-desc">مواضع وضع فيها كل مصحف علامة وقف مختلفة عن الآخر</div>`
             + `<div class="wq-research-count">${toAr(items.length)} موضع اختلاف</div>`
             + '<div class="wq-solos-list">' + items.map(o => {
-                const sname = (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+                const sname = surahName(o.surah);
                 const ent = Object.entries(o.marks || {});
                 const marks = ent.length
                     ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ': ' + v).join(' · ')}">`
@@ -713,7 +700,7 @@
                 box.innerHTML = `<div class="wq-research-empty">${msg}</div>`; return;
             }
             const chips = j.verses.map(v => {
-                const sname = v.name || (state.surahs.find(s => s.number === v.surah) || {}).name || '';
+                const sname = v.name || surahName(v.surah);
                 return `<button class="wq-agree-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></button>`;
             }).join('');
             box.innerHTML = `<div class="wq-agree-cases-head">${r ? r.name_ar : ''} — <b>${m ? m.name : mark}</b>: `
@@ -782,7 +769,7 @@
                  <button class="wq-stats-subtab${ibtidaaOnlyMulti ? '' : ' wq-lab-tab-active'}" data-im="all">الكل (${toAr(ibtidaaCache.count)})</button>
                </div>`;
         els.ibtidaaContent.innerHTML = head + '<div class="wq-solos-list">' + items.map(o => {
-            const sname = o.name || (state.surahs.find(s => s.number === o.surah) || {}).name || '';
+            const sname = o.name || surahName(o.surah);
             const dist = o.back_distance === 0
                 ? 'أعاد الكلمة نفسها'
                 : `رجع ${toAr(o.back_distance)} ${o.back_distance <= 2 ? 'كلمة' : 'كلمات'}`;
@@ -1039,7 +1026,7 @@
             `<span class="wq-cmp-group">${ga(g.a_sym)}<i class="fas fa-arrows-left-right"></i>`
             + `${gb(g.b_sym)}<span class="wq-cmp-gn">${toAr(g.count)}</span></span>`).join('');
         const chips = (j.verses || []).map(v => {
-            const sname = (state.surahs.find(s => s.number === v.surah) || {}).name || '';
+            const sname = surahName(v.surah);
             return `<button class="wq-research-item wq-cmp-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">`
                 + `<span class="wq-cmp-w">${v.word || ''}</span>`
                 + `<span class="wq-cmp-ref">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></span>`
@@ -1442,16 +1429,14 @@
         }
 
         const flow = els.verseFlow;
-        flow.innerHTML = '';
         const uByWpos = new Map(d.union_stops.map(u => [u.wpos, u]));
-        d.words.forEach((text, wpos) => {
-            const w = document.createElement('span');
-            w.className = 'wq-word';
-            w.textContent = text;
-            const u = uByWpos.get(wpos);
-            if (u) w.classList.add('wq-word-stop');
-            flow.appendChild(w);
-            if (u) flow.appendChild(stopChip(u, d.reciters_total));
+        window.AtharMushaf.renderWordRun(flow, d.words, {
+            separator: '',
+            classForWord: ({ index }) => uByWpos.has(index) ? 'wq-word wq-word-stop' : 'wq-word',
+            afterWord: (element, { index }) => {
+                const stop = uByWpos.get(index);
+                return stop ? stopChip(stop, d.reciters_total) : null;
+            },
         });
     }
 
@@ -1838,7 +1823,7 @@
         const norm = t => t.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/\s|ال/g, '');
         const target = norm(name);
         if (!target) return null;
-        const hit = state.surahs.find(s => norm(s.name || '').includes(target));
+        const hit = catalog.entries.find(s => norm(s.name || '').includes(target));
         return hit ? (hit.number ?? null) : null;
     }
     async function doSearch() {

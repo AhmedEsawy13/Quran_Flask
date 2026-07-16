@@ -3,11 +3,11 @@
 (function () {
     'use strict';
     const $ = id => document.getElementById(id);
-    const toAr = n => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    const toAr = window.AtharMushaf.toArabicDigits;
 
     const els = {
         surah: $('wp-surah'), from: $('wp-from'), to: $('wp-to'), mushaf: $('wp-mushaf'),
-        load: $('wp-load'), hint: $('wp-hint'), intro: $('wp-intro'), rangeLabel: $('wp-range-label'),
+        load: $('wp-load'), hint: $('wp-hint'), intro: $('wp-intro'), pageState: $('wp-page-state'), rangeLabel: $('wp-range-label'),
         rangeTrigger: $('wp-range-trigger'), rangePanel: $('wp-range-panel'),
         mushafTrigger: $('wp-mushaf-trigger'), mushafPanel: $('wp-mushaf-panel'), mushafLabel: $('wp-mushaf-label'),
         passageSec: $('wp-passage-sec'), passage: $('wp-passage'),
@@ -26,7 +26,8 @@
     const setPressed = (btn, val) => { if (btn) btn.setAttribute('aria-pressed', val ? 'true' : 'false'); };
     const popovers = window.AtharUi.createPopoverGroup();
 
-    const state = { surahs: [], ayahCount: {}, verses: [], stops: new Set() /* "ayah:wpos" */ };
+    const state = { verses: [], stops: new Set() /* "ayah:wpos" */ };
+    const catalog = window.AtharMushaf.createVerseCatalog();
     const surahRequests = window.AtharMushaf.createRequestGate();
     const passageRequests = window.AtharMushaf.createRequestGate();
     const gradeRequests = window.AtharMushaf.createRequestGate();
@@ -44,15 +45,28 @@
         error:     { cls: 'err',  name: 'وقفٌ خاطئ',   tip: 'لا يُوقف عليه — يُخلّ بالمعنى' },
     };
 
+    function showPageState(kind, message) {
+        if (!els.pageState) return;
+        els.pageState.hidden = !message;
+        if (message) window.AtharUi.renderState(els.pageState, kind, message);
+        else els.pageState.replaceChildren();
+    }
+
     /* ── setup ──────────────────────────────────────────────────────── */
     async function init() {
-        const [surahs, versions] = await Promise.all([
-            window.AtharApi.json('/api/surahs').catch(() => []),
-            window.AtharApi.json('/api/mushaf-versions').catch(() => []),
-        ]);
-        state.surahs = Array.isArray(surahs) ? surahs : [];
-        els.surah.innerHTML = state.surahs.map(s =>
-            `<option value="${s.number ?? s}">${toAr(s.number ?? s)}. ${s.name ?? ''}</option>`).join('');
+        showPageState('loading', 'جارٍ تهيئة التدريب…');
+        els.load.disabled = true;
+        let versions;
+        try {
+            [, versions] = await Promise.all([
+                catalog.loadSurahs(),
+                window.AtharApi.json('/api/mushaf-versions'),
+            ]);
+        } catch (error) {
+            showPageState('error', 'تعذّر تهيئة بيانات التدريب.');
+            return;
+        }
+        catalog.renderSurahOptions(els.surah);
         const prefer = ['المدينة الجديد', 'المدينة القديم'];
         const ordered = [...prefer.filter(v => versions.includes(v)),
                          ...versions.filter(v => !prefer.includes(v))];
@@ -84,41 +98,54 @@
         if (els.rangeTrigger) els.rangeTrigger.addEventListener('click', () => popovers.toggle(els.rangeTrigger, els.rangePanel));
         if (els.mushafTrigger) els.mushafTrigger.addEventListener('click', () => popovers.toggle(els.mushafTrigger, els.mushafPanel));
         document.addEventListener('click', e => { if (!e.target.closest('.mz-pop')) popovers.close(); });
-        await onSurah();
+        if (!await onSurah()) return;
         // deep link ?surah=&from=&to=
         const p = new URLSearchParams(location.search);
-        if (p.get('surah')) { els.surah.value = p.get('surah'); await onSurah(); }
+        const requestedSurah = Number(p.get('surah'));
+        const hasRequestedSurah = Number.isInteger(requestedSurah)
+            && [...els.surah.options].some(option => Number(option.value) === requestedSurah);
+        if (hasRequestedSurah) { els.surah.value = String(requestedSurah); if (!await onSurah()) return; }
         if (p.get('from') && [...els.from.options].some(o => o.value === p.get('from'))) els.from.value = p.get('from');
         if (p.get('to') && [...els.to.options].some(o => o.value === p.get('to'))) els.to.value = p.get('to');
-        if (p.get('surah')) loadPassage();
+        showPageState('', '');
+        els.load.disabled = false;
+        if (hasRequestedSurah) loadPassage();
     }
 
     async function onSurah() {
         const request = surahRequests.next();
+        passageRequests.cancel();
+        gradeRequests.cancel();
+        els.load.disabled = true;
         const s = +els.surah.value || 1;
-        if (!state.ayahCount[s]) {
-            const list = await window.AtharApi.json(`/api/surahs/${s}/ayahs`).catch(() => []);
-            state.ayahCount[s] = Array.isArray(list) ? list.length : 0;
+        try {
+            const n = await catalog.getAyahCount(s);
+            if (!surahRequests.isCurrent(request)) return false;
+            catalog.renderAyahOptions(els.from, n, { selected: 1 });
+            catalog.renderAyahOptions(els.to, n, { selected: Math.min(n, 5) });
+            showPageState('', '');
+            els.load.disabled = false;
+            return true;
+        } catch (error) {
+            if (surahRequests.isCurrent(request)) {
+                showPageState('error', 'تعذّر تحميل آيات السورة.');
+            }
+            return false;
         }
-        if (!surahRequests.isCurrent(request)) return;
-        const n = state.ayahCount[s] || 0;
-        const opts = Array.from({ length: n }, (_, i) => `<option value="${i + 1}">${toAr(i + 1)}</option>`).join('');
-        els.from.innerHTML = opts;
-        els.to.innerHTML = opts;
-        els.from.value = '1';
-        els.to.value = String(Math.min(n, 5));
     }
 
     /* ── load a passage as tappable words ──────────────────────────── */
     async function loadPassage() {
-        const s = +els.surah.value, f = +els.from.value, t = +els.to.value;
+        const s = +els.surah.value, f = +els.from.value;
+        let t = +els.to.value;
         const mushaf = els.mushaf.value;
         const useLayout = !!els.layout && isPressed(els.layout) && isMadinah();
-        if (t < f) { els.to.value = els.from.value; return; }
-        if (t - f > 20) { alert('المقطع طويل — اختر ٢١ آية أو أقل.'); return; }
+        if (t < f) { t = f; els.to.value = String(f); }
+        if (t - f > 20) { showPageState('error', 'المقطع طويل — اختر ٢١ آية أو أقل.'); return; }
         const request = passageRequests.next();
         gradeRequests.cancel();
         els.load.disabled = true;
+        showPageState('loading', 'جارٍ تحميل المقطع…');
         try {
             if (rec.on) stopRecord();
             const j = await window.AtharApi.json(`/api/waqf-practice/passage/${s}/${f}/${t}`);
@@ -133,29 +160,20 @@
                 if (!passageRequests.isCurrent(request)) return;
             }
             if (!renderedLayout) renderPassage();
-            const name = (state.surahs.find(x => (x.number ?? x) === s) || {}).name || '';
+            const name = catalog.nameOf(s);
             if (els.rangeLabel) els.rangeLabel.textContent = `${name} · ${toAr(f)}${t > f ? '–' + toAr(t) : ''}`;
             els.hint.hidden = false;
             if (els.intro) els.intro.hidden = true;
             els.passageSec.hidden = false;
             els.resultSec.hidden = true;
+            showPageState('', '');
             updateCount();
             els.passageSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (e) {
-            if (passageRequests.isCurrent(request)) alert('تعذّر تحميل المقطع.');
+            if (passageRequests.isCurrent(request)) showPageState('error', 'تعذّر تحميل المقطع.');
         } finally {
             if (passageRequests.isCurrent(request)) els.load.disabled = false;
         }
-    }
-
-    function wordSpan(ayah, wpos, text, isEnd) {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'wp-word' + (isEnd ? ' wp-word-end' : '');
-        b.dataset.key = ayah + ':' + wpos;
-        b.dataset.ayah = ayah; b.dataset.wpos = wpos;
-        b.textContent = text;
-        return b;
     }
 
     // Tap a word to toggle a stop — shared by the plain and mushaf-layout views.
@@ -176,10 +194,18 @@
             const line = document.createElement('div');
             line.className = 'wp-verse';
             const last = v.words.length - 1;
-            v.words.forEach((w, i) => {
-                line.appendChild(wordSpan(v.ayah, i, w, i === last));
-                line.appendChild(document.createTextNode(' '));
+            window.AtharMushaf.renderWordRun(line, v.words, {
+                tagName: 'button', separator: ' ',
+                classForWord: ({ index }) => 'wp-word' + (index === last ? ' wp-word-end' : ''),
+                renderWord: (button, { raw, index }) => {
+                    button.type = 'button';
+                    button.dataset.key = `${v.ayah}:${index}`;
+                    button.dataset.ayah = String(v.ayah);
+                    button.dataset.wpos = String(index);
+                    button.textContent = raw;
+                },
             });
+            line.appendChild(document.createTextNode(' '));
             const num = document.createElement('span');
             num.className = 'wp-ayah-num';
             num.textContent = toAr(v.ayah);
@@ -253,7 +279,7 @@
             identityKey: ({ word, position }) => Number(word.surah) === s
                 && Number(word.ayah) >= f && Number(word.ayah) <= t ? `${word.ayah}:${position}` : null,
             decorateWord: (element, { counted, word }) => {
-                if (!counted || element.className !== 'wp-word') return;
+                if (!counted || !element.classList.contains('wp-word')) return;
                 element.dataset.ayah = String(word.ayah);
             },
         });
@@ -281,6 +307,7 @@
             return { ayah, wpos };
         });
         els.grade.disabled = true;
+        showPageState('loading', 'جارٍ تقييم مواضع الوقف…');
         try {
             const j = await window.AtharApi.json('/api/waqf-practice/grade', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -291,8 +318,9 @@
             });
             if (!gradeRequests.isCurrent(request)) return;
             renderResult(j);
+            showPageState('', '');
         } catch (e) {
-            if (gradeRequests.isCurrent(request)) alert('تعذّر التقييم.');
+            if (gradeRequests.isCurrent(request)) showPageState('error', 'تعذّر التقييم.');
         } finally {
             if (gradeRequests.isCurrent(request)) els.grade.disabled = false;
         }
@@ -536,28 +564,26 @@
         state.verses.forEach(v => {
             const line = document.createElement('div');
             line.className = 'wp-verse';
-            const last = v.words.length - 1;
-            v.words.forEach((w, i) => {
-                const key = v.ayah + ':' + i;
-                const span = document.createElement('span');
-                span.className = 'wp-gword';
-                span.textContent = w;
-                const s = verdictAt.get(key);
-                if (s) {
-                    const d = VERDICT[s.verdict];
-                    span.classList.add('wp-stop', 'wp-w-' + d.cls);
-                    span.title = (s.label || d.name) + (s.sources && s.sources.length
-                        ? ' — ' + s.sources.map(x => (x.name ? x.name + ': ' : '') + x.label).join('، ') : '');
-                } else if (brokenAt.has(key)) {
-                    span.classList.add('wp-missed-lazim');
-                    span.title = 'وقف لازم فاتك — يجب الوقف هنا';
-                } else if (idealAt.has(key)) {
-                    span.classList.add('wp-ideal');
-                    span.title = 'موضع وقفٍ مثاليّ (لم تقف عنده)';
-                }
-                line.appendChild(span);
-                line.appendChild(document.createTextNode(' '));
+            window.AtharMushaf.renderWordRun(line, v.words, {
+                wordClass: 'wp-gword', separator: ' ',
+                decorateWord: (span, { index }) => {
+                    const key = v.ayah + ':' + index;
+                    const s = verdictAt.get(key);
+                    if (s) {
+                        const d = VERDICT[s.verdict];
+                        span.classList.add('wp-stop', 'wp-w-' + d.cls);
+                        span.title = (s.label || d.name) + (s.sources && s.sources.length
+                            ? ' — ' + s.sources.map(x => (x.name ? x.name + ': ' : '') + x.label).join('، ') : '');
+                    } else if (brokenAt.has(key)) {
+                        span.classList.add('wp-missed-lazim');
+                        span.title = 'وقف لازم فاتك — يجب الوقف هنا';
+                    } else if (idealAt.has(key)) {
+                        span.classList.add('wp-ideal');
+                        span.title = 'موضع وقفٍ مثاليّ (لم تقف عنده)';
+                    }
+                },
             });
+            line.appendChild(document.createTextNode(' '));
             const num = document.createElement('span');
             num.className = 'wp-ayah-num';
             num.textContent = toAr(v.ayah);
