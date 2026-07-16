@@ -31,6 +31,24 @@ def test_enabled_features_env(monkeypatch):
     assert 'editor' in quran_app.enabled_features()
 
 
+def test_create_app_returns_an_isolated_feature_set():
+    core_only = quran_app.create_app({'core'})
+    assert set(core_only.blueprints) == {'core'}
+    assert core_only.test_client().get('/api/surahs').status_code == 200
+    assert core_only.test_client().get('/memorize').status_code == 404
+
+    # Core is mandatory even when the explicit set omits it.
+    reading_only = quran_app.create_app({'reading'})
+    assert set(reading_only.blueprints) == {'core', 'reading'}
+
+
+def test_false_editor_env_values_do_not_enable_writer(monkeypatch):
+    monkeypatch.delenv('FEATURES', raising=False)
+    for value in ('0', 'false', 'no', 'off'):
+        monkeypatch.setenv('ENABLE_EDITOR', value)
+        assert 'editor' not in quran_app.enabled_features()
+
+
 def test_practice_grade_edge_cases(client):
     # no stops → valid, full score, no crash.
     r = client.post('/api/waqf-practice/grade',
@@ -55,6 +73,19 @@ def test_practice_grade_edge_cases(client):
     assert client.post('/api/waqf-practice/grade', json={}).status_code == 400
     assert client.post('/api/waqf-practice/grade',
                        json={'surah': 2, 'from_ayah': 3, 'to_ayah': 1}).status_code == 400
+    assert client.post('/api/waqf-practice/grade', json=[]).status_code == 400
+    assert client.post('/api/waqf-practice/grade', json={
+        'surah': 1, 'from_ayah': 1, 'to_ayah': 1, 'stops': 42,
+    }).status_code == 400
+
+
+def test_practice_tajweed_rejects_malformed_json(client):
+    assert client.post('/api/waqf-practice/tajweed', json={
+        'surah': 'not-a-number', 'from_ayah': 1, 'to_ayah': 1, 'phonemes': 'a',
+    }).status_code == 400
+    assert client.post('/api/waqf-practice/tajweed', json={
+        'surah': 1, 'from_ayah': 1, 'to_ayah': 1, 'phonemes': [],
+    }).status_code == 400
 
 
 def test_error_responses_stay_uncached_across_modules(client):
@@ -71,6 +102,11 @@ def test_editor_rejects_out_of_bounds_and_unknown_symbols(client):
     assert client.post('/api/mushaf-editor/waqf', json={
         'word_id': 1, 'edition': 'قطر', 'symbol': '<script>',
     }).status_code == 400
+    assert client.post('/api/mushaf-editor/waqf', json=[]).status_code == 400
+    assert client.post('/api/mushaf-editor/waqf', json={
+        'word_id': 1, 'edition': [], 'symbol': '',
+    }).status_code == 400
+    assert client.post('/api/mushaf-editor/progress', json=[]).status_code == 400
 
 
 def test_shared_frontend_layers_are_mounted(client):

@@ -178,12 +178,17 @@ def set_mushaf_editor_waqf():
     Body: {"word_id": <global layout word id>, "edition": "قطر"|"الكويت",
            "symbol": "<one of م لا ق ص ج س ع>" | "" (clear)}
     """
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
     try:
         word_id = int(data.get('word_id'))
     except (TypeError, ValueError):
         return jsonify({'error': 'invalid word_id'}), 400
-    edition = (data.get('edition') or '').strip()
+    edition = data.get('edition') or ''
+    if not isinstance(edition, str):
+        return jsonify({'error': 'invalid edition'}), 400
+    edition = edition.strip()
     if edition not in EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
     symbol = data.get('symbol')
@@ -204,7 +209,12 @@ def mushaf_editor_progress():
     if request.method == 'GET':
         edition = (request.args.get('edition') or '').strip()
     else:
-        edition = (request.get_json(silent=True) or {}).get('edition', '')
+        body = request.get_json(silent=True)
+        if not isinstance(body, dict):
+            return jsonify({'error': 'JSON object required'}), 400
+        edition = body.get('edition', '')
+        if not isinstance(edition, str):
+            return jsonify({'error': 'invalid edition'}), 400
         edition = (edition or '').strip()
 
     if edition not in EDITOR_EDITIONS:
@@ -221,7 +231,6 @@ def mushaf_editor_progress():
             pages = sorted(row[0] for row in cur.fetchall())
             return jsonify({'edition': edition, 'reviewed_pages': pages})
 
-        body = request.get_json(silent=True) or {}
         try:
             page_number = int(body.get('page_number'))
         except (TypeError, ValueError):

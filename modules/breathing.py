@@ -735,19 +735,29 @@ def waqf_practice_tajweed():
     verse, phonetize each reference (quran_transcript) and diff against it —
     returning rule-named errors (Madd length, Qalqalah, Ghonnah, wrong letter…)
     mapped to the word (wpos) they occur on."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
     try:
-        import quran_transcript as qt
-    except Exception:
-        return jsonify({'available': False, 'errors': []})
-    data = request.get_json(silent=True) or {}
-    surah = int(data.get('surah') or 0)
-    from_ayah = int(data.get('from_ayah') or 0)
-    to_ayah = int(data.get('to_ayah') or 0)
-    predicted = (data.get('phonemes') or '').strip()
+        surah = int(data.get('surah') or 0)
+        from_ayah = int(data.get('from_ayah') or 0)
+        to_ayah = int(data.get('to_ayah') or 0)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid range'}), 400
+    phonemes = data.get('phonemes', '')
+    if phonemes is None:
+        phonemes = ''
+    if not isinstance(phonemes, str):
+        return jsonify({'error': 'phonemes must be a string'}), 400
+    predicted = phonemes.strip()
     if not (1 <= surah <= 114) or from_ayah < 1 or to_ayah < from_ayah or to_ayah - from_ayah > 20:
         return jsonify({'error': 'invalid range'}), 400
     if not predicted:
         return jsonify({'available': True, 'errors': []})
+    try:
+        import quran_transcript as qt
+    except Exception:
+        return jsonify({'available': False, 'errors': []})
     moshaf = _qt_moshaf()
 
     def rule_names(rules):
@@ -801,7 +811,9 @@ def waqf_practice_tajweed():
 @breathing_bp.route('/api/waqf-practice/grade', methods=['POST'])
 def waqf_practice_grade():
     """Grade the learner's chosen stops against the mushaf + classical rulings."""
-    data = request.get_json(silent=True) or {}
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
     try:
         surah = int(data.get('surah'))
         from_ayah = int(data.get('from_ayah'))
@@ -811,10 +823,17 @@ def waqf_practice_grade():
     if not (1 <= surah <= 114) or from_ayah < 1 or to_ayah < from_ayah or to_ayah - from_ayah > 20:
         return jsonify({'error': 'invalid range'}), 400
     mushaf = data.get('mushaf') or 'المدينة الجديد'
+    if not isinstance(mushaf, str):
+        mushaf = 'المدينة الجديد'
     if not _is_valid_mushaf_version(mushaf):
         mushaf = 'المدينة الجديد'
+    raw_stops = data.get('stops') or []
+    if not isinstance(raw_stops, list):
+        return jsonify({'error': 'stops must be a list'}), 400
     stops = []
-    for s in (data.get('stops') or []):
+    for s in raw_stops:
+        if not isinstance(s, dict):
+            continue
         try:
             stops.append({'ayah': int(s['ayah']), 'wpos': int(s['wpos'])})
         except (TypeError, ValueError, KeyError):
@@ -825,5 +844,3 @@ def waqf_practice_grade():
 @breathing_bp.route('/waqf-practice')
 def waqf_practice_page():
     return render_template('waqf_practice.html', enable_vercel_analytics=_IS_SERVERLESS)
-
-

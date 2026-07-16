@@ -121,6 +121,13 @@ def test_word_search_finds_known_word(client):
     assert client.get('/api/word-search').status_code == 400
 
 
+def test_word_meanings_have_valid_references_for_all_surahs(client):
+    # These three surahs previously had NULL surah_number values in word_name.db.
+    for surah, ayah in ((34, 2), (47, 1), (78, 1)):
+        j = client.get(f'/api/surahs/{surah}/ayahs/{ayah}').get_json()
+        assert j['word_meanings_ordered'], (surah, ayah)
+
+
 def test_audio_proxy_rejects_everything_but_the_allowlist(client):
     """SSRF/open-redirect guard: only https + a fixed domain allowlist +
     default port + no embedded credentials may be redirected to."""

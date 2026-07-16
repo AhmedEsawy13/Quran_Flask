@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, current_app, jsonify, request
 import sqlite3
 import os
 import logging
@@ -6,16 +6,6 @@ import logging
 import gzip
 from io import BytesIO
 
-
-app = Flask(__name__, static_folder='static')
-
-# Re-check template files' mtimes on every render (default is tied to
-# app.debug, which is off outside FLASK_ENV=development — see the app.run()
-# call below) so template edits show up without a process restart. Must be
-# set before anything touches app.jinja_env (e.g. the @app.template_global()
-# decorator below), which creates and caches the Jinja environment from
-# whatever this config says at that moment.
-app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # Feature blueprints. Routes are attached to these below (one per feature area)
 # so each feature can be enabled/disabled per deployment via the FEATURES env
@@ -31,11 +21,6 @@ from core.blueprints import core_bp, reading_bp, memorize_bp, breathing_bp, edit
 # COMPRESS_* config keys had no effect and were removed. JSON gzip is
 # handled inline in after_request below.)
 
-# Configure logging
-if not app.debug:
-    logging.basicConfig(level=logging.INFO)
-    app.logger.setLevel(logging.INFO)
-
 # Auto cache-busting: hash the file contents so browsers always fetch the
 # latest version after a deploy — no more manual ?v=N bumps. Keyed on mtime
 # so an edited file gets a new hash (and therefore URL) immediately, even in
@@ -44,10 +29,9 @@ if not app.debug:
 import hashlib as _hashlib
 _static_hash_cache: dict[str, tuple[float, str]] = {}
 
-@app.template_global()
 def static_hash(filename: str) -> str:
     """Return /static/<filename>?h=<8-char content hash>."""
-    path = os.path.join(app.static_folder, filename)
+    path = os.path.join(current_app.static_folder, filename)
     try:
         mtime = os.path.getmtime(path)
     except OSError:
@@ -62,7 +46,6 @@ def static_hash(filename: str) -> str:
     return f'/static/{filename}?h={h}'
 
 # Compression and security improvements
-@app.after_request
 def after_request(response):
     """Add security headers and compression to all responses"""
     # Security headers
@@ -135,13 +118,11 @@ def after_request(response):
     return response
 
 # Error handlers
-@app.errorhandler(404)
 def not_found(error):
     return jsonify({"error": "Resource not found"}), 404
 
-@app.errorhandler(500)
 def internal_error(error):
-    app.logger.error(f"Internal server error: {error}")
+    current_app.logger.error(f"Internal server error: {error}")
     return jsonify({"error": "Internal server error"}), 500
 
 from core.config import (
@@ -186,13 +167,12 @@ try:
     _wn_conn.commit()
     _wn_conn.close()
 except sqlite3.Error as _wn_err:
-    app.logger.warning(f'Could not create word_name index: {_wn_err}')
+    logging.warning(f'Could not create word_name index: {_wn_err}')
 
 
 # Database helper functions (moved to core.db so feature blueprints can share
 # the per-request connection without importing the main app module).
 from core.db import close_connection
-app.teardown_appcontext(close_connection)
 
 
 
@@ -213,7 +193,7 @@ def enabled_features():
     raw = os.environ.get('FEATURES', '').strip()
     feats = {f.strip() for f in raw.split(',') if f.strip()} if raw else set(_DEFAULT_FEATURES)
     feats.add('core')  # shared foundation is always required
-    if os.environ.get('ENABLE_EDITOR'):
+    if os.environ.get('ENABLE_EDITOR', '').strip().lower() in {'1', 'true', 'yes', 'on'}:
         feats.add('editor')
     else:
         feats.discard('editor')  # never expose the writer unless explicitly enabled
@@ -221,10 +201,10 @@ def enabled_features():
 
 
 def register_blueprints(flask_app, features=None):
-    features = features if features is not None else enabled_features()
+    features = set(features) if features is not None else enabled_features()
+    features.add('core')
     for name, bp in ALL_BLUEPRINTS.items():
-        # Idempotent: skip blueprints already mounted (create_app may be called
-        # after the module-level registration below).
+        # Idempotent when configuration is applied to the same app twice.
         if name in features and name not in flask_app.blueprints:
             flask_app.register_blueprint(bp)
     flask_app.logger.info(f"Enabled features: {sorted(features)}")
@@ -232,19 +212,26 @@ def register_blueprints(flask_app, features=None):
 
 
 def create_app(features=None):
-    """Return the configured application, mounting the selected features.
-
-    Exposed for WSGI entrypoints / future per-feature deployments. The module
-    also configures the shared ``app`` object at import for ``gunicorn app:app``.
-    """
-    return register_blueprints(app, features)
+    """Build an isolated Flask application with the selected feature modules."""
+    flask_app = Flask(__name__, static_folder='static')
+    # Always notice template edits, even when debug mode is disabled.
+    flask_app.config['TEMPLATES_AUTO_RELOAD'] = True
+    if not flask_app.debug:
+        logging.basicConfig(level=logging.INFO)
+        flask_app.logger.setLevel(logging.INFO)
+    flask_app.add_template_global(static_hash)
+    flask_app.after_request(after_request)
+    flask_app.register_error_handler(404, not_found)
+    flask_app.register_error_handler(500, internal_error)
+    flask_app.teardown_appcontext(close_connection)
+    return register_blueprints(flask_app, features)
 
 
 # Configure the default module-level app (used by `gunicorn app:app`).
-register_blueprints(app)
+app = create_app()
 
 
 if __name__ == '__main__':
     os.environ.setdefault('ENABLE_EDITOR', '1')
-    register_blueprints(app)
+    register_blueprints(app, enabled_features())
     app.run(debug=os.getenv('FLASK_ENV') == 'development', port=5001)

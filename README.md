@@ -130,7 +130,7 @@ serves is controlled by environment variables:
 | Env var | Effect |
 |---|---|
 | `FEATURES` | Comma-separated module list to enable, e.g. `FEATURES=reading` or `FEATURES=memorize,breathing`. Defaults to `reading,memorize,breathing`. `core` is **always** included. |
-| `ENABLE_EDITOR` | When set, mounts the write-capable `editor` module. **Off by default** — keep it to localhost so production stays read-only. |
+| `ENABLE_EDITOR` | A truthy value (`1`, `true`, `yes`, or `on`) mounts the write-capable `editor` module. **Off by default** — keep it to localhost so production stays read-only. |
 
 This lets you put each module on its own domain while sharing one repo and one
 set of databases:
@@ -158,35 +158,35 @@ set of databases:
 
 2. **Install dependencies** (add `-r requirements-dev.txt` instead if you're also running tests):
    ```bash
-   pip install -r requirements.txt
+   python3 -m pip install -r requirements.txt
    ```
 
 3. **Restore the reciter timestamp data** (not tracked in git — 52 MB
    refreshed weekly upstream; downloads the release pinned in
    `reciters/.qul_sync_state.json`):
    ```bash
-   python scripts/import_qul_reciters.py --restore
+   python3 scripts/import_qul_reciters.py --restore
    ```
    On **Heroku** this happens automatically on every build via
    `bin/post_compile`.
 
 4. **Run the Flask application:**
    ```bash
-   python app.py            # serves on http://localhost:5001
+   python3 app.py            # serves on http://localhost:5001
    ```
    To work on the editor module locally, enable it explicitly:
    ```bash
-   ENABLE_EDITOR=1 python app.py
+   ENABLE_EDITOR=1 python3 app.py
    ```
    To serve only a subset of modules (as in production), set `FEATURES`:
    ```bash
-   FEATURES=reading python app.py
+   FEATURES=reading python3 app.py
    ```
 
 5. Open `http://localhost:5001` in your browser.
 
 ### Requirements
-- Python 3.7+
+- Python 3.10+
 - SQLite3 (included with Python)
 - Modern web browser with HTML5 support (WebAssembly + Web Audio for the ASR features)
 - Internet connection for external CDN resources
@@ -194,7 +194,7 @@ set of databases:
 ## Testing
 
 ```bash
-pip install -r requirements-dev.txt
+python3 -m pip install -r requirements-dev.txt
 pytest              # full suite
 pytest -q tests/test_classical_waqf_quality.py -v   # a single file
 ```
