@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -10,9 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
-    <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
+    {{ athar_shell_head() }}
     <link rel="stylesheet" href="{{ static_hash('css/landing.css') }}">
-    <script src="{{ static_hash('js/theme.js') }}"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"></noscript>
@@ -20,21 +20,9 @@
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
 <body class="athar-landing">
-    <header class="athar-bar">
-        <a class="athar-brand" href="/" title="أثَر — مع القرآن">
-            <span class="athar-logo">أثَر</span>
-            <span class="athar-tag">مع القرآن</span>
-        </a>
-        <nav class="athar-nav">
-            <a href="/read">المصحف</a>
-            <a href="/memorize">تثبيت</a>
-            <a href="/waqf">مُكْث</a>
-            <a href="/waqf-practice">تدريب</a>
-            <button class="athar-icon-btn" data-athar-theme="cycle" type="button" title="تبديل الوضع" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
-        </nav>
-    </header>
+    {{ athar_app_bar() }}
 
-    <main>
+    <main id="athar-main" tabindex="-1">
         <section class="lp-hero lp-wrap">
             <p class="lp-eyebrow">
                 <b>١١٤</b> سورة <span class="dot"></span> <b>٦٢٣٦</b> آية <span class="dot"></span> <b>٦٠٤</b> صفحة مصحف

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -16,8 +17,7 @@
     <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
     <link rel="stylesheet" href="{{ static_hash('css/mushaf_editor.css') }}">
     <!-- أثَر shared brand identity (fonts + logo) -->
-    <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
-    <script src="{{ static_hash('js/theme.js') }}"></script>
+    {{ athar_shell_head() }}
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
     <script src="{{ static_hash('js/athar-ui.js') }}"></script>
@@ -30,18 +30,7 @@
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
 <body>
-    <!-- أثَر universal app-bar (brand + module nav only — identical on all pages) -->
-    <header class="athar-bar">
-        <a class="athar-brand" href="/" title="أثَر — مع القرآن">
-            <span class="athar-logo">أثَر</span>
-            <span class="athar-tag">مع القرآن</span>
-        </a>
-        <nav class="athar-nav">
-            <a href="/read">المصحف</a>
-            <a href="/memorize">تثبيت</a>
-            <a href="/waqf">مُكْث</a>
-        </nav>
-    </header>
+    {{ athar_app_bar() }}
 
     <header class="ed-bar">
         <div class="ed-edition-toggle" id="ed-edition-toggle">
@@ -69,12 +58,11 @@
             <button id="ed-next" type="button" title="التالي" aria-label="الصفحتان التاليتان"><i class="fas fa-chevron-left"></i></button>
         </div>
 
-        <button class="ed-bar-btn" id="ed-theme" data-athar-theme="cycle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي"><i class="fas fa-moon"></i></button>
     </header>
 
     <div class="ed-toast" id="ed-status" role="status" aria-live="polite" hidden></div>
 
-    <main class="ed-main">
+    <main class="ed-main" id="athar-main" tabindex="-1">
         <div class="ed-spread" id="ed-spread">
             <div class="ed-page-card athar-page-card" data-side="right">
                 <div class="ed-page-header athar-page-head">

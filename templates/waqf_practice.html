@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -13,8 +14,7 @@
 
     <link rel="stylesheet" href="{{ static_hash('css/mushaf_memorize.css') }}">
     <link rel="stylesheet" href="{{ static_hash('css/waqf_practice.css') }}">
-    <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
-    <script src="{{ static_hash('js/theme.js') }}"></script>
+    {{ athar_shell_head() }}
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
     <script src="{{ static_hash('js/athar-ui.js') }}"></script>
@@ -25,18 +25,7 @@
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
 <body>
-    <header class="athar-bar">
-        <a class="athar-brand" href="/" title="أثَر — مع القرآن">
-            <span class="athar-logo">أثَر</span>
-            <span class="athar-tag">مع القرآن</span>
-        </a>
-        <nav class="athar-nav">
-            <a href="/read">المصحف</a>
-            <a href="/memorize">تثبيت</a>
-            <a href="/waqf">مُكْث</a>
-            <a href="/waqf-practice" class="is-active">تدريب</a>
-        </nav>
-    </header>
+    {{ athar_app_bar() }}
 
     <header class="mz-bar" id="wp-bar">
         <!-- المقطع: surah / from / to (popover) -->
@@ -87,10 +76,9 @@
         <div class="mz-bar-spacer"></div>
 
         <button class="mz-btn-primary" id="wp-load" type="button"><i class="fas fa-play"></i> ابدأ التدريب</button>
-        <button class="mz-bar-btn" data-athar-theme="cycle" type="button" title="تبديل الوضع" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
     </header>
 
-    <main class="wp-main">
+    <main class="wp-main" id="athar-main" tabindex="-1">
         <div class="wp-page-state" id="wp-page-state" role="status" aria-live="polite" hidden></div>
         <section class="mz-sec wp-intro" id="wp-intro">
             <span class="wp-intro-kicker">تدريب تطبيقي</span>

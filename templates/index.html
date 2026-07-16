@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -17,9 +18,8 @@
     <!-- Critical CSS (render-blocking, intentional) -->
     <link rel="stylesheet" href="{{ static_hash('css/styles.css') }}">
     <!-- أثَر shared brand identity (fonts + app-bar) -->
-    <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
+    {{ athar_shell_head() }}
     <link rel="stylesheet" href="{{ static_hash('css/reading_athar.css') }}">
-    <script src="{{ static_hash('js/theme.js') }}"></script>
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
 
@@ -36,22 +36,9 @@
     <noscript><link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"></noscript>
 </head>
 <body class="athar-reading">
-    <!-- أثَر universal app-bar (brand + module nav only — identical on all pages) -->
-    <header class="athar-bar">
-        <a class="athar-brand" href="/" title="أثَر — مع القرآن">
-            <span class="athar-logo">أثَر</span>
-            <span class="athar-tag">مع القرآن</span>
-        </a>
-        <nav class="athar-nav">
-            <a href="/read" class="is-active">المصحف</a>
-            <a href="/memorize">تثبيت</a>
-            <a href="/waqf">مُكْث</a>
-            <a href="/waqf-practice">تدريب</a>
-            <button class="athar-icon-btn" data-athar-theme="cycle" type="button" title="تبديل الوضع" aria-label="تبديل الوضع"><i class="fas fa-moon"></i></button>
-        </nav>
-    </header>
+    {{ athar_app_bar() }}
 
-    <div class="controls-container">
+    <main class="controls-container" id="athar-main" tabindex="-1">
         <div id="controls">
 
             <!-- Row 1: Navigation — surah / ayah / font / reciter / view mode -->
@@ -396,7 +383,7 @@
             <div id="recitation-guide-container" role="region" aria-label="دليل التلاوة" style="display:none;"></div>
             <div id="waqf-verse-table-container" hidden></div>
         </div>
-    </div>
+    </main>
 
     <!-- Bookmarks modal -->
     <div id="bookmarksModal" class="modal" role="dialog" aria-modal="true" aria-label="العلامات المرجعية">

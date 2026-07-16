@@ -57,7 +57,6 @@
         editionBtns: Array.from(document.querySelectorAll('.ed-edition-btn')),
         status: $('ed-status'),
         legend: $('ed-legend'),
-        theme: $('ed-theme'),
         popup: $('ed-popup'), popupBackdrop: $('ed-popup-backdrop'),
         popupTitle: $('ed-popup-title'), popupBaseline: $('ed-popup-baseline'),
         popupSyms: $('ed-popup-syms'), popupClear: $('ed-popup-clear'), popupClose: $('ed-popup-close'),

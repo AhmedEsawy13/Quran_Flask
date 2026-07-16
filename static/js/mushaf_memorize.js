@@ -59,7 +59,6 @@
         progress:    $('mz-progress'),
         progressFill:$('mz-progress-fill'),
         audio:       $('mz-audio'),
-        themeToggle: $('mz-theme-toggle'),
         hideToggle:  $('mz-hide-toggle'),
         hideBtn:     $('mz-hide-btn'),
         focusToggle: $('mz-focus-toggle'),

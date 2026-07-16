@@ -58,7 +58,7 @@
     const els = {
         surah: $('wq-surah'), ayah: $('wq-ayah'), search: $('wq-search'),
         searchClear: $('wq-search-clear'), searchResults: $('wq-search-results'),
-        prev: $('wq-prev'), next: $('wq-next'), theme: $('wq-theme'), status: $('wq-status'), main: $('wq-main'),
+        prev: $('wq-prev'), next: $('wq-next'), status: $('wq-status'), main: $('wq-main'),
         barVerse: $('wq-bar-verse'),
         verseCard: $('wq-verse-card'), verseTitle: $('wq-verse-title'), verseMeta: $('wq-verse-meta'),
         bestStops: $('wq-best-stops'), verseFlow: $('wq-verse-flow'),

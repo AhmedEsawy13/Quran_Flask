@@ -1,0 +1,26 @@
+{% macro athar_shell_head() -%}
+<link rel="preload" href="{{ url_for('static', filename='fonts/thmanyahsans/woff2/thmanyahsans-Medium.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="preload" href="{{ url_for('static', filename='fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Black.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+<link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
+<script src="{{ static_hash('js/theme.js') }}"></script>
+{%- endmacro %}
+
+{% macro athar_app_bar(skip_target='athar-main') -%}
+{% set current_path = request.path.rstrip('/') or '/' %}
+<a class="athar-skip-link" href="#{{ skip_target }}">تجاوز إلى المحتوى</a>
+<header class="athar-bar" data-athar-shell="app">
+    <a class="athar-brand" href="/" title="أثَر — مع القرآن"{% if current_path == '/' %} aria-current="page"{% endif %}>
+        <span class="athar-logo">أثَر</span>
+        <span class="athar-tag">مع القرآن</span>
+    </a>
+    <nav class="athar-nav" aria-label="التنقل الرئيسي">
+        <a href="/read"{% if current_path == '/read' %} class="is-active" aria-current="page"{% endif %}>المصحف</a>
+        <a href="/memorize"{% if current_path == '/memorize' %} class="is-active" aria-current="page"{% endif %}>تثبيت</a>
+        <a href="/waqf"{% if current_path == '/waqf' %} class="is-active" aria-current="page"{% endif %}>مُكْث</a>
+        <a href="/waqf-practice"{% if current_path == '/waqf-practice' %} class="is-active" aria-current="page"{% endif %}>تدريب</a>
+    </nav>
+    <button class="athar-icon-btn" data-athar-theme="cycle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي">
+        <i class="fas fa-moon" aria-hidden="true"></i>
+    </button>
+</header>
+{%- endmacro %}

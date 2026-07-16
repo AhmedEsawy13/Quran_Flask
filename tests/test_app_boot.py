@@ -86,6 +86,37 @@ def test_shared_frontend_layers_are_mounted(client):
     assert 'js/mushaf-layout-core.js' not in client.get('/waqf-practice').get_data(as_text=True)
 
 
+def test_shared_app_shell_is_consistent_and_route_aware(client):
+    routes = {
+        '/': (None, 'athar-main'),
+        '/read': ('/read', 'athar-main'),
+        '/memorize': ('/memorize', 'athar-main'),
+        '/waqf': ('/waqf', 'wq-main'),
+        '/waqf-practice': ('/waqf-practice', 'athar-main'),
+        '/mushaf-editor': (None, 'athar-main'),
+    }
+    nav_paths = ('/read', '/memorize', '/waqf', '/waqf-practice')
+    for route, (active, main_id) in routes.items():
+        page = client.get(route).get_data(as_text=True)
+        start = page.index('<header class="athar-bar"')
+        shell = page[start:page.index('</header>', start)]
+        assert shell.count('data-athar-shell="app"') == 1, route
+        assert shell.count('data-athar-theme="cycle"') == 1, route
+        assert 'aria-label="التنقل الرئيسي"' in shell, route
+        assert f'class="athar-skip-link" href="#{main_id}"' in page, route
+        assert f'id="{main_id}" tabindex="-1"' in page, route
+        assert all(f'href="{path}"' in shell for path in nav_paths), route
+        if active:
+            assert f'href="{active}" class="is-active" aria-current="page"' in shell, route
+            assert shell.count('aria-current="page"') == 1, route
+        elif route == '/':
+            assert 'class="athar-brand" href="/" title="أثَر — مع القرآن" aria-current="page"' in shell
+        else:
+            assert 'aria-current="page"' not in shell, route
+        assert 'fonts/thmanyahsans/woff2/thmanyahsans-Medium.woff2' in page, route
+        assert 'fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Black.woff2' in page, route
+
+
 def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
     page = client.get('/waqf').get_data(as_text=True)
     assert 'role="tablist"' in page
