@@ -18,6 +18,7 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
+    <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
     <link rel="stylesheet" href="{{ static_hash('css/mushaf_memorize.css') }}">
     <!-- أثَر shared brand identity (fonts + logo) -->
     <link rel="stylesheet" href="{{ static_hash('css/brand.css') }}">
@@ -164,13 +165,13 @@
           <div class="mz-stage-area">
             <div class="mz-stage" id="mz-stage" aria-label="صفحة المصحف">
                 <div class="mz-spread" id="mz-spread">
-                    <div class="mz-page-card" data-side="right">
-                        <div class="mz-page-header"><span class="mz-head-juz" id="mz-juz-r"></span><span class="mz-head-surah" id="mz-surah-r"></span></div>
+                    <div class="mz-page-card athar-page-card" data-side="right">
+                        <div class="mz-page-header athar-page-head"><span class="mz-head-juz athar-page-head-juz" id="mz-juz-r"></span><span class="mz-head-surah athar-page-head-surah" id="mz-surah-r"></span></div>
                         <div class="mz-page" id="mz-page-r" dir="rtl"></div>
                         <div class="mz-page-footer"><span class="mz-foot-page" id="mz-foot-r"></span></div>
                     </div>
-                    <div class="mz-page-card" data-side="left">
-                        <div class="mz-page-header"><span class="mz-head-juz" id="mz-juz-l"></span><span class="mz-head-surah" id="mz-surah-l"></span></div>
+                    <div class="mz-page-card athar-page-card" data-side="left">
+                        <div class="mz-page-header athar-page-head"><span class="mz-head-juz athar-page-head-juz" id="mz-juz-l"></span><span class="mz-head-surah athar-page-head-surah" id="mz-surah-l"></span></div>
                         <div class="mz-page" id="mz-page-l" dir="rtl"></div>
                         <div class="mz-page-footer"><span class="mz-foot-page" id="mz-foot-l"></span></div>
                     </div>

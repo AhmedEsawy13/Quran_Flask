@@ -80,7 +80,9 @@ def test_shared_frontend_layers_are_mounted(client):
     for url in ('/read', '/memorize', '/mushaf-editor', '/waqf', '/waqf-practice'):
         assert 'js/athar-mushaf.js' in client.get(url).get_data(as_text=True)
     for url in ('/memorize', '/mushaf-editor'):
-        assert 'js/athar-page-chrome.js' in client.get(url).get_data(as_text=True)
+        page = client.get(url).get_data(as_text=True)
+        assert 'js/athar-page-chrome.js' in page
+        assert 'css/athar-page-chrome.css' in page
     assert 'js/mushaf-layout-core.js' not in client.get('/waqf-practice').get_data(as_text=True)
 
 

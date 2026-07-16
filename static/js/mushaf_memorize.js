@@ -771,7 +771,7 @@
             window.AtharPageChrome.renderEmptyState(pageEl, { baseClass: 'mz-page-empty' });
             clearPageChrome({
                 juzEl: card.juz, surahEl: card.surah, pageNumberEl: card.foot,
-                juzGlyphClass: 'mz-juz-glyph',
+                juzGlyphClass: 'athar-page-juz-glyph',
             });
             pageEl.classList.remove('mz-has-page');
             return;
@@ -787,7 +787,7 @@
             });
             clearPageChrome({
                 juzEl: card.juz, surahEl: card.surah, pageNumberEl: card.foot,
-                juzGlyphClass: 'mz-juz-glyph',
+                juzGlyphClass: 'athar-page-juz-glyph',
             });
             card.foot.textContent = toAr(payload.page_number || '');
             return;
@@ -840,9 +840,9 @@
                 ? juzFromAyah(page.anchor_surah_number, page.anchor_ayah_number)
                 : juzNumber(page.page_number),
             getSurahName: surahNameOf,
-            juzGlyphClass: 'mz-juz-glyph',
-            surahGlyphClass: 'mz-head-glyph-item',
-            surahTextClass: 'mz-head-text-item',
+            juzGlyphClass: 'athar-page-juz-glyph',
+            surahGlyphClass: 'athar-page-surah-glyph',
+            surahTextClass: 'athar-page-surah-text',
         });
     }
 

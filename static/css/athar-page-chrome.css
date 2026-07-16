@@ -1,0 +1,46 @@
+/* ═══════════════════════════════════════════════════════════════════
+   أثَر — shared printed-mushaf page shell.
+
+   Structural rules only. Each surface keeps its own spacing, colors,
+   typography scale, page border, and interaction behavior.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@font-face { font-family: 'QCF Common'; src: url('../fonts/quran-common.woff2') format('woff2'); font-display: swap; }
+/* This font contains monochrome outlines so the banners inherit CSS color. */
+@font-face { font-family: 'Surah Names'; src: url('../fonts/surah_names.woff2?v=2') format('woff2'); font-display: swap; }
+
+.athar-page-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.athar-page-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.athar-page-head-juz {
+    white-space: nowrap;
+}
+
+.athar-page-head-juz.athar-page-juz-glyph {
+    font-family: 'QCF Common', serif;
+}
+
+.athar-page-head-surah {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.athar-page-head-surah .athar-page-surah-glyph {
+    display: inline-block;
+    font-family: 'Surah Names', serif;
+}
+
+.athar-page-head-surah .athar-page-surah-text {
+    font-weight: 700;
+}

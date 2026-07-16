@@ -5,12 +5,7 @@
 
 @font-face { font-family: 'Digital Khatt'; src: url('../fonts/digitalkhatt.woff2') format('woff2'); font-display: swap; }
 @font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')   format('woff2'); font-display: swap; }
-/* surah_names.woff2 ships only the monochrome glyf outlines (the OpenType-SVG
-   table was stripped): the embedded SVG hard-coded fill:#000 so iOS Safari painted
-   the surah names black regardless of the CSS colour. Outlines inherit `color`. */
-@font-face { font-family: 'Surah Names';   src: url('../fonts/surah_names.woff2?v=2')  format('woff2'); font-display: swap; }
 @font-face { font-family: 'QCF Basmala';   src: url('../fonts/QCF BSML @Am9li9.ttf') format('truetype'); font-display: swap; }
-@font-face { font-family: 'QCF Common';    src: url('../fonts/quran-common.woff2') format('woff2'); font-display: swap; }
 @font-face { font-family: 'UthmanicHafs';  src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'), url('../fonts/uthmanic_hafs_v20.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'UthmanicWarsh'; src: url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'), url('../fonts/uthmanic_warsh_v21.ttf') format('truetype'); font-display: swap; }
 @font-face { font-family: 'IndoPakNastaleeq2'; src: url('../fonts/indopak.woff2') format('woff2'); font-display: swap; }
@@ -305,8 +300,7 @@ body.mz-dark .mz-word.mz-recited { background: rgba(74,222,128,0.18); }
     background: radial-gradient(ellipse at center, rgba(0,0,0,0.10), transparent 72%); pointer-events: none; }
 body.mz-dark .mz-spread::after { background: radial-gradient(ellipse at center, rgba(0,0,0,0.5), transparent 72%); }
 
-.mz-page-card { position: relative; display: flex; flex-direction: column;
-    padding: clamp(6px, 0.7vw, 12px) clamp(8px, 0.9vw, 13px) 6px; }
+.mz-page-card { padding: clamp(6px, 0.7vw, 12px) clamp(8px, 0.9vw, 13px) 6px; }
 .mz-page-card[data-side="right"] { padding-inline-end: clamp(12px, 1.4vw, 20px); }
 .mz-page-card[data-side="left"]  { padding-inline-start: clamp(12px, 1.4vw, 20px); }
 
@@ -315,14 +309,13 @@ body.mz-single .mz-spread::after { display: none; }
 
 /* running head: juz (right) · every surah on the page (left).
    Tall enough + overflow visible so the calligraphic glyphs aren't clipped. */
-.mz-page-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 4px 8px; margin-bottom: 5px;
+.mz-page-header { gap: 8px; padding: 2px 4px 8px; margin-bottom: 5px;
     border-bottom: 1px solid color-mix(in srgb, var(--mz-accent) 18%, transparent);
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-size: 0.78rem; font-weight: 700; color: var(--mz-text-muted); min-height: 2.3em; overflow: visible; }
-.mz-head-juz { color: var(--mz-text-muted); white-space: nowrap; }
-.mz-head-juz.mz-juz-glyph { font-family: 'QCF Common', serif; font-size: 1.7em; line-height: 1.45; color: var(--mz-ink); padding-bottom: 0.05em; }
-.mz-head-surah { display: inline-flex; align-items: center; gap: 12px; color: var(--mz-accent); white-space: nowrap; min-width: 0; overflow: visible; }
-.mz-head-surah .mz-head-glyph-item { font-family: 'Surah Names', serif; font-size: 1.35em; line-height: 1.55; color: var(--mz-ink); display: inline-block; padding-bottom: 0.08em; }
-.mz-head-surah .mz-head-text-item { font-weight: 700; }
+.mz-head-juz { color: var(--mz-text-muted); }
+.mz-head-juz.athar-page-juz-glyph { font-size: 1.7em; line-height: 1.45; color: var(--mz-ink); padding-bottom: 0.05em; }
+.mz-head-surah { gap: 12px; color: var(--mz-accent); overflow: visible; }
+.mz-head-surah .athar-page-surah-glyph { font-size: 1.35em; line-height: 1.55; color: var(--mz-ink); padding-bottom: 0.08em; }
 
 /* the page itself — sized as large as fits (JS sets --mz-page-w/h) */
 .mz-page { position: relative; width: var(--mz-page-w, 360px); height: var(--mz-page-h, 545px);

@@ -159,7 +159,7 @@
         container.innerHTML = '';
         if (!payload) {
             clearPageChrome({
-                juzEl, surahEl, pageNumberEl: numEl, juzGlyphClass: 'ed-juz-glyph',
+                juzEl, surahEl, pageNumberEl: numEl, juzGlyphClass: 'athar-page-juz-glyph',
             });
             refBtn.hidden = true;
             delete refBtn.dataset.page;
@@ -212,9 +212,9 @@
         // unlike تثبيت's tappable version of the same shared running head.
         renderPageChrome({
             payload, juzEl, surahEl, pageNumberEl: numEl,
-            juzGlyphClass: 'ed-juz-glyph',
-            surahGlyphClass: 'ed-head-glyph-item',
-            surahTextClass: 'ed-head-text-item',
+            juzGlyphClass: 'athar-page-juz-glyph',
+            surahGlyphClass: 'athar-page-surah-glyph',
+            surahTextClass: 'athar-page-surah-text',
         });
     }
 
