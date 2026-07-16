@@ -23,6 +23,7 @@
     const { getWaqfDisplayData, stripEmbeddedWaqf } = window.AtharMushaf;
 
     const els = {
+        bar:         $('mz-bar'),
         surah:       $('mz-surah'),
         from:        $('mz-from'),
         to:          $('mz-to'),
@@ -178,12 +179,20 @@
     }
     // keep the floating toolbar buttons in sync with current state
     function syncToolbar() {
-        if (els.tbTajweed) els.tbTajweed.classList.toggle('mz-on', state.tajweedOn);
-        if (els.tbHide) els.tbHide.classList.toggle('mz-on', state.hideText);
+        if (els.tbTajweed) {
+            els.tbTajweed.classList.toggle('mz-on', state.tajweedOn);
+            els.tbTajweed.setAttribute('aria-pressed', String(state.tajweedOn));
+        }
+        if (els.tbHide) {
+            els.tbHide.classList.toggle('mz-on', state.hideText);
+            els.tbHide.setAttribute('aria-pressed', String(state.hideText));
+        }
         if (els.tbLayout) {
-            els.tbLayout.classList.toggle('mz-on', state.layoutMode === 'single');
+            const single = state.layoutMode === 'single';
+            els.tbLayout.classList.toggle('mz-on', single);
+            els.tbLayout.setAttribute('aria-pressed', String(single));
             const i = els.tbLayout.querySelector('i');
-            if (i) i.className = state.layoutMode === 'single' ? 'fas fa-book' : 'fas fa-book-open';
+            if (i) i.className = single ? 'fas fa-book' : 'fas fa-book-open';
         }
     }
 
@@ -674,6 +683,9 @@
         state.volume = v;
         try { els.audio.volume = v; } catch (e) {}
         if (els.volIcon) els.volIcon.className = v === 0 ? 'fas fa-volume-xmark' : v < 0.5 ? 'fas fa-volume-low' : 'fas fa-volume-high';
+        if (els.volBtn) {
+            els.volBtn.setAttribute('aria-pressed', String(v === 0));
+        }
         if (els.volume && Math.round(+els.volume.value) !== Math.round(v * 100)) els.volume.value = String(Math.round(v * 100));
     }
     function setupVolume() {
@@ -698,7 +710,7 @@
         if (!els.est) return;
         let sec = 0;
         try { if (state.memo) buildSchedule().forEach(s => { sec += stepSec(s); }); } catch (e) { sec = 0; }
-        els.est.innerHTML = sec ? `<i class="fas fa-clock"></i> المدة المتوقعة للجلسة: <b>${fmtDur(sec)}</b>` : '';
+        els.est.innerHTML = sec ? `<i class="fas fa-clock" aria-hidden="true"></i> المدة المتوقعة للجلسة: <b>${fmtDur(sec)}</b>` : '';
     }
 
     /* ── Mushaf source ─────────────────────────────────────────────── */
@@ -925,8 +937,8 @@
     function sizePages() {
         const stage = els.stage;
         if (!stage) return;
-        const topbar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--mz-topbar-h')) || 64;
-        const toolbarReserve = 58;   // floating mushaf toolbar + its gap, above the stage
+        const topbar = els.bar?.getBoundingClientRect().height || 64;
+        const appbar = document.querySelector('.athar-bar')?.getBoundingClientRect().height || 50;
         const vMargin = 24;          // breathing room top + bottom
         const headFootPad = 78;      // header + footer + card padding (vertical)
         const navAndGaps = 2 * 50 + 16; // room for the edge nav arrows
@@ -934,7 +946,7 @@
             cssVarPrefix: 'mz',
             pages: state.layoutMode === 'single' ? 1 : 2,
             ratio: PAGE_RATIO, gutter: 20, spreadPad: 28,
-            getAvailH: () => Math.max(320, window.innerHeight - topbar - toolbarReserve - vMargin) - headFootPad,
+            getAvailH: () => Math.max(320, window.innerHeight - topbar - appbar - vMargin) - headFootPad,
             getAvailW: () => Math.max(260, stage.clientWidth - navAndGaps),
         });
     }
@@ -1363,7 +1375,7 @@
         const elapsed = Math.max(0, Math.min(span, els.audio.currentTime - step.start));
         const frac = elapsed / span;
         const overall = (state.stepIdx + frac) / state.schedule.length;
-        els.progressFill.style.width = `${Math.round(overall * 100)}%`;
+        setProgress(overall);
         if (els.timeCur) els.timeCur.textContent = fmtTime(elapsed);
         if (els.timeDur) els.timeDur.textContent = fmtTime(span);
         // remaining time for the whole repetition session (shown beside now-playing)
@@ -1376,11 +1388,19 @@
         }
     }
 
+    function setProgress(frac) {
+        const percent = Math.round(Math.max(0, Math.min(1, Number(frac) || 0)) * 100);
+        els.progressFill.style.width = `${percent}%`;
+        els.progress.setAttribute('aria-valuenow', String(percent));
+        els.progress.setAttribute('aria-valuetext', `${toAr(percent)}٪`);
+    }
+
     // Click anywhere on the session progress bar to jump within the schedule.
     function seekOverall(frac) {
         const n = state.schedule.length;
         if (!n) return;
         frac = Math.max(0, Math.min(0.99999, frac));
+        setProgress(frac);
         const idx = Math.min(n - 1, Math.floor(frac * n));
         const within = frac * n - idx;                      // 0..1 inside the target step
         const step = state.schedule[idx];
@@ -1409,6 +1429,7 @@
         clearDone();   // fresh progress reveal for this run
         state.schedule = buildSchedule();
         if (!state.schedule.length) { setStatus('لا توجد آيات في النطاق المحدد', true); return; }
+        setProgress(0);
         const [a] = selectedAyahRange();
         setStatus('جارٍ فتح صفحة المصحف…');
         const ok = await ensureVerseVisible(state.surah, a);
@@ -1430,13 +1451,13 @@
         state.playing = false; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
         state.pendingSeek = false;
         clearWordHighlight();
-        els.progressFill.style.width = '100%';
+        setProgress(1);
         els.now.textContent = 'تم — أحسنت! 🌿';
         if (els.remaining) els.remaining.textContent = '';
         window.clearTimeout(state.finishTimer);
         const completedGeneration = state.playbackGeneration;
         state.finishTimer = setTimeout(() => {
-            if (!state.playing && completedGeneration === state.playbackGeneration) els.progressFill.style.width = '0%';
+            if (!state.playing && completedGeneration === state.playbackGeneration) setProgress(0);
         }, 1200);
     }
     function stopPlayback() {
@@ -1445,7 +1466,7 @@
         state.finishTimer = null;
         state.playing = false; state.stepIdx = -1; state.schedule = []; state.pendingSeek = false; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
         clearWordHighlight(); clearDone(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
-        els.progressFill.style.width = '0%';
+        setProgress(0);
         els.now.textContent = '';
         if (els.remaining) els.remaining.textContent = '';
         els.player.classList.remove('mz-show');
@@ -1658,7 +1679,9 @@
 
     /* ── Tap-to-pick sheet (juz / surah / page) ────────────────────── */
     let _pickerKind = null;
+    let _pickerReturnFocus = null;
     function openPicker(kind) {
+        _pickerReturnFocus = document.activeElement;
         _pickerKind = kind;
         const list = els.pickerList; list.innerHTML = '';
         list.classList.toggle('mz-grid', kind === 'juz' || kind === 'page');
@@ -1681,20 +1704,32 @@
             els.pickerTitle.textContent = 'اذهب إلى صفحة';
             els.pickerSearch.hidden = true;
             const pages = state.src === 'shamarly' ? SHEMRLY_PAGES : Array.from({ length: PAGE_MAX }, (_, i) => i + 1);
-            pages.forEach(p => list.appendChild(pickerItem(toAr(p), p, p === curPage, () => navigateToPage(p))));
+            pages.forEach(p => list.appendChild(pickerItem(toAr(p), p, p === curPage, () => navigateToPage(p), '', true)));
         }
         els.picker.hidden = false;
+        if (kind !== 'surah') requestAnimationFrame(() => {
+            const target = els.pickerList.querySelector('.mz-picker-item.mz-current, .mz-picker-item');
+            if (target) target.focus();
+        });
     }
-    function pickerItem(label, num, current, onPick, searchKey) {
+    function pickerItem(label, num, current, onPick, searchKey, numberOnly) {
         const b = document.createElement('button');
-        b.type = 'button'; b.className = 'mz-picker-item' + (current ? ' mz-current' : '');
+        b.type = 'button'; b.className = 'mz-picker-item' + (current ? ' mz-current' : '') + (numberOnly ? ' mz-number-only' : '');
         b.dataset.search = (searchKey || label);
-        b.innerHTML = `<span class="mz-pi-num">${toAr(num)}</span><span>${label}</span>`;
+        b.innerHTML = numberOnly
+            ? `<span class="mz-pi-num">${toAr(num)}</span>`
+            : `<span class="mz-pi-num">${toAr(num)}</span><span>${label}</span>`;
         b.addEventListener('click', () => { closePicker(); onPick(); });
         if (current) requestAnimationFrame(() => b.scrollIntoView({ block: 'center' }));
         return b;
     }
-    function closePicker() { if (els.picker) els.picker.hidden = true; _pickerKind = null; }
+    function closePicker() {
+        if (els.picker) els.picker.hidden = true;
+        _pickerKind = null;
+        const target = _pickerReturnFocus;
+        _pickerReturnFocus = null;
+        if (target && document.contains(target)) requestAnimationFrame(() => target.focus());
+    }
     function filterPicker() {
         const q = (els.pickerSearch.value || '').trim();
         els.pickerList.querySelectorAll('.mz-picker-item').forEach(it => {
@@ -1762,7 +1797,16 @@
         if (els.pickerClose) els.pickerClose.addEventListener('click', closePicker);
         if (els.pickerBackdrop) els.pickerBackdrop.addEventListener('click', closePicker);
         if (els.pickerSearch) els.pickerSearch.addEventListener('input', filterPicker);
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePicker(); closePopovers(); } });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') { closePicker(); closePopovers(); return; }
+            if (e.key !== 'Tab' || !els.picker || els.picker.hidden) return;
+            const focusable = [...els.picker.querySelectorAll('button:not(:disabled), input:not([hidden])')]
+                .filter(el => el.offsetParent !== null);
+            if (!focusable.length) return;
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        });
         if (els.prevStep) els.prevStep.addEventListener('click', () => {
             if (!state.schedule.length) return;
             playStep(state.stepIdx <= 0 ? 0 : state.stepIdx - 1);
@@ -1796,13 +1840,6 @@
             if (e.metaKey || e.ctrlKey || e.altKey) return;
             e.preventDefault();
             (e.key === 'ArrowRight' ? navPrev : navNext)();
-        });
-
-        els.progress.addEventListener('click', (e) => {
-            if (!state.schedule.length) return;
-            const rect = els.progress.getBoundingClientRect();
-            const frac = Math.max(0, Math.min(1, (rect.right - e.clientX) / rect.width));
-            playStep(Math.min(state.schedule.length - 1, Math.floor(frac * state.schedule.length)));
         });
 
         els.tajweed.addEventListener('click', () => {
@@ -1906,6 +1943,20 @@
             let f = (e.clientX - rect.left) / rect.width;
             if (getComputedStyle(els.progress).direction === 'rtl') f = 1 - f;
             seekOverall(f);
+        });
+        if (els.progress) els.progress.addEventListener('keydown', e => {
+            if (!state.schedule.length) return;
+            const current = parseInt(els.progress.getAttribute('aria-valuenow'), 10) || 0;
+            const rtl = getComputedStyle(els.progress).direction === 'rtl';
+            let next = current;
+            if (e.key === 'Home') next = 0;
+            else if (e.key === 'End') next = 100;
+            else if (e.key === 'ArrowLeft') next += rtl ? 5 : -5;
+            else if (e.key === 'ArrowRight') next += rtl ? -5 : 5;
+            else return;
+            e.preventDefault();
+            e.stopPropagation();
+            seekOverall(Math.max(0, Math.min(100, next)) / 100);
         });
         if (els.tbHide) els.tbHide.addEventListener('click', () => setHideMode(!state.hideText));
         if (els.tbWaqf) {

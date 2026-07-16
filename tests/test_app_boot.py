@@ -199,3 +199,24 @@ def test_memorization_exposes_live_status(client):
     assert 'id="mz-status" role="status" aria-live="polite" hidden' in page
     assert 'id="mz-asr-dev" hidden' in page
     assert 'id="mz-recite-btn"' in page
+
+
+def test_memorization_uses_shared_workspace_structure(client):
+    page = client.get('/memorize').get_data(as_text=True)
+    script = (PROJECT_ROOT / 'static/js/mushaf_memorize.js').read_text(encoding='utf-8')
+
+    assert '<body class="athar-memorize">' in page
+    assert page.index('css/athar-components.css') < page.index('css/athar-page-chrome.css')
+    assert page.index('css/athar-page-chrome.css') < page.index('css/mushaf_memorize.css')
+    assert '<section class="mz-bar" id="mz-bar" aria-labelledby="mz-title">' in page
+    assert '<header class="mz-bar"' not in page
+    assert 'id="mz-title" aria-label="ثبّت حفظك."' in page
+    assert 'ثبّت حفظــك.' in page
+    assert 'class="mz-bar-settings" aria-label="إعدادات الجلسة"' in page
+    assert 'class="mz-bar-view" role="group" aria-label="خيارات العرض"' in page
+    assert 'aria-controls="mz-reciter-panel"' in page
+    assert 'aria-controls="mz-src-panel"' in page
+    assert 'aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"' in page
+    assert script.count("els.progress.addEventListener('click'") == 1
+    assert "els.progress.setAttribute('aria-valuenow'" in script
+    assert "els.bar?.getBoundingClientRect().height" in script
