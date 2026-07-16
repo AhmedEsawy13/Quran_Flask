@@ -67,7 +67,7 @@
         matrixCard: $('wq-matrix-card'), matrix: $('wq-matrix'), matrixLegend: $('wq-matrix-legend'),
         recitersCard: $('wq-reciters-card'), reciters: $('wq-reciters'),
         muktafaCard: $('wq-muktafa-card'), muktafa: $('wq-muktafa'), muktafaSrc: $('wq-muktafa-src'),
-        researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
+        researchCard: $('wq-research-card'), researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
         researchInput: $('wq-research-input'), researchForms: $('wq-research-forms'),
         researchResults: $('wq-research-results'),
         panelWord: $('wq-panel-word'), panelSolos: $('wq-panel-solos'),
@@ -1071,6 +1071,7 @@
             if (which === 'ibtidaa') loadIbtidaa();
             if (which === 'cluster') loadCluster();
             if (which === 'mushafsim') loadMushafSim();
+            tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
         }));
         els.researchBody.addEventListener('keydown', e => {
             if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
@@ -1853,11 +1854,15 @@
         if (!els.searchResults) return;
         els.searchResults.hidden = true;
         els.searchResults.innerHTML = '';
+        els.search.setAttribute('aria-expanded', 'false');
+        els.search.removeAttribute('aria-activedescendant');
     }
     async function showWordResults(query) {
         if (!els.searchResults) return;
         const request = searchRequests.next();
         els.searchResults.hidden = false;
+        els.search.setAttribute('aria-expanded', 'true');
+        els.search.removeAttribute('aria-activedescendant');
         els.searchResults.innerHTML = '<div class="wq-search-loading">جارٍ البحث…</div>';
         try {
             const data = await window.AtharApi.json(`/api/search?q=${encodeURIComponent(query)}&limit=8`);
@@ -1868,10 +1873,13 @@
                 return;
             }
             els.searchResults.innerHTML = '';
-            results.forEach(r => {
+            results.forEach((r, index) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'wq-search-result';
+                btn.id = `wq-search-result-${index}`;
+                btn.setAttribute('role', 'option');
+                btn.setAttribute('aria-selected', 'false');
                 const ref = document.createElement('span');
                 ref.className = 'wq-sr-ref';
                 const sName = surahName(r.surah_number);
@@ -1919,15 +1927,19 @@
             e.preventDefault();
             let idx = results.findIndex(r => r.classList.contains('wq-sr-active'));
             idx = (idx + 1) % results.length;
-            results.forEach(r => r.classList.remove('wq-sr-active'));
+            results.forEach(r => { r.classList.remove('wq-sr-active'); r.setAttribute('aria-selected', 'false'); });
             results[idx].classList.add('wq-sr-active');
+            results[idx].setAttribute('aria-selected', 'true');
+            els.search.setAttribute('aria-activedescendant', results[idx].id);
             results[idx].scrollIntoView({ block: 'nearest' });
         } else if (e.key === 'ArrowUp' && results.length) {
             e.preventDefault();
             let idx = results.findIndex(r => r.classList.contains('wq-sr-active'));
             idx = idx <= 0 ? results.length - 1 : idx - 1;
-            results.forEach(r => r.classList.remove('wq-sr-active'));
+            results.forEach(r => { r.classList.remove('wq-sr-active'); r.setAttribute('aria-selected', 'false'); });
             results[idx].classList.add('wq-sr-active');
+            results[idx].setAttribute('aria-selected', 'true');
+            els.search.setAttribute('aria-activedescendant', results[idx].id);
             results[idx].scrollIntoView({ block: 'nearest' });
         } else if (e.key === 'Enter') {
             e.preventDefault();
@@ -1947,7 +1959,11 @@
         const btn = e.target.closest('.wq-breath-btn');
         if (!btn) return;
         state.breathL = parseInt(btn.dataset.l, 10) || BREATH.medium;
-        els.breathPicker.querySelectorAll('.wq-breath-btn').forEach(b => b.classList.toggle('wq-on', b === btn));
+        els.breathPicker.querySelectorAll('.wq-breath-btn').forEach(b => {
+            const active = b === btn;
+            b.classList.toggle('wq-on', active);
+            b.setAttribute('aria-pressed', String(active));
+        });
         if (state.data) renderRecommendation(state.data);
     });
     // matrix cell → play that reciter's segment up to the clicked stop
@@ -1959,6 +1975,9 @@
 
     /* ── init ─────────────────────────────────────────────────── */
     async function init() {
+        // Keep the verse analysis primary; the deeper ten-view lab follows it
+        // in both the visual and accessibility reading order.
+        if (els.main && els.researchCard) els.main.appendChild(els.researchCard);
         setupResearch();
         try {
             await loadSurahs();

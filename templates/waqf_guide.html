@@ -12,9 +12,9 @@
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ static_hash('css/waqf_guide.css') }}">
     <!-- أثَر shared brand identity (fonts + logo) -->
     {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/waqf_guide.css') }}">
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
 
@@ -23,38 +23,41 @@
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
-<body>
+<body class="athar-waqf">
     {{ athar_app_bar('wq-main') }}
 
-    <header class="wq-bar">
-        <div class="wq-bar-title">
-            <h1 class="wq-title"><i class="fas fa-lungs" aria-hidden="true"></i> مواضع وقوف القرّاء</h1>
+    <section class="wq-bar" aria-labelledby="wq-title">
+        <div class="wq-bar-intro">
+            <div class="wq-bar-title">
+                <p class="athar-kicker">— مُكْث</p>
+                <h1 class="wq-title athar-display" id="wq-title" aria-label="ادرس وقوفهم، وافهم الاختلاف.">ادرس وقوفــهم، وافهم الاختلاف.</h1>
+                <p class="wq-subtitle">قارن مواضع الوقف بين القرّاء والمصاحف، ثم ابنِ قراءةً تناسب نَفَسك.</p>
+            </div>
             <span class="wq-bar-verse" id="wq-bar-verse"></span>
         </div>
-    </header>
 
-    <!-- verse picker -->
-    <section class="wq-picker">
-        <div class="wq-field">
-            <label for="wq-surah">السورة</label>
-            <div class="wq-select-wrap"><select id="wq-surah"></select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
-        </div>
-        <div class="wq-field">
-            <label for="wq-ayah">الآية</label>
-            <div class="wq-select-wrap"><select id="wq-ayah"></select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
-        </div>
-        <div class="wq-field wq-field-search">
-            <label for="wq-search">بحث</label>
-            <div class="wq-search-wrap">
-                <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
-                <input type="search" id="wq-search" placeholder="٢:٢٥٥ … أو «البقرة ٢٥٥» … أو كلمات من الآية" autocomplete="off">
-                <button class="wq-search-clear" id="wq-search-clear" type="button" aria-label="مسح البحث" hidden><i class="fas fa-xmark" aria-hidden="true"></i></button>
+        <div class="wq-picker athar-toolbar" aria-label="اختيار موضع الدراسة">
+            <div class="wq-field athar-field-wrap">
+                <label for="wq-surah">السورة</label>
+                <div class="wq-select-wrap"><select class="athar-field" id="wq-surah"></select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
             </div>
-            <div class="wq-search-results" id="wq-search-results" hidden></div>
-        </div>
-        <div class="wq-stepper">
-            <button class="wq-icon-btn" id="wq-prev" type="button" aria-label="الآية السابقة"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
-            <button class="wq-icon-btn" id="wq-next" type="button" aria-label="الآية التالية"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+            <div class="wq-field athar-field-wrap">
+                <label for="wq-ayah">الآية</label>
+                <div class="wq-select-wrap"><select class="athar-field" id="wq-ayah"></select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
+            </div>
+            <div class="wq-field wq-field-search athar-field-wrap">
+                <label for="wq-search">بحث</label>
+                <div class="wq-search-wrap">
+                    <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+                    <input class="athar-field" type="search" id="wq-search" placeholder="٢:٢٥٥ … أو «البقرة ٢٥٥» … أو كلمات من الآية" autocomplete="off" role="combobox" aria-autocomplete="list" aria-controls="wq-search-results" aria-expanded="false">
+                    <button class="wq-search-clear" id="wq-search-clear" type="button" aria-label="مسح البحث" hidden><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                </div>
+                <div class="wq-search-results" id="wq-search-results" role="listbox" aria-label="نتائج البحث" hidden></div>
+            </div>
+            <div class="wq-stepper">
+                <button class="wq-icon-btn athar-icon-button" id="wq-prev" type="button" aria-label="الآية السابقة"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+                <button class="wq-icon-btn athar-icon-button" id="wq-next" type="button" aria-label="الآية التالية"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+            </div>
         </div>
     </section>
 
@@ -62,8 +65,8 @@
 
     <main class="wq-main" id="wq-main" tabindex="-1">
         <!-- D) waqf research by word — pick a particle, browse every verse it occurs in -->
-        <section class="wq-card wq-research" id="wq-research-card">
-            <button class="wq-research-toggle" id="wq-research-toggle" type="button" aria-expanded="false">
+        <section class="wq-card wq-research athar-surface" id="wq-research-card">
+            <button class="wq-research-toggle" id="wq-research-toggle" type="button" aria-expanded="false" aria-controls="wq-research-body">
                 <span><i class="fas fa-flask" aria-hidden="true"></i> مختبر الوقف — للدراسة</span>
                 <i class="fas fa-chevron-down wq-research-caret" aria-hidden="true"></i>
             </button>
@@ -105,7 +108,7 @@
                             <button class="wq-research-chip" data-word="ماذا" data-mode="before" data-exact="1" type="button">ماذا</button>
                         </div>
                         <div class="wq-research-free">
-                            <i class="fas fa-magnifying-glass"></i>
+                            <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
                             <input type="search" id="wq-research-input" placeholder="أو ابحث عن أي كلمة…" autocomplete="off">
                         </div>
                     </div>
@@ -143,7 +146,7 @@
         </section>
 
         <!-- A) verse overview -->
-        <section class="wq-card wq-verse-card" id="wq-verse-card" hidden>
+        <section class="wq-card wq-verse-card athar-surface athar-surface-raised" id="wq-verse-card" hidden>
             <div class="wq-card-head">
                 <h2 id="wq-verse-title"></h2>
                 <span class="wq-verse-meta" id="wq-verse-meta"></span>
@@ -158,13 +161,13 @@
         </section>
 
         <!-- A2) breath recommendation -->
-        <section class="wq-card" id="wq-rec-card" hidden>
+        <section class="wq-card athar-surface" id="wq-rec-card" hidden>
             <div class="wq-card-head">
                 <h2><i class="fas fa-lungs"></i> ترشيح القراءة حسب نَفَسك</h2>
                 <div class="wq-breath-picker" id="wq-breath-picker" role="group" aria-label="سعة النفَس">
-                    <button class="wq-breath-btn" data-l="7" type="button">قصير</button>
-                    <button class="wq-breath-btn wq-on" data-l="13" type="button">متوسط</button>
-                    <button class="wq-breath-btn" data-l="20" type="button">طويل</button>
+                    <button class="wq-breath-btn" data-l="7" type="button" aria-pressed="false">قصير</button>
+                    <button class="wq-breath-btn wq-on" data-l="13" type="button" aria-pressed="true">متوسط</button>
+                    <button class="wq-breath-btn" data-l="20" type="button" aria-pressed="false">طويل</button>
                 </div>
             </div>
             <p class="wq-rec-summary" id="wq-rec-summary"></p>
@@ -172,7 +175,7 @@
         </section>
 
         <!-- B) comparison matrix -->
-        <section class="wq-card" id="wq-matrix-card" hidden>
+        <section class="wq-card athar-surface" id="wq-matrix-card" hidden>
             <div class="wq-card-head"><h2><i class="fas fa-table-cells"></i> مقارنة القرّاء بمصاحف الوقف</h2></div>
             <div class="wq-matrix-scroll"><table class="wq-matrix" id="wq-matrix"></table></div>
             <div class="wq-matrix-legend" id="wq-matrix-legend"></div>
@@ -180,7 +183,7 @@
         </section>
 
         <!-- B2) classical rulings: المكتفى للداني + منار الهدى للأشموني -->
-        <section class="wq-card" id="wq-muktafa-card" hidden>
+        <section class="wq-card athar-surface" id="wq-muktafa-card" hidden>
             <div class="wq-card-head">
                 <h2><i class="fas fa-scroll"></i> لماذا يُوقف هنا؟ — كتب الوقف والابتداء</h2>
             </div>
@@ -189,7 +192,7 @@
         </section>
 
         <!-- C) per-reciter detail -->
-        <section class="wq-card" id="wq-reciters-card" hidden>
+        <section class="wq-card athar-surface" id="wq-reciters-card" hidden>
             <div class="wq-card-head"><h2><i class="fas fa-microphone-lines"></i> كيف قرأها كل قارئ</h2></div>
             <div class="wq-reciters" id="wq-reciters"></div>
         </section>

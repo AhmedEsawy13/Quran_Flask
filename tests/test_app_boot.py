@@ -168,6 +168,27 @@ def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
     assert 'id="wq-status" role="status" aria-live="polite" hidden' in page
 
 
+def test_waqf_uses_shared_research_workspace_structure(client):
+    page = client.get('/waqf').get_data(as_text=True)
+    script = (PROJECT_ROOT / 'static/js/waqf_guide.js').read_text(encoding='utf-8')
+
+    assert '<body class="athar-waqf">' in page
+    assert page.index('css/athar-components.css') < page.index('css/waqf_guide.css')
+    assert '<section class="wq-bar" aria-labelledby="wq-title">' in page
+    assert '<header class="wq-bar"' not in page
+    assert 'id="wq-title" aria-label="ادرس وقوفهم، وافهم الاختلاف."' in page
+    assert 'ادرس وقوفــهم، وافهم الاختلاف.' in page
+    assert 'class="wq-picker athar-toolbar"' in page
+    assert page.count('athar-surface') >= 6
+    assert 'aria-controls="wq-research-body"' in page
+    assert 'role="combobox" aria-autocomplete="list"' in page
+    assert 'id="wq-search-results" role="listbox"' in page
+    assert page.count('aria-pressed=') >= 3
+    assert 'els.main.appendChild(els.researchCard)' in script
+    assert "setAttribute('aria-activedescendant'" in script
+    assert "setAttribute('aria-pressed'" in script
+
+
 def test_waqf_practice_exposes_live_async_state(client):
     page = client.get('/waqf-practice').get_data(as_text=True)
     assert 'id="wp-page-state" role="status" aria-live="polite" hidden' in page
