@@ -44,6 +44,7 @@
     const ABOVE_VERSE_MARKS = new Set(['ركوع']);
 
     const els = {
+        main: $('athar-main'),
         pageR: $('ed-page-r'), pageL: $('ed-page-l'),
         pageRNum: $('ed-page-r-num'), pageLNum: $('ed-page-l-num'),
         juzR: $('ed-juz-r'), juzL: $('ed-juz-l'),
@@ -71,6 +72,8 @@
     };
     const spreadRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
+    let popupReturnFocus = null;
+    let popupBusy = false;
 
     function clampSpread(n) {
         if (!Number.isFinite(n)) return 1;
@@ -106,7 +109,11 @@
 
     /* ── Edition toggle ──────────────────────────────────────────── */
     function updateEditionUI() {
-        els.editionBtns.forEach(b => b.classList.toggle('ed-active', b.dataset.edition === state.edition));
+        els.editionBtns.forEach(b => {
+            const active = b.dataset.edition === state.edition;
+            b.classList.toggle('ed-active', active);
+            b.setAttribute('aria-pressed', String(active));
+        });
         // مصحف قطر's layout (mushaf-qatar-layout.db) declares font_name "qpc-hafs".
         document.body.classList.toggle('ed-font-hafs', state.edition === 'قطر');
     }
@@ -197,6 +204,8 @@
                 const cleanText = stripEmbeddedWaqf(w.text || '');
                 wordElement.dataset.wordId = String(w.word_index);
                 wordElement.dataset.text = cleanText;
+                wordElement.tabIndex = 0;
+                wordElement.setAttribute('role', 'button');
                 const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
                 const editionEntry = entries.find(e => e.version === state.edition);
                 const baselineEntry = entries.find(e => e.version === 'المدينة الجديد');
@@ -243,16 +252,21 @@
         const mainStyle = getComputedStyle(main);
         const mainPad = (parseFloat(mainStyle.paddingTop) || 0)
             + (parseFloat(mainStyle.paddingBottom) || 0);
+        const availableWidth = main.clientWidth - 20;
         const fixedChrome = outerHeight(document.querySelector('.athar-bar'))
             + outerHeight(document.querySelector('.ed-bar'))
             + outerHeight(els.legend)
             + outerHeight(document.querySelector('.ed-page-header'))
             + mainPad;
+        const stacked = window.matchMedia('(max-width: 720px)').matches;
         window.AtharPageChrome.sizePages({
-            cssVarPrefix: 'ed', pages: 2, ratio: PAGE_RATIO,
-            gutter: 20, floor: true,
-            getAvailH: () => window.innerHeight - fixedChrome,
-            getAvailW: () => main.clientWidth - 20,
+            cssVarPrefix: 'ed', pages: stacked ? 1 : 2, ratio: PAGE_RATIO,
+            gutter: stacked ? 0 : 20, floor: true,
+            // A stacked mobile spread scrolls vertically, so let width own
+            // the page scale instead of shrinking every page to the small
+            // viewport remainder below the multi-row editor toolbar.
+            getAvailH: () => stacked ? availableWidth / PAGE_RATIO : window.innerHeight - fixedChrome,
+            getAvailW: () => availableWidth,
         });
     }
 
@@ -303,6 +317,10 @@
         span.title = baseline
             ? `المدينة: ${waqfGlyph(baseline)} (${baseline})`
             : 'المدينة: بلا علامة';
+        const currentLabel = editionSym
+            ? `${WAQF_SYM[editionSym]?.name || editionSym} (${editionSym})`
+            : 'بلا علامة';
+        span.setAttribute('aria-label', `تعديل وقف ${span.dataset.text || span.textContent}: ${currentLabel}`);
     }
 
     /* ── Loading a spread ────────────────────────────────────────── */
@@ -310,6 +328,7 @@
         const request = spreadRequests.next();
         const spread = state.spread;
         const edition = state.edition;
+        window.AtharUi.setBusy(els.main, true);
         try {
             const query = window.AtharMushaf.buildQuery({ params: { edition } });
             const data = await window.AtharApi.json(`/api/mushaf-editor/spread/${spread}${query}`);
@@ -325,6 +344,8 @@
         } catch (e) {
             if (spreadRequests.isCurrent(request)) setStatus('تعذّر تحميل الصفحة', true);
             return false;
+        } finally {
+            if (spreadRequests.isCurrent(request)) window.AtharUi.setBusy(els.main, false);
         }
     }
 
@@ -337,6 +358,7 @@
     async function loadProgress() {
         const request = progressRequests.next();
         const edition = state.edition;
+        window.AtharUi.setBusy(els.progress, true);
         try {
             const query = window.AtharMushaf.buildQuery({ params: { edition } });
             const data = await window.AtharApi.json(`/api/mushaf-editor/progress${query}`);
@@ -345,12 +367,16 @@
         } catch (e) {
             if (!progressRequests.isCurrent(request)) return;
             state.reviewedPages = new Set();
+            setStatus('تعذّر تحميل تقدّم المراجعة', true);
+        } finally {
+            if (progressRequests.isCurrent(request)) window.AtharUi.setBusy(els.progress, false);
         }
         updateProgressLabel();
         updateReviewedCheckbox();
     }
     function updateProgressLabel() {
         els.progress.textContent = `${toAr(state.reviewedPages.size)} / ${toAr(MAX_PAGE)} مراجَعة`;
+        els.progress.setAttribute('aria-valuenow', String(state.reviewedPages.size));
     }
     function updateReviewedCheckbox() {
         els.reviewed.checked = state.currentPages.length > 0
@@ -358,16 +384,34 @@
     }
     els.reviewed.addEventListener('change', async () => {
         const reviewed = els.reviewed.checked;
-        for (const page of state.currentPages) {
+        const edition = state.edition;
+        const pages = [...state.currentPages];
+        els.reviewed.disabled = true;
+        window.AtharUi.setBusy(els.reviewed.closest('.ed-review-group'), true);
+        const results = await Promise.all(pages.map(async page => {
             try {
                 await window.AtharApi.json('/api/mushaf-editor/progress', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ edition: state.edition, page_number: page, reviewed }),
+                    body: JSON.stringify({ edition, page_number: page, reviewed }),
                 });
-                if (reviewed) state.reviewedPages.add(page); else state.reviewedPages.delete(page);
-            } catch (e) { /* ignore */ }
+                return { page, ok: true };
+            } catch (e) {
+                return { page, ok: false };
+            }
+        }));
+        if (state.edition === edition) {
+            results.filter(result => result.ok).forEach(result => {
+                if (reviewed) state.reviewedPages.add(result.page);
+                else state.reviewedPages.delete(result.page);
+            });
+            updateProgressLabel();
+            updateReviewedCheckbox();
         }
-        updateProgressLabel();
+        const failed = results.filter(result => !result.ok).length;
+        if (failed) setStatus(`تعذّر تحديث ${toAr(failed)} صفحة`, true);
+        else setStatus('تم تحديث حالة المراجعة');
+        els.reviewed.disabled = false;
+        window.AtharUi.setBusy(els.reviewed.closest('.ed-review-group'), false);
     });
 
     /* ── Navigation ──────────────────────────────────────────────── */
@@ -383,18 +427,36 @@
     });
     els.jumpBtn.addEventListener('click', jumpToPage);
     els.jumpInput.addEventListener('keydown', e => { if (e.key === 'Enter') jumpToPage(); });
+    els.jumpInput.addEventListener('input', () => els.jumpInput.removeAttribute('aria-invalid'));
     function jumpToPage() {
         const p = parseInt(els.jumpInput.value, 10);
         if (!Number.isFinite(p) || p < 1 || p > MAX_PAGE) {
+            els.jumpInput.setAttribute('aria-invalid', 'true');
             setStatus('رقم صفحة غير صالح (١ - ٦٠٤)', true);
             return;
         }
+        els.jumpInput.removeAttribute('aria-invalid');
         state.spread = clampSpread(Math.ceil(p / 2));
         els.jumpInput.value = '';
         persist(); closePopup(); loadSpread();
     }
     document.addEventListener('keydown', e => {
-        if (e.target.tagName === 'INPUT' || !els.popup.hidden) return;
+        if (!els.popup.hidden) {
+            if (e.key === 'Escape' && !popupBusy) {
+                e.preventDefault();
+                closePopup();
+            } else if (e.key === 'Tab') {
+                trapPopupFocus(e);
+            }
+            return;
+        }
+        const word = e.target.closest?.('.ed-word');
+        if (word && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+            openPopup(word);
+            return;
+        }
+        if (e.target.tagName === 'INPUT') return;
         if (e.key === 'ArrowLeft') els.next.click();
         if (e.key === 'ArrowRight') els.prev.click();
     });
@@ -405,6 +467,7 @@
         Object.entries(WAQF_SYM).forEach(([sym, meta]) => {
             const b = document.createElement('button');
             b.type = 'button'; b.className = 'ed-sym-btn'; b.dataset.sym = sym;
+            b.setAttribute('aria-pressed', 'false');
             b.innerHTML = `<span class="ed-sym-glyph">${waqfGlyph(sym)}</span><span class="ed-sym-name">${meta.name}</span>`;
             b.addEventListener('click', () => setSymbol(sym));
             els.popupSyms.appendChild(b);
@@ -416,6 +479,7 @@
 
     function openPopup(wordEl) {
         if (state.activeWord) state.activeWord.classList.remove('ed-selected');
+        popupReturnFocus = wordEl;
         state.activeWord = wordEl;
         wordEl.classList.add('ed-selected');
 
@@ -427,23 +491,57 @@
 
         const current = wordEl.dataset.symbol || '';
         els.popupSyms.querySelectorAll('.ed-sym-btn').forEach(b => {
-            b.classList.toggle('ed-active', b.dataset.sym === current);
+            const active = b.dataset.sym === current;
+            b.classList.toggle('ed-active', active);
+            b.setAttribute('aria-pressed', String(active));
         });
 
         els.popup.hidden = false;
         els.popupBackdrop.hidden = false;
+        document.body.classList.add('ed-popup-open');
+        requestAnimationFrame(() => {
+            if (els.popup.hidden) return;
+            const active = els.popupSyms.querySelector('.ed-sym-btn.ed-active');
+            (active || els.popupClose).focus();
+        });
     }
     function closePopup() {
+        if (popupBusy) return;
         if (state.activeWord) state.activeWord.classList.remove('ed-selected');
         state.activeWord = null;
         els.popup.hidden = true;
         els.popupBackdrop.hidden = true;
+        document.body.classList.remove('ed-popup-open');
+        const returnTo = popupReturnFocus;
+        popupReturnFocus = null;
+        if (returnTo && returnTo.isConnected) returnTo.focus();
+    }
+    function trapPopupFocus(event) {
+        const focusable = [els.popupClose, ...els.popupSyms.querySelectorAll('.ed-sym-btn'), els.popupClear]
+            .filter(control => !control.disabled);
+        if (!focusable.length) return;
+        const index = focusable.indexOf(document.activeElement);
+        if (event.shiftKey && index <= 0) {
+            event.preventDefault();
+            focusable[focusable.length - 1].focus();
+        } else if (!event.shiftKey && index === focusable.length - 1) {
+            event.preventDefault();
+            focusable[0].focus();
+        }
+    }
+    function setPopupBusy(busy) {
+        popupBusy = !!busy;
+        window.AtharUi.setBusy(els.popup, popupBusy);
+        [els.popupClose, els.popupClear, ...els.popupSyms.querySelectorAll('.ed-sym-btn')]
+            .forEach(control => { control.disabled = popupBusy; });
     }
 
     async function setSymbol(sym) {
         const wordEl = state.activeWord;
-        if (!wordEl) return;
+        if (!wordEl || popupBusy) return;
         const wordId = wordEl.dataset.wordId;
+        let saved = false;
+        setPopupBusy(true);
         try {
             const data = await window.AtharApi.json('/api/mushaf-editor/waqf', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -451,10 +549,14 @@
             });
             applyWordMark(wordEl, data.symbol || '');
             requestAnimationFrame(justifyLines); // mark glyph can shift the line's width
+            saved = true;
+            setStatus('تم حفظ علامة الوقف');
         } catch (e) {
             setStatus('تعذّر حفظ التعديل', true);
+        } finally {
+            setPopupBusy(false);
         }
-        closePopup();
+        if (saved) closePopup();
     }
 
     document.addEventListener('click', e => {
