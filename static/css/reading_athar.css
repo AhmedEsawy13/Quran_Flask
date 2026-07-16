@@ -123,6 +123,134 @@ body.athar-reading .ayah-container {
 
 body.athar-reading #quran-text {
     color: var(--athar-ink);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: center;
+    width: 100%;
+    max-width: 980px;
+    margin: 1.5rem auto 10px;
+    padding: 14px;
+    border-radius: 16px;
+    gap: 0.4rem 0.2rem;
+    direction: rtl;
+    text-align: center;
+    font-size: clamp(30px, 4vw, 42px);
+    line-height: 2.05;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+body.athar-reading[data-font-type="indopak"][data-waqf-mode="original"] #quran-text {
+    gap: 0.5rem 0.9rem;
+}
+
+body.athar-reading[data-font-type="digital_khatt"] #quran-text,
+body.athar-reading[data-font-type="old_madina"] #quran-text {
+    column-gap: var(--khatt-column-gap, 0.2rem);
+    row-gap: var(--khatt-row-gap, 0.4rem);
+}
+
+body.athar-reading.dark-mode[data-font-type="digital_khatt"] #quran-text {
+    font-palette: --digital-khatt-dark;
+}
+
+body.athar-reading #quran-text span:hover {
+    background-color: rgba(0, 100, 200, 0.1);
+    color: #0064c8;
+}
+
+body.athar-reading.dark-mode #quran-text span:hover {
+    background-color: rgba(100, 150, 255, 0.1);
+    color: #6496ff;
+}
+
+body.athar-reading .word-token {
+    position: relative;
+    display: inline-block;
+    margin: 0 0.05rem;
+    padding-top: 0.4em;
+    line-height: 1.6;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+body.athar-reading[data-font-type="digital_khatt"] .word-token,
+body.athar-reading[data-font-type="old_madina"] .word-token {
+    margin-inline: var(--khatt-word-margin-x, 0.05rem);
+}
+
+body.athar-reading .word-token[data-shamarly-glyph] { margin: 0 0.2rem; }
+body.athar-reading .word-token:hover { transform: translateY(-2px); }
+body.athar-reading .word-token.highlight {
+    background-color: #ffeb3b !important;
+    color: #333 !important;
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(255, 235, 59, 0.7);
+}
+body.athar-reading.dark-mode .word-token.highlight {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+body.athar-reading.sepia-mode .word-token.highlight {
+    background-color: #daa520 !important;
+    color: #3c2e26 !important;
+    box-shadow: 0 0 5px rgba(218, 165, 32, 0.7);
+}
+body.athar-reading .word-content,
+body.athar-reading .word-base { display: inline; }
+body.athar-reading .word-base { white-space: nowrap; }
+
+/* Waqf overlays belong to the reader's word-run surface. The DOM itself is
+   assembled by AtharMushaf; color remains a reading-page presentation choice. */
+body.athar-reading .waqf-stack {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    display: inline-flex;
+    flex-flow: row nowrap;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.05em;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    pointer-events: none;
+    font-size: 0.72em;
+    line-height: 1;
+}
+
+body.athar-reading .waqf-hindi-group {
+    display: inline-flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.02em;
+    white-space: normal;
+    font-size: 0.9em;
+}
+
+body.athar-reading .waqf-symbol {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-width: 0.7em;
+    height: 1em;
+    color: var(--waqf-color, #c2410c);
+    font-family: 'UthmanicHafs', serif;
+    line-height: 1;
+    user-select: none;
+}
+
+body.athar-reading .waqf-warsh { font-family: 'UthmanicWarsh', serif !important; }
+body.athar-reading .waqf-latin { font-family: sans-serif; }
+body.athar-reading .waqf-symbol[data-version="المدينة"]  { color: #c2410c; }
+body.athar-reading .waqf-symbol[data-version="الأزهر"]   { color: #15803d; }
+body.athar-reading .waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; }
+body.athar-reading .waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
+body.athar-reading .waqf-symbol[data-version="ورش"]     { color: #b45309; }
+body.athar-reading .waqf-symbol[data-version="الهندي"]  {
+    color: #be185d;
+    font-family: 'IndoPakNastaleeq2', sans-serif;
 }
 
 body.athar-reading #transliteration-container,

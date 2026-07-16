@@ -74,6 +74,123 @@
         });
     }
 
+    // Some sources emit a standalone combining-waqf token between words. Attach
+    // it to the preceding token so every renderer treats the mark as belonging
+    // to the word it annotates. The final token is preserved because it can be
+    // a verse-end ornament rather than a waqf-only separator.
+    function mergeWaqfOnlyTokens(rawTokens) {
+        const isWaqfOnly = value => {
+            if (!value) return false;
+            return String(value).replace(
+                /[\u0610-\u061F\u064B-\u065F\u0670\u06D6-\u06ED\u08D0-\u08FF\uF500-\uF6FF\uFE70-\uFEFF]/g,
+                ''
+            ).trim() === '';
+        };
+        const output = [];
+        (Array.isArray(rawTokens) ? rawTokens : []).forEach((token, index, source) => {
+            if (isWaqfOnly(token) && index < source.length - 1 && output.length) {
+                output[output.length - 1] += token;
+            } else output.push(token);
+        });
+        return output;
+    }
+
+    // Align backend waqf records to rendered token positions. Prefer explicit
+    // one-based word indexes, then token indexes, and finally normalized text
+    // matching for older datasets that expose neither stable coordinate.
+    function indexWaqfEntries(waqfEntries, words) {
+        const map = new Map();
+        if (!Array.isArray(waqfEntries)) return map;
+        const tokens = Array.isArray(words) ? words : [];
+        const getWordText = value => {
+            if (typeof value === 'string') return value;
+            return value && typeof value === 'object'
+                ? (value.text_original || value.text || value.word || '') : '';
+        };
+        const normalize = value => String(value || '')
+            .replace(/\s+/g, '')
+            .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D0-\u08FF]/g, '');
+        const append = (index, entry) => {
+            if (!Number.isInteger(index) || !entry || !entry.symbols) return;
+            if (!map.has(index)) map.set(index, []);
+            map.get(index).push({ symbols: entry.symbols, version: entry.version || '' });
+        };
+
+        const hasWordIndexes = tokens.length && waqfEntries.some(entry => {
+            const position = Number(entry && entry.word_index);
+            return Number.isInteger(position) && position > 0;
+        });
+        if (hasWordIndexes) {
+            const wordToToken = new Map();
+            let wordPosition = 0;
+            tokens.forEach((token, tokenIndex) => {
+                if (!normalize(getWordText(token))) return;
+                wordPosition += 1;
+                if (!wordToToken.has(wordPosition)) wordToToken.set(wordPosition, tokenIndex);
+            });
+            waqfEntries.forEach(entry => {
+                const position = Number(entry && entry.word_index);
+                if (Number.isInteger(position) && position > 0) append(wordToToken.get(position), entry);
+            });
+            if (map.size) return map;
+        }
+
+        if (waqfEntries.some(entry => entry && Number.isInteger(entry.token_index))) {
+            waqfEntries.forEach(entry => append(entry && entry.token_index, entry));
+            if (map.size) return map;
+        }
+
+        let searchStart = 0;
+        waqfEntries.forEach(entry => {
+            if (!entry || !entry.symbols) return;
+            const target = normalize(entry.clean_token || entry.original_token || entry.word || '');
+            if (!target) return;
+            let found = -1;
+            for (let index = searchStart; index < tokens.length; index += 1) {
+                if (normalize(getWordText(tokens[index])) === target) { found = index; break; }
+            }
+            if (found < 0) {
+                for (let index = 0; index < tokens.length; index += 1) {
+                    if (normalize(getWordText(tokens[index])) === target) { found = index; break; }
+                }
+            }
+            if (found >= 0) {
+                append(found, entry);
+                searchStart = found + 1;
+            }
+        });
+        return map;
+    }
+
+    // Render a flat, wrapping word run. Consumers own the word's inner content
+    // and interactions through hooks; this helper owns stable span/separator/
+    // replaceChildren assembly and returns the live word elements for playback.
+    function renderWordRun(container, words, options) {
+        if (!container) throw new Error('word container is required');
+        const config = Object.assign({
+            wordClass: '', separator: ' ', classForWord: null,
+            textForWord: context => context.raw,
+            renderWord: null, decorateWord: null,
+        }, options || {});
+        const fragment = document.createDocumentFragment();
+        const elements = [];
+        (Array.isArray(words) ? words : []).forEach((word, index) => {
+            const raw = typeof word === 'string' ? word : String(word && word.text || '');
+            const context = { word, index, raw };
+            const element = document.createElement('span');
+            element.className = typeof config.classForWord === 'function'
+                ? (config.classForWord(context) || '') : config.wordClass;
+            if (typeof config.renderWord === 'function') config.renderWord(element, context);
+            else element.textContent = config.textForWord(context);
+            if (typeof config.decorateWord === 'function') config.decorateWord(element, context);
+            if (index && config.separator) fragment.appendChild(document.createTextNode(config.separator));
+            fragment.appendChild(element);
+            elements.push(element);
+        });
+        container.replaceChildren(fragment);
+        return elements;
+    }
+
     function appendWaqfEntries(container, entriesOrText, options) {
         if (!container || !entriesOrText) return null;
         const config = Object.assign({
@@ -365,6 +482,7 @@
         createRequestGate,
         displaySymbols,
         getWaqfDisplayData,
+        indexWaqfEntries,
         isHindiVersion,
         isWarshVersion,
         lineKind,
@@ -372,7 +490,9 @@
         maxAyahOnPage,
         normalizeNonWarshWaqfText,
         normalizeWarshWaqfText,
+        mergeWaqfOnlyTokens,
         renderMushafLines,
+        renderWordRun,
         sliceLinesForAyahRange,
         sourceApiBase,
         stepVerse,

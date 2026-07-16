@@ -982,45 +982,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Glue standalone waqf-only tokens (e.g. IndoPak's ؕ ۚ ۙ that appear
-    // between words) onto the END of the preceding word, so each waqf
-    // mark visually attaches to the word it actually belongs to —
-    // matching how Hafs/Madina render their combining-mark waqf.
-    // The last token (verse-end marker) is preserved as a separate element.
-    function mergeWaqfOnlyTokensIntoPrev(rawTokens) {
-        const isWaqfOnly = (s) => {
-            if (!s) return false;
-            const stripped = s.replace(
-                /[\u0610-\u061F\u064B-\u065F\u0670\u06D6-\u06ED\u08D0-\u08FF\uF500-\uF6FF\uFE70-\uFEFF]/g,
-                ''
-            ).trim();
-            return stripped === '';
-        };
-        const out = [];
-        for (let i = 0; i < rawTokens.length; i++) {
-            const tok = rawTokens[i];
-            const isLast = i === rawTokens.length - 1;
-            if (isWaqfOnly(tok) && !isLast && out.length > 0) {
-                out[out.length - 1] = out[out.length - 1] + tok;
-            } else {
-                out.push(tok);
-            }
-        }
-        return out;
-    }
-
     function displayQuranicText(text, segments, waqfSymbols = []) {
         elements.quranTextContainer.style.fontFamily = '';
-        elements.quranTextContainer.innerHTML = '';
-        const words = mergeWaqfOnlyTokensIntoPrev(text.split(' '));
+        const words = window.AtharMushaf.mergeWaqfOnlyTokens(text.split(' '));
         const wordIndexToSegmentMap = new Map();
 
         // filterWaqfByMode() already encodes every font's special case (IndoPak's
         // embedded marks in 'both', الشمرلي's own marks as its 'original' layer).
         const activeSymbols = filterWaqfByMode(waqfSymbols);
 
-        const waqfByToken = buildWaqfByTokenIndex(activeSymbols, words);
-        const wordElements = []; // Cache word elements for performance
+        const waqfByToken = window.AtharMushaf.indexWaqfEntries(activeSymbols, words);
 
         // Map segments to words first, before creating word elements
         if (Array.isArray(segments)) {
@@ -1029,18 +1000,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Invalid segments format:', segments);
         }
 
-        // Now create word elements with populated segment mapping
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
-            const wordElement = createWordElement(word, i, wordIndexToSegmentMap);
-            const waqfText = waqfByToken.get(i);
-            if (waqfText) {
-                appendWaqfEntries(wordElement, waqfText);
-            }
-            wordElements[i] = wordElement; // Cache reference
-            elements.quranTextContainer.appendChild(wordElement);
-            elements.quranTextContainer.appendChild(document.createTextNode(' '));
-        }
+        const wordElements = window.AtharMushaf.renderWordRun(elements.quranTextContainer, words, {
+            wordClass: 'word-token', separator: ' ',
+            renderWord: (wordElement, context) => {
+                renderReaderWord(wordElement, context.raw, context.index, wordIndexToSegmentMap);
+            },
+            decorateWord: (wordElement, context) => {
+                const entries = waqfByToken.get(context.index);
+                if (entries) appendWaqfEntries(wordElement, entries);
+            },
+        });
 
         // Remove existing timeupdate listeners to prevent memory leaks
         if (elements.audioElement.timeUpdateHandler) {
@@ -1377,122 +1346,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             tabsHtml +
             `</div>` +
             viewHtml;
-    }
-
-    function buildWaqfByTokenIndex(waqfSymbols, words = []) {
-        const map = new Map();
-        if (!Array.isArray(waqfSymbols)) {
-            return map;
-        }
-
-        const getWordText = (wordLike) => {
-            if (typeof wordLike === 'string') {
-                return wordLike;
-            }
-            if (wordLike && typeof wordLike === 'object') {
-                return wordLike.text_original || wordLike.text || wordLike.word || '';
-            }
-            return '';
-        };
-
-        const hasTokenIndexes = waqfSymbols.some((entry) => entry && Number.isInteger(entry.token_index));
-
-        // Strip whitespace AND all Arabic combining diacritics for comparison only.
-        // Covers standard tashkeel, QPC/Warsh marks (U+06D6-U+06ED), and the
-        // Arabic Extended-A combining marks (U+08D0-U+08FF) used by Digital Khatt
-        // (e.g. U+08F1 tanwin instead of U+065E) — ensures base consonants match
-        // regardless of which diacritic encoding the font uses.
-        const normalize = (value) => (value || '')
-            .replace(/\s+/g, '')
-            .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D0-\u08FF]/g, '');
-
-        const hasWordIndexes = words.length > 0 && waqfSymbols.some((entry) => {
-            const pos = Number(entry?.word_index);
-            return Number.isInteger(pos) && pos > 0;
-        });
-
-        if (hasWordIndexes) {
-            const wordPosToTokenIndex = new Map();
-            let contentWordPos = 0;
-
-            for (let i = 0; i < words.length; i++) {
-                const token = getWordText(words[i]);
-                if (normalize(token)) {
-                    contentWordPos += 1;
-                    if (!wordPosToTokenIndex.has(contentWordPos)) {
-                        wordPosToTokenIndex.set(contentWordPos, i);
-                    }
-                }
-            }
-
-            waqfSymbols.forEach((entry) => {
-                if (!entry || !entry.symbols) {
-                    return;
-                }
-                const pos = Number(entry.word_index);
-                if (!Number.isInteger(pos) || pos <= 0) {
-                    return;
-                }
-                const tokenIndex = wordPosToTokenIndex.get(pos);
-                if (Number.isInteger(tokenIndex)) {
-                    if (!map.has(tokenIndex)) map.set(tokenIndex, []);
-                    map.get(tokenIndex).push({ symbols: entry.symbols, version: entry.version || '' });
-                }
-            });
-
-            if (map.size > 0) {
-                return map;
-            }
-        }
-
-        if (hasTokenIndexes) {
-            waqfSymbols.forEach((entry) => {
-                if (entry && Number.isInteger(entry.token_index) && entry.symbols) {
-                    if (!map.has(entry.token_index)) map.set(entry.token_index, []);
-                    map.get(entry.token_index).push({ symbols: entry.symbols, version: entry.version || '' });
-                }
-            });
-            if (map.size > 0) {
-                return map;
-            }
-        }
-
-        let searchStart = 0;
-
-        waqfSymbols.forEach((entry) => {
-            if (!entry || !entry.symbols) {
-                return;
-            }
-
-            const targetWord = normalize(entry.clean_token || entry.original_token || entry.word || '');
-            if (!targetWord) {
-                return;
-            }
-
-            let foundIndex = -1;
-            for (let i = searchStart; i < words.length; i++) {
-                if (normalize(getWordText(words[i])) === targetWord) {
-                    foundIndex = i;
-                    break;
-                }
-            }
-
-            if (foundIndex === -1) {
-                for (let i = 0; i < words.length; i++) {
-                    if (normalize(getWordText(words[i])) === targetWord) {
-                        foundIndex = i;
-                        break;
-                    }
-                }
-            }
-
-            if (foundIndex >= 0) {
-                if (!map.has(foundIndex)) map.set(foundIndex, []);
-                map.get(foundIndex).push({ symbols: entry.symbols, version: entry.version || '' });
-                searchStart = foundIndex + 1;
-            }
-        });
-        return map;
     }
 
     // ── Waqf symbol meanings (display only, no color here) ─────────────────
@@ -2771,9 +2624,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    function createWordElement(word, index, wordIndexToSegmentMap) {
-        const wordElement = document.createElement('span');
-        wordElement.className = 'word-token';
+    function renderReaderWord(wordElement, word, index, wordIndexToSegmentMap) {
         const cleanText = stripEmbeddedWaqf(word);
         wordElement.dataset.textOriginal = word;
         wordElement.dataset.textClean = cleanText;
@@ -2794,7 +2645,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         wordElement.addEventListener('mouseleave', () => {
             document.querySelectorAll('.word-meaning-tooltip').forEach(t => t.remove());
         });
-        return wordElement;
     }
 
     function findWordMeaning(wordText, wordMeanings) {

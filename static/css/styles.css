@@ -106,110 +106,6 @@ body.sepia-mode .ayah-container {
     border-color: rgba(180, 140, 90, 0.3);
 }
 
-/* ---- Quran Text ---- */
-#quran-text {
-    font-size: clamp(30px, 4vw, 42px);
-    line-height: 2.05;
-    text-align: center;
-    direction: rtl;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 0.5rem 0.25rem;
-    width: 100%;
-    max-width: 980px;
-    margin: 1.5rem auto 0;
-    padding: 14px;
-    word-break: normal;
-    overflow-wrap: break-word;
-}
-
-body[data-font-type="indopak"][data-waqf-mode="original"] #quran-text { gap: 0.5rem 0.9rem; }
-/* Shemrly page-font glyphs are tight word images with almost no side-bearing,
-   so the default word gap makes a substituted glyph look glued to its
-   neighbours. Only the (rare) words that got a genuine page-glyph
-   substitution need the extra breathing room — see applyShamarlyGlyphs(). */
-.word-token[data-shamarly-glyph] { margin: 0 0.2rem; }
-body[data-font-type="digital_khatt"] #quran-text,
-body[data-font-type="old_madina"] #quran-text { column-gap: var(--khatt-column-gap, 0.2rem); row-gap: var(--khatt-row-gap, 0.4rem); }
-body[data-font-type="digital_khatt"] .word-token,
-body[data-font-type="old_madina"] .word-token { margin-inline: var(--khatt-word-margin-x, 0.05rem); }
-body.dark-mode[data-font-type="digital_khatt"] #quran-text { font-palette: --digital-khatt-dark; }
-
-#quran-text span:hover { background-color: rgba(0, 100, 200, 0.1); color: #0064c8; }
-body.dark-mode #quran-text span:hover { background-color: rgba(100, 150, 255, 0.1); color: #6496ff; }
-
-.word-token {
-    display: inline-block;
-    position: relative;
-    margin: 0 0.05rem;
-    line-height: 1.6;
-    padding-top: 0.4em;
-    transition: color 0.2s ease, transform 0.2s ease;
-}
-.word-token:hover { transform: translateY(-2px); }
-.word-content, .word-base { display: inline; }
-.word-base { white-space: nowrap; }
-
-/* ---- Waqf symbol overlay ---- */
-.waqf-stack {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    display: inline-flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: center;
-    /* Bottom-align, not center: الهندي's column-group can be 2 symbols tall
-       (multi-char compound marks stacked vertically) — far taller than the
-       single-row-height marks from every other mushaf. Centering the row let
-       that extra height push the other mushafs' marks away from their usual
-       spot depending on whether الهندي happened to be selected. Bottom-aligning
-       keeps every mushaf's marks pinned to the same baseline right above the
-       word regardless of الهندي — its extra height only grows upward. */
-    align-items: flex-end;
-    pointer-events: none;
-    gap: 0.05em;
-    font-size: 0.72em;
-    line-height: 1;
-}
-
-.waqf-hindi-group {
-    display: inline-flex;
-    flex-direction: column-reverse;
-    align-items: center;
-    justify-content: flex-start;
-    white-space: normal;
-    gap: 0.02em;
-    font-size: 0.9em;
-}
-
-.waqf-symbol {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 1em;
-    min-width: 0.7em;
-    line-height: 1;
-    color: var(--waqf-color, #c2410c);
-    font-family: 'UthmanicHafs', serif;
-    user-select: none;
-    flex-shrink: 0;
-}
-
-.waqf-warsh { font-family: 'UthmanicWarsh', serif !important; }
-.waqf-latin { font-family: sans-serif; }
-
-.waqf-symbol[data-version="المدينة"]  { color: #c2410c; }
-.waqf-symbol[data-version="الأزهر"]   { color: #15803d; }
-.waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; }
-.waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
-.waqf-symbol[data-version="ورش"]     { color: #b45309; }
-.waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', sans-serif; }
-
 .marker-symbol {
     display: inline-block;
     vertical-align: baseline;
@@ -298,10 +194,7 @@ tajweed.ham_wasl, span.ham_wasl { color: #888888; }
 tajweed.laam_shamsiyah, span.laam_shamsiyah { color: #888888; }
 tajweed.slnt, span.slnt { color: #AAAAAA; opacity: 0.75; }
 
-/* ---- Highlight / Error / Loading ---- */
-.highlight { background-color: #ffeb3b !important; color: #333 !important; font-weight: bold; box-shadow: 0 0 5px rgba(255, 235, 59, 0.7); }
-body.dark-mode .highlight { background-color: #ffc107 !important; color: #000 !important; }
-body.sepia-mode .highlight { background-color: #daa520 !important; color: #3c2e26 !important; box-shadow: 0 0 5px rgba(218, 165, 32, 0.7); }
+/* ---- Error / Loading ---- */
 .error { color: red; font-size: 18px; }
 .loading { color: #0064c8; font-size: 18px; font-style: italic; text-align: center; padding: 20px; }
 .loading-spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid #e2e8f0; border-radius: 50%; border-top-color: #0f766e; animation: spin 0.8s linear infinite; margin-right: 10px; vertical-align: middle; }
@@ -615,123 +508,6 @@ body.sepia-mode .ayah-container {
     border: 1px solid rgba(210, 180, 140, 0.3);
 }
 
-/* Flex Wrap is key for long verses and border containment */
-#quran-text {
-    margin-top: 2rem;
-    font-size: clamp(1.8rem, 4vw, 2.5rem); /* Responsive font size */
-    line-height: 2.2;
-    text-align: center;
-    direction: rtl;
-    display: flex;
-    flex-wrap: wrap; /* CRITICAL: Wraps words instead of overflowing */
-    justify-content: center;
-    align-items: flex-end; /* text baselines align at the bottom */
-    gap: 0.5rem 0.25rem;
-    width: 100%;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.word-token {
-    display: inline-block;
-    position: relative;
-    margin: 0 0.05rem;
-    line-height: 1.6;
-    padding-top: 0.4em; /* fixed reserved space above every word for waqf symbols (symbols are 0.72em tall) */
-    transition: color 0.2s ease, transform 0.2s ease;
-}
-
-/* In "original" mode IndoPak inline waqf marks (ؕ ۚ ۙ …) are embedded directly
-   in the word text. Increase the horizontal gap between words so the mark
-   doesn't visually bleed into the following word. */
-body[data-font-type="indopak"][data-waqf-mode="original"] #quran-text {
-    gap: 0.5rem 0.9rem;
-}
-
-.word-content {
-    display: inline;
-}
-
-.word-base {
-    display: inline;
-    white-space: nowrap;
-}
-
-/* Container for all overlay waqf symbols — sits above the word, side by side (row). */
-.waqf-stack {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
-    display: inline-flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: center;
-    /* Bottom-align, not center: الهندي's column-group can be 2 symbols tall
-       (multi-char compound marks stacked vertically) — far taller than the
-       single-row-height marks from every other mushaf. Centering the row let
-       that extra height push the other mushafs' marks away from their usual
-       spot depending on whether الهندي happened to be selected. Bottom-aligning
-       keeps every mushaf's marks pinned to the same baseline right above the
-       word regardless of الهندي — its extra height only grows upward. */
-    align-items: flex-end;
-    pointer-events: none;
-    gap: 0.05em;
-    font-size: 0.72em;
-    line-height: 1;
-}
-
-/* الهندي symbols get their own inner column group so the outer row-stack
-   of other mushafs is never affected. The group sits as an item inside the row. */
-.waqf-hindi-group {
-    display: inline-flex;
-    flex-direction: column-reverse;
-    align-items: center;
-    justify-content: flex-start;
-    white-space: normal;
-    gap: 0.02em;
-    font-size: 0.9em; /* relative to parent .waqf-stack font-size */
-}
-
-/* Each symbol — fixed-height inline-flex box so glyphs from very different fonts
-   (Hafs combining marks vs Warsh ligatures vs IndoPak Nastaleeq) sit on the same row
-   at the same height instead of one floating above the other. */
-.waqf-symbol {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 1em;
-    min-width: 0.7em;
-    line-height: 1;
-    color: var(--waqf-color, #c2410c);
-    font-family: 'UthmanicHafs', serif;
-    user-select: none;
-    flex-shrink: 0;
-}
-
-.waqf-warsh {
-    font-family: 'UthmanicWarsh', serif !important;
-}
-
-.waqf-latin {
-    font-family: sans-serif;
-}
-
-/* Per-version symbol colours so stacked symbols from different mushaf versions are distinct */
-.waqf-symbol[data-version="المدينة"]  { color: #c2410c; }
-.waqf-symbol[data-version="الأزهر"]   { color: #15803d; }
-.waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; }
-.waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
-.waqf-symbol[data-version="ورش"]     { color: #b45309; }
-.waqf-symbol[data-version="الهندي"]  {
-    color: #be185d;
-    font-family: 'IndoPakNastaleeq2', sans-serif;
-}
-
-/* JS now filters symbols per mode (original/selected/both/none); CSS no longer
-   needs to hide the stack — empty stacks render to nothing on their own. */
-
 .marker-symbol {
     display: inline-block;
     vertical-align: baseline;
@@ -825,27 +601,6 @@ body.dark-mode select:hover, body.dark-mode button:hover {
     overflow: hidden; /* Prevent bleed */
 }
 
-/* Fix Overflow for Long Verses */
-#quran-text {
-    margin-top: 1.5rem;
-    font-size: 2.2rem;
-    line-height: 2.4; /* Generous line height for waqf symbols and diacritics */
-    text-align: center;
-    direction: rtl;
-    display: flex;
-    flex-wrap: wrap; /* CRITICAL: Allows words to wrap naturally */
-    justify-content: center;
-    gap: 0.4rem 0.2rem; /* Consistent spacing between words and lines */
-    word-break: normal;
-    overflow-wrap: break-word; /* Final safety for extremely long tokens */
-}
-
-
-.word-token:hover {
-    transform: translateY(-2px);
-}
-
-
 body.dark-mode {
     --bg-color: #0a0a0a;
     --card-bg-rgb: 17, 17, 17;
@@ -858,16 +613,6 @@ body {
     color: var(--text-color);
     font-family: 'Thmanyah Sans', 'Inter', system-ui, -apple-system, sans-serif;
     transition: background 0.4s ease;
-}
-
-#quran-text span:hover {
-    background-color: rgba(0, 100, 200, 0.1);
-    color: #0064c8;
-}
-
-body.dark-mode #quran-text span:hover {
-    background-color: rgba(100, 150, 255, 0.1);
-    color: #6496ff;
 }
 
 /* Tafseer Text Styles */
@@ -1139,19 +884,7 @@ body.dark-mode #tafseer-text .blue {
     color: #93c5fd;
 }
 
-/* Highlight, Error and Loading Styles */
-.highlight {
-    background-color: #ffeb3b !important;
-    color: #333 !important;
-    font-weight: bold;
-    box-shadow: 0 0 5px rgba(255, 235, 59, 0.7);
-}
-
-body.dark-mode .highlight {
-    background-color: #ffc107 !important;
-    color: #000 !important;
-}
-
+/* Error and Loading Styles */
 .error {
     color: red;
     font-size: 18px;
@@ -1320,11 +1053,6 @@ body.dark-mode .close:focus {
     margin-bottom: 20px;
     width: 80%;
     text-align: center;
-}
-
-.ayah-container #quran-text {
-    margin-bottom: 10px;
-    font-size: 35px;
 }
 
 .operation-container {
@@ -1518,12 +1246,6 @@ body.sepia-mode .operation-container button:hover {
 body.sepia-mode .operation-container button:active {
     background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
     box-shadow: 0 6px 15px rgba(160, 82, 45, 0.3);
-}
-
-body.sepia-mode .highlight {
-    background-color: #daa520 !important;
-    color: #3c2e26 !important;
-    box-shadow: 0 0 5px rgba(218, 165, 32, 0.7);
 }
 
 body.sepia-mode .loading {
@@ -1942,15 +1664,6 @@ body.dark-mode .ayah-container {
 body.sepia-mode .ayah-container {
     background: rgba(250, 243, 230, 0.88);
     border-color: rgba(180, 140, 90, 0.3);
-}
-
-.ayah-container #quran-text {
-    font-size: clamp(30px, 4vw, 42px);
-    line-height: 2.05;
-    padding: 14px;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 980px;
 }
 
 .operation-container button {
@@ -3099,25 +2812,6 @@ body.sepia-mode .audio-mute-btn {
 }
 
 #khatt-justify-reset:hover { opacity: 1; }
-
-/* Apply flex-gap CSS variables only for Digital Khatt family fonts */
-body[data-font-type="digital_khatt"] #quran-text,
-body[data-font-type="old_madina"] #quran-text {
-    column-gap: var(--khatt-column-gap, 0.2rem);
-    row-gap: var(--khatt-row-gap, 0.4rem);
-}
-
-body[data-font-type="digital_khatt"] .word-token,
-body[data-font-type="old_madina"] .word-token {
-    margin-inline: var(--khatt-word-margin-x, 0.05rem);
-}
-
-/* Recolour the Digital Khatt COLR verse/sajda markers for dark mode so the
-   verse number stays legible (see @font-palette-values --digital-khatt-dark).
-   font-palette inherits, so setting it on the container covers every word. */
-body.dark-mode[data-font-type="digital_khatt"] #quran-text {
-    font-palette: --digital-khatt-dark;
-}
 
 #show-tajweed.active {
     background: rgba(225, 29, 72, 0.14);
