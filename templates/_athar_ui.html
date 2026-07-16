@@ -1,0 +1,31 @@
+{# أثَر shared UI primitives. Page macros compose these; behavior stays in
+   athar-ui.js and page-specific scripts. #}
+
+{% macro athar_button(label, href=none, variant='primary', icon=none, button_type='button', extra_class='', aria_label=none) -%}
+{% set variant_class = '' if variant == 'primary' else ' athar-button-' ~ variant %}
+{% set classes = 'athar-button' ~ variant_class ~ (' ' ~ extra_class if extra_class else '') %}
+{% if href %}
+<a class="{{ classes }}" href="{{ href }}"{% if aria_label %} aria-label="{{ aria_label }}"{% endif %}>
+{% else %}
+<button class="{{ classes }}" type="{{ button_type }}"{% if aria_label %} aria-label="{{ aria_label }}"{% endif %}>
+{% endif %}
+    {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i>{% endif %}
+    <span>{{ label }}</span>
+{% if href %}</a>{% else %}</button>{% endif %}
+{%- endmacro %}
+
+{% macro athar_page_intro(kicker, title, description=none, title_id='athar-page-title', extra_class='') -%}
+<section class="athar-page-intro{{ ' ' ~ extra_class if extra_class else '' }}" aria-labelledby="{{ title_id }}">
+    {% if kicker %}<p class="athar-kicker">{{ kicker }}</p>{% endif %}
+    <h1 class="athar-title" id="{{ title_id }}">{{ title }}</h1>
+    {% if description %}<p class="athar-lede">{{ description }}</p>{% endif %}
+    {% if caller is defined %}<div class="athar-actions">{{ caller() }}</div>{% endif %}
+</section>
+{%- endmacro %}
+
+{% macro athar_state(kind, message) -%}
+<div class="athar-state athar-state-{{ kind }}" role="{{ 'alert' if kind == 'error' else 'status' }}">
+    {% if kind == 'loading' %}<span class="athar-state-spinner" aria-hidden="true"></span>{% endif %}
+    <span>{{ message }}</span>
+</div>
+{%- endmacro %}

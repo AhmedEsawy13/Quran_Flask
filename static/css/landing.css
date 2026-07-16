@@ -4,7 +4,7 @@
  * "Parchment → ink": a warm paper ground with near-black ink, punctuated by
  * the app's own Quranic green (--athar-accent, from brand.css) and a rare
  * muted gold. Tokens (--athar-parchment/-ink/-gold/-line) and the shared
- * .athar-pill / .athar-display components live in brand.css so later pages
+ * .athar-button / .athar-display components live in athar-components.css so later pages
  * can adopt the same language — this file only holds this page's own
  * hero/cards/closer layout, the same "shared tokens + page-specific layout"
  * split every other page already follows (mz-*, wq-*, ed-*).
@@ -146,8 +146,8 @@ body.athar-landing .athar-bar {
   max-width: 16ch; text-wrap: balance; margin: 0;
 }
 .lp-closer p { color: var(--closer-fg-soft); max-width: 48ch; margin: 0; font-size: 1rem; }
-.lp-closer .athar-pill { background: var(--closer-fg); color: var(--closer-bg); border-color: var(--closer-fg); }
-.lp-closer .athar-pill:hover { box-shadow: 0 10px 24px -10px rgba(0,0,0,0.5); }
+.lp-closer .athar-button { background: var(--closer-fg); color: var(--closer-bg); border-color: var(--closer-fg); }
+.lp-closer .athar-button:hover { box-shadow: 0 10px 24px -10px rgba(0,0,0,0.5); }
 
 /* ---------------------------------------------------------------- footer */
 .lp-foot {
@@ -166,5 +166,5 @@ body.athar-landing .athar-bar {
 
 @media (prefers-reduced-motion: reduce) {
   .lp-card { transition: none; opacity: 1; transform: none; }
-  .athar-pill, .lp-card-link svg { transition: none; }
+  .athar-button, .lp-card-link svg { transition: none; }
 }

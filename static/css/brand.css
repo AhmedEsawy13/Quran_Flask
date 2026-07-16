@@ -88,6 +88,7 @@
     --athar-gold:        #D1A55A;
     --athar-line:        rgba(237, 231, 214, 0.14);
     --athar-line-soft:   rgba(237, 231, 214, 0.07);
+    --athar-danger:      #FF9287;
   }
 }
 :root[data-theme="dark"] {
@@ -103,6 +104,7 @@
   --athar-gold:        #D1A55A;
   --athar-line:        rgba(237, 231, 214, 0.14);
   --athar-line-soft:   rgba(237, 231, 214, 0.07);
+  --athar-danger:      #FF9287;
 }
 :root[data-theme="light"] {
   --athar-accent:      #1f7a5a;
@@ -131,74 +133,42 @@
   --athar-gold:        #A66F24;
   --athar-line:        rgba(74, 59, 36, 0.17);
   --athar-line-soft:   rgba(74, 59, 36, 0.09);
+  --athar-danger:      #9B4935;
 }
 
-/* ---- Shared editorial components (landing page today; any page can adopt
- * these later instead of hand-rolling its own button/headline CSS) ---- */
-.athar-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-ui);
-  font-size: 0.86rem;
-  font-weight: 700;
-  padding: 11px 22px;
-  border-radius: 999px;
-  text-decoration: none;
-  cursor: pointer;
-  background: var(--athar-ink);
-  color: var(--athar-parchment);
-  border: 1px solid var(--athar-ink);
-  transition: transform .18s ease, box-shadow .18s ease;
-}
-.athar-pill:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px -10px rgba(24, 23, 15, 0.35);
-}
-.athar-pill.ghost {
-  background: transparent;
-  color: var(--athar-ink);
-  border-color: var(--athar-line);
-}
-.athar-pill.ghost:hover {
-  border-color: var(--athar-ink-soft);
-  box-shadow: none;
-}
+/* ---- Foundation scales ----
+ * Components consume these semantic scales; page styles should only add
+ * layout that is unique to the workflow. */
+:root {
+  --athar-space-1: 4px;
+  --athar-space-2: 8px;
+  --athar-space-3: 12px;
+  --athar-space-4: 16px;
+  --athar-space-5: 24px;
+  --athar-space-6: 32px;
+  --athar-space-7: 48px;
+  --athar-space-8: 64px;
 
-.athar-display {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-feature-settings: "ss01" 1;
-  letter-spacing: -0.01em;
-}
+  --athar-radius-sm: 8px;
+  --athar-radius-control: 11px;
+  --athar-radius-surface: 18px;
+  --athar-radius-round: 999px;
 
-/* ---- Shared asynchronous UI states ---- */
-.athar-state {
-  min-height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 14px;
-  text-align: center;
-  color: var(--athar-ink-soft);
-  font-family: var(--font-ui);
-  font-size: 0.86rem;
-}
-.athar-state-error { color: #B42318; }
-.athar-state-spinner {
-  width: 15px;
-  height: 15px;
-  flex: 0 0 auto;
-  border: 2px solid var(--athar-line);
-  border-top-color: var(--athar-accent);
-  border-radius: 50%;
-  animation: athar-spin .7s linear infinite;
-}
-.athar-is-busy { cursor: progress; }
-@keyframes athar-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) {
-  .athar-state-spinner { animation-duration: 1.5s; }
+  --athar-control-h: 42px;
+  --athar-content-sm: 720px;
+  --athar-content-md: 920px;
+  --athar-content-lg: 1120px;
+
+  --athar-shadow-sm: 0 5px 18px rgba(24, 23, 15, 0.07);
+  --athar-shadow-md: 0 18px 48px rgba(24, 23, 15, 0.11);
+  --athar-focus-ring: color-mix(in srgb, var(--athar-accent) 54%, transparent);
+  --athar-danger: #A33B2B;
+  --athar-warning: var(--athar-gold);
+  --athar-success: var(--athar-accent);
+
+  --athar-motion-fast: 160ms;
+  --athar-motion-base: 240ms;
+  --athar-ease: cubic-bezier(.2, .75, .25, 1);
 }
 
 /* ---- Base UI typography (no !important: Quran-text selectors stay) ---- */

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+{% from "_athar_ui.html" import athar_button %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -33,8 +34,8 @@
                 التجويد، إلى الوقف على أقوال الأئمة، إلى تدريبٍ يقيس وقوفك بنفسه.
             </p>
             <div class="lp-cta-row">
-                <a class="athar-pill" href="/read">افتح المصحف</a>
-                <a class="athar-pill ghost" href="/memorize">تعرّف على تثبيت</a>
+                {{ athar_button('افتح المصحف', href='/read') }}
+                {{ athar_button('تعرّف على تثبيت', href='/memorize', variant='ghost') }}
             </div>
 
             <div class="lp-metrics">
@@ -110,7 +111,7 @@
         <div class="lp-wrap">
             <h2 class="lp-closer-title athar-display">من القراءة، إلى الأثـر.</h2>
             <p>ابدأ من أيّ آية، وسيتذكّر المصحف مكانك — على الجهاز نفسه، وبالخط نفسه، في كل مرة.</p>
-            <a class="athar-pill" href="/read">ابدأ الآن</a>
+            {{ athar_button('ابدأ الآن', href='/read') }}
         </div>
     </section>
 

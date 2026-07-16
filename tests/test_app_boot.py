@@ -4,7 +4,12 @@ After carving app.py into core/ + modules/, guard that the app still assembles
 under every deployment shape and that the newer endpoints refuse bad input
 cleanly instead of 500-ing.
 """
+from pathlib import Path
+
 import app as quran_app
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_all_features_including_editor_boot(client):
@@ -75,7 +80,7 @@ def test_shared_frontend_layers_are_mounted(client):
     assert '<body class="athar-reading">' in reading
     for url in ('/waqf', '/waqf-practice', '/memorize', '/mushaf-editor'):
         assert 'js/athar-api.js' in client.get(url).get_data(as_text=True)
-    for url in ('/waqf', '/waqf-practice', '/memorize', '/mushaf-editor'):
+    for url in ('/', '/read', '/waqf', '/waqf-practice', '/memorize', '/mushaf-editor'):
         assert 'js/athar-ui.js' in client.get(url).get_data(as_text=True)
     for url in ('/read', '/memorize', '/mushaf-editor', '/waqf', '/waqf-practice'):
         assert 'js/athar-mushaf.js' in client.get(url).get_data(as_text=True)
@@ -115,6 +120,24 @@ def test_shared_app_shell_is_consistent_and_route_aware(client):
             assert 'aria-current="page"' not in shell, route
         assert 'fonts/thmanyahsans/woff2/thmanyahsans-Medium.woff2' in page, route
         assert 'fonts/thmanyahserifdisplay/woff2/thmanyahserifdisplay-Black.woff2' in page, route
+        assert 'css/athar-components.css' in page, route
+
+
+def test_ui_foundation_exposes_thmanyah_alternates_and_components(client):
+    components = (PROJECT_ROOT / 'static/css/athar-components.css').read_text(encoding='utf-8')
+    brand = (PROJECT_ROOT / 'static/css/brand.css').read_text(encoding='utf-8')
+    landing = client.get('/').get_data(as_text=True)
+
+    # Thmanyah documents الحروف المرسلة as OpenType Stylistic Alternates.
+    assert 'font-feature-settings: "salt" 1' in components
+    assert 'font-feature-settings: "ss01" 1' not in brand
+    # Manual Tatweel remains authored content and is not synthesized by CSS.
+    assert 'الأثـر' in landing
+    assert 'class="athar-button" href="/read"' in landing
+    assert 'class="athar-button athar-button-ghost" href="/memorize"' in landing
+    for primitive in ('athar-page-intro', 'athar-toolbar', 'athar-surface',
+                      'athar-field', 'athar-chip', 'athar-tabs', 'athar-sheet'):
+        assert f'.{primitive}' in components
 
 
 def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
