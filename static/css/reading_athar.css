@@ -22,57 +22,170 @@ body.athar-reading {
         radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--athar-gold) 8%, transparent), transparent 30rem),
         var(--athar-parchment);
     color: var(--athar-ink);
+    overflow-x: clip;
 }
 
-body.athar-reading .controls-container {
-    width: min(1120px, calc(100% - clamp(20px, 5vw, 64px)));
-    margin: clamp(24px, 5vw, 52px) auto 20px;
+body.athar-reading .reader-main {
+    width: min(var(--athar-content-lg), calc(100% - clamp(20px, 5vw, 64px)));
+    margin: clamp(28px, 5vw, 56px) auto 20px;
 }
 
-body.athar-reading #controls {
+body.athar-reading .reader-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    align-items: end;
+    gap: clamp(24px, 5vw, 72px);
+    padding: 0 clamp(4px, 1vw, 12px) clamp(26px, 4vw, 44px);
+}
+
+body.athar-reading .reader-intro .athar-kicker { margin-bottom: 10px; }
+
+body.athar-reading .reader-intro h1 {
+    max-width: 700px;
+    margin: 0;
+    color: var(--athar-ink);
+    font-size: clamp(2.25rem, 5.5vw, 4.8rem);
+    line-height: 1.04;
+    text-wrap: balance;
+}
+
+body.athar-reading .reader-intro > p {
+    max-width: 42ch;
+    margin: 0 0 0.4rem;
+    color: var(--athar-ink-soft);
+    font-family: var(--font-serif);
+    font-size: clamp(0.94rem, 1.5vw, 1.08rem);
+    line-height: 1.9;
+}
+
+body.athar-reading #controls.reader-controls {
+    display: flex;
     width: 100%;
     margin: 0;
-    padding: clamp(12px, 2vw, 18px);
-    gap: 9px;
-    border: 1px solid var(--athar-line);
-    border-radius: 18px;
-    background: color-mix(in srgb, var(--athar-surface) 94%, transparent);
-    box-shadow: 0 18px 50px -38px rgba(24, 23, 15, 0.48);
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
-body.athar-reading .ctrl-row + .ctrl-row {
-    border-top-color: var(--athar-line-soft);
-}
-
-body.athar-reading #controls select,
-body.athar-reading #controls button,
-body.athar-reading .tafseer-group {
-    border-color: var(--athar-line);
-    background: var(--athar-parchment);
-    color: var(--athar-ink-soft);
+    padding: 0;
+    gap: 12px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
     box-shadow: none;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+}
+
+body.athar-reading .reader-primary {
+    position: sticky;
+    top: calc(var(--athar-bar-h) + 10px);
+    z-index: 25;
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    background: color-mix(in srgb, var(--athar-surface) 94%, transparent);
+    box-shadow: 0 16px 42px -34px rgba(24, 23, 15, 0.65);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    max-width: 100%;
+}
+
+body.athar-reading .reader-primary .ctrl-row + .ctrl-row {
+    margin: 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--athar-line-soft);
+}
+
+body.athar-reading .ctrl-row-nav {
+    display: grid;
+    grid-template-columns: minmax(150px, 1.1fr) minmax(82px, 0.48fr) minmax(150px, 1fr) minmax(150px, 1fr) 42px;
+    align-items: end;
+    gap: 8px;
+}
+
+body.athar-reading .reader-field {
+    display: grid;
+    min-width: 0;
+    gap: 5px;
+    color: var(--athar-ink-faint);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+body.athar-reading .reader-field > span { padding-inline: 3px; }
+
+body.athar-reading #controls .reader-field select,
+body.athar-reading #controls #repeat-select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    min-height: 40px;
+    padding: 7px 11px;
+    border: 1px solid var(--athar-line);
+    border-radius: var(--athar-radius-control);
+    background: var(--athar-parchment);
+    color: var(--athar-ink);
+    box-shadow: none;
+}
+
+body.athar-reading #controls button {
+    border-color: var(--athar-line);
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+body.athar-reading #controls .athar-button-secondary,
+body.athar-reading #controls .athar-icon-button,
+body.athar-reading #controls .athar-chip,
+body.athar-reading #controls .tafseer-group {
+    background: var(--athar-parchment);
+    color: var(--athar-ink-soft);
 }
 
 body.athar-reading #controls select:hover,
 body.athar-reading #controls button:hover {
     border-color: color-mix(in srgb, var(--athar-accent) 42%, var(--athar-line));
-    background: color-mix(in srgb, var(--athar-accent) 7%, var(--athar-surface));
     color: var(--athar-ink);
     box-shadow: none;
 }
 
 body.athar-reading #controls select:focus-visible,
-body.athar-reading #controls button:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--athar-accent) 52%, transparent);
+body.athar-reading #controls button:focus-visible,
+body.athar-reading .reader-drawer summary:focus-visible {
+    outline: 3px solid var(--athar-focus-ring);
     outline-offset: 2px;
 }
 
+body.athar-reading .reader-voice { align-self: end; width: 42px; height: 40px; }
+
+body.athar-reading .ctrl-row-playback {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) auto;
+    gap: 12px;
+}
+
+body.athar-reading .playback-main,
+body.athar-reading .playback-extra {
+    min-width: 0;
+    gap: 8px;
+}
+
+body.athar-reading .playback-seek,
+body.athar-reading .audio-seek-slider { min-width: 0; }
+
+body.athar-reading .playback-btns button,
+body.athar-reading .playback-extra button {
+    min-height: 38px;
+    padding: 7px 12px;
+    border-radius: var(--athar-radius-control);
+    background: var(--athar-parchment);
+    color: var(--athar-ink-soft);
+}
+
+body.athar-reading .playback-btns .athar-icon-button,
+body.athar-reading #audio-mute-toggle { width: 38px; height: 38px; padding: 0; }
+
 body.athar-reading .ctrl-row-playback #play-pause-button.btn-play,
-body.athar-reading #controls .waqf-mode-btn.active {
+body.athar-reading #controls .waqf-mode-btn.active,
+body.athar-reading #controls .reader-tool-button.active,
+body.athar-reading #controls .reader-tool-button[aria-pressed="true"] {
     border-color: var(--athar-accent);
     background: var(--athar-accent);
     color: var(--athar-on-accent);
@@ -80,40 +193,170 @@ body.athar-reading #controls .waqf-mode-btn.active {
 }
 
 body.athar-reading .ctrl-row-playback #play-pause-button.btn-play:hover,
-body.athar-reading #controls .waqf-mode-btn.active:hover {
+body.athar-reading #controls .waqf-mode-btn.active:hover,
+body.athar-reading #controls .reader-tool-button.active:hover {
     border-color: var(--athar-accent-soft);
     background: var(--athar-accent-soft);
     color: var(--athar-on-accent);
 }
 
-body.athar-reading .waqf-row-title,
-body.athar-reading .waqf-card-name,
-body.athar-reading .waqf-panel-title {
+body.athar-reading .audio-seek-slider,
+body.athar-reading #khatt-justify-slider { accent-color: var(--athar-accent); }
+
+body.athar-reading .reader-drawers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    max-width: 100%;
+}
+
+body.athar-reading .reader-drawer {
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body.athar-reading .reader-drawer summary {
+    display: grid;
+    grid-template-columns: 38px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 74px;
+    padding: 12px 16px;
+    color: var(--athar-ink);
+    cursor: pointer;
+    list-style: none;
+    transition: background var(--athar-motion-fast) var(--athar-ease);
+}
+
+body.athar-reading .reader-drawer summary::-webkit-details-marker { display: none; }
+body.athar-reading .reader-drawer summary::marker { content: ""; }
+body.athar-reading .reader-drawer summary:hover { background: color-mix(in srgb, var(--athar-accent) 5%, transparent); }
+
+body.athar-reading .reader-drawer-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--athar-gold) 34%, var(--athar-line));
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--athar-gold) 8%, transparent);
     color: var(--athar-gold);
 }
+
+body.athar-reading .reader-drawer summary > span:nth-child(2) { display: grid; gap: 3px; }
+body.athar-reading .reader-drawer summary b { font-size: 0.9rem; }
+body.athar-reading .reader-drawer summary small { color: var(--athar-ink-faint); font-size: 0.72rem; font-weight: 500; line-height: 1.5; }
+body.athar-reading .reader-drawer-caret { color: var(--athar-ink-faint); font-size: 0.75rem; transition: transform var(--athar-motion-base) var(--athar-ease); }
+body.athar-reading .reader-drawer[open] .reader-drawer-caret { transform: rotate(180deg); }
+
+body.athar-reading .reader-drawer > .ctrl-row {
+    margin: 0;
+    padding: 16px;
+    border-top: 1px solid var(--athar-line-soft);
+}
+
+body.athar-reading .waqf-row-header { gap: 8px; }
+body.athar-reading .waqf-row-title,
+body.athar-reading .waqf-card-name,
+body.athar-reading .waqf-panel-title { color: var(--athar-gold); }
 
 body.athar-reading .waqf-row-desc,
 body.athar-reading .repeat-label,
 body.athar-reading .playback-time,
-body.athar-reading .khatt-justify-label {
-    color: var(--athar-ink-faint);
+body.athar-reading .khatt-justify-label,
+body.athar-reading .mushaf-pills-label { color: var(--athar-ink-faint); }
+
+body.athar-reading .waqf-controls-wrap { gap: 12px; }
+body.athar-reading .waqf-mode-control.athar-tabs { width: 100%; padding: 4px; background: var(--athar-parchment); }
+
+body.athar-reading #controls .waqf-mode-btn {
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--athar-ink-soft);
+    font-size: 0.74rem;
 }
 
-body.athar-reading .mushaf-pill {
+body.athar-reading .mushaf-pills-wrap { align-items: flex-start; }
+body.athar-reading .mushaf-pills-row { gap: 6px; }
+body.athar-reading #controls .mushaf-pill {
+    min-height: 32px;
+    padding: 5px 11px;
     border-color: var(--athar-line);
     background: transparent;
     color: var(--athar-ink-soft);
+    font-family: var(--font-ui);
+    font-size: 0.72rem;
 }
 
-body.athar-reading .mushaf-pill.active {
-    border-color: color-mix(in srgb, var(--athar-accent) 42%, var(--athar-line));
-    background: color-mix(in srgb, var(--athar-accent) 10%, var(--athar-surface));
-    color: var(--athar-accent);
+body.athar-reading #controls .mushaf-pill.active {
+    border-color: color-mix(in srgb, currentColor 48%, var(--athar-line));
+    background: color-mix(in srgb, currentColor 8%, var(--athar-surface));
+    box-shadow: inset 0 0 0 1px currentColor;
+}
+
+body.athar-reading .waqf-legend {
+    border-color: var(--athar-line);
+    border-radius: var(--athar-radius-control);
+    background: var(--athar-parchment);
+    color: var(--athar-ink-soft);
+}
+
+body.athar-reading .ctrl-row-khatt-justify {
+    margin: 0;
+    padding: 12px 16px;
+    border-top: 0;
+    border-radius: var(--athar-radius-surface);
+}
+
+body.athar-reading #khatt-justify-reset { width: 34px; height: 34px; padding: 0; opacity: 1; }
+
+body.athar-reading .reading-tool-btns { width: 100%; gap: 7px; }
+body.athar-reading #controls .reader-tool-button {
+    min-height: 36px;
+    padding: 7px 12px;
+    border: 1px solid var(--athar-line);
+    border-radius: var(--athar-radius-round);
+    font-family: var(--font-ui);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+body.athar-reading .tafseer-group {
+    display: inline-grid;
+    grid-template-columns: auto minmax(88px, 1fr);
+    align-items: stretch;
+    overflow: hidden;
+    border: 1px solid var(--athar-line);
+    border-radius: var(--athar-radius-round);
+}
+
+body.athar-reading .tafseer-group #show-tafseer {
+    border: 0 !important;
+    border-inline-end: 1px solid var(--athar-line) !important;
+    border-radius: 0 !important;
+    background: transparent;
+    color: inherit;
+}
+
+body.athar-reading #controls .tafseer-inline-select {
+    width: auto;
+    min-width: 90px;
+    min-height: 34px;
+    padding: 5px 9px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent;
+    color: var(--athar-ink-soft);
+    font-size: 0.74rem;
 }
 
 body.athar-reading .ayah-container {
     width: min(1120px, calc(100% - clamp(20px, 5vw, 64px)));
-    margin: 0 auto clamp(28px, 6vw, 64px);
+    margin: 12px auto clamp(28px, 6vw, 64px);
     padding: clamp(22px, 4vw, 48px);
     border: 1px solid var(--athar-line);
     border-radius: 18px;
@@ -264,6 +507,52 @@ body.athar-reading #waqf-verse-table-container {
     border-color: var(--athar-line);
 }
 
+body.athar-reading .reader-legend {
+    width: 100%;
+    margin: 12px 0 0;
+    padding: clamp(16px, 2.5vw, 24px);
+}
+
+body.athar-reading .reader-canvas {
+    position: relative;
+    overflow: visible;
+    min-height: clamp(280px, 42vh, 520px);
+}
+
+body.athar-reading .reader-canvas::before {
+    content: "";
+    position: absolute;
+    inset: 12px;
+    border: 1px solid var(--athar-line-soft);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+body.athar-reading .reader-study-result {
+    position: relative;
+    margin-top: 18px;
+    padding: clamp(16px, 2.8vw, 24px);
+    border: 1px solid var(--athar-line);
+    border-radius: var(--athar-radius-control);
+    background: color-mix(in srgb, var(--athar-parchment) 72%, var(--athar-surface));
+}
+
+body.athar-reading .reader-study-result h2 {
+    margin: 0 0 12px;
+    color: var(--athar-gold);
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+}
+
+body.athar-reading .reader-study-result:empty {
+    min-height: 88px;
+}
+
+body.athar-reading .mutashabihat-hint {
+    color: var(--athar-ink-faint);
+    line-height: 1.75;
+}
+
 body.athar-reading .modal-content {
     border: 1px solid var(--athar-line);
     background: var(--athar-surface);
@@ -271,27 +560,113 @@ body.athar-reading .modal-content {
     box-shadow: 0 28px 80px -35px rgba(24, 23, 15, 0.55);
 }
 
+body.athar-reading .modal-content h3 {
+    color: var(--athar-ink);
+    font-family: var(--font-display);
+}
+
+body.athar-reading .modal-content select,
+body.athar-reading .modal-content button:not(.modal-close) {
+    border-color: var(--athar-line);
+    background: var(--athar-parchment);
+    color: var(--athar-ink);
+}
+
 body.athar-reading .word-meaning-tooltip {
     background: var(--athar-ink);
     color: var(--athar-surface);
 }
 
+@media (max-width: 900px) {
+    body.athar-reading .reader-intro {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    body.athar-reading .reader-intro > p { max-width: 58ch; }
+
+    body.athar-reading .ctrl-row-nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.athar-reading .reader-voice { position: absolute; inset-inline-end: 14px; }
+
+    body.athar-reading .ctrl-row-playback {
+        grid-template-columns: 1fr;
+    }
+
+    body.athar-reading .playback-extra { justify-content: flex-start; }
+
+    body.athar-reading .reader-drawers { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 640px) {
-    body.athar-reading .controls-container,
+    body.athar-reading .reader-main,
     body.athar-reading .ayah-container {
         width: calc(100% - 16px);
     }
 
-    body.athar-reading .controls-container {
+    body.athar-reading .reader-main {
         margin-top: 16px;
     }
 
-    body.athar-reading #controls,
+    body.athar-reading .reader-intro {
+        padding-inline: 6px;
+        padding-bottom: 24px;
+    }
+
+    body.athar-reading .reader-intro h1 { font-size: clamp(2.2rem, 13vw, 3.4rem); }
+
+    body.athar-reading .reader-primary,
     body.athar-reading .ayah-container {
         border-radius: 14px;
     }
 
+    body.athar-reading .reader-primary {
+        position: relative;
+        top: auto;
+        padding: 10px;
+    }
+
+    body.athar-reading .ctrl-row-nav { grid-template-columns: 1fr 0.55fr; }
+    body.athar-reading .reader-field:nth-of-type(3),
+    body.athar-reading .reader-field:nth-of-type(4) { grid-column: 1 / -1; }
+
+    body.athar-reading .playback-main {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+
+    body.athar-reading .playback-seek { width: 100%; }
+
+    body.athar-reading .playback-btns { justify-content: center; }
+    body.athar-reading .playback-extra { justify-content: center; }
+
+    body.athar-reading .reader-drawer summary {
+        grid-template-columns: 34px 1fr auto;
+        min-height: 68px;
+        padding: 10px 12px;
+    }
+
+    body.athar-reading .reader-drawer-icon { width: 34px; height: 34px; }
+
+    body.athar-reading .reader-drawer > .ctrl-row { padding: 12px; }
+    body.athar-reading .waqf-mode-control.athar-tabs { display: grid; grid-template-columns: repeat(2, 1fr); }
+    body.athar-reading .waqf-mode-label { grid-column: 1 / -1; padding: 5px 8px; }
+
+    body.athar-reading .reading-tool-btns > *,
+    body.athar-reading .tafseer-group { flex: 1 1 calc(50% - 7px); }
+
+    body.athar-reading #controls .reader-tool-button { width: 100%; }
+
     body.athar-reading .ayah-container {
         padding: 18px 12px 32px;
+    }
+
+    body.athar-reading #quran-text {
+        margin-top: 0.5rem;
+        padding-inline: 6px;
+        font-size: clamp(28px, 9vw, 36px);
     }
 }

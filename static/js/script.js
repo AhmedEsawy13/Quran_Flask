@@ -263,6 +263,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .find((b) => b.value === version);
             if (btn && !btn.classList.contains('active')) {
                 btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
                 changed = true;
             }
         });
@@ -293,12 +294,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     btn.value = version;
                     btn.textContent = version;
                     const colorCls = getMushafColorClass(version);
-                    btn.className = 'mushaf-pill ' + colorCls;
+                    btn.className = 'mushaf-pill athar-chip ' + colorCls;
                     if (saved.includes(version)) btn.classList.add('active');
+                    btn.setAttribute('aria-pressed', btn.classList.contains('active') ? 'true' : 'false');
                     btn.addEventListener('click', () => {
                         const wasPlaying = !elements.audioElement.paused;
                         const savedTime = elements.audioElement.currentTime;
                         btn.classList.toggle('active');
+                        btn.setAttribute('aria-pressed', btn.classList.contains('active') ? 'true' : 'false');
                         localStorage.setItem('quranApp_mushafVersions',
                             JSON.stringify(getSelectedMushafVersions()));
                         loadQuranData().then(() => {
@@ -528,6 +531,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (legend) {
                 const hidden = legend.hasAttribute('hidden');
                 if (hidden) { legend.removeAttribute('hidden'); } else { legend.setAttribute('hidden', ''); }
+                legendToggle.setAttribute('aria-expanded', hidden ? 'true' : 'false');
             }
         });
 
@@ -538,6 +542,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const hidden = legend.hasAttribute('hidden');
             if (hidden) { legend.removeAttribute('hidden'); } else { legend.setAttribute('hidden', ''); }
             tajweedLegendToggle.classList.toggle('active', hidden);
+            tajweedLegendToggle.setAttribute('aria-expanded', hidden ? 'true' : 'false');
         });
 
         const waqfTableBtn = document.getElementById('toggle-waqf-table');
@@ -549,10 +554,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (isHidden) {
                     tableContainer.removeAttribute('hidden');
                     waqfTableBtn.classList.add('active');
+                    waqfTableBtn.setAttribute('aria-pressed', 'true');
                     renderWaqfVerseTable();
                 } else {
                     tableContainer.setAttribute('hidden', '');
                     waqfTableBtn.classList.remove('active');
+                    waqfTableBtn.setAttribute('aria-pressed', 'false');
                 }
             });
         }
@@ -1441,7 +1448,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Update active button highlight
         if (elements.waqfModeControl) {
             elements.waqfModeControl.querySelectorAll('.waqf-mode-btn').forEach((btn) => {
-                btn.classList.toggle('active', btn.dataset.mode === mode);
+                const active = btn.dataset.mode === mode;
+                btn.classList.toggle('active', active);
+                btn.setAttribute('aria-pressed', active ? 'true' : 'false');
             });
         }
 
@@ -1725,7 +1734,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const eerabButton = document.getElementById('show-eerab');
         const eerabContainer = document.getElementById('eerab-container');
         if (!eerabButton || !eerabContainer) return;
-        eerabButton.textContent = eerabContainer.style.display === 'none' ? 'الإعراب' : 'إخفاء الإعراب';
+        const enabled = eerabContainer.style.display !== 'none';
+        eerabButton.textContent = enabled ? 'إخفاء الإعراب' : 'الإعراب';
+        eerabButton.classList.toggle('active', enabled);
+        eerabButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     }
 
     // ── المتشابهات (similar verses, للحفظ) ────────────────────────────────────
@@ -1827,6 +1839,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const container = document.getElementById('mutashabihat-container');
         if (!btn || !container) return;
         const on = container.style.display !== 'none';
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         btn.innerHTML = on
             ? '<i class="fas fa-clone"></i> إخفاء المتشابهات'
             : '<i class="fas fa-clone"></i> المتشابهات';
@@ -2195,29 +2209,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateTransliterationButton() {
         const transliterationButton = document.getElementById('show-transliteration');
         const transliterationContainer = document.getElementById('transliteration-container');
-        if (transliterationContainer.style.display === 'none') {
+        if (!transliterationButton || !transliterationContainer) return;
+        const enabled = transliterationContainer.style.display !== 'none';
+        if (!enabled) {
             transliterationButton.textContent = 'عرض النطق الحرفي ';
         } else {
             transliterationButton.textContent = 'اخفاء النطق الحرفي';
         }
+        transliterationButton.classList.toggle('active', enabled);
+        transliterationButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     }
 
     function updateTafseerButton() {
         const tafseerButton = document.getElementById('show-tafseer');
         const tafseerContainer = document.getElementById('tafseer-container');
-        if (tafseerContainer.style.display === 'none') {
+        if (!tafseerButton || !tafseerContainer) return;
+        const enabled = tafseerContainer.style.display !== 'none';
+        if (!enabled) {
             tafseerButton.textContent = 'عرض التفسير';
         } else {
             tafseerButton.textContent = 'اخفاء التفسير';
         }
+        tafseerButton.classList.toggle('active', enabled);
+        tafseerButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
     }
 
     function updateWordMeaningButton() {
+        if (!elements.toggleWordMeaningButton) return;
         if (elements.wordMeaningVisible) {
             elements.toggleWordMeaningButton.textContent = 'اخفاء غريب الكلمات';
         } else {
             elements.toggleWordMeaningButton.textContent = 'عرض غريب الكلمات';
         }
+        elements.toggleWordMeaningButton.classList.toggle('active', elements.wordMeaningVisible);
+        elements.toggleWordMeaningButton.setAttribute('aria-pressed', elements.wordMeaningVisible ? 'true' : 'false');
     }
 
     // ── Recitation Guide ────────────────────────────────────────────────────
@@ -2232,6 +2257,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (guideBtn) {
             guideBtn.classList.toggle('active', isHidden);
+            guideBtn.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
             const btnText = guideBtn.querySelector('span');
             if (btnText) btnText.textContent = isHidden ? 'إخفاء دليل التلاوة' : 'دليل التلاوة';
         }

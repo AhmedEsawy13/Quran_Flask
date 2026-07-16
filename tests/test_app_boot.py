@@ -140,6 +140,26 @@ def test_ui_foundation_exposes_thmanyah_alternates_and_components(client):
         assert f'.{primitive}' in components
 
 
+def test_reader_uses_shared_editorial_structure_and_accessible_tools(client):
+    page = client.get('/read').get_data(as_text=True)
+    script = (PROJECT_ROOT / 'static/js/script.js').read_text(encoding='utf-8')
+
+    assert page.index('css/athar-components.css') < page.index('css/reading_athar.css')
+    assert 'class="reader-intro" aria-labelledby="reader-title"' in page
+    assert 'id="reader-title" aria-label="اقرأ المصحف، وتدبّر المعنى."' in page
+    assert 'اقرأ المصحــف، وتدبّر المعنى.' in page
+    assert 'class="reader-primary athar-surface"' in page
+    assert 'class="reader-drawer athar-surface" id="reader-waqf-drawer"' in page
+    assert 'class="reader-drawer athar-surface" id="reader-study-drawer"' in page
+    assert 'class="ayah-container reader-canvas athar-surface"' in page
+    for target in ('transliteration-container', 'tafseer-container', 'eerab-container',
+                   'mutashabihat-container', 'word-meaning-text',
+                   'waqf-verse-table-container'):
+        assert f'aria-controls="{target}"' in page
+    assert "setAttribute('aria-expanded'" in script
+    assert "setAttribute('aria-pressed'" in script
+
+
 def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
     page = client.get('/waqf').get_data(as_text=True)
     assert 'role="tablist"' in page
