@@ -14,7 +14,7 @@
     'use strict';
     const $ = id => document.getElementById(id);
     const { normalizeNonWarshWaqfText, stripEmbeddedWaqf } = window.AtharMushaf;
-    const { toAr, juzNumber, juzGlyph, surahHeaderGlyph, JUZ_NAME } = window.AtharPageChrome;
+    const { toAr, clearPageChrome, renderPageChrome } = window.AtharPageChrome;
 
     const MAX_SPREAD = 302;
     const MAX_PAGE = 604;
@@ -158,16 +158,17 @@
     function renderPage(container, numEl, refBtn, juzEl, surahEl, payload) {
         container.innerHTML = '';
         if (!payload) {
-            numEl.textContent = '';
-            juzEl.textContent = ''; juzEl.classList.remove('ed-juz-glyph');
-            surahEl.innerHTML = '';
+            clearPageChrome({
+                juzEl, surahEl, pageNumberEl: numEl, juzGlyphClass: 'ed-juz-glyph',
+            });
             refBtn.hidden = true;
             delete refBtn.dataset.page;
             delete refBtn.dataset.surah;
             delete refBtn.dataset.ayah;
+            refBtn.removeAttribute('title');
+            refBtn.removeAttribute('aria-label');
             return;
         }
-        numEl.textContent = window.AtharPageChrome.pageNumberLabel(payload.page_number);
         refBtn.dataset.page = payload.page_number;
         if (payload.anchor_surah_number && payload.anchor_ayah_number) {
             refBtn.dataset.surah = payload.anchor_surah_number;
@@ -207,47 +208,51 @@
             },
         });
 
-        // Running head: every surah on the page + its juz — informational only
-        // (this page already has its own jump/prev-next nav, unlike تثبيت's
-        // tap-to-pick sheet for the same running head).
-        const seen = new Set();
-        const surahsOnPage = [];
-        (payload.lines || []).forEach(l => {
-            (l.words || []).forEach(w => { if (w.surah != null && !seen.has(w.surah)) { seen.add(w.surah); surahsOnPage.push(w.surah); } });
-            if (l.line_type === 'surah_name' && l.surah_number != null && !seen.has(l.surah_number)) { seen.add(l.surah_number); surahsOnPage.push(l.surah_number); }
+        // Informational only: this page already has its own jump/prev-next nav,
+        // unlike تثبيت's tappable version of the same shared running head.
+        renderPageChrome({
+            payload, juzEl, surahEl, pageNumberEl: numEl,
+            juzGlyphClass: 'ed-juz-glyph',
+            surahGlyphClass: 'ed-head-glyph-item',
+            surahTextClass: 'ed-head-text-item',
         });
-        if (!surahsOnPage.length && payload.anchor_surah_number != null) surahsOnPage.push(payload.anchor_surah_number);
-        surahEl.innerHTML = '';
-        surahsOnPage.forEach(sn => {
-            const g = surahHeaderGlyph(sn);
-            const item = document.createElement('span');
-            if (g) { item.className = 'ed-head-glyph-item'; item.textContent = g; item.setAttribute('aria-label', `سورة ${sn}`); }
-            else { item.className = 'ed-head-text-item'; item.textContent = `سورة ${sn}`; }
-            surahEl.appendChild(item);
-        });
-        const jn = juzNumber(payload.page_number);
-        const jg = juzGlyph(jn);
-        const jl = `الجزء ${JUZ_NAME[jn - 1]}`;
-        if (jg) { juzEl.classList.add('ed-juz-glyph'); juzEl.textContent = jg; juzEl.title = jl; juzEl.setAttribute('aria-label', jl); }
-        else { juzEl.classList.remove('ed-juz-glyph'); juzEl.textContent = jl; }
     }
 
     /* ── Page sizing & line-fit ──────────────────────────────────────
        Shared fit-math/algorithms live in athar-page-chrome.js (this page's
        own sizePages/applyFontSize/justifyLines used to be a hand-ported,
        already-drifted copy of تثبيت's — see mushaf_memorize.js for the
-       equivalent, more heavily-commented version). Only the measurement
-       strategy (this page's own .ed-main element, unchanged) and the font
-       features (Old Madina only, this page never renders شمرلي or Digital
-       Khatt) stay page-specific. */
+       equivalent, more heavily-commented version). Only the measurement hook
+       (this page's own fixed chrome) and the font features (Old Madina only,
+       this page never renders شمرلي or Digital Khatt) stay page-specific. */
     const PAGE_RATIO = 0.66; // width / height
     function sizePages() {
         const main = document.querySelector('.ed-main');
         if (!main) return;
+        // Never derive the available height from .ed-main: its min-content
+        // height includes the page we are sizing, so each resize fed the old
+        // page height back into the next measurement and made the document
+        // grow. Fixed chrome is safe to measure because it does not depend on
+        // --ed-page-h.
+        const outerHeight = element => {
+            if (!element) return 0;
+            const style = getComputedStyle(element);
+            return element.getBoundingClientRect().height
+                + (parseFloat(style.marginTop) || 0)
+                + (parseFloat(style.marginBottom) || 0);
+        };
+        const mainStyle = getComputedStyle(main);
+        const mainPad = (parseFloat(mainStyle.paddingTop) || 0)
+            + (parseFloat(mainStyle.paddingBottom) || 0);
+        const fixedChrome = outerHeight(document.querySelector('.athar-bar'))
+            + outerHeight(document.querySelector('.ed-bar'))
+            + outerHeight(els.legend)
+            + outerHeight(document.querySelector('.ed-page-header'))
+            + mainPad;
         window.AtharPageChrome.sizePages({
             cssVarPrefix: 'ed', pages: 2, ratio: PAGE_RATIO,
             gutter: 20, floor: true,
-            getAvailH: () => main.clientHeight - 36 - 24, // 24 = .ed-page-header height + margin
+            getAvailH: () => window.innerHeight - fixedChrome,
             getAvailW: () => main.clientWidth - 20,
         });
     }

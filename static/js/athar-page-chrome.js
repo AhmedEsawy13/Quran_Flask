@@ -76,13 +76,10 @@
     /* ── Page sizing ─────────────────────────────────────────────────────
        Fits `pages` page-cards into an available box at a fixed mushaf
        ratio, writing --{cssVarPrefix}-page-w/-h onto <html>. The available
-       box itself is 100% caller-defined (getAvailH/getAvailW) — تثبيت
-       measures the viewport minus fixed chrome (deliberately NOT an
-       element's clientHeight — see its own code comment about the
-       feedback-loop that caused), مصحف-editor measures its own stage
-       element directly. Both are legitimate, proven strategies for their
-       own layout, so this function shares the fit MATH, not the
-       measurement source. */
+       box itself is 100% caller-defined (getAvailH/getAvailW). Both consumers
+       subtract their own fixed chrome from the viewport rather than measuring
+       a page-dependent stage height (which creates a growth feedback loop),
+       while this function owns only the shared fit math. */
     function sizePages(config) {
         const {
             getAvailH, getAvailW, cssVarPrefix,
@@ -90,20 +87,30 @@
             minW = 150, minH = 230, floor = false,
         } = config || {};
         if (typeof getAvailH !== 'function' || typeof getAvailW !== 'function' || !cssVarPrefix) return;
-        const availH = Math.max(minH, getAvailH());
-        const availW = Math.max(minW, getAvailW());
-        const g = pages > 1 ? gutter : 0;
+        const pageCount = Math.max(1, Math.floor(Number(pages) || 1));
+        const pageRatio = Number.isFinite(Number(ratio)) && Number(ratio) > 0 ? Number(ratio) : 0.66;
+        const measuredH = Number(getAvailH());
+        const measuredW = Number(getAvailW());
+        const availH = Math.max(minH, Number.isFinite(measuredH) ? measuredH : minH);
+        const availW = Math.max(minW, Number.isFinite(measuredW) ? measuredW : minW);
+        const g = pageCount > 1 ? Math.max(0, Number(gutter) || 0) : 0;
+        const pad = Math.max(0, Number(spreadPad) || 0);
         let h = availH;
-        let w = h * ratio;
-        const totalW = w * pages + g + spreadPad;
+        let w = h * pageRatio;
+        const totalW = w * pageCount + g + pad;
         if (totalW > availW) {
-            const s = (availW - g - spreadPad) / (w * pages);
+            // A very narrow host can leave less room than its own gutters. Keep
+            // the scale positive; the caller's minW/minH then deliberately makes
+            // the stage scroll instead of producing negative CSS dimensions.
+            const widthBudget = Math.max(1, availW - g - pad);
+            const s = widthBudget / (w * pageCount);
             w *= s; h *= s;
         }
         w = Math.max(minW, floor ? Math.floor(w) : w);
         h = Math.max(minH, floor ? Math.floor(h) : h);
         document.documentElement.style.setProperty(`--${cssVarPrefix}-page-w`, w + 'px');
         document.documentElement.style.setProperty(`--${cssVarPrefix}-page-h`, h + 'px');
+        return { width: w, height: h };
     }
 
     /* ── Font sizing ─────────────────────────────────────────────────────
@@ -212,13 +219,97 @@
         };
     }
 
+    /* ── Running head / page number ──────────────────────────────────── */
+    function collectPageSurahs(payload) {
+        const seen = new Set();
+        const result = [];
+        const add = value => {
+            const n = Number(value);
+            if (!Number.isInteger(n) || n < 1 || n > 114 || seen.has(n)) return;
+            seen.add(n);
+            result.push(n);
+        };
+        ((payload && payload.lines) || []).forEach(line => {
+            (line.words || []).forEach(word => add(word.surah));
+            if (line.line_type === 'surah_name') add(line.surah_number);
+        });
+        if (!result.length && payload) add(payload.anchor_surah_number);
+        return result;
+    }
+
+    function clearPageChrome(config) {
+        const { juzEl, surahEl, pageNumberEl, juzGlyphClass = '' } = config || {};
+        if (juzEl) {
+            juzEl.replaceChildren();
+            if (juzGlyphClass) juzEl.classList.remove(juzGlyphClass);
+            juzEl.removeAttribute('title');
+            juzEl.removeAttribute('aria-label');
+        }
+        if (surahEl) surahEl.replaceChildren();
+        if (pageNumberEl) pageNumberEl.textContent = '';
+    }
+
+    function renderPageChrome(config) {
+        const {
+            payload, juzEl, surahEl, pageNumberEl,
+            getJuzNumber = page => juzNumber(page.page_number),
+            getSurahName = () => '',
+            juzGlyphClass = '', surahGlyphClass = '', surahTextClass = '',
+        } = config || {};
+        clearPageChrome({ juzEl, surahEl, pageNumberEl, juzGlyphClass });
+        if (!payload) return;
+
+        collectPageSurahs(payload).forEach(number => {
+            if (!surahEl) return;
+            const name = String(getSurahName(number) || '').trim();
+            const accessibleName = name || toAr(number);
+            const glyph = surahHeaderGlyph(number);
+            const item = document.createElement('span');
+            if (glyph) {
+                if (surahGlyphClass) item.className = surahGlyphClass;
+                item.textContent = glyph;
+                item.setAttribute('aria-label', `سورة ${accessibleName}`);
+            } else {
+                if (surahTextClass) item.className = surahTextClass;
+                item.textContent = `سورة ${accessibleName}`;
+            }
+            surahEl.appendChild(item);
+        });
+
+        const jn = Number(getJuzNumber(payload));
+        if (juzEl && Number.isInteger(jn) && jn >= 1 && jn <= 30) {
+            const label = `الجزء ${JUZ_NAME[jn - 1]}`;
+            const glyph = juzGlyph(jn);
+            if (glyph && juzGlyphClass) {
+                juzEl.classList.add(juzGlyphClass);
+                juzEl.textContent = glyph;
+                juzEl.title = label;
+                juzEl.setAttribute('aria-label', label);
+            } else {
+                juzEl.textContent = label;
+            }
+        }
+        if (pageNumberEl && payload.page_number != null) {
+            pageNumberEl.textContent = pageNumberLabel(payload.page_number);
+        }
+    }
+
     /* ── Empty state ─────────────────────────────────────────────────── */
     function renderEmptyState(container, options) {
         const { icon = 'fa-book-quran', message = '', baseClass, extraClass = '' } = options || {};
         if (!container || !baseClass) return;
-        const msgHtml = message ? `<span>${message}</span>` : '';
-        container.innerHTML = `<div class="${baseClass}${extraClass ? ' ' + extraClass : ''}">`
-            + `<i class="fas ${icon}"></i>${msgHtml}</div>`;
+        const empty = document.createElement('div');
+        empty.className = `${baseClass}${extraClass ? ' ' + extraClass : ''}`;
+        const iconEl = document.createElement('i');
+        iconEl.className = `fas ${icon}`;
+        iconEl.setAttribute('aria-hidden', 'true');
+        empty.appendChild(iconEl);
+        if (message) {
+            const text = document.createElement('span');
+            text.textContent = message;
+            empty.appendChild(text);
+        }
+        container.replaceChildren(empty);
     }
 
     window.AtharPageChrome = Object.freeze({
@@ -233,6 +324,9 @@
         sizePages,
         createFontSizer,
         createLineJustifier,
+        collectPageSurahs,
+        clearPageChrome,
+        renderPageChrome,
         renderEmptyState,
     });
 })();

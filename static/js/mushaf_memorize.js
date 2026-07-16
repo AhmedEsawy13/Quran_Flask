@@ -192,7 +192,7 @@
 
     // Surah-name banner glyph data + function now live in athar-page-chrome.js
     // (shared with مصحف-editor, which was re-porting a drifted copy of this).
-    const { surahHeaderGlyph } = window.AtharPageChrome;
+    const { surahHeaderGlyph, clearPageChrome, renderPageChrome } = window.AtharPageChrome;
 
     /* ── Waqf symbol normalization — ported from the main app so the memorize
        page renders the same glyphs in the same fonts. ─────────────────────── */
@@ -322,7 +322,7 @@
     /* ── Arabic-Indic digits + juz ─────────────────────────────────────
        Data + functions now live in athar-page-chrome.js (shared with
        مصحف-editor, which was re-porting a drifted copy of this). */
-    const { toAr, juzNumber, juzFromAyah, juzGlyph, JUZ_NAME, JUZ_START_PAGE } = window.AtharPageChrome;
+    const { toAr, juzNumber, juzFromAyah, JUZ_NAME, JUZ_START_PAGE } = window.AtharPageChrome;
 
     const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
     const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
@@ -769,9 +769,10 @@
         card._payload = payload;   // cache for cheap re-render (e.g. waqf toggle)
         if (!payload) {
             window.AtharPageChrome.renderEmptyState(pageEl, { baseClass: 'mz-page-empty' });
-            card.juz.textContent = '';
-            card.surah.textContent = '';
-            card.foot.textContent = '';
+            clearPageChrome({
+                juzEl: card.juz, surahEl: card.surah, pageNumberEl: card.foot,
+                juzGlyphClass: 'mz-juz-glyph',
+            });
             pageEl.classList.remove('mz-has-page');
             return;
         }
@@ -784,7 +785,10 @@
                 baseClass: 'mz-page-empty', extraClass: 'mz-page-na', icon: 'fa-circle-info',
                 message: 'هذه الصفحة غير متوفرة بخط الشمرلي بعد',
             });
-            card.juz.textContent = ''; card.surah.textContent = '';
+            clearPageChrome({
+                juzEl: card.juz, surahEl: card.surah, pageNumberEl: card.foot,
+                juzGlyphClass: 'mz-juz-glyph',
+            });
             card.foot.textContent = toAr(payload.page_number || '');
             return;
         }
@@ -828,32 +832,18 @@
             },
         });
 
-        // Running head: every surah on the page (left) + juz (right) + page number.
-        const seen = new Set();
-        const surahsOnPage = [];
-        (payload.lines || []).forEach(l => {
-            (l.words || []).forEach(w => { if (w.surah != null && !seen.has(w.surah)) { seen.add(w.surah); surahsOnPage.push(w.surah); } });
-            if (l.line_type === 'surah_name' && l.surah_number != null && !seen.has(l.surah_number)) { seen.add(l.surah_number); surahsOnPage.push(l.surah_number); }
-        });
-        if (!surahsOnPage.length && payload.anchor_surah_number != null) surahsOnPage.push(payload.anchor_surah_number);
-        card.surah.innerHTML = '';
-        surahsOnPage.forEach(sn => {
-            const g = surahHeaderGlyph(sn);
-            const el = document.createElement('span');
-            if (g) { el.className = 'mz-head-glyph-item'; el.textContent = g; el.setAttribute('aria-label', `سورة ${surahNameOf(sn)}`); }
-            else { el.className = 'mz-head-text-item'; el.textContent = surahNameOf(sn) ? `سورة ${surahNameOf(sn)}` : ''; }
-            card.surah.appendChild(el);
-        });
         // Shemrly's layout-DB page numbers don't match the 604-page Madina numbering,
         // so derive its juz from the page's first ayah instead of the page number.
-        const jn = state.src === 'shamarly'
-            ? juzFromAyah(payload.anchor_surah_number, payload.anchor_ayah_number)
-            : juzNumber(payload.page_number);
-        const jg = juzGlyph(jn);
-        const jl = `الجزء ${JUZ_NAME[jn - 1]}`;
-        if (jg) { card.juz.classList.add('mz-juz-glyph'); card.juz.textContent = jg; card.juz.title = jl; card.juz.setAttribute('aria-label', jl); }
-        else { card.juz.classList.remove('mz-juz-glyph'); card.juz.textContent = jl; }
-        card.foot.textContent = window.AtharPageChrome.pageNumberLabel(payload.page_number);
+        renderPageChrome({
+            payload, juzEl: card.juz, surahEl: card.surah, pageNumberEl: card.foot,
+            getJuzNumber: page => state.src === 'shamarly'
+                ? juzFromAyah(page.anchor_surah_number, page.anchor_ayah_number)
+                : juzNumber(page.page_number),
+            getSurahName: surahNameOf,
+            juzGlyphClass: 'mz-juz-glyph',
+            surahGlyphClass: 'mz-head-glyph-item',
+            surahTextClass: 'mz-head-text-item',
+        });
     }
 
     function surahNameOf(num) {
