@@ -14,12 +14,12 @@
 {% if href %}</a>{% else %}</button>{% endif %}
 {%- endmacro %}
 
-{% macro athar_page_intro(kicker, title, description=none, title_id='athar-page-title', extra_class='') -%}
-<section class="athar-page-intro{{ ' ' ~ extra_class if extra_class else '' }}" aria-labelledby="{{ title_id }}">
+{% macro athar_page_intro(kicker, title, description=none, title_id='athar-page-title', section_id=none, extra_class='', title_aria_label=none, footer_class='athar-actions') -%}
+<section class="athar-page-intro{{ ' ' ~ extra_class if extra_class else '' }}"{% if section_id %} id="{{ section_id }}"{% endif %} aria-labelledby="{{ title_id }}">
     {% if kicker %}<p class="athar-kicker">{{ kicker }}</p>{% endif %}
-    <h1 class="athar-title" id="{{ title_id }}">{{ title }}</h1>
+    <h1 class="athar-title" id="{{ title_id }}"{% if title_aria_label %} aria-label="{{ title_aria_label }}"{% endif %}>{{ title }}</h1>
     {% if description %}<p class="athar-lede">{{ description }}</p>{% endif %}
-    {% if caller is defined %}<div class="athar-actions">{{ caller() }}</div>{% endif %}
+    {% if caller is defined %}<div{% if footer_class %} class="{{ footer_class }}"{% endif %}>{{ caller() }}</div>{% endif %}
 </section>
 {%- endmacro %}
 

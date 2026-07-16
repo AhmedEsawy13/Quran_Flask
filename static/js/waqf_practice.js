@@ -21,7 +21,7 @@
     };
 
     // Button state helpers (follow/tajweed/layout are aria-pressed buttons,
-    // not checkboxes). Popover behavior is shared with the memorization page.
+    // not checkboxes). Popover behavior comes from the shared أثَر UI layer.
     const isPressed = btn => !!btn && btn.getAttribute('aria-pressed') === 'true';
     const setPressed = (btn, val) => { if (btn) btn.setAttribute('aria-pressed', val ? 'true' : 'false'); };
     const popovers = window.AtharUi.createPopoverGroup();
@@ -97,7 +97,7 @@
         popovers.register(els.mushafTrigger, els.mushafPanel);
         if (els.rangeTrigger) els.rangeTrigger.addEventListener('click', () => popovers.toggle(els.rangeTrigger, els.rangePanel));
         if (els.mushafTrigger) els.mushafTrigger.addEventListener('click', () => popovers.toggle(els.mushafTrigger, els.mushafPanel));
-        document.addEventListener('click', e => { if (!e.target.closest('.mz-pop')) popovers.close(); });
+        document.addEventListener('click', e => { if (!e.target.closest('.wp-pop')) popovers.close(); });
         if (!await onSurah()) return;
         // deep link ?surah=&from=&to=
         const p = new URLSearchParams(location.search);
@@ -116,6 +116,8 @@
         const request = surahRequests.next();
         passageRequests.cancel();
         gradeRequests.cancel();
+        window.AtharUi.setBusy(els.load, false);
+        window.AtharUi.setBusy(els.grade, false);
         els.load.disabled = true;
         const s = +els.surah.value || 1;
         try {
@@ -144,7 +146,9 @@
         if (t - f > 20) { showPageState('error', 'المقطع طويل — اختر ٢١ آية أو أقل.'); return; }
         const request = passageRequests.next();
         gradeRequests.cancel();
+        window.AtharUi.setBusy(els.grade, false);
         els.load.disabled = true;
+        window.AtharUi.setBusy(els.load, true);
         showPageState('loading', 'جارٍ تحميل المقطع…');
         try {
             if (rec.on) stopRecord();
@@ -172,7 +176,10 @@
         } catch (e) {
             if (passageRequests.isCurrent(request)) showPageState('error', 'تعذّر تحميل المقطع.');
         } finally {
-            if (passageRequests.isCurrent(request)) els.load.disabled = false;
+            if (passageRequests.isCurrent(request)) {
+                els.load.disabled = false;
+                window.AtharUi.setBusy(els.load, false);
+            }
         }
     }
 
@@ -219,8 +226,8 @@
        Reuses the qpc-v1 604-page layout + Old-Madina font that تثبيت uses.
        The layout words align 1:1 with the passage words per ayah (verified),
        so wpos = running count of real words per ayah maps to the grader. */
-    // Each Madinah print maps to its own page-layout source/font — تثبيت's
-    // own mz-src convention: المدينة الجديد → Digital Khatt, المدينة القديم →
+    // Each Madinah print maps to its established page-layout source/font:
+    // المدينة الجديد → Digital Khatt, المدينة القديم →
     // qpc-v1/Old Madina. Both routes share the same JSON shape (backend's
     // _assemble_layout_page), confirmed in modules/layouts.py, so only the
     // API base + font differ, not the rendering logic below.
@@ -262,8 +269,7 @@
         const selectedLines = window.AtharMushaf.sliceLinesForAyahRange(lines, s, f, t);
         if (!selectedLines.length) return false;
 
-        // Digital Khatt is the unscoped default (matches mushaf_memorize.css's
-        // own convention); qpc-v1/Old Madina is a scoped override — see waqf_practice.css.
+        // Digital Khatt is the default; qpc-v1/Old Madina is a scoped override.
         const src = MADINAH_LAYOUT_SRC[mushaf] || 'digital_khatt';
         els.passage.className = 'wp-passage wp-ml' + (src === 'qpc_v1' ? ' wp-ml-src-qpc-v1' : '');
         window.AtharMushaf.renderMushafLines(els.passage, selectedLines, {
@@ -307,6 +313,7 @@
             return { ayah, wpos };
         });
         els.grade.disabled = true;
+        window.AtharUi.setBusy(els.grade, true);
         showPageState('loading', 'جارٍ تقييم مواضع الوقف…');
         try {
             const j = await window.AtharApi.json('/api/waqf-practice/grade', {
@@ -322,7 +329,10 @@
         } catch (e) {
             if (gradeRequests.isCurrent(request)) showPageState('error', 'تعذّر التقييم.');
         } finally {
-            if (gradeRequests.isCurrent(request)) els.grade.disabled = false;
+            if (gradeRequests.isCurrent(request)) {
+                els.grade.disabled = false;
+                window.AtharUi.setBusy(els.grade, false);
+            }
         }
     }
 
@@ -393,7 +403,7 @@
                 onStatus: setRecNote,
                 onActive: on => {
                     rec.on = on;
-                    els.rec.classList.toggle('mz-listening', on);
+                    els.rec.classList.toggle('is-listening', on);
                     if (els.recIcon) els.recIcon.className = on ? 'fas fa-stop' : 'fas fa-microphone';
                     if (els.recLabel) els.recLabel.textContent = on ? 'إيقاف التسجيل' : 'سجّل وقوفي';
                     if (!on) { clearReciting(); if (els.tajweed && isPressed(els.tajweed)) requestTajweed(); }
@@ -542,6 +552,7 @@
         const errors = j.summary.errors;
         els.scoreNum.textContent = toAr(j.score);
         els.score.className = 'wp-score ' + (j.score >= 85 ? 'wp-score-hi' : j.score >= 65 ? 'wp-score-mid' : 'wp-score-lo');
+        els.score.setAttribute('aria-label', `نتيجة التقييم ${toAr(j.score)} بالمئة`);
         els.scoreTitle.textContent = scoreTitle(j.score, errors);
         els.tGood.textContent = toAr(j.summary.good);
         els.tNote.textContent = toAr(j.summary.notes);
@@ -552,7 +563,7 @@
         if (j.broken_lazim.length) seen.add('error');
         els.legend.innerHTML = Object.keys(VERDICT).filter(v => seen.has(v)).map(v => {
             const d = VERDICT[v];
-            return `<span class="wp-leg"><span class="wp-dot wp-w-${d.cls}"></span>${d.name}</span>`;
+            return `<span class="wp-leg athar-chip"><span class="wp-dot wp-w-${d.cls}"></span>${d.name}</span>`;
         }).join('');
 
         // per-stop verdict lookup + broken-lazim positions

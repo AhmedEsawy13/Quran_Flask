@@ -153,6 +153,27 @@ def test_waqf_practice_exposes_live_async_state(client):
     assert 'id="wp-page-state" role="status" aria-live="polite" hidden' in page
 
 
+def test_waqf_practice_uses_shared_training_foundation(client):
+    page = client.get('/waqf-practice').get_data(as_text=True)
+    script = (PROJECT_ROOT / 'static/js/waqf_practice.js').read_text(encoding='utf-8')
+
+    assert '<body class="athar-training">' in page
+    assert 'css/athar-components.css' in page
+    assert 'css/waqf_practice.css' in page
+    assert 'css/mushaf_memorize.css' not in page
+    assert page.index('css/athar-components.css') < page.index('css/waqf_practice.css')
+    assert 'id="wp-intro" aria-labelledby="wp-title"' in page
+    assert 'id="wp-title" aria-label="اختبر وقفك، ثم افهم النتيجة."' in page
+    assert 'اختبر وقفــك، ثم افهم النتيجة.' in page
+    assert 'class="wp-toolbar athar-toolbar"' in page
+    assert page.count('class="wp-section athar-surface') == 3
+    assert 'aria-controls="wp-range-panel"' in page
+    assert 'aria-controls="wp-mushaf-panel"' in page
+    assert 'class="athar-button" id="wp-grade"' in page
+    assert '.wp-pop' in script and '.mz-pop' not in script
+    assert "classList.toggle('is-listening'" in script
+
+
 def test_memorization_exposes_live_status(client):
     page = client.get('/memorize').get_data(as_text=True)
     assert 'id="mz-status" role="status" aria-live="polite" hidden' in page

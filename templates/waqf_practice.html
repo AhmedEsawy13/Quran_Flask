@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 {% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+{% from "_athar_ui.html" import athar_page_intro %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -7,133 +8,157 @@
     <meta name="description" content="تدريب الوقف — تدرّب على مواضع الوقف والابتداء: علّم أين وقفت، وقيّم وقوفك على علامات المصاحف وأحكام الأئمة (الداني والأشموني)">
     <title>أثَر · تدريب الوقف</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="{{ static_hash('css/mushaf_memorize.css') }}">
-    <link rel="stylesheet" href="{{ static_hash('css/waqf_practice.css') }}">
     {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/waqf_practice.css') }}">
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
 
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
-<body>
+<body class="athar-training">
     {{ athar_app_bar() }}
 
-    <header class="mz-bar" id="wp-bar">
-        <!-- المقطع: surah / from / to (popover) -->
-        <div class="mz-pop">
-            <button class="mz-bar-chip" id="wp-range-trigger" type="button" aria-expanded="false" aria-haspopup="true" title="المقطع">
-                <i class="fas fa-list-ol"></i>
-                <span class="mz-chip-label" id="wp-range-label">اختر مقطعًا</span>
-                <i class="fas fa-chevron-down mz-caret"></i>
-            </button>
-            <div class="mz-pop-panel" id="wp-range-panel" hidden>
-                <div class="mz-field">
-                    <label for="wp-surah">السورة</label>
-                    <div class="mz-select-wrap"><select id="wp-surah"></select><i class="fas fa-chevron-down"></i></div>
+    <header class="wp-toolbar athar-toolbar" id="wp-bar" aria-label="إعدادات التدريب">
+        <div class="wp-toolbar-group wp-toolbar-selectors">
+            <div class="wp-pop">
+                <button class="athar-button athar-button-secondary wp-selector" id="wp-range-trigger" type="button"
+                        aria-expanded="false" aria-haspopup="true" aria-controls="wp-range-panel">
+                    <i class="fas fa-list-ol" aria-hidden="true"></i>
+                    <span class="wp-selector-label" id="wp-range-label">اختر مقطعًا</span>
+                    <i class="fas fa-chevron-down wp-caret" aria-hidden="true"></i>
+                </button>
+                <div class="athar-popover wp-pop-panel" id="wp-range-panel" role="group" aria-label="اختيار المقطع" hidden>
+                    <label class="athar-field-wrap" for="wp-surah">
+                        <span>السورة</span>
+                        <select class="athar-select" id="wp-surah"></select>
+                    </label>
+                    <div class="wp-field-grid">
+                        <label class="athar-field-wrap" for="wp-from">
+                            <span>من الآية</span>
+                            <select class="athar-select" id="wp-from"></select>
+                        </label>
+                        <label class="athar-field-wrap" for="wp-to">
+                            <span>إلى الآية</span>
+                            <select class="athar-select" id="wp-to"></select>
+                        </label>
+                    </div>
                 </div>
-                <div class="mz-grid2">
-                    <div class="mz-field">
-                        <label for="wp-from">من الآية</label>
-                        <div class="mz-select-wrap"><select id="wp-from"></select><i class="fas fa-chevron-down"></i></div>
-                    </div>
-                    <div class="mz-field">
-                        <label for="wp-to">إلى الآية</label>
-                        <div class="mz-select-wrap"><select id="wp-to"></select><i class="fas fa-chevron-down"></i></div>
-                    </div>
+            </div>
+
+            <div class="wp-pop">
+                <button class="athar-button athar-button-secondary wp-selector" id="wp-mushaf-trigger" type="button"
+                        aria-expanded="false" aria-haspopup="true" aria-controls="wp-mushaf-panel">
+                    <i class="fas fa-book-quran" aria-hidden="true"></i>
+                    <span class="wp-selector-label" id="wp-mushaf-label">المصحف</span>
+                    <i class="fas fa-chevron-down wp-caret" aria-hidden="true"></i>
+                </button>
+                <div class="athar-popover wp-pop-panel" id="wp-mushaf-panel" role="group" aria-label="اختيار المصحف" hidden>
+                    <label class="athar-field-wrap" for="wp-mushaf">
+                        <span>رسم المصحف للتقييم</span>
+                        <select class="athar-select" id="wp-mushaf"></select>
+                    </label>
                 </div>
             </div>
         </div>
 
-        <!-- المصحف: mushaf version (popover) -->
-        <div class="mz-pop">
-            <button class="mz-bar-chip" id="wp-mushaf-trigger" type="button" aria-expanded="false" aria-haspopup="true" title="المصحف">
-                <i class="fas fa-book-quran"></i>
-                <span class="mz-chip-label" id="wp-mushaf-label">المصحف</span>
-                <i class="fas fa-chevron-down mz-caret"></i>
-            </button>
-            <div class="mz-pop-panel" id="wp-mushaf-panel" hidden>
-                <div class="mz-field">
-                    <label for="wp-mushaf">رسم المصحف للتقييم</label>
-                    <div class="mz-select-wrap"><select id="wp-mushaf"></select><i class="fas fa-chevron-down"></i></div>
-                </div>
-            </div>
+        <div class="wp-toolbar-group wp-toolbar-tools" aria-label="خيارات العرض">
+            <button class="athar-icon-button" id="wp-follow" type="button" aria-pressed="true"
+                    title="تتبّع الكلمة أثناء التلاوة" aria-label="تتبّع الكلمة"><i class="fas fa-highlighter" aria-hidden="true"></i></button>
+            <button class="athar-icon-button" id="wp-tajweed" type="button" aria-pressed="true"
+                    title="كشف أخطاء التجويد والنطق" aria-label="كشف أخطاء التجويد"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></button>
+            <button class="athar-icon-button" id="wp-layout" type="button" aria-pressed="false" hidden
+                    title="منظر المصحف" aria-label="منظر المصحف"><i class="fas fa-book-open" aria-hidden="true"></i></button>
         </div>
 
-        <span class="mz-bar-sep"></span>
-        <button class="mz-bar-btn" id="wp-follow" type="button" aria-pressed="true" title="تتبّع الكلمة أثناء التلاوة" aria-label="تتبّع الكلمة"><i class="fas fa-highlighter"></i></button>
-        <button class="mz-bar-btn" id="wp-tajweed" type="button" aria-pressed="true" title="كشف أخطاء التجويد والنطق" aria-label="كشف أخطاء التجويد"><i class="fas fa-magnifying-glass"></i></button>
-        <button class="mz-bar-btn" id="wp-layout" type="button" aria-pressed="false" hidden title="منظر المصحف" aria-label="منظر المصحف"><i class="fas fa-book-open"></i></button>
-
-        <div class="mz-bar-spacer"></div>
-
-        <button class="mz-btn-primary" id="wp-load" type="button"><i class="fas fa-play"></i> ابدأ التدريب</button>
+        <button class="athar-button athar-button-accent wp-start" id="wp-load" type="button">
+            <i class="fas fa-play" aria-hidden="true"></i><span>ابدأ التدريب</span>
+        </button>
     </header>
 
     <main class="wp-main" id="athar-main" tabindex="-1">
-        <div class="wp-page-state" id="wp-page-state" role="status" aria-live="polite" hidden></div>
-        <section class="mz-sec wp-intro" id="wp-intro">
-            <span class="wp-intro-kicker">تدريب تطبيقي</span>
-            <h1>اختبر مواضع وقفك، ثم افهم النتيجة.</h1>
-            <p>اختر مقطعًا ومصحفًا من الشريط، ثم ابدأ التدريب. علِّم الكلمات التي وقفتَ عندها يدويًا، أو سجّل تلاوتك، وبعدها قارن اختيارك بعلامات المصاحف وأقوال أهل الوقف.</p>
-            <div class="wp-intro-steps" aria-label="خطوات التدريب">
-                <span><b>١</b> اختر المقطع</span>
-                <span><b>٢</b> علِّم وقوفك</span>
-                <span><b>٣</b> راجع التقييم</span>
-            </div>
-        </section>
+        <div class="wp-page-state athar-surface" id="wp-page-state" role="status" aria-live="polite" hidden></div>
 
-        <p class="mz-hint" id="wp-hint" hidden>
-            <i class="fas fa-hand-pointer"></i>
-            اضغط على كل كلمةٍ <b>وقفتَ عندها</b> (تُعلَّم بخطٍّ تحتها) — أو اضغط
-            <b>سجّل وقوفي</b> وتلاوةً، فتُعلَّم مواضع وقوفك تلقائيًّا. ثم قيّم وقوفك.
-        </p>
+        {% call athar_page_intro(
+            'تدريب تطبيقي',
+            'اختبر وقفــك، ثم افهم النتيجة.',
+            'اختر مقطعًا ومصحفًا، ثم علّم الكلمات التي وقفتَ عندها يدويًا أو سجّل تلاوتك. بعدها قارن اختيارك بعلامات المصاحف وأقوال أهل الوقف.',
+            title_id='wp-title',
+            section_id='wp-intro',
+            extra_class='wp-intro athar-surface',
+            title_aria_label='اختبر وقفك، ثم افهم النتيجة.',
+            footer_class='wp-intro-footer'
+        ) %}
+            <ol class="wp-stepper" aria-label="خطوات التدريب">
+                <li><b>١</b><span>اختر المقطع</span></li>
+                <li><b>٢</b><span>علّم وقوفك</span></li>
+                <li><b>٣</b><span>راجع التقييم</span></li>
+            </ol>
+        {% endcall %}
 
-        <section class="mz-sec" id="wp-passage-sec" hidden>
-            <h2 class="mz-sec-title"><i class="fas fa-book-open-reader"></i> المقطع</h2>
+        <aside class="wp-hint athar-surface" id="wp-hint" hidden>
+            <i class="fas fa-hand-pointer" aria-hidden="true"></i>
+            <span>اضغط على كل كلمةٍ <b>وقفتَ عندها</b>، أو استخدم <b>سجّل وقوفي</b> لتحديد المواضع تلقائيًا، ثم قيّم النتيجة.</span>
+        </aside>
+
+        <section class="wp-section athar-surface athar-surface-raised" id="wp-passage-sec" aria-labelledby="wp-passage-title" hidden>
+            <header class="wp-section-head">
+                <span class="wp-section-index" aria-hidden="true">١</span>
+                <div>
+                    <p class="athar-kicker">مواضعك</p>
+                    <h2 class="athar-card-title" id="wp-passage-title">المقطع</h2>
+                </div>
+            </header>
             <div class="wp-passage" id="wp-passage" dir="rtl"></div>
-            <div class="wp-actions">
-                <span class="mz-status" id="wp-count">لم تُعلّم أي وقف بعد</span>
-                <span class="mz-status" id="wp-rec-note"></span>
-                <span class="wp-actions-spacer"></span>
-                <button class="mz-toggle-btn" id="wp-rec" type="button">
-                    <span class="mz-dot"></span>
-                    <i class="fas fa-microphone" id="wp-rec-icon"></i>
-                    <span id="wp-rec-label">سجّل وقوفي</span>
-                </button>
-                <button class="mz-toggle-btn" id="wp-clear" type="button"><i class="fas fa-eraser"></i> مسح</button>
-                <button class="mz-btn-primary" id="wp-grade" type="button"><i class="fas fa-clipboard-check"></i> قيّم وقوفي</button>
-            </div>
+            <footer class="wp-actions">
+                <div class="wp-session-status" aria-live="polite">
+                    <span id="wp-count">لم تُعلّم أي وقف بعد</span>
+                    <span id="wp-rec-note"></span>
+                </div>
+                <div class="wp-action-buttons">
+                    <button class="athar-button athar-button-secondary" id="wp-rec" type="button">
+                        <span class="wp-record-dot" aria-hidden="true"></span>
+                        <i class="fas fa-microphone" id="wp-rec-icon" aria-hidden="true"></i>
+                        <span id="wp-rec-label">سجّل وقوفي</span>
+                    </button>
+                    <button class="athar-button athar-button-ghost" id="wp-clear" type="button"><i class="fas fa-eraser" aria-hidden="true"></i><span>مسح</span></button>
+                    <button class="athar-button" id="wp-grade" type="button" disabled><i class="fas fa-clipboard-check" aria-hidden="true"></i><span>قيّم وقوفي</span></button>
+                </div>
+            </footer>
         </section>
 
-        <section class="mz-sec" id="wp-tajweed-sec" hidden>
-            <h2 class="mz-sec-title"><i class="fas fa-magnifying-glass"></i> كشف أخطاء التجويد والنطق</h2>
+        <section class="wp-section athar-surface" id="wp-tajweed-sec" aria-labelledby="wp-tajweed-title" hidden>
+            <header class="wp-section-head">
+                <span class="wp-section-index" aria-hidden="true">٢</span>
+                <div><p class="athar-kicker">مراجعة التلاوة</p><h2 class="athar-card-title" id="wp-tajweed-title">كشف أخطاء التجويد والنطق</h2></div>
+            </header>
             <div id="wp-tajweed-body"></div>
         </section>
 
-        <section class="mz-sec" id="wp-result-sec" hidden>
-            <h2 class="mz-sec-title"><i class="fas fa-clipboard-check"></i> نتيجة التقييم</h2>
+        <section class="wp-section athar-surface athar-surface-raised" id="wp-result-sec" aria-labelledby="wp-result-title" hidden>
+            <header class="wp-section-head">
+                <span class="wp-section-index" aria-hidden="true">٣</span>
+                <div><p class="athar-kicker">المراجعة</p><h2 class="athar-card-title" id="wp-result-title">نتيجة التقييم</h2></div>
+            </header>
             <div class="wp-scorewrap">
-                <div class="wp-score" id="wp-score"><span id="wp-score-num">0</span><small>٪</small></div>
+                <div class="wp-score" id="wp-score" role="img" aria-label="نتيجة التقييم"><span id="wp-score-num">٠</span><small>٪</small></div>
                 <div class="wp-score-meta">
                     <div class="wp-score-title" id="wp-score-title"></div>
                     <div class="wp-tallies">
-                        <span class="wp-tally wp-tally-good"><b id="wp-t-good">0</b> وقف صحيح</span>
-                        <span class="wp-tally wp-tally-note"><b id="wp-t-note">0</b> تنبيه</span>
-                        <span class="wp-tally wp-tally-err"><b id="wp-t-err">0</b> خطأ</span>
+                        <span class="wp-tally athar-chip wp-tally-good"><b id="wp-t-good">٠</b> وقف صحيح</span>
+                        <span class="wp-tally athar-chip wp-tally-note"><b id="wp-t-note">٠</b> تنبيه</span>
+                        <span class="wp-tally athar-chip wp-tally-err"><b id="wp-t-err">٠</b> خطأ</span>
                     </div>
                 </div>
             </div>
             <div class="wp-legend" id="wp-legend"></div>
             <div class="wp-passage wp-passage-graded" id="wp-graded" dir="rtl"></div>
-            <div id="wp-followups"></div>
+            <div class="wp-followups" id="wp-followups"></div>
         </section>
     </main>
 

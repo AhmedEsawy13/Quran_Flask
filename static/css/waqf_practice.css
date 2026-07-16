@@ -1,150 +1,434 @@
-/* تدريب الوقف — practice page. Chrome/components (bar, popovers, buttons,
-   sections, --mz-* tokens) come from mushaf_memorize.css (linked before this
-   file); only the practice-domain-specific rules (tappable words, tajweed
-   error list, score/verdict styling) live here. */
+/* ==========================================================================
+ * أثَر · تدريب الوقف
+ * Shared controls and surfaces come from athar-components.css. This file owns
+ * only the Training workspace, Quran passage, recording, and grading states.
+ * ======================================================================= */
 
-/* ── Fit the page to the viewport, تثبيت-style: sticky bars stay put, only
-   .wp-main scrolls internally — no whole-page scroll. Only this page loads
-   waqf_practice.css, so overriding `body` here is safe (doesn't touch /waqf,
-   which shares waqf_guide.css's normal long-scroll layout). Sized with flex
-   instead of a hardcoded bar-height constant so it can't drift out of sync
-   if either sticky bar's own height ever changes. تدريب's content
-   (passage + optional tajweed results + optional grade results) is
-   variable-height and can exceed the viewport, unlike تثبيت's single
-   fixed-size page — so this internal-scroll pattern is kept deliberately,
-   not swapped for تثبيت's whole-body-scrolls model. */
-html, body { height: 100%; }
-body { display: flex; flex-direction: column; overflow: hidden; }
-.athar-bar, .mz-bar { flex: 0 0 auto; }
-/* mushaf_memorize.css's `.mz-sec { display:flex }` has the same specificity as
-   the UA `[hidden] { display:none }` and loads after it, so it wins the tie —
-   تثبيت never combines .mz-sec with [hidden] so this never surfaced there. */
-.mz-sec[hidden], #wp-layout[hidden] { display: none; }
+@font-face {
+  font-family: 'Digital Khatt';
+  src: url('../fonts/digitalkhatt.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Old Madina';
+  src: url('../fonts/oldmadina.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'UthmanicHafs';
+  src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'),
+       url('../fonts/uthmanic_hafs_v20.ttf') format('truetype');
+  font-display: swap;
+}
 
-.wp-main { max-width: 900px; margin: 0 auto; width: 100%; padding: 18px clamp(12px, 3vw, 28px) 26px;
-    display: flex; flex-direction: column; gap: 18px;
-    flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
-.wp-page-state { flex: 0 0 auto; border: 1px solid var(--mz-border); border-radius: 14px;
-    background: color-mix(in srgb, var(--athar-surface) 94%, transparent); }
+@font-palette-values --wp-dk-dark {
+  font-family: 'Digital Khatt';
+  override-colors: 0 #5bbbde, 1 #0c2c3c, 2 #0c2c3c, 3 #9bd9f0;
+}
 
-.wp-intro { max-width: 820px; margin: clamp(3.5rem, 10vh, 8rem) auto 0; padding: clamp(1.5rem, 4vw, 3rem);
-    text-align: center; background: color-mix(in srgb, var(--athar-surface) 92%, transparent);
-    border-color: var(--athar-line); }
-.wp-intro-kicker { display: inline-block; color: var(--athar-gold); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; }
-.wp-intro h1 { margin: 0.55rem 0 0.65rem; color: var(--athar-ink); font-family: var(--font-display);
-    font-size: clamp(1.8rem, 5vw, 3.2rem); line-height: 1.2; }
-.wp-intro p { max-width: 650px; margin: 0 auto; color: var(--athar-ink-soft); line-height: 1.9; }
-.wp-intro-steps { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.5rem; }
-.wp-intro-steps span { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--athar-ink-soft); font-size: 0.86rem; }
-.wp-intro-steps b { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border-radius: 50%;
-    background: var(--athar-accent); color: var(--athar-on-accent); }
+:root {
+  --wp-quran: var(--athar-ink);
+  --wp-stop: var(--athar-accent);
+  --wp-border: var(--athar-line);
+  --wp-muted: var(--athar-ink-soft);
+  --wp-faint: var(--athar-ink-faint);
+}
 
-/* tajweed error detection */
-.wp-tj-ok { color: #2e9c6b; font-weight: 700; display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
-.wp-tj-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-top: 1px solid var(--mz-border); }
-.wp-tj-row:first-child { border-top: none; }
-.wp-tj-w { font-family: 'UthmanicHafs', serif; font-size: 1.5rem; color: var(--mz-text); min-width: 2.5em; text-align: center; }
-.wp-tj-a { font-size: 0.62rem; color: var(--mz-text-faint); border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .3em; height: fit-content; margin-top: .5em; }
-.wp-tj-list { margin: 0; padding: 0 1em 0 0; list-style: none; flex: 1; }
-.wp-tj-list li { font-size: 0.88rem; line-height: 1.7; color: var(--mz-text-muted); }
-.wp-tj-list li::before { content: '•'; color: var(--mz-accent); margin-inline-end: 6px; }
-.wp-tj-list li.wp-tj-tajweed { color: #b5651d; }        /* madd / ghunna / qalqala */
-.wp-tj-list li.wp-tj-normal { color: #c0392b; }         /* wrong letter (مخرج) */
-.wp-word.wp-tj-err, .wp-gword.wp-tj-err { box-shadow: inset 0 -3px 0 0 #c0392b; background: color-mix(in srgb, #c0392b 12%, transparent); }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body.athar-training {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  direction: rtl;
+  background: var(--athar-parchment);
+  color: var(--athar-ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background var(--athar-motion-base) ease, color var(--athar-motion-base) ease;
+}
 
-/* passage — tappable words */
-.wp-passage { font-family: 'UthmanicHafs', serif; font-size: clamp(1.6rem, 4.4vw, 2.15rem); line-height: 2.5;
-    color: var(--mz-quran); text-align: justify; }
+.athar-bar,
+.wp-toolbar { flex: 0 0 auto; }
+
+.wp-section[hidden],
+.wp-intro[hidden],
+.wp-hint[hidden],
+.wp-page-state[hidden],
+#wp-layout[hidden] { display: none; }
+
+/* -------------------------------------------------------------- toolbar */
+.wp-toolbar {
+  position: relative;
+  z-index: 50;
+  min-height: 64px;
+  flex-wrap: nowrap;
+  gap: var(--athar-space-3);
+  padding: 10px clamp(12px, 2.4vw, 24px);
+  border-width: 0 0 1px;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--athar-surface) 90%, transparent);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  backdrop-filter: saturate(160%) blur(18px);
+}
+
+.wp-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--athar-space-2);
+  min-width: 0;
+}
+
+.wp-toolbar-selectors { flex: 1 1 auto; }
+.wp-toolbar-tools { flex: 0 0 auto; }
+.wp-start { flex: 0 0 auto; }
+
+.wp-pop { position: relative; min-width: 0; }
+.wp-selector { max-width: min(290px, 34vw); border-radius: var(--athar-radius-control); }
+.wp-selector > i:first-child { color: var(--athar-accent); }
+.wp-selector-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wp-caret { color: var(--athar-ink-faint); font-size: 0.62rem; transition: transform var(--athar-motion-fast) var(--athar-ease); }
+.wp-selector[aria-expanded="true"] { border-color: var(--athar-accent); color: var(--athar-accent); }
+.wp-selector[aria-expanded="true"] .wp-caret { transform: rotate(180deg); }
+
+.wp-pop-panel {
+  inset-block-start: calc(100% + 9px);
+  inset-inline-start: 0;
+  display: grid;
+  gap: var(--athar-space-4);
+}
+
+.wp-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--athar-space-3); }
+
+.wp-toolbar-tools .athar-icon-button[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--athar-accent) 48%, var(--athar-line));
+  background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface));
+  color: var(--athar-accent);
+}
+
+/* ---------------------------------------------------------------- layout */
+.wp-main {
+  width: min(100%, 980px);
+  min-height: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--athar-space-4);
+  margin-inline: auto;
+  padding: 20px clamp(12px, 3vw, 30px) 32px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding-top: var(--athar-space-4);
+}
+
+.wp-page-state { flex: 0 0 auto; padding: 0; }
+
+.wp-intro {
+  width: 100%;
+  max-width: 860px;
+  margin: clamp(34px, 8vh, 90px) auto 0;
+  padding: clamp(28px, 5vw, 54px);
+  justify-items: center;
+  text-align: center;
+  background: color-mix(in srgb, var(--athar-surface) 94%, transparent);
+}
+
+.wp-intro .athar-title { max-width: 14ch; font-size: clamp(2.15rem, 5.5vw, 4.2rem); }
+.wp-intro .athar-lede { max-width: 64ch; font-family: var(--font-ui); }
+.wp-intro-footer { width: 100%; margin-top: var(--athar-space-3); }
+
+.wp-stepper {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--athar-line);
+  border-radius: var(--athar-radius-surface);
+  background: var(--athar-line);
+  list-style: none;
+}
+
+.wp-stepper li {
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--athar-space-2);
+  padding: var(--athar-space-3);
+  background: var(--athar-surface);
+  color: var(--athar-ink-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.wp-stepper b {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--athar-accent) 12%, transparent);
+  color: var(--athar-accent);
+  font-family: var(--font-display);
+}
+
+.wp-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--athar-space-3);
+  padding: 14px 18px;
+  border-color: color-mix(in srgb, var(--athar-accent) 28%, var(--athar-line));
+  border-radius: var(--athar-radius-control);
+  background: color-mix(in srgb, var(--athar-accent) 7%, var(--athar-surface));
+  color: var(--athar-ink-soft);
+  font-size: 0.84rem;
+  line-height: 1.75;
+}
+
+.wp-hint > i { margin-top: 0.35em; color: var(--athar-accent); }
+
+.wp-section {
+  display: grid;
+  gap: var(--athar-space-5);
+  scroll-margin-top: var(--athar-space-4);
+}
+
+.wp-section-head { display: flex; align-items: center; gap: var(--athar-space-3); }
+.wp-section-head .athar-kicker { margin-bottom: 3px; }
+
+.wp-section-index {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--athar-accent) 12%, transparent);
+  color: var(--athar-accent);
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+
+/* -------------------------------------------------------------- passage */
+.wp-passage {
+  padding-block: clamp(8px, 2vw, 18px);
+  color: var(--wp-quran);
+  font-family: 'UthmanicHafs', serif;
+  font-size: clamp(1.62rem, 4.4vw, 2.2rem);
+  line-height: 2.5;
+  text-align: justify;
+}
+
 .wp-verse { display: block; }
-.wp-word { font: inherit; color: inherit; background: none; border: none; padding: 0 .06em; margin: 0; cursor: pointer;
-    border-radius: 6px; transition: background 0.12s ease, box-shadow 0.12s ease; -webkit-tap-highlight-color: transparent; }
-.wp-word:hover { background: color-mix(in srgb, var(--mz-accent) 12%, transparent); }
-.wp-word-end { color: var(--mz-accent); }
-.wp-stopped { box-shadow: inset 0 -3px 0 0 var(--mz-accent); background: color-mix(in srgb, var(--mz-accent) 14%, transparent); }
-/* live "currently reciting" word (follow-along) */
-.wp-word.wp-reciting { background: color-mix(in srgb, var(--athar-gold) 30%, transparent);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--athar-gold) 55%, transparent); border-radius: 6px; }
-.wp-ayah-num { font-size: 0.62em; color: var(--mz-text-faint); margin: 0 .15em; vertical-align: middle;
-    border: 1.5px solid currentColor; border-radius: 50%; padding: 0 .28em; }
 
-/* Madinah page-layout view (منظر المصحف) — real mushaf lines, values aligned
-   to تثبيت's own .mz-word/.mz-line-inner (no page/paper frame — this is a
-   cropped passage, not a physical page). Digital Khatt (المدينة الجديد) is
-   the unscoped default, matching mushaf_memorize.css's own convention;
-   qpc-v1/Old Madina (المدينة القديم) is a scoped override — see
-   MADINAH_LAYOUT_SRC in waqf_practice.js. */
+.wp-word {
+  margin: 0;
+  padding: 0 .06em;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s ease, box-shadow .12s ease;
+}
+
+.wp-word:hover { background: color-mix(in srgb, var(--athar-accent) 11%, transparent); }
+.wp-word:focus-visible { outline: 2px solid var(--athar-focus-ring); outline-offset: 2px; }
+.wp-word-end { color: var(--wp-stop); }
+.wp-stopped {
+  background: color-mix(in srgb, var(--athar-accent) 14%, transparent);
+  box-shadow: inset 0 -3px 0 var(--athar-accent);
+}
+
+.wp-word.wp-reciting {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--athar-gold) 28%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--athar-gold) 52%, transparent);
+}
+
+.wp-ayah-num {
+  margin-inline: .15em;
+  padding-inline: .28em;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  color: var(--wp-faint);
+  font-size: .62em;
+  vertical-align: middle;
+}
+
+/* Real Madinah line view. */
 .wp-passage.wp-ml { font-family: 'Digital Khatt', 'UthmanicHafs', serif; line-height: 2.35; text-align: center; }
 .wp-passage.wp-ml.wp-ml-src-qpc-v1 { font-family: 'Old Madina', 'UthmanicHafs', serif; }
+:root[data-theme="dark"] .wp-passage.wp-ml:not(.wp-ml-src-qpc-v1) { font-palette: --wp-dk-dark; }
 .wp-ml-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 .35em; direction: rtl; }
-.wp-ml-line.is-centered { justify-content: center; }
-.wp-ml-line:last-child { justify-content: center; }        /* last line isn't stretched on a real page */
-.wp-ml .wp-word { padding: 0.55em .04em 0; }
-.wp-ml-ctx { color: var(--mz-quran); opacity: 0.4; padding: 0.55em .04em 0; }   /* out-of-range context word */
-.wp-ml-num { color: var(--mz-accent); font-size: 0.72em; margin: 0 .1em; }
-.wp-ml-surah { font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', serif; font-weight: 700; color: var(--mz-accent);
-    text-align: center; font-size: 0.86em; margin: .3em 0; padding: .15em 0; border-top: 1px solid var(--mz-border); border-bottom: 1px solid var(--mz-border); }
-.wp-ml-basmala { text-align: center; color: var(--mz-text-muted); font-size: 0.9em; margin: .2em 0; }
+.wp-ml-line.is-centered,
+.wp-ml-line:last-child { justify-content: center; }
+.wp-ml .wp-word,
+.wp-ml-ctx { padding: .55em .04em 0; }
+.wp-ml-ctx { color: var(--wp-quran); opacity: .4; }
+.wp-ml-num { margin-inline: .1em; color: var(--athar-accent); font-size: .72em; }
+.wp-ml-surah {
+  margin: .3em 0;
+  padding: .15em 0;
+  border-block: 1px solid var(--athar-line);
+  color: var(--athar-accent);
+  font-family: var(--font-ui);
+  font-size: .86em;
+  font-weight: 700;
+  text-align: center;
+}
+.wp-ml-basmala { margin: .2em 0; color: var(--wp-muted); font-size: .9em; text-align: center; }
 
-.wp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding-top: 14px; border-top: 1px solid var(--mz-border); }
-.wp-actions-spacer { flex: 1; }
+.wp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--athar-space-4);
+  padding-top: var(--athar-space-4);
+  border-top: 1px solid var(--athar-line);
+}
 
-/* result */
-.wp-scorewrap { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
-.wp-score { flex-shrink: 0; width: 92px; height: 92px; border-radius: 50%; display: grid; place-items: center;
-    font-size: 1.9rem; font-weight: 800; color: #fff; }
-.wp-score small { font-size: 0.9rem; font-weight: 700; }
-.wp-score-hi  { background: linear-gradient(135deg, #16a34a, #15803d); }
-.wp-score-mid { background: linear-gradient(135deg, #d97706, #b45309); }
-.wp-score-lo  { background: linear-gradient(135deg, #dc2626, #b91c1c); }
-.wp-score-title { font-size: 1.02rem; font-weight: 800; color: var(--mz-text); margin-bottom: 8px; }
-.wp-tallies { display: flex; flex-wrap: wrap; gap: 8px; }
-.wp-tally { font-size: 0.8rem; padding: 4px 11px; border-radius: 999px; font-weight: 600; }
-.wp-tally b { font-weight: 800; }
-.wp-tally-good { background: rgba(22,163,74,0.13); color: #15803d; }
-.wp-tally-note { background: rgba(217,119,6,0.14); color: #b45309; }
-.wp-tally-err  { background: rgba(220,38,38,0.12); color: #b91c1c; }
+.wp-session-status { display: grid; gap: 3px; color: var(--athar-ink-faint); font-size: .78rem; }
+.wp-action-buttons { display: flex; align-items: center; flex-wrap: wrap; gap: var(--athar-space-2); }
+.wp-record-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--athar-danger); }
+#wp-rec.is-listening { border-color: var(--athar-danger); color: var(--athar-danger); }
+#wp-rec.is-listening .wp-record-dot { animation: wp-pulse 1.2s ease-in-out infinite; }
+@keyframes wp-pulse { 50% { opacity: .25; transform: scale(.78); } }
 
-.wp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 6px 0 4px; padding: 12px 0; border-top: 1px solid var(--mz-border); border-bottom: 1px solid var(--mz-border); }
-.wp-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--mz-text-muted); }
-.wp-dot { width: 13px; height: 13px; border-radius: 4px; }
+/* -------------------------------------------------------------- tajweed */
+.wp-tj-ok { display: flex; align-items: center; gap: 8px; color: var(--athar-success); font-size: .95rem; font-weight: 700; }
+.wp-tj-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; border-top: 1px solid var(--athar-line); }
+.wp-tj-row:first-child { border-top: 0; }
+.wp-tj-w { min-width: 2.5em; color: var(--athar-ink); font-family: 'UthmanicHafs', serif; font-size: 1.5rem; text-align: center; }
+.wp-tj-a { height: fit-content; margin-top: .5em; padding-inline: .3em; border: 1.5px solid currentColor; border-radius: 50%; color: var(--wp-faint); font-size: .62rem; }
+.wp-tj-list { flex: 1; margin: 0; padding: 0 1em 0 0; list-style: none; }
+.wp-tj-list li { color: var(--wp-muted); font-size: .88rem; line-height: 1.7; }
+.wp-tj-list li::before { content: '•'; margin-inline-end: 6px; color: var(--athar-accent); }
+.wp-tj-list li.wp-tj-tajweed { color: var(--athar-gold); }
+.wp-tj-list li.wp-tj-normal { color: var(--athar-danger); }
+.wp-word.wp-tj-err,
+.wp-gword.wp-tj-err { background: color-mix(in srgb, var(--athar-danger) 12%, transparent); box-shadow: inset 0 -3px 0 var(--athar-danger); }
+
+/* --------------------------------------------------------------- result */
+.wp-scorewrap { display: flex; align-items: center; gap: var(--athar-space-5); flex-wrap: wrap; }
+.wp-score {
+  width: 94px;
+  height: 94px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: var(--athar-surface);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+}
+.wp-score small { font-family: var(--font-ui); font-size: .8rem; font-weight: 700; }
+.wp-score-hi { color: var(--athar-success); background: color-mix(in srgb, var(--athar-success) 9%, var(--athar-surface)); }
+.wp-score-mid { color: var(--athar-warning); background: color-mix(in srgb, var(--athar-warning) 10%, var(--athar-surface)); }
+.wp-score-lo { color: var(--athar-danger); background: color-mix(in srgb, var(--athar-danger) 9%, var(--athar-surface)); }
+.wp-score-meta { display: grid; gap: var(--athar-space-3); }
+.wp-score-title { color: var(--athar-ink); font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
+.wp-tallies { display: flex; flex-wrap: wrap; gap: var(--athar-space-2); }
+.wp-tally b { font-weight: 900; }
+.wp-tally-good { color: var(--athar-success); }
+.wp-tally-note { color: var(--athar-warning); }
+.wp-tally-err { color: var(--athar-danger); }
+
+.wp-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--athar-space-2);
+  padding-block: var(--athar-space-3);
+  border-block: 1px solid var(--athar-line);
+}
+.wp-leg { color: var(--athar-ink-soft); }
+.wp-dot { width: 11px; height: 11px; flex: 0 0 auto; border-radius: 3px; }
 
 .wp-passage-graded { cursor: default; }
-.wp-gword { padding: 0 .06em; border-radius: 6px; }
-/* a marked stop, coloured by verdict (underline so the base text stays legible) */
-.wp-stop { box-shadow: inset 0 -3px 0 0 currentColor; }
+.wp-gword { padding-inline: .06em; border-radius: 6px; }
+.wp-stop { box-shadow: inset 0 -3px 0 currentColor; }
 .wp-w-ex   { color: #15803d; } .wp-dot.wp-w-ex   { background: #15803d; }
 .wp-w-good { color: #0369a1; } .wp-dot.wp-w-good { background: #0369a1; }
 .wp-w-ok   { color: #0d9488; } .wp-dot.wp-w-ok   { background: #0d9488; }
-.wp-w-caut { color: #b45309; } .wp-dot.wp-w-caut { background: #b45309; }
+.wp-w-caut { color: #a66a18; } .wp-dot.wp-w-caut { background: #a66a18; }
 .wp-w-un   { color: #6b7280; } .wp-dot.wp-w-un   { background: #6b7280; }
-.wp-w-err  { color: #dc2626; } .wp-dot.wp-w-err  { background: #dc2626; }
-.wp-stop.wp-w-ex, .wp-stop.wp-w-good, .wp-stop.wp-w-ok, .wp-stop.wp-w-caut,
-.wp-stop.wp-w-un, .wp-stop.wp-w-err { background: color-mix(in srgb, currentColor 12%, transparent); }
-/* positions the learner ran past */
-.wp-missed-lazim { color: #dc2626; box-shadow: inset 0 -3px 0 0 currentColor; text-decoration: underline wavy; text-underline-offset: 6px; }
-.wp-ideal { box-shadow: inset 0 -2px 0 0 color-mix(in srgb, #15803d 45%, transparent); }
+.wp-w-err  { color: #c9362b; } .wp-dot.wp-w-err  { background: #c9362b; }
+.wp-stop.wp-w-ex,
+.wp-stop.wp-w-good,
+.wp-stop.wp-w-ok,
+.wp-stop.wp-w-caut,
+.wp-stop.wp-w-un,
+.wp-stop.wp-w-err { background: color-mix(in srgb, currentColor 12%, transparent); }
+.wp-missed-lazim { color: var(--athar-danger); text-decoration: underline wavy; text-underline-offset: 6px; box-shadow: inset 0 -3px 0 currentColor; }
+.wp-ideal { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--athar-success) 45%, transparent); }
 
-.wp-fu { margin-top: 12px; font-size: 0.88rem; line-height: 2; padding: 11px 14px; border-radius: 11px; }
+.wp-followups { display: grid; gap: var(--athar-space-2); }
+.wp-fu { padding: 12px 15px; border: 1px solid var(--athar-line); border-radius: var(--athar-radius-control); color: var(--athar-ink); font-size: .88rem; line-height: 2; }
 .wp-fu i { margin-inline-end: 5px; }
-.wp-fu-err { background: rgba(220,38,38,0.09); color: var(--mz-text); }
-.wp-fu-err i { color: #dc2626; }
-.wp-fu-tip { background: rgba(22,163,74,0.09); color: var(--mz-text); }
-.wp-fu-tip i { color: #d97706; }
+.wp-fu-err { border-color: color-mix(in srgb, var(--athar-danger) 32%, var(--athar-line)); background: color-mix(in srgb, var(--athar-danger) 7%, var(--athar-surface)); }
+.wp-fu-err i { color: var(--athar-danger); }
+.wp-fu-tip { border-color: color-mix(in srgb, var(--athar-success) 28%, var(--athar-line)); background: color-mix(in srgb, var(--athar-success) 7%, var(--athar-surface)); }
+.wp-fu-tip i { color: var(--athar-gold); }
 .wp-fu-w { font-family: 'UthmanicHafs', serif; font-size: 1.15em; }
-.wp-fu-w + small { color: var(--mz-text-faint); }
+.wp-fu-w + small { color: var(--wp-faint); }
 
-/* dark-mode verdict hues */
-body.mz-dark .wp-w-ex   { color: #4ade80; } body.mz-dark .wp-dot.wp-w-ex   { background: #4ade80; }
-body.mz-dark .wp-w-good { color: #7dd3fc; } body.mz-dark .wp-dot.wp-w-good { background: #7dd3fc; }
-body.mz-dark .wp-w-ok   { color: #5eead4; } body.mz-dark .wp-dot.wp-w-ok   { background: #5eead4; }
-body.mz-dark .wp-w-caut { color: #fbbf24; } body.mz-dark .wp-dot.wp-w-caut { background: #fbbf24; }
-body.mz-dark .wp-w-err, body.mz-dark .wp-missed-lazim { color: #f87171; }
-body.mz-dark .wp-dot.wp-w-err { background: #f87171; }
-body.mz-dark .wp-tally-good { color: #4ade80; } body.mz-dark .wp-tally-note { color: #fbbf24; } body.mz-dark .wp-tally-err { color: #f87171; }
+:root[data-theme="dark"] .wp-w-ex   { color: #4ade80; } :root[data-theme="dark"] .wp-dot.wp-w-ex   { background: #4ade80; }
+:root[data-theme="dark"] .wp-w-good { color: #7dd3fc; } :root[data-theme="dark"] .wp-dot.wp-w-good { background: #7dd3fc; }
+:root[data-theme="dark"] .wp-w-ok   { color: #5eead4; } :root[data-theme="dark"] .wp-dot.wp-w-ok   { background: #5eead4; }
+:root[data-theme="dark"] .wp-w-caut { color: #fbbf24; } :root[data-theme="dark"] .wp-dot.wp-w-caut { background: #fbbf24; }
+:root[data-theme="dark"] .wp-w-err,
+:root[data-theme="dark"] .wp-missed-lazim { color: #f87171; }
+:root[data-theme="dark"] .wp-dot.wp-w-err { background: #f87171; }
+
+@media (max-width: 720px) {
+  .wp-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--athar-space-2);
+  }
+  .wp-toolbar-selectors {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .8fr);
+  }
+  .wp-selector { width: 100%; max-width: none; }
+  .wp-toolbar-tools { grid-column: 1; }
+  .wp-start { grid-column: 2; }
+  .wp-main { padding-top: var(--athar-space-3); }
+  .wp-intro { margin-top: var(--athar-space-4); }
+}
 
 @media (max-width: 560px) {
-    #wp-load { width: 42px; height: 38px; padding: 0; justify-content: center; font-size: 0; }
-    #wp-load i { font-size: 0.9rem; }
-    .wp-actions { gap: 8px; }
-    .wp-actions .mz-toggle-btn, .wp-actions .mz-btn-primary { flex: 1 1 auto; justify-content: center; }
+  .wp-intro { padding: 26px 18px; }
+  .wp-intro .athar-title { font-size: clamp(2rem, 11vw, 3rem); }
+  .wp-stepper { grid-template-columns: 1fr; }
+  .wp-stepper li { min-height: 48px; justify-content: flex-start; }
+  .wp-section { padding: 20px 16px; }
+  .wp-passage { font-size: clamp(1.48rem, 7vw, 1.9rem); line-height: 2.35; }
+  .wp-actions { align-items: stretch; flex-direction: column; }
+  .wp-action-buttons { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  #wp-rec { grid-column: 1 / -1; }
+  .wp-action-buttons .athar-button { width: 100%; }
+  .wp-scorewrap { justify-content: center; text-align: center; }
+  .wp-score-meta { justify-items: center; }
+  .wp-tallies { justify-content: center; }
+}
+
+@media (max-width: 380px) {
+  .wp-start { width: var(--athar-control-h); padding-inline: 0; }
+  .wp-start span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .wp-toolbar-tools { gap: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #wp-rec.is-listening .wp-record-dot { animation: none; }
+  .wp-word { transition: none; }
 }
