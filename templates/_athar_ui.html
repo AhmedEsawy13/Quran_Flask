@@ -23,9 +23,3 @@
 </section>
 {%- endmacro %}
 
-{% macro athar_state(kind, message) -%}
-<div class="athar-state athar-state-{{ kind }}" role="{{ 'alert' if kind == 'error' else 'status' }}">
-    {% if kind == 'loading' %}<span class="athar-state-spinner" aria-hidden="true"></span>{% endif %}
-    <span>{{ message }}</span>
-</div>
-{%- endmacro %}

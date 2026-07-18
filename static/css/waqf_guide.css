@@ -322,6 +322,73 @@ button.wq-cell-play.wq-solo-onmushaf { box-shadow: inset 0 -2px 0 var(--wq-conse
 .wq-lab-tab-active { color: var(--wq-accent-strong); border-bottom-color: var(--wq-accent); }
 .wq-lab-tab-active i { opacity: 1; }
 .wq-lab-panel:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 4px; }
+
+/* Mobile lab section picker — desktop keeps the tab strip */
+.wq-lab-picker {
+    display: none;
+    width: 100%;
+    margin: 0 0 12px;
+    justify-content: flex-start;
+    background: var(--wq-surface-2);
+    border-color: var(--wq-border-strong);
+    color: var(--wq-text);
+}
+.wq-lab-picker .athar-menu-label { flex: 1; text-align: start; }
+.wq-lab-sheet-root {
+    position: fixed; inset: 0; z-index: 1200;
+    display: grid; align-items: end; justify-items: stretch;
+}
+.wq-lab-sheet-root[hidden] { display: none; }
+.wq-lab-sheet-backdrop {
+    position: absolute; inset: 0;
+    background: color-mix(in srgb, var(--wq-text) 42%, transparent);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+}
+.wq-lab-sheet.athar-sheet {
+    position: relative; inset: auto;
+    width: 100%; max-height: min(78dvh, 640px);
+    margin: 0; padding: 0;
+    display: flex; flex-direction: column;
+    border-radius: var(--athar-radius-surface) var(--athar-radius-surface) 0 0;
+    overflow: hidden;
+    animation: wq-sheet-up 0.22s var(--athar-ease, ease);
+}
+.wq-lab-sheet-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 14px 16px; border-bottom: 1px solid var(--wq-border); flex-shrink: 0;
+}
+.wq-lab-sheet-title { font-family: var(--font-ui); font-weight: 700; font-size: 0.95rem; color: var(--wq-text); }
+.wq-lab-sheet-close {
+    display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+    border: 0; cursor: pointer; background: var(--wq-surface-2); color: var(--wq-text-muted);
+}
+.wq-lab-sheet-close:hover { color: #dc2626; }
+.wq-lab-sheet-list {
+    flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 8px; display: flex; flex-direction: column; gap: 4px;
+}
+.wq-lab-sheet-item {
+    display: flex; align-items: center; gap: 10px; width: 100%;
+    padding: 12px 14px; border-radius: 12px; border: 1px solid transparent;
+    background: transparent; color: var(--wq-text); cursor: pointer; text-align: start;
+    font-family: var(--font-ui); font-size: 0.9rem; font-weight: 600;
+}
+.wq-lab-sheet-item i { color: var(--wq-accent); width: 1.1em; text-align: center; opacity: 0.9; }
+.wq-lab-sheet-item:hover { background: var(--wq-surface-2); }
+.wq-lab-sheet-item.is-active {
+    border-color: var(--wq-accent);
+    background: color-mix(in srgb, var(--wq-accent) 10%, transparent);
+    color: var(--wq-accent-strong);
+}
+.wq-lab-sheet-item:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; }
+body.wq-lab-sheet-open { overflow: hidden; }
+@keyframes wq-sheet-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .wq-lab-sheet.athar-sheet { animation: none; }
+}
 .wq-solos-desc { font-size: 0.78rem; color: var(--wq-text-muted); margin-bottom: 12px; }
 .wq-solos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
 .wq-solos-card { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px;
@@ -784,10 +851,9 @@ body.wq-dark .wq-guide-sym.wq-guide-ras, body.wq-dark .wq-guide-lbl.wq-guide-ras
     .wq-research { padding: 0; }
     .wq-card-head { align-items: flex-start; flex-direction: column; }
     .wq-word { font-size: 1.6rem; }
-    /* lab tabs scroll horizontally */
-    .wq-lab-tabs { scrollbar-width: none; gap: 2px; }
-    .wq-lab-tabs::-webkit-scrollbar { display: none; }
-    .wq-lab-tab { white-space: nowrap; flex-shrink: 0; font-size: 0.74rem; padding: 6px 10px; }
+    /* lab: picker + sheet instead of horizontal tab scroll */
+    .wq-lab-picker { display: inline-flex; }
+    .wq-lab-tabs { display: none !important; }
     /* matrix: tighter cells on mobile */
     .wq-matrix th, .wq-matrix td { padding: 5px 6px; font-size: 0.74rem; }
     .wq-matrix .wq-col-word { font-size: 1rem; }

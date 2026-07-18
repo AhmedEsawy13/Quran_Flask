@@ -1,7 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Mushaf Memorize — cumulative segmented memorization on a real Madinah
-   mushaf. Right settings sidebar; the centre is all for the page(s).
-   ═══════════════════════════════════════════════════════════════════ */
+
 
 @font-face { font-family: 'Digital Khatt'; src: url('../fonts/digitalkhatt.woff2') format('woff2'); font-display: swap; }
 @font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')   format('woff2'); font-display: swap; }
@@ -82,11 +79,7 @@ body.athar-memorize > .athar-bar {
 }
 .mz-bar-settings, .mz-bar-view, .mz-bar-session { display: flex; align-items: center; min-width: 0; gap: 6px; flex-shrink: 0; }
 .mz-bar-session { margin-inline-start: auto; justify-content: flex-end; gap: 8px; }
-.mz-back { display: inline-grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; color: var(--mz-text-muted);
-    text-decoration: none; border-radius: 11px; border: 1px solid var(--mz-border-strong); background: var(--mz-surface);
-    transition: all 0.15s ease; }
-.mz-back:hover { color: var(--mz-accent); border-color: var(--mz-accent); }
-.mz-bar-spacer { display: none; }
+
 .mz-bar-sep { width: 1px; align-self: stretch; margin: 8px 2px; background: var(--mz-border-strong); flex-shrink: 0; }
 
 /* selector chips — visual base from .athar-menu-button; keep local sizing hooks */
@@ -154,9 +147,6 @@ body.athar-memorize > .athar-bar {
 /* taller transparent hit-zone so the thin bar is easy to click-to-seek */
 .mz-bar-progress::before { content: ''; position: absolute; inset-inline: 0; top: -9px; bottom: -2px; }
 
-.mz-sec-note { margin: -2px 0 0; font-size: 0.72rem; color: var(--mz-text-faint); font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; line-height: 1.5; }
-.mz-sec-note:empty { display: none; }
-
 /* transient status toast */
 .mz-toast { position: fixed; top: calc(var(--mz-topbar-h) + var(--athar-bar-h, 50px) + 12px); left: 50%; transform: translateX(-50%) translateY(-8px);
     z-index: 70; padding: 8px 16px; border-radius: 999px; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif;
@@ -179,36 +169,11 @@ body.mz-dark .mz-toast.mz-err { color: #f87171; }
         transparent;
 }
 
-.mz-sidebar {
-    width: 320px; flex-shrink: 0; display: flex; flex-direction: column;
-    background: var(--mz-surface); border: 1px solid var(--mz-border);
-    border-radius: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 16px 40px -22px rgba(0,0,0,0.30);
-    position: sticky; top: calc(var(--athar-bar-h) + var(--mz-topbar-h) + 16px);
-    max-height: calc(100vh - var(--mz-topbar-h) - 32px); overflow: hidden;
-}
-.mz-side-scroll { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 18px; display: flex; flex-direction: column; gap: 20px; }
-.mz-side-scroll::-webkit-scrollbar { width: 6px; }
-.mz-side-scroll::-webkit-scrollbar-track { background: transparent; }
-.mz-side-scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--mz-text-muted) 28%, transparent); border-radius: 999px; }
-.mz-side-scroll::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--mz-text-muted) 48%, transparent); }
-.mz-side-scroll { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mz-text-muted) 32%, transparent) transparent; }
-
-.mz-sec { display: flex; flex-direction: column; gap: 12px; }
-.mz-sec + .mz-sec { padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--mz-border) 65%, transparent); }
-.mz-sec-title { margin: 0; font-size: 0.71rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
-    color: var(--mz-text-faint); font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; display: flex; align-items: center; gap: 8px; }
-.mz-sec-title i { color: var(--mz-accent); font-size: 0.82em;
-    display: grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 7px;
-    background: color-mix(in srgb, var(--mz-accent) 12%, transparent); }
 .mz-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-.mz-side-foot { padding: 14px 16px; border-top: 1px solid var(--mz-border); background: var(--mz-surface-2);
-    border-radius: 0 0 var(--mz-radius) var(--mz-radius); display: flex; flex-direction: column; gap: 8px; }
-.mz-side-foot .mz-btn-primary { width: 100%; justify-content: center; padding: 12px; font-size: 0.96rem; }
 
 /* ── Form controls ───────────────────────────────────────────────── */
 .mz-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.mz-field > label, .mz-slider-field > label {
+.mz-field > label {
     font-size: 0.76rem; font-weight: 600; color: var(--mz-text-muted);
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; display: flex; align-items: center; gap: 6px;
 }
@@ -225,15 +190,6 @@ body.mz-dark .mz-toast.mz-err { color: #f87171; }
     pointer-events: none; color: var(--mz-text-faint); font-size: 0.7rem; transition: color 0.15s ease; }
 .mz-select-wrap:hover i { color: var(--mz-accent); }
 
-.mz-btn-primary { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; padding: 12px 22px;
-    border: none; border-radius: 13px; color: var(--mz-on-accent); font-weight: 700;
-    font-size: 0.92rem; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; cursor: pointer;
-    background: linear-gradient(135deg, var(--mz-accent), var(--mz-accent-hover));
-    box-shadow: 0 6px 18px -6px var(--mz-accent-ring); transition: transform 0.14s ease, box-shadow 0.18s ease, filter 0.15s ease; }
-.mz-btn-primary:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 11px 26px -8px var(--mz-accent-ring); }
-.mz-btn-primary:active { transform: translateY(0); filter: brightness(0.98); }
-.mz-btn-primary:disabled { opacity: 0.55; cursor: default; transform: none; box-shadow: none; filter: none; }
-
 .mz-chip-toggle { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; user-select: none;
     padding: 9px 12px; border-radius: var(--mz-radius-sm); border: 1px solid var(--mz-border-strong);
     background: var(--mz-surface-2); font-size: 0.82rem; font-weight: 600; color: var(--mz-text-muted);
@@ -246,10 +202,6 @@ body.mz-dark .mz-toast.mz-err { color: #f87171; }
 .mz-chip-toggle:has(input:checked) .mz-chip-dot { background: var(--mz-accent); border-color: var(--mz-accent); }
 .mz-chip-toggle:has(input:checked) .mz-chip-dot::after { transform: scale(1); }
 
-body:not(.mz-split-on) .mz-split-only { display: none; }
-
-.mz-slider-field { display: flex; flex-direction: column; gap: 7px; }
-.mz-slider-val { color: var(--mz-accent); font-weight: 700; margin-inline-start: auto; }
 input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px;
     background: color-mix(in srgb, var(--mz-text-muted) 22%, transparent); cursor: pointer; }
 input[type=range]:focus { outline: none; }
@@ -260,14 +212,6 @@ input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.14); }
 input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--mz-accent-ring); }
 input[type=range]::-moz-range-thumb { width: 17px; height: 17px; border-radius: 50%; background: var(--mz-accent); border: 2px solid var(--mz-surface); box-shadow: 0 1px 4px var(--mz-accent-ring); }
 input[type=range]:hover::-moz-range-thumb { transform: scale(1.14); }
-
-.mz-toggle-btn { display: inline-flex; align-items: center; gap: 8px; justify-content: center;
-    padding: 10px 14px; border-radius: var(--mz-radius-sm); border: 1px solid var(--mz-border-strong);
-    background: var(--mz-surface-2); color: var(--mz-text-muted); font-weight: 600; font-size: 0.84rem;
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; cursor: pointer; transition: all 0.15s ease; }
-.mz-toggle-btn .mz-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mz-border-strong); transition: background 0.15s ease; }
-.mz-toggle-btn.mz-on { color: var(--mz-accent); border-color: var(--mz-accent); background: var(--mz-accent-soft); }
-.mz-toggle-btn.mz-on .mz-dot { background: var(--mz-accent); }
 
 .mz-waqf-pills { display: flex; flex-wrap: wrap; gap: 6px; }
 .mz-waqf-pill { font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-size: 0.76rem; font-weight: 600; padding: 4px 11px;
@@ -283,23 +227,15 @@ input[type=range]:hover::-moz-range-thumb { transform: scale(1.14); }
 .mz-status.mz-err { color: #dc2626; }
 body.mz-dark .mz-status.mz-err { color: #f87171; }
 
-/* ── Content column = stage area (scrolls) + docked player ───────────
-   The player is a sibling BELOW the page area, not an overlay, so it can never
-   cover the Quran page — the page just fits the space that's left above it. */
+/* ── Content column: mushaf stage ─────────────────────────────── */
+
 .mz-content { position: relative; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
 .mz-stage-area { flex: 1 1 auto; min-height: 0; width: 100%; max-width: 100%; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 8px; overflow: hidden; }
 
-/* floating mushaf toolbar (dual/tajweed/zoom/hide) */
-.mz-toolbar { display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; background: var(--mz-surface);
-    border: 1px solid var(--mz-border); border-radius: 999px; box-shadow: var(--mz-shadow-sm); flex-shrink: 0; }
-.mz-tb-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid transparent;
-    background: transparent; color: var(--mz-text-muted); cursor: pointer; font-size: 0.92rem; transition: all 0.15s ease; }
-.mz-tb-btn:hover { background: var(--mz-surface-2); color: var(--mz-accent); }
-.mz-tb-btn.mz-on { background: var(--mz-accent); color: var(--mz-on-accent); }
-.mz-tb-btn.mz-disabled, .mz-tb-btn:disabled, button.mz-disabled, button.mz-disabled:hover {
+button.mz-disabled,
+button.mz-disabled:hover {
     opacity: 0.38; cursor: not-allowed; pointer-events: none; background: transparent; color: var(--mz-text-faint); }
-.mz-tb-sep { width: 1px; height: 22px; background: var(--mz-border-strong); margin: 0 2px; }
 
 /* live recitation transcript */
 .mz-asr-live { display: flex; align-items: center; gap: 10px; max-width: min(90%, 640px); padding: 8px 16px; border-radius: 12px;
@@ -421,7 +357,6 @@ body.mz-dark .mz-word.mz-now { color: #fb923c !important; }
 .mz-page.mz-tajweed .mz-word.mz-now,
 .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #c2410c !important; }
 body.mz-dark .mz-page.mz-tajweed .mz-word.mz-now tajweed { color: #fb923c !important; }
-
 
 /* Hide-for-testing: blur the words; click a word to reveal its whole verse. */
 .mz-page.mz-hide .mz-word { color: transparent !important; text-shadow: 0 0 0.5em var(--mz-quran); cursor: pointer; user-select: none; }
@@ -545,7 +480,6 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 /* ── Tappable page chrome (juz / surah / page → pickers) ─────────── */
 .mz-head-juz, .mz-head-surah, .mz-foot-page { cursor: pointer; border-radius: 8px; transition: background 0.15s ease, color 0.15s ease; }
 .mz-head-juz:hover, .mz-head-surah:hover, .mz-foot-page:hover { color: var(--mz-accent); background: color-mix(in srgb, var(--mz-accent) 10%, transparent); }
-.mz-tappable-empty { cursor: default; }
 
 /* ── Range selection by clicking verses ──────────────────────────── */
 /* Verses chosen to memorise are dimmed; as each word is recited it returns to
@@ -553,11 +487,6 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 .mz-word.mz-sel { opacity: 0.4; transition: opacity 0.35s ease; }
 .mz-word.mz-sel.mz-done, .mz-word.mz-now { opacity: 1; }
 body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
-.mz-select-hint { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 35;
-    padding: 7px 15px; border-radius: 999px; font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-size: 0.8rem; font-weight: 600;
-    color: var(--mz-on-accent); background: var(--mz-accent); box-shadow: 0 6px 18px -6px var(--mz-accent-ring);
-    opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
-.mz-select-hint.mz-show { opacity: 1; }
 
 /* ── Tap-to-pick sheet (juz / surah / page) ──────────────────────── */
 .mz-picker { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; }
@@ -595,11 +524,9 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 .mz-picker-list.mz-grid .mz-picker-item.mz-number-only.mz-current .mz-pi-num { background: transparent; color: inherit; }
 
 /* hide leftover/unused chrome from the old layout */
-.mz-topbar, .mz-sidebar, .mz-toolbar, .mz-side-foot, .mz-player { display: none !important; }
 
 /* recite-&-follow live state on the recite button */
-.mz-toggle-btn.mz-listening { color: #16a34a; border-color: #16a34a; background: rgba(22,163,74,0.10); }
-.mz-toggle-btn.mz-listening .mz-dot { background: #16a34a; animation: mz-pulse 1s ease-in-out infinite; }
+
 @keyframes mz-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* ── Responsive: stay one row; shed labels/meta before wrapping ──── */

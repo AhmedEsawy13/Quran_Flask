@@ -43,7 +43,6 @@
         hint:        $('mz-hint'),
         stage:       $('mz-stage'),
         spread:      $('mz-spread'),
-        sidebarToggle: $('mz-sidebar-toggle'),
         prev:        $('mz-prev'),
         next:        $('mz-next'),
         player:      $('mz-player'),
@@ -51,7 +50,6 @@
         stop:        $('mz-stop'),
         prevStep:    $('mz-prev-step'),
         nextStep:    $('mz-next-step'),
-        loopBtn:     $('mz-loop-btn'),
         now:         $('mz-now'),
         remaining:   $('mz-remaining'),
         playerReciter: $('mz-player-reciter'),
@@ -60,9 +58,6 @@
         progress:    $('mz-progress'),
         progressFill:$('mz-progress-fill'),
         audio:       $('mz-audio'),
-        hideToggle:  $('mz-hide-toggle'),
-        hideBtn:     $('mz-hide-btn'),
-        focusToggle: $('mz-focus-toggle'),
         reciteBtn:   $('mz-recite-btn'),
         asrNote:     $('mz-asr-note'),
         asrLive:     $('mz-asr-live'),
@@ -146,13 +141,6 @@
         pageEls().forEach(p => p && p.classList.toggle('mz-hide', state.hideText));
         document.body.classList.toggle('mz-picking', !state.hideText);  // pointer cursor for range-pick
         if (!state.hideText) wordsInSpread('.mz-word.mz-reveal').forEach(w => w.classList.remove('mz-reveal'));
-        [els.hideToggle, els.hideBtn].forEach(b => { if (b) b.setAttribute('aria-pressed', String(state.hideText)); });
-        if (els.hideBtn) {
-            els.hideBtn.classList.toggle('mz-on', state.hideText);
-            const lbl = els.hideBtn.querySelector('span:last-child');
-            if (lbl) lbl.textContent = state.hideText ? 'إظهار النص' : 'إخفاء النص للتسميع';
-        }
-        if (els.hideToggle) els.hideToggle.querySelector('i').className = state.hideText ? 'fas fa-eye' : 'fas fa-eye-slash';
         syncToolbar();
     }
     function revealVerse(key) {
@@ -162,11 +150,6 @@
     function setFocusMode(on) {
         state.focusMode = !!on;
         document.body.classList.toggle('mz-focus', state.focusMode);
-        if (els.focusToggle) {
-            els.focusToggle.setAttribute('aria-pressed', String(state.focusMode));
-            els.focusToggle.querySelector('i').className = state.focusMode ? 'fas fa-compress' : 'fas fa-expand';
-        }
-        // sidebar gone/back → page size changes
         requestAnimationFrame(() => { if (state.focusPage) { sizePages(); applyFontSize(true); justifyLines(); } });
     }
     function toggleLayout() {
@@ -1497,7 +1480,6 @@
         els.player.setAttribute('aria-hidden', 'false');
         refitForPlayer();
         setPlayIcon(true);
-        syncLoopBtn();
         startMonitor();
         playStep(0, null, generation);
     }
@@ -1538,9 +1520,6 @@
         const i = els.play.querySelector('i');
         if (i) i.className = playing ? 'fas fa-pause' : 'fas fa-play';
         els.play.setAttribute('aria-label', playing ? 'إيقاف مؤقت' : 'تشغيل');
-    }
-    function syncLoopBtn() {
-        if (els.loopBtn) els.loopBtn.setAttribute('aria-pressed', String(!!els.loop.checked));
     }
 
     // Attach 'seeked' and 'ended' listeners to the initial native audio element.
@@ -1870,10 +1849,6 @@
             if (!state.schedule.length) return;
             playStep(Math.min(state.schedule.length - 1, Math.max(0, state.stepIdx) + 1));
         });
-        if (els.loopBtn) els.loopBtn.addEventListener('click', () => {
-            els.loop.checked = !els.loop.checked;
-            syncLoopBtn();
-        });
         const adjacentPage = direction => {
             if (!state.focusPage) return null;
             if (state.src === 'shamarly' && SHEMRLY_PAGES.length) {
@@ -1959,7 +1934,6 @@
         els.linkReps.addEventListener('change', updateHint);
         els.cumulative.addEventListener('change', updateHint);
         els.splitLong.addEventListener('change', () => { document.body.classList.toggle('mz-split-on', els.splitLong.checked); updateHint(); });
-        if (els.loop) els.loop.addEventListener('change', syncLoopBtn);
         if (els.reciter) els.reciter.addEventListener('change', async () => {
             state.reciter = els.reciter.value;
             saveSetting('quranApp_memoReciter', state.reciter);
@@ -1976,8 +1950,6 @@
 
         // Hide-for-testing toggles (topbar + sidebar)
         const toggleHide = () => setHideMode(!state.hideText);
-        if (els.hideToggle) els.hideToggle.addEventListener('click', toggleHide);
-        if (els.hideBtn) els.hideBtn.addEventListener('click', toggleHide);
         // Click a word: hide ON → reveal its verse; hide OFF → pick the range.
         if (els.stage) els.stage.addEventListener('click', (e) => {
             const w = e.target.closest('.mz-word');
@@ -1988,7 +1960,6 @@
         });
         // Breathing panel: verse stepper + close
         // Focus mode
-        if (els.focusToggle) els.focusToggle.addEventListener('click', () => setFocusMode(!state.focusMode));
         // Floating mushaf toolbar
         if (els.tbLayout) els.tbLayout.addEventListener('click', toggleLayout);
         if (els.tbTajweed) els.tbTajweed.addEventListener('click', () => els.tajweed.click());
@@ -2022,11 +1993,6 @@
         // Recite & follow (lazy-load the ASR module)
         if (els.reciteBtn) els.reciteBtn.addEventListener('click', startReciteFollow);
         window.addEventListener('pagehide', () => stopReciteFollow(false));
-
-        // Sidebar drawer (mobile)
-        if (els.sidebarToggle) {
-            els.sidebarToggle.addEventListener('click', () => document.body.classList.toggle('mz-sidebar-open'));
-        }
 
         let resizeId = 0;
         window.addEventListener('resize', () => {

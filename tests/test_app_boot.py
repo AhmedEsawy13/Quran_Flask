@@ -201,6 +201,9 @@ def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
     assert 'role="tablist"' in page
     assert page.count('role="tab"') == 10
     assert page.count('role="tabpanel"') == 10
+    assert 'id="wq-lab-picker"' in page
+    assert 'id="wq-lab-sheet-root"' in page
+    assert 'aria-controls="wq-lab-sheet-root"' in page
     assert 'id="wq-status" role="status" aria-live="polite" hidden' in page
 
 
@@ -210,17 +213,18 @@ def test_waqf_uses_shared_research_workspace_structure(client):
 
     assert '<body class="athar-waqf">' in page
     assert page.index('css/athar-components.css') < page.index('css/waqf_guide.css')
-    assert '<section class="wq-bar" aria-labelledby="wq-title">' in page
+    assert 'wq-bar athar-tool-chrome' in page
+    assert 'aria-labelledby="wq-title"' in page
     assert '<header class="wq-bar"' not in page
     assert 'id="wq-title" aria-label="ادرس وقوفهم، وافهم الاختلاف."' in page
     assert 'ادرس وقوفــهم، وافهم الاختلاف.' in page
-    assert 'class="wq-picker athar-toolbar"' in page
+    assert 'wq-picker athar-toolbar-group' in page
     assert page.count('athar-surface') >= 6
     assert 'aria-controls="wq-research-body"' in page
     assert 'role="combobox" aria-autocomplete="list"' in page
     assert 'id="wq-search-results" role="listbox"' in page
-    assert page.count('aria-pressed=') >= 3
-    assert 'els.main.appendChild(els.researchCard)' in script
+    assert 'function selectLabTab' in script
+    assert 'setLabSheetOpen' in script
     assert "setAttribute('aria-activedescendant'" in script
     assert "setAttribute('aria-pressed'" in script
 

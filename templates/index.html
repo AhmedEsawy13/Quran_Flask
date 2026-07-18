@@ -65,11 +65,6 @@
                 <!-- populated from /api/memorization-reciters — same reciter catalog as تثبيت/مُكْث -->
                 <label class="reader-field" for="reciter-select"><span>القارئ</span><select class="athar-select" id="reciter-select" title="اختر القارئ"></select></label>
                 <button class="athar-icon-button reader-voice" id="start-voice-command" type="button" title="أمر صوتي: 'Go to chapter X verse Y'" aria-label="الانتقال بأمر صوتي"><i class="fas fa-microphone" aria-hidden="true"></i></button>
-                <!-- Legacy hidden selects (kept for JS compat) -->
-                <div class="legacy-view-controls" aria-hidden="true">
-                    <select id="display-mode-select"><option value="verse">عرض آية</option><option value="page">عرض صفحة</option></select>
-                    <select id="verse-layout-select"><option value="normal">عادي</option><option value="mushaf-lines">أسطر المصحف</option></select>
-                </div>
             </div>
 
             <!-- Row 2: Playback + utilities -->
@@ -396,7 +391,6 @@
 
         <div class="ayah-container reader-canvas athar-surface">
             <div id="quran-text"></div>
-            <div id="page-number-indicator" style="display:none;"></div>
             <div class="reader-study-result" id="transliteration-container" style="display:none;"><h2>النطق الحرفي</h2><div id="transliteration"></div></div>
             <div class="reader-study-result" id="tafseer-container" style="display:none;"><h2>التفسير</h2><div id="tafseer-text"></div></div>
             <div class="reader-study-result" id="eerab-container" style="display:none;"><h2>الإعراب</h2><div id="eerab-text"></div></div>

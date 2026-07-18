@@ -274,9 +274,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return changed;
     }
 
-    function updateMushafVersionSummary() {
-        // No-op: pills are always visible; summary span is no longer shown.
-    }
 
     async function loadMushafVersions() {
         const dropdown = document.getElementById('mushaf-version-dropdown');
@@ -1413,10 +1410,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return WAQF_INFO[key] || WAQF_INFO_HINDI[key] || { meaning: key };
     }
 
-    // kept for backward-compat callers
-    function getWaqfMeaning(rawSymbol) {
-        return getWaqfInfo(rawSymbol).meaning;
-    }
 
     // MUSHAF_COLOR_MAP and getMushafColorClass defined earlier near loadMushafVersions
 
@@ -1574,9 +1567,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return document.body.dataset.fontType === 'digital_khatt' || document.body.dataset.fontType === 'old_madina';
     }
 
-    function isDigitalKhattFontActive() {
-        return document.body.dataset.fontType === 'digital_khatt';
-    }
 
     function getCurrentKhattJustifyValue() {
         const raw = elements.khattJustifySlider?.value ?? localStorage.getItem('quranApp_khattJustify') ?? '50';
@@ -2876,11 +2866,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
-    function toggleRangeSelection() {
-        if (elements.rangeSelection) {
-            elements.rangeSelection.style.display = elements.rangeSelection.style.display === 'none' ? 'block' : 'none';
-        }
-    }
 
     function showModal() {
         elements.modal.classList.add('show');
@@ -3204,12 +3189,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideBookmarksModal();
     }
     
-    // Sanitize text to prevent XSS
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
     
     function renderBookmarks() {
         const bookmarks = getBookmarks();

@@ -68,6 +68,9 @@
         recitersCard: $('wq-reciters-card'), reciters: $('wq-reciters'),
         muktafaCard: $('wq-muktafa-card'), muktafa: $('wq-muktafa'), muktafaSrc: $('wq-muktafa-src'),
         researchCard: $('wq-research-card'), researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
+        labPicker: $('wq-lab-picker'), labPickerLabel: $('wq-lab-picker-label'),
+        labSheetRoot: $('wq-lab-sheet-root'), labSheetBackdrop: $('wq-lab-sheet-backdrop'),
+        labSheetClose: $('wq-lab-sheet-close'), labSheetList: $('wq-lab-sheet-list'),
         researchInput: $('wq-research-input'), researchForms: $('wq-research-forms'),
         researchResults: $('wq-research-results'),
         panelWord: $('wq-panel-word'), panelSolos: $('wq-panel-solos'),
@@ -1044,13 +1047,27 @@
         els.researchToggle.addEventListener('click', () => {
             window.AtharUi.setDisclosure(els.researchToggle, els.researchBody);
         });
-        document.querySelectorAll('.wq-lab-tab').forEach(tab => tab.addEventListener('click', () => {
+
+        function tabLabel(tab) {
+            return (tab.textContent || '').replace(/\s+/g, ' ').trim();
+        }
+
+        function selectLabTab(tab, { scroll = true, closeSheet = false } = {}) {
+            if (!tab) return;
             document.querySelectorAll('.wq-lab-tab').forEach(t => {
                 const active = t === tab;
                 t.classList.toggle('wq-lab-tab-active', active);
                 t.setAttribute('aria-selected', String(active));
                 t.tabIndex = active ? 0 : -1;
             });
+            if (els.labPickerLabel) els.labPickerLabel.textContent = tabLabel(tab);
+            if (els.labSheetList) {
+                els.labSheetList.querySelectorAll('.wq-lab-sheet-item').forEach(item => {
+                    const on = item.dataset.tab === tab.dataset.tab;
+                    item.classList.toggle('is-active', on);
+                    item.setAttribute('aria-selected', String(on));
+                });
+            }
             const which = tab.dataset.tab;
             els.panelWord.hidden = which !== 'word';
             els.panelSolos.hidden = which !== 'solos';
@@ -1071,7 +1088,58 @@
             if (which === 'ibtidaa') loadIbtidaa();
             if (which === 'cluster') loadCluster();
             if (which === 'mushafsim') loadMushafSim();
-            tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            if (scroll) {
+                window.AtharUi.scrollIntoView(tab, { behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+            }
+            if (closeSheet) setLabSheetOpen(false);
+        }
+
+        function setLabSheetOpen(open) {
+            if (!els.labSheetRoot || !els.labPicker) return;
+            els.labSheetRoot.hidden = !open;
+            els.labPicker.setAttribute('aria-expanded', String(open));
+            document.body.classList.toggle('wq-lab-sheet-open', open);
+            if (open) {
+                const active = els.labSheetList?.querySelector('.wq-lab-sheet-item.is-active')
+                    || els.labSheetList?.querySelector('.wq-lab-sheet-item');
+                active?.focus();
+            } else {
+                els.labPicker.focus();
+            }
+        }
+
+        if (els.labSheetList) {
+            document.querySelectorAll('.wq-lab-tab').forEach(tab => {
+                const icon = tab.querySelector('i')?.className || 'fas fa-circle';
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'wq-lab-sheet-item' + (tab.classList.contains('wq-lab-tab-active') ? ' is-active' : '');
+                btn.dataset.tab = tab.dataset.tab;
+                btn.setAttribute('role', 'option');
+                btn.setAttribute('aria-selected', tab.getAttribute('aria-selected') || 'false');
+                btn.innerHTML = `<i class="${icon}" aria-hidden="true"></i><span>${tabLabel(tab)}</span>`;
+                btn.addEventListener('click', () => {
+                    selectLabTab(tab, { scroll: false, closeSheet: true });
+                });
+                els.labSheetList.appendChild(btn);
+            });
+        }
+        if (els.labPicker) {
+            els.labPicker.addEventListener('click', () => {
+                setLabSheetOpen(els.labSheetRoot?.hidden !== false);
+            });
+        }
+        els.labSheetBackdrop?.addEventListener('click', () => setLabSheetOpen(false));
+        els.labSheetClose?.addEventListener('click', () => setLabSheetOpen(false));
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && els.labSheetRoot && !els.labSheetRoot.hidden) {
+                e.preventDefault();
+                setLabSheetOpen(false);
+            }
+        });
+
+        document.querySelectorAll('.wq-lab-tab').forEach(tab => tab.addEventListener('click', () => {
+            selectLabTab(tab);
         }));
         els.researchBody.addEventListener('keydown', e => {
             if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
@@ -1084,7 +1152,7 @@
             else if (e.key === 'End') next = tabs.length - 1;
             else next = (current + (e.key === 'ArrowLeft' ? 1 : -1) + tabs.length) % tabs.length;
             tabs[next].focus();
-            tabs[next].click();
+            selectLabTab(tabs[next]);
         });
         document.querySelectorAll('.wq-research-chip').forEach(c =>
             c.addEventListener('click', () => runResearch(c.dataset.word, c.dataset.exact === '1', c.dataset.mode || '')));

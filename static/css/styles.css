@@ -21,8 +21,7 @@
  * than scattered across each rule below. */
 #quran-text, #tafseer-text, #eerab-text, .mut-verse, #word-meaning-text,
 .word-meanings-list dt, .waqf-mushaf-hindi, .waqf-tbl-word, .waqf-uthmanic,
-.guide-no-waqf-sym, .waqf-entry-word, .waqf-sym-pill, .memo-verse,
-.memo-overlay-verse, .guide-seg-words, .guide-waqf-sym, .guide-solo-word {
+.guide-no-waqf-sym, .waqf-entry-word, .waqf-sym-pill, .guide-seg-words, .guide-waqf-sym, .guide-solo-word {
     font-feature-settings: normal;
 }
 
@@ -270,7 +269,6 @@ body.sepia-mode .ctrl-row + .ctrl-row { border-top-color: rgba(180,140,90,0.18);
 .ctrl-row-nav select:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.15); }
 body.dark-mode .ctrl-row-nav select { background: rgba(30,41,59,0.9); border-color: rgba(100,116,139,0.4); color: #e2e8f0; }
 body.sepia-mode .ctrl-row-nav select { background: rgba(255,247,237,0.9); border-color: rgba(180,140,90,0.35); color: #5d4e37; }
-#controls .legacy-view-controls { display: none !important; }
 
 /* Row 2 — playback */
 .ctrl-row-playback { justify-content: space-between; }
@@ -357,8 +355,6 @@ body.dark-mode #controls .waqf-mode-btn.active { background: linear-gradient(135
 body.sepia-mode .waqf-mode-control { background: rgba(60, 46, 38, 0.08); border-color: var(--border-color); }
 body.sepia-mode #controls .waqf-mode-btn.active { background: linear-gradient(135deg, #9a3412 0%, #b45309 100%); color: #fff; }
 
-.waqf-version-multiselect { display: none; }
-
 /* ---- Waqf symbol color palette (per mushaf) ---- */
 .waqf-mushaf-madinah  { color: #047857 !important; }
 .waqf-mushaf-shamarly { color: #1d4ed8 !important; }
@@ -387,7 +383,6 @@ body.sepia-mode .waqf-mushaf-other    { color: #57534e !important; }
 .waqf-color-latin { color: #be123c !important; font-family: sans-serif !important; }
 body.dark-mode .waqf-color-latin { color: #f87171 !important; }
 body.sepia-mode .waqf-color-latin { color: #881337 !important; }
-
 
 /* ---- Mushaf version pills ---- */
 .mushaf-pills-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -870,7 +865,6 @@ tajweed.ham_wasl,             span.ham_wasl             { color: #888888; }
 tajweed.laam_shamsiyah,       span.laam_shamsiyah       { color: #888888; }
 tajweed.slnt,                 span.slnt                 { color: #AAAAAA; opacity: 0.75; }
 
-
 #tafseer-text .brown {
     color: #92400e;
 }
@@ -1039,12 +1033,9 @@ body.dark-mode .close:focus {
     font-family: 'AmiriQuran', 'UthmanicHafs', serif;
 }
 
-
-
 .indopak_nastaleeq_2 {
     font-family: 'IndoPakNastaleeq2', serif;
 }
-
 
 /* Ayah Container Styles */
 .ayah-container {
@@ -1057,144 +1048,6 @@ body.dark-mode .close:focus {
     margin-bottom: 20px;
     width: 80%;
     text-align: center;
-}
-
-.operation-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.operation-container .main-controls {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-}
-
-.operation-container .navigation-controls {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
-}
-
-.operation-container .repeat-control {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    padding: 10px 15px;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.operation-container .repeat-control label {
-    font-size: 16px;
-    font-weight: 600;
-    color: #495057;
-    white-space: nowrap;
-}
-
-.operation-container .repeat-control select {
-    padding: 8px 12px;
-    border: 1px solid #ced4da;
-    border-radius: 15px;
-    background: white;
-    font-size: 14px;
-    color: #495057;
-    min-width: 120px;
-}
-
-.operation-container #quran-audio {
-    display: none;
-}
-
-.operation-container button {
-    padding: 15px 30px;
-    font-size: 18px;
-    border: none;
-    border-radius: 25px;
-    color: #fff;
-    font-family: 'UthmanicHafs', 'Digital Khatt', serif;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    margin: 8px;
-    background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    position: relative;
-    overflow: hidden;
-}
-
-.operation-container button:hover {
-    background: linear-gradient(135deg, #115e59 0%, #0f766e 100%);
-    transform: translateY(-3px);
-    box-shadow: 0 12px 25px rgba(15, 118, 110, 0.4);
-}
-
-.operation-container button:active {
-    background: linear-gradient(135deg, #0c4a44 0%, #115e59 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 15px rgba(15, 118, 110, 0.3);
-}
-
-.operation-container #play-pause-button::before,
-.operation-container #download-button::before {
-    font-family: 'Font Awesome 5 Free';
-    font-weight: 900;
-    padding: 8px;
-}
-
-.operation-container #play-pause-button::before {
-    content: ' \f144 '; /* Font Awesome play icon */
-}
-
-.operation-container #play-pause-button.fa-pause::before {
-    content: ' \f28b '; /* Font Awesome pause icon */
-}
-
-.operation-container #download-button::before {
-    content: ' \f358 '; /* Font Awesome download icon */
-}
-
-body.dark-mode .operation-container .repeat-control {
-    background: linear-gradient(135deg, #343a40 0%, #212529 100%);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-mode .operation-container .repeat-control label {
-    color: #f8f9fa;
-}
-
-body.dark-mode .operation-container .repeat-control select {
-    background: #495057;
-    color: #f8f9fa;
-    border: 1px solid #6c757d;
-}
-
-body.dark-mode .operation-container button {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    color: #f1f5f9;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-}
-
-body.dark-mode .operation-container button:hover {
-    background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.5);
-}
-
-body.dark-mode .operation-container button:active {
-    background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
 }
 
 /* Sepia Theme Styles */
@@ -1219,37 +1072,6 @@ body.sepia-mode select:hover, body.sepia-mode button:hover {
     background: linear-gradient(135deg, #ede5d3 0%, #e6d7c3 100%);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(139, 121, 94, 0.25);
-}
-
-body.sepia-mode .operation-container .repeat-control {
-    background: linear-gradient(135deg, #f5f2e8 0%, #ede5d3 100%);
-    box-shadow: 0 4px 12px rgba(139, 121, 94, 0.2);
-}
-
-body.sepia-mode .operation-container .repeat-control label {
-    color: #5d4e37;
-}
-
-body.sepia-mode .operation-container .repeat-control select {
-    background: #faf7f0;
-    color: #5d4e37;
-    border: 1px solid #d2b48c;
-}
-
-body.sepia-mode .operation-container button {
-    background: linear-gradient(135deg, #cd853f 0%, #a0522d 100%);
-    color: #faf7f0;
-    box-shadow: 0 8px 20px rgba(160, 82, 45, 0.3);
-}
-
-body.sepia-mode .operation-container button:hover {
-    background: linear-gradient(135deg, #b8860b 0%, #8b4513 100%);
-    box-shadow: 0 12px 25px rgba(160, 82, 45, 0.4);
-}
-
-body.sepia-mode .operation-container button:active {
-    background: linear-gradient(135deg, #8b4513 0%, #654321 100%);
-    box-shadow: 0 6px 15px rgba(160, 82, 45, 0.3);
 }
 
 body.sepia-mode .loading {
@@ -1377,7 +1199,6 @@ body.dark-mode .word-meanings-list dd { color: #cbd5e1; }
     }
 }
 
-
 .marker-token {
     display: inline-block;
     font-size: 0.86em;
@@ -1453,192 +1274,8 @@ body.sepia-mode #controls {
     box-shadow: 0 16px 38px rgba(15, 23, 42, 0.1);
 }
 
-/* Compact Bottom Control Dock */
 .ayah-container {
     padding-bottom: 2.5rem;
-}
-
-.operation-container-deprecated {
-    position: fixed;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 14px;
-    z-index: 900;
-    width: min(980px, calc(100vw - 24px));
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 0;
-    pointer-events: none;
-}
-
-.operation-container .floating-actions,
-.operation-container .quick-tools-panel {
-    pointer-events: auto;
-}
-
-.operation-container .floating-actions.primary-dock {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px;
-    padding: 8px;
-    border-radius: 18px;
-    border: 1px solid rgba(148, 163, 184, 0.32);
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(14px);
-    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
-}
-
-.operation-container .dock-btn {
-    min-height: 48px;
-    margin: 0;
-    padding: 8px 10px;
-    border-radius: 14px;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-    background: rgba(248, 250, 252, 0.95);
-    color: #0f172a;
-    font-size: 0.92rem;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    box-shadow: none;
-    transform: none;
-}
-
-.operation-container .dock-btn i {
-    font-size: 0.95rem;
-}
-
-.operation-container .dock-btn span {
-    white-space: nowrap;
-}
-
-.operation-container .dock-btn.primary {
-    background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
-    border-color: #0f766e;
-    color: #f8fafc;
-}
-
-.operation-container .dock-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.15);
-}
-
-.operation-container .quick-tools-panel {
-    border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.32);
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.15);
-    overflow: hidden;
-}
-
-.operation-container .quick-tools-panel > summary {
-    list-style: none;
-    padding: 12px 16px;
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #0f172a;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.operation-container .quick-tools-panel > summary::-webkit-details-marker {
-    display: none;
-}
-
-.operation-container .quick-tools-grid {
-    padding: 0 12px 12px;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-}
-
-.operation-container .quick-tools-grid button {
-    margin: 0;
-    border-radius: 12px;
-    padding: 10px;
-    font-size: 0.9rem;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    background: #f8fafc;
-    color: #0f172a;
-    box-shadow: none;
-    transform: none;
-}
-
-.operation-container .repeat-control {
-    margin: 0 12px 12px;
-    border-radius: 12px;
-    background: #f8fafc;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    box-shadow: none;
-}
-
-.operation-container #quran-audio {
-    display: block;
-    width: calc(100% - 24px);
-    margin: 0 12px 12px;
-}
-
-body.dark-mode .operation-container .floating-actions,
-body.dark-mode .operation-container .quick-tools-panel {
-    background: rgba(15, 23, 42, 0.9);
-    border-color: rgba(71, 85, 105, 0.6);
-}
-
-body.dark-mode .operation-container .dock-btn {
-    background: rgba(30, 41, 59, 0.9);
-    color: #e2e8f0;
-    border-color: rgba(100, 116, 139, 0.6);
-}
-
-body.dark-mode .operation-container .dock-btn.primary {
-    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-    color: #f8fafc;
-    border-color: #0d9488;
-}
-
-body.dark-mode .operation-container .quick-tools-panel > summary,
-body.dark-mode .operation-container .repeat-control label {
-    color: #e2e8f0;
-}
-
-body.dark-mode .operation-container .quick-tools-grid button,
-body.dark-mode .operation-container .repeat-control,
-body.dark-mode .operation-container .repeat-control select {
-    background: rgba(30, 41, 59, 0.9);
-    color: #e2e8f0;
-    border-color: rgba(100, 116, 139, 0.6);
-}
-
-body.sepia-mode .operation-container .floating-actions,
-body.sepia-mode .operation-container .quick-tools-panel {
-    background: rgba(250, 243, 230, 0.94);
-    border-color: rgba(180, 140, 90, 0.45);
-}
-
-body.sepia-mode .operation-container .dock-btn {
-    background: #f5ede0;
-    color: #5d4e37;
-    border-color: rgba(180, 140, 90, 0.45);
-}
-
-body.sepia-mode .operation-container .dock-btn.primary {
-    background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
-    color: #fff7ed;
-    border-color: #b45309;
-}
-
-body.sepia-mode .operation-container .quick-tools-panel > summary,
-body.sepia-mode .operation-container .repeat-control label,
-body.sepia-mode .operation-container .quick-tools-grid button,
-body.sepia-mode .operation-container .repeat-control,
-body.sepia-mode .operation-container .repeat-control select {
-    color: #5d4e37;
 }
 
 @media (max-width: 860px) {
@@ -1646,18 +1283,11 @@ body.sepia-mode .operation-container .repeat-control select {
         padding-bottom: 240px;
     }
 
-    .operation-container {
-        width: calc(100vw - 16px);
-        bottom: 8px;
-    }
+    
 
-    .operation-container .floating-actions.primary-dock {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+    
 
-    .operation-container .quick-tools-grid {
-        grid-template-columns: 1fr;
-    }
+    
 }
 
 body.dark-mode .ayah-container {
@@ -1668,12 +1298,6 @@ body.dark-mode .ayah-container {
 body.sepia-mode .ayah-container {
     background: rgba(250, 243, 230, 0.88);
     border-color: rgba(180, 140, 90, 0.3);
-}
-
-.operation-container button {
-    border-radius: 16px;
-    padding: 13px 20px;
-    font-size: 17px;
 }
 
 /* Waqf mode segmented control */
@@ -1744,7 +1368,7 @@ body.sepia-mode #controls .waqf-mode-btn.active {
 
 /* Mushaf-version pills are handled by .mushaf-pills-wrap / .mushaf-pill above */
 /* The old toggle + dropdown selectors below are kept for fallback safety but no longer rendered */
-.waqf-version-multiselect { display: none; }   /* replaced by .mushaf-pills-wrap */
+   /* replaced by .mushaf-pills-wrap */
 
 @media (max-width: 900px) {
     .controls-container {
@@ -1761,452 +1385,26 @@ body.sepia-mode #controls .waqf-mode-btn.active {
         padding: 18px 12px;
     }
 
-    .operation-container button,
-    .operation-container select {
-        width: 100%;
-        margin: 4px 0;
-    }
+    
 
-    .operation-container .navigation-controls {
-        width: 100%;
-        flex-direction: column;
-    }
+    
 }
 
 /* Final docking overrides (must stay last) */
-.operation-container .floating-actions .dock-btn,
-.operation-container .quick-tools-grid button,
-.operation-container .repeat-control select {
-    width: auto;
-    margin: 0;
-}
 
-@media (max-width: 900px) {
-    .operation-container .floating-actions .dock-btn {
-        width: 100%;
-        margin: 0;
-    }
-
-    .operation-container .quick-tools-grid button,
-    .operation-container .repeat-control select {
-        width: 100%;
-    }
-}
-
-/* External left tools panel + Apple Liquid Glass refinement */
 .controls-container {
     position: relative;
 }
 
-
-.operation-container .quick-tools-panel {
-    border-radius: 28px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(40px) saturate(200%);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
-    box-shadow: 
-        0 16px 40px rgba(0, 0, 0, 0.08), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    transition: all 0.3s ease;
-}
-
-.operation-container .quick-tools-panel > summary {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 16px 20px;
-    font-weight: 700;
-    color: #1e293b;
-    border-radius: 28px;
-}
-
-.operation-container .quick-tools-grid {
-    grid-template-columns: 1fr;
-    padding: 0 16px 16px;
-}
-
-.operation-container .quick-tools-grid button {
-    width: 100%;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.5);
-    color: #0f172a;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    margin-bottom: 8px;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.operation-container .quick-tools-grid button:hover {
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-    transform: translateY(-1px);
-}
-
-.operation-container .repeat-control {
-    margin: 0 16px 16px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.5);
-    padding: 10px;
-}
-
-.operation-container #quran-audio {
-    width: calc(100% - 32px);
-    margin: 0 16px 16px;
-    border-radius: 12px;
-}
-
-.operation-container {
-    z-index: 910;
-    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-    opacity: 0.15; /* Focus auto-hide */
-}
-
-.operation-container:hover,
-.operation-container:focus-within {
-    opacity: 1;
-}
-
-.operation-container .floating-actions {
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(40px) saturate(200%);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
-    box-shadow: 
-        0 16px 40px rgba(0, 0, 0, 0.1), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    border-radius: 32px;
-    padding: 8px;
-    pointer-events: auto; /* ensure secondary ones are clickable */
-}
-
-.operation-container .dock-btn {
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    font-weight: 600;
-}
-
-.operation-container .dock-btn.primary {
-    background: rgba(0, 0, 0, 0.85);
-    border-color: transparent;
-    color: #fff;
-}
-
-body.dark-mode .operation-container .quick-tools-panel,
-body.dark-mode .operation-container .floating-actions {
-    border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(30, 30, 30, 0.4);
-    box-shadow: 
-        0 20px 45px rgba(0, 0, 0, 0.4), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .operation-container .quick-tools-grid button,
-body.dark-mode .operation-container .repeat-control,
-body.dark-mode .operation-container .dock-btn,
-body.dark-mode .operation-container .repeat-control select {
-    background: rgba(80, 80, 80, 0.4);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-}
-
-body.dark-mode .operation-container .dock-btn.primary {
-    background: rgba(255, 255, 255, 0.9);
-    color: #000;
-}
-
-body.dark-mode .operation-container .quick-tools-panel > summary,
-body.dark-mode .operation-container .repeat-control label {
-    color: #e2e8f0;
-}
-
-body.sepia-mode .operation-container .quick-tools-panel,
-body.sepia-mode .operation-container .floating-actions {
-    background: rgba(250, 247, 240, 0.4);
-    border: 1px solid rgba(210, 180, 140, 0.3);
-}
-
-body.dark-mode .operation-container .quick-tools-grid button,
-body.dark-mode .operation-container .repeat-control,
-body.dark-mode .operation-container .repeat-control select,
-body.dark-mode .operation-container .dock-btn {
-    background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.85));
-    border-color: rgba(125, 211, 252, 0.28);
-    color: #e2e8f0;
-}
-
-body.sepia-mode .operation-container .quick-tools-panel,
-body.sepia-mode .operation-container .floating-actions,
 body.sepia-mode #controls,
 body.sepia-mode .ayah-container {
     border-color: rgba(194, 120, 3, 0.35);
     background: linear-gradient(145deg, rgba(251, 244, 232, 0.74), rgba(243, 231, 209, 0.5));
 }
 
-body.sepia-mode .operation-container .quick-tools-grid button,
-body.sepia-mode .operation-container .repeat-control,
-body.sepia-mode .operation-container .repeat-control select,
-body.sepia-mode .operation-container .dock-btn {
-    background: linear-gradient(180deg, rgba(255, 247, 237, 0.95), rgba(254, 243, 199, 0.8));
-    border-color: rgba(180, 140, 90, 0.45);
-    color: #5d4e37;
-}
-
-@media (max-width: 1200px) {
-    .operation-container {
-        left: 10px;
-        width: min(300px, 30vw);
-    }
-}
-
-@media (max-width: 980px) {
-    .operation-container {
-        position: static;
-        width: min(1120px, 92%);
-        margin: 10px auto 14px;
-    }
-
-    .operation-container .quick-tools-panel {
-        border-radius: 16px;
-    }
-
-    .ayah-container {
-        padding-bottom: 250px;
-    }
-}
-
-/* New Apple Liquid Glass Fixed Dock Styles */
-.operation-container .secondary-dock {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    border-radius: 28px;
-    padding: 10px;
-}
-
-.operation-container .tertiary-dock {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    border-radius: 28px;
-    padding: 10px;
-}
-
-.operation-container .secondary-dock .dock-btn {
-    flex: 1 1 auto;
-    font-size: 0.85rem;
-    padding: 8px 12px;
-    white-space: nowrap;
-}
-
-.operation-container .dock-widget.flex-center {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.4);
-    padding: 6px 12px;
-    border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-.operation-container .dock-widget .dock-label {
-    font-weight: 700;
-    color: #1e293b;
-    font-size: 0.9rem;
-}
-
-.operation-container .dock-select {
-    border: none;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 10px;
-    font-weight: 600;
-    padding: 4px 8px;
-    color: #0f172a;
-    font-size: 0.85rem;
-}
-
-.operation-container .dock-audio {
-    height: 40px;
-    border-radius: 20px;
-    flex: 1;
-    min-width: 250px;
-    max-width: 400px;
-}
-
-body.dark-mode .operation-container .dock-widget.flex-center {
-    background: rgba(30, 41, 59, 0.6);
-    border-color: rgba(255, 255, 255, 0.15);
-}
-
-body.dark-mode .operation-container .dock-widget .dock-label {
-    color: #e2e8f0;
-}
-
-body.dark-mode .operation-container .dock-select {
-    background: rgba(15, 23, 42, 0.8);
-    color: #f8fafc;
-}
-
-body.sepia-mode .operation-container .dock-widget.flex-center {
-    background: rgba(250, 243, 230, 0.7);
-    border-color: rgba(180, 140, 90, 0.3);
-}
-
-/* ==== Modern Unified Top Dock ==== */
-.operation-container {
-    position: relative;
-    width: 95%;
-    max-width: 1200px;
-    margin: 1.5rem auto 1rem auto;
-    z-index: 920;
-    transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.top-glass-panel {
-    background: rgba(255, 255, 255, 0.45);
-    backdrop-filter: blur(40px) saturate(200%);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border-radius: 36px;
-    padding: 16px 20px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 
-        0 24px 50px rgba(0, 0, 0, 0.12), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.7);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    pointer-events: auto; /* Make it interactive */
-}
-
 /* Reset inner floating actions so they blend into the panel seamlessly */
-.top-glass-panel .floating-actions {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
-}
-
-.top-glass-panel .primary-dock {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-}
-
-.top-glass-panel .secondary-dock {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-}
-
-.top-glass-panel .tertiary-dock {
-    display: flex;
-    width: 100%;
-}
-
-.dock-btn.pill {
-    border-radius: 999px;
-    padding: 12px 24px;
-}
-
-.dock-btn.rounded {
-    border-radius: 18px;
-    padding: 10px 18px;
-}
-
-.dock-btn.outline {
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-}
-
-.dock-btn.primary.pill {
-    background: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    padding: 12px 32px;
-    font-size: 1.05rem;
-}
-
-.dock-btn.primary.pill:hover {
-    background: rgba(0, 0, 0, 0.95);
-    transform: translateY(-2px) scale(1.02);
-}
-
-.top-glass-panel .dock-audio {
-    width: 100%;
-    border-radius: 12px;
-    height: 48px;
-    opacity: 0.9;
-}
-
-/* Dark Mode Overrides for Modern Unified Dock */
-body.dark-mode .top-glass-panel {
-    background: rgba(30, 30, 30, 0.65);
-    border-color: rgba(255, 255, 255, 0.15);
-    box-shadow: 
-        0 24px 50px rgba(0, 0, 0, 0.5), 
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .dock-btn.outline {
-    background: rgba(60, 60, 60, 0.5);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-}
-
-body.dark-mode .dock-btn.primary.pill {
-    background: rgba(255, 255, 255, 0.9);
-    color: #000;
-}
 
 /* Sepia Mode Overrides */
-body.sepia-mode .top-glass-panel {
-    background: rgba(250, 243, 230, 0.6);
-    border-color: rgba(180, 140, 90, 0.3);
-}
-
-body.sepia-mode .dock-btn.outline {
-    background: rgba(255, 255, 255, 0.4);
-    border-color: rgba(180, 140, 90, 0.2);
-    color: #5d4e37;
-}
-
-@media (max-width: 900px) {
-    .top-glass-panel {
-        padding: 12px;
-    }
-    .top-glass-panel .primary-dock {
-        flex-wrap: wrap;
-    }
-    .dock-btn.pill, .dock-btn.rounded {
-        padding: 10px 14px;
-        font-size: 0.9rem;
-    }
-}
-body.dark-mode .top-glass-panel .floating-actions,
-body.sepia-mode .top-glass-panel .floating-actions {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-.operation-container .floating-actions {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-}
 
 .dock-divider {
     width: 2px;
@@ -2237,7 +1435,6 @@ body.sepia-mode .dock-divider {
     }
 }
 
-/* iOS / Apple-Style Liquid Glass Control Panel */
 #controls {
     width: min(900px, 95vw);
     margin: 15px auto;
@@ -2357,10 +1554,6 @@ body.sepia-mode #controls .view-mode-label {
 
 #reading-view-select {
     width: 100%;
-}
-
-#controls .legacy-view-controls {
-    display: none !important;
 }
 
 #controls select,
@@ -4043,198 +3236,6 @@ body.dark-mode #toggle-waqf-table.active {
     color: #38bdf8;
     border-color: #0369a1;
 }
-
-/* ── Memorization mode (Circular Segmented Repetition) ───────────────── */
-.memo-modal-content { max-width: 580px; width: 92%; text-align: right; }
-.memo-sub { font-size: 0.85rem; color: var(--text-color); opacity: 0.75; margin: 0 0 14px; line-height: 1.6; }
-.memo-config-top {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 10px 14px;
-    margin-bottom: 12px;
-}
-.memo-field-reciter select {
-    font-size: 0.95rem;
-    padding: 8px 10px;
-    border: 1px solid var(--primary-color);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text-color);
-    cursor: pointer;
-    width: 100%;
-}
-.memo-config {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px 14px;
-    margin-bottom: 12px;
-}
-.memo-field { display: flex; flex-direction: column; gap: 4px; }
-.memo-field label { font-size: 0.82rem; font-weight: 600; }
-.memo-field select {
-    padding: 7px 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text-color);
-    font-size: 0.9rem;
-}
-.memo-toggles { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px; }
-.memo-check { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; }
-.memo-check input { accent-color: var(--primary-color); width: 16px; height: 16px; }
-.memo-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-.memo-btn {
-    padding: 9px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    background: var(--card-bg);
-    color: var(--text-color);
-    font-size: 0.9rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: background var(--transition-speed);
-}
-.memo-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.memo-btn:not(:disabled):hover { background: var(--border-color); }
-.memo-status {
-    font-size: 0.95rem;
-    font-weight: 600;
-    min-height: 1.4em;
-    margin-bottom: 8px;
-    color: var(--primary-color);
-}
-.memo-status.memo-err { color: var(--error-color); }
-.memo-progress {
-    height: 6px;
-    background: var(--border-color);
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 14px;
-}
-#memo-progress-bar {
-    height: 100%;
-    width: 0;
-    background: var(--primary-color);
-    transition: width 0.25s ease;
-}
-.memo-verse-list {
-    max-height: 38vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.memo-verse {
-    padding: 9px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    font-family: 'UthmanicHafs', 'Amiri', serif;
-    font-size: 1.45rem;
-    line-height: 2.1;
-    direction: rtl;
-    transition: background var(--transition-speed), border-color var(--transition-speed);
-}
-body[data-font-type="amiri_quran"] .memo-verse {
-    font-family: 'AmiriQuran', 'Amiri', serif;
-    font-size: 1.5rem;
-}
-body[data-font-type="digital_khatt"] .memo-verse,
-body[data-font-type="old_madina"] .memo-verse {
-    font-family: 'Digital Khatt', serif;
-    font-size: 1.45rem;
-}
-body[data-font-type="indopak_nastaleeq_2"] .memo-verse {
-    font-family: 'IndoPakNastaleeq2', serif;
-    font-size: 1.6rem;
-    line-height: 2.6;
-}
-.memo-verse .memo-vnum {
-    font-family: system-ui, sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    margin-inline-start: 6px;
-    vertical-align: middle;
-}
-.memo-verse.memo-active {
-    border-color: var(--primary-color);
-    background: color-mix(in srgb, var(--primary-color) 12%, var(--card-bg));
-}
-body.dark-mode .memo-verse.memo-active {
-    background: color-mix(in srgb, var(--primary-color) 28%, var(--card-bg));
-}
-
-/* Memorization split-method controls */
-.memo-split-opts { margin-bottom: 8px; }
-.memo-split-opts input[type="range"] {
-    width: 100%;
-    accent-color: var(--primary-color);
-    cursor: pointer;
-}
-#memo-gap-val { font-weight: 400; opacity: 0.8; font-variant-numeric: tabular-nums; }
-.memo-hint {
-    font-size: 0.8rem;
-    color: var(--text-color);
-    opacity: 0.7;
-    min-height: 1.1em;
-    margin-bottom: 12px;
-}
-
-/* ── Memorization overlay bar (floats at bottom while session is running) ─ */
-.memo-overlay {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    z-index: 2000;
-    background: var(--card-bg);
-    border-top: 2px solid var(--primary-color);
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
-    padding: 10px 16px 12px;
-    animation: memo-overlay-in 0.3s ease;
-}
-@keyframes memo-overlay-in {
-    from { transform: translateY(100%); opacity: 0; }
-    to   { transform: translateY(0);   opacity: 1; }
-}
-.memo-overlay-inner {
-    max-width: 860px; margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-rows: auto auto;
-    gap: 4px 14px; align-items: center;
-}
-.memo-overlay-verse {
-    grid-column: 1; grid-row: 1;
-    font-family: 'UthmanicHafs','Amiri',serif;
-    font-size: 1.5rem; line-height: 2.2; direction: rtl; text-align: right;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-body[data-font-type="amiri_quran"]        .memo-overlay-verse { font-family:'AmiriQuran','Amiri',serif; font-size:1.55rem; }
-body[data-font-type="digital_khatt"]      .memo-overlay-verse,
-body[data-font-type="old_madina"]         .memo-overlay-verse { font-family:'Digital Khatt',serif; }
-body[data-font-type="indopak_nastaleeq_2"].memo-overlay-verse { font-family:'IndoPakNastaleeq2',serif; font-size:1.65rem; line-height:2.8; }
-.memo-overlay-info {
-    grid-column: 1; grid-row: 2;
-    display: flex; flex-direction: column; gap: 4px;
-}
-.memo-overlay-status { font-size:0.8rem; color:var(--primary-color); font-weight:600; }
-.memo-overlay-prog { height:4px; background:var(--border-color); border-radius:3px; overflow:hidden; }
-.memo-overlay-bar-fill { height:100%; width:0; background:var(--primary-color); transition:width 0.25s ease; }
-.memo-overlay-btns {
-    grid-column: 2; grid-row: 1 / span 2;
-    display: flex; gap: 8px; align-items: center;
-}
-.memo-overlay-btns button {
-    width:40px; height:40px; border-radius:50%;
-    border:1px solid var(--border-color); background:var(--card-bg);
-    color:var(--text-color); font-size:1rem; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
-    transition:background var(--transition-speed);
-}
-.memo-overlay-btns button:hover { background:var(--border-color); }
-#memo-overlay-pause.playing { color:var(--primary-color); border-color:var(--primary-color); }
-
 
 /* ══════════════════════════════════════════════════════════════════
    دليل التلاوة — segment cards, مقارنة القرّاء بمصاحف الوقف, كيف قرأها كل قارئ

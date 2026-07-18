@@ -69,6 +69,11 @@
                 <i class="fas fa-chevron-down wq-research-caret" aria-hidden="true"></i>
             </button>
             <div class="wq-research-body" id="wq-research-body" hidden>
+                <button class="wq-lab-picker athar-menu-button" id="wq-lab-picker" type="button" aria-expanded="false" aria-haspopup="dialog" aria-controls="wq-lab-sheet-root" title="أقسام مختبر الوقف">
+                    <i class="fas fa-flask" aria-hidden="true"></i>
+                    <span class="athar-menu-label" id="wq-lab-picker-label">بحث بالكلمة</span>
+                    <i class="fas fa-chevron-down athar-menu-caret" aria-hidden="true"></i>
+                </button>
                 <div class="wq-lab-tabs" role="tablist" aria-label="أقسام مختبر الوقف">
                     <button class="wq-lab-tab wq-lab-tab-active" id="wq-tab-word" data-tab="word" type="button" role="tab" aria-controls="wq-panel-word" aria-selected="true"><i class="fas fa-magnifying-glass" aria-hidden="true"></i> بحث بالكلمة</button>
                     <button class="wq-lab-tab" id="wq-tab-solos" data-tab="solos" type="button" role="tab" aria-controls="wq-panel-solos" aria-selected="false" tabindex="-1"><i class="fas fa-fingerprint" aria-hidden="true"></i> انفرادات القرّاء</button>
@@ -195,6 +200,18 @@
             <div class="wq-reciters" id="wq-reciters"></div>
         </section>
     </main>
+
+    <!-- Mobile lab section sheet (hidden on desktop via CSS) -->
+    <div class="wq-lab-sheet-root" id="wq-lab-sheet-root" hidden>
+        <div class="wq-lab-sheet-backdrop" id="wq-lab-sheet-backdrop"></div>
+        <div class="wq-lab-sheet athar-sheet" id="wq-lab-sheet" role="dialog" aria-modal="true" aria-labelledby="wq-lab-sheet-title">
+            <div class="wq-lab-sheet-head">
+                <span class="wq-lab-sheet-title" id="wq-lab-sheet-title">أقسام المختبر</span>
+                <button class="wq-lab-sheet-close" id="wq-lab-sheet-close" type="button" aria-label="إغلاق"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+            </div>
+            <div class="wq-lab-sheet-list" id="wq-lab-sheet-list" role="listbox" aria-label="أقسام مختبر الوقف"></div>
+        </div>
+    </div>
 
     <script src="{{ static_hash('js/waqf_guide.js') }}"></script>
 </body>
