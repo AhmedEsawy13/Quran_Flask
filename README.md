@@ -199,6 +199,20 @@ pytest              # full suite
 pytest -q tests/test_classical_waqf_quality.py -v   # a single file
 ```
 
+The تثبيت font audit uses real Chromium layout measurements. Install its
+browser once, then run either the pull-request corpus or all 604 pages:
+
+```bash
+python3 -m playwright install chromium
+python3 scripts/audit_mushaf_fonts.py --mode risk
+python3 scripts/audit_mushaf_fonts.py --mode full
+```
+
+Both modes test Old Madinah and Digital Khatt at desktop, mobile, and
+two-page-spread sizes. Reports are written under
+`artifacts/mushaf-font-audit/`; the command exits non-zero for compression,
+word-spacing, edge-alignment, expansion, or facing-page-size violations.
+
 `tests/` covers: app boot / feature-flag combinations, the classical waqf
 pipeline (text quality, attribution, and word-position alignment — three
 separate concerns, three files), مُتشابهات, and the waqf research endpoints.

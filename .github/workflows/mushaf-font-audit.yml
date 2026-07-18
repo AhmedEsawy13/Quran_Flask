@@ -1,0 +1,82 @@
+name: Audit mushaf font rendering
+
+on:
+  pull_request:
+    paths:
+      - 'static/js/athar-page-chrome.js'
+      - 'static/js/mushaf_memorize.js'
+      - 'static/css/athar-page-chrome.css'
+      - 'static/css/mushaf_memorize.css'
+      - 'static/fonts/digitalkhatt.woff2'
+      - 'static/fonts/oldmadina.woff2'
+      - 'data/qpc-v1-15-lines.db'
+      - 'data/qpc-v4-15-lines.db'
+      - 'modules/layouts.py'
+      - 'scripts/audit_mushaf_fonts.py'
+      - 'tests/test_mushaf_font_audit.py'
+      - 'requirements-font-audit.txt'
+      - '.github/workflows/mushaf-font-audit.yml'
+  schedule:
+    - cron: '30 4 * * 0'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Audit scope
+        required: true
+        default: full
+        type: choice
+        options:
+          - risk
+          - full
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mushaf-font-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install Python and Chromium dependencies
+        run: |
+          pip install -r requirements.txt -r requirements-font-audit.txt
+          python3 -m playwright install --with-deps chromium
+
+      - name: Select audit scope
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REQUESTED_MODE: ${{ inputs.mode }}
+        run: |
+          mode=risk
+          if [ "$EVENT_NAME" = schedule ]; then
+            mode=full
+          elif [ "$EVENT_NAME" = workflow_dispatch ]; then
+            mode="${REQUESTED_MODE:-full}"
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+
+      - name: Run browser typography audit
+        run: >-
+          python3 scripts/audit_mushaf_fonts.py
+          --mode "${{ steps.scope.outputs.mode }}"
+          --report-dir artifacts/mushaf-font-audit
+
+      - name: Upload audit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mushaf-font-audit-${{ steps.scope.outputs.mode }}
+          path: artifacts/mushaf-font-audit/
+          if-no-files-found: error

@@ -277,3 +277,34 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert script.count("els.progress.addEventListener('click'") == 1
     assert "els.progress.setAttribute('aria-valuenow'" in script
     assert "els.bar?.getBoundingClientRect().height" in script
+
+
+def test_memorization_old_madina_justification_is_adaptive():
+    memorize = (PROJECT_ROOT / 'static/js/mushaf_memorize.js').read_text(encoding='utf-8')
+    shared = (PROJECT_ROOT / 'static/js/athar-page-chrome.js').read_text(encoding='utf-8')
+
+    assert 'oldMadinaFeatureCandidates(state.justify)' in memorize
+    assert 'digitalKhattFeatureCandidates(state.justify)' in memorize
+    assert "`'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`" in memorize
+    assert "['cv02', 'cv03']" in memorize
+    assert 'return variants.map(tags =>' in memorize
+    assert 'khattFeatureSettings(100)' not in memorize
+    assert 'const OLD_MADINA_PAGE_RATIO = 0.72' in memorize
+    assert "ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO" in memorize
+    assert "cacheKey: () => `${state.src}|${state.layoutMode}|${state.focusPage || 0}`" in memorize
+    assert "state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 0" in memorize
+    assert "state.src !== 'qpc_v1' && state.src !== 'digital_khatt'" in memorize
+    assert "state.src === 'digital_khatt' ? 1.15" in memorize
+    assert "state.src === 'qpc_v1' ? 1.18" in memorize
+    assert 'linesPerPage = 15, cacheKey = () => \'\', fitScale = 1' in shared
+    assert 'minLineScale = 0' in shared
+    assert 'minFontSize = 11' in shared
+    assert 'minFontSize: 9.5' in memorize
+    assert 'sharedSize = true' in shared
+    assert 'sharedSize: false' in memorize
+    assert 'maxPageFitRatio = Infinity' in shared
+    assert 'maxPageFitRatio: 1.15' in memorize
+    assert "state.layoutMode === 'dual' ? 1.20" in memorize
+    assert 'fs * ratios[0] * 0.99 / resolvedMinLineScale' in shared
+    assert 'featureCandidates = null' in shared
+    assert 'const spacing = Math.min(slack / gaps, spacingCap)' in shared

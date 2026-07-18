@@ -933,7 +933,8 @@
     // feedback loop: a taller page grew the scroll area, which grew the next
     // page…), so a pure window-based formula gives ONE fixed page box that stays
     // put — the page simply sits centred in the stage.
-    const PAGE_RATIO = 0.66; // width / height
+    const PAGE_RATIO = 0.66;            // Digital Khatt / Shemrly width ÷ height
+    const OLD_MADINA_PAGE_RATIO = 0.72; // 1405 print needs a wider text block
     function sizePages() {
         const stage = els.stage;
         if (!stage) return;
@@ -945,7 +946,8 @@
         window.AtharPageChrome.sizePages({
             cssVarPrefix: 'mz',
             pages: state.layoutMode === 'single' ? 1 : 2,
-            ratio: PAGE_RATIO, gutter: 20, spreadPad: 28,
+            ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO,
+            gutter: 20, spreadPad: 28,
             getAvailH: () => Math.max(320, window.innerHeight - topbar - appbar - vMargin) - headFootPad,
             getAvailW: () => Math.max(260, stage.clientWidth - navAndGaps),
         });
@@ -959,39 +961,92 @@
     };
 
     /* ── Justification (kashida features + scaleX fill) ─────────────────
-       Shared algorithm lives in athar-page-chrome.js; only the font-specific
-       OpenType feature tags (Digital Khatt vs. the generic jt/dc/kt Madinah
-       set) and the شمرلي gentle-stretch opt-out are تثبيت's own. */
-    function khattFeatureSettings(strength) {
+       Shared algorithm lives in athar-page-chrome.js. Digital Khatt exposes
+       jalt/cv levels; Old Madina exposes character variants instead of the
+       jt/dc/kt tags used by the former font file. For Old Madina we give the
+       shared justifier progressively stronger candidates and let every line
+       choose the closest fit, rather than forcing the same alternate globally. */
+    function digitalKhattFeatureCandidates(strength) {
         const s = Math.max(0, Math.min(100, Number(strength) || 0));
-        if (s <= 0) return '';
-        if (state.src === 'digital_khatt') {
-            const levels = [`'jalt' 1`, `'jalt' 1, 'cv02' 1`, `'jalt' 1, 'cv01' 1`, `'jalt' 1, 'cv01' 1, 'cv02' 1`];
-            const level = Math.min(levels.length, Math.max(1, Math.ceil((s / 100) * levels.length)));
-            return levels[level - 1] || '';
-        }
-        const seq = [];
-        for (let lvl = 1; lvl <= 5; lvl += 1) for (const t of ['jt', 'dc', 'kt']) seq.push(`${t}0${lvl}`);
-        const count = Math.round((s / 100) * seq.length);
-        if (count <= 0) return '';
-        return seq.slice(0, count).map(f => `'${f}'`).join(',');
+        if (s <= 0) return [];
+        return [
+            `'jalt' 1`,
+            `'jalt' 1, 'cv02' 1`,
+            `'jalt' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv02' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv01' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv02' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`,
+        ];
+    }
+    function oldMadinaFeatureCandidates(strength) {
+        const s = Math.max(0, Math.min(100, Number(strength) || 0));
+        if (s <= 0) return [];
+        const variants = [
+            ['cv02'],
+            ['cv03'],
+            ['cv02', 'cv03'],
+            ['cv01'],
+            ['cv01', 'cv02'],
+            ['cv01', 'cv03'],
+            ['cv01', 'cv02', 'cv03'],
+        ];
+        // The percentage enables Arabic elongation, while the actual variant
+        // is selected from the full set per line. Restricting a low setting to
+        // only the first few variants left short lines visibly inset.
+        return variants.map(tags => (
+            [`'salt' 1`, ...tags.map(tag => `'${tag}' 1`)].join(', ')
+        ));
     }
     const justifyLines = window.AtharPageChrome.createLineJustifier({
         containerEls: pageEls,
         lineSelector: '.mz-line', innerSelector: '.mz-line-inner', wordSelector: '.mz-word',
-        featureSettings: () => khattFeatureSettings(100),
+        featureCandidates: () => state.src === 'qpc_v1'
+            ? oldMadinaFeatureCandidates(state.justify)
+            : state.src === 'digital_khatt'
+                ? digitalKhattFeatureCandidates(state.justify)
+                : [],
+        minFeatureScale: () => (
+            state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 1
+        ),
+        maxWordSpacing: (_lineEl, inner) => {
+            if (state.src !== 'qpc_v1' && state.src !== 'digital_khatt') return Infinity;
+            const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
+            return Math.max(1.5, Math.min(4, fontSize * 0.12));
+        },
+        maxStretch: () => (
+            // The full 604-page audit found 3 Digital Khatt and 17 Old Madina
+            // lines whose strongest font alternates still end short. These
+            // ceilings cover those rare lines (14.6% / 17.2% required) while
+            // leaving feature shaping and capped word spacing as the primary
+            // strategy for every ordinary line.
+            state.layoutMode === 'dual' ? 1.20
+                : state.src === 'digital_khatt' ? 1.15
+                : state.src === 'qpc_v1' ? 1.18
+                    : Infinity
+        ),
         stretchOnly: () => state.src === 'shamarly',
     });
-    // ONE stable font size per (source + layout + page box). Once fitted, every
-    // page reuses the SAME --dk-fs, so paging (prev/next) or switching the Madinah
-    // print never rescales the text — justifyLines() then fills each line's own
-    // width. Only a viewport/source/layout change (new key) or an explicit
-    // `force` (e.g. a web-font just swapped in) re-measures.
+    // Fit each page/spread against an explicit compression budget. Including the
+    // focus page in the key prevents a difficult page from inheriting a font size
+    // measured against an unrelated page's lines. In a two-page spread, fit each
+    // printed page independently: forcing the easier face to inherit its partner's
+    // smaller size created 25–36% short-line expansion outliers.
     const applyFontSize = window.AtharPageChrome.createFontSizer({
         pageEls: () => pageEls().filter(p => p && p.classList.contains('mz-has-page')),
         lineSelector: '.mz-line', innerSelector: '.mz-line-inner',
         cssVarName: '--dk-fs', linesPerPage: 15,
-        cacheKey: () => `${state.src}|${state.layoutMode}`,
+        cacheKey: () => `${state.src}|${state.layoutMode}|${state.focusPage || 0}`,
+        sharedSize: false,
+        maxPageFitRatio: 1.15,
+        // Narrow mobile pages can contain an exceptionally long printed line
+        // (notably Digital Khatt page 507). Allow the compression-budget fitter
+        // to reach its calculated ~10px size instead of stopping at 10.5px.
+        minFontSize: 9.5,
+        minLineScale: () => (
+            state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 0
+        ),
     });
 
     /* ── Highlighting ──────────────────────────────────────────────── */

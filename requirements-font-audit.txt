@@ -1,0 +1,2 @@
+# Browser dependency for scripts/audit_mushaf_fonts.py and its CI workflow.
+playwright>=1.50,<2

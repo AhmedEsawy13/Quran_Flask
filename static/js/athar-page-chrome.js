@@ -120,23 +120,33 @@
     function createFontSizer(config) {
         const {
             pageEls, lineSelector, innerSelector, cssVarName,
-            linesPerPage = 15, cacheKey = () => '',
+            linesPerPage = 15, cacheKey = () => '', fitScale = 1,
+            minLineScale = 0, minFontSize = 11, sharedSize = true,
+            maxPageFitRatio = Infinity,
         } = config || {};
-        let fitFs = 0, fitKey = '';
+        let fitFs = 0, fitValues = [], fitKey = '';
         return function applyFontSize(force) {
             const pages = (typeof pageEls === 'function' ? pageEls() : []).filter(Boolean);
             if (!pages.length) return;
             const key = `${cacheKey()}|${Math.round(pages[0].clientHeight)}|${Math.round(pages[0].clientWidth)}`;
             if (!force && key === fitKey && fitFs) {
-                pages.forEach(p => p.style.setProperty(cssVarName, fitFs + 'px'));
+                pages.forEach((p, i) => p.style.setProperty(
+                    cssVarName,
+                    ((sharedSize ? fitFs : fitValues[i]) || fitFs) + 'px'
+                ));
                 return;
             }
             let chosen = 0;
+            const fitted = [];
             pages.forEach(p => {
                 const h = p.clientHeight || 1;
                 const lineH = h / linesPerPage;
                 const maxFs = lineH * 0.92;
-                let fs = Math.max(11, lineH * 0.62);
+                const rawMinFontSize = typeof minFontSize === 'function' ? minFontSize(p) : minFontSize;
+                const resolvedMinFontSize = Number.isFinite(Number(rawMinFontSize))
+                    ? Math.max(8, Math.min(16, Number(rawMinFontSize)))
+                    : 11;
+                let fs = Math.max(resolvedMinFontSize, lineH * 0.62);
                 p.style.setProperty(cssVarName, fs + 'px');
 
                 const inners = [...p.querySelectorAll(`${lineSelector}[data-justify="1"] ${innerSelector}`)];
@@ -153,13 +163,40 @@
                 if (ratios.length) {
                     ratios.sort((a, b) => a - b);
                     const med = ratios[Math.floor(ratios.length / 2)] || 1;
-                    fs = Math.max(11, Math.min(maxFs, fs * med * 0.98));
+                    const rawFitScale = typeof fitScale === 'function' ? fitScale(p) : fitScale;
+                    const resolvedFitScale = Number.isFinite(Number(rawFitScale))
+                        ? Math.max(0.75, Math.min(1.25, Number(rawFitScale)))
+                        : 1;
+                    const rawMinLineScale = typeof minLineScale === 'function'
+                        ? minLineScale(p)
+                        : minLineScale;
+                    const resolvedMinLineScale = Number.isFinite(Number(rawMinLineScale))
+                        ? Math.max(0, Math.min(1, Number(rawMinLineScale)))
+                        : 0;
+                    const typicalFit = fs * med * 0.98 * resolvedFitScale;
+                    // Median fitting keeps a typical line attractive, but can
+                    // make an unusually long line 10–17% narrower via scaleX.
+                    // When requested, cap that distortion by lowering the whole
+                    // page's font size before per-line justification runs.
+                    const compressionFit = resolvedMinLineScale > 0
+                        ? fs * ratios[0] * 0.99 / resolvedMinLineScale
+                        : Infinity;
+                    fs = Math.max(resolvedMinFontSize, Math.min(maxFs, typicalFit, compressionFit));
                 }
+                fitted.push(fs);
                 chosen = chosen ? Math.min(chosen, fs) : fs;
             });
             if (chosen) {
-                fitFs = chosen; fitKey = key;
-                pages.forEach(p => p.style.setProperty(cssVarName, chosen + 'px'));
+                const rawMaxPageFitRatio = Number(maxPageFitRatio);
+                const resolvedMaxPageFitRatio = Number.isFinite(rawMaxPageFitRatio)
+                    ? Math.max(1, Math.min(2, rawMaxPageFitRatio))
+                    : Infinity;
+                const appliedFits = fitted.map(fs => Math.min(fs, chosen * resolvedMaxPageFitRatio));
+                fitFs = chosen; fitValues = appliedFits; fitKey = key;
+                pages.forEach((p, i) => p.style.setProperty(
+                    cssVarName,
+                    (sharedSize ? chosen : (appliedFits[i] || chosen)) + 'px'
+                ));
             }
         };
     }
@@ -170,14 +207,23 @@
        kashida OpenType features (caller-supplied — font-specific tags,
        e.g. Digital Khatt vs. Old Madina use different feature names) and
        fill the remainder with word-spacing; a single word with slack left
-       gets scaleX instead. `stretchOnly` opts a source out of kashida
-       entirely in favor of a gentle scaleX-only fill (شمرلي's whole-word
-       page glyphs can't take kashida/word-spacing at all). */
+       gets scaleX instead. Callers may provide several feature candidates so
+       each line can choose the closest fitting Arabic alternates, plus caps
+       for residual word spacing/stretch. `stretchOnly` opts a source out of
+       kashida entirely in favor of a gentle scaleX-only fill (شمرلي's
+       whole-word page glyphs can't take kashida/word-spacing at all). */
     function createLineJustifier(config) {
         const {
             containerEls, lineSelector, innerSelector, wordSelector,
-            featureSettings = () => '', stretchOnly = () => false,
+            featureSettings = () => '', featureCandidates = null,
+            minFeatureScale = 1, maxWordSpacing = Infinity, maxStretch = Infinity,
+            stretchOnly = () => false,
         } = config || {};
+        const resolveNumber = (value, fallback, lineEl, inner) => {
+            const raw = typeof value === 'function' ? value(lineEl, inner) : value;
+            const parsed = Number(raw);
+            return Number.isFinite(parsed) ? parsed : fallback;
+        };
         return function justifyLines() {
             const els = (typeof containerEls === 'function' ? containerEls() : []).filter(Boolean);
             const lines = [];
@@ -205,16 +251,60 @@
                     return;
                 }
                 let width = natural;
-                if (features) {
-                    inner.style.fontFeatureSettings = features;
-                    const withK = inner.scrollWidth;
-                    if (withK <= avail + 0.5) width = withK;
-                    else inner.style.fontFeatureSettings = '';
+                let chosenFeatures = '';
+                const candidateList = gentle ? [] : (
+                    typeof featureCandidates === 'function'
+                        ? featureCandidates(lineEl, inner)
+                        : featureCandidates
+                );
+                const candidates = Array.isArray(candidateList) && candidateList.length
+                    ? candidateList.filter(Boolean)
+                    : (features ? [features] : []);
+                const featureScaleFloor = Math.max(
+                    0.5,
+                    Math.min(1, resolveNumber(minFeatureScale, 1, lineEl, inner))
+                );
+                let bestDistance = Math.abs(avail - natural);
+                candidates.forEach(candidate => {
+                    inner.style.fontFeatureSettings = candidate;
+                    const candidateWidth = inner.scrollWidth;
+                    if (!candidateWidth) return;
+                    const fitScale = avail / candidateWidth;
+                    if (candidateWidth > avail + 0.5 && fitScale < featureScaleFloor) return;
+                    const distance = Math.abs(avail - candidateWidth);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        chosenFeatures = candidate;
+                        width = candidateWidth;
+                    }
+                });
+                inner.style.fontFeatureSettings = chosenFeatures;
+
+                // A slightly over-wide alternate is preferable to large word
+                // gaps; gently bring it back to the exact line width.
+                if (width > avail + 0.5) {
+                    inner.style.transform = `scaleX(${avail / width})`;
+                    return;
                 }
                 const gaps = inner.querySelectorAll(wordSelector).length - 1;
                 const slack = avail - width;
-                if (slack > 0.5 && gaps > 0) inner.style.wordSpacing = (slack / gaps) + 'px';
-                else if (slack > 0.5) inner.style.transform = `scaleX(${avail / width})`;
+                if (slack > 0.5 && gaps > 0) {
+                    const spacingCap = Math.max(0, resolveNumber(maxWordSpacing, Infinity, lineEl, inner));
+                    const spacing = Math.min(slack / gaps, spacingCap);
+                    if (spacing > 0) inner.style.wordSpacing = spacing + 'px';
+
+                    // If the spacing cap leaves a little width unfilled, spread
+                    // that remainder across the shaped line instead of reopening
+                    // conspicuous gaps between words.
+                    const spacedWidth = inner.scrollWidth;
+                    if (spacedWidth && spacedWidth < avail - 0.5) {
+                        const stretchCap = Math.max(1, resolveNumber(maxStretch, Infinity, lineEl, inner));
+                        const stretch = Math.min(avail / spacedWidth, stretchCap);
+                        if (stretch > 1.0005) inner.style.transform = `scaleX(${stretch})`;
+                    }
+                } else if (slack > 0.5) {
+                    inner.style.transform = `scaleX(${avail / width})`;
+                }
             });
         };
     }
