@@ -118,3 +118,7 @@ pipeline/tafseer_source/
 # (hand-verified, or model output) and are tracked; the built db is regenerable
 # from them, so only it is ignored.
 data/classical_waqf_llm.db
+# Local scholarly decisions made in /classical-review. The review UI creates
+# this on first write; decisions are exported/reviewed before release rather
+# than silently committed as a mutable binary database.
+data/classical_review.db

@@ -1,48 +1,86 @@
 /* ===========================================================================
  * أثَر — landing page (/) only.
  *
- * "Parchment → ink": a warm paper ground with near-black ink, punctuated by
- * the app's own Quranic green (--athar-accent, from brand.css) and a rare
- * muted gold. Tokens (--athar-parchment/-ink/-gold/-line) and the shared
- * .athar-button / .athar-display components live in athar-components.css so later pages
- * can adopt the same language — this file only holds this page's own
- * hero/cards/closer layout, the same "shared tokens + page-specific layout"
- * split every other page already follows (mz-*, wq-*, ed-*).
+ * Hero: brand + one headline + short lede + one CTA + a live mushaf page.
+ * Journey section (metrics + module links) stays below the first viewport.
+ * Tokens and shared .athar-button / .athar-display live in brand/components.
  * ======================================================================== */
+
+@font-face {
+  font-family: 'Digital Khatt';
+  src: url('../fonts/digitalkhatt.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'QCF Basmala';
+  src: url('../fonts/QCF BSML @Am9li9.ttf') format('truetype');
+  font-display: swap;
+}
+@font-palette-values --lp-dk-dark {
+  font-family: 'Digital Khatt';
+  override-colors: 0 #5bbbde, 1 #0c2c3c, 2 #0c2c3c, 3 #9bd9f0;
+}
 
 body.athar-landing {
   background: var(--athar-parchment);
   color: var(--athar-ink);
   font-family: var(--font-ui);
   transition: background .25s ease, color .25s ease;
+  overflow-x: clip;
 }
 body.athar-landing ::selection { background: var(--athar-accent); color: var(--athar-surface); }
 
 .lp-wrap { max-width: 1120px; margin: 0 auto; padding-inline: clamp(20px, 5vw, 48px); }
 
-/* the shared .athar-bar covers the header/nav; only override its background
-   here so it reads as parchment-glass instead of the reading page's white-glass */
 body.athar-landing .athar-bar {
   background: color-mix(in srgb, var(--athar-parchment) 82%, transparent);
 }
 
-/* ---------------------------------------------------------------- hero */
-.lp-hero { padding: clamp(56px, 10vw, 112px) 0 clamp(48px, 8vw, 80px); }
-
-.lp-eyebrow {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  font-size: .86rem; color: var(--athar-ink-faint); font-variant-numeric: tabular-nums;
-  margin: 0 0 26px;
+/* ---------------------------------------------------------------- hero
+ * One composition: copy + full-bleed mushaf plane. No metrics/cards here. */
+.lp-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  align-items: stretch;
+  min-height: calc(100dvh - var(--athar-bar-h));
+  isolation: isolate;
 }
-.lp-eyebrow b { color: var(--athar-ink-soft); font-weight: 700; }
-.lp-eyebrow .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--athar-accent-soft); opacity: .75; }
+
+.lp-hero-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
+  padding-block: clamp(40px, 8vh, 96px);
+  max-width: none;
+}
+
+.lp-brand {
+  margin: 0 0 6px;
+  color: var(--athar-accent);
+  font-size: clamp(3.6rem, 9vw, 7rem);
+  font-weight: 900;
+  line-height: 0.92;
+  letter-spacing: 0;
+}
+
+.lp-tagline {
+  margin: 0 0 28px;
+  color: var(--athar-ink-faint);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
 
 .lp-headline {
-  font-size: clamp(2.6rem, 6.4vw, 5.4rem);
-  line-height: 1.07;
-  max-width: 15.5ch;
+  font-size: clamp(2rem, 4.4vw, 3.6rem);
+  line-height: 1.12;
+  max-width: 14ch;
   text-wrap: balance;
-  margin: 0 0 28px;
+  margin: 0 0 18px;
 }
 .lp-headline .lp-mark {
   color: var(--athar-accent);
@@ -53,31 +91,186 @@ body.athar-landing .athar-bar {
 .lp-headline em { font-style: normal; color: var(--athar-ink-faint); }
 
 .lp-lede {
-  max-width: 60ch;
-  font-size: clamp(1.02rem, 1.6vw, 1.18rem);
+  max-width: 38ch;
+  font-size: clamp(1rem, 1.5vw, 1.12rem);
   color: var(--athar-ink-soft);
-  margin: 0 0 34px;
+  margin: 0 0 28px;
+  line-height: 1.85;
 }
 
 .lp-cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
 
-.lp-metrics {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
-  background: var(--athar-line); border: 1px solid var(--athar-line);
-  border-radius: 18px; overflow: hidden;
-  margin-top: clamp(48px, 8vw, 84px);
+/* Full-bleed mushaf plane — edge to edge on the visual half */
+.lp-hero-visual {
+  position: relative;
+  min-height: 100%;
+  background:
+    linear-gradient(90deg, var(--athar-parchment) 0%, transparent 18%),
+    var(--athar-parchment-2);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
 }
-.lp-metric { background: var(--athar-surface); padding: 26px clamp(14px, 3vw, 30px); text-align: center; }
-.lp-metric b {
-  display: block; font-family: var(--font-display); font-weight: 900;
-  font-size: clamp(1.7rem, 3.4vw, 2.4rem); color: var(--athar-ink);
-  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+.lp-hero-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 55% at 60% 45%, color-mix(in srgb, var(--athar-accent) 10%, transparent), transparent 70%);
+  pointer-events: none;
 }
-.lp-metric span { font-size: .82rem; color: var(--athar-ink-faint); }
+
+.lp-mushaf-stage {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 480px);
+  display: grid;
+  place-items: center;
+  padding: clamp(24px, 5vh, 56px) clamp(16px, 3vw, 40px);
+}
+
+.lp-mushaf {
+  display: flex;
+  flex-direction: column;
+  width: var(--lp-page-w, 320px);
+  height: var(--lp-page-h, 485px);
+  padding: 14px 16px 12px;
+  background: var(--athar-surface);
+  border: 1px solid var(--athar-line);
+  border-radius: 4px 18px 18px 4px;
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--athar-ink) 6%, transparent),
+    0 28px 64px -28px rgba(24, 23, 15, 0.35);
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+  overflow: hidden;
+  transition:
+    opacity 0.7s var(--athar-ease, ease),
+    transform 0.7s var(--athar-ease, ease);
+  font-feature-settings: normal;
+}
+.lp-mushaf.is-ready {
+  opacity: 1;
+  transform: none;
+}
+.lp-mushaf-stage.is-failed .lp-mushaf { display: none; }
+
+.lp-mushaf-head {
+  gap: 8px;
+  padding: 2px 4px 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--athar-accent) 18%, transparent);
+  color: var(--athar-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.lp-mushaf-head .athar-page-juz-glyph {
+  font-size: 1.35rem;
+  color: var(--athar-accent);
+  line-height: 1;
+}
+.lp-mushaf-head .athar-page-surah-glyph {
+  font-size: 1.15rem;
+  color: var(--athar-ink);
+  line-height: 1;
+}
+
+.lp-mushaf-page {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0;
+  min-height: 0;
+  overflow: hidden;
+  --lp-fs: 20px;
+  font-feature-settings: normal;
+}
+.lp-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 calc(100% / 15);
+  min-height: 0;
+  overflow: hidden;
+}
+.lp-line-inner {
+  white-space: nowrap;
+  font-family: 'Digital Khatt', serif;
+  font-size: var(--lp-fs, 20px);
+  line-height: 1;
+  color: var(--athar-ink);
+  direction: rtl;
+  transform-origin: center center;
+  font-feature-settings: normal;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.lp-mushaf-foot {
+  display: flex;
+  justify-content: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--athar-accent) 18%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--athar-ink-muted, var(--athar-ink-soft));
+}
+.lp-mushaf-foot span {
+  padding: 2px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 26%, var(--athar-line));
+  background: var(--athar-parchment-2);
+}
+
+body.athar-landing[data-theme="dark"] .lp-line-inner,
+:root[data-theme="dark"] .lp-line-inner {
+  font-palette: --lp-dk-dark;
+}
+.lp-word { display: inline-block; padding: 0.35em 0.02em 0; }
+
+.lp-line-surah {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  color: var(--athar-accent);
+  font-size: calc(var(--lp-fs, 20px) * 0.7);
+  white-space: nowrap;
+}
+.lp-line-surah.lp-surah-glyph {
+  position: relative;
+  box-sizing: border-box;
+  width: 92%;
+  margin: 0.12em auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Surah Names', serif;
+  font-weight: 400;
+  color: var(--athar-ink);
+  font-size: calc(var(--lp-fs, 20px) * 0.9);
+  line-height: 1.2;
+  padding: 0.06em 1.4em;
+  border: 1px solid var(--athar-gold);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--athar-gold) 8%, var(--athar-surface));
+  box-shadow:
+    inset 0 0 0 2px var(--athar-surface),
+    inset 0 0 0 3px color-mix(in srgb, var(--athar-gold) 55%, transparent);
+}
+.lp-line-basmala {
+  font-family: 'QCF Basmala', 'Digital Khatt', serif;
+  font-size: calc(var(--lp-fs, 20px) * 1.55);
+  color: var(--athar-ink);
+  line-height: 1;
+  white-space: nowrap;
+}
 
 /* ------------------------------------------------------------- sections */
 .lp-section { padding: clamp(56px, 9vw, 96px) 0; }
-.lp-section-head { max-width: 48ch; margin-bottom: clamp(32px, 5vw, 52px); }
+.lp-section-head { max-width: 48ch; margin-bottom: clamp(28px, 4vw, 40px); }
 .lp-eyebrow-label {
   display: block; font-size: .78rem; font-weight: 700; color: var(--athar-gold);
   letter-spacing: .04em; margin-bottom: 12px;
@@ -87,6 +280,20 @@ body.athar-landing .athar-bar {
   text-wrap: balance; margin: 0;
 }
 
+.lp-metrics {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  background: var(--athar-line); border: 1px solid var(--athar-line);
+  border-radius: 18px; overflow: hidden;
+  margin-bottom: clamp(28px, 5vw, 44px);
+}
+.lp-metric { background: var(--athar-surface); padding: 22px clamp(14px, 3vw, 28px); text-align: center; }
+.lp-metric b {
+  display: block; font-family: var(--font-display); font-weight: 900;
+  font-size: clamp(1.55rem, 3vw, 2.15rem); color: var(--athar-ink);
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+.lp-metric span { font-size: .82rem; color: var(--athar-ink-faint); }
+
 .lp-cards {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
   background: var(--athar-line); border: 1px solid var(--athar-line);
@@ -94,33 +301,23 @@ body.athar-landing .athar-bar {
 }
 .lp-card {
   background: var(--athar-surface); padding: clamp(26px, 3.4vw, 38px);
-  display: flex; flex-direction: column; gap: 16px;
+  display: flex; flex-direction: column; gap: 14px;
   text-decoration: none; color: inherit;
   opacity: 0; transform: translateY(14px);
   transition: opacity .5s ease, transform .5s ease, background .18s ease;
 }
 .lp-card.in-view { opacity: 1; transform: none; }
 .lp-card:hover { background: var(--athar-parchment-2); }
-.lp-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.lp-card-icon {
-  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 11px;
-  background: color-mix(in srgb, var(--athar-accent) 12%, transparent);
-  color: var(--athar-accent); font-size: 1rem; flex: 0 0 auto;
-}
+.lp-card-top { display: flex; align-items: center; justify-content: flex-start; }
 .lp-card-verb {
-  font-size: .74rem; font-weight: 700; color: var(--athar-ink-faint);
-  border: 1px solid var(--athar-line); border-radius: 999px; padding: 4px 11px;
+  font-size: .74rem; font-weight: 700; color: var(--athar-accent);
+  letter-spacing: 0.02em;
 }
 .lp-card h3 {
   font-family: var(--font-display); font-weight: 900;
   font-size: clamp(1.35rem, 2.1vw, 1.7rem); margin: 0; letter-spacing: -0.008em;
 }
 .lp-card p { margin: 0; color: var(--athar-ink-soft); font-size: .95rem; max-width: 46ch; }
-.lp-card-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
-.lp-card-tags span {
-  font-size: .74rem; color: var(--athar-ink-faint); border: 1px solid var(--athar-line);
-  border-radius: 999px; padding: 4px 10px;
-}
 .lp-card-link {
   margin-top: auto; align-self: flex-start; font-size: .88rem; font-weight: 700;
   color: var(--athar-ink); display: inline-flex; align-items: center; gap: 6px;
@@ -129,10 +326,7 @@ body.athar-landing .athar-bar {
 .lp-card-link svg { transition: transform .18s ease; }
 .lp-card:hover .lp-card-link svg { transform: translateX(-3px); }
 
-/* ----------------------------------------------------------------- closer
-   Deliberately fixed, not theme-token-driven: the parchment→ink shift is
-   this page's one aesthetic thesis (أثَر = the trace ink leaves), so it
-   reads the same in light and dark viewer themes alike. */
+/* ----------------------------------------------------------------- closer */
 .lp-closer {
   --closer-bg: #16150E;
   --closer-fg: #F6F1E2;
@@ -159,12 +353,36 @@ body.athar-landing .athar-bar {
 .lp-foot a { color: inherit; text-decoration: none; }
 .lp-foot a:hover { color: var(--athar-ink); }
 
+@media (max-width: 920px) {
+  .lp-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .lp-hero-copy {
+    padding-block: clamp(36px, 7vw, 64px) 28px;
+  }
+  .lp-hero-visual {
+    min-height: min(72vw, 520px);
+    background: var(--athar-parchment-2);
+  }
+  .lp-hero-visual::before { display: none; }
+  .lp-hero-visual::after {
+    content: none;
+  }
+  /* On narrow screens the mushaf sits under copy — still edge-to-edge plane */
+  .lp-mushaf {
+    border-radius: 18px 18px 0 0;
+  }
+}
+
 @media (max-width: 720px) {
   .lp-metrics { grid-template-columns: 1fr; }
   .lp-cards { grid-template-columns: 1fr; }
+  .lp-brand { font-size: clamp(2.8rem, 16vw, 4.2rem); }
+  .lp-headline { font-size: clamp(1.85rem, 8vw, 2.6rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lp-card { transition: none; opacity: 1; transform: none; }
-  .athar-button, .lp-card-link svg { transition: none; }
+  .lp-card, .lp-mushaf { transition: none; opacity: 1; transform: none; }
+  .athar-button, .lp-card-link svg, .lp-hero-visual { transition: none; }
 }

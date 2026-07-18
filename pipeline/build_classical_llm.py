@@ -81,6 +81,13 @@ BOOK_AUTHOR = {'manar': 'الأشموني', 'muktafa': 'الداني', 'nahhas':
 
 GRADE_SET = sorted(set(v for _, v in rx.GRADES))          # تام كاف حسن جائز صالح قبيح لا
 _GRADE_LABEL = {'لا': 'ليس بوقف'}
+_GRADE_ALIASES = {
+    # Rare model code-switches/Unicode lookalikes found in the completed
+    # Manar cache.  They are spelling variants of values already in the
+    # closed lexicon, not new grades.  Normalising them before validation
+    # preserves the anti-hallucination gate while avoiding false rejects.
+    'la': 'لا', 'kaf': 'كاف', 'کاف': 'كاف',
+}
 
 
 # Surah name variants the source uses that the shipped ALIASES map lacks — the
@@ -109,10 +116,19 @@ _COMBINED = {'الفلق والناس': (113, 114)}
 # to be a genuine authorial choice, independently confirmed by Shamela's own
 # TOC, not a parsing bug. See pipeline/CLASSICAL_LLM_PILOT.md.
 _SHAMELA_SECTIONS = os.path.join(rx.SRC_DIR, 'manar_shamela_sections.json')
+_SHAMELA_CACHE = None
+
+
+def load_shamela_sections():
+    global _SHAMELA_CACHE
+    if _SHAMELA_CACHE is None:
+        with open(_SHAMELA_SECTIONS, encoding='utf-8') as fh:
+            _SHAMELA_CACHE = json.load(fh)
+    return _SHAMELA_CACHE
 
 
 def _shamela_surah_blocks():
-    sections = json.load(open(_SHAMELA_SECTIONS, encoding='utf-8'))
+    sections = load_shamela_sections()
     for s in range(1, 115):
         sec = sections.get(str(s))
         if sec:
@@ -391,7 +407,8 @@ def align_stops(surah, stops):
     rows, stats = [], {'in': len(stops), 'bad_grade': 0, 'bad_ayah': 0, 'unaligned': 0, 'ok': 0}
     acount = rx.surah_ayah_count(surah)
     for i, s in enumerate(stops):
-        grade = (s.get('grade') or '').strip()
+        grade_raw = (s.get('grade') or '').strip()
+        grade = _GRADE_ALIASES.get(grade_raw.casefold(), grade_raw)
         if grade not in GRADE_SET:
             stats['bad_grade'] += 1
             continue
@@ -419,6 +436,64 @@ def align_stops(surah, stops):
                      reason, i, 1, reported))
         stats['ok'] += 1
     return rows, stats
+
+
+# ── deterministic completeness backstop for Manar ────────────────────────────
+# The LLM is useful for discursive lists and inherited ومثله chains, but the
+# source also contains thousands of machine-verifiable entries in the exact
+# shape «{quote} [ayah] grade».  A completed cache can still omit one of
+# those entries, so replaying the cache alone cannot be called complete.
+_MANAR_EXPLICIT_RE = re.compile(
+    r'(?:\{([^{}]{1,120})\}|«([^«»]{1,80})»)[\s،:]{0,3}\[(\d{1,3})\]')
+
+
+def explicit_manar_rows(surah, prose):
+    """Return source-grounded Manar rows that can be proved mechanically.
+
+    Only an explicit quote + ayah marker + canonical grade is considered, and
+    the quote must align inside that exact Qur'an ayah.  This intentionally
+    rejects damaged source references and same-page spillover from an adjacent
+    surah instead of guessing.  A parenthesised ayah number embedded in the
+    quote is tried first because the Shamela export occasionally truncates the
+    following square-bracket number (e.g. ``(30) [3]``).
+    """
+    matches = list(_MANAR_EXPLICIT_RE.finditer(prose))
+    rows = []
+    acount = rx.surah_ayah_count(surah)
+    for seq, m in enumerate(matches):
+        raw_quote = m.group(1) if m.group(1) is not None else m.group(2)
+        tail = prose[m.end():m.end() + 90]
+        gm = rx.GRADE_RE.match(tail)
+        if not gm:
+            continue
+        quote = rx.clean_note(raw_quote, limit=200)
+        qwords = rx.quote_words(quote)
+        if not qwords:
+            continue
+        candidates = []
+        embedded = re.search(r'\(\s*(\d{1,3})\s*\)\s*$', raw_quote)
+        if embedded:
+            candidates.append(int(embedded.group(1)))
+        candidates.append(int(m.group(3)))
+        ayah = wpos = None
+        for candidate in dict.fromkeys(candidates):
+            if not 1 <= candidate <= acount:
+                continue
+            hit, _ = rx.align_in_ayah(surah, candidate, qwords)
+            if hit is not None:
+                ayah, wpos = candidate, hit
+                break
+        if wpos is None:
+            continue
+        grade_raw = gm.group(1)
+        grade = dict(rx.GRADES)[grade_raw]
+        next_pos = matches[seq + 1].start() if seq + 1 < len(matches) else len(prose)
+        note_from = m.end() + gm.end()
+        note = rx.clean_note(prose[note_from:min(next_pos, note_from + 600)])
+        _, words, _ = app._verse_word_texts(f'{surah}:{ayah}')
+        rows.append((surah, ayah, wpos, words[wpos], quote, grade, grade_raw,
+                     note, seq, 1, rx.reported_scholar(prose, m.start())))
+    return rows
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -463,20 +538,35 @@ def main():
     only = set(int(x) for x in args.surahs.split(',')) if args.surahs else None
     tag = args.source_tag or f'{args.book}_llm'
 
-    all_rows, totals = [], {'in': 0, 'bad_grade': 0, 'bad_ayah': 0, 'unaligned': 0, 'ok': 0, 'surahs': 0, 'missing': 0, 'failed': 0}
+    all_rows, totals = [], {'in': 0, 'bad_grade': 0, 'bad_ayah': 0, 'unaligned': 0,
+                            'ok': 0, 'explicit_added': 0, 'surahs': 0,
+                            'missing': 0, 'failed': 0}
     cur_surah, cur_name, cur_stops, cur_incomplete = None, None, [], False
 
     def flush_surah():
         if cur_surah is None or not cur_stops:
             return
         rows, st = align_stops(cur_surah, cur_stops)
+        explicit_added = 0
+        if args.book == 'manar':
+            section = load_shamela_sections().get(str(cur_surah), {})
+            explicit = explicit_manar_rows(cur_surah, section.get('text', ''))
+            existing = {(r[1], r[2], r[5]) for r in rows}  # ayah, wpos, grade
+            for row in explicit:
+                key = (row[1], row[2], row[5])
+                if key not in existing:
+                    rows.append(row)
+                    existing.add(key)
+                    explicit_added += 1
+            totals['explicit_added'] += explicit_added
         all_rows.extend((tag, *r) for r in rows)
         for k in ('in', 'bad_grade', 'bad_ayah', 'unaligned', 'ok'):
             totals[k] += st[k]
         totals['surahs'] += 1
         with_reason = sum(1 for r in rows if len((r[7] or '').strip()) >= 18)
         tail = '  [INCOMPLETE — a chunk failed, re-run to fill in]' if cur_incomplete else ''
-        print(f'  surah {cur_surah:3} {cur_name[:22]:22}  stops {st["in"]:3} → confident {st["ok"]:3}'
+        backstop = f' + explicit {explicit_added:2}' if explicit_added else ''
+        print(f'  surah {cur_surah:3} {cur_name[:22]:22}  stops {st["in"]:3} → confident {st["ok"]:3}{backstop}'
               f'  (with علّة {with_reason:3})  [reject: grade {st["bad_grade"]}, ayah {st["bad_ayah"]}, unaligned {st["unaligned"]}]{tail}')
 
     for surah, name, chunk_idx, n_chunks, chunk_text in chunk_blocks(args.book):
@@ -512,6 +602,8 @@ def main():
           f'(skipped), {totals["failed"]} chunk API call(s) failed (re-run to retry just those).')
     print(f'  {totals["in"]} raw stops → {totals["ok"]} confident rows '
           f'({totals["unaligned"]} rejected as unaligned, {totals["bad_grade"]} bad grade, {totals["bad_ayah"]} bad ayah).')
+    if args.book == 'manar':
+        print(f'  deterministic explicit-source backstop added {totals["explicit_added"]} omitted ruling(s).')
     with_reason = sum(1 for r in all_rows if len((r[8] or '').strip()) >= 18)
     print(f'  rows with a real علّة (≥18 chars): {with_reason}/{len(all_rows)} '
           f'({100 * with_reason / max(1, len(all_rows)):.0f}%)')

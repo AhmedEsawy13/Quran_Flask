@@ -8,15 +8,19 @@
     <meta name="description" content="أثَر — قراءة القرآن وحفظه ودراسة الوقف والابتداء، على مصادر موثّقة: رسم المصحف، أحكام التجويد، وأقوال الأئمة الكلاسيكيين.">
     <title>أثَر · مع القرآن</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
-    {{ athar_shell_head() }}
-    <link rel="stylesheet" href="{{ static_hash('css/landing.css') }}">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/surah_names.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap" as="style" onload="this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;700&display=swap"></noscript>
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/landing.css') }}">
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
+
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>
@@ -24,24 +28,30 @@
     {{ athar_app_bar() }}
 
     <main id="athar-main" tabindex="-1">
-        <section class="lp-hero lp-wrap">
-            <p class="lp-eyebrow">
-                <b>١١٤</b> سورة <span class="dot"></span> <b>٦٢٣٦</b> آية <span class="dot"></span> <b>٦٠٤</b> صفحة مصحف
-            </p>
-            <h1 class="lp-headline athar-display">نقرأ الأثـر<span class="lp-mark">۝</span><br><em>لا مجرد الحروف.</em></h1>
-            <p class="lp-lede">
-                أدوات قراءة وحفظ ووقفٍ وابتداء، مبنيّة على مصادر موثّقة — من رسم المصحف وأحكام
-                التجويد، إلى الوقف على أقوال الأئمة، إلى تدريبٍ يقيس وقوفك بنفسه.
-            </p>
-            <div class="lp-cta-row">
-                {{ athar_button('افتح المصحف', href='/read') }}
-                {{ athar_button('تعرّف على تثبيت', href='/memorize', variant='ghost') }}
+        <section class="lp-hero" aria-labelledby="lp-brand">
+            <div class="lp-hero-copy lp-wrap">
+                <p class="lp-brand athar-display" id="lp-brand">أثَر</p>
+                <p class="lp-tagline">مع القرآن</p>
+                <h1 class="lp-headline athar-display">نقرأ الأثـر<span class="lp-mark">۝</span><br><em>لا مجرد الحروف.</em></h1>
+                <p class="lp-lede">
+                    قراءة وحفظ ووقفٌ وابتداء — على رسم المصحف، وأحكام التجويد، وأقوال الأئمة.
+                </p>
+                <div class="lp-cta-row">
+                    {{ athar_button('افتح المصحف', href='/read') }}
+                </div>
             </div>
 
-            <div class="lp-metrics">
-                <div class="lp-metric"><b>٦٠٤</b><span>صفحة بخط المصحف</span></div>
-                <div class="lp-metric"><b>٤</b><span>أدوات قراءة ودراسة</span></div>
-                <div class="lp-metric"><b>٢</b><span>مصادر وقف كلاسيكية</span></div>
+            <div class="lp-hero-visual" aria-hidden="true">
+                <div class="lp-mushaf-stage" id="lp-mushaf-stage">
+                    <article class="lp-mushaf athar-page-card" id="lp-mushaf">
+                        <header class="athar-page-head lp-mushaf-head">
+                            <span class="athar-page-head-juz" id="lp-juz"></span>
+                            <span class="athar-page-head-surah" id="lp-surah"></span>
+                        </header>
+                        <div class="lp-mushaf-page" id="lp-page"></div>
+                        <footer class="lp-mushaf-foot"><span id="lp-page-num"></span></footer>
+                    </article>
+                </div>
             </div>
         </section>
 
@@ -51,15 +61,19 @@
                 <h2 class="lp-section-title athar-display">من فتح المصحـف، إلى ضبط الوقف.</h2>
             </div>
 
+            <div class="lp-metrics" aria-label="أرقام أثَر">
+                <div class="lp-metric"><b>٦٠٤</b><span>صفحة بخط المصحف</span></div>
+                <div class="lp-metric"><b>٤</b><span>أدوات قراءة ودراسة</span></div>
+                <div class="lp-metric"><b>٤</b><span>كتب وقف كلاسيكية</span></div>
+            </div>
+
             <div class="lp-cards" id="lp-cards">
                 <a class="lp-card" href="/read">
                     <div class="lp-card-top">
-                        <span class="lp-card-icon"><i class="fas fa-book-quran"></i></span>
                         <span class="lp-card-verb">اقرأ</span>
                     </div>
                     <h3>المصحف</h3>
                     <p>القراءة بخط المصحف الأصلي، مع تفسير وإعراب وتجويد ملوَّن، وعلامات وقف من عدّة مصاحف جنبًا إلى جنب.</p>
-                    <div class="lp-card-tags"><span>تجويد ملوَّن</span><span>تفسير وإعراب</span></div>
                     <span class="lp-card-link">افتح المصحف
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
@@ -67,12 +81,10 @@
 
                 <a class="lp-card" href="/memorize">
                     <div class="lp-card-top">
-                        <span class="lp-card-icon"><i class="fas fa-repeat"></i></span>
                         <span class="lp-card-verb">احفظ</span>
                     </div>
                     <h3>تثبيت</h3>
                     <p>تكرار مقطَّع بمنهجية التصوير الذهني، على صفحات المصحف الحقيقية وبصوت القرّاء الذين تختارهم.</p>
-                    <div class="lp-card-tags"><span>تكرار مجدوَل</span><span>صفحات حقيقية</span></div>
                     <span class="lp-card-link">جرّب تثبيت
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
@@ -80,12 +92,10 @@
 
                 <a class="lp-card" href="/waqf">
                     <div class="lp-card-top">
-                        <span class="lp-card-icon"><i class="fas fa-circle-pause"></i></span>
                         <span class="lp-card-verb">تأمّل</span>
                     </div>
                     <h3>مُكْث</h3>
                     <p>دليل وقفاتٍ موثَّقة من عدّة قرّاء، لمعرفة أين يَحسُن أن تقف وتتأمّل قبل أن تُكمل.</p>
-                    <div class="lp-card-tags"><span>وقفات موثّقة</span><span>عدّة قرّاء</span></div>
                     <span class="lp-card-link">افتح دليل التلاوة
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
@@ -93,12 +103,10 @@
 
                 <a class="lp-card" href="/waqf-practice">
                     <div class="lp-card-top">
-                        <span class="lp-card-icon"><i class="fas fa-clipboard-check"></i></span>
                         <span class="lp-card-verb">تدرّب</span>
                     </div>
                     <h3>تدريب</h3>
                     <p>علِّم مواضع وقوفك، وقيّمها آليًا مقابل علامات المصاحف المطبوعة وأقوال الأئمة الكلاسيكيين.</p>
-                    <div class="lp-card-tags"><span>تقييم آلي</span><span>مقارنة بالأئمة</span></div>
                     <span class="lp-card-link">ابدأ التدريب
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
@@ -125,21 +133,7 @@
         </nav>
     </footer>
 
-    <script>
-        (function () {
-            var cards = document.querySelectorAll('.lp-card');
-            if ('IntersectionObserver' in window) {
-                var io = new IntersectionObserver(function (entries) {
-                    entries.forEach(function (e) {
-                        if (e.isIntersecting) { e.target.classList.add('in-view'); io.unobserve(e.target); }
-                    });
-                }, { threshold: 0.16 });
-                cards.forEach(function (c) { io.observe(c); });
-            } else {
-                cards.forEach(function (c) { c.classList.add('in-view'); });
-            }
-        })();
-    </script>
+    <script src="{{ static_hash('js/landing.js') }}"></script>
 
     {% if enable_vercel_analytics %}
     <!-- Vercel Web Analytics -->

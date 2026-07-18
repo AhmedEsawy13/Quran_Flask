@@ -938,18 +938,18 @@
     function sizePages() {
         const stage = els.stage;
         if (!stage) return;
-        const topbar = els.bar?.getBoundingClientRect().height || 64;
+        const topbar = els.bar?.getBoundingClientRect().height || 52;
         const appbar = document.querySelector('.athar-bar')?.getBoundingClientRect().height || 50;
-        const vMargin = 24;          // breathing room top + bottom
-        const headFootPad = 78;      // header + footer + card padding (vertical)
-        const navAndGaps = 2 * 50 + 16; // room for the edge nav arrows
+        const vMargin = 12;          // tight breathing room — chrome is slim, no bottom dock
+        const headFootPad = 72;      // header + footer + card padding (vertical)
+        const navAndGaps = 2 * 44 + 12; // room for the edge nav arrows
         window.AtharPageChrome.sizePages({
             cssVarPrefix: 'mz',
             pages: state.layoutMode === 'single' ? 1 : 2,
             ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO,
-            gutter: 20, spreadPad: 28,
-            getAvailH: () => Math.max(320, window.innerHeight - topbar - appbar - vMargin) - headFootPad,
-            getAvailW: () => Math.max(260, stage.clientWidth - navAndGaps),
+            gutter: 16, edgePad: 20,
+            getAvailH: () => Math.max(280, window.innerHeight - topbar - appbar - vMargin) - headFootPad,
+            getAvailW: () => Math.max(240, stage.clientWidth - navAndGaps),
         });
     }
 

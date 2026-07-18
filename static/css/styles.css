@@ -12,57 +12,71 @@
 @font-face { font-family:'UthmanicWarsh'; src:url('../fonts/uthmanic_warsh_v21.woff2') format('woff2'), url('../fonts/uthmanic_warsh_v21.ttf') format('truetype'); font-display:swap; }
 @font-face { font-family:'AmiriQuran'; src:url('../fonts/amiri_quran.woff2') format('woff2'); font-display:swap; }
 
-/* ---- CSS Variables for Theming ---- */
+/* brand.css turns on Thmanyah's "الحروف المرسلة" (font-feature-settings:
+ * "salt" 1) globally via <body> so every Thmanyah-rendered UI string gets
+ * it by default. None of the areas below are UI strings — they render real
+ * Qur'an words (the main reading pane, or an inline quote/snippet of one in
+ * tafseer/eerab/mutashabihat/word-meaning/waqf panels), each in its own
+ * dedicated Qur'an font — so they opt back out here, in one place, rather
+ * than scattered across each rule below. */
+#quran-text, #tafseer-text, #eerab-text, .mut-verse, #word-meaning-text,
+.word-meanings-list dt, .waqf-mushaf-hindi, .waqf-tbl-word, .waqf-uthmanic,
+.guide-no-waqf-sym, .waqf-entry-word, .waqf-sym-pill, .memo-verse,
+.memo-overlay-verse, .guide-seg-words, .guide-waqf-sym, .guide-solo-word {
+    font-feature-settings: normal;
+}
+
+/* ---- CSS Variables for Theming ----
+ * Structural chrome rides on أثَر tokens from brand.css (--athar-*).
+ * Fallbacks keep the page readable if brand.css is late or missing.
+ * Quran/tajweed/waqf-version colors stay local below. */
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
 :root {
-    --primary-color: #0f766e;
-    --primary-hover: #115e59;
-    --secondary-color: #0d9488;
-    --bg-color: #f4f4f9;
-    --text-color: #333;
-    --card-bg: #ffffff;
-    --border-color: #e2e8f0;
-    --shadow-color: rgba(0, 0, 0, 0.1);
+    --primary-color: var(--athar-accent, #1f7a5a);
+    --primary-hover: var(--athar-accent-soft, #2e9c76);
+    --secondary-color: var(--athar-gold, #A9782F);
+    --bg-color: var(--athar-parchment, #F6F1E2);
+    --text-color: var(--athar-ink, #18170F);
+    --card-bg: var(--athar-surface, #FFFDF6);
+    --border-color: var(--athar-line, rgba(24, 23, 15, 0.13));
+    --shadow-color: rgba(24, 23, 15, 0.1);
     --highlight-color: #ffeb3b;
-    --success-color: #10b981;
-    --error-color: #ef4444;
+    --success-color: var(--athar-success, #1f7a5a);
+    --error-color: var(--athar-danger, #A33B2B);
     --transition-speed: 0.3s;
-    --waqf-color: #c2410c;
+    --waqf-color: var(--athar-gold, #A9782F);
 }
 
 body.dark-mode {
-    --bg-color: #0a0a0a;
-    --text-color: #e8e8ee;
-    --card-bg: #1c1a1a;
-    --border-color: #374151;
-    --shadow-color: rgba(0, 0, 0, 0.3);
+    --bg-color: var(--athar-parchment);
+    --text-color: var(--athar-ink);
+    --card-bg: var(--athar-surface);
+    --border-color: var(--athar-line);
+    --shadow-color: rgba(0, 0, 0, 0.35);
     --highlight-color: #ffc107;
-    --card-bg-rgb: 17, 17, 17;
-    --waqf-color: #fbbf24;
+    --card-bg-rgb: 27, 26, 18;
+    --waqf-color: #D1A55A;
 }
 
 body.sepia-mode {
-    --bg-color: #f4f1e8;
-    --text-color: #3c2e26;
-    --card-bg: #faf7f0;
-    --border-color: #d2b48c;
-    --shadow-color: rgba(139, 121, 94, 0.2);
+    --bg-color: var(--athar-parchment);
+    --text-color: var(--athar-ink);
+    --card-bg: var(--athar-surface);
+    --border-color: var(--athar-line);
+    --shadow-color: rgba(74, 59, 36, 0.18);
     --highlight-color: #daa520;
-    --waqf-color: #92400e;
+    --waqf-color: #A66F24;
 }
 
 /* ---- Body ---- */
 body {
     margin: 0;
-    background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(15, 118, 110, 0.2), transparent 45%),
-        radial-gradient(900px 500px at 90% -5%, rgba(194, 120, 3, 0.2), transparent 45%),
-        linear-gradient(160deg, #f8fafc 0%, #eef2f7 45%, #f9fafb 100%);
+    background: var(--bg-color);
     color: var(--text-color);
-    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+    font-family: var(--font-ui, 'Thmanyah Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif);
     direction: rtl;
     text-align: right;
     display: flex;
@@ -72,38 +86,28 @@ body {
     transition: background 0.4s ease, color var(--transition-speed);
 }
 
-body.dark-mode {
-    background: #0a0a0a;
-    color: #e8e8ee;
-}
-
+body.dark-mode,
 body.sepia-mode {
-    background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(180, 83, 9, 0.16), transparent 45%),
-        radial-gradient(900px 500px at 90% -5%, rgba(120, 53, 15, 0.12), transparent 45%),
-        linear-gradient(160deg, #fbf4e8 0%, #f3e7d1 50%, #f7efe1 100%);
+    background: var(--bg-color);
+    color: var(--text-color);
 }
 
 /* ---- Ayah Container ---- */
 .ayah-container {
     width: 100%;
-    border: 1px solid rgba(148, 163, 184, 0.24);
+    border: 1px solid var(--border-color);
     border-radius: 26px;
     padding: 28px 22px 2.5rem;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 16px 38px rgba(15, 23, 42, 0.1);
+    background: var(--card-bg);
+    box-shadow: 0 16px 38px var(--shadow-color);
     overflow: visible;
     transition: all var(--transition-speed) ease;
 }
 
-body.dark-mode .ayah-container {
-    background: rgba(15, 23, 42, 0.74);
-    border-color: rgba(148, 163, 184, 0.26);
-}
-
+body.dark-mode .ayah-container,
 body.sepia-mode .ayah-container {
-    background: rgba(250, 243, 230, 0.88);
-    border-color: rgba(180, 140, 90, 0.3);
+    background: var(--card-bg);
+    border-color: var(--border-color);
 }
 
 .marker-symbol {

@@ -265,10 +265,13 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert '<body class="athar-memorize">' in page
     assert page.index('css/athar-components.css') < page.index('css/athar-page-chrome.css')
     assert page.index('css/athar-page-chrome.css') < page.index('css/mushaf_memorize.css')
-    assert '<section class="mz-bar" id="mz-bar" aria-labelledby="mz-title">' in page
+    assert 'id="mz-bar"' in page and 'aria-labelledby="mz-title"' in page
+    assert 'mz-bar athar-tool-chrome' in page
     assert '<header class="mz-bar"' not in page
     assert 'id="mz-title" aria-label="ثبّت حفظك."' in page
     assert 'ثبّت حفظــك.' in page
+    assert 'mz-title-sr' in page
+    assert 'class="mz-context"' not in page
     assert 'class="mz-bar-settings" aria-label="إعدادات الجلسة"' in page
     assert 'class="mz-bar-view" role="group" aria-label="خيارات العرض"' in page
     assert 'aria-controls="mz-reciter-panel"' in page

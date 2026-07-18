@@ -70,8 +70,8 @@
   "reported_from": null
  },
  {
-  "ayah": 15,
-  "stop_phrase": "بِمَا عَمِلْنَا",
+  "ayah": 81,
+  "stop_phrase": "بِمَا عَلِمۡنَا",
   "grade": "حسن",
   "reason": "",
   "reported_from": null
@@ -337,7 +337,7 @@
  },
  {
   "ayah": 99,
-  "stop_phrase": "آَمِنِينَ",
+  "stop_phrase": "ءَامِنِينَ",
   "grade": "حسن",
   "reason": "",
   "reported_from": null

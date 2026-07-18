@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "books": {
+    "muktafa": {
+      "title_ar": "المكتفى في الوقف والابتدا",
+      "author_ar": "أبو عمرو الداني",
+      "source_file": "classical_sources/muktafa_dani_shamela26461.md",
+      "source_sha256": "5ccad7107a1e2865ad8294dc13850850cbc8f4508e333914e0f463c790933519",
+      "parser": "muktafa_cursor_v1",
+      "extraction": "deterministic",
+      "minimum_rows": 4000,
+      "minimum_surahs": 105
+    },
+    "manar": {
+      "title_ar": "منار الهدى في بيان الوقف والابتدا",
+      "author_ar": "أحمد الأشموني",
+      "source_file": "classical_sources/manar_shamela_sections.json",
+      "source_sha256": "77b17e4e5a960bf76bf4cd4328e255a2cdf5d38258827b8a8fd11ffcadbe8c67",
+      "cross_check_file": "classical_sources/manar_ashmuni_shamela6496.md",
+      "cross_check_sha256": "07482456ddf76a3e2da9b6de03ab351d4ec5d1a9cb0b4de99aaf00c266550ff2",
+      "parser": "manar_explicit_v1",
+      "extraction": "legacy_llm_cache_with_deterministic_backstop",
+      "minimum_rows": 13000,
+      "minimum_surahs": 114
+    },
+    "nahhas": {
+      "title_ar": "القطع والائتناف",
+      "author_ar": "أبو جعفر النحاس",
+      "source_file": "classical_sources/qatc_nahhas_sham19_20966.md",
+      "source_sha256": "7c5f233597e8a88e7b8cfd0f6ab0b0b5149d2b23cbcc647b2bb72fd2621f0e12",
+      "parser": "nahhas_discursive_v1",
+      "extraction": "deterministic",
+      "minimum_rows": 1600,
+      "minimum_surahs": 85
+    },
+    "anbari": {
+      "title_ar": "إيضاح الوقف والابتداء",
+      "author_ar": "ابن الأنباري",
+      "source_file": "classical_sources/idah_anbari_sham19_14255.md",
+      "source_sha256": "6bad1c9a637e0726f24a62ee76d773502b2f6929b2bed8950898c300033c93ae",
+      "parser": "anbari_ayah_v1",
+      "extraction": "deterministic",
+      "minimum_rows": 2000,
+      "minimum_surahs": 90
+    }
+  }
+}

@@ -48,9 +48,22 @@
   function set(theme) {
     theme = normalize(theme);
     localStorage.setItem(KEY, theme);
+    var root = document.documentElement;
+    var reduce = false;
+    try {
+      reduce = !!(window.AtharUi && window.AtharUi.prefersReducedMotion && window.AtharUi.prefersReducedMotion())
+        || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    } catch (e) {}
+    if (!reduce) root.classList.add('athar-theme-fading');
     apply(theme);
     syncControls(document, theme);
     try { document.dispatchEvent(new CustomEvent('athar:theme', { detail: theme })); } catch (e) {}
+    if (!reduce) {
+      window.clearTimeout(root.__atharThemeFade);
+      root.__atharThemeFade = window.setTimeout(function () {
+        root.classList.remove('athar-theme-fading');
+      }, 280);
+    }
   }
 
   function cycle() {

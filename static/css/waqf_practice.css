@@ -58,18 +58,13 @@ body.athar-training {
 #wp-layout[hidden] { display: none; }
 
 /* -------------------------------------------------------------- toolbar */
-.wp-toolbar {
-  position: relative;
+.wp-toolbar.athar-tool-chrome {
   z-index: 50;
-  min-height: 64px;
+  flex: 0 0 auto;
   flex-wrap: nowrap;
   gap: var(--athar-space-3);
-  padding: 10px clamp(12px, 2.4vw, 24px);
-  border-width: 0 0 1px;
   border-radius: 0;
-  background: color-mix(in srgb, var(--athar-surface) 90%, transparent);
-  -webkit-backdrop-filter: saturate(160%) blur(18px);
-  backdrop-filter: saturate(160%) blur(18px);
+  background: color-mix(in srgb, var(--athar-surface) 92%, transparent);
 }
 
 .wp-toolbar-group {
@@ -84,13 +79,7 @@ body.athar-training {
 .wp-start { flex: 0 0 auto; }
 
 .wp-pop { position: relative; min-width: 0; }
-.wp-selector { max-width: min(290px, 34vw); border-radius: var(--athar-radius-control); }
-.wp-selector > i:first-child { color: var(--athar-accent); }
-.wp-selector-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.wp-caret { color: var(--athar-ink-faint); font-size: 0.62rem; transition: transform var(--athar-motion-fast) var(--athar-ease); }
-.wp-selector[aria-expanded="true"] { border-color: var(--athar-accent); color: var(--athar-accent); }
-.wp-selector[aria-expanded="true"] .wp-caret { transform: rotate(180deg); }
-
+.wp-selector.athar-menu-button { max-width: min(290px, 34vw); }
 .wp-pop-panel {
   inset-block-start: calc(100% + 9px);
   inset-inline-start: 0;
@@ -99,12 +88,6 @@ body.athar-training {
 }
 
 .wp-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--athar-space-3); }
-
-.wp-toolbar-tools .athar-icon-button[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--athar-accent) 48%, var(--athar-line));
-  background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface));
-  color: var(--athar-accent);
-}
 
 /* ---------------------------------------------------------------- layout */
 .wp-main {
@@ -126,46 +109,46 @@ body.athar-training {
 .wp-intro {
   width: 100%;
   max-width: 860px;
-  margin: clamp(34px, 8vh, 90px) auto 0;
-  padding: clamp(28px, 5vw, 54px);
-  justify-items: center;
-  text-align: center;
-  background: color-mix(in srgb, var(--athar-surface) 94%, transparent);
+  margin: clamp(28px, 6vh, 64px) auto 0;
+  padding: 0;
+  justify-items: start;
+  text-align: start;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .wp-intro .athar-title { max-width: 14ch; font-size: clamp(2.15rem, 5.5vw, 4.2rem); }
-.wp-intro .athar-lede { max-width: 64ch; font-family: var(--font-ui); }
+.wp-intro .athar-lede { max-width: 58ch; font-family: var(--font-ui); }
 .wp-intro-footer { width: 100%; margin-top: var(--athar-space-3); }
 
 .wp-stepper {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--athar-line);
-  border-radius: var(--athar-radius-surface);
-  background: var(--athar-line);
+  border: 0;
+  background: transparent;
   list-style: none;
 }
 
 .wp-stepper li {
-  min-height: 66px;
-  display: flex;
+  min-height: 0;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: var(--athar-space-2);
-  padding: var(--athar-space-3);
-  background: var(--athar-surface);
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
   color: var(--athar-ink-soft);
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.86rem;
+  font-weight: 600;
 }
 
 .wp-stepper b {
-  width: 28px;
-  height: 28px;
+  width: 1.55rem;
+  height: 1.55rem;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
@@ -173,6 +156,8 @@ body.athar-training {
   background: color-mix(in srgb, var(--athar-accent) 12%, transparent);
   color: var(--athar-accent);
   font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 .wp-hint {
@@ -234,11 +219,14 @@ body.athar-training {
   font: inherit;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background .12s ease, box-shadow .12s ease;
+  transition:
+    background-color var(--athar-motion-ink) var(--athar-ease-ink),
+    box-shadow var(--athar-motion-ink) var(--athar-ease-ink),
+    color var(--athar-motion-ink) var(--athar-ease-ink);
 }
 
 .wp-word:hover { background: color-mix(in srgb, var(--athar-accent) 11%, transparent); }
-.wp-word:focus-visible { outline: 2px solid var(--athar-focus-ring); outline-offset: 2px; }
+.wp-word:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; }
 .wp-word-end { color: var(--wp-stop); }
 .wp-stopped {
   background: color-mix(in srgb, var(--athar-accent) 14%, transparent);
@@ -403,14 +391,14 @@ body.athar-training {
   .wp-toolbar-tools { grid-column: 1; }
   .wp-start { grid-column: 2; }
   .wp-main { padding-top: var(--athar-space-3); }
-  .wp-intro { margin-top: var(--athar-space-4); }
+  .wp-intro { margin-top: var(--athar-space-4); padding: 0; }
 }
 
 @media (max-width: 560px) {
-  .wp-intro { padding: 26px 18px; }
+  .wp-intro { padding: 0; }
   .wp-intro .athar-title { font-size: clamp(2rem, 11vw, 3rem); }
-  .wp-stepper { grid-template-columns: 1fr; }
-  .wp-stepper li { min-height: 48px; justify-content: flex-start; }
+  .wp-stepper { gap: 10px 14px; }
+  .wp-stepper li { min-height: 0; }
   .wp-section { padding: 20px 16px; }
   .wp-passage { font-size: clamp(1.48rem, 7vw, 1.9rem); line-height: 2.35; }
   .wp-actions { align-items: stretch; flex-direction: column; }
@@ -430,5 +418,9 @@ body.athar-training {
 
 @media (prefers-reduced-motion: reduce) {
   #wp-rec.is-listening .wp-record-dot { animation: none; }
-  .wp-word { transition: none; }
+  .wp-word,
+  .wp-toolbar,
+  .athar-menu-button,
+  .athar-button,
+  .athar-icon-button { transition: none !important; }
 }

@@ -21,6 +21,7 @@ column. Unmatched entries are kept (wpos NULL) for coverage audits.
 Run:  python3 pipeline/build_classical_waqf.py          # build + stats
       python3 pipeline/build_classical_waqf.py --dry    # stats only
 """
+import argparse
 import bisect
 import difflib
 import os
@@ -773,8 +774,13 @@ def harvest_anbari(body, rows, seq0):
 
 # ────────────────────────────────── main ─────────────────────────────────────
 
-def main():
-    dry = '--dry' in sys.argv
+def main(argv=None):
+    ap = argparse.ArgumentParser(
+        description='Rebuild all four legacy regex-extracted classical books. '
+                    'This replaces the classical table; use --dry to inspect only.')
+    ap.add_argument('--dry', action='store_true', help='print extraction stats without writing the DB')
+    args = ap.parse_args(argv)
+    dry = args.dry
     rows = []
     seq, un_muk = harvest_muktafa(load_book(SOURCES['muktafa']), rows, 0)
     seq, un_man = harvest_manar(load_book(SOURCES['manar']), rows, seq)

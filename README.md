@@ -363,6 +363,12 @@ Quran_Flask/
 - `word_timestamps/`, `research_cache/` — additional per-feature datasets
 - `reciters/<reciter>/*.json.gz` — per-reciter word/verse/letter timing (restored at build time, not tracked)
 
+New classical books follow the deterministic, no-LLM ingestion and review
+process documented in [`pipeline/CLASSICAL_BOOK_ONBOARDING.md`](pipeline/CLASSICAL_BOOK_ONBOARDING.md).
+With `ENABLE_EDITOR=1`, `/classical-review` opens the local scholarly reviewer
+for المكتفى and منار الهدى; decisions are stored separately in
+`data/classical_review.db`.
+
 ## License
 
 No LICENSE file is currently included in this repository — all rights are

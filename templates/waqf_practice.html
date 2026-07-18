@@ -24,10 +24,10 @@
 <body class="athar-training">
     {{ athar_app_bar() }}
 
-    <header class="wp-toolbar athar-toolbar" id="wp-bar" aria-label="إعدادات التدريب">
+    <header class="wp-toolbar athar-tool-chrome" id="wp-bar" aria-label="إعدادات التدريب">
         <div class="wp-toolbar-group wp-toolbar-selectors">
             <div class="wp-pop">
-                <button class="athar-button athar-button-secondary wp-selector" id="wp-range-trigger" type="button"
+                <button class="athar-menu-button wp-selector" id="wp-range-trigger" type="button"
                         aria-expanded="false" aria-haspopup="true" aria-controls="wp-range-panel">
                     <i class="fas fa-list-ol" aria-hidden="true"></i>
                     <span class="wp-selector-label" id="wp-range-label">اختر مقطعًا</span>
@@ -52,7 +52,7 @@
             </div>
 
             <div class="wp-pop">
-                <button class="athar-button athar-button-secondary wp-selector" id="wp-mushaf-trigger" type="button"
+                <button class="athar-menu-button wp-selector" id="wp-mushaf-trigger" type="button"
                         aria-expanded="false" aria-haspopup="true" aria-controls="wp-mushaf-panel">
                     <i class="fas fa-book-quran" aria-hidden="true"></i>
                     <span class="wp-selector-label" id="wp-mushaf-label">المصحف</span>
@@ -85,12 +85,12 @@
         <div class="wp-page-state athar-surface" id="wp-page-state" role="status" aria-live="polite" hidden></div>
 
         {% call athar_page_intro(
-            'تدريب تطبيقي',
+            '— تدريب',
             'اختبر وقفــك، ثم افهم النتيجة.',
-            'اختر مقطعًا ومصحفًا، ثم علّم الكلمات التي وقفتَ عندها يدويًا أو سجّل تلاوتك. بعدها قارن اختيارك بعلامات المصاحف وأقوال أهل الوقف.',
+            'اختر مقطعًا ومصحفًا، ثم علّم الكلمات التي وقفتَ عندها. بعدها قارن اختيارك بعلامات المصاحف وأقوال أهل الوقف.',
             title_id='wp-title',
             section_id='wp-intro',
-            extra_class='wp-intro athar-surface',
+            extra_class='wp-intro',
             title_aria_label='اختبر وقفك، ثم افهم النتيجة.',
             footer_class='wp-intro-footer'
         ) %}

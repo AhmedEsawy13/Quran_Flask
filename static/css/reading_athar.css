@@ -18,48 +18,85 @@ body.athar-reading {
     --shadow-color: rgba(24, 23, 15, 0.08);
     --waqf-color: var(--athar-gold);
 
-    background:
-        radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--athar-gold) 8%, transparent), transparent 30rem),
-        var(--athar-parchment);
+    align-items: stretch;
+    width: 100%;
+    background: var(--athar-parchment);
     color: var(--athar-ink);
     overflow-x: clip;
+    transition: background var(--athar-motion-base, 240ms) var(--athar-ease, ease),
+                color var(--athar-motion-base, 240ms) var(--athar-ease, ease);
+}
+
+/* Win over legacy slate chrome in styles.css (same specificity, later file). */
+body.athar-reading.dark-mode,
+body.athar-reading.sepia-mode {
+    background: var(--athar-parchment);
+    color: var(--athar-ink);
+}
+
+body.athar-reading.dark-mode #controls,
+body.athar-reading.sepia-mode #controls {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+body.athar-reading.dark-mode .ayah-container,
+body.athar-reading.sepia-mode .ayah-container {
+    background: var(--athar-surface);
+    border-color: var(--athar-line);
+    box-shadow: 0 24px 70px -55px rgba(0, 0, 0, 0.55);
+}
+
+body.athar-reading.dark-mode .ctrl-row-nav select,
+body.athar-reading.dark-mode .playback-btns button,
+body.athar-reading.dark-mode .playback-extra button,
+body.athar-reading.dark-mode .playback-extra a[role="button"],
+body.athar-reading.dark-mode #repeat-select,
+body.athar-reading.dark-mode .reading-tool-btns > button,
+body.athar-reading.dark-mode .tafseer-group {
+    background: var(--athar-parchment);
+    border-color: var(--athar-line);
+    color: var(--athar-ink-soft);
+}
+
+body.athar-reading.dark-mode .ctrl-row-playback #play-pause-button.btn-play {
+    background: var(--athar-accent);
+    border-color: var(--athar-accent);
+    color: var(--athar-on-accent);
+    box-shadow: none;
 }
 
 body.athar-reading .reader-main {
     width: min(var(--athar-content-lg), calc(100% - clamp(20px, 5vw, 64px)));
-    margin: clamp(28px, 5vw, 56px) auto 20px;
+    margin: clamp(12px, 3vw, 28px) auto 20px;
 }
 
-body.athar-reading .reader-intro {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
-    align-items: end;
-    gap: clamp(24px, 5vw, 72px);
-    padding: 0 clamp(4px, 1vw, 12px) clamp(26px, 4vw, 44px);
+body.athar-reading.controls-container,
+body.athar-reading .controls-container,
+body.athar-reading .reader-main.controls-container {
+    margin-top: clamp(12px, 3vw, 28px);
 }
 
-body.athar-reading .reader-intro .athar-kicker { margin-bottom: 10px; }
-
-body.athar-reading .reader-intro h1 {
-    max-width: 700px;
-    margin: 0;
-    color: var(--athar-ink);
-    font-size: clamp(2.25rem, 5.5vw, 4.8rem);
-    line-height: 1.04;
-    text-wrap: balance;
+/* Intro scrolls away — shared tool-intro rhythm, page-scoped width */
+body.athar-reading .reader-intro.athar-tool-intro {
+    max-width: none;
+    width: 100%;
+    padding: clamp(20px, 4vw, 36px) clamp(4px, 1vw, 12px) clamp(18px, 3vw, 28px);
+    gap: var(--athar-space-2);
 }
-
-body.athar-reading .reader-intro > p {
-    max-width: 42ch;
-    margin: 0 0 0.4rem;
-    color: var(--athar-ink-soft);
+body.athar-reading .reader-intro .athar-title {
+    max-width: 16ch;
+    font-size: clamp(2rem, 4.8vw, 3.6rem);
+}
+body.athar-reading .reader-intro .athar-lede {
+    max-width: 48ch;
     font-family: var(--font-serif);
-    font-size: clamp(0.94rem, 1.5vw, 1.08rem);
-    line-height: 1.9;
 }
 
 body.athar-reading #controls.reader-controls {
     display: flex;
+    flex-direction: column;
     width: 100%;
     margin: 0;
     padding: 0;
@@ -72,24 +109,36 @@ body.athar-reading #controls.reader-controls {
     backdrop-filter: none;
 }
 
-body.athar-reading .reader-primary {
-    position: sticky;
-    top: calc(var(--athar-bar-h) + 10px);
+/* Sticky controls strip — compact on scroll like مُكْث / تدريب */
+body.athar-reading .reader-primary.athar-tool-chrome {
+    top: var(--athar-bar-h);
     z-index: 25;
     display: grid;
-    gap: 12px;
-    padding: 14px;
+    gap: 10px;
+    width: 100%;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--athar-line);
+    border-radius: var(--athar-radius-surface);
     background: color-mix(in srgb, var(--athar-surface) 94%, transparent);
     box-shadow: 0 16px 42px -34px rgba(24, 23, 15, 0.65);
-    -webkit-backdrop-filter: blur(18px);
-    backdrop-filter: blur(18px);
     max-width: 100%;
+}
+
+body.athar-reading .reader-primary.is-compact {
+    gap: 6px;
+    padding: 7px 10px;
+    box-shadow: 0 10px 28px -28px rgba(24, 23, 15, 0.55);
 }
 
 body.athar-reading .reader-primary .ctrl-row + .ctrl-row {
     margin: 0;
-    padding-top: 12px;
+    padding-top: 10px;
     border-top: 1px solid var(--athar-line-soft);
+}
+
+body.athar-reading .reader-primary.is-compact .ctrl-row + .ctrl-row {
+    padding-top: 6px;
 }
 
 body.athar-reading .ctrl-row-nav {
@@ -97,6 +146,11 @@ body.athar-reading .ctrl-row-nav {
     grid-template-columns: minmax(150px, 1.1fr) minmax(82px, 0.48fr) minmax(150px, 1fr) minmax(150px, 1fr) 42px;
     align-items: end;
     gap: 8px;
+    position: relative;
+}
+
+body.athar-reading .reader-primary.is-compact .ctrl-row-nav {
+    align-items: center;
 }
 
 body.athar-reading .reader-field {
@@ -109,6 +163,19 @@ body.athar-reading .reader-field {
 }
 
 body.athar-reading .reader-field > span { padding-inline: 3px; }
+
+body.athar-reading .reader-primary.is-compact .reader-field > span,
+body.athar-reading .reader-primary.is-compact .repeat-label {
+    display: none;
+}
+
+body.athar-reading .reader-primary.is-compact #controls .reader-field select,
+body.athar-reading .reader-primary.is-compact #repeat-select,
+body.athar-reading #controls .reader-primary.is-compact .reader-field select,
+body.athar-reading #controls .reader-primary.is-compact #repeat-select {
+    min-height: 36px;
+    padding-block: 5px;
+}
 
 body.athar-reading #controls .reader-field select,
 body.athar-reading #controls #repeat-select {
@@ -159,16 +226,26 @@ body.athar-reading .ctrl-row-playback {
     display: grid;
     grid-template-columns: minmax(320px, 1fr) auto;
     gap: 12px;
+    align-items: center;
 }
 
 body.athar-reading .playback-main,
 body.athar-reading .playback-extra {
+    display: flex;
+    align-items: center;
     min-width: 0;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 body.athar-reading .playback-seek,
 body.athar-reading .audio-seek-slider { min-width: 0; }
+
+body.athar-reading .playback-btns {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
 body.athar-reading .playback-btns button,
 body.athar-reading .playback-extra button {
@@ -192,6 +269,35 @@ body.athar-reading #controls .reader-tool-button[aria-pressed="true"] {
     box-shadow: none;
 }
 
+/* Compact: icon-only secondary actions, tighter play */
+body.athar-reading .reader-primary.is-compact .ctrl-row-playback {
+    gap: 8px;
+}
+body.athar-reading .reader-primary.is-compact .playback-extra .athar-button > span,
+body.athar-reading .reader-primary.is-compact #play-pause-button > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+body.athar-reading .reader-primary.is-compact .playback-extra .athar-button,
+body.athar-reading .reader-primary.is-compact #play-pause-button {
+    width: 38px;
+    min-height: 36px;
+    padding: 0;
+    justify-content: center;
+}
+body.athar-reading .reader-primary.is-compact #audio-current-time,
+body.athar-reading .reader-primary.is-compact #audio-duration-time {
+    font-size: 0.72rem;
+}
+body.athar-reading .reader-primary.is-compact .reader-voice {
+    width: 36px;
+    height: 36px;
+    align-self: center;
+}
+
 body.athar-reading .ctrl-row-playback #play-pause-button.btn-play:hover,
 body.athar-reading #controls .waqf-mode-btn.active:hover,
 body.athar-reading #controls .reader-tool-button.active:hover {
@@ -200,13 +306,23 @@ body.athar-reading #controls .reader-tool-button.active:hover {
     color: var(--athar-on-accent);
 }
 
+/* Kill legacy teal/terracotta gradients from styles.css */
+body.athar-reading #controls .waqf-mode-btn.active,
+body.athar-reading.dark-mode #controls .waqf-mode-btn.active,
+body.athar-reading.sepia-mode #controls .waqf-mode-btn.active {
+    background: var(--athar-accent);
+    border-color: var(--athar-accent);
+    color: var(--athar-on-accent);
+    box-shadow: none;
+}
+
 body.athar-reading .audio-seek-slider,
 body.athar-reading #khatt-justify-slider { accent-color: var(--athar-accent); }
 
 body.athar-reading .reader-drawers {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
     max-width: 100%;
 }
 
@@ -218,11 +334,11 @@ body.athar-reading .reader-drawer {
 
 body.athar-reading .reader-drawer summary {
     display: grid;
-    grid-template-columns: 38px 1fr auto;
+    grid-template-columns: 34px 1fr auto;
     align-items: center;
-    gap: 12px;
-    min-height: 74px;
-    padding: 12px 16px;
+    gap: 10px;
+    min-height: 58px;
+    padding: 10px 14px;
     color: var(--athar-ink);
     cursor: pointer;
     list-style: none;
@@ -235,18 +351,19 @@ body.athar-reading .reader-drawer summary:hover { background: color-mix(in srgb,
 
 body.athar-reading .reader-drawer-icon {
     display: grid;
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     place-items: center;
     border: 1px solid color-mix(in srgb, var(--athar-gold) 34%, var(--athar-line));
     border-radius: 50%;
     background: color-mix(in srgb, var(--athar-gold) 8%, transparent);
     color: var(--athar-gold);
+    font-size: 0.85rem;
 }
 
-body.athar-reading .reader-drawer summary > span:nth-child(2) { display: grid; gap: 3px; }
-body.athar-reading .reader-drawer summary b { font-size: 0.9rem; }
-body.athar-reading .reader-drawer summary small { color: var(--athar-ink-faint); font-size: 0.72rem; font-weight: 500; line-height: 1.5; }
+body.athar-reading .reader-drawer summary > span:nth-child(2) { display: grid; gap: 2px; }
+body.athar-reading .reader-drawer summary b { font-size: 0.88rem; }
+body.athar-reading .reader-drawer summary small { color: var(--athar-ink-faint); font-size: 0.7rem; font-weight: 500; line-height: 1.45; }
 body.athar-reading .reader-drawer-caret { color: var(--athar-ink-faint); font-size: 0.75rem; transition: transform var(--athar-motion-base) var(--athar-ease); }
 body.athar-reading .reader-drawer[open] .reader-drawer-caret { transform: rotate(180deg); }
 
@@ -399,13 +516,13 @@ body.athar-reading.dark-mode[data-font-type="digital_khatt"] #quran-text {
 }
 
 body.athar-reading #quran-text span:hover {
-    background-color: rgba(0, 100, 200, 0.1);
-    color: #0064c8;
+    background-color: color-mix(in srgb, var(--athar-accent) 12%, transparent);
+    color: var(--athar-accent);
 }
 
 body.athar-reading.dark-mode #quran-text span:hover {
-    background-color: rgba(100, 150, 255, 0.1);
-    color: #6496ff;
+    background-color: color-mix(in srgb, var(--athar-accent) 18%, transparent);
+    color: var(--athar-accent-soft);
 }
 
 body.athar-reading .word-token {
@@ -414,7 +531,12 @@ body.athar-reading .word-token {
     margin: 0 0.05rem;
     padding-top: 0.4em;
     line-height: 1.6;
-    transition: color 0.2s ease, transform 0.2s ease;
+    border-radius: 0.18em;
+    transition:
+        color var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease),
+        background-color var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease),
+        box-shadow var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease),
+        transform var(--athar-motion-fast, 160ms) var(--athar-ease, ease);
 }
 
 body.athar-reading[data-font-type="digital_khatt"] .word-token,
@@ -423,21 +545,21 @@ body.athar-reading[data-font-type="old_madina"] .word-token {
 }
 
 body.athar-reading .word-token[data-shamarly-glyph] { margin: 0 0.2rem; }
-body.athar-reading .word-token:hover { transform: translateY(-2px); }
+body.athar-reading .word-token:hover { transform: translateY(-1px); }
 body.athar-reading .word-token.highlight {
-    background-color: #ffeb3b !important;
-    color: #333 !important;
+    background-color: color-mix(in srgb, var(--highlight-color, #ffeb3b) 82%, transparent) !important;
+    color: var(--athar-ink) !important;
     font-weight: bold;
-    box-shadow: 0 0 5px rgba(255, 235, 59, 0.7);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--highlight-color, #ffeb3b) 55%, transparent);
 }
 body.athar-reading.dark-mode .word-token.highlight {
-    background-color: #ffc107 !important;
-    color: #000 !important;
+    background-color: color-mix(in srgb, #ffc107 78%, transparent) !important;
+    color: #111 !important;
 }
 body.athar-reading.sepia-mode .word-token.highlight {
-    background-color: #daa520 !important;
+    background-color: color-mix(in srgb, #daa520 78%, transparent) !important;
     color: #3c2e26 !important;
-    box-shadow: 0 0 5px rgba(218, 165, 32, 0.7);
+    box-shadow: 0 0 0 1px color-mix(in srgb, #daa520 45%, transparent);
 }
 body.athar-reading .word-content,
 body.athar-reading .word-base { display: inline; }
@@ -578,18 +700,17 @@ body.athar-reading .word-meaning-tooltip {
 }
 
 @media (max-width: 900px) {
-    body.athar-reading .reader-intro {
-        grid-template-columns: 1fr;
-        gap: 14px;
+    body.athar-reading .reader-intro.athar-tool-intro {
+        padding-bottom: 18px;
     }
 
-    body.athar-reading .reader-intro > p { max-width: 58ch; }
+    body.athar-reading .reader-intro .athar-lede { max-width: 58ch; }
 
     body.athar-reading .ctrl-row-nav {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    body.athar-reading .reader-voice { position: absolute; inset-inline-end: 14px; }
+    body.athar-reading .reader-voice { position: absolute; inset-inline-end: 10px; top: 0; }
 
     body.athar-reading .ctrl-row-playback {
         grid-template-columns: 1fr;
@@ -607,25 +728,44 @@ body.athar-reading .word-meaning-tooltip {
     }
 
     body.athar-reading .reader-main {
-        margin-top: 16px;
+        margin-top: 12px;
     }
 
-    body.athar-reading .reader-intro {
+    body.athar-reading .reader-intro.athar-tool-intro {
         padding-inline: 6px;
-        padding-bottom: 24px;
+        padding-bottom: 16px;
     }
 
-    body.athar-reading .reader-intro h1 { font-size: clamp(2.2rem, 13vw, 3.4rem); }
+    body.athar-reading .reader-intro .athar-title { font-size: clamp(1.85rem, 11vw, 2.8rem); }
 
-    body.athar-reading .reader-primary,
+    body.athar-reading .reader-primary.athar-tool-chrome,
     body.athar-reading .ayah-container {
         border-radius: 14px;
     }
 
-    body.athar-reading .reader-primary {
+    body.athar-reading .reader-primary.athar-tool-chrome {
         position: relative;
         top: auto;
         padding: 10px;
+    }
+
+    /* Keep field labels readable on small screens even after scroll-compact */
+    body.athar-reading .reader-primary.is-compact .reader-field > span,
+    body.athar-reading .reader-primary.is-compact .repeat-label {
+        display: grid;
+    }
+    body.athar-reading .reader-primary.is-compact .playback-extra .athar-button > span,
+    body.athar-reading .reader-primary.is-compact #play-pause-button > span {
+        position: static;
+        width: auto;
+        height: auto;
+        overflow: visible;
+        clip-path: none;
+    }
+    body.athar-reading .reader-primary.is-compact .playback-extra .athar-button,
+    body.athar-reading .reader-primary.is-compact #play-pause-button {
+        width: auto;
+        padding: 7px 12px;
     }
 
     body.athar-reading .ctrl-row-nav { grid-template-columns: 1fr 0.55fr; }
@@ -644,12 +784,12 @@ body.athar-reading .word-meaning-tooltip {
     body.athar-reading .playback-extra { justify-content: center; }
 
     body.athar-reading .reader-drawer summary {
-        grid-template-columns: 34px 1fr auto;
-        min-height: 68px;
-        padding: 10px 12px;
+        grid-template-columns: 32px 1fr auto;
+        min-height: 54px;
+        padding: 9px 12px;
     }
 
-    body.athar-reading .reader-drawer-icon { width: 34px; height: 34px; }
+    body.athar-reading .reader-drawer-icon { width: 32px; height: 32px; }
 
     body.athar-reading .reader-drawer > .ctrl-row { padding: 12px; }
     body.athar-reading .waqf-mode-control.athar-tabs { display: grid; grid-template-columns: repeat(2, 1fr); }
@@ -669,4 +809,15 @@ body.athar-reading .word-meaning-tooltip {
         padding-inline: 6px;
         font-size: clamp(28px, 9vw, 36px);
     }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.athar-reading .word-token,
+    body.athar-reading .reader-drawer-caret,
+    body.athar-reading .reader-drawer summary,
+    body.athar-reading .athar-button,
+    body.athar-reading .athar-icon-button {
+        transition: none !important;
+    }
+    body.athar-reading .word-token:hover { transform: none; }
 }

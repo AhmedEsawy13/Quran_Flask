@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>أثَر · مراجعة المكتفى</title>
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/classical_review.css') }}">
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
+</head>
+<body class="cr-page">
+    {{ athar_app_bar() }}
+
+    <header class="cr-hero">
+        <div>
+            <p class="athar-kicker">— مراجعة كتب الوقف والابتداء</p>
+            <h1 class="athar-display" id="cr-title">المكتفى لأبي عمرو الداني</h1>
+            <p id="cr-subtitle">راجع المواضع غير اليقينية، وقارن نص الكتاب بموضعه في القرآن، ثم اقبل الحكم أو استبعده.</p>
+        </div>
+        <a class="cr-export" id="cr-export" href="/api/classical-review/muktafa/export" target="_blank" rel="noopener">تصدير القرارات JSON</a>
+    </header>
+
+    <main id="athar-main" class="cr-main" tabindex="-1">
+        <nav class="cr-books" aria-label="اختيار الكتاب">
+            <button class="cr-book-tab cr-active" data-source="muktafa" type="button">المكتفى <small>167 للمراجعة</small></button>
+            <button class="cr-book-tab" data-source="manar" type="button">منار الهدى <small>102 للمراجعة</small></button>
+        </nav>
+
+        <section class="cr-metrics" id="cr-metrics" aria-label="دقة الاستخراج">
+            <div class="cr-skeleton">جارٍ حساب القياسات…</div>
+        </section>
+
+        <aside class="cr-caveat" id="cr-caveat" hidden></aside>
+
+        <section class="cr-toolbar" aria-label="مرشحات المراجعة">
+            <label>القرار
+                <select id="cr-status">
+                    <option value="pending">بانتظار المراجعة</option>
+                    <option value="approve">مقبول</option>
+                    <option value="reject">مستبعد</option>
+                    <option value="all">الكل</option>
+                </select>
+            </label>
+            <label>المحاذاة
+                <select id="cr-alignment">
+                    <option value="all">الكل</option>
+                    <option value="matched">له موضع مقترح</option>
+                    <option value="unmatched">بلا موضع</option>
+                </select>
+            </label>
+            <label>السورة
+                <input id="cr-surah" type="number" min="1" max="114" placeholder="الكل">
+            </label>
+            <button id="cr-apply" type="button">تطبيق</button>
+            <span id="cr-result-count" aria-live="polite"></span>
+        </section>
+
+        <section id="cr-list" class="cr-list" aria-live="polite"></section>
+
+        <nav class="cr-pagination" aria-label="صفحات نتائج المراجعة">
+            <button id="cr-prev" type="button">السابق</button>
+            <span id="cr-page-label"></span>
+            <button id="cr-next" type="button">التالي</button>
+        </nav>
+
+        <section class="cr-release" aria-labelledby="cr-release-title">
+            <div>
+                <p class="athar-kicker">— قرار الكتاب</p>
+                <h2 id="cr-release-title">هل يُضاف المكتفى إلى التطبيق؟</h2>
+                <p id="cr-release-copy">لا يمكن اعتماد الكتاب حتى يُتخذ قرار في جميع المواضع الـ167 غير اليقينية. الاعتماد يُسجَّل منفصلًا ولا يمحو نص المصدر.</p>
+            </div>
+            <textarea id="cr-book-note" rows="3" placeholder="ملاحظة المراجع على القرار النهائي"></textarea>
+            <div class="cr-release-actions">
+                <button class="cr-reject" id="cr-reject-book" type="button">عدم إضافة الكتاب</button>
+                <button class="cr-approve" id="cr-add-book" type="button">اعتماد وإضافة الكتاب</button>
+            </div>
+            <p id="cr-book-state" class="cr-book-state" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <div id="cr-toast" class="cr-toast" role="status" aria-live="polite" hidden></div>
+    <script src="{{ static_hash('js/classical_review.js') }}"></script>
+</body>
+</html>

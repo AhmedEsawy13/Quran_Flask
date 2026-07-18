@@ -113,7 +113,7 @@
  },
  {
   "ayah": 7,
-  "stop_phrase": "ٱلَّذِينَ كَفَرُواْۚ",
+  "stop_phrase": "ٱخۡتِلَٰقٌ",
   "grade": "جائز",
   "reason": "وإنما جاز هنا على «يراد»، وإن لم تتم الحكاية؛ لأنه آخر آية ولطول الكلام",
   "reported_from": null
@@ -169,14 +169,14 @@
  },
  {
   "ayah": 13,
-  "stop_phrase": "ٱلۡأٓئِكَةِۚ",
+  "stop_phrase": "لۡـَٔيۡكَةِۚ",
   "grade": "حسن",
   "reason": "إن جعل «أؤلئك» مبتدأ",
   "reported_from": null
  },
  {
   "ayah": 13,
-  "stop_phrase": "ٱلۡأٓئِكَةِۚ",
+  "stop_phrase": "لۡـَٔيۡكَةِۚ",
   "grade": "لا",
   "reason": "وليس بوقف إن جعل نعتًا",
   "reported_from": null

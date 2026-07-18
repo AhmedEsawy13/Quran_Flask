@@ -25,6 +25,8 @@ from core.lru import _BoundedLRU
 from core.db import connect as _sqlite_connect
 from core.datasets import qpc_hafs_data_normalized
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
+from core.classical_review import book_decision as _classical_book_decision
+from core.classical_review import decisions as _classical_review_decisions
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _load_memorization_word_ts, _segment_phrases, _forward_waqf_stops,
     _has_arabic_letter, _gd_audio_url, _yt_audio_url,
@@ -359,6 +361,57 @@ _CLASSICAL_SOURCES = {
 _ACTIVE_CLASSICAL_SOURCES = {'manar'}
 
 
+def _active_classical_sources():
+    """Baseline release allowlist plus books approved in the local reviewer."""
+    active = set(_ACTIVE_CLASSICAL_SOURCES)
+    if _classical_book_decision('manar').get('decision') == 'reject':
+        active.discard('manar')
+    if _classical_book_decision('muktafa').get('decision') == 'add':
+        active.add('muktafa')
+    return active
+
+
+def _rejected_review_ids(active_sources):
+    rejected = set()
+    for source in active_sources:
+        rejected.update(row_id for row_id, decision in _classical_review_decisions(source).items()
+                        if decision.get('decision') == 'reject')
+    return rejected
+
+
+def _approved_muktafa_rows(surah, from_ayah, to_ayah):
+    """Reviewed conf=0 rows, with any reviewer-corrected coordinates applied."""
+    saved = {row_id: decision for row_id, decision in _classical_review_decisions('muktafa').items()
+             if decision.get('decision') == 'approve'}
+    if not saved:
+        return []
+    conn = _sqlite_connect(CLASSICAL_WAQF_DATABASE)
+    try:
+        conn.row_factory = sqlite3.Row
+        ids = sorted(saved)
+        placeholders = ','.join('?' * len(ids))
+        rows = conn.execute(
+            'SELECT id,source,surah,ayah,wpos,stop_word,quote,grade,grade_raw,note,reported_from,seq '
+            f'FROM classical WHERE source="muktafa" AND conf=0 AND id IN ({placeholders})', ids).fetchall()
+        out = []
+        for row in rows:
+            decision = saved[row['id']]
+            effective_surah = decision.get('corrected_surah') or row['surah']
+            effective_ayah = decision.get('corrected_ayah') or row['ayah']
+            effective_wpos = (decision.get('corrected_wpos')
+                              if decision.get('corrected_wpos') is not None else row['wpos'])
+            if effective_surah != surah or effective_ayah is None or effective_wpos is None:
+                continue
+            if not from_ayah <= effective_ayah <= to_ayah:
+                continue
+            item = dict(row)
+            item.update(surah=effective_surah, ayah=effective_ayah, wpos=effective_wpos)
+            out.append(item)
+        return out
+    finally:
+        conn.close()
+
+
 @breathing_bp.route('/api/classical-waqf/<int:surah>/<int:ayah>', methods=['GET'])
 def classical_waqf(surah, ayah):
     """Classical graded stops (currently just الأشموني's منار الهدى — see
@@ -369,16 +422,23 @@ def classical_waqf(surah, ayah):
     if not (1 <= surah <= 114) or ayah < 1:
         return jsonify({'error': 'invalid verse'}), 400
     entries = []
+    active_sources = _active_classical_sources()
     if os.path.exists(CLASSICAL_WAQF_DATABASE):
         conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
         try:
             conn.row_factory = sqlite3.Row
-            placeholders = ','.join('?' * len(_ACTIVE_CLASSICAL_SOURCES))
-            for r in conn.execute(
-                    'SELECT source, wpos, stop_word, quote, grade, grade_raw, note, reported_from '
+            placeholders = ','.join('?' * len(active_sources))
+            rows = list(conn.execute(
+                    'SELECT id, source, wpos, stop_word, quote, grade, grade_raw, note, reported_from '
                     f'FROM classical WHERE surah=? AND ayah=? AND conf=1 AND source IN ({placeholders}) '
                     'ORDER BY wpos, source, seq',
-                    (surah, ayah, *_ACTIVE_CLASSICAL_SOURCES)):
+                    (surah, ayah, *active_sources)))
+            rejected_ids = _rejected_review_ids(active_sources)
+            rows = [row for row in rows if row['id'] not in rejected_ids]
+            if 'muktafa' in active_sources:
+                rows.extend(_approved_muktafa_rows(surah, ayah, ayah))
+            rows.sort(key=lambda r: (r['wpos'], r['source']))
+            for r in rows:
                 entries.append({
                     'source': r['source'],
                     'wpos': r['wpos'], 'stop_word': r['stop_word'],
@@ -392,8 +452,8 @@ def classical_waqf(surah, ayah):
                 })
         finally:
             conn.close()
-    active_sources = {k: v for k, v in _CLASSICAL_SOURCES.items() if k in _ACTIVE_CLASSICAL_SOURCES}
-    return jsonify({'surah': surah, 'ayah': ayah, 'sources': active_sources,
+    source_meta = {k: v for k, v in _CLASSICAL_SOURCES.items() if k in active_sources}
+    return jsonify({'surah': surah, 'ayah': ayah, 'sources': source_meta,
                     'count': len(entries), 'entries': entries})
 
 
@@ -457,15 +517,21 @@ def _classical_grades_for_range(surah, from_ayah, to_ayah):
     incomplete source shouldn't be able to mark a learner's correct stop
     as wrong (or vice versa)."""
     out = defaultdict(list)
+    active_sources = _active_classical_sources()
     if os.path.exists(CLASSICAL_WAQF_DATABASE):
         conn = _sqlite_connect(CLASSICAL_WAQF_DATABASE)
         try:
             conn.row_factory = sqlite3.Row
-            placeholders = ','.join('?' * len(_ACTIVE_CLASSICAL_SOURCES))
-            for r in conn.execute(
-                    'SELECT ayah, source, wpos, grade FROM classical '
+            placeholders = ','.join('?' * len(active_sources))
+            rows = list(conn.execute(
+                    'SELECT id, ayah, source, wpos, grade FROM classical '
                     f'WHERE surah=? AND ayah BETWEEN ? AND ? AND conf=1 AND wpos IS NOT NULL AND source IN ({placeholders})',
-                    (surah, from_ayah, to_ayah, *_ACTIVE_CLASSICAL_SOURCES)):
+                    (surah, from_ayah, to_ayah, *active_sources)))
+            rejected_ids = _rejected_review_ids(active_sources)
+            rows = [row for row in rows if row['id'] not in rejected_ids]
+            if 'muktafa' in active_sources:
+                rows.extend(_approved_muktafa_rows(surah, from_ayah, to_ayah))
+            for r in rows:
                 out[(r['ayah'], r['wpos'])].append({
                     'source': r['source'],
                     'name': _CLASSICAL_NAME.get(r['source'], r['source']),

@@ -239,6 +239,134 @@
 .athar-toolbar-group { flex-wrap: wrap; }
 .athar-toolbar-label { color: var(--athar-ink-faint); font-size: 0.76rem; font-weight: 700; }
 
+/* Full-bleed sticky tool chrome — controls only (no editorial titles).
+ * Pages keep their own layout grid inside; this owns the shared glass strip. */
+.athar-tool-chrome {
+  box-sizing: border-box;
+  position: sticky;
+  top: var(--athar-bar-h);
+  z-index: 40;
+  width: 100%;
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px clamp(12px, 2.4vw, 28px);
+  border: 0;
+  border-bottom: 1px solid var(--athar-line);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--athar-surface) 92%, transparent);
+  -webkit-backdrop-filter: saturate(170%) blur(18px);
+  backdrop-filter: saturate(170%) blur(18px);
+  box-shadow: 0 14px 34px -32px color-mix(in srgb, var(--athar-ink) 55%, transparent);
+  transition:
+    padding var(--athar-motion-fast) var(--athar-ease),
+    min-height var(--athar-motion-fast) var(--athar-ease),
+    box-shadow var(--athar-motion-base) var(--athar-ease);
+}
+
+.athar-tool-chrome.is-compact {
+  min-height: 48px;
+  padding-block: 6px;
+  box-shadow: none;
+}
+
+/* Editorial intro that scrolls away above the tool chrome */
+.athar-tool-intro {
+  display: grid;
+  gap: var(--athar-space-2);
+  max-width: var(--athar-content-md);
+  padding: clamp(28px, 5vw, 52px) clamp(16px, 4vw, 40px) clamp(18px, 3vw, 28px);
+}
+
+.athar-tool-intro .athar-kicker { margin: 0; }
+.athar-tool-intro .athar-title,
+.athar-tool-intro h1 {
+  margin: 0;
+  max-width: 18ch;
+  color: var(--athar-ink);
+  font-family: var(--font-display);
+  font-feature-settings: "salt" 1;
+  font-size: clamp(1.85rem, 4.2vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.athar-tool-intro .athar-lede,
+.athar-tool-intro > p {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--athar-ink-soft);
+  font-family: var(--font-serif);
+  font-size: clamp(0.88rem, 1.4vw, 1.02rem);
+  line-height: 1.7;
+}
+
+/* Selector chip that opens a popover — one look across تثبيت / تدريب / مُكْث */
+.athar-menu-button {
+  box-sizing: border-box;
+  max-width: min(290px, 42vw);
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid var(--athar-line);
+  border-radius: var(--athar-radius-control);
+  background: var(--athar-surface);
+  color: var(--athar-ink);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    border-color var(--athar-motion-fast) var(--athar-ease),
+    color var(--athar-motion-fast) var(--athar-ease),
+    background var(--athar-motion-fast) var(--athar-ease);
+}
+.athar-menu-button > i:first-child { color: var(--athar-accent); font-size: 0.92em; flex: 0 0 auto; }
+.athar-menu-button .athar-menu-label,
+.athar-menu-button .mz-chip-label,
+.athar-menu-button .wp-selector-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.athar-menu-button .athar-menu-caret,
+.athar-menu-button .mz-caret,
+.athar-menu-button .wp-caret {
+  margin-inline-start: auto;
+  color: var(--athar-ink-faint);
+  font-size: 0.62rem;
+  transition: transform var(--athar-motion-fast) var(--athar-ease);
+}
+.athar-menu-button:hover {
+  border-color: var(--athar-accent);
+  color: var(--athar-accent);
+}
+.athar-menu-button[aria-expanded="true"] {
+  border-color: var(--athar-accent);
+  color: var(--athar-accent);
+}
+.athar-menu-button[aria-expanded="true"] .athar-menu-caret,
+.athar-menu-button[aria-expanded="true"] .mz-caret,
+.athar-menu-button[aria-expanded="true"] .wp-caret {
+  transform: rotate(180deg);
+}
+.athar-menu-button:focus-visible {
+  outline: 3px solid var(--athar-focus-ring);
+  outline-offset: 2px;
+}
+
+.athar-icon-button[aria-pressed="true"],
+.athar-icon-button.is-on {
+  border-color: color-mix(in srgb, var(--athar-accent) 48%, var(--athar-line));
+  background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface));
+  color: var(--athar-accent);
+}
+
 /* ------------------------------------------------------------ form fields */
 .athar-field-wrap { display: grid; gap: 6px; color: var(--athar-ink-soft); font-size: 0.78rem; font-weight: 700; }
 
@@ -411,7 +539,27 @@
   .athar-icon-button,
   .athar-field,
   .athar-select,
-  .athar-textarea { transition: none; }
+  .athar-textarea,
+  .athar-menu-button,
+  .athar-tool-chrome,
+  .athar-chip,
+  .athar-tab,
+  .athar-ink-mark { transition: none !important; }
 
-  .athar-state-spinner { animation-duration: 1.5s; }
+  .athar-button:hover:not(:disabled):not([aria-disabled="true"]) { transform: none; }
+  .athar-state-spinner { animation: none; border-top-color: var(--athar-accent); opacity: 0.7; }
+}
+
+/* Mouse users: no sticky outline after click; keyboard keeps :focus-visible */
+:where(a, button, input, select, textarea, summary, [role="button"], [tabindex]):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Ink-like word marks — soft wash in/out, no bounce */
+.athar-ink-mark {
+  transition:
+    color var(--athar-motion-ink) var(--athar-ease-ink),
+    background-color var(--athar-motion-ink) var(--athar-ease-ink),
+    box-shadow var(--athar-motion-ink) var(--athar-ease-ink),
+    opacity var(--athar-motion-ink) var(--athar-ease-ink);
 }

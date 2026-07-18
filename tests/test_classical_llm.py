@@ -60,6 +60,29 @@ def test_every_grade_is_in_the_lexicon(llm_rows):
     assert not bad, f'unknown grades: {bad}'
 
 
+def test_grade_spelling_variants_are_canonicalized():
+    from pipeline.build_classical_llm import align_stops  # type: ignore
+    rows, stats = align_stops(28, [
+        {'ayah': 1, 'stop_phrase': 'طسمٓ', 'grade': 'la'},
+        {'ayah': 2, 'stop_phrase': 'ٱلۡمُبِينِ', 'grade': 'kaf'},
+    ])
+    assert [r[5] for r in rows] == ['لا', 'كاف']
+    assert stats['bad_grade'] == 0
+
+
+def test_all_completed_manar_cache_items_pass_validation():
+    """A completed LLM cache must not silently lose rows during replay."""
+    from pipeline import build_classical_llm as builder  # type: ignore
+    rejected = []
+    for surah, _, chunk_idx, _, _ in builder.chunk_blocks('manar'):
+        stops = builder.load_cached('manar', surah, chunk_idx)
+        assert stops is not None, f'missing cache for surah {surah}, chunk {chunk_idx}'
+        _, stats = builder.align_stops(surah, stops)
+        if stats['bad_grade'] or stats['bad_ayah'] or stats['unaligned']:
+            rejected.append((surah, chunk_idx, stats))
+    assert not rejected, f'completed Manar cache still has rejected rows: {rejected[:10]}'
+
+
 def test_every_row_aligned_to_a_word_position(llm_rows):
     # the pipeline rejects unaligned phrases, so every stored row must carry a wpos
     assert all(r['wpos'] is not None and r['wpos'] >= 0 for r in llm_rows)
@@ -77,6 +100,34 @@ def test_stop_phrase_words_occur_in_the_verse(app, llm_rows):
             if wpos is None:
                 miss.append((r['surah'], r['ayah'], r['quote']))
     assert not miss, f'phrases not found in their verse: {miss[:5]}'
+
+
+def test_released_manar_contains_every_aligned_explicit_source_ruling(llm_rows):
+    """The LLM may omit an item; direct source syntax must not disappear."""
+    from pipeline import build_classical_llm as builder  # type: ignore
+    live = {(r['surah'], r['ayah'], r['wpos'], r['grade']) for r in llm_rows
+            if r['source'] == 'manar'}
+    expected = set()
+    sections = builder.load_shamela_sections()
+    for surah in range(1, 115):
+        for r in builder.explicit_manar_rows(surah, sections[str(surah)]['text']):
+            expected.add((surah, r[1], r[2], r[5]))
+    missing = expected - live
+    assert not missing, f'{len(missing)} explicit Manar rulings missing, e.g. {sorted(missing)[:10]}'
+
+
+def test_manar_discursive_rulings_recovered(llm_rows):
+    """Pin source rulings that do not use the explicit syntax backstop."""
+    rows = [r for r in llm_rows if r['source'] == 'manar']
+    keys = {(r['surah'], r['ayah'], r['wpos'], r['grade'], r['reported_from']) for r in rows}
+    # الأخفش: no stop at إحسانا or ابن السبيل in 4:36.
+    assert (4, 36, 7, 'لا', 'الأخفش') in keys
+    assert (4, 36, 20, 'لا', 'الأخفش') in keys
+    # Manar gives both حسن and the alternative كاف at هوىٰه in 7:176.
+    assert {(r['wpos'], r['grade']) for r in rows if r['surah'] == 7 and r['ayah'] == 176} \
+        >= {(9, 'حسن'), (9, 'كاف')}
+    # A cache typo had put this ruling in 12:15 instead of 12:81.
+    assert (12, 81, 12, 'حسن', None) in keys
 
 
 _LATIN_RUN_RE = re.compile(r'[A-Za-z]{2,}')

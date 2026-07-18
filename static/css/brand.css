@@ -168,20 +168,52 @@
 
   --athar-motion-fast: 160ms;
   --athar-motion-base: 240ms;
+  --athar-motion-ink: 220ms;
   --athar-ease: cubic-bezier(.2, .75, .25, 1);
+  --athar-ease-ink: cubic-bezier(.22, .61, .36, 1);
 }
 
-/* ---- Base UI typography (no !important: Quran-text selectors stay) ---- */
+/* Smooth document scrolling; reduced-motion turns this off below. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Theme crossfade — toggled briefly by AtharTheme while swapping modes. */
+html.athar-theme-fading,
+html.athar-theme-fading body {
+  transition:
+    background-color var(--athar-motion-base) var(--athar-ease),
+    color var(--athar-motion-base) var(--athar-ease),
+    border-color var(--athar-motion-base) var(--athar-ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  html.athar-theme-fading,
+  html.athar-theme-fading body { transition: none; }
+}
+
+/* ---- Base UI typography (no !important: Quran-text selectors stay) ----
+ * font-feature-settings inherits, so enabling "salt" (الحروف المرسلة —
+ * see athar-components.css's note on this feature) here turns it on for
+ * every Thmanyah-rendered UI string project-wide by default. Every
+ * Qur'an-text container (mushaf pages, tafseer/eerab/mutashabihat quotes,
+ * waqf-symbol tables, memorize/waqf-guide word displays — anywhere one of
+ * the dedicated Qur'an fonts renders) explicitly resets it back to normal
+ * at its own rule, so this never reaches actual verse text. */
 body {
   font-family: var(--font-ui);
+  font-feature-settings: "salt" 1;
 }
 button, input, select, textarea, .btn {
   font-family: var(--font-ui);
+  font-feature-settings: "salt" 1;
 }
 h1, h2, h3, .athar-heading {
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.01em;
+  font-feature-settings: "salt" 1;
 }
 
 /* ===========================================================================
@@ -203,9 +235,21 @@ h1, h2, h3, .athar-heading {
   text-decoration: none;
   box-shadow: 0 10px 28px rgba(24, 23, 15, 0.16);
   transform: translateY(calc(-100% - 18px));
-  transition: transform .16s ease;
+  transition: transform var(--athar-motion-fast) var(--athar-ease);
 }
 .athar-skip-link:focus { transform: translateY(0); }
+.athar-skip-link:focus-visible {
+  outline: 3px solid var(--athar-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Landmarks that sticky chrome can cover — keep skip/focus targets visible */
+#athar-main,
+#wq-main,
+[id="athar-main"],
+main[tabindex="-1"] {
+  scroll-margin-top: calc(var(--athar-bar-h) + 12px);
+}
 
 .athar-bar {
   position: sticky;

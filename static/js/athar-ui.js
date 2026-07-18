@@ -112,12 +112,71 @@
         return Object.freeze({ clear, show });
     }
 
+    function prefersReducedMotion() {
+        try {
+            return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function scrollIntoView(element, options) {
+        if (!element || typeof element.scrollIntoView !== 'function') return;
+        const opts = Object.assign({ block: 'nearest' }, options || {});
+        if (prefersReducedMotion()) opts.behavior = 'auto';
+        else if (!opts.behavior) opts.behavior = 'smooth';
+        element.scrollIntoView(opts);
+    }
+
+    /* Respect reduced-motion for every scrollIntoView(call) in page scripts
+     * without rewriting each call site. Explicit AtharUi.scrollIntoView still
+     * preferred for new code. */
+    (function patchScrollIntoView() {
+        if (Element.prototype.scrollIntoView && Element.prototype.scrollIntoView.__atharPatched) return;
+        const original = Element.prototype.scrollIntoView;
+        if (!original) return;
+        function patched(arg) {
+            if (!prefersReducedMotion()) return original.apply(this, arguments);
+            if (arg && typeof arg === 'object') {
+                return original.call(this, Object.assign({}, arg, { behavior: 'auto' }));
+            }
+            return original.call(this, { block: 'start', behavior: 'auto' });
+        }
+        patched.__atharPatched = true;
+        Element.prototype.scrollIntoView = patched;
+    })();
+
     window.AtharUi = Object.freeze({
+        bindCompactScroll,
         createPopoverGroup,
         createStatus,
         fitPopover,
+        prefersReducedMotion,
         renderState,
+        scrollIntoView,
         setBusy,
         setDisclosure,
     });
+
+    function bindCompactScroll(root) {
+        root = root || document;
+        const reduceMotion = prefersReducedMotion();
+        root.querySelectorAll('[data-athar-compact-scroll]').forEach(function (el) {
+            if (el.__atharCompactBound) return;
+            el.__atharCompactBound = true;
+            const threshold = Math.max(8, Number(el.getAttribute('data-athar-compact-scroll')) || 40);
+            const sync = function () {
+                el.classList.toggle('is-compact', window.scrollY > threshold);
+            };
+            sync();
+            if (reduceMotion) return;
+            window.addEventListener('scroll', sync, { passive: true });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { bindCompactScroll(); });
+    } else {
+        bindCompactScroll();
+    }
 })();

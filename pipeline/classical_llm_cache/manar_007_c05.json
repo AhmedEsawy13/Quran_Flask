@@ -330,8 +330,15 @@
  },
  {
   "ayah": 176,
-  "stop_phrase": "هَوَٰهُۚ",
+  "stop_phrase": "هَوَىٰهُۚ",
   "grade": "حسن",
+  "reason": "لأنَّ ما بعده مبتدأ.",
+  "reported_from": null
+ },
+ {
+  "ayah": 176,
+  "stop_phrase": "هَوَىٰهُۚ",
+  "grade": "كاف",
   "reason": "وقيل: كاف؛ لأنَّ ما بعده مبتدأ.",
   "reported_from": null
  },

@@ -39,16 +39,14 @@
     {{ athar_app_bar() }}
 
     <main class="controls-container reader-main" id="athar-main" tabindex="-1">
-        <section class="reader-intro" aria-labelledby="reader-title">
-            <div>
-                <p class="athar-kicker">— المصحف</p>
-                <h1 class="athar-display" id="reader-title" aria-label="اقرأ المصحف، وتدبّر المعنى.">اقرأ المصحــف، وتدبّر المعنى.</h1>
-            </div>
-            <p>قراءة هادئة بصوت القارئ الذي تختاره، مع أدوات المعنى والتجويد والوقف حين تحتاجها.</p>
+        <section class="reader-intro athar-tool-intro" aria-labelledby="reader-title">
+            <p class="athar-kicker">— المصحف</p>
+            <h1 class="athar-title" id="reader-title" aria-label="اقرأ المصحف، وتدبّر المعنى.">اقرأ المصحــف، وتدبّر المعنى.</h1>
+            <p class="athar-lede">قراءة هادئة بصوت القارئ الذي تختاره، مع أدوات المعنى والتجويد والوقف حين تحتاجها.</p>
         </section>
 
         <div id="controls" class="reader-controls">
-            <section class="reader-primary athar-surface" aria-label="التنقل والتشغيل">
+            <section class="reader-primary athar-tool-chrome" data-athar-compact-scroll="72" aria-label="التنقل والتشغيل">
 
             <!-- Row 1: Navigation — surah / ayah / font / reciter / view mode -->
             <div class="ctrl-row ctrl-row-nav">

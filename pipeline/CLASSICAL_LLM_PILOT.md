@@ -46,10 +46,14 @@ survived even after fixing header-detection on the OpenITI copy: **النساء 
 other surahs were silently dropped** (a single-hash header format the OpenITI
 loader strips), and **سورة قريش has no separate heading at all** — independently
 confirmed by Shamela's own TOC (filed under سورة الفيل) — so that's a genuine
-authorial choice, not a parsing bug. Coverage is now **114/114 surahs** (one
-content gap survives: سورة مريم is missing 3 pages *in this particular Shamela
-export* — a source-side gap, not a slicer bug; see the converter's stderr output).
-The Shamela text is also fully vocalized (tashkeel) in quotes, vs. OpenITI's bare
+authorial choice, not a parsing bug. Coverage is now **114/114 surahs**. The
+converter reports three missing internal row IDs inside سورة مريم, but a
+2026-07 completeness audit found **no demonstrated content gap**: its 123
+mechanically alignable explicit ruling keys exactly match the independent
+OpenITI copy (123/123), and the section is continuous in the public-domain
+1322 AH printed scan. Treat missing database IDs as an export-integrity warning,
+not as proof that three printed pages are absent. The Shamela text is also fully
+vocalized (tashkeel) in quotes, vs. OpenITI's bare
 consonantal skeleton — cross-checked byte-for-byte against the already-cached 10
 surahs' source prose and it's identical content, just cleaner.
 

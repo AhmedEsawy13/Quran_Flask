@@ -81,21 +81,33 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--window', type=int, default=500)
     ap.add_argument('--surah', type=int, default=None)
-    ap.add_argument('--db', default=os.path.join('data', 'classical_waqf_llm.db'))
+    ap.add_argument('--db', default=os.path.join('data', 'classical_waqf.db'))
+    ap.add_argument('--source', default='manar',
+                    help='classical.source tag to audit (default: released manar)')
     ap.add_argument('--samples', type=int, default=25)
+    ap.add_argument('--review-out', default=None,
+                    help='write every suspect row plus source context as JSONL')
+    ap.add_argument('--max-suspect', type=int, default=None,
+                    help='exit non-zero if suspects exceed this regression ceiling')
     args = ap.parse_args()
 
     sections = json.load(open(
         os.path.join('pipeline', 'classical_sources', 'manar_shamela_sections.json'), encoding='utf-8'))
     conn = sqlite3.connect(args.db)
     conn.row_factory = sqlite3.Row
-    q = "SELECT surah, ayah, wpos, stop_word, grade, note, reported_from FROM classical WHERE source='manar_llm'"
+    q = ("SELECT id, surah, ayah, wpos, stop_word, quote, grade, grade_raw, note, reported_from "
+         "FROM classical WHERE source=?")
+    params = [args.source]
     if args.surah:
-        q += f' AND surah={args.surah}'
-    rows = conn.execute(q + ' ORDER BY surah, ayah, wpos').fetchall()
+        q += ' AND surah=?'
+        params.append(args.surah)
+    rows = conn.execute(q + ' ORDER BY surah, ayah, wpos', params).fetchall()
+    if not rows:
+        raise SystemExit(f'no rows found for source={args.source!r} in {args.db}')
 
     total = t1 = t2 = t3 = suspect = 0
     misses = []
+    review_items = []
     prose_cache, ayah_present_cache, tok_cache = {}, {}, {}
 
     for r in rows:
@@ -154,6 +166,17 @@ def main():
         suspect += 1
         kind = 'AYAH_NOT_IN_SOURCE' if not ayah_present_cache[key] else 'GRADE_NOT_NEAR_AYAH'
         misses.append((surah, kind, r))
+        context = ''
+        if occ:
+            wp = occ[0]
+            context = prose[max(0, wp - args.window):min(len(prose), wp + args.window)]
+        review_items.append({
+            'id': r['id'], 'source': args.source, 'surah': surah, 'ayah': r['ayah'],
+            'wpos': r['wpos'], 'stop_word': r['stop_word'], 'grade': r['grade'],
+            'quote': r['quote'], 'grade_raw': r['grade_raw'],
+            'note': r['note'], 'reported_from': r['reported_from'],
+            'reason': kind, 'source_context': context,
+        })
 
     grounded = t1 + t2 + t3
     print(f'TOTAL rows checked: {total}')
@@ -169,6 +192,16 @@ def main():
             break
         print(f'  [{kind}] surah {surah} {r["ayah"]}:{r["wpos"]} {r["stop_word"]!r} grade={r["grade"]!r}')
         shown += 1
+    if args.review_out:
+        out = os.path.abspath(args.review_out)
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        with open(out, 'w', encoding='utf-8') as fh:
+            for item in review_items:
+                fh.write(json.dumps(item, ensure_ascii=False, sort_keys=True) + '\n')
+        print(f'\nwrote {len(review_items)} review item(s) to {out}')
+    if args.max_suspect is not None and suspect > args.max_suspect:
+        raise SystemExit(
+            f'suspect count {suspect} exceeds regression ceiling {args.max_suspect}')
 
 
 if __name__ == '__main__':

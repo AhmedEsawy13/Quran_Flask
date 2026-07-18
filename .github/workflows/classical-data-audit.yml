@@ -1,0 +1,43 @@
+name: Audit classical waqf books
+
+on:
+  pull_request:
+    paths:
+      - 'data/classical_waqf.db'
+      - 'pipeline/classical_**'
+      - 'pipeline/build_classical_**'
+      - 'pipeline/audit_classical_**'
+      - 'pipeline/audit_manar_completeness.py'
+      - 'pipeline/audit_traceability.py'
+      - 'pipeline/import_classical_book.py'
+      - 'pipeline/CLASSICAL_BOOK_ONBOARDING.md'
+      - 'tests/test_classical_**'
+      - '.github/workflows/classical-data-audit.yml'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Deterministic catalog and alignment audit
+        run: python3 pipeline/audit_classical_catalog.py
+      - name: Strict Manar explicit-ruling completeness audit
+        run: python3 pipeline/audit_manar_completeness.py --strict
+      - name: Strict Muktafa source and Qur'an alignment audit
+        run: python3 pipeline/audit_muktafa_accuracy.py --strict
+      - name: Manar traceability regression ceiling
+        run: >-
+          python3 pipeline/audit_traceability.py
+          --db data/classical_waqf.db --source manar --samples 0
+          --max-suspect 102
+      - name: Classical pipeline tests
+        run: python3 -m pytest -q tests/test_classical_import.py tests/test_classical_llm.py tests/test_classical_waqf_alignment.py tests/test_classical_waqf_attribution.py tests/test_classical_waqf_quality.py

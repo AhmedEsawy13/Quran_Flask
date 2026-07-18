@@ -26,17 +26,15 @@
 <body class="athar-waqf">
     {{ athar_app_bar('wq-main') }}
 
-    <section class="wq-bar" aria-labelledby="wq-title">
-        <div class="wq-bar-intro">
-            <div class="wq-bar-title">
-                <p class="athar-kicker">— مُكْث</p>
-                <h1 class="wq-title athar-display" id="wq-title" aria-label="ادرس وقوفهم، وافهم الاختلاف.">ادرس وقوفــهم، وافهم الاختلاف.</h1>
-                <p class="wq-subtitle">قارن مواضع الوقف بين القرّاء والمصاحف، ثم ابنِ قراءةً تناسب نَفَسك.</p>
-            </div>
-            <span class="wq-bar-verse" id="wq-bar-verse"></span>
-        </div>
+    <section class="wq-intro athar-tool-intro" aria-labelledby="wq-title">
+        <p class="athar-kicker">— مُكْث</p>
+        <h1 class="athar-title" id="wq-title" aria-label="ادرس وقوفهم، وافهم الاختلاف.">ادرس وقوفــهم، وافهم الاختلاف.</h1>
+        <p class="athar-lede">قارن مواضع الوقف بين القرّاء والمصاحف، ثم ابنِ قراءةً تناسب نَفَسك.</p>
+    </section>
 
-        <div class="wq-picker athar-toolbar" aria-label="اختيار موضع الدراسة">
+    <section class="wq-bar athar-tool-chrome" data-athar-compact-scroll="36" aria-label="اختيار موضع الدراسة">
+        <span class="wq-bar-verse" id="wq-bar-verse"></span>
+        <div class="wq-picker athar-toolbar-group" aria-label="اختيار الموضع">
             <div class="wq-field athar-field-wrap">
                 <label for="wq-surah">السورة</label>
                 <div class="wq-select-wrap"><select class="athar-field" id="wq-surah"></select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
