@@ -1,14 +1,19 @@
 /* ===========================================================================
  * أثَر — landing page (/) only.
  *
- * Hero: brand + one headline + short lede + one CTA + a live mushaf page.
- * Journey section (metrics + module links) stays below the first viewport.
+ * Hero: brand + headline + short lede + CTAs + a live mushaf page.
+ * Journey section (module links) stays below the first viewport.
  * Tokens and shared .athar-button / .athar-display live in brand/components.
  * ======================================================================== */
 
 @font-face {
   font-family: 'Digital Khatt';
   src: url('../fonts/digitalkhatt.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Old Madina';
+  src: url('../fonts/oldmadina.woff2') format('woff2');
   font-display: swap;
 }
 @font-face {
@@ -82,12 +87,6 @@ body.athar-landing .athar-bar {
   text-wrap: balance;
   margin: 0 0 18px;
 }
-.lp-headline .lp-mark {
-  color: var(--athar-accent);
-  font-size: .58em;
-  vertical-align: .04em;
-  margin-inline-end: .08em;
-}
 .lp-headline em { font-style: normal; color: var(--athar-ink-faint); }
 
 .lp-lede {
@@ -127,6 +126,59 @@ body.athar-landing .athar-bar {
   display: grid;
   place-items: center;
   padding: clamp(24px, 5vh, 56px) clamp(16px, 3vw, 40px);
+}
+
+.lp-mushaf-tools {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: opacity 0.55s ease;
+}
+.lp-mushaf.lp-tools-dim .lp-mushaf-tools {
+  opacity: 0.28;
+}
+.lp-mushaf.lp-tools-dim:hover .lp-mushaf-tools,
+.lp-mushaf.lp-tools-dim:focus-within .lp-mushaf-tools {
+  opacity: 1;
+}
+.lp-src-toggle {
+  display: inline-flex;
+  gap: 1px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--athar-parchment-2);
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 22%, var(--athar-line));
+}
+.lp-src-btn {
+  border: 0;
+  background: transparent;
+  color: var(--athar-ink-soft);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.lp-src-btn[aria-pressed="true"] {
+  background: var(--athar-surface);
+  color: var(--athar-ink);
+}
+.lp-tajweed-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 22%, var(--athar-line));
+  background: var(--athar-parchment-2);
+  color: var(--athar-ink-soft);
+  font-size: 0.72rem;
+}
+.lp-tajweed-btn[aria-pressed="true"] {
+  color: var(--athar-accent);
+  border-color: color-mix(in srgb, var(--athar-accent) 40%, var(--athar-line));
+  background: var(--athar-surface);
 }
 
 .lp-mushaf {
@@ -208,10 +260,39 @@ body.athar-landing .athar-bar {
   max-width: 100%;
   overflow: hidden;
 }
+.lp-mushaf.lp-src-qpc-v1 .lp-line-inner,
+.lp-mushaf.lp-src-qpc-v1 .lp-line-basmala {
+  font-family: 'Old Madina', serif;
+}
+.lp-mushaf.lp-src-qpc-v1 .lp-line-basmala {
+  font-family: 'QCF Basmala', 'Old Madina', serif;
+}
+
+/* Tajweed colours — same palette as تثبيت / المصحف */
+.lp-mushaf.lp-tajweed tajweed.madda_normal      { color: #C86464; }
+.lp-mushaf.lp-tajweed tajweed.madda_permissible { color: #AC3A28; }
+.lp-mushaf.lp-tajweed tajweed.madda_munfasil    { color: #AC3A28; }
+.lp-mushaf.lp-tajweed tajweed.madda_obligatory  { color: #8E2A1E; }
+.lp-mushaf.lp-tajweed tajweed.madda_necessary   { color: #6E1A14; }
+.lp-mushaf.lp-tajweed tajweed.ghunnah           { color: #2C7848; }
+.lp-mushaf.lp-tajweed tajweed.ikhafa            { color: #389460; }
+.lp-mushaf.lp-tajweed tajweed.ikhafa_shafawi    { color: #389460; }
+.lp-mushaf.lp-tajweed tajweed.iqlab             { color: #2C7848; }
+.lp-mushaf.lp-tajweed tajweed.idgham_ghunnah    { color: #2C7848; }
+.lp-mushaf.lp-tajweed tajweed.idgham_wo_ghunnah { color: #1C6238; }
+.lp-mushaf.lp-tajweed tajweed.idgham_shafawi    { color: #1C6238; }
+.lp-mushaf.lp-tajweed tajweed.idgham_mutajanisayn { color: #1C6238; }
+.lp-mushaf.lp-tajweed tajweed.idgham_mutaqaribayn { color: #1C6238; }
+.lp-mushaf.lp-tajweed tajweed.qalaqah           { color: #2E5AC4; }
+.lp-mushaf.lp-tajweed tajweed.ham_wasl          { color: #888888; }
+.lp-mushaf.lp-tajweed tajweed.laam_shamsiyah    { color: #888888; }
+.lp-mushaf.lp-tajweed tajweed.slnt              { color: #AAAAAA; opacity: 0.75; }
 
 .lp-mushaf-foot {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid color-mix(in srgb, var(--athar-accent) 18%, transparent);
@@ -219,7 +300,7 @@ body.athar-landing .athar-bar {
   font-weight: 700;
   color: var(--athar-ink-muted, var(--athar-ink-soft));
 }
-.lp-mushaf-foot span {
+.lp-page-pill {
   padding: 2px 12px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--athar-accent) 26%, var(--athar-line));
@@ -279,20 +360,13 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
   font-size: clamp(1.85rem, 3.4vw, 2.6rem); line-height: 1.16;
   text-wrap: balance; margin: 0;
 }
-
-.lp-metrics {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
-  background: var(--athar-line); border: 1px solid var(--athar-line);
-  border-radius: 18px; overflow: hidden;
-  margin-bottom: clamp(28px, 5vw, 44px);
+.lp-section-note {
+  margin: 14px 0 0;
+  max-width: 42ch;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--athar-ink-soft);
 }
-.lp-metric { background: var(--athar-surface); padding: 22px clamp(14px, 3vw, 28px); text-align: center; }
-.lp-metric b {
-  display: block; font-family: var(--font-display); font-weight: 900;
-  font-size: clamp(1.55rem, 3vw, 2.15rem); color: var(--athar-ink);
-  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
-}
-.lp-metric span { font-size: .82rem; color: var(--athar-ink-faint); }
 
 .lp-cards {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px;
@@ -376,7 +450,6 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
 }
 
 @media (max-width: 720px) {
-  .lp-metrics { grid-template-columns: 1fr; }
   .lp-cards { grid-template-columns: 1fr; }
   .lp-brand { font-size: clamp(2.8rem, 16vw, 4.2rem); }
   .lp-headline { font-size: clamp(1.85rem, 8vw, 2.6rem); }
@@ -384,5 +457,7 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
 
 @media (prefers-reduced-motion: reduce) {
   .lp-card, .lp-mushaf { transition: none; opacity: 1; transform: none; }
+  .lp-mushaf-tools { transition: none; }
+  .lp-mushaf.lp-tools-dim .lp-mushaf-tools { opacity: 1; }
   .athar-button, .lp-card-link svg, .lp-hero-visual { transition: none; }
 }

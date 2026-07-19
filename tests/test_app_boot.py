@@ -169,8 +169,13 @@ def test_ui_foundation_exposes_thmanyah_alternates_and_components(client):
     assert 'font-feature-settings: "ss01" 1' not in brand
     # Manual Tatweel remains authored content and is not synthesized by CSS.
     assert 'الأثـر' in landing
+    assert 'من تجويد الحروف' in landing
+    assert 'إلى معرفة الوقوف' in landing
+    assert 'مواضع الوقف بثقة' in landing
+    assert 'data-src="qpc_v1"' in landing
+    assert 'id="lp-tajweed"' in landing
     assert 'class="athar-button" href="/read"' in landing
-    assert 'class="athar-button athar-button-ghost" href="/memorize"' in landing
+    assert 'class="athar-button athar-button-ghost" href="/waqf-practice"' in landing
     for primitive in ('athar-page-intro', 'athar-toolbar', 'athar-surface',
                       'athar-field', 'athar-chip', 'athar-tabs', 'athar-sheet'):
         assert f'.{primitive}' in components
