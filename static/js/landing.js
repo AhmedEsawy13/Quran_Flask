@@ -106,15 +106,18 @@
         var pageEl = $('lp-page');
         var card = $('lp-mushaf');
         if (!Chrome || !pageEl) return;
+        // Page 1 (الفاتحة) is mostly centered lines — measure them too, or
+        // long lines get a too-large font and clip inside the card.
         var applyFont = Chrome.createFontSizer({
             cssVarName: '--lp-fs',
             pageEls: function () { return [pageEl]; },
             lineSelector: '.lp-line',
             innerSelector: '.lp-line-inner',
             linesPerPage: 15,
-            minFontSize: 14,
-            fitScale: 0.94,
-            minLineScale: 0.88,
+            minFontSize: 12,
+            fitScale: 0.92,
+            minLineScale: 0.92,
+            requireJustify: false,
         });
         var justify = Chrome.createLineJustifier({
             containerEls: function () { return [pageEl]; },
@@ -122,6 +125,7 @@
             innerSelector: '.lp-line-inner',
             wordSelector: '.lp-word',
             featureSettings: featureSettings,
+            minFeatureScale: 0.92,
         });
         if (applyFont) applyFont(true);
         pageEl.querySelectorAll('.lp-line[data-justify="0"] .lp-line-inner').forEach(function (inner) {
@@ -129,7 +133,9 @@
             var avail = line ? line.clientWidth : 0;
             var natural = inner.scrollWidth;
             if (avail > 0 && natural > avail + 0.5) {
-                inner.style.transform = 'scaleX(' + Math.max(0.72, avail / natural) + ')';
+                inner.style.transform = 'scaleX(' + Math.max(0.78, avail / natural) + ')';
+            } else {
+                inner.style.transform = '';
             }
         });
         if (justify) justify();

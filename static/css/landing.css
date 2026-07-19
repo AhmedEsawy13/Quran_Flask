@@ -235,6 +235,7 @@ body.athar-landing .athar-bar {
   justify-content: flex-start;
   gap: 0;
   min-height: 0;
+  /* Clip the page box, not each line — Arabic ink needs vertical room. */
   overflow: hidden;
   --lp-fs: 20px;
   font-feature-settings: normal;
@@ -246,7 +247,7 @@ body.athar-landing .athar-bar {
   width: 100%;
   flex: 0 0 calc(100% / 15);
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 .lp-line-inner {
   white-space: nowrap;
@@ -257,8 +258,6 @@ body.athar-landing .athar-bar {
   direction: rtl;
   transform-origin: center center;
   font-feature-settings: normal;
-  max-width: 100%;
-  overflow: hidden;
 }
 .lp-mushaf.lp-src-qpc-v1 .lp-line-inner,
 .lp-mushaf.lp-src-qpc-v1 .lp-line-basmala {
@@ -290,28 +289,34 @@ body.athar-landing .athar-bar {
 
 .lp-mushaf-foot {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  padding-top: 6px;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding-top: 5px;
   border-top: 1px solid color-mix(in srgb, var(--athar-accent) 18%, transparent);
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--athar-ink-muted, var(--athar-ink-soft));
 }
+.lp-mushaf-foot .lp-mushaf-tools { flex: 1 1 auto; justify-content: flex-start; }
 .lp-page-pill {
-  padding: 2px 12px;
+  flex: 0 0 auto;
+  padding: 2px 10px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--athar-accent) 26%, var(--athar-line));
   background: var(--athar-parchment-2);
+  font-variant-numeric: tabular-nums;
 }
 
 body.athar-landing[data-theme="dark"] .lp-line-inner,
 :root[data-theme="dark"] .lp-line-inner {
   font-palette: --lp-dk-dark;
 }
-.lp-word { display: inline-block; padding: 0.35em 0.02em 0; }
+/* Keep word padding light — landing lines are tight 1/15 slots. */
+.lp-word { display: inline-block; padding: 0.2em 0.02em 0; }
 
 .lp-line-surah {
   font-family: var(--font-ui);
@@ -324,16 +329,16 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
   position: relative;
   box-sizing: border-box;
   width: 92%;
-  margin: 0.12em auto;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Surah Names', serif;
   font-weight: 400;
   color: var(--athar-ink);
-  font-size: calc(var(--lp-fs, 20px) * 0.9);
-  line-height: 1.2;
-  padding: 0.06em 1.4em;
+  font-size: calc(var(--lp-fs, 20px) * 0.82);
+  line-height: 1.1;
+  padding: 0.02em 1.2em;
   border: 1px solid var(--athar-gold);
   border-radius: 3px;
   background: color-mix(in srgb, var(--athar-gold) 8%, var(--athar-surface));
@@ -343,7 +348,7 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
 }
 .lp-line-basmala {
   font-family: 'QCF Basmala', 'Digital Khatt', serif;
-  font-size: calc(var(--lp-fs, 20px) * 1.55);
+  font-size: calc(var(--lp-fs, 20px) * 1.35);
   color: var(--athar-ink);
   line-height: 1;
   white-space: nowrap;
