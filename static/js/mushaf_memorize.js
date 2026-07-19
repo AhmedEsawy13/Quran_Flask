@@ -944,44 +944,11 @@
     };
 
     /* ── Justification (kashida features + scaleX fill) ─────────────────
-       Shared algorithm lives in athar-page-chrome.js. Digital Khatt exposes
-       jalt/cv levels; Old Madina exposes character variants instead of the
-       jt/dc/kt tags used by the former font file. For Old Madina we give the
-       shared justifier progressively stronger candidates and let every line
-       choose the closest fit, rather than forcing the same alternate globally. */
-    function digitalKhattFeatureCandidates(strength) {
-        const s = Math.max(0, Math.min(100, Number(strength) || 0));
-        if (s <= 0) return [];
-        return [
-            `'jalt' 1`,
-            `'jalt' 1, 'cv02' 1`,
-            `'jalt' 1, 'cv03' 1`,
-            `'jalt' 1, 'cv02' 1, 'cv03' 1`,
-            `'jalt' 1, 'cv01' 1`,
-            `'jalt' 1, 'cv01' 1, 'cv02' 1`,
-            `'jalt' 1, 'cv01' 1, 'cv03' 1`,
-            `'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`,
-        ];
-    }
-    function oldMadinaFeatureCandidates(strength) {
-        const s = Math.max(0, Math.min(100, Number(strength) || 0));
-        if (s <= 0) return [];
-        const variants = [
-            ['cv02'],
-            ['cv03'],
-            ['cv02', 'cv03'],
-            ['cv01'],
-            ['cv01', 'cv02'],
-            ['cv01', 'cv03'],
-            ['cv01', 'cv02', 'cv03'],
-        ];
-        // The percentage enables Arabic elongation, while the actual variant
-        // is selected from the full set per line. Restricting a low setting to
-        // only the first few variants left short lines visibly inset.
-        return variants.map(tags => (
-            [`'salt' 1`, ...tags.map(tag => `'${tag}' 1`)].join(', ')
-        ));
-    }
+       Shared algorithm + Madinah feature ladders live in athar-page-chrome.js. */
+    const {
+        digitalKhattFeatureCandidates,
+        oldMadinaFeatureCandidates,
+    } = window.AtharPageChrome;
     const justifyLines = window.AtharPageChrome.createLineJustifier({
         containerEls: pageEls,
         lineSelector: '.mz-line', innerSelector: '.mz-line-inner', wordSelector: '.mz-word',

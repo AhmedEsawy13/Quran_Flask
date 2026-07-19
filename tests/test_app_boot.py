@@ -298,13 +298,19 @@ def test_memorization_uses_shared_workspace_structure(client):
 
 def test_memorization_old_madina_justification_is_adaptive():
     memorize = (PROJECT_ROOT / 'static/js/mushaf_memorize.js').read_text(encoding='utf-8')
+    landing = (PROJECT_ROOT / 'static/js/landing.js').read_text(encoding='utf-8')
     shared = (PROJECT_ROOT / 'static/js/athar-page-chrome.js').read_text(encoding='utf-8')
 
+    # Madinah OpenType ladders live once in AtharPageChrome (تثبيت source of truth).
+    assert 'function digitalKhattFeatureCandidates(strength)' in shared
+    assert 'function oldMadinaFeatureCandidates(strength)' in shared
+    assert "`'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`" in shared
+    assert "['cv02', 'cv03']" in shared
+    assert 'return variants.map(tags =>' in shared
     assert 'oldMadinaFeatureCandidates(state.justify)' in memorize
     assert 'digitalKhattFeatureCandidates(state.justify)' in memorize
-    assert "`'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`" in memorize
-    assert "['cv02', 'cv03']" in memorize
-    assert 'return variants.map(tags =>' in memorize
+    assert 'oldMadinaFeatureCandidates(100)' in landing
+    assert 'digitalKhattFeatureCandidates(100)' in landing
     assert 'khattFeatureSettings(100)' not in memorize
     assert 'const OLD_MADINA_PAGE_RATIO = 0.72' in memorize
     assert "ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO" in memorize
@@ -317,10 +323,12 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'minLineScale = 0' in shared
     assert 'minFontSize = 11' in shared
     assert 'minFontSize: 9.5' in memorize
+    assert 'minFontSize: 9.5' in landing
     assert 'sharedSize = true' in shared
     assert 'sharedSize: false' in memorize
     assert 'maxPageFitRatio = Infinity' in shared
     assert 'maxPageFitRatio: 1.15' in memorize
+    assert 'maxPageFitRatio: 1.15' in landing
     assert "state.layoutMode === 'dual' ? 1.20" in memorize
     assert 'fs * ratios[0] * 0.99 / resolvedMinLineScale' in shared
     assert 'featureCandidates = null' in shared

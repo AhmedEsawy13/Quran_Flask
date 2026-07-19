@@ -273,36 +273,19 @@
         cacheKey: () => `${_layoutSrc}|${_layoutMushaf}|${els.passage.querySelectorAll('.wp-ml-page').length}`,
     });
 
-    /* Same feature ladder as تثبيت — progressive OpenType candidates per line. */
-    function digitalKhattFeatureCandidates() {
-        return [
-            `'jalt' 1`,
-            `'jalt' 1, 'cv02' 1`,
-            `'jalt' 1, 'cv03' 1`,
-            `'jalt' 1, 'cv02' 1, 'cv03' 1`,
-            `'jalt' 1, 'cv01' 1`,
-            `'jalt' 1, 'cv01' 1, 'cv02' 1`,
-            `'jalt' 1, 'cv01' 1, 'cv03' 1`,
-            `'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`,
-        ];
-    }
-    function oldMadinaFeatureCandidates() {
-        const variants = [
-            ['cv02'], ['cv03'], ['cv02', 'cv03'],
-            ['cv01'], ['cv01', 'cv02'], ['cv01', 'cv03'], ['cv01', 'cv02', 'cv03'],
-        ];
-        return variants.map(tags => (
-            [`'salt' 1`, ...tags.map(tag => `'${tag}' 1`)].join(', ')
-        ));
-    }
+    /* Same Madinah feature ladders as تثبيت — from AtharPageChrome. */
+    const {
+        digitalKhattFeatureCandidates,
+        oldMadinaFeatureCandidates,
+    } = window.AtharPageChrome;
 
     const justifyPracticeLines = window.AtharPageChrome.createLineJustifier({
         containerEls: () => [...els.passage.querySelectorAll('.wp-ml-page')],
         lineSelector: '.wp-ml-line', innerSelector: '.wp-ml-line-inner',
         wordSelector: '.wp-word, .wp-ml-ctx, .wp-ml-num',
         featureCandidates: () => (_layoutSrc === 'qpc_v1'
-            ? oldMadinaFeatureCandidates()
-            : _layoutSrc === 'digital_khatt' ? digitalKhattFeatureCandidates() : []),
+            ? oldMadinaFeatureCandidates(100)
+            : _layoutSrc === 'digital_khatt' ? digitalKhattFeatureCandidates(100) : []),
         minFeatureScale: () => (
             _layoutSrc === 'qpc_v1' || _layoutSrc === 'digital_khatt' ? 0.95 : 1
         ),

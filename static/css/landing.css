@@ -315,8 +315,8 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
 :root[data-theme="dark"] .lp-line-inner {
   font-palette: --lp-dk-dark;
 }
-/* Keep word padding light — landing lines are tight 1/15 slots. */
-.lp-word { display: inline-block; padding: 0.2em 0.02em 0; }
+/* Same word box as تثبيت — font sizer accounts for this padding. */
+.lp-word { display: inline-block; padding: 0.55em 0.02em 0; }
 
 .lp-line-surah {
   font-family: var(--font-ui);
@@ -348,7 +348,7 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
 }
 .lp-line-basmala {
   font-family: 'QCF Basmala', 'Digital Khatt', serif;
-  font-size: calc(var(--lp-fs, 20px) * 1.35);
+  font-size: calc(var(--lp-fs, 20px) * 1.7);
   color: var(--athar-ink);
   line-height: 1;
   white-space: nowrap;

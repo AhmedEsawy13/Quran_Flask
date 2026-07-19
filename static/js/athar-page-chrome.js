@@ -211,6 +211,40 @@
         };
     }
 
+    /* ── Madinah OpenType feature ladders (from تثبيت) ─────────────────
+       Progressive candidates so each line picks the closest Arabic
+       alternate set. Shared by تثبيت / تدريب / landing — do not re-port. */
+    function digitalKhattFeatureCandidates(strength) {
+        const s = Math.max(0, Math.min(100, Number(strength) || 0));
+        if (s <= 0) return [];
+        return [
+            `'jalt' 1`,
+            `'jalt' 1, 'cv02' 1`,
+            `'jalt' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv02' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv01' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv02' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`,
+        ];
+    }
+    function oldMadinaFeatureCandidates(strength) {
+        const s = Math.max(0, Math.min(100, Number(strength) || 0));
+        if (s <= 0) return [];
+        const variants = [
+            ['cv02'],
+            ['cv03'],
+            ['cv02', 'cv03'],
+            ['cv01'],
+            ['cv01', 'cv02'],
+            ['cv01', 'cv03'],
+            ['cv01', 'cv02', 'cv03'],
+        ];
+        return variants.map(tags => (
+            [`'salt' 1`, ...tags.map(tag => `'${tag}' 1`)].join(', ')
+        ));
+    }
+
     /* ── Line justification ─────────────────────────────────────────────
        Full-justifies every non-centered line (data-justify="1"): condense
        via scaleX if it's too wide; otherwise elongate with the font's own
@@ -424,6 +458,8 @@
         sizePages,
         createFontSizer,
         createLineJustifier,
+        digitalKhattFeatureCandidates,
+        oldMadinaFeatureCandidates,
         collectPageSurahs,
         clearPageChrome,
         renderPageChrome,

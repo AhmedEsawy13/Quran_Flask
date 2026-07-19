@@ -73,6 +73,12 @@
         }, TOOLS_DIM_MS);
     }
 
+    /* Page box + font fit + justify — same AtharPageChrome path as تثبيت. */
+    function pageEls() {
+        var pageEl = $('lp-page');
+        return pageEl ? [pageEl] : [];
+    }
+
     function sizeHeroPage() {
         var Chrome = window.AtharPageChrome;
         if (!Chrome || !Chrome.sizePages) return;
@@ -95,51 +101,55 @@
         });
     }
 
-    function featureSettings() {
-        return state.src === 'qpc_v1'
-            ? '"ss01", "ss02", "ss03", "ss05", "ss08"'
-            : '"ss01", "ss02", "ss03", "ss05", "ss08"';
-    }
+    var applyFontSize = window.AtharPageChrome.createFontSizer({
+        pageEls: pageEls,
+        lineSelector: '.lp-line',
+        innerSelector: '.lp-line-inner',
+        cssVarName: '--lp-fs',
+        linesPerPage: 15,
+        cacheKey: function () { return state.src; },
+        minFontSize: 9.5,
+        minLineScale: function () {
+            return state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 0;
+        },
+        maxPageFitRatio: 1.15,
+    });
+
+    var justifyLines = window.AtharPageChrome.createLineJustifier({
+        containerEls: pageEls,
+        lineSelector: '.lp-line',
+        innerSelector: '.lp-line-inner',
+        wordSelector: '.lp-word',
+        featureCandidates: function () {
+            var Chrome = window.AtharPageChrome;
+            if (state.src === 'qpc_v1') return Chrome.oldMadinaFeatureCandidates(100);
+            if (state.src === 'digital_khatt') return Chrome.digitalKhattFeatureCandidates(100);
+            return [];
+        },
+        minFeatureScale: function () {
+            return state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 1;
+        },
+        maxWordSpacing: function (_lineEl, inner) {
+            if (state.src !== 'qpc_v1' && state.src !== 'digital_khatt') return Infinity;
+            var fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
+            return Math.max(1.5, Math.min(4, fontSize * 0.12));
+        },
+        maxStretch: function () {
+            if (state.src === 'digital_khatt') return 1.15;
+            if (state.src === 'qpc_v1') return 1.18;
+            return Infinity;
+        },
+    });
 
     function fitPage() {
-        var Chrome = window.AtharPageChrome;
-        var pageEl = $('lp-page');
         var card = $('lp-mushaf');
-        if (!Chrome || !pageEl) return;
-        // Page 1 (الفاتحة) is mostly centered lines — measure them too, or
-        // long lines get a too-large font and clip inside the card.
-        var applyFont = Chrome.createFontSizer({
-            cssVarName: '--lp-fs',
-            pageEls: function () { return [pageEl]; },
-            lineSelector: '.lp-line',
-            innerSelector: '.lp-line-inner',
-            linesPerPage: 15,
-            minFontSize: 12,
-            fitScale: 0.92,
-            minLineScale: 0.92,
-            requireJustify: false,
+        if (!pageEls().length) return;
+        sizeHeroPage();
+        applyFontSize(true);
+        requestAnimationFrame(function () {
+            justifyLines();
+            if (card) card.classList.add('is-ready');
         });
-        var justify = Chrome.createLineJustifier({
-            containerEls: function () { return [pageEl]; },
-            lineSelector: '.lp-line',
-            innerSelector: '.lp-line-inner',
-            wordSelector: '.lp-word',
-            featureSettings: featureSettings,
-            minFeatureScale: 0.92,
-        });
-        if (applyFont) applyFont(true);
-        pageEl.querySelectorAll('.lp-line[data-justify="0"] .lp-line-inner').forEach(function (inner) {
-            var line = inner.parentElement;
-            var avail = line ? line.clientWidth : 0;
-            var natural = inner.scrollWidth;
-            if (avail > 0 && natural > avail + 0.5) {
-                inner.style.transform = 'scaleX(' + Math.max(0.78, avail / natural) + ')';
-            } else {
-                inner.style.transform = '';
-            }
-        });
-        if (justify) justify();
-        if (card) card.classList.add('is-ready');
     }
 
     /* ── tajweed overlay (same approach as تثبيت) ───────────────────── */
@@ -390,7 +400,6 @@
         });
 
         syncTools();
-        sizeHeroPage();
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 fitPage();
@@ -471,8 +480,7 @@
         resizeTimer = setTimeout(function () {
             var card = $('lp-mushaf');
             if (!card || !card.classList.contains('is-ready')) return;
-            sizeHeroPage();
-            requestAnimationFrame(fitPage);
+            fitPage();
         }, 120);
     });
 
