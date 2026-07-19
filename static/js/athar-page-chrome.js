@@ -123,6 +123,9 @@
             linesPerPage = 15, cacheKey = () => '', fitScale = 1,
             minLineScale = 0, minFontSize = 11, sharedSize = true,
             maxPageFitRatio = Infinity,
+            // When false, measure every matching line (not only data-justify="1").
+            // Needed for centered short pages (e.g. الفاتحة) so long lines still shrink.
+            requireJustify = true,
         } = config || {};
         let fitFs = 0, fitValues = [], fitKey = '';
         return function applyFontSize(force) {
@@ -140,7 +143,11 @@
             const fitted = [];
             pages.forEach(p => {
                 const h = p.clientHeight || 1;
-                const lineH = h / linesPerPage;
+                const resolvedLines = typeof linesPerPage === 'function'
+                    ? linesPerPage(p)
+                    : linesPerPage;
+                const lineCount = Math.max(1, Number(resolvedLines) || 15);
+                const lineH = h / lineCount;
                 const maxFs = lineH * 0.92;
                 const rawMinFontSize = typeof minFontSize === 'function' ? minFontSize(p) : minFontSize;
                 const resolvedMinFontSize = Number.isFinite(Number(rawMinFontSize))
@@ -149,7 +156,10 @@
                 let fs = Math.max(resolvedMinFontSize, lineH * 0.62);
                 p.style.setProperty(cssVarName, fs + 'px');
 
-                const inners = [...p.querySelectorAll(`${lineSelector}[data-justify="1"] ${innerSelector}`)];
+                const measureSel = requireJustify
+                    ? `${lineSelector}[data-justify="1"] ${innerSelector}`
+                    : `${lineSelector} ${innerSelector}`;
+                const inners = [...p.querySelectorAll(measureSel)];
                 const ratios = [];
                 inners.forEach(inner => {
                     inner.style.transform = 'none';

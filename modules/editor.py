@@ -28,6 +28,13 @@ logger = logging.getLogger(__name__)
 _MAX_MUSHAF_PAGE = 604
 _MAX_MUSHAF_SPREAD = 302
 _EDITOR_SYMBOLS = {'', 'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع', 'ركوع'}
+# Full reference mushafs shown as peer hints in the editor (not writable here).
+_EDITOR_PEER_VERSIONS = (
+    'المدينة الجديد',
+    'المدينة القديم',
+    'الأزهر',
+    'الشمرلي',
+)
 
 
 def _ayah_word_list_for_editor(surah_number, ayah_number):
@@ -145,8 +152,9 @@ def mushaf_editor_page():
 
 @editor_bp.route('/api/mushaf-editor/spread/<int:spread_number>', methods=['GET'])
 def get_mushaf_editor_spread(spread_number):
-    """Two facing pages of the Madinah v1 layout, carrying both the selected
-    edition's current waqf marks and the المدينة baseline (for diffing)."""
+    """Two facing pages of the Madinah v1 layout, carrying the selected
+    edition's marks, the المدينة baseline (for diffing), and peer mushafs
+    (الأزهر / الشمرلي / المدينتان) for forget-me-not hints."""
     edition = (request.args.get('edition') or '').strip()
     if edition not in EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
@@ -155,7 +163,10 @@ def get_mushaf_editor_spread(spread_number):
     try:
         right_page = spread_number * 2 - 1
         left_page = right_page + 1
-        versions = [edition, 'المدينة الجديد']
+        versions = [edition]
+        for peer in _EDITOR_PEER_VERSIONS:
+            if peer not in versions:
+                versions.append(peer)
         build_page = _build_qatar_page_payload if edition == 'قطر' else _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)
         left = build_page(left_page, mushaf_version=versions) if left_page <= _MAX_MUSHAF_PAGE else None
@@ -165,6 +176,7 @@ def get_mushaf_editor_spread(spread_number):
             'right': right,
             'left': left,
             'max_spread': _MAX_MUSHAF_SPREAD,
+            'peer_versions': list(_EDITOR_PEER_VERSIONS),
         })
     except Exception as e:
         logger.error(f"Error fetching mushaf-editor spread {spread_number}: {e}")

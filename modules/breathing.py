@@ -463,15 +463,9 @@ def waqf_guide():
 
 
 # ── تدريب الوقف (waqf practice + grading) ──────────────────────────────────────
-# Grade WHERE a memoriser chose to stop against the printed mushaf marks and the
-# classical rulings (الداني + الأشموني). No audio/ASR — the learner marks their
-# own stops; this scores them and explains each one. The stop verdicts, best
-# (most encouraging) first:
-_PRACTICE_RANK = {'excellent': 5, 'good': 4, 'ok': 3, 'unmarked': 2, 'caution': 1, 'error': 0}
-# «ok» verdicts are PERMITTED-but-not-endorsed (ص صلى = continuing is better,
-# س sakta) — they tolerate a stop but do NOT rescue a spot another authority
-# forbids. Only strong verdicts (excellent/good) are real endorsements.
-_STRONG = ('excellent', 'good')
+# Grade WHERE a memoriser chose to stop against the printed mushaf marks only
+# (for now — classical الداني/الأشموني stay out of the learner score). Each
+# graded stop reports whether that word carries a mushaf mark and which one.
 # Printed-mushaf symbol → (verdict, label) for stopping THERE.
 _MARK_STOP_VERDICT = {
     'م':  ('excellent', 'وقف لازم'),
@@ -482,18 +476,9 @@ _MARK_STOP_VERDICT = {
     'ع':  ('good',      'وقف المعانقة'),
     'س':  ('ok',        'سكتة — بلا تنفّس'),
 }
-# Classical grade → (verdict, label).
-_CLASSICAL_STOP_VERDICT = {
-    'تام':  ('excellent', 'وقف تام'),
-    'كاف':  ('good',      'وقف كافٍ'),
-    'حسن':  ('ok',        'وقف حسن'),
-    'جائز': ('good',      'وقف جائز'),
-    'صالح': ('ok',        'وقف صالح'),
-    'قبيح': ('error',     'وقف قبيح'),
-    'لا':   ('error',     'ليس بوقف'),
-}
-_CLASSICAL_NAME = {'muktafa': 'الداني', 'manar': 'الأشموني', 'nahhas': 'النحاس',
-                   'anbari': 'ابن الأنباري'}
+# Ideal mushaf marks the learner may have skipped (not including لازم — that
+# is tracked separately as broken_lazim).
+_IDEAL_MUSHAF_MARKS = frozenset({'ق', 'ج', 'ع'})
 
 
 def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos):
@@ -510,71 +495,16 @@ def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos):
     return out
 
 
-def _classical_grades_for_range(surah, from_ayah, to_ayah):
-    """{(ayah, wpos): [{'source','name','grade'}]} for a verse range in ONE
-    query/connection (the practice grader walks a whole passage). Restricted
-    to _ACTIVE_CLASSICAL_SOURCES — an unreviewed extraction from an
-    incomplete source shouldn't be able to mark a learner's correct stop
-    as wrong (or vice versa)."""
-    out = defaultdict(list)
-    active_sources = _active_classical_sources()
-    if os.path.exists(CLASSICAL_WAQF_DATABASE):
-        conn = _sqlite_connect(CLASSICAL_WAQF_DATABASE)
-        try:
-            conn.row_factory = sqlite3.Row
-            placeholders = ','.join('?' * len(active_sources))
-            rows = list(conn.execute(
-                    'SELECT id, ayah, source, wpos, grade FROM classical '
-                    f'WHERE surah=? AND ayah BETWEEN ? AND ? AND conf=1 AND wpos IS NOT NULL AND source IN ({placeholders})',
-                    (surah, from_ayah, to_ayah, *active_sources)))
-            rejected_ids = _rejected_review_ids(active_sources)
-            rows = [row for row in rows if row['id'] not in rejected_ids]
-            if 'muktafa' in active_sources:
-                rows.extend(_approved_muktafa_rows(surah, from_ayah, to_ayah))
-            for r in rows:
-                out[(r['ayah'], r['wpos'])].append({
-                    'source': r['source'],
-                    'name': _CLASSICAL_NAME.get(r['source'], r['source']),
-                    'grade': r['grade']})
-        finally:
-            conn.close()
-    return out
-
-
-def _grade_one_stop(mushaf_sym, classical, is_verse_end):
-    """Classify a stop at a word given its rulings. Returns (verdict, label,
-    sources[]). رأس آية is always a permitted stop (سنة). The chosen mushaf's
-    «لا» forbids outright. Otherwise: a real endorsement (تام/كاف/م/ق…) stands;
-    a forbid (قبيح/ليس بوقف) with only weak toleration (ص/سكتة) is a خلاف
-    (caution), and with none is an error."""
-    sources, verdicts = [], []
-    if mushaf_sym in _MARK_STOP_VERDICT:
-        v, lbl = _MARK_STOP_VERDICT[mushaf_sym]
-        sources.append({'kind': 'mushaf', 'label': lbl, 'verdict': v})
-        verdicts.append(v)
-    for c in classical:
-        v, lbl = _CLASSICAL_STOP_VERDICT.get(c['grade'], ('ok', c['grade']))
-        sources.append({'kind': 'classical', 'name': c['name'], 'label': lbl, 'verdict': v})
-        verdicts.append(v)
+def _grade_one_mushaf_stop(mushaf_sym, is_verse_end):
+    """Classify a stop using only the printed mushaf mark at that word.
+    Returns (verdict, label, mark, has_mark)."""
+    mark = (mushaf_sym or '').strip()
+    if mark in _MARK_STOP_VERDICT:
+        verdict, label = _MARK_STOP_VERDICT[mark]
+        return verdict, label, mark, True
     if is_verse_end:
-        verdicts.append('good')
-        if not sources:
-            sources.append({'kind': 'verse_end', 'label': 'رأس آية', 'verdict': 'good'})
-    if mushaf_sym == 'لا' and not is_verse_end:
-        return 'error', 'لا وقف — لا يُوقف عليه', sources
-
-    strong = [v for v in verdicts if v in _STRONG]
-    weak = [v for v in verdicts if v == 'ok']
-    has_error = 'error' in verdicts
-    if strong:
-        return max(strong, key=lambda v: _PRACTICE_RANK[v]), None, sources
-    if has_error:
-        if weak:
-            return 'caution', 'موضع خلاف — أجازه بعضهم ومنعه آخرون', sources
-        return 'error', None, sources
-    if weak:
-        return 'ok', None, sources
-    return 'unmarked', 'ليس موضعَ وقفٍ منصوصًا عليه', sources
+        return 'good', 'رأس آية', '', False
+    return 'unmarked', 'بلا علامة وقف في هذا المصحف', '', False
 
 
 def _grade_waqf_practice(surah, from_ayah, to_ayah, mushaf, stops):
@@ -582,7 +512,6 @@ def _grade_waqf_practice(surah, from_ayah, to_ayah, mushaf, stops):
     graded, broken_lazim, ideal = [], [], []
     counts = {'excellent': 0, 'good': 0, 'ok': 0, 'unmarked': 0, 'caution': 0, 'error': 0}
 
-    classical_all = _classical_grades_for_range(surah, from_ayah, to_ayah)
     for ayah in range(from_ayah, to_ayah + 1):
         vk = f'{surah}:{ayah}'
         if vk not in qpc_hafs_data_normalized:
@@ -596,22 +525,31 @@ def _grade_waqf_practice(surah, from_ayah, to_ayah, mushaf, stops):
         for wpos in range(len(words)):
             here = (ayah, wpos)
             sym = marks.get(wpos, '')
-            cls = classical_all.get((ayah, wpos), [])
             is_end = wpos == last
             if here in stop_set:
-                verdict, label, sources = _grade_one_stop(sym, cls, is_end)
+                verdict, label, mark, has_mark = _grade_one_mushaf_stop(sym, is_end)
                 counts[verdict] += 1
-                graded.append({'ayah': ayah, 'wpos': wpos, 'word': words[wpos],
-                               'verdict': verdict, 'label': label, 'sources': sources})
+                graded.append({
+                    'ayah': ayah, 'wpos': wpos, 'word': words[wpos],
+                    'verdict': verdict, 'label': label,
+                    'mark': mark, 'has_mark': has_mark,
+                    'sources': ([{'kind': 'mushaf', 'label': label, 'verdict': verdict, 'mark': mark}]
+                                if has_mark else
+                                ([{'kind': 'verse_end', 'label': label, 'verdict': verdict}]
+                                 if is_end else [])),
+                })
             else:
-                # مواضع فاتها: broken لازم (error) and ideal تام the learner ran past.
                 if sym == 'م':
-                    broken_lazim.append({'ayah': ayah, 'wpos': wpos, 'word': words[wpos]})
-                elif not is_end and (sym in ('ق',) or any(c['grade'] == 'تام' for c in cls)):
-                    ideal.append({'ayah': ayah, 'wpos': wpos, 'word': words[wpos]})
+                    broken_lazim.append({
+                        'ayah': ayah, 'wpos': wpos, 'word': words[wpos], 'mark': 'م',
+                    })
+                elif not is_end and sym in _IDEAL_MUSHAF_MARKS:
+                    ideal.append({
+                        'ayah': ayah, 'wpos': wpos, 'word': words[wpos], 'mark': sym,
+                    })
 
     errors = counts['error'] + len(broken_lazim)
-    score = max(0, 100 - errors * 15 - counts['caution'] * 7 - counts['unmarked'] * 4)
+    score = max(0, 100 - errors * 15 - counts['unmarked'] * 4)
     return {
         'surah': surah, 'from_ayah': from_ayah, 'to_ayah': to_ayah, 'mushaf': mushaf,
         'score': score,

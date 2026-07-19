@@ -12,11 +12,16 @@
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/surah_names.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/QCF BSML @Am9li9.ttf') }}" as="font" type="font/ttf" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
     <link rel="stylesheet" href="{{ static_hash('css/waqf_practice.css') }}">
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
 
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
@@ -72,8 +77,7 @@
                     title="تتبّع الكلمة أثناء التلاوة" aria-label="تتبّع الكلمة"><i class="fas fa-highlighter" aria-hidden="true"></i></button>
             <button class="athar-icon-button" id="wp-tajweed" type="button" aria-pressed="true"
                     title="كشف أخطاء التجويد والنطق" aria-label="كشف أخطاء التجويد"><i class="fas fa-magnifying-glass" aria-hidden="true"></i></button>
-            <button class="athar-icon-button" id="wp-layout" type="button" aria-pressed="false" hidden
-                    title="منظر المصحف" aria-label="منظر المصحف"><i class="fas fa-book-open" aria-hidden="true"></i></button>
+            <!-- Madinah mushaf always uses page-card layout (same as تثبيت); toggle removed -->
         </div>
 
         <button class="athar-button athar-button-accent wp-start" id="wp-load" type="button">
@@ -103,7 +107,7 @@
 
         <aside class="wp-hint athar-surface" id="wp-hint" hidden>
             <i class="fas fa-hand-pointer" aria-hidden="true"></i>
-            <span>اضغط على كل كلمةٍ <b>وقفتَ عندها</b>، أو استخدم <b>سجّل وقوفي</b> لتحديد المواضع تلقائيًا، ثم قيّم النتيجة.</span>
+            <span>اضغط على كل كلمةٍ <b>وقفتَ عندها</b>، أو استخدم <b>سجّل وقوفي</b>، ثم قيّم: النتيجة تعرض هل لكل وقف <b>علامة مصحف</b> وما هي.</span>
         </aside>
 
         <section class="wp-section athar-surface athar-surface-raised" id="wp-passage-sec" aria-labelledby="wp-passage-title" hidden>
@@ -150,8 +154,8 @@
                 <div class="wp-score-meta">
                     <div class="wp-score-title" id="wp-score-title"></div>
                     <div class="wp-tallies">
-                        <span class="wp-tally athar-chip wp-tally-good"><b id="wp-t-good">٠</b> وقف صحيح</span>
-                        <span class="wp-tally athar-chip wp-tally-note"><b id="wp-t-note">٠</b> تنبيه</span>
+                        <span class="wp-tally athar-chip wp-tally-good"><b id="wp-t-good">٠</b> بعلامة</span>
+                        <span class="wp-tally athar-chip wp-tally-note"><b id="wp-t-note">٠</b> بلا علامة</span>
                         <span class="wp-tally athar-chip wp-tally-err"><b id="wp-t-err">٠</b> خطأ</span>
                     </div>
                 </div>

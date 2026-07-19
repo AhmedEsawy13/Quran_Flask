@@ -1,5 +1,5 @@
-/* تدريب الوقف — mark where you stopped, get graded against the printed mushaf
-   marks and the classical rulings (الداني + الأشموني). No audio/ASR. */
+/* تدريب الوقف — mark where you stopped, grade against printed mushaf marks
+   only (for now). Result shows whether each stop has a mushaf mark and which. */
 (function () {
     'use strict';
     const $ = id => document.getElementById(id);
@@ -13,14 +13,14 @@
         passageSec: $('wp-passage-sec'), passage: $('wp-passage'),
         count: $('wp-count'), clear: $('wp-clear'), grade: $('wp-grade'),
         rec: $('wp-rec'), recIcon: $('wp-rec-icon'), recLabel: $('wp-rec-label'), recNote: $('wp-rec-note'),
-        follow: $('wp-follow'), layout: $('wp-layout'),
+        follow: $('wp-follow'),
         tajweed: $('wp-tajweed'), tajweedSec: $('wp-tajweed-sec'), tajweedBody: $('wp-tajweed-body'),
         resultSec: $('wp-result-sec'), score: $('wp-score'), scoreNum: $('wp-score-num'),
         scoreTitle: $('wp-score-title'), tGood: $('wp-t-good'), tNote: $('wp-t-note'),
         tErr: $('wp-t-err'), legend: $('wp-legend'), graded: $('wp-graded'), followups: $('wp-followups'),
     };
 
-    // Button state helpers (follow/tajweed/layout are aria-pressed buttons,
+    // Button state helpers (follow/tajweed are aria-pressed buttons,
     // not checkboxes). Popover behavior comes from the shared أثَر UI layer.
     const isPressed = btn => !!btn && btn.getAttribute('aria-pressed') === 'true';
     const setPressed = (btn, val) => { if (btn) btn.setAttribute('aria-pressed', val ? 'true' : 'false'); };
@@ -35,14 +35,20 @@
     // (wi = word we're on, anchor = index into the recited skeleton where it begins).
     const rec = { on: false, ref: [], wi: 0, anchor: 0, cur: null };
 
-    // verdict → display. Order = legend order.
+    // verdict → display. Order = legend order. Graded vs mushaf marks only.
     const VERDICT = {
-        excellent: { cls: 'ex',   name: 'وقفٌ تام',    tip: 'أفضل مواضع الوقف' },
-        good:      { cls: 'good', name: 'وقفٌ حَسَن',   tip: 'وقفٌ جيّد' },
-        ok:        { cls: 'ok',   name: 'جائز',        tip: 'يجوز، والوصل قد يكون أولى' },
-        caution:   { cls: 'caut', name: 'موضع خلاف',   tip: 'أجازه بعضهم ومنعه آخرون' },
-        unmarked:  { cls: 'un',   name: 'بلا نصّ',     tip: 'ليس موضع وقفٍ منصوصًا عليه' },
-        error:     { cls: 'err',  name: 'وقفٌ خاطئ',   tip: 'لا يُوقف عليه — يُخلّ بالمعنى' },
+        excellent: { cls: 'ex',   name: 'علامة قوية',  tip: 'وقف لازم في المصحف' },
+        good:      { cls: 'good', name: 'علامة جائزة', tip: 'قلى / ج / معانقة / رأس آية' },
+        ok:        { cls: 'ok',   name: 'الوصل أولى',  tip: 'صلى أو سكتة — الوقف مسموح' },
+        unmarked:  { cls: 'un',   name: 'بلا علامة',   tip: 'لا علامة وقف في هذا المصحف' },
+        error:     { cls: 'err',  name: 'لا وقف',      tip: 'علامة «لا» — لا يُوقف عليه' },
+    };
+
+    const markCaption = stop => {
+        if (stop && stop.has_mark && stop.mark) {
+            return `علامة المصحف: ${stop.mark}` + (stop.label ? ` — ${stop.label}` : '');
+        }
+        return stop && stop.label ? stop.label : 'بلا علامة في هذا المصحف';
     };
 
     function showPageState(kind, message) {
@@ -72,14 +78,8 @@
                          ...versions.filter(v => !prefer.includes(v))];
         els.mushaf.innerHTML = ordered.map(v => `<option value="${v}">${v}</option>`).join('');
         if (els.mushafLabel) els.mushafLabel.textContent = els.mushaf.value;
-        updateLayoutToggle();
         els.mushaf.addEventListener('change', () => {
             if (els.mushafLabel) els.mushafLabel.textContent = els.mushaf.value;
-            updateLayoutToggle();
-            if (state.verses.length) loadPassage();
-        });
-        if (els.layout) els.layout.addEventListener('click', () => {
-            setPressed(els.layout, !isPressed(els.layout));
             if (state.verses.length) loadPassage();
         });
         els.surah.addEventListener('change', onSurah);
@@ -110,6 +110,13 @@
         showPageState('', '');
         els.load.disabled = false;
         if (hasRequestedSurah) loadPassage();
+        let resizeId = 0;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeId);
+            resizeId = setTimeout(() => {
+                if (els.passage?.classList.contains('wp-ml-pages')) fitPracticePages();
+            }, 120);
+        });
     }
 
     async function onSurah() {
@@ -141,7 +148,6 @@
         const s = +els.surah.value, f = +els.from.value;
         let t = +els.to.value;
         const mushaf = els.mushaf.value;
-        const useLayout = !!els.layout && isPressed(els.layout) && isMadinah();
         if (t < f) { t = f; els.to.value = String(f); }
         if (t - f > 20) { showPageState('error', 'المقطع طويل — اختر ٢١ آية أو أقل.'); return; }
         const request = passageRequests.next();
@@ -156,13 +162,9 @@
             if (!passageRequests.isCurrent(request)) return;
             state.verses = j.verses || [];
             state.stops.clear();
-            // Madinah page-layout view (optional) renders the real mushaf lines;
-            // it keys words the same way (ayah:wpos) so tap/grade/ASR are unchanged.
-            let renderedLayout = false;
-            if (useLayout) {
-                renderedLayout = await renderMushafLayout(s, f, t, mushaf, request);
-                if (!passageRequests.isCurrent(request)) return;
-            }
+            // Always prefer real mushaf page cards (same layout engine as تثبيت).
+            let renderedLayout = await renderMushafLayout(s, f, t, mushaf, request);
+            if (!passageRequests.isCurrent(request)) return;
             if (!renderedLayout) renderPassage();
             const name = catalog.nameOf(s);
             if (els.rangeLabel) els.rangeLabel.textContent = `${name} · ${toAr(f)}${t > f ? '–' + toAr(t) : ''}`;
@@ -222,29 +224,120 @@
         wirePassageClicks();
     }
 
-    /* ── Madinah page-layout view (المدينة الجديد / القديم) ─────────────
-       Reuses the qpc-v1 604-page layout + Old-Madina font that تثبيت uses.
-       The layout words align 1:1 with the passage words per ayah (verified),
-       so wpos = running count of real words per ayah maps to the grader. */
-    // Each Madinah print maps to its established page-layout source/font:
-    // المدينة الجديد → Digital Khatt, المدينة القديم →
-    // qpc-v1/Old Madina. Both routes share the same JSON shape (backend's
-    // _assemble_layout_page), confirmed in modules/layouts.py, so only the
-    // API base + font differ, not the rendering logic below.
-    const MADINAH_LAYOUT_SRC = { 'المدينة الجديد': 'digital_khatt', 'المدينة القديم': 'qpc_v1' };
-    const isMadinah = () => Object.prototype.hasOwnProperty.call(MADINAH_LAYOUT_SRC, els.mushaf.value);
-    // The mushaf-page view only exists for the two Madinah prints. Defaults
-    // back on every time the selection lands on a Madinah print, since
-    // "مشاف page styling" is the whole point of this page's design.
-    function updateLayoutToggle() {
-        if (!els.layout) return;
-        const madinah = isMadinah();
-        els.layout.hidden = !madinah;
-        setPressed(els.layout, madinah);
-    }
+    /* ── Printed page cards (same layout engine as تثبيت) ─────────────
+       Full mushaf pages with fixed ratio, 15-line geometry, surah/basmala
+       glyphs, and justified nowrap lines. In-range words stay tappable;
+       out-of-range words are dimmed context. */
+    const { getWaqfDisplayData, stripEmbeddedWaqf } = window.AtharMushaf;
+    const { surahHeaderGlyph, renderPageChrome } = window.AtharPageChrome;
+    const BASMALA_GLYPH = '\u00F3';
+    const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
+    const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
+    const integratedWaqfGlyph = entry => {
+        const data = getWaqfDisplayData(entry && entry.symbols, entry && entry.version);
+        return data ? data.text : '';
+    };
+    const layoutSourceFor = mushaf => (mushaf === 'المدينة القديم' ? 'qpc_v1' : 'digital_khatt');
+    const PAGE_RATIO = 0.66;
+    const OLD_MADINA_PAGE_RATIO = 0.72;
+    let _layoutSrc = 'digital_khatt';
+    let _layoutMushaf = 'المدينة الجديد';
     const _hasArabic = s => /[ء-ي]/.test(s || '');
+
+    function sizePracticePages() {
+        const host = els.passage;
+        if (!host || !host.classList.contains('wp-ml-pages')) return;
+        const appbar = document.querySelector('.athar-bar')?.getBoundingClientRect().height || 50;
+        const toolbar = document.getElementById('wp-bar')?.getBoundingClientRect().height || 56;
+        const ratio = _layoutSrc === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO;
+        const headFootPad = 64;
+        window.AtharPageChrome.sizePages({
+            cssVarPrefix: 'wp',
+            pages: 1,
+            ratio,
+            gutter: 0, edgePad: 0, minW: 240, minH: 320,
+            getAvailH: () => Math.max(320, Math.min(
+                window.innerHeight - appbar - toolbar - 120,
+                (host.clientWidth - 8) / ratio + headFootPad + 24
+            )) - headFootPad,
+            getAvailW: () => Math.max(240, Math.min(host.clientWidth - 28, 560)),
+        });
+    }
+
+    const applyPracticeFontSize = window.AtharPageChrome.createFontSizer({
+        pageEls: () => [...els.passage.querySelectorAll('.wp-ml-page')],
+        lineSelector: '.wp-ml-line', innerSelector: '.wp-ml-line-inner',
+        cssVarName: '--wp-fs', linesPerPage: 15,
+        fitScale: 0.94, minLineScale: 0.88, minFontSize: 12,
+        maxPageFitRatio: 1.15,
+        cacheKey: () => `${_layoutSrc}|${_layoutMushaf}|${els.passage.querySelectorAll('.wp-ml-page').length}`,
+    });
+
+    /* Same feature ladder as تثبيت — progressive OpenType candidates per line. */
+    function digitalKhattFeatureCandidates() {
+        return [
+            `'jalt' 1`,
+            `'jalt' 1, 'cv02' 1`,
+            `'jalt' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv02' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv01' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv02' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv03' 1`,
+            `'jalt' 1, 'cv01' 1, 'cv02' 1, 'cv03' 1`,
+        ];
+    }
+    function oldMadinaFeatureCandidates() {
+        const variants = [
+            ['cv02'], ['cv03'], ['cv02', 'cv03'],
+            ['cv01'], ['cv01', 'cv02'], ['cv01', 'cv03'], ['cv01', 'cv02', 'cv03'],
+        ];
+        return variants.map(tags => (
+            [`'salt' 1`, ...tags.map(tag => `'${tag}' 1`)].join(', ')
+        ));
+    }
+
+    const justifyPracticeLines = window.AtharPageChrome.createLineJustifier({
+        containerEls: () => [...els.passage.querySelectorAll('.wp-ml-page')],
+        lineSelector: '.wp-ml-line', innerSelector: '.wp-ml-line-inner',
+        wordSelector: '.wp-word, .wp-ml-ctx, .wp-ml-num',
+        featureCandidates: () => (_layoutSrc === 'qpc_v1'
+            ? oldMadinaFeatureCandidates()
+            : _layoutSrc === 'digital_khatt' ? digitalKhattFeatureCandidates() : []),
+        minFeatureScale: () => (
+            _layoutSrc === 'qpc_v1' || _layoutSrc === 'digital_khatt' ? 0.95 : 1
+        ),
+        maxWordSpacing: (_lineEl, inner) => {
+            if (_layoutSrc !== 'qpc_v1' && _layoutSrc !== 'digital_khatt') return Infinity;
+            const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
+            return Math.max(1.5, Math.min(4, fontSize * 0.12));
+        },
+        maxStretch: () => (_layoutSrc === 'digital_khatt' ? 1.15 : _layoutSrc === 'qpc_v1' ? 1.18 : Infinity),
+    });
+
+    function fitPracticePages() {
+        sizePracticePages();
+        applyPracticeFontSize(true);
+        requestAnimationFrame(() => {
+            justifyPracticeLines();
+            // Centered / special lines aren't justified — still clamp if wider than the page.
+            els.passage.querySelectorAll('.wp-ml-line[data-justify="0"] .wp-ml-line-inner, .wp-ml-line-basmala, .wp-ml-line-surah').forEach(inner => {
+                const line = inner.closest('.wp-ml-line') || inner.parentElement;
+                if (!line) return;
+                inner.style.transform = 'none';
+                const avail = line.clientWidth;
+                const natural = inner.scrollWidth;
+                if (avail > 0 && natural > avail + 0.5) {
+                    inner.style.transform = `scaleX(${Math.max(0.72, avail / natural)})`;
+                    inner.style.transformOrigin = 'center center';
+                }
+            });
+        });
+    }
+
     async function renderMushafLayout(s, f, t, mushaf, request) {
-        const source = MADINAH_LAYOUT_SRC[mushaf];
+        const source = layoutSourceFor(mushaf);
+        _layoutSrc = source;
+        _layoutMushaf = mushaf;
         const client = window.AtharMushaf.createPageClient({
             getSource: () => source,
             getVersions: () => [mushaf],
@@ -260,36 +353,99 @@
         }
         if (!pages || !pages.length) return false;
         if (window.AtharMushaf.maxAyahOnPage(pages[pages.length - 1], s) < t) return false;
-        const lines = [];
-        pages.forEach(p => (p.lines || []).forEach(ln => lines.push(ln)));
-        return renderLayoutLines(lines, s, f, t, mushaf);
+        return renderLayoutPages(pages, s, f, t, mushaf);
     }
 
-    function renderLayoutLines(lines, s, f, t, mushaf) {
-        const selectedLines = window.AtharMushaf.sliceLinesForAyahRange(lines, s, f, t);
-        if (!selectedLines.length) return false;
+    function renderLayoutPages(pages, s, f, t, mushaf) {
+        const src = layoutSourceFor(mushaf);
+        const oldSelected = mushaf === 'المدينة القديم';
+        els.passage.className = 'wp-passage wp-ml wp-ml-pages'
+            + (src === 'qpc_v1' ? ' wp-ml-src-qpc-v1' : ' wp-ml-src-digital-khatt');
+        els.passage.replaceChildren();
+        let rendered = 0;
+        pages.forEach(payload => {
+            if (!(payload.lines || []).length) return;
+            rendered += 1;
+            const card = document.createElement('div');
+            card.className = 'wp-ml-card athar-page-card';
 
-        // Digital Khatt is the default; qpc-v1/Old Madina is a scoped override.
-        const src = MADINAH_LAYOUT_SRC[mushaf] || 'digital_khatt';
-        els.passage.className = 'wp-passage wp-ml' + (src === 'qpc_v1' ? ' wp-ml-src-qpc-v1' : '');
-        window.AtharMushaf.renderMushafLines(els.passage, selectedLines, {
-            lineClass: 'wp-ml-line', centeredClass: 'is-centered',
-            surahClass: 'wp-ml-surah', basmalaClass: 'wp-ml-basmala',
-            wrapContent: false, wrapSpecial: false, separator: '',
-            countWord: ({ raw }) => _hasArabic(raw),
-            classForWord: ({ counted, word }) => {
-                if (!counted) return 'wp-ml-num';
-                return Number(word.surah) === s && Number(word.ayah) >= f && Number(word.ayah) <= t
-                    ? 'wp-word' : 'wp-ml-ctx';
-            },
-            identityKey: ({ word, position }) => Number(word.surah) === s
-                && Number(word.ayah) >= f && Number(word.ayah) <= t ? `${word.ayah}:${position}` : null,
-            decorateWord: (element, { counted, word }) => {
-                if (!counted || !element.classList.contains('wp-word')) return;
-                element.dataset.ayah = String(word.ayah);
-            },
+            const head = document.createElement('div');
+            head.className = 'wp-ml-page-header athar-page-head';
+            const juzEl = document.createElement('span');
+            juzEl.className = 'wp-ml-head-juz athar-page-head-juz';
+            const surahEl = document.createElement('span');
+            surahEl.className = 'wp-ml-head-surah athar-page-head-surah';
+            head.append(juzEl, surahEl);
+
+            const page = document.createElement('div');
+            page.className = 'wp-ml-page' + (src === 'qpc_v1' ? ' wp-ml-src-qpc-v1' : ' wp-ml-src-digital-khatt');
+            page.dataset.page = String(payload.page_number || '');
+
+            window.AtharMushaf.renderMushafLines(page, payload.lines || [], {
+                lineClass: 'wp-ml-line',
+                contentClass: 'wp-ml-line-inner',
+                surahClass: 'wp-ml-line-surah',
+                basmalaClass: 'wp-ml-line-basmala wp-ml-basmala-glyph',
+                textForSpecial: ({ line, kind }) => kind === 'surah'
+                    ? (surahHeaderGlyph(line.surah_number) || line.display_text || '')
+                    : BASMALA_GLYPH,
+                decorateSpecial: (element, { line, kind }) => {
+                    if (kind === 'surah' && surahHeaderGlyph(line.surah_number)) {
+                        element.classList.add('wp-ml-surah-glyph');
+                    }
+                    element.setAttribute('aria-label', line.display_text || (kind === 'basmala' ? 'بسم الله الرحمن الرحيم' : ''));
+                },
+                countWord: ({ raw }) => _hasArabic(raw),
+                classForWord: ({ counted, word }) => {
+                    if (!counted) return 'wp-ml-num';
+                    return Number(word.surah) === s && Number(word.ayah) >= f && Number(word.ayah) <= t
+                        ? 'wp-word' : 'wp-ml-ctx';
+                },
+                identityKey: ({ word, position }) => Number(word.surah) === s
+                    && Number(word.ayah) >= f && Number(word.ayah) <= t ? `${word.ayah}:${position}` : null,
+                textForWord: ({ word, raw }) => {
+                    if (oldSelected) {
+                        const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
+                        const oldMark = entries.find(entry => entry && entry.version === 'المدينة القديم');
+                        return withAyahOrnament(stripEmbeddedWaqf(raw) + (oldMark ? integratedWaqfGlyph(oldMark) : ''));
+                    }
+                    return withAyahOrnament(raw);
+                },
+                decorateLine: (element, { line }) => {
+                    if ((line.words || []).length) element.dataset.justify = line.is_centered ? '0' : '1';
+                },
+                decorateWord: (element, { counted, word }) => {
+                    if (!counted || !element.classList.contains('wp-word')) return;
+                    element.dataset.ayah = String(word.ayah);
+                },
+            });
+
+            const foot = document.createElement('div');
+            foot.className = 'wp-ml-page-footer';
+            const footPage = document.createElement('span');
+            footPage.className = 'wp-ml-foot-page';
+            foot.appendChild(footPage);
+
+            renderPageChrome({
+                payload, juzEl, surahEl, pageNumberEl: footPage,
+                getSurahName: num => catalog.nameOf(num) || '',
+                juzGlyphClass: 'athar-page-juz-glyph',
+                surahGlyphClass: 'athar-page-surah-glyph',
+                surahTextClass: 'athar-page-surah-text',
+            });
+
+            card.append(head, page, foot);
+            els.passage.appendChild(card);
         });
+        if (!rendered) return false;
         wirePassageClicks();
+        const runFit = () => requestAnimationFrame(() => requestAnimationFrame(fitPracticePages));
+        runFit();
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(() => {
+                if (els.passage.classList.contains('wp-ml-pages')) runFit();
+            }).catch(() => {});
+        }
         return true;
     }
 
@@ -542,10 +698,10 @@
     }
 
     function scoreTitle(score, errors) {
-        if (errors === 0 && score >= 95) return 'ممتاز — وقوفك سليم';
-        if (score >= 85) return 'أحسنت — وقوفٌ جيّد مع ملاحظات يسيرة';
-        if (score >= 65) return 'جيّد — راجِع المواضع المُشكِلة';
-        return 'يحتاج مراجعة — تأمّل مواضع الوقف الخاطئة';
+        if (errors === 0 && score >= 95) return 'ممتاز — وقوفك يوافق علامات المصحف';
+        if (score >= 85) return 'أحسنت — راجع المواضع بلا علامة';
+        if (score >= 65) return 'جيّد — قارن وقوفك بعلامات المصحف';
+        return 'يحتاج مراجعة — توقّف عند «لا» أو فاتك لازم';
     }
 
     function renderResult(j) {
@@ -566,10 +722,9 @@
             return `<span class="wp-leg athar-chip"><span class="wp-dot wp-w-${d.cls}"></span>${d.name}</span>`;
         }).join('');
 
-        // per-stop verdict lookup + broken-lazim positions
         const verdictAt = new Map(j.stops.map(s => [s.ayah + ':' + s.wpos, s]));
-        const brokenAt = new Set(j.broken_lazim.map(b => b.ayah + ':' + b.wpos));
-        const idealAt = new Set(j.ideal.map(b => b.ayah + ':' + b.wpos));
+        const brokenAt = new Map(j.broken_lazim.map(b => [b.ayah + ':' + b.wpos, b]));
+        const idealAt = new Map(j.ideal.map(b => [b.ayah + ':' + b.wpos, b]));
 
         els.graded.innerHTML = '';
         state.verses.forEach(v => {
@@ -581,16 +736,30 @@
                     const key = v.ayah + ':' + index;
                     const s = verdictAt.get(key);
                     if (s) {
-                        const d = VERDICT[s.verdict];
+                        const d = VERDICT[s.verdict] || VERDICT.unmarked;
                         span.classList.add('wp-stop', 'wp-w-' + d.cls);
-                        span.title = (s.label || d.name) + (s.sources && s.sources.length
-                            ? ' — ' + s.sources.map(x => (x.name ? x.name + ': ' : '') + x.label).join('، ') : '');
+                        span.title = markCaption(s);
+                        const badge = document.createElement('sup');
+                        badge.className = 'wp-mark-badge' + (s.has_mark ? '' : ' is-empty');
+                        badge.textContent = s.has_mark && s.mark ? s.mark : '—';
+                        badge.setAttribute('aria-label', markCaption(s));
+                        span.appendChild(badge);
                     } else if (brokenAt.has(key)) {
+                        const b = brokenAt.get(key);
                         span.classList.add('wp-missed-lazim');
-                        span.title = 'وقف لازم فاتك — يجب الوقف هنا';
+                        span.title = `وقف لازم فاتك — علامة المصحف: ${b.mark || 'م'}`;
+                        const badge = document.createElement('sup');
+                        badge.className = 'wp-mark-badge';
+                        badge.textContent = b.mark || 'م';
+                        span.appendChild(badge);
                     } else if (idealAt.has(key)) {
+                        const b = idealAt.get(key);
                         span.classList.add('wp-ideal');
-                        span.title = 'موضع وقفٍ مثاليّ (لم تقف عنده)';
+                        span.title = `موضع بعلامة ${b.mark || ''} (لم تقف عنده)`;
+                        const badge = document.createElement('sup');
+                        badge.className = 'wp-mark-badge is-ideal';
+                        badge.textContent = b.mark || '';
+                        span.appendChild(badge);
                     }
                 },
             });
@@ -602,17 +771,17 @@
             els.graded.appendChild(line);
         });
 
-        // follow-ups: broken لازم + missed ideal stops
+        // follow-ups: broken لازم + missed ideal mushaf marks
         let fu = '';
         if (j.broken_lazim.length) {
             fu += `<div class="wp-fu wp-fu-err"><i class="fas fa-triangle-exclamation"></i> `
-                + `<b>وقفٌ لازم فاتك</b> (يجب الوقف): `
+                + `<b>وقفٌ لازم فاتك</b> (علامة م): `
                 + j.broken_lazim.map(b => `<span class="wp-fu-w">${b.word}</span> <small>${toAr(b.ayah)}</small>`).join('، ') + '</div>';
         }
         if (j.ideal.length) {
             fu += `<div class="wp-fu wp-fu-tip"><i class="fas fa-star"></i> `
-                + `<b>مواضع وقفٍ مثالية</b> كان يمكنك الوقف عندها: `
-                + j.ideal.map(b => `<span class="wp-fu-w">${b.word}</span> <small>${toAr(b.ayah)}</small>`).join('، ') + '</div>';
+                + `<b>علامات مصحف</b> كان يمكنك الوقف عندها: `
+                + j.ideal.map(b => `<span class="wp-fu-w">${b.word}<sup class="wp-mark-badge is-ideal">${b.mark || ''}</sup></span> <small>${toAr(b.ayah)}</small>`).join('، ') + '</div>';
         }
         els.followups.innerHTML = fu;
         els.resultSec.hidden = false;

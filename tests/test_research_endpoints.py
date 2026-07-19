@@ -228,8 +228,7 @@ def test_classical_waqf_api_serves_active_sources_only(client):
 
 
 def test_waqf_practice_grading(client):
-    """تدريب الوقف grades chosen stops against mushaf marks + classical rulings."""
-    # passage words render for the picker.
+    """تدريب الوقف grades chosen stops against mushaf marks only (for now)."""
     p = client.get("/api/waqf-practice/passage/2/1/3").get_json()
     assert [v["ayah"] for v in p["verses"]] == [1, 2, 3]
     assert all(v["words"] for v in p["verses"])
@@ -239,22 +238,24 @@ def test_waqf_practice_grading(client):
             "surah": s, "from_ayah": f, "to_ayah": t, "mushaf": mushaf, "stops": stops
         }).get_json()
 
-    # {هدى للمتقين} تام (الأشموني — grading is منار-only, see
-    # _ACTIVE_CLASSICAL_SOURCES) → excellent; {المفلحون} تام → excellent.
-    r = grade([{"ayah": 2, "wpos": 6}, {"ayah": 5, "wpos": 7}])
-    v = {(x["ayah"], x["wpos"]): x["verdict"] for x in r["stops"]}
-    assert v[(2, 6)] == "excellent" and v[(5, 7)] == "excellent"
+    # 2:2 w3/w4 carry معانقة (ع); verse-end 2:5 has no mark → رأس آية / good.
+    r = grade([{"ayah": 2, "wpos": 3}, {"ayah": 5, "wpos": 7}])
+    by = {(x["ayah"], x["wpos"]): x for x in r["stops"]}
+    assert by[(2, 3)]["has_mark"] is True and by[(2, 3)]["mark"] == "ع"
+    assert by[(2, 3)]["verdict"] == "good"
+    assert by[(5, 7)]["has_mark"] is False and by[(5, 7)]["verdict"] == "good"
     assert r["score"] == 100 and r["summary"]["errors"] == 0
 
-    # 2:224 w4 لِّأَيۡمَٰنِكُمۡ: الأشموني grades it حسن under one إعراب reading
-    # and لا (ليس بوقف) under another — genuinely two-sided → خلاف/caution,
-    # NOT a clean pass and NOT a hard error.
-    r = grade([{"ayah": 224, "wpos": 4}], s=2, f=224, t=224)
-    assert r["stops"][0]["verdict"] == "caution"
-    assert 0 < r["score"] < 100
+    # 2:5 w4 carries صلى (ص) → ok (الوصل أولى).
+    r = grade([{"ayah": 5, "wpos": 4}], s=2, f=5, t=5)
+    assert r["stops"][0]["has_mark"] is True
+    assert r["stops"][0]["mark"] == "ص"
+    assert r["stops"][0]["verdict"] == "ok"
 
-    # a mid-phrase stop with no ruling anywhere is a soft note, not an error.
+    # mid-phrase with no mushaf mark → unmarked note, not an error.
     r = grade([{"ayah": 3, "wpos": 1}], s=2, f=3, t=3)
+    assert r["stops"][0]["has_mark"] is False
+    assert r["stops"][0]["mark"] == ""
     assert r["stops"][0]["verdict"] == "unmarked"
     assert r["summary"]["errors"] == 0
 

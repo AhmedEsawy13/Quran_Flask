@@ -1,8 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════
    Mushaf Editor — مصحف قطر / مصحف الكويت الحديث
-   Two-page spread of the Madinah v1 (1405) layout. Click a word to set
-   its waqf mark for the selected edition; words whose mark differs from
-   وقوف المدينة (the seeded baseline) are highlighted.
+   One digital page beside a remote printed-edition reference. Click a
+   word to set its waqf mark for the selected edition; words whose mark
+   differs from وقوف المدينة (the seeded baseline) are highlighted.
+   Peer mushafs (الأزهر / الشمرلي / المدينتان) hint when they mark a word
+   you left empty. الكويت gets surah-end ركوع via seed script.
 
    Endpoints:
      GET  /api/mushaf-editor/spread/<n>?edition=قطر|الكويت
@@ -19,13 +21,17 @@
     const MAX_SPREAD = 302;
     const MAX_PAGE = 604;
 
-    // Reference material (Phase 4) — links open the actual printed edition's
-    // page in a new tab so the user can compare it against the Madinah v1
-    // layout shown here while adjusting waqf marks.
-    //   الكويت: archive.org scan of "كويت" — confirmed PDF page 5 = Madinah
-    //   page 1 (سورة الفاتحة), so PDF page = Madinah page + 4.
-    const KUWAIT_PDF_ID = 'kweat--h4794794946945969';
-    const KUWAIT_PAGE_OFFSET = 4;
+    // Printed scans on Archive.org — one JPG leaf per Madinah page.
+    // Confirmed: leaf 4 = page 1 (سورة الفاتحة) for both editions, so
+    // leaf = madinah_page + 3. Details URLs still use 1-based /page/N
+    // (page 1 → /page/5).
+    const REF_SOURCES = {
+        'الكويت': { id: 'kweat--h4794794946945969', label: 'مرجع الكويت الحديث' },
+        'قطر': { id: 'MushafQatar_20150445776437', label: 'مرجع مصحف قطر' },
+    };
+    const REF_LEAF_OFFSET = 3;
+    const REF_IMG_WIDTH = 1024;
+    const REF_DEBOUNCE_MS = 120;
 
     // Printed-mushaf waqf symbols → meaning + glyph (same as waqf_guide.js).
     const WAQF_SYM = {
@@ -42,15 +48,21 @@
     // ركوع marks are anchored to the ayah-end number rather than appearing
     // inline like other waqf marks — render them as a small badge above it.
     const ABOVE_VERSE_MARKS = new Set(['ركوع']);
+    const PEER_VERSIONS = ['المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي'];
+    const PEER_SHORT = {
+        'المدينة الجديد': 'المدينة',
+        'المدينة القديم': 'القديم',
+        'الأزهر': 'الأزهر',
+        'الشمرلي': 'الشمرلي',
+    };
 
     const els = {
         main: $('athar-main'),
-        pageR: $('ed-page-r'), pageL: $('ed-page-l'),
-        pageRNum: $('ed-page-r-num'), pageLNum: $('ed-page-l-num'),
-        juzR: $('ed-juz-r'), juzL: $('ed-juz-l'),
-        surahR: $('ed-surah-r'), surahL: $('ed-surah-l'),
-        refR: $('ed-ref-r'), refL: $('ed-ref-l'),
-        spreadLabel: $('ed-spread-label'),
+        page: $('ed-page'),
+        pageNum: $('ed-page-num'),
+        juz: $('ed-juz'),
+        surah: $('ed-surah'),
+        pageLabel: $('ed-page-label'),
         progress: $('ed-progress'),
         reviewed: $('ed-reviewed'),
         jumpInput: $('ed-jump-page'), jumpBtn: $('ed-jump-go'),
@@ -58,31 +70,58 @@
         editionBtns: Array.from(document.querySelectorAll('.ed-edition-btn')),
         status: $('ed-status'),
         legend: $('ed-legend'),
+        refTitle: $('ed-ref-title'),
+        refOpen: $('ed-ref-open'),
+        refImg: $('ed-ref-img'),
+        refLoading: $('ed-ref-loading'),
+        refFallback: $('ed-ref-fallback'),
+        refFallbackBtn: $('ed-ref-fallback-btn'),
         popup: $('ed-popup'), popupBackdrop: $('ed-popup-backdrop'),
         popupTitle: $('ed-popup-title'), popupBaseline: $('ed-popup-baseline'),
+        popupPeers: $('ed-popup-peers'),
         popupSyms: $('ed-popup-syms'), popupClear: $('ed-popup-clear'), popupClose: $('ed-popup-close'),
     };
 
     const state = {
         edition: localStorage.getItem('ed_edition') || 'قطر',
-        spread: clampSpread(parseInt(localStorage.getItem('ed_spread') || '1', 10)),
+        page: initialPage(),
         reviewedPages: new Set(),
         activeWord: null,
         currentPages: [],
+        refUrl: '',
+        refMeta: null,
     };
     const spreadRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
     let popupReturnFocus = null;
     let popupBusy = false;
+    let refTimer = 0;
+    let refLoadToken = 0;
+    const refPrefetch = new Set();
 
+    function clampPage(n) {
+        if (!Number.isFinite(n)) return 1;
+        return Math.min(MAX_PAGE, Math.max(1, n));
+    }
     function clampSpread(n) {
         if (!Number.isFinite(n)) return 1;
         return Math.min(MAX_SPREAD, Math.max(1, n));
     }
+    function pageToSpread(page) {
+        return clampSpread(Math.ceil(page / 2));
+    }
+    function initialPage() {
+        const savedPage = parseInt(localStorage.getItem('ed_page') || '', 10);
+        if (Number.isFinite(savedPage)) return clampPage(savedPage);
+        const savedSpread = parseInt(localStorage.getItem('ed_spread') || '', 10);
+        if (Number.isFinite(savedSpread)) return clampPage(clampSpread(savedSpread) * 2 - 1);
+        return 1;
+    }
 
     function persist() {
         localStorage.setItem('ed_edition', state.edition);
-        localStorage.setItem('ed_spread', String(state.spread));
+        localStorage.setItem('ed_page', String(state.page));
+        localStorage.setItem('ed_spread', String(pageToSpread(state.page)));
     }
 
     const status = window.AtharUi.createStatus(els.status, {
@@ -105,6 +144,21 @@
         diff.className = 'ed-legend-chip ed-legend-diff';
         diff.innerHTML = '<span class="ed-legend-swatch"></span><span>يختلف عن وقف المدينة</span>';
         els.legend.appendChild(diff);
+        const peer = document.createElement('span');
+        peer.className = 'ed-legend-chip ed-legend-peer';
+        peer.innerHTML = '<span class="ed-legend-swatch"></span><span>علامة في مصحف مرجعي (لم تُثبَّت بعد)</span>';
+        els.legend.appendChild(peer);
+    }
+
+    function peerMarksFromEntries(entries) {
+        const list = [];
+        (Array.isArray(entries) ? entries : []).forEach(entry => {
+            const version = entry && entry.version;
+            const symbols = (entry && entry.symbols) || '';
+            if (!version || !symbols || !PEER_VERSIONS.includes(version)) return;
+            list.push({ version, symbols });
+        });
+        return list;
     }
 
     /* ── Edition toggle ──────────────────────────────────────────── */
@@ -116,88 +170,136 @@
         });
         // مصحف قطر's layout (mushaf-qatar-layout.db) declares font_name "qpc-hafs".
         document.body.classList.toggle('ed-font-hafs', state.edition === 'قطر');
+        updateRefChrome();
     }
     els.editionBtns.forEach(btn => btn.addEventListener('click', () => {
         if (btn.dataset.edition === state.edition) return;
         state.edition = btn.dataset.edition;
         persist();
         updateEditionUI();
-        updateRefButtons();
         closePopup();
         loadProgress();
-        loadSpread();
+        loadPage();
     }));
 
-    /* ── Reference material (Phase 4) ───────────────────────────────
-       "فتح المرجع" opens the corresponding page of the actual printed
-       edition in a new tab, for visual comparison against this page. */
-    function refTitle(edition) {
-        return edition === 'الكويت'
-            ? 'فتح صفحة المصحف (الكويت الحديث) في أرشيف PDF'
-            : 'فتح الآية في تطبيق الباحث القرآني (مصحف قطر)';
+    /* ── Reference material (Archive.org leaf images) ────────────── */
+    function refSource() {
+        return REF_SOURCES[state.edition] || null;
     }
-    function updateRefButtons() {
-        [els.refR, els.refL].forEach(btn => {
-            if (btn.hidden) return;
-            btn.title = refTitle(state.edition);
-            btn.setAttribute('aria-label', refTitle(state.edition));
-        });
+    function pageToLeaf(page) {
+        return page + REF_LEAF_OFFSET;
     }
-    function openReference(btn) {
-        if (btn.hidden) return;
-        const page = parseInt(btn.dataset.page, 10);
-        if (!Number.isFinite(page)) return;
-        let url;
-        if (state.edition === 'الكويت') {
-            url = `https://archive.org/details/${KUWAIT_PDF_ID}/page/${page + KUWAIT_PAGE_OFFSET}`;
-        } else {
-            const surah = btn.dataset.surah, ayah = btn.dataset.ayah;
-            if (!surah || !ayah) return;
-            url = `https://tafsir.app/m-qatar/${surah}/${ayah}`;
+    function refImageUrl(id, page) {
+        return `https://archive.org/download/${id}/page/leaf${pageToLeaf(page)}_w${REF_IMG_WIDTH}.jpg`;
+    }
+    function refOpenUrl(id, page) {
+        // Archive.org details /page/N is 1-based (leaf 4 → /page/5).
+        return `https://archive.org/details/${id}/page/${pageToLeaf(page) + 1}`;
+    }
+    function updateRefChrome() {
+        const src = refSource();
+        els.refTitle.textContent = src ? src.label : 'المرجع';
+        const label = src ? `فتح ${src.label} في الأرشيف` : 'فتح المرجع';
+        els.refOpen.title = label;
+        els.refOpen.setAttribute('aria-label', label);
+    }
+    function buildReferenceUrls(meta) {
+        const src = refSource();
+        if (!src || !meta || !Number.isFinite(meta.page)) return null;
+        if (meta.page < 1 || meta.page > MAX_PAGE) return null;
+        return {
+            image: refImageUrl(src.id, meta.page),
+            open: refOpenUrl(src.id, meta.page),
+        };
+    }
+    function showRefState({ loading = false, image = false, fallback = false } = {}) {
+        els.refLoading.hidden = !loading;
+        els.refImg.hidden = !image;
+        els.refFallback.hidden = !fallback;
+    }
+    function clearReference() {
+        state.refUrl = '';
+        state.refMeta = null;
+        els.refOpen.hidden = true;
+        showRefState();
+        els.refImg.removeAttribute('src');
+        els.refImg.alt = 'صفحة المصحف المطبوع';
+    }
+    function openReference() {
+        if (!state.refUrl) return;
+        window.open(state.refUrl, '_blank', 'noopener');
+    }
+    function prefetchRef(id, page) {
+        if (page < 1 || page > MAX_PAGE) return;
+        const url = refImageUrl(id, page);
+        if (refPrefetch.has(url)) return;
+        refPrefetch.add(url);
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = url;
+    }
+    function syncReference(meta) {
+        clearTimeout(refTimer);
+        const urls = buildReferenceUrls(meta);
+        if (!urls) {
+            clearReference();
+            return;
         }
-        window.open(url, '_blank', 'noopener');
+        state.refMeta = meta;
+        state.refUrl = urls.open;
+        els.refOpen.hidden = false;
+        updateRefChrome();
+        const token = ++refLoadToken;
+        const src = refSource();
+        refTimer = setTimeout(() => {
+            if (token !== refLoadToken) return;
+            showRefState({ loading: true });
+            els.refImg.alt = `${src.label} — صفحة ${meta.page}`;
+            const onLoad = () => {
+                if (token !== refLoadToken) return;
+                showRefState({ image: true });
+                prefetchRef(src.id, meta.page + 1);
+                prefetchRef(src.id, meta.page - 1);
+            };
+            const onError = () => {
+                if (token !== refLoadToken) return;
+                showRefState({ fallback: true });
+            };
+            els.refImg.onload = onLoad;
+            els.refImg.onerror = onError;
+            // Same URL can be cache-hit with no load event — force via assign.
+            if (els.refImg.getAttribute('src') === urls.image && els.refImg.complete && els.refImg.naturalWidth) {
+                onLoad();
+                return;
+            }
+            els.refImg.src = urls.image;
+        }, REF_DEBOUNCE_MS);
     }
-    els.refR.addEventListener('click', () => openReference(els.refR));
-    els.refL.addEventListener('click', () => openReference(els.refL));
+    els.refOpen.addEventListener('click', openReference);
+    els.refFallbackBtn.addEventListener('click', openReference);
 
     /* ── Page rendering ──────────────────────────────────────────── */
-    function renderPage(container, numEl, refBtn, juzEl, surahEl, payload) {
+    function renderPage(payload) {
+        const container = els.page;
         container.innerHTML = '';
         if (!payload) {
             clearPageChrome({
-                juzEl, surahEl, pageNumberEl: numEl, juzGlyphClass: 'athar-page-juz-glyph',
+                juzEl: els.juz, surahEl: els.surah, pageNumberEl: els.pageNum,
+                juzGlyphClass: 'athar-page-juz-glyph',
             });
-            refBtn.hidden = true;
-            delete refBtn.dataset.page;
-            delete refBtn.dataset.surah;
-            delete refBtn.dataset.ayah;
-            refBtn.removeAttribute('title');
-            refBtn.removeAttribute('aria-label');
+            clearReference();
             return;
         }
-        refBtn.dataset.page = payload.page_number;
-        if (payload.anchor_surah_number && payload.anchor_ayah_number) {
-            refBtn.dataset.surah = payload.anchor_surah_number;
-            refBtn.dataset.ayah = payload.anchor_ayah_number;
-        } else {
-            delete refBtn.dataset.surah;
-            delete refBtn.dataset.ayah;
-        }
-        refBtn.hidden = false;
-        refBtn.title = refTitle(state.edition);
-        refBtn.setAttribute('aria-label', refTitle(state.edition));
         window.AtharMushaf.renderMushafLines(container, payload.lines || [], {
             lineClass: 'ed-line',
             surahClass: 'ed-line ed-line-special',
             basmalaClass: 'ed-line ed-line-special',
-            wrapSpecial: false,        // one flat element, not nested — matches the plain-text special line this page has always used
+            wrapSpecial: false,
             contentClass: 'ed-line-inner',
             separator: ' ',
             wordClass: 'ed-word',
-            countWord: () => false,    // this page keys words by word_index (dataset.wordId), not verse position — skip the shared verseKey/dataset.key tagging entirely
+            countWord: () => false,
             textForWord: context => stripEmbeddedWaqf(context.raw),
-            // Non-centered lines are full-justified edge-to-edge by justifyLines();
-            // centered lines (surah-end, etc.) keep their natural width.
             decorateLine: (root, { line }) => { root.dataset.justify = line.is_centered ? '0' : '1'; },
             decorateWord: (wordElement, context) => {
                 const w = context.word;
@@ -211,37 +313,32 @@
                 const baselineEntry = entries.find(e => e.version === 'المدينة الجديد');
                 const editionSym = (editionEntry && editionEntry.symbols) || '';
                 const baselineSym = (baselineEntry && baselineEntry.symbols) || '';
+                const peers = peerMarksFromEntries(entries);
                 wordElement.dataset.baseline = baselineSym;
-                applyWordMark(wordElement, editionSym, baselineSym);
+                wordElement.dataset.peers = JSON.stringify(peers);
+                applyWordMark(wordElement, editionSym, baselineSym, peers);
             },
         });
 
-        // Informational only: this page already has its own jump/prev-next nav,
-        // unlike تثبيت's tappable version of the same shared running head.
         renderPageChrome({
-            payload, juzEl, surahEl, pageNumberEl: numEl,
+            payload, juzEl: els.juz, surahEl: els.surah, pageNumberEl: els.pageNum,
             juzGlyphClass: 'athar-page-juz-glyph',
             surahGlyphClass: 'athar-page-surah-glyph',
             surahTextClass: 'athar-page-surah-text',
         });
+
+        syncReference({
+            page: payload.page_number,
+            surah: payload.anchor_surah_number,
+            ayah: payload.anchor_ayah_number,
+        });
     }
 
-    /* ── Page sizing & line-fit ──────────────────────────────────────
-       Shared fit-math/algorithms live in athar-page-chrome.js (this page's
-       own sizePages/applyFontSize/justifyLines used to be a hand-ported,
-       already-drifted copy of تثبيت's — see mushaf_memorize.js for the
-       equivalent, more heavily-commented version). Only the measurement hook
-       (this page's own fixed chrome) and the font features (Old Madina only,
-       this page never renders شمرلي or Digital Khatt) stay page-specific. */
+    /* ── Page sizing & line-fit ────────────────────────────────────── */
     const PAGE_RATIO = 0.66; // width / height
     function sizePages() {
         const main = document.querySelector('.ed-main');
         if (!main) return;
-        // Never derive the available height from .ed-main: its min-content
-        // height includes the page we are sizing, so each resize fed the old
-        // page height back into the next measurement and made the document
-        // grow. Fixed chrome is safe to measure because it does not depend on
-        // --ed-page-h.
         const outerHeight = element => {
             if (!element) return 0;
             const style = getComputedStyle(element);
@@ -259,27 +356,23 @@
             + outerHeight(document.querySelector('.ed-page-header'))
             + mainPad;
         const stacked = window.matchMedia('(max-width: 720px)').matches;
+        // Work page + reference scan share one equal page box each (same
+        // dual-page budget as the old facing-page spread).
         window.AtharPageChrome.sizePages({
             cssVarPrefix: 'ed', pages: stacked ? 1 : 2, ratio: PAGE_RATIO,
-            gutter: stacked ? 0 : 20, floor: true,
-            // A stacked mobile spread scrolls vertically, so let width own
-            // the page scale instead of shrinking every page to the small
-            // viewport remainder below the multi-row editor toolbar.
+            gutter: stacked ? 0 : 18, floor: true,
             getAvailH: () => stacked ? availableWidth / PAGE_RATIO : window.innerHeight - fixedChrome,
             getAvailW: () => availableWidth,
         });
     }
 
     const applyFontSize = window.AtharPageChrome.createFontSizer({
-        pageEls: () => [els.pageR, els.pageL].filter(p => p && p.children.length),
+        pageEls: () => [els.page].filter(p => p && p.children.length),
         lineSelector: '.ed-line', innerSelector: '.ed-line-inner',
         cssVarName: '--ed-fs', linesPerPage: 15,
-        // قطر renders in Uthmanic Hafs, الكويت in Old Madina (body.ed-font-hafs) —
-        // different glyph metrics, so a source switch must re-fit like تثبيت's own.
         cacheKey: () => state.edition,
     });
 
-    // Old Madina kashida/justification OpenType features, strongest setting.
     function khattFeatureSettings() {
         const seq = [];
         for (let lvl = 1; lvl <= 5; lvl += 1) for (const t of ['jt', 'dc', 'kt']) seq.push(`${t}0${lvl}`);
@@ -287,7 +380,7 @@
     }
 
     const justifyLines = window.AtharPageChrome.createLineJustifier({
-        containerEls: () => [els.pageR, els.pageL],
+        containerEls: () => [els.page],
         lineSelector: '.ed-line', innerSelector: '.ed-line-inner', wordSelector: '.ed-word',
         featureSettings: khattFeatureSettings,
     });
@@ -298,7 +391,7 @@
         requestAnimationFrame(justifyLines);
     }
 
-    function applyWordMark(span, editionSym, baselineSym) {
+    function applyWordMark(span, editionSym, baselineSym, peers) {
         span.dataset.symbol = editionSym || '';
         let mark = span.querySelector('.ed-waqf-mark');
         if (editionSym) {
@@ -312,31 +405,44 @@
         } else if (mark) {
             mark.remove();
         }
-        const baseline = baselineSym !== undefined ? baselineSym : span.dataset.baseline;
+        const baseline = baselineSym !== undefined ? baselineSym : (span.dataset.baseline || '');
+        let peerList = peers;
+        if (!Array.isArray(peerList)) {
+            try { peerList = JSON.parse(span.dataset.peers || '[]'); } catch (_e) { peerList = []; }
+        }
+        const peerHint = !editionSym && peerList.length > 0;
         span.classList.toggle('ed-diff', (editionSym || '') !== (baseline || ''));
-        span.title = baseline
-            ? `المدينة: ${waqfGlyph(baseline)} (${baseline})`
-            : 'المدينة: بلا علامة';
+        span.classList.toggle('ed-peer-hint', peerHint);
+        const peerTip = peerList.length
+            ? peerList.map(p => `${PEER_SHORT[p.version] || p.version}: ${waqfGlyph(p.symbols)}`).join(' · ')
+            : '';
+        const parts = [
+            baseline ? `المدينة: ${waqfGlyph(baseline)} (${baseline})` : 'المدينة: بلا علامة',
+            peerTip ? `مراجع: ${peerTip}` : '',
+        ].filter(Boolean);
+        span.title = parts.join(' | ');
         const currentLabel = editionSym
             ? `${WAQF_SYM[editionSym]?.name || editionSym} (${editionSym})`
-            : 'بلا علامة';
+            : (peerHint ? 'بلا علامة — يوجد وقف في مصحف مرجعي' : 'بلا علامة');
         span.setAttribute('aria-label', `تعديل وقف ${span.dataset.text || span.textContent}: ${currentLabel}`);
     }
 
-    /* ── Loading a spread ────────────────────────────────────────── */
-    async function loadSpread() {
+    /* ── Loading a page (via spread API) ──────────────────────────── */
+    async function loadPage() {
         const request = spreadRequests.next();
-        const spread = state.spread;
+        const page = state.page;
+        const spread = pageToSpread(page);
         const edition = state.edition;
+        const wantRight = page % 2 === 1;
         window.AtharUi.setBusy(els.main, true);
         try {
             const query = window.AtharMushaf.buildQuery({ params: { edition } });
             const data = await window.AtharApi.json(`/api/mushaf-editor/spread/${spread}${query}`);
             if (!spreadRequests.isCurrent(request)) return false;
-            renderPage(els.pageR, els.pageRNum, els.refR, els.juzR, els.surahR, data.right);
-            renderPage(els.pageL, els.pageLNum, els.refL, els.juzL, els.surahL, data.left);
-            els.spreadLabel.textContent = `${toAr(spread)} / ${toAr(MAX_SPREAD)}`;
-            state.currentPages = [data.right, data.left].filter(Boolean).map(p => p.page_number);
+            const payload = wantRight ? data.right : data.left;
+            renderPage(payload || null);
+            els.pageLabel.textContent = `${toAr(page)} / ${toAr(MAX_PAGE)}`;
+            state.currentPages = payload ? [payload.page_number] : [];
             updateReviewedCheckbox();
             updateNavButtons();
             fitPages();
@@ -350,8 +456,8 @@
     }
 
     function updateNavButtons() {
-        els.prev.disabled = state.spread <= 1;
-        els.next.disabled = state.spread >= MAX_SPREAD;
+        els.prev.disabled = state.page <= 1;
+        els.next.disabled = state.page >= MAX_PAGE;
     }
 
     /* ── Progress tracking ───────────────────────────────────────── */
@@ -416,14 +522,14 @@
 
     /* ── Navigation ──────────────────────────────────────────────── */
     els.prev.addEventListener('click', () => {
-        if (state.spread <= 1) return;
-        state.spread--;
-        persist(); closePopup(); loadSpread();
+        if (state.page <= 1) return;
+        state.page--;
+        persist(); closePopup(); loadPage();
     });
     els.next.addEventListener('click', () => {
-        if (state.spread >= MAX_SPREAD) return;
-        state.spread++;
-        persist(); closePopup(); loadSpread();
+        if (state.page >= MAX_PAGE) return;
+        state.page++;
+        persist(); closePopup(); loadPage();
     });
     els.jumpBtn.addEventListener('click', jumpToPage);
     els.jumpInput.addEventListener('keydown', e => { if (e.key === 'Enter') jumpToPage(); });
@@ -436,9 +542,9 @@
             return;
         }
         els.jumpInput.removeAttribute('aria-invalid');
-        state.spread = clampSpread(Math.ceil(p / 2));
+        state.page = clampPage(p);
         els.jumpInput.value = '';
-        persist(); closePopup(); loadSpread();
+        persist(); closePopup(); loadPage();
     }
     document.addEventListener('keydown', e => {
         if (!els.popup.hidden) {
@@ -477,6 +583,37 @@
     els.popupClose.addEventListener('click', closePopup);
     els.popupBackdrop.addEventListener('click', closePopup);
 
+    function renderPopupPeers(wordEl) {
+        if (!els.popupPeers) return;
+        els.popupPeers.innerHTML = '';
+        let peers = [];
+        try { peers = JSON.parse(wordEl.dataset.peers || '[]'); } catch (_e) { peers = []; }
+        if (!peers.length) {
+            els.popupPeers.hidden = true;
+            return;
+        }
+        els.popupPeers.hidden = false;
+        const heading = document.createElement('div');
+        heading.className = 'ed-peers-heading';
+        heading.textContent = 'علامات في مصاحف مرجعية — انقر لنسخها';
+        els.popupPeers.appendChild(heading);
+        const row = document.createElement('div');
+        row.className = 'ed-peers-row';
+        peers.forEach(peer => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ed-peer-btn';
+            btn.title = `نسخ علامة ${peer.version}`;
+            btn.innerHTML = (
+                `<span class="ed-peer-ver">${PEER_SHORT[peer.version] || peer.version}</span>`
+                + `<span class="ed-peer-glyph">${waqfGlyph(peer.symbols)}</span>`
+            );
+            btn.addEventListener('click', () => setSymbol(peer.symbols));
+            row.appendChild(btn);
+        });
+        els.popupPeers.appendChild(row);
+    }
+
     function openPopup(wordEl) {
         if (state.activeWord) state.activeWord.classList.remove('ed-selected');
         popupReturnFocus = wordEl;
@@ -488,6 +625,7 @@
         els.popupBaseline.innerHTML = baseline
             ? `وقف المدينة هنا: <span class="ed-baseline-glyph">${waqfGlyph(baseline)}</span> (${baseline})`
             : 'لا توجد علامة وقف في المدينة عند هذه الكلمة';
+        renderPopupPeers(wordEl);
 
         const current = wordEl.dataset.symbol || '';
         els.popupSyms.querySelectorAll('.ed-sym-btn').forEach(b => {
@@ -517,8 +655,15 @@
         if (returnTo && returnTo.isConnected) returnTo.focus();
     }
     function trapPopupFocus(event) {
-        const focusable = [els.popupClose, ...els.popupSyms.querySelectorAll('.ed-sym-btn'), els.popupClear]
-            .filter(control => !control.disabled);
+        const peerBtns = els.popupPeers
+            ? [...els.popupPeers.querySelectorAll('.ed-peer-btn')]
+            : [];
+        const focusable = [
+            els.popupClose,
+            ...peerBtns,
+            ...els.popupSyms.querySelectorAll('.ed-sym-btn'),
+            els.popupClear,
+        ].filter(control => control && !control.disabled);
         if (!focusable.length) return;
         const index = focusable.indexOf(document.activeElement);
         if (event.shiftKey && index <= 0) {
@@ -532,8 +677,11 @@
     function setPopupBusy(busy) {
         popupBusy = !!busy;
         window.AtharUi.setBusy(els.popup, popupBusy);
-        [els.popupClose, els.popupClear, ...els.popupSyms.querySelectorAll('.ed-sym-btn')]
-            .forEach(control => { control.disabled = popupBusy; });
+        const peerBtns = els.popupPeers
+            ? [...els.popupPeers.querySelectorAll('.ed-peer-btn')]
+            : [];
+        [els.popupClose, els.popupClear, ...els.popupSyms.querySelectorAll('.ed-sym-btn'), ...peerBtns]
+            .forEach(control => { if (control) control.disabled = popupBusy; });
     }
 
     async function setSymbol(sym) {
@@ -547,8 +695,8 @@
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ word_id: wordId, edition: state.edition, symbol: sym }),
             });
-            applyWordMark(wordEl, data.symbol || '');
-            requestAnimationFrame(justifyLines); // mark glyph can shift the line's width
+            applyWordMark(wordEl, data.symbol || '', wordEl.dataset.baseline || '');
+            requestAnimationFrame(justifyLines);
             saved = true;
             setStatus('تم حفظ علامة الوقف');
         } catch (e) {
@@ -576,5 +724,5 @@
     buildPopupButtons();
     updateEditionUI();
     loadProgress();
-    loadSpread();
+    loadPage();
 })();

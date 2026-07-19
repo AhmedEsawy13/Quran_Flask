@@ -35,7 +35,7 @@
         <div class="ed-bar-intro">
             <p class="athar-kicker">— محرّر المصحف</p>
             <h1 class="ed-title athar-display" id="ed-title" aria-label="راجع المصحف، واضبط الوقف.">راجِع المصحــف، واضبط الوقف.</h1>
-            <p class="ed-subtitle">قارن النسخة المطبوعة بأصل المدينة، ثم ثبّت مواضع الاختلاف.</p>
+            <p class="ed-subtitle">قارن النسخة المطبوعة بأصل المدينة، ثم ثبّت مواضع الاختلاف. <a href="/azhar-layout">تخطيط الأزهر</a></p>
         </div>
 
         <div class="ed-bar-tools" aria-label="أدوات المحرّر">
@@ -47,7 +47,7 @@
             <div class="ed-review-group">
                 <div class="ed-progress" id="ed-progress" role="progressbar" aria-label="الصفحات المراجَعة" aria-valuemin="0" aria-valuemax="604" aria-valuenow="0"></div>
 
-                <label class="ed-reviewed-toggle" title="وضع علامة على هاتين الصفحتين كمُراجَعتين">
+                <label class="ed-reviewed-toggle" title="وضع علامة على هذه الصفحة كمُراجَعة">
                     <input type="checkbox" id="ed-reviewed">
                     <span>تمت المراجعة</span>
                 </label>
@@ -60,9 +60,9 @@
                 </div>
 
                 <div class="ed-nav">
-                    <button class="ed-icon-btn athar-icon-button" id="ed-prev" type="button" title="السابق" aria-label="الصفحتان السابقتان"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
-                    <span class="ed-spread-label" id="ed-spread-label" aria-live="polite"></span>
-                    <button class="ed-icon-btn athar-icon-button" id="ed-next" type="button" title="التالي" aria-label="الصفحتان التاليتان"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+                    <button class="ed-icon-btn athar-icon-button" id="ed-prev" type="button" title="السابق" aria-label="الصفحة السابقة"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+                    <span class="ed-page-label" id="ed-page-label" aria-live="polite"></span>
+                    <button class="ed-icon-btn athar-icon-button" id="ed-next" type="button" title="التالي" aria-label="الصفحة التالية"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
                 </div>
             </div>
         </div>
@@ -72,33 +72,37 @@
     <aside class="ed-legend" id="ed-legend" aria-label="دليل علامات الوقف"></aside>
 
     <main class="ed-main" id="athar-main" tabindex="-1" aria-labelledby="ed-title">
-        <div class="ed-spread" id="ed-spread">
-            <div class="ed-page-card athar-page-card" data-side="right">
+        <div class="ed-compare" id="ed-compare">
+            <div class="ed-work athar-page-card" id="ed-work">
                 <div class="ed-page-header athar-page-head">
                     <span class="ed-head-info">
-                        <span class="ed-head-juz athar-page-head-juz" id="ed-juz-r"></span>
-                        <span class="ed-head-surah athar-page-head-surah" id="ed-surah-r"></span>
+                        <span class="ed-head-juz athar-page-head-juz" id="ed-juz"></span>
+                        <span class="ed-head-surah athar-page-head-surah" id="ed-surah"></span>
                     </span>
                     <span class="ed-head-info">
-                        <span class="ed-page-num" id="ed-page-r-num"></span>
-                        <button class="ed-ref-btn athar-icon-button" id="ed-ref-r" type="button" aria-label="فتح مرجع الصفحة" hidden><i class="fas fa-book-open" aria-hidden="true"></i></button>
+                        <span class="ed-page-num" id="ed-page-num"></span>
                     </span>
                 </div>
-                <div class="ed-page" id="ed-page-r" dir="rtl"></div>
+                <div class="ed-page" id="ed-page" dir="rtl"></div>
             </div>
-            <div class="ed-page-card athar-page-card" data-side="left">
-                <div class="ed-page-header athar-page-head">
-                    <span class="ed-head-info">
-                        <span class="ed-head-juz athar-page-head-juz" id="ed-juz-l"></span>
-                        <span class="ed-head-surah athar-page-head-surah" id="ed-surah-l"></span>
-                    </span>
-                    <span class="ed-head-info">
-                        <span class="ed-page-num" id="ed-page-l-num"></span>
-                        <button class="ed-ref-btn athar-icon-button" id="ed-ref-l" type="button" aria-label="فتح مرجع الصفحة" hidden><i class="fas fa-book-open" aria-hidden="true"></i></button>
-                    </span>
+
+            <aside class="ed-ref-panel" id="ed-ref-panel" aria-label="مرجع المصحف المطبوع">
+                <div class="ed-ref-header">
+                    <span class="ed-ref-title" id="ed-ref-title">المرجع</span>
+                    <button class="ed-ref-open athar-icon-button" id="ed-ref-open" type="button" title="فتح المرجع في تبويب جديد" aria-label="فتح المرجع في تبويب جديد" hidden>
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                        <span>فتح في تبويب جديد</span>
+                    </button>
                 </div>
-                <div class="ed-page" id="ed-page-l" dir="rtl"></div>
-            </div>
+                <div class="ed-ref-frame-wrap">
+                    <img class="ed-ref-img" id="ed-ref-img" alt="صفحة المصحف المطبوع" decoding="async" hidden>
+                    <div class="ed-ref-loading" id="ed-ref-loading" hidden>جارٍ تحميل المرجع…</div>
+                    <div class="ed-ref-fallback" id="ed-ref-fallback" hidden>
+                        <p class="ed-ref-fallback-text">تعذّر تحميل صورة المرجع. افتحه في تبويب جديد للمقارنة.</p>
+                        <button class="ed-ref-fallback-btn" id="ed-ref-fallback-btn" type="button">فتح المرجع</button>
+                    </div>
+                </div>
+            </aside>
         </div>
     </main>
 
@@ -110,6 +114,7 @@
             <button class="ed-popup-close athar-icon-button" id="ed-popup-close" type="button" aria-label="إغلاق"><i class="fas fa-xmark" aria-hidden="true"></i></button>
         </div>
         <div class="ed-popup-baseline" id="ed-popup-baseline"></div>
+        <div class="ed-popup-peers" id="ed-popup-peers" hidden></div>
         <div class="ed-popup-syms" id="ed-popup-syms"></div>
         <button class="ed-popup-clear" id="ed-popup-clear" type="button"><i class="fas fa-eraser" aria-hidden="true"></i> بلا علامة</button>
     </div>

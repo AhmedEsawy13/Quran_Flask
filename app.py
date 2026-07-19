@@ -57,10 +57,12 @@ def after_request(response):
         # cdn.jsdelivr.net + blob: → onnxruntime-web (recitation ASR); wasm needs 'unsafe-eval'/'wasm-unsafe-eval'.
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://unpkg.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://vercel.live https://va.vercel-scripts.com https://www.youtube.com; "
         "worker-src 'self' blob:; "
-        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com; "
+        # archive.org / tafsir.app → mushaf-editor printed-edition reference panel.
+        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://archive.org https://*.archive.org https://tafsir.app https://*.tafsir.app; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
-        "img-src 'self' data:; "
+        # archive.org → mushaf-editor printed-page reference images (leaf JPGs).
+        "img-src 'self' data: https://archive.org https://*.archive.org; "
         # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…).
         # *.googlevideo.com → YouTube audio streams (IFrame Player API).
         # drive.usercontent.google.com → Google Drive direct-download MP3s (_gd_ reciters).
@@ -79,6 +81,7 @@ def after_request(response):
         # 1-hour cache made just-saved marks appear to "not save" on reload.
         if (request.args.get('mushaf_version')
                 or request.path.startswith('/api/mushaf-editor/')
+                or request.path.startswith('/api/azhar-layout/')
                 or request.path.startswith('/api/classical-review/')):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
         elif request.path.startswith('/api/waqf-research/'):
@@ -137,6 +140,7 @@ from core.text import (
 
 
 import modules.editor  # noqa: F401 — attaches editor routes to editor_bp
+import modules.azhar_layout  # noqa: F401 — /azhar-layout layout writer (ENABLE_EDITOR)
 from modules.layouts import (  # noqa: F401 — importing also registers layout routes
     _find_mushaf_row_match_index,
     _normalize_mushaf_word_token,

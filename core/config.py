@@ -26,6 +26,14 @@ QPC_V1_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'qpc-v1-15-lines.db')
 # مصحف قطر's own 15-line layout (same 1..83668 word numbering, different line
 # breaks than the Old Madina 1405 print). Used only by the mushaf-editor.
 QATAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-qatar-layout.db')
+# مصحف الأزهر page geometry — seeded from الشمرلي (Shemrly word_index), edited
+# via /azhar-layout (ENABLE_EDITOR). Rendered with Amiri Quran + الأزهر waqf.
+AZHAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-azhar-layout.db')
+SHAMARLY_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_layout_inferred.db')
+QURAN_SCRIPT_DATABASE = os.path.join(_ROOT, 'data', 'quran_script.db')
+AZHAR_LAYOUT_MIN_PAGE = 2
+AZHAR_LAYOUT_MAX_PAGE = 522
+
 # Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
 # from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
 TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')

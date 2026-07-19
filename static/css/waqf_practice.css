@@ -54,8 +54,7 @@ body.athar-training {
 .wp-section[hidden],
 .wp-intro[hidden],
 .wp-hint[hidden],
-.wp-page-state[hidden],
-#wp-layout[hidden] { display: none; }
+.wp-page-state[hidden] { display: none; }
 
 /* -------------------------------------------------------------- toolbar */
 .wp-toolbar.athar-tool-chrome {
@@ -249,28 +248,207 @@ body.athar-training {
   vertical-align: middle;
 }
 
-/* Real Madinah line view. */
-.wp-passage.wp-ml { font-family: 'Digital Khatt', 'UthmanicHafs', serif; line-height: 2.35; text-align: center; }
-.wp-passage.wp-ml.wp-ml-src-qpc-v1 { font-family: 'Old Madina', 'UthmanicHafs', serif; }
-:root[data-theme="dark"] .wp-passage.wp-ml:not(.wp-ml-src-qpc-v1) { font-palette: --wp-dk-dark; }
-.wp-ml-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 .35em; direction: rtl; }
-.wp-ml-line.is-centered,
-.wp-ml-line:last-child { justify-content: center; }
-.wp-ml .wp-word,
-.wp-ml-ctx { padding: .55em .04em 0; }
-.wp-ml-ctx { color: var(--wp-quran); opacity: .4; }
-.wp-ml-num { margin-inline: .1em; color: var(--athar-accent); font-size: .72em; }
-.wp-ml-surah {
-  margin: .3em 0;
-  padding: .15em 0;
-  border-block: 1px solid var(--athar-line);
-  color: var(--athar-accent);
-  font-family: var(--font-ui);
-  font-size: .86em;
-  font-weight: 700;
-  text-align: center;
+/* Real mushaf page cards — same geometry/chrome as تثبيت. */
+@font-face { font-family: 'QCF Basmala'; src: url('../fonts/QCF BSML @Am9li9.ttf') format('truetype'); font-display: swap; }
+
+.wp-passage.wp-ml-pages {
+  --wp-paper: var(--athar-surface);
+  --wp-paper-edge: var(--athar-line);
+  --wp-surah-frame: var(--athar-gold);
+  --wp-surah-ink: color-mix(in srgb, var(--athar-gold) 78%, var(--athar-ink));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding-block: 8px;
+  text-align: initial;
+  line-height: 1;
+  font-size: inherit;
 }
-.wp-ml-basmala { margin: .2em 0; color: var(--wp-muted); font-size: .9em; text-align: center; }
+.wp-ml-card {
+  /* Card hugs the page + chrome padding — do NOT lock width to --wp-page-w
+     (that made the page wider than the border and spilled text past the edge). */
+  width: max-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  background: var(--wp-paper);
+  border: 1px solid var(--wp-paper-edge);
+  border-radius: 16px;
+  box-shadow: var(--athar-shadow-sm);
+  padding: clamp(6px, 0.7vw, 12px) clamp(8px, 0.9vw, 13px) 6px;
+  overflow: hidden;
+}
+.wp-ml-page-header {
+  gap: 8px;
+  padding: 2px 4px 8px;
+  margin-bottom: 5px;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--athar-ink-soft);
+}
+.wp-ml-head-juz.athar-page-juz-glyph {
+  font-size: 1.7em;
+  line-height: 1.45;
+  color: var(--athar-ink);
+  padding-bottom: 0.05em;
+}
+.wp-ml-head-surah .athar-page-surah-glyph {
+  font-size: 1.35em;
+  line-height: 1.55;
+  color: var(--athar-ink);
+  padding-bottom: 0.08em;
+}
+.wp-ml-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: var(--wp-page-w, 360px);
+  max-width: 100%;
+  height: var(--wp-page-h, 545px);
+  padding: 4px;
+  color: var(--wp-quran);
+  --wp-fs: 22px;
+  overflow: hidden;
+}
+.wp-ml-page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--athar-accent) 18%, transparent);
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--athar-ink-soft);
+}
+.wp-ml-foot-page {
+  background: var(--athar-parchment-2, var(--athar-parchment));
+  color: var(--athar-ink);
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 26%, var(--athar-line));
+  border-radius: 999px;
+  padding: 2px 14px;
+  font-weight: 700;
+}
+
+.wp-ml-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  direction: rtl;
+}
+.wp-ml-line-inner {
+  white-space: nowrap;
+  font-family: 'Digital Khatt', serif;
+  font-size: var(--wp-fs);
+  line-height: 1;
+  color: var(--wp-quran);
+  direction: rtl;
+  transform-origin: center center;
+}
+.wp-ml-page.wp-ml-src-qpc-v1 .wp-ml-line-inner,
+.wp-ml-page.wp-ml-src-qpc-v1 .wp-ml-line-basmala {
+  font-family: 'Old Madina', serif;
+}
+:root[data-theme="dark"] .wp-ml-page.wp-ml-src-digital-khatt .wp-ml-line-inner {
+  font-palette: --wp-dk-dark;
+}
+
+.wp-ml-line-surah {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  color: var(--athar-accent);
+  font-size: calc(var(--wp-fs) * 0.7);
+  white-space: nowrap;
+  max-width: 92%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wp-ml-line-surah.wp-ml-surah-glyph {
+  position: relative;
+  box-sizing: border-box;
+  width: 92%;
+  max-width: 92%;
+  margin: 0.18em auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: 'Surah Names', serif;
+  font-weight: 400;
+  color: var(--wp-surah-ink);
+  font-size: calc(var(--wp-fs) * 0.92);
+  line-height: 1.2;
+  white-space: nowrap;
+  padding: 0.06em 1.6em;
+  border: 1px solid var(--wp-surah-frame);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--wp-surah-frame) 8%, var(--wp-paper));
+  box-shadow:
+    inset 0 0 0 2px var(--wp-paper),
+    inset 0 0 0 3px color-mix(in srgb, var(--wp-surah-frame) 55%, transparent);
+}
+.wp-ml-line-surah.wp-ml-surah-glyph::before,
+.wp-ml-line-surah.wp-ml-surah-glyph::after {
+  content: '۞';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Digital Khatt', serif;
+  font-size: calc(var(--wp-fs) * 0.7);
+  color: var(--wp-surah-frame);
+}
+.wp-ml-line-surah.wp-ml-surah-glyph::before { right: 0.45em; }
+.wp-ml-line-surah.wp-ml-surah-glyph::after { left: 0.45em; }
+
+.wp-ml-line-basmala {
+  font-family: 'Digital Khatt', serif;
+  color: var(--athar-ink);
+  font-size: calc(var(--wp-fs) * 0.86);
+  white-space: nowrap;
+}
+.wp-ml-line-basmala.wp-ml-basmala-glyph,
+.wp-ml-page.wp-ml-src-qpc-v1 .wp-ml-line-basmala.wp-ml-basmala-glyph {
+  font-family: 'QCF Basmala', serif;
+  font-size: calc(var(--wp-fs) * 1.7);
+  line-height: 1;
+}
+
+.wp-ml .wp-word,
+.wp-ml-ctx,
+.wp-ml-num {
+  display: inline-block;
+  position: relative;
+  padding: 0.55em 0.02em 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0.18em;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+.wp-ml .wp-word:hover {
+  background: color-mix(in srgb, var(--athar-accent) 14%, transparent);
+}
+.wp-ml .wp-word.wp-stopped {
+  background: color-mix(in srgb, var(--athar-accent) 22%, transparent);
+  box-shadow: inset 0 -0.12em 0 var(--athar-accent);
+}
+.wp-ml-ctx { opacity: 0.38; cursor: default; pointer-events: none; }
+.wp-ml-num { cursor: default; pointer-events: none; color: inherit; }
+
+/* Legacy free-flow mushaf lines (fallback only). */
+.wp-passage.wp-ml:not(.wp-ml-pages) { font-family: 'Digital Khatt', 'UthmanicHafs', serif; line-height: 2.35; text-align: center; }
+.wp-passage.wp-ml.wp-ml-src-qpc-v1:not(.wp-ml-pages) { font-family: 'Old Madina', 'UthmanicHafs', serif; }
 
 .wp-actions {
   display: flex;
@@ -342,7 +520,28 @@ body.athar-training {
 
 .wp-passage-graded { cursor: default; }
 .wp-gword { padding-inline: .06em; border-radius: 6px; }
-.wp-stop { box-shadow: inset 0 -3px 0 currentColor; }
+.wp-gword { position: relative; }
+.wp-mark-badge {
+  display: inline-block;
+  margin-inline-start: 0.12em;
+  padding: 0 0.28em;
+  border-radius: 0.35em;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  color: inherit;
+  font-family: var(--font-ui);
+  font-size: 0.62em;
+  font-weight: 700;
+  line-height: 1.35;
+  vertical-align: super;
+}
+.wp-mark-badge.is-empty {
+  opacity: 0.65;
+  font-weight: 600;
+}
+.wp-mark-badge.is-ideal {
+  color: var(--athar-success, #15803d);
+  background: color-mix(in srgb, var(--athar-success, #15803d) 14%, transparent);
+}
 .wp-w-ex   { color: #15803d; } .wp-dot.wp-w-ex   { background: #15803d; }
 .wp-w-good { color: #0369a1; } .wp-dot.wp-w-good { background: #0369a1; }
 .wp-w-ok   { color: #0d9488; } .wp-dot.wp-w-ok   { background: #0d9488; }

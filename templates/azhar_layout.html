@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>أثَر · تخطيط مصحف الأزهر</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <link rel="preload" href="{{ url_for('static', filename='fonts/amiri_quran.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/azhar_layout.css') }}">
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
+
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body class="athar-editor az-layout">
+    {{ athar_app_bar() }}
+
+    <section class="az-bar" id="az-bar" aria-labelledby="az-title">
+        <div class="az-bar-intro">
+            <p class="athar-kicker">— تخطيط المصحف</p>
+            <h1 class="az-title athar-display" id="az-title">مصحف الأزهر — سطراً سطراً</h1>
+            <p class="az-subtitle">طابق السطور مع المصحف المطبوع. اسحب كلمة إلى سطر لتغيير الحد، أو ألغِ قبل الحفظ. البذرة من تخطيط الشمرلي.</p>
+        </div>
+
+        <div class="az-bar-tools" aria-label="أدوات التخطيط">
+            <div class="az-review-group">
+                <div class="az-progress" id="az-progress" role="progressbar" aria-label="الصفحات المطابَقة" aria-valuemin="0" aria-valuemax="521" aria-valuenow="0"></div>
+                <label class="az-reviewed-toggle" title="هذه الصفحة مطابقة للمطبوع">
+                    <input type="checkbox" id="az-reviewed">
+                    <span>مطابِق للمطبوع</span>
+                </label>
+            </div>
+
+            <div class="az-location-tools">
+                <div class="az-jump">
+                    <input class="athar-field" type="number" id="az-jump-page" min="2" max="522" placeholder="صفحة" aria-label="الانتقال إلى صفحة">
+                    <button class="az-icon-btn athar-icon-button" id="az-jump-go" type="button" title="انتقال" aria-label="انتقال"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
+                </div>
+                <div class="az-jump az-jump-ayah">
+                    <input class="athar-field" type="number" id="az-jump-surah" min="1" max="114" placeholder="سورة" aria-label="رقم السورة">
+                    <input class="athar-field" type="number" id="az-jump-ayah" min="1" max="286" placeholder="آية" aria-label="رقم الآية">
+                    <button class="az-icon-btn athar-icon-button" id="az-jump-ayah-go" type="button" title="إلى الآية" aria-label="إلى الآية"><i class="fas fa-search" aria-hidden="true"></i></button>
+                </div>
+                <div class="az-nav">
+                    <button class="az-icon-btn athar-icon-button" id="az-prev" type="button" title="السابق" aria-label="الصفحة السابقة"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+                    <span class="az-page-label" id="az-page-label" aria-live="polite"></span>
+                    <button class="az-icon-btn athar-icon-button" id="az-next" type="button" title="التالي" aria-label="الصفحة التالية"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+                </div>
+            </div>
+
+            <a class="az-link-editor" href="/mushaf-editor">محرّر الوقف</a>
+        </div>
+    </section>
+
+    <div class="az-toast" id="az-status" role="status" aria-live="polite" hidden></div>
+    <aside class="az-hint" aria-label="تعليمات">
+        <span>اسحب كلمة وأفلتها على سطر لنقل الحد</span>
+        <span class="az-hint-boundary">أول/آخر كلمة في السطر مظلّلة — مهمة للمطابقة</span>
+        <span>زر الدمج = دمج مع السطر التالي</span>
+        <span>أثناء السحب: إلغاء (X) أو Escape</span>
+    </aside>
+
+    <div class="az-cancel-bar" id="az-cancel-bar" hidden>
+        <span class="az-cancel-label">جارٍ نقل الكلمة — أفلتها على سطر أو ألغِ</span>
+        <button type="button" class="az-cancel-btn" id="az-cancel" title="إلغاء" aria-label="إلغاء">
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+            <span>إلغاء</span>
+        </button>
+    </div>
+
+    <main class="az-main" id="athar-main" tabindex="-1" aria-labelledby="az-title">
+        <div class="az-work athar-page-card" id="az-work">
+            <div class="az-page-header athar-page-head">
+                <span class="az-head-info">
+                    <span class="az-head-juz athar-page-head-juz" id="az-juz"></span>
+                    <span class="az-head-surah athar-page-head-surah" id="az-surah"></span>
+                </span>
+                <span class="az-head-info">
+                    <span class="az-page-num" id="az-page-num"></span>
+                </span>
+            </div>
+            <div class="az-page" id="az-page" dir="rtl"></div>
+        </div>
+    </main>
+
+    <script src="{{ static_hash('js/azhar_layout.js') }}"></script>
+</body>
+</html>

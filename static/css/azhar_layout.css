@@ -1,0 +1,216 @@
+/* Azhar layout workspace — Amiri page editor
+   Page geometry / fit matches mushaf_editor (15-line box + justifier). */
+
+@font-face {
+    font-family: 'AmiriQuran';
+    src: url('../fonts/amiri_quran.woff2') format('woff2');
+    font-display: swap;
+}
+
+:root {
+    --az-accent: var(--athar-accent);
+    --az-accent-soft: color-mix(in srgb, var(--athar-accent) 12%, transparent);
+    --az-bg: var(--athar-parchment);
+    --az-paper: var(--athar-surface);
+    --az-paper-2: var(--athar-parchment-2);
+    --az-border: var(--athar-line);
+    --az-ink: var(--athar-ink);
+    --az-muted: var(--athar-ink-faint);
+    --az-page-w: clamp(260px, 42vw, 520px);
+    --az-page-h: clamp(394px, 63.6vw, 788px);
+    --az-fs: 22px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body.az-layout {
+    font-family: var(--font-ui);
+    background: var(--az-bg); color: var(--az-ink);
+    min-height: 100vh; display: flex; flex-direction: column; overflow-x: clip;
+}
+
+.az-bar {
+    display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(0, 2fr);
+    align-items: center; gap: 16px; padding: 12px clamp(16px, 3vw, 40px);
+    background: color-mix(in srgb, var(--az-bg) 91%, transparent);
+    border-bottom: 1px solid var(--az-border);
+    position: sticky; top: var(--athar-bar-h); z-index: 20;
+    box-shadow: var(--athar-shadow-sm);
+    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+}
+.az-bar-intro { display: grid; gap: 2px; min-width: 0; }
+.az-title { margin: 0; font-size: clamp(1.3rem, 2vw, 1.7rem); line-height: 1.1; }
+.az-subtitle { margin: 0; color: var(--athar-ink-soft); font-family: var(--font-serif); font-size: 0.78rem; line-height: 1.45; max-width: 48ch; }
+.az-bar-tools { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.az-review-group, .az-location-tools {
+    min-height: 46px; display: flex; align-items: center; gap: 8px; padding: 5px 9px;
+    border: 1px solid var(--az-border); border-radius: var(--athar-radius-surface); background: var(--az-paper);
+}
+.az-icon-btn { width: 36px; height: 36px; min-height: 36px; border-radius: 9px; background: var(--az-paper-2); }
+.az-progress { font-size: 0.78rem; color: var(--athar-ink-soft); font-weight: 700; white-space: nowrap; }
+.az-reviewed-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; cursor: pointer; white-space: nowrap; }
+.az-reviewed-toggle input { width: 16px; height: 16px; accent-color: var(--az-accent); cursor: pointer; }
+.az-jump { display: flex; gap: 4px; }
+.az-jump input {
+    width: 72px; min-height: 36px; border-radius: 8px; border: 1px solid var(--az-border);
+    background: var(--az-paper-2); color: var(--az-ink); padding: 0 6px;
+    font-family: inherit; font-size: 0.88rem; text-align: center;
+}
+.az-jump-ayah input { width: 64px; }
+.az-nav { display: flex; align-items: center; gap: 6px; }
+.az-page-label { font-size: 0.88rem; font-weight: 600; min-width: 72px; text-align: center; }
+.az-link-editor {
+    font-size: 0.82rem; font-weight: 600; color: var(--az-accent); text-decoration: none;
+    padding: 8px 12px; border: 1px solid var(--az-border); border-radius: 8px; background: var(--az-paper);
+}
+.az-link-editor:hover { border-color: var(--az-accent); }
+
+.az-toast {
+    position: fixed; top: calc(var(--athar-bar-h) + 14px); left: 50%; transform: translateX(-50%) translateY(-12px);
+    background: var(--az-ink); color: var(--az-paper); padding: 8px 18px; border-radius: 999px;
+    font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 60;
+}
+.az-toast.az-show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.az-toast.az-err { background: #b91c1c; color: #fff; }
+
+.az-hint {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    padding: 8px 14px; font-size: 0.8rem; color: var(--az-muted);
+}
+.az-hint span {
+    border: 1px solid var(--az-border); border-radius: 999px; padding: 4px 10px; background: var(--az-paper);
+}
+.az-hint-boundary { border-color: color-mix(in srgb, var(--az-accent) 40%, var(--az-border)); }
+
+.az-main {
+    width: 100%; min-width: 0; flex: 1 1 auto;
+    display: flex; align-items: center; justify-content: center; padding: 18px 10px 28px;
+}
+.az-main.athar-is-busy .az-work { opacity: 0.56; pointer-events: none; }
+.az-work { flex: 0 0 auto; width: var(--az-page-w); display: flex; flex-direction: column; }
+.az-page-header {
+    width: 100%; gap: 6px; min-height: 28px; margin-bottom: 4px;
+    text-align: center; font-size: 0.8rem; color: var(--az-muted); font-weight: 600;
+}
+.az-head-info { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.az-head-juz.athar-page-juz-glyph { font-size: 1.5em; line-height: 1.4; color: var(--az-ink); }
+.az-head-surah { gap: 8px; color: var(--az-accent); }
+
+/* Same contract as .ed-page: overflow is a safety net; font + justifier keep words in. */
+.az-page {
+    width: var(--az-page-w); height: var(--az-page-h); background: var(--az-paper);
+    border: 1px solid var(--az-border); border-radius: 6px;
+    padding: 14px 12px; display: flex; flex-direction: column; justify-content: space-between;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden;
+}
+.az-line {
+    flex: 1 1 0; display: flex; align-items: center; justify-content: center;
+    min-height: 0; overflow: hidden; direction: rtl; position: relative;
+}
+.az-line-special {
+    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
+    color: var(--az-accent); font-size: calc(var(--az-fs) * 0.7);
+    white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.4;
+}
+.az-line-inner {
+    white-space: nowrap; font-size: var(--az-fs); line-height: 1.45;
+    direction: rtl; transform-origin: center center; will-change: transform;
+}
+
+/* Borderless interactive words — same idea as .ed-word (no chip border inflation). */
+.az-word {
+    font-family: 'AmiriQuran', 'Amiri Quran', 'Amiri', serif;
+    line-height: 1.45; padding: 0.35em 0.05em 0.12em; border-radius: 0.2em;
+    cursor: grab; position: relative;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.az-word:hover { background: var(--az-accent-soft); }
+.az-word:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; background: var(--az-accent-soft); }
+.az-word.az-word-dragging { opacity: 0.35; cursor: grabbing; }
+.az-word.az-ayah-end { padding-inline: 0.06em; }
+
+/* Line boundary markers — underline only (does not widen the line). */
+.az-word.az-word-start {
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--az-accent) 75%, transparent);
+}
+.az-word.az-word-end {
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, #b45309 80%, transparent);
+}
+.az-word.az-word-start.az-word-end {
+    box-shadow: inset 0 -2px 0 var(--az-accent);
+}
+
+body.az-dragging {
+    cursor: grabbing;
+    user-select: none;
+    -webkit-user-select: none;
+}
+body.az-dragging .az-word { cursor: grabbing; }
+
+.az-drag-ghost {
+    position: fixed; top: 0; left: 0; z-index: 80; pointer-events: none;
+    font-family: 'AmiriQuran', 'Amiri Quran', 'Amiri', serif;
+    font-size: var(--az-fs, 22px); line-height: 1.45; direction: rtl;
+    padding: 0.12em 0.35em 0.18em;
+    border: 1px solid var(--az-accent);
+    border-radius: 0.28em;
+    background: var(--az-paper);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    white-space: nowrap;
+}
+
+.az-line.az-drop-target {
+    outline: 1px dashed color-mix(in srgb, var(--az-accent) 35%, transparent);
+    outline-offset: -2px; border-radius: 4px;
+}
+.az-line.az-drop-hover {
+    outline: 2px solid var(--az-accent);
+    outline-offset: -2px;
+    background: color-mix(in srgb, var(--az-accent) 8%, transparent);
+}
+
+.az-cancel-bar {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 10px 16px;
+    background: color-mix(in srgb, var(--az-ink) 92%, transparent);
+    color: var(--az-paper);
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    z-index: 70; border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    max-width: min(92vw, 420px);
+}
+.az-cancel-bar[hidden] { display: none !important; }
+.az-cancel-label { font-size: 0.85rem; font-weight: 600; }
+.az-cancel-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 34px; padding: 0 12px; border-radius: 8px;
+    border: 1px solid color-mix(in srgb, #fff 35%, transparent);
+    background: #b91c1c; color: #fff;
+    font-family: inherit; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+}
+.az-cancel-btn:hover { filter: brightness(1.06); }
+.az-cancel-btn:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; }
+
+.az-line-tools {
+    position: absolute; inset-inline-start: 2px; top: 50%; transform: translateY(-50%);
+    opacity: 0; transition: opacity 0.12s; z-index: 2;
+}
+.az-line:hover .az-line-tools, .az-line:focus-within .az-line-tools { opacity: 1; }
+body.az-dragging .az-line-tools { opacity: 0; pointer-events: none; }
+.az-merge-btn {
+    width: 22px; height: 22px; min-height: 22px; padding: 0; border-radius: 5px;
+    border: 1px solid var(--az-border); background: var(--az-paper-2);
+    color: var(--az-muted); cursor: pointer; font-size: 0.65rem;
+}
+.az-merge-btn:hover { border-color: var(--az-accent); color: var(--az-accent); }
+
+@media (max-width: 900px) {
+    .az-bar { grid-template-columns: 1fr; }
+    .az-bar-tools { justify-content: flex-start; }
+    .az-subtitle { display: none; }
+}
+@media (max-width: 720px) {
+    .az-bar { position: static; }
+    .az-reviewed-toggle span { display: none; }
+}

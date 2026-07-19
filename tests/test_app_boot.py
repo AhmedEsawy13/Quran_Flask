@@ -240,13 +240,18 @@ def test_waqf_practice_uses_shared_training_foundation(client):
 
     assert '<body class="athar-training">' in page
     assert 'css/athar-components.css' in page
+    assert 'css/athar-page-chrome.css' in page
+    assert 'js/athar-page-chrome.js' in page
     assert 'css/waqf_practice.css' in page
     assert 'css/mushaf_memorize.css' not in page
     assert page.index('css/athar-components.css') < page.index('css/waqf_practice.css')
+    assert 'wp-ml-pages' in script
+    assert 'AtharPageChrome.sizePages' in script
+    assert 'id="wp-layout"' not in page
     assert 'id="wp-intro" aria-labelledby="wp-title"' in page
     assert 'id="wp-title" aria-label="اختبر وقفك، ثم افهم النتيجة."' in page
     assert 'اختبر وقفــك، ثم افهم النتيجة.' in page
-    assert 'class="wp-toolbar athar-toolbar"' in page
+    assert 'class="wp-toolbar athar-tool-chrome"' in page
     assert page.count('class="wp-section athar-surface') == 3
     assert 'aria-controls="wp-range-panel"' in page
     assert 'aria-controls="wp-mushaf-panel"' in page

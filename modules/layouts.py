@@ -20,6 +20,8 @@ from core.blueprints import core_bp
 from core.config import (
     DIGITAL_KHATT_LAYOUT_DATABASE,
     QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
+    AZHAR_LAYOUT_DATABASE, QURAN_SCRIPT_DATABASE,
+    AZHAR_LAYOUT_MIN_PAGE, AZHAR_LAYOUT_MAX_PAGE,
     SHEMRLY_CODEPOINT_BASE, ARABIC_DIACRITICS_STRIP_PATTERN,
     ARABIC_INDIC_DIGIT_PATTERN, _BASE_DIR,
 )
@@ -1354,4 +1356,280 @@ def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
         return jsonify(payload)
     except Exception as e:
         logger.error(f"Error fetching QPC V1 page by ayah {surah_number}:{ayah_number}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+def _build_azhar_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
+    """Azhar page: Shemrly-seeded geometry + Amiri unicode text (no page glyphs)."""
+    if not os.path.exists(AZHAR_LAYOUT_DATABASE):
+        return None
+    _open_conns = []
+
+    def _track(c):
+        _open_conns.append(c)
+        return c
+
+    try:
+        return _build_azhar_page_payload_impl(
+            page_number, focus_surah, focus_ayah, mushaf_version, _track
+        )
+    finally:
+        for c in _open_conns:
+            try:
+                c.close()
+            except Exception:
+                pass
+
+
+def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_version, _track):
+    layout_conn = _track(sqlite3.connect(AZHAR_LAYOUT_DATABASE))
+    layout_conn.row_factory = sqlite3.Row
+    layout_cursor = layout_conn.cursor()
+    layout_cursor.execute(
+        '''
+        SELECT page_number, line_number, line_type, is_centered,
+               first_word_id, last_word_id, surah_number, line_text
+        FROM pages
+        WHERE page_number = ?
+        ORDER BY line_number ASC
+        ''',
+        (page_number,),
+    )
+    lines = [dict(row) for row in layout_cursor.fetchall()]
+    layout_cursor.execute(
+        'SELECT font_name, number_of_pages, lines_per_page, name FROM info LIMIT 1'
+    )
+    info_row = layout_cursor.fetchone()
+    layout_conn.close()
+    if not lines:
+        return None
+
+    word_ranges = [
+        (line.get('first_word_id'), line.get('last_word_id'))
+        for line in lines
+        if line.get('first_word_id') is not None and line.get('last_word_id') is not None
+    ]
+    min_word_id = min((int(rng[0]) for rng in word_ranges), default=None)
+    max_word_id = max((int(rng[1]) for rng in word_ranges), default=None)
+
+    focus_word_indices = set()
+    if focus_surah is not None and focus_ayah is not None:
+        words_conn = _track(sqlite3.connect(QURAN_SCRIPT_DATABASE))
+        words_conn.row_factory = sqlite3.Row
+        words_cursor = words_conn.cursor()
+        words_cursor.execute(
+            'SELECT word_index FROM words WHERE surah = ? AND ayah = ?',
+            (focus_surah, focus_ayah),
+        )
+        focus_word_indices = {int(row['word_index']) for row in words_cursor.fetchall()}
+        words_conn.close()
+
+    page_word_by_index = {}
+    if min_word_id is not None and max_word_id is not None:
+        words_conn = _track(sqlite3.connect(QURAN_SCRIPT_DATABASE))
+        words_conn.row_factory = sqlite3.Row
+        words_cursor = words_conn.cursor()
+        words_cursor.execute(
+            '''
+            SELECT word_index, surah, ayah, text
+            FROM words
+            WHERE word_index BETWEEN ? AND ?
+            ORDER BY word_index ASC
+            ''',
+            (min_word_id, max_word_id),
+        )
+        for row in words_cursor.fetchall():
+            page_word_by_index[int(row['word_index'])] = {
+                'word_index': int(row['word_index']),
+                'surah': int(row['surah']),
+                'ayah': int(row['ayah']),
+                'text': row['text'] or '',
+            }
+        words_conn.close()
+
+    bismillah = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
+    page_word_rows = []
+    output_lines = []
+    anchor_surah_number = None
+    anchor_ayah_number = None
+
+    for line in lines:
+        first_word_id = line.get('first_word_id')
+        last_word_id = line.get('last_word_id')
+        line_type = line.get('line_type')
+        line_surah = line.get('surah_number')
+        line_words = []
+        display_text = ''
+        contains_focus_ayah = False
+
+        if first_word_id is not None and last_word_id is not None:
+            # Walk only ids present in quran_script (Shemrly gaps are skipped).
+            for word_pos in sorted(
+                wid for wid in page_word_by_index
+                if int(first_word_id) <= wid <= int(last_word_id)
+            ):
+                src = page_word_by_index.get(word_pos)
+                if not src or not src.get('text'):
+                    continue
+                word = {
+                    'word_index': word_pos,
+                    'text': src['text'],
+                    'surah': src['surah'],
+                    'ayah': src['ayah'],
+                    'waqf_symbols': '',
+                    'is_line_start': False,
+                    'is_line_end': False,
+                }
+                line_words.append(word)
+                page_word_rows.append(word)
+                if anchor_surah_number is None:
+                    anchor_surah_number = src['surah']
+                    anchor_ayah_number = src['ayah']
+                if focus_word_indices and word_pos in focus_word_indices:
+                    contains_focus_ayah = True
+            if line_words:
+                line_words[0]['is_line_start'] = True
+                line_words[-1]['is_line_end'] = True
+            display_text = ' '.join(w['text'] for w in line_words)
+        elif line_type == 'surah_name':
+            surah_name = _get_surah_name_ar(line_surah)
+            display_text = f'سورة {surah_name}' if surah_name else (line.get('line_text') or '')
+        elif line_type == 'basmallah':
+            display_text = bismillah
+
+        output_lines.append({
+            'line_number': int(line['line_number']),
+            'line_type': line_type,
+            'is_centered': bool(line.get('is_centered')),
+            'surah_number': line_surah,
+            'first_word_id': first_word_id,
+            'last_word_id': last_word_id,
+            'display_text': display_text,
+            'contains_focus_ayah': contains_focus_ayah,
+            'words': line_words,
+        })
+
+    versions = mushaf_version if isinstance(mushaf_version, list) else ([mushaf_version] if mushaf_version else [])
+    if not versions:
+        versions = ['الأزهر']
+    waqf_by_word_index = _build_page_waqf_map(page_word_rows, versions)
+    if waqf_by_word_index:
+        for word in page_word_rows:
+            entries = waqf_by_word_index.get(word['word_index'])
+            if entries:
+                word['waqf_symbols'] = entries
+
+    def info_get(key, default=None):
+        if info_row is not None:
+            try:
+                if key in info_row.keys():
+                    return info_row[key]
+            except AttributeError:
+                pass
+        return default
+
+    # Per-page line count (Fatiha is 5; most pages are 15). Editor font
+    # sizing and short-page chrome key off this, not the mushaf-wide default.
+    page_line_count = len(output_lines) if output_lines else int(info_get('lines_per_page') or 15)
+    return {
+        'source': 'azhar',
+        'page_number': int(page_number),
+        'font_name': 'Amiri Quran',
+        'layout_name': info_get('name', 'مصحف الأزهر'),
+        'lines_per_page': page_line_count,
+        'default_lines_per_page': int(info_get('lines_per_page') or 15),
+        'min_page': AZHAR_LAYOUT_MIN_PAGE,
+        'max_page': AZHAR_LAYOUT_MAX_PAGE,
+        'page_content_width': None,
+        'focus_surah': focus_surah,
+        'focus_ayah': focus_ayah,
+        'lines': output_lines,
+        'anchor_surah_number': anchor_surah_number,
+        'anchor_ayah_number': anchor_ayah_number,
+        'mushaf_version': (
+            versions[0] if versions else 'الأزهر'
+        ),
+    }
+
+
+def _azhar_pages_for_ayah(surah_number, ayah_number):
+    """All Azhar layout pages that contain any word of the ayah (mid-ayah aware)."""
+    if not os.path.exists(AZHAR_LAYOUT_DATABASE) or not os.path.exists(QURAN_SCRIPT_DATABASE):
+        return []
+    words_conn = sqlite3.connect(QURAN_SCRIPT_DATABASE)
+    try:
+        words_conn.row_factory = sqlite3.Row
+        cur = words_conn.cursor()
+        cur.execute(
+            'SELECT word_index FROM words WHERE surah = ? AND ayah = ?',
+            (surah_number, ayah_number),
+        )
+        indices = [int(r['word_index']) for r in cur.fetchall()]
+    finally:
+        words_conn.close()
+    if not indices:
+        return []
+
+    layout_conn = sqlite3.connect(AZHAR_LAYOUT_DATABASE)
+    try:
+        layout_conn.row_factory = sqlite3.Row
+        cur = layout_conn.cursor()
+        pages = set()
+        for word_id in indices:
+            cur.execute(
+                '''
+                SELECT DISTINCT page_number FROM pages
+                WHERE first_word_id IS NOT NULL AND last_word_id IS NOT NULL
+                  AND first_word_id <= ? AND last_word_id >= ?
+                ''',
+                (word_id, word_id),
+            )
+            for row in cur.fetchall():
+                pages.add(int(row['page_number']))
+        return sorted(pages)
+    finally:
+        layout_conn.close()
+
+
+@core_bp.route('/api/azhar/page/<int:page_number>', methods=['GET'])
+def get_azhar_page(page_number):
+    try:
+        if not (AZHAR_LAYOUT_MIN_PAGE <= page_number <= AZHAR_LAYOUT_MAX_PAGE):
+            return jsonify({
+                'error': f'page_number must be between {AZHAR_LAYOUT_MIN_PAGE} and {AZHAR_LAYOUT_MAX_PAGE}'
+            }), 400
+        mushaf_version = request.args.getlist('mushaf_version') or [
+            request.args.get('mushaf_version', 'الأزهر').strip() or 'الأزهر'
+        ]
+        payload = _build_azhar_page_payload(page_number, mushaf_version=mushaf_version)
+        if not payload:
+            return jsonify({'error': 'Page not found'}), 404
+        return jsonify(payload)
+    except Exception as e:
+        logger.error(f'Error fetching Azhar page {page_number}: {e}')
+        return jsonify({'error': str(e)}), 500
+
+
+@core_bp.route('/api/azhar/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_azhar_page_by_ayah(surah_number, ayah_number):
+    try:
+        mushaf_version = request.args.getlist('mushaf_version') or [
+            request.args.get('mushaf_version', 'الأزهر').strip() or 'الأزهر'
+        ]
+        pages = _azhar_pages_for_ayah(surah_number, ayah_number)
+        if not pages:
+            return jsonify({'error': 'Page not found for ayah'}), 404
+        page_number = pages[0]
+        payload = _build_azhar_page_payload(
+            page_number,
+            focus_surah=surah_number,
+            focus_ayah=ayah_number,
+            mushaf_version=mushaf_version,
+        )
+        if not payload:
+            return jsonify({'error': 'Page not found'}), 404
+        payload['pages_for_ayah'] = pages
+        return jsonify(payload)
+    except Exception as e:
+        logger.error(f'Error fetching Azhar page by ayah {surah_number}:{ayah_number}: {e}')
         return jsonify({'error': str(e)}), 500

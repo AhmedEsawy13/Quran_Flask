@@ -28,4 +28,8 @@ def test_editor_uses_shared_workspace_and_accessible_editing(client):
     assert "window.AtharUi.setBusy(els.main" in script
     assert "window.matchMedia('(max-width: 720px)')" in script
     assert 'pages: stacked ? 1 : 2' in script
+    assert 'id="ed-compare"' in page
+    assert 'id="ed-ref-img"' in page
+    assert 'REF_LEAF_OFFSET' in script
+    assert 'MushafQatar_20150445776437' in script
     assert 'trapPopupFocus(e)' in script
