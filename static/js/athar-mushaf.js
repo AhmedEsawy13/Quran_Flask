@@ -52,12 +52,51 @@
             .join('');
     }
 
+    // IndoPak DB stores small-high Unicode. Marks that already match Madinah
+    // combining forms (ۖۗ…) map to those; IndoPak-only marks stay as the
+    // small-high glyphs (ؕ/ؗ/ؔ) — never letter stand-ins ط/ز/قف, which render
+    // at full letter size and dwarf the other overlays.
+    const HINDI_TO_UTHMANI = Object.freeze({
+        '\u0615': '\u0615',  // ؕ مطلق (keep small-high; not ط)
+        '\u0617': '\u0617',  // ؗ مجوز (keep; not ز)
+        '\u0614': '\u0614',  // ؔ قف (keep; not قف letters)
+        '\u06D6': 'ۖ',  // ص
+        '\u06D7': 'ۗ',  // قلى
+        '\u06D8': 'ۘ',  // م
+        '\u06D9': 'ۙ',  // لا
+        '\u06DA': 'ۚ',  // ج
+        '\u06DB': 'ۛ',  // ع
+        '\u06EA': '۪',
+        '\u06EB': '۫',
+        '\u06EC': '۬',
+    });
+    // Glyphs that need the IndoPak font (UthmanicHafs may miss or enlarge them).
+    const HINDI_NATIVE_MARK_RE = /[\u0614\u0615\u0617\u06EA-\u06EC]/;
+    // Legacy letter aliases — scale down if they ever appear in an overlay.
+    const WAQF_LETTER_MARK_RE = /^[طز]$/;
+
+    function normalizeHindiWaqfText(raw) {
+        // Map shared marks to Uthmanic combining forms; keep IndoPak-only
+        // small-high glyphs. Multi-mark clusters stack vertically; a lone mark
+        // sits in the same row as المدينة.
+        return [...String(raw || '')]
+            .filter(ch => ch && ch.trim() && ch !== '۟' && ch !== 'ۜ')
+            .map(ch => HINDI_TO_UTHMANI[ch] || WAQF_GLYPH_MAP[ch] || ch)
+            .join('');
+    }
+
     function getWaqfDisplayData(rawValue, version) {
         const raw = String(rawValue || '').trim();
         if (!raw) return null;
         if (isWarshVersion(version)) {
             const text = normalizeWarshWaqfText(raw);
             return text ? { text, extraClass: 'waqf-warsh', title: raw } : null;
+        }
+        if (isHindiVersion(version)) {
+            const text = normalizeHindiWaqfText(raw);
+            if (!text || /^[↺▶]+$/.test(text)) return null;
+            // Shared Uthmanic metrics with other mushaf overlays (pink color only).
+            return { text, extraClass: '', title: raw };
         }
         const text = normalizeNonWarshWaqfText(raw);
         if (!text || /^[↺▶]+$/.test(text)) return null;
@@ -316,24 +355,35 @@
 
             const extraClass = typeof config.classFor === 'function'
                 ? config.classFor(version, data, entry) : '';
+            // Compounds (ۛۖۚ) stack vertically; a single mark shares the
+            // horizontal row with المدينة / الأزهر.
+            const stackVertically = isHindiVersion(version) && symbols.length > 1;
+            let hindiGroup = null;
             symbols.forEach(symbol => {
                 const span = document.createElement('span');
-                span.className = [config.symbolClass, extraClass, data.extraClass].filter(Boolean).join(' ');
+                const markClasses = [config.symbolClass, extraClass, data.extraClass];
+                if (isHindiVersion(version) && HINDI_NATIVE_MARK_RE.test(symbol)) {
+                    markClasses.push('waqf-hindi-native');
+                }
+                if (WAQF_LETTER_MARK_RE.test(symbol) || symbol === 'قف') {
+                    markClasses.push('waqf-letter-mark');
+                }
+                span.className = markClasses.filter(Boolean).join(' ');
                 if (version) span.dataset.version = version;
                 span.textContent = symbol;
                 span.title = typeof config.titleFor === 'function'
                     ? (config.titleFor(symbol, version, data, entry) || '')
                     : (version ? `مصحف: ${version}` : data.title);
-
-                if (version === 'الهندي') {
-                    let group = stack.querySelector(':scope > .waqf-hindi-group');
-                    if (!group) {
-                        group = document.createElement('span');
-                        group.className = 'waqf-hindi-group';
-                        stack.appendChild(group);
+                if (stackVertically) {
+                    if (!hindiGroup) {
+                        hindiGroup = document.createElement('span');
+                        hindiGroup.className = 'waqf-hindi-group';
+                        stack.appendChild(hindiGroup);
                     }
-                    group.appendChild(span);
-                } else stack.appendChild(span);
+                    hindiGroup.appendChild(span);
+                } else {
+                    stack.appendChild(span);
+                }
             });
         });
         return stack;

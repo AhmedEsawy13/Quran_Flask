@@ -874,7 +874,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // instead of being silently erased by the word substitution.
         const ayahNumWord = allWords.find((w) => /^[٠-٩]+$/.test((w?.text_original || '').trim()));
         const words = allWords.filter((w) => w !== ayahNumWord);
-        const wordEls = elements.quranTextContainer.querySelectorAll(':scope > .word-token');
+        let wordEls = [...elements.quranTextContainer.querySelectorAll(':scope > .word-token')];
+        // If a regression re-splits the NBSP-glued ayah number into its own
+        // token, drop that trailing digit node so glyph alignment can proceed.
+        if (ayahNumWord && wordEls.length === words.length + 1) {
+            const lastBase = wordEls[wordEls.length - 1]?.querySelector(':scope > .word-content > .word-base');
+            const lastText = (lastBase?.textContent || '').replace(/\u00a0/g, ' ').trim();
+            if (/^[٠-٩]+$/.test(lastText)) wordEls = wordEls.slice(0, -1);
+        }
         // Alignment guard: both lists must describe the same ayah word-for-word
         // (confirmed same underlying qpc_hafs-equivalent text) — if they don't
         // line up for some reason, skip the enhancement rather than mismatch glyphs.
@@ -993,8 +1000,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function displayQuranicText(text, segments, waqfSymbols = []) {
         elements.quranTextContainer.style.fontFamily = '';
+        // Split on ASCII whitespace only — not \s+. JS \s includes NBSP (U+00A0),
+        // which the ayah text uses to glue the trailing ayah-number onto the last
+        // word. applyShamarlyGlyphs strips that number from the API word list and
+        // requires a 1:1 count with .word-token nodes; splitting on NBSP silently
+        // skips every Shemrly glyph (font files load, but never get applied).
         const words = window.AtharMushaf.mergeWaqfOnlyTokens(
-            String(text || '').split(/\s+/).filter(Boolean)
+            String(text || '').split(/[ \t\n\r\f\v]+/).filter(Boolean)
         );
         const wordIndexToSegmentMap = new Map();
 

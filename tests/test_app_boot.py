@@ -225,6 +225,16 @@ def test_reader_indopak_waqf_uses_overlay_stack_like_other_mushafs():
     assert "(isIndoPak || mode === 'selected' || mode === 'none')" in script
 
 
+def test_reader_preserves_nbsp_glued_ayah_number_for_shemrly_glyphs():
+    """displayQuranicText must not split on NBSP — Shemrly glyph upgrade needs
+    the trailing ayah-number glued to the last word (API drops it as its own
+    row). Using JS \\s+ regressed production: fonts loaded, glyphs never applied."""
+    script = (PROJECT_ROOT / 'static/js/script.js').read_text(encoding='utf-8')
+    assert 'split(/[ \\t\\n\\r\\f\\v]+/)' in script
+    assert "String(text || '').split(/\\s+/).filter(Boolean)" not in script
+    assert 'applyShamarlyGlyphs' in script
+
+
 def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
     page = client.get('/waqf').get_data(as_text=True)
     assert 'role="tablist"' in page

@@ -496,7 +496,8 @@ body.athar-reading #quran-text {
     direction: rtl;
     text-align: center;
     font-size: clamp(30px, 4vw, 42px);
-    line-height: 2.05;
+    /* Room for up to ~3 overlay rows above the ink. */
+    line-height: 2.35;
     word-break: normal;
     overflow-wrap: break-word;
 }
@@ -529,7 +530,10 @@ body.athar-reading .word-token {
     position: relative;
     display: inline-block;
     margin: 0 0.05rem;
-    padding-top: 0.4em;
+    /* Shared lift for .waqf-stack bottoms — same em on every word so
+       row 1 / row 2 of adjacent الهندي columns line up horizontally. */
+    --waqf-lift: 1.12em;
+    padding-top: 0;
     line-height: 1.6;
     border-radius: 0.18em;
     transition:
@@ -566,31 +570,37 @@ body.athar-reading .word-base { display: inline; }
 body.athar-reading .word-base { white-space: nowrap; }
 
 /* Waqf overlays belong to the reader's word-run surface. The DOM itself is
-   assembled by AtharMushaf; color remains a reading-page presentation choice. */
+   assembled by AtharMushaf; color remains a reading-page presentation choice.
+   bottom uses the word's em (stack font-size stays 1em) so every word's first
+   mark shares one horizontal line; taller الهندي columns grow upward. */
 body.athar-reading .waqf-stack {
     position: absolute;
-    top: 0;
+    top: auto;
+    bottom: var(--waqf-lift, 1.12em);
     left: 50%;
     display: inline-flex;
     flex-flow: row nowrap;
     align-items: flex-end;
     justify-content: center;
-    gap: 0.05em;
+    gap: 0.08em;
     transform: translateX(-50%);
     white-space: nowrap;
     pointer-events: none;
-    font-size: 0.72em;
+    font-size: 1em;
     line-height: 1;
 }
 
+/* IndoPak compounds only — several marks on one word stack above the ink.
+   column-reverse: first glyph is the bottom row (aligns with neighbors).
+   A single الهندي mark stays in .waqf-stack like المدينة. */
 body.athar-reading .waqf-hindi-group {
     display: inline-flex;
     flex-direction: column-reverse;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: flex-end;
     gap: 0.02em;
     white-space: normal;
-    font-size: 0.9em;
+    line-height: 1;
 }
 
 body.athar-reading .waqf-symbol {
@@ -602,6 +612,7 @@ body.athar-reading .waqf-symbol {
     height: 1em;
     color: var(--waqf-color, #c2410c);
     font-family: 'UthmanicHafs', serif;
+    font-size: 0.72em;
     line-height: 1;
     user-select: none;
 }
@@ -615,11 +626,23 @@ body.athar-reading .waqf-symbol[data-version="الحصري"]  { color: #0369a1; 
 body.athar-reading .waqf-symbol[data-version="ورش"]     { color: #b45309; }
 body.athar-reading .waqf-symbol[data-version="الهندي"]  {
     color: #be185d;
-    font-family: 'IndoPakNastaleeq2', serif;
-    /* IndoPak marks are small-high glyphs — size them like letter overlays */
-    font-size: 1.35em;
-    min-width: 0.85em;
-    height: 1.15em;
+}
+
+/* IndoPak-only small-high marks (ؕ مطلق / ؗ مجوز / ؔ …). Keep native
+   glyphs + IndoPak font; their ink runs heavier than combining ۚ/ۗ at the
+   same em, so size them down to match the other overlays. */
+body.athar-reading .waqf-symbol.waqf-hindi-native {
+    font-family: 'IndoPakNastaleeq2', 'UthmanicHafs', serif;
+    font-size: 0.62em;
+    min-width: 0.65em;
+    height: 0.95em;
+}
+
+/* Safety net if a full-letter alias (ط/ز/قف) still reaches the overlay. */
+body.athar-reading .waqf-symbol.waqf-letter-mark {
+    font-size: 0.48em;
+    min-width: 0.55em;
+    height: 0.85em;
 }
 
 body.athar-reading #transliteration-container,
