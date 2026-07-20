@@ -2969,6 +2969,22 @@ body.dark-mode .word-meaning-tooltip {
     text-align: center;
 }
 
+/* Legend demos: IndoPak marks are small-high glyphs — give them a clear box */
+.waqf-legend-indopak .waqf-sym-demo.waqf-sym-hindi {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    font-size: 1.7rem;
+    line-height: 1;
+    border-radius: 8px;
+    border: 1px solid rgba(190, 24, 93, 0.22);
+}
+.waqf-legend-indopak-note {
+    margin-top: 6px;
+}
+
 /* Verse-end circle rendered with IndoPak font — shown for context, not a waqf ruling */
 .waqf-verse-circle {
     display: inline-block;

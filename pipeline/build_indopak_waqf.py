@@ -9,15 +9,17 @@ in the mushaf version selector alongside المدينة / الأزهر / الش�
 
 IndoPak waqf symbol inventory
 ──────────────────────────────
-Standalone (space-separated) tokens found between words:
-  ؕ  U+0615  ARABIC SMALL HIGH TAH        → لازم  mandatory stop (IndoPak-only)
-  ؗ  U+0617  ARABIC SMALL HIGH ZAIN       → زين   (smaller emphasis)
-  ۚ  U+06DA  ARABIC SMALL HIGH JEEM       → ج     permitted stop
-  ۙ  U+06D9  ARABIC SMALL HIGH LAM ALEF   → لا    no-stop
-  ۖ  U+06D6  ...SAD WITH LAM              → ص     prefer continue
-  ۗ  U+06D7  ...QAF WITH LAM              → قلى   prefer stop
-  ۘ  U+06D8  ARABIC SMALL HIGH MEEM       → م     mandatory
-  ۛ  U+06DB  ARABIC SMALL HIGH THREE DOTS → ع     muʿānaqah
+Standalone (space-separated) tokens found between words.
+Traditional IndoPak letter names ↔ Unicode marks stored in DB:
+
+  ؕ  U+0615  ARABIC SMALL HIGH TAH        → ط  مطلق   (absolute stop; IndoPak-only)
+  ؗ  U+0617  ARABIC SMALL HIGH ZAIN       → ز  مجوَّز  (permitted for a reason)
+  ۘ  U+06D8  ARABIC SMALL HIGH MEEM       → م  لازم   (mandatory)
+  ۚ  U+06DA  ARABIC SMALL HIGH JEEM       → ج         (permitted stop)
+  ۙ  U+06D9  ARABIC SMALL HIGH LAM ALEF   → لا        (no-stop)
+  ۖ  U+06D6  ...SAD WITH LAM              → ص  مرخّص  (licensed for necessity)
+  ۗ  U+06D7  ...QAF WITH LAM              → قلى       (prefer stop)
+  ۛ  U+06DB  ARABIC SMALL HIGH THREE DOTS → ع         (muʿānaqah)
 
   ۟  U+06DF  ROUNDED ZERO                 = verse-end marker (not a waqf stop — SKIPPED)
   ۠  U+06E0  RECTANGULAR ZERO             = sajda/ruku marker (SKIPPED)
@@ -48,9 +50,9 @@ INDOPAK_COL = "الهندي"
 # Standard waqf range + IndoPak-specific marks
 WAQF_CPS = set(range(0x06D6, 0x06EE))   # U+06D6–U+06ED
 WAQF_CPS |= {
-    0x0615,  # ؕ  IndoPak mandatory stop
-    0x0617,  # ؗ  IndoPak zain marker
-    0x0614,  # ؔ  takhallus mark
+    0x0615,  # ؕ  ط مطلق (absolute stop)
+    0x0617,  # ؗ  ز مجوَّز
+    0x0614,  # ؔ  takhallus / قف mark
     0x06EA,  # ۪  empty centre low stop
     0x06EB,  # ۫  empty centre high stop
     0x06EC,  # ۬  rounded high stop

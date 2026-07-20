@@ -201,6 +201,30 @@ def test_reader_uses_shared_editorial_structure_and_accessible_tools(client):
     assert "setAttribute('aria-pressed'" in script
 
 
+def test_reader_indopak_legend_shows_real_unicode_marks(client):
+    """الهندي legend must show DB glyphs (ؕ/ؗ), not letter stand-ins ط/ز."""
+    page = client.get('/read').get_data(as_text=True)
+    assert 'waqf-legend-indopak' in page
+    assert 'ؕ — ط المطلق' in page
+    assert 'ؗ — ز المجوَّز' in page
+    assert 'ۖ — ص المرخّص' in page
+    assert 'ط — المطلق' not in page
+
+
+def test_reader_indopak_waqf_uses_overlay_stack_like_other_mushafs():
+    """IndoPak must strip inline ruling marks and show الهندي via .waqf-stack
+    overlays — not suppress overlays while displaying cleaned text (which hid
+    mid-verse stops). Empty waqf-only tokens must be dropped to avoid gaps."""
+    script = (PROJECT_ROOT / 'static/js/script.js').read_text(encoding='utf-8')
+    assert "if (isIndoPak) return symbols.filter(s => (s.version || '') === 'الهندي')" in script
+    assert "if (isIndoPak && v === 'الهندي') return true" in script
+    assert "if (isIndoPak && v === 'الهندي') return false" not in script
+    assert "indopak_nastaleeq: ['الهندي']" in script
+    assert '.filter(Boolean)' in script
+    assert 'INDOPAK_INLINE_WAQF_STRIP' in script
+    assert "(isIndoPak || mode === 'selected' || mode === 'none')" in script
+
+
 def test_waqf_lab_exposes_accessible_tabs_and_live_status(client):
     page = client.get('/waqf').get_data(as_text=True)
     assert 'role="tablist"' in page

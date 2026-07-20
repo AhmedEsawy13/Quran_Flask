@@ -615,7 +615,11 @@ body.athar-reading .waqf-symbol[data-version="الحصري"]  { color: #0369a1; 
 body.athar-reading .waqf-symbol[data-version="ورش"]     { color: #b45309; }
 body.athar-reading .waqf-symbol[data-version="الهندي"]  {
     color: #be185d;
-    font-family: 'IndoPakNastaleeq2', sans-serif;
+    font-family: 'IndoPakNastaleeq2', serif;
+    /* IndoPak marks are small-high glyphs — size them like letter overlays */
+    font-size: 1.35em;
+    min-width: 0.85em;
+    height: 1.15em;
 }
 
 body.athar-reading #transliteration-container,

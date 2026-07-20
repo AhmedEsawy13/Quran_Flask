@@ -252,6 +252,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     function ensureDefaultMushafsForFont(font) {
         const FONT_DEFAULT_MUSHAFS = {
             amiri_quran: ['الأزهر'],
+            indopak_nastaleeq: ['الهندي'],
+            indopak_nastaleeq_2: ['الهندي'],
         };
         const defaults = FONT_DEFAULT_MUSHAFS[font];
         if (!defaults || !defaults.length) return false;
@@ -653,24 +655,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateGlobalAyahToVerseKey();
     }
 
-    // Waqf ruling chars to strip from IndoPak inline text in 'selected'/'none' modes.
-    // Keeps verse-end circle ۟ (U+06DF), structural marks (U+06E0–U+06E6), and PUA
-    // verse-number glyphs (U+E000+) so the verse circle still renders correctly.
-    const INDOPAK_INLINE_WAQF_STRIP = /[\u0614\u0615\u0617\u06D6-\u06DC\u06EA\u06EB\u06ED]/g;
+    // IndoPak waqf ruling marks — stripped from word text so they render as
+    // .waqf-stack overlays (same pattern as المدينة / الشمرلي), not as inline
+    // combining glyphs or standalone between-word tokens.
+    // Keeps verse-end circle ۟ (U+06DF), structural marks (U+06E0–U+06E4), and
+    // PUA verse-number glyphs (U+F500+) so the ayah seal still renders.
+    const INDOPAK_INLINE_WAQF_STRIP = /[\u0614\u0615\u0617\u06D6-\u06DC\u06EA-\u06EC\u06ED]/g;
 
     function getDisplayedAyahText(verseEntry = {}, fallbackText = '') {
         const font = elements.quranTextSelect.value;
-        const waqfMode = getCurrentWaqfMode();
         const isIndoPak = font === 'indopak_nastaleeq' || font === 'indopak_nastaleeq_2';
 
         if (isIndoPak) {
-            if (waqfMode === 'original' || waqfMode === 'both') {
-                // Show text with embedded waqf marks
-                return verseEntry.text || verseEntry.raw_text || fallbackText || '';
-            }
-            // 'selected' or 'none' — strip only waqf ruling marks, keep verse-end circle + PUA
+            // Prefer aligned `text` (mid-verse waqf-only tokens already removed at
+            // boot) then raw_text. Always strip ruling marks and drop tokens that
+            // become empty (e.g. standalone "ۛۖۚ") so no gap-spaces remain.
             const base = verseEntry.text || verseEntry.raw_text || fallbackText || '';
-            return base.replace(INDOPAK_INLINE_WAQF_STRIP, '');
+            return base
+                .split(/\s+/)
+                .map(tok => tok.replace(INDOPAK_INLINE_WAQF_STRIP, ''))
+                .filter(Boolean)
+                .join(' ');
         }
 
         return verseEntry.text || fallbackText;
@@ -988,11 +993,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function displayQuranicText(text, segments, waqfSymbols = []) {
         elements.quranTextContainer.style.fontFamily = '';
-        const words = window.AtharMushaf.mergeWaqfOnlyTokens(text.split(' '));
+        const words = window.AtharMushaf.mergeWaqfOnlyTokens(
+            String(text || '').split(/\s+/).filter(Boolean)
+        );
         const wordIndexToSegmentMap = new Map();
 
-        // filterWaqfByMode() already encodes every font's special case (IndoPak's
-        // embedded marks in 'both', الشمرلي's own marks as its 'original' layer).
+        // filterWaqfByMode() adds each font's own printed layer (الهندي /
+        // الشمرلي) as overlays — word text stays clean for all fonts.
         const activeSymbols = filterWaqfByMode(waqfSymbols);
 
         const waqfByToken = window.AtharMushaf.indexWaqfEntries(activeSymbols, words);
@@ -1041,27 +1048,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     function filterWaqfByMode(symbols) {
         const mode = getCurrentWaqfMode();
         const isIndoPak = document.body.dataset.fontType === 'indopak';
-        // Shemrly word-glyphs don't carry inline waqf marks, so الشمرلي (the
-        // mushaf's own marks) act as the "original" layer — shown as overlays,
-        // mirroring how مصحف الأميرية treats its baked-in الأزهر marks.
+        // Shemrly / IndoPak: the mushaf's own marks are the "original" overlay
+        // layer (word text stays clean — same pattern as المدينة stacks).
         const isShamarly = document.body.dataset.fontType === 'shamarly';
         if (!Array.isArray(symbols)) return symbols;
         if (mode === 'none') return [];
         if (mode === 'original') {
-            return isShamarly ? symbols.filter(s => (s.version || '') === 'الشمرلي') : [];
+            if (isShamarly) return symbols.filter(s => (s.version || '') === 'الشمرلي');
+            if (isIndoPak) return symbols.filter(s => (s.version || '') === 'الهندي');
+            return [];
         }
         const selSet = new Set(getSelectedMushafVersions());
         if (mode === 'selected') {
             return symbols.filter(s => selSet.has(s.version || ''));
         }
-        // 'both' — selected overlays (plus الشمرلي's own marks for Shemrly).
-        // For IndoPak, exclude الهندي to avoid duplicating raw_text inline tokens.
+        // 'both' — selected overlays + each font's own printed layer.
         return symbols.filter(s => {
             const v = s.version || '';
             if (isShamarly && v === 'الشمرلي') return true;
-            if (!selSet.has(v)) return false;
-            if (isIndoPak && v === 'الهندي') return false;
-            return true;
+            if (isIndoPak && v === 'الهندي') return true;
+            return selSet.has(v);
         });
     }
 
@@ -1380,28 +1386,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         '\u06DB': { meaning: 'ع — وقف معانقة' },
     };
 
-    // IndoPak-specific overrides — same letters/glyphs have different rulings.
+    // IndoPak (الهندي): DB stores Unicode small-high marks; ط/ز/م… are the
+    // traditional letter names readers know. Keep letter keys as aliases.
     const WAQF_INFO_HINDI = {
-        'م':       { meaning: 'وقف لازم (مصحف هندي)' },
-        'ص':       { meaning: 'مرخّص لضرورة (مصحف هندي)' },
-        'ط':       { meaning: 'مطلق — رمز خاص بالمصحف الهندي' },
-        'ز':       { meaning: 'مجوَّز — رمز خاص بالمصحف الهندي' },
-        'ج':       { meaning: 'ج — جائز الوقف والوصل (مصحف هندي)' },
-        'لا':      { meaning: 'لا — لا يجوز الوقف (مصحف هندي)' },
-        '\u0615': { meaning: 'وقف مطلق (مصحف هندي/باكستاني)' },
-        '\u0617': { meaning: 'وقف مجوز لوجه (مصحف هندي)' },
-        '\u06D6': { meaning: 'صلى — مرخّص لضرورة (مصحف هندي)' },
-        '\u06D7': { meaning: 'قلى — الأفضل الوقف (مصحف هندي)' },
-        '\u06D8': { meaning: 'م — وقف لازم (مصحف هندي)' },
-        '\u06D9': { meaning: 'لا — لا يجوز الوقف (مصحف هندي)' },
-        '\u06DA': { meaning: 'ج — جائز الوقف والوصل (مصحف هندي)' },
-        '\u06DB': { meaning: 'ع — وقف معانقة (مصحف هندي)' },
-        '\u0614': { meaning: 'قف — قف ولا تصل (مصحف هندي/باكستاني)' },
-        '\u06DF': { meaning: 'رأس الآية أو رمز الوقف الكامل (مصحف هندي)' },
-        '\u06E0': { meaning: 'رأس الخمس (مصحف هندي)' },
-        '\u06EA': { meaning: 'وقف تحتي (مصحف هندي)' },
-        '\u06EB': { meaning: 'وقف فوقي (مصحف هندي)' },
-        '\u06EC': { meaning: 'وقف دائري (مصحف هندي)' },
+        '\u0615': { meaning: 'ؕ — ط المطلق (مصحف هندي)' },
+        '\u0617': { meaning: 'ؗ — ز المجوَّز لوجه (مصحف هندي)' },
+        '\u0614': { meaning: 'ؔ — قف ولا تصل (مصحف هندي)' },
+        '\u06D6': { meaning: 'ۖ — ص المرخّص لضرورة (مصحف هندي)' },
+        '\u06D7': { meaning: 'ۗ — قلى، الأفضل الوقف (مصحف هندي)' },
+        '\u06D8': { meaning: 'ۘ — م اللازم (مصحف هندي)' },
+        '\u06D9': { meaning: 'ۙ — لا، لا يجوز الوقف (مصحف هندي)' },
+        '\u06DA': { meaning: 'ۚ — ج الجائز (مصحف هندي)' },
+        '\u06DB': { meaning: 'ۛ — ع المعانقة (مصحف هندي)' },
+        '\u06EA': { meaning: '۪ — علامة وقف تحتية (مصحف هندي)' },
+        '\u06EB': { meaning: '۫ — علامة وقف فوقية (مصحف هندي)' },
+        '\u06EC': { meaning: '۬ — علامة وقف دائرية (مصحف هندي)' },
+        '\u06DF': { meaning: '۟ — رأس آية (ليس حكم وقف)' },
+        '\u06E0': { meaning: '۠ — رأس خمس / ركوع (ليس حكم وقف)' },
+        // Traditional letter aliases (legend / older docs)
+        'ط':  { meaning: 'ؕ — ط المطلق (مصحف هندي)' },
+        'ز':  { meaning: 'ؗ — ز المجوَّز لوجه (مصحف هندي)' },
+        'م':  { meaning: 'ۘ — م اللازم (مصحف هندي)' },
+        'ص':  { meaning: 'ۖ — ص المرخّص لضرورة (مصحف هندي)' },
+        'ج':  { meaning: 'ۚ — ج الجائز (مصحف هندي)' },
+        'لا': { meaning: 'ۙ — لا، لا يجوز الوقف (مصحف هندي)' },
     };
 
     function getWaqfInfo(rawSymbol, version = '') {
@@ -2641,7 +2649,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderReaderWord(wordElement, word, index, wordIndexToSegmentMap) {
-        const cleanText = stripEmbeddedWaqf(word);
+        const isIndoPak = document.body.dataset.fontType === 'indopak';
+        // IndoPak: marks always live in .waqf-stack; never leave ruling glyphs
+        // in .word-base (stripEmbeddedWaqf only covers Madinah ۖ–ۜ).
+        const cleanText = isIndoPak
+            ? String(word || '').replace(INDOPAK_INLINE_WAQF_STRIP, '')
+            : stripEmbeddedWaqf(word);
         wordElement.dataset.textOriginal = word;
         wordElement.dataset.textClean = cleanText;
         const mode = getCurrentWaqfMode();
@@ -2649,7 +2662,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         wordContent.className = 'word-content';
         const wordBase = document.createElement('span');
         wordBase.className = 'word-base';
-        const visibleText = (mode === 'selected' || mode === 'none') ? cleanText : word;
+        const visibleText = (isIndoPak || mode === 'selected' || mode === 'none') ? cleanText : word;
         wordBase.textContent = getDisplayedWordText(visibleText);
         wordContent.appendChild(wordBase);
         wordElement.appendChild(wordContent);
