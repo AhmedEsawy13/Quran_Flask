@@ -27,7 +27,9 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.x'
+          # Pin to runtime.txt — '3.x' now resolves to 3.14, which cannot
+          # build orjson (PyO3 max is 3.13) during the research-cache rebake.
+          python-version: '3.12'
 
       # The .json.gz timestamp files are not tracked in git — bring the pinned
       # release down first so --sync's diff and the cache rebake see full data.
