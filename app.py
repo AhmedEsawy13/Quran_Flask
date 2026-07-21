@@ -156,6 +156,7 @@ from modules.waqf_research import (  # noqa: F401 — tests/pipeline reach these
 import modules.reading          # noqa: F401 — attaches reading routes to reading_bp
 import modules.memorize         # noqa: F401 — attaches memorize routes to memorize_bp
 import modules.quran_api        # noqa: F401 — attaches core_bp routes to core_bp
+import modules.seo              # noqa: F401 — /robots.txt /sitemap.xml /llms.txt
 from core.datasets import (
     qpc_hafs_data_normalized,  # noqa: F401 — pipeline/build_classical_waqf.py reaches this via app.<name>
     surahs_data,  # noqa: F401 — pipeline/build_classical_waqf.py reaches this via app.surahs_data
@@ -227,6 +228,16 @@ def create_app(features=None):
         logging.basicConfig(level=logging.INFO)
         flask_app.logger.setLevel(logging.INFO)
     flask_app.add_template_global(static_hash)
+
+    from modules.seo import public_absolute, public_base_url
+
+    @flask_app.context_processor
+    def inject_seo():
+        return {
+            'public_base_url': public_base_url(),
+            'public_absolute': public_absolute,
+        }
+
     flask_app.after_request(after_request)
     flask_app.register_error_handler(404, not_found)
     flask_app.register_error_handler(500, internal_error)

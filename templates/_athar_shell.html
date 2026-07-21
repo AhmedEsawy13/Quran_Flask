@@ -7,6 +7,32 @@
 <script src="{{ static_hash('js/athar-ui.js') }}"></script>
 {%- endmacro %}
 
+{# Shared SEO / social / AI meta. Pass path relative to site root (e.g. '/read'). #}
+{% macro athar_page_meta(title, description, path='/', noindex=false, json_ld=none, image=none) -%}
+{% set abs = public_absolute(path) %}
+{% set og_image = image or public_absolute('/static/img/og-default.png') %}
+<link rel="canonical" href="{{ abs }}">
+{% if noindex -%}
+<meta name="robots" content="noindex, nofollow">
+{%- endif %}
+<meta property="og:site_name" content="أثَر">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ title }}">
+<meta property="og:description" content="{{ description }}">
+<meta property="og:url" content="{{ abs }}">
+<meta property="og:image" content="{{ og_image }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ title }}">
+<meta name="twitter:description" content="{{ description }}">
+<meta name="twitter:image" content="{{ og_image }}">
+{% if json_ld -%}
+<script type="application/ld+json">{{ json_ld|tojson }}</script>
+{%- endif %}
+{%- endmacro %}
+
 {% macro athar_app_bar(skip_target='athar-main') -%}
 {% set current_path = request.path.rstrip('/') or '/' %}
 <a class="athar-skip-link" href="#{{ skip_target }}">تجاوز إلى المحتوى</a>
