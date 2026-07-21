@@ -76,6 +76,19 @@
             </div>
 
             <div class="ed-location-tools">
+                <div class="ed-drafts" id="ed-drafts" hidden>
+                    <button class="ed-drafts-btn" id="ed-drafts-open" type="button" aria-expanded="false" aria-controls="ed-drafts-panel" title="صفحات فيها مسودّات معلّقة">
+                        مسودّات
+                        <span class="ed-drafts-badge" id="ed-drafts-badge">٠</span>
+                    </button>
+                    <button class="ed-icon-btn athar-icon-button" id="ed-drafts-prev" type="button" title="صفحة المسودّة السابقة" aria-label="صفحة المسودّة السابقة" disabled><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
+                    <button class="ed-icon-btn athar-icon-button" id="ed-drafts-next" type="button" title="صفحة المسودّة التالية" aria-label="صفحة المسودّة التالية" disabled><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+                    <div class="ed-drafts-panel athar-surface" id="ed-drafts-panel" hidden role="listbox" aria-label="صفحات المسودّات">
+                        <p class="ed-drafts-hint" id="ed-drafts-hint">لا مسودّات معلّقة لهذه النسخة.</p>
+                        <ul class="ed-drafts-list" id="ed-drafts-list"></ul>
+                    </div>
+                </div>
+
                 <div class="ed-jump">
                     <input class="athar-field" type="number" id="ed-jump-page" min="1" max="604" placeholder="رقم الصفحة" aria-label="الانتقال إلى صفحة">
                     <button class="ed-icon-btn athar-icon-button" id="ed-jump-go" type="button" title="انتقال" aria-label="انتقال"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
@@ -142,8 +155,9 @@
         <button class="ed-popup-clear" id="ed-popup-clear" type="button"><i class="fas fa-eraser" aria-hidden="true"></i> بلا علامة</button>
     </div>
 
-    <!-- pending publish review (admin) — docked drawer so the mushaf stays visible -->
-    <aside class="ed-pending-drawer athar-surface" id="ed-pending-panel" hidden role="dialog" aria-modal="false" aria-labelledby="ed-pending-title">
+    <!-- pending publish review (admin) -->
+    <div class="ed-invites-backdrop" id="ed-pending-backdrop" hidden></div>
+    <aside class="ed-pending-drawer athar-surface" id="ed-pending-panel" hidden role="dialog" aria-modal="true" aria-labelledby="ed-pending-title">
         <div class="ed-invites-head">
             <h2 class="ed-invites-title" id="ed-pending-title">مراجعة قبل الاعتماد</h2>
             <button class="ed-popup-close athar-icon-button" id="ed-pending-close" type="button" aria-label="إغلاق"><i class="fas fa-xmark" aria-hidden="true"></i></button>
@@ -155,7 +169,10 @@
             <button type="button" class="ed-pending-nav-btn" id="ed-pending-next" aria-label="التغيير التالي">التالي</button>
         </div>
         <ul class="ed-pending-list" id="ed-pending-list" aria-label="التغييرات المعلّقة"></ul>
-        <button class="ed-login-submit" type="button" id="ed-pending-confirm" disabled>اعتماد ونشر للقراء</button>
+        <div class="ed-pending-actions">
+            <button class="ed-pending-dismiss" type="button" id="ed-pending-dismiss">إغلاق</button>
+            <button class="ed-login-submit" type="button" id="ed-pending-confirm" disabled>اعتماد ونشر للقراء</button>
+        </div>
     </aside>
 
     <!-- invite management (admin) -->

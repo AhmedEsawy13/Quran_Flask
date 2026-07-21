@@ -213,6 +213,7 @@ def cloud(monkeypatch):
 
     monkeypatch.setattr(sb.requests, 'request', fake_request)
     invalidate_cloud_waqf_cache()
+    sb.invalidate_mark_cache()
     return fake
 
 
@@ -342,6 +343,8 @@ def test_editor_ui_has_login_and_publish(client):
     assert 'id="ed-login"' in page
     assert 'id="ed-publish"' in page
     assert 'id="ed-pending-panel"' in page
+    assert 'id="ed-pending-backdrop"' in page
+    assert 'id="ed-pending-dismiss"' in page
     assert 'id="ed-invites-panel"' in page
     assert 'id="ed-audit"' in page
     assert '/api/mushaf-editor/login' in script
@@ -353,9 +356,33 @@ def test_editor_ui_has_login_and_publish(client):
     assert 'ed-pending-prev' in page
     assert 'ed-pending-next' in page
     assert 'ed-pending-drawer' in page
+    assert 'ed-drafts-open' in page
+    assert 'loadPendingPages' in script
+    assert 'goToDraftPage' in script
     assert 'ed-pending-focus' in css
     assert 'ed-pending-drawer' in css
+    assert 'ed-drafts-panel' in css
     assert 'اعتماد ونشر' in script
+
+
+def test_pending_api_includes_pages_summary(client, cloud):
+    """Pending endpoint groups changes by mushaf page for draft navigation."""
+    from modules.editor_auth import COOKIE_NAME
+    inv, code = _seed_invite(cloud, name='Nav', role='editor', code='nav-1')
+    cloud.marks[('قطر', 2, 2, 0, 'draft')] = {
+        'edition': 'قطر', 'surah': 2, 'ayah': 2, 'token_index': 0,
+        'status': 'draft', 'symbol': 'ج', 'word_text': 'ذَٰلِكَ',
+    }
+    _login(client, code)
+    r = client.get('/api/mushaf-editor/pending?edition=قطر')
+    assert r.status_code == 200
+    body = r.get_json()
+    assert body['count'] >= 1
+    assert body['page_count'] >= 1
+    assert isinstance(body.get('pages'), list)
+    assert body['pages'][0]['page_number'] >= 1
+    assert body['pages'][0]['count'] >= 1
+    assert COOKIE_NAME  # keep import used / session cookie path exercised
 
 
 def test_pending_publish_diff_keeps_published_old_symbol(cloud):

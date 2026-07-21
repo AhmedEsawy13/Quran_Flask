@@ -163,7 +163,9 @@
                 const ratios = [];
                 inners.forEach(inner => {
                     inner.style.transform = 'none';
-                    inner.style.fontFeatureSettings = '';
+                    // Explicit normal — empty string inherits body "salt" and
+                    // can inflate width before we pick a page font size.
+                    inner.style.fontFeatureSettings = 'normal';
                     inner.style.fontVariationSettings = '';
                     inner.style.wordSpacing = '';
                     const avail = inner.parentElement.clientWidth;
@@ -249,6 +251,15 @@
        rejects it (falls back to word-spacing). Offer progressive steps so
        each line picks the closest fit — bias toward jt/kt (curvilinear
        kashida) which matches printed Naskh denser than word gaps. */
+    /* KATypical Naskh (مصحف قطر) only exposes jalt as a justification
+       alternate — no jt/dc/kt ladders. Offer plain vs jalt so lines with
+       slack pick elongation instead of word rivers; overshooting lines keep
+       the plain shape and condense gently. */
+    function katypicalFeatureCandidates(strength) {
+        const s = Math.max(0, Math.min(100, Number(strength) || 0));
+        if (s <= 0) return [];
+        return ["'jalt' 1"];
+    }
     function alShamiyaFeatureCandidates(strength) {
         const s = Math.max(0, Math.min(100, Number(strength) || 0));
         if (s <= 0) return [];
@@ -328,7 +339,7 @@
                 const inner = lineEl.querySelector(innerSelector);
                 if (!inner) return;
                 inner.style.transform = 'none';
-                inner.style.fontFeatureSettings = '';
+                inner.style.fontFeatureSettings = 'normal';
                 inner.style.fontVariationSettings = '';
                 inner.style.wordSpacing = '';
                 const avail = lineEl.clientWidth;
@@ -517,6 +528,7 @@
         createLineJustifier,
         digitalKhattFeatureCandidates,
         oldMadinaFeatureCandidates,
+        katypicalFeatureCandidates,
         alShamiyaFeatureCandidates,
         collectPageSurahs,
         clearPageChrome,

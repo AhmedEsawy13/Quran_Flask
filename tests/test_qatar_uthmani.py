@@ -39,10 +39,12 @@ def test_qatar_uthmani_word_map_covers_most_ayahs():
 def test_editor_ui_references_katypical_naskh_for_qatar():
     css = (PROJECT_ROOT / 'static/css/mushaf_editor.css').read_text(encoding='utf-8')
     js = (PROJECT_ROOT / 'static/js/mushaf_editor.js').read_text(encoding='utf-8')
+    chrome = (PROJECT_ROOT / 'static/js/athar-page-chrome.js').read_text(encoding='utf-8')
     assert 'KATypicalNaskhv2.0-Regular.woff2' in css
     assert 'ed-font-qatar' in css
     assert "classList.toggle('ed-font-qatar', state.edition === 'قطر')" in js
-    assert 'katypicalNaskhFeatureCandidates' not in js
+    assert 'katypicalFeatureCandidates' in chrome
+    assert 'katypicalFeatureCandidates' in js
     assert (PROJECT_ROOT / 'static/fonts/KATypicalNaskhv2.0-Regular.woff2').is_file()
     assert (PROJECT_ROOT / 'data/quran_text/quran-uthmani.txt').is_file()
 

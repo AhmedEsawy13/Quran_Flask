@@ -77,6 +77,14 @@
         progress: $('ed-progress'),
         reviewed: $('ed-reviewed'),
         jumpInput: $('ed-jump-page'), jumpBtn: $('ed-jump-go'),
+        draftsWrap: $('ed-drafts'),
+        draftsOpen: $('ed-drafts-open'),
+        draftsBadge: $('ed-drafts-badge'),
+        draftsPrev: $('ed-drafts-prev'),
+        draftsNext: $('ed-drafts-next'),
+        draftsPanel: $('ed-drafts-panel'),
+        draftsHint: $('ed-drafts-hint'),
+        draftsList: $('ed-drafts-list'),
         prev: $('ed-prev'), next: $('ed-next'),
         editionBtns: Array.from(document.querySelectorAll('.ed-edition-btn')),
         status: $('ed-status'),
@@ -91,8 +99,9 @@
         sessionName: $('ed-session-name'),
         publishBtn: $('ed-publish'),
         pendingPanel: $('ed-pending-panel'),
-        pendingBackdrop: null, // drawer has no modal backdrop
+        pendingBackdrop: $('ed-pending-backdrop'),
         pendingClose: $('ed-pending-close'),
+        pendingDismiss: $('ed-pending-dismiss'),
         pendingList: $('ed-pending-list'),
         pendingHint: $('ed-pending-hint'),
         pendingConfirm: $('ed-pending-confirm'),
@@ -139,6 +148,7 @@
         ready: false,
         pendingChanges: [],
         pendingIndex: -1,
+        pendingPages: [],
     };
     const spreadRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
@@ -240,6 +250,7 @@
         loadProgress();
         loadPage();
         loadAudit();
+        loadPendingPages();
     }));
 
     /* ── Reference material (Archive.org leaf images) ────────────── */
@@ -430,38 +441,56 @@
         pageEls: () => [els.page].filter(p => p && p.children.length),
         lineSelector: '.ed-line', innerSelector: '.ed-line-inner',
         cssVarName: '--ed-fs', linesPerPage: 15,
-        cacheKey: () => state.edition,
+        // v3: bust stale fitFs cached against wrong page-box height.
+        cacheKey: () => `${state.edition}|fs3`,
     });
-
-    function khattFeatureSettings() {
-        const seq = [];
-        for (let lvl = 1; lvl <= 5; lvl += 1) for (const t of ['jt', 'dc', 'kt']) seq.push(`${t}0${lvl}`);
-        return seq.map(f => `'${f}' 1`).join(', ');
-    }
 
     const justifyLines = window.AtharPageChrome.createLineJustifier({
         containerEls: () => [els.page],
         lineSelector: '.ed-line', innerSelector: '.ed-line-inner', wordSelector: '.ed-word',
         // الكويت / Al Shamiya: progressive jalt+jt/dc/kt (all-at-once overshoots).
-        // قطر keeps the compact Madina-style dump as a single candidate.
-        featureSettings: () => (state.edition === 'الكويت' ? '' : khattFeatureSettings()),
-        featureCandidates: () => (
-            state.edition === 'الكويت'
-                ? window.AtharPageChrome.alShamiyaFeatureCandidates(100)
-                : null
-        ),
-        minFeatureScale: () => (state.edition === 'الكويت' ? 0.94 : 1),
-        // Cap residual gaps so leftover slack prefers kashida over rivers,
+        // قطر / KATypical: only jalt exists — Digital Khatt jt/dc/kt tags are no-ops.
+        featureSettings: () => '',
+        featureCandidates: () => {
+            if (state.edition === 'الكويت') {
+                return window.AtharPageChrome.alShamiyaFeatureCandidates(100);
+            }
+            if (state.edition === 'قطر') {
+                return window.AtharPageChrome.katypicalFeatureCandidates(100);
+            }
+            return null;
+        },
+        minFeatureScale: () => {
+            if (state.edition === 'الكويت') return 0.94;
+            // KATypical only has binary jalt (big jump). Allow mild condense
+            // so elongation still wins over word rivers when jalt overshoots.
+            if (state.edition === 'قطر') return 0.88;
+            return 1;
+        },
+        // Cap residual gaps so leftover slack prefers kashida/jalt over rivers,
         // but leave a little room — printed Naskh is not pure stretch either.
-        maxWordSpacing: () => (state.edition === 'الكويت' ? 1.75 : Infinity),
-        preferExpansion: () => state.edition === 'الكويت',
+        maxWordSpacing: () => (
+            state.edition === 'الكويت' || state.edition === 'قطر' ? 1.75 : Infinity
+        ),
+        preferExpansion: () => (
+            state.edition === 'الكويت' || state.edition === 'قطر'
+        ),
         preferExpansionSlack: 3,
+        // Avoid stringy whole-line stretch when jalt still leaves slack.
+        maxStretch: () => (state.edition === 'قطر' ? 1.06 : Infinity),
     });
 
     function fitPages() {
         sizePages();
+        // Flush CSS page-box vars before measuring — otherwise clientHeight can
+        // still be the previous (often shorter) box and the font sizer locks to
+        // maxFs from that stale height.
+        if (els.page) void els.page.offsetHeight;
         applyFontSize();
-        requestAnimationFrame(justifyLines);
+        requestAnimationFrame(() => {
+            applyFontSize();
+            justifyLines();
+        });
     }
 
     function applyWordMark(span, editionSym, baselineSym, peers) {
@@ -569,7 +598,131 @@
     function updateNavButtons() {
         els.prev.disabled = state.page <= 1;
         els.next.disabled = state.page >= MAX_PAGE;
+        updateDraftsNavButtons();
     }
+
+    /* ── Pages with pending drafts ───────────────────────────────── */
+    function closeDraftsPanel() {
+        if (!els.draftsPanel) return;
+        els.draftsPanel.hidden = true;
+        if (els.draftsOpen) els.draftsOpen.setAttribute('aria-expanded', 'false');
+    }
+    function toggleDraftsPanel() {
+        if (!els.draftsPanel || !els.draftsOpen) return;
+        const open = els.draftsPanel.hidden;
+        els.draftsPanel.hidden = !open;
+        els.draftsOpen.setAttribute('aria-expanded', String(open));
+    }
+    function updateDraftsNavButtons() {
+        const pages = state.pendingPages || [];
+        const idx = pages.findIndex(p => p.page_number === state.page);
+        const has = pages.length > 0;
+        // Off-list: both arrows jump to an end. On first/last draft page: disable that edge.
+        if (els.draftsPrev) els.draftsPrev.disabled = !has || idx === 0;
+        if (els.draftsNext) els.draftsNext.disabled = !has || (idx >= 0 && idx === pages.length - 1);
+        if (els.draftsList) {
+            els.draftsList.querySelectorAll('.ed-drafts-row').forEach(btn => {
+                const page = Number(btn.dataset.page);
+                btn.classList.toggle('is-current', page === state.page);
+            });
+        }
+    }
+    function renderDraftsPages(pages) {
+        state.pendingPages = Array.isArray(pages) ? pages : [];
+        if (!els.draftsWrap) return;
+        const n = state.pendingPages.length;
+        els.draftsWrap.hidden = !state.cloud || !state.user;
+        if (els.draftsBadge) els.draftsBadge.textContent = toAr(n);
+        if (els.draftsOpen) {
+            els.draftsOpen.classList.toggle('is-empty', n === 0);
+            els.draftsOpen.title = n
+                ? `${toAr(n)} صفحة فيها مسودّات معلّقة`
+                : 'لا مسودّات معلّقة';
+        }
+        if (els.draftsHint) {
+            els.draftsHint.textContent = n
+                ? `نسخة «${state.edition}»: ${toAr(n)} صفحة بانتظار الاعتماد. انقر للانتقال.`
+                : `نسخة «${state.edition}»: لا مسودّات معلّقة.`;
+        }
+        if (els.draftsList) {
+            els.draftsList.innerHTML = '';
+            state.pendingPages.forEach(p => {
+                const li = document.createElement('li');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ed-drafts-row';
+                btn.dataset.page = String(p.page_number);
+                btn.setAttribute('role', 'option');
+                const title = document.createElement('span');
+                title.className = 'ed-drafts-row-page';
+                title.textContent = `ص ${toAr(p.page_number)}`;
+                const count = document.createElement('span');
+                count.className = 'ed-drafts-row-count';
+                count.textContent = `${toAr(p.count)} تغيير`;
+                const meta = document.createElement('span');
+                meta.className = 'ed-drafts-row-meta';
+                meta.textContent = (p.surah && p.ayah) ? `${p.surah}:${p.ayah}` : '';
+                btn.append(title, count, meta);
+                btn.addEventListener('click', () => {
+                    closeDraftsPanel();
+                    goToDraftPage(p.page_number);
+                });
+                li.appendChild(btn);
+                els.draftsList.appendChild(li);
+            });
+        }
+        updateDraftsNavButtons();
+    }
+    async function loadPendingPages() {
+        if (!state.cloud || !state.user) {
+            renderDraftsPages([]);
+            return;
+        }
+        try {
+            const query = window.AtharMushaf.buildQuery({ params: { edition: state.edition } });
+            const data = await window.AtharApi.json(`/api/mushaf-editor/pending${query}`);
+            renderDraftsPages(data.pages || []);
+        } catch (_e) {
+            renderDraftsPages([]);
+        }
+    }
+    async function goToDraftPage(page) {
+        const p = Number(page);
+        if (!Number.isFinite(p) || p < 1 || p > MAX_PAGE) return;
+        state.page = p;
+        persist();
+        closePopup();
+        closeDraftsPanel();
+        await loadPage();
+        // Prefer focusing the first pending change on this page if the publish drawer data is loaded.
+        const onPage = (state.pendingChanges || []).filter(ch => Number(ch.page_number) === p);
+        if (onPage.length) {
+            const idx = state.pendingChanges.indexOf(onPage[0]);
+            if (idx >= 0) jumpToPendingChange(onPage[0], idx);
+        } else {
+            setStatus(`مسودّة · ص ${toAr(p)}`);
+        }
+    }
+    function stepDraftPage(delta) {
+        const pages = state.pendingPages || [];
+        if (!pages.length) return;
+        let idx = pages.findIndex(p => p.page_number === state.page);
+        if (idx < 0) {
+            // Not currently on a draft page — next goes to first, prev to last.
+            goToDraftPage(delta > 0 ? pages[0].page_number : pages[pages.length - 1].page_number);
+            return;
+        }
+        const next = pages[idx + delta];
+        if (next) goToDraftPage(next.page_number);
+    }
+    if (els.draftsOpen) els.draftsOpen.addEventListener('click', toggleDraftsPanel);
+    if (els.draftsPrev) els.draftsPrev.addEventListener('click', () => stepDraftPage(-1));
+    if (els.draftsNext) els.draftsNext.addEventListener('click', () => stepDraftPage(1));
+    document.addEventListener('click', (event) => {
+        if (!els.draftsWrap || !els.draftsPanel || els.draftsPanel.hidden) return;
+        if (els.draftsWrap.contains(event.target)) return;
+        closeDraftsPanel();
+    });
 
     /* ── Progress tracking ───────────────────────────────────────── */
     async function loadProgress() {
@@ -812,6 +965,7 @@
             invalidateSpreadCache(state.edition);
             setStatus('تم حفظ علامة الوقف');
             loadAudit();
+            loadPendingPages();
         } catch (e) {
             if (e && e.status === 401) {
                 showLogin();
@@ -1027,6 +1181,7 @@
         await loadProgress();
         await loadPage();
         loadAudit();
+        loadPendingPages();
     }
     if (els.loginForm) {
         els.loginForm.addEventListener('submit', async e => {
@@ -1071,16 +1226,16 @@
     }
     function closePendingPanel() {
         if (els.pendingPanel) els.pendingPanel.hidden = true;
+        if (els.pendingBackdrop) els.pendingBackdrop.hidden = true;
         document.body.classList.remove('ed-pending-open');
-        state.pendingChanges = [];
+        // Keep pendingChanges/pages so مسودّات nav still works after closing.
         state.pendingIndex = -1;
-        requestAnimationFrame(() => fitPages());
     }
     function openPendingDrawerShell() {
         if (!els.pendingPanel) return;
         els.pendingPanel.hidden = false;
+        if (els.pendingBackdrop) els.pendingBackdrop.hidden = false;
         document.body.classList.add('ed-pending-open');
-        requestAnimationFrame(() => fitPages());
     }
     function pendingSymParts(sym) {
         const clean = (sym || '').trim();
@@ -1252,6 +1407,7 @@
             const query = window.AtharMushaf.buildQuery({ params: { edition: state.edition } });
             const data = await window.AtharApi.json(`/api/mushaf-editor/pending${query}`);
             renderPendingList(data.changes || []);
+            renderDraftsPages(data.pages || []);
         } catch (_e) {
             if (els.pendingList) {
                 els.pendingList.innerHTML = '<li class="ed-pending-empty">تعذّر تحميل التغييرات</li>';
@@ -1260,8 +1416,18 @@
         }
     }
     if (els.pendingClose) els.pendingClose.addEventListener('click', closePendingPanel);
+    if (els.pendingDismiss) els.pendingDismiss.addEventListener('click', closePendingPanel);
+    if (els.pendingBackdrop) els.pendingBackdrop.addEventListener('click', closePendingPanel);
     if (els.pendingPrev) els.pendingPrev.addEventListener('click', () => stepPending(-1));
     if (els.pendingNext) els.pendingNext.addEventListener('click', () => stepPending(1));
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (els.pendingPanel && !els.pendingPanel.hidden) {
+            closePendingPanel();
+            return;
+        }
+        closeDraftsPanel();
+    });
     if (els.pendingConfirm) {
         els.pendingConfirm.addEventListener('click', async () => {
             const total = state.pendingChanges.length;
@@ -1282,6 +1448,7 @@
                 invalidateSpreadCache(state.edition);
                 closePendingPanel();
                 loadAudit();
+                loadPendingPages();
                 loadPage();
             } catch (e) {
                 if (e && e.status === 403) setStatus('صلاحية المشرف مطلوبة', true);

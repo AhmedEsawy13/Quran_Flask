@@ -525,7 +525,7 @@ def editor_pending_changes():
     if edition not in CLOUD_EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
     if not sb.is_configured():
-        return jsonify({'edition': edition, 'changes': [], 'count': 0})
+        return jsonify({'edition': edition, 'changes': [], 'pages': [], 'count': 0})
     try:
         changes = sb.pending_publish_diff(edition)
     except sb.SupabaseEditorError as e:
@@ -534,12 +534,37 @@ def editor_pending_changes():
 
     layout_db = QPC_V1_LAYOUT_DATABASE if edition == 'الكويت' else QATAR_LAYOUT_DATABASE
     wmap = _get_dk_layout_word_map()
+    pages_acc: dict[int, dict] = {}
     for ch in changes:
         surah, ayah, ti = int(ch['surah']), int(ch['ayah']), int(ch['token_index'])
-        ch['page_number'] = _layout_page_resolve(layout_db, surah, ayah)
+        page_number = _layout_page_resolve(layout_db, surah, ayah)
+        ch['page_number'] = page_number
         first_id = wmap['first_id'].get((surah, ayah))
         ch['word_id'] = (first_id + ti) if first_id is not None else None
-    return jsonify({'edition': edition, 'changes': changes, 'count': len(changes)})
+        if page_number is None:
+            continue
+        bucket = pages_acc.get(page_number)
+        if bucket is None:
+            bucket = {
+                'page_number': page_number,
+                'count': 0,
+                'surah': surah,
+                'ayah': ayah,
+            }
+            pages_acc[page_number] = bucket
+        bucket['count'] += 1
+        # Keep the first (ayah-order) locus as a jump hint for the page chip.
+        if (surah, ayah) < (bucket['surah'], bucket['ayah']):
+            bucket['surah'], bucket['ayah'] = surah, ayah
+
+    pages = sorted(pages_acc.values(), key=lambda p: p['page_number'])
+    return jsonify({
+        'edition': edition,
+        'changes': changes,
+        'pages': pages,
+        'count': len(changes),
+        'page_count': len(pages),
+    })
 
 
 @editor_bp.route('/api/mushaf-editor/publish', methods=['POST'])
