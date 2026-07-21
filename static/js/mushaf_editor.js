@@ -7,10 +7,14 @@
    you left empty. الكويت gets surah-end ركوع via seed script.
 
    Endpoints:
+     GET  /api/mushaf-editor/auth/status
+     POST /api/mushaf-editor/login | logout
      GET  /api/mushaf-editor/spread/<n>?edition=قطر|الكويت
      POST /api/mushaf-editor/waqf      {word_id, edition, symbol}
      GET  /api/mushaf-editor/progress?edition=...
      POST /api/mushaf-editor/progress  {edition, page_number, reviewed}
+     POST /api/mushaf-editor/publish   {edition}  (admin)
+     GET  /api/mushaf-editor/audit?edition=...
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
     'use strict';
@@ -55,6 +59,13 @@
         'الأزهر': 'الأزهر',
         'الشمرلي': 'الشمرلي',
     };
+    const ACTION_AR = {
+        set_mark: 'تعيين',
+        clear_mark: 'مسح',
+        review_page: 'مراجعة',
+        publish: 'اعتماد',
+        login: 'دخول',
+    };
 
     const els = {
         main: $('athar-main'),
@@ -70,6 +81,16 @@
         editionBtns: Array.from(document.querySelectorAll('.ed-edition-btn')),
         status: $('ed-status'),
         legend: $('ed-legend'),
+        audit: $('ed-audit'),
+        login: $('ed-login'),
+        loginForm: $('ed-login-form'),
+        loginCode: $('ed-login-code'),
+        loginError: $('ed-login-error'),
+        loginSubmit: $('ed-login-submit'),
+        session: $('ed-session'),
+        sessionName: $('ed-session-name'),
+        publishBtn: $('ed-publish'),
+        logoutBtn: $('ed-logout'),
         refTitle: $('ed-ref-title'),
         refOpen: $('ed-ref-open'),
         refImg: $('ed-ref-img'),
@@ -90,6 +111,9 @@
         currentPages: [],
         refUrl: '',
         refMeta: null,
+        cloud: false,
+        user: null,
+        ready: false,
     };
     const spreadRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
@@ -168,8 +192,10 @@
             b.classList.toggle('ed-active', active);
             b.setAttribute('aria-pressed', String(active));
         });
-        // مصحف قطر's layout (mushaf-qatar-layout.db) declares font_name "qpc-hafs".
-        document.body.classList.toggle('ed-font-hafs', state.edition === 'قطر');
+        // قطر → KATypical Naskh; الكويت → DigitalKhatt Al-Shamiya (1978).
+        document.body.classList.toggle('ed-font-qatar', state.edition === 'قطر');
+        document.body.classList.toggle('ed-font-kuwait', state.edition === 'الكويت');
+        document.body.classList.remove('ed-font-hafs');
         updateRefChrome();
     }
     els.editionBtns.forEach(btn => btn.addEventListener('click', () => {
@@ -180,6 +206,7 @@
         closePopup();
         loadProgress();
         loadPage();
+        loadAudit();
     }));
 
     /* ── Reference material (Archive.org leaf images) ────────────── */
@@ -376,13 +403,26 @@
     function khattFeatureSettings() {
         const seq = [];
         for (let lvl = 1; lvl <= 5; lvl += 1) for (const t of ['jt', 'dc', 'kt']) seq.push(`${t}0${lvl}`);
-        return seq.map(f => `'${f}'`).join(',');
+        return seq.map(f => `'${f}' 1`).join(', ');
     }
 
     const justifyLines = window.AtharPageChrome.createLineJustifier({
         containerEls: () => [els.page],
         lineSelector: '.ed-line', innerSelector: '.ed-line-inner', wordSelector: '.ed-word',
-        featureSettings: khattFeatureSettings,
+        // الكويت / Al Shamiya: progressive jalt+jt/dc/kt (all-at-once overshoots).
+        // قطر keeps the compact Madina-style dump as a single candidate.
+        featureSettings: () => (state.edition === 'الكويت' ? '' : khattFeatureSettings()),
+        featureCandidates: () => (
+            state.edition === 'الكويت'
+                ? window.AtharPageChrome.alShamiyaFeatureCandidates(100)
+                : null
+        ),
+        minFeatureScale: () => (state.edition === 'الكويت' ? 0.94 : 1),
+        // Cap residual gaps so leftover slack prefers kashida over rivers,
+        // but leave a little room — printed Naskh is not pure stretch either.
+        maxWordSpacing: () => (state.edition === 'الكويت' ? 1.75 : Infinity),
+        preferExpansion: () => state.edition === 'الكويت',
+        preferExpansionSlack: 3,
     });
 
     function fitPages() {
@@ -699,8 +739,14 @@
             requestAnimationFrame(justifyLines);
             saved = true;
             setStatus('تم حفظ علامة الوقف');
+            loadAudit();
         } catch (e) {
-            setStatus('تعذّر حفظ التعديل', true);
+            if (e && e.status === 401) {
+                showLogin();
+                setStatus('يلزم تسجيل الدخول', true);
+            } else {
+                setStatus('تعذّر حفظ التعديل', true);
+            }
         } finally {
             setPopupBusy(false);
         }
@@ -711,6 +757,149 @@
         const w = e.target.closest('.ed-word');
         if (w) { openPopup(w); return; }
     });
+
+    /* ── Auth / session ──────────────────────────────────────────── */
+    function showLogin() {
+        if (!els.login) return;
+        els.login.hidden = false;
+        if (els.loginError) {
+            els.loginError.hidden = true;
+            els.loginError.textContent = '';
+        }
+        if (els.loginCode) {
+            els.loginCode.value = '';
+            requestAnimationFrame(() => els.loginCode.focus());
+        }
+    }
+    function hideLogin() {
+        if (els.login) els.login.hidden = true;
+    }
+    function updateSessionUI() {
+        const cloud = state.cloud;
+        const user = state.user;
+        if (els.session) els.session.hidden = !cloud || !user;
+        if (els.sessionName && user) els.sessionName.textContent = user.name || '';
+        if (els.publishBtn) {
+            els.publishBtn.hidden = !(cloud && user && user.role === 'admin');
+        }
+    }
+    async function loadAudit() {
+        if (!els.audit || !state.cloud || !state.user) {
+            if (els.audit) els.audit.hidden = true;
+            return;
+        }
+        try {
+            const query = window.AtharMushaf.buildQuery({ params: { edition: state.edition } });
+            const data = await window.AtharApi.json(`/api/mushaf-editor/audit${query}`);
+            const items = (data.items || []).slice(0, 8);
+            els.audit.innerHTML = '';
+            if (!items.length) {
+                els.audit.hidden = true;
+                return;
+            }
+            els.audit.hidden = false;
+            items.forEach(item => {
+                const chip = document.createElement('span');
+                chip.className = 'ed-audit-item';
+                const who = item.actor_name || '—';
+                const act = ACTION_AR[item.action] || item.action;
+                let where = '';
+                if (item.surah && item.ayah != null) where = ` ${item.surah}:${item.ayah}`;
+                else if (item.page_number) where = ` ص${item.page_number}`;
+                chip.textContent = `${who} · ${act}${where}`;
+                els.audit.appendChild(chip);
+            });
+        } catch (_e) {
+            els.audit.hidden = true;
+        }
+    }
+    async function bootstrapAuth() {
+        try {
+            const data = await window.AtharApi.json('/api/mushaf-editor/auth/status');
+            state.cloud = !!data.cloud;
+            state.user = data.user || null;
+            if (data.login_required) {
+                updateSessionUI();
+                showLogin();
+                return false;
+            }
+            hideLogin();
+            updateSessionUI();
+            return true;
+        } catch (_e) {
+            state.cloud = false;
+            state.user = null;
+            hideLogin();
+            updateSessionUI();
+            return true; // local SQLite path
+        }
+    }
+    async function enterEditor() {
+        state.ready = true;
+        hideLogin();
+        updateSessionUI();
+        await loadProgress();
+        await loadPage();
+        loadAudit();
+    }
+    if (els.loginForm) {
+        els.loginForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const code = (els.loginCode && els.loginCode.value || '').trim();
+            if (!code) return;
+            els.loginSubmit.disabled = true;
+            if (els.loginError) els.loginError.hidden = true;
+            try {
+                const data = await window.AtharApi.json('/api/mushaf-editor/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code }),
+                });
+                state.user = data.user || null;
+                state.cloud = true;
+                await enterEditor();
+            } catch (err) {
+                if (els.loginError) {
+                    els.loginError.textContent = (err && err.data && err.data.error === 'invalid code')
+                        ? 'رمز غير صالح'
+                        : 'تعذّر تسجيل الدخول';
+                    els.loginError.hidden = false;
+                }
+            } finally {
+                els.loginSubmit.disabled = false;
+            }
+        });
+    }
+    if (els.logoutBtn) {
+        els.logoutBtn.addEventListener('click', async () => {
+            try {
+                await window.AtharApi.json('/api/mushaf-editor/logout', { method: 'POST' });
+            } catch (_e) { /* ignore */ }
+            state.user = null;
+            updateSessionUI();
+            if (state.cloud) showLogin();
+        });
+    }
+    if (els.publishBtn) {
+        els.publishBtn.addEventListener('click', async () => {
+            if (!confirm(`اعتماد مسودّة «${state.edition}» ونشرها للقراء؟`)) return;
+            els.publishBtn.disabled = true;
+            try {
+                const data = await window.AtharApi.json('/api/mushaf-editor/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ edition: state.edition }),
+                });
+                setStatus(`تم اعتماد ${toAr(data.published || 0)} علامة`);
+                loadAudit();
+            } catch (e) {
+                if (e && e.status === 403) setStatus('صلاحية المشرف مطلوبة', true);
+                else setStatus('تعذّر الاعتماد', true);
+            } finally {
+                els.publishBtn.disabled = false;
+            }
+        });
+    }
 
     /* ── Resize ──────────────────────────────────────────────────── */
     let _resizeId = 0;
@@ -723,6 +912,8 @@
     buildLegend();
     buildPopupButtons();
     updateEditionUI();
-    loadProgress();
-    loadPage();
+    (async () => {
+        const ok = await bootstrapAuth();
+        if (ok) await enterEditor();
+    })();
 })();

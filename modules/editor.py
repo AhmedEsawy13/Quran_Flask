@@ -1,20 +1,27 @@
 """محرّر المصحف — the click-to-edit waqf tool (the ONLY writer).
 
 Routes for the editor page, the spread payloads (Qatar layout right page /
-QPC-v1 left page), and reading/writing a single word's waqf symbol in
-mushaf_waqf.db. Gated behind ENABLE_EDITOR at registration time (app.py).
+QPC-v1 left page), and reading/writing a single word's waqf symbol.
+
+When Supabase is configured (SUPABASE_URL + service role), قطر/الكويت marks
+are stored as drafts in Postgres and only become public after admin publish.
+Without Supabase, writes still go to local mushaf_waqf.db (laptop workflow).
 """
+from __future__ import annotations
+
 import logging
 import sqlite3
 
 from flask import jsonify, render_template, request
 
 from core.blueprints import editor_bp
-from core.config import EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE
+from core.config import CLOUD_EDITOR_EDITIONS, EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.db import connect as _sqlite_connect
-from core.mushaf_waqf import _mushaf_waqf_cache
+from core.mushaf_waqf import _mushaf_waqf_cache, invalidate_cloud_waqf_cache
+from core import supabase_editor as sb
 from modules.breathing import _verse_waqf_cache
+from modules.editor_auth import current_editor, require_admin, require_editor
 from modules.layouts import (
     _build_qatar_page_payload,
     _build_qpc_v1_page_payload,
@@ -23,12 +30,14 @@ from modules.layouts import (
     _normalize_mushaf_word_token,
 )
 
+# Side-effect: register login/logout routes on editor_bp.
+import modules.editor_auth  # noqa: F401
+
 logger = logging.getLogger(__name__)
 
 _MAX_MUSHAF_PAGE = 604
 _MAX_MUSHAF_SPREAD = 302
 _EDITOR_SYMBOLS = {'', 'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع', 'ركوع'}
-# Full reference mushafs shown as peer hints in the editor (not writable here).
 _EDITOR_PEER_VERSIONS = (
     'المدينة الجديد',
     'المدينة القديم',
@@ -38,9 +47,7 @@ _EDITOR_PEER_VERSIONS = (
 
 
 def _ayah_word_list_for_editor(surah_number, ayah_number):
-    """Ordered list of {'word_id', 'text'} for every layout word in an ayah,
-    using the same authoritative Digital Khatt / QPC-v1 word numbering as the
-    page payloads (so word_id lines up with first_word_id/last_word_id)."""
+    """Ordered list of {'word_id', 'text'} for every layout word in an ayah."""
     wmap = _get_dk_layout_word_map()
     first_id = wmap['first_id'].get((surah_number, ayah_number))
     last_id = wmap['last_id'].get((surah_number, ayah_number))
@@ -55,22 +62,8 @@ def _ayah_word_list_for_editor(surah_number, ayah_number):
     return words
 
 
-def _get_or_set_word_waqf(global_word_id, edition, symbol):
-    """Read or write the mushaf_waqf.db waqf symbol for one word/edition.
-
-    `symbol`: None reads the current value without writing; '' clears the
-    mark; any other string sets it. Returns the resulting symbol (possibly
-    None), or None if the word/edition cannot be resolved.
-
-    Rows in `waqf` are sparse (only words with a mark in *some* edition have a
-    row). If the targeted word has no row yet and `symbol` is non-empty, a new
-    row is inserted with token_index/word_index computed from the layout word
-    map — the same scheme `migrate_mushaf_waqf_token_index.py` used, so the
-    existing match-by-word_index logic keeps working for renders.
-    """
-    if edition not in EDITOR_EDITIONS:
-        return None
-
+def _resolve_word(global_word_id):
+    """Return (surah, ayah, token_index, word_text) or None."""
     wmap = _get_dk_layout_word_map()
     tok = wmap['id2tok'].get(global_word_id)
     if not tok:
@@ -79,7 +72,57 @@ def _get_or_set_word_waqf(global_word_id, edition, symbol):
     first_id = wmap['first_id'].get((surah_number, ayah_number))
     if first_id is None:
         return None
-    target_index = global_word_id - first_id
+    return surah_number, ayah_number, global_word_id - first_id, tok['text']
+
+
+def _overlay_cloud_marks_on_page(page: dict | None, edition: str, status: str) -> None:
+    """Replace edition entries in word.waqf_symbols with cloud marks for this page."""
+    if not page or not sb.is_configured():
+        return
+    words = []
+    for line in page.get('lines') or []:
+        for w in line.get('words') or []:
+            if w.get('surah') and w.get('ayah') is not None:
+                words.append(w)
+    if not words:
+        return
+    ayah_keys = sorted({(int(w['surah']), int(w['ayah'])) for w in words})
+    try:
+        rows = sb.fetch_marks_for_ayahs(edition=edition, status=status, ayah_keys=ayah_keys)
+    except sb.SupabaseEditorError as e:
+        logger.error('cloud mark overlay failed: %s', e)
+        return
+    by_key = {
+        (int(r['surah']), int(r['ayah']), int(r['token_index'])): (r.get('symbol') or '').strip()
+        for r in rows
+    }
+
+    wmap = _get_dk_layout_word_map()
+    for w in words:
+        surah, ayah = int(w['surah']), int(w['ayah'])
+        first_id = wmap['first_id'].get((surah, ayah))
+        if first_id is None:
+            continue
+        token_index = int(w['word_index']) - first_id
+        symbol = by_key.get((surah, ayah, token_index))
+        entries = w.get('waqf_symbols')
+        if not isinstance(entries, list):
+            entries = []
+            w['waqf_symbols'] = entries
+        w['waqf_symbols'] = [e for e in entries if e.get('version') != edition]
+        if symbol:
+            w['waqf_symbols'].append({'symbols': symbol, 'version': edition})
+
+
+def _get_or_set_word_waqf_sqlite(global_word_id, edition, symbol):
+    """Legacy local SQLite path (used when Supabase is not configured)."""
+    if edition not in EDITOR_EDITIONS:
+        return None
+
+    resolved = _resolve_word(global_word_id)
+    if not resolved:
+        return None
+    surah_number, ayah_number, target_index, _text = resolved
 
     words = _ayah_word_list_for_editor(surah_number, ayah_number)
     if not (0 <= target_index < len(words)):
@@ -120,7 +163,7 @@ def _get_or_set_word_waqf(global_word_id, edition, symbol):
             return clean_symbol
 
         if clean_symbol is None:
-            return None  # nothing to clear — no row covers this word in any edition
+            return None
 
         word_index_hint = 1 + sum(
             1 for w in words[:target_index] if _normalize_mushaf_word_token(w['text'])
@@ -143,6 +186,62 @@ def _get_or_set_word_waqf(global_word_id, edition, symbol):
         conn.close()
 
 
+def _get_or_set_word_waqf_cloud(global_word_id, edition, symbol, user: dict | None):
+    """Read/write draft mark in Supabase. symbol=None → read only."""
+    resolved = _resolve_word(global_word_id)
+    if not resolved:
+        return None
+    surah, ayah, token_index, word_text = resolved
+    actor_id = user['id'] if user else None
+    actor_name = user['name'] if user else None
+
+    if symbol is None:
+        row = sb.get_mark(
+            edition=edition, surah=surah, ayah=ayah,
+            token_index=token_index, status='draft',
+        )
+        return (row.get('symbol') if row else None) or None
+
+    clean = (symbol or '').strip()
+    old_row = sb.get_mark(
+        edition=edition, surah=surah, ayah=ayah,
+        token_index=token_index, status='draft',
+    )
+    old_symbol = (old_row.get('symbol') if old_row else '') or ''
+
+    if not clean:
+        sb.delete_mark(
+            edition=edition, surah=surah, ayah=ayah,
+            token_index=token_index, status='draft',
+        )
+        sb.append_audit(
+            actor_id=actor_id, actor_name=actor_name,
+            action='clear_mark', edition=edition,
+            surah=surah, ayah=ayah, token_index=token_index,
+            word_id=global_word_id, old_symbol=old_symbol, new_symbol='',
+        )
+        invalidate_cloud_waqf_cache(edition, surah, ayah)
+        return None
+
+    sb.upsert_mark(
+        edition=edition, surah=surah, ayah=ayah, token_index=token_index,
+        status='draft', symbol=clean, word_text=word_text, updated_by=actor_id,
+    )
+    sb.append_audit(
+        actor_id=actor_id, actor_name=actor_name,
+        action='set_mark', edition=edition,
+        surah=surah, ayah=ayah, token_index=token_index,
+        word_id=global_word_id, old_symbol=old_symbol, new_symbol=clean,
+    )
+    invalidate_cloud_waqf_cache(edition, surah, ayah)
+    return clean
+
+
+def _get_or_set_word_waqf(global_word_id, edition, symbol, user=None):
+    """Compatibility wrapper for seed scripts: cloud when configured, else SQLite."""
+    if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
+        return _get_or_set_word_waqf_cloud(global_word_id, edition, symbol, user)
+    return _get_or_set_word_waqf_sqlite(global_word_id, edition, symbol)
 
 
 @editor_bp.route('/mushaf-editor')
@@ -151,10 +250,9 @@ def mushaf_editor_page():
 
 
 @editor_bp.route('/api/mushaf-editor/spread/<int:spread_number>', methods=['GET'])
+@require_editor
 def get_mushaf_editor_spread(spread_number):
-    """Two facing pages of the Madinah v1 layout, carrying the selected
-    edition's marks, the المدينة baseline (for diffing), and peer mushafs
-    (الأزهر / الشمرلي / المدينتان) for forget-me-not hints."""
+    """Two facing pages carrying the selected edition's marks + peer hints."""
     edition = (request.args.get('edition') or '').strip()
     if edition not in EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
@@ -170,6 +268,13 @@ def get_mushaf_editor_spread(spread_number):
         build_page = _build_qatar_page_payload if edition == 'قطر' else _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)
         left = build_page(left_page, mushaf_version=versions) if left_page <= _MAX_MUSHAF_PAGE else None
+        if edition == 'الكويت':
+            for page in (right, left):
+                if page:
+                    page['font_name'] = 'Al Shamiya'
+        if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
+            _overlay_cloud_marks_on_page(right, edition, 'draft')
+            _overlay_cloud_marks_on_page(left, edition, 'draft')
         return jsonify({
             'spread_number': spread_number,
             'edition': edition,
@@ -177,6 +282,7 @@ def get_mushaf_editor_spread(spread_number):
             'left': left,
             'max_spread': _MAX_MUSHAF_SPREAD,
             'peer_versions': list(_EDITOR_PEER_VERSIONS),
+            'cloud': sb.is_configured(),
         })
     except Exception as e:
         logger.error(f"Error fetching mushaf-editor spread {spread_number}: {e}")
@@ -184,12 +290,9 @@ def get_mushaf_editor_spread(spread_number):
 
 
 @editor_bp.route('/api/mushaf-editor/waqf', methods=['POST'])
+@require_editor
 def set_mushaf_editor_waqf():
-    """Set or clear the waqf mark for one word in one edition.
-
-    Body: {"word_id": <global layout word id>, "edition": "قطر"|"الكويت",
-           "symbol": "<one of م لا ق ص ج س ع>" | "" (clear)}
-    """
+    """Set or clear the waqf mark for one word in one edition."""
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({'error': 'JSON object required'}), 400
@@ -208,18 +311,28 @@ def set_mushaf_editor_waqf():
     if symbol not in _EDITOR_SYMBOLS:
         return jsonify({'error': 'invalid symbol'}), 400
 
-    result = _get_or_set_word_waqf(word_id, edition, symbol)
+    user = current_editor()
+    try:
+        if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
+            result = _get_or_set_word_waqf_cloud(word_id, edition, symbol, user)
+        else:
+            result = _get_or_set_word_waqf_sqlite(word_id, edition, symbol)
+    except sb.SupabaseEditorError as e:
+        logger.error('cloud waqf write failed: %s', e)
+        return jsonify({'error': 'cloud write failed'}), 503
+
     if result is None and symbol:
         return jsonify({'error': 'word not found'}), 404
     return jsonify({'word_id': word_id, 'edition': edition, 'symbol': result or ''})
 
 
 @editor_bp.route('/api/mushaf-editor/progress', methods=['GET', 'POST'])
+@require_editor
 def mushaf_editor_progress():
-    """Track which spreads of the 604-page layout have been manually reviewed
-    for each new edition, so the comparison work can be paused/resumed."""
+    """Track which pages have been manually reviewed for each edition."""
     if request.method == 'GET':
         edition = (request.args.get('edition') or '').strip()
+        body = None
     else:
         body = request.get_json(silent=True)
         if not isinstance(body, dict):
@@ -231,6 +344,38 @@ def mushaf_editor_progress():
 
     if edition not in EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
+
+    user = current_editor()
+
+    if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
+        try:
+            if request.method == 'GET':
+                pages = sb.list_reviewed_pages(edition)
+                return jsonify({'edition': edition, 'reviewed_pages': pages})
+            try:
+                page_number = int(body.get('page_number'))
+            except (TypeError, ValueError):
+                return jsonify({'error': 'invalid page_number'}), 400
+            if not (1 <= page_number <= _MAX_MUSHAF_PAGE):
+                return jsonify({'error': f'page_number must be between 1 and {_MAX_MUSHAF_PAGE}'}), 400
+            reviewed = bool(body.get('reviewed'))
+            sb.upsert_progress(
+                edition=edition, page_number=page_number, reviewed=reviewed,
+                updated_by=user['id'] if user else None,
+            )
+            sb.append_audit(
+                actor_id=user['id'] if user else None,
+                actor_name=user['name'] if user else None,
+                action='review_page', edition=edition, page_number=page_number,
+                meta={'reviewed': reviewed},
+            )
+            return jsonify({
+                'ok': True, 'page_number': page_number,
+                'edition': edition, 'reviewed': reviewed,
+            })
+        except sb.SupabaseEditorError as e:
+            logger.error('cloud progress failed: %s', e)
+            return jsonify({'error': 'cloud progress failed'}), 503
 
     conn = _sqlite_connect(MUSHAF_WAQF_DATABASE)
     try:
@@ -263,3 +408,41 @@ def mushaf_editor_progress():
         return jsonify({'error': str(e)}), 500
     finally:
         conn.close()
+
+
+@editor_bp.route('/api/mushaf-editor/publish', methods=['POST'])
+@require_admin
+def publish_editor_edition():
+    """Promote all draft marks for an edition to published (public readers)."""
+    data = request.get_json(silent=True) or {}
+    edition = (data.get('edition') or '').strip()
+    if edition not in CLOUD_EDITOR_EDITIONS:
+        return jsonify({'error': 'invalid edition'}), 400
+    user = current_editor()
+    try:
+        count = sb.publish_edition(
+            edition,
+            actor_id=user['id'] if user else None,
+            actor_name=user['name'] if user else None,
+        )
+        invalidate_cloud_waqf_cache(edition)
+        return jsonify({'ok': True, 'edition': edition, 'published': count})
+    except sb.SupabaseEditorError as e:
+        logger.error('publish failed: %s', e)
+        return jsonify({'error': 'publish failed'}), 503
+
+
+@editor_bp.route('/api/mushaf-editor/audit', methods=['GET'])
+@require_editor
+def editor_audit_feed():
+    edition = (request.args.get('edition') or '').strip() or None
+    if edition and edition not in EDITOR_EDITIONS:
+        return jsonify({'error': 'invalid edition'}), 400
+    if not sb.is_configured():
+        return jsonify({'items': []})
+    try:
+        items = sb.recent_audit(edition=edition, limit=40)
+        return jsonify({'items': items})
+    except sb.SupabaseEditorError as e:
+        logger.error('audit feed failed: %s', e)
+        return jsonify({'error': 'audit unavailable'}), 503

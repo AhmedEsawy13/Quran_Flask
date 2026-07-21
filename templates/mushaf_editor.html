@@ -1,17 +1,20 @@
 <!DOCTYPE html>
-{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>أثَر · محرّر المصحف — مواضع الوقف</title>
+    {% set page_title = 'أثَر · محرّر المصحف — مواضع الوقف' %}
+    {% set page_description = 'محرّر محلي لضبط مواضع الوقف والابتداء في مصحف قطر والكويت الحديث.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/mushaf-editor', noindex=true) }}
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/alshamiya.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     <!-- أثَر shared brand identity (fonts + logo) -->
@@ -31,6 +34,18 @@
 <body class="athar-editor">
     {{ athar_app_bar() }}
 
+    <div class="ed-login" id="ed-login" hidden>
+        <form class="ed-login-card athar-surface" id="ed-login-form" autocomplete="off">
+            <p class="athar-kicker">— محرّر المصحف</p>
+            <h1 class="ed-login-title athar-display">أدخل رمز الدعوة</h1>
+            <p class="ed-login-hint">رمز شخصي لكل مراجع. التعديلات تبقى مسودّة حتى يعتمدها المشرف.</p>
+            <label class="ed-login-label" for="ed-login-code">رمز الدخول</label>
+            <input class="athar-field ed-login-input" type="password" id="ed-login-code" name="code" required autocomplete="current-password" dir="ltr">
+            <p class="ed-login-error" id="ed-login-error" role="alert" hidden></p>
+            <button class="ed-login-submit" type="submit" id="ed-login-submit">دخول</button>
+        </form>
+    </div>
+
     <section class="ed-bar" id="ed-bar" aria-labelledby="ed-title">
         <div class="ed-bar-intro">
             <p class="athar-kicker">— محرّر المصحف</p>
@@ -39,6 +54,12 @@
         </div>
 
         <div class="ed-bar-tools" aria-label="أدوات المحرّر">
+            <div class="ed-session" id="ed-session" hidden>
+                <span class="ed-session-name" id="ed-session-name"></span>
+                <button class="ed-publish-btn" id="ed-publish" type="button" hidden title="نشر المسودّة للقراء">اعتماد</button>
+                <button class="ed-logout-btn" id="ed-logout" type="button" title="خروج">خروج</button>
+            </div>
+
             <div class="ed-edition-toggle athar-tabs" id="ed-edition-toggle" role="group" aria-label="نسخة المصحف">
                 <button class="ed-edition-btn athar-tab" data-edition="قطر" type="button" aria-pressed="false">مصحف قطر</button>
                 <button class="ed-edition-btn athar-tab" data-edition="الكويت" type="button" aria-pressed="false">الكويت الحديث</button>
@@ -69,6 +90,7 @@
     </section>
 
     <div class="ed-toast" id="ed-status" role="status" aria-live="polite" hidden></div>
+    <aside class="ed-audit" id="ed-audit" aria-label="آخر التعديلات" hidden></aside>
     <aside class="ed-legend" id="ed-legend" aria-label="دليل علامات الوقف"></aside>
 
     <main class="ed-main" id="athar-main" tabindex="-1" aria-labelledby="ed-title">

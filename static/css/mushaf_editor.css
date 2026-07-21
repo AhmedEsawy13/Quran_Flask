@@ -4,7 +4,9 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 @font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')      format('woff2'); font-display: swap; }
+@font-face { font-family: 'Al Shamiya';   src: url('../fonts/alshamiya.woff2')      format('woff2'); font-display: swap; }
 @font-face { font-family: 'Uthmanic Hafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'KATypical Naskh'; src: url('../fonts/KATypicalNaskhv2.0-Regular.woff2') format('woff2'); font-display: swap; }
 /* Colors ride on أثَر's shared editorial palette (brand.css --athar-*) so this
  * page's identity stays in sync as the rest of the app migrates onto it —
  * only --ed-diff (a semantic "this word differs from the baseline" marker,
@@ -189,10 +191,15 @@ body.ed-popup-open { overflow: hidden; }
     line-height: 1; padding: 0.5em 0.06em 0.15em; border-radius: 0.2em;
     cursor: pointer; position: relative; transition: background 0.12s;
 }
-/* مصحف قطر's layout DB declares font_name "qpc-hafs" — render its pages in
-   Uthmanic Hafs instead of Old Madina (already loaded for the waqf glyphs). */
-body.ed-font-hafs .ed-word,
-body.ed-font-hafs .ed-popup-title { font-family: 'Uthmanic Hafs', serif; }
+/* مصحف قطر — Tanzil Uthmani text + KATypical Naskh (not QPC / Uthmanic Hafs). */
+body.ed-font-qatar .ed-word,
+body.ed-font-qatar .ed-popup-title { font-family: 'KATypical Naskh', 'Uthmanic Hafs', serif; }
+/* Keep Hafs for waqf glyphs even on Qatar pages — marks are Uthmanic combining forms. */
+body.ed-font-qatar .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
+/* الكويت الحديث — QPC v1 layout + DigitalKhatt Al-Shamiya (دار الشامية ١٩٧٨). */
+body.ed-font-kuwait .ed-word,
+body.ed-font-kuwait .ed-popup-title { font-family: 'Al Shamiya', 'Old Madina', serif; }
+body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
 .ed-word:hover { background: var(--ed-accent-soft); }
 .ed-word:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; background: var(--ed-accent-soft); }
 .ed-word.ed-diff { background: var(--ed-diff-soft); }
@@ -298,6 +305,64 @@ body.ed-font-hafs .ed-popup-title { font-family: 'Uthmanic Hafs', serif; }
     background: var(--ed-paper-2); color: var(--ed-ink); cursor: pointer; font-family: inherit; font-size: 0.88rem;
 }
 .ed-popup-clear:hover { border-color: var(--ed-diff); color: var(--ed-diff); }
+
+/* ── Invite login gate ───────────────────────────────────────────── */
+.ed-login {
+    position: fixed; inset: 0; z-index: 80;
+    display: grid; place-items: center;
+    padding: 24px 16px;
+    background:
+        radial-gradient(ellipse at 30% 20%, color-mix(in srgb, var(--ed-accent) 14%, transparent), transparent 55%),
+        var(--ed-bg);
+}
+.ed-login[hidden] { display: none !important; }
+.ed-login-card {
+    width: min(420px, 100%);
+    display: grid; gap: 10px;
+    padding: 28px 24px 24px;
+    border: 1px solid var(--ed-border);
+    border-radius: var(--athar-radius-surface);
+    box-shadow: var(--athar-shadow-sm);
+}
+.ed-login-title { margin: 0; font-size: clamp(1.45rem, 3vw, 1.85rem); line-height: 1.15; }
+.ed-login-hint { margin: 0 0 6px; color: var(--athar-ink-soft); font-family: var(--font-serif); font-size: 0.88rem; line-height: 1.55; }
+.ed-login-label { font-size: 0.82rem; font-weight: 600; color: var(--athar-ink-soft); }
+.ed-login-input { width: 100%; min-height: 44px; letter-spacing: 0.04em; }
+.ed-login-error { margin: 0; color: #b91c1c; font-size: 0.86rem; }
+.ed-login-submit {
+    margin-top: 6px; min-height: 44px; border: 0; border-radius: 10px;
+    background: var(--ed-accent); color: #fff; font-family: inherit; font-weight: 700;
+    font-size: 0.95rem; cursor: pointer;
+}
+.ed-login-submit:disabled { opacity: 0.6; cursor: wait; }
+
+.ed-session {
+    display: flex; align-items: center; gap: 8px;
+    min-height: 46px; padding: 5px 9px;
+    border: 1px solid var(--ed-border); border-radius: var(--athar-radius-surface);
+    background: var(--ed-paper);
+}
+.ed-session-name { font-size: 0.82rem; font-weight: 700; color: var(--athar-ink-soft); white-space: nowrap; max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
+.ed-publish-btn, .ed-logout-btn {
+    min-height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper-2); color: var(--ed-ink); font-family: inherit; font-size: 0.82rem;
+    font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.ed-publish-btn { border-color: color-mix(in srgb, var(--ed-accent) 45%, var(--ed-border)); color: var(--ed-accent); }
+.ed-publish-btn:hover { background: var(--ed-accent-soft); }
+.ed-logout-btn:hover { border-color: var(--ed-diff); color: var(--ed-diff); }
+
+.ed-audit {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    padding: 6px clamp(16px, 3vw, 40px) 0;
+    font-size: 0.72rem; color: var(--athar-ink-faint);
+}
+.ed-audit[hidden] { display: none !important; }
+.ed-audit-item {
+    padding: 3px 8px; border-radius: 999px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper); white-space: nowrap; max-width: 42ch;
+    overflow: hidden; text-overflow: ellipsis;
+}
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 /* --ed-page-w/h are recomputed by sizePages() on resize; only chrome tweaks here. */

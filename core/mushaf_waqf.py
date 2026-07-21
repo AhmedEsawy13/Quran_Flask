@@ -3,13 +3,17 @@
 Column discovery + whitelist validation (the version names are SQL
 identifiers, so they must be validated before interpolation), cached
 per-ayah symbol fetches, and segment-boundary lookups. No Flask dependency.
+
+When Supabase is configured, قطر/الكويت public reads use **published**
+cloud marks only (drafts stay editor-private). Other editions stay on SQLite.
 """
 import logging
 import os
 import sqlite3
+from collections import OrderedDict
 from functools import lru_cache
 
-from core.config import MUSHAF_WAQF_DATABASE
+from core.config import CLOUD_EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE
 from core.lru import _BoundedLRU
 
 logger = logging.getLogger(__name__)
@@ -116,11 +120,15 @@ def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
     else:
         versions = [mushaf_version] if _is_valid_mushaf_version(mushaf_version) else []
 
-    if not versions or not os.path.exists(MUSHAF_WAQF_DATABASE):
+    if not versions:
         return []
 
     all_rows = []
     for ver in versions:
+        # Cloud editions can resolve without a local mushaf_waqf.db when Supabase
+        # is configured; SQLite editions still need the file.
+        if ver not in CLOUD_EDITOR_EDITIONS and not os.path.exists(MUSHAF_WAQF_DATABASE):
+            continue
         rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
         for r in rows:
             r['version'] = ver
@@ -135,6 +143,61 @@ def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
 _mushaf_waqf_cache: _BoundedLRU = _BoundedLRU(maxsize=8192)
 
 
+def invalidate_cloud_waqf_cache(edition=None, surah=None, ayah=None):
+    """Drop cached public mushaf waqf rows after draft writes or publish."""
+    with _mushaf_waqf_cache._lock:
+        if edition is None and surah is None and ayah is None:
+            OrderedDict.clear(_mushaf_waqf_cache)
+            return
+        drop = []
+        for key in list(OrderedDict.keys(_mushaf_waqf_cache)):
+            s, a, ver = key
+            if edition is not None and ver != edition:
+                continue
+            if surah is not None and s != surah:
+                continue
+            if ayah is not None and a != ayah:
+                continue
+            drop.append(key)
+        for key in drop:
+            OrderedDict.pop(_mushaf_waqf_cache, key, None)
+
+
+def _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version):
+    """Published marks from Supabase for a cloud-editor edition."""
+    from core import supabase_editor as sb
+
+    if not sb.is_configured():
+        return None  # signal: fall through to SQLite
+    try:
+        rows = sb.fetch_marks(
+            edition=mushaf_version,
+            status='published',
+            surah=surah_number,
+            ayah=ayah_number,
+        )
+    except sb.SupabaseEditorError as e:
+        logger.error('cloud published waqf fetch failed: %s', e)
+        return []  # configured but failed — do not leak SQLite drafts/legacy
+    result = []
+    for row in rows:
+        symbol = (row.get('symbol') or '').strip()
+        if not symbol:
+            continue
+        ti = row.get('token_index')
+        try:
+            ti = int(ti) if ti is not None else None
+        except (TypeError, ValueError):
+            ti = None
+        result.append({
+            'clean_token': row.get('word_text') or '',
+            'symbols': symbol,
+            'token_index': ti,  # already 0-based in cloud schema
+            'word_index': None,
+        })
+    return result
+
+
 def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
     """Internal: fetch for exactly one validated version, with in-process caching."""
     if not _is_valid_mushaf_version(mushaf_version):
@@ -144,6 +207,13 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
     cached = _mushaf_waqf_cache.get(cache_key)
     if cached is not None:
         return [dict(r) for r in cached]
+
+    # Cloud-editor editions: published Postgres only when Supabase is configured.
+    if mushaf_version in CLOUD_EDITOR_EDITIONS:
+        cloud = _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version)
+        if cloud is not None:
+            _mushaf_waqf_cache[cache_key] = cloud
+            return [dict(r) for r in cloud]
 
     try:
         conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)

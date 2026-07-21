@@ -33,6 +33,11 @@ from core.mushaf_waqf import (
 
 logger = logging.getLogger(__name__)
 
+# Tanzil Uthmani (surah|ayah|text) — script source for مصحف قطر editor pages.
+QATAR_UTHMANI_TEXT_PATH = os.path.join(_BASE_DIR, 'data', 'quran_text', 'quran-uthmani.txt')
+_ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
+_AYAH_NUM_CHARS = set('٠١٢٣٤٥٦٧٨٩0123456789')
+
 
 @core_bp.route('/api/shamarly/ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_shamarly_ayah(surah_number, ayah_number):
@@ -264,12 +269,36 @@ def _find_mushaf_row_match_index(words, row, search_start=0):
     """Find best token index for a mushaf waqf row.
 
     Priority:
+    0) Explicit 0-based token_index (cloud published marks / layout offset).
     1) Optional DB word_index hint (within-ayah content-word position).
     2) Exact token matching (only whitespace removed).
     3) Normalized fallback (diacritics/waqf removed) for script variance.
     """
     if not words:
         return None
+
+    # Cloud marks store 0-based offset within the full ayah. When the word list
+    # is a page slice, resolve via global word_index = first_of_ayah + token.
+    raw_ti = row.get('token_index')
+    if raw_ti is not None:
+        try:
+            ti = int(raw_ti)
+        except (TypeError, ValueError):
+            ti = None
+        if ti is not None and ti >= 0:
+            if words and words[0].get('word_index') is not None and words[0].get('surah') and words[0].get('ayah') is not None:
+                try:
+                    wmap = _get_dk_layout_word_map()
+                    first_id = wmap['first_id'].get((int(words[0]['surah']), int(words[0]['ayah'])))
+                except Exception:
+                    first_id = None
+                if first_id is not None:
+                    target_gid = first_id + ti
+                    for idx, word in enumerate(words):
+                        if int(word.get('word_index') or -1) == target_gid:
+                            return idx
+            elif 0 <= ti < len(words):
+                return ti
 
     target_text = _get_row_match_text(row)
     target_raw = _compact_mushaf_word_token(target_text)
@@ -1012,6 +1041,141 @@ def _get_qpc_hafs_layout_word_map():
     return result
 
 
+def _to_arabic_digits(value):
+    return ''.join(_ARABIC_DIGITS[int(ch)] if ch.isdigit() else ch for ch in str(value))
+
+
+def _is_ayah_number_token(tok):
+    cleaned = (tok or '').replace('\u00a0', '').replace('۝', '')
+    return bool(cleaned) and all(ch in _AYAH_NUM_CHARS for ch in cleaned)
+
+
+@lru_cache(maxsize=1)
+def _load_tanzil_uthmani_ayahs():
+    """Parse data/quran_text/quran-uthmani.txt → {(surah, ayah): text}."""
+    out = {}
+    if not os.path.exists(QATAR_UTHMANI_TEXT_PATH):
+        logger.warning('Qatar Uthmani text missing: %s', QATAR_UTHMANI_TEXT_PATH)
+        return out
+    with open(QATAR_UTHMANI_TEXT_PATH, encoding='utf-8') as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            parts = line.split('|', 2)
+            if len(parts) != 3:
+                continue
+            try:
+                surah, ayah = int(parts[0]), int(parts[1])
+            except ValueError:
+                continue
+            out[(surah, ayah)] = parts[2]
+    return out
+
+
+def _uthmani_content_tokens(surah, ayah, text):
+    """Space-split Tanzil Uthmani ayah text; drop leading basmala on surah starts.
+
+    Also normalize markers that Tanzil emits as free tokens but layout word
+    ranges attach to a neighboring word (hizb ۞, sajda ۩).
+    """
+    tokens = [w for w in re.split(r'\s+', (text or '').strip()) if w]
+    # Tanzil prepends the basmala to ayah 1 of every surah except التوبة (and
+    # الفاتحة where the basmala IS the ayah). Layout word ranges never include it.
+    if ayah == 1 and surah not in (1, 9) and len(tokens) >= 5 and tokens[0].startswith('ب'):
+        if 'بِسْم' in tokens[0] or 'بِّسْم' in tokens[0] or 'بِسۡم' in tokens[0]:
+            tokens = tokens[4:]
+    # ۞ is a separate token in Tanzil; QPC/DK glue it to the next word.
+    merged = []
+    i = 0
+    while i < len(tokens):
+        if tokens[i] == '۞' and i + 1 < len(tokens):
+            merged.append('۞' + tokens[i + 1])
+            i += 2
+            continue
+        merged.append(tokens[i])
+        i += 1
+    tokens = merged
+    # Trailing standalone ۩ (sajda) is glued to the previous word in layouts.
+    if len(tokens) >= 2 and tokens[-1] == '۩':
+        tokens = tokens[:-2] + [tokens[-2] + '۩']
+    # A few Tanzil splits that mushaf word maps keep as one token.
+    glued = {
+        ('لَّوْ', 'مَا'): 'لَّوْمَا',
+        ('مَا', 'لِىَ'): 'مَالِيَ',
+        ('وَمَا', 'لِىَ'): 'وَمَالِيَ',
+    }
+    out = []
+    i = 0
+    while i < len(tokens):
+        pair = (tokens[i], tokens[i + 1]) if i + 1 < len(tokens) else None
+        if pair in glued:
+            out.append(glued[pair])
+            i += 2
+            continue
+        out.append(tokens[i])
+        i += 1
+    return out
+
+
+_QATAR_UTHMANI_LAYOUT_WORD_MAP = None
+
+
+def _get_qatar_uthmani_layout_word_map():
+    """Layout word map for مصحف قطر using Tanzil Uthmani text + KATypical Naskh.
+
+    Keeps Digital Khatt word-id ranges (1..83668). For each ayah, prefer
+    Tanzil tokens (+ trailing Arabic ayah digit) when the count matches;
+    otherwise fall back to the QPC Hafs map so waqf indexing stays intact.
+    """
+    global _QATAR_UTHMANI_LAYOUT_WORD_MAP
+    if _QATAR_UTHMANI_LAYOUT_WORD_MAP is not None:
+        return _QATAR_UTHMANI_LAYOUT_WORD_MAP
+
+    dk_map = _get_dk_layout_word_map()
+    qpc_map = _get_qpc_hafs_layout_word_map()
+    uthmani = _load_tanzil_uthmani_ayahs()
+    result = {'id2tok': {}, 'first_id': dk_map['first_id'], 'last_id': dk_map['last_id']}
+    id2tok = result['id2tok']
+    matched = fallback = 0
+
+    try:
+        for (s, a), first in dk_map['first_id'].items():
+            last = dk_map['last_id'][(s, a)]
+            count = last - first + 1
+            raw = uthmani.get((s, a), '')
+            content = _uthmani_content_tokens(s, a, raw)
+            # Layout ranges usually include a trailing ayah-number token.
+            tokens = content + [_to_arabic_digits(a)] if content else []
+            if len(tokens) != count and content and len(content) == count:
+                # Rare: layout word range omits the ayah digit (e.g. 37:182).
+                tokens = content
+            if len(tokens) == count:
+                matched += 1
+                for i in range(count):
+                    id2tok[first + i] = {'surah': s, 'ayah': a, 'text': tokens[i]}
+            else:
+                fallback += 1
+                for wid in range(first, last + 1):
+                    if wid in qpc_map['id2tok']:
+                        id2tok[wid] = qpc_map['id2tok'][wid]
+                    elif wid in dk_map['id2tok']:
+                        tok = dk_map['id2tok'][wid]
+                        if wid == last and tok['text'].startswith('۝'):
+                            tok = {**tok, 'text': tok['text'][1:]}
+                        id2tok[wid] = tok
+        logger.info(
+            'Qatar Uthmani word map: %d ayahs matched, %d fell back to QPC Hafs',
+            matched, fallback,
+        )
+    except Exception as e:
+        logger.error(f'Failed to build Qatar Uthmani layout word map: {e}')
+        return qpc_map
+
+    _QATAR_UTHMANI_LAYOUT_WORD_MAP = result
+    return result
+
+
 def _layout_page_resolve(layout_db, surah_number, ayah_number):
     """Return the page number that first displays (surah, ayah) in a 15-line
     layout DB, using the authoritative word map. None if unresolved."""
@@ -1291,7 +1455,7 @@ def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None, m
 
 def _build_qatar_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
     """Build a page payload from مصحف قطر's own 15-line layout database,
-    rendered with QPC Hafs script text (matching its font_name='qpc-hafs')."""
+    rendered with Tanzil Uthmani text (KATypical Naskh in the editor)."""
     if not os.path.exists(QATAR_LAYOUT_DATABASE):
         return None
 
@@ -1315,10 +1479,11 @@ def _build_qatar_page_payload(page_number, focus_surah=None, focus_ayah=None, mu
 
     payload = _assemble_layout_page(
         lines, info_row, page_number, focus_surah, focus_ayah,
-        source='mushaf_qatar', font_name_default='Old Madina', include_advance=False,
-        mushaf_version=mushaf_version, word_map=_get_qpc_hafs_layout_word_map()
+        source='mushaf_qatar', font_name_default='KATypical Naskh', include_advance=False,
+        mushaf_version=mushaf_version, word_map=_get_qatar_uthmani_layout_word_map()
     )
     payload['layout_name'] = (info_row['name'] if info_row else 'مصحف قطر')
+    payload['font_name'] = 'KATypical Naskh'
     payload['mushaf_version'] = (
         mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
     )
