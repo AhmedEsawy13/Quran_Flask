@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Export قطر/الكويت marks from local mushaf_waqf.db into Supabase editor_marks.
 
+Uses YOUR existing Supabase project (SUPABASE_URL) — does not create a new DB.
+Upserts into editor_marks so re-runs are safe.
+
 Default status=draft (public unchanged until admin publish).
-Pass --as-published to seed public marks directly.
+Pass --as-published to seed the live public baseline from SQLite.
 """
 from __future__ import annotations
 
@@ -38,7 +41,7 @@ def _ayah_words(surah: int, ayah: int) -> list[dict]:
     return words
 
 
-def migrate_edition(edition: str, *, status: str, dry_run: bool) -> int:
+def collect_edition_rows(edition: str) -> list[dict]:
     quoted = f'"{edition}"'
     conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
     conn.row_factory = sqlite3.Row
@@ -52,7 +55,7 @@ def migrate_edition(edition: str, *, status: str, dry_run: bool) -> int:
     rows = [dict(r) for r in cur.fetchall()]
     conn.close()
 
-    count = 0
+    out: list[dict] = []
     by_ayah: dict[tuple[int, int], list] = {}
     for row in rows:
         by_ayah.setdefault((int(row['surah']), int(row['ayah'])), []).append(row)
@@ -72,7 +75,6 @@ def migrate_edition(edition: str, *, status: str, dry_run: bool) -> int:
                 'token_index': None,
             }, search_start)
             if matched is None:
-                # Fallback: SQLite token_index is often 1-based.
                 ti = row.get('token_index')
                 try:
                     ti = int(ti) - 1 if ti is not None else None
@@ -82,22 +84,28 @@ def migrate_edition(edition: str, *, status: str, dry_run: bool) -> int:
                     continue
                 matched = ti
             search_start = matched + 1
-            word_text = words[matched]['text']
-            if dry_run:
-                count += 1
-                continue
-            sb.upsert_mark(
-                edition=edition,
-                surah=surah,
-                ayah=ayah,
-                token_index=matched,
-                status=status,
-                symbol=symbol,
-                word_text=word_text,
-                updated_by=None,
-            )
-            count += 1
-    return count
+            out.append({
+                'edition': edition,
+                'surah': surah,
+                'ayah': ayah,
+                'token_index': matched,
+                'symbol': symbol,
+                'word_text': words[matched]['text'],
+            })
+    return out
+
+
+def migrate_edition(edition: str, *, status: str, dry_run: bool) -> int:
+    collected = collect_edition_rows(edition)
+    print(f'{edition}: collected {len(collected)} marks from SQLite', flush=True)
+    if dry_run:
+        return len(collected)
+    for row in collected:
+        row['status'] = status
+        row['updated_by'] = None
+    n = sb.upsert_marks_batch(collected)
+    print(f'{edition}: upserted {n} → {status}', flush=True)
+    return n
 
 
 def main() -> int:
@@ -116,6 +124,7 @@ def main() -> int:
         print(f'Missing {MUSHAF_WAQF_DATABASE}', file=sys.stderr)
         return 1
 
+    print(f'Target: {(sb._base() if sb.is_configured() else "(dry-run)")}', flush=True)
     editions = args.editions or sorted(CLOUD_EDITOR_EDITIONS)
     status = 'published' if args.as_published else 'draft'
     total = 0
@@ -124,9 +133,8 @@ def main() -> int:
             print(f'Skip unknown edition {edition!r}', file=sys.stderr)
             continue
         n = migrate_edition(edition, status=status, dry_run=args.dry_run)
-        print(f'{edition}: {n} marks → {status}' + (' (dry-run)' if args.dry_run else ''))
         total += n
-    print(f'Total: {total}')
+    print(f'Total: {total}', flush=True)
     return 0
 
 

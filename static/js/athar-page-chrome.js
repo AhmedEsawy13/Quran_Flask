@@ -244,6 +244,45 @@
             [`'salt' 1`, ...tags.map(tag => `'${tag}' 1`)].join(', ')
         ));
     }
+    /* Al-Shamiya (DigitalKhatt OT build) exposes jalt + jt/dc/kt ladders.
+       Enabling every tag at once overshoots the line and the justifier
+       rejects it (falls back to word-spacing). Offer progressive steps so
+       each line picks the closest fit — bias toward jt/kt (curvilinear
+       kashida) which matches printed Naskh denser than word gaps. */
+    function alShamiyaFeatureCandidates(strength) {
+        const s = Math.max(0, Math.min(100, Number(strength) || 0));
+        if (s <= 0) return [];
+        const fmt = (tags) => tags.map(t => `'${t}' 1`).join(', ');
+        const out = [];
+        // Singles first — kt/jt expand connections; jalt is the lightest step.
+        for (const t of [
+            'jalt', 'jt01', 'kt01', 'jt02', 'kt02', 'dc01',
+            'jt03', 'kt03', 'dc02', 'jt04', 'kt04', 'jt05', 'kt05', 'dc03',
+        ]) {
+            out.push(fmt([t]));
+        }
+        // Light → medium stacks. Prefer jt/kt, but stop before the heaviest
+        // dumps — those look stringy vs printed Naskh's short elongations.
+        const stacks = [
+            ['jalt', 'jt01'],
+            ['jalt', 'kt01'],
+            ['jalt', 'jt01', 'kt01'],
+            ['jalt', 'jt01', 'jt02'],
+            ['jalt', 'kt01', 'kt02'],
+            ['jalt', 'jt01', 'kt01', 'jt02'],
+            ['jalt', 'jt01', 'kt01', 'kt02'],
+            ['jalt', 'jt01', 'jt02', 'kt01', 'kt02'],
+            ['jalt', 'cv02'],
+            ['jalt', 'cv03'],
+            ['jalt', 'cv02', 'cv03'],
+            ['jalt', 'jt01', 'kt01', 'cv02'],
+            ['jalt', 'jt01', 'jt02', 'kt01', 'kt02', 'dc01'],
+            ['jalt', 'jt01', 'jt02', 'jt03', 'kt01', 'kt02'],
+            ['jalt', 'jt01', 'jt02', 'jt03', 'kt01', 'kt02', 'kt03', 'dc01'],
+        ];
+        stacks.forEach(tags => out.push(fmt(tags)));
+        return out;
+    }
 
     /* ── Line justification ─────────────────────────────────────────────
        Full-justifies every non-centered line (data-justify="1"): condense
@@ -262,11 +301,20 @@
             featureSettings = () => '', featureCandidates = null,
             minFeatureScale = 1, maxWordSpacing = Infinity, maxStretch = Infinity,
             stretchOnly = () => false,
+            // When true, prefer a slightly wider (more kashida) alternate if its
+            // distance to the line width is within preferExpansionSlack of the
+            // best so far — printed Naskh fills with elongation, not gaps.
+            preferExpansion = false,
+            preferExpansionSlack = 4,
         } = config || {};
         const resolveNumber = (value, fallback, lineEl, inner) => {
             const raw = typeof value === 'function' ? value(lineEl, inner) : value;
             const parsed = Number(raw);
             return Number.isFinite(parsed) ? parsed : fallback;
+        };
+        const resolveBool = (value, fallback) => {
+            const raw = typeof value === 'function' ? value() : value;
+            return typeof raw === 'boolean' ? raw : fallback;
         };
         return function justifyLines() {
             const els = (typeof containerEls === 'function' ? containerEls() : []).filter(Boolean);
@@ -274,6 +322,8 @@
             els.forEach(el => el.querySelectorAll(lineSelector).forEach(l => lines.push(l)));
             const gentle = stretchOnly();
             const features = gentle ? '' : featureSettings();
+            const expandFirst = resolveBool(preferExpansion, false);
+            const expandSlack = Math.max(0, resolveNumber(preferExpansionSlack, 4));
             lines.forEach(lineEl => {
                 const inner = lineEl.querySelector(innerSelector);
                 if (!inner) return;
@@ -316,8 +366,15 @@
                     const fitScale = avail / candidateWidth;
                     if (candidateWidth > avail + 0.5 && fitScale < featureScaleFloor) return;
                     const distance = Math.abs(avail - candidateWidth);
-                    if (distance < bestDistance) {
-                        bestDistance = distance;
+                    const closer = distance + 0.25 < bestDistance;
+                    // Prefer a wider (more kashida) alternate only when it still
+                    // fits the line — overshoot+scaleX looks stringy vs print.
+                    const denser = expandFirst
+                        && distance <= bestDistance + expandSlack
+                        && candidateWidth > width
+                        && candidateWidth <= avail + 1.5;
+                    if (closer || denser) {
+                        bestDistance = Math.min(bestDistance, distance);
                         chosenFeatures = candidate;
                         width = candidateWidth;
                     }
@@ -460,6 +517,7 @@
         createLineJustifier,
         digitalKhattFeatureCandidates,
         oldMadinaFeatureCandidates,
+        alShamiyaFeatureCandidates,
         collectPageSurahs,
         clearPageChrome,
         renderPageChrome,

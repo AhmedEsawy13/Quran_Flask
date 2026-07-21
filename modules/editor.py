@@ -75,43 +75,145 @@ def _resolve_word(global_word_id):
     return surah_number, ayah_number, global_word_id - first_id, tok['text']
 
 
-def _overlay_cloud_marks_on_page(page: dict | None, edition: str, status: str) -> None:
-    """Replace edition entries in word.waqf_symbols with cloud marks for this page."""
-    if not page or not sb.is_configured():
-        return
-    words = []
-    for line in page.get('lines') or []:
-        for w in line.get('words') or []:
-            if w.get('surah') and w.get('ayah') is not None:
-                words.append(w)
-    if not words:
-        return
-    ayah_keys = sorted({(int(w['surah']), int(w['ayah'])) for w in words})
+def _sqlite_edition_marks_map(edition: str, ayah_keys: list[tuple[int, int]]) -> dict[tuple[int, int, int], str]:
+    """Map (surah, ayah, token_index) → symbol from local mushaf_waqf.db."""
+    if not ayah_keys or edition not in EDITOR_EDITIONS:
+        return {}
+    quoted = f'"{edition}"'
+    out: dict[tuple[int, int, int], str] = {}
+    conn = _sqlite_connect(MUSHAF_WAQF_DATABASE)
     try:
-        rows = sb.fetch_marks_for_ayahs(edition=edition, status=status, ayah_keys=ayah_keys)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        for surah, ayah in ayah_keys:
+            cur.execute(
+                f'SELECT "الكلمة" AS word, token_index, word_index, {quoted} AS symbol '
+                'FROM waqf WHERE "السورة" = ? AND "الآية" = ? '
+                f'AND {quoted} IS NOT NULL AND {quoted} != "" ORDER BY rowid ASC',
+                (surah, ayah),
+            )
+            rows = [dict(r) for r in cur.fetchall()]
+            if not rows:
+                continue
+            words = _ayah_word_list_for_editor(surah, ayah)
+            if not words:
+                continue
+            search_start = 0
+            for row in rows:
+                matched = _find_mushaf_row_match_index(words, {
+                    'clean_token': row.get('word') or '',
+                    'word_index': row.get('word_index'),
+                    'token_index': None,
+                }, search_start)
+                if matched is None:
+                    ti = row.get('token_index')
+                    try:
+                        ti = int(ti) - 1 if ti is not None else None
+                    except (TypeError, ValueError):
+                        ti = None
+                    if ti is None or not (0 <= ti < len(words)):
+                        continue
+                    matched = ti
+                search_start = matched + 1
+                symbol = (row.get('symbol') or '').strip()
+                if symbol:
+                    out[(surah, ayah, matched)] = symbol
+    finally:
+        conn.close()
+    return out
+
+
+def _overlay_cloud_marks_on_pages(pages: list[dict | None], edition: str) -> None:
+    """Apply cloud edition marks onto one or more page payloads (one network round-trip).
+
+    Preference: draft → published → local SQLite (only if cloud returned nothing,
+    e.g. before migrate). Page build should pass *peer* versions only when cloud
+    is on, so we don't also hit Supabase once-per-ayah during layout.
+    """
+    if not sb.is_configured():
+        return
+    page_words: list[tuple[dict, list]] = []
+    ayah_keys: set[tuple[int, int]] = set()
+    for page in pages:
+        if not page:
+            continue
+        words = []
+        for line in page.get('lines') or []:
+            for w in line.get('words') or []:
+                if w.get('surah') and w.get('ayah') is not None:
+                    words.append(w)
+                    ayah_keys.add((int(w['surah']), int(w['ayah'])))
+        if words:
+            page_words.append((page, words))
+    if not page_words:
+        return
+    keys = sorted(ayah_keys)
+
+    def _load(status: str):
+        return sb.fetch_marks_for_ayahs(edition=edition, status=status, ayah_keys=keys)
+
+    try:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            fut_draft = pool.submit(_load, 'draft')
+            fut_pub = pool.submit(_load, 'published')
+            draft_rows = fut_draft.result()
+            published_rows = fut_pub.result()
     except sb.SupabaseEditorError as e:
         logger.error('cloud mark overlay failed: %s', e)
         return
-    by_key = {
-        (int(r['surah']), int(r['ayah']), int(r['token_index'])): (r.get('symbol') or '').strip()
-        for r in rows
-    }
+    except Exception as e:
+        logger.error('cloud mark overlay failed: %s', e)
+        return
+
+    def _index(rows):
+        return {
+            (int(r['surah']), int(r['ayah']), int(r['token_index'])): (r.get('symbol') or '').strip()
+            for r in rows
+        }
+
+    drafts = _index(draft_rows)
+    published = _index(published_rows)
+    # Skip expensive SQLite rematch when cloud already has the live baseline.
+    sqlite_marks = (
+        {} if (drafts or published)
+        else _sqlite_edition_marks_map(edition, keys)
+    )
 
     wmap = _get_dk_layout_word_map()
-    for w in words:
-        surah, ayah = int(w['surah']), int(w['ayah'])
-        first_id = wmap['first_id'].get((surah, ayah))
-        if first_id is None:
-            continue
-        token_index = int(w['word_index']) - first_id
-        symbol = by_key.get((surah, ayah, token_index))
-        entries = w.get('waqf_symbols')
-        if not isinstance(entries, list):
-            entries = []
-            w['waqf_symbols'] = entries
-        w['waqf_symbols'] = [e for e in entries if e.get('version') != edition]
-        if symbol:
-            w['waqf_symbols'].append({'symbols': symbol, 'version': edition})
+    for _page, words in page_words:
+        for w in words:
+            surah, ayah = int(w['surah']), int(w['ayah'])
+            first_id = wmap['first_id'].get((surah, ayah))
+            if first_id is None:
+                continue
+            token_index = int(w['word_index']) - first_id
+            key = (surah, ayah, token_index)
+            if key in drafts:
+                symbol = drafts[key]
+                from_cloud = True
+            elif key in published:
+                symbol = published[key]
+                from_cloud = True
+            elif key in sqlite_marks:
+                symbol = sqlite_marks[key]
+                from_cloud = False
+            else:
+                continue
+
+            entries = w.get('waqf_symbols')
+            if not isinstance(entries, list):
+                entries = []
+            w['waqf_symbols'] = [e for e in entries if e.get('version') != edition]
+            if symbol:
+                w['waqf_symbols'].append({'symbols': symbol, 'version': edition})
+            elif from_cloud and key in drafts:
+                pass
+
+
+def _overlay_cloud_marks_on_page(page: dict | None, edition: str, status: str = 'draft') -> None:
+    """Back-compat wrapper."""
+    _overlay_cloud_marks_on_pages([page], edition)
 
 
 def _get_or_set_word_waqf_sqlite(global_word_id, edition, symbol):
@@ -261,10 +363,15 @@ def get_mushaf_editor_spread(spread_number):
     try:
         right_page = spread_number * 2 - 1
         left_page = right_page + 1
-        versions = [edition]
-        for peer in _EDITOR_PEER_VERSIONS:
-            if peer not in versions:
-                versions.append(peer)
+        # When cloud is on, load peers from SQLite only — edition marks come from
+        # one batched Supabase overlay (avoids per-ayah HTTP during page build).
+        if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
+            versions = list(_EDITOR_PEER_VERSIONS)
+        else:
+            versions = [edition]
+            for peer in _EDITOR_PEER_VERSIONS:
+                if peer not in versions:
+                    versions.append(peer)
         build_page = _build_qatar_page_payload if edition == 'قطر' else _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)
         left = build_page(left_page, mushaf_version=versions) if left_page <= _MAX_MUSHAF_PAGE else None
@@ -273,8 +380,7 @@ def get_mushaf_editor_spread(spread_number):
                 if page:
                     page['font_name'] = 'Al Shamiya'
         if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
-            _overlay_cloud_marks_on_page(right, edition, 'draft')
-            _overlay_cloud_marks_on_page(left, edition, 'draft')
+            _overlay_cloud_marks_on_pages([right, left], edition)
         return jsonify({
             'spread_number': spread_number,
             'edition': edition,
@@ -410,6 +516,23 @@ def mushaf_editor_progress():
         conn.close()
 
 
+@editor_bp.route('/api/mushaf-editor/pending', methods=['GET'])
+@require_editor
+def editor_pending_changes():
+    """List draft marks that differ from published for the selected edition."""
+    edition = (request.args.get('edition') or '').strip()
+    if edition not in CLOUD_EDITOR_EDITIONS:
+        return jsonify({'error': 'invalid edition'}), 400
+    if not sb.is_configured():
+        return jsonify({'edition': edition, 'changes': [], 'count': 0})
+    try:
+        changes = sb.pending_publish_diff(edition)
+        return jsonify({'edition': edition, 'changes': changes, 'count': len(changes)})
+    except sb.SupabaseEditorError as e:
+        logger.error('pending diff failed: %s', e)
+        return jsonify({'error': 'pending unavailable'}), 503
+
+
 @editor_bp.route('/api/mushaf-editor/publish', methods=['POST'])
 @require_admin
 def publish_editor_edition():
@@ -420,13 +543,19 @@ def publish_editor_edition():
         return jsonify({'error': 'invalid edition'}), 400
     user = current_editor()
     try:
+        pending = sb.pending_publish_diff(edition)
         count = sb.publish_edition(
             edition,
             actor_id=user['id'] if user else None,
             actor_name=user['name'] if user else None,
         )
         invalidate_cloud_waqf_cache(edition)
-        return jsonify({'ok': True, 'edition': edition, 'published': count})
+        return jsonify({
+            'ok': True,
+            'edition': edition,
+            'published': count,
+            'pending_before': len(pending),
+        })
     except sb.SupabaseEditorError as e:
         logger.error('publish failed: %s', e)
         return jsonify({'error': 'publish failed'}), 503

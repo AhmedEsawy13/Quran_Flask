@@ -202,6 +202,39 @@ def upsert_mark(*, edition: str, surah: int, ayah: int, token_index: int,
     return (rows or [{}])[0]
 
 
+def upsert_marks_batch(rows: list[dict]) -> int:
+    """Bulk upsert editor_marks. Each row needs edition/surah/ayah/token_index/status/symbol."""
+    if not rows:
+        return 0
+    now = _now_iso()
+    payload = []
+    for r in rows:
+        payload.append({
+            'edition': r['edition'],
+            'surah': int(r['surah']),
+            'ayah': int(r['ayah']),
+            'token_index': int(r['token_index']),
+            'status': r['status'],
+            'symbol': (r.get('symbol') or ''),
+            'word_text': r.get('word_text'),
+            'updated_by': r.get('updated_by'),
+            'updated_at': now,
+        })
+    # PostgREST accepts a JSON array for multi-row insert/upsert.
+    chunk = 200
+    done = 0
+    for i in range(0, len(payload), chunk):
+        part = payload[i:i + chunk]
+        _request(
+            'POST', 'editor_marks',
+            params={'on_conflict': 'edition,surah,ayah,token_index,status'},
+            json_body=part,
+            prefer='resolution=merge-duplicates,return=minimal',
+        )
+        done += len(part)
+    return done
+
+
 def delete_mark(*, edition: str, surah: int, ayah: int, token_index: int,
                 status: str) -> None:
     _request(
@@ -279,6 +312,35 @@ def recent_audit(*, edition: str | None = None, limit: int = 30) -> list[dict]:
     if edition:
         params['edition'] = f'eq.{edition}'
     return _request('GET', 'editor_audit', params=params) or []
+
+
+def pending_publish_diff(edition: str) -> list[dict]:
+    """Draft marks that differ from published (what اعتماد will push live)."""
+    drafts = fetch_marks(edition=edition, status='draft')
+    published = {
+        (int(r['surah']), int(r['ayah']), int(r['token_index'])): (r.get('symbol') or '').strip()
+        for r in fetch_marks(edition=edition, status='published')
+    }
+    changes: list[dict] = []
+    for row in drafts:
+        surah = int(row['surah'])
+        ayah = int(row['ayah'])
+        ti = int(row['token_index'])
+        new_symbol = (row.get('symbol') or '').strip()
+        old_symbol = published.get((surah, ayah, ti), '')
+        if new_symbol == old_symbol:
+            continue
+        changes.append({
+            'surah': surah,
+            'ayah': ayah,
+            'token_index': ti,
+            'word_text': row.get('word_text') or '',
+            'old_symbol': old_symbol,
+            'new_symbol': new_symbol,
+            'updated_at': row.get('updated_at'),
+        })
+    changes.sort(key=lambda c: (c['surah'], c['ayah'], c['token_index']))
+    return changes
 
 
 def publish_edition(edition: str, *, actor_id: str | None, actor_name: str | None) -> int:

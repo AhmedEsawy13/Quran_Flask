@@ -51,3 +51,49 @@ def test_editor_ui_mentions_peer_hints():
     assert 'ed-popup-peers' in page
     assert 'ed-peer-hint' in script
     assert 'PEER_VERSIONS' in script
+
+
+def test_muzzammil_20_peer_marks_not_shifted_by_sqlite_token_index():
+    """SQLite token_index must not pull peer marks one word past the target.
+
+    Regression for 73:20 — preferring DB token_index as a layout offset put
+    Madinah ج on وَٱللَّهُ instead of مَعَكَ, which showed green underline
+    with no edition glyph.
+    """
+    from modules.layouts import (
+        _build_page_waqf_map,
+        _find_mushaf_row_match_index,
+        _get_dk_layout_word_map,
+    )
+
+    wmap = _get_dk_layout_word_map()
+    first = wmap['first_id'][(73, 20)]
+    last = wmap['last_id'][(73, 20)]
+    words = []
+    for gid in range(first, last + 1):
+        info = wmap['id2tok'][gid]
+        words.append({
+            'word_index': gid,
+            'surah': 73,
+            'ayah': 20,
+            'text': info['text'],
+            'text_original': info['text'],
+        })
+
+    # Synthetic SQLite-shaped row: token_index after the usual -1 conversion
+    # points at وَٱللَّهُ (15), but word_index + text say مَعَكَ (14).
+    row = {
+        'clean_token': 'مَعَكَۚ',
+        'symbols': 'ج',
+        'token_index': 15,
+        'word_index': 15,
+        'version': 'المدينة الجديد',
+    }
+    idx = _find_mushaf_row_match_index(words, row)
+    assert idx == 14
+    assert 'مَعَكَ' in words[14]['text']
+    assert 'وَٱللَّهُ' in words[15]['text']
+
+    waqf_map = _build_page_waqf_map(words, ['المدينة الجديد', 'الأزهر'])
+    assert any(e.get('symbols') == 'ج' for e in (waqf_map.get(first + 14) or []))
+    assert not (waqf_map.get(first + 15) or [])

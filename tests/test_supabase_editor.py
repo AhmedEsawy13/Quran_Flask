@@ -308,10 +308,12 @@ def test_editor_ui_has_login_and_publish(client):
     script = (root / 'static/js/mushaf_editor.js').read_text(encoding='utf-8')
     assert 'id="ed-login"' in page
     assert 'id="ed-publish"' in page
+    assert 'id="ed-pending-panel"' in page
     assert 'id="ed-invites-panel"' in page
     assert 'id="ed-audit"' in page
     assert '/api/mushaf-editor/login' in script
     assert '/api/mushaf-editor/publish' in script
+    assert '/api/mushaf-editor/pending' in script
     assert '/api/mushaf-editor/invites' in script
 
 

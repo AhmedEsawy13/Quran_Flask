@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>أثَر · تخطيط مصحف الأزهر</title>
+    {% set page_title = 'أثَر · تخطيط مصحف الأزهر' %}
+    {% set page_description = 'أداة محلية لضبط تخطيط مصحف الأزهر.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/azhar-layout', noindex=true) }}
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

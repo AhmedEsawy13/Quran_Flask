@@ -1,11 +1,22 @@
 <!DOCTYPE html>
-{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+{% set page_title = 'أثَر · المصحف' %}
+{% set page_description = 'تطبيق قرآني تفاعلي مع تلاوة مصحوبة بتمييز الكلمات وتفسير وخطوط متعددة' %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="تطبيق قرآني تفاعلي مع تلاوة مصحوبة بتمييز الكلمات وتفسير وخطوط متعددة">
-    <title>أثَر · المصحف</title>
+    <meta name="description" content="{{ page_description }}">
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/read', json_ld={
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        'name': 'أثَر · المصحف',
+        'url': public_absolute('/read'),
+        'applicationCategory': 'EducationalApplication',
+        'inLanguage': 'ar',
+        'description': page_description
+    }) }}
     <!-- Preconnect to third-party origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

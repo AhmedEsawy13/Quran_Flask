@@ -265,40 +265,51 @@ def _word_index_hint_to_list_index(words, row):
     return None
 
 
+def _resolve_token_index_as_layout_offset(words, token_index):
+    """Resolve a 0-based within-ayah token_index onto a page word list.
+
+    Cloud published marks store token_index this way. SQLite mushaf_waqf
+    token_index values are a different numbering and must not use this path.
+    """
+    try:
+        ti = int(token_index)
+    except (TypeError, ValueError):
+        return None
+    if ti < 0:
+        return None
+
+    if words and words[0].get('word_index') is not None and words[0].get('surah') and words[0].get('ayah') is not None:
+        try:
+            wmap = _get_dk_layout_word_map()
+            first_id = wmap['first_id'].get((int(words[0]['surah']), int(words[0]['ayah'])))
+        except Exception:
+            first_id = None
+        if first_id is not None:
+            target_gid = first_id + ti
+            for idx, word in enumerate(words):
+                if int(word.get('word_index') or -1) == target_gid:
+                    return idx
+
+    if 0 <= ti < len(words):
+        return ti
+    return None
+
+
 def _find_mushaf_row_match_index(words, row, search_start=0):
     """Find best token index for a mushaf waqf row.
 
     Priority:
-    0) Explicit 0-based token_index (cloud published marks / layout offset).
     1) Optional DB word_index hint (within-ayah content-word position).
     2) Exact token matching (only whitespace removed).
     3) Normalized fallback (diacritics/waqf removed) for script variance.
+    4) Explicit 0-based token_index — only when word_index is absent (cloud).
+
+    SQLite mushaf_waqf token_index is not a reliable layout offset (often
+    off-by-one vs QPC page words). Prefer word_index + text first so peer
+    marks from Madinah/etc. land on the correct word.
     """
     if not words:
         return None
-
-    # Cloud marks store 0-based offset within the full ayah. When the word list
-    # is a page slice, resolve via global word_index = first_of_ayah + token.
-    raw_ti = row.get('token_index')
-    if raw_ti is not None:
-        try:
-            ti = int(raw_ti)
-        except (TypeError, ValueError):
-            ti = None
-        if ti is not None and ti >= 0:
-            if words and words[0].get('word_index') is not None and words[0].get('surah') and words[0].get('ayah') is not None:
-                try:
-                    wmap = _get_dk_layout_word_map()
-                    first_id = wmap['first_id'].get((int(words[0]['surah']), int(words[0]['ayah'])))
-                except Exception:
-                    first_id = None
-                if first_id is not None:
-                    target_gid = first_id + ti
-                    for idx, word in enumerate(words):
-                        if int(word.get('word_index') or -1) == target_gid:
-                            return idx
-            elif 0 <= ti < len(words):
-                return ti
 
     target_text = _get_row_match_text(row)
     target_raw = _compact_mushaf_word_token(target_text)
@@ -312,6 +323,9 @@ def _find_mushaf_row_match_index(words, row, search_start=0):
         # mark entirely.
         if hinted_by_word_index is not None and 0 <= hinted_by_word_index < len(words):
             return hinted_by_word_index
+        # Cloud rows may have token_index only (no كلمة text, no word_index).
+        if row.get('word_index') is None and row.get('token_index') is not None:
+            return _resolve_token_index_as_layout_offset(words, row.get('token_index'))
         return None
 
     if hinted_by_word_index is not None and 0 <= hinted_by_word_index < len(words):
@@ -337,6 +351,10 @@ def _find_mushaf_row_match_index(words, row, search_start=0):
                 candidate = _normalize_mushaf_word_token(_get_word_match_text(words[idx]))
                 if candidate == target_norm:
                     return idx
+
+    # Last resort for cloud-only rows (token_index is 0-based layout offset).
+    if row.get('word_index') is None and row.get('token_index') is not None:
+        return _resolve_token_index_as_layout_offset(words, row.get('token_index'))
 
     return None
 

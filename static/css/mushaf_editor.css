@@ -390,6 +390,25 @@ body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
     background: var(--ed-paper); font-family: inherit; font-weight: 700; cursor: pointer;
 }
 .ed-invites-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.ed-pending-list {
+    list-style: none; margin: 0; padding: 0; display: grid; gap: 8px;
+    max-height: min(48vh, 360px); overflow: auto;
+}
+.ed-pending-row {
+    display: grid; gap: 4px; padding: 10px 12px;
+    border: 1px solid var(--ed-border); border-radius: 10px; background: var(--ed-paper-2);
+    font-size: 0.86rem;
+}
+.ed-pending-coords { font-weight: 700; }
+.ed-pending-word { color: var(--athar-ink-soft); font-family: var(--font-serif, inherit); }
+.ed-pending-change { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ed-pending-old, .ed-pending-new {
+    min-width: 1.6em; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--ed-border);
+    font-weight: 700; background: var(--ed-paper);
+}
+.ed-pending-old { opacity: 0.7; text-decoration: line-through; }
+.ed-pending-new { border-color: color-mix(in srgb, var(--ed-accent) 45%, var(--ed-border)); color: var(--ed-accent); }
+.ed-pending-empty { color: var(--athar-ink-faint); font-size: 0.88rem; padding: 8px 0; }
 .ed-invite-row {
     display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center;
     padding: 10px 12px; border: 1px solid var(--ed-border); border-radius: 10px;

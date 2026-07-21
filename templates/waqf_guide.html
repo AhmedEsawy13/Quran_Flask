@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="مواضع وقوف القرّاء — قارن كيف يقف كبار القرّاء في كل آية: أين يتفقون، ومن انفرد بوقف، وأين أعادوا">
-    <title>أثَر · مُكْث — مواضع وقوف القرّاء</title>
+    {% set page_title = 'أثَر · مُكْث — مواضع وقوف القرّاء' %}
+    {% set page_description = 'مواضع وقوف القرّاء — قارن كيف يقف كبار القرّاء في كل آية: أين يتفقون، ومن انفرد بوقف، وأين أعادوا' %}
+    <meta name="description" content="{{ page_description }}">
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/waqf') }}
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

@@ -1,12 +1,27 @@
 <!DOCTYPE html>
-{% from "_athar_shell.html" import athar_shell_head, athar_app_bar with context %}
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
 {% from "_athar_ui.html" import athar_button %}
+{% set page_title = 'أثَر · مع القرآن' %}
+{% set page_description = 'أثَر — قراءة القرآن وحفظه ودراسة الوقف والابتداء، على مصادر موثّقة: رسم المصحف، أحكام التجويد، وأقوال الأئمة الكلاسيكيين.' %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="أثَر — قراءة القرآن وحفظه ودراسة الوقف والابتداء، على مصادر موثّقة: رسم المصحف، أحكام التجويد، وأقوال الأئمة الكلاسيكيين.">
-    <title>أثَر · مع القرآن</title>
+    <meta name="description" content="{{ page_description }}">
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/', json_ld={
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        'name': 'أثَر',
+        'alternateName': 'Athar',
+        'url': public_absolute('/'),
+        'inLanguage': 'ar',
+        'description': page_description,
+        'potentialAction': {
+            '@type': 'ReadAction',
+            'target': public_absolute('/read')
+        }
+    }) }}
 
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 

@@ -90,6 +90,12 @@
         session: $('ed-session'),
         sessionName: $('ed-session-name'),
         publishBtn: $('ed-publish'),
+        pendingPanel: $('ed-pending-panel'),
+        pendingBackdrop: $('ed-pending-backdrop'),
+        pendingClose: $('ed-pending-close'),
+        pendingList: $('ed-pending-list'),
+        pendingHint: $('ed-pending-hint'),
+        pendingConfirm: $('ed-pending-confirm'),
         invitesOpen: $('ed-invites-open'),
         invitesPanel: $('ed-invites-panel'),
         invitesBackdrop: $('ed-invites-backdrop'),
@@ -196,6 +202,12 @@
             list.push({ version, symbols });
         });
         return list;
+    }
+    /** Underline hint: other mushafs mark this word, and the working edition does not.
+     *  Exclude المدينة الجديد — that baseline is already shown via the orange ed-diff. */
+    function peerHintFromList(editionSym, peerList) {
+        if (editionSym) return false;
+        return (peerList || []).some(p => p.version && p.version !== 'المدينة الجديد');
     }
 
     /* ── Edition toggle ──────────────────────────────────────────── */
@@ -463,7 +475,7 @@
         if (!Array.isArray(peerList)) {
             try { peerList = JSON.parse(span.dataset.peers || '[]'); } catch (_e) { peerList = []; }
         }
-        const peerHint = !editionSym && peerList.length > 0;
+        const peerHint = peerHintFromList(editionSym, peerList);
         span.classList.toggle('ed-diff', (editionSym || '') !== (baseline || ''));
         span.classList.toggle('ed-peer-hint', peerHint);
         const peerTip = peerList.length
@@ -1008,9 +1020,78 @@
         });
     }
     if (els.publishBtn) {
-        els.publishBtn.addEventListener('click', async () => {
-            if (!confirm(`اعتماد مسودّة «${state.edition}» ونشرها للقراء؟`)) return;
-            els.publishBtn.disabled = true;
+        els.publishBtn.addEventListener('click', openPendingPanel);
+    }
+    function closePendingPanel() {
+        if (els.pendingPanel) els.pendingPanel.hidden = true;
+        if (els.pendingBackdrop) els.pendingBackdrop.hidden = true;
+    }
+    function renderPendingList(changes) {
+        if (!els.pendingList) return;
+        els.pendingList.innerHTML = '';
+        if (!changes.length) {
+            const empty = document.createElement('li');
+            empty.className = 'ed-pending-empty';
+            empty.textContent = 'لا توجد تغييرات معلّقة — المسودّة مطابقة للمنشور.';
+            els.pendingList.appendChild(empty);
+            if (els.pendingConfirm) els.pendingConfirm.disabled = true;
+            if (els.pendingHint) {
+                els.pendingHint.textContent = `نسخة «${state.edition}»: لا شيء للنشر.`;
+            }
+            return;
+        }
+        if (els.pendingHint) {
+            els.pendingHint.textContent = `نسخة «${state.edition}»: ${toAr(changes.length)} تغيير معلّق قبل النشر للقراء.`;
+        }
+        if (els.pendingConfirm) els.pendingConfirm.disabled = false;
+        changes.forEach(ch => {
+            const li = document.createElement('li');
+            li.className = 'ed-pending-row';
+            const coords = document.createElement('div');
+            coords.className = 'ed-pending-coords';
+            coords.textContent = `${ch.surah}:${ch.ayah}` + (ch.word_text ? '' : ` · كلمة ${ch.token_index + 1}`);
+            const word = document.createElement('div');
+            word.className = 'ed-pending-word';
+            word.textContent = ch.word_text || '—';
+            const row = document.createElement('div');
+            row.className = 'ed-pending-change';
+            const oldEl = document.createElement('span');
+            oldEl.className = 'ed-pending-old';
+            oldEl.textContent = ch.old_symbol ? waqfGlyph(ch.old_symbol) : '∅';
+            oldEl.title = ch.old_symbol || 'بلا علامة منشورة';
+            const arrow = document.createElement('span');
+            arrow.textContent = '←';
+            const newEl = document.createElement('span');
+            newEl.className = 'ed-pending-new';
+            newEl.textContent = ch.new_symbol ? waqfGlyph(ch.new_symbol) : '∅';
+            newEl.title = ch.new_symbol || 'مسح العلامة';
+            row.append(oldEl, arrow, newEl);
+            li.append(coords, word, row);
+            els.pendingList.appendChild(li);
+        });
+    }
+    async function openPendingPanel() {
+        if (!els.pendingPanel) return;
+        els.pendingPanel.hidden = false;
+        if (els.pendingBackdrop) els.pendingBackdrop.hidden = false;
+        if (els.pendingList) els.pendingList.innerHTML = '<li class="ed-pending-empty">جارٍ التحميل…</li>';
+        if (els.pendingConfirm) els.pendingConfirm.disabled = true;
+        try {
+            const query = window.AtharMushaf.buildQuery({ params: { edition: state.edition } });
+            const data = await window.AtharApi.json(`/api/mushaf-editor/pending${query}`);
+            renderPendingList(data.changes || []);
+        } catch (_e) {
+            if (els.pendingList) {
+                els.pendingList.innerHTML = '<li class="ed-pending-empty">تعذّر تحميل التغييرات</li>';
+            }
+            setStatus('تعذّر تحميل المسودّة', true);
+        }
+    }
+    if (els.pendingClose) els.pendingClose.addEventListener('click', closePendingPanel);
+    if (els.pendingBackdrop) els.pendingBackdrop.addEventListener('click', closePendingPanel);
+    if (els.pendingConfirm) {
+        els.pendingConfirm.addEventListener('click', async () => {
+            els.pendingConfirm.disabled = true;
             try {
                 const data = await window.AtharApi.json('/api/mushaf-editor/publish', {
                     method: 'POST',
@@ -1018,12 +1099,12 @@
                     body: JSON.stringify({ edition: state.edition }),
                 });
                 setStatus(`تم اعتماد ${toAr(data.published || 0)} علامة`);
+                closePendingPanel();
                 loadAudit();
             } catch (e) {
                 if (e && e.status === 403) setStatus('صلاحية المشرف مطلوبة', true);
                 else setStatus('تعذّر الاعتماد', true);
-            } finally {
-                els.publishBtn.disabled = false;
+                els.pendingConfirm.disabled = false;
             }
         });
     }
