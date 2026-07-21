@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from typing import Any
 
@@ -145,6 +146,7 @@ def set_invite_active(invite_id: str, active: bool) -> dict | None:
 
 def fetch_marks(*, edition: str, status: str, surah: int | None = None,
                 ayah: int | None = None) -> list[dict]:
+    """Fetch marks. Full-edition scans paginate past PostgREST's 1000-row default."""
     params: dict[str, str] = {
         'edition': f'eq.{edition}',
         'status': f'eq.{status}',
@@ -155,7 +157,23 @@ def fetch_marks(*, edition: str, status: str, surah: int | None = None,
         params['surah'] = f'eq.{surah}'
     if ayah is not None:
         params['ayah'] = f'eq.{ayah}'
-    return _request('GET', 'editor_marks', params=params) or []
+    # Narrow ayah filters stay under the default page size.
+    if surah is not None or ayah is not None:
+        return _request('GET', 'editor_marks', params=params) or []
+
+    out: list[dict] = []
+    page_size = 1000
+    offset = 0
+    while True:
+        page_params = dict(params)
+        page_params['limit'] = str(page_size)
+        page_params['offset'] = str(offset)
+        chunk = _request('GET', 'editor_marks', params=page_params) or []
+        out.extend(chunk)
+        if len(chunk) < page_size:
+            break
+        offset += page_size
+    return out
 
 
 def fetch_marks_for_ayahs(*, edition: str, status: str,
@@ -173,10 +191,98 @@ def fetch_marks_for_ayahs(*, edition: str, status: str,
             'edition': f'eq.{edition}',
             'status': f'eq.{status}',
             'or': f'({",".join(parts)})',
-            'select': 'edition,surah,ayah,token_index,symbol,word_text',
+            'select': 'edition,surah,ayah,token_index,symbol,word_text,status',
         }
         out.extend(_request('GET', 'editor_marks', params=params) or [])
     return out
+
+
+# Short-lived ayah mark cache — spread navigation re-hits the same verses.
+_MARK_AYAH_CACHE: dict[tuple[str, str, int, int], tuple[float, list[dict]]] = {}
+_MARK_AYAH_TTL_SEC = 45.0
+
+
+def invalidate_mark_cache(*, edition: str | None = None, surah: int | None = None,
+                          ayah: int | None = None) -> None:
+    if edition is None and surah is None and ayah is None:
+        _MARK_AYAH_CACHE.clear()
+        return
+    drop = []
+    for key in _MARK_AYAH_CACHE:
+        ed, _status, s, a = key
+        if edition is not None and ed != edition:
+            continue
+        if surah is not None and s != surah:
+            continue
+        if ayah is not None and a != ayah:
+            continue
+        drop.append(key)
+    for key in drop:
+        _MARK_AYAH_CACHE.pop(key, None)
+
+
+def fetch_draft_and_published_for_ayahs(*, edition: str,
+                                        ayah_keys: list[tuple[int, int]]) -> tuple[list[dict], list[dict]]:
+    """One PostgREST round-trip for draft+published marks on the given ayahs.
+
+    Falls back to cached per-ayah rows when still fresh.
+    """
+    if not ayah_keys:
+        return [], []
+
+    now = time.monotonic()
+    drafts: list[dict] = []
+    published: list[dict] = []
+    missing: list[tuple[int, int]] = []
+
+    for surah, ayah in ayah_keys:
+        have = True
+        for status in ('draft', 'published'):
+            cached = _MARK_AYAH_CACHE.get((edition, status, surah, ayah))
+            if not cached or (now - cached[0]) > _MARK_AYAH_TTL_SEC:
+                have = False
+                break
+        if not have:
+            missing.append((surah, ayah))
+            continue
+        for status, bucket in (('draft', drafts), ('published', published)):
+            cached = _MARK_AYAH_CACHE.get((edition, status, surah, ayah))
+            if cached:
+                bucket.extend(dict(r) for r in cached[1])
+
+    if not missing:
+        return drafts, published
+
+    # Fetch both statuses in one request per chunk.
+    chunk_size = 40
+    fresh_rows: list[dict] = []
+    for i in range(0, len(missing), chunk_size):
+        chunk = missing[i:i + chunk_size]
+        parts = [f'and(surah.eq.{s},ayah.eq.{a})' for s, a in chunk]
+        params = {
+            'edition': f'eq.{edition}',
+            'status': 'in.(draft,published)',
+            'or': f'({",".join(parts)})',
+            'select': 'edition,surah,ayah,token_index,symbol,word_text,status',
+        }
+        fresh_rows.extend(_request('GET', 'editor_marks', params=params) or [])
+
+    by_ayah_status: dict[tuple[int, int, str], list[dict]] = {}
+    for row in fresh_rows:
+        key = (int(row['surah']), int(row['ayah']), (row.get('status') or '').strip())
+        by_ayah_status.setdefault(key, []).append(row)
+
+    now = time.monotonic()
+    for surah, ayah in missing:
+        for status in ('draft', 'published'):
+            rows = by_ayah_status.get((surah, ayah, status), [])
+            _MARK_AYAH_CACHE[(edition, status, surah, ayah)] = (now, [dict(r) for r in rows])
+            if status == 'draft':
+                drafts.extend(dict(r) for r in rows)
+            else:
+                published.extend(dict(r) for r in rows)
+
+    return drafts, published
 
 
 def upsert_mark(*, edition: str, surah: int, ayah: int, token_index: int,
@@ -199,6 +305,7 @@ def upsert_mark(*, edition: str, surah: int, ayah: int, token_index: int,
         json_body=payload,
         prefer='resolution=merge-duplicates,return=representation',
     )
+    invalidate_mark_cache(edition=edition, surah=surah, ayah=ayah)
     return (rows or [{}])[0]
 
 
@@ -208,7 +315,9 @@ def upsert_marks_batch(rows: list[dict]) -> int:
         return 0
     now = _now_iso()
     payload = []
+    editions: set[str] = set()
     for r in rows:
+        editions.add(r['edition'])
         payload.append({
             'edition': r['edition'],
             'surah': int(r['surah']),
@@ -232,6 +341,8 @@ def upsert_marks_batch(rows: list[dict]) -> int:
             prefer='resolution=merge-duplicates,return=minimal',
         )
         done += len(part)
+    for edition in editions:
+        invalidate_mark_cache(edition=edition)
     return done
 
 
@@ -247,6 +358,7 @@ def delete_mark(*, edition: str, surah: int, ayah: int, token_index: int,
             'status': f'eq.{status}',
         },
     )
+    invalidate_mark_cache(edition=edition, surah=surah, ayah=ayah)
 
 
 def get_mark(*, edition: str, surah: int, ayah: int, token_index: int,
@@ -315,11 +427,18 @@ def recent_audit(*, edition: str | None = None, limit: int = 30) -> list[dict]:
 
 
 def pending_publish_diff(edition: str) -> list[dict]:
-    """Draft marks that differ from published (what اعتماد will push live)."""
+    """Draft marks that differ from published (what اعتماد will push live).
+
+    Published rows are loaded only for ayahs that have drafts (avoids the
+    PostgREST 1000-row default truncating mid-mushaf and showing ∅ for old).
+    """
     drafts = fetch_marks(edition=edition, status='draft')
+    ayah_keys = sorted({(int(r['surah']), int(r['ayah'])) for r in drafts})
     published = {
         (int(r['surah']), int(r['ayah']), int(r['token_index'])): (r.get('symbol') or '').strip()
-        for r in fetch_marks(edition=edition, status='published')
+        for r in fetch_marks_for_ayahs(
+            edition=edition, status='published', ayah_keys=ayah_keys,
+        )
     }
     changes: list[dict] = []
     for row in drafts:
@@ -344,32 +463,33 @@ def pending_publish_diff(edition: str) -> list[dict]:
 
 
 def publish_edition(edition: str, *, actor_id: str | None, actor_name: str | None) -> int:
-    """Copy all draft marks for edition → published (upsert). Returns count."""
-    drafts = fetch_marks(edition=edition, status='draft')
+    """Promote draft marks that differ from published. Returns change count."""
+    changes = pending_publish_diff(edition)
     count = 0
-    for row in drafts:
-        symbol = (row.get('symbol') or '').strip()
+    for ch in changes:
+        surah = int(ch['surah'])
+        ayah = int(ch['ayah'])
+        ti = int(ch['token_index'])
+        symbol = (ch.get('new_symbol') or '').strip()
         if not symbol:
-            # Clearing published: delete published row if draft is empty
             delete_mark(
                 edition=edition,
-                surah=int(row['surah']),
-                ayah=int(row['ayah']),
-                token_index=int(row['token_index']),
+                surah=surah,
+                ayah=ayah,
+                token_index=ti,
                 status='published',
             )
-            count += 1
-            continue
-        upsert_mark(
-            edition=edition,
-            surah=int(row['surah']),
-            ayah=int(row['ayah']),
-            token_index=int(row['token_index']),
-            status='published',
-            symbol=symbol,
-            word_text=row.get('word_text'),
-            updated_by=actor_id,
-        )
+        else:
+            upsert_mark(
+                edition=edition,
+                surah=surah,
+                ayah=ayah,
+                token_index=ti,
+                status='published',
+                symbol=symbol,
+                word_text=ch.get('word_text'),
+                updated_by=actor_id,
+            )
         count += 1
     append_audit(
         actor_id=actor_id,

@@ -142,17 +142,21 @@
         <button class="ed-popup-clear" id="ed-popup-clear" type="button"><i class="fas fa-eraser" aria-hidden="true"></i> بلا علامة</button>
     </div>
 
-    <!-- pending publish review (admin) -->
-    <div class="ed-invites-backdrop" id="ed-pending-backdrop" hidden></div>
-    <div class="ed-invites-panel athar-surface" id="ed-pending-panel" hidden role="dialog" aria-modal="true" aria-labelledby="ed-pending-title">
+    <!-- pending publish review (admin) — docked drawer so the mushaf stays visible -->
+    <aside class="ed-pending-drawer athar-surface" id="ed-pending-panel" hidden role="dialog" aria-modal="false" aria-labelledby="ed-pending-title">
         <div class="ed-invites-head">
             <h2 class="ed-invites-title" id="ed-pending-title">مراجعة قبل الاعتماد</h2>
             <button class="ed-popup-close athar-icon-button" id="ed-pending-close" type="button" aria-label="إغلاق"><i class="fas fa-xmark" aria-hidden="true"></i></button>
         </div>
-        <p class="ed-invites-hint" id="ed-pending-hint">التغييرات في المسودّة التي لم تُنشر بعد للقراء.</p>
+        <p class="ed-invites-hint" id="ed-pending-hint">كل التغييرات المعلّقة ظاهرة هنا. انقر أي سطر أو استخدم السابق/التالي لمعاينته في الصفحة قبل النشر.</p>
+        <div class="ed-pending-nav" id="ed-pending-nav" hidden>
+            <button type="button" class="ed-pending-nav-btn" id="ed-pending-prev" aria-label="التغيير السابق">السابق</button>
+            <span class="ed-pending-nav-pos" id="ed-pending-pos">٠ / ٠</span>
+            <button type="button" class="ed-pending-nav-btn" id="ed-pending-next" aria-label="التغيير التالي">التالي</button>
+        </div>
         <ul class="ed-pending-list" id="ed-pending-list" aria-label="التغييرات المعلّقة"></ul>
         <button class="ed-login-submit" type="button" id="ed-pending-confirm" disabled>اعتماد ونشر للقراء</button>
-    </div>
+    </aside>
 
     <!-- invite management (admin) -->
     <div class="ed-invites-backdrop" id="ed-invites-backdrop" hidden></div>

@@ -102,25 +102,57 @@ class FakeSupabase:
         if table == 'editor_marks':
             if method == 'GET':
                 edition = (params.get('edition') or '').replace('eq.', '')
-                status = (params.get('status') or '').replace('eq.', '')
+                status_raw = params.get('status') or ''
+                status_set = None
+                status = None
+                if status_raw.startswith('in.(') and status_raw.endswith(')'):
+                    status_set = {
+                        part.strip()
+                        for part in status_raw[4:-1].split(',')
+                        if part.strip()
+                    }
+                elif status_raw.startswith('eq.'):
+                    status = status_raw.replace('eq.', '')
                 surah = params.get('surah')
                 ayah = params.get('ayah')
+                or_filter = params.get('or') or ''
+                ayah_pairs = None
+                if or_filter.startswith('(') and or_filter.endswith(')'):
+                    import re
+                    ayah_pairs = {
+                        (int(s), int(a))
+                        for s, a in re.findall(r'surah\.eq\.(\d+),ayah\.eq\.(\d+)', or_filter)
+                    }
                 out = []
                 for key, row in self.marks.items():
                     if edition and row['edition'] != edition:
                         continue
-                    if status and row['status'] != status:
+                    if status_set is not None:
+                        if row['status'] not in status_set:
+                            continue
+                    elif status and row['status'] != status:
                         continue
-                    if surah and row['surah'] != int(surah.replace('eq.', '')):
-                        continue
-                    if ayah and row['ayah'] != int(ayah.replace('eq.', '')):
-                        continue
+                    if ayah_pairs is not None:
+                        if (int(row['surah']), int(row['ayah'])) not in ayah_pairs:
+                            continue
+                    else:
+                        if surah and row['surah'] != int(surah.replace('eq.', '')):
+                            continue
+                        if ayah and row['ayah'] != int(ayah.replace('eq.', '')):
+                            continue
                     out.append(dict(row))
                 # single get with token_index
                 ti = params.get('token_index')
                 if ti:
                     ti_v = int(ti.replace('eq.', ''))
                     out = [r for r in out if r['token_index'] == ti_v]
+                out.sort(key=lambda r: (r['surah'], r['ayah'], r['token_index']))
+                limit = params.get('limit')
+                offset = int(params.get('offset') or 0)
+                if limit is not None:
+                    out = out[offset:offset + int(limit)]
+                elif offset:
+                    out = out[offset:]
                 return Resp(200, out)
             if method == 'POST':
                 body = dict(json_body or {})
@@ -306,6 +338,7 @@ def test_editor_ui_has_login_and_publish(client):
     root = Path(__file__).resolve().parents[1]
     page = (root / 'templates/mushaf_editor.html').read_text(encoding='utf-8')
     script = (root / 'static/js/mushaf_editor.js').read_text(encoding='utf-8')
+    css = (root / 'static/css/mushaf_editor.css').read_text(encoding='utf-8')
     assert 'id="ed-login"' in page
     assert 'id="ed-publish"' in page
     assert 'id="ed-pending-panel"' in page
@@ -315,7 +348,66 @@ def test_editor_ui_has_login_and_publish(client):
     assert '/api/mushaf-editor/publish' in script
     assert '/api/mushaf-editor/pending' in script
     assert '/api/mushaf-editor/invites' in script
+    assert 'jumpToPendingChange' in script
+    assert 'المنشور' in script
+    assert 'ed-pending-prev' in page
+    assert 'ed-pending-next' in page
+    assert 'ed-pending-drawer' in page
+    assert 'ed-pending-focus' in css
+    assert 'ed-pending-drawer' in css
+    assert 'اعتماد ونشر' in script
 
+
+def test_pending_publish_diff_keeps_published_old_symbol(cloud):
+    """Drafts mid-mushaf must compare against published even past the 1000-row page."""
+    # Seed many early published rows + the real published mark for 33:36.
+    for i in range(5):
+        cloud.marks[('قطر', 1, i + 1, 0, 'published')] = {
+            'edition': 'قطر', 'surah': 1, 'ayah': i + 1, 'token_index': 0,
+            'status': 'published', 'symbol': 'ج', 'word_text': 'x',
+        }
+    cloud.marks[('قطر', 33, 36, 15, 'published')] = {
+        'edition': 'قطر', 'surah': 33, 'ayah': 36, 'token_index': 15,
+        'status': 'published', 'symbol': 'ق', 'word_text': 'أَمْرِهِمْۗ',
+    }
+    cloud.marks[('قطر', 33, 36, 15, 'draft')] = {
+        'edition': 'قطر', 'surah': 33, 'ayah': 36, 'token_index': 15,
+        'status': 'draft', 'symbol': 'ق', 'word_text': 'أَمْرِهِمْۗ',
+    }
+    cloud.marks[('قطر', 33, 37, 12, 'draft')] = {
+        'edition': 'قطر', 'surah': 33, 'ayah': 37, 'token_index': 12,
+        'status': 'draft', 'symbol': 'ص', 'word_text': 'ٱللَّهَ',
+    }
+
+    changes = sb.pending_publish_diff('قطر')
+    assert len(changes) == 1
+    assert changes[0]['surah'] == 33 and changes[0]['ayah'] == 37
+    assert changes[0]['old_symbol'] == ''
+    assert changes[0]['new_symbol'] == 'ص'
+
+
+def test_fetch_draft_and_published_combined(cloud):
+    sb.invalidate_mark_cache()
+    cloud.marks[('قطر', 2, 2, 0, 'draft')] = {
+        'edition': 'قطر', 'surah': 2, 'ayah': 2, 'token_index': 0,
+        'status': 'draft', 'symbol': 'ج', 'word_text': 'a',
+    }
+    cloud.marks[('قطر', 2, 2, 0, 'published')] = {
+        'edition': 'قطر', 'surah': 2, 'ayah': 2, 'token_index': 0,
+        'status': 'published', 'symbol': 'ص', 'word_text': 'a',
+    }
+    drafts, published = sb.fetch_draft_and_published_for_ayahs(
+        edition='قطر', ayah_keys=[(2, 2)],
+    )
+    assert len(drafts) == 1 and drafts[0]['symbol'] == 'ج'
+    assert len(published) == 1 and published[0]['symbol'] == 'ص'
+    # Second call should hit cache (no extra HTTP needed for same ayah).
+    before = len(cloud.calls)
+    drafts2, published2 = sb.fetch_draft_and_published_for_ayahs(
+        edition='قطر', ayah_keys=[(2, 2)],
+    )
+    assert len(cloud.calls) == before
+    assert drafts2[0]['symbol'] == 'ج' and published2[0]['symbol'] == 'ص'
 
 def test_admin_can_create_and_revoke_invite(client, cloud):
     client.post('/api/mushaf-editor/logout')

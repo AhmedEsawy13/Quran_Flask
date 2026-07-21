@@ -15,7 +15,13 @@ import sqlite3
 from flask import jsonify, render_template, request
 
 from core.blueprints import editor_bp
-from core.config import CLOUD_EDITOR_EDITIONS, EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE
+from core.config import (
+    CLOUD_EDITOR_EDITIONS,
+    EDITOR_EDITIONS,
+    MUSHAF_WAQF_DATABASE,
+    QATAR_LAYOUT_DATABASE,
+    QPC_V1_LAYOUT_DATABASE,
+)
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.db import connect as _sqlite_connect
 from core.mushaf_waqf import _mushaf_waqf_cache, invalidate_cloud_waqf_cache
@@ -28,6 +34,7 @@ from modules.layouts import (
     _get_dk_layout_word_map,
     _find_mushaf_row_match_index,
     _normalize_mushaf_word_token,
+    _layout_page_resolve,
 )
 
 # Side-effect: register login/logout routes on editor_bp.
@@ -149,16 +156,10 @@ def _overlay_cloud_marks_on_pages(pages: list[dict | None], edition: str) -> Non
         return
     keys = sorted(ayah_keys)
 
-    def _load(status: str):
-        return sb.fetch_marks_for_ayahs(edition=edition, status=status, ayah_keys=keys)
-
     try:
-        from concurrent.futures import ThreadPoolExecutor
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            fut_draft = pool.submit(_load, 'draft')
-            fut_pub = pool.submit(_load, 'published')
-            draft_rows = fut_draft.result()
-            published_rows = fut_pub.result()
+        draft_rows, published_rows = sb.fetch_draft_and_published_for_ayahs(
+            edition=edition, ayah_keys=keys,
+        )
     except sb.SupabaseEditorError as e:
         logger.error('cloud mark overlay failed: %s', e)
         return
@@ -527,10 +528,18 @@ def editor_pending_changes():
         return jsonify({'edition': edition, 'changes': [], 'count': 0})
     try:
         changes = sb.pending_publish_diff(edition)
-        return jsonify({'edition': edition, 'changes': changes, 'count': len(changes)})
     except sb.SupabaseEditorError as e:
         logger.error('pending diff failed: %s', e)
         return jsonify({'error': 'pending unavailable'}), 503
+
+    layout_db = QPC_V1_LAYOUT_DATABASE if edition == 'الكويت' else QATAR_LAYOUT_DATABASE
+    wmap = _get_dk_layout_word_map()
+    for ch in changes:
+        surah, ayah, ti = int(ch['surah']), int(ch['ayah']), int(ch['token_index'])
+        ch['page_number'] = _layout_page_resolve(layout_db, surah, ayah)
+        first_id = wmap['first_id'].get((surah, ayah))
+        ch['word_id'] = (first_id + ti) if first_id is not None else None
+    return jsonify({'edition': edition, 'changes': changes, 'count': len(changes)})
 
 
 @editor_bp.route('/api/mushaf-editor/publish', methods=['POST'])

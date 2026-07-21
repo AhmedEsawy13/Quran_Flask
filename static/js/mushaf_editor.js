@@ -91,11 +91,15 @@
         sessionName: $('ed-session-name'),
         publishBtn: $('ed-publish'),
         pendingPanel: $('ed-pending-panel'),
-        pendingBackdrop: $('ed-pending-backdrop'),
+        pendingBackdrop: null, // drawer has no modal backdrop
         pendingClose: $('ed-pending-close'),
         pendingList: $('ed-pending-list'),
         pendingHint: $('ed-pending-hint'),
         pendingConfirm: $('ed-pending-confirm'),
+        pendingNav: $('ed-pending-nav'),
+        pendingPrev: $('ed-pending-prev'),
+        pendingNext: $('ed-pending-next'),
+        pendingPos: $('ed-pending-pos'),
         invitesOpen: $('ed-invites-open'),
         invitesPanel: $('ed-invites-panel'),
         invitesBackdrop: $('ed-invites-backdrop'),
@@ -133,6 +137,8 @@
         cloud: false,
         user: null,
         ready: false,
+        pendingChanges: [],
+        pendingIndex: -1,
     };
     const spreadRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
@@ -225,10 +231,12 @@
     }
     els.editionBtns.forEach(btn => btn.addEventListener('click', () => {
         if (btn.dataset.edition === state.edition) return;
+        const prevEdition = state.edition;
         state.edition = btn.dataset.edition;
         persist();
         updateEditionUI();
         closePopup();
+        invalidateSpreadCache(prevEdition);
         loadProgress();
         loadPage();
         loadAudit();
@@ -493,17 +501,54 @@
     }
 
     /* ── Loading a page (via spread API) ──────────────────────────── */
+    const spreadCache = new Map(); // `${edition}:${spread}` → payload
+    const spreadPrefetching = new Set();
+    function spreadCacheKey(edition, spread) {
+        return `${edition}:${spread}`;
+    }
+    function invalidateSpreadCache(edition) {
+        const prefix = `${edition}:`;
+        for (const key of [...spreadCache.keys()]) {
+            if (key.startsWith(prefix)) spreadCache.delete(key);
+        }
+        spreadPrefetching.clear();
+    }
+    async function fetchSpread(spread, edition, { background = false } = {}) {
+        const key = spreadCacheKey(edition, spread);
+        if (spreadCache.has(key)) return spreadCache.get(key);
+        if (background && spreadPrefetching.has(key)) return null;
+        if (background) spreadPrefetching.add(key);
+        try {
+            const query = window.AtharMushaf.buildQuery({ params: { edition } });
+            const data = await window.AtharApi.json(`/api/mushaf-editor/spread/${spread}${query}`);
+            if (state.edition === edition) spreadCache.set(key, data);
+            return data;
+        } finally {
+            if (background) spreadPrefetching.delete(key);
+        }
+    }
+    function prefetchNeighborSpreads(spread, edition) {
+        [spread - 1, spread + 1].forEach(n => {
+            if (n < 1 || n > MAX_SPREAD) return;
+            if (spreadCache.has(spreadCacheKey(edition, n))) return;
+            fetchSpread(n, edition, { background: true }).catch(() => {});
+        });
+    }
     async function loadPage() {
         const request = spreadRequests.next();
         const page = state.page;
         const spread = pageToSpread(page);
         const edition = state.edition;
         const wantRight = page % 2 === 1;
-        window.AtharUi.setBusy(els.main, true);
+        const cacheHit = spreadCache.has(spreadCacheKey(edition, spread));
+        if (!cacheHit) window.AtharUi.setBusy(els.main, true);
         try {
-            const query = window.AtharMushaf.buildQuery({ params: { edition } });
-            const data = await window.AtharApi.json(`/api/mushaf-editor/spread/${spread}${query}`);
+            const data = await fetchSpread(spread, edition);
             if (!spreadRequests.isCurrent(request)) return false;
+            if (!data) {
+                setStatus('تعذّر تحميل الصفحة', true);
+                return false;
+            }
             const payload = wantRight ? data.right : data.left;
             renderPage(payload || null);
             els.pageLabel.textContent = `${toAr(page)} / ${toAr(MAX_PAGE)}`;
@@ -511,6 +556,7 @@
             updateReviewedCheckbox();
             updateNavButtons();
             fitPages();
+            prefetchNeighborSpreads(spread, edition);
             return true;
         } catch (e) {
             if (spreadRequests.isCurrent(request)) setStatus('تعذّر تحميل الصفحة', true);
@@ -763,6 +809,7 @@
             applyWordMark(wordEl, data.symbol || '', wordEl.dataset.baseline || '');
             requestAnimationFrame(justifyLines);
             saved = true;
+            invalidateSpreadCache(state.edition);
             setStatus('تم حفظ علامة الوقف');
             loadAudit();
         } catch (e) {
@@ -1024,58 +1071,183 @@
     }
     function closePendingPanel() {
         if (els.pendingPanel) els.pendingPanel.hidden = true;
-        if (els.pendingBackdrop) els.pendingBackdrop.hidden = true;
+        document.body.classList.remove('ed-pending-open');
+        state.pendingChanges = [];
+        state.pendingIndex = -1;
+        requestAnimationFrame(() => fitPages());
+    }
+    function openPendingDrawerShell() {
+        if (!els.pendingPanel) return;
+        els.pendingPanel.hidden = false;
+        document.body.classList.add('ed-pending-open');
+        requestAnimationFrame(() => fitPages());
+    }
+    function pendingSymParts(sym) {
+        const clean = (sym || '').trim();
+        if (!clean) {
+            return { glyph: '∅', code: 'بلا', title: 'بلا علامة منشورة' };
+        }
+        const glyph = waqfGlyph(clean);
+        const meta = WAQF_SYM[clean];
+        return {
+            glyph,
+            code: clean,
+            title: meta ? `${meta.name} (${clean})` : clean,
+        };
+    }
+    function appendPendingSym(row, sym, sideClass, sideLabel) {
+        const parts = pendingSymParts(sym);
+        const side = document.createElement('div');
+        side.className = 'ed-pending-side';
+        const label = document.createElement('span');
+        label.className = 'ed-pending-side-label';
+        label.textContent = sideLabel;
+        const glyph = document.createElement('span');
+        glyph.className = sideClass;
+        glyph.textContent = parts.glyph;
+        glyph.title = parts.title;
+        const code = document.createElement('span');
+        code.className = 'ed-pending-code';
+        code.textContent = parts.code;
+        side.append(label, glyph, code);
+        row.appendChild(side);
+    }
+    function updatePendingNav() {
+        const total = state.pendingChanges.length;
+        const idx = state.pendingIndex;
+        if (els.pendingNav) els.pendingNav.hidden = total === 0;
+        if (els.pendingPos) {
+            els.pendingPos.textContent = total
+                ? `${toAr(idx + 1)} / ${toAr(total)}`
+                : `${toAr(0)} / ${toAr(0)}`;
+        }
+        if (els.pendingPrev) els.pendingPrev.disabled = idx <= 0;
+        if (els.pendingNext) els.pendingNext.disabled = idx < 0 || idx >= total - 1;
+        if (els.pendingList) {
+            els.pendingList.querySelectorAll('.ed-pending-row').forEach((row, i) => {
+                row.classList.toggle('is-active', i === idx);
+            });
+            const active = els.pendingList.querySelector('.ed-pending-row.is-active');
+            if (active) active.scrollIntoView({ block: 'nearest' });
+        }
+        if (els.pendingConfirm) {
+            els.pendingConfirm.disabled = total === 0;
+            els.pendingConfirm.textContent = total
+                ? `اعتماد ونشر ${toAr(total)} تغيير للقراء`
+                : 'اعتماد ونشر للقراء';
+        }
+    }
+    async function jumpToPendingChange(ch, index) {
+        if (!ch) return;
+        if (typeof index === 'number') state.pendingIndex = index;
+        updatePendingNav();
+        const page = Number(ch.page_number);
+        if (!Number.isFinite(page) || page < 1) {
+            setStatus('تعذّر تحديد صفحة هذا الموضع', true);
+            return;
+        }
+        // Keep the drawer open so every pending change stays visible.
+        if (state.page !== page) {
+            state.page = page;
+            persist();
+            const ok = await loadPage();
+            if (!ok) return;
+        }
+        const wordId = ch.word_id != null ? String(ch.word_id) : '';
+        const target = wordId
+            ? els.page.querySelector(`.ed-word[data-word-id="${wordId}"]`)
+            : null;
+        if (!target) {
+            setStatus(`ص ${toAr(page)} — لم يُعثر على الكلمة`, true);
+            return;
+        }
+        els.page.querySelectorAll('.ed-word.ed-pending-focus').forEach(el => {
+            el.classList.remove('ed-pending-focus');
+        });
+        target.classList.add('ed-pending-focus');
+        target.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+        const oldG = ch.old_symbol ? waqfGlyph(ch.old_symbol) : '∅';
+        const newG = ch.new_symbol ? waqfGlyph(ch.new_symbol) : '∅';
+        setStatus(`${toAr(state.pendingIndex + 1)}/${toAr(state.pendingChanges.length)} · ${ch.surah}:${ch.ayah} · ${oldG} ← ${newG}`);
+    }
+    function stepPending(delta) {
+        const total = state.pendingChanges.length;
+        if (!total) return;
+        const next = Math.max(0, Math.min(total - 1, state.pendingIndex + delta));
+        jumpToPendingChange(state.pendingChanges[next], next);
     }
     function renderPendingList(changes) {
         if (!els.pendingList) return;
         els.pendingList.innerHTML = '';
-        if (!changes.length) {
+        state.pendingChanges = Array.isArray(changes) ? changes : [];
+        state.pendingIndex = state.pendingChanges.length ? 0 : -1;
+        if (!state.pendingChanges.length) {
             const empty = document.createElement('li');
             empty.className = 'ed-pending-empty';
             empty.textContent = 'لا توجد تغييرات معلّقة — المسودّة مطابقة للمنشور.';
             els.pendingList.appendChild(empty);
-            if (els.pendingConfirm) els.pendingConfirm.disabled = true;
             if (els.pendingHint) {
                 els.pendingHint.textContent = `نسخة «${state.edition}»: لا شيء للنشر.`;
             }
+            updatePendingNav();
             return;
         }
         if (els.pendingHint) {
-            els.pendingHint.textContent = `نسخة «${state.edition}»: ${toAr(changes.length)} تغيير معلّق قبل النشر للقراء.`;
+            els.pendingHint.textContent = `نسخة «${state.edition}»: ${toAr(state.pendingChanges.length)} تغيير معلّق. كلّها مدرجة أدناه — راجعها بالسابق/التالي قبل الاعتماد.`;
         }
-        if (els.pendingConfirm) els.pendingConfirm.disabled = false;
-        changes.forEach(ch => {
+        state.pendingChanges.forEach((ch, index) => {
             const li = document.createElement('li');
             li.className = 'ed-pending-row';
+            li.tabIndex = 0;
+            li.setAttribute('role', 'button');
+            li.dataset.pendingIndex = String(index);
+            const pageHint = ch.page_number ? ` · ص ${toAr(ch.page_number)}` : '';
+            li.setAttribute('aria-label', `تغيير ${index + 1}: ${ch.surah}:${ch.ayah}${pageHint}`);
             const coords = document.createElement('div');
             coords.className = 'ed-pending-coords';
-            coords.textContent = `${ch.surah}:${ch.ayah}` + (ch.word_text ? '' : ` · كلمة ${ch.token_index + 1}`);
+            const badge = document.createElement('span');
+            badge.className = 'ed-pending-index';
+            badge.textContent = toAr(index + 1);
+            coords.appendChild(badge);
+            coords.appendChild(document.createTextNode(
+                `${ch.surah}:${ch.ayah}` + pageHint
+                + (ch.word_text ? '' : ` · كلمة ${ch.token_index + 1}`)
+            ));
             const word = document.createElement('div');
             word.className = 'ed-pending-word';
             word.textContent = ch.word_text || '—';
             const row = document.createElement('div');
             row.className = 'ed-pending-change';
-            const oldEl = document.createElement('span');
-            oldEl.className = 'ed-pending-old';
-            oldEl.textContent = ch.old_symbol ? waqfGlyph(ch.old_symbol) : '∅';
-            oldEl.title = ch.old_symbol || 'بلا علامة منشورة';
+            appendPendingSym(row, ch.old_symbol, 'ed-pending-old', 'المنشور');
             const arrow = document.createElement('span');
+            arrow.className = 'ed-pending-arrow';
             arrow.textContent = '←';
-            const newEl = document.createElement('span');
-            newEl.className = 'ed-pending-new';
-            newEl.textContent = ch.new_symbol ? waqfGlyph(ch.new_symbol) : '∅';
-            newEl.title = ch.new_symbol || 'مسح العلامة';
-            row.append(oldEl, arrow, newEl);
-            li.append(coords, word, row);
+            arrow.setAttribute('aria-hidden', 'true');
+            row.appendChild(arrow);
+            appendPendingSym(row, ch.new_symbol, 'ed-pending-new', 'المسودّة');
+            const jump = document.createElement('div');
+            jump.className = 'ed-pending-jump';
+            jump.textContent = 'معاينة في الصفحة';
+            li.append(coords, word, row, jump);
+            li.addEventListener('click', () => { jumpToPendingChange(ch, index); });
+            li.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    jumpToPendingChange(ch, index);
+                }
+            });
             els.pendingList.appendChild(li);
         });
+        updatePendingNav();
+        // Auto-preview the first change while keeping the full list visible.
+        jumpToPendingChange(state.pendingChanges[0], 0);
     }
     async function openPendingPanel() {
         if (!els.pendingPanel) return;
-        els.pendingPanel.hidden = false;
-        if (els.pendingBackdrop) els.pendingBackdrop.hidden = false;
+        openPendingDrawerShell();
         if (els.pendingList) els.pendingList.innerHTML = '<li class="ed-pending-empty">جارٍ التحميل…</li>';
         if (els.pendingConfirm) els.pendingConfirm.disabled = true;
+        if (els.pendingNav) els.pendingNav.hidden = true;
         try {
             const query = window.AtharMushaf.buildQuery({ params: { edition: state.edition } });
             const data = await window.AtharApi.json(`/api/mushaf-editor/pending${query}`);
@@ -1088,9 +1260,16 @@
         }
     }
     if (els.pendingClose) els.pendingClose.addEventListener('click', closePendingPanel);
-    if (els.pendingBackdrop) els.pendingBackdrop.addEventListener('click', closePendingPanel);
+    if (els.pendingPrev) els.pendingPrev.addEventListener('click', () => stepPending(-1));
+    if (els.pendingNext) els.pendingNext.addEventListener('click', () => stepPending(1));
     if (els.pendingConfirm) {
         els.pendingConfirm.addEventListener('click', async () => {
+            const total = state.pendingChanges.length;
+            if (!total) return;
+            const ok = window.confirm(
+                `سيتم نشر ${toAr(total)} تغييراً معلّقاً لنسخة «${state.edition}» للقراء.\nهل تريد المتابعة؟`
+            );
+            if (!ok) return;
             els.pendingConfirm.disabled = true;
             try {
                 const data = await window.AtharApi.json('/api/mushaf-editor/publish', {
@@ -1098,9 +1277,12 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ edition: state.edition }),
                 });
-                setStatus(`تم اعتماد ${toAr(data.published || 0)} علامة`);
+                const n = data.pending_before != null ? data.pending_before : (data.published || 0);
+                setStatus(`تم اعتماد ${toAr(n)} تغيير`);
+                invalidateSpreadCache(state.edition);
                 closePendingPanel();
                 loadAudit();
+                loadPage();
             } catch (e) {
                 if (e && e.status === 403) setStatus('صلاحية المشرف مطلوبة', true);
                 else setStatus('تعذّر الاعتماد', true);
