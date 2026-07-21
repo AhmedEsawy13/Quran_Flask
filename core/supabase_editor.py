@@ -121,6 +121,28 @@ def insert_invite(*, display_name: str, role: str, code_hash: str) -> dict:
     return rows[0] if rows else {}
 
 
+def list_invites() -> list[dict]:
+    return _request(
+        'GET', 'editor_invites',
+        params={
+            'select': 'id,display_name,role,active,created_at,last_used_at',
+            'order': 'created_at.desc',
+        },
+    ) or []
+
+
+def set_invite_active(invite_id: str, active: bool) -> dict | None:
+    rows = _request(
+        'PATCH', 'editor_invites',
+        params={'id': f'eq.{invite_id}', 'select': 'id,display_name,role,active'},
+        json_body={'active': active},
+        prefer='return=representation',
+    )
+    if not rows:
+        return None
+    return rows[0] if isinstance(rows, list) else rows
+
+
 def fetch_marks(*, edition: str, status: str, surah: int | None = None,
                 ayah: int | None = None) -> list[dict]:
     params: dict[str, str] = {

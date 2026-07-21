@@ -4,6 +4,7 @@ from __future__ import annotations
 import functools
 import logging
 import os
+import secrets
 from typing import Callable
 
 from flask import g, jsonify, request
@@ -153,3 +154,106 @@ def editor_login():
 def editor_logout():
     resp = jsonify({'ok': True})
     return clear_session_cookie(resp)
+
+
+@editor_bp.route('/api/mushaf-editor/invites', methods=['GET', 'POST'])
+@require_admin
+def editor_invites():
+    """List invites or create a new one (admin only). Plaintext code returned once on create."""
+    user = current_editor()
+    if request.method == 'GET':
+        try:
+            rows = sb.list_invites()
+        except sb.SupabaseEditorError as e:
+            logger.error('list invites failed: %s', e)
+            return jsonify({'error': 'invites unavailable'}), 503
+        return jsonify({
+            'invites': [
+                {
+                    'id': r.get('id'),
+                    'name': r.get('display_name'),
+                    'role': r.get('role'),
+                    'active': bool(r.get('active')),
+                    'created_at': r.get('created_at'),
+                    'last_used_at': r.get('last_used_at'),
+                }
+                for r in rows
+            ],
+        })
+
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
+    name = (data.get('name') or data.get('display_name') or '').strip()
+    if not name:
+        return jsonify({'error': 'name required'}), 400
+    role = (data.get('role') or 'editor').strip()
+    if role not in ('editor', 'admin'):
+        return jsonify({'error': 'invalid role'}), 400
+    code = (data.get('code') or '').strip() or secrets.token_urlsafe(12)
+    if len(code) < 6:
+        return jsonify({'error': 'code too short'}), 400
+    try:
+        row = sb.insert_invite(
+            display_name=name,
+            role=role,
+            code_hash=sb.hash_invite_code(code),
+        )
+        sb.append_audit(
+            actor_id=user['id'] if user else None,
+            actor_name=user['name'] if user else None,
+            action='invite_create',
+            meta={'invite_id': row.get('id'), 'name': name, 'role': role},
+        )
+    except sb.SupabaseEditorError as e:
+        logger.error('create invite failed: %s', e)
+        msg = str(e)
+        if '23505' in msg or 'duplicate' in msg.lower():
+            return jsonify({'error': 'code already used'}), 409
+        return jsonify({'error': 'create invite failed'}), 503
+    return jsonify({
+        'ok': True,
+        'invite': {
+            'id': row.get('id'),
+            'name': row.get('display_name') or name,
+            'role': row.get('role') or role,
+            'active': True,
+        },
+        'code': code,  # plaintext once — store/share now
+    }), 201
+
+
+@editor_bp.route('/api/mushaf-editor/invites/<invite_id>', methods=['PATCH'])
+@require_admin
+def editor_invite_patch(invite_id):
+    """Revoke or re-activate an invite (admin only)."""
+    user = current_editor()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or 'active' not in data:
+        return jsonify({'error': 'active required'}), 400
+    active = bool(data.get('active'))
+    invite_id = (invite_id or '').strip()
+    if not invite_id:
+        return jsonify({'error': 'invalid id'}), 400
+    try:
+        row = sb.set_invite_active(invite_id, active)
+    except sb.SupabaseEditorError as e:
+        logger.error('patch invite failed: %s', e)
+        return jsonify({'error': 'update failed'}), 503
+    if not row:
+        return jsonify({'error': 'not found'}), 404
+    sb.append_audit(
+        actor_id=user['id'] if user else None,
+        actor_name=user['name'] if user else None,
+        action='invite_revoke' if not active else 'invite_create',
+        meta={'invite_id': invite_id, 'active': active, 'name': row.get('display_name')},
+    )
+    return jsonify({
+        'ok': True,
+        'invite': {
+            'id': row.get('id'),
+            'name': row.get('display_name'),
+            'role': row.get('role'),
+            'active': bool(row.get('active')),
+        },
+    })

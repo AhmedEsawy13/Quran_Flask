@@ -26,6 +26,10 @@ Never put `SUPABASE_SERVICE_ROLE_KEY` in the browser or commit it.
 
 ## 3. Create invites
 
+**In the UI (after you have one admin):** open `/mushaf-editor` → **دعوات** → name + role → copy the code once.
+
+**Or CLI** (first admin, before anyone can log in):
+
 ```bash
 # Admin (you)
 python3 pipeline/create_editor_invite.py --name 'Ahmed' --role admin --code 'your-secret-admin-code'
@@ -35,6 +39,19 @@ python3 pipeline/create_editor_invite.py --name 'Reviewer 1' --role editor --cod
 ```
 
 Codes are hashed with SHA-256 + `EDITOR_SESSION_SECRET` before storage. Give people the plaintext once.
+
+### If you already ran an older schema
+
+Run this once in the SQL editor so invite create/revoke can be audited:
+
+```sql
+alter table editor_audit drop constraint if exists editor_audit_action_check;
+alter table editor_audit add constraint editor_audit_action_check
+  check (action in (
+    'set_mark', 'clear_mark', 'review_page', 'publish', 'login',
+    'invite_create', 'invite_revoke'
+  ));
+```
 
 ## 4. Migrate existing SQLite marks (optional)
 

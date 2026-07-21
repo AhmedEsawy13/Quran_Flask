@@ -45,6 +45,19 @@ class FakeSupabase:
         if table == 'editor_invites':
             if method == 'GET':
                 code_hash = (params.get('code_hash') or '').replace('eq.', '')
+                if not code_hash:
+                    # list all
+                    out = []
+                    for inv in self.invites.values():
+                        out.append({
+                            'id': inv['id'],
+                            'display_name': inv['display_name'],
+                            'role': inv['role'],
+                            'active': inv.get('active', True),
+                            'created_at': inv.get('created_at'),
+                            'last_used_at': inv.get('last_used_at'),
+                        })
+                    return Resp(200, out)
                 active = params.get('active', 'eq.true')
                 for inv in self.invites.values():
                     if inv['code_hash'] == code_hash and (
@@ -58,7 +71,21 @@ class FakeSupabase:
                         }])
                 return Resp(200, [])
             if method == 'PATCH':
-                return Resp(204, None)
+                invite_id = (params.get('id') or '').replace('eq.', '')
+                body = json_body or {}
+                for inv in self.invites.values():
+                    if inv['id'] == invite_id:
+                        if 'active' in body:
+                            inv['active'] = bool(body['active'])
+                        if 'last_used_at' in body:
+                            inv['last_used_at'] = body['last_used_at']
+                        return Resp(200, [{
+                            'id': inv['id'],
+                            'display_name': inv['display_name'],
+                            'role': inv['role'],
+                            'active': inv.get('active', True),
+                        }])
+                return Resp(200, [])
             if method == 'POST':
                 body = json_body or {}
                 inv = {
@@ -67,6 +94,7 @@ class FakeSupabase:
                     'display_name': body['display_name'],
                     'role': body.get('role') or 'editor',
                     'active': True,
+                    'created_at': '2026-01-01T00:00:00Z',
                 }
                 self.invites[inv['code_hash']] = inv
                 return Resp(201, [inv])
@@ -280,6 +308,60 @@ def test_editor_ui_has_login_and_publish(client):
     script = (root / 'static/js/mushaf_editor.js').read_text(encoding='utf-8')
     assert 'id="ed-login"' in page
     assert 'id="ed-publish"' in page
+    assert 'id="ed-invites-panel"' in page
     assert 'id="ed-audit"' in page
     assert '/api/mushaf-editor/login' in script
     assert '/api/mushaf-editor/publish' in script
+    assert '/api/mushaf-editor/invites' in script
+
+
+def test_admin_can_create_and_revoke_invite(client, cloud):
+    client.post('/api/mushaf-editor/logout')
+    _seed_invite(cloud, name='Admin', role='admin', code='ad-inv')
+    _seed_invite(cloud, name='Helper', role='editor', code='ed-inv')
+
+    # Editor cannot create
+    _login(client, 'ed-inv')
+    denied = client.post(
+        '/api/mushaf-editor/invites',
+        json={'name': 'Someone', 'role': 'editor'},
+        content_type='application/json',
+    )
+    assert denied.status_code == 403
+
+    client.post('/api/mushaf-editor/logout')
+    _login(client, 'ad-inv')
+    created = client.post(
+        '/api/mushaf-editor/invites',
+        json={'name': 'Fatima', 'role': 'editor', 'code': 'fatima-code-9'},
+        content_type='application/json',
+    )
+    assert created.status_code == 201
+    body = created.get_json()
+    assert body['code'] == 'fatima-code-9'
+    assert body['invite']['name'] == 'Fatima'
+    invite_id = body['invite']['id']
+
+    listed = client.get('/api/mushaf-editor/invites')
+    assert listed.status_code == 200
+    names = {i['name'] for i in listed.get_json()['invites']}
+    assert 'Fatima' in names
+
+    # New code works
+    client.post('/api/mushaf-editor/logout')
+    ok = _login(client, 'fatima-code-9')
+    assert ok.status_code == 200
+
+    client.post('/api/mushaf-editor/logout')
+    _login(client, 'ad-inv')
+    revoked = client.patch(
+        f'/api/mushaf-editor/invites/{invite_id}',
+        json={'active': False},
+        content_type='application/json',
+    )
+    assert revoked.status_code == 200
+    assert revoked.get_json()['invite']['active'] is False
+
+    client.post('/api/mushaf-editor/logout')
+    blocked = _login(client, 'fatima-code-9')
+    assert blocked.status_code == 401

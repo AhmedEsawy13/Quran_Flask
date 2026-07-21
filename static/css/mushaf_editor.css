@@ -343,14 +343,66 @@ body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
     background: var(--ed-paper);
 }
 .ed-session-name { font-size: 0.82rem; font-weight: 700; color: var(--athar-ink-soft); white-space: nowrap; max-width: 12ch; overflow: hidden; text-overflow: ellipsis; }
-.ed-publish-btn, .ed-logout-btn {
+.ed-publish-btn, .ed-logout-btn, .ed-invites-btn {
     min-height: 34px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--ed-border);
     background: var(--ed-paper-2); color: var(--ed-ink); font-family: inherit; font-size: 0.82rem;
     font-weight: 700; cursor: pointer; white-space: nowrap;
 }
 .ed-publish-btn { border-color: color-mix(in srgb, var(--ed-accent) 45%, var(--ed-border)); color: var(--ed-accent); }
 .ed-publish-btn:hover { background: var(--ed-accent-soft); }
+.ed-invites-btn:hover { border-color: var(--ed-accent); color: var(--ed-accent); }
 .ed-logout-btn:hover { border-color: var(--ed-diff); color: var(--ed-diff); }
+
+.ed-invites-backdrop {
+    position: fixed; inset: 0; z-index: 70;
+    background: color-mix(in srgb, var(--ed-ink) 35%, transparent);
+}
+.ed-invites-backdrop[hidden], .ed-invites-panel[hidden] { display: none !important; }
+.ed-invites-panel {
+    position: fixed; z-index: 71;
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(440px, calc(100vw - 24px)); max-height: min(88vh, 640px);
+    overflow: auto; display: grid; gap: 12px;
+    padding: 20px 18px 18px;
+    border: 1px solid var(--ed-border);
+    border-radius: var(--athar-radius-surface);
+    box-shadow: var(--athar-shadow-sm);
+}
+.ed-invites-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ed-invites-title { margin: 0; font-size: 1.15rem; font-family: var(--font-display, inherit); }
+.ed-invites-hint { margin: 0; color: var(--athar-ink-soft); font-size: 0.84rem; line-height: 1.5; }
+.ed-invites-form { display: grid; gap: 8px; }
+.ed-invites-label { font-size: 0.8rem; font-weight: 600; color: var(--athar-ink-soft); }
+.ed-invites-optional { font-weight: 400; opacity: 0.8; }
+.ed-invite-created {
+    display: grid; gap: 8px; padding: 12px;
+    border: 1px dashed color-mix(in srgb, var(--ed-accent) 50%, var(--ed-border));
+    border-radius: 10px; background: var(--ed-accent-soft);
+}
+.ed-invite-created-label { margin: 0; font-size: 0.82rem; font-weight: 600; }
+.ed-invite-created-code {
+    display: block; padding: 10px 12px; border-radius: 8px;
+    background: var(--ed-paper); border: 1px solid var(--ed-border);
+    font-size: 0.95rem; word-break: break-all; user-select: all;
+}
+.ed-invite-copy {
+    min-height: 36px; border-radius: 9px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper); font-family: inherit; font-weight: 700; cursor: pointer;
+}
+.ed-invites-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 8px; }
+.ed-invite-row {
+    display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center;
+    padding: 10px 12px; border: 1px solid var(--ed-border); border-radius: 10px;
+    background: var(--ed-paper-2);
+}
+.ed-invite-row.is-revoked { opacity: 0.55; }
+.ed-invite-row-name { font-weight: 700; font-size: 0.9rem; }
+.ed-invite-row-meta { font-size: 0.72rem; color: var(--athar-ink-faint); grid-column: 1 / -1; }
+.ed-invite-revoke {
+    min-height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--ed-border);
+    background: var(--ed-paper); font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+}
+.ed-invite-revoke:hover { border-color: var(--ed-diff); color: var(--ed-diff); }
 
 .ed-audit {
     display: flex; gap: 8px; flex-wrap: wrap; align-items: center;

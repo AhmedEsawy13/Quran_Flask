@@ -57,6 +57,7 @@
             <div class="ed-session" id="ed-session" hidden>
                 <span class="ed-session-name" id="ed-session-name"></span>
                 <button class="ed-publish-btn" id="ed-publish" type="button" hidden title="نشر المسودّة للقراء">اعتماد</button>
+                <button class="ed-invites-btn" id="ed-invites-open" type="button" hidden title="إدارة رموز الدعوة">دعوات</button>
                 <button class="ed-logout-btn" id="ed-logout" type="button" title="خروج">خروج</button>
             </div>
 
@@ -139,6 +140,34 @@
         <div class="ed-popup-peers" id="ed-popup-peers" hidden></div>
         <div class="ed-popup-syms" id="ed-popup-syms"></div>
         <button class="ed-popup-clear" id="ed-popup-clear" type="button"><i class="fas fa-eraser" aria-hidden="true"></i> بلا علامة</button>
+    </div>
+
+    <!-- invite management (admin) -->
+    <div class="ed-invites-backdrop" id="ed-invites-backdrop" hidden></div>
+    <div class="ed-invites-panel athar-surface" id="ed-invites-panel" hidden role="dialog" aria-modal="true" aria-labelledby="ed-invites-title">
+        <div class="ed-invites-head">
+            <h2 class="ed-invites-title" id="ed-invites-title">رموز الدعوة</h2>
+            <button class="ed-popup-close athar-icon-button" id="ed-invites-close" type="button" aria-label="إغلاق"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+        </div>
+        <p class="ed-invites-hint">أنشئ رمزاً لكل مراجع. يُعرض الرمز مرة واحدة فقط عند الإنشاء — انسخه وأرسله لهم.</p>
+        <form class="ed-invites-form" id="ed-invites-form" autocomplete="off">
+            <label class="ed-invites-label" for="ed-invite-name">الاسم</label>
+            <input class="athar-field" id="ed-invite-name" name="name" required maxlength="80" placeholder="اسم المراجع">
+            <label class="ed-invites-label" for="ed-invite-role">الصلاحية</label>
+            <select class="athar-field" id="ed-invite-role" name="role">
+                <option value="editor">مراجع</option>
+                <option value="admin">مشرف</option>
+            </select>
+            <label class="ed-invites-label" for="ed-invite-code">رمز مخصص <span class="ed-invites-optional">(اختياري)</span></label>
+            <input class="athar-field" id="ed-invite-code" name="code" dir="ltr" maxlength="64" placeholder="يُولَّد تلقائياً إن تُرك فارغاً" autocomplete="off">
+            <button class="ed-login-submit" type="submit" id="ed-invite-submit">إنشاء دعوة</button>
+        </form>
+        <div class="ed-invite-created" id="ed-invite-created" hidden>
+            <p class="ed-invite-created-label">انسخ الرمز الآن — لن يظهر مرة أخرى:</p>
+            <code class="ed-invite-created-code" id="ed-invite-created-code" dir="ltr"></code>
+            <button class="ed-invite-copy" type="button" id="ed-invite-copy">نسخ</button>
+        </div>
+        <ul class="ed-invites-list" id="ed-invites-list" aria-label="الدعوات الحالية"></ul>
     </div>
 
     <script src="{{ static_hash('js/mushaf_editor.js') }}"></script>

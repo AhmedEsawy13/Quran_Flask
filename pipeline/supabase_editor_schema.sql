@@ -54,7 +54,10 @@ create table if not exists editor_audit (
   actor_id uuid references editor_invites(id) on delete set null,
   actor_name text,
   action text not null
-    check (action in ('set_mark', 'clear_mark', 'review_page', 'publish', 'login')),
+    check (action in (
+      'set_mark', 'clear_mark', 'review_page', 'publish', 'login',
+      'invite_create', 'invite_revoke'
+    )),
   edition text,
   surah integer,
   ayah integer,

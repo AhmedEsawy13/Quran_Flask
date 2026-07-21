@@ -90,6 +90,19 @@
         session: $('ed-session'),
         sessionName: $('ed-session-name'),
         publishBtn: $('ed-publish'),
+        invitesOpen: $('ed-invites-open'),
+        invitesPanel: $('ed-invites-panel'),
+        invitesBackdrop: $('ed-invites-backdrop'),
+        invitesClose: $('ed-invites-close'),
+        invitesForm: $('ed-invites-form'),
+        inviteName: $('ed-invite-name'),
+        inviteRole: $('ed-invite-role'),
+        inviteCode: $('ed-invite-code'),
+        inviteSubmit: $('ed-invite-submit'),
+        inviteCreated: $('ed-invite-created'),
+        inviteCreatedCode: $('ed-invite-created-code'),
+        inviteCopy: $('ed-invite-copy'),
+        invitesList: $('ed-invites-list'),
         logoutBtn: $('ed-logout'),
         refTitle: $('ed-ref-title'),
         refOpen: $('ed-ref-open'),
@@ -777,12 +790,126 @@
     function updateSessionUI() {
         const cloud = state.cloud;
         const user = state.user;
+        const isAdmin = !!(cloud && user && user.role === 'admin');
         if (els.session) els.session.hidden = !cloud || !user;
         if (els.sessionName && user) els.sessionName.textContent = user.name || '';
-        if (els.publishBtn) {
-            els.publishBtn.hidden = !(cloud && user && user.role === 'admin');
+        if (els.publishBtn) els.publishBtn.hidden = !isAdmin;
+        if (els.invitesOpen) els.invitesOpen.hidden = !isAdmin;
+    }
+
+    function closeInvitesPanel() {
+        if (els.invitesPanel) els.invitesPanel.hidden = true;
+        if (els.invitesBackdrop) els.invitesBackdrop.hidden = true;
+    }
+    function roleLabel(role) {
+        return role === 'admin' ? 'مشرف' : 'مراجع';
+    }
+    function renderInvitesList(invites) {
+        if (!els.invitesList) return;
+        els.invitesList.innerHTML = '';
+        if (!invites.length) {
+            const empty = document.createElement('li');
+            empty.className = 'ed-invite-row-meta';
+            empty.textContent = 'لا توجد دعوات بعد.';
+            els.invitesList.appendChild(empty);
+            return;
+        }
+        invites.forEach(inv => {
+            const li = document.createElement('li');
+            li.className = 'ed-invite-row' + (inv.active ? '' : ' is-revoked');
+            const name = document.createElement('span');
+            name.className = 'ed-invite-row-name';
+            name.textContent = inv.name || '—';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ed-invite-revoke';
+            btn.textContent = inv.active ? 'إلغاء' : 'إعادة تفعيل';
+            btn.addEventListener('click', () => toggleInvite(inv.id, !inv.active));
+            const meta = document.createElement('span');
+            meta.className = 'ed-invite-row-meta';
+            meta.textContent = `${roleLabel(inv.role)} · ${inv.active ? 'نشط' : 'ملغى'}`;
+            li.append(name, btn, meta);
+            els.invitesList.appendChild(li);
+        });
+    }
+    async function loadInvites() {
+        if (!els.invitesList) return;
+        try {
+            const data = await window.AtharApi.json('/api/mushaf-editor/invites');
+            renderInvitesList(data.invites || []);
+        } catch (_e) {
+            els.invitesList.innerHTML = '<li class="ed-invite-row-meta">تعذّر تحميل الدعوات</li>';
         }
     }
+    async function openInvitesPanel() {
+        if (!els.invitesPanel) return;
+        if (els.inviteCreated) els.inviteCreated.hidden = true;
+        if (els.invitesForm) els.invitesForm.reset();
+        els.invitesPanel.hidden = false;
+        if (els.invitesBackdrop) els.invitesBackdrop.hidden = false;
+        await loadInvites();
+        if (els.inviteName) els.inviteName.focus();
+    }
+    async function toggleInvite(id, active) {
+        try {
+            await window.AtharApi.json(`/api/mushaf-editor/invites/${encodeURIComponent(id)}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ active }),
+            });
+            setStatus(active ? 'أُعيد تفعيل الدعوة' : 'أُلغيت الدعوة');
+            await loadInvites();
+        } catch (_e) {
+            setStatus('تعذّر تحديث الدعوة', true);
+        }
+    }
+    if (els.invitesOpen) els.invitesOpen.addEventListener('click', openInvitesPanel);
+    if (els.invitesClose) els.invitesClose.addEventListener('click', closeInvitesPanel);
+    if (els.invitesBackdrop) els.invitesBackdrop.addEventListener('click', closeInvitesPanel);
+    if (els.inviteCopy) {
+        els.inviteCopy.addEventListener('click', async () => {
+            const code = els.inviteCreatedCode && els.inviteCreatedCode.textContent;
+            if (!code) return;
+            try {
+                await navigator.clipboard.writeText(code);
+                setStatus('تم نسخ الرمز');
+            } catch (_e) {
+                setStatus('انسخ الرمز يدوياً', true);
+            }
+        });
+    }
+    if (els.invitesForm) {
+        els.invitesForm.addEventListener('submit', async e => {
+            e.preventDefault();
+            const name = (els.inviteName && els.inviteName.value || '').trim();
+            const role = (els.inviteRole && els.inviteRole.value) || 'editor';
+            const code = (els.inviteCode && els.inviteCode.value || '').trim();
+            if (!name) return;
+            if (els.inviteSubmit) els.inviteSubmit.disabled = true;
+            try {
+                const body = { name, role };
+                if (code) body.code = code;
+                const data = await window.AtharApi.json('/api/mushaf-editor/invites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                if (els.inviteCreated && els.inviteCreatedCode) {
+                    els.inviteCreatedCode.textContent = data.code || '';
+                    els.inviteCreated.hidden = false;
+                }
+                if (els.invitesForm) els.invitesForm.reset();
+                setStatus(`أُنشئت دعوة لـ ${name}`);
+                await loadInvites();
+            } catch (err) {
+                const msg = err && err.data && err.data.error;
+                setStatus(msg === 'code already used' ? 'الرمز مستخدم مسبقاً' : 'تعذّر إنشاء الدعوة', true);
+            } finally {
+                if (els.inviteSubmit) els.inviteSubmit.disabled = false;
+            }
+        });
+    }
+
     async function loadAudit() {
         if (!els.audit || !state.cloud || !state.user) {
             if (els.audit) els.audit.hidden = true;
