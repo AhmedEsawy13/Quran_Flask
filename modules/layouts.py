@@ -565,6 +565,10 @@ def _build_page_waqf_map(page_word_rows, mushaf_version):
     for row in page_word_rows:
         grouped[(row['surah'], row['ayah'])].append(row)
 
+    # One Supabase round-trip for cloud editions instead of N ayah calls.
+    from core.mushaf_waqf import prefetch_cloud_published_for_ayahs
+    prefetch_cloud_published_for_ayahs(list(grouped.keys()), versions)
+
     # Returns {word_index: [{symbols, version}, ...]} — keep per-version entries so
     # the frontend can render each with the correct font/colour (Warsh vs Hafs etc.)
     waqf_map = {}

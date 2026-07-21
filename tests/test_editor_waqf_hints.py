@@ -9,6 +9,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 @pytest.fixture(autouse=True)
 def _enable_editor(monkeypatch):
     monkeypatch.setenv('ENABLE_EDITOR', '1')
+    # Spread API requires login when Supabase env is present in the shell;
+    # force local (no-cloud) mode for these layout/peer payload checks.
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_ROLE_KEY', raising=False)
 
 
 def test_spread_includes_peer_versions(client):

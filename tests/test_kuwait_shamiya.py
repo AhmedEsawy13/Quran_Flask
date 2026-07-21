@@ -23,7 +23,10 @@ def test_editor_ui_references_al_shamiya_for_kuwait():
     assert (PROJECT_ROOT / 'static/fonts/alshamiya.woff2').is_file()
 
 
-def test_kuwait_spread_api_reports_al_shamiya_font(client):
+def test_kuwait_spread_api_reports_al_shamiya_font(client, monkeypatch):
+    monkeypatch.setenv('ENABLE_EDITOR', '1')
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_ROLE_KEY', raising=False)
     data = client.get('/api/mushaf-editor/spread/1?edition=الكويت').get_json()
     assert data['edition'] == 'الكويت'
     assert data['right']['font_name'] == 'Al Shamiya'

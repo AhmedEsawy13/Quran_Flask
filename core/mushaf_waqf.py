@@ -179,6 +179,10 @@ def _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version):
     except sb.SupabaseEditorError as e:
         logger.error('cloud published waqf fetch failed: %s', e)
         return []  # configured but failed — do not leak SQLite drafts/legacy
+    return _cloud_rows_to_mushaf_rows(rows)
+
+
+def _cloud_rows_to_mushaf_rows(rows) -> list[dict]:
     result = []
     for row in rows:
         symbol = (row.get('symbol') or '').strip()
@@ -196,6 +200,48 @@ def _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version):
             'word_index': None,
         })
     return result
+
+
+def prefetch_cloud_published_for_ayahs(ayah_keys, mushaf_versions) -> None:
+    """Batch-fill the in-process cache for cloud editions on a page of ayahs.
+
+    Without this, public/layout builds call Supabase once per ayah (~0.2s each).
+    """
+    from core.config import CLOUD_EDITOR_EDITIONS
+    from core import supabase_editor as sb
+
+    if not ayah_keys or not sb.is_configured():
+        return
+    versions = mushaf_versions if isinstance(mushaf_versions, (list, tuple)) else [mushaf_versions]
+    cloud_versions = [v for v in versions if v in CLOUD_EDITOR_EDITIONS]
+    if not cloud_versions:
+        return
+
+    unique_keys = sorted({(int(s), int(a)) for s, a in ayah_keys})
+    for ver in cloud_versions:
+        missing = []
+        for surah, ayah in unique_keys:
+            if _mushaf_waqf_cache.get((surah, ayah, ver)) is None:
+                missing.append((surah, ayah))
+        if not missing:
+            continue
+        try:
+            rows = sb.fetch_marks_for_ayahs(
+                edition=ver, status='published', ayah_keys=missing,
+            )
+        except sb.SupabaseEditorError as e:
+            logger.error('cloud published batch fetch failed: %s', e)
+            for surah, ayah in missing:
+                _mushaf_waqf_cache[(surah, ayah, ver)] = []
+            continue
+
+        by_ayah: dict[tuple[int, int], list] = {key: [] for key in missing}
+        for row in rows:
+            key = (int(row['surah']), int(row['ayah']))
+            if key in by_ayah:
+                by_ayah[key].append(row)
+        for key, ayah_rows in by_ayah.items():
+            _mushaf_waqf_cache[(*key, ver)] = _cloud_rows_to_mushaf_rows(ayah_rows)
 
 
 def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):

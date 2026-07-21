@@ -47,7 +47,10 @@ def test_editor_ui_references_katypical_naskh_for_qatar():
     assert (PROJECT_ROOT / 'data/quran_text/quran-uthmani.txt').is_file()
 
 
-def test_qatar_spread_api_reports_katypical_font(client):
+def test_qatar_spread_api_reports_katypical_font(client, monkeypatch):
+    monkeypatch.setenv('ENABLE_EDITOR', '1')
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_ROLE_KEY', raising=False)
     data = client.get('/api/mushaf-editor/spread/1?edition=قطر').get_json()
     assert data['edition'] == 'قطر'
     assert data['right']['font_name'] == 'KATypical Naskh'

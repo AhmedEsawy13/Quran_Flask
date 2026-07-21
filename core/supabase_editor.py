@@ -147,6 +147,12 @@ def set_invite_active(invite_id: str, active: bool) -> dict | None:
 def fetch_marks(*, edition: str, status: str, surah: int | None = None,
                 ayah: int | None = None) -> list[dict]:
     """Fetch marks. Full-edition scans paginate past PostgREST's 1000-row default."""
+    # Pending review repeatedly scans drafts; cache the small result briefly.
+    if status == 'draft' and surah is None and ayah is None:
+        cached = _DRAFT_LIST_CACHE.get(edition)
+        if cached and (time.monotonic() - cached[0]) <= _DRAFT_LIST_TTL_SEC:
+            return [dict(r) for r in cached[1]]
+
     params: dict[str, str] = {
         'edition': f'eq.{edition}',
         'status': f'eq.{status}',
@@ -173,6 +179,8 @@ def fetch_marks(*, edition: str, status: str, surah: int | None = None,
         if len(chunk) < page_size:
             break
         offset += page_size
+    if status == 'draft':
+        _DRAFT_LIST_CACHE[edition] = (time.monotonic(), [dict(r) for r in out])
     return out
 
 
@@ -181,11 +189,25 @@ def fetch_marks_for_ayahs(*, edition: str, status: str,
     """Fetch marks for many (surah, ayah) pairs. Batches with OR filter."""
     if not ayah_keys:
         return []
-    # PostgREST or=(and(...),and(...)) — chunk to keep URLs sane.
+
+    now = time.monotonic()
     out: list[dict] = []
+    missing: list[tuple[int, int]] = []
+    for surah, ayah in ayah_keys:
+        cached = _MARK_AYAH_CACHE.get((edition, status, surah, ayah))
+        if cached and (now - cached[0]) <= _MARK_AYAH_TTL_SEC:
+            out.extend(dict(r) for r in cached[1])
+        else:
+            missing.append((surah, ayah))
+
+    if not missing:
+        return out
+
+    # PostgREST or=(and(...),and(...)) — chunk to keep URLs sane.
     chunk_size = 40
-    for i in range(0, len(ayah_keys), chunk_size):
-        chunk = ayah_keys[i:i + chunk_size]
+    fresh: list[dict] = []
+    for i in range(0, len(missing), chunk_size):
+        chunk = missing[i:i + chunk_size]
         parts = [f'and(surah.eq.{s},ayah.eq.{a})' for s, a in chunk]
         params = {
             'edition': f'eq.{edition}',
@@ -193,20 +215,37 @@ def fetch_marks_for_ayahs(*, edition: str, status: str,
             'or': f'({",".join(parts)})',
             'select': 'edition,surah,ayah,token_index,symbol,word_text,status',
         }
-        out.extend(_request('GET', 'editor_marks', params=params) or [])
+        fresh.extend(_request('GET', 'editor_marks', params=params) or [])
+
+    by_ayah: dict[tuple[int, int], list[dict]] = {key: [] for key in missing}
+    for row in fresh:
+        key = (int(row['surah']), int(row['ayah']))
+        if key in by_ayah:
+            by_ayah[key].append(row)
+    now = time.monotonic()
+    for key, rows in by_ayah.items():
+        surah, ayah = key
+        _MARK_AYAH_CACHE[(edition, status, surah, ayah)] = (now, [dict(r) for r in rows])
+        out.extend(dict(r) for r in rows)
     return out
 
 
 # Short-lived ayah mark cache — spread navigation re-hits the same verses.
 _MARK_AYAH_CACHE: dict[tuple[str, str, int, int], tuple[float, list[dict]]] = {}
 _MARK_AYAH_TTL_SEC = 45.0
+# Draft lists are small; cache whole-edition draft scans for the pending panel.
+_DRAFT_LIST_CACHE: dict[str, tuple[float, list[dict]]] = {}
+_DRAFT_LIST_TTL_SEC = 20.0
 
 
 def invalidate_mark_cache(*, edition: str | None = None, surah: int | None = None,
                           ayah: int | None = None) -> None:
     if edition is None and surah is None and ayah is None:
         _MARK_AYAH_CACHE.clear()
+        _DRAFT_LIST_CACHE.clear()
         return
+    if edition is not None and surah is None and ayah is None:
+        _DRAFT_LIST_CACHE.pop(edition, None)
     drop = []
     for key in _MARK_AYAH_CACHE:
         ed, _status, s, a = key
@@ -219,6 +258,8 @@ def invalidate_mark_cache(*, edition: str | None = None, surah: int | None = Non
         drop.append(key)
     for key in drop:
         _MARK_AYAH_CACHE.pop(key, None)
+    if edition is not None:
+        _DRAFT_LIST_CACHE.pop(edition, None)
 
 
 def fetch_draft_and_published_for_ayahs(*, edition: str,
