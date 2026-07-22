@@ -95,7 +95,11 @@
                         <option value="shamarly">الشمرلي (صفحات مختارة)</option>
                     </select><i class="fas fa-chevron-down" aria-hidden="true"></i></div>
                 </div>
-                <label class="mz-chip-toggle"><input type="checkbox" id="mz-tb-waqf"><span class="mz-chip-dot"></span> إظهار علامات الوقف (المدينة)</label>
+                <div class="mz-field">
+                    <label id="mz-waqf-choice-label">علامات الوقف من مصحف</label>
+                    <div id="mz-waqf-pills" class="mz-waqf-pills" role="radiogroup" aria-labelledby="mz-waqf-choice-label"></div>
+                </div>
+                <label class="mz-chip-toggle"><input type="checkbox" id="mz-tb-waqf"><span class="mz-chip-dot"></span> إظهار علامات الوقف</label>
             </div>
         </div>
 
@@ -145,7 +149,6 @@
             <input id="mz-justify" type="range" min="0" max="100" value="50"><span id="mz-justify-val"></span>
             <select id="mz-split-mode"><option value="acoustic" selected></option></select>
             <input id="mz-gap" type="range" min="120" max="500" value="250"><span id="mz-gap-val"></span>
-            <div id="mz-waqf-pills"></div>
             <div id="mz-player"></div><span id="mz-player-reciter"></span>
         </div>
     </section>

@@ -1,6 +1,7 @@
 """Regression coverage for the three Madinah layouts offered by تثبيت."""
 
 import sqlite3
+from urllib.parse import quote
 
 from core.config import QPC_V2_LAYOUT_DATABASE
 
@@ -57,3 +58,37 @@ def test_memorize_page_lists_three_madinah_years(client):
     assert '<option value="qpc_v1">المدينة ١٤٠٥</option>' in page
     assert '<option value="qpc_v2">المدينة ١٤٢١ — Digital Khatt (KFGQPC V2)</option>' in page
     assert '<option value="digital_khatt">المدينة ١٤٤١</option>' in page
+
+
+def test_memorize_exposes_three_independent_waqf_choices(client):
+    page = client.get('/memorize').get_data(as_text=True)
+    script = client.get('/static/js/mushaf_memorize.js').get_data(as_text=True)
+    css = client.get('/static/css/mushaf_memorize.css').get_data(as_text=True)
+
+    # The selector must be in the visible source panel, not the hidden legacy
+    # compatibility container where it previously existed.
+    assert page.index('id="mz-waqf-pills"') < page.index('class="mz-compat"')
+    assert 'role="radiogroup"' in page
+    assert "const WAQF_CHOICES = ['المدينة الجديد', 'المدينة القديم', 'الشمرلي']" in script
+    assert "return state.mushafVersions.slice(0, 1)" in script
+    assert "const overlay = state.src === 'shamarly'" in script
+    assert '.mz-page.mz-src-shamarly .waqf-stack { top: -0.12em; font-size: 0.9em; }' in css
+    assert '.waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; font-size: 1.25em; }' in css
+
+
+def test_all_three_waqf_editions_are_available_on_madinah_and_shamarly_layouts(client):
+    versions = ('المدينة الجديد', 'المدينة القديم', 'الشمرلي')
+    for source in ('qpc-v2', 'shamarly'):
+        for version in versions:
+            response = client.get(
+                f'/api/{source}/page-by-ayah/2/2?mushaf_version={quote(version)}'
+            )
+            assert response.status_code == 200
+            entries = [
+                entry
+                for line in response.get_json()['lines']
+                for word in line['words']
+                for entry in (word['waqf_symbols'] if isinstance(word['waqf_symbols'], list) else [])
+            ]
+            assert entries
+            assert {entry['version'] for entry in entries} == {version}

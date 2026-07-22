@@ -243,24 +243,34 @@
             const saved = JSON.parse(localStorage.getItem('mz_waqf_print') || '[]');
             if (Array.isArray(saved)) state.mushafVersions = saved.filter(v => typeof v === 'string');
         } catch (e) { state.mushafVersions = []; }
-        _waqfVisible = !!(localStorage.getItem('quranApp_waqfVisible') ?? (state.mushafVersions.some(v => v.indexOf('المدينة') === 0) ? '1' : ''));
+        _waqfVisible = !!(localStorage.getItem('quranApp_waqfVisible') ?? (state.mushafVersions.length ? '1' : ''));
     }
 
     /* ── Waqf mushaf-version pills ─────────────────────────────────────
-       تثبيت shows ONLY the two Madinah prints' own waqf, each drawn IN the text
-       (new = embedded source marks, old = folded-in via the DB) — never an overlay
-       of other mushafs. The two are mutually exclusive (radio): pick which print's
-       stops to read by. */
-    const MADINAH_WAQF = ['المدينة الجديد', 'المدينة القديم'];
+       The page layout and printed waqf edition are independent. The three
+       supported sets are mutually exclusive: Madinah new/old are folded into
+       Madinah text when possible; Shemrly (and every set on a Shemrly glyph
+       page) is drawn as a readable overlay. */
+    const WAQF_CHOICES = ['المدينة الجديد', 'المدينة القديم', 'الشمرلي'];
+    function syncWaqfChoiceButtons() {
+        if (!els.waqfPills) return;
+        els.waqfPills.querySelectorAll('.mz-waqf-pill').forEach(button => {
+            const selected = state.mushafVersions.includes(button.textContent);
+            button.classList.toggle('mz-on', selected);
+            button.setAttribute('aria-checked', selected ? 'true' : 'false');
+        });
+    }
     async function loadWaqfPills() {
         if (!els.waqfPills) return;
         let versions = [];
         try {
             versions = await window.AtharApi.json('/api/mushaf-versions');
         } catch (e) { versions = []; }
-        versions = MADINAH_WAQF.filter(v => versions.includes(v));
-        // Keep at most one Madinah print selected; drop any stale (overlay) versions.
+        versions = WAQF_CHOICES.filter(v => versions.includes(v));
+        // Keep exactly one supported print selected; default to new Madinah for
+        // existing users who have never chosen a waqf edition.
         state.mushafVersions = state.mushafVersions.filter(v => versions.includes(v)).slice(0, 1);
+        if (!state.mushafVersions.length && versions.length) state.mushafVersions = [versions[0]];
         saveSetting('mz_waqf_print', JSON.stringify(state.mushafVersions));
         if (els.tbWaqf) els.tbWaqf.checked = waqfMarksOn();
         els.waqfPills.innerHTML = '';
@@ -268,20 +278,21 @@
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'mz-waqf-pill';
+            btn.setAttribute('role', 'radio');
             btn.textContent = v;
-            btn.classList.toggle('mz-on', state.mushafVersions.includes(v));
-            btn.addEventListener('click', () => toggleWaqfVersion(v, btn));
+            btn.addEventListener('click', () => toggleWaqfVersion(v));
             els.waqfPills.appendChild(btn);
         });
+        syncWaqfChoiceButtons();
     }
-    function toggleWaqfVersion(version, btn) {
-        // Radio behaviour: clicking the active print clears it (back to new-Madinah
-        // embedded default); clicking the other switches to it. Only one at a time.
-        const wasOn = state.mushafVersions.includes(version);
-        state.mushafVersions = wasOn ? [] : [version];
-        els.waqfPills.querySelectorAll('.mz-waqf-pill').forEach(b =>
-            b.classList.toggle('mz-on', state.mushafVersions.includes(b.textContent)));
+    function toggleWaqfVersion(version) {
+        if (!WAQF_CHOICES.includes(version)) return;
+        state.mushafVersions = [version];
+        _waqfVisible = true;
+        if (els.tbWaqf) els.tbWaqf.checked = true;
+        syncWaqfChoiceButtons();
         saveSetting('mz_waqf_print', JSON.stringify(state.mushafVersions));
+        saveSetting('quranApp_waqfVisible', '1');
         if (state.focusPage) renderSpread(state.focusPage);
     }
 
@@ -294,25 +305,13 @@
         _waqfVisible = !!on;
         saveSetting('quranApp_waqfVisible', _waqfVisible ? '1' : '');
         if (els.tbWaqf) els.tbWaqf.checked = _waqfVisible;
-        if (state.src === 'shamarly') {
-            // Shemrly draws its own marks via the DB overlay — needs a re-fetch.
-            const i = state.mushafVersions.indexOf('الشمرلي');
-            if (on && i < 0) state.mushafVersions.push('الشمرلي');
-            else if (!on && i >= 0) state.mushafVersions.splice(i, 1);
-            if (state.focusPage) renderSpread(state.focusPage);
-        } else {
-            // Re-render from the cached payloads (no network) — the word text is
-            // rebuilt with embedded waqf stripped or kept per the new state.
-            // Keep the EXISTING page size and font (--dk-fs): waqf marks are
-            // above-line diacritics, so re-fitting the font to the slightly
-            // different line width would wrongly grow/shrink the page. Only the
-            // line justification needs a refresh.
-            [cards.right, cards.left].forEach(c => renderCard(c, c._payload || null));
-            if (state.hideText) pageEls().forEach(p => p && p.classList.add('mz-hide'));
-            applySelectionHighlight();
-            requestAnimationFrame(justifyLines);
-            if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
-        }
+        // Re-render from cached payloads. The selected edition is fetched even
+        // while hidden, so visibility never changes the page request or layout.
+        [cards.right, cards.left].forEach(c => renderCard(c, c._payload || null));
+        if (state.hideText) pageEls().forEach(p => p && p.classList.add('mz-hide'));
+        applySelectionHighlight();
+        requestAnimationFrame(justifyLines);
+        if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
     }
 
     /* ── Arabic-Indic digits + juz ─────────────────────────────────────
@@ -742,9 +741,7 @@
     const nearestShemrlyPage = (page) =>
         SHEMRLY_PAGES.reduce((best, p) => Math.abs(p - page) < Math.abs(best - page) ? p : best, SHEMRLY_PAGES[0]);
     function pageVersions() {
-        let versions = state.mushafVersions.slice();
-        if (state.src === 'shamarly' && !versions.includes('الشمرلي')) versions.unshift('الشمرلي');
-        return versions;
+        return state.mushafVersions.slice(0, 1);
     }
     const mushafPages = window.AtharMushaf.createPageClient({
         getSource: () => state.src,
@@ -808,20 +805,23 @@
             },
             textForWord: ({ word, raw }) => {
                 const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
-                const oldSelected = state.mushafVersions.includes('المدينة القديم');
+                const selectedWaqf = state.mushafVersions[0] || 'المدينة الجديد';
                 if (state.src === 'shamarly') return raw;
                 if (!waqfMarksOn()) return withAyahOrnament(stripEmbeddedWaqf(raw));
-                if (oldSelected) {
+                if (selectedWaqf === 'المدينة القديم') {
                     const oldMark = entries.find(entry => entry && entry.version === 'المدينة القديم');
                     return withAyahOrnament(stripEmbeddedWaqf(raw) + (oldMark ? integratedWaqfGlyph(oldMark) : ''));
                 }
-                return withAyahOrnament(raw);
+                if (selectedWaqf === 'المدينة الجديد') return withAyahOrnament(raw);
+                return withAyahOrnament(stripEmbeddedWaqf(raw));
             },
             decorateWord: (element, { word }) => {
                 element.dataset.text = element.textContent;
                 const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
-                const overlay = entries.filter(entry => entry
-                    && entry.version !== 'المدينة القديم' && entry.version !== 'المدينة الجديد');
+                const overlay = state.src === 'shamarly'
+                    ? entries.filter(Boolean)
+                    : entries.filter(entry => entry
+                        && entry.version !== 'المدينة القديم' && entry.version !== 'المدينة الجديد');
                 if (!overlay.length) return;
                 element._waqf = overlay;
                 if (waqfMarksOn()) appendWaqfMarks(element, overlay);
@@ -2013,7 +2013,12 @@
         const jq = parseInt(p.get('justify'), 10);
         if (Number.isFinite(jq)) { state.justify = Math.max(0, Math.min(100, jq)); els.justify.value = state.justify; updateJustifyLabel(); saveSetting('quranApp_khattJustify', state.justify); }
         const wq = p.get('waqf');
-        if (wq != null) { state.mushafVersions = wq ? wq.split(',').map(s => s.trim()).filter(Boolean) : []; saveSetting('mz_waqf_print', JSON.stringify(state.mushafVersions)); }
+        if (wq != null) {
+            const selected = wq.split(',').map(s => s.trim()).find(v => WAQF_CHOICES.includes(v));
+            state.mushafVersions = [selected || WAQF_CHOICES[0]];
+            saveSetting('mz_waqf_print', JSON.stringify(state.mushafVersions));
+            syncWaqfChoiceButtons();
+        }
         const ly = p.get('layout');
         if (ly === 'single' || ly === 'dual') { state.layoutMode = ly; els.layout.value = ly; saveSetting('mz_layout', ly); document.body.classList.toggle('mz-single', ly === 'single'); }
         if (p.get('hide') === '1') state.hideText = true;
