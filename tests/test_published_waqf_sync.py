@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sqlite3
+from pathlib import Path
 
 import pytest
 
@@ -178,3 +179,22 @@ def test_research_rebuild_cannot_read_cloud(monkeypatch):
     assert 'SUPABASE_URL' not in env
     assert 'SUPABASE_SERVICE_ROLE_KEY' not in env
     assert env['KEEP_ME'] == 'yes'
+
+
+def test_sync_workflow_is_review_only_and_never_pushes_main():
+    root = Path(__file__).resolve().parents[1]
+    workflow = (
+        root / '.github' / 'workflows' / 'propose-published-waqf-sync.yml'
+    ).read_text(encoding='utf-8')
+
+    assert 'schedule:' in workflow
+    assert 'workflow_dispatch:' in workflow
+    assert 'SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}' in workflow
+    assert workflow.count('SUPABASE_SERVICE_ROLE_KEY:') == 1
+    assert '--apply "$RUNNER_TEMP/published-waqf-sync/plan.json"' in workflow
+    assert 'python3 -m pytest -q' in workflow
+    assert 'uses: actions/upload-artifact@v4' in workflow
+    assert 'branch="automation/published-waqf-sync"' in workflow
+    assert 'gh pr create' in workflow
+    assert 'HEAD:refs/heads/$branch' in workflow
+    assert 'git push origin main' not in workflow

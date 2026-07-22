@@ -115,3 +115,27 @@ checks SQLite integrity, and regenerates `data/research_cache/*.json`.
 For offline inspection or CI, pass `--source-json published-rows.json`. Use
 `--edition قطر` or `--edition الكويت` to review one edition. `--skip-research`
 is intended only for tests or an explicitly staged cache rebuild.
+
+## 7. Automated review pull requests
+
+[`propose-published-waqf-sync.yml`](../.github/workflows/propose-published-waqf-sync.yml)
+runs daily and can also be started manually. Configure these repository
+**Actions secrets** first:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Repository Settings → Actions → General must also grant workflows read/write
+access and allow GitHub Actions to create pull requests.
+Until both secrets are configured, scheduled runs exit successfully with a
+setup note and make no changes.
+
+The job fetches and validates the complete published snapshot, uploads the
+immutable plan and Markdown report as a 30-day artifact, applies that exact
+plan to a temporary checkout, rebuilds the research caches, and runs the full
+test suite. If versioned files changed, it opens or updates
+`automation/published-waqf-sync` as a review PR.
+
+The service-role key is available only to the read-only planning step. The job
+never writes to Supabase and never pushes to `main`; a human must review and
+merge the PR. Validation failures create a failed run and no branch update.

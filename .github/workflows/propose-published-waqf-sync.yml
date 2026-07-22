@@ -1,0 +1,144 @@
+name: Propose published waqf sync
+
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: propose-published-waqf-sync
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      # Research cache generation needs the pinned, untracked QUL timestamp
+      # release. Restore it before applying any reviewed waqf plan.
+      - name: Restore pinned reciter timestamps
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/import_qul_reciters.py --restore
+
+      # Keep the service-role credential scoped to this read-only step. No
+      # later apply, test, git, or PR step receives it.
+      - name: Fetch and validate published marks
+        id: plan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "count=0" >> "$GITHUB_OUTPUT"
+            echo "### Sync not configured" >> "$GITHUB_STEP_SUMMARY"
+            echo "Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY Actions secrets." \
+              >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+          output="$RUNNER_TEMP/published-waqf-sync"
+          mkdir -p "$output"
+          python3 pipeline/sync_published_waqf.py --output-dir "$output"
+          python3 - "$output/plan.json" >> "$GITHUB_OUTPUT" <<'PY'
+          import json
+          import sys
+
+          with open(sys.argv[1], encoding='utf-8') as handle:
+              plan = json.load(handle)
+          print(f'count={len(plan["changes"])}')
+          print(f'digest={plan["plan_digest"]}')
+          PY
+
+      - name: Add review report to run summary
+        if: always()
+        run: |
+          report="$RUNNER_TEMP/published-waqf-sync/review.md"
+          if [ -f "$report" ]; then
+            cat "$report" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload immutable plan and review report
+        if: ${{ always() && steps.plan.outputs.configured == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: published-waqf-sync-review
+          path: ${{ runner.temp }}/published-waqf-sync/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Apply the exact validated plan to the checkout
+        if: steps.plan.outputs.count != '0'
+        run: >-
+          python3 pipeline/sync_published_waqf.py
+          --apply "$RUNNER_TEMP/published-waqf-sync/plan.json"
+          --no-backup
+
+      - name: Run regression suite
+        if: steps.plan.outputs.count != '0'
+        run: python3 -m pytest -q
+
+      - name: Open or update review pull request
+        if: steps.plan.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add data/mushaf_waqf.db data/research_cache/
+          if git diff --cached --quiet; then
+            echo "Validated plan produced no versioned file changes." >&2
+            exit 1
+          fi
+
+          branch="automation/published-waqf-sync"
+          git fetch origin \
+            "refs/heads/$branch:refs/remotes/origin/$branch" || true
+          git checkout -b "$branch"
+          git commit -m "chore(waqf): sync published cloud marks"
+          git push --force-with-lease="refs/heads/$branch" \
+            origin "HEAD:refs/heads/$branch"
+
+          body="$RUNNER_TEMP/published-waqf-sync/pr-body.md"
+          {
+            echo "This PR was generated from the validated published Supabase snapshot."
+            echo
+            echo "Merging remains a human scholarly-review decision. The workflow never pushes to main."
+            echo
+            cat "$RUNNER_TEMP/published-waqf-sync/review.md"
+          } > "$body"
+
+          number="$(gh pr list \
+            --head "$branch" --base main --state open \
+            --json number --jq '.[0].number')"
+          if [ -n "$number" ]; then
+            gh pr edit "$number" \
+              --title "Review published waqf synchronization" \
+              --body-file "$body"
+          else
+            gh pr create \
+              --base main --head "$branch" \
+              --title "Review published waqf synchronization" \
+              --body-file "$body"
+          fi
