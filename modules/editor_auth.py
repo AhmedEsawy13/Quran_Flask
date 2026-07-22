@@ -5,6 +5,8 @@ import functools
 import logging
 import os
 import secrets
+import threading
+import time
 from typing import Callable
 
 from flask import g, jsonify, request
@@ -17,6 +19,30 @@ logger = logging.getLogger(__name__)
 
 COOKIE_NAME = 'ed_session'
 SESSION_MAX_AGE = 7 * 24 * 3600  # 7 days
+_INVITE_CACHE_TTL = 15.0
+_invite_cache: dict[str, tuple[float, dict | None]] = {}
+_invite_cache_lock = threading.RLock()
+
+
+def invalidate_editor_session_cache(invite_id: str | None = None) -> None:
+    """Drop cached invite state after revocation/reactivation or in tests."""
+    with _invite_cache_lock:
+        if invite_id is None:
+            _invite_cache.clear()
+        else:
+            _invite_cache.pop(invite_id, None)
+
+
+def _active_invite(invite_id: str) -> dict | None:
+    now = time.monotonic()
+    with _invite_cache_lock:
+        cached = _invite_cache.get(invite_id)
+        if cached and (now - cached[0]) <= _INVITE_CACHE_TTL:
+            return dict(cached[1]) if cached[1] else None
+    invite = sb.find_active_invite_by_id(invite_id)
+    with _invite_cache_lock:
+        _invite_cache[invite_id] = (now, dict(invite) if invite else None)
+    return invite
 
 
 def _serializer() -> URLSafeTimedSerializer:
@@ -66,6 +92,22 @@ def current_editor() -> dict | None:
     if not isinstance(data, dict) or not data.get('id'):
         g._editor_user = None
         return None
+    if sb.is_configured():
+        try:
+            invite = _active_invite(str(data['id']))
+        except sb.SupabaseEditorError as e:
+            logger.error('session invite validation failed: %s', e)
+            g._editor_auth_unavailable = True
+            g._editor_user = None
+            return None
+        if not invite:
+            g._editor_user = None
+            return None
+        data = {
+            'id': invite['id'],
+            'name': invite.get('display_name') or '',
+            'role': invite.get('role') or 'editor',
+        }
     g._editor_user = {
         'id': data['id'],
         'name': data.get('name') or '',
@@ -81,6 +123,8 @@ def require_editor(view: Callable):
         if not sb.is_configured():
             return view(*args, **kwargs)
         user = current_editor()
+        if getattr(g, '_editor_auth_unavailable', False):
+            return jsonify({'error': 'auth service unavailable'}), 503
         if not user:
             return jsonify({'error': 'login required', 'login_required': True}), 401
         return view(*args, **kwargs)
@@ -93,6 +137,8 @@ def require_admin(view: Callable):
         if not sb.is_configured():
             return jsonify({'error': 'cloud editor not configured'}), 503
         user = current_editor()
+        if getattr(g, '_editor_auth_unavailable', False):
+            return jsonify({'error': 'auth service unavailable'}), 503
         if not user:
             return jsonify({'error': 'login required', 'login_required': True}), 401
         if user.get('role') != 'admin':
@@ -242,6 +288,7 @@ def editor_invite_patch(invite_id):
         return jsonify({'error': 'update failed'}), 503
     if not row:
         return jsonify({'error': 'not found'}), 404
+    invalidate_editor_session_cache(invite_id)
     sb.append_audit(
         actor_id=user['id'] if user else None,
         actor_name=user['name'] if user else None,

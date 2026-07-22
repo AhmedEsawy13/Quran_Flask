@@ -18,6 +18,8 @@ from core.lru import _BoundedLRU
 
 logger = logging.getLogger(__name__)
 
+_CLOUD_FETCH_FAILED = object()
+
 
 @lru_cache(maxsize=1)
 def _get_mushaf_table_columns():
@@ -178,7 +180,9 @@ def _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version):
         )
     except sb.SupabaseEditorError as e:
         logger.error('cloud published waqf fetch failed: %s', e)
-        return []  # configured but failed — do not leak SQLite drafts/legacy
+        # Do not fall through to SQLite, but also do not cache this transient
+        # outage as a permanently empty ayah.
+        return _CLOUD_FETCH_FAILED
     return _cloud_rows_to_mushaf_rows(rows)
 
 
@@ -231,8 +235,6 @@ def prefetch_cloud_published_for_ayahs(ayah_keys, mushaf_versions) -> None:
             )
         except sb.SupabaseEditorError as e:
             logger.error('cloud published batch fetch failed: %s', e)
-            for surah, ayah in missing:
-                _mushaf_waqf_cache[(surah, ayah, ver)] = []
             continue
 
         by_ayah: dict[tuple[int, int], list] = {key: [] for key in missing}
@@ -257,6 +259,8 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
     # Cloud-editor editions: published Postgres only when Supabase is configured.
     if mushaf_version in CLOUD_EDITOR_EDITIONS:
         cloud = _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version)
+        if cloud is _CLOUD_FETCH_FAILED:
+            return []
         if cloud is not None:
             _mushaf_waqf_cache[cache_key] = cloud
             return [dict(r) for r in cloud]

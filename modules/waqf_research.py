@@ -375,10 +375,13 @@ def waqf_research_patterns():
 # baked file when present and only compute as a fallback (or when the
 # precompute script itself runs, signalled by RESEARCH_PRECOMPUTE=1).
 _RESEARCH_CACHE_DIR = os.path.join(_BASE_DIR, 'data', 'research_cache')
+_RESEARCH_PRECOMPUTE = os.environ.get('RESEARCH_PRECOMPUTE', '').strip().lower() in {
+    '1', 'true', 'yes', 'on',
+}
 
 
 def _load_research_cache(name):
-    if os.environ.get('RESEARCH_PRECOMPUTE'):
+    if _RESEARCH_PRECOMPUTE:
         return None                       # precompute run: always compute fresh
     path = os.path.join(_RESEARCH_CACHE_DIR, f'{name}.json')
     if not os.path.exists(path):
@@ -589,7 +592,10 @@ def _build_mushaf_similarity(force_compute=False):
     per-mark consensus among the standard prints, and a 'what makes each special'
     profile."""
     global _mushaf_sim_cache, _mushaf_pos_data
+    preserved_public_cache = None
     if force_compute and _mushaf_pos_data is None:
+        if not _RESEARCH_PRECOMPUTE:
+            preserved_public_cache = _mushaf_sim_cache
         _mushaf_sim_cache = None          # disk cache lacks the per-position data
     if _mushaf_sim_cache is not None:
         return _mushaf_sim_cache
@@ -762,7 +768,7 @@ def _build_mushaf_similarity(force_compute=False):
             'special': special,
         })
 
-    _mushaf_sim_cache = {
+    computed = {
         'mushafs': versions,
         'standard': std,
         'order': order or versions,
@@ -775,7 +781,17 @@ def _build_mushaf_similarity(force_compute=False):
         'mark_consensus': mark_consensus,
         'profiles': profiles,
     }
-    return _mushaf_sim_cache
+    if force_compute and not _RESEARCH_PRECOMPUTE:
+        # Pairwise diff requests need the freshly built per-position index, but
+        # public similarity responses must remain the exact baked artifact.
+        _mushaf_sim_cache = (
+            preserved_public_cache
+            or _load_research_cache('mushaf_similarity')
+            or computed
+        )
+        return computed
+    _mushaf_sim_cache = computed
+    return computed
 
 
 def _mushaf_diff(a, b, limit=200):
@@ -1295,4 +1311,3 @@ def waqf_research():
     }
     _waqf_research_cache[cache_key] = result
     return jsonify(result)
-

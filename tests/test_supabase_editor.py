@@ -8,7 +8,7 @@ import pytest
 
 from core import supabase_editor as sb
 from core.mushaf_waqf import invalidate_cloud_waqf_cache, _fetch_single_mushaf_waqf
-from modules.editor_auth import COOKIE_NAME
+from modules.editor_auth import COOKIE_NAME, invalidate_editor_session_cache
 
 
 @pytest.fixture(autouse=True)
@@ -45,6 +45,19 @@ class FakeSupabase:
         if table == 'editor_invites':
             if method == 'GET':
                 code_hash = (params.get('code_hash') or '').replace('eq.', '')
+                invite_id = (params.get('id') or '').replace('eq.', '')
+                if invite_id:
+                    out = [
+                        {
+                            'id': inv['id'],
+                            'display_name': inv['display_name'],
+                            'role': inv['role'],
+                            'active': inv.get('active', True),
+                        }
+                        for inv in self.invites.values()
+                        if inv['id'] == invite_id and inv.get('active', True)
+                    ]
+                    return Resp(200, out[:1])
                 if not code_hash:
                     # list all
                     out = []
@@ -214,6 +227,7 @@ def cloud(monkeypatch):
     monkeypatch.setattr(sb.requests, 'request', fake_request)
     invalidate_cloud_waqf_cache()
     sb.invalidate_mark_cache()
+    invalidate_editor_session_cache()
     return fake
 
 
@@ -333,6 +347,58 @@ def test_draft_write_not_public_until_publish(client, cloud):
     invalidate_cloud_waqf_cache('قطر', 1, 1)
     public = _fetch_single_mushaf_waqf(1, 1, 'قطر')
     assert any(r.get('symbols') == 'ج' for r in public)
+
+
+def test_clear_published_mark_creates_draft_tombstone(client, cloud):
+    """Clearing a published mark must survive reload and publish as deletion."""
+    client.post('/api/mushaf-editor/logout')
+    _inv, code = _seed_invite(cloud, name='Editor', role='editor', code='clear-ed')
+    _admin, admin_code = _seed_invite(cloud, name='Admin', role='admin', code='clear-admin')
+
+    from modules.layouts import _get_dk_layout_word_map
+    wmap = _get_dk_layout_word_map()
+    word_id = wmap['first_id'][(1, 1)]
+    cloud.marks[('قطر', 1, 1, 0, 'published')] = {
+        'edition': 'قطر', 'surah': 1, 'ayah': 1, 'token_index': 0,
+        'status': 'published', 'symbol': 'ج', 'word_text': 'بِسْمِ',
+    }
+
+    _login(client, code)
+    cleared = client.post(
+        '/api/mushaf-editor/waqf',
+        json={'word_id': word_id, 'edition': 'قطر', 'symbol': ''},
+        content_type='application/json',
+    )
+    assert cleared.status_code == 200
+    tombstone = cloud.marks[('قطر', 1, 1, 0, 'draft')]
+    assert tombstone['symbol'] == ''
+    diff = sb.pending_publish_diff('قطر')
+    assert len(diff) == 1 and diff[0]['old_symbol'] == 'ج' and diff[0]['new_symbol'] == ''
+
+    client.post('/api/mushaf-editor/logout')
+    _login(client, admin_code)
+    published = client.post('/api/mushaf-editor/publish', json={'edition': 'قطر'})
+    assert published.status_code == 200
+    assert ('قطر', 1, 1, 0, 'published') not in cloud.marks
+
+
+def test_transient_cloud_read_failure_is_not_cached(cloud, monkeypatch):
+    invalidate_cloud_waqf_cache('قطر', 1, 1)
+    real_fetch = sb.fetch_marks
+
+    def fail_once(**_kwargs):
+        raise sb.SupabaseEditorError('temporary outage')
+
+    monkeypatch.setattr(sb, 'fetch_marks', fail_once)
+    assert _fetch_single_mushaf_waqf(1, 1, 'قطر') == []
+
+    cloud.marks[('قطر', 1, 1, 0, 'published')] = {
+        'edition': 'قطر', 'surah': 1, 'ayah': 1, 'token_index': 0,
+        'status': 'published', 'symbol': 'م', 'word_text': 'بِسْمِ',
+    }
+    monkeypatch.setattr(sb, 'fetch_marks', real_fetch)
+    recovered = _fetch_single_mushaf_waqf(1, 1, 'قطر')
+    assert [row['symbols'] for row in recovered] == ['م']
 
 def test_editor_ui_has_login_and_publish(client):
     from pathlib import Path
@@ -486,3 +552,21 @@ def test_admin_can_create_and_revoke_invite(client, cloud):
     client.post('/api/mushaf-editor/logout')
     blocked = _login(client, 'fatima-code-9')
     assert blocked.status_code == 401
+
+
+def test_revocation_invalidates_an_existing_session(client, cloud):
+    client.post('/api/mushaf-editor/logout')
+    _seed_invite(cloud, name='Admin', role='admin', code='live-admin')
+    invite, _ = _seed_invite(cloud, name='Helper', role='editor', code='live-helper')
+    helper_client = client.application.test_client()
+    assert _login(helper_client, 'live-helper').status_code == 200
+
+    assert _login(client, 'live-admin').status_code == 200
+    revoked = client.patch(
+        f"/api/mushaf-editor/invites/{invite['id']}",
+        json={'active': False},
+        content_type='application/json',
+    )
+    assert revoked.status_code == 200
+    denied = helper_client.get('/api/mushaf-editor/spread/1?edition=قطر')
+    assert denied.status_code == 401

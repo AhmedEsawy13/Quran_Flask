@@ -186,10 +186,10 @@ def test_reader_uses_shared_editorial_structure_and_accessible_tools(client):
     script = (PROJECT_ROOT / 'static/js/script.js').read_text(encoding='utf-8')
 
     assert page.index('css/athar-components.css') < page.index('css/reading_athar.css')
-    assert 'class="reader-intro" aria-labelledby="reader-title"' in page
+    assert 'class="reader-intro athar-tool-intro" aria-labelledby="reader-title"' in page
     assert 'id="reader-title" aria-label="اقرأ المصحف، وتدبّر المعنى."' in page
     assert 'اقرأ المصحــف، وتدبّر المعنى.' in page
-    assert 'class="reader-primary athar-surface"' in page
+    assert 'class="reader-primary athar-tool-chrome"' in page
     assert 'class="reader-drawer athar-surface" id="reader-waqf-drawer"' in page
     assert 'class="reader-drawer athar-surface" id="reader-study-drawer"' in page
     assert 'class="ayah-container reader-canvas athar-surface"' in page

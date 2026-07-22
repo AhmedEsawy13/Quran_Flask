@@ -313,9 +313,14 @@ def _get_or_set_word_waqf_cloud(global_word_id, edition, symbol, user: dict | No
     old_symbol = (old_row.get('symbol') if old_row else '') or ''
 
     if not clean:
-        sb.delete_mark(
+        # Keep an empty draft as a deletion tombstone. Deleting the draft row
+        # would expose the published mark again and pending_publish_diff()
+        # would have nothing to promote, making published marks impossible to
+        # clear through the editor.
+        sb.upsert_mark(
             edition=edition, surah=surah, ayah=ayah,
-            token_index=token_index, status='draft',
+            token_index=token_index, status='draft', symbol='',
+            word_text=word_text, updated_by=actor_id,
         )
         sb.append_audit(
             actor_id=actor_id, actor_name=actor_name,

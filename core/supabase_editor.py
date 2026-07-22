@@ -100,6 +100,27 @@ def find_invite_by_code(plaintext: str) -> dict | None:
     return rows[0]
 
 
+def find_active_invite_by_id(invite_id: str) -> dict | None:
+    """Return the current invite state for a signed editor session.
+
+    Session cookies can outlive an invite revocation, so protected requests
+    must periodically revalidate the invite instead of trusting the signed
+    role/name snapshot for the full cookie lifetime.
+    """
+    rows = _request(
+        'GET', 'editor_invites',
+        params={
+            'id': f'eq.{invite_id}',
+            'active': 'eq.true',
+            'select': 'id,display_name,role,active',
+            'limit': '1',
+        },
+    )
+    if not rows:
+        return None
+    return rows[0]
+
+
 def touch_invite(invite_id: str) -> None:
     _request(
         'PATCH', 'editor_invites',
