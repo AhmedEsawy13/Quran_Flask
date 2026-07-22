@@ -35,12 +35,13 @@ def test_parse_page_number_supports_arabic_and_ascii_digits():
     assert parse_page_number('') == 0
 
 
-def test_audit_catalog_covers_both_fonts_and_three_scenarios():
-    assert set(SOURCES) == {'qpc_v1', 'digital_khatt'}
+def test_audit_catalog_covers_three_madinah_editions_and_scenarios():
+    assert set(SOURCES) == {'qpc_v1', 'qpc_v2', 'digital_khatt'}
     assert set(SCENARIOS) == {'desktop', 'mobile', 'spread'}
     assert {353, 358, 507} <= set(SOURCES['qpc_v1']['risk_pages'])
+    assert {69, 353, 358, 507, 511} <= set(SOURCES['qpc_v2']['risk_pages'])
     assert {69, 353, 358, 507, 511} <= set(SOURCES['digital_khatt']['risk_pages'])
-    assert selected_names('all', SOURCES) == ['qpc_v1', 'digital_khatt']
+    assert selected_names('all', SOURCES) == ['qpc_v1', 'digital_khatt', 'qpc_v2']
 
 
 def test_validator_accepts_values_inside_all_budgets():

@@ -349,10 +349,13 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'const OLD_MADINA_PAGE_RATIO = 0.72' in memorize
     assert "ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO" in memorize
     assert "cacheKey: () => `${state.src}|${state.layoutMode}|${state.focusPage || 0}`" in memorize
-    assert "state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 0" in memorize
-    assert "state.src !== 'qpc_v1' && state.src !== 'digital_khatt'" in memorize
-    assert "state.src === 'digital_khatt' ? 1.15" in memorize
+    assert "const MADINAH_SOURCES = new Set(['qpc_v1', 'qpc_v2', 'digital_khatt'])" in memorize
+    assert "const DIGITAL_KHATT_SOURCES = new Set(['qpc_v2', 'digital_khatt'])" in memorize
+    assert 'isMadinahSource(state.src) ? 0.95 : 0' in memorize
+    assert 'if (!isMadinahSource(state.src)) return Infinity' in memorize
+    assert 'isDigitalKhattSource(state.src) ? 1.15' in memorize
     assert "state.src === 'qpc_v1' ? 1.18" in memorize
+    assert 'applySrcClass();\n            syncBarLabels();' in memorize
     assert 'linesPerPage = 15, cacheKey = () => \'\', fitScale = 1' in shared
     assert 'minLineScale = 0' in shared
     assert 'minFontSize = 11' in shared

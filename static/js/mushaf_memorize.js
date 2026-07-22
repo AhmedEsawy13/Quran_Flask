@@ -11,8 +11,9 @@
    Endpoints:
      GET /api/surahs
      GET /api/memorization/<s>?mode=&gap=     audio_url + per-verse [start,end] + phrases
-     GET /api/digital-khatt/page(-by-ayah)/…  new Madinah (QPC v4) page
-     GET /api/qpc-v1/page(-by-ayah)/…         old Madinah 1405 page
+     GET /api/digital-khatt/page(-by-ayah)/…  Madinah 1441 (QPC v4) page
+     GET /api/qpc-v2/page(-by-ayah)/…         Madinah 1421 (Digital Khatt V2) page
+     GET /api/qpc-v1/page(-by-ayah)/…         Madinah 1405 (QPC v1) page
      GET /api/tajweed/<s>/<a>                  tajweed-annotated verse HTML
      GET /api/mushaf-versions                  waqf print list
    ═══════════════════════════════════════════════════════════════════ */
@@ -98,6 +99,10 @@
 
     const EPS = 0.05;
     const PAGE_MIN = 1, PAGE_MAX = 604;
+    const MADINAH_SOURCES = new Set(['qpc_v1', 'qpc_v2', 'digital_khatt']);
+    const DIGITAL_KHATT_SOURCES = new Set(['qpc_v2', 'digital_khatt']);
+    const isMadinahSource = source => MADINAH_SOURCES.has(source);
+    const isDigitalKhattSource = source => DIGITAL_KHATT_SOURCES.has(source);
 
     const state = {
         surahs: [],
@@ -217,7 +222,7 @@
         syncTajweedButton();
 
         const savedSrc = localStorage.getItem('mz_src');
-        if (savedSrc === 'qpc_v1' || savedSrc === 'digital_khatt' || savedSrc === 'shamarly') {
+        if (isMadinahSource(savedSrc) || savedSrc === 'shamarly') {
             state.src = savedSrc;
         } else {
             const mainFont = localStorage.getItem('quranApp_font');
@@ -281,7 +286,7 @@
     }
 
     // Simple on/off for the current mushaf's printed waqf marks (مصحف المدينة —
-    // applies to المدينة الجديد / المدينة ١٤٠٥ / Digital Khatt). Backed by the
+    // applies to all three Madinah layouts). Backed by the
     // mushaf-version overlay: showing = "المدينة" is in the active versions.
     let _waqfVisible = false;
     const waqfMarksOn = () => _waqfVisible;
@@ -318,7 +323,7 @@
     const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
     const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
 
-    // The Digital Khatt / QPC-v1 source text embeds مصحف المدينة's printed waqf
+    // The Digital Khatt / QPC-v2 / QPC-v1 source text embeds مصحف المدينة's printed waqf
     // mark as a combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word
     // carries it. These are the source of truth — we keep them when the waqf
     // toggle is on and strip them when off (re-rendering on toggle). No DB overlay.
@@ -701,7 +706,7 @@
         [cards.right.page, cards.left.page].forEach(p => {
             if (!p) return;
             p.classList.toggle('mz-src-qpc-v1', state.src === 'qpc_v1');
-            p.classList.toggle('mz-src-digital-khatt', state.src === 'digital_khatt');
+            p.classList.toggle('mz-src-digital-khatt', isDigitalKhattSource(state.src));
             p.classList.toggle('mz-src-shamarly', state.src === 'shamarly');
             p.classList.toggle('mz-tajweed', state.tajweedOn && state.src !== 'shamarly');
         });
@@ -897,7 +902,7 @@
         // the first switch to it — applyFontSize() above then measured fallback
         // metrics and over-fit the size, so the page "grows" when the real font
         // swaps in. Re-fit once the font is ready (no-op when already loaded).
-        const srcFont = state.src === 'digital_khatt' ? 'Digital Khatt'
+        const srcFont = isDigitalKhattSource(state.src) ? 'Digital Khatt'
             : state.src === 'qpc_v1' ? 'Old Madina' : null;
         if (srcFont && document.fonts && !document.fonts.check(`16px "${srcFont}"`)) {
             const fp = focusPage;
@@ -954,14 +959,14 @@
         lineSelector: '.mz-line', innerSelector: '.mz-line-inner', wordSelector: '.mz-word',
         featureCandidates: () => state.src === 'qpc_v1'
             ? oldMadinaFeatureCandidates(state.justify)
-            : state.src === 'digital_khatt'
+            : isDigitalKhattSource(state.src)
                 ? digitalKhattFeatureCandidates(state.justify)
                 : [],
         minFeatureScale: () => (
-            state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 1
+            isMadinahSource(state.src) ? 0.95 : 1
         ),
         maxWordSpacing: (_lineEl, inner) => {
-            if (state.src !== 'qpc_v1' && state.src !== 'digital_khatt') return Infinity;
+            if (!isMadinahSource(state.src)) return Infinity;
             const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
             return Math.max(1.5, Math.min(4, fontSize * 0.12));
         },
@@ -972,7 +977,7 @@
             // leaving feature shaping and capped word spacing as the primary
             // strategy for every ordinary line.
             state.layoutMode === 'dual' ? 1.20
-                : state.src === 'digital_khatt' ? 1.15
+                : isDigitalKhattSource(state.src) ? 1.15
                 : state.src === 'qpc_v1' ? 1.18
                     : Infinity
         ),
@@ -995,7 +1000,7 @@
         // to reach its calculated ~10px size instead of stopping at 10.5px.
         minFontSize: 9.5,
         minLineScale: () => (
-            state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 0
+            isMadinahSource(state.src) ? 0.95 : 0
         ),
     });
 
@@ -1659,7 +1664,12 @@
     };
 
     /* ── Top-bar labels (reciter / repeat / mushaf source) ─────────── */
-    const SRC_NAMES = { digital_khatt: 'المدينة الجديد', qpc_v1: 'المدينة ١٤٠٥', shamarly: 'الشمرلي' };
+    const SRC_NAMES = {
+        digital_khatt: 'المدينة ١٤٤١',
+        qpc_v2: 'المدينة ١٤٢١',
+        qpc_v1: 'المدينة ١٤٠٥',
+        shamarly: 'الشمرلي',
+    };
     function syncBarLabels() {
         if (els.reciterLabel) els.reciterLabel.textContent = state.reciterName || 'القارئ';
         if (els.repsBadge) els.repsBadge.textContent = '×' + toAr(parseInt(els.verseReps.value, 10) || 1);
@@ -1991,7 +2001,13 @@
     function applyDeepLink() {
         const p = new URLSearchParams(location.search);
         const src = p.get('src');
-        if (src === 'qpc_v1' || src === 'digital_khatt') { state.src = src; els.src.value = src; saveSetting('mz_src', src); applySrcClass(); }
+        if (isMadinahSource(src)) {
+            state.src = src;
+            els.src.value = src;
+            saveSetting('mz_src', src);
+            applySrcClass();
+            syncBarLabels();
+        }
         const tj = p.get('tajweed');
         if (tj === '1' || tj === '0') { state.tajweedOn = tj === '1'; syncTajweedButton(); saveSetting('quranApp_tajweedEnabled', state.tajweedOn); }
         const jq = parseInt(p.get('justify'), 10);

@@ -1,8 +1,8 @@
 """Mushaf page rendering: layout-DB page payloads + their API routes.
 
-Covers the four page sources — الشمرلي (page-local glyph fonts), Digital
-Khatt / "المدينة الجديد" (QPC v4 15-line layout), QPC v1 "المدينة ١٤٠٥",
-and مصحف قطر — plus the word-matching helpers that attach printed waqf
+Covers the page sources — الشمرلي (page-local glyph fonts), Madinah 1441
+(QPC v4), Madinah 1421 (Digital Khatt / QPC v2), Madinah 1405 (QPC v1), and
+مصحف قطر — plus the word-matching helpers that attach printed waqf
 marks (any mushaf edition) onto layout words. No app import: routes attach
 to core_bp from core.blueprints.
 """
@@ -19,7 +19,7 @@ from flask import jsonify, request
 from core.blueprints import core_bp
 from core.config import (
     DIGITAL_KHATT_LAYOUT_DATABASE,
-    QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
+    QPC_V2_LAYOUT_DATABASE, QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
     AZHAR_LAYOUT_DATABASE, QURAN_SCRIPT_DATABASE,
     AZHAR_LAYOUT_MIN_PAGE, AZHAR_LAYOUT_MAX_PAGE,
     SHEMRLY_CODEPOINT_BASE, ARABIC_DIACRITICS_STRIP_PATTERN,
@@ -1475,6 +1475,43 @@ def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None, m
     return payload
 
 
+def _build_qpc_v2_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
+    """Build Madinah 1421 from the Digital Khatt / QPC V2 layout database."""
+    if not os.path.exists(QPC_V2_LAYOUT_DATABASE):
+        return None
+
+    layout_conn = sqlite3.connect(QPC_V2_LAYOUT_DATABASE)
+    try:
+        layout_conn.row_factory = sqlite3.Row
+        lc = layout_conn.cursor()
+        lc.execute(
+            'SELECT page_number, line_number, line_type, is_centered, first_word_id, last_word_id, surah_number '
+            'FROM pages WHERE page_number = ? ORDER BY line_number ASC',
+            (page_number,)
+        )
+        lines = [dict(row) for row in lc.fetchall()]
+        lc.execute('SELECT font_name, number_of_pages, lines_per_page, name FROM info LIMIT 1')
+        info_row = lc.fetchone()
+    finally:
+        layout_conn.close()
+
+    if not lines:
+        return None
+
+    payload = _assemble_layout_page(
+        lines, info_row, page_number, focus_surah, focus_ayah,
+        source='qpc_v2', font_name_default='Digital Khatt', include_advance=False,
+        mushaf_version=mushaf_version
+    )
+    payload['font_name'] = 'Digital Khatt'
+    # The upstream DB's info.name is truncated, so expose a stable complete name.
+    payload['layout_name'] = 'Digital Khatt (KFGQPC V2 1421H print)'
+    payload['mushaf_version'] = (
+        mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
+    )
+    return payload
+
+
 def _build_qatar_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
     """Build a page payload from مصحف قطر's own 15-line layout database,
     rendered with Tanzil Uthmani text (KATypical Naskh in the editor)."""
@@ -1525,6 +1562,19 @@ def get_qpc_v1_page(page_number):
         return jsonify({'error': str(e)}), 500
 
 
+@core_bp.route('/api/qpc-v2/page/<int:page_number>', methods=['GET'])
+def get_qpc_v2_page(page_number):
+    try:
+        mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
+        payload = _build_qpc_v2_page_payload(page_number, mushaf_version=mushaf_version)
+        if not payload:
+            return jsonify({'error': 'Page not found'}), 404
+        return jsonify(payload)
+    except Exception as e:
+        logger.error(f"Error fetching QPC V2 page {page_number}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
 @core_bp.route('/api/qpc-v1/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
 def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
     try:
@@ -1543,6 +1593,27 @@ def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
         return jsonify(payload)
     except Exception as e:
         logger.error(f"Error fetching QPC V1 page by ayah {surah_number}:{ayah_number}: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@core_bp.route('/api/qpc-v2/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_qpc_v2_page_by_ayah(surah_number, ayah_number):
+    try:
+        if not os.path.exists(QPC_V2_LAYOUT_DATABASE):
+            return jsonify({'error': 'QPC V2 layout DB not found'}), 404
+
+        mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
+        page_number = _layout_page_resolve(QPC_V2_LAYOUT_DATABASE, surah_number, ayah_number)
+        if page_number is None:
+            return jsonify({'error': 'Page not found for ayah'}), 404
+
+        payload = _build_qpc_v2_page_payload(page_number, focus_surah=surah_number, focus_ayah=ayah_number,
+                                             mushaf_version=mushaf_version)
+        if not payload:
+            return jsonify({'error': 'Page not found'}), 404
+        return jsonify(payload)
+    except Exception as e:
+        logger.error(f"Error fetching QPC V2 page by ayah {surah_number}:{ayah_number}: {e}")
         return jsonify({'error': str(e)}), 500
 
 

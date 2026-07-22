@@ -2,7 +2,7 @@
 """Browser-level typography audit for the تثبيت mushaf renderer.
 
 The fast ``risk`` mode checks the historically difficult pages on pull
-requests. ``full`` walks all 604 pages of both Madinah editions in desktop,
+requests. ``full`` walks all 604 pages of all three Madinah editions in desktop,
 mobile, and facing-page layouts. The command starts an isolated Flask server,
 uses headless Chromium, writes JSON + Markdown reports, and exits non-zero when
 any rendering budget is exceeded.
@@ -44,8 +44,14 @@ SOURCES: dict[str, dict[str, Any]] = {
         "single_max_expansion": 1.18,
     },
     "digital_khatt": {
-        "label": "Digital Khatt",
+        "label": "Madinah 1441 (QPC v4)",
         "api": "digital-khatt",
+        "risk_pages": [29, 41, 60, 69, 168, 279, 349, 353, 358, 445, 507, 511, 557],
+        "single_max_expansion": 1.15,
+    },
+    "qpc_v2": {
+        "label": "Madinah 1421 (Digital Khatt V2)",
+        "api": "qpc-v2",
         "risk_pages": [29, 41, 60, 69, 168, 279, 349, 353, 358, 445, 507, 511, 557],
         "single_max_expansion": 1.15,
     },

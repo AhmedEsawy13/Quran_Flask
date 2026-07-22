@@ -10,6 +10,7 @@
 
     const SOURCE_API = Object.freeze({
         digital_khatt: '/api/digital-khatt',
+        qpc_v2: '/api/qpc-v2',
         qpc_v1: '/api/qpc-v1',
         shamarly: '/api/shamarly',
     });

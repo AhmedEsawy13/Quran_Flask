@@ -20,10 +20,12 @@ MUSHAF_WAQF_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_waqf.db')
 EDITOR_EDITIONS = {'قطر', 'الكويت'}
 # Editions whose drafts/published marks live in Supabase when configured.
 CLOUD_EDITOR_EDITIONS = frozenset(EDITOR_EDITIONS)
-# "New Madinah" source now uses the QPC v4 (1441/tajweed) 15-line layout — same
-# 1..83668 word numbering as the older digital-khatt layout but with the proper
-# QPC v4 line breaks. (Schema has no total_advance/x_offset columns.)
+# Madinah 1441 uses the QPC v4 (tajweed) 15-line layout. Madinah 1421 uses the
+# original Digital Khatt / QPC v2 layout supplied by the project. Both share
+# the same 1..83668 word numbering and Digital Khatt webfont; only their line
+# breaks differ. (Neither schema has total_advance/x_offset columns.)
 DIGITAL_KHATT_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'qpc-v4-15-lines.db')
+QPC_V2_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'digital-khatt-15-lines.db')
 QPC_V1_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'qpc-v1-15-lines.db')
 # مصحف قطر's own 15-line layout (same 1..83668 word numbering, different line
 # breaks than the Old Madina 1405 print). Used only by the mushaf-editor.
