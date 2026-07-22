@@ -141,7 +141,7 @@
     };
 
     const ZOOM_MIN = 0.75;
-    const ZOOM_MAX = 1.75;
+    const ZOOM_MAX = 2.5;
     const ZOOM_STEP = 0.1;
 
     function readStoredZoom() {
