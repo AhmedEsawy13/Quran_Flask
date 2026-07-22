@@ -427,10 +427,10 @@ body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaq
     justify-content: center; align-items: center; pointer-events: none;
     gap: 0.05em; font-size: 0.62em; line-height: 1;
 }
-/* Shemrly page glyphs are visually denser than the Unicode Madinah fonts.
-   Enlarge only their absolute-positioned waqf overlay; this does not alter
-   word widths, justification, or the printed line breaks. */
-.mz-page.mz-src-shamarly .waqf-stack { top: -0.12em; font-size: 0.9em; }
+/* A page-local Shemrly word is a single PUA glyph, so a Unicode waqf mark
+   cannot be folded into it. Approximate the Madinah in-word placement with a
+   compact overlay; every chosen edition uses the same geometry and ink. */
+.mz-page.mz-src-shamarly .waqf-stack { top: 0; font-size: 0.72em; }
 .waqf-hindi-group { display: inline-flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; white-space: normal; gap: 0.02em; font-size: 0.9em; }
 .waqf-symbol {
     display: inline-flex; align-items: center; justify-content: center; height: 1em; min-width: 0.7em;
@@ -441,18 +441,18 @@ body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaq
 .waqf-symbol[data-version="المدينة"],
 .waqf-symbol[data-version^="المدينة "] { color: #c2410c; }
 .waqf-symbol[data-version="الأزهر"]   { color: #15803d; }
-.waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; font-size: 1.25em; }
-/* On the Shemrly mushaf, its own waqf marks print in the same ink as the text
-   (above the word), so colour them like the Quran text rather than a version hue. */
-.mz-page.mz-src-shamarly .waqf-symbol[data-version="الشمرلي"],
-body.mz-dark .mz-page.mz-src-shamarly .waqf-symbol[data-version="الشمرلي"] { color: var(--mz-quran); }
+.waqf-symbol[data-version="الشمرلي"] { color: var(--mz-quran); }
+/* The page-local font forces all editions into an overlay; make those overlays
+   visually identical instead of leaking the global edition colours. */
+.mz-page.mz-src-shamarly .waqf-symbol,
+body.mz-dark .mz-page.mz-src-shamarly .waqf-symbol { color: var(--mz-quran); font-size: 1em; }
 .waqf-symbol[data-version="الحصري"]  { color: #0369a1; }
 .waqf-symbol[data-version="ورش"]     { color: #b45309; }
 .waqf-symbol[data-version="الهندي"]  { color: #be185d; font-family: 'IndoPakNastaleeq2', sans-serif; }
 body.mz-dark .waqf-symbol[data-version="المدينة"],
 body.mz-dark .waqf-symbol[data-version^="المدينة "] { color: #fb923c; }
 body.mz-dark .waqf-symbol[data-version="الأزهر"]  { color: #4ade80; }
-body.mz-dark .waqf-symbol[data-version="الشمرلي"] { color: #c084fc; }
+body.mz-dark .waqf-symbol[data-version="الشمرلي"] { color: var(--mz-quran); }
 body.mz-dark .waqf-symbol[data-version="ورش"]     { color: #fbbf24; }
 body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 

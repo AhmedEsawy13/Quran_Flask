@@ -72,8 +72,9 @@ def test_memorize_exposes_three_independent_waqf_choices(client):
     assert "const WAQF_CHOICES = ['المدينة الجديد', 'المدينة القديم', 'الشمرلي']" in script
     assert "return state.mushafVersions.slice(0, 1)" in script
     assert "const overlay = state.src === 'shamarly'" in script
-    assert '.mz-page.mz-src-shamarly .waqf-stack { top: -0.12em; font-size: 0.9em; }' in css
-    assert '.waqf-symbol[data-version="الشمرلي"] { color: #7c3aed; font-size: 1.25em; }' in css
+    assert "selectedMark ? integratedWaqfGlyph(selectedMark) : ''" in script
+    assert '.mz-page.mz-src-shamarly .waqf-stack { top: 0; font-size: 0.72em; }' in css
+    assert '.waqf-symbol[data-version="الشمرلي"] { color: var(--mz-quran); }' in css
 
 
 def test_all_three_waqf_editions_are_available_on_madinah_and_shamarly_layouts(client):

@@ -193,7 +193,7 @@
     /* ── Waqf symbol normalization — ported from the main app so the memorize
        page renders the same glyphs in the same fonts. ─────────────────────── */
     // The combining glyph(s) for an in-text (folded) waqf entry — used to render
-    // المدينة القديم exactly like the embedded المدينة الجديد marks.
+    // المدينة القديم and الشمرلي exactly like the embedded المدينة الجديد marks.
     function integratedWaqfGlyph(entry) {
         const data = getWaqfDisplayData(entry && entry.symbols, entry && entry.version);
         return data ? data.text : '';
@@ -808,20 +808,18 @@
                 const selectedWaqf = state.mushafVersions[0] || 'المدينة الجديد';
                 if (state.src === 'shamarly') return raw;
                 if (!waqfMarksOn()) return withAyahOrnament(stripEmbeddedWaqf(raw));
-                if (selectedWaqf === 'المدينة القديم') {
-                    const oldMark = entries.find(entry => entry && entry.version === 'المدينة القديم');
-                    return withAyahOrnament(stripEmbeddedWaqf(raw) + (oldMark ? integratedWaqfGlyph(oldMark) : ''));
-                }
                 if (selectedWaqf === 'المدينة الجديد') return withAyahOrnament(raw);
-                return withAyahOrnament(stripEmbeddedWaqf(raw));
+                const selectedMark = entries.find(entry => entry && entry.version === selectedWaqf);
+                return withAyahOrnament(
+                    stripEmbeddedWaqf(raw) + (selectedMark ? integratedWaqfGlyph(selectedMark) : '')
+                );
             },
             decorateWord: (element, { word }) => {
                 element.dataset.text = element.textContent;
                 const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
                 const overlay = state.src === 'shamarly'
                     ? entries.filter(Boolean)
-                    : entries.filter(entry => entry
-                        && entry.version !== 'المدينة القديم' && entry.version !== 'المدينة الجديد');
+                    : [];
                 if (!overlay.length) return;
                 element._waqf = overlay;
                 if (waqfMarksOn()) appendWaqfMarks(element, overlay);
