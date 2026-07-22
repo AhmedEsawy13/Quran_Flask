@@ -530,9 +530,16 @@ def editor_pending_changes():
     if edition not in CLOUD_EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
     if not sb.is_configured():
-        return jsonify({'edition': edition, 'changes': [], 'pages': [], 'count': 0})
+        return jsonify({
+            'edition': edition,
+            'changes': [],
+            'publish_snapshot': [],
+            'pages': [],
+            'count': 0,
+        })
     try:
         changes = sb.pending_publish_diff(edition)
+        publish_snapshot = sb.canonical_publish_snapshot(changes)
     except sb.SupabaseEditorError as e:
         logger.error('pending diff failed: %s', e)
         return jsonify({'error': 'pending unavailable'}), 503
@@ -566,6 +573,7 @@ def editor_pending_changes():
     return jsonify({
         'edition': edition,
         'changes': changes,
+        'publish_snapshot': publish_snapshot,
         'pages': pages,
         'count': len(changes),
         'page_count': len(pages),
@@ -575,26 +583,39 @@ def editor_pending_changes():
 @editor_bp.route('/api/mushaf-editor/publish', methods=['POST'])
 @require_admin
 def publish_editor_edition():
-    """Promote all draft marks for an edition to published (public readers)."""
+    """Atomically publish the exact edition diff reviewed by an admin."""
     data = request.get_json(silent=True) or {}
     edition = (data.get('edition') or '').strip()
     if edition not in CLOUD_EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
+    expected_changes = data.get('expected_changes')
+    if not isinstance(expected_changes, list) or len(expected_changes) > 10_000:
+        return jsonify({'error': 'expected_changes is required'}), 400
+    try:
+        expected_changes = sb.canonical_publish_snapshot(expected_changes)
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'invalid expected_changes'}), 400
     user = current_editor()
     try:
-        pending = sb.pending_publish_diff(edition)
         count = sb.publish_edition(
             edition,
             actor_id=user['id'] if user else None,
             actor_name=user['name'] if user else None,
+            expected_changes=expected_changes,
         )
         invalidate_cloud_waqf_cache(edition)
         return jsonify({
             'ok': True,
             'edition': edition,
             'published': count,
-            'pending_before': len(pending),
+            'pending_before': len(expected_changes),
         })
+    except sb.PublishConflict as e:
+        logger.info('publish snapshot conflict for %s: %s', edition, e)
+        return jsonify({
+            'error': 'pending changes changed',
+            'refresh_required': True,
+        }), 409
     except sb.SupabaseEditorError as e:
         logger.error('publish failed: %s', e)
         return jsonify({'error': 'publish failed'}), 503

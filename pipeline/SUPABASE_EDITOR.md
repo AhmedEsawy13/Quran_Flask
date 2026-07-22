@@ -42,7 +42,13 @@ Codes are hashed with SHA-256 + `EDITOR_SESSION_SECRET` before storage. Give peo
 
 ### If you already ran an older schema
 
-Run this once in the SQL editor so invite create/revoke can be audited:
+First run [`supabase_atomic_publish.sql`](supabase_atomic_publish.sql) in the
+Supabase SQL editor. This installs the transaction used by **اعتماد ونشر**.
+Until this migration is installed, publishing intentionally fails instead of
+falling back to the old partial-write behavior.
+
+Then run this once so invite create/revoke can be audited (it is already part
+of the current full schema):
 
 ```sql
 alter table editor_audit drop constraint if exists editor_audit_action_check;
@@ -67,7 +73,11 @@ python3 pipeline/migrate_waqf_to_supabase.py --as-published
 
 1. Helper opens `/mushaf-editor`, enters their code.
 2. Edits write **draft** rows + audit events.
-3. You (admin) click **اعتماد** → drafts for that edition become **published**.
+3. You (admin) review the pending drawer and click **اعتماد**. PostgreSQL locks
+   the marks table, verifies that the exact reviewed old/new diff is still
+   current, and promotes every addition/update/deletion in one transaction.
+   If another editor changed a draft meanwhile, nothing is published and the
+   drawer refreshes for another review.
 4. `/read` and مُكْث then overlay published cloud marks for قطر/الكويت.
 
 Without Supabase env vars, the editor keeps the old local SQLite write path (laptop workflow).

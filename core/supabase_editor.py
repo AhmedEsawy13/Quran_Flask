@@ -65,6 +65,10 @@ class SupabaseEditorError(RuntimeError):
     pass
 
 
+class PublishConflict(SupabaseEditorError):
+    """The reviewed draft snapshot no longer matches the database."""
+
+
 def _request(method: str, path: str, *, params: dict | None = None,
              json_body: Any = None, prefer: str | None = None) -> Any:
     if not is_configured():
@@ -524,40 +528,50 @@ def pending_publish_diff(edition: str) -> list[dict]:
     return changes
 
 
-def publish_edition(edition: str, *, actor_id: str | None, actor_name: str | None) -> int:
-    """Promote draft marks that differ from published. Returns change count."""
-    changes = pending_publish_diff(edition)
-    count = 0
-    for ch in changes:
-        surah = int(ch['surah'])
-        ayah = int(ch['ayah'])
-        ti = int(ch['token_index'])
-        symbol = (ch.get('new_symbol') or '').strip()
-        if not symbol:
-            delete_mark(
-                edition=edition,
-                surah=surah,
-                ayah=ayah,
-                token_index=ti,
-                status='published',
-            )
-        else:
-            upsert_mark(
-                edition=edition,
-                surah=surah,
-                ayah=ayah,
-                token_index=ti,
-                status='published',
-                symbol=symbol,
-                word_text=ch.get('word_text'),
-                updated_by=actor_id,
-            )
-        count += 1
-    append_audit(
-        actor_id=actor_id,
-        actor_name=actor_name,
-        action='publish',
-        edition=edition,
-        meta={'count': count},
-    )
-    return count
+def canonical_publish_snapshot(changes: list[dict]) -> list[dict]:
+    """Return the stable, reviewer-visible fields checked by the publish RPC."""
+    snapshot = []
+    for change in changes:
+        snapshot.append({
+            'surah': int(change['surah']),
+            'ayah': int(change['ayah']),
+            'token_index': int(change['token_index']),
+            'old_symbol': (change.get('old_symbol') or '').strip(),
+            'new_symbol': (change.get('new_symbol') or '').strip(),
+        })
+    snapshot.sort(key=lambda c: (c['surah'], c['ayah'], c['token_index']))
+    return snapshot
+
+
+def publish_edition(
+    edition: str,
+    *,
+    actor_id: str | None,
+    actor_name: str | None,
+    expected_changes: list[dict],
+) -> int:
+    """Atomically publish exactly the draft diff reviewed by an admin."""
+    expected = canonical_publish_snapshot(expected_changes)
+    try:
+        result = _request(
+            'POST',
+            'rpc/publish_editor_edition',
+            json_body={
+                'p_edition': edition,
+                'p_actor_id': actor_id,
+                'p_actor_name': actor_name,
+                'p_expected_changes': expected,
+            },
+        )
+    except SupabaseEditorError as e:
+        message = str(e)
+        if 'publish snapshot changed' in message or '40001' in message:
+            raise PublishConflict(
+                'Drafts changed after review; refresh the pending list.'
+            ) from e
+        raise
+
+    if not isinstance(result, dict) or 'published' not in result:
+        raise SupabaseEditorError('Supabase publish RPC returned an invalid response')
+    invalidate_mark_cache(edition=edition)
+    return int(result['published'])

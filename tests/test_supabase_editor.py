@@ -25,6 +25,7 @@ class FakeSupabase:
         self.progress = {}
         self.audit = []
         self.calls = []
+        self.fail_atomic_publish = False
 
     def handle(self, method, url, *, params=None, json_body=None, **_kw):
         self.calls.append((method, url, params, json_body))
@@ -41,6 +42,75 @@ class FakeSupabase:
 
             def json(self):
                 return self._payload
+
+        if table == 'publish_editor_edition' and method == 'POST':
+            body = json_body or {}
+            edition = body.get('p_edition')
+            changes = []
+            for key, draft in self.marks.items():
+                if key[0] != edition or key[4] != 'draft':
+                    continue
+                published = self.marks.get((key[0], key[1], key[2], key[3], 'published'))
+                old_symbol = ((published or {}).get('symbol') or '').strip()
+                new_symbol = (draft.get('symbol') or '').strip()
+                if old_symbol == new_symbol:
+                    continue
+                changes.append({
+                    'surah': int(key[1]),
+                    'ayah': int(key[2]),
+                    'token_index': int(key[3]),
+                    'old_symbol': old_symbol,
+                    'new_symbol': new_symbol,
+                })
+            changes.sort(key=lambda c: (c['surah'], c['ayah'], c['token_index']))
+            if body.get('p_expected_changes') != changes:
+                return Resp(400, {
+                    'code': '40001',
+                    'message': 'publish snapshot changed; refresh pending changes',
+                })
+
+            # Work against copies, as PostgreSQL would, so an error cannot leave
+            # a partially published edition or audit event behind.
+            next_marks = {key: dict(row) for key, row in self.marks.items()}
+            next_audit = list(self.audit)
+            for change in changes:
+                key = (
+                    edition, change['surah'], change['ayah'],
+                    change['token_index'], 'published',
+                )
+                draft = self.marks[(
+                    edition, change['surah'], change['ayah'],
+                    change['token_index'], 'draft',
+                )]
+                if not change['new_symbol']:
+                    next_marks.pop(key, None)
+                else:
+                    next_marks[key] = {
+                        'edition': edition,
+                        'surah': change['surah'],
+                        'ayah': change['ayah'],
+                        'token_index': change['token_index'],
+                        'status': 'published',
+                        'symbol': change['new_symbol'],
+                        'word_text': draft.get('word_text'),
+                        'updated_by': body.get('p_actor_id'),
+                    }
+            next_audit.append({
+                'actor_id': body.get('p_actor_id'),
+                'actor_name': body.get('p_actor_name'),
+                'action': 'publish',
+                'edition': edition,
+                'meta': {'count': len(changes), 'changes': changes},
+            })
+            if self.fail_atomic_publish:
+                return Resp(500, {'message': 'simulated transaction failure'})
+            self.marks = next_marks
+            self.audit = next_audit
+            return Resp(200, {
+                'edition': edition,
+                'published': len(changes),
+                'changes': changes,
+            })
 
         if table == 'editor_invites':
             if method == 'GET':
@@ -252,6 +322,12 @@ def _login(client, code):
     )
 
 
+def _pending_snapshot(client, edition='قطر'):
+    response = client.get(f'/api/mushaf-editor/pending?edition={edition}')
+    assert response.status_code == 200
+    return response.get_json()['publish_snapshot']
+
+
 def test_spread_requires_auth_when_cloud(client, cloud):
     client.post('/api/mushaf-editor/logout')
     r = client.get('/api/mushaf-editor/spread/1?edition=قطر')
@@ -335,14 +411,19 @@ def test_draft_write_not_public_until_publish(client, cloud):
 
     client.post('/api/mushaf-editor/logout')
     _login(client, admin_code)
+    snapshot = _pending_snapshot(client)
+    calls_before = len(cloud.calls)
     pub = client.post(
         '/api/mushaf-editor/publish',
-        json={'edition': 'قطر'},
+        json={'edition': 'قطر', 'expected_changes': snapshot},
         content_type='application/json',
     )
     assert pub.status_code == 200
     assert pub.get_json()['published'] >= 1
     assert any(k[4] == 'published' for k in cloud.marks)
+    publish_calls = cloud.calls[calls_before:]
+    assert len(publish_calls) == 1
+    assert '/rpc/publish_editor_edition' in publish_calls[0][1]
 
     invalidate_cloud_waqf_cache('قطر', 1, 1)
     public = _fetch_single_mushaf_waqf(1, 1, 'قطر')
@@ -377,7 +458,11 @@ def test_clear_published_mark_creates_draft_tombstone(client, cloud):
 
     client.post('/api/mushaf-editor/logout')
     _login(client, admin_code)
-    published = client.post('/api/mushaf-editor/publish', json={'edition': 'قطر'})
+    snapshot = _pending_snapshot(client)
+    published = client.post(
+        '/api/mushaf-editor/publish',
+        json={'edition': 'قطر', 'expected_changes': snapshot},
+    )
     assert published.status_code == 200
     assert ('قطر', 1, 1, 0, 'published') not in cloud.marks
 
@@ -448,7 +533,90 @@ def test_pending_api_includes_pages_summary(client, cloud):
     assert isinstance(body.get('pages'), list)
     assert body['pages'][0]['page_number'] >= 1
     assert body['pages'][0]['count'] >= 1
+    assert body['publish_snapshot'] == [{
+        'surah': 2,
+        'ayah': 2,
+        'token_index': 0,
+        'old_symbol': '',
+        'new_symbol': 'ج',
+    }]
     assert COOKIE_NAME  # keep import used / session cookie path exercised
+
+
+def test_publish_rejects_stale_review_snapshot(client, cloud):
+    """A draft edit after review must abort without changing published rows."""
+    _seed_invite(cloud, name='Admin', role='admin', code='stale-admin')
+    cloud.marks[('قطر', 2, 2, 0, 'published')] = {
+        'edition': 'قطر', 'surah': 2, 'ayah': 2, 'token_index': 0,
+        'status': 'published', 'symbol': 'ج', 'word_text': 'ذَٰلِكَ',
+    }
+    cloud.marks[('قطر', 2, 2, 0, 'draft')] = {
+        'edition': 'قطر', 'surah': 2, 'ayah': 2, 'token_index': 0,
+        'status': 'draft', 'symbol': 'ص', 'word_text': 'ذَٰلِكَ',
+    }
+    _login(client, 'stale-admin')
+    reviewed = _pending_snapshot(client)
+
+    cloud.marks[('قطر', 2, 2, 0, 'draft')]['symbol'] = 'ق'
+    response = client.post('/api/mushaf-editor/publish', json={
+        'edition': 'قطر',
+        'expected_changes': reviewed,
+    })
+
+    assert response.status_code == 409
+    assert response.get_json()['refresh_required'] is True
+    assert cloud.marks[('قطر', 2, 2, 0, 'published')]['symbol'] == 'ج'
+    assert not any(item.get('action') == 'publish' for item in cloud.audit)
+
+
+def test_atomic_publish_failure_rolls_back_every_change(client, cloud):
+    """An RPC error cannot expose a prefix of the reviewed changes."""
+    _seed_invite(cloud, name='Admin', role='admin', code='rollback-admin')
+    for token_index, symbol in ((0, 'ج'), (1, 'ص')):
+        cloud.marks[('قطر', 2, 2, token_index, 'draft')] = {
+            'edition': 'قطر', 'surah': 2, 'ayah': 2,
+            'token_index': token_index, 'status': 'draft',
+            'symbol': symbol, 'word_text': f'w{token_index}',
+        }
+    _login(client, 'rollback-admin')
+    reviewed = _pending_snapshot(client)
+    marks_before = {key: dict(row) for key, row in cloud.marks.items()}
+    audit_before = list(cloud.audit)
+    cloud.fail_atomic_publish = True
+
+    response = client.post('/api/mushaf-editor/publish', json={
+        'edition': 'قطر',
+        'expected_changes': reviewed,
+    })
+
+    assert response.status_code == 503
+    assert cloud.marks == marks_before
+    assert cloud.audit == audit_before
+    assert not any(key[4] == 'published' for key in cloud.marks)
+
+
+def test_publish_requires_review_snapshot(client, cloud):
+    _seed_invite(cloud, name='Admin', role='admin', code='snapshot-admin')
+    _login(client, 'snapshot-admin')
+    response = client.post('/api/mushaf-editor/publish', json={'edition': 'قطر'})
+    assert response.status_code == 400
+    assert response.get_json()['error'] == 'expected_changes is required'
+
+
+def test_schema_installs_service_role_only_atomic_publish_rpc():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    for sql_path in (
+        root / 'pipeline' / 'supabase_editor_schema.sql',
+        root / 'pipeline' / 'supabase_atomic_publish.sql',
+    ):
+        sql = sql_path.read_text(encoding='utf-8').lower()
+        assert 'function public.publish_editor_edition' in sql
+        assert 'lock table public.editor_marks in share row exclusive mode' in sql
+        assert "errcode = '40001'" in sql
+        assert 'revoke all on function public.publish_editor_edition' in sql
+        assert 'to service_role' in sql
 
 
 def test_pending_publish_diff_keeps_published_old_symbol(cloud):

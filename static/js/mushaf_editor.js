@@ -13,7 +13,7 @@
      POST /api/mushaf-editor/waqf      {word_id, edition, symbol}
      GET  /api/mushaf-editor/progress?edition=...
      POST /api/mushaf-editor/progress  {edition, page_number, reviewed}
-     POST /api/mushaf-editor/publish   {edition}  (admin)
+     POST /api/mushaf-editor/publish   {edition, expected_changes}  (admin)
      GET  /api/mushaf-editor/audit?edition=...
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
@@ -1441,7 +1441,16 @@
                 const data = await window.AtharApi.json('/api/mushaf-editor/publish', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ edition: state.edition }),
+                    body: JSON.stringify({
+                        edition: state.edition,
+                        expected_changes: state.pendingChanges.map(ch => ({
+                            surah: ch.surah,
+                            ayah: ch.ayah,
+                            token_index: ch.token_index,
+                            old_symbol: ch.old_symbol || '',
+                            new_symbol: ch.new_symbol || '',
+                        })),
+                    }),
                 });
                 const n = data.pending_before != null ? data.pending_before : (data.published || 0);
                 setStatus(`تم اعتماد ${toAr(n)} تغيير`);
@@ -1452,6 +1461,10 @@
                 loadPage();
             } catch (e) {
                 if (e && e.status === 403) setStatus('صلاحية المشرف مطلوبة', true);
+                else if (e && e.status === 409) {
+                    setStatus('تغيّرت المسودّة أثناء المراجعة — راجع القائمة المحدّثة', true);
+                    await openPendingPanel();
+                }
                 else setStatus('تعذّر الاعتماد', true);
                 els.pendingConfirm.disabled = false;
             }
