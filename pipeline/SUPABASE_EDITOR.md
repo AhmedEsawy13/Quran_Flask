@@ -71,3 +71,37 @@ python3 pipeline/migrate_waqf_to_supabase.py --as-published
 4. `/read` and مُكْث then overlay published cloud marks for قطر/الكويت.
 
 Without Supabase env vars, the editor keeps the old local SQLite write path (laptop workflow).
+
+## 6. Synchronize approved marks back to SQLite
+
+Supabase is the live source for editor-approved Qatar/Kuwait marks, while the
+versioned `data/mushaf_waqf.db` remains the reproducible source used by offline
+research and fallback deployments. Synchronization is deliberately two-step.
+
+First, fetch and validate the complete published snapshot. This only writes an
+ignored JSON plan and a reviewer-readable Markdown report. The CLI loads the
+ignored project `.env` automatically when `python-dotenv` is installed:
+
+```bash
+python3 pipeline/sync_published_waqf.py
+```
+
+The report lists every addition, update, and deletion. Planning is blocked if
+a word does not match the canonical Quran token, a symbol is invalid, or the
+cloud snapshot has less than 80% of the local mark count (usually evidence of
+an incomplete initial migration).
+
+After reviewing `review.md`, apply that exact plan:
+
+```bash
+python3 pipeline/sync_published_waqf.py --apply \
+  artifacts/published-waqf-sync/YYYYMMDDTHHMMSSZ/plan.json
+```
+
+Apply aborts if either the plan or SQLite database changed after review. It
+creates an ignored database backup, updates all marks in one transaction,
+checks SQLite integrity, and regenerates `data/research_cache/*.json`.
+
+For offline inspection or CI, pass `--source-json published-rows.json`. Use
+`--edition قطر` or `--edition الكويت` to review one edition. `--skip-research`
+is intended only for tests or an explicitly staged cache rebuild.

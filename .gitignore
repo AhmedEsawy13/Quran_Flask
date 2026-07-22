@@ -69,6 +69,7 @@ data/*.backup*.db
 
 # Local font-renderer experiment artifacts — do not commit
 /tmp/
+/artifacts/
 static/VisualMetaFontWasm.js
 static/VisualMetaFontWasm.wasm
 static/hb.js
