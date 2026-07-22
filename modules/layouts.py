@@ -1786,7 +1786,7 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
                 pass
         return default
 
-    # Per-page line count (Fatiha is 5; most pages are 15). Editor font
+    # Per-page line count (الفاتحة=6, أول البقرة=5; most pages=15). Editor font
     # sizing and short-page chrome key off this, not the mushaf-wide default.
     page_line_count = len(output_lines) if output_lines else int(info_get('lines_per_page') or 15)
     return {

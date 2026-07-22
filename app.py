@@ -82,6 +82,7 @@ def after_request(response):
         if (request.args.get('mushaf_version')
                 or request.path.startswith('/api/mushaf-editor/')
                 or request.path.startswith('/api/azhar-layout/')
+                or request.path.startswith('/api/layout-studio/')
                 or request.path.startswith('/api/classical-review/')):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
         elif request.path.startswith('/api/waqf-research/'):
@@ -140,7 +141,8 @@ from core.text import (
 
 
 import modules.editor  # noqa: F401 — attaches editor routes to editor_bp
-import modules.azhar_layout  # noqa: F401 — /azhar-layout layout writer (ENABLE_EDITOR)
+import modules.azhar_layout  # noqa: F401 — /azhar-layout aliases → layout studio
+import modules.layout_studio  # noqa: F401 — /layout-studio + /api/layout-studio/*
 from modules.layouts import (  # noqa: F401 — importing also registers layout routes
     _find_mushaf_row_match_index,
     _normalize_mushaf_word_token,

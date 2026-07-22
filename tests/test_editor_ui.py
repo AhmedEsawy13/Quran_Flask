@@ -12,8 +12,14 @@ def test_editor_uses_shared_workspace_and_accessible_editing(client):
     assert '<body class="athar-editor">' in page
     assert page.index('css/athar-components.css') < page.index('css/athar-page-chrome.css')
     assert page.index('css/athar-page-chrome.css') < page.index('css/mushaf_editor.css')
-    assert '<section class="ed-bar" id="ed-bar" aria-labelledby="ed-title">' in page
+    assert 'id="ed-bar"' in page and 'aria-labelledby="ed-title"' in page
     assert '<header class="ed-bar"' not in page
+    assert 'id="ed-bar-toggle"' in page
+    assert 'id="ed-zoom-in"' in page
+    assert 'id="ed-zoom-out"' in page
+    assert 'id="ed-zoom-reset"' in page
+    assert 'setPageZoom' in script
+    assert 'ed-bar--compact' in script
     assert 'id="ed-title" aria-label="راجع المصحف، واضبط الوقف."' in page
     assert 'راجِع المصحــف، واضبط الوقف.' in page
     assert 'id="ed-edition-toggle" role="group" aria-label="نسخة المصحف"' in page

@@ -86,6 +86,11 @@
         draftsHint: $('ed-drafts-hint'),
         draftsList: $('ed-drafts-list'),
         prev: $('ed-prev'), next: $('ed-next'),
+        bar: $('ed-bar'),
+        barToggle: $('ed-bar-toggle'),
+        zoomIn: $('ed-zoom-in'),
+        zoomOut: $('ed-zoom-out'),
+        zoomReset: $('ed-zoom-reset'),
         editionBtns: Array.from(document.querySelectorAll('.ed-edition-btn')),
         status: $('ed-status'),
         legend: $('ed-legend'),
@@ -135,6 +140,16 @@
         popupSyms: $('ed-popup-syms'), popupClear: $('ed-popup-clear'), popupClose: $('ed-popup-close'),
     };
 
+    const ZOOM_MIN = 0.75;
+    const ZOOM_MAX = 1.75;
+    const ZOOM_STEP = 0.1;
+
+    function readStoredZoom() {
+        const raw = parseFloat(localStorage.getItem('ed_page_zoom') || '1');
+        if (!Number.isFinite(raw)) return 1;
+        return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(raw * 100) / 100));
+    }
+
     const state = {
         edition: localStorage.getItem('ed_edition') || 'قطر',
         page: initialPage(),
@@ -149,6 +164,8 @@
         pendingChanges: [],
         pendingIndex: -1,
         pendingPages: [],
+        pageZoom: readStoredZoom(),
+        barExpanded: localStorage.getItem('ed_bar_expanded') !== '0',
     };
     const spreadRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
@@ -407,6 +424,45 @@
 
     /* ── Page sizing & line-fit ────────────────────────────────────── */
     const PAGE_RATIO = 0.66; // width / height
+
+    function zoomPercentLabel(z) {
+        return `${toAr(Math.round(z * 100))}٪`;
+    }
+
+    function updateZoomUI() {
+        if (els.zoomReset) els.zoomReset.textContent = zoomPercentLabel(state.pageZoom);
+        if (els.zoomOut) els.zoomOut.disabled = state.pageZoom <= ZOOM_MIN + 0.001;
+        if (els.zoomIn) els.zoomIn.disabled = state.pageZoom >= ZOOM_MAX - 0.001;
+    }
+
+    function setPageZoom(next, { silent } = {}) {
+        const z = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(next * 100) / 100));
+        if (Math.abs(z - state.pageZoom) < 0.001) {
+            updateZoomUI();
+            return;
+        }
+        state.pageZoom = z;
+        localStorage.setItem('ed_page_zoom', String(z));
+        updateZoomUI();
+        fitPages();
+        if (!silent) setStatus(`تكبير الصفحة ${zoomPercentLabel(z)}`);
+    }
+
+    function applyBarExpanded(expanded) {
+        state.barExpanded = !!expanded;
+        localStorage.setItem('ed_bar_expanded', state.barExpanded ? '1' : '0');
+        if (els.bar) {
+            els.bar.classList.toggle('ed-bar--compact', !state.barExpanded);
+            els.bar.dataset.expanded = state.barExpanded ? 'true' : 'false';
+        }
+        if (els.barToggle) {
+            els.barToggle.setAttribute('aria-expanded', state.barExpanded ? 'true' : 'false');
+            els.barToggle.title = state.barExpanded ? 'طيّ شريط الأدوات' : 'توسيع شريط الأدوات';
+            const label = els.barToggle.querySelector('.ed-bar-toggle-label');
+            if (label) label.textContent = state.barExpanded ? 'طيّ' : 'توسيع';
+        }
+    }
+
     function sizePages() {
         const main = document.querySelector('.ed-main');
         if (!main) return;
@@ -435,6 +491,17 @@
             getAvailH: () => stacked ? availableWidth / PAGE_RATIO : window.innerHeight - fixedChrome,
             getAvailW: () => availableWidth,
         });
+        // Apply UI zoom after the viewport fit — enlarges/shrinks both the
+        // digital page and the reference panel (shared --ed-page-*).
+        if (Math.abs(state.pageZoom - 1) > 0.001) {
+            const root = document.documentElement;
+            const w = parseFloat(getComputedStyle(root).getPropertyValue('--ed-page-w'));
+            const h = parseFloat(getComputedStyle(root).getPropertyValue('--ed-page-h'));
+            if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+                root.style.setProperty('--ed-page-w', `${Math.round(w * state.pageZoom)}px`);
+                root.style.setProperty('--ed-page-h', `${Math.round(h * state.pageZoom)}px`);
+            }
+        }
     }
 
     const applyFontSize = window.AtharPageChrome.createFontSizer({
@@ -442,7 +509,7 @@
         lineSelector: '.ed-line', innerSelector: '.ed-line-inner',
         cssVarName: '--ed-fs', linesPerPage: 15,
         // v3: bust stale fitFs cached against wrong page-box height.
-        cacheKey: () => `${state.edition}|fs3`,
+        cacheKey: () => `${state.edition}|fs3|z${state.pageZoom}`,
     });
 
     const justifyLines = window.AtharPageChrome.createLineJustifier({
@@ -1478,10 +1545,44 @@
         _resizeId = setTimeout(fitPages, 120);
     });
 
+    if (els.barToggle) {
+        els.barToggle.addEventListener('click', () => {
+            applyBarExpanded(!state.barExpanded);
+            requestAnimationFrame(fitPages);
+        });
+    }
+    if (els.zoomIn) {
+        els.zoomIn.addEventListener('click', () => setPageZoom(state.pageZoom + ZOOM_STEP));
+    }
+    if (els.zoomOut) {
+        els.zoomOut.addEventListener('click', () => setPageZoom(state.pageZoom - ZOOM_STEP));
+    }
+    if (els.zoomReset) {
+        els.zoomReset.addEventListener('click', () => setPageZoom(1));
+    }
+
+    document.addEventListener('keydown', e => {
+        if (!e.metaKey && !e.ctrlKey) return;
+        const tag = (e.target && e.target.tagName) || '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        if (e.key === '=' || e.key === '+') {
+            e.preventDefault();
+            setPageZoom(state.pageZoom + ZOOM_STEP);
+        } else if (e.key === '-') {
+            e.preventDefault();
+            setPageZoom(state.pageZoom - ZOOM_STEP);
+        } else if (e.key === '0') {
+            e.preventDefault();
+            setPageZoom(1);
+        }
+    });
+
     /* ── Init ────────────────────────────────────────────────────── */
     buildLegend();
     buildPopupButtons();
     updateEditionUI();
+    applyBarExpanded(state.barExpanded);
+    updateZoomUI();
     (async () => {
         const ok = await bootstrapAuth();
         if (ok) await enterEditor();

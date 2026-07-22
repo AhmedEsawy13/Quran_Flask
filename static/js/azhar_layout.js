@@ -1,11 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Azhar layout workspace — reshape 15-line pages (seeded from الشمرلي).
-   Drag a word spot onto a line to move the break; Cancel (X) aborts.
-   Endpoints:
-     GET  /api/azhar-layout/page/<n>
-     POST /api/azhar-layout/line-break  {page_number, line_number, word_id, role}
-     POST /api/azhar-layout/merge-line  {page_number, line_number}
-     GET/POST /api/azhar-layout/progress
+   Layout Studio — reshape mushaf pages (edition from AtharLayoutStudio).
+   Default edition: azhar (Shemrly seed, Amiri). Drag a word onto a line
+   to move the break; Cancel (X) aborts.
+   Config (injected by layout_studio.html):
+     window.AtharLayoutStudio = { id, apiBase, minPage, maxPage, ref, … }
+   Endpoints (per edition):
+     GET  {apiBase}/page/<n>
+     POST {apiBase}/line-break|merge-line|undo
+     GET  {apiBase}/undo-status?page_number=
+     GET/POST {apiBase}/progress
    ═══════════════════════════════════════════════════════════════════ */
 (function () {
     'use strict';
@@ -13,9 +16,19 @@
     const { stripEmbeddedWaqf } = window.AtharMushaf;
     const { toAr, clearPageChrome, renderPageChrome } = window.AtharPageChrome;
 
-    const MIN_PAGE = 2;
-    const MAX_PAGE = 522;
+    const CFG = window.AtharLayoutStudio || {};
+    const MIN_PAGE = Number(CFG.minPage) || 2;
+    const MAX_PAGE = Number(CFG.maxPage) || 522;
+    const API_BASE = CFG.apiBase || '/api/layout-studio/azhar';
+    const PAGE_BY_AYAH_BASE = CFG.pageByAyahBase || '/api/azhar/page-by-ayah';
+    const STORAGE_KEY = CFG.storageKey || 'layout_studio_page';
     const DRAG_THRESHOLD = 6;
+
+    const REF_SOURCE = (CFG.ref && CFG.ref.id)
+        ? { id: CFG.ref.id, label: CFG.ref.label || 'مرجع', leafOffset: Number(CFG.ref.leafOffset) || 0 }
+        : { id: 'shamarlyshamarly', label: 'مرجع الشمرلي', leafOffset: -1 };
+    const REF_IMG_WIDTH = 1024;
+    const REF_DEBOUNCE_MS = 120;
 
     const els = {
         main: $('athar-main'),
@@ -35,24 +48,36 @@
         cancel: $('az-cancel'),
         prev: $('az-prev'),
         next: $('az-next'),
+        undo: $('az-undo'),
         status: $('az-status'),
+        refTitle: $('az-ref-title'),
+        refOpen: $('az-ref-open'),
+        refImg: $('az-ref-img'),
+        refLoading: $('az-ref-loading'),
+        refFallback: $('az-ref-fallback'),
+        refFallbackBtn: $('az-ref-fallback-btn'),
     };
 
     const state = {
-        page: clampPage(parseInt(localStorage.getItem('az_layout_page') || '2', 10)),
+        page: clampPage(parseInt(localStorage.getItem(STORAGE_KEY) || String(MIN_PAGE), 10)),
         reviewedPages: new Set(),
         busy: false,
         drag: null,
+        refUrl: '',
+        undoAvailable: 0,
     };
     const pageRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
+    const refPrefetch = new Set();
+    let refLoadToken = 0;
+    let refTimer = 0;
 
     function clampPage(n) {
         if (!Number.isFinite(n)) return MIN_PAGE;
         return Math.min(MAX_PAGE, Math.max(MIN_PAGE, n));
     }
     function persist() {
-        localStorage.setItem('az_layout_page', String(state.page));
+        localStorage.setItem(STORAGE_KEY, String(state.page));
     }
 
     const status = window.AtharUi.createStatus(els.status, {
@@ -63,8 +88,10 @@
     }
 
     /* Same fit pipeline as mushaf_editor / memorize:
-       sizePages → createFontSizer (15-line geometry) → createLineJustifier.
-       Short pages (الفاتحة) stay a 15-line box so type does not balloon. */
+       sizePages → createFontSizer (per-page line count; short pages 6/5)
+       → createLineJustifier.
+       Short pages (الفاتحة / أول البقرة) size to their real line count.
+       Side-by-side scan + digital share one dual-page budget. */
     const PAGE_RATIO = 0.66;
     function sizePages() {
         const main = document.querySelector('.az-main');
@@ -85,10 +112,13 @@
             + outerHeight(document.querySelector('.az-hint'))
             + outerHeight(document.querySelector('.az-page-header'))
             + mainPad;
+        const stacked = window.matchMedia('(max-width: 900px)').matches;
         window.AtharPageChrome.sizePages({
-            cssVarPrefix: 'az', pages: 1, ratio: PAGE_RATIO,
-            gutter: 0, floor: true,
-            getAvailH: () => Math.max(280, window.innerHeight - fixedChrome),
+            cssVarPrefix: 'az', pages: stacked ? 1 : 2, ratio: PAGE_RATIO,
+            gutter: stacked ? 0 : 18, floor: true,
+            getAvailH: () => stacked
+                ? Math.max(280, availableWidth / PAGE_RATIO)
+                : Math.max(280, window.innerHeight - fixedChrome),
             getAvailW: () => availableWidth,
         });
     }
@@ -97,9 +127,13 @@
         pageEls: () => [els.page].filter(p => p && p.children.length),
         lineSelector: '.az-line', innerSelector: '.az-line-inner',
         cssVarName: '--az-fs',
-        linesPerPage: 15,
+        // Short pages (الفاتحة 6 / أول البقرة 5) size to their real line count.
+        linesPerPage: (pageEl) => {
+            const n = pageEl.querySelectorAll('.az-line').length;
+            return n > 0 ? n : (Number(CFG.linesPerPage) || 15);
+        },
         minLineScale: 0.95,
-        cacheKey: () => 'azhar',
+        cacheKey: () => `azhar-${state.page}-${els.page ? els.page.children.length : 0}`,
     });
 
     const justifyLines = window.AtharPageChrome.createLineJustifier({
@@ -236,9 +270,17 @@
 
     function resolveDropAction(sourceLineNumber, wordId, wordIdsOnLine, targetLineNumber) {
         if (targetLineNumber === sourceLineNumber) {
+            // Same line: break after this word (it becomes the line end).
+            if (wordIdsOnLine[wordIdsOnLine.length - 1] === wordId) {
+                return { error: 'هذه الكلمة آخر السطر أصلاً — اختر كلمة قبلها لكسر السطر' };
+            }
             return { lineNumber: sourceLineNumber, wordId, role: 'end' };
         }
         if (targetLineNumber > sourceLineNumber) {
+            // Later line: move the break so this word leaves the source line
+            // (break after the previous word). Drop line is direction only —
+            // capacity cascade places the overflow on following ayah lines
+            // within the same surah.
             const idx = wordIdsOnLine.indexOf(wordId);
             if (idx <= 0) {
                 return { error: 'هذه الكلمة أول السطر — اسحب كلمة بعدها أو أفلتها على نفس السطر' };
@@ -250,6 +292,9 @@
             };
         }
         // Earlier line: fold prior words up so this word starts its line.
+        if (wordIdsOnLine[0] === wordId) {
+            return { error: 'هذه الكلمة أول السطر أصلاً — اسحب كلمة بعدها لطيّ ما قبلها للأعلى' };
+        }
         return { lineNumber: sourceLineNumber, wordId, role: 'start' };
     }
 
@@ -418,17 +463,92 @@
         });
     }
 
+    /* ── Printed reference (Archive.org) ─────────────────────────── */
+    function pageToLeaf(page) {
+        return page + (REF_SOURCE.leafOffset || 0);
+    }
+    function refImageUrl(page) {
+        return `https://archive.org/download/${REF_SOURCE.id}/page/leaf${pageToLeaf(page)}_w${REF_IMG_WIDTH}.jpg`;
+    }
+    function refOpenUrl(page) {
+        // Details /page/N is 1-based (leaf0 → /page/1).
+        return `https://archive.org/details/${REF_SOURCE.id}/page/${pageToLeaf(page) + 1}`;
+    }
+    function showRefState({ loading = false, image = false, fallback = false } = {}) {
+        if (els.refLoading) els.refLoading.hidden = !loading;
+        if (els.refImg) els.refImg.hidden = !image;
+        if (els.refFallback) els.refFallback.hidden = !fallback;
+    }
+    function clearReference() {
+        state.refUrl = '';
+        if (els.refOpen) els.refOpen.hidden = true;
+        showRefState();
+        if (els.refImg) {
+            els.refImg.removeAttribute('src');
+            els.refImg.alt = 'صفحة المصحف المطبوع';
+        }
+    }
+    function openReference() {
+        if (!state.refUrl) return;
+        window.open(state.refUrl, '_blank', 'noopener');
+    }
+    function prefetchRef(page) {
+        if (page < MIN_PAGE || page > MAX_PAGE) return;
+        const url = refImageUrl(page);
+        if (refPrefetch.has(url)) return;
+        refPrefetch.add(url);
+        const img = new Image();
+        img.decoding = 'async';
+        img.src = url;
+    }
+    function syncReference(page) {
+        clearTimeout(refTimer);
+        if (!els.refImg || !Number.isFinite(page) || page < MIN_PAGE || page > MAX_PAGE) {
+            clearReference();
+            return;
+        }
+        state.refUrl = refOpenUrl(page);
+        if (els.refOpen) {
+            els.refOpen.hidden = false;
+            const label = `فتح ${REF_SOURCE.label} في الأرشيف`;
+            els.refOpen.title = label;
+            els.refOpen.setAttribute('aria-label', label);
+        }
+        if (els.refTitle) els.refTitle.textContent = REF_SOURCE.label;
+        const token = ++refLoadToken;
+        refTimer = setTimeout(() => {
+            if (token !== refLoadToken) return;
+            showRefState({ loading: true });
+            els.refImg.alt = `${REF_SOURCE.label} — صفحة ${page}`;
+            const onLoad = () => {
+                if (token !== refLoadToken) return;
+                showRefState({ image: true });
+            };
+            const onError = () => {
+                if (token !== refLoadToken) return;
+                showRefState({ fallback: true });
+            };
+            els.refImg.onload = onLoad;
+            els.refImg.onerror = onError;
+            els.refImg.src = refImageUrl(page);
+            prefetchRef(page - 1);
+            prefetchRef(page + 1);
+        }, REF_DEBOUNCE_MS);
+    }
+
     async function loadPage() {
         const request = pageRequests.next();
         const page = state.page;
         window.AtharUi.setBusy(els.main, true);
+        syncReference(page);
         try {
-            const data = await window.AtharApi.json(`/api/azhar-layout/page/${page}`);
+            const data = await window.AtharApi.json(`${API_BASE}/page/${page}`);
             if (!pageRequests.isCurrent(request)) return;
             renderPage(data);
             els.pageLabel.textContent = `${toAr(page)} / ${toAr(MAX_PAGE)}`;
             updateNav();
             updateReviewedCheckbox();
+            refreshUndoStatus();
             fitPages();
         } catch (e) {
             if (pageRequests.isCurrent(request)) setStatus('تعذّر تحميل الصفحة', true);
@@ -437,13 +557,37 @@
         }
     }
 
+    function setUndoAvailable(n) {
+        state.undoAvailable = Math.max(0, Number(n) || 0);
+        if (els.undo) {
+            els.undo.disabled = state.busy || state.undoAvailable < 1;
+            els.undo.title = state.undoAvailable
+                ? `تراجع (${toAr(state.undoAvailable)})`
+                : 'لا يوجد تعديل للتراجع عنه';
+        }
+    }
+
+    async function refreshUndoStatus() {
+        const page = state.page;
+        try {
+            const data = await window.AtharApi.json(
+                `${API_BASE}/undo-status?page_number=${page}`
+            );
+            if (state.page !== page) return;
+            setUndoAvailable(data.undo_available);
+        } catch (e) {
+            if (state.page === page) setUndoAvailable(0);
+        }
+    }
+
     async function setLineBreak(lineNumber, wordId, role) {
         if (state.busy) return;
         const boundary = role === 'start' ? 'start' : 'end';
         state.busy = true;
         window.AtharUi.setBusy(els.main, true);
+        updateNav();
         try {
-            const data = await window.AtharApi.json('/api/azhar-layout/line-break', {
+            const data = await window.AtharApi.json(`${API_BASE}/line-break`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -457,16 +601,25 @@
                 renderPage(data.page);
                 fitPages();
             }
+            if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
             if (data.unchanged) {
-                setStatus(boundary === 'start' ? 'هذه الكلمة بداية السطر أصلاً' : 'هذه الكلمة نهاية السطر أصلاً');
+                if (data.reason === 'already_line_start') {
+                    setStatus('هذه الكلمة أول السطر أصلاً');
+                } else if (data.reason === 'already_line_end') {
+                    setStatus('هذه الكلمة آخر السطر أصلاً');
+                } else {
+                    setStatus(boundary === 'start' ? 'هذه الكلمة بداية السطر أصلاً' : 'هذه الكلمة نهاية السطر أصلاً');
+                }
             } else {
                 setStatus(boundary === 'start' ? 'تم ضبط بداية السطر' : 'تم ضبط نهاية السطر');
             }
         } catch (e) {
-            setStatus('تعذّر ضبط حد السطر', true);
+            const msg = (e && e.message) || (e && e.error) || '';
+            setStatus(msg && /سور|بسمل|فاصل|سطر/.test(msg) ? msg : 'تعذّر ضبط حد السطر', true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
+            updateNav();
         }
     }
 
@@ -474,8 +627,9 @@
         if (state.busy) return;
         state.busy = true;
         window.AtharUi.setBusy(els.main, true);
+        updateNav();
         try {
-            const data = await window.AtharApi.json('/api/azhar-layout/merge-line', {
+            const data = await window.AtharApi.json(`${API_BASE}/merge-line`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -487,24 +641,55 @@
                 renderPage(data.page);
                 fitPages();
             }
+            if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
             setStatus('تم دمج السطر مع التالي');
         } catch (e) {
             setStatus('تعذّر الدمج', true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
+            updateNav();
+        }
+    }
+
+    async function undoLast() {
+        if (state.busy || state.undoAvailable < 1) return;
+        state.busy = true;
+        window.AtharUi.setBusy(els.main, true);
+        updateNav();
+        try {
+            const data = await window.AtharApi.json(`${API_BASE}/undo`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ page_number: state.page }),
+            });
+            if (data.page) {
+                renderPage(data.page);
+                fitPages();
+            }
+            if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
+            else await refreshUndoStatus();
+            setStatus('تم التراجع');
+        } catch (e) {
+            setStatus('تعذّر التراجع', true);
+            await refreshUndoStatus();
+        } finally {
+            state.busy = false;
+            window.AtharUi.setBusy(els.main, false);
+            updateNav();
         }
     }
 
     function updateNav() {
         els.prev.disabled = state.page <= MIN_PAGE;
         els.next.disabled = state.page >= MAX_PAGE;
+        if (els.undo) els.undo.disabled = state.busy || state.undoAvailable < 1;
     }
 
     async function loadProgress() {
         const request = progressRequests.next();
         try {
-            const data = await window.AtharApi.json('/api/azhar-layout/progress');
+            const data = await window.AtharApi.json(`${API_BASE}/progress`);
             if (!progressRequests.isCurrent(request)) return;
             state.reviewedPages = new Set(data.reviewed_pages || []);
         } catch (e) {
@@ -529,7 +714,7 @@
         const page = state.page;
         els.reviewed.disabled = true;
         try {
-            await window.AtharApi.json('/api/azhar-layout/progress', {
+            await window.AtharApi.json(`${API_BASE}/progress`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ page_number: page, reviewed }),
@@ -554,6 +739,7 @@
     }
     els.prev.addEventListener('click', () => { if (state.page > MIN_PAGE) goTo(state.page - 1); });
     els.next.addEventListener('click', () => { if (state.page < MAX_PAGE) goTo(state.page + 1); });
+    if (els.undo) els.undo.addEventListener('click', () => { undoLast(); });
     els.jumpBtn.addEventListener('click', () => {
         const p = parseInt(els.jumpInput.value, 10);
         if (!Number.isFinite(p) || p < MIN_PAGE || p > MAX_PAGE) {
@@ -573,7 +759,7 @@
             return;
         }
         try {
-            const data = await window.AtharApi.json(`/api/azhar/page-by-ayah/${s}/${a}`);
+            const data = await window.AtharApi.json(`${PAGE_BY_AYAH_BASE}/${s}/${a}`);
             if (data.page_number) goTo(data.page_number);
         } catch (e) {
             setStatus('تعذّر إيجاد صفحة الآية', true);
@@ -591,6 +777,8 @@
             }
         });
     }
+    if (els.refOpen) els.refOpen.addEventListener('click', openReference);
+    if (els.refFallbackBtn) els.refFallbackBtn.addEventListener('click', openReference);
 
     document.addEventListener('pointermove', onPointerMove);
     document.addEventListener('pointerup', onPointerUp);
@@ -607,6 +795,11 @@
             e.preventDefault();
             cancelDrag();
             setStatus('أُلغي النقل');
+            return;
+        }
+        if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z')) {
+            e.preventDefault();
+            undoLast();
             return;
         }
         if (e.target.tagName === 'INPUT') return;

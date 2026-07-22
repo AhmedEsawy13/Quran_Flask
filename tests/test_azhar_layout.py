@@ -1,4 +1,4 @@
-"""Azhar layout workspace — seeded from الشمرلي, Amiri render, editor writes."""
+"""Azhar / Layout Studio — seeded from الشمرلي, Amiri render, editor writes."""
 from pathlib import Path
 
 import pytest
@@ -19,13 +19,50 @@ def restore_azhar_layout_db():
     seed(force=True)
 
 
+def test_layout_studio_registry_and_shell(client):
+    editions = client.get('/api/layout-studio/editions').get_json()
+    assert editions['default'] == 'azhar'
+    assert any(e['id'] == 'azhar' for e in editions['editions'])
+
+    bounced = client.get('/layout-studio')
+    assert bounced.status_code in (301, 302)
+    assert '/layout-studio/azhar' in bounced.headers.get('Location', '')
+
+    page = client.get('/layout-studio/azhar').get_data(as_text=True)
+    assert 'AtharLayoutStudio' in page
+    assert 'استوديو التخطيط' in page
+    assert 'مصحف الأزهر' in page
+    assert 'id="az-undo"' in page
+    assert '/api/layout-studio/azhar' in page
+
+    unknown = client.get('/layout-studio/not-an-edition')
+    assert unknown.status_code == 404
+
+    api = client.get('/api/layout-studio/azhar/page/2')
+    assert api.status_code == 200
+    assert api.get_json()['source'] == 'azhar'
+
+
 def test_azhar_layout_page_and_api(client):
     page = client.get('/azhar-layout').get_data(as_text=True)
     assert 'id="az-title"' in page
+    assert 'استوديو التخطيط' in page
     assert 'azhar_layout.css' in page
     assert 'azhar_layout.js' in page
     assert 'az-cancel' in page
+    assert 'id="az-undo"' in page
+    assert 'az-reseed-note' in page
+    assert 'AtharLayoutStudio' in page
     assert 'اسحب كلمة' in page
+    assert 'id="az-compare"' in page
+    assert 'id="az-ref-panel"' in page
+    assert 'id="az-ref-img"' in page
+    js = (PROJECT_ROOT / 'static/js/azhar_layout.js').read_text(encoding='utf-8')
+    assert 'AtharLayoutStudio' in js
+    assert 'apiBase' in js
+    assert 'shamarlyshamarly' in js
+    assert 'az-compare' in (PROJECT_ROOT / 'static/css/azhar_layout.css').read_text(encoding='utf-8')
+    assert 'undoLast' in js
 
     r = client.get('/api/azhar/page/2')
     assert r.status_code == 200
@@ -33,11 +70,11 @@ def test_azhar_layout_page_and_api(client):
     assert data['source'] == 'azhar'
     assert data['font_name'] == 'Amiri Quran'
     assert data['lines']
-    # الفاتحة — Shemrly seed (surah + basmala + ayah lines), all words on page 2
     assert data['lines'][0]['line_type'] == 'surah_name'
     assert data['lines'][1]['line_type'] == 'basmallah'
+    assert data['lines_per_page'] == 6
     ayah_lines = [ln for ln in data['lines'] if ln['line_type'] == 'ayah']
-    assert len(ayah_lines) >= 1
+    assert len(ayah_lines) == 4
     assert ayah_lines[-1]['last_word_id'] == 38
     assert any(line.get('words') for line in data['lines'])
 
@@ -45,16 +82,26 @@ def test_azhar_layout_page_and_api(client):
     assert by_ayah.status_code == 200
     assert by_ayah.get_json()['page_number'] == 2
 
+    baqarah = client.get('/api/azhar/page/3').get_json()
+    assert baqarah['lines_per_page'] == 5
+    assert len(baqarah['lines']) == 5
+    baq_ayah = [ln for ln in baqarah['lines'] if ln['line_type'] == 'ayah']
+    assert len(baq_ayah) == 3
+    assert baq_ayah[-1]['last_word_id'] == 76
+    page4 = client.get('/api/azhar/page/4').get_json()
+    first4 = next(ln for ln in page4['lines'] if ln['line_type'] == 'ayah')
+    assert first4['first_word_id'] == 77
+
 
 def test_azhar_line_break_and_progress(client, restore_azhar_layout_db):
-    page = client.get('/api/azhar-layout/page/2').get_json()
+    page = client.get('/api/layout-studio/azhar/page/2').get_json()
     ayah_line = next(
         line for line in page['lines']
         if line['line_type'] == 'ayah' and line.get('words') and len(line['words']) > 2
     )
     mid = ayah_line['words'][len(ayah_line['words']) // 2]
     before_last = ayah_line['last_word_id']
-    r = client.post('/api/azhar-layout/line-break', json={
+    r = client.post('/api/layout-studio/azhar/line-break', json={
         'page_number': 2,
         'line_number': ayah_line['line_number'],
         'word_id': mid['word_index'],
@@ -69,7 +116,6 @@ def test_azhar_line_break_and_progress(client, restore_azhar_layout_db):
         if line['line_number'] == ayah_line['line_number']
     )
     assert updated_line['last_word_id'] == mid['word_index']
-    # Closed Fatiha page — every ayah word through 38 stays on page 2
     fatiha = client.get('/api/azhar-layout/page/2').get_json()
     ayah_words = [
         w['word_index']
@@ -79,12 +125,11 @@ def test_azhar_line_break_and_progress(client, restore_azhar_layout_db):
     assert ayah_words[0] == 8
     assert ayah_words[-1] == 38
     assert max(ayah_words) == 38
-    # البقرة must not absorb الفاتحة
     page3 = client.get('/api/azhar-layout/page/3').get_json()
     first_ayah = next(ln for ln in page3['lines'] if ln['line_type'] == 'ayah')
     assert first_ayah['first_word_id'] == 45
 
-    undone = client.post('/api/azhar-layout/undo', json={'page_number': 2})
+    undone = client.post('/api/layout-studio/azhar/undo', json={'page_number': 2})
     assert undone.status_code == 200
     restored = next(
         line for line in undone.get_json()['page']['lines']
@@ -94,8 +139,173 @@ def test_azhar_line_break_and_progress(client, restore_azhar_layout_db):
 
     prog = client.post('/api/azhar-layout/progress', json={'page_number': 2, 'reviewed': True})
     assert prog.status_code == 200
-    listed = client.get('/api/azhar-layout/progress').get_json()
+    listed = client.get('/api/layout-studio/azhar/progress').get_json()
     assert 2 in listed['reviewed_pages']
+
+
+def test_azhar_undo_is_page_scoped(client, restore_azhar_layout_db):
+    """Fatiha edits snapshot only pages 2–3 (not the whole mushaf)."""
+    import json
+    import sqlite3
+
+    from core.config import AZHAR_LAYOUT_DATABASE
+
+    page = client.get('/api/layout-studio/azhar/page/2').get_json()
+    ayah_line = next(
+        line for line in page['lines']
+        if line['line_type'] == 'ayah' and line.get('words') and len(line['words']) > 2
+    )
+    mid = ayah_line['words'][len(ayah_line['words']) // 2]
+    r = client.post('/api/layout-studio/azhar/line-break', json={
+        'page_number': 2,
+        'line_number': ayah_line['line_number'],
+        'word_id': mid['word_index'],
+    })
+    assert r.status_code == 200
+
+    conn = sqlite3.connect(AZHAR_LAYOUT_DATABASE)
+    try:
+        row = conn.execute(
+            'SELECT snapshot FROM azhar_layout_undo ORDER BY id DESC LIMIT 1'
+        ).fetchone()
+        assert row is not None
+        payload = json.loads(row[0])
+        assert isinstance(payload, dict)
+        assert payload['page_from'] == 2
+        assert payload['page_to'] == 3
+        pages = {int(r['page_number']) for r in payload['rows']}
+        assert pages <= {2, 3}
+        assert 2 in pages
+        assert len(payload['rows']) < 80
+    finally:
+        conn.close()
+
+    status = client.get('/api/layout-studio/azhar/undo-status?page_number=2').get_json()
+    assert status['undo_available'] >= 1
+    other = client.get('/api/layout-studio/azhar/undo-status?page_number=10').get_json()
+    assert other['undo_available'] == 0
+
+
+def test_line_break_does_not_spill_into_next_surah(client, restore_azhar_layout_db):
+    """Page 64: Al-Imran ends mid-page; a break must not push words onto An-Nisa."""
+    page = client.get('/api/layout-studio/azhar/page/64').get_json()
+    line3 = next(
+        ln for ln in page['lines']
+        if ln['line_number'] == 3 and ln['line_type'] == 'ayah'
+    )
+    assert len(line3['words']) > 2
+    mid = line3['words'][1]
+
+    before_ids = [
+        w['word_index']
+        for ln in page['lines']
+        if ln['line_type'] == 'ayah' and ln['line_number'] <= 4
+        for w in (ln.get('words') or [])
+    ]
+
+    nisa_line = next(
+        ln for ln in page['lines']
+        if ln['line_number'] == 7 and ln['line_type'] == 'ayah'
+    )
+    assert nisa_line['first_word_id'] == 10169
+
+    r = client.post('/api/layout-studio/azhar/line-break', json={
+        'page_number': 64,
+        'line_number': 3,
+        'word_id': mid['word_index'],
+        'role': 'end',
+    })
+    assert r.status_code == 200, r.get_json()
+    assert r.get_json()['ok'] is True
+
+    after = client.get('/api/layout-studio/azhar/page/64').get_json()
+    updated_l3 = next(ln for ln in after['lines'] if ln['line_number'] == 3)
+    assert updated_l3['last_word_id'] == mid['word_index']
+
+    after_ids = [
+        w['word_index']
+        for ln in after['lines']
+        if ln['line_type'] == 'ayah' and ln['line_number'] <= 4
+        for w in (ln.get('words') or [])
+    ]
+    assert after_ids == before_ids  # same words, redistributed — none deleted
+
+    nisa_after = next(ln for ln in after['lines'] if ln['line_number'] == 7)
+    assert nisa_after['first_word_id'] == 10169
+    nisa_words = [w['word_index'] for w in (nisa_after.get('words') or [])]
+    assert all(w >= 10169 for w in nisa_words)
+    assert not any(w <= 10162 for w in nisa_words)
+
+    # Last ayah of the surah (L4): shortening would drop words — reject.
+    line4 = next(ln for ln in after['lines'] if ln['line_number'] == 4)
+    assert len(line4['words']) > 2
+    bad = client.post('/api/layout-studio/azhar/line-break', json={
+        'page_number': 64,
+        'line_number': 4,
+        'word_id': line4['words'][1]['word_index'],
+        'role': 'end',
+    })
+    assert bad.status_code == 400
+    assert 'سور' in (bad.get_json().get('error') or '')
+
+    # Merge across the surah header must be rejected.
+    bad_merge = client.post('/api/layout-studio/azhar/merge-line', json={
+        'page_number': 64,
+        'line_number': 4,
+    })
+    assert bad_merge.status_code == 400
+    assert 'سور' in (bad_merge.get_json().get('error') or '')
+
+
+def test_azhar_short_page_geometry(client):
+    editions = client.get('/api/layout-studio/editions').get_json()
+    azhar = next(e for e in editions['editions'] if e['id'] == 'azhar')
+    assert azhar['short_pages'] == {'2': 6, '3': 5}
+
+    p2 = client.get('/api/layout-studio/azhar/page/2').get_json()
+    assert len(p2['lines']) == 6
+    assert p2['lines_per_page'] == 6
+    p3 = client.get('/api/layout-studio/azhar/page/3').get_json()
+    assert len(p3['lines']) == 5
+    assert p3['lines_per_page'] == 5
+
+
+def test_layout_engine_surah_fence_unit():
+    from modules.layout_engine import ayah_segment_slots, is_surah_separator
+
+    lines = [
+        {'line_type': 'ayah', 'page_number': 64, 'line_number': 3},
+        {'line_type': 'ayah', 'page_number': 64, 'line_number': 4},
+        {'line_type': 'surah_name', 'page_number': 64, 'line_number': 5},
+        {'line_type': 'basmallah', 'page_number': 64, 'line_number': 6},
+        {'line_type': 'ayah', 'page_number': 64, 'line_number': 7},
+    ]
+    assert is_surah_separator(lines[2])
+    assert ayah_segment_slots(lines, 0) == [0, 1]
+    assert ayah_segment_slots(lines, 1) == [1]
+    assert ayah_segment_slots(lines, 4) == [4]
+
+
+def test_layout_engine_module_imports():
+    from modules import layout_engine
+    from modules import azhar_layout
+    from modules import layout_editions
+    from modules import layout_studio
+
+    assert callable(layout_engine.cascade_from)
+    assert callable(layout_engine.push_undo)
+    assert callable(layout_engine.ayah_segment_slots)
+    assert callable(azhar_layout._cascade_from)
+    assert layout_editions.get_edition('azhar') is not None
+    assert callable(layout_studio.render_studio)
+
+
+def test_seed_script_warns_on_force():
+    script = (PROJECT_ROOT / 'pipeline' / 'seed_azhar_layout_db.py').read_text(encoding='utf-8')
+    assert 'DESTRUCTIVE WARNING' in script
+    assert 'wipe' in script.lower() or 'WIPE' in script
+    db = PROJECT_ROOT / 'data' / 'mushaf-azhar-layout.db'
+    assert db.is_file()
 
 
 def test_seed_script_exists():

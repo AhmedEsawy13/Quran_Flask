@@ -41,6 +41,14 @@ body.az-layout {
 .az-bar-intro { display: grid; gap: 2px; min-width: 0; }
 .az-title { margin: 0; font-size: clamp(1.3rem, 2vw, 1.7rem); line-height: 1.1; }
 .az-subtitle { margin: 0; color: var(--athar-ink-soft); font-family: var(--font-serif); font-size: 0.78rem; line-height: 1.45; max-width: 48ch; }
+.az-edition-meta {
+    margin: 4px 0 0; font-size: 0.72rem; font-weight: 700;
+    color: var(--az-accent); letter-spacing: 0.01em;
+}
+.az-reseed-note {
+    margin: 2px 0 0; font-size: 0.68rem; color: var(--athar-ink-soft);
+    max-width: 42ch; line-height: 1.35;
+}
 .az-bar-tools { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 .az-review-group, .az-location-tools {
     min-height: 46px; display: flex; align-items: center; gap: 8px; padding: 5px 9px;
@@ -84,10 +92,18 @@ body.az-layout {
 
 .az-main {
     width: 100%; min-width: 0; flex: 1 1 auto;
-    display: flex; align-items: center; justify-content: center; padding: 18px 10px 28px;
+    display: flex; align-items: stretch; justify-content: center; padding: 18px 10px 28px;
 }
-.az-main.athar-is-busy .az-work { opacity: 0.56; pointer-events: none; }
-.az-work { flex: 0 0 auto; width: var(--az-page-w); display: flex; flex-direction: column; }
+.az-main.athar-is-busy .az-compare { opacity: 0.56; pointer-events: none; }
+.az-compare {
+    width: 100%; display: flex; flex-direction: row; align-items: flex-start;
+    justify-content: center; gap: 18px;
+    transition: opacity var(--athar-motion-fast, 0.15s) var(--athar-ease, ease);
+}
+.az-work, .az-ref-panel {
+    flex: 0 0 auto; width: var(--az-page-w);
+    display: flex; flex-direction: column; align-items: stretch; min-width: 0;
+}
 .az-page-header {
     width: 100%; gap: 6px; min-height: 28px; margin-bottom: 4px;
     text-align: center; font-size: 0.8rem; color: var(--az-muted); font-weight: 600;
@@ -95,6 +111,42 @@ body.az-layout {
 .az-head-info { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
 .az-head-juz.athar-page-juz-glyph { font-size: 1.5em; line-height: 1.4; color: var(--az-ink); }
 .az-head-surah { gap: 8px; color: var(--az-accent); }
+
+.az-ref-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    min-height: 28px; margin-bottom: 4px; font-size: 0.8rem; font-weight: 600;
+}
+.az-ref-title { color: var(--az-ink); }
+.az-ref-open {
+    display: inline-flex; align-items: center; gap: 6px;
+    min-height: 28px; padding: 0 8px; border-radius: 8px;
+    border: 1px solid var(--az-border); background: var(--az-paper-2);
+    color: var(--az-muted); cursor: pointer; font-family: inherit; font-size: 0.72rem; font-weight: 600;
+}
+.az-ref-open:hover { border-color: var(--az-accent); color: var(--az-accent); }
+.az-ref-open[hidden] { display: none !important; }
+.az-ref-frame-wrap {
+    position: relative; width: var(--az-page-w); height: var(--az-page-h);
+    border: 1px solid var(--az-border); border-radius: 6px; background: var(--az-paper);
+    overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.az-ref-img {
+    width: 100%; height: 100%; object-fit: contain; object-position: center; display: block;
+    background: #f3efe4;
+}
+.az-ref-img[hidden] { display: none; }
+.az-ref-loading, .az-ref-fallback {
+    position: absolute; inset: 0; display: grid; place-content: center; gap: 10px;
+    padding: 16px; text-align: center; background: color-mix(in srgb, var(--az-paper) 92%, transparent);
+    color: var(--az-muted); font-size: 0.9rem;
+}
+.az-ref-loading[hidden], .az-ref-fallback[hidden] { display: none !important; }
+.az-ref-fallback-text { margin: 0; max-width: 28ch; line-height: 1.55; }
+.az-ref-fallback-btn {
+    min-height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--az-border);
+    background: var(--az-paper-2); color: var(--az-ink); cursor: pointer; font-family: inherit; font-size: 0.88rem;
+}
+.az-ref-fallback-btn:hover { background: color-mix(in srgb, var(--az-accent) 22%, transparent); }
 
 /* Same contract as .ed-page: overflow is a safety net; font + justifier keep words in. */
 .az-page {
@@ -209,8 +261,11 @@ body.az-dragging .az-line-tools { opacity: 0; pointer-events: none; }
     .az-bar { grid-template-columns: 1fr; }
     .az-bar-tools { justify-content: flex-start; }
     .az-subtitle { display: none; }
+    .az-compare { flex-direction: column; align-items: center; gap: 16px; width: 100%; }
+    .az-work, .az-ref-panel { width: var(--az-page-w); }
 }
 @media (max-width: 720px) {
     .az-bar { position: static; }
     .az-reviewed-toggle span { display: none; }
+    .az-edition-meta, .az-reseed-note { display: none; }
 }

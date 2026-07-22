@@ -46,18 +46,23 @@
         </form>
     </div>
 
-    <section class="ed-bar" id="ed-bar" aria-labelledby="ed-title">
-        <div class="ed-bar-intro">
+    <section class="ed-bar" id="ed-bar" aria-labelledby="ed-title" data-expanded="true">
+        <div class="ed-bar-intro" id="ed-bar-intro">
             <p class="athar-kicker">— محرّر المصحف</p>
             <h1 class="ed-title athar-display" id="ed-title" aria-label="راجع المصحف، واضبط الوقف.">راجِع المصحــف، واضبط الوقف.</h1>
-            <p class="ed-subtitle">قارن النسخة المطبوعة بأصل المدينة، ثم ثبّت مواضع الاختلاف. <a href="/azhar-layout">تخطيط الأزهر</a></p>
+            <p class="ed-subtitle">قارن النسخة المطبوعة بأصل المدينة، ثم ثبّت مواضع الاختلاف. <a href="/layout-studio/azhar">تخطيط الأزهر</a></p>
         </div>
 
         <div class="ed-bar-tools" aria-label="أدوات المحرّر">
+            <button class="ed-icon-btn athar-icon-button ed-bar-toggle" id="ed-bar-toggle" type="button" title="طيّ شريط الأدوات" aria-expanded="true" aria-controls="ed-bar-intro">
+                <i class="fas fa-chevron-up" aria-hidden="true"></i>
+                <span class="ed-bar-toggle-label">طيّ</span>
+            </button>
+
             <div class="ed-session" id="ed-session" hidden>
-                <span class="ed-session-name" id="ed-session-name"></span>
-                <button class="ed-publish-btn" id="ed-publish" type="button" hidden title="مراجعة المسودّة ثم نشرها للقراء">اعتماد</button>
-                <button class="ed-invites-btn" id="ed-invites-open" type="button" hidden title="إدارة رموز الدعوة">دعوات</button>
+                <span class="ed-session-name ed-bar-extra" id="ed-session-name"></span>
+                <button class="ed-publish-btn ed-bar-extra" id="ed-publish" type="button" hidden title="مراجعة المسودّة ثم نشرها للقراء">اعتماد</button>
+                <button class="ed-invites-btn ed-bar-extra" id="ed-invites-open" type="button" hidden title="إدارة رموز الدعوة">دعوات</button>
                 <button class="ed-logout-btn" id="ed-logout" type="button" title="خروج">خروج</button>
             </div>
 
@@ -66,7 +71,7 @@
                 <button class="ed-edition-btn athar-tab" data-edition="الكويت" type="button" aria-pressed="false">الكويت الحديث</button>
             </div>
 
-            <div class="ed-review-group">
+            <div class="ed-review-group ed-bar-extra">
                 <div class="ed-progress" id="ed-progress" role="progressbar" aria-label="الصفحات المراجَعة" aria-valuemin="0" aria-valuemax="604" aria-valuenow="0"></div>
 
                 <label class="ed-reviewed-toggle" title="وضع علامة على هذه الصفحة كمُراجَعة">
@@ -76,7 +81,7 @@
             </div>
 
             <div class="ed-location-tools">
-                <div class="ed-drafts" id="ed-drafts" hidden>
+                <div class="ed-drafts ed-bar-extra" id="ed-drafts" hidden>
                     <button class="ed-drafts-btn" id="ed-drafts-open" type="button" aria-expanded="false" aria-controls="ed-drafts-panel" title="صفحات فيها مسودّات معلّقة">
                         مسودّات
                         <span class="ed-drafts-badge" id="ed-drafts-badge">٠</span>
@@ -87,6 +92,12 @@
                         <p class="ed-drafts-hint" id="ed-drafts-hint">لا مسودّات معلّقة لهذه النسخة.</p>
                         <ul class="ed-drafts-list" id="ed-drafts-list"></ul>
                     </div>
+                </div>
+
+                <div class="ed-zoom" role="group" aria-label="تكبير الصفحة">
+                    <button class="ed-icon-btn athar-icon-button" id="ed-zoom-out" type="button" title="تصغير" aria-label="تصغير"><i class="fas fa-minus" aria-hidden="true"></i></button>
+                    <button class="ed-zoom-label" id="ed-zoom-reset" type="button" title="إعادة ١٠٠٪" aria-label="إعادة التكبير إلى ١٠٠٪">١٠٠٪</button>
+                    <button class="ed-icon-btn athar-icon-button" id="ed-zoom-in" type="button" title="تكبير" aria-label="تكبير"><i class="fas fa-plus" aria-hidden="true"></i></button>
                 </div>
 
                 <div class="ed-jump">

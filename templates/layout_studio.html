@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% set page_title = 'أثَر · استوديو تخطيط مصحف الأزهر' %}
-    {% set page_description = 'استوديو محلي لمطابقة تخطيط مصحف الأزهر مع المطبوع، بذرة من الشمرلي.' %}
+    {% set page_title = 'أثَر · استوديو تخطيط ' ~ edition.name_ar %}
+    {% set page_description = edition.subtitle_ar %}
+    {% set studio_path = '/layout-studio/' ~ edition.id %}
     <title>{{ page_title }}</title>
-    {{ athar_page_meta(page_title, page_description, path='/azhar-layout', noindex=true) }}
+    {{ athar_page_meta(page_title, page_description, path=studio_path, noindex=true) }}
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,15 +34,15 @@
     <section class="az-bar" id="az-bar" aria-labelledby="az-title">
         <div class="az-bar-intro">
             <p class="athar-kicker">— استوديو التخطيط</p>
-            <h1 class="az-title athar-display" id="az-title">مصحف الأزهر</h1>
-            <p class="az-subtitle">طابق السطور مع المطبوع جنباً إلى جنب. البذرة من تخطيط الشمرلي (١٥ سطراً). اسحب كلمة إلى سطر لتغيير الحد.</p>
-            <p class="az-edition-meta" id="az-edition-meta">الأزهر · ١٥ سطراً · كلمة الشمرلي · Amiri Quran</p>
+            <h1 class="az-title athar-display" id="az-title">{{ edition.name_ar }}</h1>
+            <p class="az-subtitle">{{ edition.subtitle_ar }}</p>
+            <p class="az-edition-meta" id="az-edition-meta">{{ edition_config.metaLabel }}</p>
             <p class="az-reseed-note" id="az-reseed-note" title="إعادة البذرة (--force) تمسح كل التعديلات">التراجع من هنا — لا تعِد البذرة إلا عند الحاجة</p>
         </div>
 
         <div class="az-bar-tools" aria-label="أدوات التخطيط">
             <div class="az-review-group">
-                <div class="az-progress" id="az-progress" role="progressbar" aria-label="الصفحات المطابَقة" aria-valuemin="0" aria-valuemax="521" aria-valuenow="0"></div>
+                <div class="az-progress" id="az-progress" role="progressbar" aria-label="الصفحات المطابَقة" aria-valuemin="0" aria-valuemax="{{ edition.page_count }}" aria-valuenow="0"></div>
                 <label class="az-reviewed-toggle" title="هذه الصفحة مطابقة للمطبوع">
                     <input type="checkbox" id="az-reviewed">
                     <span>مطابِق للمطبوع</span>
@@ -50,7 +51,7 @@
 
             <div class="az-location-tools">
                 <div class="az-jump">
-                    <input class="athar-field" type="number" id="az-jump-page" min="2" max="522" placeholder="صفحة" aria-label="الانتقال إلى صفحة">
+                    <input class="athar-field" type="number" id="az-jump-page" min="{{ edition.min_page }}" max="{{ edition.max_page }}" placeholder="صفحة" aria-label="الانتقال إلى صفحة">
                     <button class="az-icon-btn athar-icon-button" id="az-jump-go" type="button" title="انتقال" aria-label="انتقال"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
                 </div>
                 <div class="az-jump az-jump-ayah">
@@ -76,6 +77,7 @@
     <aside class="az-hint" aria-label="تعليمات">
         <span>اسحب كلمة وأفلتها على سطر لنقل الحد</span>
         <span class="az-hint-boundary">أول/آخر كلمة في السطر مظلّلة — مهمة للمطابقة</span>
+        <span>الكلمات لا تعبر اسم السورة أو البسملة</span>
         <span>زر الدمج = دمج مع السطر التالي</span>
         <span>تراجع = آخر تعديل على هذه الصفحة</span>
         <span>أثناء السحب: إلغاء (X) أو Escape</span>
@@ -106,7 +108,7 @@
 
             <aside class="az-ref-panel" id="az-ref-panel" aria-label="مرجع المصحف المطبوع">
                 <div class="az-ref-header">
-                    <span class="az-ref-title" id="az-ref-title">مرجع الشمرلي</span>
+                    <span class="az-ref-title" id="az-ref-title">{{ edition.ref_label_ar }}</span>
                     <button class="az-ref-open athar-icon-button" id="az-ref-open" type="button" title="فتح المرجع في تبويب جديد" aria-label="فتح المرجع في تبويب جديد" hidden>
                         <i class="fas fa-external-link-alt" aria-hidden="true"></i>
                         <span>فتح في تبويب جديد</span>
@@ -116,7 +118,7 @@
                     <img class="az-ref-img" id="az-ref-img" alt="صفحة المصحف المطبوع" decoding="async" hidden>
                     <div class="az-ref-loading" id="az-ref-loading" hidden>جارٍ تحميل المرجع…</div>
                     <div class="az-ref-fallback" id="az-ref-fallback" hidden>
-                        <p class="az-ref-fallback-text">تعذّر تحميل صورة المرجع. افتحه في تبويب جديد للمقارنة مع بذرة الشمرلي.</p>
+                        <p class="az-ref-fallback-text">تعذّر تحميل صورة المرجع. افتحه في تبويب جديد للمقارنة.</p>
                         <button class="az-ref-fallback-btn" id="az-ref-fallback-btn" type="button">فتح المرجع</button>
                     </div>
                 </div>
@@ -124,6 +126,9 @@
         </div>
     </main>
 
+    <script>
+        window.AtharLayoutStudio = {{ edition_config | tojson }};
+    </script>
     <script src="{{ static_hash('js/azhar_layout.js') }}"></script>
 </body>
 </html>

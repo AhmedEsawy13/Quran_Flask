@@ -5,9 +5,21 @@ Copies pages (and creates info + progress tables) from
 mushaf_layout_inferred.db so /azhar-layout can reshape line breaks against
 the physical مصحف الأزهر while rendering Amiri + الأزهر waqf.
 
+DESTRUCTIVE WARNING
+  --force deletes data/mushaf-azhar-layout.db entirely. That wipes:
+    • every line-break / merge edit in the Azhar studio
+    • reviewed / مطابِق للمطبوع progress flags
+    • the undo stack
+  Only use --force when you intentionally want a clean Shemrly reseed.
+  Prefer page-scoped undo in /azhar-layout for ordinary corrections.
+
+After the Shemrly clone, Azhar short-page geometry is applied:
+  • page 2 (الفاتحة): 6 lines including البسملة
+  • page 3 (أول البقرة): 5 lines
+
 Usage:
   python3 pipeline/seed_azhar_layout_db.py
-  python3 pipeline/seed_azhar_layout_db.py --force   # recreate even if exists
+  python3 pipeline/seed_azhar_layout_db.py --force   # WIPE + recreate
 """
 from __future__ import annotations
 
@@ -21,8 +33,36 @@ sys.path.insert(0, _ROOT)
 
 from core.config import (  # noqa: E402
     AZHAR_LAYOUT_DATABASE,
+    QURAN_SCRIPT_DATABASE,
     SHAMARLY_LAYOUT_DATABASE,
 )
+from modules.layout_editions import AZHAR  # noqa: E402
+from modules import layout_engine as engine  # noqa: E402
+
+_FORCE_WIPE_BANNER = (
+    'WARNING: --force will DELETE {path} and wipe all Azhar layout edits, '
+    'progress, and undo history. Prefer studio undo for corrections.'
+)
+
+
+def _apply_azhar_short_pages(dst: sqlite3.Connection) -> None:
+    """Reshape الفاتحة (6 lines incl. basmala) and أول البقرة (5 lines)."""
+    universe = engine.all_script_word_ids(QURAN_SCRIPT_DATABASE)
+    cur = dst.cursor()
+    for rule in AZHAR.closed_pages:
+        info = engine.reshape_page_line_count(
+            cur,
+            rule.page,
+            rule.target_lines,
+            script_db=QURAN_SCRIPT_DATABASE,
+            universe=universe,
+        )
+        print(
+            f'  short page {rule.page}: {info["target_lines"]} lines '
+            f'({info["header_lines"]} header + {info["ayah_lines"]} ayah, '
+            f'{info["word_count"]} words)'
+        )
+    dst.commit()
 
 
 def seed(force: bool = False) -> None:
@@ -33,6 +73,7 @@ def seed(force: bool = False) -> None:
         if not force:
             print(f'Already exists: {AZHAR_LAYOUT_DATABASE} (pass --force to recreate)')
             return
+        print(_FORCE_WIPE_BANNER.format(path=AZHAR_LAYOUT_DATABASE), file=sys.stderr)
         os.remove(AZHAR_LAYOUT_DATABASE)
 
     src = sqlite3.connect(SHAMARLY_LAYOUT_DATABASE)
@@ -124,14 +165,24 @@ def seed(force: bool = False) -> None:
         )
         dst.commit()
         print(f'Seeded {len(rows)} lines / {page_count} pages → {AZHAR_LAYOUT_DATABASE}')
+        print('Applying Azhar short-page geometry…')
+        _apply_azhar_short_pages(dst)
+        final_lines = dst.execute('SELECT COUNT(*) FROM pages').fetchone()[0]
+        print(f'Done: {final_lines} lines after short-page reshape')
     finally:
         src.close()
         dst.close()
 
-
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--force', action='store_true', help='Recreate the DB if it already exists')
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        '--force',
+        action='store_true',
+        help='DELETE existing DB and reseed (wipes all studio edits/progress/undo)',
+    )
     args = parser.parse_args()
     seed(force=args.force)
 
