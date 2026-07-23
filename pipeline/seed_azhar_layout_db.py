@@ -81,8 +81,11 @@ def _apply_azhar_surah_headers(dst: sqlite3.Connection) -> None:
     )
     print(
         f'  surah headers: promoted={info["promoted_split_headers"]} '
+        f'repaired={info.get("repaired_boundary_pages", [])} '
         f'info_pages={info["info_pages"]} spilled={info["spilled_pages"]} '
-        f'filled={info.get("filled_pages", 0)} clamped={info.get("clamped_pages", 0)}'
+        f'filled={info.get("filled_pages", 0)} clamped={info.get("clamped_pages", 0)} '
+        f'orphan_banners={info.get("promoted_orphan_banners", 0)} '
+        f'metadata={info.get("metadata_fixed", 0)}'
     )
     dst.commit()
 

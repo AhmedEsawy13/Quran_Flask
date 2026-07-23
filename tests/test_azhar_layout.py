@@ -185,6 +185,17 @@ def test_azhar_undo_is_page_scoped(client, restore_azhar_layout_db):
     other = client.get('/api/layout-studio/azhar/undo-status?page_number=10').get_json()
     assert other['undo_available'] == 0
 
+    # A page-scoped undo must never consume another page's latest edit.
+    wrong_page = client.post(
+        '/api/layout-studio/azhar/undo',
+        json={'page_number': 10},
+    )
+    assert wrong_page.status_code == 400
+    still_available = client.get(
+        '/api/layout-studio/azhar/undo-status?page_number=2'
+    ).get_json()
+    assert still_available['undo_available'] >= 1
+
 
 def test_line_break_does_not_spill_into_next_surah(client, restore_azhar_layout_db):
     """Page 64: Al-Imran ends mid-page; a break must not push words onto An-Nisa."""
@@ -324,6 +335,78 @@ def test_azhar_surah_header_takes_three_lines(client):
     ]
     assert len([ln for ln in p490['lines'] if ln['line_type'] == 'ayah']) == 12
     assert len(p490['lines']) == 15
+
+
+def test_azhar_repairs_displaced_surah_boundaries(client):
+    """Numeric Shemrly blocks must not reorder Quran text around three boundaries."""
+
+    def assert_canonical_page(page_number, outgoing, incoming):
+        payload = client.get(
+            f'/api/layout-studio/azhar/page/{page_number}'
+        ).get_json()
+        assert len(payload['lines']) == 15
+        word_surahs = []
+        for line in payload['lines']:
+            if line['line_type'] != 'ayah':
+                continue
+            actual = {int(word['surah']) for word in (line.get('words') or [])}
+            assert actual == {int(line['surah_number'])}
+            word_surahs.extend(actual)
+        assert word_surahs == sorted(word_surahs)
+        assert outgoing in word_surahs
+        assert incoming in word_surahs
+
+        types = [line['line_type'] for line in payload['lines']]
+        name_i = next(
+            i for i, line in enumerate(payload['lines'])
+            if line['line_type'] == 'surah_name'
+            and int(line['surah_number']) == incoming
+        )
+        assert types[name_i:name_i + 3] == [
+            'surah_name', 'surah_info', 'basmallah',
+        ]
+
+    # Al-Baqarah tail precedes Aal-Imran, and Sad tail precedes Az-Zumar.
+    assert_canonical_page(42, 2, 3)
+    assert_canonical_page(385, 38, 39)
+
+    # Al-Hashr / Al-Mumtahanah was ordered but carried incorrect line metadata
+    # and an incomplete banner.
+    assert_canonical_page(465, 59, 60)
+
+    # Spilling Al-Insan onto page 496 must not retain Al-Mursalat metadata.
+    page496 = client.get('/api/layout-studio/azhar/page/496').get_json()
+    assert all(
+        line['surah_number'] == 76
+        and {word['surah'] for word in line.get('words') or []} == {76}
+        for line in page496['lines']
+        if line['line_type'] == 'ayah'
+    )
+
+
+def test_azhar_completes_missing_banners_without_orphans(client):
+    for page_number, surah in ((465, 60), (514, 95), (515, 97)):
+        payload = client.get(
+            f'/api/layout-studio/azhar/page/{page_number}'
+        ).get_json()
+        lines = payload['lines']
+        name_i = next(
+            i for i, line in enumerate(lines)
+            if line['line_type'] == 'surah_name'
+            and int(line['surah_number']) == surah
+        )
+        assert [line['line_type'] for line in lines[name_i:name_i + 3]] == [
+            'surah_name', 'surah_info', 'basmallah',
+        ]
+        assert any(line['line_type'] == 'ayah' for line in lines[name_i + 3:])
+
+    tawbah = client.get('/api/layout-studio/azhar/page/153').get_json()
+    name_i = next(
+        i for i, line in enumerate(tawbah['lines'])
+        if line['line_type'] == 'surah_name' and line['surah_number'] == 9
+    )
+    assert tawbah['lines'][name_i + 1]['line_type'] == 'surah_info'
+    assert tawbah['lines'][name_i + 2]['line_type'] == 'ayah'
 
 
 def test_layout_engine_surah_fence_unit():

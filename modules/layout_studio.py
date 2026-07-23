@@ -543,8 +543,6 @@ def layout_studio_undo(edition_id):
             cur, page_number if page_number else None,
             undo_table=edition.undo_table,
         )
-        if not popped and page_number:
-            popped = engine.pop_undo(cur, None, undo_table=edition.undo_table)
         if not popped:
             return jsonify({'error': 'لا يوجد تعديل للتراجع عنه', 'undo_available': 0}), 400
         conn.commit()

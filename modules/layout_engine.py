@@ -13,27 +13,28 @@ from typing import Iterable
 from core.db import connect as _sqlite_connect
 
 _UNDO_LIMIT = 40
-_SCRIPT_WORD_IDS: list[int] | None = None
+_SCRIPT_WORD_IDS: dict[str, list[int]] = {}
+_SCRIPT_WORD_RECORDS: dict[str, tuple[list[int], dict[int, dict]]] = {}
 
 
 def all_script_word_ids(script_db: str) -> list[int]:
     """Sorted word_index list from quran_script (process-cached)."""
-    global _SCRIPT_WORD_IDS
-    if _SCRIPT_WORD_IDS is not None:
-        return _SCRIPT_WORD_IDS
+    cache_key = str(script_db)
+    if cache_key in _SCRIPT_WORD_IDS:
+        return _SCRIPT_WORD_IDS[cache_key]
     conn = _sqlite_connect(script_db)
     try:
         cur = conn.cursor()
         cur.execute('SELECT word_index FROM words ORDER BY word_index ASC')
-        _SCRIPT_WORD_IDS = [int(r[0]) for r in cur.fetchall()]
+        _SCRIPT_WORD_IDS[cache_key] = [int(r[0]) for r in cur.fetchall()]
     finally:
         conn.close()
-    return _SCRIPT_WORD_IDS
+    return _SCRIPT_WORD_IDS[cache_key]
 
 
 def clear_script_word_id_cache() -> None:
-    global _SCRIPT_WORD_IDS
-    _SCRIPT_WORD_IDS = None
+    _SCRIPT_WORD_IDS.clear()
+    _SCRIPT_WORD_RECORDS.clear()
 
 
 def existing_word_ids_between(first, last, universe: list[int] | None = None, script_db: str | None = None):
@@ -513,35 +514,58 @@ def _make_surah_info_row(surah_number: int, *, script_db: str) -> dict:
     }
 
 
-def _insert_surah_info_after_names(rows: list[dict], *, script_db: str) -> list[dict]:
-    """Insert surah_info between every surah_name → basmala banner (page-leading or mid-page).
+def _make_basmallah_row(surah_number: int) -> dict:
+    return {
+        'line_type': 'basmallah',
+        'is_centered': 1,
+        'first_word_id': None,
+        'last_word_id': None,
+        'surah_number': int(surah_number),
+        'line_text': 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
+    }
 
-    Azhar printed pages use three header slots: name + info + basmala. Those
-    count toward the 15-line page budget; overflow ayah is spilled afterward.
+
+def _normalize_surah_banners(rows: list[dict], *, script_db: str) -> list[dict]:
+    """Make each surah banner complete and ordered.
+
+    Azhar uses name + info + basmala. At-Tawbah intentionally has no basmala,
+    but still receives its information row. A few inferred Shemrly pages omit
+    the basmala entirely, so a display-only row is synthesized for them.
     """
     out: list[dict] = []
     i = 0
     while i < len(rows):
         row = rows[i]
+        if row['line_type'] != 'surah_name':
+            out.append(row)
+            i += 1
+            continue
+
+        surah_number = row.get('surah_number')
         out.append(row)
-        nxt = rows[i + 1] if i + 1 < len(rows) else None
-        if (
-            row['line_type'] == 'surah_name'
-            and nxt is not None
-            and nxt['line_type'] == 'basmallah'
-        ):
-            surah_number = row.get('surah_number')
-            if surah_number is None:
-                surah_number = nxt.get('surah_number')
-            out.append(_make_surah_info_row(surah_number, script_db=script_db))
-        elif (
-            row['line_type'] == 'surah_name'
-            and nxt is not None
-            and nxt['line_type'] == 'surah_info'
-        ):
-            # Already has info; keep as-is (loop will append it next).
-            pass
         i += 1
+
+        if i < len(rows) and rows[i]['line_type'] == 'surah_info':
+            info = dict(rows[i])
+            info['surah_number'] = surah_number
+            info['line_text'] = (
+                info.get('line_text')
+                or surah_info_text(int(surah_number), script_db=script_db)
+            )
+            out.append(info)
+            i += 1
+        else:
+            out.append(_make_surah_info_row(surah_number, script_db=script_db))
+
+        if int(surah_number or 0) == 9:
+            continue
+        if i < len(rows) and rows[i]['line_type'] == 'basmallah':
+            basmala = dict(rows[i])
+            basmala['surah_number'] = surah_number
+            out.append(basmala)
+            i += 1
+        else:
+            out.append(_make_basmallah_row(int(surah_number)))
     return out
 
 
@@ -553,6 +577,197 @@ def _leading_header_count(rows: list[dict]) -> int:
             continue
         break
     return n
+
+
+def _script_words_in_numeric_range(
+    script_db: str,
+    first_word_id,
+    last_word_id,
+) -> list[dict]:
+    """Read source-layout ranges before they are normalized.
+
+    The inferred Shemrly source has three displaced numeric blocks. Reading the
+    raw numeric interval is intentional here; the page repair then restores
+    canonical (surah, ayah, word) order.
+    """
+    if first_word_id is None or last_word_id is None:
+        return []
+    first, last = int(first_word_id), int(last_word_id)
+    if last < first:
+        first, last = last, first
+    cache_key = str(script_db)
+    if cache_key not in _SCRIPT_WORD_RECORDS:
+        conn = _sqlite_connect(script_db)
+        try:
+            rows = conn.execute(
+                '''
+                SELECT word_index, word_key, surah, ayah, text
+                FROM words
+                ORDER BY word_index
+                '''
+            ).fetchall()
+        finally:
+            conn.close()
+        records = {
+            int(row[0]): {
+                'word_index': int(row[0]),
+                'word_key': row[1] or '',
+                'surah': int(row[2]),
+                'ayah': int(row[3]),
+                'text': row[4] or '',
+            }
+            for row in rows
+        }
+        _SCRIPT_WORD_RECORDS[cache_key] = (sorted(records), records)
+    ids, records = _SCRIPT_WORD_RECORDS[cache_key]
+    lo = bisect.bisect_left(ids, first)
+    hi = bisect.bisect_right(ids, last)
+    return [records[word_id] for word_id in ids[lo:hi]]
+
+
+def _canonical_word_key(word: dict) -> tuple[int, int, int]:
+    try:
+        position = int(str(word.get('word_key') or '').rsplit(':', 1)[-1])
+    except (TypeError, ValueError):
+        position = int(word['word_index'])
+    return int(word['surah']), int(word['ayah']), position
+
+
+def _allocate_group_slots(groups: list[list[dict]], total_slots: int) -> list[int]:
+    """Allocate at least one line to each non-empty surah group."""
+    if not groups:
+        return []
+    if total_slots < len(groups):
+        raise ValueError('page has more surah word groups than available ayah slots')
+    sizes = [len(group) for group in groups]
+    total_words = sum(sizes)
+    allocations = [1] * len(groups)
+    remaining = int(total_slots) - len(groups)
+    if remaining <= 0 or total_words <= 0:
+        return allocations
+    raw = [remaining * size / total_words for size in sizes]
+    floors = [int(value) for value in raw]
+    allocations = [base + extra for base, extra in zip(allocations, floors)]
+    left = remaining - sum(floors)
+    order = sorted(
+        range(len(groups)),
+        key=lambda idx: (raw[idx] - floors[idx], sizes[idx]),
+        reverse=True,
+    )
+    for idx in order[:left]:
+        allocations[idx] += 1
+    return allocations
+
+
+def _repair_displaced_boundary_page(
+    cur,
+    page_number: int,
+    *,
+    script_db: str,
+    default_lines: int,
+) -> None:
+    """Repair a page whose inferred numeric ranges place a later surah first."""
+    rows = _page_rows(cur, page_number)
+    names = {
+        int(row['surah_number']): dict(row)
+        for row in rows
+        if row['line_type'] == 'surah_name' and row.get('surah_number') is not None
+    }
+    infos = {
+        int(row['surah_number']): dict(row)
+        for row in rows
+        if row['line_type'] == 'surah_info' and row.get('surah_number') is not None
+    }
+    basmalas = [
+        dict(row) for row in rows if row['line_type'] == 'basmallah'
+    ]
+
+    by_surah: dict[int, dict[int, dict]] = {}
+    encounter_order: list[int] = []
+    for row in rows:
+        if row['line_type'] != 'ayah':
+            continue
+        for word in _script_words_in_numeric_range(
+            script_db, row.get('first_word_id'), row.get('last_word_id'),
+        ):
+            surah = int(word['surah'])
+            if surah not in by_surah:
+                by_surah[surah] = {}
+                encounter_order.append(surah)
+            by_surah[surah][int(word['word_index'])] = word
+
+    ordered_surahs = sorted(by_surah)
+    if encounter_order == ordered_surahs:
+        return
+
+    banner_rows: dict[int, list[dict]] = {}
+    for surah, name in names.items():
+        info = infos.get(surah) or _make_surah_info_row(surah, script_db=script_db)
+        banner = [name, info]
+        if surah != 9:
+            basmala = next(
+                (row for row in basmalas if int(row.get('surah_number') or 0) == surah),
+                None,
+            )
+            if basmala is None and len(names) == 1 and len(basmalas) == 1:
+                basmala = dict(basmalas[0])
+                basmala['surah_number'] = surah
+            banner.append(basmala or _make_basmallah_row(surah))
+        banner_rows[surah] = banner
+
+    header_count = sum(len(banner_rows.get(surah, ())) for surah in ordered_surahs)
+    ayah_slots = int(default_lines) - header_count
+    word_groups = [
+        sorted(by_surah[surah].values(), key=_canonical_word_key)
+        for surah in ordered_surahs
+    ]
+    allocations = _allocate_group_slots(word_groups, ayah_slots)
+
+    rebuilt: list[dict] = []
+    for surah, words, slots in zip(ordered_surahs, word_groups, allocations):
+        rebuilt.extend(banner_rows.get(surah, ()))
+        rebuilt.extend(
+            _ayah_rows_from_words(
+                [int(word['word_index']) for word in words],
+                slots,
+                surah_number=surah,
+                script_db=script_db,
+            )
+        )
+    if len(rebuilt) != int(default_lines):
+        raise ValueError(
+            f'page {page_number}: displaced-boundary repair produced '
+            f'{len(rebuilt)} lines, expected {default_lines}'
+        )
+    _replace_page_rows(cur, page_number, rebuilt)
+
+
+def _repair_ayah_surah_metadata(cur, *, script_db: str) -> int:
+    """Make line-level surah metadata agree with the actual words."""
+    fixed = 0
+    for page in [
+        int(row[0]) for row in cur.execute(
+            'SELECT DISTINCT page_number FROM pages ORDER BY page_number'
+        ).fetchall()
+    ]:
+        rows = _page_rows(cur, page)
+        changed = False
+        for row in rows:
+            if row['line_type'] != 'ayah':
+                continue
+            actual = {
+                int(word['surah'])
+                for word in _script_words_in_numeric_range(
+                    script_db, row.get('first_word_id'), row.get('last_word_id'),
+                )
+            }
+            if len(actual) == 1 and row.get('surah_number') != next(iter(actual)):
+                row['surah_number'] = next(iter(actual))
+                fixed += 1
+                changed = True
+        if changed:
+            _replace_page_rows(cur, page, rows)
+    return fixed
 
 
 def normalize_surah_header_pages(
@@ -601,6 +816,29 @@ def normalize_surah_header_pages(
         _replace_page_rows(cur, nxt_page, [name_row] + nxt)
         promoted += 1
 
+    displaced_pages: list[int] = []
+    for page in page_numbers:
+        if page in skip:
+            continue
+        encountered: list[int] = []
+        for row in _page_rows(cur, page):
+            if row['line_type'] != 'ayah':
+                continue
+            for word in _script_words_in_numeric_range(
+                script_db, row.get('first_word_id'), row.get('last_word_id'),
+            ):
+                surah = int(word['surah'])
+                if not encountered or encountered[-1] != surah:
+                    encountered.append(surah)
+        if any(right < left for left, right in zip(encountered, encountered[1:])):
+            _repair_displaced_boundary_page(
+                cur,
+                page,
+                script_db=script_db,
+                default_lines=int(default_lines),
+            )
+            displaced_pages.append(page)
+
     info_inserted_pages = 0
     page_numbers = [
         int(r[0]) for r in cur.execute(
@@ -613,8 +851,8 @@ def normalize_surah_header_pages(
         rows = _page_rows(cur, page)
         if not any(r['line_type'] == 'surah_name' for r in rows):
             continue
-        updated = _insert_surah_info_after_names(rows, script_db=script_db)
-        if len(updated) != len(rows):
+        updated = _normalize_surah_banners(rows, script_db=script_db)
+        if updated != rows:
             _replace_page_rows(cur, page, updated)
             info_inserted_pages += 1
 
@@ -738,6 +976,19 @@ def normalize_surah_header_pages(
         skip_pages=skip,
     )
 
+    promoted_orphan_banners = _promote_orphan_trailing_banners(
+        cur,
+        skip_pages=skip,
+    )
+    if promoted_orphan_banners:
+        clamped_pages += _clamp_pages_to_line_count(
+            cur,
+            script_db=script_db,
+            universe=universe,
+            default_lines=int(default_lines),
+            skip_pages=skip,
+        )
+
     filled_pages = _fill_pages_to_line_count(
         cur,
         script_db=script_db,
@@ -746,12 +997,17 @@ def normalize_surah_header_pages(
         skip_pages=skip,
     )
 
+    metadata_fixed = _repair_ayah_surah_metadata(cur, script_db=script_db)
+
     return {
         'promoted_split_headers': promoted,
+        'repaired_boundary_pages': displaced_pages,
         'info_pages': info_inserted_pages,
         'spilled_pages': spilled_pages,
         'clamped_pages': clamped_pages,
+        'promoted_orphan_banners': promoted_orphan_banners,
         'filled_pages': filled_pages,
+        'metadata_fixed': metadata_fixed,
     }
 
 
@@ -846,25 +1102,29 @@ def _clamp_pages_to_line_count(
             excess = expand_ayah_words(
                 rows[last_i], universe=universe, script_db=script_db,
             )
+            fenced_on_page = any(
+                is_surah_separator(row) for row in rows[last_i + 1:]
+            )
             kept = rows[:last_i] + rows[last_i + 1:]
             _replace_page_rows(cur, page, kept)
             if not excess:
                 clamped += 1
                 continue
-            if _prepend_words_to_following_ayah(
+            if not fenced_on_page and _prepend_words_to_following_ayah(
                 cur, page, excess, script_db=script_db, universe=universe,
             ):
                 clamped += 1
                 continue
             # Fenced: merge into the previous ayah of this same trailing block.
             rows2 = _page_rows(cur, page)
-            prev_i = next(
-                (
-                    i for i in range(len(rows2) - 1, -1, -1)
-                    if rows2[i]['line_type'] == 'ayah'
-                ),
-                None,
-            )
+            prev_i = None
+            search_from = min(last_i - 1, len(rows2) - 1)
+            for i in range(search_from, -1, -1):
+                if is_surah_separator(rows2[i]):
+                    break
+                if rows2[i]['line_type'] == 'ayah':
+                    prev_i = i
+                    break
             if prev_i is None:
                 # Nowhere to put the words — put the line back and stop.
                 _replace_page_rows(cur, page, rows)
@@ -881,6 +1141,41 @@ def _clamp_pages_to_line_count(
             )
             clamped += 1
     return clamped
+
+
+def _promote_orphan_trailing_banners(
+    cur,
+    *,
+    skip_pages: set[int],
+) -> int:
+    """Move a trailing banner to the next page when it has no ayah beneath it."""
+    promoted = 0
+    page_numbers = [
+        int(r[0]) for r in cur.execute(
+            'SELECT DISTINCT page_number FROM pages ORDER BY page_number'
+        ).fetchall()
+    ]
+    available = set(page_numbers)
+    for page in page_numbers:
+        if page in skip_pages or page + 1 not in available:
+            continue
+        rows = _page_rows(cur, page)
+        name_indices = [
+            i for i, row in enumerate(rows) if row['line_type'] == 'surah_name'
+        ]
+        if not name_indices:
+            continue
+        start = name_indices[-1]
+        suffix = rows[start:]
+        if not suffix or any(row['line_type'] == 'ayah' for row in suffix):
+            continue
+        if not all(row['line_type'] in SURAH_HEADER_TYPES for row in suffix):
+            continue
+        nxt = _page_rows(cur, page + 1)
+        _replace_page_rows(cur, page, rows[:start])
+        _replace_page_rows(cur, page + 1, suffix + nxt)
+        promoted += 1
+    return promoted
 
 
 def _first_ayah_block(rows: list[dict]) -> tuple[int, list[dict], list[dict]]:
