@@ -116,12 +116,97 @@ def load_all_lines(cur):
         ORDER BY page_number ASC, line_number ASC
         '''
     )
-    return [dict(r) for r in cur.fetchall()]
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
+# Header rows that reserve page slots (not ayah word stream).
+SURAH_HEADER_TYPES = frozenset({'surah_name', 'surah_info', 'basmallah'})
+
+# Egyptian / Azhar-print classification (مدنية). All others treated as مكية.
+_MEDINAN_SURAHS = frozenset({
+    2, 3, 4, 5, 8, 9, 13, 22, 24, 33, 47, 48, 49, 55, 57, 58, 59, 60, 61, 62,
+    63, 64, 65, 66, 76, 98, 99, 110,
+})
+_ARABIC_INDIC = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
 
 
 def is_surah_separator(line) -> bool:
-    """surah_name / basmallah mark a hard fence between ayah word streams."""
-    return (line or {}).get('line_type') in {'surah_name', 'basmallah'}
+    """surah_name / surah_info / basmallah fence ayah word streams."""
+    return (line or {}).get('line_type') in SURAH_HEADER_TYPES
+
+
+def to_arabic_indic(n: int) -> str:
+    return str(int(n)).translate(_ARABIC_INDIC)
+
+
+def surah_ayah_count(script_db: str, surah_number: int) -> int:
+    conn = _sqlite_connect(script_db)
+    try:
+        row = conn.execute(
+            'SELECT MAX(ayah) FROM words WHERE surah = ?',
+            (int(surah_number),),
+        ).fetchone()
+        return int(row[0] or 0)
+    finally:
+        conn.close()
+
+
+def surah_info_text(surah_number: int, *, script_db: str) -> str:
+    """Second header line under the surah name: مكية/مدنية · آياتها N."""
+    place = 'مدنية' if int(surah_number) in _MEDINAN_SURAHS else 'مكية'
+    count = surah_ayah_count(script_db, int(surah_number))
+    if count <= 0:
+        return place
+    return f'{place} · آياتها {to_arabic_indic(count)}'
+
+
+def ensure_surah_info_schema(cur) -> bool:
+    """Widen pages.line_type CHECK to allow surah_info. Returns True if rebuilt."""
+    row = cur.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='pages'"
+    ).fetchone()
+    if not row or not row[0]:
+        return False
+    sql = row[0]
+    if 'surah_info' in sql:
+        return False
+    cur.execute(
+        '''
+        CREATE TABLE pages__surah_info (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            page_number INTEGER NOT NULL,
+            line_number INTEGER NOT NULL,
+            line_type TEXT NOT NULL
+                CHECK(line_type IN ('ayah', 'surah_name', 'surah_info', 'basmallah')),
+            is_centered INTEGER NOT NULL,
+            first_word_id INTEGER,
+            last_word_id INTEGER,
+            surah_number INTEGER,
+            line_text TEXT NOT NULL DEFAULT ''
+        )
+        '''
+    )
+    cur.execute(
+        '''
+        INSERT INTO pages__surah_info (
+            id, page_number, line_number, line_type, is_centered,
+            first_word_id, last_word_id, surah_number, line_text
+        )
+        SELECT id, page_number, line_number, line_type, is_centered,
+               first_word_id, last_word_id, surah_number, line_text
+        FROM pages
+        '''
+    )
+    cur.execute('DROP TABLE pages')
+    cur.execute('ALTER TABLE pages__surah_info RENAME TO pages')
+    cur.execute(
+        'CREATE INDEX IF NOT EXISTS idx_azhar_page_line ON pages (page_number, line_number)'
+    )
+    cur.execute(
+        'CREATE INDEX IF NOT EXISTS idx_azhar_surah_number ON pages (surah_number)'
+    )
+    return True
 
 
 def ayah_segment_slots(lines, start_idx, *, page_scope=None) -> list[int]:
@@ -298,7 +383,7 @@ def reshape_page_line_count(
     if not rows:
         raise ValueError(f'page {page_number} has no lines')
 
-    headers = [r for r in rows if r['line_type'] in ('surah_name', 'basmallah')]
+    headers = [r for r in rows if r['line_type'] in SURAH_HEADER_TYPES]
     ayah_rows = [r for r in rows if r['line_type'] == 'ayah']
     header_count = len(headers)
     ayah_slots = int(target_lines) - header_count
@@ -375,6 +460,523 @@ def reshape_page_line_count(
         'ayah_lines': ayah_slots,
         'word_count': len(word_ids),
     }
+
+
+def _replace_page_rows(cur, page_number: int, rows: list[dict]) -> None:
+    """Rewrite one page's lines from an ordered row list (1-based line_number)."""
+    cur.execute('DELETE FROM pages WHERE page_number = ?', (int(page_number),))
+    for i, row in enumerate(rows, start=1):
+        cur.execute(
+            '''
+            INSERT INTO pages (
+                page_number, line_number, line_type, is_centered,
+                first_word_id, last_word_id, surah_number, line_text
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                int(page_number),
+                i,
+                row['line_type'],
+                1 if row.get('is_centered') else 0,
+                row.get('first_word_id'),
+                row.get('last_word_id'),
+                row.get('surah_number'),
+                row.get('line_text') or '',
+            ),
+        )
+
+
+def _page_rows(cur, page_number: int) -> list[dict]:
+    cur.execute(
+        '''
+        SELECT id, page_number, line_number, line_type, is_centered,
+               first_word_id, last_word_id, surah_number, line_text
+        FROM pages
+        WHERE page_number = ?
+        ORDER BY line_number ASC
+        ''',
+        (int(page_number),),
+    )
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, r)) for r in cur.fetchall()]
+
+
+def _make_surah_info_row(surah_number: int, *, script_db: str) -> dict:
+    return {
+        'line_type': 'surah_info',
+        'is_centered': 1,
+        'first_word_id': None,
+        'last_word_id': None,
+        'surah_number': int(surah_number) if surah_number is not None else None,
+        'line_text': surah_info_text(int(surah_number), script_db=script_db)
+        if surah_number is not None else '',
+    }
+
+
+def _insert_surah_info_after_names(rows: list[dict], *, script_db: str) -> list[dict]:
+    """Insert surah_info between every surah_name → basmala banner (page-leading or mid-page).
+
+    Azhar printed pages use three header slots: name + info + basmala. Those
+    count toward the 15-line page budget; overflow ayah is spilled afterward.
+    """
+    out: list[dict] = []
+    i = 0
+    while i < len(rows):
+        row = rows[i]
+        out.append(row)
+        nxt = rows[i + 1] if i + 1 < len(rows) else None
+        if (
+            row['line_type'] == 'surah_name'
+            and nxt is not None
+            and nxt['line_type'] == 'basmallah'
+        ):
+            surah_number = row.get('surah_number')
+            if surah_number is None:
+                surah_number = nxt.get('surah_number')
+            out.append(_make_surah_info_row(surah_number, script_db=script_db))
+        elif (
+            row['line_type'] == 'surah_name'
+            and nxt is not None
+            and nxt['line_type'] == 'surah_info'
+        ):
+            # Already has info; keep as-is (loop will append it next).
+            pass
+        i += 1
+    return out
+
+
+def _leading_header_count(rows: list[dict]) -> int:
+    n = 0
+    for row in rows:
+        if row['line_type'] in SURAH_HEADER_TYPES:
+            n += 1
+            continue
+        break
+    return n
+
+
+def normalize_surah_header_pages(
+    cur,
+    *,
+    script_db: str,
+    universe: list[int] | None = None,
+    default_lines: int = 15,
+    skip_pages: Iterable[int] | None = None,
+) -> dict:
+    """Azhar geometry: every page stays at ``default_lines`` (usually 15).
+
+    Matches Madinah/QPC page budget: headers consume slots inside the 15, they
+    do not grow the page.
+
+    1. Promote trailing ``surah_name`` onto the next page when that page starts
+       with ``basmallah`` (Shemrly split-header pattern, e.g. 494→495).
+    2. Insert ``surah_info`` between every ``surah_name`` → ``basmallah`` banner
+       (leading or mid-page) so the banner is always 3 slots.
+    3. On pages that *lead* with that banner, keep only
+       ``default_lines - header_count`` ayah rows in the opening block.
+    4. Clamp any page still over ``default_lines`` by spilling trailing ayah
+       words onto the next page of the same surah (e.g. mid-page banner on 498).
+    5. Expand any underfull page back to ``default_lines``.
+    """
+    ensure_surah_info_schema(cur)
+    skip = {int(p) for p in (skip_pages or ())}
+    universe = universe if universe is not None else all_script_word_ids(script_db)
+
+    page_numbers = [
+        int(r[0]) for r in cur.execute(
+            'SELECT DISTINCT page_number FROM pages ORDER BY page_number'
+        ).fetchall()
+    ]
+    promoted = 0
+    for page in list(page_numbers):
+        rows = _page_rows(cur, page)
+        if not rows or rows[-1]['line_type'] != 'surah_name':
+            continue
+        nxt_page = page + 1
+        nxt = _page_rows(cur, nxt_page)
+        if not nxt or nxt[0]['line_type'] != 'basmallah':
+            continue
+        name_row = rows[-1]
+        _replace_page_rows(cur, page, rows[:-1])
+        _replace_page_rows(cur, nxt_page, [name_row] + nxt)
+        promoted += 1
+
+    info_inserted_pages = 0
+    page_numbers = [
+        int(r[0]) for r in cur.execute(
+            'SELECT DISTINCT page_number FROM pages ORDER BY page_number'
+        ).fetchall()
+    ]
+    for page in page_numbers:
+        if page in skip:
+            continue
+        rows = _page_rows(cur, page)
+        if not any(r['line_type'] == 'surah_name' for r in rows):
+            continue
+        updated = _insert_surah_info_after_names(rows, script_db=script_db)
+        if len(updated) != len(rows):
+            _replace_page_rows(cur, page, updated)
+            info_inserted_pages += 1
+
+    spilled_pages = 0
+    page_numbers = [
+        int(r[0]) for r in cur.execute(
+            'SELECT DISTINCT page_number FROM pages ORDER BY page_number'
+        ).fetchall()
+    ]
+    for page in page_numbers:
+        if page in skip:
+            continue
+        rows = _page_rows(cur, page)
+        header_n = _leading_header_count(rows)
+        if header_n < 2:
+            continue
+        # Only pages that open with a surah banner (name … basmala …).
+        if rows[0]['line_type'] != 'surah_name':
+            continue
+        ayah_rows = []
+        cursor = header_n
+        while cursor < len(rows) and rows[cursor]['line_type'] == 'ayah':
+            ayah_rows.append(rows[cursor])
+            cursor += 1
+        trailing = rows[cursor:]
+        ayah_budget = int(default_lines) - header_n - len(trailing)
+        if ayah_budget < 1:
+            continue
+        if len(ayah_rows) <= ayah_budget:
+            continue
+        keep = ayah_rows[:ayah_budget]
+        excess_rows = ayah_rows[ayah_budget:]
+        # When trailing mid-page content forces a cut, pack leading ayah denser
+        # instead of dropping lines that still belong on this page's surah.
+        if trailing and excess_rows:
+            packed_words: list[int] = []
+            for line in ayah_rows:
+                packed_words.extend(
+                    expand_ayah_words(line, universe=universe, script_db=script_db)
+                )
+            text_map = word_texts(script_db, packed_words)
+            chunks = split_words_evenly(packed_words, ayah_budget)
+            keep = []
+            for chunk in chunks:
+                line = {
+                    'line_type': 'ayah',
+                    'is_centered': 0,
+                    'surah_number': ayah_rows[0].get('surah_number'),
+                    'first_word_id': None,
+                    'last_word_id': None,
+                    'line_text': '',
+                }
+                assign_words_to_line(line, chunk, text_map)
+                keep.append(line)
+            _replace_page_rows(cur, page, rows[:header_n] + keep + trailing)
+            spilled_pages += 1
+            continue
+
+        excess_words: list[int] = []
+        for line in excess_rows:
+            excess_words.extend(
+                expand_ayah_words(line, universe=universe, script_db=script_db)
+            )
+        _replace_page_rows(cur, page, rows[:header_n] + keep + trailing)
+
+        if not excess_words:
+            spilled_pages += 1
+            continue
+
+        lines = load_all_lines(cur)
+        start_idx = next(
+            (
+                i for i, line in enumerate(lines)
+                if int(line['page_number']) > page and line['line_type'] == 'ayah'
+            ),
+            None,
+        )
+        if start_idx is None:
+            if keep:
+                last = dict(keep[-1])
+                merged = (
+                    expand_ayah_words(last, universe=universe, script_db=script_db)
+                    + excess_words
+                )
+                text_map = word_texts(script_db, merged)
+                assign_words_to_line(last, merged, text_map)
+                keep[-1] = last
+                _replace_page_rows(cur, page, rows[:header_n] + keep + trailing)
+            spilled_pages += 1
+            continue
+
+        slots = ayah_segment_slots(lines, start_idx)
+        if not slots:
+            spilled_pages += 1
+            continue
+        slot_words = [
+            expand_ayah_words(lines[i], universe=universe, script_db=script_db)
+            for i in slots
+        ]
+        full_stream = excess_words + [w for sw in slot_words for w in sw]
+        text_map = word_texts(script_db, full_stream)
+        capacities = [max(1, len(sw)) for sw in slot_words]
+        capacities[0] = capacities[0] + len(excess_words)
+        cursor = 0
+        for slot_i, line_i in enumerate(slots):
+            if slot_i == len(slots) - 1:
+                chunk = full_stream[cursor:]
+            else:
+                n = capacities[slot_i]
+                chunk = full_stream[cursor:cursor + n]
+                cursor += len(chunk)
+            assign_words_to_line(lines[line_i], chunk, text_map)
+            persist_line(cur, lines[line_i])
+        spilled_pages += 1
+
+    clamped_pages = _clamp_pages_to_line_count(
+        cur,
+        script_db=script_db,
+        universe=universe,
+        default_lines=int(default_lines),
+        skip_pages=skip,
+    )
+
+    filled_pages = _fill_pages_to_line_count(
+        cur,
+        script_db=script_db,
+        universe=universe,
+        default_lines=int(default_lines),
+        skip_pages=skip,
+    )
+
+    return {
+        'promoted_split_headers': promoted,
+        'info_pages': info_inserted_pages,
+        'spilled_pages': spilled_pages,
+        'clamped_pages': clamped_pages,
+        'filled_pages': filled_pages,
+    }
+
+
+def _prepend_words_to_following_ayah(
+    cur,
+    after_page: int,
+    excess_words: list[int],
+    *,
+    script_db: str,
+    universe: list[int] | None,
+) -> bool:
+    """Prepend words onto the next same-surah ayah stream after ``after_page``."""
+    if not excess_words:
+        return True
+    lines = load_all_lines(cur)
+    start_idx = next(
+        (
+            i for i, line in enumerate(lines)
+            if int(line['page_number']) > int(after_page) and line['line_type'] == 'ayah'
+        ),
+        None,
+    )
+    if start_idx is None:
+        return False
+    # Refuse to cross a surah separator between this page and the target ayah.
+    page_last = max(
+        (i for i, line in enumerate(lines) if int(line['page_number']) == int(after_page)),
+        default=None,
+    )
+    if page_last is not None and separator_between(lines, page_last, start_idx):
+        return False
+    slots = ayah_segment_slots(lines, start_idx)
+    if not slots:
+        return False
+    slot_words = [
+        expand_ayah_words(lines[i], universe=universe, script_db=script_db)
+        for i in slots
+    ]
+    full_stream = list(excess_words) + [w for sw in slot_words for w in sw]
+    text_map = word_texts(script_db, full_stream)
+    capacities = [max(1, len(sw)) for sw in slot_words]
+    capacities[0] = capacities[0] + len(excess_words)
+    cursor = 0
+    for slot_i, line_i in enumerate(slots):
+        if slot_i == len(slots) - 1:
+            chunk = full_stream[cursor:]
+        else:
+            n = capacities[slot_i]
+            chunk = full_stream[cursor:cursor + n]
+            cursor += len(chunk)
+        assign_words_to_line(lines[line_i], chunk, text_map)
+        persist_line(cur, lines[line_i])
+    return True
+
+
+def _clamp_pages_to_line_count(
+    cur,
+    *,
+    script_db: str,
+    universe: list[int] | None,
+    default_lines: int,
+    skip_pages: set[int],
+) -> int:
+    """Spill trailing ayah off pages that exceed ``default_lines`` after banners.
+
+    Mid-page ``name + info + basmala`` banners add a third header slot (e.g.
+    page 498). Madinah/QPC keep a hard 15-line page; we do the same by moving
+    the last ayah line's words onto the next page of the same surah. If that
+    would cross a surah fence, densify into the previous ayah of the same block.
+    """
+    clamped = 0
+    page_numbers = [
+        int(r[0]) for r in cur.execute(
+            'SELECT DISTINCT page_number FROM pages ORDER BY page_number'
+        ).fetchall()
+    ]
+    for page in page_numbers:
+        if page in skip_pages:
+            continue
+        guard = 0
+        while guard < 20:
+            guard += 1
+            rows = _page_rows(cur, page)
+            if not rows or len(rows) <= int(default_lines):
+                break
+            last_i = next(
+                (i for i in range(len(rows) - 1, -1, -1) if rows[i]['line_type'] == 'ayah'),
+                None,
+            )
+            if last_i is None:
+                break
+            excess = expand_ayah_words(
+                rows[last_i], universe=universe, script_db=script_db,
+            )
+            kept = rows[:last_i] + rows[last_i + 1:]
+            _replace_page_rows(cur, page, kept)
+            if not excess:
+                clamped += 1
+                continue
+            if _prepend_words_to_following_ayah(
+                cur, page, excess, script_db=script_db, universe=universe,
+            ):
+                clamped += 1
+                continue
+            # Fenced: merge into the previous ayah of this same trailing block.
+            rows2 = _page_rows(cur, page)
+            prev_i = next(
+                (
+                    i for i in range(len(rows2) - 1, -1, -1)
+                    if rows2[i]['line_type'] == 'ayah'
+                ),
+                None,
+            )
+            if prev_i is None:
+                # Nowhere to put the words — put the line back and stop.
+                _replace_page_rows(cur, page, rows)
+                break
+            merged = (
+                expand_ayah_words(rows2[prev_i], universe=universe, script_db=script_db)
+                + excess
+            )
+            text_map = word_texts(script_db, merged)
+            prev = dict(rows2[prev_i])
+            assign_words_to_line(prev, merged, text_map)
+            _replace_page_rows(
+                cur, page, rows2[:prev_i] + [prev] + rows2[prev_i + 1:],
+            )
+            clamped += 1
+    return clamped
+
+
+def _first_ayah_block(rows: list[dict]) -> tuple[int, list[dict], list[dict]]:
+    """Return (block_start_index, ayah_rows, trailing_rows) for the first ayah run."""
+    i = 0
+    while i < len(rows) and rows[i]['line_type'] in SURAH_HEADER_TYPES:
+        i += 1
+    start = i
+    ayah_rows: list[dict] = []
+    while i < len(rows) and rows[i]['line_type'] == 'ayah':
+        ayah_rows.append(rows[i])
+        i += 1
+    return start, ayah_rows, rows[i:]
+
+
+def _ayah_rows_from_words(
+    word_ids: list[int],
+    n_slots: int,
+    *,
+    surah_number,
+    script_db: str,
+) -> list[dict]:
+    ids = list(word_ids)
+    if not ids:
+        return []
+    slots = max(1, min(int(n_slots), len(ids)))
+    chunks = split_words_evenly(ids, slots)
+    text_map = word_texts(script_db, ids)
+    out: list[dict] = []
+    for chunk in chunks:
+        if not chunk:
+            continue
+        line = {
+            'line_type': 'ayah',
+            'is_centered': 0,
+            'surah_number': surah_number,
+            'first_word_id': None,
+            'last_word_id': None,
+            'line_text': '',
+        }
+        assign_words_to_line(line, chunk, text_map)
+        out.append(line)
+    return out
+
+
+def _fill_pages_to_line_count(
+    cur,
+    *,
+    script_db: str,
+    universe: list[int] | None,
+    default_lines: int,
+    skip_pages: set[int],
+) -> int:
+    """Expand underfull pages to ``default_lines``.
+
+    Azhar pages are always 15 lines. A leading surah banner (name + info +
+    basmala) occupies 3 of those slots so 12 ayah lines remain; continuation
+    pages with no banner still get 15 ayah lines (never left short after a
+    promote/spill that removed a trailing surah_name).
+    """
+    filled = 0
+    page_numbers = [
+        int(r[0]) for r in cur.execute(
+            'SELECT DISTINCT page_number FROM pages ORDER BY page_number'
+        ).fetchall()
+    ]
+    for page in page_numbers:
+        if page in skip_pages:
+            continue
+        rows = _page_rows(cur, page)
+        if not rows or len(rows) >= int(default_lines):
+            continue
+        deficit = int(default_lines) - len(rows)
+        block_start, ayah_rows, trailing = _first_ayah_block(rows)
+        if not ayah_rows:
+            continue
+        prefix = rows[:block_start]
+        target_ayah = len(ayah_rows) + deficit
+        words: list[int] = []
+        for line in ayah_rows:
+            words.extend(expand_ayah_words(line, universe=universe, script_db=script_db))
+        if not words:
+            continue
+        new_ayah = _ayah_rows_from_words(
+            words,
+            target_ayah,
+            surah_number=ayah_rows[0].get('surah_number'),
+            script_db=script_db,
+        )
+        new_rows = prefix + new_ayah + trailing
+        if len(new_rows) <= len(rows):
+            continue
+        _replace_page_rows(cur, page, new_rows)
+        filled += 1
+    return filled
+
 
 def _safe_table(name: str) -> str:
     """Allow only simple SQL identifiers for undo table names."""

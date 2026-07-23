@@ -13,9 +13,11 @@ DESTRUCTIVE WARNING
   Only use --force when you intentionally want a clean Shemrly reseed.
   Prefer page-scoped undo in /azhar-layout for ordinary corrections.
 
-After the Shemrly clone, Azhar short-page geometry is applied:
+After the Shemrly clone, Azhar geometry is applied:
   • page 2 (الفاتحة): 6 lines including البسملة
   • page 3 (أول البقرة): 5 lines
+  • surah starts: سورة + معلومات + بسملة + ١٢ سطر آية (١٥ كليًا);
+    Shemrly split headers (name on N / basmala on N+1) are coalesced
 
 Usage:
   python3 pipeline/seed_azhar_layout_db.py
@@ -65,6 +67,25 @@ def _apply_azhar_short_pages(dst: sqlite3.Connection) -> None:
     dst.commit()
 
 
+def _apply_azhar_surah_headers(dst: sqlite3.Connection) -> None:
+    """Name + info + basmala + 12 ayah on full pages; promote split headers."""
+    universe = engine.all_script_word_ids(QURAN_SCRIPT_DATABASE)
+    cur = dst.cursor()
+    skip = {int(r.page) for r in AZHAR.closed_pages}
+    info = engine.normalize_surah_header_pages(
+        cur,
+        script_db=QURAN_SCRIPT_DATABASE,
+        universe=universe,
+        default_lines=int(AZHAR.lines_per_page),
+        skip_pages=skip,
+    )
+    print(
+        f'  surah headers: promoted={info["promoted_split_headers"]} '
+        f'info_pages={info["info_pages"]} spilled={info["spilled_pages"]} '
+        f'filled={info.get("filled_pages", 0)} clamped={info.get("clamped_pages", 0)}'
+    )
+    dst.commit()
+
 def seed(force: bool = False) -> None:
     if not os.path.exists(SHAMARLY_LAYOUT_DATABASE):
         raise SystemExit(f'Missing source layout: {SHAMARLY_LAYOUT_DATABASE}')
@@ -86,7 +107,7 @@ def seed(force: bool = False) -> None:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 page_number INTEGER NOT NULL,
                 line_number INTEGER NOT NULL,
-                line_type TEXT NOT NULL CHECK(line_type IN ('ayah', 'surah_name', 'basmallah')),
+                line_type TEXT NOT NULL CHECK(line_type IN ('ayah', 'surah_name', 'surah_info', 'basmallah')),
                 is_centered INTEGER NOT NULL,
                 first_word_id INTEGER,
                 last_word_id INTEGER,
@@ -167,8 +188,10 @@ def seed(force: bool = False) -> None:
         print(f'Seeded {len(rows)} lines / {page_count} pages → {AZHAR_LAYOUT_DATABASE}')
         print('Applying Azhar short-page geometry…')
         _apply_azhar_short_pages(dst)
+        print('Applying Azhar surah-header geometry…')
+        _apply_azhar_surah_headers(dst)
         final_lines = dst.execute('SELECT COUNT(*) FROM pages').fetchone()[0]
-        print(f'Done: {final_lines} lines after short-page reshape')
+        print(f'Done: {final_lines} lines after Azhar reshape')
     finally:
         src.close()
         dst.close()

@@ -1720,7 +1720,20 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
         display_text = ''
         contains_focus_ayah = False
 
-        if first_word_id is not None and last_word_id is not None:
+        if line_type in ('surah_name', 'surah_info', 'basmallah'):
+            if line_type == 'surah_name':
+                surah_name = _get_surah_name_ar(line_surah)
+                display_text = f'سورة {surah_name}' if surah_name else (line.get('line_text') or '')
+            elif line_type == 'surah_info':
+                display_text = (line.get('line_text') or '').strip()
+                if not display_text and line_surah:
+                    from modules import layout_engine as _layout_engine
+                    display_text = _layout_engine.surah_info_text(
+                        int(line_surah), script_db=QURAN_SCRIPT_DATABASE,
+                    )
+            else:
+                display_text = bismillah
+        elif first_word_id is not None and last_word_id is not None:
             # Walk only ids present in quran_script (Shemrly gaps are skipped).
             for word_pos in sorted(
                 wid for wid in page_word_by_index
@@ -1749,11 +1762,6 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
                 line_words[0]['is_line_start'] = True
                 line_words[-1]['is_line_end'] = True
             display_text = ' '.join(w['text'] for w in line_words)
-        elif line_type == 'surah_name':
-            surah_name = _get_surah_name_ar(line_surah)
-            display_text = f'سورة {surah_name}' if surah_name else (line.get('line_text') or '')
-        elif line_type == 'basmallah':
-            display_text = bismillah
 
         output_lines.append({
             'line_number': int(line['line_number']),

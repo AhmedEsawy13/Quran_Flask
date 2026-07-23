@@ -196,18 +196,23 @@ def test_line_break_does_not_spill_into_next_surah(client, restore_azhar_layout_
     assert len(line3['words']) > 2
     mid = line3['words'][1]
 
-    before_ids = [
-        w['word_index']
-        for ln in page['lines']
-        if ln['line_type'] == 'ayah' and ln['line_number'] <= 4
-        for w in (ln.get('words') or [])
-    ]
+    def imran_ayah_ids(payload):
+        ids = []
+        for ln in payload['lines']:
+            if ln['line_type'] in ('surah_name', 'surah_info', 'basmallah'):
+                break
+            if ln['line_type'] == 'ayah':
+                ids.extend(w['word_index'] for w in (ln.get('words') or []))
+        return ids
+
+    before_ids = imran_ayah_ids(page)
 
     nisa_line = next(
         ln for ln in page['lines']
-        if ln['line_number'] == 7 and ln['line_type'] == 'ayah'
+        if ln['line_type'] == 'ayah' and ln.get('surah_number') == 4
     )
     assert nisa_line['first_word_id'] == 10169
+    nisa_line_no = nisa_line['line_number']
 
     r = client.post('/api/layout-studio/azhar/line-break', json={
         'page_number': 64,
@@ -222,27 +227,26 @@ def test_line_break_does_not_spill_into_next_surah(client, restore_azhar_layout_
     updated_l3 = next(ln for ln in after['lines'] if ln['line_number'] == 3)
     assert updated_l3['last_word_id'] == mid['word_index']
 
-    after_ids = [
-        w['word_index']
-        for ln in after['lines']
-        if ln['line_type'] == 'ayah' and ln['line_number'] <= 4
-        for w in (ln.get('words') or [])
-    ]
-    assert after_ids == before_ids  # same words, redistributed — none deleted
+    assert imran_ayah_ids(after) == before_ids  # same words, redistributed — none deleted
 
-    nisa_after = next(ln for ln in after['lines'] if ln['line_number'] == 7)
+    nisa_after = next(ln for ln in after['lines'] if ln['line_number'] == nisa_line_no)
     assert nisa_after['first_word_id'] == 10169
     nisa_words = [w['word_index'] for w in (nisa_after.get('words') or [])]
     assert all(w >= 10169 for w in nisa_words)
     assert not any(w <= 10162 for w in nisa_words)
 
-    # Last ayah of the surah (L4): shortening would drop words — reject.
-    line4 = next(ln for ln in after['lines'] if ln['line_number'] == 4)
-    assert len(line4['words']) > 2
+    # Last ayah of Al-Imran before the banner: shortening would drop words — reject.
+    last_imran = None
+    for ln in after['lines']:
+        if ln['line_type'] in ('surah_name', 'surah_info', 'basmallah'):
+            break
+        if ln['line_type'] == 'ayah':
+            last_imran = ln
+    assert last_imran and len(last_imran['words']) > 2
     bad = client.post('/api/layout-studio/azhar/line-break', json={
         'page_number': 64,
-        'line_number': 4,
-        'word_id': line4['words'][1]['word_index'],
+        'line_number': last_imran['line_number'],
+        'word_id': last_imran['words'][1]['word_index'],
         'role': 'end',
     })
     assert bad.status_code == 400
@@ -251,7 +255,7 @@ def test_line_break_does_not_spill_into_next_surah(client, restore_azhar_layout_
     # Merge across the surah header must be rejected.
     bad_merge = client.post('/api/layout-studio/azhar/merge-line', json={
         'page_number': 64,
-        'line_number': 4,
+        'line_number': last_imran['line_number'],
     })
     assert bad_merge.status_code == 400
     assert 'سور' in (bad_merge.get_json().get('error') or '')
@@ -270,6 +274,58 @@ def test_azhar_short_page_geometry(client):
     assert p3['lines_per_page'] == 5
 
 
+def test_azhar_surah_header_takes_three_lines(client):
+    """Every page is 15 lines; a leading banner uses 3 of them (12 ayah left).
+
+    Page 495 (الانسان): name + info + basmala + 12 ayah.
+    Page 496 (continuation): still 15 ayah lines — never left short after spill.
+    """
+    p494 = client.get('/api/layout-studio/azhar/page/494').get_json()
+    assert p494['lines']
+    assert p494['lines'][-1]['line_type'] != 'surah_name'
+    assert len(p494['lines']) == 15
+
+    p495 = client.get('/api/layout-studio/azhar/page/495').get_json()
+    types = [ln['line_type'] for ln in p495['lines']]
+    assert types[:3] == ['surah_name', 'surah_info', 'basmallah']
+    assert len(p495['lines']) == 15
+    assert p495['lines_per_page'] == 15
+    ayah = [ln for ln in p495['lines'] if ln['line_type'] == 'ayah']
+    assert len(ayah) == 12
+    assert (p495['lines'][0].get('display_text') or '').startswith('سورة')
+    info = p495['lines'][1].get('display_text') or ''
+    assert 'آياتها' in info
+    assert info.startswith('مكية') or info.startswith('مدنية')
+
+    p496 = client.get('/api/layout-studio/azhar/page/496').get_json()
+    assert len(p496['lines']) == 15
+    assert p496['lines_per_page'] == 15
+    assert all(ln['line_type'] == 'ayah' for ln in p496['lines'])
+
+    # Mid-page banner (e.g. النبأ on 498): name+info+basmala still inside 15,
+    # with overflow ayah spilled onto the next page.
+    p498 = client.get('/api/layout-studio/azhar/page/498').get_json()
+    assert len(p498['lines']) == 15
+    types498 = [ln['line_type'] for ln in p498['lines']]
+    assert 'surah_name' in types498
+    assert 'surah_info' in types498
+    assert 'basmallah' in types498
+    assert types498.count('ayah') == 12
+    name_i = types498.index('surah_name')
+    assert types498[name_i:name_i + 3] == ['surah_name', 'surah_info', 'basmallah']
+
+    p499 = client.get('/api/layout-studio/azhar/page/499').get_json()
+    assert len(p499['lines']) == 15
+
+    # Same-page starts (e.g. المزمل) also get the info line and stay at 15.
+    p490 = client.get('/api/layout-studio/azhar/page/490').get_json()
+    assert [ln['line_type'] for ln in p490['lines'][:3]] == [
+        'surah_name', 'surah_info', 'basmallah',
+    ]
+    assert len([ln for ln in p490['lines'] if ln['line_type'] == 'ayah']) == 12
+    assert len(p490['lines']) == 15
+
+
 def test_layout_engine_surah_fence_unit():
     from modules.layout_engine import ayah_segment_slots, is_surah_separator
 
@@ -277,13 +333,15 @@ def test_layout_engine_surah_fence_unit():
         {'line_type': 'ayah', 'page_number': 64, 'line_number': 3},
         {'line_type': 'ayah', 'page_number': 64, 'line_number': 4},
         {'line_type': 'surah_name', 'page_number': 64, 'line_number': 5},
-        {'line_type': 'basmallah', 'page_number': 64, 'line_number': 6},
-        {'line_type': 'ayah', 'page_number': 64, 'line_number': 7},
+        {'line_type': 'surah_info', 'page_number': 64, 'line_number': 6},
+        {'line_type': 'basmallah', 'page_number': 64, 'line_number': 7},
+        {'line_type': 'ayah', 'page_number': 64, 'line_number': 8},
     ]
     assert is_surah_separator(lines[2])
+    assert is_surah_separator(lines[3])
     assert ayah_segment_slots(lines, 0) == [0, 1]
     assert ayah_segment_slots(lines, 1) == [1]
-    assert ayah_segment_slots(lines, 4) == [4]
+    assert ayah_segment_slots(lines, 5) == [5]
 
 
 def test_layout_engine_module_imports():

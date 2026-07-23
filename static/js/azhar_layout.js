@@ -396,6 +396,7 @@
         window.AtharMushaf.renderMushafLines(container, payload.lines || [], {
             lineClass: 'az-line',
             surahClass: 'az-line az-line-special',
+            surahInfoClass: 'az-line az-line-special az-line-surah-info',
             basmalaClass: 'az-line az-line-special',
             wrapSpecial: false,
             contentClass: 'az-line-inner',

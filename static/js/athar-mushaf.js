@@ -500,6 +500,7 @@
     function lineKind(line) {
         const type = line && line.line_type;
         if (type === 'surah_name') return 'surah';
+        if (type === 'surah_info') return 'surahInfo';
         if (type === 'basmallah') {
             const isFatihaOpening = (line.words || []).some(word =>
                 Number(word.surah) === 1 && Number(word.ayah) === 1);
@@ -531,6 +532,7 @@
             centeredClass: '',
             contentClass: '',
             surahClass: '',
+            surahInfoClass: '',
             basmalaClass: '',
             wordClass: '',
             wrapContent: true,
@@ -555,7 +557,9 @@
             let root;
             if (kind !== 'content') {
                 const special = document.createElement('div');
-                special.className = kind === 'surah' ? config.surahClass : config.basmalaClass;
+                special.className = kind === 'surah' ? config.surahClass
+                    : kind === 'surahInfo' ? (config.surahInfoClass || config.surahClass)
+                    : config.basmalaClass;
                 const specialContext = { line, lineIndex, kind };
                 special.textContent = config.textForSpecial(specialContext);
                 if (typeof config.decorateSpecial === 'function') config.decorateSpecial(special, specialContext);
