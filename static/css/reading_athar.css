@@ -479,6 +479,8 @@ body.athar-reading .ayah-container {
     border-radius: 18px;
     background: var(--athar-surface);
     box-shadow: 0 24px 70px -55px rgba(24, 23, 15, 0.58);
+    /* Absolute .waqf-stack overlays can protrude; never clip them. */
+    overflow: visible;
 }
 
 body.athar-reading #quran-text {
@@ -490,26 +492,26 @@ body.athar-reading #quran-text {
     width: 100%;
     max-width: 980px;
     margin: 1.5rem auto 10px;
-    padding: 14px;
+    padding: 18px 14px 14px;
     border-radius: 16px;
-    gap: 0.4rem 0.2rem;
+    /* Clear absolute waqf stacks between wrapped rows. */
+    gap: 0.75em 0.2rem;
     direction: rtl;
     text-align: center;
     font-size: clamp(30px, 4vw, 42px);
-    /* Room for up to ~3 overlay rows above the ink. */
-    line-height: 2.35;
+    line-height: 1.6;
     word-break: normal;
     overflow-wrap: break-word;
 }
 
 body.athar-reading[data-font-type="indopak"][data-waqf-mode="original"] #quran-text {
-    gap: 0.5rem 0.9rem;
+    gap: 1em 0.9rem;
 }
 
 body.athar-reading[data-font-type="digital_khatt"] #quran-text,
 body.athar-reading[data-font-type="old_madina"] #quran-text {
     column-gap: var(--khatt-column-gap, 0.2rem);
-    row-gap: var(--khatt-row-gap, 0.4rem);
+    row-gap: var(--khatt-row-gap, 0.75em);
 }
 
 body.athar-reading.dark-mode[data-font-type="digital_khatt"] #quran-text {
@@ -533,7 +535,10 @@ body.athar-reading .word-token {
     /* Shared lift for .waqf-stack bottoms — same em on every word so
        row 1 / row 2 of adjacent الهندي columns line up horizontally. */
     --waqf-lift: 1.12em;
-    padding-top: 0;
+    /* Absolute stacks don't grow the box; reserve headroom so the next
+       flex row cannot paint over marks. Lift already sits above the ink,
+       so only mark-row height needs padding. */
+    padding-top: 0.85em;
     line-height: 1.6;
     border-radius: 0.18em;
     transition:
@@ -541,6 +546,11 @@ body.athar-reading .word-token {
         background-color var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease),
         box-shadow var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease),
         transform var(--athar-motion-fast, 160ms) var(--athar-ease, ease);
+}
+
+body.athar-reading[data-font-type="indopak"] .word-token {
+    /* الهندي compounds can stack 2–3 mark rows above the ink. */
+    padding-top: 1.35em;
 }
 
 body.athar-reading[data-font-type="digital_khatt"] .word-token,
@@ -578,6 +588,7 @@ body.athar-reading .waqf-stack {
     top: auto;
     bottom: var(--waqf-lift, 1.12em);
     left: 50%;
+    z-index: 2;
     display: inline-flex;
     flex-flow: row nowrap;
     align-items: flex-end;
@@ -609,7 +620,8 @@ body.athar-reading .waqf-symbol {
     align-items: center;
     justify-content: center;
     min-width: 0.7em;
-    height: 1em;
+    min-height: 1em;
+    height: auto;
     color: var(--waqf-color, #c2410c);
     font-family: 'UthmanicHafs', serif;
     font-size: 0.72em;
@@ -635,14 +647,14 @@ body.athar-reading .waqf-symbol.waqf-hindi-native {
     font-family: 'IndoPakNastaleeq2', 'UthmanicHafs', serif;
     font-size: 0.62em;
     min-width: 0.65em;
-    height: 0.95em;
+    min-height: 0.95em;
 }
 
 /* Safety net if a full-letter alias (ط/ز/قف) still reaches the overlay. */
 body.athar-reading .waqf-symbol.waqf-letter-mark {
     font-size: 0.48em;
     min-width: 0.55em;
-    height: 0.85em;
+    min-height: 0.85em;
 }
 
 body.athar-reading #transliteration-container,
