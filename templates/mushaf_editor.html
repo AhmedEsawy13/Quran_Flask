@@ -35,12 +35,14 @@
     {{ athar_app_bar() }}
 
     <div class="ed-login" id="ed-login" hidden>
-        <form class="ed-login-card athar-surface" id="ed-login-form" autocomplete="off">
+        <form class="ed-login-card athar-surface" id="ed-login-form" autocomplete="on">
             <p class="athar-kicker">— محرّر المصحف</p>
-            <h1 class="ed-login-title athar-display">أدخل رمز الدعوة</h1>
-            <p class="ed-login-hint">رمز شخصي لكل مراجع. التعديلات تبقى مسودّة حتى يعتمدها المشرف.</p>
-            <label class="ed-login-label" for="ed-login-code">رمز الدخول</label>
-            <input class="athar-field ed-login-input" type="password" id="ed-login-code" name="code" required autocomplete="current-password" dir="ltr">
+            <h1 class="ed-login-title athar-display">تسجيل الدخول</h1>
+            <p class="ed-login-hint">حساب شخصي لكل مراجع. التعديلات تبقى مسودّة حتى يعتمدها المشرف.</p>
+            <label class="ed-login-label" for="ed-login-username">اسم المستخدم</label>
+            <input class="athar-field ed-login-input" type="text" id="ed-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
+            <label class="ed-login-label" for="ed-login-password">كلمة المرور</label>
+            <input class="athar-field ed-login-input" type="password" id="ed-login-password" name="password" required autocomplete="current-password" dir="ltr">
             <p class="ed-login-error" id="ed-login-error" role="alert" hidden></p>
             <button class="ed-login-submit" type="submit" id="ed-login-submit">دخول</button>
         </form>
@@ -62,7 +64,7 @@
             <div class="ed-session" id="ed-session" hidden>
                 <span class="ed-session-name ed-bar-extra" id="ed-session-name"></span>
                 <button class="ed-publish-btn" id="ed-publish" type="button" hidden title="مراجعة المسودّة ثم نشرها للقراء">اعتماد</button>
-                <button class="ed-invites-btn ed-bar-extra" id="ed-invites-open" type="button" hidden title="إدارة رموز الدعوة">دعوات</button>
+                <button class="ed-invites-btn ed-bar-extra" id="ed-invites-open" type="button" hidden title="إدارة حسابات المراجعين">حسابات</button>
                 <button class="ed-logout-btn" id="ed-logout" type="button" title="خروج">خروج</button>
             </div>
 
@@ -190,28 +192,30 @@
     <div class="ed-invites-backdrop" id="ed-invites-backdrop" hidden></div>
     <div class="ed-invites-panel athar-surface" id="ed-invites-panel" hidden role="dialog" aria-modal="true" aria-labelledby="ed-invites-title">
         <div class="ed-invites-head">
-            <h2 class="ed-invites-title" id="ed-invites-title">رموز الدعوة</h2>
+            <h2 class="ed-invites-title" id="ed-invites-title">حسابات المراجعين</h2>
             <button class="ed-popup-close athar-icon-button" id="ed-invites-close" type="button" aria-label="إغلاق"><i class="fas fa-xmark" aria-hidden="true"></i></button>
         </div>
-        <p class="ed-invites-hint">أنشئ رمزاً لكل مراجع. يُعرض الرمز مرة واحدة فقط عند الإنشاء — انسخه وأرسله لهم.</p>
+        <p class="ed-invites-hint">أنشئ حساباً لكل مراجع (اسم مستخدم + كلمة مرور). تُعرض كلمة المرور مرة واحدة عند الإنشاء — انسخها وأرسلها لهم.</p>
         <form class="ed-invites-form" id="ed-invites-form" autocomplete="off">
-            <label class="ed-invites-label" for="ed-invite-name">الاسم</label>
+            <label class="ed-invites-label" for="ed-invite-name">الاسم الظاهر</label>
             <input class="athar-field" id="ed-invite-name" name="name" required maxlength="80" placeholder="اسم المراجع">
+            <label class="ed-invites-label" for="ed-invite-username">اسم المستخدم</label>
+            <input class="athar-field" id="ed-invite-username" name="username" required maxlength="32" dir="ltr" placeholder="mac" autocomplete="off" spellcheck="false">
             <label class="ed-invites-label" for="ed-invite-role">الصلاحية</label>
             <select class="athar-field" id="ed-invite-role" name="role">
                 <option value="editor">مراجع</option>
                 <option value="admin">مشرف</option>
             </select>
-            <label class="ed-invites-label" for="ed-invite-code">رمز مخصص <span class="ed-invites-optional">(اختياري)</span></label>
-            <input class="athar-field" id="ed-invite-code" name="code" dir="ltr" maxlength="64" placeholder="يُولَّد تلقائياً إن تُرك فارغاً" autocomplete="off">
-            <button class="ed-login-submit" type="submit" id="ed-invite-submit">إنشاء دعوة</button>
+            <label class="ed-invites-label" for="ed-invite-password">كلمة المرور <span class="ed-invites-optional">(اختياري — تُولَّد إن تُركت فارغة)</span></label>
+            <input class="athar-field" id="ed-invite-password" name="password" type="text" dir="ltr" maxlength="64" placeholder="يُولَّد تلقائياً إن تُرك فارغاً" autocomplete="new-password">
+            <button class="ed-login-submit" type="submit" id="ed-invite-submit">إنشاء حساب</button>
         </form>
         <div class="ed-invite-created" id="ed-invite-created" hidden>
-            <p class="ed-invite-created-label">انسخ الرمز الآن — لن يظهر مرة أخرى:</p>
+            <p class="ed-invite-created-label">انسخ بيانات الدخول الآن — لن تظهر كلمة المرور مرة أخرى:</p>
             <code class="ed-invite-created-code" id="ed-invite-created-code" dir="ltr"></code>
             <button class="ed-invite-copy" type="button" id="ed-invite-copy">نسخ</button>
         </div>
-        <ul class="ed-invites-list" id="ed-invites-list" aria-label="الدعوات الحالية"></ul>
+        <ul class="ed-invites-list" id="ed-invites-list" aria-label="الحسابات الحالية"></ul>
     </div>
 
     <script src="{{ static_hash('js/mushaf_editor.js') }}"></script>

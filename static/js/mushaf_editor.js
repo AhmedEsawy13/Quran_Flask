@@ -97,7 +97,8 @@
         audit: $('ed-audit'),
         login: $('ed-login'),
         loginForm: $('ed-login-form'),
-        loginCode: $('ed-login-code'),
+        loginUsername: $('ed-login-username'),
+        loginPassword: $('ed-login-password'),
         loginError: $('ed-login-error'),
         loginSubmit: $('ed-login-submit'),
         session: $('ed-session'),
@@ -120,8 +121,9 @@
         invitesClose: $('ed-invites-close'),
         invitesForm: $('ed-invites-form'),
         inviteName: $('ed-invite-name'),
+        inviteUsername: $('ed-invite-username'),
         inviteRole: $('ed-invite-role'),
-        inviteCode: $('ed-invite-code'),
+        invitePassword: $('ed-invite-password'),
         inviteSubmit: $('ed-invite-submit'),
         inviteCreated: $('ed-invite-created'),
         inviteCreatedCode: $('ed-invite-created-code'),
@@ -1059,9 +1061,9 @@
             els.loginError.hidden = true;
             els.loginError.textContent = '';
         }
-        if (els.loginCode) {
-            els.loginCode.value = '';
-            requestAnimationFrame(() => els.loginCode.focus());
+        if (els.loginPassword) els.loginPassword.value = '';
+        if (els.loginUsername) {
+            requestAnimationFrame(() => els.loginUsername.focus());
         }
     }
     function hideLogin() {
@@ -1099,7 +1101,8 @@
             li.className = 'ed-invite-row' + (inv.active ? '' : ' is-revoked');
             const name = document.createElement('span');
             name.className = 'ed-invite-row-name';
-            name.textContent = inv.name || '—';
+            const uname = inv.username ? ` (@${inv.username})` : '';
+            name.textContent = `${inv.name || '—'}${uname}`;
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'ed-invite-revoke';
@@ -1137,10 +1140,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ active }),
             });
-            setStatus(active ? 'أُعيد تفعيل الدعوة' : 'أُلغيت الدعوة');
+            setStatus(active ? 'أُعيد تفعيل الحساب' : 'أُلغي الحساب');
             await loadInvites();
         } catch (_e) {
-            setStatus('تعذّر تحديث الدعوة', true);
+            setStatus('تعذّر تحديث الحساب', true);
         }
     }
     if (els.invitesOpen) els.invitesOpen.addEventListener('click', openInvitesPanel);
@@ -1152,9 +1155,9 @@
             if (!code) return;
             try {
                 await navigator.clipboard.writeText(code);
-                setStatus('تم نسخ الرمز');
+                setStatus('تم نسخ بيانات الدخول');
             } catch (_e) {
-                setStatus('انسخ الرمز يدوياً', true);
+                setStatus('انسخ البيانات يدوياً', true);
             }
         });
     }
@@ -1162,28 +1165,35 @@
         els.invitesForm.addEventListener('submit', async e => {
             e.preventDefault();
             const name = (els.inviteName && els.inviteName.value || '').trim();
+            const username = (els.inviteUsername && els.inviteUsername.value || '').trim();
             const role = (els.inviteRole && els.inviteRole.value) || 'editor';
-            const code = (els.inviteCode && els.inviteCode.value || '').trim();
-            if (!name) return;
+            const password = (els.invitePassword && els.invitePassword.value || '').trim();
+            if (!name || !username) return;
             if (els.inviteSubmit) els.inviteSubmit.disabled = true;
             try {
-                const body = { name, role };
-                if (code) body.code = code;
+                const body = { name, username, role };
+                if (password) body.password = password;
                 const data = await window.AtharApi.json('/api/mushaf-editor/invites', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(body),
                 });
                 if (els.inviteCreated && els.inviteCreatedCode) {
-                    els.inviteCreatedCode.textContent = data.code || '';
+                    const u = data.username || username;
+                    const p = data.password || '';
+                    els.inviteCreatedCode.textContent = `username: ${u}\npassword: ${p}`;
                     els.inviteCreated.hidden = false;
                 }
                 if (els.invitesForm) els.invitesForm.reset();
-                setStatus(`أُنشئت دعوة لـ ${name}`);
+                setStatus(`أُنشئ حساب لـ ${name}`);
                 await loadInvites();
             } catch (err) {
                 const msg = err && err.data && err.data.error;
-                setStatus(msg === 'code already used' ? 'الرمز مستخدم مسبقاً' : 'تعذّر إنشاء الدعوة', true);
+                let status = 'تعذّر إنشاء الحساب';
+                if (msg === 'username already used') status = 'اسم المستخدم مستخدم مسبقاً';
+                else if (msg === 'invalid username') status = 'اسم مستخدم غير صالح';
+                else if (msg === 'password too short') status = 'كلمة المرور قصيرة جداً';
+                setStatus(status, true);
             } finally {
                 if (els.inviteSubmit) els.inviteSubmit.disabled = false;
             }
@@ -1253,23 +1263,25 @@
     if (els.loginForm) {
         els.loginForm.addEventListener('submit', async e => {
             e.preventDefault();
-            const code = (els.loginCode && els.loginCode.value || '').trim();
-            if (!code) return;
+            const username = (els.loginUsername && els.loginUsername.value || '').trim();
+            const password = (els.loginPassword && els.loginPassword.value || '');
+            if (!username || !password) return;
             els.loginSubmit.disabled = true;
             if (els.loginError) els.loginError.hidden = true;
             try {
                 const data = await window.AtharApi.json('/api/mushaf-editor/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code }),
+                    body: JSON.stringify({ username, password }),
                 });
                 state.user = data.user || null;
                 state.cloud = true;
                 await enterEditor();
             } catch (err) {
                 if (els.loginError) {
-                    els.loginError.textContent = (err && err.data && err.data.error === 'invalid code')
-                        ? 'رمز غير صالح'
+                    const code = err && err.data && err.data.error;
+                    els.loginError.textContent = code === 'invalid credentials'
+                        ? 'اسم المستخدم أو كلمة المرور غير صحيحة'
                         : 'تعذّر تسجيل الدخول';
                     els.loginError.hidden = false;
                 }

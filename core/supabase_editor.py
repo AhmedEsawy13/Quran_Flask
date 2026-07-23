@@ -9,15 +9,19 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
+import re
 import time
 from datetime import datetime, timezone
 from typing import Any
 
 import requests
+from werkzeug.security import check_password_hash, generate_password_hash
 
 logger = logging.getLogger(__name__)
 
 _TIMEOUT = 20
+_USERNAME_RE = re.compile(r'^[a-zA-Z0-9._-]{3,32}$')
+MIN_PASSWORD_LEN = 8
 
 
 def _now_iso() -> str:
@@ -44,10 +48,42 @@ def _session_secret() -> str:
 
 
 def hash_invite_code(plaintext: str) -> str:
-    """SHA-256(code + pepper). Pepper = EDITOR_SESSION_SECRET."""
+    """SHA-256(code + pepper). Pepper = EDITOR_SESSION_SECRET.
+
+    Legacy helper kept for older rows; new accounts use password_hash.
+    """
     raw = (plaintext or '').strip().encode('utf-8')
     pepper = _session_secret().encode('utf-8')
     return hashlib.sha256(pepper + b':' + raw).hexdigest()
+
+
+def normalize_username(username: str) -> str:
+    return (username or '').strip().lower()
+
+
+def validate_username(username: str) -> str | None:
+    """Return normalized username or None if invalid."""
+    raw = (username or '').strip()
+    if not _USERNAME_RE.fullmatch(raw):
+        return None
+    return raw.lower()
+
+
+def validate_password(password: str) -> bool:
+    return len((password or '').strip()) >= MIN_PASSWORD_LEN
+
+
+def hash_password(password: str) -> str:
+    return generate_password_hash((password or '').strip())
+
+
+def verify_password(password_hash: str | None, password: str) -> bool:
+    if not password_hash or not password:
+        return False
+    try:
+        return check_password_hash(password_hash, password.strip())
+    except (ValueError, TypeError):
+        return False
 
 
 def _headers(prefer: str | None = None) -> dict[str, str]:
@@ -88,14 +124,34 @@ def _request(method: str, path: str, *, params: dict | None = None,
     return resp.json()
 
 
+def find_invite_by_username(username: str) -> dict | None:
+    """Lookup active account by username (case-insensitive). Includes password_hash."""
+    uname = normalize_username(username)
+    if not uname:
+        return None
+    rows = _request(
+        'GET', 'editor_invites',
+        params={
+            'username': f'eq.{uname}',
+            'active': 'eq.true',
+            'select': 'id,display_name,role,active,username,password_hash',
+            'limit': '1',
+        },
+    )
+    if not rows:
+        return None
+    return rows[0]
+
+
 def find_invite_by_code(plaintext: str) -> dict | None:
+    """Legacy invite-code lookup (kept for migration / emergency)."""
     code_hash = hash_invite_code(plaintext)
     rows = _request(
         'GET', 'editor_invites',
         params={
             'code_hash': f'eq.{code_hash}',
             'active': 'eq.true',
-            'select': 'id,display_name,role,active',
+            'select': 'id,display_name,role,active,username',
             'limit': '1',
         },
     )
@@ -116,7 +172,7 @@ def find_active_invite_by_id(invite_id: str) -> dict | None:
         params={
             'id': f'eq.{invite_id}',
             'active': 'eq.true',
-            'select': 'id,display_name,role,active',
+            'select': 'id,display_name,role,active,username',
             'limit': '1',
         },
     )
@@ -133,25 +189,71 @@ def touch_invite(invite_id: str) -> None:
     )
 
 
-def insert_invite(*, display_name: str, role: str, code_hash: str) -> dict:
+def insert_invite(
+    *,
+    display_name: str,
+    role: str,
+    username: str,
+    password_hash: str,
+    code_hash: str | None = None,
+) -> dict:
+    body: dict[str, Any] = {
+        'display_name': display_name,
+        'role': role,
+        'username': normalize_username(username),
+        'password_hash': password_hash,
+        'active': True,
+    }
+    if code_hash:
+        body['code_hash'] = code_hash
     rows = _request(
         'POST', 'editor_invites',
-        json_body={
-            'display_name': display_name,
-            'role': role,
-            'code_hash': code_hash,
-            'active': True,
-        },
+        json_body=body,
         prefer='return=representation',
     )
     return rows[0] if rows else {}
+
+
+def set_invite_credentials(
+    *,
+    invite_id: str | None = None,
+    display_name: str | None = None,
+    username: str | None = None,
+    password_hash: str | None = None,
+) -> dict | None:
+    """Attach/update username and/or password on an existing invite row."""
+    body: dict[str, Any] = {}
+    if username is not None:
+        body['username'] = normalize_username(username)
+    if password_hash is not None:
+        body['password_hash'] = password_hash
+    if not body:
+        raise ValueError('username or password_hash required')
+    params: dict[str, str] = {
+        'select': 'id,display_name,role,active,username',
+    }
+    if invite_id:
+        params['id'] = f'eq.{invite_id}'
+    elif display_name:
+        params['display_name'] = f'eq.{display_name.strip()}'
+    else:
+        raise ValueError('invite_id or display_name required')
+    rows = _request(
+        'PATCH', 'editor_invites',
+        params=params,
+        json_body=body,
+        prefer='return=representation',
+    )
+    if not rows:
+        return None
+    return rows[0] if isinstance(rows, list) else rows
 
 
 def list_invites() -> list[dict]:
     return _request(
         'GET', 'editor_invites',
         params={
-            'select': 'id,display_name,role,active,created_at,last_used_at',
+            'select': 'id,display_name,role,active,username,created_at,last_used_at',
             'order': 'created_at.desc',
         },
     ) or []
@@ -160,7 +262,7 @@ def list_invites() -> list[dict]:
 def set_invite_active(invite_id: str, active: bool) -> dict | None:
     rows = _request(
         'PATCH', 'editor_invites',
-        params={'id': f'eq.{invite_id}', 'select': 'id,display_name,role,active'},
+        params={'id': f'eq.{invite_id}', 'select': 'id,display_name,role,active,username'},
         json_body={'active': active},
         prefer='return=representation',
     )

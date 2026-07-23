@@ -4,10 +4,12 @@
 
 create extension if not exists pgcrypto;
 
--- Per-person invite codes (store hash only; plaintext shown once at creation).
+-- Editor accounts (username + password). code_hash is legacy/optional.
 create table if not exists editor_invites (
   id uuid primary key default gen_random_uuid(),
-  code_hash text not null unique,
+  code_hash text unique,
+  username text,
+  password_hash text,
   display_name text not null,
   role text not null default 'editor'
     check (role in ('editor', 'admin')),
@@ -15,6 +17,10 @@ create table if not exists editor_invites (
   created_at timestamptz not null default now(),
   last_used_at timestamptz
 );
+
+create unique index if not exists editor_invites_username_lower_idx
+  on editor_invites (lower(username))
+  where username is not null;
 
 -- Draft + published marks. edition is free text so future mushafs plug in.
 -- token_index is 0-based offset within the ayah (matches layout word_id - first_id).

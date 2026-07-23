@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Create a mushaf-editor account (username + password → editor_invites).
+"""Set username + password on an existing editor_invites row.
 
-Requires SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY.
-Run the password-auth migration first if the table is older:
-
-    pipeline/supabase_editor_password_auth.sql
+Use after running pipeline/supabase_editor_password_auth.sql so legacy
+invite-only accounts can log in with username/password.
 """
 from __future__ import annotations
 
@@ -21,10 +19,11 @@ from core import supabase_editor as sb  # noqa: E402
 
 
 def main() -> int:
-    p = argparse.ArgumentParser(description='Create a mushaf-editor account')
-    p.add_argument('--name', required=True, help='Display name shown in the editor')
-    p.add_argument('--username', required=True, help='Login username (3–32 chars)')
-    p.add_argument('--role', choices=('editor', 'admin'), default='editor')
+    p = argparse.ArgumentParser(description='Set editor account username/password')
+    g = p.add_mutually_exclusive_group(required=True)
+    g.add_argument('--id', help='editor_invites.id')
+    g.add_argument('--name', help='Match display_name exactly')
+    p.add_argument('--username', required=True, help='Login username')
     p.add_argument('--password', default='', help='Password (generated if omitted)')
     args = p.parse_args()
 
@@ -43,18 +42,23 @@ def main() -> int:
         return 1
 
     try:
-        row = sb.insert_invite(
-            display_name=args.name.strip(),
-            role=args.role,
+        row = sb.set_invite_credentials(
+            invite_id=(args.id or '').strip() or None,
+            display_name=(args.name or '').strip() or None,
             username=username,
             password_hash=sb.hash_password(password),
         )
     except sb.SupabaseEditorError as e:
-        print(f'Create failed: {e}', file=sys.stderr)
+        print(f'Update failed: {e}', file=sys.stderr)
+        print('Did you run pipeline/supabase_editor_password_auth.sql?', file=sys.stderr)
         return 1
 
-    print(f"Created account id={row.get('id')} name={args.name!r} "
-          f"username={username!r} role={args.role}")
+    if not row:
+        print('No matching invite found.', file=sys.stderr)
+        return 1
+
+    print(f"Updated id={row.get('id')} name={row.get('display_name')!r} "
+          f"username={row.get('username')!r}")
     print(f'Password (give once / store now): {password}')
     return 0
 

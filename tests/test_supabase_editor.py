@@ -20,7 +20,7 @@ class FakeSupabase:
     """Minimal in-memory stand-in for PostgREST editor_* tables."""
 
     def __init__(self):
-        self.invites = {}  # code_hash -> invite
+        self.invites = {}  # id -> invite
         self.marks = {}  # (edition,surah,ayah,token_index,status) -> row
         self.progress = {}
         self.audit = []
@@ -115,7 +115,9 @@ class FakeSupabase:
         if table == 'editor_invites':
             if method == 'GET':
                 code_hash = (params.get('code_hash') or '').replace('eq.', '')
+                username = (params.get('username') or '').replace('eq.', '').lower()
                 invite_id = (params.get('id') or '').replace('eq.', '')
+                active = params.get('active', 'eq.true')
                 if invite_id:
                     out = [
                         {
@@ -123,63 +125,100 @@ class FakeSupabase:
                             'display_name': inv['display_name'],
                             'role': inv['role'],
                             'active': inv.get('active', True),
+                            'username': inv.get('username') or '',
                         }
                         for inv in self.invites.values()
-                        if inv['id'] == invite_id and inv.get('active', True)
+                        if inv['id'] == invite_id and (
+                            active != 'eq.true' or inv.get('active', True)
+                        )
                     ]
                     return Resp(200, out[:1])
-                if not code_hash:
-                    # list all
-                    out = []
+                if username:
                     for inv in self.invites.values():
-                        out.append({
-                            'id': inv['id'],
-                            'display_name': inv['display_name'],
-                            'role': inv['role'],
-                            'active': inv.get('active', True),
-                            'created_at': inv.get('created_at'),
-                            'last_used_at': inv.get('last_used_at'),
-                        })
-                    return Resp(200, out)
-                active = params.get('active', 'eq.true')
+                        if (inv.get('username') or '').lower() == username and (
+                            active != 'eq.true' or inv.get('active', True)
+                        ):
+                            return Resp(200, [{
+                                'id': inv['id'],
+                                'display_name': inv['display_name'],
+                                'role': inv['role'],
+                                'active': inv['active'],
+                                'username': inv.get('username') or '',
+                                'password_hash': inv.get('password_hash'),
+                            }])
+                    return Resp(200, [])
+                if code_hash:
+                    for inv in self.invites.values():
+                        if inv.get('code_hash') == code_hash and (
+                            active != 'eq.true' or inv.get('active')
+                        ):
+                            return Resp(200, [{
+                                'id': inv['id'],
+                                'display_name': inv['display_name'],
+                                'role': inv['role'],
+                                'active': inv['active'],
+                                'username': inv.get('username') or '',
+                            }])
+                    return Resp(200, [])
+                # list all
+                out = []
                 for inv in self.invites.values():
-                    if inv['code_hash'] == code_hash and (
-                        active != 'eq.true' or inv.get('active')
-                    ):
-                        return Resp(200, [{
-                            'id': inv['id'],
-                            'display_name': inv['display_name'],
-                            'role': inv['role'],
-                            'active': inv['active'],
-                        }])
-                return Resp(200, [])
+                    out.append({
+                        'id': inv['id'],
+                        'display_name': inv['display_name'],
+                        'role': inv['role'],
+                        'active': inv.get('active', True),
+                        'username': inv.get('username') or '',
+                        'created_at': inv.get('created_at'),
+                        'last_used_at': inv.get('last_used_at'),
+                    })
+                return Resp(200, out)
             if method == 'PATCH':
                 invite_id = (params.get('id') or '').replace('eq.', '')
+                display_name = (params.get('display_name') or '').replace('eq.', '')
                 body = json_body or {}
                 for inv in self.invites.values():
-                    if inv['id'] == invite_id:
-                        if 'active' in body:
-                            inv['active'] = bool(body['active'])
-                        if 'last_used_at' in body:
-                            inv['last_used_at'] = body['last_used_at']
-                        return Resp(200, [{
-                            'id': inv['id'],
-                            'display_name': inv['display_name'],
-                            'role': inv['role'],
-                            'active': inv.get('active', True),
-                        }])
+                    match = (
+                        (invite_id and inv['id'] == invite_id)
+                        or (display_name and inv['display_name'] == display_name)
+                    )
+                    if not match:
+                        continue
+                    if 'active' in body:
+                        inv['active'] = bool(body['active'])
+                    if 'last_used_at' in body:
+                        inv['last_used_at'] = body['last_used_at']
+                    if 'username' in body:
+                        inv['username'] = body['username']
+                    if 'password_hash' in body:
+                        inv['password_hash'] = body['password_hash']
+                    return Resp(200, [{
+                        'id': inv['id'],
+                        'display_name': inv['display_name'],
+                        'role': inv['role'],
+                        'active': inv.get('active', True),
+                        'username': inv.get('username') or '',
+                    }])
                 return Resp(200, [])
             if method == 'POST':
                 body = json_body or {}
+                uname = (body.get('username') or '').lower()
+                if uname and any(
+                    (inv.get('username') or '').lower() == uname
+                    for inv in self.invites.values()
+                ):
+                    return Resp(409, {'code': '23505', 'message': 'duplicate username'})
                 inv = {
                     'id': body.get('id') or f"inv-{len(self.invites)+1}",
-                    'code_hash': body['code_hash'],
+                    'code_hash': body.get('code_hash'),
+                    'username': uname,
+                    'password_hash': body.get('password_hash'),
                     'display_name': body['display_name'],
                     'role': body.get('role') or 'editor',
                     'active': True,
                     'created_at': '2026-01-01T00:00:00Z',
                 }
-                self.invites[inv['code_hash']] = inv
+                self.invites[inv['id']] = inv
                 return Resp(201, [inv])
 
         if table == 'editor_marks':
@@ -301,23 +340,25 @@ def cloud(monkeypatch):
     return fake
 
 
-def _seed_invite(fake: FakeSupabase, *, name='Helper', role='editor', code='helper-code'):
-    h = sb.hash_invite_code(code)
+def _seed_invite(fake: FakeSupabase, *, name='Helper', role='editor',
+                 username=None, password='password1'):
+    uname = (username or f'{role}_user').lower()
     inv = {
-        'id': f'uuid-{role}',
-        'code_hash': h,
+        'id': f'uuid-{role}-{uname}',
+        'username': uname,
+        'password_hash': sb.hash_password(password),
         'display_name': name,
         'role': role,
         'active': True,
     }
-    fake.invites[h] = inv
-    return inv, code
+    fake.invites[inv['id']] = inv
+    return inv, uname, password
 
 
-def _login(client, code):
+def _login(client, username, password='password1'):
     return client.post(
         '/api/mushaf-editor/login',
-        json={'code': code},
+        json={'username': username, 'password': password},
         content_type='application/json',
     )
 
@@ -332,7 +373,7 @@ def test_spread_requires_auth_when_cloud(client, cloud):
     client.post('/api/mushaf-editor/logout')
     r = client.get('/api/mushaf-editor/spread/1?edition=قطر')
     assert r.status_code == 401
-    _seed_invite(cloud, code='x')
+    _seed_invite(cloud, username='x')
     _login(client, 'x')
     r = client.get('/api/mushaf-editor/spread/1?edition=قطر')
     assert r.status_code == 200
@@ -351,7 +392,7 @@ def test_auth_status_requires_login_when_cloud(client, cloud):
 
 def test_login_sets_cookie_and_gates_writes(client, cloud):
     client.post('/api/mushaf-editor/logout')
-    _seed_invite(cloud, code='abc-123')
+    _seed_invite(cloud, username='abc-123')
     # Unauthenticated write → 401
     r = client.post(
         '/api/mushaf-editor/waqf',
@@ -366,15 +407,16 @@ def test_login_sets_cookie_and_gates_writes(client, cloud):
     assert login.get_json()['user']['name'] == 'Helper'
     assert COOKIE_NAME in login.headers.get('Set-Cookie', '')
 
-    # Bad code
+    # Bad credentials
     bad = _login(client, 'wrong')
     assert bad.status_code == 401
+    assert bad.get_json().get('error') == 'invalid credentials'
 
 
 def test_draft_write_not_public_until_publish(client, cloud):
     client.post('/api/mushaf-editor/logout')
-    inv, code = _seed_invite(cloud, name='Editor', role='editor', code='ed-1')
-    admin, admin_code = _seed_invite(cloud, name='Admin', role='admin', code='ad-1')
+    inv, username, _pwd = _seed_invite(cloud, name='Editor', role='editor', username='ed-1')
+    admin, admin_user, _ap = _seed_invite(cloud, name='Admin', role='admin', username='ad-1')
 
     # Resolve a real word_id from layout (sura 1 ayah 1 first word)
     from modules.layouts import _get_dk_layout_word_map
@@ -382,7 +424,7 @@ def test_draft_write_not_public_until_publish(client, cloud):
     first = wmap['first_id'][(1, 1)]
     word_id = first
 
-    _login(client, code)
+    _login(client, username)
     wr = client.post(
         '/api/mushaf-editor/waqf',
         json={'word_id': word_id, 'edition': 'قطر', 'symbol': 'ج'},
@@ -410,7 +452,7 @@ def test_draft_write_not_public_until_publish(client, cloud):
     assert pub.status_code == 403
 
     client.post('/api/mushaf-editor/logout')
-    _login(client, admin_code)
+    _login(client, admin_user)
     snapshot = _pending_snapshot(client)
     calls_before = len(cloud.calls)
     pub = client.post(
@@ -433,8 +475,8 @@ def test_draft_write_not_public_until_publish(client, cloud):
 def test_clear_published_mark_creates_draft_tombstone(client, cloud):
     """Clearing a published mark must survive reload and publish as deletion."""
     client.post('/api/mushaf-editor/logout')
-    _inv, code = _seed_invite(cloud, name='Editor', role='editor', code='clear-ed')
-    _admin, admin_code = _seed_invite(cloud, name='Admin', role='admin', code='clear-admin')
+    _inv, username, _pwd = _seed_invite(cloud, name='Editor', role='editor', username='clear-ed')
+    _admin, admin_user, _ap = _seed_invite(cloud, name='Admin', role='admin', username='clear-admin')
 
     from modules.layouts import _get_dk_layout_word_map
     wmap = _get_dk_layout_word_map()
@@ -444,7 +486,7 @@ def test_clear_published_mark_creates_draft_tombstone(client, cloud):
         'status': 'published', 'symbol': 'ج', 'word_text': 'بِسْمِ',
     }
 
-    _login(client, code)
+    _login(client, username)
     cleared = client.post(
         '/api/mushaf-editor/waqf',
         json={'word_id': word_id, 'edition': 'قطر', 'symbol': ''},
@@ -457,7 +499,7 @@ def test_clear_published_mark_creates_draft_tombstone(client, cloud):
     assert len(diff) == 1 and diff[0]['old_symbol'] == 'ج' and diff[0]['new_symbol'] == ''
 
     client.post('/api/mushaf-editor/logout')
-    _login(client, admin_code)
+    _login(client, admin_user)
     snapshot = _pending_snapshot(client)
     published = client.post(
         '/api/mushaf-editor/publish',
@@ -492,6 +534,8 @@ def test_editor_ui_has_login_and_publish(client):
     script = (root / 'static/js/mushaf_editor.js').read_text(encoding='utf-8')
     css = (root / 'static/css/mushaf_editor.css').read_text(encoding='utf-8')
     assert 'id="ed-login"' in page
+    assert 'id="ed-login-username"' in page
+    assert 'id="ed-login-password"' in page
     assert 'id="ed-publish"' in page
     assert 'id="ed-pending-panel"' in page
     assert 'id="ed-pending-backdrop"' in page
@@ -519,12 +563,12 @@ def test_editor_ui_has_login_and_publish(client):
 def test_pending_api_includes_pages_summary(client, cloud):
     """Pending endpoint groups changes by mushaf page for draft navigation."""
     from modules.editor_auth import COOKIE_NAME
-    inv, code = _seed_invite(cloud, name='Nav', role='editor', code='nav-1')
+    inv, username, _pwd = _seed_invite(cloud, name='Nav', role='editor', username='nav-1')
     cloud.marks[('قطر', 2, 2, 0, 'draft')] = {
         'edition': 'قطر', 'surah': 2, 'ayah': 2, 'token_index': 0,
         'status': 'draft', 'symbol': 'ج', 'word_text': 'ذَٰلِكَ',
     }
-    _login(client, code)
+    _login(client, username)
     r = client.get('/api/mushaf-editor/pending?edition=قطر')
     assert r.status_code == 200
     body = r.get_json()
@@ -545,7 +589,7 @@ def test_pending_api_includes_pages_summary(client, cloud):
 
 def test_publish_rejects_stale_review_snapshot(client, cloud):
     """A draft edit after review must abort without changing published rows."""
-    _seed_invite(cloud, name='Admin', role='admin', code='stale-admin')
+    _seed_invite(cloud, name='Admin', role='admin', username='stale-admin')
     cloud.marks[('قطر', 2, 2, 0, 'published')] = {
         'edition': 'قطر', 'surah': 2, 'ayah': 2, 'token_index': 0,
         'status': 'published', 'symbol': 'ج', 'word_text': 'ذَٰلِكَ',
@@ -571,7 +615,7 @@ def test_publish_rejects_stale_review_snapshot(client, cloud):
 
 def test_atomic_publish_failure_rolls_back_every_change(client, cloud):
     """An RPC error cannot expose a prefix of the reviewed changes."""
-    _seed_invite(cloud, name='Admin', role='admin', code='rollback-admin')
+    _seed_invite(cloud, name='Admin', role='admin', username='rollback-admin')
     for token_index, symbol in ((0, 'ج'), (1, 'ص')):
         cloud.marks[('قطر', 2, 2, token_index, 'draft')] = {
             'edition': 'قطر', 'surah': 2, 'ayah': 2,
@@ -596,7 +640,7 @@ def test_atomic_publish_failure_rolls_back_every_change(client, cloud):
 
 
 def test_publish_requires_review_snapshot(client, cloud):
-    _seed_invite(cloud, name='Admin', role='admin', code='snapshot-admin')
+    _seed_invite(cloud, name='Admin', role='admin', username='snapshot-admin')
     _login(client, 'snapshot-admin')
     response = client.post('/api/mushaf-editor/publish', json={'edition': 'قطر'})
     assert response.status_code == 400
@@ -672,14 +716,14 @@ def test_fetch_draft_and_published_combined(cloud):
 
 def test_admin_can_create_and_revoke_invite(client, cloud):
     client.post('/api/mushaf-editor/logout')
-    _seed_invite(cloud, name='Admin', role='admin', code='ad-inv')
-    _seed_invite(cloud, name='Helper', role='editor', code='ed-inv')
+    _seed_invite(cloud, name='Admin', role='admin', username='ad-inv')
+    _seed_invite(cloud, name='Helper', role='editor', username='ed-inv')
 
     # Editor cannot create
     _login(client, 'ed-inv')
     denied = client.post(
         '/api/mushaf-editor/invites',
-        json={'name': 'Someone', 'role': 'editor'},
+        json={'name': 'Someone', 'role': 'editor', 'username': 'someone'},
         content_type='application/json',
     )
     assert denied.status_code == 403
@@ -688,12 +732,18 @@ def test_admin_can_create_and_revoke_invite(client, cloud):
     _login(client, 'ad-inv')
     created = client.post(
         '/api/mushaf-editor/invites',
-        json={'name': 'Fatima', 'role': 'editor', 'code': 'fatima-code-9'},
+        json={
+            'name': 'Fatima',
+            'role': 'editor',
+            'username': 'fatima',
+            'password': 'fatima-pass-9',
+        },
         content_type='application/json',
     )
     assert created.status_code == 201
     body = created.get_json()
-    assert body['code'] == 'fatima-code-9'
+    assert body['username'] == 'fatima'
+    assert body['password'] == 'fatima-pass-9'
     assert body['invite']['name'] == 'Fatima'
     invite_id = body['invite']['id']
 
@@ -701,11 +751,16 @@ def test_admin_can_create_and_revoke_invite(client, cloud):
     assert listed.status_code == 200
     names = {i['name'] for i in listed.get_json()['invites']}
     assert 'Fatima' in names
+    usernames = {i['username'] for i in listed.get_json()['invites']}
+    assert 'fatima' in usernames
 
-    # New code works
+    # New account works; logout + re-login also works
     client.post('/api/mushaf-editor/logout')
-    ok = _login(client, 'fatima-code-9')
+    ok = _login(client, 'fatima', 'fatima-pass-9')
     assert ok.status_code == 200
+    client.post('/api/mushaf-editor/logout')
+    again = _login(client, 'Fatima', 'fatima-pass-9')  # case-insensitive username
+    assert again.status_code == 200
 
     client.post('/api/mushaf-editor/logout')
     _login(client, 'ad-inv')
@@ -718,16 +773,16 @@ def test_admin_can_create_and_revoke_invite(client, cloud):
     assert revoked.get_json()['invite']['active'] is False
 
     client.post('/api/mushaf-editor/logout')
-    blocked = _login(client, 'fatima-code-9')
+    blocked = _login(client, 'fatima', 'fatima-pass-9')
     assert blocked.status_code == 401
 
 
 def test_revocation_invalidates_an_existing_session(client, cloud):
     client.post('/api/mushaf-editor/logout')
-    _seed_invite(cloud, name='Admin', role='admin', code='live-admin')
-    invite, _ = _seed_invite(cloud, name='Helper', role='editor', code='live-helper')
+    _seed_invite(cloud, name='Admin', role='admin', username='live-admin')
+    invite, helper_user, _hp = _seed_invite(cloud, name='Helper', role='editor', username='live-helper')
     helper_client = client.application.test_client()
-    assert _login(helper_client, 'live-helper').status_code == 200
+    assert _login(helper_client, helper_user).status_code == 200
 
     assert _login(client, 'live-admin').status_code == 200
     revoked = client.patch(

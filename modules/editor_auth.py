@@ -1,4 +1,4 @@
-"""Invite-code auth for /mushaf-editor (HttpOnly signed cookie)."""
+"""Username/password auth for /mushaf-editor (HttpOnly signed cookie)."""
 from __future__ import annotations
 
 import functools
@@ -166,16 +166,17 @@ def editor_login():
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({'error': 'JSON object required'}), 400
-    code = (data.get('code') or '').strip()
-    if not code:
-        return jsonify({'error': 'code required'}), 400
+    username = (data.get('username') or '').strip()
+    password = data.get('password') or ''
+    if not username or not password:
+        return jsonify({'error': 'username and password required'}), 400
     try:
-        invite = sb.find_invite_by_code(code)
+        invite = sb.find_invite_by_username(username)
     except sb.SupabaseEditorError as e:
         logger.error('login lookup failed: %s', e)
         return jsonify({'error': 'auth service unavailable'}), 503
-    if not invite:
-        return jsonify({'error': 'invalid code'}), 401
+    if not invite or not sb.verify_password(invite.get('password_hash'), password):
+        return jsonify({'error': 'invalid credentials'}), 401
     try:
         sb.touch_invite(invite['id'])
         sb.append_audit(
@@ -205,7 +206,7 @@ def editor_logout():
 @editor_bp.route('/api/mushaf-editor/invites', methods=['GET', 'POST'])
 @require_admin
 def editor_invites():
-    """List invites or create a new one (admin only). Plaintext code returned once on create."""
+    """List accounts or create one (admin only). Password returned once on create."""
     user = current_editor()
     if request.method == 'GET':
         try:
@@ -218,6 +219,7 @@ def editor_invites():
                 {
                     'id': r.get('id'),
                     'name': r.get('display_name'),
+                    'username': r.get('username') or '',
                     'role': r.get('role'),
                     'active': bool(r.get('active')),
                     'created_at': r.get('created_at'),
@@ -236,71 +238,142 @@ def editor_invites():
     role = (data.get('role') or 'editor').strip()
     if role not in ('editor', 'admin'):
         return jsonify({'error': 'invalid role'}), 400
-    code = (data.get('code') or '').strip() or secrets.token_urlsafe(12)
-    if len(code) < 6:
-        return jsonify({'error': 'code too short'}), 400
+    username = sb.validate_username(data.get('username') or '')
+    if not username:
+        return jsonify({
+            'error': 'invalid username',
+            'hint': '3–32 chars: letters, digits, . _ -',
+        }), 400
+    password = (data.get('password') or '').strip() or secrets.token_urlsafe(10)
+    if not sb.validate_password(password):
+        return jsonify({
+            'error': 'password too short',
+            'hint': f'min {sb.MIN_PASSWORD_LEN} chars',
+        }), 400
     try:
         row = sb.insert_invite(
             display_name=name,
             role=role,
-            code_hash=sb.hash_invite_code(code),
+            username=username,
+            password_hash=sb.hash_password(password),
         )
         sb.append_audit(
             actor_id=user['id'] if user else None,
             actor_name=user['name'] if user else None,
             action='invite_create',
-            meta={'invite_id': row.get('id'), 'name': name, 'role': role},
+            meta={
+                'invite_id': row.get('id'),
+                'name': name,
+                'username': username,
+                'role': role,
+            },
         )
     except sb.SupabaseEditorError as e:
         logger.error('create invite failed: %s', e)
         msg = str(e)
         if '23505' in msg or 'duplicate' in msg.lower():
-            return jsonify({'error': 'code already used'}), 409
+            return jsonify({'error': 'username already used'}), 409
         return jsonify({'error': 'create invite failed'}), 503
     return jsonify({
         'ok': True,
         'invite': {
             'id': row.get('id'),
             'name': row.get('display_name') or name,
+            'username': row.get('username') or username,
             'role': row.get('role') or role,
             'active': True,
         },
-        'code': code,  # plaintext once — store/share now
+        'username': username,
+        'password': password,  # plaintext once — store/share now
     }), 201
 
 
 @editor_bp.route('/api/mushaf-editor/invites/<invite_id>', methods=['PATCH'])
 @require_admin
 def editor_invite_patch(invite_id):
-    """Revoke or re-activate an invite (admin only)."""
+    """Revoke, re-activate, or reset password for an account (admin only)."""
     user = current_editor()
     data = request.get_json(silent=True)
-    if not isinstance(data, dict) or 'active' not in data:
-        return jsonify({'error': 'active required'}), 400
-    active = bool(data.get('active'))
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
     invite_id = (invite_id or '').strip()
     if not invite_id:
         return jsonify({'error': 'invalid id'}), 400
+
+    has_active = 'active' in data
+    password = (data.get('password') or '').strip() if 'password' in data else ''
+    username_raw = (data.get('username') or '').strip() if 'username' in data else ''
+    if not has_active and not password and not username_raw:
+        return jsonify({'error': 'active, username, or password required'}), 400
+
+    row = None
     try:
-        row = sb.set_invite_active(invite_id, active)
+        if has_active:
+            row = sb.set_invite_active(invite_id, bool(data.get('active')))
+            if not row:
+                return jsonify({'error': 'not found'}), 404
+            invalidate_editor_session_cache(invite_id)
+            sb.append_audit(
+                actor_id=user['id'] if user else None,
+                actor_name=user['name'] if user else None,
+                action='invite_revoke' if not data.get('active') else 'invite_create',
+                meta={
+                    'invite_id': invite_id,
+                    'active': bool(data.get('active')),
+                    'name': row.get('display_name'),
+                },
+            )
+
+        if password or username_raw:
+            uname = None
+            if username_raw:
+                uname = sb.validate_username(username_raw)
+                if not uname:
+                    return jsonify({'error': 'invalid username'}), 400
+            pwd_hash = None
+            if password:
+                if not sb.validate_password(password):
+                    return jsonify({
+                        'error': 'password too short',
+                        'hint': f'min {sb.MIN_PASSWORD_LEN} chars',
+                    }), 400
+                pwd_hash = sb.hash_password(password)
+            row = sb.set_invite_credentials(
+                invite_id=invite_id,
+                username=uname,
+                password_hash=pwd_hash,
+            )
+            if not row:
+                return jsonify({'error': 'not found'}), 404
+            sb.append_audit(
+                actor_id=user['id'] if user else None,
+                actor_name=user['name'] if user else None,
+                action='invite_create',
+                meta={
+                    'invite_id': invite_id,
+                    'credentials_updated': True,
+                    'username': uname,
+                },
+            )
     except sb.SupabaseEditorError as e:
         logger.error('patch invite failed: %s', e)
+        msg = str(e)
+        if '23505' in msg or 'duplicate' in msg.lower():
+            return jsonify({'error': 'username already used'}), 409
         return jsonify({'error': 'update failed'}), 503
+
     if not row:
         return jsonify({'error': 'not found'}), 404
-    invalidate_editor_session_cache(invite_id)
-    sb.append_audit(
-        actor_id=user['id'] if user else None,
-        actor_name=user['name'] if user else None,
-        action='invite_revoke' if not active else 'invite_create',
-        meta={'invite_id': invite_id, 'active': active, 'name': row.get('display_name')},
-    )
-    return jsonify({
+    out = {
         'ok': True,
         'invite': {
             'id': row.get('id'),
             'name': row.get('display_name'),
+            'username': row.get('username') or '',
             'role': row.get('role'),
             'active': bool(row.get('active')),
         },
-    })
+    }
+    if password:
+        out['password'] = password
+    return jsonify(out)
