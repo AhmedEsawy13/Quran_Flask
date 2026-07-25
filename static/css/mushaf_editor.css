@@ -270,9 +270,8 @@ body.ed-popup-open { overflow: hidden; }
 /* ── Words ───────────────────────────────────────────────────────── */
 .ed-word {
     font-family: 'Old Madina', serif;
-    /* Extra top padding reserves a clear band for absolute waqf overlays so
-       tall letters / diacritics cannot paint over the mark. */
-    line-height: 1; padding: 0.72em 0.08em 0.15em; border-radius: 0.2em;
+    /* Slight top padding so a raised inline mark is not clipped by .ed-line. */
+    line-height: 1; padding: 0.28em 0.06em 0.12em; border-radius: 0.2em;
     cursor: pointer; position: relative; transition: background 0.12s;
 }
 /* مصحف قطر — Tanzil Uthmani text + KATypical Naskh (not QPC / Uthmanic Hafs). */
@@ -296,38 +295,37 @@ body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
     background: color-mix(in srgb, var(--ed-accent) 8%, transparent);
 }
 .ed-word.ed-selected { outline: 2px solid var(--ed-accent); outline-offset: 1px; background: var(--ed-accent-soft); }
-/* Float marks above the ink (not inline beside it) so a letter/diacritic
-   cannot hide them. Kept inside the word's top padding — `.ed-line` clips. */
+/* Keep marks in normal flow (absolute overlays were clipped / zero-box for
+   combining Uthmanic pause glyphs). Raise + enlarge; min-width forces a
+   visible box even when the glyph is combining. */
 .ed-waqf-mark {
     font-family: 'Uthmanic Hafs', serif;
-    position: absolute;
-    top: 0.04em;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.82em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    top: -0.28em;
+    min-width: 0.9em;
+    height: 1em;
+    font-size: 1.08em;
     line-height: 1;
     color: var(--ed-accent);
-    margin: 0;
+    margin-inline-start: 0.08em;
     z-index: 2;
-    pointer-events: none;
-    white-space: nowrap;
-    text-shadow:
-        0 0 0.14em var(--ed-paper),
-        0 0 0.28em var(--ed-paper),
-        0 0 0.4em var(--ed-paper);
+    -webkit-text-stroke: 0.025em var(--ed-paper);
+    paint-order: stroke fill;
 }
 .ed-word.ed-diff .ed-waqf-mark { color: var(--ed-diff); }
 
-/* ركوع: not an inline mark — a badge in the same above-word band.
-   `.ed-line`/`.ed-page` clip overflow, so this must stay inside `.ed-word`'s
-   own box rather than translating above it. */
+/* ركوع: badge above the ayah-end circle, still inside the word box
+   because `.ed-line`/`.ed-page` clip overflow. */
 .ed-waqf-mark.ed-mark-above {
-    top: 0.08em;
+    position: absolute; top: 0.02em; left: 50%; transform: translateX(-50%);
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', 'Segoe UI', sans-serif;
-    font-size: 0.42em; line-height: 1; white-space: nowrap; margin: 0; z-index: 2;
+    font-size: 0.38em; line-height: 1; white-space: nowrap; margin: 0; z-index: 2;
     padding: 0.08em 0.4em; border-radius: 999px;
     background: var(--ed-accent-soft); border: 1px solid var(--ed-accent); color: var(--ed-accent);
-    text-shadow: none;
+    -webkit-text-stroke: 0;
 }
 .ed-word.ed-diff .ed-waqf-mark.ed-mark-above {
     background: var(--ed-diff-soft); border-color: var(--ed-diff); color: var(--ed-diff);
