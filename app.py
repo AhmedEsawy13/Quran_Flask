@@ -71,7 +71,19 @@ def after_request(response):
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
         "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com https://www.youtube.com https://www.googleapis.com;"
     )
-    
+
+    # CDN / Cloudflare-friendly caching.
+    # Static URLs are content-hashed via static_hash (?h=…) so long TTL is safe.
+    path = request.path or ''
+    if path.startswith('/static/') and response.status_code == 200:
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    elif (
+        path.startswith('/mushaf-editor')
+        or path.startswith('/layout-studio')
+        or path.startswith('/azhar-layout')
+    ):
+        response.headers['Cache-Control'] = 'no-store, max-age=0'
+
     # Cache control for API responses.
     if request.path.startswith('/api/'):
         # Waqf overlays can be adjusted at runtime and are sensitive to
@@ -230,6 +242,14 @@ def create_app(features=None):
         logging.basicConfig(level=logging.INFO)
         flask_app.logger.setLevel(logging.INFO)
     flask_app.add_template_global(static_hash)
+
+    # Heroku + Cloudflare terminate TLS and forward the real client via
+    # X-Forwarded-*. Without ProxyFix, request.is_secure / url_for(_external)
+    # see http and wrong hosts behind the proxy.
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    flask_app.wsgi_app = ProxyFix(
+        flask_app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1,
+    )
 
     from modules.seo import public_absolute, public_base_url
 

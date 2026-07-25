@@ -94,6 +94,22 @@ def test_error_responses_stay_uncached_across_modules(client):
     assert 'no-store' in r.headers.get('Cache-Control', '')
 
 
+def test_static_assets_are_cdn_cacheable(client):
+    r = client.get('/static/css/brand.css')
+    assert r.status_code == 200
+    cc = r.headers.get('Cache-Control', '')
+    assert 'public' in cc and 'immutable' in cc
+
+
+def test_editor_html_is_not_cdn_cached(client, monkeypatch):
+    monkeypatch.setenv('ENABLE_EDITOR', '1')
+    from app import create_app
+    app = create_app()
+    r = app.test_client().get('/mushaf-editor')
+    assert r.status_code == 200
+    assert 'no-store' in r.headers.get('Cache-Control', '')
+
+
 def test_editor_rejects_out_of_bounds_and_unknown_symbols(client):
     assert client.get('/api/mushaf-editor/spread/303?edition=%D9%82%D8%B7%D8%B1').status_code == 400
     assert client.post('/api/mushaf-editor/progress', json={
