@@ -250,7 +250,7 @@ body.ed-popup-open { overflow: hidden; }
     font-family: inherit; font-size: 0.88rem; font-weight: 600;
 }
 .ed-ref-fallback-btn:hover { background: color-mix(in srgb, var(--ed-accent) 22%, transparent); }
-.ed-line { flex: 1 1 0; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: hidden; direction: rtl; }
+.ed-line { flex: 1 1 0; display: flex; align-items: center; justify-content: center; min-height: 0; overflow: visible; direction: rtl; }
 
 .ed-line-special {
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
@@ -270,8 +270,7 @@ body.ed-popup-open { overflow: hidden; }
 /* ── Words ───────────────────────────────────────────────────────── */
 .ed-word {
     font-family: 'Old Madina', serif;
-    /* Slight top padding so a raised inline mark is not clipped by .ed-line. */
-    line-height: 1; padding: 0.28em 0.06em 0.12em; border-radius: 0.2em;
+    line-height: 1; padding: 0.12em 0.06em; border-radius: 0.2em;
     cursor: pointer; position: relative; transition: background 0.12s;
 }
 /* مصحف قطر — Tanzil Uthmani text + KATypical Naskh (not QPC / Uthmanic Hafs). */
@@ -295,24 +294,24 @@ body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
     background: color-mix(in srgb, var(--ed-accent) 8%, transparent);
 }
 .ed-word.ed-selected { outline: 2px solid var(--ed-accent); outline-offset: 1px; background: var(--ed-accent-soft); }
-/* Keep marks in normal flow (absolute overlays were clipped / zero-box for
-   combining Uthmanic pause glyphs). Raise + enlarge; min-width forces a
-   visible box even when the glyph is combining. */
+/* In-flow marks (absolute overlays clipped / zero-box for combining glyphs).
+   Raised negative top was cropped by .ed-line overflow:hidden. Sink slightly
+   (positive top) and keep line overflow:visible so Uthmanic glyph ink shows. */
 .ed-waqf-mark {
     font-family: 'Uthmanic Hafs', serif;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    top: -0.28em;
-    min-width: 0.9em;
-    height: 1em;
-    font-size: 1.08em;
+    top: 0.45em;
+    min-width: 0.72em;
+    font-size: 0.88em;
     line-height: 1;
     color: var(--ed-accent);
-    margin-inline-start: 0.08em;
+    margin-inline-start: 0.05em;
+    vertical-align: baseline;
     z-index: 2;
-    -webkit-text-stroke: 0.025em var(--ed-paper);
+    -webkit-text-stroke: 0.02em var(--ed-paper);
     paint-order: stroke fill;
 }
 .ed-word.ed-diff .ed-waqf-mark { color: var(--ed-diff); }
