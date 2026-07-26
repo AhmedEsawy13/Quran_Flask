@@ -120,11 +120,17 @@ def test_mushaf_similarity_tree_and_pairs(client):
                 walk(c)
     walk(j["tree"])
     assert sorted(leaves) == sorted(ms)
-    # Pairs are sorted strongest-first and the closest pair remains highly similar.
+    # Pairs are complete and sorted strongest-first. The identity of the closest
+    # pair is data-dependent and may legitimately change as reviewed marks land.
+    pairs = j["pairs"]
+    assert len(pairs) == len(ms) * (len(ms) - 1) // 2
+    assert all(p["a"] in ms and p["b"] in ms and p["a"] != p["b"] for p in pairs)
     top = j["pairs"][0]
-    assert "المدينة الجديد" in {top["a"], top["b"]}
     assert top["meaning"] >= 0.9
-    assert [p["meaning"] for p in j["pairs"]] == sorted((p["meaning"] for p in j["pairs"]), reverse=True)
+    assert [(p["meaning"], p["place"]) for p in pairs] == sorted(
+        ((p["meaning"], p["place"]) for p in pairs),
+        reverse=True,
+    )
     # position keys must be verse-unique, not the per-verse token/word index that
     # collapses the whole Quran onto ~155 slots — so totals are the real counts.
     assert j["counts"]["المدينة الجديد"] > 4000

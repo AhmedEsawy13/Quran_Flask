@@ -53,6 +53,13 @@ jobs:
           pip install -r requirements.txt -r requirements-font-audit.txt
           python3 -m playwright install --with-deps chromium
 
+      # The memorize page loads its breathing guide before rendering the mushaf.
+      # Restore the pinned, untracked QUL data so the browser audit can initialize.
+      - name: Restore pinned reciter timestamps
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/import_qul_reciters.py --restore
+
       - name: Select audit scope
         id: scope
         env:
