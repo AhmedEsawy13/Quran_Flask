@@ -13,6 +13,96 @@
 (function () {
     'use strict';
     const $ = id => document.getElementById(id);
+    const IS_LAB = document.body.classList.contains('athar-waqf-lab')
+        || document.body.dataset.wqPage === 'lab';
+    const EDITOR_ENABLED = document.body.dataset.editorEnabled === '1';
+    const EDITOR_EDITIONS = new Set(['قطر', 'الكويت', 'البحرين']);
+    function editorHref(edition, surah, ayah) {
+        const url = new URL('/mushaf-editor', location.origin);
+        url.searchParams.set('edition', edition);
+        url.searchParams.set('surah', String(surah));
+        url.searchParams.set('ayah', String(ayah));
+        return url.pathname + url.search;
+    }
+    function editorJumpHtml(editions, surah, ayah) {
+        if (!EDITOR_ENABLED || !surah || !ayah) return '';
+        const links = [...new Set(editions || [])]
+            .filter(e => EDITOR_EDITIONS.has(e))
+            .map(e => `<a class="wq-editor-jump" href="${editorHref(e, surah, ayah)}" title="افتح في محرّر الوقف — ${e}">محرّر · ${e}</a>`);
+        if (!links.length) return '';
+        return `<span class="wq-editor-jumps">${links.join('')}</span>`;
+    }
+
+    const HIT_PAGE = 40;
+    const labListState = {}; // key → shown count
+
+    function marksHtml(marksObj) {
+        const ent = Object.entries(marksObj || {});
+        if (!ent.length) return '<span class="wq-hit-empty">بلا علامة مطبوعة</span>';
+        return ent.map(([k, v]) =>
+            `<span class="wq-hit-mark" title="${k}"><span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span><span>${k}</span></span>`
+        ).join('');
+    }
+
+    function agreePill(agreement) {
+        if (agreement === 'full') return '<span class="wq-agree-pill wq-agree-pill-full">تام</span>';
+        if (agreement === 'partial') return '<span class="wq-agree-pill wq-agree-pill-partial">جزئي</span>';
+        return '';
+    }
+
+    function hitRowFromOcc(o, opts = {}) {
+        const marksObj = o.marks || {};
+        const editorEditions = opts.editorEditions || (opts.withEditor ? Object.keys(marksObj) : null);
+        const ed = editorEditions ? editorJumpHtml(editorEditions, o.surah, o.ayah) : '';
+        const sname = surahName(o.surah);
+        const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
+        const tip = opts.title || `افتح ${sname} ${ref}`;
+        const marksBlock = opts.hideMarks ? '' : `<div class="wq-hit-marks">${opts.marksHtml != null ? opts.marksHtml : marksHtml(marksObj)}</div>`;
+        const wposAttr = (o.wpos != null && o.wpos !== '') ? ` data-wpos="${o.wpos}"` : '';
+        const wordAttr = o.word ? ` data-word="${String(o.word).replace(/"/g, '&quot;')}"` : '';
+        return `<div class="wq-research-row">
+            <button class="wq-hit${opts.extraClass ? ' ' + opts.extraClass : ''}" type="button" data-s="${o.surah}" data-a="${o.ayah}"${wposAttr}${wordAttr} title="${tip}">
+                <div class="wq-hit-top">
+                    <span class="wq-hit-ref">${sname} <b>${ref}</b></span>
+                    <span class="wq-hit-meta">${opts.meta || ''}</span>
+                </div>
+                ${opts.flow ? `<div class="wq-hit-flow">${opts.flow}</div>` : ''}
+                ${o.context ? `<div class="wq-hit-ctx" dir="rtl">${o.context}</div>` : ''}
+                ${marksBlock}
+            </button>${ed}
+        </div>`;
+    }
+
+    function paginateList(key, items, renderItem) {
+        if (!items.length) return '<div class="wq-research-empty">لا نتائج</div>';
+        const shown = Math.min(labListState[key] || HIT_PAGE, items.length);
+        labListState[key] = shown;
+        const body = items.slice(0, shown).map(renderItem).join('');
+        const more = shown < items.length
+            ? `<button class="wq-hit-more" type="button" data-page-key="${key}" data-total="${items.length}">عرض المزيد (${toAr(items.length - shown)})</button>`
+            : '';
+        return `<div class="wq-hit-list" data-list-key="${key}">${body}${more}</div>`;
+    }
+
+    function toolBlurb(shortText, longText) {
+        if (!longText) return `<div class="wq-tool-head"><p class="wq-tool-blurb">${shortText}</p></div>`;
+        return `<details class="wq-tool-blurb-disclosure"><summary>${shortText}</summary><p class="wq-tool-blurb">${longText}</p></details>`;
+    }
+
+    function wireHitMore(root, key, items, renderItem) {
+        if (!root) return;
+        root.querySelectorAll('.wq-hit-more[data-page-key="' + key + '"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                labListState[key] = (labListState[key] || HIT_PAGE) + HIT_PAGE;
+                const list = btn.closest('.wq-hit-list');
+                if (!list) return;
+                const wrap = document.createElement('div');
+                wrap.innerHTML = paginateList(key, items, renderItem);
+                list.replaceWith(wrap.firstElementChild);
+                wireHitMore(root, key, items, renderItem);
+            });
+        });
+    }
     const toAr = window.AtharMushaf.toArabicDigits;
     const fromAr = s => String(s).replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
     const {
@@ -58,13 +148,14 @@
     const els = {
         surah: $('wq-surah'), ayah: $('wq-ayah'), search: $('wq-search'),
         searchClear: $('wq-search-clear'), searchResults: $('wq-search-results'),
-        prev: $('wq-prev'), next: $('wq-next'), status: $('wq-status'), main: $('wq-main'),
+        prev: $('wq-prev'), next: $('wq-next'), status: $('wq-status'),
+        main: $('wq-main') || $('wq-lab-main'),
         barVerse: $('wq-bar-verse'),
         verseCard: $('wq-verse-card'), verseTitle: $('wq-verse-title'), verseMeta: $('wq-verse-meta'),
         bestStops: $('wq-best-stops'), verseFlow: $('wq-verse-flow'),
         recCard: $('wq-rec-card'), breathPicker: $('wq-breath-picker'),
         recSummary: $('wq-rec-summary'), recPlan: $('wq-rec-plan'),
-        matrixCard: $('wq-matrix-card'), matrix: $('wq-matrix'), matrixLegend: $('wq-matrix-legend'),
+        matrixCard: $('wq-matrix-card'), matrix: $('wq-matrix'), matrixMobile: $('wq-matrix-mobile'), matrixLegend: $('wq-matrix-legend'),
         recitersCard: $('wq-reciters-card'), reciters: $('wq-reciters'),
         muktafaCard: $('wq-muktafa-card'), muktafa: $('wq-muktafa'), muktafaSrc: $('wq-muktafa-src'),
         researchCard: $('wq-research-card'), researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
@@ -84,6 +175,8 @@
         patternsContent: $('wq-patterns-content'), clusterContent: $('wq-cluster-content'),
         ibtidaaContent: $('wq-ibtidaa-content'), saktatContent: $('wq-saktat-content'),
         agreementContent: $('wq-agreement-content'),
+        practiceCta: $('wq-practice-cta'),
+        labFamilies: document.querySelectorAll('.wq-lab-family'),
     };
 
     const state = { surah: 2, ayah: 255, data: null, breathL: BREATH.medium };
@@ -103,15 +196,101 @@
     /* ── data loading ─────────────────────────────────────────── */
     async function loadSurahs() {
         await catalog.loadSurahs();
-        catalog.renderSurahOptions(els.surah);
+        if (els.surah) catalog.renderSurahOptions(els.surah);
     }
     const surahName = num => catalog.nameOf(num);
     const getAyahCount = surah => catalog.getAyahCount(surah);
     function renderAyahOptions(surah) {
+        if (!els.ayah) return;
         catalog.renderAyahOptions(els.ayah, catalog.getCachedAyahCount(surah));
     }
 
-    async function navigateTo(surah, ayah) {
+    function syncCrossLinks(surah, ayah) {
+        const s = Number(surah) || state.surah;
+        const a = Number(ayah) || state.ayah;
+        if (els.practiceCta) {
+            els.practiceCta.href = `/waqf-practice?surah=${s}&from=${a}&to=${a}`;
+        }
+        const ed = document.getElementById('wq-editor-cta');
+        if (ed && EDITOR_ENABLED) {
+            ed.href = editorHref('قطر', s, a);
+        }
+    }
+
+    function openVerseInGuide(surah, ayah, opts = {}) {
+        const url = new URL('/waqf', location.origin);
+        url.searchParams.set('surah', String(surah));
+        url.searchParams.set('ayah', String(ayah));
+        if (opts.wpos != null && opts.wpos !== '' && Number.isFinite(+opts.wpos)) {
+            url.searchParams.set('wpos', String(+opts.wpos));
+        }
+        if (opts.word) url.searchParams.set('hl', String(opts.word));
+        location.assign(url.pathname + url.search);
+    }
+
+    function readHighlightFromUrl() {
+        try {
+            const q = new URLSearchParams(location.search);
+            const wpos = parseInt(q.get('wpos') || '', 10);
+            const word = (q.get('hl') || '').trim();
+            return {
+                wpos: Number.isFinite(wpos) && wpos >= 0 ? wpos : null,
+                word: word || null,
+            };
+        } catch (_e) {
+            return { wpos: null, word: null };
+        }
+    }
+
+    function applyVerseHighlight(d) {
+        if (!els.verseFlow || !d || !d.words) return;
+        const pending = state.pendingHighlight || readHighlightFromUrl();
+        state.pendingHighlight = null;
+        if (!pending || (pending.wpos == null && !pending.word)) return;
+        let idx = pending.wpos;
+        if (idx == null || idx < 0 || idx >= d.words.length) {
+            const needle = (pending.word || '').replace(/\s+/g, '');
+            idx = d.words.findIndex(w => String(w).replace(/\s+/g, '') === needle
+                || String(w).includes(pending.word));
+        }
+        if (idx < 0 || idx >= d.words.length) return;
+        const spans = els.verseFlow.querySelectorAll('.wq-word');
+        const el = spans[idx];
+        if (!el) return;
+        el.classList.add('wq-word-hl');
+        el.setAttribute('data-hl', '1');
+        try { el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' }); } catch (_e) {}
+        window.setTimeout(() => el.classList.remove('wq-word-hl'), 3200);
+        // Drop one-shot params so refresh doesn't keep flashing.
+        try {
+            const url = new URL(location.href);
+            if (url.searchParams.has('wpos') || url.searchParams.has('hl')) {
+                url.searchParams.delete('wpos');
+                url.searchParams.delete('hl');
+                history.replaceState(null, '', url);
+            }
+        } catch (_e) {}
+    }
+
+
+    function optsFromHitEl(el) {
+        if (!el) return {};
+        const wpos = el.dataset.wpos != null && el.dataset.wpos !== '' ? +el.dataset.wpos : null;
+        return {
+            wpos: Number.isFinite(wpos) ? wpos : null,
+            word: el.dataset.word || null,
+        };
+    }
+
+    async function navigateTo(surah, ayah, opts = {}) {
+        if (IS_LAB) {
+            openVerseInGuide(surah, ayah, opts);
+            return;
+        }
+        state.pendingHighlight = {
+            wpos: opts.wpos != null && Number.isFinite(+opts.wpos) ? +opts.wpos : null,
+            word: opts.word || null,
+        };
         const request = navigationRequests.next();
         window.AtharUi.setBusy(els.main, true);
         setStatus('جارٍ التحميل…');
@@ -131,6 +310,7 @@
             els.ayah.value = String(ayah);
             render(data);
             loadMuktafa(surah, ayah);
+            syncCrossLinks(surah, ayah);
             setStatus('');
             const url = new URL(location.href);
             url.searchParams.set('surah', surah); url.searchParams.set('ayah', ayah);
@@ -150,6 +330,7 @@
         }
     }
     function updateStepper() {
+        if (!els.prev || !els.next) return;
         const edges = window.AtharMushaf.verseEdges(state, {
             ayahCount: catalog.getCachedAyahCount(state.surah),
         });
@@ -281,6 +462,17 @@
             const d = await window.AtharApi.json(url);
             researchState = { word, mode, forms: d.forms || [], occ: d.occurrences || [], form: d.active_form || null, waqf: null };
             renderResearch();
+            if (IS_LAB) {
+                try {
+                    const url = new URL(location.href);
+                    url.searchParams.set('tab', 'word');
+                    url.searchParams.set('family', 'words');
+                    url.searchParams.set('q', word);
+                    if (mode) url.searchParams.set('mode', mode); else url.searchParams.delete('mode');
+                    if (exact) url.searchParams.set('exact', '1'); else url.searchParams.delete('exact');
+                    history.replaceState(null, '', url);
+                } catch (_e) {}
+            }
         } catch (e) {
             showState(els.researchResults, 'error', 'تعذّر البحث');
         }
@@ -316,20 +508,13 @@
 
         const modeNote = researchState.mode === 'before'
             ? `<div class="wq-research-mode-note">علامات الوقف على الكلمة <b>قبل</b> «${researchState.word}»</div>` : '';
-        els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>` + modeNote + list.map(o => {
-            const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
-            const sname = surahName(o.surah);
-            const ent = Object.entries(o.marks || {});
-            const marks = ent.length
-                ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>'
-                : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
-            return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref} لرؤية وقوف القرّاء والمصاحف">
-                <span class="wq-research-ref">${sname} <b>${ref}</b></span>
-                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
-                <i class="fas fa-chevron-left wq-research-go"></i>
-            </button>`;
-        }).join('');
+        labListState.word = HIT_PAGE;
+        const renderItem = o => hitRowFromOcc(o, {
+            title: `افتح ${surahName(o.surah)} ${toAr(o.surah)}:${toAr(o.ayah)} لرؤية وقوف القرّاء والمصاحف`,
+        });
+        els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>`
+            + modeNote + paginateList('word', list, renderItem);
+        wireHitMore(els.researchResults, 'word', list, renderItem);
     }
 
     /* ── solo stops (انفرادات القرّاء) ────────────────────────────── */
@@ -348,15 +533,17 @@
     function renderSolosSummary() {
         const reciters = (solosCache.reciters || []).slice().sort((a, b) => b.solo_count - a.solo_count);
         if (!reciters.length) { els.solosContent.innerHTML = '<div class="wq-research-empty">لا بيانات</div>'; return; }
+        const maxSolo = Math.max(...reciters.map(r => r.solo_count), 1);
         els.solosContent.innerHTML =
-            '<div class="wq-solos-desc">مواضع وقف كل قارئ التي لم يشاركه فيها أحد من بقية القرّاء</div>'
-            + '<div class="wq-solos-grid">' + reciters.map(r =>
-                `<button class="wq-solos-card" data-rid="${r.id}" type="button">
-                    <span class="wq-solos-name">${r.name_ar}</span>
-                    <span class="wq-solos-count">${toAr(r.solo_count)}</span>
-                    <span class="wq-solos-label">انفراد</span>
-                </button>`
-            ).join('') + '</div>';
+            toolBlurb('مواضع وقف انفرد بها كل قارئ دون بقية القرّاء.')
+            + '<div class="wq-solos-rank">' + reciters.map(r => {
+                const pct = Math.round((r.solo_count / maxSolo) * 100);
+                return `<button class="wq-solos-rank-row" data-rid="${r.id}" type="button">
+                    <span class="wq-solos-rank-name">${r.name_ar}</span>
+                    <span class="wq-solos-rank-count">${toAr(r.solo_count)}</span>
+                    <span class="wq-solos-rank-bar"><span class="wq-solos-rank-fill" style="width:${pct}%"></span></span>
+                </button>`;
+            }).join('') + '</div>';
     }
 
     async function loadSolosDetail(rid) {
@@ -385,7 +572,9 @@
                 + `<button class="wq-wfilter" data-sf="no">بلا علامة <b>${toAr(withoutMark)}</b></button></div>`;
         }
         let list = stops;
-        els.solosContent.innerHTML = header + '<div class="wq-solos-list">' + renderSoloItems(list) + '</div>';
+        labListState.solos = HIT_PAGE;
+        els.solosContent.innerHTML = header + renderSoloItems(list);
+        wireHitMore(els.solosContent, 'solos', list, o => hitRowFromOcc(o));
         const frow = els.solosContent.querySelector('.wq-research-frow');
         if (frow) frow.addEventListener('click', e => {
             const btn = e.target.closest('.wq-wfilter'); if (!btn) return;
@@ -393,26 +582,19 @@
             btn.classList.add('wq-wfilter-active');
             const f = btn.dataset.sf;
             const filtered = !f ? stops : f === 'yes' ? stops.filter(o => o.has_waqf) : stops.filter(o => !o.has_waqf);
-            els.solosContent.querySelector('.wq-solos-list').innerHTML = renderSoloItems(filtered);
+            labListState.solos = HIT_PAGE;
+            const host = els.solosContent.querySelector('.wq-hit-list')?.parentElement || els.solosContent;
+            const listEl = els.solosContent.querySelector('.wq-hit-list');
+            const html = renderSoloItems(filtered);
+            if (listEl) listEl.outerHTML = html;
+            else els.solosContent.insertAdjacentHTML('beforeend', html);
+            wireHitMore(els.solosContent, 'solos', filtered, o => hitRowFromOcc(o));
         });
     }
 
     function renderSoloItems(list) {
-        if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
-        return list.map(o => {
-            const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
-            const sname = surahName(o.surah);
-            const ent = Object.entries(o.marks || {});
-            const marks = ent.length
-                ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>'
-                : '<span class="wq-research-nomark" title="لا علامة وقف مطبوعة">—</span>';
-            return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}" title="افتح ${sname} ${ref}">
-                <span class="wq-research-ref">${sname} <b>${ref}</b></span>
-                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
-                <i class="fas fa-chevron-left wq-research-go"></i>
-            </button>`;
-        }).join('');
+        labListState.solos = HIT_PAGE;
+        return paginateList('solos', list, o => hitRowFromOcc(o));
     }
 
     /* ── إحصائيات (stats tab) ──────────────────────────────────── */
@@ -443,6 +625,10 @@
         const totalDiv = surahs.reduce((s, x) => s + x.divergent, 0);
         const totalCons = surahs.reduce((s, x) => s + x.consensus, 0);
 
+        const strip = `<div class="wq-stats-strip">
+            <div class="wq-stats-strip-item"><span class="wq-stats-strip-val">${toAr(totalDiv)}</span><span class="wq-stats-strip-lbl">موضع اختلاف</span></div>
+            <div class="wq-stats-strip-item"><span class="wq-stats-strip-val">${toAr(totalCons)}</span><span class="wq-stats-strip-lbl">موضع اتفاق تام</span></div>
+        </div>`;
         let tabs = `<div class="wq-stats-subtabs">
             <button class="wq-stats-subtab${statsView === 'surahs' ? ' wq-lab-tab-active' : ''}" data-sv="surahs">السور</button>
             <button class="wq-stats-subtab${statsView === 'verses' ? ' wq-lab-tab-active' : ''}" data-sv="verses">أكثر الآيات اختلافًا</button>
@@ -451,8 +637,7 @@
 
         let body = '';
         if (statsView === 'surahs') {
-            body = `<div class="wq-stats-summary">${toAr(totalDiv)} موضع اختلاف · ${toAr(totalCons)} موضع اتفاق تام</div>`
-                + '<div class="wq-stats-list">' + surahs.filter(s => s.total > 0).map(s => {
+            body = '<div class="wq-stats-list">' + surahs.filter(s => s.total > 0).map(s => {
                     const pct = s.total ? Math.round(s.consensus / s.total * 100) : 0;
                     return `<div class="wq-stats-row">
                         <span class="wq-stats-sname">${s.name} <b>${toAr(s.surah)}</b></span>
@@ -461,40 +646,47 @@
                     </div>`;
                 }).join('') + '</div>';
         } else if (statsView === 'verses') {
-            body = '<div class="wq-solos-list">' + topV.slice(0, 60).map(v => {
-                const sname = surahName(v.surah);
-                return `<button class="wq-research-item" type="button" data-s="${v.surah}" data-a="${v.ayah}">
-                    <span class="wq-research-ref">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></span>
-                    <span class="wq-stats-badge wq-stats-div">${toAr(v.divergent)} اختلاف</span>
-                    <span class="wq-stats-badge wq-stats-cons">${toAr(v.consensus)} اتفاق</span>
-                    <i class="fas fa-chevron-left wq-research-go"></i>
-                </button>`;
-            }).join('') + '</div>';
+            const verses = topV.slice(0, 80);
+            labListState.statsVerses = HIT_PAGE;
+            const renderItem = v => hitRowFromOcc({ surah: v.surah, ayah: v.ayah, context: '', marks: {} }, {
+                hideMarks: true,
+                meta: `<span class="wq-stats-badge wq-stats-div">${toAr(v.divergent)} اختلاف</span>`
+                    + `<span class="wq-stats-badge wq-stats-cons">${toAr(v.consensus)} اتفاق</span>`,
+            });
+            body = paginateList('statsVerses', verses, renderItem);
         }
-        els.statsContent.innerHTML = tabs + body;
+        els.statsContent.innerHTML = strip + tabs + body;
+        if (statsView === 'verses') {
+            const verses = topV.slice(0, 80);
+            wireHitMore(els.statsContent, 'statsVerses', verses, v => hitRowFromOcc({ surah: v.surah, ayah: v.ayah, context: '', marks: {} }, {
+                hideMarks: true,
+                meta: `<span class="wq-stats-badge wq-stats-div">${toAr(v.divergent)} اختلاف</span>`
+                    + `<span class="wq-stats-badge wq-stats-cons">${toAr(v.consensus)} اتفاق</span>`,
+            }));
+        }
     }
 
     function renderConsensus() {
         const items = consensusCache.consensus || [];
+        const surahs = (statsCache && statsCache.surahs) || [];
+        const totalDiv = surahs.reduce((s, x) => s + x.divergent, 0);
+        const totalCons = surahs.reduce((s, x) => s + x.consensus, 0);
+        const strip = `<div class="wq-stats-strip">
+            <div class="wq-stats-strip-item"><span class="wq-stats-strip-val">${toAr(totalDiv)}</span><span class="wq-stats-strip-lbl">موضع اختلاف</span></div>
+            <div class="wq-stats-strip-item"><span class="wq-stats-strip-val">${toAr(totalCons || items.length)}</span><span class="wq-stats-strip-lbl">موضع اتفاق</span></div>
+        </div>`;
         let tabs = `<div class="wq-stats-subtabs">
             <button class="wq-stats-subtab" data-sv="surahs">السور</button>
             <button class="wq-stats-subtab" data-sv="verses">أكثر الآيات اختلافًا</button>
             <button class="wq-stats-subtab wq-lab-tab-active" data-sv="consensus">مواضع الاتفاق</button>
         </div>`;
-        let body = `<div class="wq-solos-desc">مواضع وقف اتفق عليها جميع القرّاء ولها علامة مطبوعة في المصاحف</div>`
+        labListState.consensus = HIT_PAGE;
+        const renderItem = o => hitRowFromOcc(o, { withEditor: true, meta: '<span class="wq-agree-pill wq-agree-pill-full">كلهم</span>' });
+        const body = toolBlurb('مواضع اتفق عليها جميع القرّاء ولها علامة مطبوعة.')
             + `<div class="wq-research-count">${toAr(items.length)} موضعًا</div>`
-            + '<div class="wq-solos-list">' + items.map(o => {
-                const sname = surahName(o.surah);
-                const ent = Object.entries(o.marks || {});
-                const marks = ent.length
-                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('')}</span>` : '';
-                return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
-                    <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
-                    <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
-                    <i class="fas fa-chevron-left wq-research-go"></i>
-                </button>`;
-            }).join('') + '</div>';
-        els.statsContent.innerHTML = tabs + body;
+            + paginateList('consensus', items, renderItem);
+        els.statsContent.innerHTML = strip + tabs + body;
+        wireHitMore(els.statsContent, 'consensus', items, renderItem);
     }
 
     /* ── الوقف اللازم والممنوع (mandatory tab) ──────────────────── */
@@ -529,55 +721,53 @@
             forbidden: 'مواضع الوقف الممنوع (لا) — لا يصح الوقف عليها',
             embracing: 'وقف المعانقة (ع) — يُوقف على أحد الموضعين فقط، لا كليهما',
         };
-        let body = `<div class="wq-solos-desc">${descs[mandView]}</div>`;
+        let body = toolBlurb(descs[mandView]);
         if (mandView === 'embracing') {
-            body += '<div class="wq-solos-list">' + renderEmbracingItems(embr) + '</div>';
+            body += renderEmbracingItems(embr);
+            els.mandatoryContent.innerHTML = tabs + body;
+            wireHitMore(els.mandatoryContent, 'embracing', embr, o => {
+                const pair = o.pair || [];
+                const flow = pair.map(p => {
+                    const marks = marksHtml(p.marks || {});
+                    return `<span class="wq-hit-chip">${p.word}</span><span class="wq-hit-marks" style="border:0;padding:0">${marks}</span>`;
+                }).join('<span class="wq-hit-chip wq-hit-chip-muted">أو</span>');
+                return hitRowFromOcc({ surah: o.surah, ayah: o.ayah, context: '', marks: {} }, {
+                    hideMarks: true,
+                    flow: `<div class="wq-muan-pair-block">${flow}</div>`,
+                    meta: agreePill(o.agreement),
+                    extraClass: 'wq-muan-item',
+                });
+            });
         } else {
-            body += '<div class="wq-solos-list">' + renderMandItems(mandView === 'mandatory' ? mand : forb) + '</div>';
+            const items = mandView === 'mandatory' ? mand : forb;
+            const key = mandView;
+            body += renderMandItems(items);
+            els.mandatoryContent.innerHTML = tabs + body;
+            wireHitMore(els.mandatoryContent, key, items, o => hitRowFromOcc(o, { meta: agreePill(o.agreement) }));
         }
-        els.mandatoryContent.innerHTML = tabs + body;
     }
 
     function renderEmbracingItems(list) {
-        if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
-        return list.map(o => {
-            const sname = surahName(o.surah);
-            const ref = `${toAr(o.surah)}:${toAr(o.ayah)}`;
+        labListState.embracing = HIT_PAGE;
+        return paginateList('embracing', list, o => {
             const pair = o.pair || [];
-            const pairHtml = pair.map(p => {
-                const ent = Object.entries(p.marks || {});
-                const marks = ent.length
-                    ? `<span class="wq-research-marks">${ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('')}</span>` : '';
-                return `<span class="wq-muan-word">${p.word}</span>${marks}`;
-            }).join('<span class="wq-muan-or">أو</span>');
-            const agree = o.agreement === 'full'
-                ? '<span class="wq-mand-agree" title="جميع المصاحف متفقة"><i class="fas fa-check-double"></i></span>'
-                : '<span class="wq-mand-partial" title="اختلاف بين المصاحف"><i class="fas fa-exclamation-triangle"></i></span>';
-            return `<button class="wq-research-item wq-muan-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
-                <span class="wq-research-ref">${sname} <b>${ref}</b></span>
-                <span class="wq-muan-pair" dir="rtl">${pairHtml}</span>${agree}
-                <i class="fas fa-chevron-left wq-research-go"></i>
-            </button>`;
-        }).join('');
+            const flow = pair.map(p => {
+                const marks = marksHtml(p.marks || {});
+                return `<span class="wq-hit-chip">${p.word}</span><span class="wq-hit-marks" style="border:0;padding:0">${marks}</span>`;
+            }).join('<span class="wq-hit-chip wq-hit-chip-muted">أو</span>');
+            return hitRowFromOcc({ surah: o.surah, ayah: o.ayah, context: '', marks: {} }, {
+                hideMarks: true,
+                flow: `<div class="wq-muan-pair-block">${flow}</div>`,
+                meta: agreePill(o.agreement),
+                extraClass: 'wq-muan-item',
+            });
+        });
     }
 
     function renderMandItems(list) {
-        if (!list.length) return '<div class="wq-research-empty">لا نتائج</div>';
-        return list.map(o => {
-            const sname = surahName(o.surah);
-            const ent = Object.entries(o.marks || {});
-            const marks = ent.length
-                ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ' ' + v).join(' · ')}">`
-                  + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>' : '';
-            const agree = o.agreement === 'full'
-                ? '<span class="wq-mand-agree" title="جميع المصاحف متفقة"><i class="fas fa-check-double"></i></span>'
-                : '<span class="wq-mand-partial" title="اختلاف بين المصاحف"><i class="fas fa-exclamation-triangle"></i></span>';
-            return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
-                <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
-                <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}${agree}
-                <i class="fas fa-chevron-left wq-research-go"></i>
-            </button>`;
-        }).join('');
+        const key = mandView === 'mandatory' ? 'mandatory' : 'forbidden';
+        labListState[key] = HIT_PAGE;
+        return paginateList(key, list, o => hitRowFromOcc(o, { meta: agreePill(o.agreement) }));
     }
 
     /* ── اختلاف المصاحف (cross-verse patterns) ─────────────────── */
@@ -594,21 +784,16 @@
 
     function renderPatterns() {
         const items = patternsCache.disagreements || [];
+        labListState.patterns = HIT_PAGE;
+        const renderItem = o => hitRowFromOcc(o, {
+            withEditor: true,
+            marksHtml: marksHtml(o.marks || {}),
+        });
         els.patternsContent.innerHTML =
-            `<div class="wq-solos-desc">مواضع وضع فيها كل مصحف علامة وقف مختلفة عن الآخر</div>`
+            toolBlurb('مواضع اختلفت فيها المصاحف في علامة الوقف على نفس الكلمة.')
             + `<div class="wq-research-count">${toAr(items.length)} موضع اختلاف</div>`
-            + '<div class="wq-solos-list">' + items.map(o => {
-                const sname = surahName(o.surah);
-                const ent = Object.entries(o.marks || {});
-                const marks = ent.length
-                    ? `<span class="wq-research-marks" title="${ent.map(([k, v]) => k + ': ' + v).join(' · ')}">`
-                      + ent.map(([k, v]) => `<span class="wq-rmark ${waqfFontCls(k)}" data-m="${k}">${mushafGlyph(v, k)}</span>`).join('') + '</span>' : '';
-                return `<button class="wq-research-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
-                    <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
-                    <span class="wq-research-ctx" dir="rtl">${o.context}</span>${marks}
-                    <i class="fas fa-chevron-left wq-research-go"></i>
-                </button>`;
-            }).join('') + '</div>';
+            + paginateList('patterns', items, renderItem);
+        wireHitMore(els.patternsContent, 'patterns', items, renderItem);
     }
 
     /* ── اتفاق القرّاء مع المصاحف ──────────────────────────────── */
@@ -633,23 +818,25 @@
         const d = agreementCache;
         const ver = agreementMushaf;
         const marks = d.mark_config[ver] || [];
-        const glyphCls = ver === 'ورش' ? 'waqf-warsh' : 'waqf-uthmanic';   // Warsh font for صه
+        const glyphCls = ver === 'ورش' ? 'waqf-warsh' : 'waqf-uthmanic';
         const pct = (cell) => cell && cell[1] ? Math.round(cell[0] / cell[1] * 100) : null;
         const tabs = (d.mushafs || []).map(m =>
             `<button class="wq-stats-subtab${m === ver ? ' wq-lab-tab-active' : ''}" data-mushaf="${m}">${m}</button>`).join('');
         const warsh = ver === 'ورش'
-            ? '<span class="wq-agree-leg wq-agree-leg-j"><b>صه</b> في الورش = «اصمت / قف هنا» (عكس صلى عند حفص) — فالموافقة هنا أن يقف القارئ.</span>'
+            ? '<span class="wq-agree-leg wq-agree-leg-j"><b>صه</b> في الورش = «اصمت / قف هنا» — فالموافقة هنا أن يقف القارئ.</span>'
             : '';
-        const legend = '<div class="wq-agree-legend">'
+        const legend = `<details class="wq-tool-blurb-disclosure"><summary>معنى الأعمدة</summary><div class="wq-agree-legend">`
             + marks.map(m => {
                 let desc = agreeDesc(m);
                 if (m.dir === 'choice') desc += ` (${toAr(d.jaiz[ver] || 0)} موضعًا)`;
                 return `<span class="wq-agree-leg"><span class="${glyphCls} wq-agree-glyph">${m.glyph}</span> <b>${m.name}</b> — ${desc}</span>`;
             }).join('')
             + warsh
-            + '</div>';
-        const head = `<div class="wq-solos-desc">مدى موافقة وقوف كل قارئ لعلامات هذا المصحف عبر القرآن كله — لكل علامة على حدة. عمود <b>ج</b> ليس صوابًا/خطأً بل <b>نسبة وقفه عند الجائز</b> (الأعلى يعامله كقلى، الأدنى كصلى). <b>اضغط أي خلية</b> لعرض آياتها.</div>`;
-        // ج column range, to scale its diverging colour (صلى-green → قلى-amber).
+            + '</div></details>';
+        const head = toolBlurb(
+            `موافقة القرّاء لمصحف «${ver}». اضغط خلية أو شريطًا لعرض الآيات.`,
+            'عمود ج = نسبة الوقف عند الجائز (ليس صوابًا/خطأً). الأعلى يعامله كقلى، الأدنى كصلى.'
+        );
         let jLo = 1, jHi = 0;
         (d.reciters || []).forEach(r => {
             const c = d.agreement[ver][r.id]['ج'];
@@ -666,23 +853,42 @@
                     const lean = t >= 0.6 ? 'كقلى' : t <= 0.4 ? 'كصلى' : 'متوسط';
                     const bg = `color-mix(in srgb, var(--wq-solo) ${Math.round(t * 100)}%, var(--wq-consensus))`;
                     return `<td class="wq-agree-cell wq-agree-jaiz" data-rid="${r.id}" data-mark="ج"
-                        style="background:${bg};color:#fff" title="يقف عند الجائز ${toAr(p)}٪ (${toAr(c[0])}/${toAr(c[1])}) — يعامله ${lean} نسبيًّا (اضغط لعرض وقوفه)">
+                        style="background:${bg};color:#fff" title="يقف عند الجائز ${toAr(p)}٪">
                         <b>${toAr(p)}٪</b><span class="wq-agree-frac">${lean}</span></td>`;
                 }
                 const lvl = p >= 80 ? 'hi' : p >= 50 ? 'mid' : 'lo';
-                const diff = c[1] - c[0];
                 return `<td class="wq-agree-cell wq-agree-${lvl}" data-rid="${r.id}" data-mark="${m.sym}"
-                    title="${m.name}: وافق ${toAr(c[0])} من ${toAr(c[1])} — خالف في ${toAr(diff)} (اضغط للعرض)">
+                    title="${m.name}: وافق ${toAr(c[0])} من ${toAr(c[1])}">
                     <b>${toAr(p)}٪</b><span class="wq-agree-frac">${toAr(c[0])}/${toAr(c[1])}</span></td>`;
             }).join('');
-            const qasr = r.qasr ? '<span class="wq-agree-qasr" title="يقرأ بقصر المدّ المنفصل — أداء أسرع">قصر المنفصل</span>' : '';
+            const qasr = r.qasr ? '<span class="wq-agree-qasr">قصر المنفصل</span>' : '';
             return `<tr><td class="wq-agree-rname">${r.name_ar}${qasr}</td>${cells}</tr>`;
         }).join('');
-        const header = `<tr><th>القارئ</th>${marks.map(m => `<th title="${agreeDesc(m)}"><span class="${glyphCls} wq-agree-glyph">${m.glyph}</span><span class="wq-agree-th">${m.name}<br><small>${agreeVerb(m)}</small></span></th>`).join('')}</tr>`;
+        const header = `<tr><th>القارئ</th>${marks.map(m => {
+            const thName = m.dir === 'choice' ? `${m.name}<br><small>نسبة الوقف</small>` : `${m.name}<br><small>${agreeVerb(m)}</small>`;
+            return `<th title="${agreeDesc(m)}"><span class="${glyphCls} wq-agree-glyph">${m.glyph}</span><span class="wq-agree-th">${thName}</span></th>`;
+        }).join('')}</tr>`;
+
+        const mobileCards = (d.reciters || []).map(r => {
+            const ag = d.agreement[ver][r.id];
+            const markRows = marks.map(m => {
+                const c = ag[m.sym], p = pct(c);
+                if (p === null) return '';
+                return `<div class="wq-agree-card-mark" data-rid="${r.id}" data-mark="${m.sym}" role="button" tabindex="0">
+                    <span class="${glyphCls}">${m.glyph}</span>
+                    <span class="wq-agree-card-bar"><span class="wq-agree-card-fill" style="width:${p}%"></span></span>
+                    <b>${toAr(p)}٪</b>
+                </div>`;
+            }).join('');
+            return `<div class="wq-agree-card"><div class="wq-agree-card-top"><b>${r.name_ar}</b></div>
+                <div class="wq-agree-card-marks">${markRows}</div></div>`;
+        }).join('');
+
         els.agreementContent.innerHTML = head
             + `<div class="wq-agree-tabs">${tabs}</div>`
             + legend
-            + `<div class="wq-agree-scroll"><table class="wq-agree-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`
+            + `<div class="wq-agree-desktop wq-agree-scroll"><table class="wq-agree-table"><thead>${header}</thead><tbody>${rows}</tbody></table></div>`
+            + `<div class="wq-agree-mobile"><div class="wq-agree-card-list">${mobileCards}</div></div>`
             + '<div id="wq-agree-cases"></div>';
     }
 
@@ -702,14 +908,16 @@
                 const msg = m && m.dir === 'choice' ? 'لم يقف عند أيٍّ من مواضع الجائز.' : 'لا مخالفات — وافق العلامة في كل المواضع.';
                 box.innerHTML = `<div class="wq-research-empty">${msg}</div>`; return;
             }
-            const chips = j.verses.map(v => {
-                const sname = v.name || surahName(v.surah);
-                return `<button class="wq-agree-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></button>`;
-            }).join('');
+            labListState.agreeCases = HIT_PAGE;
+            const verses = j.verses;
+            const renderItem = v => hitRowFromOcc({
+                surah: v.surah, ayah: v.ayah, context: '', marks: {},
+            }, { hideMarks: true });
             box.innerHTML = `<div class="wq-agree-cases-head">${r ? r.name_ar : ''} — <b>${m ? m.name : mark}</b>: `
                 + `${went} العلامة في <b>${toAr(j.disagreed)}</b> موضعًا`
                 + `${j.capped ? ` (عُرض أول ${toAr(j.shown)})` : ''}</div>`
-                + `<div class="wq-agree-cases-list">${chips}</div>`;
+                + paginateList('agreeCases', verses, renderItem);
+            wireHitMore(box, 'agreeCases', verses, renderItem);
         } catch { showState(box, 'error', 'تعذّر التحميل'); }
     }
 
@@ -727,27 +935,33 @@
 
     function renderSaktat() {
         const items = saktatCache.saktat || [];
-        const head = `<div class="wq-solos-desc">السكتة وقفةٌ يسيرة بلا تنفّس ثم يُوصَل. هذه سكتات حفص عن عاصم
-            الثابتة (من طريق الشاطبية): <b>${toAr(saktatCache.obligatory)}</b> واجبة، وسكتة «مَالِيَهۡ هَلَكَ» جائزة بوجهين.</div>`;
-        els.saktatContent.innerHTML = head + '<div class="wq-solos-list">' + items.map(o => {
+        labListState.saktat = HIT_PAGE;
+        const renderItem = o => {
             const cat = o.category === 'واجبة'
                 ? '<span class="wq-skt-cat wq-skt-wajiba">واجبة</span>'
                 : '<span class="wq-skt-cat wq-skt-jaiza">جائزة بوجهين</span>';
             const cross = o.cross_verse
-                ? `<span class="wq-skt-cross" title="السكتة على رأس الآية">بين ${toAr(o.surah)}:${toAr(o.ayah)} و${toAr(o.next.surah)}:${toAr(o.next.ayah)}</span>` : '';
-            return `<button class="wq-research-item wq-skt-item" type="button" data-s="${o.surah}" data-a="${o.ayah}">
-                <span class="wq-skt-head">
-                    <span class="wq-research-ref">${o.name} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b></span>
-                    ${cat}${cross}
-                </span>
-                <span class="wq-skt-flow" dir="rtl">
-                    سكتة على <span class="wq-skt-on">${o.on_word}</span>
-                    ثم <span class="wq-skt-next">${o.next_word}</span>
-                </span>
-                <span class="wq-skt-reason" dir="rtl">${o.reason}</span>
-                <i class="fas fa-chevron-left wq-research-go"></i>
-            </button>`;
-        }).join('') + '</div>';
+                ? `<span class="wq-skt-cross">بين ${toAr(o.surah)}:${toAr(o.ayah)} و${toAr(o.next.surah)}:${toAr(o.next.ayah)}</span>` : '';
+            const flow = `سكتة على <span class="wq-hit-chip">${o.on_word}</span>`
+                + `<span class="wq-hit-chip wq-hit-chip-muted">ثم</span>`
+                + `<span class="wq-hit-chip">${o.next_word}</span>`;
+            return hitRowFromOcc({
+                surah: o.surah, ayah: o.ayah,
+                context: o.reason || '',
+                marks: {},
+                wpos: o.wpos,
+                word: o.on_word,
+            }, {
+                hideMarks: true,
+                meta: cat + cross,
+                flow,
+                extraClass: 'wq-skt-item',
+            });
+        };
+        els.saktatContent.innerHTML =
+            toolBlurb(`سكتات حفص: ${toAr(saktatCache.obligatory)} واجبة — وقفة يسيرة بلا تنفّس.`)
+            + paginateList('saktat', items, renderItem);
+        wireHitMore(els.saktatContent, 'saktat', items, renderItem);
     }
 
     /* ── الابتداء بما قبله (attested back-up points) ───────────── */
@@ -765,34 +979,40 @@
     function renderIbtidaa() {
         const all = ibtidaaCache.items || [];
         const items = (ibtidaaOnlyMulti ? all.filter(o => o.count >= 2) : all).slice(0, 300);
+        labListState.ibtidaa = HIT_PAGE;
         const head =
-            `<div class="wq-solos-desc">مواضع وقف عليها القارئ ثم <b>عاد فقرأ من كلمة قبلها</b> — دليلٌ عملي على أنّ الابتداء ينبغي أن يكون بما قبل موضع الوقف (مأخوذ من تلاوات القرّاء أنفسهم، لا من قاعدة مفروضة). كلّما زاد عدد القرّاء الذين رجعوا في الموضع نفسه قوي الدليل.</div>`
+            toolBlurb(
+                'وقف ثم ابتداء بما قبله — من تلاوات القرّاء.',
+                'مواضع وقف عليها القارئ ثم عاد فقرأ من كلمة قبلها. كلّما زاد عدد القرّاء الذين رجعوا في الموضع نفسه قوي الدليل.'
+            )
             + `<div class="wq-ibt-controls">
                  <button class="wq-stats-subtab${ibtidaaOnlyMulti ? ' wq-lab-tab-active' : ''}" data-im="multi">قارئان فأكثر (${toAr(ibtidaaCache.multi_reciter)})</button>
                  <button class="wq-stats-subtab${ibtidaaOnlyMulti ? '' : ' wq-lab-tab-active'}" data-im="all">الكل (${toAr(ibtidaaCache.count)})</button>
                </div>`;
-        els.ibtidaaContent.innerHTML = head + '<div class="wq-solos-list">' + items.map(o => {
-            const sname = o.name || surahName(o.surah);
+        const renderItem = o => {
             const dist = o.back_distance === 0
                 ? 'أعاد الكلمة نفسها'
                 : `رجع ${toAr(o.back_distance)} ${o.back_distance <= 2 ? 'كلمة' : 'كلمات'}`;
             const markTag = o.stop_marked
-                ? '<span class="wq-ibt-marked" title="يوجد في أحد المصاحف علامة وقف على هذا الموضع">عليه علامة</span>'
-                : '<span class="wq-ibt-unmarked" title="لا مصحف يضع علامة وقف هنا — والرجوع يؤكّد قبح الوقف عليه">بلا علامة</span>';
-            return `<button class="wq-research-item wq-ibt-item" type="button" data-s="${o.surah}" data-a="${o.ayah}"
-                        title="${o.reciters.join('، ')}">
-                <span class="wq-research-ref">${sname} <b>${toAr(o.surah)}:${toAr(o.ayah)}</b>
-                    <span class="wq-ibt-count">${toAr(o.count)} قارئ</span></span>
-                <span class="wq-ibt-flow" dir="rtl">
-                    يقف على <span class="wq-ibt-stop">${o.stop_word}</span>
-                    ثم يبدأ من <span class="wq-ibt-resume">${o.resume_word}</span>
-                    <span class="wq-ibt-dist">(${dist})</span>
-                </span>
-                <span class="wq-research-ctx" dir="rtl">${o.context}</span>
-                ${markTag}
-                <i class="fas fa-chevron-left wq-research-go"></i>
-            </button>`;
-        }).join('') + '</div>';
+                ? '<span class="wq-ibt-marked">عليه علامة</span>'
+                : '<span class="wq-ibt-unmarked">بلا علامة</span>';
+            const flow = `يقف على <span class="wq-hit-chip">${o.stop_word}</span>`
+                + `<span class="wq-hit-chip wq-hit-chip-muted">ثم يبدأ من</span>`
+                + `<span class="wq-hit-chip">${o.resume_word}</span>`
+                + `<span class="wq-hit-chip wq-hit-chip-muted">${dist}</span>`;
+            return hitRowFromOcc({
+                surah: o.surah, ayah: o.ayah, context: o.context || '', marks: {},
+                word: o.stop_word,
+            }, {
+                hideMarks: true,
+                meta: `<span class="wq-ibt-count">${toAr(o.count)} قارئ</span>${markTag}`,
+                flow,
+                title: (o.reciters || []).join('، '),
+                extraClass: 'wq-ibt-item',
+            });
+        };
+        els.ibtidaaContent.innerHTML = head + paginateList('ibtidaa', items, renderItem);
+        wireHitMore(els.ibtidaaContent, 'ibtidaa', items, renderItem);
     }
 
     /* ── تشابه القرّاء (reciter clustering) ────────────────────── */
@@ -824,10 +1044,11 @@
         const lo = d.range.min, hi = d.range.max;
         const idx = order.map((o, i) => i);
 
-        const desc = '<div class="wq-solos-desc">تشابه أنماط الوقف/التنفّس بين القرّاء عبر القرآن كله (مقياس جاكار). '
-            + 'القرّاء مرتّبون بحيث يتجاور المتشابهون، فتظهر المجموعات ككتل مضيئة. كلّما اشتدّ اللون زاد التشابه.</div>';
+        const desc = toolBlurb(
+            'تشابه أنماط الوقف بين القرّاء (جاكار).',
+            'القرّاء مرتّبون بحيث يتجاور المتشابهون. على الشاشات الصغيرة تُعرض المجموعات والأزواج بدل شبكة الألوان.'
+        );
 
-        // Clusters summary.
         const clusters = (d.clusters || []).filter(c => c.size > 1);
         const singles = (d.clusters || []).filter(c => c.size === 1).flatMap(c => c.members.map(m => m.name_ar));
         let clHtml = '<div class="wq-cl-groups">';
@@ -835,11 +1056,10 @@
             clHtml += `<div class="wq-cl-group"><span class="wq-cl-gtag">المجموعة ${toAr(i + 1)} · تماسك ${toAr(Math.round(c.cohesion * 100))}٪</span>`
                 + c.members.map(m => `<span class="wq-cl-chip">${m.name_ar}</span>`).join('') + '</div>';
         });
-        if (singles.length) clHtml += `<div class="wq-cl-group"><span class="wq-cl-gtag wq-cl-gtag-out">قرّاء متفرّدون (نمط مستقل)</span>`
+        if (singles.length) clHtml += `<div class="wq-cl-group"><span class="wq-cl-gtag wq-cl-gtag-out">قرّاء متفرّدون</span>`
             + singles.map(n => `<span class="wq-cl-chip wq-cl-chip-out">${n}</span>`).join('') + '</div>';
         clHtml += '</div>';
 
-        // Heatmap matrix.
         const headCells = idx.map(i => `<th class="wq-cl-hth" title="${order[i].name_ar}">${toAr(i + 1)}</th>`).join('');
         const rows = order.map((ro, ri) => {
             const cells = order.map((co, ci) => {
@@ -850,16 +1070,29 @@
             const q = ro.qasr ? '<span class="wq-cl-q" title="قصر المنفصل">قصر</span>' : '';
             return `<tr><td class="wq-cl-rh"><span class="wq-cl-rnum">${toAr(ri + 1)}</span> ${ro.name_ar}${q}</td>${cells}</tr>`;
         }).join('');
-        const heat = `<div class="wq-cl-heatwrap"><table class="wq-cl-heat"><thead><tr><th></th>${headCells}</tr></thead><tbody>${rows}</tbody></table></div>`;
+        const heat = `<div class="wq-cl-desktop wq-cl-heatwrap"><table class="wq-cl-heat"><thead><tr><th></th>${headCells}</tr></thead><tbody>${rows}</tbody></table></div>`;
 
-        // Most-different pairs (the outliers — most interesting).
-        const diff = (d.different || []).slice(0, 6).map(p =>
-            `<span class="wq-cl-pair">
-                <span class="wq-cl-pair-pct">${toAr(Math.round(p.similarity * 100))}٪</span>
+        const alike = (d.similar || d.closest || []).slice(0, 6);
+        const different = (d.different || []).slice(0, 6);
+        const pairCard = (p, tone) => {
+            const pct = toAr(Math.round((p.similarity != null ? p.similarity : p.sim || 0) * 100));
+            const n1 = p.n1 || p.a || '';
+            const n2 = p.n2 || p.b || '';
+            return `<div class="wq-cl-pair-card"><div class="wq-cl-pair-card-top"><b>${n1} ↔ ${n2}</b><span>${pct}٪</span></div>
+                <span class="wq-hit-chip wq-hit-chip-muted">${tone}</span></div>`;
+        };
+        const mobile = `<div class="wq-cl-mobile">
+            <div class="wq-cl-sub">أبعد القرّاء تشابهًا</div>
+            <div class="wq-cl-pair-cards">${different.map(p => pairCard(p, 'أقل تشابهًا')).join('')}</div>
+            ${alike.length ? `<div class="wq-cl-sub">أقرب القرّاء</div><div class="wq-cl-pair-cards">${alike.map(p => pairCard(p, 'أكثر تشابهًا')).join('')}</div>` : ''}
+        </div>`;
+
+        const diff = different.map(p =>
+            `<span class="wq-cl-pair"><span class="wq-cl-pair-pct">${toAr(Math.round(p.similarity * 100))}٪</span>
                 <span>${p.n1} ↔ ${p.n2}</span></span>`).join('');
-        const diffHtml = `<div class="wq-cl-sub">أبعد القرّاء تشابهًا</div><div class="wq-cl-pairs">${diff}</div>`;
+        const diffHtml = `<div class="wq-cl-desktop"><div class="wq-cl-sub">أبعد القرّاء تشابهًا</div><div class="wq-cl-pairs">${diff}</div></div>`;
 
-        els.clusterContent.innerHTML = desc + clHtml + heat + diffHtml;
+        els.clusterContent.innerHTML = desc + clHtml + heat + diffHtml + mobile;
     }
 
     /* ── تقارب المصاحف (mushaf-system similarity → dendrogram) ──────── */
@@ -932,8 +1165,6 @@
 
     /* نظرة عامة — dendrogram + closest pairs */
     function mspViewOverview(d) {
-        const desc = '<div class="wq-solos-desc">شجرة تقارب <b>أنظمة الوقف</b> عبر القرآن كله. المصحفان يلتقيان عند نسبة '
-            + '<b>اتفاقهما في الحكم</b> (نفس الكلمة ونفس الحكم، بعد توحيد الرموز). كلما كان الالتقاء أقرب لليمين كانا أشبه.</div>';
         const pairs = (d.pairs || []).slice(0, 12);
         const rows = pairs.map(p => {
             const mp = Math.round(p.meaning * 100), pl = Math.round(p.place * 100);
@@ -942,9 +1173,10 @@
                 + `<div class="wq-msp-val">${toAr(mp)}٪ <small>حكمًا</small></div>`
                 + `<div class="wq-msp-place" title="يضعان وقفًا في نفس الموضع بغضّ النظر عن الحكم">${toAr(pl)}٪ موضعًا</div></div></div>`;
         }).join('');
-        return desc + buildDendrogram(d)
-            + '<div class="wq-msp-head"><i class="fas fa-ranking-star"></i> أقرب المصاحف بعضها لبعض</div>'
-            + `<div class="wq-msp-list">${rows}</div>`;
+        return toolBlurb('أقرب المصاحف في نظام الوقف — الشجرة على الشاشات الواسعة.')
+            + '<div class="wq-msp-head">أقرب المصاحف بعضها لبعض</div>'
+            + `<div class="wq-msp-list">${rows}</div>`
+            + buildDendrogram(d);
     }
 
     /* التوافق لكل علامة — per-mark agreement + per-mushaf counts */
@@ -1023,37 +1255,79 @@
         const res = document.getElementById('wq-cmp-result');
         if (!res) return;
         const agree = Math.round((j.meaning || 0) * 100);
-        // each side's mark is drawn as its printed glyph in that mushaf's own font.
         const ga = s => markGlyph(s, j.a, 'wq-cmp-ga'), gb = s => markGlyph(s, j.b, 'wq-cmp-gb');
         const groups = (j.groups || []).map(g =>
             `<span class="wq-cmp-group">${ga(g.a_sym)}<i class="fas fa-arrows-left-right"></i>`
             + `${gb(g.b_sym)}<span class="wq-cmp-gn">${toAr(g.count)}</span></span>`).join('');
-        const chips = (j.verses || []).map(v => {
-            const sname = surahName(v.surah);
-            return `<button class="wq-research-item wq-cmp-case" type="button" data-s="${v.surah}" data-a="${v.ayah}">`
-                + `<span class="wq-cmp-w">${v.word || ''}</span>`
-                + `<span class="wq-cmp-ref">${sname} <b>${toAr(v.surah)}:${toAr(v.ayah)}</b></span>`
-                + `<span class="wq-cmp-syms">${ga(v.a_sym)}<i class="fas fa-arrows-left-right"></i>${gb(v.b_sym)}</span></button>`;
-        }).join('');
+        const verses = j.verses || [];
+        labListState.cmp = HIT_PAGE;
+        const renderItem = v => hitRowFromOcc({
+            surah: v.surah, ayah: v.ayah,
+            context: v.word || '',
+            marks: {},
+        }, {
+            editorEditions: [j.a, j.b],
+            marksHtml: `${ga(v.a_sym)}<span class="wq-hit-chip wq-hit-chip-muted">↔</span>${gb(v.b_sym)}`,
+            extraClass: 'wq-cmp-case',
+        });
         res.innerHTML = `<div class="wq-cmp-summary"><b>${j.a}</b> و<b>${j.b}</b> يتفقان حكمًا بنسبة <b>${toAr(agree)}٪</b>، `
             + `ويختلفان في <b>${toAr(j.differences)}</b> موضعًا${j.capped ? ` (عُرض أول ${toAr(j.shown)})` : ''}.</div>`
-            + `<div class="wq-cmp-legend"><span class="wq-cmp-ga">يمين = ${j.a}</span> · <span class="wq-cmp-gb">يسار = ${j.b}</span></div>`
+            + `<div class="wq-cmp-legend"><span class="wq-cmp-ga">${j.a}</span> · <span class="wq-cmp-gb">${j.b}</span></div>`
             + `<div class="wq-cmp-groups">${groups}</div>`
-            + (chips ? `<div class="wq-cmp-list">${chips}</div>` : '<div class="wq-research-empty">لا اختلاف بينهما في الحكم.</div>');
+            + (verses.length ? paginateList('cmp', verses, renderItem) : '<div class="wq-research-empty">لا اختلاف بينهما في الحكم.</div>');
+        wireHitMore(res, 'cmp', verses, renderItem);
     }
 
     function setupResearch() {
-        if (!els.researchToggle) return;
-        els.researchToggle.addEventListener('click', () => {
-            window.AtharUi.setDisclosure(els.researchToggle, els.researchBody);
-        });
+        if (!els.panelWord) return;
+        if (els.researchToggle && els.researchBody) {
+            els.researchToggle.addEventListener('click', () => {
+                window.AtharUi.setDisclosure(els.researchToggle, els.researchBody);
+            });
+        }
+
+        const TAB_FAMILY = {
+            word: 'words', ibtidaa: 'words', saktat: 'words', mandatory: 'words',
+            solos: 'reciters', stats: 'reciters', cluster: 'reciters',
+            patterns: 'mushafs', agreement: 'mushafs', mushafsim: 'mushafs',
+        };
 
         function tabLabel(tab) {
             return (tab.textContent || '').replace(/\s+/g, ' ').trim();
         }
 
+        function setFamily(family, { selectFirst = true } = {}) {
+            document.querySelectorAll('.wq-lab-family').forEach(btn => {
+                const on = btn.dataset.family === family;
+                btn.classList.toggle('wq-lab-family-active', on);
+                btn.setAttribute('aria-selected', String(on));
+            });
+            const tabs = [...document.querySelectorAll('.wq-lab-tab')];
+            tabs.forEach(tab => {
+                const match = (tab.dataset.family || TAB_FAMILY[tab.dataset.tab]) === family;
+                tab.hidden = !match;
+            });
+            if (selectFirst) {
+                const first = tabs.find(tab => !tab.hidden);
+                if (first) selectLabTab(first, { scroll: false });
+            }
+            if (els.labSheetList) rebuildLabSheetList();
+        }
+
         function selectLabTab(tab, { scroll = true, closeSheet = false } = {}) {
             if (!tab) return;
+            const family = tab.dataset.family || TAB_FAMILY[tab.dataset.tab];
+            if (family) {
+                document.querySelectorAll('.wq-lab-family').forEach(btn => {
+                    const on = btn.dataset.family === family;
+                    btn.classList.toggle('wq-lab-family-active', on);
+                    btn.setAttribute('aria-selected', String(on));
+                });
+                document.querySelectorAll('.wq-lab-tab').forEach(t => {
+                    const match = (t.dataset.family || TAB_FAMILY[t.dataset.tab]) === family;
+                    t.hidden = !match;
+                });
+            }
             document.querySelectorAll('.wq-lab-tab').forEach(t => {
                 const active = t === tab;
                 t.classList.toggle('wq-lab-tab-active', active);
@@ -1092,6 +1366,10 @@
                 window.AtharUi.scrollIntoView(tab, { behavior: 'smooth', block: 'nearest', inline: 'nearest' });
             }
             if (closeSheet) setLabSheetOpen(false);
+            const url = new URL(location.href);
+            url.searchParams.set('tab', which);
+            if (family) url.searchParams.set('family', family);
+            history.replaceState(null, '', url);
         }
 
         function setLabSheetOpen(open) {
@@ -1108,22 +1386,31 @@
             }
         }
 
-        if (els.labSheetList) {
+        function rebuildLabSheetList() {
+            if (!els.labSheetList) return;
+            els.labSheetList.innerHTML = '';
             document.querySelectorAll('.wq-lab-tab').forEach(tab => {
-                const icon = tab.querySelector('i')?.className || 'fas fa-circle';
+                if (tab.hidden) return;
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'wq-lab-sheet-item' + (tab.classList.contains('wq-lab-tab-active') ? ' is-active' : '');
                 btn.dataset.tab = tab.dataset.tab;
                 btn.setAttribute('role', 'option');
                 btn.setAttribute('aria-selected', tab.getAttribute('aria-selected') || 'false');
-                btn.innerHTML = `<i class="${icon}" aria-hidden="true"></i><span>${tabLabel(tab)}</span>`;
+                btn.innerHTML = `<span>${tabLabel(tab)}</span>`;
                 btn.addEventListener('click', () => {
                     selectLabTab(tab, { scroll: false, closeSheet: true });
                 });
                 els.labSheetList.appendChild(btn);
             });
         }
+
+        if (els.labSheetList) rebuildLabSheetList();
+
+        document.querySelectorAll('.wq-lab-family').forEach(btn => {
+            btn.addEventListener('click', () => setFamily(btn.dataset.family));
+        });
+
         if (els.labPicker) {
             els.labPicker.addEventListener('click', () => {
                 setLabSheetOpen(els.labSheetRoot?.hidden !== false);
@@ -1143,7 +1430,7 @@
         }));
         els.researchBody.addEventListener('keydown', e => {
             if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
-            const tabs = [...document.querySelectorAll('.wq-lab-tab')];
+            const tabs = [...document.querySelectorAll('.wq-lab-tab')].filter(t => !t.hidden);
             const current = tabs.indexOf(document.activeElement);
             if (current < 0) return;
             e.preventDefault();
@@ -1159,59 +1446,59 @@
         if (els.researchInput) els.researchInput.addEventListener('keydown', e => {
             if (e.key === 'Enter') runResearch(els.researchInput.value);
         });
-        els.researchForms.addEventListener('click', e => {
+        if (els.researchForms) els.researchForms.addEventListener('click', e => {
             const fb = e.target.closest('.wq-form-chip');
             if (fb) { researchState.form = fb.dataset.form || null; researchState.waqf = null; renderResearch(); return; }
             const wb = e.target.closest('.wq-wfilter');
             if (wb) { researchState.waqf = wb.dataset.waqf || null; renderResearch(); }
         });
-        els.researchResults.addEventListener('click', async e => {
-            const b = e.target.closest('.wq-research-item'); if (!b) return;
+        if (els.researchResults) els.researchResults.addEventListener('click', async e => {
+            const b = e.target.closest('.wq-research-item, .wq-hit'); if (!b) return;
             const s = +b.dataset.s, a = +b.dataset.a;
-            await navigateTo(s, a);
+            await navigateTo(s, a, optsFromHitEl(b));
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-        els.patternsContent.addEventListener('click', async e => {
-            const item = e.target.closest('.wq-research-item'); if (!item) return;
+        if (els.patternsContent) els.patternsContent.addEventListener('click', async e => {
+            const item = e.target.closest('.wq-research-item, .wq-hit'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            await navigateTo(s, a);
+            await navigateTo(s, a, optsFromHitEl(item));
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
         if (els.mushafSimContent) els.mushafSimContent.addEventListener('click', async e => {
             const sub = e.target.closest('.wq-msp-subtab');
             if (sub) { mushafSimView = sub.dataset.view; renderMushafSim(); return; }
-            const item = e.target.closest('.wq-research-item'); if (!item || !item.dataset.s) return;
+            const item = e.target.closest('.wq-research-item, .wq-hit'); if (!item || !item.dataset.s) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            await navigateTo(s, a);
+            await navigateTo(s, a, optsFromHitEl(item));
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-        els.ibtidaaContent.addEventListener('click', async e => {
+        if (els.ibtidaaContent) els.ibtidaaContent.addEventListener('click', async e => {
             const sub = e.target.closest('.wq-stats-subtab');
             if (sub) { ibtidaaOnlyMulti = sub.dataset.im === 'multi'; renderIbtidaa(); return; }
-            const item = e.target.closest('.wq-research-item'); if (!item) return;
+            const item = e.target.closest('.wq-research-item, .wq-hit'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            await navigateTo(s, a);
+            await navigateTo(s, a, optsFromHitEl(item));
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-        els.saktatContent.addEventListener('click', async e => {
-            const item = e.target.closest('.wq-research-item'); if (!item) return;
+        if (els.saktatContent) els.saktatContent.addEventListener('click', async e => {
+            const item = e.target.closest('.wq-research-item, .wq-hit'); if (!item) return;
             const s = +item.dataset.s, a = +item.dataset.a;
-            await navigateTo(s, a);
+            await navigateTo(s, a, optsFromHitEl(item));
             if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
-        els.agreementContent.addEventListener('click', async e => {
+        if (els.agreementContent) els.agreementContent.addEventListener('click', async e => {
             const tab = e.target.closest('.wq-stats-subtab[data-mushaf]');
             if (tab) { agreementMushaf = tab.dataset.mushaf; renderAgreement(); return; }
-            const cell = e.target.closest('.wq-agree-cell[data-rid]');
+            const cell = e.target.closest('.wq-agree-cell[data-rid], .wq-agree-card-mark[data-rid]');
             if (cell) { showAgreementCases(cell.dataset.rid, cell.dataset.mark); return; }
-            const cs = e.target.closest('.wq-agree-case');
-            if (cs) {
-                const s = +cs.dataset.s, a = +cs.dataset.a;
-                await navigateTo(s, a);
+            const hit = e.target.closest('.wq-hit, .wq-agree-case');
+            if (hit && hit.dataset.s) {
+                const s = +hit.dataset.s, a = +hit.dataset.a;
+                await navigateTo(s, a, optsFromHitEl(hit));
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
-        els.statsContent.addEventListener('click', async e => {
+        if (els.statsContent) els.statsContent.addEventListener('click', async e => {
             const st = e.target.closest('.wq-stats-subtab');
             if (st) {
                 const sv = st.dataset.sv;
@@ -1219,32 +1506,32 @@
                 else { statsView = sv; renderStats(); }
                 return;
             }
-            const item = e.target.closest('.wq-research-item');
+            const item = e.target.closest('.wq-research-item, .wq-hit');
             if (item) {
                 const s = +item.dataset.s, a = +item.dataset.a;
-                await navigateTo(s, a);
+                await navigateTo(s, a, optsFromHitEl(item));
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
-        els.mandatoryContent.addEventListener('click', async e => {
+        if (els.mandatoryContent) els.mandatoryContent.addEventListener('click', async e => {
             const mt = e.target.closest('.wq-stats-subtab');
             if (mt) { mandView = mt.dataset.mv; renderMandatory(); return; }
-            const item = e.target.closest('.wq-research-item');
+            const item = e.target.closest('.wq-research-item, .wq-hit');
             if (item) {
                 const s = +item.dataset.s, a = +item.dataset.a;
-                await navigateTo(s, a);
+                await navigateTo(s, a, optsFromHitEl(item));
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
-        els.solosContent.addEventListener('click', async e => {
+        if (els.solosContent) els.solosContent.addEventListener('click', async e => {
             const back = e.target.closest('.wq-solos-back');
             if (back) { renderSolosSummary(); return; }
-            const card = e.target.closest('.wq-solos-card');
+            const card = e.target.closest('.wq-solos-card, .wq-solos-rank-row');
             if (card) { loadSolosDetail(card.dataset.rid); return; }
-            const item = e.target.closest('.wq-research-item');
+            const item = e.target.closest('.wq-research-item, .wq-hit');
             if (item) {
                 const s = +item.dataset.s, a = +item.dataset.a;
-                await navigateTo(s, a);
+                await navigateTo(s, a, optsFromHitEl(item));
                 if (els.verseCard) els.verseCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
@@ -1507,6 +1794,7 @@
                 return stop ? stopChip(stop, d.reciters_total) : null;
             },
         });
+        applyVerseHighlight(d);
     }
 
     function renderMatrix(d) {
@@ -1516,7 +1804,7 @@
         mushafs.forEach(m => m.marks.forEach(mk => posSet.add(mk.wpos)));
         const cols = [...posSet].sort((a, b) => a - b);
         els.matrixCard.hidden = cols.length === 0;
-        if (!cols.length) { els.matrix.innerHTML = ''; renderMatrixLegend(d, []); return; }
+        if (!cols.length) { els.matrix.innerHTML = ''; if (els.matrixMobile) { els.matrixMobile.innerHTML = ''; els.matrixMobile.hidden = true; } renderMatrixLegend(d, []); return; }
 
         const uByWpos = new Map(d.union_stops.map(u => [u.wpos, u]));
         const markOf = (m, wpos) => { const f = m.marks.find(x => x.wpos === wpos); return f ? f.symbol : null; };
@@ -1586,6 +1874,9 @@
         });
         body += '</tbody>';
         els.matrix.innerHTML = head + body;
+        renderMatrixMobile(d, cols, {
+            uByWpos, markOf, mushafMarked, isStrong, mushafs,
+        });
 
         const symsHere = [...new Set(mushafs.flatMap(m => m.marks.map(mk => mk.symbol)))];
         const hasStrong = cols.some(isStrong);
@@ -1593,6 +1884,53 @@
             const u = uByWpos.get(s.wpos); return u && u.solo && mushafMarked(s.wpos);
         }));
         renderMatrixLegend(d, symsHere, { strong: hasStrong, onMushaf: hasOnMushaf });
+    }
+
+    function renderMatrixMobile(d, cols, ctx) {
+        if (!els.matrixMobile) return;
+        if (!cols.length) {
+            els.matrixMobile.innerHTML = '';
+            els.matrixMobile.hidden = true;
+            return;
+        }
+        const { uByWpos, markOf, mushafMarked, isStrong, mushafs } = ctx;
+        const cards = cols.map(wpos => {
+            const word = d.words[wpos] || '';
+            const u = uByWpos.get(wpos);
+            const strong = isStrong(wpos);
+            const tags = [];
+            if (strong) tags.push('<span class="wq-mx-tag wq-mx-tag-strong">أقوى وقف</span>');
+            if (u && u.solo) tags.push('<span class="wq-mx-tag wq-mx-tag-solo">انفراد</span>');
+            if (u) tags.push(`<span class="wq-mx-tag">${toAr(u.count)}/${toAr(d.reciters_total)} قرّاء</span>`);
+            const mushafBits = mushafs.map(m => {
+                const sym = markOf(m, wpos);
+                if (!sym) return '';
+                const meta = symMeta(sym);
+                return `<span class="wq-mx-mushaf"><span class="wq-mx-mname">${m.name}</span>`
+                    + `<span class="wq-wsym ${waqfFontCls(m.id)} wq-w-${meta.cls}">${mushafGlyph(sym, m.id)}</span></span>`;
+            }).filter(Boolean).join('');
+            const plays = d.reciters.map(r => {
+                const det = d.per_reciter[r.id];
+                const stop = (det.stops || []).find(s => s.wpos === wpos);
+                if (!stop) return '';
+                const isSolo = u && u.solo;
+                const onMushaf = isSolo && mushafMarked(wpos);
+                return `<button class="wq-cell-stop wq-cell-play${isSolo ? ' wq-solo' : ''}${onMushaf ? ' wq-solo-onmushaf' : ''}" type="button" data-rid="${r.id}" data-wpos="${wpos}" title="استمع لـ ${r.name_ar}">`
+                    + `<span class="wq-mx-rname">${r.name_ar}</span>`
+                    + `<i class="fas fa-play" aria-hidden="true"></i>${toAr(stop.time.toFixed(1))}</button>`;
+            }).filter(Boolean).join('');
+            return `<article class="wq-mx-card${strong ? ' wq-mx-card-strong' : ''}${u && u.solo ? ' wq-mx-card-solo' : ''}">
+                <div class="wq-mx-top">
+                    <span class="wq-mx-word" dir="rtl">${word}</span>
+                    <span class="wq-mx-meta">كلمة ${toAr(wpos + 1)}</span>
+                </div>
+                <div class="wq-mx-tags">${tags.join('')}</div>
+                ${mushafBits ? `<div class="wq-mx-marks">${mushafBits}</div>` : ''}
+                ${plays ? `<div class="wq-mx-plays">${plays}</div>` : '<p class="wq-mx-empty">لا وقف مسجّل للقرّاء هنا</p>'}
+            </article>`;
+        }).join('');
+        els.matrixMobile.innerHTML = cards;
+        els.matrixMobile.hidden = false;
     }
 
     function renderMatrixLegend(d, syms, flags) {
@@ -1969,7 +2307,8 @@
         }
     }
 
-    /* ── events ───────────────────────────────────────────────── */
+    /* ── events (verse study page only) ───────────────────────── */
+    if (!IS_LAB && els.surah && els.ayah && els.prev && els.next && els.search) {
     els.surah.addEventListener('change', () => navigateTo(+els.surah.value, 1));
     els.ayah.addEventListener('change', () => navigateTo(+els.surah.value, +els.ayah.value));
     async function stepVerse(delta) {
@@ -2035,24 +2374,59 @@
         if (state.data) renderRecommendation(state.data);
     });
     // matrix cell → play that reciter's segment up to the clicked stop
-    if (els.matrix) els.matrix.addEventListener('click', e => {
+    const matrixPlayRoot = els.matrixCard || els.matrix;
+    if (matrixPlayRoot) matrixPlayRoot.addEventListener('click', e => {
         const cell = e.target.closest('.wq-cell-play');
         if (!cell || !state.data) return;
         playReciterStop(state.data, cell.dataset.rid, parseInt(cell.dataset.wpos, 10), cell);
     });
+    }
 
     /* ── init ─────────────────────────────────────────────────── */
     async function init() {
-        // Keep the verse analysis primary; the deeper ten-view lab follows it
-        // in both the visual and accessibility reading order.
-        if (els.main && els.researchCard) els.main.appendChild(els.researchCard);
-        setupResearch();
         try {
             await loadSurahs();
+            if (IS_LAB) {
+                setupResearch();
+                const p = new URLSearchParams(location.search);
+                const tabId = p.get('tab');
+                const family = p.get('family');
+                const tab = tabId
+                    ? document.querySelector(`.wq-lab-tab[data-tab="${CSS.escape(tabId)}"]`)
+                    : null;
+                if (tab) {
+                    // selectLabTab applies the matching family
+                    tab.click();
+                } else if (family) {
+                    document.querySelector(`.wq-lab-family[data-family="${CSS.escape(family)}"]`)?.click();
+                } else {
+                    document.querySelector('.wq-lab-family[data-family="words"]')?.click();
+                }
+                const q = (p.get('q') || '').trim();
+                if (q) {
+                    if (els.researchInput) els.researchInput.value = q;
+                    // Ensure word panel is active, then search.
+                    document.querySelector('.wq-lab-tab[data-tab="word"]')?.click();
+                    runResearch(q, p.get('exact') === '1', p.get('mode') || '');
+                }
+                return;
+            }
             const p = new URLSearchParams(location.search);
+            // Legacy deep-link: /waqf?tab=solos → send to the lab workspace.
+            if (p.get('tab') || p.get('family') || p.get('lab') === '1') {
+                const dest = new URL('/waqf-lab', location.origin);
+                if (p.get('tab')) dest.searchParams.set('tab', p.get('tab'));
+                if (p.get('family')) dest.searchParams.set('family', p.get('family'));
+                location.replace(dest.pathname + dest.search);
+                return;
+            }
             const surah = Math.min(Math.max(1, parseInt(p.get('surah'), 10) || 2), 114);
             const ayah = parseInt(p.get('ayah'), 10) || (surah === 2 ? 255 : 1);
-            await navigateTo(surah, ayah);
+            const wpos = parseInt(p.get('wpos'), 10);
+            await navigateTo(surah, ayah, {
+                wpos: Number.isFinite(wpos) && wpos >= 0 ? wpos : null,
+                word: (p.get('hl') || '').trim() || null,
+            });
         } catch (e) {
             setStatus('تعذّر تهيئة الصفحة', true);
         }

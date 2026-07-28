@@ -13,6 +13,7 @@ _SITEMAP_PATHS = (
     ('/read', 'weekly', '0.9'),
     ('/memorize', 'weekly', '0.8'),
     ('/waqf', 'weekly', '0.8'),
+    ('/waqf-lab', 'weekly', '0.6'),
     ('/waqf-practice', 'weekly', '0.7'),
 )
 
@@ -92,6 +93,7 @@ def llms_txt():
 - Mushaf reader: {base}/read
 - Memorization (تثبيت): {base}/memorize
 - Waqf guide (مُكْث): {base}/waqf
+- Waqf lab (مختبر الوقف): {base}/waqf-lab
 - Waqf practice (تدريب): {base}/waqf-practice
 
 ## Product summary

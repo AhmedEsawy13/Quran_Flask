@@ -20,8 +20,20 @@ def test_editor_uses_shared_workspace_and_accessible_editing(client):
     assert 'id="ed-zoom-reset"' in page
     assert 'setPageZoom' in script
     assert 'ed-bar--compact' in script
-    assert 'id="ed-title" aria-label="راجع المصحف، واضبط الوقف."' in page
-    assert 'راجِع المصحــف، واضبط الوقف.' in page
+    assert 'id="ed-title" aria-label="طابق المطبوع، واضبط الوقف."' in page
+    assert 'طابِق المطبــوع، واضبط الوقف.' in page
+    assert 'محرّر الوقف' in page
+    assert 'محرّر المصحف' not in page
+    assert 'IBM Plex' not in page
+    assert 'id="ed-studio-link"' in page
+    assert 'href="/waqf-lab"' in page
+    assert 'href="/waqf"' in page
+    assert 'id="ed-compare-mode"' in page
+    assert 'data-mode="madinah"' in page
+    assert 'data-mode="print"' in page
+    assert 'compareMode' in script
+    assert "state.compareMode === 'madinah'" in script
+    assert 'STUDIO_BY_EDITION' in script
     assert 'id="ed-edition-toggle" role="group" aria-label="نسخة المصحف"' in page
     assert page.count('class="ed-edition-btn athar-tab"') == 3
     for edition in ('قطر', 'الكويت', 'البحرين'):
@@ -38,8 +50,40 @@ def test_editor_uses_shared_workspace_and_accessible_editing(client):
     assert 'pages: stacked ? 1 : 2' in script
     assert 'id="ed-compare"' in page
     assert 'id="ed-ref-img"' in page
+    assert 'نسختك · التحرير' in page
+    assert 'المطبوع · المرجع' in page
     assert 'REF_SOURCES' in script
     assert 'leafOffset: 3' in script
     assert "'البحرين': {" in script
     assert 'MushafQatar_20150445776437' in script
     assert 'trapPopupFocus(e)' in script
+    assert 'syncWaqfPreview' in script
+    assert 'mukthHref' in script
+    assert 'id="ed-waqf-preview"' in page
+    assert 'id="ed-popup-preview"' in page
+    assert 'مُكْث — كيف يقف القرّاء' in page
+    assert 'initialEdition' in script
+    assert 'resolveVerseHint' in script
+    assert '/api/mushaf-editor/page-by-ayah/' in script
+
+
+def test_editor_page_by_ayah_resolves(client):
+    r = client.get('/api/mushaf-editor/page-by-ayah/2/255?edition=%D9%82%D8%B7%D8%B1')
+    assert r.status_code == 200
+    data = r.get_json()
+    assert data['edition'] == 'قطر'
+    assert data['surah'] == 2 and data['ayah'] == 255
+    assert isinstance(data['page_number'], int) and 1 <= data['page_number'] <= 604
+    bad = client.get('/api/mushaf-editor/page-by-ayah/2/255?edition=madinah')
+    assert bad.status_code == 400
+
+
+def test_waqf_hides_editor_cta_when_editor_disabled():
+    from app import create_app
+    bare = create_app({'core', 'breathing'}).test_client()
+    page = bare.get('/waqf').get_data(as_text=True)
+    lab = bare.get('/waqf-lab').get_data(as_text=True)
+    assert 'id="wq-editor-cta"' not in page
+    assert 'data-editor-enabled' not in page
+    assert 'محرّر الوقف' not in lab
+    assert bare.get('/mushaf-editor').status_code == 404

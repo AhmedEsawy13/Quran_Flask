@@ -262,6 +262,7 @@ def create_app(features=None):
         return {
             'public_base_url': public_base_url(),
             'public_absolute': public_absolute,
+            'editor_enabled': 'editor' in flask_app.blueprints,
         }
 
     flask_app.after_request(after_request)

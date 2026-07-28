@@ -462,6 +462,12 @@ def waqf_guide():
     return render_template('waqf_guide.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
+@breathing_bp.route('/waqf-lab')
+def waqf_lab():
+    """Quran-wide waqf research workspace (formerly the accordion on /waqf)."""
+    return render_template('waqf_lab.html', enable_vercel_analytics=_IS_SERVERLESS)
+
+
 # ── تدريب الوقف (waqf practice + grading) ──────────────────────────────────────
 # Grade WHERE a memoriser chose to stop against the printed mushaf marks only
 # (for now — classical الداني/الأشموني stay out of the learner score). Each

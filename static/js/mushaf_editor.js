@@ -1,8 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════
    Mushaf Editor — مصحف قطر / الكويت الحديث / البحرين
    One digital page beside a remote printed-edition reference. Click a
-   word to set its waqf mark for the selected edition; words whose mark
-   differs from وقوف المدينة (the seeded baseline) are highlighted.
+   word to set its waqf mark for the selected edition. Orange highlight
+   (optional) marks divergence from المدينة الجديد as a comparison aid —
+   the printed panel is the matching target.
    Peer mushafs (الأزهر / الشمرلي / المدينتان) hint when they mark a word
    you left empty. الكويت gets surah-end ركوع via seed script.
    البحرين uses Madinah 1421 (Digital Khatt) layout + font.
@@ -64,6 +65,17 @@
         'الأزهر': 'الأزهر',
         'الشمرلي': 'الشمرلي',
     };
+    const STUDIO_BY_EDITION = {
+        'البحرين': '/layout-studio/bahrain',
+        'قطر': '/layout-studio/azhar',
+        'الكويت': '/layout-studio/azhar',
+    };
+    const EDITION_LABEL = {
+        'قطر': 'مصحف قطر',
+        'الكويت': 'الكويت الحديث',
+        'البحرين': 'مصحف البحرين',
+    };
+    const EDITOR_EDITION_SET = new Set(Object.keys(EDITION_LABEL));
     const ACTION_AR = {
         set_mark: 'تعيين',
         clear_mark: 'مسح',
@@ -146,6 +158,10 @@
         popupTitle: $('ed-popup-title'), popupBaseline: $('ed-popup-baseline'),
         popupPeers: $('ed-popup-peers'),
         popupSyms: $('ed-popup-syms'), popupClear: $('ed-popup-clear'), popupClose: $('ed-popup-close'),
+        studioLink: $('ed-studio-link'),
+        compareMode: $('ed-compare-mode'),
+        waqfPreview: $('ed-waqf-preview'),
+        popupPreview: $('ed-popup-preview'),
     };
 
     const ZOOM_MIN = 0.75;
@@ -159,8 +175,9 @@
     }
 
     const state = {
-        edition: localStorage.getItem('ed_edition') || 'قطر',
+        edition: initialEdition(),
         page: initialPage(),
+        verseHint: initialVerseHint(),
         reviewedPages: new Set(),
         activeWord: null,
         currentPages: [],
@@ -174,6 +191,7 @@
         pendingPages: [],
         pageZoom: readStoredZoom(),
         barExpanded: localStorage.getItem('ed_bar_expanded') !== '0',
+        compareMode: localStorage.getItem('ed_compare_mode') === 'print' ? 'print' : 'madinah',
     };
     const spreadRequests = window.AtharMushaf.createRequestGate();
     const progressRequests = window.AtharMushaf.createRequestGate();
@@ -194,18 +212,40 @@
     function pageToSpread(page) {
         return clampSpread(Math.ceil(page / 2));
     }
+    function readQuery() {
+        try { return new URLSearchParams(location.search); } catch (_e) { return new URLSearchParams(); }
+    }
+    function initialEdition() {
+        const q = readQuery().get('edition');
+        if (q && EDITOR_EDITION_SET.has(q)) return q;
+        const saved = localStorage.getItem('ed_edition');
+        return (saved && EDITOR_EDITION_SET.has(saved)) ? saved : 'قطر';
+    }
     function initialPage() {
+        const qPage = parseInt(readQuery().get('page') || '', 10);
+        if (Number.isFinite(qPage)) return clampPage(qPage);
         const savedPage = parseInt(localStorage.getItem('ed_page') || '', 10);
         if (Number.isFinite(savedPage)) return clampPage(savedPage);
         const savedSpread = parseInt(localStorage.getItem('ed_spread') || '', 10);
         if (Number.isFinite(savedSpread)) return clampPage(clampSpread(savedSpread) * 2 - 1);
         return 1;
     }
+    function initialVerseHint() {
+        const q = readQuery();
+        const surah = parseInt(q.get('surah') || '', 10);
+        const ayah = parseInt(q.get('ayah') || '', 10);
+        if (!Number.isFinite(surah) || !Number.isFinite(ayah)) return null;
+        if (surah < 1 || surah > 114 || ayah < 1) return null;
+        // Prefer explicit page= when present; verse hint only fills missing page.
+        if (Number.isFinite(parseInt(q.get('page') || '', 10))) return null;
+        return { surah, ayah };
+    }
 
     function persist() {
         localStorage.setItem('ed_edition', state.edition);
         localStorage.setItem('ed_page', String(state.page));
         localStorage.setItem('ed_spread', String(pageToSpread(state.page)));
+        localStorage.setItem('ed_compare_mode', state.compareMode);
     }
 
     const status = window.AtharUi.createStatus(els.status, {
@@ -224,10 +264,12 @@
             chip.innerHTML = `<span class="ed-legend-glyph">${waqfGlyph(sym)}</span><span>${meta.name} (${sym})</span>`;
             els.legend.appendChild(chip);
         });
-        const diff = document.createElement('span');
-        diff.className = 'ed-legend-chip ed-legend-diff';
-        diff.innerHTML = '<span class="ed-legend-swatch"></span><span>يختلف عن وقف المدينة</span>';
-        els.legend.appendChild(diff);
+        if (state.compareMode === 'madinah') {
+            const diff = document.createElement('span');
+            diff.className = 'ed-legend-chip ed-legend-diff';
+            diff.innerHTML = '<span class="ed-legend-swatch"></span><span>يختلف عن وقف المدينة (مقارنة)</span>';
+            els.legend.appendChild(diff);
+        }
         const peer = document.createElement('span');
         peer.className = 'ed-legend-chip ed-legend-peer';
         peer.innerHTML = '<span class="ed-legend-swatch"></span><span>علامة في مصحف مرجعي (لم تُثبَّت بعد)</span>';
@@ -263,6 +305,22 @@
         document.body.classList.toggle('ed-font-kuwait', state.edition === 'الكويت');
         document.body.classList.toggle('ed-font-bahrain', state.edition === 'البحرين');
         document.body.classList.remove('ed-font-hafs');
+        document.body.classList.toggle('ed-compare-print', state.compareMode === 'print');
+        if (els.studioLink) {
+            els.studioLink.href = STUDIO_BY_EDITION[state.edition] || '/layout-studio';
+            const label = EDITION_LABEL[state.edition] || state.edition;
+            els.studioLink.textContent = state.edition === 'البحرين'
+                ? 'استوديو التخطيط (البحرين)'
+                : 'استوديو التخطيط';
+            els.studioLink.title = `تخطيط ${label}`;
+        }
+        if (els.compareMode) {
+            els.compareMode.querySelectorAll('.ed-compare-mode-btn').forEach(b => {
+                const active = b.dataset.mode === state.compareMode;
+                b.classList.toggle('ed-active', active);
+                b.setAttribute('aria-pressed', String(active));
+            });
+        }
         updateRefChrome();
     }
     els.editionBtns.forEach(btn => btn.addEventListener('click', () => {
@@ -434,6 +492,34 @@
     els.refOpen.addEventListener('click', openReference);
     els.refFallbackBtn.addEventListener('click', openReference);
 
+
+    function mukthHref(surah, ayah, word) {
+        const url = new URL('/waqf', location.origin);
+        if (surah) url.searchParams.set('surah', String(surah));
+        if (ayah) url.searchParams.set('ayah', String(ayah));
+        if (word) url.searchParams.set('hl', String(word));
+        return url.pathname + url.search;
+    }
+
+    function syncWaqfPreview(surah, ayah, word) {
+        const href = mukthHref(surah || 1, ayah || 1, word || '');
+        if (els.waqfPreview) {
+            els.waqfPreview.href = href;
+            els.waqfPreview.hidden = false;
+        }
+        if (els.popupPreview) {
+            if (surah && ayah) {
+                els.popupPreview.href = href;
+                els.popupPreview.hidden = false;
+                els.popupPreview.textContent = word
+                    ? `ادرس وقوف القرّاء عند «${word}» في مُكْث`
+                    : 'ادرس وقوف القرّاء في مُكْث';
+            } else {
+                els.popupPreview.hidden = true;
+            }
+        }
+    }
+
     /* ── Page rendering ──────────────────────────────────────────── */
     function renderPage(payload) {
         const container = els.page;
@@ -462,6 +548,8 @@
                 const cleanText = stripEmbeddedWaqf(w.text || '');
                 wordElement.dataset.wordId = String(w.word_index);
                 wordElement.dataset.text = cleanText;
+                if (w.surah != null) wordElement.dataset.surah = String(w.surah);
+                if (w.ayah != null) wordElement.dataset.ayah = String(w.ayah);
                 wordElement.tabIndex = 0;
                 wordElement.setAttribute('role', 'button');
                 const entries = Array.isArray(w.waqf_symbols) ? w.waqf_symbols : [];
@@ -488,6 +576,7 @@
             surah: payload.anchor_surah_number,
             ayah: payload.anchor_ayah_number,
         });
+        syncWaqfPreview(payload.anchor_surah_number, payload.anchor_ayah_number);
     }
 
     /* ── Page sizing & line-fit ────────────────────────────────────── */
@@ -654,13 +743,14 @@
             try { peerList = JSON.parse(span.dataset.peers || '[]'); } catch (_e) { peerList = []; }
         }
         const peerHint = peerHintFromList(editionSym, peerList);
-        span.classList.toggle('ed-diff', (editionSym || '') !== (baseline || ''));
+        const differsMadinah = (editionSym || '') !== (baseline || '');
+        span.classList.toggle('ed-diff', state.compareMode === 'madinah' && differsMadinah);
         span.classList.toggle('ed-peer-hint', peerHint);
         const peerTip = peerList.length
             ? peerList.map(p => `${PEER_SHORT[p.version] || p.version}: ${waqfGlyph(p.symbols)}`).join(' · ')
             : '';
         const parts = [
-            baseline ? `المدينة: ${waqfGlyph(baseline)} (${baseline})` : 'المدينة: بلا علامة',
+            baseline ? `المدينة (مقارنة): ${waqfGlyph(baseline)} (${baseline})` : 'المدينة (مقارنة): بلا علامة',
             peerTip ? `مراجع: ${peerTip}` : '',
         ].filter(Boolean);
         span.title = parts.join(' | ');
@@ -1026,10 +1116,17 @@
         wordEl.classList.add('ed-selected');
 
         els.popupTitle.textContent = wordEl.dataset.text || wordEl.textContent;
+        const surah = parseInt(wordEl.dataset.surah || '', 10);
+        const ayah = parseInt(wordEl.dataset.ayah || '', 10);
+        syncWaqfPreview(
+            Number.isFinite(surah) ? surah : null,
+            Number.isFinite(ayah) ? ayah : null,
+            wordEl.dataset.text || '',
+        );
         const baseline = wordEl.dataset.baseline || '';
         els.popupBaseline.innerHTML = baseline
-            ? `وقف المدينة هنا: <span class="ed-baseline-glyph">${waqfGlyph(baseline)}</span> (${baseline})`
-            : 'لا توجد علامة وقف في المدينة عند هذه الكلمة';
+            ? `مرجع المدينة للمقارنة: <span class="ed-baseline-glyph">${waqfGlyph(baseline)}</span> (${baseline})`
+            : 'لا توجد علامة في مرجع المدينة عند هذه الكلمة — طابق المطبوع ثم ثبّت';
         renderPopupPeers(wordEl);
 
         const current = wordEl.dataset.symbol || '';
@@ -1323,10 +1420,27 @@
             return true; // local SQLite path
         }
     }
+    async function resolveVerseHint() {
+        const hint = state.verseHint;
+        if (!hint) return;
+        state.verseHint = null;
+        try {
+            const q = `edition=${encodeURIComponent(state.edition)}`;
+            const data = await window.AtharApi.json(
+                `/api/mushaf-editor/page-by-ayah/${hint.surah}/${hint.ayah}?${q}`
+            );
+            if (data && data.page_number) {
+                state.page = clampPage(data.page_number);
+                persist();
+            }
+        } catch (_e) { /* keep stored page */ }
+    }
+
     async function enterEditor() {
         state.ready = true;
         hideLogin();
         updateSessionUI();
+        await resolveVerseHint();
         await loadProgress();
         await loadPage();
         loadAudit();
@@ -1660,6 +1774,26 @@
             setPageZoom(1);
         }
     });
+
+    function refreshDiffHighlights() {
+        buildLegend();
+        document.querySelectorAll('.ed-word').forEach(span => {
+            applyWordMark(span, span.dataset.symbol || '', span.dataset.baseline || '');
+        });
+        updateEditionUI();
+    }
+
+    if (els.compareMode) {
+        els.compareMode.querySelectorAll('.ed-compare-mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.mode === 'print' ? 'print' : 'madinah';
+                if (mode === state.compareMode) return;
+                state.compareMode = mode;
+                persist();
+                refreshDiffHighlights();
+            });
+        });
+    }
 
     /* ── Init ────────────────────────────────────────────────────── */
     buildLegend();

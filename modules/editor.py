@@ -368,6 +368,39 @@ def mushaf_editor_page():
     return render_template('mushaf_editor.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
+def _editor_layout_db(edition: str) -> str:
+    if edition == 'الكويت':
+        return QPC_V1_LAYOUT_DATABASE
+    if edition == 'البحرين':
+        layout_db = layout_persistence.working_db_path(BAHRAIN)
+        if os.path.exists(layout_db):
+            return layout_db
+        if os.path.exists(BAHRAIN_LAYOUT_DATABASE):
+            return BAHRAIN_LAYOUT_DATABASE
+        return QPC_V2_LAYOUT_DATABASE
+    return QATAR_LAYOUT_DATABASE
+
+
+@editor_bp.route('/api/mushaf-editor/page-by-ayah/<int:surah>/<int:ayah>', methods=['GET'])
+@require_editor
+def mushaf_editor_page_by_ayah(surah, ayah):
+    """Resolve (surah, ayah) → mushaf page for an editor edition."""
+    edition = (request.args.get('edition') or '').strip()
+    if edition not in EDITOR_EDITIONS:
+        return jsonify({'error': 'invalid edition'}), 400
+    if not (1 <= surah <= 114) or ayah < 1:
+        return jsonify({'error': 'invalid verse'}), 400
+    page_number = _layout_page_resolve(_editor_layout_db(edition), surah, ayah)
+    if page_number is None:
+        return jsonify({'error': 'unresolved', 'edition': edition, 'surah': surah, 'ayah': ayah}), 404
+    return jsonify({
+        'edition': edition,
+        'surah': surah,
+        'ayah': ayah,
+        'page_number': int(page_number),
+    })
+
+
 def _bahrain_ref_jpeg(page_number: int, width: int = 1024) -> str | None:
     """Render mushaf page from the Bahrain PDF to a cached JPEG; return path."""
     if not (1 <= page_number <= _MAX_MUSHAF_PAGE):
@@ -654,14 +687,7 @@ def editor_pending_changes():
         logger.error('pending diff failed: %s', e)
         return jsonify({'error': 'pending unavailable'}), 503
 
-    if edition == 'الكويت':
-        layout_db = QPC_V1_LAYOUT_DATABASE
-    elif edition == 'البحرين':
-        layout_db = layout_persistence.working_db_path(BAHRAIN)
-        if not os.path.exists(layout_db):
-            layout_db = QPC_V2_LAYOUT_DATABASE
-    else:
-        layout_db = QATAR_LAYOUT_DATABASE
+    layout_db = _editor_layout_db(edition)
     wmap = _get_dk_layout_word_map()
     pages_acc: dict[int, dict] = {}
     for ch in changes:

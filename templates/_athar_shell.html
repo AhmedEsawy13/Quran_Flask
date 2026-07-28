@@ -44,7 +44,7 @@
     <nav class="athar-nav" aria-label="التنقل الرئيسي">
         <a href="/read"{% if current_path == '/read' %} class="is-active" aria-current="page"{% endif %}>المصحف</a>
         <a href="/memorize"{% if current_path == '/memorize' %} class="is-active" aria-current="page"{% endif %}>تثبيت</a>
-        <a href="/waqf"{% if current_path == '/waqf' %} class="is-active" aria-current="page"{% endif %}>مُكْث</a>
+        <a href="/waqf"{% if current_path == '/waqf' or current_path.startswith('/waqf-lab') %} class="is-active" aria-current="page"{% endif %}>مُكْث</a>
         <a href="/waqf-practice"{% if current_path == '/waqf-practice' %} class="is-active" aria-current="page"{% endif %}>تدريب</a>
     </nav>
     <button class="athar-icon-btn" data-athar-theme="cycle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي">

@@ -767,6 +767,13 @@
                 + j.ideal.map(b => `<span class="wp-fu-w">${b.word}<sup class="wp-mark-badge is-ideal">${b.mark || ''}</sup></span> <small>${toAr(b.ayah)}</small>`).join('، ') + '</div>';
         }
         els.followups.innerHTML = fu;
+        const study = document.createElement('div');
+        study.className = 'wp-fu wp-fu-study';
+        const s = +els.surah.value || 1;
+        const a = +els.from.value || 1;
+        study.innerHTML = `<a class="wp-study-link" href="/waqf?surah=${s}&ayah=${a}">`
+            + `<i class="fas fa-book-open" aria-hidden="true"></i> ادرس هذا الموضع في مُكْث</a>`;
+        els.followups.appendChild(study);
         els.resultSec.hidden = false;
         els.resultSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }

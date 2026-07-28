@@ -564,6 +564,12 @@ body.athar-training {
 .wp-fu-err i { color: var(--athar-danger); }
 .wp-fu-tip { border-color: color-mix(in srgb, var(--athar-success) 28%, var(--athar-line)); background: color-mix(in srgb, var(--athar-success) 7%, var(--athar-surface)); }
 .wp-fu-tip i { color: var(--athar-gold); }
+.wp-fu-study { border-color: color-mix(in srgb, var(--athar-accent) 28%, var(--athar-line)); background: color-mix(in srgb, var(--athar-accent) 7%, var(--athar-surface)); }
+.wp-study-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-weight: 700; color: var(--athar-accent); text-decoration: none;
+}
+.wp-study-link:hover { text-decoration: underline; }
 .wp-fu-w { font-family: 'UthmanicHafs', serif; font-size: 1.15em; }
 .wp-fu-w + small { color: var(--wp-faint); }
 
