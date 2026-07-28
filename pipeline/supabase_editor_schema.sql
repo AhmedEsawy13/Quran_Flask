@@ -53,6 +53,30 @@ create table if not exists editor_progress (
   primary key (edition, page_number)
 );
 
+-- Layout Studio stores complete page snapshots because one editor action can
+-- rebalance several lines (and sometimes two neighboring pages). The bundled
+-- SQLite database remains the baseline; rows here are durable overrides.
+create table if not exists editor_layout_pages (
+  edition text not null,
+  page_number integer not null check (page_number between 1 and 604),
+  lines jsonb not null check (jsonb_typeof(lines) = 'array'),
+  updated_by uuid references editor_invites(id) on delete set null,
+  updated_at timestamptz not null default now(),
+  primary key (edition, page_number)
+);
+
+create index if not exists editor_layout_pages_updated_idx
+  on editor_layout_pages (edition, updated_at desc);
+
+-- Geometry settings belong to the layout project too, so a reviewer opening
+-- the project on another machine gets the same line/header budget.
+create table if not exists editor_layout_profiles (
+  edition text primary key,
+  profile jsonb not null check (jsonb_typeof(profile) = 'object'),
+  updated_by uuid references editor_invites(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
 -- Append-only audit trail.
 create table if not exists editor_audit (
   id bigserial primary key,
@@ -196,6 +220,8 @@ grant execute on function public.publish_editor_edition(text, uuid, text, jsonb)
 alter table editor_invites enable row level security;
 alter table editor_marks enable row level security;
 alter table editor_progress enable row level security;
+alter table editor_layout_pages enable row level security;
+alter table editor_layout_profiles enable row level security;
 alter table editor_audit enable row level security;
 
 -- No policies for anon/authenticated → denied by default under RLS.

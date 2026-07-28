@@ -16,6 +16,7 @@ from functools import lru_cache
 
 from flask import jsonify, request
 
+from core import layout_persistence
 from core.blueprints import core_bp
 from core.config import (
     DIGITAL_KHATT_LAYOUT_DATABASE,
@@ -31,6 +32,7 @@ from core.datasets import digital_khatt_data, qpc_hafs_data, surahs_data
 from core.mushaf_waqf import (
     get_mushaf_waqf_symbols,
 )
+from modules.layout_editions import BAHRAIN
 
 logger = logging.getLogger(__name__)
 
@@ -1519,7 +1521,7 @@ def _build_bahrain_page_payload(page_number, focus_surah=None, focus_ayah=None, 
     Prefers ``mushaf-bahrain-layout.db`` so waqf-editor pages follow studio line
     edits. Falls back to shared QPC V2 when the project has not been seeded.
     """
-    layout_db = BAHRAIN_LAYOUT_DATABASE
+    layout_db = layout_persistence.working_db_path(BAHRAIN)
     source = 'mushaf_bahrain'
     layout_name = 'مصحف البحرين · تخطيط المدينة ١٤٢١'
     if not os.path.exists(layout_db):

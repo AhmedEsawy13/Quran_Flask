@@ -34,6 +34,7 @@ from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.db import connect as _sqlite_connect
 from core.mushaf_waqf import _mushaf_waqf_cache, invalidate_cloud_waqf_cache
 from core import supabase_editor as sb
+from core import layout_persistence
 from modules.breathing import _verse_waqf_cache
 from modules.editor_auth import current_editor, require_admin, require_editor
 from modules.layouts import (
@@ -45,6 +46,7 @@ from modules.layouts import (
     _normalize_mushaf_word_token,
     _layout_page_resolve,
 )
+from modules.layout_editions import BAHRAIN
 
 # Side-effect: register login/logout routes on editor_bp.
 import modules.editor_auth  # noqa: F401
@@ -655,11 +657,9 @@ def editor_pending_changes():
     if edition == 'الكويت':
         layout_db = QPC_V1_LAYOUT_DATABASE
     elif edition == 'البحرين':
-        layout_db = (
-            BAHRAIN_LAYOUT_DATABASE
-            if os.path.exists(BAHRAIN_LAYOUT_DATABASE)
-            else QPC_V2_LAYOUT_DATABASE
-        )
+        layout_db = layout_persistence.working_db_path(BAHRAIN)
+        if not os.path.exists(layout_db):
+            layout_db = QPC_V2_LAYOUT_DATABASE
     else:
         layout_db = QATAR_LAYOUT_DATABASE
     wmap = _get_dk_layout_word_map()

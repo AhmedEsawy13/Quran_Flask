@@ -324,7 +324,38 @@ def test_bahrain_push_last_word_page_262_boundary(
     client, monkeypatch, restore_bahrain_layout_db,
 ):
     """Printed Bahrain page 262 ends at ۝١٥; وَلَقَدْ opens page 263."""
+    from core.config import BAHRAIN_LAYOUT_DATABASE
+
     monkeypatch.setenv('ENABLE_EDITOR', '1')
+
+    # The reviewed database already contains the correction. Recreate the old
+    # one-word spill in this test copy, then verify push-last-word fixes it.
+    with sqlite3.connect(BAHRAIN_LAYOUT_DATABASE) as conn:
+        last262 = conn.execute(
+            '''
+            SELECT id, last_word_id FROM pages
+            WHERE page_number = 262 AND line_type = 'ayah'
+            ORDER BY line_number DESC LIMIT 1
+            '''
+        ).fetchone()
+        first263 = conn.execute(
+            '''
+            SELECT id, first_word_id FROM pages
+            WHERE page_number = 263 AND line_type = 'ayah'
+            ORDER BY line_number LIMIT 1
+            '''
+        ).fetchone()
+        assert last262 and first263
+        moved_word_id = int(first263[1])
+        conn.execute(
+            'UPDATE pages SET last_word_id = ? WHERE id = ?',
+            (moved_word_id, int(last262[0])),
+        )
+        conn.execute(
+            'UPDATE pages SET first_word_id = ? WHERE id = ?',
+            (moved_word_id + 1, int(first263[0])),
+        )
+        conn.commit()
 
     before262 = client.get('/api/layout-studio/bahrain/page/262').get_json()
     before263 = client.get('/api/layout-studio/bahrain/page/263').get_json()
@@ -366,6 +397,26 @@ def test_bahrain_header_rows_move_across_pages_and_undo(
     from core.config import BAHRAIN_LAYOUT_DATABASE
 
     monkeypatch.setenv('ENABLE_EDITOR', '1')
+    with sqlite3.connect(BAHRAIN_LAYOUT_DATABASE) as conn:
+        boundary = conn.execute(
+            '''
+            SELECT source.page_number, destination.page_number
+            FROM pages source
+            JOIN pages destination
+              ON destination.page_number = source.page_number + 1
+             AND destination.line_number = 1
+            WHERE source.line_type = 'surah_name'
+              AND destination.line_type = 'basmallah'
+              AND source.line_number = (
+                SELECT MAX(line_number) FROM pages page_rows
+                WHERE page_rows.page_number = source.page_number
+              )
+            ORDER BY source.page_number
+            LIMIT 1
+            '''
+        ).fetchone()
+    assert boundary
+    source_page, destination_page = map(int, boundary)
 
     def positions():
         with sqlite3.connect(BAHRAIN_LAYOUT_DATABASE) as conn:
@@ -374,47 +425,51 @@ def test_bahrain_header_rows_move_across_pages_and_undo(
                 SELECT id, page_number, line_number, line_type, surah_number,
                        first_word_id, last_word_id
                 FROM pages
-                WHERE page_number IN (76, 77)
-                ORDER BY page_number, line_number
-                '''
-            ).fetchall()
+                    WHERE page_number IN (?, ?)
+                    ORDER BY page_number, line_number
+                    ''',
+                    (source_page, destination_page),
+                ).fetchall()
 
     before = positions()
-    page76_last = next(
+    source_last = next(
         row for row in before
-        if row[1] == 76 and row[2] == 15
+        if row[1] == source_page and row[2] == 15
     )
-    page77_first = next(
+    destination_first = next(
         row for row in before
-        if row[1] == 77 and row[2] == 1
+        if row[1] == destination_page and row[2] == 1
     )
-    assert page76_last[3] == 'surah_name'
-    assert page77_first[3] == 'basmallah'
+    assert source_last[3] == 'surah_name'
+    assert destination_first[3] == 'basmallah'
 
     moved = client.post('/api/layout-studio/bahrain/header-move', json={
-        'page_number': 76,
+        'page_number': source_page,
         'line_number': 15,
         'direction': 'down',
     })
     assert moved.status_code == 200, moved.get_json()
     body = moved.get_json()
     assert body['crossed_page'] is True
-    assert body['moved_to_page'] == 77
+    assert body['moved_to_page'] == destination_page
     assert body['moved_to_line'] == 1
     assert body['undo_available'] >= 1
 
     after = positions()
-    page76_rows = [row for row in after if row[1] == 76]
-    page77_rows = [row for row in after if row[1] == 77]
-    assert len(page76_rows) == 15
-    assert len(page77_rows) == 15
-    assert page77_rows[0][0] == page76_last[0]
-    assert page77_rows[0][3] == 'surah_name'
-    assert page77_rows[1][0] == page77_first[0]
-    assert page77_rows[1][3] == 'basmallah'
+    source_rows = [row for row in after if row[1] == source_page]
+    destination_rows = [
+        row for row in after if row[1] == destination_page
+    ]
+    assert len(source_rows) == 15
+    assert len(destination_rows) == 15
+    assert destination_rows[0][0] == source_last[0]
+    assert destination_rows[0][3] == 'surah_name'
+    assert destination_rows[1][0] == destination_first[0]
+    assert destination_rows[1][3] == 'basmallah'
 
     undone = client.post(
-        '/api/layout-studio/bahrain/undo', json={'page_number': 76},
+        '/api/layout-studio/bahrain/undo',
+        json={'page_number': source_page},
     )
     assert undone.status_code == 200, undone.get_json()
     assert positions() == before
@@ -429,26 +484,50 @@ def test_bahrain_cross_page_header_move_consumes_empty_row(
     monkeypatch.setenv('ENABLE_EDITOR', '1')
     with sqlite3.connect(BAHRAIN_LAYOUT_DATABASE) as conn:
         conn.row_factory = sqlite3.Row
+        boundary = conn.execute(
+            '''
+            SELECT source.page_number AS source_page,
+                   destination.page_number AS destination_page
+            FROM pages source
+            JOIN pages destination
+              ON destination.page_number = source.page_number + 1
+             AND destination.line_number = 1
+            WHERE source.line_type = 'surah_name'
+              AND destination.line_type = 'basmallah'
+              AND source.line_number = (
+                SELECT MAX(line_number) FROM pages page_rows
+                WHERE page_rows.page_number = source.page_number
+              )
+            ORDER BY source.page_number
+            LIMIT 1
+            '''
+        ).fetchone()
+        assert boundary
+        source_page = int(boundary['source_page'])
+        destination_page = int(boundary['destination_page'])
         name = conn.execute(
             '''
             SELECT id FROM pages
-            WHERE page_number = 76 AND line_number = 15
+            WHERE page_number = ? AND line_number = 15
               AND line_type = 'surah_name'
-            '''
+            ''',
+            (source_page,),
         ).fetchone()
         basmallah = conn.execute(
             '''
             SELECT id FROM pages
-            WHERE page_number = 77 AND line_number = 1
+            WHERE page_number = ? AND line_number = 1
               AND line_type = 'basmallah'
-            '''
+            ''',
+            (destination_page,),
         ).fetchone()
         last = conn.execute(
             '''
             SELECT id FROM pages
-            WHERE page_number = 77
+            WHERE page_number = ?
             ORDER BY line_number DESC LIMIT 1
-            '''
+            ''',
+            (destination_page,),
         ).fetchone()
         assert name and basmallah and last
 
@@ -461,17 +540,17 @@ def test_bahrain_cross_page_header_move_consumes_empty_row(
         )
         conn.execute(
             '''
-            UPDATE pages SET page_number = 76, line_number = 15
+            UPDATE pages SET page_number = ?, line_number = 15
             WHERE id = ?
             ''',
-            (int(basmallah['id']),),
+            (source_page, int(basmallah['id'])),
         )
         conn.execute(
             '''
-            UPDATE pages SET page_number = 77, line_number = 1
+            UPDATE pages SET page_number = ?, line_number = 1
             WHERE id = ?
             ''',
-            (int(name['id']),),
+            (destination_page, int(name['id'])),
         )
         conn.execute(
             '''
@@ -486,13 +565,14 @@ def test_bahrain_cross_page_header_move_consumes_empty_row(
             '''
             SELECT id, page_number, line_number, line_type, first_word_id,
                    last_word_id, line_text
-            FROM pages WHERE page_number IN (76, 77)
+            FROM pages WHERE page_number IN (?, ?)
             ORDER BY page_number, line_number
-            '''
+            ''',
+            (source_page, destination_page),
         ).fetchall()
 
     moved = client.post('/api/layout-studio/bahrain/header-move', json={
-        'page_number': 76,
+        'page_number': source_page,
         'line_number': 15,
         'direction': 'down',
     })
@@ -500,18 +580,20 @@ def test_bahrain_cross_page_header_move_consumes_empty_row(
     body = moved.get_json()
     assert body['crossed_page'] is True
     assert body['removed_empty_line'] is True
-    assert body['moved_to_page'] == 77
+    assert body['moved_to_page'] == destination_page
     assert body['moved_to_line'] == 2
 
     with sqlite3.connect(BAHRAIN_LAYOUT_DATABASE) as conn:
         page76 = conn.execute(
-            'SELECT line_type FROM pages WHERE page_number = 76 ORDER BY line_number'
+            'SELECT line_type FROM pages WHERE page_number = ? ORDER BY line_number',
+            (source_page,),
         ).fetchall()
         page77 = conn.execute(
             '''
             SELECT line_type, first_word_id, last_word_id
-            FROM pages WHERE page_number = 77 ORDER BY line_number
-            '''
+            FROM pages WHERE page_number = ? ORDER BY line_number
+            ''',
+            (destination_page,),
         ).fetchall()
     assert len(page76) == 15
     assert len(page77) == 15
@@ -522,7 +604,8 @@ def test_bahrain_cross_page_header_move_consumes_empty_row(
     )
 
     undone = client.post(
-        '/api/layout-studio/bahrain/undo', json={'page_number': 76},
+        '/api/layout-studio/bahrain/undo',
+        json={'page_number': source_page},
     )
     assert undone.status_code == 200, undone.get_json()
     with sqlite3.connect(BAHRAIN_LAYOUT_DATABASE) as conn:
@@ -530,9 +613,10 @@ def test_bahrain_cross_page_header_move_consumes_empty_row(
             '''
             SELECT id, page_number, line_number, line_type, first_word_id,
                    last_word_id, line_text
-            FROM pages WHERE page_number IN (76, 77)
+            FROM pages WHERE page_number IN (?, ?)
             ORDER BY page_number, line_number
-            '''
+            ''',
+            (source_page, destination_page),
         ).fetchall()
     assert restored == [tuple(row) for row in prepared]
 

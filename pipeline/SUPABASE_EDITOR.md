@@ -8,6 +8,9 @@
 2. SQL Editor → paste and run [`supabase_editor_schema.sql`](supabase_editor_schema.sql).
 3. If you already had the older invite-code schema, also run
    [`supabase_editor_password_auth.sql`](supabase_editor_password_auth.sql).
+4. Existing projects should also run
+   [`supabase_layout_schema.sql`](supabase_layout_schema.sql) once. It adds the
+   Bahrain Layout Studio page/profile tables and is safe to rerun.
 
 ## 2. App env vars
 
@@ -19,7 +22,7 @@ export EDITOR_SESSION_SECRET='long-random-string'
 export ENABLE_EDITOR=1
 
 # Public read dynos (no editor UI) still need URL + service role so
-# /read and مُكْث can load *published* قطر/الكويت marks. Omit ENABLE_EDITOR.
+# /read and مُكْث can load *published* قطر/الكويت/البحرين marks. Omit ENABLE_EDITOR.
 # export SUPABASE_URL=…
 # export SUPABASE_SERVICE_ROLE_KEY=…
 ```
@@ -95,9 +98,25 @@ python3 pipeline/migrate_waqf_to_supabase.py --as-published
 
 Without Supabase env vars, the editor keeps the old local SQLite write path (laptop workflow).
 
+### Bahrain layout workflow
+
+The committed `data/mushaf-bahrain-layout.db` is the baseline. Each Layout
+Studio action uploads a complete snapshot of every affected page (including
+both pages for a cross-page move), plus project profile and review progress.
+The Bahrain waqf editor reads the same synchronized working database.
+
+Seed or verify an existing reviewed layout:
+
+```bash
+python3 pipeline/seed_bahrain_layout_supabase.py
+python3 pipeline/seed_bahrain_layout_supabase.py --verify-only
+```
+
+The seed is idempotent and never exposes the service-role key to the browser.
+
 ## 6. Synchronize approved marks back to SQLite
 
-Supabase is the live source for editor-approved Qatar/Kuwait marks, while the
+Supabase is the live source for editor-approved Qatar/Kuwait/Bahrain marks, while the
 versioned `data/mushaf_waqf.db` remains the reproducible source used by offline
 research and fallback deployments. Synchronization is deliberately two-step.
 

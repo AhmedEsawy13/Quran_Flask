@@ -131,7 +131,7 @@ serves is controlled by environment variables:
 |---|---|
 | `FEATURES` | Comma-separated module list to enable, e.g. `FEATURES=reading` or `FEATURES=memorize,breathing`. Defaults to `reading,memorize,breathing`. `core` is **always** included. |
 | `ENABLE_EDITOR` | A truthy value (`1`, `true`, `yes`, or `on`) mounts the write-capable `editor` module. **Off by default** on production read-only dynos; turn on for the editor-capable dyno / laptop. |
-| `SUPABASE_URL` | Supabase project URL for cloud mushaf-editor drafts (قطر/الكويت). When unset, the editor keeps the local SQLite write path. |
+| `SUPABASE_URL` | Supabase project URL for cloud mushaf-editor drafts (قطر/الكويت/البحرين) and Bahrain Layout Studio snapshots. When unset, the editor keeps the local SQLite write path. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service-role key (server-side only; never expose to the browser). |
 | `EDITOR_SESSION_SECRET` | Signs invite-session cookies and peppers invite code hashes. |
 | `PUBLIC_BASE_URL` | Canonical site origin for sitemap/canonical/OG URLs (no trailing slash), e.g. `https://waqfquran-d0b6fce4874e.herokuapp.com`. Falls back to the request host. |
@@ -146,11 +146,13 @@ set of databases:
 | `waqf.example.com` | `FEATURES=breathing` | مُكْث + تدريب + core |
 | your laptop | `ENABLE_EDITOR=1` | everything, incl. محرّر المصحف |
 
-> **Note on the editor:** with Supabase configured, قطر/الكويت drafts live in
+> **Note on the editor:** with Supabase configured, قطر/الكويت/البحرين drafts live in
 > Postgres (invite-gated); public `/read` and مُكْث only see marks after an admin
 > **اعتماد**. Setup: [`pipeline/SUPABASE_EDITOR.md`](pipeline/SUPABASE_EDITOR.md).
 > Without Supabase env vars, the editor still writes local `data/mushaf_waqf.db`
-> (laptop workflow). Layout DBs (`mushaf-qatar-layout.db`, etc.) stay SQLite.
+> (laptop workflow). Bahrain Layout Studio keeps a writable SQLite working copy
+> but automatically overlays and saves complete affected-page snapshots in
+> Supabase, so its corrected layout is also used by the waqf editor.
 
 ## Installation
 

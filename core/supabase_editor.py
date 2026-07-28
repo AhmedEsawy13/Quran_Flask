@@ -363,6 +363,13 @@ _MARK_AYAH_TTL_SEC = 45.0
 # Draft lists are small; cache whole-edition draft scans for the pending panel.
 _DRAFT_LIST_CACHE: dict[str, tuple[float, list[dict]]] = {}
 _DRAFT_LIST_TTL_SEC = 20.0
+# Corrected Layout Studio pages are small (15 rows each). Cache the complete
+# edition briefly so page navigation does not make one Supabase request per
+# click while still letting another editor's changes appear quickly.
+_LAYOUT_PAGE_CACHE: dict[str, tuple[float, list[dict]]] = {}
+_LAYOUT_PAGE_TTL_SEC = 5.0
+_LAYOUT_INDEX_CACHE: dict[str, tuple[float, list[dict]]] = {}
+_LAYOUT_PROFILE_CACHE: dict[str, tuple[float, dict | None]] = {}
 
 
 def invalidate_mark_cache(*, edition: str | None = None, surah: int | None = None,
@@ -387,6 +394,170 @@ def invalidate_mark_cache(*, edition: str | None = None, surah: int | None = Non
         _MARK_AYAH_CACHE.pop(key, None)
     if edition is not None:
         _DRAFT_LIST_CACHE.pop(edition, None)
+
+
+def fetch_layout_pages(*, edition: str, force: bool = False) -> list[dict]:
+    """Return all cloud overrides for one Layout Studio edition."""
+    cached = _LAYOUT_PAGE_CACHE.get(edition)
+    if (
+        not force
+        and cached
+        and (time.monotonic() - cached[0]) <= _LAYOUT_PAGE_TTL_SEC
+    ):
+        return [dict(row) for row in cached[1]]
+
+    rows = _request(
+        'GET', 'editor_layout_pages',
+        params={
+            'edition': f'eq.{edition}',
+            'select': 'edition,page_number,lines,updated_at,updated_by',
+            'order': 'page_number',
+        },
+    ) or []
+    _LAYOUT_PAGE_CACHE[edition] = (
+        time.monotonic(), [dict(row) for row in rows],
+    )
+    return [dict(row) for row in rows]
+
+
+def fetch_layout_page_index(*, edition: str, force: bool = False) -> list[dict]:
+    """Fetch lightweight page revision metadata for cloud change detection."""
+    cached = _LAYOUT_INDEX_CACHE.get(edition)
+    if (
+        not force
+        and cached
+        and (time.monotonic() - cached[0]) <= _LAYOUT_PAGE_TTL_SEC
+    ):
+        return [dict(row) for row in cached[1]]
+    rows = _request(
+        'GET', 'editor_layout_pages',
+        params={
+            'edition': f'eq.{edition}',
+            'select': 'page_number,updated_at',
+            'order': 'page_number',
+        },
+    ) or []
+    _LAYOUT_INDEX_CACHE[edition] = (
+        time.monotonic(), [dict(row) for row in rows],
+    )
+    return [dict(row) for row in rows]
+
+
+def upsert_layout_pages(
+    *,
+    edition: str,
+    pages: list[dict],
+    updated_by: str | None,
+) -> list[dict]:
+    """Atomically persist every page touched by one layout operation."""
+    if not pages:
+        return []
+    now = _now_iso()
+    payload = [
+        {
+            'edition': edition,
+            'page_number': int(page['page_number']),
+            'lines': list(page.get('lines') or []),
+            'updated_by': updated_by,
+            'updated_at': now,
+        }
+        for page in pages
+    ]
+    rows = _request(
+        'POST', 'editor_layout_pages',
+        params={'on_conflict': 'edition,page_number'},
+        json_body=payload,
+        prefer='resolution=merge-duplicates,return=representation',
+    ) or payload
+
+    # Keep the local read-through cache coherent. Otherwise the response page
+    # builder could immediately reapply the five-second-old cloud snapshot and
+    # visually undo the edit that was just saved.
+    existing = {
+        int(row['page_number']): dict(row)
+        for row in (_LAYOUT_PAGE_CACHE.get(edition) or (0, []))[1]
+    }
+    for row in rows:
+        existing[int(row['page_number'])] = dict(row)
+    _LAYOUT_PAGE_CACHE[edition] = (
+        time.monotonic(),
+        [existing[key] for key in sorted(existing)],
+    )
+    index = {
+        int(row['page_number']): {
+            'page_number': int(row['page_number']),
+            'updated_at': row.get('updated_at') or now,
+        }
+        for row in (_LAYOUT_INDEX_CACHE.get(edition) or (0, []))[1]
+    }
+    for row in rows:
+        page_number = int(row['page_number'])
+        index[page_number] = {
+            'page_number': page_number,
+            'updated_at': row.get('updated_at') or now,
+        }
+    _LAYOUT_INDEX_CACHE[edition] = (
+        time.monotonic(),
+        [index[key] for key in sorted(index)],
+    )
+    return [dict(row) for row in rows]
+
+
+def fetch_layout_profile(*, edition: str, force: bool = False) -> dict | None:
+    cached = _LAYOUT_PROFILE_CACHE.get(edition)
+    if (
+        not force
+        and cached
+        and (time.monotonic() - cached[0]) <= _LAYOUT_PAGE_TTL_SEC
+    ):
+        return dict(cached[1]) if cached[1] else None
+    rows = _request(
+        'GET', 'editor_layout_profiles',
+        params={
+            'edition': f'eq.{edition}',
+            'select': 'edition,profile,updated_at,updated_by',
+            'limit': '1',
+        },
+    ) or []
+    row = dict(rows[0]) if rows else None
+    _LAYOUT_PROFILE_CACHE[edition] = (
+        time.monotonic(), dict(row) if row else None,
+    )
+    return row
+
+
+def upsert_layout_profile(
+    *,
+    edition: str,
+    profile: dict,
+    updated_by: str | None,
+) -> dict:
+    payload = {
+        'edition': edition,
+        'profile': dict(profile),
+        'updated_by': updated_by,
+        'updated_at': _now_iso(),
+    }
+    rows = _request(
+        'POST', 'editor_layout_profiles',
+        params={'on_conflict': 'edition'},
+        json_body=payload,
+        prefer='resolution=merge-duplicates,return=representation',
+    )
+    row = dict((rows or [payload])[0])
+    _LAYOUT_PROFILE_CACHE[edition] = (time.monotonic(), dict(row))
+    return row
+
+
+def invalidate_layout_cache(edition: str | None = None) -> None:
+    if edition is None:
+        _LAYOUT_PAGE_CACHE.clear()
+        _LAYOUT_INDEX_CACHE.clear()
+        _LAYOUT_PROFILE_CACHE.clear()
+        return
+    _LAYOUT_PAGE_CACHE.pop(edition, None)
+    _LAYOUT_INDEX_CACHE.pop(edition, None)
+    _LAYOUT_PROFILE_CACHE.pop(edition, None)
 
 
 def fetch_draft_and_published_for_ayahs(*, edition: str,

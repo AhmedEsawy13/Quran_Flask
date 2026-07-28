@@ -21,10 +21,13 @@ import sqlite3
 
 from flask import jsonify, redirect, render_template, request, send_file, url_for
 
+from core import layout_persistence
+from core import supabase_editor as sb
 from core.blueprints import editor_bp
 from core.db import connect as _sqlite_connect
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from modules import layout_engine as engine
+from modules.editor_auth import current_editor, require_editor
 from modules.layout_editions import (
     LayoutEdition,
     LayoutProfile,
@@ -42,6 +45,33 @@ logger = logging.getLogger(__name__)
 _PROFILE_TABLE = 'layout_studio_profile'
 _PAGE_END_MODES = frozenset({'ayah', 'continuous'})
 _PROJECT_WORD_MAPS: dict[str, tuple[float, dict]] = {}
+
+
+def _layout_db(edition: LayoutEdition) -> str:
+    return layout_persistence.working_db_path(edition)
+
+
+def _cloud_actor_id() -> str | None:
+    user = current_editor() if sb.is_configured() else None
+    return str(user['id']) if user and user.get('id') else None
+
+
+def _commit_layout_pages(
+    edition: LayoutEdition,
+    conn,
+    cur,
+    page_from: int,
+    page_to: int | None = None,
+) -> bool:
+    cloud_saved = layout_persistence.save_pages(
+        edition,
+        cur,
+        page_from=page_from,
+        page_to=page_to,
+        updated_by=_cloud_actor_id(),
+    )
+    conn.commit()
+    return cloud_saved
 
 
 def _profile_from_mapping(edition: LayoutEdition, values) -> LayoutProfile:
@@ -107,7 +137,7 @@ def _load_profile(edition: LayoutEdition, cur=None) -> LayoutProfile:
     owns_connection = cur is None
     conn = None
     if owns_connection:
-        conn = _sqlite_connect(edition.layout_db)
+        conn = _sqlite_connect(_layout_db(edition))
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
     try:
@@ -320,7 +350,7 @@ def _build_qpc_project_payload(
     edition: LayoutEdition,
     page_number: int,
 ):
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -652,6 +682,7 @@ def layout_studio_editions():
     '/api/layout-studio/<edition_id>/profile',
     methods=['GET', 'POST'],
 )
+@require_editor
 def layout_studio_profile(edition_id):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -670,10 +701,22 @@ def layout_studio_profile(edition_id):
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         _save_profile(conn.cursor(), profile)
+        cloud_saved = layout_persistence.save_profile(
+            edition,
+            profile.as_client_dict(),
+            updated_by=_cloud_actor_id(),
+        )
         conn.commit()
+    except sb.SupabaseEditorError as exc:
+        conn.rollback()
+        logger.error(
+            'layout-studio profile cloud save failed (%s): %s',
+            edition_id, exc,
+        )
+        return jsonify({'error': 'تعذّر حفظ إعدادات التخطيط في Supabase'}), 503
     except Exception as exc:
         conn.rollback()
         logger.error('layout-studio profile save failed (%s): %s', edition_id, exc)
@@ -682,6 +725,7 @@ def layout_studio_profile(edition_id):
         conn.close()
     return jsonify({
         'ok': True,
+        'cloud_saved': cloud_saved,
         **_profile_payload(edition, profile),
         'meta_label': (
             f'{edition.mushaf_version} · {profile.lines_per_page} سطراً · '
@@ -758,7 +802,7 @@ def layout_studio_page_by_ayah(edition_id, surah_number, ayah_number):
     if not bounds or bounds[0] is None or bounds[1] is None:
         return jsonify({'error': 'ayah not found'}), 404
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         row = conn.execute(
             '''
@@ -787,6 +831,7 @@ def layout_studio_page_by_ayah(edition_id, surah_number, ayah_number):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/line-break', methods=['POST'])
+@require_editor
 def layout_studio_line_break(edition_id):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -806,7 +851,7 @@ def layout_studio_line_break(edition_id):
     if not _page_in_range(edition, page_number):
         return jsonify({'error': 'page_number out of range'}), 400
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -919,15 +964,26 @@ def layout_studio_line_break(edition_id):
             engine.persist_line(cur, lines[i])
         if page_scope is not None:
             _seal_closed_page(edition, cur, lines, text_map, page_scope, universe=universe)
-        conn.commit()
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_from, page_to,
+        )
         payload = _build_page_payload(edition, page_number)
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'role': role,
             'page': payload,
             'undo_available': _undo_available(edition, cur, page_number),
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio line-break cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
+        conn.rollback()
         logger.error(f'layout-studio line-break failed ({edition_id}): {e}')
         return jsonify({'error': str(e)}), 500
     finally:
@@ -935,6 +991,7 @@ def layout_studio_line_break(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/merge-line', methods=['POST'])
+@require_editor
 def layout_studio_merge_line(edition_id):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -948,7 +1005,7 @@ def layout_studio_merge_line(edition_id):
     except (TypeError, ValueError):
         return jsonify({'error': 'invalid page_number or line_number'}), 400
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -1069,14 +1126,25 @@ def layout_studio_merge_line(edition_id):
             engine.persist_line(cur, lines[i])
         if page_scope is not None:
             _seal_closed_page(edition, cur, lines, text_map, page_scope, universe=universe)
-        conn.commit()
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_from, page_to,
+        )
         payload = _build_page_payload(edition, page_number)
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'page': payload,
             'undo_available': _undo_available(edition, cur, page_number),
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio merge-line cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
+        conn.rollback()
         logger.error(f'layout-studio merge-line failed ({edition_id}): {e}')
         return jsonify({'error': str(e)}), 500
     finally:
@@ -1084,6 +1152,7 @@ def layout_studio_merge_line(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/pull-next-word', methods=['POST'])
+@require_editor
 def layout_studio_pull_next_word(edition_id):
     """Move one word from the following ayah line into the selected line.
 
@@ -1105,7 +1174,7 @@ def layout_studio_pull_next_word(edition_id):
     if not _page_in_range(edition, page_number):
         return jsonify({'error': 'page_number out of range'}), 400
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -1222,16 +1291,27 @@ def layout_studio_pull_next_word(edition_id):
             _seal_closed_page(
                 edition, cur, lines, text_map, edit_scope, universe=universe,
             )
-        conn.commit()
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_from, page_to,
+        )
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'moved_word_id': moved_word_id,
             'from_page': next_page,
             'crossed_page': cross_page,
             'page': _build_page_payload(edition, page_number),
             'undo_available': _undo_available(edition, cur, page_number),
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio pull-next-word cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
+        conn.rollback()
         logger.error(
             f'layout-studio pull-next-word failed ({edition_id}): {e}'
         )
@@ -1241,6 +1321,7 @@ def layout_studio_pull_next_word(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/push-last-word', methods=['POST'])
+@require_editor
 def layout_studio_push_last_word(edition_id):
     """Move the last word of this ayah line onto the following ayah line.
 
@@ -1262,7 +1343,7 @@ def layout_studio_push_last_word(edition_id):
     if not _page_in_range(edition, page_number):
         return jsonify({'error': 'page_number out of range'}), 400
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -1378,16 +1459,27 @@ def layout_studio_push_last_word(edition_id):
             _seal_closed_page(
                 edition, cur, lines, text_map, edit_scope, universe=universe,
             )
-        conn.commit()
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_from, page_to,
+        )
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'moved_word_id': moved_word_id,
             'to_page': next_page,
             'crossed_page': cross_page,
             'page': _build_page_payload(edition, page_number),
             'undo_available': _undo_available(edition, cur, page_number),
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio push-last-word cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
+        conn.rollback()
         logger.error(
             f'layout-studio push-last-word failed ({edition_id}): {e}'
         )
@@ -1397,6 +1489,7 @@ def layout_studio_push_last_word(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/line-center', methods=['POST'])
+@require_editor
 def layout_studio_line_center(edition_id):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -1415,7 +1508,7 @@ def layout_studio_line_center(edition_id):
     if not isinstance(centered, bool):
         return jsonify({'error': 'is_centered must be a boolean'}), 400
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -1446,14 +1539,25 @@ def layout_studio_line_center(edition_id):
             'UPDATE pages SET is_centered = ? WHERE id = ?',
             (1 if centered else 0, int(row['id'])),
         )
-        conn.commit()
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_number, page_number,
+        )
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'is_centered': centered,
             'page': _build_page_payload(edition, page_number),
             'undo_available': _undo_available(edition, cur, page_number),
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio line-center cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
+        conn.rollback()
         logger.error(f'layout-studio line-center failed ({edition_id}): {e}')
         return jsonify({'error': str(e)}), 500
     finally:
@@ -1461,6 +1565,7 @@ def layout_studio_line_center(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/header-move', methods=['POST'])
+@require_editor
 def layout_studio_header_move(edition_id):
     """Move one surah header row by one slot or across a page boundary."""
     edition, err = _edition_or_404(edition_id)
@@ -1480,7 +1585,7 @@ def layout_studio_header_move(edition_id):
     if not _page_in_range(edition, page_number):
         return jsonify({'error': 'page_number out of range'}), 400
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -1690,7 +1795,9 @@ def layout_studio_header_move(edition_id):
                     _page_line_budget(edition, profile, affected_page),
                     script_db=edition.script_db,
                 )
-        conn.commit()
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_from, page_to,
+        )
         moved_page = int(neighbor['page_number'])
         moved_line = (
             int(cur.execute(
@@ -1702,6 +1809,7 @@ def layout_studio_header_move(edition_id):
         )
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'direction': direction,
             'moved_to_page': moved_page,
             'moved_to_line': moved_line,
@@ -1710,6 +1818,13 @@ def layout_studio_header_move(edition_id):
             'page': _build_page_payload(edition, page_number),
             'undo_available': _undo_available(edition, cur, page_number),
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio header-move cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
         logger.error(
@@ -1721,6 +1836,7 @@ def layout_studio_header_move(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/undo', methods=['POST'])
+@require_editor
 def layout_studio_undo(edition_id):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -1731,7 +1847,7 @@ def layout_studio_undo(edition_id):
     except (TypeError, ValueError):
         page_number = 0
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
@@ -1761,7 +1877,13 @@ def layout_studio_undo(edition_id):
                         ),
                         script_db=edition.script_db,
                     )
-        conn.commit()
+        cloud_saved = _commit_layout_pages(
+            edition,
+            conn,
+            cur,
+            int(restored_from),
+            int(restored_to),
+        )
 
         view_page = page_number or int(popped.get('page_number') or edition.min_page)
         if not _page_in_range(edition, view_page):
@@ -1769,12 +1891,21 @@ def layout_studio_undo(edition_id):
         payload = _build_page_payload(edition, view_page)
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'undone': popped.get('label'),
             'page': payload,
             'page_number': view_page,
             'undo_available': _undo_available(edition, cur, view_page),
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio undo cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ التراجع في Supabase'}), 503
     except Exception as e:
+        conn.rollback()
         logger.error(f'layout-studio undo failed ({edition_id}): {e}')
         return jsonify({'error': str(e)}), 500
     finally:
@@ -1793,7 +1924,7 @@ def layout_studio_undo_status(edition_id):
             page_number = int(page_raw)
         except (TypeError, ValueError):
             page_number = None
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         cur = conn.cursor()
         return jsonify({
@@ -1806,6 +1937,7 @@ def layout_studio_undo_status(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/progress', methods=['GET', 'POST'])
+@require_editor
 def layout_studio_progress(edition_id):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -1814,7 +1946,7 @@ def layout_studio_progress(edition_id):
     if not all(c.isalnum() or c == '_' for c in table):
         return jsonify({'error': 'invalid progress table'}), 500
 
-    conn = _sqlite_connect(edition.layout_db)
+    conn = _sqlite_connect(_layout_db(edition))
     try:
         cur = conn.cursor()
         cur.execute(
@@ -1827,8 +1959,13 @@ def layout_studio_progress(edition_id):
             '''
         )
         if request.method == 'GET':
-            cur.execute(f'SELECT page_number FROM {table} WHERE reviewed = 1')
-            pages = sorted(row[0] for row in cur.fetchall())
+            if layout_persistence.is_cloud_layout(edition):
+                pages = sb.list_reviewed_pages(f'layout:{edition.id}')
+            else:
+                cur.execute(
+                    f'SELECT page_number FROM {table} WHERE reviewed = 1'
+                )
+                pages = sorted(row[0] for row in cur.fetchall())
             return jsonify({
                 'reviewed_pages': pages,
                 'min_page': edition.min_page,
@@ -1856,14 +1993,32 @@ def layout_studio_progress(edition_id):
             ''',
             (page_number, reviewed),
         )
+        cloud_saved = False
+        if layout_persistence.is_cloud_layout(edition):
+            sb.upsert_progress(
+                edition=f'layout:{edition.id}',
+                page_number=page_number,
+                reviewed=bool(reviewed),
+                updated_by=_cloud_actor_id(),
+            )
+            cloud_saved = True
         conn.commit()
         return jsonify({
             'ok': True,
+            'cloud_saved': cloud_saved,
             'page_number': page_number,
             'reviewed': bool(reviewed),
             'edition': edition.id,
         })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio progress cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تقدم المراجعة في Supabase'}), 503
     except Exception as e:
+        conn.rollback()
         logger.error(f'layout-studio progress failed ({edition_id}): {e}')
         return jsonify({'error': str(e)}), 500
     finally:

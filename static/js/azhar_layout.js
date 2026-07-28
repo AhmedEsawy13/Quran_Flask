@@ -115,6 +115,9 @@
     function setStatus(msg, isErr) {
         status.show(msg, { error: !!isErr });
     }
+    function setSavedStatus(data, msg) {
+        setStatus(data && data.cloud_saved ? `${msg} · حُفظ في Supabase` : msg);
+    }
 
     /* ── Universal layout profile ────────────────────────────────── */
 
@@ -246,7 +249,7 @@
                 els.editionMeta.textContent = data.meta_label;
             }
             if (els.profilePanel) els.profilePanel.open = false;
-            setStatus('تم حفظ قواعد التخطيط');
+            setSavedStatus(data, 'تم حفظ قواعد التخطيط');
             await loadPage();
         } catch (e) {
             const msg = (e && e.message) || (e && e.error) || '';
@@ -971,7 +974,12 @@
                     setStatus(boundary === 'start' ? 'هذه الكلمة بداية السطر أصلاً' : 'هذه الكلمة نهاية السطر أصلاً');
                 }
             } else {
-                setStatus(boundary === 'start' ? 'تم ضبط بداية السطر' : 'تم ضبط نهاية السطر');
+                setSavedStatus(
+                    data,
+                    boundary === 'start'
+                        ? 'تم ضبط بداية السطر'
+                        : 'تم ضبط نهاية السطر'
+                );
             }
         } catch (e) {
             const msg = (e && e.message) || (e && e.error) || '';
@@ -1002,7 +1010,7 @@
                 fitPages();
             }
             if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
-            setStatus('تم دمج السطر مع التالي');
+            setSavedStatus(data, 'تم دمج السطر مع التالي');
         } catch (e) {
             setStatus('تعذّر الدمج', true);
         } finally {
@@ -1031,7 +1039,8 @@
                 fitPages();
             }
             if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
-            setStatus(
+            setSavedStatus(
+                data,
                 data.crossed_page || data.from_page !== state.page
                     ? 'تم سحب كلمة من الصفحة التالية'
                     : 'تم سحب كلمة من السطر التالي'
@@ -1065,7 +1074,8 @@
                 fitPages();
             }
             if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
-            setStatus(
+            setSavedStatus(
+                data,
                 data.crossed_page
                     ? 'تم دفع الكلمة إلى الصفحة التالية'
                     : 'تم دفع الكلمة إلى السطر التالي'
@@ -1100,7 +1110,10 @@
                 fitPages();
             }
             if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
-            setStatus(isCentered ? 'تم توسيط السطر' : 'تم إلغاء توسيط السطر');
+            setSavedStatus(
+                data,
+                isCentered ? 'تم توسيط السطر' : 'تم إلغاء توسيط السطر'
+            );
         } catch (e) {
             setStatus('تعذّر تغيير توسيط السطر', true);
         } finally {
@@ -1133,13 +1146,15 @@
                 setUndoAvailable(data.undo_available);
             }
             if (data.crossed_page) {
-                setStatus(
+                setSavedStatus(
+                    data,
                     data.moved_to_page < state.page
                         ? `تم نقل ${label} إلى الصفحة السابقة`
                         : `تم نقل ${label} إلى الصفحة التالية`
                 );
             } else {
-                setStatus(
+                setSavedStatus(
+                    data,
                     direction === 'up'
                         ? `تم رفع ${label} سطراً`
                         : `تم خفض ${label} سطراً`
@@ -1172,7 +1187,7 @@
             }
             if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
             else await refreshUndoStatus();
-            setStatus('تم التراجع');
+            setSavedStatus(data, 'تم التراجع');
         } catch (e) {
             setStatus('تعذّر التراجع', true);
             await refreshUndoStatus();
@@ -1217,7 +1232,7 @@
         const page = state.page;
         els.reviewed.disabled = true;
         try {
-            await window.AtharApi.json(`${API_BASE}/progress`, {
+            const data = await window.AtharApi.json(`${API_BASE}/progress`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ page_number: page, reviewed }),
@@ -1225,7 +1240,7 @@
             if (reviewed) state.reviewedPages.add(page);
             else state.reviewedPages.delete(page);
             updateProgressLabel();
-            setStatus('تم حفظ حالة المطابقة');
+            setSavedStatus(data, 'تم حفظ حالة المطابقة');
         } catch (e) {
             els.reviewed.checked = !reviewed;
             setStatus('تعذّر حفظ المطابقة', true);
