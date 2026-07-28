@@ -20,6 +20,7 @@ from core.blueprints import core_bp
 from core.config import (
     DIGITAL_KHATT_LAYOUT_DATABASE,
     QPC_V2_LAYOUT_DATABASE, QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
+    BAHRAIN_LAYOUT_DATABASE,
     AZHAR_LAYOUT_DATABASE, QURAN_SCRIPT_DATABASE,
     AZHAR_LAYOUT_MIN_PAGE, AZHAR_LAYOUT_MAX_PAGE,
     SHEMRLY_CODEPOINT_BASE, ARABIC_DIACRITICS_STRIP_PATTERN,
@@ -1506,6 +1507,60 @@ def _build_qpc_v2_page_payload(page_number, focus_surah=None, focus_ayah=None, m
     payload['font_name'] = 'Digital Khatt'
     # The upstream DB's info.name is truncated, so expose a stable complete name.
     payload['layout_name'] = 'Digital Khatt (KFGQPC V2 1421H print)'
+    payload['mushaf_version'] = (
+        mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
+    )
+    return payload
+
+
+def _build_bahrain_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
+    """Build مصحف البحرين from the Layout Studio project DB.
+
+    Prefers ``mushaf-bahrain-layout.db`` so waqf-editor pages follow studio line
+    edits. Falls back to shared QPC V2 when the project has not been seeded.
+    """
+    layout_db = BAHRAIN_LAYOUT_DATABASE
+    source = 'mushaf_bahrain'
+    layout_name = 'مصحف البحرين · تخطيط المدينة ١٤٢١'
+    if not os.path.exists(layout_db):
+        layout_db = QPC_V2_LAYOUT_DATABASE
+        source = 'qpc_v2'
+        layout_name = 'Digital Khatt (KFGQPC V2 1421H print)'
+        if not os.path.exists(layout_db):
+            return None
+
+    layout_conn = sqlite3.connect(layout_db)
+    try:
+        layout_conn.row_factory = sqlite3.Row
+        lc = layout_conn.cursor()
+        lc.execute(
+            'SELECT page_number, line_number, line_type, is_centered, '
+            'first_word_id, last_word_id, surah_number '
+            'FROM pages WHERE page_number = ? ORDER BY line_number ASC',
+            (page_number,)
+        )
+        lines = [dict(row) for row in lc.fetchall()]
+        lc.execute(
+            'SELECT font_name, number_of_pages, lines_per_page, name '
+            'FROM info LIMIT 1'
+        )
+        info_row = lc.fetchone()
+    finally:
+        layout_conn.close()
+
+    if not lines:
+        return None
+
+    # Same 1..83668 word ids as Digital Khatt / QPC V2.
+    payload = _assemble_layout_page(
+        lines, info_row, page_number, focus_surah, focus_ayah,
+        source=source, font_name_default='Digital Khatt', include_advance=False,
+        mushaf_version=mushaf_version,
+    )
+    payload['font_name'] = 'Digital Khatt'
+    payload['layout_name'] = (
+        (info_row['name'] if info_row and info_row['name'] else None) or layout_name
+    )
     payload['mushaf_version'] = (
         mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or '')
     )

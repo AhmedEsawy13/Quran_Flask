@@ -70,6 +70,57 @@ def test_grade_spelling_variants_are_canonicalized():
     assert stats['bad_grade'] == 0
 
 
+def test_cleanup_preserves_rulings_but_consolidates_repeated_reasons():
+    from pipeline.classical_cleanup import clean_rows
+
+    long_note = 'على استئناف ما بعده، وقيل ليس بوقف لأن الكلام كله متعلق بما قبله'
+    short_note = 'وقيل ليس بوقف لأن الكلام كله متعلق بما قبله'
+    rows = [
+        ('manar', 9, 59, 9, 'الله', 'حسبنا الله', 'حسن', 'حسن',
+         long_note, 1, 1, None),
+        ('manar', 9, 59, 14, 'ورسوله', 'ورسوله', 'حسن', 'حسن',
+         short_note, 2, 1, None),
+        ('manar', 9, 59, 17, 'الله', 'الله', 'حسن', 'حسن',
+         short_note, 3, 1, None),
+        # Same position and grade, but a genuinely different reading/reason:
+        # it must remain a separate ruling.
+        ('manar', 9, 59, 17, 'الله', 'لله', 'حسن', 'حسن',
+         'على قراءة أخرى معتبرة', 4, 1, None),
+        # Exact duplicate extraction row: this one alone is removed.
+        ('manar', 9, 59, 9, 'الله', 'حسبنا الله', 'حسن', 'حسن',
+         long_note, 5, 1, None),
+    ]
+
+    cleaned, stats = clean_rows(rows)
+    assert len(cleaned) == 4
+    assert stats['exact_rows_removed'] == 1
+    assert stats['notes_suppressed'] == 2
+    assert [row[3] for row in cleaned] == [9, 14, 17, 17]
+    assert [row[8] for row in cleaned] == [
+        long_note, '', '', 'على قراءة أخرى معتبرة',
+    ]
+
+
+def test_released_manar_has_no_repeated_or_contained_reasons(llm_rows):
+    """The live learner view must not repeat one explanation within an ayah."""
+    grouped = {}
+    for row in llm_rows:
+        if row['source'] != 'manar' or not (row['note'] or '').strip():
+            continue
+        note = ' '.join(row['note'].split())
+        key = (row['surah'], row['ayah'], row['reported_from'] or '')
+        grouped.setdefault(key, []).append(note)
+
+    duplicates = []
+    for key, notes in grouped.items():
+        ordered = sorted(notes, key=len, reverse=True)
+        for index, note in enumerate(ordered):
+            if any(note == prior or (len(note) >= 30 and note in prior)
+                   for prior in ordered[:index]):
+                duplicates.append((*key[:2], note[:80]))
+    assert not duplicates, f'repeated Manar explanations remain: {duplicates[:5]}'
+
+
 def test_all_completed_manar_cache_items_pass_validation():
     """A completed LLM cache must not silently lose rows during replay."""
     from pipeline import build_classical_llm as builder  # type: ignore
@@ -161,10 +212,12 @@ def test_alfatiha_repeated_alayhim_disambiguates(llm_rows):
 
 def test_alfatiha_has_real_reasons(llm_rows):
     """al-Fatiha (0 rows in the regex extraction) must now carry graded stops
-    WITH a non-trivial علّة — the whole point of the re-extraction."""
+    WITH non-trivial علل. Repeated reasons shared by several stops are stored
+    once, so this measures substantial coverage rather than requiring the same
+    paragraph to be copied onto every ruling."""
     fat = [r for r in llm_rows if r['surah'] == 1]
     if not fat:
         pytest.skip('al-Fatiha not built in this run')
     assert len(fat) >= 10
     with_reason = [r for r in fat if r['note'] and len(r['note'].strip()) >= 18]
-    assert len(with_reason) >= len(fat) * 0.8
+    assert len(with_reason) >= len(fat) * 0.75

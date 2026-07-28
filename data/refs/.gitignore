@@ -1,0 +1,5 @@
+# Printed mushaf reference scans for /mushaf-editor (local only).
+# Fetch البحرين PDF with: python pipeline/fetch_bahrain_ref_pdf.py
+*.pdf
+*.partial
+bahrain_cache/

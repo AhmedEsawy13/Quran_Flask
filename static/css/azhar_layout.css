@@ -6,6 +6,11 @@
     src: url('../fonts/amiri_quran.woff2') format('woff2');
     font-display: swap;
 }
+@font-face {
+    font-family: 'Digital Khatt';
+    src: url('../fonts/digitalkhatt.woff2') format('woff2');
+    font-display: swap;
+}
 
 :root {
     --az-accent: var(--athar-accent);
@@ -39,6 +44,22 @@ body.az-layout {
     -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
 }
 .az-bar-intro { display: grid; gap: 2px; min-width: 0; }
+.az-edition-switch {
+    display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+    margin: 2px 0 4px;
+}
+.az-edition-option {
+    padding: 4px 9px; border: 1px solid var(--az-border); border-radius: 999px;
+    background: var(--az-paper); color: var(--az-muted);
+    text-decoration: none; font-size: 0.7rem; font-weight: 700;
+}
+.az-edition-option:hover, .az-edition-option.az-active {
+    border-color: var(--az-accent); color: var(--az-accent);
+    background: var(--az-accent-soft);
+}
+.az-edition-option:focus-visible {
+    outline: 3px solid var(--athar-focus-ring); outline-offset: 2px;
+}
 .az-title { margin: 0; font-size: clamp(1.3rem, 2vw, 1.7rem); line-height: 1.1; }
 .az-subtitle { margin: 0; color: var(--athar-ink-soft); font-family: var(--font-serif); font-size: 0.78rem; line-height: 1.45; max-width: 48ch; }
 .az-edition-meta {
@@ -72,6 +93,60 @@ body.az-layout {
     padding: 8px 12px; border: 1px solid var(--az-border); border-radius: 8px; background: var(--az-paper);
 }
 .az-link-editor:hover { border-color: var(--az-accent); }
+
+.az-profile-panel { position: relative; }
+.az-profile-summary {
+    min-height: 38px; display: inline-flex; align-items: center; gap: 7px;
+    padding: 0 11px; border: 1px solid var(--az-border); border-radius: 9px;
+    background: var(--az-paper); color: var(--az-accent);
+    font-size: 0.8rem; font-weight: 700; cursor: pointer; list-style: none;
+}
+.az-profile-summary::-webkit-details-marker { display: none; }
+.az-profile-summary::after {
+    content: '⌄'; color: var(--az-muted); font-size: 0.8rem;
+    transition: transform 0.15s;
+}
+.az-profile-panel[open] .az-profile-summary::after { transform: rotate(180deg); }
+.az-profile-summary:focus-visible {
+    outline: 3px solid var(--athar-focus-ring); outline-offset: 2px;
+}
+.az-profile-form {
+    position: absolute; z-index: 45; inset-inline-end: 0; top: calc(100% + 8px);
+    width: min(440px, calc(100vw - 28px)); max-height: min(72vh, 620px);
+    overflow: auto; display: grid; gap: 11px; padding: 15px;
+    border: 1px solid var(--az-border); border-radius: 13px;
+    background: var(--az-paper); box-shadow: var(--athar-shadow-lg);
+}
+.az-profile-field { display: grid; gap: 5px; min-width: 0; }
+.az-profile-field > span, .az-profile-flow legend {
+    color: var(--az-ink); font-size: 0.76rem; font-weight: 700;
+}
+.az-profile-field input, .az-profile-field select {
+    width: 100%; min-height: 38px; border: 1px solid var(--az-border);
+    border-radius: 8px; background: var(--az-paper-2); color: var(--az-ink);
+    padding: 0 9px; font-family: inherit;
+}
+.az-profile-preset-note, .az-profile-budget, .az-profile-note {
+    margin: 0; color: var(--az-muted); font-size: 0.72rem; line-height: 1.55;
+}
+.az-profile-budget { color: var(--az-accent); font-weight: 700; }
+.az-profile-budget.az-invalid { color: #b91c1c; }
+.az-profile-flow {
+    margin: 0; padding: 9px; display: grid; gap: 8px;
+    border: 1px solid var(--az-border); border-radius: 9px;
+}
+.az-profile-flow label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; }
+.az-profile-flow input { margin-top: 3px; accent-color: var(--az-accent); }
+.az-profile-flow span { display: grid; gap: 2px; font-size: 0.8rem; font-weight: 700; }
+.az-profile-flow small { color: var(--az-muted); font-size: 0.68rem; font-weight: 500; line-height: 1.45; }
+.az-profile-header-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.az-profile-save {
+    min-height: 40px; border: 0; border-radius: 9px;
+    background: var(--az-accent); color: #fff; cursor: pointer;
+    font-family: inherit; font-size: 0.82rem; font-weight: 800;
+}
+.az-profile-save:hover { filter: brightness(1.06); }
+.az-profile-save:disabled { opacity: 0.55; cursor: wait; }
 
 .az-toast {
     position: fixed; top: calc(var(--athar-bar-h) + 14px); left: 50%; transform: translateX(-50%) translateY(-12px);
@@ -135,6 +210,10 @@ body.az-layout {
     background: #f3efe4;
 }
 .az-ref-img[hidden] { display: none; }
+.az-ref-frame {
+    width: 100%; height: 100%; border: 0; display: block; background: #f3efe4;
+}
+.az-ref-frame[hidden] { display: none; }
 .az-ref-loading, .az-ref-fallback {
     position: absolute; inset: 0; display: grid; place-content: center; gap: 10px;
     padding: 16px; text-align: center; background: color-mix(in srgb, var(--az-paper) 92%, transparent);
@@ -156,9 +235,10 @@ body.az-layout {
     box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden;
 }
 .az-line {
-    flex: 1 1 0; display: flex; align-items: center; justify-content: center;
-    min-height: 0; overflow: hidden; direction: rtl; position: relative;
+    flex: var(--az-line-span, 1) 1 0; display: flex; align-items: center; justify-content: center;
+    min-height: 0; overflow: visible; direction: rtl; position: relative;
 }
+.az-line[data-slot-span="0"] { display: none; }
 .az-line-special {
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
     color: var(--az-accent); font-size: calc(var(--az-fs) * 0.7);
@@ -174,10 +254,23 @@ body.az-layout {
     white-space: nowrap; font-size: var(--az-fs); line-height: 1.45;
     direction: rtl; transform-origin: center center; will-change: transform;
 }
+.az-line[data-line-type="ayah"][data-justify="1"] {
+    /* direction:rtl makes flex-start the physical right edge. */
+    justify-content: flex-start;
+}
+.az-line[data-line-type="ayah"][data-justify="1"] .az-line-inner {
+    /* Over-wide Arabic lines shrink from the right edge into the page.
+       A centered transform origin lets natural RTL overflow drift past the
+       opposite page edge. */
+    transform-origin: right center;
+}
+.az-line[data-line-type="ayah"][data-justify="0"] .az-line-inner {
+    max-width: 100%;
+}
 
 /* Borderless interactive words — same idea as .ed-word (no chip border inflation). */
 .az-word {
-    font-family: 'AmiriQuran', 'Amiri Quran', 'Amiri', serif;
+    font-family: var(--az-quran-font, 'AmiriQuran'), 'Amiri Quran', 'Amiri', serif;
     line-height: 1.45; padding: 0.35em 0.05em 0.12em; border-radius: 0.2em;
     cursor: grab; position: relative;
     touch-action: none; user-select: none; -webkit-user-select: none;
@@ -207,7 +300,7 @@ body.az-dragging .az-word { cursor: grabbing; }
 
 .az-drag-ghost {
     position: fixed; top: 0; left: 0; z-index: 80; pointer-events: none;
-    font-family: 'AmiriQuran', 'Amiri Quran', 'Amiri', serif;
+    font-family: var(--az-quran-font, 'AmiriQuran'), 'Amiri Quran', 'Amiri', serif;
     font-size: var(--az-fs, 22px); line-height: 1.45; direction: rtl;
     padding: 0.12em 0.35em 0.18em;
     border: 1px solid var(--az-accent);
@@ -250,17 +343,71 @@ body.az-dragging .az-word { cursor: grabbing; }
 .az-cancel-btn:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; }
 
 .az-line-tools {
-    position: absolute; inset-inline-start: 2px; top: 50%; transform: translateY(-50%);
-    opacity: 0; transition: opacity 0.12s; z-index: 2;
+    position: absolute; left: 2px; right: auto; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 3px;
+    opacity: 0; pointer-events: none; transition: opacity 0.12s; z-index: 2;
 }
-.az-line:hover .az-line-tools, .az-line:focus-within .az-line-tools { opacity: 1; }
+.az-ayah-tools {
+    /* The page already has 12px of inner padding. Keep the compact handle
+       there so Quran lines retain their full printed width. */
+    left: -13px;
+    opacity: 1;
+    pointer-events: auto;
+}
+.az-ayah-tools .az-line-menu {
+    width: 12px;
+    min-width: 12px;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+}
+.az-line:hover .az-line-tools, .az-line:focus-within .az-line-tools {
+    opacity: 1; pointer-events: auto;
+}
 body.az-dragging .az-line-tools { opacity: 0; pointer-events: none; }
-.az-merge-btn {
+.az-line-tools.az-tools-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.az-line-tool {
     width: 22px; height: 22px; min-height: 22px; padding: 0; border-radius: 5px;
     border: 1px solid var(--az-border); background: var(--az-paper-2);
     color: var(--az-muted); cursor: pointer; font-size: 0.65rem;
 }
-.az-merge-btn:hover { border-color: var(--az-accent); color: var(--az-accent); }
+.az-line-actions {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 4px);
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--az-border);
+    border-radius: 7px;
+    background: var(--az-paper-2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+.az-tools-open .az-line-actions,
+.az-ayah-tools:focus-within .az-line-actions {
+    display: flex;
+}
+.az-line-tool:hover { border-color: var(--az-accent); color: var(--az-accent); }
+.az-line-tool:focus-visible { outline: 2px solid var(--athar-focus-ring); outline-offset: 1px; }
+.az-line-tool.az-active {
+    border-color: var(--az-accent);
+    background: color-mix(in srgb, var(--az-accent) 12%, var(--az-paper-2));
+    color: var(--az-accent);
+}
+.az-header-tools {
+    inset-inline-start: 5px;
+}
+.az-header-move {
+    background: color-mix(in srgb, var(--az-accent) 10%, var(--az-paper-2));
+}
+.az-line-special:hover .az-header-tools,
+.az-line-special:focus-within .az-header-tools {
+    opacity: 1;
+    pointer-events: auto;
+}
 
 @media (max-width: 900px) {
     .az-bar { grid-template-columns: 1fr; }
@@ -273,4 +420,8 @@ body.az-dragging .az-line-tools { opacity: 0; pointer-events: none; }
     .az-bar { position: static; }
     .az-reviewed-toggle span { display: none; }
     .az-edition-meta, .az-reseed-note { display: none; }
+    .az-profile-form {
+        position: fixed; inset: auto 14px 14px; width: auto; max-height: 78vh;
+    }
+    .az-profile-header-grid { grid-template-columns: 1fr; }
 }

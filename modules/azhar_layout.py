@@ -10,8 +10,10 @@ from modules.layout_editions import AZHAR, default_edition
 from modules.layout_studio import (
     _cascade_from as _studio_cascade,
     layout_studio_line_break,
+    layout_studio_line_center,
     layout_studio_merge_line,
     layout_studio_page,
+    layout_studio_pull_next_word,
     layout_studio_progress,
     layout_studio_undo,
     layout_studio_undo_status,
@@ -54,6 +56,16 @@ def azhar_layout_line_break():
 @editor_bp.route('/api/azhar-layout/merge-line', methods=['POST'])
 def azhar_layout_merge_line():
     return layout_studio_merge_line('azhar')
+
+
+@editor_bp.route('/api/azhar-layout/pull-next-word', methods=['POST'])
+def azhar_layout_pull_next_word():
+    return layout_studio_pull_next_word('azhar')
+
+
+@editor_bp.route('/api/azhar-layout/line-center', methods=['POST'])
+def azhar_layout_line_center():
+    return layout_studio_line_center('azhar')
 
 
 @editor_bp.route('/api/azhar-layout/undo', methods=['POST'])

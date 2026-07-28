@@ -13,3 +13,4 @@ fonttools==4.63.0
 brotli>=1.1.0
 yt-dlp>=2026.6.9
 quran-transcript
+pymupdf>=1.24.0

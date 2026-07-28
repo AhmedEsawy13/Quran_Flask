@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% set page_title = 'أثَر · محرّر المصحف — مواضع الوقف' %}
-    {% set page_description = 'محرّر محلي لضبط مواضع الوقف والابتداء في مصحف قطر والكويت الحديث.' %}
+    {% set page_description = 'محرّر محلي لضبط مواضع الوقف والابتداء في مصحف قطر والكويت الحديث والبحرين.' %}
     <title>{{ page_title }}</title>
     {{ athar_page_meta(page_title, page_description, path='/mushaf-editor', noindex=true) }}
 
@@ -15,6 +15,7 @@
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/alshamiya.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     <!-- أثَر shared brand identity (fonts + logo) -->
@@ -24,6 +25,7 @@
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
     <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
+    <script src="{{ static_hash('js/athar-pdf-ref.js') }}"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -52,7 +54,7 @@
         <div class="ed-bar-intro" id="ed-bar-intro">
             <p class="athar-kicker">— محرّر المصحف</p>
             <h1 class="ed-title athar-display" id="ed-title" aria-label="راجع المصحف، واضبط الوقف.">راجِع المصحــف، واضبط الوقف.</h1>
-            <p class="ed-subtitle">قارن النسخة المطبوعة بأصل المدينة، ثم ثبّت مواضع الاختلاف. <a href="/layout-studio/azhar">تخطيط الأزهر</a></p>
+            <p class="ed-subtitle">قارن النسخة المطبوعة بأصل المدينة، ثم ثبّت مواضع الاختلاف. <a href="/layout-studio/azhar">تخطيط الأزهر</a> · <a href="/font-lab">مختبر الخط</a></p>
         </div>
 
         <div class="ed-bar-tools" aria-label="أدوات المحرّر">
@@ -71,6 +73,7 @@
             <div class="ed-edition-toggle athar-tabs" id="ed-edition-toggle" role="group" aria-label="نسخة المصحف">
                 <button class="ed-edition-btn athar-tab" data-edition="قطر" type="button" aria-pressed="false">مصحف قطر</button>
                 <button class="ed-edition-btn athar-tab" data-edition="الكويت" type="button" aria-pressed="false">الكويت الحديث</button>
+                <button class="ed-edition-btn athar-tab" data-edition="البحرين" type="button" aria-pressed="false">مصحف البحرين</button>
             </div>
 
             <div class="ed-review-group ed-bar-extra">
@@ -145,6 +148,7 @@
                 </div>
                 <div class="ed-ref-frame-wrap">
                     <img class="ed-ref-img" id="ed-ref-img" alt="صفحة المصحف المطبوع" decoding="async" hidden>
+                    <iframe class="ed-ref-frame" id="ed-ref-frame" title="مرجع المصحف المطبوع" hidden></iframe>
                     <div class="ed-ref-loading" id="ed-ref-loading" hidden>جارٍ تحميل المرجع…</div>
                     <div class="ed-ref-fallback" id="ed-ref-fallback" hidden>
                         <p class="ed-ref-fallback-text">تعذّر تحميل صورة المرجع. افتحه في تبويب جديد للمقارنة.</p>

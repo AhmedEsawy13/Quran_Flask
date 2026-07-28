@@ -311,6 +311,7 @@
             containerEls, lineSelector, innerSelector, wordSelector,
             featureSettings = () => '', featureCandidates = null,
             minFeatureScale = 1, maxWordSpacing = Infinity, maxStretch = Infinity,
+            availableWidth = undefined,
             stretchOnly = () => false,
             // When true, prefer a slightly wider (more kashida) alternate if its
             // distance to the line width is within preferExpansionSlack of the
@@ -342,7 +343,15 @@
                 inner.style.fontFeatureSettings = 'normal';
                 inner.style.fontVariationSettings = '';
                 inner.style.wordSpacing = '';
-                const avail = lineEl.clientWidth;
+                const avail = Math.max(
+                    0,
+                    resolveNumber(
+                        availableWidth,
+                        lineEl.clientWidth,
+                        lineEl,
+                        inner
+                    )
+                );
                 if (!avail || lineEl.dataset.justify !== '1') return;
                 const natural = inner.scrollWidth;
                 if (!natural) return;

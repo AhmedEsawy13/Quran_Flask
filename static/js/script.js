@@ -2614,7 +2614,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciter = elements.reciterSelect.value;
             const lastW = d.words.length - 1;
             const markByWpos = new Map();
-            ['المدينة الجديد', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت'].forEach((id) => {
+            ['المدينة الجديد', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين'].forEach((id) => {
                 const m = (d.mushafs || []).find((x) => x.id === id);
                 if (m) m.marks.forEach((mk) => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
             });

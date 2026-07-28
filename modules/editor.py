@@ -1,18 +1,21 @@
 """محرّر المصحف — the click-to-edit waqf tool (the ONLY writer).
 
-Routes for the editor page, the spread payloads (Qatar layout right page /
-QPC-v1 left page), and reading/writing a single word's waqf symbol.
+Routes for the editor page, the spread payloads (قطر / الكويت / البحرين),
+and reading/writing a single word's waqf symbol.
 
-When Supabase is configured (SUPABASE_URL + service role), قطر/الكويت marks
+When Supabase is configured (SUPABASE_URL + service role), editor-edition marks
 are stored as drafts in Postgres and only become public after admin publish.
 Without Supabase, writes still go to local mushaf_waqf.db (laptop workflow).
 """
 from __future__ import annotations
 
 import logging
+import os
+import shutil
 import sqlite3
+import subprocess
 
-from flask import jsonify, render_template, request
+from flask import jsonify, render_template, request, send_file
 
 from core.blueprints import editor_bp
 from core.config import (
@@ -21,6 +24,11 @@ from core.config import (
     MUSHAF_WAQF_DATABASE,
     QATAR_LAYOUT_DATABASE,
     QPC_V1_LAYOUT_DATABASE,
+    QPC_V2_LAYOUT_DATABASE,
+    BAHRAIN_LAYOUT_DATABASE,
+    BAHRAIN_REF_PDF,
+    BAHRAIN_REF_CACHE,
+    BAHRAIN_REF_PDF_OFFSET,
 )
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.db import connect as _sqlite_connect
@@ -31,6 +39,7 @@ from modules.editor_auth import current_editor, require_admin, require_editor
 from modules.layouts import (
     _build_qatar_page_payload,
     _build_qpc_v1_page_payload,
+    _build_bahrain_page_payload,
     _get_dk_layout_word_map,
     _find_mushaf_row_match_index,
     _normalize_mushaf_word_token,
@@ -357,6 +366,100 @@ def mushaf_editor_page():
     return render_template('mushaf_editor.html', enable_vercel_analytics=_IS_SERVERLESS)
 
 
+def _bahrain_ref_jpeg(page_number: int, width: int = 1024) -> str | None:
+    """Render mushaf page from the Bahrain PDF to a cached JPEG; return path."""
+    if not (1 <= page_number <= _MAX_MUSHAF_PAGE):
+        return None
+    if not os.path.isfile(BAHRAIN_REF_PDF):
+        return None
+    os.makedirs(BAHRAIN_REF_CACHE, exist_ok=True)
+    out_path = os.path.join(BAHRAIN_REF_CACHE, f'p{page_number:03d}_w{width}.jpg')
+    if os.path.isfile(out_path) and os.path.getsize(out_path) > 0:
+        return out_path
+
+    pdf_index = page_number + BAHRAIN_REF_PDF_OFFSET
+    try:
+        import fitz  # PyMuPDF
+    except ImportError:
+        fitz = None
+
+    if fitz is None:
+        # Keep local review usable when the optional Python wheel is absent.
+        # Poppler is also available in the bundled Codex workspace runtime.
+        pdftoppm = shutil.which('pdftoppm')
+        if not pdftoppm:
+            logger.error(
+                'Bahrain reference needs pymupdf or the pdftoppm executable'
+            )
+            return None
+        pdf_page = pdf_index + 1  # pdftoppm uses one-based page numbers.
+        tmp_prefix = out_path + '.tmp'
+        tmp_jpeg = tmp_prefix + '.jpg'
+        try:
+            subprocess.run(
+                [
+                    pdftoppm,
+                    '-f', str(pdf_page),
+                    '-l', str(pdf_page),
+                    '-singlefile',
+                    '-jpeg',
+                    '-jpegopt', 'quality=82',
+                    '-scale-to-x', str(width),
+                    '-scale-to-y', '-1',
+                    BAHRAIN_REF_PDF,
+                    tmp_prefix,
+                ],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                timeout=60,
+            )
+            os.replace(tmp_jpeg, out_path)
+            return out_path
+        except (OSError, subprocess.SubprocessError) as exc:
+            logger.error('pdftoppm Bahrain reference render failed: %s', exc)
+            try:
+                os.remove(tmp_jpeg)
+            except OSError:
+                pass
+            return None
+
+    doc = fitz.open(BAHRAIN_REF_PDF)
+    try:
+        if pdf_index < 0 or pdf_index >= doc.page_count:
+            return None
+        page = doc.load_page(pdf_index)
+        # Scale so the rendered width ≈ `width` (portrait mushaf pages).
+        zoom = width / float(page.rect.width)
+        pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), alpha=False)
+        tmp_path = out_path + '.tmp'
+        pix.save(tmp_path, output='jpeg', jpg_quality=82)
+        os.replace(tmp_path, out_path)
+    finally:
+        doc.close()
+    return out_path
+
+
+@editor_bp.route('/api/mushaf-editor/ref/bahrain/<int:page_number>.jpg', methods=['GET'])
+@require_editor
+def bahrain_ref_page(page_number):
+    """Printed مصحف البحرين page image (from the islamhouse PDF scan)."""
+    if not (1 <= page_number <= _MAX_MUSHAF_PAGE):
+        return jsonify({'error': 'invalid page'}), 400
+    try:
+        width = int(request.args.get('w') or 1024)
+    except (TypeError, ValueError):
+        width = 1024
+    width = max(480, min(width, 1400))
+    path = _bahrain_ref_jpeg(page_number, width=width)
+    if not path:
+        return jsonify({
+            'error': 'bahrain reference unavailable',
+            'hint': 'Run: python pipeline/fetch_bahrain_ref_pdf.py',
+        }), 404
+    return send_file(path, mimetype='image/jpeg', max_age=86400, conditional=True)
+
+
 @editor_bp.route('/api/mushaf-editor/spread/<int:spread_number>', methods=['GET'])
 @require_editor
 def get_mushaf_editor_spread(spread_number):
@@ -378,7 +481,12 @@ def get_mushaf_editor_spread(spread_number):
             for peer in _EDITOR_PEER_VERSIONS:
                 if peer not in versions:
                     versions.append(peer)
-        build_page = _build_qatar_page_payload if edition == 'قطر' else _build_qpc_v1_page_payload
+        if edition == 'قطر':
+            build_page = _build_qatar_page_payload
+        elif edition == 'البحرين':
+            build_page = _build_bahrain_page_payload
+        else:
+            build_page = _build_qpc_v1_page_payload
         right = build_page(right_page, mushaf_version=versions)
         left = build_page(left_page, mushaf_version=versions) if left_page <= _MAX_MUSHAF_PAGE else None
         if edition == 'الكويت':
@@ -544,7 +652,16 @@ def editor_pending_changes():
         logger.error('pending diff failed: %s', e)
         return jsonify({'error': 'pending unavailable'}), 503
 
-    layout_db = QPC_V1_LAYOUT_DATABASE if edition == 'الكويت' else QATAR_LAYOUT_DATABASE
+    if edition == 'الكويت':
+        layout_db = QPC_V1_LAYOUT_DATABASE
+    elif edition == 'البحرين':
+        layout_db = (
+            BAHRAIN_LAYOUT_DATABASE
+            if os.path.exists(BAHRAIN_LAYOUT_DATABASE)
+            else QPC_V2_LAYOUT_DATABASE
+        )
+    else:
+        layout_db = QATAR_LAYOUT_DATABASE
     wmap = _get_dk_layout_word_map()
     pages_acc: dict[int, dict] = {}
     for ch in changes:

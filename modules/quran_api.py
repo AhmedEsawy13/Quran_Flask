@@ -29,6 +29,39 @@ from modules.reading import get_waqf_symbols, get_word_meanings_ordered
 
 logger = logging.getLogger(__name__)
 
+_IMLAEY_SEARCH_INDEX = None
+_IMLAEY_SEARCH_LOCK = threading.Lock()
+
+
+def _get_imlaey_search_index():
+    """Return normalized modern-spelling Quran text keyed by ``surah:ayah``.
+
+    Uthmani orthography can encode a typed alif as a dagger alif, so simply
+    stripping Quranic marks changes ``ٱلصَّدَقَٰتِ`` into ``الصدقت`` and a
+    normal keyboard query for ``الصدقات`` cannot match it.  quran-transcript
+    ships a parallel imlaey form for every ayah; cache it once and use it only
+    as the search comparison text while continuing to return the selected
+    mushaf's original text.
+    """
+    global _IMLAEY_SEARCH_INDEX
+    if _IMLAEY_SEARCH_INDEX is not None:
+        return _IMLAEY_SEARCH_INDEX
+    with _IMLAEY_SEARCH_LOCK:
+        if _IMLAEY_SEARCH_INDEX is not None:
+            return _IMLAEY_SEARCH_INDEX
+        try:
+            import quran_transcript as qt
+            surahs = qt.Aya(1, 1).quran_dict['quran']['sura']
+            _IMLAEY_SEARCH_INDEX = {
+                f"{surah['@index']}:{ayah['@index']}": _normalize_for_search(ayah['@imlaey'])
+                for surah in surahs
+                for ayah in surah['aya']
+            }
+        except Exception:
+            logger.exception('Could not build the imlaey Quran search index')
+            _IMLAEY_SEARCH_INDEX = {}
+        return _IMLAEY_SEARCH_INDEX
+
 
 @core_bp.route('/api/mushaf-versions', methods=['GET'])
 def get_mushaf_versions():
@@ -284,9 +317,12 @@ def search_verses():
     
     source = normalize_source(source)
     search_data = get_quran_text_data_by_source(source)
+    imlaey_search = _get_imlaey_search_index()
 
-    # Normalise both the query and each verse so typed queries without
-    # vocalisation still match the fully-vocalised text.
+    # Compare against both modern spelling and the selected source. The
+    # imlaey form restores letters represented by Uthmani-only marks (most
+    # notably dagger alif), while the source fallback keeps searches useful
+    # for source-specific glyphs or if the optional index cannot be loaded.
     normalized_query = _normalize_for_search(query)
     if not normalized_query:
         return jsonify({
@@ -302,7 +338,9 @@ def search_verses():
             break
 
         text = verse_data.get('text', '')
-        if normalized_query in _normalize_for_search(text):
+        normalized_source_text = _normalize_for_search(text)
+        if (normalized_query in imlaey_search.get(verse_key, '')
+                or normalized_query in normalized_source_text):
             surah_num, ayah_num = verse_key.split(':')
             results.append({
                 'verse_key': verse_key,

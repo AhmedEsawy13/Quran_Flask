@@ -15,6 +15,7 @@
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/amiri_quran.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
     {{ athar_shell_head() }}
     <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
@@ -22,6 +23,7 @@
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
     <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
+    <script src="{{ static_hash('js/athar-pdf-ref.js') }}"></script>
 
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
@@ -34,6 +36,17 @@
     <section class="az-bar" id="az-bar" aria-labelledby="az-title">
         <div class="az-bar-intro">
             <p class="athar-kicker">— استوديو التخطيط</p>
+            {% if studio_editions | length > 1 %}
+            <nav class="az-edition-switch" aria-label="مشروع التخطيط">
+                {% for item in studio_editions %}
+                <a
+                    class="az-edition-option{% if item.id == edition.id %} az-active{% endif %}"
+                    href="/layout-studio/{{ item.id }}"
+                    {% if item.id == edition.id %}aria-current="page"{% endif %}
+                >{{ item.name_ar }}</a>
+                {% endfor %}
+            </nav>
+            {% endif %}
             <h1 class="az-title athar-display" id="az-title">{{ edition.name_ar }}</h1>
             <p class="az-subtitle">{{ edition.subtitle_ar }}</p>
             <p class="az-edition-meta" id="az-edition-meta">{{ edition_config.metaLabel }}</p>
@@ -69,7 +82,70 @@
                 </div>
             </div>
 
+            <details class="az-profile-panel" id="az-profile-panel">
+                <summary class="az-profile-summary">
+                    <i class="fas fa-sliders" aria-hidden="true"></i>
+                    <span>قواعد التخطيط</span>
+                </summary>
+                <form class="az-profile-form" id="az-profile-form">
+                    <label class="az-profile-field az-profile-preset-field">
+                        <span>حالة جاهزة من المصاحف الحالية</span>
+                        <select id="az-profile-preset" class="athar-field">
+                            <option value="">مخصص</option>
+                        </select>
+                    </label>
+                    <p class="az-profile-preset-note" id="az-profile-preset-note"></p>
+
+                    <label class="az-profile-field">
+                        <span>عدد أسطر الصفحة</span>
+                        <input id="az-profile-lines" class="athar-field" type="number" min="3" max="40" required>
+                    </label>
+
+                    <fieldset class="az-profile-flow">
+                        <legend>حد الصفحة</legend>
+                        <label>
+                            <input type="radio" name="az-page-end-mode" value="ayah">
+                            <span>
+                                موجّه لنهاية الآية
+                                <small>تثبت كلمات كل صفحة؛ وتبقى انقسامات الآيات الطويلة الموجودة</small>
+                            </span>
+                        </label>
+                        <label>
+                            <input type="radio" name="az-page-end-mode" value="continuous">
+                            <span>
+                                تدفّق مستمر
+                                <small>يمكن لتعديل السطر أن ينقل حد الصفحة داخل السورة</small>
+                            </span>
+                        </label>
+                    </fieldset>
+
+                    <div class="az-profile-header-grid" aria-label="الأسطر المحجوزة لراية السورة">
+                        <label class="az-profile-field">
+                            <span>اسم السورة</span>
+                            <input id="az-profile-surah-name" class="athar-field" type="number" min="1" max="4" required>
+                        </label>
+                        <label class="az-profile-field">
+                            <span>معلومات السورة</span>
+                            <input id="az-profile-surah-info" class="athar-field" type="number" min="0" max="4" required>
+                        </label>
+                        <label class="az-profile-field">
+                            <span>البسملة</span>
+                            <input id="az-profile-basmallah" class="athar-field" type="number" min="0" max="4" required>
+                        </label>
+                    </div>
+                    <p class="az-profile-budget" id="az-profile-budget" aria-live="polite"></p>
+                    <p class="az-profile-note">
+                        الصفحات القصيرة تبقى استثناءات مستقلة. تغيير القواعد لا يعيد توزيع
+                        الصفحات المطابَقة تلقائياً.
+                    </p>
+                    <button class="az-profile-save" id="az-profile-save" type="submit">
+                        حفظ قواعد التخطيط
+                    </button>
+                </form>
+            </details>
+
             <a class="az-link-editor" href="/mushaf-editor">محرّر الوقف</a>
+            <a class="az-link-editor" href="/font-lab">مختبر الخط</a>
         </div>
     </section>
 
@@ -78,7 +154,8 @@
         <span>اسحب كلمة وأفلتها على سطر لنقل الحد</span>
         <span class="az-hint-boundary">أول/آخر كلمة في السطر مظلّلة — مهمة للمطابقة</span>
         <span>الكلمات لا تعبر اسم السورة أو البسملة</span>
-        <span>زر الدمج = دمج مع السطر التالي</span>
+        <span>زر ⋮: سحب/دفع كلمة، دمج، توسيط — والدفع يعمل عبر حد الصفحة الثابت</span>
+        <span>سهما العنوان = نقل اسم السورة أو معلوماتها أو البسملة سطراً للأعلى/للأسفل</span>
         <span>تراجع = آخر تعديل على هذه الصفحة</span>
         <span>أثناء السحب: إلغاء (X) أو Escape</span>
     </aside>
@@ -116,6 +193,7 @@
                 </div>
                 <div class="az-ref-frame-wrap">
                     <img class="az-ref-img" id="az-ref-img" alt="صفحة المصحف المطبوع" decoding="async" hidden>
+                    <iframe class="az-ref-frame" id="az-ref-frame" title="مرجع المصحف المطبوع" hidden></iframe>
                     <div class="az-ref-loading" id="az-ref-loading" hidden>جارٍ تحميل المرجع…</div>
                     <div class="az-ref-fallback" id="az-ref-fallback" hidden>
                         <p class="az-ref-fallback-text">تعذّر تحميل صورة المرجع. افتحه في تبويب جديد للمقارنة.</p>

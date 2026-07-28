@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% set page_title = 'أثَر · مختبر الخط' %}
+    {% set page_description = 'جرّب خصائص OpenType لخطوط المصحف: كشيدة، بدائل حرفية، ميم خنجرية، وغيرها.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/font-lab', noindex=true) }}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <link rel="preload" href="{{ url_for('static', filename='fonts/digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/alshamiya.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/font_lab.css') }}">
+
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body class="athar-editor fl-page" id="fl-page">
+    {{ athar_app_bar() }}
+
+    <header class="fl-hero" aria-labelledby="fl-title">
+        <div>
+            <p class="athar-kicker">— مختبر OpenType</p>
+            <h1 class="athar-display" id="fl-title">مختبر الخط</h1>
+            <p>اختر خطًا قرآنيًا، فعّل خصائص التطويل والبدائل، وقارن العيّنات فورًا. النتيجة تطابق سلوك <code dir="ltr">font-feature-settings</code> في التطبيق.</p>
+        </div>
+        <nav class="fl-hero-links" aria-label="أدوات التحرير">
+            <a href="/layout-studio/bahrain">استوديو التخطيط</a>
+            <a href="/mushaf-editor">محرّر الوقف</a>
+        </nav>
+    </header>
+
+    <main class="fl-main" id="athar-main" tabindex="-1">
+        <section class="fl-controls" aria-label="إعدادات الخط">
+            <label>
+                الخط
+                <select id="fl-font" aria-label="اختيار الخط"></select>
+            </label>
+            <label>
+                الحجم
+                <input id="fl-size" type="range" min="22" max="56" value="34" aria-valuemin="22" aria-valuemax="56">
+            </label>
+            <label>
+                ارتفاع السطر
+                <input id="fl-leading" type="range" min="140" max="280" value="200" aria-valuemin="140" aria-valuemax="280">
+            </label>
+            <label>
+                مقارنة قبل/بعد
+                <select id="fl-split" aria-label="وضع المقارنة">
+                    <option value="off">عرض واحد (مع الخصائص)</option>
+                    <option value="on">تقسيم: بدون / مع</option>
+                </select>
+            </label>
+            <div class="fl-control-actions">
+                <button type="button" id="fl-reset">إعادة ضبط</button>
+                <button type="button" class="fl-primary" id="fl-copy">نسخ CSS</button>
+            </div>
+        </section>
+
+        <p class="fl-font-note" id="fl-font-note" hidden></p>
+
+        <div class="fl-css-line" aria-live="polite">
+            <span>font-feature-settings:</span>
+            <code id="fl-css-value">normal</code>
+        </div>
+
+        <div class="fl-workspace">
+            <aside class="fl-features" id="fl-features" aria-label="خصائص OpenType"></aside>
+            <section class="fl-board" id="fl-board" aria-label="عيّنات قرآنية">
+                <div class="fl-free">
+                    <label for="fl-custom">نص حر للتجربة</label>
+                    <textarea id="fl-custom" rows="3" placeholder="الصق آية أو كلمة هنا…"></textarea>
+                    <div class="fl-free-preview" id="fl-custom-preview" dir="rtl"></div>
+                </div>
+                <div id="fl-samples"></div>
+            </section>
+        </div>
+    </main>
+
+    <div class="fl-toast" id="fl-toast" hidden role="status"></div>
+
+    <script src="{{ static_hash('js/font_lab_catalog.js') }}"></script>
+    <script src="{{ static_hash('js/font_lab.js') }}"></script>
+</body>
+</html>

@@ -1,12 +1,18 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Mushaf Editor — adjust مواضع الوقف والابتداء for مصحف قطر / الكويت الحديث
-   starting from the Madinah v1 (1405) layout.
+   Mushaf Editor — adjust مواضع الوقف والابتداء for مصحف قطر / الكويت /
+   البحرين (Madinah 1421 Digital Khatt layout + font).
    ═══════════════════════════════════════════════════════════════════ */
 
 @font-face { font-family: 'Old Madina';   src: url('../fonts/oldmadina.woff2')      format('woff2'); font-display: swap; }
 @font-face { font-family: 'Al Shamiya';   src: url('../fonts/alshamiya.woff2')      format('woff2'); font-display: swap; }
+@font-face { font-family: 'Digital Khatt'; src: url('../fonts/digitalkhatt.woff2')  format('woff2'); font-display: swap; }
 @font-face { font-family: 'Uthmanic Hafs'; src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'); font-display: swap; }
 @font-face { font-family: 'KATypical Naskh'; src: url('../fonts/KATypicalNaskhv2.0-Regular.woff2') format('woff2'); font-display: swap; }
+/* Digital Khatt COLR verse markers: darken the disc in dark mode. */
+@font-palette-values --ed-dk-dark {
+    font-family: 'Digital Khatt';
+    override-color: 0 #c8c4b8;
+}
 /* Colors ride on أثَر's shared editorial palette (brand.css --athar-*) so this
  * page's identity stays in sync as the rest of the app migrates onto it —
  * only --ed-diff (a semantic "this word differs from the baseline" marker,
@@ -233,6 +239,11 @@ body.ed-popup-open { overflow: hidden; }
     object-fit: contain; background: var(--ed-paper-2);
 }
 .ed-ref-img[hidden] { display: none; }
+.ed-ref-frame {
+    display: block; width: 100%; height: 100%;
+    border: 0; background: var(--ed-paper-2);
+}
+.ed-ref-frame[hidden] { display: none; }
 .ed-ref-loading {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: var(--ed-muted); font-size: 0.9rem; font-weight: 600; background: color-mix(in srgb, var(--ed-paper-2) 88%, transparent);
@@ -282,6 +293,11 @@ body.ed-font-qatar .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
 body.ed-font-kuwait .ed-word,
 body.ed-font-kuwait .ed-popup-title { font-family: 'Al Shamiya', 'Old Madina', serif; }
 body.ed-font-kuwait .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
+/* البحرين — Madinah 1421 (QPC v2) layout + Digital Khatt font (same as تثبيت). */
+body.ed-font-bahrain .ed-word,
+body.ed-font-bahrain .ed-popup-title { font-family: 'Digital Khatt', serif; }
+body.ed-font-bahrain .ed-waqf-mark { font-family: 'Uthmanic Hafs', serif; }
+body.ed-dark.ed-font-bahrain .ed-line-inner { font-palette: --ed-dk-dark; }
 .ed-word:hover { background: var(--ed-accent-soft); }
 .ed-word:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; background: var(--ed-accent-soft); }
 .ed-word.ed-diff { background: var(--ed-diff-soft); }

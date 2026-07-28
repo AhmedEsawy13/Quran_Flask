@@ -4,7 +4,7 @@ Column discovery + whitelist validation (the version names are SQL
 identifiers, so they must be validated before interpolation), cached
 per-ayah symbol fetches, and segment-boundary lookups. No Flask dependency.
 
-When Supabase is configured, قطر/الكويت public reads use **published**
+When Supabase is configured, قطر/الكويت/البحرين public reads use **published**
 cloud marks only (drafts stay editor-private). Other editions stay on SQLite.
 """
 import logging

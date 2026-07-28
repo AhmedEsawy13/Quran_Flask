@@ -16,8 +16,10 @@ _BASE_DIR = _ROOT  # kept under the original name for callers that reference it
 DATABASE = os.path.join(_ROOT, 'data', 'word_name.db')
 WAQF_DATABASE = os.path.join(_ROOT, 'data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_waqf.db')
-# مصاحف being adjusted from the Madinah v1 layout via /mushaf-editor.
-EDITOR_EDITIONS = {'قطر', 'الكويت'}
+# مصاحف being adjusted via /mushaf-editor.
+# قطر: own layout + KATypical. الكويت: Madinah 1405 (qpc_v1) + Al Shamiya.
+# البحرين: Layout Studio project (seeded from Madinah 1421) + Digital Khatt.
+EDITOR_EDITIONS = {'قطر', 'الكويت', 'البحرين'}
 # Editions whose drafts/published marks live in Supabase when configured.
 CLOUD_EDITOR_EDITIONS = frozenset(EDITOR_EDITIONS)
 # Madinah 1441 uses the QPC v4 (tajweed) 15-line layout. Madinah 1421 uses the
@@ -30,6 +32,16 @@ QPC_V1_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'qpc-v1-15-lines.db')
 # مصحف قطر's own 15-line layout (same 1..83668 word numbering, different line
 # breaks than the Old Madina 1405 print). Used only by the mushaf-editor.
 QATAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-qatar-layout.db')
+# Layout Studio working copy for مصحف البحرين. Seeded from QPC V2 but kept
+# separate so line edits/undo never mutate the shared Madinah 1421 source.
+BAHRAIN_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-bahrain-layout.db')
+# Printed مصحف البحرين scan (islamhouse PDF). Mushaf page N → PDF index N+4.
+BAHRAIN_REF_PDF = os.path.join(_ROOT, 'data', 'refs', 'ar-mushaf-albahrains.pdf')
+BAHRAIN_REF_CACHE = os.path.join(_ROOT, 'data', 'refs', 'bahrain_cache')
+BAHRAIN_REF_PDF_OFFSET = 4  # 0-based PDF page = mushaf_page + offset
+BAHRAIN_REF_PDF_URL = (
+    'https://d1.islamhouse.com/data/ar/ih_books/single_02/ar-mushaf-albahrains.pdf'
+)
 # مصحف الأزهر page geometry — seeded from الشمرلي (Shemrly word_index), edited
 # via /azhar-layout (ENABLE_EDITOR). Rendered with Amiri Quran + الأزهر waqf.
 AZHAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-azhar-layout.db')

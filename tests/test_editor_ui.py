@@ -23,7 +23,9 @@ def test_editor_uses_shared_workspace_and_accessible_editing(client):
     assert 'id="ed-title" aria-label="راجع المصحف، واضبط الوقف."' in page
     assert 'راجِع المصحــف، واضبط الوقف.' in page
     assert 'id="ed-edition-toggle" role="group" aria-label="نسخة المصحف"' in page
-    assert page.count('class="ed-edition-btn athar-tab"') == 2
+    assert page.count('class="ed-edition-btn athar-tab"') == 3
+    for edition in ('قطر', 'الكويت', 'البحرين'):
+        assert f'data-edition="{edition}"' in page
     assert 'id="ed-progress" role="progressbar"' in page
     assert 'aria-valuemin="0" aria-valuemax="604" aria-valuenow="0"' in page
     assert 'id="athar-main" tabindex="-1" aria-labelledby="ed-title"' in page
@@ -36,6 +38,8 @@ def test_editor_uses_shared_workspace_and_accessible_editing(client):
     assert 'pages: stacked ? 1 : 2' in script
     assert 'id="ed-compare"' in page
     assert 'id="ed-ref-img"' in page
-    assert 'REF_LEAF_OFFSET' in script
+    assert 'REF_SOURCES' in script
+    assert 'leafOffset: 3' in script
+    assert "'البحرين': {" in script
     assert 'MushafQatar_20150445776437' in script
     assert 'trapPopupFocus(e)' in script

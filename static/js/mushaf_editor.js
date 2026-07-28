@@ -1,15 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Mushaf Editor — مصحف قطر / مصحف الكويت الحديث
+   Mushaf Editor — مصحف قطر / الكويت الحديث / البحرين
    One digital page beside a remote printed-edition reference. Click a
    word to set its waqf mark for the selected edition; words whose mark
    differs from وقوف المدينة (the seeded baseline) are highlighted.
    Peer mushafs (الأزهر / الشمرلي / المدينتان) hint when they mark a word
    you left empty. الكويت gets surah-end ركوع via seed script.
+   البحرين uses Madinah 1421 (Digital Khatt) layout + font.
 
    Endpoints:
      GET  /api/mushaf-editor/auth/status
      POST /api/mushaf-editor/login | logout
-     GET  /api/mushaf-editor/spread/<n>?edition=قطر|الكويت
+     GET  /api/mushaf-editor/spread/<n>?edition=قطر|الكويت|البحرين
      POST /api/mushaf-editor/waqf      {word_id, edition, symbol}
      GET  /api/mushaf-editor/progress?edition=...
      POST /api/mushaf-editor/progress  {edition, page_number, reviewed}
@@ -25,15 +26,19 @@
     const MAX_SPREAD = 302;
     const MAX_PAGE = 604;
 
-    // Printed scans on Archive.org — one JPG leaf per Madinah page.
-    // Confirmed: leaf 4 = page 1 (سورة الفاتحة) for both editions, so
-    // leaf = madinah_page + 3. Details URLs still use 1-based /page/N
-    // (page 1 → /page/5).
+    // Printed scans — Archive.org leaf images for قطر/الكويت; remote islamhouse
+    // PDF (AtharPdfRef / pdf.js) for البحرين. Mushaf page N → PDF page N+5.
+    const BAHRAIN_PDF_URL = 'https://d1.islamhouse.com/data/ar/ih_books/single_02/ar-mushaf-albahrains.pdf';
     const REF_SOURCES = {
-        'الكويت': { id: 'kweat--h4794794946945969', label: 'مرجع الكويت الحديث' },
-        'قطر': { id: 'MushafQatar_20150445776437', label: 'مرجع مصحف قطر' },
+        'الكويت': { type: 'archive', id: 'kweat--h4794794946945969', label: 'مرجع الكويت الحديث', leafOffset: 3 },
+        'قطر': { type: 'archive', id: 'MushafQatar_20150445776437', label: 'مرجع مصحف قطر', leafOffset: 3 },
+        'البحرين': {
+            type: 'pdf',
+            label: 'مرجع مصحف البحرين',
+            pdfUrl: BAHRAIN_PDF_URL,
+            pdfPageOffset: 5,
+        },
     };
-    const REF_LEAF_OFFSET = 3;
     const REF_IMG_WIDTH = 1024;
     const REF_DEBOUNCE_MS = 120;
 
@@ -133,6 +138,7 @@
         refTitle: $('ed-ref-title'),
         refOpen: $('ed-ref-open'),
         refImg: $('ed-ref-img'),
+        refFrame: $('ed-ref-frame'),
         refLoading: $('ed-ref-loading'),
         refFallback: $('ed-ref-fallback'),
         refFallbackBtn: $('ed-ref-fallback-btn'),
@@ -252,9 +258,10 @@
             b.classList.toggle('ed-active', active);
             b.setAttribute('aria-pressed', String(active));
         });
-        // قطر → KATypical Naskh; الكويت → DigitalKhatt Al-Shamiya (1978).
+        // قطر → KATypical Naskh; الكويت → Al Shamiya; البحرين → Digital Khatt (1421).
         document.body.classList.toggle('ed-font-qatar', state.edition === 'قطر');
         document.body.classList.toggle('ed-font-kuwait', state.edition === 'الكويت');
+        document.body.classList.toggle('ed-font-bahrain', state.edition === 'البحرين');
         document.body.classList.remove('ed-font-hafs');
         updateRefChrome();
     }
@@ -272,24 +279,45 @@
         loadPendingPages();
     }));
 
-    /* ── Reference material (Archive.org leaf images) ────────────── */
+    /* ── Reference material (Archive.org images or remote PDF iframe) ─ */
     function refSource() {
         return REF_SOURCES[state.edition] || null;
     }
-    function pageToLeaf(page) {
-        return page + REF_LEAF_OFFSET;
+    function pageToLeaf(page, leafOffset) {
+        return page + (Number.isFinite(leafOffset) ? leafOffset : 3);
     }
-    function refImageUrl(id, page) {
-        return `https://archive.org/download/${id}/page/leaf${pageToLeaf(page)}_w${REF_IMG_WIDTH}.jpg`;
+    function pdfPageNumber(src, page) {
+        return page + (Number(src.pdfPageOffset) || 0);
     }
-    function refOpenUrl(id, page) {
+    function refPdfUrl(src, page) {
+        const base = src.pdfUrl || '';
+        if (!base) return '';
+        return `${base}#page=${pdfPageNumber(src, page)}&zoom=page-fit`;
+    }
+    function refImageUrl(src, page) {
+        if (!src) return '';
+        // PDF pages are rendered asynchronously via AtharPdfRef — no static URL.
+        if (src.type === 'pdf') return '';
+        if (src.type === 'local' && typeof src.image === 'function') {
+            return src.image(page);
+        }
+        return `https://archive.org/download/${src.id}/page/leaf${pageToLeaf(page, src.leafOffset)}_w${REF_IMG_WIDTH}.jpg`;
+    }
+    function refOpenUrl(src, page) {
+        if (!src) return '';
+        if (src.pdfUrl || src.type === 'pdf') return refPdfUrl(src, page);
+        if (src.type === 'local' && typeof src.open === 'function') {
+            return src.open(page);
+        }
         // Archive.org details /page/N is 1-based (leaf 4 → /page/5).
-        return `https://archive.org/details/${id}/page/${pageToLeaf(page) + 1}`;
+        return `https://archive.org/details/${src.id}/page/${pageToLeaf(page, src.leafOffset) + 1}`;
     }
     function updateRefChrome() {
         const src = refSource();
         els.refTitle.textContent = src ? src.label : 'المرجع';
-        const label = src ? `فتح ${src.label} في الأرشيف` : 'فتح المرجع';
+        const label = src
+            ? (src.type === 'archive' ? `فتح ${src.label} في الأرشيف` : `فتح ${src.label}`)
+            : 'فتح المرجع';
         els.refOpen.title = label;
         els.refOpen.setAttribute('aria-label', label);
     }
@@ -298,13 +326,15 @@
         if (!src || !meta || !Number.isFinite(meta.page)) return null;
         if (meta.page < 1 || meta.page > MAX_PAGE) return null;
         return {
-            image: refImageUrl(src.id, meta.page),
-            open: refOpenUrl(src.id, meta.page),
+            image: refImageUrl(src, meta.page),
+            open: refOpenUrl(src, meta.page),
+            isPdf: src.type === 'pdf',
         };
     }
-    function showRefState({ loading = false, image = false, fallback = false } = {}) {
+    function showRefState({ loading = false, image = false, frame = false, fallback = false } = {}) {
         els.refLoading.hidden = !loading;
         els.refImg.hidden = !image;
+        if (els.refFrame) els.refFrame.hidden = !frame;
         els.refFallback.hidden = !fallback;
     }
     function clearReference() {
@@ -314,15 +344,16 @@
         showRefState();
         els.refImg.removeAttribute('src');
         els.refImg.alt = 'صفحة المصحف المطبوع';
+        if (els.refFrame) els.refFrame.removeAttribute('src');
     }
     function openReference() {
         if (!state.refUrl) return;
         window.open(state.refUrl, '_blank', 'noopener');
     }
-    function prefetchRef(id, page) {
-        if (page < 1 || page > MAX_PAGE) return;
-        const url = refImageUrl(id, page);
-        if (refPrefetch.has(url)) return;
+    function prefetchRef(src, page) {
+        if (!src || src.type === 'pdf' || page < 1 || page > MAX_PAGE) return;
+        const url = refImageUrl(src, page);
+        if (!url || refPrefetch.has(url)) return;
         refPrefetch.add(url);
         const img = new Image();
         img.decoding = 'async';
@@ -344,12 +375,48 @@
         refTimer = setTimeout(() => {
             if (token !== refLoadToken) return;
             showRefState({ loading: true });
+            if (els.refFrame) {
+                els.refFrame.hidden = true;
+                els.refFrame.removeAttribute('src');
+            }
+            if (urls.isPdf) {
+                if (!window.AtharPdfRef || !els.refImg) {
+                    showRefState({ fallback: true });
+                    return;
+                }
+                const pdfPage = pdfPageNumber(src, meta.page);
+                window.AtharPdfRef.renderPage(src.pdfUrl, pdfPage, { maxWidth: REF_IMG_WIDTH })
+                    .then((blobUrl) => {
+                        if (token !== refLoadToken) return;
+                        els.refImg.alt = `${src.label} — صفحة ${meta.page}`;
+                        const onLoad = () => {
+                            if (token !== refLoadToken) return;
+                            showRefState({ image: true });
+                            window.AtharPdfRef.prefetchNeighbors(
+                                src.pdfUrl, pdfPage, { maxWidth: REF_IMG_WIDTH },
+                            );
+                        };
+                        const onError = () => {
+                            if (token !== refLoadToken) return;
+                            showRefState({ fallback: true });
+                        };
+                        els.refImg.onload = onLoad;
+                        els.refImg.onerror = onError;
+                        els.refImg.src = blobUrl;
+                        if (els.refImg.complete && els.refImg.naturalWidth) onLoad();
+                    })
+                    .catch(() => {
+                        if (token !== refLoadToken) return;
+                        showRefState({ fallback: true });
+                    });
+                return;
+            }
             els.refImg.alt = `${src.label} — صفحة ${meta.page}`;
             const onLoad = () => {
                 if (token !== refLoadToken) return;
                 showRefState({ image: true });
-                prefetchRef(src.id, meta.page + 1);
-                prefetchRef(src.id, meta.page - 1);
+                prefetchRef(src, meta.page + 1);
+                prefetchRef(src, meta.page - 1);
             };
             const onError = () => {
                 if (token !== refLoadToken) return;
@@ -357,7 +424,6 @@
             };
             els.refImg.onload = onLoad;
             els.refImg.onerror = onError;
-            // Same URL can be cache-hit with no load event — force via assign.
             if (els.refImg.getAttribute('src') === urls.image && els.refImg.complete && els.refImg.naturalWidth) {
                 onLoad();
                 return;
@@ -519,6 +585,7 @@
         lineSelector: '.ed-line', innerSelector: '.ed-line-inner', wordSelector: '.ed-word',
         // الكويت / Al Shamiya: progressive jalt+jt/dc/kt (all-at-once overshoots).
         // قطر / KATypical: only jalt exists — Digital Khatt jt/dc/kt tags are no-ops.
+        // البحرين / Digital Khatt: same feature ladder as تثبيت (qpc_v2).
         featureSettings: () => '',
         featureCandidates: () => {
             if (state.edition === 'الكويت') {
@@ -527,6 +594,9 @@
             if (state.edition === 'قطر') {
                 return window.AtharPageChrome.katypicalFeatureCandidates(100);
             }
+            if (state.edition === 'البحرين') {
+                return window.AtharPageChrome.digitalKhattFeatureCandidates(100);
+            }
             return null;
         },
         minFeatureScale: () => {
@@ -534,15 +604,17 @@
             // KATypical only has binary jalt (big jump). Allow mild condense
             // so elongation still wins over word rivers when jalt overshoots.
             if (state.edition === 'قطر') return 0.88;
+            if (state.edition === 'البحرين') return 0.94;
             return 1;
         },
         // Cap residual gaps so leftover slack prefers kashida/jalt over rivers,
         // but leave a little room — printed Naskh is not pure stretch either.
         maxWordSpacing: () => (
-            state.edition === 'الكويت' || state.edition === 'قطر' ? 1.75 : Infinity
+            state.edition === 'الكويت' || state.edition === 'قطر' || state.edition === 'البحرين'
+                ? 1.75 : Infinity
         ),
         preferExpansion: () => (
-            state.edition === 'الكويت' || state.edition === 'قطر'
+            state.edition === 'الكويت' || state.edition === 'قطر' || state.edition === 'البحرين'
         ),
         preferExpansionSlack: 3,
         // Avoid stringy whole-line stretch when jalt still leaves slack.

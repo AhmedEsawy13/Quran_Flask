@@ -56,8 +56,9 @@ except ImportError:
 
 # Reuse the vetted helpers from the regex builder (grades, normalisation, the
 # per-ayah phrase→wpos aligner, source loading, surah-title resolution).
-import build_classical_waqf as rx  # noqa: E402
+from pipeline import build_classical_waqf as rx  # noqa: E402
 import app  # noqa: E402
+from pipeline.classical_cleanup import clean_rows  # noqa: E402
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'classical_llm_cache')
 SHIPPED_DB = rx.OUT_DB
@@ -598,12 +599,19 @@ def main():
         cur_stops.extend(stops)
     flush_surah()
 
+    cleanup = None
+    if args.book == 'manar':
+        all_rows, cleanup = clean_rows(all_rows)
+
     print(f'\n{args.book}: {totals["surahs"]} surahs processed, {totals["missing"]} chunk(s) not cached '
           f'(skipped), {totals["failed"]} chunk API call(s) failed (re-run to retry just those).')
     print(f'  {totals["in"]} raw stops → {totals["ok"]} confident rows '
           f'({totals["unaligned"]} rejected as unaligned, {totals["bad_grade"]} bad grade, {totals["bad_ayah"]} bad ayah).')
     if args.book == 'manar':
         print(f'  deterministic explicit-source backstop added {totals["explicit_added"]} omitted ruling(s).')
+        print(f'  duplicate cleanup removed {cleanup["exact_rows_removed"]} exact row(s) and '
+              f'consolidated {cleanup["notes_suppressed"]} repeated explanation(s) across '
+              f'{cleanup["affected_verses"]} verse(s).')
     with_reason = sum(1 for r in all_rows if len((r[8] or '').strip()) >= 18)
     print(f'  rows with a real علّة (≥18 chars): {with_reason}/{len(all_rows)} '
           f'({100 * with_reason / max(1, len(all_rows)):.0f}%)')

@@ -50,6 +50,7 @@ def robots_txt():
         'Disallow: /classical-review\n'
         'Disallow: /azhar-layout\n'
         'Disallow: /layout-studio\n'
+        'Disallow: /font-lab\n'
         '\n'
         f'Sitemap: {base}/sitemap.xml\n'
     )
@@ -104,7 +105,7 @@ Athar helps Arabic readers and students of tajweed/waqf:
 ## Preferred citations
 
 - Prefer the canonical URLs above (not ephemeral Heroku review hosts when a custom domain is configured).
-- Do not index or summarize `/api/*`, `/mushaf-editor`, `/classical-review`, `/azhar-layout`, or `/layout-studio`.
+- Do not index or summarize `/api/*`, `/mushaf-editor`, `/classical-review`, `/azhar-layout`, `/layout-studio`, or `/font-lab`.
 
 ## Contact / project
 

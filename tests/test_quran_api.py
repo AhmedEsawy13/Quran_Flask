@@ -106,6 +106,13 @@ def test_search_verses_finds_known_text(client):
     assert all(r['highlight'] for r in j['results'])
 
 
+def test_search_restores_letters_encoded_as_uthmani_dagger_alif(client):
+    """A normal-keyboard alif must match its Uthmani dagger-alif spelling."""
+    j = client.get('/api/search?q=' + _q('الصدقات') + '&limit=10').get_json()
+    keys = {r['verse_key'] for r in j['results']}
+    assert {'9:58', '9:60'} <= keys
+
+
 def test_search_verses_validates_input(client):
     assert client.get('/api/search').status_code == 400            # missing q
     assert client.get('/api/search?q=' + 'x' * 501).status_code == 400  # too long

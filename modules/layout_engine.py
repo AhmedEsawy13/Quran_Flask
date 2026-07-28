@@ -271,16 +271,24 @@ def cascade_from(lines, start_idx, head_words, text_map, *, universe=None, page_
     closed = page_scope is not None and closed_stream is not None
 
     if closed:
-        page_ayah = [
-            i for i, line in enumerate(lines)
-            if line['line_type'] == 'ayah' and int(line['page_number']) == int(page_scope)
-        ]
-        prefix = []
-        for i in page_ayah:
-            if i < start_idx:
-                prefix.extend(expand_ayah_words(lines[i], universe=universe))
-            else:
+        # A fixed page may contain the end of one surah and the beginning of
+        # another. Only ayah rows in the current separator-bounded segment are
+        # part of this cascade; using every ayah on the page can duplicate the
+        # later surah into the last row before its banner.
+        segment_start = start_idx
+        while segment_start > 0:
+            previous = lines[segment_start - 1]
+            if int(previous['page_number']) != int(page_scope):
                 break
+            if is_surah_separator(previous):
+                break
+            segment_start -= 1
+        prefix = []
+        for i in range(segment_start, start_idx):
+            if lines[i]['line_type'] == 'ayah':
+                prefix.extend(
+                    expand_ayah_words(lines[i], universe=universe)
+                )
         canonical = list(closed_stream)
         start = prefix + head
         if canonical[:len(start)] != start:
@@ -460,6 +468,197 @@ def reshape_page_line_count(
         'header_lines': header_count,
         'ayah_lines': ayah_slots,
         'word_count': len(word_ids),
+    }
+
+
+def rebalance_page_line_count(
+    cur,
+    page_number: int,
+    target_lines: int,
+    *,
+    script_db: str,
+    universe: list[int] | None = None,
+) -> dict:
+    """Reach a page's slot budget with the fewest ayah-row changes.
+
+    Header movement can leave one page short and its neighbor long. Unlike
+    ``reshape_page_line_count``, this preserves every unaffected reviewer
+    boundary: an underfull page splits its longest ayah row, while an
+    overfull page removes an empty row or merges the shortest adjacent ayah
+    pair. Header rows are never merged across.
+    """
+    cur.execute(
+        '''
+        SELECT id, page_number, line_number, line_type, is_centered,
+               first_word_id, last_word_id, surah_number, line_text
+        FROM pages
+        WHERE page_number = ?
+        ORDER BY line_number ASC
+        ''',
+        (int(page_number),),
+    )
+    cols = [d[0] for d in cur.description]
+    rows = [dict(zip(cols, row)) for row in cur.fetchall()]
+    if not rows:
+        raise ValueError(f'page {page_number} has no lines')
+
+    for row in rows:
+        row['_word_ids'] = (
+            expand_ayah_words(
+                row, universe=universe, script_db=script_db,
+            )
+            if row['line_type'] == 'ayah'
+            else []
+        )
+    before_words = [
+        word_id
+        for row in rows
+        if row['line_type'] == 'ayah'
+        for word_id in row['_word_ids']
+    ]
+    deleted_ids: set[int] = set()
+    split_count = 0
+    merge_count = 0
+    empty_removed = 0
+
+    while len(rows) < int(target_lines):
+        candidates = [
+            index for index, row in enumerate(rows)
+            if row['line_type'] == 'ayah' and len(row['_word_ids']) >= 2
+        ]
+        if not candidates:
+            raise ValueError(
+                f'page {page_number}: no ayah row can be split to reach '
+                f'{target_lines} lines'
+            )
+        index = max(candidates, key=lambda i: len(rows[i]['_word_ids']))
+        row = rows[index]
+        words = list(row['_word_ids'])
+        split_at = (len(words) + 1) // 2
+        row['_word_ids'] = words[:split_at]
+        new_row = {
+            **row,
+            'id': None,
+            'line_number': 0,
+            '_word_ids': words[split_at:],
+        }
+        rows.insert(index + 1, new_row)
+        split_count += 1
+
+    while len(rows) > int(target_lines):
+        empty_index = next(
+            (
+                index for index, row in enumerate(rows)
+                if row['line_type'] == 'ayah' and not row['_word_ids']
+            ),
+            None,
+        )
+        if empty_index is not None:
+            removed = rows.pop(empty_index)
+            if removed.get('id') is not None:
+                deleted_ids.add(int(removed['id']))
+            empty_removed += 1
+            continue
+
+        pairs = [
+            index for index in range(len(rows) - 1)
+            if rows[index]['line_type'] == 'ayah'
+            and rows[index + 1]['line_type'] == 'ayah'
+        ]
+        if not pairs:
+            raise ValueError(
+                f'page {page_number}: no adjacent ayah rows can be merged '
+                f'to reach {target_lines} lines'
+            )
+        index = min(
+            pairs,
+            key=lambda i: (
+                len(rows[i]['_word_ids'])
+                + len(rows[i + 1]['_word_ids'])
+            ),
+        )
+        kept = rows[index]
+        removed = rows.pop(index + 1)
+        kept['_word_ids'] = (
+            list(kept['_word_ids']) + list(removed['_word_ids'])
+        )
+        kept['is_centered'] = int(
+            bool(kept.get('is_centered'))
+            and bool(removed.get('is_centered'))
+        )
+        if removed.get('id') is not None:
+            deleted_ids.add(int(removed['id']))
+        merge_count += 1
+
+    after_words = [
+        word_id
+        for row in rows
+        if row['line_type'] == 'ayah'
+        for word_id in row['_word_ids']
+    ]
+    if after_words != before_words:
+        raise ValueError(
+            f'page {page_number}: line-count rebalance changed its word stream'
+        )
+
+    text_map = word_texts(script_db, before_words)
+    for row in rows:
+        if row['line_type'] == 'ayah':
+            assign_words_to_line(row, row['_word_ids'], text_map)
+
+    cur.execute(
+        'UPDATE pages SET line_number = -id WHERE page_number = ?',
+        (int(page_number),),
+    )
+    if deleted_ids:
+        placeholders = ','.join('?' * len(deleted_ids))
+        cur.execute(
+            f'DELETE FROM pages WHERE id IN ({placeholders})',
+            tuple(sorted(deleted_ids)),
+        )
+
+    for line_number, row in enumerate(rows, 1):
+        values = (
+            int(page_number),
+            int(line_number),
+            row['line_type'],
+            int(bool(row.get('is_centered'))),
+            row.get('first_word_id'),
+            row.get('last_word_id'),
+            row.get('surah_number'),
+            row.get('line_text') or '',
+        )
+        if row.get('id') is None:
+            cur.execute(
+                '''
+                INSERT INTO pages (
+                    page_number, line_number, line_type, is_centered,
+                    first_word_id, last_word_id, surah_number, line_text
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ''',
+                values,
+            )
+            row['id'] = int(cur.lastrowid)
+        else:
+            cur.execute(
+                '''
+                UPDATE pages
+                SET page_number = ?, line_number = ?, line_type = ?,
+                    is_centered = ?, first_word_id = ?, last_word_id = ?,
+                    surah_number = ?, line_text = ?
+                WHERE id = ?
+                ''',
+                (*values, int(row['id'])),
+            )
+
+    return {
+        'page_number': int(page_number),
+        'target_lines': int(target_lines),
+        'line_count': len(rows),
+        'split_lines': split_count,
+        'merged_lines': merge_count,
+        'empty_lines_removed': empty_removed,
+        'word_count': len(before_words),
     }
 
 
@@ -1300,7 +1499,8 @@ def snapshot_page_range(cur, page_from: int, page_to: int | None = None) -> dict
     if page_to is None:
         cur.execute(
             '''
-            SELECT id, page_number, first_word_id, last_word_id, line_text
+            SELECT id, page_number, line_number, line_type, is_centered,
+                   first_word_id, last_word_id, surah_number, line_text
             FROM pages
             WHERE page_number >= ?
             ORDER BY id ASC
@@ -1310,7 +1510,8 @@ def snapshot_page_range(cur, page_from: int, page_to: int | None = None) -> dict
     else:
         cur.execute(
             '''
-            SELECT id, page_number, first_word_id, last_word_id, line_text
+            SELECT id, page_number, line_number, line_type, is_centered,
+                   first_word_id, last_word_id, surah_number, line_text
             FROM pages
             WHERE page_number >= ? AND page_number <= ?
             ORDER BY id ASC
@@ -1321,9 +1522,13 @@ def snapshot_page_range(cur, page_from: int, page_to: int | None = None) -> dict
         {
             'id': int(r[0]),
             'page_number': int(r[1]),
-            'first_word_id': r[2],
-            'last_word_id': r[3],
-            'line_text': r[4] or '',
+            'line_number': int(r[2]),
+            'line_type': r[3],
+            'is_centered': int(r[4]),
+            'first_word_id': r[5],
+            'last_word_id': r[6],
+            'surah_number': r[7],
+            'line_text': r[8] or '',
         }
         for r in cur.fetchall()
     ]
@@ -1383,14 +1588,76 @@ def restore_snapshot(cur, snapshot) -> dict | None:
             'page_from': data.get('page_from'),
             'page_to': data.get('page_to'),
         }
+    # New snapshots contain complete rows, so restoring a structural edit can
+    # also recreate a consumed empty slot or remove a row moved into the range.
+    full_rows = bool(rows) and all(row.get('line_type') for row in rows)
+    if full_rows and meta.get('page_from') is not None:
+        page_from = int(meta['page_from'])
+        page_to = (
+            int(meta['page_to'])
+            if meta.get('page_to') is not None
+            else page_from
+        )
+        cur.execute(
+            'DELETE FROM pages WHERE page_number BETWEEN ? AND ?',
+            (page_from, page_to),
+        )
+        cur.executemany(
+            '''
+            INSERT INTO pages (
+                id, page_number, line_number, line_type, is_centered,
+                first_word_id, last_word_id, surah_number, line_text
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            [
+                (
+                    int(row['id']),
+                    int(row['page_number']),
+                    int(row['line_number']),
+                    row['line_type'],
+                    int(row.get('is_centered') or 0),
+                    row.get('first_word_id'),
+                    row.get('last_word_id'),
+                    row.get('surah_number'),
+                    row.get('line_text') or '',
+                )
+                for row in rows
+            ],
+        )
+        return meta
+
+    positioned = [
+        row for row in rows
+        if row.get('page_number') is not None
+        and row.get('line_number') is not None
+    ]
+    # A layout may enforce UNIQUE(page_number, line_number). Move every row in
+    # the snapshot to an id-specific temporary slot before restoring swapped
+    # header positions.
+    for row in positioned:
+        cur.execute(
+            'UPDATE pages SET line_number = ? WHERE id = ?',
+            (-int(row['id']), int(row['id'])),
+        )
     for row in rows:
         cur.execute(
             '''
             UPDATE pages
-            SET first_word_id = ?, last_word_id = ?, line_text = ?
+            SET page_number = COALESCE(?, page_number),
+                line_number = COALESCE(?, line_number),
+                first_word_id = ?, last_word_id = ?, line_text = ?,
+                is_centered = COALESCE(?, is_centered)
             WHERE id = ?
             ''',
-            (row.get('first_word_id'), row.get('last_word_id'), row.get('line_text') or '', row['id']),
+            (
+                row.get('page_number'),
+                row.get('line_number'),
+                row.get('first_word_id'),
+                row.get('last_word_id'),
+                row.get('line_text') or '',
+                row.get('is_centered'),
+                row['id'],
+            ),
         )
     return meta
 
@@ -1421,9 +1688,17 @@ def pop_undo(
         ).fetchone()
     if not row:
         return None
-    restore_snapshot(cur, row['snapshot'] if isinstance(row, sqlite3.Row) else row[3])
+    restored = restore_snapshot(
+        cur,
+        row['snapshot'] if isinstance(row, sqlite3.Row) else row[3],
+    ) or {}
     undo_id = row['id'] if isinstance(row, sqlite3.Row) else row[0]
     label = row['label'] if isinstance(row, sqlite3.Row) else row[1]
     initiated = row['page_number'] if isinstance(row, sqlite3.Row) else row[2]
     cur.execute(f'DELETE FROM {table} WHERE id = ?', (undo_id,))
-    return {'label': label, 'page_number': initiated}
+    return {
+        'label': label,
+        'page_number': initiated,
+        'page_from': restored.get('page_from'),
+        'page_to': restored.get('page_to'),
+    }

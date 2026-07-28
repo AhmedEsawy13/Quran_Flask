@@ -264,10 +264,10 @@ def _build_verse_waqf_detail_uncached(surah, ayah):
 # Printed mushafs whose waqf marks we compare the reciters against (matrix view).
 # ورش (North-African Warsh print) is included too — note its ص = صه = STOP, the
 # opposite of the Hafs صلى; the agreement analysis handles that per-mushaf.
-_WAQF_COMPARE_MUSHAFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي', 'قطر', 'الكويت', 'ورش')
+_WAQF_COMPARE_MUSHAFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي', 'قطر', 'الكويت', 'البحرين', 'ورش')
 # Broader set used only to validate a reciter's *solo* stop against any printed
 # waqf (e.g. "انفرد القارئ، لكنه يوافق علامة الأزهر").
-_WAQF_MATCH_MUSHAFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي', 'ورش', 'الهندي', 'قطر', 'الكويت')
+_WAQF_MATCH_MUSHAFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي', 'ورش', 'الهندي', 'قطر', 'الكويت', 'البحرين')
 # Reciters known to recite Hafs bi-qasr al-munfasil (short disconnected madd) —
 # their pace is legitimately faster, surfaced as a badge so the timing reads
 # correctly. Keyed by MEMORIZATION_RECITERS id.
