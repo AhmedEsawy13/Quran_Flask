@@ -746,6 +746,86 @@ def upsert_progress(*, edition: str, page_number: int, reviewed: bool,
     )
 
 
+def list_mark_review_decisions(edition: str) -> list[dict]:
+    rows = _request(
+        'GET', 'waqf_mark_review_decisions',
+        params={
+            'edition': f'eq.{edition}',
+            'select': 'edition,page_number,word_id,decision,our_mark,correct_mark,surah,ayah,word_text,updated_at',
+            'order': 'page_number,word_id',
+        },
+    ) or []
+    return rows
+
+
+def upsert_mark_review_decision(*, edition: str, page_number: int, word_id: int,
+                                decision: str, our_mark: str | None = None,
+                                correct_mark: str | None = None,
+                                surah: int | None = None, ayah: int | None = None,
+                                word_text: str | None = None,
+                                updated_by: str | None = None) -> None:
+    _request(
+        'POST', 'waqf_mark_review_decisions',
+        params={'on_conflict': 'edition,page_number,word_id'},
+        json_body={
+            'edition': edition,
+            'page_number': page_number,
+            'word_id': word_id,
+            'decision': decision,
+            'our_mark': our_mark or '',
+            'correct_mark': correct_mark if correct_mark is not None else '',
+            'surah': surah,
+            'ayah': ayah,
+            'word_text': word_text or '',
+            'updated_by': updated_by,
+            'updated_at': _now_iso(),
+        },
+        prefer='resolution=merge-duplicates,return=minimal',
+    )
+
+
+def delete_mark_review_decision(*, edition: str, page_number: int, word_id: int) -> None:
+    _request(
+        'DELETE', 'waqf_mark_review_decisions',
+        params={
+            'edition': f'eq.{edition}',
+            'page_number': f'eq.{page_number}',
+            'word_id': f'eq.{word_id}',
+        },
+        prefer='return=minimal',
+    )
+
+
+def list_mark_review_notes(edition: str) -> list[dict]:
+    rows = _request(
+        'GET', 'waqf_mark_review_notes',
+        params={
+            'edition': f'eq.{edition}',
+            'select': 'id,edition,page_number,note,updated_at',
+            'order': 'page_number,updated_at',
+        },
+    ) or []
+    return rows
+
+
+def add_mark_review_note(*, edition: str, page_number: int, note: str,
+                         updated_by: str | None = None) -> dict:
+    rows = _request(
+        'POST', 'waqf_mark_review_notes',
+        json_body={
+            'edition': edition,
+            'page_number': page_number,
+            'note': note,
+            'updated_by': updated_by,
+            'updated_at': _now_iso(),
+        },
+        prefer='return=representation',
+    )
+    if isinstance(rows, list) and rows:
+        return rows[0]
+    return rows or {}
+
+
 def append_audit(**fields: Any) -> None:
     body = {k: v for k, v in fields.items() if v is not None}
     try:

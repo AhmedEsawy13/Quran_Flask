@@ -1,0 +1,459 @@
+/* Plan A — الشمرلي mark review (glyphs + Quran font) */
+:root {
+    --wmr-bg: var(--athar-parchment, #f3ebe0);
+    --wmr-ink: var(--athar-ink, #1c1915);
+    --wmr-muted: var(--athar-ink-muted, #6b6358);
+    --wmr-accent: var(--athar-accent, #2f5d4a);
+    --wmr-border: color-mix(in srgb, var(--wmr-ink) 12%, transparent);
+    --wmr-ok: #1f6b45;
+    --wmr-bad: #8a3b2a;
+    --wmr-warn: #8a6a1f;
+    --wmr-quran: #1a1510;
+}
+
+.wmr-body {
+    margin: 0;
+    background:
+        radial-gradient(1200px 500px at 50% -10%, color-mix(in srgb, var(--wmr-accent) 10%, transparent), transparent),
+        var(--wmr-bg);
+    color: var(--wmr-ink);
+    font-family: var(--athar-sans, "Thmanyah Sans", "Segoe UI", sans-serif);
+    padding-bottom: calc(88px + env(safe-area-inset-bottom));
+}
+
+.wmr-chrome {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 10px 14px 12px;
+    background: color-mix(in srgb, var(--wmr-bg) 92%, white);
+    border-bottom: 1px solid var(--wmr-border);
+    backdrop-filter: blur(8px);
+}
+
+.wmr-kicker { margin: 0; font-size: 0.72rem; color: var(--wmr-muted); }
+.wmr-title {
+    margin: 2px 0 0;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+.wmr-lede { margin: 4px 0 0; font-size: 0.86rem; color: var(--wmr-muted); }
+
+.wmr-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.wmr-field,
+.wmr-page-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--wmr-muted);
+    font-weight: 700;
+}
+
+.wmr-page-nav {
+    display: grid;
+    grid-template-columns: 48px 1fr 48px;
+    gap: 8px;
+    align-items: end;
+}
+
+.wmr-nav-btn {
+    height: 48px;
+    border-radius: 12px;
+    border: 1px solid var(--wmr-border);
+    background: #fff;
+    color: var(--wmr-ink);
+    font-size: 1.6rem;
+    line-height: 1;
+}
+
+.wmr-page-field input {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    height: 48px;
+}
+
+.wmr-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.wmr-legend-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 28px;
+    padding: 0 9px;
+    border-radius: 999px;
+    border: 1px solid var(--wmr-border);
+    background: #fff;
+    font-size: 0.72rem;
+    color: var(--wmr-muted);
+}
+
+.wmr-legend-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    font-family: 'UthmanicHafs', 'KFGQPC Uthmanic Script HAFS', serif;
+    font-size: 1.2rem;
+    color: var(--wmr-accent);
+    line-height: 1;
+    transform: translateY(0.18em);
+}
+
+.wmr-status-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--wmr-muted);
+}
+
+.wmr-main {
+    padding: 12px 14px 24px;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.wmr-hint {
+    margin: 0 0 12px;
+    font-size: 0.78rem;
+    color: var(--wmr-muted);
+}
+
+.wmr-list { display: flex; flex-direction: column; gap: 10px; }
+
+.wmr-card {
+    border: 1px solid var(--wmr-border);
+    border-radius: 14px;
+    background: #fff;
+    padding: 12px;
+}
+
+.wmr-card[data-decision="ok"] { border-color: color-mix(in srgb, var(--wmr-ok) 45%, var(--wmr-border)); }
+.wmr-card[data-decision="wrong"] { border-color: color-mix(in srgb, var(--wmr-bad) 45%, var(--wmr-border)); }
+.wmr-card[data-decision="extra"] { border-color: color-mix(in srgb, var(--wmr-warn) 45%, var(--wmr-border)); }
+
+.wmr-card-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.wmr-ref { font-size: 0.78rem; font-weight: 800; color: var(--wmr-muted); }
+.wmr-place {
+    font-size: 0.72rem;
+    color: var(--wmr-muted);
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.wmr-word-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+    min-height: 58px;
+}
+
+.wmr-word {
+    font-family: 'UthmanicHafs', 'KFGQPC Uthmanic Script HAFS', serif;
+    font-size: 1.7rem;
+    color: var(--wmr-quran);
+    line-height: 1.5;
+}
+
+.wmr-word.is-shemrly {
+    font-family: 'WmrShemrlyPage', 'UthmanicHafs', serif;
+    font-size: 2rem;
+}
+
+/* Waqf marks sit high in the font box — grid + optical nudge centers the ink. */
+.wmr-mark {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--wmr-accent) 12%, white);
+    color: var(--wmr-accent);
+    overflow: hidden;
+}
+.wmr-mark-glyph {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'UthmanicHafs', 'KFGQPC Uthmanic Script HAFS', serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    line-height: 1;
+    /* Optical center: Uthmanic stop marks paint in the upper half of the em. */
+    transform: translateY(0.22em);
+    pointer-events: none;
+}
+
+.wmr-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+}
+
+.wmr-act {
+    min-height: 44px;
+    border-radius: 10px;
+    border: 1px solid var(--wmr-border);
+    background: #faf7f2;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: var(--wmr-ink);
+}
+
+.wmr-act.is-on[data-decision="ok"] {
+    background: color-mix(in srgb, var(--wmr-ok) 18%, white);
+    border-color: var(--wmr-ok);
+    color: var(--wmr-ok);
+}
+.wmr-act.is-on[data-decision="wrong"] {
+    background: color-mix(in srgb, var(--wmr-bad) 16%, white);
+    border-color: var(--wmr-bad);
+    color: var(--wmr-bad);
+}
+.wmr-act.is-on[data-decision="extra"] {
+    background: color-mix(in srgb, var(--wmr-warn) 18%, white);
+    border-color: var(--wmr-warn);
+    color: var(--wmr-warn);
+}
+
+.wmr-correction {
+    margin: 8px 0 0;
+    font-size: 0.9rem;
+    color: var(--wmr-bad);
+    font-weight: 700;
+    font-family: 'UthmanicHafs', serif;
+}
+
+.wmr-empty {
+    padding: 28px 16px;
+    text-align: center;
+    color: var(--wmr-muted);
+    border: 1px dashed var(--wmr-border);
+    border-radius: 14px;
+}
+
+.wmr-missing {
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 14px;
+}
+.wmr-missing h2 { margin: 0 0 4px; font-size: 1rem; }
+.wmr-missing p { margin: 0 0 8px; font-size: 0.8rem; color: var(--wmr-muted); }
+.wmr-missing textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 10px;
+    border: 1px solid var(--wmr-border);
+    padding: 10px;
+    font: inherit;
+    background: #fff;
+    resize: vertical;
+}
+.wmr-missing-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.wmr-missing-list li {
+    font-size: 0.82rem;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--wmr-warn) 10%, white);
+}
+
+.wmr-footer {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--wmr-bg) 94%, white);
+    border-top: 1px solid var(--wmr-border);
+}
+
+.wmr-btn {
+    min-height: 46px;
+    border-radius: 12px;
+    border: 1px solid var(--wmr-border);
+    font-weight: 800;
+    padding: 0 14px;
+}
+.wmr-btn-primary {
+    background: var(--wmr-accent);
+    border-color: var(--wmr-accent);
+    color: #fff;
+}
+.wmr-btn-secondary { background: #fff; color: var(--wmr-ink); }
+.wmr-btn-ghost { background: transparent; color: var(--wmr-muted); }
+
+.wmr-sheet[hidden] { display: none !important; }
+.wmr-sheet { position: fixed; inset: 0; z-index: 40; }
+.wmr-sheet-backdrop {
+    position: absolute; inset: 0; background: rgba(20, 16, 12, 0.45);
+}
+.wmr-sheet-panel {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    padding: 18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 18px 18px 0 0;
+    background: var(--wmr-bg);
+}
+.wmr-sheet-panel h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.wmr-sheet-word {
+    margin: 0 0 12px;
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.5rem;
+}
+.wmr-glyphs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.wmr-glyph {
+    min-height: 64px;
+    border-radius: 12px;
+    border: 1px solid var(--wmr-border);
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 6px 4px;
+}
+.wmr-glyph-sym {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.4em;
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.9rem;
+    color: var(--wmr-accent);
+    line-height: 1;
+    transform: translateY(0.2em);
+}
+.wmr-glyph-name {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--wmr-muted);
+}
+
+.wmr-toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(92px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 50;
+    margin: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--wmr-ink);
+    color: #fff;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+.wmr-toast[hidden] { display: none !important; }
+
+.wmr-auth {
+    margin: 6px 0 0;
+    font-size: 0.75rem;
+    color: var(--wmr-muted);
+}
+.wmr-auth button {
+    margin-inline-start: 6px;
+    border: 0;
+    background: none;
+    color: var(--wmr-accent);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+}
+
+.wmr-login {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--wmr-ink) 45%, transparent);
+}
+.wmr-login[hidden] { display: none !important; }
+.wmr-login-card {
+    width: min(100%, 360px);
+    display: grid;
+    gap: 10px;
+    padding: 18px 16px;
+}
+.wmr-login-title {
+    margin: 0;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+    font-size: 1.25rem;
+}
+.wmr-login-hint {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--wmr-muted);
+}
+.wmr-login-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--wmr-muted);
+}
+.wmr-login-error {
+    margin: 0;
+    color: var(--wmr-bad);
+    font-size: 0.86rem;
+}
+.wmr-login-error[hidden] { display: none !important; }
+
+@media (min-width: 720px) {
+    .wmr-controls {
+        grid-template-columns: 200px 1fr;
+        align-items: end;
+    }
+    .wmr-footer {
+        max-width: 720px;
+        margin: 0 auto;
+        inset-inline: max(0px, calc(50% - 360px));
+    }
+}

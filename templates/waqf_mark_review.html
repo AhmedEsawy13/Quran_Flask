@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {% set page_title = 'أثَر · مراجعة علامات الشمرلي' %}
+    {% set page_description = 'طابق علامات الوقف في مصحف الشمرلي صفحةً بصفحة.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/waqf-mark-review', noindex=true) }}
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/waqf_mark_review.css') }}">
+    <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <style>
+        @font-face {
+            font-family: 'UthmanicHafs';
+            src: url("{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}") format("woff2");
+            font-display: swap;
+        }
+    </style>
+</head>
+<body class="athar-tool wmr-body"
+      data-editions='{{ editions | tojson }}'
+      data-symbols='{{ symbols | tojson }}'
+      data-default-edition="{{ default_edition }}"
+      data-min-page="{{ min_page }}"
+      data-max-page="{{ max_page }}"
+      data-start-page="4">
+    {{ athar_app_bar('wmr-main') }}
+
+    <div class="wmr-login" id="wmr-login" hidden>
+        <form class="wmr-login-card athar-surface" id="wmr-login-form" autocomplete="on">
+            <p class="wmr-kicker">أثَر · محرّر</p>
+            <h2 class="wmr-login-title">تسجيل الدخول</h2>
+            <p class="wmr-login-hint">لحفظ قرارات المراجعة على الخادم (ومزامنتها بين الأجهزة).</p>
+            <label class="wmr-login-label" for="wmr-login-username">اسم المستخدم</label>
+            <input class="athar-field" type="text" id="wmr-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
+            <label class="wmr-login-label" for="wmr-login-password">كلمة المرور</label>
+            <input class="athar-field" type="password" id="wmr-login-password" name="password" required autocomplete="current-password" dir="ltr">
+            <p class="wmr-login-error" id="wmr-login-error" role="alert" hidden></p>
+            <button class="wmr-btn wmr-btn-primary" type="submit" id="wmr-login-submit">دخول</button>
+            <button class="wmr-btn wmr-btn-ghost" type="button" id="wmr-login-skip">متابعة محليًا</button>
+        </form>
+    </div>
+
+    <header class="wmr-chrome" aria-label="أدوات المراجعة">
+        <div class="wmr-chrome-top">
+            <p class="wmr-kicker">مراجعة · الشمرلي أولًا</p>
+            <h1 class="wmr-title" id="wmr-title">علامات الوقف في المصحف</h1>
+            <p class="wmr-lede">افتح مصحف الشمرلي على رقم الصفحة، ومرّ على العلامات فقط.</p>
+            <p class="wmr-auth" id="wmr-auth" aria-live="polite"></p>
+        </div>
+
+        <div class="wmr-controls">
+            <label class="wmr-field">
+                <span>المصحف</span>
+                <select id="wmr-edition" class="athar-field" aria-label="طبعة المصحف">
+                    {% for ed in editions %}
+                    <option value="{{ ed.id }}">{{ ed.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="wmr-page-nav" role="group" aria-label="رقم الصفحة">
+                <button type="button" id="wmr-prev" class="wmr-nav-btn" aria-label="الصفحة السابقة">‹</button>
+                <label class="wmr-page-field">
+                    <span>صفحة</span>
+                    <input id="wmr-page" class="athar-field" type="text" inputmode="numeric" pattern="[0-9٠-٩]*" autocomplete="off" aria-label="رقم الصفحة">
+                </label>
+                <button type="button" id="wmr-next" class="wmr-nav-btn" aria-label="الصفحة التالية">›</button>
+            </div>
+        </div>
+
+        <div class="wmr-legend" id="wmr-legend" aria-label="دليل العلامات"></div>
+
+        <div class="wmr-status-row">
+            <p class="wmr-meta" id="wmr-meta" aria-live="polite"></p>
+            <p class="wmr-progress" id="wmr-progress"></p>
+        </div>
+    </header>
+
+    <main class="wmr-main" id="wmr-main" tabindex="-1">
+        <p class="wmr-hint">مرّر يمينًا للتالية ويسارًا للسابقة. القرارات تُحفظ على الخادم عند تسجيل الدخول، مع نسخة احتياطية على الجهاز.</p>
+        <div class="wmr-list" id="wmr-list" role="list"></div>
+        <section class="wmr-missing athar-surface" aria-labelledby="wmr-missing-title">
+            <h2 id="wmr-missing-title">ناقص عندنا؟</h2>
+            <p>علامة في المصحف وليست في القائمة — اكتبها هنا.</p>
+            <textarea id="wmr-missing-note" rows="3" placeholder="مثال: ص ٣ · البقرة ٢:٢ · كلمة «فيه» · العلامة ۛ"></textarea>
+            <button type="button" class="wmr-btn wmr-btn-secondary" id="wmr-missing-save">حفظ الملاحظة</button>
+            <ul class="wmr-missing-list" id="wmr-missing-list"></ul>
+        </section>
+    </main>
+
+    <footer class="wmr-footer">
+        <button type="button" class="wmr-btn wmr-btn-primary" id="wmr-done">انتهت الصفحة</button>
+        <button type="button" class="wmr-btn wmr-btn-ghost" id="wmr-export">تصدير</button>
+    </footer>
+
+    <div class="wmr-sheet" id="wmr-sheet" hidden>
+        <div class="wmr-sheet-backdrop" id="wmr-sheet-backdrop"></div>
+        <div class="wmr-sheet-panel" role="dialog" aria-modal="true" aria-labelledby="wmr-sheet-title">
+            <h2 id="wmr-sheet-title">ما العلامة الصحيحة في المصحف؟</h2>
+            <p class="wmr-sheet-word" id="wmr-sheet-word"></p>
+            <div class="wmr-glyphs" id="wmr-glyphs"></div>
+            <button type="button" class="wmr-btn wmr-btn-ghost" id="wmr-sheet-cancel">إلغاء</button>
+        </div>
+    </div>
+
+    <p class="wmr-toast" id="wmr-toast" role="status" aria-live="polite" hidden></p>
+    <style id="wmr-page-font"></style>
+
+    <script src="{{ static_hash('js/waqf_mark_review.js') }}"></script>
+</body>
+</html>

@@ -156,6 +156,7 @@ from core.text import (
 
 
 import modules.editor  # noqa: F401 — attaches editor routes to editor_bp
+import modules.waqf_mark_review  # noqa: F401 — Plan A mark-review checklist on editor_bp
 import modules.azhar_layout  # noqa: F401 — /azhar-layout aliases → layout studio
 import modules.layout_studio  # noqa: F401 — /layout-studio + /api/layout-studio/*
 import modules.font_lab  # noqa: F401 — /font-lab OpenType playground
