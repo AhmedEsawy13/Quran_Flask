@@ -30,6 +30,21 @@ def _normalize_for_search(text):
     return ''.join(_SEARCH_LETTER_FOLD.get(ch, ch) for ch in cleaned)
 
 
+def _search_normalization_variants(text):
+    """Return search forms with Quranic dagger alif omitted and restored.
+
+    The same Uthmani mark represents a written alif in words such as
+    ``ٱلصَّدَقَٰتِ`` but is omitted in modern spelling of words such as
+    ``هَٰذَا``. Keeping both deterministic forms makes basic Arabic search
+    correct even when the optional imlaey transcription package is absent.
+    """
+    if not text:
+        return {''}
+    return {
+        _normalize_for_search(text),
+        _normalize_for_search(text.replace('\u0670', 'ا')),
+    }
+
 
 def is_waqf_like_char(char, source_name):
     if char in NON_WAQF_SPECIFIC_CHARS:

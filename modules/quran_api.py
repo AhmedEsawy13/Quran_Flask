@@ -16,7 +16,7 @@ from flask import jsonify, request, redirect
 
 from core.blueprints import core_bp
 from core.config import DATABASE, WAQF_DATABASE, MAX_AYAH_NUMBER
-from core.text import _normalize_for_search
+from core.text import _normalize_for_search, _search_normalization_variants
 from core.mushaf_waqf import _get_mushaf_version_whitelist
 from core.datasets import (
     digital_khatt_data, qpc_hafs_data, indopak_nastaleeq_data,
@@ -338,9 +338,12 @@ def search_verses():
             break
 
         text = verse_data.get('text', '')
-        normalized_source_text = _normalize_for_search(text)
+        normalized_source_texts = _search_normalization_variants(text)
         if (normalized_query in imlaey_search.get(verse_key, '')
-                or normalized_query in normalized_source_text):
+                or any(
+                    normalized_query in source_text
+                    for source_text in normalized_source_texts
+                )):
             surah_num, ayah_num = verse_key.split(':')
             results.append({
                 'verse_key': verse_key,
