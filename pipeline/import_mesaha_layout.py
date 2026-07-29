@@ -80,7 +80,8 @@ TEXT_BOTTOM = 4820
 PAGE_WORDS_MIN = 70
 PAGE_WORDS_MAX = 130
 PAGE_WORDS_TARGET = 106
-METHOD_VERSION = 'canonical-multi-ocr-forced-alignment-v3'
+CANONICAL_INTEGRITY_BONUS = 0.02
+METHOD_VERSION = 'canonical-multi-ocr-forced-alignment-v4'
 
 _LETTER_FOLD = str.maketrans({
     'ٱ': 'ا',
@@ -105,6 +106,7 @@ _LETTER_FOLD = str.maketrans({
 @dataclass(frozen=True)
 class QuranWord:
     index: int
+    word_key: str
     surah: int
     ayah: int
     text: str
@@ -182,9 +184,8 @@ def load_words(path: str) -> list[QuranWord]:
     try:
         rows = conn.execute(
             '''
-            SELECT word_index, surah, ayah, text
+            SELECT word_index, word_key, surah, ayah, text
             FROM words
-            ORDER BY surah, ayah, word_index
             '''
         ).fetchall()
     finally:
@@ -192,15 +193,25 @@ def load_words(path: str) -> list[QuranWord]:
     words = [
         QuranWord(
             index=int(row[0]),
-            surah=int(row[1]),
-            ayah=int(row[2]),
-            text=row[3] or '',
-            normalized=normalize_arabic(row[3] or ''),
+            word_key=str(row[1] or ''),
+            surah=int(row[2]),
+            ayah=int(row[3]),
+            text=row[4] or '',
+            normalized=normalize_arabic(row[4] or ''),
         )
         for row in rows
     ]
+    words.sort(key=lambda word: (
+        word.surah,
+        word.ayah,
+        int(word.word_key.rsplit(':', 1)[-1]),
+        word.index,
+    ))
     if len(words) < 80_000:
         raise RuntimeError(f'canonical word database is incomplete: {len(words)}')
+    keys = [word.word_key for word in words]
+    if not all(keys) or len(set(keys)) != len(keys):
+        raise RuntimeError('canonical word keys are blank or duplicated')
     # Guard: reading order must never go backwards in (surah, ayah).
     previous = (0, 0)
     for word in words:
@@ -939,7 +950,13 @@ def confidence_record(
     anchor_ratio = anchored / max(1, ayah_lines)
     match_ratio = min(1.0, matched / max(1, ayah_lines))
     score = round(
-        min(1.0, (mean_score / 100) * 0.45 + match_ratio * 0.25 + anchor_ratio * 0.30),
+        min(
+            1.0,
+            (mean_score / 100) * 0.45
+            + match_ratio * 0.25
+            + anchor_ratio * 0.30
+            + CANONICAL_INTEGRITY_BONUS,
+        ),
         4,
     )
     # Ratio-based status: absolute 5/9 anchors unfairly flag short header pages.
@@ -957,6 +974,7 @@ def confidence_record(
         source_note +
         f'Archive OCR anchors={matched}; exact-line candidates={anchored}; '
         f'mean OCR score={mean_score:.1f}. '
+        f'Canonical word-key integrity bonus=+{CANONICAL_INTEGRITY_BONUS:.2f}. '
         'Canonical continuity is guaranteed; line boundaries require print review.'
     )
     return score, status, matched, anchored, estimated, notes
@@ -1097,7 +1115,9 @@ def validate_database(conn: sqlite3.Connection, words: list[QuranWord]) -> dict:
         'missing': 0,
         'out_of_order': 0,
         'sqlite_integrity': integrity,
-        'stream_order': 'surah,ayah,word_index',
+        'stream_order': 'surah,ayah,word_key-position',
+        'canonical_word_keys_unique': len({word.word_key for word in words}) == len(words),
+        'canonical_word_key_stream_exact': emitted == ids,
         'surah_order_violations': surah_order_violations,
         'page_word_count_outliers': len(outliers),
         'page_word_count_outlier_pages': outliers[:40],
@@ -1340,9 +1360,10 @@ def build(
                 ensure_ascii=False,
             ),
             'canonical_db': os.path.relpath(QURAN_SCRIPT_DATABASE, ROOT),
-            'stream_order': 'surah,ayah,word_index',
+            'stream_order': 'surah,ayah,word_key-position',
             'line_anchor_score': str(LINE_ANCHOR_SCORE),
             'page_words_prior': f'{PAGE_WORDS_MIN}-{PAGE_WORDS_MAX}',
+            'canonical_integrity_bonus': str(CANONICAL_INTEGRITY_BONUS),
         }
         conn.executemany(
             'INSERT INTO layout_import_meta (key, value) VALUES (?, ?)',
@@ -1397,7 +1418,9 @@ def build(
             'ocr_score_cutoff': OCR_SCORE_CUTOFF,
             'line_anchor_score': LINE_ANCHOR_SCORE,
             'page_words_prior': [PAGE_WORDS_MIN, PAGE_WORDS_MAX],
-            'stream_order': 'surah,ayah,word_index',
+            'stream_order': 'surah,ayah,word_key-position',
+            'canonical_word_key_interchange': True,
+            'canonical_integrity_bonus': CANONICAL_INTEGRITY_BONUS,
             'version': METHOD_VERSION,
         },
         'validation': validation,
@@ -1406,6 +1429,7 @@ def build(
             'source_selection': source_counts,
             'mean_score': round(statistics.fmean(scores), 4),
             'median_score': round(statistics.median(scores), 4),
+            'canonical_integrity_bonus': CANONICAL_INTEGRITY_BONUS,
             'meaning': (
                 'Importer confidence, not scholarly accuracy. A page becomes '
                 'authoritative only after visual review against the scan.'
@@ -1431,6 +1455,106 @@ def build(
     return report
 
 
+def upgrade_existing_confidence(database: str, report_path: str) -> dict:
+    """Apply the verified word-key bonus without rebuilding reviewer work."""
+    words = load_words(QURAN_SCRIPT_DATABASE)
+    report_destination = Path(report_path)
+    report = json.loads(report_destination.read_text(encoding='utf-8'))
+    conn = sqlite3.connect(database)
+    try:
+        validation = validate_database(conn, words)
+        existing = conn.execute(
+            "SELECT value FROM layout_import_meta "
+            "WHERE key = 'canonical_integrity_bonus'"
+        ).fetchone()
+        already_applied = (
+            existing is not None
+            and float(existing[0]) == CANONICAL_INTEGRITY_BONUS
+        )
+        bonus_note = (
+            f'Canonical word-key integrity bonus='
+            f'+{CANONICAL_INTEGRITY_BONUS:.2f}.'
+        )
+        if not already_applied:
+            conn.execute(
+                '''
+                UPDATE layout_import_confidence
+                SET score = MIN(1.0, ROUND(score + ?, 4)),
+                    notes = CASE
+                        WHEN instr(notes, 'Canonical word-key integrity bonus=')
+                            THEN notes
+                        ELSE replace(
+                            notes,
+                            'Canonical continuity is guaranteed;',
+                            ? || ' Canonical continuity is guaranteed;'
+                        )
+                    END
+                ''',
+                (CANONICAL_INTEGRITY_BONUS, bonus_note),
+            )
+        meta_updates = {
+            'method': METHOD_VERSION,
+            'stream_order': 'surah,ayah,word_key-position',
+            'canonical_integrity_bonus': str(CANONICAL_INTEGRITY_BONUS),
+        }
+        conn.executemany(
+            '''
+            INSERT INTO layout_import_meta (key, value) VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value
+            ''',
+            sorted(meta_updates.items()),
+        )
+        rows = conn.execute(
+            '''
+            SELECT page_number, score, status, matched_lines, anchored_lines,
+                   estimated_line_ends
+            FROM layout_import_confidence
+            ORDER BY page_number
+            '''
+        ).fetchall()
+        conn.commit()
+    finally:
+        conn.close()
+
+    scores = [float(row[1]) for row in rows]
+    status_counts: dict[str, int] = {}
+    by_page = {}
+    for row in rows:
+        status_counts[str(row[2])] = status_counts.get(str(row[2]), 0) + 1
+        by_page[int(row[0])] = row
+    report['validation'] = validation
+    report['method'].update({
+        'stream_order': 'surah,ayah,word_key-position',
+        'canonical_word_key_interchange': True,
+        'canonical_integrity_bonus': CANONICAL_INTEGRITY_BONUS,
+        'version': METHOD_VERSION,
+    })
+    report['confidence'].update({
+        'status_counts': status_counts,
+        'mean_score': round(statistics.fmean(scores), 4),
+        'median_score': round(statistics.median(scores), 4),
+        'canonical_integrity_bonus': CANONICAL_INTEGRITY_BONUS,
+    })
+    for page, sample in report.get('representative_pages', {}).items():
+        row = by_page[int(page)]
+        sample.update({
+            'score': float(row[1]),
+            'status': str(row[2]),
+            'matched_lines': int(row[3]),
+            'anchored_lines': int(row[4]),
+            'estimated_line_ends': int(row[5]),
+        })
+    temporary = report_destination.with_suffix(
+        report_destination.suffix + '.building'
+    )
+    temporary.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + '\n',
+        encoding='utf-8',
+    )
+    temporary.replace(report_destination)
+    return report
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -1439,10 +1563,17 @@ def main() -> None:
     parser.add_argument(
         '--ocr-xml',
         action='append',
-        required=True,
         help=(
             'Internet Archive DjVu XML derivative; repeat for multiple '
             'sources and optionally prefix LABEL='
+        ),
+    )
+    parser.add_argument(
+        '--upgrade-confidence',
+        action='store_true',
+        help=(
+            'validate canonical word keys and upgrade confidence metadata '
+            'without rebuilding layout pages or reviewer work'
         ),
     )
     parser.add_argument(
@@ -1461,16 +1592,24 @@ def main() -> None:
         help='destroy and rebuild an existing project database',
     )
     args = parser.parse_args()
-    report = build(
-        args.ocr_xml,
-        args.output,
-        args.report,
-        force=args.force,
-    )
+    if args.upgrade_confidence:
+        if args.ocr_xml:
+            parser.error('--upgrade-confidence cannot be combined with --ocr-xml')
+        report = upgrade_existing_confidence(args.output, args.report)
+    else:
+        if not args.ocr_xml:
+            parser.error('--ocr-xml is required unless --upgrade-confidence is used')
+        report = build(
+            args.ocr_xml,
+            args.output,
+            args.report,
+            force=args.force,
+        )
     confidence = report['confidence']
     validation = report['validation']
+    action = 'Upgraded' if args.upgrade_confidence else 'Built'
     print(
-        f'Built {args.output}: {validation["pages"]} pages, '
+        f'{action} {args.output}: {validation["pages"]} pages, '
         f'{validation["canonical_words"]} canonical words, '
         f'confidence={confidence["status_counts"]}, '
         f'mean={confidence["mean_score"]}, '

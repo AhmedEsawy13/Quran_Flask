@@ -194,6 +194,120 @@ def _validate_page_word_space(edition, page_number: int, lines: list[dict]) -> N
             )
 
 
+def _cloud_lines_with_word_keys(
+    edition,
+    page_number: int,
+    lines: list[dict],
+) -> list[dict]:
+    """Attach portable endpoint keys to a page before cloud persistence."""
+    script_db = getattr(edition, 'script_db', None)
+    word_id_space = getattr(edition, 'word_id_space', None)
+    if not script_db or not word_id_space:
+        return [dict(line) for line in lines]
+
+    from modules import layout_engine
+
+    word_map = layout_engine.script_word_map(script_db)
+    annotated = []
+    for source in lines:
+        line = dict(source)
+        first = line.get('first_word_id')
+        last = line.get('last_word_id')
+        if first is None and last is None:
+            annotated.append(line)
+            continue
+        first_token = word_map['id2tok'].get(int(first)) if first is not None else None
+        last_token = word_map['id2tok'].get(int(last)) if last is not None else None
+        if first_token is None or last_token is None:
+            if line.get('line_type') == 'ayah':
+                raise sb.SupabaseEditorError(
+                    f'Cannot create canonical word keys for '
+                    f'{edition.id} page {page_number}'
+                )
+            annotated.append(line)
+            continue
+        line['word_id_space'] = word_id_space
+        line['first_word_key'] = first_token['word_key']
+        line['last_word_key'] = last_token['word_key']
+        annotated.append(line)
+    return annotated
+
+
+def _normalize_cloud_word_keys(
+    edition,
+    page_number: int,
+    lines: list[dict],
+) -> list[dict]:
+    """Validate or translate cloud endpoints into the edition's local IDs."""
+    script_db = getattr(edition, 'script_db', None)
+    target_space = getattr(edition, 'word_id_space', None)
+    if not script_db or not target_space:
+        return [dict(line) for line in lines]
+
+    from modules import layout_engine
+
+    word_map = layout_engine.script_word_map(script_db)
+    normalized = []
+    for source in lines:
+        line = dict(source)
+        if line.get('line_type') != 'ayah':
+            normalized.append(line)
+            continue
+        declared_space = str(line.get('word_id_space') or '').strip()
+        first_key = str(line.get('first_word_key') or '').strip()
+        last_key = str(line.get('last_word_key') or '').strip()
+        if bool(first_key) != bool(last_key):
+            raise sb.SupabaseEditorError(
+                f'Incomplete canonical endpoints for '
+                f'{edition.id} page {page_number}'
+            )
+        keys_present = bool(first_key and last_key)
+        if declared_space and not keys_present:
+            raise sb.SupabaseEditorError(
+                f'Cannot use declared word space {declared_space} for '
+                f'{edition.id} page {page_number}: canonical keys missing'
+            )
+
+        if declared_space and declared_space != target_space:
+            first = word_map['key_to_id'].get(first_key)
+            last = word_map['key_to_id'].get(last_key)
+            if first is None or last is None:
+                raise sb.SupabaseEditorError(
+                    f'Canonical word key unavailable in {target_space} for '
+                    f'{edition.id} page {page_number}'
+                )
+            line['first_word_id'] = int(first)
+            line['last_word_id'] = int(last)
+            line['word_id_space'] = target_space
+        elif keys_present:
+            expected_first = word_map['key_to_id'].get(first_key)
+            expected_last = word_map['key_to_id'].get(last_key)
+            try:
+                actual = (
+                    int(line.get('first_word_id')),
+                    int(line.get('last_word_id')),
+                )
+            except (TypeError, ValueError) as exc:
+                raise sb.SupabaseEditorError(
+                    f'Invalid canonical endpoints for '
+                    f'{edition.id} page {page_number}'
+                ) from exc
+            if (
+                expected_first is None
+                or expected_last is None
+                or actual != (int(expected_first), int(expected_last))
+            ):
+                raise sb.SupabaseEditorError(
+                    f'Canonical key/ID mismatch for '
+                    f'{edition.id} page {page_number}'
+                )
+            line['word_id_space'] = target_space
+        normalized.append(line)
+
+    _validate_page_word_space(edition, page_number, normalized)
+    return normalized
+
+
 def _apply_profile(cur, profile: dict) -> None:
     cur.execute(
         '''
@@ -279,7 +393,7 @@ def working_db_path(edition, *, force: bool = False) -> str:
                             edition.id, row.get('page_number'),
                         )
                         continue
-                    _validate_page_word_space(
+                    lines = _normalize_cloud_word_keys(
                         edition, int(row['page_number']), lines,
                     )
                     if _page_matches(cur, int(row['page_number']), lines):
@@ -315,7 +429,7 @@ def working_db_path(edition, *, force: bool = False) -> str:
     return path
 
 
-def _page_payload(cur, page_number: int) -> dict[str, Any]:
+def _page_payload(edition, cur, page_number: int) -> dict[str, Any]:
     rows = cur.execute(
         f'''
         SELECT {", ".join(_LINE_COLUMNS)}
@@ -336,7 +450,12 @@ def _page_payload(cur, page_number: int) -> dict[str, Any]:
         }
         for row in rows
     ]
-    return {'page_number': int(page_number), 'lines': lines}
+    return {
+        'page_number': int(page_number),
+        'lines': _cloud_lines_with_word_keys(
+            edition, int(page_number), lines,
+        ),
+    }
 
 
 def save_pages(
@@ -352,7 +471,7 @@ def save_pages(
         return False
     end = int(page_to) if page_to is not None else int(page_from)
     pages = [
-        _page_payload(cur, page)
+        _page_payload(edition, cur, page)
         for page in range(int(page_from), end + 1)
     ]
     empty = [page['page_number'] for page in pages if not page['lines']]

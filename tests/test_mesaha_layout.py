@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sqlite3
 from pathlib import Path
 
@@ -147,12 +148,20 @@ def test_mesaha_import_report_and_non_llm_pipeline():
     assert report['method']['canonical_text_is_authoritative'] is True
     assert report['method']['multi_source_selection'] is True
     assert report['method'].get('multi_source_fusion') is True
-    assert report['method'].get('stream_order') == 'surah,ayah,word_index'
+    assert report['method'].get(
+        'stream_order'
+    ) == 'surah,ayah,word_key-position'
+    assert report['method']['canonical_word_key_interchange'] is True
+    assert report['method']['canonical_integrity_bonus'] == 0.02
+    assert report['confidence']['canonical_integrity_bonus'] == 0.02
+    assert report['confidence']['mean_score'] > 0.7364
     assert len(report['source']['ocr_sources']) == 2
     assert sum(report['confidence']['source_selection'].values()) == 826
     assert report['validation']['missing'] == 0
     assert report['validation']['duplicates'] == 0
     assert report['validation']['out_of_order'] == 0
+    assert report['validation']['canonical_word_keys_unique'] is True
+    assert report['validation']['canonical_word_key_stream_exact'] is True
     assert report['validation'].get('surah_order_violations', 0) == 0
     assert sum(report['confidence']['status_counts'].values()) == 826
 
@@ -162,4 +171,39 @@ def test_mesaha_import_report_and_non_llm_pipeline():
     assert 'partial_ratio_alignment' in importer
     assert 'uses_llm' in importer
     assert '--force' in importer
-    assert 'canonical-multi-ocr-forced-alignment-v3' in importer
+    assert 'canonical-multi-ocr-forced-alignment-v4' in importer
+    assert '--upgrade-confidence' in importer
+
+
+def test_mesaha_confidence_upgrade_is_idempotent(tmp_path):
+    from pipeline import import_mesaha_layout
+
+    database = tmp_path / 'mesaha.db'
+    report_path = tmp_path / 'report.json'
+    shutil.copy2(MESAHA_LAYOUT_DATABASE, database)
+    shutil.copy2(
+        PROJECT_ROOT / 'data' / 'mushaf-mesaha-import-report.json',
+        report_path,
+    )
+    with sqlite3.connect(database) as conn:
+        conn.execute(
+            "DELETE FROM layout_import_meta "
+            "WHERE key = 'canonical_integrity_bonus'"
+        )
+        conn.execute(
+            'UPDATE layout_import_confidence SET score = score - 0.02'
+        )
+
+    first = import_mesaha_layout.upgrade_existing_confidence(
+        str(database), str(report_path),
+    )
+    second = import_mesaha_layout.upgrade_existing_confidence(
+        str(database), str(report_path),
+    )
+
+    assert first['confidence']['mean_score'] == 0.7564
+    assert second['confidence']['mean_score'] == 0.7564
+    with sqlite3.connect(database) as conn:
+        assert round(conn.execute(
+            'SELECT AVG(score) FROM layout_import_confidence'
+        ).fetchone()[0], 4) == 0.7564

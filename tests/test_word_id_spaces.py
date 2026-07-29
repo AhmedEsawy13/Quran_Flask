@@ -9,7 +9,7 @@ from core import layout_persistence
 from core import supabase_editor
 from core.mushaf_waqf import get_mushaf_waqf_symbols
 from modules import layout_engine
-from modules.layout_editions import BAHRAIN
+from modules.layout_editions import BAHRAIN, MESAHA
 from modules.layouts import _find_mushaf_row_match_index
 import pytest
 
@@ -44,6 +44,10 @@ def test_mesaha_split_span_does_not_inject_another_surah(client):
         6399, 6400, 6401, 6481, 6482, 6483, 6484, 6485,
     ]
     assert {word['surah'] for word in line['words']} == {2}
+    assert [word['word_key'] for word in line['words']] == [
+        '2:285:12', '2:285:13', '2:285:14', '2:285:15',
+        '2:285:16', '2:285:17', '2:285:18', '2:285:19',
+    ]
     assert client.get(
         '/api/layout-studio/mesaha/page-by-ayah/3/1'
     ).get_json()['page_number'] == 62
@@ -57,6 +61,63 @@ def test_bahrain_uses_its_own_qpc_word_universe():
     script_word = script['id2tok'][7958]
     assert (qpc_word['surah'], qpc_word['ayah']) == (3, 84)
     assert (script_word['surah'], script_word['ayah']) != (3, 84)
+
+
+def test_word_ids_translate_only_through_canonical_keys():
+    assert layout_engine.canonical_word_key_for_id(
+        BAHRAIN_LAYOUT_DATABASE, 6373,
+    ) == '2:285:12'
+    assert layout_engine.translate_word_id(
+        BAHRAIN_LAYOUT_DATABASE,
+        QURAN_SCRIPT_DATABASE,
+        6373,
+    ) == 6399
+
+
+def test_cloud_lines_persist_and_translate_canonical_endpoints():
+    qpc_line = {
+        'line_number': 1,
+        'line_type': 'ayah',
+        'is_centered': 0,
+        'first_word_id': 6373,
+        'last_word_id': 6374,
+        'first_word_key': '2:285:12',
+        'last_word_key': '2:285:13',
+        'word_id_space': 'qpc-layout-global-v1',
+        'surah_number': 2,
+        'line_text': '',
+    }
+
+    translated = layout_persistence._normalize_cloud_word_keys(
+        MESAHA, 61, [qpc_line],
+    )[0]
+    assert translated['word_id_space'] == 'quran-script-stable-v1'
+    assert translated['first_word_id'] == 6399
+    assert translated['last_word_id'] == 6400
+
+    annotated = layout_persistence._cloud_lines_with_word_keys(
+        MESAHA, 61, [translated],
+    )[0]
+    assert annotated['first_word_key'] == '2:285:12'
+    assert annotated['last_word_key'] == '2:285:13'
+
+
+def test_cloud_foreign_namespace_requires_canonical_keys():
+    with pytest.raises(
+        supabase_editor.SupabaseEditorError,
+        match='canonical keys missing',
+    ):
+        layout_persistence._normalize_cloud_word_keys(
+            MESAHA,
+            61,
+            [{
+                'line_type': 'ayah',
+                'word_id_space': 'qpc-layout-global-v1',
+                'first_word_id': 6373,
+                'last_word_id': 6374,
+                'surah_number': 2,
+            }],
+        )
 
 
 def test_cloud_layout_rejects_ids_from_another_namespace():

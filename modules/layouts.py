@@ -791,6 +791,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                 line_words.append({
                     'word_index': word_pos,
                     'word_id_space': script_word_map.get('id_space'),
+                    'word_key': src_word.get('word_key') or '',
                     'text': rendered_word,
                     'surah': src_word.get('surah'),
                     'ayah': src_word.get('ayah'),
@@ -1303,6 +1304,7 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
                 word = {
                     'word_index': word_id,
                     'word_id_space': effective_word_map.get('id_space'),
+                    'word_key': tok.get('word_key') or '',
                     'text': tok['text'],
                     'surah': tok['surah'],
                     'ayah': tok['ayah'],
@@ -1814,6 +1816,7 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
                 word = {
                     'word_index': word_pos,
                     'word_id_space': script_word_map.get('id_space'),
+                    'word_key': src.get('word_key') or '',
                     'text': src['text'],
                     'surah': src['surah'],
                     'ayah': src['ayah'],

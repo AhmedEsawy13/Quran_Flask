@@ -42,6 +42,20 @@ continuous layout. It writes per-page confidence and source provenance to
 `layout_import_confidence`. The committed report is
 `data/mushaf-mesaha-import-report.json`.
 
+Every persisted line also carries canonical `surah:ayah:word-position`
+endpoint keys. Numeric `word_index` values remain local to their owning
+database; cloud snapshots can be translated to another script database only
+through those keys. After upgrading an existing database, the importer adds a
+capped `+0.02` confidence bonus backed by an exact, unique canonical-key stream
+check:
+
+```bash
+python3 pipeline/import_mesaha_layout.py --upgrade-confidence
+```
+
+This updates confidence metadata only. It does not rebuild pages or overwrite
+reviewer edits/progress.
+
 ## Review order
 
 1. Review low-confidence pages first (red badge).

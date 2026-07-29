@@ -89,6 +89,11 @@ def script_word_map(script_db: str) -> dict:
             }
             for row in records
         },
+        'key_to_id': {
+            row['word_key']: row['word_index']
+            for row in records
+            if row['word_key']
+        },
         'ordered_ids': ordered_ids,
         'position_by_id': {
             word_id: position
@@ -106,6 +111,38 @@ def script_word_map(script_db: str) -> dict:
         ordered_ids, result['position_by_id'],
     )
     return result
+
+
+def canonical_word_key_for_id(script_db: str, word_id) -> str | None:
+    """Return the portable Quran word key for one database-local ID."""
+    try:
+        token = script_word_map(script_db)['id2tok'].get(int(word_id))
+    except (TypeError, ValueError):
+        return None
+    if not token:
+        return None
+    return str(token.get('word_key') or '') or None
+
+
+def local_word_id_for_key(script_db: str, word_key) -> int | None:
+    """Resolve a portable Quran word key in one local script database."""
+    key = str(word_key or '').strip()
+    if not key:
+        return None
+    word_id = script_word_map(script_db)['key_to_id'].get(key)
+    return int(word_id) if word_id is not None else None
+
+
+def translate_word_id(
+    source_script_db: str,
+    target_script_db: str,
+    word_id,
+) -> int | None:
+    """Translate a local word ID through its canonical key, never numerically."""
+    word_key = canonical_word_key_for_id(source_script_db, word_id)
+    if word_key is None:
+        return None
+    return local_word_id_for_key(target_script_db, word_key)
 
 
 def all_script_word_ids(script_db: str) -> list[int]:
