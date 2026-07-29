@@ -125,7 +125,8 @@
         curWordId: '',          // currently lit word ("key#wpos") — avoids churn
         curFollowAyah: null,    // verse the audio is currently inside
         followFlipping: false,  // guard: one page-flip at a time while following
-        rangeAnchor: null,      // first verse clicked while picking a range
+        selectionRange: null,   // committed [startAyah, endAyah], independent of hidden controls
+        rangeDraft: null,       // { anchor, previousRange } while waiting for the end verse
         justify: 50,
         tajweedOn: false,
         tajweedCache: new Map(),
@@ -584,6 +585,7 @@
             els.from.value = String(data.verses[0].ayah);
         }
         autoSetTo(parseInt(els.from.value, 10), data.verses);
+        commitRangeFromControls();
 
         // Swap audio backend: use YouTube IFrame adapter for youtube.com URLs,
         // native <audio> for everything else (MP3 streams).
@@ -631,22 +633,114 @@
         els.to.value = String(best);
     }
 
-    function selectedAyahRange() {
-        let a = parseInt(els.from.value, 10), b = parseInt(els.to.value, 10);
-        if (!Number.isFinite(a)) a = 1;
-        if (!Number.isFinite(b)) b = a;
+    function normalizeAyahRange(a, b) {
+        a = parseInt(a, 10);
+        b = parseInt(b, 10);
+        if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
         if (b < a) { const t = a; a = b; b = t; }
         return [a, b];
     }
-    function selectedVerses() {
-        const [a, b] = selectedAyahRange();
+    function cloneRange(range) {
+        return range ? [range[0], range[1]] : null;
+    }
+    function setRangeControls(range) {
+        if (range) {
+            els.from.value = String(range[0]);
+            els.to.value = String(range[1]);
+        } else {
+            els.from.selectedIndex = -1;
+            els.to.selectedIndex = -1;
+        }
+    }
+    function selectedAyahRange() {
+        return cloneRange(state.selectionRange);
+    }
+    function visualAyahRange() {
+        return state.rangeDraft
+            ? [state.rangeDraft.anchor, state.rangeDraft.anchor]
+            : selectedAyahRange();
+    }
+    function syncRangeCancelUi() {
+        const picking = !!state.rangeDraft;
+        document.body.classList.toggle('mz-range-picking', picking);
+        if (!els.stop) return;
+        const hasRange = picking || !!state.selectionRange;
+        const label = picking
+            ? 'إلغاء اختيار بداية النطاق'
+            : hasRange
+                ? 'إنهاء الجلسة وإلغاء النطاق'
+                : 'إيقاف';
+        els.stop.title = label;
+        els.stop.setAttribute('aria-label', label);
+    }
+    function setCommittedRange(a, b) {
+        const range = normalizeAyahRange(a, b);
+        state.selectionRange = range;
+        state.rangeDraft = null;
+        setRangeControls(range);
+        rebuildSelectedKeys();
+        syncRangeCancelUi();
+        return range;
+    }
+    function commitRangeFromControls() {
+        return setCommittedRange(els.from.value, els.to.value);
+    }
+    function beginRangePick(ayah) {
+        state.rangeDraft = {
+            anchor: ayah,
+            previousRange: cloneRange(state.selectionRange),
+        };
+        setRangeControls([ayah, ayah]);
+        rebuildSelectedKeys();
+        applySelectionHighlight();
+        syncRangeCancelUi();
+        if (els.now) els.now.textContent = 'اختر آية النهاية…';
+        updateHint();
+    }
+    function completeRangePick(ayah) {
+        if (!state.rangeDraft) return null;
+        const anchor = state.rangeDraft.anchor;
+        const range = setCommittedRange(anchor, ayah);
+        if (els.now && !state.playing) els.now.textContent = '';
+        updateHint();
+        return range;
+    }
+    function cancelRangePick({ silent = false } = {}) {
+        if (!state.rangeDraft) return false;
+        const previous = cloneRange(state.rangeDraft.previousRange);
+        state.rangeDraft = null;
+        state.selectionRange = previous;
+        setRangeControls(previous);
+        rebuildSelectedKeys();
+        applySelectionHighlight();
+        syncRangeCancelUi();
+        if (els.now && !state.playing) els.now.textContent = '';
+        updateHint();
+        if (!silent) setStatus('أُلغي اختيار النطاق');
+        return true;
+    }
+    function clearRangeSelection({ silent = false } = {}) {
+        state.rangeDraft = null;
+        state.selectionRange = null;
+        setRangeControls(null);
+        state.selectedKeys.clear();
+        applySelectionHighlight();
+        syncRangeCancelUi();
+        updateHint();
+        if (!silent) setStatus('أُلغي النطاق');
+    }
+    function selectedVerses(range = selectedAyahRange()) {
+        if (!range) return [];
+        const [a, b] = range;
         const out = [];
         for (let k = a; k <= b; k++) { const v = state.verseByAyah.get(k); if (v) out.push(v); }
         return out;
     }
     function rebuildSelectedKeys() {
-        const [a, b] = selectedAyahRange();
+        const range = visualAyahRange();
         state.selectedKeys = new Set();
+        if (!range) return;
+        const [a, b] = range;
         for (let k = a; k <= b; k++) state.selectedKeys.add(`${state.surah}:${k}`);
     }
 
@@ -656,7 +750,7 @@
         if (!els.hint) return;
         if (!state.memo || !els.splitLong.checked) { els.hint.textContent = ''; return; }
         let splitVerses = 0, totalPhrases = 0;
-        selectedVerses().forEach(v => {
+        selectedVerses(visualAyahRange()).forEach(v => {
             if ((v.phrases || []).length > 1) { splitVerses++; totalPhrases += v.phrases.length; }
         });
         els.hint.textContent = splitVerses
@@ -1427,6 +1521,15 @@
     }
 
     async function startPlayback() {
+        if (state.rangeDraft) {
+            setStatus('اختر آية النهاية أو ألغِ الاختيار أولًا', true);
+            return;
+        }
+        const range = selectedAyahRange();
+        if (!range) {
+            setStatus('اختر بداية النطاق ونهايته أولًا', true);
+            return;
+        }
         const generation = ++state.playbackGeneration;
         window.clearTimeout(state.finishTimer);
         state.finishTimer = null;
@@ -1438,7 +1541,7 @@
         state.schedule = buildSchedule();
         if (!state.schedule.length) { setStatus('لا توجد آيات في النطاق المحدد', true); return; }
         setProgress(0);
-        const [a] = selectedAyahRange();
+        const [a] = range;
         setStatus('جارٍ فتح صفحة المصحف…');
         const ok = await ensureVerseVisible(state.surah, a);
         if (generation !== state.playbackGeneration) return;
@@ -1512,7 +1615,9 @@
     // the exact words in their real positions — no QPC↔DK position mismatch.
     const _isNumWord = t => /^[۝]?[٠-٩]+$/.test((t || '').trim());
     function _expectedFlat() {
-        const [a, b] = selectedAyahRange();
+        const range = selectedAyahRange();
+        if (!range) return [];
+        const [a, b] = range;
         const out = [];
         wordsInSpread('.mz-word[data-key]').forEach(el => {
             const [s, ay] = el.dataset.key.split(':').map(Number);
@@ -1762,16 +1867,13 @@
     function handleVerseClick(ayah) {
         if (!Number.isFinite(ayah)) return;
         clearDone();   // re-selecting resets the progress reveal
-        if (state.rangeAnchor == null) {
-            state.rangeAnchor = ayah;
-            els.from.value = String(ayah); els.to.value = String(ayah);
-            rebuildSelectedKeys(); applySelectionHighlight(); updateHint();
+        if (!state.rangeDraft) {
+            beginRangePick(ayah);
             setStatus('اختر آية النهاية…');
         } else {
-            const a = Math.min(state.rangeAnchor, ayah), b = Math.max(state.rangeAnchor, ayah);
-            state.rangeAnchor = null;
-            els.from.value = String(a); els.to.value = String(b);
-            rebuildSelectedKeys(); applySelectionHighlight(); updateHint();
+            const range = completeRangePick(ayah);
+            const [a, b] = range;
+            applySelectionHighlight();
             setStatus(a === b ? `الآية ${toAr(a)}` : `النطاق ${toAr(a)}–${toAr(b)} · اضغط ▶`);
         }
     }
@@ -1780,11 +1882,20 @@
         els.surah.addEventListener('change', onSurahChange);
         els.from.addEventListener('change', () => {
             stopReciteFollow(false);
+            const nextFrom = els.from.value;
+            cancelRangePick({ silent: true });
+            els.from.value = nextFrom;
             autoSetTo(parseInt(els.from.value, 10));
-            rebuildSelectedKeys();
+            commitRangeFromControls();
             renderSelection();
         });
-        els.to.addEventListener('change', liveSelection);
+        els.to.addEventListener('change', () => {
+            const nextTo = els.to.value;
+            cancelRangePick({ silent: true });
+            els.to.value = nextTo;
+            commitRangeFromControls();
+            liveSelection();
+        });
 
         els.start.addEventListener('click', () => {
             els.start.disabled = true;
@@ -1793,7 +1904,11 @@
         els.play.addEventListener('click', () => {
             if (!state.schedule.length || state.stepIdx < 0) startPlayback(); else togglePlay();
         });
-        els.stop.addEventListener('click', stopPlayback);
+        els.stop.addEventListener('click', () => {
+            stopReciteFollow(false);
+            stopPlayback();
+            clearRangeSelection();
+        });
 
         // top-bar popovers
         if (els.reciterTrigger) els.reciterTrigger.addEventListener('click', () => togglePopover(els.reciterTrigger, els.reciterPanel));
@@ -1807,7 +1922,11 @@
         if (els.pickerBackdrop) els.pickerBackdrop.addEventListener('click', closePicker);
         if (els.pickerSearch) els.pickerSearch.addEventListener('input', filterPicker);
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') { closePicker(); closePopovers(); return; }
+            if (e.key === 'Escape') {
+                if (!els.picker.hidden) closePicker();
+                else if (!cancelRangePick()) closePopovers();
+                return;
+            }
             if (e.key !== 'Tab' || !els.picker || els.picker.hidden) return;
             const focusable = [...els.picker.querySelectorAll('button:not(:disabled), input:not([hidden])')]
                 .filter(el => el.offsetParent !== null);
@@ -1869,8 +1988,9 @@
             // layout-DB pages don't match the 604-page Madina numbering, so keeping the
             // page number would jump to unrelated content when crossing that boundary.
             const firstWord = wordsInSpread('.mz-word[data-key]')[0];
+            const selectedRange = selectedAyahRange();
             const anchorKey = firstWord ? firstWord.dataset.key
-                : `${state.surah}:${selectedAyahRange()[0]}`;
+                : `${state.surah}:${selectedRange ? selectedRange[0] : 1}`;
             state.src = els.src.value;
             saveSetting('mz_src', state.src);
             syncSrcCapabilities();
@@ -1980,7 +2100,13 @@
     async function renderSelection() {
         const request = ++_selectionRequest;
         rebuildSelectedKeys();
-        const [a] = selectedAyahRange();
+        const range = visualAyahRange();
+        if (!range) {
+            applySelectionHighlight();
+            setStatus('');
+            return true;
+        }
+        const [a] = range;
         setStatus('جارٍ فتح صفحة المصحف…');
         const ok = await ensureVerseVisible(state.surah, a);
         if (request !== _selectionRequest) return false;
@@ -2066,6 +2192,7 @@
                 const from = parseInt(p.get('from'), 10), to = parseInt(p.get('to'), 10);
                 if (from && [...els.from.options].some(o => +o.value === from)) els.from.value = from;
                 if (to && [...els.to.options].some(o => +o.value === to)) els.to.value = to;
+                commitRangeFromControls();
             }
             await renderSelection();
             if (state.hideText) setHideMode(true);

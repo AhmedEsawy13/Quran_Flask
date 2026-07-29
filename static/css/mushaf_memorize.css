@@ -475,6 +475,12 @@ body.mz-dark .waqf-symbol[data-version="الهندي"]  { color: #f472b6; }
 .mz-ctl:hover { color: var(--mz-text); background: color-mix(in srgb, var(--mz-text-muted) 14%, transparent); }
 .mz-ctl:active { transform: scale(0.9); }
 .mz-ctl-stop:hover { color: #dc2626; background: color-mix(in srgb, #dc2626 12%, transparent); }
+body.mz-range-picking .mz-ctl-stop {
+    color: #dc2626;
+    background: color-mix(in srgb, #dc2626 12%, transparent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, #dc2626 18%, transparent);
+}
+body.mz-range-picking #mz-now { color: #b91c1c; }
 /* remaining session time, beside the now-playing label */
 .mz-remaining { font-size: 0.78rem; font-weight: 700; color: var(--mz-accent); font-variant-numeric: tabular-nums;
     white-space: nowrap; flex-shrink: 0; }
