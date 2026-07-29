@@ -374,6 +374,8 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'id="mz-title" aria-label="ثبّت حفظك."' in page
     assert 'ثبّت حفظــك.' in page
     assert 'mz-title-sr' in page
+    assert 'class="mz-range-guide" role="note"' in page
+    assert 'اضغط آية البداية، ثم آية النهاية' in page
     assert 'class="mz-context"' not in page
     assert 'class="mz-bar-settings" aria-label="إعدادات الجلسة"' in page
     assert 'class="mz-bar-view" role="group" aria-label="خيارات العرض"' in page

@@ -35,7 +35,7 @@
     --mz-select-hl: color-mix(in srgb, var(--athar-accent) 12%, transparent);
     --mz-active-hl: color-mix(in srgb, var(--athar-accent) 22%, transparent);
     --mz-radius: var(--athar-radius-surface); --mz-radius-sm: var(--athar-radius-control);
-    --mz-topbar-h: 52px;
+    --mz-topbar-h: 80px;
 }
 
 * { box-sizing: border-box; }
@@ -71,12 +71,33 @@ body.athar-memorize > .athar-bar {
     gap: 8px;
     min-height: var(--mz-topbar-h);
     height: var(--mz-topbar-h);
-    padding: 0 clamp(10px, 2vw, 22px);
+    padding: 0 clamp(10px, 2vw, 22px) 28px;
     border-radius: 0;
     border-bottom-color: var(--mz-border-strong);
     background: color-mix(in srgb, var(--mz-surface) 94%, transparent);
     box-shadow: none;
 }
+.mz-range-guide {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 28px;
+    margin: 0;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-top: 1px solid var(--mz-border);
+    color: var(--mz-text-muted);
+    background: color-mix(in srgb, var(--mz-accent) 5%, var(--mz-surface));
+    font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif;
+    font-size: 0.74rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+.mz-range-guide i { color: var(--mz-accent); }
 .mz-bar-settings, .mz-bar-view, .mz-bar-session { display: flex; align-items: center; min-width: 0; gap: 6px; flex-shrink: 0; }
 .mz-bar-session { margin-inline-start: auto; justify-content: flex-end; gap: 8px; }
 
@@ -488,6 +509,9 @@ body.mz-range-picking #mz-now { color: #b91c1c; }
 /* volume now lives inside the transport group */
 .mz-transport .mz-vol { margin-inline-start: 6px; padding-inline-start: 8px; border-inline-start: 1px solid var(--mz-border); }
 @media (max-width: 700px) { .mz-vol-range { width: 52px; } .mz-transport .mz-vol { margin-inline-start: 3px; padding-inline-start: 5px; } }
+@media (max-width: 520px) {
+    .mz-range-guide { justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; font-size: 0.68rem; }
+}
 
 /* ── Tappable page chrome (juz / surah / page → pickers) ─────────── */
 .mz-head-juz, .mz-head-surah, .mz-foot-page { cursor: pointer; border-radius: 8px; transition: background 0.15s ease, color 0.15s ease; }

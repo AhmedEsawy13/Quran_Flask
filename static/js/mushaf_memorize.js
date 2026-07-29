@@ -1878,6 +1878,36 @@
         }
     }
 
+    let _rangeSurahRequest = 0;
+    async function handlePageVerseClick(surah, ayah) {
+        if (!Number.isFinite(surah) || !Number.isFinite(ayah)) return;
+        if (surah === state.surah) {
+            handleVerseClick(ayah);
+            return;
+        }
+
+        // Page navigation is independent from the loaded recitation surah. If the
+        // user starts a range on a different surah, switch the timing/audio model
+        // in place instead of ignoring the click or jumping away from this page.
+        const request = ++_rangeSurahRequest;
+        const previousSurah = state.surah;
+        stopReciteFollow(false);
+        stopPlayback();
+        clearRangeSelection({ silent: true });
+        els.surah.value = String(surah);
+        try {
+            const loaded = await loadSurahMemo(surah);
+            if (!loaded || request !== _rangeSurahRequest) return;
+            clearRangeSelection({ silent: true });
+            saveSetting('mz_last_pos', `${surah}:${ayah}`);
+            handleVerseClick(ayah);
+        } catch (e) {
+            if (request !== _rangeSurahRequest) return;
+            els.surah.value = String(previousSurah);
+            setStatus('تعذّر تحميل بيانات السورة', true);
+        }
+    }
+
     function bindEvents() {
         els.surah.addEventListener('change', onSurahChange);
         els.from.addEventListener('change', () => {
@@ -2051,7 +2081,7 @@
             if (!w || !w.dataset.key) return;
             if (state.hideText) { revealVerse(w.dataset.key); return; }
             const [s, a] = w.dataset.key.split(':').map(Number);
-            if (s === state.surah) handleVerseClick(a);
+            handlePageVerseClick(s, a);
         });
         // Breathing panel: verse stepper + close
         // Focus mode
