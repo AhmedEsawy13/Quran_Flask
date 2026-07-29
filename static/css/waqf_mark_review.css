@@ -142,11 +142,23 @@
     border-radius: 14px;
     background: #fff;
     padding: 12px;
+    scroll-margin-block: 150px 100px;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .wmr-card[data-decision="ok"] { border-color: color-mix(in srgb, var(--wmr-ok) 45%, var(--wmr-border)); }
 .wmr-card[data-decision="wrong"] { border-color: color-mix(in srgb, var(--wmr-bad) 45%, var(--wmr-border)); }
 .wmr-card[data-decision="extra"] { border-color: color-mix(in srgb, var(--wmr-warn) 45%, var(--wmr-border)); }
+.wmr-card.is-current {
+    border-color: var(--wmr-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--wmr-accent) 18%, transparent);
+    transform: translateY(-1px);
+}
+.wmr-card:focus { outline: none; }
+.wmr-card:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--wmr-accent) 35%, transparent);
+    outline-offset: 3px;
+}
 
 .wmr-card-top {
     display: flex;

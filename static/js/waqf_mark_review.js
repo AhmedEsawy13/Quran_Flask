@@ -52,6 +52,7 @@
         fontName: '',
         decisions: {},
         pendingWrong: null,
+        activeWordId: null,
         reviewedPages: new Set(),
         cloud: false,
         authenticated: true,
@@ -452,14 +453,68 @@
         return `<span class="${cls}" dir="rtl">${escapeHtml(text)}</span>`;
     }
 
+    function nextUndecidedItem(afterItem = null) {
+        if (!state.items.length) return null;
+        const afterIndex = afterItem
+            ? state.items.findIndex((item) => item.word_id === afterItem.word_id)
+            : -1;
+        for (let offset = 1; offset <= state.items.length; offset += 1) {
+            const index = (afterIndex + offset) % state.items.length;
+            const candidate = state.items[index];
+            if (!decisionFor(candidate)) return candidate;
+        }
+        return null;
+    }
+
+    function ensureActiveReviewTarget() {
+        const active = state.items.find((item) => (
+            item.word_id === state.activeWordId && !decisionFor(item)
+        ));
+        if (active) return active;
+        const next = nextUndecidedItem();
+        state.activeWordId = next ? next.word_id : null;
+        return next;
+    }
+
+    function scrollToActiveReviewTarget() {
+        if (state.activeWordId == null) return;
+        window.requestAnimationFrame(() => {
+            const card = els.list.querySelector(
+                `.wmr-card[data-word-id="${state.activeWordId}"]`,
+            );
+            if (!card) return;
+            const reduceMotion = window.matchMedia
+                && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            card.scrollIntoView({
+                behavior: reduceMotion ? 'auto' : 'smooth',
+                block: 'center',
+            });
+            card.focus({ preventScroll: true });
+        });
+    }
+
+    function advanceReview(afterItem) {
+        const next = nextUndecidedItem(afterItem);
+        state.activeWordId = next ? next.word_id : null;
+        renderList();
+        if (next) {
+            scrollToActiveReviewTarget();
+        } else {
+            toast('اكتملت مراجعة علامات الصفحة');
+        }
+    }
+
     function renderList() {
         if (!state.items.length) {
+            state.activeWordId = null;
             els.list.innerHTML = '<p class="wmr-empty">لا علامات وقف مسجّلة عندنا في هذه الصفحة — راجع الناقص بالأسفل إن وُجدت.</p>';
             return;
         }
+        ensureActiveReviewTarget();
         els.list.innerHTML = state.items.map((item) => {
             const d = decisionFor(item);
             const decision = d ? d.decision : '';
+            const isActive = !decision && item.word_id === state.activeWordId;
             const glyph = item.mark_glyph || markGlyph(item.mark);
             const corrGlyph = d && d.correct_mark != null
                 ? markGlyph(d.correct_mark)
@@ -468,7 +523,7 @@
                 item.line != null ? `سطر ${toAr(item.line)}` : '',
                 item.word_on_line != null ? `كلمة ${toAr(item.word_on_line)}` : '',
             ].filter(Boolean).join(' · ');
-            return `<article class="wmr-card" role="listitem" data-word-id="${item.word_id}" data-decision="${decision}">
+            return `<article class="wmr-card${isActive ? ' is-current' : ''}" role="listitem" tabindex="-1" data-word-id="${item.word_id}" data-decision="${decision}"${isActive ? ' aria-current="step"' : ''}>
                 <div class="wmr-card-top">
                     <span class="wmr-ref">${toAr(item.surah)}:${toAr(item.ayah)}</span>
                     <span class="wmr-place">${place}</span>
@@ -497,6 +552,7 @@
                 `/api/waqf-mark-review/page/${state.page}?edition=${encodeURIComponent(state.edition)}`,
             );
             state.items = data.items || [];
+            state.activeWordId = null;
             state.usePageFont = !!data.use_page_font;
             state.fontName = data.font_name || '';
             if (data.min_page) minPage = data.min_page;
@@ -553,7 +609,7 @@
             return;
         }
         setDecision(item, { decision: kind, our_mark: item.mark });
-        renderList();
+        advanceReview(item);
     });
 
     els.glyphs.addEventListener('click', (ev) => {
@@ -571,7 +627,7 @@
             text: item.text,
         });
         closeSheet();
-        renderList();
+        advanceReview(item);
     });
 
     els.sheetBackdrop.addEventListener('click', closeSheet);
