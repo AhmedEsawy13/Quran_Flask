@@ -18,6 +18,8 @@ After the Shemrly clone, Azhar geometry is applied:
   • page 3 (أول البقرة): 5 lines
   • surah starts: سورة + معلومات + بسملة + ١٢ سطر آية (١٥ كليًا);
     Shemrly split headers (name on N / basmala on N+1) are coalesced
+  • the working range is extended safely through Azhar page 525; missing
+    tail pages are created as empty 15-slot pages without touching prior edits
 
 Usage:
   python3 pipeline/seed_azhar_layout_db.py
@@ -89,13 +91,73 @@ def _apply_azhar_surah_headers(dst: sqlite3.Connection) -> None:
     )
     dst.commit()
 
+
+def _ensure_azhar_page_range(dst: sqlite3.Connection) -> list[int]:
+    """Add missing Azhar working pages without changing existing page rows."""
+    existing_pages = {
+        int(row[0])
+        for row in dst.execute('SELECT DISTINCT page_number FROM pages')
+    }
+    last_surah_row = dst.execute(
+        '''
+        SELECT surah_number
+        FROM pages
+        WHERE surah_number IS NOT NULL
+        ORDER BY page_number DESC, line_number DESC
+        LIMIT 1
+        '''
+    ).fetchone()
+    last_surah = int(last_surah_row[0]) if last_surah_row else 114
+    added_pages = []
+    for page_number in range(AZHAR.min_page, AZHAR.max_page + 1):
+        if page_number in existing_pages:
+            continue
+        line_count = int(AZHAR.line_count_for(page_number))
+        dst.executemany(
+            '''
+            INSERT INTO pages (
+                page_number, line_number, line_type, is_centered,
+                first_word_id, last_word_id, surah_number, line_text
+            ) VALUES (?, ?, 'ayah', 0, NULL, NULL, ?, '')
+            ''',
+            [
+                (int(page_number), int(line_number), last_surah)
+                for line_number in range(1, line_count + 1)
+            ],
+        )
+        added_pages.append(page_number)
+
+    page_count = AZHAR.max_page - AZHAR.min_page + 1
+    dst.execute(
+        '''
+        UPDATE info
+        SET number_of_pages = ?, lines_per_page = ?
+        ''',
+        (int(page_count), int(AZHAR.lines_per_page)),
+    )
+    dst.commit()
+    return added_pages
+
+
 def seed(force: bool = False) -> None:
     if not os.path.exists(SHAMARLY_LAYOUT_DATABASE):
         raise SystemExit(f'Missing source layout: {SHAMARLY_LAYOUT_DATABASE}')
 
     if os.path.exists(AZHAR_LAYOUT_DATABASE):
         if not force:
-            print(f'Already exists: {AZHAR_LAYOUT_DATABASE} (pass --force to recreate)')
+            with sqlite3.connect(AZHAR_LAYOUT_DATABASE) as dst:
+                added_pages = _ensure_azhar_page_range(dst)
+            if added_pages:
+                print(
+                    f'Extended {AZHAR_LAYOUT_DATABASE} with pages '
+                    f'{added_pages[0]}..{added_pages[-1]} '
+                    '(existing edits preserved)'
+                )
+            else:
+                print(
+                    f'Already covers pages {AZHAR.min_page}..{AZHAR.max_page}: '
+                    f'{AZHAR_LAYOUT_DATABASE}'
+                )
             return
         print(_FORCE_WIPE_BANNER.format(path=AZHAR_LAYOUT_DATABASE), file=sys.stderr)
         os.remove(AZHAR_LAYOUT_DATABASE)
@@ -193,6 +255,12 @@ def seed(force: bool = False) -> None:
         _apply_azhar_short_pages(dst)
         print('Applying Azhar surah-header geometry…')
         _apply_azhar_surah_headers(dst)
+        added_pages = _ensure_azhar_page_range(dst)
+        if added_pages:
+            print(
+                f'  extended working range with pages '
+                f'{added_pages[0]}..{added_pages[-1]}'
+            )
         final_lines = dst.execute('SELECT COUNT(*) FROM pages').fetchone()[0]
         print(f'Done: {final_lines} lines after Azhar reshape')
     finally:

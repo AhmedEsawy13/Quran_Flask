@@ -66,6 +66,23 @@ body.az-layout {
     margin: 4px 0 0; font-size: 0.72rem; font-weight: 700;
     color: var(--az-accent); letter-spacing: 0.01em;
 }
+.az-import-confidence {
+    width: fit-content; margin: 3px 0 0; padding: 3px 8px;
+    border: 1px solid var(--az-border); border-radius: 999px;
+    font-size: 0.68rem; font-weight: 800;
+}
+.az-confidence-high {
+    color: #166534; border-color: color-mix(in srgb, #16a34a 42%, var(--az-border));
+    background: color-mix(in srgb, #16a34a 9%, var(--az-paper));
+}
+.az-confidence-medium {
+    color: #92400e; border-color: color-mix(in srgb, #d97706 45%, var(--az-border));
+    background: color-mix(in srgb, #f59e0b 10%, var(--az-paper));
+}
+.az-confidence-low {
+    color: #991b1b; border-color: color-mix(in srgb, #dc2626 45%, var(--az-border));
+    background: color-mix(in srgb, #ef4444 9%, var(--az-paper));
+}
 .az-reseed-note {
     margin: 2px 0 0; font-size: 0.68rem; color: var(--athar-ink-soft);
     max-width: 42ch; line-height: 1.35;
@@ -77,6 +94,15 @@ body.az-layout {
 }
 .az-icon-btn { width: 36px; height: 36px; min-height: 36px; border-radius: 9px; background: var(--az-paper-2); }
 .az-progress { font-size: 0.78rem; color: var(--athar-ink-soft); font-weight: 700; white-space: nowrap; }
+.az-uncertain-btn {
+    min-height: 34px; display: inline-flex; align-items: center; gap: 6px;
+    padding: 0 10px; border: 1px solid color-mix(in srgb, #dc2626 38%, var(--az-border));
+    border-radius: 8px; background: color-mix(in srgb, #ef4444 7%, var(--az-paper));
+    color: #991b1b; cursor: pointer; font-family: inherit; font-size: 0.76rem; font-weight: 800;
+}
+.az-uncertain-btn:hover { border-color: #dc2626; background: color-mix(in srgb, #ef4444 13%, var(--az-paper)); }
+.az-uncertain-btn:disabled { cursor: default; opacity: 0.55; }
+.az-uncertain-btn[hidden] { display: none !important; }
 .az-reviewed-toggle { display: flex; align-items: center; gap: 6px; font-size: 0.88rem; cursor: pointer; white-space: nowrap; }
 .az-reviewed-toggle input { width: 16px; height: 16px; accent-color: var(--az-accent); cursor: pointer; }
 .az-jump { display: flex; gap: 4px; }
@@ -419,7 +445,7 @@ body.az-dragging .az-line-tools { opacity: 0; pointer-events: none; }
 @media (max-width: 720px) {
     .az-bar { position: static; }
     .az-reviewed-toggle span { display: none; }
-    .az-edition-meta, .az-reseed-note { display: none; }
+    .az-edition-meta, .az-import-confidence, .az-reseed-note { display: none; }
     .az-profile-form {
         position: fixed; inset: auto 14px 14px; width: auto; max-height: 78vh;
     }

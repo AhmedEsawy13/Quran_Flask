@@ -42,13 +42,21 @@ BAHRAIN_REF_PDF_OFFSET = 4  # 0-based PDF page = mushaf_page + offset
 BAHRAIN_REF_PDF_URL = (
     'https://d1.islamhouse.com/data/ar/ih_books/single_02/ar-mushaf-albahrains.pdf'
 )
+# 1342H / 1924 Egyptian Survey Authority mushaf.  The Internet Archive item
+# contains 850 scanned leaves; Quran pages are the printed/PDF pages 2..827.
+# The Layout Studio project is generated offline by
+# pipeline/import_mesaha_layout.py from Archive's DjVu OCR anchors.
+MESAHA_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-mesaha-layout.db')
+MESAHA_ARCHIVE_ID = 'mushafElMesaha46796794669_201703'
+MESAHA_LAYOUT_MIN_PAGE = 2
+MESAHA_LAYOUT_MAX_PAGE = 827
 # مصحف الأزهر page geometry — seeded from الشمرلي (Shemrly word_index), edited
 # via /azhar-layout (ENABLE_EDITOR). Rendered with Amiri Quran + الأزهر waqf.
 AZHAR_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf-azhar-layout.db')
 SHAMARLY_LAYOUT_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_layout_inferred.db')
 QURAN_SCRIPT_DATABASE = os.path.join(_ROOT, 'data', 'quran_script.db')
 AZHAR_LAYOUT_MIN_PAGE = 2
-AZHAR_LAYOUT_MAX_PAGE = 522
+AZHAR_LAYOUT_MAX_PAGE = 525
 
 # Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
 # from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.

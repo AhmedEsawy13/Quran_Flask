@@ -2,6 +2,7 @@
 # Install with: python3 -m pip install -r requirements-dev.txt
 -r requirements.txt
 pytest>=8.0
+rapidfuzz>=3.0
 -r requirements-font-audit.txt
 
 # pipeline/build_classical_llm.py --api only (classical waqf AI re-extraction).

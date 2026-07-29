@@ -50,12 +50,17 @@
             <h1 class="az-title athar-display" id="az-title">{{ edition.name_ar }}</h1>
             <p class="az-subtitle">{{ edition.subtitle_ar }}</p>
             <p class="az-edition-meta" id="az-edition-meta">{{ edition_config.metaLabel }}</p>
+            <p class="az-import-confidence" id="az-import-confidence" hidden></p>
             <p class="az-reseed-note" id="az-reseed-note" title="إعادة البذرة (--force) تمسح كل التعديلات">التراجع من هنا — لا تعِد البذرة إلا عند الحاجة</p>
         </div>
 
         <div class="az-bar-tools" aria-label="أدوات التخطيط">
             <div class="az-review-group">
                 <div class="az-progress" id="az-progress" role="progressbar" aria-label="الصفحات المطابَقة" aria-valuemin="0" aria-valuemax="{{ edition.page_count }}" aria-valuenow="0"></div>
+                <button class="az-uncertain-btn" id="az-next-uncertain" type="button" hidden>
+                    <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
+                    <span>التالي غير المؤكد</span>
+                </button>
                 <label class="az-reviewed-toggle" title="هذه الصفحة مطابقة للمطبوع">
                     <input type="checkbox" id="az-reviewed">
                     <span>مطابِق للمطبوع</span>
@@ -154,8 +159,11 @@
         <span>اسحب كلمة وأفلتها على سطر لنقل الحد</span>
         <span class="az-hint-boundary">أول/آخر كلمة في السطر مظلّلة — مهمة للمطابقة</span>
         <span>الكلمات لا تعبر اسم السورة أو البسملة</span>
-        <span>زر ⋮: سحب/دفع كلمة، دمج، توسيط — والدفع يعمل عبر حد الصفحة الثابت</span>
-        <span>سهما العنوان = نقل اسم السورة أو معلوماتها أو البسملة سطراً للأعلى/للأسفل</span>
+        <span>زر ⋮: سحب/دفع كلمة، دمج، توسيط؛ وفي آخر السطر ترحيل السطر كاملاً للصفحة التالية</span>
+        <span>سهما العنوان: للأعلى سطر واحد؛ وللأسفل يتحرّك العنوان وكل ما تحته وقد يُرحَّل آخر سطر</span>
+        {% if edition.protected_trailing_lines %}
+        <span>الصفحات ذات آخر سطرين محفوظين تمنع الخفض التلقائي؛ ويمكن للمراجع ترحيل آخر سطر صراحةً عند الحاجة</span>
+        {% endif %}
         <span>تراجع = آخر تعديل على هذه الصفحة</span>
         <span>أثناء السحب: إلغاء (X) أو Escape</span>
     </aside>

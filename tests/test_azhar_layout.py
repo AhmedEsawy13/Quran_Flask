@@ -34,6 +34,7 @@ def test_layout_studio_registry_and_shell(client):
     assert azhar_edition['profile']['page_end_mode'] == 'continuous'
     assert azhar_edition['profile']['lines_per_page'] == 15
     assert azhar_edition['profile']['full_banner_lines'] == 3
+    assert azhar_edition['max_page'] == 525
 
     bounced = client.get('/layout-studio')
     assert bounced.status_code in (301, 302)
@@ -54,6 +55,29 @@ def test_layout_studio_registry_and_shell(client):
     api = client.get('/api/layout-studio/azhar/page/2')
     assert api.status_code == 200
     assert api.get_json()['source'] == 'azhar'
+
+
+def test_azhar_working_range_extends_through_page_525(client):
+    import sqlite3
+
+    from core.config import AZHAR_LAYOUT_DATABASE
+
+    for page_number in (523, 524, 525):
+        response = client.get(
+            f'/api/layout-studio/azhar/page/{page_number}'
+        )
+        assert response.status_code == 200
+        page = response.get_json()
+        assert page['page_number'] == page_number
+        assert page['max_page'] == 525
+        assert len(page['lines']) == 15
+
+    assert client.get('/api/azhar/page/526').status_code == 400
+    with sqlite3.connect(AZHAR_LAYOUT_DATABASE) as conn:
+        info = conn.execute(
+            'SELECT number_of_pages, lines_per_page FROM info LIMIT 1'
+        ).fetchone()
+    assert info == (524, 15)
 
 
 def test_azhar_layout_page_and_api(client):
@@ -77,8 +101,11 @@ def test_azhar_layout_page_and_api(client):
     assert 'az-compare' in (PROJECT_ROOT / 'static/css/azhar_layout.css').read_text(encoding='utf-8')
     assert 'undoLast' in js
     assert 'pullNextWord' in js
+    assert 'transferLineToNextPage' in js
+    assert '/transfer-line' in js
     assert 'setLineCentered' in js
     assert 'saveProfile' in js
+    assert 'juzFromAyah' in js
 
     r = client.get('/api/azhar/page/2')
     assert r.status_code == 200
@@ -220,6 +247,298 @@ def test_pull_next_word_refuses_surah_boundary(client, restore_azhar_layout_db):
     })
     assert result.status_code == 400
     assert 'سور' in (result.get_json().get('error') or '')
+
+
+def test_transfer_complete_last_line_to_next_page_and_undo(
+    client, restore_azhar_layout_db,
+):
+    before_493 = client.get(
+        '/api/layout-studio/azhar/page/493'
+    ).get_json()
+    before_494 = client.get(
+        '/api/layout-studio/azhar/page/494'
+    ).get_json()
+    target = next(
+        line for line in before_493['lines']
+        if line['line_number'] == before_493['lines_per_page']
+    )
+    assert target['line_type'] == 'ayah'
+    assert target.get('words')
+
+    def page_words(payload):
+        return [
+            word['word_index']
+            for line in payload['lines']
+            if line['line_type'] == 'ayah'
+            for word in (line.get('words') or [])
+        ]
+
+    before_stream = page_words(before_493) + page_words(before_494)
+    moved_words = [
+        word['word_index'] for word in target['words']
+    ]
+    result = client.post(
+        '/api/layout-studio/azhar/transfer-line',
+        json={
+            'page_number': 493,
+            'line_number': target['line_number'],
+        },
+    )
+    assert result.status_code == 200, result.get_json()
+    body = result.get_json()
+    assert body['crossed_page'] is True
+    assert body['to_page'] == 494
+    assert body['undo_available'] >= 1
+
+    after_493 = body['page']
+    after_494 = client.get(
+        '/api/layout-studio/azhar/page/494'
+    ).get_json()
+    assert len(after_493['lines']) == 15
+    assert len(after_494['lines']) == 15
+    assert all(
+        line['line_type'] == 'ayah' and not line.get('words')
+        for line in after_494['lines'][-2:]
+    )
+    source_last = after_493['lines'][-1]
+    assert source_last['line_type'] == 'ayah'
+    assert not source_last.get('words')
+    destination_first = after_494['lines'][0]
+    assert [
+        word['word_index'] for word in destination_first.get('words') or []
+    ] == moved_words
+    assert page_words(after_493) + page_words(after_494) == before_stream
+
+    undone = client.post(
+        '/api/layout-studio/azhar/undo',
+        json={'page_number': 493},
+    )
+    assert undone.status_code == 200, undone.get_json()
+    restored_494 = client.get(
+        '/api/layout-studio/azhar/page/494'
+    ).get_json()
+    assert page_words(undone.get_json()['page']) == page_words(before_493)
+    assert page_words(restored_494) == page_words(before_494)
+
+
+def test_header_down_cascades_following_rows_and_undo(
+    client, restore_azhar_layout_db,
+):
+    import sqlite3
+
+    from core.config import AZHAR_LAYOUT_DATABASE
+
+    def positions():
+        with sqlite3.connect(AZHAR_LAYOUT_DATABASE) as conn:
+            return conn.execute(
+                '''
+                SELECT id, page_number, line_number, line_type, is_centered,
+                       first_word_id, last_word_id, surah_number, line_text
+                FROM pages
+                WHERE page_number IN (493, 494)
+                ORDER BY page_number, line_number
+                '''
+            ).fetchall()
+
+    before = positions()
+    source_last = next(
+        row for row in before
+        if row[1] == 493 and row[2] == 15
+    )
+    header = next(
+        row for row in before
+        if row[1] == 493 and row[3] == 'surah_name'
+    )
+    result = client.post(
+        '/api/layout-studio/azhar/header-move',
+        json={
+            'page_number': 493,
+            'line_number': header[2],
+            'direction': 'down',
+        },
+    )
+    assert result.status_code == 200, result.get_json()
+    body = result.get_json()
+    assert body['cascaded'] is True
+    assert body['moved_to_page'] == 493
+    assert body['moved_to_line'] == header[2] + 1
+
+    after = positions()
+    assert len([row for row in after if row[1] == 493]) == 15
+    assert len([row for row in after if row[1] == 494]) == 15
+    page494_tail = [
+        row for row in after
+        if row[1] == 494 and row[2] in (14, 15)
+    ]
+    assert len(page494_tail) == 2
+    assert all(
+        row[3] == 'ayah' and row[5] is None and row[6] is None
+        for row in page494_tail
+    )
+    inserted = next(
+        row for row in after
+        if row[1] == 493 and row[2] == header[2]
+    )
+    moved_header = next(row for row in after if row[0] == header[0])
+    spilled = next(row for row in after if row[0] == source_last[0])
+    assert inserted[3] == 'ayah'
+    assert inserted[5] is None and inserted[6] is None
+    assert moved_header[1:4] == (493, header[2] + 1, 'surah_name')
+    assert spilled[1] == 494 and spilled[2] == 1
+
+    undone = client.post(
+        '/api/layout-studio/azhar/undo',
+        json={'page_number': 493},
+    )
+    assert undone.status_code == 200, undone.get_json()
+    assert positions() == before
+
+
+def test_azhar_intentional_trailing_lines_are_registered_and_guarded(
+    client, restore_azhar_layout_db,
+):
+    editions = client.get('/api/layout-studio/editions').get_json()['editions']
+    azhar = next(item for item in editions if item['id'] == 'azhar')
+    assert azhar['protected_trailing_lines'] == {
+        '494': 2,
+        '516': 2,
+        '518': 2,
+        '521': 2,
+        '522': 2,
+    }
+    for page_number in (494, 516, 518, 521, 522):
+        page = client.get(
+            f'/api/layout-studio/azhar/page/{page_number}'
+        ).get_json()
+        assert len(page['lines']) == 15
+        assert [line['line_number'] for line in page['lines'][-2:]] == [14, 15]
+
+    page_494 = client.get(
+        '/api/layout-studio/azhar/page/494'
+    ).get_json()
+    assert all(not line.get('words') for line in page_494['lines'][-2:])
+
+    before_516 = client.get('/api/layout-studio/azhar/page/516').get_json()
+    before_517 = client.get('/api/layout-studio/azhar/page/517').get_json()
+    result = client.post(
+        '/api/layout-studio/azhar/transfer-line',
+        json={'page_number': 516, 'line_number': 15},
+    )
+    assert result.status_code == 200, result.get_json()
+    moved = result.get_json()
+    assert moved['from_page'] == 516
+    assert moved['to_page'] == 517
+
+    undone = client.post(
+        '/api/layout-studio/azhar/undo',
+        json={'page_number': 516},
+    )
+    assert undone.status_code == 200, undone.get_json()
+    assert client.get(
+        '/api/layout-studio/azhar/page/516'
+    ).get_json()['lines'] == before_516['lines']
+    assert client.get(
+        '/api/layout-studio/azhar/page/517'
+    ).get_json()['lines'] == before_517['lines']
+
+
+def test_azhar_reviewer_confirmed_tail_page_starts(client):
+    expected = {
+        519: ('surah_name', 100),
+        521: ('surah_name', 104),
+        522: ('surah_name', 106),
+        523: ('surah_name', 108),
+        524: ('basmallah', 110),
+        525: ('surah_name', 113),
+    }
+    for page_number, (line_type, surah_number) in expected.items():
+        page = client.get(
+            f'/api/layout-studio/azhar/page/{page_number}'
+        ).get_json()
+        first = page['lines'][0]
+        assert first['line_number'] == 1
+        assert first['line_type'] == line_type
+        assert first['surah_number'] == surah_number
+
+
+def test_azhar_reviewer_confirmed_pages_511_and_517(client):
+    page_511 = client.get(
+        '/api/layout-studio/azhar/page/511'
+    ).get_json()['lines']
+    assert (page_511[0]['line_type'], page_511[0]['surah_number']) == (
+        'surah_name', 89,
+    )
+    assert page_511[-1]['last_word_id'] == 83267
+    assert page_511[-1]['words'][-1]['text'] == 'قَدَّمۡتُ'
+
+    page_517 = client.get(
+        '/api/layout-studio/azhar/page/517'
+    ).get_json()['lines']
+    assert (page_517[0]['line_type'], page_517[0]['surah_number']) == (
+        'surah_name', 97,
+    )
+    assert page_517[-1]['last_word_id'] == 83920
+    assert page_517[-1]['words'][-2]['text'] == 'وَذَٰلِكَ'
+    assert page_517[-1]['words'][-1]['text'] == 'دِينُ'
+
+
+def test_azhar_reviewer_confirmed_page_endings(client):
+    expected = {
+        505: (82458, ['إِنَّ', 'ٱلۡأَبۡرَارَ']),
+        506: (82580, ['٦', 'فَأَمَّا']),
+        507: (82718, ['شُهُودٞ', '٧']),
+        508: (82845, ['فَلۡيَنظُرِ', 'ٱلۡإِنسَٰنُ']),
+        509: (82990, ['خَيۡرٞ', 'وَأَبۡقَىٰٓ', '١٧']),
+        514: (83617, ['٧', 'وَوَجَدَكَ']),
+        515: (83711, ['فَلَهُمۡ', 'أَجۡرٌ']),
+    }
+    for page_number, (last_word_id, ending) in expected.items():
+        lines = client.get(
+            f'/api/layout-studio/azhar/page/{page_number}'
+        ).get_json()['lines']
+        assert len(lines) == 15
+        assert all(
+            line['line_type'] != 'ayah' or line.get('words')
+            for line in lines
+        )
+        assert lines[-1]['last_word_id'] == last_word_id
+        assert [
+            word['text'] for word in lines[-1]['words'][-len(ending):]
+        ] == ending
+
+
+def test_azhar_review_alignment_migration_preserves_word_stream(tmp_path):
+    import shutil
+    import sqlite3
+
+    from core.config import AZHAR_LAYOUT_DATABASE
+    from pipeline.align_azhar_review_endings import align_review_endings
+
+    database = tmp_path / 'azhar-review-alignment.db'
+    shutil.copy2(AZHAR_LAYOUT_DATABASE, database)
+
+    result = align_review_endings(str(database))
+    assert result['endings'][514] == 83617
+
+    with sqlite3.connect(database) as conn:
+        page_513_end = conn.execute(
+            '''
+            SELECT last_word_id FROM pages
+            WHERE page_number = 513 AND line_type = 'ayah'
+              AND last_word_id IS NOT NULL
+            ORDER BY line_number DESC LIMIT 1
+            '''
+        ).fetchone()[0]
+        page_514_start = conn.execute(
+            '''
+            SELECT first_word_id FROM pages
+            WHERE page_number = 514 AND line_type = 'ayah'
+              AND first_word_id IS NOT NULL
+            ORDER BY line_number LIMIT 1
+            '''
+        ).fetchone()[0]
+
+    assert (page_513_end, page_514_start) == (83497, 83498)
 
 
 def test_line_center_is_undoable(client, restore_azhar_layout_db):
@@ -612,7 +931,7 @@ def test_azhar_repairs_displaced_surah_boundaries(client):
 
 
 def test_azhar_completes_missing_banners_without_orphans(client):
-    for page_number, surah in ((465, 60), (514, 95), (515, 97)):
+    for page_number, surah in ((465, 60), (515, 95), (517, 97)):
         payload = client.get(
             f'/api/layout-studio/azhar/page/{page_number}'
         ).get_json()

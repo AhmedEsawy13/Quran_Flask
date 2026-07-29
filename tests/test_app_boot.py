@@ -354,6 +354,15 @@ def test_waqf_practice_uses_shared_training_foundation(client):
     assert "classList.toggle('is-listening'" in script
 
 
+def test_waqf_practice_invalidates_stale_grade_when_stops_change():
+    script = (PROJECT_ROOT / 'static/js/waqf_practice.js').read_text(encoding='utf-8')
+
+    assert 'function invalidateGradeResult()' in script
+    assert 'gradeRequests.cancel();' in script
+    assert 'els.resultSec.hidden = true;' in script
+    assert script.count('invalidateGradeResult();') >= 3
+
+
 def test_memorization_exposes_live_status(client):
     page = client.get('/memorize').get_data(as_text=True)
     assert 'id="mz-status" role="status" aria-live="polite" hidden' in page

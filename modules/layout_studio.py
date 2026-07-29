@@ -7,7 +7,7 @@ Routes:
   GET  /api/layout-studio/<id>/page/<n>
   GET/POST /api/layout-studio/<id>/profile
   POST /api/layout-studio/<id>/line-break|pull-next-word|push-last-word
-       |merge-line|line-center|header-move|undo
+       |transfer-line|merge-line|line-center|header-move|undo
   GET  /api/layout-studio/<id>/undo-status
   GET/POST /api/layout-studio/<id>/progress
 
@@ -44,7 +44,6 @@ logger = logging.getLogger(__name__)
 
 _PROFILE_TABLE = 'layout_studio_profile'
 _PAGE_END_MODES = frozenset({'ayah', 'continuous'})
-_PROJECT_WORD_MAPS: dict[str, tuple[float, dict]] = {}
 
 
 def _layout_db(edition: LayoutEdition) -> str:
@@ -286,9 +285,21 @@ def _scope_word_stream(
     return words
 
 
-def _strict_word_order(word_ids) -> bool:
+def _strict_word_order(word_ids, universe=None) -> bool:
     ids = [int(word_id) for word_id in word_ids]
-    return all(left < right for left, right in zip(ids, ids[1:]))
+    if len(ids) != len(set(ids)):
+        return False
+    if universe is None:
+        return all(left < right for left, right in zip(ids, ids[1:]))
+    positions = {
+        int(word_id): position
+        for position, word_id in enumerate(universe)
+    }
+    sequence = [positions.get(word_id) for word_id in ids]
+    return (
+        all(position is not None for position in sequence)
+        and all(left < right for left, right in zip(sequence, sequence[1:]))
+    )
 
 
 def _fixed_page_stream_or_error(
@@ -299,7 +310,7 @@ def _fixed_page_stream_or_error(
     stream = _page_ayah_words(
         edition, lines, page_scope, universe=universe,
     )
-    if not _strict_word_order(stream):
+    if not _strict_word_order(stream, universe=universe):
         return None, (
             'توجد كلمات مكررة أو غير مرتبة في هذه الصفحة؛ '
             'أصلح الصفحة قبل إجراء تعديل جديد'
@@ -315,38 +326,14 @@ def _edition_or_404(edition_id: str):
 
 
 def _project_word_map(edition: LayoutEdition) -> dict:
-    """Cached ``_assemble_layout_page`` word map from a canonical project DB."""
-    path = str(edition.script_db)
-    modified = os.path.getmtime(path)
-    cached = _PROJECT_WORD_MAPS.get(path)
-    if cached and cached[0] == modified:
-        return cached[1]
-    conn = _sqlite_connect(path)
-    try:
-        rows = conn.execute(
-            '''
-            SELECT word_index, surah, ayah, text
-            FROM words
-            ORDER BY word_index
-            '''
-        ).fetchall()
-    finally:
-        conn.close()
-    result = {
-        'id2tok': {
-            int(row[0]): {
-                'surah': int(row[1]),
-                'ayah': int(row[2]),
-                'text': row[3] or '',
-            }
-            for row in rows
-        },
+    """Word map scoped to this edition's script database and ID namespace."""
+    return {
+        **engine.script_word_map(edition.script_db),
+        'id_space': edition.word_id_space,
     }
-    _PROJECT_WORD_MAPS[path] = (modified, result)
-    return result
 
 
-def _build_qpc_project_payload(
+def _build_project_payload(
     edition: LayoutEdition,
     page_number: int,
 ):
@@ -418,12 +405,13 @@ def _build_page_payload(edition: LayoutEdition, page_number: int):
         payload = _build_azhar_page_payload(
             page_number, mushaf_version=[edition.mushaf_version],
         )
-    elif edition.payload_kind == 'canonical_qpc':
-        payload = _build_qpc_project_payload(edition, page_number)
+    elif edition.payload_kind in {'canonical_qpc', 'canonical_script'}:
+        payload = _build_project_payload(edition, page_number)
     else:
         payload = None
     if not payload:
         return payload
+    payload['word_id_space'] = edition.word_id_space
     profile = _load_profile(edition)
     span_by_type = {
         'surah_name': profile.surah_name_lines,
@@ -441,6 +429,35 @@ def _build_page_payload(edition: LayoutEdition, page_number: int):
     payload['default_lines_per_page'] = int(profile.lines_per_page)
     payload['occupied_line_slots'] = occupied
     payload['layout_profile'] = profile.as_client_dict()
+    conn = _sqlite_connect(_layout_db(edition))
+    try:
+        has_confidence = conn.execute(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type='table' AND name='layout_import_confidence'"
+        ).fetchone()
+        confidence = (
+            conn.execute(
+                '''
+                SELECT score, status, matched_lines, anchored_lines,
+                       estimated_line_ends, notes
+                FROM layout_import_confidence
+                WHERE page_number = ?
+                ''',
+                (int(page_number),),
+            ).fetchone()
+            if has_confidence else None
+        )
+    finally:
+        conn.close()
+    if confidence:
+        payload['import_confidence'] = {
+            'score': float(confidence[0]),
+            'status': confidence[1],
+            'matched_lines': int(confidence[2]),
+            'anchored_lines': int(confidence[3]),
+            'estimated_line_ends': int(confidence[4]),
+            'notes': confidence[5] or '',
+        }
     return payload
 
 
@@ -522,6 +539,302 @@ def _undo_available(edition, cur, page_number=None):
 def _segment_persist_indices(lines, cascade_idx, page_scope=None):
     """Ayah indices cascade may rewrite — stop at surah separator / page scope."""
     return engine.ayah_segment_slots(lines, cascade_idx, page_scope=page_scope)
+
+
+def _structural_page_rows(cur, page_number: int) -> list[dict]:
+    cur.execute(
+        '''
+        SELECT id, page_number, line_number, line_type, is_centered,
+               first_word_id, last_word_id, surah_number, line_text
+        FROM pages
+        WHERE page_number = ?
+        ORDER BY line_number
+        ''',
+        (int(page_number),),
+    )
+    columns = [item[0] for item in cur.description]
+    return [
+        dict(zip(columns, row))
+        for row in cur.fetchall()
+    ]
+
+
+def _structural_word_stream(
+    edition: LayoutEdition,
+    rows: list[dict],
+    *,
+    universe,
+) -> list[int]:
+    return [
+        word_id
+        for row in rows
+        if row['line_type'] == 'ayah'
+        for word_id in _expand_ayah_words(
+            edition, row, universe=universe,
+        )
+    ]
+
+
+def _persist_structural_pages(
+    cur,
+    pages: dict[int, list[dict]],
+    *,
+    deleted_ids: set[int],
+) -> None:
+    page_numbers = sorted(int(page) for page in pages)
+    placeholders = ','.join('?' * len(page_numbers))
+    cur.execute(
+        f'UPDATE pages SET line_number = -id '
+        f'WHERE page_number IN ({placeholders})',
+        page_numbers,
+    )
+    if deleted_ids:
+        delete_placeholders = ','.join('?' * len(deleted_ids))
+        cur.execute(
+            f'DELETE FROM pages WHERE id IN ({delete_placeholders})',
+            tuple(sorted(deleted_ids)),
+        )
+    for page_number in page_numbers:
+        for line_number, row in enumerate(pages[page_number], 1):
+            values = (
+                int(page_number),
+                int(line_number),
+                row['line_type'],
+                int(bool(row.get('is_centered'))),
+                row.get('first_word_id'),
+                row.get('last_word_id'),
+                row.get('surah_number'),
+                row.get('line_text') or '',
+            )
+            if row.get('id') is None:
+                cur.execute(
+                    '''
+                    INSERT INTO pages (
+                        page_number, line_number, line_type, is_centered,
+                        first_word_id, last_word_id, surah_number, line_text
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ''',
+                    values,
+                )
+                row['id'] = int(cur.lastrowid)
+            else:
+                cur.execute(
+                    '''
+                    UPDATE pages
+                    SET page_number = ?, line_number = ?, line_type = ?,
+                        is_centered = ?, first_word_id = ?,
+                        last_word_id = ?, surah_number = ?, line_text = ?
+                    WHERE id = ?
+                    ''',
+                    (*values, int(row['id'])),
+                )
+
+
+def _shift_rows_down_one_slot(
+    edition: LayoutEdition,
+    cur,
+    page_number: int,
+    insert_index: int,
+    *,
+    profile: LayoutProfile,
+    universe,
+    allow_protected_source: bool = False,
+) -> dict:
+    """Insert one blank slot and cascade the remaining physical rows down.
+
+    A full source page spills its last row to the top of the next page. The
+    destination consumes an existing empty row when possible; otherwise its
+    final adjacent ayah pair is merged. Quran word order is verified before
+    any rows are persisted.
+    """
+    page_number = int(page_number)
+    next_page = page_number + 1
+    source_rows = _structural_page_rows(cur, page_number)
+    if not source_rows:
+        raise ValueError(f'page {page_number} has no lines')
+    protected_source_count = edition.protected_trailing_count_for(page_number)
+    if protected_source_count and not allow_protected_source:
+        raise ValueError(
+            f'آخر {protected_source_count} سطر في الصفحة {page_number} '
+            'محفوظة معاً كما في المطبوع ولا يمكن فصلها بترحيل سطر واحد'
+        )
+    source_limit = _page_line_budget(edition, profile, page_number)
+    if len(source_rows) != source_limit:
+        raise ValueError(
+            f'الصفحة {page_number} تحتوي {len(source_rows)} سطراً '
+            f'بدلاً من {source_limit}؛ صحّح عدد السطور أولاً'
+        )
+    if insert_index < 0 or insert_index >= len(source_rows):
+        raise ValueError('موضع الترحيل خارج الصفحة')
+
+    will_spill = len(source_rows) + 1 > source_limit
+    if will_spill and not _page_in_range(edition, next_page):
+        raise ValueError('لا توجد صفحة تالية لاستقبال السطر')
+    destination_rows = (
+        _structural_page_rows(cur, next_page) if will_spill else []
+    )
+    destination_limit = (
+        _page_line_budget(edition, profile, next_page)
+        if will_spill else 0
+    )
+    if will_spill and not destination_rows:
+        raise ValueError('الصفحة التالية لا تحتوي سطوراً')
+
+    before_stream = _structural_word_stream(
+        edition, source_rows + destination_rows, universe=universe,
+    )
+    blank_surah = source_rows[insert_index].get('surah_number')
+    if blank_surah is None and insert_index:
+        blank_surah = source_rows[insert_index - 1].get('surah_number')
+    blank = {
+        'id': None,
+        'page_number': page_number,
+        'line_number': 0,
+        'line_type': 'ayah',
+        'is_centered': 0,
+        'first_word_id': None,
+        'last_word_id': None,
+        'surah_number': blank_surah,
+        'line_text': '',
+    }
+    def protected_trailing_ids(rows, page):
+        protected_count = edition.protected_trailing_count_for(page)
+        if not protected_count:
+            return ()
+        if len(rows) < protected_count:
+            raise ValueError(
+                f'الصفحة {page} لا تحتوي مواضع كافية للأسطر المحفوظة'
+            )
+        return tuple(
+            int(row['id'])
+            for row in rows[-protected_count:]
+            if row.get('id') is not None
+        )
+
+    protected_destination_tail_ids = (
+        protected_trailing_ids(destination_rows, next_page)
+        if will_spill else ()
+    )
+    source_rows.insert(insert_index, blank)
+    spill = None
+    if len(source_rows) > source_limit:
+        spill = source_rows.pop()
+    if spill is not None:
+        destination_rows.insert(0, spill)
+
+    deleted_ids: set[int] = set()
+    removed_empty = 0
+    merged_lines = 0
+    protected_destination_ids = set(protected_destination_tail_ids)
+    while len(destination_rows) > destination_limit:
+        empty_index = next(
+            (
+                index
+                for index in range(len(destination_rows) - 1, -1, -1)
+                if destination_rows[index]['line_type'] == 'ayah'
+                and (
+                    destination_rows[index].get('id') is None
+                    or int(destination_rows[index]['id'])
+                    not in protected_destination_ids
+                )
+                and not _expand_ayah_words(
+                    edition, destination_rows[index], universe=universe,
+                )
+            ),
+            None,
+        )
+        if empty_index is not None:
+            removed = destination_rows.pop(empty_index)
+            if removed.get('id') is not None:
+                deleted_ids.add(int(removed['id']))
+            removed_empty += 1
+            continue
+
+        pairs = [
+            index for index in range(len(destination_rows) - 2, -1, -1)
+            if destination_rows[index]['line_type'] == 'ayah'
+            and destination_rows[index + 1]['line_type'] == 'ayah'
+            and _expand_ayah_words(
+                edition, destination_rows[index], universe=universe,
+            )
+            and _expand_ayah_words(
+                edition, destination_rows[index + 1], universe=universe,
+            )
+            and (
+                destination_rows[index].get('surah_number')
+                == destination_rows[index + 1].get('surah_number')
+            )
+            and (
+                destination_rows[index].get('id') is None
+                or int(destination_rows[index]['id'])
+                not in protected_destination_ids
+            )
+            and (
+                destination_rows[index + 1].get('id') is None
+                or int(destination_rows[index + 1]['id'])
+                not in protected_destination_ids
+            )
+        ]
+        if not pairs:
+            raise ValueError(
+                'لا يمكن استيعاب السطر في الصفحة التالية دون عبور فاصل سورة'
+            )
+        pair_index = pairs[0]
+        kept = destination_rows[pair_index]
+        removed = destination_rows.pop(pair_index + 1)
+        merged_words = (
+            _expand_ayah_words(edition, kept, universe=universe)
+            + _expand_ayah_words(edition, removed, universe=universe)
+        )
+        text_map = _word_texts(edition, merged_words)
+        engine.assign_words_to_line(kept, merged_words, text_map)
+        kept['is_centered'] = int(
+            bool(kept.get('is_centered'))
+            and bool(removed.get('is_centered'))
+        )
+        if removed.get('id') is not None:
+            deleted_ids.add(int(removed['id']))
+        merged_lines += 1
+
+    pages = {page_number: source_rows}
+    if will_spill:
+        pages[next_page] = destination_rows
+    after_stream = _structural_word_stream(
+        edition,
+        [
+            row
+            for affected_rows in pages.values()
+            for row in affected_rows
+        ],
+        universe=universe,
+    )
+    if after_stream != before_stream:
+        raise ValueError(
+            'أُلغي الترحيل لأنه كان سيكرر كلمات أو يفقدها'
+        )
+    if protected_destination_tail_ids:
+        current_tail_ids = protected_trailing_ids(
+            destination_rows, next_page,
+        )
+        if current_tail_ids != protected_destination_tail_ids:
+            raise ValueError(
+                f'أُلغي الترحيل لحماية آخر '
+                f'{len(protected_destination_tail_ids)} سطر في الصفحة '
+                f'{next_page}'
+            )
+    _persist_structural_pages(
+        cur, pages, deleted_ids=deleted_ids,
+    )
+    return {
+        'page_from': page_number,
+        'page_to': next_page if will_spill else page_number,
+        'spilled_row_id': (
+            int(spill['id'])
+            if spill is not None and spill.get('id') is not None else None
+        ),
+        'removed_empty_line': bool(removed_empty),
+        'merged_lines': merged_lines,
+    }
 
 
 def _neighbor_ayah(edition, lines, from_idx, *, direction, universe=None):
@@ -789,37 +1102,46 @@ def layout_studio_page_by_ayah(edition_id, surah_number, ayah_number):
         return err
     conn = _sqlite_connect(edition.script_db)
     try:
-        bounds = conn.execute(
+        first_word = conn.execute(
             '''
-            SELECT MIN(word_index), MAX(word_index)
+            SELECT word_index
             FROM words
             WHERE surah = ? AND ayah = ?
+            ORDER BY word_index
+            LIMIT 1
             ''',
             (int(surah_number), int(ayah_number)),
         ).fetchone()
     finally:
         conn.close()
-    if not bounds or bounds[0] is None or bounds[1] is None:
+    if not first_word or first_word[0] is None:
         return jsonify({'error': 'ayah not found'}), 404
 
+    target_word_id = int(first_word[0])
+    universe = _all_script_word_ids(edition)
     conn = _sqlite_connect(_layout_db(edition))
     try:
-        row = conn.execute(
+        rows = conn.execute(
             '''
-            SELECT page_number
+            SELECT page_number, first_word_id, last_word_id
             FROM pages
-            WHERE line_type = 'ayah'
-              AND first_word_id IS NOT NULL
+            WHERE first_word_id IS NOT NULL
               AND last_word_id IS NOT NULL
-              AND first_word_id <= ?
-              AND last_word_id >= ?
             ORDER BY page_number, line_number
-            LIMIT 1
             ''',
-            (int(bounds[1]), int(bounds[0])),
-        ).fetchone()
+        ).fetchall()
     finally:
         conn.close()
+    row = next(
+        (
+            item for item in rows
+            if target_word_id in engine.existing_word_ids_between(
+                item[1], item[2],
+                universe=universe, script_db=edition.script_db,
+            )
+        ),
+        None,
+    )
     if row is None:
         return jsonify({'error': 'page not found for ayah'}), 404
     return jsonify({
@@ -1488,6 +1810,116 @@ def layout_studio_push_last_word(edition_id):
         conn.close()
 
 
+@editor_bp.route('/api/layout-studio/<edition_id>/transfer-line', methods=['POST'])
+@require_editor
+def layout_studio_transfer_line(edition_id):
+    """Move the final physical row intact to the top of the next page."""
+    edition, err = _edition_or_404(edition_id)
+    if err:
+        return err
+    if not edition.line_page_transfer:
+        return jsonify({
+            'error': 'ترحيل السطر الكامل غير مفعّل لهذه الطبعة',
+        }), 400
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
+    try:
+        page_number = int(data.get('page_number'))
+        line_number = int(data.get('line_number'))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid page_number or line_number'}), 400
+    if not _page_in_range(edition, page_number):
+        return jsonify({'error': 'page_number out of range'}), 400
+    if edition.closed_rule_for(page_number):
+        return jsonify({
+            'error': 'لا يمكن ترحيل سطر كامل من الصفحة الافتتاحية الثابتة',
+        }), 400
+    if not _page_in_range(edition, page_number + 1):
+        return jsonify({'error': 'لا توجد صفحة تالية'}), 400
+
+    conn = _sqlite_connect(_layout_db(edition))
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        profile = _load_profile(edition, cur)
+        expected_last = _page_line_budget(edition, profile, page_number)
+        if line_number != expected_last:
+            return jsonify({
+                'error': 'ترحيل السطر الكامل متاح لآخر سطر في الصفحة فقط',
+            }), 400
+        target = cur.execute(
+            '''
+            SELECT id, line_type, first_word_id, last_word_id
+            FROM pages
+            WHERE page_number = ? AND line_number = ?
+            ''',
+            (page_number, line_number),
+        ).fetchone()
+        if target is None:
+            return jsonify({'error': 'line not found'}), 404
+        if target['line_type'] != 'ayah':
+            return jsonify({
+                'error': 'ترحيل السطر الكامل متاح لأسطر الآيات فقط',
+            }), 400
+        if target['first_word_id'] is None or target['last_word_id'] is None:
+            return jsonify({'error': 'السطر الأخير فارغ بالفعل'}), 400
+
+        universe = _all_script_word_ids(edition)
+        _push_undo(
+            edition, cur, 'transfer-line',
+            page_number, page_number, page_number + 1,
+        )
+        shifted = _shift_rows_down_one_slot(
+            edition,
+            cur,
+            page_number,
+            line_number - 1,
+            profile=profile,
+            universe=universe,
+            allow_protected_source=True,
+        )
+        if shifted['spilled_row_id'] != int(target['id']):
+            raise ValueError('لم يصل السطر المحدد إلى الصفحة التالية')
+        cloud_saved = _commit_layout_pages(
+            edition,
+            conn,
+            cur,
+            shifted['page_from'],
+            shifted['page_to'],
+        )
+        return jsonify({
+            'ok': True,
+            'cloud_saved': cloud_saved,
+            'from_page': page_number,
+            'to_page': page_number + 1,
+            'moved_line_id': int(target['id']),
+            'crossed_page': True,
+            'removed_empty_line': shifted['removed_empty_line'],
+            'merged_lines': shifted['merged_lines'],
+            'page': _build_page_payload(edition, page_number),
+            'undo_available': _undo_available(edition, cur, page_number),
+        })
+    except ValueError as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 400
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio transfer-line cloud save failed (%s): %s',
+            edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except Exception as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio transfer-line failed (%s): %s', edition_id, e,
+        )
+        return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+
 @editor_bp.route('/api/layout-studio/<edition_id>/line-center', methods=['POST'])
 @require_editor
 def layout_studio_line_center(edition_id):
@@ -1603,6 +2035,57 @@ def layout_studio_header_move(edition_id):
             return jsonify({
                 'error': 'header-move only applies to surah header lines',
             }), 400
+
+        if (
+            direction == 'down'
+            and edition.header_down_cascade
+            and edition.closed_rule_for(page_number) is None
+        ):
+            profile = _load_profile(edition, cur)
+            page_to = min(page_number + 1, edition.max_page)
+            _push_undo(
+                edition, cur, 'header-down-cascade',
+                page_number, page_number, page_to,
+            )
+            shifted = _shift_rows_down_one_slot(
+                edition,
+                cur,
+                page_number,
+                line_number - 1,
+                profile=profile,
+                universe=_all_script_word_ids(edition),
+            )
+            cloud_saved = _commit_layout_pages(
+                edition,
+                conn,
+                cur,
+                shifted['page_from'],
+                shifted['page_to'],
+            )
+            moved = cur.execute(
+                '''
+                SELECT page_number, line_number
+                FROM pages WHERE id = ?
+                ''',
+                (int(target['id']),),
+            ).fetchone()
+            return jsonify({
+                'ok': True,
+                'cloud_saved': cloud_saved,
+                'direction': direction,
+                'cascaded': True,
+                'moved_to_page': int(moved['page_number']),
+                'moved_to_line': int(moved['line_number']),
+                'crossed_page': (
+                    int(moved['page_number']) != int(page_number)
+                ),
+                'removed_empty_line': shifted['removed_empty_line'],
+                'merged_lines': shifted['merged_lines'],
+                'page': _build_page_payload(edition, page_number),
+                'undo_available': _undo_available(
+                    edition, cur, page_number,
+                ),
+            })
 
         if direction == 'up':
             neighbor = cur.execute(
@@ -1818,6 +2301,9 @@ def layout_studio_header_move(edition_id):
             'page': _build_page_payload(edition, page_number),
             'undo_available': _undo_available(edition, cur, page_number),
         })
+    except ValueError as e:
+        conn.rollback()
+        return jsonify({'error': str(e)}), 400
     except sb.SupabaseEditorError as e:
         conn.rollback()
         logger.error(
@@ -2021,5 +2507,57 @@ def layout_studio_progress(edition_id):
         conn.rollback()
         logger.error(f'layout-studio progress failed ({edition_id}): {e}')
         return jsonify({'error': str(e)}), 500
+    finally:
+        conn.close()
+
+
+@editor_bp.route(
+    '/api/layout-studio/<edition_id>/import-confidence',
+    methods=['GET'],
+)
+def layout_studio_import_confidence(edition_id):
+    """Return the generated seed's review priority without trusting its text."""
+    edition, err = _edition_or_404(edition_id)
+    if err:
+        return err
+    conn = _sqlite_connect(_layout_db(edition))
+    try:
+        exists = conn.execute(
+            "SELECT 1 FROM sqlite_master "
+            "WHERE type='table' AND name='layout_import_confidence'"
+        ).fetchone()
+        if not exists:
+            return jsonify({
+                'available': False,
+                'pages': [],
+                'edition': edition.id,
+            })
+        rows = conn.execute(
+            '''
+            SELECT page_number, score, status
+            FROM layout_import_confidence
+            ORDER BY
+                CASE status WHEN 'low' THEN 0 WHEN 'medium' THEN 1 ELSE 2 END,
+                page_number
+            '''
+        ).fetchall()
+        pages = [
+            {
+                'page_number': int(page),
+                'score': float(score),
+                'status': status,
+            }
+            for page, score, status in rows
+        ]
+        counts = {'high': 0, 'medium': 0, 'low': 0}
+        for page in pages:
+            status = page['status']
+            counts[status] = counts.get(status, 0) + 1
+        return jsonify({
+            'available': True,
+            'pages': pages,
+            'counts': counts,
+            'edition': edition.id,
+        })
     finally:
         conn.close()

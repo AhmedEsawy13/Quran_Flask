@@ -22,7 +22,6 @@ from core.loader import IS_SERVERLESS
 
 logger = logging.getLogger(__name__)
 
-CLOUD_LAYOUT_EDITIONS = frozenset({'bahrain'})
 _lock = threading.RLock()
 _applied_pages: dict[str, str] = {}
 _applied_profiles: dict[str, str] = {}
@@ -39,7 +38,12 @@ _LINE_COLUMNS = (
 
 
 def is_cloud_layout(edition) -> bool:
-    return edition.id in CLOUD_LAYOUT_EDITIONS and sb.is_configured()
+    # ``bahrain`` fallback keeps lightweight test/legacy edition objects
+    # working; registered LayoutEdition instances declare this explicitly.
+    enabled = getattr(
+        edition, 'cloud_enabled', getattr(edition, 'id', '') == 'bahrain',
+    )
+    return bool(enabled) and sb.is_configured()
 
 
 def _runtime_copy(base_path: str) -> str:
@@ -137,6 +141,59 @@ def _page_matches(cur, page_number: int, lines: list[dict]) -> bool:
     return current == expected
 
 
+def _validate_page_word_space(edition, page_number: int, lines: list[dict]) -> None:
+    """Reject cloud rows whose endpoints do not belong to this edition's DB.
+
+    Numeric overlap between ID spaces is common, so membership alone is not
+    enough. Ayah rows must also resolve to their declared surah in the
+    edition's own script database and progress forward in its reading order.
+    """
+    script_db = getattr(edition, 'script_db', None)
+    word_id_space = getattr(edition, 'word_id_space', None)
+    if not script_db or not word_id_space:
+        return
+
+    from modules import layout_engine
+
+    word_map = layout_engine.script_word_map(script_db)
+    positions = word_map['position_by_id']
+    id2tok = word_map['id2tok']
+    for line in lines:
+        if line.get('line_type') != 'ayah':
+            continue
+        first = line.get('first_word_id')
+        last = line.get('last_word_id')
+        if first is None and last is None:
+            continue
+        try:
+            first = int(first)
+            last = int(last)
+        except (TypeError, ValueError) as exc:
+            raise sb.SupabaseEditorError(
+                f'Invalid word IDs for {edition.id} page {page_number}'
+            ) from exc
+        lo = positions.get(first)
+        hi = positions.get(last)
+        if lo is None or hi is None or hi < lo:
+            raise sb.SupabaseEditorError(
+                f'Word IDs outside {word_id_space} for '
+                f'{edition.id} page {page_number}'
+            )
+        declared_surah = line.get('surah_number')
+        if declared_surah is None:
+            continue
+        actual_surahs = {
+            int(id2tok[word_id]['surah'])
+            for word_id in word_map['ordered_ids'][lo:hi + 1]
+        }
+        if actual_surahs != {int(declared_surah)}:
+            raise sb.SupabaseEditorError(
+                f'Word-ID namespace mismatch for {edition.id} page '
+                f'{page_number}: declared surah {declared_surah}, '
+                f'resolved {sorted(actual_surahs)}'
+            )
+
+
 def _apply_profile(cur, profile: dict) -> None:
     cur.execute(
         '''
@@ -222,6 +279,9 @@ def working_db_path(edition, *, force: bool = False) -> str:
                             edition.id, row.get('page_number'),
                         )
                         continue
+                    _validate_page_word_space(
+                        edition, int(row['page_number']), lines,
+                    )
                     if _page_matches(cur, int(row['page_number']), lines):
                         continue
                     _replace_page(cur, int(row['page_number']), lines)
@@ -299,6 +359,10 @@ def save_pages(
     if empty:
         raise sb.SupabaseEditorError(
             f'Cannot save empty layout page(s): {empty}'
+        )
+    for page in pages:
+        _validate_page_word_space(
+            edition, page['page_number'], page['lines'],
         )
     sb.upsert_layout_pages(
         edition=edition.id,

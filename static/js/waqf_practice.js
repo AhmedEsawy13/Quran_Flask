@@ -192,6 +192,7 @@
             const k = b.dataset.key;
             if (state.stops.has(k)) { state.stops.delete(k); b.classList.remove('wp-stopped'); }
             else { state.stops.add(k); b.classList.add('wp-stopped'); }
+            invalidateGradeResult();
             updateCount();
         };
     }
@@ -432,9 +433,17 @@
         return true;
     }
 
+    function invalidateGradeResult() {
+        gradeRequests.cancel();
+        window.AtharUi.setBusy(els.grade, false);
+        els.resultSec.hidden = true;
+        showPageState('', '');
+    }
+
     function clearStops() {
         state.stops.clear();
         els.passage.querySelectorAll('.wp-stopped').forEach(b => b.classList.remove('wp-stopped'));
+        invalidateGradeResult();
         updateCount();
     }
 
@@ -619,6 +628,7 @@
         state.stops.add(key);
         const b = els.passage.querySelector(`.wp-word[data-key="${key}"]`);
         if (b) b.classList.add('wp-stopped');
+        invalidateGradeResult();
         updateCount();
     }
 

@@ -46,7 +46,7 @@ create index if not exists editor_marks_ayah_idx
 -- Reviewed pages in the editor workspace (draft).
 create table if not exists editor_progress (
   edition text not null,
-  page_number integer not null check (page_number between 1 and 604),
+  page_number integer not null check (page_number >= 1),
   reviewed boolean not null default false,
   updated_by uuid references editor_invites(id) on delete set null,
   updated_at timestamptz not null default now(),
@@ -58,7 +58,7 @@ create table if not exists editor_progress (
 -- SQLite database remains the baseline; rows here are durable overrides.
 create table if not exists editor_layout_pages (
   edition text not null,
-  page_number integer not null check (page_number between 1 and 604),
+  page_number integer not null check (page_number >= 1),
   lines jsonb not null check (jsonb_typeof(lines) = 'array'),
   updated_by uuid references editor_invites(id) on delete set null,
   updated_at timestamptz not null default now(),

@@ -3,7 +3,7 @@
 
 create table if not exists public.editor_layout_pages (
   edition text not null,
-  page_number integer not null check (page_number between 1 and 604),
+  page_number integer not null check (page_number >= 1),
   lines jsonb not null check (jsonb_typeof(lines) = 'array'),
   updated_by uuid references public.editor_invites(id) on delete set null,
   updated_at timestamptz not null default now(),

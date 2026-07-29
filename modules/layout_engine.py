@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import bisect
 import json
+import os
 import sqlite3
 from typing import Iterable
 
@@ -15,43 +16,141 @@ from core.db import connect as _sqlite_connect
 _UNDO_LIMIT = 40
 _SCRIPT_WORD_IDS: dict[str, list[int]] = {}
 _SCRIPT_WORD_RECORDS: dict[str, tuple[list[int], dict[int, dict]]] = {}
+_SCRIPT_WORD_MAPS: dict[str, dict] = {}
+_UNIVERSE_POSITIONS: dict[int, tuple[list[int], dict[int, int]]] = {}
+
+
+def _word_key_position(word_key, fallback: int) -> int:
+    try:
+        return int(str(word_key or '').rsplit(':', 1)[-1])
+    except (TypeError, ValueError):
+        return int(fallback)
+
+
+def script_word_map(script_db: str) -> dict:
+    """Return one database's word IDs in Quran reading order.
+
+    ``word_index`` is an identifier inside its own database, not a universal
+    sequence number. In quran_script.db several numeric blocks are displaced,
+    while QPC databases use a different 1..83668 namespace. Ordering by
+    (surah, ayah, word_key position) keeps both namespaces correct without
+    translating one database's IDs through another database.
+    """
+    cache_key = str(script_db)
+    cached = _SCRIPT_WORD_MAPS.get(cache_key)
+    if cached is not None:
+        return cached
+
+    conn = _sqlite_connect(script_db)
+    try:
+        columns = {
+            str(row[1])
+            for row in conn.execute('PRAGMA table_info(words)').fetchall()
+        }
+        original_expr = (
+            'text_original' if 'text_original' in columns
+            else "'' AS text_original"
+        )
+        rows = conn.execute(
+            f'''
+            SELECT word_index, word_key, surah, ayah, text, {original_expr}
+            FROM words
+            '''
+        ).fetchall()
+    finally:
+        conn.close()
+
+    records = [
+        {
+            'word_index': int(row[0]),
+            'word_key': row[1] or '',
+            'surah': int(row[2]),
+            'ayah': int(row[3]),
+            'text': row[4] or '',
+            'text_original': row[5] or '',
+        }
+        for row in rows
+    ]
+    records.sort(key=lambda row: (
+        row['surah'],
+        row['ayah'],
+        _word_key_position(row['word_key'], row['word_index']),
+        row['word_index'],
+    ))
+    ordered_ids = [row['word_index'] for row in records]
+    result = {
+        'id2tok': {
+            row['word_index']: {
+                'surah': row['surah'],
+                'ayah': row['ayah'],
+                'text': row['text'],
+                'text_original': row['text_original'],
+                'word_key': row['word_key'],
+            }
+            for row in records
+        },
+        'ordered_ids': ordered_ids,
+        'position_by_id': {
+            word_id: position
+            for position, word_id in enumerate(ordered_ids)
+        },
+        'id_space': (
+            'quran-script-stable-v1'
+            if os.path.basename(cache_key) == 'quran_script.db'
+            else f'script-db:{os.path.basename(cache_key)}'
+        ),
+    }
+    _SCRIPT_WORD_MAPS[cache_key] = result
+    _SCRIPT_WORD_IDS[cache_key] = ordered_ids
+    _UNIVERSE_POSITIONS[id(ordered_ids)] = (
+        ordered_ids, result['position_by_id'],
+    )
+    return result
 
 
 def all_script_word_ids(script_db: str) -> list[int]:
-    """Sorted word_index list from quran_script (process-cached)."""
+    """Word IDs from one script database, in Quran reading order."""
     cache_key = str(script_db)
     if cache_key in _SCRIPT_WORD_IDS:
         return _SCRIPT_WORD_IDS[cache_key]
-    conn = _sqlite_connect(script_db)
-    try:
-        cur = conn.cursor()
-        cur.execute('SELECT word_index FROM words ORDER BY word_index ASC')
-        _SCRIPT_WORD_IDS[cache_key] = [int(r[0]) for r in cur.fetchall()]
-    finally:
-        conn.close()
-    return _SCRIPT_WORD_IDS[cache_key]
+    return script_word_map(script_db)['ordered_ids']
 
 
 def clear_script_word_id_cache() -> None:
     _SCRIPT_WORD_IDS.clear()
     _SCRIPT_WORD_RECORDS.clear()
+    _SCRIPT_WORD_MAPS.clear()
+    _UNIVERSE_POSITIONS.clear()
+
+
+def _positions_for_universe(ids: list[int]) -> dict[int, int]:
+    cached = _UNIVERSE_POSITIONS.get(id(ids))
+    if cached is not None and cached[0] is ids:
+        return cached[1]
+    positions = {
+        int(word_id): position
+        for position, word_id in enumerate(ids)
+    }
+    _UNIVERSE_POSITIONS[id(ids)] = (ids, positions)
+    return positions
 
 
 def existing_word_ids_between(first, last, universe: list[int] | None = None, script_db: str | None = None):
-    """Real word_index values in [first, last] (skips reserved gaps)."""
+    """IDs between two endpoints in their database's Quran reading order."""
     if first is None or last is None:
         return []
     first, last = int(first), int(last)
-    if last < first:
-        return []
     ids = universe
     if ids is None:
         if not script_db:
             return []
         ids = all_script_word_ids(script_db)
-    lo = bisect.bisect_left(ids, first)
-    hi = bisect.bisect_right(ids, last)
-    return ids[lo:hi]
+    positions = _positions_for_universe(ids)
+    lo = positions.get(first)
+    hi = positions.get(last)
+    if lo is None or hi is None or hi < lo:
+        return []
+    return ids[lo:hi + 1]
 
 
 def expand_ayah_words(line, universe=None, script_db=None):

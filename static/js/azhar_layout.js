@@ -7,8 +7,8 @@
    Endpoints (per edition):
      GET  {apiBase}/page/<n>
      GET/POST {apiBase}/profile
-     POST {apiBase}/line-break|pull-next-word|push-last-word|merge-line|line-center
-          |header-move|undo
+     POST {apiBase}/line-break|pull-next-word|push-last-word|transfer-line
+          |merge-line|line-center|header-move|undo
      GET  {apiBase}/undo-status?page_number=
      GET/POST {apiBase}/progress
    ═══════════════════════════════════════════════════════════════════ */
@@ -16,15 +16,26 @@
     'use strict';
     const $ = id => document.getElementById(id);
     const { stripEmbeddedWaqf } = window.AtharMushaf;
-    const { toAr, clearPageChrome, renderPageChrome } = window.AtharPageChrome;
+    const {
+        toAr, clearPageChrome, renderPageChrome, juzFromAyah,
+    } = window.AtharPageChrome;
 
     const CFG = window.AtharLayoutStudio || {};
     const MIN_PAGE = Number(CFG.minPage) || 2;
-    const MAX_PAGE = Number(CFG.maxPage) || 522;
+    const MAX_PAGE = Number(CFG.maxPage) || 525;
     const API_BASE = CFG.apiBase || '/api/layout-studio/azhar';
     const PROFILE_API = `${API_BASE}/profile`;
     const PAGE_BY_AYAH_BASE = CFG.pageByAyahBase || '/api/azhar/page-by-ayah';
     const STORAGE_KEY = CFG.storageKey || 'layout_studio_page';
+    const LINE_PAGE_TRANSFER = Boolean(CFG.linePageTransfer);
+    const CLOSED_PAGES = new Set(
+        (CFG.closedPages || []).map(rule => Number(rule.page))
+    );
+    const PROTECTED_TRAILING_PAGES = new Map(
+        Object.entries(CFG.protectedTrailingLines || {}).map(
+            ([page, count]) => [Number(page), Number(count)]
+        )
+    );
     const DRAG_THRESHOLD = 6;
     document.documentElement.style.setProperty(
         '--az-quran-font',
@@ -41,6 +52,7 @@
             openTemplate: CFG.ref.openTemplate || '',
             pdfUrl: CFG.ref.pdfUrl || '',
             pdfPageOffset: Number(CFG.ref.pdfPageOffset) || 0,
+            maxPage: Number(CFG.ref.maxPage) || null,
         }
         : { type: 'archive', id: 'shamarlyshamarly', label: 'مرجع الشمرلي', leafOffset: -1 };
     const REF_IMG_WIDTH = 1024;
@@ -55,6 +67,7 @@
         pageLabel: $('az-page-label'),
         progress: $('az-progress'),
         reviewed: $('az-reviewed'),
+        nextUncertain: $('az-next-uncertain'),
         jumpInput: $('az-jump-page'),
         jumpBtn: $('az-jump-go'),
         jumpSurah: $('az-jump-surah'),
@@ -67,6 +80,7 @@
         undo: $('az-undo'),
         status: $('az-status'),
         editionMeta: $('az-edition-meta'),
+        importConfidence: $('az-import-confidence'),
         profilePanel: $('az-profile-panel'),
         profileForm: $('az-profile-form'),
         profilePreset: $('az-profile-preset'),
@@ -89,6 +103,7 @@
     const state = {
         page: clampPage(parseInt(localStorage.getItem(STORAGE_KEY) || String(MIN_PAGE), 10)),
         reviewedPages: new Set(),
+        uncertainPages: [],
         busy: false,
         drag: null,
         refUrl: '',
@@ -619,6 +634,27 @@
 
         actions.appendChild(pullBtn);
         actions.appendChild(pushBtn);
+        if (
+            LINE_PAGE_TRANSFER
+            && lineNumber === state.pageSlotBudget
+            && !CLOSED_PAGES.has(state.page)
+            && Array.isArray(line.words)
+            && line.words.length
+        ) {
+            const transferBtn = document.createElement('button');
+            transferBtn.type = 'button';
+            transferBtn.className = 'az-line-tool az-transfer-line-btn';
+            transferBtn.title = 'ترحيل السطر كاملاً إلى الصفحة التالية';
+            transferBtn.setAttribute('aria-label', transferBtn.title);
+            transferBtn.innerHTML = (
+                '<i class="fas fa-arrow-right-to-bracket" aria-hidden="true"></i>'
+            );
+            transferBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                transferLineToNextPage(lineNumber);
+            });
+            actions.appendChild(transferBtn);
+        }
         actions.appendChild(mergeBtn);
         actions.appendChild(centerBtn);
         tools.appendChild(menuBtn);
@@ -651,8 +687,10 @@
             return button;
         };
 
-        tools.appendChild(makeButton('up', 'up', 'نقل'));
-        tools.appendChild(makeButton('down', 'down', 'نقل'));
+        tools.appendChild(makeButton('up', 'up', 'رفع'));
+        if (!PROTECTED_TRAILING_PAGES.has(state.page)) {
+            tools.appendChild(makeButton('down', 'down', 'خفض'));
+        }
         root.appendChild(tools);
     }
 
@@ -672,7 +710,36 @@
                 juzEl: els.juz, surahEl: els.surah, pageNumberEl: els.pageNum,
                 juzGlyphClass: 'athar-page-juz-glyph',
             });
+            if (els.importConfidence) els.importConfidence.hidden = true;
             return;
+        }
+        if (els.importConfidence) {
+            const confidence = payload.import_confidence;
+            if (!confidence) {
+                els.importConfidence.hidden = true;
+                els.importConfidence.removeAttribute('title');
+                els.importConfidence.className = 'az-import-confidence';
+            } else {
+                const labels = {
+                    high: 'مرتفعة',
+                    medium: 'متوسطة',
+                    low: 'منخفضة — راجع الحدود بعناية',
+                };
+                const score = Math.round((Number(confidence.score) || 0) * 100);
+                els.importConfidence.className = (
+                    `az-import-confidence az-confidence-${confidence.status || 'low'}`
+                );
+                els.importConfidence.textContent = (
+                    `ثقة البذرة الآلية: ${labels[confidence.status] || labels.low}`
+                    + ` · ${toAr(score)}٪`
+                    + ` · ${toAr(confidence.anchored_lines || 0)} حدّاً مثبتاً`
+                );
+                els.importConfidence.title = confidence.notes || (
+                    'هذه درجة ثقة للاستيراد وليست اعتماداً علمياً؛ '
+                    + 'الاعتماد يكون بعد المطابقة مع صورة المطبوع.'
+                );
+                els.importConfidence.hidden = false;
+            }
         }
         state.pageSlotBudget = Math.max(
             1,
@@ -753,6 +820,20 @@
 
         renderPageChrome({
             payload, juzEl: els.juz, surahEl: els.surah, pageNumberEl: els.pageNum,
+            getJuzNumber: page => {
+                let surah = Number(page.anchor_surah_number) || 0;
+                let ayah = Number(page.anchor_ayah_number) || 0;
+                if (!surah) {
+                    for (const line of page.lines || []) {
+                        const first = (line.words || [])[0];
+                        if (!first) continue;
+                        surah = Number(first.surah) || 0;
+                        ayah = Number(first.ayah) || 0;
+                        break;
+                    }
+                }
+                return surah ? juzFromAyah(surah, ayah || 1) : null;
+            },
             juzGlyphClass: 'athar-page-juz-glyph',
             surahGlyphClass: 'athar-page-surah-glyph',
             surahTextClass: 'athar-page-surah-text',
@@ -811,6 +892,7 @@
     function prefetchRef(page) {
         if (REF_SOURCE.type === 'pdf') return;
         if (page < MIN_PAGE || page > MAX_PAGE) return;
+        if (REF_SOURCE.maxPage && page > REF_SOURCE.maxPage) return;
         const url = refImageUrl(page);
         if (refPrefetch.has(url)) return;
         refPrefetch.add(url);
@@ -822,6 +904,15 @@
         clearTimeout(refTimer);
         if (!Number.isFinite(page) || page < MIN_PAGE || page > MAX_PAGE) {
             clearReference();
+            return;
+        }
+        if (REF_SOURCE.maxPage && page > REF_SOURCE.maxPage) {
+            clearReference();
+            if (els.refTitle) {
+                els.refTitle.textContent = (
+                    `${REF_SOURCE.label} متاح حتى صفحة ${toAr(REF_SOURCE.maxPage)}`
+                );
+            }
             return;
         }
         if (!els.refImg && !els.refFrame) {
@@ -1090,6 +1181,38 @@
         }
     }
 
+    async function transferLineToNextPage(lineNumber) {
+        if (state.busy) return;
+        state.busy = true;
+        window.AtharUi.setBusy(els.main, true);
+        updateNav();
+        try {
+            const data = await window.AtharApi.json(`${API_BASE}/transfer-line`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    page_number: state.page,
+                    line_number: lineNumber,
+                }),
+            });
+            if (data.page) {
+                renderPage(data.page);
+                fitPages();
+            }
+            if (typeof data.undo_available === 'number') {
+                setUndoAvailable(data.undo_available);
+            }
+            setSavedStatus(data, 'تم ترحيل السطر كاملاً إلى الصفحة التالية');
+        } catch (e) {
+            const msg = (e && e.message) || (e && e.error) || '';
+            setStatus(msg || 'تعذّر ترحيل السطر إلى الصفحة التالية', true);
+        } finally {
+            state.busy = false;
+            window.AtharUi.setBusy(els.main, false);
+            updateNav();
+        }
+    }
+
     async function setLineCentered(lineNumber, isCentered) {
         if (state.busy) return;
         state.busy = true;
@@ -1155,7 +1278,9 @@
             } else {
                 setSavedStatus(
                     data,
-                    direction === 'up'
+                    data.cascaded
+                        ? `تم خفض ${label} وتحريك كل ما تحته`
+                        : direction === 'up'
                         ? `تم رفع ${label} سطراً`
                         : `تم خفض ${label} سطراً`
                 );
@@ -1216,6 +1341,7 @@
         }
         updateProgressLabel();
         updateReviewedCheckbox();
+        updateUncertainButton();
     }
     function updateProgressLabel() {
         const total = MAX_PAGE - MIN_PAGE + 1;
@@ -1225,6 +1351,40 @@
     }
     function updateReviewedCheckbox() {
         els.reviewed.checked = state.reviewedPages.has(state.page);
+    }
+    function updateUncertainButton() {
+        if (!els.nextUncertain) return;
+        const pending = state.uncertainPages.filter(
+            page => !state.reviewedPages.has(page)
+        );
+        els.nextUncertain.hidden = state.uncertainPages.length < 1;
+        els.nextUncertain.disabled = pending.length < 1;
+        const label = els.nextUncertain.querySelector('span');
+        if (label) {
+            label.textContent = pending.length
+                ? `التالي غير المؤكد (${toAr(pending.length)})`
+                : 'اكتملت الصفحات غير المؤكدة';
+        }
+    }
+    async function loadConfidenceIndex() {
+        if (!els.nextUncertain) return;
+        try {
+            const data = await window.AtharApi.json(
+                `${API_BASE}/import-confidence`
+            );
+            state.uncertainPages = (data.pages || [])
+                .filter(item => item.status === 'low' || item.status === 'medium')
+                .sort((a, b) => {
+                    const rank = { low: 0, medium: 1 };
+                    return rank[a.status] - rank[b.status]
+                        || a.page_number - b.page_number;
+                })
+                .map(item => Number(item.page_number))
+                .filter(Number.isFinite);
+        } catch (e) {
+            state.uncertainPages = [];
+        }
+        updateUncertainButton();
     }
 
     els.reviewed.addEventListener('change', async () => {
@@ -1240,6 +1400,7 @@
             if (reviewed) state.reviewedPages.add(page);
             else state.reviewedPages.delete(page);
             updateProgressLabel();
+            updateUncertainButton();
             setSavedStatus(data, 'تم حفظ حالة المطابقة');
         } catch (e) {
             els.reviewed.checked = !reviewed;
@@ -1254,6 +1415,19 @@
         state.page = clampPage(page);
         persist();
         loadPage();
+    }
+    if (els.nextUncertain) {
+        els.nextUncertain.addEventListener('click', () => {
+            const pending = state.uncertainPages.filter(
+                page => !state.reviewedPages.has(page)
+            );
+            if (!pending.length) {
+                setStatus('اكتملت مراجعة الصفحات غير المؤكدة');
+                return;
+            }
+            const later = pending.find(page => page > state.page);
+            goTo(later || pending[0]);
+        });
     }
     els.prev.addEventListener('click', () => { if (state.page > MIN_PAGE) goTo(state.page - 1); });
     els.next.addEventListener('click', () => { if (state.page < MAX_PAGE) goTo(state.page + 1); });
@@ -1333,5 +1507,6 @@
 
     initProfileForm();
     loadProgress();
+    loadConfidenceIndex();
     loadPage();
 })();

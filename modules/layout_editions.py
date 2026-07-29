@@ -18,6 +18,10 @@ from core.config import (
     AZHAR_LAYOUT_MIN_PAGE,
     BAHRAIN_LAYOUT_DATABASE,
     BAHRAIN_REF_PDF_URL,
+    MESAHA_ARCHIVE_ID,
+    MESAHA_LAYOUT_DATABASE,
+    MESAHA_LAYOUT_MAX_PAGE,
+    MESAHA_LAYOUT_MIN_PAGE,
     QPC_V2_LAYOUT_DATABASE,
     QURAN_SCRIPT_DATABASE,
     SHAMARLY_LAYOUT_DATABASE,
@@ -96,13 +100,30 @@ class LayoutEdition:
     ref_pdf_url: str | None = None
     # 1-based PDF page = mushaf_page + offset (Bahrain islamhouse: +5).
     ref_pdf_page_offset: int = 0
+    # Some working editions outgrow their temporary printed reference.
+    ref_max_page: int | None = None
     closed_pages: tuple[ClosedPageRule, ...] = ()
     line_count_overrides: tuple[tuple[int, int], ...] = ()
     storage_key: str = ''        # localStorage prefix
+    cloud_enabled: bool = False
+    line_page_transfer: bool = False
+    header_down_cascade: bool = False
+    protected_trailing_lines: tuple[tuple[int, int], ...] = ()
 
     def __post_init__(self):
+        if self.word_space not in {'shemrly', 'qpc'}:
+            raise ValueError(f'unsupported word ID space: {self.word_space}')
         if not self.storage_key:
             object.__setattr__(self, 'storage_key', f'layout_studio_{self.id}_page')
+
+    @property
+    def word_id_space(self) -> str:
+        """Stable namespace label; IDs are never interchangeable across labels."""
+        return (
+            'qpc-layout-global-v1'
+            if self.word_space == 'qpc'
+            else 'quran-script-stable-v1'
+        )
 
     @property
     def page_count(self) -> int:
@@ -135,6 +156,13 @@ class LayoutEdition:
                 return int(lines)
         return int(self.profile.lines_per_page)
 
+    def protected_trailing_count_for(self, page_number: int) -> int:
+        page = int(page_number)
+        for configured_page, count in self.protected_trailing_lines:
+            if int(configured_page) == page:
+                return max(0, int(count))
+        return 0
+
     def client_config(self, profile: LayoutProfile | None = None) -> dict:
         """JSON-safe config injected into the studio page."""
         effective = profile or self.profile
@@ -144,6 +172,7 @@ class LayoutEdition:
             'subtitleAr': self.subtitle_ar,
             'mushafVersion': self.mushaf_version,
             'wordSpace': self.word_space,
+            'wordIdSpace': self.word_id_space,
             'minPage': self.min_page,
             'maxPage': self.max_page,
             'linesPerPage': effective.lines_per_page,
@@ -172,6 +201,7 @@ class LayoutEdition:
                     'openTemplate': self.ref_open_template,
                     'pdfUrl': self.ref_pdf_url,
                     'pdfPageOffset': int(self.ref_pdf_page_offset),
+                    'maxPage': self.ref_max_page,
                 }
                 if self.ref_archive_id or self.ref_image_template or self.ref_pdf_url
                 else None
@@ -185,6 +215,12 @@ class LayoutEdition:
                 **{
                     str(r.page): r.target_lines for r in self.closed_pages
                 },
+            },
+            'linePageTransfer': bool(self.line_page_transfer),
+            'headerDownCascade': bool(self.header_down_cascade),
+            'protectedTrailingLines': {
+                str(page): int(count)
+                for page, count in self.protected_trailing_lines
             },
         }
 
@@ -244,6 +280,21 @@ PROFILE_PRESETS: dict[str, dict] = {
         ),
         'short_pages': {'2': 8, '3': 8},
     },
+    'mesaha': {
+        'id': 'mesaha',
+        'name_ar': 'المساحة الأميرية',
+        'description_ar': (
+            '١٢ سطراً، تدفّق مستمر، وراية السورة: اسم + معلومات + بسملة'
+        ),
+        'profile': LayoutProfile(
+            lines_per_page=12,
+            page_end_mode='continuous',
+            surah_name_lines=1,
+            surah_info_lines=1,
+            basmallah_lines=1,
+        ),
+        'short_pages': {'2': 8, '3': 8},
+    },
 }
 
 
@@ -277,6 +328,22 @@ _BAQARAH_OPEN = ClosedPageRule(
     next_page=4,
     target_lines=5,  # surah_name + basmallah + 3 ayah
 )
+_MESAHA_FATIHA = ClosedPageRule(
+    page=2,
+    ayah_first=8,
+    ayah_last=38,
+    next_page_first_word=45,
+    next_page=3,
+    target_lines=8,  # surah name + info + basmallah + 5 ayah
+)
+_MESAHA_BAQARAH_OPEN = ClosedPageRule(
+    page=3,
+    ayah_first=45,
+    ayah_last=76,
+    next_page_first_word=77,
+    next_page=4,
+    target_lines=8,  # surah name + info + basmallah + 5 ayah
+)
 
 AZHAR = LayoutEdition(
     id='azhar',
@@ -304,8 +371,19 @@ AZHAR = LayoutEdition(
     ref_leaf_offset=-1,
     ref_image_template=None,
     ref_open_template=None,
+    # The temporary Shamarly scan has 522 leaves; Azhar work continues to 525.
+    ref_max_page=522,
     closed_pages=(_FATIHA, _BAQARAH_OPEN),
     storage_key='az_layout_page',
+    line_page_transfer=True,
+    header_down_cascade=True,
+    protected_trailing_lines=(
+        (494, 2),
+        (516, 2),
+        (518, 2),
+        (521, 2),
+        (522, 2),
+    ),
 )
 
 BAHRAIN = LayoutEdition(
@@ -337,11 +415,44 @@ BAHRAIN = LayoutEdition(
     ref_pdf_page_offset=5,
     line_count_overrides=((1, 8), (2, 8)),
     storage_key='layout_studio_bahrain_page',
+    cloud_enabled=True,
+)
+
+MESAHA = LayoutEdition(
+    id='mesaha',
+    name_ar='مصحف المساحة الأميرية',
+    subtitle_ar=(
+        'بذرة آلية محافظة من طبعة ١٣٤٢هـ: النص القرآني كامل ومرتب بلا '
+        'تكرار، وحدود السطور المستخرجة مرفقة بدرجة ثقة. طابق كل صفحة '
+        'بالصورة المطبوعة قبل اعتمادها.'
+    ),
+    mushaf_version='المساحة الأميرية',
+    layout_db=MESAHA_LAYOUT_DATABASE,
+    seed_source_db=None,
+    word_space='shemrly',
+    script_db=QURAN_SCRIPT_DATABASE,
+    min_page=MESAHA_LAYOUT_MIN_PAGE,
+    max_page=MESAHA_LAYOUT_MAX_PAGE,
+    profile=PROFILE_PRESETS['mesaha']['profile'],
+    font_name='Amiri Quran',
+    undo_table='mesaha_layout_undo',
+    progress_table='mesaha_layout_progress',
+    payload_kind='canonical_script',
+    ref_archive_id=MESAHA_ARCHIVE_ID,
+    ref_label_ar='مصحف المساحة الأميرية ١٣٤٢هـ',
+    # Layout page N is Archive leaf N-1 (Archive leaves are zero-based).
+    ref_leaf_offset=-1,
+    ref_image_template=None,
+    ref_open_template=None,
+    closed_pages=(_MESAHA_FATIHA, _MESAHA_BAQARAH_OPEN),
+    storage_key='layout_studio_mesaha_page',
+    cloud_enabled=True,
 )
 
 _REGISTRY: dict[str, LayoutEdition] = {
     AZHAR.id: AZHAR,
     BAHRAIN.id: BAHRAIN,
+    MESAHA.id: MESAHA,
 }
 
 
@@ -372,6 +483,7 @@ def public_editions() -> list[dict]:
             'id': e.id,
             'name_ar': e.name_ar,
             'word_space': e.word_space,
+            'word_id_space': e.word_id_space,
             'lines_per_page': e.lines_per_page,
             'profile': e.profile.as_client_dict(),
             'font_name': e.font_name,
@@ -386,6 +498,10 @@ def public_editions() -> list[dict]:
                 **{
                     str(r.page): r.target_lines for r in e.closed_pages
                 },
+            },
+            'protected_trailing_lines': {
+                str(page): int(count)
+                for page, count in e.protected_trailing_lines
             },
         }
         for e in list_editions()

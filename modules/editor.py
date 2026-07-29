@@ -80,17 +80,17 @@ def _ayah_word_list_for_editor(surah_number, ayah_number):
     return words
 
 
-def _resolve_word(global_word_id):
-    """Return (surah, ayah, token_index, word_text) or None."""
+def _resolve_word(layout_word_id):
+    """Resolve one QPC-layout ID; it is not a quran_script or waqf index."""
     wmap = _get_dk_layout_word_map()
-    tok = wmap['id2tok'].get(global_word_id)
+    tok = wmap['id2tok'].get(layout_word_id)
     if not tok:
         return None
     surah_number, ayah_number = tok['surah'], tok['ayah']
     first_id = wmap['first_id'].get((surah_number, ayah_number))
     if first_id is None:
         return None
-    return surah_number, ayah_number, global_word_id - first_id, tok['text']
+    return surah_number, ayah_number, layout_word_id - first_id, tok['text']
 
 
 def _sqlite_edition_marks_map(edition: str, ayah_keys: list[tuple[int, int]]) -> dict[tuple[int, int, int], str]:
@@ -228,12 +228,12 @@ def _overlay_cloud_marks_on_page(page: dict | None, edition: str, status: str = 
     _overlay_cloud_marks_on_pages([page], edition)
 
 
-def _get_or_set_word_waqf_sqlite(global_word_id, edition, symbol):
+def _get_or_set_word_waqf_sqlite(layout_word_id, edition, symbol):
     """Legacy local SQLite path (used when Supabase is not configured)."""
     if edition not in EDITOR_EDITIONS:
         return None
 
-    resolved = _resolve_word(global_word_id)
+    resolved = _resolve_word(layout_word_id)
     if not resolved:
         return None
     surah_number, ayah_number, target_index, _text = resolved
@@ -300,9 +300,9 @@ def _get_or_set_word_waqf_sqlite(global_word_id, edition, symbol):
         conn.close()
 
 
-def _get_or_set_word_waqf_cloud(global_word_id, edition, symbol, user: dict | None):
+def _get_or_set_word_waqf_cloud(layout_word_id, edition, symbol, user: dict | None):
     """Read/write draft mark in Supabase. symbol=None → read only."""
-    resolved = _resolve_word(global_word_id)
+    resolved = _resolve_word(layout_word_id)
     if not resolved:
         return None
     surah, ayah, token_index, word_text = resolved
@@ -337,7 +337,7 @@ def _get_or_set_word_waqf_cloud(global_word_id, edition, symbol, user: dict | No
             actor_id=actor_id, actor_name=actor_name,
             action='clear_mark', edition=edition,
             surah=surah, ayah=ayah, token_index=token_index,
-            word_id=global_word_id, old_symbol=old_symbol, new_symbol='',
+            word_id=layout_word_id, old_symbol=old_symbol, new_symbol='',
         )
         invalidate_cloud_waqf_cache(edition, surah, ayah)
         return None
@@ -350,17 +350,17 @@ def _get_or_set_word_waqf_cloud(global_word_id, edition, symbol, user: dict | No
         actor_id=actor_id, actor_name=actor_name,
         action='set_mark', edition=edition,
         surah=surah, ayah=ayah, token_index=token_index,
-        word_id=global_word_id, old_symbol=old_symbol, new_symbol=clean,
+        word_id=layout_word_id, old_symbol=old_symbol, new_symbol=clean,
     )
     invalidate_cloud_waqf_cache(edition, surah, ayah)
     return clean
 
 
-def _get_or_set_word_waqf(global_word_id, edition, symbol, user=None):
+def _get_or_set_word_waqf(layout_word_id, edition, symbol, user=None):
     """Compatibility wrapper for seed scripts: cloud when configured, else SQLite."""
     if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
-        return _get_or_set_word_waqf_cloud(global_word_id, edition, symbol, user)
-    return _get_or_set_word_waqf_sqlite(global_word_id, edition, symbol)
+        return _get_or_set_word_waqf_cloud(layout_word_id, edition, symbol, user)
+    return _get_or_set_word_waqf_sqlite(layout_word_id, edition, symbol)
 
 
 @editor_bp.route('/mushaf-editor')
@@ -382,7 +382,6 @@ def _editor_layout_db(edition: str) -> str:
 
 
 @editor_bp.route('/api/mushaf-editor/page-by-ayah/<int:surah>/<int:ayah>', methods=['GET'])
-@require_editor
 def mushaf_editor_page_by_ayah(surah, ayah):
     """Resolve (surah, ayah) → mushaf page for an editor edition."""
     edition = (request.args.get('edition') or '').strip()

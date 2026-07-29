@@ -202,6 +202,8 @@ def _cloud_rows_to_mushaf_rows(rows) -> list[dict]:
             'symbols': symbol,
             'token_index': ti,  # already 0-based in cloud schema
             'word_index': None,
+            'word_position': None,
+            'index_space': 'ayah-token-0based',
         })
     return result
 
@@ -311,7 +313,11 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
                 # DB stores 1-based word position; convert to 0-based for the JS
                 # word array so map.set(token_index, ...) aligns with words[i].
                 'token_index': (row['token_index'] - 1) if row['token_index'] is not None else None,
-                'word_index': row['word_index']
+                # Despite its legacy column name, this is a 1-based content
+                # word position inside one ayah, never a layout/global ID.
+                'word_index': row['word_index'],
+                'word_position': row['word_index'],
+                'index_space': 'ayah-content-word-1based',
             }
             for row in rows
         ]

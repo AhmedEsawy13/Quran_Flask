@@ -32,6 +32,7 @@ from core.datasets import digital_khatt_data, qpc_hafs_data, surahs_data
 from core.mushaf_waqf import (
     get_mushaf_waqf_symbols,
 )
+from modules import layout_engine
 from modules.layout_editions import BAHRAIN
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,30 @@ logger = logging.getLogger(__name__)
 QATAR_UTHMANI_TEXT_PATH = os.path.join(_BASE_DIR, 'data', 'quran_text', 'quran-uthmani.txt')
 _ARABIC_DIGITS = '٠١٢٣٤٥٦٧٨٩'
 _AYAH_NUM_CHARS = set('٠١٢٣٤٥٦٧٨٩0123456789')
+
+
+def _word_ids_in_map_span(word_map, first_word_id, last_word_id):
+    """Expand endpoints inside the map's own ID namespace and reading order."""
+    if first_word_id is None or last_word_id is None:
+        return []
+    first_word_id = int(first_word_id)
+    last_word_id = int(last_word_id)
+    ordered_ids = word_map.get('ordered_ids')
+    positions = word_map.get('position_by_id')
+    if ordered_ids is not None and positions is not None:
+        lo = positions.get(first_word_id)
+        hi = positions.get(last_word_id)
+        if lo is None or hi is None or hi < lo:
+            return []
+        return ordered_ids[lo:hi + 1]
+    id2tok = word_map.get('id2tok') or {}
+    if last_word_id < first_word_id:
+        return []
+    return [
+        word_id
+        for word_id in range(first_word_id, last_word_id + 1)
+        if word_id in id2tok
+    ]
 
 
 @core_bp.route('/api/shamarly/ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
@@ -53,6 +78,7 @@ def get_shamarly_ayah(surah_number, ayah_number):
         cursor.execute("SELECT * FROM words WHERE surah = ? AND ayah = ? ORDER BY word_index ASC", (surah_number, ayah_number))
         words = [dict(row) for row in cursor.fetchall()]
         conn.close()
+        script_word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
         
         layout_conn = sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
@@ -60,29 +86,33 @@ def get_shamarly_ayah(surah_number, ayah_number):
 
         # Fetch pages and verse-line rows in one connection to avoid re-opening.
         if words:
-            first_word_id = words[0]['word_index']
-            last_word_id = words[-1]['word_index']
-            layout_cursor.execute("""
-                SELECT DISTINCT page_number FROM pages 
-                WHERE (first_word_id <= ? AND last_word_id >= ?) OR (first_word_id <= ? AND last_word_id >= ?)
-                OR (first_word_id >= ? AND last_word_id <= ?)
-            """, (last_word_id, first_word_id, first_word_id, last_word_id, first_word_id, last_word_id))
-            pages = sorted([int(row['page_number']) for row in layout_cursor.fetchall()])
             layout_cursor.execute(
                 '''
-                SELECT page_number, line_number, first_word_id, last_word_id
+                SELECT page_number, line_number, line_type,
+                       first_word_id, last_word_id
                 FROM pages
-                WHERE line_type IN ('ayah', 'basmallah')
-                  AND (
-                        (first_word_id <= ? AND last_word_id >= ?)
-                     OR (first_word_id <= ? AND last_word_id >= ?)
-                     OR (first_word_id >= ? AND last_word_id <= ?)
-                  )
+                WHERE first_word_id IS NOT NULL
+                  AND last_word_id IS NOT NULL
                 ORDER BY page_number ASC, line_number ASC
-                ''',
-                (last_word_id, first_word_id, first_word_id, last_word_id, first_word_id, last_word_id)
+                '''
             )
-            _prefetched_line_rows = [dict(row) for row in layout_cursor.fetchall()]
+            target_ids = {int(word['word_index']) for word in words}
+            matching_rows = [
+                dict(row)
+                for row in layout_cursor.fetchall()
+                if target_ids.intersection(_word_ids_in_map_span(
+                    script_word_map,
+                    row['first_word_id'],
+                    row['last_word_id'],
+                ))
+            ]
+            pages = sorted({
+                int(row['page_number']) for row in matching_rows
+            })
+            _prefetched_line_rows = [
+                row for row in matching_rows
+                if row['line_type'] in {'ayah', 'basmallah'}
+            ]
         else:
             pages = []
             _prefetched_line_rows = []
@@ -175,12 +205,15 @@ def get_shamarly_ayah(surah_number, ayah_number):
             last_word_id = int(words[-1]['word_index'])
 
             for line in _prefetched_line_rows:
-                line_first = int(line['first_word_id'])
-                line_last = int(line['last_word_id'])
+                line_word_ids = set(_word_ids_in_map_span(
+                    script_word_map,
+                    line['first_word_id'],
+                    line['last_word_id'],
+                ))
                 line_words = []
                 for token_index, word in enumerate(words):
                     word_pos = int(word['word_index'])
-                    if line_first <= word_pos <= line_last:
+                    if word_pos in line_word_ids:
                         line_words.append({
                             'token_index': token_index,
                             'word_index': word_pos,
@@ -239,12 +272,17 @@ def _get_word_match_text(word):
 
 
 def _word_index_hint_to_list_index(words, row):
-    """Map DB word_index (1-based within ayah words) to a list index.
+    """Map an explicit 1-based within-ayah word position to a list index.
 
-    word_index is interpreted as the ordinal position among content words in the
-    verse, excluding marker-only tokens (e.g. Rubu/Sajda standalone markers).
+    ``mushaf_waqf.word_index`` is retained as a legacy alias, but it must never
+    be interpreted as a layout/global word ID.
     """
-    raw = row.get('word_index')
+    index_space = row.get('index_space')
+    if index_space not in (None, 'ayah-content-word-1based'):
+        return None
+    raw = row.get('word_position')
+    if raw is None:
+        raw = row.get('word_index')
     if raw is None:
         return None
     try:
@@ -281,7 +319,13 @@ def _resolve_token_index_as_layout_offset(words, token_index):
     if ti < 0:
         return None
 
-    if words and words[0].get('word_index') is not None and words[0].get('surah') and words[0].get('ayah') is not None:
+    if (
+        words
+        and words[0].get('word_id_space') == 'qpc-layout-global-v1'
+        and words[0].get('word_index') is not None
+        and words[0].get('surah')
+        and words[0].get('ayah') is not None
+    ):
         try:
             wmap = _get_dk_layout_word_map()
             first_id = wmap['first_id'].get((int(words[0]['surah']), int(words[0]['ayah'])))
@@ -293,8 +337,8 @@ def _resolve_token_index_as_layout_offset(words, token_index):
                 if int(word.get('word_index') or -1) == target_gid:
                     return idx
 
-    if 0 <= ti < len(words):
-        return ti
+    # A partial ayah may occupy this page, so using ``words[ti]`` without a
+    # known ID space can silently shift a cloud mark onto the wrong word.
     return None
 
 
@@ -380,57 +424,46 @@ def _glyph_row_score(arabic_word):
 
 
 @lru_cache(maxsize=1024)
-@lru_cache(maxsize=1024)
-def _get_shamarly_page_ayah_word_bounds(page_number):
-    """Return (first_word_id, last_word_id) covering the real words printed on a page.
-
-    The per-page Shemrly font indexes glyph base+1 to the FIRST words-table row
-    physically on the page, in word_index order. We therefore must anchor on the
-    first actual word, not the first 'ayah' line: on the Al-Fatiha page the basmala
-    IS verse 1:1 and its words live in the words table BELOW the first ayah line, so
-    an ayah-only floor shifted every glyph by 5 (basmala rendered as fallback text,
-    later words ran off the end). We take the page's full layout word span (every
-    word-bearing line, incl. basmallah/surah_name reserved slots) and clamp it to
-    the words table — reserved slots and non-Fatiha basmalas (absent from words)
-    drop out automatically, leaving the exact range the font's glyphs cover.
-    """
+def _get_shamarly_page_word_ids(page_number):
+    """Exact printed word IDs for a page, in Quran reading order."""
     try:
         layout_conn = sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
         layout_cursor = layout_conn.cursor()
-        layout_cursor.execute(
+        rows = layout_cursor.execute(
             '''
-            SELECT MIN(first_word_id) AS lo, MAX(last_word_id) AS hi
+            SELECT first_word_id, last_word_id
             FROM pages
             WHERE page_number = ?
               AND first_word_id IS NOT NULL
               AND last_word_id IS NOT NULL
+            ORDER BY line_number
             ''',
             (int(page_number),)
-        )
-        span = layout_cursor.fetchone()
+        ).fetchall()
         layout_conn.close()
-        if not span or span['lo'] is None or span['hi'] is None:
-            return (None, None)
-
-        words_conn = sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'quran_script.db'))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            '''
-            SELECT MIN(word_index) AS first_word_id, MAX(word_index) AS last_word_id
-            FROM words
-            WHERE word_index BETWEEN ? AND ?
-            ''',
-            (int(span['lo']), int(span['hi']))
-        )
-        row = words_cursor.fetchone()
-        words_conn.close()
-        if not row or row['first_word_id'] is None or row['last_word_id'] is None:
-            return (None, None)
-        return (int(row['first_word_id']), int(row['last_word_id']))
+        word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
+        result = []
+        seen = set()
+        for row in rows:
+            for word_id in _word_ids_in_map_span(
+                word_map, row['first_word_id'], row['last_word_id'],
+            ):
+                if word_id not in seen:
+                    seen.add(word_id)
+                    result.append(word_id)
+        return tuple(result)
     except Exception:
+        return ()
+
+
+@lru_cache(maxsize=1024)
+def _get_shamarly_page_ayah_word_bounds(page_number):
+    """Compatibility endpoints in reading order; do not treat as numeric bounds."""
+    word_ids = _get_shamarly_page_word_ids(page_number)
+    if not word_ids:
         return (None, None)
+    return (word_ids[0], word_ids[-1])
 
 
 @lru_cache(maxsize=1024)
@@ -470,8 +503,8 @@ def _get_shamarly_page_word_codepoint_map(page_number):
     indices 1:1: cmap gaps line up with the marks, so every word keeps its own glyph.
     On mark-free pages the cmap is contiguous and this reduces to the simple formula.
     """
-    first_word_id, last_word_id = _get_shamarly_page_ayah_word_bounds(page_number)
-    if first_word_id is None or last_word_id is None:
+    word_indices = list(_get_shamarly_page_word_ids(page_number))
+    if not word_indices:
         return {}
 
     font_name = f"Shemrly-Page{int(page_number):03d}"
@@ -479,19 +512,6 @@ def _get_shamarly_page_word_codepoint_map(page_number):
     if not supported_codepoints:
         return {}
     present = sorted(c for c in supported_codepoints if c > SHEMRLY_CODEPOINT_BASE)
-
-    try:
-        words_conn = sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'quran_script.db'))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            'SELECT word_index FROM words WHERE word_index BETWEEN ? AND ? ORDER BY word_index ASC',
-            (int(first_word_id), int(last_word_id))
-        )
-        word_indices = [int(r['word_index']) for r in words_cursor.fetchall()]
-        words_conn.close()
-    except Exception:
-        return {}
 
     # The 1:1 alignment only holds when the font carries exactly one glyph per word.
     # If they disagree (missing font, data drift), bail so the caller can fall back.
@@ -510,13 +530,12 @@ def _get_shamarly_glyph_char_for_word(page_number, word_position):
 
     # Fallback for pages where the glyph/word counts could not be aligned (e.g. the
     # font is absent): use the contiguous local-index formula.
-    first_word_id, last_word_id = _get_shamarly_page_ayah_word_bounds(page_number)
-    if first_word_id is None or last_word_id is None:
+    word_ids = _get_shamarly_page_word_ids(page_number)
+    if not word_ids:
         return None
-    if wp < first_word_id or wp > last_word_id:
-        return None
-    local_index = wp - first_word_id + 1
-    if local_index <= 0:
+    try:
+        local_index = word_ids.index(wp) + 1
+    except ValueError:
         return None
 
     codepoint = SHEMRLY_CODEPOINT_BASE + local_index
@@ -719,39 +738,32 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
         focus_word_indices = {int(row['word_index']) for row in words_cursor.fetchall()}
         words_conn.close()
 
+    script_word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
+    page_word_by_index = script_word_map['id2tok']
     page_word_rows = []
-    page_word_by_index = {}
-    if min_word_id is not None and max_word_id is not None:
-        words_conn = _track(sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'quran_script.db')))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            '''
-            SELECT word_index, surah, ayah, text, text_original
-            FROM words
-            WHERE word_index BETWEEN ? AND ?
-            ORDER BY word_index ASC
-            ''',
-            (min_word_id, max_word_id)
-        )
-        for row in words_cursor.fetchall():
-            item = {
-                'word_index': int(row['word_index']),
-                'surah': int(row['surah']),
-                'ayah': int(row['ayah']),
-                'text': row['text'],
-                'text_original': row['text_original']
-            }
-            page_word_rows.append(item)
-            page_word_by_index[item['word_index']] = item
-        words_conn.close()
+    seen_page_words = set()
+    for line in lines:
+        for word_id in _word_ids_in_map_span(
+            script_word_map,
+            line.get('first_word_id'),
+            line.get('last_word_id'),
+        ):
+            if word_id in seen_page_words:
+                continue
+            seen_page_words.add(word_id)
+            source = page_word_by_index.get(word_id)
+            if source:
+                page_word_rows.append({
+                    'word_index': word_id,
+                    **source,
+                })
 
     waqf_by_word_index = _build_page_waqf_map(page_word_rows, mushaf_version)
 
     anchor_surah_number = None
     anchor_ayah_number = None
     if page_word_rows:
-        first = min(page_word_rows, key=lambda item: item['word_index'])
+        first = page_word_rows[0]
         anchor_surah_number = first['surah']
         anchor_ayah_number = first['ayah']
 
@@ -765,7 +777,10 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
 
         if first_word_id is not None and last_word_id is not None:
             chars = []
-            for word_pos in range(first_word_id, last_word_id + 1):
+            line_word_ids = _word_ids_in_map_span(
+                script_word_map, first_word_id, last_word_id,
+            )
+            for word_pos in line_word_ids:
                 glyph_char = glyph_by_word_pos.get(word_pos, '')
                 fallback_word = page_word_by_index.get(word_pos, {}).get('text') or ''
                 rendered_word = glyph_char or fallback_word
@@ -775,6 +790,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                 src_word = page_word_by_index.get(word_pos, {})
                 line_words.append({
                     'word_index': word_pos,
+                    'word_id_space': script_word_map.get('id_space'),
                     'text': rendered_word,
                     'surah': src_word.get('surah'),
                     'ayah': src_word.get('ayah'),
@@ -787,7 +803,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
             if focus_word_indices:
                 contains_focus_ayah = any(
                     word_pos in focus_word_indices
-                    for word_pos in range(first_word_id, last_word_id + 1)
+                    for word_pos in line_word_ids
                 )
 
         output_lines.append({
@@ -855,43 +871,38 @@ def get_shamarly_page(page_number):
 def get_shamarly_page_by_ayah(surah_number, ayah_number):
     try:
         mushaf_version = request.args.getlist('mushaf_version') or [request.args.get('mushaf_version', '').strip()]
-        words_conn = sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'quran_script.db'))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            '''
-            SELECT MIN(word_index) AS first_word_id, MAX(word_index) AS last_word_id
-            FROM words
-            WHERE surah = ? AND ayah = ?
-            ''',
-            (surah_number, ayah_number)
-        )
-        word_range = words_cursor.fetchone()
-        words_conn.close()
-
-        if not word_range or word_range['first_word_id'] is None:
+        word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
+        target_ids = {
+            word_id
+            for word_id, word in word_map['id2tok'].items()
+            if int(word['surah']) == int(surah_number)
+            and int(word['ayah']) == int(ayah_number)
+        }
+        if not target_ids:
             return jsonify({'error': 'Ayah not found in script DB'}), 404
-
-        first_word_id = word_range['first_word_id']
-        last_word_id = word_range['last_word_id']
 
         layout_conn = sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'mushaf_layout_inferred.db'))
         layout_conn.row_factory = sqlite3.Row
         layout_cursor = layout_conn.cursor()
-        layout_cursor.execute(
+        rows = layout_cursor.execute(
             '''
-            SELECT page_number
+            SELECT page_number, first_word_id, last_word_id
             FROM pages
-            WHERE (first_word_id <= ? AND last_word_id >= ?)
-               OR (first_word_id <= ? AND last_word_id >= ?)
-               OR (first_word_id >= ? AND last_word_id <= ?)
+            WHERE first_word_id IS NOT NULL
+              AND last_word_id IS NOT NULL
             ORDER BY page_number ASC, line_number ASC
-            LIMIT 1
-            ''',
-            (last_word_id, first_word_id, first_word_id, last_word_id, first_word_id, last_word_id)
-        )
-        row = layout_cursor.fetchone()
+            '''
+        ).fetchall()
         layout_conn.close()
+        row = next(
+            (
+                item for item in rows
+                if target_ids.intersection(_word_ids_in_map_span(
+                    word_map, item['first_word_id'], item['last_word_id'],
+                ))
+            ),
+            None,
+        )
 
         if not row:
             return jsonify({'error': 'Page not found for ayah'}), 404
@@ -949,7 +960,12 @@ def _get_dk_layout_word_map():
     if _DK_LAYOUT_WORD_MAP is not None:
         return _DK_LAYOUT_WORD_MAP
 
-    result = {'id2tok': {}, 'first_id': {}, 'last_id': {}}
+    result = {
+        'id2tok': {},
+        'first_id': {},
+        'last_id': {},
+        'id_space': 'qpc-layout-global-v1',
+    }
     try:
         if not digital_khatt_data or not os.path.exists(DIGITAL_KHATT_LAYOUT_DATABASE):
             _DK_LAYOUT_WORD_MAP = result
@@ -1006,6 +1022,12 @@ def _get_dk_layout_word_map():
     except Exception as e:
         logger.error(f'Failed to build Digital Khatt layout word map: {e}')
 
+    ordered_ids = sorted(result['id2tok'])
+    result['ordered_ids'] = ordered_ids
+    result['position_by_id'] = {
+        word_id: position
+        for position, word_id in enumerate(ordered_ids)
+    }
     _DK_LAYOUT_WORD_MAP = result
     return result
 
@@ -1036,7 +1058,14 @@ def _get_qpc_hafs_layout_word_map():
         return _QPC_HAFS_LAYOUT_WORD_MAP
 
     dk_map = _get_dk_layout_word_map()
-    result = {'id2tok': {}, 'first_id': dk_map['first_id'], 'last_id': dk_map['last_id']}
+    result = {
+        'id2tok': {},
+        'first_id': dk_map['first_id'],
+        'last_id': dk_map['last_id'],
+        'id_space': dk_map['id_space'],
+        'ordered_ids': dk_map['ordered_ids'],
+        'position_by_id': dk_map['position_by_id'],
+    }
     id2tok = result['id2tok']
     dk_id2tok = dk_map['id2tok']
 
@@ -1160,7 +1189,14 @@ def _get_qatar_uthmani_layout_word_map():
     dk_map = _get_dk_layout_word_map()
     qpc_map = _get_qpc_hafs_layout_word_map()
     uthmani = _load_tanzil_uthmani_ayahs()
-    result = {'id2tok': {}, 'first_id': dk_map['first_id'], 'last_id': dk_map['last_id']}
+    result = {
+        'id2tok': {},
+        'first_id': dk_map['first_id'],
+        'last_id': dk_map['last_id'],
+        'id_space': dk_map['id_space'],
+        'ordered_ids': dk_map['ordered_ids'],
+        'position_by_id': dk_map['position_by_id'],
+    }
     id2tok = result['id2tok']
     matched = fallback = 0
 
@@ -1232,7 +1268,8 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
 
     `mushaf_version` (str or list) selects which print's waqf symbols to attach
     per word — same mechanism the main app uses."""
-    id2tok = (word_map or _get_dk_layout_word_map())['id2tok']
+    effective_word_map = word_map or _get_dk_layout_word_map()
+    id2tok = effective_word_map['id2tok']
 
     def to_int_or_none(value):
         try:
@@ -1257,12 +1294,15 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
         line_words = []
         contains_focus_ayah = False
         if first_word_id is not None and last_word_id is not None:
-            for word_id in range(first_word_id, last_word_id + 1):
+            for word_id in _word_ids_in_map_span(
+                effective_word_map, first_word_id, last_word_id,
+            ):
                 tok = id2tok.get(word_id)
                 if not tok:
                     continue
                 word = {
                     'word_index': word_id,
+                    'word_id_space': effective_word_map.get('id_space'),
                     'text': tok['text'],
                     'surah': tok['surah'],
                     'ayah': tok['ayah'],
@@ -1719,14 +1759,6 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
     if not lines:
         return None
 
-    word_ranges = [
-        (line.get('first_word_id'), line.get('last_word_id'))
-        for line in lines
-        if line.get('first_word_id') is not None and line.get('last_word_id') is not None
-    ]
-    min_word_id = min((int(rng[0]) for rng in word_ranges), default=None)
-    max_word_id = max((int(rng[1]) for rng in word_ranges), default=None)
-
     focus_word_indices = set()
     if focus_surah is not None and focus_ayah is not None:
         words_conn = _track(sqlite3.connect(QURAN_SCRIPT_DATABASE))
@@ -1739,28 +1771,8 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
         focus_word_indices = {int(row['word_index']) for row in words_cursor.fetchall()}
         words_conn.close()
 
-    page_word_by_index = {}
-    if min_word_id is not None and max_word_id is not None:
-        words_conn = _track(sqlite3.connect(QURAN_SCRIPT_DATABASE))
-        words_conn.row_factory = sqlite3.Row
-        words_cursor = words_conn.cursor()
-        words_cursor.execute(
-            '''
-            SELECT word_index, surah, ayah, text
-            FROM words
-            WHERE word_index BETWEEN ? AND ?
-            ORDER BY word_index ASC
-            ''',
-            (min_word_id, max_word_id),
-        )
-        for row in words_cursor.fetchall():
-            page_word_by_index[int(row['word_index'])] = {
-                'word_index': int(row['word_index']),
-                'surah': int(row['surah']),
-                'ayah': int(row['ayah']),
-                'text': row['text'] or '',
-            }
-        words_conn.close()
+    script_word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
+    page_word_by_index = script_word_map['id2tok']
 
     bismillah = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
     page_word_rows = []
@@ -1791,16 +1803,17 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
             else:
                 display_text = bismillah
         elif first_word_id is not None and last_word_id is not None:
-            # Walk only ids present in quran_script (Shemrly gaps are skipped).
-            for word_pos in sorted(
-                wid for wid in page_word_by_index
-                if int(first_word_id) <= wid <= int(last_word_id)
+            # Endpoints belong to quran_script's stable-ID namespace; expand
+            # them in Quran reading order, not numeric-ID order.
+            for word_pos in _word_ids_in_map_span(
+                script_word_map, first_word_id, last_word_id,
             ):
                 src = page_word_by_index.get(word_pos)
                 if not src or not src.get('text'):
                     continue
                 word = {
                     'word_index': word_pos,
+                    'word_id_space': script_word_map.get('id_space'),
                     'text': src['text'],
                     'surah': src['surah'],
                     'ayah': src['ayah'],
@@ -1879,17 +1892,13 @@ def _azhar_pages_for_ayah(surah_number, ayah_number):
     """All Azhar layout pages that contain any word of the ayah (mid-ayah aware)."""
     if not os.path.exists(AZHAR_LAYOUT_DATABASE) or not os.path.exists(QURAN_SCRIPT_DATABASE):
         return []
-    words_conn = sqlite3.connect(QURAN_SCRIPT_DATABASE)
-    try:
-        words_conn.row_factory = sqlite3.Row
-        cur = words_conn.cursor()
-        cur.execute(
-            'SELECT word_index FROM words WHERE surah = ? AND ayah = ?',
-            (surah_number, ayah_number),
-        )
-        indices = [int(r['word_index']) for r in cur.fetchall()]
-    finally:
-        words_conn.close()
+    word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
+    indices = {
+        word_id
+        for word_id, word in word_map['id2tok'].items()
+        if int(word['surah']) == int(surah_number)
+        and int(word['ayah']) == int(ayah_number)
+    }
     if not indices:
         return []
 
@@ -1898,16 +1907,20 @@ def _azhar_pages_for_ayah(surah_number, ayah_number):
         layout_conn.row_factory = sqlite3.Row
         cur = layout_conn.cursor()
         pages = set()
-        for word_id in indices:
-            cur.execute(
-                '''
-                SELECT DISTINCT page_number FROM pages
-                WHERE first_word_id IS NOT NULL AND last_word_id IS NOT NULL
-                  AND first_word_id <= ? AND last_word_id >= ?
-                ''',
-                (word_id, word_id),
+        rows = cur.execute(
+            '''
+            SELECT page_number, first_word_id, last_word_id
+            FROM pages
+            WHERE first_word_id IS NOT NULL
+              AND last_word_id IS NOT NULL
+            ORDER BY page_number, line_number
+            '''
+        ).fetchall()
+        for row in rows:
+            span = _word_ids_in_map_span(
+                word_map, row['first_word_id'], row['last_word_id'],
             )
-            for row in cur.fetchall():
+            if indices.intersection(span):
                 pages.add(int(row['page_number']))
         return sorted(pages)
     finally:

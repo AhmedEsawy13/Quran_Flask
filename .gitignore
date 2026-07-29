@@ -124,3 +124,4 @@ data/classical_waqf_llm.db
 # this on first write; decisions are exported/reviewed before release rather
 # than silently committed as a mutable binary database.
 data/classical_review.db
+data/mesaha-ocr/
