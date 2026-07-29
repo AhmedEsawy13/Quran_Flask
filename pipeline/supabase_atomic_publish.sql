@@ -1,6 +1,12 @@
 -- Atomic publishing migration for existing Athar Supabase projects.
 -- Safe to run repeatedly in Supabase SQL Editor.
 
+create table if not exists public.athar_schema_versions (
+  component text primary key,
+  version integer not null check (version > 0),
+  updated_at timestamptz not null default now()
+);
+
 create or replace function public.publish_editor_edition(
   p_edition text,
   p_actor_id uuid,
@@ -112,3 +118,13 @@ revoke all on function public.publish_editor_edition(text, uuid, text, jsonb)
   from public;
 grant execute on function public.publish_editor_edition(text, uuid, text, jsonb)
   to service_role;
+
+insert into public.athar_schema_versions (component, version, updated_at)
+values ('editor', 3, now())
+on conflict (component) do update
+set version = excluded.version,
+    updated_at = excluded.updated_at;
+
+alter table public.athar_schema_versions enable row level security;
+revoke all on table public.athar_schema_versions from anon, authenticated;
+grant select on table public.athar_schema_versions to service_role;

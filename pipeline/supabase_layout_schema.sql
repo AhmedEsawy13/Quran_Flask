@@ -1,6 +1,12 @@
 -- Durable Layout Studio overrides.
 -- Safe to run more than once in the Supabase SQL editor.
 
+create table if not exists public.athar_schema_versions (
+  component text primary key,
+  version integer not null check (version > 0),
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.editor_layout_pages (
   edition text not null,
   page_number integer not null check (page_number >= 1),
@@ -24,3 +30,13 @@ alter table public.editor_layout_pages enable row level security;
 alter table public.editor_layout_profiles enable row level security;
 
 -- No anon/authenticated policies: Flask writes with service_role only.
+
+insert into public.athar_schema_versions (component, version, updated_at)
+values ('layout', 2, now())
+on conflict (component) do update
+set version = excluded.version,
+    updated_at = excluded.updated_at;
+
+alter table public.athar_schema_versions enable row level security;
+revoke all on table public.athar_schema_versions from anon, authenticated;
+grant select on table public.athar_schema_versions to service_role;

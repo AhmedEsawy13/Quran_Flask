@@ -663,6 +663,21 @@ def test_schema_installs_service_role_only_atomic_publish_rpc():
         assert 'to service_role' in sql
 
 
+def test_supabase_schema_readiness_is_versioned_and_service_role_only():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    sql = (
+        root / 'pipeline' / 'supabase_schema_readiness.sql'
+    ).read_text(encoding='utf-8').lower()
+    assert 'create table if not exists public.athar_schema_versions' in sql
+    assert "('editor', 3, now())" in sql
+    assert "('layout', 2, now())" in sql
+    assert 'enable row level security' in sql
+    assert 'revoke all' in sql
+    assert 'grant select' in sql and 'to service_role' in sql
+
+
 def test_pending_publish_diff_keeps_published_old_symbol(cloud):
     """Drafts mid-mushaf must compare against published even past the 1000-row page."""
     # Seed many early published rows + the real published mark for 33:36.

@@ -63,6 +63,15 @@ Supabase SQL editor. This installs the transaction used by **اعتماد ونش
 Until this migration is installed, publishing intentionally fails instead of
 falling back to the old partial-write behavior.
 
+Then run
+[`supabase_schema_readiness.sql`](supabase_schema_readiness.sql). It records
+the installed editor/layout migration versions without granting browser
+access. Verify the project at any time with:
+
+```bash
+python3 pipeline/check_supabase_readiness.py
+```
+
 Then run this once so invite create/revoke can be audited (it is already part
 of the current full schema):
 
@@ -171,3 +180,7 @@ test suite. If versioned files changed, it opens or updates
 The service-role key is available only to the read-only planning step. The job
 never writes to Supabase and never pushes to `main`; a human must review and
 merge the PR. Validation failures create a failed run and no branch update.
+
+The separate `production-smoke.yml` workflow checks the deployed HTTP surface
+and Supabase schema daily. Configure the `PRODUCTION_BASE_URL` repository
+variable in addition to the two Supabase secrets.

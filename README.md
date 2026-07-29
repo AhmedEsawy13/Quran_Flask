@@ -255,6 +255,17 @@ Representative endpoints — see `app.py` (routes not yet split out) and
 ### Monitoring
 - `GET /api/health`
 
+Release readiness is checked on every push and pull request by
+`.github/workflows/ci.yml`. A daily production workflow runs the critical HTTP
+smoke checks and verifies the Supabase capability/schema versions. The same
+checks can be run locally:
+
+```bash
+python3 pipeline/audit_release_readiness.py
+python3 scripts/smoke_test.py --local --include-editor
+python3 pipeline/check_supabase_readiness.py
+```
+
 ## Deep dives
 
 Some subsystems have enough nuance that they're documented in more depth than

@@ -1,0 +1,44 @@
+name: Production and Supabase readiness
+
+on:
+  schedule:
+    - cron: '47 3 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-readiness
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify production HTTP endpoints
+        env:
+          PRODUCTION_BASE_URL: ${{ vars.PRODUCTION_BASE_URL }}
+        run: |
+          if [ -z "$PRODUCTION_BASE_URL" ]; then
+            echo "Set the PRODUCTION_BASE_URL repository variable." >&2
+            exit 1
+          fi
+          python3 scripts/smoke_test.py --base-url "$PRODUCTION_BASE_URL"
+
+      - name: Verify Supabase schema and connectivity
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: python3 pipeline/check_supabase_readiness.py

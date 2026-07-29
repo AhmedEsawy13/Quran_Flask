@@ -21,6 +21,21 @@ def test_all_features_including_editor_boot(client):
         assert client.get(url).status_code == 200, url
 
 
+def test_release_workflows_cover_push_smoke_and_supabase_readiness():
+    ci = (
+        PROJECT_ROOT / '.github' / 'workflows' / 'ci.yml'
+    ).read_text(encoding='utf-8')
+    smoke = (
+        PROJECT_ROOT / '.github' / 'workflows' / 'production-smoke.yml'
+    ).read_text(encoding='utf-8')
+    assert 'push:' in ci and 'pull_request:' in ci
+    assert 'python3 -m pytest -q' in ci
+    assert 'audit_release_readiness.py' in ci
+    assert 'smoke_test.py --local --include-editor' in ci
+    assert 'PRODUCTION_BASE_URL' in smoke
+    assert 'check_supabase_readiness.py' in smoke
+
+
 def test_enabled_features_env(monkeypatch):
     monkeypatch.setenv('FEATURES', 'reading,memorize')
     monkeypatch.delenv('ENABLE_EDITOR', raising=False)
