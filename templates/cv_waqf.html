@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {% set page_title = 'أثَر · تسمية علامات الوقف' %}
+    {% set page_description = 'ارسم مربعاً على علامة الوقف في صورة المصحف لحفظ عيّنة تدريب.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/cv-waqf', noindex=true) }}
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/cv_waqf.css') }}">
+</head>
+<body class="athar-tool cvw-body"
+      data-editions='{{ editions | tojson }}'
+      data-symbols='{{ symbols | tojson }}'
+      data-default-edition="{{ default_edition }}"
+      data-min-page="{{ min_page }}"
+      data-max-page="{{ max_page }}">
+    {{ athar_app_bar('cvw-main') }}
+
+    <header class="cvw-chrome" aria-label="أدوات التسمية">
+        <div class="cvw-chrome-top">
+            <p class="cvw-kicker">تدريب · قصّ يدوي</p>
+            <h1 class="cvw-title">سمِّ علامات الوقف على الصفحة</h1>
+            <p class="cvw-lede">
+                اسحب مربعاً حول العلامة المطبوعة ثم اختر نوعها.
+                تُحفظ القصّة كمرجع للتدريب — ابدأ بالشمرلي ثم البحرين.
+                <a href="/cv-waqf/labels">معرض التسميات</a>
+            </p>
+        </div>
+
+        <div class="cvw-controls">
+            <label class="cvw-field">
+                <span>المصحف</span>
+                <select id="cvw-edition" class="athar-field" aria-label="طبعة المصحف">
+                    {% for ed in editions %}
+                    <option value="{{ ed.id }}"
+                            data-slug="{{ ed.slug }}"
+                            data-min="{{ ed.min_page }}"
+                            data-max="{{ ed.max_page }}">{{ ed.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="cvw-page-nav" role="group" aria-label="رقم الصفحة">
+                <button type="button" id="cvw-prev" class="cvw-nav-btn" aria-label="السابقة">‹</button>
+                <label class="cvw-page-field">
+                    <span>صفحة</span>
+                    <input id="cvw-page" class="athar-field" type="text" inputmode="numeric" autocomplete="off">
+                </label>
+                <button type="button" id="cvw-next" class="cvw-nav-btn" aria-label="التالية">›</button>
+            </div>
+            <div class="cvw-mode" role="group" aria-label="الوضع">
+                <button type="button" class="cvw-mode-btn is-active" data-mode="label" id="cvw-mode-label">تسمية</button>
+                <button type="button" class="cvw-mode-btn" data-mode="detect" id="cvw-mode-detect">كشف CV</button>
+            </div>
+        </div>
+
+        <div class="cvw-palette" id="cvw-palette" role="group" aria-label="نوع العلامة">
+            {% for s in symbols %}
+            <button type="button" class="cvw-sym-btn" data-symbol="{{ s.code }}" title="{{ s.name }}">
+                <span class="cvw-sym-glyph">{{ s.glyph }}</span>
+                <span class="cvw-sym-code">{{ s.code }}</span>
+            </button>
+            {% endfor %}
+            <button type="button" class="cvw-sym-btn" data-symbol="none" title="ليس علامة (سالب)">
+                <span class="cvw-sym-glyph">∅</span>
+                <span class="cvw-sym-code">none</span>
+            </button>
+        </div>
+
+        <div class="cvw-toggles cvw-detect-only" id="cvw-detect-toggles" hidden role="group" aria-label="طبقات العرض">
+            <label><input type="checkbox" id="cvw-show-cv" checked> كشف CV</label>
+            <label><input type="checkbox" id="cvw-show-db" checked> قاعدة البيانات</label>
+            <label><input type="checkbox" id="cvw-show-missing" checked> ناقص</label>
+            <label><input type="checkbox" id="cvw-show-extra" checked> زائد</label>
+            <label class="cvw-field cvw-conf-inline">
+                <span>ثقة <em id="cvw-conf-label">0.55</em></span>
+                <input id="cvw-conf" type="range" min="0.35" max="0.95" step="0.05" value="0.55">
+            </label>
+        </div>
+
+        <p class="cvw-meta" id="cvw-meta" aria-live="polite">اسحب مربعاً على العلامة، ثم اضغط رمزها.</p>
+    </header>
+
+    <main class="cvw-main" id="cvw-main">
+        <section class="cvw-stage" aria-label="صفحة المصحف">
+            <div class="cvw-canvas-wrap is-label" id="cvw-wrap">
+                <img id="cvw-img" alt="صفحة المصحف" hidden>
+                <canvas id="cvw-canvas"></canvas>
+                <p class="cvw-empty" id="cvw-empty">اختر صفحة</p>
+            </div>
+        </section>
+
+        <aside class="cvw-side" aria-label="التسميات المحفوظة">
+            <div class="cvw-side-head">
+                <strong id="cvw-label-count">0 تسمية</strong>
+                <button type="button" class="cvw-nav-btn" id="cvw-undo" title="حذف آخر" hidden>⌫</button>
+            </div>
+            <ul class="cvw-list" id="cvw-list"></ul>
+        </aside>
+    </main>
+
+    <script src="{{ static_hash('js/cv_waqf.js') }}"></script>
+</body>
+</html>

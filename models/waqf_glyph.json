@@ -1,0 +1,18 @@
+{
+  "classes": [
+    "م",
+    "ق",
+    "ص",
+    "ج",
+    "لا",
+    "ع",
+    "س",
+    "none"
+  ],
+  "crop_size": 48,
+  "hidden": 128,
+  "input": "input",
+  "output": "logits",
+  "input_layout": "NCHW",
+  "ink_as_positive": true
+}

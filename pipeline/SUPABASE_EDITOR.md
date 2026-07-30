@@ -72,6 +72,19 @@ access. Verify the project at any time with:
 python3 pipeline/check_supabase_readiness.py
 ```
 
+### Hand-labeled CV waqf crops (training sync)
+
+For labeling on one machine and training on another, run once in the SQL
+editor: [`supabase_cv_waqf_hand.sql`](supabase_cv_waqf_hand.sql). Then:
+
+```bash
+python3 -m pipeline.cv_waqf push-hand --slug shamarly   # upload crops + model
+python3 -m pipeline.cv_waqf pull-hand --slug shamarly   # download on the other machine
+```
+
+Uses the same `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` as the editor.
+Private Storage bucket `cv-waqf-hand` + table `cv_waqf_hand_labels`.
+
 Then run this once so invite create/revoke can be audited (it is already part
 of the current full schema):
 

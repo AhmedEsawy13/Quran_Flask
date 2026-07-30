@@ -1,0 +1,342 @@
+/* OpenCV waqf detection viewer — follows Athar editor tool chrome */
+:root {
+    --cvw-bg: var(--athar-parchment, #f3ebe0);
+    --cvw-ink: var(--athar-ink, #1c1915);
+    --cvw-muted: var(--athar-ink-muted, #6b6358);
+    --cvw-accent: var(--athar-accent, #2f5d4a);
+    --cvw-border: color-mix(in srgb, var(--cvw-ink) 12%, transparent);
+    --cvw-match: #1f6b45;
+    --cvw-wrong: #8a3b2a;
+    --cvw-extra: #2a5f8a;
+    --cvw-missing: #8a6a1f;
+}
+
+.cvw-body {
+    margin: 0;
+    background:
+        radial-gradient(1000px 420px at 70% -8%, color-mix(in srgb, var(--cvw-accent) 12%, transparent), transparent),
+        var(--cvw-bg);
+    color: var(--cvw-ink);
+    font-family: var(--athar-sans, "Thmanyah Sans", "Segoe UI", sans-serif);
+    min-height: 100vh;
+}
+
+.cvw-chrome {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 10px 14px 12px;
+    background: color-mix(in srgb, var(--cvw-bg) 92%, white);
+    border-bottom: 1px solid var(--cvw-border);
+    backdrop-filter: blur(8px);
+}
+
+.cvw-kicker { margin: 0; font-size: 0.72rem; color: var(--cvw-muted); }
+.cvw-title {
+    margin: 2px 0 0;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+    font-size: 1.28rem;
+    font-weight: 700;
+}
+.cvw-lede { margin: 4px 0 0; font-size: 0.86rem; color: var(--cvw-muted); }
+.cvw-lede a { color: var(--cvw-accent); }
+
+.cvw-controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+@media (min-width: 720px) {
+    .cvw-controls {
+        grid-template-columns: 1.2fr auto 1fr;
+        align-items: end;
+    }
+}
+
+.cvw-field,
+.cvw-page-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    color: var(--cvw-muted);
+    font-weight: 700;
+}
+
+.cvw-field em {
+    font-style: normal;
+    color: var(--cvw-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.cvw-page-nav {
+    display: flex;
+    align-items: end;
+    gap: 6px;
+}
+
+.cvw-page-field { flex: 1; min-width: 4.5rem; }
+.cvw-page-field input { text-align: center; font-size: 1.05rem; }
+
+.cvw-nav-btn {
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 10px;
+    border: 1px solid var(--cvw-border);
+    background: #fff;
+    color: var(--cvw-ink);
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+.cvw-nav-btn:hover { border-color: var(--cvw-accent); }
+
+.cvw-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin-top: 10px;
+    font-size: 0.82rem;
+    color: var(--cvw-muted);
+}
+.cvw-toggles label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.cvw-meta {
+    margin: 10px 0 0;
+    font-size: 0.82rem;
+    color: var(--cvw-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.cvw-main {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 0 40px;
+}
+
+@media (min-width: 960px) {
+    .cvw-main {
+        grid-template-columns: minmax(0, 1fr) 320px;
+        align-items: start;
+    }
+    .cvw-side {
+        position: sticky;
+        top: 148px;
+        max-height: calc(100vh - 160px);
+        overflow: auto;
+    }
+}
+
+.cvw-stage { padding: 12px; }
+.cvw-canvas-wrap {
+    position: relative;
+    margin: 0 auto;
+    max-width: 920px;
+    background: #ddd6cb;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 8px 28px color-mix(in srgb, var(--cvw-ink) 12%, transparent);
+    min-height: 240px;
+}
+
+.cvw-canvas-wrap img,
+.cvw-canvas-wrap canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    vertical-align: top;
+}
+
+/* Canvas is paint-only; pointer events live on the wrap so drag always works. */
+.cvw-canvas-wrap canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+.cvw-canvas-wrap.is-label {
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+}
+.cvw-mode {
+    display: flex;
+    gap: 6px;
+}
+.cvw-mode-btn {
+    border: 1px solid var(--cvw-border);
+    background: #fff;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--cvw-muted);
+}
+.cvw-mode-btn.is-active {
+    background: var(--cvw-accent);
+    border-color: var(--cvw-accent);
+    color: #fff;
+}
+
+.cvw-palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+.cvw-sym-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 3rem;
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--cvw-border);
+    background: #fff;
+    cursor: pointer;
+}
+.cvw-sym-btn.is-active,
+.cvw-sym-btn:hover {
+    border-color: var(--cvw-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--cvw-accent) 25%, transparent);
+}
+.cvw-sym-glyph {
+    font-family: "UthmanicHafs", "Amiri Quran", serif;
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+.cvw-sym-code { font-size: 0.68rem; color: var(--cvw-muted); font-weight: 700; }
+
+.cvw-side-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+}
+.cvw-del {
+    border: 0;
+    background: transparent;
+    color: var(--cvw-wrong);
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+}
+.cvw-conf-inline { min-width: 8rem; }
+
+
+.cvw-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    color: var(--cvw-muted);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+.cvw-empty:not([hidden]) {
+    pointer-events: auto;
+}
+
+.cvw-side {
+    padding: 8px 12px 24px;
+    border-top: 1px solid var(--cvw-border);
+}
+@media (min-width: 960px) {
+    .cvw-side { border-top: 0; border-inline-start: 1px solid var(--cvw-border); }
+}
+
+.cvw-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.cvw-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+}
+.cvw-pill.match { color: var(--cvw-match); }
+.cvw-pill.wrong { color: var(--cvw-wrong); }
+.cvw-pill.extra { color: var(--cvw-extra); }
+.cvw-pill.missing { color: var(--cvw-missing); }
+
+.cvw-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cvw-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: color-mix(in srgb, #fff 70%, var(--cvw-bg));
+    border: 1px solid var(--cvw-border);
+    cursor: pointer;
+}
+.cvw-item:hover,
+.cvw-item.is-active {
+    border-color: var(--cvw-accent);
+}
+
+.cvw-item .glyph {
+    font-family: "UthmanicHafs", "Amiri Quran", serif;
+    font-size: 1.35rem;
+    line-height: 1;
+    min-width: 1.6rem;
+    text-align: center;
+}
+.cvw-item .body { min-width: 0; }
+.cvw-item .ref {
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.cvw-item .txt {
+    font-size: 0.78rem;
+    color: var(--cvw-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cvw-item .tag {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 6px;
+    color: #fff;
+}
+.cvw-item .tag.match { background: var(--cvw-match); }
+.cvw-item .tag.wrong { background: var(--cvw-wrong); }
+.cvw-item .tag.extra { background: var(--cvw-extra); }
+.cvw-item .tag.missing { background: var(--cvw-missing); }
+
+.cvw-item .conf {
+    grid-column: 1 / -1;
+    font-size: 0.7rem;
+    color: var(--cvw-muted);
+    font-variant-numeric: tabular-nums;
+}

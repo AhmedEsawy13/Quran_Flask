@@ -1,0 +1,11 @@
+# Offline computer-vision tooling for waqf-mark detection.
+# Keep out of production Flask / requirements.txt.
+#
+#   python3 -m venv .venv-cv
+#   .venv-cv/bin/pip install -r requirements-cv.txt
+#
+opencv-python==5.0.0.93
+numpy>=2.0
+onnx>=1.16
+pillow>=10.0
+pymupdf>=1.24.0
