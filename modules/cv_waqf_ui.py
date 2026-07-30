@@ -121,6 +121,7 @@ CLASS_DIR = {
     'لا': 'la', 'ع': 'a', 'س': 'sakta', 'none': 'none',
 }
 HAND_ROOT = ROOT / 'data' / 'cv' / 'crops_hand'
+STORAGE_BUCKET = 'cv-waqf-hand'
 
 
 def _hand_dir(slug: str) -> Path:
@@ -131,7 +132,15 @@ def _labels_path(slug: str) -> Path:
     return _hand_dir(slug) / 'labels.jsonl'
 
 
-def _load_labels(slug: str, page: int | None = None) -> list[dict]:
+def _cloud_ready() -> bool:
+    try:
+        from core import supabase_editor as sb
+        return sb.is_configured()
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _load_local_labels(slug: str, page: int | None = None) -> list[dict]:
     path = _labels_path(slug)
     if not path.is_file():
         return []
@@ -150,14 +159,180 @@ def _load_labels(slug: str, page: int | None = None) -> list[dict]:
     return out
 
 
+def _fetch_cloud_labels(slug: str, page: int | None = None) -> list[dict]:
+    """Read hand labels from Supabase (service role). Empty if unset/unavailable."""
+    if not _cloud_ready():
+        return []
+    try:
+        from core import supabase_editor as sb
+        params: dict[str, str] = {
+            'slug': f'eq.{slug}',
+            'select': 'id,edition,slug,page,symbol,box,crop_path,created_at',
+            'order': 'created_at.asc',
+        }
+        if page is not None:
+            params['page'] = f'eq.{int(page)}'
+        rows = sb._request('GET', 'cv_waqf_hand_labels', params=params) or []
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf cloud labels fetch failed: %s', exc)
+        return []
+    out = []
+    for row in rows:
+        out.append({
+            'id': row['id'],
+            'edition': row['edition'],
+            'slug': row['slug'],
+            'page': int(row['page']),
+            'symbol': row['symbol'],
+            'box': row['box'],
+            'crop': row.get('crop_path') or row.get('crop'),
+            'created_at': row.get('created_at'),
+            'source': 'supabase',
+        })
+    return out
+
+
+def _merge_labels(local: list[dict], remote: list[dict]) -> list[dict]:
+    by_id: dict[str, dict] = {}
+    for row in remote + local:
+        rid = row.get('id')
+        if not rid:
+            continue
+        prev = by_id.get(rid)
+        if prev is None:
+            by_id[rid] = row
+            continue
+        a = str(prev.get('created_at') or '')
+        b = str(row.get('created_at') or '')
+        by_id[rid] = row if b >= a else prev
+    return sorted(
+        by_id.values(),
+        key=lambda r: (int(r.get('page') or 0), str(r.get('id') or '')),
+    )
+
+
+def _load_labels(slug: str, page: int | None = None) -> list[dict]:
+    """Local jsonl + Supabase rows (cloud wins for same id when newer)."""
+    return _merge_labels(
+        _load_local_labels(slug, page=page),
+        _fetch_cloud_labels(slug, page=page),
+    )
+
+
 def _rewrite_labels(slug: str, rows: list[dict]) -> None:
     path = _labels_path(slug)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix('.tmp')
     with tmp.open('w', encoding='utf-8') as fh:
         for row in rows:
-            fh.write(json.dumps(row, ensure_ascii=False) + '\n')
+            clean = {k: v for k, v in row.items() if k != 'source'}
+            fh.write(json.dumps(clean, ensure_ascii=False) + '\n')
     tmp.replace(path)
+
+
+def _cloud_upsert_label(label: dict) -> None:
+    if not _cloud_ready():
+        return
+    try:
+        from core import supabase_editor as sb
+        sb._request(
+            'POST',
+            'cv_waqf_hand_labels',
+            json_body={
+                'id': label['id'],
+                'edition': label['edition'],
+                'slug': label['slug'],
+                'page': int(label['page']),
+                'symbol': label['symbol'],
+                'box': label['box'],
+                'crop_path': label.get('crop') or label.get('crop_path'),
+                'created_at': label.get('created_at'),
+            },
+            prefer='resolution=merge-duplicates,return=minimal',
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf cloud upsert failed: %s', exc)
+
+
+def _cloud_delete_label(label_id: str, crop_rel: str | None = None) -> None:
+    if not _cloud_ready():
+        return
+    try:
+        from core import supabase_editor as sb
+        import requests
+        sb._request(
+            'DELETE',
+            'cv_waqf_hand_labels',
+            params={'id': f'eq.{label_id}'},
+        )
+        if crop_rel:
+            url = f"{sb._base()}/storage/v1/object/{STORAGE_BUCKET}/{crop_rel.lstrip('/')}"
+            requests.delete(
+                url,
+                headers={
+                    'apikey': sb._key(),
+                    'Authorization': f'Bearer {sb._key()}',
+                },
+                timeout=30,
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf cloud delete failed: %s', exc)
+
+
+def _cloud_upload_bytes(object_path: str, data: bytes, content_type: str) -> None:
+    if not _cloud_ready():
+        return
+    try:
+        from core import supabase_editor as sb
+        import requests
+        url = (
+            f"{sb._base()}/storage/v1/object/{STORAGE_BUCKET}/"
+            f"{object_path.lstrip('/')}"
+        )
+        resp = requests.post(
+            url,
+            headers={
+                'apikey': sb._key(),
+                'Authorization': f'Bearer {sb._key()}',
+                'Content-Type': content_type,
+                'x-upsert': 'true',
+            },
+            data=data,
+            timeout=60,
+        )
+        if resp.status_code not in (200, 201):
+            logger.warning(
+                'cv_waqf cloud upload %s failed: %s %s',
+                object_path, resp.status_code, resp.text[:200],
+            )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf cloud upload failed: %s', exc)
+
+
+def _cloud_download_bytes(object_path: str) -> bytes | None:
+    if not _cloud_ready():
+        return None
+    try:
+        from core import supabase_editor as sb
+        import requests
+        url = (
+            f"{sb._base()}/storage/v1/object/{STORAGE_BUCKET}/"
+            f"{object_path.lstrip('/')}"
+        )
+        resp = requests.get(
+            url,
+            headers={
+                'apikey': sb._key(),
+                'Authorization': f'Bearer {sb._key()}',
+            },
+            timeout=60,
+        )
+        if resp.status_code != 200:
+            return None
+        return resp.content
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf cloud download failed: %s', exc)
+        return None
 
 
 def _save_crop_png(slug: str, label: dict) -> Path:
@@ -378,6 +553,7 @@ def cv_waqf_labels_list():
         'page': page,
         'labels': labels,
         'count': len(labels),
+        'cloud': _cloud_ready(),
     })
 
 
@@ -431,8 +607,24 @@ def cv_waqf_labels_create():
     with path.open('a', encoding='utf-8') as fh:
         fh.write(json.dumps(label, ensure_ascii=False) + '\n')
 
+    # Mirror to Supabase so other machines / cloud UI see it immediately.
+    try:
+        crop_bytes = (ROOT / label['crop']).read_bytes()
+        _cloud_upload_bytes(label['crop'], crop_bytes, 'image/png')
+        _cloud_upsert_label(label)
+        # Keep remote labels.jsonl roughly in sync (best-effort).
+        all_rows = _load_labels(meta['slug'])
+        _rewrite_labels(meta['slug'], all_rows)
+        _cloud_upload_bytes(
+            f"data/cv/crops_hand/{meta['slug']}/labels.jsonl",
+            _labels_path(meta['slug']).read_bytes(),
+            'application/json',
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf cloud mirror after create failed: %s', exc)
+
     _refresh_hand_gallery(meta['slug'])
-    return jsonify({'ok': True, 'label': label})
+    return jsonify({'ok': True, 'label': label, 'cloud': _cloud_ready()})
 
 
 @editor_bp.route('/api/cv-waqf/labels/<label_id>', methods=['DELETE'])
@@ -467,8 +659,19 @@ def cv_waqf_labels_delete(label_id: str):
                 crop_path.unlink()
             except OSError:
                 pass
+    _cloud_delete_label(label_id, crop_rel)
+    try:
+        labels_path = _labels_path(slug)
+        payload = labels_path.read_bytes() if labels_path.is_file() else b''
+        _cloud_upload_bytes(
+            f'data/cv/crops_hand/{slug}/labels.jsonl',
+            payload,
+            'application/json',
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf cloud labels.jsonl refresh failed: %s', exc)
     _refresh_hand_gallery(slug)
-    return jsonify({'ok': True, 'deleted': label_id})
+    return jsonify({'ok': True, 'deleted': label_id, 'cloud': _cloud_ready()})
 
 
 def _refresh_hand_gallery(slug: str) -> None:
@@ -515,11 +718,13 @@ def cv_waqf_labels_gallery_index():
     from flask import redirect
 
     for preferred in ('shamarly', 'bahrain'):
-        if (_hand_dir(preferred) / 'index.html').is_file():
+        if _load_labels(preferred) or (_hand_dir(preferred) / 'index.html').is_file():
+            _refresh_hand_gallery(preferred)
             return redirect(f'/cv-waqf/labels/{preferred}')
     return jsonify({
         'error': 'no hand labels yet',
         'hint': 'Open /cv-waqf, draw a box on a mark, pick its symbol.',
+        'cloud': _cloud_ready(),
     }), 404
 
 
@@ -527,9 +732,8 @@ def cv_waqf_labels_gallery_index():
 def cv_waqf_labels_gallery(slug: str):
     from flask import abort
 
+    _refresh_hand_gallery(slug)
     index = _hand_dir(slug) / 'index.html'
-    if not index.is_file():
-        _refresh_hand_gallery(slug)
     if not index.is_file():
         abort(404)
     return send_file(index, mimetype='text/html')
@@ -540,6 +744,14 @@ def cv_waqf_labels_assets(slug: str, filename: str):
     from flask import abort, send_from_directory
 
     folder = _hand_dir(slug)
-    if not folder.is_dir():
+    local = folder / filename
+    if not local.is_file():
+        # Hydrate from Supabase Storage when working on a fresh machine / cloud.
+        object_path = f'data/cv/crops_hand/{slug}/{filename}'
+        data = _cloud_download_bytes(object_path)
+        if data:
+            local.parent.mkdir(parents=True, exist_ok=True)
+            local.write_bytes(data)
+    if not folder.is_dir() or not local.is_file():
         abort(404)
     return send_from_directory(folder, filename)

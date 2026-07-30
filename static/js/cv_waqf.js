@@ -136,13 +136,14 @@
                 setMeta('تحميل الصفحة والتسميات…');
                 await loadImageFromUrl(imageUrlFor(page), gen);
                 if (gen !== state.loadGen) return;
-                const labels = await fetchLabels(edition, page);
+                const packed = await fetchLabels(edition, page);
                 if (gen !== state.loadGen) return;
-                state.labels = labels;
+                state.labels = packed.labels;
                 paint();
                 renderLabelList();
                 setMeta(
                     `صفحة ${toAr(page)} · ${toAr(state.labels.length)} تسمية محفوظة · اسحب مربعاً ثم اختر الرمز`
+                    + (packed.cloud ? ' · سحابة' : '')
                 );
             } else {
                 setMeta('جاري الكشف…');
@@ -218,7 +219,7 @@
         const res = await fetch(url, { credentials: 'same-origin' });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || res.statusText);
-        return data.labels || [];
+        return { labels: data.labels || [], cloud: !!data.cloud };
     }
 
     function resizeCanvas() {
