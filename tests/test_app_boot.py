@@ -459,5 +459,6 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'function watchLineMetrics()' in memorize
     assert 'new ResizeObserver' in memorize
     assert 'passes >= 4' in memorize
+    assert '}, 160);' in memorize
     assert 'featureCandidates = null' in shared
     assert 'const spacing = Math.min(slack / gaps, spacingCap)' in shared

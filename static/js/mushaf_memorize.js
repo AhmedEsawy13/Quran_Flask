@@ -1106,9 +1106,13 @@
         });
         setTimeout(() => {
             if (lineMetricObserver !== observer) return;
-            observer.disconnect();
-            lineMetricObserver = null;
-        }, 500);
+            justifyLines();
+            requestAnimationFrame(() => {
+                if (lineMetricObserver !== observer) return;
+                observer.disconnect();
+                lineMetricObserver = null;
+            });
+        }, 160);
     }
     // Fit each page/spread against an explicit compression budget. Including the
     // focus page in the key prevents a difficult page from inheriting a font size

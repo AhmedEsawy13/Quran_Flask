@@ -51,6 +51,7 @@ def test_auditor_measures_page_font_size_not_a_line_override():
     assert "getComputedStyle(page).getPropertyValue('--dk-fs')" in source
     assert 'inline_transform: inner.style.transform' in source
     assert 'line_width: lineRect.width' in source
+    assert 'page.wait_for_timeout(240)' in source
 
 
 def test_validator_accepts_values_inside_all_budgets():

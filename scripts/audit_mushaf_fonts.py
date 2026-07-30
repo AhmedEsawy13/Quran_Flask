@@ -230,9 +230,9 @@ def settle(page: Any, timeout_ms: int) -> None:
         timeout=timeout_ms,
     )
     page.evaluate("() => document.fonts ? document.fonts.ready : Promise.resolve()")
-    # renderSpread() schedules justification in requestAnimationFrame after the
-    # page footer appears. A short settle window captures that final state.
-    page.wait_for_timeout(80)
+    # renderSpread() uses animation frames plus a bounded 160ms fallback pass to
+    # capture late Chromium font shaping. Measure the stable user-visible state.
+    page.wait_for_timeout(240)
 
 
 def visible_page_numbers(page: Any) -> list[int]:
