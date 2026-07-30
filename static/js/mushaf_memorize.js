@@ -1088,9 +1088,9 @@
         sharedSize: false,
         maxPageFitRatio: 1.15,
         // Linux/Chromium shapes several exceptionally long printed lines wider
-        // than macOS. A 9px floor lets the page-level fitter preserve the 5%
+        // than macOS. An 8.5px floor lets the page-level fitter preserve the 5%
         // compression budget instead of squeezing individual words by 8–9%.
-        minFontSize: 9,
+        minFontSize: 8.5,
         minLineScale: () => (
             isMadinahSource(state.src) ? 0.95 : 0
         ),

@@ -440,7 +440,7 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'linesPerPage = 15, cacheKey = () => \'\', fitScale = 1' in shared
     assert 'minLineScale = 0' in shared
     assert 'minFontSize = 11' in shared
-    assert 'minFontSize: 9,' in memorize
+    assert 'minFontSize: 8.5' in memorize
     assert 'minFontSize: 9.5' in landing
     assert 'sharedSize = true' in shared
     assert 'sharedSize: false' in memorize
