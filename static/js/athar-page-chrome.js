@@ -383,16 +383,15 @@
                     )
                 );
                 if (!avail || lineEl.dataset.justify !== '1') return;
-                const natural = inner.scrollWidth;
+                const natural = inner.getBoundingClientRect().width;
                 if (!natural) return;
 
                 if (natural > avail + 0.5) {                  // too long → condense to fit
-                    const naturalWidth = inner.getBoundingClientRect().width || natural;
                     const lineScaleFloor = Math.max(
                         0.5,
                         Math.min(1, resolveNumber(minLineScale, 0.5, lineEl, inner))
                     );
-                    const rawScale = Math.max(0.5, avail / naturalWidth);
+                    const rawScale = Math.max(0.5, avail / natural);
                     if (rawScale < lineScaleFloor) {
                         // Keep glyph proportions within budget. Shrink only this
                         // exceptional line, then use the allowed final scaleX to
@@ -451,7 +450,7 @@
                 let bestDistance = Math.abs(avail - natural);
                 candidates.forEach(candidate => {
                     inner.style.fontFeatureSettings = candidate;
-                    const candidateWidth = inner.scrollWidth;
+                    const candidateWidth = inner.getBoundingClientRect().width;
                     if (!candidateWidth) return;
                     const fitScale = avail / candidateWidth;
                     if (candidateWidth > avail + 0.5 && fitScale < featureScaleFloor) return;
@@ -492,7 +491,7 @@
                     // If the spacing cap leaves a little width unfilled, spread
                     // that remainder across the shaped line instead of reopening
                     // conspicuous gaps between words.
-                    const spacedWidth = inner.scrollWidth;
+                    const spacedWidth = inner.getBoundingClientRect().width;
                     if (spacedWidth && spacedWidth < avail - 0.5) {
                         const stretch = Math.min(avail / spacedWidth, stretchCap);
                         if (stretch > 1.0005) inner.style.transform = `scaleX(${stretch})`;

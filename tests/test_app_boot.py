@@ -463,3 +463,4 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert '}, 160);' in memorize
     assert 'featureCandidates = null' in shared
     assert 'const spacing = Math.min(slack / gaps, spacingCap)' in shared
+    assert 'const spacedWidth = inner.getBoundingClientRect().width' in shared
