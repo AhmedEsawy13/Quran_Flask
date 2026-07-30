@@ -501,6 +501,29 @@
                 }
                 fitRenderedWidth(inner, avail, featureScaleFloor, stretchCap);
             });
+
+            // Reconcile every justified line once after all feature and spacing
+            // writes have flushed. This catches early-return paths whose layout
+            // box changes after a sibling line triggers Chromium shaping.
+            lines.forEach(lineEl => {
+                if (lineEl.dataset.justify !== '1') return;
+                const inner = lineEl.querySelector(innerSelector);
+                if (!inner) return;
+                const avail = Math.max(
+                    0,
+                    resolveNumber(availableWidth, lineEl.clientWidth, lineEl, inner)
+                );
+                if (!avail) return;
+                const finalMin = Math.max(
+                    0.5,
+                    Math.min(1, resolveNumber(minLineScale, 0.5, lineEl, inner))
+                );
+                const finalMax = Math.max(
+                    1,
+                    resolveNumber(maxStretch, Infinity, lineEl, inner)
+                );
+                fitRenderedWidth(inner, avail, finalMin, finalMax);
+            });
         };
     }
 
