@@ -14,7 +14,7 @@ if str(ROOT) not in sys.path:
 
 from core import supabase_editor as sb  # noqa: E402
 
-EXPECTED_VERSIONS = {'editor': 3, 'layout': 2}
+EXPECTED_VERSIONS = {'editor': 4, 'layout': 2}
 REQUIRED_PATHS = {
     '/editor_invites',
     '/editor_marks',

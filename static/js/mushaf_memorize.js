@@ -1087,10 +1087,10 @@
         cacheKey: () => `${state.src}|${state.layoutMode}|${state.focusPage || 0}`,
         sharedSize: false,
         maxPageFitRatio: 1.15,
-        // Narrow mobile pages can contain an exceptionally long printed line
-        // (notably Digital Khatt page 507). Allow the compression-budget fitter
-        // to reach its calculated ~10px size instead of stopping at 10.5px.
-        minFontSize: 9.5,
+        // Linux/Chromium shapes several exceptionally long printed lines wider
+        // than macOS. A 9px floor lets the page-level fitter preserve the 5%
+        // compression budget instead of squeezing individual words by 8–9%.
+        minFontSize: 9,
         minLineScale: () => (
             isMadinahSource(state.src) ? 0.95 : 0
         ),

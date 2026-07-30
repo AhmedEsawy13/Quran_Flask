@@ -122,7 +122,7 @@ grant execute on function public.publish_editor_edition(text, uuid, text, jsonb)
 insert into public.athar_schema_versions (component, version, updated_at)
 values ('editor', 3, now())
 on conflict (component) do update
-set version = excluded.version,
+set version = greatest(athar_schema_versions.version, excluded.version),
     updated_at = excluded.updated_at;
 
 alter table public.athar_schema_versions enable row level security;

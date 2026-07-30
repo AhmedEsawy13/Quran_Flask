@@ -240,10 +240,10 @@ alter table editor_audit enable row level security;
 
 insert into public.athar_schema_versions (component, version, updated_at)
 values
-  ('editor', 3, now()),
+  ('editor', 4, now()),
   ('layout', 2, now())
 on conflict (component) do update
-set version = excluded.version,
+set version = greatest(athar_schema_versions.version, excluded.version),
     updated_at = excluded.updated_at;
 
 alter table public.athar_schema_versions enable row level security;

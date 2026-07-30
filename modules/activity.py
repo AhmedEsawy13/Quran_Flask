@@ -73,11 +73,13 @@ def activity_feed():
             before_id = int(before_id_raw)
         except (TypeError, ValueError):
             return jsonify({'error': 'invalid before_id'}), 400
+    if (before_at is None) != (before_id is None):
+        return jsonify({'error': 'incomplete cursor'}), 400
     if action and action not in sb.AUDIT_ACTIONS:
         return jsonify({'error': 'invalid action'}), 400
 
     try:
-        items = sb.list_audit(
+        items, next_cursor = sb.list_audit_page(
             edition=edition,
             actor_id=actor_id,
             action=action,
@@ -91,12 +93,6 @@ def activity_feed():
     except sb.SupabaseEditorError as exc:
         logger.error('activity feed failed: %s', exc)
         return jsonify({'error': 'audit unavailable'}), 503
-
-    next_cursor = None
-    if items:
-        last = items[-1]
-        if last.get('at') is not None and last.get('id') is not None:
-            next_cursor = {'before_at': last['at'], 'before_id': last['id']}
 
     user = current_editor()
     actors = []

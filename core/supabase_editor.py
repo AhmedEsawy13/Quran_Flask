@@ -852,7 +852,7 @@ def recent_audit(*, edition: str | None = None, limit: int = 30) -> list[dict]:
     return list_audit(edition=edition, limit=limit)
 
 
-def list_audit(
+def list_audit_page(
     *,
     edition: str | None = None,
     actor_id: str | None = None,
@@ -863,17 +863,18 @@ def list_audit(
     before_at: str | None = None,
     before_id: int | None = None,
     limit: int = 50,
-) -> list[dict]:
+) -> tuple[list[dict], dict[str, Any] | None]:
     """Filtered activity feed (newest first). Cursor = (before_at, before_id)."""
     limit = max(1, min(int(limit), 100))
-    # Over-fetch when we still need Python-side cursor / text filtering.
-    fetch_limit = limit
-    if q or (before_at is not None and before_id is not None):
-        fetch_limit = min(200, limit * 3)
+    needle = (q or '').strip().lower()
+    # Text search is intentionally local because useful fields are spread
+    # across columns and JSON metadata. Scan a bounded window and return a
+    # cursor even when that window has no matches, so older rows stay reachable.
+    scan_limit = 200 if needle else limit
     params: dict[str, str] = {
         'select': _AUDIT_SELECT,
         'order': 'at.desc,id.desc',
-        'limit': str(fetch_limit),
+        'limit': str(scan_limit + 1),
     }
     if edition:
         params['edition'] = f'eq.{edition}'
@@ -887,23 +888,19 @@ def list_audit(
         params['at'] = f'gte.{since}'
     elif until:
         params['at'] = f'lte.{until}'
+    if before_at is not None and before_id is not None:
+        bid = int(before_id)
+        params['or'] = (
+            f'(at.lt.{before_at},'
+            f'and(at.eq.{before_at},id.lt.{bid}))'
+        )
 
     rows = _request('GET', 'editor_audit', params=params) or []
-    needle = (q or '').strip().lower()
+    has_extra = len(rows) > scan_limit
+    scanned = rows[:scan_limit]
     out: list[dict] = []
-    for row in rows:
-        at = row.get('at') or ''
-        row_id = row.get('id')
-        if before_at is not None and before_id is not None:
-            try:
-                bid = int(before_id)
-            except (TypeError, ValueError):
-                bid = None
-            if bid is not None:
-                if at > before_at:
-                    continue
-                if at == before_at and row_id is not None and int(row_id) >= bid:
-                    continue
+    next_row = None
+    for index, row in enumerate(scanned):
         if needle:
             meta = row.get('meta')
             meta_blob = ''
@@ -931,8 +928,46 @@ def list_audit(
                 continue
         out.append(row)
         if len(out) >= limit:
+            if index < len(scanned) - 1 or has_extra:
+                next_row = row
             break
-    return out
+    else:
+        if has_extra and scanned:
+            next_row = scanned[-1]
+
+    next_cursor = None
+    if next_row and next_row.get('at') is not None and next_row.get('id') is not None:
+        next_cursor = {
+            'before_at': next_row['at'],
+            'before_id': next_row['id'],
+        }
+    return out, next_cursor
+
+
+def list_audit(
+    *,
+    edition: str | None = None,
+    actor_id: str | None = None,
+    action: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    q: str | None = None,
+    before_at: str | None = None,
+    before_id: int | None = None,
+    limit: int = 50,
+) -> list[dict]:
+    items, _cursor = list_audit_page(
+        edition=edition,
+        actor_id=actor_id,
+        action=action,
+        since=since,
+        until=until,
+        q=q,
+        before_at=before_at,
+        before_id=before_id,
+        limit=limit,
+    )
+    return items
 
 
 def pending_publish_diff(edition: str) -> list[dict]:

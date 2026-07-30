@@ -101,3 +101,83 @@ def test_activity_api_filters_and_cursor(client, cloud):
 def test_list_audit_helpers_accept_new_actions():
     assert 'layout_save' in sb.AUDIT_ACTIONS
     assert 'mark_review_decision' in sb.AUDIT_ACTIONS
+
+
+def test_activity_cursor_reaches_every_row_without_duplicates(client, cloud):
+    _seed_invite(cloud, name='Mac', role='admin', username='mac-pages')
+    _login(client, 'mac-pages')
+    for page in range(1, 131):
+        sb.append_audit(
+            actor_id='u-mac',
+            actor_name='Mac',
+            action='layout_save',
+            edition='bahrain',
+            page_number=page,
+        )
+
+    seen = []
+    cursor = None
+    while True:
+        query = '/api/activity?action=layout_save&limit=40'
+        if cursor:
+            query += (
+                f"&before_at={cursor['before_at']}"
+                f"&before_id={cursor['before_id']}"
+            )
+        payload = client.get(query).get_json()
+        seen.extend(row['id'] for row in payload['items'])
+        cursor = payload['next_cursor']
+        if not cursor:
+            break
+
+    assert len(seen) == 130
+    assert len(set(seen)) == 130
+
+
+def test_activity_search_can_continue_past_empty_scan_window(client, cloud):
+    _seed_invite(cloud, name='Mac', role='admin', username='mac-search')
+    _login(client, 'mac-search')
+    sb.append_audit(
+        actor_id='needle',
+        actor_name='Needle Editor',
+        action='set_mark',
+        edition='قطر',
+    )
+    for page in range(1, 231):
+        sb.append_audit(
+            actor_id='noise',
+            actor_name='Other',
+            action='layout_save',
+            edition='bahrain',
+            page_number=page,
+        )
+
+    first = client.get('/api/activity?q=Needle&limit=40').get_json()
+    assert first['items'] == []
+    assert first['next_cursor']
+    second = client.get(
+        '/api/activity?q=Needle&limit=40'
+        f"&before_at={first['next_cursor']['before_at']}"
+        f"&before_id={first['next_cursor']['before_id']}"
+    ).get_json()
+    assert [row['actor_name'] for row in second['items']] == ['Needle Editor']
+    assert second['next_cursor'] is None
+
+
+def test_activity_rejects_partial_cursor(client, cloud):
+    _seed_invite(cloud, name='Mac', role='admin', username='mac-cursor')
+    _login(client, 'mac-cursor')
+    response = client.get('/api/activity?before_id=1')
+    assert response.status_code == 400
+    assert response.get_json()['error'] == 'incomplete cursor'
+
+
+def test_activity_js_avoids_append_duplicates_and_csv_formulas():
+    from pathlib import Path
+
+    js = (
+        Path(__file__).resolve().parents[1] / 'static' / 'js' / 'activity.js'
+    ).read_text(encoding='utf-8')
+    assert 'const renderItems = append ? (newItems || []) : state.items;' in js
+    assert 'renderFeed(!!append, items);' in js
+    assert "/^[\\t\\r ]*[=+\\-@]/" in js

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -37,6 +36,8 @@ APP_CHECKS = (
 )
 EDITOR_CHECKS = (
     Check('waqf reviewer', '/waqf-mark-review'),
+    Check('activity browser', '/activity'),
+    Check('activity feed', '/api/activity'),
     Check('Mesaha studio', '/layout-studio/mesaha'),
     Check('Mesaha split page', '/api/layout-studio/mesaha/page/61'),
     Check(

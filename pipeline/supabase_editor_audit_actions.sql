@@ -1,6 +1,12 @@
 -- Widen editor_audit.action for activity log coverage.
 -- Run once in the Supabase SQL editor (safe to re-run).
 
+create table if not exists public.athar_schema_versions (
+  component text primary key,
+  version integer not null check (version > 0),
+  updated_at timestamptz not null default now()
+);
+
 alter table public.editor_audit drop constraint if exists editor_audit_action_check;
 
 alter table public.editor_audit add constraint editor_audit_action_check
@@ -26,3 +32,13 @@ create index if not exists editor_audit_actor_at_idx
 
 create index if not exists editor_audit_action_at_idx
   on public.editor_audit (action, at desc);
+
+insert into public.athar_schema_versions (component, version, updated_at)
+values ('editor', 4, now())
+on conflict (component) do update
+set version = greatest(athar_schema_versions.version, excluded.version),
+    updated_at = excluded.updated_at;
+
+alter table public.athar_schema_versions enable row level security;
+revoke all on table public.athar_schema_versions from anon, authenticated;
+grant select on table public.athar_schema_versions to service_role;

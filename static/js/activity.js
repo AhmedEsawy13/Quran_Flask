@@ -179,7 +179,8 @@
     }
 
     function csvEscape(v) {
-        const s = v == null ? '' : String(v);
+        let s = v == null ? '' : String(v);
+        if (/^[\t\r ]*[=+\-@]/.test(s)) s = `'${s}`;
         if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
         return s;
     }
@@ -226,7 +227,7 @@
         }
     }
 
-    function renderFeed(append) {
+    function renderFeed(append, newItems) {
         if (!append) els.feed.innerHTML = '';
         if (!state.items.length) {
             els.feed.innerHTML = `<p class="act-empty">${
@@ -234,10 +235,11 @@
                     ? 'لا أحداث مطابقة للتصفية.'
                     : 'السجل السحابي غير مفعّل على هذا الجهاز.'
             }</p>`;
-            els.more.hidden = true;
+            els.more.hidden = !state.cursor;
             return;
         }
-        const html = state.items.map((item) => {
+        const renderItems = append ? (newItems || []) : state.items;
+        const html = renderItems.map((item) => {
             const act = actionLabels[item.action] || item.action || '—';
             const who = item.actor_name || '—';
             const where = whereText(item);
@@ -305,7 +307,7 @@
             if (!append && Array.isArray(data.actors)) {
                 fillActors(data.actors);
             }
-            renderFeed(!!append);
+            renderFeed(!!append, items);
             els.status.textContent = state.items.length
                 ? `${toArDigits(state.items.length)} حدث`
                 : 'لا نتائج';

@@ -311,7 +311,11 @@ class FakeSupabase:
             if method == 'POST':
                 body = dict(json_body or {})
                 body.setdefault('id', len(self.audit) + 1)
-                body.setdefault('at', f'2026-07-30T12:00:{len(self.audit):02d}Z')
+                seq = len(self.audit)
+                body.setdefault(
+                    'at',
+                    f'2026-07-30T12:{seq // 60:02d}:{seq % 60:02d}Z',
+                )
                 self.audit.append(body)
                 return Resp(201, None)
             if method == 'GET':
@@ -328,6 +332,26 @@ class FakeSupabase:
                 if actor:
                     aid = actor.replace('eq.', '')
                     items = [a for a in items if a.get('actor_id') == aid]
+                cursor = params.get('or')
+                if cursor:
+                    prefix = '(at.lt.'
+                    middle = ',and(at.eq.'
+                    suffix = ',id.lt.'
+                    assert cursor.startswith(prefix) and cursor.endswith('))')
+                    before_at, rest = cursor[len(prefix):].split(middle, 1)
+                    same_at, before_id = rest[:-2].split(suffix, 1)
+                    assert same_at == before_at
+                    bid = int(before_id)
+                    items = [
+                        row for row in items
+                        if (
+                            row.get('at', '') < before_at
+                            or (
+                                row.get('at', '') == before_at
+                                and int(row.get('id') or 0) < bid
+                            )
+                        )
+                    ]
                 limit = int(params.get('limit') or 30)
                 return Resp(200, items[:limit])
 
@@ -682,11 +706,26 @@ def test_supabase_schema_readiness_is_versioned_and_service_role_only():
         root / 'pipeline' / 'supabase_schema_readiness.sql'
     ).read_text(encoding='utf-8').lower()
     assert 'create table if not exists public.athar_schema_versions' in sql
-    assert "('editor', 3, now())" in sql
+    assert "('editor', 4, now())" in sql
     assert "('layout', 2, now())" in sql
+    assert 'greatest(athar_schema_versions.version, excluded.version)' in sql
     assert 'enable row level security' in sql
     assert 'revoke all' in sql
     assert 'grant select' in sql and 'to service_role' in sql
+
+
+def test_activity_audit_migration_bumps_editor_schema_without_downgrades():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    sql = (
+        root / 'pipeline' / 'supabase_editor_audit_actions.sql'
+    ).read_text(encoding='utf-8').lower()
+    assert 'editor_audit_action_check' in sql
+    assert "values ('editor', 4, now())" in sql
+    assert 'greatest(athar_schema_versions.version, excluded.version)' in sql
+    assert 'editor_audit_actor_at_idx' in sql
+    assert 'editor_audit_action_at_idx' in sql
 
 
 def test_pending_publish_diff_keeps_published_old_symbol(cloud):
