@@ -93,6 +93,10 @@ class Violation:
     limit: float
     line: int | None = None
     text: str = ""
+    scale: float | None = None
+    line_width: float | None = None
+    inner_width: float | None = None
+    inline_transform: str = ""
 
 
 class LocalAuditServer:
@@ -319,9 +323,8 @@ def audit_all_pages(
     return list(by_page.values())
 
 
-def line_details(observation: dict[str, Any], key: str) -> tuple[int | None, str]:
-    line = observation.get(key) or {}
-    return line.get("line"), line.get("text", "")
+def line_details(observation: dict[str, Any], key: str) -> dict[str, Any]:
+    return observation.get(key) or {}
 
 
 def validate_observations(
@@ -347,8 +350,21 @@ def validate_observations(
             actual = float(item[metric])
             failed = actual < limit - 0.0005 if direction == "min" else actual > limit + 0.001
             if failed:
-                line, text = line_details(item, line_key)
-                violations.append(Violation(source, scenario, item["page"], metric, actual, limit, line, text))
+                line = line_details(item, line_key)
+                violations.append(Violation(
+                    source,
+                    scenario,
+                    item["page"],
+                    metric,
+                    actual,
+                    limit,
+                    line=line.get("line"),
+                    text=line.get("text", ""),
+                    scale=line.get("scale"),
+                    line_width=line.get("line_width"),
+                    inner_width=line.get("inner_width"),
+                    inline_transform=line.get("inline_transform", ""),
+                ))
 
     if SCENARIOS[scenario]["layout"] == "dual":
         per_render: dict[int, list[dict[str, Any]]] = defaultdict(list)
