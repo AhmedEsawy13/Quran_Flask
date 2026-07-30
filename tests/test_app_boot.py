@@ -453,6 +453,7 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'fontSize * rawScale / lineScaleFloor' in shared
     assert 'currentSize * avail / rendered' in shared
     assert 'lineScaleFloor * avail / rendered' in shared
+    assert 'currentScale * avail / rendered' in shared
     assert 'isMadinahSource(state.src) ? 0.95 : 0.5' in memorize
     assert 'featureCandidates = null' in shared
     assert 'const spacing = Math.min(slack / gaps, spacingCap)' in shared

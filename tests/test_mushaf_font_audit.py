@@ -1,5 +1,7 @@
 """Pure regression tests for the browser-level mushaf font auditor."""
 
+from pathlib import Path
+
 from scripts.audit_mushaf_fonts import (
     SCENARIOS,
     SOURCES,
@@ -42,6 +44,11 @@ def test_audit_catalog_covers_three_madinah_editions_and_scenarios():
     assert {69, 353, 358, 507, 511} <= set(SOURCES['qpc_v2']['risk_pages'])
     assert {69, 353, 358, 507, 511} <= set(SOURCES['digital_khatt']['risk_pages'])
     assert selected_names('all', SOURCES) == ['qpc_v1', 'digital_khatt', 'qpc_v2']
+
+
+def test_auditor_measures_page_font_size_not_a_line_override():
+    source = Path('scripts/audit_mushaf_fonts.py').read_text(encoding='utf-8')
+    assert "getComputedStyle(page).getPropertyValue('--dk-fs')" in source
 
 
 def test_validator_accepts_values_inside_all_budgets():

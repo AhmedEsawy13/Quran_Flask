@@ -40,19 +40,28 @@ SOURCES: dict[str, dict[str, Any]] = {
     "qpc_v1": {
         "label": "Old Madinah 1405",
         "api": "qpc-v1",
-        "risk_pages": [29, 51, 88, 279, 353, 358, 378, 507, 536, 570, 577],
+        "risk_pages": [
+            29, 51, 88, 89, 127, 246, 274, 279, 353, 358, 378,
+            400, 402, 507, 536, 570, 577,
+        ],
         "single_max_expansion": 1.18,
     },
     "digital_khatt": {
         "label": "Madinah 1441 (QPC v4)",
         "api": "digital-khatt",
-        "risk_pages": [29, 41, 60, 69, 168, 279, 349, 353, 358, 445, 507, 511, 557],
+        "risk_pages": [
+            29, 41, 60, 69, 168, 261, 279, 349, 353, 358, 442,
+            445, 448, 477, 507, 511, 557, 594,
+        ],
         "single_max_expansion": 1.15,
     },
     "qpc_v2": {
         "label": "Madinah 1421 (Digital Khatt V2)",
         "api": "qpc-v2",
-        "risk_pages": [29, 41, 60, 69, 168, 279, 349, 353, 358, 445, 507, 511, 557],
+        "risk_pages": [
+            29, 41, 60, 69, 168, 261, 279, 343, 349, 353, 358,
+            385, 445, 448, 477, 507, 511, 557,
+        ],
         "single_max_expansion": 1.15,
     },
 }
@@ -173,7 +182,7 @@ OBSERVE_SCRIPT = r"""
   return {
     footer,
     pageWidth: page.clientWidth,
-    fontSize: Number.parseFloat(getComputedStyle(page.querySelector('.mz-line-inner')).fontSize) || 0,
+    fontSize: Number.parseFloat(getComputedStyle(page).getPropertyValue('--dk-fs')) || 0,
     lines,
   };
 })

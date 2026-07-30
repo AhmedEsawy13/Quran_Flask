@@ -330,6 +330,23 @@
             const raw = typeof value === 'function' ? value() : value;
             return typeof raw === 'boolean' ? raw : fallback;
         };
+        const fitRenderedWidth = (inner, avail, minScale = 0.5, maxScale = 1.5) => {
+            const rendered = inner.getBoundingClientRect().width;
+            if (!rendered || Math.abs(rendered - avail) <= 0.25) return;
+            const match = inner.style.transform.match(/^scaleX\(([^)]+)\)$/);
+            const currentScale = match ? Number(match[1]) : 1;
+            if (!Number.isFinite(currentScale) || currentScale <= 0) return;
+            const lower = Math.max(0.5, Number(minScale) || 0.5);
+            const parsedUpper = Number(maxScale);
+            const upper = Number.isFinite(parsedUpper)
+                ? Math.max(lower, parsedUpper)
+                : Infinity;
+            const corrected = Math.max(
+                lower,
+                Math.min(upper, currentScale * avail / rendered)
+            );
+            inner.style.transform = `scaleX(${corrected})`;
+        };
         return function justifyLines() {
             const els = (typeof containerEls === 'function' ? containerEls() : []).filter(Boolean);
             const lines = [];
@@ -394,14 +411,17 @@
                                 );
                                 inner.style.transform = `scaleX(${finalScale})`;
                             }
+                            fitRenderedWidth(inner, avail, lineScaleFloor, 1);
                             return;
                         }
                     }
                     inner.style.transform = `scaleX(${rawScale})`;
+                    fitRenderedWidth(inner, avail, lineScaleFloor, 1);
                     return;
                 }
                 if (gentle) {                                  // page glyphs → gentle stretch
                     inner.style.transform = `scaleX(${Math.min(1.5, avail / natural)})`;
+                    fitRenderedWidth(inner, avail, 0.5, 1.5);
                     return;
                 }
                 let width = natural;
@@ -445,10 +465,15 @@
                 // gaps; gently bring it back to the exact line width.
                 if (width > avail + 0.5) {
                     inner.style.transform = `scaleX(${avail / width})`;
+                    fitRenderedWidth(inner, avail, featureScaleFloor, 1);
                     return;
                 }
                 const gaps = inner.querySelectorAll(wordSelector).length - 1;
                 const slack = avail - width;
+                const stretchCap = Math.max(
+                    1,
+                    resolveNumber(maxStretch, Infinity, lineEl, inner)
+                );
                 if (slack > 0.5 && gaps > 0) {
                     const spacingCap = Math.max(0, resolveNumber(maxWordSpacing, Infinity, lineEl, inner));
                     const spacing = Math.min(slack / gaps, spacingCap);
@@ -459,13 +484,13 @@
                     // conspicuous gaps between words.
                     const spacedWidth = inner.scrollWidth;
                     if (spacedWidth && spacedWidth < avail - 0.5) {
-                        const stretchCap = Math.max(1, resolveNumber(maxStretch, Infinity, lineEl, inner));
                         const stretch = Math.min(avail / spacedWidth, stretchCap);
                         if (stretch > 1.0005) inner.style.transform = `scaleX(${stretch})`;
                     }
                 } else if (slack > 0.5) {
                     inner.style.transform = `scaleX(${avail / width})`;
                 }
+                fitRenderedWidth(inner, avail, featureScaleFloor, stretchCap);
             });
         };
     }
