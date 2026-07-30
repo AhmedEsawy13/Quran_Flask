@@ -372,11 +372,18 @@
                         const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 0;
                         if (fontSize > 0) {
                             inner.style.fontSize = `${fontSize * rawScale / lineScaleFloor}px`;
-                            const adjusted = inner.scrollWidth;
-                            const finalScale = adjusted > 0
-                                ? Math.max(lineScaleFloor, Math.min(1, avail / adjusted))
-                                : lineScaleFloor;
-                            inner.style.transform = `scaleX(${finalScale})`;
+                            inner.style.transform = `scaleX(${lineScaleFloor})`;
+                            // Font shaping is not perfectly linear, and scrollWidth
+                            // is integer-rounded in Chromium. Correct against the
+                            // actual transformed rectangle so Linux and macOS land
+                            // on the same printed edges without extra scaleX.
+                            for (let attempt = 0; attempt < 2; attempt += 1) {
+                                const rendered = inner.getBoundingClientRect().width;
+                                if (!rendered || Math.abs(rendered - avail) <= 0.25) break;
+                                const currentSize = parseFloat(getComputedStyle(inner).fontSize) || 0;
+                                if (!currentSize) break;
+                                inner.style.fontSize = `${currentSize * avail / rendered}px`;
+                            }
                             return;
                         }
                     }
