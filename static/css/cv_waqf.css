@@ -191,19 +191,23 @@
 .cvw-palette {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
     margin-top: 10px;
 }
 .cvw-sym-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 3rem;
-    padding: 6px 8px;
-    border-radius: 10px;
+    justify-content: center;
+    min-width: 3.4rem;
+    min-height: 3.4rem;
+    padding: 8px 10px;
+    border-radius: 12px;
     border: 1px solid var(--cvw-border);
     background: #fff;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 .cvw-sym-btn.is-active,
 .cvw-sym-btn:hover {
@@ -212,10 +216,98 @@
 }
 .cvw-sym-glyph {
     font-family: "UthmanicHafs", "Amiri Quran", serif;
-    font-size: 1.35rem;
+    font-size: 1.45rem;
     line-height: 1.1;
 }
 .cvw-sym-code { font-size: 0.68rem; color: var(--cvw-muted); font-weight: 700; }
+
+.cvw-save-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--cvw-accent) 10%, #fff);
+    border: 1px solid color-mix(in srgb, var(--cvw-accent) 28%, transparent);
+}
+.cvw-save-bar.is-ready {
+    background: color-mix(in srgb, var(--cvw-accent) 16%, #fff);
+}
+.cvw-save-hint {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--cvw-muted);
+    font-weight: 600;
+}
+.cvw-save-actions {
+    display: flex;
+    gap: 8px;
+    margin-inline-start: auto;
+}
+.cvw-save-btn,
+.cvw-cancel-btn,
+.cvw-fab-save,
+.cvw-fab-cancel {
+    border-radius: 12px;
+    border: 1px solid var(--cvw-border);
+    font-weight: 800;
+    font-size: 1rem;
+    padding: 12px 18px;
+    min-height: 48px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+.cvw-save-btn,
+.cvw-fab-save {
+    background: var(--cvw-accent);
+    border-color: var(--cvw-accent);
+    color: #fff;
+    min-width: 8.5rem;
+}
+.cvw-save-btn:disabled,
+.cvw-fab-save:disabled,
+.cvw-cancel-btn:disabled,
+.cvw-fab-cancel:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+.cvw-cancel-btn,
+.cvw-fab-cancel {
+    background: #fff;
+    color: var(--cvw-ink);
+}
+#cvw-save-sym {
+    font-family: "UthmanicHafs", "Amiri Quran", serif;
+    font-weight: 400;
+    margin-inline-start: 4px;
+}
+
+/* Sticky bottom save for phones / iPad */
+.cvw-fab {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    gap: 10px;
+    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--cvw-bg) 92%, white);
+    border-top: 1px solid var(--cvw-border);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 -8px 24px color-mix(in srgb, var(--cvw-ink) 10%, transparent);
+}
+.cvw-fab-save { flex: 1.4; }
+.cvw-fab-cancel { flex: 0.8; }
+.cvw-body:has(.cvw-fab:not([hidden])) .cvw-main {
+    padding-bottom: 88px;
+}
+@media (min-width: 960px) {
+    .cvw-fab { display: none !important; }
+}
 
 .cvw-side-head {
     display: flex;

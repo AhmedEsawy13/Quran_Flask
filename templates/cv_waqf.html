@@ -24,7 +24,8 @@
             <p class="cvw-kicker">تدريب · قصّ يدوي</p>
             <h1 class="cvw-title">سمِّ علامات الوقف على الصفحة</h1>
             <p class="cvw-lede">
-                اسحب مربعاً حول العلامة المطبوعة ثم اختر نوعها.
+                اسحب مربعاً حول العلامة، اختر نوعها، ثم اضغط <strong>حفظ</strong>.
+                مناسب للآيباد — الشريط السفلي يظهر بعد الرسم.
                 تُحفظ القصّة كمرجع للتدريب — ابدأ بالشمرلي ثم البحرين.
                 <a href="/cv-waqf/labels">معرض التسميات</a>
             </p>
@@ -69,6 +70,16 @@
             </button>
         </div>
 
+        <div class="cvw-save-bar" id="cvw-save-bar" hidden>
+            <p class="cvw-save-hint" id="cvw-save-hint">ارسم مربعاً حول العلامة أولاً</p>
+            <div class="cvw-save-actions">
+                <button type="button" class="cvw-cancel-btn" id="cvw-cancel" disabled>إلغاء</button>
+                <button type="button" class="cvw-save-btn" id="cvw-save" disabled>
+                    حفظ <span id="cvw-save-sym">ج</span>
+                </button>
+            </div>
+        </div>
+
         <div class="cvw-toggles cvw-detect-only" id="cvw-detect-toggles" hidden role="group" aria-label="طبقات العرض">
             <label><input type="checkbox" id="cvw-show-cv" checked> كشف CV</label>
             <label><input type="checkbox" id="cvw-show-db" checked> قاعدة البيانات</label>
@@ -80,8 +91,13 @@
             </label>
         </div>
 
-        <p class="cvw-meta" id="cvw-meta" aria-live="polite">اسحب مربعاً على العلامة، ثم اضغط رمزها.</p>
+        <p class="cvw-meta" id="cvw-meta" aria-live="polite">اسحب مربعاً على العلامة، اختر نوعها، ثم اضغط حفظ.</p>
     </header>
+
+    <div class="cvw-fab" id="cvw-fab" hidden>
+        <button type="button" class="cvw-fab-cancel" id="cvw-fab-cancel">إلغاء</button>
+        <button type="button" class="cvw-fab-save" id="cvw-fab-save">حفظ التسمية</button>
+    </div>
 
     <main class="cvw-main" id="cvw-main">
         <section class="cvw-stage" aria-label="صفحة المصحف">

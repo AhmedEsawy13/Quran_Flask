@@ -26,6 +26,14 @@
         showExtra: document.getElementById('cvw-show-extra'),
         modeLabel: document.getElementById('cvw-mode-label'),
         modeDetect: document.getElementById('cvw-mode-detect'),
+        saveBar: document.getElementById('cvw-save-bar'),
+        saveHint: document.getElementById('cvw-save-hint'),
+        saveBtn: document.getElementById('cvw-save'),
+        cancelBtn: document.getElementById('cvw-cancel'),
+        saveSym: document.getElementById('cvw-save-sym'),
+        fab: document.getElementById('cvw-fab'),
+        fabSave: document.getElementById('cvw-fab-save'),
+        fabCancel: document.getElementById('cvw-fab-cancel'),
     };
 
     const state = {
@@ -101,10 +109,49 @@
         els.modeLabel.classList.toggle('is-active', mode === 'label');
         els.modeDetect.classList.toggle('is-active', mode === 'detect');
         els.palette.hidden = mode !== 'label';
+        if (els.saveBar) els.saveBar.hidden = mode !== 'label';
         els.detectToggles.hidden = mode !== 'detect';
         els.wrap.classList.toggle('is-label', mode === 'label');
         state.draft = null;
+        syncSaveUi();
         loadPage();
+    }
+
+    function syncSaveUi() {
+        const ready = !!(state.mode === 'label' && state.draft);
+        const glyph = GLYPH[state.selectedSymbol] || state.selectedSymbol;
+        if (els.saveSym) els.saveSym.textContent = glyph;
+        if (els.saveBtn) els.saveBtn.disabled = !ready;
+        if (els.cancelBtn) els.cancelBtn.disabled = !ready;
+        if (els.saveBar) els.saveBar.classList.toggle('is-ready', ready);
+        if (els.saveHint) {
+            els.saveHint.textContent = ready
+                ? `مربع جاهز — اضغط حفظ لنوع «${glyph}»`
+                : 'ارسم مربعاً حول العلامة، ثم اضغط حفظ';
+        }
+        if (els.fab) {
+            els.fab.hidden = !(state.mode === 'label' && ready);
+            if (els.fabSave) {
+                els.fabSave.textContent = `حفظ «${glyph}»`;
+                els.fabSave.disabled = !ready;
+            }
+            if (els.fabCancel) els.fabCancel.disabled = !ready;
+        }
+    }
+
+    function clearDraft() {
+        state.draft = null;
+        paint();
+        syncSaveUi();
+        setMeta('أُلغي المربع — ارسم من جديد ثم احفظ');
+    }
+
+    function selectSymbol(sym) {
+        state.selectedSymbol = sym;
+        for (const b of els.palette.querySelectorAll('.cvw-sym-btn')) {
+            b.classList.toggle('is-active', b.dataset.symbol === sym);
+        }
+        syncSaveUi();
     }
 
     function canvasToImage(cx, cy) {
@@ -129,6 +176,7 @@
         state.loading = true;
         state.draft = null;
         state.activeId = null;
+        syncSaveUi();
         els.empty.hidden = false;
         els.empty.textContent = 'جاري التحميل…';
         try {
@@ -384,6 +432,7 @@
         state.activeId = data.label.id;
         paint();
         renderLabelList();
+        syncSaveUi();
         setMeta(`حُفظت «${symbol}» · المجموع ${toAr(state.labels.length)} على هذه الصفحة`);
     }
 
@@ -446,10 +495,12 @@
             if (w < 4 || h < 4) {
                 state.draft = null;
                 paint();
+                syncSaveUi();
                 setMeta('المربع صغير جداً — اسحب حول العلامة');
                 return;
             }
-            setMeta('اختر نوع العلامة من الشريط أعلاه (أو اضغط مفتاح الحرف)');
+            syncSaveUi();
+            setMeta('اختر النوع من الشريط ثم اضغط حفظ');
         }
     }
     els.wrap.addEventListener('pointerdown', onPointerDown);
@@ -457,17 +508,27 @@
     els.wrap.addEventListener('pointerup', onPointerUp);
     els.wrap.addEventListener('pointercancel', onPointerUp);
 
-    // palette
+    // palette: select type only (Save button commits — better for iPad)
     els.palette.addEventListener('click', (e) => {
         const btn = e.target.closest('.cvw-sym-btn');
         if (!btn) return;
-        const sym = btn.dataset.symbol;
-        state.selectedSymbol = sym;
-        for (const b of els.palette.querySelectorAll('.cvw-sym-btn')) {
-            b.classList.toggle('is-active', b === btn);
+        selectSymbol(btn.dataset.symbol);
+        if (state.draft) {
+            setMeta(`النوع «${GLYPH[state.selectedSymbol] || state.selectedSymbol}» — اضغط حفظ`);
         }
-        if (state.draft) saveDraft(sym);
     });
+
+    function onSaveClick() {
+        if (!state.draft) {
+            setMeta('ارسم مربعاً أولاً حول العلامة');
+            return;
+        }
+        saveDraft(state.selectedSymbol);
+    }
+    els.saveBtn?.addEventListener('click', onSaveClick);
+    els.fabSave?.addEventListener('click', onSaveClick);
+    els.cancelBtn?.addEventListener('click', clearDraft);
+    els.fabCancel?.addEventListener('click', clearDraft);
 
     // keyboard shortcuts for symbols
     const KEY_MAP = {
@@ -482,8 +543,7 @@
         if (!mapped) return;
         e.preventDefault();
         if (mapped === '__cancel') {
-            state.draft = null;
-            paint();
+            clearDraft();
             return;
         }
         if (mapped === '__undo') {
@@ -494,11 +554,10 @@
             if (state.draft) saveDraft(state.selectedSymbol);
             return;
         }
-        state.selectedSymbol = mapped;
-        for (const b of els.palette.querySelectorAll('.cvw-sym-btn')) {
-            b.classList.toggle('is-active', b.dataset.symbol === mapped);
+        selectSymbol(mapped);
+        if (state.draft) {
+            setMeta(`النوع «${GLYPH[mapped] || mapped}» — اضغط حفظ أو Enter`);
         }
-        if (state.draft) saveDraft(mapped);
     });
 
     els.modeLabel.addEventListener('click', () => setMode('label'));
