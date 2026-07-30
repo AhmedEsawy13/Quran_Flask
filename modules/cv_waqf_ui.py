@@ -336,8 +336,13 @@ def _cloud_download_bytes(object_path: str) -> bytes | None:
 
 
 def _save_crop_png(slug: str, label: dict) -> Path:
-    """Crop the page JPEG to a 48×48 training PNG for this label."""
-    from pipeline.cv_waqf.config import CROP_SIZE
+    """Crop the page JPEG to a 48×48 training PNG (Pillow only — no OpenCV)."""
+    crop_size = 48
+    try:
+        from pipeline.cv_waqf.config import CROP_SIZE
+        crop_size = int(CROP_SIZE)
+    except Exception:  # noqa: BLE001
+        pass
 
     edition = label['edition']
     page = int(label['page'])
@@ -353,38 +358,7 @@ def _save_crop_png(slug: str, label: dict) -> Path:
     folder = _hand_dir(slug) / CLASS_DIR.get(sym, sym)
     folder.mkdir(parents=True, exist_ok=True)
     dest = folder / f"{label['id']}.png"
-
-    # Prefer Pillow (available in the Flask env). Fall back to OpenCV / CV venv.
-    try:
-        return _save_crop_pillow(img_path, dest, (x0, y0, x1, y1), CROP_SIZE)
-    except Exception as pillow_exc:  # noqa: BLE001
-        logger.info('Pillow crop failed (%s); trying OpenCV', pillow_exc)
-
-    try:
-        import cv2
-        import numpy as np
-    except ImportError:
-        return _save_crop_via_subprocess(slug, label)
-
-    bgr = cv2.imread(str(img_path), cv2.IMREAD_COLOR)
-    if bgr is None:
-        raise RuntimeError(f'cannot read {img_path}')
-    h, w = bgr.shape[:2]
-    x0, y0 = max(0, x0), max(0, y0)
-    x1, y1 = min(w, x1), min(h, y1)
-    patch = bgr[y0:y1, x0:x1]
-    if patch.size == 0:
-        raise RuntimeError('empty crop')
-    gray = cv2.cvtColor(patch, cv2.COLOR_BGR2GRAY)
-    ph, pw = gray.shape[:2]
-    side = max(ph, pw, 1)
-    canvas = np.full((side, side), 255, dtype=np.uint8)
-    oy = (side - ph) // 2
-    ox = (side - pw) // 2
-    canvas[oy:oy + ph, ox:ox + pw] = gray
-    crop = cv2.resize(canvas, (CROP_SIZE, CROP_SIZE), interpolation=cv2.INTER_AREA)
-    cv2.imwrite(str(dest), crop)
-    return dest
+    return _save_crop_pillow(img_path, dest, (x0, y0, x1, y1), crop_size)
 
 
 def _save_crop_pillow(
@@ -393,7 +367,13 @@ def _save_crop_pillow(
     box: tuple[int, int, int, int],
     crop_size: int,
 ) -> Path:
-    from PIL import Image
+    try:
+        from PIL import Image
+    except ImportError as exc:
+        raise RuntimeError(
+            'Pillow is required to save waqf crops. '
+            'Run: pip install pillow'
+        ) from exc
 
     x0, y0, x1, y1 = box
     with Image.open(img_path) as im:
@@ -408,50 +388,10 @@ def _save_crop_pillow(
     side = max(pw, ph, 1)
     canvas = Image.new('L', (side, side), 255)
     canvas.paste(patch, ((side - pw) // 2, (side - ph) // 2))
-    canvas = canvas.resize(
-        (crop_size, crop_size),
-        getattr(Image, 'Resampling', Image).LANCZOS,
-    )
+    resample = getattr(getattr(Image, 'Resampling', Image), 'LANCZOS', Image.BICUBIC)
+    canvas = canvas.resize((crop_size, crop_size), resample)
     dest.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(dest, format='PNG')
-    return dest
-
-
-def _save_crop_via_subprocess(slug: str, label: dict) -> Path:
-    out = _hand_dir(slug) / CLASS_DIR.get(label['symbol'], label['symbol'])
-    out.mkdir(parents=True, exist_ok=True)
-    dest = out / f"{label['id']}.png"
-    payload = json.dumps({'slug': slug, 'label': label, 'dest': str(dest)}, ensure_ascii=False)
-    code = (
-        'import json,sys,cv2,numpy as np\n'
-        'from pathlib import Path\n'
-        'from pipeline.cv_waqf.config import CROP_SIZE, EDITIONS\n'
-        'from pipeline.cv_waqf.pages import ensure_page_image\n'
-        f'd=json.loads({payload!r})\n'
-        'lab=d["label"]; dest=Path(d["dest"])\n'
-        'spec=EDITIONS[lab["edition"]]\n'
-        'img=cv2.imread(str(ensure_page_image(spec,int(lab["page"]))))\n'
-        'x0,y0,x1,y1=[int(v) for v in lab["box"]]\n'
-        'if x1<x0: x0,x1=x1,x0\n'
-        'if y1<y0: y0,y1=y1,y0\n'
-        'h,w=img.shape[:2]\n'
-        'x0,y0=max(0,x0),max(0,y0); x1,y1=min(w,x1),min(h,y1)\n'
-        'gray=cv2.cvtColor(img[y0:y1,x0:x1], cv2.COLOR_BGR2GRAY)\n'
-        'ph,pw=gray.shape[:2]; side=max(ph,pw,1)\n'
-        'canvas=np.full((side,side),255,np.uint8)\n'
-        'canvas[(side-ph)//2:(side-ph)//2+ph,(side-pw)//2:(side-pw)//2+pw]=gray\n'
-        'crop=cv2.resize(canvas,(CROP_SIZE,CROP_SIZE),interpolation=cv2.INTER_AREA)\n'
-        'dest.parent.mkdir(parents=True, exist_ok=True)\n'
-        'cv2.imwrite(str(dest), crop)\n'
-    )
-    env = os.environ.copy()
-    env['PYTHONPATH'] = str(ROOT)
-    proc = subprocess.run(
-        [_resolve_cv_python(), '-c', code],
-        cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=60,
-    )
-    if proc.returncode != 0 or not dest.is_file():
-        raise RuntimeError((proc.stderr or proc.stdout or 'crop failed')[-500:])
     return dest
 
 
