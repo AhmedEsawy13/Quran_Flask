@@ -53,6 +53,7 @@
         activeId: null,
         loading: false,
         loadGen: 0, // bumps on every navigation; stale loads abort
+        saving: false,
         naturalW: 0,
         naturalH: 0,
     };
@@ -399,6 +400,7 @@
     }
 
     async function saveDraft(symbol) {
+        if (state.saving) return;
         if (!state.draft) {
             setMeta('ارسم مربعاً أولاً حول العلامة');
             return;
@@ -410,30 +412,45 @@
             setMeta('المربع صغير جداً');
             return;
         }
+        state.saving = true;
+        if (els.saveBtn) els.saveBtn.disabled = true;
+        if (els.fabSave) els.fabSave.disabled = true;
         setMeta('جاري الحفظ…');
-        const res = await fetch('/api/cv-waqf/labels', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                edition: state.edition,
-                page: state.page,
-                symbol,
-                box: [x0, y0, x1, y1],
-            }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            setMeta(data.error || 'فشل الحفظ');
-            return;
+        try {
+            const res = await fetch('/api/cv-waqf/labels', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    edition: state.edition,
+                    page: state.page,
+                    symbol,
+                    box: [x0, y0, x1, y1],
+                }),
+            });
+            let data = {};
+            try {
+                data = await res.json();
+            } catch (_) {
+                data = {};
+            }
+            if (!res.ok) {
+                setMeta(data.error || `فشل الحفظ (${res.status})`);
+                return;
+            }
+            state.labels.push(data.label);
+            state.draft = null;
+            state.activeId = data.label.id;
+            paint();
+            renderLabelList();
+            setMeta(`حُفظت «${symbol}» · المجموع ${toAr(state.labels.length)} على هذه الصفحة`);
+        } catch (err) {
+            console.error(err);
+            setMeta(`فشل الحفظ: ${err.message || err}`);
+        } finally {
+            state.saving = false;
+            syncSaveUi();
         }
-        state.labels.push(data.label);
-        state.draft = null;
-        state.activeId = data.label.id;
-        paint();
-        renderLabelList();
-        syncSaveUi();
-        setMeta(`حُفظت «${symbol}» · المجموع ${toAr(state.labels.length)} على هذه الصفحة`);
     }
 
     async function deleteLabel(id) {
@@ -485,10 +502,15 @@
         };
         paint();
     }
-    function onPointerUp() {
+    function onPointerUp(e) {
         if (!state.dragging) return;
         state.dragging = false;
         state.dragStart = null;
+        try {
+            if (e && e.pointerId != null && els.wrap.hasPointerCapture?.(e.pointerId)) {
+                els.wrap.releasePointerCapture(e.pointerId);
+            }
+        } catch (_) { /* ignore */ }
         if (state.draft) {
             const w = Math.abs(state.draft.x1 - state.draft.x0);
             const h = Math.abs(state.draft.y1 - state.draft.y0);

@@ -337,8 +337,7 @@ def _cloud_download_bytes(object_path: str) -> bytes | None:
 
 def _save_crop_png(slug: str, label: dict) -> Path:
     """Crop the page JPEG to a 48×48 training PNG for this label."""
-    from pipeline.cv_waqf.config import CROP_SIZE, EDITIONS
-    from pipeline.cv_waqf.pages import ensure_page_image
+    from pipeline.cv_waqf.config import CROP_SIZE
 
     edition = label['edition']
     page = int(label['page'])
@@ -349,15 +348,24 @@ def _save_crop_png(slug: str, label: dict) -> Path:
     if y1 < y0:
         y0, y1 = y1, y0
 
+    img_path = _ensure_image(edition, page)
+    sym = label['symbol']
+    folder = _hand_dir(slug) / CLASS_DIR.get(sym, sym)
+    folder.mkdir(parents=True, exist_ok=True)
+    dest = folder / f"{label['id']}.png"
+
+    # Prefer Pillow (available in the Flask env). Fall back to OpenCV / CV venv.
+    try:
+        return _save_crop_pillow(img_path, dest, (x0, y0, x1, y1), CROP_SIZE)
+    except Exception as pillow_exc:  # noqa: BLE001
+        logger.info('Pillow crop failed (%s); trying OpenCV', pillow_exc)
+
     try:
         import cv2
         import numpy as np
     except ImportError:
-        # Fall back to subprocess with CV venv for the crop write.
         return _save_crop_via_subprocess(slug, label)
 
-    spec = EDITIONS[edition]
-    img_path = ensure_page_image(spec, page)
     bgr = cv2.imread(str(img_path), cv2.IMREAD_COLOR)
     if bgr is None:
         raise RuntimeError(f'cannot read {img_path}')
@@ -375,12 +383,37 @@ def _save_crop_png(slug: str, label: dict) -> Path:
     ox = (side - pw) // 2
     canvas[oy:oy + ph, ox:ox + pw] = gray
     crop = cv2.resize(canvas, (CROP_SIZE, CROP_SIZE), interpolation=cv2.INTER_AREA)
-
-    sym = label['symbol']
-    folder = _hand_dir(slug) / CLASS_DIR.get(sym, sym)
-    folder.mkdir(parents=True, exist_ok=True)
-    dest = folder / f"{label['id']}.png"
     cv2.imwrite(str(dest), crop)
+    return dest
+
+
+def _save_crop_pillow(
+    img_path: Path,
+    dest: Path,
+    box: tuple[int, int, int, int],
+    crop_size: int,
+) -> Path:
+    from PIL import Image
+
+    x0, y0, x1, y1 = box
+    with Image.open(img_path) as im:
+        im = im.convert('L')
+        w, h = im.size
+        x0, y0 = max(0, x0), max(0, y0)
+        x1, y1 = min(w, x1), min(h, y1)
+        if x1 - x0 < 2 or y1 - y0 < 2:
+            raise RuntimeError('empty crop')
+        patch = im.crop((x0, y0, x1, y1))
+    pw, ph = patch.size
+    side = max(pw, ph, 1)
+    canvas = Image.new('L', (side, side), 255)
+    canvas.paste(patch, ((side - pw) // 2, (side - ph) // 2))
+    canvas = canvas.resize(
+        (crop_size, crop_size),
+        getattr(Image, 'Resampling', Image).LANCZOS,
+    )
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(dest, format='PNG')
     return dest
 
 
@@ -607,23 +640,25 @@ def cv_waqf_labels_create():
     with path.open('a', encoding='utf-8') as fh:
         fh.write(json.dumps(label, ensure_ascii=False) + '\n')
 
-    # Mirror to Supabase so other machines / cloud UI see it immediately.
+    # Mirror to Supabase (best-effort — never fail the save if cloud is slow).
     try:
         crop_bytes = (ROOT / label['crop']).read_bytes()
         _cloud_upload_bytes(label['crop'], crop_bytes, 'image/png')
         _cloud_upsert_label(label)
-        # Keep remote labels.jsonl roughly in sync (best-effort).
-        all_rows = _load_labels(meta['slug'])
-        _rewrite_labels(meta['slug'], all_rows)
+        # Upload only this machine's jsonl as-is (no full remote merge on save).
         _cloud_upload_bytes(
             f"data/cv/crops_hand/{meta['slug']}/labels.jsonl",
-            _labels_path(meta['slug']).read_bytes(),
+            path.read_bytes(),
             'application/json',
         )
     except Exception as exc:  # noqa: BLE001
         logger.warning('cv_waqf cloud mirror after create failed: %s', exc)
 
-    _refresh_hand_gallery(meta['slug'])
+    try:
+        _refresh_hand_gallery(meta['slug'])
+    except Exception as exc:  # noqa: BLE001
+        logger.warning('cv_waqf gallery refresh failed: %s', exc)
+
     return jsonify({'ok': True, 'label': label, 'cloud': _cloud_ready()})
 
 
