@@ -456,6 +456,8 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'currentScale * avail / rendered' in shared
     assert 'isMadinahSource(state.src) ? 0.95 : 0.5' in memorize
     assert 'document.fonts.load(`16px "${srcFont}"`)' in memorize
-    assert 'requestAnimationFrame(() => requestAnimationFrame(justifyLines))' in memorize
+    assert 'function watchLineMetrics()' in memorize
+    assert 'new ResizeObserver' in memorize
+    assert 'passes >= 4' in memorize
     assert 'featureCandidates = null' in shared
     assert 'const spacing = Math.min(slack / gaps, spacingCap)' in shared

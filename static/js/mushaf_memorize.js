@@ -986,7 +986,10 @@
         sizePages();
         applyFontSize();
         applySelectionHighlight();
-        requestAnimationFrame(justifyLines);
+        requestAnimationFrame(() => {
+            justifyLines();
+            watchLineMetrics();
+        });
         if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
         updateNavButtons();
 
@@ -1001,7 +1004,10 @@
             document.fonts.load(`16px "${srcFont}"`).then(() => {
                 if (state.focusPage !== fp || !pageRequests.isCurrent(request)) return;
                 applyFontSize(true);
-                requestAnimationFrame(() => requestAnimationFrame(justifyLines));
+                requestAnimationFrame(() => {
+                    justifyLines();
+                    watchLineMetrics();
+                });
             }).catch(() => {});
         }
         return true;
@@ -1080,6 +1086,30 @@
         ),
         stretchOnly: () => state.src === 'shamarly',
     });
+    let lineMetricObserver = null;
+    let lineMetricFrame = 0;
+    function watchLineMetrics() {
+        if (!window.ResizeObserver) return;
+        if (lineMetricObserver) lineMetricObserver.disconnect();
+        cancelAnimationFrame(lineMetricFrame);
+        let passes = 0;
+        const observer = new ResizeObserver(() => {
+            if (observer !== lineMetricObserver || passes >= 4) return;
+            passes += 1;
+            cancelAnimationFrame(lineMetricFrame);
+            lineMetricFrame = requestAnimationFrame(justifyLines);
+        });
+        lineMetricObserver = observer;
+        pageEls().forEach(page => {
+            if (!page) return;
+            page.querySelectorAll('.mz-line-inner').forEach(inner => observer.observe(inner));
+        });
+        setTimeout(() => {
+            if (lineMetricObserver !== observer) return;
+            observer.disconnect();
+            lineMetricObserver = null;
+        }, 500);
+    }
     // Fit each page/spread against an explicit compression budget. Including the
     // focus page in the key prevents a difficult page from inheriting a font size
     // measured against an unrelated page's lines. In a two-page spread, fit each
