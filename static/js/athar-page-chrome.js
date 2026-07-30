@@ -360,11 +360,12 @@
                 if (!natural) return;
 
                 if (natural > avail + 0.5) {                  // too long → condense to fit
+                    const naturalWidth = inner.getBoundingClientRect().width || natural;
                     const lineScaleFloor = Math.max(
                         0.5,
                         Math.min(1, resolveNumber(minLineScale, 0.5, lineEl, inner))
                     );
-                    const rawScale = Math.max(0.5, avail / natural);
+                    const rawScale = Math.max(0.5, avail / naturalWidth);
                     if (rawScale < lineScaleFloor) {
                         // Keep glyph proportions within budget. Shrink only this
                         // exceptional line, then use the allowed final scaleX to
@@ -373,16 +374,25 @@
                         if (fontSize > 0) {
                             inner.style.fontSize = `${fontSize * rawScale / lineScaleFloor}px`;
                             inner.style.transform = `scaleX(${lineScaleFloor})`;
-                            // Font shaping is not perfectly linear, and scrollWidth
-                            // is integer-rounded in Chromium. Correct against the
-                            // actual transformed rectangle so Linux and macOS land
-                            // on the same printed edges without extra scaleX.
-                            for (let attempt = 0; attempt < 2; attempt += 1) {
+                            // Font shaping is not perfectly linear. Shrink only
+                            // while the rendered line remains too wide; if it
+                            // undershoots, a scale between the floor and 1 fills
+                            // the fractional remainder without crossing a glyph-
+                            // hinting boundary in the opposite direction.
+                            for (let attempt = 0; attempt < 3; attempt += 1) {
                                 const rendered = inner.getBoundingClientRect().width;
-                                if (!rendered || Math.abs(rendered - avail) <= 0.25) break;
+                                if (!rendered || rendered <= avail + 0.25) break;
                                 const currentSize = parseFloat(getComputedStyle(inner).fontSize) || 0;
                                 if (!currentSize) break;
                                 inner.style.fontSize = `${currentSize * avail / rendered}px`;
+                            }
+                            const rendered = inner.getBoundingClientRect().width;
+                            if (rendered > 0) {
+                                const finalScale = Math.max(
+                                    lineScaleFloor,
+                                    Math.min(1, lineScaleFloor * avail / rendered)
+                                );
+                                inner.style.transform = `scaleX(${finalScale})`;
                             }
                             return;
                         }
