@@ -454,6 +454,7 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'currentSize * avail / rendered' in shared
     assert 'lineScaleFloor * avail / rendered' in shared
     assert 'currentScale * avail / rendered' in shared
+    assert 'currentSize * desiredScale / lower' in shared
     assert 'isMadinahSource(state.src) ? 0.95 : 0.5' in memorize
     assert 'document.fonts.load(`16px "${srcFont}"`)' in memorize
     assert 'function watchLineMetrics()' in memorize

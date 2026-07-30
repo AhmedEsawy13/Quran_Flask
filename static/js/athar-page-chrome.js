@@ -342,9 +342,17 @@
                 const matrix = getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/);
                 const currentScale = matrix ? Number(matrix[1]) : 1;
                 if (!Number.isFinite(currentScale) || currentScale <= 0) return;
+                const desiredScale = currentScale * avail / rendered;
+                if (desiredScale < lower) {
+                    const currentSize = parseFloat(getComputedStyle(inner).fontSize) || 0;
+                    if (!currentSize) return;
+                    inner.style.fontSize = `${currentSize * desiredScale / lower}px`;
+                    inner.style.transform = `scaleX(${lower})`;
+                    continue;
+                }
                 const corrected = Math.max(
                     lower,
-                    Math.min(upper, currentScale * avail / rendered)
+                    Math.min(upper, desiredScale)
                 );
                 inner.style.transform = `scaleX(${corrected})`;
             }
@@ -462,20 +470,20 @@
                     }
                 });
                 inner.style.fontFeatureSettings = chosenFeatures;
+                const stretchCap = Math.max(
+                    1,
+                    resolveNumber(maxStretch, Infinity, lineEl, inner)
+                );
 
                 // A slightly over-wide alternate is preferable to large word
                 // gaps; gently bring it back to the exact line width.
                 if (width > avail + 0.5) {
                     inner.style.transform = `scaleX(${avail / width})`;
-                    fitRenderedWidth(inner, avail, featureScaleFloor, 1);
+                    fitRenderedWidth(inner, avail, featureScaleFloor, stretchCap);
                     return;
                 }
                 const gaps = inner.querySelectorAll(wordSelector).length - 1;
                 const slack = avail - width;
-                const stretchCap = Math.max(
-                    1,
-                    resolveNumber(maxStretch, Infinity, lineEl, inner)
-                );
                 if (slack > 0.5 && gaps > 0) {
                     const spacingCap = Math.max(0, resolveNumber(maxWordSpacing, Infinity, lineEl, inner));
                     const spacing = Math.min(slack / gaps, spacingCap);
