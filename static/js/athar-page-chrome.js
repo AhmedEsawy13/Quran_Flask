@@ -163,6 +163,7 @@
                 const ratios = [];
                 inners.forEach(inner => {
                     inner.style.transform = 'none';
+                    inner.style.fontSize = '';
                     // Explicit normal — empty string inherits body "salt" and
                     // can inflate width before we pick a page font size.
                     inner.style.fontFeatureSettings = 'normal';
@@ -310,7 +311,8 @@
         const {
             containerEls, lineSelector, innerSelector, wordSelector,
             featureSettings = () => '', featureCandidates = null,
-            minFeatureScale = 1, maxWordSpacing = Infinity, maxStretch = Infinity,
+            minFeatureScale = 1, minLineScale = 0.5,
+            maxWordSpacing = Infinity, maxStretch = Infinity,
             availableWidth = undefined,
             stretchOnly = () => false,
             // When true, prefer a slightly wider (more kashida) alternate if its
@@ -340,6 +342,7 @@
                 const inner = lineEl.querySelector(innerSelector);
                 if (!inner) return;
                 inner.style.transform = 'none';
+                inner.style.fontSize = '';
                 inner.style.fontFeatureSettings = 'normal';
                 inner.style.fontVariationSettings = '';
                 inner.style.wordSpacing = '';
@@ -357,7 +360,27 @@
                 if (!natural) return;
 
                 if (natural > avail + 0.5) {                  // too long → condense to fit
-                    inner.style.transform = `scaleX(${Math.max(0.5, avail / natural)})`;
+                    const lineScaleFloor = Math.max(
+                        0.5,
+                        Math.min(1, resolveNumber(minLineScale, 0.5, lineEl, inner))
+                    );
+                    const rawScale = Math.max(0.5, avail / natural);
+                    if (rawScale < lineScaleFloor) {
+                        // Keep glyph proportions within budget. Shrink only this
+                        // exceptional line, then use the allowed final scaleX to
+                        // land on the same printed page edges.
+                        const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 0;
+                        if (fontSize > 0) {
+                            inner.style.fontSize = `${fontSize * rawScale / lineScaleFloor}px`;
+                            const adjusted = inner.scrollWidth;
+                            const finalScale = adjusted > 0
+                                ? Math.max(lineScaleFloor, Math.min(1, avail / adjusted))
+                                : lineScaleFloor;
+                            inner.style.transform = `scaleX(${finalScale})`;
+                            return;
+                        }
+                    }
+                    inner.style.transform = `scaleX(${rawScale})`;
                     return;
                 }
                 if (gentle) {                                  // page glyphs → gentle stretch

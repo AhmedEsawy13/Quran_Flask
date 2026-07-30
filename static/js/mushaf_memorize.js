@@ -1057,6 +1057,9 @@
         minFeatureScale: () => (
             isMadinahSource(state.src) ? 0.95 : 1
         ),
+        minLineScale: () => (
+            isMadinahSource(state.src) ? 0.95 : 0.5
+        ),
         maxWordSpacing: (_lineEl, inner) => {
             if (!isMadinahSource(state.src)) return Infinity;
             const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
@@ -1087,10 +1090,10 @@
         cacheKey: () => `${state.src}|${state.layoutMode}|${state.focusPage || 0}`,
         sharedSize: false,
         maxPageFitRatio: 1.15,
-        // Linux/Chromium shapes several exceptionally long printed lines wider
-        // than macOS. An 8.5px floor lets the page-level fitter preserve the 5%
-        // compression budget instead of squeezing individual words by 8–9%.
-        minFontSize: 8.5,
+        // Narrow mobile pages can contain an exceptionally long printed line
+        // (notably Digital Khatt page 507). The line justifier provides the
+        // final cross-platform 5% compression safeguard when metrics drift.
+        minFontSize: 9.5,
         minLineScale: () => (
             isMadinahSource(state.src) ? 0.95 : 0
         ),

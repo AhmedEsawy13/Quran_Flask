@@ -440,7 +440,7 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'linesPerPage = 15, cacheKey = () => \'\', fitScale = 1' in shared
     assert 'minLineScale = 0' in shared
     assert 'minFontSize = 11' in shared
-    assert 'minFontSize: 8.5' in memorize
+    assert 'minFontSize: 9.5' in memorize
     assert 'minFontSize: 9.5' in landing
     assert 'sharedSize = true' in shared
     assert 'sharedSize: false' in memorize
@@ -449,5 +449,8 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'maxPageFitRatio: 1.15' in landing
     assert "state.layoutMode === 'dual' ? 1.20" in memorize
     assert 'fs * ratios[0] * 0.99 / resolvedMinLineScale' in shared
+    assert 'minFeatureScale = 1, minLineScale = 0.5' in shared
+    assert 'fontSize * rawScale / lineScaleFloor' in shared
+    assert 'isMadinahSource(state.src) ? 0.95 : 0.5' in memorize
     assert 'featureCandidates = null' in shared
     assert 'const spacing = Math.min(slack / gaps, spacingCap)' in shared
