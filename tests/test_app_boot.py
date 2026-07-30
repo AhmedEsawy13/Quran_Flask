@@ -202,10 +202,17 @@ def test_ui_foundation_exposes_thmanyah_alternates_and_components(client):
     assert 'الأثـر' in landing
     assert 'من تجويد الحروف' in landing
     assert 'إلى معرفة الوقوف' in landing
-    assert 'مواضع الوقف بثقة' in landing
+    assert 'بمقارنة المطبوع والقرّاء والعلماء' in landing
+    assert 'id="lp-proof-title"' in landing
+    assert 'ثلاث شهادات على موضع الوقف' in landing
+    assert 'id="lp-kursi"' in landing
+    assert 'id="lp-kursi-page"' in landing
+    assert 'id="lp-kursi-verse"' in landing
+    assert 'محاكاة رقمية للرسم والتخطيط' in landing
     assert 'data-src="qpc_v1"' in landing
+    assert 'data-src="azhar"' in landing
     assert 'id="lp-tajweed"' in landing
-    assert 'class="athar-button" href="/read"' in landing
+    assert 'class="athar-button" href="#lp-proof"' in landing
     assert 'class="athar-button athar-button-ghost" href="/waqf-practice"' in landing
     for primitive in ('athar-page-intro', 'athar-toolbar', 'athar-surface',
                       'athar-field', 'athar-chip', 'athar-tabs', 'athar-sheet'):
@@ -218,8 +225,8 @@ def test_reader_uses_shared_editorial_structure_and_accessible_tools(client):
 
     assert page.index('css/athar-components.css') < page.index('css/reading_athar.css')
     assert 'class="reader-intro athar-tool-intro" aria-labelledby="reader-title"' in page
-    assert 'id="reader-title" aria-label="اقرأ المصحف، وتدبّر المعنى."' in page
-    assert 'اقرأ المصحــف، وتدبّر المعنى.' in page
+    assert 'id="reader-title" aria-label="اقرأ المصحف، وقارن علامات الوقف."' in page
+    assert 'اقرأ المصحــف، وقارن علامات الوقف.' in page
     assert 'class="reader-primary athar-tool-chrome"' in page
     assert 'class="reader-drawer athar-surface" id="reader-waqf-drawer"' in page
     assert 'class="reader-drawer athar-surface" id="reader-study-drawer"' in page
@@ -319,8 +326,8 @@ def test_waqf_uses_shared_research_workspace_structure(client):
     assert 'wq-bar athar-tool-chrome' in page
     assert 'aria-labelledby="wq-title"' in page
     assert '<header class="wq-bar"' not in page
-    assert 'id="wq-title" aria-label="ادرس وقوفهم، وافهم الاختلاف."' in page
-    assert 'ادرس وقوفــهم، وافهم الاختلاف.' in page
+    assert 'id="wq-title" aria-label="علامة المصحف، ووقف القارئ، وقول الإمام."' in page
+    assert 'علامة المصحــف، ووقف القارئ، وقول الإمام.' in page
     assert 'id="wq-matrix-mobile"' in page
     assert 'renderMatrixMobile' in script
     assert 'wq-matrix-desktop' in page
@@ -358,8 +365,8 @@ def test_waqf_practice_uses_shared_training_foundation(client):
     assert 'AtharPageChrome.sizePages' in script
     assert 'id="wp-layout"' not in page
     assert 'id="wp-intro" aria-labelledby="wp-title"' in page
-    assert 'id="wp-title" aria-label="اختبر وقفك، ثم افهم النتيجة."' in page
-    assert 'اختبر وقفــك، ثم افهم النتيجة.' in page
+    assert 'id="wp-title" aria-label="علّم وقفك، وقيّمه بالمطبوع."' in page
+    assert 'علِّم وقوفــك، وقيّمه بالمطبوع.' in page
     assert 'class="wp-toolbar athar-tool-chrome"' in page
     assert page.count('class="wp-section athar-surface') == 3
     assert 'aria-controls="wp-range-panel"' in page

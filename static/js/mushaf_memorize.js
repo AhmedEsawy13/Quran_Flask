@@ -63,6 +63,9 @@
         asrNote:     $('mz-asr-note'),
         asrLive:     $('mz-asr-live'),
         asrLiveText: $('mz-asr-live-text'),
+        tajweedNote: $('mz-tajweed-note'),
+        tajweedNoteBody: $('mz-tajweed-note-body'),
+        tajweedNoteRef: $('mz-tajweed-note-ref'),
         tbLayout:    $('mz-tb-layout'),
         tbTajweed:   $('mz-tb-tajweed'),
         tbHide:      $('mz-tb-hide'),
@@ -1150,6 +1153,35 @@
         wordsInSpread('.mz-word.mz-act').forEach(w => w.classList.remove('mz-act'));
         if (!key) return;
         wordsInSpread(`.mz-word[data-key="${key}"]`).forEach(w => w.classList.add('mz-act'));
+        refreshTajweedNote(key);
+    }
+
+    const _noteCache = new Map();
+    async function refreshTajweedNote(key) {
+        const box = els.tajweedNote;
+        const body = els.tajweedNoteBody;
+        const ref = els.tajweedNoteRef;
+        if (!box || !body) return;
+        if (!state.tajweedOn || !key) {
+            box.hidden = true;
+            return;
+        }
+        const [s, a] = String(key).split(':').map(Number);
+        if (!s || !a) { box.hidden = true; return; }
+        if (ref) ref.textContent = key;
+        try {
+            let text = _noteCache.get(key);
+            if (text === undefined) {
+                const data = await window.AtharApi.json(`/api/tajweed-notes/${s}/${a}`);
+                text = (data && data.text) || '';
+                _noteCache.set(key, text);
+            }
+            if (!text) { box.hidden = true; return; }
+            body.textContent = text.replace(/<br\s*\/?>/gi, '\n');
+            box.hidden = false;
+        } catch (_) {
+            box.hidden = true;
+        }
     }
     function scrollActiveIntoView() {
         const first = wordsInSpread('.mz-word.mz-act')[0];
@@ -2040,8 +2072,15 @@
             syncTajweedButton();
             syncToolbar();
             saveSetting('quranApp_tajweedEnabled', state.tajweedOn);
-            if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
-            else { clearTajweedFromPage(); requestAnimationFrame(justifyLines); }
+            if (state.tajweedOn) {
+                applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
+                refreshTajweedNote(state.activeKey || (state.selectionRange
+                    ? `${state.surah}:${state.selectionRange[0]}` : null));
+            } else {
+                clearTajweedFromPage();
+                requestAnimationFrame(justifyLines);
+                if (els.tajweedNote) els.tajweedNote.hidden = true;
+            }
         });
 
         els.justify.addEventListener('input', () => {

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% set page_title = 'أثَر · المصادر والشكر' %}
+    {% set page_description = 'مصادر النص والتجويد والتفسير وكتب الوقف والخطوط التي يعتمد عليها أثَر — مع نسبها ورخصها.' %}
+    <meta name="description" content="{{ page_description }}">
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/credits', json_ld={
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        'name': page_title,
+        'description': page_description,
+        'url': public_absolute('/credits'),
+        'isPartOf': {'@type': 'WebSite', 'name': 'أثَر', 'url': public_absolute('/')}
+    }) }}
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/credits.css') }}">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body class="athar-credits">
+    {{ athar_app_bar() }}
+
+    <main id="athar-main" class="cr-main">
+        <header class="cr-hero">
+            <p class="cr-brand athar-display">أثَر</p>
+            <h1 class="cr-title athar-display">المصادر والشكر</h1>
+            <p class="cr-lede">
+                أثَر يعتمد على مصادر علمية وخطوط مفتوحة — هنا نسبها باختصار، حتى يبقى التلوين والبيان والتفسير والوقف على بيّنة.
+            </p>
+        </header>
+
+        <div class="cr-body">
+            <section class="cr-section" aria-labelledby="cr-tajweed">
+                <h2 id="cr-tajweed" class="athar-display">التجويد</h2>
+                <ul class="cr-list">
+                    <li>
+                        <h3>تلوين الأحكام</h3>
+                        <p>
+                            بيانات الألوان مبنيّة على مشروع
+                            <a href="https://github.com/cpfair/quran-tajweed" target="_blank" rel="noopener">cpfair/quran-tajweed</a>
+                            (رخصة CC-BY 4.0)، مع نص عثماني من Tanzil — وتُعرض محليًا عبر <code>/api/tajweed</code>.
+                        </p>
+                    </li>
+                    <li>
+                        <h3>بيان التجويد</h3>
+                        <p>
+                            الشروح النصّية بجانب التلوين من
+                            <a href="https://tafsir.net" target="_blank" rel="noopener">مركز تفسير للدراسات القرآنية</a>
+                            عبر
+                            <a href="https://github.com/tafsircenter/tafsir-mcp" target="_blank" rel="noopener">Tafsir MCP</a>
+                            — مخزّنة محليًا وليست بديلاً عن الألوان.
+                        </p>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="cr-section" aria-labelledby="cr-tafsir">
+                <h2 id="cr-tafsir" class="athar-display">التفسير</h2>
+                <p class="cr-section-note">
+                    خمسة تفاسير عربية على صفحة المصحف، مبنية من صادرات
+                    <a href="https://qul.tarteel.ai" target="_blank" rel="noopener">QUL (qul.tarteel.ai)</a>
+                    وتُخدم من بيانات محلية:
+                </p>
+                <ul class="cr-compact">
+                    <li>التفسير الميسر — مجمع الملك فهد</li>
+                    <li>المختصر في التفسير</li>
+                    <li>تيسير الكريم الرحمن (السعدي)</li>
+                    <li>الجامع لأحكام القرآن (القرطبي)</li>
+                    <li>معالم التنزيل (البغوي)</li>
+                </ul>
+            </section>
+
+            <section class="cr-section" aria-labelledby="cr-waqf">
+                <h2 id="cr-waqf" class="athar-display">الوقف والابتداء</h2>
+                <ul class="cr-list">
+                    <li>
+                        <h3>علامات المصاحف</h3>
+                        <p>علامات الوقف في الطبعات المعتمدة داخل التطبيق (المدينة وغيرها) كما ضُبطت في بيانات التخطيط المحلية.</p>
+                    </li>
+                    <li>
+                        <h3>كتب الوقف الكلاسيكية</h3>
+                        <p>
+                            المكتفى (الداني)، منار الهدى (الأشموني)، القطع والائتناف (النحاس)، وإيضاح الوقف (ابن الأنباري) —
+                            من طبعات
+                            <a href="https://openiti.org/" target="_blank" rel="noopener">OpenITI</a>
+                           ، مع محاذاة إلى مواضع الكلمات في أثَر.
+                        </p>
+                    </li>
+                    <li>
+                        <h3>وقوف القرّاء</h3>
+                        <p>
+                            مواضع الوقف المستخرجة من توقيتات التلاوة — للمقارنة في مُكْث، لا كحكم شرعي مستقل.
+                            من القرّاء المعتمدين في التطبيق مثل: محمود خليل الحصري، محمد صديق المنشاوي، عبد الباسط عبد الصمد، إبراهيم الأخضر، أيمن سويد، وغيرهم.
+                        </p>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="cr-section" aria-labelledby="cr-asbab">
+                <h2 id="cr-asbab" class="athar-display">أسباب النزول</h2>
+                <p class="cr-section-note">
+                    إن ثبتت في المصادر المحمّلة من
+                    <a href="https://tafsir.net" target="_blank" rel="noopener">مركز تفسير</a>
+                    (الواحدي ولباب النقول / تحقيق الحميدان) عبر Tafsir MCP — تغطية جزئية، وغياب البيان لا ينفي النزول.
+                </p>
+            </section>
+
+            <section class="cr-section" aria-labelledby="cr-text">
+                <h2 id="cr-text" class="athar-display">النص والخطوط</h2>
+                <ul class="cr-list">
+                    <li>
+                        <h3>رسم المصحف</h3>
+                        <p>تخطيطات المدينة (Digital Khatt / QPC) وغيرها من مصادر الرسم المعتمدة في المشروع للعرض والمحاكاة.</p>
+                    </li>
+                    <li>
+                        <h3>خطوط الواجهة</h3>
+                        <p>
+                            عائلة
+                            <a href="https://font.thmanyah.com/" target="_blank" rel="noopener">Thmanyah</a>
+                            لواجهة أثَر والعناوين — وخطوط المصحف العثمانية تبقى لعرض الآيات.
+                        </p>
+                    </li>
+                    <li>
+                        <h3>الصوت</h3>
+                        <p>ملفات التلاوة وتوقيت الكلمات من مصادر القرّاء المستخدمة في المصحف وتثبيت ومُكْث؛ تُخدم محليًا أو عبر المسارات المضبوطة في النشر.</p>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="cr-section" aria-labelledby="cr-note">
+                <h2 id="cr-note" class="athar-display">تنبيه</h2>
+                <p class="cr-section-note">
+                    أثَر أداة مساعدة للدراسة والتدريب. المحاكاة الرقمية للرسم قريبة من المطبوع وليست مطابقة حرفًا بحرف.
+                    راجع عالمًا مختصًا للأحكام التفصيلية.
+                </p>
+            </section>
+        </div>
+    </main>
+
+    <footer class="cr-foot">
+        <span>© أثَر — مع القرآن</span>
+        <nav class="cr-foot-links" aria-label="روابط">
+            <a href="/">الرئيسية</a>
+            <a href="/read">المصحف</a>
+            <a href="/waqf">مُكْث</a>
+            <a href="/waqf-practice">تدريب</a>
+        </nav>
+    </footer>
+</body>
+</html>

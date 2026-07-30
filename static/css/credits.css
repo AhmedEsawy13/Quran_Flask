@@ -1,0 +1,149 @@
+/* ===========================================================================
+ * أثَر — /credits (المصادر والشكر)
+ * One quiet reading composition: brand + title + source sections.
+ * ======================================================================== */
+
+body.athar-credits {
+  background:
+    radial-gradient(ellipse 80% 50% at 70% 0%, color-mix(in srgb, var(--athar-accent) 8%, transparent), transparent 55%),
+    var(--athar-parchment);
+  color: var(--athar-ink);
+  font-family: var(--font-ui);
+  min-height: 100dvh;
+}
+
+.cr-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(36px, 7vw, 72px) clamp(20px, 5vw, 40px) clamp(48px, 8vw, 88px);
+}
+
+.cr-hero {
+  margin-bottom: clamp(36px, 6vw, 56px);
+}
+.cr-brand {
+  margin: 0 0 8px;
+  color: var(--athar-accent);
+  font-size: clamp(2.4rem, 6vw, 3.6rem);
+  font-weight: 900;
+  line-height: 0.95;
+}
+.cr-title {
+  margin: 0 0 16px;
+  font-size: clamp(1.7rem, 3.2vw, 2.35rem);
+  line-height: 1.2;
+  font-weight: 900;
+}
+.cr-lede {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 1.02rem;
+  line-height: 1.85;
+  color: var(--athar-ink-soft);
+}
+
+.cr-body {
+  display: grid;
+  gap: clamp(28px, 4vw, 40px);
+}
+
+.cr-section {
+  padding-top: 22px;
+  border-top: 1px solid color-mix(in srgb, var(--athar-accent) 16%, var(--athar-line));
+}
+.cr-section h2 {
+  margin: 0 0 14px;
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+  font-weight: 900;
+  color: var(--athar-ink);
+}
+.cr-section-note {
+  margin: 0 0 12px;
+  font-size: 0.98rem;
+  line-height: 1.8;
+  color: var(--athar-ink-soft);
+}
+
+.cr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+.cr-list h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--athar-gold);
+}
+.cr-list p {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.8;
+  color: var(--athar-ink-soft);
+}
+
+.cr-compact {
+  margin: 0;
+  padding: 0 1.2em 0 0;
+  color: var(--athar-ink-soft);
+  line-height: 1.9;
+  font-size: 0.98rem;
+}
+
+.cr-section a {
+  color: var(--athar-accent);
+  font-weight: 700;
+  text-underline-offset: 0.18em;
+}
+.cr-section code {
+  font-size: 0.86em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--athar-ink) 6%, transparent);
+}
+
+.cr-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px clamp(20px, 5vw, 40px) 40px;
+  border-top: 1px solid var(--athar-line);
+  color: var(--athar-ink-faint);
+  font-size: 0.82rem;
+}
+.cr-foot-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.cr-foot-links a {
+  color: var(--athar-ink-soft);
+  font-weight: 600;
+  text-decoration: none;
+}
+.cr-foot-links a:hover {
+  color: var(--athar-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cr-hero,
+  .cr-section {
+    opacity: 0;
+    transform: translateY(10px);
+    animation: cr-in 0.55s var(--athar-ease, ease) forwards;
+  }
+  .cr-section:nth-child(1) { animation-delay: 0.08s; }
+  .cr-section:nth-child(2) { animation-delay: 0.14s; }
+  .cr-section:nth-child(3) { animation-delay: 0.2s; }
+  .cr-section:nth-child(4) { animation-delay: 0.26s; }
+  .cr-section:nth-child(5) { animation-delay: 0.32s; }
+}
+@keyframes cr-in {
+  to { opacity: 1; transform: none; }
+}

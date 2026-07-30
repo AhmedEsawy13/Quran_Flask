@@ -93,6 +93,16 @@ body.athar-reading .reader-intro .athar-lede {
     max-width: 48ch;
     font-family: var(--font-serif);
 }
+body.athar-reading .reader-lede-link {
+    color: var(--athar-accent, #2f5d4a);
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+}
+body.athar-reading .reader-lede-link:hover,
+body.athar-reading .reader-lede-link:focus-visible {
+    color: var(--athar-ink, #1c1915);
+}
 
 body.athar-reading #controls.reader-controls {
     display: flex;
@@ -660,12 +670,86 @@ body.athar-reading .waqf-symbol.waqf-letter-mark {
 body.athar-reading #transliteration-container,
 body.athar-reading #tafseer-container,
 body.athar-reading #eerab-container,
+body.athar-reading #tajweed-notes-container,
+body.athar-reading #asbab-container,
 body.athar-reading #mutashabihat-container,
 body.athar-reading #word-meaning-text,
 body.athar-reading #recitation-guide-container,
 body.athar-reading #waqf-verse-table-container {
     color: var(--athar-ink-soft);
     border-color: var(--athar-line);
+}
+
+body.athar-reading .tajweed-notes-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+body.athar-reading .tajweed-notes-head h2 { margin: 0; }
+body.athar-reading .tajweed-notes-toggle {
+    font-size: 0.78rem;
+}
+body.athar-reading .tajweed-notes-hint,
+body.athar-reading .asbab-hint {
+    margin: 8px 0 10px;
+    font-size: 0.86rem;
+    color: var(--athar-ink-faint, var(--athar-ink-soft));
+    line-height: 1.6;
+}
+body.athar-reading .tajweed-notes-body {
+    font-size: 1.02rem;
+    line-height: 1.95;
+    color: var(--athar-ink);
+    white-space: pre-wrap;
+}
+body.athar-reading .tajweed-notes-body.is-clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+    overflow: hidden;
+    white-space: normal;
+}
+body.athar-reading .tajweed-notes-credit,
+body.athar-reading .asbab-credit {
+    margin: 14px 0 0;
+    font-size: 0.78rem;
+    color: var(--athar-ink-faint, var(--athar-ink-soft));
+}
+body.athar-reading .tajweed-notes-credit a,
+body.athar-reading .asbab-credit a {
+    color: var(--athar-accent);
+    font-weight: 700;
+}
+body.athar-reading .asbab-body {
+    display: grid;
+    gap: 16px;
+}
+body.athar-reading .asbab-entry {
+    padding-top: 12px;
+    border-top: 1px solid color-mix(in srgb, var(--athar-ink) 8%, transparent);
+}
+body.athar-reading .asbab-entry:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+body.athar-reading .asbab-attr {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--athar-gold);
+}
+body.athar-reading .asbab-text {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.95;
+    color: var(--athar-ink);
+    white-space: pre-wrap;
+}
+body.athar-reading .asbab-empty {
+    margin: 0;
+    color: var(--athar-ink-soft);
 }
 
 body.athar-reading .reader-legend {

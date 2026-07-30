@@ -2,7 +2,7 @@
 {% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
 {% from "_athar_ui.html" import athar_button %}
 {% set page_title = 'أثَر · مع القرآن' %}
-{% set page_description = 'أثَر — قراءة القرآن وحفظه ودراسة الوقف والابتداء، على مصادر موثّقة: رسم المصحف، أحكام التجويد، وأقوال الأئمة الكلاسيكيين.' %}
+{% set page_description = 'أثَر: مصحف حقيقي، ووقف موثَّق من المطبوع والقرّاء والعلماء — ثم تدريب يقيّمك.' %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -18,8 +18,9 @@
         'inLanguage': 'ar',
         'description': page_description,
         'potentialAction': {
-            '@type': 'ReadAction',
-            'target': public_absolute('/read')
+            '@type': 'ViewAction',
+            'target': public_absolute('/waqf'),
+            'name': 'ادرس موضع وقف'
         }
     }) }}
 
@@ -27,6 +28,8 @@
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/digitalkhatt.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/oldmadina.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/amiri_quran.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/surah_names.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     <link rel="preload" href="{{ url_for('static', filename='fonts/quran-common.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
 
@@ -50,27 +53,28 @@
                 <p class="lp-tagline">مع القرآن</p>
                 <h1 class="lp-headline athar-display">من تجويد الحروف<br><em>إلى معرفة الوقوف.</em></h1>
                 <p class="lp-lede">
-                    رسم المصحف وأحكام التجويد، ثم مواضع الوقف بثقة.
+                    بمقارنة المطبوع والقرّاء والعلماء — ثم تدريب يقيّمك.
                 </p>
                 <div class="lp-cta-row">
-                    {{ athar_button('افتح المصحف', href='/read') }}
-                    {{ athar_button('تدريب الوقف', href='/waqf-practice', variant='ghost') }}
+                    {{ athar_button('شاهد آية الكرسي', href='#lp-proof') }}
+                    {{ athar_button('درّب وقفك', href='/waqf-practice', variant='ghost') }}
                 </div>
             </div>
 
             <div class="lp-hero-visual">
                 <div class="lp-mushaf-stage" id="lp-mushaf-stage">
-                    <article class="lp-mushaf athar-page-card" id="lp-mushaf" aria-label="صفحة من مصحف المدينة">
+                    <article class="lp-mushaf athar-page-card" id="lp-mushaf" aria-label="محاكاة صفحة من مصحف المدينة">
                         <header class="athar-page-head lp-mushaf-head">
                             <span class="athar-page-head-juz" id="lp-juz"></span>
                             <span class="athar-page-head-surah" id="lp-surah"></span>
                         </header>
                         <div class="lp-mushaf-page" id="lp-page"></div>
                         <footer class="lp-mushaf-foot">
-                            <div class="lp-mushaf-tools" role="group" aria-label="عرض صفحة المصحف">
+                            <div class="lp-mushaf-tools" role="group" aria-label="عرض محاكاة المصحف">
                                 <div class="lp-src-toggle" role="group" aria-label="رسم المصحف">
                                     <button type="button" class="lp-src-btn" data-src="digital_khatt" aria-pressed="true" title="مصحف المدينة الجديد">الجديد</button>
                                     <button type="button" class="lp-src-btn" data-src="qpc_v1" aria-pressed="false" title="مصحف المدينة القديم">القديم</button>
+                                    <button type="button" class="lp-src-btn" data-src="azhar" aria-pressed="false" title="مصحف الأزهر">الأزهر</button>
                                 </div>
                                 <button type="button" class="lp-tajweed-btn athar-icon-button" id="lp-tajweed" aria-pressed="true" title="تلوين التجويد" aria-label="تلوين التجويد">
                                     <i class="fas fa-palette" aria-hidden="true"></i>
@@ -79,46 +83,85 @@
                             <span class="lp-page-pill" id="lp-page-num"></span>
                         </footer>
                     </article>
+                    <p class="lp-sim-note" id="lp-mushaf-sim-note">
+                        محاكاة رقمية للرسم والتخطيط — قريبة من المطبوع وليست مطابقة حرفًا بحرف.
+                    </p>
                 </div>
+            </div>
+        </section>
+
+        <section class="lp-proof lp-wrap" id="lp-proof" aria-labelledby="lp-proof-title">
+            <div class="lp-section-head">
+                <span class="lp-eyebrow-label">— محاكاة آية الكرسي</span>
+                <h2 class="lp-section-title athar-display" id="lp-proof-title">ثلاث شهادات على موضع الوقف.</h2>
+                <p class="lp-section-note">
+                    صفحة المصحف يسارًا، وتدفّق مُكْث يمينًا — بعلامات الوقف بصورها من الخط.
+                </p>
+            </div>
+
+            <div class="lp-kursi" id="lp-kursi" data-surah="2" data-ayah="255">
+                <div class="lp-kursi-stage">
+                    <aside class="lp-kursi-mushaf" aria-label="محاكاة صفحة المصحف">
+                        <div class="lp-kursi-mushaf-stage" id="lp-kursi-mushaf-stage">
+                            <article class="lp-mushaf lp-kursi-page athar-page-card" id="lp-kursi-page" aria-label="محاكاة صفحة آية الكرسي">
+                                <header class="athar-page-head lp-mushaf-head">
+                                    <span class="athar-page-head-juz" id="lp-kursi-juz"></span>
+                                    <span class="athar-page-head-surah" id="lp-kursi-surah"></span>
+                                </header>
+                                <div class="lp-mushaf-page" id="lp-kursi-page-body"></div>
+                                <footer class="lp-mushaf-foot">
+                                    <div class="lp-src-toggle" role="group" aria-label="رسم المصحف">
+                                        <button type="button" class="lp-src-btn" data-kursi-src="digital_khatt" aria-pressed="true">الجديد</button>
+                                        <button type="button" class="lp-src-btn" data-kursi-src="qpc_v1" aria-pressed="false">القديم</button>
+                                        <button type="button" class="lp-src-btn" data-kursi-src="azhar" aria-pressed="false">الأزهر</button>
+                                    </div>
+                                    <span class="lp-page-pill" id="lp-kursi-page-num"></span>
+                                </footer>
+                            </article>
+                        </div>
+                    </aside>
+
+                    <div class="lp-kursi-panel">
+                        <div class="lp-kursi-chrome">
+                            <span class="lp-kursi-chrome-label">الشهادة</span>
+                            <div class="lp-src-toggle lp-kursi-lens" id="lp-kursi-lens" role="group" aria-label="مصدر الشهادة">
+                                <button type="button" class="lp-src-btn" data-lens="mushaf" aria-pressed="true">المصحف</button>
+                                <button type="button" class="lp-src-btn" data-lens="reciters" aria-pressed="false">القرّاء</button>
+                                <button type="button" class="lp-src-btn" data-lens="classical" aria-pressed="false">العلماء</button>
+                            </div>
+                            <div class="lp-src-toggle lp-kursi-editions" id="lp-kursi-editions" role="group" aria-label="طبعة المصحف" hidden></div>
+                        </div>
+
+                        <div class="lp-kursi-meta" id="lp-kursi-meta" hidden></div>
+                        <p class="lp-kursi-status" id="lp-kursi-status" aria-live="polite">جارٍ تحميل المحاكاة…</p>
+                        <div class="lp-kursi-flow" id="lp-kursi-verse" dir="rtl" lang="ar" hidden></div>
+                        <div class="lp-kursi-legend" id="lp-kursi-legend" hidden></div>
+                        <p class="lp-kursi-caption" id="lp-kursi-caption" hidden></p>
+                        <p class="lp-kursi-more">
+                            <a href="/waqf?surah=2&ayah=255">الدراسة الكاملة في مُكْث</a>
+                            ·
+                            <a href="/waqf-practice?surah=2&from=255&to=255">درّب هذا الموضع</a>
+                        </p>
+                    </div>
+                </div>
+                <p class="lp-sim-note lp-sim-note-inline">محاكاة رقمية للرسم والتخطيط والعلامات — قريبة من المطبوع وليست مطابقة ١٠٠٪</p>
             </div>
         </section>
 
         <section class="lp-section lp-wrap">
             <div class="lp-section-head">
-                <span class="lp-eyebrow-label">— رحلة القراءة</span>
-                <h2 class="lp-section-title athar-display">من فتح المصحـف، إلى ضبط الوقف.</h2>
-                <p class="lp-section-note">أربع أدوات على خطّ واحد: قراءة، تثبيت، مُكْث، ثم تدريب الوقف.</p>
+                <span class="lp-eyebrow-label">— أربعة أبواب</span>
+                <h2 class="lp-section-title athar-display">من معرفة الوقف، إلى قراءة يوميّة.</h2>
+                <p class="lp-section-note">ابدأ بالدليل والتدريب — ثم المصحف والتثبيت للعادة اليومية.</p>
             </div>
 
             <div class="lp-cards" id="lp-cards">
-                <a class="lp-card" href="/read">
-                    <div class="lp-card-top">
-                        <span class="lp-card-verb">اقرأ</span>
-                    </div>
-                    <h3>المصحف</h3>
-                    <p>القراءة بخط المصحف الأصلي، مع تفسير وإعراب وتجويد ملوَّن، وعلامات وقف من عدّة مصاحف جنبًا إلى جنب.</p>
-                    <span class="lp-card-link">افتح المصحف
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                    </span>
-                </a>
-
-                <a class="lp-card" href="/memorize">
-                    <div class="lp-card-top">
-                        <span class="lp-card-verb">احفظ</span>
-                    </div>
-                    <h3>تثبيت</h3>
-                    <p>تكرار مقطَّع بمنهجية التصوير الذهني، على صفحات المصحف الحقيقية وبصوت القرّاء الذين تختارهم.</p>
-                    <span class="lp-card-link">جرّب تثبيت
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                    </span>
-                </a>
-
                 <a class="lp-card" href="/waqf">
                     <div class="lp-card-top">
                         <span class="lp-card-verb">تأمّل</span>
                     </div>
                     <h3>مُكْث</h3>
-                    <p>دليل وقفاتٍ موثَّقة من عدّة قرّاء، لمعرفة أين يَحسُن أن تقف وتتأمّل قبل أن تُكمل.</p>
+                    <p>قارن علامة المصحف، ووقف القارئ، وقول الإمام — في آية واحدة.</p>
                     <span class="lp-card-link">افتح دليل التلاوة
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
@@ -129,8 +172,30 @@
                         <span class="lp-card-verb">تدرّب</span>
                     </div>
                     <h3>تدريب</h3>
-                    <p>علِّم مواضع وقوفك، وقيّمها آليًا مقابل علامات المصاحف المطبوعة وأقوال الأئمة الكلاسيكيين.</p>
+                    <p>علِّم مواضع وقوفك، وقيّمها مقابل المطبوع وأقوال الأئمة — لا بالتخمين.</p>
                     <span class="lp-card-link">ابدأ التدريب
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </span>
+                </a>
+
+                <a class="lp-card" href="/read">
+                    <div class="lp-card-top">
+                        <span class="lp-card-verb">اقرأ</span>
+                    </div>
+                    <h3>المصحف</h3>
+                    <p>قراءة بخط المصحف الحقيقي، مع مقارنة علامات الوقف بين الطبعات حين تحتاجها.</p>
+                    <span class="lp-card-link">افتح المصحف
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </span>
+                </a>
+
+                <a class="lp-card" href="/memorize">
+                    <div class="lp-card-top">
+                        <span class="lp-card-verb">احفظ</span>
+                    </div>
+                    <h3>تثبيت</h3>
+                    <p>تكرار مقطَّع على صفحات المصحف الحقيقية وبصوت القرّاء الذين تختارهم.</p>
+                    <span class="lp-card-link">جرّب تثبيت
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
                     </span>
                 </a>
@@ -140,19 +205,20 @@
 
     <section class="lp-closer">
         <div class="lp-wrap">
-            <h2 class="lp-closer-title athar-display">من القراءة، إلى الأثـر.</h2>
-            <p>ابدأ من أيّ آية، وسيتذكّر المصحف مكانك — على الجهاز نفسه، وبالخط نفسه، في كل مرة.</p>
-            {{ athar_button('ابدأ الآن', href='/read') }}
+            <h2 class="lp-closer-title athar-display">من الدليل، إلى الأثـر.</h2>
+            <p>مصحف رقمي قريب من المطبوع، ووقف موثَّق — ليس تطبيق تلاوة آخر.</p>
+            {{ athar_button('ابدأ من موضع وقف', href='/waqf?surah=2&ayah=255') }}
         </div>
     </section>
 
     <footer class="lp-foot">
         <span>© أثَر — مع القرآن</span>
         <nav class="lp-foot-links">
-            <a href="/read">المصحف</a>
-            <a href="/memorize">تثبيت</a>
             <a href="/waqf">مُكْث</a>
             <a href="/waqf-practice">تدريب</a>
+            <a href="/read">المصحف</a>
+            <a href="/memorize">تثبيت</a>
+            <a href="/credits">المصادر</a>
         </nav>
     </footer>
 

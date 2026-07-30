@@ -3,18 +3,18 @@ from __future__ import annotations
 
 import os
 
-from flask import Response, request
+from flask import Response, render_template, request
 
 from core.blueprints import core_bp
 
 # Indexable product pages only — tools with noindex stay out of the sitemap.
 _SITEMAP_PATHS = (
     ('/', 'weekly', '1.0'),
-    ('/read', 'weekly', '0.9'),
+    ('/waqf', 'weekly', '0.95'),
+    ('/waqf-practice', 'weekly', '0.9'),
+    ('/read', 'weekly', '0.85'),
     ('/memorize', 'weekly', '0.8'),
-    ('/waqf', 'weekly', '0.8'),
-    ('/waqf-lab', 'weekly', '0.6'),
-    ('/waqf-practice', 'weekly', '0.7'),
+    ('/credits', 'monthly', '0.4'),
 )
 
 
@@ -40,6 +40,12 @@ def public_absolute(path: str = '/') -> str:
     return public_base_url() + path
 
 
+@core_bp.route('/credits')
+def credits_page():
+    """Public attribution page for data sources and fonts."""
+    return render_template('credits.html')
+
+
 @core_bp.route('/robots.txt')
 def robots_txt():
     base = public_base_url()
@@ -52,6 +58,9 @@ def robots_txt():
         'Disallow: /azhar-layout\n'
         'Disallow: /layout-studio\n'
         'Disallow: /font-lab\n'
+        'Disallow: /activity\n'
+        'Disallow: /waqf-mark-review\n'
+        'Disallow: /cv-waqf\n'
         '\n'
         f'Sitemap: {base}/sitemap.xml\n'
     )
@@ -84,30 +93,34 @@ def llms_txt():
     base = public_base_url()
     body = f"""# أثَر (Athar)
 
-> Interactive Quran reading, visual memorization, and waqf (stopping) study —
-> built on documented mushaf drawings, tajweed rules, and classical scholarly sources.
+> Printed mushaf + documented waqf: compare stop marks across editions,
+> see where reciters actually pause, consult classical opinions, then practice
+> and get graded — not just another Quran audio player.
 
 ## Site
 
 - Home: {base}/
+- Waqf guide (مُكْث): {base}/waqf
+- Waqf practice (تدريب): {base}/waqf-practice
 - Mushaf reader: {base}/read
 - Memorization (تثبيت): {base}/memorize
-- Waqf guide (مُكْث): {base}/waqf
-- Waqf lab (مختبر الوقف): {base}/waqf-lab
-- Waqf practice (تدريب): {base}/waqf-practice
+- Credits / sources: {base}/credits
 
 ## Product summary
 
-Athar helps Arabic readers and students of tajweed/waqf:
-1. Read the mushaf with synchronized recitation and word highlighting.
-2. Memorize using page-accurate Madinah layouts (Digital Khatt / Old Madina).
-3. Compare printed-mushaf waqf marks and classical opinions (e.g. al-Dānī).
+Athar’s distinct edge is knowing where to stop with evidence:
+1. Compare printed-mushaf waqf marks across editions on the same verse.
+2. See where major reciters actually pause (مُكْث).
+3. Weigh classical scholarly opinions beside those marks.
 4. Practice placing stops and get graded feedback.
+5. Read and memorize on page-accurate Madinah layouts (supporting daily use).
 
 ## Preferred citations
 
 - Prefer the canonical URLs above (not ephemeral Heroku review hosts when a custom domain is configured).
-- Do not index or summarize `/api/*`, `/mushaf-editor`, `/classical-review`, `/azhar-layout`, `/layout-studio`, or `/font-lab`.
+- Do not index or summarize `/api/*`, `/mushaf-editor`, `/classical-review`,
+  `/azhar-layout`, `/layout-studio`, `/font-lab`, `/activity`, `/waqf-mark-review`, or `/cv-waqf`.
+- `/waqf-lab` is a research surface linked from مُكْث; prefer `/waqf` for citations.
 
 ## Contact / project
 

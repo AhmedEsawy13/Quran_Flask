@@ -17,7 +17,9 @@ from flask import jsonify, render_template, request
 
 from core.blueprints import reading_bp
 from core.config import (
-    WAQF_DATABASE, TAJWEED_DATABASE, TAFSEER_LOCAL_DATABASE, MAX_AYAH_NUMBER,
+    WAQF_DATABASE, TAJWEED_DATABASE, TAJWEED_NOTES_DATABASE, ASBAB_DATABASE,
+    TAFSEER_LOCAL_DATABASE,
+    MAX_AYAH_NUMBER,
     MUTASHABIHAT_PHRASES_JSON, MUTASHABIHAT_PHRASE_VERSES_JSON,
 )
 from core.text import _normalize_for_search
@@ -321,6 +323,135 @@ def get_tajweed(surah_number, ayah_number):
 
     _tajweed_cache[verse_key] = {"html": row[0]}
     resp = jsonify(_tajweed_cache[verse_key])
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
+
+_tajweed_notes_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
+_TAJWEED_NOTES_DEFAULT_ATTR = (
+    'بيان تجويد — مركز تفسير للدراسات القرآنية (Tafsir MCP / mcp.tafsir.net)'
+)
+
+
+def get_local_tajweed_note(verse_key):
+    """Return {text, attribution} for verse_key from tajweed_notes_local.db, or None."""
+    if not os.path.isfile(TAJWEED_NOTES_DATABASE):
+        return None
+    try:
+        conn = sqlite3.connect(TAJWEED_NOTES_DATABASE)
+        try:
+            row = conn.execute(
+                'SELECT text, attribution FROM tajweed_notes WHERE verse_key = ?',
+                (verse_key,),
+            ).fetchone()
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.error(f"Tajweed notes DB error for {verse_key}: {e}")
+        return None
+    if not row or not (row[0] or '').strip():
+        return None
+    return {
+        'text': row[0],
+        'attribution': row[1] or _TAJWEED_NOTES_DEFAULT_ATTR,
+    }
+
+
+@reading_bp.route('/api/tajweed-notes/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_tajweed_notes(surah_number, ayah_number):
+    """Return the Arabic tajweed explanation for one ayah (companion to coloring).
+
+    Served from data/tajweed_notes_local.db (built offline by
+    pipeline/build_tajweed_notes_local.py from Tafsir Center MCP).
+    """
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number."}), 400
+    if ayah_number < 1 or ayah_number > MAX_AYAH_NUMBER:
+        return jsonify({"error": "Invalid ayah number."}), 400
+
+    verse_key = f"{surah_number}:{ayah_number}"
+    if verse_key in _tajweed_notes_cache:
+        resp = jsonify(_tajweed_notes_cache[verse_key])
+        resp.headers['Cache-Control'] = 'public, max-age=86400'
+        return resp
+
+    note = get_local_tajweed_note(verse_key)
+    if note is None:
+        return jsonify({"error": "Note not found", "verse_key": verse_key}), 404
+
+    payload = {
+        'verse_key': verse_key,
+        'text': note['text'],
+        'attribution': note['attribution'],
+    }
+    _tajweed_notes_cache[verse_key] = payload
+    resp = jsonify(payload)
+    resp.headers['Cache-Control'] = 'public, max-age=86400'
+    return resp
+
+
+_asbab_cache: _BoundedLRU = _BoundedLRU(maxsize=4096)
+
+
+def get_local_asbab(verse_key):
+    """Return list of {source, text, attribution} for verse_key, or []."""
+    if not os.path.isfile(ASBAB_DATABASE):
+        return []
+    try:
+        conn = sqlite3.connect(ASBAB_DATABASE)
+        try:
+            rows = conn.execute(
+                'SELECT source, text, attribution FROM asbab '
+                'WHERE verse_key = ? ORDER BY source',
+                (verse_key,),
+            ).fetchall()
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.error(f"Asbab DB error for {verse_key}: {e}")
+        return []
+    out = []
+    for source, text, attribution in rows:
+        if not (text or '').strip():
+            continue
+        out.append({
+            'source': source,
+            'text': text,
+            'attribution': attribution or source,
+        })
+    return out
+
+
+@reading_bp.route('/api/asbab/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_asbab(surah_number, ayah_number):
+    """Return أسباب النزول entries for one ayah (local sparse DB), if any."""
+    if not (1 <= surah_number <= 114):
+        return jsonify({"error": "Invalid surah number."}), 400
+    if ayah_number < 1 or ayah_number > MAX_AYAH_NUMBER:
+        return jsonify({"error": "Invalid ayah number."}), 400
+
+    verse_key = f"{surah_number}:{ayah_number}"
+    if verse_key in _asbab_cache:
+        resp = jsonify(_asbab_cache[verse_key])
+        resp.headers['Cache-Control'] = 'public, max-age=86400'
+        return resp
+
+    entries = get_local_asbab(verse_key)
+    if not entries:
+        return jsonify({
+            "verse_key": verse_key,
+            "available": False,
+            "entries": [],
+            "message": "لم يثبت سبب نزول لهذه الآية في المصادر المحمّلة.",
+        }), 404
+
+    payload = {
+        "verse_key": verse_key,
+        "available": True,
+        "entries": entries,
+    }
+    _asbab_cache[verse_key] = payload
+    resp = jsonify(payload)
     resp.headers['Cache-Control'] = 'public, max-age=86400'
     return resp
 

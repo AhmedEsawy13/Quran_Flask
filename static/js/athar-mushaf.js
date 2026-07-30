@@ -13,6 +13,7 @@
         qpc_v2: '/api/qpc-v2',
         qpc_v1: '/api/qpc-v1',
         shamarly: '/api/shamarly',
+        azhar: '/api/azhar',
     });
     const EMBEDDED_WAQF_RE = /[ۖ-ۜ]/g;
     const WAQF_GLYPH_MAP = Object.freeze({
@@ -25,6 +26,18 @@
 
     function stripEmbeddedWaqf(text) {
         return String(text || '').replace(EMBEDDED_WAQF_RE, '');
+    }
+
+    const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
+    /** Prefix plain ayah-number tokens with ۝ (U+06DD). Madinah sources usually
+     *  already embed it; Azhar/script layouts often ship bare digits. */
+    function withAyahOrnament(text) {
+        const raw = String(text || '');
+        const trimmed = raw.trim();
+        if (!trimmed) return raw;
+        if (trimmed.charAt(0) === '\u06DD') return raw;
+        if (ARABIC_DIGITS_ONLY.test(trimmed)) return '\u06DD' + trimmed;
+        return raw;
     }
 
     function isWarshVersion(version) {
@@ -645,6 +658,7 @@
         sourceApiBase,
         stepVerse,
         stripEmbeddedWaqf,
+        withAyahOrnament,
         toArabicDigits,
         verseEdges,
     });

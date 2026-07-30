@@ -519,6 +519,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (tajweedBtn) tajweedBtn.addEventListener('click', toggleTajweed);
         const nuzoolBtn = document.getElementById('show-nuzool');
         if (nuzoolBtn) nuzoolBtn.addEventListener('click', toggleNuzool);
+        const asbabBtn = document.getElementById('show-asbab');
+        if (asbabBtn) asbabBtn.addEventListener('click', toggleAsbab);
+        const notesExpand = document.getElementById('tajweed-notes-expand');
+        if (notesExpand) {
+            notesExpand.addEventListener('click', () => {
+                const body = document.getElementById('tajweed-notes-text');
+                if (!body) return;
+                const open = body.classList.toggle('is-clamped') === false;
+                notesExpand.setAttribute('aria-expanded', open ? 'true' : 'false');
+                notesExpand.textContent = open ? 'اختصار' : 'عرض بالكامل';
+            });
+        }
         elements.toggleWordMeaningButton.addEventListener('click', toggleWordMeaning); // Listener for the new toggle via button
 
         const guideBtn = document.getElementById('show-recitation-guide');
@@ -822,6 +834,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshTajweed(surahNumber, ayahNumber);
             if (!quranRequests.isCurrent(request)) return false;
+            await maybeRefreshAsbab(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshMutashabihat(surahNumber, ayahNumber);
             if (!quranRequests.isCurrent(request)) return false;
             // Only display word meanings if they should be visible
@@ -982,6 +996,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             await maybeRefreshEerab(surahNumber, ayahNumber);
             if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshTajweed(surahNumber, ayahNumber);
+            if (!quranRequests.isCurrent(request)) return false;
+            await maybeRefreshAsbab(surahNumber, ayahNumber);
             if (!quranRequests.isCurrent(request)) return false;
             await maybeRefreshMutashabihat(surahNumber, ayahNumber);
             if (!quranRequests.isCurrent(request)) return false;
@@ -2138,6 +2154,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const surah = elements.surahSelect.value;
             const ayah = elements.ayahSelect.value;
             if (surah && ayah) await fetchAndDisplayTajweed(surah, ayah);
+        } else {
+            hideTajweedNotes();
         }
         refreshKhattRenderedWords();
     }
@@ -2147,11 +2165,106 @@ document.addEventListener('DOMContentLoaded', async () => {
             await getTajweedHtml(surahNumber, ayahNumber);
             if (isTajweedEnabled()) {
                 refreshKhattRenderedWords();
+                await fetchAndDisplayTajweedNotes(surahNumber, ayahNumber);
             }
             return;
         } catch (e) {
             console.error('Error loading tajweed:', e);
         }
+    }
+
+    function hideTajweedNotes() {
+        const box = document.getElementById('tajweed-notes-container');
+        if (box) box.hidden = true;
+    }
+
+    function escapeHtml(s) {
+        return String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    async function fetchAndDisplayTajweedNotes(surahNumber, ayahNumber) {
+        const box = document.getElementById('tajweed-notes-container');
+        const textEl = document.getElementById('tajweed-notes-text');
+        const creditEl = document.getElementById('tajweed-notes-credit');
+        const expandBtn = document.getElementById('tajweed-notes-expand');
+        if (!box || !textEl) return;
+        if (!isTajweedEnabled()) {
+            box.hidden = true;
+            return;
+        }
+        try {
+            const data = await fetchData(`/api/tajweed-notes/${surahNumber}/${ayahNumber}`);
+            const raw = (data && data.text) || '';
+            if (!raw.trim()) {
+                box.hidden = true;
+                return;
+            }
+            // Notes may contain light <br>; keep text otherwise escaped.
+            textEl.innerHTML = escapeHtml(raw).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+            const long = raw.replace(/<br\s*\/?>/gi, '\n').length > 420;
+            textEl.classList.toggle('is-clamped', long);
+            if (expandBtn) {
+                expandBtn.hidden = !long;
+                expandBtn.setAttribute('aria-expanded', 'false');
+                expandBtn.textContent = 'عرض بالكامل';
+            }
+            if (creditEl) {
+                const attr = (data && data.attribution) || 'مركز تفسير للدراسات القرآنية';
+                creditEl.innerHTML = escapeHtml(attr)
+                    + ' · <a href="https://tafsir.net" target="_blank" rel="noopener">tafsir.net</a>'
+                    + ' · <a href="/credits">المصادر</a>';
+            }
+            box.hidden = false;
+        } catch (e) {
+            box.hidden = true;
+        }
+    }
+
+    async function toggleAsbab() {
+        const box = document.getElementById('asbab-container');
+        const btn = document.getElementById('show-asbab');
+        if (!box) return;
+        const show = box.hidden;
+        box.hidden = !show;
+        if (btn) {
+            btn.classList.toggle('active', show);
+            btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+        }
+        if (show) {
+            const surah = elements.surahSelect?.value;
+            const ayah = elements.ayahSelect?.value;
+            if (surah && ayah) await fetchAndDisplayAsbab(surah, ayah);
+        }
+    }
+
+    async function fetchAndDisplayAsbab(surahNumber, ayahNumber) {
+        const box = document.getElementById('asbab-container');
+        const textEl = document.getElementById('asbab-text');
+        if (!box || !textEl || box.hidden) return;
+        textEl.innerHTML = '<p class="asbab-empty">جارٍ التحميل…</p>';
+        try {
+            const data = await fetchData(`/api/asbab/${surahNumber}/${ayahNumber}`);
+            const entries = (data && data.entries) || [];
+            if (!entries.length) {
+                textEl.innerHTML = '<p class="asbab-empty">لم يثبت سبب نزول لهذه الآية في المصادر المحمّلة.</p>';
+                return;
+            }
+            textEl.innerHTML = entries.map((e) => {
+                const body = escapeHtml(e.text || '').replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+                return `<article class="asbab-entry"><p class="asbab-attr">${escapeHtml(e.attribution || e.source || '')}</p><div class="asbab-text">${body}</div></article>`;
+            }).join('');
+        } catch (e) {
+            textEl.innerHTML = '<p class="asbab-empty">لم يثبت سبب نزول لهذه الآية في المصادر المحمّلة.</p>';
+        }
+    }
+
+    async function maybeRefreshAsbab(surahNumber, ayahNumber) {
+        const box = document.getElementById('asbab-container');
+        if (box && !box.hidden) await fetchAndDisplayAsbab(surahNumber, ayahNumber);
     }
 
     /**
@@ -2178,6 +2291,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function maybeRefreshTajweed(surahNumber, ayahNumber) {
         if (isTajweedEnabled()) {
             await fetchAndDisplayTajweed(surahNumber, ayahNumber);
+        } else {
+            hideTajweedNotes();
         }
     }
 

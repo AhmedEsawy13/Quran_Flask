@@ -24,6 +24,74 @@ def test_tajweed_bounds_and_missing(client):
     assert client.get('/api/tajweed/1/0').status_code == 400
 
 
+def test_tajweed_notes_bounds(client):
+    assert client.get('/api/tajweed-notes/115/1').status_code == 400
+    assert client.get('/api/tajweed-notes/1/0').status_code == 400
+
+
+def test_tajweed_notes_serves_local_companion_text(client, tmp_path, monkeypatch):
+    """Coloring stays in tajweed_local.db; notes are a separate companion DB."""
+    db = tmp_path / 'tajweed_notes_local.db'
+    import sqlite3
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE tajweed_notes '
+        '(verse_key TEXT PRIMARY KEY, text TEXT NOT NULL, '
+        'attribution TEXT NOT NULL, source TEXT NOT NULL)'
+    )
+    conn.execute(
+        'INSERT INTO tajweed_notes VALUES (?,?,?,?)',
+        ('1:1', 'لام الجلالة مرققة — اختبار.', 'نسبة اختبار', 'test'),
+    )
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(reading, 'TAJWEED_NOTES_DATABASE', str(db))
+    # Drop any prior cached miss/hit for 1:1 from other tests.
+    for key in list(reading._tajweed_notes_cache.keys()):
+        del reading._tajweed_notes_cache[key]
+
+    r = client.get('/api/tajweed-notes/1/1')
+    assert r.status_code == 200
+    j = r.get_json()
+    assert j['verse_key'] == '1:1'
+    assert 'مرققة' in j['text']
+    assert j['attribution'] == 'نسبة اختبار'
+    assert 'public' in r.headers.get('Cache-Control', '')
+
+    assert client.get('/api/tajweed-notes/1/2').status_code == 404
+
+
+def test_asbab_bounds_and_empty(client, tmp_path, monkeypatch):
+    assert client.get('/api/asbab/115/1').status_code == 400
+    assert client.get('/api/asbab/1/0').status_code == 400
+
+    db = tmp_path / 'asbab_local.db'
+    import sqlite3
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE asbab ('
+        'verse_key TEXT NOT NULL, source TEXT NOT NULL, '
+        'text TEXT NOT NULL, attribution TEXT NOT NULL, '
+        'PRIMARY KEY (verse_key, source))'
+    )
+    conn.execute(
+        'INSERT INTO asbab VALUES (?,?,?,?)',
+        ('2:6', 'wahidi_asbab', 'نزلت في أبي جهل — اختبار.', 'الواحدي'),
+    )
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(reading, 'ASBAB_DATABASE', str(db))
+    for key in list(reading._asbab_cache.keys()):
+        del reading._asbab_cache[key]
+
+    r = client.get('/api/asbab/2/6')
+    assert r.status_code == 200
+    j = r.get_json()
+    assert j['available'] is True
+    assert j['entries'][0]['text'].startswith('نزلت')
+    assert client.get('/api/asbab/1/1').status_code == 404
+
+
 def test_word_meanings_ordered_matches_db_order(app):
     """1:1 has three word-meaning entries; get_word_meanings_ordered must
     preserve the DB's own id ASC order, which get_ayah_text's dict form

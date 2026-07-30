@@ -125,3 +125,11 @@ data/classical_waqf_llm.db
 # than silently committed as a mutable binary database.
 data/classical_review.db
 data/mesaha-ocr/
+
+# OpenCV waqf detection — local caches / crops / scratch (models/*.onnx is tracked)
+data/cv/pages/
+data/cv/crops/
+data/cv/word_boxes_mesaha.sqlite
+data/cv/overlays/
+.venv-cv/
+artifacts/cv-waqf/

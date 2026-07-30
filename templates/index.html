@@ -52,8 +52,13 @@
     <main class="controls-container reader-main" id="athar-main" tabindex="-1">
         <section class="reader-intro athar-tool-intro" aria-labelledby="reader-title">
             <p class="athar-kicker">— المصحف</p>
-            <h1 class="athar-title" id="reader-title" aria-label="اقرأ المصحف، وتدبّر المعنى.">اقرأ المصحــف، وتدبّر المعنى.</h1>
-            <p class="athar-lede">قراءة هادئة بصوت القارئ الذي تختاره، مع أدوات المعنى والتجويد والوقف حين تحتاجها.</p>
+            <h1 class="athar-title" id="reader-title" aria-label="اقرأ المصحف، وقارن علامات الوقف.">اقرأ المصحــف، وقارن علامات الوقف.</h1>
+            <p class="athar-lede">
+                رسم مطبوع وصوت تختاره — وتميّز أثَر في
+                <a class="reader-lede-link" href="#reader-waqf-drawer">مقارنة علامات المصاحف</a>
+                و<a class="reader-lede-link" href="/waqf">مُكْث</a>
+                حين تريد معرفة أين تقف.
+            </p>
         </section>
 
         <div id="controls" class="reader-controls">
@@ -126,7 +131,7 @@
             <details class="reader-drawer athar-surface" id="reader-waqf-drawer">
                 <summary>
                     <span class="reader-drawer-icon"><i class="fas fa-circle-pause" aria-hidden="true"></i></span>
-                    <span><b>علامات الوقف</b><small>اختر مصادر العلامات وافتح دليل التلاوة</small></span>
+                    <span><b>علامات الوقف بين المصاحف</b><small>المطبوع جنبًا إلى جنب — ثم دليل التلاوة</small></span>
                     <i class="fas fa-chevron-down reader-drawer-caret" aria-hidden="true"></i>
                 </summary>
 
@@ -134,8 +139,8 @@
             <div class="ctrl-row ctrl-row-waqf">
                 <!-- Header: label + description + info toggle -->
                 <div class="waqf-row-header">
-                    <span class="waqf-row-title"><i class="fas fa-stop-circle"></i> علامات الوقف</span>
-                    <span class="waqf-row-desc">تُظهر فوق كل كلمة حكم الوقف عندها</span>
+                    <span class="waqf-row-title"><i class="fas fa-stop-circle"></i> مقارنة علامات المصاحف</span>
+                    <span class="waqf-row-desc">اختر طبعات المصحف لترى حكم الوقف فوق كل كلمة</span>
                     <button type="button" id="waqf-legend-toggle" class="athar-button athar-button-ghost waqf-legend-btn" title="شرح رموز الوقف" aria-expanded="false" aria-controls="waqf-legend">
                         <i class="fas fa-circle-info"></i> شرح الرموز
                     </button>
@@ -302,6 +307,7 @@
                     <button class="athar-chip reader-tool-button" id="show-mutashabihat" type="button" aria-pressed="false" aria-controls="mutashabihat-container" title="الآيات المتشابهة لفظًا — للحفظ"><i class="fas fa-clone" aria-hidden="true"></i> المتشابهات</button>
                     <button class="athar-chip reader-tool-button" id="show-tajweed" type="button" aria-pressed="false" title="عرض الألوان التجويدية"><i class="fas fa-palette" aria-hidden="true"></i> التجويد</button>
                     <button class="athar-chip reader-tool-button waqf-legend-btn" id="tajweed-legend-toggle" type="button" title="شرح ألوان التجويد" aria-expanded="false" aria-controls="tajweed-legend"><i class="fas fa-circle-info" aria-hidden="true"></i> شرح ألوان التجويد</button>
+                    <button class="athar-chip reader-tool-button" id="show-asbab" type="button" aria-pressed="false" aria-controls="asbab-container" title="سبب النزول إن ثبت"><i class="fas fa-book-open" aria-hidden="true"></i> سبب النزول</button>
                     <button class="athar-chip reader-tool-button" id="toggle-word-meaning-button" type="button" aria-pressed="false" aria-controls="word-meaning-text">غريب الكلمات</button>
                     <button class="athar-chip reader-tool-button" id="toggle-waqf-table" type="button" aria-pressed="false" aria-controls="waqf-verse-table-container" title="عرض جدول علامات الوقف لهذه الآية"><i class="fas fa-table" aria-hidden="true"></i> جدول الوقف</button>
                 </div>
@@ -418,9 +424,10 @@
             </div>
 
             <div class="tajweed-legend-credit">
-                بيانات التجويد مبنيّة على مشروع
+                بيانات ألوان التجويد مبنيّة على مشروع
                 <a href="https://github.com/cpfair/quran-tajweed" target="_blank" rel="noopener">cpfair/quran-tajweed</a>
-                (رخصة CC-BY 4.0)
+                (رخصة CC-BY 4.0). بيان التجويد النصّي من مركز تفسير.
+                <a href="/credits">المصادر والشكر</a>
             </div>
         </div>
 
@@ -429,6 +436,21 @@
             <div class="reader-study-result" id="transliteration-container" style="display:none;"><h2>النطق الحرفي</h2><div id="transliteration"></div></div>
             <div class="reader-study-result" id="tafseer-container" style="display:none;"><h2>التفسير</h2><div id="tafseer-text"></div></div>
             <div class="reader-study-result" id="eerab-container" style="display:none;"><h2>الإعراب</h2><div id="eerab-text"></div></div>
+            <div class="reader-study-result tajweed-notes-panel" id="tajweed-notes-container" hidden>
+                <div class="tajweed-notes-head">
+                    <h2>بيان التجويد</h2>
+                    <button type="button" class="athar-chip tajweed-notes-toggle" id="tajweed-notes-expand" hidden aria-expanded="false">عرض بالكامل</button>
+                </div>
+                <p class="tajweed-notes-hint">شرح نصّي بجانب التلوين — قد يذكر أحكامًا سياقية لا تظهر كألوان على الحروف.</p>
+                <div id="tajweed-notes-text" class="tajweed-notes-body is-clamped"></div>
+                <p class="tajweed-notes-credit" id="tajweed-notes-credit"></p>
+            </div>
+            <div class="reader-study-result" id="asbab-container" hidden>
+                <h2>سبب النزول</h2>
+                <p class="asbab-hint">إن ثبت في المصادر المحمّلة (الواحدي / لباب النقول). غياب البيان لا ينفي النزول.</p>
+                <div id="asbab-text" class="asbab-body"></div>
+                <p class="asbab-credit"><a href="/credits">المصادر</a></p>
+            </div>
             <div class="reader-study-result" id="mutashabihat-container" style="display:none;">
                 <h2>المتشابهات اللفظية</h2>
                 <p class="mutashabihat-hint">آيات تشترك مع هذه الآية في تتابع لفظي طويل — مواضع الالتباس الشائعة عند الحفظ. الكلمات <b>المختلفة</b> مميَّزة بالأحمر.</p>

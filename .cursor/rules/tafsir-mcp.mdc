@@ -1,0 +1,15 @@
+---
+description: Use Tafsir Center MCP for grounded Quran/tafsir answers while working on أثَر
+alwaysApply: true
+---
+
+# Tafsir MCP (project)
+
+This repo has a Cursor MCP server named **`tafsir`** (Tafsir Center — `mcp.tafsir.net`).
+
+When the question involves Quran text, tafsir, أسباب النزول, roots/صرف, إعراب, or qirāʾāt:
+
+1. Prefer **tafsir MCP tools** over model memory for verse wording and commentary.
+2. Do not invent ayah text, tafsir quotes, or asbab details.
+3. Athar already ships local tafseer via `/api/tafseer` and `data/tafseer_local.db` — MCP is for **agent research while coding**, not a new runtime dependency in Flask.
+4. If MCP is unavailable/unauthorized, say so briefly and fall back to local project data or ask the user to enable the server in Cursor Settings → MCP.

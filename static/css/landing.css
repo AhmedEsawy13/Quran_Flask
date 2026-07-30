@@ -17,6 +17,11 @@
   font-display: swap;
 }
 @font-face {
+  font-family: 'AmiriQuran';
+  src: url('../fonts/amiri_quran.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
   font-family: 'QCF Basmala';
   src: url('../fonts/QCF BSML @Am9li9.ttf') format('truetype');
   font-display: swap;
@@ -99,6 +104,221 @@ body.athar-landing .athar-bar {
 
 .lp-cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
 
+/* Proof: مكث-style verse + mushaf page preview on the left */
+.lp-proof {
+  padding: clamp(40px, 7vw, 72px) 0 clamp(8px, 2vw, 16px);
+}
+
+.lp-sim-note {
+  margin: 12px 0 0;
+  max-width: 36ch;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--athar-ink-faint);
+  text-align: center;
+}
+.lp-sim-note-inline {
+  max-width: 52ch;
+  text-align: start;
+  margin: 16px 0 0;
+}
+
+.lp-kursi { display: grid; gap: 4px; }
+
+.lp-kursi-stage {
+  display: grid;
+  grid-template-columns: minmax(200px, 0.92fr) minmax(0, 1.2fr);
+  gap: clamp(18px, 3vw, 36px);
+  align-items: stretch;
+  direction: ltr; /* left = mushaf preview, right = مكث panel */
+}
+.lp-kursi-mushaf,
+.lp-kursi-panel { direction: rtl; }
+
+.lp-kursi-mushaf-stage {
+  display: grid;
+  place-items: center;
+  padding: 4px 0;
+  height: 100%;
+}
+.lp-kursi-page {
+  width: var(--lp-kursi-page-w, 280px);
+  height: var(--lp-kursi-page-h, 420px);
+  opacity: 1;
+  transform: none;
+}
+.lp-kursi-page .lp-word.is-kursi {
+  background: color-mix(in srgb, var(--athar-accent) 16%, transparent);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--athar-accent) 22%, transparent);
+}
+.lp-kursi-mushaf-stage.is-failed .lp-kursi-page { opacity: 0.35; }
+
+.lp-kursi-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  align-content: start;
+  padding: clamp(16px, 2.4vw, 26px);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--athar-parchment-2) 70%, var(--athar-surface)),
+      var(--athar-surface) 55%
+    );
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 14%, var(--athar-line));
+  border-radius: 4px 18px 18px 4px;
+  box-shadow: 0 20px 48px -32px rgba(24, 23, 15, 0.3);
+}
+.lp-kursi-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.lp-kursi-chrome-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--athar-gold);
+  letter-spacing: 0.04em;
+}
+.lp-kursi-editions:not([hidden]) {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+.lp-kursi-status {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--athar-ink-soft);
+}
+.lp-kursi-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--athar-ink-soft);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.lp-kursi-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 5px;
+  line-height: 2.35;
+  margin: 0;
+  padding: 16px 2px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--athar-ink) 9%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--athar-ink) 9%, transparent);
+}
+.lp-kursi-word {
+  font-family: 'UthmanicHafs', 'KFGQPC Uthmanic Script HAFS', serif;
+  font-size: clamp(1.45rem, 2.8vw, 1.85rem);
+  color: var(--athar-ink);
+  padding: 0.08em 0.05em 0.12em;
+}
+
+.lp-kursi-glyph {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.55em;
+  min-height: 1.55em;
+  padding: 0.12em 0.28em;
+  margin-inline-start: 1px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--athar-accent) 10%, transparent);
+  font-family: 'UthmanicHafs', serif;
+  font-size: 1.05rem;
+  color: var(--athar-accent);
+  line-height: 1;
+  vertical-align: middle;
+}
+.lp-kursi-glyph.is-must { color: #dc2626; border-color: color-mix(in srgb, #dc2626 45%, transparent); background: rgba(220,38,38,0.1); }
+.lp-kursi-glyph.is-pstop { color: #16a34a; border-color: color-mix(in srgb, #16a34a 45%, transparent); background: rgba(22,163,74,0.1); }
+.lp-kursi-glyph.is-pcont { color: #ca8a04; border-color: color-mix(in srgb, #ca8a04 45%, transparent); background: rgba(202,138,4,0.1); }
+.lp-kursi-glyph.is-ok { color: #2563eb; border-color: color-mix(in srgb, #2563eb 45%, transparent); background: rgba(37,99,235,0.1); }
+.lp-kursi-glyph.is-no { color: #7c3aed; border-color: color-mix(in srgb, #7c3aed 45%, transparent); background: rgba(124,58,237,0.1); }
+
+.lp-kursi-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  white-space: nowrap;
+  vertical-align: middle;
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 42%, transparent);
+  background: color-mix(in srgb, var(--athar-accent) calc(8% + 16% * var(--s, 0.5)), transparent);
+}
+.lp-kursi-chip b { color: var(--athar-accent); font-weight: 700; }
+.lp-kursi-chip.is-solo {
+  border-color: color-mix(in srgb, #c2410c 48%, transparent);
+  background: color-mix(in srgb, #c2410c 12%, transparent);
+}
+.lp-kursi-chip.is-solo b { color: #c2410c; }
+.lp-kursi-chip.is-classical {
+  border-radius: 8px;
+  border-color: color-mix(in srgb, var(--athar-ink) 18%, transparent);
+  background: color-mix(in srgb, var(--athar-ink) 6%, transparent);
+}
+.lp-kursi-chip.is-classical b { color: var(--athar-ink); }
+
+.lp-kursi-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 0.74rem;
+  color: var(--athar-ink-faint);
+}
+.lp-kursi-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lp-kursi-caption {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--athar-ink-soft);
+  line-height: 1.6;
+}
+.lp-kursi-more {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--athar-ink-faint);
+}
+.lp-kursi-more a {
+  color: var(--athar-accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+@font-face {
+  font-family: 'UthmanicHafs';
+  src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2');
+  font-display: swap;
+}
+
+@media (max-width: 860px) {
+  .lp-kursi-stage { grid-template-columns: 1fr; }
+  .lp-kursi-mushaf { order: -1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lp-kursi {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: lp-proof-in 0.7s var(--athar-ease, ease) 0.15s forwards;
+  }
+}
+@keyframes lp-proof-in {
+  to { opacity: 1; transform: none; }
+}
+
 /* Full-bleed mushaf plane — edge to edge on the visual half */
 .lp-hero-visual {
   position: relative;
@@ -126,6 +346,7 @@ body.athar-landing .athar-bar {
   display: grid;
   place-items: center;
   padding: clamp(24px, 5vh, 56px) clamp(16px, 3vw, 40px);
+  gap: 10px;
 }
 
 .lp-mushaf-tools {
@@ -186,7 +407,7 @@ body.athar-landing .athar-bar {
   flex-direction: column;
   width: var(--lp-page-w, 320px);
   height: var(--lp-page-h, 485px);
-  padding: 14px 16px 12px;
+  padding: 12px 14px 10px;
   background: var(--athar-surface);
   border: 1px solid var(--athar-line);
   border-radius: 4px 18px 18px 4px;
@@ -210,7 +431,7 @@ body.athar-landing .athar-bar {
 .lp-mushaf-head {
   gap: 8px;
   padding: 2px 4px 8px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   border-bottom: 1px solid color-mix(in srgb, var(--athar-accent) 18%, transparent);
   color: var(--athar-ink-soft);
   font-size: 0.72rem;
@@ -235,9 +456,11 @@ body.athar-landing .athar-bar {
   justify-content: flex-start;
   gap: 0;
   min-height: 0;
-  /* Clip the page box, not each line — Arabic ink needs vertical room. */
+  /* Keep the page box clipped, but give ink room inside each line slot. */
   overflow: hidden;
+  padding-block: 3px;
   --lp-fs: 20px;
+  --lp-line-slots: 15;
   font-feature-settings: normal;
 }
 .lp-line {
@@ -245,7 +468,7 @@ body.athar-landing .athar-bar {
   align-items: center;
   justify-content: center;
   width: 100%;
-  flex: 0 0 calc(100% / 15);
+  flex: 0 0 calc(100% / var(--lp-line-slots, 15));
   min-height: 0;
   overflow: visible;
 }
@@ -253,7 +476,8 @@ body.athar-landing .athar-bar {
   white-space: nowrap;
   font-family: 'Digital Khatt', serif;
   font-size: var(--lp-fs, 20px);
-  line-height: 1;
+  /* >1 so harakat / ayah ornaments aren't clipped by the line box. */
+  line-height: 1.12;
   color: var(--athar-ink);
   direction: rtl;
   transform-origin: center center;
@@ -265,6 +489,12 @@ body.athar-landing .athar-bar {
 }
 .lp-mushaf.lp-src-qpc-v1 .lp-line-basmala {
   font-family: 'QCF Basmala', 'Old Madina', serif;
+}
+.lp-mushaf.lp-src-azhar .lp-line-inner,
+.lp-mushaf.lp-src-azhar .lp-line-basmala,
+.lp-mushaf.lp-src-azhar .lp-line-surah {
+  font-family: 'AmiriQuran', 'Amiri Quran', serif;
+  line-height: 1.28;
 }
 
 /* Tajweed colours — same palette as تثبيت / المصحف */
@@ -315,8 +545,16 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
 :root[data-theme="dark"] .lp-line-inner {
   font-palette: --lp-dk-dark;
 }
-/* Same word box as تثبيت — font sizer accounts for this padding. */
-.lp-word { display: inline-block; padding: 0.55em 0.02em 0; }
+/* Top room for COLR ayah discs; bottom room for descenders / Amiri ۝. */
+.lp-word {
+  display: inline-block;
+  padding: 0.58em 0.03em 0.18em;
+  vertical-align: baseline;
+}
+.lp-word.lp-ayah-end {
+  padding-inline: 0.06em;
+  padding-block: 0.5em 0.22em;
+}
 
 .lp-line-surah {
   font-family: var(--font-ui);
@@ -337,8 +575,8 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
   font-weight: 400;
   color: var(--athar-ink);
   font-size: calc(var(--lp-fs, 20px) * 0.82);
-  line-height: 1.1;
-  padding: 0.02em 1.2em;
+  line-height: 1.15;
+  padding: 0.06em 1.2em;
   border: 1px solid var(--athar-gold);
   border-radius: 3px;
   background: color-mix(in srgb, var(--athar-gold) 8%, var(--athar-surface));
@@ -350,7 +588,7 @@ body.athar-landing[data-theme="dark"] .lp-line-inner,
   font-family: 'QCF Basmala', 'Digital Khatt', serif;
   font-size: calc(var(--lp-fs, 20px) * 1.7);
   color: var(--athar-ink);
-  line-height: 1;
+  line-height: 1.08;
   white-space: nowrap;
 }
 

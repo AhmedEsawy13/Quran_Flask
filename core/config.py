@@ -61,6 +61,12 @@ AZHAR_LAYOUT_MAX_PAGE = 525
 # Local tajweed-coloring data, built offline by pipeline/build_tajweed_local.py
 # from cpfair/quran-tajweed (CC-BY 4.0). Replaces the quran.com network call.
 TAJWEED_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_local.db')
+# Per-ayah Arabic tajweed *explanations* (prose), harvested offline from
+# Tafsir Center MCP (mcp.tafsir.net). Companion to coloring — not spans.
+TAJWEED_NOTES_DATABASE = os.path.join(_BASE_DIR, 'data', 'tajweed_notes_local.db')
+# أسباب النزول (sparse), harvested offline from Tafsir MCP
+# (nuzool + wahidi_asbab).
+ASBAB_DATABASE = os.path.join(_BASE_DIR, 'data', 'asbab_local.db')
 # Classical وقف-وابتدا literature aligned to QPC word positions — built by
 # pipeline/build_muktafa.py from the OpenITI edition of الداني's المكتفى.
 CLASSICAL_WAQF_DATABASE = os.path.join(_BASE_DIR, 'data', 'classical_waqf.db')
