@@ -176,6 +176,9 @@ OBSERVE_SCRIPT = r"""
       scale: matrix ? Number(matrix[1]) : 1,
       spacing: Number.parseFloat(style.wordSpacing) || 0,
       edge: Math.abs(lineRect.width - innerRect.width),
+      line_width: lineRect.width,
+      inner_width: innerRect.width,
+      inline_transform: inner.style.transform,
       text: inner.textContent.trim().slice(0, 180),
     };
   }).filter(Boolean);

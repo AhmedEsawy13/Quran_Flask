@@ -49,6 +49,8 @@ def test_audit_catalog_covers_three_madinah_editions_and_scenarios():
 def test_auditor_measures_page_font_size_not_a_line_override():
     source = Path('scripts/audit_mushaf_fonts.py').read_text(encoding='utf-8')
     assert "getComputedStyle(page).getPropertyValue('--dk-fs')" in source
+    assert 'inline_transform: inner.style.transform' in source
+    assert 'line_width: lineRect.width' in source
 
 
 def test_validator_accepts_values_inside_all_budgets():
