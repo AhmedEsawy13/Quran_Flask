@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {% set page_title = 'أثَر · سجل التعديلات' %}
+    {% set page_description = 'من غيّر ماذا ومتى عبر محرّر المصحف ومختبر التخطيط ومراجعة العلامات.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/activity', noindex=true) }}
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/activity.css') }}">
+</head>
+<body class="athar-tool act-body"
+      data-cloud="{{ '1' if cloud else '0' }}"
+      data-actions='{{ actions | tojson }}'>
+    {{ athar_app_bar('act-main') }}
+
+    <div class="act-login" id="act-login" hidden>
+        <form class="act-login-card athar-surface" id="act-login-form" autocomplete="on">
+            <p class="act-kicker">أثَر · محرّر</p>
+            <h2 class="act-login-title">تسجيل الدخول</h2>
+            <p class="act-login-hint">سجل التعديلات يظهر للحسابات المدعوة فقط.</p>
+            <label class="act-login-label" for="act-login-username">اسم المستخدم</label>
+            <input class="athar-field" type="text" id="act-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
+            <label class="act-login-label" for="act-login-password">كلمة المرور</label>
+            <input class="athar-field" type="password" id="act-login-password" name="password" required autocomplete="current-password" dir="ltr">
+            <p class="act-login-error" id="act-login-error" role="alert" hidden></p>
+            <button class="act-btn act-btn-primary" type="submit" id="act-login-submit">دخول</button>
+        </form>
+    </div>
+
+    <header class="act-chrome">
+        <p class="act-kicker">محرّر · تتبّع</p>
+        <h1 class="act-title" id="act-title">سجل التعديلات</h1>
+        <p class="act-lede">من غيّر ماذا ومتى — علامات الوقف، التخطيط، ومراجعة العلامات.
+            <a href="/mushaf-editor">محرّر الوقف</a>
+            · <a href="/layout-studio">استوديو التخطيط</a>
+            · <a href="/waqf-mark-review">مراجعة العلامات</a>
+        </p>
+        <p class="act-auth" id="act-auth" aria-live="polite"></p>
+    </header>
+
+    <main class="act-main" id="act-main" tabindex="-1">
+        <form class="act-filters" id="act-filters">
+            <label class="act-field">
+                <span>المصحف / المشروع</span>
+                <input class="athar-field" type="text" id="act-edition" placeholder="قطر · البحرين · الشمرلي · mesaha" autocomplete="off">
+            </label>
+            <label class="act-field">
+                <span>نوع الحدث</span>
+                <select class="athar-field" id="act-action">
+                    <option value="">الكل</option>
+                    {% for a in actions %}
+                    <option value="{{ a.id }}">{{ a.label }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label class="act-field">
+                <span>المحرّر</span>
+                <select class="athar-field" id="act-actor">
+                    <option value="">الكل</option>
+                </select>
+            </label>
+            <label class="act-field">
+                <span>بحث</span>
+                <input class="athar-field" type="search" id="act-q" placeholder="اسم · صفحة · آية · ملخص" autocomplete="off">
+            </label>
+            <div class="act-filter-actions">
+                <button type="submit" class="act-btn act-btn-primary">تصفية</button>
+                <button type="button" class="act-btn act-btn-ghost" id="act-reset">مسح</button>
+                <button type="button" class="act-btn act-btn-secondary" id="act-export-json">تصدير JSON</button>
+                <button type="button" class="act-btn act-btn-secondary" id="act-export-csv">تصدير CSV</button>
+            </div>
+        </form>
+
+        <p class="act-status" id="act-status" aria-live="polite"></p>
+        <ol class="act-feed" id="act-feed"></ol>
+        <button type="button" class="act-btn act-btn-secondary" id="act-more" hidden>المزيد</button>
+    </main>
+
+    <script src="{{ static_hash('js/activity.js') }}"></script>
+</body>
+</html>

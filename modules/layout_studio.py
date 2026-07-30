@@ -61,7 +61,21 @@ def _commit_layout_pages(
     cur,
     page_from: int,
     page_to: int | None = None,
+    *,
+    audit_action: str = 'layout_save',
+    op: str | None = None,
 ) -> bool:
+    end = int(page_to) if page_to is not None else int(page_from)
+    before_by_page: dict[int, list] = {}
+    if sb.is_configured() and layout_persistence.is_cloud_layout(edition):
+        try:
+            for row in sb.fetch_layout_pages(edition=edition.id):
+                pn = int(row['page_number'])
+                if int(page_from) <= pn <= end:
+                    before_by_page[pn] = list(row.get('lines') or [])
+        except sb.SupabaseEditorError as exc:
+            logger.warning('layout audit before-fetch failed: %s', exc)
+
     cloud_saved = layout_persistence.save_pages(
         edition,
         cur,
@@ -70,6 +84,26 @@ def _commit_layout_pages(
         updated_by=_cloud_actor_id(),
     )
     conn.commit()
+    if cloud_saved and sb.is_configured():
+        user = current_editor()
+        meta = layout_persistence.audit_meta_for_pages(
+            edition,
+            cur,
+            int(page_from),
+            end,
+            before_by_page=before_by_page,
+            op=op or (
+                'undo' if audit_action == 'layout_undo' else None
+            ),
+        )
+        sb.append_audit(
+            actor_id=user['id'] if user else None,
+            actor_name=user.get('name') if user else None,
+            action=audit_action if audit_action in sb.AUDIT_ACTIONS else 'layout_save',
+            edition=edition.id,
+            page_number=int(page_from),
+            meta=meta,
+        )
     return cloud_saved
 
 
@@ -1023,6 +1057,14 @@ def layout_studio_profile(edition_id):
             updated_by=_cloud_actor_id(),
         )
         conn.commit()
+        if cloud_saved and sb.is_configured():
+            user = current_editor()
+            sb.append_audit(
+                actor_id=user['id'] if user else None,
+                actor_name=user.get('name') if user else None,
+                action='layout_profile',
+                edition=edition.id,
+            )
     except sb.SupabaseEditorError as exc:
         conn.rollback()
         logger.error(
@@ -1287,7 +1329,7 @@ def layout_studio_line_break(edition_id):
         if page_scope is not None:
             _seal_closed_page(edition, cur, lines, text_map, page_scope, universe=universe)
         cloud_saved = _commit_layout_pages(
-            edition, conn, cur, page_from, page_to,
+            edition, conn, cur, page_from, page_to, op='line-break',
         )
         payload = _build_page_payload(edition, page_number)
         return jsonify({
@@ -1449,7 +1491,7 @@ def layout_studio_merge_line(edition_id):
         if page_scope is not None:
             _seal_closed_page(edition, cur, lines, text_map, page_scope, universe=universe)
         cloud_saved = _commit_layout_pages(
-            edition, conn, cur, page_from, page_to,
+            edition, conn, cur, page_from, page_to, op='merge-line',
         )
         payload = _build_page_payload(edition, page_number)
         return jsonify({
@@ -1614,7 +1656,7 @@ def layout_studio_pull_next_word(edition_id):
                 edition, cur, lines, text_map, edit_scope, universe=universe,
             )
         cloud_saved = _commit_layout_pages(
-            edition, conn, cur, page_from, page_to,
+            edition, conn, cur, page_from, page_to, op='pull-next-word',
         )
         return jsonify({
             'ok': True,
@@ -1782,7 +1824,7 @@ def layout_studio_push_last_word(edition_id):
                 edition, cur, lines, text_map, edit_scope, universe=universe,
             )
         cloud_saved = _commit_layout_pages(
-            edition, conn, cur, page_from, page_to,
+            edition, conn, cur, page_from, page_to, op='push-last-word',
         )
         return jsonify({
             'ok': True,
@@ -1887,6 +1929,7 @@ def layout_studio_transfer_line(edition_id):
             cur,
             shifted['page_from'],
             shifted['page_to'],
+            op='transfer-line',
         )
         return jsonify({
             'ok': True,
@@ -1972,7 +2015,7 @@ def layout_studio_line_center(edition_id):
             (1 if centered else 0, int(row['id'])),
         )
         cloud_saved = _commit_layout_pages(
-            edition, conn, cur, page_number, page_number,
+            edition, conn, cur, page_number, page_number, op='line-center',
         )
         return jsonify({
             'ok': True,
@@ -2061,6 +2104,7 @@ def layout_studio_header_move(edition_id):
                 cur,
                 shifted['page_from'],
                 shifted['page_to'],
+                op='header-down-cascade',
             )
             moved = cur.execute(
                 '''
@@ -2279,7 +2323,7 @@ def layout_studio_header_move(edition_id):
                     script_db=edition.script_db,
                 )
         cloud_saved = _commit_layout_pages(
-            edition, conn, cur, page_from, page_to,
+            edition, conn, cur, page_from, page_to, op='header-move',
         )
         moved_page = int(neighbor['page_number'])
         moved_line = (
@@ -2369,6 +2413,8 @@ def layout_studio_undo(edition_id):
             cur,
             int(restored_from),
             int(restored_to),
+            audit_action='layout_undo',
+            op='undo',
         )
 
         view_page = page_number or int(popped.get('page_number') or edition.min_page)

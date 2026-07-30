@@ -1,0 +1,178 @@
+/* Activity log — editor audit browser */
+:root {
+    --act-bg: var(--athar-parchment, #f3ebe0);
+    --act-ink: var(--athar-ink, #1c1915);
+    --act-muted: var(--athar-ink-muted, #6b6358);
+    --act-accent: var(--athar-accent, #2f5d4a);
+    --act-border: color-mix(in srgb, var(--act-ink) 12%, transparent);
+}
+
+.act-body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(900px 420px at 80% -10%, color-mix(in srgb, var(--act-accent) 12%, transparent), transparent),
+        var(--act-bg);
+    color: var(--act-ink);
+    font-family: var(--athar-sans, "Thmanyah Sans", "Segoe UI", sans-serif);
+}
+
+.act-chrome {
+    padding: 18px 18px 8px;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.act-kicker { margin: 0; font-size: 0.72rem; color: var(--act-muted); }
+.act-title {
+    margin: 4px 0 0;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+    font-size: clamp(1.45rem, 3vw, 1.9rem);
+    font-weight: 700;
+}
+.act-lede { margin: 6px 0 0; color: var(--act-muted); font-size: 0.92rem; line-height: 1.55; }
+.act-auth { margin: 8px 0 0; font-size: 0.78rem; color: var(--act-muted); }
+
+.act-main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 8px 18px 48px;
+}
+
+.act-filters {
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--act-border);
+}
+
+.act-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--act-muted);
+}
+
+.act-filter-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.act-btn {
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+.act-btn-primary {
+    background: var(--act-accent);
+    color: #fff;
+}
+.act-btn-secondary {
+    background: color-mix(in srgb, var(--act-accent) 12%, transparent);
+    color: var(--act-accent);
+}
+.act-btn-ghost {
+    background: transparent;
+    border-color: var(--act-border);
+    color: var(--act-ink);
+}
+.act-btn:disabled { opacity: 0.55; cursor: wait; }
+
+.act-status {
+    margin: 0 0 12px;
+    font-size: 0.85rem;
+    color: var(--act-muted);
+}
+
+.act-feed {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+}
+
+.act-item {
+    display: grid;
+    gap: 4px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--act-border);
+}
+
+.act-item-top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.act-who { font-weight: 700; }
+.act-when { font-size: 0.78rem; color: var(--act-muted); direction: ltr; unicode-bidi: plaintext; }
+.act-action { color: var(--act-accent); font-weight: 700; }
+.act-where { font-size: 0.88rem; color: var(--act-muted); }
+.act-delta {
+    font-size: 0.88rem;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+}
+.act-detail {
+    font-size: 0.82rem;
+    color: var(--act-muted);
+    line-height: 1.45;
+}
+.act-link {
+    justify-self: start;
+    margin-top: 4px;
+    color: var(--act-accent);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.act-empty {
+    margin: 24px 0;
+    color: var(--act-muted);
+    line-height: 1.6;
+}
+
+.act-login {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--act-ink) 45%, transparent);
+}
+.act-login[hidden] { display: none !important; }
+.act-login-card {
+    width: min(100%, 360px);
+    display: grid;
+    gap: 10px;
+    padding: 18px 16px;
+}
+.act-login-title {
+    margin: 0;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+    font-size: 1.25rem;
+}
+.act-login-hint { margin: 0; color: var(--act-muted); font-size: 0.86rem; }
+.act-login-label { font-size: 0.75rem; font-weight: 700; color: var(--act-muted); }
+.act-login-error { margin: 0; color: #8a3b2a; font-size: 0.86rem; }
+.act-login-error[hidden] { display: none !important; }
+
+@media (min-width: 720px) {
+    .act-filters {
+        grid-template-columns: 1.2fr 1fr 1fr auto;
+        align-items: end;
+    }
+    .act-filter-actions { padding-bottom: 2px; }
+}

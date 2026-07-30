@@ -497,6 +497,19 @@ def waqf_mark_review_decisions():
                 decision=decision, our_mark=our_mark, correct_mark=correct_mark,
                 surah=surah_i, ayah=ayah_i, word_text=word_text, updated_by=actor,
             )
+            sb.append_audit(
+                actor_id=actor,
+                actor_name=(user or {}).get('name') if user else None,
+                action='mark_review_decision',
+                edition=edition,
+                page_number=page_number,
+                word_id=word_id,
+                surah=surah_i,
+                ayah=ayah_i,
+                old_symbol=our_mark,
+                new_symbol=correct_mark if decision == 'wrong' else decision,
+                meta={'decision': decision, 'word_text': word_text},
+            )
         else:
             _save_decision_local(
                 edition, page_number, word_id, decision, our_mark,
@@ -540,6 +553,14 @@ def waqf_mark_review_notes():
                 'text': row.get('note') or note,
                 'at': row.get('updated_at') or '',
             }
+            sb.append_audit(
+                actor_id=actor,
+                actor_name=(user or {}).get('name') if user else None,
+                action='mark_review_note',
+                edition=edition,
+                page_number=page_number,
+                meta={'note': note[:240]},
+            )
         else:
             saved = _add_note_local(edition, page_number, note)
     except sb.SupabaseEditorError as exc:
@@ -587,6 +608,14 @@ def waqf_mark_review_progress():
             sb.upsert_progress(
                 edition=edition, page_number=page_number, reviewed=reviewed,
                 updated_by=user['id'] if user else None,
+            )
+            sb.append_audit(
+                actor_id=user['id'] if user else None,
+                actor_name=user.get('name') if user else None,
+                action='mark_review_page',
+                edition=edition,
+                page_number=page_number,
+                meta={'reviewed': reviewed},
             )
             return jsonify({
                 'ok': True, 'page_number': page_number,

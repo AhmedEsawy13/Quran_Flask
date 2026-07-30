@@ -92,7 +92,10 @@ create table if not exists editor_audit (
   action text not null
     check (action in (
       'set_mark', 'clear_mark', 'review_page', 'publish', 'login',
-      'invite_create', 'invite_revoke'
+      'invite_create', 'invite_revoke',
+      'layout_save', 'layout_profile', 'layout_undo',
+      'mark_review_decision', 'mark_review_note', 'mark_review_page',
+      'progress'
     )),
   edition text,
   surah integer,
@@ -107,6 +110,8 @@ create table if not exists editor_audit (
 
 create index if not exists editor_audit_at_idx on editor_audit (at desc);
 create index if not exists editor_audit_edition_idx on editor_audit (edition, at desc);
+create index if not exists editor_audit_actor_at_idx on editor_audit (actor_id, at desc);
+create index if not exists editor_audit_action_at_idx on editor_audit (action, at desc);
 
 -- Publish the exact diff an admin reviewed in one PostgreSQL transaction.
 -- The table lock prevents draft writes between snapshot validation and commit.

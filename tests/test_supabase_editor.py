@@ -309,7 +309,10 @@ class FakeSupabase:
 
         if table == 'editor_audit':
             if method == 'POST':
-                self.audit.append(json_body or {})
+                body = dict(json_body or {})
+                body.setdefault('id', len(self.audit) + 1)
+                body.setdefault('at', f'2026-07-30T12:00:{len(self.audit):02d}Z')
+                self.audit.append(body)
                 return Resp(201, None)
             if method == 'GET':
                 items = list(reversed(self.audit))
@@ -317,6 +320,14 @@ class FakeSupabase:
                 if edition:
                     ed = edition.replace('eq.', '')
                     items = [a for a in items if a.get('edition') == ed]
+                action = params.get('action')
+                if action:
+                    act = action.replace('eq.', '')
+                    items = [a for a in items if a.get('action') == act]
+                actor = params.get('actor_id')
+                if actor:
+                    aid = actor.replace('eq.', '')
+                    items = [a for a in items if a.get('actor_id') == aid]
                 limit = int(params.get('limit') or 30)
                 return Resp(200, items[:limit])
 

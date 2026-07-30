@@ -80,10 +80,16 @@ alter table editor_audit drop constraint if exists editor_audit_action_check;
 alter table editor_audit add constraint editor_audit_action_check
   check (action in (
     'set_mark', 'clear_mark', 'review_page', 'publish', 'login',
-    'invite_create', 'invite_revoke'
+    'invite_create', 'invite_revoke',
+    'layout_save', 'layout_profile', 'layout_undo',
+    'mark_review_decision', 'mark_review_note', 'mark_review_page',
+    'progress'
   ));
 ```
 
+Existing projects should also run
+[`supabase_editor_audit_actions.sql`](supabase_editor_audit_actions.sql) once
+to widen the action check and add actor/action indexes.
 ## 4. Migrate existing SQLite marks (optional)
 
 ```bash
@@ -103,7 +109,11 @@ python3 pipeline/migrate_waqf_to_supabase.py --as-published
    current, and promotes every addition/update/deletion in one transaction.
    If another editor changed a draft meanwhile, nothing is published and the
    drawer refreshes for another review.
-4. `/read` and مُكْث then overlay published cloud marks for قطر/الكويت.
+4. Browse `/activity` for the cross-tool audit timeline (login required when
+   cloud is configured). Layout saves include a `change_summary` (op, page
+   range, ayah line count, first/last keys, changed line endpoints). Export
+   the loaded slice as JSON/CSV from the page.
+5. `/read` and مُكْث then overlay published cloud marks for قطر/الكويت.
 
 Without Supabase env vars, the editor keeps the old local SQLite write path (laptop workflow).
 

@@ -834,15 +834,105 @@ def append_audit(**fields: Any) -> None:
         logger.warning('editor_audit write failed: %s', e)
 
 
+AUDIT_ACTIONS = frozenset({
+    'set_mark', 'clear_mark', 'review_page', 'publish', 'login',
+    'invite_create', 'invite_revoke',
+    'layout_save', 'layout_profile', 'layout_undo',
+    'mark_review_decision', 'mark_review_note', 'mark_review_page',
+    'progress',
+})
+
+_AUDIT_SELECT = (
+    'id,at,actor_id,actor_name,action,edition,surah,ayah,token_index,'
+    'word_id,page_number,old_symbol,new_symbol,meta'
+)
+
+
 def recent_audit(*, edition: str | None = None, limit: int = 30) -> list[dict]:
+    return list_audit(edition=edition, limit=limit)
+
+
+def list_audit(
+    *,
+    edition: str | None = None,
+    actor_id: str | None = None,
+    action: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
+    q: str | None = None,
+    before_at: str | None = None,
+    before_id: int | None = None,
+    limit: int = 50,
+) -> list[dict]:
+    """Filtered activity feed (newest first). Cursor = (before_at, before_id)."""
+    limit = max(1, min(int(limit), 100))
+    # Over-fetch when we still need Python-side cursor / text filtering.
+    fetch_limit = limit
+    if q or (before_at is not None and before_id is not None):
+        fetch_limit = min(200, limit * 3)
     params: dict[str, str] = {
-        'select': 'at,actor_name,action,edition,surah,ayah,token_index,word_id,page_number,old_symbol,new_symbol',
-        'order': 'at.desc',
-        'limit': str(limit),
+        'select': _AUDIT_SELECT,
+        'order': 'at.desc,id.desc',
+        'limit': str(fetch_limit),
     }
     if edition:
         params['edition'] = f'eq.{edition}'
-    return _request('GET', 'editor_audit', params=params) or []
+    if actor_id:
+        params['actor_id'] = f'eq.{actor_id}'
+    if action:
+        params['action'] = f'eq.{action}'
+    if since and until:
+        params['and'] = f'(at.gte.{since},at.lte.{until})'
+    elif since:
+        params['at'] = f'gte.{since}'
+    elif until:
+        params['at'] = f'lte.{until}'
+
+    rows = _request('GET', 'editor_audit', params=params) or []
+    needle = (q or '').strip().lower()
+    out: list[dict] = []
+    for row in rows:
+        at = row.get('at') or ''
+        row_id = row.get('id')
+        if before_at is not None and before_id is not None:
+            try:
+                bid = int(before_id)
+            except (TypeError, ValueError):
+                bid = None
+            if bid is not None:
+                if at > before_at:
+                    continue
+                if at == before_at and row_id is not None and int(row_id) >= bid:
+                    continue
+        if needle:
+            meta = row.get('meta')
+            meta_blob = ''
+            if isinstance(meta, dict):
+                meta_blob = ' '.join(
+                    str(meta.get(k) or '')
+                    for k in (
+                        'change_summary', 'op', 'decision', 'word_text', 'note',
+                        'first_key', 'last_key',
+                    )
+                )
+            elif meta is not None:
+                meta_blob = str(meta)
+            blob = ' '.join([
+                str(row.get('actor_name') or ''),
+                str(row.get('edition') or ''),
+                str(row.get('action') or ''),
+                str(row.get('page_number') or ''),
+                f"{row.get('surah') or ''}:{row.get('ayah') or ''}",
+                str(row.get('old_symbol') or ''),
+                str(row.get('new_symbol') or ''),
+                meta_blob,
+            ]).lower()
+            if needle not in blob:
+                continue
+        out.append(row)
+        if len(out) >= limit:
+            break
+    return out
 
 
 def pending_publish_diff(edition: str) -> list[dict]:

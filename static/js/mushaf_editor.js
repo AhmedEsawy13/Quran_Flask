@@ -82,6 +82,15 @@
         review_page: 'مراجعة',
         publish: 'اعتماد',
         login: 'دخول',
+        invite_create: 'دعوة',
+        invite_revoke: 'إلغاء',
+        layout_save: 'تخطيط',
+        layout_profile: 'إعدادات',
+        layout_undo: 'تراجع',
+        mark_review_decision: 'مراجعة علامة',
+        mark_review_note: 'ناقص',
+        mark_review_page: 'إنهاء صفحة',
+        progress: 'تقدّم',
     };
 
     const els = {

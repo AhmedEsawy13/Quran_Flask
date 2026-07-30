@@ -458,6 +458,137 @@ def _page_payload(edition, cur, page_number: int) -> dict[str, Any]:
     }
 
 
+_LAYOUT_OP_AR = {
+    'line-break': 'كسر سطر',
+    'merge-line': 'دمج سطر',
+    'pull-next-word': 'سحب كلمة',
+    'push-last-word': 'دفع كلمة',
+    'transfer-line': 'ترحيل سطر',
+    'line-center': 'توسيط سطر',
+    'header-move': 'نقل عنوان',
+    'header-down-cascade': 'خفض عنوان',
+    'undo': 'تراجع',
+}
+
+
+def _ayah_endpoint_rows(lines: list[dict] | None) -> list[tuple]:
+    rows = []
+    for line in lines or []:
+        if (line.get('line_type') or '') != 'ayah':
+            continue
+        first = line.get('first_word_key')
+        last = line.get('last_word_key')
+        if first is None and last is None:
+            first = line.get('first_word_id')
+            last = line.get('last_word_id')
+        rows.append((
+            int(line.get('line_number') or 0),
+            str(first) if first is not None else '',
+            str(last) if last is not None else '',
+        ))
+    return rows
+
+
+def build_layout_audit_meta(
+    pages: list[dict],
+    *,
+    before_by_page: dict[int, list] | None = None,
+    op: str | None = None,
+) -> dict[str, Any]:
+    """Compact forensics for one layout cloud save (Option 1 history)."""
+    before_by_page = before_by_page or {}
+    page_summaries = []
+    changed_lines = 0
+    first_key = None
+    last_key = None
+    ayah_line_count = 0
+
+    for page in pages:
+        pn = int(page['page_number'])
+        lines = list(page.get('lines') or [])
+        after_rows = _ayah_endpoint_rows(lines)
+        before_rows = _ayah_endpoint_rows(before_by_page.get(pn))
+        ayah_line_count += len(after_rows)
+        if after_rows:
+            if first_key is None:
+                first_key = after_rows[0][1] or None
+            last_key = after_rows[-1][2] or after_rows[-1][1] or last_key
+        before_map = {ln: (fk, lk) for ln, fk, lk in before_rows}
+        after_map = {ln: (fk, lk) for ln, fk, lk in after_rows}
+        page_changed = []
+        for ln in sorted(set(before_map) | set(after_map)):
+            old = before_map.get(ln)
+            new = after_map.get(ln)
+            if old == new:
+                continue
+            changed_lines += 1
+            page_changed.append({
+                'line': ln,
+                'before': (
+                    {'first': old[0], 'last': old[1]} if old else None
+                ),
+                'after': (
+                    {'first': new[0], 'last': new[1]} if new else None
+                ),
+            })
+        page_summaries.append({
+            'page': pn,
+            'ayah_lines': len(after_rows),
+            'first_key': after_rows[0][1] if after_rows else None,
+            'last_key': after_rows[-1][2] if after_rows else None,
+            'changed': page_changed[:12],
+        })
+
+    page_from = int(pages[0]['page_number']) if pages else None
+    page_to = int(pages[-1]['page_number']) if pages else page_from
+    bits = []
+    if op:
+        bits.append(_LAYOUT_OP_AR.get(op, op))
+    if page_from is not None:
+        if page_to != page_from:
+            bits.append(f'ص {page_from}–{page_to}')
+        else:
+            bits.append(f'ص {page_from}')
+    bits.append(f'{ayah_line_count} سطر آية')
+    if changed_lines:
+        bits.append(f'تغيّر {changed_lines} سطر')
+    elif before_by_page:
+        bits.append('بلا فرق ظاهري في الحدود')
+    if first_key and last_key:
+        bits.append(f'{first_key} ← {last_key}')
+
+    return {
+        'page_from': page_from,
+        'page_to': page_to,
+        'op': op,
+        'line_count': ayah_line_count,
+        'first_key': first_key,
+        'last_key': last_key,
+        'changed_lines': changed_lines,
+        'change_summary': ' · '.join(bits),
+        'pages': page_summaries,
+    }
+
+
+def audit_meta_for_pages(
+    edition,
+    cur,
+    page_from: int,
+    page_to: int | None = None,
+    *,
+    before_by_page: dict[int, list] | None = None,
+    op: str | None = None,
+) -> dict[str, Any]:
+    end = int(page_to) if page_to is not None else int(page_from)
+    pages = [
+        _page_payload(edition, cur, page)
+        for page in range(int(page_from), end + 1)
+    ]
+    return build_layout_audit_meta(
+        pages, before_by_page=before_by_page, op=op,
+    )
+
+
 def save_pages(
     edition,
     cur,
