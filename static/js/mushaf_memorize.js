@@ -990,16 +990,18 @@
         if (state.tajweedOn) applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
         updateNavButtons();
 
-        // font-display:swap means the source's web-font may not be loaded yet on
-        // the first switch to it — applyFontSize() above then measured fallback
-        // metrics and over-fit the size, so the page "grows" when the real font
-        // swaps in. Re-fit once the font is ready (no-op when already loaded).
+        // font-display:swap and Chromium's shaping pipeline can settle source-font
+        // metrics after the first paint even when document.fonts.check() already
+        // reports the face as available. Always complete an explicit load, then
+        // re-fit after a paint so the final transform uses the rendered glyphs.
         const srcFont = isDigitalKhattSource(state.src) ? 'Digital Khatt'
             : state.src === 'qpc_v1' ? 'Old Madina' : null;
-        if (srcFont && document.fonts && !document.fonts.check(`16px "${srcFont}"`)) {
+        if (srcFont && document.fonts) {
             const fp = focusPage;
             document.fonts.load(`16px "${srcFont}"`).then(() => {
-                if (state.focusPage === fp) { applyFontSize(true); requestAnimationFrame(justifyLines); }
+                if (state.focusPage !== fp || !pageRequests.isCurrent(request)) return;
+                applyFontSize(true);
+                requestAnimationFrame(() => requestAnimationFrame(justifyLines));
             }).catch(() => {});
         }
         return true;
