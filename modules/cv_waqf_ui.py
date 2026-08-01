@@ -17,6 +17,7 @@ from flask import jsonify, render_template, request, send_file
 from core.blueprints import editor_bp
 from core.config import _ROOT
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
+from modules.editor_auth import require_editor
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,7 @@ _UI_EDITIONS = (
     },
 )
 _BY_ID = {e['id']: e for e in _UI_EDITIONS}
+_BY_SLUG = {e['slug']: e for e in _UI_EDITIONS}
 
 
 def _resolve_cv_python() -> str:
@@ -153,7 +155,11 @@ def _load_local_labels(slug: str, page: int | None = None) -> list[dict]:
             row = json.loads(line)
         except json.JSONDecodeError:
             continue
-        if page is not None and int(row.get('page') or -1) != page:
+        try:
+            row_page = int(row.get('page') or -1)
+        except (TypeError, ValueError):
+            continue
+        if page is not None and row_page != page:
             continue
         out.append(row)
     return out
@@ -178,17 +184,22 @@ def _fetch_cloud_labels(slug: str, page: int | None = None) -> list[dict]:
         return []
     out = []
     for row in rows:
-        out.append({
-            'id': row['id'],
-            'edition': row['edition'],
-            'slug': row['slug'],
-            'page': int(row['page']),
-            'symbol': row['symbol'],
-            'box': row['box'],
-            'crop': row.get('crop_path') or row.get('crop'),
-            'created_at': row.get('created_at'),
-            'source': 'supabase',
-        })
+        try:
+            normalized = {
+                'id': row['id'],
+                'edition': row['edition'],
+                'slug': row['slug'],
+                'page': int(row['page']),
+                'symbol': row['symbol'],
+                'box': row['box'],
+                'crop': row.get('crop_path') or row.get('crop'),
+                'created_at': row.get('created_at'),
+                'source': 'supabase',
+            }
+        except (KeyError, TypeError, ValueError):
+            logger.warning('Ignoring malformed cv_waqf cloud label: %r', row)
+            continue
+        out.append(normalized)
     return out
 
 
@@ -205,10 +216,14 @@ def _merge_labels(local: list[dict], remote: list[dict]) -> list[dict]:
         a = str(prev.get('created_at') or '')
         b = str(row.get('created_at') or '')
         by_id[rid] = row if b >= a else prev
-    return sorted(
-        by_id.values(),
-        key=lambda r: (int(r.get('page') or 0), str(r.get('id') or '')),
-    )
+    def sort_key(row: dict) -> tuple[int, str]:
+        try:
+            page = int(row.get('page') or 0)
+        except (TypeError, ValueError):
+            page = 0
+        return page, str(row.get('id') or '')
+
+    return sorted(by_id.values(), key=sort_key)
 
 
 def _load_labels(slug: str, page: int | None = None) -> list[dict]:
@@ -412,6 +427,7 @@ def cv_waqf_page():
 
 
 @editor_bp.route('/api/cv-waqf/image/<slug>/<int:page_number>.jpg', methods=['GET'])
+@require_editor
 def cv_waqf_image(slug: str, page_number: int):
     edition = next((e['id'] for e in _UI_EDITIONS if e['slug'] == slug), None)
     if not edition:
@@ -430,6 +446,7 @@ def cv_waqf_image(slug: str, page_number: int):
 @editor_bp.route('/cv-waqf/crops')
 @editor_bp.route('/cv-waqf/crops/')
 @editor_bp.route('/cv-waqf/crops/<slug>')
+@require_editor
 def cv_waqf_crops_gallery(slug: str | None = None):
     """Browse labeled crop galleries produced by sample-crops."""
     from flask import abort, redirect
@@ -452,6 +469,8 @@ def cv_waqf_crops_gallery(slug: str | None = None):
                 'sample-crops --edition الشمرلي --pages 40 --clear'
             ),
         }), 404
+    if slug not in _BY_SLUG:
+        abort(404)
     index = root / slug / 'index.html'
     if not index.is_file():
         abort(404)
@@ -459,9 +478,12 @@ def cv_waqf_crops_gallery(slug: str | None = None):
 
 
 @editor_bp.route('/cv-waqf/crops/<slug>/<path:filename>')
+@require_editor
 def cv_waqf_crops_asset(slug: str, filename: str):
     from flask import abort, send_from_directory
 
+    if slug not in _BY_SLUG:
+        abort(404)
     folder = ROOT / 'data' / 'cv' / 'crops_labeled' / slug
     if not folder.is_dir():
         abort(404)
@@ -469,6 +491,7 @@ def cv_waqf_crops_asset(slug: str, filename: str):
 
 
 @editor_bp.route('/api/cv-waqf/page/<int:page_number>', methods=['GET'])
+@require_editor
 def cv_waqf_page_data(page_number: int):
     edition = (request.args.get('edition') or 'الشمرلي').strip()
     meta = _BY_ID.get(edition)
@@ -508,6 +531,7 @@ def cv_waqf_page_data(page_number: int):
 
 
 @editor_bp.route('/api/cv-waqf/labels', methods=['GET'])
+@require_editor
 def cv_waqf_labels_list():
     edition = (request.args.get('edition') or 'الشمرلي').strip()
     meta = _BY_ID.get(edition)
@@ -531,6 +555,7 @@ def cv_waqf_labels_list():
 
 
 @editor_bp.route('/api/cv-waqf/labels', methods=['POST'])
+@require_editor
 def cv_waqf_labels_create():
     import time
     import uuid
@@ -603,6 +628,7 @@ def cv_waqf_labels_create():
 
 
 @editor_bp.route('/api/cv-waqf/labels/<label_id>', methods=['DELETE'])
+@require_editor
 def cv_waqf_labels_delete(label_id: str):
     # Find which slug owns this id (prefix).
     slug = None
@@ -689,6 +715,7 @@ def _refresh_hand_gallery(slug: str) -> None:
 
 @editor_bp.route('/cv-waqf/labels')
 @editor_bp.route('/cv-waqf/labels/')
+@require_editor
 def cv_waqf_labels_gallery_index():
     from flask import redirect
 
@@ -704,9 +731,12 @@ def cv_waqf_labels_gallery_index():
 
 
 @editor_bp.route('/cv-waqf/labels/<slug>')
+@require_editor
 def cv_waqf_labels_gallery(slug: str):
     from flask import abort
 
+    if slug not in _BY_SLUG:
+        abort(404)
     _refresh_hand_gallery(slug)
     index = _hand_dir(slug) / 'index.html'
     if not index.is_file():
@@ -715,9 +745,12 @@ def cv_waqf_labels_gallery(slug: str):
 
 
 @editor_bp.route('/cv-waqf/labels-assets/<slug>/<path:filename>')
+@require_editor
 def cv_waqf_labels_assets(slug: str, filename: str):
     from flask import abort, send_from_directory
 
+    if slug not in _BY_SLUG:
+        abort(404)
     folder = _hand_dir(slug)
     local = folder / filename
     if not local.is_file():

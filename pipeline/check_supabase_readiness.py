@@ -15,6 +15,7 @@ if str(ROOT) not in sys.path:
 from core import supabase_editor as sb  # noqa: E402
 
 EXPECTED_VERSIONS = {'editor': 4, 'layout': 2}
+CV_STORAGE_BUCKET = 'cv-waqf-hand'
 REQUIRED_PATHS = {
     '/editor_invites',
     '/editor_marks',
@@ -23,6 +24,7 @@ REQUIRED_PATHS = {
     '/editor_layout_pages',
     '/editor_layout_profiles',
     '/athar_schema_versions',
+    '/cv_waqf_hand_labels',
     '/rpc/publish_editor_edition',
 }
 
@@ -52,6 +54,20 @@ def check() -> dict:
     paths = set((response.json().get('paths') or {}).keys())
     missing_paths = sorted(REQUIRED_PATHS - paths)
 
+    storage_response = requests.get(
+        f'{sb._base()}/storage/v1/bucket',
+        headers=sb._headers(),
+        timeout=20,
+    )
+    storage_response.raise_for_status()
+    buckets = {
+        str(row.get('id') or row.get('name') or '')
+        for row in (storage_response.json() or [])
+    }
+    missing_storage = (
+        [] if CV_STORAGE_BUCKET in buckets else [CV_STORAGE_BUCKET]
+    )
+
     rows = sb._request(
         'GET',
         'athar_schema_versions',
@@ -74,9 +90,10 @@ def check() -> dict:
         'schema_versions': actual,
         'required_schema_versions': EXPECTED_VERSIONS,
         'missing_capabilities': missing_paths,
+        'missing_storage': missing_storage,
         'version_errors': version_errors,
     }
-    if missing_paths or version_errors:
+    if missing_paths or missing_storage or version_errors:
         raise RuntimeError(json.dumps(result, ensure_ascii=False, indent=2))
     return result
 

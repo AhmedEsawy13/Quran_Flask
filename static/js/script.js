@@ -1273,30 +1273,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Other mushafs that also mark this same word position
                 const sharedVers = [...(wordVersionsMap.get(wIdx) || [])].filter(v => v !== ver);
                 const sharedHtml = sharedVers.length > 0
-                    ? `<div class="waqf-entry-shared">${sharedVers.map(v =>
-                        `<span class="waqf-shared-badge ${getMushafColorClass(v)}">${esc(v)}</span>`
-                      ).join('')}</div>`
+                    ? `<span class="waqf-entry-shared" title="نفس الموضع في مصاحف أخرى">مشترك: ${sharedVers.map(esc).join(' · ')}</span>`
                     : '';
 
-                return `<div class="waqf-entry-card">
-                    <div class="waqf-entry-word">${esc(wordText)}</div>
-                    <div class="waqf-entry-footer">
-                        <span class="waqf-card-sym-wrap">${symPills}</span>
-                        ${meaning ? `<span class="waqf-entry-lbl">${esc(meaning)}</span>` : ''}
-                        ${sharedHtml}
-                    </div>
+                return `<div class="waqf-entry-row">
+                    <span class="waqf-entry-word">${esc(wordText)}</span>
+                    <span class="waqf-card-sym-wrap">${symPills}</span>
+                    ${meaning ? `<span class="waqf-entry-lbl">${esc(meaning)}</span>` : ''}
+                    ${sharedHtml}
                 </div>`;
             }).filter(Boolean).join('');
 
             const countLabel = `${entryList.length} ${entryList.length === 1 ? 'علامة' : 'علامات'}`;
-            return `<div class="waqf-mushaf-card ${colorCls}">
-                <div class="waqf-card-header">
-                    <span class="waqf-card-dot ${colorCls}">●</span>
-                    <span class="waqf-card-name">${esc(ver)}</span>
+            return `<section class="waqf-mushaf-section ${colorCls}">
+                <header class="waqf-section-head">
+                    <h3 class="waqf-card-name">${esc(ver)}</h3>
                     <span class="waqf-card-count">${countLabel}</span>
-                </div>
-                <div class="waqf-card-body">${rowsHtml}</div>
-            </div>`;
+                </header>
+                <div class="waqf-section-body">${rowsHtml}</div>
+            </section>`;
         }).join('');
 
         // ── Word view ────────────────────────────────────────────────────────
@@ -1380,9 +1375,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         container.innerHTML =
             `<div class="waqf-panel-header">` +
-            `<div class="waqf-panel-title"><i class="fas fa-signs-post"></i> وقف هذه الآية</div>` +
+            `<h2 class="waqf-panel-title">وقف هذه الآية</h2>` +
             tabsHtml +
             `</div>` +
+            `<p class="waqf-panel-hint">علامات المصحف المطبوع لهذه الآية — حسب وضع العرض أعلاه.</p>` +
             viewHtml;
     }
 
@@ -2622,8 +2618,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         groups.sort((a, b) => b.members.length - a.members.length);
 
         const wrap = document.createElement('div');
-        wrap.innerHTML = '<div class="guide-section-title"><i class="fas fa-users"></i> كيف قرأها كل قارئ</div>'
-            + '<p class="guide-reciters-note"><i class="fas fa-circle-info"></i> تختلف الأزمنة بين القرّاء تبعًا لأدائهم (قصر المدّ المنفصل يجعل القراءة أسرع)؛ الزمن المعروض هو مدّة كل مقطع.</p>';
+        wrap.innerHTML = '<h3 class="guide-section-title">كيف قرأها كل قارئ</h3>'
+            + '<p class="guide-reciters-note">تختلف الأزمنة بين القرّاء تبعًا لأدائهم (قصر المدّ المنفصل يجعل القراءة أسرع)؛ الزمن المعروض هو مدّة كل مقطع.</p>';
         const list = document.createElement('div');
         list.className = 'guide-reciters-list';
         wrap.appendChild(list);
@@ -2741,9 +2737,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (currentDet) {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'recitation-guide';
-                const titleEl = document.createElement('div');
+                const titleEl = document.createElement('h2');
                 titleEl.className = 'guide-title';
-                titleEl.innerHTML = `<i class="fas fa-route"></i> دليل التلاوة — ${currentDet.name_ar || reciter}`;
+                titleEl.textContent = `دليل التلاوة — ${currentDet.name_ar || reciter}`;
                 wrapper.appendChild(titleEl);
                 const subtitleEl = document.createElement('p');
                 subtitleEl.className = 'guide-subtitle';

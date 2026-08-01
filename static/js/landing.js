@@ -6,7 +6,12 @@
     var BASMALA_GLYPH = '\u00F3';
     var PAGE_RATIO = 0.66;
     var OLD_MADINA_PAGE_RATIO = 0.72;
+    var MADINAH_SOURCES = { qpc_v1: 1, qpc_v2: 1, digital_khatt: 1 };
+    var DIGITAL_KHATT_SOURCES = { qpc_v2: 1, digital_khatt: 1 };
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function isMadinahSource(src) { return !!MADINAH_SOURCES[src]; }
+    function isDigitalKhattSource(src) { return !!DIGITAL_KHATT_SOURCES[src]; }
 
     var TOOLS_DIM_MS = 2200;
     var state = {
@@ -65,15 +70,15 @@
         });
         var tj = $('lp-tajweed');
         if (tj) {
-            tj.hidden = state.src === 'azhar';
-            tj.setAttribute('aria-pressed', String(state.tajweedOn && state.src !== 'azhar'));
+            tj.hidden = !isMadinahSource(state.src);
+            tj.setAttribute('aria-pressed', String(state.tajweedOn && isMadinahSource(state.src)));
         }
         var card = $('lp-mushaf');
         if (!card) return;
         card.classList.toggle('lp-src-digital-khatt', state.src === 'digital_khatt');
+        card.classList.toggle('lp-src-qpc-v2', state.src === 'qpc_v2');
         card.classList.toggle('lp-src-qpc-v1', state.src === 'qpc_v1');
-        card.classList.toggle('lp-src-azhar', state.src === 'azhar');
-        card.classList.toggle('lp-tajweed', state.tajweedOn && state.src !== 'azhar');
+        card.classList.toggle('lp-tajweed', state.tajweedOn && isMadinahSource(state.src));
     }
 
     function clearToolsDim() {
@@ -103,14 +108,17 @@
         return pageEl ? [pageEl] : [];
     }
 
+    function pageRatioFor(src) {
+        return src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO;
+    }
+
     function sizeHeroPage() {
         var Chrome = window.AtharPageChrome;
         if (!Chrome || !Chrome.sizePages) return;
         Chrome.sizePages({
             cssVarPrefix: 'lp',
             pages: 1,
-            ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO
-                : (state.src === 'azhar' ? 0.68 : PAGE_RATIO),
+            ratio: pageRatioFor(state.src),
             gutter: 0,
             spreadPad: 0,
             minW: 220,
@@ -137,7 +145,7 @@
         },
         minFontSize: 9.5,
         minLineScale: function () {
-            return state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 0;
+            return isMadinahSource(state.src) ? 0.95 : 0;
         },
         maxPageFitRatio: 1.15,
     });
@@ -150,25 +158,20 @@
         featureCandidates: function () {
             var Chrome = window.AtharPageChrome;
             if (state.src === 'qpc_v1') return Chrome.oldMadinaFeatureCandidates(100);
-            if (state.src === 'digital_khatt') return Chrome.digitalKhattFeatureCandidates(100);
+            if (isDigitalKhattSource(state.src)) return Chrome.digitalKhattFeatureCandidates(100);
             return [];
         },
         minFeatureScale: function () {
-            return state.src === 'qpc_v1' || state.src === 'digital_khatt' ? 0.95 : 1;
+            return isMadinahSource(state.src) ? 0.95 : 1;
         },
         maxWordSpacing: function (_lineEl, inner) {
-            if (state.src === 'azhar') {
-                var azFs = parseFloat(getComputedStyle(inner).fontSize) || 20;
-                return Math.max(2, Math.min(6, azFs * 0.18));
-            }
-            if (state.src !== 'qpc_v1' && state.src !== 'digital_khatt') return Infinity;
+            if (!isMadinahSource(state.src)) return Infinity;
             var fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
             return Math.max(1.5, Math.min(4, fontSize * 0.12));
         },
         maxStretch: function () {
-            if (state.src === 'digital_khatt') return 1.15;
+            if (isDigitalKhattSource(state.src)) return 1.15;
             if (state.src === 'qpc_v1') return 1.18;
-            if (state.src === 'azhar') return 1.12;
             return Infinity;
         },
     });
@@ -438,7 +441,7 @@
             requestAnimationFrame(function () {
                 fitPage();
                 scheduleToolsDim();
-                if (state.tajweedOn && state.src !== 'azhar') {
+                if (state.tajweedOn && isMadinahSource(state.src)) {
                     applyTajweedToPage(token).then(function () {
                         if (token === state.renderToken) requestAnimationFrame(fitPage);
                     });
@@ -456,10 +459,7 @@
                 getSource: function () { return state.src; },
                 getVersions: function () { return []; },
             });
-            // Azhar layout starts at page 2 (no page 1); Madinah sources use page 1.
-            var payload = state.src === 'azhar'
-                ? await client.byNumber(2)
-                : await client.byNumber(PAGE);
+            var payload = await client.byNumber(PAGE);
             if (!payload) throw new Error('empty page');
             state.payload = payload;
             stage.classList.remove('is-failed');
@@ -779,7 +779,7 @@
                 },
                 minFontSize: 8.5,
                 minLineScale: function () {
-                    return demo.src === 'qpc_v1' || demo.src === 'digital_khatt' ? 0.95 : 0;
+                    return isMadinahSource(demo.src) ? 0.95 : 0;
                 },
                 maxPageFitRatio: 1.15,
             })
@@ -792,25 +792,20 @@
                 wordSelector: '.lp-word',
                     featureCandidates: function () {
                     if (demo.src === 'qpc_v1') return Chrome.oldMadinaFeatureCandidates(100);
-                    if (demo.src === 'digital_khatt') return Chrome.digitalKhattFeatureCandidates(100);
+                    if (isDigitalKhattSource(demo.src)) return Chrome.digitalKhattFeatureCandidates(100);
                     return [];
                 },
                 minFeatureScale: function () {
-                    return demo.src === 'qpc_v1' || demo.src === 'digital_khatt' ? 0.95 : 1;
+                    return isMadinahSource(demo.src) ? 0.95 : 1;
                 },
                 maxWordSpacing: function (_lineEl, inner) {
-                    if (demo.src === 'azhar') {
-                        var azFs = parseFloat(getComputedStyle(inner).fontSize) || 18;
-                        return Math.max(2, Math.min(6, azFs * 0.18));
-                    }
-                    if (demo.src !== 'qpc_v1' && demo.src !== 'digital_khatt') return Infinity;
+                    if (!isMadinahSource(demo.src)) return Infinity;
                     var fontSize = parseFloat(getComputedStyle(inner).fontSize) || 18;
                     return Math.max(1.2, Math.min(3.5, fontSize * 0.12));
                 },
                 maxStretch: function () {
-                    if (demo.src === 'digital_khatt') return 1.15;
+                    if (isDigitalKhattSource(demo.src)) return 1.15;
                     if (demo.src === 'qpc_v1') return 1.18;
-                    if (demo.src === 'azhar') return 1.12;
                     return Infinity;
                 },
             })
@@ -821,8 +816,7 @@
             Chrome.sizePages({
                 cssVarPrefix: 'lp-kursi',
                 pages: 1,
-                ratio: demo.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO
-                    : (demo.src === 'azhar' ? 0.68 : PAGE_RATIO),
+                ratio: pageRatioFor(demo.src),
                 gutter: 0,
                 spreadPad: 0,
                 minW: 180,
@@ -891,8 +885,8 @@
             });
             if (els.pageCard) {
                 els.pageCard.classList.toggle('lp-src-digital-khatt', demo.src === 'digital_khatt');
+                els.pageCard.classList.toggle('lp-src-qpc-v2', demo.src === 'qpc_v2');
                 els.pageCard.classList.toggle('lp-src-qpc-v1', demo.src === 'qpc_v1');
-                els.pageCard.classList.toggle('lp-src-azhar', demo.src === 'azhar');
                 els.pageCard.classList.add('is-ready');
             }
             requestAnimationFrame(function () {

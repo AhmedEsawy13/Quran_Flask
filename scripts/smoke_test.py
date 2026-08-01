@@ -19,7 +19,7 @@ if str(ROOT) not in sys.path:
 class Check:
     name: str
     path: str
-    expected_status: int = 200
+    expected_statuses: tuple[int, ...] = (200,)
 
 
 CORE_CHECKS = (
@@ -37,7 +37,10 @@ APP_CHECKS = (
 EDITOR_CHECKS = (
     Check('waqf reviewer', '/waqf-mark-review'),
     Check('activity browser', '/activity'),
-    Check('activity feed', '/api/activity'),
+    # A configured cloud deployment must protect this feed. The smoke client
+    # intentionally has no editor cookie, so 401 is a healthy result there;
+    # local SQLite-only development still returns the empty 200 payload.
+    Check('activity feed', '/api/activity', (200, 401)),
     Check('Mesaha studio', '/layout-studio/mesaha'),
     Check('Mesaha split page', '/api/layout-studio/mesaha/page/61'),
     Check(
@@ -88,10 +91,10 @@ def run(client, *, include_editor: bool) -> list[str]:
     failures = []
     for check in checks:
         response = client.get(check.path)
-        if response.status_code != check.expected_status:
+        if response.status_code not in check.expected_statuses:
             failures.append(
                 f'{check.name}: HTTP {response.status_code}, '
-                f'expected {check.expected_status}'
+                f'expected one of {check.expected_statuses}'
             )
             continue
         if check.name == 'health':

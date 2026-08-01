@@ -84,6 +84,7 @@ def after_request(response):
         or path.startswith('/layout-studio')
         or path.startswith('/azhar-layout')
         or path.startswith('/font-lab')
+        or path.startswith('/cv-waqf')
     ):
         response.headers['Cache-Control'] = 'no-store, max-age=0'
 
@@ -98,7 +99,8 @@ def after_request(response):
                 or request.path.startswith('/api/mushaf-editor/')
                 or request.path.startswith('/api/azhar-layout/')
                 or request.path.startswith('/api/layout-studio/')
-                or request.path.startswith('/api/classical-review/')):
+                or request.path.startswith('/api/classical-review/')
+                or request.path.startswith('/api/cv-waqf/')):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
         elif request.path.startswith('/api/waqf-research/'):
             # Heavy Quran-wide analyses are cached SERVER-side (instant after the

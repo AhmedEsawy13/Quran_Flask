@@ -56,6 +56,7 @@
         saving: false,
         naturalW: 0,
         naturalH: 0,
+        authChecked: false,
     };
 
     const COLORS = {
@@ -103,6 +104,30 @@
 
     function setMeta(text) {
         els.meta.textContent = text;
+    }
+
+    function apiError(res, data) {
+        const message = res.status === 401
+            ? 'يلزم تسجيل الدخول أولًا من محرر المصحف'
+            : (data?.error || res.statusText || `HTTP ${res.status}`);
+        const err = new Error(message);
+        err.status = res.status;
+        return err;
+    }
+
+    async function ensureEditorAccess() {
+        if (state.authChecked) return;
+        const res = await fetch('/api/mushaf-editor/auth/status', {
+            credentials: 'same-origin',
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw apiError(res, data);
+        if (data.login_required) {
+            const err = new Error('يلزم تسجيل الدخول أولًا من محرر المصحف');
+            err.status = 401;
+            throw err;
+        }
+        state.authChecked = true;
     }
 
     function setMode(mode) {
@@ -181,6 +206,8 @@
         els.empty.hidden = false;
         els.empty.textContent = 'جاري التحميل…';
         try {
+            await ensureEditorAccess();
+            if (gen !== state.loadGen) return;
             if (mode === 'label') {
                 setMeta('تحميل الصفحة والتسميات…');
                 await loadImageFromUrl(imageUrlFor(page), gen);
@@ -201,7 +228,7 @@
                     + `&min_conf=${state.minConf}`;
                 const res = await fetch(url, { credentials: 'same-origin' });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.error || res.statusText);
+                if (!res.ok) throw apiError(res, data);
                 if (gen !== state.loadGen) return;
                 state.payload = data;
                 state.minPage = data.min_page;
@@ -222,9 +249,13 @@
         } catch (err) {
             if (gen !== state.loadGen) return;
             els.empty.hidden = false;
-            els.empty.textContent = 'تعذّر التحميل';
+            if (err.status === 401) {
+                els.empty.innerHTML = 'يلزم تسجيل الدخول · <a href="/mushaf-editor">افتح محرر المصحف</a>';
+            } else {
+                els.empty.textContent = 'تعذّر التحميل';
+            }
             setMeta(String(err.message || err));
-            console.error(err);
+            if (err.status !== 401) console.error(err);
         } finally {
             if (gen === state.loadGen) state.loading = false;
         }
@@ -267,7 +298,7 @@
         const url = `/api/cv-waqf/labels?edition=${encodeURIComponent(edition)}&page=${page}`;
         const res = await fetch(url, { credentials: 'same-origin' });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || res.statusText);
+        if (!res.ok) throw apiError(res, data);
         return { labels: data.labels || [], cloud: !!data.cloud };
     }
 
@@ -435,7 +466,7 @@
                 data = {};
             }
             if (!res.ok) {
-                setMeta(data.error || `فشل الحفظ (${res.status})`);
+                setMeta(apiError(res, data).message);
                 return;
             }
             state.labels.push(data.label);
@@ -460,7 +491,7 @@
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-            setMeta(data.error || 'فشل الحذف');
+            setMeta(apiError(res, data).message || 'فشل الحذف');
             return;
         }
         state.labels = state.labels.filter((l) => l.id !== id);

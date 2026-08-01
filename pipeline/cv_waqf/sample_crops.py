@@ -23,15 +23,12 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from pipeline.cv_waqf import CLASSES
 from pipeline.cv_waqf.build_crops import _extract_roi, _safe_class_dir
 from pipeline.cv_waqf.candidates import Candidate, crop_candidate
 from pipeline.cv_waqf.config import (
-    CROPS_ROOT,
     CROP_SIZE,
     CV_ROOT,
     EDITIONS,
-    WAQF_DB,
     EditionSpec,
 )
 from pipeline.cv_waqf.layout_geo import estimate_layout_words, load_page_lines

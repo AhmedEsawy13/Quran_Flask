@@ -88,11 +88,7 @@ def _storage(path: str, *, method: str = 'GET', headers: dict | None = None,
 
 
 def ensure_bucket() -> None:
-    r = _storage('bucket', method='GET')
-    if r.status_code != 200:
-        raise SyncError(f'list buckets failed: {r.status_code} {r.text[:300]}')
-    names = {b.get('id') or b.get('name') for b in r.json()}
-    if BUCKET in names:
+    if bucket_exists():
         print(f'bucket ok: {BUCKET}')
         return
     r = _storage(
@@ -112,6 +108,24 @@ def ensure_bucket() -> None:
             f'Run pipeline/supabase_cv_waqf_hand.sql in the SQL editor first.'
         )
     print(f'created bucket: {BUCKET}')
+
+
+def bucket_exists() -> bool:
+    """Read-only bucket probe used by status/readiness checks."""
+    r = _storage('bucket', method='GET')
+    if r.status_code != 200:
+        raise SyncError(f'list buckets failed: {r.status_code} {r.text[:300]}')
+    names = {b.get('id') or b.get('name') for b in r.json()}
+    return BUCKET in names
+
+
+def require_bucket() -> None:
+    if not bucket_exists():
+        raise SyncError(
+            f'bucket {BUCKET} missing; run '
+            'pipeline/supabase_cv_waqf_hand.sql in the SQL editor.'
+        )
+    print(f'bucket ok: {BUCKET}')
 
 
 def ensure_table() -> None:
@@ -186,8 +200,6 @@ def list_objects(prefix: str) -> list[str]:
                 out.append(full)
 
     walk(prefix if prefix.endswith('/') or not prefix else prefix + '/')
-    if not prefix:
-        walk('')
     return out
 
 
@@ -377,7 +389,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.action == 'status':
             _require_config()
-            ensure_bucket()
+            require_bucket()
             ensure_table()
             remote = fetch_remote_labels(args.slug)
             local = load_local_labels(args.slug)

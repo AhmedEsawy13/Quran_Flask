@@ -490,11 +490,11 @@ body.athar-landing .athar-bar {
 .lp-mushaf.lp-src-qpc-v1 .lp-line-basmala {
   font-family: 'QCF Basmala', 'Old Madina', serif;
 }
-.lp-mushaf.lp-src-azhar .lp-line-inner,
-.lp-mushaf.lp-src-azhar .lp-line-basmala,
-.lp-mushaf.lp-src-azhar .lp-line-surah {
-  font-family: 'AmiriQuran', 'Amiri Quran', serif;
-  line-height: 1.28;
+.lp-mushaf.lp-src-qpc-v2 .lp-line-inner,
+.lp-mushaf.lp-src-qpc-v2 .lp-line-basmala,
+.lp-mushaf.lp-src-digital-khatt .lp-line-inner,
+.lp-mushaf.lp-src-digital-khatt .lp-line-basmala {
+  font-family: 'Digital Khatt', serif;
 }
 
 /* Tajweed colours — same palette as تثبيت / المصحف */

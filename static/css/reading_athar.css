@@ -385,7 +385,6 @@ body.athar-reading .reader-drawer > .ctrl-row {
 
 body.athar-reading .waqf-row-header { gap: 8px; }
 body.athar-reading .waqf-row-title,
-body.athar-reading .waqf-card-name,
 body.athar-reading .waqf-panel-title { color: var(--athar-gold); }
 
 body.athar-reading .waqf-row-desc,
@@ -750,6 +749,533 @@ body.athar-reading .asbab-text {
 body.athar-reading .asbab-empty {
     margin: 0;
     color: var(--athar-ink-soft);
+}
+
+/* جدول الوقف — match study panels (parchment / gold / quiet chips),
+   not the slate + sky dashboard chrome from styles.css */
+body.athar-reading #waqf-verse-table-container {
+    margin-top: 18px;
+    padding: clamp(16px, 2.8vw, 24px);
+    background: color-mix(in srgb, var(--athar-parchment) 72%, var(--athar-surface));
+    border: 1px solid var(--athar-line);
+    border-radius: var(--athar-radius-control);
+    color: var(--athar-ink);
+}
+
+body.athar-reading .waqf-panel-header {
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 10px 16px;
+}
+
+body.athar-reading #waqf-verse-table-container .waqf-panel-title {
+    margin: 0;
+    color: var(--athar-gold);
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
+body.athar-reading .waqf-panel-hint {
+    margin: 0 0 14px;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: var(--athar-ink-faint, var(--athar-ink-soft));
+}
+
+body.athar-reading .waqf-panel-empty {
+    color: var(--athar-ink-soft);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading .waqf-view-tabs {
+    gap: 6px;
+    padding: 3px;
+    border-radius: var(--athar-radius-round);
+    background: var(--athar-parchment);
+    border: 1px solid var(--athar-line-soft);
+}
+
+body.athar-reading .waqf-view-tab {
+    min-height: 32px;
+    padding: 5px 12px;
+    border: 0;
+    border-radius: calc(var(--athar-radius-round) - 2px);
+    background: transparent;
+    color: var(--athar-ink-soft);
+    font-family: var(--font-ui);
+    font-size: 0.74rem;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+body.athar-reading .waqf-view-tab:hover {
+    background: color-mix(in srgb, var(--athar-accent) 8%, transparent);
+    color: var(--athar-ink);
+    border-color: transparent;
+}
+
+body.athar-reading .waqf-view-tab.active {
+    background: var(--athar-accent);
+    color: var(--athar-on-accent);
+    border-color: transparent;
+}
+
+body.athar-reading .waqf-cards-grid {
+    display: grid;
+    gap: clamp(18px, 3vw, 28px);
+}
+
+body.athar-reading .waqf-mushaf-section {
+    padding-top: 14px;
+    border-top: 1px solid color-mix(in srgb, var(--athar-accent) 16%, var(--athar-line));
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+body.athar-reading .waqf-mushaf-section:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+body.athar-reading .waqf-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+body.athar-reading .waqf-section-head .waqf-card-name {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-size: 0.95rem;
+    font-weight: 800;
+}
+
+body.athar-reading .waqf-card-count {
+    background: transparent;
+    color: var(--athar-ink-faint);
+    padding: 0;
+    border-radius: 0;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+body.athar-reading .waqf-section-body {
+    display: grid;
+    gap: 8px;
+}
+
+body.athar-reading .waqf-entry-row {
+    display: grid;
+    grid-template-columns: minmax(4.5rem, auto) auto 1fr;
+    grid-template-areas:
+        "word sym meaning"
+        "shared shared shared";
+    align-items: baseline;
+    column-gap: 10px;
+    row-gap: 2px;
+    padding: 6px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--athar-ink) 6%, transparent);
+}
+
+body.athar-reading .waqf-entry-row:last-child {
+    border-bottom: 0;
+}
+
+body.athar-reading .waqf-entry-word {
+    grid-area: word;
+    font-size: 1.35rem;
+    line-height: 1.55;
+    color: var(--athar-ink);
+    text-align: start;
+}
+
+body.athar-reading .waqf-card-sym-wrap {
+    grid-area: sym;
+}
+
+body.athar-reading .waqf-entry-lbl {
+    grid-area: meaning;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--athar-ink-faint);
+    font-family: var(--font-ui);
+    text-align: start;
+}
+
+body.athar-reading .waqf-entry-shared {
+    grid-area: shared;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    color: var(--athar-ink-faint);
+    font-family: var(--font-ui);
+    opacity: 0.9;
+}
+
+body.athar-reading .waqf-sym-pill {
+    background: color-mix(in srgb, var(--athar-ink) 7%, transparent);
+    border-radius: 4px;
+    padding: 0.05em 0.28em;
+}
+
+body.athar-reading .waqf-sym-hindi {
+    background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+@media (max-width: 640px) {
+    body.athar-reading .waqf-entry-row {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+            "word sym"
+            "meaning meaning"
+            "shared shared";
+    }
+}
+
+body.athar-reading .waqf-tbl-wrap {
+    border: 1px solid var(--athar-line);
+    border-radius: var(--athar-radius-control);
+    background: var(--athar-surface);
+}
+
+body.athar-reading .waqf-tbl-th {
+    background: color-mix(in srgb, var(--athar-parchment) 70%, transparent);
+    border-bottom-color: var(--athar-line);
+    font-family: var(--font-ui);
+    font-weight: 800;
+}
+
+body.athar-reading .waqf-tbl-th.waqf-tbl-word-hd {
+    background: color-mix(in srgb, var(--athar-accent) 8%, var(--athar-parchment));
+    color: var(--athar-accent);
+}
+
+body.athar-reading .waqf-tbl-td,
+body.athar-reading .waqf-tbl-word {
+    border-bottom-color: var(--athar-line-soft);
+    border-left-color: var(--athar-line-soft);
+    color: var(--athar-ink);
+}
+
+body.athar-reading .waqf-tbl tbody tr:nth-child(even) {
+    background: color-mix(in srgb, var(--athar-parchment) 40%, transparent);
+}
+
+body.athar-reading .waqf-tbl tbody tr:hover {
+    background: color-mix(in srgb, var(--athar-accent) 6%, transparent);
+}
+
+body.athar-reading .waqf-tbl-empty {
+    color: var(--athar-ink-faint);
+}
+
+body.athar-reading .waqf-tbl-meaning {
+    color: var(--athar-ink-faint);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #controls #toggle-waqf-table.active,
+body.athar-reading #toggle-waqf-table.active {
+    background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface));
+    border-color: color-mix(in srgb, var(--athar-accent) 48%, var(--athar-line));
+    color: var(--athar-accent);
+}
+
+/* دليل التلاوة — flatten slate/indigo chrome into Athar study language */
+body.athar-reading #recitation-guide-container {
+    margin-top: 18px;
+    animation: none;
+}
+
+body.athar-reading #recitation-guide-container .recitation-guide {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+    color: var(--athar-ink);
+}
+
+body.athar-reading #recitation-guide-container .guide-title {
+    margin: 0 0 8px;
+    color: var(--athar-gold);
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 2vw, 1.28rem);
+    font-weight: 900;
+}
+
+body.athar-reading #recitation-guide-container .guide-subtitle,
+body.athar-reading #recitation-guide-container .guide-reciters-note {
+    margin: 0 0 14px;
+    font-size: 0.86rem;
+    line-height: 1.65;
+    color: var(--athar-ink-faint, var(--athar-ink-soft));
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-loading,
+body.athar-reading #recitation-guide-container .guide-empty,
+body.athar-reading #recitation-guide-container .guide-error {
+    color: var(--athar-ink-soft);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-error {
+    color: var(--athar-danger, #b91c1c);
+}
+
+body.athar-reading #recitation-guide-container .guide-no-waqf {
+    background: color-mix(in srgb, var(--athar-accent) 8%, var(--athar-parchment));
+    border: 1px solid color-mix(in srgb, var(--athar-accent) 22%, var(--athar-line));
+    border-radius: var(--athar-radius-control);
+    box-shadow: none;
+}
+
+body.athar-reading #recitation-guide-container .guide-no-waqf-title {
+    color: var(--athar-accent);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-no-waqf-body {
+    color: var(--athar-ink-soft);
+}
+
+body.athar-reading #recitation-guide-container .guide-no-waqf-sym {
+    color: var(--athar-accent);
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-row {
+    gap: 8px;
+}
+
+body.athar-reading #recitation-guide-container .guide-segment {
+    background: color-mix(in srgb, var(--athar-parchment) 55%, var(--athar-surface));
+    border: 1px solid var(--athar-line-soft);
+    border-radius: 10px;
+    box-shadow: none;
+    margin: 0;
+}
+
+body.athar-reading #recitation-guide-container .guide-segment:hover {
+    border-color: color-mix(in srgb, var(--athar-accent) 28%, var(--athar-line));
+    box-shadow: none;
+    background: var(--athar-parchment);
+}
+
+body.athar-reading #recitation-guide-container .guide-segment-active {
+    background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-parchment)) !important;
+    border-color: color-mix(in srgb, var(--athar-accent) 48%, var(--athar-line)) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--athar-accent) 22%, transparent) !important;
+}
+
+body.athar-reading #recitation-guide-container .guide-segment-last {
+    background: color-mix(in srgb, var(--athar-accent) 7%, var(--athar-parchment));
+    border-color: color-mix(in srgb, var(--athar-accent) 32%, var(--athar-line));
+}
+
+body.athar-reading #recitation-guide-container .guide-segment-repeat {
+    background: color-mix(in srgb, var(--athar-gold) 10%, var(--athar-parchment));
+    border-color: color-mix(in srgb, var(--athar-gold) 35%, var(--athar-line));
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-repeat-badge {
+    color: var(--athar-gold);
+    background: color-mix(in srgb, var(--athar-gold) 12%, transparent);
+    border-color: color-mix(in srgb, var(--athar-gold) 28%, transparent);
+    border-radius: 6px;
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-repeated-word {
+    color: var(--athar-gold);
+    border-bottom-color: color-mix(in srgb, var(--athar-gold) 45%, transparent);
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-solo-badge {
+    color: var(--athar-gold);
+    background: color-mix(in srgb, var(--athar-gold) 10%, transparent);
+    border-color: color-mix(in srgb, var(--athar-gold) 26%, transparent);
+    border-radius: 6px;
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-num {
+    color: var(--athar-ink-faint);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-words {
+    color: var(--athar-ink);
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-waqf {
+    border-top-color: var(--athar-line-soft);
+}
+
+body.athar-reading #recitation-guide-container .guide-waqf-sym {
+    color: var(--athar-gold);
+}
+
+body.athar-reading #recitation-guide-container .guide-waqf-lbl,
+body.athar-reading #recitation-guide-container .guide-seg-time {
+    color: var(--athar-ink-faint);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-waqf-ras-aya,
+body.athar-reading #recitation-guide-container .guide-waqf-ras-aya-lbl {
+    color: var(--athar-accent) !important;
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-play-btn {
+    color: var(--athar-ink-faint);
+    border-radius: 8px;
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-play-btn:hover {
+    color: var(--athar-accent);
+    background: color-mix(in srgb, var(--athar-accent) 12%, transparent);
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-play-btn.guide-seg-playing {
+    color: var(--athar-on-accent);
+    background: var(--athar-accent);
+}
+
+body.athar-reading #recitation-guide-container .guide-seg-arrow {
+    color: var(--athar-ink-faint);
+}
+
+body.athar-reading #recitation-guide-container .guide-solo-detail {
+    margin: 14px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid color-mix(in srgb, var(--athar-accent) 16%, var(--athar-line));
+}
+
+body.athar-reading #recitation-guide-container .guide-solo-head {
+    color: var(--athar-gold);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-solo-count {
+    background: color-mix(in srgb, var(--athar-gold) 14%, transparent);
+    color: var(--athar-gold);
+}
+
+body.athar-reading #recitation-guide-container .guide-solo-item {
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--athar-ink) 7%, transparent);
+    border-radius: 0;
+    border-right: 0;
+    border-inline-start: 2px solid color-mix(in srgb, var(--athar-gold) 55%, var(--athar-line));
+    padding: 8px 0 8px 4px;
+}
+
+body.athar-reading #recitation-guide-container .guide-solo-item-matched {
+    border-inline-start-color: var(--athar-accent);
+}
+
+body.athar-reading #recitation-guide-container .guide-solo-word {
+    color: var(--athar-ink);
+}
+
+body.athar-reading #recitation-guide-container .guide-solo-time,
+body.athar-reading #recitation-guide-container .guide-solo-nomatch {
+    color: var(--athar-ink-faint);
+    border-color: var(--athar-line-soft);
+}
+
+body.athar-reading #recitation-guide-container .guide-mushaf-match {
+    color: var(--athar-accent);
+    background: color-mix(in srgb, var(--athar-accent) 10%, transparent);
+    border-radius: 6px;
+}
+
+body.athar-reading #recitation-guide-container .guide-section-title {
+    margin: 22px 0 8px;
+    padding-top: 16px;
+    border-top: 1px solid color-mix(in srgb, var(--athar-accent) 16%, var(--athar-line));
+    color: var(--athar-gold);
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 1.8vw, 1.15rem);
+    font-weight: 900;
+}
+
+body.athar-reading #recitation-guide-container .guide-section-title i {
+    color: var(--athar-accent);
+}
+
+body.athar-reading #recitation-guide-container .guide-reciters-list {
+    gap: clamp(16px, 2.5vw, 22px);
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-card {
+    background: transparent;
+    border: 0;
+    border-top: 1px solid color-mix(in srgb, var(--athar-ink) 8%, transparent);
+    border-radius: 0;
+    border-right: 0;
+    padding: 14px 0 0;
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-card:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-name {
+    color: var(--athar-ink);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-chip {
+    color: var(--athar-ink-soft);
+    border: 1px solid var(--athar-line);
+    background: transparent;
+    border-radius: var(--athar-radius-round);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-chip:hover {
+    color: var(--athar-ink);
+    border-color: color-mix(in srgb, var(--athar-accent) 35%, var(--athar-line));
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-chip-active {
+    color: var(--athar-accent);
+    background: color-mix(in srgb, var(--athar-accent) 11%, transparent);
+    border-color: color-mix(in srgb, var(--athar-accent) 45%, var(--athar-line));
+}
+
+body.athar-reading #recitation-guide-container .guide-qasr-badge,
+body.athar-reading #recitation-guide-container .guide-reciter-count {
+    color: var(--athar-accent);
+    background: color-mix(in srgb, var(--athar-accent) 10%, transparent);
+    border-radius: 6px;
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-stats {
+    color: var(--athar-ink-faint);
+    font-family: var(--font-ui);
+}
+
+body.athar-reading #recitation-guide-container .guide-reciter-stats b {
+    color: var(--athar-ink);
+}
+
+body.athar-reading #recitation-guide-container .guide-adhere i {
+    color: var(--athar-accent);
+}
+
+body.athar-reading #controls #show-recitation-guide.active,
+body.athar-reading #show-recitation-guide[aria-pressed="true"] {
+    border-color: color-mix(in srgb, var(--athar-accent) 48%, var(--athar-line));
+    background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface));
+    color: var(--athar-accent);
 }
 
 body.athar-reading .reader-legend {

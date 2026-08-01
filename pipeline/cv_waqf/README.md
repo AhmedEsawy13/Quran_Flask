@@ -28,6 +28,7 @@ export PYTHONPATH=.
 
 # Sync hand crops + ONNX to Supabase (other machines: pull-hand)
 # Once: run pipeline/supabase_cv_waqf_hand.sql in Supabase SQL editor
+python3 -m pipeline.cv_waqf status-hand --slug shamarly  # read-only check
 python3 -m pipeline.cv_waqf push-hand --slug shamarly
 python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 

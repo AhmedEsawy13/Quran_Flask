@@ -34,6 +34,11 @@ def test_release_workflows_cover_push_smoke_and_supabase_readiness():
     assert 'smoke_test.py --local --include-editor' in ci
     assert 'PRODUCTION_BASE_URL' in smoke
     assert 'check_supabase_readiness.py' in smoke
+    readiness = (
+        PROJECT_ROOT / 'pipeline' / 'check_supabase_readiness.py'
+    ).read_text(encoding='utf-8')
+    assert "'/cv_waqf_hand_labels'" in readiness
+    assert "CV_STORAGE_BUCKET = 'cv-waqf-hand'" in readiness
 
 
 def test_enabled_features_env(monkeypatch):
@@ -209,8 +214,13 @@ def test_ui_foundation_exposes_thmanyah_alternates_and_components(client):
     assert 'id="lp-kursi-page"' in landing
     assert 'id="lp-kursi-verse"' in landing
     assert 'محاكاة رقمية للرسم والتخطيط' in landing
+    assert 'data-src="digital_khatt"' in landing
+    assert 'data-src="qpc_v2"' in landing
     assert 'data-src="qpc_v1"' in landing
-    assert 'data-src="azhar"' in landing
+    assert 'title="مصحف المدينة ١٤٤١"' in landing
+    assert 'title="مصحف المدينة ١٤٢١"' in landing
+    assert 'title="مصحف المدينة ١٤٠٥"' in landing
+    assert 'data-kursi-src="qpc_v2"' in landing
     assert 'id="lp-tajweed"' in landing
     assert 'class="athar-button" href="#lp-proof"' in landing
     assert 'class="athar-button athar-button-ghost" href="/waqf-practice"' in landing

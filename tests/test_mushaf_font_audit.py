@@ -40,7 +40,7 @@ def test_parse_page_number_supports_arabic_and_ascii_digits():
 def test_audit_catalog_covers_three_madinah_editions_and_scenarios():
     assert set(SOURCES) == {'qpc_v1', 'qpc_v2', 'digital_khatt'}
     assert set(SCENARIOS) == {'desktop', 'mobile', 'spread'}
-    assert {353, 358, 507} <= set(SOURCES['qpc_v1']['risk_pages'])
+    assert {342, 353, 358, 460, 507, 509, 539} <= set(SOURCES['qpc_v1']['risk_pages'])
     assert {69, 353, 358, 507, 511} <= set(SOURCES['qpc_v2']['risk_pages'])
     assert {69, 353, 358, 507, 511} <= set(SOURCES['digital_khatt']['risk_pages'])
     assert selected_names('all', SOURCES) == ['qpc_v1', 'digital_khatt', 'qpc_v2']
@@ -52,6 +52,8 @@ def test_auditor_measures_page_font_size_not_a_line_override():
     assert 'inline_transform: inner.style.transform' in source
     assert 'line_width: lineRect.width' in source
     assert 'page.wait_for_timeout(240)' in source
+    chrome = Path('static/js/athar-page-chrome.js').read_text(encoding='utf-8')
+    assert 'attempt < 4' in chrome
 
 
 def test_validator_accepts_values_inside_all_budgets():

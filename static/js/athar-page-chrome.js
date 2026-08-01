@@ -336,7 +336,10 @@
             const upper = Number.isFinite(parsedUpper)
                 ? Math.max(lower, parsedUpper)
                 : Infinity;
-            for (let attempt = 0; attempt < 2; attempt += 1) {
+            // Fractional glyph hinting can need more than one correction on
+            // Linux Chromium. Four bounded passes converges the rare 1–3px
+            // misses without changing the line's compression/stretch budget.
+            for (let attempt = 0; attempt < 4; attempt += 1) {
                 const rendered = inner.getBoundingClientRect().width;
                 if (!rendered || Math.abs(rendered - avail) <= 0.25) return;
                 const matrix = getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/);

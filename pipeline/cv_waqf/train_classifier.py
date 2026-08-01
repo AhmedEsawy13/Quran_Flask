@@ -129,7 +129,6 @@ def export_onnx(
 ) -> Path:
     """Export Flatten→Gemm→Relu→Gemm as ONNX (NCHW input 1x1xSxS)."""
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    d = CROP_SIZE * CROP_SIZE
     hidden = w1.shape[1]
     k = w2.shape[1]
 

@@ -20,6 +20,7 @@ def main(argv: list[str] | None = None) -> int:
             '  bootstrap       draft plan.json for an edition\n'
             '  push-hand       upload hand crops + model to Supabase\n'
             '  pull-hand       download hand crops + model from Supabase\n'
+            '  status-hand     read-only Supabase hand-label status\n'
         )
         return 0
 
@@ -63,6 +64,9 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == 'pull-hand':
         from pipeline.cv_waqf.sync_supabase import main as m
         return m(['pull', *rest])
+    if cmd == 'status-hand':
+        from pipeline.cv_waqf.sync_supabase import main as m
+        return m(['status', *rest])
     print(f'unknown command: {cmd}', file=sys.stderr)
     return 2
 
