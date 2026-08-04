@@ -124,12 +124,50 @@ def _build_word_payload(edition: str, page: int, slug: str) -> dict:
         text=True,
         timeout=120,
     )
-    if proc.returncode != 0:
-        detail = (proc.stderr or proc.stdout or '').strip()[-1000:]
-        raise RuntimeError(detail or f'cv word payload exit {proc.returncode}')
-    if not out.is_file():
-        raise RuntimeError('cv word payload produced no JSON')
-    return json.loads(out.read_text(encoding='utf-8'))
+    if proc.returncode == 0 and out.is_file():
+        return json.loads(out.read_text(encoding='utf-8'))
+
+    # CI / production Flask has no OpenCV — still serve layout words so the
+    # labeling UI and cache-header tests can run without requirements-cv.
+    logger.warning(
+        'CV word geometry unavailable (%s); using layout-only fallback',
+        (proc.stderr or proc.stdout or 'no cv2').strip()[-200:],
+    )
+    return _build_logical_word_payload(edition, page)
+
+
+def _build_logical_word_payload(edition: str, page: int) -> dict:
+    """Word keys + approximate seats from the layout DB (no OpenCV)."""
+    from pipeline.cv_waqf.config import EDITIONS, IMG_WIDTH
+    from pipeline.cv_waqf.layout_geo import estimate_layout_words, mark_roi_for_word
+    from pipeline.cv_waqf.preprocess import synthetic_prepared_page
+
+    spec = EDITIONS[edition]
+    prepared = synthetic_prepared_page(
+        spec, width=IMG_WIDTH, height=int(IMG_WIDTH * 1.5),
+    )
+    words = estimate_layout_words(spec, page, prepared)
+    return {
+        'edition': edition,
+        'page': page,
+        'words': [
+            {
+                'word_id': word.word_id,
+                'word_key': word.word_key,
+                'word_id_space': word.word_id_space,
+                'surah': word.surah,
+                'ayah': word.ayah,
+                'text': word.text,
+                'line': word.line_number,
+                'word_on_line': word.word_on_line,
+                'box': [word.x0, word.y0, word.x1, word.y1],
+                'seat': list(mark_roi_for_word(word)),
+            }
+            for word in words
+            if word.word_key
+        ],
+        'geometry': 'layout-only',
+    }
 
 
 def _ensure_image(edition: str, page: int) -> Path:

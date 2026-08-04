@@ -41,6 +41,8 @@ def test_cv_waqf_cloud_apis_require_editor_session(app, monkeypatch):
 
 def test_cv_waqf_live_routes_are_never_browser_cached(app, monkeypatch):
     monkeypatch.setattr(sb, 'is_configured', lambda: False)
+    # Match CI: no OpenCV in the Flask env and no .venv-cv.
+    monkeypatch.setattr(cv_waqf_ui, 'CV_VENV_PYTHON', Path('/nonexistent/.venv-cv/bin/python'))
     client = app.test_client()
 
     page = client.get('/cv-waqf')

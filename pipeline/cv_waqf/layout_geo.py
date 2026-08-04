@@ -150,9 +150,12 @@ def _observed_line_bounds(
     Marks and harakat live higher in the row and would make the span unstable.
     The middle/lower strip consistently contains the Arabic skeleton.
     """
+    x0, _band_y0, x1, _band_y1 = prepared.band_box
+    if prepared.binary is None:
+        return x0, x1
+
     import numpy as np
 
-    x0, _band_y0, x1, _band_y1 = prepared.band_box
     line_h = max(1, line_bot - line_top)
     body_y0 = line_top + int(0.40 * line_h)
     body_y1 = line_top + int(0.75 * line_h)
