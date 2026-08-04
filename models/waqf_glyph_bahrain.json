@@ -1,0 +1,37 @@
+{
+  "classes": [
+    "م",
+    "ق",
+    "ص",
+    "ج",
+    "لا",
+    "ع",
+    "س",
+    "none"
+  ],
+  "crop_size": 48,
+  "hidden": 128,
+  "input": "input",
+  "output": "logits",
+  "input_layout": "NCHW",
+  "ink_as_positive": true,
+  "pipeline": "two-stage",
+  "role": "existing-symbol-classifier",
+  "gate_model": "waqf_glyph_bahrain_gate.onnx",
+  "gate_classes": [
+    "none",
+    "mark"
+  ],
+  "gate_mode": "veto",
+  "gate_min_conf": 0.5,
+  "full_classes": [
+    "م",
+    "ق",
+    "ص",
+    "ج",
+    "لا",
+    "ع",
+    "س",
+    "none"
+  ]
+}

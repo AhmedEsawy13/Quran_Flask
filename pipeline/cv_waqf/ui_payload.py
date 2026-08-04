@@ -13,6 +13,40 @@ _GLYPH = {
 }
 
 
+def build_word_payload(edition: str, page: int) -> dict:
+    """Return page words and their mark seats without running the classifier.
+
+    The hand-labeling UI uses this lightweight payload to make every crop
+    explicitly portable across database-local word ID namespaces.
+    """
+    from pipeline.cv_waqf.config import EDITIONS
+
+    spec = EDITIONS[edition]
+    img_path = ensure_page_image(spec, page)
+    prepared = preprocess_page(load_bgr(img_path), spec)
+    words = estimate_layout_words(spec, page, prepared)
+    return {
+        'edition': edition,
+        'page': page,
+        'words': [
+            {
+                'word_id': word.word_id,
+                'word_key': word.word_key,
+                'word_id_space': word.word_id_space,
+                'surah': word.surah,
+                'ayah': word.ayah,
+                'text': word.text,
+                'line': word.line_number,
+                'word_on_line': word.word_on_line,
+                'box': [word.x0, word.y0, word.x1, word.y1],
+                'seat': list(mark_roi_for_word(word)),
+            }
+            for word in words
+            if word.word_key
+        ],
+    }
+
+
 def build_ui_payload(
     edition: str,
     page: int,

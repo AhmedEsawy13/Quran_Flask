@@ -21,38 +21,106 @@
     min-height: 100vh;
 }
 
+/* Author display rules must never override the native hidden attribute. */
+.cvw-body [hidden] {
+    display: none !important;
+}
+
+.cvw-login {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--cvw-ink) 36%, transparent);
+    backdrop-filter: blur(6px);
+}
+.cvw-login[hidden] { display: none !important; }
+.cvw-login-card {
+    width: min(100%, 390px);
+    display: grid;
+    gap: 9px;
+    padding: 22px;
+    border-radius: 18px;
+    box-shadow: 0 18px 60px color-mix(in srgb, var(--cvw-ink) 25%, transparent);
+}
+.cvw-login-card h2,
+.cvw-login-card p { margin: 0; }
+.cvw-login-card > p:not(.cvw-kicker):not(.cvw-login-error) {
+    color: var(--cvw-muted);
+    font-size: .88rem;
+    line-height: 1.6;
+}
+.cvw-login-card label { font-size: .8rem; font-weight: 700; color: var(--cvw-muted); }
+.cvw-login-error { color: #9d2f27; font-size: .85rem; }
+.cvw-login-submit {
+    min-height: 46px;
+    margin-top: 4px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--cvw-accent);
+    color: #fff;
+    font-weight: 800;
+    cursor: pointer;
+}
+.cvw-login-submit:disabled { opacity: .55; cursor: wait; }
+
 .cvw-chrome {
     position: sticky;
     top: 0;
     z-index: 20;
-    padding: 10px 14px 12px;
+    padding: 6px 10px 8px;
     background: color-mix(in srgb, var(--cvw-bg) 92%, white);
     border-bottom: 1px solid var(--cvw-border);
     backdrop-filter: blur(8px);
 }
 
+.cvw-chrome-top {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+
 .cvw-kicker { margin: 0; font-size: 0.72rem; color: var(--cvw-muted); }
 .cvw-title {
-    margin: 2px 0 0;
+    margin: 0;
     font-family: var(--athar-display, "Thmanyah Display", serif);
-    font-size: 1.28rem;
+    font-size: 1.05rem;
     font-weight: 700;
+    white-space: nowrap;
 }
-.cvw-lede { margin: 4px 0 0; font-size: 0.86rem; color: var(--cvw-muted); }
+.cvw-lede {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: var(--cvw-muted);
+    font-size: 0.76rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 .cvw-lede a { color: var(--cvw-accent); }
 
 .cvw-controls {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 6px;
+    margin-top: 6px;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 560px) {
     .cvw-controls {
-        grid-template-columns: 1.2fr auto 1fr;
+        grid-template-columns: minmax(9rem, 1.2fr) auto auto;
         align-items: end;
     }
+}
+
+@media (max-width: 719px) {
+    .cvw-chrome-top .cvw-kicker,
+    .cvw-chrome-top .cvw-lede { display: none; }
+    .cvw-title { font-size: .98rem; }
 }
 
 .cvw-field,
@@ -79,6 +147,32 @@
 
 .cvw-page-field { flex: 1; min-width: 4.5rem; }
 .cvw-page-field input { text-align: center; font-size: 1.05rem; }
+
+.cvw-queue {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 6px 8px;
+    border: 1px solid color-mix(in srgb, var(--cvw-accent) 28%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--cvw-accent) 7%, #fff);
+}
+.cvw-queue-head,
+.cvw-queue-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cvw-queue-head { justify-content: space-between; margin: 0; white-space: nowrap; }
+.cvw-queue-head span { color: var(--cvw-muted); font-size: .8rem; }
+.cvw-queue-nav select { flex: 1; min-width: 0; }
+.cvw-queue p { display: none; }
+
+@media (max-width: 719px) {
+    .cvw-queue-head strong { display: none; }
+}
 
 .cvw-nav-btn {
     width: 2.4rem;
@@ -108,8 +202,8 @@
 }
 
 .cvw-meta {
-    margin: 10px 0 0;
-    font-size: 0.82rem;
+    margin: 5px 0 0;
+    font-size: 0.75rem;
     color: var(--cvw-muted);
     font-variant-numeric: tabular-nums;
 }
@@ -177,7 +271,7 @@
     border: 1px solid var(--cvw-border);
     background: #fff;
     border-radius: 10px;
-    padding: 8px 12px;
+    padding: 6px 9px;
     font-weight: 700;
     cursor: pointer;
     color: var(--cvw-muted);
@@ -191,18 +285,18 @@
 .cvw-palette {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
+    gap: 4px;
+    margin-top: 6px;
 }
 .cvw-sym-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-width: 3.4rem;
-    min-height: 3.4rem;
-    padding: 8px 10px;
-    border-radius: 12px;
+    min-width: 2.8rem;
+    min-height: 2.8rem;
+    padding: 4px 7px;
+    border-radius: 10px;
     border: 1px solid var(--cvw-border);
     background: #fff;
     cursor: pointer;
@@ -216,7 +310,7 @@
 }
 .cvw-sym-glyph {
     font-family: "UthmanicHafs", "Amiri Quran", serif;
-    font-size: 1.45rem;
+    font-size: 1.22rem;
     line-height: 1.1;
 }
 .cvw-sym-code { font-size: 0.68rem; color: var(--cvw-muted); font-weight: 700; }
@@ -227,8 +321,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-top: 12px;
-    padding: 10px 12px;
+    margin-top: 6px;
+    padding: 7px 9px;
     border-radius: 14px;
     background: color-mix(in srgb, var(--cvw-accent) 10%, #fff);
     border: 1px solid color-mix(in srgb, var(--cvw-accent) 28%, transparent);
@@ -241,6 +335,14 @@
     font-size: 0.88rem;
     color: var(--cvw-muted);
     font-weight: 600;
+}
+.cvw-word-field {
+    flex: 1 1 22rem;
+    min-width: min(100%, 18rem);
+}
+.cvw-word-field select {
+    width: 100%;
+    max-width: 34rem;
 }
 .cvw-save-actions {
     display: flex;
@@ -292,7 +394,7 @@
     inset-inline: 0;
     bottom: 0;
     z-index: 40;
-    display: flex;
+    display: none;
     gap: 10px;
     padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
     background: color-mix(in srgb, var(--cvw-bg) 92%, white);
@@ -302,11 +404,17 @@
 }
 .cvw-fab-save { flex: 1.4; }
 .cvw-fab-cancel { flex: 0.8; }
+.cvw-fab-word {
+    flex: 2;
+    min-width: 9rem;
+    max-width: 45vw;
+}
 .cvw-body:has(.cvw-fab:not([hidden])) .cvw-main {
     padding-bottom: 88px;
 }
-@media (min-width: 960px) {
-    .cvw-fab { display: none !important; }
+@media (max-width: 719px) {
+    .cvw-fab:not([hidden]) { display: flex; }
+    .cvw-save-bar:not([hidden]) { display: none; }
 }
 
 .cvw-side-head {

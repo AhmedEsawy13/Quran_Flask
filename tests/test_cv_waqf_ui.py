@@ -24,7 +24,19 @@ def test_cv_waqf_cloud_apis_require_editor_session(app, monkeypatch):
 
     js = Path('static/js/cv_waqf.js').read_text(encoding='utf-8')
     assert '/api/mushaf-editor/auth/status' in js
+    assert '/api/mushaf-editor/login' in js
     assert 'يلزم تسجيل الدخول' in js
+    assert 'QUICK_BOX_SIZE = 32' in js
+    assert 'suggestNearestWord()' in js
+
+    html = client.get('/cv-waqf').get_data(as_text=True)
+    assert 'cvw-login-form' in html
+    assert 'تسجيل دخول المراجع' in html
+    assert 'انقر على العلامة' in html
+
+    css = Path('static/css/cv_waqf.css').read_text(encoding='utf-8')
+    assert '.cvw-body [hidden]' in css
+    assert '@media (min-width: 560px)' in css
 
 
 def test_cv_waqf_live_routes_are_never_browser_cached(app, monkeypatch):
@@ -38,6 +50,9 @@ def test_cv_waqf_live_routes_are_never_browser_cached(app, monkeypatch):
     assert labels.status_code == 200
     assert page.headers['Cache-Control'] == 'no-store, max-age=0'
     assert labels.headers['Cache-Control'] == 'no-store, max-age=0'
+    first_word = labels.get_json()['words'][0]
+    assert first_word['word_key'].count(':') == 2
+    assert first_word['word_id_space'] == 'quran-script-stable-v1'
 
 
 def test_cv_waqf_ignores_a_malformed_local_label(tmp_path, monkeypatch):
@@ -62,6 +77,57 @@ def test_cv_waqf_rejects_unknown_gallery_slug(app, monkeypatch):
     assert client.get(
         '/cv-waqf/labels-assets/not-an-edition/example.png'
     ).status_code == 404
+
+
+def test_cv_hand_label_requires_and_persists_canonical_word_anchor(
+    app, tmp_path, monkeypatch,
+):
+    monkeypatch.setattr(sb, 'is_configured', lambda: False)
+    monkeypatch.setattr(cv_waqf_ui, 'ROOT', tmp_path)
+    monkeypatch.setattr(
+        cv_waqf_ui, 'HAND_ROOT', tmp_path / 'data' / 'cv' / 'crops_hand',
+    )
+    monkeypatch.setattr(
+        cv_waqf_ui,
+        '_build_word_payload',
+        lambda *_args: {
+            'words': [{
+                'word_id': 77,
+                'word_key': '2:2:1',
+                'word_id_space': 'quran-script-stable-v1',
+                'surah': 2,
+                'ayah': 2,
+                'text': 'ذَٰلِكَ',
+                'line': 1,
+            }],
+        },
+    )
+
+    def fake_crop(slug, label):
+        path = cv_waqf_ui.HAND_ROOT / slug / 'j' / f"{label['id']}.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b'png')
+        return path
+
+    monkeypatch.setattr(cv_waqf_ui, '_save_crop_png', fake_crop)
+    monkeypatch.setattr(cv_waqf_ui, '_ensure_image', lambda *_args: tmp_path)
+    client = app.test_client()
+    base = {
+        'edition': 'الشمرلي', 'page': 2, 'symbol': 'ج',
+        'box': [10, 10, 30, 30],
+    }
+
+    assert client.post('/api/cv-waqf/labels', json=base).status_code == 400
+    response = client.post(
+        '/api/cv-waqf/labels', json={**base, 'word_key': '2:2:1'},
+    )
+
+    assert response.status_code == 200
+    label = response.get_json()['label']
+    assert label['word_key'] == '2:2:1'
+    assert label['local_word_id'] == 77
+    assert label['word_id_space'] == 'quran-script-stable-v1'
+    assert label['attachment_status'] == 'reviewer-confirmed'
 
 
 class _Response:
@@ -98,3 +164,30 @@ def test_cv_storage_root_listing_is_not_requested_twice(monkeypatch):
 
     assert sync_supabase.list_objects('') == []
     assert calls == [(f'object/list/{sync_supabase.BUCKET}', 'POST')]
+
+
+def test_cv_review_queue_has_live_label_counts(app, monkeypatch):
+    monkeypatch.setattr(sb, 'is_configured', lambda: False)
+    monkeypatch.setattr(
+        cv_waqf_ui,
+        '_load_labels',
+        lambda slug, page=None: [
+            {'page': 1, 'symbol': 'ج'},
+            {'page': 1, 'symbol': 'none'},
+        ] if slug == 'bahrain' else [],
+    )
+    client = app.test_client()
+    response = client.get('/api/cv-waqf/review-queue?edition=البحرين')
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert len(payload['pages']) == 43
+    assert payload['targeted_size'] == 13
+    assert [row['page'] for row in payload['pages'][:3]] == [17, 18, 33]
+    assert any(
+        row['page'] == 437 and row.get('priority')
+        for row in payload['pages']
+    )
+    page_one = next(row for row in payload['pages'] if row['page'] == 1)
+    assert page_one['label_count'] == 2
+    assert payload['total_labels'] == 2

@@ -106,6 +106,17 @@ def audit_pages(
                     'text': cv.get('text'),
                 })
 
+    exact_precision = summary['match'] / max(1, summary['cv_marks'])
+    exact_recall = summary['match'] / max(1, summary['db_marks'])
+    anchored = summary['match'] + summary['wrong']
+    summary['exact_precision'] = round(exact_precision, 4)
+    summary['exact_recall'] = round(exact_recall, 4)
+    summary['word_attachment_precision'] = round(
+        anchored / max(1, summary['cv_marks']), 4,
+    )
+    summary['word_attachment_recall'] = round(
+        anchored / max(1, summary['db_marks']), 4,
+    )
     return {
         'edition': edition_key,
         'generated_at': datetime.now(timezone.utc).isoformat(),

@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     {% set page_title = 'أثَر · تسمية علامات الوقف' %}
-    {% set page_description = 'ارسم مربعاً على علامة الوقف في صورة المصحف لحفظ عيّنة تدريب.' %}
+    {% set page_description = 'انقر علامة الوقف أو ارسم حولها في صورة المصحف لحفظ عيّنة تدريب دقيقة.' %}
     <title>{{ page_title }}</title>
     {{ athar_page_meta(page_title, page_description, path='/cv-waqf', noindex=true) }}
     {{ athar_shell_head() }}
@@ -19,12 +19,26 @@
       data-max-page="{{ max_page }}">
     {{ athar_app_bar('cvw-main') }}
 
+    <div class="cvw-login" id="cvw-login" hidden>
+        <form class="cvw-login-card athar-surface" id="cvw-login-form" autocomplete="on">
+            <p class="cvw-kicker">مراجعة علامات الوقف</p>
+            <h2>تسجيل دخول المراجع</h2>
+            <p>يلزم الدخول قبل الرسم حتى نستطيع تحميل كلمات الصفحة وحفظ ربط كل علامة بكلمتها.</p>
+            <label for="cvw-login-username">اسم المستخدم</label>
+            <input class="athar-field" type="text" id="cvw-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
+            <label for="cvw-login-password">كلمة المرور</label>
+            <input class="athar-field" type="password" id="cvw-login-password" name="password" required autocomplete="current-password" dir="ltr">
+            <p class="cvw-login-error" id="cvw-login-error" role="alert" hidden></p>
+            <button class="cvw-login-submit" type="submit" id="cvw-login-submit">دخول وفتح صفحة التسمية</button>
+        </form>
+    </div>
+
     <header class="cvw-chrome" aria-label="أدوات التسمية">
         <div class="cvw-chrome-top">
             <p class="cvw-kicker">تدريب · قصّ يدوي</p>
             <h1 class="cvw-title">سمِّ علامات الوقف على الصفحة</h1>
             <p class="cvw-lede">
-                اسحب مربعاً حول العلامة، اختر نوعها، ثم اضغط <strong>حفظ</strong>.
+                انقر على العلامة لوضع مربع دقيق تلقائيًا، أو اسحب حولها يدويًا، ثم راجع النوع والكلمة واضغط <strong>حفظ</strong>.
                 مناسب للآيباد — الشريط السفلي يظهر بعد الرسم.
                 تُحفظ القصّة كمرجع للتدريب — ابدأ بالشمرلي ثم البحرين.
                 <a href="/cv-waqf/labels">معرض التسميات</a>
@@ -57,6 +71,19 @@
             </div>
         </div>
 
+        <div class="cvw-queue" id="cvw-queue" hidden>
+            <div class="cvw-queue-head">
+                <strong>عينة المعايرة الموزعة</strong>
+                <span id="cvw-queue-progress"></span>
+            </div>
+            <div class="cvw-queue-nav">
+                <button type="button" id="cvw-queue-prev" class="cvw-nav-btn" aria-label="السابق في العينة">‹</button>
+                <select id="cvw-queue-page" class="athar-field" aria-label="صفحات عينة المعايرة"></select>
+                <button type="button" id="cvw-queue-next" class="cvw-nav-btn" aria-label="التالي في العينة">›</button>
+            </div>
+            <p>في كل صفحة: سمِّ كل علامات الوقف، ثم أضف مثالين صعبين على الأقل من نوع <code>none</code>.</p>
+        </div>
+
         <div class="cvw-palette" id="cvw-palette" role="group" aria-label="نوع العلامة">
             {% for s in symbols %}
             <button type="button" class="cvw-sym-btn" data-symbol="{{ s.code }}" title="{{ s.name }}">
@@ -72,6 +99,12 @@
 
         <div class="cvw-save-bar" id="cvw-save-bar" hidden>
             <p class="cvw-save-hint" id="cvw-save-hint">ارسم مربعاً حول العلامة أولاً</p>
+            <label class="cvw-field cvw-word-field">
+                <span>الكلمة التابعة للعلامة</span>
+                <select id="cvw-word" class="athar-field" disabled>
+                    <option value="">ارسم العلامة أولاً</option>
+                </select>
+            </label>
             <div class="cvw-save-actions">
                 <button type="button" class="cvw-cancel-btn" id="cvw-cancel" disabled>إلغاء</button>
                 <button type="button" class="cvw-save-btn" id="cvw-save" disabled>
@@ -91,11 +124,14 @@
             </label>
         </div>
 
-        <p class="cvw-meta" id="cvw-meta" aria-live="polite">اسحب مربعاً على العلامة، اختر نوعها، ثم اضغط حفظ.</p>
+        <p class="cvw-meta" id="cvw-meta" aria-live="polite">انقر العلامة أو اسحب حولها، راجع الكلمة، ثم اضغط حفظ.</p>
     </header>
 
     <div class="cvw-fab" id="cvw-fab" hidden>
         <button type="button" class="cvw-fab-cancel" id="cvw-fab-cancel">إلغاء</button>
+        <select id="cvw-fab-word" class="athar-field cvw-fab-word" aria-label="الكلمة التابعة للعلامة">
+            <option value="">اختر الكلمة</option>
+        </select>
         <button type="button" class="cvw-fab-save" id="cvw-fab-save">حفظ التسمية</button>
     </div>
 

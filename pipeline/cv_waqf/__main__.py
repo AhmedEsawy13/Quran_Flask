@@ -13,10 +13,13 @@ def main(argv: list[str] | None = None) -> int:
             '  cache-pages     download/render page JPEGs\n'
             '  mesaha-boxes    export Mesaha DjVu word boxes\n'
             '  build-crops     weak-label glyph crop dataset\n'
-            '  sample-crops    labeled crops from random pages (DB-guided)\n'
-            '  train           train MLP → models/waqf_glyph.onnx\n'
+            '  sample-crops    word-anchored crops from trusted DB marks\n'
+            '  train           page-split training → models/waqf_glyph.onnx\n'
             '  run-page        detect marks on one page\n'
             '  audit           CV vs mushaf_waqf.db report\n'
+            '  evaluate-hand   exact mark + canonical-word holdout accuracy\n'
+            '  evaluate-candidates proposal + word-attachment recall\n'
+            '  review-queue    stratified pages for hand calibration\n'
             '  bootstrap       draft plan.json for an edition\n'
             '  push-hand       upload hand crops + model to Supabase\n'
             '  pull-hand       download hand crops + model from Supabase\n'
@@ -54,6 +57,15 @@ def main(argv: list[str] | None = None) -> int:
         return m(rest)
     if cmd == 'audit':
         from pipeline.cv_waqf.audit_edition import main as m
+        return m(rest)
+    if cmd == 'evaluate-hand':
+        from pipeline.cv_waqf.evaluate_hand import main as m
+        return m(rest)
+    if cmd == 'evaluate-candidates':
+        from pipeline.cv_waqf.evaluate_candidates import main as m
+        return m(rest)
+    if cmd == 'review-queue':
+        from pipeline.cv_waqf.review_queue import main as m
         return m(rest)
     if cmd == 'bootstrap':
         from pipeline.cv_waqf.bootstrap_edition import main as m

@@ -10,6 +10,8 @@ from pipeline.cv_waqf.layout_geo import LayoutWord
 @dataclass
 class AttachedMark:
     word_id: int
+    word_key: str
+    word_id_space: str
     surah: int
     ayah: int
     text: str
@@ -47,6 +49,8 @@ def attach_to_words(
             continue
         attached = AttachedMark(
             word_id=nearest.word_id,
+            word_key=nearest.word_key,
+            word_id_space=nearest.word_id_space,
             surah=nearest.surah,
             ayah=nearest.ayah,
             text=nearest.text,
@@ -69,11 +73,12 @@ def _nearest_word(
     cand: Candidate,
     words: list[LayoutWord],
     max_dist: float,
+    *,
+    seat_prior: bool = True,
 ) -> LayoutWord | None:
-    best: LayoutWord | None = None
-    best_score = float('inf')
+    scored: list[tuple[float, LayoutWord]] = []
     for word in words:
-        if word.surah <= 0 or word.ayah <= 0:
+        if word.surah <= 0 or word.ayah <= 0 or not word.is_content_word:
             continue
         # Same line band vertically.
         if cand.cy < word.y0 - 8 or cand.cy > word.y1 + 8:
@@ -83,10 +88,31 @@ def _nearest_word(
         dy = abs(cand.cy - (word.y0 + 0.35 * (word.y1 - word.y0)))
         # Soft bonus when mark is left-of-center of the word box.
         left_bias = 0.0 if cand.cx <= word.cx else 12.0
-        score = dx + 1.6 * dy + left_bias
-        if score < best_score and score <= max_dist * 3:
-            best_score = score
-            best = word
-    if best is None or best_score > max_dist * 3:
+        # Bahrain/Mesaha are compared against trusted Quran scripts whose
+        # embedded waqf glyphs identify likely seats.  This is a prior, not a
+        # hard filter: a genuinely closer novel seat can still win.
+        known_seat_bonus = (
+            min(100.0, max_dist * 1.20)
+            if seat_prior and word.has_waqf_seat else 0.0
+        )
+        score = dx + 1.6 * dy + left_bias - known_seat_bonus
+        if score <= max_dist * 1.5:
+            scored.append((score, word))
+    if not scored:
         return None
+    scored.sort(key=lambda item: item[0])
+    best_score, best = scored[0]
+    if len(scored) > 1:
+        second_score = scored[1][0]
+        # Reject genuinely tied neighbours, but tolerate the residual error in
+        # estimated RTL word widths.  The old 25% margin discarded many clear
+        # owners on short-word lines.
+        ambiguity_margin = max(5.0, max_dist * 0.08)
+        if second_score - best_score < ambiguity_margin:
+            # The embedded Quran script is a strong seat prior. Do not throw
+            # away a classified glyph merely because the CV word clusters put
+            # an adjacent unmarked word within a few pixels of the same score.
+            if best.has_waqf_seat and not scored[1][1].has_waqf_seat:
+                return best
+            return None
     return best

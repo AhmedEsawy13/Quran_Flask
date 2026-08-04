@@ -35,11 +35,16 @@ def ayah_words(script_db: str, surah: int, ayah: int) -> list[dict]:
     conn.row_factory = sqlite3.Row
     try:
         rows = conn.execute(
-            'SELECT word_index AS word_id, word_index, text '
-            'FROM words WHERE surah=? AND ayah=? ORDER BY word_index ASC',
+            'SELECT word_index AS word_id, word_index, word_key, text '
+            'FROM words WHERE surah=? AND ayah=?',
             (surah, ayah),
         ).fetchall()
-        return [dict(r) for r in rows]
+        out = [dict(r) for r in rows]
+        out.sort(key=lambda row: (
+            _word_key_position(row.get('word_key'), row['word_index']),
+            int(row['word_index']),
+        ))
+        return out
     finally:
         conn.close()
 
@@ -95,6 +100,13 @@ def _word_index_hint(words: list[dict], raw) -> int | None:
             if current == hinted_pos:
                 return idx
     return None
+
+
+def _word_key_position(raw, fallback: int) -> int:
+    try:
+        return int(str(raw or '').rsplit(':', 1)[-1])
+    except (TypeError, ValueError):
+        return int(fallback)
 
 
 def edition_marks_for_ayahs(
@@ -176,17 +188,23 @@ def within_ayah_token_index(
     conn = sqlite3.connect(script_db)
     try:
         row = conn.execute(
-            'SELECT surah, ayah, text FROM words WHERE word_index=?',
+            'SELECT surah, ayah, text, word_key FROM words WHERE word_index=?',
             (word_id,),
         ).fetchone()
         if not row:
             return None
         surah, ayah, text = int(row[0]), int(row[1]), row[2] or ''
+        rows = conn.execute(
+            'SELECT word_index, word_key FROM words WHERE surah=? AND ayah=?',
+            (surah, ayah),
+        ).fetchall()
         ids = [
-            int(r[0]) for r in conn.execute(
-                'SELECT word_index FROM words WHERE surah=? AND ayah=? '
-                'ORDER BY word_index ASC',
-                (surah, ayah),
+            int(item[0])
+            for item in sorted(
+                rows,
+                key=lambda item: (
+                    _word_key_position(item[1], item[0]), int(item[0]),
+                ),
             )
         ]
         if word_id not in ids:

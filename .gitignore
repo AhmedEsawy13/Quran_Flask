@@ -137,3 +137,4 @@ data/cv/overlays/
 artifacts/cv-waqf/
 models/backup/
 models/*.hand.onnx
+data/bahrain-digital-khatt.db

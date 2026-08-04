@@ -40,6 +40,13 @@ _UI_EDITIONS = (
         'min_page': 1,
         'max_page': 604,
     },
+    {
+        'id': 'المساحة',
+        'label': 'مصحف المساحة الأميرية',
+        'slug': 'mesaha',
+        'min_page': 2,
+        'max_page': 827,
+    },
 )
 _BY_ID = {e['id']: e for e in _UI_EDITIONS}
 _BY_SLUG = {e['slug']: e for e in _UI_EDITIONS}
@@ -88,6 +95,43 @@ def _build_payload(edition: str, page: int, min_conf: float, slug: str) -> dict:
     return json.loads(out.read_text(encoding='utf-8'))
 
 
+def _build_word_payload(edition: str, page: int, slug: str) -> dict:
+    """Build word/seat geometry without loading or running the ONNX model."""
+    try:
+        import cv2  # noqa: F401
+        from pipeline.cv_waqf.ui_payload import build_word_payload
+        return build_word_payload(edition, page)
+    except Exception:
+        logger.info('Building CV word payload via subprocess')
+
+    ARTIFACT_CACHE.mkdir(parents=True, exist_ok=True)
+    out = ARTIFACT_CACHE / f'{slug}_p{page:03d}_words.json'
+    py = _resolve_cv_python()
+    code = (
+        'import json\n'
+        'from pipeline.cv_waqf.ui_payload import build_word_payload\n'
+        f'payload=build_word_payload({edition!r},{page})\n'
+        f'open({str(out)!r},"w",encoding="utf-8").write('
+        'json.dumps(payload,ensure_ascii=False))\n'
+    )
+    env = os.environ.copy()
+    env['PYTHONPATH'] = str(ROOT)
+    proc = subprocess.run(
+        [py, '-c', code],
+        cwd=str(ROOT),
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if proc.returncode != 0:
+        detail = (proc.stderr or proc.stdout or '').strip()[-1000:]
+        raise RuntimeError(detail or f'cv word payload exit {proc.returncode}')
+    if not out.is_file():
+        raise RuntimeError('cv word payload produced no JSON')
+    return json.loads(out.read_text(encoding='utf-8'))
+
+
 def _ensure_image(edition: str, page: int) -> Path:
     from pipeline.cv_waqf.config import EDITIONS
     from pipeline.cv_waqf.pages import ensure_page_image, page_image_path
@@ -124,6 +168,10 @@ CLASS_DIR = {
 }
 HAND_ROOT = ROOT / 'data' / 'cv' / 'crops_hand'
 STORAGE_BUCKET = 'cv-waqf-hand'
+_ANCHOR_FIELDS = (
+    'word_key', 'local_word_id', 'word_id_space', 'surah', 'ayah',
+    'word_position', 'line_number', 'word_text', 'attachment_status',
+)
 
 
 def _hand_dir(slug: str) -> Path:
@@ -173,12 +221,22 @@ def _fetch_cloud_labels(slug: str, page: int | None = None) -> list[dict]:
         from core import supabase_editor as sb
         params: dict[str, str] = {
             'slug': f'eq.{slug}',
-            'select': 'id,edition,slug,page,symbol,box,crop_path,created_at',
+            'select': (
+                'id,edition,slug,page,symbol,box,crop_path,created_at,'
+                + ','.join(_ANCHOR_FIELDS)
+            ),
             'order': 'created_at.asc',
         }
         if page is not None:
             params['page'] = f'eq.{int(page)}'
-        rows = sb._request('GET', 'cv_waqf_hand_labels', params=params) or []
+        try:
+            rows = sb._request('GET', 'cv_waqf_hand_labels', params=params) or []
+        except Exception:
+            # Backward-compatible until the additive anchor migration runs.
+            params['select'] = (
+                'id,edition,slug,page,symbol,box,crop_path,created_at'
+            )
+            rows = sb._request('GET', 'cv_waqf_hand_labels', params=params) or []
     except Exception as exc:  # noqa: BLE001
         logger.warning('cv_waqf cloud labels fetch failed: %s', exc)
         return []
@@ -196,6 +254,9 @@ def _fetch_cloud_labels(slug: str, page: int | None = None) -> list[dict]:
                 'created_at': row.get('created_at'),
                 'source': 'supabase',
             }
+            for field in _ANCHOR_FIELDS:
+                if row.get(field) is not None:
+                    normalized[field] = row[field]
         except (KeyError, TypeError, ValueError):
             logger.warning('Ignoring malformed cv_waqf cloud label: %r', row)
             continue
@@ -250,21 +311,34 @@ def _cloud_upsert_label(label: dict) -> None:
         return
     try:
         from core import supabase_editor as sb
-        sb._request(
-            'POST',
-            'cv_waqf_hand_labels',
-            json_body={
-                'id': label['id'],
-                'edition': label['edition'],
-                'slug': label['slug'],
-                'page': int(label['page']),
-                'symbol': label['symbol'],
-                'box': label['box'],
-                'crop_path': label.get('crop') or label.get('crop_path'),
-                'created_at': label.get('created_at'),
-            },
-            prefer='resolution=merge-duplicates,return=minimal',
-        )
+        payload = {
+            'id': label['id'],
+            'edition': label['edition'],
+            'slug': label['slug'],
+            'page': int(label['page']),
+            'symbol': label['symbol'],
+            'box': label['box'],
+            'crop_path': label.get('crop') or label.get('crop_path'),
+            'created_at': label.get('created_at'),
+        }
+        payload.update({
+            field: label.get(field)
+            for field in _ANCHOR_FIELDS
+            if label.get(field) is not None
+        })
+        try:
+            sb._request(
+                'POST', 'cv_waqf_hand_labels', json_body=payload,
+                prefer='resolution=merge-duplicates,return=minimal',
+            )
+        except Exception:
+            # Preserve crop sync on older installations; readiness will flag
+            # the missing migration separately once schema version 1 is set.
+            legacy = {k: v for k, v in payload.items() if k not in _ANCHOR_FIELDS}
+            sb._request(
+                'POST', 'cv_waqf_hand_labels', json_body=legacy,
+                prefer='resolution=merge-duplicates,return=minimal',
+            )
     except Exception as exc:  # noqa: BLE001
         logger.warning('cv_waqf cloud upsert failed: %s', exc)
 
@@ -544,14 +618,49 @@ def cv_waqf_labels_list():
     if not (meta['min_page'] <= page <= meta['max_page']):
         return jsonify({'error': 'page out of range'}), 400
     labels = _load_labels(meta['slug'], page=page)
+    try:
+        word_payload = _build_word_payload(edition, page, meta['slug'])
+    except Exception as exc:  # noqa: BLE001
+        logger.exception('cv-waqf word geometry %s p%s', edition, page)
+        return jsonify({
+            'error': f'تعذّر تحميل كلمات الصفحة: {exc}',
+        }), 500
     return jsonify({
         'edition': edition,
         'slug': meta['slug'],
         'page': page,
         'labels': labels,
+        'words': word_payload.get('words') or [],
         'count': len(labels),
         'cloud': _cloud_ready(),
     })
+
+
+@editor_bp.route('/api/cv-waqf/review-queue', methods=['GET'])
+@require_editor
+def cv_waqf_review_queue():
+    """Return the deterministic calibration queue with live label counts."""
+    edition = (request.args.get('edition') or 'البحرين').strip()
+    meta = _BY_ID.get(edition)
+    if not meta:
+        return jsonify({'error': 'unsupported edition'}), 400
+    try:
+        from pipeline.cv_waqf.review_queue import build_review_queue
+        queue = build_review_queue(edition)
+    except Exception as exc:  # noqa: BLE001
+        logger.exception('cv-waqf review queue %s', edition)
+        return jsonify({'error': str(exc)}), 500
+    counts: dict[int, int] = {}
+    for label in _load_labels(meta['slug']):
+        try:
+            page = int(label.get('page'))
+        except (TypeError, ValueError):
+            continue
+        counts[page] = counts.get(page, 0) + 1
+    for item in queue['pages']:
+        item['label_count'] = counts.get(item['page'], 0)
+    queue['total_labels'] = sum(item['label_count'] for item in queue['pages'])
+    return jsonify(queue)
 
 
 @editor_bp.route('/api/cv-waqf/labels', methods=['POST'])
@@ -578,6 +687,18 @@ def cv_waqf_labels_create():
     if symbol not in ALLOWED_LABEL_SYMBOLS:
         return jsonify({'error': f'bad symbol {symbol!r}'}), 400
 
+    word_key = str(body.get('word_key') or '').strip()
+    if not word_key:
+        return jsonify({'error': 'word_key is required'}), 400
+    try:
+        words = _build_word_payload(edition, page, meta['slug']).get('words') or []
+    except Exception as exc:  # noqa: BLE001
+        logger.exception('cv-waqf word validation %s p%s', edition, page)
+        return jsonify({'error': f'word geometry unavailable: {exc}'}), 500
+    word = next((row for row in words if row.get('word_key') == word_key), None)
+    if word is None:
+        return jsonify({'error': 'word_key is not on this page'}), 400
+
     x0, y0, x1, y1 = box
     if abs(x1 - x0) < 4 or abs(y1 - y0) < 4:
         return jsonify({'error': 'box too small'}), 400
@@ -589,6 +710,15 @@ def cv_waqf_labels_create():
         'page': page,
         'symbol': symbol,
         'box': [min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)],
+        'word_key': word_key,
+        'local_word_id': int(word['word_id']),
+        'word_id_space': str(word['word_id_space']),
+        'surah': int(word['surah']),
+        'ayah': int(word['ayah']),
+        'word_position': int(word_key.rsplit(':', 1)[-1]),
+        'line_number': int(word['line']),
+        'word_text': str(word.get('text') or ''),
+        'attachment_status': 'reviewer-confirmed',
         'created_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
     }
     try:

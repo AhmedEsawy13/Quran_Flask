@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from core.config import (
+    AZHAR_LAYOUT_DATABASE,
+    AZHAR_LAYOUT_MAX_PAGE,
+    AZHAR_LAYOUT_MIN_PAGE,
     BAHRAIN_LAYOUT_DATABASE,
     BAHRAIN_REF_CACHE,
     BAHRAIN_REF_PDF,
@@ -12,6 +15,8 @@ from core.config import (
     MESAHA_ARCHIVE_ID,
     MESAHA_LAYOUT_DATABASE,
     MUSHAF_WAQF_DATABASE,
+    DIGITAL_KHATT_LAYOUT_DATABASE,
+    QPC_V1_LAYOUT_DATABASE,
     QURAN_SCRIPT_DATABASE,
     SHAMARLY_LAYOUT_DATABASE,
 )
@@ -26,6 +31,13 @@ MESAHA_OCR_DIR = ROOT / 'data' / 'mesaha-ocr'
 MODEL_PATH = ROOT / 'models' / 'waqf_glyph.onnx'
 CLASSES_PATH = ROOT / 'models' / 'waqf_glyph_classes.json'
 ARTIFACTS_ROOT = ROOT / 'artifacts' / 'cv-waqf'
+
+# Target-print models are optional and fall back to the shared classifier when
+# absent. Keeping them separate prevents Bahrain-specific hard negatives from
+# degrading trusted Shamarly/Madinah/Azhar behavior.
+EDITION_MODEL_PATHS: dict[str, Path] = {
+    'البحرين': ROOT / 'models' / 'waqf_glyph_bahrain.onnx',
+}
 
 # Default Amiri Quran TTF used to synthesize glyph templates.
 DEFAULT_GLYPH_FONT = Path.home() / 'Library' / 'Fonts' / 'amiri-quran.ttf'
@@ -87,8 +99,10 @@ EDITIONS: dict[str, EditionSpec] = {
         pdf_path=BAHRAIN_REF_PDF,
         pdf_offset=BAHRAIN_REF_PDF_OFFSET,
         page_cache_dir=BAHRAIN_REF_CACHE,
-        text_top=0.10,
-        text_bottom=0.92,
+        # The 15 Quran rows occupy this band in the 1024px Bahrain scans.
+        # A wider 10%..92% band drifts by almost a full row at both edges.
+        text_top=0.14,
+        text_bottom=0.88,
     ),
     'المساحة': EditionSpec(
         id='mesaha',
@@ -105,6 +119,54 @@ EDITIONS: dict[str, EditionSpec] = {
         text_top=0.14,
         text_bottom=0.88,
     ),
+    # Trusted annotation sources. Their page-image caches are intentionally
+    # cache-only: do not silently train on a different print merely because it
+    # shares the same Quran text or line layout. Put verified page JPEGs under
+    # the configured directory before sampling crops.
+    'المدينة الجديد': EditionSpec(
+        id='madinah_1441',
+        mushaf_version='المدينة الجديد',
+        layout_db=DIGITAL_KHATT_LAYOUT_DATABASE,
+        word_space='qpc',
+        script_db=BAHRAIN_LAYOUT_DATABASE,
+        min_page=1,
+        max_page=604,
+        image_kind='cache',
+        page_cache_dir=str(PAGES_ROOT / 'madinah_1441'),
+        text_top=0.10,
+        text_bottom=0.92,
+    ),
+    'المدينة القديم': EditionSpec(
+        id='madinah_1405',
+        mushaf_version='المدينة القديم',
+        layout_db=QPC_V1_LAYOUT_DATABASE,
+        word_space='qpc',
+        script_db=BAHRAIN_LAYOUT_DATABASE,
+        min_page=1,
+        max_page=604,
+        image_kind='cache',
+        page_cache_dir=str(PAGES_ROOT / 'madinah_1405'),
+        text_top=0.10,
+        text_bottom=0.92,
+    ),
+    'الأزهر': EditionSpec(
+        id='azhar',
+        mushaf_version='الأزهر',
+        layout_db=AZHAR_LAYOUT_DATABASE,
+        word_space='shemrly',
+        script_db=QURAN_SCRIPT_DATABASE,
+        min_page=AZHAR_LAYOUT_MIN_PAGE,
+        max_page=AZHAR_LAYOUT_MAX_PAGE,
+        image_kind='cache',
+        page_cache_dir=str(PAGES_ROOT / 'azhar'),
+        text_top=0.11,
+        text_bottom=0.90,
+    ),
 }
+
+TRUSTED_WAQF_EDITIONS: tuple[str, ...] = (
+    'الشمرلي', 'المدينة الجديد', 'المدينة القديم', 'الأزهر',
+)
+TARGET_WAQF_EDITIONS: tuple[str, ...] = ('البحرين', 'المساحة')
 
 WAQF_DB = MUSHAF_WAQF_DATABASE

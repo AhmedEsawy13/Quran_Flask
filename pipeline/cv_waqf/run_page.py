@@ -12,12 +12,20 @@ from pathlib import Path
 
 import cv2
 
-from pipeline.cv_waqf.attach import AttachedMark, attach_to_words
+from pipeline.cv_waqf.attach import AttachedMark, _nearest_word, attach_to_words
 from pipeline.cv_waqf.candidates import Candidate, crop_candidate
 from pipeline.cv_waqf.classify import GlyphClassifier
-from pipeline.cv_waqf.config import CROP_SIZE, EDITIONS, OVERLAYS_ROOT
+from pipeline.cv_waqf.config import (
+    CROP_SIZE,
+    EDITION_MODEL_PATHS,
+    EDITIONS,
+    OVERLAYS_ROOT,
+)
 from pipeline.cv_waqf.layout_geo import estimate_layout_words
-from pipeline.cv_waqf.line_gaps import find_above_word_candidates
+from pipeline.cv_waqf.line_gaps import (
+    find_above_word_candidates,
+    find_line_component_candidates,
+)
 from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import load_bgr, preprocess_page
 
@@ -48,6 +56,28 @@ def _reject_ambiguous(
     return kept
 
 
+def _prediction_is_clear(
+    clf: GlyphClassifier,
+    label: str,
+    confidence: float,
+    probs,
+    min_conf: float,
+    *,
+    margin: float = 0.12,
+) -> bool:
+    if label == 'none' or confidence < min_conf:
+        return False
+    ranked = sorted((float(value) for value in probs), reverse=True)
+    second = ranked[1] if len(ranked) > 1 else 0.0
+    none_idx = clf.classes.index('none') if 'none' in clf.classes else None
+    none_p = float(probs[none_idx]) if none_idx is not None else 0.0
+    if confidence - second < margin:
+        return False
+    if none_p > 0.25 and confidence - none_p < 0.28:
+        return False
+    return True
+
+
 def _attach_from_hits(
     classified_hits: list[tuple[object, str, float]],
     page: int,
@@ -56,15 +86,37 @@ def _attach_from_hits(
     """Prefer the layout word already paired to the above-word hit."""
     best: dict[int, AttachedMark] = {}
     orphan: list[tuple[Candidate, str, float]] = []
+    page_width = max(
+        1,
+        max(word.x1 for word in fallback_words)
+        - min(word.x0 for word in fallback_words),
+    ) if fallback_words else 1
+    max_dist = max(24.0, page_width * 0.08)
 
     for hit, symbol, conf in classified_hits:
         cand = hit.candidate
         lw = hit.layout_word
-        if lw is None or lw.surah <= 0 or lw.ayah <= 0:
+        # Exact cluster counts can still assign an above-word component to the
+        # adjacent word. Reconcile an unmarked owner with the trusted script
+        # seat before accepting that direct cluster match.
+        if lw is not None and not lw.has_waqf_seat:
+            line_words = [
+                word for word in fallback_words
+                if word.line_number == hit.line_number
+            ]
+            prior_owner = _nearest_word(cand, line_words, max_dist)
+            if prior_owner is not None and prior_owner.has_waqf_seat:
+                lw = prior_owner
+        if (
+            lw is None or lw.surah <= 0 or lw.ayah <= 0
+            or not lw.is_content_word
+        ):
             orphan.append((cand, symbol, conf))
             continue
         attached = AttachedMark(
             word_id=lw.word_id,
+            word_key=lw.word_key,
+            word_id_space=lw.word_id_space,
             surah=lw.surah,
             ayah=lw.ayah,
             text=lw.text,
@@ -96,52 +148,64 @@ def detect_page(
     *,
     min_conf: float = 0.55,
     overlay_path: Path | None = None,
+    model_path: Path | None = None,
+    proposal_mode: str = 'narrow',
     seat_prior: bool = True,  # kept for CLI compat; above-word path is always used
 ) -> dict:
     del seat_prior  # unused — geometry is above-word, not old seat prior
+    if proposal_mode not in {'narrow', 'hybrid'}:
+        raise ValueError("proposal_mode must be 'narrow' or 'hybrid'")
     spec = EDITIONS[edition_key]
     img_path = ensure_page_image(spec, page)
     bgr = load_bgr(img_path)
     prepared = preprocess_page(bgr, spec)
     words = estimate_layout_words(spec, page, prepared)
 
-    hits = find_above_word_candidates(prepared, words)
-    clf = GlyphClassifier()
+    narrow_hits = find_above_word_candidates(prepared, words)
+    broad_hits = (
+        find_line_component_candidates(prepared, words)
+        if proposal_mode == 'hybrid' else []
+    )
+    # Keep alternate crop scales because the glyph can be a single component
+    # or several nearby components.  Suppress only exact duplicate boxes.
+    hits = []
+    seen_boxes: set[tuple[int, int, int, int]] = set()
+    for hit in [*narrow_hits, *broad_hits]:
+        box = (
+            hit.candidate.x, hit.candidate.y,
+            hit.candidate.w, hit.candidate.h,
+        )
+        if box in seen_boxes:
+            continue
+        seen_boxes.add(box)
+        hits.append(hit)
+    resolved_model = model_path
+    if resolved_model is None:
+        edition_model = EDITION_MODEL_PATHS.get(edition_key)
+        if edition_model is not None and edition_model.is_file():
+            resolved_model = edition_model
+    clf = GlyphClassifier(model_path=resolved_model)
     if not clf.ready:
         raise RuntimeError(
             f'missing ONNX model at {clf.model_path}. '
             'Run: python -m pipeline.cv_waqf train'
         )
 
+    crops = [
+        crop_candidate(prepared.gray, hit.candidate, size=CROP_SIZE)
+        for hit in hits
+    ]
     classified_hits: list[tuple[object, str, float]] = []
     raw_classified: list[tuple[Candidate, str, float]] = []
-    for hit in hits:
-        crop = crop_candidate(prepared.gray, hit.candidate, size=CROP_SIZE)
-        label, conf = clf.predict_crop(crop)
-        if label == 'none' or conf < min_conf:
+    for hit, (label, conf, probs) in zip(
+        hits, clf.predict_many_probs(crops),
+    ):
+        if not _prediction_is_clear(
+            clf, label, conf, probs, min_conf,
+        ):
             continue
         classified_hits.append((hit, label, conf))
         raw_classified.append((hit.candidate, label, conf))
-
-    raw_classified = _reject_ambiguous(clf, prepared.gray, raw_classified, min_conf)
-    keep_cands = {id(c) for c, _l, _p in raw_classified}
-    classified_hits = [
-        (hit, label, conf)
-        for hit, label, conf in classified_hits
-        if id(hit.candidate) in keep_cands
-        or any(
-            c.x == hit.candidate.x and c.y == hit.candidate.y
-            and c.w == hit.candidate.w and c.h == hit.candidate.h
-            for c, _l, _p in raw_classified
-        )
-    ]
-    # Re-filter hits against ambiguous-rejected set by box identity.
-    kept_boxes = {(c.x, c.y, c.w, c.h) for c, _l, _p in raw_classified}
-    classified_hits = [
-        (hit, label, conf) for hit, label, conf in classified_hits
-        if (hit.candidate.x, hit.candidate.y, hit.candidate.w, hit.candidate.h)
-        in kept_boxes
-    ]
 
     attached = _attach_from_hits(classified_hits, page, words)
 
@@ -175,10 +239,17 @@ def detect_page(
         'image': str(img_path),
         'candidates': len(hits),
         'classified': len(raw_classified),
-        'strategy': 'above-word-per-line',
+        'strategy': (
+            'hybrid-line-components'
+            if proposal_mode == 'hybrid' else 'above-word-per-line'
+        ),
+        'narrow_candidates': len(narrow_hits),
+        'component_candidates': len(broad_hits),
         'marks': [
             {
                 'word_id': m.word_id,
+                'word_key': m.word_key,
+                'word_id_space': m.word_id_space,
                 'surah': m.surah,
                 'ayah': m.ayah,
                 'text': m.text,
@@ -190,6 +261,8 @@ def detect_page(
             for m in attached
         ],
         'model_ready': clf.ready,
+        'model': str(clf.model_path),
+        'model_pipeline': clf.pipeline,
     }
 
 
@@ -200,6 +273,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--min-conf', type=float, default=0.55)
     parser.add_argument('--overlay', action='store_true')
     parser.add_argument('--json-out', type=Path, default=None)
+    parser.add_argument('--model', type=Path, default=None)
+    parser.add_argument(
+        '--proposal-mode', choices=('narrow', 'hybrid'), default='narrow',
+    )
     args = parser.parse_args(argv)
 
     overlay = None
@@ -209,6 +286,8 @@ def main(argv: list[str] | None = None) -> int:
         args.edition, args.page,
         min_conf=args.min_conf,
         overlay_path=overlay,
+        model_path=args.model,
+        proposal_mode=args.proposal_mode,
     )
     text = json.dumps(result, ensure_ascii=False, indent=2)
     if args.json_out:

@@ -62,6 +62,8 @@ def bootstrap_pages(
                 'ayah': ayah,
                 'token_index': token_index,
                 'word_index': mark['word_id'],
+                'word_key': mark.get('word_key') or f'{surah}:{ayah}:{token_index + 1}',
+                'word_id_space': mark.get('word_id_space') or '',
                 'word_text': text or mark.get('text') or '',
                 'symbol': mark['symbol'],
                 'confidence': round(float(mark['confidence']), 4),

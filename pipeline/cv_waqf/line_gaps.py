@@ -113,24 +113,10 @@ def _match_clusters_to_layout(
         return []
     if len(clusters_rtl) == len(layout_words):
         return list(layout_words)
-    matched: list[LayoutWord | None] = []
-    used: set[int] = set()
-    for cl in clusters_rtl:
-        best = None
-        best_d = float('inf')
-        best_i = -1
-        for i, lw in enumerate(layout_words):
-            if i in used:
-                continue
-            d = abs(cl.cx - lw.cx)
-            if d < best_d:
-                best_d = d
-                best = lw
-                best_i = i
-        if best is not None:
-            used.add(best_i)
-        matched.append(best)
-    return matched
+    # A missing/fragmented OCR body shifts every following positional match.
+    # Leave these hits unassigned so the stricter geometric fallback can
+    # accept only an unambiguous word instead of silently choosing a neighbor.
+    return [None] * len(clusters_rtl)
 
 
 def _above_roi(cluster: WordCluster, line_y0: int, line_h: int) -> tuple[int, int, int, int]:
@@ -254,6 +240,110 @@ def find_above_word_candidates(
 
     hits.sort(key=lambda h: (h.line_number, h.cluster_index, -h.candidate.score))
     return hits
+
+
+def find_line_component_candidates(
+    prepared: PreparedPage,
+    words: list[LayoutWord],
+    *,
+    window: int = 24,
+) -> list[AboveWordHit]:
+    """High-recall proposals from small ink components on known Quran rows.
+
+    A stop glyph may be split into several connected components, so requiring
+    one component to look like a complete glyph loses most true marks.  This
+    stage instead centres a classifier window on every plausible small
+    component.  The classifier and one-mark-per-word reduction provide
+    precision later in the pipeline.
+    """
+    if not words:
+        return []
+    binary = prepared.binary
+    groups = _line_groups(words)
+    line_regions: list[tuple[int, int, int, list[LayoutWord]]] = []
+    for line_no, line_words in sorted(groups.items()):
+        if not line_words:
+            continue
+        line_regions.append((
+            line_no,
+            min(word.y0 for word in line_words),
+            max(word.y1 for word in line_words),
+            line_words,
+        ))
+
+    x0, y0, x1, y1 = prepared.band_box
+    ccs = _ccs_in_roi(binary, x0, y0, x1, y1)
+    half = max(6, int(window) // 2)
+    proposals: list[AboveWordHit] = []
+    for x, y, w, h, area in ccs:
+        cx = x + w / 2.0
+        cy = y + h / 2.0
+        nearest_line = min(
+            line_regions,
+            key=lambda row: (
+                0 if row[1] <= cy <= row[2]
+                else min(abs(cy - row[1]), abs(cy - row[2]))
+            ),
+        )
+        line_no, line_y0, line_y1, line_words = nearest_line
+        line_h = max(12, line_y1 - line_y0)
+        if cy < line_y0 - 3 or cy > line_y1 + 3:
+            continue
+        max_side = max(18, int(0.58 * line_h))
+        max_area = max(180, int(0.13 * line_h * line_h))
+        if area < 2 or area > max_area:
+            continue
+        if w > max_side or h > max_side:
+            continue
+        if max(w, h) / max(1, min(w, h)) > 6.0:
+            continue
+
+        cand = Candidate(
+            x=max(0, int(round(cx)) - half),
+            y=max(0, int(round(cy)) - half),
+            w=half * 2,
+            h=half * 2,
+            area=area,
+            score=float(area) / max(1, w * h),
+        )
+        content_words = [word for word in line_words if word.is_content_word]
+        layout_word = None
+        if content_words:
+            # Import lazily to keep the small geometry modules independently
+            # usable while sharing the exact same tolerant RTL policy.
+            from pipeline.cv_waqf.attach import _nearest_word
+
+            line_width = max(word.x1 for word in line_words) - min(
+                word.x0 for word in line_words
+            )
+            layout_word = _nearest_word(
+                cand, content_words, max(28.0, line_width * 0.10),
+            )
+        proposals.append(AboveWordHit(
+            candidate=cand,
+            line_number=line_no,
+            layout_word=layout_word,
+            cluster_index=(layout_word.word_on_line - 1) if layout_word else -1,
+        ))
+
+    # Fixed windows around neighbouring dots can be almost identical.  Keep
+    # the denser component and suppress only very close duplicates.
+    proposals.sort(key=lambda hit: (-hit.candidate.score, -hit.candidate.area))
+    kept: list[AboveWordHit] = []
+    for hit in proposals:
+        if any(
+            abs(hit.candidate.cx - other.candidate.cx) <= 4
+            and abs(hit.candidate.cy - other.candidate.cy) <= 4
+            for other in kept
+        ):
+            continue
+        kept.append(hit)
+    kept.sort(key=lambda hit: (
+        hit.line_number,
+        hit.cluster_index if hit.cluster_index >= 0 else 10_000,
+        -hit.candidate.x,
+    ))
+    return kept
 
 
 # Back-compat alias while callers migrate.

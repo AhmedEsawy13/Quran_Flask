@@ -12,6 +12,7 @@ from pipeline.cv_waqf.config import (
     MESAHA_OCR_DIR,
     EditionSpec,
 )
+from pipeline.cv_waqf.layout_geo import _ids_between
 
 
 def _word_box(node) -> tuple[int, int, int, int] | None:
@@ -59,9 +60,9 @@ def _layout_ayah_spans(spec: EditionSpec, page: int) -> list[list[int]]:
         if (line_type or '') in ('surah_name', 'surah_info', 'basmallah', 'basmala'):
             continue
         first_id, last_id = int(first_id), int(last_id)
-        if last_id < first_id:
-            continue
-        spans.append(list(range(first_id, last_id + 1)))
+        ids = _ids_between(spec.script_db, first_id, last_id)
+        if ids:
+            spans.append(ids)
     return spans
 
 

@@ -31,9 +31,22 @@
         saveBtn: document.getElementById('cvw-save'),
         cancelBtn: document.getElementById('cvw-cancel'),
         saveSym: document.getElementById('cvw-save-sym'),
+        word: document.getElementById('cvw-word'),
         fab: document.getElementById('cvw-fab'),
         fabSave: document.getElementById('cvw-fab-save'),
         fabCancel: document.getElementById('cvw-fab-cancel'),
+        fabWord: document.getElementById('cvw-fab-word'),
+        queue: document.getElementById('cvw-queue'),
+        queuePage: document.getElementById('cvw-queue-page'),
+        queuePrev: document.getElementById('cvw-queue-prev'),
+        queueNext: document.getElementById('cvw-queue-next'),
+        queueProgress: document.getElementById('cvw-queue-progress'),
+        login: document.getElementById('cvw-login'),
+        loginForm: document.getElementById('cvw-login-form'),
+        loginUsername: document.getElementById('cvw-login-username'),
+        loginPassword: document.getElementById('cvw-login-password'),
+        loginError: document.getElementById('cvw-login-error'),
+        loginSubmit: document.getElementById('cvw-login-submit'),
     };
 
     const state = {
@@ -46,6 +59,8 @@
         mode: 'label', // label | detect
         payload: null, // detect payload
         labels: [], // hand labels for page
+        words: [], // canonical page words + estimated pixel seats
+        selectedWordKey: '',
         selectedSymbol: 'ج',
         draft: null, // {x0,y0,x1,y1} image pixels
         dragging: false,
@@ -57,6 +72,8 @@
         naturalW: 0,
         naturalH: 0,
         authChecked: false,
+        reviewQueue: [],
+        reviewQueueTotalLabels: 0,
     };
 
     const COLORS = {
@@ -67,6 +84,7 @@
         db: 'rgba(47, 93, 74, 0.45)',
         label: '#c45c26',
         draft: '#2f5d4a',
+        word: '#7a4f9d',
     };
 
     const TAG_AR = {
@@ -76,6 +94,10 @@
     const GLYPH = Object.fromEntries(
         symbols.map((s) => [s.code, s.glyph]).concat([['none', '∅']])
     );
+    // A click should capture the glyph itself, not the nearby CV proposal
+    // component. 32 image pixels match the runtime classifier footprint on
+    // the 1024px review scans; dragging remains available for unusual marks.
+    const QUICK_BOX_SIZE = 32;
 
     function toAr(n) {
         return String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
@@ -102,6 +124,79 @@
         els.page.value = String(state.page);
     }
 
+    const QUEUE_TAG_AR = {
+        'multi-surah': 'عدة سور',
+        'surah-opening': 'بداية سورة',
+        'centered-ayah': 'سطر متوسط',
+        dense: 'كثيفة',
+        sparse: 'خفيفة',
+        regular: 'عادية',
+        targeted: 'مطلوبة الآن',
+        'rare-q': 'تدريب ق',
+        'rare-m': 'تدريب م',
+    };
+
+    function queueIndex() {
+        return state.reviewQueue.findIndex((item) => item.page === state.page);
+    }
+
+    function syncQueueUi() {
+        if (!els.queue || !els.queuePage) return;
+        const rows = state.reviewQueue;
+        els.queue.hidden = rows.length === 0;
+        els.queuePage.innerHTML = '';
+        const activeIndex = queueIndex();
+        if (activeIndex < 0 && rows.length) {
+            const outside = document.createElement('option');
+            outside.value = '';
+            outside.textContent = `صفحة ${toAr(state.page)} · خارج عينة المعايرة`;
+            els.queuePage.appendChild(outside);
+        }
+        for (const [index, item] of rows.entries()) {
+            const option = document.createElement('option');
+            option.value = String(item.page);
+            const tags = (item.tags || []).map((tag) => QUEUE_TAG_AR[tag] || tag).join('، ');
+            option.textContent = `${toAr(index + 1)}/${toAr(rows.length)} · صفحة ${toAr(item.page)}`
+                + ` · ${tags} · ${toAr(item.label_count || 0)} تسمية`;
+            els.queuePage.appendChild(option);
+        }
+        els.queuePage.value = activeIndex >= 0 ? String(state.page) : '';
+        if (els.queuePrev) els.queuePrev.disabled = !rows.length || activeIndex === 0;
+        if (els.queueNext) els.queueNext.disabled = !rows.length || activeIndex === rows.length - 1;
+        if (els.queueProgress) {
+            const position = activeIndex >= 0 ? `${toAr(activeIndex + 1)}/${toAr(rows.length)}` : `٠/${toAr(rows.length)}`;
+            els.queueProgress.textContent = `${position} · ${toAr(state.reviewQueueTotalLabels)} تسمية في العينة`;
+        }
+    }
+
+    async function loadReviewQueue() {
+        state.reviewQueue = [];
+        state.reviewQueueTotalLabels = 0;
+        syncQueueUi();
+        try {
+            await ensureEditorAccess();
+            const url = `/api/cv-waqf/review-queue?edition=${encodeURIComponent(state.edition)}`;
+            const res = await fetch(url, { credentials: 'same-origin' });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw apiError(res, data);
+            state.reviewQueue = data.pages || [];
+            state.reviewQueueTotalLabels = Number(data.total_labels || 0);
+        } catch (err) {
+            if (err.status !== 401) console.warn('review queue unavailable', err);
+        }
+        syncQueueUi();
+    }
+
+    function navigateQueue(delta) {
+        if (!state.reviewQueue.length) return;
+        let index = queueIndex();
+        if (index < 0) index = delta > 0 ? -1 : state.reviewQueue.length;
+        index = Math.max(0, Math.min(state.reviewQueue.length - 1, index + delta));
+        state.page = state.reviewQueue[index].page;
+        els.page.value = String(state.page);
+        loadPage();
+    }
+
     function setMeta(text) {
         els.meta.textContent = text;
     }
@@ -115,6 +210,21 @@
         return err;
     }
 
+    function showLogin() {
+        if (!els.login) return;
+        els.login.hidden = false;
+        if (els.loginError) {
+            els.loginError.hidden = true;
+            els.loginError.textContent = '';
+        }
+        requestAnimationFrame(() => els.loginUsername?.focus());
+    }
+
+    function hideLogin() {
+        if (els.login) els.login.hidden = true;
+        if (els.loginPassword) els.loginPassword.value = '';
+    }
+
     async function ensureEditorAccess() {
         if (state.authChecked) return;
         const res = await fetch('/api/mushaf-editor/auth/status', {
@@ -123,10 +233,12 @@
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw apiError(res, data);
         if (data.login_required) {
+            showLogin();
             const err = new Error('يلزم تسجيل الدخول أولًا من محرر المصحف');
             err.status = 401;
             throw err;
         }
+        hideLogin();
         state.authChecked = true;
     }
 
@@ -135,7 +247,6 @@
         els.modeLabel.classList.toggle('is-active', mode === 'label');
         els.modeDetect.classList.toggle('is-active', mode === 'detect');
         els.palette.hidden = mode !== 'label';
-        if (els.saveBar) els.saveBar.hidden = mode !== 'label';
         els.detectToggles.hidden = mode !== 'detect';
         els.wrap.classList.toggle('is-label', mode === 'label');
         state.draft = null;
@@ -144,32 +255,95 @@
     }
 
     function syncSaveUi() {
-        const ready = !!(state.mode === 'label' && state.draft);
+        const ready = !!(
+            state.mode === 'label' && state.draft && state.selectedWordKey
+        );
         const glyph = GLYPH[state.selectedSymbol] || state.selectedSymbol;
+        if (els.saveBar) {
+            els.saveBar.hidden = !(state.mode === 'label' && state.draft);
+        }
         if (els.saveSym) els.saveSym.textContent = glyph;
         if (els.saveBtn) els.saveBtn.disabled = !ready;
-        if (els.cancelBtn) els.cancelBtn.disabled = !ready;
+        if (els.cancelBtn) els.cancelBtn.disabled = !state.draft;
         if (els.saveBar) els.saveBar.classList.toggle('is-ready', ready);
         if (els.saveHint) {
             els.saveHint.textContent = ready
-                ? `مربع جاهز — اضغط حفظ لنوع «${glyph}»`
-                : 'ارسم مربعاً حول العلامة، ثم اضغط حفظ';
+                ? `مربع وكلمة جاهزان — اضغط حفظ لنوع «${glyph}»`
+                : (state.draft
+                    ? 'اختر الكلمة التابعة للعلامة قبل الحفظ'
+                    : 'ارسم مربعاً حول العلامة، ثم اختر الكلمة');
         }
         if (els.fab) {
-            els.fab.hidden = !(state.mode === 'label' && ready);
+            els.fab.hidden = !(state.mode === 'label' && state.draft);
             if (els.fabSave) {
                 els.fabSave.textContent = `حفظ «${glyph}»`;
                 els.fabSave.disabled = !ready;
             }
-            if (els.fabCancel) els.fabCancel.disabled = !ready;
+            if (els.fabCancel) els.fabCancel.disabled = !state.draft;
         }
     }
 
     function clearDraft() {
         state.draft = null;
+        state.selectedWordKey = '';
+        populateWordChoices();
         paint();
         syncSaveUi();
         setMeta('أُلغي المربع — ارسم من جديد ثم احفظ');
+    }
+
+    function wordDistance(word, draft) {
+        const box = word.seat || word.box;
+        if (!box || !draft) return Number.POSITIVE_INFINITY;
+        const cx = (draft.x0 + draft.x1) / 2;
+        const cy = (draft.y0 + draft.y1) / 2;
+        const wx = (box[0] + box[2]) / 2;
+        const wy = (box[1] + box[3]) / 2;
+        return Math.abs(cx - wx) + 1.6 * Math.abs(cy - wy);
+    }
+
+    function populateWordChoices() {
+        const previous = state.selectedWordKey;
+        const ordered = [...state.words].sort((a, b) => {
+            if (state.draft) {
+                const delta = wordDistance(a, state.draft) - wordDistance(b, state.draft);
+                if (delta) return delta;
+            }
+            return (a.line - b.line) || (a.word_on_line - b.word_on_line);
+        });
+        for (const select of [els.word, els.fabWord].filter(Boolean)) {
+            select.innerHTML = '';
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = state.draft
+                ? 'اختر الكلمة لتأكيد الربط'
+                : 'ارسم العلامة أولاً';
+            select.appendChild(placeholder);
+            for (const word of ordered) {
+                const option = document.createElement('option');
+                option.value = word.word_key;
+                option.textContent = `س${toAr(word.line)} · ${word.text || word.word_key} · ${word.word_key}`;
+                select.appendChild(option);
+            }
+            select.disabled = !state.draft || !ordered.length;
+        }
+        if (previous && ordered.some((word) => word.word_key === previous)) {
+            if (els.word) els.word.value = previous;
+            if (els.fabWord) els.fabWord.value = previous;
+        } else {
+            state.selectedWordKey = '';
+            if (els.word) els.word.value = '';
+            if (els.fabWord) els.fabWord.value = '';
+        }
+    }
+
+    function suggestNearestWord() {
+        if (!state.draft || !state.words.length) return;
+        const nearest = [...state.words].sort(
+            (a, b) => wordDistance(a, state.draft) - wordDistance(b, state.draft)
+        )[0];
+        state.selectedWordKey = nearest?.word_key || '';
+        populateWordChoices();
     }
 
     function selectSymbol(sym) {
@@ -201,6 +375,7 @@
         const mode = state.mode;
         state.loading = true;
         state.draft = null;
+        state.selectedWordKey = '';
         state.activeId = null;
         syncSaveUi();
         els.empty.hidden = false;
@@ -215,10 +390,12 @@
                 const packed = await fetchLabels(edition, page);
                 if (gen !== state.loadGen) return;
                 state.labels = packed.labels;
+                state.words = packed.words;
+                populateWordChoices();
                 paint();
                 renderLabelList();
                 setMeta(
-                    `صفحة ${toAr(page)} · ${toAr(state.labels.length)} تسمية محفوظة · اسحب مربعاً ثم اختر الرمز`
+                    `صفحة ${toAr(page)} · ${toAr(state.labels.length)} تسمية محفوظة · ارسم العلامة ثم أكّد كلمتها`
                     + (packed.cloud ? ' · سحابة' : '')
                 );
             } else {
@@ -245,11 +422,13 @@
             }
             if (gen !== state.loadGen) return;
             els.empty.hidden = true;
+            syncQueueUi();
             updateUrl();
         } catch (err) {
             if (gen !== state.loadGen) return;
             els.empty.hidden = false;
             if (err.status === 401) {
+                showLogin();
                 els.empty.innerHTML = 'يلزم تسجيل الدخول · <a href="/mushaf-editor">افتح محرر المصحف</a>';
             } else {
                 els.empty.textContent = 'تعذّر التحميل';
@@ -299,7 +478,11 @@
         const res = await fetch(url, { credentials: 'same-origin' });
         const data = await res.json();
         if (!res.ok) throw apiError(res, data);
-        return { labels: data.labels || [], cloud: !!data.cloud };
+        return {
+            labels: data.labels || [],
+            words: data.words || [],
+            cloud: !!data.cloud,
+        };
     }
 
     function resizeCanvas() {
@@ -347,6 +530,10 @@
                 state.draft.x0, state.draft.y0, state.draft.x1, state.draft.y1,
             ], COLORS.draft, scale, true);
         }
+        if (state.selectedWordKey) {
+            const word = state.words.find((row) => row.word_key === state.selectedWordKey);
+            if (word) strokeBox(ctx, word.seat || word.box, COLORS.word, lw + 1, true);
+        }
     }
 
     function strokeBox(ctx, box, color, width, dashed) {
@@ -385,8 +572,8 @@
             li.innerHTML = `
                 <div class="glyph">${GLYPH[lab.symbol] || lab.symbol}</div>
                 <div class="body">
-                    <div class="ref">${lab.symbol} · صفحة ${toAr(lab.page)}</div>
-                    <div class="txt">${Math.round(lab.box[2] - lab.box[0])}×${Math.round(lab.box[3] - lab.box[1])}</div>
+                    <div class="ref">${lab.symbol} · صفحة ${toAr(lab.page)} · ${lab.word_key || 'بلا ربط'}</div>
+                    <div class="txt">${lab.word_text || ''} · ${Math.round(lab.box[2] - lab.box[0])}×${Math.round(lab.box[3] - lab.box[1])}</div>
                 </div>
                 <button type="button" class="cvw-del" data-id="${lab.id}" title="حذف">×</button>
             `;
@@ -436,6 +623,10 @@
             setMeta('ارسم مربعاً أولاً حول العلامة');
             return;
         }
+        if (!state.selectedWordKey) {
+            setMeta('اختر الكلمة التابعة للعلامة قبل الحفظ');
+            return;
+        }
         let { x0, y0, x1, y1 } = state.draft;
         if (x1 < x0) [x0, x1] = [x1, x0];
         if (y1 < y0) [y0, y1] = [y1, y0];
@@ -457,6 +648,7 @@
                     page: state.page,
                     symbol,
                     box: [x0, y0, x1, y1],
+                    word_key: state.selectedWordKey,
                 }),
             });
             let data = {};
@@ -470,10 +662,18 @@
                 return;
             }
             state.labels.push(data.label);
+            const queueItem = state.reviewQueue.find((item) => item.page === state.page);
+            if (queueItem) {
+                queueItem.label_count = Number(queueItem.label_count || 0) + 1;
+                state.reviewQueueTotalLabels += 1;
+            }
             state.draft = null;
+            state.selectedWordKey = '';
+            populateWordChoices();
             state.activeId = data.label.id;
             paint();
             renderLabelList();
+            syncQueueUi();
             setMeta(`حُفظت «${symbol}» · المجموع ${toAr(state.labels.length)} على هذه الصفحة`);
         } catch (err) {
             console.error(err);
@@ -495,9 +695,15 @@
             return;
         }
         state.labels = state.labels.filter((l) => l.id !== id);
+        const queueItem = state.reviewQueue.find((item) => item.page === state.page);
+        if (queueItem && queueItem.label_count > 0) {
+            queueItem.label_count -= 1;
+            state.reviewQueueTotalLabels = Math.max(0, state.reviewQueueTotalLabels - 1);
+        }
         if (state.activeId === id) state.activeId = null;
         paint();
         renderLabelList();
+        syncQueueUi();
         setMeta('حُذفت التسمية');
     }
 
@@ -520,6 +726,8 @@
         state.dragging = true;
         state.dragStart = p;
         state.draft = { x0: p.x, y0: p.y, x1: p.x, y1: p.y };
+        state.selectedWordKey = '';
+        populateWordChoices();
         paint();
     }
     function onPointerMove(e) {
@@ -546,14 +754,24 @@
             const w = Math.abs(state.draft.x1 - state.draft.x0);
             const h = Math.abs(state.draft.y1 - state.draft.y0);
             if (w < 4 || h < 4) {
-                state.draft = null;
+                const cx = state.draft.x0;
+                const cy = state.draft.y0;
+                const half = QUICK_BOX_SIZE / 2;
+                state.draft = {
+                    x0: Math.max(0, Math.round(cx - half)),
+                    y0: Math.max(0, Math.round(cy - half)),
+                    x1: Math.min(state.naturalW, Math.round(cx + half)),
+                    y1: Math.min(state.naturalH, Math.round(cy + half)),
+                };
+                suggestNearestWord();
                 paint();
                 syncSaveUi();
-                setMeta('المربع صغير جداً — اسحب حول العلامة');
+                setMeta('وُضع مربع حول النقرة واختيرت أقرب كلمة — راجعهما ثم احفظ');
                 return;
             }
+            suggestNearestWord();
             syncSaveUi();
-            setMeta('اختر النوع من الشريط ثم اضغط حفظ');
+            setMeta('اختيرت أقرب كلمة مبدئيًا — راجع النوع والكلمة ثم احفظ');
         }
     }
     els.wrap.addEventListener('pointerdown', onPointerDown);
@@ -582,6 +800,19 @@
     els.fabSave?.addEventListener('click', onSaveClick);
     els.cancelBtn?.addEventListener('click', clearDraft);
     els.fabCancel?.addEventListener('click', clearDraft);
+    function selectWord(wordKey) {
+        state.selectedWordKey = wordKey || '';
+        if (els.word) els.word.value = state.selectedWordKey;
+        if (els.fabWord) els.fabWord.value = state.selectedWordKey;
+        paint();
+        syncSaveUi();
+        if (state.selectedWordKey) {
+            const word = state.words.find((row) => row.word_key === state.selectedWordKey);
+            setMeta(`رُبطت العلامة بكلمة «${word?.text || state.selectedWordKey}» — اضغط حفظ`);
+        }
+    }
+    els.word?.addEventListener('change', () => selectWord(els.word.value));
+    els.fabWord?.addEventListener('change', () => selectWord(els.fabWord.value));
 
     // keyboard shortcuts for symbols
     const KEY_MAP = {
@@ -619,8 +850,9 @@
         if (state.labels.length) deleteLabel(state.labels[state.labels.length - 1].id);
     });
 
-    els.edition.addEventListener('change', () => {
+    els.edition.addEventListener('change', async () => {
         syncEditionBounds();
+        await loadReviewQueue();
         loadPage();
     });
     els.prev.addEventListener('click', () => {
@@ -640,6 +872,46 @@
             state.page = Math.max(state.minPage, Math.min(state.maxPage, n));
             els.page.value = String(state.page);
             loadPage();
+        }
+    });
+    els.queuePage?.addEventListener('change', () => {
+        const page = Number(els.queuePage.value);
+        if (!Number.isFinite(page) || page < state.minPage || page > state.maxPage) return;
+        state.page = page;
+        els.page.value = String(page);
+        loadPage();
+    });
+    els.queuePrev?.addEventListener('click', () => navigateQueue(-1));
+    els.queueNext?.addEventListener('click', () => navigateQueue(1));
+    els.loginForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const username = (els.loginUsername?.value || '').trim();
+        const password = els.loginPassword?.value || '';
+        if (!username || !password) return;
+        if (els.loginSubmit) els.loginSubmit.disabled = true;
+        if (els.loginError) els.loginError.hidden = true;
+        try {
+            const res = await fetch('/api/mushaf-editor/login', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw apiError(res, data);
+            state.authChecked = true;
+            hideLogin();
+            await loadReviewQueue();
+            await loadPage();
+        } catch (err) {
+            if (els.loginError) {
+                els.loginError.textContent = err.message === 'invalid credentials'
+                    ? 'اسم المستخدم أو كلمة المرور غير صحيحة'
+                    : (err.message || 'تعذّر تسجيل الدخول');
+                els.loginError.hidden = false;
+            }
+        } finally {
+            if (els.loginSubmit) els.loginSubmit.disabled = false;
         }
     });
     if (els.conf) {
@@ -678,5 +950,5 @@
     // activate default symbol button
     const defBtn = els.palette.querySelector(`[data-symbol="${state.selectedSymbol}"]`);
     if (defBtn) defBtn.classList.add('is-active');
-    setMode(startMode);
+    loadReviewQueue().finally(() => setMode(startMode));
 })();

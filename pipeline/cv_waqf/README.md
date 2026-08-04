@@ -26,6 +26,34 @@ export PYTHONPATH=.
 # After hand-labeling in /cv-waqf (mode تسمية):
 .venv-cv/bin/python -m pipeline.cv_waqf train --crops data/cv/crops_hand/shamarly
 
+# Build crops from every trusted edition whose matching scan is cached.
+# Madinah/Azhar deliberately refuse to use a substitute print image.
+.venv-cv/bin/python -m pipeline.cv_waqf sample-crops --trusted-all --pages 40
+
+# Shared model: repeat --crops; validation is split by whole printed page.
+.venv-cv/bin/python -m pipeline.cv_waqf train \
+  --crops data/cv/crops_labeled/shamarly \
+  --crops data/cv/crops_hand/bahrain \
+  --crops data/cv/crops_hand/mesaha
+
+# Safer two-stage model for noisy target scans: first reject non-marks, then
+# classify only accepted waqf glyphs. This writes MODEL_gate.onnx beside MODEL.
+.venv-cv/bin/python -m pipeline.cv_waqf train --two-stage \
+  --crops data/cv/crops_hand/bahrain \
+  --out artifacts/cv-waqf/bahrain_two_stage.onnx
+
+# Or preserve a proven symbol classifier and train only the binary veto gate.
+.venv-cv/bin/python -m pipeline.cv_waqf train --two-stage \
+  --crops data/cv/crops_hand/bahrain \
+  --reuse-symbol-model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_current.onnx \
+  --out artifacts/cv-waqf/bahrain_gated_current.onnx
+
+# Promoted Bahrain-only model (automatically selected by run-page/UI).
+.venv-cv/bin/python -m pipeline.cv_waqf train --two-stage \
+  --crops data/cv/crops_hand/bahrain \
+  --reuse-symbol-model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_current.onnx \
+  --out models/waqf_glyph_bahrain.onnx
+
 # Sync hand crops + ONNX to Supabase (other machines: pull-hand)
 # Once: run pipeline/supabase_cv_waqf_hand.sql in Supabase SQL editor
 python3 -m pipeline.cv_waqf status-hand --slug shamarly  # read-only check
@@ -35,8 +63,31 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 # Detect one page (line-by-line, above word-end band)
 .venv-cv/bin/python -m pipeline.cv_waqf run-page --edition الشمرلي --page 5 --overlay
 
+# Experimental high-recall proposals. Keep this explicit until the candidate
+# edition model beats production on unseen reviewer labels.
+.venv-cv/bin/python -m pipeline.cv_waqf run-page \
+  --edition البحرين --page 198 --proposal-mode hybrid \
+  --model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_hard.onnx
+
 # Audit DB vs CV (reviewable report, no auto-merge)
 .venv-cv/bin/python -m pipeline.cv_waqf audit --edition الشمرلي --pages 2-50
+
+# Target-edition holdout: scores only reviewer-confirmed word anchors.
+.venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition البحرين
+.venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition المساحة
+
+# Diagnose geometry separately from classification. Reports proposal recall,
+# proposal-to-word recall, and manual-box-to-word accuracy.
+.venv-cv/bin/python -m pipeline.cv_waqf evaluate-candidates \
+  --edition البحرين --pages 198,202,221,255
+
+# Mine safe lower-word-body windows as target-print `none` examples.
+.venv-cv/bin/python -c "from pathlib import Path; from pipeline.cv_waqf.build_crops import mine_component_negatives; mine_component_negatives('البحرين', [2,3,30], Path('artifacts/cv-waqf/hard-negatives'))"
+
+# Deterministic calibration queue: six Quran regions + special/dense/sparse pages.
+# --cache renders only the selected pages from the already-downloaded Bahrain PDF.
+.venv-cv/bin/python -m pipeline.cv_waqf review-queue \
+  --edition البحرين --size 30 --cache
 
 # Bootstrap draft plan for البحرين (human review before publish)
 .venv-cv/bin/python -m pipeline.cv_waqf bootstrap --edition البحرين --pages 1-50

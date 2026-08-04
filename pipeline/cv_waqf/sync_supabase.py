@@ -18,9 +18,27 @@ HAND_ROOT = ROOT / 'data' / 'cv' / 'crops_hand'
 MODEL_ONNX = ROOT / 'models' / 'waqf_glyph.onnx'
 MODEL_CLASSES = ROOT / 'models' / 'waqf_glyph_classes.json'
 MODEL_META = ROOT / 'models' / 'waqf_glyph.json'
+BAHRAIN_MODEL_ONNX = ROOT / 'models' / 'waqf_glyph_bahrain.onnx'
+BAHRAIN_MODEL_META = ROOT / 'models' / 'waqf_glyph_bahrain.json'
+BAHRAIN_GATE_ONNX = ROOT / 'models' / 'waqf_glyph_bahrain_gate.onnx'
+BAHRAIN_GATE_META = ROOT / 'models' / 'waqf_glyph_bahrain_gate.json'
+
+MODEL_FILES = (
+    MODEL_ONNX,
+    MODEL_CLASSES,
+    MODEL_META,
+    BAHRAIN_MODEL_ONNX,
+    BAHRAIN_MODEL_META,
+    BAHRAIN_GATE_ONNX,
+    BAHRAIN_GATE_META,
+)
 
 BUCKET = 'cv-waqf-hand'
 TIMEOUT = 60
+ANCHOR_FIELDS = (
+    'word_key', 'local_word_id', 'word_id_space', 'surah', 'ayah',
+    'word_position', 'line_number', 'word_text', 'attachment_status',
+)
 
 
 class SyncError(RuntimeError):
@@ -234,7 +252,7 @@ def fetch_remote_labels(slug: str | None = None) -> list[dict]:
         raise SyncError(f'fetch labels: {r.status_code} {r.text[:300]}')
     rows = []
     for row in r.json():
-        rows.append({
+        normalized = {
             'id': row['id'],
             'edition': row['edition'],
             'slug': row['slug'],
@@ -243,7 +261,13 @@ def fetch_remote_labels(slug: str | None = None) -> list[dict]:
             'box': row['box'],
             'crop': row['crop_path'],
             'created_at': row.get('created_at'),
+        }
+        normalized.update({
+            field: row.get(field)
+            for field in ANCHOR_FIELDS
+            if row.get(field) is not None
         })
+        rows.append(normalized)
     return rows
 
 
@@ -252,7 +276,7 @@ def upsert_labels(rows: list[dict]) -> None:
         return
     payload = []
     for row in rows:
-        payload.append({
+        item = {
             'id': row['id'],
             'edition': row['edition'],
             'slug': row['slug'],
@@ -261,7 +285,13 @@ def upsert_labels(rows: list[dict]) -> None:
             'box': row['box'],
             'crop_path': row.get('crop') or row.get('crop_path'),
             'created_at': row.get('created_at'),
+        }
+        item.update({
+            field: row.get(field)
+            for field in ANCHOR_FIELDS
+            if row.get(field) is not None
         })
+        payload.append(item)
     base, key = _require_config()
     h = {
         'apikey': key,
@@ -275,6 +305,17 @@ def upsert_labels(rows: list[dict]) -> None:
         data=json.dumps(payload),
         timeout=TIMEOUT,
     )
+    if r.status_code == 400 and any(field in r.text for field in ANCHOR_FIELDS):
+        legacy = [
+            {key: value for key, value in row.items() if key not in ANCHOR_FIELDS}
+            for row in payload
+        ]
+        r = requests.post(
+            f'{base}/rest/v1/cv_waqf_hand_labels',
+            headers=h,
+            data=json.dumps(legacy),
+            timeout=TIMEOUT,
+        )
     if r.status_code not in (200, 201):
         raise SyncError(f'upsert labels: {r.status_code} {r.text[:400]}')
 
@@ -329,13 +370,13 @@ def push_hand(slug: str, *, include_model: bool = True) -> None:
     print(f'uploaded {uploaded} crops + labels.jsonl + {len(merged)} table rows')
 
     if include_model:
-        for path, ctype in (
-            (MODEL_ONNX, 'application/octet-stream'),
-            (MODEL_CLASSES, 'application/json'),
-            (MODEL_META, 'application/json'),
-        ):
+        for path in MODEL_FILES:
             if path.is_file():
                 obj = f'models/{path.name}'
+                ctype = (
+                    'application/octet-stream'
+                    if path.suffix == '.onnx' else 'application/json'
+                )
                 upload_bytes(obj, path.read_bytes(), ctype)
                 print(f'uploaded {obj}')
 
@@ -367,7 +408,8 @@ def pull_hand(slug: str, *, include_model: bool = True) -> None:
     print(f'downloaded {downloaded} crops; wrote labels.jsonl ({len(merged)} rows)')
 
     if include_model:
-        for name in ('waqf_glyph.onnx', 'waqf_glyph_classes.json', 'waqf_glyph.json'):
+        for path in MODEL_FILES:
+            name = path.name
             obj = f'models/{name}'
             dest = ROOT / 'models' / name
             try:

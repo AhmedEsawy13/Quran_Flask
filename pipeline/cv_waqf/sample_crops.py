@@ -30,8 +30,13 @@ from pipeline.cv_waqf.config import (
     CV_ROOT,
     EDITIONS,
     EditionSpec,
+    TRUSTED_WAQF_EDITIONS,
 )
-from pipeline.cv_waqf.layout_geo import estimate_layout_words, load_page_lines
+from pipeline.cv_waqf.layout_geo import (
+    _ids_between,
+    estimate_layout_words,
+    load_page_lines,
+)
 from pipeline.cv_waqf.marks import edition_marks_for_ayahs
 from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import load_bgr, preprocess_page
@@ -65,8 +70,7 @@ def _page_word_ids(spec: EditionSpec, page: int) -> list[int]:
         ):
             continue
         first_id, last_id = int(ln['first_word_id']), int(ln['last_word_id'])
-        if last_id >= first_id:
-            ids.extend(range(first_id, last_id + 1))
+        ids.extend(_ids_between(spec.script_db, first_id, last_id))
     return ids
 
 
@@ -257,6 +261,8 @@ def sample_crops(
                 'surah': word.surah,
                 'ayah': word.ayah,
                 'word_id': wid,
+                'word_key': word.word_key,
+                'word_id_space': word.word_id_space,
                 'text': word.text,
                 'symbol': sym,
                 'rel': f'{_safe_class_dir(sym)}/{name}',
@@ -266,12 +272,18 @@ def sample_crops(
             unmarked = [w for w in words if w.word_id not in page_marks]
             random.Random(seed + page).shuffle(unmarked)
             for word in unmarked[:none_per_page]:
-                # Mid-word body crop → harakat / letter bits as none.
-                mx0 = word.x0 + int(0.35 * (word.x1 - word.x0))
-                mx1 = word.x0 + int(0.65 * (word.x1 - word.x0))
-                my0 = word.y0 + int(0.35 * (word.y1 - word.y0))
-                my1 = word.y0 + int(0.75 * (word.y1 - word.y0))
-                crop = _extract_roi(prepared.gray, (mx0, my0, mx1, my1), CROP_SIZE)
+                # Use the same above-word seat as positive inference. This
+                # teaches the classifier real empty/haraka/debris contexts,
+                # not an easier and distribution-shifted mid-word crop.
+                roi = _above_end_roi(
+                    word.x0, word.x1, word.y0, word.y1, word.y0,
+                )
+                cand = _best_ink_in_roi(prepared.binary, roi)
+                crop = (
+                    crop_candidate(prepared.gray, cand, size=CROP_SIZE, pad=3)
+                    if cand is not None
+                    else _extract_roi(prepared.gray, roi, CROP_SIZE)
+                )
                 folder = out / 'none'
                 folder.mkdir(parents=True, exist_ok=True)
                 name = f'p{page:03d}_w{word.word_id}_none.png'
@@ -283,6 +295,8 @@ def sample_crops(
                     'surah': word.surah,
                     'ayah': word.ayah,
                     'word_id': word.word_id,
+                    'word_key': word.word_key,
+                    'word_id_space': word.word_id_space,
                     'text': word.text,
                     'symbol': 'none',
                     'rel': f'none/{name}',
@@ -350,9 +364,10 @@ def _write_gallery(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--edition', default='الشمرلي', choices=list(EDITIONS))
     parser.add_argument(
-        '--edition', default='الشمرلي',
-        choices=['الشمرلي', 'البحرين'],
+        '--trusted-all', action='store_true',
+        help='sample every trusted edition into per-edition subdirectories',
     )
     parser.add_argument('--pages', type=int, default=40,
                         help='how many random pages to sample')
@@ -363,16 +378,21 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--no-none', action='store_true')
     args = parser.parse_args(argv)
 
-    manifest = sample_crops(
-        args.edition,
-        n_pages=args.pages,
-        seed=args.seed,
-        out_root=args.out,
-        clear=args.clear,
-        include_none=not args.no_none,
-    )
-    print(manifest)
-    print(f'Open gallery: {manifest["gallery"]}')
+    editions = TRUSTED_WAQF_EDITIONS if args.trusted_all else (args.edition,)
+    for edition in editions:
+        out = args.out
+        if args.trusted_all and out is not None:
+            out = out / EDITIONS[edition].id
+        manifest = sample_crops(
+            edition,
+            n_pages=args.pages,
+            seed=args.seed,
+            out_root=out,
+            clear=args.clear,
+            include_none=not args.no_none,
+        )
+        print(manifest)
+        print(f'Open gallery: {manifest["gallery"]}')
     return 0
 
 

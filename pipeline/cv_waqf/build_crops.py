@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import random
 from collections import Counter
 from pathlib import Path
@@ -174,6 +175,154 @@ def mine_harakat_negatives(
     return counts
 
 
+def mine_component_negatives(
+    edition_key: str,
+    pages: list[int],
+    out_root: Path,
+    *,
+    max_per_page: int = 60,
+) -> Counter:
+    """Mine safe word-body negatives using the production proposal window.
+
+    Only lower-row components are selected.  Confirmed Bahrain stop marks sit
+    above this zone, so unreviewed true marks are not silently labelled none.
+    """
+    from pipeline.cv_waqf.candidates import crop_candidate
+    from pipeline.cv_waqf.line_gaps import find_line_component_candidates
+
+    spec = EDITIONS[edition_key]
+    counts: Counter = Counter()
+    folder = out_root / 'none'
+    folder.mkdir(parents=True, exist_ok=True)
+    for page in pages:
+        try:
+            prepared = preprocess_page(
+                load_bgr(ensure_page_image(spec, page)), spec,
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f'page {page}: skip ({exc})')
+            continue
+        words = estimate_layout_words(spec, page, prepared)
+        by_line: dict[int, list] = {}
+        for word in words:
+            by_line.setdefault(word.line_number, []).append(word)
+        candidates = []
+        for hit in find_line_component_candidates(prepared, words):
+            line_words = by_line.get(hit.line_number) or []
+            if not line_words:
+                continue
+            line_y0 = min(word.y0 for word in line_words)
+            line_y1 = max(word.y1 for word in line_words)
+            line_h = max(1, line_y1 - line_y0)
+            relative_y = (hit.candidate.cy - line_y0) / line_h
+            if relative_y < 0.78:
+                continue
+            candidates.append(hit.candidate)
+        # Spread examples over the page instead of taking one dense corner.
+        candidates.sort(key=lambda cand: (cand.y, -cand.x))
+        if len(candidates) > max_per_page:
+            step = len(candidates) / max_per_page
+            candidates = [
+                candidates[min(len(candidates) - 1, int(index * step))]
+                for index in range(max_per_page)
+            ]
+        for index, cand in enumerate(candidates):
+            crop = crop_candidate(prepared.gray, cand, size=CROP_SIZE)
+            dest = folder / (
+                f'component_none_{spec.id}_p{page:03d}_{index:03d}.png'
+            )
+            cv2.imwrite(str(dest), crop)
+            counts['none'] += 1
+        print(f'page {page}: mined {len(candidates)} component negatives')
+    return counts
+
+
+def build_hand_proposal_crops(
+    edition_key: str,
+    labels_path: Path,
+    pages: list[int],
+    out_root: Path,
+    *,
+    max_per_label: int = 2,
+) -> Counter:
+    """Re-crop hand labels through the same component windows used at runtime."""
+    from pipeline.cv_waqf.candidates import Candidate, crop_candidate
+    from pipeline.cv_waqf.line_gaps import find_line_component_candidates
+
+    wanted = {int(page) for page in pages}
+    rows = []
+    for raw in Path(labels_path).read_text(encoding='utf-8').splitlines():
+        try:
+            row = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        if int(row.get('page') or 0) in wanted and row.get('symbol') in CLASSES:
+            rows.append(row)
+    by_page: dict[int, list[dict]] = {}
+    for row in rows:
+        by_page.setdefault(int(row['page']), []).append(row)
+
+    spec = EDITIONS[edition_key]
+    counts: Counter = Counter()
+    for page, page_rows in sorted(by_page.items()):
+        prepared = preprocess_page(
+            load_bgr(ensure_page_image(spec, page)), spec,
+        )
+        words = estimate_layout_words(spec, page, prepared)
+        hits = find_line_component_candidates(prepared, words)
+        for label_index, row in enumerate(page_rows):
+            bx0, by0, bx1, by1 = (int(value) for value in row['box'])
+
+            def overlap(candidate: Candidate) -> float:
+                ax0, ay0, ax1, ay1 = candidate.box
+                ix0, iy0 = max(ax0, bx0), max(ay0, by0)
+                ix1, iy1 = min(ax1, bx1), min(ay1, by1)
+                intersection = max(0, ix1 - ix0) * max(0, iy1 - iy0)
+                if not intersection:
+                    return 0.0
+                union = (
+                    candidate.w * candidate.h
+                    + (bx1 - bx0) * (by1 - by0)
+                    - intersection
+                )
+                return intersection / union if union else 0.0
+
+            ranked = sorted(
+                (
+                    (overlap(hit.candidate), hit.candidate)
+                    for hit in hits
+                ),
+                key=lambda item: -item[0],
+            )
+            selected = [
+                candidate for score, candidate in ranked
+                if score >= 0.10
+            ][:max_per_label]
+            if not selected:
+                # Every confirmed box still contributes one runtime-sized
+                # example if thresholding split its ink unusually.
+                cx, cy = (bx0 + bx1) // 2, (by0 + by1) // 2
+                selected = [Candidate(
+                    x=max(0, cx - 12), y=max(0, cy - 12),
+                    w=24, h=24, area=max(1, (bx1 - bx0) * (by1 - by0)),
+                )]
+            symbol = str(row['symbol'])
+            folder = out_root / _safe_class_dir(symbol)
+            folder.mkdir(parents=True, exist_ok=True)
+            for proposal_index, candidate in enumerate(selected):
+                crop = crop_candidate(
+                    prepared.gray, candidate, size=CROP_SIZE,
+                )
+                dest = folder / (
+                    f'proposal_{spec.id}_p{page:03d}_{label_index:03d}_'
+                    f'{proposal_index}_{_safe_class_dir(symbol)}.png'
+                )
+                cv2.imwrite(str(dest), crop)
+                counts[symbol] += 1
+        print(f'page {page}: proposal-aligned {len(page_rows)} labels')
+    return counts
+
+
 def build_page_crops(
     edition_key: str,
     pages: list[int],
@@ -264,6 +413,8 @@ def main(argv: list[str] | None = None) -> int:
                         help='synthetic crops per class (0 to skip)')
     parser.add_argument('--mine-harakat', action='store_true',
                         help='also mine small page blobs as none (harakat)')
+    parser.add_argument('--mine-components', action='store_true',
+                        help='mine lower word-body proposal windows as none')
     parser.add_argument('--no-negatives', action='store_true')
     args = parser.parse_args(argv)
 
@@ -282,6 +433,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     if args.mine_harakat:
         totals += mine_harakat_negatives(args.edition, pages, out)
+    if args.mine_components:
+        totals += mine_component_negatives(args.edition, pages, out)
     print('totals:', dict(totals))
     return 0
 
