@@ -23,6 +23,21 @@
     const $ = id => document.getElementById(id);
     const { getWaqfDisplayData, stripEmbeddedWaqf } = window.AtharMushaf;
 
+    function escapeHtml(s) {
+        return String(s || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function formatTajweedNotesHtml(raw) {
+        if (window.AtharTajweedNotes && typeof window.AtharTajweedNotes.formatHtml === 'function') {
+            return window.AtharTajweedNotes.formatHtml(raw);
+        }
+        return escapeHtml(raw).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+    }
+
     const els = {
         bar:         $('mz-bar'),
         surah:       $('mz-surah'),
@@ -1177,7 +1192,7 @@
                 _noteCache.set(key, text);
             }
             if (!text) { box.hidden = true; return; }
-            body.textContent = text.replace(/<br\s*\/?>/gi, '\n');
+            body.innerHTML = formatTajweedNotesHtml(text);
             box.hidden = false;
         } catch (_) {
             box.hidden = true;

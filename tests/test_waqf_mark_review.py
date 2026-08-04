@@ -1,7 +1,13 @@
 """Smoke tests for the Plan A waqf-mark-review checklist (الشمرلي first)."""
 from __future__ import annotations
 
-from modules.waqf_mark_review import waqf_glyph
+from modules.waqf_mark_review import (
+    PRINT_PACKS,
+    _build_print_pack,
+    pack_page_range,
+    waqf_glyph,
+    waqf_write_form,
+)
 
 
 def test_waqf_glyph_maps_letter_codes_to_printed_marks():
@@ -11,6 +17,21 @@ def test_waqf_glyph_maps_letter_codes_to_printed_marks():
     assert waqf_glyph('ج') == 'ۚ'
     assert waqf_glyph('لا') == 'ۙ'
     assert waqf_glyph('ع') == 'ۛ'
+
+
+def test_waqf_write_form_uses_paper_labels():
+    assert waqf_write_form('ص') == 'صلى'
+    assert waqf_write_form('ق') == 'قلى'
+    assert waqf_write_form('ج') == 'ج'
+    assert waqf_write_form('لا') == 'لا'
+    assert waqf_write_form('م') == 'م'
+
+
+def test_pack_page_ranges_cover_ten_juz_batches():
+    assert pack_page_range(1, 10) == (2, 200)
+    assert pack_page_range(11, 20) == (201, 401)
+    assert pack_page_range(21, 30) == (402, 522)
+    assert set(PRINT_PACKS) == {1, 2, 3}
 
 
 def test_waqf_mark_review_page_renders_shemrly(client):
@@ -23,6 +44,54 @@ def test_waqf_mark_review_page_renders_shemrly(client):
     assert 'js/athar-mushaf.js' in body
     assert 'id="wmr-login"' in body
     assert 'js/waqf_mark_review.js' in body
+    assert '/waqf-mark-review/print?pack=1' in body
+    assert '/waqf-mark-review/print?pack=2' in body
+    assert '/waqf-mark-review/print?pack=3' in body
+
+
+def test_waqf_mark_review_print_pack1_renders(client):
+    page = client.get('/waqf-mark-review/print?pack=1')
+    assert page.status_code == 200
+    body = page.get_data(as_text=True)
+    assert 'الأجزاء ١–١٠' in body
+    assert 'wmr-print-main' in body
+    assert 'wmr-print-table' in body
+    assert 'wmr-print-split' in body
+    assert 'css/waqf_mark_review_print.css' in body
+    assert 'الصفحة' in body
+    assert 'السطر' in body
+    assert 'الكلمة' in body
+    assert 'علامة الوقف' in body
+    assert 'الصحيح' not in body
+    assert 'col-id' not in body
+
+
+def test_waqf_mark_review_print_invalid_pack(client):
+    page = client.get('/waqf-mark-review/print?pack=9')
+    assert page.status_code == 400
+
+
+def test_build_print_pack_matches_checklist_totals():
+    from modules.waqf_mark_review import _build_shamarly_checklist
+
+    pack = _build_print_pack(3)  # smallest pack — faster
+    assert pack['pack_id'] == 3
+    assert pack['page_from'] == 402
+    assert pack['page_to'] == 522
+    assert pack['mark_total'] == sum(p['item_count'] for p in pack['pages'])
+    assert pack['mark_total'] >= 1
+    assert len(pack['rows']) == pack['mark_total']
+    assert sum(len(c) for c in pack['columns']) == pack['mark_total']
+    # Spot-check one page against the live checklist builder.
+    sample = pack['pages'][0]
+    live = _build_shamarly_checklist(sample['page_number'])
+    assert sample['item_count'] == live['item_count']
+    assert [i['word_id'] for i in sample['marks']] == [i['word_id'] for i in live['items']]
+    assert all(i.get('line_label') and i.get('ayah_ref') for i in sample['marks'])
+    assert sample['marks'][0]['is_page_start'] is True
+    assert sample['marks'][0]['mark_write']
+    if len(sample['marks']) > 1:
+        assert sample['marks'][1]['is_page_start'] is False
 
 
 def test_waqf_mark_review_shemrly_page_returns_glyphs(client):

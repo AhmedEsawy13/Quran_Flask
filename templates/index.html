@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="{{ static_hash('css/reading_athar.css') }}">
     <script src="{{ static_hash('js/athar-api.js') }}"></script>
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
+    <script src="{{ static_hash('js/tajweed_notes_format.js') }}"></script>
 
     <!-- Google Fonts (async, non-render-blocking) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" as="style" onload="this.rel='stylesheet'">
@@ -441,7 +442,7 @@
                     <h2>بيان التجويد</h2>
                     <button type="button" class="athar-chip tajweed-notes-toggle" id="tajweed-notes-expand" hidden aria-expanded="false">عرض بالكامل</button>
                 </div>
-                <p class="tajweed-notes-hint">شرح نصّي بجانب التلوين — قد يذكر أحكامًا سياقية لا تظهر كألوان على الحروف.</p>
+                <p class="tajweed-notes-hint">كل صفّ حكمٌ كامل — الكلمات القرآنية مميَّزة داخل الجملة.</p>
                 <div id="tajweed-notes-text" class="tajweed-notes-body is-clamped"></div>
                 <p class="tajweed-notes-credit" id="tajweed-notes-credit"></p>
             </div>

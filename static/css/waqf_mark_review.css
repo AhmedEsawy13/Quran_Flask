@@ -39,6 +39,16 @@
     font-weight: 700;
 }
 .wmr-lede { margin: 4px 0 0; font-size: 0.86rem; color: var(--wmr-muted); }
+.wmr-print-links {
+    margin: 8px 0 0;
+    font-size: 0.84rem;
+    color: var(--wmr-muted);
+}
+.wmr-print-links a {
+    color: var(--wmr-ink, #1a1a1a);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
 
 .wmr-controls {
     display: grid;

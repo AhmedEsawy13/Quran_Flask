@@ -141,6 +141,43 @@ def _page_matches(cur, page_number: int, lines: list[dict]) -> bool:
     return current == expected
 
 
+def _enrich_ayah_line_metadata(line: dict, word_map: dict) -> dict:
+    """Fill blank surah_number / line_text from the edition word map."""
+    if line.get('line_type') != 'ayah':
+        return line
+    first = line.get('first_word_id')
+    last = line.get('last_word_id')
+    if first is None:
+        return line
+    try:
+        first_id = int(first)
+        last_id = int(last) if last is not None else first_id
+    except (TypeError, ValueError):
+        return line
+
+    id2tok = word_map.get('id2tok') or {}
+    first_tok = id2tok.get(first_id)
+    if not first_tok:
+        return line
+
+    if line.get('surah_number') is None or str(line.get('surah_number')).strip() == '':
+        line['surah_number'] = int(first_tok['surah'])
+
+    if not str(line.get('line_text') or '').strip():
+        lo = (word_map.get('position_by_id') or {}).get(first_id)
+        hi = (word_map.get('position_by_id') or {}).get(last_id)
+        ordered = word_map.get('ordered_ids') or []
+        if lo is not None and hi is not None and 0 <= lo <= hi < len(ordered):
+            texts = []
+            for word_id in ordered[lo:hi + 1]:
+                tok = id2tok.get(word_id)
+                if tok and tok.get('text'):
+                    texts.append(tok['text'])
+            if texts:
+                line['line_text'] = ' '.join(texts)
+    return line
+
+
 def _validate_page_word_space(edition, page_number: int, lines: list[dict]) -> None:
     """Reject cloud rows whose endpoints do not belong to this edition's DB.
 
@@ -180,13 +217,19 @@ def _validate_page_word_space(edition, page_number: int, lines: list[dict]) -> N
                 f'{edition.id} page {page_number}'
             )
         declared_surah = line.get('surah_number')
-        if declared_surah is None:
+        if declared_surah is None or str(declared_surah).strip() == '':
+            continue
+        try:
+            declared_surah_n = int(declared_surah)
+        except (TypeError, ValueError):
+            # Blank / non-numeric cloud rows: skip surah check; word IDs
+            # were already validated against the script map above.
             continue
         actual_surahs = {
             int(id2tok[word_id]['surah'])
             for word_id in word_map['ordered_ids'][lo:hi + 1]
         }
-        if actual_surahs != {int(declared_surah)}:
+        if actual_surahs != {declared_surah_n}:
             raise sb.SupabaseEditorError(
                 f'Word-ID namespace mismatch for {edition.id} page '
                 f'{page_number}: declared surah {declared_surah}, '
@@ -229,7 +272,7 @@ def _cloud_lines_with_word_keys(
         line['word_id_space'] = word_id_space
         line['first_word_key'] = first_token['word_key']
         line['last_word_key'] = last_token['word_key']
-        annotated.append(line)
+        annotated.append(_enrich_ayah_line_metadata(line, word_map))
     return annotated
 
 
@@ -302,7 +345,7 @@ def _normalize_cloud_word_keys(
                     f'{edition.id} page {page_number}'
                 )
             line['word_id_space'] = target_space
-        normalized.append(line)
+        normalized.append(_enrich_ayah_line_metadata(line, word_map))
 
     _validate_page_word_space(edition, page_number, normalized)
     return normalized
@@ -393,9 +436,17 @@ def working_db_path(edition, *, force: bool = False) -> str:
                             edition.id, row.get('page_number'),
                         )
                         continue
-                    lines = _normalize_cloud_word_keys(
-                        edition, int(row['page_number']), lines,
-                    )
+                    try:
+                        lines = _normalize_cloud_word_keys(
+                            edition, int(row['page_number']), lines,
+                        )
+                    except sb.SupabaseEditorError as exc:
+                        # One bad cloud page must not block Layout Studio boot.
+                        logger.warning(
+                            'Ignoring invalid cloud layout page %s:%s (%s)',
+                            edition.id, row.get('page_number'), exc,
+                        )
+                        continue
                     if _page_matches(cur, int(row['page_number']), lines):
                         continue
                     _replace_page(cur, int(row['page_number']), lines)

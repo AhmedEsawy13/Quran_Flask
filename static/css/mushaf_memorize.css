@@ -285,13 +285,67 @@ button.mz-disabled:hover {
 }
 .mz-tajweed-note-body {
     margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.75;
+    font-family: 'Amiri', 'Thmanyah', serif;
+    font-size: 1rem;
+    line-height: 1.9;
     color: var(--athar-ink);
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 4;
+    -webkit-line-clamp: 7;
     overflow: hidden;
+}
+.mz-tajweed-note-body .tj-rule-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.mz-tajweed-note-body .tj-rule {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 0.55em 0.75em 0.55em 0.45em;
+    border-bottom: 1px solid color-mix(in srgb, var(--mz-border, var(--athar-line)) 70%, transparent);
+    border-right: 3px solid color-mix(in srgb, var(--athar-gold, #A9782F) 55%, transparent);
+}
+.mz-tajweed-note-body .tj-rule:last-child { border-bottom: 0; }
+.mz-tajweed-note-body .tj-rule-main { flex: 1 1 auto; min-width: 0; }
+.mz-tajweed-note-body .tj-rule-note {
+    margin: 0;
+    font-size: 0.95em;
+    line-height: 1.75;
+    color: var(--athar-ink);
+}
+.mz-tajweed-note-body .tj-badge {
+    flex: 0 0 auto;
+    align-self: center;
+    font-family: var(--font-ui, 'Thmanyah', sans-serif);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--athar-gold-deep, #7a5a22);
+    background: color-mix(in srgb, var(--athar-gold, #A9782F) 16%, transparent);
+    border: 1px solid color-mix(in srgb, var(--athar-gold, #A9782F) 28%, transparent);
+    border-radius: 999px;
+    padding: 0.22em 0.55em;
+    white-space: nowrap;
+}
+.mz-tajweed-note-body .tj-note-prose {
+    margin: 0 0 0.7em;
+    color: var(--athar-ink-soft);
+}
+.mz-tajweed-note-body .tj-quran {
+    font-family: 'UthmanicHafs', 'AmiriQuran', serif;
+    font-feature-settings: normal;
+    font-size: 1.18em;
+    color: var(--athar-gold-deep, #7a5a22);
+    padding: 0 0.1em;
+    border-radius: 0.2em;
+    background: color-mix(in srgb, var(--athar-gold, #A9782F) 10%, transparent);
+}
+body.mz-dark .mz-tajweed-note-body .tj-quran,
+body.mz-dark .mz-tajweed-note-body .tj-badge {
+    color: #e6c878;
+    background: rgba(169, 120, 47, 0.18);
 }
 .mz-tajweed-note-credit {
     margin: 8px 0 0;

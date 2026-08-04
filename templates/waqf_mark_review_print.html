@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <title>{% if pack %}أثَر · طباعة {{ pack.label }}{% else %}أثَر · طباعة مراجعة الوقف{% endif %}</title>
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ static_hash('css/waqf_mark_review_print.css') }}">
+    <style>
+        @font-face {
+            font-family: 'UthmanicHafs';
+            src: url("{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}") format("woff2");
+            font-display: swap;
+        }
+    </style>
+</head>
+<body class="wmr-print-body">
+    <div class="wmr-print-toolbar no-print">
+        {% if pack %}
+        <p class="wmr-print-toolbar-meta">
+            {{ pack.label }} · صفحات المصحف {{ pack.page_from_label }}–{{ pack.page_to_label }}
+            · {{ pack.mark_total }} علامة · {{ pack.page_count }} صفحة فيها علامات
+        </p>
+        <div class="wmr-print-toolbar-actions">
+            <a class="wmr-print-btn ghost" href="/waqf-mark-review">العودة للمراجعة</a>
+            <button type="button" class="wmr-print-btn primary" id="wmr-print-go">طباعة</button>
+        </div>
+        {% else %}
+        <p class="wmr-print-error">{{ error or 'تعذّر بناء الحزمة.' }}</p>
+        <a class="wmr-print-btn ghost" href="/waqf-mark-review">العودة</a>
+        {% endif %}
+    </div>
+
+    {% if pack %}
+    <header class="wmr-print-cover">
+        <p class="wmr-print-kicker">أثَر · مراجعة علامات الوقف · الشمرلي</p>
+        <h1 class="wmr-print-title">{{ pack.label }}</h1>
+        <p class="wmr-print-lede">
+            صفحات المصحف {{ pack.page_from_label }}–{{ pack.page_to_label }}
+            · {{ pack.mark_total }} علامة
+        </p>
+        <p class="wmr-print-howto">
+            طابق كل صف مع المصحف المطبوع: الصفحة · السطر · الكلمة · علامة الوقف.
+        </p>
+        <ul class="wmr-print-legend" aria-label="دليل العلامات">
+            {% for sym in pack.symbols %}
+            <li><span class="wmr-print-mark-text">{{ sym.write }}</span> {{ sym.name }}</li>
+            {% endfor %}
+        </ul>
+    </header>
+
+    <main class="wmr-print-main" id="wmr-print-main">
+        <div class="wmr-print-split">
+            {% for col_rows in pack.columns %}
+            <div class="wmr-print-half">
+                <table class="wmr-print-table">
+                    <thead>
+                        <tr>
+                            <th class="col-page">الصفحة</th>
+                            <th class="col-line">السطر</th>
+                            <th class="col-word">الكلمة</th>
+                            <th class="col-mark">علامة الوقف</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in col_rows %}
+                        <tr class="wmr-print-row{% if item.is_page_start %} is-page-start{% endif %}"
+                            title="{{ item.ayah_ref }} · #{{ item.word_id }}">
+                            <td class="col-page">{% if item.is_page_start %}{{ item.page_label }}{% endif %}</td>
+                            <td class="col-line">{{ item.line_label }}</td>
+                            <td class="col-word"><span class="wmr-print-word">{{ item.text }}</span></td>
+                            <td class="col-mark"><span class="wmr-print-mark-text">{{ item.mark_write }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+    {% endif %}
+
+    <script>
+        (function () {
+            var btn = document.getElementById('wmr-print-go');
+            if (btn) btn.addEventListener('click', function () { window.print(); });
+        }());
+    </script>
+</body>
+</html>

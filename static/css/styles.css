@@ -21,7 +21,8 @@
  * than scattered across each rule below. */
 #quran-text, #tafseer-text, #eerab-text, .mut-verse, #word-meaning-text,
 .word-meanings-list dt, .waqf-mushaf-hindi, .waqf-tbl-word, .waqf-uthmanic,
-.guide-no-waqf-sym, .waqf-entry-word, .waqf-sym-pill, .guide-seg-words, .guide-waqf-sym, .guide-solo-word {
+.guide-no-waqf-sym, .waqf-entry-word, .waqf-sym-pill, .guide-seg-words, .guide-waqf-sym, .guide-solo-word,
+.tj-quran {
     font-feature-settings: normal;
 }
 

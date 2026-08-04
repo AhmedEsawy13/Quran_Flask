@@ -1,0 +1,267 @@
+/* Printable 10-juz waqf review packs — half-page dual tables. */
+
+.wmr-print-body {
+    margin: 0;
+    padding: 0;
+    color: #1a1a1a;
+    background: #f3f0ea;
+    font-family: "Amiri", "Traditional Arabic", "Scheherazade New", serif;
+    line-height: 1.3;
+}
+
+.wmr-print-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1rem;
+    padding: 0.75rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid #d9d2c5;
+}
+
+.wmr-print-toolbar-meta {
+    margin: 0;
+    font-size: 0.92rem;
+}
+
+.wmr-print-toolbar-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.wmr-print-btn {
+    appearance: none;
+    border: 1px solid #8a7f6c;
+    border-radius: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    font: inherit;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    cursor: pointer;
+}
+
+.wmr-print-btn.primary {
+    background: #2f4a3c;
+    border-color: #2f4a3c;
+    color: #fff;
+}
+
+.wmr-print-btn.ghost {
+    background: transparent;
+}
+
+.wmr-print-error {
+    margin: 0;
+    color: #8b1e1e;
+}
+
+.wmr-print-cover,
+.wmr-print-main {
+    max-width: 210mm;
+    margin: 0.75rem auto;
+    padding: 0.75rem 1rem 1.25rem;
+    background: #fff;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.wmr-print-kicker {
+    margin: 0 0 0.25rem;
+    font-size: 0.8rem;
+    color: #5c564c;
+}
+
+.wmr-print-title {
+    margin: 0 0 0.35rem;
+    font-size: 1.45rem;
+    font-weight: 700;
+}
+
+.wmr-print-lede,
+.wmr-print-howto {
+    margin: 0 0 0.45rem;
+    font-size: 0.9rem;
+}
+
+.wmr-print-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.85rem;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.82rem;
+}
+
+.wmr-print-legend .wmr-print-mark-text {
+    font-weight: 700;
+    color: #1f3d2f;
+}
+
+.wmr-print-code {
+    color: #6b6458;
+}
+
+.wmr-print-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    align-items: start;
+}
+
+.wmr-print-half {
+    min-width: 0;
+}
+
+.wmr-print-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 0.88rem;
+}
+
+.wmr-print-table thead {
+    background: #efeae0;
+}
+
+.wmr-print-table th,
+.wmr-print-table td {
+    border: 1px solid #cfc7b8;
+    padding: 0.28rem 0.32rem;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.wmr-print-table th {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #3d3a34;
+}
+
+.wmr-print-table tbody tr:nth-child(even) {
+    background: #fffcf7;
+}
+
+.wmr-print-row.is-page-start td {
+    border-top: 2px solid #8a7f6c;
+}
+
+.col-page { width: 16%; }
+.col-line { width: 14%; }
+.col-word { width: 48%; text-align: right !important; }
+.col-mark {
+    width: 22%;
+    text-align: center !important;
+    vertical-align: middle;
+    padding: 0.2rem 0.15rem;
+}
+
+.wmr-print-word {
+    font-family: "UthmanicHafs", "Amiri Quran", "Amiri", serif;
+    font-size: 1.08rem;
+    line-height: 1.45;
+}
+
+.wmr-print-mark-text {
+    display: inline-block;
+    min-width: 2.2em;
+    font-family: "Amiri", "Traditional Arabic", "Scheherazade New", serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    color: #1f3d2f;
+}
+
+@media screen and (max-width: 720px) {
+    .wmr-print-split {
+        grid-template-columns: 1fr;
+    }
+}
+
+@page {
+    size: A4;
+    margin: 8mm 6mm;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .wmr-print-body {
+        background: #fff;
+    }
+
+    .wmr-print-cover,
+    .wmr-print-main {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .wmr-print-cover {
+        margin-bottom: 0.3rem;
+        padding-bottom: 0.25rem;
+        border-bottom: 1px solid #bbb;
+    }
+
+    .wmr-print-title {
+        font-size: 11pt;
+    }
+
+    .wmr-print-lede,
+    .wmr-print-howto {
+        font-size: 7.5pt;
+    }
+
+    .wmr-print-legend {
+        font-size: 7pt;
+        gap: 0.12rem 0.45rem;
+    }
+
+    .wmr-print-split {
+        gap: 0.45rem;
+    }
+
+    .wmr-print-table {
+        font-size: 7.5pt;
+    }
+
+    .wmr-print-table thead {
+        display: table-header-group;
+        background: #eee;
+    }
+
+    .wmr-print-table th,
+    .wmr-print-table td {
+        padding: 0.14rem 0.16rem;
+        border-color: #999;
+    }
+
+    .wmr-print-table th {
+        font-size: 7pt;
+    }
+
+    .col-mark {
+        padding: 0.1rem 0.08rem;
+    }
+
+    .wmr-print-word {
+        font-size: 9pt;
+    }
+
+    .wmr-print-mark-text {
+        min-width: 2em;
+        font-size: 11pt;
+    }
+
+    .wmr-print-row.is-page-start td {
+        border-top: 1.3px solid #444;
+    }
+}

@@ -93,3 +93,35 @@ def test_all_three_waqf_editions_are_available_on_madinah_and_shamarly_layouts(c
             ]
             assert entries
             assert {entry['version'] for entry in entries} == {version}
+
+
+def test_madinah_yasin_closing_ayah_survives_phantom_last_word_id(client):
+    """Madinah layouts end يس with last_word_id 61191 (no map token).
+
+    That phantom used to make the whole closing line expand to zero words,
+    dropping 36:83 (فسبحان الذي بيده ملكوت كل شيء وإليه ترجعون).
+    """
+    from modules.layouts import _get_dk_layout_word_map, _word_ids_in_map_span
+
+    word_map = _get_dk_layout_word_map()
+    assert 61191 not in word_map['id2tok']
+    span = _word_ids_in_map_span(word_map, 61183, 61191)
+    assert span == list(range(61183, 61191))
+    assert word_map['id2tok'][span[-1]]['ayah'] == 83
+
+    for path in (
+        '/api/digital-khatt/page/445',
+        '/api/qpc-v2/page/445',
+        '/api/qpc-v1/page/445',
+    ):
+        payload = client.get(path).get_json()
+        assert payload['page_number'] == 445
+        y83 = [
+            word
+            for line in payload['lines']
+            for word in line['words']
+            if word.get('surah') == 36 and word.get('ayah') == 83
+        ]
+        assert len(y83) >= 8, path
+        joined = ' '.join(word['text'] for word in y83)
+        assert 'تُرْجَعُونَ' in joined, path

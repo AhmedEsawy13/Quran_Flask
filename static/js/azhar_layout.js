@@ -127,6 +127,18 @@
     const status = window.AtharUi.createStatus(els.status, {
         visibleClass: 'az-show', errorClass: 'az-err', defaultDuration: 2200,
     });
+    function layoutEditError(e, fallback) {
+        const msg = String((e && e.message) || (e && e.error) || '').trim();
+        if (!msg) return fallback;
+        if (/login required/i.test(msg)) {
+            return 'يلزم تسجيل الدخول لحفظ تعديلات التخطيط';
+        }
+        if (/auth service unavailable/i.test(msg)) {
+            return 'خدمة تسجيل الدخول غير متاحة حالياً';
+        }
+        return msg;
+    }
+
     function setStatus(msg, isErr) {
         status.show(msg, { error: !!isErr });
     }
@@ -1073,8 +1085,7 @@
                 );
             }
         } catch (e) {
-            const msg = (e && e.message) || (e && e.error) || '';
-            setStatus(msg && /سور|بسمل|فاصل|سطر/.test(msg) ? msg : 'تعذّر ضبط حد السطر', true);
+            setStatus(layoutEditError(e, 'تعذّر ضبط حد السطر'), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
@@ -1103,7 +1114,7 @@
             if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
             setSavedStatus(data, 'تم دمج السطر مع التالي');
         } catch (e) {
-            setStatus('تعذّر الدمج', true);
+            setStatus(layoutEditError(e, 'تعذّر الدمج'), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
@@ -1138,7 +1149,7 @@
             );
         } catch (e) {
             const msg = (e && e.message) || (e && e.error) || '';
-            setStatus(msg || 'تعذّر سحب الكلمة من السطر التالي', true);
+            setStatus(layoutEditError(e, msg || 'تعذّر سحب الكلمة من السطر التالي'), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
@@ -1173,7 +1184,7 @@
             );
         } catch (e) {
             const msg = (e && e.message) || (e && e.error) || '';
-            setStatus(msg || 'تعذّر دفع الكلمة إلى السطر التالي', true);
+            setStatus(layoutEditError(e, msg || 'تعذّر دفع الكلمة إلى السطر التالي'), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
@@ -1204,8 +1215,7 @@
             }
             setSavedStatus(data, 'تم ترحيل السطر كاملاً إلى الصفحة التالية');
         } catch (e) {
-            const msg = (e && e.message) || (e && e.error) || '';
-            setStatus(msg || 'تعذّر ترحيل السطر إلى الصفحة التالية', true);
+            setStatus(layoutEditError(e, 'تعذّر ترحيل السطر إلى الصفحة التالية'), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
@@ -1238,7 +1248,7 @@
                 isCentered ? 'تم توسيط السطر' : 'تم إلغاء توسيط السطر'
             );
         } catch (e) {
-            setStatus('تعذّر تغيير توسيط السطر', true);
+            setStatus(layoutEditError(e, 'تعذّر تغيير توسيط السطر'), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
@@ -1286,8 +1296,7 @@
                 );
             }
         } catch (e) {
-            const msg = (e && e.message) || (e && e.error) || '';
-            setStatus(msg || `تعذّر نقل ${label}`, true);
+            setStatus(layoutEditError(e, `تعذّر نقل ${label}`), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);
@@ -1314,7 +1323,7 @@
             else await refreshUndoStatus();
             setSavedStatus(data, 'تم التراجع');
         } catch (e) {
-            setStatus('تعذّر التراجع', true);
+            setStatus(layoutEditError(e, 'تعذّر التراجع'), true);
             await refreshUndoStatus();
         } finally {
             state.busy = false;

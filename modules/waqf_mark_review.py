@@ -58,7 +58,126 @@ _SYMBOL_META = (
     ('ع', 'ۛ', 'معانقة'),
 )
 
+# Letter codes → how reviewers write them on paper (صلى / قلى / ج …).
+_MARK_WRITE_FORM = {
+    'ص': 'صلى',
+    'صلي': 'صلى',
+    'صلى': 'صلى',
+    'ق': 'قلى',
+    'قلي': 'قلى',
+    'قلى': 'قلى',
+    'م': 'م',
+    'ج': 'ج',
+    'لا': 'لا',
+    'س': 'س',
+    'ع': 'ع',
+}
+
 _SYMBOL_CHOICES = tuple(code for code, _glyph, _name in _SYMBOL_META)
+
+# Madina-style juz page starts (mirrors static/js/athar-page-chrome.js JUZ_START_PAGE).
+JUZ_START_PAGE = (
+    1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
+    201, 222, 242, 262, 282, 302, 322, 342, 362, 382,
+    402, 422, 442, 462, 482, 502, 522, 542, 562, 582,
+)
+
+# Print packs: 10 juz each (phase 1 validates density on pack 1).
+PRINT_PACKS = {
+    1: {'juz_from': 1, 'juz_to': 10, 'label': 'الأجزاء ١–١٠'},
+    2: {'juz_from': 11, 'juz_to': 20, 'label': 'الأجزاء ١١–٢٠'},
+    3: {'juz_from': 21, 'juz_to': 30, 'label': 'الأجزاء ٢١–٣٠'},
+}
+
+_AR_DIGITS = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
+
+
+def to_ar_digits(value) -> str:
+    return str(value).translate(_AR_DIGITS)
+
+
+def pack_page_range(juz_from: int, juz_to: int, *, min_page: int = 2, max_page: int = 522) -> tuple[int, int]:
+    """Inclusive mushaf page range for a juz span."""
+    if not (1 <= juz_from <= juz_to <= 30):
+        raise ValueError('invalid juz range')
+    start = JUZ_START_PAGE[juz_from - 1]
+    if juz_to >= 30:
+        end = max_page
+    else:
+        end = JUZ_START_PAGE[juz_to] - 1
+    return max(min_page, start), min(max_page, end)
+
+
+def _build_print_pack(pack_id: int) -> dict:
+    """Build a printable checklist pack (page-blocks of marked words only)."""
+    meta = PRINT_PACKS.get(pack_id)
+    if not meta:
+        raise ValueError('invalid pack')
+    edition = 'الشمرلي'
+    edition_meta = _REVIEW_BY_ID[edition]
+    page_from, page_to = pack_page_range(
+        meta['juz_from'],
+        meta['juz_to'],
+        min_page=edition_meta['min_page'],
+        max_page=edition_meta['max_page'],
+    )
+
+    pages = []
+    rows = []
+    mark_total = 0
+    for page_number in range(page_from, page_to + 1):
+        checklist = _build_shamarly_checklist(page_number)
+        items = checklist.get('items') or []
+        if not items:
+            continue
+        mark_total += len(items)
+        page_label = to_ar_digits(page_number)
+        page_marks = []
+        for idx, item in enumerate(items):
+            row = {
+                **item,
+                'page_number': page_number,
+                'page_label': page_label,
+                'line_label': to_ar_digits(item.get('line') or ''),
+                'ayah_ref': f"{to_ar_digits(item['surah'])}:{to_ar_digits(item['ayah'])}",
+                'mark_write': waqf_write_form(item.get('mark') or ''),
+                'is_page_start': idx == 0,
+            }
+            page_marks.append(row)
+            rows.append(row)
+        pages.append({
+            'page_number': page_number,
+            'page_label': page_label,
+            'item_count': len(items),
+            'marks': page_marks,
+        })
+
+    mid = (len(rows) + 1) // 2
+    return {
+        'pack_id': pack_id,
+        'label': meta['label'],
+        'juz_from': meta['juz_from'],
+        'juz_to': meta['juz_to'],
+        'edition': edition,
+        'page_from': page_from,
+        'page_to': page_to,
+        'page_from_label': to_ar_digits(page_from),
+        'page_to_label': to_ar_digits(page_to),
+        'page_count': len(pages),
+        'mark_total': mark_total,
+        'pages': pages,
+        'rows': rows,
+        'columns': [rows[:mid], rows[mid:]],
+        'symbols': [
+            {
+                'code': code,
+                'glyph': glyph,
+                'name': name,
+                'write': waqf_write_form(code),
+            }
+            for code, glyph, name in _SYMBOL_META
+        ],
+    }
 
 
 def waqf_glyph(symbol: str) -> str:
@@ -71,6 +190,20 @@ def waqf_glyph(symbol: str) -> str:
         if token:
             parts.append(_WAQF_GLYPH_MAP.get(token, token))
     return ''.join(parts)
+
+
+def waqf_write_form(symbol: str) -> str:
+    """Human-written mark label for print packs (صلى / قلى / ج …)."""
+    raw = (symbol or '').strip()
+    if not raw or raw == 'ركوع':
+        return raw
+    parts = []
+    for token in raw.replace('،', ',').split(','):
+        token = token.replace(' ', '').strip()
+        if not token:
+            continue
+        parts.append(_MARK_WRITE_FORM.get(token, token))
+    return '،'.join(parts)
 
 
 def _script_ayah_words(surah: int, ayah: int) -> list[dict]:
@@ -239,6 +372,54 @@ def waqf_mark_review_page():
         default_edition='الشمرلي',
         min_page=2,
         max_page=522,
+        print_packs=[
+            {
+                'id': pack_id,
+                'label': meta['label'],
+                'juz_from': meta['juz_from'],
+                'juz_to': meta['juz_to'],
+                'href': f'/waqf-mark-review/print?pack={pack_id}',
+            }
+            for pack_id, meta in PRINT_PACKS.items()
+        ],
+    )
+
+
+@editor_bp.route('/waqf-mark-review/print')
+def waqf_mark_review_print_page():
+    """Printable 10-juz review pack (pen checklist against physical mushaf)."""
+    try:
+        pack_id = int(request.args.get('pack') or '1')
+    except (TypeError, ValueError):
+        pack_id = 0
+    if pack_id not in PRINT_PACKS:
+        return (
+            render_template(
+                'waqf_mark_review_print.html',
+                error='حزمة غير صالحة. استخدم pack=1 أو 2 أو 3.',
+                pack=None,
+                enable_vercel_analytics=_IS_SERVERLESS,
+            ),
+            400,
+        )
+    try:
+        pack = _build_print_pack(pack_id)
+    except Exception as exc:
+        logger.exception('waqf-mark-review print pack %s failed', pack_id)
+        return (
+            render_template(
+                'waqf_mark_review_print.html',
+                error=str(exc),
+                pack=None,
+                enable_vercel_analytics=_IS_SERVERLESS,
+            ),
+            500,
+        )
+    return render_template(
+        'waqf_mark_review_print.html',
+        pack=pack,
+        error=None,
+        enable_vercel_analytics=_IS_SERVERLESS,
     )
 
 

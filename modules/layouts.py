@@ -44,20 +44,25 @@ _AYAH_NUM_CHARS = set('٠١٢٣٤٥٦٧٨٩0123456789')
 
 
 def _word_ids_in_map_span(word_map, first_word_id, last_word_id):
-    """Expand endpoints inside the map's own ID namespace and reading order."""
+    """Expand endpoints inside the map's own ID namespace and reading order.
+
+    Madinah layout DBs sometimes use a phantom ``last_word_id`` one past the
+    final ayah marker at surah boundaries (e.g. 61191 after يس ۝٨٣). Those IDs
+    are absent from the word map — clamp to tokens that exist in the span.
+    """
     if first_word_id is None or last_word_id is None:
         return []
     first_word_id = int(first_word_id)
     last_word_id = int(last_word_id)
+    id2tok = word_map.get('id2tok') or {}
     ordered_ids = word_map.get('ordered_ids')
     positions = word_map.get('position_by_id')
     if ordered_ids is not None and positions is not None:
         lo = positions.get(first_word_id)
         hi = positions.get(last_word_id)
-        if lo is None or hi is None or hi < lo:
-            return []
-        return ordered_ids[lo:hi + 1]
-    id2tok = word_map.get('id2tok') or {}
+        if lo is not None and hi is not None and hi >= lo:
+            return ordered_ids[lo:hi + 1]
+        # Missing endpoint(s): keep contiguous map tokens inside the span.
     if last_word_id < first_word_id:
         return []
     return [

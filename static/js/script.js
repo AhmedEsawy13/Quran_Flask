@@ -2182,6 +2182,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             .replace(/"/g, '&quot;');
     }
 
+    function formatTajweedNotesHtml(raw) {
+        if (window.AtharTajweedNotes && typeof window.AtharTajweedNotes.formatHtml === 'function') {
+            return window.AtharTajweedNotes.formatHtml(raw);
+        }
+        return escapeHtml(raw).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+    }
+
     async function fetchAndDisplayTajweedNotes(surahNumber, ayahNumber) {
         const box = document.getElementById('tajweed-notes-container');
         const textEl = document.getElementById('tajweed-notes-text');
@@ -2199,9 +2206,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 box.hidden = true;
                 return;
             }
-            // Notes may contain light <br>; keep text otherwise escaped.
-            textEl.innerHTML = escapeHtml(raw).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
-            const long = raw.replace(/<br\s*\/?>/gi, '\n').length > 420;
+            textEl.innerHTML = formatTajweedNotesHtml(raw);
+            const plainLen = raw.replace(/<br\s*\/?>/gi, '\n').length;
+            const long = plainLen > 380;
             textEl.classList.toggle('is-clamped', long);
             if (expandBtn) {
                 expandBtn.hidden = !long;

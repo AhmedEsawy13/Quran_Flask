@@ -237,3 +237,70 @@ def test_layout_schema_is_service_role_only():
     assert 'primary key (edition, page_number)' in sql
     assert 'enable row level security' in sql
     assert 'no anon/authenticated policies' in sql
+
+
+def test_working_db_path_skips_invalid_cloud_page(tmp_path, monkeypatch):
+    """One corrupt cloud page must not prevent Layout Studio hydration."""
+    from modules.layout_editions import BAHRAIN
+
+    path = tmp_path / 'bahrain-working.db'
+    with sqlite3.connect(path) as conn:
+        conn.executescript(
+            '''
+            CREATE TABLE pages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                page_number INTEGER NOT NULL,
+                line_number INTEGER NOT NULL,
+                line_type TEXT NOT NULL,
+                is_centered INTEGER NOT NULL DEFAULT 0,
+                first_word_id INTEGER,
+                last_word_id INTEGER,
+                surah_number INTEGER,
+                line_text TEXT,
+                UNIQUE(page_number, line_number)
+            );
+            '''
+        )
+
+    edition = SimpleNamespace(
+        id=BAHRAIN.id,
+        layout_db=str(path),
+        undo_table=None,
+        script_db=BAHRAIN.script_db,
+        word_id_space=BAHRAIN.word_id_space,
+    )
+    remote = [{
+        'edition': edition.id,
+        'page_number': 445,
+        'updated_at': '2026-08-04T10:00:00Z',
+        'lines': [{
+            'line_number': 1,
+            'line_type': 'ayah',
+            'is_centered': 0,
+            'first_word_id': 999999999,
+            'last_word_id': 999999999,
+            'surah_number': '',
+            'line_text': 'bad',
+        }],
+    }]
+    monkeypatch.setattr(layout_persistence.sb, 'is_configured', lambda: True)
+    monkeypatch.setattr(
+        layout_persistence.sb, 'fetch_layout_page_index',
+        lambda **_kwargs: [{
+            'page_number': 445,
+            'updated_at': remote[0]['updated_at'],
+        }],
+    )
+    monkeypatch.setattr(
+        layout_persistence.sb, 'fetch_layout_pages',
+        lambda **_kwargs: remote,
+    )
+    monkeypatch.setattr(
+        layout_persistence.sb, 'fetch_layout_profile',
+        lambda **_kwargs: None,
+    )
+    layout_persistence.reset_runtime_state()
+
+    assert layout_persistence.working_db_path(edition) == str(path)
+    with sqlite3.connect(path) as conn:
+        assert conn.execute('SELECT COUNT(*) FROM pages').fetchone()[0] == 0

@@ -51,6 +51,14 @@
             <p class="wmr-lede">افتح مصحف الشمرلي على رقم الصفحة، ومرّ على العلامات فقط.
                 <a href="/activity">سجل التعديلات</a>
             </p>
+            {% if print_packs %}
+            <p class="wmr-print-links" aria-label="حزم الطباعة">
+                طباعة للمراجعة بالقلم:
+                {% for pack in print_packs %}
+                <a href="{{ pack.href }}">{{ pack.label }}</a>{% if not loop.last %} · {% endif %}
+                {% endfor %}
+            </p>
+            {% endif %}
             <p class="wmr-auth" id="wmr-auth" aria-live="polite"></p>
         </div>
 

@@ -140,6 +140,47 @@ def test_cloud_layout_rejects_ids_from_another_namespace():
         )
 
 
+def test_enrich_ayah_line_fills_blank_surah_and_text():
+    from modules.layout_editions import BAHRAIN
+    from modules import layout_engine
+
+    word_map = layout_engine.script_word_map(BAHRAIN.script_db)
+    line = {
+        'line_type': 'ayah',
+        'first_word_id': 7958,
+        'last_word_id': 7960,
+        'surah_number': '',
+        'line_text': '',
+    }
+    enriched = layout_persistence._enrich_ayah_line_metadata(line, word_map)
+    assert enriched['surah_number'] == 3
+    assert 'قُلْ' in (enriched.get('line_text') or '')
+
+
+def test_validate_page_word_space_skips_blank_declared_surah():
+    # Cloud rows sometimes ship surah_number="" — must not crash hydration.
+    layout_persistence._validate_page_word_space(
+        BAHRAIN,
+        1,
+        [{
+            'line_type': 'ayah',
+            'first_word_id': 1,
+            'last_word_id': 4,
+            'surah_number': '',
+        }],
+    )
+    layout_persistence._validate_page_word_space(
+        BAHRAIN,
+        1,
+        [{
+            'line_type': 'ayah',
+            'first_word_id': 1,
+            'last_word_id': 4,
+            'surah_number': '  ',
+        }],
+    )
+
+
 def test_mushaf_waqf_word_index_is_labeled_as_within_ayah():
     rows = get_mushaf_waqf_symbols(2, 255, 'المدينة الجديد')
     marked = next(row for row in rows if row.get('symbols'))
