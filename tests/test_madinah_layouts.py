@@ -125,3 +125,37 @@ def test_madinah_yasin_closing_ayah_survives_phantom_last_word_id(client):
         assert len(y83) >= 8, path
         joined = ' '.join(word['text'] for word in y83)
         assert 'تُرْجَعُونَ' in joined, path
+
+
+def test_madinah_saffat_closing_ayah_keeps_verse_number(client):
+    """الصافات 182 marker overflows the layout surah span by one id.
+
+    Digital Khatt has ۝١٨٢ but the Madinah layout caps the surah at the last
+    content word, so the marker must be appended synthetically.
+    """
+    from modules import layouts as layouts_mod
+    from modules.layouts import _get_dk_layout_word_map, _synthetic_ayah_marker_id
+
+    layouts_mod._DK_LAYOUT_WORD_MAP = None
+    layouts_mod._QPC_HAFS_LAYOUT_WORD_MAP = None
+    word_map = _get_dk_layout_word_map()
+    marker_id = _synthetic_ayah_marker_id(37, 182)
+    assert word_map['id2tok'][marker_id]['text'] == '۝١٨٢'
+    assert marker_id in word_map['append_after_id'][62233]
+
+    for path in (
+        '/api/digital-khatt/page/452',
+        '/api/qpc-v2/page/452',
+        '/api/qpc-v1/page/452',
+    ):
+        payload = client.get(path).get_json()
+        assert payload['page_number'] == 452
+        y182 = [
+            word
+            for line in payload['lines']
+            for word in line['words']
+            if word.get('surah') == 37 and word.get('ayah') == 182
+        ]
+        joined = ' '.join(word['text'] for word in y182)
+        assert 'ٱلْعَٰلَمِينَ' in joined, path
+        assert '۝١٨٢' in joined, path

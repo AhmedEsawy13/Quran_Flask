@@ -812,9 +812,18 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                     for word_pos in line_word_ids
                 )
 
+        line_type = line['line_type']
+        if (
+            not line_words
+            and line_type == 'ayah'
+            and _looks_like_basmala_text(line.get('line_text'))
+        ):
+            line_type = 'basmallah'
+            glyph_text = line.get('line_text') or ''
+
         output_lines.append({
             'line_number': line['line_number'],
-            'line_type': line['line_type'],
+            'line_type': line_type,
             'is_centered': bool(line['is_centered']),
             'surah_number': line['surah_number'],
             'first_word_id': first_word_id,
@@ -960,6 +969,9 @@ def _get_dk_layout_word_map():
         'id2tok'  : {layout_id: {'surah', 'ayah', 'text'}}
         'first_id': {(surah, ayah): layout_id}   # first word id of the verse
         'last_id' : {(surah, ayah): layout_id}
+        'append_after_id': {layout_id: [synthetic_id, ...]}
+            Extra ayah-end markers when the layout surah span is one short of
+            the Digital Khatt token count (e.g. الصافات ۝١٨٢).
     Empty dicts if the source text or layout DB is unavailable.
     """
     global _DK_LAYOUT_WORD_MAP
@@ -970,6 +982,7 @@ def _get_dk_layout_word_map():
         'id2tok': {},
         'first_id': {},
         'last_id': {},
+        'append_after_id': {},
         'id_space': 'qpc-layout-global-v1',
     }
     try:
@@ -1008,6 +1021,7 @@ def _get_dk_layout_word_map():
             by_surah.setdefault(s, []).append((a, entry.get('text', '')))
 
         id2tok = result['id2tok']
+        append_after = result['append_after_id']
         for s in sorted(by_surah):
             if s not in span:
                 continue
@@ -1015,9 +1029,11 @@ def _get_dk_layout_word_map():
             for a, text in sorted(by_surah[s]):
                 tokens = [w for w in re.split(r'\s+', (text or '').strip()) if w]
                 first = None
+                overflow = []
                 for tok in tokens:
                     if cid > cap:
-                        break  # clamp to the surah's span — drift never crosses a surah
+                        overflow.append(tok)
+                        continue
                     if first is None:
                         first = cid
                     id2tok[cid] = {'surah': s, 'ayah': a, 'text': tok}
@@ -1025,6 +1041,26 @@ def _get_dk_layout_word_map():
                 if first is not None:
                     result['first_id'][(s, a)] = first
                     result['last_id'][(s, a)] = cid - 1
+                # Layout span sometimes ends one id before the ayah-end marker
+                # (الصافات 182). Keep those markers as synthetic ids appended
+                # after the last real layout word on the closing line.
+                if overflow:
+                    if not all(_is_ayah_number_token(tok) for tok in overflow):
+                        logger.warning(
+                            'Digital Khatt surah %s ayah %s overflow is not only '
+                            'ayah markers: %r', s, a, overflow,
+                        )
+                    else:
+                        anchor = result['last_id'].get((s, a))
+                        if anchor is not None:
+                            for marker in overflow:
+                                synthetic_id = _synthetic_ayah_marker_id(s, a)
+                                id2tok[synthetic_id] = {
+                                    'surah': s,
+                                    'ayah': a,
+                                    'text': marker,
+                                }
+                                append_after.setdefault(anchor, []).append(synthetic_id)
     except Exception as e:
         logger.error(f'Failed to build Digital Khatt layout word map: {e}')
 
@@ -1036,6 +1072,44 @@ def _get_dk_layout_word_map():
     }
     _DK_LAYOUT_WORD_MAP = result
     return result
+
+
+# Synthetic layout ids for ayah-end markers that do not fit in the printed
+# surah word span (kept outside 1..83668 so they never collide with QPC ids).
+_SYNTHETIC_AYAH_MARKER_BASE = 90_000_000
+
+
+def _synthetic_ayah_marker_id(surah: int, ayah: int) -> int:
+    return _SYNTHETIC_AYAH_MARKER_BASE + int(surah) * 1000 + int(ayah)
+
+
+def _to_arabic_digits(value):
+    return ''.join(_ARABIC_DIGITS[int(ch)] if ch.isdigit() else ch for ch in str(value))
+
+
+def _is_ayah_number_token(tok):
+    cleaned = (tok or '').replace('\u00a0', '').replace('۝', '')
+    return bool(cleaned) and all(ch in _AYAH_NUM_CHARS for ch in cleaned)
+
+
+_BASMALA_LINE_RE = re.compile(r'^ب[\u0651\u0650]?\u0650?س')
+
+
+def _looks_like_basmala_text(text: str | None) -> bool:
+    """True for a standalone basmala line (not an ayah that merely starts with it)."""
+    cleaned = re.sub(r'\s+', ' ', (text or '').strip())
+    if not cleaned:
+        return False
+    if cleaned in (
+        'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+        'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
+        'بِّسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
+        'بِّسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ',
+    ):
+        return True
+    # Compact form: basmala only (≤ 4 tokens).
+    parts = cleaned.split(' ')
+    return len(parts) <= 4 and bool(_BASMALA_LINE_RE.match(parts[0]))
 
 
 _QPC_HAFS_LAYOUT_WORD_MAP = None
@@ -1068,6 +1142,7 @@ def _get_qpc_hafs_layout_word_map():
         'id2tok': {},
         'first_id': dk_map['first_id'],
         'last_id': dk_map['last_id'],
+        'append_after_id': dict(dk_map.get('append_after_id') or {}),
         'id_space': dk_map['id_space'],
         'ordered_ids': dk_map['ordered_ids'],
         'position_by_id': dk_map['position_by_id'],
@@ -1093,21 +1168,22 @@ def _get_qpc_hafs_layout_word_map():
                         if wid == last and tok['text'].startswith('۝'):
                             tok = {**tok, 'text': tok['text'][1:]}
                         id2tok[wid] = tok
+        # Preserve synthetic overflow ayah markers from the DK map.
+        for anchor, syn_ids in (dk_map.get('append_after_id') or {}).items():
+            for syn_id in syn_ids:
+                tok = dk_id2tok.get(syn_id)
+                if not tok:
+                    continue
+                text = tok['text']
+                if text.startswith('۝'):
+                    text = text[1:]
+                id2tok[syn_id] = {**tok, 'text': text}
     except Exception as e:
         logger.error(f'Failed to build QPC Hafs layout word map: {e}')
         return dk_map
 
     _QPC_HAFS_LAYOUT_WORD_MAP = result
     return result
-
-
-def _to_arabic_digits(value):
-    return ''.join(_ARABIC_DIGITS[int(ch)] if ch.isdigit() else ch for ch in str(value))
-
-
-def _is_ayah_number_token(tok):
-    cleaned = (tok or '').replace('\u00a0', '').replace('۝', '')
-    return bool(cleaned) and all(ch in _AYAH_NUM_CHARS for ch in cleaned)
 
 
 @lru_cache(maxsize=1)
@@ -1199,6 +1275,7 @@ def _get_qatar_uthmani_layout_word_map():
         'id2tok': {},
         'first_id': dk_map['first_id'],
         'last_id': dk_map['last_id'],
+        'append_after_id': dict(dk_map.get('append_after_id') or {}),
         'id_space': dk_map['id_space'],
         'ordered_ids': dk_map['ordered_ids'],
         'position_by_id': dk_map['position_by_id'],
@@ -1231,6 +1308,14 @@ def _get_qatar_uthmani_layout_word_map():
                         if wid == last and tok['text'].startswith('۝'):
                             tok = {**tok, 'text': tok['text'][1:]}
                         id2tok[wid] = tok
+        for anchor, syn_ids in (dk_map.get('append_after_id') or {}).items():
+            for syn_id in syn_ids:
+                tok = dk_map['id2tok'].get(syn_id) or qpc_map['id2tok'].get(syn_id)
+                if not tok:
+                    continue
+                # Qatar/Uthmani ayah digits render without a leading ۝.
+                text = tok['text'][1:] if tok['text'].startswith('۝') else tok['text']
+                id2tok[syn_id] = {**tok, 'text': text}
         logger.info(
             'Qatar Uthmani word map: %d ayahs matched, %d fell back to QPC Hafs',
             matched, fallback,
@@ -1300,9 +1385,13 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
         line_words = []
         contains_focus_ayah = False
         if first_word_id is not None and last_word_id is not None:
-            for word_id in _word_ids_in_map_span(
+            line_word_ids = list(_word_ids_in_map_span(
                 effective_word_map, first_word_id, last_word_id,
-            ):
+            ))
+            line_word_ids.extend(
+                (effective_word_map.get('append_after_id') or {}).get(last_word_id, [])
+            )
+            for word_id in line_word_ids:
                 tok = id2tok.get(word_id)
                 if not tok:
                     continue
@@ -1323,6 +1412,16 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
                 if focus_surah is not None and tok['surah'] == focus_surah and tok['ayah'] == focus_ayah:
                     contains_focus_ayah = True
             display_text = ' '.join(w['text'] for w in line_words)
+            # Placeholder basmala rows sometimes keep line_type=ayah with
+            # reserved word ids outside the map — promote them so the UI
+            # still renders the basmala.
+            if (
+                not line_words
+                and line_type == 'ayah'
+                and _looks_like_basmala_text(line.get('line_text'))
+            ):
+                line_type = 'basmallah'
+                display_text = bismillah
         elif line_type == 'surah_name':
             surah_name = _get_surah_name_ar(line_surah)
             display_text = f"سورة {surah_name}" if surah_name else ''
@@ -1840,6 +1939,13 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
                 line_words[0]['is_line_start'] = True
                 line_words[-1]['is_line_end'] = True
             display_text = ' '.join(w['text'] for w in line_words)
+            if (
+                not line_words
+                and line_type == 'ayah'
+                and _looks_like_basmala_text(line.get('line_text'))
+            ):
+                line_type = 'basmallah'
+                display_text = bismillah
 
         output_lines.append({
             'line_number': int(line['line_number']),
