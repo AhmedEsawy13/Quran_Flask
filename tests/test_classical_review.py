@@ -41,8 +41,8 @@ def test_review_page_and_summary_are_editor_routes(client, review_db):
     summary = client.get('/api/classical-review/muktafa/summary').get_json()
     assert summary['review']['pending'] == 167
     manar = client.get('/api/classical-review/manar/summary').get_json()
-    assert manar['review']['pending'] == 102
-    assert manar['source_traceable_rate'] == 99.23
+    assert manar['review']['pending'] == len(review.manar_review_queue())
+    assert manar['source_traceable_rate'] == 99.36
     assert manar['explicit_missing'] == 0
 
 
@@ -95,7 +95,7 @@ def test_completed_review_can_activate_muktafa(client, review_db):
 
 def test_manar_queue_has_stable_rows_and_source_context(client, review_db):
     payload = client.get('/api/classical-review/manar/items?limit=1').get_json()
-    assert payload['total'] == 102
+    assert payload['total'] == len(review.manar_review_queue())
     item = payload['items'][0]
     assert item['id'] in review.manar_review_queue()
     assert item['source_context']

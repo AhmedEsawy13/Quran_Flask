@@ -36,9 +36,10 @@ model gives the full phrase.
 
 `surah_blocks()` slices منار from `pipeline/classical_sources/manar_shamela_
 sections.json` — converted (`pipeline/convert_manar_shamela.py`) from الأشموني's
-own Shamela book database (Shamela ID 6496, a Microsoft Jet/Access file — the SAME
-primary source OpenITI's plaintext dump was itself digitized from), not the OpenITI
-markdown build_classical_waqf.py reads.
+own Shamela book database (Shamela ID 6496, a Microsoft Jet/Access file — the same
+primary source OpenITI's plaintext dump was itself digitized from). The
+independent OpenITI copy remains a deterministic cross-check for explicit
+`{quote} [ayah] grade` entries.
 
 Why switch: the Shamela DB carries the book's own table of contents (exact page
 boundaries — no title-matching guesswork), and the switch caught real gaps that
@@ -47,12 +48,12 @@ other surahs were silently dropped** (a single-hash header format the OpenITI
 loader strips), and **سورة قريش has no separate heading at all** — independently
 confirmed by Shamela's own TOC (filed under سورة الفيل) — so that's a genuine
 authorial choice, not a parsing bug. Coverage is now **114/114 surahs**. The
-converter reports three missing internal row IDs inside سورة مريم, but a
-2026-07 completeness audit found **no demonstrated content gap**: its 123
-mechanically alignable explicit ruling keys exactly match the independent
-OpenITI copy (123/123), and the section is continuous in the public-domain
-1322 AH printed scan. Treat missing database IDs as an export-integrity warning,
-not as proof that three printed pages are absent. The Shamela text is also fully
+converter reports missing internal row IDs inside سورة مريم. The current
+completeness audit compares both source copies: it found 27 explicit keys absent
+from the converted export, so the build now unions the OpenITI explicit
+backstop instead of assuming the export is complete. سورة مريم still has 123
+mechanically alignable explicit keys in each copy, and its section is continuous
+in the public-domain 1322 AH printed scan. The Shamela text is also fully
 vocalized (tashkeel) in quotes, vs. OpenITI's bare
 consonantal skeleton — cross-checked byte-for-byte against the already-cached 10
 surahs' source prose and it's identical content, just cleaner.
@@ -106,13 +107,14 @@ python3 -m pytest tests/test_classical_llm.py -v      # gates: lexicon, alignmen
 ```
 
 Compare per verse against the regex extraction (open both dbs), spot-check 2:255,
-38:24, al-Fatiha. Only when satisfied, release into the shipped db:
+38:24, al-Fatiha. Only when satisfied, release into the shipped db under the
+live `manar` source:
 
 ```bash
-python3 pipeline/build_classical_llm.py --book manar --write --db data/classical_waqf.db
+python3 pipeline/build_classical_llm.py --book manar --write --source-tag manar --db data/classical_waqf.db
 # then rebuild research caches / restart as usual, and re-run the full test suite.
 ```
 
-Note: the live `/api/classical-waqf` serves every `source` unfiltered, so releasing
-means `manar_llm` will appear alongside (or replace) `manar` in the card — decide the
-display/dedup policy in `waqf_guide.js` `loadMuktafa` before release.
+The live `/api/classical-waqf` serves the released `manar` source. Keep the
+pilot `manar_llm` tag out of the shipped database unless a side-by-side review
+is specifically intended.

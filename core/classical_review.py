@@ -210,6 +210,26 @@ def manar_review_queue():
     return items
 
 
+@lru_cache(maxsize=1)
+def manar_explicit_keys():
+    """Return explicit ruling keys from both committed Manar source copies."""
+    from pipeline import build_classical_llm as builder
+
+    expected = set()
+    for sections in (
+        builder.load_shamela_sections(),
+        builder._openiti_manar_crosscheck_sections(),
+    ):
+        for surah in range(1, 115):
+            expected.update(
+                (surah, row[1], row[2], row[5])
+                for row in builder.explicit_manar_rows(
+                    surah, sections[str(surah)]['text']
+                )
+            )
+    return expected
+
+
 def review_row_ids(source, db_path=CLASSICAL_WAQF_DATABASE):
     if source == 'manar':
         return set(manar_review_queue())
@@ -294,7 +314,9 @@ def manar_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     try:
-        rows = conn.execute("SELECT id,conf,ayah,wpos FROM classical WHERE source='manar'").fetchall()
+        rows = conn.execute(
+            "SELECT id,conf,surah,ayah,wpos,grade FROM classical WHERE source='manar'"
+        ).fetchall()
     finally:
         conn.close()
     ids = {row['id'] for row in rows}
@@ -302,6 +324,11 @@ def manar_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
     stale = queue_ids - ids
     total = len(rows)
     grounded = total - len(queue_ids & ids)
+    live_keys = {
+        (row['surah'], row['ayah'], row['wpos'], row['grade'])
+        for row in rows
+    }
+    explicit_keys = manar_explicit_keys()
     counts = _decision_counts('manar', queue_ids & ids, review_db)
     decision = book_decision('manar', review_db)
     return {
@@ -312,7 +339,8 @@ def manar_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
         'source_traceable': grounded,
         'source_traceable_rate': round(100 * grounded / max(1, total), 2),
         'quran_aligned': total, 'quran_aligned_rate': 100.0,
-        'explicit_expected': 9566, 'explicit_missing': 0,
+        'explicit_expected': len(explicit_keys),
+        'explicit_missing': len(explicit_keys - live_keys),
         'review': counts, 'book_decision': decision,
         'currently_active': decision.get('decision') != 'reject',
         'stale_review_ids': len(stale),

@@ -154,15 +154,18 @@ def test_stop_phrase_words_occur_in_the_verse(app, llm_rows):
 
 
 def test_released_manar_contains_every_aligned_explicit_source_ruling(llm_rows):
-    """The LLM may omit an item; direct source syntax must not disappear."""
+    """Neither source copy may lose a mechanically alignable ruling."""
     from pipeline import build_classical_llm as builder  # type: ignore
     live = {(r['surah'], r['ayah'], r['wpos'], r['grade']) for r in llm_rows
             if r['source'] == 'manar'}
     expected = set()
-    sections = builder.load_shamela_sections()
-    for surah in range(1, 115):
-        for r in builder.explicit_manar_rows(surah, sections[str(surah)]['text']):
-            expected.add((surah, r[1], r[2], r[5]))
+    for sections in (
+        builder.load_shamela_sections(),
+        builder._openiti_manar_crosscheck_sections(),
+    ):
+        for surah in range(1, 115):
+            for r in builder.explicit_manar_rows(surah, sections[str(surah)]['text']):
+                expected.add((surah, r[1], r[2], r[5]))
     missing = expected - live
     assert not missing, f'{len(missing)} explicit Manar rulings missing, e.g. {sorted(missing)[:10]}'
 

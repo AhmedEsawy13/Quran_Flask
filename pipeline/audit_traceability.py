@@ -25,7 +25,8 @@ Three tiers, weakest evidence discarded first:
 A row failing all three is flagged SUSPECT for manual review — not treated
 as proven wrong (a miss can still be a checker limitation, not a genuine
 fabrication), but it's the honest, evidence-based signal this audit can
-give without another full manual read of the whole book.
+give without another full manual read of the whole book. The audit checks both
+the converted Shamela JSON and the independent OpenITI copy.
 
 Run: python3 pipeline/audit_traceability.py [--window 500] [--surah N]
 """
@@ -40,6 +41,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 
 import build_classical_waqf as rx  # noqa: E402
+import build_classical_llm as llm  # noqa: E402
 
 _GRADE_MAP = dict(rx.GRADES)
 _MITHL_RE = re.compile(r'(ومثله|ومثلها|وكذلك|وكذا|ونحوه|ونحوها)')
@@ -91,8 +93,10 @@ def main():
                     help='exit non-zero if suspects exceed this regression ceiling')
     args = ap.parse_args()
 
-    sections = json.load(open(
-        os.path.join('pipeline', 'classical_sources', 'manar_shamela_sections.json'), encoding='utf-8'))
+    source_sections = (
+        llm.load_shamela_sections(),
+        llm._openiti_manar_crosscheck_sections(),
+    )
     conn = sqlite3.connect(args.db)
     conn.row_factory = sqlite3.Row
     q = ("SELECT id, surah, ayah, wpos, stop_word, quote, grade, grade_raw, note, reported_from "
@@ -113,63 +117,85 @@ def main():
     for r in rows:
         surah = r['surah']
         if surah not in prose_cache:
-            prose_cache[surah] = sections.get(str(surah), {}).get('text', '')
-            tok_cache[surah] = tokenize_normalized(prose_cache[surah])
-        prose, toks = prose_cache[surah], tok_cache[surah]
+            prose_cache[surah] = []
+            for sections in source_sections:
+                text = sections.get(str(surah), {}).get('text', '')
+                if text and text not in prose_cache[surah]:
+                    prose_cache[surah].append(text)
+            tok_cache[surah] = [
+                tokenize_normalized(text) for text in prose_cache[surah]
+            ]
         total += 1
         syns = grade_synonyms(r['grade'])
-
-        # Tier 1
-        key = (surah, r['ayah'])
-        if key not in ayah_present_cache:
-            ayah_present_cache[key] = bool(re.search(r'\[' + str(r['ayah']) + r'\]', prose))
-        if ayah_present_cache[key]:
-            spans = markers_and_windows(prose, r['ayah'], args.window)
-            if any(any(s in span for s in syns) for span in spans):
-                t1 += 1
-                continue
-
-        # Fuzzy (level-2, via the pipeline's OWN match_word — same tolerance
-        # align_in_ayah already uses) rather than exact equality: rx.norm()
-        # alone strips a mushaf dagger-alif diacritic without replacing it
-        # with a letter, so it can't bridge "قٰل" (mushaf) vs "قال" (book's
-        # own bare-alif quoting) — found this LIVE checking أبو عمرو's
-        # citation of «الكاذبين» in سورة الأعراف, a genuine chain-inherited
-        # match my exact-equality check was wrongly missing.
+        grounded = False
+        ayah_in_source = False
+        context = ''
         word_n = rx.norm(r['stop_word'])
-        occ = [pos for pos, _, tok in toks if rx.match_word(tok, word_n, level=2)]
 
-        # Tier 2: word (normalized) co-occurs with its grade anywhere
-        found2 = False
-        for wp in occ:
-            lo, hi = max(0, wp - args.window), min(len(prose), wp + args.window)
-            if any(s in prose[lo:hi] for s in syns):
-                found2 = True
-                break
-        if found2:
-            t2 += 1
-            continue
+        for source_index, (prose, toks) in enumerate(
+            zip(prose_cache[surah], tok_cache[surah])
+        ):
+            key = (surah, source_index, r['ayah'])
+            if key not in ayah_present_cache:
+                ayah_present_cache[key] = bool(
+                    re.search(r'\[' + str(r['ayah']) + r'\]', prose)
+                )
+            ayah_in_source = ayah_in_source or ayah_present_cache[key]
 
-        # Tier 3: word sits inside a ومثله/وكذا chain list, with the grade
-        # attached to that chain's own trigger point
-        found3 = False
-        for wp in occ:
-            lo, hi = max(0, wp - args.window), min(len(prose), wp + args.window)
-            local = prose[lo:hi]
-            if _MITHL_RE.search(local) and any(s in local for s in syns):
-                found3 = True
+            # Tier 1
+            if ayah_present_cache[key]:
+                spans = markers_and_windows(prose, r['ayah'], args.window)
+                if any(any(s in span for s in syns) for span in spans):
+                    t1 += 1
+                    grounded = True
+                    break
+
+            # Fuzzy (level-2, via the pipeline's OWN match_word — same
+            # tolerance align_in_ayah already uses) rather than exact
+            # equality. rx.norm() alone strips a mushaf dagger-alif
+            # diacritic without replacing it with a letter.
+            occ = [
+                pos for pos, _, tok in toks
+                if rx.match_word(tok, word_n, level=2)
+            ]
+            if not context and occ:
+                wp = occ[0]
+                context = prose[
+                    max(0, wp - args.window):min(len(prose), wp + args.window)
+                ]
+
+            # Tier 2: word (normalized) co-occurs with its grade anywhere
+            found2 = False
+            for wp in occ:
+                lo, hi = max(0, wp - args.window), min(len(prose), wp + args.window)
+                if any(s in prose[lo:hi] for s in syns):
+                    found2 = True
+                    break
+            if found2:
+                t2 += 1
+                grounded = True
                 break
-        if found3:
-            t3 += 1
+
+            # Tier 3: word sits inside a ومثله/وكذا chain list, with the
+            # grade attached to that chain's own trigger point.
+            found3 = False
+            for wp in occ:
+                lo, hi = max(0, wp - args.window), min(len(prose), wp + args.window)
+                local = prose[lo:hi]
+                if _MITHL_RE.search(local) and any(s in local for s in syns):
+                    found3 = True
+                    break
+            if found3:
+                t3 += 1
+                grounded = True
+                break
+
+        if grounded:
             continue
 
         suspect += 1
-        kind = 'AYAH_NOT_IN_SOURCE' if not ayah_present_cache[key] else 'GRADE_NOT_NEAR_AYAH'
+        kind = 'AYAH_NOT_IN_SOURCE' if not ayah_in_source else 'GRADE_NOT_NEAR_AYAH'
         misses.append((surah, kind, r))
-        context = ''
-        if occ:
-            wp = occ[0]
-            context = prose[max(0, wp - args.window):min(len(prose), wp + args.window)]
         review_items.append({
             'id': r['id'], 'source': args.source, 'surah': surah, 'ayah': r['ayah'],
             'wpos': r['wpos'], 'stop_word': r['stop_word'], 'grade': r['grade'],

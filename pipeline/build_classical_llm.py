@@ -106,6 +106,7 @@ rx.ALIASES.update({
 # a prose line like «# قال في سورة النساء…» is excluded because it starts with قال).
 _HEADER_RE = re.compile(r'^#{1,3}[ \t]*\|?[ \t]*((?:سورة|فاتحة)\b.*|الفلق والناس)$')
 _COMBINED = {'الفلق والناس': (113, 114)}
+_OPENITI_COMBINED = {'سورة الفيل': (105, 106), **_COMBINED}
 
 # Authoritative per-surah source for منار — converted (pipeline/convert_manar_
 # shamela.py) from الأشموني's OWN Shamela book database (the primary source
@@ -118,6 +119,7 @@ _COMBINED = {'الفلق والناس': (113, 114)}
 # TOC, not a parsing bug. See pipeline/CLASSICAL_LLM_PILOT.md.
 _SHAMELA_SECTIONS = os.path.join(rx.SRC_DIR, 'manar_shamela_sections.json')
 _SHAMELA_CACHE = None
+_OPENITI_CROSSCHECK_CACHE = None
 
 
 def load_shamela_sections():
@@ -185,6 +187,67 @@ def surah_blocks(book):
         elif pending:
             buf.append(line)
     yield from flush()
+
+
+def _openiti_manar_crosscheck_sections():
+    """Return the independent OpenITI Manar copy keyed by surah number.
+
+    The converted Shamela export remains the primary extraction source. This
+    copy is used only as a source-integrity backstop: its explicit rulings can
+    recover content when the export has a missing text row, without replacing
+    the primary edition's richer/vocalized prose.
+    """
+    global _OPENITI_CROSSCHECK_CACHE
+    if _OPENITI_CROSSCHECK_CACHE is not None:
+        return _OPENITI_CROSSCHECK_CACHE
+
+    raw = open(os.path.join(rx.SRC_DIR, rx.SOURCES['manar']), encoding='utf-8').read()
+    raw = raw.split('#META#Header#End#', 1)[1]
+    raw = re.sub(r'PageV\d+P\d+|\bms\d+\b|\[\s*\d+\s*/\s*\d+\s*\]', ' ', raw)
+    combined_titles = {'سورة الفيل': (105, 106), **_COMBINED}
+
+    def clean(lines):
+        text = '\n'.join(lines)
+        return text.replace('\n~~', ' ').replace('\n# ', '\n').strip()
+
+    last = 0
+    pending = []
+    buffer = []
+    sections = {}
+
+    def flush():
+        text = clean(buffer)
+        for surah, title in pending:
+            sections[str(surah)] = {
+                'title': title,
+                'text': text,
+                'pages': [text],
+                'combined_with': [
+                    other for other in combined_titles.get(title, ())
+                    if other != surah
+                ],
+            }
+
+    for line in raw.split('\n'):
+        match = _HEADER_RE.match(line.strip())
+        title = match.group(1).strip() if match else None
+        numbers = None
+        if title:
+            if title in combined_titles:
+                numbers = combined_titles[title]
+            else:
+                number = rx.surah_number(title, last)
+                numbers = (number,) if number else None
+        if numbers and min(numbers) > last:
+            if pending:
+                flush()
+            pending, buffer, last = [(s, title) for s in numbers], [], max(numbers)
+        elif pending:
+            buffer.append(line)
+    if pending:
+        flush()
+    _OPENITI_CROSSCHECK_CACHE = sections
+    return _OPENITI_CROSSCHECK_CACHE
 
 
 # ── chunking (large surahs need multiple bounded API calls) ──────────────────
@@ -551,14 +614,19 @@ def main():
         explicit_added = 0
         if args.book == 'manar':
             section = load_shamela_sections().get(str(cur_surah), {})
-            explicit = explicit_manar_rows(cur_surah, section.get('text', ''))
+            source_texts = [section.get('text', '')]
+            crosscheck = _openiti_manar_crosscheck_sections().get(str(cur_surah), {})
+            crosscheck_text = crosscheck.get('text', '')
+            if crosscheck_text and crosscheck_text not in source_texts:
+                source_texts.append(crosscheck_text)
             existing = {(r[1], r[2], r[5]) for r in rows}  # ayah, wpos, grade
-            for row in explicit:
-                key = (row[1], row[2], row[5])
-                if key not in existing:
-                    rows.append(row)
-                    existing.add(key)
-                    explicit_added += 1
+            for source_text in source_texts:
+                for row in explicit_manar_rows(cur_surah, source_text):
+                    key = (row[1], row[2], row[5])
+                    if key not in existing:
+                        rows.append(row)
+                        existing.add(key)
+                        explicit_added += 1
             totals['explicit_added'] += explicit_added
         all_rows.extend((tag, *r) for r in rows)
         for k in ('in', 'bad_grade', 'bad_ayah', 'unaligned', 'ok'):

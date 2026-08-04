@@ -32,14 +32,17 @@ def main(argv=None):
     ap.add_argument('--samples', type=int, default=20)
     args = ap.parse_args(argv)
 
-    sections = llm.load_shamela_sections()
-    expected = set()
-    per_surah = {}
-    for surah in range(1, 115):
-        rows = llm.explicit_manar_rows(surah, sections[str(surah)]['text'])
-        keys = {(surah, r[1], r[2], r[5]) for r in rows}
-        expected.update(keys)
-        per_surah[surah] = len(keys)
+    source_sets = {}
+    for label, sections in (
+        ('Shamela JSON', llm.load_shamela_sections()),
+        ('OpenITI cross-check', llm._openiti_manar_crosscheck_sections()),
+    ):
+        keys = set()
+        for surah in range(1, 115):
+            rows = llm.explicit_manar_rows(surah, sections[str(surah)]['text'])
+            keys.update((surah, r[1], r[2], r[5]) for r in rows)
+        source_sets[label] = keys
+    expected = set().union(*source_sets.values())
 
     conn = sqlite3.connect(args.db)
     try:
@@ -53,8 +56,10 @@ def main(argv=None):
     missing = sorted(expected - actual)
     print(f'DB source={args.source}: {len(actual)} unique confident ruling keys, '
           f'{len(db_surahs)}/114 surahs')
-    print(f'Authoritative explicit source: {len(expected)} aligned unique ruling keys, '
-          f'{sum(1 for n in per_surah.values() if n)}/114 surahs with explicit entries')
+    for label, keys in source_sets.items():
+        print(f'{label} explicit source: {len(keys)} aligned unique ruling keys, '
+              f'{len({key[0] for key in keys})}/114 surahs with explicit entries')
+    print(f'Union of explicit source checks: {len(expected)} aligned unique ruling keys')
     print(f'Missing mechanically verifiable explicit rulings: {len(missing)}')
     for row in missing[:args.samples]:
         print(' ', row)

@@ -1,6 +1,6 @@
 # Manar completeness audit
 
-Audit date: 2026-07-18.
+Audit date: 2026-08-04.
 
 ## Sources compared
 
@@ -16,12 +16,18 @@ Audit date: 2026-07-18.
 
 - Source/cache coverage: 114/114 surahs; every chunk is cached.
 - Raw LLM records: 13,045; deterministic validation accepts 13,045/13,045.
-- The source backstop adds 207 rulings the LLM omitted.
-- Released Manar rows: 13,252 across 114/114 surahs.
-- Mechanically alignable explicit source rulings: 9,566 unique keys.
+- The dual source backstop adds 234 rulings the LLM omitted.
+- Released Manar rows: 13,272 across 114/114 surahs.
+- Mechanically alignable explicit source rulings:
+  - Shamela JSON: 9,566
+  - OpenITI cross-check: 9,587
+  - Union checked by the release gate: 9,593 unique keys
 - Missing explicit rulings after rebuild: **0**.
-- Local traceability heuristic: 13,150/13,252 rows grounded automatically
-  (99.23%); 102 rows are queued for human review, not classified as errors.
+- The OpenITI cross-check exposed 27 explicit keys absent from the converted
+  Shamela export, concentrated in six surahs; those are now recovered by the
+  deterministic backstop.
+- Local traceability heuristic: 13,187/13,272 rows grounded automatically
+  (99.36%); 85 rows are queued for human review, not classified as errors.
 - سورة مريم: 123 explicit aligned keys in Shamela JSON and 123 in OpenITI;
   the sets are identical. The earlier “three missing pages” statement confused
   missing Shamela row IDs with demonstrated missing printed content.
