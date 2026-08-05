@@ -131,6 +131,7 @@ serves is controlled by environment variables:
 |---|---|
 | `FEATURES` | Comma-separated module list to enable, e.g. `FEATURES=reading` or `FEATURES=memorize,breathing`. Defaults to `reading,memorize,breathing`. `core` is **always** included. |
 | `ENABLE_EDITOR` | A truthy value (`1`, `true`, `yes`, or `on`) mounts the write-capable `editor` module. **Off by default** on production read-only dynos; turn on for the editor-capable dyno / laptop. |
+| `EDITOR_DEPLOYMENT` | Required as a truthy opt-in when `DYNO` is present (for example on Heroku) before `ENABLE_EDITOR` can mount the editor. This keeps a stale public-dyno flag fail-closed. |
 | `SUPABASE_URL` | Supabase project URL for cloud mushaf-editor drafts (قطر/الكويت/البحرين) and Bahrain Layout Studio snapshots. When unset, the editor keeps the local SQLite write path. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service-role key (server-side only; never expose to the browser). |
 | `EDITOR_SESSION_SECRET` | Signs invite-session cookies and peppers invite code hashes. |

@@ -20,6 +20,7 @@ export SUPABASE_URL='https://YOUR_PROJECT.supabase.co'
 export SUPABASE_SERVICE_ROLE_KEY='eyJ…'   # Project Settings → API → service_role
 export EDITOR_SESSION_SECRET='long-random-string'
 export ENABLE_EDITOR=1
+export EDITOR_DEPLOYMENT=1                 # editor-capable Heroku dyno only
 
 # Public read dynos (no editor UI) still need URL + service role so
 # /read and مُكْث can load *published* قطر/الكويت/البحرين marks. Omit ENABLE_EDITOR.

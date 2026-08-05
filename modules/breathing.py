@@ -27,6 +27,7 @@ from core.datasets import qpc_hafs_data_normalized
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.classical_review import book_decision as _classical_book_decision
 from core.classical_review import decisions as _classical_review_decisions
+from core.classical_review import REVIEW_GRADE_LABELS
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _load_memorization_word_ts, _segment_phrases, _forward_waqf_stops,
     _has_arabic_letter, _gd_audio_url, _yt_audio_url,
@@ -406,6 +407,12 @@ def _approved_muktafa_rows(surah, from_ayah, to_ayah):
                 continue
             item = dict(row)
             item.update(surah=effective_surah, ayah=effective_ayah, wpos=effective_wpos)
+            corrected_grade = decision.get('corrected_grade')
+            if corrected_grade in REVIEW_GRADE_LABELS:
+                item.update(
+                    grade=corrected_grade,
+                    grade_raw=REVIEW_GRADE_LABELS[corrected_grade],
+                )
             out.append(item)
         return out
     finally:
@@ -438,17 +445,29 @@ def classical_waqf(surah, ayah):
             if 'muktafa' in active_sources:
                 rows.extend(_approved_muktafa_rows(surah, ayah, ayah))
             rows.sort(key=lambda r: (r['wpos'], r['source']))
+            review_decisions = {
+                source: _classical_review_decisions(source)
+                for source in active_sources
+            }
             for r in rows:
+                item = dict(r)
+                review = review_decisions.get(r['source'], {}).get(r['id'], {})
+                corrected_grade = review.get('corrected_grade')
+                if corrected_grade in REVIEW_GRADE_LABELS:
+                    item.update(
+                        grade=corrected_grade,
+                        grade_raw=REVIEW_GRADE_LABELS[corrected_grade],
+                    )
                 entries.append({
-                    'source': r['source'],
-                    'wpos': r['wpos'], 'stop_word': r['stop_word'],
-                    'quote': r['quote'], 'grade': r['grade'],
-                    'grade_raw': r['grade_raw'], 'note': r['note'] or '',
+                    'source': item['source'],
+                    'wpos': item['wpos'], 'stop_word': item['stop_word'],
+                    'quote': item['quote'], 'grade': item['grade'],
+                    'grade_raw': item['grade_raw'], 'note': item['note'] or '',
                     # When set, this grade is the book RELAYING a named
                     # scholar's ruling («وقال ابن الأنباري: {…} تام»), not
                     # necessarily the book's own author's settled view —
                     # must not be displayed as a flat "SOURCE: grade".
-                    'reported_from': r['reported_from'],
+                    'reported_from': item['reported_from'],
                 })
         finally:
             conn.close()

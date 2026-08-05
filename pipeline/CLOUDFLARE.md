@@ -26,6 +26,7 @@ Keep the editor off the public dyno if you can:
 ```bash
 # public web dyno — omit ENABLE_EDITOR
 heroku config:unset ENABLE_EDITOR -a YOUR_HEROKU_APP
+heroku config:unset EDITOR_DEPLOYMENT -a YOUR_HEROKU_APP
 ```
 
 ## 2. Cloudflare — add the site (Free)

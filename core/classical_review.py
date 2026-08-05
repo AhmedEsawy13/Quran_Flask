@@ -15,6 +15,19 @@ MUKTAFA_SOURCE = Path(_BASE_DIR) / 'pipeline' / 'classical_sources' / 'muktafa_d
 MANAR_REVIEW_QUEUE = Path(_BASE_DIR) / 'pipeline' / 'review' / 'manar_traceability.jsonl'
 VALID_DECISIONS = {'approve', 'reject', 'pending'}
 VALID_BOOK_DECISIONS = {'add', 'reject', 'pending'}
+REVIEW_GRADE_LABELS = {
+    'تام': 'تام',
+    'كاف': 'كاف',
+    'حسن': 'حسن',
+    'جائز': 'جائز',
+    'صالح': 'صالح',
+    'قبيح': 'قبيح',
+    'لا': 'ليس بوقف',
+}
+REVIEW_GRADE_OPTIONS = tuple(
+    {'value': value, 'label': label}
+    for value, label in REVIEW_GRADE_LABELS.items()
+)
 
 
 def _review_path(path=None):
@@ -30,8 +43,18 @@ def _connect_review(path=None):
         decision TEXT NOT NULL CHECK(decision IN ('approve','reject','pending')),
         reviewer_note TEXT NOT NULL DEFAULT '', corrected_surah INTEGER,
         corrected_ayah INTEGER, corrected_wpos INTEGER,
+        corrected_grade TEXT,
         updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY(source, classical_id))''')
+    columns = {
+        row['name'] for row in conn.execute(
+            'PRAGMA table_info(classical_review_decisions)'
+        ).fetchall()
+    }
+    if 'corrected_grade' not in columns:
+        conn.execute(
+            'ALTER TABLE classical_review_decisions ADD COLUMN corrected_grade TEXT'
+        )
     conn.execute('''CREATE TABLE IF NOT EXISTS classical_review_books (
         source TEXT PRIMARY KEY,
         decision TEXT NOT NULL CHECK(decision IN ('add','reject','pending')),
@@ -54,9 +77,11 @@ def decisions(source='muktafa', review_db=None):
 
 
 def save_decision(classical_id, decision, note='', corrected=None,
-                  source='muktafa', review_db=None):
+                  source='muktafa', review_db=None, corrected_grade=None):
     if decision not in VALID_DECISIONS:
         raise ValueError('invalid decision')
+    if corrected_grade not in (None, '') and corrected_grade not in REVIEW_GRADE_LABELS:
+        raise ValueError('invalid corrected grade')
     corrected = corrected or (None, None, None)
     conn = _connect_review(review_db)
     try:
@@ -65,14 +90,17 @@ def save_decision(classical_id, decision, note='', corrected=None,
                          (source, classical_id))
         else:
             conn.execute('''INSERT INTO classical_review_decisions
-                (source,classical_id,decision,reviewer_note,corrected_surah,corrected_ayah,corrected_wpos,updated_at)
-                VALUES (?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
+                (source,classical_id,decision,reviewer_note,corrected_surah,corrected_ayah,corrected_wpos,corrected_grade,updated_at)
+                VALUES (?,?,?,?,?,?,?, ?,CURRENT_TIMESTAMP)
                 ON CONFLICT(source,classical_id) DO UPDATE SET
                   decision=excluded.decision, reviewer_note=excluded.reviewer_note,
                   corrected_surah=excluded.corrected_surah,
                   corrected_ayah=excluded.corrected_ayah,
-                  corrected_wpos=excluded.corrected_wpos, updated_at=CURRENT_TIMESTAMP''',
-                (source, classical_id, decision, note, *corrected))
+                  corrected_wpos=excluded.corrected_wpos,
+                  corrected_grade=excluded.corrected_grade,
+                  updated_at=CURRENT_TIMESTAMP''',
+                (source, classical_id, decision, note, *corrected,
+                 corrected_grade or None))
         conn.commit()
     finally:
         conn.close()

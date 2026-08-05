@@ -104,7 +104,9 @@ rx.ALIASES.update({
 # A surah header line at ANY heading level (OpenITI paragraphs all start with «# »,
 # so require the title to START with سورة/فاتحة or be a known combined title —
 # a prose line like «# قال في سورة النساء…» is excluded because it starts with قال).
-_HEADER_RE = re.compile(r'^#{1,3}[ \t]*\|?[ \t]*((?:سورة|فاتحة)\b.*|الفلق والناس)$')
+_HEADER_RE = re.compile(
+    r'^#{1,3}[ \t]*\|?[ \t]*((?:(?:سورة|فاتحة)\b.*|\[سورة\].*|أم القرآن\b.*|الفلق والناس)$)'
+)
 _COMBINED = {'الفلق والناس': (113, 114)}
 _OPENITI_COMBINED = {'سورة الفيل': (105, 106), **_COMBINED}
 

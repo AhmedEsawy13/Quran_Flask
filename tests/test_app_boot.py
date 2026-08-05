@@ -44,10 +44,21 @@ def test_release_workflows_cover_push_smoke_and_supabase_readiness():
 def test_enabled_features_env(monkeypatch):
     monkeypatch.setenv('FEATURES', 'reading,memorize')
     monkeypatch.delenv('ENABLE_EDITOR', raising=False)
+    monkeypatch.delenv('DYNO', raising=False)
     feats = quran_app.enabled_features()
     assert 'core' in feats and 'reading' in feats and 'memorize' in feats
     assert 'editor' not in feats                      # editor never mounts without ENABLE_EDITOR
     monkeypatch.setenv('ENABLE_EDITOR', '1')
+    assert 'editor' in quran_app.enabled_features()
+
+
+def test_heroku_editor_requires_explicit_deployment_flag(monkeypatch):
+    monkeypatch.setenv('ENABLE_EDITOR', '1')
+    monkeypatch.setenv('DYNO', 'web.1')
+    monkeypatch.delenv('EDITOR_DEPLOYMENT', raising=False)
+    assert 'editor' not in quran_app.enabled_features()
+
+    monkeypatch.setenv('EDITOR_DEPLOYMENT', '1')
     assert 'editor' in quran_app.enabled_features()
 
 

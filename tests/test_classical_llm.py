@@ -134,6 +134,15 @@ def test_all_completed_manar_cache_items_pass_validation():
     assert not rejected, f'completed Manar cache still has rejected rows: {rejected[:10]}'
 
 
+def test_muktafa_source_blocks_cover_all_surahs():
+    """Alternative Muktafa headings must not drop al-Fatiha or al-Munafiqun."""
+    from pipeline import build_classical_llm as builder  # type: ignore
+
+    blocks = list(builder.surah_blocks('muktafa'))
+    assert len(blocks) == 114
+    assert {surah for surah, _, _ in blocks} == set(range(1, 115))
+
+
 def test_every_row_aligned_to_a_word_position(llm_rows):
     # the pipeline rejects unaligned phrases, so every stored row must carry a wpos
     assert all(r['wpos'] is not None and r['wpos'] >= 0 for r in llm_rows)

@@ -30,7 +30,7 @@
         $('cr-release-title').textContent = isManar ? 'هل يبقى منار الهدى منشورًا؟' : 'هل يُضاف المكتفى إلى التطبيق؟';
         $('cr-release-copy').textContent = isManar
             ? 'منار منشور حاليًا. لا يمكن تثبيت قرار الإبقاء حتى تُراجع الأحكام الاحترازية؛ والاستبعاد النهائي يزيل الكتاب من العرض من دون حذف قاعدة المصدر.'
-            : 'لا يمكن اعتماد الكتاب حتى يُتخذ قرار في جميع المواضع الـ167 غير اليقينية. الاعتماد يُسجَّل منفصلًا ولا يمحو نص المصدر.';
+            : `لا يمكن اعتماد الكتاب حتى يُتخذ قرار في جميع المواضع الـ${s.review.pending.toLocaleString('ar')} غير اليقينية. الاعتماد يُسجَّل منفصلًا ولا يمحو نص المصدر.`;
         $('cr-reject-book').textContent = isManar ? 'إزالة الكتاب من العرض' : 'عدم إضافة الكتاب';
         $('cr-add-book').textContent = isManar ? 'اعتماد وإبقاء الكتاب' : 'اعتماد وإضافة الكتاب';
         $('cr-metrics').innerHTML = isManar ? [
@@ -47,6 +47,8 @@
             metric(s.review.pending.toLocaleString('ar'), 'بانتظار المراجع', `${s.review.approved.toLocaleString('ar')} مقبول · ${s.review.rejected.toLocaleString('ar')} مستبعد`),
         ].join('');
         $('cr-caveat').hidden = false; $('cr-caveat').textContent = s.claim_limit;
+        const countEl = $(`cr-${source}-count`);
+        if (countEl) countEl.textContent = `${s.review.pending.toLocaleString('ar')} للمراجعة`;
         const bd = s.book_decision || {};
         $('cr-book-note').value = bd.reviewer_note || '';
         $('cr-book-state').textContent = bd.decision === 'add' ? (isManar ? 'الحالة: مؤكد للإبقاء' : 'الحالة: معتمد للإضافة') : bd.decision === 'reject' ? (isManar ? 'الحالة: مقرر إزالته من العرض' : 'الحالة: غير معتمد') : (isManar ? 'الحالة: منشور، والمراجعة النهائية جارية' : 'الحالة: القرار النهائي لم يُتخذ');
@@ -60,16 +62,20 @@
     function card(item) {
         const d = item.review || {}; const ayah = item.effective_ayah == null ? '' : item.effective_ayah;
         const status = d.decision || 'pending';
+        const gradeOptions = (item.grade_options || []).map(option =>
+            `<option value="${escapeHtml(option.value)}" ${option.value === item.effective_grade ? 'selected' : ''}>${escapeHtml(option.label)}</option>`
+        ).join('');
         return `<article class="cr-card" data-id="${item.id}" data-surah="${item.surah}">
           <div class="cr-card-main">
             <div class="cr-card-head"><div class="cr-badges">
               <span class="cr-badge">سورة ${item.surah}</span><span class="cr-badge">السجل ${item.id}</span>
               <span class="cr-badge ${item.alignment === 'unmatched' ? 'cr-unmatched' : ''}">${item.alignment === 'matched' ? `الآية ${item.ayah} · الكلمة ${item.wpos + 1}` : 'بلا محاذاة'}</span>
-            </div><span class="cr-grade">${escapeHtml(item.grade_raw)}</span></div>
+            </div><span class="cr-grade">${escapeHtml(item.effective_grade_raw || item.grade_raw)}</span></div>
             <p class="cr-quote">${escapeHtml(item.quote)}</p>
             <p class="cr-note">${escapeHtml(item.note || 'لا توجد علّة منقولة في هذا السجل.')}</p>
             ${renderWords(item)}
-            <div class="cr-correction"><label>رقم الآية<input data-role="ayah" type="number" min="1" value="${ayah}"></label>
+            <div class="cr-correction"><label>نوع الوقف<select data-role="grade">${gradeOptions}</select></label>
+              <label>رقم الآية<input data-role="ayah" type="number" min="1" value="${ayah}"></label>
               <input data-role="wpos" type="hidden" value="${item.effective_wpos == null ? '' : item.effective_wpos}">
               <button type="button" data-action="load-verse">تحميل الآية / تغيير الموضع</button></div>
             <textarea class="cr-review-note" data-role="note" placeholder="سبب القبول أو الاستبعاد">${escapeHtml(d.reviewer_note || '')}</textarea>
@@ -108,6 +114,7 @@
         if (decision === 'approve') {
             body.ayah = cardEl.querySelector('[data-role="ayah"]').value;
             body.wpos = cardEl.querySelector('[data-role="wpos"]').value;
+            body.grade = cardEl.querySelector('[data-role="grade"]').value;
         }
         try {
             await api(`/api/classical-review/${state.source}/decision`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });

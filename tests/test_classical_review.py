@@ -60,6 +60,49 @@ def test_reviewer_can_approve_a_matched_row(client, review_db):
     assert saved['decision'] == 'approve'
 
 
+def test_reviewer_can_edit_waqf_grade_and_live_api_uses_it(client, review_db):
+    item = client.get(
+        '/api/classical-review/manar/items?status=pending&limit=1'
+    ).get_json()['items'][0]
+    replacement = next(
+        grade for grade in review.REVIEW_GRADE_LABELS
+        if grade != item['effective_grade']
+    )
+    response = client.post('/api/classical-review/manar/decision', json={
+        'row_id': item['id'], 'decision': 'approve',
+        'ayah': item['effective_ayah'], 'wpos': item['effective_wpos'],
+        'grade': replacement, 'note': 'راجعت نوع الوقف',
+    })
+    assert response.status_code == 200
+    assert response.get_json()['grade'] == replacement
+    saved = review.decisions('manar', review_db=review_db)[item['id']]
+    assert saved['corrected_grade'] == replacement
+
+    live = client.get(
+        f'/api/classical-waqf/{item["surah"]}/{item["ayah"]}'
+    ).get_json()
+    live_item = next(
+        row for row in live['entries']
+        if row['source'] == 'manar' and row['wpos'] == item['wpos']
+        and row['quote'] == item['quote']
+    )
+    assert live_item['grade'] == replacement
+    assert live_item['grade_raw'] == review.REVIEW_GRADE_LABELS[replacement]
+
+
+def test_reviewer_rejects_unknown_waqf_grade(client, review_db):
+    item = client.get(
+        '/api/classical-review/manar/items?status=pending&limit=1'
+    ).get_json()['items'][0]
+    response = client.post('/api/classical-review/manar/decision', json={
+        'row_id': item['id'], 'decision': 'approve',
+        'ayah': item['effective_ayah'], 'wpos': item['effective_wpos'],
+        'grade': 'ممتاز',
+    })
+    assert response.status_code == 400
+    assert 'grade' in response.get_json()['error']
+
+
 def test_unmatched_row_cannot_be_approved_without_correction(client, review_db):
     item = client.get(
         '/api/classical-review/muktafa/items?status=pending&alignment=unmatched&limit=1'

@@ -219,12 +219,26 @@ ALL_BLUEPRINTS = {
 _DEFAULT_FEATURES = {'core', 'reading', 'memorize', 'breathing'}
 
 
+def _truthy_env(name: str) -> bool:
+    return os.environ.get(name, '').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def _editor_enabled() -> bool:
+    """Enable the writer locally, or only on an explicitly marked dyno."""
+    if not _truthy_env('ENABLE_EDITOR'):
+        return False
+    # Heroku sets DYNO on every process. Public dynos must fail closed if an
+    # old ENABLE_EDITOR value remains configured; an editor-capable dyno must
+    # opt in explicitly with EDITOR_DEPLOYMENT=1.
+    return not os.environ.get('DYNO') or _truthy_env('EDITOR_DEPLOYMENT')
+
+
 def enabled_features():
     """Resolve the feature set for this process from the environment."""
     raw = os.environ.get('FEATURES', '').strip()
     feats = {f.strip() for f in raw.split(',') if f.strip()} if raw else set(_DEFAULT_FEATURES)
     feats.add('core')  # shared foundation is always required
-    if os.environ.get('ENABLE_EDITOR', '').strip().lower() in {'1', 'true', 'yes', 'on'}:
+    if _editor_enabled():
         feats.add('editor')
     else:
         feats.discard('editor')  # never expose the writer unless explicitly enabled

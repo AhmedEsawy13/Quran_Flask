@@ -8,7 +8,7 @@ from core.blueprints import editor_bp
 from core.classical_review import (
     book_decision, decisions, manar_review_queue, muktafa_source_context,
     quote_matches_position, review_row_ids, save_book_decision, save_decision,
-    source_accuracy,
+    source_accuracy, REVIEW_GRADE_LABELS, REVIEW_GRADE_OPTIONS,
 )
 from core.config import CLASSICAL_REVIEW_DATABASE, CLASSICAL_WAQF_DATABASE
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
@@ -101,6 +101,11 @@ def classical_review_items(source):
         effective_ayah = decision.get('corrected_ayah') or row['ayah']
         effective_wpos = (decision.get('corrected_wpos')
                           if decision.get('corrected_wpos') is not None else row['wpos'])
+        effective_grade = decision.get('corrected_grade') or row['grade']
+        effective_grade_raw = (
+            REVIEW_GRADE_LABELS.get(effective_grade, row['grade_raw'])
+            if decision.get('corrected_grade') else row['grade_raw']
+        )
         words = []
         if effective_ayah is not None:
             try:
@@ -120,7 +125,11 @@ def classical_review_items(source):
             'wpos': row['wpos'], 'effective_ayah': effective_ayah,
             'effective_wpos': effective_wpos, 'stop_word': row['stop_word'],
             'quote': row['quote'], 'grade': row['grade'],
-            'grade_raw': row['grade_raw'], 'note': row['note'] or '',
+            'effective_grade': effective_grade,
+            'grade_raw': row['grade_raw'],
+            'effective_grade_raw': effective_grade_raw,
+            'grade_options': REVIEW_GRADE_OPTIONS,
+            'note': row['note'] or '',
             'reported_from': row['reported_from'], 'seq': row['seq'],
             'alignment': 'matched' if row['ayah'] is not None and row['wpos'] is not None else 'unmatched',
             'verse_words': words, 'source_locator': evidence['locator'],
@@ -165,6 +174,7 @@ def classical_review_decision(source):
     note = str(body.get('note') or '').strip()[:2000]
 
     corrected = (None, None, None)
+    corrected_grade = None
     if decision == 'approve':
         try:
             ayah = int(body['ayah']) if body.get('ayah') not in (None, '') else row['ayah']
@@ -177,8 +187,15 @@ def classical_review_decision(source):
             return jsonify({'error': 'the quoted phrase does not end at that Qur’an word'}), 409
         if ayah != row['ayah'] or wpos != row['wpos']:
             corrected = (row['surah'], ayah, wpos)
-    save_decision(row_id, decision, note, corrected, source)
-    return jsonify({'ok': True, 'row_id': row_id, 'decision': decision})
+        corrected_grade = str(body.get('grade') or row['grade']).strip()
+        if corrected_grade not in REVIEW_GRADE_LABELS:
+            return jsonify({'error': 'invalid waqf grade'}), 400
+    save_decision(row_id, decision, note, corrected, source,
+                  corrected_grade=corrected_grade)
+    return jsonify({
+        'ok': True, 'row_id': row_id, 'decision': decision,
+        'grade': corrected_grade,
+    })
 
 
 @editor_bp.route('/api/classical-review/<source>/book-decision', methods=['POST'])
