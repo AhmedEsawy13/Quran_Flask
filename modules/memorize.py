@@ -17,7 +17,7 @@ from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_cfg, _memo_reciter_installed,
     _load_memorization_word_ts, _memorization_lock, _segment_phrases,
-    _build_breathing_guide, _yt_audio_url, _gd_audio_url,
+    _build_breathing_guide, _yt_audio_url, _gd_browser_audio_url,
     _audio_timing_entry, _audio_offset_ms,
     _WAQF_CONSENSUS_GAP_MS, _DEFAULT_MEMO_RECITER,
 )
@@ -209,7 +209,7 @@ def get_memorization(surah_number):
     if tmpl == '_yt_':
         audio_url = _yt_audio_url(reciter_id, surah_number)
     elif tmpl == '_gd_':
-        audio_url = _gd_audio_url(reciter_id, surah_number)
+        audio_url = _gd_browser_audio_url(reciter_id, surah_number)
     else:
         audio_url = tmpl.format(surah=surah_number) if tmpl else None
     audio_offset_ms = _audio_offset_ms(reciter_id, surah_number)

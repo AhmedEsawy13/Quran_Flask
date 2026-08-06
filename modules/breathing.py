@@ -30,7 +30,7 @@ from core.classical_review import decisions as _classical_review_decisions
 from core.classical_review import REVIEW_GRADE_LABELS
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _load_memorization_word_ts, _segment_phrases, _forward_waqf_stops,
-    _has_arabic_letter, _gd_audio_url, _yt_audio_url, _audio_timing_entry,
+    _has_arabic_letter, _gd_browser_audio_url, _yt_audio_url, _audio_timing_entry,
     _WAQF_CONSENSUS_GAP_MS,
 )
 
@@ -158,9 +158,9 @@ def _build_verse_waqf_detail_uncached(surah, ayah):
             # _yt_ reciters return their per-surah YouTube watch URL; the waqf
             # guide player routes youtube.com URLs through the IFrame adapter
             # (same as the memorize page) instead of a native <audio> element.
-            # Catalog-based reciters (_gd_) use direct MP3/Drive-download URLs
-            # which native <audio> can stream fine.
-            'audio_url': (_gd_audio_url(rid, surah)
+            # Catalog-based reciters (_gd_) use a same-origin proxy for Drive
+            # files, while the browser still uses native <audio> playback.
+            'audio_url': (_gd_browser_audio_url(rid, surah)
                           if cfg.get('audio_tmpl') == '_gd_'
                           else (_yt_audio_url(rid, surah)
                                 if cfg.get('audio_tmpl') == '_yt_'

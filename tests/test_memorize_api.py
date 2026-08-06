@@ -8,6 +8,7 @@ from core.memorization import (
     _audio_timing_entry,
     _gd_audio_offset_ms,
     _gd_audio_url,
+    _gd_browser_audio_url,
 )
 from modules.memorize import _waqf_aligned_phrases
 
@@ -89,6 +90,16 @@ def test_drive_reciter_uses_native_range_download_url():
         '?id=1rl6qU2TnCacbR_VjK5V-wFm97Zn-cHSg&export=download&confirm=t'
     )
     assert 'mp3quran' not in url
+
+
+def test_drive_reciter_uses_same_origin_proxy_in_browser():
+    browser_url = _gd_browser_audio_url('ayyub', 2)
+    assert browser_url.startswith('/api/audio-proxy?url=')
+    assert browser_url.endswith(
+        'https%3A%2F%2Fdrive.usercontent.google.com%2Fdownload'
+        '%3Fid%3D1rl6qU2TnCacbR_VjK5V-wFm97Zn-cHSg'
+        '%26export%3Ddownload%26confirm%3Dt'
+    )
 
 
 def test_drive_chapter_offsets_shift_qul_timing_without_mutating_cache():

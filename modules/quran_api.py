@@ -12,7 +12,8 @@ import os
 import sqlite3
 import threading
 
-from flask import jsonify, request, redirect
+import requests
+from flask import Response, jsonify, request, redirect, stream_with_context
 
 from core.blueprints import core_bp
 from core.config import DATABASE, WAQF_DATABASE, MAX_AYAH_NUMBER
@@ -23,7 +24,7 @@ from core.datasets import (
     transliteration_data, surahs_data,
     normalize_source, get_quran_text_data_by_source, get_quran_text_data,
 )
-from core.memorization import _YT_CHAPTER_URLS
+from core.memorization import _GD_CHAPTER_URLS, _YT_CHAPTER_URLS, _drive_download_url
 from core.db import get_db
 from modules.reading import get_waqf_symbols, get_word_meanings_ordered
 
@@ -189,9 +190,75 @@ except ImportError:
     logger.warning('yt-dlp not installed — YouTube-sourced reciters will be unavailable.')
 
 
-@core_bp.route('/api/audio-proxy')
+def _approved_drive_audio_urls():
+    """Return the exact Drive URLs allowed through the audio proxy."""
+    return {
+        direct
+        for chapter_map in _GD_CHAPTER_URLS.values()
+        for raw in chapter_map.values()
+        for direct in [_drive_download_url(raw)]
+        if direct
+    }
+
+
+def _proxy_drive_audio(audio_url):
+    """Stream an approved Drive file while preserving browser byte ranges."""
+    upstream_headers = {'Accept-Encoding': 'identity'}
+    for header in ('Range', 'If-Range', 'If-Modified-Since'):
+        value = request.headers.get(header)
+        if value:
+            upstream_headers[header] = value
+
+    try:
+        upstream = requests.request(
+            request.method,
+            audio_url,
+            headers=upstream_headers,
+            stream=True,
+            timeout=(10, 60),
+            allow_redirects=False,
+        )
+    except requests.RequestException as exc:
+        logger.warning('Drive audio request failed: %s', exc)
+        return jsonify({'error': 'Drive audio unavailable'}), 502
+
+    response_headers = {}
+    for header in (
+        'Content-Type', 'Content-Length', 'Content-Range', 'Accept-Ranges',
+        'ETag', 'Last-Modified', 'Cache-Control',
+    ):
+        value = upstream.headers.get(header)
+        if value:
+            response_headers[header] = value
+
+    if upstream.status_code >= 400:
+        status = upstream.status_code
+        upstream.close()
+        return jsonify({'error': 'Drive audio unavailable'}), status
+
+    if request.method == 'HEAD':
+        upstream.close()
+        return Response(status=upstream.status_code, headers=response_headers)
+
+    def generate():
+        try:
+            for chunk in upstream.iter_content(chunk_size=64 * 1024):
+                if chunk:
+                    yield chunk
+        finally:
+            upstream.close()
+
+    return Response(
+        stream_with_context(generate()),
+        status=upstream.status_code,
+        headers=response_headers,
+        direct_passthrough=True,
+    )
+
+
+@core_bp.route('/api/audio-proxy', methods=['GET', 'HEAD'])
 def audio_proxy():
-    """Validate and redirect to audio files to avoid firewall issues in sandbox environments"""
+    """Redirect trusted CDNs or stream approved Drive audio same-origin."""
     from urllib.parse import urlparse
     
     audio_url = request.args.get('url')
@@ -207,9 +274,16 @@ def audio_proxy():
             return jsonify({"error": "Only HTTPS URLs are allowed"}), 400
         
         # Only allow specific trusted domains and default HTTPS port.
-        allowed_domains = {'audio.qurancdn.com', 'audio-cdn.tarteel.ai', 'everyayah.com', 'server13.mp3quran.net'}
+        allowed_domains = {
+            'audio.qurancdn.com', 'audio-cdn.tarteel.ai', 'everyayah.com',
+            'server13.mp3quran.net',
+        }
         if parsed_url.hostname not in allowed_domains:
-            return jsonify({"error": "Only trusted audio domains are allowed"}), 400
+            if (
+                parsed_url.hostname != 'drive.usercontent.google.com'
+                or audio_url not in _approved_drive_audio_urls()
+            ):
+                return jsonify({"error": "Only trusted audio domains are allowed"}), 400
         if parsed_url.port not in (None, 443):
             return jsonify({"error": "Only default HTTPS port is allowed"}), 400
         if parsed_url.username or parsed_url.password:
@@ -218,6 +292,9 @@ def audio_proxy():
     except Exception as e:
         logger.error(f"URL validation error: {e}")
         return jsonify({"error": "Invalid URL format"}), 400
+
+    if parsed_url.hostname == 'drive.usercontent.google.com':
+        return _proxy_drive_audio(audio_url)
     
     # Redirect to the validated audio URL instead of proxying
     # This allows the client browser to fetch directly from trusted audio CDNs

@@ -156,6 +156,57 @@ def test_audio_proxy_rejects_everything_but_the_allowlist(client):
     assert client.get('/api/audio-proxy?url=' + _q(bad)).status_code == 400
 
 
+def test_drive_audio_proxy_streams_approved_file_and_preserves_range(client, monkeypatch):
+    from modules import quran_api
+
+    direct = (
+        'https://drive.usercontent.google.com/download'
+        '?id=1rl6qU2TnCacbR_VjK5V-wFm97Zn-cHSg&export=download&confirm=t'
+    )
+    seen = {}
+
+    class FakeResponse:
+        status_code = 206
+        headers = {
+            'Content-Type': 'audio/mpeg',
+            'Content-Length': '2',
+            'Content-Range': 'bytes 0-1/345057624',
+            'Accept-Ranges': 'bytes',
+        }
+
+        def iter_content(self, chunk_size):
+            assert chunk_size == 64 * 1024
+            yield b'OK'
+
+        def close(self):
+            seen['closed'] = True
+
+    def fake_request(method, url, **kwargs):
+        seen.update(method=method, url=url, headers=kwargs['headers'])
+        return FakeResponse()
+
+    monkeypatch.setattr(quran_api.requests, 'request', fake_request)
+    response = client.get(
+        '/api/audio-proxy?url=' + _q(direct),
+        headers={'Range': 'bytes=0-1'},
+    )
+
+    assert response.status_code == 206
+    assert response.data == b'OK'
+    assert response.headers['Content-Type'] == 'audio/mpeg'
+    assert response.headers['Content-Range'] == 'bytes 0-1/345057624'
+    assert seen['headers']['Range'] == 'bytes=0-1'
+    assert seen['closed'] is True
+
+
+def test_drive_audio_proxy_rejects_unapproved_file(client):
+    direct = (
+        'https://drive.usercontent.google.com/download'
+        '?id=not-in-the-reciter-catalog&export=download&confirm=t'
+    )
+    assert client.get('/api/audio-proxy?url=' + _q(direct)).status_code == 400
+
+
 def test_yt_audio_rejects_urls_outside_the_reciter_catalog(client):
     """Only YouTube URLs already present in an installed reciter's catalog may
     be resolved — arbitrary YouTube (or non-YouTube) URLs must be rejected

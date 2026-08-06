@@ -11,7 +11,7 @@ import os
 import re
 import threading
 from collections import defaultdict
-from urllib.parse import parse_qs, urlencode, urlsplit
+from urllib.parse import parse_qs, quote, urlencode, urlsplit
 
 from core.config import _BASE_DIR
 
@@ -153,8 +153,9 @@ def _gd_audio_url(reciter_id: str, surah: int) -> str | None:
 
     HuggingFace direct-MP3 URLs are returned as-is.
     Public Google Drive files are returned through Drive's native direct
-    download endpoint so the browser's native ``<audio>`` element can stream
-    and seek the original file.
+    download endpoint.  Browser-facing callers should use
+    ``_gd_browser_audio_url`` so cross-site media requests go through the
+    same-origin proxy.
     """
     raw = _GD_CHAPTER_URLS.get(reciter_id, {}).get(str(surah))
     if not raw:
@@ -168,6 +169,26 @@ def _gd_audio_url(reciter_id: str, surah: int) -> str | None:
         fallback = cfg.get('fallback_tmpl')
         return fallback.format(surah=surah) if fallback else None
     return raw  # HuggingFace or other direct MP3
+
+
+def _gd_browser_audio_url(reciter_id: str, surah: int) -> str | None:
+    """Return the browser playback URL for a catalog-based reciter.
+
+    Drive rejects native cross-site media requests with ``Sec-Fetch-Site:
+    cross-site``.  Route Drive files through the app's same-origin streaming
+    endpoint; that endpoint fetches the same original Drive file server-side.
+    """
+    direct = _gd_audio_url(reciter_id, surah)
+    if direct and direct.startswith('https://drive.usercontent.google.com/'):
+        proxy_path = '/api/audio-proxy?url=' + quote(direct, safe='')
+        try:
+            from flask import has_request_context, request
+            if has_request_context():
+                return request.url_root.rstrip('/') + proxy_path
+        except (ImportError, RuntimeError):
+            pass
+        return proxy_path
+    return direct
 
 # ── Memorization reciters ────────────────────────────────────────────────
 # Each reciter needs a QUL `word_timestamps.json.gz` (from
