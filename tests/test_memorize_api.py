@@ -4,6 +4,11 @@ algorithm (_waqf_aligned_phrases) — the one piece of real, synthesizable
 logic in this module, worth pinning independent of any specific reciter's
 real timing data.
 """
+from core.memorization import (
+    _audio_timing_entry,
+    _gd_audio_offset_ms,
+    _gd_audio_url,
+)
 from modules.memorize import _waqf_aligned_phrases
 
 
@@ -75,6 +80,24 @@ def test_memorization_breathing_shape(client):
 
 def test_memorization_breathing_bounds(client):
     assert client.get('/api/memorization/0/breathing').status_code == 400
+
+
+def test_drive_reciter_uses_native_range_download_url():
+    url = _gd_audio_url('ayyub', 2)
+    assert url == (
+        'https://drive.usercontent.google.com/download'
+        '?id=1rl6qU2TnCacbR_VjK5V-wFm97Zn-cHSg&export=download&confirm=t'
+    )
+    assert 'mp3quran' not in url
+
+
+def test_drive_chapter_offsets_shift_qul_timing_without_mutating_cache():
+    entry = [[100, 300], [[0, 100, 200], [1, 220, 300]]]
+    shifted = _audio_timing_entry('ayyub', 2, entry)
+
+    assert _gd_audio_offset_ms('ayyub', 2) == 59055
+    assert shifted == [[59155, 59355], [[0, 59155, 59255], [1, 59275, 59355]]]
+    assert entry == [[100, 300], [[0, 100, 200], [1, 220, 300]]]
 
 
 # ── _waqf_aligned_phrases: pure-function snapping algorithm ────────────────

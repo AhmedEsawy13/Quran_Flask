@@ -11,6 +11,7 @@ import os
 import re
 import threading
 from collections import defaultdict
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 from core.config import _BASE_DIR
 
@@ -28,18 +29,22 @@ _MEMORIZATION_AUDIO_TMPL = 'https://server13.mp3quran.net/husr/{surah:03d}.mp3'
 # audio_tmpl for these entries is set to the sentinel '_yt_' so the helpers
 # below know to call _yt_audio_url(reciter_id, surah) instead.
 
-def _load_yt_chapter_urls(slug: str) -> dict:
-    """Return {str(surah_number): youtube_url} from a reciter's catalog.json."""
+def _load_audio_catalog(slug: str) -> tuple[dict, dict]:
+    """Return ``(chapter_urls, chapter_offsets_ms)`` from catalog.json."""
     catalog_path = os.path.join(_BASE_DIR, 'reciters', slug, 'catalog.json')
     if not os.path.exists(catalog_path):
-        return {}
+        return {}, {}
     try:
         with open(catalog_path, encoding='utf-8') as fh:
             cat = json.load(fh)
-        return cat.get('audio', {}).get('chapter_urls', {})
+        audio = cat.get('audio', {}) or {}
+        return (
+            audio.get('chapter_urls', {}) or {},
+            audio.get('chapter_offsets_ms', {}) or {},
+        )
     except Exception as e:
-        logger.warning(f'Could not load YT catalog for {slug}: {e}')
-        return {}
+        logger.warning(f'Could not load audio catalog for {slug}: {e}')
+        return {}, {}
 
 # Map reciter_id -> {str(surah): yt_url} for YouTube-sourced reciters.
 _YT_CHAPTER_URLS: dict = {}
@@ -60,29 +65,105 @@ def _yt_audio_url(reciter_id: str, surah: int) -> str | None:
 # ── Google Drive / HuggingFace catalog-based reciters (_gd_ sentinel) ───────
 # Some reciters have per-surah URLs that are a mix of:
 #   • HuggingFace direct MP3 links (serve immediately, no conversion needed)
-#   • Google Drive "view" pages  (must convert to download URL)
+#   • Google Drive "view" pages (converted to Drive's native byte-range endpoint)
 # audio_tmpl = '_gd_' tells the helpers below to call _gd_audio_url() which
-# converts Drive view URLs to direct-download URLs and passes HF URLs through.
+# converts Drive view URLs to direct-download URLs and passes other URLs through.
 
-_GD_FILE_ID_RE = re.compile(r'/file/d/([A-Za-z0-9_-]+)')
+_GD_FILE_ID_RE = re.compile(r'/file/d/([A-Za-z0-9_-]+)(?:/|$)')
 
 
 # Map reciter_id -> {str(surah): url} for _gd_ sentinel reciters.
 _GD_CHAPTER_URLS: dict = {}
+_GD_CHAPTER_OFFSETS: dict = {}
+
+
+def _drive_download_url(raw_url: str) -> str | None:
+    """Convert a public Drive sharing URL to a native range-download URL.
+
+    ``drive.google.com/uc`` and the viewer page can return HTML or a redirect
+    when used as an ``<audio>`` source.  The user-content endpoint returns the
+    actual MP3 and supports byte ranges, seeking, and CORS for native media.
+    """
+    if not raw_url:
+        return None
+    parsed = urlsplit(raw_url)
+    match = _GD_FILE_ID_RE.search(parsed.path)
+    if match:
+        file_id = match.group(1)
+    else:
+        query = parse_qs(parsed.query)
+        file_id = (query.get('id') or query.get('fileId') or [None])[0]
+    if not file_id:
+        return None
+
+    params = [('id', file_id), ('export', 'download'), ('confirm', 't')]
+    resource_key = parse_qs(parsed.query).get('resourcekey', [None])[0]
+    if resource_key:
+        params.append(('resourcekey', resource_key))
+    return 'https://drive.usercontent.google.com/download?' + urlencode(params)
+
+
+def _gd_audio_offset_ms(reciter_id: str, surah: int) -> int:
+    """Return the chapter's offset inside its catalog audio file.
+
+    A Drive file may contain several consecutive surahs.  QUL timestamps are
+    chapter-relative, while the native audio element seeks on the shared file,
+    so callers must add this offset before returning timing data to the UI.
+    """
+    raw = _GD_CHAPTER_OFFSETS.get(reciter_id, {}).get(str(surah), 0)
+    try:
+        return max(0, int(raw or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _audio_offset_ms(reciter_id: str, surah: int) -> int:
+    """Return the source-file offset for any reciter/surah combination."""
+    cfg = MEMORIZATION_RECITERS.get(reciter_id, {})
+    if cfg.get('audio_tmpl') == '_gd_':
+        return _gd_audio_offset_ms(reciter_id, surah)
+    return 0
+
+
+def _audio_timing_entry(reciter_id: str, surah: int, entry):
+    """Copy a QUL timing entry and shift it into the source-file timeline."""
+    offset_ms = _audio_offset_ms(reciter_id, surah)
+    if not offset_ms or not isinstance(entry, (list, tuple)) or len(entry) < 2:
+        return entry
+    try:
+        verse_range = list(entry[0])
+        verse_range[0] += offset_ms
+        verse_range[1] += offset_ms
+        words = []
+        for word in entry[1]:
+            shifted = list(word)
+            shifted[1] += offset_ms
+            shifted[2] += offset_ms
+            words.append(shifted)
+    except (IndexError, TypeError):
+        return entry
+    shifted_entry = list(entry)
+    shifted_entry[0] = verse_range
+    shifted_entry[1] = words
+    return shifted_entry
 
 
 def _gd_audio_url(reciter_id: str, surah: int) -> str | None:
     """Return a playable audio URL for a catalog-based (_gd_) reciter's surah.
 
     HuggingFace direct-MP3 URLs are returned as-is.
-    Google Drive view URLs 403 on cross-origin requests, so we use the
-    reciter's fallback_tmpl (an mp3quran per-surah URL) for those surahs.
+    Public Google Drive files are returned through Drive's native direct
+    download endpoint so the browser's native ``<audio>`` element can stream
+    and seek the original file.
     """
     raw = _GD_CHAPTER_URLS.get(reciter_id, {}).get(str(surah))
     if not raw:
         return None
-    if 'drive.google.com' in raw:
-        # Drive blocks cross-origin audio — fall back to the mp3quran URL.
+    if 'drive.google.com' in raw or 'drive.usercontent.google.com' in raw:
+        direct = _drive_download_url(raw)
+        if direct:
+            return direct
+        # Keep the configured fallback only for malformed catalog entries.
         cfg = MEMORIZATION_RECITERS.get(reciter_id, {})
         fallback = cfg.get('fallback_tmpl')
         return fallback.format(surah=surah) if fallback else None
@@ -168,16 +249,16 @@ MEMORIZATION_RECITERS = {
     'akhdar': {
         'name_ar': 'إبراهيم الأخضر', 'name_en': 'Ibrahim Al-Akhdar',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'ibrahim_al_akhdar_drive'),
-        # Per-surah catalog: HuggingFace direct MP3 (71 surahs) + Google Drive
-        # view pages (43 surahs). Drive URLs 403 on cross-origin audio requests;
-        # fallback_tmpl is used for those surahs.
+        # Per-surah catalog of public Google Drive files. Several files contain
+        # multiple consecutive surahs; chapter_offsets_ms shifts QUL timings
+        # into the shared file timeline.
         'audio_tmpl': '_gd_',
         'fallback_tmpl': 'https://server6.mp3quran.net/akdr/{surah:03d}.mp3',
     },
     'ayyub': {
         'name_ar': 'محمد أيوب', 'name_en': 'Mohammed Ayyub',
         'dir': os.path.join(_BASE_DIR, 'reciters', 'mohammed_ayyub_drive'),
-        # Same as akhdar: HF direct MP3 (71 surahs) + Drive view pages (43).
+        # Public Google Drive files; some files contain multiple surahs.
         'audio_tmpl': '_gd_',
         'fallback_tmpl': 'https://server8.mp3quran.net/ayyub/{surah:03d}.mp3',
     },
@@ -192,13 +273,14 @@ MEMORIZATION_RECITERS = {
     # here. Excluded until an aligned per-surah MP3 source exists.
 }
 
-# Populate _YT_CHAPTER_URLS and _GD_CHAPTER_URLS at startup.
+# Populate catalog URL/offset maps at startup.
 for _rid, _rcfg in MEMORIZATION_RECITERS.items():
     _slug = os.path.basename(_rcfg['dir'])
     if _rcfg.get('audio_tmpl') == '_yt_':
-        _YT_CHAPTER_URLS[_rid] = _load_yt_chapter_urls(_slug)
+        _YT_CHAPTER_URLS[_rid], _ = _load_audio_catalog(_slug)
     elif _rcfg.get('audio_tmpl') == '_gd_':
-        _GD_CHAPTER_URLS[_rid] = _load_yt_chapter_urls(_slug)  # same catalog format
+        (_GD_CHAPTER_URLS[_rid],
+         _GD_CHAPTER_OFFSETS[_rid]) = _load_audio_catalog(_slug)
 
 _DEFAULT_MEMO_RECITER = 'husary'
 

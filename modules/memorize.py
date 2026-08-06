@@ -18,6 +18,7 @@ from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_cfg, _memo_reciter_installed,
     _load_memorization_word_ts, _memorization_lock, _segment_phrases,
     _build_breathing_guide, _yt_audio_url, _gd_audio_url,
+    _audio_timing_entry, _audio_offset_ms,
     _WAQF_CONSENSUS_GAP_MS, _DEFAULT_MEMO_RECITER,
 )
 
@@ -168,7 +169,7 @@ def get_memorization(surah_number):
         vk = f"{surah_number}:{ayah}"
         if vk not in word_ts:
             break
-        entry = word_ts[vk]
+        entry = _audio_timing_entry(reciter_id, surah_number, word_ts[vk])
         verse_range, words = entry[0], entry[1]
         if mode == 'waqf':
             phrases = _waqf_aligned_phrases(words, waqf_bounds.get(vk, []), gap_ms)
@@ -211,6 +212,7 @@ def get_memorization(surah_number):
         audio_url = _gd_audio_url(reciter_id, surah_number)
     else:
         audio_url = tmpl.format(surah=surah_number) if tmpl else None
+    audio_offset_ms = _audio_offset_ms(reciter_id, surah_number)
 
     return jsonify({
         'surah_number': surah_number,
@@ -218,6 +220,7 @@ def get_memorization(surah_number):
         'reciter_id': reciter_id,
         'reciter_name_ar': reciter_cfg.get('name_ar', ''),
         'audio_url': audio_url,
+        'audio_offset_ms': audio_offset_ms,
         'gap_ms': gap_ms,
         'mode': mode,
         'verses': verses,

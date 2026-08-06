@@ -30,7 +30,7 @@ from core.classical_review import decisions as _classical_review_decisions
 from core.classical_review import REVIEW_GRADE_LABELS
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _load_memorization_word_ts, _segment_phrases, _forward_waqf_stops,
-    _has_arabic_letter, _gd_audio_url, _yt_audio_url,
+    _has_arabic_letter, _gd_audio_url, _yt_audio_url, _audio_timing_entry,
     _WAQF_CONSENSUS_GAP_MS,
 )
 
@@ -125,7 +125,7 @@ def _build_verse_waqf_detail_uncached(surah, ayah):
             continue
         if vk not in wts:
             continue
-        w = wts[vk][1]
+        w = _audio_timing_entry(rid, surah, wts[vk])[1]
         if not w:
             continue
         full = (w[-1][2] - w[0][1]) / 1000.0
