@@ -140,7 +140,9 @@
         activeKey: null,
         stepVerses: [],         // verses overlapping the current step's [start,end]
         activeWords: [],        // flat {key,wpos,start,end} for word-by-word follow
-        curWordId: '',          // currently lit word ("key#wpos") — avoids churn
+        curWordId: '',          // currently lit occurrence ("key#wpos#start")
+        lastProgressWordKey: null,
+        lastProgressWordPos: null,
         curFollowAyah: null,    // verse the audio is currently inside
         followFlipping: false,  // guard: one page-flip at a time while following
         selectionRange: null,   // committed [startAyah, endAyah], independent of hidden controls
@@ -1211,20 +1213,48 @@
        crosses verse boundaries (so cumulative-link steps follow correctly). */
     function highlightCurrentWord(t) {
         const cur = state.activeWords.find(w => t >= w.start - 0.02 && t <= w.end + 0.04);
-        const id = cur ? `${cur.key}#${cur.wpos}` : '';
+        // Include the occurrence start: the same mushaf word can be visited
+        // twice when a reciter backs up and repeats part of the verse.
+        const id = cur ? `${cur.key}#${cur.wpos}#${cur.start}` : '';
         if (id === state.curWordId) return;
         state.curWordId = id;
         wordsInSpread('.mz-word.mz-now').forEach(el => el.classList.remove('mz-now'));
-        // Words already recited in this run brighten and stay (progress reveal).
+
+        // Keep the normal progress reveal, but when the timestamp sequence
+        // moves back within a verse, clear words ahead of the new position.
+        // This preserves the first pass visually and removes stale marks at
+        // the exact re-reading point (for example 14 -> 13).
+        const currentPos = cur == null ? NaN : Number(cur.wpos);
+        const previousPos = Number(state.lastProgressWordPos);
+        const rewound = Boolean(
+            cur && state.lastProgressWordKey === cur.key
+            && Number.isFinite(currentPos)
+            && Number.isFinite(previousPos)
+            && currentPos <= previousPos
+        );
         state.activeWords.forEach(w => {
             if (w.end <= t + 0.02) wordsInSpread(`.mz-word[data-key="${w.key}"][data-wpos="${w.wpos}"]`)
                 .forEach(el => el.classList.add('mz-done'));
         });
+
+        if (rewound) {
+            wordsInSpread(`.mz-word[data-key="${cur.key}"]`).forEach(el => {
+                if (Number(el.dataset.wpos) > currentPos) {
+                    el.classList.remove('mz-done', 'mz-now');
+                }
+            });
+        }
         if (cur) wordsInSpread(`.mz-word[data-key="${cur.key}"][data-wpos="${cur.wpos}"]`)
             .forEach(el => el.classList.add('mz-now', 'mz-done'));
+        if (cur) {
+            state.lastProgressWordKey = cur.key;
+            state.lastProgressWordPos = cur.wpos;
+        }
     }
     function clearWordHighlight() {
         state.curWordId = '';
+        state.lastProgressWordKey = null;
+        state.lastProgressWordPos = null;
         wordsInSpread('.mz-word.mz-now').forEach(el => el.classList.remove('mz-now'));
     }
     function clearDone() { wordsInSpread('.mz-word.mz-done').forEach(el => el.classList.remove('mz-done')); }

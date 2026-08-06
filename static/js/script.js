@@ -1024,6 +1024,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const words = window.AtharMushaf.mergeWaqfOnlyTokens(
             String(text || '').split(/[ \t\n\r\f\v]+/).filter(Boolean)
         );
+        // One mushaf word can occur more than once in a recitation when the
+        // reciter backs up and repeats it. Keep every timed occurrence instead
+        // of letting the last occurrence overwrite the earlier one.
         const wordIndexToSegmentMap = new Map();
 
         // filterWaqfByMode() adds each font's own printed layer (الهندي /
@@ -2852,7 +2855,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 // Validate segment data
                 if (start_word_index != null && end_word_index != null && start_time != null && end_time != null) {
                     for (let i = parseInt(start_word_index); i <= parseInt(end_word_index); i++) {
-                        wordIndexToSegmentMap.set(i, { startTime: parseInt(start_time), endTime: parseInt(end_time) });
+                        const occurrences = wordIndexToSegmentMap.get(i) || [];
+                        occurrences.push({ startTime: parseInt(start_time), endTime: parseInt(end_time) });
+                        wordIndexToSegmentMap.set(i, occurrences);
                     }
                 } else {
                     console.warn('Incomplete segment data:', segment);
@@ -2869,7 +2874,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Use cached elements instead of DOM queries for better performance
         wordElements.forEach((wordElement, index) => {
             if (!wordElement) return;
-            const segment = wordIndexToSegmentMap.get(index);
+            const occurrences = wordIndexToSegmentMap.get(index) || [];
+            const segment = occurrences.find(s =>
+                currentTime >= s.startTime && currentTime <= s.endTime
+            );
             if (segment && currentTime >= segment.startTime && currentTime <= segment.endTime) {
                 if (!wordElement.classList.contains('highlight')) {
                     wordElement.classList.add('highlight');
@@ -2883,7 +2891,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function playWordSegment(index, wordIndexToSegmentMap) {
-        const segment = wordIndexToSegmentMap.get(index);
+        const occurrences = wordIndexToSegmentMap.get(index) || [];
+        if (!occurrences.length) return;
+        const currentTime = (Number.isFinite(elements.audioElement.currentTime)
+            ? elements.audioElement.currentTime * 1000 : 0);
+        const segment = occurrences.find(s =>
+            currentTime >= s.startTime && currentTime <= s.endTime
+        ) || occurrences.find(s => s.startTime >= currentTime) || occurrences[0];
         if (segment) {
             elements.audioElement.currentTime = segment.startTime / 1000;
             elements.audioElement.play();

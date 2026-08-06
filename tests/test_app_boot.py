@@ -439,6 +439,18 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert "els.bar?.getBoundingClientRect().height" in script
 
 
+def test_recitation_repeats_keep_each_timed_word_occurrence():
+    reader = (PROJECT_ROOT / 'static/js/script.js').read_text(encoding='utf-8')
+    memorize = (PROJECT_ROOT / 'static/js/mushaf_memorize.js').read_text(encoding='utf-8')
+
+    # A reciter may revisit an earlier word after a correction; the latest
+    # occurrence must not overwrite the first one in the reader's click/highlight map.
+    assert 'occurrences.push({' in reader
+    assert 'occurrences.find(s =>' in reader
+    assert 'lastProgressWordPos' in memorize
+    assert 'moves back within a verse' in memorize
+
+
 def test_memorization_old_madina_justification_is_adaptive():
     memorize = (PROJECT_ROOT / 'static/js/mushaf_memorize.js').read_text(encoding='utf-8')
     landing = (PROJECT_ROOT / 'static/js/landing.js').read_text(encoding='utf-8')
