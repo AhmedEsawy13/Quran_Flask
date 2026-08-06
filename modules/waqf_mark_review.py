@@ -15,6 +15,7 @@ from core.config import MUSHAF_WAQF_DATABASE
 from core.db import connect as _sqlite_connect
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core import supabase_editor as sb
+from core.datasets import qpc_hafs_data_normalized, surahs_data
 from modules.editor import (
     _find_mushaf_row_match_index,
 )
@@ -206,6 +207,104 @@ def waqf_write_form(symbol: str) -> str:
     return '،'.join(parts)
 
 
+_QURAN_DIGITS = frozenset('0123456789٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹')
+
+
+def _azhar_quran_words(surah: int, ayah: int) -> list[str]:
+    """Return clean Quran words for one ayah, excluding its printed number."""
+    entry = qpc_hafs_data_normalized.get(f'{surah}:{ayah}') or {}
+    text = entry.get('clean_text') or entry.get('text') or ''
+    words = str(text).replace('\u00a0', ' ').split()
+    if words and words[-1] and all(char in _QURAN_DIGITS for char in words[-1]):
+        words.pop()
+    return words
+
+
+def _build_azhar_surah_table(surah_number: int) -> dict:
+    """Build a review table containing every ayah and its current Azhar marks."""
+    surah_meta = next(
+        (item for item in surahs_data if int(item.get('number', 0)) == surah_number),
+        {},
+    )
+    ayah_numbers = sorted(
+        int(key.split(':', 1)[1])
+        for key in qpc_hafs_data_normalized
+        if key.startswith(f'{surah_number}:')
+    )
+    marks_by_ayah: dict[int, list[dict]] = {}
+
+    conn = _sqlite_connect(MUSHAF_WAQF_DATABASE)
+    try:
+        conn.row_factory = sqlite3.Row
+        rows = conn.execute(
+            'SELECT "الآية" AS ayah, "الكلمة" AS source_word, '
+            'token_index, word_index, "الأزهر" AS symbol '
+            'FROM waqf '
+            'WHERE "السورة" = ? AND "الأزهر" IS NOT NULL '
+            'AND TRIM("الأزهر") != "" '
+            'ORDER BY "الآية", COALESCE(word_index, token_index), rowid',
+            (surah_number,),
+        ).fetchall()
+    finally:
+        conn.close()
+
+    for row in rows:
+        ayah = int(row['ayah'])
+        try:
+            word_index = int(row['word_index'] or row['token_index'])
+        except (TypeError, ValueError):
+            continue
+        words = _azhar_quran_words(surah_number, ayah)
+        if not (1 <= word_index <= len(words)):
+            continue
+        symbol = (row['symbol'] or '').strip()
+        if not symbol:
+            continue
+        mark = {
+            'word_index': word_index,
+            'word': words[word_index - 1],
+            'source_word': row['source_word'] or '',
+            'mark': symbol,
+            'glyph': waqf_glyph(symbol),
+            'write': waqf_write_form(symbol),
+            'context': ' '.join(words[max(0, word_index - 2):word_index + 1]),
+        }
+        marks_by_ayah.setdefault(ayah, []).append(mark)
+
+    table_rows = []
+    for ayah in ayah_numbers:
+        words = _azhar_quran_words(surah_number, ayah)
+        marks = marks_by_ayah.get(ayah, [])
+        mark_by_index = {mark['word_index']: mark for mark in marks}
+        table_rows.append({
+            'ayah': ayah,
+            'text': ' '.join(words),
+            'words': [
+                {
+                    'word_index': index,
+                    'text': word,
+                    'mark': mark_by_index.get(index, {}).get('mark', ''),
+                    'glyph': mark_by_index.get(index, {}).get('glyph', ''),
+                    'write': mark_by_index.get(index, {}).get('write', ''),
+                }
+                for index, word in enumerate(words, 1)
+            ],
+            'marks': marks,
+            'mark_count': len(marks),
+        })
+
+    mark_count = sum(row['mark_count'] for row in table_rows)
+    return {
+        'edition': 'الأزهر',
+        'surah': surah_number,
+        'surah_name': surah_meta.get('name', ''),
+        'ayah_count': len(table_rows),
+        'mark_count': mark_count,
+        'ayahs_with_marks': sum(1 for row in table_rows if row['mark_count']),
+        'rows': table_rows,
+    }
+
+
 def _script_ayah_words(surah: int, ayah: int) -> list[dict]:
     """Ordered words for an ayah in quran_script.db (Shemrly word space)."""
     from core.config import QURAN_SCRIPT_DATABASE
@@ -383,6 +482,28 @@ def waqf_mark_review_page():
             for pack_id, meta in PRINT_PACKS.items()
         ],
     )
+
+
+@editor_bp.route('/azhar-waqf-review')
+def azhar_waqf_review_page():
+    """Read-only, surah-by-surah checklist for the printed Azhar mushaf."""
+    return render_template(
+        'azhar_waqf_review.html',
+        enable_vercel_analytics=_IS_SERVERLESS,
+        surahs=surahs_data,
+    )
+
+
+@editor_bp.route('/api/azhar-waqf-review/surah/<int:surah_number>', methods=['GET'])
+def azhar_waqf_review_surah(surah_number):
+    """Return every ayah and the currently stored Azhar marks for one surah."""
+    if not (1 <= surah_number <= 114):
+        return jsonify({'error': 'invalid surah'}), 400
+    try:
+        return jsonify(_build_azhar_surah_table(surah_number))
+    except Exception as exc:
+        logger.exception('Azhar waqf review surah %s failed', surah_number)
+        return jsonify({'error': str(exc)}), 500
 
 
 @editor_bp.route('/waqf-mark-review/print')

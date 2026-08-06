@@ -309,7 +309,7 @@
                     <button class="athar-chip reader-tool-button" id="show-tajweed" type="button" aria-pressed="false" title="عرض الألوان التجويدية"><i class="fas fa-palette" aria-hidden="true"></i> التجويد</button>
                     <button class="athar-chip reader-tool-button waqf-legend-btn" id="tajweed-legend-toggle" type="button" title="شرح ألوان التجويد" aria-expanded="false" aria-controls="tajweed-legend"><i class="fas fa-circle-info" aria-hidden="true"></i> شرح ألوان التجويد</button>
                     <button class="athar-chip reader-tool-button" id="show-asbab" type="button" aria-pressed="false" aria-controls="asbab-container" title="سبب النزول إن ثبت"><i class="fas fa-book-open" aria-hidden="true"></i> سبب النزول</button>
-                    <button class="athar-chip reader-tool-button" id="toggle-word-meaning-button" type="button" aria-pressed="false" aria-controls="word-meaning-text">غريب الكلمات</button>
+                    <button class="athar-chip reader-tool-button" id="toggle-word-meaning-button" type="button" aria-pressed="false" aria-controls="word-meaning-text">معاني الكلمات</button>
                     <button class="athar-chip reader-tool-button" id="toggle-waqf-table" type="button" aria-pressed="false" aria-controls="waqf-verse-table-container" title="عرض جدول علامات الوقف لهذه الآية"><i class="fas fa-table" aria-hidden="true"></i> جدول الوقف</button>
                 </div>
                 <!-- Playback engine only — the visible player lives in Row 2 (.playback-seek) now -->
@@ -439,10 +439,13 @@
             <div class="reader-study-result" id="eerab-container" style="display:none;"><h2>الإعراب</h2><div id="eerab-text"></div></div>
             <div class="reader-study-result tajweed-notes-panel" id="tajweed-notes-container" hidden>
                 <div class="tajweed-notes-head">
-                    <h2>بيان التجويد</h2>
-                    <button type="button" class="athar-chip tajweed-notes-toggle" id="tajweed-notes-expand" hidden aria-expanded="false">عرض بالكامل</button>
+                    <div class="tajweed-notes-title">
+                        <h2>بيان التجويد</h2>
+                        <span class="tajweed-notes-meta" id="tajweed-notes-meta" aria-live="polite"></span>
+                    </div>
+                    <button type="button" class="athar-chip tajweed-notes-toggle" id="tajweed-notes-expand" hidden aria-controls="tajweed-notes-text" aria-expanded="false">عرض النص الكامل</button>
                 </div>
-                <p class="tajweed-notes-hint">كل صفّ حكمٌ كامل — الكلمات القرآنية مميَّزة داخل الجملة.</p>
+                <p class="tajweed-notes-hint">النص منقولٌ كاملًا من المصدر المرجعي؛ تُستخدم البطاقات والتقسيمات للقراءة فقط، ولا يُحذف منها شيء.</p>
                 <div id="tajweed-notes-text" class="tajweed-notes-body is-clamped"></div>
                 <p class="tajweed-notes-credit" id="tajweed-notes-credit"></p>
             </div>

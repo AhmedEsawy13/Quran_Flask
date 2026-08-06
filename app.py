@@ -83,6 +83,8 @@ def after_request(response):
         path.startswith('/mushaf-editor')
         or path.startswith('/layout-studio')
         or path.startswith('/azhar-layout')
+        or path.startswith('/azhar-waqf-review')
+        or path.startswith('/quran-integrity-review')
         or path.startswith('/font-lab')
         or path.startswith('/cv-waqf')
     ):
@@ -98,6 +100,8 @@ def after_request(response):
         if (request.args.get('mushaf_version')
                 or request.path.startswith('/api/mushaf-editor/')
                 or request.path.startswith('/api/azhar-layout/')
+                or request.path.startswith('/api/azhar-waqf-review/')
+                or request.path.startswith('/api/quran-integrity/')
                 or request.path.startswith('/api/layout-studio/')
                 or request.path.startswith('/api/classical-review/')
                 or request.path.startswith('/api/cv-waqf/')):
@@ -159,6 +163,7 @@ from core.text import (
 
 import modules.editor  # noqa: F401 — attaches editor routes to editor_bp
 import modules.waqf_mark_review  # noqa: F401 — Plan A mark-review checklist on editor_bp
+import modules.quran_integrity_review  # noqa: F401 — read-only audit findings dashboard on core_bp
 import modules.cv_waqf_ui  # noqa: F401 — /cv-waqf OpenCV detection viewer
 import modules.activity  # noqa: F401 — /activity cloud audit browser
 import modules.azhar_layout  # noqa: F401 — /azhar-layout aliases → layout studio

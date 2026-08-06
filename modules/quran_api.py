@@ -26,7 +26,11 @@ from core.datasets import (
 )
 from core.memorization import _GD_CHAPTER_URLS, _YT_CHAPTER_URLS, _drive_download_url
 from core.db import get_db
-from modules.reading import get_waqf_symbols, get_word_meanings_ordered
+from modules.reading import (
+    get_waqf_symbols,
+    get_word_meanings_ordered,
+    get_word_meanings_source,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +161,7 @@ def get_ayah_text(surah_number, ayah_number):
         ordered_meanings = get_word_meanings_ordered(surah_number, ayah_number)
         ayah_data['word_meanings_ordered'] = ordered_meanings
         ayah_data['word_meanings'] = {r['word']: r['meaning'] for r in ordered_meanings}
+        ayah_data['word_meanings_source'] = get_word_meanings_source()
         ayah_data['waqf_symbols'] = get_waqf_symbols(surah_number, ayah_number, source)
         
         return jsonify(ayah_data)

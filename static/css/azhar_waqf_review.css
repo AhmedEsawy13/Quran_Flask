@@ -1,0 +1,625 @@
+:root {
+    --azr-bg: var(--athar-parchment, #f3ebe0);
+    --azr-ink: var(--athar-ink, #1c1915);
+    --azr-muted: var(--athar-ink-muted, #6b6358);
+    --azr-accent: var(--athar-accent, #2f5d4a);
+    --azr-gold: var(--athar-gold, #a9782f);
+    --azr-border: color-mix(in srgb, var(--azr-ink) 13%, transparent);
+}
+
+.azhar-review-body {
+    min-height: 100vh;
+    margin: 0;
+    background:
+        radial-gradient(1100px 420px at 50% -8%, color-mix(in srgb, var(--azr-accent) 9%, transparent), transparent),
+        var(--azr-bg);
+    color: var(--azr-ink);
+    font-family: var(--athar-sans, "Thmanyah Sans", "Segoe UI", sans-serif);
+}
+
+.azr-chrome {
+    position: relative;
+    padding: 18px clamp(14px, 4vw, 48px) 14px;
+    border-bottom: 1px solid var(--azr-border);
+    background: color-mix(in srgb, var(--azr-bg) 94%, white);
+    backdrop-filter: blur(10px);
+}
+
+.azr-chrome-top,
+.azr-controls,
+.azr-status-row,
+.azr-main {
+    width: min(1440px, 100%);
+    margin-inline: auto;
+}
+
+.azr-kicker {
+    margin: 0;
+    color: var(--azr-muted);
+    font-size: 0.73rem;
+    font-weight: 800;
+}
+
+.azr-title {
+    margin: 3px 0 0;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+    font-size: clamp(1.45rem, 3vw, 2.25rem);
+}
+
+.azr-lede {
+    max-width: 70rem;
+    margin: 5px 0 0;
+    color: var(--azr-muted);
+    font-size: 0.9rem;
+    line-height: 1.75;
+}
+
+.azr-lede a {
+    color: var(--azr-accent);
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+}
+
+.azr-controls {
+    display: flex;
+    align-items: end;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.azr-field {
+    display: grid;
+    min-width: min(360px, 100%);
+    gap: 5px;
+    color: var(--azr-muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.azr-field select {
+    min-height: 42px;
+    border: 1px solid var(--azr-border);
+    border-radius: 10px;
+    background: color-mix(in srgb, white 58%, var(--azr-bg));
+    color: var(--azr-ink);
+    font: inherit;
+    padding: 6px 10px;
+}
+
+.azr-button {
+    min-height: 42px;
+    border: 1px solid var(--azr-border);
+    border-radius: 10px;
+    padding: 0 15px;
+    color: var(--azr-ink);
+    background: white;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.azr-button-primary {
+    border-color: var(--azr-accent);
+    background: var(--azr-accent);
+    color: #fff;
+}
+
+.azr-controls {
+    flex-wrap: wrap;
+}
+
+.azr-control-group {
+    display: grid;
+    gap: 5px;
+}
+
+.azr-control-label,
+.azr-check {
+    color: var(--azr-muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.azr-view-switch {
+    display: inline-flex;
+    min-height: 42px;
+    padding: 3px;
+    border: 1px solid var(--azr-border);
+    border-radius: 11px;
+    background: color-mix(in srgb, white 48%, var(--azr-bg));
+}
+
+.azr-view-switch button {
+    border: 0;
+    border-radius: 8px;
+    padding: 0 13px;
+    color: var(--azr-muted);
+    background: transparent;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.azr-view-switch button.is-active {
+    color: var(--azr-accent);
+    background: #fff;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--azr-ink) 10%, transparent);
+}
+
+.azr-view-switch button:focus-visible,
+.azr-check input:focus-visible,
+.azr-button:focus-visible,
+.azr-field select:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--azr-accent) 35%, transparent);
+    outline-offset: 2px;
+}
+
+.azr-check {
+    display: inline-flex;
+    align-items: center;
+    align-self: end;
+    gap: 7px;
+    min-height: 42px;
+    padding: 0 7px;
+    cursor: pointer;
+}
+
+.azr-check input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--azr-accent);
+}
+
+.azr-check:has(input:disabled) {
+    opacity: 0.48;
+    cursor: not-allowed;
+}
+
+.azr-controls .azr-button-primary {
+    align-self: end;
+    margin-inline-start: auto;
+}
+
+.azr-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    width: min(1440px, 100%);
+    margin: 13px auto 0;
+}
+
+.azr-stat {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 9px 11px;
+    border: 1px solid color-mix(in srgb, var(--azr-accent) 15%, var(--azr-border));
+    border-radius: 10px;
+    background: color-mix(in srgb, white 43%, var(--azr-bg));
+}
+
+.azr-stat b {
+    color: var(--azr-accent);
+    font-size: 1.1rem;
+}
+
+.azr-stat span {
+    color: var(--azr-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.azr-stat-muted b {
+    color: var(--azr-gold);
+}
+
+.azr-status-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 11px;
+    color: var(--azr-muted);
+    font-size: 0.78rem;
+}
+
+.azr-meta,
+.azr-source {
+    margin: 0;
+}
+
+.azr-source {
+    direction: ltr;
+    text-align: left;
+    opacity: 0.8;
+}
+
+.azr-main {
+    padding: 18px clamp(12px, 3vw, 38px) 48px;
+}
+
+.azr-note {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 14px;
+    padding: 11px 14px;
+    border: 1px solid color-mix(in srgb, var(--azr-gold) 28%, var(--azr-border));
+    border-radius: 11px;
+    color: var(--azr-muted);
+    font-size: 0.82rem;
+    line-height: 1.7;
+}
+
+.azr-note > i {
+    flex: 0 0 auto;
+    color: var(--azr-gold);
+}
+
+.azr-table-card {
+    overflow: hidden;
+    border: 1px solid var(--azr-border);
+    border-radius: 14px;
+}
+
+.azr-table-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--azr-border);
+}
+
+.azr-table-head h2 {
+    margin: 3px 0 0;
+    font-family: var(--athar-display, "Thmanyah Display", serif);
+    font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+}
+
+.azr-view-hint {
+    margin: 4px 0 0;
+    color: var(--azr-muted);
+    font-size: 0.76rem;
+}
+
+.azr-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    color: var(--azr-muted);
+    font-size: 0.72rem;
+}
+
+.azr-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    border: 1px solid var(--azr-border);
+    border-radius: 999px;
+    background: color-mix(in srgb, white 45%, var(--azr-bg));
+}
+
+.azr-legend-glyph,
+.azr-mark-glyph {
+    color: var(--azr-accent);
+    font-family: 'UthmanicHafs', serif;
+}
+
+.azr-legend-glyph {
+    font-size: 1.25rem;
+    line-height: 0.8;
+    transform: translateY(0.15em);
+}
+
+.azr-legend-code {
+    color: var(--azr-gold);
+}
+
+.azr-table-wrap {
+    overflow-x: auto;
+}
+
+.azr-table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+}
+
+.azr-table th,
+.azr-table td {
+    border-bottom: 1px solid color-mix(in srgb, var(--azr-ink) 9%, transparent);
+    padding: 12px 13px;
+    vertical-align: top;
+}
+
+.azr-table thead th {
+    position: static;
+    background: color-mix(in srgb, var(--azr-bg) 97%, white);
+    color: var(--azr-muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-align: right;
+}
+
+.azr-table tbody tr:last-child th,
+.azr-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.azr-table tbody tr:hover {
+    background: color-mix(in srgb, var(--azr-accent) 5%, transparent);
+}
+
+.azr-table tbody tr.is-empty {
+    background: color-mix(in srgb, var(--azr-bg) 32%, transparent);
+}
+
+.azr-ayah-ref {
+    width: 4.5rem;
+    color: var(--azr-accent);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.azr-ayah-text {
+    min-width: 390px;
+    color: var(--azr-ink);
+    font-family: 'UthmanicHafs', serif;
+    font-size: clamp(1.18rem, 2vw, 1.55rem);
+    line-height: 2.25;
+}
+
+.azr-word {
+    position: relative;
+    display: inline-block;
+    margin-inline: 0.06em;
+    white-space: nowrap;
+}
+
+.azr-word.is-marked {
+    border-radius: 5px;
+    background: color-mix(in srgb, var(--azr-gold) 13%, transparent);
+    box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--azr-gold) 52%, transparent);
+}
+
+.azr-inline-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-inline-start: 0.15em;
+    color: var(--azr-accent);
+    font-family: 'UthmanicHafs', serif;
+    font-size: 0.82em;
+    line-height: 1;
+    vertical-align: 0.6em;
+}
+
+.azr-inline-mark small {
+    color: var(--azr-gold);
+    font-family: var(--athar-sans, sans-serif);
+    font-size: 0.42em;
+    font-weight: 800;
+}
+
+.azr-ayah-marks {
+    width: 25%;
+}
+
+.azr-mark-table {
+    min-width: 760px;
+}
+
+.azr-mark-table .azr-ayah-ref {
+    width: 5rem;
+}
+
+.azr-ledger-word {
+    width: 20%;
+    color: var(--azr-ink);
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.35rem;
+    line-height: 1.8;
+}
+
+.azr-ledger-word small {
+    display: block;
+    color: var(--azr-muted);
+    font-family: var(--athar-sans, sans-serif);
+    font-size: 0.68rem;
+}
+
+.azr-context {
+    color: var(--azr-ink);
+    font-family: 'UthmanicHafs', serif;
+    font-size: 1.16rem;
+    line-height: 1.9;
+}
+
+.azr-mark-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 6px 5px;
+    padding: 5px 8px;
+    border: 1px solid color-mix(in srgb, var(--azr-accent) 25%, var(--azr-border));
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--azr-accent) 6%, white);
+    color: var(--azr-ink);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.azr-mark-glyph {
+    font-size: 1.45rem;
+    line-height: 0.8;
+    transform: translateY(0.16em);
+}
+
+.azr-mark-chip b {
+    color: var(--azr-gold);
+}
+
+.azr-mark-chip small {
+    color: var(--azr-muted);
+    font-size: 0.68rem;
+}
+
+.azr-no-mark,
+.azr-empty {
+    color: var(--azr-muted);
+    font-family: var(--athar-sans, sans-serif);
+    font-size: 0.78rem;
+}
+
+.azr-empty {
+    padding: 28px !important;
+    text-align: center;
+}
+
+.azr-error {
+    color: #8a3b2a;
+}
+
+@media (max-width: 680px) {
+    .azr-controls,
+    .azr-status-row,
+    .azr-table-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .azr-field {
+        min-width: 0;
+    }
+
+    .azr-button {
+        width: 100%;
+    }
+
+    .azr-control-group,
+    .azr-view-switch,
+    .azr-view-switch button {
+        width: 100%;
+    }
+
+    .azr-view-switch button {
+        flex: 1;
+    }
+
+    .azr-check {
+        align-self: stretch;
+        min-height: 36px;
+    }
+
+    .azr-controls .azr-button-primary {
+        margin-inline-start: 0;
+    }
+
+    .azr-source {
+        text-align: right;
+    }
+
+    .azr-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .azr-table {
+        min-width: 760px;
+    }
+
+    .azr-ayah-text {
+        min-width: 330px;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    .azhar-review-body {
+        background: #fff;
+    }
+
+    .azr-chrome {
+        position: static;
+        padding: 0 0 8px;
+        background: #fff;
+        border: 0;
+    }
+
+    .azr-lede,
+    .azr-controls,
+    .azr-note,
+    .azr-source,
+    .azr-legend {
+        display: none;
+    }
+
+    .azr-title {
+        font-size: 1.55rem;
+    }
+
+    .azr-status-row {
+        margin-top: 4px;
+    }
+
+    .azr-main {
+        padding: 0;
+    }
+
+    .azr-table-card {
+        border: 0;
+        box-shadow: none;
+    }
+
+    .azr-table-head {
+        padding: 5px 0 8px;
+        border-bottom: 1px solid #999;
+    }
+
+    .azr-table-wrap {
+        overflow: visible;
+    }
+
+    .azr-table {
+        min-width: 0;
+        font-size: 9pt;
+    }
+
+    .azr-table thead th {
+        position: static;
+        background: #fff;
+        color: #222;
+    }
+
+    .azr-table th,
+    .azr-table td {
+        padding: 5px 6px;
+    }
+
+    .azr-ayah-text {
+        min-width: 0;
+        font-size: 14pt;
+        line-height: 1.9;
+    }
+
+    .azr-mark-chip {
+        padding: 2px 4px;
+        margin-bottom: 2px;
+        font-size: 8pt;
+    }
+
+    .azr-mark-glyph {
+        font-size: 14pt;
+    }
+
+    .azr-table tr {
+        break-inside: avoid;
+    }
+}

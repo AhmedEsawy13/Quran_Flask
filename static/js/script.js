@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!body) return;
                 const open = body.classList.toggle('is-clamped') === false;
                 notesExpand.setAttribute('aria-expanded', open ? 'true' : 'false');
-                notesExpand.textContent = open ? 'اختصار' : 'عرض بالكامل';
+                notesExpand.textContent = open ? 'اختصار' : 'عرض النص الكامل';
             });
         }
         elements.toggleWordMeaningButton.addEventListener('click', toggleWordMeaning); // Listener for the new toggle via button
@@ -1545,6 +1545,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             elements.wordMeaningContainer.innerHTML = '<p class="no-meanings">لا توجد معاني متاحة لهذه الآية</p>';
             return;
         }
+        const source = currentAyahData?.word_meanings_source;
+        const heading = document.createElement('h2');
+        heading.textContent = 'معاني الكلمات';
+        elements.wordMeaningContainer.appendChild(heading);
+        if (source?.provider) {
+            const credit = document.createElement('p');
+            credit.className = 'word-meanings-source';
+            credit.textContent = `المصدر: ${source.attribution || source.provider}`;
+            elements.wordMeaningContainer.appendChild(credit);
+        }
         const dl = document.createElement('dl');
         dl.className = 'word-meanings-list';
         entries.forEach(({ word, meaning }) => {
@@ -2197,6 +2207,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const textEl = document.getElementById('tajweed-notes-text');
         const creditEl = document.getElementById('tajweed-notes-credit');
         const expandBtn = document.getElementById('tajweed-notes-expand');
+        const metaEl = document.getElementById('tajweed-notes-meta');
         if (!box || !textEl) return;
         if (!isTajweedEnabled()) {
             box.hidden = true;
@@ -2204,6 +2215,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         try {
             const data = await fetchData(`/api/tajweed-notes/${surahNumber}/${ayahNumber}`);
+            const attr = (data && data.attribution) || 'مركز تفسير للدراسات القرآنية';
+            if (creditEl) {
+                creditEl.innerHTML = escapeHtml(attr)
+                    + ' · <a href="https://tafsir.net" target="_blank" rel="noopener">tafsir.net</a>'
+                    + ' · <a href="/credits">المصادر</a>';
+            }
+            if (data && data.available === false) {
+                textEl.classList.remove('is-clamped');
+                textEl.innerHTML = '<p class="tajweed-notes-empty">'
+                    + escapeHtml(data.message || 'لا يتوفر نص مرجعي لهذه الآية.')
+                    + '</p>';
+                if (metaEl) metaEl.textContent = 'لا يوجد نص مرجعي محفوظ';
+                if (expandBtn) {
+                    expandBtn.hidden = true;
+                    expandBtn.setAttribute('aria-expanded', 'false');
+                }
+                box.hidden = false;
+                return;
+            }
             const raw = (data && data.text) || '';
             if (!raw.trim()) {
                 box.hidden = true;
@@ -2211,18 +2241,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             textEl.innerHTML = formatTajweedNotesHtml(raw);
             const plainLen = raw.replace(/<br\s*\/?>/gi, '\n').length;
+            const formatter = window.AtharTajweedNotes;
+            const unitCount = formatter && typeof formatter.splitUnits === 'function'
+                ? formatter.splitUnits(formatter.normalizeSource(raw)).length
+                : 0;
+            if (metaEl) {
+                const unitText = unitCount ? ` · ${unitCount.toLocaleString('ar-EG')} وحدات عرض` : '';
+                metaEl.textContent = `${plainLen.toLocaleString('ar-EG')} حرف${unitText}`;
+            }
             const long = plainLen > 380;
             textEl.classList.toggle('is-clamped', long);
             if (expandBtn) {
                 expandBtn.hidden = !long;
                 expandBtn.setAttribute('aria-expanded', 'false');
-                expandBtn.textContent = 'عرض بالكامل';
-            }
-            if (creditEl) {
-                const attr = (data && data.attribution) || 'مركز تفسير للدراسات القرآنية';
-                creditEl.innerHTML = escapeHtml(attr)
-                    + ' · <a href="https://tafsir.net" target="_blank" rel="noopener">tafsir.net</a>'
-                    + ' · <a href="/credits">المصادر</a>';
+                expandBtn.textContent = 'عرض النص الكامل';
             }
             box.hidden = false;
         } catch (e) {
@@ -2809,13 +2841,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    function comparableMeaningWord(value) {
+        return String(value || '')
+            .replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u08D9-\u08FF]/g, '')
+            .replace(/[ٱأإآ]/g, 'ا')
+            .replace(/ى/g, 'ي')
+            .replace(/\s+/g, '')
+            .trim();
+    }
+
     function findWordMeaning(wordText, wordMeanings) {
         if (!wordText || !wordMeanings) return null;
-        const clean = wordText.replace(/[٠-٩0-9]/g, '').trim();
+        const clean = comparableMeaningWord(wordText.replace(/[٠-٩0-9]/g, ''));
         if (wordMeanings[clean]) return wordMeanings[clean];
         if (wordMeanings[wordText]) return wordMeanings[wordText];
         for (const [key, meaning] of Object.entries(wordMeanings)) {
-            if (key.includes(clean) || clean.includes(key)) return meaning;
+            const comparableKey = comparableMeaningWord(key);
+            if (comparableKey.includes(clean) || clean.includes(comparableKey)) return meaning;
         }
         return null;
     }
@@ -2826,10 +2868,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         // already shows every word's meaning, so a hover tooltip on top would
         // just duplicate the same text right next to it.
         if (elements.wordMeaningVisible) return;
-        if (!currentAyahData?.word_meanings) return;
+        if (!currentAyahData?.word_meanings && !currentAyahData?.word_meanings_ordered) return;
 
         const wordText = wordEl.dataset.textClean || wordEl.textContent;
-        const meaning = findWordMeaning(wordText, currentAyahData.word_meanings);
+        const orderedMeaning = (currentAyahData.word_meanings_ordered || [])
+            .find(entry => comparableMeaningWord(entry.word) === comparableMeaningWord(wordText));
+        const meaning = orderedMeaning?.meaning
+            || findWordMeaning(wordText, currentAyahData.word_meanings);
         if (!meaning) return;
 
         const tooltip = document.createElement('div');

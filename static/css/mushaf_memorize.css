@@ -316,9 +316,19 @@ button.mz-disabled:hover {
     line-height: 1.75;
     color: var(--athar-ink);
 }
-.mz-tajweed-note-body .tj-badge {
+.mz-tajweed-note-body .tj-badges {
+    display: flex;
     flex: 0 0 auto;
-    align-self: center;
+    align-self: flex-start;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 3px;
+    max-width: 38%;
+    padding-top: 0.1em;
+}
+.mz-tajweed-note-body .tj-badge {
+    display: inline-flex;
+    align-items: center;
     font-family: var(--font-ui, 'Thmanyah', sans-serif);
     font-size: 0.68rem;
     font-weight: 700;

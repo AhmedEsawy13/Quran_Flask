@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% set page_title = 'أثَر · مراجعة نزاهة النص القرآني' %}
+    {% set page_description = 'لوحة مراجعة تفاعلية لنتائج تدقيق نص القرآن والمعرّفات ومخططات الصفحات.' %}
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_description }}">
+    {{ athar_page_meta(page_title, page_description, path='/quran-integrity-review', noindex=true) }}
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/quran_integrity_review.css') }}">
+</head>
+<body class="athar-tool qir-body"
+      data-report-available="{{ 'true' if summary.available else 'false' }}">
+    {{ athar_app_bar('qir-main') }}
+
+    <header class="qir-hero" aria-labelledby="qir-title">
+        <div class="qir-hero-inner">
+            <p class="qir-kicker">مراجعة · نزاهة القرآن</p>
+            <h1 id="qir-title">نتائج التدقيق — ١٣ بندًا ومقارنة المعاني</h1>
+            <p class="qir-lede">
+                لوحة قراءة فقط لنتائج تدقيق Tafsir MCP. لا تعدّل هذه الصفحة أي قاعدة
+                قرآن؛ افتح عينة البند، ثم راجع المصدر أو صفحة المخطط المناسبة.
+            </p>
+            <div class="qir-hero-actions">
+                <a class="qir-button qir-button-primary" href="#qir-findings">ابدأ المراجعة</a>
+                <a class="qir-button" href="/api/quran-integrity/report" target="_blank" rel="noopener">التقرير الخام JSON</a>
+                <a class="qir-button" href="/azhar-waqf-review">مراجعة الأزهر</a>
+                <a class="qir-button" href="/waqf-mark-review">مراجعة الشمرلي</a>
+            </div>
+        </div>
+        <div class="qir-overview" aria-label="ملخص التدقيق">
+            <div class="qir-overview-card qir-overview-status">
+                <span>الحالة</span>
+                <strong id="qir-status">{{ summary.status }}</strong>
+            </div>
+            <div class="qir-overview-card">
+                <span>بنود المراجعة</span>
+                <strong id="qir-failure-count">{{ summary.failure_count }}</strong>
+            </div>
+            <div class="qir-overview-card">
+                <span>الآيات المرجعية</span>
+                <strong id="qir-verse-count">{{ summary.verse_count }}</strong>
+            </div>
+            <div class="qir-overview-card">
+                <span>كلمات MCP</span>
+                <strong id="qir-word-count">{{ summary.word_count }}</strong>
+            </div>
+            <div class="qir-overview-card">
+                <span>كلمات النص المفصولة</span>
+                <strong id="qir-text-token-count">{{ summary.text_token_count }}</strong>
+            </div>
+        </div>
+    </header>
+
+    <main class="qir-main" id="qir-main" tabindex="-1">
+        <section class="qir-note athar-surface" aria-label="سياسة المراجعة">
+            <span class="qir-note-icon" aria-hidden="true">ⓘ</span>
+            <p>
+                الاختلافات الموسومة <b>تطبيع</b> قد تكون فروق رسم أو تشكيل فقط.
+                لا تعتمد إصلاحًا آليًا للنص الخام أو تبديل مساحة معرّفات قبل مراجعة
+                العينة والنسخة المطبوعة.
+            </p>
+        </section>
+
+        <section class="qir-toolbar athar-surface" aria-label="تصفية البنود">
+            <label class="qir-search">
+                <span>بحث في البنود والعينات</span>
+                <input id="qir-search-input" type="search" placeholder="مثال: 11:14 أو Azhar أو waqf" autocomplete="off">
+            </label>
+            <div class="qir-filters" id="qir-filters" role="group" aria-label="نوع البند">
+                <button class="is-active" type="button" data-qir-filter="all" aria-pressed="true">الكل</button>
+                <button type="button" data-qir-filter="reference" aria-pressed="false">المرجع</button>
+                <button type="button" data-qir-filter="json_sources" aria-pressed="false">مصادر النص</button>
+                <button type="button" data-qir-filter="databases" aria-pressed="false">قواعد البيانات</button>
+                <button type="button" data-qir-filter="layouts" aria-pressed="false">المخططات</button>
+                <button type="button" data-qir-filter="word_meanings" aria-pressed="false">معاني الكلمات</button>
+            </div>
+            <p class="qir-result-count" id="qir-result-count" aria-live="polite">جارٍ تحميل التقرير…</p>
+        </section>
+
+        <section class="qir-findings-section" id="qir-findings" aria-labelledby="qir-findings-title">
+            <div class="qir-section-heading">
+                <div>
+                    <p class="qir-kicker">قائمة الفحص</p>
+                    <h2 id="qir-findings-title">البنود التي تحتاج قرارًا</h2>
+                </div>
+                <p class="qir-section-hint">اضغط «التفاصيل» لعرض عينات الصفوف والآيات.</p>
+            </div>
+            <div class="qir-findings" id="qir-findings-list">
+                <div class="qir-loading" role="status">جارٍ تحميل التقرير…</div>
+            </div>
+        </section>
+
+        <section class="qir-details athar-surface athar-surface-raised" id="qir-details" hidden aria-labelledby="qir-details-title">
+            <div class="qir-details-heading">
+                <div>
+                    <p class="qir-kicker">تفاصيل العينة</p>
+                    <h2 id="qir-details-title">—</h2>
+                </div>
+                <button class="qir-button qir-button-small" type="button" id="qir-close-details">إغلاق</button>
+            </div>
+            <p class="qir-details-summary" id="qir-details-summary"></p>
+            <div class="qir-details-actions" id="qir-details-actions"></div>
+            <div id="qir-details-content"></div>
+        </section>
+    </main>
+
+    <footer class="qir-footer">
+        <span>مصدر التقرير: artifacts/quran-integrity/integrity-report.json</span>
+        {% if summary.sha256 %}
+        <code title="{{ summary.sha256 }}">SHA-256: {{ summary.sha256[:16] }}…</code>
+        {% endif %}
+    </footer>
+
+    <script src="{{ static_hash('js/quran_integrity_review.js') }}"></script>
+</body>
+</html>

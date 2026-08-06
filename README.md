@@ -371,7 +371,7 @@ Quran_Flask/
 ### Data sources (`data/`)
 - `quran_text/` — Quranic text in multiple fonts/editions (JSON)
 - `quran_script.db` — Quranic script + word positions
-- `word_name.db` — word-meaning database
+- `word_name.db` — canonical per-word meanings from Tafsir MCP
 - `mushaf_waqf.db` / `mushaf-qatar-layout.db` — waqf marks per mushaf layout (written by the editor)
 - `classical_waqf.db` — the four classical waqf books, aligned per word (built by `pipeline/build_classical_waqf.py`)
 - `qpc-v4-15-lines.db` / `qpc-v1-15-lines.db` / `mushaf-qatar-layout.db` / `digital-khatt-15-lines.db` — page-layout databases

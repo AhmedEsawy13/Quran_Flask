@@ -687,8 +687,21 @@ body.athar-reading .tajweed-notes-head {
     flex-wrap: wrap;
 }
 body.athar-reading .tajweed-notes-head h2 { margin: 0; }
+body.athar-reading .tajweed-notes-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+}
 body.athar-reading .tajweed-notes-toggle {
     font-size: 0.78rem;
+}
+body.athar-reading .tajweed-notes-meta {
+    color: var(--athar-ink-faint, var(--athar-ink-soft));
+    font-family: var(--font-ui, 'Thmanyah', sans-serif);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
 }
 body.athar-reading .tajweed-notes-hint,
 body.athar-reading .asbab-hint {
@@ -742,9 +755,19 @@ body.athar-reading .tajweed-notes-body .tj-rule-note {
     line-height: 1.85;
     color: var(--athar-ink);
 }
-body.athar-reading .tajweed-notes-body .tj-badge {
+body.athar-reading .tajweed-notes-body .tj-badges {
+    display: flex;
     flex: 0 0 auto;
-    align-self: center;
+    align-self: flex-start;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 4px;
+    max-width: min(35%, 190px);
+    padding-top: 0.15em;
+}
+body.athar-reading .tajweed-notes-body .tj-badge {
+    display: inline-flex;
+    align-items: center;
     font-family: var(--font-ui, 'Thmanyah', sans-serif);
     font-size: 0.72rem;
     font-weight: 700;
@@ -782,6 +805,16 @@ body.athar-reading .tajweed-notes-body.is-clamped {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 8;
     overflow: hidden;
+    position: relative;
+}
+body.athar-reading .tajweed-notes-empty {
+    margin: 0;
+    padding: 1rem;
+    border: 1px dashed color-mix(in srgb, var(--athar-line) 80%, var(--athar-gold));
+    border-radius: var(--athar-radius-control);
+    color: var(--athar-ink-soft);
+    background: color-mix(in srgb, var(--athar-parchment) 55%, transparent);
+    line-height: 1.8;
 }
 body.athar-reading.dark-mode .tajweed-notes-body .tj-rule {
     background: rgba(255, 255, 255, 0.03);

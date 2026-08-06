@@ -37,6 +37,7 @@
         ['إدغام تجانس', 'إدغام'],
         ['إظهار حلقي', 'إظهار'],
         ['إظهار شفوي', 'إظهار شفوي'],
+        ['إظهار', 'إظهار'],
         ['إقلاب', 'إقلاب'],
         ['قلقلة', 'قلقلة'],
         ['مقلقلة', 'قلقلة'],
@@ -47,6 +48,8 @@
         ['ترقيق', 'ترقيق'],
         ['مرققة', 'ترقيق'],
         ['رقيقة', 'ترقيق'],
+        ['إخفاء', 'إخفاء'],
+        ['إدغام', 'إدغام'],
         ['قمرية', 'لام قمرية'],
         ['شمسية', 'لام شمسية'],
         ['روم', 'روم'],
@@ -59,7 +62,7 @@
     );
     // Lead-in that belongs with the *next* quote (kept on that unit by cutting before it).
     const TRAILING_LEAD_RE = new RegExp(
-        `(?:^|\\s)(والوقف\\s+على|(?:و)?عند\\s+(?:ال)?وقف\\s+على|(?:وفي\\s+)?(?:ال)?وقف\\s+على|ويراعي\\s+فصل|مع\\s+(?:${LETTER_NAME})|مع\\s+اللام|مع\\s+لام|أو\\s+على|(?:و)?الياء\\s+في|(?:و)?لام(?:\\s+اسم\\s+الجلالة)?(?:\\s+من)?|(?:أما\\s+)?راء|وفي باء|ودال|(?:و)?(?:الباء|الراء|الدال|التاء|النون|الميم|الهاء|اللام|الجيم|القاف|الياء|الواو|الألف)\\s+(?:من|في|فى|على)|فصل|وفِي|وفى|وفي|عن|على|مع)\\s*$`,
+        `(?:^|\\s)(والوقف\\s+على|(?:و)?عند\\s+(?:ال)?وقف\\s+على|(?:وفي\\s+)?(?:ال)?وقف\\s+على|ويراعي\\s+فصل|مع\\s+(?:${LETTER_NAME})|مع\\s+اللام|مع\\s+لام|أو\\s+على|(?:و)?الياء\\s+في|(?:و)?لام(?:\\s+اسم\\s+الجلالة)?(?:\\s+من)?|(?:أما\\s+)?راء|وفي باء|ودال|(?:و)?(?:الباء|الراء|الدال|التاء|النون|الميم|الهاء|اللام|الجيم|القاف|الياء|الواو|الألف)\\s+(?:من|في|فى|على)|فصل|وفِي|وفى|وفي|ثم|و|ف|عن|على|مع)\\s*$`,
         'u'
     );
     const MA3_TAIL_RE = new RegExp(`مع(?:\\s+(?:${LETTER_NAME}))?\\s*$`);
@@ -81,12 +84,32 @@
             .replace(/"/g, '&quot;');
     }
 
-    function ruleBadge(text) {
+    function ruleBadges(text) {
         const t = stripMarks(String(text || ''));
+        const found = [];
         for (const [needle, label] of RULE_LABELS) {
-            if (t.includes(stripMarks(needle))) return label;
+            if (!t.includes(stripMarks(needle)) || found.includes(label)) continue;
+            // A specific family label is more useful than its generic label.
+            // For example, show «إدغام بغنة» rather than both it and «إدغام».
+            if (
+                label === 'إدغام' &&
+                found.some((item) => item.startsWith('إدغام '))
+            ) continue;
+            if (
+                label === 'إخفاء' &&
+                found.some((item) => item.startsWith('إخفاء '))
+            ) continue;
+            if (
+                label === 'إظهار' &&
+                found.some((item) => item.startsWith('إظهار '))
+            ) continue;
+            found.push(label);
         }
-        return '';
+        return found;
+    }
+
+    function ruleBadge(text) {
+        return ruleBadges(text)[0] || '';
     }
 
     function normBridge(between) {
@@ -305,9 +328,9 @@
                         digression = dig[2].trim();
                     }
 
-                    const badge = ruleBadge(text);
-                    const badgeHtml = badge
-                        ? `<span class="tj-badge">${escapeHtml(badge)}</span>`
+                    const badges = ruleBadges(text);
+                    const badgeHtml = badges.length
+                        ? `<span class="tj-badges">${badges.map((badge) => `<span class="tj-badge">${escapeHtml(badge)}</span>`).join('')}</span>`
                         : '';
                     out.push(
                         `<li class="tj-rule">`
@@ -341,6 +364,7 @@
         findCutOffsets,
         isLossless,
         arabicWords,
+        ruleBadges,
         parseRuleItems(block) {
             return splitUnits(block)
                 .filter(u => findQuotes(u.text).length)

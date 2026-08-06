@@ -49,6 +49,33 @@ def test_waqf_mark_review_page_renders_shemrly(client):
     assert '/waqf-mark-review/print?pack=3' in body
 
 
+def test_azhar_surah_review_page_and_table(client):
+    page = client.get('/azhar-waqf-review')
+    assert page.status_code == 200
+    body = page.get_data(as_text=True)
+    assert 'علامات الوقف — سورةً سورةً' in body
+    assert 'azhar_waqf_review.js' in body
+    assert 'azhar_waqf_review.css' in body
+
+    response = client.get('/api/azhar-waqf-review/surah/2')
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload['edition'] == 'الأزهر'
+    assert payload['surah_name'] == 'البقرة'
+    assert payload['ayah_count'] == 286
+    assert len(payload['rows']) == payload['ayah_count']
+    row = next(item for item in payload['rows'] if item['ayah'] == 2)
+    assert row['text']
+    assert row['marks'][0]['word_index'] == 2
+    assert row['marks'][0]['mark'] == 'ج'
+    assert row['marks'][0]['glyph'] == 'ۚ'
+
+
+def test_azhar_surah_review_rejects_invalid_surah(client):
+    assert client.get('/api/azhar-waqf-review/surah/0').status_code == 400
+    assert client.get('/api/azhar-waqf-review/surah/115').status_code == 400
+
+
 def test_waqf_mark_review_print_pack1_renders(client):
     page = client.get('/waqf-mark-review/print?pack=1')
     assert page.status_code == 200

@@ -13,6 +13,7 @@ Requires network. Resume-safe: re-run continues from missing verse_keys.
 from __future__ import annotations
 
 import argparse
+import json
 import sqlite3
 import sys
 import time
@@ -104,7 +105,8 @@ def main() -> int:
         print(f"Missing coloring DB {COLOR_DB}", file=sys.stderr)
         return 1
 
-    keys = list_verse_keys()
+    all_keys = list_verse_keys()
+    keys = all_keys
     if args.limit > 0:
         keys = keys[: args.limit]
 
@@ -116,7 +118,19 @@ def main() -> int:
     print(f"target={len(keys)} already={len(done)} todo={len(todo)} workers={args.workers}")
 
     ok = fail = empty = 0
+    empty_keys: list[str] = []
     pending: list[tuple[str, str]] = []
+    previous_missing: set[str] = set()
+    previous_missing_row = conn.execute(
+        "SELECT value FROM meta WHERE key = 'reference_missing_keys'"
+    ).fetchone()
+    if previous_missing_row:
+        try:
+            value = json.loads(previous_missing_row[0])
+            if isinstance(value, list):
+                previous_missing = {str(key) for key in value}
+        except (TypeError, json.JSONDecodeError):
+            previous_missing = set()
 
     def flush() -> None:
         nonlocal pending
@@ -138,6 +152,7 @@ def main() -> int:
                 key, note, err = fut.result()
                 if err == "empty":
                     empty += 1
+                    empty_keys.append(key)
                     print(f"[{i}/{len(todo)}] empty {key}")
                 elif err:
                     fail += 1
@@ -166,11 +181,40 @@ def main() -> int:
             "INSERT OR REPLACE INTO meta(key, value) VALUES ('built_rows', ?)",
             (str(conn.execute('SELECT count(*) FROM tajweed_notes').fetchone()[0]),),
         )
+        available_keys = {
+            row[0]
+            for row in conn.execute(
+                "SELECT verse_key FROM tajweed_notes WHERE length(trim(text)) > 0"
+            )
+        }
+        missing_keys = sorted(
+            (previous_missing | set(empty_keys)) - available_keys,
+            key=lambda key: tuple(int(part) for part in key.split(':')),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES ('reference_total', ?)",
+            (str(len(all_keys)),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES ('reference_available', ?)",
+            (str(len(available_keys & set(all_keys))),),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES ('reference_missing_keys', ?)",
+            (json.dumps(missing_keys, ensure_ascii=False)),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO meta(key, value) VALUES ('reference_scan_complete', ?)",
+            ('1' if args.limit <= 0 and fail == 0 else '0',),
+        )
         conn.commit()
     finally:
         conn.close()
 
-    print(f"\ndone → {OUT_DB}  ok={ok} fail={fail} empty={empty}")
+    print(
+        f"\ndone → {OUT_DB}  ok={ok} fail={fail} empty={empty}"
+        f" reference_missing={len(empty_keys)}"
+    )
     return 0 if fail == 0 else 2
 
 

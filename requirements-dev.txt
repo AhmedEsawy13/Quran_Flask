@@ -3,6 +3,8 @@
 -r requirements.txt
 pytest>=8.0
 rapidfuzz>=3.0
+# Official offline Tafsir MCP database for Quran meaning comparisons.
+tafsir-mcp>=1.0.0
 -r requirements-font-audit.txt
 
 # pipeline/build_classical_llm.py --api only (classical waqf AI re-extraction).

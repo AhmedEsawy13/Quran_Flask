@@ -61,6 +61,33 @@ def test_tajweed_notes_serves_local_companion_text(client, tmp_path, monkeypatch
     assert client.get('/api/tajweed-notes/1/2').status_code == 404
 
 
+def test_tajweed_notes_reports_verified_reference_gap(client):
+    """A source gap is explicit, not silently confused with a broken route."""
+    import sqlite3
+
+    db = reading.TAJWEED_NOTES_DATABASE
+    conn = sqlite3.connect(db)
+    try:
+        missing = conn.execute(
+            "SELECT value FROM meta WHERE key = 'reference_missing_keys'"
+        ).fetchone()
+    finally:
+        conn.close()
+    assert missing is not None
+
+    for key in ('100:11', '101:11'):
+        for cached_key in list(reading._tajweed_notes_cache.keys()):
+            if cached_key == key:
+                del reading._tajweed_notes_cache[cached_key]
+        surah, ayah = key.split(':')
+        response = client.get(f'/api/tajweed-notes/{surah}/{ayah}')
+        assert response.status_code == 200
+        payload = response.get_json()
+        assert payload['available'] is False
+        assert payload['text'] == ''
+        assert 'لا يتوفر' in payload['message']
+
+
 def test_asbab_bounds_and_empty(client, tmp_path, monkeypatch):
     assert client.get('/api/asbab/115/1').status_code == 400
     assert client.get('/api/asbab/1/0').status_code == 400
@@ -93,17 +120,25 @@ def test_asbab_bounds_and_empty(client, tmp_path, monkeypatch):
 
 
 def test_word_meanings_ordered_matches_db_order(app):
-    """1:1 has three word-meaning entries; get_word_meanings_ordered must
+    """1:1 has four canonical MCP word entries; the ordered API must
     preserve the DB's own id ASC order, which get_ayah_text's dict form
     (word -> meaning) then can't distinguish — this is the one place order
     is actually verified."""
     with app.test_request_context():
         ordered = reading.get_word_meanings_ordered(1, 1)
-    assert len(ordered) == 3
-    # first entry is the بسم الله compound, folded to skeleton to sidestep
-    # exact-diacritic transcription (sukun-glyph variants etc.).
-    assert _normalize_for_search(ordered[0]['word']) == _normalize_for_search('بسم الله')
+    assert len(ordered) == 4
+    assert [row['word_no'] for row in ordered] == [1, 2, 3, 4]
+    assert _normalize_for_search(ordered[0]['word']) == _normalize_for_search('بسم')
+    assert _normalize_for_search(ordered[1]['word']) == _normalize_for_search('الله')
     assert all(o['word'] and o['meaning'] for o in ordered)
+
+
+def test_word_meanings_api_exposes_mcp_provenance(client):
+    payload = client.get('/api/surahs/1/ayahs/1').get_json()
+    source = payload['word_meanings_source']
+    assert source['tool'] == 'analyze_word'
+    assert source['granularity'] == 'mcp_word'
+    assert source['attribution'] == 'مركز تفسير للدراسات القرآنية'
 
 
 def test_get_waqf_symbols_indopak_embedded_marks_labelled_hindi(app):

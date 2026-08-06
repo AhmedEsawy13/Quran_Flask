@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% set page_title = 'أثَر · مراجعة علامات الأزهر' %}
+    {% set page_description = 'جدول سورةً سورةً لمراجعة علامات الوقف في مصحف الأزهر أمام النسخة المطبوعة.' %}
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_description }}">
+    {{ athar_page_meta(page_title, page_description, path='/azhar-waqf-review', noindex=true) }}
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/azhar_waqf_review.css') }}">
+    <style>
+        @font-face {
+            font-family: 'UthmanicHafs';
+            src: url("{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}") format("woff2");
+            font-display: swap;
+        }
+    </style>
+</head>
+<body class="athar-tool azhar-review-body">
+    {{ athar_app_bar('azhar-review-main') }}
+
+    <header class="azr-chrome" aria-label="إعدادات مراجعة الأزهر">
+        <div class="azr-chrome-top">
+            <p class="azr-kicker">مراجعة · الأزهر</p>
+            <h1 class="azr-title">علامات الوقف — سورةً سورةً</h1>
+            <p class="azr-lede">
+                اختر السورة وقارن كل آية بالنسخة المطبوعة. العلامات الظاهرة هي المسجلة حاليًا في قاعدة البيانات.
+                <a href="/waqf-mark-review">مراجعة الشمرلي</a>
+            </p>
+        </div>
+
+        <div class="azr-controls">
+            <label class="azr-field" for="azr-surah">
+                <span>السورة</span>
+                <select id="azr-surah" class="athar-field">
+                    {% for surah in surahs %}
+                    <option value="{{ surah.number }}">{{ surah.number }}. {{ surah.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="azr-control-group">
+                <span class="azr-control-label">طريقة العرض</span>
+                <div class="azr-view-switch" id="azr-view-switch" role="group" aria-label="طريقة عرض جدول المراجعة">
+                    <button type="button" class="is-active" data-azr-view="ayah" aria-pressed="true">الآيات</button>
+                    <button type="button" data-azr-view="marks" aria-pressed="false">سجل العلامات</button>
+                </div>
+            </div>
+            <label class="azr-check">
+                <input type="checkbox" id="azr-show-empty" checked>
+                <span>إظهار الآيات بلا علامة</span>
+            </label>
+            <button class="azr-button azr-button-primary" id="azr-print" type="button">
+                <i class="fas fa-print" aria-hidden="true"></i> طباعة السورة
+            </button>
+        </div>
+
+        <div class="azr-status-row">
+            <p class="azr-meta" id="azr-meta" aria-live="polite">اختر سورة للتحميل</p>
+            <p class="azr-source">المصدر: عمود «الأزهر» في mushaf_waqf.db</p>
+        </div>
+        <div class="azr-stats" aria-label="ملخص السورة">
+            <div class="azr-stat"><b id="azr-stat-ayahs">—</b><span>آية</span></div>
+            <div class="azr-stat"><b id="azr-stat-marked">—</b><span>آية فيها علامة</span></div>
+            <div class="azr-stat"><b id="azr-stat-marks">—</b><span>علامة مسجلة</span></div>
+            <div class="azr-stat azr-stat-muted"><b id="azr-stat-empty">—</b><span>آية بلا علامة</span></div>
+        </div>
+    </header>
+
+    <main class="azr-main" id="azhar-review-main" tabindex="-1">
+        <section class="azr-note athar-surface">
+            <i class="fas fa-circle-info" aria-hidden="true"></i>
+            <span>تظهر كل الآيات، حتى الآيات التي لا تحمل علامة مسجلة؛ هذا يساعدك على اكتشاف العلامات الناقصة أثناء المقارنة.</span>
+        </section>
+
+        <section class="azr-table-card athar-surface athar-surface-raised" aria-labelledby="azr-table-title">
+            <div class="azr-table-head">
+                <div>
+                    <p class="azr-kicker">قائمة الفحص</p>
+                    <h2 id="azr-table-title">مراجعة سورة <span id="azr-surah-title">—</span></h2>
+                    <p class="azr-view-hint" id="azr-view-hint">كل آية في صف مستقل، والعلامات ملوّنة داخل الكلمات.</p>
+                </div>
+                <div class="azr-legend" aria-label="دليل العلامة">
+                    <span class="azr-legend-item"><b class="azr-legend-glyph">ۚ</b><span>الرسم المطبوع</span></span>
+                    <span class="azr-legend-item"><b class="azr-legend-code">ج</b><span>رمز البيانات</span></span>
+                </div>
+            </div>
+            <div class="azr-table-wrap" id="azr-ayah-view">
+                <table class="azr-table azr-ayah-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">الآية</th>
+                            <th scope="col">نص الآية</th>
+                            <th scope="col">العلامات الحالية</th>
+                        </tr>
+                    </thead>
+                    <tbody id="azr-table-body">
+                        <tr><td colspan="3" class="azr-empty">جارٍ التحميل…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="azr-table-wrap" id="azr-mark-view" hidden>
+                <table class="azr-table azr-mark-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">الآية</th>
+                            <th scope="col">الكلمة</th>
+                            <th scope="col">السياق</th>
+                            <th scope="col">العلامة الحالية</th>
+                        </tr>
+                    </thead>
+                    <tbody id="azr-mark-body">
+                        <tr><td colspan="4" class="azr-empty">جارٍ التحميل…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ static_hash('js/azhar_waqf_review.js') }}"></script>
+</body>
+</html>

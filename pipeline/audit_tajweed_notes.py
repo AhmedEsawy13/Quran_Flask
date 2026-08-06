@@ -11,6 +11,7 @@ keyword-level consistency check on a curated sample:
 Usage:
   python3 pipeline/audit_tajweed_notes.py
   python3 pipeline/audit_tajweed_notes.py --limit 20 --sleep 0.2
+  python3 pipeline/audit_tajweed_notes.py --local-only
   python3 pipeline/audit_tajweed_notes.py --json-out /tmp/tajweed_audit.json
 
 Does not modify app data. Requires network to mcp.tafsir.net.
@@ -32,6 +33,7 @@ sys.path.insert(0, str(ROOT / "pipeline"))
 from tafsir_mcp_client import TafsirMcpClient, TafsirMcpError  # noqa: E402
 
 TAJWEED_DB = ROOT / "data" / "tajweed_local.db"
+TAJWEED_NOTES_DB = ROOT / "data" / "tajweed_notes_local.db"
 
 # Arabic phrase → Athar CSS class (cpfair-mapped). Order matters for overlaps
 # (more specific phrases first).
@@ -119,6 +121,40 @@ def load_athar_html(conn: sqlite3.Connection, key: str) -> str | None:
     return row[0] if row else None
 
 
+def audit_local_coverage() -> dict:
+    """Check that every coloring key is either annotated or source-confirmed empty."""
+    with sqlite3.connect(TAJWEED_DB) as color_conn:
+        color_keys = {row[0] for row in color_conn.execute("SELECT verse_key FROM tajweed")}
+    with sqlite3.connect(TAJWEED_NOTES_DB) as notes_conn:
+        note_keys = {
+            row[0]
+            for row in notes_conn.execute(
+                "SELECT verse_key FROM tajweed_notes WHERE length(trim(text)) > 0"
+            )
+        }
+        meta = dict(notes_conn.execute("SELECT key, value FROM meta"))
+
+    try:
+        missing_keys = set(json.loads(meta.get("reference_missing_keys", "[]")))
+    except json.JSONDecodeError:
+        missing_keys = set()
+
+    covered = note_keys | missing_keys
+    return {
+        "color_keys": len(color_keys),
+        "note_keys": len(note_keys),
+        "reference_missing": len(missing_keys),
+        "covered_keys": len(covered),
+        "missing_from_notes": sorted(color_keys - covered),
+        "orphan_notes": sorted(note_keys - color_keys),
+        "meta_total": int(meta["reference_total"]) if meta.get("reference_total") else None,
+        "meta_available": (
+            int(meta["reference_available"]) if meta.get("reference_available") else None
+        ),
+        "scan_complete": meta.get("reference_scan_complete") == "1",
+    }
+
+
 def audit_one(client: TafsirMcpClient, conn: sqlite3.Connection, key: str) -> dict:
     surah, ayah = parse_key(key)
     html = load_athar_html(conn, key)
@@ -168,11 +204,56 @@ def main() -> int:
     ap.add_argument("--sleep", type=float, default=0.15, help="Pause between MCP calls")
     ap.add_argument("--json-out", type=Path, default=None)
     ap.add_argument("--keys", nargs="*", default=None, help="Override verse keys")
+    ap.add_argument(
+        "--local-only",
+        action="store_true",
+        help="Check local reference coverage without contacting Tafsir MCP",
+    )
     args = ap.parse_args()
 
     if not TAJWEED_DB.is_file():
         print(f"Missing {TAJWEED_DB}", file=sys.stderr)
         return 1
+    if not TAJWEED_NOTES_DB.is_file():
+        print(f"Missing {TAJWEED_NOTES_DB}", file=sys.stderr)
+        return 1
+
+    coverage = audit_local_coverage()
+    print(
+        "local coverage: "
+        f"color={coverage['color_keys']} "
+        f"notes={coverage['note_keys']} "
+        f"source-empty={coverage['reference_missing']} "
+        f"covered={coverage['covered_keys']}"
+    )
+    if coverage["meta_total"] is not None:
+        print(
+            "reference metadata: "
+            f"total={coverage['meta_total']} "
+            f"available={coverage['meta_available']} "
+            f"scan_complete={coverage['scan_complete']}"
+        )
+    if coverage["missing_from_notes"]:
+        print(
+            "unaccounted keys: "
+            + ", ".join(coverage["missing_from_notes"]),
+            file=sys.stderr,
+        )
+    if coverage["orphan_notes"]:
+        print(
+            "orphan note keys: "
+            + ", ".join(coverage["orphan_notes"]),
+            file=sys.stderr,
+        )
+    coverage_failed = bool(
+        coverage["missing_from_notes"]
+        or coverage["orphan_notes"]
+        or not coverage["scan_complete"]
+        or coverage["meta_total"] != coverage["color_keys"]
+        or coverage["meta_available"] != coverage["note_keys"]
+    )
+    if args.local_only:
+        return 1 if coverage_failed else 0
 
     keys = args.keys or list(DEFAULT_KEYS)
     if args.limit > 0:
@@ -220,7 +301,11 @@ def main() -> int:
         print(f"\nwrote {args.json_out}")
 
     # Non-zero only on hard failures (MCP / missing Athar), not soft gaps.
-    hard = counts.get("mcp_error", 0) + counts.get("missing_athar", 0)
+    hard = (
+        counts.get("mcp_error", 0)
+        + counts.get("missing_athar", 0)
+        + int(coverage_failed)
+    )
     return 1 if hard else 0
 
 

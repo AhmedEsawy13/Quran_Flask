@@ -199,7 +199,7 @@ def get_word_meanings_ordered(surah_number, ayah_number):
     try:
         cursor = db.cursor()
         query = '''
-            SELECT word, meaning
+            SELECT word_no, word, meaning
             FROM verses
             WHERE surah_number = ? AND ayah_number = ?
             ORDER BY id ASC
@@ -208,6 +208,7 @@ def get_word_meanings_ordered(surah_number, ayah_number):
         rows = cursor.fetchall()
         return [
             {
+                'word_no': row['word_no'],
                 'word': row['word'],
                 'meaning': row['meaning']
             }
@@ -216,6 +217,37 @@ def get_word_meanings_ordered(surah_number, ayah_number):
     except sqlite3.Error as e:
         logger.error(f"Database ordered query error: {e}")
         return []
+
+
+def get_word_meanings_source():
+    """Return provenance for the runtime word-meaning database."""
+    fallback = {
+        'provider': 'Athar local word-meaning database',
+        'tool': 'local',
+        'granularity': 'legacy_phrase',
+    }
+    db = get_db()
+    if db is None:
+        return fallback
+    try:
+        rows = db.execute('SELECT key, value FROM metadata').fetchall()
+    except sqlite3.Error:
+        return fallback
+    metadata = {row['key']: row['value'] for row in rows}
+    if not metadata:
+        return fallback
+    return {
+        'provider': metadata.get(
+            'source_provider',
+            'Tafsir Center for Quranic Studies',
+        ),
+        'tool': metadata.get('source_tool', 'analyze_word'),
+        'package': metadata.get('source_package', 'tafsir-mcp'),
+        'package_version': metadata.get('source_package_version', ''),
+        'granularity': metadata.get('granularity', 'canonical_word'),
+        'attribution': 'مركز تفسير للدراسات القرآنية',
+    }
+
 
 @reading_bp.route('/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>/waqf', methods=['GET'])
 def get_ayah_waqf_symbols(surah_number, ayah_number):
@@ -341,7 +373,7 @@ def get_local_tajweed_note(verse_key):
         conn = sqlite3.connect(TAJWEED_NOTES_DATABASE)
         try:
             row = conn.execute(
-                'SELECT text, attribution FROM tajweed_notes WHERE verse_key = ?',
+                'SELECT text, attribution, source FROM tajweed_notes WHERE verse_key = ?',
                 (verse_key,),
             ).fetchone()
         finally:
@@ -354,7 +386,36 @@ def get_local_tajweed_note(verse_key):
     return {
         'text': row[0],
         'attribution': row[1] or _TAJWEED_NOTES_DEFAULT_ATTR,
+        'source': row[2] or 'tafsir_mcp',
     }
+
+
+def tajweed_note_reference_missing(verse_key):
+    """Return True only for ayahs known to have no reference prose.
+
+    The harvest records source coverage in ``meta`` so a source-level gap is
+    distinguishable from a broken/missing local database row.
+    """
+    if not os.path.isfile(TAJWEED_NOTES_DATABASE):
+        return False
+    try:
+        conn = sqlite3.connect(TAJWEED_NOTES_DATABASE)
+        try:
+            row = conn.execute(
+                "SELECT value FROM meta WHERE key = 'reference_missing_keys'"
+            ).fetchone()
+        finally:
+            conn.close()
+    except Exception as e:
+        logger.error(f"Tajweed notes coverage error for {verse_key}: {e}")
+        return False
+    if not row:
+        return False
+    try:
+        missing = json.loads(row[0])
+    except (TypeError, json.JSONDecodeError):
+        return False
+    return isinstance(missing, list) and verse_key in {str(key) for key in missing}
 
 
 @reading_bp.route('/api/tajweed-notes/<int:surah_number>/<int:ayah_number>', methods=['GET'])
@@ -377,12 +438,28 @@ def get_tajweed_notes(surah_number, ayah_number):
 
     note = get_local_tajweed_note(verse_key)
     if note is None:
+        if tajweed_note_reference_missing(verse_key):
+            payload = {
+                'verse_key': verse_key,
+                'text': '',
+                'attribution': _TAJWEED_NOTES_DEFAULT_ATTR,
+                'source': 'tafsir_mcp',
+                'available': False,
+                'message': 'لا يتوفر نصٌّ لبيان التجويد لهذه الآية في المصدر المرجعي المحمّل.',
+            }
+            _tajweed_notes_cache[verse_key] = payload
+            resp = jsonify(payload)
+            resp.headers['Cache-Control'] = 'public, max-age=86400'
+            return resp
         return jsonify({"error": "Note not found", "verse_key": verse_key}), 404
 
     payload = {
         'verse_key': verse_key,
         'text': note['text'],
         'attribution': note['attribution'],
+        'source': note['source'],
+        'available': True,
+        'text_length': len(note['text']),
     }
     _tajweed_notes_cache[verse_key] = payload
     resp = jsonify(payload)
