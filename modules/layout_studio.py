@@ -1090,6 +1090,7 @@ def layout_studio_profile(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/page/<int:page_number>', methods=['GET'])
+@require_editor
 def layout_studio_page(edition_id, page_number):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -1138,6 +1139,7 @@ def layout_studio_reference(edition_id, page_number):
     '<int:surah_number>/<int:ayah_number>',
     methods=['GET'],
 )
+@require_editor
 def layout_studio_page_by_ayah(edition_id, surah_number, ayah_number):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -2445,6 +2447,7 @@ def layout_studio_undo(edition_id):
 
 
 @editor_bp.route('/api/layout-studio/<edition_id>/undo-status', methods=['GET'])
+@require_editor
 def layout_studio_undo_status(edition_id):
     edition, err = _edition_or_404(edition_id)
     if err:
@@ -2561,6 +2564,7 @@ def layout_studio_progress(edition_id):
     '/api/layout-studio/<edition_id>/import-confidence',
     methods=['GET'],
 )
+@require_editor
 def layout_studio_import_confidence(edition_id):
     """Return the generated seed's review priority without trusting its text."""
     edition, err = _edition_or_404(edition_id)

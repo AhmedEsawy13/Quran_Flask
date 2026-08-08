@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 COOKIE_NAME = 'ed_session'
 SESSION_MAX_AGE = 7 * 24 * 3600  # 7 days
+MIN_SESSION_SECRET_LENGTH = 32
+_LOCAL_DEV_SECRET = 'dev-editor-secret'
 _INVITE_CACHE_TTL = 15.0
 _invite_cache: dict[str, tuple[float, dict | None]] = {}
 _invite_cache_lock = threading.RLock()
@@ -45,12 +47,25 @@ def _active_invite(invite_id: str) -> dict | None:
     return invite
 
 
+def editor_session_secret_configured() -> bool:
+    """Cloud sessions require a dedicated, non-default signing secret."""
+    if not sb.is_configured():
+        return True
+    secret = (os.environ.get('EDITOR_SESSION_SECRET') or '').strip()
+    return len(secret) >= MIN_SESSION_SECRET_LENGTH and secret != _LOCAL_DEV_SECRET
+
+
 def _serializer() -> URLSafeTimedSerializer:
-    secret = (
-        os.environ.get('EDITOR_SESSION_SECRET')
-        or os.environ.get('SECRET_KEY')
-        or 'dev-editor-secret'
-    ).strip()
+    if sb.is_configured():
+        secret = (os.environ.get('EDITOR_SESSION_SECRET') or '').strip()
+        if not editor_session_secret_configured():
+            raise RuntimeError('cloud editor session secret is not configured')
+    else:
+        secret = (
+            os.environ.get('EDITOR_SESSION_SECRET')
+            or os.environ.get('SECRET_KEY')
+            or _LOCAL_DEV_SECRET
+        ).strip()
     return URLSafeTimedSerializer(secret, salt='athar-mushaf-editor')
 
 
@@ -86,6 +101,11 @@ def current_editor() -> dict | None:
         return None
     try:
         data = _serializer().loads(token, max_age=SESSION_MAX_AGE)
+    except RuntimeError:
+        logger.error('cloud editor auth disabled: EDITOR_SESSION_SECRET is missing or weak')
+        g._editor_auth_unavailable = True
+        g._editor_user = None
+        return None
     except (BadSignature, SignatureExpired):
         g._editor_user = None
         return None
@@ -122,6 +142,8 @@ def require_editor(view: Callable):
     def wrapped(*args, **kwargs):
         if not sb.is_configured():
             return view(*args, **kwargs)
+        if not editor_session_secret_configured():
+            return jsonify({'error': 'auth service unavailable'}), 503
         user = current_editor()
         if getattr(g, '_editor_auth_unavailable', False):
             return jsonify({'error': 'auth service unavailable'}), 503
@@ -136,6 +158,8 @@ def require_admin(view: Callable):
     def wrapped(*args, **kwargs):
         if not sb.is_configured():
             return jsonify({'error': 'cloud editor not configured'}), 503
+        if not editor_session_secret_configured():
+            return jsonify({'error': 'auth service unavailable'}), 503
         user = current_editor()
         if getattr(g, '_editor_auth_unavailable', False):
             return jsonify({'error': 'auth service unavailable'}), 503
@@ -150,12 +174,23 @@ def require_admin(view: Callable):
 @editor_bp.route('/api/mushaf-editor/auth/status', methods=['GET'])
 def editor_auth_status():
     configured = sb.is_configured()
+    auth_available = editor_session_secret_configured()
+    if configured and not auth_available:
+        return jsonify({
+            'cloud': True,
+            'authenticated': False,
+            'user': None,
+            'login_required': True,
+            'auth_available': False,
+            'error': 'auth service unavailable',
+        }), 503
     user = current_editor() if configured else None
     return jsonify({
         'cloud': configured,
         'authenticated': bool(user) or not configured,
         'user': user,
         'login_required': configured and not user,
+        'auth_available': auth_available,
     })
 
 
@@ -163,6 +198,9 @@ def editor_auth_status():
 def editor_login():
     if not sb.is_configured():
         return jsonify({'error': 'cloud editor not configured'}), 503
+    if not editor_session_secret_configured():
+        logger.error('cloud editor login disabled: EDITOR_SESSION_SECRET is missing or weak')
+        return jsonify({'error': 'auth service unavailable'}), 503
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
         return jsonify({'error': 'JSON object required'}), 400

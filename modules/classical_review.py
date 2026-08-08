@@ -13,6 +13,7 @@ from core.classical_review import (
 from core.config import CLASSICAL_REVIEW_DATABASE, CLASSICAL_WAQF_DATABASE
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from modules.breathing import _verse_word_texts
+from modules.editor_auth import require_editor
 
 _SOURCES = {'muktafa', 'manar'}
 _PAGE_SIZE_MAX = 50
@@ -40,6 +41,7 @@ def classical_review_page():
 
 
 @editor_bp.route('/api/classical-review/<source>/summary')
+@require_editor
 def classical_review_summary(source):
     if not _valid_source(source):
         return jsonify({'error': 'unsupported review source'}), 404
@@ -47,6 +49,7 @@ def classical_review_summary(source):
 
 
 @editor_bp.route('/api/classical-review/<source>/items')
+@require_editor
 def classical_review_items(source):
     if not _valid_source(source):
         return jsonify({'error': 'unsupported review source'}), 404
@@ -140,6 +143,7 @@ def classical_review_items(source):
 
 
 @editor_bp.route('/api/classical-review/<source>/verse/<int:surah>/<int:ayah>')
+@require_editor
 def classical_review_verse(source, surah, ayah):
     if not _valid_source(source):
         return jsonify({'error': 'unsupported review source'}), 404
@@ -155,6 +159,7 @@ def classical_review_verse(source, surah, ayah):
 
 
 @editor_bp.route('/api/classical-review/<source>/decision', methods=['POST'])
+@require_editor
 def classical_review_decision(source):
     if not _valid_source(source):
         return jsonify({'error': 'unsupported review source'}), 404
@@ -199,6 +204,7 @@ def classical_review_decision(source):
 
 
 @editor_bp.route('/api/classical-review/<source>/book-decision', methods=['POST'])
+@require_editor
 def classical_review_book_decision(source):
     if not _valid_source(source):
         return jsonify({'error': 'unsupported review source'}), 404
@@ -220,6 +226,7 @@ def classical_review_book_decision(source):
 
 
 @editor_bp.route('/api/classical-review/<source>/export')
+@require_editor
 def classical_review_export(source):
     if not _valid_source(source):
         return jsonify({'error': 'unsupported review source'}), 404

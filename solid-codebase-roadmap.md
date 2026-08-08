@@ -81,10 +81,10 @@ Goal: make structural work safe before moving code.
 - [x] make Bahrain publishability agree in Python and both Supabase SQL files;
 - [ ] apply the SQL migration to each deployed Supabase environment and assert
   its schema version in readiness checks;
-- [ ] require a non-default editor session secret whenever cloud auth is active;
-- [ ] define one authorization matrix for review reads, CV writes, layout writes,
+- [x] require a non-default editor session secret whenever cloud auth is active;
+- [x] define one authorization matrix for review reads, CV writes, layout writes,
   classical review, activity, and publishing;
-- [ ] make authenticated/draft responses `private, no-store` by default and only
+- [x] make editor/authenticated/draft responses `no-store` by default and only
   allow public caching through an immutable-route allowlist;
 - [ ] validate cloud editions from capabilities, not local SQLite columns.
 

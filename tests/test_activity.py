@@ -18,7 +18,7 @@ def cloud(monkeypatch):
     fake = FakeSupabase()
     monkeypatch.setenv('SUPABASE_URL', 'https://example.supabase.co')
     monkeypatch.setenv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role')
-    monkeypatch.setenv('EDITOR_SESSION_SECRET', 'test-editor-secret')
+    monkeypatch.setenv('EDITOR_SESSION_SECRET', 'test-editor-secret-at-least-32-chars')
 
     def fake_request(method, url, params=None, json=None, headers=None, timeout=None):
         return fake.handle(method, url, params=params, json_body=json)
@@ -62,6 +62,7 @@ def test_activity_api_filters_and_cursor(client, cloud):
 
     all_items = client.get('/api/activity?limit=10')
     assert all_items.status_code == 200
+    assert all_items.headers['Cache-Control'] == 'no-store, max-age=0'
     payload = all_items.get_json()
     assert payload['cloud'] is True
     actions_seen = {row['action'] for row in payload['items']}

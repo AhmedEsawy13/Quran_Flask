@@ -363,7 +363,7 @@ def cloud(monkeypatch):
     fake = FakeSupabase()
     monkeypatch.setenv('SUPABASE_URL', 'https://example.supabase.co')
     monkeypatch.setenv('SUPABASE_SERVICE_ROLE_KEY', 'test-service-role')
-    monkeypatch.setenv('EDITOR_SESSION_SECRET', 'test-editor-secret')
+    monkeypatch.setenv('EDITOR_SESSION_SECRET', 'test-editor-secret-at-least-32-chars')
 
     def fake_request(method, url, params=None, json=None, headers=None, timeout=None):
         return fake.handle(method, url, params=params, json_body=json)
@@ -423,6 +423,31 @@ def test_auth_status_requires_login_when_cloud(client, cloud):
     assert body['cloud'] is True
     assert body['login_required'] is True
     assert body['authenticated'] is False
+
+
+def test_cloud_auth_rejects_missing_or_weak_session_secret(app, monkeypatch):
+    monkeypatch.setattr(sb, 'is_configured', lambda: True)
+    monkeypatch.delenv('EDITOR_SESSION_SECRET', raising=False)
+    monkeypatch.setenv('SECRET_KEY', 'generic-flask-secret-does-not-count')
+    isolated = app.test_client()
+
+    missing = isolated.get('/api/mushaf-editor/auth/status')
+    assert missing.status_code == 503
+    assert missing.get_json()['auth_available'] is False
+    assert missing.headers['Cache-Control'] == 'no-store, max-age=0'
+
+    monkeypatch.setenv('EDITOR_SESSION_SECRET', 'too-short')
+    weak = isolated.post('/api/mushaf-editor/login', json={})
+    assert weak.status_code == 503
+    assert weak.get_json()['error'] == 'auth service unavailable'
+
+    monkeypatch.setenv(
+        'EDITOR_SESSION_SECRET',
+        'dedicated-editor-session-secret-32-chars',
+    )
+    ready = isolated.get('/api/mushaf-editor/auth/status')
+    assert ready.status_code == 200
+    assert ready.get_json()['auth_available'] is True
 
 
 def test_login_sets_cookie_and_gates_writes(client, cloud):

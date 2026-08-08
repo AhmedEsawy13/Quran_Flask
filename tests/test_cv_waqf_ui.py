@@ -11,6 +11,10 @@ from pipeline.cv_waqf import sync_supabase
 
 def test_cv_waqf_cloud_apis_require_editor_session(app, monkeypatch):
     monkeypatch.setattr(sb, 'is_configured', lambda: True)
+    monkeypatch.setenv(
+        'EDITOR_SESSION_SECRET',
+        'test-editor-session-secret-at-least-32-chars',
+    )
     client = app.test_client()
 
     assert client.get('/cv-waqf').status_code == 200

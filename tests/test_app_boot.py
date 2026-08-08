@@ -166,6 +166,38 @@ def test_editor_html_is_not_cdn_cached(client, monkeypatch):
     r = app.test_client().get('/mushaf-editor')
     assert r.status_code == 200
     assert 'no-store' in r.headers.get('Cache-Control', '')
+    for url in ('/classical-review', '/waqf-mark-review', '/activity'):
+        response = client.get(url)
+        assert response.status_code == 200, url
+        assert response.headers['Cache-Control'] == 'no-store, max-age=0', url
+
+
+def test_cloud_review_and_layout_reads_require_editor_session(app, monkeypatch):
+    from core import supabase_editor as sb
+
+    monkeypatch.setattr(sb, 'is_configured', lambda: True)
+    monkeypatch.setenv(
+        'EDITOR_SESSION_SECRET',
+        'test-editor-session-secret-at-least-32-chars',
+    )
+    isolated = app.test_client()
+    protected = (
+        '/api/classical-review/muktafa/summary',
+        '/api/classical-review/muktafa/items',
+        '/api/classical-review/muktafa/export',
+        '/api/layout-studio/azhar/page/2',
+        '/api/layout-studio/azhar/page-by-ayah/1/1',
+        '/api/layout-studio/azhar/undo-status?page_number=2',
+        '/api/layout-studio/azhar/import-confidence',
+    )
+    for url in protected:
+        response = isolated.get(url)
+        assert response.status_code == 401, url
+        assert response.headers['Cache-Control'] == 'no-store, max-age=0', url
+
+    public_registry = isolated.get('/api/layout-studio/editions')
+    assert public_registry.status_code == 200
+    assert public_registry.headers['Cache-Control'] == 'no-store, max-age=0'
 
 
 def test_editor_rejects_out_of_bounds_and_unknown_symbols(client):

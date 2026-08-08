@@ -14,6 +14,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import app as quran_app  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def isolated_cloud_environment(monkeypatch):
+    """Tests are local/offline unless their own fixture opts into fake cloud."""
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_ROLE_KEY', raising=False)
+    monkeypatch.delenv('EDITOR_SESSION_SECRET', raising=False)
+
+
 @pytest.fixture(scope="session")
 def app():
     # Mount every feature (incl. the write-capable editor) so the suite can

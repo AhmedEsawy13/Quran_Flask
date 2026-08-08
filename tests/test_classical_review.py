@@ -4,12 +4,14 @@ import sqlite3
 import pytest
 
 from core import classical_review as review
+from core import supabase_editor as sb
 
 
 @pytest.fixture()
 def review_db(tmp_path, monkeypatch):
     path = str(tmp_path / 'review.db')
     monkeypatch.setattr(review, 'CLASSICAL_REVIEW_DATABASE', path)
+    monkeypatch.setattr(sb, 'is_configured', lambda: False)
     return path
 
 

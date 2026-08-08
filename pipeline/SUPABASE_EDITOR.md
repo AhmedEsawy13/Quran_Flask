@@ -18,7 +18,7 @@
 # Editor-capable dyno / laptop
 export SUPABASE_URL='https://YOUR_PROJECT.supabase.co'
 export SUPABASE_SERVICE_ROLE_KEY='eyJ…'   # Project Settings → API → service_role
-export EDITOR_SESSION_SECRET='long-random-string'
+export EDITOR_SESSION_SECRET='long-random-string-at-least-32-characters'
 export ENABLE_EDITOR=1
 export EDITOR_DEPLOYMENT=1                 # editor-capable Heroku dyno only
 

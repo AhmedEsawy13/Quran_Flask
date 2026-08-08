@@ -79,7 +79,8 @@ def after_request(response):
     if path.startswith('/static/') and response.status_code == 200:
         response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     elif (
-        path.startswith('/mushaf-editor')
+        request.blueprint == 'editor'
+        or path.startswith('/mushaf-editor')
         or path.startswith('/layout-studio')
         or path.startswith('/azhar-layout')
         or path.startswith('/azhar-waqf-review')
@@ -96,7 +97,8 @@ def after_request(response):
         # /api/mushaf-editor/* is a live editing tool (spread/progress reads
         # reflect edits made seconds earlier via /api/mushaf-editor/waqf) — a
         # 1-hour cache made just-saved marks appear to "not save" on reload.
-        if (request.args.get('mushaf_version')
+        if (request.blueprint == 'editor'
+                or request.args.get('mushaf_version')
                 or request.path.startswith('/api/mushaf-editor/')
                 or request.path.startswith('/api/azhar-layout/')
                 or request.path.startswith('/api/azhar-waqf-review/')

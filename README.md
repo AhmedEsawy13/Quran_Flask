@@ -134,7 +134,7 @@ serves is controlled by environment variables:
 | `EDITOR_DEPLOYMENT` | Required as a truthy opt-in when `DYNO` is present (for example on Heroku) before `ENABLE_EDITOR` can mount the editor. This keeps a stale public-dyno flag fail-closed. |
 | `SUPABASE_URL` | Supabase project URL for cloud mushaf-editor drafts (قطر/الكويت/البحرين) and Bahrain Layout Studio snapshots. When unset, the editor keeps the local SQLite write path. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service-role key (server-side only; never expose to the browser). |
-| `EDITOR_SESSION_SECRET` | Signs invite-session cookies and peppers invite code hashes. |
+| `EDITOR_SESSION_SECRET` | Dedicated secret (at least 32 characters) that signs cloud editor sessions and peppers invite code hashes. Required when Supabase is configured. |
 | `PUBLIC_BASE_URL` | Canonical site origin for sitemap/canonical/OG URLs (no trailing slash), e.g. `https://waqfquran-d0b6fce4874e.herokuapp.com`. Falls back to the request host. |
 
 This lets you put each module on its own domain while sharing one repo and one
