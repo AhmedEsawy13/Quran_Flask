@@ -32,7 +32,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from core import supabase_editor as sb  # noqa: E402
-from core.config import CLOUD_EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE  # noqa: E402
+from core.config import MUSHAF_WAQF_DATABASE, PUBLIC_CLOUD_WAQF_EDITIONS  # noqa: E402
 from modules.layouts import (  # noqa: E402
     _find_mushaf_row_match_index,
     _get_dk_layout_word_map,
@@ -58,7 +58,7 @@ def _iso_now() -> str:
 
 
 def _quote_identifier(value: str) -> str:
-    if value not in CLOUD_EDITOR_EDITIONS:
+    if value not in PUBLIC_CLOUD_WAQF_EDITIONS:
         raise SyncError(f'unsupported edition: {value!r}')
     return '"' + value.replace('"', '""') + '"'
 
@@ -288,7 +288,7 @@ def build_plan(
     word_provider: WordProvider = _canonical_words,
 ) -> dict:
     editions = tuple(sorted(set(editions)))
-    if not editions or any(edition not in CLOUD_EDITOR_EDITIONS for edition in editions):
+    if not editions or any(edition not in PUBLIC_CLOUD_WAQF_EDITIONS for edition in editions):
         raise SyncError('editions must be a non-empty subset of Qatar/Kuwait')
     if not (0.0 <= min_cloud_coverage <= 1.0):
         raise SyncError('min_cloud_coverage must be between 0 and 1')
@@ -605,7 +605,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument('--apply', metavar='PLAN_JSON', type=Path,
                         help='Apply a previously reviewed plan instead of fetching cloud data')
     parser.add_argument('--edition', action='append', dest='editions',
-                        choices=sorted(CLOUD_EDITOR_EDITIONS),
+                        choices=sorted(PUBLIC_CLOUD_WAQF_EDITIONS),
                         help='Limit planning to one edition (repeatable)')
     parser.add_argument('--database', type=Path,
                         help='SQLite path (apply defaults to the path recorded in the plan)')
@@ -673,14 +673,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f'Result: {result_path}')
             return 0
 
-        editions = tuple(sorted(set(args.editions or CLOUD_EDITOR_EDITIONS)))
+        editions = tuple(sorted(set(args.editions or PUBLIC_CLOUD_WAQF_EDITIONS)))
         database = (args.database or Path(MUSHAF_WAQF_DATABASE)).resolve()
         if args.source_json:
             cloud_rows = [
                 row for row in _load_source_json(args.source_json)
                 if (
                     (row.get('edition') or '').strip() in editions
-                    or (row.get('edition') or '').strip() not in CLOUD_EDITOR_EDITIONS
+                    or (row.get('edition') or '').strip() not in PUBLIC_CLOUD_WAQF_EDITIONS
                 )
             ]
             source = str(args.source_json.resolve())

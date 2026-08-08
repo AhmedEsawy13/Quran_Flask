@@ -8,6 +8,8 @@ project root (this module lives one level down, in core/).
 import os
 import re
 
+from core.edition_capabilities import editions_with
+
 # Project root (parent of this core/ package). All data/reciters paths hang
 # off this so the constants resolve identically no matter who imports them.
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,9 +23,11 @@ VERSE_TOPICS_DATABASE = os.path.join(_ROOT, 'data', 'verse_topics.db')
 # مصاحف being adjusted via /mushaf-editor.
 # قطر: own layout + KATypical. الكويت: Madinah 1405 (qpc_v1) + Al Shamiya.
 # البحرين: Layout Studio project (seeded from Madinah 1421) + Digital Khatt.
-EDITOR_EDITIONS = {'قطر', 'الكويت', 'البحرين'}
+EDITOR_EDITIONS = editions_with('editor_enabled')
 # Editions whose drafts/published marks live in Supabase when configured.
-CLOUD_EDITOR_EDITIONS = frozenset(EDITOR_EDITIONS)
+CLOUD_EDITOR_EDITIONS = editions_with('cloud_draft_enabled')
+PUBLISHABLE_EDITOR_EDITIONS = editions_with('publish_enabled')
+PUBLIC_CLOUD_WAQF_EDITIONS = editions_with('public_read_enabled')
 # Madinah 1441 uses the QPC v4 (tajweed) 15-line layout. Madinah 1421 uses the
 # original Digital Khatt / QPC v2 layout supplied by the project. Both share
 # the same 1..83668 word numbering and Digital Khatt webfont; only their line

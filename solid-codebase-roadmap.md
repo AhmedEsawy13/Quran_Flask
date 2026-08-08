@@ -76,7 +76,7 @@ Goal: make structural work safe before moving code.
 - [ ] add schema/producer/source-checksum metadata to derived artifacts;
 - [ ] expose artifact readiness without rebuilding missing data at runtime.
 
-### A3. Close security and persistence contract gaps — in progress
+### A3. Close security and persistence contract gaps — complete
 
 - [x] make Bahrain publishability agree in Python and both Supabase SQL files;
 - [x] apply the SQL migration to each deployed Supabase environment and assert
@@ -86,7 +86,7 @@ Goal: make structural work safe before moving code.
   classical review, activity, and publishing;
 - [x] make editor/authenticated/draft responses `no-store` by default and only
   allow public caching through an immutable-route allowlist;
-- [ ] validate cloud editions from capabilities, not local SQLite columns.
+- [x] validate cloud editions from capabilities, not local SQLite columns.
 
 ### A4. Stabilize failures
 
@@ -189,16 +189,15 @@ only observe the old complete artifact or the new complete artifact.
 Each item should be one reviewable pull request unless tests force a smaller
 split.
 
-1. Finish A3: validate cloud editions from the deployed capability contract.
-2. Add the route-contract inventory and generate a failing test when a route
+1. Add the route-contract inventory and generate a failing test when a route
    silently changes method/auth/cache/response keys.
-3. Introduce `VerseKey`, `WordRef`, and `IndexSpace`; migrate CV attachment and
+2. Introduce `VerseKey`, `WordRef`, and `IndexSpace`; migrate CV attachment and
    published-waqf sync first because index confusion is highest impact there.
-4. Build the unified edition registry, initially exporting today's constants.
-5. Extract the atomic waqf-publish service and repository contracts.
-6. Standardize the Bahouth topics and CV manifests using the existing Quran
+3. Build the unified edition registry, initially exporting today's constants.
+4. Extract the atomic waqf-publish service and repository contracts.
+5. Standardize the Bahouth topics and CV manifests using the existing Quran
    integrity/word-meaning manifests as the reference implementation.
-7. Migrate frontend request cancellation and unsafe HTML one page at a time.
+6. Migrate frontend request cancellation and unsafe HTML one page at a time.
 
 ## Verification on every slice
 

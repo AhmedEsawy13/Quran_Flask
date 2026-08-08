@@ -13,8 +13,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from core import supabase_editor as sb  # noqa: E402
+from core.edition_capabilities import database_capability_rows  # noqa: E402
 
-EXPECTED_VERSIONS = {'editor': 4, 'layout': 2}
+EXPECTED_VERSIONS = {'editor': 5, 'layout': 2}
 CV_STORAGE_BUCKET = 'cv-waqf-hand'
 REQUIRED_PATHS = {
     '/editor_invites',
@@ -23,10 +24,59 @@ REQUIRED_PATHS = {
     '/editor_progress',
     '/editor_layout_pages',
     '/editor_layout_profiles',
+    '/editor_edition_capabilities',
     '/athar_schema_versions',
     '/cv_waqf_hand_labels',
     '/rpc/publish_editor_edition',
 }
+
+_CAPABILITY_FIELDS = (
+    'editor_enabled',
+    'cloud_draft_enabled',
+    'publish_enabled',
+    'public_read_enabled',
+)
+
+
+def _enabled(value: object) -> bool:
+    """Only an actual PostgREST JSON boolean enables a capability."""
+    return value is True
+
+
+def _compare_edition_capabilities(rows: list[dict]) -> dict:
+    expected = {
+        str(row['edition']): row
+        for row in database_capability_rows()
+    }
+    actual = {
+        str(row.get('edition') or ''): row
+        for row in rows
+        if row.get('edition')
+    }
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    mismatched = {
+        edition: {
+            field: {
+                'expected': _enabled(expected[edition][field]),
+                'actual': _enabled(actual[edition].get(field)),
+            }
+            for field in _CAPABILITY_FIELDS
+            if _enabled(actual[edition].get(field))
+            != _enabled(expected[edition][field])
+        }
+        for edition in sorted(set(expected) & set(actual))
+    }
+    mismatched = {
+        edition: fields
+        for edition, fields in mismatched.items()
+        if fields
+    }
+    return {
+        'missing': missing,
+        'unexpected': unexpected,
+        'mismatched': mismatched,
+    }
 
 
 def _load_local_env() -> None:
@@ -85,6 +135,29 @@ def check() -> dict:
         for component, expected in EXPECTED_VERSIONS.items()
         if actual.get(component) != expected
     }
+
+    capability_rows = []
+    if '/editor_edition_capabilities' in paths:
+        capability_rows = sb._request(
+            'GET',
+            'editor_edition_capabilities',
+            params={
+                'select': (
+                    'edition,editor_enabled,cloud_draft_enabled,'
+                    'publish_enabled,public_read_enabled'
+                ),
+                'order': 'edition',
+            },
+        ) or []
+        capability_errors = _compare_edition_capabilities(capability_rows)
+    else:
+        capability_errors = {
+            'missing': sorted(
+                row['edition'] for row in database_capability_rows()
+            ),
+            'unexpected': [],
+            'mismatched': {},
+        }
     result = {
         'supabase': sb._base(),
         'schema_versions': actual,
@@ -92,8 +165,15 @@ def check() -> dict:
         'missing_capabilities': missing_paths,
         'missing_storage': missing_storage,
         'version_errors': version_errors,
+        'edition_capabilities': capability_rows,
+        'capability_errors': capability_errors,
     }
-    if missing_paths or missing_storage or version_errors:
+    if (
+        missing_paths
+        or missing_storage
+        or version_errors
+        or any(capability_errors.values())
+    ):
         raise RuntimeError(json.dumps(result, ensure_ascii=False, indent=2))
     return result
 

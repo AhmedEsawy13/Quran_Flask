@@ -61,8 +61,10 @@ python3 pipeline/set_editor_password.py --name 'Ahmed' --username ahmed --passwo
 
 First run [`supabase_atomic_publish.sql`](supabase_atomic_publish.sql) in the
 Supabase SQL editor. This installs the transaction used by **اعتماد ونشر**.
-Until this migration is installed, publishing intentionally fails instead of
-falling back to the old partial-write behavior.
+It also installs the service-role-only edition capability contract used by
+publishing and checked against the Python registry. Until this migration is
+installed, publishing intentionally fails instead of falling back to the old
+partial-write behavior.
 
 Then run
 [`supabase_schema_readiness.sql`](supabase_schema_readiness.sql). It records
@@ -127,7 +129,8 @@ python3 pipeline/migrate_waqf_to_supabase.py --as-published
    cloud is configured). Layout saves include a `change_summary` (op, page
    range, ayah line count, first/last keys, changed line endpoints). Export
    the loaded slice as JSON/CSV from the page.
-5. `/read` and مُكْث then overlay published cloud marks for قطر/الكويت.
+5. `/read` and مُكْث then overlay published cloud marks for
+   قطر/الكويت/البحرين.
 
 Without Supabase env vars, the editor keeps the old local SQLite write path (laptop workflow).
 

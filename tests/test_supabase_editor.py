@@ -718,6 +718,9 @@ def test_schema_installs_service_role_only_atomic_publish_rpc():
         sql = sql_path.read_text(encoding='utf-8').lower()
         assert 'function public.publish_editor_edition' in sql
         assert 'lock table public.editor_marks in share row exclusive mode' in sql
+        assert 'from public.editor_edition_capabilities' in sql
+        assert 'and c.publish_enabled' in sql
+        assert "p_edition not in ('قطر', 'الكويت', 'البحرين')" not in sql
         assert "errcode = '40001'" in sql
         assert 'revoke all on function public.publish_editor_edition' in sql
         assert 'to service_role' in sql
@@ -731,7 +734,7 @@ def test_supabase_schema_readiness_is_versioned_and_service_role_only():
         root / 'pipeline' / 'supabase_schema_readiness.sql'
     ).read_text(encoding='utf-8').lower()
     assert 'create table if not exists public.athar_schema_versions' in sql
-    assert "('editor', 4, now())" in sql
+    assert "('editor', 5, now())" in sql
     assert "('layout', 2, now())" in sql
     assert 'greatest(athar_schema_versions.version, excluded.version)' in sql
     assert 'enable row level security' in sql

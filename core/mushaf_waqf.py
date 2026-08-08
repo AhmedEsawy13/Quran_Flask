@@ -13,7 +13,7 @@ import sqlite3
 from collections import OrderedDict
 from functools import lru_cache
 
-from core.config import CLOUD_EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE
+from core.config import MUSHAF_WAQF_DATABASE, PUBLIC_CLOUD_WAQF_EDITIONS
 from core.lru import _BoundedLRU
 
 logger = logging.getLogger(__name__)
@@ -75,7 +75,16 @@ def _get_mushaf_position_column():
 
 
 def _is_valid_mushaf_version(mushaf_version):
-    return bool(mushaf_version) and mushaf_version in _get_mushaf_version_whitelist()
+    if not mushaf_version:
+        return False
+    # A configured cloud source is a first-class capability. Requiring the
+    # edition to also exist as a legacy SQLite column made a valid deployment
+    # silently return no marks when that local artifact was trimmed or stale.
+    if mushaf_version in PUBLIC_CLOUD_WAQF_EDITIONS:
+        from core import supabase_editor as sb
+        if sb.is_configured():
+            return True
+    return mushaf_version in _get_mushaf_version_whitelist()
 
 
 def _get_waqf_at_boundary(surah_number, ayah_number, end_word, versions):
@@ -92,7 +101,9 @@ def _get_waqf_at_boundary(surah_number, ayah_number, end_word, versions):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         for ver in versions:
-            if not _is_valid_mushaf_version(ver):
+            # This helper is SQLite-only. Cloud capability validation must not
+            # authorize an identifier that is absent from this local schema.
+            if ver not in _get_mushaf_version_whitelist():
                 continue
             qcol = '"' + ver.replace('"', '""') + '"'
             for wi in (end_word, end_word - 1):
@@ -129,7 +140,7 @@ def get_mushaf_waqf_symbols(surah_number, ayah_number, mushaf_version):
     for ver in versions:
         # Cloud editions can resolve without a local mushaf_waqf.db when Supabase
         # is configured; SQLite editions still need the file.
-        if ver not in CLOUD_EDITOR_EDITIONS and not os.path.exists(MUSHAF_WAQF_DATABASE):
+        if ver not in PUBLIC_CLOUD_WAQF_EDITIONS and not os.path.exists(MUSHAF_WAQF_DATABASE):
             continue
         rows = _fetch_single_mushaf_waqf(surah_number, ayah_number, ver)
         for r in rows:
@@ -213,13 +224,12 @@ def prefetch_cloud_published_for_ayahs(ayah_keys, mushaf_versions) -> None:
 
     Without this, public/layout builds call Supabase once per ayah (~0.2s each).
     """
-    from core.config import CLOUD_EDITOR_EDITIONS
     from core import supabase_editor as sb
 
     if not ayah_keys or not sb.is_configured():
         return
     versions = mushaf_versions if isinstance(mushaf_versions, (list, tuple)) else [mushaf_versions]
-    cloud_versions = [v for v in versions if v in CLOUD_EDITOR_EDITIONS]
+    cloud_versions = [v for v in versions if v in PUBLIC_CLOUD_WAQF_EDITIONS]
     if not cloud_versions:
         return
 
@@ -259,7 +269,7 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
         return [dict(r) for r in cached]
 
     # Cloud-editor editions: published Postgres only when Supabase is configured.
-    if mushaf_version in CLOUD_EDITOR_EDITIONS:
+    if mushaf_version in PUBLIC_CLOUD_WAQF_EDITIONS:
         cloud = _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version)
         if cloud is _CLOUD_FETCH_FAILED:
             return []
@@ -267,12 +277,18 @@ def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):
             _mushaf_waqf_cache[cache_key] = cloud
             return [dict(r) for r in cloud]
 
+    # The remaining path interpolates a SQLite column identifier. Keep its
+    # authorization boundary strictly tied to columns actually present in the
+    # local schema, even though cloud validation above is capability-based.
+    if mushaf_version not in _get_mushaf_version_whitelist():
+        return []
+
     try:
         conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
 
-        # Column name is validated against a whitelist above, so interpolation
+        # Column name is validated against the SQLite whitelist above, so interpolation
         # is safe here (SQLite doesn't support parameterised identifiers).
         quoted_col = '"' + mushaf_version.replace('"', '""') + '"'
         cols = set(_get_mushaf_table_columns())

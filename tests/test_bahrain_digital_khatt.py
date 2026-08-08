@@ -47,10 +47,11 @@ def test_bahrain_in_editor_editions():
 
 
 def test_supabase_publish_contract_accepts_bahrain():
-    """Python and both deployable SQL definitions must expose one allowlist."""
+    """Python and both SQL definitions expose Bahrain through capabilities."""
     for name in ('supabase_editor_schema.sql', 'supabase_atomic_publish.sql'):
         sql = (PROJECT_ROOT / 'pipeline' / name).read_text(encoding='utf-8')
-        assert "('قطر', 'الكويت', 'البحرين')" in sql
+        assert "('البحرين', true, true, true, true, now())" in sql
+        assert 'from public.editor_edition_capabilities' in sql
 
 
 def test_bahrain_spread_api_uses_studio_layout_and_digital_khatt(client, monkeypatch):

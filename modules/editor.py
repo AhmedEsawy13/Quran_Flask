@@ -21,6 +21,7 @@ from core.blueprints import editor_bp
 from core.config import (
     CLOUD_EDITOR_EDITIONS,
     EDITOR_EDITIONS,
+    PUBLISHABLE_EDITOR_EDITIONS,
     MUSHAF_WAQF_DATABASE,
     QATAR_LAYOUT_DATABASE,
     QPC_V1_LAYOUT_DATABASE,
@@ -668,7 +669,7 @@ def mushaf_editor_progress():
 def editor_pending_changes():
     """List draft marks that differ from published for the selected edition."""
     edition = (request.args.get('edition') or '').strip()
-    if edition not in CLOUD_EDITOR_EDITIONS:
+    if edition not in PUBLISHABLE_EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
     if not sb.is_configured():
         return jsonify({
@@ -727,7 +728,7 @@ def publish_editor_edition():
     """Atomically publish the exact edition diff reviewed by an admin."""
     data = request.get_json(silent=True) or {}
     edition = (data.get('edition') or '').strip()
-    if edition not in CLOUD_EDITOR_EDITIONS:
+    if edition not in PUBLISHABLE_EDITOR_EDITIONS:
         return jsonify({'error': 'invalid edition'}), 400
     expected_changes = data.get('expected_changes')
     if not isinstance(expected_changes, list) or len(expected_changes) > 10_000:

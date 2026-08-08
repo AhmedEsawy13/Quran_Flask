@@ -9,7 +9,7 @@ create table if not exists public.athar_schema_versions (
 
 insert into public.athar_schema_versions (component, version, updated_at)
 values
-  ('editor', 4, now()),
+  ('editor', 5, now()),
   ('layout', 2, now())
 on conflict (component) do update
 set version = greatest(athar_schema_versions.version, excluded.version),

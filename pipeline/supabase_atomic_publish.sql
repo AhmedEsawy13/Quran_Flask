@@ -7,6 +7,31 @@ create table if not exists public.athar_schema_versions (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.editor_edition_capabilities (
+  edition text primary key,
+  editor_enabled boolean not null default false,
+  cloud_draft_enabled boolean not null default false,
+  publish_enabled boolean not null default false,
+  public_read_enabled boolean not null default false,
+  updated_at timestamptz not null default now(),
+  check (not publish_enabled or cloud_draft_enabled)
+);
+
+insert into public.editor_edition_capabilities (
+  edition, editor_enabled, cloud_draft_enabled,
+  publish_enabled, public_read_enabled, updated_at
+)
+values
+  ('قطر', true, true, true, true, now()),
+  ('الكويت', true, true, true, true, now()),
+  ('البحرين', true, true, true, true, now())
+on conflict (edition) do update
+set editor_enabled = excluded.editor_enabled,
+    cloud_draft_enabled = excluded.cloud_draft_enabled,
+    publish_enabled = excluded.publish_enabled,
+    public_read_enabled = excluded.public_read_enabled,
+    updated_at = excluded.updated_at;
+
 create or replace function public.publish_editor_edition(
   p_edition text,
   p_actor_id uuid,
@@ -22,7 +47,12 @@ declare
   v_changes jsonb;
   v_count integer;
 begin
-  if p_edition not in ('قطر', 'الكويت', 'البحرين') then
+  if not exists (
+    select 1
+    from public.editor_edition_capabilities c
+    where c.edition = p_edition
+      and c.publish_enabled
+  ) then
     raise exception 'invalid publish edition' using errcode = '22023';
   end if;
   if p_expected_changes is null or jsonb_typeof(p_expected_changes) <> 'array' then
@@ -119,8 +149,13 @@ revoke all on function public.publish_editor_edition(text, uuid, text, jsonb)
 grant execute on function public.publish_editor_edition(text, uuid, text, jsonb)
   to service_role;
 
+alter table public.editor_edition_capabilities enable row level security;
+revoke all on table public.editor_edition_capabilities
+  from public, anon, authenticated;
+grant select on table public.editor_edition_capabilities to service_role;
+
 insert into public.athar_schema_versions (component, version, updated_at)
-values ('editor', 4, now())
+values ('editor', 5, now())
 on conflict (component) do update
 set version = greatest(athar_schema_versions.version, excluded.version),
     updated_at = excluded.updated_at;
