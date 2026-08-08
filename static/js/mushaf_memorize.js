@@ -2538,7 +2538,7 @@
     function applyDeepLink() {
         const p = new URLSearchParams(location.search);
         const src = p.get('src');
-        if (isMadinahSource(src)) {
+        if (isMadinahSource(src) || src === 'shamarly') {
             state.src = src;
             els.src.value = src;
             saveSetting('mz_src', src);

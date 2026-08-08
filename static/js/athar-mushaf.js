@@ -600,6 +600,10 @@
                     const position = counted ? (positions.get(verseKey) || 0) : null;
                     if (counted) positions.set(verseKey, position + 1);
                     const context = Object.assign(baseContext, { counted, verseKey, position, kind });
+                    // A few Shemrly print ligatures represent two canonical Quran
+                    // tokens with one glyph. Keep the hidden token in verse-position
+                    // accounting, but do not add an empty span or separator.
+                    if (word && word.suppress_render === true) return;
                     const wordElement = document.createElement('span');
                     wordElement.className = typeof config.classForWord === 'function'
                         ? (config.classForWord(context) || '') : config.wordClass;

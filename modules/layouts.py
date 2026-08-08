@@ -6,6 +6,7 @@ Covers the page sources — الشمرلي (page-local glyph fonts), Madinah 144
 marks (any mushaf edition) onto layout words. No app import: routes attach
 to core_bp from core.blueprints.
 """
+import json
 import logging
 import os
 import re
@@ -498,15 +499,9 @@ def _get_shamarly_font_supported_codepoints(font_name):
 def _get_shamarly_page_word_codepoint_map(page_number):
     """Return {word_index: codepoint} for a Shemrly page by aligning glyphs to words.
 
-    Each per-page Shemrly font holds exactly one glyph per distinct word printed on
-    the page, in word_index order. Crucially the cmap RESERVES a gap wherever the page
-    has a standalone mark (e.g. the ۛ after رَيۡبَۛ فِيهِۛ on the Al-Baqarah page): those
-    mark codepoints are absent from the font, so a naive base+(word-first+1) formula
-    drifts by one for every word after a mark — rendering each following word with the
-    previous word's glyph (the reported "verse 2 wrong, verses 3-4 words shifted onto
-    the next line"). We instead zip the sorted present codepoints with the sorted word
-    indices 1:1: cmap gaps line up with the marks, so every word keeps its own glyph.
-    On mark-free pages the cmap is contiguous and this reduces to the simple formula.
+    Most per-page fonts hold exactly one glyph per layout word. Exceptional pages
+    are handled by the explicit canonical-key overrides loaded below; this fast path
+    deliberately rejects a count mismatch instead of guessing and shifting glyphs.
     """
     word_indices = list(_get_shamarly_page_word_ids(page_number))
     if not word_indices:
@@ -526,27 +521,66 @@ def _get_shamarly_page_word_codepoint_map(page_number):
     return dict(zip(word_indices, present))
 
 
+@lru_cache(maxsize=1)
+def _get_shamarly_page_glyph_override_manifest():
+    path = os.path.join(_BASE_DIR, 'data', 'shamarly_page_glyph_overrides.json')
+    if not os.path.exists(path):
+        return {}
+    with open(path, encoding='utf-8') as handle:
+        payload = json.load(handle)
+    if int(payload.get('version') or 0) != 1 or not isinstance(payload.get('pages'), dict):
+        raise ValueError('Unsupported Shemrly page-glyph override manifest')
+    return payload['pages']
+
+
+@lru_cache(maxsize=1024)
+def _get_shamarly_page_glyph_overrides(page_number):
+    """Resolve one exceptional page's canonical word keys to glyph strings.
+
+    Values are glyph strings, ``None`` for a Unicode fallback ornament, or an
+    empty string when a printed ligature already contains the following token.
+    ``None`` as the function return value means the page has no override.
+    """
+    page = _get_shamarly_page_glyph_override_manifest().get(str(int(page_number)))
+    if page is None:
+        return None
+    supported = _get_shamarly_font_supported_codepoints(
+        f"Shemrly-Page{int(page_number):03d}"
+    )
+    if not supported:
+        return None
+
+    word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
+    key_to_id = word_map['key_to_id']
+    resolved = {}
+    for word_key, encoded in (page.get('glyphs') or {}).items():
+        word_id = key_to_id.get(word_key)
+        if word_id is None:
+            raise ValueError(f'Unknown Shemrly override word key: {word_key}')
+        resolved[int(word_id)] = ''.join(
+            chr(int(part, 16)) for part in str(encoded).split()
+        )
+        if any(ord(char) not in supported for char in resolved[int(word_id)]):
+            raise ValueError(f'Shemrly override glyph missing from page font: {word_key}')
+    for word_key in page.get('fallback') or []:
+        word_id = key_to_id.get(word_key)
+        if word_id is None:
+            raise ValueError(f'Unknown Shemrly fallback word key: {word_key}')
+        resolved[int(word_id)] = None
+    for word_key in page.get('suppressed') or []:
+        word_id = key_to_id.get(word_key)
+        if word_id is None:
+            raise ValueError(f'Unknown Shemrly suppressed word key: {word_key}')
+        resolved[int(word_id)] = ''
+    return resolved
+
+
 def _get_shamarly_glyph_char_for_word(page_number, word_position):
     """Map a global word index to its Shemrly page-local glyph char."""
     codepoint_map = _get_shamarly_page_word_codepoint_map(page_number)
     wp = int(word_position)
     if wp in codepoint_map:
         return chr(codepoint_map[wp])
-
-    # Fallback for pages where the glyph/word counts could not be aligned (e.g. the
-    # font is absent): use the contiguous local-index formula.
-    word_ids = _get_shamarly_page_word_ids(page_number)
-    if not word_ids:
-        return None
-    try:
-        local_index = word_ids.index(wp) + 1
-    except ValueError:
-        return None
-
-    codepoint = SHEMRLY_CODEPOINT_BASE + local_index
-    supported_codepoints = _get_shamarly_font_supported_codepoints(f"Shemrly-Page{int(page_number):03d}")
-    if supported_codepoints is None or codepoint in supported_codepoints:
-        return chr(codepoint)
     return None
 
 
@@ -669,6 +703,7 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
 
     effective_page = max(1, int(page_number))
     font_name = f"Shemrly-Page{effective_page:03d}"
+    script_word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
 
     word_ranges = [
         (line.get('first_word_id'), line.get('last_word_id'))
@@ -678,16 +713,46 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
     min_word_id = min((rng[0] for rng in word_ranges), default=None)
     max_word_id = max((rng[1] for rng in word_ranges), default=None)
     preferred_legacy_font = _get_preferred_legacy_glyph_font_for_range(min_word_id, max_word_id)
-    shemrly_font_available = _get_shamarly_font_supported_codepoints(font_name) is not None
+    shemrly_override = _get_shamarly_page_glyph_overrides(effective_page)
+    if shemrly_override is not None:
+        expected_override_ids = {
+            word_id
+            for line in lines
+            if line.get('line_type') == 'ayah'
+            for word_id in _word_ids_in_map_span(
+                script_word_map,
+                line.get('first_word_id'),
+                line.get('last_word_id'),
+            )
+        }
+        if set(shemrly_override) != expected_override_ids:
+            raise ValueError(
+                f'Incomplete Shemrly page-glyph override for page {effective_page}'
+            )
+    shemrly_codepoint_map = _get_shamarly_page_word_codepoint_map(effective_page)
+    shemrly_font_available = (
+        shemrly_override is not None or bool(shemrly_codepoint_map)
+    )
 
     glyph_by_word_pos = {}
+    fallback_word_positions = set()
+    suppressed_word_positions = set()
     glyph_score_by_word_pos = {}
     if min_word_id is not None and max_word_id is not None:
         if shemrly_font_available:
-            for word_pos in range(int(min_word_id), int(max_word_id) + 1):
-                glyph_char = _get_shamarly_glyph_char_for_word(effective_page, word_pos)
-                if glyph_char:
-                    glyph_by_word_pos[word_pos] = glyph_char
+            if shemrly_override is not None:
+                for word_pos, glyph_text in shemrly_override.items():
+                    if glyph_text is None:
+                        fallback_word_positions.add(word_pos)
+                    elif glyph_text == '':
+                        suppressed_word_positions.add(word_pos)
+                    else:
+                        glyph_by_word_pos[word_pos] = glyph_text
+            else:
+                glyph_by_word_pos.update({
+                    word_pos: chr(codepoint)
+                    for word_pos, codepoint in shemrly_codepoint_map.items()
+                })
         else:
             glyph_conn = _track(sqlite3.connect(os.path.join(_BASE_DIR, 'data', 'glyph_mappings.db')))
             glyph_conn.row_factory = sqlite3.Row
@@ -743,7 +808,6 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
         focus_word_indices = {int(row['word_index']) for row in words_cursor.fetchall()}
         words_conn.close()
 
-    script_word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
     page_word_by_index = script_word_map['id2tok']
     page_word_rows = []
     seen_page_words = set()
@@ -788,10 +852,15 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
             for word_pos in line_word_ids:
                 glyph_char = glyph_by_word_pos.get(word_pos, '')
                 fallback_word = page_word_by_index.get(word_pos, {}).get('text') or ''
-                rendered_word = glyph_char or fallback_word
-                if not rendered_word:
+                suppressed = word_pos in suppressed_word_positions
+                use_fallback = word_pos in fallback_word_positions
+                rendered_word = '' if suppressed else (
+                    fallback_word if use_fallback else (glyph_char or fallback_word)
+                )
+                if not rendered_word and not suppressed:
                     continue
-                chars.append(rendered_word)
+                if rendered_word:
+                    chars.append(rendered_word)
                 src_word = page_word_by_index.get(word_pos, {})
                 line_words.append({
                     'word_index': word_pos,
@@ -800,7 +869,8 @@ def _build_shamarly_page_payload_impl(page_number, focus_surah, focus_ayah, mush
                     'text': rendered_word,
                     'surah': src_word.get('surah'),
                     'ayah': src_word.get('ayah'),
-                    'waqf_symbols': waqf_by_word_index.get(word_pos, '')
+                    'waqf_symbols': waqf_by_word_index.get(word_pos, ''),
+                    'suppress_render': suppressed,
                 })
 
             if chars:
