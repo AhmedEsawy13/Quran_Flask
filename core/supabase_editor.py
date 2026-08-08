@@ -101,6 +101,15 @@ class SupabaseEditorError(RuntimeError):
     pass
 
 
+class SupabaseResponseError(SupabaseEditorError):
+    """A non-success response whose body is retained for internal decisions."""
+
+    def __init__(self, status_code: int, body: str) -> None:
+        self.status_code = int(status_code)
+        self.body = body
+        super().__init__(f'Supabase request returned HTTP {self.status_code}')
+
+
 class PublishConflict(SupabaseEditorError):
     """The reviewed draft snapshot no longer matches the database."""
 
@@ -116,12 +125,39 @@ def _request(method: str, path: str, *, params: dict | None = None,
             headers=_headers(prefer), timeout=_TIMEOUT,
         )
     except requests.RequestException as e:
-        raise SupabaseEditorError(f'Supabase request failed: {e}') from e
+        logger.error('Supabase request failed: %s', e)
+        raise SupabaseEditorError('Supabase request failed') from e
     if resp.status_code >= 400:
-        raise SupabaseEditorError(f'Supabase {resp.status_code}: {resp.text[:400]}')
+        body = (getattr(resp, 'text', '') or '')[:400]
+        logger.error('Supabase HTTP %s response: %s', resp.status_code, body)
+        raise SupabaseResponseError(resp.status_code, body)
     if resp.status_code == 204 or not resp.content:
         return None
-    return resp.json()
+    try:
+        payload = resp.json()
+    except (ValueError, requests.JSONDecodeError) as exc:
+        body = (getattr(resp, 'text', '') or '')[:400]
+        logger.error(
+            'Supabase successful response was not JSON (HTTP %s): %s',
+            resp.status_code,
+            body,
+        )
+        raise SupabaseEditorError(
+            'Supabase returned a malformed successful response'
+        ) from exc
+    # PostgREST table/view endpoints always serialize row sets as arrays.
+    # Reject a proxy error object or other valid-but-wrong JSON here instead of
+    # letting downstream code interpret it as rows. RPCs define their own shape.
+    if not path.lstrip('/').startswith('rpc/') and not isinstance(payload, list):
+        logger.error(
+            'Supabase successful response had invalid shape for %s: %s',
+            path,
+            type(payload).__name__,
+        )
+        raise SupabaseEditorError(
+            'Supabase returned a malformed successful response'
+        )
+    return payload
 
 
 def find_invite_by_username(username: str) -> dict | None:
@@ -1042,8 +1078,8 @@ def publish_edition(
             },
         )
     except SupabaseEditorError as e:
-        message = str(e)
-        if 'publish snapshot changed' in message or '40001' in message:
+        body = e.body if isinstance(e, SupabaseResponseError) else ''
+        if 'publish snapshot changed' in body or '40001' in body:
             raise PublishConflict(
                 'Drafts changed after review; refresh the pending list.'
             ) from e

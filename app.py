@@ -15,6 +15,7 @@ from io import BytesIO
 #   breathing — reciter-validated waqf stops (دليل التنفس)
 #   editor    — /mushaf-editor click-to-edit waqf tool (the ONLY writer)
 from core.blueprints import core_bp, reading_bp, memorize_bp, breathing_bp, editor_bp
+from core.errors import AppError
 
 # (Flask-Compress is not installed/initialised here — the previous
 # COMPRESS_* config keys had no effect and were removed. JSON gzip is
@@ -150,8 +151,25 @@ def not_found(error):
     return jsonify({"error": "Resource not found"}), 404
 
 def internal_error(error):
-    current_app.logger.error(f"Internal server error: {error}")
+    original = getattr(error, 'original_exception', None) or error
+    current_app.logger.error(
+        'Unhandled request failure on %s', request.path,
+        exc_info=(type(original), original, original.__traceback__),
+    )
     return jsonify({"error": "Internal server error"}), 500
+
+
+def application_error(error: AppError):
+    """Render an expected failure without exposing its chained internals."""
+    log = current_app.logger.warning if error.status_code < 500 else current_app.logger.error
+    log(
+        'Request failed [%s] on %s: %s',
+        error.code,
+        request.path,
+        error.public_message,
+        exc_info=(type(error), error, error.__traceback__) if error.status_code >= 500 else None,
+    )
+    return jsonify(error.response_payload()), error.status_code
 
 from core.config import (
     MUSHAF_WAQF_DATABASE,  # noqa: F401 — tests reach this via app.MUSHAF_WAQF_DATABASE
@@ -278,6 +296,7 @@ def create_app(features=None):
         }
 
     flask_app.after_request(after_request)
+    flask_app.register_error_handler(AppError, application_error)
     flask_app.register_error_handler(404, not_found)
     flask_app.register_error_handler(500, internal_error)
     flask_app.teardown_appcontext(close_connection)

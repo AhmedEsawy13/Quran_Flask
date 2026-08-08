@@ -25,6 +25,7 @@ from core import layout_persistence
 from core import supabase_editor as sb
 from core.blueprints import editor_bp
 from core.db import connect as _sqlite_connect
+from core.errors import PersistenceError
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from modules import layout_engine as engine
 from modules.editor_auth import current_editor, require_editor
@@ -1074,8 +1075,7 @@ def layout_studio_profile(edition_id):
         return jsonify({'error': 'تعذّر حفظ إعدادات التخطيط في Supabase'}), 503
     except Exception as exc:
         conn.rollback()
-        logger.error('layout-studio profile save failed (%s): %s', edition_id, exc)
-        return jsonify({'error': str(exc)}), 500
+        raise PersistenceError('تعذّر حفظ إعدادات التخطيط') from exc
     finally:
         conn.close()
     return jsonify({
@@ -1350,8 +1350,7 @@ def layout_studio_line_break(edition_id):
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(f'layout-studio line-break failed ({edition_id}): {e}')
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
     finally:
         conn.close()
 
@@ -1511,8 +1510,7 @@ def layout_studio_merge_line(edition_id):
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(f'layout-studio merge-line failed ({edition_id}): {e}')
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
     finally:
         conn.close()
 
@@ -1678,10 +1676,7 @@ def layout_studio_pull_next_word(edition_id):
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(
-            f'layout-studio pull-next-word failed ({edition_id}): {e}'
-        )
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
     finally:
         conn.close()
 
@@ -1846,10 +1841,7 @@ def layout_studio_push_last_word(edition_id):
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(
-            f'layout-studio push-last-word failed ({edition_id}): {e}'
-        )
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
     finally:
         conn.close()
 
@@ -1957,10 +1949,7 @@ def layout_studio_transfer_line(edition_id):
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(
-            'layout-studio transfer-line failed (%s): %s', edition_id, e,
-        )
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
     finally:
         conn.close()
 
@@ -2035,8 +2024,7 @@ def layout_studio_line_center(edition_id):
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(f'layout-studio line-center failed ({edition_id}): {e}')
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
     finally:
         conn.close()
 
@@ -2359,10 +2347,7 @@ def layout_studio_header_move(edition_id):
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(
-            'layout-studio header-move failed (%s): %s', edition_id, e,
-        )
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
     finally:
         conn.close()
 
@@ -2440,8 +2425,7 @@ def layout_studio_undo(edition_id):
         return jsonify({'error': 'تعذّر حفظ التراجع في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(f'layout-studio undo failed ({edition_id}): {e}')
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ التراجع') from e
     finally:
         conn.close()
 
@@ -2554,8 +2538,7 @@ def layout_studio_progress(edition_id):
         return jsonify({'error': 'تعذّر حفظ تقدم المراجعة في Supabase'}), 503
     except Exception as e:
         conn.rollback()
-        logger.error(f'layout-studio progress failed ({edition_id}): {e}')
-        return jsonify({'error': str(e)}), 500
+        raise PersistenceError('تعذّر حفظ تقدم المراجعة') from e
     finally:
         conn.close()
 

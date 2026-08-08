@@ -76,10 +76,10 @@ Goal: make structural work safe before moving code.
 - [ ] add schema/producer/source-checksum metadata to derived artifacts;
 - [ ] expose artifact readiness without rebuilding missing data at runtime.
 
-### A3. Close security and persistence contract gaps — next
+### A3. Close security and persistence contract gaps — in progress
 
 - [x] make Bahrain publishability agree in Python and both Supabase SQL files;
-- [ ] apply the SQL migration to each deployed Supabase environment and assert
+- [x] apply the SQL migration to each deployed Supabase environment and assert
   its schema version in readiness checks;
 - [x] require a non-default editor session secret whenever cloud auth is active;
 - [x] define one authorization matrix for review reads, CV writes, layout writes,
@@ -90,13 +90,13 @@ Goal: make structural work safe before moving code.
 
 ### A4. Stabilize failures
 
-- [ ] introduce typed validation, not-found, conflict, dependency, upstream, and
+- [x] introduce typed validation, not-found, conflict, dependency, upstream, and
   persistence errors;
-- [ ] translate them centrally while retaining the current `error` response key
+- [x] translate them centrally while retaining the current `error` response key
   and status codes;
-- [ ] keep SQL, paths, stack traces, subprocess output, and upstream bodies in
+- [x] keep SQL, paths, stack traces, subprocess output, and upstream bodies in
   server logs only;
-- [ ] reject malformed successful Supabase payloads at the adapter boundary.
+- [x] reject malformed successful Supabase payloads at the adapter boundary.
 
 Exit gate: full tests, clean import, editor-on/off smoke tests, Supabase readiness,
 and no undocumented public contract change.
@@ -189,7 +189,7 @@ only observe the old complete artifact or the new complete artifact.
 Each item should be one reviewable pull request unless tests force a smaller
 split.
 
-1. Finish A3: session-secret enforcement, authorization matrix, and cache policy.
+1. Finish A3: validate cloud editions from the deployed capability contract.
 2. Add the route-contract inventory and generate a failing test when a route
    silently changes method/auth/cache/response keys.
 3. Introduce `VerseKey`, `WordRef`, and `IndexSpace`; migrate CV attachment and

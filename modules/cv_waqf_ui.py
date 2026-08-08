@@ -16,6 +16,7 @@ from flask import jsonify, render_template, request, send_file
 
 from core.blueprints import editor_bp
 from core.config import _ROOT
+from core.errors import NotFoundError, PersistenceError
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from modules.editor_auth import require_editor
 
@@ -550,8 +551,7 @@ def cv_waqf_image(slug: str, page_number: int):
     try:
         path = _ensure_image(edition, page_number)
     except Exception as exc:  # noqa: BLE001
-        logger.exception('cv-waqf image %s p%s', slug, page_number)
-        return jsonify({'error': str(exc)}), 404
+        raise NotFoundError('صورة الصفحة غير متاحة') from exc
     return send_file(path, mimetype='image/jpeg', max_age=3600, conditional=True)
 
 
@@ -622,16 +622,15 @@ def cv_waqf_page_data(page_number: int):
     try:
         payload = _build_payload(edition, page_number, min_conf, meta['slug'])
     except Exception as exc:  # noqa: BLE001
-        logger.exception('cv-waqf page %s %s', edition, page_number)
-        return jsonify({
-            'error': str(exc),
-            'hint': (
+        raise PersistenceError(
+            'تعذّر تحليل صفحة المصحف',
+            public_fields={'hint': (
                 'Create the CV venv and train once:\n'
                 '  python3 -m venv .venv-cv\n'
                 '  .venv-cv/bin/pip install -r requirements-cv.txt\n'
                 '  PYTHONPATH=. .venv-cv/bin/python -m pipeline.cv_waqf train'
-            ),
-        }), 500
+            )},
+        ) from exc
 
     payload['min_page'] = meta['min_page']
     payload['max_page'] = meta['max_page']
@@ -659,10 +658,7 @@ def cv_waqf_labels_list():
     try:
         word_payload = _build_word_payload(edition, page, meta['slug'])
     except Exception as exc:  # noqa: BLE001
-        logger.exception('cv-waqf word geometry %s p%s', edition, page)
-        return jsonify({
-            'error': f'تعذّر تحميل كلمات الصفحة: {exc}',
-        }), 500
+        raise PersistenceError('تعذّر تحميل كلمات الصفحة') from exc
     return jsonify({
         'edition': edition,
         'slug': meta['slug'],
@@ -686,8 +682,7 @@ def cv_waqf_review_queue():
         from pipeline.cv_waqf.review_queue import build_review_queue
         queue = build_review_queue(edition)
     except Exception as exc:  # noqa: BLE001
-        logger.exception('cv-waqf review queue %s', edition)
-        return jsonify({'error': str(exc)}), 500
+        raise PersistenceError('تعذّر تحميل قائمة المراجعة') from exc
     counts: dict[int, int] = {}
     for label in _load_labels(meta['slug']):
         try:
@@ -731,8 +726,7 @@ def cv_waqf_labels_create():
     try:
         words = _build_word_payload(edition, page, meta['slug']).get('words') or []
     except Exception as exc:  # noqa: BLE001
-        logger.exception('cv-waqf word validation %s p%s', edition, page)
-        return jsonify({'error': f'word geometry unavailable: {exc}'}), 500
+        raise PersistenceError('تعذّر تحميل مواضع كلمات الصفحة') from exc
     word = next((row for row in words if row.get('word_key') == word_key), None)
     if word is None:
         return jsonify({'error': 'word_key is not on this page'}), 400
@@ -765,8 +759,7 @@ def cv_waqf_labels_create():
         crop_path = _save_crop_png(meta['slug'], label)
         label['crop'] = str(crop_path.relative_to(ROOT))
     except Exception as exc:  # noqa: BLE001
-        logger.exception('save hand crop failed')
-        return jsonify({'error': str(exc)}), 500
+        raise PersistenceError('تعذّر حفظ عينة علامة الوقف') from exc
 
     path = _labels_path(meta['slug'])
     path.parent.mkdir(parents=True, exist_ok=True)

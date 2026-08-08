@@ -32,6 +32,7 @@ from core.config import (
 )
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.db import connect as _sqlite_connect
+from core.errors import PersistenceError
 from core.mushaf_waqf import _mushaf_waqf_cache, invalidate_cloud_waqf_cache
 from core import supabase_editor as sb
 from core import layout_persistence
@@ -538,9 +539,8 @@ def get_mushaf_editor_spread(spread_number):
             'peer_versions': list(_EDITOR_PEER_VERSIONS),
             'cloud': sb.is_configured(),
         })
-    except Exception as e:
-        logger.error(f"Error fetching mushaf-editor spread {spread_number}: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحات المحرر') from exc
 
 
 @editor_bp.route('/api/mushaf-editor/waqf', methods=['POST'])
@@ -657,9 +657,8 @@ def mushaf_editor_progress():
         )
         conn.commit()
         return jsonify({'ok': True, 'page_number': page_number, 'edition': edition, 'reviewed': bool(reviewed)})
-    except Exception as e:
-        logger.error(f"Error in mushaf-editor progress: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر حفظ تقدم المراجعة') from exc
     finally:
         conn.close()
 

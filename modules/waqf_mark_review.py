@@ -13,6 +13,7 @@ from flask import jsonify, render_template, request
 from core.blueprints import editor_bp
 from core.config import MUSHAF_WAQF_DATABASE
 from core.db import connect as _sqlite_connect
+from core.errors import PersistenceError
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core import supabase_editor as sb
 from core.datasets import qpc_hafs_data_normalized, surahs_data
@@ -521,8 +522,7 @@ def azhar_waqf_review_surah(surah_number):
     try:
         return jsonify(_build_azhar_surah_table(surah_number))
     except Exception as exc:
-        logger.exception('Azhar waqf review surah %s failed', surah_number)
-        return jsonify({'error': str(exc)}), 500
+        raise PersistenceError('تعذّر تحميل مراجعة سورة الأزهر') from exc
 
 
 @editor_bp.route('/waqf-mark-review/print')
@@ -549,7 +549,7 @@ def waqf_mark_review_print_page():
         return (
             render_template(
                 'waqf_mark_review_print.html',
-                error=str(exc),
+                error='تعذّر إعداد حزمة الطباعة. راجع سجل الخادم للتفاصيل.',
                 pack=None,
                 enable_vercel_analytics=_IS_SERVERLESS,
             ),
@@ -581,8 +581,7 @@ def waqf_mark_review_page_data(page_number):
             return jsonify(_build_shamarly_checklist(page_number))
         return jsonify({'error': 'unsupported builder'}), 400
     except Exception as exc:
-        logger.exception('waqf-mark-review page %s failed', page_number)
-        return jsonify({'error': str(exc)}), 500
+        raise PersistenceError('تعذّر تحميل صفحة مراجعة علامات الوقف') from exc
 
 
 _DECISIONS = frozenset({'ok', 'wrong', 'extra'})

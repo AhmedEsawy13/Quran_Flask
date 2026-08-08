@@ -308,7 +308,7 @@ def editor_invites():
         )
     except sb.SupabaseEditorError as e:
         logger.error('create invite failed: %s', e)
-        msg = str(e)
+        msg = e.body if isinstance(e, sb.SupabaseResponseError) else str(e)
         if '23505' in msg or 'duplicate' in msg.lower():
             return jsonify({'error': 'username already used'}), 409
         return jsonify({'error': 'create invite failed'}), 503
@@ -395,7 +395,7 @@ def editor_invite_patch(invite_id):
             )
     except sb.SupabaseEditorError as e:
         logger.error('patch invite failed: %s', e)
-        msg = str(e)
+        msg = e.body if isinstance(e, sb.SupabaseResponseError) else str(e)
         if '23505' in msg or 'duplicate' in msg.lower():
             return jsonify({'error': 'username already used'}), 409
         return jsonify({'error': 'update failed'}), 503

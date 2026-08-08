@@ -18,6 +18,7 @@ from flask import jsonify, request
 
 from core import layout_persistence
 from core.blueprints import core_bp
+from core.errors import PersistenceError
 from core.config import (
     DIGITAL_KHATT_LAYOUT_DATABASE,
     QPC_V2_LAYOUT_DATABASE, QPC_V1_LAYOUT_DATABASE, QATAR_LAYOUT_DATABASE,
@@ -244,9 +245,8 @@ def get_shamarly_ayah(surah_number, ayah_number):
             'waqf_symbols': waqf_symbols,
             'mushaf_version': (mushaf_version[0] if isinstance(mushaf_version, list) and mushaf_version else (mushaf_version or ''))
         })
-    except Exception as e:
-        logger.error(f"Error fetching shamarly data: {e}")
-        return jsonify({"error": str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل بيانات مصحف الشمرلي') from exc
 
 
 def _normalize_mushaf_word_token(value):
@@ -862,9 +862,8 @@ def get_shamarly_available_pages():
             m = re.match(r'^Shemrly-Page(\d+)\.woff2$', name)
             if m:
                 pages.append(int(m.group(1)))
-    except OSError as e:
-        logger.error(f"Error listing Shemrly fonts: {e}")
-        return jsonify({"error": str(e)}), 500
+    except OSError as exc:
+        raise PersistenceError('تعذّر تحميل قائمة خطوط الشمرلي') from exc
     pages.sort()
     return jsonify({'pages': pages})
 
@@ -877,9 +876,8 @@ def get_shamarly_page(page_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching Shamarly page {page_number}: {e}")
-        return jsonify({"error": str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة مصحف الشمرلي') from exc
 
 
 @core_bp.route('/api/shamarly/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
@@ -932,9 +930,8 @@ def get_shamarly_page_by_ayah(surah_number, ayah_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching Shamarly page by ayah {surah_number}:{ayah_number}: {e}")
-        return jsonify({"error": str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة الآية') from exc
 
 
 def _get_surah_name_ar(surah_number):
@@ -1553,9 +1550,8 @@ def get_digital_khatt_page(page_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching Digital Khatt page {page_number}: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة مصحف المدينة ١٤٢١هـ') from exc
 
 
 @core_bp.route('/api/digital-khatt/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
@@ -1578,9 +1574,8 @@ def get_digital_khatt_page_by_ayah(surah_number, ayah_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching Digital Khatt page by ayah {surah_number}:{ayah_number}: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة الآية') from exc
 
 
 def _build_qpc_v1_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
@@ -1760,9 +1755,8 @@ def get_qpc_v1_page(page_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching QPC V1 page {page_number}: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة مصحف المدينة القديم') from exc
 
 
 @core_bp.route('/api/qpc-v2/page/<int:page_number>', methods=['GET'])
@@ -1773,9 +1767,8 @@ def get_qpc_v2_page(page_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching QPC V2 page {page_number}: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة مصحف المدينة') from exc
 
 
 @core_bp.route('/api/qpc-v1/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
@@ -1794,9 +1787,8 @@ def get_qpc_v1_page_by_ayah(surah_number, ayah_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching QPC V1 page by ayah {surah_number}:{ayah_number}: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة الآية') from exc
 
 
 @core_bp.route('/api/qpc-v2/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
@@ -1815,9 +1807,8 @@ def get_qpc_v2_page_by_ayah(surah_number, ayah_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f"Error fetching QPC V2 page by ayah {surah_number}:{ayah_number}: {e}")
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة الآية') from exc
 
 
 def _build_azhar_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
@@ -2055,9 +2046,8 @@ def get_azhar_page(page_number):
         if not payload:
             return jsonify({'error': 'Page not found'}), 404
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f'Error fetching Azhar page {page_number}: {e}')
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة مصحف الأزهر') from exc
 
 
 @core_bp.route('/api/azhar/page-by-ayah/<int:surah_number>/<int:ayah_number>', methods=['GET'])
@@ -2080,6 +2070,5 @@ def get_azhar_page_by_ayah(surah_number, ayah_number):
             return jsonify({'error': 'Page not found'}), 404
         payload['pages_for_ayah'] = pages
         return jsonify(payload)
-    except Exception as e:
-        logger.error(f'Error fetching Azhar page by ayah {surah_number}:{ayah_number}: {e}')
-        return jsonify({'error': str(e)}), 500
+    except Exception as exc:
+        raise PersistenceError('تعذّر تحميل صفحة الآية') from exc

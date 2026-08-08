@@ -59,6 +59,9 @@ htmlcov/
 # Vercel
 .vercel
 
+# Supabase CLI link/cache state (project ref, version and connection metadata)
+supabase/.temp/
+
 # Generated / large data files — do not commit
 QUL_data/quran_script.backup_*.db
 QUL_data/Tafseer*.json
