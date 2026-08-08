@@ -34,8 +34,10 @@
     --mz-shadow-lg: 0 30px 70px color-mix(in srgb, var(--athar-ink) 22%, transparent), 0 6px 16px color-mix(in srgb, var(--athar-ink) 10%, transparent);
     --mz-select-hl: color-mix(in srgb, var(--athar-accent) 12%, transparent);
     --mz-active-hl: color-mix(in srgb, var(--athar-accent) 22%, transparent);
-    --mz-topic: var(--athar-accent);
-    --mz-topic-soft: color-mix(in srgb, var(--athar-accent) 11%, transparent);
+    /* Topic wash stays distinct from gold range-selection (دار الفجر–style band). */
+    --mz-topic: #3d7ea6;
+    --mz-topic-soft: color-mix(in srgb, #3d7ea6 16%, transparent);
+    --mz-topic-hover: color-mix(in srgb, #3d7ea6 30%, transparent);
     --mz-selection-soft: color-mix(in srgb, var(--athar-gold) 13%, transparent);
     --mz-radius: var(--athar-radius-surface); --mz-radius-sm: var(--athar-radius-control);
     --mz-topbar-h: 80px;
@@ -269,103 +271,6 @@ button.mz-disabled:hover {
 .mz-asr-live[hidden] { display: none; }
 #mz-asr-live-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
 
-.mz-tajweed-note {
-    width: min(92%, 640px);
-    margin: 10px auto 0;
-    padding: 12px 16px;
-    border: 1px solid var(--mz-border, var(--athar-line));
-    border-radius: 12px;
-    background: var(--mz-surface, var(--athar-surface));
-}
-.mz-tajweed-note[hidden] { display: none; }
-.mz-tajweed-note-head {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 0.82rem;
-    color: var(--athar-ink-soft);
-    margin-bottom: 6px;
-}
-.mz-tajweed-note-body {
-    margin: 0;
-    font-family: 'Amiri', 'Thmanyah', serif;
-    font-size: 1rem;
-    line-height: 1.9;
-    color: var(--athar-ink);
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 7;
-    overflow: hidden;
-}
-.mz-tajweed-note-body .tj-rule-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-.mz-tajweed-note-body .tj-rule {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 8px 12px;
-    padding: 0.55em 0.75em 0.55em 0.45em;
-    border-bottom: 1px solid color-mix(in srgb, var(--mz-border, var(--athar-line)) 70%, transparent);
-    border-right: 3px solid color-mix(in srgb, var(--athar-gold, #A9782F) 55%, transparent);
-}
-.mz-tajweed-note-body .tj-rule:last-child { border-bottom: 0; }
-.mz-tajweed-note-body .tj-rule-main { flex: 1 1 auto; min-width: 0; }
-.mz-tajweed-note-body .tj-rule-note {
-    margin: 0;
-    font-size: 0.95em;
-    line-height: 1.75;
-    color: var(--athar-ink);
-}
-.mz-tajweed-note-body .tj-badges {
-    display: flex;
-    flex: 0 0 auto;
-    align-self: flex-start;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    gap: 3px;
-    max-width: 38%;
-    padding-top: 0.1em;
-}
-.mz-tajweed-note-body .tj-badge {
-    display: inline-flex;
-    align-items: center;
-    font-family: var(--font-ui, 'Thmanyah', sans-serif);
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--athar-gold-deep, #7a5a22);
-    background: color-mix(in srgb, var(--athar-gold, #A9782F) 16%, transparent);
-    border: 1px solid color-mix(in srgb, var(--athar-gold, #A9782F) 28%, transparent);
-    border-radius: 999px;
-    padding: 0.22em 0.55em;
-    white-space: nowrap;
-}
-.mz-tajweed-note-body .tj-note-prose {
-    margin: 0 0 0.7em;
-    color: var(--athar-ink-soft);
-}
-.mz-tajweed-note-body .tj-quran {
-    font-family: 'UthmanicHafs', 'AmiriQuran', serif;
-    font-feature-settings: normal;
-    font-size: 1.18em;
-    color: var(--athar-gold-deep, #7a5a22);
-    padding: 0 0.1em;
-    border-radius: 0.2em;
-    background: color-mix(in srgb, var(--athar-gold, #A9782F) 10%, transparent);
-}
-body.mz-dark .mz-tajweed-note-body .tj-quran,
-body.mz-dark .mz-tajweed-note-body .tj-badge {
-    color: #e6c878;
-    background: rgba(169, 120, 47, 0.18);
-}
-.mz-tajweed-note-credit {
-    margin: 8px 0 0;
-    font-size: 0.72rem;
-    color: var(--athar-ink-faint, var(--athar-ink-soft));
-}
-.mz-tajweed-note-credit a { color: var(--athar-accent); font-weight: 700; }
 .mz-bar-asr { display: flex; align-items: center; gap: 7px; min-width: 0; }
 .mz-bar-asr[hidden] { display: none; }
 .mz-asr-note { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -745,23 +650,33 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 .mz-context-rail[data-state="empty"] .mz-context-title { color: var(--mz-text-muted); font-weight: 600; }
 .mz-context-rail[aria-busy="true"] .mz-context-mark i { animation: mz-pulse 1s ease-in-out infinite; }
 
-/* Topic is a semantic underline, not a pill behind every Quran word. It remains
-   visible when the same verses are adopted as the memorisation range. */
-.mz-word.mz-context {
-    box-shadow: inset 0 -0.1em color-mix(in srgb, var(--mz-topic) 42%, transparent);
-}
-.mz-word.mz-context-start::before,
-.mz-word.mz-context-end::after {
-    content: '';
+/* Topic mark lives on words for hit-testing only; the visible wash is one
+   continuous band per line (painted into .mz-context-layer), not per-word chips. */
+.mz-word.mz-context { background: transparent; box-shadow: none; }
+.mz-context-layer {
     position: absolute;
-    bottom: 0.02em;
-    width: 0.1em;
-    height: 0.42em;
-    border-radius: 999px;
-    background: var(--mz-topic);
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
 }
-.mz-word.mz-context-start::before { inset-inline-start: -0.01em; }
-.mz-word.mz-context-end::after { inset-inline-end: -0.01em; }
+.mz-page > .mz-line { position: relative; z-index: 1; }
+.mz-context-band {
+    position: absolute;
+    border-radius: 0.22em;
+    background: var(--mz-topic-soft);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mz-topic) 18%, transparent);
+    transition: background-color 0.16s ease, box-shadow 0.16s ease;
+}
+.mz-page:has(.mz-word.mz-context:hover) .mz-context-band {
+    background: var(--mz-topic-hover);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mz-topic) 34%, transparent);
+}
+body.mz-dark {
+    --mz-topic: #6eb4d6;
+    --mz-topic-soft: color-mix(in srgb, #6eb4d6 18%, transparent);
+    --mz-topic-hover: color-mix(in srgb, #6eb4d6 32%, transparent);
+}
 
 @keyframes mz-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 

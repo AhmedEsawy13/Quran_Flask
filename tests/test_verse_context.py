@@ -132,6 +132,8 @@ def test_thematic_detail_preserves_hierarchy_and_deep_link_state(client):
     assert '.mz-word.mz-context:not(.mz-sel)' not in css
     assert '\n.mz-context {' not in css
     assert '.mz-word.mz-context {' in css
+    assert '.mz-context-band' in css
+    assert 'paintContextBands' in js
     assert 'const contextHeight = els.contextBox' in js
 
 

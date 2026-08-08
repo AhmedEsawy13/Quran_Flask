@@ -24,21 +24,6 @@
     const $ = id => document.getElementById(id);
     const { getWaqfDisplayData, stripEmbeddedWaqf } = window.AtharMushaf;
 
-    function escapeHtml(s) {
-        return String(s || '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
-
-    function formatTajweedNotesHtml(raw) {
-        if (window.AtharTajweedNotes && typeof window.AtharTajweedNotes.formatHtml === 'function') {
-            return window.AtharTajweedNotes.formatHtml(raw);
-        }
-        return escapeHtml(raw).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
-    }
-
     const els = {
         bar:         $('mz-bar'),
         surah:       $('mz-surah'),
@@ -79,9 +64,6 @@
         asrNote:     $('mz-asr-note'),
         asrLive:     $('mz-asr-live'),
         asrLiveText: $('mz-asr-live-text'),
-        tajweedNote: $('mz-tajweed-note'),
-        tajweedNoteBody: $('mz-tajweed-note-body'),
-        tajweedNoteRef: $('mz-tajweed-note-ref'),
         tbLayout:    $('mz-tb-layout'),
         tbTajweed:   $('mz-tb-tajweed'),
         tbContext:   $('mz-tb-context'),
@@ -1101,7 +1083,7 @@
         digitalKhattFeatureCandidates,
         oldMadinaFeatureCandidates,
     } = window.AtharPageChrome;
-    const justifyLines = window.AtharPageChrome.createLineJustifier({
+    const _justifyLines = window.AtharPageChrome.createLineJustifier({
         containerEls: pageEls,
         lineSelector: '.mz-line', innerSelector: '.mz-line-inner', wordSelector: '.mz-word',
         featureCandidates: () => state.src === 'qpc_v1'
@@ -1133,6 +1115,10 @@
         ),
         stretchOnly: () => state.src === 'shamarly',
     });
+    function justifyLines() {
+        _justifyLines();
+        requestAnimationFrame(paintContextBands);
+    }
     let lineMetricObserver = null;
     let lineMetricFrame = 0;
     function watchLineMetrics() {
@@ -1183,23 +1169,74 @@
     });
 
     /* ── Highlighting ──────────────────────────────────────────────── */
+    function ensureContextLayer(pageEl) {
+        let layer = pageEl.querySelector(':scope > .mz-context-layer');
+        if (!layer) {
+            layer = document.createElement('div');
+            layer.className = 'mz-context-layer';
+            layer.setAttribute('aria-hidden', 'true');
+            pageEl.prepend(layer);
+        }
+        return layer;
+    }
+
+    function paintContextBands() {
+        pageEls().forEach(pageEl => {
+            if (!pageEl) return;
+            const layer = ensureContextLayer(pageEl);
+            layer.replaceChildren();
+            if (!state.contextOn || !state.contextKeys.size) return;
+
+            const words = [...pageEl.querySelectorAll('.mz-word.mz-context')];
+            if (!words.length) return;
+
+            const pageRect = pageEl.getBoundingClientRect();
+            if (!pageRect.width || !pageRect.height) return;
+
+            const byLine = new Map();
+            words.forEach(word => {
+                const line = word.closest('.mz-line');
+                if (!line) return;
+                if (!byLine.has(line)) byLine.set(line, []);
+                byLine.get(line).push(word);
+            });
+
+            byLine.forEach(lineWords => {
+                const rects = lineWords
+                    .map(word => word.getBoundingClientRect())
+                    .filter(rect => rect.width > 0 && rect.height > 0);
+                if (!rects.length) return;
+
+                const left = Math.min(...rects.map(rect => rect.left));
+                const right = Math.max(...rects.map(rect => rect.right));
+                const top = Math.min(...rects.map(rect => rect.top));
+                const bottom = Math.max(...rects.map(rect => rect.bottom));
+                const padX = 3;
+                const padY = Math.max(2, (bottom - top) * 0.1);
+
+                const band = document.createElement('div');
+                band.className = 'mz-context-band';
+                band.style.left = `${left - pageRect.left - padX}px`;
+                band.style.top = `${top - pageRect.top - padY}px`;
+                band.style.width = `${Math.max(0, right - left + padX * 2)}px`;
+                band.style.height = `${Math.max(0, bottom - top + padY * 2)}px`;
+                layer.appendChild(band);
+            });
+        });
+    }
+
     function applySelectionHighlight() {
         const hasSel = state.selectedKeys.size > 0;
         pageEls().forEach(p => p && p.classList.toggle('mz-has-selection', hasSel));
         wordsInSpread('.mz-word').forEach(w => {
             const k = w.dataset.key;
-            w.classList.remove('mz-context-start', 'mz-context-end');
             w.classList.toggle('mz-sel', !!k && state.selectedKeys.has(k));
             w.classList.toggle(
                 'mz-context',
                 !!(state.contextOn && k && state.contextKeys.has(k))
             );
         });
-        const contextWords = wordsInSpread('.mz-word.mz-context');
-        if (contextWords.length) {
-            contextWords[0].classList.add('mz-context-start');
-            contextWords[contextWords.length - 1].classList.add('mz-context-end');
-        }
+        paintContextBands();
         if (state.activeKey) markActive(state.activeKey);
     }
 
@@ -1399,36 +1436,8 @@
         wordsInSpread('.mz-word.mz-act').forEach(w => w.classList.remove('mz-act'));
         if (!key) return;
         wordsInSpread(`.mz-word[data-key="${key}"]`).forEach(w => w.classList.add('mz-act'));
-        refreshTajweedNote(key);
     }
 
-    const _noteCache = new Map();
-    async function refreshTajweedNote(key) {
-        const box = els.tajweedNote;
-        const body = els.tajweedNoteBody;
-        const ref = els.tajweedNoteRef;
-        if (!box || !body) return;
-        if (!state.tajweedOn || !key) {
-            box.hidden = true;
-            return;
-        }
-        const [s, a] = String(key).split(':').map(Number);
-        if (!s || !a) { box.hidden = true; return; }
-        if (ref) ref.textContent = key;
-        try {
-            let text = _noteCache.get(key);
-            if (text === undefined) {
-                const data = await window.AtharApi.json(`/api/tajweed-notes/${s}/${a}`);
-                text = (data && data.text) || '';
-                _noteCache.set(key, text);
-            }
-            if (!text) { box.hidden = true; return; }
-            body.innerHTML = formatTajweedNotesHtml(text);
-            box.hidden = false;
-        } catch (_) {
-            box.hidden = true;
-        }
-    }
     function scrollActiveIntoView() {
         const first = wordsInSpread('.mz-word.mz-act')[0];
         if (first) first.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -2356,12 +2365,9 @@
             saveSetting('quranApp_tajweedEnabled', state.tajweedOn);
             if (state.tajweedOn) {
                 applyTajweedToPage().then(() => requestAnimationFrame(justifyLines));
-                refreshTajweedNote(state.activeKey || (state.selectionRange
-                    ? `${state.surah}:${state.selectionRange[0]}` : null));
             } else {
                 clearTajweedFromPage();
                 requestAnimationFrame(justifyLines);
-                if (els.tajweedNote) els.tajweedNote.hidden = true;
             }
         });
 

@@ -490,6 +490,9 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'id="mz-context"' in page
     assert 'id="mz-tb-context"' in page
     assert 'التفصيل الموضوعي' in page
+    assert 'بيان التجويد' not in page
+    assert 'id="mz-tajweed-note"' not in page
+    assert 'tajweed_notes_format.js' not in page
     assert 'class="mz-bar-settings" aria-label="إعدادات الجلسة"' in page
     assert 'class="mz-bar-view" role="group" aria-label="خيارات العرض"' in page
     assert 'aria-controls="mz-reciter-panel"' in page
