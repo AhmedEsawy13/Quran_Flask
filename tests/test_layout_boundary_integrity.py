@@ -191,3 +191,56 @@ def test_shamarly_has_no_empty_ayah_lines():
             )
         ]
     assert _empty_ayah_lines(layouts._build_shamarly_page_payload, pages) == []
+
+
+def test_shamarly_hashr_mumtahanah_boundary_matches_canonical_script():
+    """Page 465 keeps the basmala and the full non-monotonic 59/60 stream."""
+    payloads = [
+        layouts._build_shamarly_page_payload(page_number)
+        for page_number in (465, 466)
+    ]
+    assert all(payloads)
+
+    page_465_lines = {
+        line['line_number']: line
+        for line in payloads[0]['lines']
+    }
+    assert page_465_lines[9]['surah_number'] == 59
+    assert page_465_lines[10]['line_type'] == 'surah_name'
+    assert page_465_lines[10]['surah_number'] == 60
+    assert page_465_lines[11]['line_type'] == 'basmallah'
+    assert page_465_lines[11]['surah_number'] == 60
+    assert layouts._looks_like_basmala_text(page_465_lines[11]['raw_text'])
+    assert all(page_465_lines[line]['surah_number'] == 60 for line in range(12, 16))
+
+    rendered_keys = {
+        (int(word['surah']), int(word['ayah'])): []
+        for payload in payloads
+        for line in payload['lines']
+        for word in line['words']
+        if (int(word['surah']), int(word['ayah'])) in {(59, 24), (60, 1)}
+    }
+    for payload in payloads:
+        for line in payload['lines']:
+            for word in line['words']:
+                verse = (int(word['surah']), int(word['ayah']))
+                if verse in rendered_keys:
+                    rendered_keys[verse].append(word['word_key'])
+
+    with sqlite3.connect(QURAN_SCRIPT_DATABASE) as conn:
+        canonical = {}
+        for surah, ayah in ((59, 24), (60, 1)):
+            rows = conn.execute(
+                """
+                SELECT word_key
+                FROM words
+                WHERE surah = ? AND ayah = ?
+                """,
+                (surah, ayah),
+            ).fetchall()
+            canonical[(surah, ayah)] = sorted(
+                (row[0] for row in rows),
+                key=lambda key: int(key.rsplit(':', 1)[1]),
+            )
+
+    assert rendered_keys == canonical
