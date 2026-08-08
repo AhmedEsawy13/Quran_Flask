@@ -13,7 +13,7 @@ from flask import request
 
 from core.loader import load_json_cdn_or_local as _load
 from core.config import MUSHAF_WAQF_DATABASE, WAQF_SYMBOL_CHARS
-from core.text import normalize_quran_dataset, initialize_waqf_database
+from core.text import normalize_quran_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +166,6 @@ amiri_quran_data_normalized, _, amiri_stats = normalize_quran_dataset(
     'amiri_quran', amiri_quran_data
 )
 
-initialize_waqf_database(waqf_rows_digital + waqf_rows_qpc + waqf_rows_indopak)
 logger.info(
     f"Waqf normalization summary: {digital_stats}, {qpc_stats}, {indopak_stats}, {amiri_stats}"
 )

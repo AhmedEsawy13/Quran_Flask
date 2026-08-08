@@ -4,12 +4,39 @@ After carving app.py into core/ + modules/, guard that the app still assembles
 under every deployment shape and that the newer endpoints refuse bad input
 cleanly instead of 500-ing.
 """
+import hashlib
+import subprocess
+import sys
 from pathlib import Path
 
 import app as quran_app
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def test_clean_process_import_keeps_runtime_databases_read_only():
+    """Importing Flask must never migrate or rebuild committed artifacts."""
+    databases = [
+        PROJECT_ROOT / 'data' / 'word_name.db',
+        PROJECT_ROOT / 'data' / 'waqf_symbols.db',
+    ]
+    before = {path: (path.stat().st_mtime_ns, _sha256(path)) for path in databases}
+
+    subprocess.run(
+        [sys.executable, '-c', 'import app'],
+        cwd=PROJECT_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    after = {path: (path.stat().st_mtime_ns, _sha256(path)) for path in databases}
+    assert after == before
 
 
 def test_all_features_including_editor_boot(client):
@@ -428,7 +455,9 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'mz-title-sr' in page
     assert 'class="mz-range-guide" role="note"' in page
     assert 'اضغط آية البداية، ثم آية النهاية' in page
-    assert 'class="mz-context"' not in page
+    assert 'id="mz-context"' in page
+    assert 'id="mz-tb-context"' in page
+    assert 'السياق الموضوعي' in page
     assert 'class="mz-bar-settings" aria-label="إعدادات الجلسة"' in page
     assert 'class="mz-bar-view" role="group" aria-label="خيارات العرض"' in page
     assert 'aria-controls="mz-reciter-panel"' in page

@@ -1,15 +1,41 @@
 ---
-description: Use Tafsir Center MCP for grounded Quran/tafsir answers while working on أثَر
+description: Use Tafsir + Bahouth MCP for grounded Quran research while working on أثَر
 alwaysApply: true
 ---
 
-# Tafsir MCP (project)
+# Tafsir MCP + Bahouth MCP (project)
 
-This repo has a Cursor MCP server named **`tafsir`** (Tafsir Center — `mcp.tafsir.net`).
+This repo connects two complementary Cursor MCP servers from مركز تفسير:
 
-When the question involves Quran text, tafsir, أسباب النزول, roots/صرف, إعراب, or qirāʾāt:
+| Server | Config name | Endpoint | Layer |
+|--------|-------------|----------|-------|
+| **Tafsir MCP** | `tafsir` | `https://mcp.tafsir.net/mcp` | التفسير والمصادر التفسيرية |
+| **Bahouth MCP** | `bahouth` | `https://bahouth.tafsir.net/mcp` | الكلمات، الجذور، الخصائص، القراءات، الموضوعات |
 
-1. Prefer **tafsir MCP tools** over model memory for verse wording and commentary.
-2. Do not invent ayah text, tafsir quotes, or asbab details.
-3. Athar already ships local tafseer via `/api/tafseer` and `data/tafseer_local.db` — MCP is for **agent research while coding**, not a new runtime dependency in Flask.
-4. If MCP is unavailable/unauthorized, say so briefly and fall back to local project data or ask the user to enable the server in Cursor Settings → MCP.
+Together they are **integration, not duplication**. Prefer the matching layer instead of inventing from model memory.
+
+## When to use which
+
+### Tafsir MCP (`tafsir`)
+Use for commentary and source-backed tafsir work:
+- ayah text / tafsir quotes
+- أسباب النزول
+- classical commentary sources (`fetch_tafsir`, `list_tafsir_sources`, …)
+- broad Quran overview tools already on this server
+
+### Bahouth MCP (`bahouth`)
+Use for linguistic / thematic research:
+- verse/word inventory (`get_verse`, `list_surah_verses`, `list_verse_words`)
+- roots (`find_root`, `list_root_verses`) — diacritic-sensitive exact match
+- verse properties (`list_verse_properties`)
+- qirāʾāt annotations (`list_verse_qiraat`)
+- topics (`list_verse_topics`, `list_topic_verses`)
+
+Bahouth `verse_key` format is `<surah>-<ayah>` with a hyphen (e.g. `2-255`), not colon.
+
+## Shared rules
+
+1. Prefer these MCP tools over model memory for Quran wording, roots, readings, topics, and tafsir.
+2. Do not invent ayah text, tafsir quotes, root stats, qirāʾāt, or topic assignments.
+3. Athar already ships local tafseer via `/api/tafseer` and `data/tafseer_local.db` — MCP is for **agent research while coding**, not a new Flask runtime dependency.
+4. If an MCP is unavailable/unauthorized, say so briefly and fall back to local project data, or ask the user to enable the server in Cursor Settings → MCP.

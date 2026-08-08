@@ -1,5 +1,4 @@
 from flask import Flask, current_app, jsonify, request
-import sqlite3
 import os
 import logging
 
@@ -153,7 +152,7 @@ def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
 from core.config import (
-    DATABASE, MUSHAF_WAQF_DATABASE,  # noqa: F401 — tests reach this via app.MUSHAF_WAQF_DATABASE
+    MUSHAF_WAQF_DATABASE,  # noqa: F401 — tests reach this via app.MUSHAF_WAQF_DATABASE
     _BASE_DIR,  # noqa: F401 — pipeline/build_classical_waqf.py reaches this via app._BASE_DIR
 )
 from core.text import (
@@ -191,19 +190,6 @@ from core.datasets import (
 )
 
 
-
-
-# Ensure word_name.db has an index on (surah_number, ayah_number) for fast per-ayah
-# lookups. Creates the index if missing; safe to call on every startup.
-try:
-    _wn_conn = sqlite3.connect(DATABASE)
-    _wn_conn.execute(
-        'CREATE INDEX IF NOT EXISTS idx_verses_surah_ayah ON verses(surah_number, ayah_number)'
-    )
-    _wn_conn.commit()
-    _wn_conn.close()
-except sqlite3.Error as _wn_err:
-    logging.warning(f'Could not create word_name index: {_wn_err}')
 
 
 # Database helper functions (moved to core.db so feature blueprints can share

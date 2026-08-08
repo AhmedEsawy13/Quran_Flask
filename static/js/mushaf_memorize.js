@@ -11,6 +11,7 @@
    Endpoints:
      GET /api/surahs
      GET /api/memorization/<s>?mode=&gap=     audio_url + per-verse [start,end] + phrases
+     GET /api/memorization/context/<s>/<a>   Bahouth contiguous thematic span
      GET /api/digital-khatt/page(-by-ayah)/…  Madinah 1441 (QPC v4) page
      GET /api/qpc-v2/page(-by-ayah)/…         Madinah 1421 (Digital Khatt V2) page
      GET /api/qpc-v1/page(-by-ayah)/…         Madinah 1405 (QPC v1) page
@@ -83,7 +84,13 @@
         tajweedNoteRef: $('mz-tajweed-note-ref'),
         tbLayout:    $('mz-tb-layout'),
         tbTajweed:   $('mz-tb-tajweed'),
+        tbContext:   $('mz-tb-context'),
         tbHide:      $('mz-tb-hide'),
+        contextBox:  $('mz-context'),
+        contextRange:$('mz-context-range'),
+        contextTitle:$('mz-context-title'),
+        contextExpand:$('mz-context-expand'),
+        contextSource:$('mz-context-source'),
         tbWaqf:      $('mz-tb-waqf'),
         volume:      $('mz-volume'),
         volBtn:      $('mz-vol-btn'),
@@ -149,6 +156,9 @@
         rangeDraft: null,       // { anchor, previousRange } while waiting for the end verse
         justify: 50,
         tajweedOn: false,
+        contextOn: true,
+        contextSpan: null,      // latest /api/memorization/context payload
+        contextKeys: new Set(), // soft-highlighted ayah keys for thematic span
         tajweedCache: new Map(),
         src: 'digital_khatt',
         mushafVersions: [],
@@ -191,6 +201,10 @@
         if (els.tbTajweed) {
             els.tbTajweed.classList.toggle('mz-on', state.tajweedOn);
             els.tbTajweed.setAttribute('aria-pressed', String(state.tajweedOn));
+        }
+        if (els.tbContext) {
+            els.tbContext.classList.toggle('mz-on', state.contextOn);
+            els.tbContext.setAttribute('aria-pressed', String(state.contextOn));
         }
         if (els.tbHide) {
             els.tbHide.classList.toggle('mz-on', state.hideText);
@@ -240,6 +254,7 @@
         updateJustifyLabel();
 
         state.tajweedOn = localStorage.getItem('quranApp_tajweedEnabled') === 'true';
+        state.contextOn = localStorage.getItem('mz_contextOn') !== '0';
         syncTajweedButton();
 
         const savedSrc = localStorage.getItem('mz_src');
@@ -1162,8 +1177,106 @@
         wordsInSpread('.mz-word').forEach(w => {
             const k = w.dataset.key;
             w.classList.toggle('mz-sel', !!k && state.selectedKeys.has(k));
+            w.classList.toggle(
+                'mz-context',
+                !!(state.contextOn && k && state.contextKeys.has(k))
+            );
         });
         if (state.activeKey) markActive(state.activeKey);
+    }
+
+    function clearContextUi({ invalidateRequest = true } = {}) {
+        if (invalidateRequest) _contextRequest += 1;
+        state.contextSpan = null;
+        state.contextKeys = new Set();
+        if (els.contextBox) els.contextBox.hidden = true;
+        if (els.contextExpand) els.contextExpand.hidden = true;
+        applySelectionHighlight();
+    }
+
+    function contextKeysForSpan(span) {
+        const keys = new Set();
+        if (!span || !span.from || !span.to) return keys;
+        const startS = Number(span.from.surah);
+        const startA = Number(span.from.ayah);
+        const endS = Number(span.to.surah);
+        const endA = Number(span.to.ayah);
+        if (startS === endS) {
+            for (let a = startA; a <= endA; a++) keys.add(`${startS}:${a}`);
+            return keys;
+        }
+        // Cross-surah spans: highlight only the portion inside the current surah.
+        if (startS === state.surah) {
+            const last = Math.max(...[...state.verseByAyah.keys()]);
+            for (let a = startA; a <= last; a++) keys.add(`${state.surah}:${a}`);
+        } else if (endS === state.surah) {
+            for (let a = 1; a <= endA; a++) keys.add(`${state.surah}:${a}`);
+        }
+        return keys;
+    }
+
+    function renderContextChip(span) {
+        if (!els.contextBox || !state.contextOn || !span || !span.found) {
+            if (els.contextBox) els.contextBox.hidden = true;
+            return;
+        }
+        if (els.contextRange) els.contextRange.textContent = span.label || '';
+        if (els.contextTitle) {
+            const title = String(span.title || '').split(':').pop() || span.title || '';
+            els.contextTitle.textContent = title;
+            els.contextTitle.title = span.title || '';
+        }
+        if (els.contextSource) {
+            els.contextSource.textContent = span.attribution || '';
+        }
+        const canExpand = !!(
+            span.same_surah
+            && Number(span.from?.surah) === state.surah
+            && Number(span.run_length || 0) >= 2
+        );
+        if (els.contextExpand) {
+            els.contextExpand.hidden = !canExpand;
+        }
+        els.contextBox.hidden = false;
+    }
+
+    let _contextRequest = 0;
+    async function refreshContextForAyah(surah, ayah) {
+        if (!state.contextOn || !Number.isFinite(surah) || !Number.isFinite(ayah)) {
+            clearContextUi();
+            return null;
+        }
+        const request = ++_contextRequest;
+        try {
+            const span = await window.AtharApi.json(
+                `/api/memorization/context/${surah}/${ayah}`
+            );
+            if (request !== _contextRequest) return null;
+            if (!span || span.found === false) {
+                clearContextUi({ invalidateRequest: false });
+                return null;
+            }
+            state.contextSpan = span;
+            state.contextKeys = contextKeysForSpan(span);
+            renderContextChip(span);
+            applySelectionHighlight();
+            return span;
+        } catch (_) {
+            if (request !== _contextRequest) return null;
+            clearContextUi({ invalidateRequest: false });
+            return null;
+        }
+    }
+
+    function expandToContextSpan() {
+        const span = state.contextSpan;
+        if (!span || !span.same_surah || Number(span.from?.surah) !== state.surah) return;
+        const a = Number(span.from.ayah);
+        const b = Number(span.to.ayah);
+        if (!Number.isFinite(a) || !Number.isFinite(b)) return;
+        setCommittedRange(a, b);
+        applySelectionHighlight();
+        setStatus(`نطاق السياق ${toAr(a)}–${toAr(b)}`);
     }
     function markActive(key) {
         state.activeKey = key;
@@ -1986,11 +2099,13 @@
         if (!state.rangeDraft) {
             beginRangePick(ayah);
             setStatus('اختر آية النهاية…');
+            refreshContextForAyah(state.surah, ayah);
         } else {
             const range = completeRangePick(ayah);
             const [a, b] = range;
             applySelectionHighlight();
             setStatus(a === b ? `الآية ${toAr(a)}` : `النطاق ${toAr(a)}–${toAr(b)} · اضغط ▶`);
+            refreshContextForAyah(state.surah, a);
         }
     }
 
@@ -2211,6 +2326,22 @@
         // Floating mushaf toolbar
         if (els.tbLayout) els.tbLayout.addEventListener('click', toggleLayout);
         if (els.tbTajweed) els.tbTajweed.addEventListener('click', () => els.tajweed.click());
+        if (els.tbContext) els.tbContext.addEventListener('click', () => {
+            state.contextOn = !state.contextOn;
+            localStorage.setItem('mz_contextOn', state.contextOn ? '1' : '0');
+            syncToolbar();
+            if (!state.contextOn) {
+                clearContextUi();
+                return;
+            }
+            const anchor = state.selectionRange
+                ? state.selectionRange[0]
+                : (state.rangeDraft ? state.rangeDraft.anchor : null);
+            if (anchor) refreshContextForAyah(state.surah, anchor);
+        });
+        if (els.contextExpand) {
+            els.contextExpand.addEventListener('click', expandToContextSpan);
+        }
         if (els.progress) els.progress.addEventListener('click', e => {
             const rect = els.progress.getBoundingClientRect();
             if (!rect.width) return;

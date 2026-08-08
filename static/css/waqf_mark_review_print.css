@@ -113,6 +113,14 @@
     align-items: start;
 }
 
+.wmr-print-sheet {
+    margin-bottom: 1rem;
+}
+
+.wmr-print-sheet + .wmr-print-sheet {
+    margin-top: 1rem;
+}
+
 .wmr-print-half {
     min-width: 0;
 }
@@ -162,7 +170,7 @@
 
 .wmr-print-word {
     font-family: "UthmanicHafs", "Amiri Quran", "Amiri", serif;
-    font-size: 1.08rem;
+    font-size: 1.2rem;
     line-height: 1.45;
 }
 
@@ -229,6 +237,19 @@
         gap: 0.45rem;
     }
 
+    .wmr-print-sheet {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        break-after: page;
+        page-break-after: always;
+        margin: 0;
+    }
+
+    .wmr-print-sheet:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+
     .wmr-print-table {
         font-size: 7.5pt;
     }
@@ -253,7 +274,8 @@
     }
 
     .wmr-print-word {
-        font-size: 9pt;
+        font-size: 12pt;
+        line-height: 1.4;
     }
 
     .wmr-print-mark-text {

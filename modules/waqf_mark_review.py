@@ -90,6 +90,11 @@ PRINT_PACKS = {
     3: {'juz_from': 21, 'juz_to': 30, 'label': 'الأجزاء ٢١–٣٠'},
 }
 
+# A print sheet has two side-by-side columns.  Keep the chunk size explicit so
+# the browser cannot paginate the two long columns independently: the right
+# column continues into the left column, then the next sheet starts cleanly.
+PRINT_ROWS_PER_COLUMN = 28
+
 _AR_DIGITS = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
 
 
@@ -154,6 +159,19 @@ def _build_print_pack(pack_id: int) -> dict:
         })
 
     mid = (len(rows) + 1) // 2
+    sheets = []
+    sheet_size = PRINT_ROWS_PER_COLUMN * 2
+    for start in range(0, len(rows), sheet_size):
+        right_rows = rows[start:start + PRINT_ROWS_PER_COLUMN]
+        left_start = start + PRINT_ROWS_PER_COLUMN
+        left_rows = rows[left_start:left_start + PRINT_ROWS_PER_COLUMN]
+        sheets.append({
+            'number': len(sheets) + 1,
+            # The template is RTL, so the first column is rendered on the
+            # right and the second is rendered on the left.
+            'columns': [right_rows, left_rows],
+        })
+
     return {
         'pack_id': pack_id,
         'label': meta['label'],
@@ -169,6 +187,7 @@ def _build_print_pack(pack_id: int) -> dict:
         'pages': pages,
         'rows': rows,
         'columns': [rows[:mid], rows[mid:]],
+        'print_sheets': sheets,
         'symbols': [
             {
                 'code': code,

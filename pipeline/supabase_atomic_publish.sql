@@ -22,7 +22,7 @@ declare
   v_changes jsonb;
   v_count integer;
 begin
-  if p_edition not in ('قطر', 'الكويت') then
+  if p_edition not in ('قطر', 'الكويت', 'البحرين') then
     raise exception 'invalid publish edition' using errcode = '22023';
   end if;
   if p_expected_changes is null or jsonb_typeof(p_expected_changes) <> 'array' then
@@ -120,7 +120,7 @@ grant execute on function public.publish_editor_edition(text, uuid, text, jsonb)
   to service_role;
 
 insert into public.athar_schema_versions (component, version, updated_at)
-values ('editor', 3, now())
+values ('editor', 4, now())
 on conflict (component) do update
 set version = greatest(athar_schema_versions.version, excluded.version),
     updated_at = excluded.updated_at;

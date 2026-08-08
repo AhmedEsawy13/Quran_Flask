@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from modules.waqf_mark_review import (
     PRINT_PACKS,
+    PRINT_ROWS_PER_COLUMN,
     _build_print_pack,
     pack_page_range,
     waqf_glyph,
@@ -84,6 +85,7 @@ def test_waqf_mark_review_print_pack1_renders(client):
     assert 'wmr-print-main' in body
     assert 'wmr-print-table' in body
     assert 'wmr-print-split' in body
+    assert 'wmr-print-sheet' in body
     assert 'css/waqf_mark_review_print.css' in body
     assert 'الصفحة' in body
     assert 'السطر' in body
@@ -109,6 +111,20 @@ def test_build_print_pack_matches_checklist_totals():
     assert pack['mark_total'] >= 1
     assert len(pack['rows']) == pack['mark_total']
     assert sum(len(c) for c in pack['columns']) == pack['mark_total']
+    assert all(
+        len(column) <= PRINT_ROWS_PER_COLUMN
+        for sheet in pack['print_sheets']
+        for column in sheet['columns']
+    )
+    sheet_rows = [
+        item
+        for sheet in pack['print_sheets']
+        for column in sheet['columns']
+        for item in column
+    ]
+    assert [item['word_id'] for item in sheet_rows] == [
+        item['word_id'] for item in pack['rows']
+    ]
     # Spot-check one page against the live checklist builder.
     sample = pack['pages'][0]
     live = _build_shamarly_checklist(sample['page_number'])

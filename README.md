@@ -372,12 +372,20 @@ Quran_Flask/
 - `quran_text/` — Quranic text in multiple fonts/editions (JSON)
 - `quran_script.db` — Quranic script + word positions
 - `word_name.db` — canonical per-word meanings from Tafsir MCP
+- `verse_topics.db` — Bahouth topics + contiguous context spans for تثبيت (`pipeline/harvest_bahouth_topics.py`)
 - `mushaf_waqf.db` / `mushaf-qatar-layout.db` — waqf marks per mushaf layout (written by the editor)
 - `classical_waqf.db` — the four classical waqf books, aligned per word (built by `pipeline/build_classical_waqf.py`)
 - `qpc-v4-15-lines.db` / `qpc-v1-15-lines.db` / `mushaf-qatar-layout.db` / `digital-khatt-15-lines.db` — page-layout databases
 - `glyph_mappings.db` / `mushaf_layout_inferred.db` — Shemrly page rendering
 - `tajweed_local.db` — tajweed coloring rules
 - `tafseer_local.db` — 5 Arabic tafsirs, built by `pipeline/build_tafseer_local.py` from QUL (qul.tarteel.ai) exports
+
+Runtime imports are read-only. After changing Quran source files or database
+schemas, prepare the derived indexes and waqf-symbol database explicitly with
+`python3 pipeline/prepare_runtime_databases.py` before starting Flask.
+
+The incremental architecture plan is tracked in
+[`solid-codebase-roadmap.md`](solid-codebase-roadmap.md).
 - `word_timestamps/`, `research_cache/` — additional per-feature datasets
 - `reciters/<reciter>/*.json.gz` — per-reciter word/verse/letter timing (restored at build time, not tracked)
 

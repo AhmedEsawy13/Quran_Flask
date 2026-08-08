@@ -2,6 +2,9 @@
   "mcpServers": {
     "tafsir": {
       "url": "https://mcp.tafsir.net/mcp"
+    },
+    "bahouth": {
+      "url": "https://bahouth.tafsir.net/mcp"
     }
   }
 }

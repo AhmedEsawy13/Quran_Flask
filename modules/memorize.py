@@ -11,7 +11,8 @@ from collections import defaultdict
 from flask import jsonify, render_template, request
 
 from core.blueprints import memorize_bp
-from core.config import _BASE_DIR
+from core.config import _BASE_DIR, VERSE_TOPICS_DATABASE
+from core.db import connect as _sqlite_connect
 from core.datasets import normalize_source, get_quran_text_data_by_source
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.memorization import (
@@ -23,6 +24,71 @@ from core.memorization import (
 )
 
 logger = logging.getLogger(__name__)
+
+_AR_DIGITS = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
+
+
+def _to_ar_digits(value) -> str:
+    return str(value).translate(_AR_DIGITS)
+
+
+def _context_attribution(conn: sqlite3.Connection) -> str:
+    try:
+        row = conn.execute(
+            "SELECT value FROM metadata WHERE key = 'attribution'"
+        ).fetchone()
+    except sqlite3.Error:
+        return 'باحوث · مركز تفسير للدراسات القرآنية'
+    return (row[0] if row and row[0] else 'باحوث · مركز تفسير للدراسات القرآنية')
+
+
+def get_verse_context_span(surah: int, ayah: int) -> dict | None:
+    """Return the precomputed Bahouth contiguous context span for one ayah."""
+    if not os.path.isfile(VERSE_TOPICS_DATABASE):
+        return None
+    try:
+        conn = _sqlite_connect(VERSE_TOPICS_DATABASE, row=True, readonly=True)
+    except sqlite3.Error as exc:
+        logger.error('verse topics DB open failed: %s', exc)
+        return None
+    try:
+        row = conn.execute(
+            '''
+            SELECT topic_id, title_raw, start_surah, start_ayah,
+                   end_surah, end_ayah, run_length, score
+            FROM context_spans
+            WHERE surah = ? AND ayah = ?
+            ''',
+            (surah, ayah),
+        ).fetchone()
+        if not row:
+            return None
+        attribution = _context_attribution(conn)
+        title = row['title_raw'] or ''
+        start_s, start_a = int(row['start_surah']), int(row['start_ayah'])
+        end_s, end_a = int(row['end_surah']), int(row['end_ayah'])
+        return {
+            'found': True,
+            'surah': surah,
+            'ayah': ayah,
+            'topic_id': row['topic_id'],
+            'title': title,
+            'from': {'surah': start_s, 'ayah': start_a},
+            'to': {'surah': end_s, 'ayah': end_a},
+            'run_length': int(row['run_length'] or 1),
+            'score': float(row['score'] or 0),
+            'same_surah': start_s == end_s == surah,
+            'label': (
+                f"من {_to_ar_digits(start_s)}:{_to_ar_digits(start_a)} "
+                f"إلى {_to_ar_digits(end_s)}:{_to_ar_digits(end_a)}"
+            ),
+            'attribution': attribution,
+        }
+    except sqlite3.Error as exc:
+        logger.error('verse context lookup failed: %s', exc)
+        return None
+    finally:
+        conn.close()
 
 
 @memorize_bp.route('/memorize')
@@ -236,3 +302,19 @@ def get_memorization_reciters():
             out.append({'id': rid, 'name_ar': cfg.get('name_ar', ''), 'name_en': cfg.get('name_en', '')})
     return jsonify(out)
 
+
+@memorize_bp.route('/api/memorization/context/<int:surah_number>/<int:ayah_number>', methods=['GET'])
+def get_memorization_context(surah_number, ayah_number):
+    """Contiguous thematic context span around one ayah (Bahouth-derived)."""
+    if not (1 <= surah_number <= 114) or ayah_number < 1:
+        return jsonify({'error': 'Invalid surah/ayah.'}), 400
+    span = get_verse_context_span(surah_number, ayah_number)
+    if not span:
+        return jsonify({
+            'found': False,
+            'surah': surah_number,
+            'ayah': ayah_number,
+            'error': 'context unavailable',
+            'hint': 'Run: python3 pipeline/harvest_bahouth_topics.py --harvest --build-db',
+        }), 404
+    return jsonify(span)

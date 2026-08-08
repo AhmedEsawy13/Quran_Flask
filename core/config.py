@@ -16,6 +16,8 @@ _BASE_DIR = _ROOT  # kept under the original name for callers that reference it
 DATABASE = os.path.join(_ROOT, 'data', 'word_name.db')
 WAQF_DATABASE = os.path.join(_ROOT, 'data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_waqf.db')
+# Bahouth-derived verse topics + contiguous context spans for تثبيت.
+VERSE_TOPICS_DATABASE = os.path.join(_ROOT, 'data', 'verse_topics.db')
 # مصاحف being adjusted via /mushaf-editor.
 # قطر: own layout + KATypical. الكويت: Madinah 1405 (qpc_v1) + Al Shamiya.
 # البحرين: Layout Studio project (seeded from Madinah 1421) + Digital Khatt.

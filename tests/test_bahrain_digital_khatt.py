@@ -46,6 +46,13 @@ def test_bahrain_in_editor_editions():
     assert 'البحرين' in CLOUD_EDITOR_EDITIONS
 
 
+def test_supabase_publish_contract_accepts_bahrain():
+    """Python and both deployable SQL definitions must expose one allowlist."""
+    for name in ('supabase_editor_schema.sql', 'supabase_atomic_publish.sql'):
+        sql = (PROJECT_ROOT / 'pipeline' / name).read_text(encoding='utf-8')
+        assert "('قطر', 'الكويت', 'البحرين')" in sql
+
+
 def test_bahrain_spread_api_uses_studio_layout_and_digital_khatt(client, monkeypatch):
     from core.config import BAHRAIN_LAYOUT_DATABASE
 

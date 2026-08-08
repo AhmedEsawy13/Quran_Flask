@@ -130,7 +130,7 @@ declare
   v_changes jsonb;
   v_count integer;
 begin
-  if p_edition not in ('قطر', 'الكويت') then
+  if p_edition not in ('قطر', 'الكويت', 'البحرين') then
     raise exception 'invalid publish edition' using errcode = '22023';
   end if;
   if p_expected_changes is null or jsonb_typeof(p_expected_changes) <> 'array' then

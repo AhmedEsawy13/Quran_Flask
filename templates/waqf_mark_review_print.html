@@ -51,8 +51,12 @@
     </header>
 
     <main class="wmr-print-main" id="wmr-print-main">
-        <div class="wmr-print-split">
-            {% for col_rows in pack.columns %}
+        <div class="wmr-print-sheets">
+            {% for sheet in pack.print_sheets %}
+            <section class="wmr-print-sheet" aria-label="صفحة الطباعة {{ sheet.number }}">
+                <div class="wmr-print-split">
+                    {% for col_rows in sheet.columns %}
+                    {% if col_rows %}
             <div class="wmr-print-half">
                 <table class="wmr-print-table">
                     <thead>
@@ -76,6 +80,10 @@
                     </tbody>
                 </table>
             </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
             {% endfor %}
         </div>
     </main>

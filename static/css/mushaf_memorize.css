@@ -661,6 +661,88 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 
 /* recite-&-follow live state on the recite button */
 
+.mz-range-guide {
+    margin: 0;
+}
+
+.mz-context {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem 0.85rem;
+    margin: 0.15rem 0 0.35rem;
+    padding: 0.35rem 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--athar-ink, #1c1915) 12%, transparent);
+    border-radius: 0.45rem;
+    background: color-mix(in srgb, #2f4a3c 8%, #fff);
+}
+
+.mz-context-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.55rem;
+    min-width: 0;
+}
+
+.mz-context-kicker {
+    font-size: 0.72rem;
+    color: #5b6b62;
+}
+
+.mz-context-range {
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+.mz-context-title {
+    font-size: 0.86rem;
+    color: #24352d;
+}
+
+.mz-context-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.mz-context-expand {
+    appearance: none;
+    border: 1px solid #2f4a3c;
+    background: #2f4a3c;
+    color: #fff;
+    border-radius: 0.35rem;
+    padding: 0.22rem 0.55rem;
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.mz-context-source {
+    font-size: 0.68rem;
+    color: #6b6358;
+}
+
+.mz-word.mz-context:not(.mz-sel) {
+    background: color-mix(in srgb, #2f4a3c 14%, transparent);
+    border-radius: 0.2em;
+}
+
+body.dark-mode .mz-context {
+    background: color-mix(in srgb, #7dd3ae 10%, #1c1915);
+    border-color: color-mix(in srgb, #fff 12%, transparent);
+}
+
+body.dark-mode .mz-context-kicker,
+body.dark-mode .mz-context-source {
+    color: #a7b3aa;
+}
+
+body.dark-mode .mz-context-title {
+    color: #e8efe9;
+}
+
 @keyframes mz-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* ── Responsive: stay one row; shed labels/meta before wrapping ──── */
