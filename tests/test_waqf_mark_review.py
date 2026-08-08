@@ -1,6 +1,8 @@
 """Smoke tests for the Plan A waqf-mark-review checklist (الشمرلي first)."""
 from __future__ import annotations
 
+import sqlite3
+
 from modules.waqf_mark_review import (
     PRINT_PACKS,
     PRINT_ROWS_PER_COLUMN,
@@ -213,6 +215,28 @@ def test_waqf_mark_review_decisions_persist_locally(client, tmp_path, monkeypatc
     assert gone.status_code == 200
     after = client.get('/api/waqf-mark-review/decisions?edition=' + edition)
     assert str(word_id) not in (after.get_json()['decisions'].get('4') or {})
+
+
+def test_waqf_mark_review_gets_do_not_create_local_tables(client, tmp_path, monkeypatch):
+    import modules.waqf_mark_review as wmr
+    from core import supabase_editor as sb
+
+    db = tmp_path / 'read-only-mark-review.db'
+    with sqlite3.connect(db) as conn:
+        conn.execute('CREATE TABLE existing_data (value TEXT)')
+        conn.execute("INSERT INTO existing_data VALUES ('keep')")
+    before = db.read_bytes()
+    monkeypatch.setattr(wmr, 'MARK_REVIEW_STORE_DATABASE', str(db))
+    monkeypatch.setattr(sb, 'is_configured', lambda: False)
+
+    decisions = client.get('/api/waqf-mark-review/decisions?edition=الشمرلي')
+    progress = client.get('/api/waqf-mark-review/progress?edition=الشمرلي')
+
+    assert decisions.status_code == 200
+    assert decisions.get_json()['decisions'] == {}
+    assert progress.status_code == 200
+    assert progress.get_json()['reviewed_pages'] == []
+    assert db.read_bytes() == before
 
 
 def test_waqf_mark_review_progress_local(client, tmp_path, monkeypatch):

@@ -6,6 +6,7 @@ words, and real stop glyphs (ۘۗۖ…) instead of letter stand-ins (م/ص/ق).
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 
 from flask import jsonify, render_template, request
@@ -625,6 +626,13 @@ def _ensure_local_review_tables(conn) -> None:
     conn.commit()
 
 
+def _local_table_exists(conn, table: str) -> bool:
+    return conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        (table,),
+    ).fetchone() is not None
+
+
 def _decisions_payload(edition: str) -> dict:
     """Build frontend-shaped {page: {word_id: decision}, _missing: {page: [notes]}}."""
     out: dict = {}
@@ -653,39 +661,42 @@ def _decisions_payload(edition: str) -> dict:
             logger.error('cloud mark-review load failed: %s', exc)
             raise
     else:
-        conn = _sqlite_connect(MARK_REVIEW_STORE_DATABASE)
+        if not os.path.isfile(MARK_REVIEW_STORE_DATABASE):
+            return out
+        conn = _sqlite_connect(MARK_REVIEW_STORE_DATABASE, readonly=True)
         try:
-            _ensure_local_review_tables(conn)
             cur = conn.cursor()
-            cur.execute(
-                'SELECT page_number, word_id, decision, our_mark, correct_mark, '
-                'surah, ayah, word_text FROM waqf_mark_review_decisions '
-                'WHERE edition = ? ORDER BY page_number, word_id',
-                (edition,),
-            )
-            for page_number, word_id, decision, our_mark, correct_mark, surah, ayah, word_text in cur.fetchall():
-                page = str(int(page_number))
-                out.setdefault(page, {})[str(int(word_id))] = {
-                    'decision': decision,
-                    'our_mark': our_mark or '',
-                    'correct_mark': correct_mark or '',
-                    'word_id': int(word_id),
-                    'surah': surah,
-                    'ayah': ayah,
-                    'text': word_text or '',
-                }
-            cur.execute(
-                'SELECT id, page_number, note, updated_at FROM waqf_mark_review_notes '
-                'WHERE edition = ? ORDER BY page_number, id',
-                (edition,),
-            )
-            for note_id, page_number, note, updated_at in cur.fetchall():
-                page = str(int(page_number))
-                missing.setdefault(page, []).append({
-                    'id': note_id,
-                    'text': note or '',
-                    'at': updated_at or '',
-                })
+            if _local_table_exists(conn, 'waqf_mark_review_decisions'):
+                cur.execute(
+                    'SELECT page_number, word_id, decision, our_mark, correct_mark, '
+                    'surah, ayah, word_text FROM waqf_mark_review_decisions '
+                    'WHERE edition = ? ORDER BY page_number, word_id',
+                    (edition,),
+                )
+                for page_number, word_id, decision, our_mark, correct_mark, surah, ayah, word_text in cur.fetchall():
+                    page = str(int(page_number))
+                    out.setdefault(page, {})[str(int(word_id))] = {
+                        'decision': decision,
+                        'our_mark': our_mark or '',
+                        'correct_mark': correct_mark or '',
+                        'word_id': int(word_id),
+                        'surah': surah,
+                        'ayah': ayah,
+                        'text': word_text or '',
+                    }
+            if _local_table_exists(conn, 'waqf_mark_review_notes'):
+                cur.execute(
+                    'SELECT id, page_number, note, updated_at FROM waqf_mark_review_notes '
+                    'WHERE edition = ? ORDER BY page_number, id',
+                    (edition,),
+                )
+                for note_id, page_number, note, updated_at in cur.fetchall():
+                    page = str(int(page_number))
+                    missing.setdefault(page, []).append({
+                        'id': note_id,
+                        'text': note or '',
+                        'at': updated_at or '',
+                    })
         finally:
             conn.close()
     if missing:
@@ -945,25 +956,33 @@ def waqf_mark_review_progress():
             logger.error('cloud progress failed: %s', exc)
             return jsonify({'error': 'cloud progress failed'}), 503
 
+    if request.method == 'GET':
+        pages = []
+        if os.path.isfile(MARK_REVIEW_STORE_DATABASE):
+            conn = _sqlite_connect(MARK_REVIEW_STORE_DATABASE, readonly=True)
+            try:
+                if _local_table_exists(conn, 'mushaf_editor_progress'):
+                    cur = conn.cursor()
+                    cur.execute(
+                        'SELECT page_number FROM mushaf_editor_progress '
+                        'WHERE edition = ? AND reviewed = 1',
+                        (edition,),
+                    )
+                    pages = sorted(row[0] for row in cur.fetchall())
+            finally:
+                conn.close()
+        return jsonify({
+            'edition': edition,
+            'reviewed_pages': pages,
+            'min_page': meta['min_page'],
+            'max_page': meta['max_page'],
+            'storage': 'local',
+        })
+
     conn = _sqlite_connect(MARK_REVIEW_STORE_DATABASE)
     try:
         _ensure_local_review_tables(conn)
         cur = conn.cursor()
-        if request.method == 'GET':
-            cur.execute(
-                'SELECT page_number FROM mushaf_editor_progress '
-                'WHERE edition = ? AND reviewed = 1',
-                (edition,),
-            )
-            pages = sorted(row[0] for row in cur.fetchall())
-            return jsonify({
-                'edition': edition,
-                'reviewed_pages': pages,
-                'min_page': meta['min_page'],
-                'max_page': meta['max_page'],
-                'storage': 'local',
-            })
-
         try:
             page_number = int(body.get('page_number'))
         except (TypeError, ValueError):

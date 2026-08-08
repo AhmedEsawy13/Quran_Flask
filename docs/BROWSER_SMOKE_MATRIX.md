@@ -11,7 +11,9 @@ shell for horizontal clipping, and rejects local HTTP errors, browser exceptions
 console errors, and a visible loading state left behind. It never performs a
 write interaction. The CV journey uses a deterministic scan fixture because page
 scans are intentionally not committed; its auth, queue, labels, and word-seat
-payloads still come from the real local APIs.
+payloads still come from the real local APIs. The local run also hashes the
+published waqf database before and after all journeys and fails if a GET path
+mutates it.
 
 ```bash
 python3 scripts/browser_smoke_matrix.py

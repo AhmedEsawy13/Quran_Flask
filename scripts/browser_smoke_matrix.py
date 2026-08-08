@@ -13,6 +13,7 @@ CI and cannot write reviewer data outside the checkout.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -30,6 +31,8 @@ from werkzeug.serving import make_server
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+READ_ONLY_RUNTIME_FILES = (PROJECT_ROOT / "data/mushaf_waqf.db",)
 
 
 SCENARIOS: dict[str, dict[str, Any]] = {
@@ -149,6 +152,14 @@ def selected(value: str, choices: list[str]) -> list[str]:
     if value not in choices:
         raise ValueError(f"unknown selection: {value}")
     return [value]
+
+
+def runtime_fingerprints() -> dict[Path, str]:
+    return {
+        path: hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in READ_ONLY_RUNTIME_FILES
+        if path.is_file()
+    }
 
 
 def _visible_loading_text(page: Any) -> list[str]:
@@ -367,8 +378,15 @@ def main() -> int:
     args = parse_args()
     if args.base_url:
         return run(args, args.base_url)
+    before = runtime_fingerprints()
     with LocalSmokeServer() as server:
-        return run(args, server.base_url)
+        exit_code = run(args, server.base_url)
+    after = runtime_fingerprints()
+    changed = [str(path.relative_to(PROJECT_ROOT)) for path in before if after.get(path) != before[path]]
+    if changed:
+        print(f"ERROR read-only browser journeys modified runtime data: {', '.join(changed)}", file=sys.stderr)
+        return 1
+    return exit_code
 
 
 if __name__ == "__main__":
