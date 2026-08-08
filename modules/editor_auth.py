@@ -150,6 +150,7 @@ def require_editor(view: Callable):
         if not user:
             return jsonify({'error': 'login required', 'login_required': True}), 401
         return view(*args, **kwargs)
+    wrapped._athar_auth_policy = 'editor'  # type: ignore[attr-defined]
     return wrapped
 
 
@@ -168,6 +169,7 @@ def require_admin(view: Callable):
         if user.get('role') != 'admin':
             return jsonify({'error': 'admin required'}), 403
         return view(*args, **kwargs)
+    wrapped._athar_auth_policy = 'admin'  # type: ignore[attr-defined]
     return wrapped
 
 

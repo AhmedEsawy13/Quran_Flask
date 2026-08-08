@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from core.blueprints import editor_bp
 from modules.layout_editions import AZHAR, default_edition
+from modules.editor_auth import require_editor
 from modules.layout_studio import (
     _cascade_from as _studio_cascade,
     layout_studio_line_break,
@@ -44,40 +45,48 @@ def azhar_layout_page():
 
 
 @editor_bp.route('/api/azhar-layout/page/<int:page_number>', methods=['GET'])
+@require_editor
 def get_azhar_layout_editor_page(page_number):
     return layout_studio_page('azhar', page_number)
 
 
 @editor_bp.route('/api/azhar-layout/line-break', methods=['POST'])
+@require_editor
 def azhar_layout_line_break():
     return layout_studio_line_break('azhar')
 
 
 @editor_bp.route('/api/azhar-layout/merge-line', methods=['POST'])
+@require_editor
 def azhar_layout_merge_line():
     return layout_studio_merge_line('azhar')
 
 
 @editor_bp.route('/api/azhar-layout/pull-next-word', methods=['POST'])
+@require_editor
 def azhar_layout_pull_next_word():
     return layout_studio_pull_next_word('azhar')
 
 
 @editor_bp.route('/api/azhar-layout/line-center', methods=['POST'])
+@require_editor
 def azhar_layout_line_center():
     return layout_studio_line_center('azhar')
 
 
 @editor_bp.route('/api/azhar-layout/undo', methods=['POST'])
+@require_editor
 def azhar_layout_undo():
     return layout_studio_undo('azhar')
 
 
 @editor_bp.route('/api/azhar-layout/undo-status', methods=['GET'])
+@require_editor
 def azhar_layout_undo_status():
     return layout_studio_undo_status('azhar')
 
 
 @editor_bp.route('/api/azhar-layout/progress', methods=['GET', 'POST'])
+@require_editor
 def azhar_layout_progress():
     return layout_studio_progress('azhar')

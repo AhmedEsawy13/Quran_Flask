@@ -1,0 +1,3456 @@
+{
+  "generated_by": "pipeline/generate_route_contracts.py",
+  "route_count": 108,
+  "routes": [
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.activity_feed",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/activity",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/activity.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "actions",
+        "actors",
+        "cloud",
+        "items",
+        "next_cursor",
+        "user"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "reading.get_asbab",
+      "error_keys": [
+        "available",
+        "entries",
+        "error",
+        "message",
+        "verse_key"
+      ],
+      "feature": "reading",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/asbab/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/reading.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.audio_proxy",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/audio-proxy",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json",
+        "redirect"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_layout_line_break",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/azhar-layout/line-break",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_layout_line_center",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/azhar-layout/line-center",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_layout_merge_line",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/azhar-layout/merge-line",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.get_azhar_layout_editor_page",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/azhar-layout/page/<int:page_number>",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_layout_progress",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/azhar-layout/progress",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_layout_pull_next_word",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/azhar-layout/pull-next-word",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_layout_undo",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/azhar-layout/undo",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_layout_undo_status",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/azhar-layout/undo-status",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/azhar_layout.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.azhar_waqf_review_surah",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/azhar-waqf-review/surah/<int:surah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_mark_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_azhar_page_by_ayah",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/azhar/page-by-ayah/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_azhar_page",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/azhar/page/<int:page_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.classical_review_book_decision",
+      "error_keys": [
+        "error",
+        "login_required",
+        "pending"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/classical-review/<source>/book-decision",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/classical_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "book",
+        "ok"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.classical_review_decision",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/classical-review/<source>/decision",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/classical_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "decision",
+        "grade",
+        "ok",
+        "row_id"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.classical_review_export",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/classical-review/<source>/export",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/classical_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "book",
+        "decisions",
+        "source",
+        "summary"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.classical_review_items",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/classical-review/<source>/items",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/classical_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "items",
+        "limit",
+        "page",
+        "pages",
+        "total"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.classical_review_summary",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/classical-review/<source>/summary",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/classical_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.classical_review_verse",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/classical-review/<source>/verse/<int:surah>/<int:ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/classical_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "ayah",
+        "surah",
+        "words"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.classical_waqf",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/classical-waqf/<int:surah>/<int:ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "ayah",
+        "count",
+        "entries",
+        "sources",
+        "surah"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.cv_waqf_image",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/cv-waqf/image/<slug>/<int:page_number>.jpg",
+      "response_kinds": [
+        "binary",
+        "json"
+      ],
+      "source": "modules/cv_waqf_ui.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.cv_waqf_labels_create",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/cv-waqf/labels",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/cv_waqf_ui.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud",
+        "label",
+        "ok"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.cv_waqf_labels_list",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/cv-waqf/labels",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/cv_waqf_ui.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud",
+        "count",
+        "edition",
+        "labels",
+        "page",
+        "slug",
+        "words"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.cv_waqf_labels_delete",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "DELETE"
+      ],
+      "path": "/api/cv-waqf/labels/<label_id>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/cv_waqf_ui.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud",
+        "deleted",
+        "ok"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.cv_waqf_page_data",
+      "error_keys": [
+        "code",
+        "editions",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/cv-waqf/page/<int:page_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/cv_waqf_ui.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.cv_waqf_review_queue",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/cv-waqf/review-queue",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/cv_waqf_ui.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_digital_khatt_page_by_ayah",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/digital-khatt/page-by-ayah/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_digital_khatt_page",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/digital-khatt/page/<int:page_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "reading.get_eerab",
+      "error_keys": [
+        "content",
+        "error"
+      ],
+      "feature": "reading",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/eerab/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/reading.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        503
+      ],
+      "dynamic_error": true,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.health_check",
+      "error_keys": [],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/health",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_header_move",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/header-move",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cascaded",
+        "cloud_saved",
+        "crossed_page",
+        "direction",
+        "merged_lines",
+        "moved_to_line",
+        "moved_to_page",
+        "ok",
+        "page",
+        "removed_empty_line",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_import_confidence",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/layout-studio/<edition_id>/import-confidence",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "available",
+        "counts",
+        "edition",
+        "pages"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_line_break",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/line-break",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "ok",
+        "page",
+        "reason",
+        "role",
+        "unchanged",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_line_center",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/line-center",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "is_centered",
+        "ok",
+        "page",
+        "unchanged",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_merge_line",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/merge-line",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "ok",
+        "page",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_page_by_ayah",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/layout-studio/<edition_id>/page-by-ayah/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "ayah",
+        "edition_id",
+        "page_number",
+        "surah"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_page",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/layout-studio/<edition_id>/page/<int:page_number>",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_profile",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/profile",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "meta_label",
+        "ok"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_progress",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/progress",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "edition",
+        "max_page",
+        "min_page",
+        "ok",
+        "page_number",
+        "reviewed",
+        "reviewed_pages"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_pull_next_word",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/pull-next-word",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "crossed_page",
+        "from_page",
+        "moved_word_id",
+        "ok",
+        "page",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_push_last_word",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/push-last-word",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "crossed_page",
+        "moved_word_id",
+        "ok",
+        "page",
+        "to_page",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_reference",
+      "error_keys": [
+        "error",
+        "hint"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/layout-studio/<edition_id>/reference/<int:page_number>.jpg",
+      "response_kinds": [
+        "binary",
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_transfer_line",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/transfer-line",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "crossed_page",
+        "from_page",
+        "merged_lines",
+        "moved_line_id",
+        "ok",
+        "page",
+        "removed_empty_line",
+        "to_page",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_undo",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required",
+        "undo_available"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/undo",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "ok",
+        "page",
+        "page_number",
+        "undo_available",
+        "undone"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_undo_status",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/layout-studio/<edition_id>/undo-status",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "edition",
+        "page_number",
+        "undo_available"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.layout_studio_editions",
+      "error_keys": [],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/layout-studio/editions",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "default",
+        "editions"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "memorize.get_memorization_reciters",
+      "error_keys": [],
+      "feature": "memorize",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/memorization-reciters",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/memorize.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "memorize.get_memorization",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "memorize",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/memorization/<int:surah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/memorize.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "audio_offset_ms",
+        "audio_url",
+        "gap_ms",
+        "mode",
+        "reciter",
+        "reciter_id",
+        "reciter_name_ar",
+        "surah_number",
+        "verses"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "memorize.get_memorization_breathing",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "memorize",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/memorization/<int:surah_number>/breathing",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/memorize.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "memorize.get_memorization_context",
+      "error_keys": [
+        "ayah",
+        "error",
+        "found",
+        "hint",
+        "surah"
+      ],
+      "feature": "memorize",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/memorization/context/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/memorize.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.editor_audit_feed",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/audit",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "items"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.editor_auth_status",
+      "error_keys": [
+        "auth_available",
+        "authenticated",
+        "cloud",
+        "error",
+        "login_required",
+        "user"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/auth/status",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor_auth.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "auth_available",
+        "authenticated",
+        "cloud",
+        "login_required",
+        "user"
+      ]
+    },
+    {
+      "auth": "admin",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        201,
+        400,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.editor_invites",
+      "error_keys": [
+        "error",
+        "hint",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/invites",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor_auth.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "invite",
+        "invites",
+        "ok",
+        "password",
+        "username"
+      ]
+    },
+    {
+      "auth": "admin",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        403,
+        404,
+        409,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.editor_invite_patch",
+      "error_keys": [
+        "error",
+        "hint",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "PATCH"
+      ],
+      "path": "/api/mushaf-editor/invites/<invite_id>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor_auth.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.editor_login",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/login",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/editor_auth.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.editor_logout",
+      "error_keys": [],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/logout",
+      "response_kinds": [
+        "delegated-or-dynamic"
+      ],
+      "source": "modules/editor_auth.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mushaf_editor_page_by_ayah",
+      "error_keys": [
+        "ayah",
+        "edition",
+        "error",
+        "surah"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/page-by-ayah/<int:surah>/<int:ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "ayah",
+        "edition",
+        "page_number",
+        "surah"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.editor_pending_changes",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/pending",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "changes",
+        "count",
+        "edition",
+        "page_count",
+        "pages",
+        "publish_snapshot"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mushaf_editor_progress",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/progress",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "edition",
+        "ok",
+        "page_number",
+        "reviewed",
+        "reviewed_pages"
+      ]
+    },
+    {
+      "auth": "admin",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        403,
+        409,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.publish_editor_edition",
+      "error_keys": [
+        "error",
+        "login_required",
+        "refresh_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/publish",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "edition",
+        "ok",
+        "pending_before",
+        "published"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.bahrain_ref_page",
+      "error_keys": [
+        "error",
+        "hint",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/ref/bahrain/<int:page_number>.jpg",
+      "response_kinds": [
+        "binary",
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.get_mushaf_editor_spread",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/spread/<int:spread_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud",
+        "edition",
+        "left",
+        "max_spread",
+        "peer_versions",
+        "right",
+        "spread_number"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.set_mushaf_editor_waqf",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/waqf",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/editor.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "edition",
+        "symbol",
+        "word_id"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_mushaf_versions",
+      "error_keys": [],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-versions",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "reading.get_mutashabihat",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "reading",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mutashabihat/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/reading.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "ayah",
+        "count",
+        "matches",
+        "min_run",
+        "surah",
+        "verse_key",
+        "words"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_qpc_v1_page_by_ayah",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/qpc-v1/page-by-ayah/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_qpc_v1_page",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/qpc-v1/page/<int:page_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_qpc_v2_page_by_ayah",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/qpc-v2/page-by-ayah/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_qpc_v2_page",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/qpc-v2/page/<int:page_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.quran_integrity_report",
+      "error_keys": [
+        "error",
+        "path"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/quran-integrity/report",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_integrity_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_quran_text",
+      "error_keys": [],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/quran-text",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.search_verses",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/search",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "query",
+        "results",
+        "source",
+        "total_results"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.get_shamarly_ayah",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/ayah/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "ayah",
+        "font_name",
+        "font_pages",
+        "mushaf_version",
+        "pages",
+        "raw_text",
+        "surah",
+        "verse_lines",
+        "waqf_symbols",
+        "words"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_shamarly_page_by_ayah",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/page-by-ayah/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        404,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_shamarly_page",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/page/<int:page_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.get_shamarly_available_pages",
+      "error_keys": [
+        "code",
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/shamarly/pages",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/layouts.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "pages"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_surahs",
+      "error_keys": [],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/surahs",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_ayahs",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/surahs/<int:surah_number>/ayahs",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_ayah_text",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "reading.get_ayah_waqf_symbols",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "reading",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/surahs/<int:surah_number>/ayahs/<int:ayah_number>/waqf",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/reading.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "ayah_number",
+        "source",
+        "surah_number",
+        "waqf_symbols"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "reading.get_tafseer",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "reading",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/tafseer/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/reading.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "reading.get_tajweed_notes",
+      "error_keys": [
+        "error",
+        "verse_key"
+      ],
+      "feature": "reading",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/tajweed-notes/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/reading.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404,
+        502
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "reading.get_tajweed",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "reading",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/tajweed/<int:surah_number>/<int:ayah_number>",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/reading.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "core.get_transliteration",
+      "error_keys": [],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/transliteration",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.waqf_mark_review_decisions",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "DELETE",
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/waqf-mark-review/decisions",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_mark_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "decisions",
+        "edition",
+        "ok",
+        "storage"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.waqf_mark_review_notes",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/waqf-mark-review/notes",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_mark_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "note",
+        "ok",
+        "storage"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        500
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.waqf_mark_review_page_data",
+      "error_keys": [
+        "code",
+        "error",
+        "max_page",
+        "min_page"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-mark-review/page/<int:page_number>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_mark_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.waqf_mark_review_progress",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/waqf-mark-review/progress",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_mark_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "edition",
+        "max_page",
+        "min_page",
+        "ok",
+        "page_number",
+        "reviewed",
+        "reviewed_pages",
+        "storage"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_practice_grade",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/waqf-practice/grade",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_practice_passage",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-practice/passage/<int:surah>/<int:from_ayah>/<int:to_ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "surah",
+        "verses"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_practice_phonemes",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-practice/phonemes/<int:surah>/<int:from_ayah>/<int:to_ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "entries",
+        "surah"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_practice_tajweed",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/waqf-practice/tajweed",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "available",
+        "errors"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "active_form",
+        "count",
+        "forms",
+        "normalized",
+        "occurrences",
+        "word"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_clustering",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/clustering",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_ibtidaa",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/ibtidaa",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_mandatory",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/mandatory",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_mushaf_agreement",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/mushaf-agreement",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_research_mushaf_agreement_cases",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/mushaf-agreement/cases",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "capped",
+        "directive",
+        "disagreed",
+        "mark",
+        "mushaf",
+        "reciter",
+        "shown",
+        "verses"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_mushaf_diff",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/mushaf-diff",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_mushaf_similarity",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/mushaf-similarity",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_patterns",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/patterns",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_research_saktat",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/saktat",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "count",
+        "obligatory",
+        "saktat"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_research_solos",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/solos",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "count",
+        "reciter",
+        "reciters",
+        "stops"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_research_stats",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/stats",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "consensus",
+        "surahs",
+        "top_divergent"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.get_verse_waqf",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf/<int:surah>/<int:ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.search_word_meanings",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/word-search",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "query",
+        "results",
+        "total_results"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        403,
+        502,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "core.yt_audio",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "core",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/yt-audio",
+      "response_kinds": [
+        "json",
+        "redirect"
+      ],
+      "source": "modules/quran_api.py",
+      "success_cache": "public-1h",
+      "success_keys": []
+    }
+  ],
+  "schema_version": 1
+}

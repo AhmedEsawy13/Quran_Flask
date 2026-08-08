@@ -54,13 +54,13 @@ HTTP, filesystem, and external-provider details.
 
 Goal: make structural work safe before moving code.
 
-### A1. Characterize public behavior — in progress
+### A1. Characterize public behavior — route contracts complete
 
 - [x] broad route and malformed-input tests;
 - [x] editor feature/deployment gating tests;
 - [x] static, dynamic, editor, and error cache tests;
 - [x] clean-process import test protecting runtime database mtimes and hashes;
-- [ ] route-contract inventory containing method, auth, cache class, status, and
+- [x] route-contract inventory containing method, auth, cache class, status, and
   stable JSON keys for every `/api/` route;
 - [ ] browser smoke matrix for reader, تثبيت, waqf guide, editor, Layout Studio,
   mark review, and CV labeling on desktop and mobile widths.
@@ -189,8 +189,8 @@ only observe the old complete artifact or the new complete artifact.
 Each item should be one reviewable pull request unless tests force a smaller
 split.
 
-1. Add the route-contract inventory and generate a failing test when a route
-   silently changes method/auth/cache/response keys.
+1. Complete the browser smoke matrix for the reader, تثبيت, waqf guide,
+   editor, Layout Studio, mark review, and CV labeling at desktop/mobile widths.
 2. Introduce `VerseKey`, `WordRef`, and `IndexSpace`; migrate CV attachment and
    published-waqf sync first because index confusion is highest impact there.
 3. Build the unified edition registry, initially exporting today's constants.

@@ -16,6 +16,7 @@ from io import BytesIO
 #   editor    — /mushaf-editor click-to-edit waqf tool (the ONLY writer)
 from core.blueprints import core_bp, reading_bp, memorize_bp, breathing_bp, editor_bp
 from core.errors import AppError
+from core.http_cache import api_success_cache_class, is_editor_private_path
 
 # (Flask-Compress is not installed/initialised here — the previous
 # COMPRESS_* config keys had no effect and were removed. JSON gzip is
@@ -79,16 +80,7 @@ def after_request(response):
     path = request.path or ''
     if path.startswith('/static/') and response.status_code == 200:
         response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
-    elif (
-        request.blueprint == 'editor'
-        or path.startswith('/mushaf-editor')
-        or path.startswith('/layout-studio')
-        or path.startswith('/azhar-layout')
-        or path.startswith('/azhar-waqf-review')
-        or path.startswith('/quran-integrity-review')
-        or path.startswith('/font-lab')
-        or path.startswith('/cv-waqf')
-    ):
+    elif is_editor_private_path(path, request.blueprint):
         response.headers['Cache-Control'] = 'no-store, max-age=0'
 
     # Cache control for API responses.
@@ -98,21 +90,8 @@ def after_request(response):
         # /api/mushaf-editor/* is a live editing tool (spread/progress reads
         # reflect edits made seconds earlier via /api/mushaf-editor/waqf) — a
         # 1-hour cache made just-saved marks appear to "not save" on reload.
-        if (request.blueprint == 'editor'
-                or request.args.get('mushaf_version')
-                or request.path.startswith('/api/mushaf-editor/')
-                or request.path.startswith('/api/azhar-layout/')
-                or request.path.startswith('/api/azhar-waqf-review/')
-                or request.path.startswith('/api/quran-integrity/')
-                or request.path.startswith('/api/layout-studio/')
-                or request.path.startswith('/api/classical-review/')
-                or request.path.startswith('/api/cv-waqf/')):
-            response.headers['Cache-Control'] = 'no-store, max-age=0'
-        elif request.path.startswith('/api/waqf-research/'):
-            # Heavy Quran-wide analyses are cached SERVER-side (instant after the
-            # first build), so don't pin them in the browser for an hour — a
-            # redeploy that changes the computation must show up immediately
-            # instead of serving a stale aggregate.
+        if (api_success_cache_class(path, request.blueprint) == 'no-store'
+                or request.args.get('mushaf_version')):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
         elif response.status_code >= 400:
             # Never cache error responses: a transient 404/500/503 (e.g. during a
