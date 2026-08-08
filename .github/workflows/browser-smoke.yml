@@ -1,0 +1,49 @@
+name: Browser smoke matrix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install Chromium
+        run: python3 -m playwright install --with-deps chromium
+
+      - name: Restore pinned reciter timestamps
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/import_qul_reciters.py --restore
+
+      - name: Run desktop and mobile journeys
+        run: python3 scripts/browser_smoke_matrix.py
+
+      - name: Upload browser report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-smoke-report
+          path: artifacts/browser-smoke/
+          if-no-files-found: ignore
+          retention-days: 7

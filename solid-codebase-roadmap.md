@@ -62,7 +62,7 @@ Goal: make structural work safe before moving code.
 - [x] clean-process import test protecting runtime database mtimes and hashes;
 - [x] route-contract inventory containing method, auth, cache class, status, and
   stable JSON keys for every `/api/` route;
-- [ ] browser smoke matrix for reader, تثبيت, waqf guide, editor, Layout Studio,
+- [x] browser smoke matrix for reader, تثبيت, waqf guide, editor, Layout Studio,
   mark review, and CV labeling on desktop and mobile widths.
 
 ### A2. Make startup read-only — first slice complete
