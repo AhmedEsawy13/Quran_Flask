@@ -144,6 +144,7 @@
         finishTimer: null,
         pendingSeek: false,
         playing: false,
+        sessionActive: false,
         activeKey: null,
         stepVerses: [],         // verses overlapping the current step's [start,end]
         activeWords: [],        // flat {key,wpos,start,end} for word-by-word follow
@@ -751,6 +752,10 @@
         syncRangeCancelUi();
         if (els.now && !state.playing) els.now.textContent = '';
         updateHint();
+        if (state.contextOn) {
+            if (previous) refreshContextForAyah(state.surah, previous[0]);
+            else renderContextPrompt();
+        }
         if (!silent) setStatus('أُلغي اختيار النطاق');
         return true;
     }
@@ -762,6 +767,7 @@
         applySelectionHighlight();
         syncRangeCancelUi();
         updateHint();
+        if (state.contextOn) renderContextPrompt();
         if (!silent) setStatus('أُلغي النطاق');
     }
     function selectedVerses(range = selectedAyahRange()) {
@@ -1063,15 +1069,21 @@
         if (!stage) return;
         const topbar = els.bar?.getBoundingClientRect().height || 52;
         const appbar = document.querySelector('.athar-bar')?.getBoundingClientRect().height || 50;
+        const contextHeight = els.contextBox && !els.contextBox.hidden
+            ? els.contextBox.getBoundingClientRect().height + 8
+            : 0;
         const vMargin = 12;          // tight breathing room — chrome is slim, no bottom dock
-        const headFootPad = 72;      // header + footer + card padding (vertical)
+        // Header, footer, spread inset and card padding together consume about
+        // 124px. The former 72px estimate let short viewports grow the page past
+        // its flex area, so the Quran lines could overlap the thematic rail.
+        const headFootPad = 124;
         const navAndGaps = 2 * 44 + 12; // room for the edge nav arrows
         window.AtharPageChrome.sizePages({
             cssVarPrefix: 'mz',
             pages: state.layoutMode === 'single' ? 1 : 2,
             ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO,
             gutter: 16, edgePad: 20,
-            getAvailH: () => Math.max(280, window.innerHeight - topbar - appbar - vMargin) - headFootPad,
+            getAvailH: () => Math.max(280, window.innerHeight - topbar - appbar - contextHeight - vMargin) - headFootPad,
             getAvailW: () => Math.max(240, stage.clientWidth - navAndGaps),
         });
     }
@@ -1176,22 +1188,102 @@
         pageEls().forEach(p => p && p.classList.toggle('mz-has-selection', hasSel));
         wordsInSpread('.mz-word').forEach(w => {
             const k = w.dataset.key;
+            w.classList.remove('mz-context-start', 'mz-context-end');
             w.classList.toggle('mz-sel', !!k && state.selectedKeys.has(k));
             w.classList.toggle(
                 'mz-context',
                 !!(state.contextOn && k && state.contextKeys.has(k))
             );
         });
+        const contextWords = wordsInSpread('.mz-word.mz-context');
+        if (contextWords.length) {
+            contextWords[0].classList.add('mz-context-start');
+            contextWords[contextWords.length - 1].classList.add('mz-context-end');
+        }
         if (state.activeKey) markActive(state.activeKey);
+    }
+
+    function refitForContext() {
+        if (!state.focusPage) return;
+        requestAnimationFrame(() => {
+            sizePages();
+            applyFontSize(true);
+            requestAnimationFrame(justifyLines);
+        });
+    }
+
+    function setSessionActive(on) {
+        state.sessionActive = !!on;
+        document.body.classList.toggle('mz-session-active', state.sessionActive);
+    }
+
+    function contextCountLabel(value) {
+        const count = Math.max(1, Number(value) || 1);
+        if (count === 1) return 'آية واحدة';
+        if (count === 2) return 'آيتان';
+        return `${toAr(count)} آيات`;
+    }
+
+    function formatContextPath(title) {
+        return String(title || '')
+            .split(':')
+            .map(part => part.trim())
+            .filter(Boolean)
+            .join(' ← ');
+    }
+
+    function contextRangeLabel(span) {
+        const startS = Number(span?.from?.surah);
+        const startA = Number(span?.from?.ayah);
+        const endS = Number(span?.to?.surah);
+        const endA = Number(span?.to?.ayah);
+        const count = contextCountLabel(span?.run_length);
+        if (span?.same_surah && startS === endS) {
+            const ayahs = startA === endA ? toAr(startA) : `${toAr(startA)}–${toAr(endA)}`;
+            return `${surahNameOf(startS)} · ${ayahs} · ${count}`;
+        }
+        return `${span?.label || ''} · ${count}`.replace(/^\s*·\s*|\s*·\s*$/g, '');
+    }
+
+    function selectionMatchesContext(span) {
+        if (!state.selectionRange || !span?.same_surah) return false;
+        return Number(span.from?.surah) === state.surah
+            && state.selectionRange[0] === Number(span.from?.ayah)
+            && state.selectionRange[1] === Number(span.to?.ayah);
+    }
+
+    function renderContextPrompt(message = 'اختر آية لعرض موضوعها ونطاقها المتصل.') {
+        if (!els.contextBox || !state.contextOn) return;
+        state.contextSpan = null;
+        state.contextKeys = new Set();
+        applySelectionHighlight();
+        els.contextBox.dataset.state = 'prompt';
+        els.contextBox.setAttribute('aria-busy', 'false');
+        if (els.contextRange) els.contextRange.textContent = '';
+        if (els.contextTitle) els.contextTitle.textContent = message;
+        if (els.contextSource) els.contextSource.textContent = '';
+        if (els.contextExpand) {
+            els.contextExpand.hidden = true;
+            els.contextExpand.disabled = false;
+        }
+        els.contextBox.hidden = false;
+        refitForContext();
+    }
+
+    function renderContextUnavailable() {
+        renderContextPrompt('لا يتوفر تفصيل موضوعي لهذه الآية الآن.');
+        if (els.contextBox) els.contextBox.dataset.state = 'empty';
     }
 
     function clearContextUi({ invalidateRequest = true } = {}) {
         if (invalidateRequest) _contextRequest += 1;
         state.contextSpan = null;
         state.contextKeys = new Set();
+        if (els.contextBox) els.contextBox.setAttribute('aria-busy', 'false');
         if (els.contextBox) els.contextBox.hidden = true;
         if (els.contextExpand) els.contextExpand.hidden = true;
         applySelectionHighlight();
+        refitForContext();
     }
 
     function contextKeysForSpan(span) {
@@ -1220,11 +1312,13 @@
             if (els.contextBox) els.contextBox.hidden = true;
             return;
         }
-        if (els.contextRange) els.contextRange.textContent = span.label || '';
+        els.contextBox.dataset.state = 'ready';
+        els.contextBox.setAttribute('aria-busy', 'false');
+        if (els.contextRange) els.contextRange.textContent = contextRangeLabel(span);
         if (els.contextTitle) {
-            const title = String(span.title || '').split(':').pop() || span.title || '';
+            const title = formatContextPath(span.title) || 'موضوع غير معنون';
             els.contextTitle.textContent = title;
-            els.contextTitle.title = span.title || '';
+            els.contextTitle.removeAttribute('title');
         }
         if (els.contextSource) {
             els.contextSource.textContent = span.attribution || '';
@@ -1236,8 +1330,18 @@
         );
         if (els.contextExpand) {
             els.contextExpand.hidden = !canExpand;
+            const adopted = selectionMatchesContext(span);
+            els.contextExpand.disabled = adopted;
+            els.contextExpand.textContent = adopted ? 'المقطع معتمد' : 'اعتمد المقطع للحفظ';
+            els.contextExpand.setAttribute(
+                'aria-label',
+                adopted
+                    ? `المقطع الموضوعي معتمد، ${contextCountLabel(span.run_length)}`
+                    : `اعتمد المقطع الموضوعي للحفظ، ${contextCountLabel(span.run_length)}`
+            );
         }
         els.contextBox.hidden = false;
+        refitForContext();
     }
 
     let _contextRequest = 0;
@@ -1247,13 +1351,21 @@
             return null;
         }
         const request = ++_contextRequest;
+        if (els.contextBox) {
+            els.contextBox.hidden = false;
+            els.contextBox.dataset.state = 'loading';
+            els.contextBox.setAttribute('aria-busy', 'true');
+        }
         try {
             const span = await window.AtharApi.json(
                 `/api/memorization/context/${surah}/${ayah}`
             );
             if (request !== _contextRequest) return null;
             if (!span || span.found === false) {
-                clearContextUi({ invalidateRequest: false });
+                state.contextSpan = null;
+                state.contextKeys = new Set();
+                applySelectionHighlight();
+                renderContextUnavailable();
                 return null;
             }
             state.contextSpan = span;
@@ -1263,7 +1375,10 @@
             return span;
         } catch (_) {
             if (request !== _contextRequest) return null;
-            clearContextUi({ invalidateRequest: false });
+            state.contextSpan = null;
+            state.contextKeys = new Set();
+            applySelectionHighlight();
+            renderContextUnavailable();
             return null;
         }
     }
@@ -1276,6 +1391,7 @@
         if (!Number.isFinite(a) || !Number.isFinite(b)) return;
         setCommittedRange(a, b);
         applySelectionHighlight();
+        renderContextChip(span);
         setStatus(`نطاق السياق ${toAr(a)}–${toAr(b)}`);
     }
     function markActive(key) {
@@ -1736,6 +1852,7 @@
         const within = frac * n - idx;                      // 0..1 inside the target step
         const step = state.schedule[idx];
         const t = step.start + within * Math.max(0, step.end - step.start);
+        if (!state.sessionActive) setSessionActive(true);
         if (!state.playing) { state.playing = true; setPlayIcon(true); startMonitor(); }
         playStep(idx, t);
     }
@@ -1775,6 +1892,7 @@
         const ok = await ensureVerseVisible(state.surah, a);
         if (generation !== state.playbackGeneration) return;
         if (!ok) { setStatus('تعذّر تحديد موضع الآية في المصحف', true); return; }
+        setSessionActive(true);
         applySelectionHighlight();
         setStatus('');
         state.playing = true;
@@ -1788,6 +1906,7 @@
     function finishPlayback(generation) {
         if (generation != null && generation !== state.playbackGeneration) return;
         state.playing = false; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
+        setSessionActive(false);
         state.pendingSeek = false;
         clearWordHighlight();
         setProgress(1);
@@ -1804,6 +1923,7 @@
         window.clearTimeout(state.finishTimer);
         state.finishTimer = null;
         state.playing = false; state.stepIdx = -1; state.schedule = []; state.pendingSeek = false; stopMonitor(); els.audio.pause(); setPlayIcon(false); markActive(null);
+        setSessionActive(false);
         clearWordHighlight(); clearDone(); state.stepVerses = []; state.activeWords = []; state.curFollowAyah = null;
         setProgress(0);
         els.now.textContent = '';
@@ -1814,6 +1934,7 @@
     }
     function togglePlay() {
         if (els.audio.paused) {
+            setSessionActive(true);
             if (state.stepIdx < 0) playStep(0, null, state.playbackGeneration); else els.audio.play().catch(() => {});
             state.playing = true; setPlayIcon(true); startMonitor();
         } else { els.audio.pause(); state.playing = false; setPlayIcon(false); }
@@ -2095,6 +2216,7 @@
     /* ── Click-to-range selection (hide OFF) ───────────────────────── */
     function handleVerseClick(ayah) {
         if (!Number.isFinite(ayah)) return;
+        if (state.schedule.length) stopPlayback();
         clearDone();   // re-selecting resets the progress reveal
         if (!state.rangeDraft) {
             beginRangePick(ayah);
@@ -2338,6 +2460,7 @@
                 ? state.selectionRange[0]
                 : (state.rangeDraft ? state.rangeDraft.anchor : null);
             if (anchor) refreshContextForAyah(state.surah, anchor);
+            else renderContextPrompt();
         });
         if (els.contextExpand) {
             els.contextExpand.addEventListener('click', expandToContextSpan);
@@ -2479,6 +2602,11 @@
                 commitRangeFromControls();
             }
             await renderSelection();
+            const initialRange = visualAyahRange();
+            if (state.contextOn) {
+                if (initialRange) await refreshContextForAyah(state.surah, initialRange[0]);
+                else renderContextPrompt();
+            }
             if (state.hideText) setHideMode(true);
             // Re-fit once the mushaf fonts are actually loaded (initial measure
             // may have used fallback metrics).

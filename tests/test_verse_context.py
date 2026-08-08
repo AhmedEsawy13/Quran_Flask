@@ -106,14 +106,33 @@ def test_memorization_context_api_reads_local_db(client, tmp_path, monkeypatch):
     assert 'باحوث' in payload['attribution']
 
 
-def test_memorize_page_exposes_context_chip(client):
+def test_memorize_page_exposes_thematic_detail_rail(client):
     page = client.get('/memorize').get_data(as_text=True)
     assert 'id="mz-context"' in page
+    assert 'class="mz-context-rail athar-surface"' in page
     assert 'id="mz-tb-context"' in page
-    assert 'وسّع للنطاق' in page
+    assert 'التفصيل الموضوعي' in page
+    assert 'اعتمد المقطع للحفظ' in page
+    assert 'role="region"' in page
+    assert page.index('id="mz-context"') > page.index('<main class="mz-main"')
     js = client.get('/static/js/mushaf_memorize.js').get_data(as_text=True)
     assert '/api/memorization/context/' in js
     assert 'expandToContextSpan' in js
+
+
+def test_thematic_detail_preserves_hierarchy_and_deep_link_state(client):
+    js = client.get('/static/js/mushaf_memorize.js').get_data(as_text=True)
+    css = client.get('/static/css/mushaf_memorize.css').get_data(as_text=True)
+
+    assert ".join(' ← ')" in js
+    assert ".split(':').pop()" not in js
+    assert 'if (initialRange) await refreshContextForAyah' in js
+    assert "renderContextChip(span);" in js
+    assert 'body.mz-session-active .mz-word.mz-sel' in css
+    assert '.mz-word.mz-context:not(.mz-sel)' not in css
+    assert '\n.mz-context {' not in css
+    assert '.mz-word.mz-context {' in css
+    assert 'const contextHeight = els.contextBox' in js
 
 
 def test_live_verse_topics_db_has_yusuf_and_khidr_spans():

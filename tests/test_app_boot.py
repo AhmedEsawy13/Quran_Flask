@@ -489,7 +489,7 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'اضغط آية البداية، ثم آية النهاية' in page
     assert 'id="mz-context"' in page
     assert 'id="mz-tb-context"' in page
-    assert 'السياق الموضوعي' in page
+    assert 'التفصيل الموضوعي' in page
     assert 'class="mz-bar-settings" aria-label="إعدادات الجلسة"' in page
     assert 'class="mz-bar-view" role="group" aria-label="خيارات العرض"' in page
     assert 'aria-controls="mz-reciter-panel"' in page

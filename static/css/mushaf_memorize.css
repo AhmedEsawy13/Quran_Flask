@@ -34,6 +34,9 @@
     --mz-shadow-lg: 0 30px 70px color-mix(in srgb, var(--athar-ink) 22%, transparent), 0 6px 16px color-mix(in srgb, var(--athar-ink) 10%, transparent);
     --mz-select-hl: color-mix(in srgb, var(--athar-accent) 12%, transparent);
     --mz-active-hl: color-mix(in srgb, var(--athar-accent) 22%, transparent);
+    --mz-topic: var(--athar-accent);
+    --mz-topic-soft: color-mix(in srgb, var(--athar-accent) 11%, transparent);
+    --mz-selection-soft: color-mix(in srgb, var(--athar-gold) 13%, transparent);
     --mz-radius: var(--athar-radius-surface); --mz-radius-sm: var(--athar-radius-control);
     --mz-topbar-h: 80px;
 }
@@ -616,9 +619,15 @@ body.mz-range-picking #mz-now { color: #b91c1c; }
 .mz-head-juz:hover, .mz-head-surah:hover, .mz-foot-page:hover { color: var(--mz-accent); background: color-mix(in srgb, var(--mz-accent) 10%, transparent); }
 
 /* ── Range selection by clicking verses ──────────────────────────── */
-/* Verses chosen to memorise are dimmed; as each word is recited it returns to
-   full strength (mz-done) — a progress reveal. The live word (mz-now) is full too. */
-.mz-word.mz-sel { opacity: 0.4; transition: opacity 0.35s ease; }
+/* Setup and playback are intentionally separate states. A newly chosen range
+   remains fully legible; only an active repetition session dims pending words. */
+.mz-word.mz-sel {
+    opacity: 1;
+    background-color: var(--mz-selection-soft);
+    border-radius: 0.08em;
+    transition: opacity 0.35s ease, background-color 0.22s ease;
+}
+body.mz-session-active .mz-word.mz-sel:not(.mz-done):not(.mz-now) { opacity: 0.4; }
 .mz-word.mz-sel.mz-done, .mz-word.mz-now { opacity: 1; }
 body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 
@@ -665,83 +674,94 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
     margin: 0;
 }
 
-.mz-context {
-    display: flex;
-    flex-wrap: wrap;
+/* ── Thematic detail rail ─────────────────────────────────────────── */
+.mz-context-rail {
+    width: min(1040px, calc(100% - 112px));
+    margin: 0 auto 8px;
+    padding: 9px 12px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.45rem 0.85rem;
-    margin: 0.15rem 0 0.35rem;
-    padding: 0.35rem 0.55rem;
-    border: 1px solid color-mix(in srgb, var(--athar-ink, #1c1915) 12%, transparent);
-    border-radius: 0.45rem;
-    background: color-mix(in srgb, #2f4a3c 8%, #fff);
+    gap: 10px;
+    flex: 0 0 auto;
+    border: 1px solid color-mix(in srgb, var(--mz-topic) 28%, var(--mz-border));
+    border-inline-start: 3px solid var(--mz-topic);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--mz-topic) 6%, var(--mz-surface));
+    box-shadow: 0 8px 24px -22px color-mix(in srgb, var(--mz-ink) 45%, transparent);
+    font-family: var(--font-ui);
 }
-
-.mz-context-main {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.25rem 0.55rem;
-    min-width: 0;
+.mz-context-rail[hidden] { display: none; }
+.mz-context-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    color: var(--mz-topic);
+    background: var(--mz-topic-soft);
 }
-
+.mz-context-main { display: grid; gap: 2px; min-width: 0; }
+.mz-context-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 9px; min-width: 0; }
 .mz-context-kicker {
-    font-size: 0.72rem;
-    color: #5b6b62;
+    color: var(--mz-topic);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.015em;
 }
-
-.mz-context-range {
-    font-weight: 700;
-    font-size: 0.88rem;
-}
-
+.mz-context-range { color: var(--mz-text-muted); font-size: 0.7rem; font-weight: 650; }
 .mz-context-title {
-    font-size: 0.86rem;
-    color: #24352d;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--mz-text);
+    font-size: 0.9rem;
+    font-weight: 750;
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
+.mz-context-source { color: var(--mz-text-faint); font-size: 0.62rem; line-height: 1.35; }
+.mz-context-actions { display: flex; align-items: center; }
+.mz-context-expand.athar-button {
+    min-height: 34px;
+    padding: 0 12px;
+    border-color: var(--mz-topic);
+    background: var(--mz-topic);
+    color: var(--mz-on-accent);
+    font-size: 0.72rem;
+    font-weight: 750;
+    white-space: nowrap;
+}
+.mz-context-expand.athar-button:hover:not(:disabled) {
+    border-color: var(--mz-accent-hover);
+    background: var(--mz-accent-hover);
+}
+.mz-context-expand:focus-visible { outline: 3px solid var(--athar-focus-ring); outline-offset: 2px; }
+.mz-context-expand:disabled { opacity: 0.62; cursor: default; }
+.mz-context-rail[data-state="prompt"], .mz-context-rail[data-state="empty"] { border-inline-start-color: var(--mz-border-strong); }
+.mz-context-rail[data-state="prompt"] .mz-context-mark,
+.mz-context-rail[data-state="empty"] .mz-context-mark { color: var(--mz-text-muted); background: var(--mz-surface-2); }
+.mz-context-rail[data-state="prompt"] .mz-context-title,
+.mz-context-rail[data-state="empty"] .mz-context-title { color: var(--mz-text-muted); font-weight: 600; }
+.mz-context-rail[aria-busy="true"] .mz-context-mark i { animation: mz-pulse 1s ease-in-out infinite; }
 
-.mz-context-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
+/* Topic is a semantic underline, not a pill behind every Quran word. It remains
+   visible when the same verses are adopted as the memorisation range. */
+.mz-word.mz-context {
+    box-shadow: inset 0 -0.1em color-mix(in srgb, var(--mz-topic) 42%, transparent);
 }
-
-.mz-context-expand {
-    appearance: none;
-    border: 1px solid #2f4a3c;
-    background: #2f4a3c;
-    color: #fff;
-    border-radius: 0.35rem;
-    padding: 0.22rem 0.55rem;
-    font: inherit;
-    font-size: 0.78rem;
-    cursor: pointer;
+.mz-word.mz-context-start::before,
+.mz-word.mz-context-end::after {
+    content: '';
+    position: absolute;
+    bottom: 0.02em;
+    width: 0.1em;
+    height: 0.42em;
+    border-radius: 999px;
+    background: var(--mz-topic);
 }
-
-.mz-context-source {
-    font-size: 0.68rem;
-    color: #6b6358;
-}
-
-.mz-word.mz-context:not(.mz-sel) {
-    background: color-mix(in srgb, #2f4a3c 14%, transparent);
-    border-radius: 0.2em;
-}
-
-body.dark-mode .mz-context {
-    background: color-mix(in srgb, #7dd3ae 10%, #1c1915);
-    border-color: color-mix(in srgb, #fff 12%, transparent);
-}
-
-body.dark-mode .mz-context-kicker,
-body.dark-mode .mz-context-source {
-    color: #a7b3aa;
-}
-
-body.dark-mode .mz-context-title {
-    color: #e8efe9;
-}
+.mz-word.mz-context-start::before { inset-inline-start: -0.01em; }
+.mz-word.mz-context-end::after { inset-inline-end: -0.01em; }
 
 @keyframes mz-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
@@ -761,6 +781,9 @@ body.dark-mode .mz-context-title {
     .mz-bar { gap: 5px; padding-inline: 8px; }
     #mz-now { max-width: 22vw; }
     .mz-main { padding: 6px; }
+    .mz-context-rail { width: calc(100% - 84px); padding: 7px 9px; gap: 8px; }
+    .mz-context-source { display: none; }
+    .mz-context-expand.athar-button { min-height: 32px; padding-inline: 9px; }
 }
 
 @media (max-width: 520px) {
@@ -768,6 +791,18 @@ body.dark-mode .mz-context-title {
     #mz-now { display: none; }
     .mz-bar-session { gap: 4px; }
     .mz-transport { gap: 2px; }
+    .mz-context-rail {
+        width: 100%;
+        margin-bottom: 6px;
+        grid-template-columns: auto minmax(0, 1fr);
+        border-radius: 10px;
+    }
+    .mz-context-mark { width: 30px; height: 30px; border-radius: 9px; }
+    .mz-context-heading { gap: 3px 7px; }
+    .mz-context-kicker, .mz-context-range { font-size: 0.62rem; }
+    .mz-context-title { font-size: 0.78rem; }
+    .mz-context-actions { grid-column: 2; }
+    .mz-context-expand.athar-button { width: max-content; min-height: 28px; font-size: 0.65rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

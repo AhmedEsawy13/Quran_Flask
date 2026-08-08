@@ -47,18 +47,6 @@
             <i class="fas fa-hand-pointer" aria-hidden="true"></i>
             اضغط آية البداية، ثم آية النهاية. اضغط ▶ للتشغيل، و× لإلغاء النطاق.
         </p>
-        <div class="mz-context" id="mz-context" hidden>
-            <div class="mz-context-main">
-                <span class="mz-context-kicker">السياق الموضوعي</span>
-                <span class="mz-context-range" id="mz-context-range"></span>
-                <span class="mz-context-title" id="mz-context-title"></span>
-            </div>
-            <div class="mz-context-actions">
-                <button type="button" class="mz-context-expand" id="mz-context-expand" hidden>وسّع للنطاق</button>
-                <span class="mz-context-source" id="mz-context-source"></span>
-            </div>
-        </div>
-
         <div class="mz-bar-settings" aria-label="إعدادات الجلسة">
 
         <!-- reciter + repeat (popover) -->
@@ -125,7 +113,7 @@
         <!-- display toggles -->
         <div class="mz-bar-view" role="group" aria-label="خيارات العرض">
         <button class="mz-bar-btn athar-icon-button" id="mz-tb-tajweed" type="button" aria-pressed="false" title="تلوين التجويد" aria-label="تلوين التجويد"><i class="fas fa-palette" aria-hidden="true"></i></button>
-        <button class="mz-bar-btn athar-icon-button" id="mz-tb-context" type="button" aria-pressed="true" title="السياق الموضوعي" aria-label="السياق الموضوعي"><i class="fas fa-layer-group" aria-hidden="true"></i></button>
+        <button class="mz-bar-btn athar-icon-button" id="mz-tb-context" type="button" aria-pressed="true" title="التفصيل الموضوعي" aria-label="التفصيل الموضوعي"><i class="fas fa-layer-group" aria-hidden="true"></i></button>
         <button class="mz-bar-btn athar-icon-button" id="mz-tb-hide" type="button" aria-pressed="false" title="إخفاء النص للتسميع" aria-label="إخفاء النص"><i class="fas fa-eye-slash" aria-hidden="true"></i></button>
         <button class="mz-bar-btn athar-icon-button" id="mz-tb-layout" type="button" aria-pressed="false" title="صفحة واحدة / صفحتان" aria-label="عرض صفحة واحدة"><i class="fas fa-book-open" aria-hidden="true"></i></button>
         <div class="mz-bar-asr" id="mz-asr-dev" hidden>
@@ -178,6 +166,20 @@
         <section class="mz-content" aria-label="نطاق الحفظ في المصحف">
           <button class="mz-nav-btn mz-nav-prev" id="mz-prev" type="button" title="السابق (→)" aria-label="السابق"><i class="fas fa-chevron-right" aria-hidden="true"></i></button>
           <button class="mz-nav-btn mz-nav-next" id="mz-next" type="button" title="التالي (←)" aria-label="التالي"><i class="fas fa-chevron-left" aria-hidden="true"></i></button>
+          <aside class="mz-context-rail athar-surface" id="mz-context" role="region" aria-labelledby="mz-context-kicker" aria-live="polite" aria-atomic="true" hidden>
+              <span class="mz-context-mark" aria-hidden="true"><i class="fas fa-layer-group"></i></span>
+              <div class="mz-context-main">
+                  <div class="mz-context-heading">
+                      <span class="mz-context-kicker" id="mz-context-kicker">التفصيل الموضوعي</span>
+                      <span class="mz-context-range" id="mz-context-range"></span>
+                  </div>
+                  <span class="mz-context-title" id="mz-context-title"></span>
+                  <span class="mz-context-source" id="mz-context-source"></span>
+              </div>
+              <div class="mz-context-actions">
+                  <button type="button" class="mz-context-expand athar-button" id="mz-context-expand" hidden>اعتمد المقطع للحفظ</button>
+              </div>
+          </aside>
           <div class="mz-stage-area">
             <div class="mz-stage" id="mz-stage" aria-label="صفحة المصحف">
                 <div class="mz-spread" id="mz-spread">
