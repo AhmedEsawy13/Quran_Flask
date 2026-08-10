@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { ReaderPilot } from "@/components/reader-pilot";
+import { ReaderWorkspace } from "@/components/reader-workspace";
 
 export const metadata: Metadata = {
   title: "المصحف",
-  description: "مسار أثَر التجريبي لقراءة القرآن بواجهة Next.js سريعة.",
+  description: "مصحف أثَر بوضعي الصفحة والآية وطبعات المدينة المتعددة.",
   alternates: { canonical: "/read" },
 };
 
@@ -12,11 +12,11 @@ export default function ReaderPage() {
   return (
     <main id="athar-main" className="reader-main shell-width" tabIndex={-1}>
       <header className="reader-intro">
-        <p className="eyebrow">المصحف — مسار الأداء التجريبي</p>
+        <p className="eyebrow">المصحف — القراءة الهادئة</p>
         <h1>اقرأ المصحــف، ودع الأدوات تأتي إليك.</h1>
         <p>
-          الهيكل والخط يظهران أولًا من Vercel؛ نص الآية يصل من واجهة Python الحالية
-          دون تحميل التطبيق القديم كله.
+          تنقّل بالرسم صفحةً كاملة أو آيةً مركّزة، واختر طبعة المدينة التي ترتاح
+          لها. موضعك محفوظ والرابط يعيدك إلى القراءة نفسها.
         </p>
       </header>
       <Suspense
@@ -27,7 +27,7 @@ export default function ReaderPage() {
           </div>
         }
       >
-        <ReaderPilot />
+        <ReaderWorkspace />
       </Suspense>
     </main>
   );

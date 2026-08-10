@@ -18,6 +18,70 @@ export type Ayah = {
   clean_text?: string;
   transliteration?: { t?: string };
   word_meanings_ordered?: WordMeaning[];
+  word_meanings_source?: {
+    provider?: string;
+    attribution?: string;
+  };
+};
+
+export type Reciter = {
+  id: string;
+  name_ar: string;
+  name_en: string;
+};
+
+export type VerseTiming = {
+  ayah: number;
+  verse_key: string;
+  start: number;
+  end: number;
+  text: string;
+  phrases: Array<{ start: number; end: number }>;
+  words: Array<[number, number, number]>;
+};
+
+export type MemorizationAudio = {
+  surah_number: number;
+  reciter: string;
+  reciter_id: string;
+  reciter_name_ar: string;
+  audio_url: string;
+  audio_offset_ms: number;
+  verses: VerseTiming[];
+};
+
+export type TafseerCollection = Record<string, { text: string }>;
+
+export type MushafWord = {
+  ayah: number;
+  surah: number;
+  text: string;
+  word_index?: number;
+  word_key?: string;
+  suppress_render?: boolean;
+};
+
+export type MushafLine = {
+  line_number: number;
+  line_type: "ayah" | "surah_name" | "surah_info" | "basmallah" | string;
+  is_centered?: boolean;
+  surah_number?: number | string;
+  display_text?: string;
+  contains_focus_ayah?: boolean;
+  words: MushafWord[];
+};
+
+export type MushafPage = {
+  source: string;
+  page_number: number;
+  font_name: string;
+  layout_name?: string;
+  lines_per_page: number;
+  focus_surah?: number;
+  focus_ayah?: number;
+  anchor_surah_number?: number;
+  anchor_ayah_number?: number;
+  lines: MushafLine[];
 };
 
 type ApiErrorBody = {
