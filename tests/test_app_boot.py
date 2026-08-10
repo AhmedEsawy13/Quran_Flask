@@ -513,10 +513,15 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'state.zoom <= ZOOM_MIN + 0.001' in script
     assert 'async function refreshContextForCurrentSelection()' in script
     assert 'await refreshContextForCurrentSelection();' in script
+    assert 'function renderContextPath(element, title' in script
+    assert "text.className = 'mz-context-path-part'" in script
     assert 'word-spacing: 0.12em;' in styles
-    assert '-webkit-line-clamp: 2;' in styles
+    assert '.mz-context-legend-item { display: inline-flex; flex: 0 0 auto;' in styles
+    assert 'unicode-bidi: isolate;' in styles
     smoke = (PROJECT_ROOT / 'scripts/browser_smoke_matrix.py').read_text(encoding='utf-8')
     assert 'Quran justification escapes its frame at 75% zoom' in smoke
+    assert 'thematic detail labels overlap' in smoke
+    assert 'thematic detail title is clipped' in smoke
 
 
 def test_recitation_repeats_keep_each_timed_word_occurrence():

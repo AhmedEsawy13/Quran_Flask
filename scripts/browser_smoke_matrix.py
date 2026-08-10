@@ -297,6 +297,16 @@ def _run_journey(
                   const textRects = [...page.querySelectorAll(
                     '.mz-line[data-justify="1"] .mz-line-inner'
                   )].map(element => element.getBoundingClientRect());
+                  const contextTitle = document.querySelector('#mz-context-title');
+                  const legendRects = [...document.querySelectorAll(
+                    '.mz-context-legend-item'
+                  )].map(element => element.getBoundingClientRect());
+                  const legendOverlap = legendRects.some((a, index) =>
+                    legendRects.slice(index + 1).some(b =>
+                      a.left < b.right && a.right > b.left
+                      && a.top < b.bottom && a.bottom > b.top
+                    )
+                  );
                   return {
                     bodyWidth: document.body.scrollWidth,
                     viewportWidth: innerWidth,
@@ -311,6 +321,11 @@ def _run_journey(
                     minTextInset: Math.min(...textRects.flatMap(rect => [
                       rect.left - pr.left, pr.right - rect.right,
                     ])),
+                    contextTitleClipped: Boolean(
+                      contextTitle
+                      && contextTitle.scrollHeight > contextTitle.clientHeight + 1
+                    ),
+                    contextLegendOverlap: legendOverlap,
                   };
                 }"""
             )
@@ -326,6 +341,10 @@ def _run_journey(
                 errors.append(
                     f"Quran text reaches outside its safe frame inset ({stage['minTextInset']:.1f}px)"
                 )
+            if stage["contextTitleClipped"]:
+                errors.append("thematic detail title is clipped")
+            if stage["contextLegendOverlap"]:
+                errors.append("thematic detail labels overlap")
             if scenario["width"] < 700 and not stage["single"]:
                 errors.append("memorize did not force single-page mode on a narrow viewport")
             if stage["shellHeight"] > stage["areaHeight"] + 1 and (

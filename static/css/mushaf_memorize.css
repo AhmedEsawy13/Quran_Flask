@@ -637,24 +637,28 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
 .mz-context-range { color: var(--mz-text-muted); font-size: 0.7rem; font-weight: 650; }
 .mz-context-title {
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
     color: var(--mz-text);
     font-size: 0.9rem;
     font-weight: 750;
     line-height: 1.55;
     word-spacing: 0.12em;
     white-space: normal;
-    overflow-wrap: break-word;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.04em 0.38em;
 }
+.mz-context-path-part { min-width: 0; max-width: 100%; direction: rtl; unicode-bidi: isolate;
+    overflow-wrap: anywhere; }
+.mz-context-path-separator { flex: 0 0 auto; color: var(--mz-topic); unicode-bidi: isolate; }
 .mz-context-source { color: var(--mz-text-faint); font-size: 0.62rem; line-height: 1.35; }
-.mz-context-legend { display: flex; min-width: 0; gap: 5px; margin-top: 3px; overflow-x: auto;
+.mz-context-legend { display: flex; align-items: stretch; min-width: 0; gap: 5px; margin-top: 3px; overflow-x: auto;
     scrollbar-width: none; white-space: nowrap; }
 .mz-context-legend[hidden] { display: none; }
 .mz-context-legend::-webkit-scrollbar { display: none; }
-.mz-context-legend-item { display: inline-flex; align-items: center; gap: 5px; min-width: 0; padding: 2px 7px;
+.mz-context-legend-item { display: inline-flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: flex-start;
+    gap: 2px 5px; max-width: min(46vw, 420px); padding: 3px 7px; overflow: hidden; white-space: normal; text-align: start;
     border: 1px solid color-mix(in srgb, var(--mz-legend-color) 32%, var(--mz-border)); border-radius: 999px;
     color: var(--mz-text-muted); background: color-mix(in srgb, var(--mz-legend-color) 9%, transparent);
     font: 650 0.62rem/1.4 var(--font-ui); cursor: pointer; }
@@ -754,6 +758,7 @@ body.mz-dark .mz-context-band {
     .mz-context-heading { gap: 3px 7px; }
     .mz-context-kicker, .mz-context-range { font-size: 0.62rem; }
     .mz-context-title { font-size: 0.78rem; }
+    .mz-context-legend-item { max-width: 78vw; }
     .mz-context-actions { grid-column: 2; }
     .mz-context-expand.athar-button { width: max-content; min-height: 28px; font-size: 0.65rem; }
     .mz-zoom-controls { inset-inline-start: 4px; bottom: 4px; }

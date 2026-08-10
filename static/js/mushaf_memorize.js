@@ -1302,7 +1302,7 @@
             button.type = 'button';
             button.className = 'mz-context-legend-item';
             button.style.setProperty('--mz-legend-color', topicColor(segment.topic_id, segment.title));
-            button.textContent = formatContextPath(segment.title) || 'موضوع غير معنون';
+            renderContextPath(button, segment.title);
             button.addEventListener('click', () => {
                 const [surah, ayah] = String(segment.from).split(':').map(Number);
                 refreshContextForAyah(surah, ayah);
@@ -1445,12 +1445,37 @@
         return `${toAr(count)} آيات`;
     }
 
-    function formatContextPath(title) {
+    function contextPathParts(title) {
         return String(title || '')
             .split(':')
             .map(part => part.trim())
-            .filter(Boolean)
-            .join(' ← ');
+            .filter(Boolean);
+    }
+
+    function renderContextPath(element, title, fallback = 'موضوع غير معنون') {
+        if (!element) return;
+        const parts = contextPathParts(title);
+        element.replaceChildren();
+        if (!parts.length) {
+            element.textContent = fallback;
+            element.setAttribute('aria-label', fallback);
+            return;
+        }
+        parts.forEach((part, index) => {
+            if (index) {
+                const separator = document.createElement('span');
+                separator.className = 'mz-context-path-separator';
+                separator.setAttribute('aria-hidden', 'true');
+                separator.textContent = '←';
+                element.appendChild(separator);
+            }
+            const text = document.createElement('span');
+            text.className = 'mz-context-path-part';
+            text.dir = 'rtl';
+            text.textContent = part;
+            element.appendChild(text);
+        });
+        element.setAttribute('aria-label', parts.join('، '));
     }
 
     function contextRangeLabel(span) {
@@ -1557,8 +1582,7 @@
         els.contextBox.setAttribute('aria-busy', 'false');
         if (els.contextRange) els.contextRange.textContent = contextRangeLabel(span);
         if (els.contextTitle) {
-            const title = formatContextPath(span.title) || 'موضوع غير معنون';
-            els.contextTitle.textContent = title;
+            renderContextPath(els.contextTitle, span.title);
             els.contextTitle.removeAttribute('title');
         }
         if (els.contextSource) {

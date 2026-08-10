@@ -124,7 +124,9 @@ def test_thematic_detail_preserves_hierarchy_and_deep_link_state(client):
     js = client.get('/static/js/mushaf_memorize.js').get_data(as_text=True)
     css = client.get('/static/css/mushaf_memorize.css').get_data(as_text=True)
 
-    assert ".join(' ← ')" in js
+    assert 'function contextPathParts(title)' in js
+    assert "separator.textContent = '←'" in js
+    assert "text.className = 'mz-context-path-part'" in js
     assert ".split(':').pop()" not in js
     assert 'if (initialRange) await refreshContextForAyah' in js
     assert "renderContextChip(span);" in js
