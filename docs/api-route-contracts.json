@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 108,
+  "route_count": 109,
   "routes": [
     {
       "auth": "editor",
@@ -1678,6 +1678,36 @@
       "source": "modules/memorize.py",
       "success_cache": "public-1h",
       "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "memorize.get_memorization_context_map",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "memorize",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/memorization/context-map",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/memorize.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "attribution",
+        "segments"
+      ]
     },
     {
       "auth": "public",

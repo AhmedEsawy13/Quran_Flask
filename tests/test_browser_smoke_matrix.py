@@ -15,6 +15,12 @@ def test_matrix_covers_every_critical_journey_at_two_widths():
     assert len({journey.shell_selector for journey in smoke.JOURNEYS}) == len(smoke.JOURNEYS)
 
 
+def test_memorize_adds_narrow_and_short_landscape_edges():
+    assert set(smoke.MEMORIZE_EDGE_SCENARIOS) == {"phone_narrow", "landscape_short"}
+    assert smoke.MEMORIZE_EDGE_SCENARIOS["phone_narrow"]["width"] == 360
+    assert smoke.MEMORIZE_EDGE_SCENARIOS["landscape_short"]["height"] == 390
+
+
 def test_ci_installs_chromium_and_runs_the_matrix():
     workflow = (ROOT / ".github/workflows/browser-smoke.yml").read_text(encoding="utf-8")
     assert "playwright install --with-deps chromium" in workflow

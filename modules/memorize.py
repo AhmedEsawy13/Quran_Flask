@@ -318,3 +318,75 @@ def get_memorization_context(surah_number, ayah_number):
             'hint': 'Run: python3 pipeline/harvest_bahouth_topics.py --harvest --build-db',
         }), 404
     return jsonify(span)
+
+
+@memorize_bp.route('/api/memorization/context-map', methods=['POST'])
+def get_memorization_context_map():
+    """Return a non-overlapping thematic partition for visible verse keys.
+
+    ``context_spans`` stores the best topic chosen independently for every
+    verse.  Its descriptive start/end ranges may overlap other winning topics,
+    so the page wash must use the per-verse winners and coalesce adjacent equal
+    winners instead of painting those raw descriptive ranges.
+    """
+    body = request.get_json(silent=True) or {}
+    raw_keys = body.get('verse_keys')
+    if not isinstance(raw_keys, list) or not raw_keys or len(raw_keys) > 100:
+        return jsonify({'error': 'verse_keys must contain 1 to 100 items.'}), 400
+
+    keys = []
+    seen = set()
+    for value in raw_keys:
+        try:
+            surah_text, ayah_text = str(value).split(':', 1)
+            key = (int(surah_text), int(ayah_text))
+        except (TypeError, ValueError):
+            return jsonify({'error': f'Invalid verse key: {value!s}'}), 400
+        if not (1 <= key[0] <= 114 and key[1] >= 1):
+            return jsonify({'error': f'Invalid verse key: {value!s}'}), 400
+        if key not in seen:
+            seen.add(key)
+            keys.append(key)
+
+    if not os.path.isfile(VERSE_TOPICS_DATABASE):
+        return jsonify({'segments': [], 'attribution': ''})
+    try:
+        conn = _sqlite_connect(VERSE_TOPICS_DATABASE, row=True, readonly=True)
+        clauses = ' OR '.join('(surah = ? AND ayah = ?)' for _ in keys)
+        params = [number for key in keys for number in key]
+        rows = conn.execute(
+            f'''SELECT surah, ayah, topic_id, title_raw
+                FROM context_spans WHERE {clauses}''',
+            params,
+        ).fetchall()
+        attribution = _context_attribution(conn)
+    except sqlite3.Error as exc:
+        logger.error('verse context map lookup failed: %s', exc)
+        return jsonify({'error': 'context unavailable'}), 503
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+    by_key = {(int(row['surah']), int(row['ayah'])): row for row in rows}
+    segments = []
+    for key in keys:
+        row = by_key.get(key)
+        if not row:
+            continue
+        topic_id = row['topic_id']
+        title = row['title_raw'] or ''
+        verse_key = f'{key[0]}:{key[1]}'
+        previous = segments[-1] if segments else None
+        if previous and previous['topic_id'] == topic_id and previous['title'] == title:
+            previous['to'] = verse_key
+            previous['verse_keys'].append(verse_key)
+        else:
+            segments.append({
+                'segment_id': len(segments) + 1,
+                'topic_id': topic_id,
+                'title': title,
+                'from': verse_key,
+                'to': verse_key,
+                'verse_keys': [verse_key],
+            })
+    return jsonify({'segments': segments, 'attribution': attribution})

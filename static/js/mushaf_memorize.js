@@ -12,6 +12,7 @@
      GET /api/surahs
      GET /api/memorization/<s>?mode=&gap=     audio_url + per-verse [start,end] + phrases
      GET /api/memorization/context/<s>/<a>   Bahouth contiguous thematic span
+     POST /api/memorization/context-map      non-overlapping topics for visible verses
      GET /api/digital-khatt/page(-by-ayah)/…  Madinah 1441 (QPC v4) page
      GET /api/qpc-v2/page(-by-ayah)/…         Madinah 1421 (Digital Khatt V2) page
      GET /api/qpc-v1/page(-by-ayah)/…         Madinah 1405 (QPC v1) page
@@ -44,7 +45,13 @@
         status:      $('mz-status'),
         hint:        $('mz-hint'),
         stage:       $('mz-stage'),
+        stageArea:   document.querySelector('.mz-stage-area'),
+        zoomShell:   $('mz-zoom-shell'),
         spread:      $('mz-spread'),
+        zoomOut:     $('mz-zoom-out'),
+        zoomIn:      $('mz-zoom-in'),
+        zoomFit:     $('mz-zoom-fit'),
+        zoomValue:   $('mz-zoom-value'),
         prev:        $('mz-prev'),
         next:        $('mz-next'),
         player:      $('mz-player'),
@@ -73,6 +80,7 @@
         contextTitle:$('mz-context-title'),
         contextExpand:$('mz-context-expand'),
         contextSource:$('mz-context-source'),
+        contextLegend:$('mz-context-legend'),
         tbWaqf:      $('mz-tb-waqf'),
         volume:      $('mz-volume'),
         volBtn:      $('mz-vol-btn'),
@@ -142,12 +150,18 @@
         contextOn: true,
         contextSpan: null,      // latest /api/memorization/context payload
         contextKeys: new Set(), // soft-highlighted ayah keys for thematic span
+        contextSegments: [],    // non-overlapping topics on the visible spread
+        contextByKey: new Map(),
+        contextAttribution: '',
         tajweedCache: new Map(),
         src: 'digital_khatt',
         mushafVersions: [],
         gapMs: 250,
         splitModeVal: 'acoustic',
         layoutMode: 'dual',     // 'dual' | 'single'
+        layoutPreference: 'dual',
+        responsiveSingle: false,
+        zoom: 1,
         reciter: 'husary',
         reciterName: 'محمود خليل الحصري',
         hideText: false,
@@ -172,12 +186,69 @@
         requestAnimationFrame(() => { if (state.focusPage) { sizePages(); applyFontSize(true); justifyLines(); } });
     }
     function toggleLayout() {
-        state.layoutMode = state.layoutMode === 'single' ? 'dual' : 'single';
-        if (els.layout) els.layout.value = state.layoutMode;
+        if (state.responsiveSingle) {
+            setStatus('عرض الصفحتين متاح عند توسيع الشاشة');
+            return;
+        }
+        state.layoutPreference = state.layoutMode === 'single' ? 'dual' : 'single';
+        state.layoutMode = state.layoutPreference;
+        if (els.layout) els.layout.value = state.layoutPreference;
         document.body.classList.toggle('mz-single', state.layoutMode === 'single');
-        saveSetting('mz_layout', state.layoutMode);
+        saveSetting('mz_layout', state.layoutPreference);
         syncToolbar();
         if (state.focusPage) renderSpread(state.focusPage);
+    }
+
+    const ZOOM_MIN = 0.75, ZOOM_MAX = 2, ZOOM_STEP = 0.1;
+    const arNumber = value => String(value).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    function syncZoomUi() {
+        const pct = Math.round(state.zoom * 100);
+        if (els.zoomValue) els.zoomValue.textContent = `${arNumber(pct)}٪`;
+        if (els.zoomOut) els.zoomOut.disabled = state.zoom <= ZOOM_MIN + EPS;
+        if (els.zoomIn) els.zoomIn.disabled = state.zoom >= ZOOM_MAX - EPS;
+        if (els.zoomFit) els.zoomFit.classList.toggle('mz-on', Math.abs(state.zoom - 1) < EPS);
+    }
+    function updateZoomShell({ preserveCenter = true } = {}) {
+        if (!els.zoomShell || !els.spread) return;
+        const area = els.stageArea;
+        const previousWidth = els.zoomShell.offsetWidth || 1;
+        const previousHeight = els.zoomShell.offsetHeight || 1;
+        const centerX = area ? (area.scrollLeft + area.clientWidth / 2) / previousWidth : 0.5;
+        const centerY = area ? (area.scrollTop + area.clientHeight / 2) / previousHeight : 0.5;
+        const baseWidth = els.spread.offsetWidth;
+        const baseHeight = els.spread.offsetHeight;
+        if (!baseWidth || !baseHeight) return;
+        document.documentElement.style.setProperty('--mz-user-zoom', String(state.zoom));
+        els.zoomShell.style.width = `${baseWidth * state.zoom}px`;
+        els.zoomShell.style.height = `${baseHeight * state.zoom}px`;
+        syncZoomUi();
+        if (area && preserveCenter) requestAnimationFrame(() => {
+            area.scrollLeft = Math.max(0, centerX * els.zoomShell.offsetWidth - area.clientWidth / 2);
+            area.scrollTop = Math.max(0, centerY * els.zoomShell.offsetHeight - area.clientHeight / 2);
+        });
+    }
+    function setZoom(value, options) {
+        state.zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, Math.round(value * 10) / 10));
+        saveSetting('mz_zoom', state.zoom);
+        updateZoomShell(options);
+    }
+
+    function applyResponsiveLayout({ render = false } = {}) {
+        const width = window.visualViewport?.width || window.innerWidth;
+        const forced = width < 700;
+        const nextMode = forced ? 'single' : state.layoutPreference;
+        const changed = nextMode !== state.layoutMode;
+        state.responsiveSingle = forced;
+        state.layoutMode = nextMode;
+        if (els.layout) els.layout.value = state.layoutPreference;
+        document.body.classList.toggle('mz-single', nextMode === 'single');
+        if (els.tbLayout) {
+            els.tbLayout.disabled = forced;
+            els.tbLayout.title = forced ? 'عرض الصفحتين متاح على شاشة أوسع' : 'صفحة واحدة / صفحتان';
+        }
+        syncToolbar();
+        if (changed && render && state.focusPage) renderSpread(state.focusPage);
+        return changed;
     }
     // keep the floating toolbar buttons in sync with current state
     function syncToolbar() {
@@ -252,9 +323,13 @@
         applySrcClass();
 
         const savedLayout = localStorage.getItem('mz_layout');
-        state.layoutMode = savedLayout === 'single' ? 'single' : 'dual';
-        els.layout.value = state.layoutMode;
-        document.body.classList.toggle('mz-single', state.layoutMode === 'single');
+        state.layoutPreference = savedLayout === 'single' ? 'single' : 'dual';
+        state.layoutMode = state.layoutPreference;
+        els.layout.value = state.layoutPreference;
+        const savedZoom = Number(localStorage.getItem('mz_zoom'));
+        state.zoom = Number.isFinite(savedZoom) ? Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, savedZoom)) : 1;
+        applyResponsiveLayout();
+        syncZoomUi();
 
         syncToolbar();
 
@@ -1008,7 +1083,9 @@
         if (state.hideText) pageEls().forEach(p => p && p.classList.add('mz-hide'));
         sizePages();
         applyFontSize();
+        clearVisibleContextMap();
         applySelectionHighlight();
+        refreshVisibleContextMap();
         requestAnimationFrame(() => {
             justifyLines();
             watchLineMetrics();
@@ -1038,23 +1115,15 @@
 
     // Make the page(s) as large as the freed centre allows, keeping a mushaf
     // portrait ratio, fitting both width (n pages) and height. Fit MATH lives in
-    // athar-page-chrome.js (shared with مصحف-editor); the measurement strategy
-    // below is تثبيت's own — deliberately the viewport + fixed chrome, NEVER a
-    // rendered element's height (reading the stage-area's clientHeight created a
-    // feedback loop: a taller page grew the scroll area, which grew the next
-    // page…), so a pure window-based formula gives ONE fixed page box that stays
-    // put — the page simply sits centred in the stage.
+    // athar-page-chrome.js (shared with مصحف-editor). The stage is a bounded flex
+    // child whose own size cannot grow from page content, so it is now the stable
+    // measurement source. When its height is too short, the minimum readable page
+    // becomes scrollable instead of being clipped.
     const PAGE_RATIO = 0.66;            // Digital Khatt / Shemrly width ÷ height
     const OLD_MADINA_PAGE_RATIO = 0.72; // 1405 print needs a wider text block
     function sizePages() {
-        const stage = els.stage;
-        if (!stage) return;
-        const topbar = els.bar?.getBoundingClientRect().height || 52;
-        const appbar = document.querySelector('.athar-bar')?.getBoundingClientRect().height || 50;
-        const contextHeight = els.contextBox && !els.contextBox.hidden
-            ? els.contextBox.getBoundingClientRect().height + 8
-            : 0;
-        const vMargin = 12;          // tight breathing room — chrome is slim, no bottom dock
+        const area = els.stageArea;
+        if (!area) return;
         // Header, footer, spread inset and card padding together consume about
         // 124px. The former 72px estimate let short viewports grow the page past
         // its flex area, so the Quran lines could overlap the thematic rail.
@@ -1065,9 +1134,10 @@
             pages: state.layoutMode === 'single' ? 1 : 2,
             ratio: state.src === 'qpc_v1' ? OLD_MADINA_PAGE_RATIO : PAGE_RATIO,
             gutter: 16, edgePad: 20,
-            getAvailH: () => Math.max(280, window.innerHeight - topbar - appbar - contextHeight - vMargin) - headFootPad,
-            getAvailW: () => Math.max(240, stage.clientWidth - navAndGaps),
+            getAvailH: () => Math.max(1, area.clientHeight - headFootPad - 8),
+            getAvailW: () => Math.max(1, area.clientWidth - navAndGaps),
         });
+        requestAnimationFrame(() => updateZoomShell({ preserveCenter: false }));
     }
 
     const pageEls = () => [cards.right.page, cards.left.page];
@@ -1117,7 +1187,10 @@
     });
     function justifyLines() {
         _justifyLines();
-        requestAnimationFrame(paintContextBands);
+        requestAnimationFrame(() => {
+            paintContextBands();
+            updateZoomShell();
+        });
     }
     let lineMetricObserver = null;
     let lineMetricFrame = 0;
@@ -1169,6 +1242,85 @@
     });
 
     /* ── Highlighting ──────────────────────────────────────────────── */
+    const TOPIC_PALETTE = [
+        '#2f6f9f', '#8a5a2b', '#39745a', '#80558c', '#a14e55', '#5f6f2f',
+        '#386f7a', '#7a5b9e', '#9a6728', '#4365a8', '#8b5368', '#4f7550',
+    ];
+    function topicColor(topicId, title = '') {
+        const source = String(topicId ?? title ?? '');
+        let hash = 2166136261;
+        for (let i = 0; i < source.length; i++) {
+            hash ^= source.charCodeAt(i);
+            hash = Math.imul(hash, 16777619);
+        }
+        return TOPIC_PALETTE[Math.abs(hash) % TOPIC_PALETTE.length];
+    }
+    function clearVisibleContextMap() {
+        state.contextSegments = [];
+        state.contextByKey = new Map();
+        state.contextAttribution = '';
+        if (els.contextLegend) {
+            els.contextLegend.replaceChildren();
+            els.contextLegend.hidden = true;
+        }
+    }
+    function renderContextLegend() {
+        if (!els.contextLegend) return;
+        els.contextLegend.replaceChildren();
+        const unique = [];
+        const seen = new Set();
+        state.contextSegments.forEach(segment => {
+            const identity = `${segment.topic_id}|${segment.title}`;
+            if (seen.has(identity)) return;
+            seen.add(identity);
+            unique.push(segment);
+        });
+        els.contextLegend.hidden = unique.length < 2;
+        unique.forEach(segment => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'mz-context-legend-item';
+            button.style.setProperty('--mz-legend-color', topicColor(segment.topic_id, segment.title));
+            button.textContent = formatContextPath(segment.title) || 'موضوع غير معنون';
+            button.addEventListener('click', () => {
+                const [surah, ayah] = String(segment.from).split(':').map(Number);
+                refreshContextForAyah(surah, ayah);
+            });
+            els.contextLegend.appendChild(button);
+        });
+    }
+    let _contextMapRequest = 0;
+    async function refreshVisibleContextMap() {
+        const keys = [...new Set(wordsInSpread('.mz-word[data-key]').map(word => word.dataset.key).filter(Boolean))];
+        const request = ++_contextMapRequest;
+        if (!state.contextOn || !keys.length) {
+            clearVisibleContextMap();
+            applySelectionHighlight();
+            return;
+        }
+        try {
+            const payload = await window.AtharApi.json('/api/memorization/context-map', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ verse_keys: keys }),
+            });
+            if (request !== _contextMapRequest) return;
+            state.contextSegments = Array.isArray(payload?.segments) ? payload.segments : [];
+            state.contextAttribution = payload?.attribution || '';
+            state.contextByKey = new Map();
+            state.contextSegments.forEach(segment => {
+                const decorated = { ...segment, color: topicColor(segment.topic_id, segment.title) };
+                (segment.verse_keys || []).forEach(key => state.contextByKey.set(key, decorated));
+            });
+            renderContextLegend();
+            applySelectionHighlight();
+        } catch (_) {
+            if (request !== _contextMapRequest) return;
+            clearVisibleContextMap();
+            applySelectionHighlight();
+        }
+    }
+
     function ensureContextLayer(pageEl) {
         let layer = pageEl.querySelector(':scope > .mz-context-layer');
         if (!layer) {
@@ -1185,9 +1337,9 @@
             if (!pageEl) return;
             const layer = ensureContextLayer(pageEl);
             layer.replaceChildren();
-            if (!state.contextOn || !state.contextKeys.size) return;
+            if (!state.contextOn || !state.contextByKey.size) return;
 
-            const words = [...pageEl.querySelectorAll('.mz-word.mz-context')];
+            const words = [...pageEl.querySelectorAll('.mz-word.mz-context[data-context-color]')];
             if (!words.length) return;
 
             const pageRect = pageEl.getBoundingClientRect();
@@ -1197,11 +1349,16 @@
             words.forEach(word => {
                 const line = word.closest('.mz-line');
                 if (!line) return;
-                if (!byLine.has(line)) byLine.set(line, []);
-                byLine.get(line).push(word);
+                const color = word.dataset.contextColor;
+                const segmentId = word.dataset.contextSegment;
+                const groupKey = `${segmentId}|${color}`;
+                if (!byLine.has(line)) byLine.set(line, new Map());
+                const groups = byLine.get(line);
+                if (!groups.has(groupKey)) groups.set(groupKey, { color, words: [] });
+                groups.get(groupKey).words.push(word);
             });
 
-            byLine.forEach(lineWords => {
+            byLine.forEach(groups => groups.forEach(({ color, words: lineWords }) => {
                 const rects = lineWords
                     .map(word => word.getBoundingClientRect())
                     .filter(rect => rect.width > 0 && rect.height > 0);
@@ -1216,12 +1373,13 @@
 
                 const band = document.createElement('div');
                 band.className = 'mz-context-band';
+                band.style.setProperty('--mz-band-color', color);
                 band.style.left = `${left - pageRect.left - padX}px`;
                 band.style.top = `${top - pageRect.top - padY}px`;
                 band.style.width = `${Math.max(0, right - left + padX * 2)}px`;
                 band.style.height = `${Math.max(0, bottom - top + padY * 2)}px`;
                 layer.appendChild(band);
-            });
+            }));
         });
     }
 
@@ -1230,11 +1388,16 @@
         pageEls().forEach(p => p && p.classList.toggle('mz-has-selection', hasSel));
         wordsInSpread('.mz-word').forEach(w => {
             const k = w.dataset.key;
+            const segment = k ? state.contextByKey.get(k) : null;
             w.classList.toggle('mz-sel', !!k && state.selectedKeys.has(k));
-            w.classList.toggle(
-                'mz-context',
-                !!(state.contextOn && k && state.contextKeys.has(k))
-            );
+            w.classList.toggle('mz-context', !!(state.contextOn && segment));
+            if (state.contextOn && segment) {
+                w.dataset.contextColor = segment.color;
+                w.dataset.contextSegment = String(segment.segment_id);
+            } else {
+                delete w.dataset.contextColor;
+                delete w.dataset.contextSegment;
+            }
         });
         paintContextBands();
         if (state.activeKey) markActive(state.activeKey);
@@ -1350,6 +1513,7 @@
             return;
         }
         els.contextBox.dataset.state = 'ready';
+        els.contextBox.style.setProperty('--mz-topic', topicColor(span.topic_id, span.title));
         els.contextBox.setAttribute('aria-busy', 'false');
         if (els.contextRange) els.contextRange.textContent = contextRangeLabel(span);
         if (els.contextTitle) {
@@ -1386,6 +1550,27 @@
         if (!state.contextOn || !Number.isFinite(surah) || !Number.isFinite(ayah)) {
             clearContextUi();
             return null;
+        }
+        const visibleSegment = state.contextByKey.get(`${surah}:${ayah}`);
+        if (visibleSegment) {
+            _contextRequest += 1;
+            const [startS, startA] = String(visibleSegment.from).split(':').map(Number);
+            const [endS, endA] = String(visibleSegment.to).split(':').map(Number);
+            const span = {
+                found: true,
+                topic_id: visibleSegment.topic_id,
+                title: visibleSegment.title,
+                from: { surah: startS, ayah: startA },
+                to: { surah: endS, ayah: endA },
+                run_length: visibleSegment.verse_keys.length,
+                same_surah: startS === endS,
+                attribution: state.contextAttribution,
+            };
+            state.contextSpan = span;
+            state.contextKeys = new Set(visibleSegment.verse_keys);
+            renderContextChip(span);
+            applySelectionHighlight();
+            return span;
         }
         const request = ++_contextRequest;
         if (els.contextBox) {
@@ -2414,10 +2599,9 @@
         });
 
         els.layout.addEventListener('change', () => {
-            state.layoutMode = els.layout.value === 'single' ? 'single' : 'dual';
-            document.body.classList.toggle('mz-single', state.layoutMode === 'single');
-            saveSetting('mz_layout', state.layoutMode);
-            if (state.focusPage) renderSpread(state.focusPage);
+            state.layoutPreference = els.layout.value === 'single' ? 'single' : 'dual';
+            saveSetting('mz_layout', state.layoutPreference);
+            applyResponsiveLayout({ render: true });
         });
 
         // Cumulative controls
@@ -2453,6 +2637,9 @@
         // Focus mode
         // Floating mushaf toolbar
         if (els.tbLayout) els.tbLayout.addEventListener('click', toggleLayout);
+        if (els.zoomOut) els.zoomOut.addEventListener('click', () => setZoom(state.zoom - ZOOM_STEP));
+        if (els.zoomIn) els.zoomIn.addEventListener('click', () => setZoom(state.zoom + ZOOM_STEP));
+        if (els.zoomFit) els.zoomFit.addEventListener('click', () => setZoom(1));
         if (els.tbTajweed) els.tbTajweed.addEventListener('click', () => els.tajweed.click());
         if (els.tbContext) els.tbContext.addEventListener('click', () => {
             state.contextOn = !state.contextOn;
@@ -2462,6 +2649,7 @@
                 clearContextUi();
                 return;
             }
+            refreshVisibleContextMap();
             const anchor = state.selectionRange
                 ? state.selectionRange[0]
                 : (state.rangeDraft ? state.rangeDraft.anchor : null);
@@ -2503,10 +2691,19 @@
         window.addEventListener('pagehide', () => stopReciteFollow(false));
 
         let resizeId = 0;
-        window.addEventListener('resize', () => {
+        const onViewportResize = () => {
             clearTimeout(resizeId);
-            resizeId = setTimeout(() => { if (state.focusPage) { sizePages(); applyFontSize(true); justifyLines(); } }, 120);
-        });
+            resizeId = setTimeout(() => {
+                if (applyResponsiveLayout({ render: true })) return;
+                if (state.focusPage) { sizePages(); applyFontSize(true); justifyLines(); }
+            }, 120);
+        };
+        window.addEventListener('resize', onViewportResize);
+        window.visualViewport?.addEventListener('resize', onViewportResize);
+        if (window.ResizeObserver && els.stageArea) {
+            const stageObserver = new ResizeObserver(onViewportResize);
+            stageObserver.observe(els.stageArea);
+        }
     }
 
     let _selectionRequest = 0;
@@ -2557,7 +2754,11 @@
             syncWaqfChoiceButtons();
         }
         const ly = p.get('layout');
-        if (ly === 'single' || ly === 'dual') { state.layoutMode = ly; els.layout.value = ly; saveSetting('mz_layout', ly); document.body.classList.toggle('mz-single', ly === 'single'); }
+        if (ly === 'single' || ly === 'dual') {
+            state.layoutPreference = ly;
+            saveSetting('mz_layout', ly);
+            applyResponsiveLayout();
+        }
         if (p.get('hide') === '1') state.hideText = true;
         if (p.get('focus') === '1') setFocusMode(true);
         const surah = parseInt(p.get('surah'), 10);

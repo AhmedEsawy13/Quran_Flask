@@ -500,7 +500,14 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"' in page
     assert script.count("els.progress.addEventListener('click'") == 1
     assert "els.progress.setAttribute('aria-valuenow'" in script
-    assert "els.bar?.getBoundingClientRect().height" in script
+    assert 'area.clientHeight - headFootPad' in script
+    assert 'area.clientWidth - navAndGaps' in script
+    assert "window.visualViewport?.addEventListener('resize'" in script
+    assert 'applyResponsiveLayout' in script
+    assert 'id="mz-zoom-out"' in page
+    assert 'id="mz-zoom-in"' in page
+    assert 'id="mz-zoom-fit"' in page
+    assert 'id="mz-zoom-shell"' in page
 
 
 def test_recitation_repeats_keep_each_timed_word_occurrence():

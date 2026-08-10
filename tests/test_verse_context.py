@@ -134,7 +134,51 @@ def test_thematic_detail_preserves_hierarchy_and_deep_link_state(client):
     assert '.mz-word.mz-context {' in css
     assert '.mz-context-band' in css
     assert 'paintContextBands' in js
-    assert 'const contextHeight = els.contextBox' in js
+    assert "area.clientHeight - headFootPad" in js
+    assert "'/api/memorization/context-map'" in js
+    assert 'TOPIC_PALETTE' in js
+
+
+def test_context_map_partitions_overlapping_descriptive_ranges(client, tmp_path, monkeypatch):
+    db = tmp_path / 'verse_topics.db'
+    conn = sqlite3.connect(db)
+    conn.executescript(
+        '''
+        CREATE TABLE context_spans (
+            surah INTEGER NOT NULL, ayah INTEGER NOT NULL, topic_id INTEGER,
+            title_raw TEXT NOT NULL, start_surah INTEGER NOT NULL,
+            start_ayah INTEGER NOT NULL, end_surah INTEGER NOT NULL,
+            end_ayah INTEGER NOT NULL, run_length INTEGER NOT NULL,
+            score REAL NOT NULL, PRIMARY KEY (surah, ayah)
+        );
+        CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+        INSERT INTO metadata VALUES ('attribution', 'باحوث');
+        '''
+    )
+    for ayah in range(275, 281):
+        conn.execute(
+            'INSERT INTO context_spans VALUES (2, ?, 6885, ?, 2, 261, 2, 280, 20, 50)',
+            (ayah, 'الإنفاق في سبيل الله'),
+        )
+    # Its descriptive range overlaps 275-280, but it wins only for verse 281.
+    conn.execute(
+        'INSERT INTO context_spans VALUES (2, 281, 787, ?, 2, 275, 2, 281, 7, 40)',
+        ('باب الربا',),
+    )
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(memorize_mod, 'VERSE_TOPICS_DATABASE', str(db))
+
+    response = client.post('/api/memorization/context-map', json={
+        'verse_keys': [f'2:{ayah}' for ayah in range(275, 282)],
+    })
+    assert response.status_code == 200
+    segments = response.get_json()['segments']
+    assert [(item['topic_id'], item['from'], item['to']) for item in segments] == [
+        (6885, '2:275', '2:280'),
+        (787, '2:281', '2:281'),
+    ]
+    assert set(segments[0]['verse_keys']).isdisjoint(segments[1]['verse_keys'])
 
 
 def test_live_verse_topics_db_has_yusuf_and_khidr_spans():

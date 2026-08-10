@@ -76,10 +76,9 @@
     /* ── Page sizing ─────────────────────────────────────────────────────
        Fits `pages` page-cards into an available box at a fixed mushaf
        ratio, writing --{cssVarPrefix}-page-w/-h onto <html>. The available
-       box itself is 100% caller-defined (getAvailH/getAvailW). Both consumers
-       subtract their own fixed chrome from the viewport rather than measuring
-       a page-dependent stage height (which creates a growth feedback loop),
-       while this function owns only the shared fit math. */
+       box itself is 100% caller-defined (getAvailH/getAvailW). Consumers may
+       use fixed viewport chrome or a bounded, non-growing stage content box;
+       this function owns only the shared fit math. */
     function sizePages(config) {
         const {
             getAvailH, getAvailW, cssVarPrefix,

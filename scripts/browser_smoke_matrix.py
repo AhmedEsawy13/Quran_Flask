@@ -40,6 +40,14 @@ SCENARIOS: dict[str, dict[str, Any]] = {
     "mobile": {"width": 390, "height": 844, "is_mobile": True},
 }
 
+# These expensive edge cases are specific to the fixed-viewport Quran stage;
+# keep the rest of the project's smoke journeys on the standard two widths.
+MEMORIZE_EDGE_SCENARIOS: dict[str, dict[str, Any]] = {
+    "phone_narrow": {"width": 360, "height": 800, "is_mobile": True},
+    "landscape_short": {"width": 844, "height": 390, "is_mobile": True},
+}
+ALL_SCENARIOS = {**SCENARIOS, **MEMORIZE_EDGE_SCENARIOS}
+
 
 @dataclass(frozen=True)
 class Journey:
@@ -200,7 +208,7 @@ def _run_journey(
 ) -> Result:
     import time
 
-    scenario = SCENARIOS[scenario_name]
+    scenario = ALL_SCENARIOS[scenario_name]
     context = browser.new_context(
         viewport={"width": scenario["width"], "height": scenario["height"]},
         is_mobile=scenario["is_mobile"],
@@ -275,6 +283,53 @@ def _run_journey(
         loading = _visible_loading_text(page)
         if loading:
             errors.append(f"visible loading state remained: {loading[0]}")
+
+        if journey.name == "memorize":
+            stage = page.evaluate(
+                """() => {
+                  const area = document.querySelector('.mz-stage-area');
+                  const shell = document.querySelector('.mz-zoom-shell');
+                  const ar = area.getBoundingClientRect();
+                  const sr = shell.getBoundingClientRect();
+                  return {
+                    bodyWidth: document.body.scrollWidth,
+                    viewportWidth: innerWidth,
+                    areaHeight: ar.height,
+                    areaScrollHeight: area.scrollHeight,
+                    areaScrollWidth: area.scrollWidth,
+                    shellHeight: sr.height,
+                    shellWidth: sr.width,
+                    overflow: getComputedStyle(area).overflow,
+                    single: document.body.classList.contains('mz-single'),
+                  };
+                }"""
+            )
+            if stage["bodyWidth"] > stage["viewportWidth"] + 1:
+                errors.append(
+                    f"memorize body overflows ({stage['bodyWidth']} / {stage['viewportWidth']})"
+                )
+            if stage["overflow"] not in {"auto", "scroll"}:
+                errors.append("memorize stage cannot scroll a zoomed or short page")
+            if scenario["width"] < 700 and not stage["single"]:
+                errors.append("memorize did not force single-page mode on a narrow viewport")
+            if stage["shellHeight"] > stage["areaHeight"] + 1 and (
+                stage["areaScrollHeight"] < stage["shellHeight"] - 1
+            ):
+                errors.append("tall Quran page is clipped instead of scrollable")
+
+            page.locator('#mz-zoom-in').click()
+            page.wait_for_timeout(80)
+            zoomed = page.evaluate(
+                "() => Number(getComputedStyle(document.documentElement).getPropertyValue('--mz-user-zoom'))"
+            )
+            if zoomed <= 1:
+                errors.append("Quran zoom-in control did not increase the scale")
+            page.locator('#mz-zoom-fit').click()
+            fitted = page.evaluate(
+                "() => Number(getComputedStyle(document.documentElement).getPropertyValue('--mz-user-zoom'))"
+            )
+            if abs(fitted - 1) > 0.01:
+                errors.append("Quran fit control did not restore 100%")
     except Exception as exc:  # Playwright exposes useful assertion text here.
         errors.append(str(exc).split("Call log:", 1)[0].strip())
 
@@ -328,7 +383,7 @@ def write_report(report_dir: Path, base_url: str, results: list[Result]) -> None
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--base-url", help="test an existing server instead of starting Flask")
-    parser.add_argument("--scenario", default="all", choices=["all", *SCENARIOS])
+    parser.add_argument("--scenario", default="all", choices=["all", *ALL_SCENARIOS])
     parser.add_argument("--journey", default="all", choices=["all", *(j.name for j in JOURNEYS)])
     parser.add_argument("--timeout-ms", type=int, default=20_000)
     parser.add_argument("--headed", action="store_true")
@@ -343,8 +398,18 @@ def run(args: argparse.Namespace, base_url: str) -> int:
         print("Playwright is missing. Run: pip install -r requirements-dev.txt", file=sys.stderr)
         return 2
 
-    scenarios = selected(args.scenario, list(SCENARIOS))
     journeys = [j for j in JOURNEYS if args.journey in {"all", j.name}]
+    if args.scenario == "all":
+        pairs = [(scenario, journey) for scenario in SCENARIOS for journey in journeys]
+        memorize = next((journey for journey in journeys if journey.name == "memorize"), None)
+        if memorize:
+            pairs.extend((scenario, memorize) for scenario in MEMORIZE_EDGE_SCENARIOS)
+    elif args.scenario in MEMORIZE_EDGE_SCENARIOS:
+        pairs = [
+            (args.scenario, journey) for journey in journeys if journey.name == "memorize"
+        ]
+    else:
+        pairs = [(args.scenario, journey) for journey in journeys]
     results: list[Result] = []
     with sync_playwright() as playwright:
         try:
@@ -354,17 +419,16 @@ def run(args: argparse.Namespace, base_url: str) -> int:
             print("Run: python3 -m playwright install chromium", file=sys.stderr)
             return 2
         try:
-            for scenario in scenarios:
-                for journey in journeys:
-                    result = _run_journey(
-                        browser, base_url.rstrip("/"), journey, scenario,
-                        args.timeout_ms, args.report_dir,
-                    )
-                    results.append(result)
-                    status = "PASS" if result.passed else "FAIL"
-                    print(f"{status:4} {scenario:7} {journey.name:14} {result.duration_ms:>6} ms")
-                    for error in result.errors:
-                        print(f"     {error}")
+            for scenario, journey in pairs:
+                result = _run_journey(
+                    browser, base_url.rstrip("/"), journey, scenario,
+                    args.timeout_ms, args.report_dir,
+                )
+                results.append(result)
+                status = "PASS" if result.passed else "FAIL"
+                print(f"{status:4} {scenario:15} {journey.name:14} {result.duration_ms:>6} ms")
+                for error in result.errors:
+                    print(f"     {error}")
         finally:
             browser.close()
 
