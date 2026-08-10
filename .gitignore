@@ -59,6 +59,14 @@ htmlcov/
 # Vercel
 .vercel
 
+# Next.js frontend pilot
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+frontend/.env*.local
+frontend/*.tsbuildinfo
+
 # Supabase CLI link/cache state (project ref, version and connection metadata)
 supabase/.temp/
 
