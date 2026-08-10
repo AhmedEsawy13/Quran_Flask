@@ -66,6 +66,7 @@ frontend/out/
 frontend/.vercel/
 frontend/.env*.local
 frontend/*.tsbuildinfo
+!frontend/lib/
 
 # Supabase CLI link/cache state (project ref, version and connection metadata)
 supabase/.temp/
