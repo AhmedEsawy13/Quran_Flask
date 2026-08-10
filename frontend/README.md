@@ -3,6 +3,11 @@
 This directory is an isolated frontend migration pilot. Flask remains the
 source of truth for Quran data and all existing tools.
 
+Production frontend: <https://athar-web-teal.vercel.app>
+
+Production API and legacy tools:
+<https://waqfquran-d0b6fce4874e.herokuapp.com>
+
 ## Local development
 
 Run Flask on port `5001`, then:
