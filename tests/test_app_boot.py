@@ -508,6 +508,8 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'id="mz-zoom-in"' in page
     assert 'id="mz-zoom-fit"' in page
     assert 'id="mz-zoom-shell"' in page
+    assert "? 'none'\n            : `scale(${state.zoom})`" in script
+    assert 'state.zoom <= ZOOM_MIN + 0.001' in script
 
 
 def test_recitation_repeats_keep_each_timed_word_occurrence():
@@ -573,6 +575,7 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'passes >= 4' in memorize
     assert '}, 160);' in memorize
     assert 'featureCandidates = null' in shared
-    assert 'const spacing = Math.min(slack / gaps, spacingCap)' in shared
+    assert 'minWordSpacing = 0, maxWordSpacing = Infinity' in shared
+    assert 'const spacing = Math.min(spacingFloor + slack / gaps, spacingCap)' in shared
     assert 'const spacedWidth = inner.getBoundingClientRect().width' in shared
     assert 'Reconcile every justified line once' in shared

@@ -304,8 +304,8 @@ body.mz-dark .mz-word.mz-recited { background: rgba(74,222,128,0.18); }
 .mz-spread { display: flex; flex-direction: row; gap: 0;
     background: var(--mz-paper); border: 1px solid var(--mz-paper-edge); border-radius: 16px;
     box-shadow: var(--mz-shadow-lg); padding: clamp(8px, 1vw, 14px);
-    position: absolute; top: 0; left: 50%; transform-origin: top center;
-    transform: translateX(-50%) scale(var(--mz-user-zoom, 1)); }
+    position: absolute; top: 0; left: 0; transform-origin: top left;
+    transform: none; transform-box: border-box; }
 
 .mz-zoom-controls { position: absolute; z-index: 25; inset-inline-start: 8px; bottom: 8px;
     display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px;
@@ -342,7 +342,7 @@ body.mz-single .mz-spread::after { display: none; }
 
 /* the page itself — sized as large as fits (JS sets --mz-page-w/h) */
 .mz-page { position: relative; width: var(--mz-page-w, 360px); height: var(--mz-page-h, 545px);
-    display: flex; flex-direction: column; justify-content: space-between; padding: 4px; --dk-fs: 22px; }
+    display: flex; flex-direction: column; justify-content: space-between; padding: 5px 8px; --dk-fs: 22px; }
 .mz-page-empty { margin: auto; color: var(--mz-text-faint); font-size: 1.8rem; opacity: 0.35; }
 
 .mz-page-footer { display: flex; align-items: center; justify-content: center; margin-top: 6px; padding-top: 6px;
@@ -353,8 +353,8 @@ body.mz-single .mz-spread::after { display: none; }
 
 /* ── Lines + words ───────────────────────────────────────────────── */
 .mz-line { display: flex; align-items: center; justify-content: center; width: 100%; flex: 1 1 0; min-height: 0; overflow: visible; }
-.mz-line-inner { white-space: nowrap; font-family: 'Digital Khatt', serif; font-size: var(--dk-fs); line-height: 1;
-    color: var(--mz-quran); direction: rtl; transform-origin: center center; will-change: transform; }
+.mz-line-inner { white-space: nowrap; font-family: 'Digital Khatt', serif; font-size: var(--dk-fs); line-height: 1.06;
+    color: var(--mz-quran); direction: rtl; transform-origin: center center; }
 .mz-page.mz-src-qpc-v1 .mz-line-inner, .mz-page.mz-src-qpc-v1 .mz-line-basmala { font-family: 'Old Madina', serif; }
 /* dark-mode: keep the Digital Khatt COLR verse markers legible (like the main page) */
 body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-dk-dark; }
@@ -387,7 +387,7 @@ body.mz-dark .mz-page.mz-src-digital-khatt .mz-line-inner { font-palette: --mz-d
 .mz-line-basmala.mz-basmala-glyph,
 .mz-page.mz-src-qpc-v1 .mz-line-basmala.mz-basmala-glyph { font-family: 'QCF Basmala', serif; font-size: calc(var(--dk-fs) * 1.7); line-height: 1; }
 
-.mz-word { display: inline-block; position: relative; padding: 0.55em 0.02em 0; border-radius: 0.18em;
+.mz-word { display: inline-block; position: relative; padding: 0.24em 0.02em 0; border-radius: 0.18em;
     transition: color var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease),
                 background-color var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease),
                 opacity var(--athar-motion-ink, 220ms) var(--athar-ease-ink, ease); }

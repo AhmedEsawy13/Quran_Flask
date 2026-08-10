@@ -289,8 +289,14 @@ def _run_journey(
                 """() => {
                   const area = document.querySelector('.mz-stage-area');
                   const shell = document.querySelector('.mz-zoom-shell');
+                  const spread = document.querySelector('.mz-spread');
+                  const page = document.querySelector('.mz-page.mz-has-page');
                   const ar = area.getBoundingClientRect();
                   const sr = shell.getBoundingClientRect();
+                  const pr = page.getBoundingClientRect();
+                  const textRects = [...page.querySelectorAll(
+                    '.mz-line[data-justify="1"] .mz-line-inner'
+                  )].map(element => element.getBoundingClientRect());
                   return {
                     bodyWidth: document.body.scrollWidth,
                     viewportWidth: innerWidth,
@@ -301,6 +307,10 @@ def _run_journey(
                     shellWidth: sr.width,
                     overflow: getComputedStyle(area).overflow,
                     single: document.body.classList.contains('mz-single'),
+                    fitTransform: getComputedStyle(spread).transform,
+                    minTextInset: Math.min(...textRects.flatMap(rect => [
+                      rect.left - pr.left, pr.right - rect.right,
+                    ])),
                   };
                 }"""
             )
@@ -310,6 +320,12 @@ def _run_journey(
                 )
             if stage["overflow"] not in {"auto", "scroll"}:
                 errors.append("memorize stage cannot scroll a zoomed or short page")
+            if stage["fitTransform"] != "none":
+                errors.append("fit mode keeps an outer transform on the Quran page")
+            if stage["minTextInset"] < 3:
+                errors.append(
+                    f"Quran text reaches outside its safe frame inset ({stage['minTextInset']:.1f}px)"
+                )
             if scenario["width"] < 700 and not stage["single"]:
                 errors.append("memorize did not force single-page mode on a narrow viewport")
             if stage["shellHeight"] > stage["areaHeight"] + 1 and (

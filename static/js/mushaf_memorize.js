@@ -204,8 +204,8 @@
     function syncZoomUi() {
         const pct = Math.round(state.zoom * 100);
         if (els.zoomValue) els.zoomValue.textContent = `${arNumber(pct)}٪`;
-        if (els.zoomOut) els.zoomOut.disabled = state.zoom <= ZOOM_MIN + EPS;
-        if (els.zoomIn) els.zoomIn.disabled = state.zoom >= ZOOM_MAX - EPS;
+        if (els.zoomOut) els.zoomOut.disabled = state.zoom <= ZOOM_MIN + 0.001;
+        if (els.zoomIn) els.zoomIn.disabled = state.zoom >= ZOOM_MAX - 0.001;
         if (els.zoomFit) els.zoomFit.classList.toggle('mz-on', Math.abs(state.zoom - 1) < EPS);
     }
     function updateZoomShell({ preserveCenter = true } = {}) {
@@ -219,6 +219,12 @@
         const baseHeight = els.spread.offsetHeight;
         if (!baseWidth || !baseHeight) return;
         document.documentElement.style.setProperty('--mz-user-zoom', String(state.zoom));
+        // Keep Fit as a native, untransformed page. Safari can otherwise combine
+        // the spread scale with each line's scaleX and paint Arabic ink beyond
+        // the measured frame even at 100%.
+        els.spread.style.transform = Math.abs(state.zoom - 1) < EPS
+            ? 'none'
+            : `scale(${state.zoom})`;
         els.zoomShell.style.width = `${baseWidth * state.zoom}px`;
         els.zoomShell.style.height = `${baseHeight * state.zoom}px`;
         syncZoomUi();
@@ -1128,7 +1134,9 @@
         // 124px. The former 72px estimate let short viewports grow the page past
         // its flex area, so the Quran lines could overlap the thematic rail.
         const headFootPad = 124;
-        const navAndGaps = 2 * 44 + 12; // room for the edge nav arrows
+        // In a single-page view the arrows may sit partly in the outer paper
+        // margin, allowing the printed page to use more of a phone screen.
+        const navAndGaps = state.layoutMode === 'single' ? 56 : 2 * 44 + 12;
         window.AtharPageChrome.sizePages({
             cssVarPrefix: 'mz',
             pages: state.layoutMode === 'single' ? 1 : 2,
@@ -1156,6 +1164,13 @@
     const _justifyLines = window.AtharPageChrome.createLineJustifier({
         containerEls: pageEls,
         lineSelector: '.mz-line', innerSelector: '.mz-line-inner', wordSelector: '.mz-word',
+        // Arabic ink (especially dagger alif and final glyph overhangs) can paint
+        // beyond Safari's reported text rectangle. Preserve a physical inset on
+        // both page edges rather than fitting every line to the exact last pixel.
+        availableWidth: lineEl => Math.max(
+            0,
+            lineEl.clientWidth - (isMadinahSource(state.src) ? 10 : 6)
+        ),
         featureCandidates: () => state.src === 'qpc_v1'
             ? oldMadinaFeatureCandidates(state.justify)
             : isDigitalKhattSource(state.src)
@@ -1167,6 +1182,12 @@
         minLineScale: () => (
             isMadinahSource(state.src) ? 0.95 : 0.5
         ),
+        minWordSpacing: (_lineEl, inner) => {
+            const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
+            return isMadinahSource(state.src)
+                ? Math.max(0.8, Math.min(1.8, fontSize * 0.07))
+                : 0;
+        },
         maxWordSpacing: (_lineEl, inner) => {
             if (!isMadinahSource(state.src)) return Infinity;
             const fontSize = parseFloat(getComputedStyle(inner).fontSize) || 20;
@@ -1369,7 +1390,7 @@
                 const top = Math.min(...rects.map(rect => rect.top));
                 const bottom = Math.max(...rects.map(rect => rect.bottom));
                 const padX = 3;
-                const padY = Math.max(2, (bottom - top) * 0.1);
+                const padY = Math.max(1, Math.min(1.8, (bottom - top) * 0.06));
 
                 const band = document.createElement('div');
                 band.className = 'mz-context-band';

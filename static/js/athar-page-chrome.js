@@ -311,7 +311,7 @@
             containerEls, lineSelector, innerSelector, wordSelector,
             featureSettings = () => '', featureCandidates = null,
             minFeatureScale = 1, minLineScale = 0.5,
-            maxWordSpacing = Infinity, maxStretch = Infinity,
+            minWordSpacing = 0, maxWordSpacing = Infinity, maxStretch = Infinity,
             availableWidth = undefined,
             stretchOnly = () => false,
             // When true, prefer a slightly wider (more kashida) alternate if its
@@ -374,7 +374,11 @@
                 inner.style.fontSize = '';
                 inner.style.fontFeatureSettings = 'normal';
                 inner.style.fontVariationSettings = '';
-                inner.style.wordSpacing = '';
+                const spacingFloor = Math.max(
+                    0,
+                    resolveNumber(minWordSpacing, 0, lineEl, inner)
+                );
+                inner.style.wordSpacing = spacingFloor > 0 ? `${spacingFloor}px` : '';
                 const avail = Math.max(
                     0,
                     resolveNumber(
@@ -486,8 +490,11 @@
                 const gaps = inner.querySelectorAll(wordSelector).length - 1;
                 const slack = avail - width;
                 if (slack > 0.5 && gaps > 0) {
-                    const spacingCap = Math.max(0, resolveNumber(maxWordSpacing, Infinity, lineEl, inner));
-                    const spacing = Math.min(slack / gaps, spacingCap);
+                    const spacingCap = Math.max(
+                        spacingFloor,
+                        resolveNumber(maxWordSpacing, Infinity, lineEl, inner)
+                    );
+                    const spacing = Math.min(spacingFloor + slack / gaps, spacingCap);
                     if (spacing > 0) inner.style.wordSpacing = spacing + 'px';
 
                     // If the spacing cap leaves a little width unfilled, spread
