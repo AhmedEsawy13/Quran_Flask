@@ -489,6 +489,7 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'class="mz-range-guide" role="note"' in page
     assert 'اضغط آية البداية، ثم آية النهاية' in page
     assert 'id="mz-context"' in page
+    assert 'id="mz-context-legend-toggle"' in page
     assert 'id="mz-tb-context"' in page
     assert 'التفصيل الموضوعي' in page
     assert 'بيان التجويد' not in page
@@ -514,14 +515,17 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'async function refreshContextForCurrentSelection()' in script
     assert 'await refreshContextForCurrentSelection();' in script
     assert 'function renderContextPath(element, title' in script
+    assert 'function setContextLegendExpanded(on' in script
     assert "text.className = 'mz-context-path-part'" in script
     assert 'word-spacing: 0.12em;' in styles
     assert '.mz-context-legend-item { display: inline-flex; flex: 0 0 auto;' in styles
+    assert '.mz-context-legend-item { flex: 1 1 100%; width: 100%;' in styles
     assert 'unicode-bidi: isolate;' in styles
     smoke = (PROJECT_ROOT / 'scripts/browser_smoke_matrix.py').read_text(encoding='utf-8')
     assert 'Quran justification escapes its frame at 75% zoom' in smoke
     assert 'thematic detail labels overlap' in smoke
     assert 'thematic detail title is clipped' in smoke
+    assert 'thematic detail labels are hidden outside the legend' in smoke
 
 
 def test_recitation_repeats_keep_each_timed_word_occurrence():

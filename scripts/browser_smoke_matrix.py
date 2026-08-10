@@ -285,6 +285,10 @@ def _run_journey(
             errors.append(f"visible loading state remained: {loading[0]}")
 
         if journey.name == "memorize":
+            legend_toggle = page.locator('#mz-context-legend-toggle')
+            if legend_toggle.is_visible():
+                legend_toggle.click()
+                page.wait_for_timeout(60)
             stage = page.evaluate(
                 """() => {
                   const area = document.querySelector('.mz-stage-area');
@@ -298,9 +302,11 @@ def _run_journey(
                     '.mz-line[data-justify="1"] .mz-line-inner'
                   )].map(element => element.getBoundingClientRect());
                   const contextTitle = document.querySelector('#mz-context-title');
+                  const contextLegend = document.querySelector('#mz-context-legend');
                   const legendRects = [...document.querySelectorAll(
                     '.mz-context-legend-item'
                   )].map(element => element.getBoundingClientRect());
+                  const legendRect = contextLegend?.getBoundingClientRect();
                   const legendOverlap = legendRects.some((a, index) =>
                     legendRects.slice(index + 1).some(b =>
                       a.left < b.right && a.right > b.left
@@ -326,6 +332,14 @@ def _run_journey(
                       && contextTitle.scrollHeight > contextTitle.clientHeight + 1
                     ),
                     contextLegendOverlap: legendOverlap,
+                    contextLegendClipped: Boolean(
+                      legendRect && legendRects.some(rect =>
+                        rect.left < legendRect.left - 1
+                        || rect.right > legendRect.right + 1
+                        || rect.top < legendRect.top - 1
+                        || rect.bottom > legendRect.bottom + 1
+                      )
+                    ),
                   };
                 }"""
             )
@@ -345,6 +359,8 @@ def _run_journey(
                 errors.append("thematic detail title is clipped")
             if stage["contextLegendOverlap"]:
                 errors.append("thematic detail labels overlap")
+            if stage["contextLegendClipped"]:
+                errors.append("thematic detail labels are hidden outside the legend")
             if scenario["width"] < 700 and not stage["single"]:
                 errors.append("memorize did not force single-page mode on a narrow viewport")
             if stage["shellHeight"] > stage["areaHeight"] + 1 and (

@@ -653,6 +653,12 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
     overflow-wrap: anywhere; }
 .mz-context-path-separator { flex: 0 0 auto; color: var(--mz-topic); unicode-bidi: isolate; }
 .mz-context-source { color: var(--mz-text-faint); font-size: 0.62rem; line-height: 1.35; }
+.mz-context-legend-toggle { display: none; align-items: center; justify-content: flex-start; gap: 6px;
+    width: max-content; max-width: 100%; padding: 3px 8px; border: 1px solid var(--mz-border); border-radius: 999px;
+    color: var(--mz-text-muted); background: var(--mz-surface-2); font: 700 0.62rem/1.4 var(--font-ui); cursor: pointer; }
+.mz-context-legend-toggle[hidden] { display: none !important; }
+.mz-context-legend-toggle i { transition: transform 0.16s ease; }
+.mz-context-rail.mz-context-legend-open .mz-context-legend-toggle i { transform: rotate(180deg); }
 .mz-context-legend { display: flex; align-items: stretch; min-width: 0; gap: 5px; margin-top: 3px; overflow-x: auto;
     scrollbar-width: none; white-space: nowrap; }
 .mz-context-legend[hidden] { display: none; }
@@ -758,7 +764,12 @@ body.mz-dark .mz-context-band {
     .mz-context-heading { gap: 3px 7px; }
     .mz-context-kicker, .mz-context-range { font-size: 0.62rem; }
     .mz-context-title { font-size: 0.78rem; }
-    .mz-context-legend-item { max-width: 78vw; }
+    .mz-context-legend-toggle:not([hidden]) { display: inline-flex; }
+    .mz-context-legend:not([hidden]) { display: none; }
+    .mz-context-rail.mz-context-legend-open .mz-context-legend:not([hidden]) {
+        display: flex; flex-wrap: wrap; overflow-x: visible; white-space: normal;
+    }
+    .mz-context-legend-item { flex: 1 1 100%; width: 100%; max-width: none; border-radius: 9px; }
     .mz-context-actions { grid-column: 2; }
     .mz-context-expand.athar-button { width: max-content; min-height: 28px; font-size: 0.65rem; }
     .mz-zoom-controls { inset-inline-start: 4px; bottom: 4px; }

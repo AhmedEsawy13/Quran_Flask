@@ -81,6 +81,8 @@
         contextExpand:$('mz-context-expand'),
         contextSource:$('mz-context-source'),
         contextLegend:$('mz-context-legend'),
+        contextLegendToggle:$('mz-context-legend-toggle'),
+        contextLegendCount:$('mz-context-legend-count'),
         tbWaqf:      $('mz-tb-waqf'),
         volume:      $('mz-volume'),
         volBtn:      $('mz-vol-btn'),
@@ -1284,7 +1286,19 @@
             els.contextLegend.replaceChildren();
             els.contextLegend.hidden = true;
         }
+        if (els.contextLegendToggle) els.contextLegendToggle.hidden = true;
+        setContextLegendExpanded(false, { refit: false });
     }
+
+    function setContextLegendExpanded(on, { refit = true } = {}) {
+        const expanded = Boolean(on && els.contextLegend && !els.contextLegend.hidden);
+        els.contextBox?.classList.toggle('mz-context-legend-open', expanded);
+        if (els.contextLegendToggle) {
+            els.contextLegendToggle.setAttribute('aria-expanded', String(expanded));
+        }
+        if (refit) refitForContext();
+    }
+
     function renderContextLegend() {
         if (!els.contextLegend) return;
         els.contextLegend.replaceChildren();
@@ -1296,7 +1310,13 @@
             seen.add(identity);
             unique.push(segment);
         });
-        els.contextLegend.hidden = unique.length < 2;
+        const hasMultiple = unique.length >= 2;
+        els.contextLegend.hidden = !hasMultiple;
+        if (els.contextLegendToggle) els.contextLegendToggle.hidden = !hasMultiple;
+        if (els.contextLegendCount) {
+            els.contextLegendCount.textContent = `موضوعات الصفحة · ${toAr(unique.length)}`;
+        }
+        setContextLegendExpanded(false, { refit: false });
         unique.forEach(segment => {
             const button = document.createElement('button');
             button.type = 'button';
@@ -1305,6 +1325,7 @@
             renderContextPath(button, segment.title);
             button.addEventListener('click', () => {
                 const [surah, ayah] = String(segment.from).split(':').map(Number);
+                setContextLegendExpanded(false);
                 refreshContextForAyah(surah, ayah);
             });
             els.contextLegend.appendChild(button);
@@ -2744,6 +2765,12 @@
         });
         if (els.contextExpand) {
             els.contextExpand.addEventListener('click', expandToContextSpan);
+        }
+        if (els.contextLegendToggle) {
+            els.contextLegendToggle.addEventListener('click', () => {
+                const expanded = els.contextLegendToggle.getAttribute('aria-expanded') === 'true';
+                setContextLegendExpanded(!expanded);
+            });
         }
         if (els.progress) els.progress.addEventListener('click', e => {
             const rect = els.progress.getBoundingClientRect();
