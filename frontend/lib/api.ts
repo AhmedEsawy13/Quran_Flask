@@ -52,6 +52,39 @@ export type MemorizationAudio = {
 
 export type TafseerCollection = Record<string, { text: string }>;
 
+export type MutashabihatMatch = {
+  surah: number;
+  ayah: number;
+  verse_key: string;
+  words: string[];
+  longest_run: number;
+  shared: number;
+  coverage: number;
+  near_duplicate: boolean;
+  opcodes: Array<[string, number, number, number, number]>;
+};
+
+export type MutashabihatPayload = {
+  surah: number;
+  ayah: number;
+  verse_key: string;
+  count: number;
+  matches: MutashabihatMatch[];
+};
+
+export type AsbabEntry = {
+  source: string;
+  text: string;
+  attribution: string;
+};
+
+export type AsbabPayload = {
+  verse_key: string;
+  available: boolean;
+  entries: AsbabEntry[];
+  message?: string;
+};
+
 export type MushafWord = {
   ayah: number;
   surah: number;
@@ -105,6 +138,34 @@ export async function getJson<T>(
   }
 
   if (!response.ok) {
+    const message =
+      body && typeof body === "object" && "error" in body
+        ? body.error
+        : undefined;
+    throw new Error(message || `تعذّر الاتصال بالخادم (${response.status}).`);
+  }
+
+  return body as T;
+}
+
+export async function getJsonAccepting<T>(
+  path: string,
+  acceptedStatuses: number[],
+  signal?: AbortSignal,
+): Promise<T> {
+  const response = await fetch(path, {
+    signal,
+    headers: { Accept: "application/json" },
+  });
+
+  let body: T | ApiErrorBody | null = null;
+  try {
+    body = (await response.json()) as T | ApiErrorBody;
+  } catch {
+    throw new Error("تعذّر قراءة استجابة الخادم.");
+  }
+
+  if (!response.ok && !acceptedStatuses.includes(response.status)) {
     const message =
       body && typeof body === "object" && "error" in body
         ? body.error

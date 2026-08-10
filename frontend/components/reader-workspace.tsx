@@ -97,6 +97,7 @@ export function ReaderWorkspace() {
   });
   const [retryToken, setRetryToken] = useState(0);
   const [moving, setMoving] = useState(false);
+  const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const fontLoading = useEditionFont(editionId);
   const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${retryToken}`;
   const visibleResult = contentResult.requestKey === requestKey ? contentResult : null;
@@ -215,6 +216,12 @@ export function ReaderWorkspace() {
     ayahCache.current.delete(surahNumber);
     setRetryToken((value) => value + 1);
   }, [surahNumber]);
+
+  const navigateToVerse = useCallback((surah: number, ayah: number) => {
+    setCatalogError("");
+    setSurahNumber(clampInteger(surah, 1, 114));
+    setAyahNumber(Math.max(1, Math.trunc(ayah)));
+  }, []);
 
   const move = useCallback(async (direction: -1 | 1) => {
     if (moving) return;
@@ -337,6 +344,7 @@ export function ReaderWorkspace() {
         isLoading={!positionReady || isContentLoading}
         error={visibleResult?.error || ""}
         fontLoading={fontLoading}
+        activeAudioWord={activeAudioWord}
         onRetry={retry}
       />
 
@@ -345,12 +353,15 @@ export function ReaderWorkspace() {
         ayahNumber={ayahNumber}
         onAdvance={() => move(1)}
         atLastAyah={atLastAyah}
+        onWordChange={setActiveAudioWord}
       />
 
       <ReaderStudy
         surahNumber={surahNumber}
         ayahNumber={ayahNumber}
         initialAyah={visibleResult?.ayah || null}
+        surahs={surahs}
+        onNavigate={navigateToVerse}
       />
 
       <div className="reader-handoff">

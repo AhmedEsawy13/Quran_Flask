@@ -716,10 +716,22 @@ a {
   transition: background-color 140ms ease, color 140ms ease;
 }
 
+.reader-verse-word {
+  border-radius: 5px;
+  transition: background-color 90ms ease, color 90ms ease, box-shadow 90ms ease;
+}
+
 .mushaf-word.is-focus {
   background: color-mix(in srgb, var(--athar-gold) 18%, transparent);
   color: color-mix(in srgb, var(--athar-ink) 82%, var(--athar-gold));
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--athar-gold) 18%, transparent);
+}
+
+.mushaf-word.is-audio-active,
+.reader-verse-word.is-audio-active {
+  background: var(--athar-accent);
+  color: var(--athar-on-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--athar-accent) 22%, transparent);
 }
 
 .mushaf-surah-banner {
@@ -975,6 +987,7 @@ a {
 
 .reader-tool-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 7px;
   padding: 7px;
   overflow-x: auto;
@@ -986,7 +999,7 @@ a {
 
 .reader-tool-row button {
   min-height: 40px;
-  flex: 1 0 auto;
+  flex: 1 1 100px;
   padding: 7px 13px;
   border: 0;
   border-radius: 10px;
@@ -1102,6 +1115,99 @@ a {
 .reader-study-links span {
   color: var(--athar-ink-soft);
   font-size: 0.78rem;
+}
+
+.reader-mutashabihat,
+.reader-asbab {
+  margin-block-start: 18px;
+}
+
+.reader-mutashabihat-list {
+  display: grid;
+  max-height: 620px;
+  gap: 9px;
+  overflow-y: auto;
+  padding-inline-end: 4px;
+  scrollbar-color: var(--athar-line) transparent;
+}
+
+.reader-mutashabih-item {
+  display: grid;
+  gap: 11px;
+  width: 100%;
+  padding: 15px;
+  border: 1px solid var(--athar-line-soft);
+  border-radius: 13px;
+  background: var(--athar-parchment);
+  color: var(--athar-ink);
+  text-align: start;
+  cursor: pointer;
+}
+
+.reader-mutashabih-item:hover {
+  border-color: var(--athar-accent);
+}
+
+.reader-mutashabih-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reader-mutashabih-head strong {
+  color: var(--athar-accent);
+}
+
+.reader-mutashabih-head small {
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--athar-gold) 12%, transparent);
+  color: var(--athar-gold);
+  white-space: nowrap;
+}
+
+.reader-mutashabih-verse {
+  font-family: var(--font-quran);
+  font-size: 1.25rem;
+  line-height: 2;
+}
+
+.reader-mutashabih-verse .is-different {
+  padding-inline: 2px;
+  border-radius: 4px;
+  background: color-mix(in srgb, #b44334 12%, transparent);
+  color: color-mix(in srgb, var(--athar-ink) 38%, #d65342);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, #b44334 48%, transparent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.reader-asbab {
+  display: grid;
+  gap: 12px;
+}
+
+.reader-asbab article {
+  padding: 16px;
+  border: 1px solid var(--athar-line-soft);
+  border-radius: 13px;
+  background: var(--athar-parchment);
+}
+
+.reader-asbab-attribution {
+  margin: 0 0 10px;
+  color: var(--athar-gold);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.reader-asbab article > p:last-child {
+  margin: 0;
+  color: var(--athar-ink-soft);
+  line-height: 2;
+  white-space: pre-line;
 }
 
 :focus-visible {

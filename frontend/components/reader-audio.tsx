@@ -14,6 +14,7 @@ type ReaderAudioProps = {
   ayahNumber: number;
   onAdvance: () => Promise<void> | void;
   atLastAyah: boolean;
+  onWordChange: (wordIndex: number | null) => void;
 };
 
 type AudioResult = {
@@ -37,6 +38,7 @@ export function ReaderAudio({
   ayahNumber,
   onAdvance,
   atLastAyah,
+  onWordChange,
 }: ReaderAudioProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const cycleRef = useRef(0);
@@ -58,6 +60,17 @@ export function ReaderAudio({
     [visibleAudio, ayahNumber],
   );
   const duration = verse ? Math.max(0, verse.end - verse.start) : 0;
+
+  const updateActiveWord = useCallback((currentTime: number, timing: VerseTiming | null) => {
+    if (!timing) {
+      onWordChange(null);
+      return;
+    }
+    const active = timing.words.find(([, start, end]) =>
+      currentTime >= start - 0.025 && currentTime < end + 0.025
+    );
+    onWordChange(active ? active[0] : null);
+  }, [onWordChange]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -104,15 +117,17 @@ export function ReaderAudio({
     audio.currentTime = timing.start;
     boundaryHandledRef.current = false;
     setElapsed(0);
-  }, []);
+    onWordChange(null);
+  }, [onWordChange]);
 
   useEffect(() => {
     cycleRef.current = 0;
+    onWordChange(null);
     const audio = audioRef.current;
     if (!audio) return;
     audio.pause();
     if (verse) seekToVerseStart(verse);
-  }, [verse, seekToVerseStart]);
+  }, [verse, seekToVerseStart, onWordChange]);
 
   useEffect(() => {
     if (reciters.length) window.localStorage.setItem("athar-reader-reciter", reciterId);
@@ -128,6 +143,7 @@ export function ReaderAudio({
       audio.currentTime = verse.start;
       boundaryHandledRef.current = false;
       setElapsed(0);
+      onWordChange(null);
       try {
         await audio.play();
       } catch {
@@ -139,9 +155,10 @@ export function ReaderAudio({
     audio.currentTime = verse.end;
     setElapsed(duration);
     setIsPlaying(false);
+    onWordChange(null);
     cycleRef.current = 0;
     if (autoAdvance && !atLastAyah) await onAdvance();
-  }, [verse, repeatCount, duration, autoAdvance, atLastAyah, onAdvance]);
+  }, [verse, repeatCount, duration, autoAdvance, atLastAyah, onAdvance, onWordChange]);
 
   const togglePlayback = useCallback(async () => {
     const audio = audioRef.current;
@@ -187,6 +204,7 @@ export function ReaderAudio({
           if (!verse) return;
           const current = event.currentTarget.currentTime;
           setElapsed(Math.max(0, Math.min(duration, current - verse.start)));
+          updateActiveWord(current, verse);
           if (current >= verse.end - 0.06 && !boundaryHandledRef.current) void completeVerse();
         }}
       />
@@ -197,6 +215,7 @@ export function ReaderAudio({
         </div>
         <button type="button" className="reader-panel-close" onClick={() => {
           audioRef.current?.pause();
+          onWordChange(null);
           setExpanded(false);
         }} aria-label="إغلاق مشغّل التلاوة">×</button>
       </div>
@@ -224,7 +243,11 @@ export function ReaderAudio({
             onChange={(event) => {
               const nextElapsed = Number(event.target.value);
               setElapsed(nextElapsed);
-              if (audioRef.current && verse) audioRef.current.currentTime = verse.start + nextElapsed;
+              if (audioRef.current && verse) {
+                const current = verse.start + nextElapsed;
+                audioRef.current.currentTime = current;
+                updateActiveWord(current, verse);
+              }
             }}
           />
           <span>{formatTime(elapsed)} / {formatTime(duration)}</span>

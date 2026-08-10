@@ -1,15 +1,27 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getJson, type Ayah, type TafseerCollection } from "@/lib/api";
+import {
+  getJson,
+  getJsonAccepting,
+  type AsbabPayload,
+  type Ayah,
+  type MutashabihatMatch,
+  type MutashabihatPayload,
+  type Surah,
+  type TafseerCollection,
+} from "@/lib/api";
+import { toArabicDigits } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
 
-type StudyTool = "meanings" | "tafseer" | "transliteration" | "study";
+type StudyTool = "meanings" | "tafseer" | "mutashabihat" | "asbab" | "transliteration" | "study";
 
 type ReaderStudyProps = {
   surahNumber: number;
   ayahNumber: number;
   initialAyah: Ayah | null;
+  surahs: Surah[];
+  onNavigate: (surah: number, ayah: number) => void;
 };
 
 type VerseResult = {
@@ -24,12 +36,28 @@ type TafseerResult = {
   error: string;
 };
 
+type MutashabihatResult = {
+  key: string;
+  data: MutashabihatPayload | null;
+  error: string;
+};
+
+type AsbabResult = {
+  key: string;
+  data: AsbabPayload | null;
+  error: string;
+};
+
 const verseCache = new Map<string, Ayah>();
 const tafseerCache = new Map<string, Record<string, string>>();
+const mutashabihatCache = new Map<string, MutashabihatPayload>();
+const asbabCache = new Map<string, AsbabPayload>();
 
 const tools: Array<{id: StudyTool; label: string}> = [
   {id: "meanings", label: "معاني الكلمات"},
   {id: "tafseer", label: "التفسير"},
+  {id: "mutashabihat", label: "المتشابهات"},
+  {id: "asbab", label: "سبب النزول"},
   {id: "transliteration", label: "النطق الحرفي"},
   {id: "study", label: "أدوات الدراسة"},
 ];
@@ -41,10 +69,33 @@ function plainTextFromHtml(html: string) {
   return (template.content.textContent || "").replace(/\s+/g, " ").trim();
 }
 
-export function ReaderStudy({surahNumber, ayahNumber, initialAyah}: ReaderStudyProps) {
+function differingWordIndexes(match: MutashabihatMatch) {
+  const indexes = new Set<number>();
+  match.opcodes.forEach(([tag, , , from, to]) => {
+    if (tag === "equal") return;
+    for (let index = from; index < to; index += 1) indexes.add(index);
+  });
+  return indexes;
+}
+
+function runLabel(count: number) {
+  if (count === 2) return "كلمتان متتاليتان";
+  if (count >= 3 && count <= 10) return `${toArabicDigits(count)} كلمات متتالية`;
+  return `${toArabicDigits(count)} كلمة متتالية`;
+}
+
+export function ReaderStudy({
+  surahNumber,
+  ayahNumber,
+  initialAyah,
+  surahs,
+  onNavigate,
+}: ReaderStudyProps) {
   const [activeTool, setActiveTool] = useState<StudyTool | null>(null);
   const [verseResult, setVerseResult] = useState<VerseResult>({key: "", data: null, error: ""});
   const [tafseerResult, setTafseerResult] = useState<TafseerResult>({key: "", data: null, error: ""});
+  const [mutashabihatResult, setMutashabihatResult] = useState<MutashabihatResult>({key: "", data: null, error: ""});
+  const [asbabResult, setAsbabResult] = useState<AsbabResult>({key: "", data: null, error: ""});
   const [selectedTafseer, setSelectedTafseer] = useState("");
   const verseKey = `${surahNumber}:${ayahNumber}`;
   const ayahData = initialAyah?.verse_key === verseKey
@@ -53,6 +104,10 @@ export function ReaderStudy({surahNumber, ayahNumber, initialAyah}: ReaderStudyP
   const verseError = verseResult.key === verseKey ? verseResult.error : "";
   const tafseers = tafseerResult.key === verseKey ? tafseerResult.data : null;
   const tafseerError = tafseerResult.key === verseKey ? tafseerResult.error : "";
+  const mutashabihat = mutashabihatResult.key === verseKey ? mutashabihatResult.data : null;
+  const mutashabihatError = mutashabihatResult.key === verseKey ? mutashabihatResult.error : "";
+  const asbab = asbabResult.key === verseKey ? asbabResult.data : null;
+  const asbabError = asbabResult.key === verseKey ? asbabResult.error : "";
   const needsAyah = activeTool === "meanings" || activeTool === "transliteration";
 
   useEffect(() => {
@@ -114,6 +169,61 @@ export function ReaderStudy({surahNumber, ayahNumber, initialAyah}: ReaderStudyP
       });
     return () => controller.abort();
   }, [activeTool, tafseers, verseKey, surahNumber, ayahNumber]);
+
+  useEffect(() => {
+    if (activeTool !== "mutashabihat" || mutashabihat) return;
+    const cached = mutashabihatCache.get(verseKey);
+    if (cached) {
+      queueMicrotask(() => setMutashabihatResult({key: verseKey, data: cached, error: ""}));
+      return;
+    }
+    const controller = new AbortController();
+    getJson<MutashabihatPayload>(
+      `/backend-api/mutashabihat/${surahNumber}/${ayahNumber}`,
+      controller.signal,
+    )
+      .then((data) => {
+        mutashabihatCache.set(verseKey, data);
+        setMutashabihatResult({key: verseKey, data, error: ""});
+      })
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setMutashabihatResult({
+          key: verseKey,
+          data: null,
+          error: reason instanceof Error ? reason.message : "تعذّر تحميل المتشابهات.",
+        });
+      });
+    return () => controller.abort();
+  }, [activeTool, mutashabihat, verseKey, surahNumber, ayahNumber]);
+
+  useEffect(() => {
+    if (activeTool !== "asbab" || asbab) return;
+    const cached = asbabCache.get(verseKey);
+    if (cached) {
+      queueMicrotask(() => setAsbabResult({key: verseKey, data: cached, error: ""}));
+      return;
+    }
+    const controller = new AbortController();
+    getJsonAccepting<AsbabPayload>(
+      `/backend-api/asbab/${surahNumber}/${ayahNumber}`,
+      [404],
+      controller.signal,
+    )
+      .then((data) => {
+        asbabCache.set(verseKey, data);
+        setAsbabResult({key: verseKey, data, error: ""});
+      })
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setAsbabResult({
+          key: verseKey,
+          data: null,
+          error: reason instanceof Error ? reason.message : "تعذّر تحميل سبب النزول.",
+        });
+      });
+    return () => controller.abort();
+  }, [activeTool, asbab, verseKey, surahNumber, ayahNumber]);
 
   const activeLabel = tools.find((tool) => tool.id === activeTool)?.label || "";
   const tafseerText = useMemo(
@@ -191,6 +301,57 @@ export function ReaderStudy({surahNumber, ayahNumber, initialAyah}: ReaderStudyP
                   <p>{tafseerText}</p>
                 </>
               ) : tafseers ? <p className="reader-empty">لا يتوفر تفسير محلي لهذه الآية.</p> : null}
+            </div>
+          ) : null}
+
+          {activeTool === "mutashabihat" ? (
+            <div className="reader-mutashabihat">
+              {!mutashabihat && !mutashabihatError ? <div className="reader-panel-loading">جارٍ البحث في المواضع المتشابهة…</div> : null}
+              {mutashabihatError ? <div className="reader-panel-error" role="alert">{mutashabihatError}</div> : null}
+              {mutashabihat?.matches.length ? (
+                <div className="reader-mutashabihat-list">
+                  {mutashabihat.matches.map((match) => {
+                    const differing = differingWordIndexes(match);
+                    const surahName = surahs.find((surah) => surah.number === match.surah)?.name || `سورة ${toArabicDigits(match.surah)}`;
+                    return (
+                      <button
+                        type="button"
+                        className="reader-mutashabih-item"
+                        key={match.verse_key}
+                        onClick={() => onNavigate(match.surah, match.ayah)}
+                        aria-label={`انتقل إلى سورة ${surahName} الآية ${toArabicDigits(match.ayah)}`}
+                      >
+                        <span className="reader-mutashabih-head">
+                          <strong>{surahName} · {toArabicDigits(match.ayah)}</strong>
+                          <small>{match.near_duplicate ? "شبه مطابقة" : runLabel(match.longest_run)}</small>
+                        </span>
+                        <span className="reader-mutashabih-verse" dir="rtl">
+                          {match.words.map((word, index) => (
+                            <span className={differing.has(index) ? "is-different" : undefined} key={`${match.verse_key}-${index}`}>
+                              {word}{" "}
+                            </span>
+                          ))}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : mutashabihat ? <p className="reader-empty">لا توجد آيات متشابهة بدرجة معتبرة لهذه الآية.</p> : null}
+            </div>
+          ) : null}
+
+          {activeTool === "asbab" ? (
+            <div className="reader-asbab">
+              {!asbab && !asbabError ? <div className="reader-panel-loading">جارٍ مراجعة المصادر المحلية…</div> : null}
+              {asbabError ? <div className="reader-panel-error" role="alert">{asbabError}</div> : null}
+              {asbab?.entries.length ? asbab.entries.map((entry, index) => (
+                <article key={`${entry.source}-${index}`}>
+                  <p className="reader-asbab-attribution">{entry.attribution || entry.source}</p>
+                  <p>{entry.text.replace(/<br\s*\/?\s*>/gi, "\n")}</p>
+                </article>
+              )) : asbab ? (
+                <p className="reader-empty">{asbab.message || "لم يثبت سبب نزول لهذه الآية في المصادر المحمّلة."}</p>
+              ) : null}
             </div>
           ) : null}
 

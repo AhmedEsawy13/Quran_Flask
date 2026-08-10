@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { Ayah, MushafLine, MushafPage, Surah } from "@/lib/api";
+import type { Ayah, MushafLine, MushafPage, MushafWord, Surah } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
   juzLabelForPage,
@@ -20,8 +20,32 @@ type MushafRendererProps = {
   isLoading: boolean;
   error: string;
   fontLoading: boolean;
+  activeAudioWord: number | null;
   onRetry: () => void;
 };
+
+const AYAH_NUMBER_TOKEN = /^\u06dd?[٠-٩]+$/;
+
+function isAyahNumberToken(text: string) {
+  return AYAH_NUMBER_TOKEN.test(text.trim());
+}
+
+function buildPageAudioPositions(page: MushafPage | null, surah: number, ayah: number) {
+  const positions = new Map<MushafWord, number>();
+  let position = 0;
+  page?.lines.forEach((line) => {
+    line.words.forEach((word) => {
+      if (
+        !word.suppress_render && Number(word.surah) === surah &&
+        Number(word.ayah) === ayah && !isAyahNumberToken(word.text)
+      ) {
+        positions.set(word, position);
+        position += 1;
+      }
+    });
+  });
+  return positions;
+}
 
 function collectSurahNames(page: MushafPage, surahs: Surah[]) {
   const numbers = new Set<number>();
@@ -41,10 +65,14 @@ function PageLine({
   line,
   surahNumber,
   ayahNumber,
+  audioPositions,
+  activeAudioWord,
 }: {
   line: MushafLine;
   surahNumber: number;
   ayahNumber: number;
+  audioPositions: Map<MushafWord, number>;
+  activeAudioWord: number | null;
 }) {
   if (line.line_type === "surah_name") {
     return <div className="mushaf-surah-banner">{line.display_text}</div>;
@@ -64,11 +92,14 @@ function PageLine({
             if (word.suppress_render) return null;
             const focused =
               Number(word.surah) === surahNumber && Number(word.ayah) === ayahNumber;
+            const audioPosition = audioPositions.get(word);
+            const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
             return (
               <span
-                className={`mushaf-word${focused ? " is-focus" : ""}`}
+                className={`mushaf-word${focused ? " is-focus" : ""}${audioActive ? " is-audio-active" : ""}`}
                 key={word.word_key || `${word.word_index ?? "word"}-${index}`}
                 aria-current={focused ? "true" : undefined}
+                data-audio-index={audioPosition}
               >
                 {word.text}{" "}
               </span>
@@ -91,6 +122,7 @@ export function MushafRenderer({
   isLoading,
   error,
   fontLoading,
+  activeAudioWord,
   onRetry,
 }: MushafRendererProps) {
   const edition = MUSHAF_EDITIONS[editionId];
@@ -98,6 +130,7 @@ export function MushafRenderer({
     "--reader-quran-font": edition.fontFamily,
   } as CSSProperties;
   const pageSurahs = page ? collectSurahNames(page, surahs) : "";
+  const pageAudioPositions = buildPageAudioPositions(page, surahNumber, ayahNumber);
 
   return (
     <article
@@ -129,7 +162,20 @@ export function MushafRenderer({
           </div>
         ) : view === "verse" && ayah ? (
           <div className="reader-verse-view">
-            <p className="quran-text reader-verse">{ayah.text}</p>
+            <p className="quran-text reader-verse">
+              {ayah.text.trim().split(/\s+/).map((word, index, words) => {
+                const audioPosition = isAyahNumberToken(word) ? null : index;
+                return (
+                  <span
+                    className={`reader-verse-word${audioPosition !== null && audioPosition === activeAudioWord ? " is-audio-active" : ""}`}
+                    data-audio-index={audioPosition ?? undefined}
+                    key={`${ayah.verse_key}-${index}`}
+                  >
+                    {word}{index < words.length - 1 ? " " : ""}
+                  </span>
+                );
+              })}
+            </p>
             {ayah.transliteration?.t ? (
               <details className="transliteration">
                 <summary>النقل الصوتي</summary>
@@ -145,6 +191,8 @@ export function MushafRenderer({
                 line={line}
                 surahNumber={surahNumber}
                 ayahNumber={ayahNumber}
+                audioPositions={pageAudioPositions}
+                activeAudioWord={activeAudioWord}
               />
             ))}
           </div>
