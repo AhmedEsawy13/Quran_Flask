@@ -641,9 +641,13 @@ body.mz-picking .mz-page:not(.mz-hide) .mz-word { cursor: pointer; }
     color: var(--mz-text);
     font-size: 0.9rem;
     font-weight: 750;
-    line-height: 1.45;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.55;
+    word-spacing: 0.12em;
+    white-space: normal;
+    overflow-wrap: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 .mz-context-source { color: var(--mz-text-faint); font-size: 0.62rem; line-height: 1.35; }
 .mz-context-legend { display: flex; min-width: 0; gap: 5px; margin-top: 3px; overflow-x: auto;

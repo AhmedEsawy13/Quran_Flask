@@ -475,6 +475,7 @@ def test_memorization_exposes_live_status(client):
 def test_memorization_uses_shared_workspace_structure(client):
     page = client.get('/memorize').get_data(as_text=True)
     script = (PROJECT_ROOT / 'static/js/mushaf_memorize.js').read_text(encoding='utf-8')
+    styles = (PROJECT_ROOT / 'static/css/mushaf_memorize.css').read_text(encoding='utf-8')
 
     assert '<body class="athar-memorize">' in page
     assert page.index('css/athar-components.css') < page.index('css/athar-page-chrome.css')
@@ -510,6 +511,10 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'id="mz-zoom-shell"' in page
     assert "? 'none'\n            : `scale(${state.zoom})`" in script
     assert 'state.zoom <= ZOOM_MIN + 0.001' in script
+    assert 'async function refreshContextForCurrentSelection()' in script
+    assert 'await refreshContextForCurrentSelection();' in script
+    assert 'word-spacing: 0.12em;' in styles
+    assert '-webkit-line-clamp: 2;' in styles
 
 
 def test_recitation_repeats_keep_each_timed_word_occurrence():

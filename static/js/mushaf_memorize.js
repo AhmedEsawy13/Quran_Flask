@@ -1491,6 +1491,25 @@
         refitForContext();
     }
 
+    function renderContextLoading(message = 'جارٍ تحميل التفصيل الموضوعي…') {
+        if (!els.contextBox || !state.contextOn) return;
+        _contextRequest += 1;
+        state.contextSpan = null;
+        state.contextKeys = new Set();
+        applySelectionHighlight();
+        els.contextBox.dataset.state = 'loading';
+        els.contextBox.setAttribute('aria-busy', 'true');
+        if (els.contextRange) els.contextRange.textContent = '';
+        if (els.contextTitle) els.contextTitle.textContent = message;
+        if (els.contextSource) els.contextSource.textContent = '';
+        if (els.contextExpand) {
+            els.contextExpand.hidden = true;
+            els.contextExpand.disabled = false;
+        }
+        els.contextBox.hidden = false;
+        refitForContext();
+    }
+
     function renderContextUnavailable() {
         renderContextPrompt('لا يتوفر تفصيل موضوعي لهذه الآية الآن.');
         if (els.contextBox) els.contextBox.dataset.state = 'empty';
@@ -1624,6 +1643,17 @@
             renderContextUnavailable();
             return null;
         }
+    }
+
+    async function refreshContextForCurrentSelection() {
+        if (!state.contextOn) return null;
+        const range = visualAyahRange();
+        const ayah = range ? Number(range[0]) : NaN;
+        if (!Number.isFinite(ayah)) {
+            renderContextPrompt();
+            return null;
+        }
+        return refreshContextForAyah(state.surah, ayah);
     }
 
     function expandToContextSpan() {
@@ -2317,13 +2347,23 @@
         stopReciteFollow(false);
         stopPlayback();
         const surah = parseInt(els.surah.value, 10) || 1;
+        const previousSurah = state.surah;
+        if (state.contextOn) renderContextLoading('جارٍ تحميل تفصيل السورة…');
         try {
             const loaded = await loadSurahMemo(surah);
             if (!loaded) return;
             saveSetting('mz_last_pos', `${surah}:1`);
             await renderSelection();   // jump the mushaf straight to the chosen surah
+            await refreshContextForCurrentSelection();
         }
-        catch (e) { setStatus('تعذّر تحميل بيانات السورة', true); }
+        catch (e) {
+            // A newer surah change owns the UI now; do not let an older failed
+            // request restore its selector or thematic detail over the new one.
+            if ((parseInt(els.surah.value, 10) || 1) !== surah) return;
+            els.surah.value = String(previousSurah);
+            await refreshContextForCurrentSelection();
+            setStatus('تعذّر تحميل بيانات السورة', true);
+        }
     }
     const liveSelection = () => {
         stopReciteFollow(false);
@@ -2478,14 +2518,15 @@
 
     function bindEvents() {
         els.surah.addEventListener('change', onSurahChange);
-        els.from.addEventListener('change', () => {
+        els.from.addEventListener('change', async () => {
             stopReciteFollow(false);
             const nextFrom = els.from.value;
             cancelRangePick({ silent: true });
             els.from.value = nextFrom;
             autoSetTo(parseInt(els.from.value, 10));
             commitRangeFromControls();
-            renderSelection();
+            await renderSelection();
+            await refreshContextForCurrentSelection();
         });
         els.to.addEventListener('change', () => {
             const nextTo = els.to.value;
