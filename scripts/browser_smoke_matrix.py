@@ -346,6 +346,44 @@ def _run_journey(
             )
             if abs(fitted - 1) > 0.01:
                 errors.append("Quran fit control did not restore 100%")
+
+            # Re-render a page while the spread is scaled down. This used to
+            # mix transformed DOMRect pixels with unscaled clientWidth values,
+            # making justification stretch lines beyond the printed frame.
+            for _ in range(3):
+                page.locator('#mz-zoom-out').click()
+            previous_page = page.locator('#mz-foot-r').inner_text()
+            page.locator('#mz-next').click()
+            page.wait_for_function(
+                "previous => document.querySelector('#mz-foot-r')?.textContent !== previous",
+                arg=previous_page,
+                timeout=timeout_ms,
+            )
+            page.wait_for_timeout(180)
+            zoomed_out = page.evaluate(
+                """() => {
+                  const page = document.querySelector('.mz-page.mz-has-page');
+                  const pr = page.getBoundingClientRect();
+                  const textRects = [...page.querySelectorAll(
+                    '.mz-line[data-justify="1"] .mz-line-inner'
+                  )].map(element => element.getBoundingClientRect());
+                  return {
+                    zoom: Number(getComputedStyle(document.documentElement)
+                      .getPropertyValue('--mz-user-zoom')),
+                    minTextInset: Math.min(...textRects.flatMap(rect => [
+                      rect.left - pr.left, pr.right - rect.right,
+                    ])),
+                  };
+                }"""
+            )
+            if abs(zoomed_out["zoom"] - 0.75) > 0.01:
+                errors.append("Quran zoom-out control did not reach 75%")
+            if zoomed_out["minTextInset"] < 2:
+                errors.append(
+                    "Quran justification escapes its frame at 75% zoom "
+                    f"({zoomed_out['minTextInset']:.1f}px)"
+                )
+            page.locator('#mz-zoom-fit').click()
     except Exception as exc:  # Playwright exposes useful assertion text here.
         errors.append(str(exc).split("Call log:", 1)[0].strip())
 

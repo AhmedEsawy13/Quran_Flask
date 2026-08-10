@@ -329,7 +329,25 @@
             const raw = typeof value === 'function' ? value() : value;
             return typeof raw === 'boolean' ? raw : fallback;
         };
-        const fitRenderedWidth = (inner, avail, minScale = 0.5, maxScale = 1.5) => {
+        // getBoundingClientRect() includes transforms on every ancestor while
+        // clientWidth/availableWidth stay in the line's local CSS pixels. The
+        // memorize view scales the whole spread for user zoom, so comparing the
+        // two units directly makes 75% zoom look 25% too short and justification
+        // stretches the Arabic outside its page. Normalize the rendered glyph
+        // width back into the line's coordinate space before every fit decision.
+        const renderedWidth = (inner, lineEl) => {
+            const visualInnerWidth = inner.getBoundingClientRect().width;
+            const layoutLineWidth = lineEl.clientWidth;
+            const visualLineWidth = lineEl.getBoundingClientRect().width;
+            if (!visualInnerWidth || !layoutLineWidth || !visualLineWidth) {
+                return visualInnerWidth;
+            }
+            const inheritedScaleX = visualLineWidth / layoutLineWidth;
+            return Number.isFinite(inheritedScaleX) && inheritedScaleX > 0
+                ? visualInnerWidth / inheritedScaleX
+                : visualInnerWidth;
+        };
+        const fitRenderedWidth = (inner, lineEl, avail, minScale = 0.5, maxScale = 1.5) => {
             const lower = Math.max(0.5, Number(minScale) || 0.5);
             const parsedUpper = Number(maxScale);
             const upper = Number.isFinite(parsedUpper)
@@ -339,7 +357,7 @@
             // Linux Chromium. Four bounded passes converges the rare 1–3px
             // misses without changing the line's compression/stretch budget.
             for (let attempt = 0; attempt < 4; attempt += 1) {
-                const rendered = inner.getBoundingClientRect().width;
+                const rendered = renderedWidth(inner, lineEl);
                 if (!rendered || Math.abs(rendered - avail) <= 0.25) return;
                 const matrix = getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/);
                 const currentScale = matrix ? Number(matrix[1]) : 1;
@@ -389,7 +407,7 @@
                     )
                 );
                 if (!avail || lineEl.dataset.justify !== '1') return;
-                const natural = inner.getBoundingClientRect().width;
+                const natural = renderedWidth(inner, lineEl);
                 if (!natural) return;
 
                 if (natural > avail + 0.5) {                  // too long → condense to fit
@@ -412,13 +430,13 @@
                             // the fractional remainder without crossing a glyph-
                             // hinting boundary in the opposite direction.
                             for (let attempt = 0; attempt < 3; attempt += 1) {
-                                const rendered = inner.getBoundingClientRect().width;
+                                const rendered = renderedWidth(inner, lineEl);
                                 if (!rendered || rendered <= avail + 0.25) break;
                                 const currentSize = parseFloat(getComputedStyle(inner).fontSize) || 0;
                                 if (!currentSize) break;
                                 inner.style.fontSize = `${currentSize * avail / rendered}px`;
                             }
-                            const rendered = inner.getBoundingClientRect().width;
+                            const rendered = renderedWidth(inner, lineEl);
                             if (rendered > 0) {
                                 const finalScale = Math.max(
                                     lineScaleFloor,
@@ -426,17 +444,17 @@
                                 );
                                 inner.style.transform = `scaleX(${finalScale})`;
                             }
-                            fitRenderedWidth(inner, avail, lineScaleFloor, 1);
+                            fitRenderedWidth(inner, lineEl, avail, lineScaleFloor, 1);
                             return;
                         }
                     }
                     inner.style.transform = `scaleX(${rawScale})`;
-                    fitRenderedWidth(inner, avail, lineScaleFloor, 1);
+                    fitRenderedWidth(inner, lineEl, avail, lineScaleFloor, 1);
                     return;
                 }
                 if (gentle) {                                  // page glyphs → gentle stretch
                     inner.style.transform = `scaleX(${Math.min(1.5, avail / natural)})`;
-                    fitRenderedWidth(inner, avail, 0.5, 1.5);
+                    fitRenderedWidth(inner, lineEl, avail, 0.5, 1.5);
                     return;
                 }
                 let width = natural;
@@ -456,7 +474,7 @@
                 let bestDistance = Math.abs(avail - natural);
                 candidates.forEach(candidate => {
                     inner.style.fontFeatureSettings = candidate;
-                    const candidateWidth = inner.getBoundingClientRect().width;
+                    const candidateWidth = renderedWidth(inner, lineEl);
                     if (!candidateWidth) return;
                     const fitScale = avail / candidateWidth;
                     if (candidateWidth > avail + 0.5 && fitScale < featureScaleFloor) return;
@@ -484,7 +502,7 @@
                 // gaps; gently bring it back to the exact line width.
                 if (width > avail + 0.5) {
                     inner.style.transform = `scaleX(${avail / width})`;
-                    fitRenderedWidth(inner, avail, featureScaleFloor, stretchCap);
+                    fitRenderedWidth(inner, lineEl, avail, featureScaleFloor, stretchCap);
                     return;
                 }
                 const gaps = inner.querySelectorAll(wordSelector).length - 1;
@@ -500,7 +518,7 @@
                     // If the spacing cap leaves a little width unfilled, spread
                     // that remainder across the shaped line instead of reopening
                     // conspicuous gaps between words.
-                    const spacedWidth = inner.getBoundingClientRect().width;
+                    const spacedWidth = renderedWidth(inner, lineEl);
                     if (spacedWidth && spacedWidth < avail - 0.5) {
                         const stretch = Math.min(avail / spacedWidth, stretchCap);
                         if (stretch > 1.0005) inner.style.transform = `scaleX(${stretch})`;
@@ -508,7 +526,7 @@
                 } else if (slack > 0.5) {
                     inner.style.transform = `scaleX(${avail / width})`;
                 }
-                fitRenderedWidth(inner, avail, featureScaleFloor, stretchCap);
+                fitRenderedWidth(inner, lineEl, avail, featureScaleFloor, stretchCap);
             });
 
             // Reconcile every justified line once after all feature and spacing
@@ -531,7 +549,7 @@
                     1,
                     resolveNumber(maxStretch, Infinity, lineEl, inner)
                 );
-                fitRenderedWidth(inner, avail, finalMin, finalMax);
+                fitRenderedWidth(inner, lineEl, avail, finalMin, finalMax);
             });
         };
     }

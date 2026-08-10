@@ -515,6 +515,8 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'await refreshContextForCurrentSelection();' in script
     assert 'word-spacing: 0.12em;' in styles
     assert '-webkit-line-clamp: 2;' in styles
+    smoke = (PROJECT_ROOT / 'scripts/browser_smoke_matrix.py').read_text(encoding='utf-8')
+    assert 'Quran justification escapes its frame at 75% zoom' in smoke
 
 
 def test_recitation_repeats_keep_each_timed_word_occurrence():
@@ -582,5 +584,7 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'featureCandidates = null' in shared
     assert 'minWordSpacing = 0, maxWordSpacing = Infinity' in shared
     assert 'const spacing = Math.min(spacingFloor + slack / gaps, spacingCap)' in shared
-    assert 'const spacedWidth = inner.getBoundingClientRect().width' in shared
+    assert 'const renderedWidth = (inner, lineEl) =>' in shared
+    assert 'const inheritedScaleX = visualLineWidth / layoutLineWidth' in shared
+    assert 'const spacedWidth = renderedWidth(inner, lineEl)' in shared
     assert 'Reconcile every justified line once' in shared
