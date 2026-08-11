@@ -242,7 +242,7 @@ export function ReaderStudy({
             variant={activeTool === tool.id ? "primary" : "ghost"}
             className="w-full px-2"
             aria-expanded={activeTool === tool.id}
-            aria-controls="reader-study-drawer"
+            aria-controls={activeTool === tool.id ? "reader-study-drawer" : undefined}
             onClick={() => setActiveTool((current) => current === tool.id ? null : tool.id)}
           >
             {tool.label}

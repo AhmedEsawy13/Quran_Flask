@@ -32,11 +32,11 @@
   --athar-surface: #fffdf6;
   --athar-ink: #18170f;
   --athar-ink-soft: #55503e;
-  --athar-ink-faint: #857e66;
-  --athar-accent: #1f7a5a;
-  --athar-accent-soft: #2e9c76;
+  --athar-ink-faint: #6f6854;
+  --athar-accent: #176447;
+  --athar-accent-soft: #268060;
   --athar-on-accent: #fffdf6;
-  --athar-gold: #a9782f;
+  --athar-gold: #80591f;
   --athar-line: rgba(24, 23, 15, 0.13);
   --athar-line-soft: rgba(24, 23, 15, 0.07);
   --athar-shadow-sm: 0 10px 28px rgba(24, 23, 15, 0.08);
@@ -53,8 +53,10 @@
   --athar-parchment-2: #e3d4b4;
   --athar-surface: #faf3e0;
   --athar-ink: #3a2f1a;
-  --athar-ink-soft: #6f5e42;
-  --athar-ink-faint: #978562;
+  --athar-ink-soft: #66573f;
+  --athar-ink-faint: #736246;
+  --athar-accent: #176447;
+  --athar-accent-soft: #268060;
   --athar-line: rgba(74, 59, 36, 0.17);
   --athar-line-soft: rgba(74, 59, 36, 0.09);
   --bar-background: rgba(239, 229, 207, 0.84);
@@ -66,7 +68,7 @@
   --athar-surface: #1b1a12;
   --athar-ink: #ede7d6;
   --athar-ink-soft: #b9b29c;
-  --athar-ink-faint: #837c66;
+  --athar-ink-faint: #938b74;
   --athar-accent: #46c79a;
   --athar-accent-soft: #46c79a;
   --athar-on-accent: #15140d;

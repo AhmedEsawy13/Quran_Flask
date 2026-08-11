@@ -3,6 +3,7 @@ import { AppShell } from "@/components/app-shell";
 import "./globals.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const themeBootstrap = `try{const t=localStorage.getItem("athar-theme");if(t==="light"||t==="sepia"||t==="dark"){document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t==="dark"?"dark":"light"}}catch{}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -34,6 +35,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{__html: themeBootstrap}} />
+      </head>
       <body>
         <AppShell>{children}</AppShell>
       </body>

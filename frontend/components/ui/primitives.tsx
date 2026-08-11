@@ -3,6 +3,7 @@
 import {
   useEffect,
   useId,
+  useRef,
   type ButtonHTMLAttributes,
   type ChangeEventHandler,
   type HTMLAttributes,
@@ -337,16 +338,53 @@ export function DrawerSurface({
   id?: string;
 }) {
   const generatedId = useId();
-  const titleId = `${id || generatedId}-title`;
+  const drawerId = id || generatedId;
+  const titleId = `${drawerId}-title`;
+  const onCloseRef = useRef(onClose);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null;
+    const drawer = document.getElementById(drawerId);
+    const frame = window.requestAnimationFrame(() => {
+      drawer?.querySelector<HTMLElement>("[data-drawer-close]")?.focus();
+    });
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+      if (event.key !== "Tab" || !window.matchMedia("(max-width: 767px)").matches || !drawer) return;
+      const focusable = [...drawer.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )].filter((element) => element.getClientRects().length > 0);
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", onKeyDown);
+      previousFocusRef.current?.focus();
+      previousFocusRef.current = null;
+    };
+  }, [drawerId, open]);
 
   if (!open) return null;
   return (
@@ -359,7 +397,7 @@ export function DrawerSurface({
       />
       <Surface
         as="section"
-        id={id}
+        id={drawerId}
         className="fixed inset-x-0 bottom-0 z-[60] max-h-[82dvh] overflow-y-auto rounded-t-[26px] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-3 md:max-h-none md:overflow-visible md:rounded-athar-md md:p-5"
         role="dialog"
         aria-labelledby={titleId}
@@ -369,7 +407,7 @@ export function DrawerSurface({
             {eyebrow ? <span className="text-[0.7rem] font-bold text-athar-gold">{eyebrow}</span> : null}
             <h2 id={titleId} className="m-0 font-athar-display text-[clamp(1.8rem,4vw,2.5rem)] leading-tight text-athar-ink">{title}</h2>
           </div>
-          <IconButton label={`إغلاق ${title}`} className="size-9 text-xl" onClick={onClose}>×</IconButton>
+          <IconButton data-drawer-close label={`إغلاق ${title}`} className="size-9 text-xl" onClick={onClose}>×</IconButton>
         </header>
         {children}
       </Surface>

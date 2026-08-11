@@ -14,7 +14,7 @@ export function useEditionFont(editionId: MushafEditionId) {
     let active = true;
     let promise = loadedFonts.get(descriptor.family);
     if (!promise) {
-      const face = new FontFace(descriptor.family, `url("${descriptor.url}")`);
+      const face = new FontFace(descriptor.family, `url("${descriptor.url}")`, {display: "swap"});
       promise = face.load().then((loadedFace) => {
         document.fonts.add(loadedFace);
       });

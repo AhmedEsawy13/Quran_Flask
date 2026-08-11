@@ -9,6 +9,40 @@ async function expectNoHorizontalOverflow(page: Page) {
   expect(Math.max(geometry.body, geometry.root)).toBeLessThanOrEqual(geometry.viewport + 1);
 }
 
+function contrastRatio(foreground: string, background: string) {
+  const luminance = (hex: string) => {
+    const channels = hex.match(/[a-f\d]{2}/gi)?.map((value) => Number.parseInt(value, 16) / 255) || [];
+    const [red = 0, green = 0, blue = 0] = channels.map((value) =>
+      value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+    );
+    return red * 0.2126 + green * 0.7152 + blue * 0.0722;
+  };
+  const first = luminance(foreground);
+  const second = luminance(background);
+  return (Math.max(first, second) + 0.05) / (Math.min(first, second) + 0.05);
+}
+
+async function expectReadableTheme(page: Page) {
+  const colors = await page.evaluate(() => {
+    const styles = getComputedStyle(document.documentElement);
+    const value = (name: string) => styles.getPropertyValue(name).trim();
+    return {
+      accent: value("--athar-accent"),
+      canvas: value("--athar-parchment"),
+      faint: value("--athar-ink-faint"),
+      gold: value("--athar-gold"),
+      onAccent: value("--athar-on-accent"),
+      soft: value("--athar-ink-soft"),
+      surface: value("--athar-surface"),
+    };
+  });
+  for (const foreground of [colors.accent, colors.faint, colors.gold, colors.soft]) {
+    expect(contrastRatio(foreground, colors.canvas)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(foreground, colors.surface)).toBeGreaterThanOrEqual(4.5);
+  }
+  expect(contrastRatio(colors.onAccent, colors.accent)).toBeGreaterThanOrEqual(4.5);
+}
+
 test("landing exposes the migrated paths", async ({page}) => {
   await page.goto("/");
   await expect(page.getByRole("heading", {level: 1})).toContainText("تجويد الحروف");
@@ -17,6 +51,14 @@ test("landing exposes the migrated paths", async ({page}) => {
   await expect(page.locator(".door-card[href^='/memorize']")).toBeVisible();
   await expect(page.locator(".door-card[href^='/waqf']")).toBeVisible();
   await expectNoHorizontalOverflow(page);
+  const themeToggle = page.locator('button[title^="الوضع"]');
+  const themes = ["light", "sepia", "dark"];
+  for (const [index, theme] of themes.entries()) {
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expectReadableTheme(page);
+    if (index < themes.length - 1) await themeToggle.click();
+  }
+  await themeToggle.click();
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole("link", {name: "المصحف", exact: true}).click();
   await expect(page).toHaveURL(/\/read(?:\?|$)/);
@@ -29,9 +71,15 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.getByRole("button", {name: "المتشابهات"})).toBeVisible();
   await expect(page.getByRole("button", {name: "سبب النزول"})).toBeVisible();
-  await page.getByRole("button", {name: "أدوات الدراسة"}).click();
+  const studyTrigger = page.getByRole("button", {name: "أدوات الدراسة", exact: true});
+  await expect(studyTrigger).not.toHaveAttribute("aria-controls");
+  await studyTrigger.click();
+  await expect(studyTrigger).toHaveAttribute("aria-controls", "reader-study-drawer");
   await expect(page.getByRole("dialog").getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=256&to=256");
-  await page.getByRole("dialog").getByRole("button", {name: "إغلاق أدوات الدراسة"}).click();
+  const closeStudy = page.getByRole("dialog").getByRole("button", {name: "إغلاق أدوات الدراسة"});
+  await expect(closeStudy).toBeFocused();
+  await closeStudy.click();
+  await expect(studyTrigger).toBeFocused();
   await page.getByRole("button", {name: /استمع إلى الآية/}).click();
   await expect(page.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   await expect(page.getByRole("button", {name: "تشغيل التلاوة"})).toBeEnabled();
