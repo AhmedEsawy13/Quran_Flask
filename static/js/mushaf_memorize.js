@@ -334,7 +334,8 @@
         state.layoutPreference = savedLayout === 'single' ? 'single' : 'dual';
         state.layoutMode = state.layoutPreference;
         els.layout.value = state.layoutPreference;
-        const savedZoom = Number(localStorage.getItem('mz_zoom'));
+        const savedZoomRaw = localStorage.getItem('mz_zoom');
+        const savedZoom = savedZoomRaw === null ? Number.NaN : Number(savedZoomRaw);
         state.zoom = Number.isFinite(savedZoom) ? Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, savedZoom)) : 1;
         applyResponsiveLayout();
         syncZoomUi();

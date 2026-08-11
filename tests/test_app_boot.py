@@ -510,6 +510,7 @@ def test_memorization_uses_shared_workspace_structure(client):
     assert 'id="mz-zoom-in"' in page
     assert 'id="mz-zoom-fit"' in page
     assert 'id="mz-zoom-shell"' in page
+    assert "savedZoomRaw === null ? Number.NaN : Number(savedZoomRaw)" in script
     assert "? 'none'\n            : `scale(${state.zoom})`" in script
     assert 'state.zoom <= ZOOM_MIN + 0.001' in script
     assert 'async function refreshContextForCurrentSelection()' in script
