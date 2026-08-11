@@ -6,6 +6,8 @@ export const MUSHAF_EDITIONS = {
     description: "أوضح رسم رقمي للقراءة اليومية، وفق صفحة المدينة ذات ١٥ سطرًا.",
     waqfSource: "المدينة الجديد",
     apiBase: "digital-khatt",
+    minPage: 1,
+    maxPage: 604,
     fontFamily: '"Digital Khatt", "Uthmanic Hafs", serif',
     font: {
       family: "Digital Khatt",
@@ -19,6 +21,8 @@ export const MUSHAF_EDITIONS = {
     description: "نسخة رقمية أقدم قليلًا من رسم المدينة، مع توزيع الصفحة المطبوع.",
     waqfSource: "المدينة الجديد",
     apiBase: "qpc-v2",
+    minPage: 1,
+    maxPage: 604,
     fontFamily: '"Digital Khatt", "Uthmanic Hafs", serif',
     font: {
       family: "Digital Khatt",
@@ -32,6 +36,8 @@ export const MUSHAF_EDITIONS = {
     description: "رسم طبعة المدينة القديمة لمن اعتاد شكلها وتوزيع كلماتها.",
     waqfSource: "المدينة القديم",
     apiBase: "qpc-v1",
+    minPage: 1,
+    maxPage: 604,
     fontFamily: '"Old Madina", "Uthmanic Hafs", serif',
     font: {
       family: "Old Madina",
@@ -45,6 +51,8 @@ export const MUSHAF_EDITIONS = {
     description: "صفحة الأزهر ذات ١٥ سطرًا، بخط أميري وعلامات وقف الأزهر الواضحة.",
     waqfSource: "الأزهر",
     apiBase: "azhar",
+    minPage: 2,
+    maxPage: 525,
     fontFamily: '"Amiri Quran", "Uthmanic Hafs", serif',
     font: {
       family: "Amiri Quran",
@@ -58,6 +66,8 @@ export const MUSHAF_EDITIONS = {
     description: "خط الصفحة الأصلي من مصحف الشمرلي؛ يتوفر حاليًا للصفحات التي اكتمل استخراج خطها فقط.",
     waqfSource: "الشمرلي",
     apiBase: "shamarly",
+    minPage: 2,
+    maxPage: 522,
     fontFamily: '"Uthmanic Hafs", serif',
     dynamicPageFont: true,
     font: {

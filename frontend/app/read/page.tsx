@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ReaderWorkspace } from "@/components/reader-workspace";
-import { PageHeader, RouteSkeleton } from "@/components/ui/primitives";
+import { RouteSkeleton } from "@/components/ui/primitives";
 import {cn} from "@/lib/cn";
 import {pageContainerClassName} from "@/lib/ui";
 
@@ -13,13 +13,14 @@ export const metadata: Metadata = {
 
 export default function ReaderPage() {
   return (
-    <main id="athar-main" className={cn(pageContainerClassName, "py-5 pb-24 sm:py-6 md:py-8 md:pb-28")} tabIndex={-1}>
-      <PageHeader
-        eyebrow="المصحف — القراءة الهادئة"
-        title="اقرأ المصحــف، ودع الأدوات تأتي إليك."
-        description="تنقّل بين صفحة كاملة وآية مركّزة، واختر رسم المدينة أو الأزهر بخط أميري أو الشمرلي حين تتوفر صفحته. مفتاح الصفحة يشرح علامات الوقف، ودليل التلاوة يقسّم الآية بصوت قارئك."
-        density="compact"
-      />
+    <main id="athar-main" className={cn(pageContainerClassName, "py-2.5 pb-24 sm:py-3 md:pb-20")} tabIndex={-1}>
+      <header className="reader-route-header">
+        <div>
+          <p>المصحف — القراءة الهادئة</p>
+          <h1>المصحف</h1>
+        </div>
+        <span>الصفحة أولًا؛ والتلاوة والفهم حين تحتاجهما.</span>
+      </header>
       <Suspense
         fallback={<RouteSkeleton label="جارٍ تجهيز المصحف" />}
       >

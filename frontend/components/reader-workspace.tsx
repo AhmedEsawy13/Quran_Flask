@@ -13,10 +13,11 @@ import {
 } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
 import { MushafRenderer } from "@/components/mushaf-renderer";
+import { MushafStage } from "@/components/mushaf-stage";
 import { ReaderAudio } from "@/components/reader-audio";
 import { ReaderMushafGuide } from "@/components/reader-mushaf-guide";
 import { ReaderStudy } from "@/components/reader-study";
-import { Button, Field, HandoffSurface, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
+import { Button, DrawerSurface, Field, HandoffSurface, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
 
 type ContentResult = {
@@ -35,10 +36,29 @@ function parsePositiveInteger(value: string | null, fallback: number) {
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+function firstVerseOnPage(page: MushafPage) {
+  for (const line of page.lines) {
+    for (const word of line.words) {
+      const surah = Number(word.surah);
+      const ayah = Number(word.ayah);
+      if (Number.isInteger(surah) && Number.isInteger(ayah) && surah > 0 && ayah > 0) {
+        return {surah, ayah};
+      }
+    }
+  }
+  const surah = Number(page.anchor_surah_number);
+  const ayah = Number(page.anchor_ayah_number);
+  return Number.isInteger(surah) && Number.isInteger(ayah) && surah > 0 && ayah > 0
+    ? {surah, ayah}
+    : null;
+}
+
 export function ReaderWorkspace() {
   const searchParams = useSearchParams();
   const restoreLastPosition = !searchParams.has("surah") && !searchParams.has("ayah");
-  const [positionReady, setPositionReady] = useState(!restoreLastPosition);
+  const restoreView = !searchParams.has("view");
+  const restoreEdition = !searchParams.has("edition");
+  const [positionReady, setPositionReady] = useState(!(restoreLastPosition || restoreView || restoreEdition));
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [ayahNumbers, setAyahNumbers] = useState<number[]>([]);
   const ayahCache = useRef(new Map<number, number[]>());
@@ -65,6 +85,7 @@ export function ReaderWorkspace() {
   });
   const [retryToken, setRetryToken] = useState(0);
   const [moving, setMoving] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [reciterId, setReciterId] = useState("husary");
   const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${retryToken}`;
@@ -76,11 +97,11 @@ export function ReaderWorkspace() {
   const isContentLoading = positionReady && visibleResult === null;
 
   useEffect(() => {
-    if (!restoreLastPosition) return;
+    if (!restoreLastPosition && !restoreView && !restoreEdition) return;
     const frame = window.requestAnimationFrame(() => {
-      const saved = window.localStorage.getItem("athar-reader-position");
-      if (saved) {
-        const [savedSurah, savedAyah] = saved.split(":").map(Number);
+      const savedPosition = window.localStorage.getItem("athar-reader-position");
+      if (restoreLastPosition && savedPosition) {
+        const [savedSurah, savedAyah] = savedPosition.split(":").map(Number);
         if (
           Number.isInteger(savedSurah) && Number.isInteger(savedAyah) &&
           savedSurah >= 1 && savedSurah <= 114 && savedAyah >= 1
@@ -89,10 +110,16 @@ export function ReaderWorkspace() {
           setAyahNumber(savedAyah);
         }
       }
+      const savedPreferences = window.localStorage.getItem("athar-reader-preferences");
+      if (savedPreferences) {
+        const [savedView, savedEdition] = savedPreferences.split(":");
+        if (restoreView && isReaderView(savedView)) setView(savedView);
+        if (restoreEdition && isMushafEdition(savedEdition)) setEditionId(savedEdition);
+      }
       setPositionReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [restoreLastPosition]);
+  }, [restoreEdition, restoreLastPosition, restoreView]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -174,6 +201,7 @@ export function ReaderWorkspace() {
     url.searchParams.set("edition", editionId);
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     window.localStorage.setItem("athar-reader-position", `${surahNumber}:${ayahNumber}`);
+    window.localStorage.setItem("athar-reader-preferences", `${view}:${editionId}`);
   }, [positionReady, surahNumber, ayahNumber, view, editionId]);
 
   const selectedSurah = useMemo(
@@ -223,6 +251,47 @@ export function ReaderWorkspace() {
   }, [moving, currentIndex, ayahNumbers, surahNumber, loadAyahNumbers]);
   const advanceAfterAudio = useCallback(() => move(1), [move]);
 
+  const visiblePageNumber = visibleResult?.page?.page_number || null;
+  const edition = MUSHAF_EDITIONS[editionId];
+  const atFirstPage = visiblePageNumber !== null && visiblePageNumber <= edition.minPage;
+  const atLastPage = visiblePageNumber !== null && visiblePageNumber >= edition.maxPage;
+
+  const movePage = useCallback(async (direction: -1 | 1) => {
+    const pageNumber = visibleResult?.page?.page_number;
+    if (moving || !pageNumber) return;
+    const selectedEdition = MUSHAF_EDITIONS[editionId];
+    const targetPage = pageNumber + direction;
+    if (targetPage < selectedEdition.minPage || targetPage > selectedEdition.maxPage) return;
+    setMoving(true);
+    try {
+      const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
+      const query = usesExplicitMarks
+        ? `?mushaf_version=${encodeURIComponent(selectedEdition.waqfSource)}`
+        : "";
+      const target = await getJson<MushafPage>(
+        `/backend-api/${selectedEdition.apiBase}/page/${targetPage}${query}`,
+      );
+      const position = firstVerseOnPage(target);
+      if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
+      navigateToVerse(position.surah, position.ayah);
+    } catch (reason: unknown) {
+      setCatalogError(reason instanceof Error ? reason.message : "تعذّر الانتقال بين الصفحات.");
+    } finally {
+      setMoving(false);
+    }
+  }, [editionId, moving, navigateToVerse, visibleResult?.page?.page_number]);
+
+  const moveReading = useCallback((direction: -1 | 1) => {
+    if (view === "page") return movePage(direction);
+    return move(direction);
+  }, [move, movePage, view]);
+
+  const previousDisabled = !ayahNumbers.length || (view === "page" ? !visiblePageNumber || atFirstPage : atFirstAyah);
+  const nextDisabled = !ayahNumbers.length || (view === "page" ? !visiblePageNumber || atLastPage : atLastAyah);
+  const positionLabel = view === "page" && visiblePageNumber
+    ? `صفحة ${toArabicDigits(visiblePageNumber)} · ${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`}`
+    : `${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · آية ${toArabicDigits(ayahNumber)}`;
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -230,83 +299,170 @@ export function ReaderWorkspace() {
         event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
         target?.isContentEditable || ["INPUT", "SELECT", "TEXTAREA", "BUTTON"].includes(target?.tagName || "")
       ) return;
-      if (event.key === "ArrowLeft" && !atLastAyah) {
+      if (event.key === "ArrowLeft" && !nextDisabled) {
         event.preventDefault();
-        void move(1);
-      } else if (event.key === "ArrowRight" && !atFirstAyah) {
+        void moveReading(1);
+      } else if (event.key === "ArrowRight" && !previousDisabled) {
         event.preventDefault();
-        void move(-1);
+        void moveReading(-1);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [move, atFirstAyah, atLastAyah]);
+  }, [moveReading, nextDisabled, previousDisabled]);
 
   return (
-    <section className="grid gap-3.5 sm:gap-4" aria-label="قارئ المصحف">
-      <Surface
-        variant="toolbar"
-        className="grid grid-cols-2 items-end gap-2 rounded-athar-md p-3 sm:grid-cols-4 md:sticky md:top-[calc(var(--bar-height)+.5rem)] md:z-20 lg:grid-cols-[auto_minmax(150px,1fr)_minmax(92px,.45fr)_minmax(165px,1fr)_auto] lg:gap-3 lg:p-3.5"
-      >
-        <SegmentedControl
-          label="طريقة العرض"
-          value={view}
-          options={[{value: "page", label: "صفحة"}, {value: "verse", label: "آية"}]}
-          onChange={setView}
-          className="col-span-2 sm:col-span-1"
-        />
-        <Field label="السورة" className="col-span-2 sm:col-span-2 lg:col-span-1">
-          <SelectControl
-            value={surahNumber}
-            onChange={(event) => {
-              setCatalogError("");
-              setSurahNumber(Number(event.target.value));
-              setAyahNumber(1);
-            }}
-            disabled={!surahs.length}
+    <section className="reader-workspace grid gap-3.5 sm:gap-4" aria-label="قارئ المصحف">
+      <Surface variant="toolbar" className="reader-reading-bar">
+        <div className="flex min-h-12 items-center gap-2 md:hidden">
+          <Button
+            size="sm"
+            variant="quiet"
+            className="shrink-0 px-3"
+            aria-expanded={settingsOpen}
+            aria-controls={settingsOpen ? "reader-settings-drawer" : undefined}
+            onClick={() => setSettingsOpen(true)}
           >
-            {!surahs.length ? <option>جارٍ التحميل…</option> : null}
-            {surahs.map((surah) => (
-              <option key={surah.number} value={surah.number}>
-                {toArabicDigits(surah.number)}. {surah.name}
-              </option>
-            ))}
-          </SelectControl>
-        </Field>
-        <Field label="الآية">
-          <SelectControl
-            value={ayahNumber}
-            onChange={(event) => setAyahNumber(Number(event.target.value))}
-            disabled={!ayahNumbers.length}
-          >
-            {!ayahNumbers.length ? <option>{toArabicDigits(ayahNumber)}</option> : null}
-            {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
-          </SelectControl>
-        </Field>
-        <Field label="رسم الصفحة">
-          <SelectControl value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
-            {Object.values(MUSHAF_EDITIONS).map((edition) => (
-              <option key={edition.id} value={edition.id}>{edition.label}</option>
-            ))}
-          </SelectControl>
-        </Field>
-        <div className="col-span-2 flex gap-2 sm:col-span-4 lg:col-span-1" aria-label="التنقل بين الآيات">
-          <Button className="flex-1" variant="quiet" onClick={() => void move(-1)} disabled={moving || !ayahNumbers.length || atFirstAyah} aria-label="الآية السابقة">
-            السابق
+            إعدادات القراءة
           </Button>
-          <Button className="flex-1" onClick={() => void move(1)} disabled={moving || !ayahNumbers.length || atLastAyah} aria-label="الآية التالية">
-            التالي
-          </Button>
+          <div className="min-w-0 flex-1 text-center">
+            <strong className="block truncate text-sm text-athar-ink">{positionLabel}</strong>
+            <span className="block truncate text-[0.65rem] text-athar-ink-faint">{edition.shortLabel}</span>
+          </div>
+          <SegmentedControl
+            label="طريقة العرض"
+            value={view}
+            options={[{value: "page", label: "صفحة"}, {value: "verse", label: "آية"}]}
+            onChange={setView}
+            className="w-[116px] shrink-0"
+          />
+        </div>
+
+        <div className="hidden items-end gap-2 md:grid md:grid-cols-[auto_minmax(180px,1fr)_minmax(90px,.42fr)_minmax(185px,1fr)] lg:gap-3">
+          <SegmentedControl
+            label="طريقة العرض"
+            value={view}
+            options={[{value: "page", label: "صفحة"}, {value: "verse", label: "آية"}]}
+            onChange={setView}
+          />
+          <Field label="السورة">
+            <SelectControl
+              value={surahNumber}
+              onChange={(event) => {
+                setCatalogError("");
+                setSurahNumber(Number(event.target.value));
+                setAyahNumber(1);
+              }}
+              disabled={!surahs.length}
+            >
+              {!surahs.length ? <option>جارٍ التحميل…</option> : null}
+              {surahs.map((surah) => (
+                <option key={surah.number} value={surah.number}>
+                  {toArabicDigits(surah.number)}. {surah.name}
+                </option>
+              ))}
+            </SelectControl>
+          </Field>
+          <Field label="الآية">
+            <SelectControl
+              value={ayahNumber}
+              onChange={(event) => setAyahNumber(Number(event.target.value))}
+              disabled={!ayahNumbers.length}
+            >
+              {!ayahNumbers.length ? <option>{toArabicDigits(ayahNumber)}</option> : null}
+              {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
+            </SelectControl>
+          </Field>
+          <Field label="رسم الصفحة">
+            <SelectControl value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
+              {Object.values(MUSHAF_EDITIONS).map((item) => (
+                <option key={item.id} value={item.id}>{item.label}</option>
+              ))}
+            </SelectControl>
+          </Field>
         </div>
       </Surface>
 
-      <p className="-mt-2 me-1 hidden text-end text-[0.7rem] text-athar-ink-faint md:block">لوحة المفاتيح: ← للآية التالية، → للسابقة</p>
+      <DrawerSurface
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        eyebrow={positionLabel}
+        title="إعدادات القراءة"
+        id="reader-settings-drawer"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-1 text-[0.7rem] text-athar-ink-faint sm:col-span-2">
+            <span>طريقة العرض</span>
+            <SegmentedControl
+              label="طريقة العرض"
+              value={view}
+              options={[{value: "page", label: "صفحة كاملة"}, {value: "verse", label: "آية مركّزة"}]}
+              onChange={setView}
+            />
+          </div>
+          <Field label="السورة">
+            <SelectControl
+              value={surahNumber}
+              onChange={(event) => {
+                setCatalogError("");
+                setSurahNumber(Number(event.target.value));
+                setAyahNumber(1);
+              }}
+              disabled={!surahs.length}
+            >
+              {!surahs.length ? <option>جارٍ التحميل…</option> : null}
+              {surahs.map((surah) => <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>)}
+            </SelectControl>
+          </Field>
+          <Field label="الآية">
+            <SelectControl value={ayahNumber} onChange={(event) => setAyahNumber(Number(event.target.value))} disabled={!ayahNumbers.length}>
+              {!ayahNumbers.length ? <option>{toArabicDigits(ayahNumber)}</option> : null}
+              {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
+            </SelectControl>
+          </Field>
+          <Field label="رسم الصفحة" className="sm:col-span-2">
+            <SelectControl value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
+              {Object.values(MUSHAF_EDITIONS).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+            </SelectControl>
+          </Field>
+        </div>
+      </DrawerSurface>
+
+      <p className="reader-keyboard-hint">← {view === "page" ? "للصفحة التالية" : "للآية التالية"} · → للسابقة</p>
 
       {catalogError ? (
         <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
           {catalogError}
         </StatusState>
       ) : null}
+
+      <MushafStage
+        view={view}
+        positionLabel={positionLabel}
+        previousLabel={view === "page" ? "الصفحة السابقة" : "الآية السابقة"}
+        nextLabel={view === "page" ? "الصفحة التالية" : "الآية التالية"}
+        previousDisabled={previousDisabled}
+        nextDisabled={nextDisabled}
+        moving={moving}
+        onPrevious={() => void moveReading(-1)}
+        onNext={() => void moveReading(1)}
+      >
+        <MushafRenderer
+          view={view}
+          editionId={editionId}
+          ayah={visibleResult?.ayah || null}
+          page={visibleResult?.page || null}
+          surahs={surahs}
+          selectedSurah={selectedSurah}
+          surahNumber={surahNumber}
+          ayahNumber={ayahNumber}
+          isLoading={!positionReady || isContentLoading}
+          error={visibleResult?.error || ""}
+          fontLoading={fontLoading}
+          activeAudioWord={activeAudioWord}
+          onRetry={retry}
+        />
+      </MushafStage>
 
       <ReaderAudio
         surahNumber={surahNumber}
@@ -330,22 +486,6 @@ export function ReaderWorkspace() {
         ayahNumber={ayahNumber}
         editionId={editionId}
         reciterId={reciterId}
-      />
-
-      <MushafRenderer
-        view={view}
-        editionId={editionId}
-        ayah={visibleResult?.ayah || null}
-        page={visibleResult?.page || null}
-        surahs={surahs}
-        selectedSurah={selectedSurah}
-        surahNumber={surahNumber}
-        ayahNumber={ayahNumber}
-        isLoading={!positionReady || isContentLoading}
-        error={visibleResult?.error || ""}
-        fontLoading={fontLoading}
-        activeAudioWord={activeAudioWord}
-        onRetry={retry}
       />
 
       <HandoffSurface action={<a href={legacyUrl(`/read?surah=${surahNumber}&ayah=${ayahNumber}`)}>أدوات القراءة السابقة</a>}>

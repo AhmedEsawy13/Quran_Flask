@@ -295,6 +295,193 @@ a {
   cursor: pointer;
 }
 
+.reader-route-header {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-block-end: 8px;
+  padding-inline: 4px;
+}
+
+.reader-route-header > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.reader-route-header p,
+.reader-route-header h1 {
+  margin: 0;
+}
+
+.reader-route-header p {
+  color: var(--athar-gold);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.reader-route-header h1 {
+  color: var(--athar-ink);
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.reader-route-header > span {
+  color: var(--athar-ink-faint);
+  font-size: 0.72rem;
+}
+
+.reader-reading-bar {
+  position: sticky;
+  top: calc(var(--bar-height) + 0.45rem);
+  z-index: 30;
+  width: min(980px, 100%);
+  margin-inline: auto;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--athar-surface) 88%, transparent);
+  box-shadow: var(--athar-shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+.reader-keyboard-hint {
+  width: min(980px, 100%);
+  margin: -8px auto 0;
+  padding-inline: 8px;
+  color: var(--athar-ink-faint);
+  font-size: 0.68rem;
+  text-align: end;
+}
+
+.reader-mushaf-stage {
+  position: relative;
+  display: grid;
+  min-height: max(500px, calc(100svh - var(--bar-height) - 126px));
+  place-items: center;
+  padding: 10px 54px 36px;
+  border: 1px solid var(--athar-line-soft);
+  border-radius: var(--radius-large);
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--athar-gold) 7%, transparent), transparent 42%),
+    color-mix(in srgb, var(--athar-parchment-2) 34%, transparent);
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+}
+
+.reader-mushaf-stage-page {
+  display: grid;
+  width: 100%;
+  place-items: center;
+}
+
+.reader-mushaf-stage .reader-page.is-page {
+  display: flex;
+  width: min(var(--reader-page-fit-width, 620px), calc(100vw - 132px));
+  min-height: 0;
+  aspect-ratio: 0.66;
+  flex-direction: column;
+}
+
+.reader-mushaf-stage .reader-page.is-page .reader-page-body {
+  display: flex;
+  min-height: 0;
+  align-items: stretch;
+  flex: 1 1 auto;
+  padding: clamp(12px, 4%, 34px) clamp(10px, 5%, 42px);
+}
+
+.reader-mushaf-stage .reader-page.is-page .mushaf-lines,
+.reader-mushaf-stage .reader-page.is-page.edition-azhar_amiri .mushaf-lines,
+.reader-mushaf-stage .reader-page.is-page.edition-shamarly .mushaf-lines {
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+  font-size: var(--reader-page-fit-font, 22px);
+  line-height: 1.2;
+}
+
+.reader-mushaf-stage .reader-page.is-page .mushaf-head {
+  min-height: 44px;
+  padding: 3px 16px 5px;
+}
+
+.reader-mushaf-stage .reader-page.is-page .mushaf-foot {
+  min-height: 48px;
+  padding: 7px 16px;
+}
+
+.reader-mushaf-stage .reader-page.is-page .page-number {
+  min-width: 30px;
+  height: 30px;
+}
+
+.reader-edge-nav {
+  position: absolute;
+  z-index: 4;
+  inset-block-start: 50%;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid var(--athar-line);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--athar-surface) 88%, transparent);
+  color: var(--athar-ink);
+  box-shadow: var(--athar-shadow-sm);
+  cursor: pointer;
+  font-family: sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+  transform: translateY(-50%);
+  transition: border-color 160ms ease, color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+.reader-edge-nav:not(:disabled):hover {
+  border-color: var(--athar-accent);
+  color: var(--athar-accent);
+  transform: translateY(-50%) scale(1.04);
+}
+
+.reader-edge-nav:disabled {
+  cursor: not-allowed;
+  opacity: 0.28;
+}
+
+.reader-edge-nav.is-previous {
+  inset-inline-start: 12px;
+}
+
+.reader-edge-nav.is-next {
+  inset-inline-end: 12px;
+}
+
+.reader-stage-position,
+.reader-stage-swipe-hint {
+  position: absolute;
+  inset-block-end: 12px;
+  color: var(--athar-ink-faint);
+  font-size: 0.68rem;
+  pointer-events: none;
+}
+
+.reader-stage-position {
+  inset-inline-start: 50%;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateX(50%);
+}
+
+.reader-stage-swipe-hint {
+  display: none;
+  inset-inline-end: 14px;
+}
+
 .reader-page {
   width: min(790px, 100%);
   margin-inline: auto;
@@ -767,6 +954,106 @@ a {
 @media (max-width: 920px) {
   .reader-page.is-page .reader-page-body {
     min-height: 820px;
+  }
+}
+
+@media (max-width: 767px) {
+  .reader-route-header {
+    min-height: 38px;
+    margin-block-end: 5px;
+  }
+
+  .reader-route-header p,
+  .reader-route-header > span {
+    display: none;
+  }
+
+  .reader-route-header h1 {
+    font-size: 1.55rem;
+  }
+
+  .reader-reading-bar {
+    top: calc(var(--bar-height) + 0.3rem);
+    padding: 5px 6px;
+    border-radius: 14px;
+  }
+
+  .reader-reading-bar [aria-label="طريقة العرض"] button {
+    min-height: 34px;
+    padding-inline: 7px;
+    font-size: 0.72rem;
+  }
+
+  .reader-keyboard-hint {
+    display: none;
+  }
+
+  .reader-mushaf-stage {
+    min-height: max(470px, calc(100svh - var(--bar-height) - 176px));
+    padding: 8px 6px 52px;
+    border-radius: 20px;
+  }
+
+  .reader-mushaf-stage .reader-page.is-page {
+    width: min(var(--reader-page-fit-width, 390px), calc(100vw - 28px));
+    border-radius: 4px 14px 14px 4px;
+  }
+
+  .reader-mushaf-stage .reader-page.is-page .reader-page-body {
+    padding: 17px 13px;
+  }
+
+  .reader-mushaf-stage .reader-page.is-page .mushaf-head {
+    min-height: 38px;
+    padding-inline: 11px;
+  }
+
+  .reader-mushaf-stage .reader-page.is-page .mushaf-foot {
+    min-height: 42px;
+    padding: 5px 11px;
+  }
+
+  .reader-mushaf-stage .mushaf-head-juz-glyph {
+    font-size: 1.32rem;
+  }
+
+  .reader-mushaf-stage .mushaf-head-surah-glyph {
+    font-size: 1.05rem;
+  }
+
+  .reader-edge-nav {
+    inset-block-start: auto;
+    inset-block-end: 7px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.65rem;
+    transform: none;
+  }
+
+  .reader-edge-nav:not(:disabled):hover {
+    transform: scale(1.04);
+  }
+
+  .reader-edge-nav.is-previous {
+    inset-inline-start: 8px;
+  }
+
+  .reader-edge-nav.is-next {
+    inset-inline-end: 8px;
+  }
+
+  .reader-stage-position {
+    inset-block-end: 18px;
+    max-width: 58%;
+    font-size: 0.64rem;
+  }
+
+  .reader-stage-swipe-hint {
+    display: block;
+    inset-block-end: 4px;
+    inset-inline: 50% auto;
+    font-size: 0.58rem;
+    transform: translateX(50%);
   }
 }
 

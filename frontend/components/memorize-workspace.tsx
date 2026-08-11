@@ -18,6 +18,7 @@ import {
 import { legacyUrl } from "@/lib/paths";
 import { useEditionFont } from "@/lib/use-edition-font";
 import { MushafRenderer } from "@/components/mushaf-renderer";
+import { MushafStage } from "@/components/mushaf-stage";
 import { MemorizePlayer } from "@/components/memorize-player";
 import {
   Button,
@@ -276,6 +277,36 @@ export function MemorizeWorkspace() {
         </div>
       </Surface>
 
+      <MushafStage
+        view="page"
+        positionLabel={`${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)} · الآية ${toArabicDigits(activeAyah)}`}
+        previousLabel="الآية السابقة في نطاق التثبيت"
+        nextLabel="الآية التالية في نطاق التثبيت"
+        previousDisabled={activeAyah <= fromAyah}
+        nextDisabled={activeAyah >= toAyah}
+        onPrevious={() => updateActiveAyah(activeAyah - 1)}
+        onNext={() => updateActiveAyah(activeAyah + 1)}
+      >
+        <MushafRenderer
+          view="page"
+          editionId={editionId}
+          ayah={null}
+          page={visiblePage?.page || null}
+          surahs={surahs}
+          selectedSurah={selectedSurah}
+          surahNumber={surahNumber}
+          ayahNumber={activeAyah}
+          isLoading={visiblePage === null}
+          error={visiblePage?.error || ""}
+          fontLoading={fontLoading}
+          activeAudioWord={activeAudioWord}
+          focusRange={[fromAyah, toAyah]}
+          contextRange={contextRange}
+          concealFocused={concealed}
+          onRetry={retry}
+        />
+      </MushafStage>
+
       <MemorizePlayer
         surahNumber={surahNumber}
         fromAyah={fromAyah}
@@ -336,25 +367,6 @@ export function MemorizeWorkspace() {
           <StatusState className="justify-center">لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</StatusState>
         )}
       </Surface>
-
-      <MushafRenderer
-        view="page"
-        editionId={editionId}
-        ayah={null}
-        page={visiblePage?.page || null}
-        surahs={surahs}
-        selectedSurah={selectedSurah}
-        surahNumber={surahNumber}
-        ayahNumber={activeAyah}
-        isLoading={visiblePage === null}
-        error={visiblePage?.error || ""}
-        fontLoading={fontLoading}
-        activeAudioWord={activeAudioWord}
-        focusRange={[fromAyah, toAyah]}
-        contextRange={contextRange}
-        concealFocused={concealed}
-        onRetry={retry}
-      />
 
       <HandoffSurface action={<a href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>}>
         التكرار المقطعي والربط التراكمي انتقلا إلى هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.

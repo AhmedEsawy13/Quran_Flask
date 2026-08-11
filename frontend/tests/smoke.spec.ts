@@ -56,6 +56,14 @@ async function expectThemeCycle(page: Page) {
   await themeToggle.click();
 }
 
+async function openMobileReaderSettings(page: Page) {
+  const trigger = page.getByRole("button", {name: "إعدادات القراءة", exact: true});
+  if (!(await trigger.isVisible())) return false;
+  await trigger.click();
+  await expect(page.getByRole("dialog", {name: "إعدادات القراءة"})).toBeVisible();
+  return true;
+}
+
 test("landing exposes the migrated paths", async ({page}) => {
   await page.goto("/");
   await expect(page.getByRole("heading", {level: 1})).toContainText("تجويد الحروف");
@@ -102,7 +110,9 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(readerAudio).toBeVisible();
   await expect(readerAudio.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   await expect(page.getByRole("button", {name: "تشغيل التلاوة"})).toBeEnabled();
+  const mobileSettingsOpen = await openMobileReaderSettings(page);
   await page.getByRole("combobox", {name: "رسم الصفحة"}).selectOption("azhar_amiri");
+  if (mobileSettingsOpen) await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
   await expect(page).toHaveURL(/edition=azhar_amiri/);
   const printedWaqfMark = page.locator(".reader-page.edition-azhar_amiri .mushaf-print-mark").first();
   await expect(printedWaqfMark).toBeVisible({timeout: 15_000});
@@ -110,12 +120,41 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await page.getByRole("button", {name: "افتح دليل التلاوة"}).click();
   await expect(page.getByRole("region", {name: "دليل التلاوة"})).toContainText("بصوت", {timeout: 15_000});
   await expect(page.getByLabel("مقاطع دليل التلاوة").getByRole("button").first()).toBeVisible();
+  const mobileSettingsForShemrly = await openMobileReaderSettings(page);
   await page.getByRole("combobox", {name: "رسم الصفحة"}).selectOption("shamarly");
+  if (mobileSettingsForShemrly) await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
   await expect(page.getByText("خط الشمرلي غير متوفر لهذه الصفحة بعد")).toBeVisible({timeout: 15_000});
   await expect(page.getByRole("link", {name: "شاهد صفحة مكتملة من الشمرلي"})).toHaveAttribute("href", "/read?surah=11&ayah=121&view=page&edition=shamarly");
   await page.goto("/read?surah=11&ayah=121&view=page&edition=shamarly");
   await expect(page.locator(".reader-page.edition-shamarly .mushaf-lines")).toBeVisible({timeout: 15_000});
   await expect.poll(() => page.evaluate(() => document.fonts.check('16px "Shemrly-Page193"'))).toBe(true);
+  await expectNoHorizontalOverflow(page);
+});
+
+test("Reader keeps the Mushaf first and navigates by page", async ({page}) => {
+  await page.goto("/read?surah=2&ayah=256&view=page&edition=digital_khatt");
+  const stage = page.getByRole("region", {name: /موضع القراءة/});
+  await expect(stage).toBeVisible({timeout: 15_000});
+  await expect(page.locator(".page-number")).toHaveText("٤٢");
+  const geometry = await page.locator(".reader-page").evaluate((mushaf) => {
+    const rect = mushaf.getBoundingClientRect();
+    return {bottom: rect.bottom, height: rect.height, viewport: window.innerHeight};
+  });
+  expect(geometry.height).toBeGreaterThan(420);
+  expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewport + 1);
+
+  await page.getByRole("button", {name: "الصفحة التالية"}).click();
+  await expect(page.locator(".page-number")).toHaveText("٤٣", {timeout: 15_000});
+  await expect(page).toHaveURL(/ayah=257/);
+  await page.keyboard.press("ArrowRight");
+  await expect(page.locator(".page-number")).toHaveText("٤٢", {timeout: 15_000});
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("athar-reader-preferences"))).toBe("page:digital_khatt");
+
+  const mobileSettingsOpen = await openMobileReaderSettings(page);
+  if (mobileSettingsOpen) {
+    await expect(page.getByRole("combobox", {name: "السورة"})).toBeVisible();
+    await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
+  }
   await expectNoHorizontalOverflow(page);
 });
 
@@ -153,7 +192,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
-  await expect(page.getByText("البقرة · ٢٥٥–٢٥٧")).toBeVisible();
+  await expect(page.getByLabel("ملخص نطاق التثبيت").getByText("سورة البقرة · ٢٥٥–٢٥٧", {exact: true})).toBeVisible();
   await expect(page.getByRole("button", {name: "بدء جلسة التثبيت"})).toBeEnabled();
   await expect(page.getByLabel("جلسة التكرار").locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   await page.locator("summary").filter({hasText: "إعدادات وخطة الجلسة"}).click();
