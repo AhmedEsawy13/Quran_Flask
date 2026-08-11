@@ -22,6 +22,7 @@ import { MemorizePlayer } from "@/components/memorize-player";
 import {
   Button,
   Field,
+  HandoffSurface,
   ProgressBar,
   SelectControl,
   StatTile,
@@ -343,10 +344,9 @@ export function MemorizeWorkspace() {
         )}
       </Surface>
 
-      <Surface variant="subtle" className="flex flex-col items-start justify-between gap-3 rounded-athar-md p-5 text-sm text-athar-ink-soft sm:flex-row sm:items-center">
-        <span>التكرار المقطعي والربط التراكمي انتقلا إلى هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.</span>
-        <a className="shrink-0 font-bold text-athar-accent" href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>
-      </Surface>
+      <HandoffSurface action={<a href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>}>
+        التكرار المقطعي والربط التراكمي انتقلا إلى هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.
+      </HandoffSurface>
     </section>
   );
 }

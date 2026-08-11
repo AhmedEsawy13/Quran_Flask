@@ -262,16 +262,16 @@ export function ReaderStudy({
           {verseError ? <StatusState tone="error">{verseError}</StatusState> : null}
 
           {activeTool === "meanings" && ayahData ? (
-            <div className="reader-meanings">
+            <div>
               {ayahData.word_meanings_source?.attribution ? (
-                <p className="reader-panel-credit">المصدر: {ayahData.word_meanings_source.attribution}</p>
+                <p className="mb-2 mt-4 text-[0.7rem] text-athar-ink-faint">المصدر: {ayahData.word_meanings_source.attribution}</p>
               ) : null}
               {ayahData.word_meanings_ordered?.length ? (
-                <dl>
+                <dl className="mt-4 grid gap-2 md:grid-cols-2">
                   {ayahData.word_meanings_ordered.map((entry, index) => (
-                    <div key={`${entry.word_no}-${entry.word}-${index}`}>
-                      <dt>{entry.word}</dt>
-                      <dd>{entry.meaning}</dd>
+                    <div className="grid grid-cols-[85px_minmax(0,1fr)] gap-2.5 rounded-xl border border-athar-line-soft p-3 sm:grid-cols-[minmax(90px,.35fr)_minmax(0,1fr)]" key={`${entry.word_no}-${entry.word}-${index}`}>
+                      <dt className="font-athar-quran text-lg text-athar-accent">{entry.word}</dt>
+                      <dd className="m-0 text-sm text-athar-ink-soft">{entry.meaning}</dd>
                     </div>
                   ))}
                 </dl>
@@ -281,12 +281,12 @@ export function ReaderStudy({
 
           {activeTool === "transliteration" && ayahData ? (
             ayahData.transliteration?.t
-              ? <p className="reader-transliteration" dir="ltr">{ayahData.transliteration.t}</p>
+              ? <p className="mt-5 text-left font-sans leading-8 text-athar-ink-soft" dir="ltr">{ayahData.transliteration.t}</p>
               : <StatusState className="justify-center">لا يتوفر نقل حرفي لهذه الآية.</StatusState>
           ) : null}
 
           {activeTool === "tafseer" ? (
-            <div className="reader-tafseer">
+            <div className="mt-4 grid gap-4">
               {!tafseers && !tafseerError ? <StatusState tone="loading">جارٍ تحميل التفاسير المحلية…</StatusState> : null}
               {tafseerError ? <StatusState tone="error">{tafseerError}</StatusState> : null}
               {tafseers && Object.keys(tafseers).length ? (
@@ -299,25 +299,25 @@ export function ReaderStudy({
                       {Object.keys(tafseers).map((name) => <option key={name} value={name}>{name}</option>)}
                     </SelectControl>
                   </Field>
-                  <p>{tafseerText}</p>
+                  <p className="m-0 leading-8 text-athar-ink-soft">{tafseerText}</p>
                 </>
               ) : tafseers ? <StatusState className="justify-center">لا يتوفر تفسير محلي لهذه الآية.</StatusState> : null}
             </div>
           ) : null}
 
           {activeTool === "mutashabihat" ? (
-            <div className="reader-mutashabihat">
+            <div className="mt-4">
               {!mutashabihat && !mutashabihatError ? <StatusState tone="loading">جارٍ البحث في المواضع المتشابهة…</StatusState> : null}
               {mutashabihatError ? <StatusState tone="error">{mutashabihatError}</StatusState> : null}
               {mutashabihat?.matches.length ? (
-                <div className="reader-mutashabihat-list">
+                <div className="grid max-h-[620px] gap-2 overflow-y-auto pe-1 [scrollbar-color:var(--athar-line)_transparent]">
                   {mutashabihat.matches.map((match) => {
                     const differing = differingWordIndexes(match);
                     const surahName = surahs.find((surah) => surah.number === match.surah)?.name || `سورة ${toArabicDigits(match.surah)}`;
                     return (
                       <button
                         type="button"
-                        className="reader-mutashabih-item"
+                        className="grid w-full cursor-pointer gap-3 rounded-[13px] border border-athar-line-soft bg-athar-canvas p-4 text-start text-athar-ink transition-colors hover:border-athar-accent"
                         key={match.verse_key}
                         onClick={() => {
                           onNavigate(match.surah, match.ayah);
@@ -325,13 +325,13 @@ export function ReaderStudy({
                         }}
                         aria-label={`انتقل إلى سورة ${surahName} الآية ${toArabicDigits(match.ayah)}`}
                       >
-                        <span className="reader-mutashabih-head">
-                          <strong>{surahName} · {toArabicDigits(match.ayah)}</strong>
-                          <small>{match.near_duplicate ? "شبه مطابقة" : runLabel(match.longest_run)}</small>
+                        <span className="flex items-center justify-between gap-3">
+                          <strong className="text-athar-accent">{surahName} · {toArabicDigits(match.ayah)}</strong>
+                          <small className="shrink-0 rounded-full bg-athar-gold/10 px-2 py-0.5 text-[0.7rem] text-athar-gold">{match.near_duplicate ? "شبه مطابقة" : runLabel(match.longest_run)}</small>
                         </span>
-                        <span className="reader-mutashabih-verse" dir="rtl">
+                        <span className="font-athar-quran text-xl leading-8" dir="rtl">
                           {match.words.map((word, index) => (
-                            <span className={differing.has(index) ? "is-different" : undefined} key={`${match.verse_key}-${index}`}>
+                            <span className={differing.has(index) ? "rounded bg-red-700/10 px-0.5 text-[color-mix(in_srgb,var(--athar-ink)_38%,#d65342)] underline decoration-red-700/50 decoration-2 underline-offset-4" : undefined} key={`${match.verse_key}-${index}`}>
                               {word}{" "}
                             </span>
                           ))}
@@ -345,13 +345,13 @@ export function ReaderStudy({
           ) : null}
 
           {activeTool === "asbab" ? (
-            <div className="reader-asbab">
+            <div className="mt-4 grid gap-3">
               {!asbab && !asbabError ? <StatusState tone="loading">جارٍ مراجعة المصادر المحلية…</StatusState> : null}
               {asbabError ? <StatusState tone="error">{asbabError}</StatusState> : null}
               {asbab?.entries.length ? asbab.entries.map((entry, index) => (
-                <article key={`${entry.source}-${index}`}>
-                  <p className="reader-asbab-attribution">{entry.attribution || entry.source}</p>
-                  <p>{entry.text.replace(/<br\s*\/?\s*>/gi, "\n")}</p>
+                <article className="rounded-[13px] border border-athar-line-soft bg-athar-canvas p-4" key={`${entry.source}-${index}`}>
+                  <p className="mb-2.5 mt-0 text-xs font-bold text-athar-gold">{entry.attribution || entry.source}</p>
+                  <p className="m-0 whitespace-pre-line leading-8 text-athar-ink-soft">{entry.text.replace(/<br\s*\/?\s*>/gi, "\n")}</p>
                 </article>
               )) : asbab ? (
                 <StatusState className="justify-center">{asbab.message || "لم يثبت سبب نزول لهذه الآية في المصادر المحمّلة."}</StatusState>
@@ -360,15 +360,15 @@ export function ReaderStudy({
           ) : null}
 
           {activeTool === "study" ? (
-            <div className="reader-study-links">
-              <a href={`/memorize?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
-                <strong>تثبيت</strong><span>حفظ الآية بالتكرار والسياق الموضوعي</span>
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
+              <a className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={`/memorize?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
+                <strong className="font-athar-display text-2xl text-athar-accent">تثبيت</strong><span className="text-xs text-athar-ink-soft">حفظ الآية بالتكرار والسياق الموضوعي</span>
               </a>
-              <a href={`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`}>
-                <strong>مُكْث</strong><span>دراسة مواضع الوقف واختلاف القرّاء</span>
+              <a className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`}>
+                <strong className="font-athar-display text-2xl text-athar-accent">مُكْث</strong><span className="text-xs text-athar-ink-soft">دراسة مواضع الوقف واختلاف القرّاء</span>
               </a>
-              <a href={legacyUrl(`/waqf-practice?surah=${surahNumber}&ayah=${ayahNumber}`)}>
-                <strong>تدريب</strong><span>اختبر قرارات الوقف داخل الآية</span>
+              <a className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={legacyUrl(`/waqf-practice?surah=${surahNumber}&ayah=${ayahNumber}`)}>
+                <strong className="font-athar-display text-2xl text-athar-accent">تدريب</strong><span className="text-xs text-athar-ink-soft">اختبر قرارات الوقف داخل الآية</span>
               </a>
             </div>
           ) : null}

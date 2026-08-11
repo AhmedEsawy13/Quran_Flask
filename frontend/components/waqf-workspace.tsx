@@ -15,6 +15,7 @@ import { useBoundedAudio } from "@/lib/use-bounded-audio";
 import {
   Button,
   Field,
+  HandoffSurface,
   SectionHeader,
   SegmentedControl,
   SelectControl,
@@ -489,13 +490,14 @@ export function WaqfWorkspace() {
             ) : null}
           </Surface>
 
-          <Surface variant="subtle" className="flex flex-col items-start justify-between gap-3 rounded-athar-md p-5 text-sm text-athar-ink-soft sm:flex-row sm:items-center">
-            <span>التحليل القرآني الشامل وتحرير العلامات ما زالا في أدوات Flask المتخصصة.</span>
-            <div className="flex flex-wrap gap-4 font-bold text-athar-accent">
+          <HandoffSurface action={
+            <>
               <a href={legacyUrl(`/waqf-lab?surah=${surahNumber}&ayah=${ayahNumber}`)}>مختبر الوقف</a>
               <a href={legacyUrl(`/waqf-practice?surah=${surahNumber}&ayah=${ayahNumber}`)}>تدرّب على الموضع</a>
-            </div>
-          </Surface>
+            </>
+          }>
+            التحليل القرآني الشامل وتحرير العلامات ما زالا في أدوات Flask المتخصصة.
+          </HandoffSurface>
         </>
       ) : null}
     </section>

@@ -9,7 +9,7 @@ import {
 } from "@/lib/api";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
-import { Button, Field, IconButton, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
+import { Button, CheckControl, Field, IconButton, PlaybackTimeline, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 
 type ReaderAudioProps = {
   surahNumber: number;
@@ -257,28 +257,24 @@ export function ReaderAudio({
         >
           {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
         </Button>
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[0.7rem] tabular-nums text-athar-ink-faint max-[520px]:grid-cols-1">
-          <input
-            className="w-full accent-athar-accent"
-            type="range"
-            min="0"
-            max={duration || 1}
-            step="0.05"
-            value={Math.min(elapsed, duration || 1)}
-            disabled={!verse}
-            aria-label="موضع التلاوة داخل الآية"
-            onChange={(event) => {
-              const nextElapsed = Number(event.target.value);
-              setElapsed(nextElapsed);
-              if (audioRef.current && verse) {
-                const current = verse.start + nextElapsed;
-                audioRef.current.currentTime = current;
-                updateActiveWord(current, verse);
-              }
-            }}
-          />
-          <span>{formatTime(elapsed)} / {formatTime(duration)}</span>
-        </div>
+        <PlaybackTimeline
+          min="0"
+          max={duration || 1}
+          step="0.05"
+          value={Math.min(elapsed, duration || 1)}
+          disabled={!verse}
+          label="موضع التلاوة داخل الآية"
+          time={<>{formatTime(elapsed)} / {formatTime(duration)}</>}
+          onChange={(event) => {
+            const nextElapsed = Number(event.target.value);
+            setElapsed(nextElapsed);
+            if (audioRef.current && verse) {
+              const current = verse.start + nextElapsed;
+              audioRef.current.currentTime = current;
+              updateActiveWord(current, verse);
+            }
+          }}
+        />
       </div>
 
       <div className="grid items-end gap-3 border-t border-athar-line-soft pt-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(105px,.55fr)_auto]">
@@ -299,10 +295,7 @@ export function ReaderAudio({
             ))}
           </SelectControl>
         </Field>
-        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-athar-line px-3 text-sm text-athar-ink-soft">
-          <input className="accent-athar-accent" type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
-          <span>انتقال تلقائي</span>
-        </label>
+        <CheckControl label="انتقال تلقائي" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
       </div>
     </Surface>
   );

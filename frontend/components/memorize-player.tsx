@@ -17,6 +17,7 @@ import {
   Button,
   CheckControl,
   Field,
+  PlaybackTimeline,
   ProgressBar,
   SelectControl,
   StatTile,
@@ -360,29 +361,25 @@ export function MemorizePlayer({
         >
           {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
         </Button>
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[0.7rem] tabular-nums text-athar-ink-faint max-[520px]:grid-cols-1">
-          <input
-            className="w-full accent-athar-accent"
-            type="range"
-            min="0"
-            max={duration || 1}
-            step="0.05"
-            value={Math.min(elapsed, duration || 1)}
-            disabled={!currentStep}
-            aria-label="موضع التلاوة داخل خطوة التثبيت"
-            onChange={(event) => {
-              const nextElapsed = Number(event.target.value);
-              setElapsed(nextElapsed);
-              if (audioRef.current && currentStep) {
-                const currentTime = currentStep.start + nextElapsed;
-                audioRef.current.currentTime = currentTime;
-                boundaryHandledRef.current = false;
-                updatePlaybackPosition(currentTime);
-              }
-            }}
-          />
-          <span>{formatTime(elapsed)} / {formatTime(duration)}</span>
-        </div>
+        <PlaybackTimeline
+          min="0"
+          max={duration || 1}
+          step="0.05"
+          value={Math.min(elapsed, duration || 1)}
+          disabled={!currentStep}
+          label="موضع التلاوة داخل خطوة التثبيت"
+          time={<>{formatTime(elapsed)} / {formatTime(duration)}</>}
+          onChange={(event) => {
+            const nextElapsed = Number(event.target.value);
+            setElapsed(nextElapsed);
+            if (audioRef.current && currentStep) {
+              const currentTime = currentStep.start + nextElapsed;
+              audioRef.current.currentTime = currentTime;
+              boundaryHandledRef.current = false;
+              updatePlaybackPosition(currentTime);
+            }
+          }}
+        />
       </div>
 
       <div className="flex justify-end gap-2 pb-4" aria-label="التنقل بين خطوات التثبيت">

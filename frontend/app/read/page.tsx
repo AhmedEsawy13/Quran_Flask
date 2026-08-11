@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ReaderWorkspace } from "@/components/reader-workspace";
-import { PageHeader } from "@/components/ui/primitives";
+import { PageHeader, RouteSkeleton } from "@/components/ui/primitives";
 
 export const metadata: Metadata = {
   title: "المصحف",
@@ -18,12 +18,7 @@ export default function ReaderPage() {
         description="تنقّل بالرسم صفحةً كاملة أو آيةً مركّزة، واختر طبعة المدينة التي ترتاح لها. موضعك محفوظ والرابط يعيدك إلى القراءة نفسها."
       />
       <Suspense
-        fallback={
-          <div className="reader-route-skeleton" aria-label="جارٍ تجهيز المصحف">
-            <span />
-            <span />
-          </div>
-        }
+        fallback={<RouteSkeleton label="جارٍ تجهيز المصحف" />}
       >
         <ReaderWorkspace />
       </Suspense>

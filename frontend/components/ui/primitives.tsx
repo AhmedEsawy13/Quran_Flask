@@ -6,6 +6,7 @@ import {
   type ButtonHTMLAttributes,
   type ChangeEventHandler,
   type HTMLAttributes,
+  type InputHTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
 } from "react";
@@ -68,6 +69,15 @@ export function Surface({
   ...props
 }: HTMLAttributes<HTMLElement> & {as?: "div" | "section" | "article" | "aside"; variant?: SurfaceVariant}) {
   return <Component className={cn("min-w-0 border", surfaceVariants[variant], className)} {...props} />;
+}
+
+export function RouteSkeleton({label}: {label: string}) {
+  return (
+    <div className="grid min-h-[520px] gap-4" aria-label={label} role="status">
+      <span className="min-h-[72px] animate-pulse rounded-athar-md border border-athar-line bg-athar-surface" />
+      <span className="animate-pulse rounded-athar-md border border-athar-line bg-athar-surface" />
+    </div>
+  );
 }
 
 export function Field({
@@ -150,6 +160,49 @@ export function ProgressBar({value, max, label, className}: {value: number; max:
         <span className="block h-full rounded-full bg-athar-accent transition-[width] duration-300" style={{width: `${percentage}%`}} />
       </div>
     </div>
+  );
+}
+
+export function PlaybackTimeline({
+  value,
+  max,
+  label,
+  time,
+  disabled,
+  onChange,
+  className,
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "value" | "max" | "onChange"> & {
+  value: number;
+  max: number;
+  label: string;
+  time: ReactNode;
+  disabled?: boolean;
+  onChange: ChangeEventHandler<HTMLInputElement>;
+}) {
+  return (
+    <div className={cn("grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[0.7rem] tabular-nums text-athar-ink-faint max-[520px]:grid-cols-1", className)}>
+      <input
+        className="w-full accent-athar-accent"
+        type="range"
+        value={value}
+        max={max}
+        disabled={disabled}
+        aria-label={label}
+        onChange={onChange}
+        {...props}
+      />
+      <span>{time}</span>
+    </div>
+  );
+}
+
+export function HandoffSurface({children, action}: {children: ReactNode; action: ReactNode}) {
+  return (
+    <Surface variant="subtle" className="flex flex-col items-start justify-between gap-3 rounded-athar-md p-5 text-sm text-athar-ink-soft sm:flex-row sm:items-center">
+      <span>{children}</span>
+      <div className="flex shrink-0 flex-wrap gap-4 font-bold text-athar-accent">{action}</div>
+    </Surface>
   );
 }
 

@@ -15,7 +15,7 @@ import { legacyUrl } from "@/lib/paths";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { ReaderAudio } from "@/components/reader-audio";
 import { ReaderStudy } from "@/components/reader-study";
-import { Button, Field, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
+import { Button, Field, HandoffSurface, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
 
 type ContentResult = {
@@ -334,10 +334,9 @@ export function ReaderWorkspace() {
         onNavigate={navigateToVerse}
       />
 
-      <Surface variant="subtle" className="flex flex-col items-start justify-between gap-3 rounded-athar-md p-5 text-sm text-athar-ink-soft sm:flex-row sm:items-center">
-        <span>تحتاج أداة غير منقولة بعد؟ النسخة السابقة تبقى متاحة أثناء الانتقال.</span>
-        <a className="shrink-0 font-bold text-athar-accent" href={legacyUrl(`/read?surah=${surahNumber}&ayah=${ayahNumber}`)}>أدوات القراءة السابقة</a>
-      </Surface>
+      <HandoffSurface action={<a href={legacyUrl(`/read?surah=${surahNumber}&ayah=${ayahNumber}`)}>أدوات القراءة السابقة</a>}>
+        تحتاج أداة غير منقولة بعد؟ النسخة السابقة تبقى متاحة أثناء الانتقال.
+      </HandoffSurface>
     </section>
   );
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { MemorizeWorkspace } from "@/components/memorize-workspace";
-import { PageHeader } from "@/components/ui/primitives";
+import { PageHeader, RouteSkeleton } from "@/components/ui/primitives";
 
 export const metadata: Metadata = {
   title: "تثبيت",
@@ -18,12 +18,7 @@ export default function MemorizePage() {
         description="اختر نطاقك، ودع التلاوة تنتقل كلمةً كلمة وآيةً آية على صفحة المصحف نفسها. الرابط يحفظ النطاق لتعود إلى الجلسة مباشرة."
       />
       <Suspense
-        fallback={
-          <div className="reader-route-skeleton" aria-label="جارٍ تجهيز جلسة التثبيت">
-            <span />
-            <span />
-          </div>
-        }
+        fallback={<RouteSkeleton label="جارٍ تجهيز جلسة التثبيت" />}
       >
         <MemorizeWorkspace />
       </Suspense>

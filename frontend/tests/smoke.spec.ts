@@ -30,7 +30,7 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(page.getByRole("button", {name: "المتشابهات"})).toBeVisible();
   await expect(page.getByRole("button", {name: "سبب النزول"})).toBeVisible();
   await page.getByRole("button", {name: "أدوات الدراسة"}).click();
-  await expect(page.locator(`.reader-study-links a[href='/memorize?surah=2&from=256&to=256']`)).toBeVisible();
+  await expect(page.getByRole("dialog").getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=256&to=256");
   await page.getByRole("dialog").getByRole("button", {name: "إغلاق أدوات الدراسة"}).click();
   await page.getByRole("button", {name: /استمع إلى الآية/}).click();
   await expect(page.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);

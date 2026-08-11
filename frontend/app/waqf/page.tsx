@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { WaqfWorkspace } from "@/components/waqf-workspace";
-import { PageHeader } from "@/components/ui/primitives";
+import { PageHeader, RouteSkeleton } from "@/components/ui/primitives";
 
 export const metadata: Metadata = {
   title: "مُكْث",
@@ -17,7 +17,7 @@ export default function WaqfPage() {
         title="علامة المصحف، ووقف القارئ، وقول الإمام."
         description="ثلاث شهادات على الموضع نفسه، ثم قراءة حقيقية من قارئ يناسب سعة نَفَسك."
       />
-      <Suspense fallback={<div className="reader-route-skeleton" aria-label="جارٍ تجهيز مُكْث" />}>
+      <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز مُكْث" />}>
         <WaqfWorkspace />
       </Suspense>
     </main>
