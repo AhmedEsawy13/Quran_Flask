@@ -1,5 +1,6 @@
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" layer(utilities);
 
 @font-face {
@@ -135,117 +136,6 @@ a {
   color: inherit;
 }
 
-.shell-width {
-  width: min(1180px, calc(100% - 40px));
-  margin-inline: auto;
-}
-
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
-  gap: clamp(44px, 8vw, 104px);
-  align-items: center;
-  min-height: calc(100svh - var(--bar-height));
-  padding-block: 70px;
-}
-
-.eyebrow {
-  margin: 0 0 12px;
-  color: var(--athar-gold);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
-.hero h1,
-.section-heading h2,
-.migration-strip h2 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-feature-settings: "salt" 1;
-  line-height: 1.08;
-  letter-spacing: -0.035em;
-}
-
-.hero h1 {
-  max-width: 660px;
-  font-size: clamp(3.5rem, 8vw, 7.5rem);
-}
-
-.hero h1 span {
-  display: block;
-  color: var(--athar-accent);
-  font-size: 0.73em;
-}
-
-.hero-lede {
-  max-width: 580px;
-  margin: 26px 0 0;
-  color: var(--athar-ink-soft);
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
-}
-
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-block-start: 30px;
-}
-
-.button {
-  display: inline-flex;
-  min-height: 46px;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 18px;
-  border: 1px solid transparent;
-  border-radius: 13px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.button-primary {
-  background: var(--athar-accent);
-  color: var(--athar-on-accent);
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--athar-accent) 22%, transparent);
-}
-
-.button-quiet {
-  border-color: var(--athar-line);
-  background: var(--athar-surface);
-}
-
-.hero-proof {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin: 42px 0 0;
-  padding-block-start: 18px;
-  border-block-start: 1px solid var(--athar-line);
-}
-
-.hero-proof div {
-  display: grid;
-  gap: 2px;
-}
-
-.hero-proof dt {
-  color: var(--athar-ink-faint);
-  font-size: 0.72rem;
-}
-
-.hero-proof dd {
-  margin: 0;
-  color: var(--athar-ink-soft);
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.hero-visual {
-  perspective: 1200px;
-}
-
-.ayah-preview,
 .reader-page {
   overflow: hidden;
   border: 1px solid var(--athar-line);
@@ -253,12 +143,6 @@ a {
     linear-gradient(110deg, transparent 0 49.5%, var(--athar-line-soft) 50%, transparent 50.5%),
     var(--athar-surface);
   box-shadow: var(--athar-shadow-lg);
-}
-
-.ayah-preview {
-  min-height: 590px;
-  border-radius: 4px 18px 18px 4px;
-  transform: rotateY(-4deg) rotateZ(0.5deg);
 }
 
 .mushaf-head,
@@ -292,13 +176,6 @@ a {
   text-decoration: none;
 }
 
-.ayah-preview-body {
-  display: grid;
-  min-height: 500px;
-  padding: clamp(34px, 6vw, 70px);
-  place-items: center;
-}
-
 .quran-text {
   margin: 0;
   font-family: var(--font-quran);
@@ -307,10 +184,6 @@ a {
   line-height: 2.1;
   text-align: justify;
   text-align-last: center;
-}
-
-.ayah-preview .quran-text {
-  font-size: clamp(1.65rem, 3vw, 2.5rem);
 }
 
 .verse-skeleton {
@@ -363,98 +236,6 @@ a {
   background: var(--athar-surface);
   color: var(--athar-ink);
   cursor: pointer;
-}
-
-.doors {
-  padding-block: 90px 120px;
-}
-
-.section-heading {
-  max-width: 720px;
-  margin-block-end: 38px;
-}
-
-.section-heading h2,
-.migration-strip h2 {
-  font-size: clamp(2.4rem, 5vw, 4.6rem);
-}
-
-.section-heading > p:last-child,
-.migration-strip-inner > p:last-child {
-  color: var(--athar-ink-soft);
-}
-
-.door-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-block-start: 1px solid var(--athar-line);
-}
-
-.door-card {
-  display: flex;
-  min-height: 310px;
-  flex-direction: column;
-  padding: 28px;
-  border-inline-start: 1px solid var(--athar-line);
-  text-decoration: none;
-  transition: background-color 180ms ease, transform 180ms ease;
-}
-
-.door-card:last-child {
-  border-inline-end: 1px solid var(--athar-line);
-}
-
-.door-card:hover {
-  background: var(--athar-surface);
-  transform: translateY(-4px);
-}
-
-.door-verb {
-  color: var(--athar-gold);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.door-card h3 {
-  margin: 16px 0 8px;
-  font-family: var(--font-display);
-  font-size: 2.25rem;
-}
-
-.door-card p {
-  margin: 0;
-  color: var(--athar-ink-soft);
-  font-size: 0.9rem;
-}
-
-.door-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-block-start: auto;
-  color: var(--athar-accent);
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.migration-strip {
-  padding-block: 90px;
-  background: var(--athar-ink);
-  color: var(--athar-parchment);
-}
-
-.migration-strip-inner {
-  max-width: 880px;
-}
-
-.migration-strip .eyebrow {
-  color: var(--athar-gold);
-}
-
-.migration-strip-inner > p:last-child {
-  max-width: 660px;
-  color: color-mix(in srgb, var(--athar-parchment) 68%, transparent);
 }
 
 .reader-page {
@@ -810,77 +591,12 @@ a {
 }
 
 @media (max-width: 920px) {
-  .hero {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-
-  .hero-copy {
-    max-width: 760px;
-  }
-
-  .hero-visual {
-    width: min(680px, 100%);
-    margin-inline: auto;
-  }
-
-  .door-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .door-card:nth-child(3) {
-    border-inline-end: 1px solid var(--athar-line);
-  }
-
   .reader-page.is-page .reader-page-body {
     min-height: 820px;
   }
 }
 
 @media (max-width: 640px) {
-  .shell-width {
-    width: min(100% - 24px, 1180px);
-  }
-
-  .hero {
-    gap: 46px;
-    padding-block: 50px 70px;
-  }
-
-  .hero h1 {
-    font-size: clamp(3.2rem, 18vw, 5.2rem);
-  }
-
-  .hero-proof {
-    grid-template-columns: 1fr;
-  }
-
-  .ayah-preview {
-    min-height: 480px;
-    transform: none;
-  }
-
-  .ayah-preview-body {
-    min-height: 390px;
-    padding: 28px;
-  }
-
-  .ayah-preview .quran-text {
-    font-size: 1.55rem;
-  }
-
-  .door-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .door-card,
-  .door-card:nth-child(3),
-  .door-card:last-child {
-    min-height: 250px;
-    border-inline: 1px solid var(--athar-line);
-    border-block-end: 1px solid var(--athar-line);
-  }
-
   .reader-page.is-verse .reader-page-body {
     min-height: 420px;
     padding: 28px 22px;

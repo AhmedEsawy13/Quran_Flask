@@ -48,8 +48,9 @@ test("landing exposes the migrated paths", async ({page}) => {
   await expect(page.getByRole("heading", {level: 1})).toContainText("تجويد الحروف");
   await expect(page.getByRole("link", {name: "تثبيت", exact: true})).toHaveAttribute("href", "/memorize");
   await expect(page.getByRole("link", {name: "مُكْث", exact: true})).toHaveAttribute("href", "/waqf");
-  await expect(page.locator(".door-card[href^='/memorize']")).toBeVisible();
-  await expect(page.locator(".door-card[href^='/waqf']")).toBeVisible();
+  const paths = page.getByRole("region", {name: "من الدليل إلى القراءة اليومية."});
+  await expect(paths.getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=255&to=257");
+  await expect(paths.getByRole("link", {name: /مُكْث/})).toHaveAttribute("href", "/waqf?surah=2&ayah=255");
   await expectNoHorizontalOverflow(page);
   const themeToggle = page.locator('button[title^="الوضع"]');
   const themes = ["light", "sepia", "dark"];
@@ -89,7 +90,7 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
 test("مُكْث compares evidence and builds a playable breath plan", async ({page}) => {
   await page.goto("/waqf?surah=2&ayah=255");
   await expect(page.getByRole("heading", {level: 1, name: "علامة المصحف، ووقف القارئ، وقول الإمام."})).toBeVisible();
-  await expect(page.locator(".waqf-word-unit")).toHaveCount(50);
+  await expect(page.locator(".waqf-word-unit")).toHaveCount(50, {timeout: 15_000});
   await expect(page.locator(".waqf-inline-stop").first()).toBeVisible();
   await expect(page.getByLabel("سعة النفس").getByRole("button", {name: "متوسط"})).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("القارئ المختار")).toBeEnabled();

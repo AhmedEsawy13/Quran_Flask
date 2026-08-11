@@ -39,10 +39,10 @@ Tailwind CSS v4 provides layout and component utilities through the PostCSS
 plugin. Athar's existing `--athar-*` palette, typography, radii, and shadows
 are mapped into the Tailwind theme in `app/globals.css`.
 
-Tailwind Preflight is intentionally disabled while the legacy component CSS is
-migrated incrementally. Quran line assembly, edition fonts, glyph positioning,
-print rules, and dynamic audio rendering remain explicit CSS rather than
-utility-only styling.
+Tailwind Preflight and utility styling now cover the shared application chrome,
+landing page, and workspace controls. Quran line assembly, edition fonts, glyph
+positioning, print rules, and dynamic audio rendering remain explicit CSS where
+the renderer benefits from stable semantic selectors.
 
 ## Vercel pilot
 
