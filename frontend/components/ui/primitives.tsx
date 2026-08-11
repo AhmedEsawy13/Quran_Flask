@@ -254,15 +254,21 @@ export function PageHeader({
   title: string;
   description: string;
   className?: string;
-  density?: "editorial" | "compact";
+  density?: "editorial" | "compact" | "utility";
 }) {
   const compact = density === "compact";
+  const utility = density === "utility";
   return (
-    <header className={cn(compact ? "mb-5 max-w-[820px] md:mb-6" : "mb-8 max-w-[920px] md:mb-10", className)}>
-      <p className={cn("font-bold tracking-[0.08em] text-athar-gold", compact ? "mb-1 text-[0.7rem]" : "mb-2 text-xs")}>{eyebrow}</p>
+    <header className={cn(
+      utility ? "mb-4 max-w-[820px]" : compact ? "mb-5 max-w-[820px] md:mb-6" : "mb-8 max-w-[920px] md:mb-10",
+      className,
+    )}>
+      <p className={cn("font-bold tracking-[0.08em] text-athar-gold", utility ? "mb-0 text-[0.65rem]" : compact ? "mb-1 text-[0.7rem]" : "mb-2 text-xs")}>{eyebrow}</p>
       <h1 className={cn(
         "m-0 font-athar-display tracking-[-0.035em] text-athar-ink",
-        compact
+        utility
+          ? "max-w-[720px] text-[clamp(2.15rem,4.2vw,3.5rem)] leading-none"
+          : compact
           ? "max-w-[780px] text-[clamp(2.45rem,5.6vw,4.5rem)] leading-[1.02]"
           : "max-w-[900px] text-[clamp(2.5rem,7vw,5.25rem)] leading-[1.04]",
       )}>
@@ -270,7 +276,7 @@ export function PageHeader({
       </h1>
       <p className={cn(
         "max-w-[700px] text-athar-ink-soft",
-        compact ? "mt-2 text-xs leading-6 sm:text-sm" : "mt-4 text-sm leading-7 sm:text-base",
+        utility ? "mt-1.5 text-xs leading-5" : compact ? "mt-2 text-xs leading-6 sm:text-sm" : "mt-4 text-sm leading-7 sm:text-base",
       )}>{description}</p>
     </header>
   );

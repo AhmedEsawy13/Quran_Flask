@@ -118,6 +118,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.getByText("البقرة · ٢٥٥–٢٥٧")).toBeVisible();
   await expect(page.getByRole("button", {name: "بدء جلسة التثبيت"})).toBeEnabled();
   await expect(page.getByLabel("جلسة التكرار").locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
+  await page.locator("summary").filter({hasText: "إعدادات وخطة الجلسة"}).click();
   const sessionPlan = page.getByLabel("خطة جلسة التثبيت", {exact: true});
   await expect(sessionPlan).toContainText("ربط");
   await expect(page.getByLabel("تكرار الربط")).toBeEnabled();

@@ -272,6 +272,67 @@ export function MemorizeWorkspace() {
         </div>
       </Surface>
 
+      <MemorizePlayer
+        surahNumber={surahNumber}
+        fromAyah={fromAyah}
+        toAyah={toAyah}
+        activeAyah={activeAyah}
+        onActiveAyahChange={updateActiveAyah}
+        onWordChange={setActiveAudioWord}
+      />
+
+      <Surface as="aside" className="grid w-full gap-3 overflow-hidden rounded-athar-md border-s-4 border-s-athar-gold p-4" aria-live="polite" aria-label="التفصيل الموضوعي">
+        <header className="flex items-start justify-between gap-4">
+          <div className="grid gap-0.5">
+            <span className="text-[0.7rem] font-bold text-athar-gold">التفصيل الموضوعي</span>
+            <h2 className="m-0 font-athar-display text-[clamp(1.35rem,3vw,1.9rem)] leading-tight text-athar-ink">
+              {contextLoading ? "نراجع سياق الآية…" : visibleContext?.found ? visibleContext.title : "السياق الموضوعي"}
+            </h2>
+          </div>
+          <span className="shrink-0 rounded-full bg-athar-line-soft px-3 py-1 text-[0.7rem] font-bold text-athar-ink-soft">
+            الآية {toArabicDigits(activeAyah)}
+          </span>
+        </header>
+
+        {contextLoading ? (
+          <StatusState tone="loading">جارٍ تحميل التفصيل الموضوعي…</StatusState>
+        ) : visibleContext?.found ? (
+          <>
+            <p className="m-0 text-sm leading-7 text-athar-ink-soft sm:text-base">{visibleContext.label}</p>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between gap-3 text-[0.7rem] text-athar-ink-faint">
+                <span>تقدّمك داخل الموضوع</span>
+                <span>{toArabicDigits(contextPosition)} / {toArabicDigits(contextLength)}</span>
+              </div>
+              <ProgressBar value={contextPosition} max={contextLength} label="موضع الآية داخل المقطع الموضوعي" />
+            </div>
+            <details className="group border-t border-athar-line-soft pt-3">
+              <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-bold text-athar-ink-soft marker:content-none [&::-webkit-details-marker]:hidden">
+                <span aria-hidden="true" className="text-athar-gold transition-transform group-open:rotate-90">‹</span>
+                تفاصيل المقطع الموضوعي
+              </summary>
+              <div className="mt-3 grid gap-3">
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <StatTile
+                    label="المقطع الموضوعي"
+                    value={contextRange ? `${toArabicDigits(contextRange[0])}–${toArabicDigits(contextRange[1])}` : `${toArabicDigits(visibleContext.run_length || 1)} آيات`}
+                  />
+                  <StatTile label="الآية الحالية" value={toArabicDigits(activeAyah)} />
+                  <StatTile label="موضعها في المقطع" value={`${toArabicDigits(contextPosition)} من ${toArabicDigits(contextLength)}`} />
+                </div>
+                <p className="m-0 flex items-center gap-2 text-xs text-athar-ink-faint">
+                  <span className="size-2.5 rounded-full bg-athar-gold/35" aria-hidden="true" />
+                  التظليل الخفيف على صفحة المصحف يبيّن امتداد هذا الموضوع، والتظليل الأقوى يحدّد الآية الحالية.
+                </p>
+                {visibleContext.attribution ? <small className="text-xs text-athar-ink-faint">المصدر: {visibleContext.attribution}</small> : null}
+              </div>
+            </details>
+          </>
+        ) : (
+          <StatusState className="justify-center">لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</StatusState>
+        )}
+      </Surface>
+
       <MushafRenderer
         view="page"
         editionId={editionId}
@@ -290,59 +351,6 @@ export function MemorizeWorkspace() {
         concealFocused={concealed}
         onRetry={retry}
       />
-
-      <MemorizePlayer
-        surahNumber={surahNumber}
-        fromAyah={fromAyah}
-        toAyah={toAyah}
-        activeAyah={activeAyah}
-        onActiveAyahChange={updateActiveAyah}
-        onWordChange={setActiveAudioWord}
-      />
-
-      <Surface as="aside" className="mx-auto grid w-full max-w-[790px] gap-5 overflow-hidden rounded-athar-md border-s-4 border-s-athar-gold p-5 sm:p-6" aria-live="polite" aria-label="التفصيل الموضوعي">
-        <header className="flex items-start justify-between gap-4">
-          <div className="grid gap-1">
-            <span className="text-[0.7rem] font-bold text-athar-gold">التفصيل الموضوعي</span>
-            <h2 className="m-0 font-athar-display text-[clamp(1.8rem,4vw,2.6rem)] leading-tight text-athar-ink">
-              {contextLoading ? "نراجع سياق الآية…" : visibleContext?.found ? visibleContext.title : "السياق الموضوعي"}
-            </h2>
-          </div>
-          <span className="shrink-0 rounded-full bg-athar-line-soft px-3 py-1 text-[0.7rem] font-bold text-athar-ink-soft">
-            الآية {toArabicDigits(activeAyah)}
-          </span>
-        </header>
-
-        {contextLoading ? (
-          <StatusState tone="loading">جارٍ تحميل التفصيل الموضوعي…</StatusState>
-        ) : visibleContext?.found ? (
-          <>
-            <p className="m-0 text-sm leading-8 text-athar-ink-soft sm:text-base">{visibleContext.label}</p>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <StatTile
-                label="المقطع الموضوعي"
-                value={contextRange ? `${toArabicDigits(contextRange[0])}–${toArabicDigits(contextRange[1])}` : `${toArabicDigits(visibleContext.run_length || 1)} آيات`}
-              />
-              <StatTile label="الآية الحالية" value={toArabicDigits(activeAyah)} />
-              <StatTile label="موضعها في المقطع" value={`${toArabicDigits(contextPosition)} من ${toArabicDigits(contextLength)}`} />
-            </div>
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between gap-3 text-[0.7rem] text-athar-ink-faint">
-                <span>تقدّمك داخل الموضوع</span>
-                <span>{toArabicDigits(contextPosition)} / {toArabicDigits(contextLength)}</span>
-              </div>
-              <ProgressBar value={contextPosition} max={contextLength} label="موضع الآية داخل المقطع الموضوعي" />
-              <p className="m-0 flex items-center gap-2 text-xs text-athar-ink-faint">
-                <span className="size-2.5 rounded-full bg-athar-gold/35" aria-hidden="true" />
-                التظليل الخفيف على صفحة المصحف يبيّن امتداد هذا الموضوع، والتظليل الأقوى يحدّد الآية الحالية.
-              </p>
-            </div>
-            {visibleContext.attribution ? <small className="border-t border-athar-line-soft pt-3 text-xs text-athar-ink-faint">المصدر: {visibleContext.attribution}</small> : null}
-          </>
-        ) : (
-          <StatusState className="justify-center">لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</StatusState>
-        )}
-      </Surface>
 
       <HandoffSurface action={<a href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>}>
         التكرار المقطعي والربط التراكمي انتقلا إلى هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.
