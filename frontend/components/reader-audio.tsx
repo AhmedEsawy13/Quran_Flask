@@ -17,6 +17,7 @@ type ReaderAudioProps = {
   onAdvance: () => Promise<void> | void;
   atLastAyah: boolean;
   onWordChange: (wordIndex: number | null) => void;
+  onReciterChange?: (reciterId: string) => void;
 };
 
 type AudioResult = {
@@ -41,6 +42,7 @@ export function ReaderAudio({
   onAdvance,
   atLastAyah,
   onWordChange,
+  onReciterChange,
 }: ReaderAudioProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const cycleRef = useRef(0);
@@ -131,7 +133,8 @@ export function ReaderAudio({
 
   useEffect(() => {
     if (reciters.length) window.localStorage.setItem("athar-reader-reciter", reciterId);
-  }, [reciterId, reciters.length]);
+    onReciterChange?.(reciterId);
+  }, [reciterId, reciters.length, onReciterChange]);
 
   const completeVerse = useCallback(async () => {
     const audio = audioRef.current;

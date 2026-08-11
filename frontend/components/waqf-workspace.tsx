@@ -12,6 +12,7 @@ import {
 import { toArabicDigits } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
 import { useBoundedAudio } from "@/lib/use-bounded-audio";
+import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 import {
   Button,
   Field,
@@ -45,16 +46,6 @@ const breathLabels: Record<BreathProfile, string> = {
   short: "قصير",
   medium: "متوسط",
   long: "طويل",
-};
-
-const markLabels: Record<string, string> = {
-  "م": "وقف لازم",
-  "لا": "لا وقف",
-  "ق": "الوقف أولى",
-  "ص": "الوصل أولى",
-  "ج": "وقف جائز",
-  "ع": "وقف المعانقة",
-  "س": "سكتة",
 };
 
 function positiveInteger(value: string | null, fallback: number) {
@@ -93,12 +84,6 @@ function recommendedProfile(profiles: ReciterProfile[], breath: BreathProfile) {
   if (breath === "short") return profiles[0];
   if (breath === "long") return profiles[profiles.length - 1];
   return profiles[Math.floor((profiles.length - 1) / 2)];
-}
-
-function markTone(symbol: string) {
-  if (symbol === "م" || symbol === "ق") return "strong";
-  if (symbol === "لا") return "avoid";
-  return "neutral";
 }
 
 export function WaqfWorkspace() {
@@ -360,7 +345,7 @@ export function WaqfWorkspace() {
                         onClick={() => setSelectedStopWpos(index)}
                       >
                         {marks.slice(0, 2).map((mark, markIndex) => (
-                          <span className={`waqf-symbol is-${markTone(mark.symbol)}`} key={`${mark.mushaf}-${markIndex}`}>{mark.symbol}</span>
+                          <span className={`waqf-symbol is-${waqfMarkTone(mark.symbol)}`} key={`${mark.mushaf}-${markIndex}`}>{waqfMarkGlyph(mark.symbol)}</span>
                         ))}
                         {union ? <small>{toArabicDigits(union.count)}/{toArabicDigits(data.reciters_total)}</small> : null}
                       </button>
@@ -472,8 +457,8 @@ export function WaqfWorkspace() {
                     {selectedMarks.length ? selectedMarks.map((mark, index) => (
                       <div className="waqf-mark-row" key={`${mark.mushaf}-${index}`}>
                         <span>{mark.mushaf}</span>
-                        <strong className={`is-${markTone(mark.symbol)}`}>{mark.symbol}</strong>
-                        <small>{markLabels[mark.symbol] || "علامة وقف"}</small>
+                        <strong className={`is-${waqfMarkTone(mark.symbol)}`}>{waqfMarkGlyph(mark.symbol)}</strong>
+                        <small>{waqfMarkLabel(mark.symbol)}</small>
                       </div>
                     )) : <StatusState className="justify-center">لا تحمل المصاحف المقارنة علامةً هنا.</StatusState>}
                   </article>

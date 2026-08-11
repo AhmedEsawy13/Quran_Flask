@@ -3,6 +3,8 @@ export const MUSHAF_EDITIONS = {
     id: "digital_khatt",
     label: "المدينة ١٤٤١هـ",
     shortLabel: "رسم المدينة الحديث",
+    description: "أوضح رسم رقمي للقراءة اليومية، وفق صفحة المدينة ذات ١٥ سطرًا.",
+    waqfSource: "المدينة الجديد",
     apiBase: "digital-khatt",
     fontFamily: '"Digital Khatt", "Uthmanic Hafs", serif',
     font: {
@@ -14,6 +16,8 @@ export const MUSHAF_EDITIONS = {
     id: "qpc_v2",
     label: "المدينة ١٤٢١هـ",
     shortLabel: "الرسم الرقمي الثاني",
+    description: "نسخة رقمية أقدم قليلًا من رسم المدينة، مع توزيع الصفحة المطبوع.",
+    waqfSource: "المدينة الجديد",
     apiBase: "qpc-v2",
     fontFamily: '"Digital Khatt", "Uthmanic Hafs", serif',
     font: {
@@ -25,11 +29,40 @@ export const MUSHAF_EDITIONS = {
     id: "qpc_v1",
     label: "المدينة ١٤٠٥هـ",
     shortLabel: "طبعة المدينة القديمة",
+    description: "رسم طبعة المدينة القديمة لمن اعتاد شكلها وتوزيع كلماتها.",
+    waqfSource: "المدينة القديم",
     apiBase: "qpc-v1",
     fontFamily: '"Old Madina", "Uthmanic Hafs", serif',
     font: {
       family: "Old Madina",
       url: "/fonts/oldmadina.woff2",
+    },
+  },
+  azhar_amiri: {
+    id: "azhar_amiri",
+    label: "الأزهر — خط أميري",
+    shortLabel: "رسم الأزهر بخط أميري",
+    description: "صفحة الأزهر ذات ١٥ سطرًا، بخط أميري وعلامات وقف الأزهر الواضحة.",
+    waqfSource: "الأزهر",
+    apiBase: "azhar",
+    fontFamily: '"Amiri Quran", "Uthmanic Hafs", serif',
+    font: {
+      family: "Amiri Quran",
+      url: "/fonts/amiri-quran.woff2",
+    },
+  },
+  shamarly: {
+    id: "shamarly",
+    label: "الشمرلي — صفحات مختارة",
+    shortLabel: "رسم الشمرلي المطبوع",
+    description: "خط الصفحة الأصلي من مصحف الشمرلي؛ يتوفر حاليًا للصفحات التي اكتمل استخراج خطها فقط.",
+    waqfSource: "الشمرلي",
+    apiBase: "shamarly",
+    fontFamily: '"Uthmanic Hafs", serif',
+    dynamicPageFont: true,
+    font: {
+      family: "Uthmanic Hafs",
+      url: "/fonts/uthmanic-hafs.woff2",
     },
   },
 } as const;

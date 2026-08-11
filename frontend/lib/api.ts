@@ -185,6 +185,7 @@ export type MushafWord = {
   word_index?: number;
   word_key?: string;
   suppress_render?: boolean;
+  waqf_symbols?: string | Array<{symbols: string; version: string}>;
 };
 
 export type MushafLine = {
@@ -198,11 +199,12 @@ export type MushafLine = {
 };
 
 export type MushafPage = {
-  source: string;
+  source?: string;
   page_number: number;
   font_name: string;
   layout_name?: string;
-  lines_per_page: number;
+  lines_per_page?: number;
+  glyph_mapping_mode?: "shemrly-page-local" | "legacy-word-position" | string;
   focus_surah?: number;
   focus_ayah?: number;
   anchor_surah_number?: number;

@@ -7,6 +7,7 @@ import {
   type MushafEditionId,
   type ReaderView,
 } from "@/lib/mushaf";
+import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
 type MushafRendererProps = {
   view: ReaderView;
@@ -31,6 +32,11 @@ const AYAH_NUMBER_TOKEN = /^\u06dd?[٠-٩]+$/;
 
 function isAyahNumberToken(text: string) {
   return AYAH_NUMBER_TOKEN.test(text.trim());
+}
+
+function wordWaqfMarks(word: MushafWord) {
+  if (!Array.isArray(word.waqf_symbols)) return [];
+  return word.waqf_symbols.filter((mark) => mark.symbols.trim());
 }
 
 function buildPageAudioPositions(page: MushafPage | null, surah: number, ayah: number) {
@@ -111,6 +117,7 @@ function PageLine({
             );
             const audioPosition = audioPositions.get(word);
             const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
+            const waqfMarks = wordWaqfMarks(word);
             return (
               <span
                 className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
@@ -118,7 +125,17 @@ function PageLine({
                 aria-current={current ? "true" : undefined}
                 data-audio-index={audioPosition}
               >
-                {word.text}{" "}
+                {word.text}
+                {waqfMarks.map((mark, markIndex) => (
+                  <span
+                    className={`mushaf-print-mark is-${waqfMarkTone(mark.symbols)}`}
+                    aria-label={`${waqfMarkLabel(mark.symbols)} — ${mark.version}`}
+                    title={`${waqfMarkLabel(mark.symbols)} · ${mark.version}`}
+                    key={`${mark.version}-${mark.symbols}-${markIndex}`}
+                  >
+                    {waqfMarkGlyph(mark.symbols)}
+                  </span>
+                ))}{" "}
               </span>
             );
           })
@@ -147,8 +164,12 @@ export function MushafRenderer({
 }: MushafRendererProps) {
   const pageRef = useRef<HTMLElement>(null);
   const edition = MUSHAF_EDITIONS[editionId];
+  const shemrlyAvailable = editionId !== "shamarly" || page?.glyph_mapping_mode === "shemrly-page-local";
+  const quranFont = editionId === "shamarly" && shemrlyAvailable && page?.font_name
+    ? `"${page.font_name}", "Uthmanic Hafs", serif`
+    : edition.fontFamily;
   const style = {
-    "--reader-quran-font": edition.fontFamily,
+    "--reader-quran-font": quranFont,
   } as CSSProperties;
   const pageSurahs = page ? collectSurahNames(page, surahs) : "";
   const pageAudioPositions = buildPageAudioPositions(page, surahNumber, ayahNumber);
@@ -173,13 +194,15 @@ export function MushafRenderer({
   return (
     <article
       ref={pageRef}
-      className={`reader-page is-${view}`}
+      className={`reader-page is-${view} edition-${editionId}`}
       aria-busy={isLoading || fontLoading}
       style={style}
     >
       <header className="mushaf-head">
         <span>
-          {view === "page" && page ? juzLabelForPage(page.page_number) : edition.shortLabel}
+          {view === "page" && page && editionId !== "azhar_amiri" && editionId !== "shamarly"
+            ? juzLabelForPage(page.page_number)
+            : edition.shortLabel}
         </span>
         <span>
           {pageSurahs || (selectedSurah ? `سورة ${selectedSurah.name}` : "المصحف")}
@@ -221,6 +244,17 @@ export function MushafRenderer({
                 <p dir="ltr">{ayah.transliteration.t}</p>
               </details>
             ) : null}
+          </div>
+        ) : view === "page" && page && !shemrlyAvailable ? (
+          <div className="inline-error px-5">
+            <strong>خط الشمرلي غير متوفر لهذه الصفحة بعد</strong>
+            <span>خط الشمرلي مستخرج صفحةً صفحة؛ اختر رسمًا آخر هنا، أو افتح آية من الصفحات المكتملة.</span>
+            <a
+              className="rounded-lg border border-athar-line px-3 py-1.5 text-xs font-bold text-athar-accent no-underline hover:border-athar-accent"
+              href="/read?surah=11&ayah=121&view=page&edition=shamarly"
+            >
+              شاهد صفحة مكتملة من الشمرلي
+            </a>
           </div>
         ) : view === "page" && page ? (
           <div className="mushaf-lines" aria-label={`صفحة ${page.page_number}`}>

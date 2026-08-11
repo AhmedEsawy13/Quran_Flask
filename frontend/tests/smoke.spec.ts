@@ -32,15 +32,28 @@ async function expectReadableTheme(page: Page) {
       faint: value("--athar-ink-faint"),
       gold: value("--athar-gold"),
       onAccent: value("--athar-on-accent"),
+      negative: value("--athar-negative"),
+      positive: value("--athar-positive"),
       soft: value("--athar-ink-soft"),
       surface: value("--athar-surface"),
     };
   });
-  for (const foreground of [colors.accent, colors.faint, colors.gold, colors.soft]) {
+  for (const foreground of [colors.accent, colors.faint, colors.gold, colors.negative, colors.positive, colors.soft]) {
     expect(contrastRatio(foreground, colors.canvas)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(foreground, colors.surface)).toBeGreaterThanOrEqual(4.5);
   }
   expect(contrastRatio(colors.onAccent, colors.accent)).toBeGreaterThanOrEqual(4.5);
+}
+
+async function expectThemeCycle(page: Page) {
+  const themeToggle = page.locator('button[title^="الوضع"]');
+  const themes = ["light", "sepia", "dark"];
+  for (const [index, theme] of themes.entries()) {
+    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
+    await expectReadableTheme(page);
+    if (index < themes.length - 1) await themeToggle.click();
+  }
+  await themeToggle.click();
 }
 
 test("landing exposes the migrated paths", async ({page}) => {
@@ -52,14 +65,7 @@ test("landing exposes the migrated paths", async ({page}) => {
   await expect(paths.getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=255&to=257");
   await expect(paths.getByRole("link", {name: /مُكْث/})).toHaveAttribute("href", "/waqf?surah=2&ayah=255");
   await expectNoHorizontalOverflow(page);
-  const themeToggle = page.locator('button[title^="الوضع"]');
-  const themes = ["light", "sepia", "dark"];
-  for (const [index, theme] of themes.entries()) {
-    await expect(page.locator("html")).toHaveAttribute("data-theme", theme);
-    await expectReadableTheme(page);
-    if (index < themes.length - 1) await themeToggle.click();
-  }
-  await themeToggle.click();
+  await expectThemeCycle(page);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByRole("link", {name: "المصحف", exact: true}).click();
   await expect(page).toHaveURL(/\/read(?:\?|$)/);
@@ -69,9 +75,11 @@ test("landing exposes the migrated paths", async ({page}) => {
 
 test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await page.goto("/read?surah=2&ayah=256");
-  await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
+  await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible({timeout: 15_000});
   await expect(page.getByRole("button", {name: "المتشابهات"})).toBeVisible();
   await expect(page.getByRole("button", {name: "سبب النزول"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "افهم ما تراه قبل أن تقرأ"})).toBeVisible();
+  await expect(page.getByLabel("أهم رموز الوقف")).toContainText("لا تقف هنا");
   const studyTrigger = page.getByRole("button", {name: "أدوات الدراسة", exact: true});
   await expect(studyTrigger).not.toHaveAttribute("aria-controls");
   await studyTrigger.click();
@@ -81,9 +89,24 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(closeStudy).toBeFocused();
   await closeStudy.click();
   await expect(studyTrigger).toBeFocused();
-  await expect(page.getByRole("region", {name: "مشغّل التلاوة"})).toBeVisible();
-  await expect(page.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
+  const readerAudio = page.getByRole("region", {name: "مشغّل التلاوة"});
+  await expect(readerAudio).toBeVisible();
+  await expect(readerAudio.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   await expect(page.getByRole("button", {name: "تشغيل التلاوة"})).toBeEnabled();
+  await page.getByRole("combobox", {name: "رسم الصفحة"}).selectOption("azhar_amiri");
+  await expect(page).toHaveURL(/edition=azhar_amiri/);
+  const printedWaqfMark = page.locator(".reader-page.edition-azhar_amiri .mushaf-print-mark").first();
+  await expect(printedWaqfMark).toBeVisible({timeout: 15_000});
+  await expect(printedWaqfMark).toHaveText(/[ۖ-ۜ]/);
+  await page.getByRole("button", {name: "افتح دليل التلاوة"}).click();
+  await expect(page.getByRole("region", {name: "دليل التلاوة"})).toContainText("بصوت", {timeout: 15_000});
+  await expect(page.getByLabel("مقاطع دليل التلاوة").getByRole("button").first()).toBeVisible();
+  await page.getByRole("combobox", {name: "رسم الصفحة"}).selectOption("shamarly");
+  await expect(page.getByText("خط الشمرلي غير متوفر لهذه الصفحة بعد")).toBeVisible({timeout: 15_000});
+  await expect(page.getByRole("link", {name: "شاهد صفحة مكتملة من الشمرلي"})).toHaveAttribute("href", "/read?surah=11&ayah=121&view=page&edition=shamarly");
+  await page.goto("/read?surah=11&ayah=121&view=page&edition=shamarly");
+  await expect(page.locator(".reader-page.edition-shamarly .mushaf-lines")).toBeVisible({timeout: 15_000});
+  await expect.poll(() => page.evaluate(() => document.fonts.check('16px "Shemrly-Page193"'))).toBe(true);
   await expectNoHorizontalOverflow(page);
 });
 
@@ -95,6 +118,7 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await expect(waqfGuide.getByRole("link", {name: "قارن الشهادات", exact: true})).toHaveAttribute("href", "#waqf-comparison-title");
   await expect(page.locator(".waqf-word-unit")).toHaveCount(50, {timeout: 15_000});
   await expect(page.locator(".waqf-inline-stop").first()).toBeVisible();
+  await expect(page.locator(".waqf-symbol").first()).toHaveText(/[ۖ-ۜ]/);
   await expect(page.getByLabel("سعة النفس").getByRole("button", {name: "متوسط"})).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("القارئ المختار")).toBeEnabled();
   const firstPhrase = page.getByLabel("مقاطع القارئ").getByRole("button").first();
@@ -107,6 +131,7 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await expect(page.getByRole("heading", {name: "قول الإمام", exact: true})).toBeVisible();
   await expect(page.getByRole("link", {name: "مختبر الوقف", exact: true})).toHaveAttribute("href", /waqf-lab/);
   await expect(page.getByRole("link", {name: "قارن الشهادات ↓", exact: true})).toHaveAttribute("href", "#waqf-comparison-title");
+  await expectThemeCycle(page);
   const shortBreath = page.getByLabel("سعة النفس").getByRole("button", {name: "قصير"});
   await shortBreath.evaluate((button: HTMLButtonElement) => button.click());
   await expect(shortBreath).toHaveAttribute("aria-pressed", "true");

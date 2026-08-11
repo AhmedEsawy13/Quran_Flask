@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
           source: "/backend-api/:path*",
           destination: `${apiOrigin}/api/:path*`,
         },
+        {
+          source: "/backend-fonts/:path*",
+          destination: `${apiOrigin}/static/fonts/:path*`,
+        },
       ],
       afterFiles: [],
       fallback: [],
@@ -27,6 +31,15 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/fonts/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/backend-fonts/:path*",
         headers: [
           {
             key: "Cache-Control",

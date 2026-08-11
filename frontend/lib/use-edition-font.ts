@@ -5,11 +5,16 @@ import { MUSHAF_EDITIONS, type MushafEditionId } from "@/lib/mushaf";
 
 const loadedFonts = new Map<string, Promise<void>>();
 
-export function useEditionFont(editionId: MushafEditionId) {
+export function useEditionFont(editionId: MushafEditionId, pageFontName?: string) {
   const [fontLoading, setFontLoading] = useState(false);
 
   useEffect(() => {
-    const descriptor = MUSHAF_EDITIONS[editionId].font;
+    const edition = MUSHAF_EDITIONS[editionId];
+    const usesPageFont = "dynamicPageFont" in edition && edition.dynamicPageFont &&
+      Boolean(pageFontName && /^[A-Za-z0-9-]+$/.test(pageFontName));
+    const descriptor = usesPageFont
+      ? {family: pageFontName as string, url: `/backend-fonts/${encodeURIComponent(pageFontName as string)}.woff2`}
+      : edition.font;
     if (!descriptor || typeof FontFace === "undefined") return;
     let active = true;
     let promise = loadedFonts.get(descriptor.family);
@@ -33,7 +38,7 @@ export function useEditionFont(editionId: MushafEditionId) {
     return () => {
       active = false;
     };
-  }, [editionId]);
+  }, [editionId, pageFontName]);
 
   return fontLoading;
 }

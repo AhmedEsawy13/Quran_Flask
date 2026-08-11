@@ -95,7 +95,7 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
       <div className="min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-athar-line bg-[var(--bar-background)] px-2 pt-1.5 pb-[max(.4rem,env(safe-area-inset-bottom))] shadow-[0_-12px_35px_rgba(24,23,15,.08)] backdrop-blur-xl md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-athar-line bg-[var(--bar-background)] px-2 pt-1.5 pb-[max(.4rem,env(safe-area-inset-bottom))] shadow-[var(--athar-nav-shadow)] backdrop-blur-xl md:hidden"
         aria-label="التنقل الرئيسي"
       >
         {navItems.map((item) => {

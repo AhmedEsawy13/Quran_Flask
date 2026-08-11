@@ -14,6 +14,7 @@ import {
 import { legacyUrl } from "@/lib/paths";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { ReaderAudio } from "@/components/reader-audio";
+import { ReaderMushafGuide } from "@/components/reader-mushaf-guide";
 import { ReaderStudy } from "@/components/reader-study";
 import { Button, Field, HandoffSurface, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
@@ -65,9 +66,13 @@ export function ReaderWorkspace() {
   const [retryToken, setRetryToken] = useState(0);
   const [moving, setMoving] = useState(false);
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
-  const fontLoading = useEditionFont(editionId);
+  const [reciterId, setReciterId] = useState("husary");
   const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${retryToken}`;
   const visibleResult = contentResult.requestKey === requestKey ? contentResult : null;
+  const pageFontName = editionId === "shamarly" && visibleResult?.page?.glyph_mapping_mode === "shemrly-page-local"
+    ? visibleResult.page.font_name
+    : undefined;
+  const fontLoading = useEditionFont(editionId, pageFontName);
   const isContentLoading = positionReady && visibleResult === null;
 
   useEffect(() => {
@@ -135,8 +140,9 @@ export function ReaderWorkspace() {
     if (!positionReady) return;
     const controller = new AbortController();
     const edition = MUSHAF_EDITIONS[editionId];
+    const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
     const path = view === "page"
-      ? `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}`
+      ? `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${usesExplicitMarks ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}` : ""}`
       : `/backend-api/surahs/${surahNumber}/ayahs/${ayahNumber}?source=qpc_hafs`;
     getJson<Ayah | MushafPage>(path, controller.signal)
       .then((data) => {
@@ -277,7 +283,7 @@ export function ReaderWorkspace() {
             {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
           </SelectControl>
         </Field>
-        <Field label="طبعة المصحف">
+        <Field label="رسم الصفحة">
           <SelectControl value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
             {Object.values(MUSHAF_EDITIONS).map((edition) => (
               <option key={edition.id} value={edition.id}>{edition.label}</option>
@@ -308,6 +314,7 @@ export function ReaderWorkspace() {
         onAdvance={advanceAfterAudio}
         atLastAyah={atLastAyah}
         onWordChange={setActiveAudioWord}
+        onReciterChange={setReciterId}
       />
 
       <ReaderStudy
@@ -316,6 +323,13 @@ export function ReaderWorkspace() {
         initialAyah={visibleResult?.ayah || null}
         surahs={surahs}
         onNavigate={navigateToVerse}
+      />
+
+      <ReaderMushafGuide
+        surahNumber={surahNumber}
+        ayahNumber={ayahNumber}
+        editionId={editionId}
+        reciterId={reciterId}
       />
 
       <MushafRenderer

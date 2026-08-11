@@ -331,7 +331,7 @@ export function ReaderStudy({
                         </span>
                         <span className="font-athar-quran text-xl leading-8" dir="rtl">
                           {match.words.map((word, index) => (
-                            <span className={differing.has(index) ? "rounded bg-red-700/10 px-0.5 text-[color-mix(in_srgb,var(--athar-ink)_38%,#d65342)] underline decoration-red-700/50 decoration-2 underline-offset-4" : undefined} key={`${match.verse_key}-${index}`}>
+                            <span className={differing.has(index) ? "rounded bg-athar-negative/10 px-0.5 text-athar-negative underline decoration-athar-negative/50 decoration-2 underline-offset-4" : undefined} key={`${match.verse_key}-${index}`}>
                               {word}{" "}
                             </span>
                           ))}

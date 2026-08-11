@@ -68,11 +68,14 @@ export function MemorizeWorkspace() {
   const [retryToken, setRetryToken] = useState(0);
   const [pageResult, setPageResult] = useState<PageResult>({key: "", page: null, error: ""});
   const [contextResult, setContextResult] = useState<ContextResult>({key: "", data: null});
-  const fontLoading = useEditionFont(editionId);
   const edition = MUSHAF_EDITIONS[editionId];
   const pageKey = `${editionId}:${surahNumber}:${activeAyah}:${retryToken}`;
   const contextKey = `${surahNumber}:${activeAyah}:${retryToken}`;
   const visiblePage = pageResult.key === pageKey ? pageResult : null;
+  const pageFontName = editionId === "shamarly" && visiblePage?.page?.glyph_mapping_mode === "shemrly-page-local"
+    ? visiblePage.page.font_name
+    : undefined;
+  const fontLoading = useEditionFont(editionId, pageFontName);
   const visibleContext = contextResult.key === contextKey ? contextResult.data : null;
   const contextLoading = contextResult.key !== contextKey;
   const selectedSurah = useMemo(
@@ -139,8 +142,9 @@ export function MemorizeWorkspace() {
 
   useEffect(() => {
     const controller = new AbortController();
+    const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
     getJson<MushafPage>(
-      `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${activeAyah}`,
+      `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${activeAyah}${usesExplicitMarks ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}` : ""}`,
       controller.signal,
     )
       .then((page) => setPageResult({key: pageKey, page, error: ""}))
@@ -153,7 +157,7 @@ export function MemorizeWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [edition.apiBase, editionId, surahNumber, activeAyah, retryToken, pageKey]);
+  }, [edition.apiBase, edition.waqfSource, editionId, surahNumber, activeAyah, retryToken, pageKey]);
 
   useEffect(() => {
     const controller = new AbortController();
