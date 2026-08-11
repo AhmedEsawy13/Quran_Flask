@@ -160,6 +160,23 @@ export function ReaderAudio({
     if (autoAdvance && !atLastAyah) await onAdvance();
   }, [verse, repeatCount, duration, autoAdvance, atLastAyah, onAdvance, onWordChange]);
 
+  useEffect(() => {
+    if (!isPlaying || !verse) return;
+    let frame = 0;
+    const followPlayback = () => {
+      const audio = audioRef.current;
+      if (!audio || audio.paused) return;
+      const current = audio.currentTime;
+      updateActiveWord(current, verse);
+      if (current >= verse.end - 0.06 && !boundaryHandledRef.current) {
+        void completeVerse();
+      }
+      frame = window.requestAnimationFrame(followPlayback);
+    };
+    frame = window.requestAnimationFrame(followPlayback);
+    return () => window.cancelAnimationFrame(frame);
+  }, [isPlaying, verse, updateActiveWord, completeVerse]);
+
   const togglePlayback = useCallback(async () => {
     const audio = audioRef.current;
     if (!audio || !verse) return;

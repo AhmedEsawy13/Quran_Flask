@@ -248,6 +248,7 @@ export function ReaderWorkspace() {
       setMoving(false);
     }
   }, [moving, currentIndex, ayahNumbers, surahNumber, loadAyahNumbers]);
+  const advanceAfterAudio = useCallback(() => move(1), [move]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -351,7 +352,7 @@ export function ReaderWorkspace() {
       <ReaderAudio
         surahNumber={surahNumber}
         ayahNumber={ayahNumber}
-        onAdvance={() => move(1)}
+        onAdvance={advanceAfterAudio}
         atLastAyah={atLastAyah}
         onWordChange={setActiveAudioWord}
       />

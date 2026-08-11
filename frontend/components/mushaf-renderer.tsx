@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import type { Ayah, MushafLine, MushafPage, MushafWord, Surah } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
@@ -125,6 +125,7 @@ export function MushafRenderer({
   activeAudioWord,
   onRetry,
 }: MushafRendererProps) {
+  const pageRef = useRef<HTMLElement>(null);
   const edition = MUSHAF_EDITIONS[editionId];
   const style = {
     "--reader-quran-font": edition.fontFamily,
@@ -132,8 +133,26 @@ export function MushafRenderer({
   const pageSurahs = page ? collectSurahNames(page, surahs) : "";
   const pageAudioPositions = buildPageAudioPositions(page, surahNumber, ayahNumber);
 
+  useEffect(() => {
+    if (activeAudioWord === null) return;
+    const activeWord = pageRef.current?.querySelector<HTMLElement>(
+      `[data-audio-index="${activeAudioWord}"]`,
+    );
+    if (!activeWord) return;
+    const rect = activeWord.getBoundingClientRect();
+    const safeInset = Math.min(120, window.innerHeight * 0.18);
+    if (rect.top >= safeInset && rect.bottom <= window.innerHeight - safeInset) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    activeWord.scrollIntoView({
+      block: "center",
+      inline: "nearest",
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  }, [activeAudioWord, view, page?.page_number, ayah?.verse_key]);
+
   return (
     <article
+      ref={pageRef}
       className={`reader-page is-${view}`}
       aria-busy={isLoading || fontLoading}
       style={style}
