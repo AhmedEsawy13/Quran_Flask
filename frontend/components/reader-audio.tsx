@@ -9,7 +9,7 @@ import {
 } from "@/lib/api";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
-import { Button, CheckControl, Field, IconButton, PlaybackTimeline, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
+import { Button, CheckControl, Field, PlaybackTimeline, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 
 type ReaderAudioProps = {
   surahNumber: number;
@@ -45,7 +45,6 @@ export function ReaderAudio({
   const audioRef = useRef<HTMLAudioElement>(null);
   const cycleRef = useRef(0);
   const boundaryHandledRef = useRef(false);
-  const [expanded, setExpanded] = useState(false);
   const [reciters, setReciters] = useState<Reciter[]>([]);
   const [reciterId, setReciterId] = useState("husary");
   const [audioResult, setAudioResult] = useState<AudioResult>({key: "", data: null, error: ""});
@@ -56,7 +55,7 @@ export function ReaderAudio({
   const audioKey = `${surahNumber}:${reciterId}`;
   const visibleAudio = audioResult.key === audioKey ? audioResult.data : null;
   const audioError = audioResult.key === audioKey ? audioResult.error : "";
-  const loading = expanded && audioResult.key !== audioKey;
+  const loading = audioResult.key !== audioKey;
   const verse = useMemo(
     () => visibleAudio?.verses.find((item) => item.ayah === ayahNumber) || null,
     [visibleAudio, ayahNumber],
@@ -87,7 +86,6 @@ export function ReaderAudio({
   }, []);
 
   useEffect(() => {
-    if (!expanded) return;
     const cached = audioCache.get(audioKey);
     if (cached) {
       queueMicrotask(() => setAudioResult({key: audioKey, data: cached, error: ""}));
@@ -111,7 +109,7 @@ export function ReaderAudio({
         });
       });
     return () => controller.abort();
-  }, [expanded, audioKey, surahNumber, reciterId]);
+  }, [audioKey, surahNumber, reciterId]);
 
   const seekToVerseStart = useCallback((timing: VerseTiming | null) => {
     const audio = audioRef.current;
@@ -201,23 +199,8 @@ export function ReaderAudio({
     }
   }, [verse]);
 
-  if (!expanded) {
-    return (
-      <Button
-        className="mx-auto min-h-0 w-full max-w-[790px] justify-start rounded-athar-md bg-[color-mix(in_srgb,var(--athar-accent)_5%,var(--athar-surface))] p-4 text-start hover:bg-[color-mix(in_srgb,var(--athar-accent)_9%,var(--athar-surface))]"
-        onClick={() => setExpanded(true)}
-      >
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-athar-accent text-athar-on-accent" aria-hidden="true">◉</span>
-        <span className="grid gap-0.5">
-          <strong>استمع إلى الآية</strong>
-          <small className="font-normal text-athar-ink-faint">التوقيت والتكرار حسب القارئ</small>
-        </span>
-      </Button>
-    );
-  }
-
   return (
-    <Surface as="section" className="mx-auto w-full max-w-[790px] rounded-athar-md p-5" aria-label="مشغّل التلاوة">
+    <Surface as="section" className="mx-auto w-full max-w-[790px] rounded-athar-md p-3 sm:p-3.5" aria-label="مشغّل التلاوة">
       <audio
         ref={audioRef}
         src={backendMediaUrl(visibleAudio?.audio_url)}
@@ -233,24 +216,15 @@ export function ReaderAudio({
           if (current >= verse.end - 0.06 && !boundaryHandledRef.current) void completeVerse();
         }}
       />
-      <div className="flex items-start justify-between gap-5">
-        <div className="grid gap-0.5">
-          <span className="text-[0.7rem] font-bold text-athar-gold">التلاوة</span>
-          <strong className="text-athar-ink">{visibleAudio?.reciter_name_ar || "اختر القارئ"}</strong>
-        </div>
-        <IconButton label="إغلاق مشغّل التلاوة" className="size-9 text-xl" onClick={() => {
-          audioRef.current?.pause();
-          onWordChange(null);
-          setExpanded(false);
-        }}>×</IconButton>
-      </div>
-
-      {audioError ? <StatusState tone="error" className="mt-4 justify-center">{audioError}</StatusState> : null}
-      <div className="my-5 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4" aria-busy={loading}>
+      {audioError ? <StatusState tone="error" className="mb-3 justify-center">{audioError}</StatusState> : null}
+      <div
+        className="grid grid-cols-[auto_minmax(0,1fr)] items-end gap-3 lg:grid-cols-[auto_minmax(180px,1fr)_minmax(190px,.85fr)_minmax(100px,.35fr)_auto]"
+        aria-busy={loading}
+      >
         <Button
           size="icon"
           variant="primary"
-          className="size-[54px] text-base"
+          className="size-11 text-sm"
           onClick={() => void togglePlayback()}
           disabled={!verse || loading}
           aria-label={isPlaying ? "إيقاف التلاوة مؤقتًا" : "تشغيل التلاوة"}
@@ -275,10 +249,7 @@ export function ReaderAudio({
             }
           }}
         />
-      </div>
-
-      <div className="grid items-end gap-3 border-t border-athar-line-soft pt-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(105px,.55fr)_auto]">
-        <Field label="القارئ">
+        <Field label="القارئ" className="col-span-2 border-t border-athar-line-soft pt-3 lg:col-span-1 lg:border-0 lg:pt-0">
           <SelectControl value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
             {reciters.length ? reciters.map((reciter) => (
               <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>

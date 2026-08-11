@@ -81,7 +81,7 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(closeStudy).toBeFocused();
   await closeStudy.click();
   await expect(studyTrigger).toBeFocused();
-  await page.getByRole("button", {name: /استمع إلى الآية/}).click();
+  await expect(page.getByRole("region", {name: "مشغّل التلاوة"})).toBeVisible();
   await expect(page.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   await expect(page.getByRole("button", {name: "تشغيل التلاوة"})).toBeEnabled();
   await expectNoHorizontalOverflow(page);

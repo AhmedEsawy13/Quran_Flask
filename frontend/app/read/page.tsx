@@ -13,11 +13,12 @@ export const metadata: Metadata = {
 
 export default function ReaderPage() {
   return (
-    <main id="athar-main" className={cn(pageContainerClassName, "py-8 pb-24 sm:py-10 md:py-14 md:pb-28")} tabIndex={-1}>
+    <main id="athar-main" className={cn(pageContainerClassName, "py-5 pb-24 sm:py-6 md:py-8 md:pb-28")} tabIndex={-1}>
       <PageHeader
         eyebrow="المصحف — القراءة الهادئة"
         title="اقرأ المصحــف، ودع الأدوات تأتي إليك."
         description="تنقّل بالرسم صفحةً كاملة أو آيةً مركّزة، واختر طبعة المدينة التي ترتاح لها. موضعك محفوظ والرابط يعيدك إلى القراءة نفسها."
+        density="compact"
       />
       <Suspense
         fallback={<RouteSkeleton label="جارٍ تجهيز المصحف" />}

@@ -248,19 +248,30 @@ export function PageHeader({
   title,
   description,
   className,
+  density = "editorial",
 }: {
   eyebrow: string;
   title: string;
   description: string;
   className?: string;
+  density?: "editorial" | "compact";
 }) {
+  const compact = density === "compact";
   return (
-    <header className={cn("mb-8 max-w-[920px] md:mb-10", className)}>
-      <p className="mb-2 text-xs font-bold tracking-[0.08em] text-athar-gold">{eyebrow}</p>
-      <h1 className="m-0 max-w-[900px] font-athar-display text-[clamp(2.5rem,7vw,5.25rem)] leading-[1.04] tracking-[-0.035em] text-athar-ink">
+    <header className={cn(compact ? "mb-5 max-w-[820px] md:mb-6" : "mb-8 max-w-[920px] md:mb-10", className)}>
+      <p className={cn("font-bold tracking-[0.08em] text-athar-gold", compact ? "mb-1 text-[0.7rem]" : "mb-2 text-xs")}>{eyebrow}</p>
+      <h1 className={cn(
+        "m-0 font-athar-display tracking-[-0.035em] text-athar-ink",
+        compact
+          ? "max-w-[780px] text-[clamp(2.45rem,5.6vw,4.5rem)] leading-[1.02]"
+          : "max-w-[900px] text-[clamp(2.5rem,7vw,5.25rem)] leading-[1.04]",
+      )}>
         {title}
       </h1>
-      <p className="mt-4 max-w-[700px] text-sm leading-7 text-athar-ink-soft sm:text-base">{description}</p>
+      <p className={cn(
+        "max-w-[700px] text-athar-ink-soft",
+        compact ? "mt-2 text-xs leading-6 sm:text-sm" : "mt-4 text-sm leading-7 sm:text-base",
+      )}>{description}</p>
     </header>
   );
 }

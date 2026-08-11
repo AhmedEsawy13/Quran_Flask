@@ -237,7 +237,7 @@ export function ReaderWorkspace() {
   }, [move, atFirstAyah, atLastAyah]);
 
   return (
-    <section className="grid gap-4 sm:gap-[18px]" aria-label="قارئ المصحف">
+    <section className="grid gap-3.5 sm:gap-4" aria-label="قارئ المصحف">
       <Surface
         variant="toolbar"
         className="grid grid-cols-2 items-end gap-2 rounded-athar-md p-3 sm:grid-cols-4 md:sticky md:top-[calc(var(--bar-height)+.5rem)] md:z-20 lg:grid-cols-[auto_minmax(150px,1fr)_minmax(92px,.45fr)_minmax(165px,1fr)_auto] lg:gap-3 lg:p-3.5"
@@ -302,22 +302,6 @@ export function ReaderWorkspace() {
         </StatusState>
       ) : null}
 
-      <MushafRenderer
-        view={view}
-        editionId={editionId}
-        ayah={visibleResult?.ayah || null}
-        page={visibleResult?.page || null}
-        surahs={surahs}
-        selectedSurah={selectedSurah}
-        surahNumber={surahNumber}
-        ayahNumber={ayahNumber}
-        isLoading={!positionReady || isContentLoading}
-        error={visibleResult?.error || ""}
-        fontLoading={fontLoading}
-        activeAudioWord={activeAudioWord}
-        onRetry={retry}
-      />
-
       <ReaderAudio
         surahNumber={surahNumber}
         ayahNumber={ayahNumber}
@@ -332,6 +316,22 @@ export function ReaderWorkspace() {
         initialAyah={visibleResult?.ayah || null}
         surahs={surahs}
         onNavigate={navigateToVerse}
+      />
+
+      <MushafRenderer
+        view={view}
+        editionId={editionId}
+        ayah={visibleResult?.ayah || null}
+        page={visibleResult?.page || null}
+        surahs={surahs}
+        selectedSurah={selectedSurah}
+        surahNumber={surahNumber}
+        ayahNumber={ayahNumber}
+        isLoading={!positionReady || isContentLoading}
+        error={visibleResult?.error || ""}
+        fontLoading={fontLoading}
+        activeAudioWord={activeAudioWord}
+        onRetry={retry}
       />
 
       <HandoffSurface action={<a href={legacyUrl(`/read?surah=${surahNumber}&ayah=${ayahNumber}`)}>أدوات القراءة السابقة</a>}>
