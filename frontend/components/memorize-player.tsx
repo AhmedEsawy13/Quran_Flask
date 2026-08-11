@@ -13,6 +13,16 @@ import {
 } from "@/lib/memorize-schedule";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
+import {
+  Button,
+  CheckControl,
+  Field,
+  ProgressBar,
+  SelectControl,
+  StatTile,
+  StatusState,
+  Surface,
+} from "@/components/ui/primitives";
 
 type MemorizePlayerProps = {
   surahNumber: number;
@@ -290,7 +300,7 @@ export function MemorizePlayer({
   }, [goToStep, setPlaying]);
 
   return (
-    <section className="memorize-player" aria-label="جلسة التكرار">
+    <Surface as="section" className="mx-auto w-full max-w-[790px] rounded-athar-md p-5 sm:p-6" aria-label="جلسة التكرار">
       <audio
         ref={audioRef}
         src={backendMediaUrl(visibleAudio?.audio_url)}
@@ -313,58 +323,46 @@ export function MemorizePlayer({
         }}
       />
 
-      <header className="memorize-player-head">
-        <div>
-          <span className="reader-panel-kicker">التكرار التراكمي</span>
-          <strong>{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</strong>
-          <small>
+      <header className="flex items-start justify-between gap-5">
+        <div className="grid gap-0.5">
+          <span className="text-[0.7rem] font-bold text-athar-gold">التكرار التراكمي</span>
+          <strong className="text-athar-ink">{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</strong>
+          <small className="text-athar-ink-faint">
             {currentStep?.label || `الآية ${toArabicDigits(activeAyah)}`}
             {currentStep && currentStep.repetitionTotal > 1
               ? ` · ${toArabicDigits(currentStep.repetition)} من ${toArabicDigits(currentStep.repetitionTotal)}`
               : ""}
           </small>
         </div>
-        <span className={`memorize-player-state${isPlaying ? " is-live" : ""}`}>
+        <span className={`shrink-0 rounded-full px-3 py-1 text-[0.7rem] font-bold ${isPlaying ? "bg-athar-accent/10 text-athar-accent" : "bg-athar-line-soft text-athar-ink-faint"}`}>
           {loading ? "يُحمّل" : isPlaying ? "يُتلى الآن" : "جاهز"}
         </span>
       </header>
 
-      {audioError ? <div className="reader-panel-error" role="alert">{audioError}</div> : null}
+      {audioError ? <StatusState tone="error" className="mt-4">{audioError}</StatusState> : null}
 
-      <div className="memorize-plan" aria-label="خطة جلسة التثبيت" aria-live="polite">
-        <div>
-          <span>الخطوة</span>
-          <strong>{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
-        </div>
-        <div>
-          <span>النمط</span>
-          <strong>{currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"}</strong>
-        </div>
-        <div>
-          <span>المتبقي التقريبي</span>
-          <strong>{formatTime(remainingDuration)}</strong>
-        </div>
-        <div>
-          <span>بنية الجلسة</span>
-          <strong>
-            {splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}
-            {cumulative ? " + ربط تراكمي" : ""}
-          </strong>
-        </div>
+      <div className="my-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="خطة جلسة التثبيت" aria-live="polite">
+        <StatTile label="الخطوة" value={schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"} />
+        <StatTile label="النمط" value={currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"} />
+        <StatTile label="المتبقي التقريبي" value={formatTime(remainingDuration)} />
+        <StatTile label="بنية الجلسة" value={`${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`} />
+        <ProgressBar className="sm:col-span-2 lg:col-span-4" value={stepIndex + (elapsed > 0 ? Math.min(1, elapsed / Math.max(0.001, duration)) : 0)} max={Math.max(1, schedule.length)} label="تقدّم خطة جلسة التثبيت" />
       </div>
 
-      <div className="reader-audio-controls">
-        <button
-          type="button"
-          className="reader-play"
+      <div className="my-5 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4">
+        <Button
+          size="icon"
+          variant="primary"
+          className="size-[58px] text-base"
           onClick={() => void togglePlayback()}
           disabled={!currentStep || loading}
           aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
         >
           {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
-        </button>
-        <div className="reader-audio-timeline">
+        </Button>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[0.7rem] tabular-nums text-athar-ink-faint max-[520px]:grid-cols-1">
           <input
+            className="w-full accent-athar-accent"
             type="range"
             min="0"
             max={duration || 1}
@@ -387,43 +385,34 @@ export function MemorizePlayer({
         </div>
       </div>
 
-      <div className="memorize-stepper" aria-label="التنقل بين خطوات التثبيت">
-        <button type="button" onClick={() => void goToStep(stepIndex - 1, isPlaying)} disabled={stepIndex <= 0}>الخطوة السابقة</button>
-        <button type="button" onClick={() => void goToStep(stepIndex + 1, isPlaying)} disabled={!schedule.length || stepIndex >= schedule.length - 1}>الخطوة التالية</button>
+      <div className="flex justify-end gap-2 pb-4" aria-label="التنقل بين خطوات التثبيت">
+        <Button size="sm" variant="quiet" onClick={() => void goToStep(stepIndex - 1, isPlaying)} disabled={stepIndex <= 0}>الخطوة السابقة</Button>
+        <Button size="sm" onClick={() => void goToStep(stepIndex + 1, isPlaying)} disabled={!schedule.length || stepIndex >= schedule.length - 1}>الخطوة التالية</Button>
       </div>
 
-      <div className="memorize-player-options">
-        <label><span>القارئ</span>
-          <select value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
+      <div className="grid items-end gap-2 border-t border-athar-line-soft pt-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Field label="القارئ" className="sm:col-span-2 lg:col-span-1">
+          <SelectControl value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
             {reciters.length ? reciters.map((reciter) => (
               <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
             )) : <option>جارٍ تحميل القرّاء…</option>}
-          </select>
-        </label>
-        <label><span>تكرار الوحدة</span>
-          <select value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
+          </SelectControl>
+        </Field>
+        <Field label="تكرار الوحدة">
+          <SelectControl value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
             {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-          </select>
-        </label>
-        <label><span>تكرار الربط</span>
-          <select value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
+          </SelectControl>
+        </Field>
+        <Field label="تكرار الربط">
+          <SelectControl value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
             {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-          </select>
-        </label>
-        <label className="reader-audio-check">
-          <input type="checkbox" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
-          <span>ربط تراكمي</span>
-        </label>
-        <label className="reader-audio-check">
-          <input type="checkbox" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
-          <span>قسّم حسب الوقف</span>
-        </label>
-        <label className="reader-audio-check">
-          <input type="checkbox" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
-          <span>أعد النطاق</span>
-        </label>
-        <button type="button" className="memorize-reset" onClick={resetSession}>ابدأ النطاق من أوله</button>
+          </SelectControl>
+        </Field>
+        <CheckControl label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
+        <CheckControl label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
+        <CheckControl label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
+        <Button className="sm:col-span-2 lg:col-span-3" variant="quiet" onClick={resetSession}>ابدأ النطاق من أوله</Button>
       </div>
-    </section>
+    </Surface>
   );
 }

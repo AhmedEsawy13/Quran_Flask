@@ -240,7 +240,7 @@ export function ReaderWorkspace() {
     <section className="grid gap-4 sm:gap-[18px]" aria-label="قارئ المصحف">
       <Surface
         variant="toolbar"
-        className="sticky top-[calc(var(--bar-height)+.5rem)] z-20 grid grid-cols-2 items-end gap-2 rounded-athar-md p-3 sm:grid-cols-4 lg:grid-cols-[auto_minmax(150px,1fr)_minmax(92px,.45fr)_minmax(165px,1fr)_auto] lg:gap-3 lg:p-3.5"
+        className="grid grid-cols-2 items-end gap-2 rounded-athar-md p-3 sm:grid-cols-4 md:sticky md:top-[calc(var(--bar-height)+.5rem)] md:z-20 lg:grid-cols-[auto_minmax(150px,1fr)_minmax(92px,.45fr)_minmax(165px,1fr)_auto] lg:gap-3 lg:p-3.5"
       >
         <SegmentedControl
           label="طريقة العرض"

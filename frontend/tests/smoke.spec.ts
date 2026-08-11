@@ -31,6 +31,7 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(page.getByRole("button", {name: "سبب النزول"})).toBeVisible();
   await page.getByRole("button", {name: "أدوات الدراسة"}).click();
   await expect(page.locator(`.reader-study-links a[href='/memorize?surah=2&from=256&to=256']`)).toBeVisible();
+  await page.getByRole("dialog").getByRole("button", {name: "إغلاق أدوات الدراسة"}).click();
   await page.getByRole("button", {name: /استمع إلى الآية/}).click();
   await expect(page.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   await expect(page.getByRole("button", {name: "تشغيل التلاوة"})).toBeEnabled();
@@ -47,7 +48,7 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   const firstPhrase = page.getByLabel("مقاطع القارئ").getByRole("button").first();
   await expect(firstPhrase).toBeEnabled();
   await firstPhrase.evaluate((button: HTMLButtonElement) => button.click());
-  await expect(page.locator(".waqf-audio")).toHaveAttribute("src", /.+/);
+  await expect(page.getByLabel("مساحة مُكْث لدراسة الوقف").locator("audio")).toHaveAttribute("src", /.+/);
   await expect(page.getByRole("tab", {selected: true})).toBeVisible();
   await expect(page.getByRole("heading", {name: "علامات المصاحف"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "وقوف القرّاء"})).toBeVisible();
@@ -63,10 +64,12 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.goto("/memorize?surah=2&from=255&to=257");
   await expect(page.getByRole("heading", {level: 1, name: "كرّر، أخفِ، ثم استحضر."})).toBeVisible();
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
+  await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
+  await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
   await expect(page.getByText("البقرة · ٢٥٥–٢٥٧")).toBeVisible();
   await expect(page.getByRole("button", {name: "بدء جلسة التثبيت"})).toBeEnabled();
-  await expect(page.locator(".memorize-player audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
-  const sessionPlan = page.getByLabel("خطة جلسة التثبيت");
+  await expect(page.getByLabel("جلسة التكرار").locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
+  const sessionPlan = page.getByLabel("خطة جلسة التثبيت", {exact: true});
   await expect(sessionPlan).toContainText("ربط");
   await expect(page.getByLabel("تكرار الربط")).toBeEnabled();
   await expect(page.getByLabel("ربط تراكمي")).toBeChecked();
@@ -83,6 +86,6 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.getByLabel("قسّم حسب الوقف").check();
   await page.getByRole("button", {name: "اختبر حفظي"}).click();
   await expect(page.locator(".mushaf-word.is-concealed").first()).toBeVisible();
-  await expect(page.locator(".memorize-context")).not.toContainText("جارٍ");
+  await expect(page.getByLabel("التفصيل الموضوعي")).not.toContainText("جارٍ");
   await expectNoHorizontalOverflow(page);
 });

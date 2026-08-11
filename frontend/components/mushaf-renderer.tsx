@@ -22,6 +22,7 @@ type MushafRendererProps = {
   fontLoading: boolean;
   activeAudioWord: number | null;
   focusRange?: readonly [number, number];
+  contextRange?: readonly [number, number];
   concealFocused?: boolean;
   onRetry: () => void;
 };
@@ -70,6 +71,7 @@ function PageLine({
   audioPositions,
   activeAudioWord,
   focusRange,
+  contextRange,
   concealFocused,
 }: {
   line: MushafLine;
@@ -78,6 +80,7 @@ function PageLine({
   audioPositions: Map<MushafWord, number>;
   activeAudioWord: number | null;
   focusRange?: readonly [number, number];
+  contextRange?: readonly [number, number];
   concealFocused?: boolean;
 }) {
   if (line.line_type === "surah_name") {
@@ -102,13 +105,17 @@ function PageLine({
                 ? wordAyah >= focusRange[0] && wordAyah <= focusRange[1]
                 : wordAyah === ayahNumber
             );
+            const current = Number(word.surah) === surahNumber && wordAyah === ayahNumber;
+            const contextual = Number(word.surah) === surahNumber && Boolean(
+              contextRange && wordAyah >= contextRange[0] && wordAyah <= contextRange[1]
+            );
             const audioPosition = audioPositions.get(word);
             const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
             return (
               <span
-                className={`mushaf-word${focused ? " is-focus" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
+                className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
                 key={word.word_key || `${word.word_index ?? "word"}-${index}`}
-                aria-current={focused ? "true" : undefined}
+                aria-current={current ? "true" : undefined}
                 data-audio-index={audioPosition}
               >
                 {word.text}{" "}
@@ -134,6 +141,7 @@ export function MushafRenderer({
   fontLoading,
   activeAudioWord,
   focusRange,
+  contextRange,
   concealFocused,
   onRetry,
 }: MushafRendererProps) {
@@ -225,6 +233,7 @@ export function MushafRenderer({
                 audioPositions={pageAudioPositions}
                 activeAudioWord={activeAudioWord}
                 focusRange={focusRange}
+                contextRange={contextRange}
                 concealFocused={concealFocused}
               />
             ))}

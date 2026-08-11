@@ -4,6 +4,7 @@ import {
   useEffect,
   useId,
   type ButtonHTMLAttributes,
+  type ChangeEventHandler,
   type HTMLAttributes,
   type ReactNode,
   type SelectHTMLAttributes,
@@ -66,7 +67,7 @@ export function Surface({
   className,
   ...props
 }: HTMLAttributes<HTMLElement> & {as?: "div" | "section" | "article" | "aside"; variant?: SurfaceVariant}) {
-  return <Component className={cn("border", surfaceVariants[variant], className)} {...props} />;
+  return <Component className={cn("min-w-0 border", surfaceVariants[variant], className)} {...props} />;
 }
 
 export function Field({
@@ -98,6 +99,57 @@ export function SelectControl({className, ...props}: SelectHTMLAttributes<HTMLSe
       )}
       {...props}
     />
+  );
+}
+
+export function CheckControl({
+  label,
+  checked,
+  onChange,
+  disabled,
+  className,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: ChangeEventHandler<HTMLInputElement>;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <label className={cn(
+      "flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-athar-line px-3 text-sm text-athar-ink-soft transition-colors has-checked:border-athar-accent/40 has-checked:bg-athar-accent/5 has-checked:text-athar-accent has-disabled:cursor-not-allowed has-disabled:opacity-45",
+      className,
+    )}>
+      <input
+        className="accent-athar-accent"
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        disabled={disabled}
+      />
+      <span>{label}</span>
+    </label>
+  );
+}
+
+export function StatTile({label, value, className}: {label: string; value: ReactNode; className?: string}) {
+  return (
+    <div className={cn("grid min-w-0 gap-0.5 rounded-xl border border-athar-line-soft bg-athar-line-soft px-3 py-2.5", className)}>
+      <span className="text-[0.68rem] text-athar-ink-faint">{label}</span>
+      <strong className="truncate text-sm text-athar-ink">{value}</strong>
+    </div>
+  );
+}
+
+export function ProgressBar({value, max, label, className}: {value: number; max: number; label: string; className?: string}) {
+  const boundedMax = Math.max(1, max);
+  const percentage = Math.max(0, Math.min(100, (value / boundedMax) * 100));
+  return (
+    <div className={cn("grid gap-1.5", className)} aria-label={label} role="progressbar" aria-valuemin={0} aria-valuemax={boundedMax} aria-valuenow={Math.max(0, Math.min(value, boundedMax))}>
+      <div className="h-1.5 overflow-hidden rounded-full bg-athar-line">
+        <span className="block h-full rounded-full bg-athar-accent transition-[width] duration-300" style={{width: `${percentage}%`}} />
+      </div>
+    </div>
   );
 }
 
@@ -155,6 +207,34 @@ export function PageHeader({
         {title}
       </h1>
       <p className="mt-4 max-w-[700px] text-sm leading-7 text-athar-ink-soft sm:text-base">{description}</p>
+    </header>
+  );
+}
+
+export function SectionHeader({
+  eyebrow,
+  title,
+  description,
+  action,
+  id,
+  className,
+}: {
+  eyebrow: string;
+  title: string;
+  description?: ReactNode;
+  action?: ReactNode;
+  id?: string;
+  className?: string;
+}) {
+  return (
+    <header className={cn("mb-5 flex flex-col items-start justify-between gap-4 sm:flex-row", className)}>
+      <div className="grid gap-1">
+        <span className="text-[0.7rem] font-bold text-athar-gold">{eyebrow}</span>
+        <h2 id={id} className="m-0 font-athar-display text-[clamp(1.8rem,4vw,3rem)] leading-tight text-athar-ink">{title}</h2>
+      </div>
+      {action || description ? (
+        <div className="max-w-[390px] text-xs leading-6 text-athar-ink-faint">{action || description}</div>
+      ) : null}
     </header>
   );
 }

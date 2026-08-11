@@ -19,6 +19,15 @@ import { legacyUrl } from "@/lib/paths";
 import { useEditionFont } from "@/lib/use-edition-font";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { MemorizePlayer } from "@/components/memorize-player";
+import {
+  Button,
+  Field,
+  ProgressBar,
+  SelectControl,
+  StatTile,
+  StatusState,
+  Surface,
+} from "@/components/ui/primitives";
 
 type PageResult = {
   key: string;
@@ -64,11 +73,19 @@ export function MemorizeWorkspace() {
   const contextKey = `${surahNumber}:${activeAyah}:${retryToken}`;
   const visiblePage = pageResult.key === pageKey ? pageResult : null;
   const visibleContext = contextResult.key === contextKey ? contextResult.data : null;
+  const contextLoading = contextResult.key !== contextKey;
   const selectedSurah = useMemo(
     () => surahs.find((surah) => surah.number === surahNumber),
     [surahs, surahNumber],
   );
   const rangeLength = Math.max(1, toAyah - fromAyah + 1);
+  const contextRange = visibleContext?.found && visibleContext.from?.surah === surahNumber && visibleContext.to?.surah === surahNumber
+    ? [visibleContext.from.ayah, visibleContext.to.ayah] as const
+    : undefined;
+  const contextPosition = contextRange
+    ? Math.max(1, Math.min(contextRange[1] - contextRange[0] + 1, activeAyah - contextRange[0] + 1))
+    : 1;
+  const contextLength = contextRange ? contextRange[1] - contextRange[0] + 1 : Math.max(1, visibleContext?.run_length || 1);
   const updateActiveAyah = useCallback((ayah: number) => {
     setActiveAyah(ayah);
     setActiveAudioWord(null);
@@ -186,68 +203,73 @@ export function MemorizeWorkspace() {
   };
 
   return (
-    <section className="memorize-workspace" aria-label="مساحة تثبيت الحفظ">
-      <div className="memorize-toolbar">
-        <label><span>السورة</span>
-          <select value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
+    <section className="grid gap-4 sm:gap-[18px]" aria-label="مساحة تثبيت الحفظ">
+      <Surface
+        variant="toolbar"
+        className="grid grid-cols-2 items-end gap-2 rounded-athar-md p-3 sm:grid-cols-4 md:sticky md:top-[calc(var(--bar-height)+.5rem)] md:z-20 lg:grid-cols-[minmax(150px,1.4fr)_repeat(2,minmax(92px,.55fr))_minmax(160px,1fr)_auto] lg:gap-3 lg:p-3.5"
+      >
+        <Field label="السورة" className="col-span-2 sm:col-span-2 lg:col-span-1">
+          <SelectControl value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
             {!surahs.length ? <option>جارٍ التحميل…</option> : null}
             {surahs.map((surah) => (
               <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
             ))}
-          </select>
-        </label>
-        <label><span>من آية</span>
-          <select value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
+          </SelectControl>
+        </Field>
+        <Field label="من آية">
+          <SelectControl value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
             {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
-          </select>
-        </label>
-        <label><span>إلى آية</span>
-          <select value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
+          </SelectControl>
+        </Field>
+        <Field label="إلى آية">
+          <SelectControl value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
             {ayahNumbers.filter((number) => number >= fromAyah).map((number) => (
               <option key={number} value={number}>{toArabicDigits(number)}</option>
             ))}
-          </select>
-        </label>
-        <label><span>طبعة المصحف</span>
-          <select value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
+          </SelectControl>
+        </Field>
+        <Field label="طبعة المصحف" className="col-span-2 sm:col-span-3 lg:col-span-1">
+          <SelectControl value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
             {Object.values(MUSHAF_EDITIONS).map((item) => (
               <option key={item.id} value={item.id}>{item.label}</option>
             ))}
-          </select>
-        </label>
-        <button
-          type="button"
-          className={`memorize-hide${concealed ? " is-on" : ""}`}
+          </SelectControl>
+        </Field>
+        <Button
+          className="col-span-2 sm:col-span-1"
+          variant={concealed ? "primary" : "secondary"}
           aria-pressed={concealed}
           onClick={() => setConcealed((value) => !value)}
         >
           {concealed ? "أظهر نص النطاق" : "اختبر حفظي"}
-        </button>
-      </div>
+        </Button>
+      </Surface>
 
       {catalogError ? (
-        <div className="reader-alert" role="alert">
-          <span>{catalogError}</span>
-          <button type="button" onClick={retry}>أعد المحاولة</button>
-        </div>
+        <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
+          {catalogError}
+        </StatusState>
       ) : null}
 
-      <div className="memorize-session-strip" aria-label="ملخص نطاق التثبيت">
-        <div>
-          <span>النطاق المختار</span>
-          <strong>
-            {selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · {toArabicDigits(fromAyah)}–{toArabicDigits(toAyah)}
-          </strong>
+      <Surface variant="subtle" className="grid gap-4 rounded-athar-md p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center" aria-label="ملخص نطاق التثبيت">
+        <StatTile
+          label="النطاق المختار"
+          value={`${selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)}`}
+          className="bg-athar-surface"
+        />
+        <div className="grid gap-2">
+          <StatTile
+            label="موضع الجلسة"
+            value={`الآية ${toArabicDigits(activeAyah)} · ${toArabicDigits(activeAyah - fromAyah + 1)} من ${toArabicDigits(rangeLength)}`}
+            className="bg-athar-surface"
+          />
+          <ProgressBar value={activeAyah - fromAyah + 1} max={rangeLength} label="تقدّم نطاق التثبيت" />
         </div>
-        <div>
-          <span>موضع الجلسة</span>
-          <strong>الآية {toArabicDigits(activeAyah)} · {toArabicDigits(activeAyah - fromAyah + 1)} من {toArabicDigits(rangeLength)}</strong>
+        <div className="flex gap-2">
+          <Button size="sm" variant="quiet" onClick={() => updateActiveAyah(activeAyah - 1)} disabled={activeAyah <= fromAyah}>السابقة</Button>
+          <Button size="sm" onClick={() => updateActiveAyah(activeAyah + 1)} disabled={activeAyah >= toAyah}>التالية</Button>
         </div>
-        <div className="reader-stepper">
-          <button type="button" onClick={() => updateActiveAyah(activeAyah - 1)} disabled={activeAyah <= fromAyah}>السابقة</button>
-          <button type="button" onClick={() => updateActiveAyah(activeAyah + 1)} disabled={activeAyah >= toAyah}>التالية</button>
-        </div>
-      </div>
+      </Surface>
 
       <MushafRenderer
         view="page"
@@ -263,6 +285,7 @@ export function MemorizeWorkspace() {
         fontLoading={fontLoading}
         activeAudioWord={activeAudioWord}
         focusRange={[fromAyah, toAyah]}
+        contextRange={contextRange}
         concealFocused={concealed}
         onRetry={retry}
       />
@@ -276,23 +299,54 @@ export function MemorizeWorkspace() {
         onWordChange={setActiveAudioWord}
       />
 
-      <aside className="memorize-context" aria-live="polite">
-        <span className="reader-panel-kicker">التفصيل الموضوعي</span>
-        {visibleContext?.found ? (
+      <Surface as="aside" className="mx-auto grid w-full max-w-[790px] gap-5 overflow-hidden rounded-athar-md border-s-4 border-s-athar-gold p-5 sm:p-6" aria-live="polite" aria-label="التفصيل الموضوعي">
+        <header className="flex items-start justify-between gap-4">
+          <div className="grid gap-1">
+            <span className="text-[0.7rem] font-bold text-athar-gold">التفصيل الموضوعي</span>
+            <h2 className="m-0 font-athar-display text-[clamp(1.8rem,4vw,2.6rem)] leading-tight text-athar-ink">
+              {contextLoading ? "نراجع سياق الآية…" : visibleContext?.found ? visibleContext.title : "السياق الموضوعي"}
+            </h2>
+          </div>
+          <span className="shrink-0 rounded-full bg-athar-line-soft px-3 py-1 text-[0.7rem] font-bold text-athar-ink-soft">
+            الآية {toArabicDigits(activeAyah)}
+          </span>
+        </header>
+
+        {contextLoading ? (
+          <StatusState tone="loading">جارٍ تحميل التفصيل الموضوعي…</StatusState>
+        ) : visibleContext?.found ? (
           <>
-            <strong>{visibleContext.title}</strong>
-            <p>{visibleContext.label}</p>
-            <small>{visibleContext.attribution}</small>
+            <p className="m-0 text-sm leading-8 text-athar-ink-soft sm:text-base">{visibleContext.label}</p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <StatTile
+                label="المقطع الموضوعي"
+                value={contextRange ? `${toArabicDigits(contextRange[0])}–${toArabicDigits(contextRange[1])}` : `${toArabicDigits(visibleContext.run_length || 1)} آيات`}
+              />
+              <StatTile label="الآية الحالية" value={toArabicDigits(activeAyah)} />
+              <StatTile label="موضعها في المقطع" value={`${toArabicDigits(contextPosition)} من ${toArabicDigits(contextLength)}`} />
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between gap-3 text-[0.7rem] text-athar-ink-faint">
+                <span>تقدّمك داخل الموضوع</span>
+                <span>{toArabicDigits(contextPosition)} / {toArabicDigits(contextLength)}</span>
+              </div>
+              <ProgressBar value={contextPosition} max={contextLength} label="موضع الآية داخل المقطع الموضوعي" />
+              <p className="m-0 flex items-center gap-2 text-xs text-athar-ink-faint">
+                <span className="size-2.5 rounded-full bg-athar-gold/35" aria-hidden="true" />
+                التظليل الخفيف على صفحة المصحف يبيّن امتداد هذا الموضوع، والتظليل الأقوى يحدّد الآية الحالية.
+              </p>
+            </div>
+            {visibleContext.attribution ? <small className="border-t border-athar-line-soft pt-3 text-xs text-athar-ink-faint">المصدر: {visibleContext.attribution}</small> : null}
           </>
         ) : (
-          <p>لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</p>
+          <StatusState className="justify-center">لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</StatusState>
         )}
-      </aside>
+      </Surface>
 
-      <div className="reader-handoff">
+      <Surface variant="subtle" className="flex flex-col items-start justify-between gap-3 rounded-athar-md p-5 text-sm text-athar-ink-soft sm:flex-row sm:items-center">
         <span>التكرار المقطعي والربط التراكمي انتقلا إلى هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.</span>
-        <a href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>
-      </div>
+        <a className="shrink-0 font-bold text-athar-accent" href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>
+      </Surface>
     </section>
   );
 }
