@@ -2,11 +2,16 @@ import { useEffect, useRef, type CSSProperties } from "react";
 import type { Ayah, MushafLine, MushafPage, MushafWord, Surah } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
-  juzLabelForPage,
+  juzHeaderGlyph,
+  juzLabel,
+  juzNumberForPage,
+  juzNumberFromAyah,
+  surahHeaderGlyph,
   toArabicDigits,
   type MushafEditionId,
   type ReaderView,
 } from "@/lib/mushaf";
+import { justifyMushafLines } from "@/lib/mushaf-page-layout";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
 type MushafRendererProps = {
@@ -56,7 +61,7 @@ function buildPageAudioPositions(page: MushafPage | null, surah: number, ayah: n
   return positions;
 }
 
-function collectSurahNames(page: MushafPage, surahs: Surah[]) {
+function collectPageSurahs(page: MushafPage, surahs: Surah[]) {
   const numbers = new Set<number>();
   page.lines.forEach((line) => {
     const lineSurah = Number(line.surah_number);
@@ -65,9 +70,26 @@ function collectSurahNames(page: MushafPage, surahs: Surah[]) {
   });
   if (!numbers.size && page.anchor_surah_number) numbers.add(page.anchor_surah_number);
   return [...numbers]
-    .map((number) => surahs.find((surah) => surah.number === number)?.name)
-    .filter(Boolean)
-    .join(" · ");
+    .map((number) => ({
+      number,
+      name: surahs.find((surah) => surah.number === number)?.name || toArabicDigits(number),
+    }));
+}
+
+function firstPageVerse(page: MushafPage, fallbackSurah: number, fallbackAyah: number) {
+  for (const line of page.lines) {
+    for (const word of line.words) {
+      const surah = Number(word.surah);
+      const ayah = Number(word.ayah);
+      if (Number.isInteger(surah) && Number.isInteger(ayah) && surah > 0 && ayah > 0) {
+        return {surah, ayah};
+      }
+    }
+  }
+  return {
+    surah: Number(page.anchor_surah_number) || fallbackSurah,
+    ayah: fallbackAyah,
+  };
 }
 
 function PageLine({
@@ -90,7 +112,16 @@ function PageLine({
   concealFocused?: boolean;
 }) {
   if (line.line_type === "surah_name") {
-    return <div className="mushaf-surah-banner">{line.display_text}</div>;
+    const lineSurahNumber = Number(line.surah_number);
+    const glyph = surahHeaderGlyph(lineSurahNumber);
+    return (
+      <div
+        className={`mushaf-surah-banner${glyph ? " has-glyph" : ""}`}
+        aria-label={line.display_text || `سورة ${toArabicDigits(lineSurahNumber)}`}
+      >
+        {glyph || line.display_text}
+      </div>
+    );
   }
 
   if (line.line_type === "basmallah" || line.line_type === "surah_info") {
@@ -100,46 +131,49 @@ function PageLine({
   return (
     <div
       className={`mushaf-line${line.is_centered ? " is-centered" : ""}`}
+      data-justify={line.is_centered ? undefined : "true"}
       data-focus={line.contains_focus_ayah ? "true" : undefined}
     >
-      {line.words.length
-        ? line.words.map((word, index) => {
-            if (word.suppress_render) return null;
-            const wordAyah = Number(word.ayah);
-            const focused = Number(word.surah) === surahNumber && (
-              focusRange
-                ? wordAyah >= focusRange[0] && wordAyah <= focusRange[1]
-                : wordAyah === ayahNumber
-            );
-            const current = Number(word.surah) === surahNumber && wordAyah === ayahNumber;
-            const contextual = Number(word.surah) === surahNumber && Boolean(
-              contextRange && wordAyah >= contextRange[0] && wordAyah <= contextRange[1]
-            );
-            const audioPosition = audioPositions.get(word);
-            const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
-            const waqfMarks = wordWaqfMarks(word);
-            return (
-              <span
-                className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
-                key={word.word_key || `${word.word_index ?? "word"}-${index}`}
-                aria-current={current ? "true" : undefined}
-                data-audio-index={audioPosition}
-              >
-                {word.text}
-                {waqfMarks.map((mark, markIndex) => (
-                  <span
-                    className={`mushaf-print-mark is-${waqfMarkTone(mark.symbols)}`}
-                    aria-label={`${waqfMarkLabel(mark.symbols)} — ${mark.version}`}
-                    title={`${waqfMarkLabel(mark.symbols)} · ${mark.version}`}
-                    key={`${mark.version}-${mark.symbols}-${markIndex}`}
-                  >
-                    {waqfMarkGlyph(mark.symbols)}
-                  </span>
-                ))}{" "}
-              </span>
-            );
-          })
-        : line.display_text}
+      <div className="mushaf-line-inner">
+        {line.words.length
+          ? line.words.map((word, index) => {
+              if (word.suppress_render) return null;
+              const wordAyah = Number(word.ayah);
+              const focused = Number(word.surah) === surahNumber && (
+                focusRange
+                  ? wordAyah >= focusRange[0] && wordAyah <= focusRange[1]
+                  : wordAyah === ayahNumber
+              );
+              const current = Number(word.surah) === surahNumber && wordAyah === ayahNumber;
+              const contextual = Number(word.surah) === surahNumber && Boolean(
+                contextRange && wordAyah >= contextRange[0] && wordAyah <= contextRange[1]
+              );
+              const audioPosition = audioPositions.get(word);
+              const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
+              const waqfMarks = wordWaqfMarks(word);
+              return (
+                <span
+                  className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
+                  key={word.word_key || `${word.word_index ?? "word"}-${index}`}
+                  aria-current={current ? "true" : undefined}
+                  data-audio-index={audioPosition}
+                >
+                  {word.text}
+                  {waqfMarks.map((mark, markIndex) => (
+                    <span
+                      className={`mushaf-print-mark is-${waqfMarkTone(mark.symbols)}`}
+                      aria-label={`${waqfMarkLabel(mark.symbols)} — ${mark.version}`}
+                      title={`${waqfMarkLabel(mark.symbols)} · ${mark.version}`}
+                      key={`${mark.version}-${mark.symbols}-${markIndex}`}
+                    >
+                      {waqfMarkGlyph(mark.symbols)}
+                    </span>
+                  ))}{" "}
+                </span>
+              );
+            })
+          : line.display_text}
+      </div>
     </div>
   );
 }
@@ -171,8 +205,17 @@ export function MushafRenderer({
   const style = {
     "--reader-quran-font": quranFont,
   } as CSSProperties;
-  const pageSurahs = page ? collectSurahNames(page, surahs) : "";
+  const pageSurahs = page
+    ? collectPageSurahs(page, surahs)
+    : selectedSurah ? [{number: selectedSurah.number, name: selectedSurah.name}] : [];
   const pageAudioPositions = buildPageAudioPositions(page, surahNumber, ayahNumber);
+  const firstVerse = page
+    ? firstPageVerse(page, surahNumber, ayahNumber)
+    : {surah: surahNumber, ayah: ayahNumber};
+  const juzNumber = view === "page" && page && editionId !== "azhar_amiri" && editionId !== "shamarly"
+    ? juzNumberForPage(page.page_number)
+    : juzNumberFromAyah(firstVerse.surah, firstVerse.ayah);
+  const juzName = juzLabel(juzNumber);
 
   useEffect(() => {
     if (activeAudioWord === null) return;
@@ -191,6 +234,30 @@ export function MushafRenderer({
     });
   }, [activeAudioWord, view, page?.page_number, ayah?.verse_key]);
 
+  useEffect(() => {
+    const root = pageRef.current;
+    if (!root || view !== "page" || !page || !shemrlyAvailable || fontLoading) return;
+    let frame = 0;
+    let active = true;
+    const fit = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        if (active) justifyMushafLines(root, editionId);
+      });
+    };
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(fit);
+    observer?.observe(root);
+    fit();
+    document.fonts?.ready.then(() => {
+      if (active) fit();
+    });
+    return () => {
+      active = false;
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
+  }, [editionId, fontLoading, page, shemrlyAvailable, view]);
+
   return (
     <article
       ref={pageRef}
@@ -199,13 +266,22 @@ export function MushafRenderer({
       style={style}
     >
       <header className="mushaf-head">
-        <span>
-          {view === "page" && page && editionId !== "azhar_amiri" && editionId !== "shamarly"
-            ? juzLabelForPage(page.page_number)
-            : edition.shortLabel}
+        <span className="mushaf-head-juz">
+          <span className="mushaf-head-juz-glyph" aria-label={juzName} title={juzName}>
+            {juzHeaderGlyph(juzNumber)}
+          </span>
         </span>
-        <span>
-          {pageSurahs || (selectedSurah ? `سورة ${selectedSurah.name}` : "المصحف")}
+        <span className="mushaf-head-surahs">
+          {pageSurahs.length ? pageSurahs.map((surah) => (
+            <span
+              className="mushaf-head-surah-glyph"
+              aria-label={`سورة ${surah.name}`}
+              title={`سورة ${surah.name}`}
+              key={surah.number}
+            >
+              {surahHeaderGlyph(surah.number) || `سورة ${surah.name}`}
+            </span>
+          )) : <span>المصحف</span>}
         </span>
       </header>
 

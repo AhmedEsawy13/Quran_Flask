@@ -76,6 +76,15 @@ test("landing exposes the migrated paths", async ({page}) => {
 test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await page.goto("/read?surah=2&ayah=256");
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible({timeout: 15_000});
+  await expect(page.locator(".mushaf-head-juz-glyph")).toHaveText(/[\ue001-\ue01e]/);
+  await expect(page.locator(".mushaf-head-surah-glyph").first()).toHaveText(/[\ufb00-\ufcff]/);
+  await expect.poll(() => page.evaluate(() => (
+    document.fonts.check('16px "QCF Common"') && document.fonts.check('16px "Surah Names"')
+  ))).toBe(true);
+  await expect.poll(() => page.locator('.mushaf-line[data-justify="true"] .mushaf-line-inner').first().evaluate((line) => {
+    const spacing = Number.parseFloat(getComputedStyle(line).wordSpacing);
+    return Number.isFinite(spacing) ? spacing : 0;
+  })).toBeLessThanOrEqual(4.1);
   await expect(page.getByRole("button", {name: "المتشابهات"})).toBeVisible();
   await expect(page.getByRole("button", {name: "سبب النزول"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "افهم ما تراه قبل أن تقرأ"})).toBeVisible();

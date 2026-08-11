@@ -24,6 +24,20 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "QCF Common";
+  src: url("/backend-fonts/quran-common.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Surah Names";
+  src: url("/backend-fonts/surah_names.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   --font-display: "Thmanyah Display", Georgia, serif;
   --font-ui: "Thmanyah Sans", system-ui, sans-serif;
@@ -169,7 +183,38 @@ a {
 }
 
 .mushaf-head {
+  min-height: 58px;
+  padding-block: 5px 8px;
   border-block-end: 1px solid var(--athar-line-soft);
+  overflow: visible;
+}
+
+.mushaf-head-juz,
+.mushaf-head-surahs {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.mushaf-head-surahs {
+  gap: 12px;
+}
+
+.mushaf-head-juz-glyph {
+  color: var(--athar-ink);
+  font-family: "QCF Common", serif;
+  font-size: 1.7rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.mushaf-head-surah-glyph {
+  color: var(--athar-ink);
+  font-family: "Surah Names", serif;
+  font-size: 1.3rem;
+  font-weight: 400;
+  line-height: 1.55;
 }
 
 .mushaf-foot {
@@ -294,19 +339,33 @@ a {
 }
 
 .mushaf-line {
+  display: flex;
   width: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
   padding-inline: 5px;
-  text-align: justify;
-  text-align-last: justify;
-  white-space: nowrap;
+  direction: rtl;
 }
 
-.mushaf-line.is-centered {
+.mushaf-line-inner {
+  display: inline-block;
+  white-space: nowrap;
+  font-family: inherit;
+  font-feature-settings: normal;
+  font-variation-settings: normal;
+  line-height: 1.08;
+  transform-origin: center center;
+}
+
+.mushaf-line.is-centered .mushaf-line-inner {
   text-align: center;
-  text-align-last: center;
 }
 
 .mushaf-word {
+  display: inline-block;
+  position: relative;
+  padding-block-start: 0.14em;
   border-radius: 5px;
   transition: background-color 140ms ease, color 140ms ease;
 }
@@ -385,6 +444,8 @@ a {
 }
 
 .mushaf-surah-banner {
+  position: relative;
+  align-self: center;
   width: min(100%, 520px);
   margin-inline: auto;
   padding: 2px 22px;
@@ -394,6 +455,44 @@ a {
   font-size: 0.83rem;
   font-weight: 700;
   text-align: center;
+}
+
+.mushaf-surah-banner.has-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0.06em 1.8em;
+  border: 1px solid var(--athar-gold);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--athar-gold) 7%, var(--athar-surface));
+  box-shadow:
+    inset 0 0 0 2px var(--athar-surface),
+    inset 0 0 0 3px color-mix(in srgb, var(--athar-gold) 48%, transparent);
+  color: color-mix(in srgb, var(--athar-gold) 78%, var(--athar-ink));
+  font-family: "Surah Names", serif;
+  font-size: 1.42rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.mushaf-surah-banner.has-glyph::before,
+.mushaf-surah-banner.has-glyph::after {
+  content: "۞";
+  position: absolute;
+  inset-block-start: 50%;
+  color: var(--athar-gold);
+  font-family: "Digital Khatt", "Uthmanic Hafs", serif;
+  font-size: 0.88em;
+  transform: translateY(-50%);
+}
+
+.mushaf-surah-banner.has-glyph::before {
+  inset-inline-start: 0.55em;
+}
+
+.mushaf-surah-banner.has-glyph::after {
+  inset-inline-end: 0.55em;
 }
 
 .mushaf-special-line {
