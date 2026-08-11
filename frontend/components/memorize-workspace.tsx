@@ -290,8 +290,8 @@ export function MemorizeWorkspace() {
       </aside>
 
       <div className="reader-handoff">
-        <span>التقسيم الصوتي المتقدم، الربط التراكمي، والتسميع الصوتي ما زالت في النسخة السابقة أثناء إكمال النقل.</span>
-        <a href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>أدوات تثبيت المتقدمة</a>
+        <span>التكرار المقطعي والربط التراكمي انتقلا إلى هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.</span>
+        <a href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>
       </div>
     </section>
   );

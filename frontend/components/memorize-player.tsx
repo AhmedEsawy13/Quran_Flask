@@ -7,6 +7,10 @@ import {
   type Reciter,
   type VerseTiming,
 } from "@/lib/api";
+import {
+  buildMemorizationSchedule,
+  firstStepForAyah,
+} from "@/lib/memorize-schedule";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
 
@@ -26,13 +30,20 @@ type AudioResult = {
 };
 
 const audioCache = new Map<string, MemorizationAudio>();
-const repetitionOptions = [1, 3, 5, 10] as const;
+const unitRepetitionOptions = [1, 2, 3, 5, 7, 10] as const;
+const linkRepetitionOptions = [1, 2, 3] as const;
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "٠:٠٠";
   const minutes = Math.floor(seconds / 60);
   const remainder = Math.floor(seconds % 60).toString().padStart(2, "0");
   return toArabicDigits(`${minutes}:${remainder}`);
+}
+
+function timingAt(verses: VerseTiming[], currentTime: number) {
+  return verses.find(
+    (verse) => currentTime >= verse.start - 0.025 && currentTime < verse.end + 0.025,
+  ) || null;
 }
 
 export function MemorizePlayer({
@@ -45,36 +56,124 @@ export function MemorizePlayer({
 }: MemorizePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const boundaryHandledRef = useRef(false);
-  const repetitionRef = useRef(0);
-  const resumeAfterVerseRef = useRef(false);
+  const stepIndexRef = useRef(0);
+  const playingRef = useRef(false);
+  const internalAyahRef = useRef<number | null>(null);
+  const activeAyahRef = useRef(activeAyah);
   const [reciters, setReciters] = useState<Reciter[]>([]);
   const [reciterId, setReciterId] = useState("husary");
   const [audioResult, setAudioResult] = useState<AudioResult>({key: "", data: null, error: ""});
   const [isPlaying, setIsPlaying] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [repetition, setRepetition] = useState<(typeof repetitionOptions)[number]>(3);
-  const [repetitionCycle, setRepetitionCycle] = useState(1);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [unitRepetitions, setUnitRepetitions] = useState<(typeof unitRepetitionOptions)[number]>(3);
+  const [linkRepetitions, setLinkRepetitions] = useState<(typeof linkRepetitionOptions)[number]>(1);
+  const [cumulative, setCumulative] = useState(true);
+  const [splitAtPauses, setSplitAtPauses] = useState(true);
   const [loopRange, setLoopRange] = useState(false);
+
   const audioKey = `${surahNumber}:${reciterId}`;
   const visibleAudio = audioResult.key === audioKey ? audioResult.data : null;
   const audioError = audioResult.key === audioKey ? audioResult.error : "";
   const loading = audioResult.key !== audioKey;
-  const verse = useMemo(
-    () => visibleAudio?.verses.find((item) => item.ayah === activeAyah) || null,
-    [visibleAudio, activeAyah],
+  const selectedVerses = useMemo(
+    () => visibleAudio?.verses.filter((verse) => verse.ayah >= fromAyah && verse.ayah <= toAyah) || [],
+    [visibleAudio, fromAyah, toAyah],
   );
-  const duration = verse ? Math.max(0, verse.end - verse.start) : 0;
+  const schedule = useMemo(() => buildMemorizationSchedule(visibleAudio?.verses || [], {
+    fromAyah,
+    toAyah,
+    unitRepetitions,
+    linkRepetitions,
+    cumulative,
+    splitAtPauses,
+  }), [visibleAudio, fromAyah, toAyah, unitRepetitions, linkRepetitions, cumulative, splitAtPauses]);
+  const currentStep = schedule[stepIndex] || null;
+  const duration = currentStep ? Math.max(0, currentStep.end - currentStep.start) : 0;
+  const completedDuration = useMemo(
+    () => schedule.slice(0, stepIndex).reduce((total, step) => total + Math.max(0, step.end - step.start), 0),
+    [schedule, stepIndex],
+  );
+  const totalDuration = useMemo(
+    () => schedule.reduce((total, step) => total + Math.max(0, step.end - step.start), 0),
+    [schedule],
+  );
+  const remainingDuration = Math.max(0, totalDuration - completedDuration - elapsed);
 
-  const updateActiveWord = useCallback((currentTime: number, timing: VerseTiming | null) => {
-    if (!timing) {
+  const setPlaying = useCallback((playing: boolean) => {
+    playingRef.current = playing;
+    setIsPlaying(playing);
+  }, []);
+
+  useEffect(() => {
+    activeAyahRef.current = activeAyah;
+  }, [activeAyah]);
+
+  const publishAyah = useCallback((ayah: number) => {
+    if (activeAyahRef.current === ayah) return;
+    activeAyahRef.current = ayah;
+    internalAyahRef.current = ayah;
+    onActiveAyahChange(ayah);
+  }, [onActiveAyahChange]);
+
+  const updatePlaybackPosition = useCallback((currentTime: number) => {
+    const verse = timingAt(selectedVerses, currentTime);
+    if (!verse) {
       onWordChange(null);
       return;
     }
-    const active = timing.words.find(([, start, end]) =>
+    publishAyah(verse.ayah);
+    const activeWord = verse.words.find(([, start, end]) =>
       currentTime >= start - 0.025 && currentTime < end + 0.025
     );
-    onWordChange(active ? active[0] : null);
-  }, [onWordChange]);
+    onWordChange(activeWord ? activeWord[0] : null);
+  }, [selectedVerses, publishAyah, onWordChange]);
+
+  const goToStep = useCallback(async (nextIndex: number, autoplay: boolean) => {
+    const audio = audioRef.current;
+    if (!audio || !schedule.length) return;
+    const boundedIndex = Math.min(schedule.length - 1, Math.max(0, nextIndex));
+    const step = schedule[boundedIndex];
+    stepIndexRef.current = boundedIndex;
+    setStepIndex(boundedIndex);
+    boundaryHandledRef.current = false;
+    setElapsed(0);
+    publishAyah(step.startAyah);
+    onWordChange(null);
+    try {
+      audio.currentTime = step.start;
+    } catch {
+      return;
+    }
+    if (!autoplay) return;
+    try {
+      await audio.play();
+      setPlaying(true);
+    } catch {
+      setPlaying(false);
+    }
+  }, [schedule, publishAyah, onWordChange, setPlaying]);
+
+  const completeCurrentStep = useCallback(async () => {
+    const audio = audioRef.current;
+    const step = schedule[stepIndexRef.current];
+    if (!audio || !step || boundaryHandledRef.current) return;
+    boundaryHandledRef.current = true;
+    const nextIndex = stepIndexRef.current + 1;
+    if (nextIndex < schedule.length) {
+      await goToStep(nextIndex, true);
+      return;
+    }
+    if (loopRange) {
+      await goToStep(0, true);
+      return;
+    }
+    audio.pause();
+    audio.currentTime = step.end;
+    setElapsed(Math.max(0, step.end - step.start));
+    setPlaying(false);
+    onWordChange(null);
+  }, [schedule, loopRange, goToStep, onWordChange, setPlaying]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -118,125 +217,77 @@ export function MemorizePlayer({
     if (reciters.length) window.localStorage.setItem("athar-memorize-reciter", reciterId);
   }, [reciterId, reciters.length]);
 
-  const seekToVerse = useCallback((timing: VerseTiming | null) => {
-    const audio = audioRef.current;
-    if (!audio || !timing) return;
-    audio.currentTime = timing.start;
-    boundaryHandledRef.current = false;
-    setElapsed(0);
-    onWordChange(null);
-  }, [onWordChange]);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.pause();
-    setIsPlaying(false);
-    seekToVerse(verse);
-    const shouldResume = resumeAfterVerseRef.current && Boolean(verse);
-    resumeAfterVerseRef.current = false;
-    if (!shouldResume) return;
-    const frame = window.requestAnimationFrame(() => {
-      audio.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [verse, seekToVerse]);
-
   useEffect(() => {
     const audio = audioRef.current;
     audio?.pause();
-    repetitionRef.current = 0;
+    playingRef.current = false;
+    stepIndexRef.current = 0;
+    boundaryHandledRef.current = false;
     queueMicrotask(() => {
-      setRepetitionCycle(1);
       setIsPlaying(false);
-      onWordChange(null);
-    });
-  }, [surahNumber, fromAyah, toAyah, reciterId, onWordChange]);
-
-  const completeActiveVerse = useCallback(async () => {
-    const audio = audioRef.current;
-    if (!audio || !verse || boundaryHandledRef.current) return;
-    boundaryHandledRef.current = true;
-    if (repetitionRef.current + 1 < repetition) {
-      repetitionRef.current += 1;
-      setRepetitionCycle(repetitionRef.current + 1);
-      audio.currentTime = verse.start;
-      boundaryHandledRef.current = false;
+      setStepIndex(0);
       setElapsed(0);
       onWordChange(null);
-      try {
-        await audio.play();
-      } catch {
-        setIsPlaying(false);
-      }
-      return;
-    }
-
-    repetitionRef.current = 0;
-    setRepetitionCycle(1);
-    if (activeAyah < toAyah) {
-      resumeAfterVerseRef.current = true;
-      onActiveAyahChange(activeAyah + 1);
-      return;
-    }
-    if (loopRange) {
-      resumeAfterVerseRef.current = true;
-      onActiveAyahChange(fromAyah);
-      return;
-    }
-    audio.pause();
-    audio.currentTime = verse.end;
-    setElapsed(duration);
-    setIsPlaying(false);
-    onWordChange(null);
-  }, [verse, repetition, activeAyah, toAyah, loopRange, fromAyah, duration, onActiveAyahChange, onWordChange]);
+      if (audio && schedule[0]) audio.currentTime = schedule[0].start;
+    });
+  }, [schedule, onWordChange]);
 
   useEffect(() => {
-    if (!isPlaying || !verse) return;
+    if (internalAyahRef.current === activeAyah) {
+      internalAyahRef.current = null;
+      return;
+    }
+    if (!schedule.length) return;
+    const targetIndex = firstStepForAyah(schedule, activeAyah);
+    if (targetIndex === stepIndexRef.current) return;
+    void goToStep(targetIndex, playingRef.current);
+  }, [activeAyah, schedule, goToStep]);
+
+  useEffect(() => {
+    if (!isPlaying || !currentStep) return;
     let frame = 0;
     const followPlayback = () => {
       const audio = audioRef.current;
       if (!audio || audio.paused) return;
-      const current = audio.currentTime;
-      updateActiveWord(current, verse);
-      if (current >= verse.end - 0.06 && !boundaryHandledRef.current) {
-        void completeActiveVerse();
+      const currentTime = audio.currentTime;
+      setElapsed(Math.max(0, Math.min(duration, currentTime - currentStep.start)));
+      updatePlaybackPosition(currentTime);
+      if (currentTime >= currentStep.end - 0.06 && !boundaryHandledRef.current) {
+        void completeCurrentStep();
       }
       frame = window.requestAnimationFrame(followPlayback);
     };
     frame = window.requestAnimationFrame(followPlayback);
     return () => window.cancelAnimationFrame(frame);
-  }, [isPlaying, verse, updateActiveWord, completeActiveVerse]);
+  }, [isPlaying, currentStep, duration, updatePlaybackPosition, completeCurrentStep]);
 
   const togglePlayback = useCallback(async () => {
     const audio = audioRef.current;
-    if (!audio || !verse) return;
+    const step = schedule[stepIndexRef.current];
+    if (!audio || !step) return;
     if (!audio.paused) {
       audio.pause();
+      setPlaying(false);
       return;
     }
-    if (audio.currentTime < verse.start || audio.currentTime >= verse.end - 0.05) {
-      repetitionRef.current = 0;
-      setRepetitionCycle(1);
-      seekToVerse(verse);
+    if (audio.currentTime < step.start || audio.currentTime >= step.end - 0.05) {
+      await goToStep(stepIndexRef.current, true);
+      return;
     }
     try {
       await audio.play();
+      setPlaying(true);
     } catch {
-      setIsPlaying(false);
+      setPlaying(false);
     }
-  }, [verse, seekToVerse]);
+  }, [schedule, goToStep, setPlaying]);
 
   const resetSession = useCallback(() => {
     const audio = audioRef.current;
     audio?.pause();
-    repetitionRef.current = 0;
-    resumeAfterVerseRef.current = false;
-    setRepetitionCycle(1);
-    setIsPlaying(false);
-    onActiveAyahChange(fromAyah);
-    seekToVerse(visibleAudio?.verses.find((item) => item.ayah === fromAyah) || null);
-  }, [fromAyah, visibleAudio, onActiveAyahChange, seekToVerse]);
+    setPlaying(false);
+    void goToStep(0, false);
+  }, [goToStep, setPlaying]);
 
   return (
     <section className="memorize-player" aria-label="جلسة التكرار">
@@ -244,25 +295,33 @@ export function MemorizePlayer({
         ref={audioRef}
         src={backendMediaUrl(visibleAudio?.audio_url)}
         preload="metadata"
-        onLoadedMetadata={() => seekToVerse(verse)}
-        onPause={() => setIsPlaying(false)}
-        onPlay={() => setIsPlaying(true)}
+        onLoadedMetadata={() => {
+          const step = schedule[stepIndexRef.current];
+          if (audioRef.current && step) audioRef.current.currentTime = step.start;
+        }}
+        onPause={() => setPlaying(false)}
+        onPlay={() => setPlaying(true)}
         onTimeUpdate={(event) => {
-          if (!verse) return;
-          const current = event.currentTarget.currentTime;
-          setElapsed(Math.max(0, Math.min(duration, current - verse.start)));
-          updateActiveWord(current, verse);
-          if (current >= verse.end - 0.06 && !boundaryHandledRef.current) {
-            void completeActiveVerse();
+          const step = schedule[stepIndexRef.current];
+          if (!step) return;
+          const currentTime = event.currentTarget.currentTime;
+          setElapsed(Math.max(0, Math.min(step.end - step.start, currentTime - step.start)));
+          updatePlaybackPosition(currentTime);
+          if (currentTime >= step.end - 0.06 && !boundaryHandledRef.current) {
+            void completeCurrentStep();
           }
         }}
       />
+
       <header className="memorize-player-head">
         <div>
-          <span className="reader-panel-kicker">التكرار الموقّت</span>
+          <span className="reader-panel-kicker">التكرار التراكمي</span>
           <strong>{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</strong>
           <small>
-            الآية {toArabicDigits(activeAyah)} · التكرار {toArabicDigits(repetitionCycle)} من {toArabicDigits(repetition)}
+            {currentStep?.label || `الآية ${toArabicDigits(activeAyah)}`}
+            {currentStep && currentStep.repetitionTotal > 1
+              ? ` · ${toArabicDigits(currentStep.repetition)} من ${toArabicDigits(currentStep.repetitionTotal)}`
+              : ""}
           </small>
         </div>
         <span className={`memorize-player-state${isPlaying ? " is-live" : ""}`}>
@@ -272,12 +331,34 @@ export function MemorizePlayer({
 
       {audioError ? <div className="reader-panel-error" role="alert">{audioError}</div> : null}
 
+      <div className="memorize-plan" aria-label="خطة جلسة التثبيت" aria-live="polite">
+        <div>
+          <span>الخطوة</span>
+          <strong>{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
+        </div>
+        <div>
+          <span>النمط</span>
+          <strong>{currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"}</strong>
+        </div>
+        <div>
+          <span>المتبقي التقريبي</span>
+          <strong>{formatTime(remainingDuration)}</strong>
+        </div>
+        <div>
+          <span>بنية الجلسة</span>
+          <strong>
+            {splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}
+            {cumulative ? " + ربط تراكمي" : ""}
+          </strong>
+        </div>
+      </div>
+
       <div className="reader-audio-controls">
         <button
           type="button"
           className="reader-play"
           onClick={() => void togglePlayback()}
-          disabled={!verse || loading}
+          disabled={!currentStep || loading}
           aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
         >
           {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
@@ -289,21 +370,26 @@ export function MemorizePlayer({
             max={duration || 1}
             step="0.05"
             value={Math.min(elapsed, duration || 1)}
-            disabled={!verse}
-            aria-label="موضع التلاوة داخل آية التثبيت"
+            disabled={!currentStep}
+            aria-label="موضع التلاوة داخل خطوة التثبيت"
             onChange={(event) => {
               const nextElapsed = Number(event.target.value);
               setElapsed(nextElapsed);
-              if (audioRef.current && verse) {
-                const current = verse.start + nextElapsed;
-                audioRef.current.currentTime = current;
+              if (audioRef.current && currentStep) {
+                const currentTime = currentStep.start + nextElapsed;
+                audioRef.current.currentTime = currentTime;
                 boundaryHandledRef.current = false;
-                updateActiveWord(current, verse);
+                updatePlaybackPosition(currentTime);
               }
             }}
           />
           <span>{formatTime(elapsed)} / {formatTime(duration)}</span>
         </div>
+      </div>
+
+      <div className="memorize-stepper" aria-label="التنقل بين خطوات التثبيت">
+        <button type="button" onClick={() => void goToStep(stepIndex - 1, isPlaying)} disabled={stepIndex <= 0}>الخطوة السابقة</button>
+        <button type="button" onClick={() => void goToStep(stepIndex + 1, isPlaying)} disabled={!schedule.length || stepIndex >= schedule.length - 1}>الخطوة التالية</button>
       </div>
 
       <div className="memorize-player-options">
@@ -314,16 +400,23 @@ export function MemorizePlayer({
             )) : <option>جارٍ تحميل القرّاء…</option>}
           </select>
         </label>
-        <label><span>تكرار كل آية</span>
-          <select value={repetition} onChange={(event) => {
-            repetitionRef.current = 0;
-            setRepetitionCycle(1);
-            setRepetition(Number(event.target.value) as (typeof repetitionOptions)[number]);
-          }}>
-            {repetitionOptions.map((count) => (
-              <option key={count} value={count}>{toArabicDigits(count)}×</option>
-            ))}
+        <label><span>تكرار الوحدة</span>
+          <select value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
+            {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
           </select>
+        </label>
+        <label><span>تكرار الربط</span>
+          <select value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
+            {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
+          </select>
+        </label>
+        <label className="reader-audio-check">
+          <input type="checkbox" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
+          <span>ربط تراكمي</span>
+        </label>
+        <label className="reader-audio-check">
+          <input type="checkbox" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
+          <span>قسّم حسب الوقف</span>
         </label>
         <label className="reader-audio-check">
           <input type="checkbox" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />

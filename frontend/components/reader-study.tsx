@@ -357,7 +357,7 @@ export function ReaderStudy({
 
           {activeTool === "study" ? (
             <div className="reader-study-links">
-              <a href={legacyUrl(`/memorize?surah=${surahNumber}&ayah=${ayahNumber}`)}>
+              <a href={`/memorize?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
                 <strong>تثبيت</strong><span>حفظ الآية بالتكرار والسياق الموضوعي</span>
               </a>
               <a href={legacyUrl(`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`)}>
