@@ -15,7 +15,7 @@ export function AppShell({ children }: Readonly<{ children: React.ReactNode }>) 
         </Link>
         <nav className="main-nav" aria-label="التنقل الرئيسي">
           <Link href="/read">المصحف</Link>
-          <a href={legacyUrl("/memorize")}>تثبيت</a>
+          <Link href="/memorize">تثبيت</Link>
           <a href={legacyUrl("/waqf")}>مُكْث</a>
           <a href={legacyUrl("/waqf-practice")}>تدريب</a>
         </nav>

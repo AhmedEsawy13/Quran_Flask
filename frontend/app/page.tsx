@@ -21,8 +21,8 @@ const doors = [
     verb: "احفظ",
     title: "تثبيت",
     description: "تكرار مقطّع على صفحات المصحف، وبصوت القارئ الذي تختاره.",
-    href: legacyUrl("/memorize"),
-    migrated: false,
+    href: "/memorize?surah=2&from=255&to=257",
+    migrated: true,
   },
   {
     verb: "تدرّب",
@@ -79,7 +79,7 @@ export default function HomePage() {
         <header className="section-heading">
           <p className="eyebrow">أربعة أبواب، أثر واحد</p>
           <h2 id="doors-title">من الدليل إلى القراءة اليومية.</h2>
-          <p>المصحف هو أول مسار Next.js؛ بقية الأدوات تبقى آمنة على Flask أثناء النقل.</p>
+          <p>المصحف وتثبيت انتقلا إلى Next.js؛ بقية الأدوات تبقى آمنة على Flask أثناء النقل.</p>
         </header>
         <div className="door-grid">
           {doors.map((door) => {

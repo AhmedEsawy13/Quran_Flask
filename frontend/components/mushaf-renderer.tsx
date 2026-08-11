@@ -21,6 +21,8 @@ type MushafRendererProps = {
   error: string;
   fontLoading: boolean;
   activeAudioWord: number | null;
+  focusRange?: readonly [number, number];
+  concealFocused?: boolean;
   onRetry: () => void;
 };
 
@@ -67,12 +69,16 @@ function PageLine({
   ayahNumber,
   audioPositions,
   activeAudioWord,
+  focusRange,
+  concealFocused,
 }: {
   line: MushafLine;
   surahNumber: number;
   ayahNumber: number;
   audioPositions: Map<MushafWord, number>;
   activeAudioWord: number | null;
+  focusRange?: readonly [number, number];
+  concealFocused?: boolean;
 }) {
   if (line.line_type === "surah_name") {
     return <div className="mushaf-surah-banner">{line.display_text}</div>;
@@ -90,13 +96,17 @@ function PageLine({
       {line.words.length
         ? line.words.map((word, index) => {
             if (word.suppress_render) return null;
-            const focused =
-              Number(word.surah) === surahNumber && Number(word.ayah) === ayahNumber;
+            const wordAyah = Number(word.ayah);
+            const focused = Number(word.surah) === surahNumber && (
+              focusRange
+                ? wordAyah >= focusRange[0] && wordAyah <= focusRange[1]
+                : wordAyah === ayahNumber
+            );
             const audioPosition = audioPositions.get(word);
             const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
             return (
               <span
-                className={`mushaf-word${focused ? " is-focus" : ""}${audioActive ? " is-audio-active" : ""}`}
+                className={`mushaf-word${focused ? " is-focus" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
                 key={word.word_key || `${word.word_index ?? "word"}-${index}`}
                 aria-current={focused ? "true" : undefined}
                 data-audio-index={audioPosition}
@@ -123,6 +133,8 @@ export function MushafRenderer({
   error,
   fontLoading,
   activeAudioWord,
+  focusRange,
+  concealFocused,
   onRetry,
 }: MushafRendererProps) {
   const pageRef = useRef<HTMLElement>(null);
@@ -212,6 +224,8 @@ export function MushafRenderer({
                 ayahNumber={ayahNumber}
                 audioPositions={pageAudioPositions}
                 activeAudioWord={activeAudioWord}
+                focusRange={focusRange}
+                concealFocused={concealFocused}
               />
             ))}
           </div>

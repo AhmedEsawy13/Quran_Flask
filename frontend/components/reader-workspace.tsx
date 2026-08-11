@@ -15,6 +15,7 @@ import { legacyUrl } from "@/lib/paths";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { ReaderAudio } from "@/components/reader-audio";
 import { ReaderStudy } from "@/components/reader-study";
+import { useEditionFont } from "@/lib/use-edition-font";
 
 type ContentResult = {
   requestKey: string;
@@ -23,8 +24,6 @@ type ContentResult = {
   error: string;
 };
 
-const loadedFonts = new Map<string, Promise<void>>();
-
 function clampInteger(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, Math.trunc(value)));
 }
@@ -32,39 +31,6 @@ function clampInteger(value: number, minimum: number, maximum: number) {
 function parsePositiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function useEditionFont(editionId: MushafEditionId) {
-  const [fontLoading, setFontLoading] = useState(false);
-
-  useEffect(() => {
-    const descriptor = MUSHAF_EDITIONS[editionId].font;
-    if (!descriptor || typeof FontFace === "undefined") return;
-    let active = true;
-    let promise = loadedFonts.get(descriptor.family);
-    if (!promise) {
-      const face = new FontFace(descriptor.family, `url("${descriptor.url}")`);
-      promise = face.load().then((loadedFace) => {
-        document.fonts.add(loadedFace);
-      });
-      loadedFonts.set(descriptor.family, promise);
-    }
-    queueMicrotask(() => {
-      if (active) setFontLoading(true);
-    });
-    promise
-      .catch(() => {
-        loadedFonts.delete(descriptor.family);
-      })
-      .finally(() => {
-        if (active) setFontLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [editionId]);
-
-  return fontLoading;
 }
 
 export function ReaderWorkspace() {

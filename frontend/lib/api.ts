@@ -50,6 +50,20 @@ export type MemorizationAudio = {
   verses: VerseTiming[];
 };
 
+export type MemorizationContext = {
+  found: boolean;
+  surah: number;
+  ayah: number;
+  topic_id?: string | number;
+  title?: string;
+  label?: string;
+  attribution?: string;
+  from?: { surah: number; ayah: number };
+  to?: { surah: number; ayah: number };
+  run_length?: number;
+  score?: number;
+};
+
 export type TafseerCollection = Record<string, { text: string }>;
 
 export type MutashabihatMatch = {

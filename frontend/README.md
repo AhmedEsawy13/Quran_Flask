@@ -23,6 +23,16 @@ Open `http://localhost:3000`. Short browser reads under `/backend-api/*` are
 rewritten to `${ATHAR_API_ORIGIN}/api/*`, keeping the browser same-origin while
 the migration is in progress.
 
+Run the same frontend gate used by GitHub Actions with:
+
+```bash
+npm run verify
+npm run test:smoke
+```
+
+If `python3` resolves to macOS system Python 3.9, point the smoke runner at the
+project interpreter, for example `ATHAR_PYTHON=/opt/homebrew/bin/python3 npm run test:smoke`.
+
 ## Vercel pilot
 
 Create a Vercel project with `frontend` as its Root Directory and configure:
@@ -39,7 +49,7 @@ Python deployment until their renderer is migrated.
 
 ## Migration boundary
 
-- `/` and `/read` are implemented by Next.js.
+- `/`, `/read`, and the core `/memorize` session are implemented by Next.js.
 - `/backend-api/*` proxies short, cacheable API reads to Flask.
 - مُكْث, تثبيت, تدريب, and the editor still link to Flask.
 - Audio, CV, PDFs, and long-running work must not be proxied through Vercel.

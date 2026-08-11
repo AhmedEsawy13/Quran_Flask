@@ -7,3 +7,8 @@ export function legacyUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${origin}${normalizedPath}`;
 }
+
+export function backendMediaUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  return url.startsWith("/api/") ? `/backend-api/${url.slice(5)}` : url;
+}
