@@ -38,7 +38,7 @@ export function ThemeToggle() {
 
   return (
     <button
-      className="theme-toggle"
+      className="ms-auto grid size-10 shrink-0 place-items-center rounded-full border border-athar-line bg-athar-surface text-athar-ink shadow-sm transition-colors hover:border-athar-accent hover:text-athar-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent md:ms-0"
       type="button"
       onClick={cycleTheme}
       aria-label={labels[theme]}

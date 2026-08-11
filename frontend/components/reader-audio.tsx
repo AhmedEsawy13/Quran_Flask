@@ -9,6 +9,7 @@ import {
 } from "@/lib/api";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
+import { Button, Field, IconButton, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 
 type ReaderAudioProps = {
   surahNumber: number;
@@ -202,15 +203,21 @@ export function ReaderAudio({
 
   if (!expanded) {
     return (
-      <button className="reader-audio-launch" type="button" onClick={() => setExpanded(true)}>
-        <span aria-hidden="true">◉</span>
-        <span><strong>استمع إلى الآية</strong><small>التوقيت والتكرار حسب القارئ</small></span>
-      </button>
+      <Button
+        className="mx-auto min-h-0 w-full max-w-[790px] justify-start rounded-athar-md bg-[color-mix(in_srgb,var(--athar-accent)_5%,var(--athar-surface))] p-4 text-start hover:bg-[color-mix(in_srgb,var(--athar-accent)_9%,var(--athar-surface))]"
+        onClick={() => setExpanded(true)}
+      >
+        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-athar-accent text-athar-on-accent" aria-hidden="true">◉</span>
+        <span className="grid gap-0.5">
+          <strong>استمع إلى الآية</strong>
+          <small className="font-normal text-athar-ink-faint">التوقيت والتكرار حسب القارئ</small>
+        </span>
+      </Button>
     );
   }
 
   return (
-    <section className="reader-audio" aria-label="مشغّل التلاوة">
+    <Surface as="section" className="mx-auto w-full max-w-[790px] rounded-athar-md p-5" aria-label="مشغّل التلاوة">
       <audio
         ref={audioRef}
         src={backendMediaUrl(visibleAudio?.audio_url)}
@@ -226,31 +233,33 @@ export function ReaderAudio({
           if (current >= verse.end - 0.06 && !boundaryHandledRef.current) void completeVerse();
         }}
       />
-      <div className="reader-audio-topline">
-        <div>
-          <span className="reader-panel-kicker">التلاوة</span>
-          <strong>{visibleAudio?.reciter_name_ar || "اختر القارئ"}</strong>
+      <div className="flex items-start justify-between gap-5">
+        <div className="grid gap-0.5">
+          <span className="text-[0.7rem] font-bold text-athar-gold">التلاوة</span>
+          <strong className="text-athar-ink">{visibleAudio?.reciter_name_ar || "اختر القارئ"}</strong>
         </div>
-        <button type="button" className="reader-panel-close" onClick={() => {
+        <IconButton label="إغلاق مشغّل التلاوة" className="size-9 text-xl" onClick={() => {
           audioRef.current?.pause();
           onWordChange(null);
           setExpanded(false);
-        }} aria-label="إغلاق مشغّل التلاوة">×</button>
+        }}>×</IconButton>
       </div>
 
-      {audioError ? <div className="reader-panel-error" role="alert">{audioError}</div> : null}
-      <div className="reader-audio-controls" aria-busy={loading}>
-        <button
-          type="button"
-          className="reader-play"
+      {audioError ? <StatusState tone="error" className="mt-4 justify-center">{audioError}</StatusState> : null}
+      <div className="my-5 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4" aria-busy={loading}>
+        <Button
+          size="icon"
+          variant="primary"
+          className="size-[54px] text-base"
           onClick={() => void togglePlayback()}
           disabled={!verse || loading}
           aria-label={isPlaying ? "إيقاف التلاوة مؤقتًا" : "تشغيل التلاوة"}
         >
           {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
-        </button>
-        <div className="reader-audio-timeline">
+        </Button>
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-[0.7rem] tabular-nums text-athar-ink-faint max-[520px]:grid-cols-1">
           <input
+            className="w-full accent-athar-accent"
             type="range"
             min="0"
             max={duration || 1}
@@ -272,29 +281,29 @@ export function ReaderAudio({
         </div>
       </div>
 
-      <div className="reader-audio-options">
-        <label><span>القارئ</span>
-          <select value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
+      <div className="grid items-end gap-3 border-t border-athar-line-soft pt-4 sm:grid-cols-[minmax(0,1.4fr)_minmax(105px,.55fr)_auto]">
+        <Field label="القارئ">
+          <SelectControl value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
             {reciters.length ? reciters.map((reciter) => (
               <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
             )) : <option>جارٍ تحميل القرّاء…</option>}
-          </select>
-        </label>
-        <label><span>التكرار</span>
-          <select value={repeatCount} onChange={(event) => {
+          </SelectControl>
+        </Field>
+        <Field label="التكرار">
+          <SelectControl value={repeatCount} onChange={(event) => {
             cycleRef.current = 0;
             setRepeatCount(Number(event.target.value) as (typeof repeatOptions)[number]);
           }}>
             {repeatOptions.map((count) => (
               <option key={count} value={count}>{count === 0 ? "مستمر" : `${toArabicDigits(count)}×`}</option>
             ))}
-          </select>
-        </label>
-        <label className="reader-audio-check">
-          <input type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
+          </SelectControl>
+        </Field>
+        <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-athar-line px-3 text-sm text-athar-ink-soft">
+          <input className="accent-athar-accent" type="checkbox" checked={autoAdvance} onChange={(event) => setAutoAdvance(event.target.checked)} />
           <span>انتقال تلقائي</span>
         </label>
       </div>
-    </section>
+    </Surface>
   );
 }

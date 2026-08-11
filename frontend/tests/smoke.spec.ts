@@ -17,6 +17,11 @@ test("landing exposes the migrated paths", async ({page}) => {
   await expect(page.locator(".door-card[href^='/memorize']")).toBeVisible();
   await expect(page.locator(".door-card[href^='/waqf']")).toBeVisible();
   await expectNoHorizontalOverflow(page);
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await page.getByRole("link", {name: "المصحف", exact: true}).click();
+  await expect(page).toHaveURL(/\/read(?:\?|$)/);
+  await expect(page.getByRole("link", {name: "المصحف", exact: true})).toHaveAttribute("aria-current", "page");
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
 });
 
 test("Reader loads Quran, study tools, and timed audio", async ({page}) => {

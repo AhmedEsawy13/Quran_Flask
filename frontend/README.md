@@ -33,6 +33,17 @@ npm run test:smoke
 If `python3` resolves to macOS system Python 3.9, point the smoke runner at the
 project interpreter, for example `ATHAR_PYTHON=/opt/homebrew/bin/python3 npm run test:smoke`.
 
+## UI foundation
+
+Tailwind CSS v4 provides layout and component utilities through the PostCSS
+plugin. Athar's existing `--athar-*` palette, typography, radii, and shadows
+are mapped into the Tailwind theme in `app/globals.css`.
+
+Tailwind Preflight is intentionally disabled while the legacy component CSS is
+migrated incrementally. Quran line assembly, edition fonts, glyph positioning,
+print rules, and dynamic audio rendering remain explicit CSS rather than
+utility-only styling.
+
 ## Vercel pilot
 
 Create a Vercel project with `frontend` as its Root Directory and configure:

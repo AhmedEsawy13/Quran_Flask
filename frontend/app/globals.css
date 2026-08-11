@@ -1,3 +1,7 @@
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 @font-face {
   font-family: "Thmanyah Sans";
   src: url("/fonts/thmanyahsans-Medium.woff2") format("woff2");
@@ -74,6 +78,29 @@
   --bar-background: rgba(21, 20, 13, 0.84);
 }
 
+@theme inline {
+  --color-athar-canvas: var(--athar-parchment);
+  --color-athar-canvas-strong: var(--athar-parchment-2);
+  --color-athar-surface: var(--athar-surface);
+  --color-athar-ink: var(--athar-ink);
+  --color-athar-ink-soft: var(--athar-ink-soft);
+  --color-athar-ink-faint: var(--athar-ink-faint);
+  --color-athar-accent: var(--athar-accent);
+  --color-athar-accent-soft: var(--athar-accent-soft);
+  --color-athar-on-accent: var(--athar-on-accent);
+  --color-athar-gold: var(--athar-gold);
+  --color-athar-line: var(--athar-line);
+  --color-athar-line-soft: var(--athar-line-soft);
+  --font-athar-display: var(--font-display);
+  --font-athar-ui: var(--font-ui);
+  --font-athar-quran: var(--font-quran);
+  --radius-athar-sm: var(--radius-small);
+  --radius-athar-md: var(--radius-medium);
+  --radius-athar-lg: var(--radius-large);
+  --shadow-athar-sm: var(--athar-shadow-sm);
+  --shadow-athar-lg: var(--athar-shadow-lg);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -109,93 +136,6 @@ a {
 .shell-width {
   width: min(1180px, calc(100% - 40px));
   margin-inline: auto;
-}
-
-.skip-link {
-  position: fixed;
-  inset-block-start: 8px;
-  inset-inline-start: 16px;
-  z-index: 100;
-  padding: 8px 14px;
-  border-radius: 10px;
-  background: var(--athar-surface);
-  color: var(--athar-ink);
-  transform: translateY(-160%);
-}
-
-.skip-link:focus {
-  transform: translateY(0);
-}
-
-.app-bar {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: clamp(12px, 3vw, 30px);
-  min-height: var(--bar-height);
-  padding-inline: clamp(18px, 4vw, 44px);
-  border-block-end: 1px solid var(--athar-line-soft);
-  background: var(--bar-background);
-  backdrop-filter: saturate(150%) blur(20px);
-}
-
-.brand {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 9px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.brand-name {
-  color: var(--athar-accent);
-  font-family: var(--font-display);
-  font-size: 1.55rem;
-  line-height: 1;
-}
-
-.brand-tagline {
-  color: var(--athar-ink-faint);
-  font-size: 0.72rem;
-}
-
-.main-nav {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-inline-start: auto;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.main-nav a {
-  padding: 7px 10px;
-  border-radius: 9px;
-  color: var(--athar-ink-soft);
-  font-size: 0.9rem;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: color 150ms ease, background-color 150ms ease;
-}
-
-.main-nav a:hover {
-  background: var(--athar-line-soft);
-  color: var(--athar-ink);
-}
-
-.theme-toggle {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid var(--athar-line);
-  border-radius: 50%;
-  background: var(--athar-surface);
-  color: var(--athar-ink);
-  cursor: pointer;
 }
 
 .hero {
@@ -1992,25 +1932,6 @@ a {
 @media (max-width: 640px) {
   .shell-width {
     width: min(100% - 24px, 1180px);
-  }
-
-  .app-bar {
-    gap: 8px;
-    padding-inline: 12px;
-  }
-
-  .brand-tagline {
-    display: none;
-  }
-
-  .main-nav a {
-    padding-inline: 8px;
-    font-size: 0.82rem;
-  }
-
-  .theme-toggle {
-    width: 34px;
-    height: 34px;
   }
 
   .hero {

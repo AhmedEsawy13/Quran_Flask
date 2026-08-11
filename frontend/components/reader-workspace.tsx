@@ -15,6 +15,7 @@ import { legacyUrl } from "@/lib/paths";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { ReaderAudio } from "@/components/reader-audio";
 import { ReaderStudy } from "@/components/reader-study";
+import { Button, Field, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
 
 type ContentResult = {
@@ -236,15 +237,20 @@ export function ReaderWorkspace() {
   }, [move, atFirstAyah, atLastAyah]);
 
   return (
-    <section className="reader-workspace" aria-label="قارئ المصحف">
-      <div className="reader-toolbar">
-        <div className="reader-segmented" aria-label="طريقة العرض">
-          <button type="button" aria-pressed={view === "page"} onClick={() => setView("page")}>صفحة</button>
-          <button type="button" aria-pressed={view === "verse"} onClick={() => setView("verse")}>آية</button>
-        </div>
-        <label>
-          <span>السورة</span>
-          <select
+    <section className="grid gap-4 sm:gap-[18px]" aria-label="قارئ المصحف">
+      <Surface
+        variant="toolbar"
+        className="sticky top-[calc(var(--bar-height)+.5rem)] z-20 grid grid-cols-2 items-end gap-2 rounded-athar-md p-3 sm:grid-cols-4 lg:grid-cols-[auto_minmax(150px,1fr)_minmax(92px,.45fr)_minmax(165px,1fr)_auto] lg:gap-3 lg:p-3.5"
+      >
+        <SegmentedControl
+          label="طريقة العرض"
+          value={view}
+          options={[{value: "page", label: "صفحة"}, {value: "verse", label: "آية"}]}
+          onChange={setView}
+          className="col-span-2 sm:col-span-1"
+        />
+        <Field label="السورة" className="col-span-2 sm:col-span-2 lg:col-span-1">
+          <SelectControl
             value={surahNumber}
             onChange={(event) => {
               setCatalogError("");
@@ -259,44 +265,41 @@ export function ReaderWorkspace() {
                 {toArabicDigits(surah.number)}. {surah.name}
               </option>
             ))}
-          </select>
-        </label>
-        <label>
-          <span>الآية</span>
-          <select
+          </SelectControl>
+        </Field>
+        <Field label="الآية">
+          <SelectControl
             value={ayahNumber}
             onChange={(event) => setAyahNumber(Number(event.target.value))}
             disabled={!ayahNumbers.length}
           >
             {!ayahNumbers.length ? <option>{toArabicDigits(ayahNumber)}</option> : null}
             {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
-          </select>
-        </label>
-        <label>
-          <span>طبعة المصحف</span>
-          <select value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
+          </SelectControl>
+        </Field>
+        <Field label="طبعة المصحف">
+          <SelectControl value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
             {Object.values(MUSHAF_EDITIONS).map((edition) => (
               <option key={edition.id} value={edition.id}>{edition.label}</option>
             ))}
-          </select>
-        </label>
-        <div className="reader-stepper" aria-label="التنقل بين الآيات">
-          <button type="button" onClick={() => void move(-1)} disabled={moving || !ayahNumbers.length || atFirstAyah} aria-label="الآية السابقة">
+          </SelectControl>
+        </Field>
+        <div className="col-span-2 flex gap-2 sm:col-span-4 lg:col-span-1" aria-label="التنقل بين الآيات">
+          <Button className="flex-1" variant="quiet" onClick={() => void move(-1)} disabled={moving || !ayahNumbers.length || atFirstAyah} aria-label="الآية السابقة">
             السابق
-          </button>
-          <button type="button" onClick={() => void move(1)} disabled={moving || !ayahNumbers.length || atLastAyah} aria-label="الآية التالية">
+          </Button>
+          <Button className="flex-1" onClick={() => void move(1)} disabled={moving || !ayahNumbers.length || atLastAyah} aria-label="الآية التالية">
             التالي
-          </button>
+          </Button>
         </div>
-      </div>
+      </Surface>
 
-      <p className="reader-keyboard-hint">لوحة المفاتيح: ← للآية التالية، → للسابقة</p>
+      <p className="-mt-2 me-1 hidden text-end text-[0.7rem] text-athar-ink-faint md:block">لوحة المفاتيح: ← للآية التالية، → للسابقة</p>
 
       {catalogError ? (
-        <div className="reader-alert" role="alert">
-          <span>{catalogError}</span>
-          <button type="button" onClick={retry}>أعد المحاولة</button>
-        </div>
+        <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
+          {catalogError}
+        </StatusState>
       ) : null}
 
       <MushafRenderer
@@ -331,10 +334,10 @@ export function ReaderWorkspace() {
         onNavigate={navigateToVerse}
       />
 
-      <div className="reader-handoff">
+      <Surface variant="subtle" className="flex flex-col items-start justify-between gap-3 rounded-athar-md p-5 text-sm text-athar-ink-soft sm:flex-row sm:items-center">
         <span>تحتاج أداة غير منقولة بعد؟ النسخة السابقة تبقى متاحة أثناء الانتقال.</span>
-        <a href={legacyUrl(`/read?surah=${surahNumber}&ayah=${ayahNumber}`)}>أدوات القراءة السابقة</a>
-      </div>
+        <a className="shrink-0 font-bold text-athar-accent" href={legacyUrl(`/read?surah=${surahNumber}&ayah=${ayahNumber}`)}>أدوات القراءة السابقة</a>
+      </Surface>
     </section>
   );
 }

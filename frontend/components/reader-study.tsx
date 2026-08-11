@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { toArabicDigits } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
+import { Button, DrawerSurface, Field, SelectControl, StatusState } from "@/components/ui/primitives";
 
 type StudyTool = "meanings" | "tafseer" | "mutashabihat" | "asbab" | "transliteration" | "study";
 
@@ -232,33 +233,33 @@ export function ReaderStudy({
   );
 
   return (
-    <section className="reader-study" aria-label="أدوات فهم الآية">
-      <div className="reader-tool-row">
+    <section className="mx-auto w-full max-w-[790px]" aria-label="أدوات فهم الآية">
+      <div className="grid grid-cols-2 gap-1.5 rounded-[15px] border border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_82%,transparent)] p-1.5 sm:grid-cols-3 lg:grid-cols-6">
         {tools.map((tool) => (
-          <button
+          <Button
             key={tool.id}
-            type="button"
+            size="sm"
+            variant={activeTool === tool.id ? "primary" : "ghost"}
+            className="w-full px-2"
             aria-expanded={activeTool === tool.id}
             aria-controls="reader-study-drawer"
             onClick={() => setActiveTool((current) => current === tool.id ? null : tool.id)}
           >
             {tool.label}
-          </button>
+          </Button>
         ))}
       </div>
 
       {activeTool ? (
-        <div className="reader-study-drawer" id="reader-study-drawer">
-          <header>
-            <div>
-              <span className="reader-panel-kicker">الآية {surahNumber}:{ayahNumber}</span>
-              <h2>{activeLabel}</h2>
-            </div>
-            <button type="button" className="reader-panel-close" onClick={() => setActiveTool(null)} aria-label="إغلاق أداة الدراسة">×</button>
-          </header>
-
-          {needsAyah && !ayahData && !verseError ? <div className="reader-panel-loading">جارٍ تحميل بيانات الآية…</div> : null}
-          {verseError ? <div className="reader-panel-error" role="alert">{verseError}</div> : null}
+        <DrawerSurface
+          open
+          id="reader-study-drawer"
+          eyebrow={`الآية ${toArabicDigits(surahNumber)}:${toArabicDigits(ayahNumber)}`}
+          title={activeLabel}
+          onClose={() => setActiveTool(null)}
+        >
+          {needsAyah && !ayahData && !verseError ? <StatusState tone="loading">جارٍ تحميل بيانات الآية…</StatusState> : null}
+          {verseError ? <StatusState tone="error">{verseError}</StatusState> : null}
 
           {activeTool === "meanings" && ayahData ? (
             <div className="reader-meanings">
@@ -274,40 +275,40 @@ export function ReaderStudy({
                     </div>
                   ))}
                 </dl>
-              ) : <p className="reader-empty">لا توجد معاني كلمات متاحة لهذه الآية.</p>}
+              ) : <StatusState className="justify-center">لا توجد معاني كلمات متاحة لهذه الآية.</StatusState>}
             </div>
           ) : null}
 
           {activeTool === "transliteration" && ayahData ? (
             ayahData.transliteration?.t
               ? <p className="reader-transliteration" dir="ltr">{ayahData.transliteration.t}</p>
-              : <p className="reader-empty">لا يتوفر نقل حرفي لهذه الآية.</p>
+              : <StatusState className="justify-center">لا يتوفر نقل حرفي لهذه الآية.</StatusState>
           ) : null}
 
           {activeTool === "tafseer" ? (
             <div className="reader-tafseer">
-              {!tafseers && !tafseerError ? <div className="reader-panel-loading">جارٍ تحميل التفاسير المحلية…</div> : null}
-              {tafseerError ? <div className="reader-panel-error" role="alert">{tafseerError}</div> : null}
+              {!tafseers && !tafseerError ? <StatusState tone="loading">جارٍ تحميل التفاسير المحلية…</StatusState> : null}
+              {tafseerError ? <StatusState tone="error">{tafseerError}</StatusState> : null}
               {tafseers && Object.keys(tafseers).length ? (
                 <>
-                  <label><span>المصدر</span>
-                    <select value={selectedTafseer} onChange={(event) => {
+                  <Field label="المصدر" className="w-full max-w-[330px]">
+                    <SelectControl value={selectedTafseer} onChange={(event) => {
                       setSelectedTafseer(event.target.value);
                       window.localStorage.setItem("athar-reader-tafseer", event.target.value);
                     }}>
                       {Object.keys(tafseers).map((name) => <option key={name} value={name}>{name}</option>)}
-                    </select>
-                  </label>
+                    </SelectControl>
+                  </Field>
                   <p>{tafseerText}</p>
                 </>
-              ) : tafseers ? <p className="reader-empty">لا يتوفر تفسير محلي لهذه الآية.</p> : null}
+              ) : tafseers ? <StatusState className="justify-center">لا يتوفر تفسير محلي لهذه الآية.</StatusState> : null}
             </div>
           ) : null}
 
           {activeTool === "mutashabihat" ? (
             <div className="reader-mutashabihat">
-              {!mutashabihat && !mutashabihatError ? <div className="reader-panel-loading">جارٍ البحث في المواضع المتشابهة…</div> : null}
-              {mutashabihatError ? <div className="reader-panel-error" role="alert">{mutashabihatError}</div> : null}
+              {!mutashabihat && !mutashabihatError ? <StatusState tone="loading">جارٍ البحث في المواضع المتشابهة…</StatusState> : null}
+              {mutashabihatError ? <StatusState tone="error">{mutashabihatError}</StatusState> : null}
               {mutashabihat?.matches.length ? (
                 <div className="reader-mutashabihat-list">
                   {mutashabihat.matches.map((match) => {
@@ -318,7 +319,10 @@ export function ReaderStudy({
                         type="button"
                         className="reader-mutashabih-item"
                         key={match.verse_key}
-                        onClick={() => onNavigate(match.surah, match.ayah)}
+                        onClick={() => {
+                          onNavigate(match.surah, match.ayah);
+                          setActiveTool(null);
+                        }}
                         aria-label={`انتقل إلى سورة ${surahName} الآية ${toArabicDigits(match.ayah)}`}
                       >
                         <span className="reader-mutashabih-head">
@@ -336,21 +340,21 @@ export function ReaderStudy({
                     );
                   })}
                 </div>
-              ) : mutashabihat ? <p className="reader-empty">لا توجد آيات متشابهة بدرجة معتبرة لهذه الآية.</p> : null}
+              ) : mutashabihat ? <StatusState className="justify-center">لا توجد آيات متشابهة بدرجة معتبرة لهذه الآية.</StatusState> : null}
             </div>
           ) : null}
 
           {activeTool === "asbab" ? (
             <div className="reader-asbab">
-              {!asbab && !asbabError ? <div className="reader-panel-loading">جارٍ مراجعة المصادر المحلية…</div> : null}
-              {asbabError ? <div className="reader-panel-error" role="alert">{asbabError}</div> : null}
+              {!asbab && !asbabError ? <StatusState tone="loading">جارٍ مراجعة المصادر المحلية…</StatusState> : null}
+              {asbabError ? <StatusState tone="error">{asbabError}</StatusState> : null}
               {asbab?.entries.length ? asbab.entries.map((entry, index) => (
                 <article key={`${entry.source}-${index}`}>
                   <p className="reader-asbab-attribution">{entry.attribution || entry.source}</p>
                   <p>{entry.text.replace(/<br\s*\/?\s*>/gi, "\n")}</p>
                 </article>
               )) : asbab ? (
-                <p className="reader-empty">{asbab.message || "لم يثبت سبب نزول لهذه الآية في المصادر المحمّلة."}</p>
+                <StatusState className="justify-center">{asbab.message || "لم يثبت سبب نزول لهذه الآية في المصادر المحمّلة."}</StatusState>
               ) : null}
             </div>
           ) : null}
@@ -368,7 +372,7 @@ export function ReaderStudy({
               </a>
             </div>
           ) : null}
-        </div>
+        </DrawerSurface>
       ) : null}
     </section>
   );
