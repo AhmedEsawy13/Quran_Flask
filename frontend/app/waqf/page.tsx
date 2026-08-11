@@ -13,11 +13,12 @@ export const metadata: Metadata = {
 
 export default function WaqfPage() {
   return (
-    <main id="athar-main" className={cn(pageContainerClassName, "py-8 pb-24 sm:py-10 md:py-14 md:pb-28")} tabIndex={-1}>
+    <main id="athar-main" className={cn(pageContainerClassName, "py-4 pb-24 sm:py-5 md:py-6 md:pb-28")} tabIndex={-1}>
       <PageHeader
         eyebrow="مُكْث — معرفة الوقوف"
         title="علامة المصحف، ووقف القارئ، وقول الإمام."
         description="ثلاث شهادات على الموضع نفسه، ثم قراءة حقيقية من قارئ يناسب سعة نَفَسك."
+        density="utility"
       />
       <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز مُكْث" />}>
         <WaqfWorkspace />

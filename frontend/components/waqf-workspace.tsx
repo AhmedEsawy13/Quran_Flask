@@ -274,8 +274,16 @@ export function WaqfWorkspace() {
   };
 
   return (
-    <section className="grid gap-5" aria-label="مساحة مُكْث لدراسة الوقف">
+    <section className="grid gap-4 sm:gap-[18px]" aria-label="مساحة مُكْث لدراسة الوقف">
       <audio ref={audioRef} preload="metadata" className="hidden" />
+
+      <nav className="flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-athar-line-soft py-2.5 text-xs" aria-label="محاور مُكْث">
+        <span className="font-bold text-athar-gold">اقرأ الدليل</span>
+        <a className="text-athar-ink-soft underline-offset-4 hover:text-athar-accent hover:underline" href="#waqf-verse-title">موضع الوقف</a>
+        <a className="text-athar-ink-soft underline-offset-4 hover:text-athar-accent hover:underline" href="#waqf-breath-title">قراءة النَّفَس</a>
+        <a className="text-athar-ink-soft underline-offset-4 hover:text-athar-accent hover:underline" href="#waqf-comparison-title">قارن الشهادات</a>
+        <a className="ms-auto font-bold text-athar-accent underline-offset-4 hover:underline" href={legacyUrl(`/waqf-lab?surah=${surahNumber}&ayah=${ayahNumber}`)}>مختبر الوقف ↗</a>
+      </nav>
 
       <Surface
         variant="toolbar"
@@ -308,15 +316,16 @@ export function WaqfWorkspace() {
 
       {data ? (
         <>
-          <Surface as="section" className="scroll-mt-[calc(var(--bar-height)+1rem)] rounded-athar-lg p-[clamp(18px,3vw,30px)] md:scroll-mt-[calc(var(--bar-height)+7rem)]" aria-labelledby="waqf-verse-title">
+          <Surface as="section" className="scroll-mt-[calc(var(--bar-height)+1rem)] rounded-athar-lg p-4 sm:p-5 md:scroll-mt-[calc(var(--bar-height)+7rem)] md:p-6" aria-labelledby="waqf-verse-title">
             <SectionHeader
               eyebrow="الشهادة الأولى · موضع الوقف"
               id="waqf-verse-title"
               title={`سورة ${selectedSurah?.name || ""} · الآية ${toArabicDigits(ayahNumber)}`}
               description={`${toArabicDigits(data.reciters_total)} قارئًا · ${toArabicDigits(data.union_stops.length)} موضعًا · نحو ${toArabicDigits(Math.round(data.full_duration || 0))}ث`}
+              className="mb-4"
             />
 
-            <div className="mb-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]" aria-label="أقوى مواضع الوقف">
+            <div className="mb-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]" aria-label="أقوى مواضع الوقف">
               {[...data.union_stops]
                 .filter((stopItem) => stopItem.wpos < data.words.length - 1)
                 .sort((a, b) => b.count - a.count || a.wpos - b.wpos)
@@ -360,9 +369,21 @@ export function WaqfWorkspace() {
                 );
               })}
             </div>
+
+            {selectedStopWpos !== null ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-athar-gold/20 bg-athar-gold/5 px-3 py-2.5 text-xs text-athar-ink-soft">
+                <span>الموضع المحدد بعد</span>
+                <strong className="font-athar-quran text-xl text-athar-ink">{data.words[selectedStopWpos]}</strong>
+                <span className="text-athar-ink-faint">
+                  {selectedUnion ? `${toArabicDigits(selectedUnion.count)} من ${toArabicDigits(data.reciters_total)} قرّاء` : "علامة مصحف"}
+                  {selectedMarks.length ? ` · ${toArabicDigits(selectedMarks.length)} علامة` : ""}
+                </span>
+                <a className="ms-auto font-bold text-athar-accent underline-offset-4 hover:underline" href="#waqf-comparison-title">قارن الشهادات ↓</a>
+              </div>
+            ) : null}
           </Surface>
 
-          <Surface as="section" className="scroll-mt-[calc(var(--bar-height)+1rem)] rounded-athar-lg p-[clamp(18px,3vw,30px)] md:scroll-mt-[calc(var(--bar-height)+7rem)]" aria-labelledby="waqf-breath-title">
+          <Surface as="section" className="scroll-mt-[calc(var(--bar-height)+1rem)] rounded-athar-lg p-4 sm:p-5 md:scroll-mt-[calc(var(--bar-height)+7rem)] md:p-6" aria-labelledby="waqf-breath-title">
             <SectionHeader
               eyebrow="الشهادة الثانية · أداء القارئ"
               id="waqf-breath-title"
@@ -409,7 +430,7 @@ export function WaqfWorkspace() {
             </div>
           </Surface>
 
-          <Surface as="section" className="scroll-mt-[calc(var(--bar-height)+1rem)] rounded-athar-lg p-[clamp(18px,3vw,30px)] md:scroll-mt-[calc(var(--bar-height)+7rem)]" aria-labelledby="waqf-comparison-title">
+          <Surface as="section" className="scroll-mt-[calc(var(--bar-height)+1rem)] rounded-athar-lg p-4 sm:p-5 md:scroll-mt-[calc(var(--bar-height)+7rem)] md:p-6" aria-labelledby="waqf-comparison-title">
             <SectionHeader
               eyebrow="الشهادة الثالثة · المصحف والإمام"
               id="waqf-comparison-title"

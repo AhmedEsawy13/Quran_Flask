@@ -90,6 +90,9 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
 test("مُكْث compares evidence and builds a playable breath plan", async ({page}) => {
   await page.goto("/waqf?surah=2&ayah=255");
   await expect(page.getByRole("heading", {level: 1, name: "علامة المصحف، ووقف القارئ، وقول الإمام."})).toBeVisible();
+  const waqfGuide = page.getByRole("navigation", {name: "محاور مُكْث"});
+  await expect(waqfGuide.getByRole("link", {name: "موضع الوقف", exact: true})).toHaveAttribute("href", "#waqf-verse-title");
+  await expect(waqfGuide.getByRole("link", {name: "قارن الشهادات", exact: true})).toHaveAttribute("href", "#waqf-comparison-title");
   await expect(page.locator(".waqf-word-unit")).toHaveCount(50, {timeout: 15_000});
   await expect(page.locator(".waqf-inline-stop").first()).toBeVisible();
   await expect(page.getByLabel("سعة النفس").getByRole("button", {name: "متوسط"})).toHaveAttribute("aria-pressed", "true");
@@ -102,7 +105,8 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await expect(page.getByRole("heading", {name: "علامات المصاحف"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "وقوف القرّاء"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "قول الإمام", exact: true})).toBeVisible();
-  await expect(page.getByRole("link", {name: "مختبر الوقف"})).toHaveAttribute("href", /waqf-lab/);
+  await expect(page.getByRole("link", {name: "مختبر الوقف", exact: true})).toHaveAttribute("href", /waqf-lab/);
+  await expect(page.getByRole("link", {name: "قارن الشهادات ↓", exact: true})).toHaveAttribute("href", "#waqf-comparison-title");
   const shortBreath = page.getByLabel("سعة النفس").getByRole("button", {name: "قصير"});
   await shortBreath.evaluate((button: HTMLButtonElement) => button.click());
   await expect(shortBreath).toHaveAttribute("aria-pressed", "true");
