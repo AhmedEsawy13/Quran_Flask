@@ -64,6 +64,85 @@ export type MemorizationContext = {
   score?: number;
 };
 
+export type WaqfStop = {
+  wpos: number;
+  time: number;
+};
+
+export type WaqfPhrase = {
+  first_wpos: number;
+  last_wpos: number;
+  start: number;
+  end: number;
+};
+
+export type WaqfReciterDetail = {
+  name_ar: string;
+  stops: WaqfStop[];
+  repeats: Array<{from_wpos: number; to_wpos: number}>;
+  phrases: WaqfPhrase[];
+  duration: number;
+  audio_url: string | null;
+  verse_start: number;
+  qasr_munfasil: boolean;
+  solo_stops_detail: Array<{
+    wpos: number;
+    time: number;
+    word: string;
+    mushaf_matches: Array<{mushaf: string; symbol: string}>;
+  }>;
+};
+
+export type WaqfPayload = {
+  surah: number;
+  ayah: number;
+  verse_key: string;
+  text: string;
+  words: string[];
+  reciters_total: number;
+  full_duration: number | null;
+  ref_times: number[] | null;
+  ref_full: number | null;
+  ref_reciter: string | null;
+  reciters: Array<{id: string; name_ar: string}>;
+  per_reciter: Record<string, WaqfReciterDetail>;
+  union_stops: Array<{
+    wpos: number;
+    reciters: string[];
+    count: number;
+    solo: boolean;
+    avg_duration: number;
+  }>;
+  mushafs: Array<{
+    id: string;
+    name: string;
+    marks: Array<{wpos: number; symbol: string}>;
+  }>;
+};
+
+export type ClassicalWaqfPayload = {
+  surah: number;
+  ayah: number;
+  count: number;
+  sources: Record<string, {
+    name: string;
+    title: string;
+    author: string;
+    edition: string;
+    via: string;
+  }>;
+  entries: Array<{
+    source: string;
+    wpos: number;
+    stop_word: string;
+    quote: string;
+    grade: string;
+    grade_raw: string;
+    note: string;
+    reported_from: string | null;
+  }>;
+};
+
 export type TafseerCollection = Record<string, { text: string }>;
 
 export type MutashabihatMatch = {

@@ -360,7 +360,7 @@ export function ReaderStudy({
               <a href={`/memorize?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
                 <strong>تثبيت</strong><span>حفظ الآية بالتكرار والسياق الموضوعي</span>
               </a>
-              <a href={legacyUrl(`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`)}>
+              <a href={`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`}>
                 <strong>مُكْث</strong><span>دراسة مواضع الوقف واختلاف القرّاء</span>
               </a>
               <a href={legacyUrl(`/waqf-practice?surah=${surahNumber}&ayah=${ayahNumber}`)}>

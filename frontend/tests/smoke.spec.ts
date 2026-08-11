@@ -13,7 +13,9 @@ test("landing exposes the migrated paths", async ({page}) => {
   await page.goto("/");
   await expect(page.getByRole("heading", {level: 1})).toContainText("تجويد الحروف");
   await expect(page.getByRole("link", {name: "تثبيت", exact: true})).toHaveAttribute("href", "/memorize");
+  await expect(page.getByRole("link", {name: "مُكْث", exact: true})).toHaveAttribute("href", "/waqf");
   await expect(page.locator(".door-card[href^='/memorize']")).toBeVisible();
+  await expect(page.locator(".door-card[href^='/waqf']")).toBeVisible();
   await expectNoHorizontalOverflow(page);
 });
 
@@ -27,6 +29,28 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await page.getByRole("button", {name: /استمع إلى الآية/}).click();
   await expect(page.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   await expect(page.getByRole("button", {name: "تشغيل التلاوة"})).toBeEnabled();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("مُكْث compares evidence and builds a playable breath plan", async ({page}) => {
+  await page.goto("/waqf?surah=2&ayah=255");
+  await expect(page.getByRole("heading", {level: 1, name: "علامة المصحف، ووقف القارئ، وقول الإمام."})).toBeVisible();
+  await expect(page.locator(".waqf-word-unit")).toHaveCount(50);
+  await expect(page.locator(".waqf-inline-stop").first()).toBeVisible();
+  await expect(page.getByLabel("سعة النفس").getByRole("button", {name: "متوسط"})).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("القارئ المختار")).toBeEnabled();
+  const firstPhrase = page.getByLabel("مقاطع القارئ").getByRole("button").first();
+  await expect(firstPhrase).toBeEnabled();
+  await firstPhrase.evaluate((button: HTMLButtonElement) => button.click());
+  await expect(page.locator(".waqf-audio")).toHaveAttribute("src", /.+/);
+  await expect(page.getByRole("tab", {selected: true})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "علامات المصاحف"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "وقوف القرّاء"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "قول الإمام", exact: true})).toBeVisible();
+  await expect(page.getByRole("link", {name: "مختبر الوقف"})).toHaveAttribute("href", /waqf-lab/);
+  const shortBreath = page.getByLabel("سعة النفس").getByRole("button", {name: "قصير"});
+  await shortBreath.evaluate((button: HTMLButtonElement) => button.click());
+  await expect(shortBreath).toHaveAttribute("aria-pressed", "true");
   await expectNoHorizontalOverflow(page);
 });
 

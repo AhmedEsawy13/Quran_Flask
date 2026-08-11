@@ -49,7 +49,7 @@ Python deployment until their renderer is migrated.
 
 ## Migration boundary
 
-- `/`, `/read`, and the core `/memorize` session are implemented by Next.js.
+- `/`, `/read`, the core `/memorize` session, and the daily-use `/waqf` guide are implemented by Next.js.
 - `/backend-api/*` proxies short, cacheable API reads to Flask.
-- مُكْث, تدريب, the editor, and the voice-recitation portion of تثبيت still link to Flask.
+- تدريب, the editor, the مُكْث research lab, and the voice-recitation portion of تثبيت still link to Flask.
 - Audio, CV, PDFs, and long-running work must not be proxied through Vercel.

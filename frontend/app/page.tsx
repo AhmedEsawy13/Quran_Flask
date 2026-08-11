@@ -14,8 +14,8 @@ const doors = [
     verb: "تأمّل",
     title: "مُكْث",
     description: "قارن علامة المصحف، ووقف القارئ، وقول الإمام في آية واحدة.",
-    href: legacyUrl("/waqf?surah=2&ayah=255"),
-    migrated: false,
+    href: "/waqf?surah=2&ayah=255",
+    migrated: true,
   },
   {
     verb: "احفظ",
@@ -79,7 +79,7 @@ export default function HomePage() {
         <header className="section-heading">
           <p className="eyebrow">أربعة أبواب، أثر واحد</p>
           <h2 id="doors-title">من الدليل إلى القراءة اليومية.</h2>
-          <p>المصحف وتثبيت انتقلا إلى Next.js؛ بقية الأدوات تبقى آمنة على Flask أثناء النقل.</p>
+          <p>المصحف وتثبيت ومُكْث انتقلت إلى Next.js؛ بقية الأدوات تبقى آمنة على Flask أثناء النقل.</p>
         </header>
         <div className="door-grid">
           {doors.map((door) => {
