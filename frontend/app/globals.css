@@ -72,6 +72,8 @@
   --radius-small: 12px;
   --radius-medium: 20px;
   --radius-large: 30px;
+  --wq-solo: #d97706;
+  --wq-solo-soft: rgba(217, 119, 6, 0.12);
 }
 
 :root[data-theme="sepia"] {
@@ -87,6 +89,8 @@
   --athar-line: rgba(74, 59, 36, 0.17);
   --athar-line-soft: rgba(74, 59, 36, 0.09);
   --bar-background: rgba(239, 229, 207, 0.84);
+  --wq-solo: var(--athar-gold);
+  --wq-solo-soft: color-mix(in srgb, var(--athar-gold) 13%, transparent);
 }
 
 :root[data-theme="dark"] {
@@ -109,6 +113,8 @@
   --athar-shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.34);
   --bar-background: rgba(21, 20, 13, 0.84);
   --athar-nav-shadow: 0 -12px 35px rgba(0, 0, 0, 0.34);
+  --wq-solo: #fbbf24;
+  --wq-solo-soft: rgba(251, 191, 36, 0.16);
 }
 
 @theme inline {
@@ -866,15 +872,16 @@ a {
   text-align: left;
 }
 
+/* ── مُكْث domain widgets (Quran flow / chips / phrases) ───────── */
 .waqf-word-flow {
-  padding: clamp(24px, 5vw, 52px);
-  border: 1px solid var(--athar-line-soft);
-  border-radius: var(--radius-medium);
-  background: var(--athar-parchment);
+  padding: 8px 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   font-family: var(--font-quran);
-  font-size: clamp(1.75rem, 4vw, 2.8rem);
-  line-height: 2.65;
-  text-align: justify;
+  font-size: clamp(1.55rem, 3.2vw, 1.95rem);
+  line-height: 2.35;
+  text-align: start;
 }
 
 .waqf-word-unit {
@@ -909,7 +916,9 @@ a {
 }
 
 .waqf-inline-stop.is-solo {
-  border-color: color-mix(in srgb, var(--athar-copper) 48%, var(--athar-line));
+  border-color: color-mix(in srgb, var(--wq-solo, var(--athar-copper)) 48%, var(--athar-line));
+  background: var(--wq-solo-soft, transparent);
+  color: var(--wq-solo, var(--athar-copper));
 }
 
 .waqf-inline-stop small {
@@ -1261,9 +1270,9 @@ a {
   }
 
   .waqf-word-flow {
-    padding: 22px 16px;
-    font-size: clamp(1.45rem, 7vw, 2.1rem);
-    line-height: 2.75;
+    padding: 4px 0;
+    font-size: clamp(1.4rem, 6.5vw, 1.75rem);
+    line-height: 2.5;
   }
 
   .waqf-inline-stop {

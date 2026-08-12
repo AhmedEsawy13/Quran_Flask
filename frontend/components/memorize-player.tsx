@@ -13,6 +13,7 @@ import {
 } from "@/lib/memorize-schedule";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
+import { ToolCard } from "@/components/tool-chrome";
 import {
   Button,
   CheckControl,
@@ -22,7 +23,6 @@ import {
   SelectControl,
   StatTile,
   StatusState,
-  Surface,
 } from "@/components/ui/primitives";
 
 type MemorizePlayerProps = {
@@ -301,7 +301,7 @@ export function MemorizePlayer({
   }, [goToStep, setPlaying]);
 
   return (
-    <Surface as="section" className="w-full rounded-athar-md p-3.5 sm:p-4" aria-label="جلسة التكرار">
+    <ToolCard aria-label="جلسة التكرار">
       <audio
         ref={audioRef}
         src={backendMediaUrl(visibleAudio?.audio_url)}
@@ -421,6 +421,6 @@ export function MemorizePlayer({
           <Button className="sm:col-span-2 lg:col-span-3" variant="quiet" onClick={resetSession}>ابدأ النطاق من أوله</Button>
         </div>
       </details>
-    </Surface>
+    </ToolCard>
   );
 }

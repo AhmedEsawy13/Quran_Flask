@@ -16,3 +16,17 @@ export function actionLinkClassName(variant: ActionLinkVariant, className?: stri
     className,
   );
 }
+
+export function introLinkClassName(className?: string) {
+  return cn(
+    "border-b border-athar-accent/35 text-[0.88rem] font-bold text-athar-accent no-underline hover:border-athar-accent",
+    className,
+  );
+}
+
+export function pillActionClassName(className?: string) {
+  return cn(
+    "inline-flex items-center self-start rounded-full bg-athar-accent px-4 py-2 text-[0.88rem] font-bold text-athar-on-accent no-underline hover:brightness-95",
+    className,
+  );
+}

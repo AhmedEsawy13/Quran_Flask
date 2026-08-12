@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { WaqfWorkspace } from "@/components/waqf-workspace";
-import { PageHeader, RouteSkeleton } from "@/components/ui/primitives";
-import {cn} from "@/lib/cn";
-import {pageContainerClassName} from "@/lib/ui";
+import { ToolIntro } from "@/components/tool-chrome";
+import { RouteSkeleton } from "@/components/ui/primitives";
+import { introLinkClassName } from "@/lib/ui";
+import { legacyUrl } from "@/lib/paths";
 
 export const metadata: Metadata = {
   title: "مُكْث",
@@ -13,16 +14,21 @@ export const metadata: Metadata = {
 
 export default function WaqfPage() {
   return (
-    <main id="athar-main" className={cn(pageContainerClassName, "py-4 pb-24 sm:py-5 md:py-6 md:pb-28")} tabIndex={-1}>
-      <PageHeader
-        eyebrow="مُكْث — معرفة الوقوف"
-        title="علامة المصحف، ووقف القارئ، وقول الإمام."
-        description="ثلاث شهادات على الموضع نفسه، ثم قراءة حقيقية من قارئ يناسب سعة نَفَسك."
-        density="utility"
-      />
+    <div id="athar-main" tabIndex={-1}>
+      <ToolIntro
+        kicker="— مُكْث"
+        title="علامة المصحــف، ووقف القارئ، وقول الإمام."
+        titleId="wq-title"
+        titleAriaLabel="علامة المصحف، ووقف القارئ، وقول الإمام."
+        lede="هذا تميّز أثَر: ثلاث شهادات على موضع الوقف — ثم ابنِ قراءةً تناسب نَفَسك."
+      >
+        <a className={introLinkClassName()} href={legacyUrl("/waqf-lab")}>مختبر الوقف</a>
+        <a className={introLinkClassName()} href={legacyUrl("/waqf-practice")}>تدرّب على هذا الموضع</a>
+      </ToolIntro>
+
       <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز مُكْث" />}>
         <WaqfWorkspace />
       </Suspense>
-    </main>
+    </div>
   );
 }

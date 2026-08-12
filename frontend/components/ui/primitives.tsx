@@ -213,23 +213,41 @@ export function SegmentedControl<T extends string>({
   options,
   onChange,
   className,
+  variant = "bar",
 }: {
   label: string;
   value: T;
   options: ReadonlyArray<{value: T; label: string}>;
   onChange: (value: T) => void;
   className?: string;
+  variant?: "bar" | "pills";
 }) {
+  const pills = variant === "pills";
   return (
-    <div className={cn("flex min-h-11 items-center rounded-xl border border-athar-line bg-athar-canvas-strong p-1", className)} aria-label={label}>
+    <div
+      className={cn(
+        "flex items-center",
+        pills
+          ? "gap-1 rounded-full border border-athar-line bg-athar-canvas-strong p-0.5"
+          : "min-h-11 rounded-xl border border-athar-line bg-athar-canvas-strong p-1",
+        className,
+      )}
+      role="group"
+      aria-label={label}
+    >
       {options.map((option) => {
         const active = option.value === value;
         return (
           <button
             type="button"
             className={cn(
-              "min-h-9 flex-1 cursor-pointer rounded-[9px] px-3 text-sm font-semibold text-athar-ink-soft transition-colors focus-visible:outline-2 focus-visible:outline-athar-accent",
-              active && "bg-athar-surface text-athar-accent shadow-sm",
+              "cursor-pointer font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-athar-accent",
+              pills
+                ? "rounded-full px-3.5 py-1.5 text-[0.8rem] text-athar-ink-soft hover:text-athar-ink"
+                : "min-h-9 flex-1 rounded-[9px] px-3 text-sm text-athar-ink-soft",
+              active && (pills
+                ? "bg-athar-accent text-athar-on-accent shadow-athar-sm hover:text-athar-on-accent"
+                : "bg-athar-surface text-athar-accent shadow-sm"),
             )}
             key={option.value}
             aria-pressed={active}

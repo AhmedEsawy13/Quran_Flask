@@ -16,19 +16,25 @@ import {
   type MushafEditionId,
 } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
+import { pillActionClassName } from "@/lib/ui";
 import { useEditionFont } from "@/lib/use-edition-font";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { MushafStage } from "@/components/mushaf-stage";
 import { MemorizePlayer } from "@/components/memorize-player";
 import {
+  ChromeField,
+  ChromePill,
+  ChromeSelect,
+  ChromeStepper,
+  ToolCard,
+  ToolChrome,
+  ToolStack,
+} from "@/components/tool-chrome";
+import {
   Button,
-  Field,
-  HandoffSurface,
   ProgressBar,
-  SelectControl,
   StatTile,
   StatusState,
-  Surface,
 } from "@/components/ui/primitives";
 
 type PageResult = {
@@ -83,7 +89,6 @@ export function MemorizeWorkspace() {
     () => surahs.find((surah) => surah.number === surahNumber),
     [surahs, surahNumber],
   );
-  const rangeLength = Math.max(1, toAyah - fromAyah + 1);
   const contextRange = visibleContext?.found && visibleContext.from?.surah === surahNumber && visibleContext.to?.surah === surahNumber
     ? [visibleContext.from.ayah, visibleContext.to.ayah] as const
     : undefined;
@@ -209,75 +214,70 @@ export function MemorizeWorkspace() {
   };
 
   return (
-    <section className="grid gap-4 sm:gap-[18px]" aria-label="مساحة تثبيت الحفظ">
-      <Surface
-        variant="toolbar"
-        className="grid grid-cols-2 items-end gap-2 rounded-athar-md p-3 sm:grid-cols-4 md:sticky md:top-[calc(var(--bar-height)+.5rem)] md:z-20 lg:grid-cols-[minmax(150px,1.4fr)_repeat(2,minmax(92px,.55fr))_minmax(160px,1fr)_auto] lg:gap-3 lg:p-3.5"
+    <div aria-label="مساحة تثبيت الحفظ">
+      <ToolChrome
+        label="اختيار نطاق التثبيت"
+        pill={(
+          <ChromePill role="status" aria-label="ملخص نطاق التثبيت">
+            {selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · {toArabicDigits(fromAyah)}–{toArabicDigits(toAyah)}
+          </ChromePill>
+        )}
+        note="اختر نطاق الآيات، ثم شغّل التكرار على صفحة المصحف. اضغط آيةً للتنقّل داخل النطاق."
       >
-        <Field label="السورة" className="col-span-2 sm:col-span-2 lg:col-span-1">
-          <SelectControl value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
+        <ChromeField label="السورة">
+          <ChromeSelect value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
             {!surahs.length ? <option>جارٍ التحميل…</option> : null}
             {surahs.map((surah) => (
               <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
             ))}
-          </SelectControl>
-        </Field>
-        <Field label="من آية">
-          <SelectControl value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
+          </ChromeSelect>
+        </ChromeField>
+        <ChromeField label="من آية">
+          <ChromeSelect value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
             {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
-          </SelectControl>
-        </Field>
-        <Field label="إلى آية">
-          <SelectControl value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
+          </ChromeSelect>
+        </ChromeField>
+        <ChromeField label="إلى آية">
+          <ChromeSelect value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
             {ayahNumbers.filter((number) => number >= fromAyah).map((number) => (
               <option key={number} value={number}>{toArabicDigits(number)}</option>
             ))}
-          </SelectControl>
-        </Field>
-        <Field label="طبعة المصحف" className="col-span-2 sm:col-span-3 lg:col-span-1">
-          <SelectControl value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
+          </ChromeSelect>
+        </ChromeField>
+        <ChromeField label="طبعة المصحف">
+          <ChromeSelect value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
             {Object.values(MUSHAF_EDITIONS).map((item) => (
               <option key={item.id} value={item.id}>{item.label}</option>
             ))}
-          </SelectControl>
-        </Field>
+          </ChromeSelect>
+        </ChromeField>
         <Button
-          className="col-span-2 sm:col-span-1"
+          size="sm"
           variant={concealed ? "primary" : "secondary"}
+          className="self-end"
           aria-pressed={concealed}
           onClick={() => setConcealed((value) => !value)}
         >
           {concealed ? "أظهر نص النطاق" : "اختبر حفظي"}
         </Button>
-      </Surface>
-
-      {catalogError ? (
-        <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
-          {catalogError}
-        </StatusState>
-      ) : null}
-
-      <Surface variant="subtle" className="grid gap-4 rounded-athar-md p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center" aria-label="ملخص نطاق التثبيت">
-        <StatTile
-          label="النطاق المختار"
-          value={`${selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)}`}
-          className="bg-athar-surface"
+        <ChromeStepper
+          previousLabel="الآية السابقة في نطاق التثبيت"
+          nextLabel="الآية التالية في نطاق التثبيت"
+          previousDisabled={activeAyah <= fromAyah}
+          nextDisabled={activeAyah >= toAyah}
+          onPrevious={() => updateActiveAyah(activeAyah - 1)}
+          onNext={() => updateActiveAyah(activeAyah + 1)}
         />
-        <div className="grid gap-2">
-          <StatTile
-            label="موضع الجلسة"
-            value={`الآية ${toArabicDigits(activeAyah)} · ${toArabicDigits(activeAyah - fromAyah + 1)} من ${toArabicDigits(rangeLength)}`}
-            className="bg-athar-surface"
-          />
-          <ProgressBar value={activeAyah - fromAyah + 1} max={rangeLength} label="تقدّم نطاق التثبيت" />
-        </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="quiet" onClick={() => updateActiveAyah(activeAyah - 1)} disabled={activeAyah <= fromAyah}>السابقة</Button>
-          <Button size="sm" onClick={() => updateActiveAyah(activeAyah + 1)} disabled={activeAyah >= toAyah}>التالية</Button>
-        </div>
-      </Surface>
+      </ToolChrome>
 
-      <MushafStage
+      <ToolStack>
+        {catalogError ? (
+          <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
+            {catalogError}
+          </StatusState>
+        ) : null}
+
+        <MushafStage
         view="page"
         editionId={editionId}
         positionLabel={`${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)} · الآية ${toArabicDigits(activeAyah)}`}
@@ -317,8 +317,8 @@ export function MemorizeWorkspace() {
         onWordChange={setActiveAudioWord}
       />
 
-      <Surface as="aside" className="grid w-full gap-3 overflow-hidden rounded-athar-md border-s-4 border-s-athar-gold p-4" aria-live="polite" aria-label="التفصيل الموضوعي">
-        <header className="flex items-start justify-between gap-4">
+      <ToolCard as="aside" className="border-s-4 border-s-athar-gold" aria-live="polite" aria-label="التفصيل الموضوعي">
+        <header className="mb-3 flex items-start justify-between gap-4">
           <div className="grid gap-0.5">
             <span className="text-[0.7rem] font-bold text-athar-gold">التفصيل الموضوعي</span>
             <h2 className="m-0 font-athar-display text-[clamp(1.35rem,3vw,1.9rem)] leading-tight text-athar-ink">
@@ -335,14 +335,14 @@ export function MemorizeWorkspace() {
         ) : visibleContext?.found ? (
           <>
             <p className="m-0 text-sm leading-7 text-athar-ink-soft sm:text-base">{visibleContext.label}</p>
-            <div className="grid gap-2">
+            <div className="mt-3 grid gap-2">
               <div className="flex items-center justify-between gap-3 text-[0.7rem] text-athar-ink-faint">
                 <span>تقدّمك داخل الموضوع</span>
                 <span>{toArabicDigits(contextPosition)} / {toArabicDigits(contextLength)}</span>
               </div>
               <ProgressBar value={contextPosition} max={contextLength} label="موضع الآية داخل المقطع الموضوعي" />
             </div>
-            <details className="group border-t border-athar-line-soft pt-3">
+            <details className="group mt-3 border-t border-athar-line-soft pt-3">
               <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-bold text-athar-ink-soft marker:content-none [&::-webkit-details-marker]:hidden">
                 <span aria-hidden="true" className="text-athar-gold transition-transform group-open:rotate-90">‹</span>
                 تفاصيل المقطع الموضوعي
@@ -367,11 +367,20 @@ export function MemorizeWorkspace() {
         ) : (
           <StatusState className="justify-center">لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</StatusState>
         )}
-      </Surface>
+      </ToolCard>
 
-      <HandoffSurface action={<a href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>افتح التسميع الصوتي</a>}>
-        التكرار المقطعي والربط التراكمي انتقلا إلى هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.
-      </HandoffSurface>
-    </section>
+      <ToolCard aria-labelledby="mz-handoff-title">
+        <div className="flex max-w-[42rem] flex-col gap-2">
+          <h2 className="m-0 font-athar-display text-[1.1rem] font-bold text-athar-ink" id="mz-handoff-title">التسميع الصوتي</h2>
+          <p className="m-0 text-[0.9rem] leading-relaxed text-athar-ink-soft">
+            التكرار المقطعي والربط التراكمي هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.
+          </p>
+          <a className={pillActionClassName("mt-1.5")} href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>
+            افتح التسميع الصوتي
+          </a>
+        </div>
+      </ToolCard>
+      </ToolStack>
+    </div>
   );
 }
