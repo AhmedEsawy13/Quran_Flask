@@ -38,6 +38,13 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "QCF Basmala";
+  src: url("/backend-fonts/QCF%20BSML%20%40Am9li9.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
   --font-display: "Thmanyah Display", Georgia, serif;
   --font-ui: "Thmanyah Sans", system-ui, sans-serif;
@@ -793,6 +800,23 @@ a {
 .mushaf-special-line {
   font-size: 0.9em;
   text-align: center;
+}
+
+/* Match تثبيت .mz-line-basmala.mz-basmala-glyph — one QCF glyph for the whole basmala. */
+.mushaf-basmala-glyph {
+  display: block;
+  width: 100%;
+  color: var(--athar-ink);
+  font-family: "QCF Basmala", "Digital Khatt", "Uthmanic Hafs", serif;
+  font-size: calc(var(--reader-page-fit-font, 22px) * 1.7);
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.reader-mushaf-stage .reader-page.is-page .mushaf-basmala-glyph {
+  font-size: calc(var(--reader-page-fit-font, 22px) * 1.7);
+  line-height: 1;
 }
 
 .transliteration {

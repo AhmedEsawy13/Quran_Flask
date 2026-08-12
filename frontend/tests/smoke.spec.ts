@@ -86,9 +86,16 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible({timeout: 15_000});
   await expect(page.locator(".mushaf-head-juz-glyph").first()).toHaveText(/[\ue001-\ue01e]/);
   await expect(page.locator(".mushaf-head-surah-glyph").first()).toHaveText(/[\ufb00-\ufcff]/);
-  await expect.poll(() => page.evaluate(() => (
-    document.fonts.check('16px "QCF Common"') && document.fonts.check('16px "Surah Names"')
-  ))).toBe(true);
+  await expect.poll(() => page.evaluate(async () => {
+    await Promise.all([
+      document.fonts.load('16px "QCF Common"'),
+      document.fonts.load('16px "Surah Names"'),
+      document.fonts.load('24px "QCF Basmala"'),
+    ]);
+    return document.fonts.check('16px "QCF Common"')
+      && document.fonts.check('16px "Surah Names"')
+      && document.fonts.check('16px "QCF Basmala"');
+  })).toBe(true);
   await expect.poll(() => page.locator('.mushaf-line[data-justify="true"] .mushaf-line-inner').first().evaluate((line) => {
     const spacing = Number.parseFloat(getComputedStyle(line).wordSpacing);
     return Number.isFinite(spacing) ? spacing : 0;

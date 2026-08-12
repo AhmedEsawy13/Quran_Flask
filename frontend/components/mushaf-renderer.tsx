@@ -147,7 +147,20 @@ function PageLine({
     );
   }
 
-  if (line.line_type === "basmallah" || line.line_type === "surah_info") {
+  if (line.line_type === "basmallah") {
+    return (
+      <div className="mushaf-line is-centered">
+        <div
+          className="mushaf-basmala-glyph"
+          aria-label={line.display_text || "بسم الله الرحمن الرحيم"}
+        >
+          {"\u00F3"}
+        </div>
+      </div>
+    );
+  }
+
+  if (line.line_type === "surah_info") {
     return <div className="mushaf-special-line">{line.display_text}</div>;
   }
 
