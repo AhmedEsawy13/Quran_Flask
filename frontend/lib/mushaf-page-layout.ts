@@ -110,7 +110,9 @@ export function fitMushafFontSize(
   const lineHeight = height / linesPerPage;
   const maxFontSize = lineHeight * 0.92;
   let fontSize = Math.max(minFontSize, lineHeight * 0.62);
-  pageEl.style.setProperty("--reader-page-fit-font", `${fontSize}px`);
+  writePageFitFont(pageEl, fontSize);
+  // Flush so ratio measurements use the seed size, not a stale computed font.
+  void pageEl.offsetHeight;
 
   let inners = [
     ...pageEl.querySelectorAll<HTMLElement>('.mushaf-line[data-justify="true"] .mushaf-line-inner'),
@@ -142,8 +144,15 @@ export function fitMushafFontSize(
     fontSize = Math.max(minFontSize, Math.min(maxFontSize, typicalFit, compressionFit));
   }
 
-  pageEl.style.setProperty("--reader-page-fit-font", `${fontSize}px`);
+  writePageFitFont(pageEl, fontSize);
   return fontSize;
+}
+
+/** Prefer .mushaf-lines so React `style` on the page article cannot wipe the var. */
+function writePageFitFont(pageEl: HTMLElement, fontSize: number) {
+  const value = `${fontSize}px`;
+  pageEl.style.setProperty("--reader-page-fit-font", value);
+  pageEl.querySelector<HTMLElement>(".mushaf-lines")?.style.setProperty("--reader-page-fit-font", value);
 }
 
 /** Match تثبيت printed-line fit: measured font → OpenType → spacing → capped scaleX. */
@@ -282,8 +291,11 @@ export function fitAndJustifyMushafPage(
   editionId: MushafEditionId,
   options: LayoutOptions = {},
 ) {
-  fitMushafFontSize(pageEl, editionId, options);
+  const fontSize = fitMushafFontSize(pageEl, editionId, options);
+  // Fitted font is a CSS variable — force layout before width-based justify.
+  void pageEl.offsetHeight;
   justifyMushafLines(pageEl, editionId, options);
+  return fontSize;
 }
 
 export function pageAspectRatio(editionId: MushafEditionId) {

@@ -122,6 +122,18 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
     ratios.sort((a, b) => a - b);
     return ratios[Math.floor(ratios.length / 2)] || 0;
   })).toBeGreaterThan(0.82);
+  // Lines must stay inside the printed page (Madinah inset ≈10px + glyph overhang).
+  await expect.poll(() => page.locator(".reader-page.is-page").evaluateAll((pages) => {
+    let worst = 0;
+    pages.forEach((pageEl) => {
+      const pageRect = pageEl.getBoundingClientRect();
+      pageEl.querySelectorAll<HTMLElement>(".mushaf-line-inner").forEach((inner) => {
+        const rect = inner.getBoundingClientRect();
+        worst = Math.max(worst, pageRect.left - rect.left, rect.right - pageRect.right);
+      });
+    });
+    return worst;
+  })).toBeLessThanOrEqual(2);
 
   const tajweedButton = page.getByRole("button", {name: "تلوين التجويد", exact: true});
   if (await tajweedButton.isVisible()) {

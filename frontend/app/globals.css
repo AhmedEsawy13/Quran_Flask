@@ -447,6 +447,7 @@ a {
 .reader-mushaf-stage .reader-page.is-page.edition-shamarly .mushaf-lines {
   height: 100%;
   min-height: 0;
+  min-width: 0;
   flex: 1 1 auto;
   align-self: stretch;
   font-size: var(--reader-page-fit-font, 22px);
@@ -454,6 +455,8 @@ a {
 }
 
 .reader-mushaf-stage .reader-page.is-page .mushaf-line {
+  min-width: 0;
+  max-width: 100%;
   padding-inline: 0;
 }
 
@@ -575,7 +578,10 @@ a {
 .mushaf-lines {
   display: grid;
   width: 100%;
+  min-width: 0;
   min-height: 790px;
+  /* Keep columns from growing to nowrap glyph min-content (overflows page). */
+  grid-template-columns: minmax(0, 1fr);
   grid-auto-rows: minmax(0, 1fr);
   align-items: center;
   font-family: var(--reader-quran-font, var(--font-quran));
@@ -587,6 +593,8 @@ a {
 .mushaf-line {
   display: flex;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   justify-content: center;
   overflow: visible;

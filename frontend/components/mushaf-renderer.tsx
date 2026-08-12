@@ -276,7 +276,8 @@ export function MushafRenderer({
     if (!root || view !== "page" || !page || !shemrlyAvailable || fontLoading) return;
     let frame = 0;
     let active = true;
-    let passes = 0;
+    let sameSizePasses = 0;
+    let lastSize = "";
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
@@ -288,15 +289,25 @@ export function MushafRenderer({
     const observer = typeof ResizeObserver === "undefined"
       ? null
       : new ResizeObserver(() => {
-        if (!active || passes >= 4) return;
-        passes += 1;
+        if (!active) return;
+        const nextSize = `${root.clientWidth}x${root.clientHeight}`;
+        if (nextSize !== lastSize) {
+          lastSize = nextSize;
+          sameSizePasses = 0;
+          fit();
+          return;
+        }
+        // Same-size storms (font shaping / zoom) — bound like تثبيت.
+        if (sameSizePasses >= 4) return;
+        sameSizePasses += 1;
         fit();
       });
     observer?.observe(root);
     fit();
     document.fonts?.ready.then(() => {
       if (!active) return;
-      passes = 0;
+      sameSizePasses = 0;
+      lastSize = "";
       fit();
     });
     return () => {
