@@ -11,7 +11,7 @@ import {
   type MushafEditionId,
   type ReaderView,
 } from "@/lib/mushaf";
-import { justifyMushafLines } from "@/lib/mushaf-page-layout";
+import { fitAndJustifyMushafPage } from "@/lib/mushaf-page-layout";
 import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
@@ -276,17 +276,28 @@ export function MushafRenderer({
     if (!root || view !== "page" || !page || !shemrlyAvailable || fontLoading) return;
     let frame = 0;
     let active = true;
+    let passes = 0;
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        if (active) justifyMushafLines(root, editionId, { dual: dualLayout });
+        if (!active) return;
+        // Same pipeline as تثبيت: measured font size, then capped line justify.
+        fitAndJustifyMushafPage(root, editionId, { dual: dualLayout });
       });
     };
-    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(fit);
+    const observer = typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(() => {
+        if (!active || passes >= 4) return;
+        passes += 1;
+        fit();
+      });
     observer?.observe(root);
     fit();
     document.fonts?.ready.then(() => {
-      if (active) fit();
+      if (!active) return;
+      passes = 0;
+      fit();
     });
     return () => {
       active = false;

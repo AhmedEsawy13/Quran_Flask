@@ -587,6 +587,7 @@ export function ReaderWorkspace() {
 
       <MushafStage
         view={view}
+        editionId={editionId}
         pageCount={dualActive ? 2 : 1}
         positionLabel={positionLabel}
         previousLabel={view === "page" ? "الصفحة السابقة" : "الآية السابقة"}

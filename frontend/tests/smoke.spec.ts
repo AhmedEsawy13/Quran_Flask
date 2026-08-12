@@ -93,8 +93,8 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
     const spacing = Number.parseFloat(getComputedStyle(line).wordSpacing);
     return Number.isFinite(spacing) ? spacing : 0;
   })).toBeLessThanOrEqual(4.1);
-  // Match the main app stretch ceiling (≤1.20 in dual). Uncapped scaleX was
-  // making Madinah glyphs look stringy when forcing every line to the edges.
+  // Match the main app stretch ceiling (≤1.20 in dual). Measured font fit
+  // should leave little residual scaleX; this guards against stringy glyphs.
   await expect.poll(() => page.locator('.mushaf-line[data-justify="true"] .mushaf-line-inner').evaluateAll((inners) => Math.max(
     ...inners.map((inner) => {
       const matrix = getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/);
@@ -102,6 +102,26 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
       return Number.isFinite(scale) ? scale : 1;
     }),
   ))).toBeLessThanOrEqual(1.21);
+  // After measured font fit, typical justified lines should already fill most
+  // of the text column before residual scaleX (same contract as تثبيت).
+  await expect.poll(() => page.locator('.mushaf-line[data-justify="true"]').evaluateAll((lines) => {
+    const ratios = lines.map((line) => {
+      const inner = line.querySelector<HTMLElement>(".mushaf-line-inner");
+      if (!inner || !(line as HTMLElement).clientWidth) return 1;
+      const matrix = getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/);
+      const scaleX = matrix ? Number(matrix[1]) : 1;
+      const visualInner = inner.getBoundingClientRect().width;
+      const visualLine = line.getBoundingClientRect().width;
+      const layoutLine = (line as HTMLElement).clientWidth;
+      const inherited = visualLine / layoutLine;
+      const rendered = inherited > 0 ? visualInner / inherited : visualInner;
+      const natural = scaleX > 0 ? rendered / scaleX : rendered;
+      return natural / Math.max(1, layoutLine - 10);
+    }).filter((ratio) => Number.isFinite(ratio));
+    if (!ratios.length) return 0;
+    ratios.sort((a, b) => a - b);
+    return ratios[Math.floor(ratios.length / 2)] || 0;
+  })).toBeGreaterThan(0.82);
 
   const tajweedButton = page.getByRole("button", {name: "تلوين التجويد", exact: true});
   if (await tajweedButton.isVisible()) {

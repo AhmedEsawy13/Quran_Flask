@@ -415,7 +415,8 @@ a {
 
 .reader-facing-blank {
   width: var(--reader-page-fit-width, 620px);
-  aspect-ratio: 0.66;
+  height: var(--reader-page-fit-height, auto);
+  aspect-ratio: var(--reader-page-aspect, 0.66);
   border: 1px dashed var(--athar-line-soft);
   background: color-mix(in srgb, var(--athar-surface) 48%, transparent);
 }
@@ -423,9 +424,14 @@ a {
 .reader-mushaf-stage .reader-page.is-page {
   display: flex;
   width: min(var(--reader-page-fit-width, 620px), calc(100vw - 132px));
+  height: var(--reader-page-fit-height, auto);
   min-height: 0;
-  aspect-ratio: 0.66;
+  aspect-ratio: var(--reader-page-aspect, 0.66);
   flex-direction: column;
+  /* Match تثبيت .mz-page text column: tight edges before justify insets. */
+  --reader-page-fit-font: 22px;
+  padding: 5px 8px;
+  box-sizing: border-box;
 }
 
 .reader-mushaf-stage .reader-page.is-page .reader-page-body {
@@ -433,7 +439,7 @@ a {
   min-height: 0;
   align-items: stretch;
   flex: 1 1 auto;
-  padding: clamp(12px, 4%, 34px) clamp(10px, 5%, 42px);
+  padding: 0;
 }
 
 .reader-mushaf-stage .reader-page.is-page .mushaf-lines,
@@ -444,17 +450,27 @@ a {
   flex: 1 1 auto;
   align-self: stretch;
   font-size: var(--reader-page-fit-font, 22px);
-  line-height: 1.2;
+  line-height: 1.06;
+}
+
+.reader-mushaf-stage .reader-page.is-page .mushaf-line {
+  padding-inline: 0;
+}
+
+.reader-mushaf-stage .reader-page.is-page .mushaf-line-inner {
+  font-size: var(--reader-page-fit-font, 22px);
+  line-height: 1.06;
+  transform-origin: center center;
 }
 
 .reader-mushaf-stage .reader-page.is-page .mushaf-head {
   min-height: 44px;
-  padding: 3px 16px 5px;
+  padding: 2px 4px 8px;
 }
 
 .reader-mushaf-stage .reader-page.is-page .mushaf-foot {
   min-height: 48px;
-  padding: 7px 16px;
+  padding: 6px 4px 2px;
 }
 
 .reader-mushaf-stage .reader-page.is-page .page-number {

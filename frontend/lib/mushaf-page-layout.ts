@@ -1,5 +1,14 @@
 import type { MushafEditionId } from "@/lib/mushaf";
 
+type LayoutOptions = {
+  dual?: boolean;
+  linesPerPage?: number;
+};
+
+function isMadinahEdition(editionId: MushafEditionId) {
+  return editionId === "digital_khatt" || editionId === "qpc_v2" || editionId === "qpc_v1";
+}
+
 function digitalKhattFeatureCandidates() {
   return [
     "'jalt' 1",
@@ -59,15 +68,10 @@ function fitRenderedWidth(
   }
 }
 
-function editionMetrics(
-  editionId: MushafEditionId,
-  fontSize: number,
-  options: { dual?: boolean } = {},
-) {
-  const isMadinah = editionId === "digital_khatt" || editionId === "qpc_v2" || editionId === "qpc_v1";
-  // Same ceilings as static/js/mushaf_memorize.js — dual spreads get a slightly
-  // higher Madinah budget; never uncapped scaleX (that makes glyphs look stringy).
-  const maximumStretch = options.dual && isMadinah ? 1.20
+function editionMetrics(editionId: MushafEditionId, fontSize: number, options: LayoutOptions = {}) {
+  const isMadinah = isMadinahEdition(editionId);
+  // Match static/js/mushaf_memorize.js: dual spreads use 1.20 for every source.
+  const maximumStretch = options.dual ? 1.20
     : editionId === "qpc_v1" ? 1.18
       : editionId === "digital_khatt" || editionId === "qpc_v2" ? 1.15
         : editionId === "shamarly" ? 1.5
@@ -88,12 +92,65 @@ function editionMetrics(
   };
 }
 
-/** Match the original app's printed-line fit: prefer Quran-font alternates,
- * keep inter-word gaps narrow, then use only a small capped scaleX correction. */
+/**
+ * Port of AtharPageChrome.createFontSizer for one page.
+ * Measure natural line widths at a height-based seed size, then pick a page
+ * font so a typical line nearly fills the text column before justify runs.
+ */
+export function fitMushafFontSize(
+  pageEl: HTMLElement,
+  editionId: MushafEditionId,
+  options: LayoutOptions = {},
+) {
+  const linesPerPage = Math.max(1, options.linesPerPage || 15);
+  const isMadinah = isMadinahEdition(editionId);
+  const minLineScale = isMadinah ? 0.95 : 0;
+  const minFontSize = 9.5;
+  const height = pageEl.clientHeight || 1;
+  const lineHeight = height / linesPerPage;
+  const maxFontSize = lineHeight * 0.92;
+  let fontSize = Math.max(minFontSize, lineHeight * 0.62);
+  pageEl.style.setProperty("--reader-page-fit-font", `${fontSize}px`);
+
+  let inners = [
+    ...pageEl.querySelectorAll<HTMLElement>('.mushaf-line[data-justify="true"] .mushaf-line-inner'),
+  ];
+  if (!inners.length) {
+    inners = [...pageEl.querySelectorAll<HTMLElement>(".mushaf-line .mushaf-line-inner")];
+  }
+
+  const ratios: number[] = [];
+  inners.forEach((inner) => {
+    inner.style.transform = "none";
+    inner.style.fontSize = "";
+    inner.style.fontFeatureSettings = "normal";
+    inner.style.fontVariationSettings = "normal";
+    inner.style.wordSpacing = "";
+    const line = inner.parentElement;
+    const available = line?.clientWidth || 0;
+    const natural = inner.scrollWidth;
+    if (natural > 0 && available > 0) ratios.push(available / natural);
+  });
+
+  if (ratios.length) {
+    ratios.sort((a, b) => a - b);
+    const median = ratios[Math.floor(ratios.length / 2)] || 1;
+    const typicalFit = fontSize * median * 0.98;
+    const compressionFit = minLineScale > 0
+      ? fontSize * ratios[0] * 0.99 / minLineScale
+      : Infinity;
+    fontSize = Math.max(minFontSize, Math.min(maxFontSize, typicalFit, compressionFit));
+  }
+
+  pageEl.style.setProperty("--reader-page-fit-font", `${fontSize}px`);
+  return fontSize;
+}
+
+/** Match تثبيت printed-line fit: measured font → OpenType → spacing → capped scaleX. */
 export function justifyMushafLines(
   root: HTMLElement,
   editionId: MushafEditionId,
-  options: { dual?: boolean } = {},
+  options: LayoutOptions = {},
 ) {
   root.querySelectorAll<HTMLElement>(".mushaf-line").forEach((line) => {
     const inner = line.querySelector<HTMLElement>(".mushaf-line-inner");
@@ -111,8 +168,7 @@ export function justifyMushafLines(
     const available = Math.max(0, line.clientWidth - edgeInset);
     if (!available) return;
 
-    // Centered/special lines: only clamp overflow, never stretch to fill
-    // (same contract as AtharPageChrome.createLineJustifier).
+    // Centered/special lines: only clamp overflow, never stretch to fill.
     if (line.dataset.justify !== "true") {
       const natural = renderedWidth(inner, line);
       if (natural > available + 0.5) {
@@ -203,10 +259,6 @@ export function justifyMushafLines(
     fitRenderedWidth(inner, line, available, metrics.minimumFeatureScale, metrics.maximumStretch);
   });
 
-  // Reconcile after every line has shaped. Chromium can update an earlier
-  // line's layout box after a sibling writes OpenType features or spacing.
-  // Keep the same stretch ceiling as the main app — do not force full-bleed
-  // scaleX past the Madinah/Shamarly caps (that is what made glyphs look stretched).
   root.querySelectorAll<HTMLElement>('.mushaf-line[data-justify="true"]').forEach((line) => {
     const inner = line.querySelector<HTMLElement>(".mushaf-line-inner");
     if (!inner) return;
@@ -222,4 +274,18 @@ export function justifyMushafLines(
       Math.max(1, metrics.maximumStretch),
     );
   });
+}
+
+/** Same order as تثبيت: measure page font, then justify lines. */
+export function fitAndJustifyMushafPage(
+  pageEl: HTMLElement,
+  editionId: MushafEditionId,
+  options: LayoutOptions = {},
+) {
+  fitMushafFontSize(pageEl, editionId, options);
+  justifyMushafLines(pageEl, editionId, options);
+}
+
+export function pageAspectRatio(editionId: MushafEditionId) {
+  return editionId === "qpc_v1" ? 0.72 : 0.66;
 }

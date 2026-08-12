@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type TouchEvent } from "react";
 import { cn } from "@/lib/cn";
-import type { ReaderView } from "@/lib/mushaf";
+import type { MushafEditionId, ReaderView } from "@/lib/mushaf";
+import { pageAspectRatio } from "@/lib/mushaf-page-layout";
 
 type MushafStageProps = {
   children: ReactNode;
   view: ReaderView;
+  editionId?: MushafEditionId;
   pageCount?: 1 | 2;
   positionLabel: string;
   previousLabel: string;
@@ -22,6 +24,7 @@ type MushafStageProps = {
 export function MushafStage({
   children,
   view,
+  editionId = "digital_khatt",
   pageCount = 1,
   positionLabel,
   previousLabel,
@@ -35,7 +38,8 @@ export function MushafStage({
 }: MushafStageProps) {
   const stageRef = useRef<HTMLElement>(null);
   const touchStart = useRef<{x: number; y: number} | null>(null);
-  const [fit, setFit] = useState({width: 790, fontSize: 27});
+  const [fit, setFit] = useState({width: 790, height: 1197});
+  const ratio = pageAspectRatio(editionId);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -54,13 +58,21 @@ export function MushafStage({
           mobile ? 430 : 300,
           window.innerHeight - Math.max(0, rect.top) - bottomInset - stageChrome,
         );
-        const spreadGutter = pageCount === 2 ? 8 : 0;
-        const widthPerPage = (availableWidth - spreadGutter) / pageCount;
-        const width = Math.floor(Math.min(790, widthPerPage, availableHeight * 0.66));
-        setFit({
-          width,
-          fontSize: Math.max(10.5, Math.min(27.5, width / 27)),
-        });
+        // Match تثبيت sizePages: height-first from aspect ratio, then shrink to width budget.
+        const spreadGutter = pageCount === 2 ? 16 : 0;
+        const spreadPad = pageCount === 2 ? 20 : 0;
+        let height = availableHeight;
+        let width = height * ratio;
+        const totalWidth = width * pageCount + spreadGutter + spreadPad;
+        if (totalWidth > availableWidth) {
+          const widthBudget = Math.max(1, availableWidth - spreadGutter - spreadPad);
+          const scale = widthBudget / (width * pageCount);
+          width *= scale;
+          height *= scale;
+        }
+        width = Math.max(150, Math.floor(Math.min(790, width)));
+        height = Math.max(230, Math.floor(width / ratio));
+        setFit({ width, height });
       });
     };
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
@@ -72,11 +84,12 @@ export function MushafStage({
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [pageCount, view]);
+  }, [editionId, pageCount, ratio, view]);
 
   const style = view === "page" ? {
     "--reader-page-fit-width": `${fit.width}px`,
-    "--reader-page-fit-font": `${fit.fontSize}px`,
+    "--reader-page-fit-height": `${fit.height}px`,
+    "--reader-page-aspect": String(ratio),
   } as CSSProperties : undefined;
 
   const finishSwipe = (event: TouchEvent<HTMLElement>) => {

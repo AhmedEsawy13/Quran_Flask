@@ -279,6 +279,7 @@ export function MemorizeWorkspace() {
 
       <MushafStage
         view="page"
+        editionId={editionId}
         positionLabel={`${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)} · الآية ${toArabicDigits(activeAyah)}`}
         previousLabel="الآية السابقة في نطاق التثبيت"
         nextLabel="الآية التالية في نطاق التثبيت"
