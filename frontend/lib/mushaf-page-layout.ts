@@ -36,16 +36,25 @@ function fitRenderedWidth(
   minimumScale: number,
   maximumScale: number,
 ) {
-  for (let pass = 0; pass < 3; pass += 1) {
+  const lower = Math.max(0.5, minimumScale || 0.5);
+  const upper = Number.isFinite(maximumScale)
+    ? Math.max(lower, maximumScale)
+    : Infinity;
+  for (let pass = 0; pass < 4; pass += 1) {
     const width = renderedWidth(inner, line);
-    if (!width || Math.abs(width - available) <= 0.35) return;
+    if (!width || Math.abs(width - available) <= 0.25) return;
     const matrix = getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/);
     const currentScale = matrix ? Number(matrix[1]) : 1;
     if (!Number.isFinite(currentScale) || currentScale <= 0) return;
-    const nextScale = Math.max(
-      minimumScale,
-      Math.min(maximumScale, currentScale * available / width),
-    );
+    const desiredScale = currentScale * available / width;
+    if (desiredScale < lower) {
+      const currentSize = Number.parseFloat(getComputedStyle(inner).fontSize) || 0;
+      if (!currentSize) return;
+      inner.style.fontSize = `${currentSize * desiredScale / lower}px`;
+      inner.style.transform = `scaleX(${lower})`;
+      continue;
+    }
+    const nextScale = Math.max(lower, Math.min(upper, desiredScale));
     inner.style.transform = `scaleX(${nextScale})`;
   }
 }
@@ -104,8 +113,28 @@ export function justifyMushafLines(root: HTMLElement, editionId: MushafEditionId
     if (!natural) return;
 
     if (natural > available + 0.5) {
-      const scale = Math.max(metrics.minimumScale, available / natural);
-      inner.style.transform = `scaleX(${scale})`;
+      const rawScale = Math.max(0.5, available / natural);
+      if (rawScale < metrics.minimumScale) {
+        inner.style.fontSize = `${fontSize * rawScale / metrics.minimumScale}px`;
+        inner.style.transform = `scaleX(${metrics.minimumScale})`;
+        for (let pass = 0; pass < 3; pass += 1) {
+          const width = renderedWidth(inner, line);
+          if (!width || width <= available + 0.25) break;
+          const currentSize = Number.parseFloat(getComputedStyle(inner).fontSize) || 0;
+          if (!currentSize) break;
+          inner.style.fontSize = `${currentSize * available / width}px`;
+        }
+        const width = renderedWidth(inner, line);
+        if (width > 0) {
+          inner.style.transform = `scaleX(${Math.max(
+            metrics.minimumScale,
+            Math.min(1, metrics.minimumScale * available / width),
+          )})`;
+        }
+        fitRenderedWidth(inner, line, available, metrics.minimumScale, 1);
+        return;
+      }
+      inner.style.transform = `scaleX(${rawScale})`;
       fitRenderedWidth(inner, line, available, metrics.minimumScale, 1);
       return;
     }
@@ -157,5 +186,28 @@ export function justifyMushafLines(root: HTMLElement, editionId: MushafEditionId
       inner.style.transform = `scaleX(${Math.min(available / selectedWidth, metrics.maximumStretch)})`;
     }
     fitRenderedWidth(inner, line, available, metrics.minimumScale, metrics.maximumStretch);
+  });
+
+  // Reconcile after every line has shaped. Chromium can update an earlier
+  // line's layout box after a sibling writes OpenType features or spacing.
+  root.querySelectorAll<HTMLElement>('.mushaf-line[data-justify="true"]').forEach((line) => {
+    const inner = line.querySelector<HTMLElement>(".mushaf-line-inner");
+    if (!inner) return;
+    const fontSize = Number.parseFloat(getComputedStyle(inner).fontSize) || 20;
+    const metrics = editionMetrics(editionId, fontSize);
+    const available = Math.max(0, line.clientWidth - (metrics.isMadinah ? 10 : 6));
+    if (available) {
+      // The printed page contract is stronger than the preferred shaping cap:
+      // every ordinary line must land on the same two page edges. Alternates,
+      // narrow word spacing, and the gentle cap above remain the first choices;
+      // this final pass only closes their residual gap.
+      fitRenderedWidth(
+        inner,
+        line,
+        available,
+        metrics.minimumScale,
+        metrics.stretchOnly ? metrics.maximumStretch : Infinity,
+      );
+    }
   });
 }

@@ -7,6 +7,7 @@ import type { ReaderView } from "@/lib/mushaf";
 type MushafStageProps = {
   children: ReactNode;
   view: ReaderView;
+  pageCount?: 1 | 2;
   positionLabel: string;
   previousLabel: string;
   nextLabel: string;
@@ -21,6 +22,7 @@ type MushafStageProps = {
 export function MushafStage({
   children,
   view,
+  pageCount = 1,
   positionLabel,
   previousLabel,
   nextLabel,
@@ -49,10 +51,12 @@ export function MushafStage({
         const horizontalInset = mobile ? 12 : 112;
         const availableWidth = Math.max(280, stage.clientWidth - horizontalInset);
         const availableHeight = Math.max(
-          430,
+          mobile ? 430 : 300,
           window.innerHeight - Math.max(0, rect.top) - bottomInset - stageChrome,
         );
-        const width = Math.floor(Math.min(790, availableWidth, availableHeight * 0.66));
+        const spreadGutter = pageCount === 2 ? 8 : 0;
+        const widthPerPage = (availableWidth - spreadGutter) / pageCount;
+        const width = Math.floor(Math.min(790, widthPerPage, availableHeight * 0.66));
         setFit({
           width,
           fontSize: Math.max(10.5, Math.min(27.5, width / 27)),
@@ -68,7 +72,7 @@ export function MushafStage({
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [view]);
+  }, [pageCount, view]);
 
   const style = view === "page" ? {
     "--reader-page-fit-width": `${fit.width}px`,
@@ -91,6 +95,7 @@ export function MushafStage({
     <section
       ref={stageRef}
       className={cn("reader-mushaf-stage", className)}
+      data-page-count={pageCount}
       aria-label={`موضع القراءة — ${positionLabel}`}
       aria-busy={moving}
       style={style}

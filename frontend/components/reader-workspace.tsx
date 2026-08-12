@@ -1,14 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { type Ayah, type MushafPage, type Surah, getJson } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
   isMushafEdition,
+  isReaderLayout,
   isReaderView,
   toArabicDigits,
   type MushafEditionId,
+  type ReaderLayout,
   type ReaderView,
 } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
@@ -17,13 +19,21 @@ import { MushafStage } from "@/components/mushaf-stage";
 import { ReaderAudio } from "@/components/reader-audio";
 import { ReaderMushafGuide } from "@/components/reader-mushaf-guide";
 import { ReaderStudy } from "@/components/reader-study";
-import { Button, DrawerSurface, Field, HandoffSurface, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
+import { Button, CheckControl, DrawerSurface, Field, HandoffSurface, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
+import { usePageTajweed } from "@/lib/use-page-tajweed";
 
 type ContentResult = {
   requestKey: string;
   ayah: Ayah | null;
   page: MushafPage | null;
+  error: string;
+};
+
+type SpreadResult = {
+  requestKey: string;
+  right: MushafPage | null;
+  left: MushafPage | null;
   error: string;
 };
 
@@ -53,12 +63,21 @@ function firstVerseOnPage(page: MushafPage) {
     : null;
 }
 
+// Printed RTL Mushaf spread: odd page on the right, following even page on the
+// left. A missing cover-side at an edition boundary stays intentionally blank.
+function spreadPageNumbers(page: number, minimum: number, maximum: number): [number | null, number | null] {
+  const right = page % 2 === 1 ? page : page - 1;
+  const left = right + 1;
+  return [right >= minimum ? right : null, left <= maximum ? left : null];
+}
+
 export function ReaderWorkspace() {
   const searchParams = useSearchParams();
   const restoreLastPosition = !searchParams.has("surah") && !searchParams.has("ayah");
   const restoreView = !searchParams.has("view");
   const restoreEdition = !searchParams.has("edition");
-  const [positionReady, setPositionReady] = useState(!(restoreLastPosition || restoreView || restoreEdition));
+  const restoreLayout = !searchParams.has("layout");
+  const [positionReady, setPositionReady] = useState(!(restoreLastPosition || restoreView || restoreEdition || restoreLayout));
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [ayahNumbers, setAyahNumbers] = useState<number[]>([]);
   const ayahCache = useRef(new Map<number, number[]>());
@@ -76,6 +95,12 @@ export function ReaderWorkspace() {
     const value = searchParams.get("edition");
     return isMushafEdition(value) ? value : "digital_khatt";
   });
+  const [layout, setLayout] = useState<ReaderLayout>(() => {
+    const value = searchParams.get("layout");
+    return isReaderLayout(value) ? value : "dual";
+  });
+  const [dualAvailable, setDualAvailable] = useState(false);
+  const [tajweedEnabled, setTajweedEnabled] = useState(false);
   const [catalogError, setCatalogError] = useState("");
   const [contentResult, setContentResult] = useState<ContentResult>({
     requestKey: "",
@@ -95,9 +120,38 @@ export function ReaderWorkspace() {
     : undefined;
   const fontLoading = useEditionFont(editionId, pageFontName);
   const isContentLoading = positionReady && visibleResult === null;
+  const dualActive = view === "page" && layout === "dual" && dualAvailable;
+  const visiblePageNumber = visibleResult?.page?.page_number || null;
+  const edition = MUSHAF_EDITIONS[editionId];
+  const [rightPageNumber, leftPageNumber] = visiblePageNumber && dualActive
+    ? spreadPageNumbers(visiblePageNumber, edition.minPage, edition.maxPage)
+    : [null, null];
+  const spreadRequestKey = dualActive && visiblePageNumber
+    ? `${editionId}:${rightPageNumber || 0}:${leftPageNumber || 0}:${retryToken}`
+    : "";
+  const [spreadResult, setSpreadResult] = useState<SpreadResult>({requestKey: "", right: null, left: null, error: ""});
+  const visibleSpread = spreadResult.requestKey === spreadRequestKey ? spreadResult : null;
+  const rightPage = dualActive
+    ? (visibleResult?.page?.page_number === rightPageNumber ? visibleResult.page : visibleSpread?.right || null)
+    : null;
+  const leftPage = dualActive
+    ? (visibleResult?.page?.page_number === leftPageNumber ? visibleResult.page : visibleSpread?.left || null)
+    : null;
+  const rightFontLoading = useEditionFont(
+    editionId,
+    editionId === "shamarly" && rightPage?.glyph_mapping_mode === "shemrly-page-local" ? rightPage.font_name : undefined,
+  );
+  const leftFontLoading = useEditionFont(
+    editionId,
+    editionId === "shamarly" && leftPage?.glyph_mapping_mode === "shemrly-page-local" ? leftPage.font_name : undefined,
+  );
+  const tajweedAvailable = view === "page" && editionId !== "shamarly";
+  const tajweedOn = tajweedEnabled && tajweedAvailable;
+  const tajweedPages = dualActive ? [rightPage, leftPage] : [visibleResult?.page || null];
+  const {segmentsByWord: tajweedSegmentsByWord, loading: tajweedLoading} = usePageTajweed(tajweedPages, tajweedOn);
 
   useEffect(() => {
-    if (!restoreLastPosition && !restoreView && !restoreEdition) return;
+    if (!restoreLastPosition && !restoreView && !restoreEdition && !restoreLayout) return;
     const frame = window.requestAnimationFrame(() => {
       const savedPosition = window.localStorage.getItem("athar-reader-position");
       if (restoreLastPosition && savedPosition) {
@@ -112,14 +166,29 @@ export function ReaderWorkspace() {
       }
       const savedPreferences = window.localStorage.getItem("athar-reader-preferences");
       if (savedPreferences) {
-        const [savedView, savedEdition] = savedPreferences.split(":");
+        const [savedView, savedEdition, savedLayout] = savedPreferences.split(":");
         if (restoreView && isReaderView(savedView)) setView(savedView);
         if (restoreEdition && isMushafEdition(savedEdition)) setEditionId(savedEdition);
+        if (restoreLayout && isReaderLayout(savedLayout)) setLayout(savedLayout);
       }
+      const savedLayout = window.localStorage.getItem("athar-reader-layout");
+      if (restoreLayout && isReaderLayout(savedLayout)) setLayout(savedLayout);
+      setTajweedEnabled(
+        window.localStorage.getItem("athar-reader-tajweed") === "true" ||
+        window.localStorage.getItem("quranApp_tajweedEnabled") === "true",
+      );
       setPositionReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [restoreEdition, restoreLastPosition, restoreView]);
+  }, [restoreEdition, restoreLastPosition, restoreLayout, restoreView]);
+
+  useEffect(() => {
+    const media = window.matchMedia("(min-width: 1100px)");
+    const update = () => setDualAvailable(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -193,16 +262,48 @@ export function ReaderWorkspace() {
   }, [positionReady, view, editionId, surahNumber, ayahNumber, retryToken, requestKey]);
 
   useEffect(() => {
+    if (!dualActive || !visibleResult?.page || !spreadRequestKey) return;
+    const controller = new AbortController();
+    const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
+    const query = usesExplicitMarks
+      ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}`
+      : "";
+    const loadPage = (pageNumber: number | null) => {
+      if (!pageNumber) return Promise.resolve(null);
+      if (visibleResult.page?.page_number === pageNumber) return Promise.resolve(visibleResult.page);
+      return getJson<MushafPage>(
+        `/backend-api/${edition.apiBase}/page/${pageNumber}${query}`,
+        controller.signal,
+      );
+    };
+    Promise.all([loadPage(rightPageNumber), loadPage(leftPageNumber)])
+      .then(([right, left]) => setSpreadResult({requestKey: spreadRequestKey, right, left, error: ""}))
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setSpreadResult({
+          requestKey: spreadRequestKey,
+          right: null,
+          left: null,
+          error: reason instanceof Error ? reason.message : "تعذّر تحميل صفحتي المصحف.",
+        });
+      });
+    return () => controller.abort();
+  }, [dualActive, edition, editionId, leftPageNumber, rightPageNumber, spreadRequestKey, visibleResult?.page]);
+
+  useEffect(() => {
     if (!positionReady) return;
     const url = new URL(window.location.href);
     url.searchParams.set("surah", String(surahNumber));
     url.searchParams.set("ayah", String(ayahNumber));
     url.searchParams.set("view", view);
     url.searchParams.set("edition", editionId);
+    url.searchParams.set("layout", layout);
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     window.localStorage.setItem("athar-reader-position", `${surahNumber}:${ayahNumber}`);
-    window.localStorage.setItem("athar-reader-preferences", `${view}:${editionId}`);
-  }, [positionReady, surahNumber, ayahNumber, view, editionId]);
+    window.localStorage.setItem("athar-reader-preferences", `${view}:${editionId}:${layout}`);
+    window.localStorage.setItem("athar-reader-layout", layout);
+    window.localStorage.setItem("athar-reader-tajweed", String(tajweedEnabled));
+  }, [positionReady, surahNumber, ayahNumber, view, editionId, layout, tajweedEnabled]);
 
   const selectedSurah = useMemo(
     () => surahs.find((surah) => surah.number === surahNumber),
@@ -251,16 +352,23 @@ export function ReaderWorkspace() {
   }, [moving, currentIndex, ayahNumbers, surahNumber, loadAyahNumbers]);
   const advanceAfterAudio = useCallback(() => move(1), [move]);
 
-  const visiblePageNumber = visibleResult?.page?.page_number || null;
-  const edition = MUSHAF_EDITIONS[editionId];
-  const atFirstPage = visiblePageNumber !== null && visiblePageNumber <= edition.minPage;
-  const atLastPage = visiblePageNumber !== null && visiblePageNumber >= edition.maxPage;
+  const spreadNumbers = [rightPageNumber, leftPageNumber].filter((page): page is number => page !== null);
+  const atFirstPage = visiblePageNumber !== null && (
+    dualActive ? (spreadNumbers[0] || visiblePageNumber) <= edition.minPage : visiblePageNumber <= edition.minPage
+  );
+  const atLastPage = visiblePageNumber !== null && (
+    dualActive ? (spreadNumbers.at(-1) || visiblePageNumber) >= edition.maxPage : visiblePageNumber >= edition.maxPage
+  );
 
-  const movePage = useCallback(async (direction: -1 | 1) => {
+  const movePage = async (direction: -1 | 1) => {
     const pageNumber = visibleResult?.page?.page_number;
     if (moving || !pageNumber) return;
     const selectedEdition = MUSHAF_EDITIONS[editionId];
-    const targetPage = pageNumber + direction;
+    const pairStart = dualActive
+      ? (rightPageNumber ?? ((leftPageNumber ?? pageNumber) - 1))
+      : pageNumber;
+    const rawTargetPage = pairStart + direction * (dualActive ? 2 : 1);
+    const targetPage = Math.max(selectedEdition.minPage, Math.min(selectedEdition.maxPage, rawTargetPage));
     if (targetPage < selectedEdition.minPage || targetPage > selectedEdition.maxPage) return;
     setMoving(true);
     try {
@@ -279,18 +387,23 @@ export function ReaderWorkspace() {
     } finally {
       setMoving(false);
     }
-  }, [editionId, moving, navigateToVerse, visibleResult?.page?.page_number]);
+  };
 
-  const moveReading = useCallback((direction: -1 | 1) => {
+  const moveReading = (direction: -1 | 1) => {
     if (view === "page") return movePage(direction);
     return move(direction);
-  }, [move, movePage, view]);
+  };
 
   const previousDisabled = !ayahNumbers.length || (view === "page" ? !visiblePageNumber || atFirstPage : atFirstAyah);
   const nextDisabled = !ayahNumbers.length || (view === "page" ? !visiblePageNumber || atLastPage : atLastAyah);
   const positionLabel = view === "page" && visiblePageNumber
-    ? `صفحة ${toArabicDigits(visiblePageNumber)} · ${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`}`
+    ? `${dualActive && spreadNumbers.length > 1
+      ? `صفحتا ${toArabicDigits(spreadNumbers[0])}–${toArabicDigits(spreadNumbers.at(-1) || spreadNumbers[0])}`
+      : `صفحة ${toArabicDigits(visiblePageNumber)}`} · ${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`}`
     : `${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · آية ${toArabicDigits(ayahNumber)}`;
+  const moveReadingEvent = useEffectEvent((direction: -1 | 1) => {
+    void moveReading(direction);
+  });
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -301,15 +414,15 @@ export function ReaderWorkspace() {
       ) return;
       if (event.key === "ArrowLeft" && !nextDisabled) {
         event.preventDefault();
-        void moveReading(1);
+        moveReadingEvent(1);
       } else if (event.key === "ArrowRight" && !previousDisabled) {
         event.preventDefault();
-        void moveReading(-1);
+        moveReadingEvent(-1);
       }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [moveReading, nextDisabled, previousDisabled]);
+  }, [nextDisabled, previousDisabled]);
 
   return (
     <section className="reader-workspace grid gap-3.5 sm:gap-4" aria-label="قارئ المصحف">
@@ -381,6 +494,30 @@ export function ReaderWorkspace() {
             </SelectControl>
           </Field>
         </div>
+        <div className="mt-2 hidden items-center justify-between gap-3 border-t border-athar-line-soft pt-2 md:flex">
+          <span className="truncate text-xs text-athar-ink-faint">{positionLabel}</span>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={layout === "dual" ? "quiet" : "ghost"}
+              aria-pressed={layout === "dual"}
+              disabled={view !== "page"}
+              onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
+            >
+              {layout === "dual" ? "صفحتان متقابلتان" : "صفحة واحدة"}
+            </Button>
+            <Button
+              size="sm"
+              variant={tajweedOn ? "quiet" : "ghost"}
+              aria-pressed={tajweedOn}
+              disabled={!tajweedAvailable}
+              title={editionId === "shamarly" ? "التلوين الحرفي غير متاح مع خط الشمرلي" : "تلوين أحكام التجويد حرفيًا"}
+              onClick={() => setTajweedEnabled((current) => !current)}
+            >
+              {tajweedLoading ? "يُحمّل التجويد…" : "تلوين التجويد"}
+            </Button>
+          </div>
+        </div>
       </Surface>
 
       <DrawerSurface
@@ -425,6 +562,18 @@ export function ReaderWorkspace() {
               {Object.values(MUSHAF_EDITIONS).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
             </SelectControl>
           </Field>
+          <CheckControl
+            label="صفحتان متقابلتان على الشاشة الواسعة"
+            checked={layout === "dual"}
+            disabled={view !== "page"}
+            onChange={(event) => setLayout(event.target.checked ? "dual" : "single")}
+          />
+          <CheckControl
+            label={editionId === "shamarly" ? "التجويد غير متاح مع الشمرلي" : "تلوين أحكام التجويد"}
+            checked={tajweedOn}
+            disabled={!tajweedAvailable}
+            onChange={(event) => setTajweedEnabled(event.target.checked)}
+          />
         </div>
       </DrawerSurface>
 
@@ -438,6 +587,7 @@ export function ReaderWorkspace() {
 
       <MushafStage
         view={view}
+        pageCount={dualActive ? 2 : 1}
         positionLabel={positionLabel}
         previousLabel={view === "page" ? "الصفحة السابقة" : "الآية السابقة"}
         nextLabel={view === "page" ? "الصفحة التالية" : "الآية التالية"}
@@ -447,21 +597,69 @@ export function ReaderWorkspace() {
         onPrevious={() => void moveReading(-1)}
         onNext={() => void moveReading(1)}
       >
-        <MushafRenderer
-          view={view}
-          editionId={editionId}
-          ayah={visibleResult?.ayah || null}
-          page={visibleResult?.page || null}
-          surahs={surahs}
-          selectedSurah={selectedSurah}
-          surahNumber={surahNumber}
-          ayahNumber={ayahNumber}
-          isLoading={!positionReady || isContentLoading}
-          error={visibleResult?.error || ""}
-          fontLoading={fontLoading}
-          activeAudioWord={activeAudioWord}
-          onRetry={retry}
-        />
+        {dualActive ? (
+          <div className="reader-mushaf-spread" aria-label="صفحتان متقابلتان">
+            {rightPageNumber ? (
+              <MushafRenderer
+                view="page"
+                editionId={editionId}
+                ayah={null}
+                page={rightPage}
+                surahs={surahs}
+                selectedSurah={selectedSurah}
+                surahNumber={surahNumber}
+                ayahNumber={ayahNumber}
+                isLoading={!rightPage && !visibleSpread?.error}
+                error={visibleSpread?.error || ""}
+                fontLoading={rightPage === visibleResult?.page ? fontLoading : rightFontLoading}
+                activeAudioWord={activeAudioWord}
+                tajweedEnabled={tajweedOn}
+                tajweedLoading={tajweedLoading}
+                tajweedSegmentsByWord={tajweedSegmentsByWord}
+                onRetry={retry}
+              />
+            ) : <div className="reader-facing-blank" aria-hidden="true" />}
+            {leftPageNumber ? (
+              <MushafRenderer
+                view="page"
+                editionId={editionId}
+                ayah={null}
+                page={leftPage}
+                surahs={surahs}
+                selectedSurah={selectedSurah}
+                surahNumber={surahNumber}
+                ayahNumber={ayahNumber}
+                isLoading={!leftPage && !visibleSpread?.error}
+                error={visibleSpread?.error || ""}
+                fontLoading={leftPage === visibleResult?.page ? fontLoading : leftFontLoading}
+                activeAudioWord={activeAudioWord}
+                tajweedEnabled={tajweedOn}
+                tajweedLoading={tajweedLoading}
+                tajweedSegmentsByWord={tajweedSegmentsByWord}
+                onRetry={retry}
+              />
+            ) : <div className="reader-facing-blank" aria-hidden="true" />}
+          </div>
+        ) : (
+          <MushafRenderer
+            view={view}
+            editionId={editionId}
+            ayah={visibleResult?.ayah || null}
+            page={visibleResult?.page || null}
+            surahs={surahs}
+            selectedSurah={selectedSurah}
+            surahNumber={surahNumber}
+            ayahNumber={ayahNumber}
+            isLoading={!positionReady || isContentLoading}
+            error={visibleResult?.error || ""}
+            fontLoading={fontLoading}
+            activeAudioWord={activeAudioWord}
+            tajweedEnabled={tajweedOn}
+            tajweedLoading={tajweedLoading}
+            tajweedSegmentsByWord={tajweedSegmentsByWord}
+            onRetry={retry}
+          />
+        )}
       </MushafStage>
 
       <ReaderAudio

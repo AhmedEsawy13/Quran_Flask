@@ -84,7 +84,7 @@ test("landing exposes the migrated paths", async ({page}) => {
 test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await page.goto("/read?surah=2&ayah=256");
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible({timeout: 15_000});
-  await expect(page.locator(".mushaf-head-juz-glyph")).toHaveText(/[\ue001-\ue01e]/);
+  await expect(page.locator(".mushaf-head-juz-glyph").first()).toHaveText(/[\ue001-\ue01e]/);
   await expect(page.locator(".mushaf-head-surah-glyph").first()).toHaveText(/[\ufb00-\ufcff]/);
   await expect.poll(() => page.evaluate(() => (
     document.fonts.check('16px "QCF Common"') && document.fonts.check('16px "Surah Names"')
@@ -93,6 +93,27 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
     const spacing = Number.parseFloat(getComputedStyle(line).wordSpacing);
     return Number.isFinite(spacing) ? spacing : 0;
   })).toBeLessThanOrEqual(4.1);
+  await expect.poll(() => page.locator('.mushaf-line[data-justify="true"]').evaluateAll((lines) => Math.max(
+    ...lines.map((line) => {
+      const inner = line.querySelector<HTMLElement>(".mushaf-line-inner");
+      if (!inner) return 99;
+      const lineRect = line.getBoundingClientRect();
+      const innerRect = inner.getBoundingClientRect();
+      const inheritedScale = lineRect.width / (line as HTMLElement).clientWidth;
+      const rendered = inheritedScale > 0 ? innerRect.width / inheritedScale : innerRect.width;
+      return Math.abs(rendered - ((line as HTMLElement).clientWidth - 10));
+    }),
+  ))).toBeLessThanOrEqual(1);
+
+  const tajweedButton = page.getByRole("button", {name: "تلوين التجويد", exact: true});
+  if (await tajweedButton.isVisible()) {
+    await tajweedButton.click();
+  } else {
+    await openMobileReaderSettings(page);
+    await page.getByRole("checkbox", {name: "تلوين أحكام التجويد"}).check();
+    await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
+  }
+  await expect(page.locator(".reader-page[data-tajweed=true] .tajweed-rule").first()).toBeVisible({timeout: 15_000});
   await expect(page.getByRole("button", {name: "المتشابهات"})).toBeVisible();
   await expect(page.getByRole("button", {name: "سبب النزول"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "افهم ما تراه قبل أن تقرأ"})).toBeVisible();
@@ -117,6 +138,7 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   const printedWaqfMark = page.locator(".reader-page.edition-azhar_amiri .mushaf-print-mark").first();
   await expect(printedWaqfMark).toBeVisible({timeout: 15_000});
   await expect(printedWaqfMark).toHaveText(/[ۖ-ۜ]/);
+  await expect(page.locator(".reader-page.edition-azhar_amiri .mushaf-word").filter({hasText: /۝[٠-٩]+/}).first()).toBeVisible();
   await page.getByRole("button", {name: "افتح دليل التلاوة"}).click();
   await expect(page.getByRole("region", {name: "دليل التلاوة"})).toContainText("بصوت", {timeout: 15_000});
   await expect(page.getByLabel("مقاطع دليل التلاوة").getByRole("button").first()).toBeVisible();
@@ -135,8 +157,16 @@ test("Reader keeps the Mushaf first and navigates by page", async ({page}) => {
   await page.goto("/read?surah=2&ayah=256&view=page&edition=digital_khatt");
   const stage = page.getByRole("region", {name: /موضع القراءة/});
   await expect(stage).toBeVisible({timeout: 15_000});
-  await expect(page.locator(".page-number")).toHaveText("٤٢");
-  const geometry = await page.locator(".reader-page").evaluate((mushaf) => {
+  await expect(page.locator(".page-number").filter({hasText: "٤٢"})).toBeVisible();
+  const desktopSpread = await page.evaluate(() => window.innerWidth >= 1100);
+  if (desktopSpread) {
+    await expect(stage).toHaveAttribute("data-page-count", "2");
+    await expect(page.locator(".reader-mushaf-spread .reader-page")).toHaveCount(2);
+    await expect(page.locator(".page-number").filter({hasText: "٤١"})).toBeVisible();
+  } else {
+    await expect(stage).toHaveAttribute("data-page-count", "1");
+  }
+  const geometry = await page.locator(".reader-page").first().evaluate((mushaf) => {
     const rect = mushaf.getBoundingClientRect();
     return {bottom: rect.bottom, height: rect.height, viewport: window.innerHeight};
   });
@@ -144,11 +174,12 @@ test("Reader keeps the Mushaf first and navigates by page", async ({page}) => {
   expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewport + 1);
 
   await page.getByRole("button", {name: "الصفحة التالية"}).click();
-  await expect(page.locator(".page-number")).toHaveText("٤٣", {timeout: 15_000});
+  await expect(page.locator(".page-number").filter({hasText: "٤٣"})).toBeVisible({timeout: 15_000});
+  if (desktopSpread) await expect(page.locator(".page-number").filter({hasText: "٤٤"})).toBeVisible();
   await expect(page).toHaveURL(/ayah=257/);
   await page.keyboard.press("ArrowRight");
-  await expect(page.locator(".page-number")).toHaveText("٤٢", {timeout: 15_000});
-  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("athar-reader-preferences"))).toBe("page:digital_khatt");
+  await expect(page.locator(".page-number").filter({hasText: "٤٢"})).toBeVisible({timeout: 15_000});
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("athar-reader-preferences"))).toBe("page:digital_khatt:dual");
 
   const mobileSettingsOpen = await openMobileReaderSettings(page);
   if (mobileSettingsOpen) {

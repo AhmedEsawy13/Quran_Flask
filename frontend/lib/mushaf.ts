@@ -79,6 +79,7 @@ export const MUSHAF_EDITIONS = {
 
 export type MushafEditionId = keyof typeof MUSHAF_EDITIONS;
 export type ReaderView = "verse" | "page";
+export type ReaderLayout = "single" | "dual";
 
 export function isMushafEdition(value: string | null): value is MushafEditionId {
   return value !== null && value in MUSHAF_EDITIONS;
@@ -86,6 +87,10 @@ export function isMushafEdition(value: string | null): value is MushafEditionId 
 
 export function isReaderView(value: string | null): value is ReaderView {
   return value === "verse" || value === "page";
+}
+
+export function isReaderLayout(value: string | null): value is ReaderLayout {
+  return value === "single" || value === "dual";
 }
 
 const JUZ_START_PAGES = [

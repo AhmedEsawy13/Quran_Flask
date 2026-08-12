@@ -12,6 +12,7 @@ import {
   type ReaderView,
 } from "@/lib/mushaf";
 import { justifyMushafLines } from "@/lib/mushaf-page-layout";
+import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
 type MushafRendererProps = {
@@ -27,6 +28,9 @@ type MushafRendererProps = {
   error: string;
   fontLoading: boolean;
   activeAudioWord: number | null;
+  tajweedEnabled?: boolean;
+  tajweedLoading?: boolean;
+  tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
   concealFocused?: boolean;
@@ -34,9 +38,21 @@ type MushafRendererProps = {
 };
 
 const AYAH_NUMBER_TOKEN = /^\u06dd?[٠-٩]+$/;
+const BARE_AYAH_NUMBER_TOKEN = /^[٠-٩]+$/;
 
 function isAyahNumberToken(text: string) {
   return AYAH_NUMBER_TOKEN.test(text.trim());
+}
+
+function withAyahOrnament(text: string, editionId: MushafEditionId) {
+  const trimmed = text.trim();
+  if (editionId === "shamarly" || !BARE_AYAH_NUMBER_TOKEN.test(trimmed)) return text;
+  return `۝${trimmed}`;
+}
+
+function wordIdentity(word: MushafWord) {
+  if (word.word_key) return word.word_key;
+  return Number.isFinite(Number(word.word_index)) ? `#${word.word_index}` : "";
 }
 
 function wordWaqfMarks(word: MushafWord) {
@@ -101,6 +117,9 @@ function PageLine({
   focusRange,
   contextRange,
   concealFocused,
+  editionId,
+  tajweedEnabled,
+  tajweedSegmentsByWord,
 }: {
   line: MushafLine;
   surahNumber: number;
@@ -110,6 +129,9 @@ function PageLine({
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
   concealFocused?: boolean;
+  editionId: MushafEditionId;
+  tajweedEnabled?: boolean;
+  tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
 }) {
   if (line.line_type === "surah_name") {
     const lineSurahNumber = Number(line.surah_number);
@@ -151,14 +173,24 @@ function PageLine({
               const audioPosition = audioPositions.get(word);
               const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
               const waqfMarks = wordWaqfMarks(word);
+              const displayText = withAyahOrnament(word.text, editionId);
+              const tajweedSegment = tajweedSegmentsByWord?.get(wordIdentity(word));
+              const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
+                ? tajweedPartsForDisplay(displayText, tajweedSegment)
+                : null;
               return (
                 <span
                   className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
                   key={word.word_key || `${word.word_index ?? "word"}-${index}`}
                   aria-current={current ? "true" : undefined}
                   data-audio-index={audioPosition}
+                  data-word-key={word.word_key || undefined}
                 >
-                  {word.text}
+                  {tajweedParts ? tajweedParts.map((part, partIndex) => part.rule ? (
+                    <span className={`tajweed-rule ${part.rule}`} key={`${part.rule}-${partIndex}`}>
+                      {part.text}
+                    </span>
+                  ) : part.text) : displayText}
                   {waqfMarks.map((mark, markIndex) => (
                     <span
                       className={`mushaf-print-mark is-${waqfMarkTone(mark.symbols)}`}
@@ -191,6 +223,9 @@ export function MushafRenderer({
   error,
   fontLoading,
   activeAudioWord,
+  tajweedEnabled = false,
+  tajweedLoading = false,
+  tajweedSegmentsByWord,
   focusRange,
   contextRange,
   concealFocused,
@@ -256,13 +291,14 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [editionId, fontLoading, page, shemrlyAvailable, view]);
+  }, [editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view]);
 
   return (
     <article
       ref={pageRef}
       className={`reader-page is-${view} edition-${editionId}`}
-      aria-busy={isLoading || fontLoading}
+      aria-busy={isLoading || fontLoading || tajweedLoading}
+      data-tajweed={tajweedEnabled ? "true" : undefined}
       style={style}
     >
       <header className="mushaf-head">
@@ -345,6 +381,9 @@ export function MushafRenderer({
                 focusRange={focusRange}
                 contextRange={contextRange}
                 concealFocused={concealFocused}
+                editionId={editionId}
+                tajweedEnabled={tajweedEnabled}
+                tajweedSegmentsByWord={tajweedSegmentsByWord}
               />
             ))}
           </div>

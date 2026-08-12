@@ -377,6 +377,49 @@ a {
   place-items: center;
 }
 
+.reader-mushaf-spread {
+  display: flex;
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  direction: rtl;
+}
+
+.reader-mushaf-spread::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset-block: 8px;
+  inset-inline-start: 50%;
+  width: 22px;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--athar-ink) 15%, transparent), transparent 72%);
+  pointer-events: none;
+  transform: translateX(50%);
+}
+
+.reader-mushaf-spread .reader-page,
+.reader-facing-blank {
+  flex: 0 0 auto;
+}
+
+.reader-mushaf-spread .reader-page:first-child {
+  border-radius: 5px 18px 18px 5px;
+}
+
+.reader-mushaf-spread .reader-page:nth-child(2) {
+  border-radius: 18px 5px 5px 18px;
+}
+
+.reader-facing-blank {
+  width: var(--reader-page-fit-width, 620px);
+  aspect-ratio: 0.66;
+  border: 1px dashed var(--athar-line-soft);
+  background: color-mix(in srgb, var(--athar-surface) 48%, transparent);
+}
+
 .reader-mushaf-stage .reader-page.is-page {
   display: flex;
   width: min(var(--reader-page-fit-width, 620px), calc(100vw - 132px));
@@ -555,6 +598,46 @@ a {
   padding-block-start: 0.14em;
   border-radius: 5px;
   transition: background-color 140ms ease, color 140ms ease;
+}
+
+.reader-page[data-tajweed="true"] .tajweed-rule.madda_normal { color: #b45353; }
+.reader-page[data-tajweed="true"] .tajweed-rule.madda_permissible,
+.reader-page[data-tajweed="true"] .tajweed-rule.madda_munfasil { color: #a33b2b; }
+.reader-page[data-tajweed="true"] .tajweed-rule.madda_obligatory { color: #8e2a1e; }
+.reader-page[data-tajweed="true"] .tajweed-rule.madda_necessary { color: #6e1a14; }
+.reader-page[data-tajweed="true"] .tajweed-rule.ghunnah,
+.reader-page[data-tajweed="true"] .tajweed-rule.iqlab,
+.reader-page[data-tajweed="true"] .tajweed-rule.idgham_ghunnah { color: #246a40; }
+.reader-page[data-tajweed="true"] .tajweed-rule.ikhafa,
+.reader-page[data-tajweed="true"] .tajweed-rule.ikhafa_shafawi { color: #2f8052; }
+.reader-page[data-tajweed="true"] .tajweed-rule.idgham_wo_ghunnah,
+.reader-page[data-tajweed="true"] .tajweed-rule.idgham_shafawi,
+.reader-page[data-tajweed="true"] .tajweed-rule.idgham_mutajanisayn,
+.reader-page[data-tajweed="true"] .tajweed-rule.idgham_mutaqaribayn { color: #175b34; }
+.reader-page[data-tajweed="true"] .tajweed-rule.qalaqah { color: #2852b4; }
+.reader-page[data-tajweed="true"] .tajweed-rule.ham_wasl,
+.reader-page[data-tajweed="true"] .tajweed-rule.laam_shamsiyah { color: #6b7280; }
+.reader-page[data-tajweed="true"] .tajweed-rule.slnt { color: #7b818a; opacity: 0.78; }
+
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.madda_normal,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.madda_permissible,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.madda_munfasil,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.madda_obligatory,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.madda_necessary { color: #ef8b7e; }
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.ghunnah,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.iqlab,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.idgham_ghunnah,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.ikhafa,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.ikhafa_shafawi,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.idgham_wo_ghunnah,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.idgham_shafawi,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.idgham_mutajanisayn,
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.idgham_mutaqaribayn { color: #63c98a; }
+[data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.qalaqah { color: #81a4ff; }
+
+.mushaf-word.is-audio-active .tajweed-rule,
+.mushaf-word.is-focus.is-concealed .tajweed-rule {
+  color: inherit !important;
 }
 
 .mushaf-print-mark {
