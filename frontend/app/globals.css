@@ -674,17 +674,36 @@ a {
 
 .mushaf-print-mark {
   display: inline-flex;
-  position: relative;
-  inset-block-start: -0.48em;
   min-width: 0.7em;
   height: 1em;
   align-items: center;
   justify-content: center;
-  margin-inline: 0.08em 0.02em;
   color: var(--athar-accent);
   font-family: "Uthmanic Hafs", serif;
-  font-size: 0.64em;
+  font-size: 1em;
   font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Match تثبيت .waqf-stack: sit above the word without widening the gap to the next. */
+.mushaf-waqf-stack {
+  position: absolute;
+  top: auto;
+  bottom: calc(100% - 0.18em);
+  /* Print mushaf places the mark over the end of the word (inline-end in RTL). */
+  inset-inline-end: 0.05em;
+  left: auto;
+  z-index: 2;
+  display: inline-flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.05em;
+  pointer-events: none;
+  white-space: nowrap;
+  font-size: 0.62em;
   line-height: 1;
 }
 
@@ -703,13 +722,22 @@ a {
   line-height: 1.74;
 }
 
+.reader-page.edition-azhar_amiri .mushaf-print-mark {
+  color: #15803d;
+}
+
 .reader-page.edition-shamarly .mushaf-lines {
   font-size: clamp(1.48rem, 2.7vw, 1.9rem);
   line-height: 1.68;
 }
 
-.reader-page.edition-shamarly .mushaf-print-mark {
+.reader-page.edition-shamarly .mushaf-waqf-stack {
   font-size: 0.72em;
+}
+
+.reader-page.edition-shamarly .mushaf-print-mark {
+  color: inherit;
+  font-size: 1em;
 }
 
 .reader-verse-word {

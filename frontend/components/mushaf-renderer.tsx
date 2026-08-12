@@ -211,16 +211,21 @@ function PageLine({
                       {part.text}
                     </span>
                   ) : part.text) : displayText}
-                  {waqfMarks.map((mark, markIndex) => (
-                    <span
-                      className={`mushaf-print-mark is-${waqfMarkTone(mark.symbols)}`}
-                      aria-label={`${waqfMarkLabel(mark.symbols)} — ${mark.version}`}
-                      title={`${waqfMarkLabel(mark.symbols)} · ${mark.version}`}
-                      key={`${mark.version}-${mark.symbols}-${markIndex}`}
-                    >
-                      {waqfMarkGlyph(mark.symbols)}
+                  {waqfMarks.length ? (
+                    <span className="mushaf-waqf-stack">
+                      {waqfMarks.map((mark, markIndex) => (
+                        <span
+                          className={`mushaf-print-mark is-${waqfMarkTone(mark.symbols)}`}
+                          aria-label={`${waqfMarkLabel(mark.symbols)} — ${mark.version}`}
+                          title={`${waqfMarkLabel(mark.symbols)} · ${mark.version}`}
+                          data-version={mark.version}
+                          key={`${mark.version}-${mark.symbols}-${markIndex}`}
+                        >
+                          {waqfMarkGlyph(mark.symbols)}
+                        </span>
+                      ))}
                     </span>
-                  ))}
+                  ) : null}
                 </span>,
               );
               return nodes;
