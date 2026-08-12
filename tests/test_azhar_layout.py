@@ -28,10 +28,13 @@ def restore_azhar_layout_db(tmp_path):
 
 
 def test_layout_studio_registry_and_shell(client):
+    from modules.layout_editions import AZHAR
+
     editions = client.get('/api/layout-studio/editions').get_json()
     assert editions['default'] == 'azhar'
     azhar_edition = next(e for e in editions['editions'] if e['id'] == 'azhar')
     assert azhar_edition['profile']['page_end_mode'] == 'continuous'
+    assert AZHAR.cloud_enabled is True
     assert azhar_edition['profile']['lines_per_page'] == 15
     assert azhar_edition['profile']['full_banner_lines'] == 3
     assert azhar_edition['max_page'] == 525
@@ -486,9 +489,9 @@ def test_azhar_reviewer_confirmed_page_endings(client):
     expected = {
         505: (82458, ['إِنَّ', 'ٱلۡأَبۡرَارَ']),
         506: (82580, ['٦', 'فَأَمَّا']),
-        507: (82718, ['شُهُودٞ', '٧']),
+        507: (82718, ['شُهُودࣱ', '٧']),
         508: (82845, ['فَلۡيَنظُرِ', 'ٱلۡإِنسَٰنُ']),
-        509: (82990, ['خَيۡرٞ', 'وَأَبۡقَىٰٓ', '١٧']),
+        509: (82990, ['خَيۡرࣱ', 'وَأَبۡقَىٰٓ', '١٧']),
         514: (83617, ['٧', 'وَوَجَدَكَ']),
         515: (83711, ['فَلَهُمۡ', 'أَجۡرٌ']),
     }
@@ -505,6 +508,68 @@ def test_azhar_reviewer_confirmed_page_endings(client):
         assert [
             word['text'] for word in lines[-1]['words'][-len(ending):]
         ] == ending
+
+
+def test_azhar_amiri_text_normalizes_unsupported_dammatan(client):
+    page = client.get('/api/layout-studio/azhar/page/510').get_json()
+    line = next(
+        line for line in page['lines']
+        if any(word.get('word_key') == '88:14:1' for word in line['words'])
+    )
+    words = {
+        word['word_key']: word['text']
+        for word in line['words']
+        if word.get('word_key') in {'88:14:1', '88:14:2'}
+    }
+
+    assert words == {
+        '88:14:1': 'وَأَكۡوَابࣱ',
+        '88:14:2': 'مَّوۡضُوعَةࣱ',
+    }
+    assert '\u065e' not in line['display_text']
+
+
+def test_azhar_amiri_font_covers_normalized_quran_script():
+    import sqlite3
+
+    from fontTools.ttLib import TTFont
+
+    from core.config import QURAN_SCRIPT_DATABASE
+    from core.text import normalize_amiri_quran_text
+
+    font = TTFont(PROJECT_ROOT / 'static/fonts/amiri_quran.woff2')
+    supported_codepoints = {
+        codepoint
+        for table in font['cmap'].tables
+        for codepoint in table.cmap
+    }
+    with sqlite3.connect(QURAN_SCRIPT_DATABASE) as conn:
+        texts = (
+            row[0]
+            for row in conn.execute('SELECT text FROM words')
+            if row[0]
+        )
+        used_codepoints = {
+            ord(character)
+            for text in texts
+            for character in normalize_amiri_quran_text(text)
+        }
+
+    assert 0x08F1 in used_codepoints
+    assert used_codepoints <= supported_codepoints
+
+
+def test_amiri_reader_dataset_uses_font_safe_open_dammatan():
+    from core.datasets import amiri_quran_data
+
+    text = ' '.join(
+        verse.get('text', '')
+        for verse in amiri_quran_data.values()
+        if isinstance(verse, dict)
+    )
+
+    assert '\u065e' not in text
+    assert '\u08f1' in text
 
 
 def test_azhar_review_alignment_migration_preserves_word_stream(tmp_path):

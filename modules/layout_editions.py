@@ -375,6 +375,7 @@ AZHAR = LayoutEdition(
     ref_max_page=522,
     closed_pages=(_FATIHA, _BAQARAH_OPEN),
     storage_key='az_layout_page',
+    cloud_enabled=True,
     line_page_transfer=True,
     header_down_cascade=True,
     protected_trailing_lines=(

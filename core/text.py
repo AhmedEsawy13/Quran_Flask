@@ -20,6 +20,11 @@ from core.config import (
 logger = logging.getLogger(__name__)
 
 
+def normalize_amiri_quran_text(text):
+    """Map QPC's alternate dammatan to Amiri's open Quranic form."""
+    return (text or '').replace('\u065e', '\u08f1')
+
+
 def _normalize_for_search(text):
     """Fold vocalisation and common Arabic letter variants so exact-match
     search behaves the way a reader typing on a keyboard expects."""

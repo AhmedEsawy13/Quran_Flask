@@ -29,7 +29,7 @@ from core.config import (
     SHEMRLY_CODEPOINT_BASE, ARABIC_DIACRITICS_STRIP_PATTERN,
     ARABIC_INDIC_DIGIT_PATTERN, _BASE_DIR,
 )
-from core.text import is_waqf_like_char
+from core.text import is_waqf_like_char, normalize_amiri_quran_text
 from core.datasets import digital_khatt_data, qpc_hafs_data, surahs_data
 from core.mushaf_waqf import (
     get_mushaf_waqf_symbols,
@@ -1982,7 +1982,7 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
                     'word_index': word_pos,
                     'word_id_space': script_word_map.get('id_space'),
                     'word_key': src.get('word_key') or '',
-                    'text': src['text'],
+                    'text': normalize_amiri_quran_text(src['text']),
                     'surah': src['surah'],
                     'ayah': src['ayah'],
                     'waqf_symbols': '',

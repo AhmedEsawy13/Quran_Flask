@@ -13,7 +13,7 @@ from flask import request
 
 from core.loader import load_json_cdn_or_local as _load
 from core.config import MUSHAF_WAQF_DATABASE, WAQF_SYMBOL_CHARS
-from core.text import normalize_quran_dataset
+from core.text import normalize_amiri_quran_text, normalize_quran_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -104,26 +104,24 @@ def _build_amiri_quran_data(base_data):
     carry their tradition's marks in the text itself."""
     if not isinstance(base_data, dict):
         return base_data
-    if not os.path.exists(MUSHAF_WAQF_DATABASE):
-        # Without the source DB we can't transform — fall back to qpc_hafs as-is.
-        return {k: dict(v) if isinstance(v, dict) else v for k, v in base_data.items()}
 
-    try:
-        conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
-        conn.row_factory = sqlite3.Row
-        cur = conn.cursor()
-        cur.execute(
-            'SELECT "السورة" AS surah, "الآية" AS ayah, '
-            '"token_index" AS tidx, "الأزهر" AS sym '
-            'FROM waqf '
-            'WHERE "الأزهر" IS NOT NULL AND "الأزهر" != "" '
-            'ORDER BY "السورة", "الآية", "token_index"'
-        )
-        rows = cur.fetchall()
-        conn.close()
-    except sqlite3.Error as exc:
-        logger.warning(f'Could not read Azhar waqf for Amiri Quran build: {exc}')
-        return {k: dict(v) if isinstance(v, dict) else v for k, v in base_data.items()}
+    rows = []
+    if os.path.exists(MUSHAF_WAQF_DATABASE):
+        try:
+            conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute(
+                'SELECT "السورة" AS surah, "الآية" AS ayah, '
+                '"token_index" AS tidx, "الأزهر" AS sym '
+                'FROM waqf '
+                'WHERE "الأزهر" IS NOT NULL AND "الأزهر" != "" '
+                'ORDER BY "السورة", "الآية", "token_index"'
+            )
+            rows = cur.fetchall()
+            conn.close()
+        except sqlite3.Error as exc:
+            logger.warning(f'Could not read Azhar waqf for Amiri Quran build: {exc}')
 
     marks_by_verse = {}
     for r in rows:
@@ -143,7 +141,7 @@ def _build_amiri_quran_data(base_data):
             out[verse_key] = verse_data
             continue
         verse_copy = dict(verse_data)
-        text = verse_copy.get('text', '') or ''
+        text = normalize_amiri_quran_text(verse_copy.get('text', ''))
         # Strip the existing inline waqf marks so Azhar's are the only ones shown.
         stripped = ''.join(ch for ch in text if ch not in WAQF_SYMBOL_CHARS)
         # Split on every whitespace run (NBSP included) while preserving the
