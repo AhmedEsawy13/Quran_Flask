@@ -616,6 +616,7 @@ export function ReaderWorkspace() {
                 tajweedEnabled={tajweedOn}
                 tajweedLoading={tajweedLoading}
                 tajweedSegmentsByWord={tajweedSegmentsByWord}
+                dualLayout
                 onRetry={retry}
               />
             ) : <div className="reader-facing-blank" aria-hidden="true" />}
@@ -636,6 +637,7 @@ export function ReaderWorkspace() {
                 tajweedEnabled={tajweedOn}
                 tajweedLoading={tajweedLoading}
                 tajweedSegmentsByWord={tajweedSegmentsByWord}
+                dualLayout
                 onRetry={retry}
               />
             ) : <div className="reader-facing-blank" aria-hidden="true" />}

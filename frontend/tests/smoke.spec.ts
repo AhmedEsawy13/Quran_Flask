@@ -93,17 +93,15 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
     const spacing = Number.parseFloat(getComputedStyle(line).wordSpacing);
     return Number.isFinite(spacing) ? spacing : 0;
   })).toBeLessThanOrEqual(4.1);
-  await expect.poll(() => page.locator('.mushaf-line[data-justify="true"]').evaluateAll((lines) => Math.max(
-    ...lines.map((line) => {
-      const inner = line.querySelector<HTMLElement>(".mushaf-line-inner");
-      if (!inner) return 99;
-      const lineRect = line.getBoundingClientRect();
-      const innerRect = inner.getBoundingClientRect();
-      const inheritedScale = lineRect.width / (line as HTMLElement).clientWidth;
-      const rendered = inheritedScale > 0 ? innerRect.width / inheritedScale : innerRect.width;
-      return Math.abs(rendered - ((line as HTMLElement).clientWidth - 10));
+  // Match the main app stretch ceiling (≤1.20 in dual). Uncapped scaleX was
+  // making Madinah glyphs look stringy when forcing every line to the edges.
+  await expect.poll(() => page.locator('.mushaf-line[data-justify="true"] .mushaf-line-inner').evaluateAll((inners) => Math.max(
+    ...inners.map((inner) => {
+      const matrix = getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/);
+      const scale = matrix ? Number(matrix[1]) : 1;
+      return Number.isFinite(scale) ? scale : 1;
     }),
-  ))).toBeLessThanOrEqual(1);
+  ))).toBeLessThanOrEqual(1.21);
 
   const tajweedButton = page.getByRole("button", {name: "تلوين التجويد", exact: true});
   if (await tajweedButton.isVisible()) {

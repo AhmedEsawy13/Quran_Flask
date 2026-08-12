@@ -31,6 +31,7 @@ type MushafRendererProps = {
   tajweedEnabled?: boolean;
   tajweedLoading?: boolean;
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
+  dualLayout?: boolean;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
   concealFocused?: boolean;
@@ -226,6 +227,7 @@ export function MushafRenderer({
   tajweedEnabled = false,
   tajweedLoading = false,
   tajweedSegmentsByWord,
+  dualLayout = false,
   focusRange,
   contextRange,
   concealFocused,
@@ -277,7 +279,7 @@ export function MushafRenderer({
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        if (active) justifyMushafLines(root, editionId);
+        if (active) justifyMushafLines(root, editionId, { dual: dualLayout });
       });
     };
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(fit);
@@ -291,7 +293,7 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view]);
+  }, [dualLayout, editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view]);
 
   return (
     <article
