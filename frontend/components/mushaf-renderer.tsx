@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type { Ayah, MushafLine, MushafPage, MushafWord, Surah } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
@@ -159,8 +159,10 @@ function PageLine({
     >
       <div className="mushaf-line-inner">
         {line.words.length
-          ? line.words.map((word, index) => {
-              if (word.suppress_render) return null;
+          ? (() => {
+              let appended = 0;
+              return line.words.flatMap((word, index) => {
+              if (word.suppress_render) return [];
               const wordAyah = Number(word.ayah);
               const focused = Number(word.surah) === surahNumber && (
                 focusRange
@@ -179,7 +181,11 @@ function PageLine({
               const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
                 ? tajweedPartsForDisplay(displayText, tajweedSegment)
                 : null;
-              return (
+              // Match تثبيت: space BETWEEN word spans (not inside), so word-spacing justify works.
+              const nodes: ReactNode[] = [];
+              if (appended > 0) nodes.push(" ");
+              appended += 1;
+              nodes.push(
                 <span
                   className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
                   key={word.word_key || `${word.word_index ?? "word"}-${index}`}
@@ -201,10 +207,12 @@ function PageLine({
                     >
                       {waqfMarkGlyph(mark.symbols)}
                     </span>
-                  ))}{" "}
-                </span>
+                  ))}
+                </span>,
               );
-            })
+              return nodes;
+            });
+            })()
           : line.display_text}
       </div>
     </div>

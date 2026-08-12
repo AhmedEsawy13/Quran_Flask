@@ -619,8 +619,9 @@ a {
 .mushaf-word {
   display: inline-block;
   position: relative;
-  padding-block-start: 0.14em;
-  border-radius: 5px;
+  /* Match تثبيت .mz-word: room above diacritics + tiny side padding between words. */
+  padding: 0.24em 0.02em 0;
+  border-radius: 0.18em;
   transition: background-color 140ms ease, color 140ms ease;
 }
 

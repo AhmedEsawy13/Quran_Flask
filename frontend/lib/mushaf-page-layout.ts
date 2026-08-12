@@ -145,6 +145,30 @@ export function fitMushafFontSize(
   }
 
   writePageFitFont(pageEl, fontSize);
+  void pageEl.offsetHeight;
+
+  // Second pass: shaping is not linear with font-size. If the longest line still
+  // needs more than the allowed scaleX crush, drop the page font (avoids
+  // "stuck" compressed glyphs vs تثبيت).
+  if (minLineScale > 0 && inners.length) {
+    let worstRatio = Infinity;
+    inners.forEach((inner) => {
+      inner.style.transform = "none";
+      inner.style.fontSize = "";
+      inner.style.fontFeatureSettings = "normal";
+      inner.style.fontVariationSettings = "normal";
+      inner.style.wordSpacing = "";
+      const line = inner.parentElement;
+      const available = line?.clientWidth || 0;
+      const natural = inner.scrollWidth;
+      if (natural > 0 && available > 0) worstRatio = Math.min(worstRatio, available / natural);
+    });
+    if (Number.isFinite(worstRatio) && worstRatio < minLineScale) {
+      fontSize = Math.max(minFontSize, fontSize * worstRatio * 0.99 / minLineScale);
+      writePageFitFont(pageEl, fontSize);
+    }
+  }
+
   return fontSize;
 }
 
