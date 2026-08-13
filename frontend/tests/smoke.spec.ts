@@ -294,16 +294,21 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
 test("تثبيت loads a range, conceal mode, context, and repetition", async ({page}) => {
   test.setTimeout(60_000);
   await page.goto("/memorize?surah=2&from=255&to=257");
-  await expect(page.getByRole("heading", {level: 1, name: "ثبّت حفظك."})).toBeVisible();
-  await expect(page.getByText("— تثبيت", {exact: true})).toBeVisible();
+  await expect(page.locator("h1#mz-title")).toHaveText("ثبّت حفظك.");
   await expect(page.getByRole("region", {name: "استوديو التثبيت"})).toBeVisible();
+  const toolbarHeight = await page.locator('[aria-label="استوديو التثبيت"] > header').evaluate((header) => header.getBoundingClientRect().height);
+  expect(toolbarHeight).toBeLessThanOrEqual(82);
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
+  await page.locator("summary").filter({hasText: "الموضع"}).click();
   await expect(page.getByLabel("ملخص نطاق التثبيت").getByText("سورة البقرة · ٢٥٥–٢٥٧", {exact: true})).toBeVisible();
+  await page.locator("summary").filter({hasText: "الموضع"}).click();
   await expect(page.getByRole("button", {name: "بدء جلسة التثبيت"})).toBeEnabled();
   await expect(page.getByLabel("شريط جلسة التثبيت")).toBeVisible();
-  await expect(page.getByLabel("موضع جلسة التثبيت")).toBeVisible();
+  const desktopToolbar = await page.evaluate(() => window.innerWidth >= 768);
+  if (desktopToolbar) await expect(page.getByLabel("موضع جلسة التثبيت")).toBeVisible();
+  else await expect(page.getByLabel("موضع جلسة التثبيت")).toBeHidden();
   await expect(page.getByLabel("جلسة التكرار").locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
   const noDocScroll = await page.evaluate(() => {
     const root = document.documentElement;
@@ -316,7 +321,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.getByText("اضغط آية النهاية لإكمال النطاق، أو Escape للإلغاء.")).toBeVisible();
   await expect(page.locator(".mushaf-word.is-range-draft").first()).toBeVisible();
   await word256.evaluate((word: HTMLElement) => word.click());
-  await expect(page.getByLabel("ملخص نطاق التثبيت").getByText("سورة البقرة · ٢٥٥–٢٥٦", {exact: true})).toBeVisible();
+  await expect(page.locator("summary").filter({hasText: "الموضع"})).toContainText("البقرة · ٢٥٥–٢٥٦");
   await page.getByRole("button", {name: "تكبير المصحف"}).click();
   await expect(page.getByLabel("مستوى التكبير")).toContainText("١١٠");
   await expect(page.locator(".reader-mushaf-stage")).toHaveAttribute("data-zoom", "1.1");
@@ -335,9 +340,11 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.getByLabel("تكرار الربط")).toBeEnabled();
   await expect(page.getByLabel("ربط تراكمي")).toBeChecked();
   await expect(page.getByLabel("قسّم حسب الوقف")).toBeChecked();
-  await expect(page.getByRole("button", {name: "الخطوة التالية"})).toBeEnabled();
-  await page.getByRole("button", {name: "الخطوة التالية"}).evaluate((button: HTMLButtonElement) => button.click());
-  await expect(sessionPlan.locator("strong").first()).toContainText("٢ من");
+  if (desktopToolbar) {
+    await expect(page.getByRole("button", {name: "الخطوة التالية"})).toBeEnabled();
+    await page.getByRole("button", {name: "الخطوة التالية"}).evaluate((button: HTMLButtonElement) => button.click());
+    await expect(sessionPlan.locator("strong").first()).toContainText("٢ من");
+  }
   await page.getByLabel("ربط تراكمي").evaluate((el: HTMLElement) => {
     const input = el instanceof HTMLInputElement ? el : el.querySelector("input");
     if (input instanceof HTMLInputElement && input.checked) input.click();
@@ -359,8 +366,9 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   });
   await page.getByRole("button", {name: "اختبر حفظي"}).evaluate((button: HTMLButtonElement) => button.click());
   await expect(page.locator(".mushaf-word.is-concealed").first()).toBeVisible();
-  await expect(page.getByLabel("التفصيل الموضوعي")).not.toContainText("جارٍ");
-  await expect(page.getByLabel("التفصيل الموضوعي")).toContainText("التفصيل الموضوعي");
+  const contextRail = page.getByRole("complementary", {name: "التفصيل الموضوعي"});
+  await expect(contextRail).not.toContainText("جارٍ");
+  await expect(contextRail).toContainText("التفصيل الموضوعي");
   await expect(page.locator(".mushaf-word.is-context").first()).toHaveAttribute("data-context-color", /^#/);
   await expectNoHorizontalOverflow(page);
 });

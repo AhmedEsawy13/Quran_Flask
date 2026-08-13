@@ -17,7 +17,6 @@ import { backendMediaUrl } from "@/lib/paths";
 import {
   Button,
   CheckControl,
-  Field,
   PlaybackTimeline,
   SelectControl,
   StatusState,
@@ -341,12 +340,12 @@ export function MemorizePlayer({
         : "آية كاملة";
   const sessionStructure = `${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`;
   const transport = (
-    <div className="mz-transport" aria-label="شريط جلسة التثبيت">
-      <div className="mz-transport-play">
+    <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5" aria-label="شريط جلسة التثبيت">
+      <div className="flex shrink-0 items-center gap-0.5">
         <Button
           size="icon"
           variant="ghost"
-          className="size-9"
+          className="size-8 max-sm:hidden"
           onClick={() => void goToStep(stepIndex - 1, isPlaying)}
           disabled={stepIndex <= 0 || playbackLocked}
           aria-label="الخطوة السابقة"
@@ -356,7 +355,7 @@ export function MemorizePlayer({
         <Button
           size="icon"
           variant="primary"
-          className="mz-transport-go size-12 text-lg"
+          className="size-9 text-sm shadow-[0_0_0_4px_color-mix(in_srgb,var(--athar-accent)_14%,transparent)]"
           onClick={() => void togglePlayback()}
           disabled={!canPlay}
           aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
@@ -366,7 +365,7 @@ export function MemorizePlayer({
         <Button
           size="icon"
           variant="ghost"
-          className="size-9"
+          className="size-8 max-sm:hidden"
           onClick={() => void goToStep(stepIndex + 1, isPlaying)}
           disabled={!schedule.length || stepIndex >= schedule.length - 1 || playbackLocked}
           aria-label="الخطوة التالية"
@@ -375,7 +374,7 @@ export function MemorizePlayer({
         </Button>
       </div>
       <PlaybackTimeline
-        className="mz-transport-line"
+        className="w-full max-w-72 min-w-24 flex-1 max-md:hidden"
         min="0"
         max={1000}
         step="1"
@@ -387,8 +386,8 @@ export function MemorizePlayer({
           void seekSession(Number(event.target.value) / 1000);
         }}
       />
-      <Button size="sm" variant="quiet" className="mz-transport-stop" onClick={resetSession} disabled={!schedule.length}>
-        إيقاف
+      <Button size="icon" variant="ghost" className="size-8 text-base hover:text-athar-negative" aria-label="إيقاف" title="إيقاف" onClick={resetSession} disabled={!schedule.length}>
+        ×
       </Button>
     </div>
   );
@@ -417,38 +416,40 @@ export function MemorizePlayer({
     />
   );
 
-  const compactField = "mz-inset-select";
   const sessionControls = (
-    <div className="mz-studio-controls" aria-label="إعدادات الجلسة">
-      <div className="mz-studio-plan" aria-label="خطة جلسة التثبيت" aria-live="polite">
-        <strong>{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
-        <span>{stepKind}</span>
-        <span>{sessionStructure}</span>
-        <span>{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</span>
+    <div className="grid gap-3" aria-label="إعدادات الجلسة">
+      <div className="flex flex-wrap items-center gap-1.5 text-[0.68rem] font-semibold text-athar-ink-soft" aria-label="خطة جلسة التثبيت" aria-live="polite">
+        <strong className="rounded-full bg-athar-accent px-2.5 py-1 font-extrabold text-athar-on-accent">{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
+        <span className="rounded-full border border-athar-line-soft bg-athar-line-soft px-2.5 py-1">{stepKind}</span>
+        <span className="rounded-full border border-athar-line-soft bg-athar-line-soft px-2.5 py-1">{sessionStructure}</span>
+        <span className="rounded-full border border-athar-line-soft bg-athar-line-soft px-2.5 py-1">{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</span>
       </div>
       {audioError ? <StatusState tone="error">{audioError}</StatusState> : null}
-      <div className="mz-studio-tune">
-        <Field className="mz-inset" label="القارئ">
-          <SelectControl className={compactField} value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="col-span-2 grid gap-1 text-[0.7rem] font-semibold text-athar-ink-faint">
+          <span>القارئ</span>
+          <SelectControl className="min-h-10 rounded-xl py-1.5" value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
             {reciters.length ? reciters.map((reciter) => (
               <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
             )) : <option>جارٍ تحميل القرّاء…</option>}
           </SelectControl>
-        </Field>
-        <Field className="mz-inset" label="تكرار الوحدة">
-          <SelectControl className={compactField} value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
+        </label>
+        <label className="grid gap-1 text-[0.7rem] font-semibold text-athar-ink-faint">
+          <span>تكرار الوحدة</span>
+          <SelectControl className="min-h-10 rounded-xl py-1.5" value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
             {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
           </SelectControl>
-        </Field>
-        <Field className="mz-inset" label="تكرار الربط">
-          <SelectControl className={compactField} value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
+        </label>
+        <label className="grid gap-1 text-[0.7rem] font-semibold text-athar-ink-faint">
+          <span>تكرار الربط</span>
+          <SelectControl className="min-h-10 rounded-xl py-1.5" value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
             {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
           </SelectControl>
-        </Field>
-        <div className="mz-studio-modes">
-          <CheckControl className="mz-mode-chip" label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
-          <CheckControl className="mz-mode-chip" label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
-          <CheckControl className="mz-mode-chip" label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
+        </label>
+        <div className="col-span-2 grid gap-1.5">
+          <CheckControl className="min-h-9 rounded-[10px] text-xs" label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
+          <CheckControl className="min-h-9 rounded-[10px] text-xs" label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
+          <CheckControl className="min-h-9 rounded-[10px] text-xs" label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
         </div>
       </div>
     </div>
