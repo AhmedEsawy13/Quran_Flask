@@ -370,6 +370,16 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(contextRail).not.toContainText("جارٍ");
   await expect(contextRail).toContainText("التفصيل الموضوعي");
   await expect(page.locator(".mushaf-word.is-context").first()).toHaveAttribute("data-context-color", /^#/);
+  const tajweedToggle = page.getByRole("button", {name: /تلوين التجويد/});
+  await tajweedToggle.click();
+  await expect(tajweedToggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('.reader-page[data-tajweed="true"] .tajweed-rule').first()).toBeVisible();
+  const stageHeightWithContext = await page.locator(".reader-mushaf-stage").evaluate((stage) => stage.getBoundingClientRect().height);
+  await page.getByRole("button", {name: "التفصيل الموضوعي"}).click();
+  await expect(contextRail).toBeHidden();
+  await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
+  const stageHeightWithoutContext = await page.locator(".reader-mushaf-stage").evaluate((stage) => stage.getBoundingClientRect().height);
+  expect(stageHeightWithoutContext).toBeGreaterThan(stageHeightWithContext);
   await expectNoHorizontalOverflow(page);
 });
 

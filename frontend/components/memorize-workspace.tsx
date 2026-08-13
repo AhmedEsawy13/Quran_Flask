@@ -23,10 +23,12 @@ import {
 } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
 import { useEditionFont } from "@/lib/use-edition-font";
+import { usePageTajweed } from "@/lib/use-page-tajweed";
 import { topicColor, topicPathParts, type TopicWash } from "@/lib/topic-color";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { MushafStage } from "@/components/mushaf-stage";
 import { MemorizePlayer } from "@/components/memorize-player";
+import { AtharIcon, type AtharIconName } from "@/components/ui/athar-icon";
 import {
   Button,
   ProgressBar,
@@ -124,18 +126,18 @@ function TopicPath({
 function ToolbarPopover({
   label,
   value,
-  symbol,
+  icon,
   children,
 }: {
   label: string;
   value?: string;
-  symbol: string;
+  icon: AtharIconName;
   children: ReactNode;
 }) {
   return (
     <details name="memorize-toolbar" className="group relative shrink-0">
       <summary className="flex h-[34px] cursor-pointer list-none items-center gap-1.5 rounded-[10px] border border-athar-line bg-athar-surface px-2.5 text-xs font-bold text-athar-ink transition-colors hover:border-athar-accent hover:text-athar-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent [&::-webkit-details-marker]:hidden">
-        <span className="text-athar-accent" aria-hidden="true">{symbol}</span>
+        <AtharIcon name={icon} className="size-4 shrink-0 text-athar-accent" />
         <span className="max-sm:hidden">{label}</span>
         {value ? <span className="max-w-36 truncate text-[0.68rem] font-semibold text-athar-ink-faint max-lg:hidden">{value}</span> : null}
         <span className="text-[0.6rem] text-athar-ink-faint transition-transform group-open:rotate-180" aria-hidden="true">⌄</span>
@@ -184,6 +186,8 @@ export function MemorizeWorkspace() {
   const [zoom, setZoom] = useState(1);
   const [concealed, setConcealed] = useState(false);
   const [showContext, setShowContext] = useState(true);
+  const [tajweedEnabled, setTajweedEnabled] = useState(false);
+  const [tajweedPreferenceReady, setTajweedPreferenceReady] = useState(false);
   const [revealedAyah, setRevealedAyah] = useState<number | null>(null);
   const [rangeDraft, setRangeDraft] = useState<RangeDraft | null>(null);
   const [pageOverride, setPageOverride] = useState<number | null>(null);
@@ -224,6 +228,10 @@ export function MemorizeWorkspace() {
   const fontLoading = useEditionFont(editionId, pageFontName(editionId, visiblePage?.page || null));
   const rightFontLoading = useEditionFont(editionId, pageFontName(editionId, rightPage));
   const leftFontLoading = useEditionFont(editionId, pageFontName(editionId, leftPage));
+  const tajweedAvailable = editionId !== "shamarly";
+  const tajweedOn = tajweedEnabled && tajweedAvailable;
+  const tajweedPages = dualActive ? [rightPage, leftPage] : [visiblePage?.page || null];
+  const {segmentsByWord: tajweedSegmentsByWord, loading: tajweedLoading} = usePageTajweed(tajweedPages, tajweedOn);
   const visibleContext = contextResult.key === contextKey ? contextResult.data : null;
   const contextLoading = contextResult.key !== contextKey;
   const selectedSurah = useMemo(
@@ -332,12 +340,22 @@ export function MemorizeWorkspace() {
       if (Number.isFinite(savedZoom)) setZoom(clampZoom(savedZoom));
       const savedLayout = window.localStorage.getItem("athar-memorize-layout");
       if (!hasLayoutParam && isReaderLayout(savedLayout)) setLayout(savedLayout);
+      setTajweedEnabled(
+        window.localStorage.getItem("athar-reader-tajweed") === "true" ||
+        window.localStorage.getItem("quranApp_tajweedEnabled") === "true",
+      );
+      setTajweedPreferenceReady(true);
     });
     return () => {
       media.removeEventListener("change", update);
       window.cancelAnimationFrame(frame);
     };
   }, []);
+
+  useEffect(() => {
+    if (!tajweedPreferenceReady) return;
+    window.localStorage.setItem("athar-reader-tajweed", String(tajweedEnabled));
+  }, [tajweedEnabled, tajweedPreferenceReady]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -588,6 +606,9 @@ export function MemorizeWorkspace() {
     focusRange: visualRange,
     contextRange,
     contextByKey,
+    tajweedEnabled: tajweedOn,
+    tajweedLoading,
+    tajweedSegmentsByWord,
     concealFocused: concealed,
     draftAyah: rangeDraft?.anchor ?? null,
     picking: picking && !concealed,
@@ -604,17 +625,22 @@ export function MemorizeWorkspace() {
 
 
   return (
-    <section className="grid h-full min-h-0 grid-rows-[auto_auto_minmax(0,1fr)] pb-[calc(4.5rem+env(safe-area-inset-bottom))] [--mz-topic:#3d7ea6] md:pb-0" aria-label="استوديو التثبيت">
+    <section
+      className={`grid h-full min-h-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] [--mz-topic:#3d7ea6] md:pb-0 ${
+        showContext ? "grid-rows-[auto_auto_minmax(0,1fr)]" : "grid-rows-[auto_minmax(0,1fr)]"
+      }`}
+      aria-label="استوديو التثبيت"
+    >
       <header className="relative z-40 h-20 shrink-0 border-b border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_94%,transparent)] px-[clamp(8px,2vw,22px)] pb-7 backdrop-blur-[18px]">
         <h1 className="sr-only" id="mz-title">ثبّت حفظك.</h1>
         <div className="flex h-[52px] min-w-0 items-center gap-1.5">
-          <ToolbarPopover label="القارئ والتكرار" symbol="◉">
+          <ToolbarPopover label="القارئ والتكرار" icon="headphones">
             <div ref={setControlsHost} />
           </ToolbarPopover>
 
           <ToolbarPopover
             label="الموضع"
-            symbol="⌖"
+            icon="crosshair"
             value={`${selectedSurah?.name || "السورة"} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)}`}
           >
             <span className="text-[0.68rem] font-bold text-athar-gold">نطاق التثبيت</span>
@@ -648,7 +674,7 @@ export function MemorizeWorkspace() {
             </div>
           </ToolbarPopover>
 
-          <ToolbarPopover label="رسم المصحف" symbol="▤" value={edition.label}>
+          <ToolbarPopover label="رسم المصحف" icon="book" value={edition.label}>
             <label className="grid gap-1 text-[0.7rem] font-semibold text-athar-ink-faint">
               <span>طبعة المصحف</span>
               <select className="min-h-10 rounded-xl border border-athar-line bg-athar-surface px-3 text-sm text-athar-ink outline-none focus:border-athar-accent focus:ring-2 focus:ring-athar-accent/15" value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
@@ -674,7 +700,7 @@ export function MemorizeWorkspace() {
               setRevealedAyah(null);
             }}
           >
-            {concealed ? "◉" : "◌"}
+            <AtharIcon name={concealed ? "eye" : "eye-off"} className="size-[17px]" />
           </Button>
           <Button
             size="icon"
@@ -685,7 +711,19 @@ export function MemorizeWorkspace() {
             aria-pressed={showContext}
             onClick={() => setShowContext((value) => !value)}
           >
-            ◫
+            <AtharIcon name="layers" className="size-[17px]" />
+          </Button>
+          <Button
+            size="icon"
+            variant={tajweedOn ? "primary" : "secondary"}
+            className="size-[34px] rounded-[10px]"
+            aria-label={tajweedLoading ? "جارٍ تحميل تلوين التجويد" : "تلوين التجويد"}
+            title={editionId === "shamarly" ? "التلوين الحرفي غير متاح مع خط الشمرلي" : "تلوين أحكام التجويد حرفيًا"}
+            aria-pressed={tajweedOn}
+            disabled={!tajweedAvailable || tajweedLoading}
+            onClick={() => setTajweedEnabled((value) => !value)}
+          >
+            <AtharIcon name="sparkles" className="size-[17px]" />
           </Button>
           {dualAvailable ? (
             <Button
@@ -697,7 +735,7 @@ export function MemorizeWorkspace() {
               aria-pressed={layout === "dual"}
               onClick={() => setLayout((value) => value === "dual" ? "single" : "dual")}
             >
-              {layout === "dual" ? "▥" : "▯"}
+              <AtharIcon name={layout === "dual" ? "book-open" : "book"} className="size-[17px]" />
             </Button>
           ) : null}
 
@@ -711,7 +749,7 @@ export function MemorizeWorkspace() {
           <div ref={setTransportHost} className="ms-auto flex min-w-0 flex-1 justify-end" />
         </div>
         <p className="absolute inset-x-0 bottom-0 m-0 flex h-7 items-center justify-center gap-2 border-t border-athar-line-soft bg-athar-accent/5 px-3 text-center text-[0.72rem] font-semibold leading-none text-athar-ink-soft max-sm:justify-start max-sm:overflow-hidden max-sm:whitespace-nowrap">
-          <span className="text-athar-accent" aria-hidden="true">◉</span>
+          <AtharIcon name="mouse-pointer" className="size-3.5 shrink-0 text-athar-accent" />
           اضغط آية البداية، ثم آية النهاية. اضغط ▶ للتشغيل، و× لإلغاء النطاق.
         </p>
       </header>
@@ -724,7 +762,9 @@ export function MemorizeWorkspace() {
           data-state={contextLoading ? "loading" : visibleContext?.found ? "ready" : "empty"}
           style={activeTopicColor ? {"--mz-topic": activeTopicColor} as CSSProperties : undefined}
         >
-          <span className="grid size-[34px] place-items-center rounded-[10px] bg-[color-mix(in_srgb,var(--mz-topic)_16%,transparent)] text-sm font-black text-[var(--mz-topic)]" aria-hidden="true">◫</span>
+          <span className="grid size-[34px] place-items-center rounded-[10px] bg-[color-mix(in_srgb,var(--mz-topic)_16%,transparent)] text-[var(--mz-topic)]" aria-hidden="true">
+            <AtharIcon name="layers" className="size-[17px]" />
+          </span>
           <div className="grid min-w-0 gap-0.5">
             <div className="mz-context-heading">
               <span className="mz-context-kicker">التفصيل الموضوعي</span>
@@ -848,7 +888,7 @@ export function MemorizeWorkspace() {
             disabled={zoom <= ZOOM_MIN + 0.001}
             onClick={() => setZoom((value) => clampZoom(value - ZOOM_STEP))}
           >
-            −
+            <AtharIcon name="zoom-out" className="size-[17px]" />
           </Button>
           <span className="min-w-10 text-center text-[0.68rem] font-bold tabular-nums text-athar-ink-soft max-sm:hidden" aria-label="مستوى التكبير">
             {toArabicDigits(Math.round(zoom * 100))}٪
@@ -861,7 +901,7 @@ export function MemorizeWorkspace() {
             disabled={zoom >= ZOOM_MAX - 0.001}
             onClick={() => setZoom((value) => clampZoom(value + ZOOM_STEP))}
           >
-            +
+            <AtharIcon name="zoom-in" className="size-[17px]" />
           </Button>
           <Button
             size="icon"
@@ -872,7 +912,7 @@ export function MemorizeWorkspace() {
             aria-pressed={Math.abs(zoom - 1) < 0.001}
             onClick={() => setZoom(1)}
           >
-            ⛶
+            <AtharIcon name="scan" className="size-[17px]" />
           </Button>
         </div>
 
