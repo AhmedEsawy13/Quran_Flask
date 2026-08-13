@@ -332,20 +332,50 @@ export function MemorizePlayer({
     ? Math.min(1, (completedDuration + elapsed) / totalDuration)
     : 0;
   const canPlay = Boolean(currentStep) && !loading && !playbackLocked;
+  const stepKind = currentStep?.kind === "ayah-link"
+    ? "ربط الآيات"
+    : currentStep?.kind === "phrase-link"
+      ? "ربط المقاطع"
+      : currentStep?.kind === "phrase"
+        ? "مقطع وقفي"
+        : "آية كاملة";
+  const sessionStructure = `${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`;
   const transport = (
-    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2" aria-label="شريط جلسة التثبيت">
-      <Button
-        size="icon"
-        variant="primary"
-        className="size-10 shrink-0 text-sm"
-        onClick={() => void togglePlayback()}
-        disabled={!canPlay}
-        aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
-      >
-        {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
-      </Button>
+    <div className="mz-transport" aria-label="شريط جلسة التثبيت">
+      <div className="mz-transport-play">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="size-9"
+          onClick={() => void goToStep(stepIndex - 1, isPlaying)}
+          disabled={stepIndex <= 0 || playbackLocked}
+          aria-label="الخطوة السابقة"
+        >
+          ‹
+        </Button>
+        <Button
+          size="icon"
+          variant="primary"
+          className="mz-transport-go size-12 text-lg"
+          onClick={() => void togglePlayback()}
+          disabled={!canPlay}
+          aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
+        >
+          {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="size-9"
+          onClick={() => void goToStep(stepIndex + 1, isPlaying)}
+          disabled={!schedule.length || stepIndex >= schedule.length - 1 || playbackLocked}
+          aria-label="الخطوة التالية"
+        >
+          ›
+        </Button>
+      </div>
       <PlaybackTimeline
-        className="min-w-[12rem] flex-1"
+        className="mz-transport-line"
         min="0"
         max={1000}
         step="1"
@@ -357,26 +387,9 @@ export function MemorizePlayer({
           void seekSession(Number(event.target.value) / 1000);
         }}
       />
-      <div className="flex gap-1.5" aria-label="التنقل بين خطوات التثبيت">
-        <Button
-          size="sm"
-          variant="quiet"
-          onClick={() => void goToStep(stepIndex - 1, isPlaying)}
-          disabled={stepIndex <= 0 || playbackLocked}
-        >
-          الخطوة السابقة
-        </Button>
-        <Button
-          size="sm"
-          onClick={() => void goToStep(stepIndex + 1, isPlaying)}
-          disabled={!schedule.length || stepIndex >= schedule.length - 1 || playbackLocked}
-        >
-          الخطوة التالية
-        </Button>
-        <Button size="sm" variant="quiet" onClick={resetSession} disabled={!schedule.length}>
-          إيقاف
-        </Button>
-      </div>
+      <Button size="sm" variant="quiet" className="mz-transport-stop" onClick={resetSession} disabled={!schedule.length}>
+        إيقاف
+      </Button>
     </div>
   );
 
@@ -404,38 +417,40 @@ export function MemorizePlayer({
     />
   );
 
-  const compactField = "min-h-8 min-w-[5.5rem] rounded-[10px] py-1 text-[0.78rem]";
-  const compactCheck = "min-h-8 rounded-[10px] px-2 py-0 text-[0.72rem]";
-  const sessionStructure = `${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`;
+  const compactField = "mz-inset-select";
   const sessionControls = (
     <div className="mz-studio-controls" aria-label="إعدادات الجلسة">
       <div className="mz-studio-plan" aria-label="خطة جلسة التثبيت" aria-live="polite">
         <strong>{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
-        <span>{currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"}</span>
+        <span>{stepKind}</span>
         <span>{sessionStructure}</span>
         <span>{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</span>
       </div>
       {audioError ? <StatusState tone="error">{audioError}</StatusState> : null}
-      <Field label="القارئ">
-        <SelectControl className={compactField} value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
-          {reciters.length ? reciters.map((reciter) => (
-            <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
-          )) : <option>جارٍ تحميل القرّاء…</option>}
-        </SelectControl>
-      </Field>
-      <Field label="تكرار الوحدة">
-        <SelectControl className={compactField} value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
-          {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-        </SelectControl>
-      </Field>
-      <Field label="تكرار الربط">
-        <SelectControl className={compactField} value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
-          {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-        </SelectControl>
-      </Field>
-      <CheckControl className={compactCheck} label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
-      <CheckControl className={compactCheck} label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
-      <CheckControl className={compactCheck} label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
+      <div className="mz-studio-tune">
+        <Field className="mz-inset" label="القارئ">
+          <SelectControl className={compactField} value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
+            {reciters.length ? reciters.map((reciter) => (
+              <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
+            )) : <option>جارٍ تحميل القرّاء…</option>}
+          </SelectControl>
+        </Field>
+        <Field className="mz-inset" label="تكرار الوحدة">
+          <SelectControl className={compactField} value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
+            {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
+          </SelectControl>
+        </Field>
+        <Field className="mz-inset" label="تكرار الربط">
+          <SelectControl className={compactField} value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
+            {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
+          </SelectControl>
+        </Field>
+        <div className="mz-studio-modes">
+          <CheckControl className="mz-mode-chip" label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
+          <CheckControl className="mz-mode-chip" label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
+          <CheckControl className="mz-mode-chip" label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
+        </div>
+      </div>
     </div>
   );
 

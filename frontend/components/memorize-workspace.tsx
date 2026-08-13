@@ -31,6 +31,7 @@ import { ChromeField, ChromeSelect } from "@/components/tool-chrome";
 import {
   Button,
   ProgressBar,
+  SegmentedControl,
   StatusState,
 } from "@/components/ui/primitives";
 
@@ -580,16 +581,80 @@ export function MemorizeWorkspace() {
   return (
     <section className="mz-studio" aria-label="استوديو التثبيت">
       <header className="mz-studio-bar">
-        <div className="mz-studio-identity">
-          <p>— تثبيت</p>
-          <h1 id="mz-title">ثبّت حفظك.</h1>
+        <div className="mz-studio-mast">
+          <div className="mz-studio-identity">
+            <p>— تثبيت</p>
+            <h1 id="mz-title">ثبّت حفظك.</h1>
+          </div>
+          <span className="mz-studio-range" aria-label="ملخص نطاق التثبيت">
+            {selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · {toArabicDigits(fromAyah)}–{toArabicDigits(toAyah)}
+          </span>
+          <div className="mz-studio-view">
+            <Button
+              size="sm"
+              variant={concealed ? "primary" : "secondary"}
+              aria-pressed={concealed}
+              onClick={() => {
+                setConcealed((value) => !value);
+                setRevealedAyah(null);
+              }}
+            >
+              {concealed ? "أظهر نص النطاق" : "اختبر حفظي"}
+            </Button>
+            {dualAvailable ? (
+              <SegmentedControl
+                variant="pills"
+                label="عرض الصفحات"
+                value={layout === "dual" ? "dual" : "single"}
+                options={[
+                  {value: "dual" as const, label: "صفحتان متقابلتان"},
+                  {value: "single" as const, label: "صفحة واحدة"},
+                ]}
+                onChange={(value) => setLayout(value)}
+              />
+            ) : null}
+            <div className="mz-studio-zoom" role="group" aria-label="تكبير المصحف">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8"
+                aria-label="تصغير المصحف"
+                disabled={zoom <= ZOOM_MIN + 0.001}
+                onClick={() => setZoom((value) => clampZoom(value - ZOOM_STEP))}
+              >
+                −
+              </Button>
+              <span className="mz-studio-zoom-level" aria-label="مستوى التكبير">
+                {toArabicDigits(Math.round(zoom * 100))}٪
+              </span>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-8"
+                aria-label="تكبير المصحف"
+                disabled={zoom >= ZOOM_MAX - 0.001}
+                onClick={() => setZoom((value) => clampZoom(value + ZOOM_STEP))}
+              >
+                +
+              </Button>
+            </div>
+            <Button
+              size="sm"
+              className="min-h-8 rounded-full px-2.5"
+              variant={Math.abs(zoom - 1) < 0.001 ? "quiet" : "secondary"}
+              aria-pressed={Math.abs(zoom - 1) < 0.001}
+              onClick={() => setZoom(1)}
+            >
+              ملاءمة
+            </Button>
+            <a className="mz-studio-asr" href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>
+              التسميع الصوتي
+            </a>
+          </div>
         </div>
-        <span className="mz-studio-range" aria-label="ملخص نطاق التثبيت">
-          {selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · {toArabicDigits(fromAyah)}–{toArabicDigits(toAyah)}
-        </span>
-        <div className="mz-studio-fields">
+        <div className="mz-studio-place">
           <ChromeField label="السورة">
-            <ChromeSelect className="min-w-[9rem]" value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
+            <ChromeSelect className="min-w-[7.5rem]" value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
               {!surahs.length ? <option>جارٍ التحميل…</option> : null}
               {surahs.map((surah) => (
                 <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
@@ -597,53 +662,29 @@ export function MemorizeWorkspace() {
             </ChromeSelect>
           </ChromeField>
           <ChromeField label="من آية">
-            <ChromeSelect className="min-w-[4.75rem]" value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
+            <ChromeSelect className="min-w-[3.5rem]" value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
               {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
             </ChromeSelect>
           </ChromeField>
           <ChromeField label="إلى آية">
-            <ChromeSelect className="min-w-[4.75rem]" value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
+            <ChromeSelect className="min-w-[3.5rem]" value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
               {ayahNumbers.filter((number) => number >= fromAyah).map((number) => (
                 <option key={number} value={number}>{toArabicDigits(number)}</option>
               ))}
             </ChromeSelect>
           </ChromeField>
           <ChromeField label="طبعة المصحف">
-            <ChromeSelect className="min-w-[8rem]" value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
+            <ChromeSelect className="min-w-[6.75rem]" value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
               {Object.values(MUSHAF_EDITIONS).map((item) => (
                 <option key={item.id} value={item.id}>{item.label}</option>
               ))}
             </ChromeSelect>
           </ChromeField>
         </div>
-        <div className="mz-studio-actions">
-          <Button
-            size="sm"
-            variant={concealed ? "primary" : "secondary"}
-            aria-pressed={concealed}
-            onClick={() => {
-              setConcealed((value) => !value);
-              setRevealedAyah(null);
-            }}
-          >
-            {concealed ? "أظهر نص النطاق" : "اختبر حفظي"}
-          </Button>
-          {dualAvailable ? (
-            <Button
-              size="sm"
-              variant={dualActive ? "quiet" : "secondary"}
-              aria-pressed={layout === "dual"}
-              onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
-            >
-              {layout === "dual" ? "صفحتان متقابلتان" : "صفحة واحدة"}
-            </Button>
-          ) : null}
-          <a className="mz-studio-asr" href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>
-            التسميع الصوتي
-          </a>
+        <div className="mz-studio-dock">
+          <div ref={setTransportHost} className="mz-studio-transport" />
+          <div ref={setControlsHost} className="mz-studio-session" />
         </div>
-        <div ref={setControlsHost} className="mz-studio-session" />
-        <div ref={setTransportHost} className="mz-studio-transport" />
       </header>
 
       <aside
@@ -752,40 +793,6 @@ export function MemorizeWorkspace() {
         {picking ? (
           <p className="mz-studio-hint">اضغط آية النهاية لإكمال النطاق، أو Escape للإلغاء.</p>
         ) : null}
-
-        <div className="mz-studio-float is-zoom" role="group" aria-label="تكبير المصحف">
-          <Button
-            size="icon"
-            variant="secondary"
-            className="size-9 rounded-[10px]"
-            aria-label="تصغير المصحف"
-            disabled={zoom <= ZOOM_MIN + 0.001}
-            onClick={() => setZoom((value) => clampZoom(value - ZOOM_STEP))}
-          >
-            −
-          </Button>
-          <span className="min-w-[3rem] text-center text-[0.72rem] font-bold text-athar-ink-soft" aria-label="مستوى التكبير">
-            {toArabicDigits(Math.round(zoom * 100))}٪
-          </span>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="size-9 rounded-[10px]"
-            aria-label="تكبير المصحف"
-            disabled={zoom >= ZOOM_MAX - 0.001}
-            onClick={() => setZoom((value) => clampZoom(value + ZOOM_STEP))}
-          >
-            +
-          </Button>
-          <Button
-            size="sm"
-            variant={Math.abs(zoom - 1) < 0.001 ? "quiet" : "secondary"}
-            aria-pressed={Math.abs(zoom - 1) < 0.001}
-            onClick={() => setZoom(1)}
-          >
-            ملاءمة
-          </Button>
-        </div>
       </div>
 
       <MemorizePlayer
