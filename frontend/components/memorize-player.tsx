@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   getJson,
@@ -35,6 +35,7 @@ type MemorizePlayerProps = {
   onWordChange: (wordIndex: number | null) => void;
   chromeHost?: HTMLElement | null;
   playbackLocked?: boolean;
+  children?: (settings: ReactNode) => ReactNode;
 };
 
 type AudioResult = {
@@ -69,6 +70,7 @@ export function MemorizePlayer({
   onWordChange,
   chromeHost = null,
   playbackLocked = false,
+  children,
 }: MemorizePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const boundaryHandledRef = useRef(false);
@@ -381,30 +383,32 @@ export function MemorizePlayer({
     </div>
   );
 
-  return (
-    <ToolCard aria-label="جلسة التكرار">
-      <audio
-        ref={audioRef}
-        src={backendMediaUrl(visibleAudio?.audio_url)}
-        preload="metadata"
-        onLoadedMetadata={() => {
-          const step = schedule[stepIndexRef.current];
-          if (audioRef.current && step) audioRef.current.currentTime = step.start;
-        }}
-        onPause={() => setPlaying(false)}
-        onPlay={() => setPlaying(true)}
-        onTimeUpdate={(event) => {
-          const step = schedule[stepIndexRef.current];
-          if (!step) return;
-          const currentTime = event.currentTarget.currentTime;
-          setElapsed(Math.max(0, Math.min(step.end - step.start, currentTime - step.start)));
-          updatePlaybackPosition(currentTime);
-          if (currentTime >= step.end - 0.06 && !boundaryHandledRef.current) {
-            void completeCurrentStep();
-          }
-        }}
-      />
+  const audioElement = (
+    <audio
+      ref={audioRef}
+      src={backendMediaUrl(visibleAudio?.audio_url)}
+      preload="metadata"
+      onLoadedMetadata={() => {
+        const step = schedule[stepIndexRef.current];
+        if (audioRef.current && step) audioRef.current.currentTime = step.start;
+      }}
+      onPause={() => setPlaying(false)}
+      onPlay={() => setPlaying(true)}
+      onTimeUpdate={(event) => {
+        const step = schedule[stepIndexRef.current];
+        if (!step) return;
+        const currentTime = event.currentTarget.currentTime;
+        setElapsed(Math.max(0, Math.min(step.end - step.start, currentTime - step.start)));
+        updatePlaybackPosition(currentTime);
+        if (currentTime >= step.end - 0.06 && !boundaryHandledRef.current) {
+          void completeCurrentStep();
+        }
+      }}
+    />
+  );
 
+  const settingsPanel = (
+    <div className="grid gap-4">
       <header className="flex items-start justify-between gap-4">
         <div className="grid gap-0.5">
           <span className="text-[0.7rem] font-bold text-athar-gold">التكرار التراكمي</span>
@@ -420,114 +424,57 @@ export function MemorizePlayer({
           {loading ? "يُحمّل" : isPlaying ? "يُتلى الآن" : "جاهز"}
         </span>
       </header>
+      {audioError ? <StatusState tone="error">{audioError}</StatusState> : null}
+      <div className="grid gap-2 sm:grid-cols-2" aria-label="خطة جلسة التثبيت" aria-live="polite">
+        <StatTile label="الخطوة" value={schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"} />
+        <StatTile label="النمط" value={currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"} />
+        <StatTile label="المتبقي التقريبي" value={formatTime(remainingDuration)} />
+        <StatTile label="بنية الجلسة" value={`${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`} />
+        <ProgressBar className="sm:col-span-2" value={stepIndex + (elapsed > 0 ? Math.min(1, elapsed / Math.max(0.001, duration)) : 0)} max={Math.max(1, schedule.length)} label="تقدّم خطة جلسة التثبيت" />
+      </div>
+      <div className="grid items-end gap-2 border-t border-athar-line-soft pt-4">
+        <Field label="القارئ">
+          <SelectControl value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
+            {reciters.length ? reciters.map((reciter) => (
+              <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
+            )) : <option>جارٍ تحميل القرّاء…</option>}
+          </SelectControl>
+        </Field>
+        <Field label="تكرار الوحدة">
+          <SelectControl value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
+            {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
+          </SelectControl>
+        </Field>
+        <Field label="تكرار الربط">
+          <SelectControl value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
+            {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
+          </SelectControl>
+        </Field>
+        <CheckControl label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
+        <CheckControl label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
+        <CheckControl label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
+        <Button variant="quiet" onClick={resetSession}>ابدأ النطاق من أوله</Button>
+      </div>
+    </div>
+  );
 
-      {audioError ? <StatusState tone="error" className="mt-3">{audioError}</StatusState> : null}
-
-      {chromeHost ? createPortal(transport, chromeHost) : (
-        <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-          <Button
-            size="icon"
-            variant="primary"
-            className="size-11 text-sm"
-            onClick={() => void togglePlayback()}
-            disabled={!canPlay}
-            aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
-          >
-            {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
-          </Button>
-          <PlaybackTimeline
-            min="0"
-            max={duration || 1}
-            step="0.05"
-            value={Math.min(elapsed, duration || 1)}
-            disabled={!currentStep}
-            label="موضع التلاوة داخل خطوة التثبيت"
-            time={<>{formatTime(elapsed)} / {formatTime(duration)}</>}
-            onChange={(event) => {
-              const nextElapsed = Number(event.target.value);
-              setElapsed(nextElapsed);
-              if (audioRef.current && currentStep) {
-                const currentTime = currentStep.start + nextElapsed;
-                audioRef.current.currentTime = currentTime;
-                boundaryHandledRef.current = false;
-                updatePlaybackPosition(currentTime);
-              }
-            }}
-          />
-          <div className="col-span-2 flex justify-end gap-2 lg:col-span-1" aria-label="التنقل بين خطوات التثبيت">
-            <Button size="sm" variant="quiet" onClick={() => void goToStep(stepIndex - 1, isPlaying)} disabled={stepIndex <= 0 || playbackLocked}>الخطوة السابقة</Button>
-            <Button size="sm" onClick={() => void goToStep(stepIndex + 1, isPlaying)} disabled={!schedule.length || stepIndex >= schedule.length - 1 || playbackLocked}>الخطوة التالية</Button>
-          </div>
+  if (children) {
+    return (
+      <>
+        <div aria-label="جلسة التكرار" className="absolute size-px overflow-hidden">
+          {audioElement}
         </div>
-      )}
+        {chromeHost ? createPortal(transport, chromeHost) : null}
+        {children(settingsPanel)}
+      </>
+    );
+  }
 
-      {chromeHost ? (
-        <div className="mt-3">
-          <PlaybackTimeline
-            min="0"
-            max={duration || 1}
-            step="0.05"
-            value={Math.min(elapsed, duration || 1)}
-            disabled={!currentStep}
-            label="موضع التلاوة داخل خطوة التثبيت"
-            time={<>{formatTime(elapsed)} / {formatTime(duration)}</>}
-            onChange={(event) => {
-              const nextElapsed = Number(event.target.value);
-              setElapsed(nextElapsed);
-              if (audioRef.current && currentStep) {
-                const currentTime = currentStep.start + nextElapsed;
-                audioRef.current.currentTime = currentTime;
-                boundaryHandledRef.current = false;
-                updatePlaybackPosition(currentTime);
-              }
-            }}
-          />
-        </div>
-      ) : null}
-
-      <details className="group mt-3 border-t border-athar-line-soft pt-3">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-athar-ink marker:content-none [&::-webkit-details-marker]:hidden">
-          <span className="flex items-center gap-2">
-            <span aria-hidden="true" className="text-athar-gold transition-transform group-open:rotate-90">‹</span>
-            إعدادات وخطة الجلسة
-          </span>
-          <small className="font-normal text-athar-ink-faint">
-            الخطوة {schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}
-          </small>
-        </summary>
-
-        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4" aria-label="خطة جلسة التثبيت" aria-live="polite">
-          <StatTile label="الخطوة" value={schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"} />
-          <StatTile label="النمط" value={currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"} />
-          <StatTile label="المتبقي التقريبي" value={formatTime(remainingDuration)} />
-          <StatTile label="بنية الجلسة" value={`${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`} />
-          <ProgressBar className="sm:col-span-2 lg:col-span-4" value={stepIndex + (elapsed > 0 ? Math.min(1, elapsed / Math.max(0.001, duration)) : 0)} max={Math.max(1, schedule.length)} label="تقدّم خطة جلسة التثبيت" />
-        </div>
-
-        <div className="mt-4 grid items-end gap-2 border-t border-athar-line-soft pt-4 sm:grid-cols-2 lg:grid-cols-3">
-          <Field label="القارئ" className="sm:col-span-2 lg:col-span-1">
-            <SelectControl value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
-              {reciters.length ? reciters.map((reciter) => (
-                <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
-              )) : <option>جارٍ تحميل القرّاء…</option>}
-            </SelectControl>
-          </Field>
-          <Field label="تكرار الوحدة">
-            <SelectControl value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
-              {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-            </SelectControl>
-          </Field>
-          <Field label="تكرار الربط">
-            <SelectControl value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
-              {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-            </SelectControl>
-          </Field>
-          <CheckControl label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
-          <CheckControl label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
-          <CheckControl label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
-          <Button className="sm:col-span-2 lg:col-span-3" variant="quiet" onClick={resetSession}>ابدأ النطاق من أوله</Button>
-        </div>
-      </details>
+  return (
+    <ToolCard aria-label="جلسة التكرار">
+      {audioElement}
+      {chromeHost ? createPortal(transport, chromeHost) : null}
+      {settingsPanel}
     </ToolCard>
   );
 }

@@ -13,8 +13,8 @@ Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `f
 |---|---|-----|
 | `/` | landing | Four doors + credits footer |
 | `/read` | المصحف | Study drawer includes iʿrāb; Flask `/read` still has older chrome |
-| `/memorize` | تثبيت | Tap-to-pick range, zoom, dual page, bar transport + repetition. ASR stays Flask |
-| `/waqf` | مُكْث | Daily verse guide, verse search, full mushaf×reciter matrix. Lab stays Flask |
+| `/memorize` | تثبيت | Viewport studio: mushaf fills the remaining height, no page scroll. Tap-to-pick, zoom, dual page, bar transport. Settings + ASR in overlay drawer. ASR stays Flask |
+| `/waqf` | مُكْث | Scrollable verse-first study: search, word-flow + inspector, breath plan, full matrix, all-reciters gallery, classical-for-all. Lab stays Flask |
 | `/waqf-practice` | تدريب | Tap words + grade vs printed marks. ASR + live tajweed stay Flask |
 | `/credits` | المصادر | Attribution page |
 | `/robots.txt` `/sitemap.xml` `/llms.txt` | SEO | Next copies of Flask SEO |
@@ -29,7 +29,6 @@ Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `f
 ## Known gaps (next passes, not forgotten)
 
 - تثبيت: tajweed color on studio
-- مُكْث: all-reciters / classical-for-all cards
 - تدريب: printed mushaf page-card layout (tap-to-grade currently uses word flow)
 - Reader: leftover Flask-only chrome via `HandoffSurface`
 

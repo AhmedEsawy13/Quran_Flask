@@ -13,6 +13,7 @@ import {
 } from "@/lib/mushaf";
 import { fitAndJustifyMushafPage } from "@/lib/mushaf-page-layout";
 import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
+import type { TopicWash } from "@/lib/topic-color";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
 type MushafRendererProps = {
@@ -34,6 +35,7 @@ type MushafRendererProps = {
   dualLayout?: boolean;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
+  contextByKey?: ReadonlyMap<string, TopicWash>;
   concealFocused?: boolean;
   draftAyah?: number | null;
   picking?: boolean;
@@ -58,6 +60,63 @@ function withAyahOrnament(text: string, editionId: MushafEditionId) {
 function wordIdentity(word: MushafWord) {
   if (word.word_key) return word.word_key;
   return Number.isFinite(Number(word.word_index)) ? `#${word.word_index}` : "";
+}
+
+function verseKeyOf(word: MushafWord) {
+  const surah = Number(word.surah);
+  const ayah = Number(word.ayah);
+  if (!Number.isInteger(surah) || !Number.isInteger(ayah) || surah < 1 || ayah < 1) return "";
+  return `${surah}:${ayah}`;
+}
+
+function paintContextBands(root: HTMLElement) {
+  const linesRoot = root.querySelector<HTMLElement>(".mushaf-lines");
+  const layer = root.querySelector<HTMLElement>(".mz-context-layer");
+  if (!linesRoot || !layer) return;
+  layer.replaceChildren();
+  const words = [...linesRoot.querySelectorAll<HTMLElement>(".mushaf-word.is-context[data-context-color]")];
+  if (!words.length) return;
+  const origin = layer.parentElement || linesRoot;
+  const rootRect = origin.getBoundingClientRect();
+  if (!rootRect.width || !rootRect.height) return;
+  const scale = rootRect.width / Math.max(1, origin.offsetWidth);
+
+  const byLine = new Map<HTMLElement, Map<string, {color: string; words: HTMLElement[]}>>();
+  words.forEach((word) => {
+    const line = word.closest<HTMLElement>(".mushaf-line");
+    const color = word.dataset.contextColor;
+    const segmentId = word.dataset.contextSegment;
+    if (!line || !color) return;
+    const groupKey = `${segmentId || ""}|${color}`;
+    if (!byLine.has(line)) byLine.set(line, new Map());
+    const groups = byLine.get(line);
+    if (!groups) return;
+    if (!groups.has(groupKey)) groups.set(groupKey, {color, words: []});
+    groups.get(groupKey)?.words.push(word);
+  });
+
+  byLine.forEach((groups) => {
+    groups.forEach(({color, words: lineWords}) => {
+      const rects = lineWords
+        .map((word) => word.getBoundingClientRect())
+        .filter((rect) => rect.width > 0 && rect.height > 0);
+      if (!rects.length) return;
+      const left = Math.min(...rects.map((rect) => rect.left));
+      const right = Math.max(...rects.map((rect) => rect.right));
+      const top = Math.min(...rects.map((rect) => rect.top));
+      const bottom = Math.max(...rects.map((rect) => rect.bottom));
+      const padX = 3;
+      const padY = 1;
+      const band = document.createElement("div");
+      band.className = "mz-context-band";
+      band.style.setProperty("--mz-band-color", color);
+      band.style.left = `${(left - rootRect.left) / scale - padX}px`;
+      band.style.top = `${(top - rootRect.top) / scale - padY}px`;
+      band.style.width = `${Math.max(0, (right - left) / scale + padX * 2)}px`;
+      band.style.height = `${Math.max(0, (bottom - top) / scale + padY * 2)}px`;
+      layer.appendChild(band);
+    });
+  });
 }
 
 function wordWaqfMarks(word: MushafWord) {
@@ -121,6 +180,7 @@ function PageLine({
   activeAudioWord,
   focusRange,
   contextRange,
+  contextByKey,
   concealFocused,
   draftAyah,
   picking,
@@ -137,6 +197,7 @@ function PageLine({
   activeAudioWord: number | null;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
+  contextByKey?: ReadonlyMap<string, TopicWash>;
   concealFocused?: boolean;
   draftAyah?: number | null;
   picking?: boolean;
@@ -197,8 +258,11 @@ function PageLine({
               const current = Number(word.surah) === surahNumber && wordAyah === ayahNumber;
               const draft = Number(word.surah) === surahNumber && draftAyah != null && wordAyah === draftAyah;
               const concealed = Boolean(focused && concealFocused && wordAyah !== revealedAyah);
-              const contextual = Number(word.surah) === surahNumber && Boolean(
-                contextRange && wordAyah >= contextRange[0] && wordAyah <= contextRange[1]
+              const wash = contextByKey?.get(verseKeyOf(word));
+              const contextual = Boolean(wash) || (
+                Number(word.surah) === surahNumber && Boolean(
+                  contextRange && wordAyah >= contextRange[0] && wordAyah <= contextRange[1]
+                )
               );
               const audioPosition = audioPositions.get(word);
               const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
@@ -221,6 +285,9 @@ function PageLine({
                   data-word-key={word.word_key || undefined}
                   data-surah={Number.isInteger(Number(word.surah)) ? String(word.surah) : undefined}
                   data-ayah={Number.isInteger(wordAyah) ? String(wordAyah) : undefined}
+                  data-context-color={wash?.color}
+                  data-context-segment={wash ? String(wash.segmentId) : undefined}
+                  style={wash ? {"--mz-topic": wash.color} as CSSProperties : undefined}
                   onClick={onAyahClick ? () => {
                     const surah = Number(word.surah);
                     const ayah = Number(word.ayah);
@@ -278,6 +345,7 @@ export function MushafRenderer({
   dualLayout = false,
   focusRange,
   contextRange,
+  contextByKey,
   concealFocused,
   draftAyah = null,
   picking = false,
@@ -336,6 +404,7 @@ export function MushafRenderer({
         if (!active) return;
         // Same pipeline as تثبيت: measured font size, then capped line justify.
         fitAndJustifyMushafPage(root, editionId, { dual: dualLayout });
+        paintContextBands(root);
       });
     };
     const observer = typeof ResizeObserver === "undefined"
@@ -367,7 +436,7 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [dualLayout, editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view]);
+  }, [contextByKey, dualLayout, editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view]);
 
   return (
     <article
@@ -446,27 +515,31 @@ export function MushafRenderer({
             </a>
           </div>
         ) : view === "page" && page ? (
-          <div className="mushaf-lines" aria-label={`صفحة ${page.page_number}`}>
-            {page.lines.map((line) => (
-              <PageLine
-                key={`${page.page_number}-${line.line_number}`}
-                line={line}
-                surahNumber={surahNumber}
-                ayahNumber={ayahNumber}
-                audioPositions={pageAudioPositions}
-                activeAudioWord={activeAudioWord}
-                focusRange={focusRange}
-                contextRange={contextRange}
-                concealFocused={concealFocused}
-                draftAyah={draftAyah}
-                picking={picking}
-                revealedAyah={revealedAyah}
-                onAyahClick={onAyahClick}
-                editionId={editionId}
-                tajweedEnabled={tajweedEnabled}
-                tajweedSegmentsByWord={tajweedSegmentsByWord}
-              />
-            ))}
+          <div className="mushaf-lines-host">
+            {contextByKey ? <div className="mz-context-layer" aria-hidden="true" /> : null}
+            <div className="mushaf-lines" aria-label={`صفحة ${page.page_number}`}>
+              {page.lines.map((line) => (
+                <PageLine
+                  key={`${page.page_number}-${line.line_number}`}
+                  line={line}
+                  surahNumber={surahNumber}
+                  ayahNumber={ayahNumber}
+                  audioPositions={pageAudioPositions}
+                  activeAudioWord={activeAudioWord}
+                  focusRange={focusRange}
+                  contextRange={contextRange}
+                  contextByKey={contextByKey}
+                  concealFocused={concealFocused}
+                  draftAyah={draftAyah}
+                  picking={picking}
+                  revealedAyah={revealedAyah}
+                  onAyahClick={onAyahClick}
+                  editionId={editionId}
+                  tajweedEnabled={tajweedEnabled}
+                  tajweedSegmentsByWord={tajweedSegmentsByWord}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <div className="inline-error"><strong>لا يوجد محتوى لهذه الصفحة.</strong></div>

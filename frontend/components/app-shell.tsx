@@ -48,12 +48,18 @@ function isActivePath(pathname: string, item: (typeof navItems)[number]) {
 export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
+  const isStudio = pathname === "/memorize";
 
   useEffect(() => {
     if (previousPathname.current === pathname) return;
     previousPathname.current = pathname;
     window.scrollTo({top: 0, left: 0, behavior: "instant"});
   }, [pathname]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("is-studio", isStudio);
+    return () => document.documentElement.classList.remove("is-studio");
+  }, [isStudio]);
 
   return (
     <>
@@ -91,7 +97,11 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
         </div>
       </header>
 
-      <div className="min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
+      <div className={cn(
+        isStudio
+          ? "h-[calc(100dvh-var(--bar-height))] overflow-hidden"
+          : "min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0",
+      )}>{children}</div>
 
       <nav
         className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-athar-line bg-[var(--bar-background)] px-2 pt-1.5 pb-[max(.4rem,env(safe-area-inset-bottom))] shadow-[var(--athar-nav-shadow)] backdrop-blur-xl md:hidden"

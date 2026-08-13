@@ -252,6 +252,8 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await expect(page.getByRole("heading", {name: "وقوف القرّاء"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "قول الإمام", exact: true})).toBeVisible();
   await expect(page.getByRole("heading", {name: "مصفوفة المصاحف والقرّاء"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "كل القرّاء"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "قول الأئمة في الآية"})).toBeVisible();
   const desktopMatrix = await page.evaluate(() => window.innerWidth > 900);
   if (desktopMatrix) {
     await expect(page.locator(".waqf-matrix")).toBeVisible();
@@ -283,7 +285,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.goto("/memorize?surah=2&from=255&to=257");
   await expect(page.getByRole("heading", {level: 1, name: "ثبّت حفظك."})).toBeVisible();
   await expect(page.getByText("— تثبيت", {exact: true})).toBeVisible();
-  await expect(page.getByRole("region", {name: "اختيار نطاق التثبيت"})).toBeVisible();
+  await expect(page.getByRole("region", {name: "استوديو التثبيت"})).toBeVisible();
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
@@ -292,6 +294,11 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.getByLabel("شريط جلسة التثبيت")).toBeVisible();
   await expect(page.getByLabel("موضع جلسة التثبيت")).toBeVisible();
   await expect(page.getByLabel("جلسة التكرار").locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
+  const noDocScroll = await page.evaluate(() => {
+    const root = document.documentElement;
+    return root.scrollHeight <= root.clientHeight + 2;
+  });
+  expect(noDocScroll).toBe(true);
   const word255 = page.locator('.mushaf-word[data-ayah="255"]').first();
   const word256 = page.locator('.mushaf-word[data-ayah="256"]').first();
   await word255.evaluate((word: HTMLElement) => word.click());
@@ -312,7 +319,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   } else {
     await expect(page.locator(".reader-mushaf-stage")).toHaveAttribute("data-page-count", "1");
   }
-  await page.locator("summary").filter({hasText: "إعدادات وخطة الجلسة"}).evaluate((el: HTMLElement) => el.click());
+  await page.getByRole("button", {name: "إعدادات الجلسة"}).click();
   const sessionPlan = page.getByLabel("خطة جلسة التثبيت", {exact: true});
   await expect(sessionPlan).toContainText("ربط");
   await expect(page.getByLabel("تكرار الربط")).toBeEnabled();
@@ -343,6 +350,8 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.getByRole("button", {name: "اختبر حفظي"}).evaluate((button: HTMLButtonElement) => button.click());
   await expect(page.locator(".mushaf-word.is-concealed").first()).toBeVisible();
   await expect(page.getByLabel("التفصيل الموضوعي")).not.toContainText("جارٍ");
+  await expect(page.getByLabel("التفصيل الموضوعي")).toContainText("التفصيل الموضوعي");
+  await expect(page.locator(".mushaf-word.is-context").first()).toHaveAttribute("data-context-color", /^#/);
   await expectNoHorizontalOverflow(page);
 });
 

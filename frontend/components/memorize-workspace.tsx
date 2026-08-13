@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, Fragment, type CSSProperties } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   getJson,
   getJsonAccepting,
+  postJson,
   type MemorizationContext,
+  type MemorizationContextMap,
+  type MemorizationContextSegment,
   type MushafPage,
   type Surah,
 } from "@/lib/api";
@@ -21,20 +24,18 @@ import {
 import { legacyUrl } from "@/lib/paths";
 import { pillActionClassName } from "@/lib/ui";
 import { useEditionFont } from "@/lib/use-edition-font";
+import { topicColor, topicPathParts, type TopicWash } from "@/lib/topic-color";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { MushafStage } from "@/components/mushaf-stage";
 import { MemorizePlayer } from "@/components/memorize-player";
 import {
   ChromeField,
-  ChromePill,
   ChromeSelect,
   ChromeStepper,
-  ToolCard,
-  ToolChrome,
-  ToolStack,
 } from "@/components/tool-chrome";
 import {
   Button,
+  DrawerSurface,
   ProgressBar,
   StatTile,
   StatusState,
@@ -67,6 +68,7 @@ type RangeDraft = {
 const ZOOM_MIN = 0.75;
 const ZOOM_MAX = 2;
 const ZOOM_STEP = 0.1;
+const EMPTY_CONTEXT_SEGMENTS: MemorizationContextSegment[] = [];
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
@@ -75,6 +77,56 @@ function positiveInteger(value: string | null, fallback: number) {
 
 function clampZoom(value: number) {
   return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(value * 10) / 10));
+}
+
+function verseKeysFromPage(page: MushafPage | null) {
+  if (!page) return [] as string[];
+  const keys: string[] = [];
+  const seen = new Set<string>();
+  page.lines.forEach((line) => {
+    line.words.forEach((word) => {
+      const surah = Number(word.surah);
+      const ayah = Number(word.ayah);
+      if (!Number.isInteger(surah) || !Number.isInteger(ayah) || surah < 1 || ayah < 1) return;
+      const key = `${surah}:${ayah}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      keys.push(key);
+    });
+  });
+  return keys;
+}
+
+function contextCountLabel(value: number) {
+  const count = Math.max(1, value);
+  if (count === 1) return "آية واحدة";
+  if (count === 2) return "آيتان";
+  return `${toArabicDigits(count)} آيات`;
+}
+
+function TopicPath({
+  title,
+  fallback = "موضوع غير معنون",
+  className,
+}: {
+  title?: string;
+  fallback?: string;
+  className?: string;
+}) {
+  const parts = topicPathParts(title);
+  if (!parts.length) {
+    return <span className={className || "mz-context-title"}>{fallback}</span>;
+  }
+  return (
+    <span className={className || "mz-context-title"} aria-label={parts.join("، ")}>
+      {parts.map((part, index) => (
+        <Fragment key={`${index}-${part}`}>
+          {index ? <span className="mz-context-path-separator" aria-hidden="true">←</span> : null}
+          <span className="mz-context-path-part" dir="rtl">{part}</span>
+        </Fragment>
+      ))}
+    </span>
+  );
 }
 
 function mushafQuery(editionId: MushafEditionId) {
@@ -121,9 +173,15 @@ export function MemorizeWorkspace() {
   const [retryToken, setRetryToken] = useState(0);
   const [moving, setMoving] = useState(false);
   const [transportHost, setTransportHost] = useState<HTMLDivElement | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [contextOpen, setContextOpen] = useState(false);
   const [pageResult, setPageResult] = useState<PageResult>({key: "", page: null, error: ""});
   const [spreadResult, setSpreadResult] = useState<SpreadResult>({key: "", right: null, left: null, error: ""});
   const [contextResult, setContextResult] = useState<ContextResult>({key: "", data: null});
+  const [contextMapResult, setContextMapResult] = useState<{key: string; segments: MemorizationContextSegment[]}>({
+    key: "",
+    segments: [],
+  });
   const edition = MUSHAF_EDITIONS[editionId];
   const dualActive = layout === "dual" && dualAvailable;
   const pageKey = pageOverride
@@ -154,13 +212,75 @@ export function MemorizeWorkspace() {
     () => surahs.find((surah) => surah.number === surahNumber),
     [surahs, surahNumber],
   );
-  const contextRange = visibleContext?.found && visibleContext.from?.surah === surahNumber && visibleContext.to?.surah === surahNumber
-    ? [visibleContext.from.ayah, visibleContext.to.ayah] as const
-    : undefined;
+  const contextRange = useMemo(() => {
+    if (!visibleContext?.found || visibleContext.from?.surah !== surahNumber || visibleContext.to?.surah !== surahNumber) {
+      return undefined;
+    }
+    return [visibleContext.from.ayah, visibleContext.to.ayah] as const;
+  }, [surahNumber, visibleContext]);
   const contextPosition = contextRange
     ? Math.max(1, Math.min(contextRange[1] - contextRange[0] + 1, activeAyah - contextRange[0] + 1))
     : 1;
   const contextLength = contextRange ? contextRange[1] - contextRange[0] + 1 : Math.max(1, visibleContext?.run_length || 1);
+  const activeTopicColor = visibleContext?.found
+    ? topicColor(visibleContext.topic_id, visibleContext.title)
+    : undefined;
+  const visibleVerseKeys = useMemo(() => {
+    const pages = dualActive ? [rightPage, leftPage] : [visiblePage?.page || null];
+    const keys: string[] = [];
+    const seen = new Set<string>();
+    pages.forEach((page) => {
+      verseKeysFromPage(page).forEach((key) => {
+        if (seen.has(key)) return;
+        seen.add(key);
+        keys.push(key);
+      });
+    });
+    return keys.slice(0, 100);
+  }, [dualActive, leftPage, rightPage, visiblePage?.page]);
+  const verseKeyList = visibleVerseKeys.join(",");
+  const contextSegments = contextMapResult.key === verseKeyList
+    ? contextMapResult.segments
+    : EMPTY_CONTEXT_SEGMENTS;
+  const contextByKey = useMemo(() => {
+    const map = new Map<string, TopicWash>();
+    contextSegments.forEach((segment) => {
+      const color = topicColor(segment.topic_id, segment.title);
+      (segment.verse_keys || []).forEach((key) => {
+        map.set(key, {color, segmentId: segment.segment_id});
+      });
+    });
+    if (visibleContext?.found && contextRange) {
+      const color = topicColor(visibleContext.topic_id, visibleContext.title);
+      for (let ayah = contextRange[0]; ayah <= contextRange[1]; ayah += 1) {
+        const key = `${surahNumber}:${ayah}`;
+        if (!map.has(key)) map.set(key, {color, segmentId: 0});
+      }
+    }
+    return map;
+  }, [contextRange, contextSegments, surahNumber, visibleContext]);
+  const legendTopics = useMemo(() => {
+    const unique: Array<MemorizationContextSegment & {color: string}> = [];
+    const seen = new Set<string>();
+    contextSegments.forEach((segment) => {
+      const identity = `${segment.topic_id}|${segment.title}`;
+      if (seen.has(identity)) return;
+      seen.add(identity);
+      unique.push({...segment, color: topicColor(segment.topic_id, segment.title)});
+    });
+    return unique;
+  }, [contextSegments]);
+  const contextRangeText = visibleContext?.found
+    ? (
+      visibleContext.same_surah && visibleContext.from && visibleContext.to && visibleContext.from.surah === visibleContext.to.surah
+        ? `${selectedSurah?.name || `سورة ${toArabicDigits(visibleContext.from.surah)}`} · ${
+          visibleContext.from.ayah === visibleContext.to.ayah
+            ? toArabicDigits(visibleContext.from.ayah)
+            : `${toArabicDigits(visibleContext.from.ayah)}–${toArabicDigits(visibleContext.to.ayah)}`
+        } · ${contextCountLabel(visibleContext.run_length || contextLength)}`
+        : `${visibleContext.label || ""} · ${contextCountLabel(visibleContext.run_length || contextLength)}`.replace(/^\s*·\s*|\s*·\s*$/g, "")
+    )
+    : "";
   const picking = rangeDraft !== null;
   const visualRange = picking
     ? [rangeDraft.anchor, rangeDraft.anchor] as const
@@ -296,6 +416,26 @@ export function MemorizeWorkspace() {
   }, [surahNumber, activeAyah, retryToken, contextKey]);
 
   useEffect(() => {
+    if (!verseKeyList) return;
+    const keys = verseKeyList.split(",");
+    const controller = new AbortController();
+    postJson<MemorizationContextMap>(
+      "/backend-api/memorization/context-map",
+      {verse_keys: keys},
+      controller.signal,
+    )
+      .then((payload) => setContextMapResult({
+        key: verseKeyList,
+        segments: Array.isArray(payload.segments) ? payload.segments : [],
+      }))
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setContextMapResult({key: verseKeyList, segments: []});
+      });
+    return () => controller.abort();
+  }, [verseKeyList]);
+
+  useEffect(() => {
     const url = new URL(window.location.href);
     url.searchParams.set("surah", String(surahNumber));
     url.searchParams.set("from", String(fromAyah));
@@ -401,6 +541,7 @@ export function MemorizeWorkspace() {
         target?.isContentEditable || ["INPUT", "SELECT", "TEXTAREA", "BUTTON"].includes(target?.tagName || "")
       ) return;
       if (event.key === "Escape") {
+        if (document.querySelector('[role="dialog"]')) return;
         event.preventDefault();
         cancelRangePickEvent();
         return;
@@ -428,6 +569,7 @@ export function MemorizeWorkspace() {
     activeAudioWord,
     focusRange: visualRange,
     contextRange,
+    contextByKey,
     concealFocused: concealed,
     draftAyah: rangeDraft?.anchor ?? null,
     picking: picking && !concealed,
@@ -442,123 +584,50 @@ export function MemorizeWorkspace() {
       : `صفحة ${toArabicDigits(focusPage)}`} · ${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)}`
     : `${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)} · الآية ${toArabicDigits(activeAyah)}`;
 
+
   return (
-    <div aria-label="مساحة تثبيت الحفظ">
-      <ToolChrome
-        label="اختيار نطاق التثبيت"
-        className="max-md:static"
-        pill={(
-          <ChromePill role="status" aria-label="ملخص نطاق التثبيت">
-            {selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · {toArabicDigits(fromAyah)}–{toArabicDigits(toAyah)}
-          </ChromePill>
-        )}
-        footer={<div ref={setTransportHost} className="flex min-w-0 flex-1" />}
-        note={picking
-          ? "اضغط آية النهاية لإكمال النطاق، أو Escape للإلغاء."
-          : "اضغط آيتين على المصحف لاختيار النطاق، ثم شغّل التكرار من الشريط."}
-      >
-        <ChromeField label="السورة">
-          <ChromeSelect value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
-            {!surahs.length ? <option>جارٍ التحميل…</option> : null}
-            {surahs.map((surah) => (
-              <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
-            ))}
-          </ChromeSelect>
-        </ChromeField>
-        <ChromeField label="من آية">
-          <ChromeSelect value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
-            {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
-          </ChromeSelect>
-        </ChromeField>
-        <ChromeField label="إلى آية">
-          <ChromeSelect value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
-            {ayahNumbers.filter((number) => number >= fromAyah).map((number) => (
-              <option key={number} value={number}>{toArabicDigits(number)}</option>
-            ))}
-          </ChromeSelect>
-        </ChromeField>
-        <ChromeField label="طبعة المصحف">
-          <ChromeSelect value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
-            {Object.values(MUSHAF_EDITIONS).map((item) => (
-              <option key={item.id} value={item.id}>{item.label}</option>
-            ))}
-          </ChromeSelect>
-        </ChromeField>
-        <Button
-          size="sm"
-          variant={concealed ? "primary" : "secondary"}
-          className="self-end"
-          aria-pressed={concealed}
-          onClick={() => {
-            setConcealed((value) => !value);
-            setRevealedAyah(null);
-          }}
+    <section className="mz-studio" aria-label="استوديو التثبيت">
+      <header className="mz-studio-bar">
+        <div className="mz-studio-identity">
+          <p>— تثبيت</p>
+          <h1 id="mz-title">ثبّت حفظك.</h1>
+        </div>
+        <button
+          type="button"
+          className="max-w-[16rem] truncate rounded-full border border-athar-line-soft bg-athar-surface px-3 py-1.5 text-start text-[0.78rem] font-semibold text-athar-ink-soft"
+          aria-label="ملخص نطاق التثبيت"
+          onClick={() => setSettingsOpen(true)}
         >
-          {concealed ? "أظهر نص النطاق" : "اختبر حفظي"}
-        </Button>
-        {dualAvailable ? (
+          {selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · {toArabicDigits(fromAyah)}–{toArabicDigits(toAyah)}
+        </button>
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
           <Button
             size="sm"
-            variant={dualActive ? "quiet" : "secondary"}
-            className="self-end"
-            aria-pressed={layout === "dual"}
-            onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
+            variant={concealed ? "primary" : "secondary"}
+            aria-pressed={concealed}
+            onClick={() => {
+              setConcealed((value) => !value);
+              setRevealedAyah(null);
+            }}
           >
-            {layout === "dual" ? "صفحتان متقابلتان" : "صفحة واحدة"}
+            {concealed ? "أظهر نص النطاق" : "اختبر حفظي"}
           </Button>
-        ) : null}
-        <div className="flex items-end gap-1" role="group" aria-label="تكبير المصحف">
-          <Button
-            size="icon"
-            variant="secondary"
-            className="size-[38px] rounded-[10px]"
-            aria-label="تصغير المصحف"
-            disabled={zoom <= ZOOM_MIN + 0.001}
-            onClick={() => setZoom((value) => clampZoom(value - ZOOM_STEP))}
-          >
-            −
-          </Button>
-          <span className="min-w-[3.2rem] self-center text-center text-[0.72rem] font-bold text-athar-ink-soft" aria-label="مستوى التكبير">
-            {toArabicDigits(Math.round(zoom * 100))}٪
-          </span>
-          <Button
-            size="icon"
-            variant="secondary"
-            className="size-[38px] rounded-[10px]"
-            aria-label="تكبير المصحف"
-            disabled={zoom >= ZOOM_MAX - 0.001}
-            onClick={() => setZoom((value) => clampZoom(value + ZOOM_STEP))}
-          >
-            +
-          </Button>
-          <Button
-            size="sm"
-            variant={Math.abs(zoom - 1) < 0.001 ? "quiet" : "secondary"}
-            className="self-end"
-            aria-pressed={Math.abs(zoom - 1) < 0.001}
-            onClick={() => setZoom(1)}
-          >
-            ملاءمة
+          <Button size="sm" variant={settingsOpen ? "primary" : "secondary"} onClick={() => setSettingsOpen(true)}>
+            إعدادات الجلسة
           </Button>
         </div>
-        <ChromeStepper
-          previousLabel="الآية السابقة في نطاق التثبيت"
-          nextLabel="الآية التالية في نطاق التثبيت"
-          previousDisabled={activeAyah <= fromAyah}
-          nextDisabled={activeAyah >= toAyah}
-          onPrevious={() => updateActiveAyah(activeAyah - 1)}
-          onNext={() => updateActiveAyah(activeAyah + 1)}
-        />
-      </ToolChrome>
+        <div ref={setTransportHost} className="mz-studio-transport" />
+      </header>
 
-      <ToolStack>
+      <div className="mz-studio-stage">
         {catalogError ? (
-          <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
+          <StatusState tone="error" className="absolute inset-x-4 top-4 z-30" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
             {catalogError}
           </StatusState>
         ) : null}
 
         <MushafStage
+          fill
           view="page"
           editionId={editionId}
           pageCount={dualActive ? 2 : 1}
@@ -606,48 +675,89 @@ export function MemorizeWorkspace() {
           )}
         </MushafStage>
 
-        <MemorizePlayer
-          surahNumber={surahNumber}
-          fromAyah={fromAyah}
-          toAyah={toAyah}
-          activeAyah={activeAyah}
-          onActiveAyahChange={updateActiveAyah}
-          onWordChange={setActiveAudioWord}
-          chromeHost={transportHost}
-          playbackLocked={picking}
-        />
+        {picking ? (
+          <p className="mz-studio-hint">اضغط آية النهاية لإكمال النطاق، أو Escape للإلغاء.</p>
+        ) : null}
 
-        <ToolCard as="aside" className="border-s-4 border-s-athar-gold" aria-live="polite" aria-label="التفصيل الموضوعي">
-          <header className="mb-3 flex items-start justify-between gap-4">
-            <div className="grid gap-0.5">
-              <span className="text-[0.7rem] font-bold text-athar-gold">التفصيل الموضوعي</span>
-              <h2 className="m-0 font-athar-display text-[clamp(1.35rem,3vw,1.9rem)] leading-tight text-athar-ink">
-                {contextLoading ? "نراجع سياق الآية…" : visibleContext?.found ? visibleContext.title : "السياق الموضوعي"}
-              </h2>
-            </div>
-            <span className="shrink-0 rounded-full bg-athar-line-soft px-3 py-1 text-[0.7rem] font-bold text-athar-ink-soft">
-              الآية {toArabicDigits(activeAyah)}
-            </span>
-          </header>
+        <div className="mz-studio-float is-zoom" role="group" aria-label="تكبير المصحف">
+          <Button
+            size="icon"
+            variant="secondary"
+            className="size-9 rounded-[10px]"
+            aria-label="تصغير المصحف"
+            disabled={zoom <= ZOOM_MIN + 0.001}
+            onClick={() => setZoom((value) => clampZoom(value - ZOOM_STEP))}
+          >
+            −
+          </Button>
+          <span className="min-w-[3rem] text-center text-[0.72rem] font-bold text-athar-ink-soft" aria-label="مستوى التكبير">
+            {toArabicDigits(Math.round(zoom * 100))}٪
+          </span>
+          <Button
+            size="icon"
+            variant="secondary"
+            className="size-9 rounded-[10px]"
+            aria-label="تكبير المصحف"
+            disabled={zoom >= ZOOM_MAX - 0.001}
+            onClick={() => setZoom((value) => clampZoom(value + ZOOM_STEP))}
+          >
+            +
+          </Button>
+          <Button
+            size="sm"
+            variant={Math.abs(zoom - 1) < 0.001 ? "quiet" : "secondary"}
+            aria-pressed={Math.abs(zoom - 1) < 0.001}
+            onClick={() => setZoom(1)}
+          >
+            ملاءمة
+          </Button>
+        </div>
 
-          {contextLoading ? (
-            <StatusState tone="loading">جارٍ تحميل التفصيل الموضوعي…</StatusState>
-          ) : visibleContext?.found ? (
+        {dualAvailable ? (
+          <div className="mz-studio-float is-view">
+            <Button
+              size="sm"
+              variant={dualActive ? "quiet" : "secondary"}
+              aria-pressed={layout === "dual"}
+              onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
+            >
+              {layout === "dual" ? "صفحتان متقابلتان" : "صفحة واحدة"}
+            </Button>
+          </div>
+        ) : null}
+
+        <aside
+          className={`mz-studio-context${contextOpen ? "" : " is-collapsed"}`}
+          aria-live="polite"
+          aria-label="التفصيل الموضوعي"
+          data-state={contextLoading ? "loading" : visibleContext?.found ? "ready" : "empty"}
+          style={activeTopicColor ? {"--mz-topic": activeTopicColor} as CSSProperties : undefined}
+        >
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <span className="mz-context-kicker">التفصيل الموضوعي</span>
+            {contextOpen && contextRangeText ? <span className="mz-context-range">{contextRangeText}</span> : null}
+          </div>
+          {visibleContext?.found ? <TopicPath title={visibleContext.title} /> : null}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-auto max-w-full justify-start whitespace-normal text-start"
+            onClick={() => setContextOpen((value) => !value)}
+            aria-expanded={contextOpen}
+          >
+            {contextOpen ? "إخفاء السياق" : "عرض السياق"}
+          </Button>
+          {contextOpen ? (
             <>
-              <p className="m-0 text-sm leading-7 text-athar-ink-soft sm:text-base">{visibleContext.label}</p>
-              <div className="mt-3 grid gap-2">
-                <div className="flex items-center justify-between gap-3 text-[0.7rem] text-athar-ink-faint">
-                  <span>تقدّمك داخل الموضوع</span>
-                  <span>{toArabicDigits(contextPosition)} / {toArabicDigits(contextLength)}</span>
-                </div>
-                <ProgressBar value={contextPosition} max={contextLength} label="موضع الآية داخل المقطع الموضوعي" />
-              </div>
-              <details className="group mt-3 border-t border-athar-line-soft pt-3">
-                <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-bold text-athar-ink-soft marker:content-none [&::-webkit-details-marker]:hidden">
-                  <span aria-hidden="true" className="text-athar-gold transition-transform group-open:rotate-90">‹</span>
-                  تفاصيل المقطع الموضوعي
-                </summary>
-                <div className="mt-3 grid gap-3">
+              {contextLoading ? (
+                <StatusState tone="loading" className="mt-1">جارٍ تحميل التفصيل الموضوعي…</StatusState>
+              ) : visibleContext?.found ? (
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between gap-3 text-[0.7rem] text-athar-ink-faint">
+                    <span>تقدّمك داخل الموضوع</span>
+                    <span>{toArabicDigits(contextPosition)} / {toArabicDigits(contextLength)}</span>
+                  </div>
+                  <ProgressBar value={contextPosition} max={contextLength} label="موضع الآية داخل المقطع الموضوعي" />
                   <div className="grid gap-2 sm:grid-cols-3">
                     <StatTile
                       label="المقطع الموضوعي"
@@ -656,31 +766,98 @@ export function MemorizeWorkspace() {
                     <StatTile label="الآية الحالية" value={toArabicDigits(activeAyah)} />
                     <StatTile label="موضعها في المقطع" value={`${toArabicDigits(contextPosition)} من ${toArabicDigits(contextLength)}`} />
                   </div>
-                  <p className="m-0 flex items-center gap-2 text-xs text-athar-ink-faint">
-                    <span className="size-2.5 rounded-full bg-athar-gold/35" aria-hidden="true" />
-                    التظليل الخفيف على صفحة المصحف يبيّن امتداد هذا الموضوع، والتظليل الأقوى يحدّد الآية الحالية.
-                  </p>
+                  {legendTopics.length >= 2 ? (
+                    <div className="mz-context-legend" aria-label="موضوعات الصفحة">
+                      {legendTopics.map((segment) => (
+                        <button
+                          key={`${segment.topic_id}|${segment.title}|${segment.segment_id}`}
+                          type="button"
+                          className="mz-context-legend-item"
+                          style={{"--mz-legend-color": segment.color} as CSSProperties}
+                          onClick={() => {
+                            const [segmentSurah, segmentAyah] = String(segment.from).split(":").map(Number);
+                            if (segmentSurah === surahNumber && Number.isInteger(segmentAyah)) {
+                              updateActiveAyah(segmentAyah);
+                            }
+                          }}
+                        >
+                          <TopicPath title={segment.title} className="contents" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                   {visibleContext.attribution ? <small className="text-xs text-athar-ink-faint">المصدر: {visibleContext.attribution}</small> : null}
                 </div>
-              </details>
+              ) : (
+                <StatusState className="mt-1 justify-center">لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</StatusState>
+              )}
             </>
-          ) : (
-            <StatusState className="justify-center">لا يتوفر تفصيل موضوعي موثّق لهذه الآية بعد.</StatusState>
-          )}
-        </ToolCard>
+          ) : null}
+        </aside>
+      </div>
 
-        <ToolCard aria-labelledby="mz-handoff-title">
-          <div className="flex max-w-[42rem] flex-col gap-2">
-            <h2 className="m-0 font-athar-display text-[1.1rem] font-bold text-athar-ink" id="mz-handoff-title">التسميع الصوتي</h2>
-            <p className="m-0 text-[0.9rem] leading-relaxed text-athar-ink-soft">
-              التكرار المقطعي والربط التراكمي هنا. التسميع الصوتي ما زال في النسخة السابقة أثناء إكمال النقل.
-            </p>
-            <a className={pillActionClassName("mt-1.5")} href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>
-              افتح التسميع الصوتي
-            </a>
-          </div>
-        </ToolCard>
-      </ToolStack>
-    </div>
+      <MemorizePlayer
+        surahNumber={surahNumber}
+        fromAyah={fromAyah}
+        toAyah={toAyah}
+        activeAyah={activeAyah}
+        onActiveAyahChange={updateActiveAyah}
+        onWordChange={setActiveAudioWord}
+        chromeHost={transportHost}
+        playbackLocked={picking}
+      >
+        {(settings) => (
+          <DrawerSurface
+            overlay
+            open={settingsOpen}
+            onClose={() => setSettingsOpen(false)}
+            eyebrow="تثبيت"
+            title="جلسة التثبيت"
+          >
+            <div className="grid gap-3">
+              <ChromeField label="السورة">
+                <ChromeSelect value={surahNumber} onChange={(event) => selectSurah(Number(event.target.value))} disabled={!surahs.length}>
+                  {!surahs.length ? <option>جارٍ التحميل…</option> : null}
+                  {surahs.map((surah) => (
+                    <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
+                  ))}
+                </ChromeSelect>
+              </ChromeField>
+              <ChromeField label="من آية">
+                <ChromeSelect value={fromAyah} onChange={(event) => selectFrom(Number(event.target.value))} disabled={!ayahNumbers.length}>
+                  {ayahNumbers.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
+                </ChromeSelect>
+              </ChromeField>
+              <ChromeField label="إلى آية">
+                <ChromeSelect value={toAyah} onChange={(event) => selectTo(Number(event.target.value))} disabled={!ayahNumbers.length}>
+                  {ayahNumbers.filter((number) => number >= fromAyah).map((number) => (
+                    <option key={number} value={number}>{toArabicDigits(number)}</option>
+                  ))}
+                </ChromeSelect>
+              </ChromeField>
+              <ChromeField label="طبعة المصحف">
+                <ChromeSelect value={editionId} onChange={(event) => setEditionId(event.target.value as MushafEditionId)}>
+                  {Object.values(MUSHAF_EDITIONS).map((item) => (
+                    <option key={item.id} value={item.id}>{item.label}</option>
+                  ))}
+                </ChromeSelect>
+              </ChromeField>
+              <ChromeStepper
+                previousLabel="الآية السابقة في نطاق التثبيت"
+                nextLabel="الآية التالية في نطاق التثبيت"
+                previousDisabled={activeAyah <= fromAyah}
+                nextDisabled={activeAyah >= toAyah}
+                onPrevious={() => updateActiveAyah(activeAyah - 1)}
+                onNext={() => updateActiveAyah(activeAyah + 1)}
+              />
+              {settings}
+              <a className={pillActionClassName("mt-1")} href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}>
+                افتح التسميع الصوتي
+              </a>
+            </div>
+          </DrawerSurface>
+        )}
+      </MemorizePlayer>
+    </section>
   );
 }

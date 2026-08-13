@@ -62,6 +62,21 @@ export type MemorizationContext = {
   to?: { surah: number; ayah: number };
   run_length?: number;
   score?: number;
+  same_surah?: boolean;
+};
+
+export type MemorizationContextSegment = {
+  segment_id: number;
+  topic_id: string | number;
+  title: string;
+  from: string;
+  to: string;
+  verse_keys: string[];
+};
+
+export type MemorizationContextMap = {
+  segments: MemorizationContextSegment[];
+  attribution?: string;
 };
 
 export type WaqfStop = {

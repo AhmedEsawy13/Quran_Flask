@@ -376,6 +376,7 @@ export function DrawerSurface({
   title,
   children,
   id,
+  overlay = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -383,6 +384,7 @@ export function DrawerSurface({
   title: string;
   children: ReactNode;
   id?: string;
+  overlay?: boolean;
 }) {
   const generatedId = useId();
   const drawerId = id || generatedId;
@@ -409,7 +411,8 @@ export function DrawerSurface({
         onCloseRef.current();
         return;
       }
-      if (event.key !== "Tab" || !window.matchMedia("(max-width: 767px)").matches || !drawer) return;
+      const trap = overlay || window.matchMedia("(max-width: 767px)").matches;
+      if (event.key !== "Tab" || !trap || !drawer) return;
       const focusable = [...drawer.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       )].filter((element) => element.getClientRects().length > 0);
@@ -431,25 +434,36 @@ export function DrawerSurface({
       previousFocusRef.current?.focus();
       previousFocusRef.current = null;
     };
-  }, [drawerId, open]);
+  }, [drawerId, open, overlay]);
 
   if (!open) return null;
   return (
     <>
       <button
         type="button"
-        className="fixed inset-0 z-[58] cursor-default border-0 bg-black/30 backdrop-blur-[2px] md:hidden"
+        className={cn(
+          "fixed inset-0 z-[58] cursor-default border-0 bg-black/30 backdrop-blur-[2px]",
+          !overlay && "md:hidden",
+        )}
         aria-label={`إغلاق ${title}`}
         onClick={onClose}
       />
       <Surface
         as="section"
         id={drawerId}
-        className="fixed inset-x-0 bottom-0 z-[60] max-h-[82dvh] overflow-y-auto rounded-t-[26px] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-3 md:max-h-none md:overflow-visible md:rounded-athar-md md:p-5"
+        className={cn(
+          "fixed z-[60] overflow-y-auto p-5",
+          overlay
+            ? "inset-x-0 bottom-0 max-h-[82dvh] rounded-t-[26px] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:inset-y-0 md:inset-inline-start-0 md:inset-inline-end-auto md:h-auto md:w-[min(26rem,100%)] md:max-h-none md:rounded-none md:border-e md:pb-5"
+            : "inset-x-0 bottom-0 max-h-[82dvh] rounded-t-[26px] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-3 md:max-h-none md:overflow-visible md:rounded-athar-md md:p-5",
+        )}
         role="dialog"
         aria-labelledby={titleId}
       >
-        <header className="sticky top-0 z-10 mb-4 flex items-start justify-between gap-5 bg-athar-surface pb-3 md:static md:bg-transparent md:pb-0">
+        <header className={cn(
+          "sticky top-0 z-10 mb-4 flex items-start justify-between gap-5 bg-athar-surface pb-3",
+          !overlay && "md:static md:bg-transparent md:pb-0",
+        )}>
           <div className="grid gap-1">
             {eyebrow ? <span className="text-[0.7rem] font-bold text-athar-gold">{eyebrow}</span> : null}
             <h2 id={titleId} className="m-0 font-athar-display text-[clamp(1.8rem,4vw,2.5rem)] leading-tight text-athar-ink">{title}</h2>

@@ -1,3 +1,5 @@
+import type {WaqfPhrase, WaqfReciterDetail} from "@/lib/api";
+
 export type WaqfMarkTone = "strong" | "avoid" | "neutral";
 
 const markDescriptions: Record<string, {label: string; guidance: string; tone: WaqfMarkTone}> = {
@@ -66,3 +68,31 @@ export function waqfMarkGlyph(symbol: string) {
     })
     .join("");
 }
+
+export function reciterPhrases(detail: WaqfReciterDetail, lastWpos: number): WaqfPhrase[] {
+  if (detail.phrases?.length) return detail.phrases;
+  const stops = [...detail.stops].sort((a, b) => a.wpos - b.wpos);
+  const phrases = stops.map((stop, index) => ({
+    first_wpos: index === 0 ? 0 : stops[index - 1].wpos + 1,
+    last_wpos: stop.wpos,
+    start: index === 0 ? 0 : stops[index - 1].time,
+    end: stop.time,
+  }));
+  phrases.push({
+    first_wpos: stops.length ? stops[stops.length - 1].wpos + 1 : 0,
+    last_wpos: lastWpos,
+    start: stops.length ? stops[stops.length - 1].time : 0,
+    end: detail.duration,
+  });
+  return phrases;
+}
+
+export const classicalGradeMeta: Record<string, {cls: string; desc: string}> = {
+  "تام": {cls: "tamm", desc: "وقفٌ تام — يُوقف عليه ويُبتدأ بما بعده"},
+  "كاف": {cls: "kafi", desc: "وقفٌ كافٍ — يُوقف عليه، وما بعده متعلقٌ به معنًى"},
+  "حسن": {cls: "hasan", desc: "وقفٌ حسن — يَحسُن الوقف ولا يَحسُن الابتداء بما بعده"},
+  "جائز": {cls: "jaiz", desc: "وقفٌ جائز"},
+  "صالح": {cls: "kafi", desc: "وقفٌ صالح"},
+  "قبيح": {cls: "qabih", desc: "وقفٌ قبيح — لا يُوقف عليه"},
+  "لا": {cls: "qabih", desc: "ليس بوقف"},
+};

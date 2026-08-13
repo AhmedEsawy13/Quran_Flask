@@ -19,6 +19,7 @@ type MushafStageProps = {
   moving?: boolean;
   onPrevious: () => void;
   onNext: () => void;
+  fill?: boolean;
   className?: string;
 };
 
@@ -36,6 +37,7 @@ export function MushafStage({
   moving = false,
   onPrevious,
   onNext,
+  fill = false,
   className,
 }: MushafStageProps) {
   const stageRef = useRef<HTMLElement>(null);
@@ -56,10 +58,12 @@ export function MushafStage({
         const stageChrome = mobile ? 60 : 48;
         const horizontalInset = mobile ? 12 : 112;
         const availableWidth = Math.max(280, stage.clientWidth - horizontalInset);
-        const availableHeight = Math.max(
-          mobile ? 430 : 300,
-          window.innerHeight - Math.max(0, rect.top) - bottomInset - stageChrome,
-        );
+        const availableHeight = fill
+          ? Math.max(200, stage.clientHeight - (mobile ? 52 : 40))
+          : Math.max(
+            mobile ? 430 : 300,
+            window.innerHeight - Math.max(0, rect.top) - bottomInset - stageChrome,
+          );
         // Match تثبيت sizePages: height-first from aspect ratio, then shrink to width budget.
         const spreadGutter = pageCount === 2 ? 16 : 0;
         const spreadPad = pageCount === 2 ? 20 : 0;
@@ -86,7 +90,7 @@ export function MushafStage({
       observer?.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [editionId, pageCount, ratio, view]);
+  }, [editionId, fill, pageCount, ratio, view]);
 
   const zoomed = Math.abs(zoom - 1) > 0.001;
   const spreadGutter = pageCount === 2 ? 36 : 0;
@@ -112,7 +116,7 @@ export function MushafStage({
   return (
     <section
       ref={stageRef}
-      className={cn("reader-mushaf-stage", zoomed && "is-zoomed", className)}
+      className={cn("reader-mushaf-stage", fill && "is-fill", zoomed && "is-zoomed", className)}
       data-page-count={pageCount}
       data-zoom={zoom.toFixed(1)}
       aria-label={`موضع القراءة — ${positionLabel}`}
