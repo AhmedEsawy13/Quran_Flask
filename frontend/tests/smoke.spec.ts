@@ -350,6 +350,16 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
+  await expect(page.locator(".reader-page.is-memorization").first()).toBeVisible();
+  await expect(page.locator('.mz-selection-band[data-ayah="255"]').first()).toBeVisible();
+  const selectionGeometry = await page.locator(".reader-page:has(.mushaf-word.is-focus)").first().evaluate((readerPage) => ({
+    words: readerPage.querySelectorAll(".mushaf-word.is-focus").length,
+    bands: readerPage.querySelectorAll(".mz-selection-band").length,
+    wordBackground: getComputedStyle(readerPage.querySelector<HTMLElement>(".mushaf-word.is-focus")!).backgroundColor,
+  }));
+  expect(selectionGeometry.bands).toBeGreaterThan(0);
+  expect(selectionGeometry.bands).toBeLessThan(selectionGeometry.words);
+  expect(selectionGeometry.wordBackground).toMatch(/transparent|rgba\([^)]*,\s*0\)/);
   const lineRhythm = await page.locator(".reader-page:has(.mushaf-word.is-focus)").first().evaluate((readerPage) => {
     const lines = [...readerPage.querySelectorAll<HTMLElement>(".mushaf-line")].filter((line) => line.querySelector(".mushaf-line-inner"));
     const firstInner = lines[0]?.querySelector<HTMLElement>(".mushaf-line-inner");
@@ -382,6 +392,10 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.locator("summary").filter({hasText: "الموضع"}).click();
   await expect(page.getByLabel("ملخص نطاق التثبيت").getByText("سورة البقرة · ٢٥٥–٢٥٧", {exact: true})).toBeVisible();
   await page.locator("summary").filter({hasText: "الموضع"}).click();
+  await page.locator("summary").filter({hasText: "القارئ والتكرار"}).click();
+  await expect(page.getByLabel("المدة المتوقعة للجلسة")).toBeVisible();
+  await expect(page.getByLabel("المدة المتوقعة للجلسة").locator("strong")).toHaveText(/\d|[٠-٩]/);
+  await page.locator("summary").filter({hasText: "القارئ والتكرار"}).click();
   await expect(page.getByRole("button", {name: "بدء جلسة التثبيت"})).toBeEnabled();
   await expect(page.getByLabel("شريط جلسة التثبيت")).toBeVisible();
   const desktopToolbar = await page.evaluate(() => window.innerWidth >= 768);
@@ -420,6 +434,16 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   } else {
     await expect(page.locator(".reader-mushaf-stage")).toHaveAttribute("data-page-count", "1");
   }
+  await page.getByRole("button", {name: /اختر السورة — سورة البقرة/}).first().click();
+  const navigatorDrawer = page.getByRole("dialog", {name: "فهرس المصحف"});
+  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر السورة"})).toBeVisible();
+  await navigatorDrawer.getByRole("button", {name: "إغلاق فهرس المصحف"}).click();
+  await page.getByRole("button", {name: /اختر الجزء/}).first().click();
+  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر الجزء"})).toBeVisible();
+  await navigatorDrawer.getByRole("button", {name: "إغلاق فهرس المصحف"}).click();
+  await page.getByRole("button", {name: /اختر الصفحة — الصفحة ٤٢/}).first().click();
+  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر الصفحة"})).toHaveValue("42");
+  await navigatorDrawer.getByRole("button", {name: "إغلاق فهرس المصحف"}).click();
   const sessionPlan = page.getByLabel("خطة جلسة التثبيت", {exact: true});
   await expect(sessionPlan).toContainText("ربط");
   await expect(page.getByLabel("تكرار الربط")).toBeEnabled();

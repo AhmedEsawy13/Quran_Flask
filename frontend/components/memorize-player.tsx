@@ -43,6 +43,7 @@ type AudioResult = {
 const audioCache = new Map<string, MemorizationAudio>();
 const unitRepetitionOptions = [1, 2, 3, 5, 7, 10] as const;
 const linkRepetitionOptions = [1, 2, 3] as const;
+const STEP_GAP_SECONDS = 0.4;
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "٠:٠٠";
@@ -112,6 +113,7 @@ export function MemorizePlayer({
     () => schedule.reduce((total, step) => total + Math.max(0, step.end - step.start), 0),
     [schedule],
   );
+  const expectedDuration = totalDuration + schedule.length * STEP_GAP_SECONDS;
   const remainingDuration = Math.max(0, totalDuration - completedDuration - elapsed);
 
   const setPlaying = useCallback((playing: boolean) => {
@@ -425,6 +427,10 @@ export function MemorizePlayer({
         <span className="rounded-full border border-athar-line-soft bg-athar-line-soft px-2.5 py-1">{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</span>
       </div>
       {audioError ? <StatusState tone="error">{audioError}</StatusState> : null}
+      <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-athar-line-soft bg-athar-canvas-strong px-3 py-2" aria-label="المدة المتوقعة للجلسة" aria-live="polite">
+        <span className="text-[0.7rem] font-semibold text-athar-ink-faint">المدة المتوقعة للجلسة</span>
+        <strong className="font-display text-base text-athar-accent">{schedule.length ? formatTime(expectedDuration) : "—"}</strong>
+      </div>
       <div className="grid grid-cols-2 gap-2">
         <label className="col-span-2 grid gap-1 text-[0.7rem] font-semibold text-athar-ink-faint">
           <span>القارئ</span>

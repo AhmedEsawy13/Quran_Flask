@@ -866,6 +866,32 @@ button.page-number {
   overflow: hidden;
 }
 
+.mz-selection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.mz-selection-band {
+  position: absolute;
+  border-radius: 0.28em;
+  background: color-mix(in srgb, var(--athar-gold) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--athar-gold) 22%, transparent);
+  transition: background-color 120ms ease, box-shadow 120ms ease;
+}
+
+.mz-selection-band.is-current {
+  background: color-mix(in srgb, var(--athar-gold) 24%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--athar-gold) 34%, transparent);
+}
+
+.mz-selection-band.is-draft {
+  background: color-mix(in srgb, var(--athar-accent) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--athar-accent) 28%, transparent);
+}
+
 .mz-context-band {
   position: absolute;
   border-radius: 0.22em;
@@ -906,6 +932,31 @@ button.page-number {
   background: var(--athar-accent);
   color: var(--athar-on-accent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--athar-accent) 22%, transparent);
+}
+
+.reader-page.is-memorization .mushaf-word.is-focus,
+.reader-page.is-memorization .mushaf-word.is-focus.is-current:not(.is-audio-active),
+.reader-page.is-memorization .mushaf-word.is-range-draft:not(.is-audio-active) {
+  background: transparent;
+  box-shadow: none;
+}
+
+.reader-page.is-memorization .mushaf-word.is-focus:not(.is-concealed) {
+  color: inherit;
+}
+
+.reader-page.is-memorization .mushaf-word.is-audio-active {
+  background: transparent;
+  color: #c2410c;
+  box-shadow: none;
+}
+
+[data-theme="dark"] .mz-selection-band {
+  background: color-mix(in srgb, var(--athar-gold) 20%, transparent);
+}
+
+[data-theme="dark"] .reader-page.is-memorization .mushaf-word.is-audio-active {
+  color: #fb923c;
 }
 
 .mushaf-word.is-focus.is-concealed:not(.is-audio-active) {

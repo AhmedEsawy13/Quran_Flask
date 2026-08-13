@@ -35,6 +35,7 @@ type MushafRendererProps = {
   waqfEnabled?: boolean;
   waqfSource?: string;
   dualLayout?: boolean;
+  memorizationMode?: boolean;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
   contextByKey?: ReadonlyMap<string, TopicWash>;
@@ -120,6 +121,57 @@ function paintContextBands(root: HTMLElement) {
       band.style.top = `${(top - rootRect.top) / scale - padY}px`;
       band.style.width = `${Math.max(0, (right - left) / scale + padX * 2)}px`;
       band.style.height = `${Math.max(0, (bottom - top) / scale + padY * 2)}px`;
+      layer.appendChild(band);
+    });
+  });
+}
+
+function paintSelectionBands(root: HTMLElement) {
+  const linesRoot = root.querySelector<HTMLElement>(".mushaf-lines");
+  const layer = root.querySelector<HTMLElement>(".mz-selection-layer");
+  if (!linesRoot || !layer) return;
+  layer.replaceChildren();
+  const words = [...linesRoot.querySelectorAll<HTMLElement>(
+    ".mushaf-word.is-focus[data-surah][data-ayah]",
+  )];
+  if (!words.length) return;
+  const origin = layer.parentElement || linesRoot;
+  const rootRect = origin.getBoundingClientRect();
+  if (!rootRect.width || !rootRect.height) return;
+  const scale = rootRect.width / Math.max(1, origin.offsetWidth);
+
+  const byLine = new Map<HTMLElement, Map<string, HTMLElement[]>>();
+  words.forEach((word) => {
+    const line = word.closest<HTMLElement>(".mushaf-line");
+    const verseKey = `${word.dataset.surah}:${word.dataset.ayah}`;
+    if (!line) return;
+    if (!byLine.has(line)) byLine.set(line, new Map());
+    const groups = byLine.get(line);
+    if (!groups) return;
+    if (!groups.has(verseKey)) groups.set(verseKey, []);
+    groups.get(verseKey)?.push(word);
+  });
+
+  byLine.forEach((groups) => {
+    groups.forEach((lineWords, verseKey) => {
+      const rects = lineWords
+        .map((word) => word.getBoundingClientRect())
+        .filter((rect) => rect.width > 0 && rect.height > 0);
+      if (!rects.length) return;
+      const left = Math.min(...rects.map((rect) => rect.left));
+      const right = Math.max(...rects.map((rect) => rect.right));
+      const top = Math.min(...rects.map((rect) => rect.top));
+      const bottom = Math.max(...rects.map((rect) => rect.bottom));
+      const band = document.createElement("div");
+      const current = lineWords.some((word) => word.classList.contains("is-current"));
+      const draft = lineWords.some((word) => word.classList.contains("is-range-draft"));
+      band.className = `mz-selection-band${current ? " is-current" : ""}${draft ? " is-draft" : ""}`;
+      band.dataset.verse = verseKey;
+      band.dataset.ayah = verseKey.split(":")[1];
+      band.style.left = `${(left - rootRect.left) / scale - 3}px`;
+      band.style.top = `${(top - rootRect.top) / scale - 1}px`;
+      band.style.width = `${Math.max(0, (right - left) / scale + 6)}px`;
+      band.style.height = `${Math.max(0, (bottom - top) / scale + 2)}px`;
       layer.appendChild(band);
     });
   });
@@ -379,6 +431,7 @@ export function MushafRenderer({
   waqfEnabled = true,
   waqfSource,
   dualLayout = false,
+  memorizationMode = false,
   focusRange,
   contextRange,
   contextByKey,
@@ -396,6 +449,8 @@ export function MushafRenderer({
   const edition = MUSHAF_EDITIONS[editionId];
   const selectableWaqf = waqfSource !== undefined;
   const activeWaqfSource = waqfSource || edition.waqfSource;
+  const focusRangeStart = focusRange?.[0];
+  const focusRangeEnd = focusRange?.[1];
   const shemrlyAvailable = editionId !== "shamarly" || page?.glyph_mapping_mode === "shemrly-page-local";
   const quranFont = editionId === "shamarly" && shemrlyAvailable && page?.font_name
     ? `"${page.font_name}", "Uthmanic Hafs", serif`
@@ -446,6 +501,7 @@ export function MushafRenderer({
         // Same pipeline as تثبيت: measured font size, then capped line justify.
         fitAndJustifyMushafPage(root, editionId, { dual: dualLayout });
         paintContextBands(root);
+        paintSelectionBands(root);
       });
     };
     const observer = typeof ResizeObserver === "undefined"
@@ -477,12 +533,12 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [contextByKey, dualLayout, editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled, activeWaqfSource]);
+  }, [activeWaqfSource, ayahNumber, contextByKey, draftAyah, dualLayout, editionId, focusRangeEnd, focusRangeStart, fontLoading, memorizationMode, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled]);
 
   return (
     <article
       ref={pageRef}
-      className={`reader-page is-${view} edition-${editionId}${picking ? " is-picking" : ""}`}
+      className={`reader-page is-${view} edition-${editionId}${memorizationMode ? " is-memorization" : ""}${picking ? " is-picking" : ""}`}
       aria-busy={isLoading || fontLoading || tajweedLoading}
       data-tajweed={tajweedEnabled ? "true" : undefined}
       data-waqf-enabled={waqfEnabled ? "true" : "false"}
@@ -585,6 +641,7 @@ export function MushafRenderer({
         ) : view === "page" && page ? (
           <div className="mushaf-lines-host">
             {contextByKey ? <div className="mz-context-layer" aria-hidden="true" /> : null}
+            {memorizationMode && focusRange ? <div className="mz-selection-layer" aria-hidden="true" /> : null}
             <div className="mushaf-lines" aria-label={`صفحة ${page.page_number}`}>
               {page.lines.map((line) => (
                 <PageLine

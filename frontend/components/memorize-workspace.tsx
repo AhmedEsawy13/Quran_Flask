@@ -16,6 +16,10 @@ import {
   MUSHAF_EDITIONS,
   isMushafEdition,
   isReaderLayout,
+  juzLabel,
+  juzNumberForPage,
+  juzNumberFromAyah,
+  juzStartPosition,
   spreadPageNumbers,
   toArabicDigits,
   type MushafEditionId,
@@ -32,7 +36,11 @@ import { AtharIcon, type AtharIconName } from "@/components/ui/athar-icon";
 import {
   Button,
   CheckControl,
+  DrawerSurface,
+  Field,
   ProgressBar,
+  SegmentedControl,
+  SelectControl,
   StatusState,
 } from "@/components/ui/primitives";
 
@@ -66,6 +74,7 @@ const ZOOM_STEP = 0.1;
 const EMPTY_CONTEXT_SEGMENTS: MemorizationContextSegment[] = [];
 const WAQF_SOURCES = ["المدينة الجديد", "المدينة القديم", "الشمرلي"] as const;
 type WaqfSource = typeof WAQF_SOURCES[number];
+type MemorizeNavigator = "surah" | "juz" | "page";
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
@@ -196,6 +205,7 @@ export function MemorizeWorkspace() {
   const [preferencesReady, setPreferencesReady] = useState(false);
   const [revealedAyah, setRevealedAyah] = useState<number | null>(null);
   const [rangeDraft, setRangeDraft] = useState<RangeDraft | null>(null);
+  const [navigatorMode, setNavigatorMode] = useState<MemorizeNavigator | null>(null);
   const [pageOverride, setPageOverride] = useState<number | null>(null);
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [catalogError, setCatalogError] = useState("");
@@ -218,6 +228,13 @@ export function MemorizeWorkspace() {
   const contextKey = `${surahNumber}:${activeAyah}:${retryToken}`;
   const visiblePage = pageResult.key === pageKey ? pageResult : null;
   const focusPage = visiblePage?.page?.page_number || pageOverride;
+  const currentJuz = focusPage
+    ? juzNumberForPage(focusPage)
+    : juzNumberFromAyah(surahNumber, activeAyah);
+  const pageNumbers = useMemo(
+    () => Array.from({length: edition.maxPage - edition.minPage + 1}, (_, index) => edition.minPage + index),
+    [edition.maxPage, edition.minPage],
+  );
   const [rightPageNumber, leftPageNumber] = focusPage && dualActive
     ? spreadPageNumbers(focusPage, edition.minPage, edition.maxPage)
     : [null, null];
@@ -561,6 +578,29 @@ export function MemorizeWorkspace() {
     updateActiveAyah(1);
   };
 
+  const jumpToSurah = (nextSurah: number) => {
+    selectSurah(nextSurah);
+    setNavigatorMode(null);
+  };
+
+  const jumpToJuz = (juz: number) => {
+    const position = juzStartPosition(juz);
+    setRangeDraft(null);
+    setSurahNumber(position.surah);
+    setFromAyah(position.ayah);
+    setToAyah(position.ayah);
+    updateActiveAyah(position.ayah);
+    setNavigatorMode(null);
+  };
+
+  const jumpToPage = (page: number) => {
+    const safePage = Math.min(edition.maxPage, Math.max(edition.minPage, Math.trunc(page)));
+    setRangeDraft(null);
+    setActiveAudioWord(null);
+    setPageOverride(safePage);
+    setNavigatorMode(null);
+  };
+
   const selectFrom = (nextFrom: number) => {
     setRangeDraft(null);
     const nextTo = Math.max(nextFrom, toAyah);
@@ -633,11 +673,15 @@ export function MemorizeWorkspace() {
     tajweedSegmentsByWord,
     waqfEnabled,
     waqfSource,
+    memorizationMode: true,
     concealFocused: concealed,
     draftAyah: rangeDraft?.anchor ?? null,
     picking: picking && !concealed,
     revealedAyah,
     onAyahClick: handleAyahClick,
+    onSurahNavigate: () => setNavigatorMode("surah"),
+    onJuzNavigate: () => setNavigatorMode("juz"),
+    onPageNavigate: () => setNavigatorMode("page"),
     onRetry: retry,
   };
 
@@ -824,6 +868,57 @@ export function MemorizeWorkspace() {
           ) : null}
         </div>
       </header>
+
+      <DrawerSurface
+        open={navigatorMode !== null}
+        onClose={() => setNavigatorMode(null)}
+        eyebrow={positionLabel}
+        title="فهرس المصحف"
+        id="memorize-navigator-drawer"
+        overlay
+      >
+        <div className="grid gap-4">
+          <SegmentedControl
+            label="نوع الانتقال"
+            value={navigatorMode || "surah"}
+            options={[
+              {value: "surah", label: "السورة"},
+              {value: "juz", label: "الجزء"},
+              {value: "page", label: "الصفحة"},
+            ]}
+            onChange={setNavigatorMode}
+          />
+          {navigatorMode === "surah" ? (
+            <Field label="اختر السورة" hint="ينقلك إلى أول آية ويبدأ منها نطاق تثبيت جديدًا">
+              <SelectControl value={surahNumber} onChange={(event) => jumpToSurah(Number(event.target.value))} disabled={!surahs.length}>
+                {!surahs.length ? <option>جارٍ التحميل…</option> : null}
+                {surahs.map((surah) => (
+                  <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
+                ))}
+              </SelectControl>
+            </Field>
+          ) : null}
+          {navigatorMode === "juz" ? (
+            <Field label="اختر الجزء" hint="ينقلك إلى بداية الجزء ويبدأ منها نطاق تثبيت جديدًا">
+              <SelectControl value={currentJuz} onChange={(event) => jumpToJuz(Number(event.target.value))}>
+                {Array.from({length: 30}, (_, index) => index + 1).map((juz) => (
+                  <option key={juz} value={juz}>{juzLabel(juz)}</option>
+                ))}
+              </SelectControl>
+            </Field>
+          ) : null}
+          {navigatorMode === "page" ? (
+            <Field label="اختر الصفحة" hint={`${edition.label} · ${toArabicDigits(edition.minPage)}–${toArabicDigits(edition.maxPage)}`}>
+              <SelectControl value={focusPage || edition.minPage} onChange={(event) => jumpToPage(Number(event.target.value))}>
+                {pageNumbers.map((page) => <option key={page} value={page}>صفحة {toArabicDigits(page)}</option>)}
+              </SelectControl>
+            </Field>
+          ) : null}
+          <p className="m-0 text-xs leading-6 text-athar-ink-faint">
+            افتح هذا الفهرس بالضغط على اسم السورة أو الجزء أو رقم الصفحة داخل المصحف.
+          </p>
+        </div>
+      </DrawerSurface>
 
       {showContext ? (
         <aside
