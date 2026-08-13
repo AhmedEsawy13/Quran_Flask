@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import {
   getJson,
   type ClassicalWaqfPayload,
+  type SearchHit,
+  type SearchPayload,
   type Surah,
   type WaqfPayload,
   type WaqfReciterDetail,
@@ -13,8 +15,10 @@ import { toArabicDigits } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
 import { useBoundedAudio } from "@/lib/use-bounded-audio";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
+import { arabicWordQuery, parseVerseSearch } from "@/lib/waqf-search";
 import {
   ChromeField,
+  ChromeInput,
   ChromePill,
   ChromeSelect,
   ChromeStepper,
@@ -23,6 +27,7 @@ import {
   ToolChrome,
   ToolStack,
 } from "@/components/tool-chrome";
+import { WaqfMatrix } from "@/components/waqf-matrix";
 import { Button, Field, SegmentedControl, SelectControl, StatusState } from "@/components/ui/primitives";
 import { introLinkClassName, pillActionClassName } from "@/lib/ui";
 
@@ -101,6 +106,11 @@ export function WaqfWorkspace() {
   const [selectedStopWpos, setSelectedStopWpos] = useState<number | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const [catalogError, setCatalogError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchHits, setSearchHits] = useState<SearchHit[] | null>(null);
+  const [searchError, setSearchError] = useState("");
+  const [activeHit, setActiveHit] = useState(-1);
   const [result, setResult] = useState<WaqfResult>({key: "", data: null, classical: null, error: ""});
   const {audioRef, playingKey, progress, play, stop} = useBoundedAudio();
   const requestKey = `${surahNumber}:${ayahNumber}:${retryToken}`;
@@ -111,6 +121,11 @@ export function WaqfWorkspace() {
   const recommended = useMemo(() => recommendedProfile(profiles, breath), [profiles, breath]);
   const selectedProfile = profiles.find((profile) => profile.id === selectedReciterId) || recommended;
   const selectedSurah = surahs.find((surah) => surah.number === surahNumber);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const searchGen = useRef(0);
+  const parsedSearch = useMemo(() => parseVerseSearch(searchQuery, surahs), [searchQuery, surahs]);
+  const canWordSearch = !parsedSearch && arabicWordQuery(searchQuery).length >= 2;
+  const resultsOpen = searchOpen && canWordSearch && searchHits !== null;
 
   const marksByWpos = useMemo(() => {
     const marks = new Map<number, Array<{mushaf: string; symbol: string}>>();
@@ -214,6 +229,62 @@ export function WaqfWorkspace() {
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }, [surahNumber, ayahNumber]);
 
+  useEffect(() => {
+    const wordQuery = arabicWordQuery(searchQuery);
+    if (!searchQuery.trim() || parsedSearch || wordQuery.length < 2) {
+      searchGen.current += 1;
+      return;
+    }
+    const generation = ++searchGen.current;
+    const timer = window.setTimeout(() => {
+      getJson<SearchPayload>(`/backend-api/search?q=${encodeURIComponent(searchQuery)}&limit=8`)
+        .then((payload) => {
+          if (generation !== searchGen.current) return;
+          setSearchHits(payload.results);
+          setSearchOpen(true);
+          setSearchError("");
+          setActiveHit(-1);
+        })
+        .catch((reason: unknown) => {
+          if (generation !== searchGen.current) return;
+          setSearchHits([]);
+          setSearchOpen(true);
+          setSearchError(reason instanceof Error ? reason.message : "تعذّر البحث الآن");
+        });
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [parsedSearch, searchQuery]);
+
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent) => {
+      if (!searchBoxRef.current?.contains(event.target as Node)) setSearchOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
+
+  const navigateTo = (surah: number, ayah: number) => {
+    stop();
+    setSurahNumber(Math.min(114, Math.max(1, surah)));
+    setAyahNumber(Math.max(1, ayah));
+    setSearchQuery("");
+    setSearchOpen(false);
+    setSearchHits(null);
+    setActiveHit(-1);
+  };
+
+  const submitSearch = () => {
+    if (activeHit >= 0 && searchHits?.[activeHit]) {
+      const hit = searchHits[activeHit];
+      navigateTo(hit.surah_number, hit.ayah_number);
+      return;
+    }
+    if (parsedSearch) {
+      if (parsedSearch.surah < 1 || parsedSearch.surah > 114) return;
+      navigateTo(parsedSearch.surah, parsedSearch.ayah);
+    }
+  };
+
   const selectSurah = (nextSurah: number) => {
     stop();
     setSurahNumber(nextSurah);
@@ -299,6 +370,73 @@ export function WaqfWorkspace() {
             ))}
           </ChromeSelect>
         </ChromeField>
+        <div className="relative min-w-[16rem] flex-1 self-end" ref={searchBoxRef}>
+          <ChromeField label="البحث عن آية" className="w-full">
+            <ChromeInput
+              id="waqf-verse-search"
+              role="combobox"
+              aria-label="البحث عن آية"
+              aria-autocomplete="list"
+              aria-expanded={resultsOpen}
+              aria-controls="waqf-search-results"
+              aria-activedescendant={activeHit >= 0 ? `waqf-search-hit-${activeHit}` : undefined}
+              placeholder="٢:٢٥٥ أو البقرة أو كلمات الآية"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              onKeyDown={(event) => {
+                const hits = searchHits || [];
+                if (event.key === "ArrowDown" && hits.length) {
+                  event.preventDefault();
+                  setSearchOpen(true);
+                  setActiveHit((current) => (current + 1) % hits.length);
+                } else if (event.key === "ArrowUp" && hits.length) {
+                  event.preventDefault();
+                  setSearchOpen(true);
+                  setActiveHit((current) => current <= 0 ? hits.length - 1 : current - 1);
+                } else if (event.key === "Enter") {
+                  event.preventDefault();
+                  submitSearch();
+                } else if (event.key === "Escape") {
+                  setSearchOpen(false);
+                }
+              }}
+            />
+          </ChromeField>
+          {resultsOpen ? (
+            <ul
+              className="waqf-search-results"
+              id="waqf-search-results"
+              role="listbox"
+              aria-label="نتائج البحث"
+            >
+              {searchError ? <li className="waqf-search-empty">{searchError}</li> : null}
+              {!searchError && searchHits && !searchHits.length ? (
+                <li className="waqf-search-empty">لا توجد نتائج لهذه الكلمات</li>
+              ) : null}
+              {searchHits?.map((hit, index) => {
+                const name = surahs.find((surah) => surah.number === hit.surah_number)?.name;
+                return (
+                  <li key={hit.verse_key} role="presentation">
+                    <button
+                      type="button"
+                      className={index === activeHit ? "is-active" : ""}
+                      id={`waqf-search-hit-${index}`}
+                      role="option"
+                      aria-selected={index === activeHit}
+                      onMouseEnter={() => setActiveHit(index)}
+                      onClick={() => navigateTo(hit.surah_number, hit.ayah_number)}
+                    >
+                      <span>
+                        سورة {name || toArabicDigits(hit.surah_number)} · آية {toArabicDigits(hit.ayah_number)}
+                      </span>
+                      <small>{hit.text}</small>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </div>
         <ChromeStepper
           previousLabel="الآية السابقة"
           nextLabel="الآية التالية"
@@ -461,6 +599,13 @@ export function WaqfWorkspace() {
               </div>
             </ToolCard>
 
+            <WaqfMatrix
+              data={data}
+              playingKey={playingKey}
+              onPlayStop={playReciterStop}
+              onSelectStop={setSelectedStopWpos}
+            />
+
             <ToolCard aria-labelledby="waqf-comparison-title">
               <ToolCardHead title="قارن الدليل عند كل موضع" titleId="waqf-comparison-title" />
               <p className="-mt-1 mb-3.5 text-[0.88rem] leading-relaxed text-athar-ink-soft">اختر موضعًا لعرض علامة المصحف، ووقف القرّاء، وقول الإمام.</p>
@@ -557,7 +702,7 @@ export function WaqfWorkspace() {
                   <a className={pillActionClassName()} href={legacyUrl(`/waqf-lab?surah=${surahNumber}&ayah=${ayahNumber}`)}>
                     افتح المختبر
                   </a>
-                  <a className={introLinkClassName()} href={legacyUrl(`/waqf-practice?surah=${surahNumber}&ayah=${ayahNumber}`)}>
+                  <a className={introLinkClassName()} href={`/waqf-practice?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
                     تدرّب على الموضع
                   </a>
                 </div>

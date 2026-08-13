@@ -113,6 +113,18 @@ export function SelectControl({className, ...props}: SelectHTMLAttributes<HTMLSe
   );
 }
 
+export function InputControl({className, ...props}: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      className={cn(
+        "min-h-11 w-full rounded-xl border border-athar-line bg-athar-surface px-3 py-2 text-sm text-athar-ink outline-none transition-colors disabled:cursor-wait disabled:opacity-50 focus:border-athar-accent focus:ring-2 focus:ring-athar-accent/15",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 export function CheckControl({
   label,
   checked,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   getJson,
   type MemorizationAudio,
@@ -32,6 +33,8 @@ type MemorizePlayerProps = {
   activeAyah: number;
   onActiveAyahChange: (ayah: number) => void;
   onWordChange: (wordIndex: number | null) => void;
+  chromeHost?: HTMLElement | null;
+  playbackLocked?: boolean;
 };
 
 type AudioResult = {
@@ -64,6 +67,8 @@ export function MemorizePlayer({
   activeAyah,
   onActiveAyahChange,
   onWordChange,
+  chromeHost = null,
+  playbackLocked = false,
 }: MemorizePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const boundaryHandledRef = useRef(false);
@@ -275,7 +280,7 @@ export function MemorizePlayer({
   const togglePlayback = useCallback(async () => {
     const audio = audioRef.current;
     const step = schedule[stepIndexRef.current];
-    if (!audio || !step) return;
+    if (!audio || !step || playbackLocked) return;
     if (!audio.paused) {
       audio.pause();
       setPlaying(false);
@@ -291,7 +296,7 @@ export function MemorizePlayer({
     } catch {
       setPlaying(false);
     }
-  }, [schedule, goToStep, setPlaying]);
+  }, [schedule, goToStep, setPlaying, playbackLocked]);
 
   const resetSession = useCallback(() => {
     const audio = audioRef.current;
@@ -299,6 +304,82 @@ export function MemorizePlayer({
     setPlaying(false);
     void goToStep(0, false);
   }, [goToStep, setPlaying]);
+
+  const seekSession = useCallback(async (frac: number) => {
+    const audio = audioRef.current;
+    if (!audio || !schedule.length || playbackLocked) return;
+    const bounded = Math.max(0, Math.min(0.99999, frac));
+    const nextIndex = Math.min(schedule.length - 1, Math.floor(bounded * schedule.length));
+    const within = bounded * schedule.length - nextIndex;
+    const step = schedule[nextIndex];
+    const currentTime = step.start + within * Math.max(0, step.end - step.start);
+    stepIndexRef.current = nextIndex;
+    setStepIndex(nextIndex);
+    boundaryHandledRef.current = false;
+    setElapsed(Math.max(0, currentTime - step.start));
+    publishAyah(step.startAyah);
+    onWordChange(null);
+    try {
+      audio.currentTime = currentTime;
+      await audio.play();
+      setPlaying(true);
+    } catch {
+      setPlaying(false);
+    }
+    updatePlaybackPosition(currentTime);
+  }, [schedule, playbackLocked, publishAyah, onWordChange, setPlaying, updatePlaybackPosition]);
+
+  const sessionProgress = totalDuration
+    ? Math.min(1, (completedDuration + elapsed) / totalDuration)
+    : 0;
+  const canPlay = Boolean(currentStep) && !loading && !playbackLocked;
+  const transport = (
+    <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2" aria-label="شريط جلسة التثبيت">
+      <Button
+        size="icon"
+        variant="primary"
+        className="size-10 shrink-0 text-sm"
+        onClick={() => void togglePlayback()}
+        disabled={!canPlay}
+        aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
+      >
+        {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
+      </Button>
+      <PlaybackTimeline
+        className="min-w-[12rem] flex-1"
+        min="0"
+        max={1000}
+        step="1"
+        value={Math.round(sessionProgress * 1000)}
+        disabled={!schedule.length || playbackLocked}
+        label="موضع جلسة التثبيت"
+        time={<>باقٍ {formatTime(remainingDuration)}</>}
+        onChange={(event) => {
+          void seekSession(Number(event.target.value) / 1000);
+        }}
+      />
+      <div className="flex gap-1.5" aria-label="التنقل بين خطوات التثبيت">
+        <Button
+          size="sm"
+          variant="quiet"
+          onClick={() => void goToStep(stepIndex - 1, isPlaying)}
+          disabled={stepIndex <= 0 || playbackLocked}
+        >
+          الخطوة السابقة
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => void goToStep(stepIndex + 1, isPlaying)}
+          disabled={!schedule.length || stepIndex >= schedule.length - 1 || playbackLocked}
+        >
+          الخطوة التالية
+        </Button>
+        <Button size="sm" variant="quiet" onClick={resetSession} disabled={!schedule.length}>
+          إيقاف
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
     <ToolCard aria-label="جلسة التكرار">
@@ -342,41 +423,67 @@ export function MemorizePlayer({
 
       {audioError ? <StatusState tone="error" className="mt-3">{audioError}</StatusState> : null}
 
-      <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <Button
-          size="icon"
-          variant="primary"
-          className="size-11 text-sm"
-          onClick={() => void togglePlayback()}
-          disabled={!currentStep || loading}
-          aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
-        >
-          {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
-        </Button>
-        <PlaybackTimeline
-          min="0"
-          max={duration || 1}
-          step="0.05"
-          value={Math.min(elapsed, duration || 1)}
-          disabled={!currentStep}
-          label="موضع التلاوة داخل خطوة التثبيت"
-          time={<>{formatTime(elapsed)} / {formatTime(duration)}</>}
-          onChange={(event) => {
-            const nextElapsed = Number(event.target.value);
-            setElapsed(nextElapsed);
-            if (audioRef.current && currentStep) {
-              const currentTime = currentStep.start + nextElapsed;
-              audioRef.current.currentTime = currentTime;
-              boundaryHandledRef.current = false;
-              updatePlaybackPosition(currentTime);
-            }
-          }}
-        />
-        <div className="col-span-2 flex justify-end gap-2 lg:col-span-1" aria-label="التنقل بين خطوات التثبيت">
-          <Button size="sm" variant="quiet" onClick={() => void goToStep(stepIndex - 1, isPlaying)} disabled={stepIndex <= 0}>الخطوة السابقة</Button>
-          <Button size="sm" onClick={() => void goToStep(stepIndex + 1, isPlaying)} disabled={!schedule.length || stepIndex >= schedule.length - 1}>الخطوة التالية</Button>
+      {chromeHost ? createPortal(transport, chromeHost) : (
+        <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+          <Button
+            size="icon"
+            variant="primary"
+            className="size-11 text-sm"
+            onClick={() => void togglePlayback()}
+            disabled={!canPlay}
+            aria-label={isPlaying ? "إيقاف جلسة التثبيت مؤقتًا" : "بدء جلسة التثبيت"}
+          >
+            {loading ? "…" : isPlaying ? "Ⅱ" : "▶"}
+          </Button>
+          <PlaybackTimeline
+            min="0"
+            max={duration || 1}
+            step="0.05"
+            value={Math.min(elapsed, duration || 1)}
+            disabled={!currentStep}
+            label="موضع التلاوة داخل خطوة التثبيت"
+            time={<>{formatTime(elapsed)} / {formatTime(duration)}</>}
+            onChange={(event) => {
+              const nextElapsed = Number(event.target.value);
+              setElapsed(nextElapsed);
+              if (audioRef.current && currentStep) {
+                const currentTime = currentStep.start + nextElapsed;
+                audioRef.current.currentTime = currentTime;
+                boundaryHandledRef.current = false;
+                updatePlaybackPosition(currentTime);
+              }
+            }}
+          />
+          <div className="col-span-2 flex justify-end gap-2 lg:col-span-1" aria-label="التنقل بين خطوات التثبيت">
+            <Button size="sm" variant="quiet" onClick={() => void goToStep(stepIndex - 1, isPlaying)} disabled={stepIndex <= 0 || playbackLocked}>الخطوة السابقة</Button>
+            <Button size="sm" onClick={() => void goToStep(stepIndex + 1, isPlaying)} disabled={!schedule.length || stepIndex >= schedule.length - 1 || playbackLocked}>الخطوة التالية</Button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {chromeHost ? (
+        <div className="mt-3">
+          <PlaybackTimeline
+            min="0"
+            max={duration || 1}
+            step="0.05"
+            value={Math.min(elapsed, duration || 1)}
+            disabled={!currentStep}
+            label="موضع التلاوة داخل خطوة التثبيت"
+            time={<>{formatTime(elapsed)} / {formatTime(duration)}</>}
+            onChange={(event) => {
+              const nextElapsed = Number(event.target.value);
+              setElapsed(nextElapsed);
+              if (audioRef.current && currentStep) {
+                const currentTime = currentStep.start + nextElapsed;
+                audioRef.current.currentTime = currentTime;
+                boundaryHandledRef.current = false;
+                updatePlaybackPosition(currentTime);
+              }
+            }}
+          />
+        </div>
+      ) : null}
 
       <details className="group mt-3 border-t border-athar-line-soft pt-3">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold text-athar-ink marker:content-none [&::-webkit-details-marker]:hidden">

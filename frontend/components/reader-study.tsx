@@ -1,21 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   getJson,
   getJsonAccepting,
   type AsbabPayload,
   type Ayah,
+  type EerabPayload,
   type MutashabihatMatch,
   type MutashabihatPayload,
   type Surah,
   type TafseerCollection,
 } from "@/lib/api";
 import { toArabicDigits } from "@/lib/mushaf";
-import { legacyUrl } from "@/lib/paths";
 import { Button, DrawerSurface, Field, SelectControl, StatusState } from "@/components/ui/primitives";
 
-type StudyTool = "meanings" | "tafseer" | "mutashabihat" | "asbab" | "transliteration" | "study";
+type StudyTool = "meanings" | "tafseer" | "eerab" | "mutashabihat" | "asbab" | "transliteration" | "study";
 
 type ReaderStudyProps = {
   surahNumber: number;
@@ -49,14 +50,22 @@ type AsbabResult = {
   error: string;
 };
 
+type EerabResult = {
+  key: string;
+  data: EerabPayload | null;
+  error: string;
+};
+
 const verseCache = new Map<string, Ayah>();
 const tafseerCache = new Map<string, Record<string, string>>();
 const mutashabihatCache = new Map<string, MutashabihatPayload>();
 const asbabCache = new Map<string, AsbabPayload>();
+const eerabCache = new Map<string, EerabPayload>();
 
 const tools: Array<{id: StudyTool; label: string}> = [
   {id: "meanings", label: "معاني الكلمات"},
   {id: "tafseer", label: "التفسير"},
+  {id: "eerab", label: "الإعراب"},
   {id: "mutashabihat", label: "المتشابهات"},
   {id: "asbab", label: "سبب النزول"},
   {id: "transliteration", label: "النطق الحرفي"},
@@ -85,6 +94,23 @@ function runLabel(count: number) {
   return `${toArabicDigits(count)} كلمة متتالية`;
 }
 
+type EerabLine =
+  | {kind: "header"; text: string}
+  | {kind: "entry"; word: string; analysis: string}
+  | {kind: "line"; text: string};
+
+function parseEerab(content: string): EerabLine[] {
+  const text = content.replace(/<br\s*\/?\s*>/gi, "\n").replace(/<[^>]+>/g, "");
+  return text.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
+    if (line.startsWith("إعراب الآية")) return {kind: "header", text: line};
+    const colon = line.indexOf(":");
+    if (colon > 0 && colon < 48) {
+      return {kind: "entry", word: line.slice(0, colon).trim(), analysis: line.slice(colon + 1).trim()};
+    }
+    return {kind: "line", text: line};
+  });
+}
+
 export function ReaderStudy({
   surahNumber,
   ayahNumber,
@@ -97,6 +123,7 @@ export function ReaderStudy({
   const [tafseerResult, setTafseerResult] = useState<TafseerResult>({key: "", data: null, error: ""});
   const [mutashabihatResult, setMutashabihatResult] = useState<MutashabihatResult>({key: "", data: null, error: ""});
   const [asbabResult, setAsbabResult] = useState<AsbabResult>({key: "", data: null, error: ""});
+  const [eerabResult, setEerabResult] = useState<EerabResult>({key: "", data: null, error: ""});
   const [selectedTafseer, setSelectedTafseer] = useState("");
   const verseKey = `${surahNumber}:${ayahNumber}`;
   const ayahData = initialAyah?.verse_key === verseKey
@@ -109,6 +136,8 @@ export function ReaderStudy({
   const mutashabihatError = mutashabihatResult.key === verseKey ? mutashabihatResult.error : "";
   const asbab = asbabResult.key === verseKey ? asbabResult.data : null;
   const asbabError = asbabResult.key === verseKey ? asbabResult.error : "";
+  const eerab = eerabResult.key === verseKey ? eerabResult.data : null;
+  const eerabError = eerabResult.key === verseKey ? eerabResult.error : "";
   const needsAyah = activeTool === "meanings" || activeTool === "transliteration";
 
   useEffect(() => {
@@ -226,6 +255,34 @@ export function ReaderStudy({
     return () => controller.abort();
   }, [activeTool, asbab, verseKey, surahNumber, ayahNumber]);
 
+  useEffect(() => {
+    if (activeTool !== "eerab" || eerab) return;
+    const cached = eerabCache.get(verseKey);
+    if (cached) {
+      queueMicrotask(() => setEerabResult({key: verseKey, data: cached, error: ""}));
+      return;
+    }
+    const controller = new AbortController();
+    getJsonAccepting<EerabPayload>(
+      `/backend-api/eerab/${surahNumber}/${ayahNumber}`,
+      [404, 500],
+      controller.signal,
+    )
+      .then((data) => {
+        eerabCache.set(verseKey, data);
+        setEerabResult({key: verseKey, data, error: ""});
+      })
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setEerabResult({
+          key: verseKey,
+          data: null,
+          error: reason instanceof Error ? reason.message : "تعذّر تحميل الإعراب.",
+        });
+      });
+    return () => controller.abort();
+  }, [activeTool, eerab, verseKey, surahNumber, ayahNumber]);
+
   const activeLabel = tools.find((tool) => tool.id === activeTool)?.label || "";
   const tafseerText = useMemo(
     () => selectedTafseer && tafseers ? tafseers[selectedTafseer] : "",
@@ -234,7 +291,7 @@ export function ReaderStudy({
 
   return (
     <section className="mx-auto w-full max-w-[790px]" aria-label="أدوات فهم الآية">
-      <div className="grid grid-cols-2 gap-1.5 rounded-[15px] border border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_82%,transparent)] p-1.5 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-1.5 rounded-[15px] border border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_82%,transparent)] p-1.5 sm:grid-cols-3 lg:grid-cols-4">
         {tools.map((tool) => (
           <Button
             key={tool.id}
@@ -359,17 +416,40 @@ export function ReaderStudy({
             </div>
           ) : null}
 
+          {activeTool === "eerab" ? (
+            <div className="mt-4 grid gap-3">
+              {!eerab && !eerabError ? <StatusState tone="loading">جارٍ تحميل الإعراب…</StatusState> : null}
+              {eerabError ? <StatusState tone="error">{eerabError}</StatusState> : null}
+              {eerab?.content?.trim() ? parseEerab(eerab.content).map((line, index) => {
+                if (line.kind === "header") {
+                  return <p className="m-0 font-athar-display text-lg font-bold text-athar-accent" key={`eerab-${index}`}>{line.text}</p>;
+                }
+                if (line.kind === "entry") {
+                  return (
+                    <div className="grid gap-1 rounded-xl border border-athar-line-soft p-3 sm:grid-cols-[minmax(90px,.35fr)_minmax(0,1fr)]" key={`eerab-${index}`}>
+                      <strong className="font-athar-quran text-lg text-athar-accent">{line.word}</strong>
+                      <span className="text-sm leading-7 text-athar-ink-soft">{line.analysis}</span>
+                    </div>
+                  );
+                }
+                return <p className="m-0 leading-8 text-athar-ink-soft" key={`eerab-${index}`}>{line.text}</p>;
+              }) : eerab ? (
+                <StatusState className="justify-center">لا يوجد إعراب متاح لهذه الآية.</StatusState>
+              ) : null}
+            </div>
+          ) : null}
+
           {activeTool === "study" ? (
             <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
-              <a className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={`/memorize?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
+              <Link className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={`/memorize?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
                 <strong className="font-athar-display text-2xl text-athar-accent">تثبيت</strong><span className="text-xs text-athar-ink-soft">حفظ الآية بالتكرار والسياق الموضوعي</span>
-              </a>
-              <a className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`}>
+              </Link>
+              <Link className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`}>
                 <strong className="font-athar-display text-2xl text-athar-accent">مُكْث</strong><span className="text-xs text-athar-ink-soft">دراسة مواضع الوقف واختلاف القرّاء</span>
-              </a>
-              <a className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={legacyUrl(`/waqf-practice?surah=${surahNumber}&ayah=${ayahNumber}`)}>
+              </Link>
+              <Link className="grid min-h-24 content-center gap-1 rounded-[13px] border border-athar-line p-4 no-underline transition hover:-translate-y-0.5 hover:border-athar-accent sm:min-h-[122px]" href={`/waqf-practice?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
                 <strong className="font-athar-display text-2xl text-athar-accent">تدريب</strong><span className="text-xs text-athar-ink-soft">اختبر قرارات الوقف داخل الآية</span>
-              </a>
+              </Link>
             </div>
           ) : null}
         </DrawerSurface>

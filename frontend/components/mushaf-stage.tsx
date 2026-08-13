@@ -10,6 +10,7 @@ type MushafStageProps = {
   view: ReaderView;
   editionId?: MushafEditionId;
   pageCount?: 1 | 2;
+  zoom?: number;
   positionLabel: string;
   previousLabel: string;
   nextLabel: string;
@@ -26,6 +27,7 @@ export function MushafStage({
   view,
   editionId = "digital_khatt",
   pageCount = 1,
+  zoom = 1,
   positionLabel,
   previousLabel,
   nextLabel,
@@ -86,6 +88,9 @@ export function MushafStage({
     };
   }, [editionId, pageCount, ratio, view]);
 
+  const zoomed = Math.abs(zoom - 1) > 0.001;
+  const spreadGutter = pageCount === 2 ? 36 : 0;
+  const baseWidth = fit.width * pageCount + spreadGutter;
   const style = view === "page" ? {
     "--reader-page-fit-width": `${fit.width}px`,
     "--reader-page-fit-height": `${fit.height}px`,
@@ -107,8 +112,9 @@ export function MushafStage({
   return (
     <section
       ref={stageRef}
-      className={cn("reader-mushaf-stage", className)}
+      className={cn("reader-mushaf-stage", zoomed && "is-zoomed", className)}
       data-page-count={pageCount}
+      data-zoom={zoom.toFixed(1)}
       aria-label={`موضع القراءة — ${positionLabel}`}
       aria-busy={moving}
       style={style}
@@ -134,7 +140,23 @@ export function MushafStage({
         <span aria-hidden="true">›</span>
       </button>
 
-      <div className="reader-mushaf-stage-page">{children}</div>
+      <div className="reader-mushaf-stage-page">
+        <div
+          className="reader-mushaf-zoom-shell"
+          style={zoomed ? {width: baseWidth * zoom, height: fit.height * zoom} : undefined}
+        >
+          <div
+            className="reader-mushaf-zoom-spread"
+            style={zoomed ? {
+              width: baseWidth,
+              height: fit.height,
+              transform: `scale(${zoom})`,
+            } : undefined}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
 
       <button
         type="button"

@@ -212,9 +212,86 @@ export type MushafPage = {
   lines: MushafLine[];
 };
 
+export type PracticeVerdict = "excellent" | "good" | "ok" | "unmarked" | "caution" | "error";
+
+export type PracticeVerse = {
+  ayah: number;
+  words: string[];
+};
+
+export type PracticePassage = {
+  surah: number;
+  verses: PracticeVerse[];
+};
+
+export type PracticeGradedStop = {
+  ayah: number;
+  wpos: number;
+  word: string;
+  verdict: PracticeVerdict;
+  label: string;
+  mark: string;
+  has_mark: boolean;
+};
+
+export type PracticeMarkRef = {
+  ayah: number;
+  wpos: number;
+  word: string;
+  mark: string;
+};
+
+export type PracticeGrade = {
+  surah: number;
+  from_ayah: number;
+  to_ayah: number;
+  mushaf: string;
+  score: number;
+  summary: {good: number; notes: number; errors: number};
+  counts: Record<PracticeVerdict, number>;
+  stops: PracticeGradedStop[];
+  broken_lazim: PracticeMarkRef[];
+  ideal: PracticeMarkRef[];
+};
+
+export type EerabPayload = {
+  content: string;
+};
+
+export type SearchHit = {
+  verse_key: string;
+  surah_number: number;
+  ayah_number: number;
+  text: string;
+  highlight?: boolean;
+};
+
+export type SearchPayload = {
+  query: string;
+  total_results: number;
+  results: SearchHit[];
+  source: string;
+};
+
 type ApiErrorBody = {
   error?: string;
 };
+
+async function readJsonBody<T>(response: Response): Promise<T | ApiErrorBody> {
+  try {
+    return (await response.json()) as T | ApiErrorBody;
+  } catch {
+    throw new Error("تعذّر قراءة استجابة الخادم.");
+  }
+}
+
+function errorMessage(body: ApiErrorBody | unknown, status: number) {
+  const message =
+    body && typeof body === "object" && "error" in body
+      ? (body as ApiErrorBody).error
+      : undefined;
+  return message || `تعذّر الاتصال بالخادم (${status}).`;
+}
 
 export async function getJson<T>(
   path: string,
@@ -224,22 +301,8 @@ export async function getJson<T>(
     signal,
     headers: { Accept: "application/json" },
   });
-
-  let body: T | ApiErrorBody | null = null;
-  try {
-    body = (await response.json()) as T | ApiErrorBody;
-  } catch {
-    throw new Error("تعذّر قراءة استجابة الخادم.");
-  }
-
-  if (!response.ok) {
-    const message =
-      body && typeof body === "object" && "error" in body
-        ? body.error
-        : undefined;
-    throw new Error(message || `تعذّر الاتصال بالخادم (${response.status}).`);
-  }
-
+  const body = await readJsonBody<T>(response);
+  if (!response.ok) throw new Error(errorMessage(body, response.status));
   return body as T;
 }
 
@@ -252,21 +315,28 @@ export async function getJsonAccepting<T>(
     signal,
     headers: { Accept: "application/json" },
   });
-
-  let body: T | ApiErrorBody | null = null;
-  try {
-    body = (await response.json()) as T | ApiErrorBody;
-  } catch {
-    throw new Error("تعذّر قراءة استجابة الخادم.");
-  }
-
+  const body = await readJsonBody<T>(response);
   if (!response.ok && !acceptedStatuses.includes(response.status)) {
-    const message =
-      body && typeof body === "object" && "error" in body
-        ? body.error
-        : undefined;
-    throw new Error(message || `تعذّر الاتصال بالخادم (${response.status}).`);
+    throw new Error(errorMessage(body, response.status));
   }
+  return body as T;
+}
 
+export async function postJson<T>(
+  path: string,
+  payload: unknown,
+  signal?: AbortSignal,
+): Promise<T> {
+  const response = await fetch(path, {
+    method: "POST",
+    signal,
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const body = await readJsonBody<T>(response);
+  if (!response.ok) throw new Error(errorMessage(body, response.status));
   return body as T;
 }

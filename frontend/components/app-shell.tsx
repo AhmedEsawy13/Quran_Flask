@@ -5,7 +5,6 @@ import {usePathname} from "next/navigation";
 import {useEffect, useRef} from "react";
 import {ThemeToggle} from "@/components/theme-toggle";
 import {cn} from "@/lib/cn";
-import {legacyUrl} from "@/lib/paths";
 
 type NavKey = "read" | "memorize" | "waqf" | "practice";
 
@@ -18,7 +17,7 @@ const navItems: Array<{
   {key: "read", label: "المصحف", href: "/read"},
   {key: "memorize", label: "تثبيت", href: "/memorize"},
   {key: "waqf", label: "مُكْث", href: "/waqf"},
-  {key: "practice", label: "تدريب", href: legacyUrl("/waqf-practice"), external: true},
+  {key: "practice", label: "تدريب", href: "/waqf-practice"},
 ];
 
 function NavGlyph({name}: {name: NavKey}) {

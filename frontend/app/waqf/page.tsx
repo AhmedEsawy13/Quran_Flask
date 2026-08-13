@@ -23,7 +23,7 @@ export default function WaqfPage() {
         lede="هذا تميّز أثَر: ثلاث شهادات على موضع الوقف — ثم ابنِ قراءةً تناسب نَفَسك."
       >
         <a className={introLinkClassName()} href={legacyUrl("/waqf-lab")}>مختبر الوقف</a>
-        <a className={introLinkClassName()} href={legacyUrl("/waqf-practice")}>تدرّب على هذا الموضع</a>
+        <a className={introLinkClassName()} href="/waqf-practice">تدرّب على هذا الموضع</a>
       </ToolIntro>
 
       <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز مُكْث" />}>

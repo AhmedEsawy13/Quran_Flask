@@ -8,6 +8,7 @@ import {
   isMushafEdition,
   isReaderLayout,
   isReaderView,
+  spreadPageNumbers,
   toArabicDigits,
   type MushafEditionId,
   type ReaderLayout,
@@ -61,14 +62,6 @@ function firstVerseOnPage(page: MushafPage) {
   return Number.isInteger(surah) && Number.isInteger(ayah) && surah > 0 && ayah > 0
     ? {surah, ayah}
     : null;
-}
-
-// Printed RTL Mushaf spread: odd page on the right, following even page on the
-// left. A missing cover-side at an edition boundary stays intentionally blank.
-function spreadPageNumbers(page: number, minimum: number, maximum: number): [number | null, number | null] {
-  const right = page % 2 === 1 ? page : page - 1;
-  const left = right + 1;
-  return [right >= minimum ? right : null, left <= maximum ? left : null];
 }
 
 export function ReaderWorkspace() {

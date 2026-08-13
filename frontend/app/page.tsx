@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AyahPreview } from "@/components/ayah-preview";
 import {cn} from "@/lib/cn";
-import { legacyUrl } from "@/lib/paths";
 import {actionLinkClassName, pageContainerClassName} from "@/lib/ui";
 
 const doors = [
@@ -10,28 +9,24 @@ const doors = [
     title: "المصحف",
     description: "رسم مصحفي هادئ، وموضعك محفوظ، وأدواتك تظهر حين تحتاجها.",
     href: "/read?surah=2&ayah=255",
-    migrated: true,
   },
   {
     verb: "تأمّل",
     title: "مُكْث",
     description: "قارن علامة المصحف، ووقف القارئ، وقول الإمام في آية واحدة.",
     href: "/waqf?surah=2&ayah=255",
-    migrated: true,
   },
   {
     verb: "احفظ",
     title: "تثبيت",
     description: "تكرار مقطّع على صفحات المصحف، وبصوت القارئ الذي تختاره.",
     href: "/memorize?surah=2&from=255&to=257",
-    migrated: true,
   },
   {
     verb: "تدرّب",
     title: "تدريب",
     description: "علّم مواضع وقوفك، ثم قارنها بالدليل بدل التخمين.",
-    href: legacyUrl("/waqf-practice"),
-    migrated: false,
+    href: "/waqf-practice?surah=2&from=255&to=255",
   },
 ];
 
@@ -56,9 +51,9 @@ export default function HomePage() {
             <Link className={actionLinkClassName("primary")} href="/read?surah=2&ayah=255">
               افتح آية الكرسي
             </Link>
-            <a className={actionLinkClassName("quiet")} href={legacyUrl("/waqf-practice")}>
+            <Link className={actionLinkClassName("quiet")} href="/waqf-practice?surah=2&from=255&to=255">
               درّب وقفك
-            </a>
+            </Link>
           </div>
           <dl className="mt-[42px] grid grid-cols-3 gap-3.5 border-t border-athar-line pt-[18px] max-[640px]:grid-cols-1">
             <div className="grid gap-0.5">
@@ -84,7 +79,7 @@ export default function HomePage() {
         <header className="mb-[38px] max-w-[720px]">
           <p className="mb-3 text-[0.78rem] font-bold tracking-[0.08em] text-athar-gold">أربعة أبواب، أثر واحد</p>
           <h2 id="doors-title" className="m-0 font-athar-display text-[clamp(2.4rem,5vw,4.6rem)] leading-[1.08] tracking-[-0.035em]">من الدليل إلى القراءة اليومية.</h2>
-          <p className="text-athar-ink-soft">المصحف وتثبيت ومُكْث انتقلت إلى Next.js؛ بقية الأدوات تبقى آمنة على Flask أثناء النقل.</p>
+          <p className="text-athar-ink-soft">المصحف، وتثبيت، ومُكْث، وتدريب — أربعة أبواب على الواجهة الجديدة، والبيانات تبقى على Flask.</p>
         </header>
         <div className="grid grid-cols-4 gap-px overflow-hidden border border-athar-line bg-athar-line max-[920px]:grid-cols-2 max-[640px]:grid-cols-1">
           {doors.map((door) => {
@@ -94,20 +89,16 @@ export default function HomePage() {
                 <h3 className="mt-4 mb-2 font-athar-display text-4xl">{door.title}</h3>
                 <p className="m-0 text-sm text-athar-ink-soft">{door.description}</p>
                 <span className="mt-auto flex items-center justify-between gap-3 text-sm font-bold text-athar-accent">
-                  {door.migrated ? "افتح المسار التجريبي" : "افتح النسخة الحالية"}
+                  افتح
                   <span aria-hidden="true">←</span>
                 </span>
               </>
             );
             const className = "flex min-h-[310px] flex-col bg-athar-canvas p-7 no-underline transition-[background-color,transform] hover:-translate-y-1 hover:bg-athar-surface focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-athar-accent max-[640px]:min-h-[250px]";
-            return door.migrated ? (
+            return (
               <Link className={className} href={door.href} key={door.title}>
                 {content}
               </Link>
-            ) : (
-              <a className={className} href={door.href} key={door.title}>
-                {content}
-              </a>
             );
           })}
         </div>
@@ -115,14 +106,19 @@ export default function HomePage() {
 
       <section className="bg-athar-ink py-[90px] text-athar-canvas">
         <div className={cn(pageContainerClassName, "max-w-[880px]")}>
-          <p className="mb-3 text-[0.78rem] font-bold tracking-[0.08em] text-athar-gold">القياس قبل النقل</p>
-          <h2 className="m-0 font-athar-display text-[clamp(2.4rem,5vw,4.6rem)] leading-[1.08] tracking-[-0.035em]">نثبت السرعة على المصحف، ثم ننقل ما ينجح.</h2>
+          <p className="mb-3 text-[0.78rem] font-bold tracking-[0.08em] text-athar-gold">البيانات في موضعها</p>
+          <h2 className="m-0 font-athar-display text-[clamp(2.4rem,5vw,4.6rem)] leading-[1.08] tracking-[-0.035em]">الواجهة هنا، والمصحف والوقف حيث وُثّقا.</h2>
           <p className="max-w-[660px] [color:color-mix(in_srgb,var(--athar-parchment)_68%,transparent)]">
             لا نعيد كتابة منطق القرآن. الواجهة الجديدة تستعمل واجهات Flask الحالية،
             وتترك المحرّر والبحث الثقيل والخطوط المتخصصة في مكانها حتى يحين دورها.
           </p>
         </div>
       </section>
+
+      <footer className={cn(pageContainerClassName, "flex flex-wrap items-center justify-between gap-3 border-t border-athar-line py-8 text-sm text-athar-ink-faint")}>
+        <span>© أثَر — مع القرآن</span>
+        <Link className="text-athar-ink-soft no-underline hover:text-athar-accent" href="/credits">المصادر والشكر</Link>
+      </footer>
     </main>
   );
 }

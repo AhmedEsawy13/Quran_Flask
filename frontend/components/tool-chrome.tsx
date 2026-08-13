@@ -1,6 +1,6 @@
-import type {HTMLAttributes, ReactNode} from "react";
+import type {HTMLAttributes, InputHTMLAttributes, ReactNode} from "react";
 import {cn} from "@/lib/cn";
-import {Button, Field, SelectControl, Surface} from "@/components/ui/primitives";
+import {Button, Field, InputControl, SelectControl, Surface} from "@/components/ui/primitives";
 
 export function ToolIntro({
   kicker,
@@ -42,22 +42,34 @@ export function ToolChrome({
   label,
   pill,
   note,
+  footer,
+  className,
   children,
 }: {
   label: string;
   pill?: ReactNode;
   note?: ReactNode;
+  footer?: ReactNode;
+  className?: string;
   children: ReactNode;
 }) {
   return (
     <section
-      className="sticky top-[var(--bar-height)] z-40 flex w-full flex-wrap items-end justify-between gap-x-[18px] gap-y-3 border-b border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] px-[clamp(12px,2.4vw,28px)] py-2 shadow-[0_14px_34px_-32px_color-mix(in_srgb,var(--athar-ink)_55%,transparent)] backdrop-blur-[18px] backdrop-saturate-150"
+      className={cn(
+        "sticky top-[var(--bar-height)] z-40 flex w-full flex-wrap items-end justify-between gap-x-[18px] gap-y-3 border-b border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] px-[clamp(12px,2.4vw,28px)] py-2 shadow-[0_14px_34px_-32px_color-mix(in_srgb,var(--athar-ink)_55%,transparent)] backdrop-blur-[18px] backdrop-saturate-150",
+        className,
+      )}
       aria-label={label}
     >
       {pill}
       <div className="flex min-w-0 flex-1 flex-wrap items-end gap-3 max-md:basis-full" aria-label="اختيار الموضع">
         {children}
       </div>
+      {footer ? (
+        <div className="flex w-full min-w-0 basis-full flex-wrap items-center gap-2 border-t border-athar-line-soft pt-2">
+          {footer}
+        </div>
+      ) : null}
       {note ? (
         <p className="m-0 flex w-full items-center justify-center gap-2 border-t border-athar-line bg-athar-accent/5 py-1.5 text-center text-[0.74rem] font-semibold text-athar-ink-soft">
           {note}
@@ -107,6 +119,15 @@ export function ChromeSelect(props: Parameters<typeof SelectControl>[0]) {
     <SelectControl
       {...props}
       className={cn("min-h-9 w-auto min-w-[8.25rem] rounded-[10px] py-2", props.className)}
+    />
+  );
+}
+
+export function ChromeInput(props: InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <InputControl
+      {...props}
+      className={cn("min-h-9 w-auto min-w-[12rem] rounded-[10px] py-2", props.className)}
     />
   );
 }

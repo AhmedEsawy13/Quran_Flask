@@ -35,6 +35,10 @@ type MushafRendererProps = {
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
   concealFocused?: boolean;
+  draftAyah?: number | null;
+  picking?: boolean;
+  revealedAyah?: number | null;
+  onAyahClick?: (surah: number, ayah: number) => void;
   onRetry: () => void;
 };
 
@@ -118,6 +122,10 @@ function PageLine({
   focusRange,
   contextRange,
   concealFocused,
+  draftAyah,
+  picking,
+  revealedAyah,
+  onAyahClick,
   editionId,
   tajweedEnabled,
   tajweedSegmentsByWord,
@@ -130,6 +138,10 @@ function PageLine({
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
   concealFocused?: boolean;
+  draftAyah?: number | null;
+  picking?: boolean;
+  revealedAyah?: number | null;
+  onAyahClick?: (surah: number, ayah: number) => void;
   editionId: MushafEditionId;
   tajweedEnabled?: boolean;
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
@@ -183,6 +195,8 @@ function PageLine({
                   : wordAyah === ayahNumber
               );
               const current = Number(word.surah) === surahNumber && wordAyah === ayahNumber;
+              const draft = Number(word.surah) === surahNumber && draftAyah != null && wordAyah === draftAyah;
+              const concealed = Boolean(focused && concealFocused && wordAyah !== revealedAyah);
               const contextual = Number(word.surah) === surahNumber && Boolean(
                 contextRange && wordAyah >= contextRange[0] && wordAyah <= contextRange[1]
               );
@@ -200,11 +214,19 @@ function PageLine({
               appended += 1;
               nodes.push(
                 <span
-                  className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${focused && concealFocused ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}`}
+                  className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${draft ? " is-range-draft" : ""}${concealed ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}${picking || concealFocused ? " is-interactive" : ""}`}
                   key={word.word_key || `${word.word_index ?? "word"}-${index}`}
                   aria-current={current ? "true" : undefined}
                   data-audio-index={audioPosition}
                   data-word-key={word.word_key || undefined}
+                  data-surah={Number.isInteger(Number(word.surah)) ? String(word.surah) : undefined}
+                  data-ayah={Number.isInteger(wordAyah) ? String(wordAyah) : undefined}
+                  onClick={onAyahClick ? () => {
+                    const surah = Number(word.surah);
+                    const ayah = Number(word.ayah);
+                    if (!Number.isInteger(surah) || !Number.isInteger(ayah) || surah < 1 || ayah < 1) return;
+                    onAyahClick(surah, ayah);
+                  } : undefined}
                 >
                   {tajweedParts ? tajweedParts.map((part, partIndex) => part.rule ? (
                     <span className={`tajweed-rule ${part.rule}`} key={`${part.rule}-${partIndex}`}>
@@ -257,6 +279,10 @@ export function MushafRenderer({
   focusRange,
   contextRange,
   concealFocused,
+  draftAyah = null,
+  picking = false,
+  revealedAyah = null,
+  onAyahClick,
   onRetry,
 }: MushafRendererProps) {
   const pageRef = useRef<HTMLElement>(null);
@@ -346,9 +372,10 @@ export function MushafRenderer({
   return (
     <article
       ref={pageRef}
-      className={`reader-page is-${view} edition-${editionId}`}
+      className={`reader-page is-${view} edition-${editionId}${picking ? " is-picking" : ""}`}
       aria-busy={isLoading || fontLoading || tajweedLoading}
       data-tajweed={tajweedEnabled ? "true" : undefined}
+      data-picking={picking ? "true" : undefined}
       style={style}
     >
       <header className="mushaf-head">
@@ -431,6 +458,10 @@ export function MushafRenderer({
                 focusRange={focusRange}
                 contextRange={contextRange}
                 concealFocused={concealFocused}
+                draftAyah={draftAyah}
+                picking={picking}
+                revealedAyah={revealedAyah}
+                onAyahClick={onAyahClick}
                 editionId={editionId}
                 tajweedEnabled={tajweedEnabled}
                 tajweedSegmentsByWord={tajweedSegmentsByWord}

@@ -1,0 +1,36 @@
+---
+description: Next.js public-app migration map — what lives on Next vs Flask
+alwaysApply: true
+---
+
+# Next.js migration (أثَر)
+
+Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `frontend/` is the **public product UI**. Do not re-implement Quran logic in Next; call Flask via `/backend-api/*`.
+
+## Public Next doors (done)
+
+| Path | Door | Notes |
+|---|---|-----|
+| `/` | landing | Four doors + credits footer |
+| `/read` | المصحف | Study drawer includes iʿrāb; Flask `/read` still has older chrome |
+| `/memorize` | تثبيت | Tap-to-pick range, zoom, dual page, bar transport + repetition. ASR stays Flask |
+| `/waqf` | مُكْث | Daily verse guide, verse search, full mushaf×reciter matrix. Lab stays Flask |
+| `/waqf-practice` | تدريب | Tap words + grade vs printed marks. ASR + live tajweed stay Flask |
+| `/credits` | المصادر | Attribution page |
+| `/robots.txt` `/sitemap.xml` `/llms.txt` | SEO | Next copies of Flask SEO |
+
+## Stay on Flask (intentional — do not port in a UI pass)
+
+- **API + fonts + audio proxy** — Vercel must not proxy long audio/CV/PDFs
+- **`/waqf-lab`** — research workspace (Quran-wide search, reciter matrix, classical-for-all)
+- **ASR** — zipformer on `/memorize` and `/waqf-practice` (132MB+)
+- **Editor** (`ENABLE_EDITOR`): `/mushaf-editor`, `/layout-studio`, `/azhar-layout`, `/font-lab`, `/cv-waqf`, `/waqf-mark-review`, `/classical-review`, `/activity`, quran-integrity-review
+
+## Known gaps (next passes, not forgotten)
+
+- تثبيت: tajweed color on studio
+- مُكْث: all-reciters / classical-for-all cards
+- تدريب: printed mushaf page-card layout (tap-to-grade currently uses word flow)
+- Reader: leftover Flask-only chrome via `HandoffSurface`
+
+When adding a public door, wire **nav**, **landing**, **in-app handoffs**, and `smoke.spec.ts`. Keep Quran wording/tafsir from local APIs or Tafsir/Bahouth MCP — never invent.

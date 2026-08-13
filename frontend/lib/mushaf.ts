@@ -135,6 +135,22 @@ export function toArabicDigits(value: number | string) {
   return String(value).replace(/[0-9]/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
 }
 
+export function fromArabicDigits(value: string) {
+  return value.replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+}
+
+// Printed RTL Mushaf spread: odd page on the right, following even page on the
+// left. A missing cover-side at an edition boundary stays intentionally blank.
+export function spreadPageNumbers(
+  page: number,
+  minimum: number,
+  maximum: number,
+): [number | null, number | null] {
+  const right = page % 2 === 1 ? page : page - 1;
+  const left = right + 1;
+  return [right >= minimum ? right : null, left <= maximum ? left : null];
+}
+
 export function juzNumberForPage(pageNumber: number) {
   let juz = 1;
   for (let index = 0; index < JUZ_START_PAGES.length; index += 1) {
