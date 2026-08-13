@@ -32,6 +32,9 @@ type MushafRendererProps = {
   tajweedEnabled?: boolean;
   tajweedLoading?: boolean;
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
+  waqfEnabled?: boolean;
+  waqfSource?: string;
+  fontScale?: number;
   dualLayout?: boolean;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
@@ -46,6 +49,7 @@ type MushafRendererProps = {
 
 const AYAH_NUMBER_TOKEN = /^\u06dd?[٠-٩]+$/;
 const BARE_AYAH_NUMBER_TOKEN = /^[٠-٩]+$/;
+const EMBEDDED_WAQF_RE = /[\u06D6-\u06DC]/g;
 
 function isAyahNumberToken(text: string) {
   return AYAH_NUMBER_TOKEN.test(text.trim());
@@ -124,6 +128,24 @@ function wordWaqfMarks(word: MushafWord) {
   return word.waqf_symbols.filter((mark) => mark.symbols.trim());
 }
 
+function wordDisplayText(
+  word: MushafWord,
+  editionId: MushafEditionId,
+  waqfEnabled: boolean,
+  waqfSource: string,
+) {
+  const raw = word.text || "";
+  if (editionId === "shamarly") return withAyahOrnament(raw, editionId);
+  const clean = raw.replace(EMBEDDED_WAQF_RE, "");
+  if (!waqfEnabled) return withAyahOrnament(clean, editionId);
+  if (waqfSource === "المدينة الجديد") return withAyahOrnament(raw, editionId);
+  const selectedMark = wordWaqfMarks(word).find((mark) => mark.version === waqfSource);
+  return withAyahOrnament(
+    clean + (selectedMark ? waqfMarkGlyph(selectedMark.symbols) : ""),
+    editionId,
+  );
+}
+
 function buildPageAudioPositions(page: MushafPage | null, surah: number, ayah: number) {
   const positions = new Map<MushafWord, number>();
   let position = 0;
@@ -189,6 +211,8 @@ function PageLine({
   editionId,
   tajweedEnabled,
   tajweedSegmentsByWord,
+  waqfEnabled,
+  waqfSource,
 }: {
   line: MushafLine;
   surahNumber: number;
@@ -206,6 +230,8 @@ function PageLine({
   editionId: MushafEditionId;
   tajweedEnabled?: boolean;
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
+  waqfEnabled: boolean;
+  waqfSource: string;
 }) {
   if (line.line_type === "surah_name") {
     const lineSurahNumber = Number(line.surah_number);
@@ -266,8 +292,8 @@ function PageLine({
               );
               const audioPosition = audioPositions.get(word);
               const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
-              const waqfMarks = wordWaqfMarks(word);
-              const displayText = withAyahOrnament(word.text, editionId);
+              const waqfMarks = editionId === "shamarly" && waqfEnabled ? wordWaqfMarks(word) : [];
+              const displayText = wordDisplayText(word, editionId, waqfEnabled, waqfSource);
               const tajweedSegment = tajweedSegmentsByWord?.get(wordIdentity(word));
               const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
                 ? tajweedPartsForDisplay(displayText, tajweedSegment)
@@ -342,6 +368,9 @@ export function MushafRenderer({
   tajweedEnabled = false,
   tajweedLoading = false,
   tajweedSegmentsByWord,
+  waqfEnabled = true,
+  waqfSource,
+  fontScale = 1,
   dualLayout = false,
   focusRange,
   contextRange,
@@ -355,6 +384,7 @@ export function MushafRenderer({
 }: MushafRendererProps) {
   const pageRef = useRef<HTMLElement>(null);
   const edition = MUSHAF_EDITIONS[editionId];
+  const activeWaqfSource = waqfSource || edition.waqfSource;
   const shemrlyAvailable = editionId !== "shamarly" || page?.glyph_mapping_mode === "shemrly-page-local";
   const quranFont = editionId === "shamarly" && shemrlyAvailable && page?.font_name
     ? `"${page.font_name}", "Uthmanic Hafs", serif`
@@ -403,7 +433,7 @@ export function MushafRenderer({
       frame = requestAnimationFrame(() => {
         if (!active) return;
         // Same pipeline as تثبيت: measured font size, then capped line justify.
-        fitAndJustifyMushafPage(root, editionId, { dual: dualLayout });
+        fitAndJustifyMushafPage(root, editionId, { dual: dualLayout, fontScale });
         paintContextBands(root);
       });
     };
@@ -436,7 +466,7 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [contextByKey, dualLayout, editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view]);
+  }, [contextByKey, dualLayout, editionId, fontLoading, fontScale, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled, activeWaqfSource]);
 
   return (
     <article
@@ -444,6 +474,8 @@ export function MushafRenderer({
       className={`reader-page is-${view} edition-${editionId}${picking ? " is-picking" : ""}`}
       aria-busy={isLoading || fontLoading || tajweedLoading}
       data-tajweed={tajweedEnabled ? "true" : undefined}
+      data-waqf-enabled={waqfEnabled ? "true" : "false"}
+      data-waqf-source={activeWaqfSource}
       data-picking={picking ? "true" : undefined}
       style={style}
     >
@@ -537,6 +569,8 @@ export function MushafRenderer({
                   editionId={editionId}
                   tajweedEnabled={tajweedEnabled}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
+                  waqfEnabled={waqfEnabled}
+                  waqfSource={activeWaqfSource}
                 />
               ))}
             </div>

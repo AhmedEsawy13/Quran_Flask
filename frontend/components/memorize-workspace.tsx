@@ -31,6 +31,7 @@ import { MemorizePlayer } from "@/components/memorize-player";
 import { AtharIcon, type AtharIconName } from "@/components/ui/athar-icon";
 import {
   Button,
+  CheckControl,
   ProgressBar,
   StatusState,
 } from "@/components/ui/primitives";
@@ -63,6 +64,8 @@ const ZOOM_MIN = 0.75;
 const ZOOM_MAX = 2;
 const ZOOM_STEP = 0.1;
 const EMPTY_CONTEXT_SEGMENTS: MemorizationContextSegment[] = [];
+const WAQF_SOURCES = ["المدينة الجديد", "المدينة القديم", "الشمرلي"] as const;
+type WaqfSource = typeof WAQF_SOURCES[number];
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
@@ -149,11 +152,12 @@ function ToolbarPopover({
   );
 }
 
-function mushafQuery(editionId: MushafEditionId) {
-  const edition = MUSHAF_EDITIONS[editionId];
-  return editionId === "azhar_amiri" || editionId === "shamarly"
-    ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}`
-    : "";
+function isWaqfSource(value: unknown): value is WaqfSource {
+  return WAQF_SOURCES.includes(value as WaqfSource);
+}
+
+function mushafQuery(waqfSource: WaqfSource) {
+  return `?mushaf_version=${encodeURIComponent(waqfSource)}`;
 }
 
 function pageFontName(editionId: MushafEditionId, page: MushafPage | null) {
@@ -187,7 +191,9 @@ export function MemorizeWorkspace() {
   const [concealed, setConcealed] = useState(false);
   const [showContext, setShowContext] = useState(true);
   const [tajweedEnabled, setTajweedEnabled] = useState(false);
-  const [tajweedPreferenceReady, setTajweedPreferenceReady] = useState(false);
+  const [waqfEnabled, setWaqfEnabled] = useState(true);
+  const [waqfSource, setWaqfSource] = useState<WaqfSource>("المدينة الجديد");
+  const [preferencesReady, setPreferencesReady] = useState(false);
   const [revealedAyah, setRevealedAyah] = useState<number | null>(null);
   const [rangeDraft, setRangeDraft] = useState<RangeDraft | null>(null);
   const [pageOverride, setPageOverride] = useState<number | null>(null);
@@ -207,8 +213,8 @@ export function MemorizeWorkspace() {
   const edition = MUSHAF_EDITIONS[editionId];
   const dualActive = layout === "dual" && dualAvailable;
   const pageKey = pageOverride
-    ? `${editionId}:page:${pageOverride}:${retryToken}`
-    : `${editionId}:${surahNumber}:${activeAyah}:${retryToken}`;
+    ? `${editionId}:${waqfSource}:page:${pageOverride}:${retryToken}`
+    : `${editionId}:${waqfSource}:${surahNumber}:${activeAyah}:${retryToken}`;
   const contextKey = `${surahNumber}:${activeAyah}:${retryToken}`;
   const visiblePage = pageResult.key === pageKey ? pageResult : null;
   const focusPage = visiblePage?.page?.page_number || pageOverride;
@@ -216,7 +222,7 @@ export function MemorizeWorkspace() {
     ? spreadPageNumbers(focusPage, edition.minPage, edition.maxPage)
     : [null, null];
   const spreadKey = dualActive && focusPage
-    ? `${editionId}:${rightPageNumber || 0}:${leftPageNumber || 0}:${retryToken}`
+    ? `${editionId}:${waqfSource}:${rightPageNumber || 0}:${leftPageNumber || 0}:${retryToken}`
     : "";
   const visibleSpread = spreadResult.key === spreadKey ? spreadResult : null;
   const rightPage = dualActive
@@ -344,7 +350,17 @@ export function MemorizeWorkspace() {
         window.localStorage.getItem("athar-reader-tajweed") === "true" ||
         window.localStorage.getItem("quranApp_tajweedEnabled") === "true",
       );
-      setTajweedPreferenceReady(true);
+      try {
+        const savedSources = JSON.parse(window.localStorage.getItem("mz_waqf_print") || "[]");
+        if (Array.isArray(savedSources) && isWaqfSource(savedSources[0])) setWaqfSource(savedSources[0]);
+      } catch {
+        // Ignore malformed legacy preferences and retain the Madinah-new default.
+      }
+      const savedWaqfVisibility = window.localStorage.getItem("quranApp_waqfVisible");
+      if (savedWaqfVisibility !== null) {
+        setWaqfEnabled(savedWaqfVisibility === "1" || savedWaqfVisibility === "true");
+      }
+      setPreferencesReady(true);
     });
     return () => {
       media.removeEventListener("change", update);
@@ -353,9 +369,15 @@ export function MemorizeWorkspace() {
   }, []);
 
   useEffect(() => {
-    if (!tajweedPreferenceReady) return;
+    if (!preferencesReady) return;
     window.localStorage.setItem("athar-reader-tajweed", String(tajweedEnabled));
-  }, [tajweedEnabled, tajweedPreferenceReady]);
+  }, [preferencesReady, tajweedEnabled]);
+
+  useEffect(() => {
+    if (!preferencesReady) return;
+    window.localStorage.setItem("mz_waqf_print", JSON.stringify([waqfSource]));
+    window.localStorage.setItem("quranApp_waqfVisible", waqfEnabled ? "1" : "");
+  }, [preferencesReady, waqfEnabled, waqfSource]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -396,7 +418,7 @@ export function MemorizeWorkspace() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const query = mushafQuery(editionId);
+    const query = mushafQuery(waqfSource);
     const path = pageOverride
       ? `/backend-api/${edition.apiBase}/page/${pageOverride}${query}`
       : `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${activeAyah}${query}`;
@@ -411,12 +433,12 @@ export function MemorizeWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [edition.apiBase, editionId, surahNumber, activeAyah, pageOverride, retryToken, pageKey]);
+  }, [edition.apiBase, editionId, surahNumber, activeAyah, pageOverride, retryToken, pageKey, waqfSource]);
 
   useEffect(() => {
     if (!dualActive || !visiblePage?.page || !spreadKey) return;
     const controller = new AbortController();
-    const query = mushafQuery(editionId);
+    const query = mushafQuery(waqfSource);
     const loadPage = (pageNumber: number | null) => {
       if (!pageNumber) return Promise.resolve(null);
       if (visiblePage.page?.page_number === pageNumber) return Promise.resolve(visiblePage.page);
@@ -437,7 +459,7 @@ export function MemorizeWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [dualActive, edition.apiBase, editionId, leftPageNumber, rightPageNumber, spreadKey, visiblePage?.page]);
+  }, [dualActive, edition.apiBase, editionId, leftPageNumber, rightPageNumber, spreadKey, visiblePage?.page, waqfSource]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -609,6 +631,9 @@ export function MemorizeWorkspace() {
     tajweedEnabled: tajweedOn,
     tajweedLoading,
     tajweedSegmentsByWord,
+    waqfEnabled,
+    waqfSource,
+    fontScale: editionId === "digital_khatt" || editionId === "qpc_v2" || editionId === "qpc_v1" ? 0.8 : 1,
     concealFocused: concealed,
     draftAyah: rangeDraft?.anchor ?? null,
     picking: picking && !concealed,
@@ -684,6 +709,36 @@ export function MemorizeWorkspace() {
               </select>
             </label>
             <p className="m-0 text-[0.7rem] leading-5 text-athar-ink-faint">{edition.description}</p>
+            <fieldset className="grid gap-1.5 border-0 p-0">
+              <legend className="text-[0.68rem] font-bold text-athar-gold">علامات الوقف من مصحف</legend>
+              <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label="مصدر علامات الوقف">
+                {WAQF_SOURCES.map((source) => (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={waqfSource === source}
+                    className={`min-h-9 rounded-[10px] border px-1 text-[0.68rem] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent ${
+                      waqfSource === source
+                        ? "border-athar-accent bg-athar-accent/8 text-athar-accent"
+                        : "border-athar-line bg-athar-surface text-athar-ink-soft hover:border-athar-accent"
+                    }`}
+                    onClick={() => {
+                      setWaqfSource(source);
+                      setWaqfEnabled(true);
+                    }}
+                    key={source}
+                  >
+                    {source}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <CheckControl
+              label="إظهار علامات الوقف"
+              checked={waqfEnabled}
+              onChange={(event) => setWaqfEnabled(event.target.checked)}
+              className="min-h-10"
+            />
           </ToolbarPopover>
 
           <span className="mx-0.5 h-7 w-px shrink-0 bg-athar-line max-sm:hidden" aria-hidden="true" />

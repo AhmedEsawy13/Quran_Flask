@@ -301,6 +301,28 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
+  const lineRhythm = await page.locator(".reader-page").first().evaluate((readerPage) => {
+    const lines = [...readerPage.querySelectorAll<HTMLElement>(".mushaf-line")].filter((line) => line.querySelector(".mushaf-line-inner"));
+    const firstInner = lines[0]?.querySelector<HTMLElement>(".mushaf-line-inner");
+    return {
+      fontSize: firstInner ? Number.parseFloat(getComputedStyle(firstInner).fontSize) : 0,
+      lineStep: lines.length > 1 ? lines[1].getBoundingClientRect().top - lines[0].getBoundingClientRect().top : 0,
+    };
+  });
+  expect(lineRhythm.fontSize).toBeGreaterThan(9);
+  expect(lineRhythm.lineStep / lineRhythm.fontSize).toBeGreaterThan(1.25);
+  await page.locator("summary").filter({hasText: "رسم المصحف"}).click();
+  await expect(page.getByRole("radio", {name: "المدينة الجديد"})).toHaveAttribute("aria-checked", "true");
+  const waqfToggle = page.getByLabel("إظهار علامات الوقف");
+  await waqfToggle.uncheck();
+  await expect(page.locator('.reader-page[data-waqf-enabled="false"]')).not.toHaveCount(0);
+  const hiddenText = await page.locator(".mushaf-lines").first().innerText();
+  expect(hiddenText).not.toMatch(/[\u06D6-\u06DC]/);
+  await page.getByRole("radio", {name: "المدينة القديم"}).click();
+  await expect(page.getByRole("radio", {name: "المدينة القديم"})).toHaveAttribute("aria-checked", "true");
+  await expect(waqfToggle).toBeChecked();
+  await expect(page.locator('.reader-page[data-waqf-source="المدينة القديم"]')).not.toHaveCount(0);
+  await page.locator("summary").filter({hasText: "رسم المصحف"}).click();
   await page.locator("summary").filter({hasText: "الموضع"}).click();
   await expect(page.getByLabel("ملخص نطاق التثبيت").getByText("سورة البقرة · ٢٥٥–٢٥٧", {exact: true})).toBeVisible();
   await page.locator("summary").filter({hasText: "الموضع"}).click();
