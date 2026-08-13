@@ -37,10 +37,8 @@ import {
   Button,
   CheckControl,
   DrawerSurface,
-  Field,
+  InputControl,
   ProgressBar,
-  SegmentedControl,
-  SelectControl,
   StatusState,
 } from "@/components/ui/primitives";
 
@@ -60,6 +58,10 @@ type SpreadResult = {
 type ContextResult = {
   key: string;
   data: MemorizationContext | null;
+};
+
+type ShemrlyPagesPayload = {
+  pages?: number[];
 };
 
 type RangeDraft = {
@@ -206,6 +208,8 @@ export function MemorizeWorkspace() {
   const [revealedAyah, setRevealedAyah] = useState<number | null>(null);
   const [rangeDraft, setRangeDraft] = useState<RangeDraft | null>(null);
   const [navigatorMode, setNavigatorMode] = useState<MemorizeNavigator | null>(null);
+  const [navigatorQuery, setNavigatorQuery] = useState("");
+  const [shemrlyPages, setShemrlyPages] = useState<number[] | null>(null);
   const [pageOverride, setPageOverride] = useState<number | null>(null);
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [catalogError, setCatalogError] = useState("");
@@ -228,13 +232,24 @@ export function MemorizeWorkspace() {
   const contextKey = `${surahNumber}:${activeAyah}:${retryToken}`;
   const visiblePage = pageResult.key === pageKey ? pageResult : null;
   const focusPage = visiblePage?.page?.page_number || pageOverride;
-  const currentJuz = focusPage
+  const currentJuz = focusPage && editionId !== "shamarly"
     ? juzNumberForPage(focusPage)
     : juzNumberFromAyah(surahNumber, activeAyah);
   const pageNumbers = useMemo(
-    () => Array.from({length: edition.maxPage - edition.minPage + 1}, (_, index) => edition.minPage + index),
-    [edition.maxPage, edition.minPage],
+    () => editionId === "shamarly"
+      ? shemrlyPages || []
+      : Array.from({length: edition.maxPage - edition.minPage + 1}, (_, index) => edition.minPage + index),
+    [edition.maxPage, edition.minPage, editionId, shemrlyPages],
   );
+  const filteredSurahs = useMemo(() => {
+    const query = navigatorQuery.trim();
+    if (!query) return surahs;
+    return surahs.filter((surah) =>
+      surah.name.includes(query) ||
+      String(surah.number).includes(query) ||
+      toArabicDigits(surah.number).includes(query)
+    );
+  }, [navigatorQuery, surahs]);
   const [rightPageNumber, leftPageNumber] = focusPage && dualActive
     ? spreadPageNumbers(focusPage, edition.minPage, edition.maxPage)
     : [null, null];
@@ -409,6 +424,20 @@ export function MemorizeWorkspace() {
       });
     return () => controller.abort();
   }, [retryToken]);
+
+  useEffect(() => {
+    if (editionId !== "shamarly" || shemrlyPages !== null) return;
+    const controller = new AbortController();
+    getJson<ShemrlyPagesPayload>("/backend-api/shamarly/pages", controller.signal)
+      .then((payload) => {
+        const pages = Array.isArray(payload.pages)
+          ? payload.pages.filter((page) => Number.isInteger(page) && page >= edition.minPage && page <= edition.maxPage)
+          : [];
+        setShemrlyPages(pages);
+      })
+      .catch(() => setShemrlyPages([]));
+    return () => controller.abort();
+  }, [edition.maxPage, edition.minPage, editionId, shemrlyPages]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -601,6 +630,11 @@ export function MemorizeWorkspace() {
     setNavigatorMode(null);
   };
 
+  const openNavigator = (mode: MemorizeNavigator) => {
+    setNavigatorQuery("");
+    setNavigatorMode(mode);
+  };
+
   const selectFrom = (nextFrom: number) => {
     setRangeDraft(null);
     const nextTo = Math.max(nextFrom, toAyah);
@@ -679,9 +713,9 @@ export function MemorizeWorkspace() {
     picking: picking && !concealed,
     revealedAyah,
     onAyahClick: handleAyahClick,
-    onSurahNavigate: () => setNavigatorMode("surah"),
-    onJuzNavigate: () => setNavigatorMode("juz"),
-    onPageNavigate: () => setNavigatorMode("page"),
+    onSurahNavigate: () => openNavigator("surah"),
+    onJuzNavigate: () => openNavigator("juz"),
+    onPageNavigate: () => openNavigator("page"),
     onRetry: retry,
   };
 
@@ -873,62 +907,89 @@ export function MemorizeWorkspace() {
         open={navigatorMode !== null}
         onClose={() => setNavigatorMode(null)}
         eyebrow={positionLabel}
-        title="فهرس المصحف"
+        title={navigatorMode === "surah" ? "اختر السورة" : navigatorMode === "juz" ? "اختر الجزء" : "اذهب إلى صفحة"}
         id="memorize-navigator-drawer"
         overlay
       >
-        <div className="grid gap-4">
-          <SegmentedControl
-            label="نوع الانتقال"
-            value={navigatorMode || "surah"}
-            options={[
-              {value: "surah", label: "السورة"},
-              {value: "juz", label: "الجزء"},
-              {value: "page", label: "الصفحة"},
-            ]}
-            onChange={setNavigatorMode}
-          />
+        <div className="grid gap-3">
           {navigatorMode === "surah" ? (
-            <Field label="اختر السورة" hint="ينقلك إلى أول آية ويبدأ منها نطاق تثبيت جديدًا">
-              <SelectControl value={surahNumber} onChange={(event) => jumpToSurah(Number(event.target.value))} disabled={!surahs.length}>
-                {!surahs.length ? <option>جارٍ التحميل…</option> : null}
-                {surahs.map((surah) => (
-                  <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
+            <>
+              <InputControl
+                type="search"
+                value={navigatorQuery}
+                aria-label="بحث عن سورة"
+                placeholder="بحث باسم السورة أو رقمها…"
+                onChange={(event) => setNavigatorQuery(event.target.value)}
+              />
+              <div className="grid max-h-[min(58dvh,32rem)] gap-1 overflow-y-auto pe-1" aria-label="قائمة السور">
+                {filteredSurahs.map((surah) => (
+                  <button
+                    type="button"
+                    className="flex min-h-12 items-center gap-3 rounded-xl border border-athar-line-soft px-3 text-start text-sm text-athar-ink transition-colors hover:border-athar-accent hover:bg-athar-accent/6 aria-[current=true]:border-athar-accent aria-[current=true]:bg-athar-accent/10 aria-[current=true]:text-athar-accent"
+                    aria-current={surah.number === surahNumber ? "true" : undefined}
+                    onClick={() => jumpToSurah(surah.number)}
+                    key={surah.number}
+                  >
+                    <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-athar-line-soft font-bold">{toArabicDigits(surah.number)}</span>
+                    <span className="font-bold">سورة {surah.name}</span>
+                  </button>
                 ))}
-              </SelectControl>
-            </Field>
+                {!filteredSurahs.length ? <StatusState>لا توجد سورة مطابقة للبحث.</StatusState> : null}
+              </div>
+            </>
           ) : null}
           {navigatorMode === "juz" ? (
-            <Field label="اختر الجزء" hint="ينقلك إلى بداية الجزء ويبدأ منها نطاق تثبيت جديدًا">
-              <SelectControl value={currentJuz} onChange={(event) => jumpToJuz(Number(event.target.value))}>
-                {Array.from({length: 30}, (_, index) => index + 1).map((juz) => (
-                  <option key={juz} value={juz}>{juzLabel(juz)}</option>
-                ))}
-              </SelectControl>
-            </Field>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4" aria-label="قائمة الأجزاء">
+              {Array.from({length: 30}, (_, index) => index + 1).map((juz) => (
+                <button
+                  type="button"
+                  className="grid min-h-14 place-items-center rounded-xl border border-athar-line bg-athar-surface px-2 text-xs font-bold text-athar-ink transition-colors hover:border-athar-accent hover:text-athar-accent aria-[current=true]:border-athar-accent aria-[current=true]:bg-athar-accent aria-[current=true]:text-athar-on-accent"
+                  aria-current={juz === currentJuz ? "true" : undefined}
+                  onClick={() => jumpToJuz(juz)}
+                  key={juz}
+                >
+                  {juzLabel(juz)}
+                </button>
+              ))}
+            </div>
           ) : null}
           {navigatorMode === "page" ? (
-            <Field label="اختر الصفحة" hint={`${edition.label} · ${toArabicDigits(edition.minPage)}–${toArabicDigits(edition.maxPage)}`}>
-              <SelectControl value={focusPage || edition.minPage} onChange={(event) => jumpToPage(Number(event.target.value))}>
-                {pageNumbers.map((page) => <option key={page} value={page}>صفحة {toArabicDigits(page)}</option>)}
-              </SelectControl>
-            </Field>
+            <>
+              <p className="m-0 text-xs text-athar-ink-faint">
+                {editionId === "shamarly" && shemrlyPages?.length
+                  ? `${edition.label} · الصفحات المتوفرة بخطها الأصلي`
+                  : `${edition.label} · ${toArabicDigits(edition.minPage)}–${toArabicDigits(edition.maxPage)}`}
+              </p>
+              <div className="grid grid-cols-4 gap-2 sm:grid-cols-5" aria-label="قائمة الصفحات">
+                {pageNumbers.map((page) => (
+                  <button
+                    type="button"
+                    className="grid min-h-12 place-items-center rounded-xl border border-athar-line bg-athar-surface text-sm font-bold text-athar-ink transition-colors hover:border-athar-accent hover:text-athar-accent aria-[current=true]:border-athar-accent aria-[current=true]:bg-athar-accent aria-[current=true]:text-athar-on-accent"
+                    aria-label={`صفحة ${toArabicDigits(page)}`}
+                    aria-current={page === focusPage ? "true" : undefined}
+                    onClick={() => jumpToPage(page)}
+                    key={page}
+                  >
+                    {toArabicDigits(page)}
+                  </button>
+                ))}
+                {editionId === "shamarly" && shemrlyPages === null ? <StatusState>جارٍ تحميل الصفحات المتوفرة…</StatusState> : null}
+                {editionId === "shamarly" && shemrlyPages?.length === 0 ? <StatusState>تعذر العثور على صفحات الشمرلي المتوفرة.</StatusState> : null}
+              </div>
+            </>
           ) : null}
-          <p className="m-0 text-xs leading-6 text-athar-ink-faint">
-            افتح هذا الفهرس بالضغط على اسم السورة أو الجزء أو رقم الصفحة داخل المصحف.
-          </p>
         </div>
       </DrawerSurface>
 
       {showContext ? (
         <aside
-          className="relative z-20 mx-auto my-2 grid w-[min(1040px,calc(100%_-_112px))] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl border border-s-[3px] border-[color-mix(in_srgb,var(--mz-topic)_28%,var(--athar-line))] border-s-[var(--mz-topic)] bg-[color-mix(in_srgb,var(--mz-topic)_6%,var(--athar-surface))] px-3 py-2 shadow-[0_8px_24px_-22px_color-mix(in_srgb,var(--athar-ink)_45%,transparent)] max-sm:w-[calc(100%_-_12px)] max-sm:grid-cols-[auto_minmax(0,1fr)] max-sm:px-2"
+          className="mz-context-rail-next relative z-20 mx-auto my-2 grid w-[min(1040px,calc(100%_-_112px))] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-xl border border-s-[3px] border-[color-mix(in_srgb,var(--mz-topic)_28%,var(--athar-line))] border-s-[var(--mz-topic)] bg-[color-mix(in_srgb,var(--mz-topic)_6%,var(--athar-surface))] px-3 py-2 shadow-[0_8px_24px_-22px_color-mix(in_srgb,var(--athar-ink)_45%,transparent)] max-sm:w-[calc(100%_-_12px)] max-sm:grid-cols-[auto_minmax(0,1fr)] max-sm:px-2"
           aria-live="polite"
           aria-label="التفصيل الموضوعي"
           data-state={contextLoading ? "loading" : visibleContext?.found ? "ready" : "empty"}
           style={activeTopicColor ? {"--mz-topic": activeTopicColor} as CSSProperties : undefined}
         >
-          <span className="grid size-[34px] place-items-center rounded-[10px] bg-[color-mix(in_srgb,var(--mz-topic)_16%,transparent)] text-[var(--mz-topic)]" aria-hidden="true">
+          <span className="mz-context-rail-mark grid size-[34px] place-items-center rounded-[10px] bg-[color-mix(in_srgb,var(--mz-topic)_16%,transparent)] text-[var(--mz-topic)]" aria-hidden="true">
             <AtharIcon name="layers" className="size-[17px]" />
           </span>
           <div className="grid min-w-0 gap-0.5">

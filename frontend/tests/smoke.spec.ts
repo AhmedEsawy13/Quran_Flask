@@ -219,6 +219,22 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await page.goto("/read?surah=11&ayah=121&view=page&edition=shamarly");
   await expect(page.locator(".reader-page.edition-shamarly .mushaf-lines").first()).toBeVisible({timeout: 15_000});
   await expect.poll(() => page.evaluate(() => document.fonts.check('16px "Shemrly-Page193"'))).toBe(true);
+  const shemrlyMark = page.locator(".reader-page.edition-shamarly .mushaf-word:has(.mushaf-waqf-stack)").first();
+  await expect(shemrlyMark).toBeVisible();
+  const shemrlyMarkStyle = await shemrlyMark.evaluate((word) => {
+    const mark = word.querySelector<HTMLElement>(".mushaf-waqf-stack")!;
+    const wordRect = word.getBoundingClientRect();
+    const markRect = mark.getBoundingClientRect();
+    return {
+      offsetTop: markRect.top - wordRect.top,
+      color: getComputedStyle(mark.querySelector<HTMLElement>(".mushaf-print-mark")!).color,
+      pageBackgroundImage: getComputedStyle(word.closest<HTMLElement>(".reader-page")!).backgroundImage,
+    };
+  });
+  expect(shemrlyMarkStyle.offsetTop).toBeGreaterThanOrEqual(-1);
+  expect(shemrlyMarkStyle.offsetTop).toBeLessThan(6);
+  expect(shemrlyMarkStyle.color).not.toBe("rgba(0, 0, 0, 0)");
+  expect(shemrlyMarkStyle.pageBackgroundImage).toBe("none");
   await expectNoHorizontalOverflow(page);
 });
 
@@ -435,15 +451,20 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
     await expect(page.locator(".reader-mushaf-stage")).toHaveAttribute("data-page-count", "1");
   }
   await page.getByRole("button", {name: /اختر السورة — سورة البقرة/}).first().click();
-  const navigatorDrawer = page.getByRole("dialog", {name: "فهرس المصحف"});
-  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر السورة"})).toBeVisible();
-  await navigatorDrawer.getByRole("button", {name: "إغلاق فهرس المصحف"}).click();
+  const surahPicker = page.getByRole("dialog", {name: "اختر السورة"});
+  await expect(surahPicker.getByRole("searchbox", {name: "بحث عن سورة"})).toBeVisible();
+  await expect(surahPicker.getByRole("button", {name: "سورة البقرة"})).toHaveAttribute("aria-current", "true");
+  await surahPicker.getByRole("button", {name: "إغلاق اختر السورة"}).click();
   await page.getByRole("button", {name: /اختر الجزء/}).first().click();
-  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر الجزء"})).toBeVisible();
-  await navigatorDrawer.getByRole("button", {name: "إغلاق فهرس المصحف"}).click();
+  const juzPicker = page.getByRole("dialog", {name: "اختر الجزء"});
+  await expect(juzPicker.getByRole("button", {name: "الجزء الثالث", exact: true})).toHaveAttribute("aria-current", "true");
+  await juzPicker.getByRole("button", {name: "إغلاق اختر الجزء"}).click();
   await page.getByRole("button", {name: /اختر الصفحة — الصفحة ٤٢/}).first().click();
-  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر الصفحة"})).toHaveValue("42");
-  await navigatorDrawer.getByRole("button", {name: "إغلاق فهرس المصحف"}).click();
+  const pagePicker = page.getByRole("dialog", {name: "اذهب إلى صفحة"});
+  const currentPageButton = pagePicker.getByRole("button", {name: "صفحة ٤٢", exact: true});
+  await expect(currentPageButton).toHaveAttribute("aria-current", "true");
+  await currentPageButton.click();
+  await expect(pagePicker).toBeHidden();
   const sessionPlan = page.getByLabel("خطة جلسة التثبيت", {exact: true});
   await expect(sessionPlan).toContainText("ربط");
   await expect(page.getByLabel("تكرار الربط")).toBeEnabled();

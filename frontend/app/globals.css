@@ -62,6 +62,9 @@
   --athar-positive: #2e6e55;
   --athar-negative: #aa493f;
   --athar-copper: #9a4f2c;
+  --athar-waqf-mark: #9a3412;
+  --athar-waqf-strong: #166534;
+  --athar-waqf-avoid: #b91c1c;
   --athar-line: rgba(24, 23, 15, 0.13);
   --athar-line-soft: rgba(24, 23, 15, 0.07);
   --athar-shadow-sm: 0 10px 28px rgba(24, 23, 15, 0.08);
@@ -87,6 +90,9 @@
   --athar-accent: #176447;
   --athar-accent-soft: #268060;
   --athar-negative: #9e4038;
+  --athar-waqf-mark: #92400e;
+  --athar-waqf-strong: #166534;
+  --athar-waqf-avoid: #a52a2a;
   --athar-line: rgba(74, 59, 36, 0.17);
   --athar-line-soft: rgba(74, 59, 36, 0.09);
   --bar-background: rgba(239, 229, 207, 0.84);
@@ -109,6 +115,9 @@
   --athar-positive: #72d6b1;
   --athar-negative: #ff9387;
   --athar-copper: #d48358;
+  --athar-waqf-mark: #fdba74;
+  --athar-waqf-strong: #86efac;
+  --athar-waqf-avoid: #fca5a5;
   --athar-line: rgba(237, 231, 214, 0.14);
   --athar-line-soft: rgba(237, 231, 214, 0.07);
   --athar-shadow-sm: 0 10px 28px rgba(0, 0, 0, 0.2);
@@ -188,9 +197,7 @@ a {
 .reader-page {
   overflow: hidden;
   border: 1px solid var(--athar-line);
-  background:
-    linear-gradient(110deg, transparent 0 49.5%, var(--athar-line-soft) 50%, transparent 50.5%),
-    var(--athar-surface);
+  background: var(--athar-surface);
   box-shadow: var(--athar-shadow-lg);
 }
 
@@ -763,7 +770,7 @@ button.page-number {
   height: 1em;
   align-items: center;
   justify-content: center;
-  color: var(--athar-accent);
+  color: var(--athar-waqf-mark);
   font-family: "Uthmanic Hafs", serif;
   font-size: 1em;
   font-weight: 700;
@@ -794,21 +801,17 @@ button.page-number {
 
 .mushaf-print-mark.is-strong,
 .waqf-legend-symbol.is-strong {
-  color: var(--athar-positive);
+  color: var(--athar-waqf-strong);
 }
 
 .mushaf-print-mark.is-avoid,
 .waqf-legend-symbol.is-avoid {
-  color: var(--athar-negative);
+  color: var(--athar-waqf-avoid);
 }
 
 .reader-page.edition-azhar_amiri .mushaf-lines {
   font-size: clamp(1.28rem, 2.2vw, 1.62rem);
   line-height: 1.74;
-}
-
-.reader-page.edition-azhar_amiri .mushaf-print-mark {
-  color: #15803d;
 }
 
 .reader-page.edition-shamarly .mushaf-lines {
@@ -817,11 +820,13 @@ button.page-number {
 }
 
 .reader-page.edition-shamarly .mushaf-waqf-stack {
+  top: 0;
+  bottom: auto;
   font-size: 0.72em;
 }
 
 .reader-page.edition-shamarly .mushaf-print-mark {
-  color: inherit;
+  color: var(--athar-waqf-mark);
   font-size: 1em;
 }
 
@@ -905,7 +910,8 @@ button.page-number {
 }
 
 :root[data-theme="dark"] .mz-context-band {
-  background: color-mix(in srgb, var(--mz-band-color, var(--mz-topic)) 24%, transparent);
+  background: color-mix(in srgb, var(--mz-band-color, var(--mz-topic)) 34%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mz-band-color, var(--mz-topic)) 48%, transparent);
 }
 
 .mushaf-word.is-focus.is-current:not(.is-audio-active) {
@@ -1848,6 +1854,24 @@ button.page-number {
   color: var(--athar-ink-faint);
   font-size: 0.62rem;
   line-height: 1.35;
+}
+
+:root[data-theme="dark"] .mz-context-rail-next {
+  border-color: color-mix(in srgb, var(--mz-topic) 52%, var(--athar-line));
+  border-inline-start-color: var(--mz-topic);
+  background: color-mix(in srgb, var(--mz-topic) 15%, var(--athar-surface));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--mz-topic) 12%, transparent),
+    0 12px 30px -24px color-mix(in srgb, var(--mz-topic) 64%, transparent);
+}
+
+:root[data-theme="dark"] .mz-context-rail-next .mz-context-rail-mark {
+  background: color-mix(in srgb, var(--mz-topic) 30%, transparent);
+}
+
+:root[data-theme="dark"] .mz-context-rail-next .mz-context-kicker,
+:root[data-theme="dark"] .mz-context-rail-next .mz-context-path-separator {
+  color: color-mix(in srgb, var(--mz-topic) 66%, white);
 }
 
 /* ── مُكْث study (scrollable, verse-first) ───────────────────── */
