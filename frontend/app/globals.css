@@ -318,76 +318,26 @@ a {
   cursor: pointer;
 }
 
-.reader-route-header {
-  display: flex;
-  min-height: 46px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-block-end: 8px;
-  padding-inline: 4px;
-}
-
-.reader-route-header > div {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.reader-route-header p,
-.reader-route-header h1 {
-  margin: 0;
-}
-
-.reader-route-header p {
-  color: var(--athar-gold);
-  font-size: 0.68rem;
-  font-weight: 700;
-}
-
-.reader-route-header h1 {
-  color: var(--athar-ink);
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  line-height: 1;
-}
-
-.reader-route-header > span {
-  color: var(--athar-ink-faint);
-  font-size: 0.72rem;
-}
-
 .reader-reading-bar {
   position: sticky;
-  top: calc(var(--bar-height) + 0.45rem);
+  top: calc(var(--bar-height) + 0.3rem);
   z-index: 30;
-  width: min(980px, 100%);
+  width: min(1140px, 100%);
   margin-inline: auto;
-  padding: 8px 10px;
-  border-radius: 16px;
+  padding: 6px 8px;
+  border-radius: 14px;
   background: color-mix(in srgb, var(--athar-surface) 88%, transparent);
   box-shadow: var(--athar-shadow-sm);
   backdrop-filter: blur(16px);
 }
 
-.reader-keyboard-hint {
-  width: min(980px, 100%);
-  margin: -8px auto 0;
-  padding-inline: 8px;
-  color: var(--athar-ink-faint);
-  font-size: 0.68rem;
-  text-align: end;
-}
-
 .reader-mushaf-stage {
   position: relative;
   display: grid;
-  /* Keep the open Mushaf visible below the route header and sticky controls on
-     short laptop viewports. The renderer still measures the exact remaining
-     space; this only gives its stage a responsive, bounded canvas. */
-  min-height: clamp(360px, 54svh, 620px);
+  /* Keep the full printed page visible under the compact command bar. */
+  min-height: max(430px, calc(100svh - var(--bar-height) - 104px));
   place-items: center;
-  padding: 10px 54px 36px;
+  padding: 8px 54px 34px;
   border: 1px solid var(--athar-line-soft);
   border-radius: var(--radius-large);
   background:
@@ -1901,20 +1851,6 @@ a {
 }
 
 @media (max-width: 767px) {
-  .reader-route-header {
-    min-height: 38px;
-    margin-block-end: 5px;
-  }
-
-  .reader-route-header p,
-  .reader-route-header > span {
-    display: none;
-  }
-
-  .reader-route-header h1 {
-    font-size: 1.55rem;
-  }
-
   .reader-reading-bar {
     top: calc(var(--bar-height) + 0.3rem);
     padding: 5px 6px;
@@ -1927,12 +1863,8 @@ a {
     font-size: 0.72rem;
   }
 
-  .reader-keyboard-hint {
-    display: none;
-  }
-
   .reader-mushaf-stage {
-    min-height: max(470px, calc(100svh - var(--bar-height) - 176px));
+    min-height: max(500px, calc(100svh - var(--bar-height) - 112px));
     padding: 8px 6px 52px;
     border-radius: 20px;
   }

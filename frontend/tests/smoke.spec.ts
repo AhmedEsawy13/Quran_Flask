@@ -144,6 +144,27 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
     return worst;
   })).toBeLessThanOrEqual(2);
 
+  const compactReader = await page.evaluate(() => ({
+    barHeight: document.querySelector(".reader-reading-bar")?.getBoundingClientRect().height || 0,
+    stageTop: document.querySelector(".reader-mushaf-stage")?.getBoundingClientRect().top || 999,
+  }));
+  expect(compactReader.barHeight).toBeLessThan(96);
+  expect(compactReader.stageTop).toBeLessThan(200);
+
+  const mobileListen = page.getByRole("button", {name: "الانتقال إلى مشغّل التلاوة"});
+  const listenShortcut = await mobileListen.isVisible()
+    ? mobileListen
+    : page.getByRole("button", {name: "▶ استماع", exact: true}).first();
+  await listenShortcut.click();
+  await expect(page.getByRole("region", {name: "مشغّل التلاوة"})).toBeInViewport({ratio: 0.5});
+  const mobileStudy = page.getByRole("button", {name: "الانتقال إلى أدوات فهم الآية"});
+  const studyShortcut = await mobileStudy.isVisible()
+    ? mobileStudy
+    : page.getByRole("button", {name: "فهم الآية", exact: true}).first();
+  await studyShortcut.click();
+  await expect(page.getByRole("region", {name: "أدوات فهم الآية"})).toBeInViewport({ratio: 0.5});
+  await page.evaluate(() => window.scrollTo(0, 0));
+
   const tajweedButton = page.getByRole("button", {name: "تلوين التجويد", exact: true});
   if (await tajweedButton.isVisible()) {
     await tajweedButton.click();

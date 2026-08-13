@@ -64,6 +64,13 @@ function firstVerseOnPage(page: MushafPage) {
     : null;
 }
 
+function revealReaderSection(id: string) {
+  const section = document.getElementById(id);
+  if (!section) return;
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  section.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "start"});
+}
+
 export function ReaderWorkspace() {
   const searchParams = useSearchParams();
   const restoreLastPosition = !searchParams.has("surah") && !searchParams.has("ayah");
@@ -417,19 +424,34 @@ export function ReaderWorkspace() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [nextDisabled, previousDisabled]);
 
+  const revealAfterSettings = (id: string) => {
+    setSettingsOpen(false);
+    window.requestAnimationFrame(() => revealReaderSection(id));
+  };
+
   return (
     <section className="reader-workspace grid gap-3.5 sm:gap-4" aria-label="قارئ المصحف">
-      <Surface variant="toolbar" className="reader-reading-bar">
-        <div className="flex min-h-12 items-center gap-2 md:hidden">
+      <Surface variant="toolbar" className="reader-reading-bar" aria-label="أدوات القراءة السريعة">
+        <div className="flex min-h-10 items-center gap-1.5 md:hidden">
           <Button
-            size="sm"
+            size="icon"
             variant="quiet"
-            className="shrink-0 px-3"
+            className="size-9 shrink-0 text-base"
+            aria-label="إعدادات القراءة"
             aria-expanded={settingsOpen}
             aria-controls={settingsOpen ? "reader-settings-drawer" : undefined}
             onClick={() => setSettingsOpen(true)}
           >
-            إعدادات القراءة
+            ⚙
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-9 shrink-0 text-xs"
+            aria-label="الانتقال إلى مشغّل التلاوة"
+            onClick={() => revealReaderSection("reader-audio")}
+          >
+            ▶
           </Button>
           <div className="min-w-0 flex-1 text-center">
             <strong className="block truncate text-sm text-athar-ink">{positionLabel}</strong>
@@ -442,9 +464,18 @@ export function ReaderWorkspace() {
             onChange={setView}
             className="w-[116px] shrink-0"
           />
+          <Button
+            size="icon"
+            variant="ghost"
+            className="size-9 shrink-0 text-xs"
+            aria-label="الانتقال إلى أدوات فهم الآية"
+            onClick={() => revealReaderSection("reader-study-tools")}
+          >
+            شرح
+          </Button>
         </div>
 
-        <div className="hidden items-end gap-2 md:grid md:grid-cols-[auto_minmax(180px,1fr)_minmax(90px,.42fr)_minmax(185px,1fr)] lg:gap-3">
+        <div className="hidden items-end gap-2 md:grid md:grid-cols-[auto_minmax(150px,1fr)_minmax(80px,.38fr)_minmax(170px,.9fr)_auto] lg:gap-2.5">
           <SegmentedControl
             label="طريقة العرض"
             value={view}
@@ -486,28 +517,62 @@ export function ReaderWorkspace() {
               ))}
             </SelectControl>
           </Field>
-        </div>
-        <div className="mt-2 hidden items-center justify-between gap-3 border-t border-athar-line-soft pt-2 md:flex">
-          <span className="truncate text-xs text-athar-ink-faint">{positionLabel}</span>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-1.5 self-end border-s border-athar-line-soft ps-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="px-2.5"
+              onClick={() => revealReaderSection("reader-audio")}
+            >
+              ▶ استماع
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="px-2.5"
+              onClick={() => revealReaderSection("reader-study-tools")}
+            >
+              فهم الآية
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="hidden px-2.5 xl:inline-flex"
+              onClick={() => revealReaderSection("reader-mushaf-guide")}
+            >
+              مفتاح الصفحة
+            </Button>
             <Button
               size="sm"
               variant={layout === "dual" ? "quiet" : "ghost"}
+              className="hidden px-2.5 xl:inline-flex"
               aria-pressed={layout === "dual"}
               disabled={view !== "page"}
               onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
             >
-              {layout === "dual" ? "صفحتان متقابلتان" : "صفحة واحدة"}
+              {layout === "dual" ? "صفحتان" : "صفحة واحدة"}
             </Button>
             <Button
               size="sm"
               variant={tajweedOn ? "quiet" : "ghost"}
+              className="hidden px-2.5 xl:inline-flex"
               aria-pressed={tajweedOn}
               disabled={!tajweedAvailable}
               title={editionId === "shamarly" ? "التلوين الحرفي غير متاح مع خط الشمرلي" : "تلوين أحكام التجويد حرفيًا"}
               onClick={() => setTajweedEnabled((current) => !current)}
             >
-              {tajweedLoading ? "يُحمّل التجويد…" : "تلوين التجويد"}
+              {tajweedLoading ? "يُحمّل…" : "تلوين التجويد"}
+            </Button>
+            <Button
+              size="icon"
+              variant="quiet"
+              className="size-9"
+              aria-label="المزيد من إعدادات القراءة"
+              aria-expanded={settingsOpen}
+              aria-controls={settingsOpen ? "reader-settings-drawer" : undefined}
+              onClick={() => setSettingsOpen(true)}
+            >
+              ⚙
             </Button>
           </div>
         </div>
@@ -519,7 +584,13 @@ export function ReaderWorkspace() {
         eyebrow={positionLabel}
         title="إعدادات القراءة"
         id="reader-settings-drawer"
+        overlay
       >
+        <div className="mb-4 grid grid-cols-3 gap-2 border-b border-athar-line-soft pb-4" aria-label="الوصول السريع">
+          <Button size="sm" variant="quiet" onClick={() => revealAfterSettings("reader-audio")}>▶ استماع</Button>
+          <Button size="sm" variant="quiet" onClick={() => revealAfterSettings("reader-study-tools")}>فهم الآية</Button>
+          <Button size="sm" variant="quiet" onClick={() => revealAfterSettings("reader-mushaf-guide")}>مفتاح الصفحة</Button>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1 text-[0.7rem] text-athar-ink-faint sm:col-span-2">
             <span>طريقة العرض</span>
@@ -569,8 +640,6 @@ export function ReaderWorkspace() {
           />
         </div>
       </DrawerSurface>
-
-      <p className="reader-keyboard-hint">← {view === "page" ? "للصفحة التالية" : "للآية التالية"} · → للسابقة</p>
 
       {catalogError ? (
         <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>

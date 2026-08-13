@@ -290,7 +290,11 @@ export function ReaderStudy({
   );
 
   return (
-    <section className="mx-auto w-full max-w-[790px]" aria-label="أدوات فهم الآية">
+    <section
+      id="reader-study-tools"
+      className="mx-auto w-full max-w-[790px] scroll-mt-[calc(var(--bar-height)+5rem)]"
+      aria-label="أدوات فهم الآية"
+    >
       <div className="grid grid-cols-2 gap-1.5 rounded-[15px] border border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_82%,transparent)] p-1.5 sm:grid-cols-3 lg:grid-cols-4">
         {tools.map((tool) => (
           <Button
@@ -314,6 +318,7 @@ export function ReaderStudy({
           eyebrow={`الآية ${toArabicDigits(surahNumber)}:${toArabicDigits(ayahNumber)}`}
           title={activeLabel}
           onClose={() => setActiveTool(null)}
+          overlay
         >
           {needsAyah && !ayahData && !verseError ? <StatusState tone="loading">جارٍ تحميل بيانات الآية…</StatusState> : null}
           {verseError ? <StatusState tone="error">{verseError}</StatusState> : null}

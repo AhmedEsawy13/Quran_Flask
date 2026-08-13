@@ -203,7 +203,12 @@ export function ReaderAudio({
   }, [verse]);
 
   return (
-    <Surface as="section" className="mx-auto w-full max-w-[790px] rounded-athar-md p-3 sm:p-3.5" aria-label="مشغّل التلاوة">
+    <Surface
+      as="section"
+      id="reader-audio"
+      className="mx-auto w-full max-w-[790px] scroll-mt-[calc(var(--bar-height)+5rem)] rounded-athar-md p-3 sm:p-3.5"
+      aria-label="مشغّل التلاوة"
+    >
       <audio
         ref={audioRef}
         src={backendMediaUrl(visibleAudio?.audio_url)}

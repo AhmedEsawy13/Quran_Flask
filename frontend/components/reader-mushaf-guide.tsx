@@ -78,7 +78,8 @@ export function ReaderMushafGuide({
   return (
     <Surface
       as="aside"
-      className="mx-auto w-full max-w-[790px] rounded-athar-md p-4 sm:p-5"
+      id="reader-mushaf-guide"
+      className="mx-auto w-full max-w-[790px] scroll-mt-[calc(var(--bar-height)+5rem)] rounded-athar-md p-4 sm:p-5"
       aria-labelledby="mushaf-key-title"
     >
       <audio ref={audioRef} preload="metadata" className="hidden" />
