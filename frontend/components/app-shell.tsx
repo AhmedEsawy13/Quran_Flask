@@ -49,6 +49,7 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
   const isStudio = pathname === "/memorize";
+  const isReader = pathname === "/read";
 
   useEffect(() => {
     if (previousPathname.current === pathname) return;
@@ -98,7 +99,7 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
       </header>
 
       <div className={cn(
-        isStudio
+        isStudio || isReader
           ? "h-[calc(100dvh-var(--bar-height))] overflow-hidden"
           : "min-h-dvh pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0",
       )}>{children}</div>

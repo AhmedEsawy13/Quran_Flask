@@ -8,19 +8,22 @@ import {
   isMushafEdition,
   isReaderLayout,
   isReaderView,
+  juzLabel,
+  juzNumberForPage,
+  juzNumberFromAyah,
+  juzStartPosition,
   spreadPageNumbers,
   toArabicDigits,
   type MushafEditionId,
   type ReaderLayout,
   type ReaderView,
 } from "@/lib/mushaf";
-import { legacyUrl } from "@/lib/paths";
 import { MushafRenderer } from "@/components/mushaf-renderer";
 import { MushafStage } from "@/components/mushaf-stage";
 import { ReaderAudio } from "@/components/reader-audio";
 import { ReaderMushafGuide } from "@/components/reader-mushaf-guide";
 import { ReaderStudy } from "@/components/reader-study";
-import { Button, CheckControl, DrawerSurface, Field, HandoffSurface, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
+import { Button, CheckControl, DrawerSurface, Field, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
 import { usePageTajweed } from "@/lib/use-page-tajweed";
 
@@ -37,6 +40,9 @@ type SpreadResult = {
   left: MushafPage | null;
   error: string;
 };
+
+type ReaderSupportPanel = "audio" | "study" | "guide";
+type ReaderNavigator = "surah" | "juz" | "page";
 
 function clampInteger(value: number, minimum: number, maximum: number) {
   return Math.min(maximum, Math.max(minimum, Math.trunc(value)));
@@ -64,20 +70,14 @@ function firstVerseOnPage(page: MushafPage) {
     : null;
 }
 
-function revealReaderSection(id: string) {
-  const section = document.getElementById(id);
-  if (!section) return;
-  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  section.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block: "start"});
-}
-
 export function ReaderWorkspace() {
   const searchParams = useSearchParams();
   const restoreLastPosition = !searchParams.has("surah") && !searchParams.has("ayah");
   const restoreView = !searchParams.has("view");
   const restoreEdition = !searchParams.has("edition");
   const restoreLayout = !searchParams.has("layout");
-  const [positionReady, setPositionReady] = useState(!(restoreLastPosition || restoreView || restoreEdition || restoreLayout));
+  const restoreMargins = !searchParams.has("margins");
+  const [positionReady, setPositionReady] = useState(!(restoreLastPosition || restoreView || restoreEdition || restoreLayout || restoreMargins));
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [ayahNumbers, setAyahNumbers] = useState<number[]>([]);
   const ayahCache = useRef(new Map<number, number[]>());
@@ -111,6 +111,9 @@ export function ReaderWorkspace() {
   const [retryToken, setRetryToken] = useState(0);
   const [moving, setMoving] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [navigatorMode, setNavigatorMode] = useState<ReaderNavigator | null>(null);
+  const [supportPanel, setSupportPanel] = useState<ReaderSupportPanel | null>(null);
+  const [marginMode, setMarginMode] = useState(() => searchParams.get("margins") === "1");
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [reciterId, setReciterId] = useState("husary");
   const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${retryToken}`;
@@ -120,7 +123,7 @@ export function ReaderWorkspace() {
     : undefined;
   const fontLoading = useEditionFont(editionId, pageFontName);
   const isContentLoading = positionReady && visibleResult === null;
-  const dualActive = view === "page" && layout === "dual" && dualAvailable;
+  const dualActive = view === "page" && layout === "dual" && dualAvailable && !marginMode;
   const visiblePageNumber = visibleResult?.page?.page_number || null;
   const edition = MUSHAF_EDITIONS[editionId];
   const [rightPageNumber, leftPageNumber] = visiblePageNumber && dualActive
@@ -151,7 +154,7 @@ export function ReaderWorkspace() {
   const {segmentsByWord: tajweedSegmentsByWord, loading: tajweedLoading} = usePageTajweed(tajweedPages, tajweedOn);
 
   useEffect(() => {
-    if (!restoreLastPosition && !restoreView && !restoreEdition && !restoreLayout) return;
+    if (!restoreLastPosition && !restoreView && !restoreEdition && !restoreLayout && !restoreMargins) return;
     const frame = window.requestAnimationFrame(() => {
       const savedPosition = window.localStorage.getItem("athar-reader-position");
       if (restoreLastPosition && savedPosition) {
@@ -173,6 +176,7 @@ export function ReaderWorkspace() {
       }
       const savedLayout = window.localStorage.getItem("athar-reader-layout");
       if (restoreLayout && isReaderLayout(savedLayout)) setLayout(savedLayout);
+      if (restoreMargins) setMarginMode(window.localStorage.getItem("athar-reader-margins") === "true");
       setTajweedEnabled(
         window.localStorage.getItem("athar-reader-tajweed") === "true" ||
         window.localStorage.getItem("quranApp_tajweedEnabled") === "true",
@@ -180,7 +184,7 @@ export function ReaderWorkspace() {
       setPositionReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [restoreEdition, restoreLastPosition, restoreLayout, restoreView]);
+  }, [restoreEdition, restoreLastPosition, restoreLayout, restoreMargins, restoreView]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1100px)");
@@ -298,16 +302,26 @@ export function ReaderWorkspace() {
     url.searchParams.set("view", view);
     url.searchParams.set("edition", editionId);
     url.searchParams.set("layout", layout);
+    if (marginMode) url.searchParams.set("margins", "1");
+    else url.searchParams.delete("margins");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     window.localStorage.setItem("athar-reader-position", `${surahNumber}:${ayahNumber}`);
     window.localStorage.setItem("athar-reader-preferences", `${view}:${editionId}:${layout}`);
     window.localStorage.setItem("athar-reader-layout", layout);
+    window.localStorage.setItem("athar-reader-margins", String(marginMode));
     window.localStorage.setItem("athar-reader-tajweed", String(tajweedEnabled));
-  }, [positionReady, surahNumber, ayahNumber, view, editionId, layout, tajweedEnabled]);
+  }, [positionReady, surahNumber, ayahNumber, view, editionId, layout, marginMode, tajweedEnabled]);
 
   const selectedSurah = useMemo(
     () => surahs.find((surah) => surah.number === surahNumber),
     [surahs, surahNumber],
+  );
+  const currentJuz = visiblePageNumber
+    ? juzNumberForPage(visiblePageNumber)
+    : juzNumberFromAyah(surahNumber, ayahNumber);
+  const pageNumbers = useMemo(
+    () => Array.from({length: edition.maxPage - edition.minPage + 1}, (_, index) => edition.minPage + index),
+    [edition.maxPage, edition.minPage],
   );
   const currentIndex = ayahNumbers.indexOf(ayahNumber);
   const atFirstAyah = surahNumber === 1 && ayahNumber === 1;
@@ -324,6 +338,39 @@ export function ReaderWorkspace() {
     setSurahNumber(clampInteger(surah, 1, 114));
     setAyahNumber(Math.max(1, Math.trunc(ayah)));
   }, []);
+
+  const jumpToPage = useCallback(async (targetPage: number) => {
+    const safePage = clampInteger(targetPage, edition.minPage, edition.maxPage);
+    setMoving(true);
+    try {
+      const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
+      const query = usesExplicitMarks
+        ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}`
+        : "";
+      const target = await getJson<MushafPage>(
+        `/backend-api/${edition.apiBase}/page/${safePage}${query}`,
+      );
+      const position = firstVerseOnPage(target);
+      if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
+      navigateToVerse(position.surah, position.ayah);
+      setNavigatorMode(null);
+    } catch (reason: unknown) {
+      setCatalogError(reason instanceof Error ? reason.message : "تعذّر الانتقال إلى الصفحة.");
+    } finally {
+      setMoving(false);
+    }
+  }, [edition.apiBase, edition.maxPage, edition.minPage, edition.waqfSource, editionId, navigateToVerse]);
+
+  const jumpToJuz = (juz: number) => {
+    const position = juzStartPosition(juz);
+    navigateToVerse(position.surah, position.ayah);
+    setNavigatorMode(null);
+  };
+
+  const jumpToSurah = (surah: number) => {
+    navigateToVerse(surah, 1);
+    setNavigatorMode(null);
+  };
 
   const move = useCallback(async (direction: -1 | 1) => {
     if (moving) return;
@@ -424,13 +471,19 @@ export function ReaderWorkspace() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [nextDisabled, previousDisabled]);
 
-  const revealAfterSettings = (id: string) => {
+  const openSupportAfterSettings = (panel: ReaderSupportPanel) => {
     setSettingsOpen(false);
-    window.requestAnimationFrame(() => revealReaderSection(id));
+    window.requestAnimationFrame(() => setSupportPanel(panel));
   };
 
+  const supportTitle = supportPanel === "audio"
+    ? "الاستماع والتكرار"
+    : supportPanel === "study"
+      ? "هوامش الفهم"
+      : "مفتاح الصفحة";
+
   return (
-    <section className="reader-workspace grid gap-3.5 sm:gap-4" aria-label="قارئ المصحف">
+    <section className="reader-workspace relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-2" aria-label="قارئ المصحف">
       <Surface variant="toolbar" className="reader-reading-bar" aria-label="أدوات القراءة السريعة">
         <div className="flex min-h-10 items-center gap-1.5 md:hidden">
           <Button
@@ -448,15 +501,20 @@ export function ReaderWorkspace() {
             size="icon"
             variant="ghost"
             className="size-9 shrink-0 text-xs"
-            aria-label="الانتقال إلى مشغّل التلاوة"
-            onClick={() => revealReaderSection("reader-audio")}
+            aria-label="فتح مشغّل التلاوة"
+            onClick={() => setSupportPanel("audio")}
           >
             ▶
           </Button>
-          <div className="min-w-0 flex-1 text-center">
+          <button
+            type="button"
+            className="min-w-0 flex-1 cursor-pointer rounded-lg border-0 bg-transparent px-1 text-center focus-visible:outline-2 focus-visible:outline-athar-accent"
+            aria-label="فتح فهرس المصحف"
+            onClick={() => setNavigatorMode("surah")}
+          >
             <strong className="block truncate text-sm text-athar-ink">{positionLabel}</strong>
             <span className="block truncate text-[0.65rem] text-athar-ink-faint">{edition.shortLabel}</span>
-          </div>
+          </button>
           <SegmentedControl
             label="طريقة العرض"
             value={view}
@@ -468,8 +526,8 @@ export function ReaderWorkspace() {
             size="icon"
             variant="ghost"
             className="size-9 shrink-0 text-xs"
-            aria-label="الانتقال إلى أدوات فهم الآية"
-            onClick={() => revealReaderSection("reader-study-tools")}
+            aria-label="فتح هوامش فهم الآية"
+            onClick={() => setSupportPanel("study")}
           >
             شرح
           </Button>
@@ -522,7 +580,7 @@ export function ReaderWorkspace() {
               size="sm"
               variant="ghost"
               className="px-2.5"
-              onClick={() => revealReaderSection("reader-audio")}
+              onClick={() => setSupportPanel("audio")}
             >
               ▶ استماع
             </Button>
@@ -530,7 +588,7 @@ export function ReaderWorkspace() {
               size="sm"
               variant="ghost"
               className="px-2.5"
-              onClick={() => revealReaderSection("reader-study-tools")}
+              onClick={() => setSupportPanel("study")}
             >
               فهم الآية
             </Button>
@@ -538,16 +596,26 @@ export function ReaderWorkspace() {
               size="sm"
               variant="ghost"
               className="hidden px-2.5 xl:inline-flex"
-              onClick={() => revealReaderSection("reader-mushaf-guide")}
+              onClick={() => setSupportPanel("guide")}
             >
               مفتاح الصفحة
+            </Button>
+            <Button
+              size="sm"
+              variant={marginMode ? "quiet" : "ghost"}
+              className="hidden px-2.5 xl:inline-flex"
+              aria-pressed={marginMode}
+              disabled={view !== "page"}
+              onClick={() => setMarginMode((current) => !current)}
+            >
+              الهوامش
             </Button>
             <Button
               size="sm"
               variant={layout === "dual" ? "quiet" : "ghost"}
               className="hidden px-2.5 xl:inline-flex"
               aria-pressed={layout === "dual"}
-              disabled={view !== "page"}
+              disabled={view !== "page" || marginMode}
               onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
             >
               {layout === "dual" ? "صفحتان" : "صفحة واحدة"}
@@ -587,9 +655,9 @@ export function ReaderWorkspace() {
         overlay
       >
         <div className="mb-4 grid grid-cols-3 gap-2 border-b border-athar-line-soft pb-4" aria-label="الوصول السريع">
-          <Button size="sm" variant="quiet" onClick={() => revealAfterSettings("reader-audio")}>▶ استماع</Button>
-          <Button size="sm" variant="quiet" onClick={() => revealAfterSettings("reader-study-tools")}>فهم الآية</Button>
-          <Button size="sm" variant="quiet" onClick={() => revealAfterSettings("reader-mushaf-guide")}>مفتاح الصفحة</Button>
+          <Button size="sm" variant="quiet" onClick={() => openSupportAfterSettings("audio")}>▶ استماع</Button>
+          <Button size="sm" variant="quiet" onClick={() => openSupportAfterSettings("study")}>فهم الآية</Button>
+          <Button size="sm" variant="quiet" onClick={() => openSupportAfterSettings("guide")}>مفتاح الصفحة</Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1 text-[0.7rem] text-athar-ink-faint sm:col-span-2">
@@ -629,8 +697,14 @@ export function ReaderWorkspace() {
           <CheckControl
             label="صفحتان متقابلتان على الشاشة الواسعة"
             checked={layout === "dual"}
-            disabled={view !== "page"}
+            disabled={view !== "page" || marginMode}
             onChange={(event) => setLayout(event.target.checked ? "dual" : "single")}
+          />
+          <CheckControl
+            label="هوامش كصفحة تفسير مطبوعة"
+            checked={marginMode}
+            disabled={view !== "page"}
+            onChange={(event) => setMarginMode(event.target.checked)}
           />
           <CheckControl
             label={editionId === "shamarly" ? "التجويد غير متاح مع الشمرلي" : "تلوين أحكام التجويد"}
@@ -641,119 +715,223 @@ export function ReaderWorkspace() {
         </div>
       </DrawerSurface>
 
+      <DrawerSurface
+        open={navigatorMode !== null}
+        onClose={() => setNavigatorMode(null)}
+        eyebrow={positionLabel}
+        title="فهرس المصحف"
+        id="reader-navigator-drawer"
+        overlay
+      >
+        <div className="grid gap-4">
+          <SegmentedControl
+            label="نوع الانتقال"
+            value={navigatorMode || "surah"}
+            options={[
+              {value: "surah", label: "السورة"},
+              {value: "juz", label: "الجزء"},
+              {value: "page", label: "الصفحة"},
+            ]}
+            onChange={setNavigatorMode}
+          />
+          {navigatorMode === "surah" ? (
+            <Field label="اختر السورة" hint="ينقلك إلى أول آية في السورة">
+              <SelectControl value={surahNumber} onChange={(event) => jumpToSurah(Number(event.target.value))}>
+                {surahs.map((surah) => (
+                  <option key={surah.number} value={surah.number}>{toArabicDigits(surah.number)}. {surah.name}</option>
+                ))}
+              </SelectControl>
+            </Field>
+          ) : null}
+          {navigatorMode === "juz" ? (
+            <Field label="اختر الجزء" hint="ينقلك إلى بداية الجزء">
+              <SelectControl value={currentJuz} onChange={(event) => jumpToJuz(Number(event.target.value))}>
+                {Array.from({length: 30}, (_, index) => index + 1).map((juz) => (
+                  <option key={juz} value={juz}>{juzLabel(juz)}</option>
+                ))}
+              </SelectControl>
+            </Field>
+          ) : null}
+          {navigatorMode === "page" ? (
+            <Field label="اختر الصفحة" hint={`${edition.label} · ${toArabicDigits(edition.minPage)}–${toArabicDigits(edition.maxPage)}`}>
+              <SelectControl
+                value={visiblePageNumber || edition.minPage}
+                disabled={moving}
+                onChange={(event) => void jumpToPage(Number(event.target.value))}
+              >
+                {pageNumbers.map((page) => <option key={page} value={page}>صفحة {toArabicDigits(page)}</option>)}
+              </SelectControl>
+            </Field>
+          ) : null}
+          <p className="m-0 text-xs leading-6 text-athar-ink-faint">
+            يمكنك فتح هذا الفهرس مباشرةً بالضغط على اسم السورة أو الجزء أو رقم الصفحة داخل المصحف.
+          </p>
+        </div>
+      </DrawerSurface>
+
       {catalogError ? (
-        <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
+        <StatusState tone="error" className="absolute inset-x-3 top-[4.5rem] z-40" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
           {catalogError}
         </StatusState>
       ) : null}
 
-      <MushafStage
-        view={view}
-        editionId={editionId}
-        pageCount={dualActive ? 2 : 1}
-        positionLabel={positionLabel}
-        previousLabel={view === "page" ? "الصفحة السابقة" : "الآية السابقة"}
-        nextLabel={view === "page" ? "الصفحة التالية" : "الآية التالية"}
-        previousDisabled={previousDisabled}
-        nextDisabled={nextDisabled}
-        moving={moving}
-        onPrevious={() => void moveReading(-1)}
-        onNext={() => void moveReading(1)}
+      <div className={`reader-reading-desk${marginMode && view === "page" ? " has-margins" : ""}`}>
+        <aside className="reader-page-margin is-index" aria-label="فهرس الصفحة">
+          <span className="reader-margin-kicker">فهرس الصفحة</span>
+          <button type="button" className="reader-margin-action" onClick={() => setNavigatorMode("surah")}>
+            <span>السورة</span><strong>{selectedSurah?.name || toArabicDigits(surahNumber)}</strong>
+          </button>
+          <button type="button" className="reader-margin-action" onClick={() => setNavigatorMode("juz")}>
+            <span>الجزء</span><strong>{juzLabel(currentJuz)}</strong>
+          </button>
+          <button type="button" className="reader-margin-action" onClick={() => setNavigatorMode("page")}>
+            <span>الصفحة</span><strong>{toArabicDigits(visiblePageNumber || edition.minPage)}</strong>
+          </button>
+          <p>اضغط عناوين الصفحة المطبوعة أو هذا الفهرس للانتقال دون مغادرة المصحف.</p>
+        </aside>
+
+        <MushafStage
+          fill
+          view={view}
+          editionId={editionId}
+          pageCount={dualActive ? 2 : 1}
+          positionLabel={positionLabel}
+          previousLabel={view === "page" ? "الصفحة السابقة" : "الآية السابقة"}
+          nextLabel={view === "page" ? "الصفحة التالية" : "الآية التالية"}
+          previousDisabled={previousDisabled}
+          nextDisabled={nextDisabled}
+          moving={moving}
+          onPrevious={() => void moveReading(-1)}
+          onNext={() => void moveReading(1)}
+        >
+          {dualActive ? (
+            <div className="reader-mushaf-spread" aria-label="صفحتان متقابلتان">
+              {rightPageNumber ? (
+                <MushafRenderer
+                  view="page"
+                  editionId={editionId}
+                  ayah={null}
+                  page={rightPage}
+                  surahs={surahs}
+                  selectedSurah={selectedSurah}
+                  surahNumber={surahNumber}
+                  ayahNumber={ayahNumber}
+                  isLoading={!rightPage && !visibleSpread?.error}
+                  error={visibleSpread?.error || ""}
+                  fontLoading={rightPage === visibleResult?.page ? fontLoading : rightFontLoading}
+                  activeAudioWord={activeAudioWord}
+                  tajweedEnabled={tajweedOn}
+                  tajweedLoading={tajweedLoading}
+                  tajweedSegmentsByWord={tajweedSegmentsByWord}
+                  dualLayout
+                  onSurahNavigate={() => setNavigatorMode("surah")}
+                  onJuzNavigate={() => setNavigatorMode("juz")}
+                  onPageNavigate={() => setNavigatorMode("page")}
+                  onRetry={retry}
+                />
+              ) : <div className="reader-facing-blank" aria-hidden="true" />}
+              {leftPageNumber ? (
+                <MushafRenderer
+                  view="page"
+                  editionId={editionId}
+                  ayah={null}
+                  page={leftPage}
+                  surahs={surahs}
+                  selectedSurah={selectedSurah}
+                  surahNumber={surahNumber}
+                  ayahNumber={ayahNumber}
+                  isLoading={!leftPage && !visibleSpread?.error}
+                  error={visibleSpread?.error || ""}
+                  fontLoading={leftPage === visibleResult?.page ? fontLoading : leftFontLoading}
+                  activeAudioWord={activeAudioWord}
+                  tajweedEnabled={tajweedOn}
+                  tajweedLoading={tajweedLoading}
+                  tajweedSegmentsByWord={tajweedSegmentsByWord}
+                  dualLayout
+                  onSurahNavigate={() => setNavigatorMode("surah")}
+                  onJuzNavigate={() => setNavigatorMode("juz")}
+                  onPageNavigate={() => setNavigatorMode("page")}
+                  onRetry={retry}
+                />
+              ) : <div className="reader-facing-blank" aria-hidden="true" />}
+            </div>
+          ) : (
+            <MushafRenderer
+              view={view}
+              editionId={editionId}
+              ayah={visibleResult?.ayah || null}
+              page={visibleResult?.page || null}
+              surahs={surahs}
+              selectedSurah={selectedSurah}
+              surahNumber={surahNumber}
+              ayahNumber={ayahNumber}
+              isLoading={!positionReady || isContentLoading}
+              error={visibleResult?.error || ""}
+              fontLoading={fontLoading}
+              activeAudioWord={activeAudioWord}
+              tajweedEnabled={tajweedOn}
+              tajweedLoading={tajweedLoading}
+              tajweedSegmentsByWord={tajweedSegmentsByWord}
+              onSurahNavigate={() => setNavigatorMode("surah")}
+              onJuzNavigate={() => setNavigatorMode("juz")}
+              onPageNavigate={() => setNavigatorMode("page")}
+              onRetry={retry}
+            />
+          )}
+        </MushafStage>
+
+        <aside className="reader-page-margin is-tools" aria-label="هوامش الصفحة">
+          <span className="reader-margin-kicker">الهوامش</span>
+          <h2>اقرأ، ثم افتح ما تحتاجه فقط.</h2>
+          <button type="button" className="reader-margin-action" onClick={() => setSupportPanel("study")}>
+            <span>الفهم</span><strong>التفسير والمعاني</strong>
+          </button>
+          <button type="button" className="reader-margin-action" onClick={() => setSupportPanel("audio")}>
+            <span>السماع</span><strong>التلاوة والتكرار</strong>
+          </button>
+          <button type="button" className="reader-margin-action" onClick={() => setSupportPanel("guide")}>
+            <span>القراءة</span><strong>الوقف ودليل التلاوة</strong>
+          </button>
+          <p>تفتح الأدوات في هامش مستقل، لذلك تبقى صفحة القرآن كاملة في موضعها.</p>
+        </aside>
+      </div>
+
+      <DrawerSurface
+        open={supportPanel !== null}
+        onClose={() => setSupportPanel(null)}
+        eyebrow={`${selectedSurah?.name || "السورة"} · ${toArabicDigits(ayahNumber)}`}
+        title={supportTitle}
+        id="reader-support-drawer"
+        overlay
       >
-        {dualActive ? (
-          <div className="reader-mushaf-spread" aria-label="صفحتان متقابلتان">
-            {rightPageNumber ? (
-              <MushafRenderer
-                view="page"
-                editionId={editionId}
-                ayah={null}
-                page={rightPage}
-                surahs={surahs}
-                selectedSurah={selectedSurah}
-                surahNumber={surahNumber}
-                ayahNumber={ayahNumber}
-                isLoading={!rightPage && !visibleSpread?.error}
-                error={visibleSpread?.error || ""}
-                fontLoading={rightPage === visibleResult?.page ? fontLoading : rightFontLoading}
-                activeAudioWord={activeAudioWord}
-                tajweedEnabled={tajweedOn}
-                tajweedLoading={tajweedLoading}
-                tajweedSegmentsByWord={tajweedSegmentsByWord}
-                dualLayout
-                onRetry={retry}
-              />
-            ) : <div className="reader-facing-blank" aria-hidden="true" />}
-            {leftPageNumber ? (
-              <MushafRenderer
-                view="page"
-                editionId={editionId}
-                ayah={null}
-                page={leftPage}
-                surahs={surahs}
-                selectedSurah={selectedSurah}
-                surahNumber={surahNumber}
-                ayahNumber={ayahNumber}
-                isLoading={!leftPage && !visibleSpread?.error}
-                error={visibleSpread?.error || ""}
-                fontLoading={leftPage === visibleResult?.page ? fontLoading : leftFontLoading}
-                activeAudioWord={activeAudioWord}
-                tajweedEnabled={tajweedOn}
-                tajweedLoading={tajweedLoading}
-                tajweedSegmentsByWord={tajweedSegmentsByWord}
-                dualLayout
-                onRetry={retry}
-              />
-            ) : <div className="reader-facing-blank" aria-hidden="true" />}
-          </div>
-        ) : (
-          <MushafRenderer
-            view={view}
-            editionId={editionId}
-            ayah={visibleResult?.ayah || null}
-            page={visibleResult?.page || null}
-            surahs={surahs}
-            selectedSurah={selectedSurah}
+        {supportPanel === "audio" ? (
+          <ReaderAudio
             surahNumber={surahNumber}
             ayahNumber={ayahNumber}
-            isLoading={!positionReady || isContentLoading}
-            error={visibleResult?.error || ""}
-            fontLoading={fontLoading}
-            activeAudioWord={activeAudioWord}
-            tajweedEnabled={tajweedOn}
-            tajweedLoading={tajweedLoading}
-            tajweedSegmentsByWord={tajweedSegmentsByWord}
-            onRetry={retry}
+            onAdvance={advanceAfterAudio}
+            atLastAyah={atLastAyah}
+            onWordChange={setActiveAudioWord}
+            onReciterChange={setReciterId}
           />
-        )}
-      </MushafStage>
-
-      <ReaderAudio
-        surahNumber={surahNumber}
-        ayahNumber={ayahNumber}
-        onAdvance={advanceAfterAudio}
-        atLastAyah={atLastAyah}
-        onWordChange={setActiveAudioWord}
-        onReciterChange={setReciterId}
-      />
-
-      <ReaderStudy
-        surahNumber={surahNumber}
-        ayahNumber={ayahNumber}
-        initialAyah={visibleResult?.ayah || null}
-        surahs={surahs}
-        onNavigate={navigateToVerse}
-      />
-
-      <ReaderMushafGuide
-        surahNumber={surahNumber}
-        ayahNumber={ayahNumber}
-        editionId={editionId}
-        reciterId={reciterId}
-      />
-
-      <HandoffSurface action={<a href={legacyUrl(`/read?surah=${surahNumber}&ayah=${ayahNumber}`)}>أدوات القراءة السابقة</a>}>
-        تحتاج أداة غير منقولة بعد؟ النسخة السابقة تبقى متاحة أثناء الانتقال.
-      </HandoffSurface>
+        ) : null}
+        {supportPanel === "study" ? (
+          <ReaderStudy
+            surahNumber={surahNumber}
+            ayahNumber={ayahNumber}
+            initialAyah={visibleResult?.ayah || null}
+            surahs={surahs}
+            onNavigate={navigateToVerse}
+          />
+        ) : null}
+        {supportPanel === "guide" ? (
+          <ReaderMushafGuide
+            surahNumber={surahNumber}
+            ayahNumber={ayahNumber}
+            editionId={editionId}
+            reciterId={reciterId}
+          />
+        ) : null}
+      </DrawerSurface>
     </section>
   );
 }

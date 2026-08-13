@@ -170,6 +170,12 @@ export function juzNumberFromAyah(surahNumber: number, ayahNumber: number) {
   return juz;
 }
 
+export function juzStartPosition(juzNumber: number) {
+  const safeIndex = Math.min(29, Math.max(0, Math.trunc(juzNumber) - 1));
+  const [surah, ayah] = JUZ_START_AYAHS[safeIndex];
+  return {surah, ayah};
+}
+
 export function juzLabel(juzNumber: number) {
   const safeNumber = Math.min(30, Math.max(1, Math.trunc(juzNumber) || 1));
   return `الجزء ${JUZ_NAMES[safeNumber - 1]}`;

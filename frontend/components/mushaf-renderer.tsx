@@ -43,6 +43,9 @@ type MushafRendererProps = {
   picking?: boolean;
   revealedAyah?: number | null;
   onAyahClick?: (surah: number, ayah: number) => void;
+  onSurahNavigate?: (surah: number) => void;
+  onJuzNavigate?: (juz: number) => void;
+  onPageNavigate?: (page: number) => void;
   onRetry: () => void;
 };
 
@@ -384,6 +387,9 @@ export function MushafRenderer({
   picking = false,
   revealedAyah = null,
   onAyahClick,
+  onSurahNavigate,
+  onJuzNavigate,
+  onPageNavigate,
   onRetry,
 }: MushafRendererProps) {
   const pageRef = useRef<HTMLElement>(null);
@@ -486,20 +492,45 @@ export function MushafRenderer({
     >
       <header className="mushaf-head">
         <span className="mushaf-head-juz">
-          <span className="mushaf-head-juz-glyph" aria-label={juzName} title={juzName}>
-            {juzHeaderGlyph(juzNumber)}
-          </span>
+          {onJuzNavigate ? (
+            <button
+              type="button"
+              className="mushaf-head-action mushaf-head-juz-glyph"
+              aria-label={`اختر الجزء — ${juzName}`}
+              title={`الانتقال إلى جزء آخر · ${juzName}`}
+              onClick={() => onJuzNavigate(juzNumber)}
+            >
+              {juzHeaderGlyph(juzNumber)}
+            </button>
+          ) : (
+            <span className="mushaf-head-juz-glyph" aria-label={juzName} title={juzName}>
+              {juzHeaderGlyph(juzNumber)}
+            </span>
+          )}
         </span>
         <span className="mushaf-head-surahs">
           {pageSurahs.length ? pageSurahs.map((surah) => (
-            <span
-              className="mushaf-head-surah-glyph"
-              aria-label={`سورة ${surah.name}`}
-              title={`سورة ${surah.name}`}
-              key={surah.number}
-            >
-              {surahHeaderGlyph(surah.number) || `سورة ${surah.name}`}
-            </span>
+            onSurahNavigate ? (
+              <button
+                type="button"
+                className="mushaf-head-action mushaf-head-surah-glyph"
+                aria-label={`اختر السورة — سورة ${surah.name}`}
+                title={`الانتقال إلى سورة أخرى · ${surah.name}`}
+                key={surah.number}
+                onClick={() => onSurahNavigate(surah.number)}
+              >
+                {surahHeaderGlyph(surah.number) || `سورة ${surah.name}`}
+              </button>
+            ) : (
+              <span
+                className="mushaf-head-surah-glyph"
+                aria-label={`سورة ${surah.name}`}
+                title={`سورة ${surah.name}`}
+                key={surah.number}
+              >
+                {surahHeaderGlyph(surah.number) || `سورة ${surah.name}`}
+              </span>
+            )
           )) : <span>المصحف</span>}
         </span>
       </header>
@@ -588,9 +619,21 @@ export function MushafRenderer({
 
       <footer className="mushaf-foot">
         <span>{edition.label}{fontLoading ? " — يُحمّل الخط…" : ""}</span>
-        <span className="page-number">
-          {toArabicDigits(view === "page" && page ? page.page_number : ayahNumber)}
-        </span>
+        {view === "page" && page && onPageNavigate ? (
+          <button
+            type="button"
+            className="page-number"
+            aria-label={`اختر الصفحة — الصفحة ${toArabicDigits(page.page_number)}`}
+            title="الانتقال إلى صفحة أخرى"
+            onClick={() => onPageNavigate(page.page_number)}
+          >
+            {toArabicDigits(page.page_number)}
+          </button>
+        ) : (
+          <span className="page-number">
+            {toArabicDigits(view === "page" && page ? page.page_number : ayahNumber)}
+          </span>
+        )}
       </footer>
     </article>
   );

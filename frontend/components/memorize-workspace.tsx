@@ -802,10 +802,27 @@ export function MemorizeWorkspace() {
 
           <div ref={setTransportHost} className="ms-auto flex min-w-0 flex-1 justify-end" />
         </div>
-        <p className="absolute inset-x-0 bottom-0 m-0 flex h-7 items-center justify-center gap-2 border-t border-athar-line-soft bg-athar-accent/5 px-3 text-center text-[0.72rem] font-semibold leading-none text-athar-ink-soft max-sm:justify-start max-sm:overflow-hidden max-sm:whitespace-nowrap">
+        <div
+          className="absolute inset-x-0 bottom-0 m-0 flex h-7 items-center justify-center gap-2 border-t border-athar-line-soft bg-athar-accent/5 px-3 text-center text-[0.72rem] font-semibold leading-none text-athar-ink-soft max-sm:justify-start max-sm:overflow-hidden max-sm:whitespace-nowrap"
+          role="status"
+          aria-live="polite"
+        >
           <AtharIcon name="mouse-pointer" className="size-3.5 shrink-0 text-athar-accent" />
-          اضغط آية البداية، ثم آية النهاية. اضغط ▶ للتشغيل، و× لإلغاء النطاق.
-        </p>
+          <span className="truncate">
+            {picking
+              ? `بدأ النطاق من الآية ${toArabicDigits(rangeDraft.anchor)}؛ اضغط آية النهاية لإكماله.`
+              : "اضغط آية البداية، ثم آية النهاية. اضغط ▶ للتشغيل."}
+          </span>
+          {picking ? (
+            <button
+              type="button"
+              className="pointer-events-auto shrink-0 rounded-md border border-athar-line px-1.5 py-0.5 text-[0.65rem] font-bold text-athar-accent hover:border-athar-accent"
+              onClick={cancelRangePick}
+            >
+              إلغاء
+            </button>
+          ) : null}
+        </div>
       </header>
 
       {showContext ? (
@@ -970,9 +987,6 @@ export function MemorizeWorkspace() {
           </Button>
         </div>
 
-        {picking ? (
-          <p className="pointer-events-none absolute inset-x-16 top-3 z-30 m-0 rounded-xl bg-[color-mix(in_srgb,var(--athar-accent)_10%,var(--athar-surface))] px-3 py-2 text-center text-xs font-bold text-athar-ink-soft">اضغط آية النهاية لإكمال النطاق، أو Escape للإلغاء.</p>
-        ) : null}
       </div>
 
       <MemorizePlayer

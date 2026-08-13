@@ -151,19 +151,35 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   expect(compactReader.barHeight).toBeLessThan(96);
   expect(compactReader.stageTop).toBeLessThan(200);
 
-  const mobileListen = page.getByRole("button", {name: "الانتقال إلى مشغّل التلاوة"});
+  const mobileListen = page.getByRole("button", {name: "فتح مشغّل التلاوة"});
   const listenShortcut = await mobileListen.isVisible()
     ? mobileListen
     : page.getByRole("button", {name: "▶ استماع", exact: true}).first();
   await listenShortcut.click();
-  await expect(page.getByRole("region", {name: "مشغّل التلاوة"})).toBeInViewport({ratio: 0.5});
-  const mobileStudy = page.getByRole("button", {name: "الانتقال إلى أدوات فهم الآية"});
+  const audioDrawer = page.getByRole("dialog", {name: "الاستماع والتكرار"});
+  await expect(audioDrawer.getByRole("region", {name: "مشغّل التلاوة"})).toBeVisible();
+  await expect(audioDrawer.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
+  await audioDrawer.getByRole("button", {name: "إغلاق الاستماع والتكرار"}).click();
+  const mobileStudy = page.getByRole("button", {name: "فتح هوامش فهم الآية"});
   const studyShortcut = await mobileStudy.isVisible()
     ? mobileStudy
     : page.getByRole("button", {name: "فهم الآية", exact: true}).first();
   await studyShortcut.click();
-  await expect(page.getByRole("region", {name: "أدوات فهم الآية"})).toBeInViewport({ratio: 0.5});
-  await page.evaluate(() => window.scrollTo(0, 0));
+  const studyDrawer = page.getByRole("dialog", {name: "هوامش الفهم"});
+  await expect(studyDrawer.getByRole("region", {name: "أدوات فهم الآية"})).toBeVisible();
+  await expect(studyDrawer.getByRole("button", {name: "المتشابهات"})).toBeVisible();
+  await expect(studyDrawer.getByRole("button", {name: "سبب النزول"})).toBeVisible();
+  const studyTrigger = studyDrawer.getByRole("button", {name: "أدوات الدراسة", exact: true});
+  await expect(studyTrigger).not.toHaveAttribute("aria-controls");
+  await studyTrigger.click();
+  await expect(studyTrigger).toHaveAttribute("aria-controls", "reader-study-drawer");
+  const nestedStudyDrawer = page.getByRole("dialog", {name: "أدوات الدراسة"});
+  await expect(nestedStudyDrawer.getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=256&to=256");
+  const closeStudy = nestedStudyDrawer.getByRole("button", {name: "إغلاق أدوات الدراسة"});
+  await expect(closeStudy).toBeFocused();
+  await closeStudy.click();
+  await expect(studyTrigger).toBeFocused();
+  await studyDrawer.getByRole("button", {name: "إغلاق هوامش الفهم"}).click();
 
   const tajweedButton = page.getByRole("button", {name: "تلوين التجويد", exact: true});
   if (await tajweedButton.isVisible()) {
@@ -174,23 +190,6 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
     await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
   }
   await expect(page.locator(".reader-page[data-tajweed=true] .tajweed-rule").first()).toBeVisible({timeout: 15_000});
-  await expect(page.getByRole("button", {name: "المتشابهات"})).toBeVisible();
-  await expect(page.getByRole("button", {name: "سبب النزول"})).toBeVisible();
-  await expect(page.getByRole("heading", {name: "افهم ما تراه قبل أن تقرأ"})).toBeVisible();
-  await expect(page.getByLabel("أهم رموز الوقف")).toContainText("لا تقف هنا");
-  const studyTrigger = page.getByRole("button", {name: "أدوات الدراسة", exact: true});
-  await expect(studyTrigger).not.toHaveAttribute("aria-controls");
-  await studyTrigger.click();
-  await expect(studyTrigger).toHaveAttribute("aria-controls", "reader-study-drawer");
-  await expect(page.getByRole("dialog").getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=256&to=256");
-  const closeStudy = page.getByRole("dialog").getByRole("button", {name: "إغلاق أدوات الدراسة"});
-  await expect(closeStudy).toBeFocused();
-  await closeStudy.click();
-  await expect(studyTrigger).toBeFocused();
-  const readerAudio = page.getByRole("region", {name: "مشغّل التلاوة"});
-  await expect(readerAudio).toBeVisible();
-  await expect(readerAudio.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
-  await expect(page.getByRole("button", {name: "تشغيل التلاوة"})).toBeEnabled();
   const mobileSettingsOpen = await openMobileReaderSettings(page);
   await page.getByRole("combobox", {name: "رسم الصفحة"}).selectOption("azhar_amiri");
   if (mobileSettingsOpen) await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
@@ -199,9 +198,19 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   await expect(printedWaqfMark).toBeVisible({timeout: 15_000});
   await expect(printedWaqfMark).toHaveText(/[ۖ-ۜ]/);
   await expect(page.locator(".reader-page.edition-azhar_amiri .mushaf-word").filter({hasText: /۝[٠-٩]+/}).first()).toBeVisible();
-  await page.getByRole("button", {name: "افتح دليل التلاوة"}).click();
-  await expect(page.getByRole("region", {name: "دليل التلاوة"})).toContainText("بصوت", {timeout: 15_000});
-  await expect(page.getByLabel("مقاطع دليل التلاوة").getByRole("button").first()).toBeVisible();
+  const mobileGuideSettings = await openMobileReaderSettings(page);
+  if (mobileGuideSettings) {
+    await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "مفتاح الصفحة"}).click();
+  } else {
+    await page.getByRole("button", {name: "مفتاح الصفحة", exact: true}).first().click();
+  }
+  const guideDrawer = page.getByRole("dialog", {name: "مفتاح الصفحة"});
+  await expect(guideDrawer.getByRole("heading", {name: "افهم ما تراه قبل أن تقرأ"})).toBeVisible();
+  await expect(guideDrawer.getByLabel("أهم رموز الوقف")).toContainText("لا تقف هنا");
+  await guideDrawer.getByRole("button", {name: "افتح دليل التلاوة"}).click();
+  await expect(guideDrawer.getByRole("region", {name: "دليل التلاوة"})).toContainText("بصوت", {timeout: 15_000});
+  await expect(guideDrawer.getByLabel("مقاطع دليل التلاوة").getByRole("button").first()).toBeVisible();
+  await guideDrawer.getByRole("button", {name: "إغلاق مفتاح الصفحة"}).click();
   const mobileSettingsForShemrly = await openMobileReaderSettings(page);
   await page.getByRole("combobox", {name: "رسم الصفحة"}).selectOption("shamarly");
   if (mobileSettingsForShemrly) await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
@@ -235,6 +244,14 @@ test("Reader keeps the Mushaf first and navigates by page", async ({page}) => {
   // The reading surface must remain fully visible on a short laptop viewport;
   // navigating pages should not require an extra scroll just to reach the foot.
   expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewport + 1);
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= document.documentElement.clientHeight + 2)).toBe(true);
+
+  await page.getByRole("button", {name: /اختر السورة — سورة البقرة/}).first().click();
+  const navigatorDrawer = page.getByRole("dialog", {name: "فهرس المصحف"});
+  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر السورة"})).toBeVisible();
+  await navigatorDrawer.getByRole("button", {name: "الصفحة"}).click();
+  await expect(navigatorDrawer.getByRole("combobox", {name: "اختر الصفحة"})).toHaveValue("42");
+  await navigatorDrawer.getByRole("button", {name: "إغلاق فهرس المصحف"}).click();
 
   await page.getByRole("button", {name: "الصفحة التالية"}).click();
   await expect(page.locator(".page-number").filter({hasText: "٤٣"})).toBeVisible({timeout: 15_000});
@@ -247,7 +264,16 @@ test("Reader keeps the Mushaf first and navigates by page", async ({page}) => {
   const mobileSettingsOpen = await openMobileReaderSettings(page);
   if (mobileSettingsOpen) {
     await expect(page.getByRole("combobox", {name: "السورة"})).toBeVisible();
+    await page.getByRole("checkbox", {name: "هوامش كصفحة تفسير مطبوعة"}).check();
     await page.getByRole("dialog", {name: "إعدادات القراءة"}).getByRole("button", {name: "إغلاق إعدادات القراءة"}).click();
+  } else {
+    await page.getByRole("button", {name: "الهوامش"}).click();
+  }
+  await expect(page.locator(".reader-reading-desk")).toHaveClass(/has-margins/);
+  await expect(stage).toHaveAttribute("data-page-count", "1");
+  await expect(page).toHaveURL(/margins=1/);
+  if (await page.evaluate(() => window.innerWidth >= 1180)) {
+    await expect(page.getByRole("complementary", {name: "هوامش الصفحة"})).toBeVisible();
   }
   await expectNoHorizontalOverflow(page);
 });
@@ -324,7 +350,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
-  const lineRhythm = await page.locator(".reader-page").first().evaluate((readerPage) => {
+  const lineRhythm = await page.locator(".reader-page:has(.mushaf-word.is-focus)").first().evaluate((readerPage) => {
     const lines = [...readerPage.querySelectorAll<HTMLElement>(".mushaf-line")].filter((line) => line.querySelector(".mushaf-line-inner"));
     const firstInner = lines[0]?.querySelector<HTMLElement>(".mushaf-line-inner");
     const scales = lines.map((line) => {
@@ -370,7 +396,14 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   const word255 = page.locator('.mushaf-word[data-ayah="255"]').first();
   const word256 = page.locator('.mushaf-word[data-ayah="256"]').first();
   await word255.evaluate((word: HTMLElement) => word.click());
-  await expect(page.getByText("اضغط آية النهاية لإكمال النطاق، أو Escape للإلغاء.")).toBeVisible();
+  const rangePrompt = page.getByText("بدأ النطاق من الآية ٢٥٥؛ اضغط آية النهاية لإكماله.", {exact: true});
+  await expect(rangePrompt).toBeVisible();
+  const rangePromptClearance = await rangePrompt.evaluate((prompt) => {
+    const mushaf = document.querySelector(".reader-page");
+    if (!mushaf) return -1;
+    return mushaf.getBoundingClientRect().top - prompt.getBoundingClientRect().bottom;
+  });
+  expect(rangePromptClearance).toBeGreaterThanOrEqual(0);
   await expect(page.locator(".mushaf-word.is-range-draft").first()).toBeVisible();
   await word256.evaluate((word: HTMLElement) => word.click());
   await expect(page.locator("summary").filter({hasText: "الموضع"})).toContainText("البقرة · ٢٥٥–٢٥٦");
