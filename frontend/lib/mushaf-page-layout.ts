@@ -3,7 +3,6 @@ import type { MushafEditionId } from "@/lib/mushaf";
 type LayoutOptions = {
   dual?: boolean;
   linesPerPage?: number;
-  fontScale?: number;
 };
 
 function isMadinahEdition(editionId: MushafEditionId) {
@@ -168,12 +167,6 @@ export function fitMushafFontSize(
       fontSize = Math.max(minFontSize, fontSize * worstRatio * 0.99 / minLineScale);
       writePageFitFont(pageEl, fontSize);
     }
-  }
-
-  const fontScale = Math.max(0.7, Math.min(1.25, options.fontScale ?? 1));
-  if (fontScale !== 1) {
-    fontSize = Math.max(minFontSize, fontSize * fontScale);
-    writePageFitFont(pageEl, fontSize);
   }
 
   return fontSize;

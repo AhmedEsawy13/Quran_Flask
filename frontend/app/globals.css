@@ -465,7 +465,6 @@ a {
 .reader-facing-blank {
   width: var(--reader-page-fit-width, 620px);
   height: var(--reader-page-fit-height, auto);
-  aspect-ratio: var(--reader-page-aspect, 0.66);
   border: 1px dashed var(--athar-line-soft);
   background: color-mix(in srgb, var(--athar-surface) 48%, transparent);
 }
@@ -475,11 +474,10 @@ a {
   width: min(var(--reader-page-fit-width, 620px), calc(100vw - 132px));
   height: var(--reader-page-fit-height, auto);
   min-height: 0;
-  aspect-ratio: var(--reader-page-aspect, 0.66);
   flex-direction: column;
   /* Match تثبيت .mz-page text column: tight edges before justify insets. */
   --reader-page-fit-font: 22px;
-  padding: 5px 8px;
+  padding: 5px 14px;
   box-sizing: border-box;
 }
 
@@ -522,7 +520,7 @@ a {
 }
 
 .reader-mushaf-stage .reader-page.is-page .mushaf-foot {
-  min-height: 48px;
+  min-height: 36px;
   padding: 6px 4px 2px;
 }
 
@@ -1995,7 +1993,7 @@ a {
   }
 
   .reader-mushaf-stage .reader-page.is-page .mushaf-foot {
-    min-height: 42px;
+    min-height: 36px;
     padding: 5px 11px;
   }
 

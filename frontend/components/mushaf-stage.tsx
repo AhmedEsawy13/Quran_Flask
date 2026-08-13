@@ -64,20 +64,25 @@ export function MushafStage({
             mobile ? 430 : 300,
             window.innerHeight - Math.max(0, rect.top) - bottomInset - stageChrome,
           );
-        // Match تثبيت sizePages: height-first from aspect ratio, then shrink to width budget.
+        // The printed ratio belongs to the 15-line Quran body, not to the card
+        // containing its running header and page footer. Match the original
+        // تثبيت sizing contract by reserving that chrome before fitting.
+        const pageChromeWidth = 30;
+        const pageChromeHeight = mobile ? 86 : 97;
         const spreadGutter = pageCount === 2 ? 16 : 0;
         const spreadPad = pageCount === 2 ? 20 : 0;
-        let height = availableHeight;
-        let width = height * ratio;
-        const totalWidth = width * pageCount + spreadGutter + spreadPad;
-        if (totalWidth > availableWidth) {
-          const widthBudget = Math.max(1, availableWidth - spreadGutter - spreadPad);
-          const scale = widthBudget / (width * pageCount);
-          width *= scale;
-          height *= scale;
+        let bodyHeight = Math.max(1, availableHeight - pageChromeHeight);
+        let bodyWidth = bodyHeight * ratio;
+        const perPageWidth = Math.max(
+          1,
+          (availableWidth - spreadGutter - spreadPad) / pageCount,
+        );
+        if (bodyWidth + pageChromeWidth > perPageWidth) {
+          bodyWidth = Math.max(1, perPageWidth - pageChromeWidth);
+          bodyHeight = bodyWidth / ratio;
         }
-        width = Math.max(150, Math.floor(Math.min(790, width)));
-        height = Math.max(230, Math.floor(width / ratio));
+        const width = Math.max(150, Math.floor(Math.min(790, bodyWidth + pageChromeWidth)));
+        const height = Math.max(230, Math.floor(bodyHeight + pageChromeHeight));
         setFit({ width, height });
       });
     };

@@ -304,13 +304,20 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   const lineRhythm = await page.locator(".reader-page").first().evaluate((readerPage) => {
     const lines = [...readerPage.querySelectorAll<HTMLElement>(".mushaf-line")].filter((line) => line.querySelector(".mushaf-line-inner"));
     const firstInner = lines[0]?.querySelector<HTMLElement>(".mushaf-line-inner");
+    const scales = lines.map((line) => {
+      const inner = line.querySelector<HTMLElement>(".mushaf-line-inner");
+      const matrix = inner ? getComputedStyle(inner).transform.match(/^matrix\(([^,]+)/) : null;
+      return matrix ? Number(matrix[1]) : 1;
+    });
     return {
       fontSize: firstInner ? Number.parseFloat(getComputedStyle(firstInner).fontSize) : 0,
       lineStep: lines.length > 1 ? lines[1].getBoundingClientRect().top - lines[0].getBoundingClientRect().top : 0,
+      maximumHorizontalScale: Math.max(...scales),
     };
   });
   expect(lineRhythm.fontSize).toBeGreaterThan(9);
   expect(lineRhythm.lineStep / lineRhythm.fontSize).toBeGreaterThan(1.25);
+  expect(lineRhythm.maximumHorizontalScale).toBeLessThanOrEqual(1.1);
   await page.locator("summary").filter({hasText: "رسم المصحف"}).click();
   await expect(page.getByRole("radio", {name: "المدينة الجديد"})).toHaveAttribute("aria-checked", "true");
   const waqfToggle = page.getByLabel("إظهار علامات الوقف");

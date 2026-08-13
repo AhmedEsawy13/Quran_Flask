@@ -34,7 +34,6 @@ type MushafRendererProps = {
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
   waqfEnabled?: boolean;
   waqfSource?: string;
-  fontScale?: number;
   dualLayout?: boolean;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
@@ -213,6 +212,7 @@ function PageLine({
   tajweedSegmentsByWord,
   waqfEnabled,
   waqfSource,
+  selectableWaqf,
 }: {
   line: MushafLine;
   surahNumber: number;
@@ -232,6 +232,7 @@ function PageLine({
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
   waqfEnabled: boolean;
   waqfSource: string;
+  selectableWaqf: boolean;
 }) {
   if (line.line_type === "surah_name") {
     const lineSurahNumber = Number(line.surah_number);
@@ -292,8 +293,12 @@ function PageLine({
               );
               const audioPosition = audioPositions.get(word);
               const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
-              const waqfMarks = editionId === "shamarly" && waqfEnabled ? wordWaqfMarks(word) : [];
-              const displayText = wordDisplayText(word, editionId, waqfEnabled, waqfSource);
+              const waqfMarks = waqfEnabled && (!selectableWaqf || editionId === "shamarly")
+                ? wordWaqfMarks(word)
+                : [];
+              const displayText = selectableWaqf
+                ? wordDisplayText(word, editionId, waqfEnabled, waqfSource)
+                : withAyahOrnament(word.text, editionId);
               const tajweedSegment = tajweedSegmentsByWord?.get(wordIdentity(word));
               const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
                 ? tajweedPartsForDisplay(displayText, tajweedSegment)
@@ -370,7 +375,6 @@ export function MushafRenderer({
   tajweedSegmentsByWord,
   waqfEnabled = true,
   waqfSource,
-  fontScale = 1,
   dualLayout = false,
   focusRange,
   contextRange,
@@ -384,6 +388,7 @@ export function MushafRenderer({
 }: MushafRendererProps) {
   const pageRef = useRef<HTMLElement>(null);
   const edition = MUSHAF_EDITIONS[editionId];
+  const selectableWaqf = waqfSource !== undefined;
   const activeWaqfSource = waqfSource || edition.waqfSource;
   const shemrlyAvailable = editionId !== "shamarly" || page?.glyph_mapping_mode === "shemrly-page-local";
   const quranFont = editionId === "shamarly" && shemrlyAvailable && page?.font_name
@@ -433,7 +438,7 @@ export function MushafRenderer({
       frame = requestAnimationFrame(() => {
         if (!active) return;
         // Same pipeline as تثبيت: measured font size, then capped line justify.
-        fitAndJustifyMushafPage(root, editionId, { dual: dualLayout, fontScale });
+        fitAndJustifyMushafPage(root, editionId, { dual: dualLayout });
         paintContextBands(root);
       });
     };
@@ -466,7 +471,7 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [contextByKey, dualLayout, editionId, fontLoading, fontScale, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled, activeWaqfSource]);
+  }, [contextByKey, dualLayout, editionId, fontLoading, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled, activeWaqfSource]);
 
   return (
     <article
@@ -571,6 +576,7 @@ export function MushafRenderer({
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
                   waqfSource={activeWaqfSource}
+                  selectableWaqf={selectableWaqf}
                 />
               ))}
             </div>

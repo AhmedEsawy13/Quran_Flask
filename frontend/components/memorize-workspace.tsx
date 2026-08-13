@@ -633,7 +633,6 @@ export function MemorizeWorkspace() {
     tajweedSegmentsByWord,
     waqfEnabled,
     waqfSource,
-    fontScale: editionId === "digital_khatt" || editionId === "qpc_v2" || editionId === "qpc_v1" ? 0.8 : 1,
     concealFocused: concealed,
     draftAyah: rangeDraft?.anchor ?? null,
     picking: picking && !concealed,
