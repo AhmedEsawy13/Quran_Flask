@@ -1632,7 +1632,7 @@ a {
 /* ── تثبيت studio (viewport-locked mushaf) ───────────────────── */
 .mz-studio {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   height: 100%;
   padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
   --mz-topic: #3d7ea6;
@@ -1644,10 +1644,10 @@ a {
 
 .mz-studio-bar {
   z-index: 40;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 8px 12px;
-  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  align-items: end;
   padding: 8px 12px 10px;
   border-bottom: 1px solid var(--athar-line-soft);
   background: color-mix(in srgb, var(--athar-surface) 92%, transparent);
@@ -1658,6 +1658,7 @@ a {
   display: flex;
   min-width: 0;
   align-items: baseline;
+  align-self: center;
   gap: 8px;
 }
 
@@ -1680,10 +1681,68 @@ a {
   white-space: nowrap;
 }
 
+.mz-studio-range {
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--athar-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.mz-studio-fields,
+.mz-studio-actions,
+.mz-studio-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+
+.mz-studio-actions {
+  align-items: center;
+  margin-inline-start: auto;
+}
+
+.mz-studio-asr {
+  color: var(--athar-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.mz-studio-asr:hover {
+  text-decoration: underline;
+}
+
+.mz-studio-session,
 .mz-studio-transport {
   display: flex;
   min-width: 0;
-  grid-column: 1 / -1;
+  flex: 1 1 100%;
+}
+
+.mz-studio-plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  color: var(--athar-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.mz-studio-plan strong {
+  color: var(--athar-ink);
+}
+
+.mz-studio-bar label {
+  gap: 2px;
+}
+
+.mz-studio-bar select {
+  min-height: 32px;
 }
 
 .mz-studio-stage {
@@ -1711,11 +1770,6 @@ a {
   inset-inline-start: 12px;
 }
 
-.mz-studio-float.is-view {
-  inset-block-end: 12px;
-  inset-inline-end: 12px;
-}
-
 .mz-studio-hint {
   position: absolute;
   z-index: 21;
@@ -1732,29 +1786,14 @@ a {
 }
 
 .mz-studio-context {
-  position: absolute;
   z-index: 22;
-  inset-block-start: 12px;
-  inset-inline-start: 12px;
-  width: min(22rem, calc(100% - 24px));
-  max-height: min(70%, 28rem);
-  overflow: auto;
   display: grid;
-  gap: 6px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--mz-topic) 28%, var(--athar-line));
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--mz-topic) 28%, var(--athar-line));
   border-inline-start: 3px solid var(--mz-topic);
-  border-radius: 16px;
   background: color-mix(in srgb, var(--mz-topic) 6%, var(--athar-surface));
-  box-shadow: var(--athar-shadow-sm);
-  backdrop-filter: blur(16px);
-}
-
-.mz-studio-context.is-collapsed {
-  width: min(22rem, calc(100% - 24px));
-  max-height: none;
-  overflow: visible;
-  padding: 8px 10px;
 }
 
 .mz-studio-context[data-state="empty"],
@@ -1844,6 +1883,27 @@ a {
 
 .mz-studio-context [role="progressbar"] span {
   background: var(--mz-topic);
+}
+
+.mz-context-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 9px;
+}
+
+.mz-context-progress {
+  display: grid;
+  gap: 4px;
+  max-width: 28rem;
+  color: var(--athar-ink-faint);
+  font-size: 0.7rem;
+}
+
+.mz-context-source {
+  color: var(--athar-ink-faint);
+  font-size: 0.62rem;
+  line-height: 1.35;
 }
 
 /* ── مُكْث study (scrollable, verse-first) ───────────────────── */
@@ -2212,7 +2272,6 @@ a {
   }
 
   .mz-studio-bar {
-    grid-template-columns: minmax(0, 1fr) auto;
     padding: 6px 10px 8px;
   }
 
@@ -2220,12 +2279,8 @@ a {
     font-size: 1.02rem;
   }
 
-  .mz-studio-transport {
-    grid-column: 1 / -1;
-  }
-
-  .mz-studio-context {
-    width: min(18rem, calc(100% - 20px));
+  .mz-context-source {
+    display: none;
   }
 
   .reader-mushaf-stage.is-fill {

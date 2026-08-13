@@ -319,7 +319,6 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   } else {
     await expect(page.locator(".reader-mushaf-stage")).toHaveAttribute("data-page-count", "1");
   }
-  await page.getByRole("button", {name: "إعدادات الجلسة"}).click();
   const sessionPlan = page.getByLabel("خطة جلسة التثبيت", {exact: true});
   await expect(sessionPlan).toContainText("ربط");
   await expect(page.getByLabel("تكرار الربط")).toBeEnabled();

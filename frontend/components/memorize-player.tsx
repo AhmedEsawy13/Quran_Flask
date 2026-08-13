@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   getJson,
@@ -14,15 +14,12 @@ import {
 } from "@/lib/memorize-schedule";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
-import { ToolCard } from "@/components/tool-chrome";
 import {
   Button,
   CheckControl,
   Field,
   PlaybackTimeline,
-  ProgressBar,
   SelectControl,
-  StatTile,
   StatusState,
 } from "@/components/ui/primitives";
 
@@ -34,8 +31,8 @@ type MemorizePlayerProps = {
   onActiveAyahChange: (ayah: number) => void;
   onWordChange: (wordIndex: number | null) => void;
   chromeHost?: HTMLElement | null;
+  controlsHost?: HTMLElement | null;
   playbackLocked?: boolean;
-  children?: (settings: ReactNode) => ReactNode;
 };
 
 type AudioResult = {
@@ -69,8 +66,8 @@ export function MemorizePlayer({
   onActiveAyahChange,
   onWordChange,
   chromeHost = null,
+  controlsHost = null,
   playbackLocked = false,
-  children,
 }: MemorizePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const boundaryHandledRef = useRef(false);
@@ -407,74 +404,48 @@ export function MemorizePlayer({
     />
   );
 
-  const settingsPanel = (
-    <div className="grid gap-4">
-      <header className="flex items-start justify-between gap-4">
-        <div className="grid gap-0.5">
-          <span className="text-[0.7rem] font-bold text-athar-gold">التكرار التراكمي</span>
-          <strong className="text-athar-ink">{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</strong>
-          <small className="text-athar-ink-faint">
-            {currentStep?.label || `الآية ${toArabicDigits(activeAyah)}`}
-            {currentStep && currentStep.repetitionTotal > 1
-              ? ` · ${toArabicDigits(currentStep.repetition)} من ${toArabicDigits(currentStep.repetitionTotal)}`
-              : ""}
-          </small>
-        </div>
-        <span className={`shrink-0 rounded-full px-3 py-1 text-[0.7rem] font-bold ${isPlaying ? "bg-athar-accent/10 text-athar-accent" : "bg-athar-line-soft text-athar-ink-faint"}`}>
-          {loading ? "يُحمّل" : isPlaying ? "يُتلى الآن" : "جاهز"}
-        </span>
-      </header>
+  const compactField = "min-h-8 min-w-[5.5rem] rounded-[10px] py-1 text-[0.78rem]";
+  const compactCheck = "min-h-8 rounded-[10px] px-2 py-0 text-[0.72rem]";
+  const sessionStructure = `${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`;
+  const sessionControls = (
+    <div className="mz-studio-controls" aria-label="إعدادات الجلسة">
+      <div className="mz-studio-plan" aria-label="خطة جلسة التثبيت" aria-live="polite">
+        <strong>{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
+        <span>{currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"}</span>
+        <span>{sessionStructure}</span>
+        <span>{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</span>
+      </div>
       {audioError ? <StatusState tone="error">{audioError}</StatusState> : null}
-      <div className="grid gap-2 sm:grid-cols-2" aria-label="خطة جلسة التثبيت" aria-live="polite">
-        <StatTile label="الخطوة" value={schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"} />
-        <StatTile label="النمط" value={currentStep?.kind === "ayah-link" ? "ربط الآيات" : currentStep?.kind === "phrase-link" ? "ربط المقاطع" : currentStep?.kind === "phrase" ? "مقطع وقفي" : "آية كاملة"} />
-        <StatTile label="المتبقي التقريبي" value={formatTime(remainingDuration)} />
-        <StatTile label="بنية الجلسة" value={`${splitAtPauses ? "مقاطع وقفية" : "آيات كاملة"}${cumulative ? " + ربط تراكمي" : ""}`} />
-        <ProgressBar className="sm:col-span-2" value={stepIndex + (elapsed > 0 ? Math.min(1, elapsed / Math.max(0.001, duration)) : 0)} max={Math.max(1, schedule.length)} label="تقدّم خطة جلسة التثبيت" />
-      </div>
-      <div className="grid items-end gap-2 border-t border-athar-line-soft pt-4">
-        <Field label="القارئ">
-          <SelectControl value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
-            {reciters.length ? reciters.map((reciter) => (
-              <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
-            )) : <option>جارٍ تحميل القرّاء…</option>}
-          </SelectControl>
-        </Field>
-        <Field label="تكرار الوحدة">
-          <SelectControl value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
-            {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-          </SelectControl>
-        </Field>
-        <Field label="تكرار الربط">
-          <SelectControl value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
-            {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
-          </SelectControl>
-        </Field>
-        <CheckControl label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
-        <CheckControl label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
-        <CheckControl label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
-        <Button variant="quiet" onClick={resetSession}>ابدأ النطاق من أوله</Button>
-      </div>
+      <Field label="القارئ">
+        <SelectControl className={compactField} value={reciterId} onChange={(event) => setReciterId(event.target.value)} disabled={!reciters.length}>
+          {reciters.length ? reciters.map((reciter) => (
+            <option key={reciter.id} value={reciter.id}>{reciter.name_ar}</option>
+          )) : <option>جارٍ تحميل القرّاء…</option>}
+        </SelectControl>
+      </Field>
+      <Field label="تكرار الوحدة">
+        <SelectControl className={compactField} value={unitRepetitions} onChange={(event) => setUnitRepetitions(Number(event.target.value) as (typeof unitRepetitionOptions)[number])}>
+          {unitRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
+        </SelectControl>
+      </Field>
+      <Field label="تكرار الربط">
+        <SelectControl className={compactField} value={linkRepetitions} onChange={(event) => setLinkRepetitions(Number(event.target.value) as (typeof linkRepetitionOptions)[number])} disabled={!cumulative}>
+          {linkRepetitionOptions.map((count) => <option key={count} value={count}>{toArabicDigits(count)}×</option>)}
+        </SelectControl>
+      </Field>
+      <CheckControl className={compactCheck} label="ربط تراكمي" checked={cumulative} onChange={(event) => setCumulative(event.target.checked)} />
+      <CheckControl className={compactCheck} label="قسّم حسب الوقف" checked={splitAtPauses} onChange={(event) => setSplitAtPauses(event.target.checked)} />
+      <CheckControl className={compactCheck} label="أعد النطاق" checked={loopRange} onChange={(event) => setLoopRange(event.target.checked)} />
     </div>
   );
 
-  if (children) {
-    return (
-      <>
-        <div aria-label="جلسة التكرار" className="absolute size-px overflow-hidden">
-          {audioElement}
-        </div>
-        {chromeHost ? createPortal(transport, chromeHost) : null}
-        {children(settingsPanel)}
-      </>
-    );
-  }
-
   return (
-    <ToolCard aria-label="جلسة التكرار">
-      {audioElement}
-      {chromeHost ? createPortal(transport, chromeHost) : null}
-      {settingsPanel}
-    </ToolCard>
+    <>
+      <div aria-label="جلسة التكرار" className="absolute size-px overflow-hidden">
+        {audioElement}
+      </div>
+      {chromeHost ? createPortal(transport, chromeHost) : transport}
+      {controlsHost ? createPortal(sessionControls, controlsHost) : sessionControls}
+    </>
   );
 }
