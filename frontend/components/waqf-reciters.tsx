@@ -66,7 +66,7 @@ export function WaqfReciters({
   if (!groups.length) {
     return (
       <ToolCard aria-labelledby="waqf-reciters-title">
-        <ToolCardHead title="كل القرّاء" titleId="waqf-reciters-title" />
+        <ToolCardHead title="كيف قرأها كل قارئ" titleId="waqf-reciters-title" />
         <StatusState className="justify-center">لا يتوفر تفصيل قرّاء لهذه الآية بعد.</StatusState>
       </ToolCard>
     );
@@ -75,7 +75,7 @@ export function WaqfReciters({
   return (
     <ToolCard aria-labelledby="waqf-reciters-title">
       <ToolCardHead
-        title="كل القرّاء"
+        title="كيف قرأها كل قارئ"
         titleId="waqf-reciters-title"
         meta={`${toArabicDigits(data.reciters.length)} قارئًا · يُجمع من قرأ بنفس المواضع في صف واحد`}
       />

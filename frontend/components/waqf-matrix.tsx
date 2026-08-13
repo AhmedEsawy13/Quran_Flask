@@ -50,7 +50,7 @@ export function WaqfMatrix({
   if (!columns.length) {
     return (
       <ToolCard aria-labelledby="waqf-matrix-title">
-        <ToolCardHead title="مصفوفة المصاحف والقرّاء" titleId="waqf-matrix-title" />
+        <ToolCardHead title="مقارنة القرّاء بمصاحف الوقف" titleId="waqf-matrix-title" />
         <StatusState className="justify-center">لا مواضع وقف مسجّلة لهذه الآية بعد.</StatusState>
       </ToolCard>
     );
@@ -67,7 +67,7 @@ export function WaqfMatrix({
   return (
     <ToolCard aria-labelledby="waqf-matrix-title">
       <ToolCardHead
-        title="مصفوفة المصاحف والقرّاء"
+        title="مقارنة القرّاء بمصاحف الوقف"
         titleId="waqf-matrix-title"
         meta={`${toArabicDigits(columns.length)} موضعًا · ${toArabicDigits(data.mushafs.length)} مصحفًا · ${toArabicDigits(data.reciters.length)} قارئًا`}
       />

@@ -25,6 +25,7 @@ import {
   ToolCard,
   ToolCardHead,
   ToolChrome,
+  ToolIntro,
   ToolStack,
 } from "@/components/tool-chrome";
 import { WaqfMatrix } from "@/components/waqf-matrix";
@@ -152,6 +153,23 @@ export function WaqfWorkspace() {
   const selectedUnion = selectedStopWpos === null ? null : unionByWpos.get(selectedStopWpos) || null;
   const selectedMarks = selectedStopWpos === null ? [] : marksByWpos.get(selectedStopWpos) || [];
   const selectedClassical = classical?.entries.filter((entry) => entry.wpos === selectedStopWpos) || [];
+
+  const bestStops = useMemo(() => {
+    if (!data) return [];
+    const strengths = new Map(data.union_stops.map((stopItem) => [stopItem.wpos, stopItem.count]));
+    data.reciters.forEach((reciter) => {
+      data.per_reciter[reciter.id]?.repeats.forEach((repeat) => {
+        strengths.set(repeat.from_wpos, (strengths.get(repeat.from_wpos) || 0) + 1);
+      });
+    });
+    const majority = Math.floor(data.reciters_total / 2) + 1;
+    return [...strengths.entries()]
+      .filter(([wpos]) => wpos < data.words.length - 1)
+      .map(([wpos, count]) => ({wpos, count, mushaf: marksByWpos.has(wpos)}))
+      .filter((item) => item.count >= majority || item.mushaf)
+      .sort((a, b) => b.count - a.count || Number(b.mushaf) - Number(a.mushaf) || a.wpos - b.wpos)
+      .slice(0, 6);
+  }, [data, marksByWpos]);
 
   const loadAyahNumbers = useCallback(async (surah: number, signal?: AbortSignal) => {
     const cached = ayahCache.current.get(surah);
@@ -344,10 +362,26 @@ export function WaqfWorkspace() {
     ayahCache.current.delete(surahNumber);
     setRetryToken((value) => value + 1);
   };
-
-
   return (
     <div aria-label="مساحة مُكْث لدراسة الوقف">
+      <ToolIntro
+        kicker="— مُكْث"
+        title="علامة المصحــف، ووقف القارئ، وقول الإمام."
+        titleId="wq-title"
+        titleAriaLabel="علامة المصحف، ووقف القارئ، وقول الإمام."
+        lede="هذا تميّز أثَر: ثلاث شهادات على موضع الوقف — ثم ابنِ قراءةً تناسب نَفَسك."
+      >
+        <a className={introLinkClassName()} href={legacyUrl("/waqf-lab")}>مختبر الوقف</a>
+        <a className={introLinkClassName()} href={`/waqf-practice?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
+          تدرّب على هذا الموضع
+        </a>
+        <a
+          className={introLinkClassName()}
+          href={legacyUrl(`/mushaf-editor?edition=${encodeURIComponent("قطر")}&surah=${surahNumber}&ayah=${ayahNumber}`)}
+        >
+          محرّر الوقف
+        </a>
+      </ToolIntro>
       <audio ref={audioRef} preload="metadata" className="hidden" />
 
       <ToolChrome
@@ -356,6 +390,36 @@ export function WaqfWorkspace() {
           <ChromePill>سورة <b>{selectedSurah.name}</b> · {toArabicDigits(ayahNumber)}</ChromePill>
         ) : undefined}
       >
+        <ChromeField label="السورة">
+          <ChromeSelect
+            value={surahNumber}
+            aria-label="السورة"
+            onChange={(event) => selectSurah(Number(event.target.value))}
+            disabled={!surahs.length}
+          >
+            {!surahs.length ? <option>جارٍ التحميل…</option> : null}
+            {surahs.map((surah) => (
+              <option key={surah.number} value={surah.number}>
+                {toArabicDigits(surah.number)}. {surah.name}
+              </option>
+            ))}
+          </ChromeSelect>
+        </ChromeField>
+        <ChromeField label="الآية">
+          <ChromeSelect
+            value={ayahNumber}
+            aria-label="الآية"
+            onChange={(event) => {
+              stop();
+              setAyahNumber(Number(event.target.value));
+            }}
+            disabled={!ayahNumbers.length}
+          >
+            {ayahNumbers.map((number) => (
+              <option key={number} value={number}>{toArabicDigits(number)}</option>
+            ))}
+          </ChromeSelect>
+        </ChromeField>
         <div className="relative min-w-[16rem] flex-[1.4] self-end" ref={searchBoxRef}>
           <ChromeField label="البحث عن آية" className="w-full">
             <ChromeInput
@@ -423,36 +487,6 @@ export function WaqfWorkspace() {
             </ul>
           ) : null}
         </div>
-        <ChromeField label="السورة">
-          <ChromeSelect
-            value={surahNumber}
-            aria-label="السورة"
-            onChange={(event) => selectSurah(Number(event.target.value))}
-            disabled={!surahs.length}
-          >
-            {!surahs.length ? <option>جارٍ التحميل…</option> : null}
-            {surahs.map((surah) => (
-              <option key={surah.number} value={surah.number}>
-                {toArabicDigits(surah.number)}. {surah.name}
-              </option>
-            ))}
-          </ChromeSelect>
-        </ChromeField>
-        <ChromeField label="الآية">
-          <ChromeSelect
-            value={ayahNumber}
-            aria-label="الآية"
-            onChange={(event) => {
-              stop();
-              setAyahNumber(Number(event.target.value));
-            }}
-            disabled={!ayahNumbers.length}
-          >
-            {ayahNumbers.map((number) => (
-              <option key={number} value={number}>{toArabicDigits(number)}</option>
-            ))}
-          </ChromeSelect>
-        </ChromeField>
         <ChromeStepper
           previousLabel="الآية السابقة"
           nextLabel="الآية التالية"
@@ -463,16 +497,7 @@ export function WaqfWorkspace() {
         />
       </ToolChrome>
 
-      <nav className="wq-study-chapters" aria-label="فصول الدراسة">
-        <a href="#waqf-verse-title">الآية</a>
-        <a href="#waqf-comparison-title">الشهادات</a>
-        <a href="#waqf-breath-title">النَفَس</a>
-        <a href="#waqf-matrix-title">المصفوفة</a>
-        <a href="#waqf-reciters-title">القرّاء</a>
-        <a href="#waqf-classical-all-title">الأئمة</a>
-      </nav>
-
-      <ToolStack className="max-w-[1200px]">
+      <ToolStack>
         {catalogError || visible?.error ? (
           <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
             {catalogError || visible?.error}
@@ -490,23 +515,19 @@ export function WaqfWorkspace() {
                 meta={`${toArabicDigits(data.reciters_total)} قارئًا · ${toArabicDigits(data.union_stops.length)} موضعًا · نحو ${toArabicDigits(Math.round(data.full_duration || 0))}ث`}
               />
 
-              <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-athar-line-soft pb-3" aria-label="أقوى مواضع الوقف">
-                <span className="text-[0.72rem] font-bold whitespace-nowrap text-athar-accent">أقوى المواضع</span>
-                {[...data.union_stops]
-                  .filter((stopItem) => stopItem.wpos < data.words.length - 1)
-                  .sort((a, b) => b.count - a.count || a.wpos - b.wpos)
-                  .slice(0, 5)
-                  .map((stopItem) => (
-                    <button
-                      type="button"
-                      className="inline-flex cursor-pointer items-center gap-1 border-0 border-s-2 border-athar-line bg-transparent px-2 py-0.5 text-[0.82rem] hover:border-athar-accent"
-                      key={stopItem.wpos}
-                      onClick={() => setSelectedStopWpos(stopItem.wpos)}
-                    >
-                      <span className="font-athar-quran text-base font-bold">{data.words[stopItem.wpos]}</span>
-                      <span className="text-[0.68rem] font-extrabold text-athar-accent">{toArabicDigits(stopItem.count)}/{toArabicDigits(data.reciters_total)}</span>
-                    </button>
-                  ))}
+              <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-athar-line-soft pb-3" aria-label="أفضل مواضع الوقف">
+                <span className="text-[0.72rem] font-bold whitespace-nowrap text-athar-accent">★ أفضل مواضع الوقف</span>
+                {bestStops.map((stopItem) => (
+                  <button
+                    type="button"
+                    className={`inline-flex cursor-pointer items-center gap-1 border-0 border-s-2 bg-transparent px-2 py-0.5 text-[0.82rem] hover:border-athar-accent ${stopItem.mushaf ? "border-athar-accent" : "border-athar-line"}`}
+                    key={stopItem.wpos}
+                    onClick={() => setSelectedStopWpos(stopItem.wpos)}
+                  >
+                    <span className="font-athar-quran text-base font-bold">{data.words[stopItem.wpos]}</span>
+                    <span className="text-[0.68rem] font-extrabold text-athar-accent">{toArabicDigits(Math.round(stopItem.count / data.reciters_total * 100))}٪</span>
+                  </button>
+                ))}
               </div>
 
               <div className="waqf-word-flow" dir="rtl">
@@ -524,12 +545,14 @@ export function WaqfWorkspace() {
                           aria-label={`تفصيل الوقف بعد ${word}`}
                           onClick={() => setSelectedStopWpos(index)}
                         >
-                          {marks.slice(0, 2).map((mark, markIndex) => (
-                            <span className={`waqf-symbol is-${waqfMarkTone(mark.symbol)}`} key={`${mark.mushaf}-${markIndex}`}>
-                              {waqfMarkGlyph(mark.symbol)}
-                            </span>
-                          ))}
-                          {union ? <small>{toArabicDigits(union.count)}/{toArabicDigits(data.reciters_total)}</small> : null}
+                          <span className="waqf-stop-icon" aria-hidden="true">Ⅱ</span>
+                          {union?.solo ? (
+                            <>
+                              <b>انفرد</b>
+                              <span>{data.per_reciter[union.reciters[0]]?.name_ar || union.reciters[0]}</span>
+                            </>
+                          ) : union ? <b>{toArabicDigits(union.count)}/{toArabicDigits(data.reciters_total)}</b> : <b>مصحف</b>}
+                          {union ? <small>~{toArabicDigits(union.avg_duration.toFixed(1))}ث</small> : null}
                         </button>
                       ) : null}
                     </span>
@@ -546,99 +569,12 @@ export function WaqfWorkspace() {
                   <span className="inline-block size-[0.8em] rounded-full border-2 border-[var(--wq-solo)] bg-transparent" />
                   انفرد به قارئ واحد
                 </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block size-[0.8em] rounded-full bg-[var(--wq-repeat)]" />
+                  أعاد القارئ
+                </span>
               </div>
 
-              <div className="mt-5 scroll-mt-[calc(var(--bar-height)+5rem)] border-t border-athar-line-soft pt-4" id="waqf-comparison">
-                <ToolCardHead title="قارن الدليل عند كل موضع" titleId="waqf-comparison-title" />
-                <p className="-mt-1 mb-3.5 text-[0.88rem] leading-relaxed text-athar-ink-soft">
-                  اختر موضعًا لعرض علامة المصحف، ووقف القرّاء، وقول الإمام.
-                  {" "}
-                  <a className={introLinkClassName()} href="#waqf-comparison-title">قارن الشهادات ↓</a>
-                </p>
-
-                <div className="mb-3.5 flex flex-wrap gap-1.5" role="tablist" aria-label="مواضع المقارنة">
-                  {stopPositions.map((wpos) => {
-                    const union = unionByWpos.get(wpos);
-                    const selected = selectedStopWpos === wpos;
-                    return (
-                      <button
-                        type="button"
-                        className={`inline-flex cursor-pointer flex-col items-start gap-0.5 rounded-[10px] border px-2.5 py-1.5 text-start ${selected ? "border-athar-accent bg-athar-accent/10" : "border-athar-line-soft bg-athar-canvas-strong"}`}
-                        role="tab"
-                        aria-selected={selected}
-                        key={wpos}
-                        onClick={() => setSelectedStopWpos(wpos)}
-                      >
-                        <span className="font-athar-quran text-[1.05rem] leading-snug">{data.words[wpos]}</span>
-                        <small className="text-[0.68rem] text-athar-ink-faint">{union ? `${toArabicDigits(union.count)}/${toArabicDigits(data.reciters_total)}` : "مصحف"}</small>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {selectedStopWpos !== null ? (
-                  <div className="grid gap-3.5" role="tabpanel">
-                    <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2 text-[0.84rem] text-athar-ink-soft">
-                      <span>بعد كلمة</span>
-                      <strong className="font-athar-quran text-[1.35rem] text-athar-ink">{data.words[selectedStopWpos]}</strong>
-                      {selectedUnion?.solo ? (
-                        <em className="rounded-full bg-[var(--wq-solo-soft)] px-2 py-0.5 text-[0.68rem] not-italic font-bold text-[var(--wq-solo)]">انفراد قارئ</em>
-                      ) : null}
-                    </div>
-
-                    <div className="grid gap-3 md:grid-cols-3">
-                      <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
-                        <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">علامات المصاحف</h3>
-                        {selectedMarks.length ? selectedMarks.map((mark, index) => (
-                          <div className="waqf-mark-row" key={`${mark.mushaf}-${index}`}>
-                            <span>{mark.mushaf}</span>
-                            <strong className={`is-${waqfMarkTone(mark.symbol)}`}>{waqfMarkGlyph(mark.symbol)}</strong>
-                            <small>{waqfMarkLabel(mark.symbol)}</small>
-                          </div>
-                        )) : <StatusState className="justify-center">لا تحمل المصاحف المقارنة علامةً هنا.</StatusState>}
-                      </article>
-
-                      <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
-                        <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">وقوف القرّاء</h3>
-                        {selectedUnion?.reciters.length ? selectedUnion.reciters.map((reciterId) => {
-                          const detail = data.per_reciter[reciterId];
-                          const stopItem = detail?.stops.find((item) => item.wpos === selectedStopWpos);
-                          const key = `stop:${reciterId}:${selectedStopWpos}`;
-                          return (
-                            <button
-                              type="button"
-                              className={`waqf-reciter-stop${playingKey === key ? " is-playing" : ""}`}
-                              key={reciterId}
-                              onClick={() => playReciterStop(reciterId, selectedStopWpos)}
-                              disabled={!isNativeAudio(detail?.audio_url || null)}
-                            >
-                              <span>{detail?.name_ar || reciterId}</span>
-                              <small>{playingKey === key ? "إيقاف" : `استمع · ${toArabicDigits(stopItem?.time.toFixed(1) || 0)}ث`}</small>
-                            </button>
-                          );
-                        }) : <StatusState className="justify-center">لم يقف قارئ مسجّل في هذا الموضع.</StatusState>}
-                      </article>
-
-                      <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
-                        <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">قول الإمام</h3>
-                        {selectedClassical.length ? selectedClassical.map((entry, index) => {
-                          const source = classical?.sources[entry.source];
-                          return (
-                            <div className="waqf-classical-row" key={`${entry.source}-${index}`}>
-                              <div>
-                                <strong>{entry.grade_raw || entry.grade}</strong>
-                                <span>{source?.name || entry.source}</span>
-                              </div>
-                              <blockquote>{entry.quote}</blockquote>
-                              {entry.note ? <details><summary>العلّة</summary><p>{entry.note}</p></details> : null}
-                            </div>
-                          );
-                        }) : <StatusState className="justify-center">لا يتوفر حكم تراثي موثّق لهذا الموضع بعد.</StatusState>}
-                      </article>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
             </ToolCard>
 
             <ToolCard aria-labelledby="waqf-breath-title">
@@ -709,9 +645,101 @@ export function WaqfWorkspace() {
               onSelectStop={setSelectedStopWpos}
             />
 
-            <WaqfReciters data={data} playingKey={playingKey} onPlayPhrase={playReciterPhrase} />
+            <ToolCard aria-labelledby="waqf-comparison-title" id="waqf-comparison">
+              <ToolCardHead title="قارن الدليل عند كل موضع" titleId="waqf-comparison-title" />
+              <p className="-mt-1 mb-3.5 text-[0.88rem] leading-relaxed text-athar-ink-soft">
+                اختر موضعًا لعرض علامة المصحف، ووقف القرّاء، وقول الإمام.
+                {" "}
+                <a className={introLinkClassName()} href="#waqf-comparison-title">قارن الشهادات ↓</a>
+              </p>
+
+              <div className="mb-3.5 flex flex-wrap gap-1.5" role="tablist" aria-label="مواضع المقارنة">
+                {stopPositions.map((wpos) => {
+                  const union = unionByWpos.get(wpos);
+                  const selected = selectedStopWpos === wpos;
+                  return (
+                    <button
+                      type="button"
+                      className={`inline-flex cursor-pointer flex-col items-start gap-0.5 rounded-[10px] border px-2.5 py-1.5 text-start ${selected ? "border-athar-accent bg-athar-accent/10" : "border-athar-line-soft bg-athar-canvas-strong"}`}
+                      role="tab"
+                      aria-selected={selected}
+                      key={wpos}
+                      onClick={() => setSelectedStopWpos(wpos)}
+                    >
+                      <span className="font-athar-quran text-[1.05rem] leading-snug">{data.words[wpos]}</span>
+                      <small className="text-[0.68rem] text-athar-ink-faint">{union ? `${toArabicDigits(union.count)}/${toArabicDigits(data.reciters_total)}` : "مصحف"}</small>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedStopWpos !== null ? (
+                <div className="grid gap-3.5" role="tabpanel">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2 text-[0.84rem] text-athar-ink-soft">
+                    <span>بعد كلمة</span>
+                    <strong className="font-athar-quran text-[1.35rem] text-athar-ink">{data.words[selectedStopWpos]}</strong>
+                    {selectedUnion?.solo ? (
+                      <em className="rounded-full bg-[var(--wq-solo-soft)] px-2 py-0.5 text-[0.68rem] not-italic font-bold text-[var(--wq-solo)]">انفراد قارئ</em>
+                    ) : null}
+                  </div>
+
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
+                      <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">علامات المصاحف</h3>
+                      {selectedMarks.length ? selectedMarks.map((mark, index) => (
+                        <div className="waqf-mark-row" key={`${mark.mushaf}-${index}`}>
+                          <span>{mark.mushaf}</span>
+                          <strong className={`is-${waqfMarkTone(mark.symbol)}`}>{waqfMarkGlyph(mark.symbol)}</strong>
+                          <small>{waqfMarkLabel(mark.symbol)}</small>
+                        </div>
+                      )) : <StatusState className="justify-center">لا تحمل المصاحف المقارنة علامةً هنا.</StatusState>}
+                    </article>
+
+                    <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
+                      <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">وقوف القرّاء</h3>
+                      {selectedUnion?.reciters.length ? selectedUnion.reciters.map((reciterId) => {
+                        const detail = data.per_reciter[reciterId];
+                        const stopItem = detail?.stops.find((item) => item.wpos === selectedStopWpos);
+                        const key = `stop:${reciterId}:${selectedStopWpos}`;
+                        return (
+                          <button
+                            type="button"
+                            className={`waqf-reciter-stop${playingKey === key ? " is-playing" : ""}`}
+                            key={reciterId}
+                            onClick={() => playReciterStop(reciterId, selectedStopWpos)}
+                            disabled={!isNativeAudio(detail?.audio_url || null)}
+                          >
+                            <span>{detail?.name_ar || reciterId}</span>
+                            <small>{playingKey === key ? "إيقاف" : `استمع · ${toArabicDigits(stopItem?.time.toFixed(1) || 0)}ث`}</small>
+                          </button>
+                        );
+                      }) : <StatusState className="justify-center">لم يقف قارئ مسجّل في هذا الموضع.</StatusState>}
+                    </article>
+
+                    <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
+                      <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">قول الإمام</h3>
+                      {selectedClassical.length ? selectedClassical.map((entry, index) => {
+                        const source = classical?.sources[entry.source];
+                        return (
+                          <div className="waqf-classical-row" key={`${entry.source}-${index}`}>
+                            <div>
+                              <strong>{entry.grade_raw || entry.grade}</strong>
+                              <span>{source?.name || entry.source}</span>
+                            </div>
+                            <blockquote>{entry.quote}</blockquote>
+                            {entry.note ? <details><summary>العلّة</summary><p>{entry.note}</p></details> : null}
+                          </div>
+                        );
+                      }) : <StatusState className="justify-center">لا يتوفر حكم تراثي موثّق لهذا الموضع بعد.</StatusState>}
+                    </article>
+                  </div>
+                </div>
+              ) : null}
+            </ToolCard>
 
             <WaqfClassical classical={classical} words={data.words} />
+
+            <WaqfReciters data={data} playingKey={playingKey} onPlayPhrase={playReciterPhrase} />
 
             <ToolCard aria-labelledby="wq-lab-cta-title">
               <div className="flex max-w-[42rem] flex-col gap-2">

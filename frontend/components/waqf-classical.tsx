@@ -16,7 +16,7 @@ export function WaqfClassical({
   if (!classical?.count) {
     return (
       <ToolCard aria-labelledby="waqf-classical-all-title">
-        <ToolCardHead title="قول الأئمة في الآية" titleId="waqf-classical-all-title" />
+        <ToolCardHead title="لماذا يُوقف هنا؟ — كتب الوقف والابتداء" titleId="waqf-classical-all-title" />
         <StatusState className="justify-center">لا يتوفر حكم تراثي موثّق لهذه الآية بعد.</StatusState>
       </ToolCard>
     );
@@ -45,7 +45,7 @@ export function WaqfClassical({
   return (
     <ToolCard aria-labelledby="waqf-classical-all-title">
       <ToolCardHead
-        title="قول الأئمة في الآية"
+        title="لماذا يُوقف هنا؟ — كتب الوقف والابتداء"
         titleId="waqf-classical-all-title"
         meta={`${toArabicDigits(classical.count)} حكمًا · ${toArabicDigits(positions.length)} موضعًا`}
       />

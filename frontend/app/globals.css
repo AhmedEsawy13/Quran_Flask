@@ -74,6 +74,7 @@
   --radius-large: 30px;
   --wq-solo: #d97706;
   --wq-solo-soft: rgba(217, 119, 6, 0.12);
+  --wq-repeat: color-mix(in srgb, var(--athar-ink) 55%, var(--athar-accent));
 }
 
 :root[data-theme="sepia"] {
@@ -91,6 +92,7 @@
   --bar-background: rgba(239, 229, 207, 0.84);
   --wq-solo: var(--athar-gold);
   --wq-solo-soft: color-mix(in srgb, var(--athar-gold) 13%, transparent);
+  --wq-repeat: color-mix(in srgb, var(--athar-ink) 48%, var(--athar-accent));
 }
 
 :root[data-theme="dark"] {
@@ -115,6 +117,7 @@
   --athar-nav-shadow: 0 -12px 35px rgba(0, 0, 0, 0.34);
   --wq-solo: #fbbf24;
   --wq-solo-soft: rgba(251, 191, 36, 0.16);
+  --wq-repeat: color-mix(in srgb, var(--athar-ink-soft) 70%, var(--athar-accent));
 }
 
 @theme inline {
@@ -999,16 +1002,26 @@ a {
   position: relative;
   top: -0.1em;
   align-items: center;
-  gap: 2px;
+  gap: 5px;
   min-height: 28px;
   margin-inline: 3px 5px;
-  padding: 1px 5px;
-  border: 1px solid color-mix(in srgb, var(--athar-accent) 22%, var(--athar-line));
+  padding: 2px 9px;
+  border: 1px solid color-mix(in srgb, var(--athar-accent) 42%, transparent);
   border-radius: 999px;
-  background: var(--athar-surface);
+  background: color-mix(in srgb, var(--athar-accent) 14%, transparent);
   color: var(--athar-accent);
   cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  white-space: nowrap;
   vertical-align: middle;
+}
+
+.waqf-inline-stop:hover,
+.waqf-word-unit.is-selected .waqf-inline-stop {
+  border-color: var(--athar-accent);
+  background: color-mix(in srgb, var(--athar-accent) 20%, transparent);
 }
 
 .waqf-inline-stop.is-solo {
@@ -1019,8 +1032,15 @@ a {
 
 .waqf-inline-stop small {
   font-family: var(--font-ui);
-  font-size: 0.58rem;
+  color: var(--athar-ink-soft);
+  font-size: 0.68rem;
   line-height: 1;
+}
+
+.waqf-stop-icon {
+  color: var(--athar-accent);
+  font-size: 0.62rem;
+  letter-spacing: -0.16em;
 }
 
 .waqf-symbol {
@@ -1741,67 +1761,6 @@ a {
 }
 
 /* ── مُكْث study (scrollable, verse-first) ───────────────────── */
-.wq-study-header {
-  display: grid;
-  gap: 8px;
-  margin: 0 auto;
-  max-width: 1180px;
-  padding: 18px 16px 10px;
-}
-
-.wq-study-header p {
-  margin: 0;
-  color: var(--athar-gold);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-.wq-study-header h1 {
-  margin: 0;
-  max-width: 22ch;
-  color: var(--athar-ink);
-  font-family: var(--font-display);
-  font-size: clamp(1.45rem, 3.2vw, 2.15rem);
-  font-weight: 900;
-  line-height: 1.15;
-}
-
-.wq-study-header .wq-study-lede {
-  max-width: 48ch;
-  color: var(--athar-ink-soft);
-  font-size: 0.92rem;
-  line-height: 1.65;
-}
-
-.wq-study-chapters {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  margin: 0 auto 4px;
-  max-width: 1180px;
-  padding: 0 16px 8px;
-  scrollbar-width: none;
-}
-
-.wq-study-chapters a {
-  flex: 0 0 auto;
-  padding: 6px 12px;
-  border: 1px solid var(--athar-line-soft);
-  border-radius: 999px;
-  background: var(--athar-surface);
-  color: var(--athar-ink-soft);
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-decoration: none;
-  scroll-margin-top: calc(var(--bar-height) + 4.5rem);
-}
-
-.wq-study-chapters a:hover {
-  border-color: var(--athar-accent);
-  color: var(--athar-accent);
-}
-
 .wq-reciter-group {
   display: grid;
   gap: 10px;

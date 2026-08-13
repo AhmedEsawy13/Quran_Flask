@@ -237,7 +237,8 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await expect(page.getByRole("heading", {level: 1, name: "علامة المصحف، ووقف القارئ، وقول الإمام."})).toBeVisible();
   await expect(page.getByText("— مُكْث", {exact: true})).toBeVisible();
   await expect(page.getByRole("region", {name: "اختيار موضع الدراسة"})).toBeVisible();
-  await expect(page.getByRole("link", {name: "تدرّب على هذا الموضع", exact: true}).first()).toHaveAttribute("href", /waqf-practice/);
+  const practiceLink = page.getByRole("link", {name: "تدرّب على هذا الموضع", exact: true}).first();
+  await expect(practiceLink).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
   await expect(page.locator(".waqf-word-unit")).toHaveCount(50, {timeout: 15_000});
   const wordFlowSpacing = await page.locator(".waqf-word-flow").evaluate((flow) => {
     const units = Array.from(flow.querySelectorAll<HTMLElement>(".waqf-word-unit")).slice(0, 2);
@@ -262,9 +263,9 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await expect(page.getByRole("heading", {name: "علامات المصاحف"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "وقوف القرّاء"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "قول الإمام", exact: true})).toBeVisible();
-  await expect(page.getByRole("heading", {name: "مصفوفة المصاحف والقرّاء"})).toBeVisible();
-  await expect(page.getByRole("heading", {name: "كل القرّاء"})).toBeVisible();
-  await expect(page.getByRole("heading", {name: "قول الأئمة في الآية"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "مقارنة القرّاء بمصاحف الوقف"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "كيف قرأها كل قارئ"})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "لماذا يُوقف هنا؟ — كتب الوقف والابتداء"})).toBeVisible();
   const desktopMatrix = await page.evaluate(() => window.innerWidth > 900);
   if (desktopMatrix) {
     await expect(page.locator(".waqf-matrix")).toBeVisible();
@@ -279,6 +280,7 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await page.getByRole("combobox", {name: "البحث عن آية"}).press("Enter");
   await expect(page).toHaveURL(/ayah=256/);
   await expect(page.getByRole("heading", {name: /الآية ٢٥٦/})).toBeVisible({timeout: 15_000});
+  await expect(practiceLink).toHaveAttribute("href", "/waqf-practice?surah=2&from=256&to=256");
   await page.getByRole("combobox", {name: "البحث عن آية"}).fill("الله");
   const searchResults = page.getByRole("listbox", {name: "نتائج البحث"});
   await expect(searchResults).toBeVisible({timeout: 15_000});
