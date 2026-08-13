@@ -1,7 +1,7 @@
-# Athar Next.js frontend pilot
+# Athar Next.js frontend
 
-This directory is an isolated frontend migration pilot. Flask remains the
-source of truth for Quran data and all existing tools.
+This directory contains Athar's public frontend. Flask remains the source of
+truth for Quran data and the tools that have not moved yet.
 
 Production frontend: <https://athar-web-teal.vercel.app>
 
@@ -44,7 +44,7 @@ landing page, and workspace controls. Quran line assembly, edition fonts, glyph
 positioning, print rules, and dynamic audio rendering remain explicit CSS where
 the renderer benefits from stable semantic selectors.
 
-## Vercel pilot
+## Vercel deployment
 
 Create a Vercel project with `frontend` as its Root Directory and configure:
 
@@ -54,13 +54,14 @@ NEXT_PUBLIC_LEGACY_APP_ORIGIN=https://<current-heroku-app>
 NEXT_PUBLIC_SITE_URL=https://<next-frontend-domain>
 ```
 
-The pilot intentionally ships only three fonts: the UI medium, display black,
-and the default Uthmanic Hafs font. Page-specific Mushaf fonts stay on the
-Python deployment until their renderer is migrated.
+The frontend ships the Thmanyah UI/display fonts and the shared Quran fonts.
+Mushaf editions load their own Digital Khatt, Old Madina, Amiri, or extracted
+page font as needed; the Flask deployment remains the source for backend font
+assets during the migration.
 
 ## Migration boundary
 
-- `/`, `/read`, the core `/memorize` session, and the daily-use `/waqf` guide are implemented by Next.js.
+- `/`, `/read`, `/memorize`, `/waqf`, `/waqf-practice`, and `/credits` are implemented by Next.js.
 - `/backend-api/*` proxies short, cacheable API reads to Flask.
-- تدريب, the editor, the مُكْث research lab, and the voice-recitation portion of تثبيت still link to Flask.
+- The مُكْث research lab, internal editor/review surfaces, and voice recording/ASR portions of تدريب and تثبيت still link to Flask.
 - Audio, CV, PDFs, and long-running work must not be proxied through Vercel.

@@ -379,7 +379,10 @@ a {
 .reader-mushaf-stage {
   position: relative;
   display: grid;
-  min-height: max(500px, calc(100svh - var(--bar-height) - 126px));
+  /* Keep the open Mushaf visible below the route header and sticky controls on
+     short laptop viewports. The renderer still measures the exact remaining
+     space; this only gives its stage a responsive, bounded canvas. */
+  min-height: clamp(360px, 54svh, 620px);
   place-items: center;
   padding: 10px 54px 36px;
   border: 1px solid var(--athar-line-soft);
@@ -965,6 +968,10 @@ a {
 
 /* ── مُكْث domain widgets (Quran flow / chips / phrases) ───────── */
 .waqf-word-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 5px;
   padding: 8px 0 4px;
   border: 0;
   border-radius: 0;

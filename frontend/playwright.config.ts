@@ -8,7 +8,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 2 : undefined,
+  // The smoke suite shares one Flask data process. More than two browser
+  // workers can cold-build several Quran/waqf payloads at once and create
+  // false timeouts locally, even though CI already runs with two.
+  workers: 2,
   reporter: process.env.CI ? [["line"], ["html", {open: "never"}]] : "line",
   use: {
     baseURL,

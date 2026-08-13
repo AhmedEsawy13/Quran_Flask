@@ -211,9 +211,9 @@ test("Reader keeps the Mushaf first and navigates by page", async ({page}) => {
   });
   // Dual spread shrinks each page; single-page mode keeps a taller card.
   expect(geometry.height).toBeGreaterThan(desktopSpread ? 280 : 420);
-  // Dual chrome (spread gutter / stage padding) can sit a few px past the
-  // strict single-page viewport contract while remaining on-screen.
-  expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewport + (desktopSpread ? 20 : 1));
+  // The reading surface must remain fully visible on a short laptop viewport;
+  // navigating pages should not require an extra scroll just to reach the foot.
+  expect(geometry.bottom).toBeLessThanOrEqual(geometry.viewport + 1);
 
   await page.getByRole("button", {name: "الصفحة التالية"}).click();
   await expect(page.locator(".page-number").filter({hasText: "٤٣"})).toBeVisible({timeout: 15_000});
@@ -239,6 +239,17 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await expect(page.getByRole("region", {name: "اختيار موضع الدراسة"})).toBeVisible();
   await expect(page.getByRole("link", {name: "تدرّب على هذا الموضع", exact: true}).first()).toHaveAttribute("href", /waqf-practice/);
   await expect(page.locator(".waqf-word-unit")).toHaveCount(50, {timeout: 15_000});
+  const wordFlowSpacing = await page.locator(".waqf-word-flow").evaluate((flow) => {
+    const units = Array.from(flow.querySelectorAll<HTMLElement>(".waqf-word-unit")).slice(0, 2);
+    const first = units[0]?.getBoundingClientRect();
+    const second = units[1]?.getBoundingClientRect();
+    return {
+      display: getComputedStyle(flow).display,
+      gap: first && second ? first.left - second.right : 0,
+    };
+  });
+  expect(wordFlowSpacing.display).toBe("flex");
+  expect(wordFlowSpacing.gap).toBeGreaterThanOrEqual(4);
   await expect(page.locator(".waqf-inline-stop").first()).toBeVisible();
   await expect(page.locator(".waqf-symbol").first()).toHaveText(/[ۖ-ۜ]/);
   await expect(page.getByLabel("سعة النفس").getByRole("button", {name: "متوسط"})).toHaveAttribute("aria-pressed", "true");
@@ -379,4 +390,3 @@ test("credits lists sources", async ({page}) => {
   await expect(page.getByRole("heading", {name: "الوقف والابتداء"})).toBeVisible();
   await expect(page.getByRole("contentinfo").getByRole("link", {name: "تدريب"})).toHaveAttribute("href", "/waqf-practice");
 });
-
