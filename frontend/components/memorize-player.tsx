@@ -11,6 +11,9 @@ import {
 import {
   buildMemorizationSchedule,
   firstStepForAyah,
+  isContiguousAdvance,
+  stepSeekTime,
+  stepStopTime,
 } from "@/lib/memorize-schedule";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
@@ -44,19 +47,6 @@ const audioCache = new Map<string, MemorizationAudio>();
 const unitRepetitionOptions = [1, 2, 3, 5, 7, 10] as const;
 const linkRepetitionOptions = [1, 2, 3] as const;
 const STEP_GAP_SECONDS = 0.4;
-const PHRASE_START_PAD = 0.12;
-const PHRASE_END_PAD = 0.1;
-const BOUNDARY_EPS = 0.05;
-
-function stepSeekTime(step: {kind: string; start: number}) {
-  return step.kind === "phrase" || step.kind === "phrase-link"
-    ? Math.max(0, step.start - PHRASE_START_PAD)
-    : step.start;
-}
-
-function stepStopTime(step: {kind: string; end: number}) {
-  return step.kind === "phrase" ? step.end + PHRASE_END_PAD : step.end;
-}
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "٠:٠٠";
@@ -160,7 +150,7 @@ export function MemorizePlayer({
     onWordChange(activeWord ? activeWord[0] : null);
   }, [selectedVerses, publishAyah, onWordChange]);
 
-  const goToStep = useCallback(async (nextIndex: number, autoplay: boolean) => {
+  const goToStep = useCallback(async (nextIndex: number, autoplay: boolean, preserveTime = false) => {
     const audio = audioRef.current;
     if (!audio || !schedule.length) return;
     const boundedIndex = Math.min(schedule.length - 1, Math.max(0, nextIndex));
@@ -168,22 +158,24 @@ export function MemorizePlayer({
     stepIndexRef.current = boundedIndex;
     setStepIndex(boundedIndex);
     boundaryHandledRef.current = false;
-    setElapsed(0);
+    setElapsed(preserveTime ? Math.max(0, audio.currentTime - step.start) : 0);
     publishAyah(step.startAyah);
     onWordChange(null);
-    seekingRef.current = true;
-    try {
-      audio.currentTime = stepSeekTime(step);
-    } catch {
-      seekingRef.current = false;
-      return;
+    if (!preserveTime) {
+      seekingRef.current = true;
+      try {
+        audio.currentTime = stepSeekTime(step);
+      } catch {
+        seekingRef.current = false;
+        return;
+      }
     }
     if (!autoplay) {
       seekingRef.current = false;
       return;
     }
     try {
-      await audio.play();
+      if (audio.paused) await audio.play();
       setPlaying(true);
     } catch {
       setPlaying(false);
@@ -199,7 +191,7 @@ export function MemorizePlayer({
     boundaryHandledRef.current = true;
     const nextIndex = stepIndexRef.current + 1;
     if (nextIndex < schedule.length) {
-      await goToStep(nextIndex, true);
+      await goToStep(nextIndex, true, isContiguousAdvance(step, schedule[nextIndex]));
       return;
     }
     if (loopRange) {
@@ -207,7 +199,6 @@ export function MemorizePlayer({
       return;
     }
     audio.pause();
-    audio.currentTime = stepStopTime(step);
     setElapsed(Math.max(0, step.end - step.start));
     setPlaying(false);
     onWordChange(null);
@@ -289,13 +280,13 @@ export function MemorizePlayer({
       const currentTime = audio.currentTime;
       setElapsed(Math.max(0, Math.min(duration, currentTime - currentStep.start)));
       updatePlaybackPosition(currentTime);
-      if (currentTime >= stepStopTime(currentStep) - BOUNDARY_EPS && !boundaryHandledRef.current) {
+      if (currentTime >= stepStopTime(currentStep, schedule[stepIndex + 1]) && !boundaryHandledRef.current) {
         void completeCurrentStep();
       }
     };
     const id = window.setInterval(followPlayback, 80);
     return () => window.clearInterval(id);
-  }, [isPlaying, currentStep, duration, updatePlaybackPosition, completeCurrentStep]);
+  }, [isPlaying, currentStep, duration, schedule, stepIndex, updatePlaybackPosition, completeCurrentStep]);
 
   const togglePlayback = useCallback(async () => {
     const audio = audioRef.current;
@@ -306,7 +297,7 @@ export function MemorizePlayer({
       setPlaying(false);
       return;
     }
-    if (audio.currentTime < stepSeekTime(step) || audio.currentTime >= stepStopTime(step) - BOUNDARY_EPS) {
+    if (audio.currentTime < stepSeekTime(step) || audio.currentTime >= stepStopTime(step, schedule[stepIndexRef.current + 1])) {
       await goToStep(stepIndexRef.current, true);
       return;
     }
@@ -428,8 +419,8 @@ export function MemorizePlayer({
         const step = schedule[stepIndexRef.current];
         if (!audio || !step) return;
         const start = stepSeekTime(step);
-        const stop = stepStopTime(step);
-        if (audio.currentTime >= start && audio.currentTime < stop - BOUNDARY_EPS) return;
+        const stop = stepStopTime(step, schedule[stepIndexRef.current + 1]);
+        if (audio.currentTime >= start && audio.currentTime < stop) return;
         audio.currentTime = start;
       }}
       onPause={() => {
@@ -443,7 +434,7 @@ export function MemorizePlayer({
         const currentTime = event.currentTarget.currentTime;
         setElapsed(Math.max(0, Math.min(step.end - step.start, currentTime - step.start)));
         updatePlaybackPosition(currentTime);
-        if (currentTime >= stepStopTime(step) - BOUNDARY_EPS && !boundaryHandledRef.current) {
+        if (currentTime >= stepStopTime(step, schedule[stepIndexRef.current + 1]) && !boundaryHandledRef.current) {
           void completeCurrentStep();
         }
       }}

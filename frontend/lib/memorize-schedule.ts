@@ -15,6 +15,33 @@ export type MemorizationStep = {
   repetitionTotal: number;
 };
 
+export const PHRASE_START_PAD = 0.12;
+export const UNIT_END_PAD = 0.28;
+export const CONTIGUOUS_SLACK = 0.12;
+
+export function stepSeekTime(step: {kind: string; start: number}) {
+  return step.kind === "phrase" || step.kind === "phrase-link"
+    ? Math.max(0, step.start - PHRASE_START_PAD)
+    : step.start;
+}
+
+export function isContiguousAdvance(
+  current: {end: number},
+  next?: {start: number} | null,
+) {
+  return Boolean(next && next.start >= current.end - CONTIGUOUS_SLACK);
+}
+
+export function stepStopTime(
+  step: {kind: string; end: number},
+  next?: {start: number} | null,
+) {
+  if (isContiguousAdvance(step, next) && next) {
+    return Math.max(step.end, next.start);
+  }
+  return step.end + UNIT_END_PAD;
+}
+
 export type MemorizationScheduleOptions = {
   fromAyah: number;
   toAyah: number;
