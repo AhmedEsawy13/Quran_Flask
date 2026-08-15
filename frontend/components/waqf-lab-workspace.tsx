@@ -46,13 +46,14 @@ export function WaqfLabWorkspace() {
   const [tab, setTab] = useState<LabTab>(familyForTab(initialTab) === initialFamily ? initialTab : firstTabForFamily(initialFamily));
   const [pickerOpen, setPickerOpen] = useState(false);
   const [surahs, setSurahs] = useState<Surah[]>([]);
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const bootQuery = searchParams.get("q")?.trim() || "";
+  const [query, setQuery] = useState(bootQuery);
   const [exact, setExact] = useState(searchParams.get("exact") === "1");
   const [mode, setMode] = useState<"before" | "">(searchParams.get("mode") === "before" ? "before" : "");
   const [wordResult, setWordResult] = useState<WordResearchPayload | null>(null);
   const [wordForm, setWordForm] = useState<string | null>(null);
   const [wordWaqf, setWordWaqf] = useState<"" | "yes" | "no">("");
-  const [wordLoading, setWordLoading] = useState(false);
+  const [wordLoading, setWordLoading] = useState(Boolean(bootQuery));
   const [wordError, setWordError] = useState("");
   const [wordShown, setWordShown] = useState(HIT_PAGE);
   const [ibtidaa, setIbtidaa] = useState<{count: number; multi_reciter: number; items: IbtidaaItem[]} | null>(null);
@@ -121,8 +122,22 @@ export function WaqfLabWorkspace() {
   };
 
   useEffect(() => {
-    const initial = searchParams.get("q")?.trim();
-    if (initial) runWordSearch(initial, searchParams.get("exact") === "1", searchParams.get("mode") === "before" ? "before" : "");
+    if (!bootQuery) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({word: bootQuery});
+    if (searchParams.get("exact") === "1") params.set("exact", "1");
+    if (searchParams.get("mode") === "before") params.set("mode", "before");
+    getJson<WordResearchPayload>(`/backend-api/waqf-research?${params}`, controller.signal)
+      .then((payload) => {
+        setWordResult(payload);
+        setWordForm(payload.active_form);
+      })
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setWordError("تعذّر البحث");
+      })
+      .finally(() => setWordLoading(false));
+    return () => controller.abort();
     // Initial deep-link only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

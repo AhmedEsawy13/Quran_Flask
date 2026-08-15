@@ -78,7 +78,10 @@ export function PracticeWorkspace() {
     setGrade(null);
     setGradeError("");
   }
-  const verses = passageResult.key === passageKey ? passageResult.verses : [];
+  const verses = useMemo(
+    () => (passageResult.key === passageKey ? passageResult.verses : []),
+    [passageKey, passageResult.key, passageResult.verses],
+  );
   const passageError = passageResult.key === passageKey ? passageResult.error : "";
   const pagesKey = `${passageKey}:${mushaf}`;
   const pages = pageResult.key === pagesKey ? pageResult.pages : [];
