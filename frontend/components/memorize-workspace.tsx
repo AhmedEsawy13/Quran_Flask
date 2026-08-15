@@ -108,6 +108,16 @@ function pageHasAyah(page: MushafPage | null | undefined, surah: number, ayah: n
   return false;
 }
 
+function resultMatchesIdentity(key: string, identity: string) {
+  if (!key || !identity) return false;
+  if (key === identity) return true;
+  const split = identity.lastIndexOf(":");
+  if (split <= 0) return false;
+  const base = identity.slice(0, split);
+  const retry = identity.slice(split + 1);
+  return key.startsWith(`${base}:`) && key.endsWith(`:${retry}`);
+}
+
 function contextCountLabel(value: number) {
   const count = Math.max(1, value);
   if (count === 1) return "آية واحدة";
@@ -465,8 +475,12 @@ export function MemorizeWorkspace() {
   }, [surahNumber, retryToken, loadAyahNumbers, fromAyah, toAyah]);
 
   useEffect(() => {
-    const held = pageResultRef.current.key === pageIdentity ? pageResultRef.current.page : null;
-    const spread = spreadResultRef.current;
+    const held = resultMatchesIdentity(pageResultRef.current.key, pageIdentity)
+      ? pageResultRef.current.page
+      : null;
+    const spread = resultMatchesIdentity(spreadResultRef.current.key, pageIdentity)
+      ? spreadResultRef.current
+      : {right: null, left: null};
     if (pageOverride != null) {
       if (held?.page_number === pageOverride) return;
     } else if (
