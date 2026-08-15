@@ -16,7 +16,7 @@ Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `f
 | `/memorize` | تثبيت | Viewport studio: mushaf fills remaining height. Range, reciter, repetition, and transport stay on-screen. التفصيل الموضوعي is off by default and lives under الموضع. ASR stays Flask |
 | `/waqf` | مُكْث | Scrollable verse-first study: search, word-flow + inspector, breath plan, full matrix, all-reciters gallery, classical-for-all |
 | `/waqf-lab` | مختبر الوقف | Quran-wide research: word/pattern search, reciter solos/stats/clusters, mushaf disagreement and agreement. Linked from مُكْث; not a fifth landing door |
-| `/waqf-practice` | تدريب | Tap words + grade vs printed marks. ASR + live tajweed stay Flask |
+| `/waqf-practice` | تدريب | Printed mushaf page-cards for tap-to-grade; word-flow fallback. ASR + live tajweed stay Flask |
 | `/credits` | المصادر | Attribution page |
 | `/robots.txt` `/sitemap.xml` `/llms.txt` | SEO | Next copies of Flask SEO |
 
@@ -29,7 +29,7 @@ Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `f
 ## Known gaps (next passes, not forgotten)
 
 - تثبيت: tajweed color on studio; التفصيل الموضوعي parked under الموضع
-- تدريب: printed mushaf page-card layout (tap-to-grade currently uses word flow)
+- تدريب: printed page-cards land; word-flow remains the fallback and the graded replay
 - Reader: leftover Flask-only chrome via `HandoffSurface`
 
 When adding a public door, wire **nav**, **landing**, **in-app handoffs**, and `smoke.spec.ts`. Keep Quran wording/tafsir from local APIs or Tafsir/Bahouth MCP — never invent.

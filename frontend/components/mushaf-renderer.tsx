@@ -16,6 +16,16 @@ import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import type { TopicWash } from "@/lib/topic-color";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
+export type PracticeTap = {
+  surah: number;
+  fromAyah: number;
+  toAyah: number;
+  stopKeys: ReadonlySet<string>;
+  positions: WeakMap<MushafWord, number>;
+  lastWpos: ReadonlyMap<number, number>;
+  onWordTap: (ayah: number, wpos: number) => void;
+};
+
 type MushafRendererProps = {
   view: ReaderView;
   editionId: MushafEditionId;
@@ -36,6 +46,7 @@ type MushafRendererProps = {
   waqfSource?: string;
   dualLayout?: boolean;
   memorizationMode?: boolean;
+  practice?: PracticeTap | null;
   focusRange?: readonly [number, number];
   contextRange?: readonly [number, number];
   contextByKey?: ReadonlyMap<string, TopicWash>;
@@ -261,6 +272,7 @@ function PageLine({
   draftAyah,
   picking,
   revealedAyahs,
+  practice,
   onAyahClick,
   editionId,
   tajweedEnabled,
@@ -281,6 +293,7 @@ function PageLine({
   draftAyah?: number | null;
   picking?: boolean;
   revealedAyahs?: ReadonlySet<number>;
+  practice?: PracticeTap | null;
   onAyahClick?: (surah: number, ayah: number) => void;
   editionId: MushafEditionId;
   tajweedEnabled?: boolean;
@@ -359,28 +372,55 @@ function PageLine({
               const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
                 ? tajweedPartsForDisplay(displayText, tajweedSegment)
                 : null;
+              const practiceWpos = practice?.positions.get(word);
+              const practiceInRange = Boolean(
+                practice
+                && practiceWpos != null
+                && Number(word.surah) === practice.surah
+                && wordAyah >= practice.fromAyah
+                && wordAyah <= practice.toAyah,
+              );
+              const practiceStopped = Boolean(practiceInRange && practice && practice.stopKeys.has(`${wordAyah}:${practiceWpos}`));
+              const practiceEnd = Boolean(practiceInRange && practice && practice.lastWpos.get(wordAyah) === practiceWpos);
+              const practiceCtx = Boolean(practice && !practiceInRange && practiceWpos != null);
               // Match تثبيت: space BETWEEN word spans (not inside), so word-spacing justify works.
               const nodes: ReactNode[] = [];
               if (appended > 0) nodes.push(" ");
               appended += 1;
               nodes.push(
                 <span
-                  className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${draft ? " is-range-draft" : ""}${concealed ? " is-concealed" : ""}${revealed ? " is-revealed" : ""}${audioActive ? " is-audio-active" : ""}${picking || concealFocused ? " is-interactive" : ""}`}
+                  className={`mushaf-word${contextual ? " is-context" : ""}${focused && !practice ? " is-focus" : ""}${current && !practice ? " is-current" : ""}${draft ? " is-range-draft" : ""}${concealed ? " is-concealed" : ""}${revealed ? " is-revealed" : ""}${audioActive ? " is-audio-active" : ""}${picking || concealFocused || practiceInRange ? " is-interactive" : ""}${practiceInRange ? " practice-word" : ""}${practiceStopped ? " is-stopped" : ""}${practiceEnd ? " is-end" : ""}${practiceCtx ? " is-practice-ctx" : ""}`}
                   key={word.word_key || `${word.word_index ?? "word"}-${index}`}
+                  role={practiceInRange ? "button" : undefined}
+                  tabIndex={practiceInRange ? 0 : undefined}
+                  aria-pressed={practiceInRange ? practiceStopped : undefined}
                   aria-current={current ? "true" : undefined}
+                  aria-label={practiceInRange
+                    ? (practiceStopped ? `إلغاء الوقف عند ${displayText}` : `تعليم وقف عند ${displayText}`)
+                    : undefined}
                   data-audio-index={audioPosition}
                   data-word-key={word.word_key || undefined}
                   data-surah={Number.isInteger(Number(word.surah)) ? String(word.surah) : undefined}
                   data-ayah={Number.isInteger(wordAyah) ? String(wordAyah) : undefined}
+                  data-wpos={practiceWpos != null ? String(practiceWpos) : undefined}
                   data-context-color={wash?.color}
                   data-context-segment={wash ? String(wash.segmentId) : undefined}
                   style={wash ? {"--mz-topic": wash.color} as CSSProperties : undefined}
-                  onClick={onAyahClick ? () => {
-                    const surah = Number(word.surah);
-                    const ayah = Number(word.ayah);
-                    if (!Number.isInteger(surah) || !Number.isInteger(ayah) || surah < 1 || ayah < 1) return;
-                    onAyahClick(surah, ayah);
-                  } : undefined}
+                  onClick={practiceInRange && practice && practiceWpos != null
+                    ? () => practice.onWordTap(wordAyah, practiceWpos)
+                    : onAyahClick ? () => {
+                      const surah = Number(word.surah);
+                      const ayah = Number(word.ayah);
+                      if (!Number.isInteger(surah) || !Number.isInteger(ayah) || surah < 1 || ayah < 1) return;
+                      onAyahClick(surah, ayah);
+                    } : undefined}
+                  onKeyDown={practiceInRange && practice && practiceWpos != null
+                    ? (event) => {
+                      if (event.key !== "Enter" && event.key !== " ") return;
+                      event.preventDefault();
+                      practice.onWordTap(wordAyah, practiceWpos);
+                    }
+                    : undefined}
                 >
                   {tajweedParts ? tajweedParts.map((part, partIndex) => part.rule ? (
                     <span className={`tajweed-rule ${part.rule}`} key={`${part.rule}-${partIndex}`}>
@@ -433,6 +473,7 @@ export function MushafRenderer({
   waqfSource,
   dualLayout = false,
   memorizationMode = false,
+  practice = null,
   focusRange,
   contextRange,
   contextByKey,
@@ -534,12 +575,12 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [activeWaqfSource, ayahNumber, contextByKey, draftAyah, dualLayout, editionId, focusRangeEnd, focusRangeStart, fontLoading, memorizationMode, page, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled]);
+  }, [activeWaqfSource, ayahNumber, contextByKey, draftAyah, dualLayout, editionId, focusRangeEnd, focusRangeStart, fontLoading, memorizationMode, page, practice?.fromAyah, practice?.toAyah, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled]);
 
   return (
     <article
       ref={pageRef}
-      className={`reader-page is-${view} edition-${editionId}${memorizationMode ? " is-memorization" : ""}${picking ? " is-picking" : ""}${concealFocused ? " is-concealed" : ""}`}
+      className={`reader-page is-${view} edition-${editionId}${memorizationMode ? " is-memorization" : ""}${practice ? " is-practice" : ""}${picking ? " is-picking" : ""}${concealFocused ? " is-concealed" : ""}`}
       aria-busy={isLoading || fontLoading || tajweedLoading}
       data-tajweed={tajweedEnabled ? "true" : undefined}
       data-waqf-enabled={waqfEnabled ? "true" : "false"}
@@ -659,6 +700,7 @@ export function MushafRenderer({
                   draftAyah={draftAyah}
                   picking={picking}
                   revealedAyahs={revealedAyahs}
+                  practice={practice}
                   onAyahClick={onAyahClick}
                   editionId={editionId}
                   tajweedEnabled={tajweedEnabled}

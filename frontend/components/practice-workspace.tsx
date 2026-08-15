@@ -6,6 +6,7 @@ import {useSearchParams} from "next/navigation";
 import {
   getJson,
   postJson,
+  type MushafPage,
   type PracticeGrade,
   type PracticePassage,
   type PracticeVerse,
@@ -36,6 +37,8 @@ import {
   ToolStack,
 } from "@/components/tool-chrome";
 import {Button, StatusState} from "@/components/ui/primitives";
+import {PracticeMushafPages} from "@/components/practice-mushaf-pages";
+import {loadPracticePageRange} from "@/lib/practice-pages";
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
@@ -60,6 +63,7 @@ export function PracticeWorkspace() {
     verses: [],
     error: "",
   });
+  const [pageResult, setPageResult] = useState<{key: string; pages: MushafPage[]}>({key: "", pages: []});
   const [rangeKey, setRangeKey] = useState("");
   const [stops, setStops] = useState<Set<string>>(() => new Set());
   const [grade, setGrade] = useState<PracticeGrade | null>(null);
@@ -76,7 +80,14 @@ export function PracticeWorkspace() {
   }
   const verses = passageResult.key === passageKey ? passageResult.verses : [];
   const passageError = passageResult.key === passageKey ? passageResult.error : "";
-  const passageLoading = !catalogError && passageResult.key !== passageKey;
+  const pagesKey = `${passageKey}:${mushaf}`;
+  const pages = pageResult.key === pagesKey ? pageResult.pages : [];
+  const pagesLoading = !catalogError && pageResult.key !== pagesKey;
+  const passageLoading = !catalogError && (passageResult.key !== passageKey || pagesLoading);
+  const lastWpos = useMemo(
+    () => new Map(verses.map((verse) => [verse.ayah, verse.words.length - 1])),
+    [verses],
+  );
   const selectedSurah = useMemo(
     () => surahs.find((surah) => surah.number === surahNumber),
     [surahs, surahNumber],
@@ -160,6 +171,18 @@ export function PracticeWorkspace() {
       });
     return () => controller.abort();
   }, [passageKey, surahNumber, fromAyah, toAyah, ayahNumbers.length]);
+
+  useEffect(() => {
+    if (!ayahNumbers.length || toAyah < fromAyah || toAyah - fromAyah > MAX_PRACTICE_SPAN) return;
+    const controller = new AbortController();
+    loadPracticePageRange(mushaf, surahNumber, fromAyah, toAyah, controller.signal)
+      .then((loaded) => setPageResult({key: pagesKey, pages: loaded}))
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setPageResult({key: pagesKey, pages: []});
+      });
+    return () => controller.abort();
+  }, [ayahNumbers.length, fromAyah, mushaf, pagesKey, surahNumber, toAyah]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -311,33 +334,49 @@ export function PracticeWorkspace() {
           ) : null}
           {!passageLoading && !passageError && verses.length ? (
             <>
-              <div className="practice-passage" dir="rtl">
-                {verses.map((verse) => (
-                  <div className="practice-verse" key={verse.ayah}>
-                    {verse.words.map((word, index) => {
-                      const key = stopKey(verse.ayah, index);
-                      const stopped = stops.has(key);
-                      const last = index === verse.words.length - 1;
-                      return (
-                        <span key={key}>
-                          <button
-                            className={`practice-word${last ? " is-end" : ""}${stopped ? " is-stopped" : ""}`}
-                            type="button"
-                            aria-pressed={stopped}
-                            aria-label={stopped ? `إلغاء الوقف عند ${word}` : `تعليم وقف عند ${word}`}
-                            onClick={() => toggleStop(verse.ayah, index)}
-                          >
-                            {word}
-                          </button>
-                          {" "}
-                        </span>
-                      );
-                    })}
-                    {" "}
-                    <span className="practice-ayah-num">{toArabicDigits(verse.ayah)}</span>
-                  </div>
-                ))}
-              </div>
+              {pages.length ? (
+                <PracticeMushafPages
+                  pages={pages}
+                  surahs={surahs}
+                  selectedSurah={selectedSurah}
+                  surahNumber={surahNumber}
+                  fromAyah={fromAyah}
+                  toAyah={toAyah}
+                  mushaf={mushaf}
+                  versesLastWpos={lastWpos}
+                  stops={stops}
+                  onWordTap={toggleStop}
+                  onRetry={retry}
+                />
+              ) : (
+                <div className="practice-passage" dir="rtl">
+                  {verses.map((verse) => (
+                    <div className="practice-verse" key={verse.ayah}>
+                      {verse.words.map((word, index) => {
+                        const key = stopKey(verse.ayah, index);
+                        const stopped = stops.has(key);
+                        const last = index === verse.words.length - 1;
+                        return (
+                          <span key={key}>
+                            <button
+                              className={`practice-word${last ? " is-end" : ""}${stopped ? " is-stopped" : ""}`}
+                              type="button"
+                              aria-pressed={stopped}
+                              aria-label={stopped ? `إلغاء الوقف عند ${word}` : `تعليم وقف عند ${word}`}
+                              onClick={() => toggleStop(verse.ayah, index)}
+                            >
+                              {word}
+                            </button>
+                            {" "}
+                          </span>
+                        );
+                      })}
+                      {" "}
+                      <span className="practice-ayah-num">{toArabicDigits(verse.ayah)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-athar-line pt-4">
                 <p className="m-0 text-[0.78rem] text-athar-ink-faint" aria-live="polite">
                   {stopCountLabel(stops.size)}
