@@ -11,7 +11,7 @@ import {
   type MushafEditionId,
   type ReaderView,
 } from "@/lib/mushaf";
-import { fitAndJustifyMushafPage } from "@/lib/mushaf-page-layout";
+import { fitAndJustifyMushafPage, isBrowserPinchZoomed } from "@/lib/mushaf-page-layout";
 import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import type { TopicWash } from "@/lib/topic-color";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
@@ -539,7 +539,7 @@ export function MushafRenderer({
     const fit = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        if (!active) return;
+        if (!active || isBrowserPinchZoomed()) return;
         // Same pipeline as تثبيت: measured font size, then capped line justify.
         fitAndJustifyMushafPage(root, editionId, { dual: dualLayout });
         paintContextBands(root);
@@ -575,7 +575,14 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [activeWaqfSource, ayahNumber, contextByKey, draftAyah, dualLayout, editionId, focusRangeEnd, focusRangeStart, fontLoading, memorizationMode, page, practice?.fromAyah, practice?.toAyah, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled]);
+  }, [activeWaqfSource, dualLayout, editionId, fontLoading, page, practice?.fromAyah, practice?.toAyah, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled]);
+
+  useEffect(() => {
+    const root = pageRef.current;
+    if (!root || view !== "page" || !page) return;
+    paintContextBands(root);
+    paintSelectionBands(root);
+  }, [ayahNumber, contextByKey, draftAyah, focusRangeEnd, focusRangeStart, memorizationMode, page, view]);
 
   return (
     <article

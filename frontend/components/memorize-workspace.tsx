@@ -70,9 +70,6 @@ type RangeDraft = {
   previousTo: number;
 };
 
-const ZOOM_MIN = 0.75;
-const ZOOM_MAX = 2;
-const ZOOM_STEP = 0.1;
 const EMPTY_CONTEXT_SEGMENTS: MemorizationContextSegment[] = [];
 const WAQF_SOURCES = ["المدينة الجديد", "المدينة القديم", "الشمرلي"] as const;
 type WaqfSource = typeof WAQF_SOURCES[number];
@@ -81,10 +78,6 @@ type MemorizeNavigator = "surah" | "juz" | "page";
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-}
-
-function clampZoom(value: number) {
-  return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(value * 10) / 10));
 }
 
 function verseKeysFromPage(page: MushafPage | null) {
@@ -103,6 +96,16 @@ function verseKeysFromPage(page: MushafPage | null) {
     });
   });
   return keys;
+}
+
+function pageHasAyah(page: MushafPage | null | undefined, surah: number, ayah: number) {
+  if (!page) return false;
+  for (const line of page.lines) {
+    for (const word of line.words) {
+      if (Number(word.surah) === surah && Number(word.ayah) === ayah) return true;
+    }
+  }
+  return false;
 }
 
 function contextCountLabel(value: number) {
@@ -198,7 +201,6 @@ export function MemorizeWorkspace() {
     return isReaderLayout(value) ? value : "dual";
   });
   const [dualAvailable, setDualAvailable] = useState(false);
-  const [zoom, setZoom] = useState(1);
   const [concealed, setConcealed] = useState(false);
   const [showContext, setShowContext] = useState(false);
   const [tajweedEnabled, setTajweedEnabled] = useState(false);
@@ -219,6 +221,10 @@ export function MemorizeWorkspace() {
   const [controlsHost, setControlsHost] = useState<HTMLDivElement | null>(null);
   const [pageResult, setPageResult] = useState<PageResult>({key: "", page: null, error: ""});
   const [spreadResult, setSpreadResult] = useState<SpreadResult>({key: "", right: null, left: null, error: ""});
+  const pageResultRef = useRef(pageResult);
+  const spreadResultRef = useRef(spreadResult);
+  pageResultRef.current = pageResult;
+  spreadResultRef.current = spreadResult;
   const [contextResult, setContextResult] = useState<ContextResult>({key: "", data: null});
   const [contextMapResult, setContextMapResult] = useState<{key: string; segments: MemorizationContextSegment[]}>({
     key: "",
@@ -226,11 +232,9 @@ export function MemorizeWorkspace() {
   });
   const edition = MUSHAF_EDITIONS[editionId];
   const dualActive = layout === "dual" && dualAvailable;
-  const pageKey = pageOverride
-    ? `${editionId}:${waqfSource}:page:${pageOverride}:${retryToken}`
-    : `${editionId}:${waqfSource}:${surahNumber}:${activeAyah}:${retryToken}`;
+  const pageIdentity = `${editionId}:${waqfSource}:${retryToken}`;
   const contextKey = `${surahNumber}:${activeAyah}:${retryToken}`;
-  const visiblePage = pageResult.key === pageKey ? pageResult : null;
+  const visiblePage = pageResult.key === pageIdentity ? pageResult : null;
   const focusPage = visiblePage?.page?.page_number || pageOverride;
   const currentJuz = focusPage && editionId !== "shamarly"
     ? juzNumberForPage(focusPage)
@@ -374,8 +378,6 @@ export function MemorizeWorkspace() {
     media.addEventListener("change", update);
     const hasLayoutParam = new URL(window.location.href).searchParams.has("layout");
     const frame = window.requestAnimationFrame(() => {
-      const savedZoom = Number(window.localStorage.getItem("athar-memorize-zoom") || window.localStorage.getItem("mz_zoom"));
-      if (Number.isFinite(savedZoom)) setZoom(clampZoom(savedZoom));
       const savedLayout = window.localStorage.getItem("athar-memorize-layout");
       if (!hasLayoutParam && isReaderLayout(savedLayout)) setLayout(savedLayout);
       setTajweedEnabled(
@@ -463,23 +465,34 @@ export function MemorizeWorkspace() {
   }, [surahNumber, retryToken, loadAyahNumbers, fromAyah, toAyah]);
 
   useEffect(() => {
+    const held = pageResultRef.current.key === pageIdentity ? pageResultRef.current.page : null;
+    const spread = spreadResultRef.current;
+    if (pageOverride != null) {
+      if (held?.page_number === pageOverride) return;
+    } else if (
+      pageHasAyah(held, surahNumber, activeAyah) ||
+      pageHasAyah(spread.right, surahNumber, activeAyah) ||
+      pageHasAyah(spread.left, surahNumber, activeAyah)
+    ) {
+      return;
+    }
     const controller = new AbortController();
     const query = mushafQuery(waqfSource);
     const path = pageOverride
       ? `/backend-api/${edition.apiBase}/page/${pageOverride}${query}`
       : `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${activeAyah}${query}`;
     getJson<MushafPage>(path, controller.signal)
-      .then((page) => setPageResult({key: pageKey, page, error: ""}))
+      .then((page) => setPageResult({key: pageIdentity, page, error: ""}))
       .catch((reason: unknown) => {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
         setPageResult({
-          key: pageKey,
+          key: pageIdentity,
           page: null,
           error: reason instanceof Error ? reason.message : "تعذّر تحميل صفحة التثبيت.",
         });
       });
     return () => controller.abort();
-  }, [edition.apiBase, editionId, surahNumber, activeAyah, pageOverride, retryToken, pageKey, waqfSource]);
+  }, [edition.apiBase, editionId, surahNumber, activeAyah, pageOverride, retryToken, pageIdentity, waqfSource]);
 
   useEffect(() => {
     if (!dualActive || !visiblePage?.page || !spreadKey) return;
@@ -552,10 +565,6 @@ export function MemorizeWorkspace() {
     window.localStorage.setItem("athar-memorize-range", `${surahNumber}:${fromAyah}:${toAyah}`);
     window.localStorage.setItem("athar-memorize-layout", layout);
   }, [surahNumber, fromAyah, toAyah, editionId, layout]);
-
-  useEffect(() => {
-    window.localStorage.setItem("athar-memorize-zoom", String(zoom));
-  }, [zoom]);
 
   const retry = useCallback(() => {
     setCatalogError("");
@@ -733,7 +742,7 @@ export function MemorizeWorkspace() {
 
   return (
     <section
-      className={`grid h-full min-h-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] [--mz-topic:#3d7ea6] md:pb-0 ${
+      className={`grid h-full min-h-0 touch-manipulation pb-[calc(4.5rem+env(safe-area-inset-bottom))] [--mz-topic:#3d7ea6] md:pb-0 ${
         showContext ? "grid-rows-[auto_auto_minmax(0,1fr)]" : "grid-rows-[auto_minmax(0,1fr)]"
       }`}
       aria-label="استوديو التثبيت"
@@ -1065,7 +1074,6 @@ export function MemorizeWorkspace() {
           view="page"
           editionId={editionId}
           pageCount={dualActive ? 2 : 1}
-          zoom={zoom}
           positionLabel={positionLabel}
           previousLabel="الصفحة السابقة"
           nextLabel="الصفحة التالية"
@@ -1108,43 +1116,6 @@ export function MemorizeWorkspace() {
             />
           )}
         </MushafStage>
-
-        <div className="absolute bottom-2 start-2 z-[25] flex items-center gap-0.5 rounded-full border border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] p-0.5 shadow-athar-sm backdrop-blur-lg" role="group" aria-label="تكبير المصحف">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-9"
-            aria-label="تصغير المصحف"
-            disabled={zoom <= ZOOM_MIN + 0.001}
-            onClick={() => setZoom((value) => clampZoom(value - ZOOM_STEP))}
-          >
-            <AtharIcon name="zoom-out" className="size-[17px]" />
-          </Button>
-          <span className="min-w-10 text-center text-[0.68rem] font-bold tabular-nums text-athar-ink-soft max-sm:hidden" aria-label="مستوى التكبير">
-            {toArabicDigits(Math.round(zoom * 100))}٪
-          </span>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-9"
-            aria-label="تكبير المصحف"
-            disabled={zoom >= ZOOM_MAX - 0.001}
-            onClick={() => setZoom((value) => clampZoom(value + ZOOM_STEP))}
-          >
-            <AtharIcon name="zoom-in" className="size-[17px]" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="size-9 text-[0.68rem]"
-            aria-label="ملاءمة"
-            title="ملاءمة صفحة المصحف للشاشة"
-            aria-pressed={Math.abs(zoom - 1) < 0.001}
-            onClick={() => setZoom(1)}
-          >
-            <AtharIcon name="scan" className="size-[17px]" />
-          </Button>
-        </div>
 
       </div>
 

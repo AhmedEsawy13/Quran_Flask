@@ -13,7 +13,7 @@ Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `f
 |---|---|-----|
 | `/` | landing | Four doors + credits footer |
 | `/read` | المصحف | Study drawer includes iʿrāb; Flask `/read` still has older chrome |
-| `/memorize` | تثبيت | Viewport studio: mushaf fills remaining height. Range, reciter, repetition, and transport stay on-screen. التفصيل الموضوعي is off by default and lives under الموضع. ASR stays Flask |
+| `/memorize` | تثبيت | Viewport studio: mushaf fills remaining height at fitted scale (no zoom chrome). Range, reciter, repetition, and transport stay on-screen. التفصيل الموضوعي is off by default and lives under الموضع. ASR stays Flask |
 | `/waqf` | مُكْث | Scrollable verse-first study: search, word-flow + inspector, breath plan, full matrix, all-reciters gallery, classical-for-all |
 | `/waqf-lab` | مختبر الوقف | Quran-wide research: word/pattern search, reciter solos/stats/clusters, mushaf disagreement and agreement. Linked from مُكْث; not a fifth landing door |
 | `/waqf-practice` | تدريب | Printed mushaf page-cards for tap-to-grade; word-flow fallback. ASR + live tajweed stay Flask |

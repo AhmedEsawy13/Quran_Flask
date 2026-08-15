@@ -439,10 +439,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.locator(".mushaf-word.is-range-draft").first()).toBeVisible();
   await word256.evaluate((word: HTMLElement) => word.click());
   await expect(page.locator("summary").filter({hasText: "الموضع"})).toContainText("البقرة · ٢٥٥–٢٥٦");
-  await page.getByRole("button", {name: "تكبير المصحف"}).click();
-  await expect(page.getByLabel("مستوى التكبير")).toContainText("١١٠");
-  await expect(page.locator(".reader-mushaf-stage")).toHaveAttribute("data-zoom", "1.1");
-  await page.getByRole("button", {name: "ملاءمة"}).click();
+  await expect(page.getByRole("button", {name: "تكبير المصحف"})).toHaveCount(0);
   await expect(page.locator(".reader-mushaf-stage")).toHaveAttribute("data-zoom", "1.0");
   const desktopSpread = await page.evaluate(() => window.innerWidth >= 1100);
   if (desktopSpread) {

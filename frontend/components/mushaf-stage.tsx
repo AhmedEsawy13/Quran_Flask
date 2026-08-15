@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type TouchEvent } from "react";
 import { cn } from "@/lib/cn";
 import type { MushafEditionId, ReaderView } from "@/lib/mushaf";
-import { pageAspectRatio } from "@/lib/mushaf-page-layout";
+import { isBrowserPinchZoomed, pageAspectRatio } from "@/lib/mushaf-page-layout";
 
 type MushafStageProps = {
   children: ReactNode;
@@ -52,6 +52,7 @@ export function MushafStage({
     const measure = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
+        if (isBrowserPinchZoomed()) return;
         const rect = stage.getBoundingClientRect();
         const mobile = window.matchMedia("(max-width: 767px)").matches;
         const bottomInset = mobile ? 82 : 18;
@@ -89,11 +90,23 @@ export function MushafStage({
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measure);
     observer?.observe(stage);
     window.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("resize", measure);
+    const blockPinch = (event: globalThis.TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault();
+    };
+    const blockGesture = (event: Event) => event.preventDefault();
+    stage.addEventListener("touchmove", blockPinch, {passive: false});
+    stage.addEventListener("gesturestart", blockGesture);
+    stage.addEventListener("gesturechange", blockGesture);
     measure();
     return () => {
       cancelAnimationFrame(frame);
       observer?.disconnect();
       window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
+      stage.removeEventListener("touchmove", blockPinch);
+      stage.removeEventListener("gesturestart", blockGesture);
+      stage.removeEventListener("gesturechange", blockGesture);
     };
   }, [editionId, fill, pageCount, ratio, view]);
 
@@ -128,7 +141,10 @@ export function MushafStage({
       aria-busy={moving}
       style={style}
       onTouchStart={(event) => {
-        if (event.touches.length !== 1) return;
+        if (event.touches.length !== 1) {
+          touchStart.current = null;
+          return;
+        }
         const target = event.target as HTMLElement;
         if (target.closest("button, a, input, select, summary")) return;
         touchStart.current = {x: event.touches[0].clientX, y: event.touches[0].clientY};

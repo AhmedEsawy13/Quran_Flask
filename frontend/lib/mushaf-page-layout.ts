@@ -325,3 +325,8 @@ export function fitAndJustifyMushafPage(
 export function pageAspectRatio(editionId: MushafEditionId) {
   return editionId === "qpc_v1" ? 0.72 : 0.66;
 }
+
+export function isBrowserPinchZoomed() {
+  const scale = window.visualViewport?.scale ?? 1;
+  return Math.abs(scale - 1) > 0.02;
+}

@@ -83,6 +83,7 @@ export function MemorizePlayer({
   playbackLocked = false,
 }: MemorizePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const seekingRef = useRef(false);
   const boundaryHandledRef = useRef(false);
   const stepIndexRef = useRef(0);
   const playingRef = useRef(false);
@@ -170,17 +171,24 @@ export function MemorizePlayer({
     setElapsed(0);
     publishAyah(step.startAyah);
     onWordChange(null);
+    seekingRef.current = true;
     try {
       audio.currentTime = stepSeekTime(step);
     } catch {
+      seekingRef.current = false;
       return;
     }
-    if (!autoplay) return;
+    if (!autoplay) {
+      seekingRef.current = false;
+      return;
+    }
     try {
       await audio.play();
       setPlaying(true);
     } catch {
       setPlaying(false);
+    } finally {
+      seekingRef.current = false;
     }
   }, [schedule, publishAyah, onWordChange, setPlaying]);
 
@@ -331,12 +339,15 @@ export function MemorizePlayer({
     setElapsed(Math.max(0, currentTime - step.start));
     publishAyah(step.startAyah);
     onWordChange(null);
+    seekingRef.current = true;
     try {
       audio.currentTime = currentTime;
       await audio.play();
       setPlaying(true);
     } catch {
       setPlaying(false);
+    } finally {
+      seekingRef.current = false;
     }
     updatePlaybackPosition(currentTime);
   }, [schedule, playbackLocked, publishAyah, onWordChange, setPlaying, updatePlaybackPosition]);
@@ -411,11 +422,20 @@ export function MemorizePlayer({
       ref={audioRef}
       src={backendMediaUrl(visibleAudio?.audio_url)}
       preload="metadata"
+      playsInline
       onLoadedMetadata={() => {
+        const audio = audioRef.current;
         const step = schedule[stepIndexRef.current];
-        if (audioRef.current && step) audioRef.current.currentTime = stepSeekTime(step);
+        if (!audio || !step) return;
+        const start = stepSeekTime(step);
+        const stop = stepStopTime(step);
+        if (audio.currentTime >= start && audio.currentTime < stop - BOUNDARY_EPS) return;
+        audio.currentTime = start;
       }}
-      onPause={() => setPlaying(false)}
+      onPause={() => {
+        if (seekingRef.current || audioRef.current?.seeking) return;
+        setPlaying(false);
+      }}
       onPlay={() => setPlaying(true)}
       onTimeUpdate={(event) => {
         const step = schedule[stepIndexRef.current];

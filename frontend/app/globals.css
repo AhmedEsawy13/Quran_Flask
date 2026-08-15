@@ -453,7 +453,8 @@ button.page-number {
     radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--athar-gold) 7%, transparent), transparent 42%),
     color-mix(in srgb, var(--athar-parchment-2) 34%, transparent);
   overflow: hidden;
-  touch-action: pan-y pinch-zoom;
+  overscroll-behavior: contain;
+  touch-action: manipulation;
 }
 
 .reader-mushaf-stage.is-fill {
@@ -470,7 +471,7 @@ button.page-number {
 .reader-mushaf-stage.is-zoomed {
   overflow: auto;
   place-items: start center;
-  touch-action: pan-x pan-y pinch-zoom;
+  touch-action: pan-x pan-y;
 }
 
 .reader-mushaf-zoom-shell {
