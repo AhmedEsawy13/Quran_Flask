@@ -201,6 +201,10 @@ a {
   box-shadow: var(--athar-shadow-lg);
 }
 
+.reader-page.is-page {
+  overflow: visible;
+}
+
 .mushaf-head,
 .mushaf-foot {
   display: flex;
@@ -760,7 +764,7 @@ button.page-number {
 [data-theme="dark"] .reader-page[data-tajweed="true"] .tajweed-rule.qalaqah { color: #81a4ff; }
 
 .mushaf-word.is-audio-active .tajweed-rule,
-.mushaf-word.is-focus.is-concealed .tajweed-rule {
+.reader-page.is-concealed .mushaf-word.is-revealed .tajweed-rule {
   color: inherit !important;
 }
 
@@ -965,9 +969,29 @@ button.page-number {
   color: #fb923c;
 }
 
-.mushaf-word.is-focus.is-concealed:not(.is-audio-active) {
-  color: transparent;
-  text-shadow: 0 0 9px color-mix(in srgb, var(--athar-ink) 26%, transparent);
+.reader-page.is-concealed .mushaf-word:not(.is-revealed),
+.mushaf-word.is-concealed {
+  color: transparent !important;
+  text-shadow: 0 0 0.5em color-mix(in srgb, var(--athar-ink) 28%, transparent);
+  user-select: none;
+}
+
+.reader-page.is-concealed .mushaf-word:not(.is-revealed) .tajweed-rule,
+.mushaf-word.is-concealed .tajweed-rule {
+  color: transparent !important;
+  text-shadow: 0 0 0.5em currentColor;
+}
+
+.reader-page.is-concealed .mushaf-word:not(.is-revealed) .mushaf-waqf-stack,
+.reader-page.is-concealed .mushaf-word:not(.is-revealed) .mushaf-print-mark,
+.mushaf-word.is-concealed .mushaf-waqf-stack,
+.mushaf-word.is-concealed .mushaf-print-mark {
+  opacity: 0;
+}
+
+.reader-page.is-concealed .mushaf-word.is-revealed {
+  color: inherit;
+  text-shadow: none;
 }
 
 .mushaf-surah-banner {

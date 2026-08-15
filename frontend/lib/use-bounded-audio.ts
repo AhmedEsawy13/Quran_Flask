@@ -10,6 +10,18 @@ export type BoundedAudioSegment = {
   end: number;
 };
 
+const BOUNDARY_EPS = 0.05;
+const START_PAD = 0.12;
+const END_PAD = 0.1;
+
+function seekTime(start: number) {
+  return Math.max(0, start - START_PAD);
+}
+
+function stopTime(end: number) {
+  return end + END_PAD;
+}
+
 export function useBoundedAudio() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const sourceRef = useRef("");
@@ -24,6 +36,21 @@ export function useBoundedAudio() {
     audioRef.current?.pause();
     setPlayingKey(null);
     setProgress(0);
+  }, []);
+
+  const finish = useCallback((segment: BoundedAudioSegment) => {
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      try {
+        audio.currentTime = stopTime(segment.end);
+      } catch {
+        /* seek can fail while metadata is settling */
+      }
+    }
+    segmentRef.current = null;
+    setPlayingKey(null);
+    setProgress(1);
   }, []);
 
   const play = useCallback(async (segment: BoundedAudioSegment) => {
@@ -44,7 +71,7 @@ export function useBoundedAudio() {
     const begin = async () => {
       if (generation !== generationRef.current || segmentRef.current?.key !== segment.key) return;
       try {
-        audio.currentTime = segment.start;
+        audio.currentTime = seekTime(segment.start);
         await audio.play();
       } catch {
         if (generation === generationRef.current) {
@@ -65,26 +92,18 @@ export function useBoundedAudio() {
 
   useEffect(() => {
     if (!playingKey) return;
-    let frame = 0;
-    const follow = () => {
+    const id = window.setInterval(() => {
       const audio = audioRef.current;
       const segment = segmentRef.current;
       if (!audio || !segment || audio.paused) return;
-      const span = Math.max(0.001, segment.end - segment.start);
-      const elapsed = Math.max(0, audio.currentTime - segment.start);
-      setProgress(Math.min(1, elapsed / span));
-      if (audio.currentTime >= segment.end - 0.04) {
-        audio.pause();
-        segmentRef.current = null;
-        setPlayingKey(null);
-        setProgress(1);
-        return;
-      }
-      frame = window.requestAnimationFrame(follow);
-    };
-    frame = window.requestAnimationFrame(follow);
-    return () => window.cancelAnimationFrame(frame);
-  }, [playingKey]);
+      const begin = seekTime(segment.start);
+      const end = stopTime(segment.end);
+      const span = Math.max(0.001, end - begin);
+      setProgress(Math.min(1, Math.max(0, audio.currentTime - begin) / span));
+      if (audio.currentTime >= end - BOUNDARY_EPS) finish(segment);
+    }, 80);
+    return () => window.clearInterval(id);
+  }, [playingKey, finish]);
 
   useEffect(() => {
     const audio = audioRef.current;

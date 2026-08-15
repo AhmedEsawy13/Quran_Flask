@@ -44,6 +44,19 @@ const audioCache = new Map<string, MemorizationAudio>();
 const unitRepetitionOptions = [1, 2, 3, 5, 7, 10] as const;
 const linkRepetitionOptions = [1, 2, 3] as const;
 const STEP_GAP_SECONDS = 0.4;
+const PHRASE_START_PAD = 0.12;
+const PHRASE_END_PAD = 0.1;
+const BOUNDARY_EPS = 0.05;
+
+function stepSeekTime(step: {kind: string; start: number}) {
+  return step.kind === "phrase" || step.kind === "phrase-link"
+    ? Math.max(0, step.start - PHRASE_START_PAD)
+    : step.start;
+}
+
+function stepStopTime(step: {kind: string; end: number}) {
+  return step.kind === "phrase" ? step.end + PHRASE_END_PAD : step.end;
+}
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "٠:٠٠";
@@ -87,7 +100,8 @@ export function MemorizePlayer({
   const [splitAtPauses, setSplitAtPauses] = useState(true);
   const [loopRange, setLoopRange] = useState(false);
 
-  const audioKey = `${surahNumber}:${reciterId}`;
+  const splitMode = splitAtPauses ? "waqf" : "acoustic";
+  const audioKey = `${surahNumber}:${reciterId}:${splitMode}`;
   const visibleAudio = audioResult.key === audioKey ? audioResult.data : null;
   const audioError = audioResult.key === audioKey ? audioResult.error : "";
   const loading = audioResult.key !== audioKey;
@@ -157,7 +171,7 @@ export function MemorizePlayer({
     publishAyah(step.startAyah);
     onWordChange(null);
     try {
-      audio.currentTime = step.start;
+      audio.currentTime = stepSeekTime(step);
     } catch {
       return;
     }
@@ -185,7 +199,7 @@ export function MemorizePlayer({
       return;
     }
     audio.pause();
-    audio.currentTime = step.end;
+    audio.currentTime = stepStopTime(step);
     setElapsed(Math.max(0, step.end - step.start));
     setPlaying(false);
     onWordChange(null);
@@ -211,7 +225,7 @@ export function MemorizePlayer({
     }
     const controller = new AbortController();
     getJson<MemorizationAudio>(
-      `/backend-api/memorization/${surahNumber}?reciter=${encodeURIComponent(reciterId)}`,
+      `/backend-api/memorization/${surahNumber}?reciter=${encodeURIComponent(reciterId)}&mode=${splitMode}`,
       controller.signal,
     )
       .then((data) => {
@@ -227,7 +241,7 @@ export function MemorizePlayer({
         });
       });
     return () => controller.abort();
-  }, [audioKey, surahNumber, reciterId]);
+  }, [audioKey, surahNumber, reciterId, splitMode]);
 
   useEffect(() => {
     if (reciters.length) window.localStorage.setItem("athar-memorize-reciter", reciterId);
@@ -244,7 +258,7 @@ export function MemorizePlayer({
       setStepIndex(0);
       setElapsed(0);
       onWordChange(null);
-      if (audio && schedule[0]) audio.currentTime = schedule[0].start;
+      if (audio && schedule[0]) audio.currentTime = stepSeekTime(schedule[0]);
     });
   }, [schedule, onWordChange]);
 
@@ -261,20 +275,18 @@ export function MemorizePlayer({
 
   useEffect(() => {
     if (!isPlaying || !currentStep) return;
-    let frame = 0;
     const followPlayback = () => {
       const audio = audioRef.current;
       if (!audio || audio.paused) return;
       const currentTime = audio.currentTime;
       setElapsed(Math.max(0, Math.min(duration, currentTime - currentStep.start)));
       updatePlaybackPosition(currentTime);
-      if (currentTime >= currentStep.end - 0.06 && !boundaryHandledRef.current) {
+      if (currentTime >= stepStopTime(currentStep) - BOUNDARY_EPS && !boundaryHandledRef.current) {
         void completeCurrentStep();
       }
-      frame = window.requestAnimationFrame(followPlayback);
     };
-    frame = window.requestAnimationFrame(followPlayback);
-    return () => window.cancelAnimationFrame(frame);
+    const id = window.setInterval(followPlayback, 80);
+    return () => window.clearInterval(id);
   }, [isPlaying, currentStep, duration, updatePlaybackPosition, completeCurrentStep]);
 
   const togglePlayback = useCallback(async () => {
@@ -286,7 +298,7 @@ export function MemorizePlayer({
       setPlaying(false);
       return;
     }
-    if (audio.currentTime < step.start || audio.currentTime >= step.end - 0.05) {
+    if (audio.currentTime < stepSeekTime(step) || audio.currentTime >= stepStopTime(step) - BOUNDARY_EPS) {
       await goToStep(stepIndexRef.current, true);
       return;
     }
@@ -401,7 +413,7 @@ export function MemorizePlayer({
       preload="metadata"
       onLoadedMetadata={() => {
         const step = schedule[stepIndexRef.current];
-        if (audioRef.current && step) audioRef.current.currentTime = step.start;
+        if (audioRef.current && step) audioRef.current.currentTime = stepSeekTime(step);
       }}
       onPause={() => setPlaying(false)}
       onPlay={() => setPlaying(true)}
@@ -411,7 +423,7 @@ export function MemorizePlayer({
         const currentTime = event.currentTarget.currentTime;
         setElapsed(Math.max(0, Math.min(step.end - step.start, currentTime - step.start)));
         updatePlaybackPosition(currentTime);
-        if (currentTime >= step.end - 0.06 && !boundaryHandledRef.current) {
+        if (currentTime >= stepStopTime(step) - BOUNDARY_EPS && !boundaryHandledRef.current) {
           void completeCurrentStep();
         }
       }}

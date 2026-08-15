@@ -205,7 +205,7 @@ export function MemorizeWorkspace() {
   const [waqfEnabled, setWaqfEnabled] = useState(true);
   const [waqfSource, setWaqfSource] = useState<WaqfSource>("المدينة الجديد");
   const [preferencesReady, setPreferencesReady] = useState(false);
-  const [revealedAyah, setRevealedAyah] = useState<number | null>(null);
+  const [revealedAyahs, setRevealedAyahs] = useState<Set<number>>(() => new Set());
   const [rangeDraft, setRangeDraft] = useState<RangeDraft | null>(null);
   const [navigatorMode, setNavigatorMode] = useState<MemorizeNavigator | null>(null);
   const [navigatorQuery, setNavigatorQuery] = useState("");
@@ -573,7 +573,11 @@ export function MemorizeWorkspace() {
 
   const handleAyahClick = (surah: number, ayah: number) => {
     if (concealed) {
-      setRevealedAyah(ayah);
+      setRevealedAyahs((current) => {
+        const next = new Set(current);
+        next.add(ayah);
+        return next;
+      });
       return;
     }
     if (surah !== surahNumber) {
@@ -711,7 +715,7 @@ export function MemorizeWorkspace() {
     concealFocused: concealed,
     draftAyah: rangeDraft?.anchor ?? null,
     picking: picking && !concealed,
-    revealedAyah,
+    revealedAyahs,
     onAyahClick: handleAyahClick,
     onSurahNavigate: () => openNavigator("surah"),
     onJuzNavigate: () => openNavigator("juz"),
@@ -829,7 +833,7 @@ export function MemorizeWorkspace() {
             aria-pressed={concealed}
             onClick={() => {
               setConcealed((value) => !value);
-              setRevealedAyah(null);
+              setRevealedAyahs(new Set());
             }}
           >
             <AtharIcon name={concealed ? "eye" : "eye-off"} className="size-[17px]" />

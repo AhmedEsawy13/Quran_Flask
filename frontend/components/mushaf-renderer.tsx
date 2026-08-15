@@ -42,7 +42,7 @@ type MushafRendererProps = {
   concealFocused?: boolean;
   draftAyah?: number | null;
   picking?: boolean;
-  revealedAyah?: number | null;
+  revealedAyahs?: ReadonlySet<number>;
   onAyahClick?: (surah: number, ayah: number) => void;
   onSurahNavigate?: (surah: number) => void;
   onJuzNavigate?: (juz: number) => void;
@@ -260,7 +260,7 @@ function PageLine({
   concealFocused,
   draftAyah,
   picking,
-  revealedAyah,
+  revealedAyahs,
   onAyahClick,
   editionId,
   tajweedEnabled,
@@ -280,7 +280,7 @@ function PageLine({
   concealFocused?: boolean;
   draftAyah?: number | null;
   picking?: boolean;
-  revealedAyah?: number | null;
+  revealedAyahs?: ReadonlySet<number>;
   onAyahClick?: (surah: number, ayah: number) => void;
   editionId: MushafEditionId;
   tajweedEnabled?: boolean;
@@ -339,7 +339,8 @@ function PageLine({
               );
               const current = Number(word.surah) === surahNumber && wordAyah === ayahNumber;
               const draft = Number(word.surah) === surahNumber && draftAyah != null && wordAyah === draftAyah;
-              const concealed = Boolean(focused && concealFocused && wordAyah !== revealedAyah);
+              const revealed = Boolean(revealedAyahs?.has(wordAyah));
+              const concealed = Boolean(concealFocused && !revealed);
               const wash = contextByKey?.get(verseKeyOf(word));
               const contextual = Boolean(wash) || (
                 Number(word.surah) === surahNumber && Boolean(
@@ -364,7 +365,7 @@ function PageLine({
               appended += 1;
               nodes.push(
                 <span
-                  className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${draft ? " is-range-draft" : ""}${concealed ? " is-concealed" : ""}${audioActive ? " is-audio-active" : ""}${picking || concealFocused ? " is-interactive" : ""}`}
+                  className={`mushaf-word${contextual ? " is-context" : ""}${focused ? " is-focus" : ""}${current ? " is-current" : ""}${draft ? " is-range-draft" : ""}${concealed ? " is-concealed" : ""}${revealed ? " is-revealed" : ""}${audioActive ? " is-audio-active" : ""}${picking || concealFocused ? " is-interactive" : ""}`}
                   key={word.word_key || `${word.word_index ?? "word"}-${index}`}
                   aria-current={current ? "true" : undefined}
                   data-audio-index={audioPosition}
@@ -438,7 +439,7 @@ export function MushafRenderer({
   concealFocused,
   draftAyah = null,
   picking = false,
-  revealedAyah = null,
+  revealedAyahs,
   onAyahClick,
   onSurahNavigate,
   onJuzNavigate,
@@ -538,7 +539,7 @@ export function MushafRenderer({
   return (
     <article
       ref={pageRef}
-      className={`reader-page is-${view} edition-${editionId}${memorizationMode ? " is-memorization" : ""}${picking ? " is-picking" : ""}`}
+      className={`reader-page is-${view} edition-${editionId}${memorizationMode ? " is-memorization" : ""}${picking ? " is-picking" : ""}${concealFocused ? " is-concealed" : ""}`}
       aria-busy={isLoading || fontLoading || tajweedLoading}
       data-tajweed={tajweedEnabled ? "true" : undefined}
       data-waqf-enabled={waqfEnabled ? "true" : "false"}
@@ -657,7 +658,7 @@ export function MushafRenderer({
                   concealFocused={concealFocused}
                   draftAyah={draftAyah}
                   picking={picking}
-                  revealedAyah={revealedAyah}
+                  revealedAyahs={revealedAyahs}
                   onAyahClick={onAyahClick}
                   editionId={editionId}
                   tajweedEnabled={tajweedEnabled}
