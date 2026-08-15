@@ -23,6 +23,7 @@ import { MushafStage } from "@/components/mushaf-stage";
 import { ReaderAudio } from "@/components/reader-audio";
 import { ReaderMushafGuide } from "@/components/reader-mushaf-guide";
 import { ReaderStudy } from "@/components/reader-study";
+import { AtharIcon } from "@/components/ui/athar-icon";
 import { Button, CheckControl, DrawerSurface, Field, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
 import { usePageTajweed } from "@/lib/use-page-tajweed";
@@ -485,26 +486,26 @@ export function ReaderWorkspace() {
   return (
     <section className="reader-workspace relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-2" aria-label="قارئ المصحف">
       <Surface variant="toolbar" className="reader-reading-bar" aria-label="أدوات القراءة السريعة">
-        <div className="flex min-h-10 items-center gap-1.5 md:hidden">
+        <div className="flex min-h-10 items-center gap-1 md:hidden">
           <Button
             size="icon"
             variant="quiet"
-            className="size-9 shrink-0 text-base"
+            className="size-[34px] shrink-0 rounded-[10px]"
             aria-label="إعدادات القراءة"
             aria-expanded={settingsOpen}
             aria-controls={settingsOpen ? "reader-settings-drawer" : undefined}
             onClick={() => setSettingsOpen(true)}
           >
-            ⚙
+            <AtharIcon name="settings" className="size-[17px]" />
           </Button>
           <Button
             size="icon"
             variant="ghost"
-            className="size-9 shrink-0 text-xs"
+            className="size-[34px] shrink-0 rounded-[10px]"
             aria-label="فتح مشغّل التلاوة"
             onClick={() => setSupportPanel("audio")}
           >
-            ▶
+            <AtharIcon name="play" className="size-[17px]" />
           </Button>
           <button
             type="button"
@@ -525,11 +526,11 @@ export function ReaderWorkspace() {
           <Button
             size="icon"
             variant="ghost"
-            className="size-9 shrink-0 text-xs"
+            className="size-[34px] shrink-0 rounded-[10px]"
             aria-label="فتح هوامش فهم الآية"
             onClick={() => setSupportPanel("study")}
           >
-            شرح
+            <AtharIcon name="message" className="size-[17px]" />
           </Button>
         </div>
 
@@ -575,29 +576,32 @@ export function ReaderWorkspace() {
               ))}
             </SelectControl>
           </Field>
-          <div className="flex items-center gap-1.5 self-end border-s border-athar-line-soft ps-2">
+          <div className="flex items-center gap-1 self-end border-s border-athar-line-soft ps-2">
             <Button
               size="sm"
               variant="ghost"
-              className="px-2.5"
+              className="gap-1.5 px-2.5"
               onClick={() => setSupportPanel("audio")}
             >
-              ▶ استماع
+              <AtharIcon name="play" className="size-3.5" />
+              استماع
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="px-2.5"
+              className="gap-1.5 px-2.5"
               onClick={() => setSupportPanel("study")}
             >
+              <AtharIcon name="message" className="size-3.5" />
               فهم الآية
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="hidden px-2.5 xl:inline-flex"
+              className="hidden gap-1.5 px-2.5 xl:inline-flex"
               onClick={() => setSupportPanel("guide")}
             >
+              <AtharIcon name="book-open" className="size-3.5" />
               مفتاح الصفحة
             </Button>
             <Button
@@ -613,34 +617,36 @@ export function ReaderWorkspace() {
             <Button
               size="sm"
               variant={layout === "dual" ? "quiet" : "ghost"}
-              className="hidden px-2.5 xl:inline-flex"
+              className="hidden gap-1.5 px-2.5 xl:inline-flex"
               aria-pressed={layout === "dual"}
               disabled={view !== "page" || marginMode}
               onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
             >
+              <AtharIcon name={layout === "dual" ? "book-open" : "book"} className="size-3.5" />
               {layout === "dual" ? "صفحتان" : "صفحة واحدة"}
             </Button>
             <Button
               size="sm"
               variant={tajweedOn ? "quiet" : "ghost"}
-              className="hidden px-2.5 xl:inline-flex"
+              className="hidden gap-1.5 px-2.5 xl:inline-flex"
               aria-pressed={tajweedOn}
               disabled={!tajweedAvailable}
               title={editionId === "shamarly" ? "التلوين الحرفي غير متاح مع خط الشمرلي" : "تلوين أحكام التجويد حرفيًا"}
               onClick={() => setTajweedEnabled((current) => !current)}
             >
+              <AtharIcon name="sparkles" className="size-3.5" />
               {tajweedLoading ? "يُحمّل…" : "تلوين التجويد"}
             </Button>
             <Button
               size="icon"
               variant="quiet"
-              className="size-9"
+              className="size-[34px] rounded-[10px]"
               aria-label="المزيد من إعدادات القراءة"
               aria-expanded={settingsOpen}
               aria-controls={settingsOpen ? "reader-settings-drawer" : undefined}
               onClick={() => setSettingsOpen(true)}
             >
-              ⚙
+              <AtharIcon name="settings" className="size-[17px]" />
             </Button>
           </div>
         </div>
@@ -655,9 +661,18 @@ export function ReaderWorkspace() {
         overlay
       >
         <div className="mb-4 grid grid-cols-3 gap-2 border-b border-athar-line-soft pb-4" aria-label="الوصول السريع">
-          <Button size="sm" variant="quiet" onClick={() => openSupportAfterSettings("audio")}>▶ استماع</Button>
-          <Button size="sm" variant="quiet" onClick={() => openSupportAfterSettings("study")}>فهم الآية</Button>
-          <Button size="sm" variant="quiet" onClick={() => openSupportAfterSettings("guide")}>مفتاح الصفحة</Button>
+          <Button size="sm" variant="quiet" className="gap-1.5" onClick={() => openSupportAfterSettings("audio")}>
+            <AtharIcon name="play" className="size-3.5" />
+            استماع
+          </Button>
+          <Button size="sm" variant="quiet" className="gap-1.5" onClick={() => openSupportAfterSettings("study")}>
+            <AtharIcon name="message" className="size-3.5" />
+            فهم الآية
+          </Button>
+          <Button size="sm" variant="quiet" className="gap-1.5" onClick={() => openSupportAfterSettings("guide")}>
+            <AtharIcon name="book-open" className="size-3.5" />
+            مفتاح الصفحة
+          </Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1 text-[0.7rem] text-athar-ink-faint sm:col-span-2">

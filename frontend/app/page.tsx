@@ -86,7 +86,7 @@ export default function HomePage() {
             const content = (
               <>
                 <span className="text-xs font-bold text-athar-gold">{door.verb}</span>
-                <h3 className="mt-4 mb-2 font-athar-display text-4xl">{door.title}</h3>
+                <h3 className="mt-4 mb-2 font-athar-display text-4xl max-[640px]:mt-2 max-[640px]:text-3xl">{door.title}</h3>
                 <p className="m-0 text-sm text-athar-ink-soft">{door.description}</p>
                 <span className="mt-auto flex items-center justify-between gap-3 text-sm font-bold text-athar-accent">
                   افتح
@@ -94,7 +94,7 @@ export default function HomePage() {
                 </span>
               </>
             );
-            const className = "flex min-h-[310px] flex-col bg-athar-canvas p-7 no-underline transition-[background-color,transform] hover:-translate-y-1 hover:bg-athar-surface focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-athar-accent max-[640px]:min-h-[250px]";
+            const className = "flex min-h-[310px] flex-col bg-athar-canvas p-7 no-underline transition-[background-color,transform] hover:-translate-y-1 hover:bg-athar-surface focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-athar-accent max-[640px]:min-h-[188px] max-[640px]:p-5";
             return (
               <Link className={className} href={door.href} key={door.title}>
                 {content}

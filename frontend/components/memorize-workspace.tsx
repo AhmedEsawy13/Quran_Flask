@@ -200,7 +200,7 @@ export function MemorizeWorkspace() {
   const [dualAvailable, setDualAvailable] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [concealed, setConcealed] = useState(false);
-  const [showContext, setShowContext] = useState(true);
+  const [showContext, setShowContext] = useState(false);
   const [tajweedEnabled, setTajweedEnabled] = useState(false);
   const [waqfEnabled, setWaqfEnabled] = useState(true);
   const [waqfSource, setWaqfSource] = useState<WaqfSource>("المدينة الجديد");
@@ -508,6 +508,7 @@ export function MemorizeWorkspace() {
   }, [dualActive, edition.apiBase, editionId, leftPageNumber, rightPageNumber, spreadKey, visiblePage?.page, waqfSource]);
 
   useEffect(() => {
+    if (!showContext) return;
     const controller = new AbortController();
     getJsonAccepting<MemorizationContext>(
       `/backend-api/memorization/context/${surahNumber}/${activeAyah}`,
@@ -517,10 +518,10 @@ export function MemorizeWorkspace() {
       .then((data) => setContextResult({key: contextKey, data}))
       .catch(() => setContextResult({key: contextKey, data: null}));
     return () => controller.abort();
-  }, [surahNumber, activeAyah, retryToken, contextKey]);
+  }, [showContext, surahNumber, activeAyah, retryToken, contextKey]);
 
   useEffect(() => {
-    if (!verseKeyList) return;
+    if (!showContext || !verseKeyList) return;
     const keys = verseKeyList.split(",");
     const controller = new AbortController();
     postJson<MemorizationContextMap>(
@@ -537,7 +538,7 @@ export function MemorizeWorkspace() {
         setContextMapResult({key: verseKeyList, segments: []});
       });
     return () => controller.abort();
-  }, [verseKeyList]);
+  }, [showContext, verseKeyList]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -704,8 +705,8 @@ export function MemorizeWorkspace() {
     ayahNumber: activeAyah,
     activeAudioWord,
     focusRange: visualRange,
-    contextRange,
-    contextByKey,
+    contextRange: showContext ? contextRange : undefined,
+    contextByKey: showContext ? contextByKey : undefined,
     tajweedEnabled: tajweedOn,
     tajweedLoading,
     tajweedSegmentsByWord,
@@ -778,6 +779,15 @@ export function MemorizeWorkspace() {
                 </select>
               </label>
             </div>
+            <CheckControl
+              label="التفصيل الموضوعي"
+              checked={showContext}
+              onChange={(event) => setShowContext(event.target.checked)}
+              className="min-h-10"
+            />
+            <p className="m-0 text-[0.7rem] leading-5 text-athar-ink-faint">
+              يلوّن المقطع الموضوعي ويعرض سكّته فوق المصحف.
+            </p>
           </ToolbarPopover>
 
           <ToolbarPopover label="رسم المصحف" icon="book" value={edition.label}>
@@ -840,17 +850,6 @@ export function MemorizeWorkspace() {
           </Button>
           <Button
             size="icon"
-            variant={showContext ? "primary" : "secondary"}
-            className="size-[34px] rounded-[10px] text-sm"
-            aria-label="التفصيل الموضوعي"
-            title="التفصيل الموضوعي"
-            aria-pressed={showContext}
-            onClick={() => setShowContext((value) => !value)}
-          >
-            <AtharIcon name="layers" className="size-[17px]" />
-          </Button>
-          <Button
-            size="icon"
             variant={tajweedOn ? "primary" : "secondary"}
             className="size-[34px] rounded-[10px]"
             aria-label={tajweedLoading ? "جارٍ تحميل تلوين التجويد" : "تلوين التجويد"}
@@ -893,7 +892,7 @@ export function MemorizeWorkspace() {
           <span className="truncate">
             {picking
               ? `بدأ النطاق من الآية ${toArabicDigits(rangeDraft.anchor)}؛ اضغط آية النهاية لإكماله.`
-              : "اضغط آية البداية، ثم آية النهاية. اضغط ▶ للتشغيل."}
+              : "اضغط آية البداية، ثم آية النهاية. اضغط تشغيل للجلسة."}
           </span>
           {picking ? (
             <button

@@ -154,7 +154,7 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
   const mobileListen = page.getByRole("button", {name: "فتح مشغّل التلاوة"});
   const listenShortcut = await mobileListen.isVisible()
     ? mobileListen
-    : page.getByRole("button", {name: "▶ استماع", exact: true}).first();
+    : page.getByRole("button", {name: "استماع", exact: true}).first();
   await listenShortcut.click();
   const audioDrawer = page.getByRole("dialog", {name: "الاستماع والتكرار"});
   await expect(audioDrawer.getByRole("region", {name: "مشغّل التلاوة"})).toBeVisible();
@@ -365,7 +365,8 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   expect(toolbarHeight).toBeLessThanOrEqual(82);
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
   await expect(page.locator(".mushaf-word.is-current").first()).toBeVisible();
-  await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
+  await expect(page.locator(".mushaf-word.is-context")).toHaveCount(0);
+  await expect(page.getByRole("complementary", {name: "التفصيل الموضوعي"})).toBeHidden();
   await expect(page.locator(".reader-page.is-memorization").first()).toBeVisible();
   await expect(page.locator('.mz-selection-band[data-ayah="255"]').first()).toBeVisible();
   const selectionGeometry = await page.locator(".reader-page:has(.mushaf-word.is-focus)").first().evaluate((readerPage) => ({
@@ -407,6 +408,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.locator("summary").filter({hasText: "رسم المصحف"}).click();
   await page.locator("summary").filter({hasText: "الموضع"}).click();
   await expect(page.getByLabel("ملخص نطاق التثبيت").getByText("سورة البقرة · ٢٥٥–٢٥٧", {exact: true})).toBeVisible();
+  await expect(page.getByLabel("التفصيل الموضوعي")).not.toBeChecked();
   await page.locator("summary").filter({hasText: "الموضع"}).click();
   await page.locator("summary").filter({hasText: "القارئ والتكرار"}).click();
   await expect(page.getByLabel("المدة المتوقعة للجلسة")).toBeVisible();
@@ -497,19 +499,20 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.getByRole("button", {name: "اختبر حفظي"}).evaluate((button: HTMLButtonElement) => button.click());
   await expect(page.locator(".mushaf-word.is-concealed").first()).toBeVisible();
   const contextRail = page.getByRole("complementary", {name: "التفصيل الموضوعي"});
-  await expect(contextRail).not.toContainText("جارٍ");
-  await expect(contextRail).toContainText("التفصيل الموضوعي");
+  await expect(contextRail).toBeHidden();
+  const stageHeightWithoutContext = await page.locator(".reader-mushaf-stage").evaluate((stage) => stage.getBoundingClientRect().height);
+  await page.locator("summary").filter({hasText: "الموضع"}).click();
+  await page.getByLabel("التفصيل الموضوعي").check();
+  await page.locator("summary").filter({hasText: "الموضع"}).click();
+  await expect(contextRail).toBeVisible();
+  await expect(contextRail).not.toContainText("جارٍ", {timeout: 15_000});
   await expect(page.locator(".mushaf-word.is-context").first()).toHaveAttribute("data-context-color", /^#/);
+  const stageHeightWithContext = await page.locator(".reader-mushaf-stage").evaluate((stage) => stage.getBoundingClientRect().height);
+  expect(stageHeightWithoutContext).toBeGreaterThan(stageHeightWithContext);
   const tajweedToggle = page.getByRole("button", {name: /تلوين التجويد/});
   await tajweedToggle.click();
   await expect(tajweedToggle).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator('.reader-page[data-tajweed="true"] .tajweed-rule').first()).toBeVisible();
-  const stageHeightWithContext = await page.locator(".reader-mushaf-stage").evaluate((stage) => stage.getBoundingClientRect().height);
-  await page.getByRole("button", {name: "التفصيل الموضوعي"}).click();
-  await expect(contextRail).toBeHidden();
-  await expect(page.locator(".mushaf-word.is-context").first()).toBeVisible();
-  const stageHeightWithoutContext = await page.locator(".reader-mushaf-stage").evaluate((stage) => stage.getBoundingClientRect().height);
-  expect(stageHeightWithoutContext).toBeGreaterThan(stageHeightWithContext);
   await expectNoHorizontalOverflow(page);
 });
 

@@ -19,18 +19,18 @@ export function ToolIntro({
 }) {
   return (
     <section
-      className="mx-auto grid w-full max-w-[1120px] gap-3 px-[clamp(16px,4vw,40px)] pt-[clamp(28px,5vw,52px)] pb-[clamp(18px,3vw,28px)]"
+      className="mx-auto grid w-full max-w-[1120px] gap-2.5 px-[clamp(14px,4vw,40px)] pt-[clamp(18px,4vw,52px)] pb-[clamp(12px,2.4vw,28px)]"
       aria-labelledby={titleId}
     >
       <p className="m-0 text-[0.78rem] font-bold tracking-[0.04em] text-athar-gold">{kicker}</p>
       <h1
-        className="m-0 max-w-[18ch] font-athar-display text-[clamp(1.85rem,4.2vw,3.2rem)] font-black leading-[1.08] text-balance text-athar-ink [font-feature-settings:'salt'_1]"
+        className="m-0 max-w-[18ch] font-athar-display text-[clamp(1.6rem,4.2vw,3.2rem)] font-black leading-[1.08] text-balance text-athar-ink [font-feature-settings:'salt'_1]"
         id={titleId}
         aria-label={titleAriaLabel}
       >
         {title}
       </h1>
-      <p className="m-0 max-w-[48ch] font-serif text-[clamp(0.88rem,1.4vw,1.02rem)] leading-[1.7] text-athar-ink-soft">
+      <p className="m-0 max-w-[48ch] font-serif text-[clamp(0.86rem,1.4vw,1.02rem)] leading-[1.7] text-athar-ink-soft">
         {lede}
       </p>
       {children ? <div className="mt-1 flex flex-wrap gap-x-4 gap-y-2.5">{children}</div> : null}
@@ -56,7 +56,7 @@ export function ToolChrome({
   return (
     <section
       className={cn(
-        "sticky top-[var(--bar-height)] z-40 flex w-full flex-wrap items-end justify-between gap-x-[18px] gap-y-3 border-b border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] px-[clamp(12px,2.4vw,28px)] py-2 shadow-[0_14px_34px_-32px_color-mix(in_srgb,var(--athar-ink)_55%,transparent)] backdrop-blur-[18px] backdrop-saturate-150",
+        "sticky top-[var(--bar-height)] z-40 flex w-full flex-wrap items-end justify-between gap-x-3 gap-y-2 border-b border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] px-[clamp(10px,2.4vw,28px)] py-1.5 shadow-[0_14px_34px_-32px_color-mix(in_srgb,var(--athar-ink)_55%,transparent)] backdrop-blur-[18px] backdrop-saturate-150",
         className,
       )}
       aria-label={label}
@@ -88,7 +88,7 @@ export function ChromePill({
   return (
     <span
       className={cn(
-        "max-w-[220px] self-center truncate rounded-full border border-athar-line-soft bg-athar-surface px-2.5 py-1 text-[0.7rem] font-semibold text-athar-ink-soft [&_b]:font-bold [&_b]:text-athar-accent",
+        "max-w-[220px] self-center truncate rounded-full border border-athar-line-soft bg-athar-surface px-2.5 py-1 text-[0.7rem] font-semibold text-athar-ink-soft max-md:hidden [&_b]:font-bold [&_b]:text-athar-accent",
         className,
       )}
       {...props}
@@ -108,7 +108,7 @@ export function ChromeField({
   className?: string;
 }) {
   return (
-    <Field label={label} className={cn("min-w-0 text-[0.74rem] font-semibold text-athar-ink-soft", className)}>
+    <Field label={label} className={cn("min-w-0 text-[0.74rem] font-semibold text-athar-ink-soft max-md:min-w-[calc(50%-0.4rem)] max-md:flex-1", className)}>
       {children}
     </Field>
   );
@@ -118,7 +118,7 @@ export function ChromeSelect(props: Parameters<typeof SelectControl>[0]) {
   return (
     <SelectControl
       {...props}
-      className={cn("min-h-9 w-auto min-w-[8.25rem] rounded-[10px] py-2", props.className)}
+      className={cn("min-h-9 w-auto min-w-[8.25rem] rounded-[10px] py-2 max-md:min-w-0 max-md:w-full", props.className)}
     />
   );
 }
@@ -127,7 +127,7 @@ export function ChromeInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <InputControl
       {...props}
-      className={cn("min-h-9 w-auto min-w-[12rem] rounded-[10px] py-2", props.className)}
+      className={cn("min-h-9 w-auto min-w-[12rem] rounded-[10px] py-2 max-md:min-w-0 max-md:w-full", props.className)}
     />
   );
 }
@@ -175,7 +175,7 @@ export function ChromeStepper({
 
 export function ToolStack({children, className}: {children: ReactNode; className?: string}) {
   return (
-    <div className={cn("mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-5 pb-[72px] pt-5", className)}>
+    <div className={cn("mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-3 pb-[72px] pt-4 sm:px-5 sm:pt-5", className)}>
       {children}
     </div>
   );

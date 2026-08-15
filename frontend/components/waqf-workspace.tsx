@@ -420,8 +420,8 @@ export function WaqfWorkspace() {
             ))}
           </ChromeSelect>
         </ChromeField>
-        <div className="relative min-w-[16rem] flex-[1.4] self-end" ref={searchBoxRef}>
-          <ChromeField label="البحث عن آية" className="w-full">
+        <div className="relative min-w-[16rem] flex-[1.4] self-end max-md:min-w-0 max-md:basis-full" ref={searchBoxRef}>
+          <ChromeField label="البحث عن آية" className="w-full max-md:min-w-0">
             <ChromeInput
               id="waqf-verse-search"
               role="combobox"
