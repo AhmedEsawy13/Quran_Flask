@@ -49,6 +49,8 @@
   --font-display: "Thmanyah Display", Georgia, serif;
   --font-ui: "Thmanyah Sans", system-ui, sans-serif;
   --font-quran: "Uthmanic Hafs", "Amiri Quran", serif;
+  --font-warsh: "Uthmanic Warsh", "Uthmanic Hafs", serif;
+  --font-hindi: "IndoPak Nastaleeq", serif;
   --athar-parchment: #f6f1e2;
   --athar-parchment-2: #ece3cc;
   --athar-surface: #fffdf6;
@@ -78,6 +80,7 @@
   --wq-solo: #d97706;
   --wq-solo-soft: rgba(217, 119, 6, 0.12);
   --wq-repeat: color-mix(in srgb, var(--athar-ink) 55%, var(--athar-accent));
+  --wq-consensus: #16a34a;
 }
 
 :root[data-theme="sepia"] {
@@ -127,6 +130,7 @@
   --wq-solo: #fbbf24;
   --wq-solo-soft: rgba(251, 191, 36, 0.16);
   --wq-repeat: color-mix(in srgb, var(--athar-ink-soft) 70%, var(--athar-accent));
+  --wq-consensus: #4ade80;
 }
 
 @theme inline {
@@ -145,9 +149,14 @@
   --color-athar-copper: var(--athar-copper);
   --color-athar-line: var(--athar-line);
   --color-athar-line-soft: var(--athar-line-soft);
+  --color-athar-waqf-solo: var(--wq-solo);
+  --color-athar-waqf-solo-soft: var(--wq-solo-soft);
+  --color-athar-waqf-consensus: var(--wq-consensus);
   --font-athar-display: var(--font-display);
   --font-athar-ui: var(--font-ui);
   --font-athar-quran: var(--font-quran);
+  --font-athar-warsh: var(--font-warsh);
+  --font-athar-hindi: var(--font-hindi);
   --radius-athar-sm: var(--radius-small);
   --radius-athar-md: var(--radius-medium);
   --radius-athar-lg: var(--radius-large);
@@ -2235,6 +2244,18 @@ button.page-number {
     line-height: 2.35;
   }
 
+}
+
+@font-face {
+  font-family: "Uthmanic Warsh";
+  src: url("/backend-fonts/uthmanic_warsh_v21.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IndoPak Nastaleeq";
+  src: url("/backend-fonts/indopak.woff2") format("woff2");
+  font-display: swap;
 }
 
 @media (prefers-reduced-motion: reduce) {

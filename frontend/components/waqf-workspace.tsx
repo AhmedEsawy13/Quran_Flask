@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   getJson,
   type ClassicalWaqfPayload,
@@ -97,8 +97,10 @@ function recommendedProfile(profiles: ReciterProfile[], breath: BreathProfile) {
 
 export function WaqfWorkspace() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialSurah = Math.min(114, positiveInteger(searchParams.get("surah"), 2));
   const initialAyah = positiveInteger(searchParams.get("ayah"), 255);
+  const initialWpos = Number(searchParams.get("wpos"));
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [ayahNumbers, setAyahNumbers] = useState<number[]>([]);
   const ayahCache = useRef(new Map<number, number[]>());
@@ -171,6 +173,16 @@ export function WaqfWorkspace() {
       .slice(0, 6);
   }, [data, marksByWpos]);
 
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    const family = searchParams.get("family");
+    if (!tab && !family && searchParams.get("lab") !== "1") return;
+    const dest = new URLSearchParams();
+    if (tab) dest.set("tab", tab);
+    if (family) dest.set("family", family);
+    router.replace(`/waqf-lab${dest.toString() ? `?${dest}` : ""}`);
+  }, [router, searchParams]);
+
   const loadAyahNumbers = useCallback(async (surah: number, signal?: AbortSignal) => {
     const cached = ayahCache.current.get(surah);
     if (cached) return cached;
@@ -228,7 +240,11 @@ export function WaqfWorkspace() {
         setSelectedReciterId((current) => nextProfiles.some((profile) => profile.id === current)
           ? current
           : defaultProfile?.id || "");
-        setSelectedStopWpos(strongest?.wpos ?? waqf.mushafs[0]?.marks[0]?.wpos ?? null);
+        setSelectedStopWpos(
+          Number.isInteger(initialWpos) && initialWpos >= 0 && initialWpos < waqf.words.length
+            ? initialWpos
+            : strongest?.wpos ?? waqf.mushafs[0]?.marks[0]?.wpos ?? null,
+        );
       })
       .catch((reason: unknown) => {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
@@ -240,7 +256,7 @@ export function WaqfWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [surahNumber, ayahNumber, retryToken, requestKey, stop]);
+  }, [surahNumber, ayahNumber, retryToken, requestKey, stop, initialWpos]);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -371,7 +387,7 @@ export function WaqfWorkspace() {
         titleAriaLabel="علامة المصحف، ووقف القارئ، وقول الإمام."
         lede="هذا تميّز أثَر: ثلاث شهادات على موضع الوقف — ثم ابنِ قراءةً تناسب نَفَسك."
       >
-        <a className={introLinkClassName()} href={legacyUrl("/waqf-lab")}>مختبر الوقف</a>
+        <a className={introLinkClassName()} href="/waqf-lab">مختبر الوقف</a>
         <a className={introLinkClassName()} href={`/waqf-practice?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
           تدرّب على هذا الموضع
         </a>
@@ -746,7 +762,7 @@ export function WaqfWorkspace() {
                 <h2 className="m-0 font-athar-display text-[1.1rem] font-bold text-athar-ink" id="wq-lab-cta-title">مختبر الوقف</h2>
                 <p className="m-0 text-[0.9rem] leading-relaxed text-athar-ink-soft">بحث بالكلمة، انفرادات القرّاء، واختلاف المصاحف عبر القرآن — خارج دراسة الآية الواحدة.</p>
                 <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-3">
-                  <a className={pillActionClassName()} href={legacyUrl(`/waqf-lab?surah=${surahNumber}&ayah=${ayahNumber}`)}>
+                  <a className={pillActionClassName()} href={`/waqf-lab?surah=${surahNumber}&ayah=${ayahNumber}`}>
                     افتح المختبر
                   </a>
                   <a className={introLinkClassName()} href={`/waqf-practice?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>

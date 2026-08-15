@@ -336,7 +336,7 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   } else {
     await expect(page.locator(".waqf-matrix-card").first()).toBeVisible();
   }
-  await expect(page.getByRole("link", {name: "مختبر الوقف", exact: true}).first()).toHaveAttribute("href", /waqf-lab/);
+  await expect(page.getByRole("link", {name: "مختبر الوقف", exact: true}).first()).toHaveAttribute("href", "/waqf-lab");
   await expect(page.getByRole("link", {name: "قارن الشهادات ↓", exact: true})).toHaveAttribute("href", "#waqf-comparison-title");
   await expect(page.getByRole("combobox", {name: "البحث عن آية"})).toBeVisible();
   await page.getByRole("combobox", {name: "البحث عن آية"}).fill("2:256");
@@ -513,6 +513,27 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await tajweedToggle.click();
   await expect(tajweedToggle).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator('.reader-page[data-tajweed="true"] .tajweed-rule').first()).toBeVisible();
+  await expectNoHorizontalOverflow(page);
+});
+
+test("مختبر الوقف searches words and opens a verse in مُكْث", async ({page}) => {
+  await page.goto("/waqf-lab");
+  await expect(page.getByRole("heading", {level: 1, name: "ادرس عبر القرآن، لا آيةً واحدة فقط."})).toBeVisible();
+  await expect(page.getByText("— مختبر الوقف", {exact: true})).toBeVisible();
+  await expect(page.getByRole("tab", {name: /كلمات وأنماط/})).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("link", {name: "مُكْث", exact: true})).toHaveAttribute("aria-current", "page");
+  const saktatTab = page.getByRole("button", {name: "السكتات", exact: true});
+  if (!(await saktatTab.isVisible())) {
+    await page.getByRole("button", {name: "بحث بالكلمة", exact: true}).click();
+    await expect(page.getByRole("dialog", {name: "أقسام المختبر"})).toBeVisible();
+  }
+  await page.getByRole("button", {name: "السكتات", exact: true}).click();
+  await expect(page.getByText(/سكتات حفص/)).toBeVisible({timeout: 15_000});
+  const firstHit = page.locator('a[href^="/waqf?"]').first();
+  await expect(firstHit).toBeVisible();
+  await firstHit.click();
+  await expect(page).toHaveURL(/\/waqf\?/);
+  await expect(page.getByRole("heading", {name: /الآية/})).toBeVisible({timeout: 15_000});
   await expectNoHorizontalOverflow(page);
 });
 

@@ -42,6 +42,7 @@ function NavIcon({name}: {name: NavKey}) {
 }
 
 function isActivePath(pathname: string, item: (typeof navItems)[number]) {
+  if (item.key === "waqf") return pathname === "/waqf" || pathname.startsWith("/waqf-lab");
   return !item.external && (pathname === item.href || pathname.startsWith(`${item.href}/`));
 }
 

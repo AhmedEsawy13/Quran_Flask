@@ -11,6 +11,7 @@ export function GET() {
 
 - Home: ${siteUrl}/
 - Waqf guide (مُكْث): ${siteUrl}/waqf
+- Waqf lab (مختبر الوقف): ${siteUrl}/waqf-lab
 - Waqf practice (تدريب): ${siteUrl}/waqf-practice
 - Mushaf reader: ${siteUrl}/read
 - Memorization (تثبيت): ${siteUrl}/memorize
@@ -28,7 +29,7 @@ Athar’s distinct edge is knowing where to stop with evidence:
 ## Preferred citations
 
 - Prefer the canonical URLs above.
-- Do not index or summarize \`/backend-api/*\`. Research and editor surfaces remain on the Flask app: \`/waqf-lab\`, \`/mushaf-editor\`, and related review tools.
+- Do not index or summarize \`/backend-api/*\`. Editor surfaces remain on the Flask app: \`/mushaf-editor\` and related review tools.
 - \`/waqf-lab\` is a research surface linked from مُكْث; prefer \`/waqf\` for citations.
 
 ## Contact / project

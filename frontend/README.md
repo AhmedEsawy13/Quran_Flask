@@ -61,7 +61,7 @@ assets during the migration.
 
 ## Migration boundary
 
-- `/`, `/read`, `/memorize`, `/waqf`, `/waqf-practice`, and `/credits` are implemented by Next.js.
+- `/`, `/read`, `/memorize`, `/waqf`, `/waqf-lab`, `/waqf-practice`, and `/credits` are implemented by Next.js.
 - `/backend-api/*` proxies short, cacheable API reads to Flask.
-- The مُكْث research lab, internal editor/review surfaces, and voice recording/ASR portions of تدريب and تثبيت still link to Flask.
+- Internal editor/review surfaces, and voice recording/ASR portions of تدريب and تثبيت, still link to Flask.
 - Audio, CV, PDFs, and long-running work must not be proxied through Vercel.

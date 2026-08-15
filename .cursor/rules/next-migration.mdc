@@ -14,7 +14,8 @@ Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `f
 | `/` | landing | Four doors + credits footer |
 | `/read` | المصحف | Study drawer includes iʿrāb; Flask `/read` still has older chrome |
 | `/memorize` | تثبيت | Viewport studio: mushaf fills remaining height. Range, reciter, repetition, and transport stay on-screen. التفصيل الموضوعي is off by default and lives under الموضع. ASR stays Flask |
-| `/waqf` | مُكْث | Scrollable verse-first study: search, word-flow + inspector, breath plan, full matrix, all-reciters gallery, classical-for-all. Lab stays Flask |
+| `/waqf` | مُكْث | Scrollable verse-first study: search, word-flow + inspector, breath plan, full matrix, all-reciters gallery, classical-for-all |
+| `/waqf-lab` | مختبر الوقف | Quran-wide research: word/pattern search, reciter solos/stats/clusters, mushaf disagreement and agreement. Linked from مُكْث; not a fifth landing door |
 | `/waqf-practice` | تدريب | Tap words + grade vs printed marks. ASR + live tajweed stay Flask |
 | `/credits` | المصادر | Attribution page |
 | `/robots.txt` `/sitemap.xml` `/llms.txt` | SEO | Next copies of Flask SEO |
@@ -22,7 +23,6 @@ Flask remains the **data plane** (`/api/*`, fonts, audio, editor). Next.js in `f
 ## Stay on Flask (intentional — do not port in a UI pass)
 
 - **API + fonts + audio proxy** — Vercel must not proxy long audio/CV/PDFs
-- **`/waqf-lab`** — research workspace (Quran-wide search, reciter matrix, classical-for-all)
 - **ASR** — zipformer on `/memorize` and `/waqf-practice` (132MB+)
 - **Editor** (`ENABLE_EDITOR`): `/mushaf-editor`, `/layout-studio`, `/azhar-layout`, `/font-lab`, `/cv-waqf`, `/waqf-mark-review`, `/classical-review`, `/activity`, quran-integrity-review
 
