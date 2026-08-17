@@ -407,6 +407,13 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await expect(page.getByRole("radio", {name: "الأزهر"})).toHaveAttribute("aria-checked", "true");
   await expect(waqfToggle).toBeChecked();
   await expect(page.locator('.reader-page[data-waqf-source="الأزهر"]')).not.toHaveCount(0);
+  await expect(page.locator(".reader-page.is-memorization .mushaf-print-mark").first()).toBeVisible();
+  const azharWordInk = await page.locator(".mushaf-word:has(.mushaf-print-mark)").first().evaluate((word) => {
+    const clone = word.cloneNode(true) as HTMLElement;
+    clone.querySelectorAll(".mushaf-waqf-stack").forEach((stack) => stack.remove());
+    return clone.textContent || "";
+  });
+  expect(azharWordInk).not.toMatch(/[\u06D6-\u06DC]/);
   await page.getByRole("radio", {name: "المدينة القديم"}).click();
   await expect(page.getByRole("radio", {name: "المدينة القديم"})).toHaveAttribute("aria-checked", "true");
   await expect(page.locator('.reader-page[data-waqf-source="المدينة القديم"]')).not.toHaveCount(0);

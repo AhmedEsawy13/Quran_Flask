@@ -193,22 +193,30 @@ function wordWaqfMarks(word: MushafWord) {
   return word.waqf_symbols.filter((mark) => mark.symbols.trim());
 }
 
+function overlayWaqfMarks(
+  word: MushafWord,
+  waqfEnabled: boolean,
+  selectableWaqf: boolean,
+  waqfSource: string,
+) {
+  if (!waqfEnabled) return [];
+  const marks = wordWaqfMarks(word);
+  return selectableWaqf ? marks.filter((mark) => mark.version === waqfSource) : marks;
+}
+
 function wordDisplayText(
   word: MushafWord,
   editionId: MushafEditionId,
   waqfEnabled: boolean,
   waqfSource: string,
+  overlaySelected: boolean,
 ) {
   const raw = word.text || "";
   if (editionId === "shamarly") return withAyahOrnament(raw, editionId);
   const clean = raw.replace(EMBEDDED_WAQF_RE, "");
-  if (!waqfEnabled) return withAyahOrnament(clean, editionId);
+  if (!waqfEnabled || overlaySelected) return withAyahOrnament(clean, editionId);
   if (waqfSource === "المدينة الجديد") return withAyahOrnament(raw, editionId);
-  const selectedMark = wordWaqfMarks(word).find((mark) => mark.version === waqfSource);
-  return withAyahOrnament(
-    clean + (selectedMark ? waqfMarkGlyph(selectedMark.symbols) : ""),
-    editionId,
-  );
+  return withAyahOrnament(clean, editionId);
 }
 
 function buildPageAudioPositions(page: MushafPage | null, surah: number, ayah: number) {
@@ -362,11 +370,9 @@ function PageLine({
               );
               const audioPosition = audioPositions.get(word);
               const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
-              const waqfMarks = waqfEnabled && (!selectableWaqf || editionId === "shamarly")
-                ? wordWaqfMarks(word)
-                : [];
+              const waqfMarks = overlayWaqfMarks(word, waqfEnabled, selectableWaqf, waqfSource);
               const displayText = selectableWaqf
-                ? wordDisplayText(word, editionId, waqfEnabled, waqfSource)
+                ? wordDisplayText(word, editionId, waqfEnabled, waqfSource, waqfMarks.length > 0)
                 : withAyahOrnament(word.text, editionId);
               const tajweedSegment = tajweedSegmentsByWord?.get(wordIdentity(word));
               const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
