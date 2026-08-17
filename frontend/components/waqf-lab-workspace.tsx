@@ -244,6 +244,7 @@ export function WaqfLabWorkspace() {
               key={item.id}
               size="sm"
               variant={tab === item.id ? "primary" : "secondary"}
+              role="tab"
               aria-selected={tab === item.id}
               onClick={() => selectTab(item.id)}
             >

@@ -3,8 +3,19 @@ import {MUSHAF_EDITIONS, type MushafEditionId} from "@/lib/mushaf";
 
 export const PRACTICE_PAGE_LIMIT = 8;
 
+const PRACTICE_EDITIONS: Partial<Record<string, MushafEditionId>> = {
+  "المدينة الجديد": "digital_khatt",
+  "المدينة القديم": "qpc_v1",
+  "الأزهر": "azhar_amiri",
+  "الشمرلي": "shamarly",
+};
+
 export function practiceEditionId(mushaf: string): MushafEditionId {
-  return mushaf === "المدينة القديم" ? "qpc_v1" : "digital_khatt";
+  return PRACTICE_EDITIONS[mushaf] || "digital_khatt";
+}
+
+export function practiceUsesApproximateLayout(mushaf: string) {
+  return !(mushaf in PRACTICE_EDITIONS);
 }
 
 export function hasArabicLetters(text: string) {
@@ -54,22 +65,22 @@ export async function loadPracticePageRange(
     `/backend-api/${edition.apiBase}/page-by-ayah/${surah}/${fromAyah}${query}`,
     signal,
   );
-  if (!first?.lines?.length) return [];
+  if (!first?.lines?.length) {
+    throw new Error(`تعذّر تحميل صفحة مصحف ${mushaf}.`);
+  }
   const pages = [first];
   while (pages.length < PRACTICE_PAGE_LIMIT && maxAyahOnPage(pages[pages.length - 1], surah) < toAyah) {
     const nextNumber = Number(pages[pages.length - 1].page_number) + 1;
     if (!nextNumber) break;
-    try {
-      const next = await getJson<MushafPage>(
-        `/backend-api/${edition.apiBase}/page/${nextNumber}${query}`,
-        signal,
-      );
-      if (!next?.lines?.length) break;
-      pages.push(next);
-    } catch {
-      break;
-    }
+    const next = await getJson<MushafPage>(
+      `/backend-api/${edition.apiBase}/page/${nextNumber}${query}`,
+      signal,
+    );
+    if (!next?.lines?.length) break;
+    pages.push(next);
   }
-  if (maxAyahOnPage(pages[pages.length - 1], surah) < toAyah) return [];
+  if (maxAyahOnPage(pages[pages.length - 1], surah) < toAyah) {
+    throw new Error(`تعذّر عرض المقطع كاملًا على صفحات مصحف ${mushaf}.`);
+  }
   return pages;
 }

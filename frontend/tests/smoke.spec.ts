@@ -361,6 +361,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.goto("/memorize?surah=2&from=255&to=257");
   await expect(page.locator("h1#mz-title")).toHaveText("ثبّت حفظك.");
   await expect(page.getByRole("region", {name: "استوديو التثبيت"})).toBeVisible();
+  await expect(page.getByRole("link", {name: "افتح التسميع الصوتي"})).toBeVisible();
   const toolbarHeight = await page.locator('[aria-label="استوديو التثبيت"] > header').evaluate((header) => header.getBoundingClientRect().height);
   expect(toolbarHeight).toBeLessThanOrEqual(82);
   await expect(page.locator(".mushaf-word.is-focus").first()).toBeVisible();
@@ -518,13 +519,17 @@ test("مختبر الوقف searches words and opens a verse in مُكْث", asy
   await expect(page.getByRole("heading", {level: 1, name: "ادرس عبر القرآن، لا آيةً واحدة فقط."})).toBeVisible();
   await expect(page.getByText("— مختبر الوقف", {exact: true})).toBeVisible();
   await expect(page.getByRole("tab", {name: /كلمات وأنماط/})).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByRole("link", {name: "مُكْث", exact: true})).toHaveAttribute("aria-current", "page");
-  const saktatTab = page.getByRole("button", {name: "السكتات", exact: true});
-  if (!(await saktatTab.isVisible())) {
+  await expect(page.locator('a[href="/waqf"][aria-current="page"]')).toHaveCount(0);
+  const saktatTab = page.getByRole("tab", {name: "السكتات", exact: true});
+  if (await saktatTab.isVisible()) {
+    await saktatTab.click();
+  } else {
     await page.getByRole("button", {name: "بحث بالكلمة", exact: true}).click();
-    await expect(page.getByRole("dialog", {name: "أقسام المختبر"})).toBeVisible();
+    const sectionDrawer = page.getByRole("dialog", {name: "أقسام المختبر"});
+    await expect(sectionDrawer).toBeVisible();
+    await sectionDrawer.getByRole("option", {name: "السكتات", exact: true}).click();
+    await expect(sectionDrawer).toBeHidden();
   }
-  await page.getByRole("button", {name: "السكتات", exact: true}).click();
   await expect(page.getByText(/سكتات حفص/)).toBeVisible({timeout: 15_000});
   const firstHit = page.locator('a[href^="/waqf?"]').first();
   await expect(firstHit).toBeVisible();
@@ -552,6 +557,8 @@ test("تدريب grades tapped stops against the printed mushaf", async ({page})
   await expect(page.getByRole("link", {name: "ادرس هذا الموضع في مُكْث"})).toHaveAttribute("href", "/waqf?surah=2&ayah=255");
   await expect(page.getByRole("link", {name: "افتح التسجيل الصوتي"})).toHaveAttribute("href", /waqf-practice/);
   await expect(page.getByRole("link", {name: "تدريب", exact: true})).toHaveAttribute("aria-current", "page");
+  await page.getByLabel("رسم المصحف للتقييم").selectOption("الأزهر");
+  await expect(page.locator(".reader-page.edition-azhar_amiri.is-practice").first()).toBeVisible({timeout: 15_000});
   await expectNoHorizontalOverflow(page);
 });
 

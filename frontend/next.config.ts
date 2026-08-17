@@ -1,9 +1,18 @@
 import type { NextConfig } from "next";
 
-const apiOrigin = (process.env.ATHAR_API_ORIGIN || "http://127.0.0.1:5001").replace(
-  /\/$/,
-  "",
-);
+function requiredOrigin(name: string, fallback: string) {
+  const value = process.env[name];
+  if (process.env.VERCEL && !value) {
+    throw new Error(`${name} must be set on Vercel so production does not fall back to localhost.`);
+  }
+  return (value || fallback).replace(/\/$/, "");
+}
+
+const apiOrigin = requiredOrigin("ATHAR_API_ORIGIN", "http://127.0.0.1:5001");
+if (process.env.VERCEL) {
+  requiredOrigin("NEXT_PUBLIC_LEGACY_APP_ORIGIN", "http://127.0.0.1:5001");
+  requiredOrigin("NEXT_PUBLIC_SITE_URL", "http://localhost:3000");
+}
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,

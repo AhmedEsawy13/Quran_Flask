@@ -42,7 +42,6 @@ function NavIcon({name}: {name: NavKey}) {
 }
 
 function isActivePath(pathname: string, item: (typeof navItems)[number]) {
-  if (item.key === "waqf") return pathname === "/waqf" || pathname.startsWith("/waqf-lab");
   return !item.external && (pathname === item.href || pathname.startsWith(`${item.href}/`));
 }
 
@@ -107,7 +106,7 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
 
       <nav
         className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-athar-line bg-[var(--bar-background)] px-2 pt-1.5 pb-[max(.4rem,env(safe-area-inset-bottom))] shadow-[var(--athar-nav-shadow)] backdrop-blur-xl md:hidden"
-        aria-label="التنقل الرئيسي"
+        aria-label="أبواب التطبيق"
       >
         {navItems.map((item) => {
           const active = isActivePath(pathname, item);

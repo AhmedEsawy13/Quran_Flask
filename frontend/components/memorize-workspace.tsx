@@ -20,6 +20,7 @@ import {
   juzNumberForPage,
   juzNumberFromAyah,
   juzStartPosition,
+  parseAyahRange,
   spreadPageNumbers,
   toArabicDigits,
   type MushafEditionId,
@@ -192,6 +193,7 @@ function pageFontName(editionId: MushafEditionId, page: MushafPage | null) {
 
 export function MemorizeWorkspace() {
   const searchParams = useSearchParams();
+  const hasRangeQuery = searchParams.has("surah") || searchParams.has("from") || searchParams.has("ayah") || searchParams.has("to");
   const initialSurah = Math.min(114, positiveInteger(searchParams.get("surah"), 2));
   const initialFrom = positiveInteger(searchParams.get("from"), positiveInteger(searchParams.get("ayah"), 255));
   const initialTo = Math.max(initialFrom, positiveInteger(searchParams.get("to"), initialFrom));
@@ -404,13 +406,22 @@ export function MemorizeWorkspace() {
       if (savedWaqfVisibility !== null) {
         setWaqfEnabled(savedWaqfVisibility === "1" || savedWaqfVisibility === "true");
       }
+      if (!hasRangeQuery) {
+        const savedRange = parseAyahRange(window.localStorage.getItem("athar-memorize-range"));
+        if (savedRange) {
+          setSurahNumber(savedRange.surah);
+          setFromAyah(savedRange.from);
+          setToAyah(savedRange.to);
+          setActiveAyah(savedRange.from);
+        }
+      }
       setPreferencesReady(true);
     });
     return () => {
       media.removeEventListener("change", update);
       window.cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [hasRangeQuery]);
 
   useEffect(() => {
     if (!preferencesReady) return;
@@ -568,6 +579,7 @@ export function MemorizeWorkspace() {
   }, [showContext, verseKeyList]);
 
   useEffect(() => {
+    if (!preferencesReady) return;
     const url = new URL(window.location.href);
     url.searchParams.set("surah", String(surahNumber));
     url.searchParams.set("from", String(fromAyah));
@@ -578,7 +590,7 @@ export function MemorizeWorkspace() {
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     window.localStorage.setItem("athar-memorize-range", `${surahNumber}:${fromAyah}:${toAyah}`);
     window.localStorage.setItem("athar-memorize-layout", layout);
-  }, [surahNumber, fromAyah, toAyah, editionId, layout]);
+  }, [preferencesReady, surahNumber, fromAyah, toAyah, editionId, layout]);
 
   const retry = useCallback(() => {
     setCatalogError("");
@@ -898,10 +910,13 @@ export function MemorizeWorkspace() {
           ) : null}
 
           <a
-            className="hidden h-[34px] shrink-0 items-center rounded-[10px] px-2 text-[0.7rem] font-bold text-athar-accent no-underline hover:bg-athar-accent/8 lg:inline-flex"
+            className="inline-flex size-[34px] shrink-0 items-center justify-center rounded-[10px] text-[0.7rem] font-bold text-athar-accent no-underline hover:bg-athar-accent/8 lg:w-auto lg:gap-1.5 lg:px-2"
             href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}
+            aria-label="افتح التسميع الصوتي"
+            title="التسميع الصوتي في النسخة السابقة"
           >
-            التسميع الصوتي
+            <AtharIcon name="headphones" className="size-[17px]" />
+            <span className="hidden lg:inline">التسميع الصوتي</span>
           </a>
 
           <div ref={setTransportHost} className="ms-auto flex min-w-0 flex-1 justify-end" />

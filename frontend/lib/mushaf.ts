@@ -135,6 +135,18 @@ export function toArabicDigits(value: number | string) {
   return String(value).replace(/[0-9]/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
 }
 
+export function parseAyahRange(value: string | null) {
+  if (!value) return null;
+  const [surah, from, to] = value.split(":").map(Number);
+  if (![surah, from].every((number) => Number.isInteger(number) && number > 0)) return null;
+  const end = Number.isInteger(to) && to > 0 ? to : from;
+  return {
+    surah: Math.min(114, surah),
+    from,
+    to: Math.max(from, end),
+  };
+}
+
 export function fromArabicDigits(value: string) {
   return value.replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
 }

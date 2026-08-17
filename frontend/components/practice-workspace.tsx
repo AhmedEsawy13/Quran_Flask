@@ -12,7 +12,7 @@ import {
   type PracticeVerse,
   type Surah,
 } from "@/lib/api";
-import {toArabicDigits} from "@/lib/mushaf";
+import {parseAyahRange, toArabicDigits} from "@/lib/mushaf";
 import {legacyUrl} from "@/lib/paths";
 import {pillActionClassName} from "@/lib/ui";
 import {
@@ -38,15 +38,30 @@ import {
 } from "@/components/tool-chrome";
 import {Button, StatusState} from "@/components/ui/primitives";
 import {PracticeMushafPages} from "@/components/practice-mushaf-pages";
-import {loadPracticePageRange} from "@/lib/practice-pages";
+import {loadPracticePageRange, practiceUsesApproximateLayout} from "@/lib/practice-pages";
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
+export function PracticeAsrLink({className, children}: {className?: string; children: string}) {
+  return (
+    <a
+      className={className}
+      href={legacyUrl("/waqf-practice?surah=2&from=255&to=255")}
+      onClick={(event) => {
+        event.currentTarget.href = legacyUrl(`/waqf-practice${window.location.search || "?surah=2&from=255&to=255"}`);
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+
 export function PracticeWorkspace() {
   const searchParams = useSearchParams();
+  const hasRangeQuery = searchParams.has("surah") || searchParams.has("from") || searchParams.has("ayah") || searchParams.has("to");
   const initialSurah = Math.min(114, positiveInteger(searchParams.get("surah"), 2));
   const initialFrom = positiveInteger(searchParams.get("from"), positiveInteger(searchParams.get("ayah"), 255));
   const initialTo = Math.max(initialFrom, positiveInteger(searchParams.get("to"), initialFrom));
@@ -63,21 +78,19 @@ export function PracticeWorkspace() {
     verses: [],
     error: "",
   });
-  const [pageResult, setPageResult] = useState<{key: string; pages: MushafPage[]}>({key: "", pages: []});
-  const [rangeKey, setRangeKey] = useState("");
+  const [pageResult, setPageResult] = useState<{key: string; pages: MushafPage[]; error: string}>({
+    key: "",
+    pages: [],
+    error: "",
+  });
   const [stops, setStops] = useState<Set<string>>(() => new Set());
   const [grade, setGrade] = useState<PracticeGrade | null>(null);
   const [catalogError, setCatalogError] = useState("");
   const [gradeError, setGradeError] = useState("");
   const [grading, setGrading] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
+  const [sessionReady, setSessionReady] = useState(hasRangeQuery);
   const passageKey = `${surahNumber}:${fromAyah}:${toAyah}:${retryToken}`;
-  if (rangeKey !== passageKey) {
-    setRangeKey(passageKey);
-    setStops(new Set());
-    setGrade(null);
-    setGradeError("");
-  }
   const verses = useMemo(
     () => (passageResult.key === passageKey ? passageResult.verses : []),
     [passageKey, passageResult.key, passageResult.verses],
@@ -85,6 +98,7 @@ export function PracticeWorkspace() {
   const passageError = passageResult.key === passageKey ? passageResult.error : "";
   const pagesKey = `${passageKey}:${mushaf}`;
   const pages = pageResult.key === pagesKey ? pageResult.pages : [];
+  const pageError = pageResult.key === pagesKey ? pageResult.error : "";
   const pagesLoading = !catalogError && pageResult.key !== pagesKey;
   const passageLoading = !catalogError && (passageResult.key !== passageKey || pagesLoading);
   const lastWpos = useMemo(
@@ -151,7 +165,7 @@ export function PracticeWorkspace() {
   }, [surahNumber, retryToken, loadAyahNumbers]);
 
   useEffect(() => {
-    if (!ayahNumbers.length || toAyah < fromAyah || toAyah - fromAyah > MAX_PRACTICE_SPAN) return;
+    if (!sessionReady || !ayahNumbers.length || toAyah < fromAyah || toAyah - fromAyah > MAX_PRACTICE_SPAN) return;
     const controller = new AbortController();
     getJson<PracticePassage>(
       `/backend-api/waqf-practice/passage/${surahNumber}/${fromAyah}/${toAyah}`,
@@ -173,21 +187,40 @@ export function PracticeWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [passageKey, surahNumber, fromAyah, toAyah, ayahNumbers.length]);
+  }, [passageKey, sessionReady, surahNumber, fromAyah, toAyah, ayahNumbers.length]);
 
   useEffect(() => {
-    if (!ayahNumbers.length || toAyah < fromAyah || toAyah - fromAyah > MAX_PRACTICE_SPAN) return;
+    if (!sessionReady || !ayahNumbers.length || toAyah < fromAyah || toAyah - fromAyah > MAX_PRACTICE_SPAN) return;
     const controller = new AbortController();
     loadPracticePageRange(mushaf, surahNumber, fromAyah, toAyah, controller.signal)
-      .then((loaded) => setPageResult({key: pagesKey, pages: loaded}))
+      .then((loaded) => setPageResult({key: pagesKey, pages: loaded, error: ""}))
       .catch((reason: unknown) => {
         if (reason instanceof DOMException && reason.name === "AbortError") return;
-        setPageResult({key: pagesKey, pages: []});
+        setPageResult({
+          key: pagesKey,
+          pages: [],
+          error: reason instanceof Error ? reason.message : "تعذّر تحميل صفحات المصحف.",
+        });
       });
     return () => controller.abort();
-  }, [ayahNumbers.length, fromAyah, mushaf, pagesKey, surahNumber, toAyah]);
+  }, [ayahNumbers.length, fromAyah, mushaf, pagesKey, sessionReady, surahNumber, toAyah]);
 
   useEffect(() => {
+    if (hasRangeQuery) return;
+    const frame = window.requestAnimationFrame(() => {
+      const saved = parseAyahRange(window.localStorage.getItem("athar-practice-range"));
+      if (saved) {
+        setSurahNumber(saved.surah);
+        setFromAyah(saved.from);
+        setToAyah(Math.min(saved.to, saved.from + MAX_PRACTICE_SPAN));
+      }
+      setSessionReady(true);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [hasRangeQuery]);
+
+  useEffect(() => {
+    if (!sessionReady) return;
     const url = new URL(window.location.href);
     url.searchParams.set("surah", String(surahNumber));
     url.searchParams.set("from", String(fromAyah));
@@ -196,22 +229,30 @@ export function PracticeWorkspace() {
     url.searchParams.delete("ayah");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
     window.localStorage.setItem("athar-practice-range", `${surahNumber}:${fromAyah}:${toAyah}`);
-  }, [surahNumber, fromAyah, toAyah, mushaf]);
+  }, [sessionReady, surahNumber, fromAyah, toAyah, mushaf]);
+
+  const resetAttempt = useCallback(() => {
+    setStops(new Set());
+    setGrade(null);
+    setGradeError("");
+  }, []);
 
   const retry = useCallback(() => {
     setCatalogError("");
-    setGradeError("");
+    resetAttempt();
     ayahCache.current.delete(surahNumber);
     setRetryToken((value) => value + 1);
-  }, [surahNumber]);
+  }, [resetAttempt, surahNumber]);
 
   const selectSurah = (nextSurah: number) => {
+    resetAttempt();
     setSurahNumber(nextSurah);
     setFromAyah(1);
     setToAyah(1);
   };
 
   const selectFrom = (nextFrom: number) => {
+    resetAttempt();
     setFromAyah(nextFrom);
     setToAyah((current) => Math.max(nextFrom, Math.min(current, nextFrom + MAX_PRACTICE_SPAN)));
   };
@@ -308,7 +349,14 @@ export function PracticeWorkspace() {
           </ChromeSelect>
         </ChromeField>
         <ChromeField label="إلى آية">
-          <ChromeSelect value={toAyah} onChange={(event) => setToAyah(Number(event.target.value))} disabled={!toOptions.length}>
+          <ChromeSelect
+            value={toAyah}
+            onChange={(event) => {
+              resetAttempt();
+              setToAyah(Number(event.target.value));
+            }}
+            disabled={!toOptions.length}
+          >
             {toOptions.map((number) => <option key={number} value={number}>{toArabicDigits(number)}</option>)}
           </ChromeSelect>
         </ChromeField>
@@ -338,47 +386,65 @@ export function PracticeWorkspace() {
           {!passageLoading && !passageError && verses.length ? (
             <>
               {pages.length ? (
-                <PracticeMushafPages
-                  pages={pages}
-                  surahs={surahs}
-                  selectedSurah={selectedSurah}
-                  surahNumber={surahNumber}
-                  fromAyah={fromAyah}
-                  toAyah={toAyah}
-                  mushaf={mushaf}
-                  versesLastWpos={lastWpos}
-                  stops={stops}
-                  onWordTap={toggleStop}
-                  onRetry={retry}
-                />
+                <>
+                  {practiceUsesApproximateLayout(mushaf) ? (
+                    <StatusState className="mb-3">
+                      تُعرض علامات مصحف {mushaf} على تخطيط صفحة المدينة للمقارنة؛ التقييم يعتمد علامات المصحف المختار.
+                    </StatusState>
+                  ) : null}
+                  <PracticeMushafPages
+                    pages={pages}
+                    surahs={surahs}
+                    selectedSurah={selectedSurah}
+                    surahNumber={surahNumber}
+                    fromAyah={fromAyah}
+                    toAyah={toAyah}
+                    mushaf={mushaf}
+                    versesLastWpos={lastWpos}
+                    stops={stops}
+                    onWordTap={toggleStop}
+                    onRetry={retry}
+                  />
+                </>
               ) : (
-                <div className="practice-passage" dir="rtl">
-                  {verses.map((verse) => (
-                    <div className="practice-verse" key={verse.ayah}>
-                      {verse.words.map((word, index) => {
-                        const key = stopKey(verse.ayah, index);
-                        const stopped = stops.has(key);
-                        const last = index === verse.words.length - 1;
-                        return (
-                          <span key={key}>
-                            <button
-                              className={`practice-word${last ? " is-end" : ""}${stopped ? " is-stopped" : ""}`}
-                              type="button"
-                              aria-pressed={stopped}
-                              aria-label={stopped ? `إلغاء الوقف عند ${word}` : `تعليم وقف عند ${word}`}
-                              onClick={() => toggleStop(verse.ayah, index)}
-                            >
-                              {word}
-                            </button>
-                            {" "}
-                          </span>
-                        );
-                      })}
-                      {" "}
-                      <span className="practice-ayah-num">{toArabicDigits(verse.ayah)}</span>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  {pageError ? (
+                    <StatusState
+                      tone="error"
+                      className="mb-3"
+                      action={<Button size="sm" variant="danger" onClick={retry}>أعد تحميل الصفحة</Button>}
+                    >
+                      {pageError} يمكنك متابعة التدريب بالنص أدناه.
+                    </StatusState>
+                  ) : null}
+                  <div className="practice-passage" dir="rtl">
+                    {verses.map((verse) => (
+                      <div className="practice-verse" key={verse.ayah}>
+                        {verse.words.map((word, index) => {
+                          const key = stopKey(verse.ayah, index);
+                          const stopped = stops.has(key);
+                          const last = index === verse.words.length - 1;
+                          return (
+                            <span key={key}>
+                              <button
+                                className={`practice-word${last ? " is-end" : ""}${stopped ? " is-stopped" : ""}`}
+                                type="button"
+                                aria-pressed={stopped}
+                                aria-label={stopped ? `إلغاء الوقف عند ${word}` : `تعليم وقف عند ${word}`}
+                                onClick={() => toggleStop(verse.ayah, index)}
+                              >
+                                {word}
+                              </button>
+                              {" "}
+                            </span>
+                          );
+                        })}
+                        {" "}
+                        <span className="practice-ayah-num">{toArabicDigits(verse.ayah)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
               <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-athar-line pt-4">
                 <p className="m-0 text-[0.78rem] text-athar-ink-faint" aria-live="polite">

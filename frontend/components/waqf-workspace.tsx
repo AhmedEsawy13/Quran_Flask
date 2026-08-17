@@ -100,7 +100,9 @@ export function WaqfWorkspace() {
   const router = useRouter();
   const initialSurah = Math.min(114, positiveInteger(searchParams.get("surah"), 2));
   const initialAyah = positiveInteger(searchParams.get("ayah"), 255);
-  const initialWpos = Number(searchParams.get("wpos"));
+  const initialWpos = searchParams.has("wpos")
+    ? Number(searchParams.get("wpos"))
+    : Number.NaN;
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [ayahNumbers, setAyahNumbers] = useState<number[]>([]);
   const ayahCache = useRef(new Map<number, number[]>());
@@ -327,6 +329,28 @@ export function WaqfWorkspace() {
     setAyahNumber(1);
   };
 
+  const stepAyah = async (delta: -1 | 1) => {
+    const lastAyah = ayahNumbers[ayahNumbers.length - 1] || 1;
+    const nextAyah = ayahNumber + delta;
+    if (nextAyah >= 1 && nextAyah <= lastAyah) {
+      setAyahNumber(nextAyah);
+      return;
+    }
+    if (delta < 0 && surahNumber > 1) {
+      const previousSurah = surahNumber - 1;
+      const numbers = await loadAyahNumbers(previousSurah);
+      stop();
+      setSurahNumber(previousSurah);
+      setAyahNumber(numbers[numbers.length - 1] || 1);
+      return;
+    }
+    if (delta > 0 && surahNumber < 114) {
+      stop();
+      setSurahNumber(surahNumber + 1);
+      setAyahNumber(1);
+    }
+  };
+
   const selectBreath = (nextBreath: BreathProfile) => {
     setBreath(nextBreath);
     const nextProfile = recommendedProfile(profiles, nextBreath);
@@ -506,10 +530,10 @@ export function WaqfWorkspace() {
         <ChromeStepper
           previousLabel="الآية السابقة"
           nextLabel="الآية التالية"
-          previousDisabled={ayahNumber <= 1}
-          nextDisabled={!ayahNumbers.length || ayahNumber >= ayahNumbers.length}
-          onPrevious={() => setAyahNumber((value) => value - 1)}
-          onNext={() => setAyahNumber((value) => value + 1)}
+          previousDisabled={surahNumber <= 1 && ayahNumber <= 1}
+          nextDisabled={!ayahNumbers.length || (surahNumber >= 114 && ayahNumber >= ayahNumbers[ayahNumbers.length - 1])}
+          onPrevious={() => void stepAyah(-1)}
+          onNext={() => void stepAyah(1)}
         />
       </ToolChrome>
 

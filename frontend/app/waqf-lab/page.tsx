@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 
 export default function WaqfLabPage() {
   return (
-    <div id="athar-main" tabIndex={-1}>
+    <main id="athar-main" tabIndex={-1}>
       <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز مختبر الوقف" />}>
         <WaqfLabWorkspace />
       </Suspense>
-    </div>
+    </main>
   );
 }

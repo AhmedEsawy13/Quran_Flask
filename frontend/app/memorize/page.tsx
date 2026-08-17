@@ -11,10 +11,10 @@ export const metadata: Metadata = {
 
 export default function MemorizePage() {
   return (
-    <div id="athar-main" className="h-full" tabIndex={-1}>
+    <main id="athar-main" className="h-full" tabIndex={-1}>
       <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز جلسة التثبيت" />}>
         <MemorizeWorkspace />
       </Suspense>
-    </div>
+    </main>
   );
 }

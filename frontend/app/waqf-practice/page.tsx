@@ -1,10 +1,9 @@
 import type {Metadata} from "next";
 import {Suspense} from "react";
-import {PracticeWorkspace} from "@/components/practice-workspace";
+import {PracticeAsrLink, PracticeWorkspace} from "@/components/practice-workspace";
 import {ToolIntro} from "@/components/tool-chrome";
 import {RouteSkeleton} from "@/components/ui/primitives";
 import {introLinkClassName} from "@/lib/ui";
-import {legacyUrl} from "@/lib/paths";
 
 export const metadata: Metadata = {
   title: "تدريب",
@@ -14,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function PracticePage() {
   return (
-    <div id="athar-main" tabIndex={-1}>
+    <main id="athar-main" tabIndex={-1}>
       <ToolIntro
         kicker="— تدريب"
         title="علِّم وقوفــك، وقيّمه بالمطبوع."
@@ -36,11 +35,11 @@ export default function PracticePage() {
             <span>راجع التقييم</span>
           </li>
         </ol>
-        <a className={introLinkClassName()} href={legacyUrl("/waqf-practice")}>التسجيل الصوتي</a>
+        <PracticeAsrLink className={introLinkClassName()}>التسجيل الصوتي</PracticeAsrLink>
       </ToolIntro>
       <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز جلسة التدريب" />}>
         <PracticeWorkspace />
       </Suspense>
-    </div>
+    </main>
   );
 }
