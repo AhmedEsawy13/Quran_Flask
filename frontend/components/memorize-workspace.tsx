@@ -72,7 +72,7 @@ type RangeDraft = {
 };
 
 const EMPTY_CONTEXT_SEGMENTS: MemorizationContextSegment[] = [];
-const WAQF_SOURCES = ["المدينة الجديد", "المدينة القديم", "الشمرلي"] as const;
+const WAQF_SOURCES = ["المدينة الجديد", "المدينة القديم", "الأزهر", "الشمرلي"] as const;
 type WaqfSource = typeof WAQF_SOURCES[number];
 type MemorizeNavigator = "surah" | "juz" | "page";
 
@@ -837,7 +837,7 @@ export function MemorizeWorkspace() {
             <p className="m-0 text-[0.7rem] leading-5 text-athar-ink-faint">{edition.description}</p>
             <fieldset className="grid gap-1.5 border-0 p-0">
               <legend className="text-[0.68rem] font-bold text-athar-gold">علامات الوقف من مصحف</legend>
-              <div className="grid grid-cols-3 gap-1" role="radiogroup" aria-label="مصدر علامات الوقف">
+              <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="مصدر علامات الوقف">
                 {WAQF_SOURCES.map((source) => (
                   <button
                     type="button"
