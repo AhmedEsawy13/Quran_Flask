@@ -69,6 +69,29 @@ export function waqfMarkGlyph(symbol: string) {
     .join("");
 }
 
+const overlayLetters: Record<string, string> = {
+  "م": "م",
+  "ق": "قلى",
+  "ص": "صلى",
+  "ج": "ج",
+  "لا": "لا",
+  "س": "س",
+  "ع": "ع",
+};
+
+export function waqfOverlayGlyph(symbol: string) {
+  if (symbol === "ركوع") return symbol;
+  return symbol
+    .split(/[،,]/)
+    .map((token) => token.replace(/\s+/g, "").trim())
+    .filter(Boolean)
+    .map((token) => {
+      const canonical = markAliases[token] || token;
+      return overlayLetters[canonical] || uthmanicGlyphs[canonical] || token;
+    })
+    .join("");
+}
+
 export function reciterPhrases(detail: WaqfReciterDetail, lastWpos: number): WaqfPhrase[] {
   if (detail.phrases?.length) return detail.phrases;
   const stops = [...detail.stops].sort((a, b) => a.wpos - b.wpos);

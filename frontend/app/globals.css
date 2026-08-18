@@ -732,16 +732,10 @@ button.page-number {
 .mushaf-word {
   display: inline-block;
   position: relative;
-  /* Room above the letters so a waqf overlay never sits on the harakat. */
+  /* Match تثبيت .mz-word: room above diacritics + tiny side padding between words. */
   padding: 0.24em 0.02em 0;
   border-radius: 0.18em;
   transition: background-color 140ms ease, color 140ms ease;
-}
-
-.reader-page.is-memorization .mushaf-word,
-.reader-page.is-practice .mushaf-word,
-.reader-page.edition-azhar_amiri .mushaf-word {
-  padding-top: 0.82em;
 }
 
 .reader-page[data-tajweed="true"] .tajweed-rule.madda_normal { color: #b45353; }
@@ -799,12 +793,12 @@ button.page-number {
   user-select: none;
 }
 
-/* Sit in the word's top padding, not over the last letter. */
+/* Print mushaf places the mark over the end of the word (inline-end in RTL). */
 .mushaf-waqf-stack {
   position: absolute;
-  top: 0.02em;
-  bottom: auto;
-  inset-inline-end: 0;
+  top: auto;
+  bottom: calc(100% - 0.18em);
+  inset-inline-end: 0.05em;
   left: auto;
   z-index: 2;
   display: inline-flex;
@@ -814,8 +808,28 @@ button.page-number {
   gap: 0.05em;
   pointer-events: none;
   white-space: nowrap;
-  font-size: 0.68em;
+  font-size: 0.62em;
   line-height: 1;
+}
+
+.reader-page.is-memorization .mushaf-word:has(.mushaf-waqf-stack),
+.reader-page.is-practice .mushaf-word:has(.mushaf-waqf-stack) {
+  padding-top: 0.4em;
+}
+
+.reader-page.is-memorization .mushaf-waqf-stack,
+.reader-page.is-practice .mushaf-waqf-stack {
+  top: 0;
+  bottom: auto;
+  inset-inline-end: 0.02em;
+  font-size: 0.48em;
+}
+
+.reader-page.is-memorization .mushaf-print-mark,
+.reader-page.is-practice .mushaf-print-mark {
+  min-width: 0;
+  height: auto;
+  font-weight: 700;
 }
 
 .mushaf-print-mark.is-strong,
@@ -839,6 +853,8 @@ button.page-number {
 }
 
 .reader-page.edition-shamarly .mushaf-waqf-stack {
+  top: 0;
+  bottom: auto;
   font-size: 0.72em;
 }
 

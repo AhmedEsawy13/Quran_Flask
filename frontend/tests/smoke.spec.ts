@@ -398,6 +398,8 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   await page.locator("summary").filter({hasText: "رسم المصحف"}).click();
   await expect(page.getByRole("radio", {name: "المدينة الجديد"})).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("radio", {name: "الأزهر"})).toBeVisible();
+  await expect(page.locator(".reader-page.is-memorization .mushaf-waqf-stack")).toHaveCount(0);
+  expect(await page.locator(".mushaf-lines").first().innerText()).toMatch(/[\u06D6-\u06DC]/);
   const waqfToggle = page.getByLabel("إظهار علامات الوقف");
   await waqfToggle.uncheck();
   await expect(page.locator('.reader-page[data-waqf-enabled="false"]')).not.toHaveCount(0);

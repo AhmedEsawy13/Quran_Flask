@@ -14,7 +14,7 @@ import {
 import { fitAndJustifyMushafPage, isBrowserPinchZoomed } from "@/lib/mushaf-page-layout";
 import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import type { TopicWash } from "@/lib/topic-color";
-import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
+import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone, waqfOverlayGlyph } from "@/lib/waqf";
 
 export type PracticeTap = {
   surah: number;
@@ -193,15 +193,19 @@ function wordWaqfMarks(word: MushafWord) {
   return word.waqf_symbols.filter((mark) => mark.symbols.trim());
 }
 
+function usesNativeEmbeddedWaqf(editionId: MushafEditionId, waqfSource: string) {
+  if (editionId === "shamarly" || editionId === "azhar_amiri") return false;
+  return waqfSource === MUSHAF_EDITIONS[editionId].waqfSource;
+}
+
 function overlayWaqfMarks(
   word: MushafWord,
   waqfEnabled: boolean,
-  selectableWaqf: boolean,
+  editionId: MushafEditionId,
   waqfSource: string,
 ) {
-  if (!waqfEnabled) return [];
-  const marks = wordWaqfMarks(word);
-  return selectableWaqf ? marks.filter((mark) => mark.version === waqfSource) : marks;
+  if (!waqfEnabled || usesNativeEmbeddedWaqf(editionId, waqfSource)) return [];
+  return wordWaqfMarks(word).filter((mark) => mark.version === waqfSource);
 }
 
 function wordDisplayText(
@@ -209,13 +213,12 @@ function wordDisplayText(
   editionId: MushafEditionId,
   waqfEnabled: boolean,
   waqfSource: string,
-  overlaySelected: boolean,
 ) {
   const raw = word.text || "";
   if (editionId === "shamarly") return withAyahOrnament(raw, editionId);
   const clean = raw.replace(EMBEDDED_WAQF_RE, "");
-  if (!waqfEnabled || overlaySelected) return withAyahOrnament(clean, editionId);
-  if (waqfSource === "المدينة الجديد") return withAyahOrnament(raw, editionId);
+  if (!waqfEnabled) return withAyahOrnament(clean, editionId);
+  if (usesNativeEmbeddedWaqf(editionId, waqfSource)) return withAyahOrnament(raw, editionId);
   return withAyahOrnament(clean, editionId);
 }
 
@@ -287,7 +290,6 @@ function PageLine({
   tajweedSegmentsByWord,
   waqfEnabled,
   waqfSource,
-  selectableWaqf,
 }: {
   line: MushafLine;
   surahNumber: number;
@@ -308,7 +310,6 @@ function PageLine({
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
   waqfEnabled: boolean;
   waqfSource: string;
-  selectableWaqf: boolean;
 }) {
   if (line.line_type === "surah_name") {
     const lineSurahNumber = Number(line.surah_number);
@@ -370,10 +371,8 @@ function PageLine({
               );
               const audioPosition = audioPositions.get(word);
               const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
-              const waqfMarks = overlayWaqfMarks(word, waqfEnabled, selectableWaqf, waqfSource);
-              const displayText = selectableWaqf
-                ? wordDisplayText(word, editionId, waqfEnabled, waqfSource, waqfMarks.length > 0)
-                : withAyahOrnament(word.text, editionId);
+              const waqfMarks = overlayWaqfMarks(word, waqfEnabled, editionId, waqfSource);
+              const displayText = wordDisplayText(word, editionId, waqfEnabled, waqfSource);
               const tajweedSegment = tajweedSegmentsByWord?.get(wordIdentity(word));
               const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
                 ? tajweedPartsForDisplay(displayText, tajweedSegment)
@@ -443,7 +442,9 @@ function PageLine({
                           data-version={mark.version}
                           key={`${mark.version}-${mark.symbols}-${markIndex}`}
                         >
-                          {waqfMarkGlyph(mark.symbols)}
+                          {editionId === "azhar_amiri" || editionId === "shamarly"
+                            ? waqfMarkGlyph(mark.symbols)
+                            : waqfOverlayGlyph(mark.symbols)}
                         </span>
                       ))}
                     </span>
@@ -495,7 +496,6 @@ export function MushafRenderer({
 }: MushafRendererProps) {
   const pageRef = useRef<HTMLElement>(null);
   const edition = MUSHAF_EDITIONS[editionId];
-  const selectableWaqf = waqfSource !== undefined;
   const activeWaqfSource = waqfSource || edition.waqfSource;
   const focusRangeStart = focusRange?.[0];
   const focusRangeEnd = focusRange?.[1];
@@ -720,7 +720,6 @@ export function MushafRenderer({
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
                   waqfSource={activeWaqfSource}
-                  selectableWaqf={selectableWaqf}
                 />
               ))}
             </div>
