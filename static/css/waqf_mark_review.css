@@ -44,6 +44,16 @@
     font-size: 0.84rem;
     color: var(--wmr-muted);
 }
+.wmr-print-links-title {
+    margin: 0 0 4px;
+}
+.wmr-print-links-row {
+    margin: 2px 0;
+}
+.wmr-print-links-row strong {
+    color: var(--wmr-ink, #1a1a1a);
+    margin-inline-end: 0.35em;
+}
 .wmr-print-links a {
     color: var(--wmr-ink, #1a1a1a);
     text-decoration: underline;

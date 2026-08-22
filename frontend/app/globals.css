@@ -24,6 +24,15 @@
   font-display: swap;
 }
 
+/* Combining stop marks (U+06D6–06DC) from Uthmanic Hafs, even inside Digital Khatt / Amiri runs. */
+@font-face {
+  font-family: "Athar Waqf";
+  src: url("/fonts/uthmanic-hafs.woff2") format("woff2");
+  unicode-range: U+06D6-06DC;
+  font-weight: 400;
+  font-display: swap;
+}
+
 @font-face {
   font-family: "QCF Common";
   src: url("/backend-fonts/quran-common.woff2") format("woff2");
@@ -779,26 +788,30 @@ button.page-number {
 }
 
 .mushaf-print-mark {
+  color: var(--athar-waqf-mark);
+  font-family: "Uthmanic Hafs", serif;
+  font-size: 1em;
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1;
+  user-select: none;
+}
+
+.mushaf-waqf-stack .mushaf-print-mark {
   display: inline-flex;
   min-width: 0.7em;
   height: 1em;
   align-items: center;
   justify-content: center;
-  color: var(--athar-waqf-mark);
-  font-family: "Uthmanic Hafs", serif;
-  font-size: 1em;
-  font-weight: 700;
-  line-height: 1;
   flex-shrink: 0;
-  user-select: none;
 }
 
-/* Print mushaf places the mark over the end of the word (inline-end in RTL). */
+/* Overlay only when the page font cannot take a combining mark (الشمرلي PUA). */
 .mushaf-waqf-stack {
   position: absolute;
-  top: auto;
-  bottom: calc(100% - 0.18em);
-  inset-inline-end: 0.05em;
+  top: 0.06em;
+  bottom: auto;
+  inset-inline-end: 0.02em;
   left: auto;
   z-index: 2;
   display: inline-flex;
@@ -808,28 +821,25 @@ button.page-number {
   gap: 0.05em;
   pointer-events: none;
   white-space: nowrap;
-  font-size: 0.62em;
+  font-size: 0.72em;
   line-height: 1;
 }
 
-.reader-page.is-memorization .mushaf-word:has(.mushaf-waqf-stack),
-.reader-page.is-practice .mushaf-word:has(.mushaf-waqf-stack) {
-  padding-top: 0.4em;
-}
-
-.reader-page.is-memorization .mushaf-waqf-stack,
-.reader-page.is-practice .mushaf-waqf-stack {
-  top: 0;
-  bottom: auto;
-  inset-inline-end: 0.02em;
-  font-size: 0.48em;
+.reader-page.is-memorization .mushaf-lines {
+  font-family: "Athar Waqf", var(--reader-quran-font, var(--font-quran));
 }
 
 .reader-page.is-memorization .mushaf-print-mark,
 .reader-page.is-practice .mushaf-print-mark {
-  min-width: 0;
-  height: auto;
-  font-weight: 700;
+  font-weight: 400;
+  font-synthesis: none;
+}
+
+.reader-page.is-memorization .mushaf-waqf-stack,
+.reader-page.is-practice .mushaf-waqf-stack {
+  top: 0.04em;
+  inset-inline-end: 0;
+  font-size: 0.78em;
 }
 
 .mushaf-print-mark.is-strong,
@@ -853,14 +863,23 @@ button.page-number {
 }
 
 .reader-page.edition-shamarly .mushaf-waqf-stack {
-  top: 0;
+  top: 0.04em;
   bottom: auto;
-  font-size: 0.72em;
+  inset-inline-end: 0.02em;
+  font-size: 0.78em;
 }
 
 .reader-page.edition-shamarly .mushaf-print-mark {
-  color: var(--athar-waqf-mark);
+  color: inherit;
   font-size: 1em;
+  font-weight: 400;
+  font-synthesis: none;
+}
+
+.reader-page.is-memorization.edition-shamarly .mushaf-waqf-stack,
+.reader-page.is-practice.edition-shamarly .mushaf-waqf-stack {
+  top: 0.04em;
+  font-size: 0.78em;
 }
 
 .reader-verse-word {

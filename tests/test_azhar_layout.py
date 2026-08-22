@@ -139,6 +139,57 @@ def test_azhar_layout_page_and_api(client):
     assert first4['first_word_id'] == 77
 
 
+def test_azhar_basmala_uses_uthmani_script_and_fatiha_ayah_number(client):
+    fatiha = client.get('/api/azhar/page/2').get_json()
+    basmala = next(line for line in fatiha['lines'] if line['line_type'] == 'basmallah')
+    assert 'ٱللَّهِ' in basmala['display_text']
+    assert [word['text'] for word in basmala['words']] == [
+        'بِسۡمِ',
+        'ٱللَّهِ',
+        'ٱلرَّحۡمَٰنِ',
+        'ٱلرَّحِيمِ',
+        '١',
+    ]
+    assert all(int(word['surah']) == 1 and int(word['ayah']) == 1 for word in basmala['words'])
+
+    baqarah = client.get('/api/azhar/page/3').get_json()
+    header = next(line for line in baqarah['lines'] if line['line_type'] == 'basmallah')
+    assert header['display_text'] == 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ'
+    assert header['words'] == []
+    assert not header['display_text'].rstrip().endswith('١')
+
+
+def test_azhar_payload_clamps_phantom_last_word_id(client):
+    page = client.get('/api/azhar/page/193').get_json()
+    line = next(row for row in page['lines'] if row['line_number'] == 9)
+    assert line['last_word_id'] == 31788
+    assert line['words']
+    assert line['words'][-1]['word_index'] == 31788
+
+
+def test_azhar_line_surah_follows_script_words(client):
+    page = client.get('/api/azhar/page/521').get_json()
+    fil_line = next(
+        line for line in page['lines']
+        if any(int(word.get('surah') or 0) == 105 for word in line['words'])
+    )
+    assert fil_line['surah_number'] == 105
+
+
+def test_azhar_uthmani_basmala_fallback_upgrades_imlaey():
+    from core.text import UTHMANI_BASMALA
+    from modules.layouts import _azhar_uthmani_basmala_text
+
+    assert _azhar_uthmani_basmala_text({
+        'line_text': 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
+        'surah_number': 97,
+    }) == UTHMANI_BASMALA
+    assert _azhar_uthmani_basmala_text({
+        'line_text': '',
+        'surah_number': 1,
+    }) == f'{UTHMANI_BASMALA} ١'
+
+
 def test_azhar_line_break_and_progress(client, restore_azhar_layout_db):
     page = client.get('/api/layout-studio/azhar/page/2').get_json()
     ayah_line = next(

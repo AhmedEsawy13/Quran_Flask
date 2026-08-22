@@ -14,7 +14,7 @@ import {
 import { fitAndJustifyMushafPage, isBrowserPinchZoomed } from "@/lib/mushaf-page-layout";
 import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import type { TopicWash } from "@/lib/topic-color";
-import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone, waqfOverlayGlyph } from "@/lib/waqf";
+import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
 export type PracticeTap = {
   surah: number;
@@ -198,14 +198,38 @@ function usesNativeEmbeddedWaqf(editionId: MushafEditionId, waqfSource: string) 
   return waqfSource === MUSHAF_EDITIONS[editionId].waqfSource;
 }
 
+function selectedWaqfMarks(word: MushafWord, waqfEnabled: boolean, waqfSource: string) {
+  if (!waqfEnabled) return [];
+  return wordWaqfMarks(word).filter((mark) => mark.version === waqfSource);
+}
+
 function overlayWaqfMarks(
   word: MushafWord,
   waqfEnabled: boolean,
   editionId: MushafEditionId,
   waqfSource: string,
+  memorizationMode = false,
 ) {
-  if (!waqfEnabled || usesNativeEmbeddedWaqf(editionId, waqfSource)) return [];
-  return wordWaqfMarks(word).filter((mark) => mark.version === waqfSource);
+  if (!waqfEnabled) return [];
+  // Unicode pages fold combining marks into the word; PUA الشمرلي cannot.
+  if (memorizationMode && editionId !== "shamarly") return [];
+  if (usesNativeEmbeddedWaqf(editionId, waqfSource)) return [];
+  return selectedWaqfMarks(word, waqfEnabled, waqfSource);
+}
+
+function foldedWaqfGlyph(
+  word: MushafWord,
+  displayText: string,
+  waqfEnabled: boolean,
+  editionId: MushafEditionId,
+  waqfSource: string,
+  memorizationMode = false,
+) {
+  if (!memorizationMode || editionId === "shamarly") return "";
+  if (isAyahNumberToken(displayText)) return "";
+  return selectedWaqfMarks(word, waqfEnabled, waqfSource)
+    .map((mark) => waqfMarkGlyph(mark.symbols))
+    .join("");
 }
 
 function wordDisplayText(
@@ -213,11 +237,14 @@ function wordDisplayText(
   editionId: MushafEditionId,
   waqfEnabled: boolean,
   waqfSource: string,
+  memorizationMode = false,
 ) {
   const raw = word.text || "";
   if (editionId === "shamarly") return withAyahOrnament(raw, editionId);
   const clean = raw.replace(EMBEDDED_WAQF_RE, "");
   if (!waqfEnabled) return withAyahOrnament(clean, editionId);
+  // تثبيت: strip the page-font mark, then fold the chosen edition as combining glyphs.
+  if (memorizationMode) return withAyahOrnament(clean, editionId);
   if (usesNativeEmbeddedWaqf(editionId, waqfSource)) return withAyahOrnament(raw, editionId);
   return withAyahOrnament(clean, editionId);
 }
@@ -290,6 +317,7 @@ function PageLine({
   tajweedSegmentsByWord,
   waqfEnabled,
   waqfSource,
+  memorizationMode = false,
 }: {
   line: MushafLine;
   surahNumber: number;
@@ -310,6 +338,7 @@ function PageLine({
   tajweedSegmentsByWord?: ReadonlyMap<string, TajweedSegment>;
   waqfEnabled: boolean;
   waqfSource: string;
+  memorizationMode?: boolean;
 }) {
   if (line.line_type === "surah_name") {
     const lineSurahNumber = Number(line.surah_number);
@@ -324,7 +353,7 @@ function PageLine({
     );
   }
 
-  if (line.line_type === "basmallah") {
+  if (line.line_type === "basmallah" && editionId !== "azhar_amiri") {
     return (
       <div className="mushaf-line is-centered">
         <div
@@ -341,10 +370,19 @@ function PageLine({
     return <div className="mushaf-special-line">{line.display_text}</div>;
   }
 
+  if (
+    line.line_type === "ayah"
+    && !line.words.length
+    && !(line.display_text || "").trim()
+  ) {
+    return null;
+  }
+
+  const centered = Boolean(line.is_centered) || line.line_type === "basmallah";
   return (
     <div
-      className={`mushaf-line${line.is_centered ? " is-centered" : ""}`}
-      data-justify={line.is_centered ? undefined : "true"}
+      className={`mushaf-line${centered ? " is-centered" : ""}`}
+      data-justify={centered ? undefined : "true"}
       data-focus={line.contains_focus_ayah ? "true" : undefined}
     >
       <div className="mushaf-line-inner">
@@ -371,12 +409,24 @@ function PageLine({
               );
               const audioPosition = audioPositions.get(word);
               const audioActive = audioPosition !== undefined && audioPosition === activeAudioWord;
-              const waqfMarks = overlayWaqfMarks(word, waqfEnabled, editionId, waqfSource);
-              const displayText = wordDisplayText(word, editionId, waqfEnabled, waqfSource);
+              const waqfMarks = overlayWaqfMarks(word, waqfEnabled, editionId, waqfSource, memorizationMode);
+              const displayText = wordDisplayText(word, editionId, waqfEnabled, waqfSource, memorizationMode);
+              const foldedGlyph = foldedWaqfGlyph(
+                word, displayText, waqfEnabled, editionId, waqfSource, memorizationMode,
+              );
               const tajweedSegment = tajweedSegmentsByWord?.get(wordIdentity(word));
               const tajweedParts = tajweedEnabled && tajweedSegment && !isAyahNumberToken(displayText)
                 ? tajweedPartsForDisplay(displayText, tajweedSegment)
                 : null;
+              const inkParts = tajweedParts && foldedGlyph
+                ? tajweedParts.map((part, partIndex) => (
+                  partIndex === tajweedParts.length - 1
+                    ? {...part, text: `${part.text}${foldedGlyph}`}
+                    : part
+                ))
+                : tajweedParts;
+              const inkText = inkParts ? "" : `${displayText}${foldedGlyph}`;
+              const foldedMark = selectedWaqfMarks(word, waqfEnabled, waqfSource)[0];
               const practiceWpos = practice?.positions.get(word);
               const practiceInRange = Boolean(
                 practice
@@ -402,6 +452,11 @@ function PageLine({
                   aria-current={current ? "true" : undefined}
                   aria-label={practiceInRange
                     ? (practiceStopped ? `إلغاء الوقف عند ${displayText}` : `تعليم وقف عند ${displayText}`)
+                    : foldedGlyph && foldedMark
+                      ? `${displayText} — ${waqfMarkLabel(foldedMark.symbols)} · ${foldedMark.version}`
+                      : undefined}
+                  title={foldedGlyph && foldedMark
+                    ? `${waqfMarkLabel(foldedMark.symbols)} · ${foldedMark.version}`
                     : undefined}
                   data-audio-index={audioPosition}
                   data-word-key={word.word_key || undefined}
@@ -427,11 +482,11 @@ function PageLine({
                     }
                     : undefined}
                 >
-                  {tajweedParts ? tajweedParts.map((part, partIndex) => part.rule ? (
+                  {inkParts ? inkParts.map((part, partIndex) => part.rule ? (
                     <span className={`tajweed-rule ${part.rule}`} key={`${part.rule}-${partIndex}`}>
                       {part.text}
                     </span>
-                  ) : part.text) : displayText}
+                  ) : part.text) : inkText}
                   {waqfMarks.length ? (
                     <span className="mushaf-waqf-stack">
                       {waqfMarks.map((mark, markIndex) => (
@@ -442,9 +497,7 @@ function PageLine({
                           data-version={mark.version}
                           key={`${mark.version}-${mark.symbols}-${markIndex}`}
                         >
-                          {editionId === "azhar_amiri" || editionId === "shamarly"
-                            ? waqfMarkGlyph(mark.symbols)
-                            : waqfOverlayGlyph(mark.symbols)}
+                          {waqfMarkGlyph(mark.symbols)}
                         </span>
                       ))}
                     </span>
@@ -720,6 +773,7 @@ export function MushafRenderer({
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
                   waqfSource={activeWaqfSource}
+                  memorizationMode={memorizationMode}
                 />
               ))}
             </div>

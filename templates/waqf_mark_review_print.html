@@ -34,7 +34,7 @@
 
     {% if pack %}
     <header class="wmr-print-cover">
-        <p class="wmr-print-kicker">أثَر · مراجعة علامات الوقف · الشمرلي</p>
+        <p class="wmr-print-kicker">أثَر · مراجعة علامات الوقف · {{ pack.edition_label }}</p>
         <h1 class="wmr-print-title">{{ pack.label }}</h1>
         <p class="wmr-print-lede">
             صفحات المصحف {{ pack.page_from_label }}–{{ pack.page_to_label }}
@@ -45,7 +45,7 @@
         </p>
         <ul class="wmr-print-legend" aria-label="دليل العلامات">
             {% for sym in pack.symbols %}
-            <li><span class="wmr-print-mark-text">{{ sym.write }}</span> {{ sym.name }}</li>
+            <li><span class="wmr-print-mark-glyph">{{ sym.glyph }}</span> <span class="wmr-print-mark-write">{{ sym.write }}</span> {{ sym.name }}</li>
             {% endfor %}
         </ul>
     </header>
@@ -74,7 +74,7 @@
                             <td class="col-page">{% if item.is_page_start %}{{ item.page_label }}{% endif %}</td>
                             <td class="col-line">{{ item.line_label }}</td>
                             <td class="col-word"><span class="wmr-print-word">{{ item.text }}</span></td>
-                            <td class="col-mark"><span class="wmr-print-mark-text">{{ item.mark_write }}</span></td>
+                            <td class="col-mark"><span class="wmr-print-mark-glyph">{{ item.mark_glyph }}</span></td>
                         </tr>
                         {% endfor %}
                     </tbody>

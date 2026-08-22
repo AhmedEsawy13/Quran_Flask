@@ -2,11 +2,13 @@
 
 Start mushaf-by-mushaf with الشمرلي: Shemrly page geometry, Quran font for
 words, and real stop glyphs (ۘۗۖ…) instead of letter stand-ins (م/ص/ق).
+Print packs also cover المدينة الجديد / المدينة القديم from their page layouts.
 """
 from __future__ import annotations
 
 import logging
 import os
+import re
 import sqlite3
 
 from flask import jsonify, render_template, request
@@ -22,7 +24,19 @@ from modules.editor import (
     _find_mushaf_row_match_index,
 )
 from modules.editor_auth import current_editor, require_editor
-from modules.layouts import _build_shamarly_page_payload
+from modules.layouts import (
+    _build_digital_khatt_page_payload,
+    _build_qpc_v1_page_payload,
+    _build_shamarly_page_payload,
+)
+from core.waqf_glyphs import (
+    SYMBOL_CHOICES as _SYMBOL_CHOICES,
+    SYMBOL_META as _SYMBOL_META,
+    waqf_glyph,
+    waqf_write_form,
+)
+
+__all__ = ['waqf_glyph', 'waqf_write_form']
 
 logger = logging.getLogger(__name__)
 
@@ -43,41 +57,6 @@ REVIEW_EDITIONS = (
 
 _REVIEW_BY_ID = {e['id']: e for e in REVIEW_EDITIONS}
 
-# Letter codes stored in mushaf_waqf.db → printed stop glyphs (Hafs system).
-_WAQF_GLYPH_MAP = {
-    'م': 'ۘ', 'قلى': 'ۗ', 'قلي': 'ۗ', 'ق': 'ۗ',
-    'صلى': 'ۖ', 'صلي': 'ۖ', 'ص': 'ۖ', 'ج': 'ۚ',
-    'لا': 'ۙ', 'س': 'ۜ', 'ع': 'ۛ',
-    'ۘ': 'ۘ', 'ۗ': 'ۗ', 'ۖ': 'ۖ', 'ۚ': 'ۚ', 'ۙ': 'ۙ', 'ۛ': 'ۛ', 'ۜ': 'ۜ',
-}
-
-_SYMBOL_META = (
-    ('م', 'ۘ', 'لازم'),
-    ('لا', 'ۙ', 'لا وقف'),
-    ('ق', 'ۗ', 'الوقف أولى'),
-    ('ص', 'ۖ', 'الوصل أولى'),
-    ('ج', 'ۚ', 'جائز'),
-    ('س', 'ۜ', 'سكتة'),
-    ('ع', 'ۛ', 'معانقة'),
-)
-
-# Letter codes → how reviewers write them on paper (صلى / قلى / ج …).
-_MARK_WRITE_FORM = {
-    'ص': 'صلى',
-    'صلي': 'صلى',
-    'صلى': 'صلى',
-    'ق': 'قلى',
-    'قلي': 'قلى',
-    'قلى': 'قلى',
-    'م': 'م',
-    'ج': 'ج',
-    'لا': 'لا',
-    'س': 'س',
-    'ع': 'ع',
-}
-
-_SYMBOL_CHOICES = tuple(code for code, _glyph, _name in _SYMBOL_META)
-
 # Madina-style juz page starts (mirrors static/js/athar-page-chrome.js JUZ_START_PAGE).
 JUZ_START_PAGE = (
     1, 22, 42, 62, 82, 102, 121, 142, 162, 182,
@@ -92,12 +71,39 @@ PRINT_PACKS = {
     3: {'juz_from': 21, 'juz_to': 30, 'label': 'الأجزاء ٢١–٣٠'},
 }
 
+# Print editions (pen checklist). Phone review stays الشمرلي-only for now.
+PRINT_EDITIONS = {
+    'الشمرلي': {
+        'id': 'الشمرلي',
+        'label': 'مصحف الشمرلي',
+        'builder': 'shamarly',
+        'min_page': 2,
+        'max_page': 522,
+    },
+    'المدينة الجديد': {
+        'id': 'المدينة الجديد',
+        'label': 'المدينة الجديد',
+        'builder': 'digital_khatt',
+        'min_page': 1,
+        'max_page': 604,
+    },
+    'المدينة القديم': {
+        'id': 'المدينة القديم',
+        'label': 'المدينة القديم',
+        'builder': 'qpc_v1',
+        'min_page': 1,
+        'max_page': 604,
+    },
+}
+
 # A print sheet has two side-by-side columns.  Keep the chunk size explicit so
 # the browser cannot paginate the two long columns independently: the right
 # column continues into the left column, then the next sheet starts cleanly.
 PRINT_ROWS_PER_COLUMN = 28
 
 _AR_DIGITS = str.maketrans('0123456789', '٠١٢٣٤٥٦٧٨٩')
+_EMBEDDED_WAQF_RE = re.compile(r'[\u06D6-\u06DC]')
+_AYAH_NUMBER_RE = re.compile(r'^[\u06DD]?[٠-٩0-9]+$')
 
 
 def to_ar_digits(value) -> str:
@@ -116,13 +122,112 @@ def pack_page_range(juz_from: int, juz_to: int, *, min_page: int = 2, max_page: 
     return max(min_page, start), min(max_page, end)
 
 
-def _build_print_pack(pack_id: int) -> dict:
+def _print_edition_meta(edition: str) -> dict:
+    meta = PRINT_EDITIONS.get(edition)
+    if not meta:
+        raise ValueError('invalid edition')
+    return meta
+
+
+def _strip_embedded_waqf(text: str) -> str:
+    return _EMBEDDED_WAQF_RE.sub('', text or '')
+
+
+def _checklist_from_page_payload(edition: str, page_number: int, payload: dict | None) -> dict:
+    """Build print/phone checklist rows from a layout page that already carries waqf_symbols."""
+    edition_meta = _print_edition_meta(edition)
+    if not payload:
+        return {
+            'edition': edition,
+            'page_number': page_number,
+            'item_count': 0,
+            'items': [],
+            'error': 'page not found',
+        }
+
+    items = []
+    for line in payload.get('lines') or []:
+        line_no = line.get('line_number')
+        word_on_line = 0
+        for word in line.get('words') or []:
+            if word.get('suppress_render'):
+                continue
+            if word.get('surah') is None or word.get('ayah') is None:
+                continue
+            raw_text = word.get('text') or ''
+            if _AYAH_NUMBER_RE.match(raw_text.strip()):
+                continue
+            word_on_line += 1
+            symbols = word.get('waqf_symbols') or []
+            if not isinstance(symbols, list):
+                continue
+            selected = next(
+                (
+                    entry for entry in symbols
+                    if isinstance(entry, dict)
+                    and entry.get('version') == edition
+                    and str(entry.get('symbols') or '').strip()
+                ),
+                None,
+            )
+            if not selected:
+                continue
+            mark_code = str(selected.get('symbols') or '').strip()
+            surah = int(word['surah'])
+            ayah = int(word['ayah'])
+            word_id = int(word.get('word_index') or 0)
+            text = _strip_embedded_waqf(raw_text).strip()
+            items.append({
+                'word_id': word_id,
+                'surah': surah,
+                'ayah': ayah,
+                'text': text,
+                'text_glyph': '',
+                'mark': mark_code,
+                'mark_glyph': waqf_glyph(mark_code),
+                'line': line_no,
+                'word_on_line': word_on_line,
+            })
+
+    return {
+        'edition': edition,
+        'page_number': page_number,
+        'min_page': edition_meta['min_page'],
+        'max_page': edition_meta['max_page'],
+        'anchor_surah': payload.get('anchor_surah_number'),
+        'anchor_ayah': payload.get('anchor_ayah_number'),
+        'font_name': payload.get('font_name') or '',
+        'use_page_font': False,
+        'item_count': len(items),
+        'items': items,
+        'symbols': [
+            {'code': code, 'glyph': glyph, 'name': name}
+            for code, glyph, name in _SYMBOL_META
+        ],
+    }
+
+
+def _build_edition_checklist(edition: str, page_number: int) -> dict:
+    """Checklist for one page of a print edition."""
+    meta = _print_edition_meta(edition)
+    builder = meta['builder']
+    if builder == 'shamarly':
+        return _build_shamarly_checklist(page_number)
+    if builder == 'digital_khatt':
+        payload = _build_digital_khatt_page_payload(page_number, mushaf_version=[edition])
+        return _checklist_from_page_payload(edition, page_number, payload)
+    if builder == 'qpc_v1':
+        payload = _build_qpc_v1_page_payload(page_number, mushaf_version=[edition])
+        return _checklist_from_page_payload(edition, page_number, payload)
+    raise ValueError(f'unsupported builder: {builder}')
+
+
+def _build_print_pack(pack_id: int, edition: str = 'الشمرلي') -> dict:
     """Build a printable checklist pack (page-blocks of marked words only)."""
     meta = PRINT_PACKS.get(pack_id)
     if not meta:
         raise ValueError('invalid pack')
-    edition = 'الشمرلي'
-    edition_meta = _REVIEW_BY_ID[edition]
+    edition_meta = _print_edition_meta(edition)
     page_from, page_to = pack_page_range(
         meta['juz_from'],
         meta['juz_to'],
@@ -134,7 +239,7 @@ def _build_print_pack(pack_id: int) -> dict:
     rows = []
     mark_total = 0
     for page_number in range(page_from, page_to + 1):
-        checklist = _build_shamarly_checklist(page_number)
+        checklist = _build_edition_checklist(edition, page_number)
         items = checklist.get('items') or []
         if not items:
             continue
@@ -180,6 +285,7 @@ def _build_print_pack(pack_id: int) -> dict:
         'juz_from': meta['juz_from'],
         'juz_to': meta['juz_to'],
         'edition': edition,
+        'edition_label': edition_meta['label'],
         'page_from': page_from,
         'page_to': page_to,
         'page_from_label': to_ar_digits(page_from),
@@ -200,32 +306,6 @@ def _build_print_pack(pack_id: int) -> dict:
             for code, glyph, name in _SYMBOL_META
         ],
     }
-
-
-def waqf_glyph(symbol: str) -> str:
-    raw = (symbol or '').strip()
-    if not raw or raw == 'ركوع':
-        return raw
-    parts = []
-    for token in raw.replace('،', ',').split(','):
-        token = token.replace(' ', '').strip()
-        if token:
-            parts.append(_WAQF_GLYPH_MAP.get(token, token))
-    return ''.join(parts)
-
-
-def waqf_write_form(symbol: str) -> str:
-    """Human-written mark label for print packs (صلى / قلى / ج …)."""
-    raw = (symbol or '').strip()
-    if not raw or raw == 'ركوع':
-        return raw
-    parts = []
-    for token in raw.replace('،', ',').split(','):
-        token = token.replace(' ', '').strip()
-        if not token:
-            continue
-        parts.append(_MARK_WRITE_FORM.get(token, token))
-    return '،'.join(parts)
 
 
 _QURAN_DIGITS = frozenset('0123456789٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹')
@@ -494,13 +574,20 @@ def waqf_mark_review_page():
         max_page=522,
         print_packs=[
             {
-                'id': pack_id,
-                'label': meta['label'],
-                'juz_from': meta['juz_from'],
-                'juz_to': meta['juz_to'],
-                'href': f'/waqf-mark-review/print?pack={pack_id}',
+                'edition': edition_id,
+                'edition_label': edition_meta['label'],
+                'packs': [
+                    {
+                        'id': pack_id,
+                        'label': meta['label'],
+                        'juz_from': meta['juz_from'],
+                        'juz_to': meta['juz_to'],
+                        'href': f"/waqf-mark-review/print?edition={edition_id}&pack={pack_id}",
+                    }
+                    for pack_id, meta in PRINT_PACKS.items()
+                ],
             }
-            for pack_id, meta in PRINT_PACKS.items()
+            for edition_id, edition_meta in PRINT_EDITIONS.items()
         ],
     )
 
@@ -533,20 +620,21 @@ def waqf_mark_review_print_page():
         pack_id = int(request.args.get('pack') or '1')
     except (TypeError, ValueError):
         pack_id = 0
-    if pack_id not in PRINT_PACKS:
+    edition = (request.args.get('edition') or 'الشمرلي').strip()
+    if pack_id not in PRINT_PACKS or edition not in PRINT_EDITIONS:
         return (
             render_template(
                 'waqf_mark_review_print.html',
-                error='حزمة غير صالحة. استخدم pack=1 أو 2 أو 3.',
+                error='حزمة غير صالحة. استخدم edition=الشمرلي|المدينة الجديد|المدينة القديم و pack=1|2|3.',
                 pack=None,
                 enable_vercel_analytics=_IS_SERVERLESS,
             ),
             400,
         )
     try:
-        pack = _build_print_pack(pack_id)
+        pack = _build_print_pack(pack_id, edition=edition)
     except Exception as exc:
-        logger.exception('waqf-mark-review print pack %s failed', pack_id)
+        logger.exception('waqf-mark-review print pack %s (%s) failed', pack_id, edition)
         return (
             render_template(
                 'waqf_mark_review_print.html',

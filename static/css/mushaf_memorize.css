@@ -469,19 +469,35 @@ body.mz-dark .mz-page.mz-hide.mz-tajweed .mz-word.mz-reveal tajweed.idgham_mutaq
    A row above the word; each symbol is a normalized waqf glyph rendered in the
    same fonts the main app uses (UthmanicHafs / UthmanicWarsh / IndoPak). */
 .waqf-stack {
-    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-    white-space: nowrap; display: inline-flex; flex-direction: row; flex-wrap: nowrap;
-    justify-content: center; align-items: center; pointer-events: none;
-    gap: 0.05em; font-size: 0.62em; line-height: 1;
+    position: absolute;
+    top: 0.04em;
+    inset-inline-end: 0.02em;
+    left: auto;
+    white-space: nowrap;
+    display: inline-flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    gap: 0.05em;
+    font-size: 0.78em;
+    line-height: 1;
 }
-/* A page-local Shemrly word is a single PUA glyph, so a Unicode waqf mark
-   cannot be folded into it. Approximate the Madinah in-word placement with a
-   compact overlay; every chosen edition uses the same geometry and ink. */
-.mz-page.mz-src-shamarly .waqf-stack { top: 0; font-size: 0.72em; }
+.mz-page.mz-src-shamarly .waqf-stack {
+    top: 0.04em;
+    inset-inline-end: 0.02em;
+    font-size: 0.78em;
+}
 .waqf-hindi-group { display: inline-flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start; white-space: normal; gap: 0.02em; font-size: 0.9em; }
 .waqf-symbol {
-    display: inline-flex; align-items: center; justify-content: center; height: 1em; min-width: 0.7em;
-    line-height: 1; color: var(--waqf-color, #c2410c); font-family: 'UthmanicHafs', serif; user-select: none; flex-shrink: 0;
+    display: inline;
+    line-height: 1;
+    color: var(--waqf-color, #c2410c);
+    font-family: 'UthmanicHafs', serif;
+    font-weight: 400;
+    font-synthesis: none;
+    user-select: none;
 }
 .waqf-warsh { font-family: 'UthmanicWarsh', serif !important; }
 .waqf-latin { font-family: sans-serif; }

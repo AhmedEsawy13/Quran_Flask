@@ -8,16 +8,4 @@ from __future__ import annotations
 
 __all__ = ['CLASSES', 'GLYPH_FOR_CLASS']
 
-# Athar letter codes (match modules.waqf_mark_review._SYMBOL_META) + none.
-CLASSES: tuple[str, ...] = ('م', 'ق', 'ص', 'ج', 'لا', 'ع', 'س', 'none')
-
-GLYPH_FOR_CLASS: dict[str, str] = {
-    'م': 'ۘ',
-    'ق': 'ۗ',
-    'ص': 'ۖ',
-    'ج': 'ۚ',
-    'لا': 'ۙ',
-    'ع': 'ۛ',
-    'س': 'ۜ',
-    'none': '',
-}
+from core.waqf_glyphs import CV_CLASSES as CLASSES, GLYPH_FOR_CLASS

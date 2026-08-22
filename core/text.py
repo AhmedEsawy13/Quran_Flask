@@ -19,6 +19,9 @@ from core.config import (
 
 logger = logging.getLogger(__name__)
 
+# Hafs Uthmani basmala as stored in quran_script (small high rounded zero, Quranic alef).
+UTHMANI_BASMALA = 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ'
+
 
 def normalize_amiri_quran_text(text):
     """Map QPC's alternate dammatan to Amiri's open Quranic form."""

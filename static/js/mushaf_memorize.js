@@ -289,13 +289,10 @@
 
     /* ── Waqf symbol normalization — ported from the main app so the memorize
        page renders the same glyphs in the same fonts. ─────────────────────── */
-    // The combining glyph(s) for an in-text (folded) waqf entry — used to render
-    // المدينة القديم and الشمرلي exactly like the embedded المدينة الجديد marks.
     function integratedWaqfGlyph(entry) {
         const data = getWaqfDisplayData(entry && entry.symbols, entry && entry.version);
         return data ? data.text : '';
     }
-
     /* ── Status / hint ─────────────────────────────────────────────── */
     const status = window.AtharUi.createStatus(els.status, {
         visibleClass: 'mz-show',
@@ -425,10 +422,8 @@
     const ARABIC_DIGITS_ONLY = /^[٠-٩]+$/;
     const withAyahOrnament = text => ARABIC_DIGITS_ONLY.test(text) ? '۝' + text : text;
 
-    // The Digital Khatt / QPC-v2 / QPC-v1 source text embeds مصحف المدينة's printed waqf
-    // mark as a combining character (U+06D6–U+06DC: ۖۗۘۙۚۛۜ) on whichever word
-    // carries it. These are the source of truth — we keep them when the waqf
-    // toggle is on and strip them when off (re-rendering on toggle). No DB overlay.
+    // Madinah page fonts may embed stop marks (U+06D6–U+06DC) on words; تثبيت
+    // strips them and folds the selected edition's combining glyphs onto the word.
     const updateJustifyLabel = () => { els.justifyVal.textContent = toAr(state.justify) + '٪'; };
 
     /* ── Surah list + per-surah memo ───────────────────────────────── */
@@ -1009,21 +1004,19 @@
                 const selectedWaqf = state.mushafVersions[0] || 'المدينة الجديد';
                 if (state.src === 'shamarly') return raw;
                 if (!waqfMarksOn()) return withAyahOrnament(stripEmbeddedWaqf(raw));
-                if (selectedWaqf === 'المدينة الجديد') return withAyahOrnament(raw);
                 const selectedMark = entries.find(entry => entry && entry.version === selectedWaqf);
-                return withAyahOrnament(
-                    stripEmbeddedWaqf(raw) + (selectedMark ? integratedWaqfGlyph(selectedMark) : '')
-                );
+                const glyph = selectedMark ? integratedWaqfGlyph(selectedMark) : '';
+                return withAyahOrnament(stripEmbeddedWaqf(raw) + glyph);
             },
             decorateWord: (element, { word }) => {
                 element.dataset.text = element.textContent;
+                if (state.src !== 'shamarly' || !waqfMarksOn()) return;
                 const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
-                const overlay = state.src === 'shamarly'
-                    ? entries.filter(Boolean)
-                    : [];
+                const selectedWaqf = state.mushafVersions[0] || 'المدينة الجديد';
+                const overlay = entries.filter(entry => entry && entry.version === selectedWaqf);
                 if (!overlay.length) return;
                 element._waqf = overlay;
-                if (waqfMarksOn()) appendWaqfMarks(element, overlay);
+                appendWaqfMarks(element, overlay);
             },
             decorateLine: (element, { line }) => {
                 if ((line.words || []).length) element.dataset.justify = line.is_centered ? '0' : '1';

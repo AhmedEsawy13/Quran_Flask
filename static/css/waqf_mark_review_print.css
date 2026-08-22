@@ -97,9 +97,14 @@
     font-size: 0.82rem;
 }
 
-.wmr-print-legend .wmr-print-mark-text {
-    font-weight: 700;
+.wmr-print-legend .wmr-print-mark-glyph {
+    font-weight: 400;
     color: #1f3d2f;
+}
+
+.wmr-print-legend .wmr-print-mark-write {
+    font-weight: 700;
+    color: #5c564c;
 }
 
 .wmr-print-code {
@@ -174,13 +179,32 @@
     line-height: 1.45;
 }
 
+.wmr-print-mark-glyph {
+    display: inline-block;
+    min-width: 1.4em;
+    font-family: "UthmanicHafs", "KFGQPC Uthmanic Script HAFS", serif;
+    font-size: 1.55rem;
+    line-height: 1;
+    text-align: center;
+    color: #1f3d2f;
+}
+
+.wmr-print-mark-write {
+    display: inline-block;
+    margin-inline-start: 0.25em;
+    font-family: "Amiri", "Traditional Arabic", serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #5c564c;
+}
+
 .wmr-print-mark-text {
     display: inline-block;
     min-width: 2.2em;
-    font-family: "Amiri", "Traditional Arabic", "Scheherazade New", serif;
-    font-size: 1.35rem;
-    font-weight: 700;
-    line-height: 1.2;
+    font-family: "UthmanicHafs", "KFGQPC Uthmanic Script HAFS", serif;
+    font-size: 1.55rem;
+    font-weight: 400;
+    line-height: 1;
     text-align: center;
     color: #1f3d2f;
 }
@@ -278,9 +302,13 @@
         line-height: 1.4;
     }
 
-    .wmr-print-mark-text {
-        min-width: 2em;
-        font-size: 11pt;
+    .wmr-print-mark-glyph {
+        min-width: 1.2em;
+        font-size: 13pt;
+    }
+
+    .wmr-print-mark-write {
+        font-size: 9pt;
     }
 
     .wmr-print-row.is-page-start td {

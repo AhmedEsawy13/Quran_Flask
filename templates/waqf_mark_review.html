@@ -52,13 +52,18 @@
                 <a href="/activity">سجل التعديلات</a>
             </p>
             {% if print_packs %}
-            <p class="wmr-print-links" aria-label="حزم الطباعة">
-                طباعة للمراجعة بالقلم:
-                {% for pack in print_packs %}
-                <a href="{{ pack.href }}">{{ pack.label }}</a>{% if not loop.last %} · {% endif %}
+            <div class="wmr-print-links" aria-label="حزم الطباعة">
+                <p class="wmr-print-links-title">طباعة للمراجعة بالقلم:</p>
+                {% for group in print_packs %}
+                <p class="wmr-print-links-row">
+                    <strong>{{ group.edition_label }}</strong>
+                    {% for pack in group.packs %}
+                    <a href="{{ pack.href }}">{{ pack.label }}</a>{% if not loop.last %} · {% endif %}
+                    {% endfor %}
+                </p>
                 {% endfor %}
-                · <a href="/azhar-waqf-review">مراجعة الأزهر سورةً سورةً</a>
-            </p>
+                <p class="wmr-print-links-row"><a href="/azhar-waqf-review">مراجعة الأزهر سورةً سورةً</a></p>
+            </div>
             {% endif %}
             <p class="wmr-auth" id="wmr-auth" aria-live="polite"></p>
         </div>

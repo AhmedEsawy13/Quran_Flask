@@ -29,7 +29,7 @@ from core.config import (
     SHEMRLY_CODEPOINT_BASE, ARABIC_DIACRITICS_STRIP_PATTERN,
     ARABIC_INDIC_DIGIT_PATTERN, _BASE_DIR,
 )
-from core.text import is_waqf_like_char, normalize_amiri_quran_text
+from core.text import UTHMANI_BASMALA, is_waqf_like_char, normalize_amiri_quran_text
 from core.datasets import digital_khatt_data, qpc_hafs_data, surahs_data
 from core.mushaf_waqf import (
     get_mushaf_waqf_symbols,
@@ -1172,6 +1172,7 @@ def _looks_like_basmala_text(text: str | None) -> bool:
         'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
         'بِّسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
         'بِّسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرَّحِيمِ',
+        UTHMANI_BASMALA,
     ):
         return True
     # Compact form: basmala only (≤ 4 tokens).
@@ -1881,6 +1882,54 @@ def get_qpc_v2_page_by_ayah(surah_number, ayah_number):
         raise PersistenceError('تعذّر تحميل صفحة الآية') from exc
 
 
+def _azhar_uthmani_basmala_text(line):
+    """Uthmani basmala for Amiri. الفاتحة keeps ۝١ from script words, not this fallback."""
+    text = (line.get('line_text') or '').strip()
+    if 'ٱ' in text:
+        return normalize_amiri_quran_text(text)
+    try:
+        surah = int(line.get('surah_number') or 0)
+    except (TypeError, ValueError):
+        surah = 0
+    if surah == 1:
+        return f'{UTHMANI_BASMALA} ١'
+    return UTHMANI_BASMALA
+
+
+def _azhar_script_words_for_span(script_word_map, first_word_id, last_word_id, focus_word_indices):
+    """Expand a layout span to Amiri-normalized quran_script tokens."""
+    page_word_by_index = script_word_map['id2tok']
+    line_words = []
+    contains_focus_ayah = False
+    first_src = None
+    for word_pos in _word_ids_in_map_span(
+        script_word_map, first_word_id, last_word_id,
+    ):
+        src = page_word_by_index.get(word_pos)
+        if not src or not src.get('text'):
+            continue
+        word = {
+            'word_index': word_pos,
+            'word_id_space': script_word_map.get('id_space'),
+            'word_key': src.get('word_key') or '',
+            'text': normalize_amiri_quran_text(src['text']),
+            'surah': src['surah'],
+            'ayah': src['ayah'],
+            'waqf_symbols': '',
+            'is_line_start': False,
+            'is_line_end': False,
+        }
+        line_words.append(word)
+        if first_src is None:
+            first_src = src
+        if focus_word_indices and word_pos in focus_word_indices:
+            contains_focus_ayah = True
+    if line_words:
+        line_words[0]['is_line_start'] = True
+        line_words[-1]['is_line_end'] = True
+    return line_words, contains_focus_ayah, first_src
+
+
 def _build_azhar_page_payload(page_number, focus_surah=None, focus_ayah=None, mushaf_version=''):
     """Azhar page: Shemrly-seeded geometry + Amiri unicode text (no page glyphs)."""
     if not os.path.exists(AZHAR_LAYOUT_DATABASE):
@@ -1939,9 +1988,7 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
         words_conn.close()
 
     script_word_map = layout_engine.script_word_map(QURAN_SCRIPT_DATABASE)
-    page_word_by_index = script_word_map['id2tok']
 
-    bismillah = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'
     page_word_rows = []
     output_lines = []
     anchor_surah_number = None
@@ -1956,62 +2003,48 @@ def _build_azhar_page_payload_impl(page_number, focus_surah, focus_ayah, mushaf_
         display_text = ''
         contains_focus_ayah = False
 
-        if line_type in ('surah_name', 'surah_info', 'basmallah'):
-            if line_type == 'surah_name':
-                surah_name = _get_surah_name_ar(line_surah)
-                display_text = f'سورة {surah_name}' if surah_name else (line.get('line_text') or '')
-            elif line_type == 'surah_info':
-                display_text = (line.get('line_text') or '').strip()
-                if not display_text and line_surah:
-                    from modules import layout_engine as _layout_engine
-                    display_text = _layout_engine.surah_info_text(
-                        int(line_surah), script_db=QURAN_SCRIPT_DATABASE,
-                    )
-            else:
-                display_text = bismillah
-        elif first_word_id is not None and last_word_id is not None:
-            # Endpoints belong to quran_script's stable-ID namespace; expand
-            # them in Quran reading order, not numeric-ID order.
-            for word_pos in _word_ids_in_map_span(
-                script_word_map, first_word_id, last_word_id,
-            ):
-                src = page_word_by_index.get(word_pos)
-                if not src or not src.get('text'):
-                    continue
-                word = {
-                    'word_index': word_pos,
-                    'word_id_space': script_word_map.get('id_space'),
-                    'word_key': src.get('word_key') or '',
-                    'text': normalize_amiri_quran_text(src['text']),
-                    'surah': src['surah'],
-                    'ayah': src['ayah'],
-                    'waqf_symbols': '',
-                    'is_line_start': False,
-                    'is_line_end': False,
-                }
-                line_words.append(word)
-                page_word_rows.append(word)
-                if anchor_surah_number is None:
-                    anchor_surah_number = src['surah']
-                    anchor_ayah_number = src['ayah']
-                if focus_word_indices and word_pos in focus_word_indices:
-                    contains_focus_ayah = True
-            if line_words:
-                line_words[0]['is_line_start'] = True
-                line_words[-1]['is_line_end'] = True
-            display_text = ' '.join(w['text'] for w in line_words)
-            if (
+        if line_type == 'surah_name':
+            surah_name = _get_surah_name_ar(line_surah)
+            display_text = f'سورة {surah_name}' if surah_name else (line.get('line_text') or '')
+        elif line_type == 'surah_info':
+            display_text = (line.get('line_text') or '').strip()
+            if not display_text and line_surah:
+                from modules import layout_engine as _layout_engine
+                display_text = _layout_engine.surah_info_text(
+                    int(line_surah), script_db=QURAN_SCRIPT_DATABASE,
+                )
+        else:
+            # ayah + basmallah: expand real quran_script IDs (الفاتحة basmala
+            # is 1:1). Other surah basmalas use reserved IDs outside the map.
+            if first_word_id is not None and last_word_id is not None:
+                line_words, contains_focus_ayah, first_src = _azhar_script_words_for_span(
+                    script_word_map, first_word_id, last_word_id, focus_word_indices,
+                )
+                page_word_rows.extend(line_words)
+                if first_src is not None and anchor_surah_number is None:
+                    anchor_surah_number = first_src['surah']
+                    anchor_ayah_number = first_src['ayah']
+                if line_words:
+                    last_word_id = line_words[-1]['word_index']
+                    word_surahs = {
+                        int(word['surah']) for word in line_words if word.get('surah')
+                    }
+                    if len(word_surahs) == 1:
+                        line_surah = next(iter(word_surahs))
+                display_text = ' '.join(word['text'] for word in line_words)
+            if line_type == 'basmallah' or (
                 not line_words
                 and line_type == 'ayah'
                 and _looks_like_basmala_text(line.get('line_text'))
             ):
                 line_type = 'basmallah'
-                display_text = bismillah
+                if not line_words:
+                    display_text = _azhar_uthmani_basmala_text(line)
 
         output_lines.append({
             'line_number': int(line['line_number']),
             'line_type': line_type,
-            'is_centered': bool(line.get('is_centered')),
+            'is_centered': bool(line.get('is_centered')) or line_type == 'basmallah',
             'surah_number': line_surah,
             'first_word_id': first_word_id,
             'last_word_id': last_word_id,

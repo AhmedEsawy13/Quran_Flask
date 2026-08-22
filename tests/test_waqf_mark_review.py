@@ -43,13 +43,15 @@ def test_waqf_mark_review_page_renders_shemrly(client):
     body = page.get_data(as_text=True)
     assert 'id="wmr-list"' in body
     assert 'الشمرلي' in body
+    assert 'المدينة الجديد' in body
+    assert 'المدينة القديم' in body
     assert 'uthmanic_hafs' in body
     assert 'js/athar-mushaf.js' in body
     assert 'id="wmr-login"' in body
     assert 'js/waqf_mark_review.js' in body
-    assert '/waqf-mark-review/print?pack=1' in body
-    assert '/waqf-mark-review/print?pack=2' in body
-    assert '/waqf-mark-review/print?pack=3' in body
+    assert '/waqf-mark-review/print?edition=الشمرلي&amp;pack=1' in body
+    assert '/waqf-mark-review/print?edition=المدينة الجديد&amp;pack=2' in body
+    assert '/waqf-mark-review/print?edition=المدينة القديم&amp;pack=3' in body
 
 
 def test_azhar_surah_review_page_and_table(client):
@@ -84,6 +86,7 @@ def test_waqf_mark_review_print_pack1_renders(client):
     assert page.status_code == 200
     body = page.get_data(as_text=True)
     assert 'الأجزاء ١–١٠' in body
+    assert 'الشمرلي' in body
     assert 'wmr-print-main' in body
     assert 'wmr-print-table' in body
     assert 'wmr-print-split' in body
@@ -97,9 +100,24 @@ def test_waqf_mark_review_print_pack1_renders(client):
     assert 'col-id' not in body
 
 
+def test_waqf_mark_review_print_madinah_pack_renders(client):
+    page = client.get('/waqf-mark-review/print?edition=المدينة الجديد&pack=3')
+    assert page.status_code == 200
+    body = page.get_data(as_text=True)
+    assert 'المدينة الجديد' in body
+    assert 'الأجزاء ٢١–٣٠' in body
+    assert 'wmr-print-sheet' in body
+
+    old = client.get('/waqf-mark-review/print?edition=المدينة القديم&pack=3')
+    assert old.status_code == 200
+    assert 'المدينة القديم' in old.get_data(as_text=True)
+
+
 def test_waqf_mark_review_print_invalid_pack(client):
     page = client.get('/waqf-mark-review/print?pack=9')
     assert page.status_code == 400
+    bad_edition = client.get('/waqf-mark-review/print?edition=ورش&pack=1')
+    assert bad_edition.status_code == 400
 
 
 def test_build_print_pack_matches_checklist_totals():
@@ -107,6 +125,7 @@ def test_build_print_pack_matches_checklist_totals():
 
     pack = _build_print_pack(3)  # smallest pack — faster
     assert pack['pack_id'] == 3
+    assert pack['edition'] == 'الشمرلي'
     assert pack['page_from'] == 402
     assert pack['page_to'] == 522
     assert pack['mark_total'] == sum(p['item_count'] for p in pack['pages'])
@@ -138,6 +157,21 @@ def test_build_print_pack_matches_checklist_totals():
     if len(sample['marks']) > 1:
         assert sample['marks'][1]['is_page_start'] is False
 
+
+def test_build_madinah_print_pack_has_marks():
+    pack = _build_print_pack(3, edition='المدينة الجديد')
+    assert pack['edition'] == 'المدينة الجديد'
+    assert pack['page_from'] == 402
+    assert pack['page_to'] == 604
+    assert pack['mark_total'] >= 1
+    assert pack['pages'][0]['marks'][0]['mark_write']
+    assert pack['pages'][0]['marks'][0]['text']
+    assert not any(ch in pack['pages'][0]['marks'][0]['text'] for ch in 'ۖۗۘۙۚۛۜ')
+
+    old = _build_print_pack(3, edition='المدينة القديم')
+    assert old['edition'] == 'المدينة القديم'
+    assert old['page_to'] == 604
+    assert old['mark_total'] >= 1
 
 def test_waqf_mark_review_shemrly_page_returns_glyphs(client):
     response = client.get('/api/waqf-mark-review/page/4?edition=%D8%A7%D9%84%D8%B4%D9%85%D8%B1%D9%84%D9%8A')

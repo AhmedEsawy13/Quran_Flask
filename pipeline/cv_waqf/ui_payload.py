@@ -7,10 +7,7 @@ from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import load_bgr, preprocess_page
 from pipeline.cv_waqf.run_page import detect_page
 
-_GLYPH = {
-    'م': 'ۘ', 'ق': 'ۗ', 'ص': 'ۖ', 'ج': 'ۚ',
-    'لا': 'ۙ', 'ع': 'ۛ', 'س': 'ۜ',
-}
+from core.waqf_glyphs import GLYPH_FOR_CLASS as _GLYPH
 
 
 def build_word_payload(edition: str, page: int) -> dict:

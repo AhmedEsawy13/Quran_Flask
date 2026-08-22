@@ -12,6 +12,7 @@ import sqlite3
 from typing import Iterable
 
 from core.db import connect as _sqlite_connect
+from core.text import UTHMANI_BASMALA
 
 _UNDO_LIMIT = 40
 _SCRIPT_WORD_IDS: dict[str, list[int]] = {}
@@ -856,7 +857,7 @@ def _make_basmallah_row(surah_number: int) -> dict:
         'first_word_id': None,
         'last_word_id': None,
         'surah_number': int(surah_number),
-        'line_text': 'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
+        'line_text': UTHMANI_BASMALA,
     }
 
 
