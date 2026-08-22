@@ -1222,6 +1222,36 @@ button.page-number {
   line-height: 1;
 }
 
+.waqf-matrix .waqf-matrix-mark {
+  min-width: 1.7em;
+  min-height: 1.75em;
+  padding: 0.15em 0.32em;
+  border: 1px solid var(--athar-line);
+  border-radius: 7px;
+  background: var(--athar-canvas-strong);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.waqf-matrix .waqf-matrix-mark.font-athar-quran {
+  font-family: var(--font-quran);
+}
+
+.waqf-matrix .waqf-matrix-mark.font-athar-warsh {
+  font-family: var(--font-warsh);
+}
+
+.waqf-matrix .waqf-matrix-mark.font-athar-hindi {
+  font-family: var(--font-hindi);
+}
+
+.waqf-matrix-mobile .waqf-matrix-mark {
+  min-width: 1.45em;
+  min-height: 1.5em;
+  font-size: 1.2rem;
+}
+
 .waqf-legend-symbol,
 .waqf-mark-row strong {
   font-family: "Uthmanic Hafs", serif;
@@ -1620,11 +1650,6 @@ button.page-number {
 
 .waqf-matrix-tags .is-solo {
   color: var(--wq-solo);
-}
-
-.waqf-matrix-marks strong {
-  font-family: "Uthmanic Hafs", serif;
-  font-size: 1.1rem;
 }
 
 .waqf-matrix-plays .waqf-matrix-play {

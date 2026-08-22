@@ -1,8 +1,10 @@
 "use client";
 
 import type {WaqfPayload} from "@/lib/api";
+import {cn} from "@/lib/cn";
 import {toArabicDigits} from "@/lib/mushaf";
-import {waqfMarkGlyph, waqfMarkLabel, waqfMarkTone} from "@/lib/waqf";
+import {waqfMarkLabel, waqfMarkTone} from "@/lib/waqf";
+import {mushafFontClass, mushafGlyph} from "@/lib/waqf-lab";
 import {ToolCard, ToolCardHead} from "@/components/tool-chrome";
 import {StatusState} from "@/components/ui/primitives";
 
@@ -12,6 +14,24 @@ function isNativeAudio(url: string | null | undefined) {
 
 function markOf(mushaf: WaqfPayload["mushafs"][number], wpos: number) {
   return mushaf.marks.find((mark) => mark.wpos === wpos)?.symbol || null;
+}
+
+function MatrixMark({
+  mushafId,
+  symbol,
+}: {
+  mushafId: string;
+  symbol: string;
+}) {
+  const tone = waqfMarkTone(symbol);
+  return (
+    <span
+      className={cn("waqf-symbol waqf-matrix-mark", mushafFontClass(mushafId), `is-${tone}`)}
+      title={waqfMarkLabel(symbol)}
+    >
+      {mushafGlyph(symbol, mushafId)}
+    </span>
+  );
 }
 
 export function WaqfMatrix({
@@ -110,9 +130,7 @@ export function WaqfMatrix({
                   return (
                     <td className={columnClass(wpos)} key={`${mushaf.id}-${wpos}`}>
                       {symbol ? (
-                        <span className={`waqf-symbol is-${waqfMarkTone(symbol)}`} title={waqfMarkLabel(symbol)}>
-                          {waqfMarkGlyph(symbol)}
-                        </span>
+                        <MatrixMark mushafId={mushaf.id} symbol={symbol} />
                       ) : <span className="waqf-matrix-empty">·</span>}
                     </td>
                   );
@@ -197,7 +215,7 @@ export function WaqfMatrix({
                     return (
                       <span key={mushaf.id}>
                         {mushaf.name}
-                        <strong className={`is-${waqfMarkTone(symbol)}`}>{waqfMarkGlyph(symbol)}</strong>
+                        <MatrixMark mushafId={mushaf.id} symbol={symbol} />
                       </span>
                     );
                   })}
