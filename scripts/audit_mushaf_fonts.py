@@ -492,6 +492,7 @@ def run(args: argparse.Namespace) -> int:
     json_path, md_path = write_reports(args.report_dir, payload)
     print(f"JSON report: {json_path}")
     print(f"Markdown report: {md_path}")
+    print(md_path.read_text(encoding="utf-8"), end="")
     print("PASS" if payload["passed"] else "FAIL")
     return 0 if payload["passed"] else 1
 
