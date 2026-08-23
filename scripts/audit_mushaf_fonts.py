@@ -175,11 +175,23 @@ OBSERVE_SCRIPT = r"""
     const innerRect = inner.getBoundingClientRect();
     const style = getComputedStyle(inner);
     const matrix = style.transform.match(/^matrix\(([^,]+)/);
+    // Memorize insets Madinah lines by 10px (other sources 6px) so dagger
+    // alif / final overhangs are not clipped. Compare against that same
+    // target, in the line's unscaled CSS pixels, or every page looks 10px short.
+    const layoutLineWidth = line.clientWidth;
+    const visualLineWidth = lineRect.width;
+    const inheritedScaleX = (layoutLineWidth > 0 && visualLineWidth > 0)
+      ? visualLineWidth / layoutLineWidth : 1;
+    const renderedInner = inheritedScaleX > 0
+      ? innerRect.width / inheritedScaleX : innerRect.width;
+    const madinah = page.classList.contains('mz-src-qpc-v1')
+      || page.classList.contains('mz-src-digital-khatt');
+    const avail = Math.max(0, layoutLineWidth - (madinah ? 10 : 6));
     return {
       line: index + 1,
       scale: matrix ? Number(matrix[1]) : 1,
       spacing: Number.parseFloat(style.wordSpacing) || 0,
-      edge: Math.abs(lineRect.width - innerRect.width),
+      edge: Math.abs(renderedInner - avail),
       line_width: lineRect.width,
       inner_width: innerRect.width,
       inline_transform: inner.style.transform,
