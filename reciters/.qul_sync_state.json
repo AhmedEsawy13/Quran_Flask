@@ -46,7 +46,7 @@
       "ts_version": "6a44a4d97a748a878b599bf8"
     },
     "maasaraawi": {
-      "content_hash": "a86ded2558b575f5eb12dc80a9abc9e7a3853fb98b2ac7b3d9cc33773de625e6",
+      "content_hash": "6d46fb625d7d0a9cf6a9c01761eb4f44990473328d14ff5d5d8b89a6c7a1208c",
       "slug": "ahmed_issa_al_maasaraawi_mp3quran",
       "ts_version": "6a2c1738871c005b5352b404"
     },
@@ -76,5 +76,5 @@
       "ts_version": "6a2c172b7c68f455eff13b7b"
     }
   },
-  "release_version": "v2.3.0"
+  "release_version": "v2.4.0"
 }
