@@ -75,6 +75,11 @@ class EditionSpec:
     # the above-word band. Keep ``narrow`` unless an edition model has beaten
     # production on unseen reviewer labels with the broader search.
     default_proposal_mode: str = 'narrow'
+    # Detect floor for /cv-waqf and other human-review paths.
+    review_min_conf: float = 0.55
+    # Draft/auto-set writes (bootstrap). Higher than review_min_conf when a
+    # confidence cutoff cuts false positives without collapsing recall.
+    auto_set_min_conf: float = 0.70
 
 
 EDITIONS: dict[str, EditionSpec] = {
@@ -112,6 +117,9 @@ EDITIONS: dict[str, EditionSpec] = {
         # Gated Bahrain ONNX + hybrid proposals: 217/238 correct on 44
         # labeled pages at min_conf 0.55, vs 11/238 for gated + narrow.
         default_proposal_mode='hybrid',
+        # 0.85 keeps almost the same recall (214/238) while cutting FP 31 → 14.
+        # Remaining FPs are 0.97+ fatha-sized glyphs; a cutoff cannot reach 0 FP.
+        auto_set_min_conf=0.85,
     ),
     'المساحة': EditionSpec(
         id='mesaha',
@@ -190,3 +198,35 @@ def resolve_proposal_mode(
     if resolved not in PROPOSAL_MODES:
         raise ValueError("proposal_mode must be 'narrow' or 'hybrid'")
     return resolved
+
+
+def resolve_auto_set_min_conf(
+    edition_key: str,
+    min_conf: float | None = None,
+) -> float:
+    """Return an explicit override, or the edition's draft-write threshold."""
+    if min_conf is not None:
+        return float(min_conf)
+    return float(EDITIONS[edition_key].auto_set_min_conf)
+
+
+def classify_mark_trust(confidence: float, auto_set_min_conf: float) -> str:
+    """``auto-set`` is trusted enough to draft; ``review`` needs a human."""
+    if float(confidence) >= float(auto_set_min_conf):
+        return 'auto-set'
+    return 'review'
+
+
+def split_marks_by_trust(
+    marks: list[dict],
+    auto_set_min_conf: float,
+) -> tuple[list[dict], list[dict]]:
+    """Partition detections into trusted draft writes vs review candidates."""
+    trusted: list[dict] = []
+    review: list[dict] = []
+    for mark in marks:
+        if classify_mark_trust(mark.get('confidence') or 0.0, auto_set_min_conf) == 'auto-set':
+            trusted.append(mark)
+        else:
+            review.append(mark)
+    return trusted, review

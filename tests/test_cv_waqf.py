@@ -308,6 +308,7 @@ def test_detect_and_evaluate_inherit_edition_proposal_default():
 
     assert inspect.signature(detect_page).parameters['proposal_mode'].default is None
     assert inspect.signature(evaluate_labels).parameters['proposal_mode'].default is None
+    assert inspect.signature(detect_page).parameters['min_conf'].default == 0.55
 
 
 def test_detect_page_uses_hybrid_line_components_for_bahrain_only(monkeypatch):
@@ -370,6 +371,7 @@ def test_ui_bootstrap_and_audit_do_not_pin_proposal_mode():
     assert 'proposal_mode=' not in audit
     assert 'proposal_mode=' not in flask_ui
     assert 'resolve_proposal_mode(edition)' in flask_ui
+    assert 'resolve_auto_set_min_conf(edition)' in flask_ui
 
 
 def test_bahrain_readme_documents_hybrid_default():
@@ -377,6 +379,149 @@ def test_bahrain_readme_documents_hybrid_default():
     assert 'Experimental high-recall' not in text
     assert '--proposal-mode' in text
     assert 'defaults to hybrid proposals' in text
+    assert 'writes only confidence >= 0.85' in text
+
+
+def test_only_bahrain_auto_set_is_stricter_than_review():
+    from pipeline.cv_waqf.config import (
+        EDITIONS,
+        classify_mark_trust,
+        resolve_auto_set_min_conf,
+        split_marks_by_trust,
+    )
+
+    bahrain = EDITIONS['البحرين']
+    assert bahrain.review_min_conf == 0.55
+    assert bahrain.auto_set_min_conf == 0.85
+    assert resolve_auto_set_min_conf('البحرين') == 0.85
+    others = {
+        key: spec.auto_set_min_conf
+        for key, spec in EDITIONS.items()
+        if key != 'البحرين'
+    }
+    assert others
+    assert all(value == 0.70 for value in others.values())
+    assert resolve_auto_set_min_conf('الشمرلي') == 0.70
+    assert resolve_auto_set_min_conf('البحرين', 0.90) == 0.90
+    assert classify_mark_trust(0.85, 0.85) == 'auto-set'
+    assert classify_mark_trust(0.849, 0.85) == 'review'
+    trusted, review = split_marks_by_trust(
+        [
+            {'symbol': 'ج', 'confidence': 0.92},
+            {'symbol': 'ص', 'confidence': 0.60},
+        ],
+        0.85,
+    )
+    assert [row['confidence'] for row in trusted] == [0.92]
+    assert [row['confidence'] for row in review] == [0.60]
+
+
+def test_bahrain_bootstrap_writes_only_auto_set_marks(monkeypatch):
+    from pipeline.cv_waqf import bootstrap_edition
+
+    captured = []
+    monkeypatch.setattr(
+        bootstrap_edition,
+        'detect_page',
+        lambda edition, page, **kwargs: captured.append((edition, kwargs)) or {
+            'marks': [
+                {
+                    'word_id': 1, 'word_key': '1:1:1', 'word_id_space': 'qpc',
+                    'symbol': 'ج', 'confidence': 0.92, 'text': 'آمنوا',
+                },
+                {
+                    'word_id': 2, 'word_key': '1:1:2', 'word_id_space': 'qpc',
+                    'symbol': 'ص', 'confidence': 0.60, 'text': 'به',
+                },
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        bootstrap_edition,
+        'within_ayah_token_index',
+        lambda _db, word_id: (1, 1, int(word_id) - 1, 'كلمة'),
+    )
+
+    plan = bootstrap_edition.bootstrap_pages('البحرين', [2])
+    assert captured[0][1]['min_conf'] == 0.55
+    assert plan['min_conf'] == 0.85
+    assert plan['auto_set_min_conf'] == 0.85
+    assert plan['review_min_conf'] == 0.55
+    assert [row['confidence'] for row in plan['changes']] == [0.92]
+    assert plan['changes'][0]['op'] == 'set'
+    assert [row['confidence'] for row in plan['review_candidates']] == [0.60]
+    assert plan['review_candidates'][0]['op'] == 'review'
+
+    shamarly = bootstrap_edition.bootstrap_pages('الشمرلي', [2])
+    assert shamarly['min_conf'] == 0.70
+    assert captured[-1][1]['min_conf'] == 0.55
+
+    overridden = bootstrap_edition.bootstrap_pages('البحرين', [2], min_conf=0.95)
+    assert overridden['min_conf'] == 0.95
+    assert overridden['changes'] == []
+    assert [row['confidence'] for row in overridden['review_candidates']] == [
+        0.92, 0.60,
+    ]
+
+
+def test_ui_payload_keeps_review_hits_out_of_auto_set(monkeypatch):
+    from pipeline.cv_waqf import ui_payload
+
+    monkeypatch.setattr(
+        ui_payload,
+        'detect_page',
+        lambda *_args, **_kwargs: {
+            'proposal_mode': 'hybrid',
+            'candidates': 4,
+            'classified': 2,
+            'marks': [
+                {
+                    'word_id': 10, 'word_key': '2:2:1', 'surah': 2, 'ayah': 2,
+                    'symbol': 'ج', 'confidence': 0.91, 'text': 'آمنوا',
+                    'line': 1, 'box': [1, 2, 3, 4],
+                },
+                {
+                    'word_id': 11, 'word_key': '2:2:2', 'surah': 2, 'ayah': 2,
+                    'symbol': 'ص', 'confidence': 0.62, 'text': 'به',
+                    'line': 1, 'box': [5, 6, 7, 8],
+                },
+            ],
+        },
+    )
+    monkeypatch.setattr(ui_payload, 'ensure_page_image', lambda *_: Path('/tmp/p.jpg'))
+    monkeypatch.setattr(ui_payload, 'load_bgr', lambda *_: None)
+
+    class FakePrepared:
+        pass
+
+    monkeypatch.setattr(ui_payload, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(ui_payload, 'estimate_layout_words', lambda *_: [])
+    monkeypatch.setattr(ui_payload, 'edition_marks_for_ayahs', lambda *_: {})
+
+    payload = ui_payload.build_ui_payload('البحرين', 2)
+    assert payload['min_conf'] == 0.55
+    assert payload['auto_set_min_conf'] == 0.85
+    assert payload['review_min_conf'] == 0.55
+    assert [m['confidence'] for m in payload['trusted_marks']] == [0.91]
+    assert [m['confidence'] for m in payload['review_marks']] == [0.62]
+    assert {m['trust'] for m in payload['cv_marks']} == {'auto-set', 'review'}
+    assert payload['summary']['trusted'] == 1
+    assert payload['summary']['review'] == 1
+
+    shamarly = ui_payload.build_ui_payload('الشمرلي', 2)
+    assert shamarly['auto_set_min_conf'] == 0.70
+    assert [m['trust'] for m in shamarly['cv_marks']] == ['auto-set', 'review']
+
+
+def test_cv_waqf_ui_grades_review_marks():
+    js = (ROOT / 'static' / 'js' / 'cv_waqf.js').read_text(encoding='utf-8')
+    html = (ROOT / 'templates' / 'cv_waqf.html').read_text(encoding='utf-8')
+    css = (ROOT / 'static' / 'css' / 'cv_waqf.css').read_text(encoding='utf-8')
+    assert 'review_marks' in js
+    assert 'trusted_marks' in js
+    assert "trust === 'review'" in js
+    assert 'cvw-show-review' in html
+    assert '.tag.review' in css
 
 
 def test_bootstrap_plan_schema():
@@ -394,6 +539,7 @@ def test_bootstrap_plan_schema():
     assert plan['edition'] == 'البحرين'
     assert 'plan_digest' in plan
     assert isinstance(plan['changes'], list)
+    assert isinstance(plan.get('review_candidates'), list)
 
 
 def test_cv_word_ranges_follow_canonical_order_across_numeric_gaps():

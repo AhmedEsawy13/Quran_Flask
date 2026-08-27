@@ -66,9 +66,13 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 # البحرين defaults to hybrid proposals (above-word band + line-component
 # candidates) with the gated edition model:
 # models/waqf_glyph_bahrain.onnx + waqf_glyph_bahrain_gate.onnx.
-# On 44 labeled pages at min_conf 0.55 that combination scored 217/238
-# correct vs 11/238 for gated + narrow. Other editions still default to
-# narrow. --proposal-mode remains an explicit override.
+# On 44 labeled pages, gated + hybrid:
+#   0.55 → 217/238 correct, 31 FP, 15 missing
+#   0.85 → 214/238 correct, 14 FP
+# Remaining FPs are 0.97+ fatha-sized glyphs — a cutoff cannot reach 0 FP.
+# So detect/UI still run at 0.55 (review candidates); bootstrap/auto-set
+# writes only confidence >= 0.85. Other editions stay narrow + 0.70 auto-set.
+# --proposal-mode and --min-conf remain explicit overrides.
 .venv-cv/bin/python -m pipeline.cv_waqf run-page --edition البحرين --page 198
 .venv-cv/bin/python -m pipeline.cv_waqf run-page \
   --edition البحرين --page 198 --proposal-mode narrow
@@ -96,7 +100,9 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 .venv-cv/bin/python -m pipeline.cv_waqf review-queue \
   --edition البحرين --size 30 --cache
 
-# Bootstrap draft plan for البحرين (human review before publish)
+# Bootstrap draft plan for البحرين (human review before publish).
+# Auto-set uses confidence >= 0.85; lower-conf hybrid hits stay in
+# review_candidates / the /cv-waqf detect list and are not written.
 .venv-cv/bin/python -m pipeline.cv_waqf bootstrap --edition البحرين --pages 1-50
 ```
 

@@ -7,7 +7,12 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pipeline.cv_waqf.config import ARTIFACTS_ROOT, EDITIONS
+from pipeline.cv_waqf.config import (
+    ARTIFACTS_ROOT,
+    EDITIONS,
+    resolve_auto_set_min_conf,
+    split_marks_by_trust,
+)
 from pipeline.cv_waqf.marks import within_ayah_token_index
 from pipeline.cv_waqf.run_page import detect_page
 
@@ -19,34 +24,30 @@ def bootstrap_pages(
     edition_key: str,
     pages: list[int],
     *,
-    min_conf: float = 0.70,
+    min_conf: float | None = None,
 ) -> dict:
     spec = EDITIONS[edition_key]
+    write_conf = resolve_auto_set_min_conf(edition_key, min_conf)
+    detect_conf = min(spec.review_min_conf, write_conf)
     changes: list[dict] = []
+    review_candidates: list[dict] = []
     errors: list[str] = []
     seen: set[tuple[int, int, int]] = set()
+    review_seen: set[tuple[int, int, int]] = set()
 
     for page in pages:
         try:
-            result = detect_page(edition_key, page, min_conf=min_conf)
+            result = detect_page(edition_key, page, min_conf=detect_conf)
         except Exception as exc:  # noqa: BLE001
             errors.append(f'page {page}: {exc}')
             continue
-        for mark in result['marks']:
-            if mark['symbol'] not in ALLOWED:
+        trusted, review = split_marks_by_trust(result['marks'], write_conf)
+        for mark in trusted:
+            row = _draft_row(spec, edition_key, page, mark, errors)
+            if row is None:
                 continue
-            if mark['confidence'] < min_conf:
-                continue
-            loc = within_ayah_token_index(spec.script_db, int(mark['word_id']))
-            if loc is None:
-                errors.append(
-                    f"page {page}: unknown word_id {mark['word_id']}"
-                )
-                continue
-            surah, ayah, token_index, text = loc
-            key = (surah, ayah, token_index)
+            key = (row['surah'], row['ayah'], row['token_index'])
             if key in seen:
-                # Keep higher confidence.
                 existing = next(
                     c for c in changes
                     if (c['surah'], c['ayah'], c['token_index']) == key
@@ -55,39 +56,73 @@ def bootstrap_pages(
                     continue
                 changes.remove(existing)
             seen.add(key)
-            changes.append({
-                'op': 'set',
-                'edition': edition_key,
-                'surah': surah,
-                'ayah': ayah,
-                'token_index': token_index,
-                'word_index': mark['word_id'],
-                'word_key': mark.get('word_key') or f'{surah}:{ayah}:{token_index + 1}',
-                'word_id_space': mark.get('word_id_space') or '',
-                'word_text': text or mark.get('text') or '',
-                'symbol': mark['symbol'],
-                'confidence': round(float(mark['confidence']), 4),
-                'page': page,
-                'source': 'opencv5-cv-waqf',
-            })
+            changes.append(row)
+        for mark in review:
+            row = _draft_row(spec, edition_key, page, mark, errors)
+            if row is None:
+                continue
+            key = (row['surah'], row['ayah'], row['token_index'])
+            if key in seen or key in review_seen:
+                continue
+            review_seen.add(key)
+            review_candidates.append({**row, 'op': 'review'})
 
     changes.sort(key=lambda r: (r['surah'], r['ayah'], r['token_index']))
+    review_candidates.sort(key=lambda r: (r['surah'], r['ayah'], r['token_index']))
     plan = {
         'schema_version': SCHEMA_VERSION,
         'source': 'opencv5-cv-waqf',
         'edition': edition_key,
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'pages': pages,
-        'min_conf': min_conf,
+        'min_conf': write_conf,
+        'review_min_conf': detect_conf,
+        'auto_set_min_conf': spec.auto_set_min_conf,
         'changes': changes,
+        'review_candidates': review_candidates,
         'errors': errors,
         'note': (
             'Draft only — review before writing mushaf_waqf.db or publishing '
-            'cloud marks. Not an auto-apply published-sync plan.'
+            'cloud marks. Not an auto-apply published-sync plan. '
+            f'changes are auto-set (confidence >= {write_conf:.2f}); '
+            'review_candidates are held back for a human.'
         ),
     }
     plan['plan_digest'] = _digest(plan)
     return plan
+
+
+def _draft_row(
+    spec,
+    edition_key: str,
+    page: int,
+    mark: dict,
+    errors: list[str],
+) -> dict | None:
+    if mark['symbol'] not in ALLOWED:
+        return None
+    loc = within_ayah_token_index(spec.script_db, int(mark['word_id']))
+    if loc is None:
+        errors.append(
+            f"page {page}: unknown word_id {mark['word_id']}"
+        )
+        return None
+    surah, ayah, token_index, text = loc
+    return {
+        'op': 'set',
+        'edition': edition_key,
+        'surah': surah,
+        'ayah': ayah,
+        'token_index': token_index,
+        'word_index': mark['word_id'],
+        'word_key': mark.get('word_key') or f'{surah}:{ayah}:{token_index + 1}',
+        'word_id_space': mark.get('word_id_space') or '',
+        'word_text': text or mark.get('text') or '',
+        'symbol': mark['symbol'],
+        'confidence': round(float(mark['confidence']), 4),
+        'page': page,
+        'source': 'opencv5-cv-waqf',
+    }
 
 
 def _digest(plan: dict) -> str:
@@ -106,6 +141,7 @@ def write_review_markdown(plan: dict, path: Path) -> None:
         f"Digest: `{plan['plan_digest']}`",
         f"Pages: {plan['pages']}",
         f"Changes: {len(plan['changes'])}",
+        f"Review candidates (not auto-set): {len(plan.get('review_candidates') or [])}",
         '',
         '## Sample changes (first 100)',
         '',
@@ -127,7 +163,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--edition', default='البحرين', choices=list(EDITIONS))
     parser.add_argument('--pages', default='1-5')
-    parser.add_argument('--min-conf', type=float, default=0.70)
+    parser.add_argument(
+        '--min-conf', type=float, default=None,
+        help='override the edition auto-set threshold '
+             '(0.85 for البحرين, 0.70 otherwise)',
+    )
     parser.add_argument('--out-dir', type=Path, default=None)
     args = parser.parse_args(argv)
 

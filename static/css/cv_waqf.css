@@ -9,6 +9,7 @@
     --cvw-wrong: #8a3b2a;
     --cvw-extra: #2a5f8a;
     --cvw-missing: #8a6a1f;
+    --cvw-review: #5c4a8a;
 }
 
 .cvw-body {
@@ -533,6 +534,7 @@
 .cvw-item .tag.wrong { background: var(--cvw-wrong); }
 .cvw-item .tag.extra { background: var(--cvw-extra); }
 .cvw-item .tag.missing { background: var(--cvw-missing); }
+.cvw-item .tag.review { background: var(--cvw-review); }
 
 .cvw-item .conf {
     grid-column: 1 / -1;
