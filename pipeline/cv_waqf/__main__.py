@@ -15,6 +15,7 @@ def main(argv: list[str] | None = None) -> int:
             '  build-crops     weak-label glyph crop dataset\n'
             '  sample-crops    word-anchored crops from trusted DB marks\n'
             '  train           page-split training → models/waqf_glyph.onnx\n'
+            '  train-strip     above-word strip CNN → models/waqf_strip_bahrain.onnx\n'
             '  run-page        detect marks on one page\n'
             '  audit           CV vs mushaf_waqf.db report\n'
             '  evaluate-hand   exact mark + canonical-word holdout accuracy\n'
@@ -51,6 +52,9 @@ def main(argv: list[str] | None = None) -> int:
         return m(rest)
     if cmd == 'train':
         from pipeline.cv_waqf.train_classifier import main as m
+        return m(rest)
+    if cmd == 'train-strip':
+        from pipeline.cv_waqf.train_strip import main as m
         return m(rest)
     if cmd == 'run-page':
         from pipeline.cv_waqf.run_page import main as m

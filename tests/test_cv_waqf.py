@@ -269,7 +269,9 @@ def test_shamarly_page2_detect_smoke():
 
 
 def test_bahrain_has_isolated_optional_model_path():
-    from pipeline.cv_waqf.config import EDITION_MODEL_PATHS, MODEL_PATH, ROOT
+    from pipeline.cv_waqf.config import (
+        EDITION_MODEL_PATHS, EDITION_STRIP_MODEL_PATHS, MODEL_PATH, ROOT,
+    )
 
     bahrain = EDITION_MODEL_PATHS['البحرين']
     assert bahrain == ROOT / 'models' / 'waqf_glyph_bahrain.onnx'
@@ -277,6 +279,10 @@ def test_bahrain_has_isolated_optional_model_path():
     assert bahrain.with_name('waqf_glyph_bahrain_gate.onnx') == (
         ROOT / 'models' / 'waqf_glyph_bahrain_gate.onnx'
     )
+    strip = EDITION_STRIP_MODEL_PATHS['البحرين']
+    assert strip == ROOT / 'models' / 'waqf_strip_bahrain.onnx'
+    assert strip != bahrain
+    assert strip != MODEL_PATH
 
 
 def test_only_bahrain_defaults_to_hybrid_proposals():
@@ -341,11 +347,16 @@ def test_detect_page_uses_hybrid_line_components_for_bahrain_only(monkeypatch):
         lambda *_: hybrid_calls.append(True) or [],
     )
     monkeypatch.setattr(run_page, 'GlyphClassifier', lambda **_: FakeClassifier())
+    monkeypatch.setattr(
+        run_page, 'strip_model_path_for_edition',
+        lambda *_args, **_kwargs: None,
+    )
 
     bahrain = run_page.detect_page('البحرين', 198)
     assert hybrid_calls == [True]
     assert bahrain['proposal_mode'] == 'hybrid'
     assert bahrain['strategy'] == 'hybrid-line-components'
+    assert bahrain['detector'] == 'mlp'
 
     hybrid_calls.clear()
     shamarly = run_page.detect_page('الشمرلي', 5)
@@ -881,6 +892,10 @@ def _stub_detect_pipeline(monkeypatch, attached):
     monkeypatch.setattr(run_page, 'find_line_component_candidates', lambda *_: [])
     monkeypatch.setattr(run_page, 'GlyphClassifier', lambda **_: FakeClassifier())
     monkeypatch.setattr(run_page, '_attach_from_hits', lambda *_: list(attached))
+    monkeypatch.setattr(
+        run_page, 'strip_model_path_for_edition',
+        lambda *_args, **_kwargs: None,
+    )
 
 
 def test_only_bahrain_enables_azhar_seat_prior():

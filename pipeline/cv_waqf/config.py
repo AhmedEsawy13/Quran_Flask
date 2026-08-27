@@ -39,6 +39,17 @@ EDITION_MODEL_PATHS: dict[str, Path] = {
     'البحرين': ROOT / 'models' / 'waqf_glyph_bahrain.onnx',
 }
 
+# Above-word strip detector (one NCHW strip per layout word). Optional; when
+# the ONNX is missing, detect/evaluate/bootstrap keep the gated MLP + hybrid
+# CC path. Do not commit an untrained net here.
+EDITION_STRIP_MODEL_PATHS: dict[str, Path] = {
+    'البحرين': ROOT / 'models' / 'waqf_strip_bahrain.onnx',
+}
+
+# Fixed-size above-word band fed to the strip CNN (H, W), not a 48×48 CC crop.
+STRIP_HEIGHT = 32
+STRIP_WIDTH = 64
+
 # Default Amiri Quran TTF used to synthesize glyph templates.
 DEFAULT_GLYPH_FONT = Path.home() / 'Library' / 'Fonts' / 'amiri-quran.ttf'
 

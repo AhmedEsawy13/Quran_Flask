@@ -33,6 +33,12 @@ from pipeline.cv_waqf.line_gaps import (
     find_above_word_candidates,
     find_line_component_candidates,
 )
+from pipeline.cv_waqf.strip import (
+    StripClassifier,
+    above_word_strip_roi,
+    crop_above_word_strip,
+    strip_model_path_for_edition,
+)
 from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import load_bgr, preprocess_page
 
@@ -167,6 +173,103 @@ def _mark_dict(mark: AttachedMark, *, reject_reason: str | None = None) -> dict:
     return row
 
 
+def _detect_page_with_strip(
+    edition_key: str,
+    page: int,
+    *,
+    img_path: Path,
+    bgr,
+    prepared,
+    words,
+    min_conf: float,
+    overlay_path: Path | None,
+    strip_path: Path,
+    use_azhar_prior: bool = False,
+) -> dict:
+    """One above-word strip per layout word — no isolated 48×48 CC crop."""
+    clf = StripClassifier(model_path=strip_path)
+    if not clf.ready:
+        raise RuntimeError(
+            f'missing strip ONNX at {clf.model_path}. '
+            'Train with: python -m pipeline.cv_waqf train-strip '
+            '--crops data/cv/crops_hand/bahrain'
+        )
+    content_words = [
+        word for word in words
+        if word.is_content_word and word.word_key
+    ]
+    strips = [
+        crop_above_word_strip(
+            prepared.gray, word, width=clf.width, height=clf.height,
+        )
+        for word in content_words
+    ]
+    attached: list[AttachedMark] = []
+    classified_n = 0
+    for word, (label, conf, probs) in zip(
+        content_words, clf.predict_many_probs(strips),
+    ):
+        if not _prediction_is_clear(clf, label, conf, probs, min_conf):
+            continue
+        classified_n += 1
+        x0, y0, x1, y1 = above_word_strip_roi(word)
+        img_h, img_w = prepared.gray.shape[:2]
+        x0, y0 = max(0, x0), max(0, y0)
+        x1, y1 = min(img_w, x1), min(img_h, y1)
+        cand = Candidate(
+            x=x0, y=y0, w=max(1, x1 - x0), h=max(1, y1 - y0),
+            area=max(1, (x1 - x0) * (y1 - y0)),
+            score=float(conf),
+        )
+        attached.append(AttachedMark(
+            word_id=word.word_id,
+            word_key=word.word_key,
+            word_id_space=word.word_id_space,
+            surah=word.surah,
+            ayah=word.ayah,
+            text=word.text,
+            symbol=label,
+            confidence=float(conf),
+            page=page,
+            line_number=word.line_number,
+            candidate=cand,
+        ))
+    attached.sort(key=lambda m: (m.line_number, -m.candidate.x, -m.confidence))
+    kept = attached
+    rejected: list[AttachedMark] = []
+    if use_azhar_prior:
+        kept, rejected = partition_marks_by_azhar_occupancy(attached)
+
+    if overlay_path is not None:
+        overlay_path.parent.mkdir(parents=True, exist_ok=True)
+        vis = paint_detect_overlay(bgr, kept)
+        cv2.imwrite(str(overlay_path), vis)
+
+    return {
+        'edition': edition_key,
+        'page': page,
+        'image': str(img_path),
+        'candidates': len(content_words),
+        'classified': classified_n,
+        'strategy': 'above-word-strip',
+        'proposal_mode': 'strip',
+        'detector': 'strip',
+        'azhar_prior': use_azhar_prior,
+        'narrow_candidates': 0,
+        'component_candidates': 0,
+        'marks': [_mark_dict(m) for m in kept],
+        'azhar_rejected': [
+            _mark_dict(m, reject_reason=AZHAR_REJECT_REASON) for m in rejected
+        ],
+        'azhar_kept': len(kept),
+        'azhar_rejected_count': len(rejected),
+        'model_ready': clf.ready,
+        'model': str(clf.model_path),
+        'model_pipeline': clf.pipeline,
+        'strip_size': [clf.height, clf.width],
+    }
+
+
 OVERLAY_KEPT_BGR = (0, 200, 0)
 
 
@@ -198,6 +301,7 @@ def detect_page(
     min_conf: float = 0.55,
     overlay_path: Path | None = None,
     model_path: Path | None = None,
+    strip_model_path: Path | None = None,
     proposal_mode: str | None = None,
     seat_prior: bool = True,  # kept for CLI compat; above-word path is always used
     azhar_prior: bool | None = None,
@@ -213,6 +317,24 @@ def detect_page(
     overlay_base = bgr.copy() if overlay_path is not None else None
     prepared = preprocess_page(bgr, spec)
     words = estimate_layout_words(spec, page, prepared)
+
+    strip_path = strip_model_path_for_edition(
+        edition_key,
+        model_path=model_path,
+        strip_model_path=strip_model_path,
+    )
+    if strip_path is not None:
+        return _detect_page_with_strip(
+            edition_key, page,
+            img_path=img_path,
+            bgr=overlay_base if overlay_base is not None else bgr,
+            prepared=prepared,
+            words=words,
+            min_conf=min_conf,
+            overlay_path=overlay_path,
+            strip_path=strip_path,
+            use_azhar_prior=use_azhar_prior,
+        )
 
     narrow_hits = find_above_word_candidates(prepared, words)
     broad_hits = (
@@ -282,6 +404,7 @@ def detect_page(
             if proposal_mode == 'hybrid' else 'above-word-per-line'
         ),
         'proposal_mode': proposal_mode,
+        'detector': 'mlp',
         'azhar_prior': use_azhar_prior,
         'narrow_candidates': len(narrow_hits),
         'component_candidates': len(broad_hits),
@@ -306,6 +429,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--json-out', type=Path, default=None)
     parser.add_argument('--model', type=Path, default=None)
     parser.add_argument(
+        '--strip-model', type=Path, default=None,
+        help='above-word strip ONNX; when omitted, البحرين uses '
+             'models/waqf_strip_bahrain.onnx if that file exists',
+    )
+    parser.add_argument(
         '--proposal-mode',
         choices=sorted(PROPOSAL_MODES),
         default=None,
@@ -328,6 +456,7 @@ def main(argv: list[str] | None = None) -> int:
         min_conf=args.min_conf,
         overlay_path=overlay,
         model_path=args.model,
+        strip_model_path=args.strip_model,
         proposal_mode=args.proposal_mode,
         azhar_prior=args.azhar_prior,
     )

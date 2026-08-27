@@ -54,6 +54,19 @@ export PYTHONPATH=.
   --reuse-symbol-model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_current.onnx \
   --out models/waqf_glyph_bahrain.onnx
 
+# Above-word strip detector for البحرين (replaces the 48×48 CC-crop MLP at
+# detect time when the ONNX is present). One 32×64 strip per layout word,
+# small conv net, exported ONNX for OpenCV 5 DNN. Train-only extra: torch.
+# Page-grouped split matches the MLP trainer. Does not replace models/waqf_glyph_bahrain.onnx
+# — that gated MLP remains the fallback when the strip ONNX is absent.
+# A real Bahrain strip net is not in git; train locally on hand labels +
+# cached pages (data/cv/crops_hand/bahrain is gitignored).
+.venv-cv/bin/pip install -r requirements-cv-train.txt
+.venv-cv/bin/python -m pipeline.cv_waqf train-strip \
+  --crops data/cv/crops_hand/bahrain
+# writes models/waqf_strip_bahrain.onnx + .json sidecar
+# If that file is absent, run-page / evaluate-hand / bootstrap keep gated MLP + hybrid.
+
 # Sync hand crops + ONNX to Supabase (other machines: pull-hand)
 # Once: run pipeline/supabase_cv_waqf_hand.sql in Supabase SQL editor
 python3 -m pipeline.cv_waqf status-hand --slug shamarly  # read-only check
@@ -63,22 +76,26 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 # Detect one page (line-by-line, above word-end band)
 .venv-cv/bin/python -m pipeline.cv_waqf run-page --edition الشمرلي --page 5 --overlay
 
-# البحرين defaults to hybrid proposals (above-word band + line-component
-# candidates) with the gated edition model:
+# البحرين uses the above-word strip ONNX when
+# models/waqf_strip_bahrain.onnx is present (one strip per layout word).
+# If that file is missing, البحرين defaults to hybrid proposals
+# (above-word band + line-component candidates) with the gated edition model:
 # models/waqf_glyph_bahrain.onnx + waqf_glyph_bahrain_gate.onnx.
-# On 44 labeled pages, gated + hybrid:
+# On 44 labeled pages, gated MLP + hybrid:
 #   0.55 → 217/238 correct, 31 FP, 15 missing
 #   0.85 → 214/238 correct, 14 FP
-# Remaining FPs are 0.97+ fatha-sized glyphs — a cutoff cannot reach 0 FP.
-# So detect/UI still run at 0.55 (review candidates); bootstrap/auto-set
-# writes only confidence >= 0.85. Other editions stay narrow + 0.70 auto-set.
+# Remaining MLP FPs are 0.97+ fatha-sized glyphs — a cutoff cannot reach 0 FP,
+# which is why the strip detector classifies the above-word band instead of a
+# 48×48 isolated crop. So detect/UI still run at 0.55 (review candidates);
+# bootstrap/auto-set writes only confidence >= 0.85. Other editions stay
+# narrow + 0.70 auto-set. --proposal-mode, --min-conf, and --model remain
+# explicit overrides; --model pointing at the gated MLP disables strip.
 # Azhar occupancy prior (البحرين only): after attach, keep a mark only if
 # الأزهر has some waqf on that same word_index (ignore the Azhar glyph;
 # do not use token_index — 353 DB rows differ). On the
 # same 44-page hand set at 0.55 this cuts FP 31 → 6 and correct 217 → 213.
 # The 4 dropped "TPs" are not البحرين DB seats. Global recall cost: 12
 # البحرين-only DB seats with empty الأزهر. --no-azhar-prior disables it.
-# --proposal-mode and --min-conf remain explicit overrides.
 .venv-cv/bin/python -m pipeline.cv_waqf run-page --edition البحرين --page 198
 .venv-cv/bin/python -m pipeline.cv_waqf run-page \
   --edition البحرين --page 198 --proposal-mode narrow
@@ -121,5 +138,5 @@ Outputs land under `artifacts/cv-waqf/`. The classifier is
 ## Tests
 
 ```bash
-PYTHONPATH=. .venv-cv/bin/python -m pytest tests/test_cv_waqf.py --noconftest -q
+PYTHONPATH=. .venv-cv/bin/python -m pytest tests/test_cv_waqf.py tests/test_cv_waqf_strip.py --noconftest -q
 ```

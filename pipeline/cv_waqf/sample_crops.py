@@ -40,6 +40,7 @@ from pipeline.cv_waqf.layout_geo import (
 from pipeline.cv_waqf.marks import edition_marks_for_ayahs
 from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import load_bgr, preprocess_page
+from pipeline.cv_waqf.strip import above_word_strip_roi_from_box
 
 LABELED_ROOT = CV_ROOT / 'crops_labeled'
 
@@ -146,15 +147,9 @@ def choose_pages(
 
 
 def _above_end_roi(word_x0: int, word_x1: int, word_y0: int, word_y1: int, line_y0: int) -> tuple[int, int, int, int]:
-    line_h = max(12, word_y1 - word_y0)
-    w = max(8, word_x1 - word_x0)
-    y0 = max(0, min(word_y0, line_y0) - int(0.45 * line_h))
-    y1 = word_y0 + int(0.20 * line_h)
-    end_w = max(14, int(0.42 * w))
-    pad_left = max(8, int(0.15 * w))
-    x0 = word_x0 - pad_left
-    x1 = word_x0 + end_w
-    return x0, y0, x1, y1
+    return above_word_strip_roi_from_box(
+        word_x0, word_y0, word_x1, word_y1, line_y0=line_y0,
+    )
 
 
 def _best_ink_in_roi(binary: np.ndarray, roi: tuple[int, int, int, int]) -> Candidate | None:
