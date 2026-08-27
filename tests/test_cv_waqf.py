@@ -308,6 +308,8 @@ def test_detect_and_evaluate_inherit_edition_proposal_default():
 
     assert inspect.signature(detect_page).parameters['proposal_mode'].default is None
     assert inspect.signature(evaluate_labels).parameters['proposal_mode'].default is None
+    assert inspect.signature(detect_page).parameters['azhar_prior'].default is None
+    assert inspect.signature(evaluate_labels).parameters['azhar_prior'].default is None
     assert inspect.signature(detect_page).parameters['min_conf'].default == 0.55
 
 
@@ -380,6 +382,8 @@ def test_bahrain_readme_documents_hybrid_default():
     assert '--proposal-mode' in text
     assert 'defaults to hybrid proposals' in text
     assert 'writes only confidence >= 0.85' in text
+    assert '--no-azhar-prior' in text
+    assert '31 → 6' in text
 
 
 def test_only_bahrain_auto_set_is_stricter_than_review():
@@ -507,6 +511,8 @@ def test_ui_payload_keeps_review_hits_out_of_auto_set(monkeypatch):
     assert {m['trust'] for m in payload['cv_marks']} == {'auto-set', 'review'}
     assert payload['summary']['trusted'] == 1
     assert payload['summary']['review'] == 1
+    assert payload['rejected_marks'] == []
+    assert payload['summary']['rejected'] == 0
 
     shamarly = ui_payload.build_ui_payload('الشمرلي', 2)
     assert shamarly['auto_set_min_conf'] == 0.70
@@ -519,9 +525,12 @@ def test_cv_waqf_ui_grades_review_marks():
     css = (ROOT / 'static' / 'css' / 'cv_waqf.css').read_text(encoding='utf-8')
     assert 'review_marks' in js
     assert 'trusted_marks' in js
+    assert 'rejected_marks' in js
     assert "trust === 'review'" in js
     assert 'cvw-show-review' in html
+    assert 'cvw-show-rejected' in html
     assert '.tag.review' in css
+    assert '.tag.rejected' in css
 
 
 def test_bootstrap_plan_schema():
@@ -724,7 +733,7 @@ def test_hand_evaluation_can_use_an_explicit_demo_model(monkeypatch, tmp_path):
         model_path=model,
     )
 
-    assert calls == [{'min_conf': 0.70, 'proposal_mode': 'hybrid', 'model_path': model}]
+    assert calls == [{'min_conf': 0.70, 'proposal_mode': 'hybrid', 'azhar_prior': True, 'model_path': model}]
     assert report['model'] == str(model)
     assert report['proposal_mode'] == 'hybrid'
 
@@ -772,11 +781,17 @@ def test_run_page_cli_omits_proposal_mode_unless_passed(monkeypatch, capsys):
     assert run_page.main(['--edition', 'البحرين', '--page', '198']) == 0
     assert calls[-1][0] == 'البحرين'
     assert calls[-1][1]['proposal_mode'] is None
+    assert calls[-1][1]['azhar_prior'] is None
 
     assert run_page.main([
         '--edition', 'البحرين', '--page', '198', '--proposal-mode', 'narrow',
     ]) == 0
     assert calls[-1][1]['proposal_mode'] == 'narrow'
+
+    assert run_page.main([
+        '--edition', 'البحرين', '--page', '198', '--no-azhar-prior',
+    ]) == 0
+    assert calls[-1][1]['azhar_prior'] is False
     capsys.readouterr()
 
 
@@ -820,3 +835,320 @@ def test_bahrain_review_queue_includes_targeted_rare_symbol_batch():
     assert {row['page'] for row in targeted} == set(PRIORITY_PAGES['البحرين'])
     assert all('targeted' in row['tags'] for row in targeted)
     assert queue['targeted_size'] == len(PRIORITY_PAGES['البحرين'])
+
+
+def _attached_mark(word_key, symbol='ص', confidence=0.99, word_id=1):
+    from pipeline.cv_waqf.attach import AttachedMark
+    from pipeline.cv_waqf.candidates import Candidate
+
+    surah, ayah, _position = (int(part) for part in word_key.split(':'))
+    return AttachedMark(
+        word_id=word_id,
+        word_key=word_key,
+        word_id_space='qpc',
+        surah=surah,
+        ayah=ayah,
+        text='كلمة',
+        symbol=symbol,
+        confidence=confidence,
+        page=2,
+        line_number=1,
+        candidate=Candidate(x=10, y=10, w=8, h=8, area=64),
+    )
+
+
+def _stub_detect_pipeline(monkeypatch, attached):
+    from pipeline.cv_waqf import run_page
+
+    class FakePrepared:
+        gray = np.zeros((10, 10), dtype=np.uint8)
+
+    class FakeClassifier:
+        ready = True
+        model_path = Path('/tmp/waqf_glyph_bahrain.onnx')
+        pipeline = 'two-stage'
+
+        def predict_many_probs(self, crops):
+            return []
+
+    monkeypatch.setattr(run_page, 'ensure_page_image', lambda *_: Path('/tmp/page.jpg'))
+    monkeypatch.setattr(
+        run_page, 'load_bgr', lambda *_: np.zeros((10, 10, 3), dtype=np.uint8),
+    )
+    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(run_page, 'estimate_layout_words', lambda *_: [])
+    monkeypatch.setattr(run_page, 'find_above_word_candidates', lambda *_: [])
+    monkeypatch.setattr(run_page, 'find_line_component_candidates', lambda *_: [])
+    monkeypatch.setattr(run_page, 'GlyphClassifier', lambda **_: FakeClassifier())
+    monkeypatch.setattr(run_page, '_attach_from_hits', lambda *_: list(attached))
+
+
+def test_only_bahrain_enables_azhar_seat_prior():
+    from pipeline.cv_waqf.config import EDITIONS, resolve_azhar_seat_prior
+
+    assert EDITIONS['البحرين'].azhar_seat_prior is True
+    assert resolve_azhar_seat_prior('البحرين') is True
+    others = {
+        key: spec.azhar_seat_prior
+        for key, spec in EDITIONS.items()
+        if key != 'البحرين'
+    }
+    assert others
+    assert all(value is False for value in others.values())
+    assert resolve_azhar_seat_prior('الشمرلي') is False
+    assert resolve_azhar_seat_prior('البحرين', False) is False
+    assert resolve_azhar_seat_prior('الشمرلي', True) is True
+
+
+def test_azhar_occupancy_keeps_mark_regardless_of_glyph(tmp_path):
+    import sqlite3
+
+    from pipeline.cv_waqf.azhar_prior import (
+        load_azhar_occupied_seats,
+        partition_marks_by_azhar_occupancy,
+        reset_azhar_occupancy_cache,
+        word_has_azhar_waqf,
+    )
+
+    db = tmp_path / 'mushaf_waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE waqf ('
+        '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
+        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT, '
+        '"الكويت" TEXT, "قطر" TEXT)'
+    )
+    conn.execute(
+        'INSERT INTO waqf VALUES (2,5,5,5,"ج","ص",NULL,NULL)',
+    )
+    conn.commit()
+    conn.close()
+    reset_azhar_occupancy_cache()
+
+    assert load_azhar_occupied_seats(str(db)) == {(2, 5, 5)}
+    assert word_has_azhar_waqf(2, 5, 5, db_path=db) is True
+    kept, rejected = partition_marks_by_azhar_occupancy(
+        [{'word_key': '2:5:5', 'surah': 2, 'ayah': 5, 'symbol': 'ص', 'confidence': 0.99}],
+        db_path=db,
+    )
+    assert [row['symbol'] for row in kept] == ['ص']
+    assert rejected == []
+
+
+def test_azhar_occupancy_drops_empty_azhar_word(tmp_path):
+    import sqlite3
+
+    from pipeline.cv_waqf.azhar_prior import (
+        partition_marks_by_azhar_occupancy,
+        reset_azhar_occupancy_cache,
+        word_has_azhar_waqf,
+    )
+
+    db = tmp_path / 'mushaf_waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE waqf ('
+        '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
+        '"الأزهر" TEXT, "البحرين" TEXT, "قطر" TEXT)'
+    )
+    conn.execute('INSERT INTO waqf VALUES (2,5,5,"ج",NULL,NULL)')
+    conn.execute('INSERT INTO waqf VALUES (4,23,11,NULL,"ص","ص")')
+    conn.execute('INSERT INTO waqf VALUES (2,5,6,"","ص",NULL)')
+    conn.commit()
+    conn.close()
+    reset_azhar_occupancy_cache()
+
+    assert word_has_azhar_waqf(4, 23, 11, db_path=db) is False
+    assert word_has_azhar_waqf(2, 5, 6, db_path=db) is False
+    kept, rejected = partition_marks_by_azhar_occupancy(
+        [
+            {'word_key': '2:5:5', 'surah': 2, 'ayah': 5, 'symbol': 'ص'},
+            {'word_key': '4:23:11', 'surah': 4, 'ayah': 23, 'symbol': 'ص', 'confidence': 0.99},
+        ],
+        db_path=db,
+    )
+    assert [row['word_key'] for row in kept] == ['2:5:5']
+    assert [row['word_key'] for row in rejected] == ['4:23:11']
+
+
+def test_azhar_occupancy_fails_open_when_db_missing(tmp_path):
+    from pipeline.cv_waqf.azhar_prior import (
+        partition_marks_by_azhar_occupancy,
+        reset_azhar_occupancy_cache,
+        word_has_azhar_waqf,
+    )
+
+    reset_azhar_occupancy_cache()
+    missing = tmp_path / 'no-such-mushaf_waqf.db'
+    assert word_has_azhar_waqf(2, 2, 4, db_path=missing) is True
+    marks = [{'word_key': '2:2:4', 'surah': 2, 'ayah': 2, 'symbol': 'ع'}]
+    kept, rejected = partition_marks_by_azhar_occupancy(marks, db_path=missing)
+    assert kept == marks
+    assert rejected == []
+
+
+def test_bahrain_detect_page_applies_azhar_seat_prior(monkeypatch):
+    from pipeline.cv_waqf import azhar_prior, run_page
+
+    occupied = {(2, 5, 5)}
+    monkeypatch.setattr(
+        azhar_prior, 'load_azhar_occupied_seats', lambda db_path='': occupied,
+    )
+    _stub_detect_pipeline(monkeypatch, [
+        _attached_mark('2:5:5', symbol='ص', confidence=0.99, word_id=1),
+        _attached_mark('4:23:11', symbol='ص', confidence=0.97, word_id=2),
+    ])
+
+    result = run_page.detect_page('البحرين', 2)
+    assert result['azhar_prior'] is True
+    assert [row['word_key'] for row in result['marks']] == ['2:5:5']
+    assert result['marks'][0]['symbol'] == 'ص'
+    assert [row['word_key'] for row in result['azhar_rejected']] == ['4:23:11']
+    assert result['azhar_rejected'][0]['reject_reason'] == 'azhar_empty'
+    assert result['azhar_kept'] == 1
+    assert result['azhar_rejected_count'] == 1
+
+
+def test_azhar_prior_off_does_not_drop_empty_azhar_word(monkeypatch):
+    from pipeline.cv_waqf import azhar_prior, run_page
+
+    monkeypatch.setattr(
+        azhar_prior, 'load_azhar_occupied_seats', lambda db_path='': {(2, 5, 5)},
+    )
+    attached = [
+        _attached_mark('4:23:11', symbol='ص', confidence=0.97, word_id=2),
+    ]
+    _stub_detect_pipeline(monkeypatch, attached)
+
+    shamarly = run_page.detect_page('الشمرلي', 5)
+    assert shamarly['azhar_prior'] is False
+    assert [row['word_key'] for row in shamarly['marks']] == ['4:23:11']
+    assert shamarly['azhar_rejected'] == []
+
+    forced_off = run_page.detect_page('البحرين', 2, azhar_prior=False)
+    assert forced_off['azhar_prior'] is False
+    assert [row['word_key'] for row in forced_off['marks']] == ['4:23:11']
+    assert forced_off['azhar_rejected'] == []
+
+
+def test_bahrain_detect_page_fails_open_without_azhar_db(monkeypatch):
+    from pipeline.cv_waqf import azhar_prior, run_page
+
+    monkeypatch.setattr(
+        azhar_prior, 'load_azhar_occupied_seats', lambda db_path='': None,
+    )
+    _stub_detect_pipeline(monkeypatch, [
+        _attached_mark('4:23:11', symbol='ص', confidence=0.97, word_id=2),
+    ])
+
+    result = run_page.detect_page('البحرين', 2)
+    assert [row['word_key'] for row in result['marks']] == ['4:23:11']
+    assert result['azhar_rejected'] == []
+    assert result['azhar_rejected_count'] == 0
+
+
+def test_bahrain_bootstrap_does_not_auto_set_azhar_rejected(monkeypatch):
+    from pipeline.cv_waqf import bootstrap_edition
+
+    monkeypatch.setattr(
+        bootstrap_edition,
+        'detect_page',
+        lambda edition, page, **kwargs: {
+            'marks': [
+                {
+                    'word_id': 1, 'word_key': '2:5:5', 'word_id_space': 'qpc',
+                    'symbol': 'ص', 'confidence': 0.99, 'text': 'آمنوا',
+                },
+            ],
+            'azhar_rejected': [
+                {
+                    'word_id': 2, 'word_key': '4:23:11', 'word_id_space': 'qpc',
+                    'symbol': 'ص', 'confidence': 0.97, 'text': 'به',
+                    'reject_reason': 'azhar_empty',
+                },
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        bootstrap_edition,
+        'within_ayah_token_index',
+        lambda _db, word_id: (2, 5, int(word_id) - 1, 'كلمة'),
+    )
+
+    plan = bootstrap_edition.bootstrap_pages('البحرين', [2])
+    assert [row['word_key'] for row in plan['changes']] == ['2:5:5']
+    assert plan['review_candidates'] == []
+    assert all(row.get('word_key') != '4:23:11' for row in plan['changes'])
+
+
+def test_ui_payload_exposes_azhar_rejected_marks(monkeypatch):
+    from pipeline.cv_waqf import ui_payload
+
+    monkeypatch.setattr(
+        ui_payload,
+        'detect_page',
+        lambda *_args, **_kwargs: {
+            'proposal_mode': 'hybrid',
+            'azhar_prior': True,
+            'candidates': 3,
+            'classified': 2,
+            'marks': [
+                {
+                    'word_id': 10, 'word_key': '2:5:5', 'surah': 2, 'ayah': 5,
+                    'symbol': 'ص', 'confidence': 0.91, 'text': 'آمنوا',
+                    'line': 1, 'box': [1, 2, 3, 4],
+                },
+            ],
+            'azhar_rejected': [
+                {
+                    'word_id': 11, 'word_key': '4:23:11', 'surah': 4, 'ayah': 23,
+                    'symbol': 'ص', 'confidence': 0.97, 'text': 'به',
+                    'line': 1, 'box': [5, 6, 7, 8],
+                    'reject_reason': 'azhar_empty',
+                },
+            ],
+        },
+    )
+    monkeypatch.setattr(ui_payload, 'ensure_page_image', lambda *_: Path('/tmp/p.jpg'))
+    monkeypatch.setattr(ui_payload, 'load_bgr', lambda *_: None)
+
+    class FakePrepared:
+        pass
+
+    monkeypatch.setattr(ui_payload, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(ui_payload, 'estimate_layout_words', lambda *_: [])
+    monkeypatch.setattr(ui_payload, 'edition_marks_for_ayahs', lambda *_: {})
+
+    payload = ui_payload.build_ui_payload('البحرين', 2)
+    assert [m['word_key'] for m in payload['trusted_marks']] == ['2:5:5']
+    assert payload['review_marks'] == []
+    assert [m['word_key'] for m in payload['rejected_marks']] == ['4:23:11']
+    assert payload['rejected_marks'][0]['trust'] == 'rejected'
+    assert payload['rejected_marks'][0]['reject_reason'] == 'azhar_empty'
+    assert payload['summary']['rejected'] == 1
+    assert payload['summary']['trusted'] == 1
+    assert all(m['word_key'] != '4:23:11' for m in payload['cv_marks'])
+
+
+def test_hand_evaluation_inherits_edition_azhar_prior(monkeypatch):
+    from pipeline.cv_waqf import evaluate_hand
+
+    calls = []
+    monkeypatch.setattr(
+        evaluate_hand,
+        'detect_page',
+        lambda *_args, **kwargs: calls.append(kwargs) or {'marks': []},
+    )
+    labels = [{'page': 2, 'word_key': '2:2:1', 'symbol': 'ج'}]
+
+    bahrain = evaluate_hand.evaluate_labels('البحرين', labels)
+    assert calls[-1]['azhar_prior'] is True
+    assert bahrain['azhar_prior'] is True
+
+    shamarly = evaluate_hand.evaluate_labels('الشمرلي', labels)
+    assert calls[-1]['azhar_prior'] is False
+    assert shamarly['azhar_prior'] is False
+
+    overridden = evaluate_hand.evaluate_labels('البحرين', labels, azhar_prior=False)
+    assert calls[-1]['azhar_prior'] is False
+    assert overridden['azhar_prior'] is False
