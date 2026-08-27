@@ -69,7 +69,15 @@ def _build_payload(edition: str, page: int, min_conf: float, slug: str) -> dict:
         logger.info('Building CV UI payload via subprocess')
 
     ARTIFACT_CACHE.mkdir(parents=True, exist_ok=True)
-    out = ARTIFACT_CACHE / f'{slug}_p{page:03d}_{min_conf:.2f}.json'
+    from pipeline.cv_waqf.config import (
+        resolve_auto_set_min_conf,
+        resolve_proposal_mode,
+    )
+    mode = resolve_proposal_mode(edition)
+    auto = resolve_auto_set_min_conf(edition)
+    out = ARTIFACT_CACHE / (
+        f'{slug}_p{page:03d}_{min_conf:.2f}_{mode}_auto{auto:.2f}.json'
+    )
     py = _resolve_cv_python()
     code = (
         'import json,sys\n'
@@ -614,7 +622,13 @@ def cv_waqf_page_data(page_number: int):
             'error': f'page must be {meta["min_page"]}..{meta["max_page"]}',
         }), 400
     try:
-        min_conf = float(request.args.get('min_conf') or 0.55)
+        raw_conf = request.args.get('min_conf')
+        if raw_conf:
+            min_conf = float(raw_conf)
+        else:
+            from pipeline.cv_waqf.config import EDITIONS
+            spec = EDITIONS.get(edition)
+            min_conf = spec.review_min_conf if spec else 0.55
     except (TypeError, ValueError):
         min_conf = 0.55
     min_conf = max(0.2, min(0.95, min_conf))

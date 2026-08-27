@@ -63,16 +63,35 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 # Detect one page (line-by-line, above word-end band)
 .venv-cv/bin/python -m pipeline.cv_waqf run-page --edition الشمرلي --page 5 --overlay
 
-# Experimental high-recall proposals. Keep this explicit until the candidate
-# edition model beats production on unseen reviewer labels.
+# البحرين defaults to hybrid proposals (above-word band + line-component
+# candidates) with the gated edition model:
+# models/waqf_glyph_bahrain.onnx + waqf_glyph_bahrain_gate.onnx.
+# On 44 labeled pages, gated + hybrid:
+#   0.55 → 217/238 correct, 31 FP, 15 missing
+#   0.85 → 214/238 correct, 14 FP
+# Remaining FPs are 0.97+ fatha-sized glyphs — a cutoff cannot reach 0 FP.
+# So detect/UI still run at 0.55 (review candidates); bootstrap/auto-set
+# writes only confidence >= 0.85. Other editions stay narrow + 0.70 auto-set.
+# Azhar occupancy prior (البحرين only): after attach, keep a mark only if
+# الأزهر has some waqf on that same word (ignore the Azhar glyph). On the
+# same 44-page hand set at 0.55 this cuts FP 31 → 6 and correct 217 → 213.
+# The 4 dropped "TPs" are not البحرين DB seats. Global recall cost: 12
+# البحرين-only DB seats with empty الأزهر. --no-azhar-prior disables it.
+# --proposal-mode and --min-conf remain explicit overrides.
+.venv-cv/bin/python -m pipeline.cv_waqf run-page --edition البحرين --page 198
 .venv-cv/bin/python -m pipeline.cv_waqf run-page \
-  --edition البحرين --page 198 --proposal-mode hybrid \
-  --model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_hard.onnx
+  --edition البحرين --page 198 --proposal-mode narrow
+.venv-cv/bin/python -m pipeline.cv_waqf run-page \
+  --edition البحرين --page 198 --no-azhar-prior
+.venv-cv/bin/python -m pipeline.cv_waqf run-page \
+  --edition الشمرلي --page 5 --proposal-mode hybrid
 
 # Audit DB vs CV (reviewable report, no auto-merge)
 .venv-cv/bin/python -m pipeline.cv_waqf audit --edition الشمرلي --pages 2-50
 
 # Target-edition holdout: scores only reviewer-confirmed word anchors.
+# البحرين uses hybrid proposals unless --proposal-mode is passed, and the
+# Azhar occupancy prior unless --no-azhar-prior is passed.
 .venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition البحرين
 .venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition المساحة
 
@@ -89,7 +108,9 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 .venv-cv/bin/python -m pipeline.cv_waqf review-queue \
   --edition البحرين --size 30 --cache
 
-# Bootstrap draft plan for البحرين (human review before publish)
+# Bootstrap draft plan for البحرين (human review before publish).
+# Auto-set uses confidence >= 0.85; lower-conf hybrid hits stay in
+# review_candidates / the /cv-waqf detect list and are not written.
 .venv-cv/bin/python -m pipeline.cv_waqf bootstrap --edition البحرين --pages 1-50
 ```
 

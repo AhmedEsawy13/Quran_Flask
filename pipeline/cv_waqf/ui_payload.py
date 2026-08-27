@@ -1,6 +1,7 @@
 """Build the JSON payload consumed by the /cv-waqf UI."""
 from __future__ import annotations
 
+from pipeline.cv_waqf.config import EDITIONS, classify_mark_trust
 from pipeline.cv_waqf.layout_geo import estimate_layout_words, mark_roi_for_word
 from pipeline.cv_waqf.marks import edition_marks_for_ayahs
 from pipeline.cv_waqf.pages import ensure_page_image
@@ -48,12 +49,15 @@ def build_ui_payload(
     edition: str,
     page: int,
     *,
-    min_conf: float = 0.7,
+    min_conf: float | None = None,
     slug: str = '',
 ) -> dict:
-    from pipeline.cv_waqf.config import EDITIONS
-
     spec = EDITIONS[edition]
+    if min_conf is None:
+        min_conf = spec.review_min_conf
+    auto_set = spec.auto_set_min_conf
+    # Inherits EditionSpec.default_proposal_mode (hybrid for البحرين).
+    # Detect at the review floor so the UI can grade 0.55–auto_set hits.
     detected = detect_page(edition, page, min_conf=min_conf, seat_prior=True)
     img_path = ensure_page_image(spec, page)
     prepared = preprocess_page(load_bgr(img_path), spec)
@@ -86,6 +90,9 @@ def build_ui_payload(
     for m in detected.get('marks') or []:
         row = dict(m)
         row['glyph'] = _GLYPH.get(row.get('symbol'), row.get('symbol'))
+        row['trust'] = classify_mark_trust(
+            row.get('confidence') or 0.0, auto_set,
+        )
         db = db_by_word.get(int(row['word_id']))
         if db is None:
             row['vs_db'] = 'extra'
@@ -96,6 +103,23 @@ def build_ui_payload(
             row['db_symbol'] = db['symbol']
         cv_marks.append(row)
 
+    trusted_marks = [m for m in cv_marks if m.get('trust') == 'auto-set']
+    review_marks = [m for m in cv_marks if m.get('trust') == 'review']
+    rejected_marks = []
+    for m in detected.get('azhar_rejected') or []:
+        row = dict(m)
+        row['glyph'] = _GLYPH.get(row.get('symbol'), row.get('symbol'))
+        row['trust'] = 'rejected'
+        row['reject_reason'] = row.get('reject_reason') or 'azhar_empty'
+        db = db_by_word.get(int(row['word_id']))
+        if db is None:
+            row['vs_db'] = 'extra'
+        elif db['symbol'] == row.get('symbol'):
+            row['vs_db'] = 'match'
+        else:
+            row['vs_db'] = 'wrong'
+            row['db_symbol'] = db['symbol']
+        rejected_marks.append(row)
     cv_ids = {int(m['word_id']) for m in cv_marks}
     missing = [
         {**db_by_word[wid], 'vs_db': 'missing'}
@@ -107,9 +131,16 @@ def build_ui_payload(
         'slug': slug,
         'page': page,
         'min_conf': min_conf,
+        'review_min_conf': spec.review_min_conf,
+        'auto_set_min_conf': auto_set,
+        'proposal_mode': detected.get('proposal_mode'),
+        'azhar_prior': detected.get('azhar_prior'),
         'image': str(img_path),
         'summary': {
             'cv': len(cv_marks),
+            'trusted': len(trusted_marks),
+            'review': len(review_marks),
+            'rejected': len(rejected_marks),
             'db': len(db_marks),
             'match': sum(1 for m in cv_marks if m.get('vs_db') == 'match'),
             'wrong': sum(1 for m in cv_marks if m.get('vs_db') == 'wrong'),
@@ -119,6 +150,9 @@ def build_ui_payload(
             'classified': detected.get('classified', 0),
         },
         'cv_marks': cv_marks,
+        'trusted_marks': trusted_marks,
+        'review_marks': review_marks,
+        'rejected_marks': rejected_marks,
         'db_marks': db_marks,
         'missing': missing,
         'symbols': [{'code': c, 'glyph': g} for c, g in _GLYPH.items()],

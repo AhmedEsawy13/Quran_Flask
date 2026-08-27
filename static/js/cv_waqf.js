@@ -24,6 +24,8 @@
         showDb: document.getElementById('cvw-show-db'),
         showMissing: document.getElementById('cvw-show-missing'),
         showExtra: document.getElementById('cvw-show-extra'),
+        showReview: document.getElementById('cvw-show-review'),
+        showRejected: document.getElementById('cvw-show-rejected'),
         modeLabel: document.getElementById('cvw-mode-label'),
         modeDetect: document.getElementById('cvw-mode-detect'),
         saveBar: document.getElementById('cvw-save-bar'),
@@ -81,6 +83,8 @@
         wrong: '#8a3b2a',
         extra: '#2a5f8a',
         missing: '#8a6a1f',
+        review: '#5c4a8a',
+        rejected: '#9d2f27',
         db: 'rgba(47, 93, 74, 0.45)',
         label: '#c45c26',
         draft: '#2f5d4a',
@@ -89,6 +93,8 @@
 
     const TAG_AR = {
         match: 'مطابق', wrong: 'مختلف', extra: 'زائد', missing: 'ناقص',
+        review: 'مراجعة',
+        rejected: 'مستبعد الأزهر',
     };
 
     const GLYPH = Object.fromEntries(
@@ -418,6 +424,8 @@
                 setMeta(
                     `صفحة ${toAr(data.page)} · CV ${toAr(s.cv || 0)} · DB ${toAr(s.db || 0)}`
                     + ` · مطابق ${toAr(s.match || 0)} · زائد ${toAr(s.extra || 0)}`
+                    + (s.review ? ` · مراجعة ${toAr(s.review)}` : '')
+                    + (s.rejected ? ` · مستبعد الأزهر ${toAr(s.rejected)}` : '')
                 );
             }
             if (gen !== state.loadGen) return;
@@ -490,6 +498,27 @@
         els.canvas.height = state.naturalH;
     }
 
+    function visibleCvMarks(data) {
+        // cv_marks is the union of kept hits; trusted_marks / review_marks
+        // are the split so a human can grade 0.55–auto_set hits without
+        // auto-writing them. rejected_marks were dropped by the Azhar
+        // occupancy prior and must not auto-set, but stay visible for restore.
+        const rows = data.cv_marks && data.cv_marks.length
+            ? data.cv_marks
+            : [...(data.trusted_marks || []), ...(data.review_marks || [])];
+        const out = [];
+        for (const m of rows) {
+            if (m.vs_db === 'extra' && !els.showExtra.checked) continue;
+            if (m.trust === 'review' && els.showReview && !els.showReview.checked) continue;
+            out.push(m);
+        }
+        const showRejected = !els.showRejected || els.showRejected.checked;
+        if (showRejected) {
+            out.push(...(data.rejected_marks || []));
+        }
+        return out;
+    }
+
     function paint() {
         const ctx = els.canvas.getContext('2d');
         if (!ctx || !state.naturalW) return;
@@ -503,9 +532,14 @@
                 }
             }
             if (els.showCv.checked) {
-                for (const m of data.cv_marks || []) {
-                    if (m.vs_db === 'extra' && !els.showExtra.checked) continue;
-                    strokeBox(ctx, m.box, COLORS[m.vs_db] || COLORS.extra, 2);
+                for (const m of visibleCvMarks(data)) {
+                    const rejected = m.trust === 'rejected' || m.reject_reason === 'azhar_empty';
+                    const review = m.trust === 'review';
+                    strokeBox(
+                        ctx, m.box,
+                        rejected ? COLORS.rejected : (review ? COLORS.review : (COLORS[m.vs_db] || COLORS.extra)),
+                        2, review || rejected,
+                    );
                 }
             }
             if (els.showMissing.checked) {
@@ -594,11 +628,7 @@
     function renderDetectList(data) {
         els.list.innerHTML = '';
         const rows = [];
-        for (const m of data.cv_marks || []) {
-            if (m.vs_db === 'extra' && !els.showExtra.checked) continue;
-            if (!els.showCv.checked) continue;
-            rows.push(m);
-        }
+        if (els.showCv.checked) rows.push(...visibleCvMarks(data));
         if (els.showMissing.checked) rows.push(...(data.missing || []));
         els.labelCount.textContent = `${toAr(rows.length)} كشف`;
         els.undo.hidden = true;
@@ -608,10 +638,10 @@
             li.innerHTML = `
                 <div class="glyph">${m.glyph || m.symbol || ''}</div>
                 <div class="body">
-                    <div class="ref">${toAr(m.surah)}:${toAr(m.ayah)}</div>
+                    <div class="ref">${toAr(m.surah)}:${toAr(m.ayah)}${m.confidence != null ? ` · ${Number(m.confidence).toFixed(2)}` : ''}</div>
                     <div class="txt">${m.text || ''}</div>
                 </div>
-                <span class="tag ${m.vs_db || ''}">${TAG_AR[m.vs_db] || ''}</span>
+                <span class="tag ${m.trust === 'rejected' ? 'rejected' : (m.trust === 'review' ? 'review' : (m.vs_db || ''))}">${m.trust === 'rejected' ? TAG_AR.rejected : (m.trust === 'review' ? TAG_AR.review : (TAG_AR[m.vs_db] || ''))}</span>
             `;
             els.list.appendChild(li);
         }
@@ -923,8 +953,11 @@
             if (state.mode === 'detect') loadPage();
         });
     }
-    for (const el of [els.showCv, els.showDb, els.showMissing, els.showExtra]) {
-        el?.addEventListener('change', () => paint());
+    for (const el of [els.showCv, els.showDb, els.showMissing, els.showExtra, els.showReview, els.showRejected]) {
+        el?.addEventListener('change', () => {
+            paint();
+            if (state.mode === 'detect' && state.payload) renderDetectList(state.payload);
+        });
     }
     window.addEventListener('resize', () => {
         if (state.naturalW) {

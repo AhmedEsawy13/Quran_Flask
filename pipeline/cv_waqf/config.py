@@ -45,6 +45,8 @@ DEFAULT_GLYPH_FONT = Path.home() / 'Library' / 'Fonts' / 'amiri-quran.ttf'
 IMG_WIDTH = 1024
 CROP_SIZE = 48  # square crop fed to the classifier
 
+PROPOSAL_MODES = frozenset({'narrow', 'hybrid'})
+
 
 @dataclass(frozen=True)
 class EditionSpec:
@@ -69,6 +71,19 @@ class EditionSpec:
     text_bottom: float = 0.92
     text_left: float = 0.06
     text_right: float = 0.94
+    # Candidate geometry. ``hybrid`` adds line-component proposals on top of
+    # the above-word band. Keep ``narrow`` unless an edition model has beaten
+    # production on unseen reviewer labels with the broader search.
+    default_proposal_mode: str = 'narrow'
+    # Detect floor for /cv-waqf and other human-review paths.
+    review_min_conf: float = 0.55
+    # Draft/auto-set writes (bootstrap). Higher than review_min_conf when a
+    # confidence cutoff cuts false positives without collapsing recall.
+    auto_set_min_conf: float = 0.70
+    # After attach, keep a mark only if الأزهر has some waqf on that word.
+    # Occupancy only — ignore the Azhar glyph. FP cut, not a classifier.
+    # On for البحرين only; other editions stay off.
+    azhar_seat_prior: bool = False
 
 
 EDITIONS: dict[str, EditionSpec] = {
@@ -103,6 +118,15 @@ EDITIONS: dict[str, EditionSpec] = {
         # A wider 10%..92% band drifts by almost a full row at both edges.
         text_top=0.14,
         text_bottom=0.88,
+        # Gated Bahrain ONNX + hybrid proposals: 217/238 correct on 44
+        # labeled pages at min_conf 0.55, vs 11/238 for gated + narrow.
+        default_proposal_mode='hybrid',
+        # 0.85 keeps almost the same recall (214/238) while cutting FP 31 → 14.
+        # Remaining FPs are 0.97+ fatha-sized glyphs; a cutoff cannot reach 0 FP.
+        auto_set_min_conf=0.85,
+        # Word-level Azhar occupancy: 31→6 FP / 217→213 correct on the
+        # 44-page hand set. 12 known Bahrain-only DB seats will be missed.
+        azhar_seat_prior=True,
     ),
     'المساحة': EditionSpec(
         id='mesaha',
@@ -170,3 +194,56 @@ TRUSTED_WAQF_EDITIONS: tuple[str, ...] = (
 TARGET_WAQF_EDITIONS: tuple[str, ...] = ('البحرين', 'المساحة')
 
 WAQF_DB = MUSHAF_WAQF_DATABASE
+
+
+def resolve_proposal_mode(
+    edition_key: str,
+    proposal_mode: str | None = None,
+) -> str:
+    """Return an explicit override, or the edition's default proposal mode."""
+    resolved = proposal_mode or EDITIONS[edition_key].default_proposal_mode
+    if resolved not in PROPOSAL_MODES:
+        raise ValueError("proposal_mode must be 'narrow' or 'hybrid'")
+    return resolved
+
+
+def resolve_auto_set_min_conf(
+    edition_key: str,
+    min_conf: float | None = None,
+) -> float:
+    """Return an explicit override, or the edition's draft-write threshold."""
+    if min_conf is not None:
+        return float(min_conf)
+    return float(EDITIONS[edition_key].auto_set_min_conf)
+
+
+def resolve_azhar_seat_prior(
+    edition_key: str,
+    azhar_prior: bool | None = None,
+) -> bool:
+    """Return an explicit override, or the edition's Azhar occupancy flag."""
+    if azhar_prior is not None:
+        return bool(azhar_prior)
+    return bool(EDITIONS[edition_key].azhar_seat_prior)
+
+
+def classify_mark_trust(confidence: float, auto_set_min_conf: float) -> str:
+    """``auto-set`` is trusted enough to draft; ``review`` needs a human."""
+    if float(confidence) >= float(auto_set_min_conf):
+        return 'auto-set'
+    return 'review'
+
+
+def split_marks_by_trust(
+    marks: list[dict],
+    auto_set_min_conf: float,
+) -> tuple[list[dict], list[dict]]:
+    """Partition detections into trusted draft writes vs review candidates."""
+    trusted: list[dict] = []
+    review: list[dict] = []
+    for mark in marks:
+        if classify_mark_trust(mark.get('confidence') or 0.0, auto_set_min_conf) == 'auto-set':
+            trusted.append(mark)
+        else:
+            review.append(mark)
+    return trusted, review

@@ -32,15 +32,21 @@ def test_cv_waqf_cloud_apis_require_editor_session(app, monkeypatch):
     assert 'يلزم تسجيل الدخول' in js
     assert 'QUICK_BOX_SIZE = 32' in js
     assert 'suggestNearestWord()' in js
+    assert 'review_marks' in js
+    assert 'rejected_marks' in js
 
     html = client.get('/cv-waqf').get_data(as_text=True)
     assert 'cvw-login-form' in html
     assert 'تسجيل دخول المراجع' in html
     assert 'انقر على العلامة' in html
+    assert 'cvw-show-review' in html
+    assert 'cvw-show-rejected' in html
 
     css = Path('static/css/cv_waqf.css').read_text(encoding='utf-8')
     assert '.cvw-body [hidden]' in css
     assert '@media (min-width: 560px)' in css
+    assert '.tag.review' in css
+    assert '.tag.rejected' in css
 
 
 def test_cv_waqf_live_routes_are_never_browser_cached(app, monkeypatch):

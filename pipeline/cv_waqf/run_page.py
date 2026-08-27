@@ -13,6 +13,10 @@ from pathlib import Path
 import cv2
 
 from pipeline.cv_waqf.attach import AttachedMark, _nearest_word, attach_to_words
+from pipeline.cv_waqf.azhar_prior import (
+    AZHAR_REJECT_REASON,
+    partition_marks_by_azhar_occupancy,
+)
 from pipeline.cv_waqf.candidates import Candidate, crop_candidate
 from pipeline.cv_waqf.classify import GlyphClassifier
 from pipeline.cv_waqf.config import (
@@ -20,6 +24,9 @@ from pipeline.cv_waqf.config import (
     EDITION_MODEL_PATHS,
     EDITIONS,
     OVERLAYS_ROOT,
+    PROPOSAL_MODES,
+    resolve_azhar_seat_prior,
+    resolve_proposal_mode,
 )
 from pipeline.cv_waqf.layout_geo import estimate_layout_words
 from pipeline.cv_waqf.line_gaps import (
@@ -142,6 +149,24 @@ def _attach_from_hits(
     )
 
 
+def _mark_dict(mark: AttachedMark, *, reject_reason: str | None = None) -> dict:
+    row = {
+        'word_id': mark.word_id,
+        'word_key': mark.word_key,
+        'word_id_space': mark.word_id_space,
+        'surah': mark.surah,
+        'ayah': mark.ayah,
+        'text': mark.text,
+        'symbol': mark.symbol,
+        'confidence': round(mark.confidence, 4),
+        'line': mark.line_number,
+        'box': list(mark.candidate.box),
+    }
+    if reject_reason:
+        row['reject_reason'] = reject_reason
+    return row
+
+
 def detect_page(
     edition_key: str,
     page: int,
@@ -149,12 +174,13 @@ def detect_page(
     min_conf: float = 0.55,
     overlay_path: Path | None = None,
     model_path: Path | None = None,
-    proposal_mode: str = 'narrow',
+    proposal_mode: str | None = None,
     seat_prior: bool = True,  # kept for CLI compat; above-word path is always used
+    azhar_prior: bool | None = None,
 ) -> dict:
     del seat_prior  # unused — geometry is above-word, not old seat prior
-    if proposal_mode not in {'narrow', 'hybrid'}:
-        raise ValueError("proposal_mode must be 'narrow' or 'hybrid'")
+    proposal_mode = resolve_proposal_mode(edition_key, proposal_mode)
+    use_azhar_prior = resolve_azhar_seat_prior(edition_key, azhar_prior)
     spec = EDITIONS[edition_key]
     img_path = ensure_page_image(spec, page)
     bgr = load_bgr(img_path)
@@ -208,6 +234,10 @@ def detect_page(
         raw_classified.append((hit.candidate, label, conf))
 
     attached = _attach_from_hits(classified_hits, page, words)
+    kept = attached
+    rejected: list[AttachedMark] = []
+    if use_azhar_prior:
+        kept, rejected = partition_marks_by_azhar_occupancy(attached)
 
     if overlay_path is not None:
         overlay_path.parent.mkdir(parents=True, exist_ok=True)
@@ -225,11 +255,22 @@ def detect_page(
                 (cand.x, max(12, cand.y - 2)),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 140, 255), 1, cv2.LINE_AA,
             )
-        for mark in attached:
+        for mark in kept:
             cv2.circle(
                 vis,
                 (int(mark.candidate.cx), int(mark.candidate.cy)),
                 4, (0, 200, 0), -1,
+            )
+        for mark in rejected:
+            cv2.circle(
+                vis,
+                (int(mark.candidate.cx), int(mark.candidate.cy)),
+                4, (0, 0, 220), -1,
+            )
+            cv2.circle(
+                vis,
+                (int(mark.candidate.cx), int(mark.candidate.cy)),
+                8, (0, 0, 220), 1,
             )
         cv2.imwrite(str(overlay_path), vis)
 
@@ -243,23 +284,16 @@ def detect_page(
             'hybrid-line-components'
             if proposal_mode == 'hybrid' else 'above-word-per-line'
         ),
+        'proposal_mode': proposal_mode,
+        'azhar_prior': use_azhar_prior,
         'narrow_candidates': len(narrow_hits),
         'component_candidates': len(broad_hits),
-        'marks': [
-            {
-                'word_id': m.word_id,
-                'word_key': m.word_key,
-                'word_id_space': m.word_id_space,
-                'surah': m.surah,
-                'ayah': m.ayah,
-                'text': m.text,
-                'symbol': m.symbol,
-                'confidence': round(m.confidence, 4),
-                'line': m.line_number,
-                'box': list(m.candidate.box),
-            }
-            for m in attached
+        'marks': [_mark_dict(m) for m in kept],
+        'azhar_rejected': [
+            _mark_dict(m, reject_reason=AZHAR_REJECT_REASON) for m in rejected
         ],
+        'azhar_kept': len(kept),
+        'azhar_rejected_count': len(rejected),
         'model_ready': clf.ready,
         'model': str(clf.model_path),
         'model_pipeline': clf.pipeline,
@@ -275,7 +309,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--json-out', type=Path, default=None)
     parser.add_argument('--model', type=Path, default=None)
     parser.add_argument(
-        '--proposal-mode', choices=('narrow', 'hybrid'), default='narrow',
+        '--proposal-mode',
+        choices=sorted(PROPOSAL_MODES),
+        default=None,
+        help='override the edition default (hybrid for البحرين, narrow otherwise)',
+    )
+    parser.add_argument(
+        '--azhar-prior',
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help='override edition Azhar occupancy prior (on for البحرين; '
+             'use --no-azhar-prior to disable)',
     )
     args = parser.parse_args(argv)
 
@@ -288,6 +332,7 @@ def main(argv: list[str] | None = None) -> int:
         overlay_path=overlay,
         model_path=args.model,
         proposal_mode=args.proposal_mode,
+        azhar_prior=args.azhar_prior,
     )
     text = json.dumps(result, ensure_ascii=False, indent=2)
     if args.json_out:
