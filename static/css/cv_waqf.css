@@ -10,6 +10,7 @@
     --cvw-extra: #2a5f8a;
     --cvw-missing: #8a6a1f;
     --cvw-review: #5c4a8a;
+    --cvw-rejected: #9d2f27;
 }
 
 .cvw-body {
@@ -535,6 +536,7 @@
 .cvw-item .tag.extra { background: var(--cvw-extra); }
 .cvw-item .tag.missing { background: var(--cvw-missing); }
 .cvw-item .tag.review { background: var(--cvw-review); }
+.cvw-item .tag.rejected { background: var(--cvw-rejected); }
 
 .cvw-item .conf {
     grid-column: 1 / -1;

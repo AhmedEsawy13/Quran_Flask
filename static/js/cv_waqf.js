@@ -25,6 +25,7 @@
         showMissing: document.getElementById('cvw-show-missing'),
         showExtra: document.getElementById('cvw-show-extra'),
         showReview: document.getElementById('cvw-show-review'),
+        showRejected: document.getElementById('cvw-show-rejected'),
         modeLabel: document.getElementById('cvw-mode-label'),
         modeDetect: document.getElementById('cvw-mode-detect'),
         saveBar: document.getElementById('cvw-save-bar'),
@@ -83,6 +84,7 @@
         extra: '#2a5f8a',
         missing: '#8a6a1f',
         review: '#5c4a8a',
+        rejected: '#9d2f27',
         db: 'rgba(47, 93, 74, 0.45)',
         label: '#c45c26',
         draft: '#2f5d4a',
@@ -92,6 +94,7 @@
     const TAG_AR = {
         match: 'مطابق', wrong: 'مختلف', extra: 'زائد', missing: 'ناقص',
         review: 'مراجعة',
+        rejected: 'مستبعد الأزهر',
     };
 
     const GLYPH = Object.fromEntries(
@@ -422,6 +425,7 @@
                     `صفحة ${toAr(data.page)} · CV ${toAr(s.cv || 0)} · DB ${toAr(s.db || 0)}`
                     + ` · مطابق ${toAr(s.match || 0)} · زائد ${toAr(s.extra || 0)}`
                     + (s.review ? ` · مراجعة ${toAr(s.review)}` : '')
+                    + (s.rejected ? ` · مستبعد الأزهر ${toAr(s.rejected)}` : '')
                 );
             }
             if (gen !== state.loadGen) return;
@@ -495,8 +499,10 @@
     }
 
     function visibleCvMarks(data) {
-        // cv_marks is the union; trusted_marks / review_marks are the split
-        // so a human can grade 0.55–auto_set hits without auto-writing them.
+        // cv_marks is the union of kept hits; trusted_marks / review_marks
+        // are the split so a human can grade 0.55–auto_set hits without
+        // auto-writing them. rejected_marks were dropped by the Azhar
+        // occupancy prior and must not auto-set, but stay visible for restore.
         const rows = data.cv_marks && data.cv_marks.length
             ? data.cv_marks
             : [...(data.trusted_marks || []), ...(data.review_marks || [])];
@@ -505,6 +511,10 @@
             if (m.vs_db === 'extra' && !els.showExtra.checked) continue;
             if (m.trust === 'review' && els.showReview && !els.showReview.checked) continue;
             out.push(m);
+        }
+        const showRejected = !els.showRejected || els.showRejected.checked;
+        if (showRejected) {
+            out.push(...(data.rejected_marks || []));
         }
         return out;
     }
@@ -523,11 +533,12 @@
             }
             if (els.showCv.checked) {
                 for (const m of visibleCvMarks(data)) {
+                    const rejected = m.trust === 'rejected' || m.reject_reason === 'azhar_empty';
                     const review = m.trust === 'review';
                     strokeBox(
                         ctx, m.box,
-                        review ? COLORS.review : (COLORS[m.vs_db] || COLORS.extra),
-                        2, review,
+                        rejected ? COLORS.rejected : (review ? COLORS.review : (COLORS[m.vs_db] || COLORS.extra)),
+                        2, review || rejected,
                     );
                 }
             }
@@ -630,7 +641,7 @@
                     <div class="ref">${toAr(m.surah)}:${toAr(m.ayah)}${m.confidence != null ? ` · ${Number(m.confidence).toFixed(2)}` : ''}</div>
                     <div class="txt">${m.text || ''}</div>
                 </div>
-                <span class="tag ${m.trust === 'review' ? 'review' : (m.vs_db || '')}">${m.trust === 'review' ? TAG_AR.review : (TAG_AR[m.vs_db] || '')}</span>
+                <span class="tag ${m.trust === 'rejected' ? 'rejected' : (m.trust === 'review' ? 'review' : (m.vs_db || ''))}">${m.trust === 'rejected' ? TAG_AR.rejected : (m.trust === 'review' ? TAG_AR.review : (TAG_AR[m.vs_db] || ''))}</span>
             `;
             els.list.appendChild(li);
         }
@@ -942,7 +953,7 @@
             if (state.mode === 'detect') loadPage();
         });
     }
-    for (const el of [els.showCv, els.showDb, els.showMissing, els.showExtra, els.showReview]) {
+    for (const el of [els.showCv, els.showDb, els.showMissing, els.showExtra, els.showReview, els.showRejected]) {
         el?.addEventListener('change', () => {
             paint();
             if (state.mode === 'detect' && state.payload) renderDetectList(state.payload);

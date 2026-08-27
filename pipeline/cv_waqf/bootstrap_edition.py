@@ -41,6 +41,7 @@ def bootstrap_pages(
         except Exception as exc:  # noqa: BLE001
             errors.append(f'page {page}: {exc}')
             continue
+        # detect_page already dropped Azhar-empty words from marks for البحرين.
         trusted, review = split_marks_by_trust(result['marks'], write_conf)
         for mark in trusted:
             row = _draft_row(spec, edition_key, page, mark, errors)

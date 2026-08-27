@@ -105,6 +105,21 @@ def build_ui_payload(
 
     trusted_marks = [m for m in cv_marks if m.get('trust') == 'auto-set']
     review_marks = [m for m in cv_marks if m.get('trust') == 'review']
+    rejected_marks = []
+    for m in detected.get('azhar_rejected') or []:
+        row = dict(m)
+        row['glyph'] = _GLYPH.get(row.get('symbol'), row.get('symbol'))
+        row['trust'] = 'rejected'
+        row['reject_reason'] = row.get('reject_reason') or 'azhar_empty'
+        db = db_by_word.get(int(row['word_id']))
+        if db is None:
+            row['vs_db'] = 'extra'
+        elif db['symbol'] == row.get('symbol'):
+            row['vs_db'] = 'match'
+        else:
+            row['vs_db'] = 'wrong'
+            row['db_symbol'] = db['symbol']
+        rejected_marks.append(row)
     cv_ids = {int(m['word_id']) for m in cv_marks}
     missing = [
         {**db_by_word[wid], 'vs_db': 'missing'}
@@ -119,11 +134,13 @@ def build_ui_payload(
         'review_min_conf': spec.review_min_conf,
         'auto_set_min_conf': auto_set,
         'proposal_mode': detected.get('proposal_mode'),
+        'azhar_prior': detected.get('azhar_prior'),
         'image': str(img_path),
         'summary': {
             'cv': len(cv_marks),
             'trusted': len(trusted_marks),
             'review': len(review_marks),
+            'rejected': len(rejected_marks),
             'db': len(db_marks),
             'match': sum(1 for m in cv_marks if m.get('vs_db') == 'match'),
             'wrong': sum(1 for m in cv_marks if m.get('vs_db') == 'wrong'),
@@ -135,6 +152,7 @@ def build_ui_payload(
         'cv_marks': cv_marks,
         'trusted_marks': trusted_marks,
         'review_marks': review_marks,
+        'rejected_marks': rejected_marks,
         'db_marks': db_marks,
         'missing': missing,
         'symbols': [{'code': c, 'glyph': g} for c, g in _GLYPH.items()],
