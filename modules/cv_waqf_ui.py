@@ -69,7 +69,9 @@ def _build_payload(edition: str, page: int, min_conf: float, slug: str) -> dict:
         logger.info('Building CV UI payload via subprocess')
 
     ARTIFACT_CACHE.mkdir(parents=True, exist_ok=True)
-    out = ARTIFACT_CACHE / f'{slug}_p{page:03d}_{min_conf:.2f}.json'
+    from pipeline.cv_waqf.config import resolve_proposal_mode
+    mode = resolve_proposal_mode(edition)
+    out = ARTIFACT_CACHE / f'{slug}_p{page:03d}_{min_conf:.2f}_{mode}.json'
     py = _resolve_cv_python()
     code = (
         'import json,sys\n'

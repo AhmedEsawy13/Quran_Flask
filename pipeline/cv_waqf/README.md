@@ -63,16 +63,23 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 # Detect one page (line-by-line, above word-end band)
 .venv-cv/bin/python -m pipeline.cv_waqf run-page --edition الشمرلي --page 5 --overlay
 
-# Experimental high-recall proposals. Keep this explicit until the candidate
-# edition model beats production on unseen reviewer labels.
+# البحرين defaults to hybrid proposals (above-word band + line-component
+# candidates) with the gated edition model:
+# models/waqf_glyph_bahrain.onnx + waqf_glyph_bahrain_gate.onnx.
+# On 44 labeled pages at min_conf 0.55 that combination scored 217/238
+# correct vs 11/238 for gated + narrow. Other editions still default to
+# narrow. --proposal-mode remains an explicit override.
+.venv-cv/bin/python -m pipeline.cv_waqf run-page --edition البحرين --page 198
 .venv-cv/bin/python -m pipeline.cv_waqf run-page \
-  --edition البحرين --page 198 --proposal-mode hybrid \
-  --model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_hard.onnx
+  --edition البحرين --page 198 --proposal-mode narrow
+.venv-cv/bin/python -m pipeline.cv_waqf run-page \
+  --edition الشمرلي --page 5 --proposal-mode hybrid
 
 # Audit DB vs CV (reviewable report, no auto-merge)
 .venv-cv/bin/python -m pipeline.cv_waqf audit --edition الشمرلي --pages 2-50
 
 # Target-edition holdout: scores only reviewer-confirmed word anchors.
+# البحرين uses hybrid proposals unless --proposal-mode is passed.
 .venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition البحرين
 .venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition المساحة
 

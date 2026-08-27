@@ -5,7 +5,13 @@ import argparse
 import json
 from pathlib import Path
 
-from pipeline.cv_waqf.config import ARTIFACTS_ROOT, EDITIONS, ROOT
+from pipeline.cv_waqf.config import (
+    ARTIFACTS_ROOT,
+    EDITIONS,
+    PROPOSAL_MODES,
+    ROOT,
+    resolve_proposal_mode,
+)
 from pipeline.cv_waqf.run_page import detect_page
 
 HAND_ROOT = ROOT / 'data' / 'cv' / 'crops_hand'
@@ -74,9 +80,10 @@ def evaluate_labels(
     *,
     min_conf: float = 0.70,
     model_path: Path | None = None,
-    proposal_mode: str = 'narrow',
+    proposal_mode: str | None = None,
 ) -> dict:
     labels, collapse_stats = collapse_word_expectations(labels)
+    proposal_mode = resolve_proposal_mode(edition, proposal_mode)
     by_page: dict[int, list[dict]] = {}
     for row in labels:
         by_page.setdefault(int(row['page']), []).append(row)
@@ -95,11 +102,12 @@ def evaluate_labels(
         'correct_negative': 0,
     }
     for page, page_labels in sorted(by_page.items()):
-        detect_kwargs = {'min_conf': min_conf}
+        detect_kwargs = {
+            'min_conf': min_conf,
+            'proposal_mode': proposal_mode,
+        }
         if model_path is not None:
             detect_kwargs['model_path'] = model_path
-        if proposal_mode != 'narrow':
-            detect_kwargs['proposal_mode'] = proposal_mode
         result = detect_page(edition, page, **detect_kwargs)
         detected = {
             str(mark.get('word_key') or ''): mark
@@ -149,7 +157,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--out', type=Path, default=None)
     parser.add_argument('--model', type=Path, default=None)
     parser.add_argument(
-        '--proposal-mode', choices=('narrow', 'hybrid'), default='narrow',
+        '--proposal-mode',
+        choices=sorted(PROPOSAL_MODES),
+        default=None,
+        help='override the edition default (hybrid for البحرين, narrow otherwise)',
     )
     parser.add_argument(
         '--pages', default=None,

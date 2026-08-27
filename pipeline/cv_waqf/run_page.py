@@ -20,6 +20,8 @@ from pipeline.cv_waqf.config import (
     EDITION_MODEL_PATHS,
     EDITIONS,
     OVERLAYS_ROOT,
+    PROPOSAL_MODES,
+    resolve_proposal_mode,
 )
 from pipeline.cv_waqf.layout_geo import estimate_layout_words
 from pipeline.cv_waqf.line_gaps import (
@@ -149,12 +151,11 @@ def detect_page(
     min_conf: float = 0.55,
     overlay_path: Path | None = None,
     model_path: Path | None = None,
-    proposal_mode: str = 'narrow',
+    proposal_mode: str | None = None,
     seat_prior: bool = True,  # kept for CLI compat; above-word path is always used
 ) -> dict:
     del seat_prior  # unused — geometry is above-word, not old seat prior
-    if proposal_mode not in {'narrow', 'hybrid'}:
-        raise ValueError("proposal_mode must be 'narrow' or 'hybrid'")
+    proposal_mode = resolve_proposal_mode(edition_key, proposal_mode)
     spec = EDITIONS[edition_key]
     img_path = ensure_page_image(spec, page)
     bgr = load_bgr(img_path)
@@ -243,6 +244,7 @@ def detect_page(
             'hybrid-line-components'
             if proposal_mode == 'hybrid' else 'above-word-per-line'
         ),
+        'proposal_mode': proposal_mode,
         'narrow_candidates': len(narrow_hits),
         'component_candidates': len(broad_hits),
         'marks': [
@@ -275,7 +277,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--json-out', type=Path, default=None)
     parser.add_argument('--model', type=Path, default=None)
     parser.add_argument(
-        '--proposal-mode', choices=('narrow', 'hybrid'), default='narrow',
+        '--proposal-mode',
+        choices=sorted(PROPOSAL_MODES),
+        default=None,
+        help='override the edition default (hybrid for البحرين, narrow otherwise)',
     )
     args = parser.parse_args(argv)
 

@@ -54,6 +54,7 @@ def build_ui_payload(
     from pipeline.cv_waqf.config import EDITIONS
 
     spec = EDITIONS[edition]
+    # Inherits EditionSpec.default_proposal_mode (hybrid for البحرين).
     detected = detect_page(edition, page, min_conf=min_conf, seat_prior=True)
     img_path = ensure_page_image(spec, page)
     prepared = preprocess_page(load_bgr(img_path), spec)
@@ -107,6 +108,7 @@ def build_ui_payload(
         'slug': slug,
         'page': page,
         'min_conf': min_conf,
+        'proposal_mode': detected.get('proposal_mode'),
         'image': str(img_path),
         'summary': {
             'cv': len(cv_marks),

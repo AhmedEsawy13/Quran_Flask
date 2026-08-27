@@ -45,6 +45,8 @@ DEFAULT_GLYPH_FONT = Path.home() / 'Library' / 'Fonts' / 'amiri-quran.ttf'
 IMG_WIDTH = 1024
 CROP_SIZE = 48  # square crop fed to the classifier
 
+PROPOSAL_MODES = frozenset({'narrow', 'hybrid'})
+
 
 @dataclass(frozen=True)
 class EditionSpec:
@@ -69,6 +71,10 @@ class EditionSpec:
     text_bottom: float = 0.92
     text_left: float = 0.06
     text_right: float = 0.94
+    # Candidate geometry. ``hybrid`` adds line-component proposals on top of
+    # the above-word band. Keep ``narrow`` unless an edition model has beaten
+    # production on unseen reviewer labels with the broader search.
+    default_proposal_mode: str = 'narrow'
 
 
 EDITIONS: dict[str, EditionSpec] = {
@@ -103,6 +109,9 @@ EDITIONS: dict[str, EditionSpec] = {
         # A wider 10%..92% band drifts by almost a full row at both edges.
         text_top=0.14,
         text_bottom=0.88,
+        # Gated Bahrain ONNX + hybrid proposals: 217/238 correct on 44
+        # labeled pages at min_conf 0.55, vs 11/238 for gated + narrow.
+        default_proposal_mode='hybrid',
     ),
     'المساحة': EditionSpec(
         id='mesaha',
@@ -170,3 +179,14 @@ TRUSTED_WAQF_EDITIONS: tuple[str, ...] = (
 TARGET_WAQF_EDITIONS: tuple[str, ...] = ('البحرين', 'المساحة')
 
 WAQF_DB = MUSHAF_WAQF_DATABASE
+
+
+def resolve_proposal_mode(
+    edition_key: str,
+    proposal_mode: str | None = None,
+) -> str:
+    """Return an explicit override, or the edition's default proposal mode."""
+    resolved = proposal_mode or EDITIONS[edition_key].default_proposal_mode
+    if resolved not in PROPOSAL_MODES:
+        raise ValueError("proposal_mode must be 'narrow' or 'hybrid'")
+    return resolved

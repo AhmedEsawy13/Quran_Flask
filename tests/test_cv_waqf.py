@@ -269,10 +269,114 @@ def test_shamarly_page2_detect_smoke():
 
 
 def test_bahrain_has_isolated_optional_model_path():
-    from pipeline.cv_waqf.config import EDITION_MODEL_PATHS, MODEL_PATH
+    from pipeline.cv_waqf.config import EDITION_MODEL_PATHS, MODEL_PATH, ROOT
 
-    assert EDITION_MODEL_PATHS['البحرين'].name == 'waqf_glyph_bahrain.onnx'
-    assert EDITION_MODEL_PATHS['البحرين'] != MODEL_PATH
+    bahrain = EDITION_MODEL_PATHS['البحرين']
+    assert bahrain == ROOT / 'models' / 'waqf_glyph_bahrain.onnx'
+    assert bahrain != MODEL_PATH
+    assert bahrain.with_name('waqf_glyph_bahrain_gate.onnx') == (
+        ROOT / 'models' / 'waqf_glyph_bahrain_gate.onnx'
+    )
+
+
+def test_only_bahrain_defaults_to_hybrid_proposals():
+    from pipeline.cv_waqf.config import EDITIONS, resolve_proposal_mode
+
+    assert EDITIONS['البحرين'].default_proposal_mode == 'hybrid'
+    assert resolve_proposal_mode('البحرين') == 'hybrid'
+    others = {
+        key: spec.default_proposal_mode
+        for key, spec in EDITIONS.items()
+        if key != 'البحرين'
+    }
+    assert others
+    assert all(mode == 'narrow' for mode in others.values())
+    assert resolve_proposal_mode('الشمرلي') == 'narrow'
+    assert resolve_proposal_mode('المساحة') == 'narrow'
+    assert resolve_proposal_mode('الأزهر') == 'narrow'
+    assert resolve_proposal_mode('البحرين', 'narrow') == 'narrow'
+    assert resolve_proposal_mode('الشمرلي', 'hybrid') == 'hybrid'
+    with pytest.raises(ValueError, match='proposal_mode'):
+        resolve_proposal_mode('البحرين', 'wide')
+
+
+def test_detect_and_evaluate_inherit_edition_proposal_default():
+    import inspect
+
+    from pipeline.cv_waqf.evaluate_hand import evaluate_labels
+    from pipeline.cv_waqf.run_page import detect_page
+
+    assert inspect.signature(detect_page).parameters['proposal_mode'].default is None
+    assert inspect.signature(evaluate_labels).parameters['proposal_mode'].default is None
+
+
+def test_detect_page_uses_hybrid_line_components_for_bahrain_only(monkeypatch):
+    from pipeline.cv_waqf import run_page
+
+    class FakePrepared:
+        gray = np.zeros((10, 10), dtype=np.uint8)
+
+    class FakeClassifier:
+        ready = True
+        model_path = Path('/tmp/waqf_glyph_bahrain.onnx')
+        pipeline = 'two-stage'
+
+        def predict_many_probs(self, crops):
+            return []
+
+    hybrid_calls = []
+    monkeypatch.setattr(run_page, 'ensure_page_image', lambda *_: Path('/tmp/page.jpg'))
+    monkeypatch.setattr(
+        run_page, 'load_bgr', lambda *_: np.zeros((10, 10, 3), dtype=np.uint8),
+    )
+    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(run_page, 'estimate_layout_words', lambda *_: [])
+    monkeypatch.setattr(run_page, 'find_above_word_candidates', lambda *_: [])
+    monkeypatch.setattr(
+        run_page,
+        'find_line_component_candidates',
+        lambda *_: hybrid_calls.append(True) or [],
+    )
+    monkeypatch.setattr(run_page, 'GlyphClassifier', lambda **_: FakeClassifier())
+
+    bahrain = run_page.detect_page('البحرين', 198)
+    assert hybrid_calls == [True]
+    assert bahrain['proposal_mode'] == 'hybrid'
+    assert bahrain['strategy'] == 'hybrid-line-components'
+
+    hybrid_calls.clear()
+    shamarly = run_page.detect_page('الشمرلي', 5)
+    assert hybrid_calls == []
+    assert shamarly['proposal_mode'] == 'narrow'
+    assert shamarly['strategy'] == 'above-word-per-line'
+
+    hybrid_calls.clear()
+    forced = run_page.detect_page('البحرين', 198, proposal_mode='narrow')
+    assert hybrid_calls == []
+    assert forced['proposal_mode'] == 'narrow'
+
+
+def test_ui_bootstrap_and_audit_do_not_pin_proposal_mode():
+    ui = (ROOT / 'pipeline' / 'cv_waqf' / 'ui_payload.py').read_text(encoding='utf-8')
+    bootstrap = (ROOT / 'pipeline' / 'cv_waqf' / 'bootstrap_edition.py').read_text(
+        encoding='utf-8',
+    )
+    audit = (ROOT / 'pipeline' / 'cv_waqf' / 'audit_edition.py').read_text(
+        encoding='utf-8',
+    )
+    flask_ui = (ROOT / 'modules' / 'cv_waqf_ui.py').read_text(encoding='utf-8')
+    assert 'proposal_mode=' not in ui
+    assert 'proposal_mode=' not in bootstrap
+    assert 'proposal_mode=' not in audit
+    assert 'proposal_mode=' not in flask_ui
+    assert 'resolve_proposal_mode(edition)' in flask_ui
+
+
+def test_bahrain_readme_documents_hybrid_default():
+    text = (ROOT / 'pipeline' / 'cv_waqf' / 'README.md').read_text(encoding='utf-8')
+    assert 'Experimental high-recall' not in text
+    assert '--proposal-mode' in text
+    assert 'defaults to hybrid proposals' in text
 
 
 def test_bootstrap_plan_schema():
@@ -474,8 +578,60 @@ def test_hand_evaluation_can_use_an_explicit_demo_model(monkeypatch, tmp_path):
         model_path=model,
     )
 
-    assert calls == [{'min_conf': 0.70, 'model_path': model}]
+    assert calls == [{'min_conf': 0.70, 'proposal_mode': 'hybrid', 'model_path': model}]
     assert report['model'] == str(model)
+    assert report['proposal_mode'] == 'hybrid'
+
+
+def test_hand_evaluation_defaults_to_edition_proposal_mode(monkeypatch):
+    from pipeline.cv_waqf import evaluate_hand
+
+    calls = []
+    monkeypatch.setattr(
+        evaluate_hand,
+        'detect_page',
+        lambda *_args, **kwargs: calls.append(kwargs) or {'marks': []},
+    )
+    labels = [{'page': 2, 'word_key': '2:2:1', 'symbol': 'ج'}]
+
+    bahrain = evaluate_hand.evaluate_labels('البحرين', labels)
+    assert calls[-1]['proposal_mode'] == 'hybrid'
+    assert bahrain['proposal_mode'] == 'hybrid'
+
+    shamarly = evaluate_hand.evaluate_labels('الشمرلي', labels)
+    assert calls[-1]['proposal_mode'] == 'narrow'
+    assert shamarly['proposal_mode'] == 'narrow'
+
+    overridden = evaluate_hand.evaluate_labels(
+        'البحرين', labels, proposal_mode='narrow',
+    )
+    assert calls[-1]['proposal_mode'] == 'narrow'
+    assert overridden['proposal_mode'] == 'narrow'
+
+
+def test_run_page_cli_omits_proposal_mode_unless_passed(monkeypatch, capsys):
+    from pipeline.cv_waqf import run_page
+
+    calls = []
+    monkeypatch.setattr(
+        run_page,
+        'detect_page',
+        lambda edition, page, **kwargs: calls.append((edition, kwargs)) or {
+            'edition': edition,
+            'page': page,
+            'marks': [],
+        },
+    )
+
+    assert run_page.main(['--edition', 'البحرين', '--page', '198']) == 0
+    assert calls[-1][0] == 'البحرين'
+    assert calls[-1][1]['proposal_mode'] is None
+
+    assert run_page.main([
+        '--edition', 'البحرين', '--page', '198', '--proposal-mode', 'narrow',
+    ]) == 0
+    assert calls[-1][1]['proposal_mode'] == 'narrow'
+    capsys.readouterr()
 
 
 def test_review_queue_is_deterministic_and_covers_every_band():
