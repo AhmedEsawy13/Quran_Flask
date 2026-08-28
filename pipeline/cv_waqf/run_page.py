@@ -168,11 +168,11 @@ def _mark_dict(mark: AttachedMark, *, reject_reason: str | None = None) -> dict:
 
 
 OVERLAY_KEPT_BGR = (0, 200, 0)
-OVERLAY_REJECTED_BGR = (0, 0, 220)
 
 
-def _stroke_overlay_mark(vis, mark: AttachedMark, color: tuple[int, int, int]) -> None:
+def _stroke_overlay_mark(vis, mark: AttachedMark) -> None:
     cand = mark.candidate
+    color = OVERLAY_KEPT_BGR
     cv2.rectangle(
         vis, (cand.x, cand.y), (cand.x + cand.w, cand.y + cand.h), color, 2,
     )
@@ -183,17 +183,11 @@ def _stroke_overlay_mark(vis, mark: AttachedMark, color: tuple[int, int, int]) -
     )
 
 
-def paint_detect_overlay(
-    bgr,
-    kept: list[AttachedMark],
-    rejected: list[AttachedMark],
-):
-    """Page image plus green kept / red Azhar-rejected glyph boxes only."""
+def paint_detect_overlay(bgr, kept: list[AttachedMark]):
+    """Page image plus green kept glyph boxes only."""
     vis = bgr.copy()
     for mark in kept:
-        _stroke_overlay_mark(vis, mark, OVERLAY_KEPT_BGR)
-    for mark in rejected:
-        _stroke_overlay_mark(vis, mark, OVERLAY_REJECTED_BGR)
+        _stroke_overlay_mark(vis, mark)
     return vis
 
 
@@ -274,7 +268,7 @@ def detect_page(
 
     if overlay_path is not None:
         overlay_path.parent.mkdir(parents=True, exist_ok=True)
-        vis = paint_detect_overlay(overlay_base, kept, rejected)
+        vis = paint_detect_overlay(overlay_base, kept)
         cv2.imwrite(str(overlay_path), vis)
 
     return {

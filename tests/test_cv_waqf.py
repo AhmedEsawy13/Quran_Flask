@@ -1074,16 +1074,14 @@ def test_detect_overlay_source_has_no_proposal_or_classified_boxes():
     assert 'for hit in hits' not in paint
     assert 'raw_classified' not in paint
     assert 'cv2.circle' not in src
-    assert 'OVERLAY_KEPT_BGR' in paint
-    assert 'OVERLAY_REJECTED_BGR' in paint
+    assert 'OVERLAY_KEPT_BGR' in src
+    assert 'OVERLAY_REJECTED_BGR' not in src
+    assert '(0, 0, 220)' not in src
+    assert 'rejected' not in paint
 
 
-def test_paint_detect_overlay_uses_only_green_and_red(monkeypatch):
-    from pipeline.cv_waqf.run_page import (
-        OVERLAY_KEPT_BGR,
-        OVERLAY_REJECTED_BGR,
-        paint_detect_overlay,
-    )
+def test_paint_detect_overlay_draws_kept_green_only(monkeypatch):
+    from pipeline.cv_waqf.run_page import OVERLAY_KEPT_BGR, paint_detect_overlay
 
     strokes = []
 
@@ -1102,24 +1100,19 @@ def test_paint_detect_overlay_uses_only_green_and_red(monkeypatch):
 
     bgr = np.full((40, 40, 3), 255, dtype=np.uint8)
     kept = _attached_mark('33:51:8', symbol='ص', confidence=0.99, word_id=8)
-    rejected = _attached_mark('4:23:11', symbol='ج', confidence=0.97, word_id=2)
-    paint_detect_overlay(bgr, [kept], [rejected])
+    paint_detect_overlay(bgr, [kept])
 
     colors = {item[-1] for item in strokes}
-    assert colors == {OVERLAY_KEPT_BGR, OVERLAY_REJECTED_BGR}
+    assert colors == {OVERLAY_KEPT_BGR}
     assert ('rect', OVERLAY_KEPT_BGR) in strokes
-    assert ('rect', OVERLAY_REJECTED_BGR) in strokes
     assert any(
         item[0] == 'text' and item[1].startswith('ص:') and item[2] == OVERLAY_KEPT_BGR
         for item in strokes
     )
-    assert any(
-        item[0] == 'text' and item[1].startswith('ج:') and item[2] == OVERLAY_REJECTED_BGR
-        for item in strokes
-    )
+    assert not any(item[-1] == (0, 0, 220) for item in strokes)
 
 
-def test_detect_page_overlay_writes_green_kept_red_rejected(monkeypatch, tmp_path):
+def test_detect_page_overlay_writes_green_kept_only(monkeypatch, tmp_path):
     from pipeline.cv_waqf import azhar_prior, run_page
 
     strokes = []
@@ -1148,7 +1141,7 @@ def test_detect_page_overlay_writes_green_kept_red_rejected(monkeypatch, tmp_pat
 
     overlay = tmp_path / 'p425.jpg'
     result = run_page.detect_page('البحرين', 425, overlay_path=overlay)
-    assert set(strokes) == {run_page.OVERLAY_KEPT_BGR, run_page.OVERLAY_REJECTED_BGR}
+    assert set(strokes) == {run_page.OVERLAY_KEPT_BGR}
     assert [row['word_key'] for row in result['marks']] == ['33:51:8']
     assert [row['word_key'] for row in result['azhar_rejected']] == ['4:23:11']
 
