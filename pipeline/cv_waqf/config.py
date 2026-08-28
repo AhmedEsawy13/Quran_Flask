@@ -124,8 +124,9 @@ EDITIONS: dict[str, EditionSpec] = {
         # 0.85 keeps almost the same recall (214/238) while cutting FP 31 → 14.
         # Remaining FPs are 0.97+ fatha-sized glyphs; a cutoff cannot reach 0 FP.
         auto_set_min_conf=0.85,
-        # Word-level Azhar occupancy: 31→6 FP / 217→213 correct on the
-        # 44-page hand set. 12 known Bahrain-only DB seats will be missed.
+        # Word-level Azhar occupancy (word_index, not token_index):
+        # 31→6 FP / 217→213 correct on the 44-page hand set.
+        # 12 known Bahrain-only DB seats will be missed.
         azhar_seat_prior=True,
     ),
     'المساحة': EditionSpec(

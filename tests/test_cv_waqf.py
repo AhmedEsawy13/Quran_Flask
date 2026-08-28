@@ -949,11 +949,11 @@ def test_azhar_occupancy_drops_empty_azhar_word(tmp_path):
     conn.execute(
         'CREATE TABLE waqf ('
         '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
-        '"الأزهر" TEXT, "البحرين" TEXT, "قطر" TEXT)'
+        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT, "قطر" TEXT)'
     )
-    conn.execute('INSERT INTO waqf VALUES (2,5,5,"ج",NULL,NULL)')
-    conn.execute('INSERT INTO waqf VALUES (4,23,11,NULL,"ص","ص")')
-    conn.execute('INSERT INTO waqf VALUES (2,5,6,"","ص",NULL)')
+    conn.execute('INSERT INTO waqf VALUES (2,5,5,5,"ج",NULL,NULL)')
+    conn.execute('INSERT INTO waqf VALUES (4,23,11,11,NULL,"ص","ص")')
+    conn.execute('INSERT INTO waqf VALUES (2,5,6,6,"","ص",NULL)')
     conn.commit()
     conn.close()
     reset_azhar_occupancy_cache()
@@ -985,6 +985,83 @@ def test_azhar_occupancy_fails_open_when_db_missing(tmp_path):
     kept, rejected = partition_marks_by_azhar_occupancy(marks, db_path=missing)
     assert kept == marks
     assert rejected == []
+
+
+def test_azhar_occupancy_matches_word_index_not_token_index(tmp_path):
+    import sqlite3
+
+    from pipeline.cv_waqf.azhar_prior import (
+        load_azhar_occupied_seats,
+        partition_marks_by_azhar_occupancy,
+        reset_azhar_occupancy_cache,
+        word_has_azhar_waqf,
+    )
+
+    db = tmp_path / 'mushaf_waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE waqf ('
+        '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
+        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT)'
+    )
+    # 33:51:8 تشاء — printed word_index 8, token_index 9, الأزهر ج البحرين ص.
+    conn.execute('INSERT INTO waqf VALUES (33,51,9,8,"ج","ص")')
+    conn.execute('INSERT INTO waqf VALUES (33,51,27,26,"ج","ج")')
+    conn.execute('INSERT INTO waqf VALUES (33,51,32,31,"ج","ج")')
+    conn.execute('INSERT INTO waqf VALUES (1,1,1,NULL,"ج",NULL)')
+    conn.commit()
+    conn.close()
+    reset_azhar_occupancy_cache()
+
+    assert load_azhar_occupied_seats(str(db)) == {
+        (33, 51, 8), (33, 51, 26), (33, 51, 31),
+    }
+    assert word_has_azhar_waqf(33, 51, 8, db_path=db) is True
+    assert word_has_azhar_waqf(33, 51, 9, db_path=db) is False
+    kept, rejected = partition_marks_by_azhar_occupancy(
+        [
+            {
+                'word_key': '33:51:8', 'surah': 33, 'ayah': 51,
+                'symbol': 'ص', 'confidence': 0.99,
+            },
+            {
+                'word_key': '33:51:9', 'surah': 33, 'ayah': 51,
+                'symbol': 'ص', 'confidence': 0.99,
+            },
+        ],
+        db_path=db,
+    )
+    assert [row['word_key'] for row in kept] == ['33:51:8']
+    assert [row['word_key'] for row in rejected] == ['33:51:9']
+
+
+def test_bahrain_detect_keeps_word_index_when_token_index_differs(
+    monkeypatch, tmp_path,
+):
+    import sqlite3
+
+    from pipeline.cv_waqf import azhar_prior, run_page
+
+    db = tmp_path / 'mushaf_waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE waqf ('
+        '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
+        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT)'
+    )
+    conn.execute('INSERT INTO waqf VALUES (33,51,9,8,"ج","ص")')
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(azhar_prior, 'WAQF_DB', str(db))
+    azhar_prior.reset_azhar_occupancy_cache()
+    _stub_detect_pipeline(monkeypatch, [
+        _attached_mark('33:51:8', symbol='ص', confidence=0.99, word_id=8),
+    ])
+
+    result = run_page.detect_page('البحرين', 425)
+    assert [row['word_key'] for row in result['marks']] == ['33:51:8']
+    assert result['azhar_rejected'] == []
+    assert result['azhar_kept'] == 1
 
 
 def test_bahrain_detect_page_applies_azhar_seat_prior(monkeypatch):
