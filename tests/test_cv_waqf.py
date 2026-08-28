@@ -1064,6 +1064,95 @@ def test_bahrain_detect_keeps_word_index_when_token_index_differs(
     assert result['azhar_kept'] == 1
 
 
+def test_detect_overlay_source_has_no_proposal_or_classified_boxes():
+    src = (ROOT / 'pipeline' / 'cv_waqf' / 'run_page.py').read_text(
+        encoding='utf-8',
+    )
+    paint = src.split('def paint_detect_overlay')[1].split('def detect_page')[0]
+    assert '(180, 180, 80)' not in src
+    assert '(0, 140, 255)' not in src
+    assert 'for hit in hits' not in paint
+    assert 'raw_classified' not in paint
+    assert 'cv2.circle' not in src
+    assert 'OVERLAY_KEPT_BGR' in paint
+    assert 'OVERLAY_REJECTED_BGR' in paint
+
+
+def test_paint_detect_overlay_uses_only_green_and_red(monkeypatch):
+    from pipeline.cv_waqf.run_page import (
+        OVERLAY_KEPT_BGR,
+        OVERLAY_REJECTED_BGR,
+        paint_detect_overlay,
+    )
+
+    strokes = []
+
+    def capture_rect(_img, _pt1, _pt2, color, _thickness=1):
+        strokes.append(('rect', tuple(color)))
+
+    def capture_text(_img, text, _org, _font, _scale, color, *_a, **_k):
+        strokes.append(('text', text, tuple(color)))
+
+    def forbid_circle(*_a, **_k):
+        raise AssertionError('overlay must not draw circles')
+
+    monkeypatch.setattr('pipeline.cv_waqf.run_page.cv2.rectangle', capture_rect)
+    monkeypatch.setattr('pipeline.cv_waqf.run_page.cv2.putText', capture_text)
+    monkeypatch.setattr('pipeline.cv_waqf.run_page.cv2.circle', forbid_circle)
+
+    bgr = np.full((40, 40, 3), 255, dtype=np.uint8)
+    kept = _attached_mark('33:51:8', symbol='ص', confidence=0.99, word_id=8)
+    rejected = _attached_mark('4:23:11', symbol='ج', confidence=0.97, word_id=2)
+    paint_detect_overlay(bgr, [kept], [rejected])
+
+    colors = {item[-1] for item in strokes}
+    assert colors == {OVERLAY_KEPT_BGR, OVERLAY_REJECTED_BGR}
+    assert ('rect', OVERLAY_KEPT_BGR) in strokes
+    assert ('rect', OVERLAY_REJECTED_BGR) in strokes
+    assert any(
+        item[0] == 'text' and item[1].startswith('ص:') and item[2] == OVERLAY_KEPT_BGR
+        for item in strokes
+    )
+    assert any(
+        item[0] == 'text' and item[1].startswith('ج:') and item[2] == OVERLAY_REJECTED_BGR
+        for item in strokes
+    )
+
+
+def test_detect_page_overlay_writes_green_kept_red_rejected(monkeypatch, tmp_path):
+    from pipeline.cv_waqf import azhar_prior, run_page
+
+    strokes = []
+
+    def capture_rect(_img, _pt1, _pt2, color, _thickness=1):
+        strokes.append(tuple(color))
+
+    def capture_text(_img, _text, _org, _font, _scale, color, *_a, **_k):
+        strokes.append(tuple(color))
+
+    def forbid_circle(*_a, **_k):
+        raise AssertionError('overlay must not draw circles')
+
+    monkeypatch.setattr(run_page.cv2, 'rectangle', capture_rect)
+    monkeypatch.setattr(run_page.cv2, 'putText', capture_text)
+    monkeypatch.setattr(run_page.cv2, 'circle', forbid_circle)
+    monkeypatch.setattr(run_page.cv2, 'imwrite', lambda *_a, **_k: True)
+    monkeypatch.setattr(
+        azhar_prior, 'load_azhar_occupied_seats',
+        lambda db_path='': {(33, 51, 8)},
+    )
+    _stub_detect_pipeline(monkeypatch, [
+        _attached_mark('33:51:8', symbol='ص', confidence=0.99, word_id=8),
+        _attached_mark('4:23:11', symbol='ج', confidence=0.97, word_id=2),
+    ])
+
+    overlay = tmp_path / 'p425.jpg'
+    result = run_page.detect_page('البحرين', 425, overlay_path=overlay)
+    assert set(strokes) == {run_page.OVERLAY_KEPT_BGR, run_page.OVERLAY_REJECTED_BGR}
+    assert [row['word_key'] for row in result['marks']] == ['33:51:8']
+    assert [row['word_key'] for row in result['azhar_rejected']] == ['4:23:11']
+
+
 def test_bahrain_detect_page_applies_azhar_seat_prior(monkeypatch):
     from pipeline.cv_waqf import azhar_prior, run_page
 
