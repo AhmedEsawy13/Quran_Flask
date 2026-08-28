@@ -18,6 +18,7 @@ from core.blueprints import editor_bp
 from core.config import _ROOT
 from core.errors import NotFoundError, PersistenceError
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
+from core.waqf_glyphs import SHORT_NAME as _GLYPH_SHORT
 from modules.editor_auth import require_editor
 
 logger = logging.getLogger(__name__)
@@ -538,7 +539,12 @@ def cv_waqf_page():
         enable_vercel_analytics=_IS_SERVERLESS,
         editions=_UI_EDITIONS,
         symbols=[
-            {'code': c, 'glyph': g, 'name': n}
+            {
+                'code': c,
+                'glyph': g,
+                'name': n,
+                'short': _GLYPH_SHORT[c],
+            }
             for c, g, n in _GLYPH_META
         ],
         default_edition='الشمرلي',

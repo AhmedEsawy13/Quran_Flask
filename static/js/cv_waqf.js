@@ -49,6 +49,8 @@
         loginPassword: document.getElementById('cvw-login-password'),
         loginError: document.getElementById('cvw-login-error'),
         loginSubmit: document.getElementById('cvw-login-submit'),
+        title: document.getElementById('cvw-title'),
+        side: document.getElementById('cvw-side'),
     };
 
     const state = {
@@ -100,6 +102,10 @@
     const GLYPH = Object.fromEntries(
         symbols.map((s) => [s.code, s.glyph]).concat([['none', '∅']])
     );
+    const SHORT = Object.fromEntries(
+        symbols.map((s) => [s.code, s.short || s.name || s.code])
+    );
+    const UTHMANIC_FONT = 'UthmanicHafs';
     // A click should capture the glyph itself, not the nearby CV proposal
     // component. 32 image pixels match the runtime classifier footprint on
     // the 1024px review scans; dragging remains available for unusual marks.
@@ -107,6 +113,22 @@
 
     function toAr(n) {
         return String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d]);
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[ch]));
+    }
+
+    function glyphOf(code) {
+        if (!code || code === 'none') return GLYPH.none;
+        return GLYPH[code] || code;
+    }
+
+    function shortOf(code) {
+        if (!code || code === 'none') return '';
+        return SHORT[code] || code;
     }
 
     function editionMeta() {
@@ -149,7 +171,7 @@
     function syncQueueUi() {
         if (!els.queue || !els.queuePage) return;
         const rows = state.reviewQueue;
-        els.queue.hidden = rows.length === 0;
+        els.queue.hidden = state.mode !== 'label' || rows.length === 0;
         els.queuePage.innerHTML = '';
         const activeIndex = queueIndex();
         if (activeIndex < 0 && rows.length) {
@@ -250,11 +272,23 @@
 
     function setMode(mode) {
         state.mode = mode;
+        document.body.dataset.uiMode = mode;
         els.modeLabel.classList.toggle('is-active', mode === 'label');
         els.modeDetect.classList.toggle('is-active', mode === 'detect');
         els.palette.hidden = mode !== 'label';
         els.detectToggles.hidden = mode !== 'detect';
         els.wrap.classList.toggle('is-label', mode === 'label');
+        if (els.side) {
+            els.side.setAttribute(
+                'aria-label',
+                mode === 'detect' ? 'مواضع الوقف على الصفحة' : 'التسميات المحفوظة',
+            );
+        }
+        if (els.title) {
+            els.title.textContent = mode === 'detect'
+                ? 'مراجعة كشف الوقف'
+                : 'سمِّ علامات الوقف على الصفحة';
+        }
         state.draft = null;
         syncSaveUi();
         loadPage();
@@ -414,6 +448,7 @@
                 if (!res.ok) throw apiError(res, data);
                 if (gen !== state.loadGen) return;
                 state.payload = data;
+                state.labels = [];
                 state.minPage = data.min_page;
                 state.maxPage = data.max_page;
                 await loadImageFromUrl(data.image_url, gen);
@@ -422,10 +457,11 @@
                 renderDetectList(data);
                 const s = data.summary || {};
                 setMeta(
-                    `صفحة ${toAr(data.page)} · CV ${toAr(s.cv || 0)} · DB ${toAr(s.db || 0)}`
-                    + ` · مطابق ${toAr(s.match || 0)} · زائد ${toAr(s.extra || 0)}`
+                    `صفحة ${toAr(data.page)} · مطابق ${toAr(s.match || 0)}`
+                    + ` · مختلف ${toAr(s.wrong || 0)}`
+                    + ` · ناقص ${toAr(s.missing || 0)}`
+                    + ` · زائد ${toAr(s.extra || 0)}`
                     + (s.review ? ` · مراجعة ${toAr(s.review)}` : '')
-                    + (s.rejected ? ` · مستبعد الأزهر ${toAr(s.rejected)}` : '')
                 );
             }
             if (gen !== state.loadGen) return;
@@ -498,25 +534,46 @@
         els.canvas.height = state.naturalH;
     }
 
+    function detectKind(m) {
+        if (m.trust === 'rejected' || m.reject_reason === 'azhar_empty') return 'rejected';
+        if (m.vs_db === 'wrong') return 'wrong';
+        if (m.vs_db === 'missing') return 'missing';
+        if (m.vs_db === 'extra') return 'extra';
+        if (m.trust === 'review') return 'review';
+        return m.vs_db || 'match';
+    }
+
     function visibleCvMarks(data) {
         // cv_marks is the union of kept hits; trusted_marks / review_marks
         // are the split so a human can grade 0.55–auto_set hits without
         // auto-writing them. rejected_marks were dropped by the Azhar
-        // occupancy prior and must not auto-set, but stay visible for restore.
+        // occupancy prior — hidden from the default detect list.
         const rows = data.cv_marks && data.cv_marks.length
             ? data.cv_marks
             : [...(data.trusted_marks || []), ...(data.review_marks || [])];
         const out = [];
         for (const m of rows) {
-            if (m.vs_db === 'extra' && !els.showExtra.checked) continue;
+            if (m.vs_db === 'extra' && els.showExtra && !els.showExtra.checked) continue;
             if (m.trust === 'review' && els.showReview && !els.showReview.checked) continue;
             out.push(m);
         }
-        const showRejected = !els.showRejected || els.showRejected.checked;
+        const showRejected = els.showRejected && els.showRejected.checked;
         if (showRejected) {
             out.push(...(data.rejected_marks || []));
         }
         return out;
+    }
+
+    function detectRows(data) {
+        const rows = [];
+        if (!els.showCv || els.showCv.checked) rows.push(...visibleCvMarks(data));
+        if (!els.showMissing || els.showMissing.checked) {
+            rows.push(...(data.missing || []));
+        }
+        const rank = {
+            wrong: 0, missing: 1, extra: 2, review: 3, match: 4, rejected: 9,
+        };
+        return rows.sort((a, b) => (rank[detectKind(a)] ?? 5) - (rank[detectKind(b)] ?? 5));
     }
 
     function paint() {
@@ -526,47 +583,67 @@
 
         if (state.mode === 'detect' && state.payload) {
             const data = state.payload;
-            if (els.showDb.checked) {
+            if (els.showDb && els.showDb.checked) {
                 for (const m of data.db_marks || []) {
                     strokeBox(ctx, m.seat || m.box, COLORS.db, 1);
                 }
             }
-            if (els.showCv.checked) {
+            if (!els.showCv || els.showCv.checked) {
                 for (const m of visibleCvMarks(data)) {
-                    const rejected = m.trust === 'rejected' || m.reject_reason === 'azhar_empty';
-                    const review = m.trust === 'review';
+                    const kind = detectKind(m);
+                    const active = String(m.word_id) === String(state.activeId);
                     strokeBox(
                         ctx, m.box,
-                        rejected ? COLORS.rejected : (review ? COLORS.review : (COLORS[m.vs_db] || COLORS.extra)),
-                        2, review || rejected,
+                        COLORS[kind] || COLORS.extra,
+                        active ? 3 : 2,
+                        kind === 'review' || kind === 'rejected',
+                    );
+                    paintGlyph(
+                        ctx, m.box,
+                        glyphOf(m.symbol) || m.glyph,
+                        COLORS[kind] || COLORS.extra,
+                    );
+                    if (kind === 'wrong') {
+                        paintGlyph(
+                            ctx, m.box,
+                            glyphOf(m.db_symbol) || m.db_glyph,
+                            COLORS.db,
+                            { offsetX: Math.max(18, Math.round(state.naturalW / 40)) },
+                        );
+                    }
+                }
+            }
+            if (!els.showMissing || els.showMissing.checked) {
+                for (const m of data.missing || []) {
+                    const active = String(m.word_id) === String(state.activeId);
+                    strokeBox(ctx, m.seat || m.box, COLORS.missing, active ? 3 : 2, true);
+                    paintGlyph(
+                        ctx, m.seat || m.box,
+                        glyphOf(m.symbol) || m.glyph,
+                        COLORS.missing,
                     );
                 }
             }
-            if (els.showMissing.checked) {
-                for (const m of data.missing || []) {
-                    strokeBox(ctx, m.seat || m.box, COLORS.missing, 2, true);
-                }
+        }
+
+        if (state.mode === 'label') {
+            const lw = Math.max(2, Math.round(state.naturalW / 600));
+            for (const lab of state.labels) {
+                const active = lab.id === state.activeId;
+                strokeBox(ctx, lab.box, COLORS.label, active ? lw + 1 : lw);
+                paintGlyph(ctx, lab.box, glyphOf(lab.symbol) || lab.symbol, COLORS.label);
             }
-        }
 
-        // Hand labels always visible in label mode; also overlay in detect.
-        const lw = Math.max(2, Math.round(state.naturalW / 600));
-        for (const lab of state.labels) {
-            const active = lab.id === state.activeId;
-            strokeBox(ctx, lab.box, COLORS.label, active ? lw + 1 : lw);
-            labelText(ctx, lab.box, GLYPH[lab.symbol] || lab.symbol, COLORS.label);
-        }
-
-        if (state.draft) {
-            // Thicker dash so the draft stays visible on high-res page bitmaps.
-            const scale = Math.max(2, Math.round(state.naturalW / 500));
-            strokeBox(ctx, [
-                state.draft.x0, state.draft.y0, state.draft.x1, state.draft.y1,
-            ], COLORS.draft, scale, true);
-        }
-        if (state.selectedWordKey) {
-            const word = state.words.find((row) => row.word_key === state.selectedWordKey);
-            if (word) strokeBox(ctx, word.seat || word.box, COLORS.word, lw + 1, true);
+            if (state.draft) {
+                const scale = Math.max(2, Math.round(state.naturalW / 500));
+                strokeBox(ctx, [
+                    state.draft.x0, state.draft.y0, state.draft.x1, state.draft.y1,
+                ], COLORS.draft, scale, true);
+            }
+            if (state.selectedWordKey) {
+                const word = state.words.find((row) => row.word_key === state.selectedWordKey);
+                if (word) strokeBox(ctx, word.seat || word.box, COLORS.word, lw + 1, true);
+            }
         }
     }
 
@@ -583,12 +660,24 @@
         ctx.restore();
     }
 
-    function labelText(ctx, box, text, color) {
+    function paintGlyph(ctx, box, text, color, opts) {
         if (!box || !text) return;
+        let [x0, y0, x1, y1] = box;
+        if (x1 < x0) [x0, x1] = [x1, x0];
+        if (y1 < y0) [y0, y1] = [y1, y0];
+        const size = Math.max(28, Math.round(state.naturalW / 22));
+        const cx = (x0 + x1) / 2 + (opts?.offsetX || 0);
+        const cy = Math.max(size, y0 - 2);
         ctx.save();
+        ctx.font = `${size}px ${UTHMANIC_FONT}, serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.direction = 'rtl';
+        ctx.lineWidth = Math.max(3, Math.round(size / 10));
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
         ctx.fillStyle = color;
-        ctx.font = 'bold 18px serif';
-        ctx.fillText(text, box[0], Math.max(16, box[1] - 4));
+        ctx.strokeText(text, cx, cy);
+        ctx.fillText(text, cx, cy);
         ctx.restore();
     }
 
@@ -604,12 +693,12 @@
             const li = document.createElement('li');
             li.className = 'cvw-item' + (lab.id === state.activeId ? ' is-active' : '');
             li.innerHTML = `
-                <div class="glyph">${GLYPH[lab.symbol] || lab.symbol}</div>
+                <div class="glyph">${escapeHtml(glyphOf(lab.symbol) || lab.symbol)}</div>
                 <div class="body">
-                    <div class="ref">${lab.symbol} · صفحة ${toAr(lab.page)} · ${lab.word_key || 'بلا ربط'}</div>
-                    <div class="txt">${lab.word_text || ''} · ${Math.round(lab.box[2] - lab.box[0])}×${Math.round(lab.box[3] - lab.box[1])}</div>
+                    <div class="ref">${escapeHtml(shortOf(lab.symbol) || lab.symbol)} · صفحة ${toAr(lab.page)} · ${escapeHtml(lab.word_key || 'بلا ربط')}</div>
+                    <div class="txt cvw-word">${escapeHtml(lab.word_text || '')} · ${Math.round(lab.box[2] - lab.box[0])}×${Math.round(lab.box[3] - lab.box[1])}</div>
                 </div>
-                <button type="button" class="cvw-del" data-id="${lab.id}" title="حذف">×</button>
+                <button type="button" class="cvw-del" data-id="${escapeHtml(lab.id)}" title="حذف">×</button>
             `;
             li.addEventListener('click', (e) => {
                 if (e.target.closest('.cvw-del')) return;
@@ -627,22 +716,54 @@
 
     function renderDetectList(data) {
         els.list.innerHTML = '';
-        const rows = [];
-        if (els.showCv.checked) rows.push(...visibleCvMarks(data));
-        if (els.showMissing.checked) rows.push(...(data.missing || []));
-        els.labelCount.textContent = `${toAr(rows.length)} كشف`;
+        const rows = detectRows(data);
+        els.labelCount.textContent = `${toAr(rows.length)} موضع`;
         els.undo.hidden = true;
+        if (!rows.length) {
+            els.list.innerHTML = '<li class="cvw-item"><div class="body"><div class="txt">لا مواضع ظاهرة على هذه الصفحة</div></div></li>';
+            return;
+        }
         for (const m of rows) {
+            const kind = detectKind(m);
             const li = document.createElement('li');
-            li.className = 'cvw-item';
+            li.className = `cvw-item cvw-detect-item is-${kind}`
+                + (String(m.word_id) === String(state.activeId) ? ' is-active' : '');
+            const word = escapeHtml(m.text || '');
+            const glyph = escapeHtml(glyphOf(m.symbol) || m.glyph || '');
+            const name = escapeHtml(m.short_name || shortOf(m.symbol) || '');
+            let markHtml = `
+                <div class="cvw-mark">
+                    <span class="cvw-mark-glyph">${glyph}</span>
+                    <span class="cvw-mark-name">${name}</span>
+                </div>`;
+            if (kind === 'wrong') {
+                const dbGlyph = escapeHtml(glyphOf(m.db_symbol) || m.db_glyph || '');
+                const dbName = escapeHtml(m.db_short_name || shortOf(m.db_symbol) || '');
+                markHtml = `
+                    <div class="cvw-mark-pair">
+                        <div class="cvw-mark">
+                            <span class="cvw-mark-glyph">${glyph}</span>
+                            <span class="cvw-mark-name">${name}</span>
+                            <span class="cvw-mark-src">كشف</span>
+                        </div>
+                        <span class="cvw-mark-vs">مقابل</span>
+                        <div class="cvw-mark">
+                            <span class="cvw-mark-glyph">${dbGlyph}</span>
+                            <span class="cvw-mark-name">${dbName}</span>
+                            <span class="cvw-mark-src">المصحف</span>
+                        </div>
+                    </div>`;
+            }
             li.innerHTML = `
-                <div class="glyph">${m.glyph || m.symbol || ''}</div>
-                <div class="body">
-                    <div class="ref">${toAr(m.surah)}:${toAr(m.ayah)}${m.confidence != null ? ` · ${Number(m.confidence).toFixed(2)}` : ''}</div>
-                    <div class="txt">${m.text || ''}</div>
-                </div>
-                <span class="tag ${m.trust === 'rejected' ? 'rejected' : (m.trust === 'review' ? 'review' : (m.vs_db || ''))}">${m.trust === 'rejected' ? TAG_AR.rejected : (m.trust === 'review' ? TAG_AR.review : (TAG_AR[m.vs_db] || ''))}</span>
+                <div class="cvw-word" dir="rtl">${word || '—'}</div>
+                ${markHtml}
+                <span class="tag ${kind}">${TAG_AR[kind] || ''}</span>
             `;
+            li.addEventListener('click', () => {
+                state.activeId = m.word_id;
+                paint();
+                renderDetectList(data);
+            });
             els.list.appendChild(li);
         }
     }
@@ -980,8 +1101,12 @@
     }
     els.page.value = String(state.page);
     const startMode = params.get('mode') === 'detect' ? 'detect' : 'label';
-    // activate default symbol button
     const defBtn = els.palette.querySelector(`[data-symbol="${state.selectedSymbol}"]`);
     if (defBtn) defBtn.classList.add('is-active');
-    loadReviewQueue().finally(() => setMode(startMode));
+    const fontsReady = (document.fonts && document.fonts.load)
+        ? document.fonts.load(`48px ${UTHMANIC_FONT}`)
+        : Promise.resolve();
+    fontsReady.catch(() => {}).finally(() => {
+        loadReviewQueue().finally(() => setMode(startMode));
+    });
 })();

@@ -8,10 +8,12 @@
     {% set page_description = 'انقر علامة الوقف أو ارسم حولها في صورة المصحف لحفظ عيّنة تدريب دقيقة.' %}
     <title>{{ page_title }}</title>
     {{ athar_page_meta(page_title, page_description, path='/cv-waqf', noindex=true) }}
+    <link rel="preload" href="{{ url_for('static', filename='fonts/uthmanic_hafs_v20.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
     {{ athar_shell_head() }}
     <link rel="stylesheet" href="{{ static_hash('css/cv_waqf.css') }}">
 </head>
 <body class="athar-tool cvw-body"
+      data-ui-mode="{% if request.args.get('mode') == 'detect' %}detect{% else %}label{% endif %}"
       data-editions='{{ editions | tojson }}'
       data-symbols='{{ symbols | tojson }}'
       data-default-edition="{{ default_edition }}"
@@ -35,9 +37,9 @@
 
     <header class="cvw-chrome" aria-label="أدوات التسمية">
         <div class="cvw-chrome-top">
-            <p class="cvw-kicker">تدريب · قصّ يدوي</p>
-            <h1 class="cvw-title">سمِّ علامات الوقف على الصفحة</h1>
-            <p class="cvw-lede">
+            <p class="cvw-kicker cvw-label-only">تدريب · قصّ يدوي</p>
+            <h1 class="cvw-title" id="cvw-title">{% if request.args.get('mode') == 'detect' %}مراجعة كشف الوقف{% else %}سمِّ علامات الوقف على الصفحة{% endif %}</h1>
+            <p class="cvw-lede cvw-label-only">
                 انقر على العلامة لوضع مربع دقيق تلقائيًا، أو اسحب حولها يدويًا، ثم راجع النوع والكلمة واضغط <strong>حفظ</strong>.
                 مناسب للآيباد — الشريط السفلي يظهر بعد الرسم.
                 تُحفظ القصّة كمرجع للتدريب — ابدأ بالشمرلي ثم البحرين.
@@ -66,12 +68,12 @@
                 <button type="button" id="cvw-next" class="cvw-nav-btn" aria-label="التالية">›</button>
             </div>
             <div class="cvw-mode" role="group" aria-label="الوضع">
-                <button type="button" class="cvw-mode-btn is-active" data-mode="label" id="cvw-mode-label">تسمية</button>
-                <button type="button" class="cvw-mode-btn" data-mode="detect" id="cvw-mode-detect">كشف CV</button>
+                <button type="button" class="cvw-mode-btn{% if request.args.get('mode') != 'detect' %} is-active{% endif %}" data-mode="label" id="cvw-mode-label">تسمية</button>
+                <button type="button" class="cvw-mode-btn{% if request.args.get('mode') == 'detect' %} is-active{% endif %}" data-mode="detect" id="cvw-mode-detect">كشف CV</button>
             </div>
         </div>
 
-        <div class="cvw-queue" id="cvw-queue" hidden>
+        <div class="cvw-queue cvw-label-only" id="cvw-queue" hidden>
             <div class="cvw-queue-head">
                 <strong>عينة المعايرة الموزعة</strong>
                 <span id="cvw-queue-progress"></span>
@@ -84,11 +86,11 @@
             <p>في كل صفحة: سمِّ كل علامات الوقف، ثم أضف مثالين صعبين على الأقل من نوع <code>none</code>.</p>
         </div>
 
-        <div class="cvw-palette" id="cvw-palette" role="group" aria-label="نوع العلامة">
+        <div class="cvw-palette cvw-label-only" id="cvw-palette" role="group" aria-label="نوع العلامة"{% if request.args.get('mode') == 'detect' %} hidden{% endif %}>
             {% for s in symbols %}
             <button type="button" class="cvw-sym-btn" data-symbol="{{ s.code }}" title="{{ s.name }}">
                 <span class="cvw-sym-glyph">{{ s.glyph }}</span>
-                <span class="cvw-sym-code">{{ s.code }}</span>
+                <span class="cvw-sym-code">{{ s.short }}</span>
             </button>
             {% endfor %}
             <button type="button" class="cvw-sym-btn" data-symbol="none" title="ليس علامة (سالب)">
@@ -97,7 +99,7 @@
             </button>
         </div>
 
-        <div class="cvw-save-bar" id="cvw-save-bar" hidden>
+        <div class="cvw-save-bar cvw-label-only" id="cvw-save-bar" hidden>
             <p class="cvw-save-hint" id="cvw-save-hint">ارسم مربعاً حول العلامة أولاً</p>
             <label class="cvw-field cvw-word-field">
                 <span>الكلمة التابعة للعلامة</span>
@@ -113,23 +115,26 @@
             </div>
         </div>
 
-        <div class="cvw-toggles cvw-detect-only" id="cvw-detect-toggles" hidden role="group" aria-label="طبقات العرض">
-            <label><input type="checkbox" id="cvw-show-cv" checked> كشف CV</label>
-            <label><input type="checkbox" id="cvw-show-db" checked> قاعدة البيانات</label>
-            <label><input type="checkbox" id="cvw-show-missing" checked> ناقص</label>
-            <label><input type="checkbox" id="cvw-show-extra" checked> زائد</label>
-            <label><input type="checkbox" id="cvw-show-review" checked> مرشحون</label>
-            <label><input type="checkbox" id="cvw-show-rejected" checked> مستبعد الأزهر</label>
-            <label class="cvw-field cvw-conf-inline">
-                <span>ثقة <em id="cvw-conf-label">0.55</em></span>
-                <input id="cvw-conf" type="range" min="0.35" max="0.95" step="0.05" value="0.55">
-            </label>
-        </div>
+        <details class="cvw-detect-more cvw-detect-only" id="cvw-detect-toggles"{% if request.args.get('mode') != 'detect' %} hidden{% endif %}>
+            <summary>خيارات عرض</summary>
+            <div class="cvw-toggles" role="group" aria-label="طبقات العرض">
+                <label><input type="checkbox" id="cvw-show-cv" checked> كشف CV</label>
+                <label><input type="checkbox" id="cvw-show-db"> قاعدة البيانات</label>
+                <label><input type="checkbox" id="cvw-show-missing" checked> ناقص</label>
+                <label><input type="checkbox" id="cvw-show-extra" checked> زائد</label>
+                <label><input type="checkbox" id="cvw-show-review" checked> مرشحون</label>
+                <label><input type="checkbox" id="cvw-show-rejected"> مستبعد الأزهر</label>
+                <label class="cvw-field cvw-conf-inline">
+                    <span>ثقة <em id="cvw-conf-label">0.55</em></span>
+                    <input id="cvw-conf" type="range" min="0.35" max="0.95" step="0.05" value="0.55">
+                </label>
+            </div>
+        </details>
 
         <p class="cvw-meta" id="cvw-meta" aria-live="polite">انقر العلامة أو اسحب حولها، راجع الكلمة، ثم اضغط حفظ.</p>
     </header>
 
-    <div class="cvw-fab" id="cvw-fab" hidden>
+    <div class="cvw-fab cvw-label-only" id="cvw-fab" hidden>
         <button type="button" class="cvw-fab-cancel" id="cvw-fab-cancel">إلغاء</button>
         <select id="cvw-fab-word" class="athar-field cvw-fab-word" aria-label="الكلمة التابعة للعلامة">
             <option value="">اختر الكلمة</option>
@@ -139,14 +144,14 @@
 
     <main class="cvw-main" id="cvw-main">
         <section class="cvw-stage" aria-label="صفحة المصحف">
-            <div class="cvw-canvas-wrap is-label" id="cvw-wrap">
+            <div class="cvw-canvas-wrap{% if request.args.get('mode') != 'detect' %} is-label{% endif %}" id="cvw-wrap">
                 <img id="cvw-img" alt="صفحة المصحف" hidden>
                 <canvas id="cvw-canvas"></canvas>
                 <p class="cvw-empty" id="cvw-empty">اختر صفحة</p>
             </div>
         </section>
 
-        <aside class="cvw-side" aria-label="التسميات المحفوظة">
+        <aside class="cvw-side" id="cvw-side" aria-label="{% if request.args.get('mode') == 'detect' %}مواضع الوقف على الصفحة{% else %}التسميات المحفوظة{% endif %}">
             <div class="cvw-side-head">
                 <strong id="cvw-label-count">0 تسمية</strong>
                 <button type="button" class="cvw-nav-btn" id="cvw-undo" title="حذف آخر" hidden>⌫</button>

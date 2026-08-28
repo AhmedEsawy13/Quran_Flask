@@ -1287,6 +1287,27 @@ def test_ui_payload_exposes_azhar_rejected_marks(monkeypatch):
     assert payload['summary']['rejected'] == 1
     assert payload['summary']['trusted'] == 1
     assert all(m['word_key'] != '4:23:11' for m in payload['cv_marks'])
+    assert payload['trusted_marks'][0]['glyph'] == 'ۖ'
+    assert payload['trusted_marks'][0]['short_name'] == 'صلى'
+    assert payload['rejected_marks'][0]['glyph'] == 'ۖ'
+
+
+def test_cv_waqf_payload_exposes_real_glyphs_for_mismatch():
+    from pipeline.cv_waqf.ui_payload import _glyph_fields, _with_db_contrast
+
+    matched = _with_db_contrast({'symbol': 'ج'}, {'symbol': 'ج', **_glyph_fields('ج')})
+    assert matched['glyph'] == 'ۚ'
+    assert matched['short_name'] == 'جائز'
+    assert matched['vs_db'] == 'match'
+    assert 'db_glyph' not in matched
+
+    wrong = _with_db_contrast({'symbol': 'ص'}, {'symbol': 'ق', **_glyph_fields('ق')})
+    assert wrong['vs_db'] == 'wrong'
+    assert wrong['glyph'] == 'ۖ'
+    assert wrong['short_name'] == 'صلى'
+    assert wrong['db_symbol'] == 'ق'
+    assert wrong['db_glyph'] == 'ۗ'
+    assert wrong['db_short_name'] == 'قلى'
 
 
 def test_hand_evaluation_inherits_edition_azhar_prior(monkeypatch):

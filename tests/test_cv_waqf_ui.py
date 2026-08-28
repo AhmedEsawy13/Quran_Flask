@@ -34,6 +34,11 @@ def test_cv_waqf_cloud_apis_require_editor_session(app, monkeypatch):
     assert 'suggestNearestWord()' in js
     assert 'review_marks' in js
     assert 'rejected_marks' in js
+    assert 'paintGlyph' in js
+    assert 'UTHMANIC_FONT' in js
+    assert 'cvw-detect-item' in js
+    assert 'shortOf' in js
+    assert 'els.showRejected && els.showRejected.checked' in js
 
     html = client.get('/cv-waqf').get_data(as_text=True)
     assert 'cvw-login-form' in html
@@ -41,12 +46,29 @@ def test_cv_waqf_cloud_apis_require_editor_session(app, monkeypatch):
     assert 'انقر على العلامة' in html
     assert 'cvw-show-review' in html
     assert 'cvw-show-rejected' in html
+    assert 'data-ui-mode' in html
+    assert 'cvw-label-only' in html
+    assert 'uthmanic_hafs_v20.woff2' in html
+    assert 'صلى' in html
+    assert 'قلى' in html
+    assert 'id="cvw-show-rejected" checked' not in html
+    assert 'id="cvw-show-db" checked' not in html
+
+    detect_html = client.get('/cv-waqf?mode=detect&edition=البحرين&page=552').get_data(as_text=True)
+    assert 'data-ui-mode="detect"' in detect_html
+    assert 'مراجعة كشف الوقف' in detect_html
+    assert 'cvw-label-only' in detect_html
 
     css = Path('static/css/cv_waqf.css').read_text(encoding='utf-8')
     assert '.cvw-body [hidden]' in css
     assert '@media (min-width: 560px)' in css
     assert '.tag.review' in css
     assert '.tag.rejected' in css
+    assert "font-family: 'UthmanicHafs'" in css
+    assert 'uthmanic_hafs_v20.woff2' in css
+    assert '[data-ui-mode="detect"]' in css
+    assert '.cvw-word' in css
+    assert '.cvw-mark-glyph' in css
 
 
 def test_cv_waqf_live_routes_are_never_browser_cached(app, monkeypatch):
@@ -203,3 +225,16 @@ def test_cv_review_queue_has_live_label_counts(app, monkeypatch):
     page_one = next(row for row in payload['pages'] if row['page'] == 1)
     assert page_one['label_count'] == 2
     assert payload['total_labels'] == 2
+
+
+def test_cv_waqf_short_names_match_real_pause_glyphs():
+    from core.waqf_glyphs import GLYPH_FOR_CLASS, SHORT_NAME, SYMBOL_META
+
+    assert SHORT_NAME['ص'] == 'صلى'
+    assert SHORT_NAME['ق'] == 'قلى'
+    assert SHORT_NAME['ج'] == 'جائز'
+    assert GLYPH_FOR_CLASS['ص'] == 'ۖ'
+    assert GLYPH_FOR_CLASS['ق'] == 'ۗ'
+    assert GLYPH_FOR_CLASS['ج'] == 'ۚ'
+    assert GLYPH_FOR_CLASS['م'] == 'ۘ'
+    assert {code for code, _glyph, _name in SYMBOL_META} == set(SHORT_NAME)
