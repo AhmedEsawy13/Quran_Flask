@@ -171,7 +171,9 @@ def test_mesaha_import_report_and_non_llm_pipeline():
     assert 'partial_ratio_alignment' in importer
     assert 'uses_llm' in importer
     assert '--force' in importer
-    assert 'canonical-multi-ocr-forced-alignment-v4' in importer
+    assert 'canonical-multi-ocr-forced-alignment-v6' in importer
+    assert 'LINE_Y_MERGE' in importer
+    assert '--kraken-dir' in importer
     assert '--upgrade-confidence' in importer
 
 

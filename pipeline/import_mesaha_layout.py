@@ -25,6 +25,11 @@ Usage
   python3 pipeline/import_mesaha_layout.py \
       --ocr-xml /path/to/mushafElMesaha_djvu.xml --force
 
+Optional Kraken line JSON (local to the operator, not in git) seats printed
+wraps from wide-line geometry when present:
+
+  --kraken-dir artifacts/mesaha-kraken/pages
+
 ``--force`` is intentionally required once the project database exists because
 rebuilding it destroys reviewer edits, progress, and undo history.
 """
@@ -63,6 +68,15 @@ from core.config import (  # noqa: E402
     SHAMARLY_LAYOUT_DATABASE,
 )
 from modules import layout_engine as engine  # noqa: E402
+from pipeline.mesaha_printed_seating import (  # noqa: E402
+    DEFAULT_KRAKEN_DIR,
+    LINE_Y_MERGE,
+    PageTextGeometry,
+    clip_empty_top_page_starts,
+    load_kraken_geometries,
+    seat_printed_page,
+    slot_for_y,
+)
 
 PAGE_MIN = MESAHA_LAYOUT_MIN_PAGE
 PAGE_MAX = MESAHA_LAYOUT_MAX_PAGE
@@ -81,7 +95,9 @@ PAGE_WORDS_MIN = 70
 PAGE_WORDS_MAX = 130
 PAGE_WORDS_TARGET = 106
 CANONICAL_INTEGRITY_BONUS = 0.02
-METHOD_VERSION = 'canonical-multi-ocr-forced-alignment-v4'
+METHOD_VERSION = 'canonical-multi-ocr-forced-alignment-v6'
+# JPEG px; v6 seats wraps from Kraken wide lines with this merge (see seating).
+assert LINE_Y_MERGE == 162
 
 _LETTER_FOLD = str.maketrans({
     'ٱ': 'ا',
@@ -735,9 +751,14 @@ def _surah_starts(words: list[QuranWord]) -> dict[int, int]:
     return result
 
 
-def _slot_for_y(y: int, target_lines: int) -> int:
-    ratio = (y - TEXT_TOP) / (TEXT_BOTTOM - TEXT_TOP)
-    return max(1, min(target_lines, round(1 + ratio * (target_lines - 1))))
+def _slot_for_y(
+    y: int,
+    target_lines: int,
+    text_top: int = TEXT_TOP,
+    text_bottom: int = TEXT_BOTTOM,
+) -> int:
+    """DjVu-space slot map. Kraken JPEG seating uses ``slot_for_y`` instead."""
+    return slot_for_y(y, target_lines, text_top, text_bottom)
 
 
 def _monotonic_anchors(
@@ -840,6 +861,54 @@ def _refine_segment(
     return len(valid)
 
 
+def _rows_from_seating(
+    seating,
+    words: list[QuranWord],
+    headers: dict[int, HeaderRows],
+) -> list[OutputRow]:
+    rows: list[OutputRow] = []
+    for line in seating.lines:
+        if line.line_type in ('surah_name', 'surah_info', 'basmallah'):
+            header = headers[int(line.surah)]
+            record = None
+            if line.line_type == 'surah_name':
+                record = header.surah_name
+            elif line.line_type == 'basmallah':
+                record = header.basmallah
+            rows.append(_header_output(
+                line.line_number,
+                line.line_type,
+                int(line.surah),
+                record,
+                script_db=QURAN_SCRIPT_DATABASE,
+            ))
+            continue
+        if line.start_pos is None or line.end_pos is None:
+            rows.append(OutputRow(
+                line_number=line.line_number,
+                line_type='ayah',
+                is_centered=0,
+                first_word_id=None,
+                last_word_id=None,
+                surah_number=line.surah,
+                line_text='',
+            ))
+            continue
+        segment = words[line.start_pos:line.end_pos + 1]
+        rows.append(OutputRow(
+            line_number=line.line_number,
+            line_type='ayah',
+            is_centered=0,
+            first_word_id=segment[0].index,
+            last_word_id=segment[-1].index,
+            surah_number=segment[0].surah,
+            line_text=' '.join(word.text for word in segment),
+            start_pos=line.start_pos,
+            end_pos=line.end_pos,
+        ))
+    return rows
+
+
 def build_page_rows(
     page: int,
     start: int,
@@ -848,9 +917,25 @@ def build_page_rows(
     words: list[QuranWord],
     headers: dict[int, HeaderRows],
     starts_by_surah: dict[int, int],
+    geometry: PageTextGeometry | None = None,
 ) -> tuple[list[OutputRow], int]:
     if page in (2, 3):
         return _opening_page(page, words, headers), 5
+
+    if geometry is not None and geometry.wide_lines:
+        try:
+            seating = seat_printed_page(
+                words=words,
+                page_start=start,
+                page_end=end,
+                starts_by_surah=starts_by_surah,
+                geometry=geometry,
+                target_lines=SHORT_LINES.get(page, DEFAULT_LINES),
+            )
+        except Exception:
+            seating = None
+        if seating is not None:
+            return _rows_from_seating(seating, words, headers), seating.anchored
 
     target_lines = SHORT_LINES.get(page, DEFAULT_LINES)
     surahs_here = [
@@ -1216,6 +1301,7 @@ def build(
     report_path: str,
     *,
     force: bool = False,
+    kraken_dir: str | None = None,
 ) -> dict:
     destination = Path(output)
     if destination.exists() and not force:
@@ -1236,6 +1322,12 @@ def build(
     words = load_words(QURAN_SCRIPT_DATABASE)
     headers = load_headers(SHAMARLY_LAYOUT_DATABASE)
     starts_by_surah = _surah_starts(words)
+    kraken_root = Path(kraken_dir) if kraken_dir else DEFAULT_KRAKEN_DIR
+    if not kraken_root.is_absolute():
+        kraken_root = ROOT / kraken_root
+    geometries = load_kraken_geometries(
+        kraken_root, page_min=PAGE_MIN, page_max=PAGE_MAX,
+    )
     alignments_by_source: list[list[PageAlignment]] = []
     for source in sources:
         ocr_pages = load_ocr_pages(source.path)
@@ -1262,6 +1354,14 @@ def build(
 
     smooth_alignments(alignments)
     starts = page_starts(alignments, words)
+    if geometries:
+        clip_empty_top_page_starts(
+            starts,
+            words,
+            geometries,
+            starts_by_surah,
+            page_min=PAGE_MIN,
+        )
 
     temporary = destination.with_suffix(destination.suffix + '.building')
     if temporary.exists():
@@ -1284,6 +1384,7 @@ def build(
                 words,
                 headers,
                 starts_by_surah,
+                geometry=geometries.get(page),
             )
             conn.executemany(
                 '''
@@ -1364,6 +1465,7 @@ def build(
             'line_anchor_score': str(LINE_ANCHOR_SCORE),
             'page_words_prior': f'{PAGE_WORDS_MIN}-{PAGE_WORDS_MAX}',
             'canonical_integrity_bonus': str(CANONICAL_INTEGRITY_BONUS),
+            'kraken_pages': str(len(geometries)),
         }
         conn.executemany(
             'INSERT INTO layout_import_meta (key, value) VALUES (?, ?)',
@@ -1421,6 +1523,8 @@ def build(
             'stream_order': 'surah,ayah,word_key-position',
             'canonical_word_key_interchange': True,
             'canonical_integrity_bonus': CANONICAL_INTEGRITY_BONUS,
+            'kraken_printed_seating': True,
+            'kraken_pages': len(geometries),
             'version': METHOD_VERSION,
         },
         'validation': validation,
@@ -1591,6 +1695,14 @@ def main() -> None:
         action='store_true',
         help='destroy and rebuild an existing project database',
     )
+    parser.add_argument(
+        '--kraken-dir',
+        default=str(DEFAULT_KRAKEN_DIR),
+        help=(
+            'Directory of per-page Kraken JSON (pNNN.json, JPEG space). '
+            'Missing files fail open to DjVu slot mapping'
+        ),
+    )
     args = parser.parse_args()
     if args.upgrade_confidence:
         if args.ocr_xml:
@@ -1604,6 +1716,7 @@ def main() -> None:
             args.output,
             args.report,
             force=args.force,
+            kraken_dir=args.kraken_dir,
         )
     confidence = report['confidence']
     validation = report['validation']
