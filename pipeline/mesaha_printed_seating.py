@@ -10,8 +10,9 @@ space ~2062×3023) this module:
 * maps each wide Kraken line to a layout slot and wraps canonical words
   from the *start* of the next line's text, so an OCR merge/split in the
   middle of a line does not steal the wrap word;
-* fails open (returns None) when Kraken lines are missing or matching is
-  too weak, so the DjVu forced-alignment path stays unchanged.
+* fails open (returns None) when the Kraken JSON *file* is missing, not
+  when a present file's lines were dropped by a parser that did not
+  understand the production keys.
 
 Does not read or write mushaf DBs.  Does not touch البحرين CV waqf.
 """
@@ -138,6 +139,23 @@ def _int_points(value) -> list[tuple[int, int]]:
 
 
 def _bbox_from_raw(raw: dict) -> tuple[int, int, int, int] | None:
+    """Return (x0, y0, x1, y1). Production Mesaha JSON has y/x0/x1/width, no bbox.
+
+    A zero-height band (y0 == y1 == y) keeps the JPEG ``y`` field as the
+    line coordinate (p20 first_wide_y=612, p97=1312). ``bbox`` is optional.
+    """
+    if 'x0' in raw and ('x1' in raw or 'width' in raw):
+        try:
+            x0 = int(raw['x0'])
+            if 'x1' in raw:
+                x1 = int(raw['x1'])
+            else:
+                x1 = x0 + int(raw['width'])
+            y = int(raw['y']) if 'y' in raw else 0
+        except (TypeError, ValueError):
+            pass
+        else:
+            return min(x0, x1), y, max(x0, x1), y
     bbox = raw.get('bbox') or raw.get('box')
     if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
         try:
@@ -218,15 +236,18 @@ def _iter_line_dicts(payload) -> Iterable[dict]:
         return
     if any(
         key in payload
-        for key in ('bbox', 'box', 'baseline', 'boundary', 'coords', 'text')
+        for key in (
+            'bbox', 'box', 'baseline', 'boundary', 'coords', 'text', 'y', 'x0',
+        )
     ):
         yield payload
 
 
 def kraken_lines_from_payload(payload) -> list[KrakenLine]:
     """Parse one Kraken page JSON object into JPEG-space line records."""
+    source = list(_iter_line_dicts(payload))
     lines: list[KrakenLine] = []
-    for raw in _iter_line_dicts(payload):
+    for raw in source:
         bbox = _bbox_from_raw(raw)
         text = str(raw.get('text') or raw.get('line') or '').strip()
         if bbox is None:
@@ -237,7 +258,13 @@ def kraken_lines_from_payload(payload) -> list[KrakenLine]:
             text = ' '.join(tokens)
         if not text and x1 - x0 < WIDE_LINE_MIN_WIDTH:
             continue
-        y = round((y0 + y1) / 2)
+        if 'y' in raw:
+            try:
+                y = int(raw['y'])
+            except (TypeError, ValueError):
+                y = round((y0 + y1) / 2)
+        else:
+            y = round((y0 + y1) / 2)
         lines.append(KrakenLine(
             y=y,
             x0=x0,
@@ -246,6 +273,12 @@ def kraken_lines_from_payload(payload) -> list[KrakenLine]:
             normalized=normalize_letters(text),
             n_tokens=len(tokens),
         ))
+    if source and not lines:
+        raise ValueError(
+            'Kraken payload has '
+            f'{len(source)} line records but none produced geometry; '
+            'expected keys text,y,x0,x1[,width] (production) or bbox'
+        )
     lines.sort(key=lambda line: (line.y, line.x0))
     return lines
 
@@ -403,7 +436,11 @@ def load_kraken_geometries(
     page_min: int,
     page_max: int,
 ) -> dict[int, PageTextGeometry]:
-    """Load per-page geometry. Missing files are skipped (fail open)."""
+    """Load per-page geometry. Missing files are skipped (fail open).
+
+    A present file that cannot yield line geometry raises — that is the
+    826-file / zero-line bug, not a missing-page fail-open.
+    """
     if kraken_dir is None:
         return {}
     directory = Path(kraken_dir)
@@ -414,10 +451,7 @@ def load_kraken_geometries(
         path = directory / f'p{page:03d}.json'
         if not path.is_file():
             continue
-        try:
-            lines = load_kraken_page(path)
-        except (OSError, json.JSONDecodeError, TypeError, ValueError):
-            continue
+        lines = load_kraken_page(path)
         geometries[page] = page_text_geometry(lines)
     return geometries
 

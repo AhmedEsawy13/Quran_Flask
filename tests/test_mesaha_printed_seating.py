@@ -4,6 +4,7 @@ These fixtures do not need mushaf DBs or Ahmed's 826 Kraken JSON files.
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from pipeline.mesaha_printed_seating import (
     geometry_from_wide_specs,
     kraken_lines_from_payload,
     load_kraken_geometries,
+    load_kraken_page,
     merge_kraken_lines,
     normalize_letters,
     page_text_geometry,
@@ -372,3 +374,113 @@ def test_kraken_json_payload_parses_wide_lines(tmp_path):
     loaded = load_kraken_geometries(tmp_path, page_min=97, page_max=97)
     assert 97 in loaded
     assert loaded[97].n_wide == 1
+
+
+def _production_line(text: str, y: int, *, x0: int = 80, x1: int = 1980) -> dict:
+    """Real Ahmed Kraken page JSON line: text/y/x0/x1/width, no bbox."""
+    return {
+        'text': text,
+        'y': y,
+        'x0': x0,
+        'x1': x1,
+        'width': x1 - x0,
+    }
+
+
+def test_production_kraken_json_keys_load_wide_lines_and_wrap(tmp_path):
+    """p020.json shape: image/width/height/n_lines + lines without bbox."""
+    payload = {
+        'image': 'p020.jpg',
+        'width': 2062,
+        'height': 3023,
+        'n_lines': 13,
+        'lines': [
+            _production_line('الحـزء الأوّل)', 331, x0=867, x1=1198),
+            *[
+                _production_line(text, y)
+                for y, text in zip(HIGH_BODY_YS, HIGH_BODY_LINES)
+            ],
+        ],
+    }
+    lines = kraken_lines_from_payload(payload)
+    assert len(lines) == 13
+    assert 'bbox' not in payload['lines'][0]
+    assert lines[1].y == 612
+    geometry = page_text_geometry(lines)
+    assert geometry.n_wide == 12
+    assert geometry.first_wide_y == 612
+    assert geometry.is_empty_top is False
+
+    words = _words(HIGH_BODY_LINES, surah=2, start_index=400, start_ayah=101)
+    seating = seat_printed_page(
+        words=words,
+        page_start=0,
+        page_end=len(words) - 1,
+        starts_by_surah={2: -1},
+        geometry=geometry,
+        target_lines=12,
+    )
+    assert seating is not None
+    ayahs = _ayah_rows(seating)
+    assert _line_text(words, ayahs[3]).endswith('أحد')
+    assert _line_text(words, ayahs[4]).startswith('حتى')
+    assert _line_text(words, ayahs[11]).startswith('وللكافرين')
+
+    path = tmp_path / 'p020.json'
+    path.write_text(json.dumps(payload, ensure_ascii=False), encoding='utf-8')
+    loaded_lines = load_kraken_page(path)
+    assert len(loaded_lines) == 13
+    assert all(line.width == line.x1 - line.x0 for line in loaded_lines)
+    loaded = load_kraken_geometries(tmp_path, page_min=20, page_max=20)
+    assert loaded[20].n_wide == 12
+    assert loaded[20].first_wide_y == 612
+
+
+def test_production_kraken_json_keys_empty_top_p097():
+    banner = _production_line('سورة النساء مدنية', 420, x0=400, x1=1600)
+    basmala = _production_line('بسم الله الرحمن الرحيم', 1180, x0=200, x1=1800)
+    body_lines = [
+        'يا أيها الناس اتقوا ربكم الذي خلقكم من نفس',
+        'واحدة وخلق منها زوجها وبث منهما رجالا كثيرا ونساء',
+        'واتقوا الله الذي تساءلون به والأرحام إن الله كان',
+        'عليكم رقيبا يا أيها الذين آمنوا لا تأكلوا أموالكم',
+        'بينكم بالباطل إلا أن تكون تجارة عن تراض منكم',
+        'ولا تقتلوا أنفسكم إن الله كان بكم رحيما ومن يفعل',
+        'ذلك عدوانا وظلما فسوف نصليه نارا وكان ذلك على الله',
+        'يسيرا وإن خفتم ألا تقسطوا في اليتامى فانكحوا ما طاب',
+    ]
+    ys = [1312 + i * 150 for i in range(8)]
+    payload = {
+        'image': 'p097.jpg',
+        'width': 2062,
+        'height': 3023,
+        'n_lines': 10,
+        'lines': [banner, basmala] + [
+            _production_line(text, y) for y, text in zip(ys, body_lines)
+        ],
+    }
+    geometry = page_text_geometry(kraken_lines_from_payload(payload))
+    assert geometry.n_wide == 8
+    assert geometry.first_wide_y == 1312
+    assert geometry.is_empty_top is True
+
+
+def test_present_kraken_file_with_unparsed_lines_does_not_fail_open(tmp_path):
+    """826 files loaded / 0 geometry must raise, not skip to DjVu even-split."""
+    import pytest
+
+    payload = {
+        'image': 'p020.jpg',
+        'width': 2062,
+        'height': 3023,
+        'n_lines': 1,
+        'lines': [{'text': 'الحـزء الأوّل)', 'mystery': True}],
+    }
+    with pytest.raises(ValueError, match='none produced geometry'):
+        kraken_lines_from_payload(payload)
+    (tmp_path / 'p020.json').write_text(
+        json.dumps(payload, ensure_ascii=False),
+        encoding='utf-8',
+    )
+    with pytest.raises(ValueError, match='none produced geometry'):
+        load_kraken_geometries(tmp_path, page_min=20, page_max=20)
