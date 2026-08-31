@@ -138,24 +138,36 @@ def _int_points(value) -> list[tuple[int, int]]:
     return points
 
 
-def _bbox_from_raw(raw: dict) -> tuple[int, int, int, int] | None:
-    """Return (x0, y0, x1, y1). Production Mesaha JSON has y/x0/x1/width, no bbox.
+# Seating keys off JPEG ``y``; y1 is only a band for bbox-shaped callers.
+PRODUCTION_LINE_BAND = 48
 
-    A zero-height band (y0 == y1 == y) keeps the JPEG ``y`` field as the
-    line coordinate (p20 first_wide_y=612, p97=1312). ``bbox`` is optional.
+
+def _production_xy(raw: dict) -> tuple[int, int, int] | None:
+    """(x0, x1, y) from Ahmed's Kraken line dict. No bbox required.
+
+    Production pNNN.json line::
+        {"text": "...", "y": 331, "x0": 867, "x1": 1198, "width": 331}
+    ``y`` is a single JPEG y, not a y0/y1 pair. ``width`` is x1-x0.
     """
-    if 'x0' in raw and ('x1' in raw or 'width' in raw):
-        try:
-            x0 = int(raw['x0'])
-            if 'x1' in raw:
-                x1 = int(raw['x1'])
-            else:
-                x1 = x0 + int(raw['width'])
-            y = int(raw['y']) if 'y' in raw else 0
-        except (TypeError, ValueError):
-            pass
-        else:
-            return min(x0, x1), y, max(x0, x1), y
+    if not isinstance(raw, dict) or 'x0' not in raw:
+        return None
+    if 'x1' not in raw and 'width' not in raw:
+        return None
+    try:
+        x0 = int(raw['x0'])
+        x1 = int(raw['x1']) if 'x1' in raw else x0 + int(raw['width'])
+        y = int(raw['y']) if 'y' in raw else 0
+    except (TypeError, ValueError):
+        return None
+    return min(x0, x1), max(x0, x1), y
+
+
+def _bbox_from_raw(raw: dict) -> tuple[int, int, int, int] | None:
+    """Return (x0, y0, x1, y1). Production keys first; bbox is optional fallback."""
+    produced = _production_xy(raw)
+    if produced is not None:
+        x0, x1, y = produced
+        return x0, y, x1, y + PRODUCTION_LINE_BAND
     bbox = raw.get('bbox') or raw.get('box')
     if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
         try:
@@ -244,27 +256,30 @@ def _iter_line_dicts(payload) -> Iterable[dict]:
 
 
 def kraken_lines_from_payload(payload) -> list[KrakenLine]:
-    """Parse one Kraken page JSON object into JPEG-space line records."""
+    """Parse one Kraken page JSON object into JPEG-space line records.
+
+    Production files are ``{image, width, height, n_lines,
+    lines:[{text,y,x0,x1,width}]}`` with no ``bbox``. Those keys are read
+    directly; bbox is only a fallback.
+    """
     source = list(_iter_line_dicts(payload))
     lines: list[KrakenLine] = []
     for raw in source:
-        bbox = _bbox_from_raw(raw)
         text = str(raw.get('text') or raw.get('line') or '').strip()
-        if bbox is None:
-            continue
-        x0, y0, x1, y1 = bbox
         tokens = _tokens_from_raw(raw, text)
         if not text:
             text = ' '.join(tokens)
+        produced = _production_xy(raw)
+        if produced is not None:
+            x0, x1, y = produced
+        else:
+            bbox = _bbox_from_raw(raw)
+            if bbox is None:
+                continue
+            x0, y0, x1, y1 = bbox
+            y = round((y0 + y1) / 2)
         if not text and x1 - x0 < WIDE_LINE_MIN_WIDTH:
             continue
-        if 'y' in raw:
-            try:
-                y = int(raw['y'])
-            except (TypeError, ValueError):
-                y = round((y0 + y1) / 2)
-        else:
-            y = round((y0 + y1) / 2)
         lines.append(KrakenLine(
             y=y,
             x0=x0,

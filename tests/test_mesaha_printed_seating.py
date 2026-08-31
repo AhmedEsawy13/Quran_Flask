@@ -15,6 +15,7 @@ from pipeline.mesaha_printed_seating import (
     JPEG_TEXT_TOP,
     LINE_Y_MERGE,
     KrakenLine,
+    _bbox_from_raw,
     clip_empty_top_page_starts,
     geometry_from_wide_specs,
     kraken_lines_from_payload,
@@ -374,6 +375,34 @@ def test_kraken_json_payload_parses_wide_lines(tmp_path):
     loaded = load_kraken_geometries(tmp_path, page_min=97, page_max=97)
     assert 97 in loaded
     assert loaded[97].n_wide == 1
+
+
+def test_bbox_from_raw_reads_p020_keys_without_bbox():
+    """Exact production line dict — no bbox, single JPEG y."""
+    raw = {
+        'text': 'الحـزء الأوّل)',
+        'y': 331,
+        'x0': 867,
+        'x1': 1198,
+        'width': 331,
+    }
+    assert 'bbox' not in raw and 'box' not in raw
+    box = _bbox_from_raw(raw)
+    assert box is not None
+    x0, y0, x1, y1 = box
+    assert (x0, x1) == (867, 1198)
+    assert y0 == 331
+    assert y1 > y0
+    parsed = kraken_lines_from_payload({
+        'image': 'p020.jpg',
+        'width': 2062,
+        'height': 3023,
+        'n_lines': 1,
+        'lines': [raw],
+    })
+    assert parsed != []
+    assert parsed[0].y == 331
+    assert parsed[0].width == 331
 
 
 def _production_line(text: str, y: int, *, x0: int = 80, x1: int = 1980) -> dict:
