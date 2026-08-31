@@ -743,11 +743,18 @@ def seat_printed_page(
     """Seat one page from Kraken wide lines. None = fail open to DjVu path."""
     if page_start > page_end or not geometry.wide_lines:
         return None
+    n_words = page_end - page_start + 1
     ends = kraken_wrap_boundaries(
         words, page_start, page_end, geometry.wide_lines,
     )
     if ends is None:
-        return None
+        # p822: 5 words of قريش vs more wide lines / leftover slots.
+        # One ayah line + empty pads; do not throw or fall through to
+        # ``_even_ends`` ``cannot split 5 words across 9 lines``.
+        if n_words >= 1 and n_words < max(len(geometry.wide_lines), 2):
+            ends = [page_end]
+        else:
+            return None
 
     ayah_specs: list[tuple[int, int, int]] = []
     cursor = page_start

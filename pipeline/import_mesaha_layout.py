@@ -662,9 +662,17 @@ def _allocate_slots(lengths: list[int], total: int) -> list[int]:
 
 
 def _even_ends(start: int, end: int, count: int) -> list[int]:
+    """Inclusive end positions for ``count`` ayah lines covering ``start..end``.
+
+    A short Juz ʿAmma / empty-top page can have fewer words than leftover
+    slots (p822: 5 words vs 9 lines). Fail open to one ayah line; the
+    caller pads empty slots. Do not raise.
+    """
     length = end - start + 1
-    if count < 1 or length < count:
+    if count < 1 or length < 1:
         raise RuntimeError(f'cannot split {length} words across {count} lines')
+    if length < count:
+        return [end]
     return [
         start + math.ceil(length * (index + 1) / count) - 1
         for index in range(count)
@@ -1000,6 +1008,18 @@ def build_page_rows(
             current_rows.append(row)
             current = boundary + 1
         segment_rows.append((current_rows, left, right))
+
+    while len(rows) < target_lines:
+        surah = rows[-1].surah_number if rows else None
+        rows.append(OutputRow(
+            line_number=len(rows) + 1,
+            line_type='ayah',
+            is_centered=0,
+            first_word_id=None,
+            last_word_id=None,
+            surah_number=surah,
+            line_text='',
+        ))
 
     if len(rows) != target_lines:
         raise RuntimeError(

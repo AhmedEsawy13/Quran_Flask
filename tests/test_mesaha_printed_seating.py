@@ -392,6 +392,68 @@ def test_high_body_wrap_uses_next_kraken_line_start_not_token_count():
     assert words[ayahs[11].start_pos].text == 'وللكافرين'
 
 
+def test_short_juz_amma_page_pads_empty_slots_instead_of_throwing():
+    """p822: 5 words of قريش, empty-top, 3 headers, 12 lines — no throw."""
+    words = _words(
+        ['لإيلاف قريش ١', 'إيلافهم رحلة'],
+        surah=106,
+        start_index=1,
+        start_ayah=1,
+    )
+    assert len(words) == 5
+    assert words[0].word_key == '106:1:1'
+    assert words[-1].word_key == '106:2:2'
+
+    body_lines = [
+        'لإيلاف قريش إيلافهم رحلة الشتاء',
+        'سطر تال كاف للعرض العريض هنا واحد',
+        'سطر تال كاف للعرض العريض هنا اثنان',
+        'سطر تال كاف للعرض العريض هنا ثلاثة',
+        'سطر تال كاف للعرض العريض هنا أربعة',
+        'سطر تال كاف للعرض العريض هنا خمسة',
+        'سطر تال كاف للعرض العريض هنا ستة',
+        'سطر تال كاف للعرض العريض هنا سبعة',
+        'سطر تال كاف للعرض العريض هنا ثمانية',
+    ]
+    ys = [1312 + index * 120 for index in range(9)]
+    geometry = geometry_from_wide_specs(
+        [_wide(y, text) for y, text in zip(ys, body_lines)],
+        banner_text='سورة قريش مكية',
+        banner_y=420,
+        basmala_text='بسم الله الرحمن الرحيم',
+        basmala_y=1180,
+    )
+    assert geometry.is_empty_top is True
+    assert geometry.n_wide == 9
+    assert geometry.first_wide_y >= EMPTY_TOP_Y_JPEG
+
+    seating = seat_printed_page(
+        words=words,
+        page_start=0,
+        page_end=len(words) - 1,
+        starts_by_surah={106: 0},
+        geometry=geometry,
+        target_lines=12,
+    )
+    assert seating is not None
+    assert len(seating.lines) == 12
+    headers = [line for line in seating.lines if line.line_type != 'ayah']
+    assert [line.line_type for line in headers] == [
+        'surah_name', 'surah_info', 'basmallah',
+    ]
+    filled = _ayah_rows(seating)
+    assert len(filled) == 1
+    assert filled[0].start_pos == 0
+    assert filled[0].end_pos == 4
+    empty_ayahs = [
+        line for line in seating.lines
+        if line.line_type == 'ayah' and line.start_pos is None
+    ]
+    assert len(empty_ayahs) == 8
+    assert _line_text(words, filled[0]).split()[0] == 'لإيلاف'
+    assert words[filled[0].end_pos].text == 'رحلة'
+
+
 def test_oversize_ayah_slot_splits_into_empty_layout_row():
     """Leftover packing (≥20 words) splits when an empty slot remains."""
     fat = ' '.join(f'كلمة{index:02d}الطويلة' for index in range(1, 31))
