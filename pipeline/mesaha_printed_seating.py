@@ -303,40 +303,24 @@ def load_kraken_page(path: Path | str) -> list[KrakenLine]:
     return kraken_lines_from_payload(payload)
 
 
-def _x_overlap(left: KrakenLine, right: KrakenLine) -> int:
-    return max(0, min(left.x1, right.x1) - max(left.x0, right.x0))
-
-
-def _looks_full_ayah(line: KrakenLine) -> bool:
-    if line.width < WIDE_LINE_MIN_WIDTH:
-        return False
-    return (
-        line.n_tokens >= WIDE_LINE_MIN_TOKENS
-        or len(line.normalized) >= WIDE_LINE_MIN_CHARS
-    )
-
-
 def _should_merge_lines(
     current: KrakenLine,
     incoming: KrakenLine,
     merge_px: int,
 ) -> bool:
-    """Join same-line fragments; keep consecutive printed ayah rows apart.
+    """LINE_Y_MERGE joins a *narrow fragment* onto a nearby line only.
 
-    LINE_Y_MERGE=162 is wider than high-body leading (~150 JPEG). Two full-width
-    ayah lines at that spacing are distinct print rows, not OCR splits.
+    High-body pitch is ~155 JPEG, below LINE_Y_MERGE=162. Two printed ayah
+    rows (p20 k08 y=928 and k09 y=1077, dy=149) must never be glued.
     """
     dy = abs(incoming.y - current.y)
     if dy > merge_px:
         return False
-    overlap = _x_overlap(current, incoming)
-    min_width = min(current.width, incoming.width) or 1
-    both_full = (
-        _looks_full_ayah(current)
-        and _looks_full_ayah(incoming)
-        and overlap >= 0.6 * min_width
-    )
-    if both_full and dy > 90:
+    if is_wide_ayah_line(current) and is_wide_ayah_line(incoming):
+        return False
+    # Banner/basmala are full-width but not ayah rows. Only a *narrow*
+    # fragment (width < 900) may glue onto a nearby line.
+    if min(current.width, incoming.width) >= WIDE_LINE_MIN_WIDTH:
         return False
     return True
 
@@ -483,11 +467,19 @@ def clip_empty_top_page_starts(
     *,
     page_min: int,
 ) -> None:
-    """Keep previous-surah leftover off true empty-top banner pages.
+    """Seat empty-top pages at the banner surah's first script word.
 
-    Mutates ``starts`` in place. Mid-page banners (first_wide_y still ~600)
-    are left alone so the printed previous surah stays on the page.
+    Mutates ``starts`` in place.
+
+    * Previous-surah leftover on this page (clip_at > lo) is pushed back to
+      the previous page.
+    * If the previous page already ate the new surah's first word
+      (clip_at < lo, p97 4:1:1 left on p96), pull that word onto this page
+      so ``start_pos == starts_by_surah[surah]`` and headers appear.
+
+    Mid-page banners (first_wide_y still ~600) are left alone.
     """
+    touched = False
     for offset in range(len(starts) - 1):
         page = int(page_min) + offset
         geometry = geometries.get(page)
@@ -497,18 +489,26 @@ def clip_empty_top_page_starts(
         hi = starts[offset + 1] - 1
         if lo > hi or offset == 0:
             continue
-        surah_here = [
-            position
-            for position in starts_by_surah.values()
-            if lo <= position <= hi
-        ]
-        if not surah_here:
+        body_surah = int(getattr(words[hi], 'surah'))
+        clip_at = starts_by_surah.get(body_surah)
+        if clip_at is None:
             continue
-        clip_at = min(surah_here)
-        if clip_at > lo:
-            starts[offset] = clip_at
-    for index in range(1, len(starts)):
-        starts[index] = max(starts[index], starts[index - 1] + 1)
+        clip_at = int(clip_at)
+        if clip_at == lo:
+            continue
+        starts[offset] = clip_at
+        touched = True
+    if not touched:
+        return
+    # Empty-top pulls must shrink the previous page, not be undone by a
+    # forward max() that would leave 4:1:1 on page 96.
+    for index in range(len(starts) - 2, -1, -1):
+        if starts[index] >= starts[index + 1]:
+            starts[index] = starts[index + 1] - 1
+    if starts and starts[0] < 0:
+        starts[0] = 0
+        for index in range(1, len(starts)):
+            starts[index] = max(starts[index], starts[index - 1] + 1)
 
 
 def _stream_chars(words, lo: int, hi: int) -> tuple[str, list[int]]:
@@ -613,6 +613,8 @@ def kraken_wrap_boundaries(
     if n > page_end - page_start + 1:
         return None
     typical = max(4, (page_end - page_start + 1) // n)
+    # Line 0 always starts at page_start. OCR like ``كايها`` must not
+    # fuzzy-match ``ٱلنَّاسُ`` and skip يا أيها once 4:1:1 is on the page.
     starts: list[int | None] = [page_start]
     previous = page_start
     matched_after_first = 0

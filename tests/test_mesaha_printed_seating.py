@@ -122,6 +122,101 @@ def test_consecutive_full_ayah_lines_are_not_merged_at_line_y_merge():
     assert len(merged) == 2
 
 
+def test_p20_adjacent_wide_ayahs_dy149_are_not_merged_and_wrap():
+    """Production k08 y=928 and k09 y=1077 (dy=149) stay two ayahs; wrap at أحد."""
+    ys = [612, 761, 928, 1077, 1226, 1375, 1524, 1673, 1822, 1971, 2120, 2269]
+    assert ys[3] - ys[2] == 149
+    assert ys[3] - ys[2] < LINE_Y_MERGE
+    geometry = geometry_from_wide_specs(
+        [_wide(y, text) for y, text in zip(ys, HIGH_BODY_LINES)],
+    )
+    assert geometry.n_wide == 12
+    assert geometry.wide_lines[2].y == 928
+    assert geometry.wide_lines[3].y == 1077
+    assert 'أحد' in geometry.wide_lines[3].text
+    assert geometry.wide_lines[4].text.startswith('حتى')
+
+    words = _words(HIGH_BODY_LINES, surah=2, start_index=400, start_ayah=101)
+    seating = seat_printed_page(
+        words=words,
+        page_start=0,
+        page_end=len(words) - 1,
+        starts_by_surah={2: -1},
+        geometry=geometry,
+        target_lines=12,
+    )
+    assert seating is not None
+    ayahs = _ayah_rows(seating)
+    assert len(ayahs) == 12
+    assert _line_text(words, ayahs[3]).endswith('أحد')
+    assert _line_text(words, ayahs[4]).startswith('حتى')
+    assert words[ayahs[4].start_pos].text == 'حتى'
+
+
+def test_empty_top_pulls_stolen_surah_first_word_and_seats_headers():
+    """p97: 4:1:1 was left on p96; clip must pull يا أيها back and insert banner."""
+    leftover = _words(
+        ['فأما الذين كفروا فأعذبهم عذابا شديدا'],
+        surah=3, start_index=50, start_ayah=199,
+    )
+    body_lines = [
+        'يا أيها الناس اتقوا ربكم الذي خلقكم من نفس',
+        'واحدة وخلق منها زوجها وبث منهما رجالا كثيرا ونساء',
+        'واتقوا الله الذي تساءلون به والأرحام إن الله كان',
+        'عليكم رقيبا يا أيها الذين آمنوا لا تأكلوا أموالكم',
+        'بينكم بالباطل إلا أن تكون تجارة عن تراض منكم',
+        'ولا تقتلوا أنفسكم إن الله كان بكم رحيما ومن يفعل',
+        'ذلك عدوانا وظلما فسوف نصليه نارا وكان ذلك على الله',
+    ]
+    body = _words(body_lines, surah=4, start_index=10169, start_ayah=1)
+    words = leftover + body
+    surah_first = len(leftover)  # يا
+    assert words[surah_first].text == 'يا'
+    assert words[surah_first + 2].text == 'الناس'
+    starts_by_surah = {3: -1, 4: surah_first}
+    # Page 97 currently starts at الناس (4:1:2), 4:1:1 left on page 96.
+    starts = [0, surah_first + 2, len(words)]
+    ocr_lines = list(body_lines)
+    ocr_lines[0] = 'كايها الناس اتقوا ربكم الذي خلقكم من نفس'
+    ys = [1251 + i * 150 for i in range(7)]
+    geometry = geometry_from_wide_specs(
+        [_wide(y, text) for y, text in zip(ys, ocr_lines)],
+        banner_text='سورة النساء مدنية',
+        banner_y=420,
+        basmala_text='بسم الله الرحمن الرحيم',
+        basmala_y=1180,
+    )
+    assert geometry.is_empty_top is True
+    assert geometry.first_wide_y == 1251
+    assert geometry.n_wide == 7
+
+    clip_empty_top_page_starts(
+        starts, words, {97: geometry}, starts_by_surah, page_min=96,
+    )
+    assert starts[1] == surah_first
+    assert starts[0] < starts[1]
+
+    seating = seat_printed_page(
+        words=words,
+        page_start=starts[1],
+        page_end=len(words) - 1,
+        starts_by_surah=starts_by_surah,
+        geometry=geometry,
+        target_lines=12,
+    )
+    assert seating is not None
+    header_types = [
+        line.line_type for line in seating.lines if line.line_type != 'ayah'
+    ]
+    assert header_types == ['surah_name', 'surah_info', 'basmallah']
+    assert [line.line_number for line in seating.lines if line.line_type != 'ayah'] == [1, 2, 3]
+    ayahs = _ayah_rows(seating)
+    assert words[ayahs[0].start_pos].text == 'يا'
+    assert ayahs[0].surah == 4
+    # Fuzzy OCR كايها must not skip يا أيها once 4:1:1 is on the page.
+    assert _line_text(words, ayahs[0]).startswith('يا أيها')
+
+
 def test_narrow_fragment_within_line_y_merge_joins_the_ayah_line():
     body = KrakenLine(
         y=612, x0=80, x1=1980,
