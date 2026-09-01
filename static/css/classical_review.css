@@ -71,8 +71,13 @@ body.cr-page { margin: 0; min-height: 100vh; color: var(--athar-ink); background
 .cr-empty, .cr-skeleton { padding: 40px; text-align: center; color: var(--athar-ink-soft); background: var(--athar-surface); border: 1px dashed var(--athar-line); border-radius: 14px; }
 .cr-toast { position: fixed; inset-inline-start: 50%; bottom: 24px; transform: translateX(50%); z-index: 50; padding: 10px 18px; border-radius: 999px; background: var(--athar-ink); color: var(--athar-surface); box-shadow: var(--athar-shadow-lg); }
 .cr-toast.cr-error { background: var(--cr-red); color: white; }
+
+a.cr-book-tab { text-decoration: none; display: inline-flex; flex-direction: column; justify-content: center; }
+.cr-metrics-4 { grid-template-columns: repeat(4, 1fr); }
+.cr-tweet { white-space: pre-wrap; word-break: break-word; }
 @media (max-width: 900px) {
     .cr-metrics { grid-template-columns: repeat(2, 1fr); }
+    .cr-metrics-4 { grid-template-columns: repeat(2, 1fr); }
     .cr-metric:last-child:nth-child(odd) { grid-column: 1 / -1; }
     .cr-card { grid-template-columns: 1fr; }
     .cr-card-source { border-inline-start: 0; border-top: 1px solid var(--athar-line); }

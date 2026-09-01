@@ -189,3 +189,322 @@ def ensure_sqlite_schema(conn: sqlite3.Connection) -> None:
         'CREATE UNIQUE INDEX IF NOT EXISTS tawjih_span_uidx '
         'ON tawjih (tweet_id, surah, ayah, wpos)'
     )
+
+
+REVIEW_GRADES = ('تام', 'كاف', 'حسن', 'جائز', 'قبيح', 'لازم', 'لا يوقف')
+_REVIEW_STATUSES = ('published', 'review', 'skipped')
+_ITEM_SELECT = (
+    'id,tweet_id,status,surah,ayah,wpos,quote,note,grade,'
+    'align_conf,skip_reason,locator'
+)
+_REVIEW_POST_SELECT = 'tweet_id,kind,post_text,reply_text,url,posted_at'
+
+
+class TawjihReviewError(Exception):
+    """HTTP-mappable review error (status is 400, 404, or 409)."""
+
+    def __init__(self, status: int, message: str):
+        super().__init__(message)
+        self.status = status
+        self.message = message
+
+
+def _as_int(value):
+    if value is None or value == '':
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def get_verse_words(surah: int, ayah: int) -> tuple[list[str] | None, str | None]:
+    """Return (words, None) or (None, 'invalid'|'missing')."""
+    if not (1 <= surah <= 114) or ayah < 1:
+        return None, 'invalid'
+    if not verse_is_valid(surah, ayah):
+        return None, 'missing'
+    words = verse_words(surah, ayah)
+    if not words:
+        return None, 'missing'
+    return words, None
+
+
+def _tweet_body(kind: str, post_text: str, reply_text: str, note: str) -> str:
+    if kind == 'رد':
+        body = (reply_text or '').strip()
+    else:
+        body = (post_text or '').strip()
+    return body or (note or '')
+
+
+def _shape_review_item(row: dict, post: dict | None = None) -> dict:
+    post = post or {}
+    surah = _as_int(row.get('surah'))
+    ayah = _as_int(row.get('ayah'))
+    wpos = _as_int(row.get('wpos'))
+    kind = post.get('kind') or ''
+    post_text = post.get('post_text') or ''
+    reply_text = post.get('reply_text') or ''
+    note = row.get('note') or ''
+    words: list[str] = []
+    if surah is not None and ayah is not None and verse_is_valid(surah, ayah):
+        words = verse_words(surah, ayah)
+    align = _as_int(row.get('align_conf'))
+    return {
+        'id': _as_int(row.get('id')),
+        'tweet_id': str(row.get('tweet_id') or ''),
+        'status': row.get('status') or '',
+        'surah': surah,
+        'ayah': ayah,
+        'wpos': wpos,
+        'quote': row.get('quote') or '',
+        'note': note,
+        'grade': row.get('grade') or None,
+        'align_conf': 0 if align is None else align,
+        'skip_reason': row.get('skip_reason'),
+        'locator': row.get('locator') or '',
+        'url': post.get('url') or row.get('url') or '',
+        'kind': kind,
+        'post_text': post_text,
+        'reply_text': reply_text,
+        'posted_at': post.get('posted_at') or row.get('created_at'),
+        'tweet_body': _tweet_body(kind, post_text, reply_text, note),
+        'verse_words': words,
+    }
+
+
+def _join_posts(rows: list[dict]) -> dict[str, dict]:
+    tweet_ids = sorted({str(r.get('tweet_id') or '') for r in rows if r.get('tweet_id')})
+    if not tweet_ids:
+        return {}
+    posted = sb._request(
+        'GET',
+        'dr_ahmed21_posts',
+        params={
+            'tweet_id': 'in.(' + ','.join(f'"{tid}"' for tid in tweet_ids) + ')',
+            'select': _REVIEW_POST_SELECT,
+        },
+    ) or []
+    return {str(p['tweet_id']): p for p in posted if p.get('tweet_id')}
+
+
+def _empty_counts() -> dict:
+    return {'published': 0, 'review': 0, 'skipped': 0}
+
+
+def _with_total(counts: dict) -> dict:
+    return {
+        'published': counts['published'],
+        'review': counts['review'],
+        'skipped': counts['skipped'],
+        'total': counts['published'] + counts['review'] + counts['skipped'],
+        'source': TAWJIH_SOURCE,
+    }
+
+
+def _summary_supabase() -> dict:
+    counts = _empty_counts()
+    rows = sb._request('GET', 'tawjih', params={'select': 'status'}) or []
+    for row in rows:
+        status = row.get('status')
+        if status in counts:
+            counts[status] += 1
+    return _with_total(counts)
+
+
+def _summary_sqlite(db_path: str | None) -> dict:
+    counts = _empty_counts()
+    path = db_path or TAWJIH_DATABASE
+    if not os.path.exists(path):
+        return _with_total(counts)
+    conn = _sqlite_connect(path, readonly=True)
+    try:
+        for status, n in conn.execute('SELECT status, COUNT(*) FROM tawjih GROUP BY status'):
+            if status in counts:
+                counts[status] = int(n)
+    finally:
+        conn.close()
+    return _with_total(counts)
+
+
+def review_summary(db_path: str | None = None) -> dict:
+    """Counts of tawjih rows by status, plus TAWJIH_SOURCE meta."""
+    if sb.is_configured():
+        return _summary_supabase()
+    return _summary_sqlite(db_path)
+
+
+def _paginate(total: int, page: int, limit: int) -> tuple[int, int, int]:
+    page = max(1, int(page))
+    limit = min(50, max(1, int(limit)))
+    pages = max(1, (total + limit - 1) // limit) if total else 1
+    return page, limit, pages
+
+
+def _items_supabase(status: str, page: int, limit: int) -> dict:
+    count_params: dict[str, str] = {'select': 'id', 'order': 'id.asc'}
+    page_params: dict[str, str] = {
+        'select': _ITEM_SELECT,
+        'order': 'id.asc',
+        'offset': str((page - 1) * limit),
+        'limit': str(limit),
+    }
+    if status != 'all':
+        count_params['status'] = f'eq.{status}'
+        page_params['status'] = f'eq.{status}'
+    ids = sb._request('GET', 'tawjih', params=count_params) or []
+    total = len(ids)
+    page, limit, pages = _paginate(total, page, limit)
+    page_params['offset'] = str((page - 1) * limit)
+    page_params['limit'] = str(limit)
+    rows = sb._request('GET', 'tawjih', params=page_params) or []
+    posts = _join_posts(rows)
+    items = [
+        _shape_review_item(dict(row), posts.get(str(row.get('tweet_id') or ''), {}))
+        for row in rows
+    ]
+    return {'items': items, 'total': total, 'page': page, 'limit': limit, 'pages': pages}
+
+
+def _items_sqlite(status: str, page: int, limit: int, db_path: str | None) -> dict:
+    path = db_path or TAWJIH_DATABASE
+    if not os.path.exists(path):
+        page, limit, pages = _paginate(0, page, limit)
+        return {'items': [], 'total': 0, 'page': page, 'limit': limit, 'pages': pages}
+    where = ''
+    params: list = []
+    if status != 'all':
+        where = ' WHERE status=?'
+        params.append(status)
+    conn = _sqlite_connect(path, readonly=True)
+    try:
+        conn.row_factory = sqlite3.Row
+        total = conn.execute(
+            'SELECT COUNT(*) FROM tawjih' + where, params
+        ).fetchone()[0]
+        page, limit, pages = _paginate(int(total), page, limit)
+        rows = conn.execute(
+            'SELECT id, tweet_id, status, surah, ayah, wpos, quote, note, grade, '
+            'align_conf, skip_reason, locator, url, created_at '
+            'FROM tawjih' + where + ' ORDER BY id ASC LIMIT ? OFFSET ?',
+            [*params, limit, (page - 1) * limit],
+        ).fetchall()
+        items = [_shape_review_item(dict(row)) for row in rows]
+    finally:
+        conn.close()
+    return {'items': items, 'total': int(total), 'page': page, 'limit': limit, 'pages': pages}
+
+
+def list_review_items(
+    status: str,
+    page: int,
+    limit: int,
+    db_path: str | None = None,
+) -> dict:
+    """Paginated tawjih rows for the editor review UI."""
+    page, limit, _ = _paginate(0, page, limit)
+    if sb.is_configured():
+        return _items_supabase(status, page, limit)
+    return _items_sqlite(status, page, limit, db_path)
+
+
+def _patch_supabase(row_id: int, fields: dict) -> dict:
+    rows = sb._request(
+        'PATCH',
+        'tawjih',
+        params={'id': f'eq.{row_id}'},
+        json_body=fields,
+        prefer='return=representation',
+    ) or []
+    if not rows:
+        raise TawjihReviewError(404, 'review row not found')
+    return dict(rows[0])
+
+
+def _patch_sqlite(row_id: int, fields: dict, db_path: str | None) -> dict:
+    path = db_path or TAWJIH_DATABASE
+    if not os.path.exists(path):
+        raise TawjihReviewError(404, 'review row not found')
+    assignments = ', '.join(f'{col}=?' for col in fields)
+    values = list(fields.values())
+    conn = _sqlite_connect(path)
+    try:
+        ensure_sqlite_schema(conn)
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(
+            f'UPDATE tawjih SET {assignments} WHERE id=?',
+            [*values, row_id],
+        )
+        if cur.rowcount == 0:
+            raise TawjihReviewError(404, 'review row not found')
+        conn.commit()
+        row = conn.execute('SELECT * FROM tawjih WHERE id=?', (row_id,)).fetchone()
+        return dict(row) if row else {}
+    finally:
+        conn.close()
+
+
+def apply_review_decision(
+    row_id: int,
+    decision: str,
+    *,
+    surah=None,
+    ayah=None,
+    wpos=None,
+    quote=None,
+    grade=None,
+    db_path: str | None = None,
+) -> dict:
+    """Publish (add) or skip (discard) one tawjih row. Raises TawjihReviewError."""
+    if decision not in {'add', 'discard'}:
+        raise TawjihReviewError(400, 'invalid decision')
+    if decision == 'add':
+        try:
+            surah_i = int(surah)
+            ayah_i = int(ayah)
+            wpos_i = int(wpos)
+        except (TypeError, ValueError):
+            raise TawjihReviewError(
+                409, 'add requires a verified surah, ayah, and word position'
+            ) from None
+        words, err = get_verse_words(surah_i, ayah_i)
+        if err == 'invalid' or err == 'missing' or not words:
+            raise TawjihReviewError(409, 'invalid verse')
+        if not (0 <= wpos_i < len(words)):
+            raise TawjihReviewError(409, 'invalid word position')
+        quote_text = (quote or '').strip() or words[wpos_i]
+        fields = {
+            'status': 'published',
+            'align_conf': 1,
+            'surah': surah_i,
+            'ayah': ayah_i,
+            'wpos': wpos_i,
+            'quote': quote_text,
+            'skip_reason': None,
+        }
+        if grade not in (None, ''):
+            grade_text = str(grade).strip()
+            if grade_text not in REVIEW_GRADES:
+                raise TawjihReviewError(400, 'invalid waqf grade')
+            fields['grade'] = grade_text
+    else:
+        fields = {
+            'status': 'skipped',
+            'skip_reason': 'reviewer_discard',
+        }
+    if sb.is_configured():
+        updated = _patch_supabase(row_id, fields)
+    else:
+        updated = _patch_sqlite(row_id, fields, db_path)
+    return {
+        'ok': True,
+        'id': _as_int(updated.get('id')) or row_id,
+        'decision': decision,
+        'status': updated.get('status'),
+        'surah': _as_int(updated.get('surah')),
+        'ayah': _as_int(updated.get('ayah')),
+        'wpos': _as_int(updated.get('wpos')),
+        'quote': updated.get('quote') or '',
+    }
+

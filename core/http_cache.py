@@ -19,6 +19,7 @@ NO_STORE_API_PREFIXES = (
     '/api/quran-integrity/',
     '/api/layout-studio/',
     '/api/classical-review/',
+    '/api/tawjih-review/',
     '/api/cv-waqf/',
     '/api/waqf-research/',
 )

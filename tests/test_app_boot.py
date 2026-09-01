@@ -169,7 +169,7 @@ def test_editor_html_is_not_cdn_cached(client, monkeypatch):
     r = app.test_client().get('/mushaf-editor')
     assert r.status_code == 200
     assert 'no-store' in r.headers.get('Cache-Control', '')
-    for url in ('/classical-review', '/waqf-mark-review', '/activity'):
+    for url in ('/classical-review', '/tawjih-review', '/waqf-mark-review', '/activity'):
         response = client.get(url)
         assert response.status_code == 200, url
         assert response.headers['Cache-Control'] == 'no-store, max-age=0', url
@@ -188,6 +188,7 @@ def test_cloud_review_and_layout_reads_require_editor_session(app, monkeypatch):
         '/api/classical-review/muktafa/summary',
         '/api/classical-review/muktafa/items',
         '/api/classical-review/muktafa/export',
+        '/api/tawjih-review/summary',
         '/api/layout-studio/azhar/page/2',
         '/api/layout-studio/azhar/page-by-ayah/1/1',
         '/api/layout-studio/azhar/undo-status?page_number=2',

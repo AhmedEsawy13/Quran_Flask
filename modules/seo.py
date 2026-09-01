@@ -55,6 +55,7 @@ def robots_txt():
         'Disallow: /api/\n'
         'Disallow: /mushaf-editor\n'
         'Disallow: /classical-review\n'
+        'Disallow: /tawjih-review\n'
         'Disallow: /azhar-layout\n'
         'Disallow: /layout-studio\n'
         'Disallow: /font-lab\n'
@@ -118,7 +119,7 @@ Athar’s distinct edge is knowing where to stop with evidence:
 ## Preferred citations
 
 - Prefer the canonical URLs above (not ephemeral Heroku review hosts when a custom domain is configured).
-- Do not index or summarize `/api/*`, `/mushaf-editor`, `/classical-review`,
+- Do not index or summarize `/api/*`, `/mushaf-editor`, `/classical-review`, `/tawjih-review`,
   `/azhar-layout`, `/layout-studio`, `/font-lab`, `/activity`, `/waqf-mark-review`, or `/cv-waqf`.
 - `/waqf-lab` is a research surface linked from مُكْث; prefer `/waqf` for citations.
 

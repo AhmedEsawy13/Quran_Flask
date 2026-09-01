@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 110,
+  "route_count": 114,
   "routes": [
     {
       "auth": "editor",
@@ -2777,6 +2777,153 @@
       "source": "modules/reading.py",
       "success_cache": "public-1h",
       "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        503
+      ],
+      "dynamic_error": true,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.tawjih_review_decision",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/tawjih-review/decision",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/tawjih_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "ayah",
+        "decision",
+        "id",
+        "ok",
+        "quote",
+        "status",
+        "surah",
+        "wpos"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.tawjih_review_items",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/tawjih-review/items",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/tawjih_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "items",
+        "limit",
+        "page",
+        "pages",
+        "total"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.tawjih_review_summary",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/tawjih-review/summary",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/tawjih_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "published",
+        "review",
+        "skipped",
+        "source",
+        "total"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.tawjih_review_verse",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/tawjih-review/verse/<int:surah>/<int:ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/tawjih_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "ayah",
+        "surah",
+        "words"
+      ]
     },
     {
       "auth": "public",
