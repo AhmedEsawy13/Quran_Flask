@@ -1212,6 +1212,43 @@ button.page-number {
   line-height: 1.75;
 }
 
+.wq-rulings {
+  display: grid;
+  gap: 10px;
+}
+
+.wq-ruling {
+  display: grid;
+  gap: 6px;
+  padding-block: 4px;
+}
+
+.wq-rulings.has-split .wq-ruling {
+  padding: 8px 0;
+  border-block-end: 1px solid var(--athar-line-soft);
+}
+
+.wq-rulings.has-split .wq-ruling:last-child {
+  border-block-end: 0;
+  padding-bottom: 0;
+}
+
+.wq-illa {
+  margin: 0;
+  color: var(--athar-ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.8;
+}
+
+.wq-illa-more {
+  font-size: 0.82rem;
+  color: var(--athar-ink-faint);
+}
+
+.waqf-classical-row.wq-ruling .wq-illa {
+  margin-top: 4px;
+}
+
 .waqf-word {
   white-space: nowrap;
 }

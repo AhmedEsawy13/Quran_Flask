@@ -425,19 +425,32 @@
                 const highlightCitedScholars = note => note.replace(
                     /(وهو\s+قول\s+)([^.,،؛:{}()\n]{2,35}?)(?=[.,،؛:]|\s+(?:لم|أو|إذ|لأن|حتى|قال|إلا|على)(?=[\s.,،؛:]|$)|$)/g,
                     (_, lead, name) => `${lead}<span class="wq-mk3-cited">${name}</span>`);
-                const chips = list.map(e => {
+                const rulings = list.map(e => {
                     const g = MUKTAFA_GRADE[e.grade] || { cls: 'kafi', desc: e.grade };
                     const title = e.reported_from
                         ? `${g.desc} — نقل ${srcName(e.source)} هذا عن ${e.reported_from}، وليس بالضرورة رأيه الخاص`
                         : g.desc;
-                    return `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${title}">`
-                        + `${e.grade_raw} <small>· ${attrib(e)}</small></span>`;
+                    const chip = `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${escHtml(title)}">`
+                        + `${escHtml(e.grade_raw || e.grade)} <small>· ${attrib(e)}</small></span>`;
+                    const raw = (e.note || '').trim();
+                    let illa = '';
+                    if (raw) {
+                        const escaped = escHtml(raw);
+                        const preview = raw.length > 280
+                            ? escHtml(raw.slice(0, 280).trim() + '…')
+                            : escaped;
+                        illa = `<p class="wq-illa">${highlightCitedScholars(preview)}</p>`;
+                        if (raw.length > 280) {
+                            illa += `<details class="wq-mk3-note wq-illa-more"><summary>تتمة العلّة</summary>`
+                                + `<p>${highlightCitedScholars(escaped)}</p></details>`;
+                        }
+                    }
+                    return `<div class="wq-ruling">${chip}${illa}</div>`;
                 }).join('');
-                const notes = list.filter(e => (e.note || '').trim().length >= 18).map(e =>
-                    `<details class="wq-mk3-note"><summary>العلّة — ${attrib(e)}</summary>`
-                    + `<p>${highlightCitedScholars(e.note.trim())}</p></details>`).join('');
+                const split = list.length > 1 ? ' has-split' : '';
                 return `<div class="wq-mk3-row">`
-                    + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl">${phrase}</span>${chips}${notes}</div>`;
+                    + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl">${phrase}</span>`
+                    + `<div class="wq-rulings${split}">${rulings}</div></div>`;
             }).join('');
             els.muktafa.innerHTML = rows;
             const meta = Object.values(j.sources || {}).map(s2 => `${s2.title} — ${s2.author}`).join(' · ');
