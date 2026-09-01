@@ -777,14 +777,15 @@ export function WaqfWorkspace() {
                       <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">قول الإمام</h3>
                       {selectedClassical.length ? selectedClassical.map((entry, index) => {
                         const source = classical?.sources[entry.source];
+                        const note = (entry.note || "").trim();
                         return (
-                          <div className="waqf-classical-row" key={`${entry.source}-${index}`}>
+                          <div className="waqf-classical-row wq-ruling" key={`${entry.source}-${entry.grade}-${index}`}>
                             <div>
                               <strong>{entry.grade_raw || entry.grade}</strong>
-                              <span>{source?.name || entry.source}</span>
+                              <span>{source?.name || entry.source}{entry.reported_from ? ` نقلًا عن ${entry.reported_from}` : ""}</span>
                             </div>
-                            <blockquote>{entry.quote}</blockquote>
-                            {entry.note ? <details><summary>العلّة</summary><p>{entry.note}</p></details> : null}
+                            {entry.quote ? <blockquote>{entry.quote}</blockquote> : null}
+                            {note ? <p className="wq-illa">{note}</p> : null}
                           </div>
                         );
                       }) : <StatusState className="justify-center">لا يتوفر حكم تراثي موثّق لهذا الموضع بعد.</StatusState>}

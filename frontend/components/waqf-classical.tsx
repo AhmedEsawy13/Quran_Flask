@@ -60,30 +60,32 @@ export function WaqfClassical({
                   : <span key={`${wpos}-${index}`}>{word} </span>
               ))}
             </p>
-            <div>
+            <div className={`wq-rulings${list.length > 1 ? " has-split" : ""}`}>
               {list.map((entry, index) => {
                 const meta = classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade};
                 const source = classical.sources[entry.source];
                 const attrib = entry.reported_from
                   ? `${source?.name || entry.source} نقلًا عن ${entry.reported_from}`
                   : source?.name || entry.source;
+                const note = (entry.note || "").trim();
+                const preview = note.length > 280 ? `${note.slice(0, 280).trim()}…` : note;
                 return (
-                  <span className={`wq-grade is-${meta.cls}`} key={`${entry.source}-${index}`} title={meta.desc}>
-                    {entry.grade_raw || entry.grade}
-                    <small>· {attrib}</small>
-                  </span>
+                  <div className="wq-ruling" key={`${entry.source}-${entry.grade}-${index}`}>
+                    <span className={`wq-grade is-${meta.cls}`} title={meta.desc}>
+                      {entry.grade_raw || entry.grade}
+                      <small>· {attrib}</small>
+                    </span>
+                    {preview ? <p className="wq-illa">{preview}</p> : null}
+                    {note.length > 280 ? (
+                      <details className="wq-illa-more">
+                        <summary>تتمة العلّة</summary>
+                        <p>{note}</p>
+                      </details>
+                    ) : null}
+                  </div>
                 );
               })}
             </div>
-            {list.filter((entry) => (entry.note || "").trim().length >= 18).map((entry, index) => {
-              const source = classical.sources[entry.source];
-              return (
-                <details key={`${entry.source}-note-${index}`}>
-                  <summary>العلّة — {source?.name || entry.source}</summary>
-                  <p>{entry.note}</p>
-                </details>
-              );
-            })}
           </article>
         ))}
       </div>
