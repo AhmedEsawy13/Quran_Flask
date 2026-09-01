@@ -55,12 +55,14 @@ GRADE_CANON = {
 
 # Delimited explicit quotes only — never harvest a verse from surrounding prose.
 _ORNAMENTAL_QUOTE_RE = re.compile(r'﴿\s*([^﴾]{2,240})\s*﴾')
+_GUILLEMET_QUOTE_RE = re.compile(r'«\s*([^»]{2,240})\s*»')
 _ATTRIBUTED_QUOTE_RE = re.compile(
     r'(?:قوله(?:\s+تعالى)?|الوقف\s+على|يوقف\s+على|وقف[^\n]{0,40}على)'
     r'\s*[:：]?\s*[«"“”]'
     r'([^»"”]{2,240})'
     r'[»"”]'
 )
+_AYAH_ONLY_RE = re.compile(r'آي[ةه]\s*([0-9٠-٩۰-۹]+)')
 _SKIP_TEXT_RE = re.compile(
     r'zoom\.us|whatsapp\.com|\bwa\.me\b|\bzoom\b|زوم|'
     r'واتساب|واتس\s*أب|chat\.whatsapp|'
@@ -128,7 +130,7 @@ def skip_reason_for(post: dict) -> str | None:
 def extract_quotes(text: str) -> list[str]:
     found: list[str] = []
     seen: set[str] = set()
-    for rx in (_ORNAMENTAL_QUOTE_RE, _ATTRIBUTED_QUOTE_RE):
+    for rx in (_ORNAMENTAL_QUOTE_RE, _GUILLEMET_QUOTE_RE, _ATTRIBUTED_QUOTE_RE):
         for match in rx.finditer(text or ''):
             quote = (match.group(1) or '').strip()
             quote = re.sub(r'[٠-٩۰-۹0-9]+', ' ', quote)
@@ -190,6 +192,13 @@ def parse_verse_locator(text: str) -> tuple[int | None, int | None]:
             except ValueError:
                 ayah = None
         if surah:
+            if ayah is None:
+                ayah_only = _AYAH_ONLY_RE.search(text)
+                if ayah_only:
+                    try:
+                        ayah = int(ayah_only.group(1).translate(_AR_DIGIT_TRANS))
+                    except ValueError:
+                        ayah = None
             return surah, ayah
     num = _NUMERIC_REF_RE.search(text)
     if num:
@@ -227,12 +236,16 @@ def align_quote(
     *,
     restrict_surah: int | None = None,
     restrict_ayah: int | None = None,
-) -> list[tuple[int, int, int]]:
-    """Exact/prefix matches of the full quoted span. No fuzzy / suffix fallback."""
+) -> list[tuple[int, int, int, int]]:
+    """Exact/prefix matches of the full quoted span.
+
+    Each hit is ``(surah, ayah, start_wpos, end_wpos)``. ``end_wpos`` is the
+    stop word (last quoted token). No fuzzy / suffix fallback.
+    """
     quoted = classical.quote_words(quote)
     if not quoted:
         return []
-    hits: list[tuple[int, int, int]] = []
+    hits: list[tuple[int, int, int, int]] = []
     for surah, ayah, verse in _verse_index():
         if restrict_surah is not None and surah != restrict_surah:
             continue
@@ -244,7 +257,7 @@ def align_quote(
         for start in range(0, len(verse) - length + 1):
             if all(classical.match_word(quoted[i], verse[start + i], level=1)
                    for i in range(length)):
-                hits.append((surah, ayah, start + length - 1))
+                hits.append((surah, ayah, start, start + length - 1))
     return hits
 
 
@@ -287,8 +300,8 @@ def classify_post(post: dict) -> list[TawjihRow]:
                 url=post.get('url') or '', created_at=post.get('posted_at'),
             ))
             continue
-        unique_verses = {(s, a) for s, a, _ in hits}
-        unique_spans = {(s, a, w) for s, a, w in hits}
+        unique_verses = {(s, a) for s, a, _start, _end in hits}
+        unique_spans = {(s, a, end) for s, a, _start, end in hits}
         if len(unique_spans) == 1:
             surah, ayah, wpos = next(iter(unique_spans))
             rows.append(TawjihRow(

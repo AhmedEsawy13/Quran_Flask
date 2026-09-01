@@ -128,6 +128,16 @@ export function WaqfWorkspace() {
   const data = visible?.data || null;
   const classical = visible?.classical || null;
   const tawjih = visible?.tawjih || null;
+  const tawjihLinked = useMemo(() => {
+    const linked = new Set<number>();
+    for (const entry of tawjih?.entries || []) {
+      const start = Number.isFinite(entry.wpos_start) ? entry.wpos_start : entry.wpos;
+      for (let index = Math.max(0, start); index <= entry.wpos; index += 1) {
+        linked.add(index);
+      }
+    }
+    return linked;
+  }, [tawjih]);
   const profiles = useMemo(() => reciterProfiles(data), [data]);
   const recommended = useMemo(() => recommendedProfile(profiles, breath), [profiles, breath]);
   const selectedProfile = profiles.find((profile) => profile.id === selectedReciterId) || recommended;
@@ -583,7 +593,7 @@ export function WaqfWorkspace() {
                   const marks = marksByWpos.get(index) || [];
                   const isStop = Boolean(union || marks.length);
                   return (
-                    <span className={`waqf-word-unit${selectedStopWpos === index ? " is-selected" : ""}`} key={`${word}-${index}`}>
+                    <span className={`waqf-word-unit${selectedStopWpos === index ? " is-selected" : ""}${tawjihLinked.has(index) ? " is-tawjih" : ""}`} key={`${word}-${index}`}>
                       <span className="waqf-word">{word}</span>
                       {isStop ? (
                         <button
@@ -786,7 +796,7 @@ export function WaqfWorkspace() {
 
             <WaqfClassical classical={classical} words={data.words} />
 
-            <WaqfTawjih tawjih={tawjih} words={data.words} />
+            <WaqfTawjih tawjih={tawjih} words={data.words} onSelectWpos={setSelectedStopWpos} />
 
             <WaqfReciters data={data} playingKey={playingKey} onPlayPhrase={playReciterPhrase} />
 

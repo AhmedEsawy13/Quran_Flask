@@ -1161,6 +1161,57 @@ button.page-number {
   background: color-mix(in srgb, var(--athar-gold) 15%, transparent);
 }
 
+.waqf-word-unit.is-tawjih .waqf-word {
+  box-shadow: inset 0 -0.14em 0 0 color-mix(in srgb, var(--athar-accent) 72%, transparent);
+}
+
+.wq-tawjih-row {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-block-end: 1px solid var(--athar-line-soft);
+}
+
+.wq-tawjih-row:last-child {
+  border-block-end: 0;
+}
+
+.wq-tawjih-span {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+.wq-tawjih-ref {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--athar-ink-faint);
+}
+
+.wq-tawjih-link {
+  color: var(--athar-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.wq-tawjih-link:hover {
+  text-decoration: underline;
+}
+
+.wq-tawjih-note {
+  margin: 0;
+  color: var(--athar-ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.75;
+}
+
 .waqf-word {
   white-space: nowrap;
 }

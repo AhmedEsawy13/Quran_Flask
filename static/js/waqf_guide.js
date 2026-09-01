@@ -466,7 +466,11 @@
         try {
             const j = await window.AtharApi.json(`/api/tawjih/${surah}/${ayah}`);
             if (surah !== state.surah || ayah !== state.ayah) return;
-            if (!j.count || !Array.isArray(j.entries) || !j.entries.length) return;
+            if (!j.count || !Array.isArray(j.entries) || !j.entries.length) {
+                state.tawjihSpans = [];
+                markTawjihWords();
+                return;
+            }
             const words = (state.data && state.data.words) || [];
             const gradeMeta = {
                 ...MUKTAFA_GRADE,
@@ -474,30 +478,60 @@
             };
             const rows = j.entries.map(e => {
                 const wpos = e.wpos;
-                const stop = (words.length && wpos < words.length) ? words[wpos] : (e.stop_word || '');
+                const start = Number.isFinite(e.wpos_start) ? e.wpos_start : wpos;
+                const phrase = (Array.isArray(e.phrase) && e.phrase.length)
+                    ? e.phrase
+                    : (words.length ? words.slice(Math.max(0, start), wpos + 1) : [e.stop_word || '']);
+                const phraseHtml = phrase.map((word, i) => (
+                    i === phrase.length - 1
+                        ? `<span class="wq-mk3-stopw">${escHtml(word)}</span>`
+                        : `${escHtml(word)} `
+                )).join('');
                 const g = gradeMeta[e.grade] || (e.grade ? { cls: 'kafi', desc: e.grade } : null);
                 const gradeChip = g
                     ? `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${escHtml(g.desc)}">${escHtml(e.grade)}</span>`
                     : '';
                 const href = safeTweetUrl(e.url);
                 const link = href
-                    ? `<a class="wq-tawjih-link" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">التغريدة</a>`
+                    ? `<a class="wq-tawjih-link" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">افتح التغريدة</a>`
                     : '';
-                const note = (e.note || '').trim().length >= 18
-                    ? `<details class="wq-mk3-note"><summary>التوجيه</summary><p>${escHtml(e.note.trim())}</p></details>`
+                const rawNote = (e.note || '').replace(/\s+/g, ' ').trim();
+                const note = rawNote
+                    ? `<p class="wq-tawjih-note">${escHtml(rawNote.length > 180 ? rawNote.slice(0, 180).trim() + '…' : rawNote)}</p>`
                     : '';
-                return `<div class="wq-mk3-row">`
-                    + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl"><span class="wq-mk3-stopw">${escHtml(stop)}</span></span>`
-                    + gradeChip + link + note + `</div>`;
+                return `<div class="wq-tawjih-row">`
+                    + `<button type="button" class="wq-tawjih-span" data-wpos="${wpos}">`
+                    + `<span class="wq-tawjih-ref">كلمة ${toAr(wpos + 1)}</span>`
+                    + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl">${phraseHtml}</span>`
+                    + `</button>`
+                    + `<div class="wq-tawjih-meta">${gradeChip}${link}</div>`
+                    + note + `</div>`;
             }).join('');
             els.tawjih.innerHTML = rows;
+            state.tawjihSpans = j.entries.map(e => ({
+                start: Number.isFinite(e.wpos_start) ? e.wpos_start : e.wpos,
+                end: e.wpos,
+            }));
+            markTawjihWords();
             const src = j.source || {};
             const author = src.author || 'د. أحمد صابر عبدالهادي';
             const profile = safeTweetUrl(src.url) || 'https://x.com/Dr_ahmed21';
             els.tawjihSrc.innerHTML = `${escHtml(src.title || 'توجيه معاصر')} — `
                 + `<a class="wq-tawjih-link" href="${escHtml(profile)}" target="_blank" rel="noopener noreferrer">${escHtml(author)}</a>`;
             els.tawjihCard.hidden = false;
-        } catch (e) { /* contemporary layer is optional — stay hidden */ }
+        } catch (e) {
+            state.tawjihSpans = [];
+            markTawjihWords();
+        }
+    }
+
+    function markTawjihWords() {
+        if (!els.verseFlow) return;
+        const spans = (state.tawjihSpans || []).filter(s => s && s.end != null);
+        els.verseFlow.querySelectorAll('.wq-word').forEach((el, index) => {
+            const hit = spans.some(s => index >= Math.max(0, s.start) && index <= s.end);
+            el.classList.toggle('wq-word-tawjih', hit);
+        });
     }
 
     /* ── waqf research by word (للدراسة) ──────────────────────────── */
@@ -1851,6 +1885,7 @@
             },
         });
         applyVerseHighlight(d);
+        markTawjihWords();
     }
 
     function renderMatrix(d) {
@@ -2373,6 +2408,14 @@
     }
     els.prev.addEventListener('click', () => stepVerse(-1));
     els.next.addEventListener('click', () => stepVerse(1));
+    if (els.tawjih) els.tawjih.addEventListener('click', e => {
+        const btn = e.target.closest('[data-wpos]');
+        if (!btn || !els.tawjih.contains(btn)) return;
+        const wpos = parseInt(btn.dataset.wpos, 10);
+        if (!Number.isFinite(wpos) || !state.data) return;
+        state.pendingHighlight = { wpos, word: null };
+        applyVerseHighlight(state.data);
+    });
     let searchDebounce = null;
     els.search.addEventListener('input', () => {
         const raw = els.search.value;

@@ -17,12 +17,20 @@ function tweetHref(raw: string | null | undefined) {
   return "";
 }
 
+function excerpt(note: string, limit = 180) {
+  const text = note.replace(/\s+/g, " ").trim();
+  if (text.length <= limit) return text;
+  return `${text.slice(0, limit).trim()}…`;
+}
+
 export function WaqfTawjih({
   tawjih,
   words,
+  onSelectWpos,
 }: {
   tawjih: TawjihPayload | null;
   words: string[];
+  onSelectWpos?: (wpos: number) => void;
 }) {
   if (!tawjih?.count || !tawjih.entries.length) return null;
 
@@ -34,22 +42,39 @@ export function WaqfTawjih({
       <ToolCardHead
         title="توجيه معاصر — د. أحمد صابر عبدالهادي"
         titleId="waqf-tawjih-title"
-        meta={`${toArabicDigits(tawjih.count)} توجيهًا`}
+        meta={`${toArabicDigits(tawjih.count)} تغريدة مربوطة`}
       />
       <p className="-mt-1 mb-3 text-[0.82rem] text-athar-ink-faint">
-        {tawjih.source?.title || "توجيه معاصر"} —{" "}
+        ربط التغريدة بموضع الآية من الاقتباس الصريح —{" "}
         <a className="font-bold text-athar-accent no-underline hover:underline" href={profile} target="_blank" rel="noopener noreferrer">
           {author}
         </a>
       </p>
       <div>
         {tawjih.entries.map((entry, index) => {
-          const stop = (words.length && entry.wpos < words.length) ? words[entry.wpos] : entry.stop_word;
+          const start = Number.isFinite(entry.wpos_start) ? entry.wpos_start : entry.wpos;
+          const phrase = (entry.phrase && entry.phrase.length)
+            ? entry.phrase
+            : (words.length ? words.slice(Math.max(0, start), entry.wpos + 1) : [entry.stop_word]);
           const meta = entry.grade ? (classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade}) : null;
           const href = tweetHref(entry.url);
+          const body = excerpt(entry.note || "");
           return (
-            <article className="wq-classical-row" key={`${entry.wpos}-${index}`}>
-              <p className="wq-classical-phrase"><b>{stop}</b></p>
+            <article className="wq-tawjih-row" key={`${entry.tweet_id || entry.wpos}-${index}`}>
+              <button
+                type="button"
+                className="wq-tawjih-span"
+                onClick={() => onSelectWpos?.(entry.wpos)}
+              >
+                <span className="wq-tawjih-ref">كلمة {toArabicDigits(entry.wpos + 1)}</span>
+                <p className="wq-classical-phrase">
+                  {phrase.map((word, wordIndex) => (
+                    wordIndex === phrase.length - 1
+                      ? <b key={`${entry.wpos}-${wordIndex}`}>{word}</b>
+                      : <span key={`${entry.wpos}-${wordIndex}`}>{word} </span>
+                  ))}
+                </p>
+              </button>
               <div className="flex flex-wrap items-baseline gap-2">
                 {meta ? (
                   <span className={`wq-grade is-${meta.cls}`} title={meta.desc}>
@@ -57,17 +82,12 @@ export function WaqfTawjih({
                   </span>
                 ) : null}
                 {href ? (
-                  <a className="text-[0.78rem] font-bold text-athar-accent no-underline hover:underline" href={href} target="_blank" rel="noopener noreferrer">
-                    التغريدة
+                  <a className="wq-tawjih-link" href={href} target="_blank" rel="noopener noreferrer">
+                    افتح التغريدة
                   </a>
                 ) : null}
               </div>
-              {(entry.note || "").trim().length >= 18 ? (
-                <details>
-                  <summary>التوجيه</summary>
-                  <p>{entry.note}</p>
-                </details>
-              ) : null}
+              {body ? <p className="wq-tawjih-note">{body}</p> : null}
             </article>
           );
         })}

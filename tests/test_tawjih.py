@@ -151,6 +151,28 @@ def test_explicit_verse_locator_disambiguates_repeated_phrase():
     assert rows[0].align_conf == 1
 
 
+def test_surah_name_then_ayah_number_still_locates():
+    rows = tawjih.classify_post(_post(
+        post_text='سورة الفاتحة قوله تعالى: "ٱلۡحَمۡدُ لِلَّهِ رَبِّ ٱلۡعَٰلَمِينَ" الآية ٢ وقف تام.',
+    ))
+    assert rows[0].status == 'published'
+    assert rows[0].surah == 1 and rows[0].ayah == 2
+
+
+def test_guillemet_quote_publishes_when_the_span_is_unique():
+    rows = tawjih.classify_post(_post(
+        post_text=f'«{UNIQUE_QUOTE}» وقف تام.',
+    ))
+    assert rows[0].status == 'published'
+    assert rows[0].surah == UNIQUE_SURAH and rows[0].ayah == UNIQUE_AYAH
+    assert rows[0].wpos == len(verse_words(UNIQUE_SURAH, UNIQUE_AYAH)) - 1
+
+
+def test_align_quote_returns_the_full_span_not_only_the_last_word():
+    hits = tawjih.align_quote(UNIQUE_QUOTE)
+    assert hits == [(UNIQUE_SURAH, UNIQUE_AYAH, 0, len(verse_words(UNIQUE_SURAH, UNIQUE_AYAH)) - 1)]
+
+
 def test_pipeline_never_writes_classical_waqf_db():
     before = _sha(Path(CLASSICAL_WAQF_DATABASE))
     tawjih.classify_posts([_post(), _post(kind='إعادة تغريد', tweet_id='9')])
@@ -201,8 +223,12 @@ def test_api_returns_fixture_published_row(client, tmp_path, monkeypatch):
     assert payload['source']['url'] == 'https://x.com/Dr_ahmed21'
     assert len(payload['entries']) == 1
     entry = payload['entries'][0]
+    words = verse_words(UNIQUE_SURAH, UNIQUE_AYAH)
     assert entry['wpos'] == fixture['wpos']
-    assert entry['stop_word'] == verse_words(UNIQUE_SURAH, UNIQUE_AYAH)[fixture['wpos']]
+    assert entry['wpos_start'] == 0
+    assert entry['phrase'] == words
+    assert entry['tweet_id'] == fixture['tweet_id']
+    assert entry['stop_word'] == words[fixture['wpos']]
     assert entry['quote'] == UNIQUE_QUOTE
     assert entry['grade'] == 'تام'
     assert entry['url'] == fixture['url']

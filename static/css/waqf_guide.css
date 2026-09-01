@@ -817,8 +817,15 @@ body.wq-lab-sheet-open { overflow: hidden; }
 /* ── المكتفى للداني (classical grades) ──────────────────────────── */
 .wq-muktafa-src { font-size: 0.76rem; color: var(--wq-text-faint); margin: -4px 0 12px; }
 .wq-muktafa { display: flex; flex-direction: column; gap: 8px; }
-.wq-tawjih-link { color: var(--wq-accent); font-weight: 700; font-size: 0.78rem; text-decoration: none; }
+.wq-tawjih-link { color: var(--wq-accent); font-weight: 800; font-size: 0.78rem; text-decoration: none; }
 .wq-tawjih-link:hover { text-decoration: underline; }
+.wq-tawjih-row { display: grid; gap: 8px; padding: 10px 0; border-block-end: 1px solid var(--wq-border); }
+.wq-tawjih-row:last-child { border-block-end: 0; }
+.wq-tawjih-span { display: grid; gap: 4px; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: inherit; cursor: pointer; }
+.wq-tawjih-ref { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-faint); }
+.wq-tawjih-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
+.wq-tawjih-note { margin: 0; color: var(--wq-text-muted); font-size: 0.88rem; line-height: 1.75; }
+.wq-word-tawjih { box-shadow: inset 0 -0.14em 0 0 var(--wq-accent); }
 .wq-mk3-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 9px 13px;
     border-radius: 11px; background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
 .wq-mk3-word { font-size: 1.35rem; color: var(--wq-text); line-height: 1.6; }

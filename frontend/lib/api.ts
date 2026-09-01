@@ -169,8 +169,11 @@ export type TawjihPayload = {
     url: string;
   };
   entries: Array<{
+    tweet_id: string;
     wpos: number;
+    wpos_start: number;
     stop_word: string;
+    phrase: string[];
     quote: string;
     note: string;
     grade: string | null;

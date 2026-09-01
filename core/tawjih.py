@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import sqlite3
 
 from core.config import TAWJIH_DATABASE
@@ -25,6 +26,7 @@ TAWJIH_SOURCE = {
 }
 
 _POST_SELECT = 'tweet_id,url,posted_at'
+_ARABIC_TOKEN_RE = re.compile(r'[\u0600-\u06FF]+')
 
 
 def verse_is_valid(surah: int, ayah: int) -> bool:
@@ -47,6 +49,21 @@ def _stop_word(surah: int, ayah: int, wpos: int) -> str:
     return ''
 
 
+def quote_span(surah: int, ayah: int, wpos: int, quote: str | None) -> tuple[int, int]:
+    """Inclusive word range of the quoted span ending at ``wpos``.
+
+    Alignment stores the stop word (last quoted token). Recover the start
+    from the quote's Arabic token count, clamped to the verse.
+    """
+    words = verse_words(surah, ayah)
+    if not words or wpos < 0 or wpos >= len(words):
+        return max(0, wpos), max(0, wpos)
+    tokens = _ARABIC_TOKEN_RE.findall(quote or '')
+    width = len(tokens) or 1
+    start = max(0, wpos - width + 1)
+    return start, wpos
+
+
 def _shape_entry(row: dict, surah: int, ayah: int) -> dict | None:
     try:
         wpos = int(row['wpos'])
@@ -56,10 +73,16 @@ def _shape_entry(row: dict, surah: int, ayah: int) -> dict | None:
     if not stop_word:
         return None
     created = row.get('created_at') or row.get('posted_at') or None
+    quote = row.get('quote') or ''
+    start, end = quote_span(surah, ayah, wpos, quote)
+    words = verse_words(surah, ayah)
     return {
-        'wpos': wpos,
+        'tweet_id': str(row.get('tweet_id') or ''),
+        'wpos': end,
+        'wpos_start': start,
         'stop_word': stop_word,
-        'quote': row.get('quote') or '',
+        'phrase': words[start:end + 1],
+        'quote': quote,
         'note': row.get('note') or '',
         'grade': row.get('grade') or None,
         'url': row.get('url') or '',
