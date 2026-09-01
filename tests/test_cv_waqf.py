@@ -949,11 +949,11 @@ def test_azhar_occupancy_drops_empty_azhar_word(tmp_path):
     conn.execute(
         'CREATE TABLE waqf ('
         '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
-        '"الأزهر" TEXT, "البحرين" TEXT, "قطر" TEXT)'
+        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT, "قطر" TEXT)'
     )
-    conn.execute('INSERT INTO waqf VALUES (2,5,5,"ج",NULL,NULL)')
-    conn.execute('INSERT INTO waqf VALUES (4,23,11,NULL,"ص","ص")')
-    conn.execute('INSERT INTO waqf VALUES (2,5,6,"","ص",NULL)')
+    conn.execute('INSERT INTO waqf VALUES (2,5,5,5,"ج",NULL,NULL)')
+    conn.execute('INSERT INTO waqf VALUES (4,23,11,11,NULL,"ص","ص")')
+    conn.execute('INSERT INTO waqf VALUES (2,5,6,6,"","ص",NULL)')
     conn.commit()
     conn.close()
     reset_azhar_occupancy_cache()
@@ -985,6 +985,165 @@ def test_azhar_occupancy_fails_open_when_db_missing(tmp_path):
     kept, rejected = partition_marks_by_azhar_occupancy(marks, db_path=missing)
     assert kept == marks
     assert rejected == []
+
+
+def test_azhar_occupancy_matches_word_index_not_token_index(tmp_path):
+    import sqlite3
+
+    from pipeline.cv_waqf.azhar_prior import (
+        load_azhar_occupied_seats,
+        partition_marks_by_azhar_occupancy,
+        reset_azhar_occupancy_cache,
+        word_has_azhar_waqf,
+    )
+
+    db = tmp_path / 'mushaf_waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE waqf ('
+        '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
+        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT)'
+    )
+    # 33:51:8 تشاء — printed word_index 8, token_index 9, الأزهر ج البحرين ص.
+    conn.execute('INSERT INTO waqf VALUES (33,51,9,8,"ج","ص")')
+    conn.execute('INSERT INTO waqf VALUES (33,51,27,26,"ج","ج")')
+    conn.execute('INSERT INTO waqf VALUES (33,51,32,31,"ج","ج")')
+    conn.execute('INSERT INTO waqf VALUES (1,1,1,NULL,"ج",NULL)')
+    conn.commit()
+    conn.close()
+    reset_azhar_occupancy_cache()
+
+    assert load_azhar_occupied_seats(str(db)) == {
+        (33, 51, 8), (33, 51, 26), (33, 51, 31),
+    }
+    assert word_has_azhar_waqf(33, 51, 8, db_path=db) is True
+    assert word_has_azhar_waqf(33, 51, 9, db_path=db) is False
+    kept, rejected = partition_marks_by_azhar_occupancy(
+        [
+            {
+                'word_key': '33:51:8', 'surah': 33, 'ayah': 51,
+                'symbol': 'ص', 'confidence': 0.99,
+            },
+            {
+                'word_key': '33:51:9', 'surah': 33, 'ayah': 51,
+                'symbol': 'ص', 'confidence': 0.99,
+            },
+        ],
+        db_path=db,
+    )
+    assert [row['word_key'] for row in kept] == ['33:51:8']
+    assert [row['word_key'] for row in rejected] == ['33:51:9']
+
+
+def test_bahrain_detect_keeps_word_index_when_token_index_differs(
+    monkeypatch, tmp_path,
+):
+    import sqlite3
+
+    from pipeline.cv_waqf import azhar_prior, run_page
+
+    db = tmp_path / 'mushaf_waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE waqf ('
+        '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
+        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT)'
+    )
+    conn.execute('INSERT INTO waqf VALUES (33,51,9,8,"ج","ص")')
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(azhar_prior, 'WAQF_DB', str(db))
+    azhar_prior.reset_azhar_occupancy_cache()
+    _stub_detect_pipeline(monkeypatch, [
+        _attached_mark('33:51:8', symbol='ص', confidence=0.99, word_id=8),
+    ])
+
+    result = run_page.detect_page('البحرين', 425)
+    assert [row['word_key'] for row in result['marks']] == ['33:51:8']
+    assert result['azhar_rejected'] == []
+    assert result['azhar_kept'] == 1
+
+
+def test_detect_overlay_source_has_no_proposal_or_classified_boxes():
+    src = (ROOT / 'pipeline' / 'cv_waqf' / 'run_page.py').read_text(
+        encoding='utf-8',
+    )
+    paint = src.split('def paint_detect_overlay')[1].split('def detect_page')[0]
+    assert '(180, 180, 80)' not in src
+    assert '(0, 140, 255)' not in src
+    assert 'for hit in hits' not in paint
+    assert 'raw_classified' not in paint
+    assert 'cv2.circle' not in src
+    assert 'OVERLAY_KEPT_BGR' in src
+    assert 'OVERLAY_REJECTED_BGR' not in src
+    assert '(0, 0, 220)' not in src
+    assert 'rejected' not in paint
+
+
+def test_paint_detect_overlay_draws_kept_green_only(monkeypatch):
+    from pipeline.cv_waqf.run_page import OVERLAY_KEPT_BGR, paint_detect_overlay
+
+    strokes = []
+
+    def capture_rect(_img, _pt1, _pt2, color, _thickness=1):
+        strokes.append(('rect', tuple(color)))
+
+    def capture_text(_img, text, _org, _font, _scale, color, *_a, **_k):
+        strokes.append(('text', text, tuple(color)))
+
+    def forbid_circle(*_a, **_k):
+        raise AssertionError('overlay must not draw circles')
+
+    monkeypatch.setattr('pipeline.cv_waqf.run_page.cv2.rectangle', capture_rect)
+    monkeypatch.setattr('pipeline.cv_waqf.run_page.cv2.putText', capture_text)
+    monkeypatch.setattr('pipeline.cv_waqf.run_page.cv2.circle', forbid_circle)
+
+    bgr = np.full((40, 40, 3), 255, dtype=np.uint8)
+    kept = _attached_mark('33:51:8', symbol='ص', confidence=0.99, word_id=8)
+    paint_detect_overlay(bgr, [kept])
+
+    colors = {item[-1] for item in strokes}
+    assert colors == {OVERLAY_KEPT_BGR}
+    assert ('rect', OVERLAY_KEPT_BGR) in strokes
+    assert any(
+        item[0] == 'text' and item[1].startswith('ص:') and item[2] == OVERLAY_KEPT_BGR
+        for item in strokes
+    )
+    assert not any(item[-1] == (0, 0, 220) for item in strokes)
+
+
+def test_detect_page_overlay_writes_green_kept_only(monkeypatch, tmp_path):
+    from pipeline.cv_waqf import azhar_prior, run_page
+
+    strokes = []
+
+    def capture_rect(_img, _pt1, _pt2, color, _thickness=1):
+        strokes.append(tuple(color))
+
+    def capture_text(_img, _text, _org, _font, _scale, color, *_a, **_k):
+        strokes.append(tuple(color))
+
+    def forbid_circle(*_a, **_k):
+        raise AssertionError('overlay must not draw circles')
+
+    monkeypatch.setattr(run_page.cv2, 'rectangle', capture_rect)
+    monkeypatch.setattr(run_page.cv2, 'putText', capture_text)
+    monkeypatch.setattr(run_page.cv2, 'circle', forbid_circle)
+    monkeypatch.setattr(run_page.cv2, 'imwrite', lambda *_a, **_k: True)
+    monkeypatch.setattr(
+        azhar_prior, 'load_azhar_occupied_seats',
+        lambda db_path='': {(33, 51, 8)},
+    )
+    _stub_detect_pipeline(monkeypatch, [
+        _attached_mark('33:51:8', symbol='ص', confidence=0.99, word_id=8),
+        _attached_mark('4:23:11', symbol='ج', confidence=0.97, word_id=2),
+    ])
+
+    overlay = tmp_path / 'p425.jpg'
+    result = run_page.detect_page('البحرين', 425, overlay_path=overlay)
+    assert set(strokes) == {run_page.OVERLAY_KEPT_BGR}
+    assert [row['word_key'] for row in result['marks']] == ['33:51:8']
+    assert [row['word_key'] for row in result['azhar_rejected']] == ['4:23:11']
 
 
 def test_bahrain_detect_page_applies_azhar_seat_prior(monkeypatch):
@@ -1128,6 +1287,27 @@ def test_ui_payload_exposes_azhar_rejected_marks(monkeypatch):
     assert payload['summary']['rejected'] == 1
     assert payload['summary']['trusted'] == 1
     assert all(m['word_key'] != '4:23:11' for m in payload['cv_marks'])
+    assert payload['trusted_marks'][0]['glyph'] == 'ۖ'
+    assert payload['trusted_marks'][0]['short_name'] == 'صلى'
+    assert payload['rejected_marks'][0]['glyph'] == 'ۖ'
+
+
+def test_cv_waqf_payload_exposes_real_glyphs_for_mismatch():
+    from pipeline.cv_waqf.ui_payload import _glyph_fields, _with_db_contrast
+
+    matched = _with_db_contrast({'symbol': 'ج'}, {'symbol': 'ج', **_glyph_fields('ج')})
+    assert matched['glyph'] == 'ۚ'
+    assert matched['short_name'] == 'جائز'
+    assert matched['vs_db'] == 'match'
+    assert 'db_glyph' not in matched
+
+    wrong = _with_db_contrast({'symbol': 'ص'}, {'symbol': 'ق', **_glyph_fields('ق')})
+    assert wrong['vs_db'] == 'wrong'
+    assert wrong['glyph'] == 'ۖ'
+    assert wrong['short_name'] == 'صلى'
+    assert wrong['db_symbol'] == 'ق'
+    assert wrong['db_glyph'] == 'ۗ'
+    assert wrong['db_short_name'] == 'قلى'
 
 
 def test_hand_evaluation_inherits_edition_azhar_prior(monkeypatch):

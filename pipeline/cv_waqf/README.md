@@ -73,7 +73,8 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 # So detect/UI still run at 0.55 (review candidates); bootstrap/auto-set
 # writes only confidence >= 0.85. Other editions stay narrow + 0.70 auto-set.
 # Azhar occupancy prior (البحرين only): after attach, keep a mark only if
-# الأزهر has some waqf on that same word (ignore the Azhar glyph). On the
+# الأزهر has some waqf on that same word_index (ignore the Azhar glyph;
+# do not use token_index — 353 DB rows differ). On the
 # same 44-page hand set at 0.55 this cuts FP 31 → 6 and correct 217 → 213.
 # The 4 dropped "TPs" are not البحرين DB seats. Global recall cost: 12
 # البحرين-only DB seats with empty الأزهر. --no-azhar-prior disables it.

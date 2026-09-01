@@ -167,6 +167,30 @@ def _mark_dict(mark: AttachedMark, *, reject_reason: str | None = None) -> dict:
     return row
 
 
+OVERLAY_KEPT_BGR = (0, 200, 0)
+
+
+def _stroke_overlay_mark(vis, mark: AttachedMark) -> None:
+    cand = mark.candidate
+    color = OVERLAY_KEPT_BGR
+    cv2.rectangle(
+        vis, (cand.x, cand.y), (cand.x + cand.w, cand.y + cand.h), color, 2,
+    )
+    cv2.putText(
+        vis, f'{mark.symbol}:{mark.confidence:.2f}',
+        (cand.x, max(12, cand.y - 2)),
+        cv2.FONT_HERSHEY_SIMPLEX, 0.35, color, 1, cv2.LINE_AA,
+    )
+
+
+def paint_detect_overlay(bgr, kept: list[AttachedMark]):
+    """Page image plus green kept glyph boxes only."""
+    vis = bgr.copy()
+    for mark in kept:
+        _stroke_overlay_mark(vis, mark)
+    return vis
+
+
 def detect_page(
     edition_key: str,
     page: int,
@@ -184,6 +208,9 @@ def detect_page(
     spec = EDITIONS[edition_key]
     img_path = ensure_page_image(spec, page)
     bgr = load_bgr(img_path)
+    # Freeze a clean page copy before preprocess so overlay never inherits
+    # debug ink, word boxes, or in-place mutations.
+    overlay_base = bgr.copy() if overlay_path is not None else None
     prepared = preprocess_page(bgr, spec)
     words = estimate_layout_words(spec, page, prepared)
 
@@ -241,37 +268,7 @@ def detect_page(
 
     if overlay_path is not None:
         overlay_path.parent.mkdir(parents=True, exist_ok=True)
-        vis = bgr.copy()
-        for hit in hits:
-            c = hit.candidate
-            cv2.rectangle(vis, (c.x, c.y), (c.x + c.w, c.y + c.h), (180, 180, 80), 1)
-        for cand, label, conf in raw_classified:
-            cv2.rectangle(
-                vis, (cand.x, cand.y), (cand.x + cand.w, cand.y + cand.h),
-                (0, 140, 255), 2,
-            )
-            cv2.putText(
-                vis, f'{label}:{conf:.2f}',
-                (cand.x, max(12, cand.y - 2)),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 140, 255), 1, cv2.LINE_AA,
-            )
-        for mark in kept:
-            cv2.circle(
-                vis,
-                (int(mark.candidate.cx), int(mark.candidate.cy)),
-                4, (0, 200, 0), -1,
-            )
-        for mark in rejected:
-            cv2.circle(
-                vis,
-                (int(mark.candidate.cx), int(mark.candidate.cy)),
-                4, (0, 0, 220), -1,
-            )
-            cv2.circle(
-                vis,
-                (int(mark.candidate.cx), int(mark.candidate.cy)),
-                8, (0, 0, 220), 1,
-            )
+        vis = paint_detect_overlay(overlay_base, kept)
         cv2.imwrite(str(overlay_path), vis)
 
     return {

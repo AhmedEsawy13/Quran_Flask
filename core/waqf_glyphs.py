@@ -34,6 +34,17 @@ MARK_WRITE_FORM: dict[str, str] = {
     'م': 'م', 'ج': 'ج', 'لا': 'لا', 'س': 'س', 'ع': 'ع',
 }
 
+# Short Arabic labels next to the printed pause glyph in review UIs.
+SHORT_NAME: dict[str, str] = {
+    'م': 'لازم',
+    'لا': 'لا وقف',
+    'ق': 'قلى',
+    'ص': 'صلى',
+    'ج': 'جائز',
+    'س': 'سكتة',
+    'ع': 'معانقة',
+}
+
 SYMBOL_CHOICES: tuple[str, ...] = tuple(code for code, _glyph, _name in SYMBOL_META)
 
 # CV / ONNX classifier classes (includes none).

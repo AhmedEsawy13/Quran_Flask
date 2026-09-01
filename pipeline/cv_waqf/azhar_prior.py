@@ -2,8 +2,9 @@
 
 After a mark is attached to a word, keep it only if الأزهر has **some**
 waqf on that same word. Ignore the Azhar glyph. Match on
-``(سورة, آية, token_index / word_position)`` only. Any non-empty الأزهر
-cell counts. This is an FP cut, not a mark classifier.
+``(سورة, آية, word_index)`` only — the same 1-based printed-word
+position as detect ``word_key`` (``surah:ayah:word_position``). Any
+non-empty الأزهر cell counts. This is an FP cut, not a mark classifier.
 
 الأزهر has more printed stops than البحرين, so a real Bahrain stop should
 almost always sit on an Azhar-occupied word. Counting glyphs would create
@@ -14,9 +15,11 @@ table ``waqf``:
 
 - الأزهر non-null: 4870, البحرين: 4275, overlap 4263. Only **12** Bahrain
   DB seats have empty Azhar.
-- ``word_key`` in detect is ``surah:ayah:word_position``. In this DB,
-  ``token_index`` and ``word_index`` match that 1-based word_position
-  (example: label word_key ``2:5:5`` is token_index 5).
+- ``word_key`` in detect is ``surah:ayah:word_position``, and that
+  position is ``word_index`` (the printed word). ``token_index`` equals
+  ``word_index`` on most rows, but **353** rows differ. Occupancy must
+  use ``word_index`` or real البحرين seats are dropped (e.g. 33:51:8
+  تشاء: DB word_index 8, token_index 9).
 
 On 44 labeled Bahrain pages, gated hybrid min_conf 0.55:
 
@@ -55,10 +58,12 @@ def reset_azhar_occupancy_cache() -> None:
 
 @lru_cache(maxsize=4)
 def load_azhar_occupied_seats(db_path: str = '') -> frozenset[tuple[int, int, int]] | None:
-    """Cached ``(surah, ayah, token_index)`` where الأزهر is non-empty.
+    """Cached ``(surah, ayah, word_index)`` where الأزهر is non-empty.
 
-    Returns ``None`` when the file is missing, unreadable, or has no
-    occupied Azhar seats — callers must fail open.
+    ``word_index`` is the 1-based printed-word position in detect
+    ``word_key``. Skip null or unparseable ``word_index``. Returns
+    ``None`` when the file is missing, unreadable, or has no occupied
+    Azhar seats — callers must fail open.
     """
     path = Path(db_path) if db_path else Path(WAQF_DB)
     if not path.is_file():
@@ -67,7 +72,7 @@ def load_azhar_occupied_seats(db_path: str = '') -> frozenset[tuple[int, int, in
         conn = sqlite3.connect(f'file:{path.as_posix()}?mode=ro', uri=True)
         try:
             rows = conn.execute(
-                'SELECT "السورة", "الآية", token_index FROM waqf '
+                'SELECT "السورة", "الآية", word_index FROM waqf '
                 'WHERE "الأزهر" IS NOT NULL AND TRIM("الأزهر") != ""'
             ).fetchall()
         finally:
@@ -75,9 +80,9 @@ def load_azhar_occupied_seats(db_path: str = '') -> frozenset[tuple[int, int, in
     except sqlite3.Error:
         return None
     seats: set[tuple[int, int, int]] = set()
-    for surah, ayah, token_index in rows:
+    for surah, ayah, word_index in rows:
         try:
-            seats.add((int(surah), int(ayah), int(token_index)))
+            seats.add((int(surah), int(ayah), int(word_index)))
         except (TypeError, ValueError):
             continue
     return frozenset(seats) if seats else None
@@ -90,7 +95,7 @@ def word_has_azhar_waqf(
     *,
     db_path: str | Path | None = None,
 ) -> bool:
-    """True if الأزهر occupies this 1-based word, or if the DB is unavailable."""
+    """True if الأزهر occupies this 1-based word_index, or if the DB is unavailable."""
     occupied = load_azhar_occupied_seats('' if db_path is None else str(db_path))
     if not occupied:
         return True
@@ -102,7 +107,7 @@ def word_has_azhar_waqf(
 
 
 def word_position_of(mark: Any) -> int | None:
-    """1-based word_position from ``word_key`` (``surah:ayah:position``)."""
+    """1-based printed word_index from ``word_key`` (``surah:ayah:position``)."""
     if isinstance(mark, dict):
         key = mark.get('word_key')
         explicit = mark.get('word_position')

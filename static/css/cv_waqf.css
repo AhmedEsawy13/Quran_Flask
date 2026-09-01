@@ -1,4 +1,11 @@
 /* OpenCV waqf detection viewer — follows Athar editor tool chrome */
+@font-face {
+    font-family: 'UthmanicHafs';
+    src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2'),
+         url('../fonts/uthmanic_hafs_v20.ttf') format('truetype');
+    font-display: swap;
+}
+
 :root {
     --cvw-bg: var(--athar-parchment, #f3ebe0);
     --cvw-ink: var(--athar-ink, #1c1915);
@@ -104,6 +111,41 @@
     white-space: nowrap;
 }
 .cvw-lede a { color: var(--cvw-accent); }
+
+.cvw-body[data-ui-mode="detect"] .cvw-label-only,
+.cvw-body[data-ui-mode="detect"] .cvw-lede,
+.cvw-body[data-ui-mode="detect"] .cvw-kicker,
+.cvw-body[data-ui-mode="detect"] .cvw-queue,
+.cvw-body[data-ui-mode="detect"] .cvw-palette,
+.cvw-body[data-ui-mode="detect"] .cvw-save-bar,
+.cvw-body[data-ui-mode="detect"] .cvw-fab {
+    display: none !important;
+}
+.cvw-body[data-ui-mode="detect"] .cvw-chrome {
+    padding: 4px 10px 6px;
+}
+.cvw-body[data-ui-mode="detect"] .cvw-chrome-top {
+    margin-bottom: 2px;
+}
+.cvw-body[data-ui-mode="detect"] .cvw-meta {
+    margin-top: 4px;
+}
+
+.cvw-detect-more {
+    margin-top: 4px;
+    color: var(--cvw-muted);
+    font-size: 0.72rem;
+}
+.cvw-detect-more summary {
+    cursor: pointer;
+    font-weight: 700;
+    list-style: none;
+    color: var(--cvw-muted);
+}
+.cvw-detect-more summary::-webkit-details-marker { display: none; }
+.cvw-body[data-ui-mode="label"] .cvw-detect-more {
+    display: none !important;
+}
 
 .cvw-controls {
     display: grid;
@@ -221,7 +263,7 @@
 
 @media (min-width: 960px) {
     .cvw-main {
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: minmax(0, 1fr) 360px;
         align-items: start;
     }
     .cvw-side {
@@ -229,6 +271,10 @@
         top: 148px;
         max-height: calc(100vh - 160px);
         overflow: auto;
+    }
+    .cvw-body[data-ui-mode="detect"] .cvw-side {
+        top: 92px;
+        max-height: calc(100vh - 104px);
     }
 }
 
@@ -524,6 +570,76 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.cvw-detect-item {
+    grid-template-columns: minmax(0, 1.2fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+}
+.cvw-word {
+    font-family: "UthmanicHafs", serif;
+    font-size: 1.55rem;
+    line-height: 1.85;
+    color: var(--cvw-ink);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cvw-mark,
+.cvw-mark-pair {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.cvw-mark {
+    flex-direction: column;
+    justify-content: center;
+    min-width: 2.6rem;
+    text-align: center;
+}
+.cvw-mark-glyph {
+    font-family: "UthmanicHafs", serif;
+    font-size: 2.35rem;
+    line-height: 1;
+    /* Optical center: Uthmanic stop marks paint in the upper half of the em. */
+    transform: translateY(0.18em);
+    color: var(--cvw-ink);
+}
+.cvw-mark-name {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--cvw-muted);
+    line-height: 1.2;
+}
+.cvw-mark-src {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: var(--cvw-muted);
+}
+.cvw-mark-vs {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--cvw-muted);
+    padding: 0 2px;
+}
+.cvw-detect-item.is-wrong .cvw-mark-glyph {
+    color: var(--cvw-wrong);
+}
+.cvw-detect-item.is-match .cvw-mark-glyph {
+    color: var(--cvw-match);
+}
+.cvw-detect-item.is-missing .cvw-mark-glyph {
+    color: var(--cvw-missing);
+}
+.cvw-detect-item.is-extra .cvw-mark-glyph {
+    color: var(--cvw-extra);
+}
+.cvw-detect-item.is-review .cvw-mark-glyph {
+    color: var(--cvw-review);
+}
+
 .cvw-item .tag {
     font-size: 0.68rem;
     font-weight: 700;
