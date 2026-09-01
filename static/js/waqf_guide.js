@@ -510,7 +510,7 @@
                     : '';
                 const rawNote = (e.note || '').replace(/\s+/g, ' ').trim();
                 const note = rawNote
-                    ? `<p class="wq-tawjih-note">${escHtml(rawNote.length > 180 ? rawNote.slice(0, 180).trim() + '…' : rawNote)}</p>`
+                    ? `<p class="wq-tawjih-note">${escHtml(rawNote)}</p>`
                     : '';
                 return `<div class="wq-tawjih-row">`
                     + `<button type="button" class="wq-tawjih-span" data-wpos="${wpos}">`

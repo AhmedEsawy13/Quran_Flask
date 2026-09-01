@@ -17,12 +17,6 @@ function tweetHref(raw: string | null | undefined) {
   return "";
 }
 
-function excerpt(note: string, limit = 180) {
-  const text = note.replace(/\s+/g, " ").trim();
-  if (text.length <= limit) return text;
-  return `${text.slice(0, limit).trim()}…`;
-}
-
 export function WaqfTawjih({
   tawjih,
   words,
@@ -58,7 +52,7 @@ export function WaqfTawjih({
             : (words.length ? words.slice(Math.max(0, start), entry.wpos + 1) : [entry.stop_word]);
           const meta = entry.grade ? (classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade}) : null;
           const href = tweetHref(entry.url);
-          const body = excerpt(entry.note || "");
+          const body = (entry.note || "").replace(/\s+/g, " ").trim();
           return (
             <article className="wq-tawjih-row" key={`${entry.tweet_id || entry.wpos}-${index}`}>
               <button
