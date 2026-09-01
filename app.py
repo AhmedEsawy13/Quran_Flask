@@ -173,6 +173,7 @@ from modules.layouts import (  # noqa: F401 — importing also registers layout 
 )
 import modules.breathing        # noqa: F401 — attaches breathing routes to breathing_bp
 import modules.classical_review  # noqa: F401 — local-only book review routes on editor_bp
+import modules.tawjih_review  # noqa: F401 — contemporary توجيه review on editor_bp
 import modules.waqf_research    # noqa: F401 — attaches waqf-research routes to breathing_bp
 from modules.breathing import _verse_word_texts, _mark_word_context  # noqa: F401 — tests reach these via app.<name>
 from modules.waqf_research import (  # noqa: F401 — tests/pipeline reach these via app.<name>

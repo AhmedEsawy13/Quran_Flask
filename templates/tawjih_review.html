@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% set page_title = 'أثَر · توجيه د. أحمد' %}
+    {% set page_description = 'مراجعة تغريدات التوجيه المعاصر لمُكْث.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/tawjih-review', noindex=true) }}
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/athar-page-chrome.css') }}">
+    <link rel="stylesheet" href="{{ static_hash('css/classical_review.css') }}">
+    <script src="{{ static_hash('js/athar-api.js') }}"></script>
+    <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
+</head>
+<body class="cr-page">
+    {{ athar_app_bar() }}
+
+    <header class="cr-hero">
+        <div>
+            <p class="athar-kicker">— مراجعة التوجيه المعاصر</p>
+            <h1 class="athar-display" id="cr-title">توجيه د. أحمد صابر عبدالهادي</h1>
+            <p id="cr-subtitle">راجع التغريدات غير المحاذاة، اختر الآية والكلمة، ثم أضف البطاقة إلى مُكْث أو استبعدها.</p>
+        </div>
+    </header>
+
+    <main id="athar-main" class="cr-main" tabindex="-1">
+        <nav class="cr-books" aria-label="اختيار الكتاب">
+            <a class="cr-book-tab" href="/classical-review?book=muktafa">المكتفى</a>
+            <a class="cr-book-tab" href="/classical-review?book=manar">منار الهدى</a>
+            <a class="cr-book-tab cr-active" href="/tawjih-review" aria-current="page">توجيه د. أحمد</a>
+        </nav>
+
+        <section class="cr-metrics cr-metrics-4" id="cr-metrics" aria-label="حالة التوجيه">
+            <div class="cr-skeleton">جارٍ حساب القياسات…</div>
+        </section>
+
+        <aside class="cr-caveat" id="cr-caveat">منشور على مُكْث فقط إذا نُشر بثقة محاذاة 1. لا تخمين للسورة أو الحكم.</aside>
+
+        <section class="cr-toolbar" aria-label="مرشحات المراجعة">
+            <label>الحالة
+                <select id="cr-status">
+                    <option value="review" selected>بانتظار المراجعة</option>
+                    <option value="published">منشور</option>
+                    <option value="skipped">مستبعد</option>
+                    <option value="all">الكل</option>
+                </select>
+            </label>
+            <button id="cr-apply" type="button">تطبيق</button>
+            <span id="cr-result-count" aria-live="polite"></span>
+        </section>
+
+        <section id="cr-list" class="cr-list" aria-live="polite"></section>
+
+        <nav class="cr-pagination" aria-label="صفحات نتائج المراجعة">
+            <button id="cr-prev" type="button">السابق</button>
+            <span id="cr-page-label"></span>
+            <button id="cr-next" type="button">التالي</button>
+        </nav>
+    </main>
+
+    <div id="cr-toast" class="cr-toast" role="status" aria-live="polite" hidden></div>
+    <script src="{{ static_hash('js/tawjih_review.js') }}"></script>
+</body>
+</html>

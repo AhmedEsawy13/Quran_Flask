@@ -140,6 +140,7 @@
     $('cr-add-book').addEventListener('click', () => decideBook('add'));
     $('cr-reject-book').addEventListener('click', () => decideBook('reject'));
     document.querySelectorAll('.cr-book-tab').forEach(button => button.addEventListener('click', () => {
+        if (!button.dataset.source) return;
         if (button.dataset.source === state.source) return;
         state.source = button.dataset.source; state.page = 1;
         document.querySelectorAll('.cr-book-tab').forEach(tab => tab.classList.toggle('cr-active', tab === button));
@@ -147,6 +148,9 @@
         history.replaceState(null, '', `?book=${state.source}`);
         Promise.all([loadSummary(), loadItems()]).catch(e => toast(e.message, true));
     }));
-    document.querySelectorAll('.cr-book-tab').forEach(tab => tab.classList.toggle('cr-active', tab.dataset.source === state.source));
+    document.querySelectorAll('.cr-book-tab').forEach(tab => {
+        if (!tab.dataset.source) return;
+        tab.classList.toggle('cr-active', tab.dataset.source === state.source);
+    });
     Promise.all([loadSummary(), loadItems()]).catch(e => toast(e.message || 'تعذر تحميل صفحة المراجعة', true));
 })();
