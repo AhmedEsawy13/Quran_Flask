@@ -158,6 +158,7 @@
         matrixCard: $('wq-matrix-card'), matrix: $('wq-matrix'), matrixMobile: $('wq-matrix-mobile'), matrixLegend: $('wq-matrix-legend'),
         recitersCard: $('wq-reciters-card'), reciters: $('wq-reciters'),
         muktafaCard: $('wq-muktafa-card'), muktafa: $('wq-muktafa'), muktafaSrc: $('wq-muktafa-src'),
+        tawjihCard: $('wq-tawjih-card'), tawjih: $('wq-tawjih'), tawjihSrc: $('wq-tawjih-src'),
         researchCard: $('wq-research-card'), researchToggle: $('wq-research-toggle'), researchBody: $('wq-research-body'),
         labPicker: $('wq-lab-picker'), labPickerLabel: $('wq-lab-picker-label'),
         labSheetRoot: $('wq-lab-sheet-root'), labSheetBackdrop: $('wq-lab-sheet-backdrop'),
@@ -310,6 +311,7 @@
             els.ayah.value = String(ayah);
             render(data);
             loadMuktafa(surah, ayah);
+            loadTawjih(surah, ayah);
             syncCrossLinks(surah, ayah);
             setStatus('');
             const url = new URL(location.href);
@@ -442,6 +444,60 @@
             els.muktafaSrc.textContent = meta;
             els.muktafaCard.hidden = false;
         } catch (e) { /* classical layer is optional — stay hidden */ }
+    }
+
+    function escHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, ch => (
+            ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[ch])
+        ));
+    }
+    function safeTweetUrl(raw) {
+        try {
+            const url = new URL(String(raw || ''));
+            if (url.protocol === 'https:' && (url.hostname === 'x.com' || url.hostname === 'twitter.com' || url.hostname === 'www.x.com')) {
+                return url.href;
+            }
+        } catch (_e) { /* ignore malformed */ }
+        return '';
+    }
+    async function loadTawjih(surah, ayah) {
+        if (!els.tawjihCard) return;
+        els.tawjihCard.hidden = true;
+        try {
+            const j = await window.AtharApi.json(`/api/tawjih/${surah}/${ayah}`);
+            if (surah !== state.surah || ayah !== state.ayah) return;
+            if (!j.count || !Array.isArray(j.entries) || !j.entries.length) return;
+            const words = (state.data && state.data.words) || [];
+            const gradeMeta = {
+                ...MUKTAFA_GRADE,
+                'لازم': { cls: 'tamm', desc: 'وقفٌ لازم' },
+            };
+            const rows = j.entries.map(e => {
+                const wpos = e.wpos;
+                const stop = (words.length && wpos < words.length) ? words[wpos] : (e.stop_word || '');
+                const g = gradeMeta[e.grade] || (e.grade ? { cls: 'kafi', desc: e.grade } : null);
+                const gradeChip = g
+                    ? `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${escHtml(g.desc)}">${escHtml(e.grade)}</span>`
+                    : '';
+                const href = safeTweetUrl(e.url);
+                const link = href
+                    ? `<a class="wq-tawjih-link" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">التغريدة</a>`
+                    : '';
+                const note = (e.note || '').trim().length >= 18
+                    ? `<details class="wq-mk3-note"><summary>التوجيه</summary><p>${escHtml(e.note.trim())}</p></details>`
+                    : '';
+                return `<div class="wq-mk3-row">`
+                    + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl"><span class="wq-mk3-stopw">${escHtml(stop)}</span></span>`
+                    + gradeChip + link + note + `</div>`;
+            }).join('');
+            els.tawjih.innerHTML = rows;
+            const src = j.source || {};
+            const author = src.author || 'د. أحمد صابر عبدالهادي';
+            const profile = safeTweetUrl(src.url) || 'https://x.com/Dr_ahmed21';
+            els.tawjihSrc.innerHTML = `${escHtml(src.title || 'توجيه معاصر')} — `
+                + `<a class="wq-tawjih-link" href="${escHtml(profile)}" target="_blank" rel="noopener noreferrer">${escHtml(author)}</a>`;
+            els.tawjihCard.hidden = false;
+        } catch (e) { /* contemporary layer is optional — stay hidden */ }
     }
 
     /* ── waqf research by word (للدراسة) ──────────────────────────── */

@@ -1,8 +1,9 @@
 """Pause guide (مُكْث): reciter-validated waqf positions, printed-mushaf
-waqf lookup, the four classical waqf books' graded citations, and the
-تدريب الوقف practice grader (including ASR-based tajweed checking). The
-Quran-wide analytical /api/waqf-research/* family lives in
-modules/waqf_research.py — a separate file, same breathing_bp blueprint.
+waqf lookup, the four classical waqf books' graded citations, contemporary
+توجيه (د. أحمد صابر — not a classical book), and the تدريب الوقف practice
+grader (including ASR-based tajweed checking). The Quran-wide analytical
+/api/waqf-research/* family lives in modules/waqf_research.py — a separate
+file, same breathing_bp blueprint.
 """
 import json
 import logging
@@ -28,6 +29,8 @@ from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.classical_review import book_decision as _classical_book_decision
 from core.classical_review import decisions as _classical_review_decisions
 from core.classical_review import REVIEW_GRADE_LABELS
+from core.tawjih import TAWJIH_SOURCE, list_published as _list_published_tawjih
+from core.tawjih import verse_is_valid as _tawjih_verse_is_valid
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _load_memorization_word_ts, _segment_phrases, _forward_waqf_stops,
     _has_arabic_letter, _gd_browser_audio_url, _yt_audio_url, _audio_timing_entry,
@@ -474,6 +477,26 @@ def classical_waqf(surah, ayah):
     source_meta = {k: v for k, v in _CLASSICAL_SOURCES.items() if k in active_sources}
     return jsonify({'surah': surah, 'ayah': ayah, 'sources': source_meta,
                     'count': len(entries), 'entries': entries})
+
+
+@breathing_bp.route('/api/tawjih/<int:surah>/<int:ayah>', methods=['GET'])
+def tawjih(surah, ayah):
+    """Contemporary توجيه for one verse (د. أحمد صابر عبدالهادي).
+
+    Separate from the classical books: not stored in classical_waqf.db and
+    not gated by _ACTIVE_CLASSICAL_SOURCES. Only `status=published` rows
+    with `align_conf=1` are returned. An empty verse is 200 with entries=[].
+    """
+    if not _tawjih_verse_is_valid(surah, ayah):
+        return jsonify({'error': 'invalid verse'}), 400
+    entries = _list_published_tawjih(surah, ayah)
+    return jsonify({
+        'surah': surah,
+        'ayah': ayah,
+        'source': TAWJIH_SOURCE,
+        'count': len(entries),
+        'entries': entries,
+    })
 
 
 @breathing_bp.route('/waqf')

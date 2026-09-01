@@ -112,4 +112,5 @@ export const classicalGradeMeta: Record<string, {cls: string; desc: string}> = {
   "صالح": {cls: "kafi", desc: "وقفٌ صالح"},
   "قبيح": {cls: "qabih", desc: "وقفٌ قبيح — لا يُوقف عليه"},
   "لا": {cls: "qabih", desc: "ليس بوقف"},
+  "لازم": {cls: "tamm", desc: "وقفٌ لازم"},
 };

@@ -76,6 +76,10 @@ ASBAB_DATABASE = os.path.join(_BASE_DIR, 'data', 'asbab_local.db')
 # Classical وقف-وابتدا literature aligned to QPC word positions — built by
 # pipeline/build_muktafa.py from the OpenITI edition of الداني's المكتفى.
 CLASSICAL_WAQF_DATABASE = os.path.join(_BASE_DIR, 'data', 'classical_waqf.db')
+# Contemporary توجيه (د. أحمد صابر) aligned to QPC word positions.
+# Live rows live in Supabase `public.tawjih`. This sqlite file is an optional
+# test/offline fallback only — never mixed into classical_waqf.db.
+TAWJIH_DATABASE = os.path.join(_BASE_DIR, 'data', 'tawjih.db')
 # Local-only scholarly review decisions for classical-book candidates. This is
 # written only by the ENABLE_EDITOR-gated reviewer and never by public routes.
 CLASSICAL_REVIEW_DATABASE = os.path.join(_BASE_DIR, 'data', 'classical_review.db')

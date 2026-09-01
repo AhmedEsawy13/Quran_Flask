@@ -28,6 +28,8 @@ REQUIRED_PATHS = {
     '/athar_schema_versions',
     '/cv_waqf_hand_labels',
     '/rpc/publish_editor_edition',
+    '/tawjih',
+    '/dr_ahmed21_posts',
 }
 
 _CAPABILITY_FIELDS = (
