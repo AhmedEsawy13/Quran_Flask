@@ -1,0 +1,10 @@
+# Train-only extras for the above-word strip CNN.
+# Detect, evaluate-hand, and bootstrap do NOT need these — they load the
+# exported ONNX with OpenCV 5 DNN (see requirements-cv.txt).
+#
+#   .venv-cv/bin/pip install -r requirements-cv-train.txt
+#   .venv-cv/bin/python -m pipeline.cv_waqf train-strip \
+#       --crops data/cv/crops_hand/bahrain
+#
+-r requirements-cv.txt
+torch>=2.2

@@ -4,6 +4,9 @@
 #   python3 -m venv .venv-cv
 #   .venv-cv/bin/pip install -r requirements-cv.txt
 #
+# Train-only (strip CNN export; not needed for detect/evaluate/bootstrap):
+#   .venv-cv/bin/pip install -r requirements-cv-train.txt
+#
 opencv-python==5.0.0.93
 numpy>=2.0
 onnx>=1.16
