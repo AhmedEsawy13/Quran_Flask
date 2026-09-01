@@ -817,6 +817,8 @@ body.wq-lab-sheet-open { overflow: hidden; }
 /* ── المكتفى للداني (classical grades) ──────────────────────────── */
 .wq-muktafa-src { font-size: 0.76rem; color: var(--wq-text-faint); margin: -4px 0 12px; }
 .wq-muktafa { display: flex; flex-direction: column; gap: 8px; }
+.wq-tawjih-link { color: var(--wq-accent); font-weight: 700; font-size: 0.78rem; text-decoration: none; }
+.wq-tawjih-link:hover { text-decoration: underline; }
 .wq-mk3-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 9px 13px;
     border-radius: 11px; background: var(--wq-surface-2); border: 1px solid var(--wq-border); }
 .wq-mk3-word { font-size: 1.35rem; color: var(--wq-text); line-height: 1.6; }

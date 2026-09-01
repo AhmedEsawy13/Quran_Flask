@@ -248,6 +248,7 @@ Representative endpoints — see `app.py` (routes not yet split out) and
 ### Waqf & Pause Science (`مُكْث` / `تدريب`)
 - `GET /api/waqf/<surah>/<ayah>` — mushaf waqf marks for a verse
 - `GET /api/classical-waqf/<surah>/<ayah>` — the four classical books' rulings, aligned per word
+- `GET /api/tawjih/<surah>/<ayah>` — contemporary توجيه (د. أحمد صابر عبدالهادي); published unique alignments only
 - `GET /api/recitation-guide/<surah>/<ayah>` · `GET /api/reciter-compare/<surah>/<ayah>` — multi-reciter pause validation
 - `GET /api/waqf-research/{solos,patterns,clustering,ibtidaa,saktat,mushaf-agreement,mushaf-similarity,...}` — the مُكْث research tabs
 - `GET /api/waqf-practice/passage/<surah>/<from_ayah>/<to_ayah>` · `POST /api/waqf-practice/grade` — تدريب الوقف practice + grading

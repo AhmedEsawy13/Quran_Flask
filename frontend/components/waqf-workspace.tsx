@@ -8,6 +8,7 @@ import {
   type SearchHit,
   type SearchPayload,
   type Surah,
+  type TawjihPayload,
   type WaqfPayload,
   type WaqfReciterDetail,
 } from "@/lib/api";
@@ -31,6 +32,7 @@ import {
 import { WaqfMatrix } from "@/components/waqf-matrix";
 import { WaqfReciters } from "@/components/waqf-reciters";
 import { WaqfClassical } from "@/components/waqf-classical";
+import { WaqfTawjih } from "@/components/waqf-tawjih";
 import { Button, Field, SegmentedControl, SelectControl, StatusState } from "@/components/ui/primitives";
 import { introLinkClassName, pillActionClassName } from "@/lib/ui";
 
@@ -40,6 +42,7 @@ type WaqfResult = {
   key: string;
   data: WaqfPayload | null;
   classical: ClassicalWaqfPayload | null;
+  tawjih: TawjihPayload | null;
   error: string;
 };
 
@@ -118,12 +121,13 @@ export function WaqfWorkspace() {
   const [searchHits, setSearchHits] = useState<SearchHit[] | null>(null);
   const [searchError, setSearchError] = useState("");
   const [activeHit, setActiveHit] = useState(-1);
-  const [result, setResult] = useState<WaqfResult>({key: "", data: null, classical: null, error: ""});
+  const [result, setResult] = useState<WaqfResult>({key: "", data: null, classical: null, tawjih: null, error: ""});
   const {audioRef, playingKey, progress, play, stop} = useBoundedAudio();
   const requestKey = `${surahNumber}:${ayahNumber}:${retryToken}`;
   const visible = result.key === requestKey ? result : null;
   const data = visible?.data || null;
   const classical = visible?.classical || null;
+  const tawjih = visible?.tawjih || null;
   const profiles = useMemo(() => reciterProfiles(data), [data]);
   const recommended = useMemo(() => recommendedProfile(profiles, breath), [profiles, breath]);
   const selectedProfile = profiles.find((profile) => profile.id === selectedReciterId) || recommended;
@@ -231,14 +235,16 @@ export function WaqfWorkspace() {
       getJson<WaqfPayload>(`/backend-api/waqf/${surahNumber}/${ayahNumber}`, controller.signal),
       getJson<ClassicalWaqfPayload>(`/backend-api/classical-waqf/${surahNumber}/${ayahNumber}`, controller.signal)
         .catch(() => null),
+      getJson<TawjihPayload>(`/backend-api/tawjih/${surahNumber}/${ayahNumber}`, controller.signal)
+        .catch(() => null),
     ])
-      .then(([waqf, classicalPayload]) => {
+      .then(([waqf, classicalPayload, tawjihPayload]) => {
         const nextProfiles = reciterProfiles(waqf);
         const defaultProfile = recommendedProfile(nextProfiles, "medium");
         const strongest = [...waqf.union_stops]
           .filter((stopItem) => stopItem.wpos < waqf.words.length - 1)
           .sort((a, b) => b.count - a.count || a.wpos - b.wpos)[0];
-        setResult({key: requestKey, data: waqf, classical: classicalPayload, error: ""});
+        setResult({key: requestKey, data: waqf, classical: classicalPayload, tawjih: tawjihPayload, error: ""});
         setSelectedReciterId((current) => nextProfiles.some((profile) => profile.id === current)
           ? current
           : defaultProfile?.id || "");
@@ -254,6 +260,7 @@ export function WaqfWorkspace() {
           key: requestKey,
           data: null,
           classical: null,
+          tawjih: null,
           error: reason instanceof Error ? reason.message : "تعذّر تحميل دليل الوقف.",
         });
       });
@@ -778,6 +785,8 @@ export function WaqfWorkspace() {
             </ToolCard>
 
             <WaqfClassical classical={classical} words={data.words} />
+
+            <WaqfTawjih tawjih={tawjih} words={data.words} />
 
             <WaqfReciters data={data} playingKey={playingKey} onPlayPhrase={playReciterPhrase} />
 

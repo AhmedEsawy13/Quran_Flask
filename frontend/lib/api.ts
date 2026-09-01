@@ -158,6 +158,27 @@ export type ClassicalWaqfPayload = {
   }>;
 };
 
+export type TawjihPayload = {
+  surah: number;
+  ayah: number;
+  count: number;
+  source: {
+    name: string;
+    title: string;
+    author: string;
+    url: string;
+  };
+  entries: Array<{
+    wpos: number;
+    stop_word: string;
+    quote: string;
+    note: string;
+    grade: string | null;
+    url: string;
+    created_at: string | null;
+  }>;
+};
+
 export type TafseerCollection = Record<string, { text: string }>;
 
 export type MutashabihatMatch = {

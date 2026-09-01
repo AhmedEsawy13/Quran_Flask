@@ -78,6 +78,8 @@ reciters/husary/word_alignment.json
 # DB backups/snapshots — kept locally only, never committed
 data/*.backup_*.db
 data/*.backup*.db
+# Optional test/offline fallback for contemporary توجيه — never commit
+data/tawjih.db
 
 # Local font-renderer experiment artifacts — do not commit
 /tmp/

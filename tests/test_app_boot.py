@@ -43,6 +43,7 @@ def test_all_features_including_editor_boot(client):
     """Every module's landing endpoint resolves on the fully-mounted app."""
     for url in ('/', '/memorize', '/waqf', '/waqf-practice', '/mushaf-editor',
                 '/api/surahs', '/api/surahs/2/ayahs/255', '/api/classical-waqf/2/2',
+                '/api/tawjih/2/2',
                 '/api/waqf-practice/passage/2/1/3',
                 '/api/mushaf-editor/spread/2?edition=%D9%82%D8%B7%D8%B1'):
         assert client.get(url).status_code == 200, url
@@ -65,6 +66,8 @@ def test_release_workflows_cover_push_smoke_and_supabase_readiness():
         PROJECT_ROOT / 'pipeline' / 'check_supabase_readiness.py'
     ).read_text(encoding='utf-8')
     assert "'/cv_waqf_hand_labels'" in readiness
+    assert "'/tawjih'" in readiness
+    assert "'/dr_ahmed21_posts'" in readiness
     assert "CV_STORAGE_BUCKET = 'cv-waqf-hand'" in readiness
 
 
