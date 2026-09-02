@@ -611,6 +611,56 @@ def list_published(surah: int, ayah: int) -> list[dict]:
     return _from_sqlite(surah, ayah)
 
 
+def published_ayahs(surah: int) -> set[int]:
+    """Distinct ayahs with published, uniquely-aligned توجيه in this surah."""
+    if sb.is_configured():
+        try:
+            return _published_ayahs_supabase(surah)
+        except Exception:
+            logger.exception('tawjih supabase ayah map failed for surah %s', surah)
+            return set()
+    return _published_ayahs_sqlite(surah)
+
+
+def _published_ayahs_supabase(surah: int) -> set[int]:
+    rows = sb._request(
+        'GET',
+        'tawjih',
+        params={
+            'surah': f'eq.{surah}',
+            'status': 'eq.published',
+            'align_conf': 'eq.1',
+            'select': 'ayah',
+            'limit': '1000',
+        },
+    ) or []
+    out: set[int] = set()
+    for row in rows:
+        try:
+            ayah = int(row['ayah'])
+        except (TypeError, ValueError, KeyError):
+            continue
+        if ayah > 0:
+            out.add(ayah)
+    return out
+
+
+def _published_ayahs_sqlite(surah: int, db_path: str | None = None) -> set[int]:
+    path = db_path or TAWJIH_DATABASE
+    if not os.path.exists(path):
+        return set()
+    conn = _sqlite_connect(path, readonly=True)
+    try:
+        rows = conn.execute(
+            'SELECT DISTINCT ayah FROM tawjih '
+            'WHERE surah=? AND status=? AND align_conf=1 AND ayah IS NOT NULL',
+            (surah, 'published'),
+        ).fetchall()
+        return {int(r[0]) for r in rows if r[0] is not None}
+    finally:
+        conn.close()
+
+
 def ensure_sqlite_schema(conn: sqlite3.Connection) -> None:
     conn.execute(
         '''CREATE TABLE IF NOT EXISTS tawjih (

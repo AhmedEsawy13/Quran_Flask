@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 115,
+  "route_count": 116,
   "routes": [
     {
       "auth": "editor",
@@ -3011,6 +3011,37 @@
       "source": "modules/quran_api.py",
       "success_cache": "public-1h",
       "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_map",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-map/<int:surah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": [
+        "ayahs",
+        "items",
+        "surah"
+      ]
     },
     {
       "auth": "editor",
