@@ -99,3 +99,19 @@ a.cr-book-tab { text-decoration: none; display: inline-flex; flex-direction: col
 .cr-tawjih-drive-chip { display: inline-flex; width: fit-content; padding: 5px 10px; border-radius: 999px; font-size: .75rem; font-weight: 800; color: var(--athar-accent); text-decoration: none; background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface)); }
 .cr-tawjih-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 4px; direction: rtl; }
 .cr-tawjih-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; display: block; }
+.cr-tawjih-qa { display: grid; gap: 10px; direction: rtl; }
+.cr-tawjih-q, .cr-tawjih-a {
+    padding: 10px 12px; border-radius: 12px;
+    border-inline-start: 3px solid color-mix(in srgb, var(--athar-accent) 40%, var(--athar-line));
+}
+.cr-tawjih-q { background: var(--athar-parchment-2); color: var(--athar-ink-soft); }
+.cr-tawjih-a {
+    padding: 12px 14px; background: var(--athar-surface); color: var(--athar-ink);
+    border-inline-start-width: 4px; border-inline-start-color: var(--athar-accent);
+}
+.cr-tawjih-qa-kicker { margin: 0 0 6px; font-size: .72rem; font-weight: 800; color: var(--athar-ink-faint); }
+.cr-tawjih-qa-kicker a { color: inherit; text-decoration: none; }
+.cr-tawjih-qa-kicker a:hover { color: var(--athar-accent); text-decoration: underline; }
+.cr-tawjih-qa-text { margin: 0; white-space: pre-wrap; word-break: break-word; font-family: var(--font-serif); line-height: 1.9; font-size: .92rem; }
+.cr-tawjih-q .cr-tawjih-qa-text { color: var(--athar-ink-soft); }
+.cr-tawjih-a .cr-tawjih-qa-text { color: var(--athar-ink); font-size: .95rem; }

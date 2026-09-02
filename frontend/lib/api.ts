@@ -194,6 +194,11 @@ export type TawjihPayload = {
     grade: string | null;
     url: string;
     created_at: string | null;
+    is_reply?: boolean;
+    question?: string | null;
+    question_author?: string | null;
+    question_url?: string | null;
+    answer?: string | null;
   }>;
 };
 

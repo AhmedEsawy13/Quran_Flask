@@ -26,7 +26,7 @@ TAWJIH_SOURCE = {
     'url': 'https://x.com/Dr_ahmed21',
 }
 
-_POST_SELECT = 'tweet_id,url,posted_at,media,kind,post_text,reply_text'
+_POST_SELECT = 'tweet_id,url,posted_at,media,kind,post_text,reply_text,reply_to_user,reply_to_url'
 _ARABIC_TOKEN_RE = re.compile(r'[\u0600-\u06FF]+')
 
 _ARABIC_LETTER_RE = re.compile(r'[\u0600-\u06FF]')
@@ -181,7 +181,7 @@ def _display_note(primary: str, consumed: set[str]) -> str:
     return cleaned.strip()
 
 
-def parse_attachments(*blobs: str) -> tuple[list[dict], str]:
+def parse_attachments(*blobs: str, primary: str | None = None) -> tuple[list[dict], str]:
     """Extract allowlisted media URLs and a URL-stripped display note."""
     texts = tuple(str(b) if b is not None else '' for b in blobs)
     videos: dict[str, dict] = {}
@@ -270,17 +270,70 @@ def parse_attachments(*blobs: str) -> tuple[list[dict], str]:
         + drives[:_DRIVE_CAP]
         + list(photos.values())[:_PHOTO_CAP]
     )
-    return attachments, _display_note(_primary_text(*texts), consumed)
+    note_src = str(primary) if primary is not None else _primary_text(*texts)
+    return attachments, _display_note(note_src, consumed)
+
+
+
+def _safe_tweet_url(raw: str) -> str:
+    text = (raw or '').strip()
+    parsed = _parse_https(text)
+    if parsed is None:
+        return ''
+    if _host(parsed) in _X_HOSTS:
+        return text
+    return ''
+
+
+def _strip_leading_mention(text: str, author: str) -> str:
+    body = (text or '').strip()
+    handle = (author or '').strip().lstrip('@')
+    if not body or not handle:
+        return body
+    prefix = re.compile(r'^@' + re.escape(handle) + r'(?:\s+|$)', re.IGNORECASE)
+    return prefix.sub('', body, count=1).strip()
+
+
+def _qa_fields(row: dict) -> dict:
+    """Question/answer payload for توجيه replies (kind=رد)."""
+    empty = {
+        'is_reply': False,
+        'question': None,
+        'question_author': None,
+        'question_url': None,
+        'answer': None,
+    }
+    kind = (row.get('kind') or '').strip()
+    question = (row.get('post_text') or '').strip()
+    reply = (row.get('reply_text') or '').strip()
+    note = (row.get('note') or '').strip()
+    answer_src = reply or note
+    if kind != 'رد' or not question or not answer_src:
+        return empty
+    author = (row.get('reply_to_user') or '').strip()
+    url = _safe_tweet_url(row.get('reply_to_url') or '')
+    return {
+        'is_reply': True,
+        'question': question,
+        'question_author': author or None,
+        'question_url': url or None,
+        'answer': _strip_leading_mention(answer_src, author),
+    }
 
 
 def _entry_attachments(row: dict) -> tuple[list[dict], str]:
     note = row.get('note') or ''
+    reply_text = row.get('reply_text') or ''
+    primary = None
+    if (row.get('kind') or '') == 'رد':
+        primary = reply_text or note
     return parse_attachments(
         row.get('media') or '',
         note,
         row.get('post_text') or '',
-        row.get('reply_text') or '',
+        reply_text,
         row.get('url') or '',
+        primary=primary,
     )
 
 
@@ -333,7 +386,7 @@ def _shape_entry(row: dict, surah: int, ayah: int) -> dict | None:
     start, end = quote_span(surah, ayah, wpos, quote)
     words = verse_words(surah, ayah)
     attachments, display_note = _entry_attachments(row)
-    return {
+    shaped = {
         'tweet_id': str(row.get('tweet_id') or ''),
         'wpos': end,
         'wpos_start': start,
@@ -347,6 +400,8 @@ def _shape_entry(row: dict, surah: int, ayah: int) -> dict | None:
         'attachments': attachments,
         'display_note': display_note,
     }
+    shaped.update(_qa_fields(row))
+    return shaped
 
 
 def _from_supabase(surah: int, ayah: int) -> list[dict]:
@@ -384,6 +439,8 @@ def _from_supabase(surah: int, ayah: int) -> list[dict]:
         merged['kind'] = post.get('kind') or ''
         merged['post_text'] = post.get('post_text') or ''
         merged['reply_text'] = post.get('reply_text') or ''
+        merged['reply_to_user'] = post.get('reply_to_user') or ''
+        merged['reply_to_url'] = post.get('reply_to_url') or ''
         shaped = _shape_entry(merged, surah, ayah)
         if shaped:
             out.append(shaped)
@@ -460,7 +517,7 @@ _ITEM_SELECT = (
     'id,tweet_id,status,surah,ayah,wpos,quote,note,grade,'
     'align_conf,skip_reason,locator'
 )
-_REVIEW_POST_SELECT = 'tweet_id,kind,post_text,reply_text,url,posted_at,media'
+_REVIEW_POST_SELECT = 'tweet_id,kind,post_text,reply_text,reply_to_user,reply_to_url,url,posted_at,media'
 
 
 class TawjihReviewError(Exception):
@@ -514,13 +571,23 @@ def _shape_review_item(row: dict, post: dict | None = None) -> dict:
     if surah is not None and ayah is not None and verse_is_valid(surah, ayah):
         words = verse_words(surah, ayah)
     align = _as_int(row.get('align_conf'))
+    primary = (reply_text or note) if kind == 'رد' else None
     attachments, display_note = parse_attachments(
         post.get('media') or row.get('media') or '',
         note,
         post_text,
         reply_text,
         post.get('url') or row.get('url') or '',
+        primary=primary,
     )
+    qa = _qa_fields({
+        'kind': kind,
+        'post_text': post_text,
+        'reply_text': reply_text,
+        'note': note,
+        'reply_to_user': post.get('reply_to_user') or row.get('reply_to_user') or '',
+        'reply_to_url': post.get('reply_to_url') or row.get('reply_to_url') or '',
+    })
     return {
         'id': _as_int(row.get('id')),
         'tweet_id': str(row.get('tweet_id') or ''),
@@ -543,6 +610,7 @@ def _shape_review_item(row: dict, post: dict | None = None) -> dict:
         'verse_words': words,
         'attachments': attachments,
         'display_note': display_note,
+        **qa,
     }
 
 

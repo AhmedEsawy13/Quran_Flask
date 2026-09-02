@@ -26,7 +26,7 @@
     const PHOTO_HOSTS = new Set(['pbs.twimg.com']);
     const YT_HOSTS = new Set(['www.youtube-nocookie.com']);
     const DRIVE_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
-    const TWEET_HOSTS = new Set(['x.com', 'www.x.com', 'twitter.com']);
+    const TWEET_HOSTS = new Set(['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com']);
     function renderAttachments(list) {
         if (!Array.isArray(list) || !list.length) return '';
         const chunks = [];
@@ -60,6 +60,29 @@
             chunks.push(`<div class="cr-tawjih-photos">${photos.map(src => `<img src="${escapeHtml(src)}" alt="" loading="lazy">`).join('')}</div>`);
         }
         return chunks.length ? `<div class="cr-tawjih-media">${chunks.join('')}</div>` : '';
+    }
+    function renderSourceBody(item) {
+        if (item && item.question) {
+            const author = String(item.question_author || '').trim();
+            const qUrl = safeHttpsHost(item.question_url, TWEET_HOSTS);
+            const userBit = author
+                ? (qUrl
+                    ? ` · <a href="${escapeHtml(qUrl)}" target="_blank" rel="noopener">${escapeHtml(author)}</a>`
+                    : ` · ${escapeHtml(author)}`)
+                : '';
+            const answer = item.answer || item.tweet_body || item.note || '';
+            return `<div class="cr-tawjih-qa">`
+                + `<div class="cr-tawjih-q">`
+                + `<p class="cr-tawjih-qa-kicker">سؤال${userBit}</p>`
+                + `<p class="cr-tawjih-qa-text">${escapeHtml(item.question)}</p>`
+                + `</div>`
+                + `<div class="cr-tawjih-a">`
+                + `<p class="cr-tawjih-qa-kicker">جواب · د. أحمد صابر عبدالهادي</p>`
+                + `<p class="cr-tawjih-qa-text">${escapeHtml(answer)}</p>`
+                + `</div>`
+                + `</div>`;
+        }
+        return `<p class="cr-source-text cr-tweet">${escapeHtml(item.tweet_body || item.note || '')}</p>`;
     }
     function toast(message, error = false) {
         const el = $('cr-toast');
@@ -121,7 +144,7 @@
           <aside class="cr-card-source">
             <p class="cr-source-label">${url}</p>
             ${renderAttachments(item.attachments)}
-            <p class="cr-source-text cr-tweet">${escapeHtml(item.tweet_body || item.note || '')}</p>
+            ${renderSourceBody(item)}
           </aside>
         </article>`;
     }

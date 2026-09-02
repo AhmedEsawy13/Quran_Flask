@@ -5,7 +5,7 @@ import hashlib
 from pathlib import Path
 
 from core.config import CLASSICAL_WAQF_DATABASE
-from core.tawjih import verse_words
+from core.tawjih import _shape_review_item, verse_words
 from tests.test_tawjih import (
     UNIQUE_AYAH,
     UNIQUE_QUOTE,
@@ -173,3 +173,36 @@ def test_add_does_not_write_classical_waqf_db(client, tmp_path, monkeypatch):
     })
     assert response.status_code == 200
     assert _sha(Path(CLASSICAL_WAQF_DATABASE)) == before
+
+def test_shape_review_item_reply_sets_qa():
+    row = {
+        'id': 7,
+        'tweet_id': 'reply-1',
+        'status': 'review',
+        'surah': UNIQUE_SURAH,
+        'ayah': UNIQUE_AYAH,
+        'wpos': None,
+        'quote': '',
+        'note': 'الوقف هنا تام.',
+        'grade': None,
+        'align_conf': 0,
+        'skip_reason': None,
+        'locator': '',
+        'url': 'https://x.com/Dr_ahmed21/status/reply-1',
+    }
+    post = {
+        'kind': 'رد',
+        'post_text': 'ما حكم الوقف على رأس الآية أيها الشيخ؟',
+        'reply_text': '@AmerNadwi الوقف هنا تام.',
+        'reply_to_user': '@AmerNadwi',
+        'reply_to_url': 'https://x.com/AmerNadwi/status/99',
+        'url': row['url'],
+        'media': '',
+    }
+    item = _shape_review_item(row, post)
+    assert item['is_reply'] is True
+    assert item['question'] == post['post_text']
+    assert item['answer'] == 'الوقف هنا تام.'
+    assert item['display_note'] == '@AmerNadwi الوقف هنا تام.'
+    assert item['tweet_body'] == post['reply_text']
+
