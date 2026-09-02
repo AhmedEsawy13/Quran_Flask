@@ -90,3 +90,12 @@ a.cr-book-tab { text-decoration: none; display: inline-flex; flex-direction: col
     .cr-card-main, .cr-card-source { padding: 15px; }
     .cr-release-actions { flex-direction: column; }
 }
+
+.cr-tawjih-media { display: grid; gap: 8px; margin: 0 0 10px; }
+.cr-tawjih-video { width: 100%; max-height: 240px; border-radius: 10px; background: #111; }
+.cr-tawjih-embed { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, var(--athar-ink) 8%, transparent); }
+.cr-tawjih-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.cr-tawjih-drive { display: grid; gap: 6px; }
+.cr-tawjih-drive-chip { display: inline-flex; width: fit-content; padding: 5px 10px; border-radius: 999px; font-size: .75rem; font-weight: 800; color: var(--athar-accent); text-decoration: none; background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface)); }
+.cr-tawjih-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 4px; direction: rtl; }
+.cr-tawjih-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; display: block; }

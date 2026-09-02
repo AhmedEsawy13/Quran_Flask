@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import sqlite3
+from urllib.parse import parse_qs, urlparse
 
 from core.config import TAWJIH_DATABASE
 from core.datasets import qpc_hafs_data_normalized
@@ -25,8 +26,263 @@ TAWJIH_SOURCE = {
     'url': 'https://x.com/Dr_ahmed21',
 }
 
-_POST_SELECT = 'tweet_id,url,posted_at'
+_POST_SELECT = 'tweet_id,url,posted_at,media,kind,post_text,reply_text'
 _ARABIC_TOKEN_RE = re.compile(r'[\u0600-\u06FF]+')
+
+_ARABIC_LETTER_RE = re.compile(r'[\u0600-\u06FF]')
+_URL_RE = re.compile(r'https://[^\s<>"\')\]]+', re.IGNORECASE)
+_VIDEO_DIM_RE = re.compile(r'/(\d{2,5})x(\d{2,5})(?:/|$)')
+_VIDEO_GROUP_RE = re.compile(r'/(?:amplify_video|ext_tw_video|tweet_video)/(\d+)')
+_YOUTUBE_ID_RE = re.compile(r'^[A-Za-z0-9_-]{11}$')
+_DRIVE_FILE_RE = re.compile(r'/file/d/([^/?#]+)')
+_TRAIL_PUNCT = '.,;:!?)»”\'"]'
+_PHOTO_CAP = 4
+_VIDEO_CAP = 1
+_YOUTUBE_CAP = 1
+_DRIVE_CAP = 3
+_REJECT_HOST_EXACT = {
+    't.co', 'www.t.co',
+    'chat.whatsapp.com', 'whatsapp.com', 'www.whatsapp.com', 'wa.me', 'api.whatsapp.com',
+}
+_YOUTUBE_HOSTS = {'youtu.be', 'youtube.com', 'www.youtube.com', 'm.youtube.com'}
+_DRIVE_HOSTS = {'drive.google.com', 'www.drive.google.com'}
+_X_HOSTS = {'x.com', 'www.x.com', 'twitter.com', 'www.twitter.com'}
+
+
+def _parse_https(raw: str):
+    try:
+        parsed = urlparse(raw)
+    except ValueError:
+        return None
+    scheme = (parsed.scheme or '').lower()
+    if scheme != 'https' or not parsed.hostname:
+        return None
+    return parsed
+
+
+def _host(parsed) -> str:
+    return (parsed.hostname or '').lower()
+
+
+def _rejected_host(host: str) -> bool:
+    if host in _REJECT_HOST_EXACT:
+        return True
+    if host.endswith('.zoom.us') or host == 'zoom.us':
+        return True
+    if host.endswith('.whatsapp.com'):
+        return True
+    if 'acrobat' in host:
+        return True
+    return False
+
+
+def _youtube_id(parsed) -> str | None:
+    host = _host(parsed)
+    path = parsed.path or ''
+    parts = [p for p in path.split('/') if p]
+    if host == 'youtu.be' and parts:
+        candidate = parts[0]
+    elif host in _YOUTUBE_HOSTS:
+        qs = parse_qs(parsed.query or '')
+        if parts and parts[0] == 'watch':
+            candidate = (qs.get('v') or [''])[0]
+        elif len(parts) >= 2 and parts[0] in {'embed', 'shorts'}:
+            candidate = parts[1]
+        else:
+            return None
+    else:
+        return None
+    candidate = candidate.split('?')[0]
+    if _YOUTUBE_ID_RE.fullmatch(candidate):
+        return candidate
+    return None
+
+
+def _drive_file_id(parsed) -> str | None:
+    host = _host(parsed)
+    if host not in _DRIVE_HOSTS:
+        return None
+    path = parsed.path or ''
+    if '/folders/' in path:
+        return None
+    match = _DRIVE_FILE_RE.search(path)
+    if match:
+        file_id = match.group(1)
+    elif path.rstrip('/').split('/')[-1] == 'open':
+        file_id = (parse_qs(parsed.query or '').get('id') or [''])[0]
+    else:
+        file_id = ''
+    if file_id and re.fullmatch(r'[\w-]+', file_id):
+        return file_id
+    return None
+
+
+def _collect_urls(*blobs: str) -> list[str]:
+    found: list[str] = []
+    seen: set[str] = set()
+    for blob in blobs:
+        if not blob:
+            continue
+        for part in str(blob).split(' | '):
+            for match in _URL_RE.finditer(part):
+                raw = match.group(0).rstrip(_TRAIL_PUNCT)
+                if raw and raw not in seen:
+                    seen.add(raw)
+                    found.append(raw)
+    return found
+
+
+def _primary_text(*blobs: str) -> str:
+    for blob in blobs:
+        if blob and _ARABIC_LETTER_RE.search(blob):
+            return blob
+    for blob in blobs:
+        if blob and blob.strip():
+            return blob
+    return ''
+
+
+def _leftover_media_url(raw: str) -> bool:
+    parsed = _parse_https(raw)
+    if parsed is None:
+        return False
+    host = _host(parsed)
+    path = (parsed.path or '').lower()
+    if path.endswith('.m3u8') or '.m3u8' in path:
+        return True
+    if host in {'pbs.twimg.com', 'video.twimg.com'}:
+        return True
+    if host in _YOUTUBE_HOSTS or host == 'www.youtube-nocookie.com':
+        return True
+    if host in _DRIVE_HOSTS and (
+        '/file/' in path or '/folders/' in path or 'id' in parse_qs(parsed.query or '')
+    ):
+        return True
+    if host in _X_HOSTS and '/photo/' in path:
+        return True
+    return False
+
+
+def _display_note(primary: str, consumed: set[str]) -> str:
+    if not primary:
+        return ''
+
+    def _replace(match: re.Match) -> str:
+        raw = match.group(0)
+        trimmed = raw.rstrip(_TRAIL_PUNCT)
+        if trimmed in consumed or _leftover_media_url(trimmed):
+            return ' '
+        return raw
+
+    cleaned = _URL_RE.sub(_replace, primary)
+    cleaned = re.sub(r'[ \t]+', ' ', cleaned)
+    cleaned = re.sub(r' *\n *', '\n', cleaned)
+    cleaned = re.sub(r'\n{3,}', '\n\n', cleaned)
+    return cleaned.strip()
+
+
+def parse_attachments(*blobs: str) -> tuple[list[dict], str]:
+    """Extract allowlisted media URLs and a URL-stripped display note."""
+    texts = tuple(str(b) if b is not None else '' for b in blobs)
+    videos: dict[str, dict] = {}
+    photos: dict[str, dict] = {}
+    youtubes: list[dict] = []
+    youtube_ids: set[str] = set()
+    drives: list[dict] = []
+    drive_ids: set[str] = set()
+    consumed: set[str] = set()
+
+    for raw in _collect_urls(*texts):
+        parsed = _parse_https(raw)
+        if parsed is None:
+            continue
+        host = _host(parsed)
+        path = parsed.path or ''
+        if _rejected_host(host):
+            continue
+        if host in _X_HOSTS and '/photo/' in path:
+            continue
+
+        if host == 'video.twimg.com' and path.lower().endswith('.mp4'):
+            dims = _VIDEO_DIM_RE.search(path)
+            width = int(dims.group(1)) if dims else None
+            height = int(dims.group(2)) if dims else None
+            score = (width or 0) * (height or 0)
+            group = _VIDEO_GROUP_RE.search(path)
+            key = group.group(1) if group else path
+            prev = videos.get(key)
+            if prev is None or score > prev['_score']:
+                item = {'type': 'video', 'src': raw, '_score': score}
+                if width:
+                    item['width'] = width
+                if height:
+                    item['height'] = height
+                videos[key] = item
+                consumed.add(raw)
+            else:
+                consumed.add(raw)
+            continue
+
+        if host == 'pbs.twimg.com':
+            src = raw.replace('name=orig', 'name=small')
+            photos.setdefault(path, {'type': 'photo', 'src': src})
+            consumed.add(raw)
+            continue
+
+        yid = _youtube_id(parsed)
+        if yid:
+            if yid not in youtube_ids:
+                youtube_ids.add(yid)
+                youtubes.append({
+                    'type': 'youtube',
+                    'video_id': yid,
+                    'embed': f'https://www.youtube-nocookie.com/embed/{yid}',
+                })
+            consumed.add(raw)
+            continue
+
+        file_id = _drive_file_id(parsed)
+        if file_id:
+            if file_id not in drive_ids:
+                drive_ids.add(file_id)
+                drives.append({
+                    'type': 'drive',
+                    'file_id': file_id,
+                    'href': f'https://drive.google.com/file/d/{file_id}/view',
+                    'preview': f'https://drive.google.com/file/d/{file_id}/preview',
+                    'label': 'ملف على درايف',
+                })
+            consumed.add(raw)
+
+    ranked = sorted(videos.values(), key=lambda item: item.get('_score', 0), reverse=True)
+    video_out = []
+    for item in ranked[:_VIDEO_CAP]:
+        public = {'type': 'video', 'src': item['src']}
+        if 'width' in item:
+            public['width'] = item['width']
+        if 'height' in item:
+            public['height'] = item['height']
+        video_out.append(public)
+
+    attachments = (
+        video_out
+        + youtubes[:_YOUTUBE_CAP]
+        + drives[:_DRIVE_CAP]
+        + list(photos.values())[:_PHOTO_CAP]
+    )
+    return attachments, _display_note(_primary_text(*texts), consumed)
+
+
+def _entry_attachments(row: dict) -> tuple[list[dict], str]:
+    note = row.get('note') or ''
+    return parse_attachments(
+        row.get('media') or '',
+        note,
+        row.get('post_text') or '',
+        row.get('reply_text') or '',
+        row.get('url') or '',
+    )
+
 
 
 def verse_is_valid(surah: int, ayah: int) -> bool:
@@ -76,6 +332,7 @@ def _shape_entry(row: dict, surah: int, ayah: int) -> dict | None:
     quote = row.get('quote') or ''
     start, end = quote_span(surah, ayah, wpos, quote)
     words = verse_words(surah, ayah)
+    attachments, display_note = _entry_attachments(row)
     return {
         'tweet_id': str(row.get('tweet_id') or ''),
         'wpos': end,
@@ -87,6 +344,8 @@ def _shape_entry(row: dict, surah: int, ayah: int) -> dict | None:
         'grade': row.get('grade') or None,
         'url': row.get('url') or '',
         'created_at': created,
+        'attachments': attachments,
+        'display_note': display_note,
     }
 
 
@@ -121,6 +380,10 @@ def _from_supabase(surah: int, ayah: int) -> list[dict]:
         merged = dict(row)
         merged['url'] = post.get('url') or ''
         merged['posted_at'] = post.get('posted_at')
+        merged['media'] = post.get('media') or ''
+        merged['kind'] = post.get('kind') or ''
+        merged['post_text'] = post.get('post_text') or ''
+        merged['reply_text'] = post.get('reply_text') or ''
         shaped = _shape_entry(merged, surah, ayah)
         if shaped:
             out.append(shaped)
@@ -197,7 +460,7 @@ _ITEM_SELECT = (
     'id,tweet_id,status,surah,ayah,wpos,quote,note,grade,'
     'align_conf,skip_reason,locator'
 )
-_REVIEW_POST_SELECT = 'tweet_id,kind,post_text,reply_text,url,posted_at'
+_REVIEW_POST_SELECT = 'tweet_id,kind,post_text,reply_text,url,posted_at,media'
 
 
 class TawjihReviewError(Exception):
@@ -251,6 +514,13 @@ def _shape_review_item(row: dict, post: dict | None = None) -> dict:
     if surah is not None and ayah is not None and verse_is_valid(surah, ayah):
         words = verse_words(surah, ayah)
     align = _as_int(row.get('align_conf'))
+    attachments, display_note = parse_attachments(
+        post.get('media') or row.get('media') or '',
+        note,
+        post_text,
+        reply_text,
+        post.get('url') or row.get('url') or '',
+    )
     return {
         'id': _as_int(row.get('id')),
         'tweet_id': str(row.get('tweet_id') or ''),
@@ -271,6 +541,8 @@ def _shape_review_item(row: dict, post: dict | None = None) -> dict:
         'posted_at': post.get('posted_at') or row.get('created_at'),
         'tweet_body': _tweet_body(kind, post_text, reply_text, note),
         'verse_words': words,
+        'attachments': attachments,
+        'display_note': display_note,
     }
 
 

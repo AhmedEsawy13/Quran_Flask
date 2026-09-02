@@ -233,6 +233,9 @@ def test_api_returns_fixture_published_row(client, tmp_path, monkeypatch):
     assert entry['grade'] == 'تام'
     assert entry['url'] == fixture['url']
     assert entry['created_at'] == fixture['created_at']
+    assert entry['note'] == fixture['note']
+    assert entry['display_note'] == fixture['note']
+    assert entry['attachments'] == []
     assert 'source' not in entry
 
 
@@ -270,3 +273,23 @@ def test_api_does_not_mix_into_classical_sources(client, tmp_path, monkeypatch):
     tawjih_payload = client.get(f'/api/tawjih/{UNIQUE_SURAH}/{UNIQUE_AYAH}').get_json()
     assert tawjih_payload['count'] == 1
     assert tawjih_payload['source']['title'] == 'توجيه معاصر'
+
+
+def test_api_parses_drive_url_in_note(client, tmp_path, monkeypatch):
+    db = tmp_path / 'tawjih.db'
+    note = (
+        'الوقف هنا تام.\n'
+        'https://drive.google.com/file/d/1AbCDefGhIJKlmnoPQRstuVWX/view?usp=sharing'
+    )
+    _write_fixture(db, [_published_fixture(note=note)])
+    monkeypatch.setattr('core.tawjih.TAWJIH_DATABASE', str(db))
+    entry = client.get(f'/api/tawjih/{UNIQUE_SURAH}/{UNIQUE_AYAH}').get_json()['entries'][0]
+    assert entry['note'] == note
+    assert entry['display_note'] == 'الوقف هنا تام.'
+    assert len(entry['attachments']) == 1
+    att = entry['attachments'][0]
+    assert att['type'] == 'drive'
+    assert att['file_id'] == '1AbCDefGhIJKlmnoPQRstuVWX'
+    assert att['href'] == 'https://drive.google.com/file/d/1AbCDefGhIJKlmnoPQRstuVWX/view'
+    assert att['preview'] == 'https://drive.google.com/file/d/1AbCDefGhIJKlmnoPQRstuVWX/preview'
+    assert att['label'] == 'ملف على درايف'

@@ -817,14 +817,39 @@ body.wq-lab-sheet-open { overflow: hidden; }
 /* ── المكتفى للداني (classical grades) ──────────────────────────── */
 .wq-muktafa-src { font-size: 0.76rem; color: var(--wq-text-faint); margin: -4px 0 12px; }
 .wq-muktafa { display: flex; flex-direction: column; gap: 8px; }
+.wq-tawjih { display: flex; flex-direction: column; gap: 14px; }
+.wq-tawjih-card {
+    display: grid; gap: 12px; padding: 16px 16px 14px; border-radius: 16px;
+    background: color-mix(in srgb, var(--wq-surface-2) 70%, var(--wq-accent-soft));
+    border: 1px solid var(--wq-border); box-shadow: var(--wq-shadow-sm);
+}
+.wq-tawjih-head { display: grid; gap: 8px; }
+.wq-tawjih-head-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
 .wq-tawjih-link { color: var(--wq-accent); font-weight: 800; font-size: 0.78rem; text-decoration: none; }
 .wq-tawjih-link:hover { text-decoration: underline; }
-.wq-tawjih-row { display: grid; gap: 8px; padding: 10px 0; border-block-end: 1px solid var(--wq-border); }
-.wq-tawjih-row:last-child { border-block-end: 0; }
 .wq-tawjih-span { display: grid; gap: 4px; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: inherit; cursor: pointer; }
+.wq-tawjih-phrase { font-size: 1.28rem; color: var(--wq-text-muted); line-height: 1.9; margin: 0; }
 .wq-tawjih-ref { font-size: 0.72rem; font-weight: 700; color: var(--wq-text-faint); }
-.wq-tawjih-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; }
-.wq-tawjih-note { margin: 0; color: var(--wq-text-muted); font-size: 0.88rem; line-height: 1.75; }
+.wq-tawjih-media { display: grid; gap: 10px; }
+.wq-tawjih-video { width: 100%; max-height: 360px; border-radius: 12px; background: #111; }
+.wq-tawjih-video.is-portrait { width: auto; max-width: 100%; margin-inline: auto; display: block; }
+.wq-tawjih-embed { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: color-mix(in srgb, var(--wq-text) 8%, transparent); }
+.wq-tawjih-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.wq-tawjih-drive { display: grid; gap: 8px; }
+.wq-tawjih-drive-chip {
+    display: inline-flex; align-items: center; gap: 6px; width: fit-content;
+    padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 800;
+    color: var(--wq-accent); background: color-mix(in srgb, var(--wq-accent) 12%, var(--wq-surface));
+    text-decoration: none; border: 1px solid color-mix(in srgb, var(--wq-accent) 28%, var(--wq-border));
+}
+.wq-tawjih-drive-chip:hover { text-decoration: underline; }
+.wq-tawjih-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; direction: rtl; }
+.wq-tawjih-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; display: block; }
+.wq-tawjih-note { margin: 0; color: var(--wq-text-muted); font-size: 0.92rem; line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
+.wq-tawjih-note a { color: var(--wq-accent); font-weight: 700; text-decoration: none; }
+.wq-tawjih-note a:hover { text-decoration: underline; }
+.wq-tawjih-foot { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+.wq-tawjih-author { font-size: 0.78rem; font-weight: 700; color: var(--wq-text-faint); }
 .wq-word-tawjih { box-shadow: inset 0 -0.14em 0 0 var(--wq-accent); }
 .wq-mk3-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; padding: 9px 13px;
     border-radius: 11px; background: var(--wq-surface-2); border: 1px solid var(--wq-border); }

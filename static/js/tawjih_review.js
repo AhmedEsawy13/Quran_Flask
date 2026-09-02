@@ -15,6 +15,52 @@
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
         })[c]);
     }
+    function safeHttpsHost(raw, hosts) {
+        try {
+            const url = new URL(String(raw || ''));
+            if (url.protocol === 'https:' && hosts.has(url.hostname)) return url.href;
+        } catch (_e) { /* ignore malformed */ }
+        return '';
+    }
+    const VIDEO_HOSTS = new Set(['video.twimg.com']);
+    const PHOTO_HOSTS = new Set(['pbs.twimg.com']);
+    const YT_HOSTS = new Set(['www.youtube-nocookie.com']);
+    const DRIVE_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
+    const TWEET_HOSTS = new Set(['x.com', 'www.x.com', 'twitter.com']);
+    function renderAttachments(list) {
+        if (!Array.isArray(list) || !list.length) return '';
+        const chunks = [];
+        const photos = [];
+        for (const att of list) {
+            if (!att || !att.type) continue;
+            if (att.type === 'video') {
+                const src = safeHttpsHost(att.src, VIDEO_HOSTS);
+                if (!src || !new URL(src).pathname.toLowerCase().endsWith('.mp4')) continue;
+                chunks.push(`<video class="cr-tawjih-video" controls playsinline preload="metadata" src="${escapeHtml(src)}"></video>`);
+            } else if (att.type === 'youtube') {
+                const src = safeHttpsHost(att.embed, YT_HOSTS);
+                if (!src || !src.includes('/embed/')) continue;
+                chunks.push(`<div class="cr-tawjih-embed"><iframe src="${escapeHtml(src)}" title="فيديو" allow="fullscreen" allowfullscreen loading="lazy"></iframe></div>`);
+            } else if (att.type === 'drive') {
+                const href = safeHttpsHost(att.href, DRIVE_HOSTS);
+                const preview = safeHttpsHost(att.preview, DRIVE_HOSTS);
+                let block = '<div class="cr-tawjih-drive">';
+                if (href) block += `<a class="cr-tawjih-drive-chip" href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(att.label || 'ملف على درايف')}</a>`;
+                if (preview && preview.includes('/file/')) {
+                    block += `<div class="cr-tawjih-embed"><iframe src="${escapeHtml(preview)}" title="ملف درايف" loading="lazy"></iframe></div>`;
+                }
+                block += '</div>';
+                chunks.push(block);
+            } else if (att.type === 'photo') {
+                const src = safeHttpsHost(att.src, PHOTO_HOSTS);
+                if (src) photos.push(src);
+            }
+        }
+        if (photos.length) {
+            chunks.push(`<div class="cr-tawjih-photos">${photos.map(src => `<img src="${escapeHtml(src)}" alt="" loading="lazy">`).join('')}</div>`);
+        }
+        return chunks.length ? `<div class="cr-tawjih-media">${chunks.join('')}</div>` : '';
+    }
     function toast(message, error = false) {
         const el = $('cr-toast');
         el.textContent = message; el.hidden = false; el.classList.toggle('cr-error', error);
@@ -44,8 +90,9 @@
         const ayah = item.ayah == null ? '' : item.ayah;
         const wpos = item.wpos == null ? '' : item.wpos;
         const statusLabel = STATUS_LABEL[item.status] || item.status;
-        const url = item.url
-            ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">التغريدة</a>`
+        const tweetHref = safeHttpsHost(item.url, TWEET_HOSTS);
+        const url = tweetHref
+            ? `<a href="${escapeHtml(tweetHref)}" target="_blank" rel="noopener">التغريدة</a>`
             : 'التغريدة';
         const gradeOptions = ['<option value="">بدون حكم</option>'].concat(
             GRADES.map(g => `<option value="${escapeHtml(g)}" ${g === item.grade ? 'selected' : ''}>${escapeHtml(g)}</option>`)
@@ -73,6 +120,7 @@
           </div>
           <aside class="cr-card-source">
             <p class="cr-source-label">${url}</p>
+            ${renderAttachments(item.attachments)}
             <p class="cr-source-text cr-tweet">${escapeHtml(item.tweet_body || item.note || '')}</p>
           </aside>
         </article>`;

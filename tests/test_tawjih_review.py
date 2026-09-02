@@ -76,6 +76,7 @@ def test_review_items_have_empty_verse_words(client, tmp_path, monkeypatch):
     assert item['surah'] is None
     assert item['verse_words'] == []
     assert item['tweet_body']
+    assert item['attachments'] == []
 
 
 def test_verse_endpoint_valid_invalid_and_missing(client, tmp_path, monkeypatch):
