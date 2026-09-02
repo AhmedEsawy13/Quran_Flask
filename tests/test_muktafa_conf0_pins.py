@@ -309,3 +309,21 @@ def test_aligner_folds_leftover_quotes():
         assert hit == wpos, (surah, ayah, qwords, hit)
         assert unique == wpos, (surah, ayah, qwords, unique)
         assert level == 1, (surah, ayah, qwords, level)
+
+
+def test_muktafa_ama_tushrikun_is_nahl_1_not_tashkurun(muktafa):
+    """النحل 1 {عما تشركون} must not fuzzy-match 16:14 تشكرون."""
+    row = _row(muktafa, 'عما تشركون', 16)
+    assert (row['ayah'], row['wpos']) == (1, 8)
+
+
+def test_muktafa_yakhluqun_is_nahl_20_not_zukhruf_yakhlufun(muktafa):
+    """{يخلقون} with أموات is النحل 20, not الزخرف 60 يخلفون."""
+    row = _row(muktafa, 'يخلقون', 16)
+    assert (row['ayah'], row['wpos']) == (20, 9)
+
+
+def test_muktafa_alladhina_amanu_is_ghafir_7_not_amatna(muktafa):
+    """غافر {للذين آمنوا} is 40:7, not 40:11 أمتنا."""
+    row = _row(muktafa, 'للذين آمنوا', 40)
+    assert (row['ayah'], row['wpos']) == (7, 12)
