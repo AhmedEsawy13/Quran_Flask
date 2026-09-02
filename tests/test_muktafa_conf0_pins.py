@@ -1,10 +1,11 @@
 """المكتفى low-confidence pins: proven moves off the book, no invented أحكام.
 
 The regex harvest swallowed سورة المنافقون because OpenITI titles it
-`# [سورة] المنافقون.` (not `### | سورة …`). Three other conf=0 rows were
-pinned to a prefix-cousin of the quoted stop (أحد/أحدا/وإنه) while the
-full phrase is unique later in the same surah. Period quotes and genuinely
-repeated/discursive rows stay conf=0.
+`# [سورة] المنافقون.` (not `### | سورة …`). Unique leftover conf=0 rows are
+moved or filled off the book; `{quote} [grade]` parser misses are extracted.
+Period quotes, reported-from rulings, and genuinely repeated/discursive
+rows stay conf=0. Coords filled under hamza/ت-ي orthography stay conf=0
+until align_in_ayah succeeds.
 """
 import os
 import sqlite3
@@ -155,3 +156,80 @@ def test_asr_and_falaq_have_no_db_rows(muktafa):
 def test_active_classical_sources_still_manar_only():
     from modules import breathing
     assert breathing._ACTIVE_CLASSICAL_SOURCES == {'manar'}
+
+
+def test_unique_conf0_pin_mismatches_moved_off_the_book(muktafa):
+    """Wrong-word pins from the leftover 112, moved to the unique book landing."""
+    expected = {
+        ('والذين آمنوا', 2): (9, 3, 0),
+        ('تعتدون', 2): (61, 58, 0),
+        ('يا أولي الألباب', 2): (197, 28, 1),
+        ('من الذين آمنوا', 2): (212, 8, 0),
+        ('منهم تقاة', 3): (28, 20, 0),
+        ('وهذا النبي والذين آمنوا', 3): (68, 9, 0),
+        ('كان آمنا', 3): (97, 8, 0),
+        ('العالمين', 3): (108, 10, 0),
+        ('قوم آخرين', 6): (133, 17, 0),
+        ('فيما آتاكم', 6): (165, 13, 0),
+        ('فثبتوا الذين آمنوا', 8): (12, 9, 0),
+        ('لا يعلمونهم', 8): (60, 18, 0),
+        ('والذين آمنوا', 10): (103, 4, 0),
+        ('تلك آيات الكتاب', 13): (1, 3, 1),
+        ('القرآن العظيم', 15): (87, 6, 1),
+        ('في كتاب', 20): (52, 5, 0),
+        ('علمه', 20): (114, 16, 0),
+        ('يذكر آلهتكم', 21): (36, 11, 0),
+        ('يعقلون', 24): (61, 75, 0),
+        ('وعند الذين آمنوا', 40): (35, 14, 0),
+        ('لولا فصلت آياته', 41): (44, 7, 0),
+    }
+    for (quote, surah), (ayah, wpos, conf) in expected.items():
+        r = _row(muktafa, quote, surah)
+        assert r['ayah'] == ayah, quote
+        assert r['wpos'] == wpos, quote
+        assert r['conf'] == conf, quote
+
+
+def test_unmatched_unique_quotes_filled_from_the_book(muktafa):
+    expected = {
+        ('فيما آتاكم', 5): (48, 39),
+        ('ثم إليه ترجعون', 6): (36, 9),
+        ('مذءوما مذعورا', 7): (18, 4),
+        ('بني إسرائيل', 7): (105, 17),
+        ('واتبع هواه', 7): (176, 9),
+        ('بنو إسرائيل', 10): (90, 23),
+        ('إلا من قد آمن', 11): (36, 11),
+        ('ومن آمن', 11): (40, 20),
+        ('للظالمين', 11): (44, 16),
+        ('الخاسرون', 12): (14, 8),
+        ('إلها آخر', 15): (96, 5),
+        ('لنريه من آياتنا', 17): (1, 16),
+        ('بني إسرائيل', 26): (59, 3),
+        ('من نفاذ', 38): (54, 6),
+        ('لمن خلفك آية', 10): (92, 6),
+        ('فارتدا على آثارهما', 18): (64, 7),
+    }
+    for (quote, surah), (ayah, wpos) in expected.items():
+        r = _row(muktafa, quote, surah)
+        assert r['ayah'] == ayah, quote
+        assert r['wpos'] == wpos, quote
+        assert r['conf'] == 0, quote
+
+
+def test_bracket_grade_parser_misses_extracted(muktafa):
+    """Same class as 63:9 {عن ذكر الله} [كاف] — GRADE_RE now sees [تام]/[كاف]/[حسن]."""
+    r = _row(muktafa, 'ونقدس لك', 2)
+    assert r['ayah'] == 30 and r['wpos'] == 21 and r['conf'] == 1 and r['grade'] == 'كاف'
+    r = _row(muktafa, 'عذاب أليم', 2)
+    assert r['ayah'] == 104 and r['wpos'] == 11 and r['conf'] == 1 and r['grade'] == 'كاف'
+    r = _row(muktafa, 'ما يوم الفصل', 77)
+    assert r['ayah'] == 14 and r['wpos'] == 4 and r['conf'] == 1 and r['grade'] == 'تام'
+
+
+def test_leftover_unmatched_are_the_two_non_unique_quotes(muktafa):
+    unmatched = [r for r in muktafa if r['ayah'] is None]
+    quotes = {(r['surah'], r['quote']) for r in unmatched}
+    assert quotes == {
+        (9, 'فليتوكل المتوكلون'),
+        (22, 'عليهم آياتنا'),
+    }
