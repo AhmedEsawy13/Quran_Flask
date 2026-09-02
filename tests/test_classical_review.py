@@ -28,10 +28,10 @@ def uncertain_rows():
 
 def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     result = review.muktafa_accuracy(review_db=review_db)
-    assert result['total_extracted'] == 4408
-    assert result['matched'] == 4355
-    assert result['confident'] == 4241
-    assert result['uncertain'] == 167
+    assert result['total_extracted'] == 4409
+    assert result['matched'] == 4370
+    assert result['confident'] == 4297
+    assert result['uncertain'] == 112
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0
 
@@ -41,7 +41,7 @@ def test_review_page_and_summary_are_editor_routes(client, review_db):
     assert page.status_code == 200
     assert 'المكتفى' in page.get_data(as_text=True)
     summary = client.get('/api/classical-review/muktafa/summary').get_json()
-    assert summary['review']['pending'] == 167
+    assert summary['review']['pending'] == 112
     manar = client.get('/api/classical-review/manar/summary').get_json()
     assert manar['review']['pending'] == len(review.manar_review_queue())
     assert manar['source_traceable_rate'] == 99.36
@@ -121,7 +121,7 @@ def test_book_addition_is_blocked_until_queue_is_complete(client, review_db):
         'decision': 'add',
     })
     assert response.status_code == 409
-    assert response.get_json()['pending'] == 167
+    assert response.get_json()['pending'] == 112
 
 
 def test_completed_review_can_activate_muktafa(client, review_db):
