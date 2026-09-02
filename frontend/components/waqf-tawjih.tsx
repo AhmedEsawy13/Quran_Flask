@@ -112,7 +112,6 @@ function TawjihMedia({attachments}: {attachments: TawjihAttachment[]}) {
           controls
           playsInline
           preload="metadata"
-          referrerPolicy="no-referrer"
           src={src}
         />,
       );
