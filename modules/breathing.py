@@ -11,7 +11,8 @@ import os
 import sqlite3
 from collections import defaultdict
 
-from flask import jsonify, render_template, request
+import requests
+from flask import Response, jsonify, render_template, request, stream_with_context
 
 from core.blueprints import breathing_bp
 from core.config import (
@@ -30,6 +31,8 @@ from core.classical_review import book_decision as _classical_book_decision
 from core.classical_review import decisions as _classical_review_decisions
 from core.classical_review import REVIEW_GRADE_LABELS
 from core.tawjih import TAWJIH_SOURCE, list_published as _list_published_tawjih
+from core.tawjih import published_video_url as _published_video_url
+from core.tawjih import valid_tweet_id as _valid_tweet_id
 from core.tawjih import verse_is_valid as _tawjih_verse_is_valid
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _load_memorization_word_ts, _segment_phrases, _forward_waqf_stops,
@@ -497,6 +500,72 @@ def tawjih(surah, ayah):
         'count': len(entries),
         'entries': entries,
     })
+
+
+
+@breathing_bp.route('/api/tawjih/media/<tweet_id>', methods=['GET', 'HEAD'])
+def tawjih_media(tweet_id):
+    """Same-origin proxy for a published توجيه X video.
+
+    Browsers send the Vercel origin as Referer to video.twimg.com and get
+    HTTP 403. Fetch without that Referer and stream the mp4 from this origin.
+    Only the mp4 already attached to that published tweet is allowed.
+    """
+    if not _valid_tweet_id(tweet_id):
+        return jsonify({'error': 'invalid tweet_id'}), 400
+    src = _published_video_url(tweet_id)
+    if not src:
+        return jsonify({'error': 'not found'}), 404
+
+    upstream_headers = {
+        'Accept-Encoding': 'identity',
+        'Referer': 'https://x.com/',
+    }
+    range_header = request.headers.get('Range')
+    if range_header:
+        upstream_headers['Range'] = range_header
+
+    try:
+        upstream = requests.get(
+            src,
+            headers=upstream_headers,
+            stream=True,
+            timeout=(10, 30),
+        )
+    except requests.RequestException:
+        logger.exception('tawjih media fetch failed for %s', tweet_id)
+        return jsonify({'error': 'unavailable'}), 502
+
+    if upstream.status_code >= 400:
+        status = upstream.status_code
+        upstream.close()
+        logger.warning('tawjih media upstream %s for %s', status, tweet_id)
+        return jsonify({'error': 'unavailable'}), 502
+
+    response_headers = {}
+    for header in ('Content-Type', 'Content-Length', 'Content-Range', 'Accept-Ranges'):
+        value = upstream.headers.get(header)
+        if value:
+            response_headers[header] = value
+
+    if request.method == 'HEAD':
+        upstream.close()
+        return Response(status=upstream.status_code, headers=response_headers)
+
+    def generate():
+        try:
+            for chunk in upstream.iter_content(chunk_size=64 * 1024):
+                if chunk:
+                    yield chunk
+        finally:
+            upstream.close()
+
+    return Response(
+        stream_with_context(generate()),
+        status=upstream.status_code,
+        headers=response_headers,
+        direct_passthrough=True,
+    )
 
 
 @breathing_bp.route('/waqf')

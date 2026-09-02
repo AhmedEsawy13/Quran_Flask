@@ -3,6 +3,7 @@
 import type {ReactNode} from "react";
 import type {TawjihAttachment, TawjihPayload} from "@/lib/api";
 import {toArabicDigits} from "@/lib/mushaf";
+import {backendMediaUrl} from "@/lib/paths";
 import {classicalGradeMeta} from "@/lib/waqf";
 import {ToolCard, ToolCardHead} from "@/components/tool-chrome";
 
@@ -29,6 +30,27 @@ function safeHttpsHost(raw: string | null | undefined, hosts: Set<string>) {
 }
 
 const VIDEO_HOSTS = new Set(["video.twimg.com"]);
+const PROXY_API_RE = /^\/api\/tawjih\/media\/([A-Za-z0-9_-]+)$/;
+const PROXY_BACKEND_RE = /^\/backend-api\/tawjih\/media\/([A-Za-z0-9_-]+)$/;
+
+function safeVideoSrc(raw: string | null | undefined): string {
+  const src = String(raw || "");
+  if (PROXY_API_RE.test(src)) {
+    return backendMediaUrl(src) || "";
+  }
+  if (PROXY_BACKEND_RE.test(src)) {
+    return src;
+  }
+  const https = safeHttpsHost(src, VIDEO_HOSTS);
+  if (!https) return "";
+  try {
+    if (!new URL(https).pathname.toLowerCase().endsWith(".mp4")) return "";
+  } catch {
+    return "";
+  }
+  return https;
+}
+
 const PHOTO_HOSTS = new Set(["pbs.twimg.com"]);
 const YT_HOSTS = new Set(["www.youtube-nocookie.com"]);
 const DRIVE_HOSTS = new Set(["drive.google.com", "docs.google.com"]);
@@ -80,13 +102,8 @@ function TawjihMedia({attachments}: {attachments: TawjihAttachment[]}) {
   attachments.forEach((att, index) => {
     if (!att?.type) return;
     if (att.type === "video") {
-      const src = safeHttpsHost(att.src, VIDEO_HOSTS);
+      const src = safeVideoSrc(att.src);
       if (!src) return;
-      try {
-        if (!new URL(src).pathname.toLowerCase().endsWith(".mp4")) return;
-      } catch {
-        return;
-      }
       const portrait = Number(att.height) > Number(att.width);
       blocks.push(
         <video
@@ -95,6 +112,7 @@ function TawjihMedia({attachments}: {attachments: TawjihAttachment[]}) {
           controls
           playsInline
           preload="metadata"
+          referrerPolicy="no-referrer"
           src={src}
         />,
       );
@@ -116,9 +134,16 @@ function TawjihMedia({attachments}: {attachments: TawjihAttachment[]}) {
               {att.label || "ملف على درايف"}
             </a>
           ) : null}
-          {preview && preview.includes("/file/") ? (
+          {preview && preview.includes("/file/") && preview.includes("/preview") ? (
             <div className="wq-tawjih-embed">
-              <iframe src={preview} title="ملف درايف" loading="lazy" />
+              <iframe
+                src={preview}
+                title="ملف درايف"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                allow="fullscreen"
+                allowFullScreen
+              />
             </div>
           ) : null}
         </div>,

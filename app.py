@@ -90,7 +90,13 @@ def after_request(response):
         # /api/mushaf-editor/* is a live editing tool (spread/progress reads
         # reflect edits made seconds earlier via /api/mushaf-editor/waqf) — a
         # 1-hour cache made just-saved marks appear to "not save" on reload.
-        if (api_success_cache_class(path, request.blueprint) == 'no-store'
+        if path.startswith('/api/tawjih/media/'):
+            # Proxied X videos are immutable per tweet; allow a day of CDN cache.
+            if response.status_code >= 400:
+                response.headers['Cache-Control'] = 'no-store, max-age=0'
+            else:
+                response.headers['Cache-Control'] = 'public, max-age=86400'
+        elif (api_success_cache_class(path, request.blueprint) == 'no-store'
                 or request.args.get('mushaf_version')):
             response.headers['Cache-Control'] = 'no-store, max-age=0'
         elif response.status_code >= 400:
