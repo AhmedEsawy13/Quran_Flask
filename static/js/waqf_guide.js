@@ -467,7 +467,7 @@
     function safeTweetUrl(raw) {
         try {
             const url = new URL(String(raw || ''));
-            if (url.protocol === 'https:' && (url.hostname === 'x.com' || url.hostname === 'twitter.com' || url.hostname === 'www.x.com')) {
+            if (url.protocol === 'https:' && (url.hostname === 'x.com' || url.hostname === 'twitter.com' || url.hostname === 'www.x.com' || url.hostname === 'www.twitter.com')) {
                 return url.href;
             }
         } catch (_e) { /* ignore malformed */ }
@@ -556,6 +556,30 @@
         }
         return chunks.length ? `<div class="wq-tawjih-media">${chunks.join('')}</div>` : '';
     }
+    function renderTawjihQa(entry, author) {
+        if (!(entry && entry.is_reply && entry.question)) return '';
+        const qAuthor = String(entry.question_author || '').trim();
+        const qHref = safeTweetUrl(entry.question_url);
+        let userBit = '';
+        if (qAuthor) {
+            userBit = qHref
+                ? ` · <a href="${escHtml(qHref)}" target="_blank" rel="noopener noreferrer">${escHtml(qAuthor)}</a>`
+                : ` · ${escHtml(qAuthor)}`;
+        }
+        const answer = (entry.answer != null && String(entry.answer))
+            ? entry.answer
+            : ((entry.display_note != null ? entry.display_note : entry.note) || '');
+        return `<div class="wq-tawjih-qa">`
+            + `<div class="wq-tawjih-q">`
+            + `<p class="wq-tawjih-qa-kicker">سؤال${userBit}</p>`
+            + `<p class="wq-tawjih-qa-text">${linkifyTawjihNote(entry.question)}</p>`
+            + `</div>`
+            + `<div class="wq-tawjih-a">`
+            + `<p class="wq-tawjih-qa-kicker">جواب · ${escHtml(author)}</p>`
+            + `<p class="wq-tawjih-qa-text">${linkifyTawjihNote(answer)}</p>`
+            + `</div>`
+            + `</div>`;
+    }
     async function loadTawjih(surah, ayah) {
         if (!els.tawjihCard) return;
         els.tawjihCard.hidden = true;
@@ -594,9 +618,12 @@
                     ? `<a class="wq-tawjih-link" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">افتح التغريدة</a>`
                     : '';
                 const rawNote = (e.display_note != null ? e.display_note : e.note) || '';
-                const note = String(rawNote)
-                    ? `<p class="wq-tawjih-note">${linkifyTawjihNote(rawNote)}</p>`
-                    : '';
+                const qa = renderTawjihQa(e, author);
+                const note = qa
+                    ? qa
+                    : (String(rawNote)
+                        ? `<p class="wq-tawjih-note">${linkifyTawjihNote(rawNote)}</p>`
+                        : '');
                 const media = renderTawjihAttachments(e.attachments);
                 return `<article class="wq-tawjih-card">`
                     + `<header class="wq-tawjih-head">`

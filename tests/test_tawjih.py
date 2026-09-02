@@ -6,7 +6,7 @@ import sqlite3
 from pathlib import Path
 
 from core.config import CLASSICAL_WAQF_DATABASE
-from core.tawjih import TAWJIH_SOURCE, ensure_sqlite_schema, verse_words
+from core.tawjih import TAWJIH_SOURCE, _shape_entry, ensure_sqlite_schema, verse_words
 from modules.breathing import _ACTIVE_CLASSICAL_SOURCES
 from pipeline import build_tawjih as tawjih
 
@@ -293,3 +293,83 @@ def test_api_parses_drive_url_in_note(client, tmp_path, monkeypatch):
     assert att['href'] == 'https://drive.google.com/file/d/1AbCDefGhIJKlmnoPQRstuVWX/view'
     assert att['preview'] == 'https://drive.google.com/file/d/1AbCDefGhIJKlmnoPQRstuVWX/preview'
     assert att['label'] == 'ملف على درايف'
+
+def _reply_row(**overrides):
+    question = 'ما حكم الوقف على رأس الآية أيها الشيخ الفاضل بارك الله فيكم؟'
+    row = _published_fixture()
+    row.update({
+        'kind': 'رد',
+        'post_text': question,
+        'reply_text': '@AmerNadwi الوقف هنا تام.',
+        'reply_to_user': '@AmerNadwi',
+        'reply_to_url': 'https://x.com/AmerNadwi/status/42',
+        'media': '',
+    })
+    row.update(overrides)
+    return row
+
+
+def test_shape_entry_reply_sets_question_and_answer():
+    row = _reply_row()
+    entry = _shape_entry(row, UNIQUE_SURAH, UNIQUE_AYAH)
+    assert entry['is_reply'] is True
+    assert entry['question'] == row['post_text']
+    assert entry['question_author'] == '@AmerNadwi'
+    assert entry['question_url'] == 'https://x.com/AmerNadwi/status/42'
+    assert entry['answer'] == 'الوقف هنا تام.'
+    assert entry['display_note'] == '@AmerNadwi الوقف هنا تام.'
+    assert row['post_text'] not in entry['display_note']
+
+
+def test_shape_entry_non_reply_has_no_qa():
+    row = _published_fixture()
+    row.update({
+        'kind': 'منشور',
+        'post_text': 'قوله تعالى وقف تام.',
+        'reply_text': '',
+    })
+    entry = _shape_entry(row, UNIQUE_SURAH, UNIQUE_AYAH)
+    assert entry['is_reply'] is False
+    assert entry['question'] is None
+    assert entry['answer'] is None
+    assert entry['display_note'] == row['note']
+
+
+def test_shape_entry_reply_without_parent_text_is_not_qa():
+    row = _reply_row(post_text='')
+    entry = _shape_entry(row, UNIQUE_SURAH, UNIQUE_AYAH)
+    assert entry['is_reply'] is False
+    assert entry['question'] is None
+    assert entry['answer'] is None
+
+
+def test_shape_entry_rejects_unsafe_question_url():
+    row = _reply_row(reply_to_url='https://evil.example/phish')
+    entry = _shape_entry(row, UNIQUE_SURAH, UNIQUE_AYAH)
+    assert entry['is_reply'] is True
+    assert entry['question_url'] is None
+    http_row = _reply_row(reply_to_url='http://x.com/AmerNadwi/status/42')
+    assert _shape_entry(http_row, UNIQUE_SURAH, UNIQUE_AYAH)['question_url'] is None
+
+
+def test_shape_entry_does_not_double_at_on_author():
+    row = _reply_row(reply_to_user='AmerNadwi', reply_text='@AmerNadwi الوقف هنا تام.')
+    entry = _shape_entry(row, UNIQUE_SURAH, UNIQUE_AYAH)
+    assert entry['question_author'] == 'AmerNadwi'
+    assert entry['answer'] == 'الوقف هنا تام.'
+
+
+def test_api_reply_entry_exposes_qa(client, monkeypatch):
+    row = _reply_row()
+    shaped = _shape_entry(row, UNIQUE_SURAH, UNIQUE_AYAH)
+    monkeypatch.setattr('modules.breathing._list_published_tawjih', lambda s, a: [shaped])
+    payload = client.get(f'/api/tawjih/{UNIQUE_SURAH}/{UNIQUE_AYAH}').get_json()
+    assert payload['count'] == 1
+    entry = payload['entries'][0]
+    assert entry['is_reply'] is True
+    assert entry['question'] == row['post_text']
+    assert entry['answer'] == 'الوقف هنا تام.'
+    assert entry['question_author'] == '@AmerNadwi'
+    assert entry['question_url'] == 'https://x.com/AmerNadwi/status/42'
+    assert entry['display_note'] == '@AmerNadwi الوقف هنا تام.'
+

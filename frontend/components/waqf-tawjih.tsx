@@ -9,7 +9,7 @@ import {ToolCard, ToolCardHead} from "@/components/tool-chrome";
 function tweetHref(raw: string | null | undefined) {
   try {
     const url = new URL(String(raw || ""));
-    if (url.protocol === "https:" && (url.hostname === "x.com" || url.hostname === "www.x.com" || url.hostname === "twitter.com")) {
+    if (url.protocol === "https:" && (url.hostname === "x.com" || url.hostname === "www.x.com" || url.hostname === "twitter.com" || url.hostname === "www.twitter.com")) {
       return url.href;
     }
   } catch {
@@ -173,6 +173,7 @@ export function WaqfTawjih({
           const meta = entry.grade ? (classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade}) : null;
           const href = tweetHref(entry.url);
           const body = entry.display_note ?? entry.note ?? "";
+          const questionHref = tweetHref(entry.question_url);
           return (
             <article className="wq-tawjih-card" key={`${entry.tweet_id || entry.wpos}-${index}`}>
               <header className="wq-tawjih-head">
@@ -199,7 +200,34 @@ export function WaqfTawjih({
                 </div>
               </header>
               <TawjihMedia attachments={entry.attachments || []} />
-              {body ? <p className="wq-tawjih-note">{linkifyNote(body)}</p> : null}
+              {entry.is_reply && entry.question ? (
+                <div className="wq-tawjih-qa">
+                  <div className="wq-tawjih-q">
+                    <p className="wq-tawjih-qa-kicker">
+                      سؤال
+                      {entry.question_author ? (
+                        <>
+                          {" · "}
+                          {questionHref ? (
+                            <a href={questionHref} target="_blank" rel="noopener noreferrer">
+                              {entry.question_author}
+                            </a>
+                          ) : (
+                            entry.question_author
+                          )}
+                        </>
+                      ) : null}
+                    </p>
+                    <p className="wq-tawjih-qa-text">{linkifyNote(entry.question)}</p>
+                  </div>
+                  <div className="wq-tawjih-a">
+                    <p className="wq-tawjih-qa-kicker">جواب · د. أحمد صابر عبدالهادي</p>
+                    <p className="wq-tawjih-qa-text">{linkifyNote(entry.answer || body)}</p>
+                  </div>
+                </div>
+              ) : body ? (
+                <p className="wq-tawjih-note">{linkifyNote(body)}</p>
+              ) : null}
               <footer className="wq-tawjih-foot">
                 <span className="wq-tawjih-author">{author}</span>
                 {href ? (

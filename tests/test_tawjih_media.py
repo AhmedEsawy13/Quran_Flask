@@ -96,3 +96,17 @@ def test_attachment_order_is_video_youtube_drive_photo():
     blob = f'{PHOTO_ORIG} {DRIVE_FILE} {YOUTUBE} {HIGH_MP4}'
     attachments, _ = parse_attachments(blob)
     assert [a['type'] for a in attachments] == ['video', 'youtube', 'drive', 'photo']
+
+def test_primary_reply_keeps_display_note_when_question_is_longer():
+    question = 'ما حكم الوقف على قوله تعالى في هذه الآية الكريمة أيها الشيخ الفاضل بارك الله فيكم؟'
+    reply = 'الوقف هنا تام.'
+    attachments, display_note = parse_attachments(
+        HIGH_MP4, question, reply, primary=reply,
+    )
+    assert display_note == reply
+    assert question not in display_note
+    assert attachments and attachments[0]['type'] == 'video'
+    # Without primary, the longer Arabic question would win as display_note.
+    _, fallback = parse_attachments(HIGH_MP4, question, reply)
+    assert question in fallback
+

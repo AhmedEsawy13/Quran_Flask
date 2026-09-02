@@ -1321,6 +1321,67 @@ button.page-number {
   text-decoration: underline;
 }
 
+.wq-tawjih-qa {
+  display: grid;
+  gap: 10px;
+  direction: rtl;
+}
+
+.wq-tawjih-q,
+.wq-tawjih-a {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border-inline-start: 3px solid color-mix(in srgb, var(--athar-accent) 38%, var(--athar-line-soft));
+}
+
+.wq-tawjih-q {
+  background: var(--athar-parchment-2);
+  color: var(--athar-ink-soft);
+}
+
+.wq-tawjih-a {
+  padding: 12px 14px;
+  background: var(--athar-surface);
+  color: var(--athar-ink);
+  border-inline-start-width: 4px;
+  border-inline-start-color: var(--athar-accent);
+  box-shadow: 0 1px 4px -2px color-mix(in srgb, var(--athar-ink) 18%, transparent);
+}
+
+.wq-tawjih-qa-kicker {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--athar-ink-faint);
+}
+
+.wq-tawjih-qa-kicker a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.wq-tawjih-qa-kicker a:hover {
+  color: var(--athar-accent);
+  text-decoration: underline;
+}
+
+.wq-tawjih-qa-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.wq-tawjih-q .wq-tawjih-qa-text {
+  color: var(--athar-ink-soft);
+}
+
+.wq-tawjih-a .wq-tawjih-qa-text {
+  color: var(--athar-ink);
+  font-size: 0.95rem;
+}
+
 .wq-tawjih-foot {
   display: flex;
   flex-wrap: wrap;
