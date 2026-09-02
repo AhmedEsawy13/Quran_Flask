@@ -18,7 +18,7 @@ import {cn} from "@/lib/cn";
 import { toArabicDigits } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
 import { useBoundedAudio } from "@/lib/use-bounded-audio";
-import { reciterPhrases, tawjihSpanCoversWpos, waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
+import { classicalGradeMeta, majorityWaqfSymbol, reciterPhrases, tawjihSpanCoversWpos, waqfMarkCanonical, waqfMarkGlyph, waqfMarkLabel } from "@/lib/waqf";
 import { arabicWordQuery, parseVerseSearch } from "@/lib/waqf-search";
 import {
   ChromeField,
@@ -130,6 +130,7 @@ export function WaqfWorkspace() {
   const [breath, setBreath] = useState<BreathProfile>("medium");
   const [selectedReciterId, setSelectedReciterId] = useState("");
   const [selectedStopWpos, setSelectedStopWpos] = useState<number | null>(null);
+  const [openImamKey, setOpenImamKey] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const [catalogError, setCatalogError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -189,6 +190,10 @@ export function WaqfWorkspace() {
     if (!data || selectedStopWpos !== null || !stopPositions.length) return;
     setSelectedStopWpos(stopPositions[0]);
   }, [data, selectedStopWpos, stopPositions]);
+
+  useEffect(() => {
+    setOpenImamKey(null);
+  }, [selectedStopWpos, surahNumber, ayahNumber]);
 
   const mapByAyah = useMemo(() => {
     const map = new Map<number, WaqfMapItem>();
@@ -810,74 +815,170 @@ export function WaqfWorkspace() {
                   </div>
 
                   <div className="wq-stop-desk">
-                    <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
-                      <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">علامات المصاحف</h3>
-                      {selectedMarks.length ? selectedMarks.map((mark, index) => (
-                        <div className="waqf-mark-row" key={`${mark.mushaf}-${index}`}>
-                          <span>{mark.mushaf}</span>
-                          <strong className={`is-${waqfMarkTone(mark.symbol)}`}>{waqfMarkGlyph(mark.symbol)}</strong>
-                          <small>{waqfMarkLabel(mark.symbol)}</small>
-                        </div>
-                      )) : <StatusState className="justify-center">لا تحمل المصاحف المقارنة علامةً هنا.</StatusState>}
-                    </article>
-
-                    <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
-                      <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">وقوف القرّاء</h3>
-                      {selectedUnion?.reciters.length ? selectedUnion.reciters.map((reciterId) => {
-                        const detail = data.per_reciter[reciterId];
-                        const stopItem = detail?.stops.find((item) => item.wpos === selectedStopWpos);
-                        const key = `stop:${reciterId}:${selectedStopWpos}`;
-                        return (
-                          <button
-                            type="button"
-                            className={`waqf-reciter-stop${playingKey === key ? " is-playing" : ""}`}
-                            key={reciterId}
-                            onClick={() => playReciterStop(reciterId, selectedStopWpos)}
-                            disabled={!isNativeAudio(detail?.audio_url || null)}
-                          >
-                            <span>{detail?.name_ar || reciterId}</span>
-                            <small>{playingKey === key ? "إيقاف" : `استمع · ${toArabicDigits(stopItem?.time.toFixed(1) || 0)}ث`}</small>
-                          </button>
-                        );
-                      }) : <StatusState className="justify-center">لم يقف قارئ مسجّل في هذا الموضع.</StatusState>}
-                    </article>
-
-                    <article className="min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
-                      <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">قول الإمام</h3>
-                      {selectedClassical.length ? selectedClassical.map((entry, index) => {
-                        const source = classical?.sources[entry.source];
-                        const note = (entry.note || "").trim();
-                        return (
-                          <div className="waqf-classical-row wq-ruling" key={`${entry.source}-${entry.grade}-${index}`}>
-                            <div>
-                              <strong>{entry.grade_raw || entry.grade}</strong>
-                              <span>{source?.name || entry.source}{entry.reported_from ? ` نقلًا عن ${entry.reported_from}` : ""}</span>
-                            </div>
-                            {entry.quote ? <blockquote>{entry.quote}</blockquote> : null}
-                            {note ? <p className="wq-illa">{note}</p> : null}
+                    <div className="wq-score-panel">
+                      <section className="wq-score-row" aria-labelledby="wq-score-mushaf">
+                        <h3 className="wq-score-label" id="wq-score-mushaf">مصحف</h3>
+                        <div className="wq-score-body">
+                          <div className="wq-score-track">
+                            {data.mushafs.map((mushaf) => {
+                              const mark = mushaf.marks.find((item) => item.wpos === selectedStopWpos);
+                              const majority = majorityWaqfSymbol(
+                                data.mushafs
+                                  .map((edition) => edition.marks.find((item) => item.wpos === selectedStopWpos)?.symbol)
+                                  .filter((symbol): symbol is string => Boolean(symbol)),
+                              );
+                              const minority = Boolean(
+                                mark && majority && waqfMarkCanonical(mark.symbol) !== majority,
+                              );
+                              return (
+                                <div
+                                  className="wq-score-mushaf"
+                                  key={mushaf.id}
+                                  title={mark ? `${mushaf.name} · ${waqfMarkLabel(mark.symbol)}` : mushaf.name}
+                                >
+                                  <span className="wq-score-mushaf-name">{mushaf.name}</span>
+                                  <strong className={cn("wq-score-mushaf-glyph", !mark && "is-empty", minority && "is-minority")}>
+                                    {mark ? waqfMarkGlyph(mark.symbol) : "—"}
+                                  </strong>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      }) : <StatusState className="justify-center">لا يتوفر حكم تراثي موثّق لهذا الموضع بعد.</StatusState>}
-                    </article>
+                          {!selectedMarks.length ? (
+                            <p className="wq-score-empty">لا تحمل المصاحف المقارنة علامةً هنا.</p>
+                          ) : null}
+                        </div>
+                      </section>
 
-                    <article className="wq-stop-desk-tawjih min-w-0 rounded-xl border border-athar-line-soft bg-athar-canvas-strong p-3">
-                      <h3 className="mb-2.5 font-athar-display text-[0.92rem] font-bold text-athar-accent">توجيه</h3>
+                      <section className="wq-score-row" aria-labelledby="wq-score-reciters">
+                        <h3 className="wq-score-label" id="wq-score-reciters">قرّاء</h3>
+                        <div className="wq-score-body">
+                          <div className="wq-score-track" role="list">
+                            {data.reciters.map((reciter) => {
+                              const detail = data.per_reciter[reciter.id];
+                              const name = reciter.name_ar || detail?.name_ar || reciter.id;
+                              const stopped = Boolean(
+                                selectedUnion?.reciters.includes(reciter.id)
+                                || detail?.stops.some((item) => item.wpos === selectedStopWpos),
+                              );
+                              const native = isNativeAudio(detail?.audio_url || null);
+                              const playable = stopped && native;
+                              const key = `stop:${reciter.id}:${selectedStopWpos}`;
+                              return (
+                                <button
+                                  type="button"
+                                  role="listitem"
+                                  className={cn(
+                                    "wq-score-dot",
+                                    stopped && "is-stop",
+                                    stopped && selectedUnion?.solo && "is-solo",
+                                    playingKey === key && "is-playing",
+                                    !native && "is-muted",
+                                  )}
+                                  key={reciter.id}
+                                  title={name}
+                                  aria-label={name}
+                                  disabled={!playable}
+                                  onClick={() => playReciterStop(reciter.id, selectedStopWpos)}
+                                />
+                              );
+                            })}
+                          </div>
+                          {(() => {
+                            const stopped = data.reciters.filter((reciter) => {
+                              const detail = data.per_reciter[reciter.id];
+                              return selectedUnion?.reciters.includes(reciter.id)
+                                || Boolean(detail?.stops.some((item) => item.wpos === selectedStopWpos));
+                            });
+                            if (!stopped.length) {
+                              return <p className="wq-score-empty">لم يقف قارئ مسجّل في هذا الموضع.</p>;
+                            }
+                            const audience = stopped.find((reciter) => isNativeAudio(data.per_reciter[reciter.id]?.audio_url || null));
+                            return (
+                              <p className="wq-score-caption">
+                                {toArabicDigits(stopped.length)} وقفوا
+                                {audience ? (
+                                  <>
+                                    {" · "}
+                                    <button
+                                      type="button"
+                                      className="wq-score-listen"
+                                      onClick={() => playReciterStop(audience.id, selectedStopWpos)}
+                                    >
+                                      استمع الجمهور
+                                    </button>
+                                  </>
+                                ) : null}
+                              </p>
+                            );
+                          })()}
+                        </div>
+                      </section>
+
+                      <section className="wq-score-row" aria-labelledby="wq-score-imams">
+                        <h3 className="wq-score-label" id="wq-score-imams">أئمة</h3>
+                        <div className="wq-score-body">
+                          {selectedClassical.length ? (
+                            <>
+                              <div className="wq-score-track">
+                                {selectedClassical.filter((entry, index, list) => (
+                                  list.findIndex((item) => item.source === entry.source && item.grade === entry.grade) === index
+                                )).map((entry) => {
+                                  const key = `${entry.source}::${entry.grade}`;
+                                  const source = classical?.sources[entry.source];
+                                  const meta = classicalGradeMeta[entry.grade];
+                                  const open = openImamKey === key;
+                                  return (
+                                    <button
+                                      type="button"
+                                      className={cn("wq-score-stamp wq-grade", meta && `is-${meta.cls}`, open && "is-open")}
+                                      key={key}
+                                      aria-expanded={open}
+                                      title={meta?.desc || entry.grade}
+                                      onClick={() => setOpenImamKey(open ? null : key)}
+                                    >
+                                      {source?.name || entry.source} · {entry.grade_raw || entry.grade}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                              {(() => {
+                                const openEntry = selectedClassical.find((entry) => `${entry.source}::${entry.grade}` === openImamKey);
+                                if (!openEntry) return null;
+                                const note = (openEntry.note || "").trim();
+                                return (
+                                  <div className="wq-score-imam-note">
+                                    {openEntry.quote ? <blockquote>{openEntry.quote}</blockquote> : null}
+                                    {note ? <p className="wq-illa">{note}</p> : null}
+                                  </div>
+                                );
+                              })()}
+                            </>
+                          ) : (
+                            <p className="wq-score-empty">لا يتوفر حكم تراثي موثّق لهذا الموضع بعد.</p>
+                          )}
+                        </div>
+                      </section>
+                    </div>
+
+                    <section className="wq-stop-desk-tawjih" aria-labelledby="wq-score-tawjih">
+                      <h3 className="wq-score-label" id="wq-score-tawjih">توجيه</h3>
                       {selectedTawjih.length ? (
-                        <div className="flex flex-col gap-3">
-                          {selectedTawjih.map((entry, index) => (
-                            <TawjihEntryCard
-                              key={`${entry.tweet_id || entry.wpos}-${index}`}
-                              entry={entry}
-                              words={data.words}
-                              author={tawjih?.source?.author || "د. أحمد صابر عبدالهادي"}
-                              onSelectWpos={setSelectedStopWpos}
-                            />
-                          ))}
+                        <div className="wq-score-tawjih-body">
+                          <TawjihEntryCard
+                            entry={selectedTawjih[0]}
+                            words={data.words}
+                            author={tawjih?.source?.author || "د. أحمد صابر عبدالهادي"}
+                            onSelectWpos={setSelectedStopWpos}
+                          />
+                          {selectedTawjih.length > 1 ? (
+                            <p className="wq-score-tawjih-more">و{toArabicDigits(selectedTawjih.length - 1)} أخرى</p>
+                          ) : null}
                         </div>
                       ) : (
-                        <StatusState className="justify-center">لا يوجد توجيه مربوط بهذا الموضع.</StatusState>
+                        <p className="wq-score-empty">لا يوجد توجيه مربوط بهذا الموضع.</p>
                       )}
-                    </article>
+                    </section>
                   </div>
                 </div>
               ) : (
