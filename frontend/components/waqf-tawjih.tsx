@@ -174,6 +174,91 @@ function TawjihMedia({
   return <div className="wq-tawjih-media">{blocks}</div>;
 }
 
+export function TawjihEntryCard({
+  entry,
+  words,
+  author,
+  onSelectWpos,
+}: {
+  entry: TawjihPayload["entries"][number];
+  words: string[];
+  author: string;
+  onSelectWpos?: (wpos: number) => void;
+}) {
+  const start = Number.isFinite(entry.wpos_start) ? entry.wpos_start : entry.wpos;
+  const phrase = (entry.phrase && entry.phrase.length)
+    ? entry.phrase
+    : (words.length ? words.slice(Math.max(0, start), entry.wpos + 1) : [entry.stop_word]);
+  const meta = entry.grade ? (classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade}) : null;
+  const href = tweetHref(entry.url);
+  const body = entry.display_note ?? entry.note ?? "";
+  const questionHref = tweetHref(entry.question_url);
+  return (
+    <article className="wq-tawjih-card">
+      <header className="wq-tawjih-head">
+        <button
+          type="button"
+          className="wq-tawjih-span"
+          onClick={() => onSelectWpos?.(entry.wpos)}
+        >
+          <p className="wq-tawjih-phrase">
+            {phrase.map((word, wordIndex) => (
+              wordIndex === phrase.length - 1
+                ? <b key={`${entry.wpos}-${wordIndex}`}>{word}</b>
+                : <span key={`${entry.wpos}-${wordIndex}`}>{word} </span>
+            ))}
+          </p>
+        </button>
+        <div className="wq-tawjih-head-meta">
+          {meta ? (
+            <span className={`wq-grade is-${meta.cls}`} title={meta.desc}>
+              {entry.grade}
+            </span>
+          ) : null}
+          <span className="wq-tawjih-ref">كلمة {toArabicDigits(entry.wpos + 1)}</span>
+        </div>
+      </header>
+      <TawjihMedia attachments={entry.attachments || []} tweetId={entry.tweet_id} />
+      {typeof entry.question === "string" && entry.question.trim() ? (
+        <div className="wq-tawjih-qa">
+          <div className="wq-tawjih-q">
+            <p className="wq-tawjih-qa-kicker">
+              سؤال
+              {entry.question_author ? (
+                <>
+                  {" · "}
+                  {questionHref ? (
+                    <a href={questionHref} target="_blank" rel="noopener noreferrer">
+                      {entry.question_author}
+                    </a>
+                  ) : (
+                    entry.question_author
+                  )}
+                </>
+              ) : null}
+            </p>
+            <p className="wq-tawjih-qa-text">{linkifyNote(entry.question)}</p>
+          </div>
+          <div className="wq-tawjih-a">
+            <p className="wq-tawjih-qa-kicker">جواب · د. أحمد صابر عبدالهادي</p>
+            <p className="wq-tawjih-qa-text">{linkifyNote(entry.answer || entry.display_note || entry.note || body)}</p>
+          </div>
+        </div>
+      ) : body ? (
+        <p className="wq-tawjih-note">{linkifyNote(body)}</p>
+      ) : null}
+      <footer className="wq-tawjih-foot">
+        <span className="wq-tawjih-author">{author}</span>
+        {href ? (
+          <a className="wq-tawjih-link" href={href} target="_blank" rel="noopener noreferrer">
+            افتح التغريدة
+          </a>
+        ) : null}
+      </footer>
+    </article>
+  );
+}
+
 export function WaqfTawjih({
   tawjih,
   words,
@@ -198,80 +283,15 @@ export function WaqfTawjih({
         وقفه وتوجيهه، ومعه المقطع أو الملف إن وُجد.
       </p>
       <div className="flex flex-col gap-3.5">
-        {tawjih.entries.map((entry, index) => {
-          const start = Number.isFinite(entry.wpos_start) ? entry.wpos_start : entry.wpos;
-          const phrase = (entry.phrase && entry.phrase.length)
-            ? entry.phrase
-            : (words.length ? words.slice(Math.max(0, start), entry.wpos + 1) : [entry.stop_word]);
-          const meta = entry.grade ? (classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade}) : null;
-          const href = tweetHref(entry.url);
-          const body = entry.display_note ?? entry.note ?? "";
-          const questionHref = tweetHref(entry.question_url);
-          return (
-            <article className="wq-tawjih-card" key={`${entry.tweet_id || entry.wpos}-${index}`}>
-              <header className="wq-tawjih-head">
-                <button
-                  type="button"
-                  className="wq-tawjih-span"
-                  onClick={() => onSelectWpos?.(entry.wpos)}
-                >
-                  <p className="wq-tawjih-phrase">
-                    {phrase.map((word, wordIndex) => (
-                      wordIndex === phrase.length - 1
-                        ? <b key={`${entry.wpos}-${wordIndex}`}>{word}</b>
-                        : <span key={`${entry.wpos}-${wordIndex}`}>{word} </span>
-                    ))}
-                  </p>
-                </button>
-                <div className="wq-tawjih-head-meta">
-                  {meta ? (
-                    <span className={`wq-grade is-${meta.cls}`} title={meta.desc}>
-                      {entry.grade}
-                    </span>
-                  ) : null}
-                  <span className="wq-tawjih-ref">كلمة {toArabicDigits(entry.wpos + 1)}</span>
-                </div>
-              </header>
-              <TawjihMedia attachments={entry.attachments || []} tweetId={entry.tweet_id} />
-              {typeof entry.question === "string" && entry.question.trim() ? (
-                <div className="wq-tawjih-qa">
-                  <div className="wq-tawjih-q">
-                    <p className="wq-tawjih-qa-kicker">
-                      سؤال
-                      {entry.question_author ? (
-                        <>
-                          {" · "}
-                          {questionHref ? (
-                            <a href={questionHref} target="_blank" rel="noopener noreferrer">
-                              {entry.question_author}
-                            </a>
-                          ) : (
-                            entry.question_author
-                          )}
-                        </>
-                      ) : null}
-                    </p>
-                    <p className="wq-tawjih-qa-text">{linkifyNote(entry.question)}</p>
-                  </div>
-                  <div className="wq-tawjih-a">
-                    <p className="wq-tawjih-qa-kicker">جواب · د. أحمد صابر عبدالهادي</p>
-                    <p className="wq-tawjih-qa-text">{linkifyNote(entry.answer || entry.display_note || entry.note || body)}</p>
-                  </div>
-                </div>
-              ) : body ? (
-                <p className="wq-tawjih-note">{linkifyNote(body)}</p>
-              ) : null}
-              <footer className="wq-tawjih-foot">
-                <span className="wq-tawjih-author">{author}</span>
-                {href ? (
-                  <a className="wq-tawjih-link" href={href} target="_blank" rel="noopener noreferrer">
-                    افتح التغريدة
-                  </a>
-                ) : null}
-              </footer>
-            </article>
-          );
-        })}
+        {tawjih.entries.map((entry, index) => (
+          <TawjihEntryCard
+            key={`${entry.tweet_id || entry.wpos}-${index}`}
+            entry={entry}
+            words={words}
+            author={author}
+            onSelectWpos={onSelectWpos}
+          />
+        ))}
       </div>
     </ToolCard>
   );

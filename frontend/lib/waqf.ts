@@ -114,3 +114,11 @@ export const classicalGradeMeta: Record<string, {cls: string; desc: string}> = {
   "لا": {cls: "qabih", desc: "ليس بوقف"},
   "لازم": {cls: "tamm", desc: "وقفٌ لازم"},
 };
+
+export function tawjihSpanCoversWpos(
+  entry: {wpos: number; wpos_start?: number | null},
+  wpos: number,
+): boolean {
+  const start = Number.isFinite(entry.wpos_start) ? Number(entry.wpos_start) : entry.wpos;
+  return wpos >= start && wpos <= entry.wpos;
+}
