@@ -60,16 +60,16 @@ def after_request(response):
         # pdf.js worker (Bahrain remote scan) loads from jsDelivr.
         "worker-src 'self' blob: https://cdn.jsdelivr.net; "
         # archive.org / tafsir.app → mushaf-editor printed-edition reference panel.
-        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://archive.org https://*.archive.org https://tafsir.app https://*.tafsir.app; "
+        "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://drive.google.com https://docs.google.com https://archive.org https://*.archive.org https://tafsir.app https://*.tafsir.app; "
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         # archive.org leaf JPGs + blob: URLs from AtharPdfRef (Bahrain PDF.js pages).
-        "img-src 'self' data: blob: https://archive.org https://*.archive.org; "
+        "img-src 'self' data: blob: https://archive.org https://*.archive.org https://pbs.twimg.com; "
         # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…).
         # *.googlevideo.com → YouTube audio streams (IFrame Player API).
         # drive.usercontent.google.com → Google Drive direct-download MP3s (_gd_ reciters).
         # huggingface.co → HuggingFace direct MP3s (_gd_ reciters).
-        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com https://*.googlevideo.com https://drive.usercontent.google.com https://huggingface.co https://*.huggingface.co; "
+        "media-src 'self' https://audio.qurancdn.com https://audio-cdn.tarteel.ai https://everyayah.com https://*.mp3quran.net https://download.tvquran.com https://download.quranicaudio.com https://*.googlevideo.com https://drive.usercontent.google.com https://huggingface.co https://*.huggingface.co https://video.twimg.com; "
         # huggingface.co (+ LFS redirect hosts) → ASR model fallback when /static can't serve the 132MB file.
         # d1.islamhouse.com → Bahrain printed mushaf PDF fetched by pdf.js.
         "connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://cdn-lfs.huggingface.co https://api.quran.com https://vercel.live https://vitals.vercel-insights.com https://vercel-vitals.com https://www.youtube.com https://www.googleapis.com https://d1.islamhouse.com https://*.islamhouse.com;"

@@ -158,6 +158,19 @@ export type ClassicalWaqfPayload = {
   }>;
 };
 
+export type TawjihAttachment = {
+  type: "video" | "photo" | "youtube" | "drive";
+  src?: string;
+  width?: number;
+  height?: number;
+  video_id?: string;
+  embed?: string;
+  file_id?: string;
+  href?: string;
+  preview?: string;
+  label?: string;
+};
+
 export type TawjihPayload = {
   surah: number;
   ayah: number;
@@ -176,6 +189,8 @@ export type TawjihPayload = {
     phrase: string[];
     quote: string;
     note: string;
+    display_note?: string;
+    attachments?: TawjihAttachment[];
     grade: string | null;
     url: string;
     created_at: string | null;

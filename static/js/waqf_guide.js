@@ -473,6 +473,89 @@
         } catch (_e) { /* ignore malformed */ }
         return '';
     }
+    function safeHttpsHost(raw, hosts) {
+        try {
+            const url = new URL(String(raw || ''));
+            if (url.protocol === 'https:' && hosts.has(url.hostname)) return url.href;
+        } catch (_e) { /* ignore malformed */ }
+        return '';
+    }
+    const TAWJIH_VIDEO_HOSTS = new Set(['video.twimg.com']);
+    const TAWJIH_PHOTO_HOSTS = new Set(['pbs.twimg.com']);
+    const TAWJIH_YT_HOSTS = new Set(['www.youtube-nocookie.com']);
+    const TAWJIH_DRIVE_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
+    const TAWJIH_NOTE_HOSTS = new Set([
+        'drive.google.com', 'www.drive.google.com',
+        'youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be',
+        'x.com', 'www.x.com', 'twitter.com', 'www.twitter.com',
+    ]);
+    function linkifyTawjihNote(text) {
+        const src = String(text == null ? '' : text);
+        const re = /https:\/\/[^\s<>"')\]]+/gi;
+        let html = '';
+        let last = 0;
+        let match;
+        while ((match = re.exec(src))) {
+            html += escHtml(src.slice(last, match.index));
+            const raw = match[0];
+            const trimmed = raw.replace(/[.,;:!?)»”'"\]]+$/g, '');
+            const trailing = raw.slice(trimmed.length);
+            const href = safeHttpsHost(trimmed, TAWJIH_NOTE_HOSTS);
+            html += href
+                ? `<a href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">${escHtml(trimmed)}</a>`
+                : escHtml(trimmed);
+            html += escHtml(trailing);
+            last = match.index + raw.length;
+        }
+        html += escHtml(src.slice(last));
+        return html;
+    }
+    function renderTawjihAttachments(list) {
+        if (!Array.isArray(list) || !list.length) return '';
+        const chunks = [];
+        const photos = [];
+        for (const att of list) {
+            if (!att || !att.type) continue;
+            if (att.type === 'video') {
+                const src = safeHttpsHost(att.src, TAWJIH_VIDEO_HOSTS);
+                if (!src || !new URL(src).pathname.toLowerCase().endsWith('.mp4')) continue;
+                const portrait = Number(att.height) > Number(att.width);
+                chunks.push(
+                    `<video class="wq-tawjih-video${portrait ? ' is-portrait' : ''}" controls playsinline preload="metadata" src="${escHtml(src)}"></video>`
+                );
+            } else if (att.type === 'youtube') {
+                const src = safeHttpsHost(att.embed, TAWJIH_YT_HOSTS);
+                if (!src || !src.includes('/embed/')) continue;
+                chunks.push(
+                    `<div class="wq-tawjih-embed"><iframe src="${escHtml(src)}" title="فيديو" allow="fullscreen" allowfullscreen loading="lazy"></iframe></div>`
+                );
+            } else if (att.type === 'drive') {
+                const href = safeHttpsHost(att.href, TAWJIH_DRIVE_HOSTS);
+                const preview = safeHttpsHost(att.preview, TAWJIH_DRIVE_HOSTS);
+                const label = escHtml(att.label || 'ملف على درايف');
+                let block = '<div class="wq-tawjih-drive">';
+                if (href) {
+                    block += `<a class="wq-tawjih-drive-chip" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+                }
+                if (preview && preview.includes('/file/')) {
+                    block += `<div class="wq-tawjih-embed"><iframe src="${escHtml(preview)}" title="ملف درايف" loading="lazy"></iframe></div>`;
+                }
+                block += '</div>';
+                chunks.push(block);
+            } else if (att.type === 'photo') {
+                const src = safeHttpsHost(att.src, TAWJIH_PHOTO_HOSTS);
+                if (src) photos.push(src);
+            }
+        }
+        if (photos.length) {
+            chunks.push(
+                `<div class="wq-tawjih-photos">${photos.map(src =>
+                    `<img src="${escHtml(src)}" alt="" loading="lazy">`
+                ).join('')}</div>`
+            );
+        }
+        return chunks.length ? `<div class="wq-tawjih-media">${chunks.join('')}</div>` : '';
+    }
     async function loadTawjih(surah, ayah) {
         if (!els.tawjihCard) return;
         els.tawjihCard.hidden = true;
@@ -489,6 +572,8 @@
                 ...MUKTAFA_GRADE,
                 'لازم': { cls: 'tamm', desc: 'وقفٌ لازم' },
             };
+            const src = j.source || {};
+            const author = src.author || 'د. أحمد صابر عبدالهادي';
             const rows = j.entries.map(e => {
                 const wpos = e.wpos;
                 const start = Number.isFinite(e.wpos_start) ? e.wpos_start : wpos;
@@ -508,17 +593,22 @@
                 const link = href
                     ? `<a class="wq-tawjih-link" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">افتح التغريدة</a>`
                     : '';
-                const rawNote = (e.note || '').replace(/\s+/g, ' ').trim();
-                const note = rawNote
-                    ? `<p class="wq-tawjih-note">${escHtml(rawNote)}</p>`
+                const rawNote = (e.display_note != null ? e.display_note : e.note) || '';
+                const note = String(rawNote)
+                    ? `<p class="wq-tawjih-note">${linkifyTawjihNote(rawNote)}</p>`
                     : '';
-                return `<div class="wq-tawjih-row">`
+                const media = renderTawjihAttachments(e.attachments);
+                return `<article class="wq-tawjih-card">`
+                    + `<header class="wq-tawjih-head">`
                     + `<button type="button" class="wq-tawjih-span" data-wpos="${wpos}">`
-                    + `<span class="wq-tawjih-ref">كلمة ${toAr(wpos + 1)}</span>`
-                    + `<span class="wq-mk3-phrase waqf-uthmanic" dir="rtl">${phraseHtml}</span>`
+                    + `<span class="wq-tawjih-phrase waqf-uthmanic" dir="rtl">${phraseHtml}</span>`
                     + `</button>`
-                    + `<div class="wq-tawjih-meta">${gradeChip}${link}</div>`
-                    + note + `</div>`;
+                    + `<div class="wq-tawjih-head-meta">${gradeChip}<span class="wq-tawjih-ref">كلمة ${toAr(wpos + 1)}</span></div>`
+                    + `</header>`
+                    + media
+                    + note
+                    + `<footer class="wq-tawjih-foot"><span class="wq-tawjih-author">${escHtml(author)}</span>${link}</footer>`
+                    + `</article>`;
             }).join('');
             els.tawjih.innerHTML = rows;
             state.tawjihSpans = j.entries.map(e => ({
@@ -526,11 +616,7 @@
                 end: e.wpos,
             }));
             markTawjihWords();
-            const src = j.source || {};
-            const author = src.author || 'د. أحمد صابر عبدالهادي';
-            const profile = safeTweetUrl(src.url) || 'https://x.com/Dr_ahmed21';
-            els.tawjihSrc.innerHTML = `${escHtml(src.title || 'توجيه معاصر')} — `
-                + `<a class="wq-tawjih-link" href="${escHtml(profile)}" target="_blank" rel="noopener noreferrer">${escHtml(author)}</a>`;
+            if (els.tawjihSrc) els.tawjihSrc.textContent = 'وقفه وتوجيهه، ومعه المقطع أو الملف إن وُجد.';
             els.tawjihCard.hidden = false;
         } catch (e) {
             state.tawjihSpans = [];
