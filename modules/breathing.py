@@ -31,6 +31,7 @@ from core.classical_review import book_decision as _classical_book_decision
 from core.classical_review import decisions as _classical_review_decisions
 from core.classical_review import REVIEW_GRADE_LABELS
 from core.tawjih import TAWJIH_SOURCE, list_published as _list_published_tawjih
+from core.tawjih import published_ayahs as _published_tawjih_ayahs
 from core.tawjih import published_video_url as _published_video_url
 from core.tawjih import valid_tweet_id as _valid_tweet_id
 from core.tawjih import verse_is_valid as _tawjih_verse_is_valid
@@ -522,6 +523,71 @@ def tawjih(surah, ayah):
         'entries': entries,
     })
 
+
+_waqf_map_khilaf_cache: _BoundedLRU = _BoundedLRU(maxsize=128)
+
+
+def _surah_ayah_count(surah):
+    prefix = f'{surah}:'
+    return sum(
+        1 for key in qpc_hafs_data_normalized
+        if isinstance(key, str) and key.startswith(prefix)
+    )
+
+
+def _khilaf_ayahs_for_surah(surah):
+    """Ayahs whose printed mushafs disagree, from the sqlite patterns index."""
+    cached = _waqf_map_khilaf_cache.get(surah)
+    if cached is not None:
+        return cached
+    # Lazy: waqf_research imports this module at load time.
+    from modules.waqf_research import _build_cross_verse_patterns
+    payload = _build_cross_verse_patterns()
+    buckets = {}
+    for row in payload.get('disagreements') or []:
+        try:
+            s = int(row['surah'])
+            a = int(row['ayah'])
+        except (TypeError, ValueError, KeyError):
+            continue
+        buckets.setdefault(s, set()).add(a)
+    for s, ayahs in buckets.items():
+        _waqf_map_khilaf_cache[s] = frozenset(ayahs)
+    result = frozenset(buckets.get(surah, ()))
+    _waqf_map_khilaf_cache[surah] = result
+    return result
+
+
+@breathing_bp.route('/api/waqf-map/<int:surah>', methods=['GET'])
+def waqf_map(surah):
+    """Per-surah navigation map for مُكْث: خلاف المصاحف and توجيه ayahs.
+
+    Solo reciter flags are omitted this phase — the Quran-wide solo index is
+    too heavy to build per request. ``solo`` is always false.
+    """
+    if not (1 <= surah <= 114):
+        return jsonify({'error': 'invalid surah'}), 400
+    ayahs = _surah_ayah_count(surah)
+    if ayahs < 1:
+        return jsonify({'error': 'invalid surah'}), 400
+    khilaf = _khilaf_ayahs_for_surah(surah)
+    tawjih_ayahs = _published_tawjih_ayahs(surah)
+    flagged = sorted(set(khilaf) | set(tawjih_ayahs))
+    items = [
+        {
+            'ayah': ayah,
+            'khilaf': ayah in khilaf,
+            'tawjih': ayah in tawjih_ayahs,
+            'solo': False,
+        }
+        for ayah in flagged
+        if 1 <= ayah <= ayahs
+    ]
+    return jsonify({
+        'surah': surah,
+        'ayahs': ayahs,
+        'items': items,
+    })
 
 
 @breathing_bp.route('/api/tawjih/media/<tweet_id>', methods=['GET', 'HEAD'])

@@ -135,6 +135,19 @@ export type WaqfPayload = {
   }>;
 };
 
+export type WaqfMapItem = {
+  ayah: number;
+  khilaf: boolean;
+  tawjih: boolean;
+  solo: boolean;
+};
+
+export type WaqfMapPayload = {
+  surah: number;
+  ayahs: number;
+  items: WaqfMapItem[];
+};
+
 export type ClassicalWaqfPayload = {
   surah: number;
   ayah: number;

@@ -9,9 +9,12 @@ import {
   type SearchPayload,
   type Surah,
   type TawjihPayload,
+  type WaqfMapItem,
+  type WaqfMapPayload,
   type WaqfPayload,
   type WaqfReciterDetail,
 } from "@/lib/api";
+import {cn} from "@/lib/cn";
 import { toArabicDigits } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
 import { useBoundedAudio } from "@/lib/use-bounded-audio";
@@ -59,6 +62,19 @@ const breathLabels: Record<BreathProfile, string> = {
   medium: "متوسط",
   long: "طويل",
 };
+
+function typingTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+  if (target.isContentEditable) return true;
+  const role = target.getAttribute("role");
+  return role === "combobox" || Boolean(target.closest("[role='combobox']"));
+}
+
+function scrollToComparison() {
+  document.getElementById("waqf-comparison")?.scrollIntoView({block: "nearest"});
+}
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
@@ -122,6 +138,7 @@ export function WaqfWorkspace() {
   const [searchError, setSearchError] = useState("");
   const [activeHit, setActiveHit] = useState(-1);
   const [result, setResult] = useState<WaqfResult>({key: "", data: null, classical: null, tawjih: null, error: ""});
+  const [waqfMap, setWaqfMap] = useState<WaqfMapPayload | null>(null);
   const {audioRef, playingKey, progress, play, stop} = useBoundedAudio();
   const requestKey = `${surahNumber}:${ayahNumber}:${retryToken}`;
   const visible = result.key === requestKey ? result : null;
@@ -167,6 +184,18 @@ export function WaqfWorkspace() {
     const positions = new Set<number>([...unionByWpos.keys(), ...marksByWpos.keys()]);
     return [...positions].sort((a, b) => a - b);
   }, [unionByWpos, marksByWpos]);
+
+  const mapByAyah = useMemo(() => {
+    const map = new Map<number, WaqfMapItem>();
+    if (waqfMap && waqfMap.surah === surahNumber) {
+      waqfMap.items.forEach((item) => map.set(item.ayah, item));
+    }
+    return map;
+  }, [waqfMap, surahNumber]);
+
+  const surahAyahCount = waqfMap && waqfMap.surah === surahNumber
+    ? waqfMap.ayahs
+    : (ayahNumbers[ayahNumbers.length - 1] || 0);
 
   const selectedUnion = selectedStopWpos === null ? null : unionByWpos.get(selectedStopWpos) || null;
   const selectedMarks = selectedStopWpos === null ? [] : marksByWpos.get(selectedStopWpos) || [];
@@ -240,6 +269,19 @@ export function WaqfWorkspace() {
 
   useEffect(() => {
     const controller = new AbortController();
+    getJson<WaqfMapPayload>(`/backend-api/waqf-map/${surahNumber}`, controller.signal)
+      .then((payload) => {
+        setWaqfMap(payload);
+      })
+      .catch((reason: unknown) => {
+        if (reason instanceof DOMException && reason.name === "AbortError") return;
+        setWaqfMap(null);
+      });
+    return () => controller.abort();
+  }, [surahNumber, retryToken]);
+
+  useEffect(() => {
+    const controller = new AbortController();
     stop();
     Promise.all([
       getJson<WaqfPayload>(`/backend-api/waqf/${surahNumber}/${ayahNumber}`, controller.signal),
@@ -281,8 +323,13 @@ export function WaqfWorkspace() {
     const url = new URL(window.location.href);
     url.searchParams.set("surah", String(surahNumber));
     url.searchParams.set("ayah", String(ayahNumber));
+    if (selectedStopWpos !== null && Number.isInteger(selectedStopWpos)) {
+      url.searchParams.set("wpos", String(selectedStopWpos));
+    } else if (visible) {
+      url.searchParams.delete("wpos");
+    }
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-  }, [surahNumber, ayahNumber]);
+  }, [surahNumber, ayahNumber, selectedStopWpos, visible]);
 
   useEffect(() => {
     const wordQuery = arabicWordQuery(searchQuery);
@@ -368,6 +415,41 @@ export function WaqfWorkspace() {
     }
   };
 
+  const selectStop = (wpos: number) => {
+    setSelectedStopWpos(wpos);
+    scrollToComparison();
+  };
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (typingTarget(event.target)) return;
+      if (event.key === "j" || event.key === "ك" || event.key === "ArrowDown") {
+        event.preventDefault();
+        void stepAyah(1);
+        return;
+      }
+      if (event.key === "k" || event.key === "ل" || event.key === "ArrowUp") {
+        event.preventDefault();
+        void stepAyah(-1);
+        return;
+      }
+      if (event.key === "[" || event.key === "]") {
+        if (!stopPositions.length) return;
+        event.preventDefault();
+        const current = selectedStopWpos === null ? -1 : stopPositions.indexOf(selectedStopWpos);
+        if (event.key === "]") {
+          const next = current < 0 ? 0 : Math.min(stopPositions.length - 1, current + 1);
+          selectStop(stopPositions[next]);
+        } else {
+          const previous = current < 0 ? 0 : Math.max(0, current - 1);
+          selectStop(stopPositions[previous]);
+        }
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedStopWpos, stopPositions, surahNumber, ayahNumber, ayahNumbers]);
+
   const selectBreath = (nextBreath: BreathProfile) => {
     setBreath(nextBreath);
     const nextProfile = recommendedProfile(profiles, nextBreath);
@@ -446,6 +528,77 @@ export function WaqfWorkspace() {
         pill={selectedSurah ? (
           <ChromePill>سورة <b>{selectedSurah.name}</b> · {toArabicDigits(ayahNumber)}</ChromePill>
         ) : undefined}
+        footer={(
+          <>
+            <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto" dir="rtl" aria-label="مواضع الآية">
+              <span className="shrink-0 text-[0.68rem] font-bold text-athar-ink-soft">مواضع الآية</span>
+              {data && stopPositions.length ? stopPositions.map((wpos) => {
+                const union = unionByWpos.get(wpos);
+                const selected = selectedStopWpos === wpos;
+                return (
+                  <button
+                    type="button"
+                    key={wpos}
+                    className={cn(
+                      "inline-flex shrink-0 cursor-pointer items-center gap-0.5 rounded-md border px-1.5 py-0.5",
+                      selected
+                        ? "border-athar-accent bg-athar-accent/10"
+                        : "border-athar-line-soft bg-athar-canvas-strong",
+                    )}
+                    aria-pressed={selected}
+                    onClick={() => selectStop(wpos)}
+                  >
+                    <span className="font-athar-quran text-[0.95rem] leading-none">{data.words[wpos]}</span>
+                    {union ? (
+                      <small className="text-[0.62rem] font-extrabold text-athar-accent">{toArabicDigits(union.count)}</small>
+                    ) : null}
+                  </button>
+                );
+              }) : (
+                <span className="text-[0.72rem] text-athar-ink-faint">لا موضع في هذه الآية</span>
+              )}
+            </div>
+            <div
+              className="flex min-w-0 basis-full items-center gap-1 overflow-x-auto lg:basis-auto lg:flex-[2]"
+              dir="rtl"
+              aria-label="مواضع السورة"
+            >
+              <span className="sticky end-0 z-[1] shrink-0 bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] pe-1 text-[0.68rem] font-bold text-athar-ink-soft">مواضع السورة</span>
+              {surahAyahCount ? Array.from({length: surahAyahCount}, (_, index) => {
+                const ayah = index + 1;
+                const item = mapByAyah.get(ayah);
+                const current = ayah === ayahNumber;
+                const flags = [
+                  item?.khilaf ? "خلاف المصاحف" : "",
+                  item?.tawjih ? "توجيه" : "",
+                ].filter(Boolean);
+                return (
+                  <button
+                    type="button"
+                    key={ayah}
+                    title={flags.join(" · ") || undefined}
+                    aria-current={current ? "true" : undefined}
+                    onClick={() => navigateTo(surahNumber, ayah)}
+                    className={cn(
+                      "relative inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-sm border px-0.5 text-[0.62rem] font-semibold",
+                      current
+                        ? "border-athar-accent bg-athar-accent/15 text-athar-ink"
+                        : item?.khilaf
+                          ? "border-athar-accent text-athar-ink"
+                          : "border-transparent text-athar-ink-faint",
+                      !item && !current ? "opacity-45" : "",
+                    )}
+                  >
+                    {toArabicDigits(ayah)}
+                    {item?.tawjih ? (
+                      <span className="absolute top-0 end-0 size-1.5 rounded-full bg-athar-gold" aria-hidden="true" />
+                    ) : null}
+                  </button>
+                );
+              }) : null}
+            </div>
+          </>
+        )}
       >
         <ChromeField label="السورة">
           <ChromeSelect
@@ -600,7 +753,7 @@ export function WaqfWorkspace() {
                           type="button"
                           className={`waqf-inline-stop${union?.solo ? " is-solo" : ""}`}
                           aria-label={`تفصيل الوقف بعد ${word}`}
-                          onClick={() => setSelectedStopWpos(index)}
+                          onClick={() => selectStop(index)}
                         >
                           <span className="waqf-stop-icon" aria-hidden="true">Ⅱ</span>
                           {union?.solo ? (
@@ -721,7 +874,7 @@ export function WaqfWorkspace() {
                       role="tab"
                       aria-selected={selected}
                       key={wpos}
-                      onClick={() => setSelectedStopWpos(wpos)}
+                      onClick={() => selectStop(wpos)}
                     >
                       <span className="font-athar-quran text-[1.05rem] leading-snug">{data.words[wpos]}</span>
                       <small className="text-[0.68rem] text-athar-ink-faint">{union ? `${toArabicDigits(union.count)}/${toArabicDigits(data.reciters_total)}` : "مصحف"}</small>
