@@ -410,12 +410,12 @@ export function WaqfWorkspace() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (typingTarget(event.target)) return;
-      if (event.key === "j" || event.key === "ك" || event.key === "ArrowDown") {
+      if (event.key === "j" || event.key === "ك" || event.key === "ArrowLeft") {
         event.preventDefault();
         void stepAyah(1);
         return;
       }
-      if (event.key === "k" || event.key === "ل" || event.key === "ArrowUp") {
+      if (event.key === "k" || event.key === "ل" || event.key === "ArrowRight") {
         event.preventDefault();
         void stepAyah(-1);
         return;
@@ -869,8 +869,8 @@ export function WaqfWorkspace() {
               )}
             </div>
 
-            <details className="wq-ayah-more" open>
-              <summary>المزيد · الآية كاملة</summary>
+            <section className="wq-ayah-more">
+              <h2 className="wq-ayah-more-title">المزيد · الآية كاملة</h2>
               <div className="wq-ayah-more-body">
                 <ToolCard aria-labelledby="waqf-breath-title">
                   <ToolCardHead title="ترشيح القراءة حسب نَفَسك" titleId="waqf-breath-title">
@@ -951,7 +951,7 @@ export function WaqfWorkspace() {
                   <span> · بحث بالكلمة، انفرادات القرّاء، واختلاف المصاحف — خارج دراسة الآية.</span>
                 </p>
               </div>
-            </details>
+            </section>
           </>
         ) : null}
       </ToolStack>

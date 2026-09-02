@@ -116,7 +116,7 @@ function TawjihMedia({
       const portrait = Number(att.height) > Number(att.width);
       blocks.push(
         <video
-          key={`v-${index}`}
+          key={src}
           className={portrait ? "wq-tawjih-video is-portrait" : "wq-tawjih-video"}
           controls
           playsInline

@@ -1627,13 +1627,11 @@ button.page-number {
   color: var(--athar-ink-faint);
 }
 
-.wq-ayah-more > summary {
+.wq-ayah-more-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
-  list-style: none;
-  cursor: pointer;
+  margin: 0;
   border: 1px solid var(--athar-line-soft);
   background: var(--athar-surface);
   border-radius: 16px;
@@ -1642,20 +1640,6 @@ button.page-number {
   font-size: 1.08rem;
   font-weight: 700;
   color: var(--athar-ink);
-}
-
-.wq-ayah-more > summary::-webkit-details-marker {
-  display: none;
-}
-
-.wq-ayah-more > summary::after {
-  content: "▾";
-  color: var(--athar-accent);
-  font-size: 0.9rem;
-}
-
-.wq-ayah-more[open] > summary::after {
-  content: "▴";
 }
 
 .wq-ayah-more-body {
