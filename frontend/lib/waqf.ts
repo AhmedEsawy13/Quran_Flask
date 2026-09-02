@@ -52,8 +52,39 @@ const uthmanicGlyphs: Record<string, string> = {
 
 export const commonWaqfMarks = ["م", "لا", "ج", "ق"] as const;
 
+export function waqfMarkCanonical(symbol: string) {
+  const trimmed = symbol.replace(/\s+/g, "").trim();
+  if (!trimmed) return "";
+  if (markAliases[trimmed]) return markAliases[trimmed];
+  const first = trimmed.split(/[،,]/)[0] || trimmed;
+  return markAliases[first] || first;
+}
+
+export function majorityWaqfSymbol(symbols: string[]): string | null {
+  const counts = new Map<string, number>();
+  for (const symbol of symbols) {
+    const canonical = waqfMarkCanonical(symbol);
+    if (!canonical) continue;
+    counts.set(canonical, (counts.get(canonical) || 0) + 1);
+  }
+  if (counts.size < 2) return null;
+  let best: string | null = null;
+  let bestCount = 0;
+  let tied = false;
+  for (const [canonical, count] of counts) {
+    if (count > bestCount) {
+      best = canonical;
+      bestCount = count;
+      tied = false;
+    } else if (count === bestCount) {
+      tied = true;
+    }
+  }
+  return tied ? null : best;
+}
+
 export function waqfMarkDescription(symbol: string) {
-  const canonical = markAliases[symbol] || symbol;
+  const canonical = waqfMarkCanonical(symbol) || symbol;
   return markDescriptions[canonical] || {
     label: "علامة وقف",
     guidance: "راجع حكم الموضع",

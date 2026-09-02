@@ -316,6 +316,7 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   expect(wordFlowSpacing.gap).toBeGreaterThanOrEqual(4);
   await expect(page.locator(".waqf-inline-stop").first()).toBeVisible();
   await expect(page.locator(".waqf-symbol").first()).toHaveText(/[ۖ-ۜ]/);
+  await page.locator(".wq-ayah-more").evaluate((el: HTMLDetailsElement) => { el.open = true; });
   await expect(page.getByLabel("سعة النفس").getByRole("button", {name: "متوسط"})).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByLabel("القارئ المختار")).toBeEnabled();
   const firstPhrase = page.getByLabel("مقاطع القارئ").getByRole("button").first();
@@ -323,9 +324,10 @@ test("مُكْث compares evidence and builds a playable breath plan", async ({p
   await firstPhrase.evaluate((button: HTMLButtonElement) => button.click());
   await expect(page.getByLabel("مساحة مُكْث لدراسة الوقف").locator("audio")).toHaveAttribute("src", /.+/);
   await expect(page.getByRole("tab", {selected: true})).toBeVisible();
-  await expect(page.getByRole("heading", {name: "علامات المصاحف"})).toBeVisible();
-  await expect(page.getByRole("heading", {name: "وقوف القرّاء"})).toBeVisible();
-  await expect(page.getByRole("heading", {name: "قول الإمام", exact: true})).toBeVisible();
+  const desk = page.locator("#waqf-comparison");
+  await expect(desk.getByRole("heading", {name: "مصحف"})).toBeVisible();
+  await expect(desk.getByRole("heading", {name: "قرّاء"})).toBeVisible();
+  await expect(desk.getByRole("heading", {name: "أئمة"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "مقارنة القرّاء بمصاحف الوقف"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "كيف قرأها كل قارئ"})).toBeVisible();
   await expect(page.getByRole("heading", {name: "لماذا يُوقف هنا؟ — كتب الوقف والابتداء"})).toBeVisible();
