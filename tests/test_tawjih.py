@@ -178,7 +178,7 @@ def test_pipeline_never_writes_classical_waqf_db():
     tawjih.classify_posts([_post(), _post(kind='إعادة تغريد', tweet_id='9')])
     assert _sha(Path(CLASSICAL_WAQF_DATABASE)) == before
     assert 'tawjih' not in _ACTIVE_CLASSICAL_SOURCES
-    assert _ACTIVE_CLASSICAL_SOURCES == {'manar'}
+    assert _ACTIVE_CLASSICAL_SOURCES == {'manar', 'muktafa'}
 
 
 def test_sqlite_write_roundtrip(tmp_path):

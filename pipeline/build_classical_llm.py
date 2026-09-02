@@ -533,7 +533,7 @@ def explicit_manar_rows(surah, prose):
         if not gm:
             continue
         quote = rx.clean_note(raw_quote, limit=200)
-        qwords = rx.quote_words(quote)
+        qwords = rx.quote_words_legacy(quote)
         if not qwords:
             continue
         candidates = []
@@ -545,7 +545,7 @@ def explicit_manar_rows(surah, prose):
         for candidate in dict.fromkeys(candidates):
             if not 1 <= candidate <= acount:
                 continue
-            hit, _ = rx.align_in_ayah(surah, candidate, qwords)
+            hit, _ = rx.align_in_ayah_legacy(surah, candidate, qwords)
             if hit is not None:
                 ayah, wpos = candidate, hit
                 break

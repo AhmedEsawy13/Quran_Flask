@@ -382,12 +382,12 @@ _CLASSICAL_SOURCES = {
         'via': 'OpenITI (Shamela 0014255)',
     },
 }
-# Serving-layer allowlist, NOT a data deletion: منار (الأشموني) is the only
-# source with full 114/114-surah coverage and zero low-confidence rows — the
-# other three are missing 20-23 surahs each and have measurably more
-# unreviewed extractions (see pipeline/build_classical_waqf.py). Their data
-# and pipeline stay in place; widen this set once a source is fully reviewed.
-_ACTIVE_CLASSICAL_SOURCES = {'manar'}
+# Serving-layer allowlist, NOT a data deletion. منار is fully reviewed;
+# المكتفى is on after unique leftover pins were aligned. 103 العصر and
+# 113 الفلق have no `{quote} grade` in the book («لا وقف فيها دون آخرها» /
+# «ليس فيها وقف كاف») — empty surahs, not holes. classical_review.db is
+# gitignored, so this set — not book_decision — is the release switch.
+_ACTIVE_CLASSICAL_SOURCES = {'manar', 'muktafa'}
 
 
 def _active_classical_sources():
@@ -449,7 +449,7 @@ def _approved_muktafa_rows(surah, from_ayah, to_ayah):
 
 @breathing_bp.route('/api/classical-waqf/<int:surah>/<int:ayah>', methods=['GET'])
 def classical_waqf(surah, ayah):
-    """Classical graded stops (currently just الأشموني's منار الهدى — see
+    """Classical graded stops (منار + المكتفى — see
     _ACTIVE_CLASSICAL_SOURCES) for one verse, aligned to recited-word
     positions by pipeline/build_classical_waqf.py. Only high-confidence
     alignments are returned — comparative citations the books quote from

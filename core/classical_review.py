@@ -142,8 +142,40 @@ def _builder():
     return build_classical_waqf
 
 
+def _quote_hits_wpos(builder, verse, quoted, wpos):
+    """True if some tokenisation of `quoted` has its tail ending at wpos."""
+    if not quoted:
+        return False
+    variants = builder.quote_token_variants(quoted) if hasattr(builder, 'quote_token_variants') else [quoted]
+    for seq in variants:
+        for level in (1, 2):
+            for length in dict.fromkeys((min(3, len(seq)), 2, 1)):
+                if length < 1 or length > len(seq):
+                    continue
+                start = wpos - length + 1
+                if start < 0:
+                    continue
+                ok = True
+                for i in range(length):
+                    q, w = seq[-length + i], verse[start + i]
+                    if i == length - 1 and level == 1 and hasattr(builder, 'match_stop_word'):
+                        if not builder.match_stop_word(q, w, level):
+                            ok = False
+                            break
+                    elif not builder.match_word(q, w, level):
+                        ok = False
+                        break
+                if ok:
+                    return True
+    return False
+
+
 def quote_matches_position(surah, ayah, wpos, quote):
-    """Verify the quote tail ends at exactly this Qur'an word position."""
+    """Verify the quote tail ends at exactly this Qur'an word position.
+
+    Period quotes (`منزلين. بلى`) try the part before the period (ayah-end
+    pin) and the part after (e.g. ذق). Tokenisation variants and last-token
+    ت/ي/ن · ا/ه folds match pipeline/build_classical_waqf.align_in_ayah."""
     b = _builder()
     key = f'{surah}:{ayah}'
     if key not in b.app.qpc_hafs_data_normalized:
@@ -152,15 +184,19 @@ def quote_matches_position(surah, ayah, wpos, quote):
     if not 0 <= wpos < len(words):
         return False
     verse = [b.norm(word) for word in words]
-    quoted = b.quote_words(quote)
-    for level in (1, 2):
-        for length in dict.fromkeys((min(3, len(quoted)), 2, 1)):
-            if length < 1 or length > len(quoted):
-                continue
-            start = wpos - length + 1
-            if start >= 0 and all(b.match_word(quoted[-length + i], verse[start + i], level)
-                                  for i in range(length)):
-                return True
+    parts = [quote]
+    if '.' in (quote or ''):
+        before, after = quote.split('.', 1)
+        parts.extend((before, after))
+    for part in parts:
+        quoted = b.quote_words(part)
+        if _quote_hits_wpos(b, verse, quoted, wpos):
+            return True
+        # Frozen formula whose last token isn't in the mushaf (فليتوكل
+        # المتوكلون vs فليتوكل المؤمنون): the preceding tokens uniquely
+        # sit immediately before the recited stop.
+        if len(quoted) >= 2 and wpos >= 1 and _quote_hits_wpos(b, verse, quoted[:-1], wpos - 1):
+            return True
     return False
 
 

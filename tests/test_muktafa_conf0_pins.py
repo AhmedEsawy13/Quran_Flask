@@ -1,11 +1,11 @@
-"""المكتفى low-confidence pins: proven moves off the book, no invented أحكام.
+"""المكتفى pins: proven moves off the book, no invented أحكام.
 
 The regex harvest swallowed سورة المنافقون because OpenITI titles it
 `# [سورة] المنافقون.` (not `### | سورة …`). Unique leftover conf=0 rows are
 moved or filled off the book; `{quote} [grade]` parser misses are extracted.
-Period quotes, reported-from rulings, and genuinely repeated/discursive
-rows stay conf=0. Coords filled under hamza/ت-ي orthography stay conf=0
-until align_in_ayah succeeds.
+Uthmani→imlāʾī folds (ء/ا, ىٰ, fused فيما, last-token ت/ي/ن) make unique
+coords align_in_ayah successes. Period quotes pin to the word BEFORE the
+period. Two genuinely unpinnable rows stay conf=0.
 """
 import os
 import sqlite3
@@ -153,35 +153,35 @@ def test_asr_and_falaq_have_no_db_rows(muktafa):
     assert 63 in surahs
 
 
-def test_active_classical_sources_still_manar_only():
+def test_active_classical_sources_include_muktafa():
     from modules import breathing
-    assert breathing._ACTIVE_CLASSICAL_SOURCES == {'manar'}
+    assert breathing._ACTIVE_CLASSICAL_SOURCES == {'manar', 'muktafa'}
 
 
 def test_unique_conf0_pin_mismatches_moved_off_the_book(muktafa):
     """Wrong-word pins from the leftover 112, moved to the unique book landing."""
     expected = {
-        ('والذين آمنوا', 2): (9, 3, 0),
-        ('تعتدون', 2): (61, 58, 0),
+        ('والذين آمنوا', 2): (9, 3, 1),
+        ('تعتدون', 2): (61, 58, 1),
         ('يا أولي الألباب', 2): (197, 28, 1),
-        ('من الذين آمنوا', 2): (212, 8, 0),
-        ('منهم تقاة', 3): (28, 20, 0),
-        ('وهذا النبي والذين آمنوا', 3): (68, 9, 0),
-        ('كان آمنا', 3): (97, 8, 0),
-        ('العالمين', 3): (108, 10, 0),
-        ('قوم آخرين', 6): (133, 17, 0),
-        ('فيما آتاكم', 6): (165, 13, 0),
-        ('فثبتوا الذين آمنوا', 8): (12, 9, 0),
-        ('لا يعلمونهم', 8): (60, 18, 0),
-        ('والذين آمنوا', 10): (103, 4, 0),
+        ('من الذين آمنوا', 2): (212, 8, 1),
+        ('منهم تقاة', 3): (28, 20, 1),
+        ('وهذا النبي والذين آمنوا', 3): (68, 9, 1),
+        ('كان آمنا', 3): (97, 8, 1),
+        ('العالمين', 3): (108, 10, 1),
+        ('قوم آخرين', 6): (133, 17, 1),
+        ('فيما آتاكم', 6): (165, 13, 1),
+        ('فثبتوا الذين آمنوا', 8): (12, 9, 1),
+        ('لا يعلمونهم', 8): (60, 18, 1),
+        ('والذين آمنوا', 10): (103, 4, 1),
         ('تلك آيات الكتاب', 13): (1, 3, 1),
         ('القرآن العظيم', 15): (87, 6, 1),
-        ('في كتاب', 20): (52, 5, 0),
-        ('علمه', 20): (114, 16, 0),
-        ('يذكر آلهتكم', 21): (36, 11, 0),
-        ('يعقلون', 24): (61, 75, 0),
-        ('وعند الذين آمنوا', 40): (35, 14, 0),
-        ('لولا فصلت آياته', 41): (44, 7, 0),
+        ('في كتاب', 20): (52, 5, 1),
+        ('علمه', 20): (114, 16, 1),
+        ('يذكر آلهتكم', 21): (36, 11, 1),
+        ('يعقلون', 24): (61, 75, 1),
+        ('وعند الذين آمنوا', 40): (35, 14, 1),
+        ('لولا فصلت آياته', 41): (44, 7, 1),
     }
     for (quote, surah), (ayah, wpos, conf) in expected.items():
         r = _row(muktafa, quote, surah)
@@ -194,7 +194,7 @@ def test_unmatched_unique_quotes_filled_from_the_book(muktafa):
     expected = {
         ('فيما آتاكم', 5): (48, 39),
         ('ثم إليه ترجعون', 6): (36, 9),
-        ('مذءوما مذعورا', 7): (18, 4),
+        ('مذءوما مذعورا', 7): (18, 4, 0),
         ('بني إسرائيل', 7): (105, 17),
         ('واتبع هواه', 7): (176, 9),
         ('بنو إسرائيل', 10): (90, 23),
@@ -209,11 +209,13 @@ def test_unmatched_unique_quotes_filled_from_the_book(muktafa):
         ('لمن خلفك آية', 10): (92, 6),
         ('فارتدا على آثارهما', 18): (64, 7),
     }
-    for (quote, surah), (ayah, wpos) in expected.items():
+    for (quote, surah), spec in expected.items():
+        ayah, wpos = spec[0], spec[1]
+        conf = spec[2] if len(spec) > 2 else 1
         r = _row(muktafa, quote, surah)
         assert r['ayah'] == ayah, quote
         assert r['wpos'] == wpos, quote
-        assert r['conf'] == 0, quote
+        assert r['conf'] == conf, quote
 
 
 def test_bracket_grade_parser_misses_extracted(muktafa):
@@ -226,10 +228,102 @@ def test_bracket_grade_parser_misses_extracted(muktafa):
     assert r['ayah'] == 14 and r['wpos'] == 4 and r['conf'] == 1 and r['grade'] == 'تام'
 
 
-def test_leftover_unmatched_are_the_two_non_unique_quotes(muktafa):
+def test_leftover_unmatched_are_gone(muktafa):
     unmatched = [r for r in muktafa if r['ayah'] is None]
-    quotes = {(r['surah'], r['quote']) for r in unmatched}
-    assert quotes == {
-        (9, 'فليتوكل المتوكلون'),
-        (22, 'عليهم آياتنا'),
+    assert unmatched == []
+
+
+def test_falyatawakkal_moved_to_tawbah_muminun(muktafa):
+    """Book quotes المتوكلون; the ayah is فليتوكل المؤمنون, unique in التوبة."""
+    r = _row(muktafa, 'فليتوكل المتوكلون', 9)
+    assert r['ayah'] == 51 and r['wpos'] == 13 and r['conf'] == 1
+    assert r['stop_word']
+
+
+def test_alayhim_ayatina_uses_the_second_landing_in_22_72(muktafa):
+    """`{عليهم آياتنا} كاف. ومثله {بشر من ذلكم}` — second ءايتنا, before بشر."""
+    r = _row(muktafa, 'عليهم آياتنا', 22)
+    assert r['ayah'] == 72 and r['wpos'] == 16 and r['conf'] == 1
+
+
+def test_period_quotes_pin_before_the_period(muktafa):
+    """TWO-ayah quotes: stop is the last word BEFORE the period, except ذق."""
+    expected = {
+        'منزلين. بلى': (3, 124, 12),
+        'سترا. كذلك': (18, 90, 14),
+        'عهدا. كلا': (19, 78, 6),
+        'منذرون. ذكرى': (26, 208, 6),
+        'فاكهين. كذلك': (44, 27, 3),
+        'متقابلين. كذلك': (44, 53, 4),
+        'ينجيه. كلا': (70, 14, 5),
+        'جنة نعيم. كلا': (70, 38, 7),
+        'أن أزيد. كلا': (74, 15, 3),
+        'عظامه. بلى': (75, 3, 4),
+        'أساطير الأولين. كلا': (83, 13, 6),
+        'أن لن يحور. بلى': (84, 14, 4),
+        'بعاد. إرم': (89, 6, 5),
+        'أخلده. كلا': (104, 3, 3),
     }
+    for quote, (surah, ayah, wpos) in expected.items():
+        r = _row(muktafa, quote, surah)
+        assert r['ayah'] == ayah, quote
+        assert r['wpos'] == wpos, quote
+        assert r['conf'] == 1, quote
+    r = _row(muktafa, 'من عذاب الحميم. ذق', 44)
+    assert r['ayah'] == 49 and r['wpos'] == 0 and r['conf'] == 1
+    r = _row(muktafa, 'بعاد. إرم', 89)
+    assert r['reported_from'] == 'نافع'
+    r = _row(muktafa, 'فاكهين. كذلك', 44)
+    assert r['reported_from']
+
+
+def test_sulaka_ya_musa_moved_off_hadith_musa(muktafa):
+    r = _row(muktafa, 'سؤلك يا موسى', 20)
+    assert r['ayah'] == 36 and r['wpos'] == 4 and r['conf'] == 1
+
+
+def test_genuinely_unpinnable_leftovers(muktafa):
+    """conf=0 is only rows that are still not unique after the aligner pass."""
+    leftover = {(r['id'], r['quote']) for r in muktafa if r['conf'] == 0}
+    assert leftover == {
+        (1303, 'مذءوما مذعورا'),      # qiraʾat مدحورا, quote not in Hafs
+        (2740, 'بالله ورسوله'),        # twice in 24:62 (wpos 5 and 23)
+    }
+
+
+def test_aligner_folds_leftover_quotes():
+    """Unique leftover quotes now align_in_ayah uniquely at the recited stop."""
+    cases = [
+        (7, 105, pcw.quote_words('بني إسرائيل'), 17),
+        (5, 48, pcw.quote_words('فيما آتاكم'), 39),
+        (36, 52, pcw.quote_words('قالوا يا ويلنا'), 1),
+        (101, 10, pcw.quote_words('ماهيه'), 3),
+        (79, 33, pcw.quote_words('لأنعامكم'), 2),
+        (24, 41, pcw.quote_words('والطير صافات'), 11),
+        (2, 9, pcw.quote_words('والذين آمنوا'), 3),
+        (20, 36, pcw.quote_words('سؤلك يا موسى'), 4),
+    ]
+    for surah, ayah, qwords, wpos in cases:
+        hit, level = pcw.align_in_ayah(surah, ayah, qwords)
+        unique, _ = pcw.align_in_ayah_unique(surah, ayah, qwords)
+        assert hit == wpos, (surah, ayah, qwords, hit)
+        assert unique == wpos, (surah, ayah, qwords, unique)
+        assert level == 1, (surah, ayah, qwords, level)
+
+
+def test_muktafa_ama_tushrikun_is_nahl_1_not_tashkurun(muktafa):
+    """النحل 1 {عما تشركون} must not fuzzy-match 16:14 تشكرون."""
+    row = _row(muktafa, 'عما تشركون', 16)
+    assert (row['ayah'], row['wpos']) == (1, 8)
+
+
+def test_muktafa_yakhluqun_is_nahl_20_not_zukhruf_yakhlufun(muktafa):
+    """{يخلقون} with أموات is النحل 20, not الزخرف 60 يخلفون."""
+    row = _row(muktafa, 'يخلقون', 16)
+    assert (row['ayah'], row['wpos']) == (20, 9)
+
+
+def test_muktafa_alladhina_amanu_is_ghafir_7_not_amatna(muktafa):
+    """غافر {للذين آمنوا} is 40:7, not 40:11 أمتنا."""
+    row = _row(muktafa, 'للذين آمنوا', 40)
+    assert (row['ayah'], row['wpos']) == (7, 12)
