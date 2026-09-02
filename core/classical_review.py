@@ -169,6 +169,7 @@ def _muktafa_sections():
     """Raw source sections keyed by surah, retaining OpenITI page markers."""
     b = _builder()
     raw = MUKTAFA_SOURCE.read_text(encoding='utf-8').split('#META#Header#End#', 1)[1]
+    raw = b.normalize_muktafa_headings(raw)
     sections, last = {}, 0
     for part in re.split(r'(?=\n### \| )', raw):
         first = part.lstrip('\n').split('\n', 1)[0]

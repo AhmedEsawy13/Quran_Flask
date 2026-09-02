@@ -71,7 +71,7 @@ GRADES = [
     ('جائز', 'جائز'), ('صالح', 'صالح'), ('قبيح', 'قبيح'),
 ]
 GRADE_RE = re.compile(
-    r'^[\s:،.؛]*(?:وقف\s+)?(' + '|'.join(re.escape(g) for g, _ in GRADES) + r')\b')
+    r'^[\s:،.؛]*(?:وقف\s+)?(?:\[)?(' + '|'.join(re.escape(g) for g, _ in GRADES) + r')(?:\])?(?=[\s.،؛:]|$)')
 
 # Uthmani → imlāʾī folds applied AFTER _normalize_for_search stripping, so both
 # sides land on the same skeleton (الصلوة/الصلاة، الزكوة، الحيوة، الربوا…).
@@ -357,10 +357,19 @@ def align_cursor(stream, cursor, qwords):
     return None, cursor
 
 
+def normalize_muktafa_headings(body):
+    """OpenITI Shamela 0026461 titles المنافقون as `# [سورة] المنافقون.`
+    instead of `### | سورة المنافقون`, so the section was swallowed by الجمعة."""
+    body = re.sub(r'\n# \[سورة\]\s*', '\n### | سورة ', body)
+    # load_book() strips the OpenITI `# ` marker, leaving `[سورة] المنافقون.`
+    return re.sub(r'\n\[سورة\]\s*', '\n### | سورة ', body)
+
+
 def harvest_muktafa(body, rows, seq0):
     seq = seq0
     unmatched = 0
     last_num = 0
+    body = normalize_muktafa_headings(body)
     for sec in re.split(r'\n### \| ', body):
         title, _, text = sec.partition('\n')
         if 'سورة' not in title and 'أم القرآن' not in title:
