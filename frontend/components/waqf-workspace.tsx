@@ -870,7 +870,7 @@ export function WaqfWorkspace() {
             </div>
 
             <section className="wq-ayah-more">
-              <h2 className="wq-ayah-more-title">المزيد · الآية كاملة</h2>
+              <h2 className="wq-ayah-more-title">الآية كاملة</h2>
               <div className="wq-ayah-more-body">
                 <ToolCard aria-labelledby="waqf-breath-title">
                   <ToolCardHead title="ترشيح القراءة حسب نَفَسك" titleId="waqf-breath-title">
