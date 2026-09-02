@@ -283,11 +283,32 @@ def test_sulaka_ya_musa_moved_off_hadith_musa(muktafa):
 
 
 def test_genuinely_unpinnable_leftovers(muktafa):
-    """conf=0 is only rows that are still not unique after the aligner pass."""
+    """conf=0: not unique after the aligner pass, plus k=1 SequenceMatcher-only pins."""
     leftover = {(r['id'], r['quote']) for r in muktafa if r['conf'] == 0}
     assert leftover == {
+        (27, 'مستهزئون'),
+        (260, 'مساكين'),               # مسكين, not مساكين
+        (391, 'وأبناءنا'),
+        (463, 'شيئا'),
+        (524, 'أأسلمتم'),
+        (651, 'ههنا'),
         (1303, 'مذءوما مذعورا'),      # qiraʾat مدحورا, quote not in Hafs
+        (2397, 'ورئيا'),
+        (2542, 'ذلك هو الضلال البعيد يدعو'),
+        (2640, 'ملبسون'),             # مبلسون
+        (2693, 'والأبصار'),           # والآصال
         (2740, 'بالله ورسوله'),        # twice in 24:62 (wpos 5 and 23)
+        (2798, 'يستهزئون'),
+        (2992, 'يستهزئون'),
+        (3079, 'والأفئدة'),
+        (3225, 'العلماء'),
+        (3267, 'يستهزؤون'),
+        (3303, 'وبالليل'),
+        (3765, 'بأيد'),
+        (4044, 'فاحذرهم'),
+        (4105, 'والأفئدة'),
+        (4320, 'باله'),               # بالهزل
+        (4403, 'واستغفروه'),
     }
 
 
@@ -327,3 +348,17 @@ def test_muktafa_alladhina_amanu_is_ghafir_7_not_amatna(muktafa):
     """غافر {للذين آمنوا} is 40:7, not 40:11 أمتنا."""
     row = _row(muktafa, 'للذين آمنوا', 40)
     assert (row['ayah'], row['wpos']) == (7, 12)
+
+
+def test_quote_words_ama_tushrikun_does_not_align_to_tashkurun():
+    """Lone last-token SequenceMatcher must not map تشركون onto تشكرون."""
+    q = pcw.quote_words('عما تشركون')
+    hit, _ = pcw.align_in_ayah(16, 14, q)
+    unique, _ = pcw.align_in_ayah_unique(16, 14, q)
+    assert hit is None
+    assert unique is None
+    import app as quran_app
+    _, words, _ = quran_app._verse_word_texts('16:14')
+    assert pcw.norm(words[20]) == pcw.norm('تشكرون')
+    unique_nahl1, _ = pcw.align_in_ayah_unique(16, 1, q)
+    assert unique_nahl1 == 8

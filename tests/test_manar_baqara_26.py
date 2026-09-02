@@ -82,3 +82,15 @@ def test_ma_rulings_sit_on_recited_ma(manar_226):
     assert 'كاف' in grades
     assert 'تام' in grades
     assert all(_norm_key(r['stop_word']) == _norm_key(MA) for r in ma_rows)
+
+
+def test_tighten_did_not_move_ma_off_wpos_7(manar_226):
+    """Last-token tighten must not demote or move the recited «ما» pins."""
+    ma_rows = [r for r in manar_226 if r['wpos'] == 7]
+    assert ma_rows
+    assert all(r['conf'] == 1 for r in ma_rows)
+    from pipeline.build_classical_waqf import align_in_ayah, quote_words
+    hit, level = align_in_ayah(2, 255, quote_words('الأرض'))
+    assert hit == 43
+    assert level == 1
+

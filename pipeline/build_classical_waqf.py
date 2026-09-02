@@ -84,6 +84,8 @@ _POST_FOLDS = [
     # Dagger-as-alif on هذا/ذلك/قرآنه must fold back to imlāʾī (هَٰذَا→هاذا→هذا).
     ('هاذا', 'هذا'), ('هاذه', 'هذه'), ('ذالك', 'ذلك'), ('كذالك', 'كذلك'),
     ('قراناه', 'قرانه'),
+    # Dagger-as-alif on إله (إِلَٰه → الاه) folds back to imlāʾī اله.
+    ('الاه', 'اله'),
 ]
 
 # Quote particles the mushaf writes as two tokens (or the reverse for ياويلنا).
@@ -113,19 +115,28 @@ def norm(tok):
     return t
 
 
-def match_stop_word(q, w, level):
-    """Last-token match: exact/prefix/fuzzy, plus ت/ي/ن person-prefix and ا/ه suffix.
+def match_stop_word(q, w, level, *, allow_fuzzy=False, allow_person_prefix=True):
+    """Last-token match: exact/prefix, optional tight fuzz, ت/ي/ن person-prefix, ا/ه suffix.
 
     Only used on the STOP word (last quote token). Prefix و/ف/ل already live in
-    match_word. Person-prefix is NOT applied to earlier tail tokens, so short
+    match_word. SequenceMatcher fuzz is NOT applied to a lone last token
+    (k=1): that is what mapped تشركون→تشكرون, يخلقون→يخلفون, آمنوا→أمتنا.
+    Person-prefix ت/ي/ن is only when the rest of the token is identical after
+    folds; callers pass allow_person_prefix=False for k=1 if they want it off,
+    or True (default) when the rest-identical guard is enough. ا/ه suffix
+    (تقاة/تقاه vs تقيه) stays for the last token when len>=4 and the stem
+    matches. Person-prefix is not applied to earlier tail tokens, so short
     last-match bugs like منار 2:26 «ما» stay exact.
     """
-    if match_word(q, w, level):
+    if match_word(q, w, 1):
         return True
-    if (len(q) >= 4 and len(w) >= 4 and q[0] in _PERSON_PREFIX
-            and w[0] in _PERSON_PREFIX and q[1:] == w[1:]):
+    if allow_fuzzy and level >= 2 and match_word(q, w, 2):
         return True
-    if (len(q) >= 3 and len(w) >= 3 and q[-1] in 'اه' and w[-1] in 'اه'
+    if (allow_person_prefix and len(q) >= 4 and len(w) >= 4
+            and q[0] in _PERSON_PREFIX and w[0] in _PERSON_PREFIX
+            and q[1:] == w[1:]):
+        return True
+    if (len(q) >= 4 and len(w) >= 4 and q[-1] in 'اه' and w[-1] in 'اه'
             and q[:-1] == w[:-1]):
         return True
     return False
@@ -438,6 +449,8 @@ def align_cursor(stream, cursor, qwords):
                 continue
             tail = qwords[-k:]
             best = None
+            if k == 1 and level == 2:
+                continue  # no SequenceMatcher on a lone last token
             for i in range(0, len(stream) - k + 1):
                 if all(match_word(tail[j], stream[i + j][2], level) for j in range(k)):
                     if best is None or abs(i - cursor) < abs(best - cursor):
@@ -523,11 +536,14 @@ def _align_seq_in_ayah(wnorm, seq):
     as the historical align_in_ayah (منار 2:26 «ما» / chained «الأرض»).
 
     Last-token ت/ي/ن flexibility lives only in align_in_ayah_unique, so منار
-    explicit keys keep their historical landings.
+    explicit keys keep their historical landings. k=1 never uses level-2
+    SequenceMatcher (تشركون→تشكرون class).
     """
     for level in (1, 2):
         for k in (min(3, len(seq)), 2, 1):
             if k > len(seq) or k < 1:
+                continue
+            if k == 1 and level == 2:
                 continue
             tail = seq[-k:]
             for i in range(len(wnorm) - k, -1, -1):
@@ -537,8 +553,15 @@ def _align_seq_in_ayah(wnorm, seq):
 
 
 def _align_seq_hits(wnorm, seq, level, k):
-    """All end-wpos hits for this (level, k), last-first order."""
+    """All end-wpos hits for this (level, k), last-first order.
+
+    k=1: exact/prefix, rest-identical ت/ي/ن person-prefix, ا/ه suffix.
+    No SequenceMatcher. k>=2: level-2 fuzz and person-prefix on the last
+    token of a multi-token tail.
+    """
     if k > len(seq) or k < 1:
+        return []
+    if k == 1 and level == 2:
         return []
     tail = seq[-k:]
     hits = []
@@ -546,8 +569,11 @@ def _align_seq_hits(wnorm, seq, level, k):
         ok = True
         for j in range(k):
             q, w = tail[j], wnorm[i + j]
-            if j == k - 1 and level == 1:
-                if not match_stop_word(q, w, level):
+            if j == k - 1:
+                if not match_stop_word(
+                        q, w, level,
+                        allow_fuzzy=(k >= 2),
+                        allow_person_prefix=True):
                     ok = False
                     break
             elif not match_word(q, w, level):
@@ -568,9 +594,9 @@ def align_in_ayah(surah, ayah, qwords):
     the verse's last word (level 1: nothing was actually fuzzed).
 
     Quote tokenisation variants cover fused ``فيما``/``في ما``, ``ماهيه``/
-    ``ما هيه``, and vocative ``يا ويلنا``/``ياويلنا``. The last quote token
-    also accepts a ت/ي/ن person-prefix or ا/ه suffix; earlier tail tokens do
-    not, so منار 2:26 «ما» last-match behaviour is unchanged."""
+    ``ما هيه``, and vocative ``يا ويلنا``/``ياويلنا``. Last-token ت/ي/ن and
+    ا/ه live in align_in_ayah_unique, not here, so منار 2:26 «ما» last-match
+    behaviour is unchanged. A lone last token never uses SequenceMatcher."""
     vk = f'{surah}:{ayah}'
     if vk not in app.qpc_hafs_data_normalized:
         return None, None
@@ -626,6 +652,65 @@ def align_in_ayah_legacy(surah, ayah, qwords):
                 if all(match_word(tail[j], wnorm[i + j], level) for j in range(k)):
                     return i + k - 1, level
     return None, None
+
+
+def quote_parts_for_align(quote):
+    """Full quote, plus the span before '.' for period pins (منزلين. بلى)."""
+    parts = [quote or '']
+    if '.' in (quote or ''):
+        parts.append(quote.split('.', 1)[0])
+    return parts
+
+
+def align_quote_in_ayah(surah, ayah, quote):
+    """align_in_ayah, retrying text before '.' when the full quote misses."""
+    for part in quote_parts_for_align(quote):
+        qwords = quote_words(part)
+        hit, level = align_in_ayah(surah, ayah, qwords)
+        if hit is not None:
+            return hit, level
+    return None, None
+
+
+def _tail_hits_wpos(wnorm, qwords, wpos):
+    if not qwords:
+        return False
+    for seq in quote_token_variants(qwords):
+        for level in (1, 2):
+            for k in (min(3, len(seq)), 2, 1):
+                if k < 1 or k > len(seq):
+                    continue
+                if wpos in _align_seq_hits(wnorm, seq, level, k):
+                    return True
+    return False
+
+
+def pin_matches_wpos(surah, ayah, wpos, quote):
+    """True if some tokenisation of the quote has its tail ending at wpos.
+
+    Uses the tightened last-token rule (no k=1 SequenceMatcher). Period
+    quotes try the span before '.' (and the span after, e.g. ذق). Frozen
+    formulae whose last token is not in the mushaf (فليتوكل المتوكلون)
+    match on the preceding tokens immediately before the recited stop.
+    """
+    vk = f'{surah}:{ayah}'
+    if vk not in app.qpc_hafs_data_normalized:
+        return False
+    _, words, _ = app._verse_word_texts(vk)
+    if wpos is None or not 0 <= wpos < len(words):
+        return False
+    wnorm = [norm(w) for w in words]
+    parts = list(quote_parts_for_align(quote))
+    if '.' in (quote or ''):
+        parts.append(quote.split('.', 1)[1])
+    for part in parts:
+        qwords = quote_words(part)
+        if _tail_hits_wpos(wnorm, qwords, wpos):
+            return True
+        if (len(qwords) >= 2 and wpos >= 1
+                and _tail_hits_wpos(wnorm, qwords[:-1], wpos - 1)):
+            return True
+    return False
 
 
 def harvest_manar(body, rows, seq0):

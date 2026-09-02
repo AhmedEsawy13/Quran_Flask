@@ -143,14 +143,22 @@ def _builder():
 
 
 def _quote_hits_wpos(builder, verse, quoted, wpos):
-    """True if some tokenisation of `quoted` has its tail ending at wpos."""
+    """True if some tokenisation of `quoted` has its tail ending at wpos.
+
+    Same last-token rule as pipeline/build_classical_waqf: no SequenceMatcher
+    on a lone last token; ت/ي/ن only when the rest matches after folds.
+    """
     if not quoted:
         return False
+    if hasattr(builder, '_tail_hits_wpos'):
+        return builder._tail_hits_wpos(verse, quoted, wpos)
     variants = builder.quote_token_variants(quoted) if hasattr(builder, 'quote_token_variants') else [quoted]
     for seq in variants:
         for level in (1, 2):
             for length in dict.fromkeys((min(3, len(seq)), 2, 1)):
                 if length < 1 or length > len(seq):
+                    continue
+                if length == 1 and level == 2:
                     continue
                 start = wpos - length + 1
                 if start < 0:
@@ -158,11 +166,14 @@ def _quote_hits_wpos(builder, verse, quoted, wpos):
                 ok = True
                 for i in range(length):
                     q, w = seq[-length + i], verse[start + i]
-                    if i == length - 1 and level == 1 and hasattr(builder, 'match_stop_word'):
-                        if not builder.match_stop_word(q, w, level):
+                    if i == length - 1 and hasattr(builder, 'match_stop_word'):
+                        if not builder.match_stop_word(
+                                q, w, level,
+                                allow_fuzzy=(length >= 2),
+                                allow_person_prefix=True):
                             ok = False
                             break
-                    elif not builder.match_word(q, w, level):
+                    elif not builder.match_word(q, w, 1 if length == 1 else level):
                         ok = False
                         break
                 if ok:
