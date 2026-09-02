@@ -206,3 +206,14 @@ def test_shape_review_item_reply_sets_qa():
     assert item['display_note'] == '@AmerNadwi الوقف هنا تام.'
     assert item['tweet_body'] == post['reply_text']
 
+
+def test_review_items_filter_by_surah(client, tmp_path, monkeypatch):
+    _three_row_db(tmp_path, monkeypatch)
+    matched = client.get('/api/tawjih-review/items?status=published&surah=1').get_json()
+    assert matched['total'] == 1
+    assert matched['items'][0]['surah'] == UNIQUE_SURAH
+    assert matched['items'][0]['tweet_id'] == 'fixture-published'
+    empty = client.get('/api/tawjih-review/items?status=published&surah=2').get_json()
+    assert empty['total'] == 0
+    assert empty['items'] == []
+    assert client.get('/api/tawjih-review/items?status=published&surah=115').status_code == 400

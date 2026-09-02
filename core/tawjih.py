@@ -251,6 +251,7 @@ def parse_attachments(*blobs: str, primary: str | None = None) -> tuple[list[dic
                     'file_id': file_id,
                     'href': f'https://drive.google.com/file/d/{file_id}/view',
                     'preview': f'https://drive.google.com/file/d/{file_id}/preview',
+                    'thumbnail': f'https://lh3.googleusercontent.com/d/{file_id}=w1000',
                     'label': 'ملف على درايف',
                 })
             consumed.add(raw)
@@ -806,7 +807,7 @@ def _paginate(total: int, page: int, limit: int) -> tuple[int, int, int]:
     return page, limit, pages
 
 
-def _items_supabase(status: str, page: int, limit: int) -> dict:
+def _items_supabase(status: str, page: int, limit: int, surah: int | None = None) -> dict:
     count_params: dict[str, str] = {'select': 'id', 'order': 'id.asc'}
     page_params: dict[str, str] = {
         'select': _ITEM_SELECT,
@@ -817,6 +818,9 @@ def _items_supabase(status: str, page: int, limit: int) -> dict:
     if status != 'all':
         count_params['status'] = f'eq.{status}'
         page_params['status'] = f'eq.{status}'
+    if surah is not None:
+        count_params['surah'] = f'eq.{surah}'
+        page_params['surah'] = f'eq.{surah}'
     ids = sb._request('GET', 'tawjih', params=count_params) or []
     total = len(ids)
     page, limit, pages = _paginate(total, page, limit)
@@ -831,16 +835,20 @@ def _items_supabase(status: str, page: int, limit: int) -> dict:
     return {'items': items, 'total': total, 'page': page, 'limit': limit, 'pages': pages}
 
 
-def _items_sqlite(status: str, page: int, limit: int, db_path: str | None) -> dict:
+def _items_sqlite(status: str, page: int, limit: int, db_path: str | None, surah: int | None = None) -> dict:
     path = db_path or TAWJIH_DATABASE
     if not os.path.exists(path):
         page, limit, pages = _paginate(0, page, limit)
         return {'items': [], 'total': 0, 'page': page, 'limit': limit, 'pages': pages}
-    where = ''
+    where_parts: list[str] = []
     params: list = []
     if status != 'all':
-        where = ' WHERE status=?'
+        where_parts.append('status=?')
         params.append(status)
+    if surah is not None:
+        where_parts.append('surah=?')
+        params.append(surah)
+    where = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
     conn = _sqlite_connect(path, readonly=True)
     try:
         conn.row_factory = sqlite3.Row
@@ -864,13 +872,14 @@ def list_review_items(
     status: str,
     page: int,
     limit: int,
+    surah: int | None = None,
     db_path: str | None = None,
 ) -> dict:
     """Paginated tawjih rows for the editor review UI."""
     page, limit, _ = _paginate(0, page, limit)
     if sb.is_configured():
-        return _items_supabase(status, page, limit)
-    return _items_sqlite(status, page, limit, db_path)
+        return _items_supabase(status, page, limit, surah=surah)
+    return _items_sqlite(status, page, limit, db_path, surah=surah)
 
 
 def _patch_supabase(row_id: int, fields: dict) -> dict:

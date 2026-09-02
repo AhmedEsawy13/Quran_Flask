@@ -54,7 +54,16 @@ def tawjih_review_items():
         limit = min(_PAGE_SIZE_MAX, max(1, int(request.args.get('limit', 12))))
     except (TypeError, ValueError):
         return jsonify({'error': 'invalid pagination'}), 400
-    data = list_review_items(status, page, limit)
+    surah = None
+    surah_raw = (request.args.get('surah') or '').strip()
+    if surah_raw:
+        try:
+            surah = int(surah_raw)
+        except (TypeError, ValueError):
+            return jsonify({'error': 'invalid surah'}), 400
+        if surah < 1 or surah > 114:
+            return jsonify({'error': 'invalid surah'}), 400
+    data = list_review_items(status, page, limit, surah=surah)
     return jsonify({
         'items': data['items'],
         'total': data['total'],

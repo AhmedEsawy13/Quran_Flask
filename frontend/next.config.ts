@@ -24,6 +24,10 @@ const nextConfig: NextConfig = {
     return {
       beforeFiles: [
         {
+          source: "/api/tawjih/media/:tweetId",
+          destination: `${apiOrigin}/api/tawjih/media/:tweetId`,
+        },
+        {
           source: "/backend-api/:path*",
           destination: `${apiOrigin}/api/:path*`,
         },
