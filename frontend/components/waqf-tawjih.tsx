@@ -96,13 +96,22 @@ function linkifyNote(text: string) {
   return nodes;
 }
 
-function TawjihMedia({attachments}: {attachments: TawjihAttachment[]}) {
+function TawjihMedia({
+  attachments,
+  tweetId,
+}: {
+  attachments: TawjihAttachment[];
+  tweetId?: string;
+}) {
   const blocks: ReactNode[] = [];
   const photos: string[] = [];
+  const tweetOk = /^[A-Za-z0-9_-]+$/.test(String(tweetId || ""));
   attachments.forEach((att, index) => {
     if (!att?.type) return;
     if (att.type === "video") {
-      const src = safeVideoSrc(att.src);
+      const src = tweetOk
+        ? (backendMediaUrl(`/api/tawjih/media/${tweetId}`) || "")
+        : safeVideoSrc(att.src);
       if (!src) return;
       const portrait = Number(att.height) > Number(att.width);
       blocks.push(
@@ -126,24 +135,24 @@ function TawjihMedia({attachments}: {attachments: TawjihAttachment[]}) {
     } else if (att.type === "drive") {
       const href = safeHttpsHost(att.href, DRIVE_HOSTS);
       const preview = safeHttpsHost(att.preview, DRIVE_HOSTS);
+      const fileId = String(att.file_id || "");
+      const thumb = /^[A-Za-z0-9_-]+$/.test(fileId)
+        ? `https://lh3.googleusercontent.com/d/${fileId}=w1000`
+        : "";
       blocks.push(
         <div className="wq-tawjih-drive" key={`d-${index}`}>
+          {thumb ? (
+            <img className="wq-tawjih-drive-thumb" src={thumb} alt="" loading="lazy" />
+          ) : null}
           {href ? (
             <a className="wq-tawjih-drive-chip" href={href} target="_blank" rel="noopener noreferrer">
               {att.label || "ملف على درايف"}
             </a>
           ) : null}
-          {preview && preview.includes("/file/") && preview.includes("/preview") ? (
-            <div className="wq-tawjih-embed">
-              <iframe
-                src={preview}
-                title="ملف درايف"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                allow="fullscreen"
-                allowFullScreen
-              />
-            </div>
+          {preview && preview.includes("/preview") ? (
+            <a className="wq-tawjih-drive-preview" href={preview} target="_blank" rel="noopener noreferrer">
+              معاينة
+            </a>
           ) : null}
         </div>,
       );
@@ -223,8 +232,8 @@ export function WaqfTawjih({
                   <span className="wq-tawjih-ref">كلمة {toArabicDigits(entry.wpos + 1)}</span>
                 </div>
               </header>
-              <TawjihMedia attachments={entry.attachments || []} />
-              {entry.is_reply && entry.question ? (
+              <TawjihMedia attachments={entry.attachments || []} tweetId={entry.tweet_id} />
+              {typeof entry.question === "string" && entry.question.trim() ? (
                 <div className="wq-tawjih-qa">
                   <div className="wq-tawjih-q">
                     <p className="wq-tawjih-qa-kicker">
@@ -246,7 +255,7 @@ export function WaqfTawjih({
                   </div>
                   <div className="wq-tawjih-a">
                     <p className="wq-tawjih-qa-kicker">جواب · د. أحمد صابر عبدالهادي</p>
-                    <p className="wq-tawjih-qa-text">{linkifyNote(entry.answer || body)}</p>
+                    <p className="wq-tawjih-qa-text">{linkifyNote(entry.answer || entry.display_note || entry.note || body)}</p>
                   </div>
                 </div>
               ) : body ? (

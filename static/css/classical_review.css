@@ -96,7 +96,10 @@ a.cr-book-tab { text-decoration: none; display: inline-flex; flex-direction: col
 .cr-tawjih-embed { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, var(--athar-ink) 8%, transparent); }
 .cr-tawjih-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .cr-tawjih-drive { display: grid; gap: 6px; }
+.cr-tawjih-drive-thumb { width: 100%; max-height: 360px; object-fit: contain; border-radius: 10px; display: block; background: color-mix(in srgb, var(--athar-ink) 8%, transparent); }
 .cr-tawjih-drive-chip { display: inline-flex; width: fit-content; padding: 5px 10px; border-radius: 999px; font-size: .75rem; font-weight: 800; color: var(--athar-accent); text-decoration: none; background: color-mix(in srgb, var(--athar-accent) 12%, var(--athar-surface)); }
+.cr-tawjih-drive-preview { color: var(--athar-accent); font-size: .75rem; font-weight: 700; text-decoration: none; }
+.cr-tawjih-drive-preview:hover { text-decoration: underline; }
 .cr-tawjih-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 4px; direction: rtl; }
 .cr-tawjih-photos img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; display: block; }
 .cr-tawjih-qa { display: grid; gap: 10px; direction: rtl; }

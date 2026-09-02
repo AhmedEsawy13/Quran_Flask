@@ -482,9 +482,11 @@
     }
     const TAWJIH_VIDEO_HOSTS = new Set(['video.twimg.com']);
     const TAWJIH_PROXY_RE = /^\/api\/tawjih\/media\/[A-Za-z0-9_-]+$/;
-    function safeTawjihVideoSrc(raw) {
+    function safeTawjihVideoSrc(raw, tweetId) {
         const src = String(raw || '');
         if (TAWJIH_PROXY_RE.test(src)) return src;
+        const id = String(tweetId || '');
+        if (/^[A-Za-z0-9_-]+$/.test(id)) return '/api/tawjih/media/' + id;
         const https = safeHttpsHost(src, TAWJIH_VIDEO_HOSTS);
         if (!https) return '';
         try {
@@ -521,18 +523,18 @@
         html += escHtml(src.slice(last));
         return html;
     }
-    function renderTawjihAttachments(list) {
+    function renderTawjihAttachments(list, tweetId) {
         if (!Array.isArray(list) || !list.length) return '';
         const chunks = [];
         const photos = [];
         for (const att of list) {
             if (!att || !att.type) continue;
             if (att.type === 'video') {
-                const src = safeTawjihVideoSrc(att.src);
+                const src = safeTawjihVideoSrc(att.src, tweetId);
                 if (!src) continue;
                 const portrait = Number(att.height) > Number(att.width);
                 chunks.push(
-                    `<video class="wq-tawjih-video${portrait ? ' is-portrait' : ''}" controls playsinline preload="metadata" referrerpolicy="no-referrer" src="${escHtml(src)}"></video>`
+                    `<video class="wq-tawjih-video${portrait ? ' is-portrait' : ''}" controls playsinline preload="metadata" src="${escHtml(src)}"></video>`
                 );
             } else if (att.type === 'youtube') {
                 const src = safeHttpsHost(att.embed, TAWJIH_YT_HOSTS);
@@ -543,13 +545,20 @@
             } else if (att.type === 'drive') {
                 const href = safeHttpsHost(att.href, TAWJIH_DRIVE_HOSTS);
                 const preview = safeHttpsHost(att.preview, TAWJIH_DRIVE_HOSTS);
+                const fileId = String(att.file_id || '');
+                const thumb = /^[A-Za-z0-9_-]+$/.test(fileId)
+                    ? `https://lh3.googleusercontent.com/d/${fileId}=w1000`
+                    : '';
                 const label = escHtml(att.label || 'ملف على درايف');
                 let block = '<div class="wq-tawjih-drive">';
+                if (thumb) {
+                    block += `<img class="wq-tawjih-drive-thumb" src="${escHtml(thumb)}" alt="" loading="lazy">`;
+                }
                 if (href) {
                     block += `<a class="wq-tawjih-drive-chip" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
                 }
-                if (preview && preview.includes('/file/') && preview.includes('/preview')) {
-                    block += `<div class="wq-tawjih-embed"><iframe src="${escHtml(preview)}" title="ملف درايف" loading="lazy" referrerpolicy="no-referrer" allow="fullscreen" allowfullscreen></iframe></div>`;
+                if (preview && preview.includes('/preview')) {
+                    block += `<a class="wq-tawjih-drive-preview" href="${escHtml(preview)}" target="_blank" rel="noopener noreferrer">معاينة</a>`;
                 }
                 block += '</div>';
                 chunks.push(block);
@@ -568,7 +577,8 @@
         return chunks.length ? `<div class="wq-tawjih-media">${chunks.join('')}</div>` : '';
     }
     function renderTawjihQa(entry, author) {
-        if (!(entry && entry.is_reply && entry.question)) return '';
+        const question = entry && typeof entry.question === 'string' ? entry.question.trim() : '';
+        if (!question) return '';
         const qAuthor = String(entry.question_author || '').trim();
         const qHref = safeTweetUrl(entry.question_url);
         let userBit = '';
@@ -583,7 +593,7 @@
         return `<div class="wq-tawjih-qa">`
             + `<div class="wq-tawjih-q">`
             + `<p class="wq-tawjih-qa-kicker">سؤال${userBit}</p>`
-            + `<p class="wq-tawjih-qa-text">${linkifyTawjihNote(entry.question)}</p>`
+            + `<p class="wq-tawjih-qa-text">${linkifyTawjihNote(question)}</p>`
             + `</div>`
             + `<div class="wq-tawjih-a">`
             + `<p class="wq-tawjih-qa-kicker">جواب · ${escHtml(author)}</p>`
@@ -635,7 +645,7 @@
                     : (String(rawNote)
                         ? `<p class="wq-tawjih-note">${linkifyTawjihNote(rawNote)}</p>`
                         : '');
-                const media = renderTawjihAttachments(e.attachments);
+                const media = renderTawjihAttachments(e.attachments, e.tweet_id);
                 return `<article class="wq-tawjih-card">`
                     + `<header class="wq-tawjih-head">`
                     + `<button type="button" class="wq-tawjih-span" data-wpos="${wpos}">`

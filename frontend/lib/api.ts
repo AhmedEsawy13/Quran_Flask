@@ -168,6 +168,7 @@ export type TawjihAttachment = {
   file_id?: string;
   href?: string;
   preview?: string;
+  thumbnail?: string;
   label?: string;
 };
 

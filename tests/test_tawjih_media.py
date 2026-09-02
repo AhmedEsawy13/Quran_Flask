@@ -46,6 +46,7 @@ def test_drive_file_becomes_preview_and_folders_are_ignored():
         'file_id': '1AbCDefGhIJKlmnoPQRstuVWX',
         'href': 'https://drive.google.com/file/d/1AbCDefGhIJKlmnoPQRstuVWX/view',
         'preview': 'https://drive.google.com/file/d/1AbCDefGhIJKlmnoPQRstuVWX/preview',
+        'thumbnail': 'https://lh3.googleusercontent.com/d/1AbCDefGhIJKlmnoPQRstuVWX=w1000',
         'label': 'ملف على درايف',
     }
     opened, _ = parse_attachments(DRIVE_OPEN)

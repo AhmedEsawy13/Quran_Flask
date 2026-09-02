@@ -64,7 +64,7 @@ def after_request(response):
         "style-src 'self' 'unsafe-inline' https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
         "font-src 'self' https://cdnjs.cloudflare.com https://fonts.gstatic.com; "
         # archive.org leaf JPGs + blob: URLs from AtharPdfRef (Bahrain PDF.js pages).
-        "img-src 'self' data: blob: https://archive.org https://*.archive.org https://pbs.twimg.com; "
+        "img-src 'self' data: blob: https://archive.org https://*.archive.org https://pbs.twimg.com https://lh3.googleusercontent.com https://*.googleusercontent.com; "
         # *.mp3quran.net → the memorize/reciter audio (server7/8/10/13/…).
         # *.googlevideo.com → YouTube audio streams (IFrame Player API).
         # drive.usercontent.google.com → Google Drive direct-download MP3s (_gd_ reciters).

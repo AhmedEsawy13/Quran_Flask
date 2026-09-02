@@ -27,15 +27,29 @@
     const YT_HOSTS = new Set(['www.youtube-nocookie.com']);
     const DRIVE_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
     const TWEET_HOSTS = new Set(['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com']);
-    function renderAttachments(list) {
+    const PROXY_RE = /^\/api\/tawjih\/media\/[A-Za-z0-9_-]+$/;
+    function safeReviewVideoSrc(raw, tweetId) {
+        const src = String(raw || '');
+        if (PROXY_RE.test(src)) return src;
+        const https = safeHttpsHost(src, VIDEO_HOSTS);
+        if (https) {
+            try {
+                if (new URL(https).pathname.toLowerCase().endsWith('.mp4')) return https;
+            } catch (_e) { /* ignore malformed */ }
+        }
+        const id = String(tweetId || '');
+        if (/^[A-Za-z0-9_-]+$/.test(id)) return '/api/tawjih/media/' + id;
+        return '';
+    }
+    function renderAttachments(list, tweetId) {
         if (!Array.isArray(list) || !list.length) return '';
         const chunks = [];
         const photos = [];
         for (const att of list) {
             if (!att || !att.type) continue;
             if (att.type === 'video') {
-                const src = safeHttpsHost(att.src, VIDEO_HOSTS);
-                if (!src || !new URL(src).pathname.toLowerCase().endsWith('.mp4')) continue;
+                const src = safeReviewVideoSrc(att.src, tweetId);
+                if (!src) continue;
                 chunks.push(`<video class="cr-tawjih-video" controls playsinline preload="metadata" src="${escapeHtml(src)}"></video>`);
             } else if (att.type === 'youtube') {
                 const src = safeHttpsHost(att.embed, YT_HOSTS);
@@ -44,10 +58,15 @@
             } else if (att.type === 'drive') {
                 const href = safeHttpsHost(att.href, DRIVE_HOSTS);
                 const preview = safeHttpsHost(att.preview, DRIVE_HOSTS);
+                const fileId = String(att.file_id || '');
+                const thumb = /^[A-Za-z0-9_-]+$/.test(fileId)
+                    ? `https://lh3.googleusercontent.com/d/${fileId}=w1000`
+                    : '';
                 let block = '<div class="cr-tawjih-drive">';
+                if (thumb) block += `<img class="cr-tawjih-drive-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy">`;
                 if (href) block += `<a class="cr-tawjih-drive-chip" href="${escapeHtml(href)}" target="_blank" rel="noopener">${escapeHtml(att.label || 'ملف على درايف')}</a>`;
-                if (preview && preview.includes('/file/')) {
-                    block += `<div class="cr-tawjih-embed"><iframe src="${escapeHtml(preview)}" title="ملف درايف" loading="lazy"></iframe></div>`;
+                if (preview && preview.includes('/preview')) {
+                    block += `<a class="cr-tawjih-drive-preview" href="${escapeHtml(preview)}" target="_blank" rel="noopener">معاينة</a>`;
                 }
                 block += '</div>';
                 chunks.push(block);
@@ -62,7 +81,7 @@
         return chunks.length ? `<div class="cr-tawjih-media">${chunks.join('')}</div>` : '';
     }
     function renderSourceBody(item) {
-        if (item && item.question) {
+        if (item && typeof item.question === 'string' && item.question.trim()) {
             const author = String(item.question_author || '').trim();
             const qUrl = safeHttpsHost(item.question_url, TWEET_HOSTS);
             const userBit = author
@@ -143,7 +162,7 @@
           </div>
           <aside class="cr-card-source">
             <p class="cr-source-label">${url}</p>
-            ${renderAttachments(item.attachments)}
+            ${renderAttachments(item.attachments, item.tweet_id)}
             ${renderSourceBody(item)}
           </aside>
         </article>`;
@@ -151,6 +170,8 @@
     async function loadItems() {
         $('cr-list').innerHTML = '<div class="cr-skeleton">جارٍ تحميل مواضع المراجعة…</div>';
         const qs = new URLSearchParams({ status: $('cr-status').value, page: state.page, limit: 12 });
+        const surah = $('cr-surah') && $('cr-surah').value;
+        if (surah) qs.set('surah', surah);
         const data = await api(`/api/tawjih-review/items?${qs}`);
         state.pages = data.pages;
         $('cr-result-count').textContent = `${data.total.toLocaleString('ar')} تغريدة`;

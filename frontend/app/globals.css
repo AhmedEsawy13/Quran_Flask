@@ -1292,6 +1292,26 @@ button.page-number {
   text-decoration: underline;
 }
 
+.wq-tawjih-drive-thumb {
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  border-radius: 12px;
+  display: block;
+  background: color-mix(in srgb, var(--athar-ink) 8%, transparent);
+}
+
+.wq-tawjih-drive-preview {
+  color: var(--athar-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.wq-tawjih-drive-preview:hover {
+  text-decoration: underline;
+}
+
 .wq-tawjih-photos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
