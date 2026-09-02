@@ -1269,6 +1269,11 @@ button.page-number {
   gap: 8px;
 }
 
+.wq-tawjih-drive .wq-tawjih-embed {
+  aspect-ratio: 4 / 5;
+  min-height: 420px;
+}
+
 .wq-tawjih-drive-chip {
   display: inline-flex;
   align-items: center;

@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 114,
+  "route_count": 115,
   "routes": [
     {
       "auth": "editor",
@@ -2957,6 +2957,36 @@
         "source",
         "surah"
       ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400,
+        404,
+        502
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.tawjih_media",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/tawjih/media/<tweet_id>",
+      "response_kinds": [
+        "json",
+        "response"
+      ],
+      "source": "modules/breathing.py",
+      "success_cache": "public-1h",
+      "success_keys": []
     },
     {
       "auth": "public",

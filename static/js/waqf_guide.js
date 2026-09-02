@@ -481,6 +481,17 @@
         return '';
     }
     const TAWJIH_VIDEO_HOSTS = new Set(['video.twimg.com']);
+    const TAWJIH_PROXY_RE = /^\/api\/tawjih\/media\/[A-Za-z0-9_-]+$/;
+    function safeTawjihVideoSrc(raw) {
+        const src = String(raw || '');
+        if (TAWJIH_PROXY_RE.test(src)) return src;
+        const https = safeHttpsHost(src, TAWJIH_VIDEO_HOSTS);
+        if (!https) return '';
+        try {
+            if (!new URL(https).pathname.toLowerCase().endsWith('.mp4')) return '';
+        } catch (_e) { return ''; }
+        return https;
+    }
     const TAWJIH_PHOTO_HOSTS = new Set(['pbs.twimg.com']);
     const TAWJIH_YT_HOSTS = new Set(['www.youtube-nocookie.com']);
     const TAWJIH_DRIVE_HOSTS = new Set(['drive.google.com', 'docs.google.com']);
@@ -517,11 +528,11 @@
         for (const att of list) {
             if (!att || !att.type) continue;
             if (att.type === 'video') {
-                const src = safeHttpsHost(att.src, TAWJIH_VIDEO_HOSTS);
-                if (!src || !new URL(src).pathname.toLowerCase().endsWith('.mp4')) continue;
+                const src = safeTawjihVideoSrc(att.src);
+                if (!src) continue;
                 const portrait = Number(att.height) > Number(att.width);
                 chunks.push(
-                    `<video class="wq-tawjih-video${portrait ? ' is-portrait' : ''}" controls playsinline preload="metadata" src="${escHtml(src)}"></video>`
+                    `<video class="wq-tawjih-video${portrait ? ' is-portrait' : ''}" controls playsinline preload="metadata" referrerpolicy="no-referrer" src="${escHtml(src)}"></video>`
                 );
             } else if (att.type === 'youtube') {
                 const src = safeHttpsHost(att.embed, TAWJIH_YT_HOSTS);
@@ -537,8 +548,8 @@
                 if (href) {
                     block += `<a class="wq-tawjih-drive-chip" href="${escHtml(href)}" target="_blank" rel="noopener noreferrer">${label}</a>`;
                 }
-                if (preview && preview.includes('/file/')) {
-                    block += `<div class="wq-tawjih-embed"><iframe src="${escHtml(preview)}" title="ملف درايف" loading="lazy"></iframe></div>`;
+                if (preview && preview.includes('/file/') && preview.includes('/preview')) {
+                    block += `<div class="wq-tawjih-embed"><iframe src="${escHtml(preview)}" title="ملف درايف" loading="lazy" referrerpolicy="no-referrer" allow="fullscreen" allowfullscreen></iframe></div>`;
                 }
                 block += '</div>';
                 chunks.push(block);

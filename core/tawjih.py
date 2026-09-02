@@ -34,6 +34,7 @@ _URL_RE = re.compile(r'https://[^\s<>"\')\]]+', re.IGNORECASE)
 _VIDEO_DIM_RE = re.compile(r'/(\d{2,5})x(\d{2,5})(?:/|$)')
 _VIDEO_GROUP_RE = re.compile(r'/(?:amplify_video|ext_tw_video|tweet_video)/(\d+)')
 _YOUTUBE_ID_RE = re.compile(r'^[A-Za-z0-9_-]{11}$')
+_TWEET_ID_RE = re.compile(r'^[A-Za-z0-9_-]+$')
 _DRIVE_FILE_RE = re.compile(r'/file/d/([^/?#]+)')
 _TRAIL_PUNCT = '.,;:!?)»”\'"]'
 _PHOTO_CAP = 4
@@ -338,6 +339,127 @@ def _entry_attachments(row: dict) -> tuple[list[dict], str]:
 
 
 
+
+def _rewrite_public_video_attachments(attachments: list[dict], tweet_id: str) -> list[dict]:
+    """Point public video src at the same-origin proxy; keep width/height."""
+    if not valid_tweet_id(tweet_id):
+        return attachments
+    out = []
+    for att in attachments:
+        if att.get('type') != 'video':
+            out.append(att)
+            continue
+        src = att.get('src') or ''
+        parsed = _parse_https(src)
+        if parsed is None or _host(parsed) != 'video.twimg.com':
+            out.append(att)
+            continue
+        if not (parsed.path or '').lower().endswith('.mp4'):
+            out.append(att)
+            continue
+        public = {'type': 'video', 'src': f'/api/tawjih/media/{tweet_id}'}
+        if 'width' in att:
+            public['width'] = att['width']
+        if 'height' in att:
+            public['height'] = att['height']
+        out.append(public)
+    return out
+
+
+def _first_twimg_mp4(attachments: list[dict]) -> str | None:
+    for att in attachments:
+        if att.get('type') != 'video':
+            continue
+        src = att.get('src') or ''
+        parsed = _parse_https(src)
+        if parsed is None:
+            continue
+        path = parsed.path or ''
+        if _host(parsed) == 'video.twimg.com' and path.lower().endswith('.mp4'):
+            return src
+    return None
+
+
+def valid_tweet_id(tweet_id: str) -> bool:
+    return bool(tweet_id) and bool(_TWEET_ID_RE.fullmatch(tweet_id))
+
+
+def _published_media_row_supabase(tweet_id: str) -> dict | None:
+    rows = sb._request(
+        'GET',
+        'tawjih',
+        params={
+            'tweet_id': f'eq.{tweet_id}',
+            'status': 'eq.published',
+            'align_conf': 'eq.1',
+            'select': 'tweet_id,note,grade',
+            'limit': '1',
+        },
+    ) or []
+    if not rows:
+        return None
+    row = dict(rows[0])
+    posted = sb._request(
+        'GET',
+        'dr_ahmed21_posts',
+        params={
+            'tweet_id': f'eq.{tweet_id}',
+            'select': _POST_SELECT,
+            'limit': '1',
+        },
+    ) or []
+    post = dict(posted[0]) if posted else {}
+    row['url'] = post.get('url') or ''
+    row['posted_at'] = post.get('posted_at')
+    row['media'] = post.get('media') or ''
+    row['kind'] = post.get('kind') or ''
+    row['post_text'] = post.get('post_text') or ''
+    row['reply_text'] = post.get('reply_text') or ''
+    row['reply_to_user'] = post.get('reply_to_user') or ''
+    row['reply_to_url'] = post.get('reply_to_url') or ''
+    return row
+
+
+def _published_media_row_sqlite(tweet_id: str, db_path: str | None = None) -> dict | None:
+    path = db_path or TAWJIH_DATABASE
+    if not os.path.exists(path):
+        return None
+    conn = _sqlite_connect(path, readonly=True)
+    try:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            'SELECT tweet_id, note, grade, url, created_at '
+            'FROM tawjih WHERE tweet_id=? AND status=? AND align_conf=1 '
+            'LIMIT 1',
+            (tweet_id, 'published'),
+        ).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def published_video_url(tweet_id: str) -> str | None:
+    """First allowlisted video.twimg.com .mp4 on a published, aligned tweet.
+
+    Any verse is fine — one video per tweet. Returns None for unknown,
+    unpublished, unaligned, or non-twimg sources. Never an open proxy.
+    """
+    if not valid_tweet_id(tweet_id):
+        return None
+    try:
+        if sb.is_configured():
+            row = _published_media_row_supabase(tweet_id)
+        else:
+            row = _published_media_row_sqlite(tweet_id)
+    except Exception:
+        logger.exception('tawjih media lookup failed for %s', tweet_id)
+        return None
+    if not row:
+        return None
+    attachments, _display = _entry_attachments(row)
+    return _first_twimg_mp4(attachments)
+
+
 def verse_is_valid(surah: int, ayah: int) -> bool:
     if not (1 <= surah <= 114) or ayah < 1:
         return False
@@ -386,8 +508,10 @@ def _shape_entry(row: dict, surah: int, ayah: int) -> dict | None:
     start, end = quote_span(surah, ayah, wpos, quote)
     words = verse_words(surah, ayah)
     attachments, display_note = _entry_attachments(row)
+    tweet_id = str(row.get('tweet_id') or '')
+    attachments = _rewrite_public_video_attachments(attachments, tweet_id)
     shaped = {
-        'tweet_id': str(row.get('tweet_id') or ''),
+        'tweet_id': tweet_id,
         'wpos': end,
         'wpos_start': start,
         'stop_word': stop_word,

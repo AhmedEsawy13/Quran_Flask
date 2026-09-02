@@ -1,7 +1,13 @@
 """Media-aware توجيه attachments: X video, Drive, YouTube, photos."""
 from __future__ import annotations
 
-from core.tawjih import parse_attachments
+from core.tawjih import parse_attachments, published_video_url, valid_tweet_id
+from tests.test_tawjih import (
+    UNIQUE_AYAH,
+    UNIQUE_SURAH,
+    _published_fixture,
+    _write_fixture,
+)
 
 
 LOW_MP4 = 'https://video.twimg.com/amplify_video/1512897902158434312/vid/avc1/360x640/low.mp4'
@@ -110,3 +116,106 @@ def test_primary_reply_keeps_display_note_when_question_is_longer():
     _, fallback = parse_attachments(HIGH_MP4, question, reply)
     assert question in fallback
 
+def _sqlite_media_db(tmp_path, monkeypatch, rows):
+    db = tmp_path / 'tawjih.db'
+    _write_fixture(db, rows)
+    monkeypatch.setattr('core.tawjih.TAWJIH_DATABASE', str(db))
+    monkeypatch.setattr('core.tawjih.sb.is_configured', lambda: False)
+    return db
+
+
+def test_valid_tweet_id_accepts_snowflake_and_fixtures():
+    assert valid_tweet_id('1917669728031760535')
+    assert valid_tweet_id('fixture-published')
+    assert valid_tweet_id('1001')
+    assert not valid_tweet_id('')
+    assert not valid_tweet_id('foo.bar')
+    assert not valid_tweet_id('id with space')
+
+
+def test_api_rewrites_video_src_to_same_origin_proxy(client, tmp_path, monkeypatch):
+    fixture = _published_fixture(note=f'الوقف هنا تام.\n{HIGH_MP4}')
+    _sqlite_media_db(tmp_path, monkeypatch, [fixture])
+    payload = client.get(f'/api/tawjih/{UNIQUE_SURAH}/{UNIQUE_AYAH}').get_json()
+    assert payload['count'] == 1
+    att = payload['entries'][0]['attachments'][0]
+    assert att['type'] == 'video'
+    assert att['src'] == f'/api/tawjih/media/{fixture["tweet_id"]}'
+    assert HIGH_MP4 not in att['src']
+    assert att['width'] == 720
+    assert att['height'] == 1280
+    raw, _ = parse_attachments(HIGH_MP4)
+    assert raw[0]['src'] == HIGH_MP4
+
+
+def test_media_unknown_tweet_is_404(client, tmp_path, monkeypatch):
+    _sqlite_media_db(tmp_path, monkeypatch, [_published_fixture()])
+    response = client.get('/api/tawjih/media/not-real')
+    assert response.status_code == 404
+
+
+def test_media_empty_path_is_404_or_400(client):
+    assert client.get('/api/tawjih/media/').status_code in {400, 404}
+
+
+def test_media_invalid_tweet_id_is_400(client):
+    assert client.get('/api/tawjih/media/foo.bar').status_code == 400
+
+
+def test_published_video_url_none_for_review_or_low_conf(tmp_path, monkeypatch):
+    review = _published_fixture(
+        tweet_id='fixture-review', status='review', align_conf=0, note=HIGH_MP4,
+    )
+    low = _published_fixture(
+        tweet_id='fixture-lowconf', align_conf=0, status='published', note=HIGH_MP4,
+    )
+    _sqlite_media_db(tmp_path, monkeypatch, [review, low])
+    assert published_video_url('fixture-review') is None
+    assert published_video_url('fixture-lowconf') is None
+    assert published_video_url('not-real') is None
+
+
+def test_media_proxy_forwards_range_and_body(client, tmp_path, monkeypatch):
+    fixture = _published_fixture(note=HIGH_MP4)
+    _sqlite_media_db(tmp_path, monkeypatch, [fixture])
+    captured = {}
+
+    class FakeResp:
+        status_code = 206
+        headers = {
+            'Content-Type': 'video/mp4',
+            'Content-Length': '2',
+            'Content-Range': 'bytes 0-1/99',
+            'Accept-Ranges': 'bytes',
+        }
+        url = HIGH_MP4
+
+        def iter_content(self, chunk_size=64 * 1024):
+            yield b'AB'
+
+        def close(self):
+            pass
+
+    def fake_get(url, **kwargs):
+        captured['url'] = url
+        captured['headers'] = kwargs.get('headers') or {}
+        captured['stream'] = kwargs.get('stream')
+        captured['timeout'] = kwargs.get('timeout')
+        return FakeResp()
+
+    monkeypatch.setattr('modules.breathing.requests.get', fake_get)
+    response = client.get(
+        f'/api/tawjih/media/{fixture["tweet_id"]}',
+        headers={'Range': 'bytes=0-1'},
+    )
+    assert captured['url'] == HIGH_MP4
+    assert captured['stream'] is True
+    assert captured['headers'].get('Range') == 'bytes=0-1'
+    assert 'athar-web-teal.vercel.app' not in (captured['headers'].get('Referer') or '')
+    assert response.status_code in {200, 206}
+    assert (response.content_type or '').startswith('video/mp4')
+    assert response.data == b'AB'
+    assert response.headers.get('Content-Range') == 'bytes 0-1/99'
+    cache = response.headers.get('Cache-Control', '')
+    assert 'max-age=86400' in cache
+    assert 'no-store' not in cache
