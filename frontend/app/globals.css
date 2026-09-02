@@ -1627,51 +1627,6 @@ button.page-number {
   color: var(--athar-ink-faint);
 }
 
-.wq-ayah-more > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  list-style: none;
-  cursor: pointer;
-  border: 1px solid var(--athar-line-soft);
-  background: var(--athar-surface);
-  border-radius: 16px;
-  padding: 0.9rem 1rem;
-  font-family: var(--font-display);
-  font-size: 1.08rem;
-  font-weight: 700;
-  color: var(--athar-ink);
-}
-
-.wq-ayah-more > summary::-webkit-details-marker {
-  display: none;
-}
-
-.wq-ayah-more > summary::after {
-  content: "▾";
-  color: var(--athar-accent);
-  font-size: 0.9rem;
-}
-
-.wq-ayah-more[open] > summary::after {
-  content: "▴";
-}
-
-.wq-ayah-more-body {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-block-start: 1rem;
-}
-
-.wq-lab-cta-inline {
-  margin: 0;
-  padding: 0.35rem 0.2rem;
-  font-size: 0.82rem;
-  color: var(--athar-ink-faint);
-}
-
 .wq-rulings {
   display: grid;
   gap: 10px;
