@@ -135,3 +135,14 @@ def test_manar_al_ard_chain_item_is_the_second_occurrence(rows_2_255):
                             if r['source'] == 'manar' and 'ٱلۡأَرۡضَ' in r['quote']}
     assert 43 in manar_ard_positions
     assert 18 not in manar_ard_positions
+
+
+def test_align_in_ayah_ma_does_not_use_person_prefix():
+    """منار 2:26 «ما» class: last-token ت/ي must not steal a short-word last-match."""
+    q = pcw.quote_words("ما")
+    hit, level = pcw.align_in_ayah(2, 26, q)
+    # Recited «ما» occurrences: last-match remains the later one, level 1 exact.
+    assert level == 1
+    assert hit is not None
+    unique, _ = pcw.align_in_ayah_unique(2, 26, q)
+    assert unique is None  # more than one «ما» in 2:26

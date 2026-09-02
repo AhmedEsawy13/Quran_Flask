@@ -78,14 +78,92 @@ GRADE_RE = re.compile(
 _POST_FOLDS = [
     ('صلوه', 'صلاه'), ('زكوه', 'زكاه'), ('حيوه', 'حياه'), ('نجوه', 'نجاه'),
     ('غدوه', 'غداه'), ('مشكوه', 'مشكاه'), ('منوه', 'مناه'), ('ربوا', 'ربا'),
+    # Imlāʾī leftovers after _normalize_for_search: إسرائيل (ئ→ي vs ء),
+    # بنوا/بنو, نفاذ/نفاد.
+    ('اسراييل', 'اسرايل'), ('اسرائيل', 'اسرايل'), ('بنوا', 'بنو'), ('نفاذ', 'نفاد'),
+    # Dagger-as-alif on هذا/ذلك/قرآنه must fold back to imlāʾī (هَٰذَا→هاذا→هذا).
+    ('هاذا', 'هذا'), ('هاذه', 'هذه'), ('ذالك', 'ذلك'), ('كذالك', 'كذلك'),
+    ('قراناه', 'قرانه'),
 ]
+
+# Quote particles the mushaf writes as two tokens (or the reverse for ياويلنا).
+_SPLIT_FUSED = {
+    'فيما': ('في', 'ما'),
+    'ماهيه': ('ما', 'هيه'),
+}
+_PERSON_PREFIX = set('تين')
 
 
 def norm(tok):
-    t = _normalize_for_search(tok)
+    """Uthmani → imlāʾī skeleton used by the aligner.
+
+    Dagger-alif and ىٰ/يٰ become ا *before* stripping (ءَاتَىٰكُم / صَٰٓفَّٰت /
+    يَٰوَيْلَنَا / تُقَىٰة). Hamza-on-the-line ء is dropped (ءامنوا/آمنوا).
+    """
+    t = tok or ''
+    # Medial ىٰ = imlāʾī ا (ءَاتَىٰكُم، هَوَىٰهُ، تُقَىٰة). Final ىٰ keeps ى
+    # (مُوسَىٰ، حَتَّىٰ) so ى→ي still matches موسى. Yeh+dagger is يا
+    # (يَٰوَيْلَنَا، يَٰمُوسَىٰ). Remaining daggers (صَٰٓفَّٰت، عَٰلَمِين) → ا.
+    t = re.sub(r'ىٰ(?=[ء-ي])', 'ا', t)
+    t = t.replace('ىٰ', 'ى').replace('يٰ', 'يا').replace('ٰ', 'ا')
+    t = _normalize_for_search(t)
+    t = t.replace('ء', '')
     for a, b in _POST_FOLDS:
         t = t.replace(a, b)
     return t
+
+
+def match_stop_word(q, w, level):
+    """Last-token match: exact/prefix/fuzzy, plus ت/ي/ن person-prefix and ا/ه suffix.
+
+    Only used on the STOP word (last quote token). Prefix و/ف/ل already live in
+    match_word. Person-prefix is NOT applied to earlier tail tokens, so short
+    last-match bugs like منار 2:26 «ما» stay exact.
+    """
+    if match_word(q, w, level):
+        return True
+    if (len(q) >= 4 and len(w) >= 4 and q[0] in _PERSON_PREFIX
+            and w[0] in _PERSON_PREFIX and q[1:] == w[1:]):
+        return True
+    if (len(q) >= 3 and len(w) >= 3 and q[-1] in 'اه' and w[-1] in 'اه'
+            and q[:-1] == w[:-1]):
+        return True
+    return False
+
+
+def quote_token_variants(qwords):
+    """Original tokens, fused-particle splits, and يا + vocative fusion."""
+    seen = set()
+    out = []
+
+    def add(seq):
+        key = tuple(seq)
+        if key and key not in seen:
+            seen.add(key)
+            out.append(list(seq))
+
+    add(qwords)
+    split, changed = [], False
+    for w in qwords:
+        if w in _SPLIT_FUSED:
+            split.extend(_SPLIT_FUSED[w])
+            changed = True
+        else:
+            split.append(w)
+    if changed:
+        add(split)
+    fused, changed, i = [], False, 0
+    while i < len(qwords):
+        if qwords[i] == 'يا' and i + 1 < len(qwords):
+            fused.append('يا' + qwords[i + 1])
+            i += 2
+            changed = True
+        else:
+            fused.append(qwords[i])
+            i += 1
+    if changed:
+        add(fused)
+    return out
 
 
 def load_book(fname):
@@ -163,10 +241,23 @@ def match_word(a, b, level):
     return False
 
 
-def quote_words(quote):
+def norm_legacy(tok):
+    """Pre-imlāʾī fold: dagger stripped, hamza kept. منار explicit keys."""
+    x = _normalize_for_search(tok)
+    for a, b in _POST_FOLDS[:8]:
+        x = x.replace(a, b)
+    return x
+
+
+def quote_words(quote, normfn=None):
     """Normalised Arabic words of a quote, with footnote/ayah digits dropped."""
+    nfn = normfn or norm
     q = re.sub(r'\(\s*\d+\s*\)', ' ', quote)
-    return [w for w in (norm(t) for t in re.findall(r'[؀-ۿ]+', q)) if w]
+    return [w for w in (nfn(tok) for tok in re.findall(r'[؀-ۿ]+', q)) if w]
+
+
+def quote_words_legacy(quote):
+    return quote_words(quote, norm_legacy)
 
 
 # These books constantly RELAY other scholars' rulings — «وقال ابن الأنباري:
@@ -427,6 +518,46 @@ _CHAIN_GAP_RE = re.compile(r'^[\s،]*و[\s،]*$')
 _CHAIN_WINDOW = 150
 
 
+def _align_seq_in_ayah(wnorm, seq):
+    """Return (wpos, level) for one tokenisation. Last occurrence wins, same
+    as the historical align_in_ayah (منار 2:26 «ما» / chained «الأرض»).
+
+    Last-token ت/ي/ن flexibility lives only in align_in_ayah_unique, so منار
+    explicit keys keep their historical landings.
+    """
+    for level in (1, 2):
+        for k in (min(3, len(seq)), 2, 1):
+            if k > len(seq) or k < 1:
+                continue
+            tail = seq[-k:]
+            for i in range(len(wnorm) - k, -1, -1):
+                if all(match_word(tail[j], wnorm[i + j], level) for j in range(k)):
+                    return i + k - 1, level
+    return None, None
+
+
+def _align_seq_hits(wnorm, seq, level, k):
+    """All end-wpos hits for this (level, k), last-first order."""
+    if k > len(seq) or k < 1:
+        return []
+    tail = seq[-k:]
+    hits = []
+    for i in range(len(wnorm) - k, -1, -1):
+        ok = True
+        for j in range(k):
+            q, w = tail[j], wnorm[i + j]
+            if j == k - 1 and level == 1:
+                if not match_stop_word(q, w, level):
+                    ok = False
+                    break
+            elif not match_word(q, w, level):
+                ok = False
+                break
+        if ok:
+            hits.append(i + k - 1)
+    return hits
+
+
 def align_in_ayah(surah, ayah, qwords):
     """Match the quote tail inside ONE ayah (the book gives the verse number).
     Returns (wpos, level) or (None, None) — level is 1 for exact/prefix, 2 for
@@ -434,7 +565,12 @@ def align_in_ayah(surah, ayah, qwords):
     loosely matching «يعملون» — a different word, one letter apart; level 1
     correctly rejects it, level 2's tight-but-real fuzz doesn't). If the
     cleaned quote had no words (pure ayah-end marker like {(4)}), the stop is
-    the verse's last word (level 1: nothing was actually fuzzed)."""
+    the verse's last word (level 1: nothing was actually fuzzed).
+
+    Quote tokenisation variants cover fused ``فيما``/``في ما``, ``ماهيه``/
+    ``ما هيه``, and vocative ``يا ويلنا``/``ياويلنا``. The last quote token
+    also accepts a ت/ي/ن person-prefix or ا/ه suffix; earlier tail tokens do
+    not, so منار 2:26 «ما» last-match behaviour is unchanged."""
     vk = f'{surah}:{ayah}'
     if vk not in app.qpc_hafs_data_normalized:
         return None, None
@@ -442,12 +578,51 @@ def align_in_ayah(surah, ayah, qwords):
     wnorm = [norm(w) for w in words]
     if not qwords:
         return (len(words) - 1, 1) if words else (None, None)
+    for seq in quote_token_variants(qwords):
+        wpos, level = _align_seq_in_ayah(wnorm, seq)
+        if wpos is not None:
+            return wpos, level
+    return None, None
+
+
+def align_in_ayah_unique(surah, ayah, qwords):
+    """Like align_in_ayah, but only if the winning (level, k) has exactly one hit.
+
+    Used to promote leftover conf=0 rows: last-match alone is not enough
+    (منار 2:26 «ما» class)."""
+    vk = f'{surah}:{ayah}'
+    if vk not in app.qpc_hafs_data_normalized:
+        return None, None
+    _, words, _ = app._verse_word_texts(vk)
+    wnorm = [norm(w) for w in words]
+    if not qwords:
+        return (len(words) - 1, 1) if words else (None, None)
+    for seq in quote_token_variants(qwords):
+        for level in (1, 2):
+            for k in (min(3, len(seq)), 2, 1):
+                hits = _align_seq_hits(wnorm, seq, level, k)
+                if len(hits) == 1:
+                    return hits[0], level
+                if len(hits) > 1:
+                    return None, None
+    return None, None
+
+
+def align_in_ayah_legacy(surah, ayah, qwords):
+    """Historical align_in_ayah (dagger stripped, no fusion / person-prefix)."""
+    vk = f'{surah}:{ayah}'
+    if vk not in app.qpc_hafs_data_normalized:
+        return None, None
+    _, words, _ = app._verse_word_texts(vk)
+    wnorm = [norm_legacy(w) for w in words]
+    if not qwords:
+        return (len(words) - 1, 1) if words else (None, None)
     for level in (1, 2):
         for k in (min(3, len(qwords)), 2, 1):
             if k > len(qwords) or k < 1:
                 continue
             tail = qwords[-k:]
-            for i in range(len(wnorm) - k, -1, -1):     # prefer the LAST occurrence
+            for i in range(len(wnorm) - k, -1, -1):
                 if all(match_word(tail[j], wnorm[i + j], level) for j in range(k)):
                     return i + k - 1, level
     return None, None

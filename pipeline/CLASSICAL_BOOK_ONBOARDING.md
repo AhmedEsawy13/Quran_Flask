@@ -129,7 +129,7 @@ growing unnoticed.
 ## Recommended order for the current books
 
 1. **المكتفى** — best next candidate: strong sequential structure; review the
-   111 low-confidence rows in the local `/classical-review` page and backfill
+   remaining genuinely unpinnable conf=0 rows in `/classical-review` and backfill
    stable page/paragraph locators. Run with `ENABLE_EDITOR=1`; the page stores
    approve/reject decisions separately and will not activate the book until
    every uncertain row has a decision and the reviewer selects «اعتماد وإضافة
@@ -149,7 +149,7 @@ Current deterministic catalog audit baseline:
 
 | Book | Rows | Surahs | Confident | Existing low-confidence review |
 |---|---:|---:|---:|---:|
-| المكتفى | 4,421 | 112 | 4,310 | 111 |
+| المكتفى | 4,421 | 112 | 4,419 | 2 |
 | منار الهدى | 13,252 | 114 | 13,252 | 102 heuristic suspects |
 | القطع والائتناف | 1,767 | 91 | 1,609 | 158 |
 | إيضاح الوقف والابتداء | 2,178 | 94 | 1,950 | 228 |

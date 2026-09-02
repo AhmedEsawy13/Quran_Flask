@@ -217,16 +217,16 @@ def test_classical_waqf_alignment_quality(client):
 
 
 def test_classical_waqf_api_serves_active_sources_only(client):
-    """Production only exposes منار (الأشموني) — see modules/breathing.py's
-    _ACTIVE_CLASSICAL_SOURCES: it's the only source with full 114/114-surah
-    coverage and zero low-confidence rows. The other three (الداني، النحاس،
-    ابن الأنباري) stay aligned in the DB (previous test) but are withheld
-    from both the citation card and تدريب's grader until reviewed."""
+    """منار + المكتفى are on the serving allowlist. النحاس وابن الأنباري
+    stay aligned in the DB (previous test) but withheld until reviewed."""
     j = client.get("/api/classical-waqf/2/255").get_json()
-    assert set(j["sources"].keys()) == {"manar"}
+    assert set(j["sources"].keys()) == {"manar", "muktafa"}
     assert j["sources"]["manar"]["title"].startswith("منار الهدى")
-    assert j["entries"], "منار should still have entries for آية الكرسي"
-    assert all(e["source"] == "manar" for e in j["entries"])
+    assert j["sources"]["muktafa"]["title"].startswith("المكتفى")
+    assert j["entries"], "active sources should still have entries for آية الكرسي"
+    assert {e["source"] for e in j["entries"]} <= {"manar", "muktafa"}
+    assert any(e["source"] == "manar" for e in j["entries"])
+    assert any(e["source"] == "muktafa" for e in j["entries"])
     # bounds validation
     assert client.get("/api/classical-waqf/115/1").status_code == 400
 
