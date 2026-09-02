@@ -67,6 +67,33 @@ def _verse_word_texts(verse_key):
     return text, words, raw_to_wpos
 
 
+def _mushaf_row_wpos(row, raw_to_wpos, n_words):
+    """0-based recited-word index for one printed-mushaf mark row.
+
+    SQLite mushaf_waqf token_index (after get_mushaf_waqf_symbols) is 0-based
+    raw split and COUNTS ornaments like ۞; map through raw_to_wpos.
+    Cloud editor_marks token_index is already 0-based content/recited wpos
+    (index_space ayah-token-0based) and must NOT go through raw_to_wpos or
+    verses that start with ۞ (e.g. 2:26) sit one word early.
+    """
+    if not row or not row.get('symbols'):
+        return None
+    ti = row.get('token_index')
+    if ti is None:
+        return None
+    try:
+        ti = int(ti)
+    except (TypeError, ValueError):
+        return None
+    if row.get('index_space') == 'ayah-token-0based':
+        if 0 <= ti < n_words:
+            return ti
+        return None
+    if 0 <= ti < len(raw_to_wpos):
+        return raw_to_wpos[ti]
+    return None
+
+
 def _mark_word_context(verse_key, token_index, span=2):
     """Map a printed-mushaf 1-based DB token_index to the recited-word position
     and a small surrounding context snippet, the way the per-verse comparison
@@ -201,10 +228,7 @@ def _build_verse_waqf_detail_uncached(surah, ayah):
     for ver in _WAQF_COMPARE_MUSHAFS:
         marks = []
         for r in get_mushaf_waqf_symbols(surah, ayah, ver):
-            ti = r.get('token_index')   # 0-based in the raw-split basis (counts ornaments)
-            if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
-                continue
-            wpos = raw_to_wpos[ti]
+            wpos = _mushaf_row_wpos(r, raw_to_wpos, len(words))
             if wpos is not None:
                 marks.append({'wpos': wpos, 'symbol': r['symbols']})
         if marks:
@@ -216,10 +240,7 @@ def _build_verse_waqf_detail_uncached(surah, ayah):
     mushaf_mark_by_wpos = {}
     for ver in _WAQF_MATCH_MUSHAFS:
         for r in get_mushaf_waqf_symbols(surah, ayah, ver):
-            ti = r.get('token_index')
-            if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
-                continue
-            wpos = raw_to_wpos[ti]
+            wpos = _mushaf_row_wpos(r, raw_to_wpos, len(words))
             if wpos is None:
                 continue
             mushaf_mark_by_wpos.setdefault(wpos, {})[ver] = r['symbols']
@@ -598,15 +619,12 @@ _MARK_STOP_VERDICT = {
 _IDEAL_MUSHAF_MARKS = frozenset({'ق', 'ج', 'ع'})
 
 
-def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos):
+def _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos, n_words):
     """{wpos: canonical_symbol} for one printed mushaf at one verse. Takes the
     verse's raw_to_wpos so the caller's _verse_word_texts result is reused."""
     out = {}
     for r in get_mushaf_waqf_symbols(surah, ayah, mushaf):
-        ti = r.get('token_index')
-        if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
-            continue
-        wpos = raw_to_wpos[ti]
+        wpos = _mushaf_row_wpos(r, raw_to_wpos, n_words)
         if wpos is not None:
             out[wpos] = str(r['symbols']).split(',')[0].strip()
     return out
@@ -637,7 +655,7 @@ def _grade_waqf_practice(surah, from_ayah, to_ayah, mushaf, stops):
         if not words:
             continue
         last = len(words) - 1
-        marks = _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos)
+        marks = _mushaf_marks_by_wpos(surah, ayah, mushaf, raw_to_wpos, len(words))
 
         for wpos in range(len(words)):
             here = (ayah, wpos)
