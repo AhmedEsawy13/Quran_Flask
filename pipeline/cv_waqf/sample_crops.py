@@ -4,7 +4,7 @@ Starts with الشمرلي (full local column), then البحرين. For every D
 the chosen pages we crop the ink in the band *above the word end* (RTL) so
 training data is real stops — not harakat weak-labels.
 
-    PYTHONPATH=. .venv-cv/bin/python -m pipeline.cv_waqf sample-crops \\
+    PYTHONPATH=. .venv/bin/python -m pipeline.cv_waqf sample-crops \\
         --edition الشمرلي --pages 40 --seed 7
 
 Writes:

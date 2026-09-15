@@ -3,7 +3,7 @@
 These tests intentionally avoid importing the Flask app (``conftest.py``).
 Run with:
 
-    PYTHONPATH=. .venv-cv/bin/python -m pytest tests/test_cv_waqf.py --noconftest -q
+    PYTHONPATH=. .venv/bin/python -m pytest tests/test_cv_waqf.py --noconftest -q
 """
 from __future__ import annotations
 
