@@ -238,6 +238,17 @@ body.athar-training {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--athar-gold) 52%, transparent);
 }
 
+.wp-word.wp-match-ok {
+  color: var(--athar-positive);
+}
+
+.wp-word.wp-match-miss {
+  color: var(--athar-negative);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.12em;
+}
+
 .wp-ayah-num {
   margin-inline: .15em;
   padding-inline: .28em;

@@ -282,7 +282,7 @@ export function MemorizeWorkspace() {
   const fontLoading = useEditionFont(editionId, pageFontName(editionId, visiblePage?.page || null));
   const rightFontLoading = useEditionFont(editionId, pageFontName(editionId, rightPage));
   const leftFontLoading = useEditionFont(editionId, pageFontName(editionId, leftPage));
-  const tajweedAvailable = editionId !== "shamarly";
+  const tajweedAvailable = editionId !== "shamarly" && editionId !== "madinah_qvp";
   const tajweedOn = tajweedEnabled && tajweedAvailable;
   const tajweedPages = dualActive ? [rightPage, leftPage] : [visiblePage?.page || null];
   const {segmentsByWord: tajweedSegmentsByWord, loading: tajweedLoading} = usePageTajweed(tajweedPages, tajweedOn);
@@ -888,7 +888,9 @@ export function MemorizeWorkspace() {
             variant={tajweedOn ? "primary" : "secondary"}
             className="size-[34px] rounded-[10px]"
             aria-label={tajweedLoading ? "جارٍ تحميل تلوين التجويد" : "تلوين التجويد"}
-            title={editionId === "shamarly" ? "التلوين الحرفي غير متاح مع خط الشمرلي" : "تلوين أحكام التجويد حرفيًا"}
+            title={editionId === "shamarly" || editionId === "madinah_qvp"
+              ? "التلوين الحرفي غير متاح مع هذا الرسم"
+              : "تلوين أحكام التجويد حرفيًا"}
             aria-pressed={tajweedOn}
             disabled={!tajweedAvailable || tajweedLoading}
             onClick={() => setTajweedEnabled((value) => !value)}
@@ -913,7 +915,7 @@ export function MemorizeWorkspace() {
             className="inline-flex size-[34px] shrink-0 items-center justify-center rounded-[10px] text-[0.7rem] font-bold text-athar-accent no-underline hover:bg-athar-accent/8 lg:w-auto lg:gap-1.5 lg:px-2"
             href={legacyUrl(`/memorize?surah=${surahNumber}&from=${fromAyah}&to=${toAyah}`)}
             aria-label="افتح التسميع الصوتي"
-            title="التسميع الصوتي في النسخة السابقة"
+            title="التسميع الصوتي — اقرأ في الميكروفون ليُتابعك المصحف"
           >
             <AtharIcon name="headphones" className="size-[17px]" />
             <span className="hidden lg:inline">التسميع الصوتي</span>

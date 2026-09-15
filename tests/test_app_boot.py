@@ -458,6 +458,9 @@ def test_waqf_practice_uses_shared_training_foundation(client):
     assert 'class="athar-button" id="wp-grade"' in page
     assert '.wp-pop' in script and '.mz-pop' not in script
     assert "classList.toggle('is-listening'" in script
+    assert 'js/athar_phoneme_dtw.js' in page
+    assert 'AtharPhonemeDtw' in script
+    assert 'maxSkipWords: 1' in script
 
 
 def test_waqf_practice_invalidates_stale_grade_when_stops_change():
@@ -472,8 +475,13 @@ def test_waqf_practice_invalidates_stale_grade_when_stops_change():
 def test_memorization_exposes_live_status(client):
     page = client.get('/memorize').get_data(as_text=True)
     assert 'id="mz-status" role="status" aria-live="polite" hidden' in page
-    assert 'id="mz-asr-dev" hidden' in page
+    assert 'id="mz-asr-dev"' in page
+    assert 'id="mz-asr-dev" hidden' not in page
+    assert 'بدء التسميع الصوتي' in page
     assert 'id="mz-recite-btn"' in page
+    script = (PROJECT_ROOT / 'static/js/mushaf_memorize.js').read_text(encoding='utf-8')
+    assert 'AtharPhonemeDtw' in script
+    assert 'mushaf_zipformer.js' in script
 
 
 def test_memorization_uses_shared_workspace_structure(client):
