@@ -561,7 +561,8 @@ def test_azhar_reviewer_confirmed_page_endings(client):
         ] == ending
 
 
-def test_azhar_amiri_text_normalizes_unsupported_dammatan(client):
+def test_azhar_amiri_text_keeps_mesaha_dammatan(client):
+    """Azhar layout must keep U+065E dammatan like Mesaha/canonical script."""
     page = client.get('/api/layout-studio/azhar/page/510').get_json()
     line = next(
         line for line in page['lines']
@@ -574,13 +575,15 @@ def test_azhar_amiri_text_normalizes_unsupported_dammatan(client):
     }
 
     assert words == {
-        '88:14:1': 'وَأَكۡوَابࣱ',
-        '88:14:2': 'مَّوۡضُوعَةࣱ',
+        '88:14:1': 'وَأَكۡوَابٞ',
+        '88:14:2': 'مَّوۡضُوعَةٞ',
     }
-    assert '\u065e' not in line['display_text']
+    assert '\u065e' in line['display_text']
+    assert '\u08f1' not in line['display_text']
 
 
-def test_azhar_amiri_font_covers_normalized_quran_script():
+def test_azhar_amiri_font_stack_covers_quran_script_dammatan():
+    """AmiriQuran lacks U+065E; Uthmanic Hafs in the stack covers it (Mesaha path)."""
     import sqlite3
 
     from fontTools.ttLib import TTFont
@@ -588,12 +591,11 @@ def test_azhar_amiri_font_covers_normalized_quran_script():
     from core.config import QURAN_SCRIPT_DATABASE
     from core.text import normalize_amiri_quran_text
 
-    font = TTFont(PROJECT_ROOT / 'static/fonts/amiri_quran.woff2')
-    supported_codepoints = {
-        codepoint
-        for table in font['cmap'].tables
-        for codepoint in table.cmap
-    }
+    amiri = TTFont(PROJECT_ROOT / 'static/fonts/amiri_quran.woff2')
+    uthmani = TTFont(PROJECT_ROOT / 'static/fonts/uthmanic_hafs_v20.woff2')
+    amiri_cps = {cp for table in amiri['cmap'].tables for cp in table.cmap}
+    uthmani_cps = {cp for table in uthmani['cmap'].tables for cp in table.cmap}
+    supported_codepoints = amiri_cps | uthmani_cps
     with sqlite3.connect(QURAN_SCRIPT_DATABASE) as conn:
         texts = (
             row[0]
@@ -606,11 +608,13 @@ def test_azhar_amiri_font_covers_normalized_quran_script():
             for character in normalize_amiri_quran_text(text)
         }
 
-    assert 0x08F1 in used_codepoints
+    assert 0x065E in used_codepoints
+    assert 0x065E not in amiri_cps
+    assert 0x065E in uthmani_cps
     assert used_codepoints <= supported_codepoints
 
 
-def test_amiri_reader_dataset_uses_font_safe_open_dammatan():
+def test_amiri_reader_dataset_keeps_mesaha_dammatan():
     from core.datasets import amiri_quran_data
 
     text = ' '.join(
@@ -619,8 +623,8 @@ def test_amiri_reader_dataset_uses_font_safe_open_dammatan():
         if isinstance(verse, dict)
     )
 
-    assert '\u065e' not in text
-    assert '\u08f1' in text
+    assert '\u065e' in text
+    assert '\u08f1' not in text
 
 
 def test_azhar_review_alignment_migration_preserves_word_stream(tmp_path):

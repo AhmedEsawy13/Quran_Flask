@@ -37,9 +37,14 @@
         )
     );
     const DRAG_THRESHOLD = 6;
+    // CFG.fontName is the human label ("Amiri Quran"); the loaded @font-face is AmiriQuran.
+    const quranFace = ({
+        'Amiri Quran': 'AmiriQuran',
+        'AmiriQuran': 'AmiriQuran',
+    })[CFG.fontName] || (CFG.fontName || 'AmiriQuran');
     document.documentElement.style.setProperty(
         '--az-quran-font',
-        `"${CFG.fontName || 'AmiriQuran'}"`
+        `"${quranFace}"`
     );
 
     const REF_SOURCE = CFG.ref

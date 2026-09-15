@@ -11,6 +11,11 @@
     src: url('../fonts/digitalkhatt.woff2') format('woff2');
     font-display: swap;
 }
+@font-face {
+    font-family: 'UthmanicHafs';
+    src: url('../fonts/uthmanic_hafs_v20.woff2') format('woff2');
+    font-display: swap;
+}
 
 :root {
     --az-accent: var(--athar-accent);
@@ -296,7 +301,7 @@ body.az-layout {
 
 /* Borderless interactive words — same idea as .ed-word (no chip border inflation). */
 .az-word {
-    font-family: var(--az-quran-font, 'AmiriQuran'), 'Amiri Quran', 'Amiri', serif;
+    font-family: var(--az-quran-font, 'AmiriQuran'), 'AmiriQuran', 'UthmanicHafs', 'Amiri Quran', 'Amiri', serif;
     line-height: 1.45; padding: 0.35em 0.05em 0.12em; border-radius: 0.2em;
     cursor: grab; position: relative;
     touch-action: none; user-select: none; -webkit-user-select: none;
@@ -326,7 +331,7 @@ body.az-dragging .az-word { cursor: grabbing; }
 
 .az-drag-ghost {
     position: fixed; top: 0; left: 0; z-index: 80; pointer-events: none;
-    font-family: var(--az-quran-font, 'AmiriQuran'), 'Amiri Quran', 'Amiri', serif;
+    font-family: var(--az-quran-font, 'AmiriQuran'), 'AmiriQuran', 'UthmanicHafs', 'Amiri Quran', 'Amiri', serif;
     font-size: var(--az-fs, 22px); line-height: 1.45; direction: rtl;
     padding: 0.12em 0.35em 0.18em;
     border: 1px solid var(--az-accent);
