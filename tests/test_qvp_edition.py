@@ -36,6 +36,7 @@ def test_qvp_pin_matches_frontend_release():
     pin = json.loads(PIN_PATH.read_text(encoding="utf-8"))
     mushaf = (FRONTEND / "lib/qvp.ts").read_text(encoding="utf-8")
     assert f'export const QVP_RELEASE = "{pin["pages"]["release"]}"' in mushaf
+    assert f'export const QVP_CDN_HOST = "{pin["pages"]["cdn"]}"' in mushaf
     assert pin["pages"]["format"] == 1
     assert pin["engine"]["consumed"] == "lite-fork"
     result = subprocess.run(
