@@ -24,8 +24,16 @@ UTHMANI_BASMALA = 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرّ
 
 
 def normalize_amiri_quran_text(text):
-    """Map QPC's alternate dammatan to Amiri's open Quranic form."""
-    return (text or '').replace('\u065e', '\u08f1')
+    """Keep QPC/script dammatan as-is so الأزهر matches المساحة.
+
+    QPC and quran_script store the standing dammatan as U+065E. An older
+    Amiri-only path remapped that to open dammatan U+08F1; that made the
+    reader/layout look different from Mesaha (which serves raw script text).
+    Keep U+065E so both editions share the same tanween. AmiriQuran's cmap
+    lacks U+065E — the reader/Studio stacks fall back to Uthmanic Hafs for
+    that mark (same as Mesaha in Layout Studio).
+    """
+    return text or ''
 
 
 def _normalize_for_search(text):
