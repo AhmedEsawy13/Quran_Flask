@@ -10,6 +10,7 @@ export function useEditionFont(editionId: MushafEditionId, pageFontName?: string
 
   useEffect(() => {
     const edition = MUSHAF_EDITIONS[editionId];
+    if (!("font" in edition) || !edition.font) return;
     const usesPageFont = "dynamicPageFont" in edition && edition.dynamicPageFont &&
       Boolean(pageFontName && /^[A-Za-z0-9-]+$/.test(pageFontName));
     const descriptor = usesPageFont

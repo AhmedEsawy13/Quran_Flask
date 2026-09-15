@@ -6,6 +6,7 @@ import { type Ayah, type MushafPage, type Surah, getJson } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
   isMushafEdition,
+  isQvpEdition,
   isReaderLayout,
   isReaderView,
   juzLabel,
@@ -27,6 +28,7 @@ import { AtharIcon } from "@/components/ui/athar-icon";
 import { Button, CheckControl, DrawerSurface, Field, SegmentedControl, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
 import { useEditionFont } from "@/lib/use-edition-font";
 import { usePageTajweed } from "@/lib/use-page-tajweed";
+import { WAQF_SOURCES, isWaqfSource, type WaqfSource } from "@/lib/waqf";
 
 type ContentResult = {
   requestKey: string;
@@ -52,6 +54,15 @@ function clampInteger(value: number, minimum: number, maximum: number) {
 function parsePositiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
   return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function mushafVersionQuery(editionId: MushafEditionId, waqfSource: string) {
+  const edition = MUSHAF_EDITIONS[editionId];
+  if (editionId === "azhar_amiri" || editionId === "shamarly" || isQvpEdition(editionId)) {
+    const version = isQvpEdition(editionId) ? waqfSource : edition.waqfSource;
+    return `?mushaf_version=${encodeURIComponent(version)}`;
+  }
+  return "";
 }
 
 function firstVerseOnPage(page: MushafPage) {
@@ -102,6 +113,8 @@ export function ReaderWorkspace() {
   });
   const [dualAvailable, setDualAvailable] = useState(false);
   const [tajweedEnabled, setTajweedEnabled] = useState(false);
+  const [waqfEnabled, setWaqfEnabled] = useState(true);
+  const [waqfSource, setWaqfSource] = useState<WaqfSource>("المدينة الجديد");
   const [catalogError, setCatalogError] = useState("");
   const [contentResult, setContentResult] = useState<ContentResult>({
     requestKey: "",
@@ -117,7 +130,7 @@ export function ReaderWorkspace() {
   const [marginMode, setMarginMode] = useState(() => searchParams.get("margins") === "1");
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [reciterId, setReciterId] = useState("husary");
-  const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${retryToken}`;
+  const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${waqfSource}:${retryToken}`;
   const visibleResult = contentResult.requestKey === requestKey ? contentResult : null;
   const pageFontName = editionId === "shamarly" && visibleResult?.page?.glyph_mapping_mode === "shemrly-page-local"
     ? visibleResult.page.font_name
@@ -131,7 +144,7 @@ export function ReaderWorkspace() {
     ? spreadPageNumbers(visiblePageNumber, edition.minPage, edition.maxPage)
     : [null, null];
   const spreadRequestKey = dualActive && visiblePageNumber
-    ? `${editionId}:${rightPageNumber || 0}:${leftPageNumber || 0}:${retryToken}`
+    ? `${editionId}:${waqfSource}:${rightPageNumber || 0}:${leftPageNumber || 0}:${retryToken}`
     : "";
   const [spreadResult, setSpreadResult] = useState<SpreadResult>({requestKey: "", right: null, left: null, error: ""});
   const visibleSpread = spreadResult.requestKey === spreadRequestKey ? spreadResult : null;
@@ -149,7 +162,7 @@ export function ReaderWorkspace() {
     editionId,
     editionId === "shamarly" && leftPage?.glyph_mapping_mode === "shemrly-page-local" ? leftPage.font_name : undefined,
   );
-  const tajweedAvailable = view === "page" && editionId !== "shamarly";
+  const tajweedAvailable = view === "page" && editionId !== "shamarly" && editionId !== "madinah_qvp";
   const tajweedOn = tajweedEnabled && tajweedAvailable;
   const tajweedPages = dualActive ? [rightPage, leftPage] : [visibleResult?.page || null];
   const {segmentsByWord: tajweedSegmentsByWord, loading: tajweedLoading} = usePageTajweed(tajweedPages, tajweedOn);
@@ -182,6 +195,9 @@ export function ReaderWorkspace() {
         window.localStorage.getItem("athar-reader-tajweed") === "true" ||
         window.localStorage.getItem("quranApp_tajweedEnabled") === "true",
       );
+      const savedWaqf = window.localStorage.getItem("athar-reader-waqf-source");
+      if (isWaqfSource(savedWaqf)) setWaqfSource(savedWaqf);
+      setWaqfEnabled(window.localStorage.getItem("athar-reader-waqf") !== "false");
       setPositionReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -241,9 +257,8 @@ export function ReaderWorkspace() {
     if (!positionReady) return;
     const controller = new AbortController();
     const edition = MUSHAF_EDITIONS[editionId];
-    const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
     const path = view === "page"
-      ? `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${usesExplicitMarks ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}` : ""}`
+      ? `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${mushafVersionQuery(editionId, waqfSource)}`
       : `/backend-api/surahs/${surahNumber}/ayahs/${ayahNumber}?source=qpc_hafs`;
     getJson<Ayah | MushafPage>(path, controller.signal)
       .then((data) => {
@@ -264,15 +279,12 @@ export function ReaderWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [positionReady, view, editionId, surahNumber, ayahNumber, retryToken, requestKey]);
+  }, [positionReady, view, editionId, surahNumber, ayahNumber, retryToken, requestKey, waqfSource]);
 
   useEffect(() => {
     if (!dualActive || !visibleResult?.page || !spreadRequestKey) return;
     const controller = new AbortController();
-    const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
-    const query = usesExplicitMarks
-      ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}`
-      : "";
+    const query = mushafVersionQuery(editionId, waqfSource);
     const loadPage = (pageNumber: number | null) => {
       if (!pageNumber) return Promise.resolve(null);
       if (visibleResult.page?.page_number === pageNumber) return Promise.resolve(visibleResult.page);
@@ -293,7 +305,7 @@ export function ReaderWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [dualActive, edition, editionId, leftPageNumber, rightPageNumber, spreadRequestKey, visibleResult?.page]);
+  }, [dualActive, edition, editionId, leftPageNumber, rightPageNumber, spreadRequestKey, visibleResult?.page, waqfSource]);
 
   useEffect(() => {
     if (!positionReady) return;
@@ -311,7 +323,9 @@ export function ReaderWorkspace() {
     window.localStorage.setItem("athar-reader-layout", layout);
     window.localStorage.setItem("athar-reader-margins", String(marginMode));
     window.localStorage.setItem("athar-reader-tajweed", String(tajweedEnabled));
-  }, [positionReady, surahNumber, ayahNumber, view, editionId, layout, marginMode, tajweedEnabled]);
+    window.localStorage.setItem("athar-reader-waqf-source", waqfSource);
+    window.localStorage.setItem("athar-reader-waqf", String(waqfEnabled));
+  }, [positionReady, surahNumber, ayahNumber, view, editionId, layout, marginMode, tajweedEnabled, waqfEnabled, waqfSource]);
 
   const selectedSurah = useMemo(
     () => surahs.find((surah) => surah.number === surahNumber),
@@ -344,12 +358,8 @@ export function ReaderWorkspace() {
     const safePage = clampInteger(targetPage, edition.minPage, edition.maxPage);
     setMoving(true);
     try {
-      const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
-      const query = usesExplicitMarks
-        ? `?mushaf_version=${encodeURIComponent(edition.waqfSource)}`
-        : "";
       const target = await getJson<MushafPage>(
-        `/backend-api/${edition.apiBase}/page/${safePage}${query}`,
+        `/backend-api/${edition.apiBase}/page/${safePage}${mushafVersionQuery(editionId, waqfSource)}`,
       );
       const position = firstVerseOnPage(target);
       if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
@@ -360,7 +370,7 @@ export function ReaderWorkspace() {
     } finally {
       setMoving(false);
     }
-  }, [edition.apiBase, edition.maxPage, edition.minPage, edition.waqfSource, editionId, navigateToVerse]);
+  }, [edition.apiBase, edition.maxPage, edition.minPage, editionId, navigateToVerse, waqfSource]);
 
   const jumpToJuz = (juz: number) => {
     const position = juzStartPosition(juz);
@@ -420,12 +430,8 @@ export function ReaderWorkspace() {
     if (targetPage < selectedEdition.minPage || targetPage > selectedEdition.maxPage) return;
     setMoving(true);
     try {
-      const usesExplicitMarks = editionId === "azhar_amiri" || editionId === "shamarly";
-      const query = usesExplicitMarks
-        ? `?mushaf_version=${encodeURIComponent(selectedEdition.waqfSource)}`
-        : "";
       const target = await getJson<MushafPage>(
-        `/backend-api/${selectedEdition.apiBase}/page/${targetPage}${query}`,
+        `/backend-api/${selectedEdition.apiBase}/page/${targetPage}${mushafVersionQuery(editionId, waqfSource)}`,
       );
       const position = firstVerseOnPage(target);
       if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
@@ -631,7 +637,9 @@ export function ReaderWorkspace() {
               className="hidden gap-1.5 px-2.5 xl:inline-flex"
               aria-pressed={tajweedOn}
               disabled={!tajweedAvailable}
-              title={editionId === "shamarly" ? "التلوين الحرفي غير متاح مع خط الشمرلي" : "تلوين أحكام التجويد حرفيًا"}
+              title={editionId === "shamarly" || editionId === "madinah_qvp"
+                ? "التلوين الحرفي غير متاح مع هذا الرسم"
+                : "تلوين أحكام التجويد حرفيًا"}
               onClick={() => setTajweedEnabled((current) => !current)}
             >
               <AtharIcon name="sparkles" className="size-3.5" />
@@ -721,8 +729,44 @@ export function ReaderWorkspace() {
             disabled={view !== "page"}
             onChange={(event) => setMarginMode(event.target.checked)}
           />
+          {isQvpEdition(editionId) ? (
+            <div className="grid gap-2 sm:col-span-2">
+              <span className="text-[0.7rem] text-athar-ink-faint">علامات الوقف</span>
+              <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="مصدر علامات الوقف">
+                {WAQF_SOURCES.map((source) => (
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={waqfSource === source}
+                    className={`min-h-9 rounded-[10px] border px-1 text-[0.68rem] font-bold ${
+                      waqfSource === source
+                        ? "border-athar-accent bg-athar-accent/8 text-athar-accent"
+                        : "border-athar-line bg-athar-surface text-athar-ink-soft"
+                    }`}
+                    onClick={() => {
+                      setWaqfSource(source);
+                      setWaqfEnabled(true);
+                    }}
+                    key={source}
+                  >
+                    {source}
+                  </button>
+                ))}
+              </div>
+              <CheckControl
+                label="إظهار علامات الوقف"
+                checked={waqfEnabled}
+                onChange={(event) => setWaqfEnabled(event.target.checked)}
+              />
+              <p className="m-0 text-[0.68rem] leading-5 text-athar-ink-faint">
+                علامات المدينة المطبوعة جزء من الحبر. إخفاؤها أو استبدالها بمصحف آخر يعمل كما في الخطوط: تُحذف علامات المجمع ثم تُرسم علامات أثَر فوق الكلمة.
+              </p>
+            </div>
+          ) : null}
           <CheckControl
-            label={editionId === "shamarly" ? "التجويد غير متاح مع الشمرلي" : "تلوين أحكام التجويد"}
+            label={editionId === "shamarly" || editionId === "madinah_qvp"
+              ? "التجويد غير متاح مع هذا الرسم"
+              : "تلوين أحكام التجويد"}
             checked={tajweedOn}
             disabled={!tajweedAvailable}
             onChange={(event) => setTajweedEnabled(event.target.checked)}
@@ -838,6 +882,8 @@ export function ReaderWorkspace() {
                   tajweedEnabled={tajweedOn}
                   tajweedLoading={tajweedLoading}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
+                  waqfEnabled={waqfEnabled}
+                  waqfSource={waqfSource}
                   dualLayout
                   onSurahNavigate={() => setNavigatorMode("surah")}
                   onJuzNavigate={() => setNavigatorMode("juz")}
@@ -862,6 +908,8 @@ export function ReaderWorkspace() {
                   tajweedEnabled={tajweedOn}
                   tajweedLoading={tajweedLoading}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
+                  waqfEnabled={waqfEnabled}
+                  waqfSource={waqfSource}
                   dualLayout
                   onSurahNavigate={() => setNavigatorMode("surah")}
                   onJuzNavigate={() => setNavigatorMode("juz")}
@@ -887,6 +935,8 @@ export function ReaderWorkspace() {
               tajweedEnabled={tajweedOn}
               tajweedLoading={tajweedLoading}
               tajweedSegmentsByWord={tajweedSegmentsByWord}
+              waqfEnabled={waqfEnabled}
+              waqfSource={waqfSource}
               onSurahNavigate={() => setNavigatorMode("surah")}
               onJuzNavigate={() => setNavigatorMode("juz")}
               onPageNavigate={() => setNavigatorMode("page")}

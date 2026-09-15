@@ -30,7 +30,11 @@ const markAliases: Record<string, string> = {
 const uthmanicGlyphs: Record<string, string> = {
   "م": "ۘ",
   "ق": "ۗ",
+  "قلى": "ۗ",
+  "قلي": "ۗ",
   "ص": "ۖ",
+  "صلى": "ۖ",
+  "صلي": "ۖ",
   "ج": "ۚ",
   "لا": "ۙ",
   "س": "ۜ",
@@ -51,6 +55,13 @@ const uthmanicGlyphs: Record<string, string> = {
 };
 
 export const commonWaqfMarks = ["م", "لا", "ج", "ق"] as const;
+
+export const WAQF_SOURCES = ["المدينة الجديد", "المدينة القديم", "الأزهر", "الشمرلي"] as const;
+export type WaqfSource = (typeof WAQF_SOURCES)[number];
+
+export function isWaqfSource(value: string | null): value is WaqfSource {
+  return value !== null && (WAQF_SOURCES as readonly string[]).includes(value);
+}
 
 export function waqfMarkCanonical(symbol: string) {
   const trimmed = symbol.replace(/\s+/g, "").trim();

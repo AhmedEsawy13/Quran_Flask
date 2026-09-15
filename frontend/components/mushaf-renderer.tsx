@@ -2,6 +2,7 @@ import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type { Ayah, MushafLine, MushafPage, MushafWord, Surah } from "@/lib/api";
 import {
   MUSHAF_EDITIONS,
+  isQvpEdition,
   juzHeaderGlyph,
   juzLabel,
   juzNumberForPage,
@@ -15,6 +16,8 @@ import { fitAndJustifyMushafPage, isBrowserPinchZoomed } from "@/lib/mushaf-page
 import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import type { TopicWash } from "@/lib/topic-color";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
+import { QvpPageCanvas } from "@/components/qvp-page-canvas";
+import { qvpWaqfOverlaysFromPage } from "@/lib/qvp";
 
 export type PracticeTap = {
   surah: number;
@@ -566,6 +569,13 @@ export function MushafRenderer({
   const firstVerse = page
     ? firstPageVerse(page, surahNumber, ayahNumber)
     : {surah: surahNumber, ayah: ayahNumber};
+  const qvpPage = isQvpEdition(editionId);
+  const hidePrintedWaqf = qvpPage && (
+    !waqfEnabled || !usesNativeEmbeddedWaqf(editionId, activeWaqfSource)
+  );
+  const qvpWaqfOverlays = hidePrintedWaqf && waqfEnabled
+    ? qvpWaqfOverlaysFromPage(page, activeWaqfSource)
+    : [];
   const juzNumber = view === "page" && page && editionId !== "azhar_amiri" && editionId !== "shamarly"
     ? juzNumberForPage(page.page_number)
     : juzNumberFromAyah(firstVerse.surah, firstVerse.ayah);
@@ -590,7 +600,7 @@ export function MushafRenderer({
 
   useEffect(() => {
     const root = pageRef.current;
-    if (!root || view !== "page" || !page || !shemrlyAvailable || fontLoading) return;
+    if (!root || view !== "page" || !page || !shemrlyAvailable || fontLoading || qvpPage) return;
     let frame = 0;
     let active = true;
     let sameSizePasses = 0;
@@ -634,7 +644,7 @@ export function MushafRenderer({
       cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [activeWaqfSource, dualLayout, editionId, fontLoading, page, practice?.fromAyah, practice?.toAyah, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled]);
+  }, [activeWaqfSource, dualLayout, editionId, fontLoading, page, practice?.fromAyah, practice?.toAyah, qvpPage, shemrlyAvailable, tajweedEnabled, tajweedLoading, view, waqfEnabled]);
 
   useEffect(() => {
     const root = pageRef.current;
@@ -646,7 +656,7 @@ export function MushafRenderer({
   return (
     <article
       ref={pageRef}
-      className={`reader-page is-${view} edition-${editionId}${memorizationMode ? " is-memorization" : ""}${practice ? " is-practice" : ""}${picking ? " is-picking" : ""}${concealFocused ? " is-concealed" : ""}`}
+      className={`reader-page is-${view} edition-${editionId}${qvpPage ? " is-qvp" : ""}${memorizationMode ? " is-memorization" : ""}${practice ? " is-practice" : ""}${picking ? " is-picking" : ""}${concealFocused ? " is-concealed" : ""}`}
       aria-busy={isLoading || fontLoading || tajweedLoading}
       data-tajweed={tajweedEnabled ? "true" : undefined}
       data-waqf-enabled={waqfEnabled ? "true" : "false"}
@@ -735,6 +745,25 @@ export function MushafRenderer({
               </details>
             ) : null}
           </div>
+        ) : view === "page" && page && qvpPage ? (
+          <QvpPageCanvas
+            pageNumber={page.page_number}
+            surahNumber={surahNumber}
+            ayahNumber={ayahNumber}
+            activeAudioWord={activeAudioWord}
+            focusRange={focusRange}
+            concealFocused={concealFocused}
+            revealedAyahs={revealedAyahs}
+            hidePrintedWaqf={hidePrintedWaqf}
+            waqfOverlays={qvpWaqfOverlays}
+            onAyahClick={onAyahClick}
+            onWordTap={practice
+              ? (surah, ayah, word) => {
+                if (surah !== practice.surah || ayah < practice.fromAyah || ayah > practice.toAyah) return;
+                practice.onWordTap(ayah, word - 1);
+              }
+              : undefined}
+          />
         ) : view === "page" && page && !shemrlyAvailable ? (
           <div className="inline-error px-5">
             <strong>خط الشمرلي غير متوفر لهذه الصفحة بعد</strong>
@@ -784,7 +813,7 @@ export function MushafRenderer({
       </div>
 
       <footer className="mushaf-foot">
-        <span>{edition.label}{fontLoading ? " — يُحمّل الخط…" : ""}</span>
+        <span>{edition.label}{qvpPage ? " · مطابق للمطبوع" : fontLoading ? " — يُحمّل الخط…" : ""}</span>
         {view === "page" && page && onPageNavigate ? (
           <button
             type="button"

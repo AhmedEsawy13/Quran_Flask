@@ -1,0 +1,24 @@
+{
+  "pages": {
+    "release": "v0.1.0",
+    "format": 1,
+    "cdn": "https://qvp.quran.ws"
+  },
+  "engine": {
+    "npm_package": "@quran.ws/engine",
+    "npm": "0.1.0",
+    "acknowledged_git_tag": "v0.2.0",
+    "consumed": "lite-fork"
+  },
+  "lite": {
+    "source_path": "web/lite.mjs",
+    "source_ref": "v0.1.0",
+    "athar_extensions": [
+      "path family/mark columns",
+      "hideWaqf",
+      "inkBox",
+      "pauseBox"
+    ]
+  },
+  "notes": "Page files are immutable CDN versions. 0.2.0 is a C-ABI rename; QVP1 is unchanged. Athar keeps the lite fork until overlay (family/mark) lands upstream. Bump this pin after reviewing a new tag or npm version — do not float to latest."
+}

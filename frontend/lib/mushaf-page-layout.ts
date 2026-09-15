@@ -1,4 +1,5 @@
 import type { MushafEditionId } from "@/lib/mushaf";
+import { QVP_PAGE_ASPECT } from "@/lib/qvp";
 
 type LayoutOptions = {
   dual?: boolean;
@@ -323,6 +324,7 @@ export function fitAndJustifyMushafPage(
 }
 
 export function pageAspectRatio(editionId: MushafEditionId) {
+  if (editionId === "madinah_qvp") return QVP_PAGE_ASPECT;
   return editionId === "qpc_v1" ? 0.72 : 0.66;
 }
 
