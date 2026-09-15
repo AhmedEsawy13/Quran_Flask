@@ -8,8 +8,8 @@ Does **not** run inside the public Flask reading path.
 ## Setup
 
 ```bash
-python3 -m venv .venv-cv
-.venv-cv/bin/pip install -r requirements-cv.txt
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt -r requirements-cv.txt
 export PYTHONPATH=.
 ```
 
@@ -17,39 +17,39 @@ export PYTHONPATH=.
 
 ```bash
 # Cache page JPEGs (Archive / Bahrain PDF)
-.venv-cv/bin/python -m pipeline.cv_waqf cache-pages --edition الشمرلي --pages 2-20
-.venv-cv/bin/python -m pipeline.cv_waqf cache-pages --edition البحرين --pages 1-20
+.venv/bin/python -m pipeline.cv_waqf cache-pages --edition الشمرلي --pages 2-20
+.venv/bin/python -m pipeline.cv_waqf cache-pages --edition البحرين --pages 1-20
 
 # Optional: Mesaha DjVu word boxes for training anchors
-.venv-cv/bin/python -m pipeline.cv_waqf mesaha-boxes --page-start 2 --page-end 100
+.venv/bin/python -m pipeline.cv_waqf mesaha-boxes --page-start 2 --page-end 100
 
 # After hand-labeling in /cv-waqf (mode تسمية):
-.venv-cv/bin/python -m pipeline.cv_waqf train --crops data/cv/crops_hand/shamarly
+.venv/bin/python -m pipeline.cv_waqf train --crops data/cv/crops_hand/shamarly
 
 # Build crops from every trusted edition whose matching scan is cached.
 # Madinah/Azhar deliberately refuse to use a substitute print image.
-.venv-cv/bin/python -m pipeline.cv_waqf sample-crops --trusted-all --pages 40
+.venv/bin/python -m pipeline.cv_waqf sample-crops --trusted-all --pages 40
 
 # Shared model: repeat --crops; validation is split by whole printed page.
-.venv-cv/bin/python -m pipeline.cv_waqf train \
+.venv/bin/python -m pipeline.cv_waqf train \
   --crops data/cv/crops_labeled/shamarly \
   --crops data/cv/crops_hand/bahrain \
   --crops data/cv/crops_hand/mesaha
 
 # Safer two-stage model for noisy target scans: first reject non-marks, then
 # classify only accepted waqf glyphs. This writes MODEL_gate.onnx beside MODEL.
-.venv-cv/bin/python -m pipeline.cv_waqf train --two-stage \
+.venv/bin/python -m pipeline.cv_waqf train --two-stage \
   --crops data/cv/crops_hand/bahrain \
   --out artifacts/cv-waqf/bahrain_two_stage.onnx
 
 # Or preserve a proven symbol classifier and train only the binary veto gate.
-.venv-cv/bin/python -m pipeline.cv_waqf train --two-stage \
+.venv/bin/python -m pipeline.cv_waqf train --two-stage \
   --crops data/cv/crops_hand/bahrain \
   --reuse-symbol-model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_current.onnx \
   --out artifacts/cv-waqf/bahrain_gated_current.onnx
 
 # Promoted Bahrain-only model (automatically selected by run-page/UI).
-.venv-cv/bin/python -m pipeline.cv_waqf train --two-stage \
+.venv/bin/python -m pipeline.cv_waqf train --two-stage \
   --crops data/cv/crops_hand/bahrain \
   --reuse-symbol-model artifacts/cv-waqf/demo-bahrain/waqf_glyph_demo_current.onnx \
   --out models/waqf_glyph_bahrain.onnx
@@ -61,8 +61,8 @@ export PYTHONPATH=.
 # — that gated MLP remains the fallback when the strip ONNX is absent.
 # A real Bahrain strip net is not in git; train locally on hand labels +
 # cached pages (data/cv/crops_hand/bahrain is gitignored).
-.venv-cv/bin/pip install -r requirements-cv-train.txt
-.venv-cv/bin/python -m pipeline.cv_waqf train-strip \
+.venv/bin/pip install -r requirements-cv-train.txt
+.venv/bin/python -m pipeline.cv_waqf train-strip \
   --crops data/cv/crops_hand/bahrain
 # writes models/waqf_strip_bahrain.onnx + .json sidecar
 # If that file is absent, run-page / evaluate-hand / bootstrap keep gated MLP + hybrid.
@@ -74,7 +74,7 @@ python3 -m pipeline.cv_waqf push-hand --slug shamarly
 python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 
 # Detect one page (line-by-line, above word-end band)
-.venv-cv/bin/python -m pipeline.cv_waqf run-page --edition الشمرلي --page 5 --overlay
+.venv/bin/python -m pipeline.cv_waqf run-page --edition الشمرلي --page 5 --overlay
 
 # البحرين uses the above-word strip ONNX when
 # models/waqf_strip_bahrain.onnx is present (one strip per layout word).
@@ -96,40 +96,40 @@ python3 -m pipeline.cv_waqf pull-hand --slug shamarly
 # same 44-page hand set at 0.55 this cuts FP 31 → 6 and correct 217 → 213.
 # The 4 dropped "TPs" are not البحرين DB seats. Global recall cost: 12
 # البحرين-only DB seats with empty الأزهر. --no-azhar-prior disables it.
-.venv-cv/bin/python -m pipeline.cv_waqf run-page --edition البحرين --page 198
-.venv-cv/bin/python -m pipeline.cv_waqf run-page \
+.venv/bin/python -m pipeline.cv_waqf run-page --edition البحرين --page 198
+.venv/bin/python -m pipeline.cv_waqf run-page \
   --edition البحرين --page 198 --proposal-mode narrow
-.venv-cv/bin/python -m pipeline.cv_waqf run-page \
+.venv/bin/python -m pipeline.cv_waqf run-page \
   --edition البحرين --page 198 --no-azhar-prior
-.venv-cv/bin/python -m pipeline.cv_waqf run-page \
+.venv/bin/python -m pipeline.cv_waqf run-page \
   --edition الشمرلي --page 5 --proposal-mode hybrid
 
 # Audit DB vs CV (reviewable report, no auto-merge)
-.venv-cv/bin/python -m pipeline.cv_waqf audit --edition الشمرلي --pages 2-50
+.venv/bin/python -m pipeline.cv_waqf audit --edition الشمرلي --pages 2-50
 
 # Target-edition holdout: scores only reviewer-confirmed word anchors.
 # البحرين uses hybrid proposals unless --proposal-mode is passed, and the
 # Azhar occupancy prior unless --no-azhar-prior is passed.
-.venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition البحرين
-.venv-cv/bin/python -m pipeline.cv_waqf evaluate-hand --edition المساحة
+.venv/bin/python -m pipeline.cv_waqf evaluate-hand --edition البحرين
+.venv/bin/python -m pipeline.cv_waqf evaluate-hand --edition المساحة
 
 # Diagnose geometry separately from classification. Reports proposal recall,
 # proposal-to-word recall, and manual-box-to-word accuracy.
-.venv-cv/bin/python -m pipeline.cv_waqf evaluate-candidates \
+.venv/bin/python -m pipeline.cv_waqf evaluate-candidates \
   --edition البحرين --pages 198,202,221,255
 
 # Mine safe lower-word-body windows as target-print `none` examples.
-.venv-cv/bin/python -c "from pathlib import Path; from pipeline.cv_waqf.build_crops import mine_component_negatives; mine_component_negatives('البحرين', [2,3,30], Path('artifacts/cv-waqf/hard-negatives'))"
+.venv/bin/python -c "from pathlib import Path; from pipeline.cv_waqf.build_crops import mine_component_negatives; mine_component_negatives('البحرين', [2,3,30], Path('artifacts/cv-waqf/hard-negatives'))"
 
 # Deterministic calibration queue: six Quran regions + special/dense/sparse pages.
 # --cache renders only the selected pages from the already-downloaded Bahrain PDF.
-.venv-cv/bin/python -m pipeline.cv_waqf review-queue \
+.venv/bin/python -m pipeline.cv_waqf review-queue \
   --edition البحرين --size 30 --cache
 
 # Bootstrap draft plan for البحرين (human review before publish).
 # Auto-set uses confidence >= 0.85; lower-conf hybrid hits stay in
 # review_candidates / the /cv-waqf detect list and are not written.
-.venv-cv/bin/python -m pipeline.cv_waqf bootstrap --edition البحرين --pages 1-50
+.venv/bin/python -m pipeline.cv_waqf bootstrap --edition البحرين --pages 1-50
 ```
 
 Outputs land under `artifacts/cv-waqf/`. The classifier is
@@ -138,5 +138,5 @@ Outputs land under `artifacts/cv-waqf/`. The classifier is
 ## Tests
 
 ```bash
-PYTHONPATH=. .venv-cv/bin/python -m pytest tests/test_cv_waqf.py tests/test_cv_waqf_strip.py --noconftest -q
+PYTHONPATH=. .venv/bin/python -m pytest tests/test_cv_waqf.py tests/test_cv_waqf_strip.py --noconftest -q
 ```

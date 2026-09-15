@@ -1,7 +1,7 @@
 """Local UI to inspect OpenCV waqf detections on printed mushaf pages.
 
-Editor-only (ENABLE_EDITOR). Heavy detection runs in ``.venv-cv`` so the
-Flask process does not need OpenCV installed.
+Editor-only (ENABLE_EDITOR). Heavy detection uses the project ``.venv``
+when OpenCV is installed there; otherwise the current interpreter.
 """
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ from modules.editor_auth import require_editor
 logger = logging.getLogger(__name__)
 
 ROOT = Path(_ROOT)
-CV_VENV_PYTHON = ROOT / '.venv-cv' / 'bin' / 'python'
+CV_VENV_PYTHON = ROOT / '.venv' / 'bin' / 'python'
 ARTIFACT_CACHE = ROOT / 'artifacts' / 'cv-waqf' / 'ui-cache'
 
 _UI_EDITIONS = (
@@ -591,7 +591,7 @@ def cv_waqf_crops_gallery(slug: str | None = None):
         return jsonify({
             'error': 'no labeled crops yet',
             'hint': (
-                'PYTHONPATH=. .venv-cv/bin/python -m pipeline.cv_waqf '
+                'PYTHONPATH=. .venv/bin/python -m pipeline.cv_waqf '
                 'sample-crops --edition الشمرلي --pages 40 --clear'
             ),
         }), 404
@@ -645,10 +645,10 @@ def cv_waqf_page_data(page_number: int):
         raise PersistenceError(
             'تعذّر تحليل صفحة المصحف',
             public_fields={'hint': (
-                'Create the CV venv and train once:\n'
-                '  python3 -m venv .venv-cv\n'
-                '  .venv-cv/bin/pip install -r requirements-cv.txt\n'
-                '  PYTHONPATH=. .venv-cv/bin/python -m pipeline.cv_waqf train'
+                'Install OpenCV into the project venv and train once:\n'
+                '  python3 -m venv .venv\n'
+                '  .venv/bin/pip install -r requirements.txt -r requirements-cv.txt\n'
+                '  PYTHONPATH=. .venv/bin/python -m pipeline.cv_waqf train'
             )},
         ) from exc
 

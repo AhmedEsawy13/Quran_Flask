@@ -14,6 +14,18 @@ export const MUSHAF_EDITIONS = {
       url: "/fonts/digitalkhatt.woff2",
     },
   },
+  madinah_qvp: {
+    id: "madinah_qvp",
+    label: "المدينة — مطبوع المجمع (QVP)",
+    shortLabel: "الرسم المطبوع المطابق",
+    description: "صفحات مصحف المدينة كما طُبعت في مجمع الملك فهد، بصيغة QVP للمتجهات القابلة للنقر. للمقارنة مع رسم المدينة الرقمي.",
+    waqfSource: "المدينة الجديد",
+    apiBase: "digital-khatt",
+    minPage: 1,
+    maxPage: 604,
+    fontFamily: "serif",
+    renderer: "qvp",
+  },
   qpc_v2: {
     id: "qpc_v2",
     label: "المدينة ١٤٢١هـ",
@@ -80,6 +92,10 @@ export const MUSHAF_EDITIONS = {
 export type MushafEditionId = keyof typeof MUSHAF_EDITIONS;
 export type ReaderView = "verse" | "page";
 export type ReaderLayout = "single" | "dual";
+
+export function isQvpEdition(value: MushafEditionId) {
+  return value === "madinah_qvp";
+}
 
 export function isMushafEdition(value: string | null): value is MushafEditionId {
   return value !== null && value in MUSHAF_EDITIONS;

@@ -254,7 +254,7 @@
         try {
             await ensureLoaded();
             status('طلب إذن الميكروفون…');
-            micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             source = audioCtx.createMediaStreamSource(micStream);
             const onPcm = ch => { if (running && ch) pushPcm(downsample(ch, audioCtx.sampleRate)); };

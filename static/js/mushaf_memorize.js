@@ -2233,37 +2233,9 @@
     // loadSurahMemo calls attachAudioEvents() again whenever the backend switches.
     attachAudioEvents(els.audio);
 
-    /* ── Recite & follow (streaming ASR, beta) ─────────────────────────
-       Lazy-loads static/mushaf_asr.js (onnxruntime-web + the FastConformer
-       streaming model). The module emits recognised Arabic words; we match
-       them against the selected verses in order to follow / reveal / advance. */
+    /* ── التسميع الصوتي: Zipformer phonemes + ReciteQuran 1.0.2 DTW ── */
     let _asrLoaded = false, _asrActive = false, _asrStarting = false, _asrSession = 0;
-    const _arNorm = s => (s || '')
-        // strip every harakat/mark/tatweel/ayah-ornament + Arabic-Indic digits
-        .replace(/[ً-ٰٟۖ-ۭ࣐-ࣿـ۝٠-٩]/g, '')
-        .replace(/[إأآاٱ]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/ة/g, 'ه').replace(/ؤ/g, 'و').replace(/ئ/g, 'ي')
-        .replace(/\s+/g, ' ').trim();
-
-    // Flat list of the expected words across the selected range, taken straight
-    // from the ON-PAGE word elements (in mushaf reading order) so matches light up
-    // the exact words in their real positions — no QPC↔DK position mismatch.
-    const _isNumWord = t => /^[۝]?[٠-٩]+$/.test((t || '').trim());
-    function _expectedFlat() {
-        const range = selectedAyahRange();
-        if (!range) return [];
-        const [a, b] = range;
-        const out = [];
-        wordsInSpread('.mz-word[data-key]').forEach(el => {
-            const [s, ay] = el.dataset.key.split(':').map(Number);
-            if (s !== state.surah || ay < a || ay > b) return;
-            if (_isNumWord(el.dataset.text || el.textContent)) return; // skip the verse-number ornament
-            const norm = _arNorm(el.dataset.text || el.textContent || '');
-            if (norm) out.push({ norm, el, ayah: ay, key: el.dataset.key });
-        });
-        return out;
-    }
-    const _wmatch = (a, b) => a === b ||
-        (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a) || a.includes(b) || b.includes(a)));
+    let _tasmeeSeq = null, _tasmeeTotal = 0, _tasmeeGreen = 0;
 
     function loadScript(src) {
         return new Promise((resolve, reject) => {
@@ -2277,17 +2249,48 @@
         els.asrLive.hidden = !on;
         if (on && els.asrLiveText) els.asrLiveText.textContent = 'استمع…';
     }
+    async function loadPhonemeEntries(surah, fromAyah, toAyah) {
+        const entries = [];
+        for (let start = fromAyah; start <= toAyah; start += 21) {
+            const end = Math.min(toAyah, start + 20);
+            const j = await window.AtharApi.json(`/api/waqf-practice/phonemes/${surah}/${start}/${end}`);
+            entries.push(...(j.entries || []));
+        }
+        return entries;
+    }
+    function tasmeeWordEl(entry) {
+        if (!entry) return null;
+        const key = `${state.surah}:${entry.ayah}`;
+        const exact = wordsInSpread(`.mz-word[data-key="${key}"][data-wpos="${entry.wpos}"]`)[0];
+        if (exact) return exact;
+        const ayahWords = wordsInSpread(`.mz-word[data-key="${key}"]`);
+        return ayahWords[entry.wpos] || null;
+    }
+    function paintTasmee(entry, kind) {
+        const el = tasmeeWordEl(entry);
+        if (!el) return;
+        el.classList.remove('mz-recited', 'mz-miss');
+        if (kind === 'red') { el.classList.add('mz-miss'); return; }
+        el.classList.add('mz-recited');
+        if (state.hideText) {
+            el.classList.add('mz-reveal');
+            revealVerse(`${state.surah}:${entry.ayah}`);
+        }
+        markActive(`${state.surah}:${entry.ayah}`);
+        el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
 
     function stopReciteFollow(showMessage) {
         ++_asrSession;
         _asrStarting = false;
         _asrActive = false;
-        try { if (window.MushafASR) window.MushafASR.stop(); } catch (e) {}
+        try { if (window.MushafZipformer) window.MushafZipformer.stop(); } catch (e) {}
+        if (_tasmeeSeq) { try { _tasmeeSeq.reset(); } catch (e) {} _tasmeeSeq = null; }
         if (els.reciteBtn) {
             window.AtharUi.setBusy(els.reciteBtn, false);
             els.reciteBtn.classList.remove('mz-listening');
             els.reciteBtn.setAttribute('aria-pressed', 'false');
-            els.reciteBtn.setAttribute('aria-label', 'بدء التسميع والمتابعة');
+            els.reciteBtn.setAttribute('aria-label', 'بدء التسميع الصوتي');
         }
         showAsrLive(false);
         if (showMessage && els.asrNote) els.asrNote.textContent = 'تم إيقاف التسميع';
@@ -2295,41 +2298,59 @@
 
     async function startReciteFollow() {
         if (_asrActive || _asrStarting) { stopReciteFollow(true); return; }
+        const range = selectedAyahRange();
+        if (!range) {
+            if (els.asrNote) els.asrNote.textContent = 'حدّد آيات النطاق أولًا، ثم ابدأ التسميع.';
+            return;
+        }
         const session = ++_asrSession;
         _asrStarting = true;
         window.AtharUi.setBusy(els.reciteBtn, true);
         if (els.asrNote) els.asrNote.textContent = 'جارٍ تحضير نموذج التعرّف… (قد يستغرق التحميل أول مرة)';
         try {
-            if (!_asrLoaded) { await loadScript('/static/js/mushaf_asr.js?v=25'); _asrLoaded = true; }
+            if (!_asrLoaded) {
+                await loadScript('/static/js/athar_phoneme_dtw.js?v=2');
+                await loadScript('/static/js/mushaf_zipformer.js?v=2');
+                _asrLoaded = true;
+            }
             if (session !== _asrSession) return;
-            if (!window.MushafASR) throw new Error('module missing');
+            if (!window.MushafZipformer || !window.AtharPhonemeDtw) throw new Error('module missing');
 
-            // make sure the selected verses are actually on screen before we map words
             await renderSelection();
             if (session !== _asrSession) return;
-            // reset any previous recite highlights
-            wordsInSpread('.mz-word.mz-recited').forEach(w => w.classList.remove('mz-recited'));
-            const expFlat = _expectedFlat();
-            let ePtr = 0, hPtr = 0, lastAyah = -1;
+            wordsInSpread('.mz-word.mz-recited, .mz-word.mz-miss').forEach(w => {
+                w.classList.remove('mz-recited', 'mz-miss');
+            });
 
-            const markRecited = (e) => {
-                if (e.el) {
-                    e.el.classList.add('mz-recited');
-                    if (state.hideText) e.el.classList.add('mz-reveal');
-                    e.el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                }
-                if (e.ayah !== lastAyah) {
-                    lastAyah = e.ayah;
-                    markActive(e.key);
-                    if (state.hideText) revealVerse(e.key);
-                }
-            };
+            const entries = await loadPhonemeEntries(state.surah, range[0], range[1]);
+            if (session !== _asrSession) return;
+            if (!entries.length) throw new Error('لا مرجع صوتي لهذا النطاق');
+            _tasmeeTotal = entries.length;
+            _tasmeeGreen = 0;
+            _tasmeeSeq = window.AtharPhonemeDtw.createSequencer(entries, {
+                maxSkipWords: 1,
+                isTajweed: true,
+                onCommit: (kind, entry) => {
+                    if (kind === 'green') _tasmeeGreen += 1;
+                    paintTasmee(entry, kind);
+                    if (els.asrNote) {
+                        els.asrNote.textContent = _tasmeeGreen >= _tasmeeTotal
+                            ? 'أحسنت! اكتمل التسميع 🌿'
+                            : `طابقت ${toAr(_tasmeeGreen)} / ${toAr(_tasmeeTotal)} كلمة`;
+                    }
+                    if (els.asrLiveText) {
+                        els.asrLiveText.textContent = _tasmeeGreen >= _tasmeeTotal
+                            ? 'اكتمل التسميع'
+                            : `طابقت ${toAr(_tasmeeGreen)} / ${toAr(_tasmeeTotal)}`;
+                    }
+                },
+            });
 
-            await window.MushafASR.start({
+            await window.MushafZipformer.start({
                 onStatus: (msg) => {
                     if (session !== _asrSession) return;
                     if (els.asrNote) els.asrNote.textContent = msg;
-                    if (els.asrLiveText && /استمع|listen/i.test(msg)) showAsrLive(true);
+                    if (els.asrLiveText && /استمع|listen|ميكروفون/i.test(msg)) showAsrLive(true);
                 },
                 onActive: (on) => {
                     if (session !== _asrSession) return;
@@ -2339,28 +2360,18 @@
                         window.AtharUi.setBusy(els.reciteBtn, false);
                         els.reciteBtn.classList.toggle('mz-listening', on);
                         els.reciteBtn.setAttribute('aria-pressed', String(on));
-                        els.reciteBtn.setAttribute('aria-label', on ? 'إيقاف التسميع والمتابعة' : 'بدء التسميع والمتابعة');
+                        els.reciteBtn.setAttribute('aria-label', on ? 'إيقاف التسميع الصوتي' : 'بدء التسميع الصوتي');
                     }
                     showAsrLive(on);
+                    if (on && els.asrNote) els.asrNote.textContent = 'اقرأ في الميكروفون…';
                 },
-                // Running recognised transcript → live display + word-by-word follow.
-                onTranscript: (text) => {
-                    if (session !== _asrSession || !_asrActive) return;
-                    const heardRaw = (text || '').trim();
-                    const heard = _arNorm(text).split(' ').filter(Boolean);
-                    if (els.asrLiveText) els.asrLiveText.textContent = heardRaw ? heardRaw.split(' ').slice(-12).join(' ') : 'استمع…';
-                    // tolerant greedy alignment of heard words to the expected sequence
-                    while (hPtr < heard.length && ePtr < expFlat.length) {
-                        const e = expFlat[ePtr];
-                        if (_wmatch(heard[hPtr], e.norm)) { markRecited(e); ePtr++; hPtr++; continue; }
-                        let found = -1;
-                        for (let k = hPtr + 1; k < Math.min(hPtr + 3, heard.length); k++)
-                            if (_wmatch(heard[k], e.norm)) { found = k; break; }
-                        if (found >= 0) { markRecited(e); ePtr++; hPtr = found + 1; }
-                        else hPtr++; // skip a noise word
-                    }
-                    if (els.asrNote && expFlat.length) els.asrNote.textContent = `طابقت ${toAr(ePtr)} / ${toAr(expFlat.length)} كلمة`;
-                    if (ePtr >= expFlat.length && els.asrNote) els.asrNote.textContent = 'أحسنت! اكتمل التسميع 🌿';
+                onPhonemes: (text) => {
+                    if (session !== _asrSession || !_asrActive || !_tasmeeSeq) return;
+                    _tasmeeSeq.process(text || '');
+                },
+                onSilence: () => {
+                    if (session !== _asrSession || !_asrActive || !_tasmeeSeq) return;
+                    _tasmeeSeq.onSilence();
                 },
             });
             if (session === _asrSession) _asrStarting = false;
@@ -2372,7 +2383,7 @@
                 window.AtharUi.setBusy(els.reciteBtn, false);
                 els.reciteBtn.classList.remove('mz-listening');
                 els.reciteBtn.setAttribute('aria-pressed', 'false');
-                els.reciteBtn.setAttribute('aria-label', 'بدء التسميع والمتابعة');
+                els.reciteBtn.setAttribute('aria-label', 'بدء التسميع الصوتي');
             }
             showAsrLive(false);
             console.error('[recite] failed:', e);
@@ -2875,21 +2886,10 @@
     }
 
     /* ── Init ──────────────────────────────────────────────────────── */
-    // Recite & follow (تسميع) is experimental and its engine files are kept local
-    // (gitignored). Reveal its controls only behind a dev flag so the published app
-    // doesn't show a feature whose model isn't deployed.
-    function gateReciteFeature() {
-        const flag = new URLSearchParams(location.search).get('asr');
-        if (flag === '1') localStorage.setItem('mz_asr_dev', '1');
-        else if (flag === '0') localStorage.removeItem('mz_asr_dev');
-        const dev = flag === '1' || (flag !== '0' && localStorage.getItem('mz_asr_dev') === '1');
-        const box = $('mz-asr-dev');
-        if (box) box.hidden = !dev;
-    }
-
     async function init() {
         loadSettings();
-        gateReciteFeature();
+        const asrBox = $('mz-asr-dev');
+        if (asrBox) asrBox.hidden = false;
         syncSrcCapabilities();
         bindEvents();
         await loadShemrlyPages();

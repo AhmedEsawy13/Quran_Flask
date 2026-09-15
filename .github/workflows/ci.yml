@@ -48,5 +48,11 @@ jobs:
       - name: Smoke-test the complete local application
         run: python3 scripts/smoke_test.py --local --include-editor
 
+      - name: Check quran-engine / QVP page pin
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          QVP_UPSTREAM_STRICT: "1"
+        run: python3 scripts/check_qvp_upstream.py
+
       - name: Run full regression suite
         run: python3 -m pytest -q

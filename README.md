@@ -163,9 +163,13 @@ set of databases:
    cd Quran_Flask
    ```
 
-2. **Install dependencies** (add `-r requirements-dev.txt` instead if you're also running tests):
+2. **Create the one project virtualenv** (OpenCV extras are optional):
    ```bash
+   python3.12 -m venv .venv
+   source .venv/bin/activate
    python3 -m pip install -r requirements.txt
+   # tests:        python3 -m pip install -r requirements-dev.txt
+   # CV waqf only: python3 -m pip install -r requirements-cv.txt
    ```
 
 3. **Restore the reciter timestamp data** (not tracked in git — 52 MB
@@ -201,6 +205,7 @@ set of databases:
 ## Testing
 
 ```bash
+source .venv/bin/activate   # after the install steps above
 python3 -m pip install -r requirements-dev.txt
 pytest              # full suite
 pytest -q tests/test_classical_waqf_quality.py -v   # a single file
@@ -283,10 +288,8 @@ fits here:
   per-page font subsets work together to reproduce the classical Madinah
   mushaf's exact line breaks and glyphs — see `core/mushaf_waqf.py` and
   `modules/layouts.py`.
-- **In-browser ASR**: a ported zipformer phoneme model (`static/js/mushaf_zipformer.js`)
-  provides tajweed-aware recitation checking for `تدريب`; an older,
-  simpler FastConformer-based listener (`static/js/mushaf_asr.js`, lazy-loaded)
-  still powers live silence/stall detection during `تثبيت` memorization drills.
+- **In-browser ASR**: Zipformer phonemes (`static/js/mushaf_zipformer.js`) plus
+  ReciteQuran-style DTW power التسميع on `/memorize` and pause-follow on `/waqf-practice`.
 
 ## Technology Stack
 
@@ -358,7 +361,8 @@ Quran_Flask/
 ├── tests/                    # pytest suite — see Testing
 ├── data/                     # Pre-built datasets (SQLite + JSON), see below
 ├── reciters/                 # Per-reciter word/verse/letter timing data
-├── static/                   # JS, CSS, fonts, ASR model assets
+├── .venv/                    # Single local Python env (not committed)
+├── static/                   # JS, CSS, fonts; Zipformer ASR binaries stay local under static/asr/
 ├── templates/                # One HTML template per page/module
 │   ├── index.html            #   المصحف (reading)
 │   ├── mushaf_memorize.html  #   تثبيت (memorize)

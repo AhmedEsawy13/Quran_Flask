@@ -561,6 +561,74 @@ button.page-number {
   padding: 0;
 }
 
+.reader-mushaf-stage .reader-page.is-page .qvp-page-host {
+  position: relative;
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
+.qvp-page-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.qvp-page-status,
+.qvp-page-error {
+  position: absolute;
+  inset-inline: 12px;
+  inset-block-end: 12px;
+}
+
+.qvp-page-status {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--athar-surface) 88%, transparent);
+  color: var(--athar-ink-faint);
+  font-size: 0.72rem;
+}
+
+.qvp-waqf-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.qvp-pause-slot {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  padding: 0;
+  /* Same scale as .mushaf-waqf-stack on the font editions (~0.72em of page type). */
+  width: 1.15em;
+  height: 1.15em;
+  /* Combining pause glyphs sit high in the em square; pin to the ink top
+     and only center horizontally so they are not lifted above the print. */
+  transform: translate(-50%, -18%);
+  font-size: calc(var(--reader-page-fit-font, 22px) * 0.85);
+  line-height: 1;
+}
+
+.qvp-pause-slot .mushaf-print-mark,
+.qvp-pause-slot .mushaf-print-mark.is-strong,
+.qvp-pause-slot .mushaf-print-mark.is-avoid {
+  color: var(--athar-ink);
+  font-family: "Uthmanic Hafs", "Athar Waqf", serif;
+  font-size: 1em;
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1;
+}
+
 .reader-mushaf-stage .reader-page.is-page .mushaf-lines-host,
 .reader-mushaf-stage .reader-page.is-page .mushaf-lines,
 .reader-mushaf-stage .reader-page.is-page.edition-azhar_amiri .mushaf-lines,
@@ -683,6 +751,20 @@ button.page-number {
 .reader-page.is-page .reader-page-body {
   min-height: 900px;
   padding: clamp(30px, 5vw, 58px) clamp(24px, 7vw, 76px);
+}
+
+.reader-page.is-page.is-qvp .reader-page-body {
+  padding: 0;
+}
+
+.reader-page.is-page.is-qvp .mushaf-head {
+  display: none;
+}
+
+.reader-mushaf-stage .reader-page.is-page.is-qvp .mushaf-foot {
+  min-height: 28px;
+  padding: 4px 8px 2px;
+  font-size: 0.68rem;
 }
 
 .reader-verse-view {

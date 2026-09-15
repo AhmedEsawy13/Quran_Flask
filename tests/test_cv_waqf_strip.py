@@ -2,7 +2,7 @@
 
 Run with:
 
-    PYTHONPATH=. .venv-cv/bin/python -m pytest \\
+    PYTHONPATH=. .venv/bin/python -m pytest \\
         tests/test_cv_waqf.py tests/test_cv_waqf_strip.py --noconftest -q
 """
 from __future__ import annotations

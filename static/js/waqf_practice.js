@@ -31,9 +31,8 @@
     const surahRequests = window.AtharMushaf.createRequestGate();
     const passageRequests = window.AtharMushaf.createRequestGate();
     const gradeRequests = window.AtharMushaf.createRequestGate();
-    // Phoneme recite-follow: reference entries {skel,ayah,wpos} + a resync cursor
-    // (wi = word we're on, anchor = index into the recited skeleton where it begins).
-    const rec = { on: false, ref: [], wi: 0, anchor: 0, cur: null };
+    // Phoneme recite-follow: ReciteQuran 1.0.2 DTW sequencer on full phonemes.
+    const rec = { on: false, ref: [], wi: 0, anchor: 0, cur: null, sequencer: null, lastPhonemes: '' };
 
     // verdict → display. Order = legend order. Graded vs mushaf marks only.
     const VERDICT = {
@@ -484,60 +483,46 @@
         }
     }
 
-    /* ── recite & auto-mark stops — zipformer PHONEME ASR ──────────────
-       The model emits phonemes; we DP-align the recited phoneme stream to the
-       passage's reference phonemes (fetched per-word from the backend) to follow
-       position, and the model's silence token gives وقف stops. */
+    /* ── recite & auto-mark stops — zipformer + ReciteQuran 1.0.2 DTW ──
+       Full phonemes (not consonant skeleton). Semi-global DTW consumes trailing
+       madd; waqf/sukoon deletions do not block a commit. Lookahead is 1 word so
+       a وقف is not skipped. Silence commits the current word. */
     const setRecNote = m => { if (els.recNote) els.recNote.textContent = m || ''; };
-    const _PH_KEEP = 'ءابتثجحخدذرزسشصضطظعغفقكلمنهوي';
-    function _phSkel(s) {           // consonant skeleton (matches the backend aligner)
-        s = (s || '').replace(/[ٱأإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
-        let out = '';
-        for (const c of s) if (_PH_KEEP.indexOf(c) >= 0 && out[out.length - 1] !== c) out += c;
-        return out;
-    }
-    // Phonetically-similar consonants the acoustic model confuses (nasals, sibilants,
-    // emphatics, throat letters, glides). A substitution WITHIN a group is cheap so a
-    // single model slip doesn't break the alignment.
-    const _SIM = {};
-    for (const g of ['من', 'سصز', 'تطدض', 'ذظث', 'هحخ', 'عغءه', 'قك', 'ويا', 'رل'])
-        for (const c of g) _SIM[c] = (_SIM[c] || '') + g;
-    const _subCost = (a, b) => a === b ? 0 : (_SIM[a] && _SIM[a].indexOf(b) >= 0 ? 0.4 : 1);
-    function _wed(a, b) {           // weighted edit distance (similar subs discounted)
-        const m = a.length, n = b.length;
-        if (!m) return n; if (!n) return m;
-        let prev = Array.from({ length: n + 1 }, (_, j) => j);
-        for (let i = 1; i <= m; i++) {
-            const cur = [i];
-            for (let j = 1; j <= n; j++)
-                cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + _subCost(a[i - 1], b[j - 1]));
-            prev = cur;
-        }
-        return prev[n];
-    }
-    // Best local match of reference skeleton `es` inside `rs` near index `from` (the
-    // start may slip ±2 to absorb an extra/dropped char, length varies around |es|).
-    function _bestMatch(rs, from, es) {
-        let best = { sim: -1, start: from, len: es.length };
-        const s0 = Math.max(0, from - 2), s1 = Math.min(rs.length, from + 2);
-        for (let start = s0; start <= s1; start++) {
-            const loK = Math.max(1, es.length - 2), hiK = Math.min(rs.length - start, es.length + 3);
-            for (let k = loK; k <= hiK; k++) {
-                const sim = 1 - _wed(rs.substr(start, k), es) / es.length;
-                if (sim > best.sim) best = { sim, start, len: k };
+
+    function paintMatch(entry, kind) {
+        if (!entry) return;
+        const b = els.passage.querySelector(`.wp-word[data-key="${entry.ayah}:${entry.wpos}"]`);
+        if (!b) return;
+        b.classList.remove('wp-reciting', 'wp-match-ok', 'wp-match-miss');
+        if (kind === 'red') b.classList.add('wp-match-miss');
+        if (kind === 'green') {
+            b.classList.add('wp-match-ok');
+            els.passage.querySelectorAll('.wp-reciting').forEach(el => el.classList.remove('wp-reciting'));
+            if (!els.follow || isPressed(els.follow)) {
+                b.classList.add('wp-reciting');
+                b.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
         }
-        return best;
     }
 
-    // Fetch the passage's reference phoneme entries {ph, ayah, wpos}.
     async function buildPhonemeRef() {
-        rec.ref = []; rec.wi = 0; rec.anchor = 0; rec.cur = null; rec.lastPhonemes = '';
+        rec.ref = []; rec.wi = 0; rec.anchor = 0; rec.cur = null; rec.lastPhonemes = ''; rec.sequencer = null;
         const s = +els.surah.value, f = +els.from.value, t = +els.to.value;
         try {
             const j = await window.AtharApi.json(`/api/waqf-practice/phonemes/${s}/${f}/${t}`);
-            rec.ref = (j.entries || []).map(e => ({ ph: e.ph, skel: _phSkel(e.ph), ayah: e.ayah, wpos: e.wpos }));
+            rec.ref = (j.entries || []).map(e => ({ ph: e.ph, ayah: e.ayah, wpos: e.wpos }));
         } catch (e) { rec.ref = []; }
+        if (window.AtharPhonemeDtw && rec.ref.length) {
+            rec.sequencer = window.AtharPhonemeDtw.createSequencer(rec.ref, {
+                maxSkipWords: 1,
+                isTajweed: true,
+                onCommit: (kind, entry) => {
+                    rec.cur = entry;
+                    rec.wi = rec.ref.indexOf(entry) + 1;
+                    paintMatch(entry, kind);
+                },
+            });
+        }
     }
 
     async function toggleRecord() {
@@ -565,63 +550,25 @@
     }
     function stopRecord() { try { window.MushafZipformer && window.MushafZipformer.stop(); } catch (e) {} }
 
-    function highlightWord(ayah, wpos) {
-        if (!els.follow || !isPressed(els.follow)) return;
+    function clearReciting() {
         els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting'));
-        const b = els.passage.querySelector(`.wp-word[data-key="${ayah}:${wpos}"]`);
-        if (b) { b.classList.add('wp-reciting'); b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
     }
-    function clearReciting() { els.passage.querySelectorAll('.wp-reciting').forEach(b => b.classList.remove('wp-reciting')); }
 
-    // Sliding-window resync alignment of the recited phoneme skeleton to the reference
-    // word entries. Unlike a committed cursor, it RE-ANCHORS on every advance and can
-    // look ahead to skip a garbled word and resync — so a single bad match never wedges
-    // the follow. (The old greedy cursor advanced its word pointer on a skip WITHOUT
-    // moving the recited cursor, cascading into a permanent stall — verified it froze
-    // the highlight for the rest of the passage after ~6 words even on clean input.)
-    // Mirrors the reference project (Iam-Muslim/ReciteQuran) phonetic matcher.
-    const _WP_ACCEPT = 0.5;        // confirm the current word at/above this similarity
-    const _WP_JUMP = 0.6;          // resync forward only on a clearly-strong lookahead
-    const _WP_LOOK = 5;            // upcoming words scanned when resyncing
-    const _WP_PRIOR = 0.06;        // per-word penalty for jumping ahead (favour chronological)
     function alignPhonemes(recited) {
         rec.lastPhonemes = recited || '';
-        const rs = _phSkel(recited);
-        let advanced = false, guard = 0;
-        while (rec.wi < rec.ref.length && guard++ < rec.ref.length + _WP_LOOK) {
-            const es = rec.ref[rec.wi].skel;
-            if (!es) { rec.wi++; continue; }
-            const tail = rs.length - rec.anchor;
-            if (tail < es.length - 1) break;                   // wait for more recited input
-
-            const m = _bestMatch(rs, rec.anchor, es);
-            if (m.sim >= _WP_ACCEPT) {                          // current word matched here
-                rec.anchor = m.start + m.len;
-                rec.cur = rec.ref[rec.wi]; highlightWord(rec.cur.ayah, rec.cur.wpos); rec.wi++; advanced = true; continue;
-            }
-            // current word didn't match — has the reciter already moved ahead of it?
-            let jump = null, expStart = rec.anchor;
-            for (let i = rec.wi + 1; i <= Math.min(rec.wi + _WP_LOOK, rec.ref.length - 1); i++) {
-                expStart += rec.ref[i - 1].skel.length;
-                if (rs.length - expStart < rec.ref[i].skel.length - 1) break;   // not recited yet
-                const mi = _bestMatch(rs, expStart, rec.ref[i].skel);
-                const score = mi.sim - (i - rec.wi) * _WP_PRIOR;
-                if (score >= _WP_JUMP && (!jump || score > jump.score)) jump = { score, i, end: mi.start + mi.len };
-            }
-            if (jump) {                                         // resync forward to where the reciter is
-                rec.anchor = jump.end; rec.wi = jump.i + 1;
-                rec.cur = rec.ref[jump.i]; highlightWord(rec.cur.ayah, rec.cur.wpos); advanced = true; continue;
-            }
-            if (tail > es.length + 6) {                         // waited too long: step past, keep pace
-                rec.anchor = Math.min(rs.length, rec.anchor + es.length);
-                rec.cur = rec.ref[rec.wi]; highlightWord(rec.cur.ayah, rec.cur.wpos); rec.wi++; advanced = true; continue;
-            }
-            break;
-        }
-        if (advanced) setRecNote(`تابعتُ ${toAr(rec.wi)} / ${toAr(rec.ref.length)}`);
+        if (!rec.sequencer) return;
+        const follow = !els.follow || isPressed(els.follow);
+        const before = rec.wi;
+        rec.sequencer.process(recited);
+        if (follow && rec.wi !== before) setRecNote(`تابعتُ ${toAr(rec.wi)} / ${toAr(rec.ref.length)}`);
     }
-    // A detected pause (model silence) seals the current word as a stop.
+    // Silence = وقف: ReciteQuran 1.0.1 honors sukoon — commit the current word,
+    // do not jump past it.
     function markAutoStop() {
+        if (rec.sequencer) {
+            const sealed = rec.sequencer.onSilence();
+            if (sealed) rec.cur = sealed;
+        }
         if (!rec.cur) return;
         const key = rec.cur.ayah + ':' + rec.cur.wpos;
         if (state.stops.has(key)) return;

@@ -20,7 +20,10 @@ wheels/
 .installed.cfg
 *.egg
 
-# Virtual Environment
+# Virtual Environment — one project env: `.venv`
+.venv/
+.venv-cv/
+.venv-kraken/
 venv/
 env/
 ENV/
@@ -78,6 +81,14 @@ reciters/husary/word_alignment.json
 # DB backups/snapshots — kept locally only, never committed
 data/*.backup_*.db
 data/*.backup*.db
+data/*.bak
+data/*.bak-*
+data/*-pr49.db
+data/*.db.bak*
+.tmp-mesaha/
+
+# One-off agent prompts — not product source
+*_prompt.md
 # Optional test/offline fallback for contemporary توجيه — never commit
 data/tawjih.db
 
@@ -102,9 +113,7 @@ static/asr/asr_model.q8.onnx
 tokenizer.model
 streaming_global_cmvn.npz
 
-# Recitation (تسميع) feature — the JS is shipped (used by /waqf-practice), but
-# the model binaries stay local. Ignore the folder CONTENTS (not the dir) so the
-# tiny derived config below can be negated back in.
+# Recitation (تسميع) — Zipformer binaries stay local. Tiny derived config is tracked.
 static/asr/*
 static/asr_test.html
 
@@ -147,7 +156,6 @@ data/cv/crops_labeled/
 data/cv/crops_hand/
 data/cv/word_boxes_mesaha.sqlite
 data/cv/overlays/
-.venv-cv/
 artifacts/cv-waqf/
 models/backup/
 models/*.hand.onnx

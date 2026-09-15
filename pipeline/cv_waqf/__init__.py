@@ -2,7 +2,7 @@
 
 Keep this out of the public Flask reading path. Run via:
 
-    .venv-cv/bin/python -m pipeline.cv_waqf <command> ...
+    .venv/bin/python -m pipeline.cv_waqf <command> ...
 """
 from __future__ import annotations
 
