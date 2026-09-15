@@ -132,7 +132,8 @@ def check_online(pin: dict) -> list[str]:
     pages = pin["pages"]
     engine = pin["engine"]
     tags = github_tags()
-    newest_tag = latest_semver_tag(tags)
+    engine_tags = [tag for tag in tags if parse_version(tag) and not tag.startswith("data-")]
+    newest_tag = latest_semver_tag(engine_tags)
     acknowledged = engine["acknowledged_git_tag"]
     if newest_tag and version_gt(newest_tag, acknowledged):
         problems.append(

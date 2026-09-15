@@ -1,18 +1,18 @@
 {
   "pages": {
-    "release": "v0.1.0",
+    "release": "v0.2.0",
     "format": 1,
-    "cdn": "https://qvp.quran.ws"
+    "cdn": "https://cdn.quran.ws/qvp"
   },
   "engine": {
     "npm_package": "@quran.ws/engine",
     "npm": "0.1.0",
-    "acknowledged_git_tag": "v0.2.0",
+    "acknowledged_git_tag": "v0.2.2",
     "consumed": "lite-fork"
   },
   "lite": {
     "source_path": "web/lite.mjs",
-    "source_ref": "v0.1.0",
+    "source_ref": "v0.2.2",
     "athar_extensions": [
       "path family/mark columns",
       "hideWaqf",
@@ -20,5 +20,5 @@
       "pauseBox"
     ]
   },
-  "notes": "Page files are immutable CDN versions. 0.2.0 is a C-ABI rename; QVP1 is unchanged. Athar keeps the lite fork until overlay (family/mark) lands upstream. Bump this pin after reviewing a new tag or npm version — do not float to latest."
+  "notes": "data-v0.2.0 rebuilds all 604 pages from quran-svg-elements v1.1.1 (ayah medallions, one p540 mark). Format is still QVP1; word keys are byte-identical to v0.1.0. Engine 0.2.1/0.2.2 is Android/Swift packaging. Lite still drops family/mark, so Athar keeps the fork. npm is 0.1.0."
 }
