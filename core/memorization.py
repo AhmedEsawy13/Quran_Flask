@@ -329,6 +329,36 @@ _memorization_word_ts = {}      # reciter_id -> word-timestamps dict (cached)
 _memorization_lock = threading.Lock()
 
 
+def normalize_qul_word_timestamps(raw):
+    """Return Athar's verse-keyed shape: ``{'_meta', '1:1': [[start,end], words], ...}``.
+
+    QUL v2 stored one key per verse. QUL v3.0.0 (`schema_version` 3) stores
+    ``rows=[[ref,start,end,canonical,silence_after,words], ...]``. Extra rows
+    for the same ref are recitation repeats; we keep them in audio order so
+    pause/repeat detection still sees word-index resets.
+    """
+    if not isinstance(raw, dict):
+        return raw
+    meta = raw.get('_meta') or {}
+    if int(meta.get('schema_version') or 1) < 3 or 'rows' not in raw:
+        return raw
+    grouped = defaultdict(list)
+    for row in raw.get('rows') or []:
+        if not row:
+            continue
+        grouped[str(row[0])].append(row)
+    out = {'_meta': meta}
+    for ref, rows in grouped.items():
+        rows.sort(key=lambda item: item[1] if len(item) > 1 else 0)
+        start = rows[0][1] if len(rows[0]) > 1 else 0
+        end = rows[-1][2] if len(rows[-1]) > 2 else start
+        words = []
+        for item in rows:
+            words.extend(item[5] if len(item) > 5 else [])
+        out[ref] = [[start, end], words]
+    return out
+
+
 def _load_memorization_word_ts(reciter_id=_DEFAULT_MEMO_RECITER):
     """Lazy-load + cache a reciter's surah-absolute word timestamps."""
     if reciter_id in _memorization_word_ts:
@@ -338,7 +368,7 @@ def _load_memorization_word_ts(reciter_id=_DEFAULT_MEMO_RECITER):
             cfg = _memo_reciter_cfg(reciter_id)
             path = os.path.join(cfg['dir'], 'word_timestamps.json.gz')
             with gzip.open(path, 'rt', encoding='utf-8') as fh:
-                _memorization_word_ts[reciter_id] = json.load(fh)
+                _memorization_word_ts[reciter_id] = normalize_qul_word_timestamps(json.load(fh))
     return _memorization_word_ts[reciter_id]
 
 
