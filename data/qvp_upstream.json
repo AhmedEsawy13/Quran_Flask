@@ -1,6 +1,6 @@
 {
   "pages": {
-    "release": "v0.2.0",
+    "release": "v0.3.0",
     "format": 1,
     "cdn": "https://cdn.quran.ws/qvp"
   },
@@ -20,5 +20,5 @@
       "pauseBox"
     ]
   },
-  "notes": "data-v0.2.0 rebuilds all 604 pages from quran-svg-elements v1.1.1 (ayah medallions, one p540 mark). Format is still QVP1; word keys are byte-identical to v0.1.0. Engine 0.2.1/0.2.2 is Android/Swift packaging. Lite still drops family/mark, so Athar keeps the fork. npm is 0.1.0."
+  "notes": "Auto-synced pages v0.3.0 from quran-ws/quran-engine. Format still QVP1. Athar lite fork kept for family/mark overlay."
 }

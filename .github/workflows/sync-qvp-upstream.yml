@@ -1,0 +1,67 @@
+name: Sync quran-engine / QVP pages
+
+# Checks https://github.com/quran-ws/quran-engine releases and the QVP CDN.
+# When a newer data tag or engine tag appears, bumps the pin and opens a PR.
+# Does not rewrite the Athar lite decoder (family/mark overlay stays ours).
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-qvp-upstream
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Apply newer quran-engine pin
+        id: apply
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/check_qvp_upstream.py --apply | tee /tmp/qvp-sync.log
+
+      - name: Open pull request
+        if: steps.apply.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet -- data/qvp_upstream.json frontend/lib/qvp.ts; then
+            echo "apply reported a change but git is clean; nothing to commit."
+            exit 0
+          fi
+
+          branch="chore/qvp-upstream-sync"
+          git checkout -B "$branch"
+          git add data/qvp_upstream.json frontend/lib/qvp.ts
+          git commit -m "chore(qvp): sync pin from quran-engine release"
+          git push -u origin "$branch" --force
+
+          open=$(gh pr list --head "$branch" --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh pr edit "$open" --body-file /tmp/qvp-sync.log
+            echo "updated existing PR #$open"
+            exit 0
+          fi
+
+          gh pr create \
+            --title "Sync QVP pin from quran-engine release" \
+            --body-file /tmp/qvp-sync.log
