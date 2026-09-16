@@ -49,6 +49,15 @@ def test_qvp_pin_matches_frontend_release():
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def test_qvp_autosync_workflow_is_wired():
+    workflow = (PROJECT_ROOT / ".github/workflows/sync-qvp-upstream.yml").read_text(encoding="utf-8")
+    assert "scripts/check_qvp_upstream.py --apply" in workflow
+    assert "quran-ws/quran-engine" in workflow
+    checker = (PROJECT_ROOT / "scripts/check_qvp_upstream.py").read_text(encoding="utf-8")
+    assert "--apply" in checker
+    assert "def apply_updates" in checker
+
+
 def test_qvp_upstream_has_not_drifted():
     env = os.environ.copy()
     env.setdefault("QVP_UPSTREAM_STRICT", "1")
