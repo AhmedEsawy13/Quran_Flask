@@ -24,16 +24,15 @@ UTHMANI_BASMALA = 'بِسۡمِ ٱللَّهِ ٱلرَّحۡمَٰنِ ٱلرّ
 
 
 def normalize_amiri_quran_text(text):
-    """Keep QPC/script dammatan as-is so الأزهر matches المساحة.
+    """Map QPC/script dammatan to Amiri Quran's open form (am9li9 encoding).
 
-    QPC and quran_script store the standing dammatan as U+065E. An older
-    Amiri-only path remapped that to open dammatan U+08F1; that made the
-    reader/layout look different from Mesaha (which serves raw script text).
-    Keep U+065E so both editions share the same tanween. AmiriQuran's cmap
-    lacks U+065E — the reader/Studio stacks fall back to Uthmanic Hafs for
-    that mark (same as Mesaha in Layout Studio).
+    QPC and quran_script store standing dammatan as U+065E. Amiri Quran (used
+    by Azhar and by am9li9.com) has no glyph for U+065E, so that mark falls
+    back to Uthmanic Hafs and breaks letter joining (e.g. إفك / مبين on page
+    293). Remap to open dammatan U+08F1, which Amiri covers — the same
+    encoding am9li9 ships in its Amiri Quran surah text files.
     """
-    return text or ''
+    return (text or '').replace('ٞ', 'ࣱ')
 
 
 def _normalize_for_search(text):
