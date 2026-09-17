@@ -183,22 +183,16 @@ export function WaqfWorkspace() {
     return [...positions].sort((a, b) => a - b);
   }, [unionByWpos, marksByWpos]);
 
-  useEffect(() => {
-    if (!data || selectedStopWpos !== null || !stopPositions.length) return;
-    setSelectedStopWpos(stopPositions[0]);
-  }, [data, selectedStopWpos, stopPositions]);
+  // Prefer an explicit user selection; otherwise the first stop on the ayah.
+  // Derived (not an effect) so eslint react-hooks/set-state-in-effect stays clean.
+  const activeStopWpos =
+    selectedStopWpos !== null
+      ? selectedStopWpos
+      : (stopPositions.length ? stopPositions[0] : null);
 
-  useEffect(() => {
-    setOpenImamKey(null);
-  }, [selectedStopWpos, surahNumber, ayahNumber]);
-
-  const selectedUnion = selectedStopWpos === null ? null : unionByWpos.get(selectedStopWpos) || null;
-  const selectedMarks = selectedStopWpos === null ? [] : marksByWpos.get(selectedStopWpos) || [];
-  const selectedClassical = classical?.entries.filter((entry) => entry.wpos === selectedStopWpos) || [];
-  const selectedTawjih = useMemo(() => {
-    if (selectedStopWpos === null) return [];
-    return (tawjih?.entries || []).filter((entry) => tawjihSpanCoversWpos(entry, selectedStopWpos));
-  }, [tawjih, selectedStopWpos]);
+  const selectedUnion = activeStopWpos === null ? null : unionByWpos.get(activeStopWpos) || null;
+  const selectedMarks = activeStopWpos === null ? [] : marksByWpos.get(activeStopWpos) || [];
+  const selectedClassical = classical?.entries.filter((entry) => entry.wpos === activeStopWpos) || [];
 
   const bestStops = useMemo(() => {
     if (!data) return [];
@@ -287,6 +281,7 @@ export function WaqfWorkspace() {
         setSelectedReciterId((current) => nextProfiles.some((profile) => profile.id === current)
           ? current
           : defaultProfile?.id || "");
+        setOpenImamKey(null);
         setSelectedStopWpos(
           Number.isInteger(initialWpos) && initialWpos >= 0 && initialWpos < waqf.words.length
             ? initialWpos
@@ -380,11 +375,13 @@ export function WaqfWorkspace() {
     setAyahNumber(1);
   };
 
-  const stepAyah = async (delta: -1 | 1) => {
+  const stepAyah = useCallback(async (delta: -1 | 1) => {
     const lastAyah = ayahNumbers[ayahNumbers.length - 1] || 1;
     const nextAyah = ayahNumber + delta;
+    setOpenImamKey(null);
     if (nextAyah >= 1 && nextAyah <= lastAyah) {
       setAyahNumber(nextAyah);
+      setSelectedStopWpos(null);
       return;
     }
     if (delta < 0 && surahNumber > 1) {
@@ -393,19 +390,22 @@ export function WaqfWorkspace() {
       stop();
       setSurahNumber(previousSurah);
       setAyahNumber(numbers[numbers.length - 1] || 1);
+      setSelectedStopWpos(null);
       return;
     }
     if (delta > 0 && surahNumber < 114) {
       stop();
       setSurahNumber(surahNumber + 1);
       setAyahNumber(1);
+      setSelectedStopWpos(null);
     }
-  };
+  }, [ayahNumber, ayahNumbers, surahNumber, stop, loadAyahNumbers]);
 
-  const selectStop = (wpos: number) => {
+  const selectStop = useCallback((wpos: number) => {
     setSelectedStopWpos(wpos);
+    setOpenImamKey(null);
     scrollToComparison();
-  };
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -423,7 +423,7 @@ export function WaqfWorkspace() {
       if (event.key === "[" || event.key === "]") {
         if (!stopPositions.length) return;
         event.preventDefault();
-        const current = selectedStopWpos === null ? -1 : stopPositions.indexOf(selectedStopWpos);
+        const current = activeStopWpos === null ? -1 : stopPositions.indexOf(activeStopWpos);
         if (event.key === "]") {
           const next = current < 0 ? 0 : Math.min(stopPositions.length - 1, current + 1);
           selectStop(stopPositions[next]);
@@ -435,7 +435,7 @@ export function WaqfWorkspace() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [selectedStopWpos, stopPositions, surahNumber, ayahNumber, ayahNumbers]);
+  }, [activeStopWpos, stopPositions, stepAyah, selectStop]);
 
   const selectBreath = (nextBreath: BreathProfile) => {
     setBreath(nextBreath);
@@ -648,7 +648,7 @@ export function WaqfWorkspace() {
                     type="button"
                     className={`inline-flex cursor-pointer items-center gap-1 border-0 border-s-2 bg-transparent px-2 py-0.5 text-[0.82rem] hover:border-athar-accent ${stopItem.mushaf ? "border-athar-accent" : "border-athar-line"}`}
                     key={stopItem.wpos}
-                    onClick={() => setSelectedStopWpos(stopItem.wpos)}
+                    onClick={() => selectStop(stopItem.wpos)}
                   >
                     <span className="font-athar-quran text-base font-bold">{data.words[stopItem.wpos]}</span>
                     <span className="text-[0.68rem] font-extrabold text-athar-accent">{toArabicDigits(Math.round(stopItem.count / data.reciters_total * 100))}٪</span>
@@ -662,7 +662,7 @@ export function WaqfWorkspace() {
                   const marks = marksByWpos.get(index) || [];
                   const isStop = Boolean(union || marks.length);
                   return (
-                    <span className={`waqf-word-unit${selectedStopWpos === index ? " is-selected" : ""}${tawjihLinked.has(index) ? " is-tawjih" : ""}`} key={`${word}-${index}`}>
+                    <span className={`waqf-word-unit${activeStopWpos === index ? " is-selected" : ""}${tawjihLinked.has(index) ? " is-tawjih" : ""}`} key={`${word}-${index}`}>
                       <span className="waqf-word">{word}</span>
                       {isStop ? (
                         <button
@@ -704,11 +704,11 @@ export function WaqfWorkspace() {
             </ToolCard>
 
             <div id="waqf-comparison">
-              {selectedStopWpos !== null ? (
+              {activeStopWpos !== null ? (
                 <div className="grid gap-3.5">
                   <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2 text-[0.84rem] text-athar-ink-soft">
                     <span>بعد كلمة</span>
-                    <strong className="font-athar-quran text-[1.35rem] text-athar-ink">{data.words[selectedStopWpos]}</strong>
+                    <strong className="font-athar-quran text-[1.35rem] text-athar-ink">{data.words[activeStopWpos]}</strong>
                     {selectedUnion?.solo ? (
                       <em className="rounded-full bg-[var(--wq-solo-soft)] px-2 py-0.5 text-[0.68rem] not-italic font-bold text-[var(--wq-solo)]">انفراد قارئ</em>
                     ) : null}
@@ -721,10 +721,10 @@ export function WaqfWorkspace() {
                         <div className="wq-score-body">
                           <div className="wq-score-track">
                             {data.mushafs.map((mushaf) => {
-                              const mark = mushaf.marks.find((item) => item.wpos === selectedStopWpos);
+                              const mark = mushaf.marks.find((item) => item.wpos === activeStopWpos);
                               const majority = majorityWaqfSymbol(
                                 data.mushafs
-                                  .map((edition) => edition.marks.find((item) => item.wpos === selectedStopWpos)?.symbol)
+                                  .map((edition) => edition.marks.find((item) => item.wpos === activeStopWpos)?.symbol)
                                   .filter((symbol): symbol is string => Boolean(symbol)),
                               );
                               const minority = Boolean(
@@ -759,11 +759,11 @@ export function WaqfWorkspace() {
                               const name = reciter.name_ar || detail?.name_ar || reciter.id;
                               const stopped = Boolean(
                                 selectedUnion?.reciters.includes(reciter.id)
-                                || detail?.stops.some((item) => item.wpos === selectedStopWpos),
+                                || detail?.stops.some((item) => item.wpos === activeStopWpos),
                               );
                               const native = isNativeAudio(detail?.audio_url || null);
                               const playable = stopped && native;
-                              const key = `stop:${reciter.id}:${selectedStopWpos}`;
+                              const key = `stop:${reciter.id}:${activeStopWpos}`;
                               return (
                                 <button
                                   type="button"
@@ -779,7 +779,7 @@ export function WaqfWorkspace() {
                                   title={name}
                                   aria-label={name}
                                   disabled={!playable}
-                                  onClick={() => playReciterStop(reciter.id, selectedStopWpos)}
+                                  onClick={() => playReciterStop(reciter.id, activeStopWpos)}
                                 />
                               );
                             })}
@@ -788,7 +788,7 @@ export function WaqfWorkspace() {
                             const stopped = data.reciters.filter((reciter) => {
                               const detail = data.per_reciter[reciter.id];
                               return selectedUnion?.reciters.includes(reciter.id)
-                                || Boolean(detail?.stops.some((item) => item.wpos === selectedStopWpos));
+                                || Boolean(detail?.stops.some((item) => item.wpos === activeStopWpos));
                             });
                             if (!stopped.length) {
                               return <p className="wq-score-empty">لم يقف قارئ مسجّل في هذا الموضع.</p>;
@@ -803,7 +803,7 @@ export function WaqfWorkspace() {
                                     <button
                                       type="button"
                                       className="wq-score-listen"
-                                      onClick={() => playReciterStop(audience.id, selectedStopWpos)}
+                                      onClick={() => playReciterStop(audience.id, activeStopWpos)}
                                     >
                                       استمع الجمهور
                                     </button>
