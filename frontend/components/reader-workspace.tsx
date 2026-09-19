@@ -58,17 +58,19 @@ function parsePositiveInteger(value: string | null, fallback: number) {
 
 function mushafVersionQuery(editionId: MushafEditionId, waqfSource: string) {
   const edition = MUSHAF_EDITIONS[editionId];
-  // Azhar/Shamarly pages only carry their own waqf version — don't filter with a Madinah leftover.
-  const activeWaqfSource =
-    editionId === "azhar_amiri" || editionId === "shamarly"
-      ? (edition.waqfSource as WaqfSource)
-      : waqfSource;
-
   if (editionId === "azhar_amiri" || editionId === "shamarly" || isQvpEdition(editionId)) {
     const version = isQvpEdition(editionId) ? waqfSource : edition.waqfSource;
     return `?mushaf_version=${encodeURIComponent(version)}`;
   }
   return "";
+}
+
+function editionWaqfSource(editionId: MushafEditionId, waqfSource: WaqfSource): WaqfSource {
+  // Azhar/Shamarly pages only carry their own waqf version — ignore a Madinah leftover.
+  if (editionId === "azhar_amiri" || editionId === "shamarly") {
+    return MUSHAF_EDITIONS[editionId].waqfSource as WaqfSource;
+  }
+  return waqfSource;
 }
 
 function firstVerseOnPage(page: MushafPage) {
@@ -121,6 +123,8 @@ export function ReaderWorkspace() {
   const [tajweedEnabled, setTajweedEnabled] = useState(false);
   const [waqfEnabled, setWaqfEnabled] = useState(true);
   const [waqfSource, setWaqfSource] = useState<WaqfSource>("المدينة الجديد");
+  // Keep printed waqf marks in sync with the selected mushaf edition.
+  const activeWaqfSource = editionWaqfSource(editionId, waqfSource);
   const [catalogError, setCatalogError] = useState("");
   const [contentResult, setContentResult] = useState<ContentResult>({
     requestKey: "",
