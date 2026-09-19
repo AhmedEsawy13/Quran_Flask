@@ -65,6 +65,14 @@ function mushafVersionQuery(editionId: MushafEditionId, waqfSource: string) {
   return "";
 }
 
+function editionWaqfSource(editionId: MushafEditionId, waqfSource: WaqfSource): WaqfSource {
+  // Azhar/Shamarly pages only carry their own waqf version — ignore a Madinah leftover.
+  if (editionId === "azhar_amiri" || editionId === "shamarly") {
+    return MUSHAF_EDITIONS[editionId].waqfSource as WaqfSource;
+  }
+  return waqfSource;
+}
+
 function firstVerseOnPage(page: MushafPage) {
   for (const line of page.lines) {
     for (const word of line.words) {
@@ -115,6 +123,8 @@ export function ReaderWorkspace() {
   const [tajweedEnabled, setTajweedEnabled] = useState(false);
   const [waqfEnabled, setWaqfEnabled] = useState(true);
   const [waqfSource, setWaqfSource] = useState<WaqfSource>("المدينة الجديد");
+  // Keep printed waqf marks in sync with the selected mushaf edition.
+  const activeWaqfSource = editionWaqfSource(editionId, waqfSource);
   const [catalogError, setCatalogError] = useState("");
   const [contentResult, setContentResult] = useState<ContentResult>({
     requestKey: "",
@@ -130,7 +140,7 @@ export function ReaderWorkspace() {
   const [marginMode, setMarginMode] = useState(() => searchParams.get("margins") === "1");
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [reciterId, setReciterId] = useState("husary");
-  const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${waqfSource}:${retryToken}`;
+  const requestKey = `${view}:${editionId}:${surahNumber}:${ayahNumber}:${activeWaqfSource}:${retryToken}`;
   const visibleResult = contentResult.requestKey === requestKey ? contentResult : null;
   const pageFontName = editionId === "shamarly" && visibleResult?.page?.glyph_mapping_mode === "shemrly-page-local"
     ? visibleResult.page.font_name
@@ -144,7 +154,7 @@ export function ReaderWorkspace() {
     ? spreadPageNumbers(visiblePageNumber, edition.minPage, edition.maxPage)
     : [null, null];
   const spreadRequestKey = dualActive && visiblePageNumber
-    ? `${editionId}:${waqfSource}:${rightPageNumber || 0}:${leftPageNumber || 0}:${retryToken}`
+    ? `${editionId}:${activeWaqfSource}:${rightPageNumber || 0}:${leftPageNumber || 0}:${retryToken}`
     : "";
   const [spreadResult, setSpreadResult] = useState<SpreadResult>({requestKey: "", right: null, left: null, error: ""});
   const visibleSpread = spreadResult.requestKey === spreadRequestKey ? spreadResult : null;
@@ -258,7 +268,7 @@ export function ReaderWorkspace() {
     const controller = new AbortController();
     const edition = MUSHAF_EDITIONS[editionId];
     const path = view === "page"
-      ? `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${mushafVersionQuery(editionId, waqfSource)}`
+      ? `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${ayahNumber}${mushafVersionQuery(editionId, activeWaqfSource)}`
       : `/backend-api/surahs/${surahNumber}/ayahs/${ayahNumber}?source=qpc_hafs`;
     getJson<Ayah | MushafPage>(path, controller.signal)
       .then((data) => {
@@ -284,7 +294,7 @@ export function ReaderWorkspace() {
   useEffect(() => {
     if (!dualActive || !visibleResult?.page || !spreadRequestKey) return;
     const controller = new AbortController();
-    const query = mushafVersionQuery(editionId, waqfSource);
+    const query = mushafVersionQuery(editionId, activeWaqfSource);
     const loadPage = (pageNumber: number | null) => {
       if (!pageNumber) return Promise.resolve(null);
       if (visibleResult.page?.page_number === pageNumber) return Promise.resolve(visibleResult.page);
@@ -359,7 +369,7 @@ export function ReaderWorkspace() {
     setMoving(true);
     try {
       const target = await getJson<MushafPage>(
-        `/backend-api/${edition.apiBase}/page/${safePage}${mushafVersionQuery(editionId, waqfSource)}`,
+        `/backend-api/${edition.apiBase}/page/${safePage}${mushafVersionQuery(editionId, activeWaqfSource)}`,
       );
       const position = firstVerseOnPage(target);
       if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
@@ -431,7 +441,7 @@ export function ReaderWorkspace() {
     setMoving(true);
     try {
       const target = await getJson<MushafPage>(
-        `/backend-api/${selectedEdition.apiBase}/page/${targetPage}${mushafVersionQuery(editionId, waqfSource)}`,
+        `/backend-api/${selectedEdition.apiBase}/page/${targetPage}${mushafVersionQuery(editionId, activeWaqfSource)}`,
       );
       const position = firstVerseOnPage(target);
       if (!position) throw new Error("لم يُعثر على أول آية في الصفحة.");
@@ -883,7 +893,7 @@ export function ReaderWorkspace() {
                   tajweedLoading={tajweedLoading}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
-                  waqfSource={waqfSource}
+                  waqfSource={activeWaqfSource}
                   dualLayout
                   onSurahNavigate={() => setNavigatorMode("surah")}
                   onJuzNavigate={() => setNavigatorMode("juz")}
@@ -909,7 +919,7 @@ export function ReaderWorkspace() {
                   tajweedLoading={tajweedLoading}
                   tajweedSegmentsByWord={tajweedSegmentsByWord}
                   waqfEnabled={waqfEnabled}
-                  waqfSource={waqfSource}
+                  waqfSource={activeWaqfSource}
                   dualLayout
                   onSurahNavigate={() => setNavigatorMode("surah")}
                   onJuzNavigate={() => setNavigatorMode("juz")}
@@ -936,7 +946,7 @@ export function ReaderWorkspace() {
               tajweedLoading={tajweedLoading}
               tajweedSegmentsByWord={tajweedSegmentsByWord}
               waqfEnabled={waqfEnabled}
-              waqfSource={waqfSource}
+              waqfSource={activeWaqfSource}
               onSurahNavigate={() => setNavigatorMode("surah")}
               onJuzNavigate={() => setNavigatorMode("juz")}
               onPageNavigate={() => setNavigatorMode("page")}

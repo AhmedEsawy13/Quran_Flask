@@ -527,7 +527,7 @@ test("مختبر الوقف searches words and opens a verse in مُكْث", asy
   await expect(firstHit).toBeVisible();
   await firstHit.click();
   await expect(page).toHaveURL(/\/waqf\?/);
-  await expect(page.getByRole("heading", {name: /الآية/})).toBeVisible({timeout: 15_000});
+  await expect(page.getByRole("heading", {name: /سورة .+ · الآية|الآية [٠-٩]/}).first()).toBeVisible({timeout: 15_000});
   await expectNoHorizontalOverflow(page);
 });
 

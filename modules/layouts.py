@@ -1459,15 +1459,23 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
             line_word_ids.extend(
                 (effective_word_map.get('append_after_id') or {}).get(last_word_id, [])
             )
+            # Amiri Quran editions (Mesaha via this assemble path) need the
+            # same dammatan remap Azhar already applies: U+065E → U+08F1.
+            # Raw quran_script stores standing dammatan as U+065E; Amiri has
+            # no glyph for it, so joins break without the remap.
+            amiri_font = 'amiri' in (font_name_default or '').lower()
             for word_id in line_word_ids:
                 tok = id2tok.get(word_id)
                 if not tok:
                     continue
+                word_text = tok['text']
+                if amiri_font:
+                    word_text = normalize_amiri_quran_text(word_text)
                 word = {
                     'word_index': word_id,
                     'word_id_space': effective_word_map.get('id_space'),
                     'word_key': tok.get('word_key') or '',
-                    'text': tok['text'],
+                    'text': word_text,
                     'surah': tok['surah'],
                     'ayah': tok['ayah'],
                     'waqf_symbols': ''
@@ -1489,12 +1497,20 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
                 and _looks_like_basmala_text(line.get('line_text'))
             ):
                 line_type = 'basmallah'
-                display_text = bismillah
+                display_text = (
+                    normalize_amiri_quran_text(bismillah)
+                    if 'amiri' in (font_name_default or '').lower()
+                    else bismillah
+                )
         elif line_type == 'surah_name':
             surah_name = _get_surah_name_ar(line_surah)
             display_text = f"سورة {surah_name}" if surah_name else ''
         elif line_type == 'basmallah':
-            display_text = bismillah
+            display_text = (
+                normalize_amiri_quran_text(bismillah)
+                if 'amiri' in (font_name_default or '').lower()
+                else bismillah
+            )
 
         out_line = {
             'line_number': to_int_or_none(line.get('line_number')),

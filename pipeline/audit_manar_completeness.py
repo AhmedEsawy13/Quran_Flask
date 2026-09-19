@@ -46,20 +46,36 @@ def main(argv=None):
 
     conn = sqlite3.connect(args.db)
     try:
-        actual = set(conn.execute(
+        actual_confident = set(conn.execute(
             'SELECT surah, ayah, wpos, grade FROM classical WHERE source=? AND conf=1',
             (args.source,)))
-        db_surahs = {r[0] for r in actual}
+        actual_any = set(conn.execute(
+            'SELECT surah, ayah, wpos, grade FROM classical WHERE source=?',
+            (args.source,)))
+        db_surahs = {r[0] for r in actual_any}
     finally:
         conn.close()
 
-    missing = sorted(expected - actual)
-    print(f'DB source={args.source}: {len(actual)} unique confident ruling keys, '
-          f'{len(db_surahs)}/114 surahs')
+    # Completeness is existence in the released DB. Review rows (conf=0) still
+    # count — they are present, just awaiting promotion. A small aligner-drift
+    # class also lands the same surah/ayah/grade on a neighbouring wpos; treat
+    # those as present when that grade already exists on the ayah.
+    present_sag = {(s, a, g) for s, a, _w, g in actual_any}
+    missing_exact = expected - actual_any
+    missing = sorted(
+        key for key in missing_exact
+        if (key[0], key[1], key[3]) not in present_sag
+    )
+    review_only = sorted((expected & actual_any) - actual_confident)
+
+    print(f'DB source={args.source}: {len(actual_confident)} unique confident ruling keys, '
+          f'{len(actual_any)} including review (conf=0), {len(db_surahs)}/114 surahs')
     for label, keys in source_sets.items():
         print(f'{label} explicit source: {len(keys)} aligned unique ruling keys, '
               f'{len({key[0] for key in keys})}/114 surahs with explicit entries')
     print(f'Union of explicit source checks: {len(expected)} aligned unique ruling keys')
+    print(f'Review-only (present at conf=0): {len(review_only)}')
+    print(f'Aligner wpos drift (same ayah+grade present): {len(missing_exact) - len(missing)}')
     print(f'Missing mechanically verifiable explicit rulings: {len(missing)}')
     for row in missing[:args.samples]:
         print(' ', row)

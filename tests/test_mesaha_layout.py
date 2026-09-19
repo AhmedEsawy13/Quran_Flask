@@ -75,6 +75,20 @@ def test_mesaha_opening_middle_final_pages(client):
     assert by_ayah.get_json()['page_number'] == 827
 
 
+
+def test_mesaha_amiri_dammatan_matches_azhar(client):
+    """Mesaha uses Amiri Quran — standing dammatan must be U+08F1 like Azhar."""
+    page = client.get('/api/layout-studio/mesaha/page/61').get_json()
+    assert page['font_name'] == 'Amiri Quran'
+    joined = []
+    for line in page['lines']:
+        joined.append(line.get('display_text') or '')
+        for word in line.get('words') or []:
+            joined.append(word.get('text') or '')
+    text = chr(10).join(joined)
+    assert chr(0x065E) not in text
+    assert chr(0x08F1) in text
+
 def test_mesaha_database_has_exact_canonical_continuity():
     layout = sqlite3.connect(MESAHA_LAYOUT_DATABASE)
     script = sqlite3.connect(QURAN_SCRIPT_DATABASE)
