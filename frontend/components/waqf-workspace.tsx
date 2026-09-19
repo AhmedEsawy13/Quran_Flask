@@ -859,6 +859,18 @@ export function WaqfWorkspace() {
                           )}
                         </div>
                       </section>
+                      <section className="wq-score-row" aria-labelledby="wq-score-tawjih">
+                        <h3 className="wq-score-label" id="wq-score-tawjih">توجيه</h3>
+                        <div className="wq-score-body">
+                          {(tawjih?.entries || []).length ? (
+                            <p className="wq-score-caption">
+                              {toArabicDigits((tawjih?.entries || []).length)} توجيه معاصر لهذا الموضع — التفصيل أسفل الآية.
+                            </p>
+                          ) : (
+                            <p className="wq-score-empty">لا يتوفر توجيه معاصر موثّق لهذا الموضع بعد.</p>
+                          )}
+                        </div>
+                      </section>
                     </div>
                   </div>
                 </div>
