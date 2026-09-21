@@ -5,7 +5,7 @@ import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 const AYAH_NUMBER_TOKEN = /^\u06dd?[٠-٩]+$/;
 
 /** Must match data/qvp_upstream.json pages.release. Bump both after a CDN data release. */
-export const QVP_RELEASE = "v0.3.0";
+export const QVP_RELEASE = "v0.4.0";
 export const QVP_CDN_HOST = "https://cdn.quran.ws/qvp";
 export const QVP_CDN = `${QVP_CDN_HOST}/${QVP_RELEASE}`;
 export const QVP_PAGE_ASPECT = 345 / 550;

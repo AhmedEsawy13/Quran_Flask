@@ -1,18 +1,18 @@
 {
   "pages": {
-    "release": "v0.3.0",
+    "release": "v0.4.0",
     "format": 1,
     "cdn": "https://cdn.quran.ws/qvp"
   },
   "engine": {
     "npm_package": "@quran.ws/engine",
-    "npm": "0.1.0",
-    "acknowledged_git_tag": "v0.2.2",
+    "npm": "0.3.0",
+    "acknowledged_git_tag": "v0.3.0",
     "consumed": "lite-fork"
   },
   "lite": {
     "source_path": "web/lite.mjs",
-    "source_ref": "v0.2.2",
+    "source_ref": "v0.3.0",
     "athar_extensions": [
       "path family/mark columns",
       "hideWaqf",
@@ -20,5 +20,5 @@
       "pauseBox"
     ]
   },
-  "notes": "Auto-synced pages v0.3.0 from quran-ws/quran-engine. Format still QVP1. Athar lite fork kept for family/mark overlay."
+  "notes": "Auto-synced pages v0.4.0 from quran-ws/quran-engine. Format still QVP1. Athar lite fork kept for family/mark overlay."
 }
