@@ -44,7 +44,7 @@ type SpreadResult = {
   error: string;
 };
 
-type ReaderSupportPanel = "audio" | "study" | "guide";
+type ReaderSupportPanel = "study" | "guide";
 type ReaderNavigator = "surah" | "juz" | "page";
 
 function clampInteger(value: number, minimum: number, maximum: number) {
@@ -137,6 +137,8 @@ export function ReaderWorkspace() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [navigatorMode, setNavigatorMode] = useState<ReaderNavigator | null>(null);
   const [supportPanel, setSupportPanel] = useState<ReaderSupportPanel | null>(null);
+  // The player docks under the page (not a modal) so highlighted words stay visible.
+  const [audioOpen, setAudioOpen] = useState(false);
   const [marginMode, setMarginMode] = useState(() => searchParams.get("margins") === "1");
   const [activeAudioWord, setActiveAudioWord] = useState<number | null>(null);
   const [reciterId, setReciterId] = useState("husary");
@@ -289,7 +291,7 @@ export function ReaderWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [positionReady, view, editionId, surahNumber, ayahNumber, retryToken, requestKey, waqfSource]);
+  }, [positionReady, view, editionId, surahNumber, ayahNumber, activeWaqfSource, requestKey]);
 
   useEffect(() => {
     if (!dualActive || !visibleResult?.page || !spreadRequestKey) return;
@@ -315,7 +317,7 @@ export function ReaderWorkspace() {
         });
       });
     return () => controller.abort();
-  }, [dualActive, edition, editionId, leftPageNumber, rightPageNumber, spreadRequestKey, visibleResult?.page, waqfSource]);
+  }, [activeWaqfSource, dualActive, edition, editionId, leftPageNumber, rightPageNumber, spreadRequestKey, visibleResult?.page]);
 
   useEffect(() => {
     if (!positionReady) return;
@@ -380,7 +382,7 @@ export function ReaderWorkspace() {
     } finally {
       setMoving(false);
     }
-  }, [edition.apiBase, edition.maxPage, edition.minPage, editionId, navigateToVerse, waqfSource]);
+  }, [activeWaqfSource, edition.apiBase, edition.maxPage, edition.minPage, editionId, navigateToVerse]);
 
   const jumpToJuz = (juz: number) => {
     const position = juzStartPosition(juz);
@@ -488,16 +490,16 @@ export function ReaderWorkspace() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [nextDisabled, previousDisabled]);
 
-  const openSupportAfterSettings = (panel: ReaderSupportPanel) => {
+  const openSupportAfterSettings = (panel: ReaderSupportPanel | "audio") => {
     setSettingsOpen(false);
+    if (panel === "audio") {
+      setAudioOpen(true);
+      return;
+    }
     window.requestAnimationFrame(() => setSupportPanel(panel));
   };
 
-  const supportTitle = supportPanel === "audio"
-    ? "الاستماع والتكرار"
-    : supportPanel === "study"
-      ? "هوامش الفهم"
-      : "مفتاح الصفحة";
+  const supportTitle = supportPanel === "study" ? "فهم الآية" : "مفتاح الصفحة";
 
   return (
     <section className="reader-workspace relative grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)] gap-2" aria-label="قارئ المصحف">
@@ -516,10 +518,11 @@ export function ReaderWorkspace() {
           </Button>
           <Button
             size="icon"
-            variant="ghost"
             className="size-[34px] shrink-0 rounded-[10px]"
-            aria-label="فتح مشغّل التلاوة"
-            onClick={() => setSupportPanel("audio")}
+            variant={audioOpen ? "quiet" : "ghost"}
+            aria-label={audioOpen ? "إخفاء مشغّل التلاوة" : "فتح مشغّل التلاوة"}
+            aria-pressed={audioOpen}
+            onClick={() => setAudioOpen((current) => !current)}
           >
             <AtharIcon name="play" className="size-[17px]" />
           </Button>
@@ -595,9 +598,10 @@ export function ReaderWorkspace() {
           <div className="flex items-center gap-1 self-end border-s border-athar-line-soft ps-2">
             <Button
               size="sm"
-              variant="ghost"
+              variant={audioOpen ? "quiet" : "ghost"}
               className="gap-1.5 px-2.5"
-              onClick={() => setSupportPanel("audio")}
+              aria-pressed={audioOpen}
+              onClick={() => setAudioOpen((current) => !current)}
             >
               <AtharIcon name="play" className="size-3.5" />
               استماع
@@ -633,7 +637,7 @@ export function ReaderWorkspace() {
             <Button
               size="sm"
               variant={layout === "dual" ? "quiet" : "ghost"}
-              className="hidden gap-1.5 px-2.5 xl:inline-flex"
+              className="hidden gap-1.5 px-2.5 min-[1680px]:inline-flex"
               aria-pressed={layout === "dual"}
               disabled={view !== "page" || marginMode}
               onClick={() => setLayout((current) => current === "dual" ? "single" : "dual")}
@@ -961,7 +965,7 @@ export function ReaderWorkspace() {
           <button type="button" className="reader-margin-action" onClick={() => setSupportPanel("study")}>
             <span>الفهم</span><strong>التفسير والمعاني</strong>
           </button>
-          <button type="button" className="reader-margin-action" onClick={() => setSupportPanel("audio")}>
+          <button type="button" className="reader-margin-action" onClick={() => setAudioOpen((current) => !current)}>
             <span>السماع</span><strong>التلاوة والتكرار</strong>
           </button>
           <button type="button" className="reader-margin-action" onClick={() => setSupportPanel("guide")}>
@@ -971,6 +975,20 @@ export function ReaderWorkspace() {
         </aside>
       </div>
 
+      {audioOpen ? (
+        <div className="athar-sheet min-w-0">
+          <ReaderAudio
+            surahNumber={surahNumber}
+            ayahNumber={ayahNumber}
+            onAdvance={advanceAfterAudio}
+            atLastAyah={atLastAyah}
+            onWordChange={setActiveAudioWord}
+            onReciterChange={setReciterId}
+            onClose={() => setAudioOpen(false)}
+          />
+        </div>
+      ) : null}
+
       <DrawerSurface
         open={supportPanel !== null}
         onClose={() => setSupportPanel(null)}
@@ -979,16 +997,6 @@ export function ReaderWorkspace() {
         id="reader-support-drawer"
         overlay
       >
-        {supportPanel === "audio" ? (
-          <ReaderAudio
-            surahNumber={surahNumber}
-            ayahNumber={ayahNumber}
-            onAdvance={advanceAfterAudio}
-            atLastAyah={atLastAyah}
-            onWordChange={setActiveAudioWord}
-            onReciterChange={setReciterId}
-          />
-        ) : null}
         {supportPanel === "study" ? (
           <ReaderStudy
             surahNumber={surahNumber}

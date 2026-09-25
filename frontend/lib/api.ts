@@ -354,8 +354,30 @@ async function readJsonBody<T>(response: Response): Promise<T | ApiErrorBody> {
   try {
     return (await response.json()) as T | ApiErrorBody;
   } catch {
+    // An HTML error page (proxy 502, Flask 404) is not JSON — report the status instead.
+    if (!response.ok) throw new ApiError(statusMessage(response.status), response.status);
     throw new Error("تعذّر قراءة استجابة الخادم.");
   }
+}
+
+/** A failed API read; `status` lets callers tell "no data here" (404) from an outage. */
+export class ApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+const ARABIC_LETTER = /[؀-ۿ]/;
+
+function statusMessage(status: number) {
+  if (status === 404) return "لا تتوفر بيانات لهذا الموضع بعد.";
+  if (status === 429) return "طلبات كثيرة في وقت قصير — انتظر لحظة ثم أعد المحاولة.";
+  if (status >= 500) return "الخادم غير متاح الآن — أعد المحاولة بعد قليل.";
+  return `تعذّر الاتصال بالخادم (${status}).`;
 }
 
 function errorMessage(body: ApiErrorBody | unknown, status: number) {
@@ -363,7 +385,8 @@ function errorMessage(body: ApiErrorBody | unknown, status: number) {
     body && typeof body === "object" && "error" in body
       ? (body as ApiErrorBody).error
       : undefined;
-  return message || `تعذّر الاتصال بالخادم (${status}).`;
+  // The Flask API mixes Arabic and English errors; the UI is Arabic-only.
+  return message && ARABIC_LETTER.test(message) ? message : statusMessage(status);
 }
 
 export async function getJson<T>(
@@ -375,7 +398,7 @@ export async function getJson<T>(
     headers: { Accept: "application/json" },
   });
   const body = await readJsonBody<T>(response);
-  if (!response.ok) throw new Error(errorMessage(body, response.status));
+  if (!response.ok) throw new ApiError(errorMessage(body, response.status), response.status);
   return body as T;
 }
 
@@ -390,7 +413,7 @@ export async function getJsonAccepting<T>(
   });
   const body = await readJsonBody<T>(response);
   if (!response.ok && !acceptedStatuses.includes(response.status)) {
-    throw new Error(errorMessage(body, response.status));
+    throw new ApiError(errorMessage(body, response.status), response.status);
   }
   return body as T;
 }
@@ -410,6 +433,6 @@ export async function postJson<T>(
     body: JSON.stringify(payload),
   });
   const body = await readJsonBody<T>(response);
-  if (!response.ok) throw new Error(errorMessage(body, response.status));
+  if (!response.ok) throw new ApiError(errorMessage(body, response.status), response.status);
   return body as T;
 }

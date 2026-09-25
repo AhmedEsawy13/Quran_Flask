@@ -14,7 +14,8 @@ import {
   type TafseerCollection,
 } from "@/lib/api";
 import { toArabicDigits } from "@/lib/mushaf";
-import { Button, DrawerSurface, Field, SelectControl, StatusState } from "@/components/ui/primitives";
+import { Field, SelectControl, StatusState } from "@/components/ui/primitives";
+import { cn } from "@/lib/cn";
 
 type StudyTool = "meanings" | "tafseer" | "eerab" | "mutashabihat" | "asbab" | "transliteration" | "study";
 
@@ -118,7 +119,8 @@ export function ReaderStudy({
   surahs,
   onNavigate,
 }: ReaderStudyProps) {
-  const [activeTool, setActiveTool] = useState<StudyTool | null>(null);
+  // Already inside the "فهم الآية" drawer — open straight into the tafsir, no second tap or nested dialog.
+  const [activeTool, setActiveTool] = useState<StudyTool>("tafseer");
   const [verseResult, setVerseResult] = useState<VerseResult>({key: "", data: null, error: ""});
   const [tafseerResult, setTafseerResult] = useState<TafseerResult>({key: "", data: null, error: ""});
   const [mutashabihatResult, setMutashabihatResult] = useState<MutashabihatResult>({key: "", data: null, error: ""});
@@ -283,7 +285,6 @@ export function ReaderStudy({
     return () => controller.abort();
   }, [activeTool, eerab, verseKey, surahNumber, ayahNumber]);
 
-  const activeLabel = tools.find((tool) => tool.id === activeTool)?.label || "";
   const tafseerText = useMemo(
     () => selectedTafseer && tafseers ? tafseers[selectedTafseer] : "",
     [selectedTafseer, tafseers],
@@ -295,31 +296,36 @@ export function ReaderStudy({
       className="mx-auto w-full max-w-[790px] scroll-mt-[calc(var(--bar-height)+5rem)]"
       aria-label="أدوات فهم الآية"
     >
-      <div className="grid grid-cols-2 gap-1.5 rounded-[15px] border border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_82%,transparent)] p-1.5 sm:grid-cols-3 lg:grid-cols-4">
-        {tools.map((tool) => (
-          <Button
-            key={tool.id}
-            size="sm"
-            variant={activeTool === tool.id ? "primary" : "ghost"}
-            className="w-full px-2"
-            aria-expanded={activeTool === tool.id}
-            aria-controls={activeTool === tool.id ? "reader-study-drawer" : undefined}
-            onClick={() => setActiveTool((current) => current === tool.id ? null : tool.id)}
-          >
-            {tool.label}
-          </Button>
-        ))}
+      <div
+        className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:flex-wrap sm:overflow-visible"
+        role="tablist"
+        aria-label="أدوات فهم الآية"
+      >
+        {tools.map((tool) => {
+          const active = activeTool === tool.id;
+          return (
+            <button
+              type="button"
+              role="tab"
+              key={tool.id}
+              id={`reader-study-tab-${tool.id}`}
+              aria-selected={active}
+              aria-controls="reader-study-panel"
+              className={cn(
+                "min-h-9 shrink-0 cursor-pointer rounded-full border px-3.5 text-[0.8rem] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent",
+                active
+                  ? "border-athar-accent bg-athar-accent text-athar-on-accent shadow-sm"
+                  : "border-athar-line bg-athar-surface text-athar-ink-soft hover:border-athar-accent/50 hover:text-athar-ink",
+              )}
+              onClick={() => setActiveTool(tool.id)}
+            >
+              {tool.label}
+            </button>
+          );
+        })}
       </div>
 
-      {activeTool ? (
-        <DrawerSurface
-          open
-          id="reader-study-drawer"
-          eyebrow={`الآية ${toArabicDigits(surahNumber)}:${toArabicDigits(ayahNumber)}`}
-          title={activeLabel}
-          onClose={() => setActiveTool(null)}
-          overlay
-        >
+      <div id="reader-study-panel" role="tabpanel" aria-labelledby={`reader-study-tab-${activeTool}`} className="mt-1">
           {needsAyah && !ayahData && !verseError ? <StatusState tone="loading">جارٍ تحميل بيانات الآية…</StatusState> : null}
           {verseError ? <StatusState tone="error">{verseError}</StatusState> : null}
 
@@ -381,10 +387,7 @@ export function ReaderStudy({
                         type="button"
                         className="grid w-full cursor-pointer gap-3 rounded-[13px] border border-athar-line-soft bg-athar-canvas p-4 text-start text-athar-ink transition-colors hover:border-athar-accent"
                         key={match.verse_key}
-                        onClick={() => {
-                          onNavigate(match.surah, match.ayah);
-                          setActiveTool(null);
-                        }}
+                        onClick={() => onNavigate(match.surah, match.ayah)}
                         aria-label={`انتقل إلى سورة ${surahName} الآية ${toArabicDigits(match.ayah)}`}
                       >
                         <span className="flex items-center justify-between gap-3">
@@ -457,8 +460,7 @@ export function ReaderStudy({
               </Link>
             </div>
           ) : null}
-        </DrawerSurface>
-      ) : null}
+      </div>
     </section>
   );
 }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  ApiError,
   getJson,
   type ClassicalWaqfPayload,
   type SearchHit,
@@ -43,6 +44,8 @@ type WaqfResult = {
   classical: ClassicalWaqfPayload | null;
   tawjih: TawjihPayload | null;
   error: string;
+  /** The API has no reciter timings for this ayah yet (404) — not an outage. */
+  missing?: boolean;
 };
 
 type BreathProfile = "short" | "medium" | "long";
@@ -296,6 +299,7 @@ export function WaqfWorkspace() {
           classical: null,
           tawjih: null,
           error: reason instanceof Error ? reason.message : "تعذّر تحميل دليل الوقف.",
+          missing: reason instanceof ApiError && reason.status === 404,
         });
       });
     return () => controller.abort();
@@ -409,6 +413,8 @@ export function WaqfWorkspace() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      // Leave browser/OS shortcuts (Alt+←, ⌘[, Ctrl+K…) alone.
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
       if (typingTarget(event.target)) return;
       if (event.key === "j" || event.key === "ك" || event.key === "ArrowLeft") {
         event.preventDefault();
@@ -491,7 +497,7 @@ export function WaqfWorkspace() {
   return (
     <div aria-label="مساحة مُكْث لدراسة الوقف">
       <ToolIntro
-        kicker="— مُكْث"
+        kicker="مُكْث"
         title="علامة المصحــف، ووقف القارئ، وقول الإمام."
         titleId="wq-title"
         titleAriaLabel="علامة المصحف، ووقف القارئ، وقول الإمام."
@@ -624,7 +630,14 @@ export function WaqfWorkspace() {
       </ToolChrome>
 
       <ToolStack>
-        {catalogError || visible?.error ? (
+        {!catalogError && visible?.missing ? (
+          <StatusState
+            className="min-h-24 flex-col items-start justify-center gap-3 sm:flex-row sm:items-center sm:justify-between"
+            action={<Button size="sm" variant="secondary" onClick={() => void stepAyah(1)}>الآية التالية</Button>}
+          >
+            لم تُحلَّل وقوف القرّاء لهذه الآية بعد. جرّب آية أخرى، أو اقرأها في المصحف مع علامات الوقف المطبوعة.
+          </StatusState>
+        ) : catalogError || visible?.error ? (
           <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>
             {catalogError || visible?.error}
           </StatusState>

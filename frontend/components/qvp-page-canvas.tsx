@@ -241,7 +241,7 @@ export function QvpPageCanvas({
               item.surah === mark.surah && item.ayah === mark.ayah && item.word === mark.word
             );
             if (!word) return null;
-            const [x0, y0, x1, y1] = pauseSlot(word, pauseSize);
+            const [x0, y0, x1] = pauseSlot(word, pauseSize);
             const {scale, x, y, dpr} = overlayView;
             const centerX = (x + (x0 + x1) / 2 * scale) / dpr;
             const inkTop = (y + y0 * scale) / dpr;
