@@ -156,30 +156,28 @@ test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
     ? mobileListen
     : page.getByRole("button", {name: "استماع", exact: true}).first();
   await listenShortcut.click();
-  const audioDrawer = page.getByRole("dialog", {name: "الاستماع والتكرار"});
-  await expect(audioDrawer.getByRole("region", {name: "مشغّل التلاوة"})).toBeVisible();
-  await expect(audioDrawer.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
-  await audioDrawer.getByRole("button", {name: "إغلاق الاستماع والتكرار"}).click();
+  // The player docks under the page (no modal) so the highlighted words stay visible.
+  const player = page.getByRole("region", {name: "مشغّل التلاوة"});
+  await expect(player).toBeVisible();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(player.locator("audio")).toHaveAttribute("src", /002\.mp3|audio-proxy/);
+  await player.getByRole("button", {name: "إغلاق مشغّل التلاوة"}).click();
+  await expect(player).toBeHidden();
   const mobileStudy = page.getByRole("button", {name: "فتح هوامش فهم الآية"});
   const studyShortcut = await mobileStudy.isVisible()
     ? mobileStudy
     : page.getByRole("button", {name: "فهم الآية", exact: true}).first();
   await studyShortcut.click();
-  const studyDrawer = page.getByRole("dialog", {name: "هوامش الفهم"});
+  const studyDrawer = page.getByRole("dialog", {name: "فهم الآية"});
   await expect(studyDrawer.getByRole("region", {name: "أدوات فهم الآية"})).toBeVisible();
-  await expect(studyDrawer.getByRole("button", {name: "المتشابهات"})).toBeVisible();
-  await expect(studyDrawer.getByRole("button", {name: "سبب النزول"})).toBeVisible();
-  const studyTrigger = studyDrawer.getByRole("button", {name: "أدوات الدراسة", exact: true});
-  await expect(studyTrigger).not.toHaveAttribute("aria-controls");
-  await studyTrigger.click();
-  await expect(studyTrigger).toHaveAttribute("aria-controls", "reader-study-drawer");
-  const nestedStudyDrawer = page.getByRole("dialog", {name: "أدوات الدراسة"});
-  await expect(nestedStudyDrawer.getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=256&to=256");
-  const closeStudy = nestedStudyDrawer.getByRole("button", {name: "إغلاق أدوات الدراسة"});
-  await expect(closeStudy).toBeFocused();
-  await closeStudy.click();
-  await expect(studyTrigger).toBeFocused();
-  await studyDrawer.getByRole("button", {name: "إغلاق هوامش الفهم"}).click();
+  // Tools are tabs inside the one drawer — opening one never stacks a second dialog.
+  await expect(studyDrawer.getByRole("tab", {name: "التفسير"})).toHaveAttribute("aria-selected", "true");
+  await expect(studyDrawer.getByRole("tab", {name: "المتشابهات"})).toBeVisible();
+  await expect(studyDrawer.getByRole("tab", {name: "سبب النزول"})).toBeVisible();
+  await studyDrawer.getByRole("tab", {name: "أدوات الدراسة", exact: true}).click();
+  await expect(page.getByRole("dialog")).toHaveCount(1);
+  await expect(studyDrawer.getByRole("tabpanel").getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=256&to=256");
+  await studyDrawer.getByRole("button", {name: "إغلاق فهم الآية"}).click();
 
   const tajweedButton = page.getByRole("button", {name: "تلوين التجويد", exact: true});
   if (await tajweedButton.isVisible()) {
@@ -298,7 +296,7 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   test.setTimeout(60_000);
   await page.goto("/waqf?surah=2&ayah=255");
   await expect(page.getByRole("heading", {level: 1, name: "علامة المصحف، ووقف القارئ، وقول الإمام."})).toBeVisible();
-  await expect(page.getByText("— مُكْث", {exact: true})).toBeVisible();
+  await expect(page.getByRole("region", {name: "علامة المصحف، ووقف القارئ، وقول الإمام."}).getByText("مُكْث", {exact: true})).toBeVisible();
   await expect(page.getByRole("region", {name: "اختيار موضع الدراسة"})).toBeVisible();
   const practiceLink = page.getByRole("link", {name: "تدرّب على هذا الموضع", exact: true}).first();
   await expect(practiceLink).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
@@ -509,7 +507,7 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
 test("مختبر الوقف searches words and opens a verse in مُكْث", async ({page}) => {
   await page.goto("/waqf-lab");
   await expect(page.getByRole("heading", {level: 1, name: "ادرس عبر القرآن، لا آيةً واحدة فقط."})).toBeVisible();
-  await expect(page.getByText("— مختبر الوقف", {exact: true})).toBeVisible();
+  await expect(page.getByRole("region", {name: "ادرس عبر القرآن، لا آيةً واحدة فقط."}).getByText("مختبر الوقف", {exact: true})).toBeVisible();
   await expect(page.getByRole("tab", {name: /كلمات وأنماط/})).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('a[href="/waqf"][aria-current="page"]')).toHaveCount(0);
   const saktatTab = page.getByRole("tab", {name: "السكتات", exact: true});
@@ -534,7 +532,7 @@ test("مختبر الوقف searches words and opens a verse in مُكْث", asy
 test("تدريب grades tapped stops against the printed mushaf", async ({page}) => {
   await page.goto("/waqf-practice?surah=2&from=255&to=255");
   await expect(page.getByRole("heading", {level: 1, name: "علّم وقفك، وقيّمه بالمطبوع."})).toBeVisible();
-  await expect(page.getByText("— تدريب", {exact: true})).toBeVisible();
+  await expect(page.getByRole("region", {name: "علّم وقفك، وقيّمه بالمطبوع."}).getByText("تدريب", {exact: true})).toBeVisible();
   await expect(page.getByRole("region", {name: "إعدادات التدريب"})).toBeVisible();
   await expect(page.getByLabel("ملخص مقطع التدريب")).toContainText("سورة البقرة · ٢٥٥");
   await expect(page.locator(".reader-page.is-practice").first()).toBeVisible({timeout: 15_000});

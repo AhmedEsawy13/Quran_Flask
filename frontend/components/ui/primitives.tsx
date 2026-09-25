@@ -21,7 +21,7 @@ const buttonVariants: Record<ButtonVariant, string> = {
   secondary: "border-athar-line bg-athar-surface text-athar-ink hover:border-athar-accent hover:text-athar-accent",
   quiet: "border-athar-line-soft bg-athar-line-soft text-athar-ink-soft hover:bg-athar-line hover:text-athar-ink",
   ghost: "border-transparent bg-transparent text-athar-ink-soft hover:bg-athar-line-soft hover:text-athar-ink",
-  danger: "border-red-700/25 bg-red-700/8 text-red-800 hover:bg-red-700/12",
+  danger: "border-athar-negative/30 bg-athar-negative/8 text-athar-negative hover:bg-athar-negative/14",
 };
 
 const buttonSizes: Record<ButtonSize, string> = {
@@ -42,7 +42,7 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 border font-athar-ui font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent",
+        "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 border font-athar-ui font-semibold transition-[background-color,border-color,color,transform] active:scale-[.97] disabled:cursor-not-allowed disabled:active:scale-100 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent",
         buttonVariants[variant],
         buttonSizes[size],
         className,
@@ -344,7 +344,7 @@ type StatusTone = "neutral" | "loading" | "error";
 const statusTones: Record<StatusTone, string> = {
   neutral: "border-athar-line-soft bg-athar-line-soft text-athar-ink-soft",
   loading: "border-athar-line-soft bg-athar-line-soft text-athar-ink-soft",
-  error: "border-red-700/25 bg-red-700/8 text-red-800",
+  error: "border-athar-negative/30 bg-athar-negative/8 text-athar-negative",
 };
 
 export function StatusState({
@@ -442,7 +442,7 @@ export function DrawerSurface({
       <button
         type="button"
         className={cn(
-          "fixed inset-0 z-[58] cursor-default border-0 bg-black/30 backdrop-blur-[2px]",
+          "athar-scrim fixed inset-0 z-[58] cursor-default border-0 bg-black/35 backdrop-blur-[2px]",
           !overlay && "md:hidden",
         )}
         aria-label={`إغلاق ${title}`}
@@ -452,14 +452,15 @@ export function DrawerSurface({
         as="section"
         id={drawerId}
         className={cn(
-          "fixed z-[60] overflow-y-auto p-5",
+          "athar-sheet fixed z-[60] overflow-y-auto overscroll-contain p-5 pt-3 shadow-athar-lg md:pt-5",
           overlay
-            ? "inset-x-0 bottom-0 max-h-[82dvh] rounded-t-[26px] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:inset-y-0 md:inset-inline-start-0 md:inset-inline-end-auto md:h-auto md:w-[min(26rem,100%)] md:max-h-none md:rounded-none md:border-e md:pb-5"
-            : "inset-x-0 bottom-0 max-h-[82dvh] rounded-t-[26px] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-3 md:max-h-none md:overflow-visible md:rounded-athar-md md:p-5",
+            ? "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-[28px] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:inset-y-0 md:start-0 md:end-auto md:max-h-none md:w-[min(28rem,100%)] md:rounded-none md:border-y-0 md:border-s-0 md:pb-5"
+            : "inset-x-0 bottom-0 max-h-[85dvh] rounded-t-[28px] pb-[max(1.25rem,env(safe-area-inset-bottom))] md:static md:mt-3 md:max-h-none md:overflow-visible md:rounded-athar-md md:p-5 md:shadow-none",
         )}
         role="dialog"
         aria-labelledby={titleId}
       >
+        <span aria-hidden="true" className="mx-auto mb-3 block h-1.5 w-10 rounded-full bg-athar-line md:hidden" />
         <header className={cn(
           "sticky top-0 z-10 mb-4 flex items-start justify-between gap-5 bg-athar-surface pb-3",
           !overlay && "md:static md:bg-transparent md:pb-0",
@@ -468,7 +469,9 @@ export function DrawerSurface({
             {eyebrow ? <span className="text-[0.7rem] font-bold text-athar-gold">{eyebrow}</span> : null}
             <h2 id={titleId} className="m-0 font-athar-display text-[clamp(1.8rem,4vw,2.5rem)] leading-tight text-athar-ink">{title}</h2>
           </div>
-          <IconButton data-drawer-close label={`إغلاق ${title}`} className="size-9 text-xl" onClick={onClose}>×</IconButton>
+          <IconButton data-drawer-close label={`إغلاق ${title}`} className="size-9 border-athar-line-soft bg-athar-line-soft text-athar-ink-soft" onClick={onClose}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="size-4 fill-none stroke-current stroke-2 [stroke-linecap:round]"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </IconButton>
         </header>
         {children}
       </Surface>

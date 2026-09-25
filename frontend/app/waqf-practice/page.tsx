@@ -15,7 +15,7 @@ export default function PracticePage() {
   return (
     <main id="athar-main" tabIndex={-1}>
       <ToolIntro
-        kicker="— تدريب"
+        kicker="تدريب"
         title="علِّم وقوفــك، وقيّمه بالمطبوع."
         titleId="wp-title"
         titleAriaLabel="علّم وقفك، وقيّمه بالمطبوع."

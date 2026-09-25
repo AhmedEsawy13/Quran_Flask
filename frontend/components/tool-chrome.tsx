@@ -22,7 +22,10 @@ export function ToolIntro({
       className="mx-auto grid w-full max-w-[1120px] gap-2.5 px-[clamp(14px,4vw,40px)] pt-[clamp(18px,4vw,52px)] pb-[clamp(12px,2.4vw,28px)]"
       aria-labelledby={titleId}
     >
-      <p className="m-0 text-[0.78rem] font-bold tracking-[0.04em] text-athar-gold">{kicker}</p>
+      <p className="m-0 inline-flex w-fit items-center gap-1.5 rounded-full border border-athar-gold/25 bg-athar-gold/8 px-2.5 py-0.5 text-[0.74rem] font-bold text-athar-gold">
+        <span aria-hidden="true" className="size-1.5 rounded-full bg-athar-gold" />
+        {kicker}
+      </p>
       <h1
         className="m-0 max-w-[18ch] font-athar-display text-[clamp(1.6rem,4.2vw,3.2rem)] font-black leading-[1.08] text-balance text-athar-ink [font-feature-settings:'salt'_1]"
         id={titleId}
@@ -30,7 +33,7 @@ export function ToolIntro({
       >
         {title}
       </h1>
-      <p className="m-0 max-w-[48ch] font-serif text-[clamp(0.86rem,1.4vw,1.02rem)] leading-[1.7] text-athar-ink-soft">
+      <p className="m-0 max-w-[52ch] font-athar-ui text-[clamp(0.9rem,1.4vw,1.05rem)] leading-[1.75] text-athar-ink-soft">
         {lede}
       </p>
       {children ? <div className="mt-1 flex flex-wrap gap-x-4 gap-y-2.5">{children}</div> : null}

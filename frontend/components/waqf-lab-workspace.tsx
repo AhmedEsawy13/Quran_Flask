@@ -178,7 +178,7 @@ export function WaqfLabWorkspace() {
   return (
     <div aria-label="مساحة مختبر الوقف">
       <ToolIntro
-        kicker="— مختبر الوقف"
+        kicker="مختبر الوقف"
         title="ادرس عبر القرآن، لا آيةً واحدة فقط."
         titleId="wq-lab-title"
         lede="ثلاث عائلات بحث: كلمات وأنماط، قرّاء، ومصاحف. أي نتيجة تفتح موضعها في مُكْث."
