@@ -67,8 +67,21 @@ type DrawOptions = {
   x?: number;
   y?: number;
   ink?: string;
-  hideWaqf?: boolean;
+  /** Athar: `true` hides every printed pause sign; a set hides only those words' signs. */
+  hideWaqf?: boolean | ReadonlySet<number>;
 };
+
+type Box = [number, number, number, number];
+
+function intersects(a: Box, b: Box) {
+  return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+}
+
+function median(values: number[], fallback: number) {
+  if (!values.length) return fallback;
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
 
 function asBytes(buffer: ArrayBuffer | ArrayBufferView) {
   return buffer instanceof ArrayBuffer
@@ -416,8 +429,12 @@ export class QvpLitePage {
   number: number;
   words: QvpWord[];
   pauseSize: {width: number; height: number};
+  /** Athar: median printed-sign placement relative to its word's ink (left edge, top). */
+  pauseOffset: {centerX: number; bottom: number};
   #paths: Array<{path: Path2D; rule: CanvasFillRule; family: number; mark: number}>;
   #decorationPaths: number[];
+  #pathBoxes: Box[];
+  #pathWord: Int32Array;
 
   constructor({width, height, number, paths, words}: QvpGeometry) {
     this.width = width;
@@ -432,6 +449,12 @@ export class QvpLitePage {
       width: pauseWidths[Math.floor(pauseWidths.length / 2)] || 2.4,
       height: pauseHeights[Math.floor(pauseHeights.length / 2)] || 2.8,
     };
+    const printed = words.filter((word) => word.pauseBox);
+    this.pauseOffset = {
+      centerX: median(printed.map((word) => (word.pauseBox![0] + word.pauseBox![2]) / 2 - word.inkBox[0]), 0),
+      bottom: median(printed.map((word) => word.pauseBox![3] - word.inkBox[1]), 0),
+    };
+    this.#pathBoxes = paths.map(({box}) => box);
     this.#paths = paths.map(({ops, pts, rule, family, mark}) => {
       const path = new Path2D();
       let point = 0;
@@ -448,12 +471,14 @@ export class QvpLitePage {
       return {path, rule, family, mark};
     });
     const wordPaths = new Uint8Array(this.#paths.length);
-    for (const {firstPath, nPaths} of words) {
+    this.#pathWord = new Int32Array(this.#paths.length).fill(-1);
+    words.forEach(({firstPath, nPaths}, wordIndex) => {
       for (let path = firstPath; path < firstPath + nPaths; path++) {
         if (wordPaths[path]) throw new Error("Overlapping QVP word paths");
         wordPaths[path] = 1;
+        this.#pathWord[path] = wordIndex;
       }
-    }
+    });
     this.#decorationPaths = Array.from(wordPaths, (owned, path) => owned ? -1 : path)
       .filter((path) => path >= 0);
   }
@@ -485,11 +510,53 @@ export class QvpLitePage {
       if (box) ctx.fillRect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
     }
     ctx.fillStyle = ink;
-    for (const {path, rule, family, mark} of this.#paths) {
-      if (hideWaqf && isQvpPausePath(family, mark)) continue;
+    this.#paths.forEach(({path, rule, family, mark}, index) => {
+      if (this.#hidden(index, family, mark, hideWaqf)) return;
       ctx.fill(path, rule);
-    }
+    });
     ctx.restore();
+  }
+
+  #hidden(index: number, family: number, mark: number, hideWaqf: DrawOptions["hideWaqf"]) {
+    if (!hideWaqf || !isQvpPausePath(family, mark)) return false;
+    return hideWaqf === true || (typeof hideWaqf === "object" && hideWaqf.has(this.#pathWord[index]));
+  }
+
+  /**
+   * Athar: where to draw another mushaf's sign for a word. The printed sign's
+   * own box when there is one; otherwise the page's typical placement for
+   * that word, lifted clear of every letter and ḥaraka around it.
+   */
+  pauseSlot(wordIndex: number, size: {width: number; height: number} = this.pauseSize): Box {
+    const word = this.words[wordIndex];
+    const {width, height} = size;
+    // Centre on the printed sign when there is one; otherwise on the page's
+    // typical spot for a sign after this word.
+    const centerX = word.pauseBox
+      ? (word.pauseBox[0] + word.pauseBox[2]) / 2
+      : word.inkBox[0] + this.pauseOffset.centerX;
+    let bottom = word.pauseBox
+      ? (word.pauseBox[1] + word.pauseBox[3]) / 2 + height / 2
+      : word.inkBox[1] + this.pauseOffset.bottom;
+    const gap = this.pauseSize.height * 0.12;
+    const neighbours = [wordIndex - 1, wordIndex, wordIndex + 1]
+      .filter((index) => this.words[index] && this.words[index].lineIdx === word.lineIdx);
+    const ink: Box[] = [];
+    for (const index of neighbours) {
+      const {firstPath, nPaths} = this.words[index];
+      for (let path = firstPath; path < firstPath + nPaths; path++) {
+        const {family, mark} = this.#paths[path];
+        if (!isQvpPausePath(family, mark)) ink.push(this.#pathBoxes[path]);
+      }
+    }
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const slot: Box = [centerX - width / 2, bottom - height, centerX + width / 2, bottom];
+      const padded: Box = [slot[0] - gap, slot[1] - gap, slot[2] + gap, slot[3] + gap];
+      const hits = ink.filter((box) => intersects(padded, box));
+      if (!hits.length) return slot;
+      bottom = Math.min(...hits.map((box) => box[1])) - gap;
+    }
+    return [centerX - width / 2, bottom - height, centerX + width / 2, bottom];
   }
 
   drawWords(ctx: CanvasRenderingContext2D, wordIndices: number[], options: DrawOptions = {}) {
@@ -521,7 +588,7 @@ export class QvpLitePage {
     ctx.fillStyle = ink;
     for (const index of pathIndices) {
       const {path, rule, family, mark} = this.#paths[index];
-      if (hideWaqf && isQvpPausePath(family, mark)) continue;
+      if (this.#hidden(index, family, mark, hideWaqf)) continue;
       ctx.fill(path, rule);
     }
     ctx.restore();

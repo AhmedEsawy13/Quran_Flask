@@ -3,6 +3,23 @@ import {WAQF_GLYPH_PATHS, type GlyphOutline} from "@/lib/waqf-glyph-paths";
 import {mushafFontClass, mushafGlyph} from "@/lib/waqf-lab";
 import {waqfMarkLabel} from "@/lib/waqf";
 
+/** Font-unit height of the commonest printed marks (صلى، قلى، ج): the reference for print size. */
+export const WAQF_GLYPH_REFERENCE_HEIGHT = (["\u06D6", "\u06D7", "\u06DA"] as const)
+  .map((char) => WAQF_GLYPH_PATHS.hafs[char].box)
+  .reduce((total, box) => total + (box[3] - box[1]), 0) / 3;
+
+/** Font-unit size of a mark as WaqfGlyph lays it out (several marks side by side). */
+export function waqfGlyphSize(symbol: string, mushafId = "") {
+  const warsh = mushafFontClass(mushafId) === "font-athar-warsh";
+  const outlines = [...mushafGlyph(symbol, mushafId)]
+    .map((char) => (warsh && WAQF_GLYPH_PATHS.warsh[char]) || WAQF_GLYPH_PATHS.hafs[char])
+    .filter((outline): outline is GlyphOutline => Boolean(outline));
+  const tallest = Math.max(1, ...outlines.map(({box}) => box[3] - box[1]));
+  const widths = outlines.map(({box}) => box[2] - box[0]);
+  const width = widths.reduce((total, value) => total + value, 0) + tallest * 0.18 * Math.max(0, widths.length - 1);
+  return {width: Math.max(1, width), height: tallest};
+}
+
 /** Share of the box the mark fills on its longer side. */
 const FILL = 0.72;
 

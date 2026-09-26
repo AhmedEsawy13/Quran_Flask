@@ -1,6 +1,6 @@
 import type { MushafPage, MushafWord } from "@/lib/api";
 import { loadPage, type QvpLitePage, type QvpWord } from "@/lib/qvp-lite";
-import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
+import { waqfMarkCanonical, waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 
 const AYAH_NUMBER_TOKEN = /^\u06dd?[٠-٩]+$/;
 
@@ -54,32 +54,63 @@ function wordWaqfEntries(word: MushafWord, waqfSource: string) {
   return word.waqf_symbols.filter((mark) => mark.version === waqfSource && mark.symbols.trim());
 }
 
-export function qvpWaqfOverlaysFromPage(page: MushafPage | null, waqfSource: string): QvpWaqfOverlay[] {
-  if (!page) return [];
+/** The mushaf the QVP pages were printed from; its marks are already in the ink. */
+export const QVP_PRINTED_WAQF_SOURCE = "المدينة الجديد";
+
+/**
+ * Page query for a QVP page: the chosen mushaf's marks plus the printed
+ * one's, so each word can be compared and left alone where they agree.
+ */
+export function qvpVersionQuery(waqfSource: string) {
+  const versions = [...new Set([waqfSource, QVP_PRINTED_WAQF_SOURCE].filter(Boolean))];
+  return `?${versions.map((version) => `mushaf_version=${encodeURIComponent(version)}`).join("&")}`;
+}
+
+export type QvpWaqfPlan = {
+  /** Signs to draw: only where the chosen mushaf differs from the print. */
+  overlays: QvpWaqfOverlay[];
+  /** Words (surah:ayah:word) whose printed sign must be hidden. */
+  replaced: Set<string>;
+};
+
+function canonicalMarks(symbols: string | undefined) {
+  return (symbols || "").split(/[،,]/).map((token) => waqfMarkCanonical(token)).filter(Boolean).sort().join(",");
+}
+
+/**
+ * Compare the chosen mushaf with the printed one word by word. Where they
+ * agree the printed sign stays untouched; where they differ the printed sign
+ * is hidden and the chosen one drawn in its place.
+ */
+export function qvpWaqfPlan(page: MushafPage | null, waqfSource: string): QvpWaqfPlan {
+  const plan: QvpWaqfPlan = {overlays: [], replaced: new Set()};
+  if (!page) return plan;
   const counts = new Map<string, number>();
-  const overlays: QvpWaqfOverlay[] = [];
   page.lines.forEach((line) => {
     line.words.forEach((word) => {
       if (word.suppress_render || AYAH_NUMBER_TOKEN.test((word.text || "").trim())) return;
       const surah = Number(word.surah);
       const ayah = Number(word.ayah);
       if (!Number.isInteger(surah) || !Number.isInteger(ayah) || surah < 1 || ayah < 1) return;
-      const key = `${surah}:${ayah}`;
-      const next = (counts.get(key) || 0) + 1;
-      counts.set(key, next);
-      const mark = wordWaqfEntries(word, waqfSource)[0];
-      if (!mark) return;
-      overlays.push({
+      const verse = `${surah}:${ayah}`;
+      const next = (counts.get(verse) || 0) + 1;
+      counts.set(verse, next);
+      const chosen = wordWaqfEntries(word, waqfSource)[0];
+      const printed = wordWaqfEntries(word, QVP_PRINTED_WAQF_SOURCE)[0];
+      if (canonicalMarks(chosen?.symbols) === canonicalMarks(printed?.symbols)) return;
+      plan.replaced.add(`${verse}:${next}`);
+      if (!chosen) return;
+      plan.overlays.push({
         surah,
         ayah,
         word: next,
-        glyph: waqfMarkGlyph(mark.symbols),
-        tone: waqfMarkTone(mark.symbols),
-        label: `${waqfMarkLabel(mark.symbols)} · ${mark.version}`,
+        glyph: waqfMarkGlyph(chosen.symbols),
+        tone: waqfMarkTone(chosen.symbols),
+        label: `${waqfMarkLabel(chosen.symbols)} · ${chosen.version}`,
       });
     });
   });
-  return overlays;
+  return plan;
 }
 
 export function canvasPointToPage(

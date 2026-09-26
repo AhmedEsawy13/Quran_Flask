@@ -15,6 +15,7 @@ import {
 import {
   MUSHAF_EDITIONS,
   isMushafEdition,
+  isQvpEdition,
   isReaderLayout,
   juzLabel,
   juzNumberForPage,
@@ -27,6 +28,7 @@ import {
   type ReaderLayout,
 } from "@/lib/mushaf";
 import { legacyUrl } from "@/lib/paths";
+import { qvpVersionQuery } from "@/lib/qvp";
 import { useEditionFont } from "@/lib/use-edition-font";
 import { usePageTajweed } from "@/lib/use-page-tajweed";
 import { topicColor, topicPathParts, type TopicWash } from "@/lib/topic-color";
@@ -194,8 +196,8 @@ function isWaqfSource(value: unknown): value is WaqfSource {
   return WAQF_SOURCES.includes(value as WaqfSource);
 }
 
-function mushafQuery(waqfSource: WaqfSource) {
-  return `?mushaf_version=${encodeURIComponent(waqfSource)}`;
+function mushafQuery(waqfSource: WaqfSource, editionId: MushafEditionId) {
+  return isQvpEdition(editionId) ? qvpVersionQuery(waqfSource) : `?mushaf_version=${encodeURIComponent(waqfSource)}`;
 }
 
 function pageFontName(editionId: MushafEditionId, page: MushafPage | null) {
@@ -516,7 +518,7 @@ export function MemorizeWorkspace() {
       return;
     }
     const controller = new AbortController();
-    const query = mushafQuery(waqfSource);
+    const query = mushafQuery(waqfSource, editionId);
     const path = pageOverride
       ? `/backend-api/${edition.apiBase}/page/${pageOverride}${query}`
       : `/backend-api/${edition.apiBase}/page-by-ayah/${surahNumber}/${activeAyah}${query}`;
@@ -536,7 +538,7 @@ export function MemorizeWorkspace() {
   useEffect(() => {
     if (!dualActive || !visiblePage?.page || !spreadKey) return;
     const controller = new AbortController();
-    const query = mushafQuery(waqfSource);
+    const query = mushafQuery(waqfSource, editionId);
     const loadPage = (pageNumber: number | null) => {
       if (!pageNumber) return Promise.resolve(null);
       if (visiblePage.page?.page_number === pageNumber) return Promise.resolve(visiblePage.page);

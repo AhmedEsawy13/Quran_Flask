@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { canvasPointToPage, loadQvpPage, prefetchQvpPages, type QvpWaqfOverlay } from "@/lib/qvp";
 import type { QvpLitePage, QvpView, QvpWord } from "@/lib/qvp-lite";
-import { WaqfGlyph } from "@/components/ui/waqf-glyph";
+import { WAQF_GLYPH_REFERENCE_HEIGHT, WaqfGlyph, waqfGlyphSize } from "@/components/ui/waqf-glyph";
 
 type QvpPageCanvasProps = {
   pageNumber: number;
@@ -13,7 +13,8 @@ type QvpPageCanvasProps = {
   focusRange?: readonly [number, number];
   concealFocused?: boolean;
   revealedAyahs?: ReadonlySet<number>;
-  hidePrintedWaqf?: boolean;
+  /** `true` hides every printed sign; a "surah:ayah:word|…" key list hides just those words'. */
+  hidePrintedWaqf?: boolean | string;
   waqfOverlays?: QvpWaqfOverlay[];
   onAyahClick?: (surah: number, ayah: number) => void;
   onWordTap?: (surah: number, ayah: number, word: number) => void;
@@ -25,13 +26,6 @@ function cssColor(name: string, fallback: string) {
   return value || fallback;
 }
 
-function pauseSlot(word: QvpWord, typical: {width: number; height: number}): [number, number, number, number] {
-  if (word.pauseBox) return word.pauseBox;
-  const [x0, y0] = word.inkBox || word.box;
-  const width = typical.width;
-  const height = typical.height;
-  return [x0 - width * 0.15, y0 - height * 0.2, x0 - width * 0.15 + width, y0 - height * 0.2 + height];
-}
 
 function hexAlpha(hex: string, alpha: number) {
   const raw = hex.replace("#", "");
@@ -80,7 +74,7 @@ function paintPage(
     focusRange?: readonly [number, number];
     concealFocused?: boolean;
     revealedAyahs?: ReadonlySet<number>;
-    hidePrintedWaqf?: boolean;
+    hidePrintedWaqf?: boolean | ReadonlySet<number>;
   },
 ): QvpView {
   const ratio = window.devicePixelRatio || 1;
@@ -158,7 +152,7 @@ export function QvpPageCanvas({
   const viewRef = useRef<QvpView>({scale: 1, x: 0, y: 0});
   const [overlayView, setOverlayView] = useState<QvpView & {dpr: number}>({scale: 1, x: 0, y: 0, dpr: 1});
   const [pageWords, setPageWords] = useState<QvpWord[]>([]);
-  const [pauseSize, setPauseSize] = useState({width: 2.4, height: 2.8});
+  const [loadedPage, setLoadedPage] = useState<QvpLitePage | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const requestKey = `${pageNumber}:${retryToken}`;
   const [loadedKey, setLoadedKey] = useState("");
@@ -178,7 +172,7 @@ export function QvpPageCanvas({
         if (!active) return;
         pageRef.current = page;
         setPageWords(page.words);
-        setPauseSize(page.pauseSize);
+        setLoadedPage(page);
         setLoadedKey(requestKey);
         prefetchQvpPages(pageNumber);
       })
@@ -186,7 +180,7 @@ export function QvpPageCanvas({
         if (!active) return;
         pageRef.current = null;
         setPageWords([]);
-        setPauseSize({width: 2.4, height: 2.8});
+        setLoadedPage(null);
         setFailure({
           key: requestKey,
           message: reason instanceof Error ? reason.message : "تعذّر تحميل صفحة QVP.",
@@ -197,13 +191,34 @@ export function QvpPageCanvas({
     };
   }, [pageNumber, requestKey, retryToken]);
 
+  // Each overlay goes in the printed sign's box, or a slot clear of all ink.
+  const overlaySlots = useMemo(() => {
+    if (!loadedPage) return [];
+    // Page units per font unit, from the printed signs: new marks are drawn
+    // at the print's own type size, centred where the printed sign (or its
+    // clear slot) sits — never squeezed into a differently shaped box.
+    const unit = loadedPage.pauseSize.height / WAQF_GLYPH_REFERENCE_HEIGHT;
+    return waqfOverlays.flatMap((mark) => {
+      const word = pageWords.find((item) => item.surah === mark.surah && item.ayah === mark.ayah && item.word === mark.word);
+      if (!word) return [];
+      const size = waqfGlyphSize(mark.glyph);
+      return [{mark, slot: loadedPage.pauseSlot(word.idx, {width: size.width * unit, height: size.height * unit})}];
+    });
+  }, [loadedPage, pageWords, waqfOverlays]);
+
+  const hiddenWaqf = useMemo(() => {
+    if (typeof hidePrintedWaqf !== "string") return hidePrintedWaqf;
+    const keys = new Set(hidePrintedWaqf.split("|").filter(Boolean));
+    return new Set(pageWords.filter((word) => keys.has(`${word.surah}:${word.ayah}:${word.word}`)).map((word) => word.idx));
+  }, [hidePrintedWaqf, pageWords]);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const page = pageRef.current;
     if (!canvas || !page || status !== "ready") return;
     const redraw = () => {
       const view = paintPage(canvas, page, {
-        surahNumber, ayahNumber, activeAudioWord, focusRange, concealFocused, revealedAyahs, hidePrintedWaqf,
+        surahNumber, ayahNumber, activeAudioWord, focusRange, concealFocused, revealedAyahs, hidePrintedWaqf: hiddenWaqf,
       });
       viewRef.current = view;
       setOverlayView({...view, dpr: window.devicePixelRatio || 1});
@@ -212,7 +227,7 @@ export function QvpPageCanvas({
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(redraw);
     observer?.observe(canvas);
     return () => observer?.disconnect();
-  }, [activeAudioWord, ayahNumber, concealFocused, focusRange, hidePrintedWaqf, revealedAyahs, status, surahNumber]);
+  }, [activeAudioWord, ayahNumber, concealFocused, focusRange, hiddenWaqf, revealedAyahs, status, surahNumber]);
 
   const handlePointer = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
@@ -235,15 +250,9 @@ export function QvpPageCanvas({
         data-word-source="qvp"
         onClick={(event) => handlePointer(event.clientX, event.clientY)}
       />
-      {hidePrintedWaqf && waqfOverlays.length && pageWords.length && overlayView.scale ? (
+      {overlaySlots.length && overlayView.scale ? (
         <div className="qvp-waqf-layer" dir="rtl">
-          {waqfOverlays.map((mark) => {
-            const word = pageWords.find((item) =>
-              item.surah === mark.surah && item.ayah === mark.ayah && item.word === mark.word
-            );
-            if (!word) return null;
-            // Draw the chosen mushaf's mark into the printed mark's own box.
-            const [x0, y0, x1, y1] = pauseSlot(word, pauseSize);
+          {overlaySlots.map(({mark, slot: [x0, y0, x1, y1]}) => {
             const {scale, x, y, dpr} = overlayView;
             return (
               <span

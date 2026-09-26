@@ -34,8 +34,17 @@ test("QVP can hide printed waqf and overlay another mushaf", async ({page, isMob
     await page.getByRole("button", {name: "المزيد من إعدادات القراءة"}).click();
     await expect(page.getByRole("dialog", {name: "إعدادات القراءة"})).toBeVisible();
   }
+  // الشمرلي agrees with the printed Madinah on this page: the print is left untouched.
+  await page.getByRole("radio", {name: "الشمرلي"}).click();
+  await expect(page.getByRole("radio", {name: "الشمرلي"})).toHaveAttribute("aria-checked", "true");
+  await page.waitForTimeout(1_500);
+  await expect(page.locator(".qvp-waqf-layer .qvp-pause-slot")).toHaveCount(0);
+  // الأزهر differs in places: only those words get a redrawn sign.
   await page.getByRole("radio", {name: "الأزهر"}).click();
   await expect(page.locator(".qvp-waqf-layer .qvp-pause-slot").first()).toBeVisible({timeout: 15_000});
+  const redrawn = await page.locator(".qvp-waqf-layer .qvp-pause-slot").count();
+  expect(redrawn).toBeGreaterThan(0);
+  expect(redrawn).toBeLessThan(17);
   await page.getByRole("checkbox", {name: "إظهار علامات الوقف"}).uncheck();
   await expect(page.locator(".qvp-waqf-layer .qvp-pause-slot")).toHaveCount(0);
 });

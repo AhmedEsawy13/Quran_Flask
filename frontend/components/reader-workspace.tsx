@@ -1,5 +1,6 @@
 "use client";
 
+import { qvpVersionQuery } from "@/lib/qvp";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { type Ayah, type MushafPage, type Surah, getJson } from "@/lib/api";
@@ -59,9 +60,9 @@ function parsePositiveInteger(value: string | null, fallback: number) {
 
 function mushafVersionQuery(editionId: MushafEditionId, waqfSource: string) {
   const edition = MUSHAF_EDITIONS[editionId];
-  if (editionId === "azhar_amiri" || editionId === "shamarly" || isQvpEdition(editionId)) {
-    const version = isQvpEdition(editionId) ? waqfSource : edition.waqfSource;
-    return `?mushaf_version=${encodeURIComponent(version)}`;
+  if (isQvpEdition(editionId)) return qvpVersionQuery(waqfSource);
+  if (editionId === "azhar_amiri" || editionId === "shamarly") {
+    return `?mushaf_version=${encodeURIComponent(edition.waqfSource)}`;
   }
   return "";
 }

@@ -18,7 +18,7 @@ import { tajweedPartsForDisplay, type TajweedSegment } from "@/lib/tajweed";
 import type { TopicWash } from "@/lib/topic-color";
 import { waqfMarkGlyph, waqfMarkLabel, waqfMarkTone } from "@/lib/waqf";
 import { QvpPageCanvas } from "@/components/qvp-page-canvas";
-import { qvpWaqfOverlaysFromPage } from "@/lib/qvp";
+import { qvpWaqfPlan } from "@/lib/qvp";
 
 export type PracticeTap = {
   surah: number;
@@ -571,12 +571,15 @@ export function MushafRenderer({
     ? firstPageVerse(page, surahNumber, ayahNumber)
     : {surah: surahNumber, ayah: ayahNumber};
   const qvpPage = isQvpEdition(editionId);
-  const hidePrintedWaqf = qvpPage && (
-    !waqfEnabled || !usesNativeEmbeddedWaqf(editionId, activeWaqfSource)
-  );
-  const qvpWaqfOverlays = hidePrintedWaqf && waqfEnabled
-    ? qvpWaqfOverlaysFromPage(page, activeWaqfSource)
-    : [];
+  // QVP: marks off → hide all printed signs; another mushaf → hide and redraw
+  // only the words where it differs from the print.
+  const qvpPlan = qvpPage && waqfEnabled && !usesNativeEmbeddedWaqf(editionId, activeWaqfSource)
+    ? qvpWaqfPlan(page, activeWaqfSource)
+    : null;
+  const hidePrintedWaqf: boolean | string = qvpPage && !waqfEnabled
+    ? true
+    : qvpPlan ? [...qvpPlan.replaced].join("|") : false;
+  const qvpWaqfOverlays = qvpPlan?.overlays || [];
   const juzNumber = view === "page" && page && editionId !== "azhar_amiri" && editionId !== "shamarly"
     ? juzNumberForPage(page.page_number)
     : juzNumberFromAyah(firstVerse.surah, firstVerse.ayah);
