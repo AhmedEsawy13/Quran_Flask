@@ -129,3 +129,31 @@ What "trust" means here: every served row is tied to a located sentence of
 the book and to a verified word of the Hafs text, and every row the
 heuristics flagged has been read by hand. It is not a second scholar's
 independent review of الأشموني's and الداني's discursive prose.
+
+## Measured accuracy (random sample, 2026-09-26)
+
+100 served rulings drawn at random (seed 20260926): 50 منار, 30 المكتفى
+explicit, 20 المكتفى verse-end rules. Each was read against the book's own
+sentence and the Hafs verse.
+
+| | word + grade right | attribution right |
+|---|---:|---:|
+| منار (50) | 49 | 48 |
+| المكتفى explicit (30) | 30 | 29 |
+| المكتفى verse-end rules (20) | 20 | 20 |
+| **all (100)** | **99** | **97** |
+
+Every error type the sample found was then swept across both whole books
+and fixed (audit_manar_mithl.py / audit_muktafa_ordinals.py /
+audit_muktafa_blanket.py): 33 منار explicit rulings on the wrong occurrence
+of a repeated word (16:104 type) plus 5 missing first occurrences; 92 منار
+rows mislabelled as another scholar's view although the grade is
+الأشموني's own («كاف، وقال أبو عمرو: تام»); 26 المكتفى relayed opinions
+(«وقال نافع {بل أحياء} تام») labelled; a verse-end rule that ignored its
+«إلى قوله» bound (7 rows in الزمر). The completeness gate now seats explicit
+rulings the same way (exact spelling, then the pause-marked occurrence); 8
+residual seat differences are documented in the test.
+
+Rows: منار 13,407, المكتفى 6,749. 95% Wilson interval on the pre-sweep sample:
+word+grade 94.6–99.8%, attribution 91.5–99.0%. The swept error classes no
+longer occur, so the current rate is at or above these.
