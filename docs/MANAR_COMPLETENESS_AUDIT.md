@@ -161,11 +161,20 @@ longer occur, so the current rate is at or above these.
 ### ابن الأنباري (إيضاح الوقف والابتداء), 2026-09-26
 
 `pipeline/audit_anbari.py --apply` (run after `build_classical_waqf.py --only
-anbari`) fixed the surah-section mapping (short titles like «ن» had matched
-«نوح»), re-seated rows by the book's own verse numbers, resolved «ومثله/وكذلك»
-chains and ordinals, deleted negated chain items («غير تام»), labelled relays
-(السجستاني etc.), and added the «يحسن/لا يحسن الوقف على» grade-before rulings
-and book-end rows. 2,375 of 2,414 rows are served; 39 stay held (single words
-that cannot be placed unambiguously, or curated HOLD). A random sample of 50
-served rows was 50/50 on word, grade and attribution (95% Wilson lower bound
-≈ 93%).
+anbari`; it settles by the second pass) fixed the surah-section mapping (short
+titles like «ن» had matched «نوح»), re-seated rows by the book's own verse
+numbers, resolved «ومثله/وكذلك» chains and ordinals, deleted negated chain
+items («غير تام»), labelled relays (السجستاني، الأخفش), and added graded
+entries and book-end rows.
+
+The book's «يحسن / لا يحسن الوقف على (X)» sentences are nearly all tied to a
+reading or an i'rab («فمن قرأ …»، «فعلى هذا المذهب …»، «إن جعلت …»), often
+not Hafs's (3:36 «وضعت»، 23:111 «أنهم»، 8:19 «وأن الله»). Those 88 rows are
+kept but held; only 4 plain «والتمام على (X)» rulings are served.
+
+2,288 of 2,414 rows are served, 126 held. Accuracy check (seed 20261001): 100
+rulings (70 ordinary, 6 relayed, 24 grade-before). Ordinary and relayed were
+76/76 right on word, grade and attribution (95% Wilson lower bound ≈ 95%). The
+grade-before class was wrong for Hafs or wrongly seated in 8 of 24, which is
+why that class is now held. The 23 rule-inserted graded entries and the 4
+served grade-before rulings were each read by hand.

@@ -137,3 +137,18 @@ def test_anbari_audit_is_stable():
         assert not audit.missing_graded_entries(conn)
     finally:
         conn.close()
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade', [
+    (3, 36, 6, 'قبيح'),     # «وضعتُ» (أبو بكر) — Hafs reads «وضعَتْ»
+    (23, 111, 4, 'حسن'),    # «إنهم» (حمزة والكسائي) — Hafs reads «أنهم»
+    (8, 19, 19, 'حسن'),     # «وإن الله» — Hafs reads «وأنَّ»
+    (7, 186, 5, 'قبيح'),    # «ويذرهم» بالجزم — Hafs reads it رفعًا
+    (29, 41, 15, 'قبيح'),   # الفراء، about the first «العنكبوت»
+])
+def test_anbari_conditional_grade_before_rulings_are_held(db, surah, ayah, wpos, grade):
+    # «فمن قرأ … يحسن الوقف على (X)» depends on a reading; not served as the book's ruling
+    assert not db.execute("SELECT 1 FROM classical WHERE source='anbari' AND conf=1 AND surah=? "
+                          "AND ayah=? AND wpos=? AND grade=? AND grade_raw IN "
+                          "('يحسن الوقف','لا يحسن الوقف','يتم الوقف','يكفي الوقف')",
+                          (surah, ayah, wpos, grade)).fetchone()

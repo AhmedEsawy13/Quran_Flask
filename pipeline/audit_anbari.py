@@ -253,8 +253,27 @@ def clause(text, start, end):
     return re.sub(r'\s+', ' ', text[a:(b if 0 <= b - end < 200 else end + 60)]).strip()
 
 
+# «فمن قرأ … يحسن الوقف على (X)»، «فعلى هذا المذهب …»، «إن جعلت …»: the book's
+# grade-before rulings are nearly all tied to one reading or i'rab, often not
+# Hafs's (3:36 «وضعت»، 23:111 «أنهم»). Those rows are kept but held (conf=0).
+_CONDITIONAL = re.compile(r'قرأ|قراءة|القراء[ةت]|يقرؤ|مذهب|الوجه|وجه|من رفع|من نصب|من جعل|ومن |فمن |'
+                          r'إن جعلت|فإن |وإن |إذا |على أن|عند |قول |لغة|رفعت|نصبت|خفضت|جزمت|يجوز')
+
+
+# read by hand: plain «والتمام على (X)» with no reading or i'rab condition
+BEFORE_CONFIRMED = {(3, 'شديد العقاب'), (3, 'وبئس مثوى الظالمين'), (3, 'المؤمنين'),
+                    (7, 'والعاقبة للمتقين')}
+
+
+def conditional(text, start, end):
+    """The ruling's sentence (and the 260 chars before it) names a reading or
+    i'rab, or relays someone else's view («وقال السجستاني: لا يحسن …»)."""
+    ctx = text[max(0, start - 260):start] + clause(text, start, end)
+    return bool(_CONDITIONAL.search(ctx) or re.search(r'(?:^|\s)و?قال\s', ctx))
+
+
 def missing_before_rulings(con):
-    """[(surah, ayah, wpos, grade, quote, note)] for grade-before rulings
+    """[(surah, ayah, wpos, grade, raw, quote, note, held)] for grade-before rulings
     («فعلى هذا المذهب يحسن الوقف على (الم)») with no row of that grade on
     the word. Counterfactuals («ولو حسن … لحسن») and negations
     («لا يتم …») are not rulings."""
@@ -276,10 +295,14 @@ def missing_before_rulings(con):
             if a is None or (surah, a, w, g) in seen:
                 continue
             seen.add((surah, a, w, g))
-            if con.execute("SELECT 1 FROM classical WHERE source='anbari' AND surah=? AND ayah=? "
-                           "AND wpos=? AND grade=?", (surah, a, w, g)).fetchone():
+            held = (surah, squash(q)) not in BEFORE_CONFIRMED and conditional(text, m.start(), m.end())
+            row = con.execute("SELECT id, grade_raw, conf FROM classical WHERE source='anbari' AND surah=? "
+                              "AND ayah=? AND wpos=? AND grade=?", (surah, a, w, g)).fetchone()
+            if row:
+                if held and row[1] == raw and row[2]:
+                    con.execute('UPDATE classical SET conf=0 WHERE id=?', (row[0],))
                 continue
-            out.append((surah, a, w, g, raw, squash(q), clause(text, m.start(), m.end())))
+            out.append((surah, a, w, g, raw, squash(q), clause(text, m.start(), m.end()), held))
     return out
 
 
@@ -330,7 +353,8 @@ def held_by_neighbours(con):
         v.sort()
     out = []
     for rid, s_, q in con.execute("SELECT id, surah, quote FROM classical WHERE source='anbari' "
-                                  "AND conf=0").fetchall():
+                                  "AND conf=0 AND grade_raw NOT IN (%s)" % ','.join('?' * len(BEFORE_RAW)),
+                                  list(BEFORE_RAW.values())).fetchall():
         if (s_, squash(q)) in HOLD:
             continue
         occ = occurrences(secs.get(s_, ''), q)
@@ -388,15 +412,15 @@ def apply(con, recs):
                         (a, w, word, grade, grade, after[3], rep, rid))
             st[r['status'] + ('_served' if serve and r['conf'] == 0 else '')] += 1
     con.commit()
-    for surah, a, w, g, raw, q, note in missing_before_rulings(con):
+    for surah, a, w, g, raw, q, note, held in missing_before_rulings(con):
         seq = (cur.execute("SELECT seq FROM classical WHERE source='anbari' AND surah=? AND "
                            "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
                            (surah, a, a, w)).fetchone() or (0,))[0]
         cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, grade_raw, "
-                    "note, seq, conf, reported_from) VALUES ('anbari',?,?,?,?,?,?,?,?,?,1,?)",
+                    "note, seq, conf, reported_from) VALUES ('anbari',?,?,?,?,?,?,?,?,?,?,?)",
                     (surah, a, w, mm.verse_words(surah, a)[w], q, g, raw, rx.clean_note(note, limit=400),
-                     seq, None))
-        st['inserted_grade_before'] += 1
+                     seq, 0 if held else 1, None))
+        st['held_conditional' if held else 'inserted_grade_before'] += 1
     for surah, a, w, g, q, note in missing_graded_entries(con):
         seq = (cur.execute("SELECT seq FROM classical WHERE source='anbari' AND surah=? AND "
                            "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
