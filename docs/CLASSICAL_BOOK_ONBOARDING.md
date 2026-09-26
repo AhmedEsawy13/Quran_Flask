@@ -149,8 +149,8 @@ Current deterministic catalog audit baseline:
 
 | Book | Rows | Surahs | Confident | Existing low-confidence review |
 |---|---:|---:|---:|---:|
-| المكتفى | 6,769 | 112 | 6,746 | 23 (+2,329 blanket verse-end rows) |
-| منار الهدى | 13,426 | 114 | 13,388 | 38 conf=0; 0 open suspects |
+| المكتفى | 6,756 | 112 | 6,756 | 0 (incl. 2,329 blanket verse-end rows) |
+| منار الهدى | 13,402 | 114 | 13,402 | 0 |
 | القطع والائتناف | 1,767 | 91 | 1,609 | 158 |
 | إيضاح الوقف والابتداء | 2,178 | 94 | 1,950 | 228 |
 

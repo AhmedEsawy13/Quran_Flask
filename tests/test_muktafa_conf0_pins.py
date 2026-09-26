@@ -194,7 +194,7 @@ def test_unmatched_unique_quotes_filled_from_the_book(muktafa):
     expected = {
         ('فيما آتاكم', 5): (48, 39),
         ('ثم إليه ترجعون', 6): (36, 9),
-        ('مذءوما مذعورا', 7): (18, 4, 0),
+        ('مذءوما مذعورا', 7): (18, 4),
         ('بني إسرائيل', 7): (105, 17),
         ('واتبع هواه', 7): (176, 9),
         ('بنو إسرائيل', 10): (90, 23),
@@ -282,34 +282,15 @@ def test_sulaka_ya_musa_moved_off_hadith_musa(muktafa):
     assert r['ayah'] == 36 and r['wpos'] == 4 and r['conf'] == 1
 
 
-def test_genuinely_unpinnable_leftovers(muktafa):
-    """conf=0: not unique after the aligner pass, plus k=1 SequenceMatcher-only pins."""
-    leftover = {(r['id'], r['quote']) for r in muktafa if r['conf'] == 0}
-    assert leftover == {
-        (27, 'مستهزئون'),
-        (260, 'مساكين'),               # مسكين, not مساكين
-        (391, 'وأبناءنا'),
-        (463, 'شيئا'),
-        (524, 'أأسلمتم'),
-        (651, 'ههنا'),
-        (1303, 'مذءوما مذعورا'),      # qiraʾat مدحورا, quote not in Hafs
-        (2397, 'ورئيا'),
-        (2542, 'ذلك هو الضلال البعيد يدعو'),
-        (2640, 'ملبسون'),             # مبلسون
-        (2693, 'والأبصار'),           # والآصال
-        (2740, 'بالله ورسوله'),        # twice in 24:62 (wpos 5 and 23)
-        (2798, 'يستهزئون'),
-        (2992, 'يستهزئون'),
-        (3079, 'والأفئدة'),
-        (3225, 'العلماء'),
-        (3267, 'يستهزؤون'),
-        (3303, 'وبالليل'),
-        (3765, 'بأيد'),
-        (4044, 'فاحذرهم'),
-        (4105, 'والأفئدة'),
-        (4320, 'باله'),               # بالهزل
-        (4403, 'واستغفروه'),
-    }
+def test_former_leftovers_are_resolved(muktafa):
+    """The 23 conf=0 rows were each read against their own surah's section
+    (pipeline/audit_muktafa_ordinals.py REPAIR): all are served now."""
+    assert not [r for r in muktafa if r['conf'] == 0]
+    by_id = {r['id']: r for r in muktafa}
+    assert (by_id[524]['ayah'], by_id[524]['wpos']) == (20, 13)     # «ءَأَسۡلَمۡتُمۡۚ»
+    assert (by_id[2693]['ayah'], by_id[2693]['wpos']) == (37, 18)   # «والأبصار» ends 24:37
+    assert (by_id[2740]['ayah'], by_id[2740]['wpos']) == (62, 23)   # after «حتى يستأذنوه»
+    assert by_id[2542]['reported_from'] == 'الدينوري'
 
 
 def test_aligner_folds_leftover_quotes():
@@ -340,8 +321,12 @@ def test_muktafa_ama_tushrikun_is_nahl_1_not_tashkurun(muktafa):
 
 def test_muktafa_yakhluqun_is_nahl_20_not_zukhruf_yakhlufun(muktafa):
     """{يخلقون} with أموات is النحل 20, not الزخرف 60 يخلفون."""
-    row = _row(muktafa, 'يخلقون', 16)
-    assert (row['ayah'], row['wpos']) == (20, 9)
+    # the bare «يخلقون» row was merged into «وهم يخلقون» (same seat and grade,
+    # fuller note) by audit_manar_mithl.merge_duplicates
+    row = _row(muktafa, 'وهم يخلقون', 16)
+    assert (row['ayah'], row['wpos'], row['grade']) == (20, 9, 'تام')
+    assert not any(r['surah'] == 16 and r['quote'] == 'يخلقون' and r['ayah'] != 20
+                   for r in muktafa)
 
 
 def test_muktafa_alladhina_amanu_is_ghafir_7_not_amatna(muktafa):

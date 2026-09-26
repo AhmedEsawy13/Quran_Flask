@@ -101,3 +101,31 @@ off the last-occurrence aligner's mid-phrase seats (48:28 {كله} ≠ «بال�
   to the next blanket statement or the surah's end; «قبل/بين ذلك» covers the
   «ومثله» chain it closes. Not expanded: «آخر كل قصة» / «أواخر القصص»
   (story boundaries are not stated).
+
+## Release status (2026-09-26, final pass)
+
+Both released books now serve every row (conf=0 count: 0) and pass every
+gate: catalog alignment, 100% source traceability, 100% Qur'an alignment,
+0 missing explicit rulings, chain/ordinal/blanket audits idempotent.
+
+- منار (13,402 rows): the 85 heuristic traceability suspects were read
+  against the book — 74 confirmed, 4 regraded (83:2 حسن، 52:8 حسن، 2:16
+  صالح، 70:3 حسن), 3 re-attributed (قيل / الأخفش / شيخ الإسلام), 3
+  deleted (2:6 «أم لم تنذرهم» which the author rejects; 20:95 and 37:165
+  with no ruling in the book). Recorded in
+  `review/manar_traceability_verified.json`; the review page shows only
+  unread suspects. 36 held-back rows with misspelled quotes were repaired
+  (mushaf spelling, 3 moved to the right word, 4 duplicates dropped).
+- المكتفى (6,756 rows): its 23 held-back rows were read against their own
+  surah sections and served (2 moved: 3:20 «أأسلمتم», 24:37 «والأبصار»;
+  22:13 attributed to الدينوري). 20 keep the book's spelling and are listed
+  in `review/hand_pinned_seats.json`, which the alignment gates accept.
+  4:123 regraded تام («وهو عندي تام»).
+- 30 redundant duplicate rulings merged (same word, grade and attribution,
+  note empty or contained in the other); 11 duplicates with different
+  conditions stay.
+
+What "trust" means here: every served row is tied to a located sentence of
+the book and to a verified word of the Hafs text, and every row the
+heuristics flagged has been read by hand. It is not a second scholar's
+independent review of الأشموني's and الداني's discursive prose.

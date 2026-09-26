@@ -530,15 +530,40 @@ MOVES = {
     59223: (14, 3),                          # {والجبال} الأول
     50786: (56, 3),                          # ومثله «إنهم لمنكم»
 }
+# conf=0 rows held back only because the extraction misspelled the quote
+# («تُحۡشُورنَ»، «مَسۡظُورٗا»): the ruling is the book's, so cite the mushaf's
+# own word and serve it. A value moves the row first (4:17 «عليهمۗ»، 4:46
+# «وراعنا» sat on other words); a duplicate of a correct row is dropped.
+REPAIR = {
+    47223: None, 48564: (17, 15), 48675: (46, 13), 48676: (46, 13), 49348: None,
+    49368: None, 49983: None, 51375: None, 51842: None, 51853: None, 52008: None,
+    52263: None, 52398: None, 52635: None, 53161: None, 53640: None, 53860: None,
+    54007: None, 54043: None, 54196: None, 54847: None, 55310: None, 55352: None,
+    55447: None, 55607: None, 55874: None, 56144: None, 57681: None, 58131: None,
+    58304: None, 58305: None, 58306: None, 58433: None, 59377: None,
+    48477: (20, 13), 49264: (60, 8),      # duplicates of 47914 / 49454
+}
 # rows no {quote} [n] line of the book supports (3:73 كاف on «وَٱللَّهُ وَٰسِعٌ»،
-# 48:10 جائز on «عَٰهَدَ عَلَيۡهُ ٱللَّهَ»): kept, withheld from the live API.
-DEMOTE = {48071, 57755}
+# 48:10 جائز on «عَٰهَدَ عَلَيۡهُ ٱللَّهَ») or that the author rejects: deleted.
+DEMOTE = {48071, 57755,
+          46685,      # 2:6 «أم لم تنذرهم» — «وهذا ينبغي أن يرد ولا يلتفت إليه»
+          53454,      # 20:95 «يا سامري» — no ruling in the book
+          56342}      # 37:165 «الصافون» — the book's ومثله names «المسبحون»
 # rows on a repeated word that the book does mean (checked): not suspects
 REVIEWED_OK = {(2, 218, 12), (2, 255, 43), (7, 195, 3), (7, 195, 8), (7, 195, 13),
                (11, 119, 3), (13, 31, 28), (39, 51, 11), (59, 18, 11)}
 # Grade corrections: id → grade. 39:50 «ومثله «يكسبون»» inherits كاف; the
 # «تام فيهما» that follows is about «كسبوا» الأولى والثانية.
-REGRADE = {56650: 'كاف'}
+REGRADE = {
+    56650: 'كاف',
+    # traceability queue, read against the book (2026-09-26)
+    59559: 'حسن',     # 83:2 {يستوفون} حسن
+    58065: 'حسن',     # 52:8 {ما له من دافع} أحسن مما قبله
+    46721: 'صالح',    # 2:16 {تجارتهم} أصلح
+    59098: 'حسن',     # 70:3 «الوقف الجيد ذي المعارج» (الأخفش)
+}
+# relayed opinions that were stored as the author's own
+REPORTED_FIX = {50554: 'قيل', 59098: 'الأخفش', 46946: 'شيخ الإسلام'}
 # grade_mismatch keys where منار's inherited ruling is absent and only another
 # (alternate / relayed / conditional) grade was stored: add it.
 ADD_GRADE = {
@@ -651,8 +676,29 @@ def apply(recs, path):
             cur.execute("UPDATE classical SET wpos=?, stop_word=? WHERE id=?",
                         (w_to, verse_words(s, a)[w_to], rid))
             stats['repeat_moved'] += 1
-    stats['demoted'] += cur.execute(
-        f"UPDATE classical SET conf=0 WHERE conf=1 AND id IN ({','.join(map(str, DEMOTE))})").rowcount
+    stats['deleted'] += cur.execute(
+        f"DELETE FROM classical WHERE source='manar' AND id IN ({','.join(map(str, DEMOTE))})").rowcount
+    for rid, seat in REPAIR.items():
+        row = cur.execute("SELECT surah, ayah, wpos, grade FROM classical WHERE id=? AND conf=0",
+                          (rid,)).fetchone()
+        if not row:
+            continue
+        s_, a, w, g = row
+        if seat:
+            a, w = seat
+        if cur.execute("SELECT 1 FROM classical WHERE source='manar' AND conf=1 AND surah=? AND ayah=? "
+                       "AND wpos=? AND grade=? AND id<>?", (s_, a, w, g, rid)).fetchone():
+            cur.execute("DELETE FROM classical WHERE id=?", (rid,))
+            stats['repair_dropped_duplicate'] += 1
+            continue
+        word = verse_words(s_, a)[w]
+        cur.execute("UPDATE classical SET ayah=?, wpos=?, stop_word=?, quote=?, conf=1 WHERE id=?",
+                    (a, w, word, word, rid))
+        stats['repaired'] += 1
+    for rid, who in REPORTED_FIX.items():
+        stats['reattributed'] += cur.execute(
+            "UPDATE classical SET reported_from=? WHERE id=? AND COALESCE(reported_from,'')<>?",
+            (who, rid, who)).rowcount
     for rid, g in REGRADE.items():
         stats['regraded'] += cur.execute("UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?",
                                          (g, g, rid, g)).rowcount
@@ -670,7 +716,34 @@ def apply(recs, path):
     for s, a, w, q, g, note in EXTRA:
         stats['inserted_extra'] += insert(s, a, w, q, g, [note])
     con.commit()
+    stats['merged_repeats'] = merge_duplicates(con)
     return stats
+
+
+def merge_duplicates(con, sources=('manar', 'muktafa')):
+    """Collapse rows that repeat the same ruling on the same word (same grade
+    and attribution) when their notes add nothing: one note empty or contained
+    in the other. Rows whose notes differ (different conditions, «وقيل»)
+    stay separate. Keeps the row with the longest note."""
+    cur = con.cursor()
+    groups = collections.defaultdict(list)
+    q = ','.join('?' * len(sources))
+    for row in cur.execute(
+            f"SELECT id, source, surah, ayah, wpos, grade, COALESCE(reported_from,''), "
+            f"COALESCE(note,'') FROM classical WHERE conf=1 AND source IN ({q})", sources):
+        groups[row[1:7]].append((row[0], ' '.join(row[7].split())))
+    dropped = 0
+    for rows in groups.values():
+        if len(rows) < 2:
+            continue
+        keep = max(rows, key=lambda r: (len(r[1]), -r[0]))
+        if all(not n or n in keep[1] for _, n in rows):
+            for rid, _ in rows:
+                if rid != keep[0]:
+                    cur.execute('DELETE FROM classical WHERE id=?', (rid,))
+                    dropped += 1
+    con.commit()
+    return dropped
 
 
 def load_db(path):

@@ -50,6 +50,21 @@ MOVES = {
     (37, 175, 2, 'فسوف يبصرون'): (179, 2),
     (56, 90, 5, 'أصحاب اليمين'): (91, 4),
 }
+# conf=0 rows (the cursor aligner could not pin them confidently), each read
+# against its own surah's section (2026-09-26): all are الداني's rulings.
+# None = the seat is right; a tuple moves it first.
+REPAIR = {
+    27: None, 260: None, 391: None, 463: None, 651: None, 1303: None, 2397: None,
+    2542: None, 2640: None, 2740: None, 2798: None, 2992: None, 3079: None,
+    3225: None, 3267: None, 3303: None, 3765: None, 4044: None, 4105: None,
+    4320: None, 4403: None,
+    524: (20, 13),        # «أأسلمتم» is «ءَأَسۡلَمۡتُمۡۚ», not «أَسۡلَمۡتُ وَجۡهِيَ»
+    2693: (37, 18),       # «والأبصار» ends 24:37, not 24:36
+}
+REPORTED = {2542: 'الدينوري'}
+# «{…} كاف عند أصحاب التمام … وهو عندي تام» (4:123): الداني's own verdict is تام
+REGRADE = {877: 'تام'}     # «وقال الدينوري: ((ذلك هو الضلال البعيد يدعو)) تام»
+
 
 def occurrences(surah, after, quote):
     """Exact-spelling end seats of quote after (ayah, wpos), reading order."""
@@ -118,6 +133,19 @@ def apply(con, found):
             "UPDATE classical SET ayah=?, wpos=?, stop_word=? WHERE source='muktafa' AND surah=? "
             "AND ayah=? AND wpos=? AND quote=? AND grade_raw<>'رؤوس الآي'",
             (a, w, mm.verse_words(s, a)[w], s, a0, w0, q)).rowcount
+    for rid, seat in REPAIR.items():
+        row = cur.execute("SELECT surah, ayah, wpos FROM classical WHERE id=? AND conf=0", (rid,)).fetchone()
+        if not row:
+            continue
+        s, a, w = row
+        if seat:
+            a, w = seat
+        cur.execute("UPDATE classical SET ayah=?, wpos=?, stop_word=?, conf=1, reported_from=? WHERE id=?",
+                    (a, w, mm.verse_words(s, a)[w], REPORTED.get(rid), rid))
+        stats['repaired'] += 1
+    for rid, g in REGRADE.items():
+        stats['regraded_own'] += cur.execute(
+            "UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?", (g, g, rid, g)).rowcount
     rows = [(r['surah'], r['ayah'], r['wpos'], r['quote'], r['grade'], r['note']) for r in found]
     rows += [(s, a, w, q, g, f'{q} {g}') for s, a, w, q, g in MANUAL]
     for s, a, w, q, g, note in rows:

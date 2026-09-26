@@ -24,6 +24,7 @@ sys.path.insert(0, str(PIPELINE))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 
 import build_classical_waqf as classical  # noqa: E402
+from core.classical_review import hand_pinned  # noqa: E402
 
 CATALOG = PIPELINE / 'classical_books.json'
 DEFAULT_DB = ROOT / 'data' / 'classical_waqf.db'
@@ -130,7 +131,7 @@ def audit(db_path: Path, catalog_path: Path) -> tuple[list[str], dict]:
             for row in confident:
                 if row['ayah'] is None or row['wpos'] is None:
                     continue
-                if not _catalog_quote_aligns(row):
+                if row['id'] not in hand_pinned(key) and not _catalog_quote_aligns(row):
                     unaligned.append(row['id'])
                     unaligned_rows.append(row)
             source_report['unaligned'] = len(unaligned)

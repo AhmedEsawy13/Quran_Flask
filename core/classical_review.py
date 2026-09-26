@@ -13,6 +13,8 @@ from core.config import CLASSICAL_REVIEW_DATABASE, CLASSICAL_WAQF_DATABASE, _BAS
 
 MUKTAFA_SOURCE = Path(_BASE_DIR) / 'pipeline' / 'classical_sources' / 'muktafa_dani_shamela26461.md'
 MANAR_REVIEW_QUEUE = Path(_BASE_DIR) / 'pipeline' / 'review' / 'manar_traceability.jsonl'
+# heuristic suspects already read against the book (corrected or confirmed)
+MANAR_VERIFIED = Path(_BASE_DIR) / 'pipeline' / 'review' / 'manar_traceability_verified.json'
 VALID_DECISIONS = {'approve', 'reject', 'pending'}
 VALID_BOOK_DECISIONS = {'add', 'reject', 'pending'}
 REVIEW_GRADE_LABELS = {
@@ -273,16 +275,31 @@ def muktafa_source_context(row, radius=460):
     return {'locator': f'{title} · {page}', 'context': excerpt}
 
 
+def _queue_ids():
+    with MANAR_REVIEW_QUEUE.open(encoding='utf-8') as fh:
+        return [int(json.loads(line)['id']) for line in fh if line.strip()]
+
+
 @lru_cache(maxsize=1)
 def manar_review_queue():
     if not MANAR_REVIEW_QUEUE.exists():
         return {}
+    verified = set()
+    if MANAR_VERIFIED.exists():
+        verified = {int(i) for i in json.loads(MANAR_VERIFIED.read_text(encoding='utf-8'))['ids']}
+    conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
+    try:
+        live = {i for (i,) in conn.execute("SELECT id FROM classical WHERE source='manar'")}
+    finally:
+        conn.close()
+    verified |= {i for i in _queue_ids() if i not in live}      # deleted after review
     items = {}
     with MANAR_REVIEW_QUEUE.open(encoding='utf-8') as fh:
         for line in fh:
             if line.strip():
                 item = json.loads(line)
-                items[int(item['id'])] = item
+                if int(item['id']) not in verified:
+                    items[int(item['id'])] = item
     return items
 
 
@@ -329,6 +346,21 @@ def _decision_counts(source, row_ids, review_db=None):
 
 
 BLANKET_RAW = 'رؤوس الآي'      # pipeline/audit_muktafa_blanket.py
+HAND_PINNED = Path(_BASE_DIR) / 'pipeline' / 'review' / 'hand_pinned_seats.json'
+
+
+@lru_cache(maxsize=1)
+def _hand_pinned():
+    if not HAND_PINNED.exists():
+        return {}
+    data = json.loads(HAND_PINNED.read_text(encoding='utf-8'))
+    return {src: {int(i) for i in ids} for src, ids in data.items() if isinstance(ids, dict)}
+
+
+def hand_pinned(source):
+    """Row ids whose seat was verified by reading the book, though the book's
+    spelling of the quote cannot match the Hafs word mechanically."""
+    return _hand_pinned().get(source, set())
 
 
 def blanket_statement(row):
@@ -360,7 +392,9 @@ def muktafa_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
         traced = b.quote_words(blanket_statement(row)) if row['grade_raw'] == BLANKET_RAW else qwords
         if traced and (' ' + ' '.join(traced) + ' ') in source_words:
             source_traceable += 1
-        if quote_matches_position(row['surah'], row['ayah'], row['wpos'], row['quote']):
+        if row['id'] in hand_pinned('muktafa'):
+            aligned += 1
+        elif quote_matches_position(row['surah'], row['ayah'], row['wpos'], row['quote']):
             aligned += 1
             # Level-1 exact/prefix vs tight fuzzy orthographic fallback.
             _, words, _ = b.app._verse_word_texts(f'{row["surah"]}:{row["ayah"]}')

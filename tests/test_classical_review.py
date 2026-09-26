@@ -15,6 +15,37 @@ def review_db(tmp_path, monkeypatch):
     return path
 
 
+@pytest.fixture()
+def pending_muktafa():
+    """Every المكتفى row is resolved now; exercise the review workflow on one
+    real, correctly aligned row marked pending for the test's duration."""
+    conn = sqlite3.connect(review.CLASSICAL_WAQF_DATABASE)
+    row_id = 116          # 2:81 «هم فيها خالدون»
+    conn.execute('UPDATE classical SET conf=0 WHERE id=?', (row_id,))
+    conn.commit()
+    try:
+        yield row_id
+    finally:
+        conn.execute('UPDATE classical SET conf=1 WHERE id=?', (row_id,))
+        conn.commit()
+        conn.close()
+
+
+@pytest.fixture()
+def pending_manar(tmp_path, monkeypatch):
+    """Leave two real, already-corrected rows of the منار queue unverified."""
+    import json
+    data = json.loads(review.MANAR_VERIFIED.read_text(encoding='utf-8'))
+    keep_pending = {'59559', '58065'}          # 83:2, 52:8
+    data['ids'] = {k: v for k, v in data['ids'].items() if k not in keep_pending}
+    path = tmp_path / 'verified.json'
+    path.write_text(json.dumps(data), encoding='utf-8')
+    monkeypatch.setattr(review, 'MANAR_VERIFIED', path)
+    review.manar_review_queue.cache_clear()
+    yield {int(i) for i in keep_pending}
+    review.manar_review_queue.cache_clear()
+
+
 def uncertain_rows():
     conn = sqlite3.connect(review.CLASSICAL_WAQF_DATABASE)
     conn.row_factory = sqlite3.Row
@@ -28,10 +59,10 @@ def uncertain_rows():
 
 def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     result = review.muktafa_accuracy(review_db=review_db)
-    assert result['total_extracted'] == 6769
-    assert result['matched'] == 6769
-    assert result['confident'] == 6746
-    assert result['uncertain'] == 23
+    assert result['total_extracted'] == 6756
+    assert result['matched'] == 6756
+    assert result['confident'] == 6756
+    assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0
 
@@ -41,17 +72,18 @@ def test_review_page_and_summary_are_editor_routes(client, review_db):
     assert page.status_code == 200
     assert 'المكتفى' in page.get_data(as_text=True)
     summary = client.get('/api/classical-review/muktafa/summary').get_json()
-    assert summary['review']['pending'] == 23
+    assert summary['review']['pending'] == 0
     manar = client.get('/api/classical-review/manar/summary').get_json()
     assert manar['review']['pending'] == len(review.manar_review_queue())
-    assert manar['source_traceable_rate'] == 99.37
+    assert manar['review']['pending'] == 0      # every heuristic suspect read
+    assert manar['source_traceable_rate'] == 100.0
     # exact-seat misses vs explicit_manar_rows' last-occurrence aligner; the
     # 15 added by audit_manar_mithl.py are rows moved OFF that aligner's
     # mid-phrase seat (48:28 {كله} ≠ «بالله») onto the ruled word.
-    assert manar['explicit_missing'] == 37
+    assert manar['explicit_missing'] == 39
 
 
-def test_reviewer_can_approve_a_matched_row(client, review_db):
+def test_reviewer_can_approve_a_matched_row(client, review_db, pending_muktafa):
     data = client.get(
         '/api/classical-review/muktafa/items?status=pending&alignment=matched&limit=50'
     ).get_json()
@@ -69,7 +101,7 @@ def test_reviewer_can_approve_a_matched_row(client, review_db):
     assert saved['decision'] == 'approve'
 
 
-def test_reviewer_can_edit_waqf_grade_and_live_api_uses_it(client, review_db):
+def test_reviewer_can_edit_waqf_grade_and_live_api_uses_it(client, review_db, pending_manar):
     item = client.get(
         '/api/classical-review/manar/items?status=pending&limit=1'
     ).get_json()['items'][0]
@@ -99,7 +131,7 @@ def test_reviewer_can_edit_waqf_grade_and_live_api_uses_it(client, review_db):
     assert live_item['grade_raw'] == review.REVIEW_GRADE_LABELS[replacement]
 
 
-def test_reviewer_rejects_unknown_waqf_grade(client, review_db):
+def test_reviewer_rejects_unknown_waqf_grade(client, review_db, pending_manar):
     item = client.get(
         '/api/classical-review/manar/items?status=pending&limit=1'
     ).get_json()['items'][0]
@@ -126,12 +158,12 @@ def test_unmatched_row_cannot_be_approved_without_correction(client, review_db):
     assert 'verified ayah' in response.get_json()['error']
 
 
-def test_book_addition_is_blocked_until_queue_is_complete(client, review_db):
+def test_book_addition_is_blocked_until_queue_is_complete(client, review_db, pending_muktafa):
     response = client.post('/api/classical-review/muktafa/book-decision', json={
         'decision': 'add',
     })
     assert response.status_code == 409
-    assert response.get_json()['pending'] == 23
+    assert response.get_json()['pending'] == 1
 
 
 def test_completed_review_can_activate_muktafa(client, review_db):
@@ -148,7 +180,7 @@ def test_completed_review_can_activate_muktafa(client, review_db):
     assert any(row['source'] == 'muktafa' for row in payload['entries'])
 
 
-def test_manar_queue_has_stable_rows_and_source_context(client, review_db):
+def test_manar_queue_has_stable_rows_and_source_context(client, review_db, pending_manar):
     payload = client.get('/api/classical-review/manar/items?limit=1').get_json()
     assert payload['total'] == len(review.manar_review_queue())
     item = payload['items'][0]
@@ -157,7 +189,7 @@ def test_manar_queue_has_stable_rows_and_source_context(client, review_db):
     assert item['alignment'] == 'matched'
 
 
-def test_rejected_manar_ruling_is_suppressed_from_live_api(client, review_db):
+def test_rejected_manar_ruling_is_suppressed_from_live_api(client, review_db, pending_manar):
     item = client.get('/api/classical-review/manar/items?limit=1').get_json()['items'][0]
     before = client.get(f'/api/classical-waqf/{item["surah"]}/{item["ayah"]}').get_json()
     key = (item['wpos'], item['quote'], item['grade'])

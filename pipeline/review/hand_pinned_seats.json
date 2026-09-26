@@ -1,0 +1,26 @@
+{
+ "checked": "2026-09-26",
+ "note": "Rows whose quote keeps the book's own spelling (so it traces to the book) but cannot match the Hafs word mechanically; each seat was read against its surah section in pipeline/classical_sources/muktafa_dani_shamela26461.md.",
+ "muktafa": {
+  "27": "مستهزئون — hamza spelling of «مُسۡتَهۡزِءُونَ»",
+  "260": "«مساكين» — qirāʾa of Hafs «مِسۡكِينٖ»",
+  "391": "«وأبناءنا» — hamza spelling",
+  "463": "«شيئا» after «فليكتب» — «وَلَا يَبۡخَسۡ مِنۡهُ شَيۡـٔٗاۚ»",
+  "524": "«أأسلمتم» — «ءَأَسۡلَمۡتُمۡۚ»",
+  "651": "«ههنا» — «هَٰهُنَاۗ»",
+  "2397": "«ورئيا» — «وَرِءۡيٗا»",
+  "2542": "الدينوري: «ذلك هو الضلال البعيد يدعو» — stop on «يَدۡعُواْ»",
+  "2640": "«ملبسون» — typo for «مُبۡلِسُونَ»",
+  "2798": "«يستهزئون» — hamza spelling",
+  "2992": "«يستهزئون» — hamza spelling",
+  "3079": "«والأفئدة» — hamza spelling",
+  "3225": "«العلماء» — «ٱلۡعُلَمَٰٓؤُاْۗ»",
+  "3267": "«يستهزؤون» — hamza spelling",
+  "3303": "«وبالليل» — «وَبِٱلَّيۡلِۚ»",
+  "3765": "«بأيد» — «بِأَيۡيْدٖ»",
+  "4044": "«فاحذرهم» — the book's spelling of «فَٱحۡذَرُوهُمۡۚ»",
+  "4105": "«والأفئدة» — hamza spelling",
+  "4320": "«باله» — typo for «بِٱلۡهَزۡلِ»",
+  "4403": "«واستغفروه» — «وَٱسۡتَغۡفِرۡهُۚ»"
+ }
+}
