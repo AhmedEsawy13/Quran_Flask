@@ -5,18 +5,15 @@ import { useEffect, useState } from "react";
 import { getJson, type Surah } from "@/lib/api";
 import { toArabicDigits } from "@/lib/mushaf";
 import { DoorIcon } from "@/components/ui/door-icon";
+import { readStorage } from "@/lib/storage";
 
 type Position = {surah: number; ayah: number; name: string};
 
 function savedPosition() {
-  try {
-    const [surah, ayah] = (window.localStorage.getItem("athar-reader-position") || "").split(":").map(Number);
-    return Number.isInteger(surah) && Number.isInteger(ayah) && surah >= 1 && surah <= 114 && ayah >= 1
-      ? {surah, ayah}
-      : null;
-  } catch {
-    return null;
-  }
+  const [surah, ayah] = (readStorage("athar-reader-position") || "").split(":").map(Number);
+  return Number.isInteger(surah) && Number.isInteger(ayah) && surah >= 1 && surah <= 114 && ayah >= 1
+    ? {surah, ayah}
+    : null;
 }
 
 /** Returning readers get one tap back to where the reader last left them. */

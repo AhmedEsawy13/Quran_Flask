@@ -16,6 +16,7 @@ import {
 import { toArabicDigits } from "@/lib/mushaf";
 import { Field, SelectControl, StatusState } from "@/components/ui/primitives";
 import { cn } from "@/lib/cn";
+import { readStorage, writeStorage } from "@/lib/storage";
 
 type StudyTool = "meanings" | "tafseer" | "eerab" | "mutashabihat" | "asbab" | "transliteration" | "study";
 
@@ -175,7 +176,7 @@ export function ReaderStudy({
     if (cached) {
       queueMicrotask(() => {
         setTafseerResult({key: verseKey, data: cached, error: ""});
-        const remembered = window.localStorage.getItem("athar-reader-tafseer") || "";
+        const remembered = readStorage("athar-reader-tafseer") || "";
         setSelectedTafseer(remembered in cached ? remembered : Object.keys(cached)[0] || "");
       });
       return;
@@ -188,7 +189,7 @@ export function ReaderStudy({
         );
         tafseerCache.set(verseKey, normalized);
         setTafseerResult({key: verseKey, data: normalized, error: ""});
-        const remembered = window.localStorage.getItem("athar-reader-tafseer") || "";
+        const remembered = readStorage("athar-reader-tafseer") || "";
         setSelectedTafseer(remembered in normalized ? remembered : Object.keys(normalized)[0] || "");
       })
       .catch((reason: unknown) => {
@@ -362,7 +363,7 @@ export function ReaderStudy({
                   <Field label="المصدر" className="w-full max-w-[330px]">
                     <SelectControl value={selectedTafseer} onChange={(event) => {
                       setSelectedTafseer(event.target.value);
-                      window.localStorage.setItem("athar-reader-tafseer", event.target.value);
+                      writeStorage("athar-reader-tafseer", event.target.value);
                     }}>
                       {Object.keys(tafseers).map((name) => <option key={name} value={name}>{name}</option>)}
                     </SelectControl>

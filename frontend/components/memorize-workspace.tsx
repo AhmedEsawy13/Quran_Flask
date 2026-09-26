@@ -42,6 +42,7 @@ import {
   ProgressBar,
   StatusState,
 } from "@/components/ui/primitives";
+import { readStorage, writeStorage } from "@/lib/storage";
 
 type PageResult = {
   key: string;
@@ -390,24 +391,24 @@ export function MemorizeWorkspace() {
     media.addEventListener("change", update);
     const hasLayoutParam = new URL(window.location.href).searchParams.has("layout");
     const frame = window.requestAnimationFrame(() => {
-      const savedLayout = window.localStorage.getItem("athar-memorize-layout");
+      const savedLayout = readStorage("athar-memorize-layout");
       if (!hasLayoutParam && isReaderLayout(savedLayout)) setLayout(savedLayout);
       setTajweedEnabled(
-        window.localStorage.getItem("athar-reader-tajweed") === "true" ||
-        window.localStorage.getItem("quranApp_tajweedEnabled") === "true",
+        readStorage("athar-reader-tajweed") === "true" ||
+        readStorage("quranApp_tajweedEnabled") === "true",
       );
       try {
-        const savedSources = JSON.parse(window.localStorage.getItem("mz_waqf_print") || "[]");
+        const savedSources = JSON.parse(readStorage("mz_waqf_print") || "[]");
         if (Array.isArray(savedSources) && isWaqfSource(savedSources[0])) setWaqfSource(savedSources[0]);
       } catch {
         // Ignore malformed legacy preferences and retain the Madinah-new default.
       }
-      const savedWaqfVisibility = window.localStorage.getItem("quranApp_waqfVisible");
+      const savedWaqfVisibility = readStorage("quranApp_waqfVisible");
       if (savedWaqfVisibility !== null) {
         setWaqfEnabled(savedWaqfVisibility === "1" || savedWaqfVisibility === "true");
       }
       if (!hasRangeQuery) {
-        const savedRange = parseAyahRange(window.localStorage.getItem("athar-memorize-range"));
+        const savedRange = parseAyahRange(readStorage("athar-memorize-range"));
         if (savedRange) {
           setSurahNumber(savedRange.surah);
           setFromAyah(savedRange.from);
@@ -425,13 +426,13 @@ export function MemorizeWorkspace() {
 
   useEffect(() => {
     if (!preferencesReady) return;
-    window.localStorage.setItem("athar-reader-tajweed", String(tajweedEnabled));
+    writeStorage("athar-reader-tajweed", String(tajweedEnabled));
   }, [preferencesReady, tajweedEnabled]);
 
   useEffect(() => {
     if (!preferencesReady) return;
-    window.localStorage.setItem("mz_waqf_print", JSON.stringify([waqfSource]));
-    window.localStorage.setItem("quranApp_waqfVisible", waqfEnabled ? "1" : "");
+    writeStorage("mz_waqf_print", JSON.stringify([waqfSource]));
+    writeStorage("quranApp_waqfVisible", waqfEnabled ? "1" : "");
   }, [preferencesReady, waqfEnabled, waqfSource]);
 
   useEffect(() => {
@@ -588,8 +589,8 @@ export function MemorizeWorkspace() {
     url.searchParams.set("layout", layout);
     url.searchParams.delete("ayah");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-    window.localStorage.setItem("athar-memorize-range", `${surahNumber}:${fromAyah}:${toAyah}`);
-    window.localStorage.setItem("athar-memorize-layout", layout);
+    writeStorage("athar-memorize-range", `${surahNumber}:${fromAyah}:${toAyah}`);
+    writeStorage("athar-memorize-layout", layout);
   }, [preferencesReady, surahNumber, fromAyah, toAyah, editionId, layout]);
 
   const retry = useCallback(() => {

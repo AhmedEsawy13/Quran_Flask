@@ -24,6 +24,7 @@ import {
   SelectControl,
   StatusState,
 } from "@/components/ui/primitives";
+import { readStorage, writeStorage } from "@/lib/storage";
 
 type MemorizePlayerProps = {
   surahNumber: number;
@@ -209,7 +210,7 @@ export function MemorizePlayer({
     getJson<Reciter[]>("/backend-api/memorization-reciters", controller.signal)
       .then((items) => {
         setReciters(items);
-        const saved = window.localStorage.getItem("athar-memorize-reciter");
+        const saved = readStorage("athar-memorize-reciter");
         if (saved && items.some((item) => item.id === saved)) setReciterId(saved);
       })
       .catch(() => setReciters([]));
@@ -243,7 +244,7 @@ export function MemorizePlayer({
   }, [audioKey, surahNumber, reciterId, splitMode]);
 
   useEffect(() => {
-    if (reciters.length) window.localStorage.setItem("athar-memorize-reciter", reciterId);
+    if (reciters.length) writeStorage("athar-memorize-reciter", reciterId);
   }, [reciterId, reciters.length]);
 
   useEffect(() => {

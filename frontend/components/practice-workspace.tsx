@@ -39,6 +39,7 @@ import {
 import {Button, StatusState} from "@/components/ui/primitives";
 import {PracticeMushafPages} from "@/components/practice-mushaf-pages";
 import {loadPracticePageRange, practiceUsesApproximateLayout} from "@/lib/practice-pages";
+import { readStorage, writeStorage } from "@/lib/storage";
 
 function positiveInteger(value: string | null, fallback: number) {
   const parsed = Number(value);
@@ -208,7 +209,7 @@ export function PracticeWorkspace() {
   useEffect(() => {
     if (hasRangeQuery) return;
     const frame = window.requestAnimationFrame(() => {
-      const saved = parseAyahRange(window.localStorage.getItem("athar-practice-range"));
+      const saved = parseAyahRange(readStorage("athar-practice-range"));
       if (saved) {
         setSurahNumber(saved.surah);
         setFromAyah(saved.from);
@@ -228,7 +229,7 @@ export function PracticeWorkspace() {
     url.searchParams.set("mushaf", mushaf);
     url.searchParams.delete("ayah");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-    window.localStorage.setItem("athar-practice-range", `${surahNumber}:${fromAyah}:${toAyah}`);
+    writeStorage("athar-practice-range", `${surahNumber}:${fromAyah}:${toAyah}`);
   }, [sessionReady, surahNumber, fromAyah, toAyah, mushaf]);
 
   const resetAttempt = useCallback(() => {

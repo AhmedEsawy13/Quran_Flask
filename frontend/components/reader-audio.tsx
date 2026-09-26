@@ -10,6 +10,7 @@ import {
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
 import { Button, CheckControl, Field, PlaybackTimeline, SelectControl, StatusState, Surface } from "@/components/ui/primitives";
+import { readStorage, writeStorage } from "@/lib/storage";
 
 type ReaderAudioProps = {
   surahNumber: number;
@@ -83,7 +84,7 @@ export function ReaderAudio({
     getJson<Reciter[]>("/backend-api/memorization-reciters", controller.signal)
       .then((items) => {
         setReciters(items);
-        const saved = window.localStorage.getItem("athar-reader-reciter");
+        const saved = readStorage("athar-reader-reciter");
         if (saved && items.some((item) => item.id === saved)) setReciterId(saved);
       })
       .catch(() => setReciters([]));
@@ -138,7 +139,7 @@ export function ReaderAudio({
   useEffect(() => () => onWordChange(null), [onWordChange]);
 
   useEffect(() => {
-    if (reciters.length) window.localStorage.setItem("athar-reader-reciter", reciterId);
+    if (reciters.length) writeStorage("athar-reader-reciter", reciterId);
     onReciterChange?.(reciterId);
   }, [reciterId, reciters.length, onReciterChange]);
 

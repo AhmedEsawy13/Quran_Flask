@@ -29,6 +29,7 @@ import { Button, CheckControl, DrawerSurface, Field, SegmentedControl, SelectCon
 import { useEditionFont } from "@/lib/use-edition-font";
 import { usePageTajweed } from "@/lib/use-page-tajweed";
 import { WAQF_SOURCES, isWaqfSource, type WaqfSource } from "@/lib/waqf";
+import { readStorage, writeStorage } from "@/lib/storage";
 
 type ContentResult = {
   requestKey: string;
@@ -182,7 +183,7 @@ export function ReaderWorkspace() {
   useEffect(() => {
     if (!restoreLastPosition && !restoreView && !restoreEdition && !restoreLayout && !restoreMargins) return;
     const frame = window.requestAnimationFrame(() => {
-      const savedPosition = window.localStorage.getItem("athar-reader-position");
+      const savedPosition = readStorage("athar-reader-position");
       if (restoreLastPosition && savedPosition) {
         const [savedSurah, savedAyah] = savedPosition.split(":").map(Number);
         if (
@@ -193,23 +194,23 @@ export function ReaderWorkspace() {
           setAyahNumber(savedAyah);
         }
       }
-      const savedPreferences = window.localStorage.getItem("athar-reader-preferences");
+      const savedPreferences = readStorage("athar-reader-preferences");
       if (savedPreferences) {
         const [savedView, savedEdition, savedLayout] = savedPreferences.split(":");
         if (restoreView && isReaderView(savedView)) setView(savedView);
         if (restoreEdition && isMushafEdition(savedEdition)) setEditionId(savedEdition);
         if (restoreLayout && isReaderLayout(savedLayout)) setLayout(savedLayout);
       }
-      const savedLayout = window.localStorage.getItem("athar-reader-layout");
+      const savedLayout = readStorage("athar-reader-layout");
       if (restoreLayout && isReaderLayout(savedLayout)) setLayout(savedLayout);
-      if (restoreMargins) setMarginMode(window.localStorage.getItem("athar-reader-margins") === "true");
+      if (restoreMargins) setMarginMode(readStorage("athar-reader-margins") === "true");
       setTajweedEnabled(
-        window.localStorage.getItem("athar-reader-tajweed") === "true" ||
-        window.localStorage.getItem("quranApp_tajweedEnabled") === "true",
+        readStorage("athar-reader-tajweed") === "true" ||
+        readStorage("quranApp_tajweedEnabled") === "true",
       );
-      const savedWaqf = window.localStorage.getItem("athar-reader-waqf-source");
+      const savedWaqf = readStorage("athar-reader-waqf-source");
       if (isWaqfSource(savedWaqf)) setWaqfSource(savedWaqf);
-      setWaqfEnabled(window.localStorage.getItem("athar-reader-waqf") !== "false");
+      setWaqfEnabled(readStorage("athar-reader-waqf") !== "false");
       setPositionReady(true);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -330,13 +331,13 @@ export function ReaderWorkspace() {
     if (marginMode) url.searchParams.set("margins", "1");
     else url.searchParams.delete("margins");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-    window.localStorage.setItem("athar-reader-position", `${surahNumber}:${ayahNumber}`);
-    window.localStorage.setItem("athar-reader-preferences", `${view}:${editionId}:${layout}`);
-    window.localStorage.setItem("athar-reader-layout", layout);
-    window.localStorage.setItem("athar-reader-margins", String(marginMode));
-    window.localStorage.setItem("athar-reader-tajweed", String(tajweedEnabled));
-    window.localStorage.setItem("athar-reader-waqf-source", waqfSource);
-    window.localStorage.setItem("athar-reader-waqf", String(waqfEnabled));
+    writeStorage("athar-reader-position", `${surahNumber}:${ayahNumber}`);
+    writeStorage("athar-reader-preferences", `${view}:${editionId}:${layout}`);
+    writeStorage("athar-reader-layout", layout);
+    writeStorage("athar-reader-margins", String(marginMode));
+    writeStorage("athar-reader-tajweed", String(tajweedEnabled));
+    writeStorage("athar-reader-waqf-source", waqfSource);
+    writeStorage("athar-reader-waqf", String(waqfEnabled));
   }, [positionReady, surahNumber, ayahNumber, view, editionId, layout, marginMode, tajweedEnabled, waqfEnabled, waqfSource]);
 
   const selectedSurah = useMemo(
