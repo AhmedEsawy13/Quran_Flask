@@ -12,9 +12,11 @@ import {
   buildMemorizationSchedule,
   firstStepForAyah,
   isContiguousAdvance,
+  stepPlayedSeconds,
   stepSeekTime,
   stepStopTime,
 } from "@/lib/memorize-schedule";
+import { cn } from "@/lib/cn";
 import { toArabicDigits } from "@/lib/mushaf";
 import { backendMediaUrl } from "@/lib/paths";
 import {
@@ -36,6 +38,12 @@ type MemorizePlayerProps = {
   chromeHost?: HTMLElement | null;
   controlsHost?: HTMLElement | null;
   playbackLocked?: boolean;
+  /** Where the one-line session status renders (the strip under the toolbar). */
+  statusHost?: HTMLElement | null;
+  /** Shown instead of the session status (e.g. while picking a range). */
+  statusOverride?: React.ReactNode;
+  /** Shown before the session has started. */
+  idleStatus?: React.ReactNode;
 };
 
 type AudioResult = {
@@ -47,7 +55,6 @@ type AudioResult = {
 const audioCache = new Map<string, MemorizationAudio>();
 const unitRepetitionOptions = [1, 2, 3, 5, 7, 10] as const;
 const linkRepetitionOptions = [1, 2, 3] as const;
-const STEP_GAP_SECONDS = 0.4;
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds) || seconds < 0) return "٠:٠٠";
@@ -72,6 +79,9 @@ export function MemorizePlayer({
   chromeHost = null,
   controlsHost = null,
   playbackLocked = false,
+  statusHost = null,
+  statusOverride = null,
+  idleStatus = null,
 }: MemorizePlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const seekingRef = useRef(false);
@@ -111,15 +121,14 @@ export function MemorizePlayer({
   }), [visibleAudio, fromAyah, toAyah, unitRepetitions, linkRepetitions, cumulative, splitAtPauses]);
   const currentStep = schedule[stepIndex] || null;
   const duration = currentStep ? Math.max(0, currentStep.end - currentStep.start) : 0;
+  // One timing basis (seek → stop, pads included) for the estimate, «باقٍ», and seeking.
+  const playedSeconds = useMemo(() => schedule.map((_, index) => stepPlayedSeconds(schedule, index)), [schedule]);
+  const totalDuration = useMemo(() => playedSeconds.reduce((total, seconds) => total + seconds, 0), [playedSeconds]);
   const completedDuration = useMemo(
-    () => schedule.slice(0, stepIndex).reduce((total, step) => total + Math.max(0, step.end - step.start), 0),
-    [schedule, stepIndex],
+    () => playedSeconds.slice(0, stepIndex).reduce((total, seconds) => total + seconds, 0),
+    [playedSeconds, stepIndex],
   );
-  const totalDuration = useMemo(
-    () => schedule.reduce((total, step) => total + Math.max(0, step.end - step.start), 0),
-    [schedule],
-  );
-  const expectedDuration = totalDuration + schedule.length * STEP_GAP_SECONDS;
+  const expectedDuration = totalDuration;
   const remainingDuration = Math.max(0, totalDuration - completedDuration - elapsed);
 
   const setPlaying = useCallback((playing: boolean) => {
@@ -131,10 +140,12 @@ export function MemorizePlayer({
     activeAyahRef.current = activeAyah;
   }, [activeAyah]);
 
-  const publishAyah = useCallback((ayah: number) => {
-    if (activeAyahRef.current === ayah) return;
+  // `force` re-announces an unchanged ayah when a step starts, so a page the
+  // reader turned away from follows the recitation back.
+  const publishAyah = useCallback((ayah: number, force = false) => {
+    if (activeAyahRef.current === ayah && !force) return;
+    if (activeAyahRef.current !== ayah) internalAyahRef.current = ayah;
     activeAyahRef.current = ayah;
-    internalAyahRef.current = ayah;
     onActiveAyahChange(ayah);
   }, [onActiveAyahChange]);
 
@@ -160,7 +171,7 @@ export function MemorizePlayer({
     setStepIndex(boundedIndex);
     boundaryHandledRef.current = false;
     setElapsed(preserveTime ? Math.max(0, audio.currentTime - step.start) : 0);
-    publishAyah(step.startAyah);
+    publishAyah(step.startAyah, autoplay);
     onWordChange(null);
     if (!preserveTime) {
       seekingRef.current = true;
@@ -302,13 +313,14 @@ export function MemorizePlayer({
       await goToStep(stepIndexRef.current, true);
       return;
     }
+    publishAyah(activeAyahRef.current, true);
     try {
       await audio.play();
       setPlaying(true);
     } catch {
       setPlaying(false);
     }
-  }, [schedule, goToStep, setPlaying, playbackLocked]);
+  }, [schedule, goToStep, setPlaying, playbackLocked, publishAyah]);
 
   const resetSession = useCallback(() => {
     const audio = audioRef.current;
@@ -320,11 +332,19 @@ export function MemorizePlayer({
   const seekSession = useCallback(async (frac: number) => {
     const audio = audioRef.current;
     if (!audio || !schedule.length || playbackLocked) return;
-    const bounded = Math.max(0, Math.min(0.99999, frac));
-    const nextIndex = Math.min(schedule.length - 1, Math.floor(bounded * schedule.length));
-    const within = bounded * schedule.length - nextIndex;
+    // The slider shows time; land on the step that owns that moment.
+    const target = Math.max(0, Math.min(0.99999, frac)) * totalDuration;
+    let nextIndex = schedule.length - 1;
+    let before = 0;
+    for (let index = 0; index < schedule.length; index += 1) {
+      if (before + playedSeconds[index] > target) {
+        nextIndex = index;
+        break;
+      }
+      before += playedSeconds[index];
+    }
     const step = schedule[nextIndex];
-    const currentTime = step.start + within * Math.max(0, step.end - step.start);
+    const currentTime = Math.min(step.end, stepSeekTime(step) + Math.max(0, target - before));
     stepIndexRef.current = nextIndex;
     setStepIndex(nextIndex);
     boundaryHandledRef.current = false;
@@ -342,7 +362,7 @@ export function MemorizePlayer({
       seekingRef.current = false;
     }
     updatePlaybackPosition(currentTime);
-  }, [schedule, playbackLocked, publishAyah, onWordChange, setPlaying, updatePlaybackPosition]);
+  }, [schedule, playedSeconds, totalDuration, playbackLocked, publishAyah, onWordChange, setPlaying, updatePlaybackPosition]);
 
   const sessionProgress = totalDuration
     ? Math.min(1, (completedDuration + elapsed) / totalDuration)
@@ -485,8 +505,75 @@ export function MemorizePlayer({
     </div>
   );
 
+  // Space plays/pauses from anywhere except fields and controls that own the key.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== " " || event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable || target?.closest("input, select, textarea, button, summary, a, [role='dialog']")) return;
+      event.preventDefault();
+      void togglePlayback();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [togglePlayback]);
+
+  // Lock-screen / earbud controls on phones.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("mediaSession" in navigator) || !currentStep) return;
+    const session = navigator.mediaSession;
+    try {
+      session.metadata = new MediaMetadata({
+        title: currentStep.label,
+        artist: visibleAudio?.reciter_name_ar || "",
+        album: "تثبيت · أثَر",
+      });
+      session.setActionHandler("play", () => void togglePlayback());
+      session.setActionHandler("pause", () => void togglePlayback());
+      session.setActionHandler("previoustrack", () => void goToStep(stepIndexRef.current - 1, playingRef.current));
+      session.setActionHandler("nexttrack", () => void goToStep(stepIndexRef.current + 1, playingRef.current));
+    } catch {
+      // Older browsers lack some actions; the in-page controls still work.
+    }
+  }, [currentStep, visibleAudio?.reciter_name_ar, togglePlayback, goToStep]);
+
+  const sessionStarted = isPlaying || stepIndex > 0 || elapsed > 0.05;
+  const status = statusOverride ? statusOverride : audioError ? (
+    <span className="truncate text-athar-negative">تعذّر تحميل تلاوة هذا القارئ للسورة — اختر قارئًا آخر من «القارئ والتكرار».</span>
+  ) : sessionStarted && currentStep ? (
+    <span className="flex min-w-0 items-center gap-2" aria-label="الخطوة الحالية">
+      <span className={cn("size-2 shrink-0 rounded-full", isPlaying ? "animate-pulse bg-athar-accent" : "bg-athar-ink-faint")} aria-hidden="true" />
+      <b className="truncate text-athar-ink">{currentStep.label}</b>
+      {currentStep.repetitionTotal > 1 ? (
+        <span className="flex shrink-0 items-center gap-1" aria-label={`التكرار ${toArabicDigits(currentStep.repetition)} من ${toArabicDigits(currentStep.repetitionTotal)}`}>
+          {Array.from({length: currentStep.repetitionTotal}, (_, index) => (
+            <span
+              key={index}
+              className={cn("size-1.5 rounded-full", index < currentStep.repetition ? "bg-athar-accent" : "bg-athar-line")}
+            />
+          ))}
+        </span>
+      ) : null}
+      <span className="shrink-0 rounded-full bg-athar-accent/10 px-2 py-0.5 text-[0.66rem] font-bold text-athar-accent max-sm:hidden">{stepKind}</span>
+      <span className="shrink-0 tabular-nums text-athar-ink-faint">{toArabicDigits(stepIndex + 1)}/{toArabicDigits(schedule.length)}</span>
+    </span>
+  ) : idleStatus;
+
   return (
     <>
+      {statusHost ? createPortal(
+        <>
+          {status}
+          {sessionStarted && !statusOverride ? (
+            <span
+              className="absolute inset-x-0 bottom-0 h-0.5 origin-right bg-athar-accent transition-transform duration-300"
+              style={{transform: `scaleX(${sessionProgress})`}}
+              aria-hidden="true"
+            />
+          ) : null}
+        </>,
+        statusHost,
+      ) : null}
       <div aria-label="جلسة التكرار" className="absolute size-px overflow-hidden">
         {audioElement}
       </div>

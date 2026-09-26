@@ -68,6 +68,7 @@ type ShemrlyPagesPayload = {
 
 type RangeDraft = {
   anchor: number;
+  previousSurah: number;
   previousFrom: number;
   previousTo: number;
 };
@@ -178,6 +179,17 @@ function ToolbarPopover({
   );
 }
 
+/** Close any open toolbar popover; true when one was open. */
+function closeToolbarPopovers(except?: Node | null) {
+  let closed = false;
+  document.querySelectorAll<HTMLDetailsElement>('details[name="memorize-toolbar"][open]').forEach((details) => {
+    if (except && details.contains(except)) return;
+    details.open = false;
+    closed = true;
+  });
+  return closed;
+}
+
 function isWaqfSource(value: unknown): value is WaqfSource {
   return WAQF_SOURCES.includes(value as WaqfSource);
 }
@@ -232,6 +244,7 @@ export function MemorizeWorkspace() {
   const [moving, setMoving] = useState(false);
   const [transportHost, setTransportHost] = useState<HTMLDivElement | null>(null);
   const [controlsHost, setControlsHost] = useState<HTMLDivElement | null>(null);
+  const [statusHost, setStatusHost] = useState<HTMLDivElement | null>(null);
   const [pageResult, setPageResult] = useState<PageResult>({key: "", page: null, error: ""});
   const [spreadResult, setSpreadResult] = useState<SpreadResult>({key: "", right: null, left: null, error: ""});
   const pageResultRef = useRef(pageResult);
@@ -601,6 +614,7 @@ export function MemorizeWorkspace() {
 
   const cancelRangePick = useCallback(() => {
     if (!rangeDraft) return false;
+    setSurahNumber(rangeDraft.previousSurah);
     setFromAyah(rangeDraft.previousFrom);
     setToAyah(rangeDraft.previousTo);
     updateActiveAyah(rangeDraft.previousFrom);
@@ -618,7 +632,7 @@ export function MemorizeWorkspace() {
       return;
     }
     if (surah !== surahNumber) {
-      setRangeDraft({anchor: ayah, previousFrom: 1, previousTo: 1});
+      setRangeDraft({anchor: ayah, previousSurah: surahNumber, previousFrom: fromAyah, previousTo: toAyah});
       setSurahNumber(surah);
       setFromAyah(ayah);
       setToAyah(ayah);
@@ -626,7 +640,7 @@ export function MemorizeWorkspace() {
       return;
     }
     if (!rangeDraft) {
-      setRangeDraft({anchor: ayah, previousFrom: fromAyah, previousTo: toAyah});
+      setRangeDraft({anchor: ayah, previousSurah: surahNumber, previousFrom: fromAyah, previousTo: toAyah});
       setFromAyah(ayah);
       setToAyah(ayah);
       updateActiveAyah(ayah);
@@ -709,9 +723,16 @@ export function MemorizeWorkspace() {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
+      if (event.key === "Escape" && closeToolbarPopovers()) {
+        event.preventDefault();
+        return;
+      }
+      // Buttons ignore arrow keys natively, so page-turning keeps working after
+      // pressing play; radio groups and open popovers own their arrows.
       if (
         event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey ||
-        target?.isContentEditable || ["INPUT", "SELECT", "TEXTAREA", "BUTTON"].includes(target?.tagName || "")
+        target?.isContentEditable || ["INPUT", "SELECT", "TEXTAREA"].includes(target?.tagName || "") ||
+        target?.closest("[role='radiogroup'], details[open]")
       ) return;
       if (event.key === "Escape") {
         if (document.querySelector('[role="dialog"]')) return;
@@ -730,6 +751,16 @@ export function MemorizeWorkspace() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [atFirstPage, atLastPage]);
+
+  // A popover closes when the reader taps anywhere else, like every other menu.
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent) => closeToolbarPopovers(event.target as Node);
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
+
+  const rangeSize = toAyah - fromAyah + 1;
+  const revealedInRange = [...revealedAyahs].filter((ayah) => ayah >= fromAyah && ayah <= toAyah).length;
 
   const rendererProps = {
     view: "page" as const,
@@ -918,33 +949,18 @@ export function MemorizeWorkspace() {
             aria-label="افتح التسميع الصوتي"
             title="التسميع الصوتي — اقرأ في الميكروفون ليُتابعك المصحف"
           >
-            <AtharIcon name="headphones" className="size-[17px]" />
+            <AtharIcon name="mic" className="size-[17px]" />
             <span className="hidden lg:inline">التسميع الصوتي</span>
           </a>
 
           <div ref={setTransportHost} className="ms-auto flex min-w-0 flex-1 justify-end" />
         </div>
         <div
-          className="absolute inset-x-0 bottom-0 m-0 flex h-7 items-center justify-center gap-2 border-t border-athar-line-soft bg-athar-accent/5 px-3 text-center text-[0.72rem] font-semibold leading-none text-athar-ink-soft max-sm:justify-start max-sm:overflow-hidden max-sm:whitespace-nowrap"
+          ref={setStatusHost}
+          className="absolute inset-x-0 bottom-0 m-0 flex h-7 items-center justify-center gap-2 overflow-hidden border-t border-athar-line-soft bg-athar-accent/5 px-3 text-center text-[0.72rem] font-semibold leading-none text-athar-ink-soft max-sm:justify-start max-sm:whitespace-nowrap"
           role="status"
           aria-live="polite"
-        >
-          <AtharIcon name="mouse-pointer" className="size-3.5 shrink-0 text-athar-accent" />
-          <span className="truncate">
-            {picking
-              ? `بدأ النطاق من الآية ${toArabicDigits(rangeDraft.anchor)}؛ اضغط آية النهاية لإكماله.`
-              : "اضغط آية البداية، ثم آية النهاية. اضغط تشغيل للجلسة."}
-          </span>
-          {picking ? (
-            <button
-              type="button"
-              className="pointer-events-auto shrink-0 rounded-md border border-athar-line px-1.5 py-0.5 text-[0.65rem] font-bold text-athar-accent hover:border-athar-accent"
-              onClick={cancelRangePick}
-            >
-              إلغاء
-            </button>
-          ) : null}
-        </div>
+        />
       </header>
 
       <DrawerSurface
@@ -1161,6 +1177,39 @@ export function MemorizeWorkspace() {
         chromeHost={transportHost}
         controlsHost={controlsHost}
         playbackLocked={picking}
+        statusHost={statusHost}
+        statusOverride={picking ? (
+          <>
+            <AtharIcon name="mouse-pointer" className="size-3.5 shrink-0 text-athar-accent" />
+            <span className="truncate">بدأ النطاق من الآية {toArabicDigits(rangeDraft.anchor)}؛ اضغط آية النهاية لإكماله.</span>
+            <button
+              type="button"
+              className="shrink-0 rounded-md border border-athar-line px-1.5 py-0.5 text-[0.65rem] font-bold text-athar-accent hover:border-athar-accent"
+              onClick={cancelRangePick}
+            >
+              إلغاء
+            </button>
+          </>
+        ) : concealed ? (
+          <>
+            <AtharIcon name="eye-off" className="size-3.5 shrink-0 text-athar-accent" />
+            <span className="truncate">اختبار الحفظ: اقرأ من حفظك، واضغط الآية لكشفها</span>
+            <b className="shrink-0 tabular-nums text-athar-accent" aria-label="الآيات المكشوفة">{toArabicDigits(revealedInRange)}/{toArabicDigits(rangeSize)}</b>
+            <button
+              type="button"
+              className="shrink-0 rounded-md border border-athar-line px-1.5 py-0.5 text-[0.65rem] font-bold text-athar-accent hover:border-athar-accent"
+              onClick={() => setRevealedAyahs(revealedInRange >= rangeSize ? new Set() : new Set(Array.from({length: rangeSize}, (_, index) => fromAyah + index)))}
+            >
+              {revealedInRange >= rangeSize ? "أخفِ من جديد" : "اكشف الكل"}
+            </button>
+          </>
+        ) : null}
+        idleStatus={(
+          <>
+            <AtharIcon name="mouse-pointer" className="size-3.5 shrink-0 text-athar-accent" />
+            <span className="truncate">اضغط آية البداية ثم آية النهاية لتحديد المقطع، ثم ▶ أو مفتاح المسافة للبدء.</span>
+          </>
+        )}
       />
     </section>
   );

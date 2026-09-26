@@ -421,6 +421,26 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
   expect(lineRhythm.fontSize).toBeGreaterThan(9);
   expect(lineRhythm.lineStep / lineRhythm.fontSize).toBeGreaterThan(1.25);
   expect(lineRhythm.maximumHorizontalScale).toBeLessThanOrEqual(1.1);
+  // Pressing play brings a page the reader turned away from back to the recited ayah.
+  const shownPages = () => page.locator(".reader-page").evaluateAll((pages) => pages.map((item) => item.querySelector(".page-number")?.textContent?.trim() || item.textContent?.match(/[٠-٩]+\s*$/)?.[0]?.trim()).join(","));
+  const recitedPages = await shownPages();
+  await page.getByRole("button", {name: "الصفحة التالية"}).click();
+  await expect.poll(shownPages).not.toBe(recitedPages);
+  await page.getByRole("button", {name: "بدء جلسة التثبيت"}).click();
+  await expect.poll(shownPages, {timeout: 10_000}).toBe(recitedPages);
+  await page.getByRole("button", {name: "إيقاف", exact: true}).click();
+  // Toolbar popovers close on Escape like any menu.
+  await page.locator("summary").filter({hasText: "الموضع"}).click();
+  await expect(page.locator("details[open]")).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(page.locator("details[open]")).toHaveCount(0);
+  // Test mode reports progress and can reveal the whole range.
+  const studioStatus = page.locator('[aria-label="استوديو التثبيت"] [role="status"]');
+  await page.getByRole("button", {name: "اختبر حفظي"}).click();
+  await expect(studioStatus).toContainText("اختبار الحفظ");
+  await studioStatus.getByRole("button", {name: "اكشف الكل"}).click();
+  await expect(studioStatus.getByRole("button", {name: "أخفِ من جديد"})).toBeVisible();
+  await page.getByRole("button", {name: "أظهر نص النطاق"}).click();
   await page.locator("summary").filter({hasText: "رسم المصحف"}).click();
   await expect(page.getByRole("radio", {name: "المدينة الجديد"})).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("radio", {name: "الأزهر"})).toBeVisible();

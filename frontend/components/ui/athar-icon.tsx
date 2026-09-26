@@ -9,6 +9,8 @@ export type AtharIconName =
   | "headphones"
   | "layers"
   | "message"
+  | "mic"
+  | "repeat"
   | "mouse-pointer"
   | "play"
   | "scan"
@@ -26,6 +28,8 @@ const ATHAR_ICON_PATHS: Record<AtharIconName, ReactNode> = {
   headphones: <><path d="M4 14v-2a8 8 0 0 1 16 0v2" /><path d="M4 14a2 2 0 0 1 2-2h1v7H6a2 2 0 0 1-2-2zM20 14a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z" /></>,
   layers: <><path d="m12 3-9 5 9 5 9-5z" /><path d="m3 12 9 5 9-5M3 16l9 5 9-5" /></>,
   message: <path d="M4 6.5h16v10H8.2L4 20z" />,
+  mic: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" /></>,
+  repeat: <><path d="M4 11V9a3 3 0 0 1 3-3h12l-3-3M20 13v2a3 3 0 0 1-3 3H5l3 3" /></>,
   "mouse-pointer": <><path d="m5 3 6.8 16 2.2-6 6-2.2z" /><path d="m14 14 4 4" /></>,
   play: <path d="M8 5.5v13l11-6.5z" />,
   scan: <><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3" /><path d="M8 12h8" /></>,

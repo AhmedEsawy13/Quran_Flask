@@ -42,6 +42,17 @@ export function stepStopTime(
   return step.end + UNIT_END_PAD;
 }
 
+/**
+ * Seconds a step actually occupies in playback: from where it seeks to where
+ * it stops, including the lead-in and tail pads. Summing these gives one
+ * duration the UI can use for both «المدة المتوقعة» and «باقٍ».
+ */
+export function stepPlayedSeconds(steps: Array<{kind: string; start: number; end: number}>, index: number) {
+  const step = steps[index];
+  if (!step) return 0;
+  return Math.max(0, stepStopTime(step, steps[index + 1]) - stepSeekTime(step));
+}
+
 export type MemorizationScheduleOptions = {
   fromAyah: number;
   toAyah: number;
