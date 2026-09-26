@@ -2,7 +2,7 @@
 
 import type {ClassicalWaqfPayload} from "@/lib/api";
 import {arabicCount} from "@/lib/mushaf";
-import {classicalGradeMeta} from "@/lib/waqf";
+import {ImamRulings} from "@/components/imam-rulings";
 import {ToolCard, ToolCardHead} from "@/components/tool-chrome";
 import {StatusState} from "@/components/ui/primitives";
 
@@ -26,11 +26,7 @@ export function WaqfClassical({
 
   const byPos = new Map<number, typeof classical.entries>();
   classical.entries.forEach((entry) => {
-    const list = byPos.get(entry.wpos) || [];
-    if (!list.some((item) => item.source === entry.source && item.grade === entry.grade)) {
-      list.push(entry);
-      byPos.set(entry.wpos, list);
-    }
+    byPos.set(entry.wpos, [...(byPos.get(entry.wpos) || []), entry]);
   });
   const positions = [...byPos.keys()].sort((a, b) => a - b);
   const sources = Object.values(classical.sources).map((source) => `${source.title} — ${source.author}`).join(" · ");
@@ -67,32 +63,7 @@ export function WaqfClassical({
                   : <span key={`${wpos}-${index}`}>{word} </span>
               ))}
             </button>
-            <div className={`wq-rulings${list.length > 1 ? " has-split" : ""}`}>
-              {list.map((entry, index) => {
-                const meta = classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade};
-                const source = classical.sources[entry.source];
-                const attrib = entry.reported_from
-                  ? `${source?.name || entry.source} نقلًا عن ${entry.reported_from}`
-                  : source?.name || entry.source;
-                const note = (entry.note || "").trim();
-                const preview = note.length > 280 ? `${note.slice(0, 280).trim()}…` : note;
-                return (
-                  <div className="wq-ruling" key={`${entry.source}-${entry.grade}-${index}`}>
-                    <span className={`wq-grade is-${meta.cls}`} title={meta.desc}>
-                      {entry.grade_raw || entry.grade}
-                      <small>· {attrib}</small>
-                    </span>
-                    {preview ? <p className="wq-illa">{preview}</p> : null}
-                    {note.length > 280 ? (
-                      <details className="wq-illa-more">
-                        <summary>تتمة العلّة</summary>
-                        <p>{note}</p>
-                      </details>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
+            <ImamRulings entries={list} sources={classical.sources} showQuote={false} />
           </article>
         ))}
       </div>

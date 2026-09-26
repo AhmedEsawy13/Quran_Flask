@@ -4,7 +4,8 @@ import type {WaqfPayload} from "@/lib/api";
 import {cn} from "@/lib/cn";
 import {toArabicDigits} from "@/lib/mushaf";
 import {waqfMarkLabel, waqfMarkTone} from "@/lib/waqf";
-import {mushafFontClass, mushafGlyph} from "@/lib/waqf-lab";
+import {mushafFontClass} from "@/lib/waqf-lab";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 import {ToolCard, ToolCardHead} from "@/components/tool-chrome";
 import {StatusState} from "@/components/ui/primitives";
 
@@ -29,7 +30,7 @@ function MatrixMark({
       className={cn("waqf-symbol waqf-matrix-mark", mushafFontClass(mushafId), `is-${tone}`)}
       title={waqfMarkLabel(symbol)}
     >
-      {mushafGlyph(symbol, mushafId)}
+      <WaqfGlyph symbol={symbol} mushafId={mushafId} className="size-[1.3em]" />
     </span>
   );
 }

@@ -350,9 +350,9 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   page.on("request", (request) => {
     if (/\/backend-api\/waqf\/2\/255$/.test(request.url())) ayahFetches += 1;
   });
-  await expect(page.locator("#waqf-comparison header")).toContainText("الموضع ١ من");
+  await expect(page.locator("#waqf-stop-head")).toContainText("الموضع ١ من");
   await page.getByRole("button", {name: "الموضع التالي"}).click();
-  await expect(page.locator("#waqf-comparison header")).toContainText("الموضع ٢ من");
+  await expect(page.locator("#waqf-stop-head")).toContainText("الموضع ٢ من");
   await expect(page).toHaveURL(/wpos=6/);
   await page.waitForTimeout(400);
   expect(ayahFetches).toBe(0);
@@ -371,7 +371,7 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   await expect(page).toHaveURL(/ayah=256/);
   await expect(page.getByRole("heading", {name: /الآية ٢٥٦/})).toBeVisible({timeout: 15_000});
   // The new ayah opens on its own first stop, not the previous ayah's word position.
-  await expect(page.locator("#waqf-comparison header")).toContainText("الموضع ١ من");
+  await expect(page.locator("#waqf-stop-head")).toContainText("الموضع ١ من");
   await expect(practiceLink).toHaveAttribute("href", "/waqf-practice?surah=2&from=256&to=256");
   await page.getByRole("combobox", {name: "البحث عن آية"}).fill("الله");
   const searchResults = page.getByRole("listbox", {name: "نتائج البحث"});

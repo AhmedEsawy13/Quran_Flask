@@ -2,20 +2,17 @@
 
 import type {ClassicalWaqfPayload, TawjihPayload, WaqfPayload} from "@/lib/api";
 import {cn} from "@/lib/cn";
-import {toArabicDigits} from "@/lib/mushaf";
-import {classicalGradeMeta, isNegativeGrade, majorityWaqfSymbol, waqfMarkCanonical, waqfMarkLabel} from "@/lib/waqf";
+import {arabicCount, toArabicDigits} from "@/lib/mushaf";
+import {isNegativeGrade, majorityWaqfSymbol, waqfMarkCanonical, waqfMarkLabel} from "@/lib/waqf";
 import {TawjihEntryCard} from "@/components/waqf-tawjih";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
+import {ImamRulings} from "@/components/imam-rulings";
 
 function isNativeAudio(url: string | null | undefined) {
   return Boolean(url && !/youtu(?:\.be|be\.com)/i.test(url));
 }
 
-const NOTE_PREVIEW = 320;
 
-/** The printed mark as letters (ج، ق، صلى…): the bare combining glyph has no base to sit on. */
-function markLetters(symbol: string) {
-  return symbol.split(/[،,]/).map((token) => waqfMarkCanonical(token)).filter(Boolean).join(" ");
-}
 
 function Row({id, title, summary, children}: {id: string; title: string; summary?: React.ReactNode; children: React.ReactNode}) {
   return (
@@ -73,9 +70,8 @@ export function WaqfStopInspector({
     || Boolean(data.per_reciter[reciter.id]?.stops.some((item) => item.wpos === wpos))
   ));
   const listenTo = stoppedReciters.find((reciter) => isNativeAudio(data.per_reciter[reciter.id]?.audio_url));
-  const rulings = (classical?.entries || [])
-    .filter((entry) => entry.wpos === wpos)
-    .filter((entry, position, list) => list.findIndex((item) => item.source === entry.source && item.grade === entry.grade) === position);
+  const rulings = (classical?.entries || []).filter((entry) => entry.wpos === wpos);
+  const imamCount = new Set(rulings.map((entry) => entry.source)).size;
   const tawjihHere = (tawjih?.entries || []).filter((entry) => entry.wpos === wpos);
   const tawjihElsewhere = (tawjih?.entries.length || 0) - tawjihHere.length;
   const author = tawjih?.source?.author || "د. أحمد صابر عبدالهادي";
@@ -85,7 +81,7 @@ export function WaqfStopInspector({
 
   return (
     <div id="waqf-comparison" className="grid scroll-mt-4 gap-3" aria-label="تفصيل موضع الوقف">
-      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-athar-md border border-athar-line bg-athar-surface px-4 py-3 shadow-athar-sm">
+      <header id="waqf-stop-head" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-athar-md border border-athar-line bg-athar-surface px-4 py-3 shadow-athar-sm">
         <div className="grid min-w-0 gap-0.5">
           <span className="text-[0.72rem] font-bold text-athar-gold">
             {isLastWord ? "نهاية الآية" : imamsRuleOut && !othersStop ? "لا وقف بعد" : "الوقف بعد"}
@@ -153,9 +149,16 @@ export function WaqfStopInspector({
                     key={mushaf.id}
                     title={mark ? `${mushaf.name} · ${waqfMarkLabel(mark.symbol)}` : `${mushaf.name} · لا علامة`}
                   >
-                    <strong className={cn("wq-score-mushaf-glyph text-[1.3rem]", !mark && "is-empty", minority && "is-minority")}>
-                      {mark ? markLetters(mark.symbol) : "—"}
-                    </strong>
+                    {mark ? (
+                      <WaqfGlyph
+                        symbol={mark.symbol}
+                        mushafId={mushaf.id}
+                        className={cn("size-9", minority ? "text-[var(--wq-solo)]" : "text-athar-accent")}
+                        title={`${mushaf.name} · ${waqfMarkLabel(mark.symbol)}`}
+                      />
+                    ) : (
+                      <span className="grid size-9 place-items-center text-athar-ink-faint">—</span>
+                    )}
                     <span className="wq-score-mushaf-name max-w-full truncate">{mushaf.name}</span>
                   </div>
                 );
@@ -225,38 +228,9 @@ export function WaqfStopInspector({
           )}
         </Row>
 
-        <Row id="wq-score-imams" title="أئمة" summary={rulings.length ? `${toArabicDigits(rulings.length)} حكم` : undefined}>
+        <Row id="wq-score-imams" title="أئمة" summary={imamCount ? arabicCount(imamCount, ["إمام واحد", "إمامان", "أئمة", "إمامًا"]) : undefined}>
           {rulings.length ? (
-            <ul className="m-0 grid list-none gap-2.5 p-0">
-              {rulings.map((entry) => {
-                const source = classical?.sources[entry.source];
-                const meta = classicalGradeMeta[entry.grade];
-                const note = (entry.note || "").trim();
-                return (
-                  <li key={`${entry.source}::${entry.grade}`} className="grid gap-1.5 rounded-lg border border-athar-line-soft bg-athar-surface p-2.5">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className={cn("wq-grade", meta && `is-${meta.cls}`)} title={meta?.desc || entry.grade}>
-                        {entry.grade_raw || entry.grade}
-                      </span>
-                      <span className="text-[0.8rem] font-bold text-athar-ink" title={source ? `${source.title} — ${source.author}` : undefined}>
-                        {source?.name || entry.source}
-                        {entry.reported_from ? <span className="font-semibold text-athar-ink-faint"> نقلًا عن {entry.reported_from}</span> : null}
-                      </span>
-                    </span>
-                    {/* A quote of only the stop phrase repeats the verse; show it when it adds context. */}
-                    {entry.quote && entry.quote.trim().split(/\s+/).length > 4 ? <blockquote className="m-0 font-athar-quran text-[1.02rem] leading-[1.9] text-athar-ink">{entry.quote}</blockquote> : null}
-                    {note ? (
-                      note.length > NOTE_PREVIEW ? (
-                        <details className="wq-illa-more">
-                          <summary className="wq-illa">{note.slice(0, NOTE_PREVIEW).trim()}… <b>تتمة العلّة</b></summary>
-                          <p className="wq-illa">{note}</p>
-                        </details>
-                      ) : <p className="wq-illa m-0">{note}</p>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
+            <ImamRulings entries={rulings} sources={classical?.sources || {}} />
           ) : (
             <p className="wq-score-empty">لا يتوفر حكم تراثي موثّق لهذا الموضع بعد.</p>
           )}

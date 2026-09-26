@@ -6,6 +6,7 @@ import {getJson, type ClassicalWaqfPayload, type WaqfPayload} from "@/lib/api";
 import {cn} from "@/lib/cn";
 import {toArabicDigits} from "@/lib/mushaf";
 import {waqfMarkCanonical, waqfMarkLabel} from "@/lib/waqf";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 
 const SURAH = 2;
 const AYAH = 255;
@@ -191,7 +192,12 @@ export function StopExplorer() {
               </strong>
               <Meter value={current.mushafs.length} max={mushafTotal} label="المصاحف التي تضع علامة" />
               <span className="text-[0.74rem] leading-5 text-athar-ink-soft">
-                {mark ? <>أغلبها «{mark}» — {waqfMarkLabel(mark)}</> : "لا علامة في المصاحف"}
+                {mark ? (
+                  <span className="inline-flex items-center gap-1">
+                    <WaqfGlyph symbol={mark} className="size-6 text-athar-accent" />
+                    {waqfMarkLabel(mark)}
+                  </span>
+                ) : "لا علامة في المصاحف"}
               </span>
             </Witness>
             <Witness index="٢" title="وقف القرّاء">

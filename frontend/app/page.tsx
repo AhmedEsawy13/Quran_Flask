@@ -3,6 +3,7 @@ import {ContinueReading} from "@/components/continue-reading";
 import {StopExplorer} from "@/components/stop-explorer";
 import {VerseJump} from "@/components/verse-jump";
 import {DoorIcon} from "@/components/ui/door-icon";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 import {cn} from "@/lib/cn";
 import {supportTools, toolHref, waqfTools, type ToolKey} from "@/lib/nav";
 import {actionLinkClassName, pageContainerClassName} from "@/lib/ui";
@@ -194,8 +195,8 @@ export default function HomePage() {
           <ul className="m-0 grid list-none grid-cols-2 gap-2.5 p-0 max-[520px]:grid-cols-1">
             {waqfMarkGuide.map((mark) => (
               <li key={mark.symbol} className="flex items-center gap-3.5 rounded-athar-md border border-athar-line bg-athar-surface p-3.5">
-                <span className={cn("grid size-12 shrink-0 place-items-center rounded-xl bg-athar-canvas font-athar-quran text-[1.7rem] leading-none", markTone[mark.tone])} aria-hidden="true">
-                  {mark.symbol}
+                <span className={cn("grid size-12 shrink-0 place-items-center rounded-xl bg-athar-canvas", markTone[mark.tone])}>
+                  <WaqfGlyph symbol={mark.symbol} className="size-10" title={mark.label} />
                 </span>
                 <span className="grid min-w-0">
                   <strong className="text-athar-ink">{mark.label}</strong>
