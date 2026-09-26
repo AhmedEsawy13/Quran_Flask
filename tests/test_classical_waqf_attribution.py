@@ -139,7 +139,7 @@ def test_manar_own_analysis_on_the_same_ayah_is_not_tagged(rows):
     stated directly («تام، ف «قليل» خبر مقدم...») — no «وقال X:» prefix, so
     it must NOT be (mis-)tagged as anyone else's relayed opinion.
 
-    منار is AI-extracted now (released, see CLASSICAL_LLM_PILOT.md); its
+    منار is AI-extracted now (released, see docs/CLASSICAL_LLM_PILOT.md); its
     `quote` for this stop is the aligned mushaf word at wpos 22 («هُمۡۗ»,
     the last word of «وقليل ما هم»), not the regex pipeline's bare
     multi-word phrase — so this is matched by position, and by the note

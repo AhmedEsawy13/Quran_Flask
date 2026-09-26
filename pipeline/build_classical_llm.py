@@ -118,7 +118,7 @@ _OPENITI_COMBINED = {'سورة الفيل': (105, 106), **_COMBINED}
 # below: النساء and 5 other surahs were silently dropped, and قريش's absence
 # (no separate heading — it's discussed inside سورة الفيل's section) turned out
 # to be a genuine authorial choice, independently confirmed by Shamela's own
-# TOC, not a parsing bug. See pipeline/CLASSICAL_LLM_PILOT.md.
+# TOC, not a parsing bug. See docs/CLASSICAL_LLM_PILOT.md.
 _SHAMELA_SECTIONS = os.path.join(rx.SRC_DIR, 'manar_shamela_sections.json')
 _SHAMELA_CACHE = None
 _OPENITI_CROSSCHECK_CACHE = None
@@ -282,7 +282,7 @@ def chunk_blocks(book):
     """Yield (surah_number, name, chunk_index, n_chunks, chunk_text) — the unit
     the extraction loop actually calls the API on. Chunked along real page
     boundaries for منار (Shamela source); every other book/fallback path is a
-    single chunk (their sections are small enough — see CLASSICAL_LLM_PILOT.md
+    single chunk (their sections are small enough — see docs/CLASSICAL_LLM_PILOT.md
     if that ever needs revisiting for a long section in another book)."""
     if book == 'manar' and os.path.exists(_SHAMELA_SECTIONS):
         for s, name, pages in _shamela_surah_blocks():

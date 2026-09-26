@@ -149,7 +149,7 @@ set of databases:
 
 > **Note on the editor:** with Supabase configured, قطر/الكويت/البحرين drafts live in
 > Postgres (invite-gated); public `/read` and مُكْث only see marks after an admin
-> **اعتماد**. Setup: [`pipeline/SUPABASE_EDITOR.md`](pipeline/SUPABASE_EDITOR.md).
+> **اعتماد**. Setup: [`docs/SUPABASE_EDITOR.md`](docs/SUPABASE_EDITOR.md).
 > Without Supabase env vars, the editor still writes local `data/mushaf_waqf.db`
 > (laptop workflow). Bahrain Layout Studio keeps a writable SQLite working copy
 > but automatically overlays and saves complete affected-page snapshots in
@@ -390,12 +390,12 @@ schemas, prepare the derived indexes and waqf-symbol database explicitly with
 `python3 pipeline/prepare_runtime_databases.py` before starting Flask.
 
 The incremental architecture plan is tracked in
-[`solid-codebase-roadmap.md`](solid-codebase-roadmap.md).
+[`docs/SOLID_CODEBASE_ROADMAP.md`](docs/SOLID_CODEBASE_ROADMAP.md).
 - `word_timestamps/`, `research_cache/` — additional per-feature datasets
 - `reciters/<reciter>/*.json.gz` — per-reciter word/verse/letter timing (restored at build time, not tracked)
 
 New classical books follow the deterministic, no-LLM ingestion and review
-process documented in [`pipeline/CLASSICAL_BOOK_ONBOARDING.md`](pipeline/CLASSICAL_BOOK_ONBOARDING.md).
+process documented in [`docs/CLASSICAL_BOOK_ONBOARDING.md`](docs/CLASSICAL_BOOK_ONBOARDING.md).
 With `ENABLE_EDITOR=1`, `/classical-review` opens the local scholarly reviewer
 for المكتفى and منار الهدى; decisions are stored separately in
 `data/classical_review.db`.

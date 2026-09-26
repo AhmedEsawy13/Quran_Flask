@@ -40,7 +40,7 @@ import build_classical_waqf as pcw  # noqa: E402
 
 DB_PATH = os.path.join(_ROOT, 'data', 'classical_waqf.db')
 # منار is no longer regex-extracted (released 2026-07-12 — see
-# pipeline/build_classical_llm.py / CLASSICAL_LLM_PILOT.md): its `quote` is
+# pipeline/build_classical_llm.py / docs/CLASSICAL_LLM_PILOT.md): its `quote` is
 # now a mushaf phrase, not a verbatim OpenITI-book excerpt, so the
 # source-traceability rules in this file don't apply to it any more — its own
 # gates live in test_classical_llm.py, which now also covers the live

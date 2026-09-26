@@ -5,11 +5,11 @@
 ## 1. Create project & schema
 
 1. Create a Supabase project.
-2. SQL Editor → paste and run [`supabase_editor_schema.sql`](supabase_editor_schema.sql).
+2. SQL Editor → paste and run [`supabase_editor_schema.sql`](../pipeline/supabase_editor_schema.sql).
 3. If you already had the older invite-code schema, also run
-   [`supabase_editor_password_auth.sql`](supabase_editor_password_auth.sql).
+   [`supabase_editor_password_auth.sql`](../pipeline/supabase_editor_password_auth.sql).
 4. Existing projects should also run
-   [`supabase_layout_schema.sql`](supabase_layout_schema.sql) once. It adds the
+   [`supabase_layout_schema.sql`](../pipeline/supabase_layout_schema.sql) once. It adds the
    Bahrain Layout Studio page/profile tables and is safe to rerun.
 
 ## 2. App env vars
@@ -59,7 +59,7 @@ python3 pipeline/set_editor_password.py --name 'Ahmed' --username ahmed --passwo
 
 ### If you already ran an older schema
 
-First run [`supabase_atomic_publish.sql`](supabase_atomic_publish.sql) in the
+First run [`supabase_atomic_publish.sql`](../pipeline/supabase_atomic_publish.sql) in the
 Supabase SQL editor. This installs the transaction used by **اعتماد ونشر**.
 It also installs the service-role-only edition capability contract used by
 publishing and checked against the Python registry. Until this migration is
@@ -67,7 +67,7 @@ installed, publishing intentionally fails instead of falling back to the old
 partial-write behavior.
 
 Then run
-[`supabase_schema_readiness.sql`](supabase_schema_readiness.sql). It records
+[`supabase_schema_readiness.sql`](../pipeline/supabase_schema_readiness.sql). It records
 the installed editor/layout migration versions without granting browser
 access. Verify the project at any time with:
 
@@ -78,7 +78,7 @@ python3 pipeline/check_supabase_readiness.py
 ### Hand-labeled CV waqf crops (training sync)
 
 For labeling on one machine and training on another, run once in the SQL
-editor: [`supabase_cv_waqf_hand.sql`](supabase_cv_waqf_hand.sql). Then:
+editor: [`supabase_cv_waqf_hand.sql`](../pipeline/supabase_cv_waqf_hand.sql). Then:
 
 ```bash
 python3 -m pipeline.cv_waqf push-hand --slug shamarly   # upload crops + model
@@ -104,7 +104,7 @@ alter table editor_audit add constraint editor_audit_action_check
 ```
 
 Existing projects should also run
-[`supabase_editor_audit_actions.sql`](supabase_editor_audit_actions.sql) once
+[`supabase_editor_audit_actions.sql`](../pipeline/supabase_editor_audit_actions.sql) once
 to widen the action check and add actor/action indexes.
 ## 4. Migrate existing SQLite marks (optional)
 

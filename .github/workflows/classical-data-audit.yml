@@ -10,7 +10,7 @@ on:
       - 'pipeline/audit_manar_completeness.py'
       - 'pipeline/audit_traceability.py'
       - 'pipeline/import_classical_book.py'
-      - 'pipeline/CLASSICAL_BOOK_ONBOARDING.md'
+      - 'docs/CLASSICAL_BOOK_ONBOARDING.md'
       - 'tests/test_classical_**'
       - '.github/workflows/classical-data-audit.yml'
   workflow_dispatch: {}

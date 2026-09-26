@@ -107,7 +107,7 @@ def test_manar_recovers_the_full_kadha_chain(rows_2_255):
 
     منار is AI-extracted now (released 2026-07-12, replacing the regex
     pipeline this test was originally written against — see
-    CLASSICAL_LLM_PILOT.md), so this is checked by POSITION rather than by
+    docs/CLASSICAL_LLM_PILOT.md), so this is checked by POSITION rather than by
     the old regex's bare-word `quote` string (the AI's quote is the mushaf's
     own diacritized phrase, a richer but differently-shaped value — e.g.
     «بِمَا شَآءَۚ» here, not the regex's bare «ما شاء»). The AI extraction is

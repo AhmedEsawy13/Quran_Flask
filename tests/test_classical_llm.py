@@ -6,7 +6,7 @@ Covers TWO forms of the same data: any pilot `source` ending in `_llm` (a
 book still being trialled, written to the sibling pilot db so the shipped db
 stays untouched until release), AND the bare `source='manar'` rows in the
 shipped db itself — منار's own regex extraction was RETIRED and replaced by
-this AI extraction on 2026-07-12 (see CLASSICAL_LLM_PILOT.md), so what's now
+this AI extraction on 2026-07-12 (see docs/CLASSICAL_LLM_PILOT.md), so what's now
 live in production needs these same gates to keep guarding it, not just the
 pre-release pilot data. ALSO_AI_SOURCES lists which bare source keys (beyond
 any `_llm` suffix) are AI-shaped once released — add to it if another book's
