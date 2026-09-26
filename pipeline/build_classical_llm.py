@@ -513,6 +513,16 @@ _MANAR_EXPLICIT_RE = re.compile(
     r'(?:\{([^{}]{1,120})\}|«([^«»]{1,80})»)[\s،:]{0,3}\[(\d{1,3})\]')
 
 
+def _head_seat(surah, ayah, quote):
+    # imports app; keep lazy. Works whether this module is loaded as a script
+    # (pipeline/ on sys.path) or as pipeline.build_classical_llm.
+    try:
+        import audit_manar_mithl  # noqa: PLC0415
+    except ImportError:
+        from pipeline import audit_manar_mithl  # noqa: PLC0415
+    return audit_manar_mithl.head_seat(surah, ayah, quote)
+
+
 def explicit_manar_rows(surah, prose):
     """Return source-grounded Manar rows that can be proved mechanically.
 
@@ -547,7 +557,10 @@ def explicit_manar_rows(surah, prose):
                 continue
             hit, _ = rx.align_in_ayah_legacy(surah, candidate, qwords)
             if hit is not None:
-                ayah, wpos = candidate, hit
+                # a repeated word: the exact spelling / pause-marked seat, not
+                # the last occurrence (16:104 «بآيات الله» ≠ «لا يهديهم الله»)
+                seat = _head_seat(surah, candidate, quote)
+                ayah, wpos = candidate, (hit if seat is None else seat)
                 break
         if wpos is None:
             continue

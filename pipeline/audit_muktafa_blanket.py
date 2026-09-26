@@ -150,7 +150,12 @@ def statements(con):
             if subject == 'رأس الآية':
                 verses = [anchor] if anchor else []
             elif re.search(r'عامة\s*$', head):
-                verses = list(range(1, n + 1))      # «وكذلك عامة فواصلها»
+                # «وكذلك عامة فواصلها» — the surah, or up to «إلى قوله {X}»
+                end = n
+                if up:
+                    x = find_verse(surah, max(anchor, 1), up.group(1) or up.group(2))
+                    end = x or anchor
+                verses = list(range(1, end + 1))
             else:
                 bare = re.sub(r'\{[^{}]*\}?|\(\([^()]*\)\)', ' ', span)
                 has = lambda w: re.search(r'(?<![ء-ي])[وف]?' + w + r'(?![ء-ي])', bare) is not None

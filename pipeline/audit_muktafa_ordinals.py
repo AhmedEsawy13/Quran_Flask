@@ -125,6 +125,37 @@ def resolve(con):
     return found, unresolved
 
 
+# «وقال نافع {بل أحياء} تام» — no colon, so the builder's reported_scholar()
+# (which needs «وقال فلان:») missed it and the row reads as الداني's own.
+_RELAYED = re.compile(r'(?:^|[\s.،])و?قال(?:ت)?\s+([^{}:.،()]{2,45}?)\s*'
+                      r'(?:\{([^{}]{1,80})\}|\(\(([^()]{1,60})\)\))\s*(تام|كاف|حسن|أتم|أكفى|قبيح)')
+RELAYED_SEAT = {(4, 'غفورا رحيما'): 23}     # the passage is on 4:23, not 4:152
+
+
+def relayed_rows(con):
+    """[(row id, scholar)] for المكتفى rows that are someone else's ruling."""
+    body = rx.normalize_muktafa_headings(rx.load_book(rx.SOURCES['muktafa']))
+    out, last = [], 0
+    for sec in re.split(r'\n### \| ', body):
+        title, _, text = sec.partition('\n')
+        if 'سورة' not in title and 'أم القرآن' not in title:
+            continue
+        surah = rx.surah_number(title, last)
+        if not surah:
+            continue
+        last = surah
+        for m in _RELAYED.finditer(mm.strip(text)):
+            name = re.sub(r'\s+', ' ', m.group(1)).strip()
+            quote = (m.group(2) or m.group(3)).strip()
+            rows = con.execute("SELECT id, ayah FROM classical WHERE source='muktafa' AND surah=? "
+                               "AND quote=? AND grade_raw<>'رؤوس الآي'", (surah, quote)).fetchall()
+            want = RELAYED_SEAT.get((surah, quote))
+            rows = [r for r in rows if want is None or r[1] == want]
+            if len(rows) == 1:
+                out.append((rows[0][0], name))
+    return out
+
+
 def apply(con, found):
     cur = con.cursor()
     stats = collections.Counter()
@@ -143,6 +174,10 @@ def apply(con, found):
         cur.execute("UPDATE classical SET ayah=?, wpos=?, stop_word=?, conf=1, reported_from=? WHERE id=?",
                     (a, w, mm.verse_words(s, a)[w], REPORTED.get(rid), rid))
         stats['repaired'] += 1
+    for rid, name in relayed_rows(con):
+        stats['relayed_labelled'] += cur.execute(
+            "UPDATE classical SET reported_from=? WHERE id=? AND COALESCE(reported_from,'')<>?",
+            (name, rid, name)).rowcount
     for rid, g in REGRADE.items():
         stats['regraded_own'] += cur.execute(
             "UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?", (g, g, rid, g)).rowcount

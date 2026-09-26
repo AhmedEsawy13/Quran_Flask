@@ -563,7 +563,9 @@ REGRADE = {
     59098: 'حسن',     # 70:3 «الوقف الجيد ذي المعارج» (الأخفش)
 }
 # relayed opinions that were stored as the author's own
-REPORTED_FIX = {50554: 'قيل', 59098: 'الأخفش', 46946: 'شيخ الإسلام'}
+REPORTED_FIX = {50554: 'قيل', 59098: 'الأخفش', 46946: 'شيخ الإسلام',
+                # «كاف إن جعلت اللام للقسم على قول أبي حاتم» / «كما يقول أبو حاتم»
+                55651: 'أبو حاتم', 55982: 'أبو حاتم'}
 # grade_mismatch keys where منار's inherited ruling is absent and only another
 # (alternate / relayed / conditional) grade was stored: add it.
 ADD_GRADE = {
@@ -580,6 +582,12 @@ REPORTED = {(25, 41, 10): 'أبو حاتم'}      # «ومثله «رسولا» 
 EXTRA = [
     (7, 195, 8, 'بها', 'لا', 'وفي المواضع الثلاثة لا يجوز الوقف؛ لأن «أم» عاطفة'),
     (7, 195, 13, 'بها', 'لا', 'وفي المواضع الثلاثة لا يجوز الوقف؛ لأن «أم» عاطفة'),
+    # the book rules on BOTH occurrences; only the second had been stored
+    (4, 24, 27, 'فريضة', 'كاف', '{فريضة} كاف، ومثله «من بعد الفريضة»'),
+    (4, 102, 11, 'أسلحتهم', 'حسن', '{أسلحتهم} حسن، ومثله «من ورائكم»، وكذا «أسلحتهم» (الثاني)'),
+    (12, 51, 7, 'عن نفسه', 'حسن', '{عن نفسه} حسن، ومثله «من سوء»، وكذا «عن نفسه» (الثاني)'),
+    (18, 17, 8, 'ذات اليمين', 'حسن', '{ذات اليمين .... ذات الشمال} حسن'),
+    (3, 49, 22, 'بإذن الله', 'جائز', '{بإذن الله} جائز في الموضعين'),
 ]
 
 
@@ -716,8 +724,93 @@ def apply(recs, path):
     for s, a, w, q, g, note in EXTRA:
         stats['inserted_extra'] += insert(s, a, w, q, g, [note])
     con.commit()
+    for rid, a, w in explicit_seat_moves(con, recs):
+        s_ = cur.execute('SELECT surah FROM classical WHERE id=?', (rid,)).fetchone()[0]
+        cur.execute('UPDATE classical SET wpos=?, stop_word=? WHERE id=?',
+                    (w, verse_words(s_, a)[w], rid))
+        stats['explicit_seat_moved'] += 1
+    con.commit()
+    stats['own_grade_unlabelled'] = fix_misattributed(con)
     stats['merged_repeats'] = merge_duplicates(con)
+    stats['notes_shortened'] = shorten_repeated_notes(con)
     return stats
+
+
+_OWN_ATTRIB = re.compile(r'^[\s،,؛]*(?:وهو\s+)?(?:عند|على\s+مذهب|على\s+قول|قاله|لـ?\s*)')
+
+
+def fix_misattributed(con):
+    """«{Q} [n] كاف، وقال أبو عمرو: تام» — the كاف is الأشموني's own; the
+    name belongs to the NEXT opinion. Rows that carry only a relayed label on
+    the book's own grade get the label cleared. «{Q} [n] تام عند أبي حاتم»
+    (attribution right after the grade) is left alone."""
+    cur = con.cursor()
+    fixed = 0
+    for surah, ln in surah_lines():
+        for hm in _HEAD_RE.finditer(ln):
+            a = int(hm.group(2))
+            if not 1 <= a <= rx.surah_ayah_count(surah):
+                continue
+            tail = strip(ln[hm.end():hm.end() + 120]).lstrip(' ،:؛')
+            gm = rx.GRADE_RE.match(tail)
+            if not gm or _OWN_ATTRIB.match(tail[gm.end():]):
+                continue
+            w = head_seat(surah, a, rx.clean_note(hm.group(1), limit=200))
+            if w is None:
+                continue
+            g = dict(rx.GRADES)[gm.group(1)]
+            rows = cur.execute("SELECT id, reported_from FROM classical WHERE source='manar' AND conf=1 "
+                               "AND surah=? AND ayah=? AND wpos=? AND grade=?", (surah, a, w, g)).fetchall()
+            if rows and all(r[1] for r in rows) and rows[0][0] not in REPORTED_FIX:
+                cur.execute("UPDATE classical SET reported_from=NULL WHERE id=?", (rows[0][0],))
+                fixed += 1
+    con.commit()
+    return fixed
+
+
+# explicit-seat sweep exceptions (read 2026-09-26): «في الموضعين» (3:49), both
+# occurrences pause-marked (4:78, 4:131), or already confirmed where they sit.
+SEAT_KEEP = {58606, 57109, 55246, 48009, 48762, 48916, 50427, 55230, 49205}
+
+
+def explicit_seat_moves(con, recs):
+    """[(row id, ayah, to wpos)] for a {Q} [n] GRADE whose word has no row of
+    that grade while the same grade sits on another occurrence of that word in
+    the verse that the book does not rule on (16:104 «{لا يؤمنون بآيات الله}
+    ليس بوقف» sat on «لا يهديهم الله»)."""
+    ruled = collections.defaultdict(set)
+    for r in recs:
+        if 'ayah' in r:
+            ruled[(r['surah'], r['ayah'], r['wpos'])].add(r['grade'])
+    heads = []
+    for surah, ln in surah_lines():
+        for hm in _HEAD_RE.finditer(ln):
+            a = int(hm.group(2))
+            if not 1 <= a <= rx.surah_ayah_count(surah):
+                continue
+            gm = rx.GRADE_RE.match(strip(ln[hm.end():hm.end() + 40]).lstrip(' ،:؛'))
+            if not gm:
+                continue
+            w = head_seat(surah, a, rx.clean_note(hm.group(1), limit=200))
+            if w is None:
+                continue
+            g = dict(rx.GRADES)[gm.group(1)]
+            ruled[(surah, a, w)].add(g)
+            heads.append((surah, a, w, g))
+    moves = []
+    for surah, a, w, g in heads:
+        if con.execute("SELECT 1 FROM classical WHERE source='manar' AND surah=? AND ayah=? AND wpos=? "
+                       "AND grade=?", (surah, a, w, g)).fetchone():
+            continue
+        words = verse_words(surah, a)
+        key = hnorm(words[w])
+        for rid, x in con.execute("SELECT id, wpos FROM classical WHERE source='manar' AND surah=? "
+                                  "AND ayah=? AND grade=? AND wpos<>?", (surah, a, g, w)).fetchall():
+            if (rid not in SEAT_KEEP and rx.match_word(hnorm(words[x]), key, 1)
+                    and g not in ruled[(surah, a, x)]):
+                moves.append((rid, a, w))
+                break
+    return moves
 
 
 def merge_duplicates(con, sources=('manar', 'muktafa')):
@@ -744,6 +837,30 @@ def merge_duplicates(con, sources=('manar', 'muktafa')):
                     dropped += 1
     con.commit()
     return dropped
+
+
+def shorten_repeated_notes(con):
+    """An inserted chain row's note («ومثله «X» … (مثل «H» g)») can end up
+    repeating a neighbour's explanation in the same verse; the learner view
+    shows both, so keep only its «(مثل …)» reference."""
+    cur = con.cursor()
+    n = 0
+    rows = cur.execute("SELECT id, surah, ayah, COALESCE(reported_from,''), note FROM classical "
+                       "WHERE source='manar' AND note LIKE '%(مثل «%' AND note NOT LIKE '«%'").fetchall()
+    for rid, s_, a, rep, note in rows:
+        m = re.search(r'\((مثل «[^»]*» \S+)\)$', note or '')
+        if not m:
+            continue
+        body = ' '.join(note[:m.start()].split())
+        others = [' '.join((o or '').split()) for (o,) in cur.execute(
+            "SELECT note FROM classical WHERE source='manar' AND surah=? AND ayah=? AND id<>? "
+            "AND COALESCE(reported_from,'')=?", (s_, a, rid, rep))]
+        if any(len(o) >= 30 and (body in o or o in note) or (o and o == body) for o in others):
+            quote = cur.execute('SELECT quote FROM classical WHERE id=?', (rid,)).fetchone()[0]
+            cur.execute('UPDATE classical SET note=? WHERE id=?', (f'«{strip(quote)}» {m.group(1)}', rid))
+            n += 1
+    con.commit()
+    return n
 
 
 def load_db(path):

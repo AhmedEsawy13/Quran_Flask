@@ -59,9 +59,9 @@ def uncertain_rows():
 
 def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     result = review.muktafa_accuracy(review_db=review_db)
-    assert result['total_extracted'] == 6756
-    assert result['matched'] == 6756
-    assert result['confident'] == 6756
+    assert result['total_extracted'] == 6749
+    assert result['matched'] == 6749
+    assert result['confident'] == 6749
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0
@@ -77,10 +77,11 @@ def test_review_page_and_summary_are_editor_routes(client, review_db):
     assert manar['review']['pending'] == len(review.manar_review_queue())
     assert manar['review']['pending'] == 0      # every heuristic suspect read
     assert manar['source_traceable_rate'] == 100.0
-    # exact-seat misses vs explicit_manar_rows' last-occurrence aligner; the
-    # 15 added by audit_manar_mithl.py are rows moved OFF that aligner's
-    # mid-phrase seat (48:28 {كله} ≠ «بالله») onto the ruled word.
-    assert manar['explicit_missing'] == 39
+    # exact-seat misses vs explicit_manar_rows' seat (exact spelling, then the
+    # pause-marked occurrence). The 8 left were read by hand: 3:20 the checker
+    # reads «أأسلمتم» as «أسلمت»; 4:78, 4:131, 5:41, 29:47, 29:53, 42:15, 59:18
+    # sit on the other occurrence on purpose (audit_manar_mithl SEAT_KEEP).
+    assert manar['explicit_missing'] == 8
 
 
 def test_reviewer_can_approve_a_matched_row(client, review_db, pending_muktafa):

@@ -160,3 +160,6 @@ artifacts/cv-waqf/
 models/backup/
 models/*.hand.onnx
 data/bahrain-digital-khatt.db
+
+# local archive of superseded review artifacts (not versioned)
+archive/
