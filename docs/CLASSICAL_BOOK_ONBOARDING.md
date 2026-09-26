@@ -134,9 +134,9 @@ growing unnoticed.
    approve/reject decisions separately and will not activate the book until
    every uncertain row has a decision and the reviewer selects «اعتماد وإضافة
    الكتاب».
-2. **إيضاح الوقف والابتداء** — explicit ayah anchors, but many parenthesized
-   grammatical examples; review the 228 low-confidence rows with strict
-   negative fixtures.
+2. **إيضاح الوقف والابتداء** — active since 2026-09-26 after audit_anbari.py
+   (section mapping fixed, chains/negations/relays resolved, grade-before
+   rulings added); 39 rows stay held.
 3. **القطع والائتناف** — most discursive; expand only structurally unambiguous
    grade-before/grade-after forms, then scholar-review its 158 queued rows.
 4. **منار الهدى** — keep the released guarded dataset, review the exported 102
@@ -149,10 +149,10 @@ Current deterministic catalog audit baseline:
 
 | Book | Rows | Surahs | Confident | Existing low-confidence review |
 |---|---:|---:|---:|---:|
-| المكتفى | 6,756 | 112 | 6,756 | 0 (incl. 2,329 blanket verse-end rows) |
-| منار الهدى | 13,402 | 114 | 13,402 | 0 |
+| المكتفى | 6,749 | 112 | 6,749 | 0 (incl. blanket verse-end rows) |
+| منار الهدى | 13,407 | 114 | 13,407 | 0 |
 | القطع والائتناف | 1,767 | 91 | 1,609 | 158 |
-| إيضاح الوقف والابتداء | 2,178 | 94 | 1,950 | 228 |
+| إيضاح الوقف والابتداء | 2,414 | 112 | 2,375 | 39 held (unplaceable single words / curated HOLD) |
 
 Inheritance and ordinal audits (2026-09-26) — rerun after any rebuild:
 
@@ -160,6 +160,8 @@ Inheritance and ordinal audits (2026-09-26) — rerun after any rebuild:
 python3 pipeline/audit_manar_mithl.py          # منار «ومثله/وكذا» chains + repeated-word seats
 python3 pipeline/audit_muktafa_ordinals.py     # المكتفى «الأول/الثاني/في الموضعين» rulings
 python3 pipeline/audit_muktafa_blanket.py      # المكتفى «ورؤوس الآي بعد كافية» statements
+python3 pipeline/build_classical_waqf.py --only anbari && \
+python3 pipeline/audit_anbari.py --apply       # إيضاح: seats, chains, relays, grade-before rulings
 ```
 
 Run them in that order (the blanket step fills only verse-ends no other

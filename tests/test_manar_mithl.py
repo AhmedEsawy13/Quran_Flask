@@ -99,3 +99,41 @@ def test_no_repeated_word_suspects_left():
 ])
 def test_reviewed_seats(db, surah, ayah, wpos, grade):
     assert grade in grades_at(db, surah, ayah, wpos)
+
+
+# ── ابن الأنباري (pipeline/audit_anbari.py) ─────────────────────────────────
+@pytest.mark.parametrize('surah,ayah,wpos,grade', [
+    (23, 1, 2, 'حسن'),       # «قد أفلح المؤمنون» — المؤمنون had been filed under غافر
+    (13, 11, 28, 'تام'),     # «فلا مرد له» — the book's [16] lags; the verse is 11
+    (34, 12, 9, 'تام'),      # «ومثله: (عين القطر)» after «(وقدر في السرد) [11] [تام]»
+    (18, 24, 3, 'حسن'),      # «(غدا. إلا أن يشاء الله)» rules on the phrase's end
+    (114, 6, 2, 'تام'),      # «والوقف التام في سورة الإخلاص والفلق والناس آخر السورة»
+])
+def test_anbari_rulings(db, surah, ayah, wpos, grade):
+    assert grade in {g for (g,) in db.execute(
+        "SELECT grade FROM classical WHERE source='anbari' AND conf=1 "
+        "AND surah=? AND ayah=? AND wpos=?", (surah, ayah, wpos))}
+
+
+def test_anbari_negated_chain_items_are_not_served(db):
+    # «(في إبراهيم والذين معه) [4] غير تام. وكذلك: (إنا براء منكم …)»
+    assert not db.execute("SELECT 1 FROM classical WHERE source='anbari' AND conf=1 "
+                          "AND surah=60 AND ayah=4 AND quote LIKE 'إنا براء%'").fetchone()
+
+
+def test_anbari_relayed_sijistani_labelled(db):
+    rows = db.execute("SELECT reported_from FROM classical WHERE source='anbari' AND surah=36 "
+                      "AND ayah=58 AND wpos=0 AND grade='تام'").fetchall()
+    assert rows and all(r[0] == 'السجستاني' for r in rows)
+
+
+def test_anbari_audit_is_stable():
+    from pipeline import audit_anbari as audit
+    conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
+    try:
+        recs = audit.audit(conn)
+        assert not [r for r in recs if r['status'] in ('moved', 'relayed', 'regrade', 'negated_head')]
+        assert not audit.missing_before_rulings(conn)
+        assert not audit.missing_graded_entries(conn)
+    finally:
+        conn.close()

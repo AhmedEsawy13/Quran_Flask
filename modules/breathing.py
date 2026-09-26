@@ -387,7 +387,10 @@ _CLASSICAL_SOURCES = {
 # 113 الفلق have no `{quote} grade` in the book («لا وقف فيها دون آخرها» /
 # «ليس فيها وقف كاف») — empty surahs, not holes. classical_review.db is
 # gitignored, so this set — not book_decision — is the release switch.
-_ACTIVE_CLASSICAL_SOURCES = {'manar', 'muktafa'}
+# ابن الأنباري joined 2026-09-27 after pipeline/audit_anbari.py re-derived every
+# row from its sentence (sections fixed, chains/negations/relays, grade-before
+# rulings) and a 50-row random sample read 50/50.
+_ACTIVE_CLASSICAL_SOURCES = {'manar', 'muktafa', 'anbari'}
 
 
 def _active_classical_sources():

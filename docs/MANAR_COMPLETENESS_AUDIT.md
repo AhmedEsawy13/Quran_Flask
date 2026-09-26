@@ -157,3 +157,15 @@ residual seat differences are documented in the test.
 Rows: منار 13,407, المكتفى 6,749. 95% Wilson interval on the pre-sweep sample:
 word+grade 94.6–99.8%, attribution 91.5–99.0%. The swept error classes no
 longer occur, so the current rate is at or above these.
+
+### ابن الأنباري (إيضاح الوقف والابتداء), 2026-09-26
+
+`pipeline/audit_anbari.py --apply` (run after `build_classical_waqf.py --only
+anbari`) fixed the surah-section mapping (short titles like «ن» had matched
+«نوح»), re-seated rows by the book's own verse numbers, resolved «ومثله/وكذلك»
+chains and ordinals, deleted negated chain items («غير تام»), labelled relays
+(السجستاني etc.), and added the «يحسن/لا يحسن الوقف على» grade-before rulings
+and book-end rows. 2,375 of 2,414 rows are served; 39 stay held (single words
+that cannot be placed unambiguously, or curated HOLD). A random sample of 50
+served rows was 50/50 on word, grade and attribution (95% Wilson lower bound
+≈ 93%).

@@ -957,22 +957,49 @@ _ANBARI_MAP = {'التمام': 'تام', 'التام': 'تام', 'أتم': 'تا
                'قبيح': 'قبيح', 'لا يحسن الوقف': 'قبيح', 'ليس بوقف': 'لا', 'لا يوقف': 'لا'}
 
 
-def harvest_anbari(body, rows, seq0):
-    seq = seq0
-    unmatched = 0
-    last_num = 0
+# ابن الأنباري's section titles that surah_number() misses or misreads. Without
+# these, «سورة المؤمنين» landed on غافر (40) and «إذا الشمس كورت» on الشمس (91),
+# ten surahs (الإسراء «بنو إسرائيل», ص, المنافقون, ن, المعارج «سأل سائل», النبأ,
+# الانفطار, الانشقاق, قريش «لإيلاف», …) were dropped, and حم السجدة / حم عسق /
+# حم الدخان (headers without «سورة») plus الأعلى (a plain line) were folded
+# into the surah before them.
+_ANBARI_TITLES = [
+    ('بنو إسرائيل', 17), ('المؤمنين', 23), ('صاد', 38), ('حم السجدة', 41),
+    ('حم عسق', 42), ('حم الدخان', 44), ('المنافقين', 63), ('سورة ن', 68),
+    ('سأل سائل', 70), ('عم يستاءلون', 78), ('عم يتساءلون', 78),
+    ('إذا الشمس كورت', 81), ('إذا السماء انفطرت', 82), ('إذا السماء انشقت', 84),
+    ('سبح اسم ربك', 87), ('لإيلاف', 106),
+]
+_ANBARI_PLAIN_HEADER = re.compile(r'\n(سورة سبح اسم ربك الأعلى)\s*\n')
+
+
+def anbari_sections(body):
+    """[(surah, text)] for إيضاح الوقف والابتداء, in book order."""
+    body = _ANBARI_PLAIN_HEADER.sub(r'\n### | \1\n', body)
+    out, last = [], 0
     for sec in re.split(r'\n### \|+ ?', body):
         title, _, text = sec.partition('\n')
         title = re.sub(r'^(AUTO|CHECK)\s*', '', title.strip())
-        # ابن الأنباري titles surahs three ways: «سورة X» (مريم onward),
-        # «السورة التي تذكر فيها X» (early surahs), and «فاتحة الكتاب» for
-        # الفاتحة — which lacks «سورة» and was being skipped entirely.
-        if 'سورة' not in title and 'فاتحة' not in title:
-            continue
-        num = surah_number(title, last_num)
+        plain = re.sub(r'[\u064b-\u0652\[\]]', '', title).strip()
+        num = next((n for key, n in _ANBARI_TITLES
+                    if plain == key or plain == 'سورة ' + key
+                    or (len(key) > 6 and (key in plain))), None)
+        if num is None:
+            # «السورة التي تذكر فيها X» (early surahs), «سورة X», «فاتحة الكتاب»
+            if 'سورة' not in title and 'فاتحة' not in title:
+                continue
+            num = surah_number(title, last)
         if num is None:
             continue
-        last_num = num
+        last = num
+        out.append((num, text))
+    return out
+
+
+def harvest_anbari(body, rows, seq0):
+    seq = seq0
+    unmatched = 0
+    for num, text in anbari_sections(body):
         acount = surah_ayah_count(num)
         cur_ayah = 1                       # ayah context for entries lacking [n]
         entries = list(_ANBARI_ENTRY_RE.finditer(text))
@@ -1048,8 +1075,28 @@ def main(argv=None):
         description='Rebuild all four legacy regex-extracted classical books. '
                     'This replaces the classical table; use --dry to inspect only.')
     ap.add_argument('--dry', action='store_true', help='print extraction stats without writing the DB')
+    ap.add_argument('--only', choices=sorted(SOURCES),
+                    help='replace just this book\'s rows (keeps every other book and its fixes)')
     args = ap.parse_args(argv)
     dry = args.dry
+    if args.only:
+        harvest = {'muktafa': harvest_muktafa, 'manar': harvest_manar,
+                   'nahhas': harvest_nahhas, 'anbari': harvest_anbari}[args.only]
+        rows = []
+        _, un = harvest(load_book(SOURCES[args.only]), rows, 0)
+        print(f'{args.only}: {len(rows)} entries, {len(rows) - un} matched, '
+              f'{sum(1 for r in rows if r[10])} confident')
+        if dry:
+            return
+        conn = sqlite3.connect(OUT_DB)
+        conn.execute('DELETE FROM classical WHERE source=?', (args.only,))
+        conn.executemany(
+            'INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, '
+            'grade, grade_raw, note, seq, conf, reported_from) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', rows)
+        conn.commit()
+        conn.close()
+        print(f'replaced {args.only} rows in {OUT_DB}')
+        return
     rows = []
     seq, un_muk = harvest_muktafa(load_book(SOURCES['muktafa']), rows, 0)
     seq, un_man = harvest_manar(load_book(SOURCES['manar']), rows, seq)

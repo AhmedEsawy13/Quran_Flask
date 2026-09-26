@@ -217,16 +217,19 @@ def test_classical_waqf_alignment_quality(client):
 
 
 def test_classical_waqf_api_serves_active_sources_only(client):
-    """منار + المكتفى are on the serving allowlist. النحاس وابن الأنباري
-    stay aligned in the DB (previous test) but withheld until reviewed."""
+    """منار + المكتفى + ابن الأنباري are on the serving allowlist. النحاس stays
+    aligned in the DB (previous test) but withheld until reviewed."""
     j = client.get("/api/classical-waqf/2/255").get_json()
-    assert set(j["sources"].keys()) == {"manar", "muktafa"}
+    assert set(j["sources"].keys()) == {"manar", "muktafa", "anbari"}
     assert j["sources"]["manar"]["title"].startswith("منار الهدى")
     assert j["sources"]["muktafa"]["title"].startswith("المكتفى")
+    assert j["sources"]["anbari"]["title"].startswith("إيضاح الوقف")
     assert j["entries"], "active sources should still have entries for آية الكرسي"
-    assert {e["source"] for e in j["entries"]} <= {"manar", "muktafa"}
+    assert {e["source"] for e in j["entries"]} <= {"manar", "muktafa", "anbari"}
+    assert "nahhas" not in {e["source"] for e in j["entries"]}
     assert any(e["source"] == "manar" for e in j["entries"])
     assert any(e["source"] == "muktafa" for e in j["entries"])
+    assert any(e["source"] == "anbari" for e in j["entries"])
     # bounds validation
     assert client.get("/api/classical-waqf/115/1").status_code == 400
 

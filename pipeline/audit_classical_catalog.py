@@ -144,7 +144,7 @@ def audit(db_path: Path, catalog_path: Path) -> tuple[list[str], dict]:
                 # Released books (منار + المكتفى) are a CI gate. النحاس /
                 # ابن الأنباري stay in the report until those books are
                 # hardened the same way.
-                if key in ('muktafa', 'manar'):
+                if key in ('muktafa', 'manar', 'anbari'):
                     errors.append(msg)
                 else:
                     source_report['unaligned_note'] = msg

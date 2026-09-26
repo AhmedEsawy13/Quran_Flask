@@ -155,7 +155,7 @@ def test_asr_and_falaq_have_no_db_rows(muktafa):
 
 def test_active_classical_sources_include_muktafa():
     from modules import breathing
-    assert breathing._ACTIVE_CLASSICAL_SOURCES == {'manar', 'muktafa'}
+    assert breathing._ACTIVE_CLASSICAL_SOURCES == {'manar', 'muktafa', 'anbari'}
 
 
 def test_unique_conf0_pin_mismatches_moved_off_the_book(muktafa):
