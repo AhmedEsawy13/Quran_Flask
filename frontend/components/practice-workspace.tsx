@@ -29,7 +29,6 @@ import {
 } from "@/lib/practice";
 import {
   ChromeField,
-  ChromePill,
   ChromeSelect,
   ToolCard,
   ToolCardHead,
@@ -329,11 +328,6 @@ export function PracticeWorkspace() {
     <div aria-label="مساحة تدريب الوقف">
       <ToolChrome
         label="إعدادات التدريب"
-        pill={(
-          <ChromePill role="status" aria-label="ملخص مقطع التدريب">
-            {rangeLabel}
-          </ChromePill>
-        )}
         note="اضغط على كل كلمةٍ وقفتَ عندها، ثم قيّم: النتيجة تعرض هل لكل وقف علامة مصحف وما هي."
       >
         <ChromeField label="السورة">
@@ -377,7 +371,7 @@ export function PracticeWorkspace() {
         ) : null}
 
         <ToolCard raised aria-labelledby="wp-passage-title">
-          <ToolCardHead title="المقطع" titleId="wp-passage-title" meta={rangeLabel} />
+          <ToolCardHead title="المقطع" titleId="wp-passage-title" meta={<span aria-label="ملخص مقطع التدريب">{rangeLabel}</span>} />
           {passageLoading ? <StatusState tone="loading">جارٍ تحميل المقطع…</StatusState> : null}
           {passageError ? (
             <StatusState tone="error" action={<Button size="sm" variant="danger" onClick={retry}>أعد المحاولة</Button>}>

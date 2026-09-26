@@ -464,12 +464,10 @@ export function MemorizePlayer({
 
   const sessionControls = (
     <div className="grid gap-3" aria-label="إعدادات الجلسة">
-      <div className="flex flex-wrap items-center gap-1.5 text-[0.68rem] font-semibold text-athar-ink-soft" aria-label="خطة جلسة التثبيت" aria-live="polite">
-        <strong className="rounded-full bg-athar-accent px-2.5 py-1 font-extrabold text-athar-on-accent">{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
-        <span className="rounded-full border border-athar-line-soft bg-athar-line-soft px-2.5 py-1">{stepKind}</span>
-        <span className="rounded-full border border-athar-line-soft bg-athar-line-soft px-2.5 py-1">{sessionStructure}</span>
-        <span className="rounded-full border border-athar-line-soft bg-athar-line-soft px-2.5 py-1">{visibleAudio?.reciter_name_ar || "جارٍ تجهيز القارئ…"}</span>
-      </div>
+      <p className="m-0 text-[0.74rem] text-athar-ink-soft" aria-label="خطة جلسة التثبيت" aria-live="polite">
+        <strong className="text-athar-accent">{schedule.length ? `${toArabicDigits(stepIndex + 1)} من ${toArabicDigits(schedule.length)}` : "—"}</strong>
+        {" خطوة · "}{sessionStructure}
+      </p>
       {audioError ? <StatusState tone="error">{audioError}</StatusState> : null}
       <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-athar-line-soft bg-athar-canvas-strong px-3 py-2" aria-label="المدة المتوقعة للجلسة" aria-live="polite">
         <span className="text-[0.7rem] font-semibold text-athar-ink-faint">المدة المتوقعة للجلسة</span>

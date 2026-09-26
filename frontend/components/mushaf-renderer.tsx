@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import type { Ayah, MushafLine, MushafPage, MushafWord, Surah } from "@/lib/api";
 import {
@@ -768,12 +769,12 @@ export function MushafRenderer({
           <div className="inline-error px-5">
             <strong>خط الشمرلي غير متوفر لهذه الصفحة بعد</strong>
             <span>خط الشمرلي مستخرج صفحةً صفحة؛ اختر رسمًا آخر هنا، أو افتح آية من الصفحات المكتملة.</span>
-            <a
+            <Link
               className="rounded-lg border border-athar-line px-3 py-1.5 text-xs font-bold text-athar-accent no-underline hover:border-athar-accent"
               href="/read?surah=11&ayah=121&view=page&edition=shamarly"
             >
               شاهد صفحة مكتملة من الشمرلي
-            </a>
+            </Link>
           </div>
         ) : view === "page" && page ? (
           <div className="mushaf-lines-host">

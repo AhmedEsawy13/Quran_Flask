@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { getJson, type WaqfPayload } from "@/lib/api";
 import { MUSHAF_EDITIONS, toArabicDigits, type MushafEditionId } from "@/lib/mushaf";
 import { useBoundedAudio } from "@/lib/use-bounded-audio";
-import { commonWaqfMarks, waqfMarkDescription, waqfMarkGlyph, waqfMarkTone } from "@/lib/waqf";
+import { commonWaqfMarks, waqfMarkDescription, waqfMarkTone } from "@/lib/waqf";
 import { Button, StatusState, Surface } from "@/components/ui/primitives";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 
 type GuideResult = {
   key: string;
@@ -93,12 +95,12 @@ export function ReaderMushafGuide({
             الرسم يغيّر شكل الصفحة والخط، وعلامات الوقف ترشد موضع الوقوف؛ أمّا دليل التلاوة فيعرض كيف قسّم القارئ الآية فعلًا.
           </p>
         </div>
-        <a
+        <Link
           className="shrink-0 text-xs font-bold text-athar-accent underline-offset-4 hover:underline"
           href={`/waqf?surah=${surahNumber}&ayah=${ayahNumber}`}
         >
           قارن الأدلة في مُكْث ←
-        </a>
+        </Link>
       </header>
 
       <div className="grid gap-3 md:grid-cols-[minmax(0,.9fr)_minmax(0,1.4fr)]">
@@ -121,7 +123,7 @@ export function ReaderMushafGuide({
               const description = waqfMarkDescription(symbol);
               return (
                 <span className="flex min-w-0 items-center gap-2 rounded-lg bg-athar-line-soft px-2.5 py-2" key={symbol}>
-                  <b className={`text-lg text-athar-ink waqf-legend-symbol is-${waqfMarkTone(symbol)}`}>{waqfMarkGlyph(symbol)}</b>
+                  <b className={`text-lg text-athar-ink waqf-legend-symbol is-${waqfMarkTone(symbol)}`}><WaqfGlyph symbol={symbol} className="size-[1.5em]" /></b>
                   <span className="truncate text-[0.66rem] text-athar-ink-soft">{description.guidance}</span>
                 </span>
               );
@@ -191,7 +193,7 @@ export function ReaderMushafGuide({
                       <span className="waqf-segment-words">
                         {data.words.slice(phrase.first_wpos, phrase.last_wpos + 1).join(" ")}
                         <small className="mt-1 block font-athar-ui text-[0.65rem] text-athar-ink-faint">
-                          {isLast ? "نهاية الآية" : symbol ? `${waqfMarkGlyph(symbol)} · ${waqfMarkDescription(symbol).guidance}` : `قف بعد «${endWord}»`}
+                          {isLast ? "نهاية الآية" : symbol ? <><WaqfGlyph symbol={symbol} className="mx-0.5 size-[1.35em] align-[-0.35em]" /> · {waqfMarkDescription(symbol).guidance}</> : `قف بعد «${endWord}»`}
                         </small>
                       </span>
                       <span className="waqf-segment-time">{active ? "Ⅱ" : "▶"} {toArabicDigits((phrase.end - phrase.start).toFixed(1))}ث</span>

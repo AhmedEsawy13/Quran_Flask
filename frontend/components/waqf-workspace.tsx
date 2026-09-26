@@ -22,7 +22,6 @@ import { arabicWordQuery, parseVerseSearch } from "@/lib/waqf-search";
 import {
   ChromeField,
   ChromeInput,
-  ChromePill,
   ChromeSelect,
   ChromeStepper,
   ToolCard,
@@ -542,9 +541,6 @@ export function WaqfWorkspace() {
         titleId="wq-title"
         lede="ثلاث شهادات على كل موضع وقف في الآية — اضغط أي موضع لترى دليله، ثم ابنِ قراءةً تناسب نَفَسك."
       >
-        <a className={introLinkClassName()} href={`/waqf-practice?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
-          تدرّب على هذا الموضع
-        </a>
         {process.env.NODE_ENV === "development" ? (
           <a
             className={introLinkClassName()}
@@ -558,9 +554,6 @@ export function WaqfWorkspace() {
 
       <ToolChrome
         label="اختيار موضع الدراسة"
-        pill={selectedSurah ? (
-          <ChromePill>سورة <b>{selectedSurah.name}</b> · {toArabicDigits(ayahNumber)}</ChromePill>
-        ) : undefined}
       >
         <ChromeField label="السورة">
           <ChromeSelect
@@ -804,10 +797,7 @@ export function WaqfWorkspace() {
             </div>
 
             <section id="waqf-ayah-panels" className="grid scroll-mt-4 gap-3 md:scroll-mt-[calc(var(--bar-height)+5.5rem)]" aria-label="دراسة الآية كاملة">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="m-0 font-athar-display text-[1.15rem] text-athar-ink">الآية كاملة</h2>
-                <a className={introLinkClassName("text-[0.8rem]")} href="/waqf-lab">ابحث عبر القرآن في مختبر الوقف</a>
-              </div>
+              <h2 className="m-0 font-athar-display text-[1.15rem] text-athar-ink">الآية كاملة</h2>
               <div
                 className="flex gap-1 overflow-x-auto rounded-xl border border-athar-line bg-athar-canvas-strong p-1 [scrollbar-width:none]"
                 role="tablist"

@@ -166,7 +166,7 @@ function ToolbarPopover({
 }) {
   return (
     <details name="memorize-toolbar" className="group relative shrink-0">
-      <summary className="flex h-[34px] cursor-pointer list-none items-center gap-1.5 rounded-[10px] border border-athar-line bg-athar-surface px-2.5 text-xs font-bold text-athar-ink transition-colors hover:border-athar-accent hover:text-athar-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent [&::-webkit-details-marker]:hidden">
+      <summary aria-label={value ? `${label}: ${value}` : label} className="flex h-[34px] cursor-pointer list-none items-center gap-1.5 rounded-[10px] border border-athar-line bg-athar-surface px-2.5 text-xs font-bold text-athar-ink transition-colors hover:border-athar-accent hover:text-athar-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent [&::-webkit-details-marker]:hidden">
         <AtharIcon name={icon} className="size-4 shrink-0 text-athar-accent" />
         <span className="max-sm:hidden">{label}</span>
         {value ? <span className="max-w-36 truncate text-[0.68rem] font-semibold text-athar-ink-faint max-lg:hidden">{value}</span> : null}

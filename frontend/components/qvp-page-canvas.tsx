@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { canvasPointToPage, loadQvpPage, prefetchQvpPages, type QvpWaqfOverlay } from "@/lib/qvp";
 import type { QvpLitePage, QvpView, QvpWord } from "@/lib/qvp-lite";
+import { WaqfGlyph } from "@/components/ui/waqf-glyph";
 
 type QvpPageCanvasProps = {
   pageNumber: number;
@@ -241,21 +242,22 @@ export function QvpPageCanvas({
               item.surah === mark.surah && item.ayah === mark.ayah && item.word === mark.word
             );
             if (!word) return null;
-            const [x0, y0, x1] = pauseSlot(word, pauseSize);
+            // Draw the chosen mushaf's mark into the printed mark's own box.
+            const [x0, y0, x1, y1] = pauseSlot(word, pauseSize);
             const {scale, x, y, dpr} = overlayView;
-            const centerX = (x + (x0 + x1) / 2 * scale) / dpr;
-            const inkTop = (y + y0 * scale) / dpr;
             return (
               <span
                 className="qvp-pause-slot"
                 title={mark.label}
                 key={`${mark.surah}:${mark.ayah}:${mark.word}:${mark.glyph}`}
                 style={{
-                  left: `${centerX}px`,
-                  top: `${inkTop}px`,
+                  left: `${(x + x0 * scale) / dpr}px`,
+                  top: `${(y + y0 * scale) / dpr}px`,
+                  width: `${((x1 - x0) * scale) / dpr}px`,
+                  height: `${((y1 - y0) * scale) / dpr}px`,
                 }}
               >
-                <span className="mushaf-print-mark">{mark.glyph}</span>
+                <WaqfGlyph symbol={mark.glyph} fit="box" className="size-full" title={mark.label} />
               </span>
             );
           })}

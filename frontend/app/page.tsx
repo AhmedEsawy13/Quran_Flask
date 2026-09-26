@@ -6,7 +6,7 @@ import {DoorIcon} from "@/components/ui/door-icon";
 import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 import {cn} from "@/lib/cn";
 import {supportTools, toolHref, waqfTools, type ToolKey} from "@/lib/nav";
-import {actionLinkClassName, pageContainerClassName} from "@/lib/ui";
+import {pageContainerClassName} from "@/lib/ui";
 import {waqfMarkGuide} from "@/lib/waqf";
 
 const example = {surah: 2, ayah: 255};
@@ -82,10 +82,6 @@ export default function HomePage() {
             ثم يدرّبك حتى يصير وقفك فهمًا لا تخمينًا.
           </p>
           <VerseJump />
-          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-            <Link className="font-bold text-athar-accent no-underline hover:underline" href={toolHref("practice", example)}>درّب وقفك ←</Link>
-            <Link className="font-bold text-athar-ink-soft no-underline hover:text-athar-accent" href="/waqf-lab">افتح مختبر الوقف</Link>
-          </div>
           <dl className="mt-9 grid max-w-[560px] grid-cols-3 gap-3 border-t border-athar-line pt-5">
             {[
               ["٨", "مصاحف مطبوعة"],
@@ -238,16 +234,11 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
-          <div className="mt-10 flex flex-wrap items-center gap-3">
-            <Link className={actionLinkClassName("primary")} href={toolHref("waqf", example)}>ابدأ بدليل الوقف</Link>
-            <Link className={actionLinkClassName("quiet")} href={toolHref("practice", example)}>درّب وقفك</Link>
-          </div>
         </div>
       </section>
 
       <footer className={cn(pageContainerClassName, "flex flex-wrap items-center justify-between gap-4 border-t border-athar-line py-8 text-sm text-athar-ink-faint")}>
         <span>© أثَر — الوقف والابتداء</span>
-        <Link className="text-athar-ink-soft no-underline hover:text-athar-accent" href="/credits">المصادر والشكر</Link>
       </footer>
     </main>
   );

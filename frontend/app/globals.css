@@ -622,31 +622,10 @@ button.page-number {
 }
 
 .qvp-pause-slot {
+  /* Positioned and sized in JS to the printed mark's own box. */
   position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-  padding: 0;
-  /* Same scale as .mushaf-waqf-stack on the font editions (~0.72em of page type). */
-  width: 1.15em;
-  height: 1.15em;
-  /* Combining pause glyphs sit high in the em square; pin to the ink top
-     and only center horizontally so they are not lifted above the print. */
-  transform: translate(-50%, -18%);
-  font-size: calc(var(--reader-page-fit-font, 22px) * 0.85);
-  line-height: 1;
-}
-
-.qvp-pause-slot .mushaf-print-mark,
-.qvp-pause-slot .mushaf-print-mark.is-strong,
-.qvp-pause-slot .mushaf-print-mark.is-avoid {
+  display: block;
   color: var(--athar-ink);
-  font-family: "Uthmanic Hafs", "Athar Waqf", serif;
-  font-size: 1em;
-  font-weight: 400;
-  font-synthesis: none;
-  line-height: 1;
 }
 
 .reader-mushaf-stage .reader-page.is-page .mushaf-lines-host,

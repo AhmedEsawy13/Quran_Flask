@@ -4,7 +4,7 @@ import {useEffect, useMemo, useState} from "react";
 import {getJson, type Surah} from "@/lib/api";
 import {toArabicDigits} from "@/lib/mushaf";
 import {cn} from "@/lib/cn";
-import {waqfMarkGlyph, waqfMarkLabel} from "@/lib/waqf";
+import {waqfMarkLabel} from "@/lib/waqf";
 import {ChromeField, ChromeSelect} from "@/components/tool-chrome";
 import {Button, SegmentedControl, StatusState} from "@/components/ui/primitives";
 import {AgreePill, CountLabel, HitChip, HitList, HitMarks, HitRow, LabNarrow, LabTable, LabWide, ToolBlurb} from "@/components/waqf-lab-hit";
@@ -22,6 +22,7 @@ import {
   type MushafSimTree,
   type ResearchOccurrence,
 } from "@/lib/waqf-lab";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 
 const SYSTEM_LABEL: Record<string, string> = {
   standard: "نظام حفص القياسي",
@@ -146,7 +147,7 @@ export function LabMandatoryPanel({surahs}: {surahs: Surah[]}) {
       <div className="flex flex-wrap gap-1.5">
         {([["mandatory", "م", "اللازم"], ["forbidden", "لا", "الممنوع"], ["embracing", "ع", "المعانقة"]] as const).map(([value, mark, label]) => (
           <Button key={value} size="sm" variant={view === value ? "primary" : "secondary"} onClick={() => { setView(value); setShown(HIT_PAGE); }}>
-            <span className="font-athar-quran">{waqfMarkGlyph(mark)}</span> {label} <b>{toArabicDigits(lists[value].length)}</b>
+            <WaqfGlyph symbol={mark} className="mx-0.5 size-[1.35em] align-[-0.35em]" /> {label} <b>{toArabicDigits(lists[value].length)}</b>
           </Button>
         ))}
       </div>
@@ -542,7 +543,7 @@ export function LabMushafSimPanel({surahs}: {surahs: Surah[]}) {
                   <div className="flex flex-wrap gap-1.5">
                     {(data.marks || []).filter((mark) => profile.counts[mark]).map((mark) => (
                       <span className="rounded-full border border-athar-line px-2 py-0.5 text-[0.72rem]" key={mark}>
-                        <b>{toArabicDigits(profile.counts[mark])}</b> {mushafGlyph(mark, id)}
+                        <b>{toArabicDigits(profile.counts[mark])}</b> <WaqfGlyph symbol={mark} mushafId={id} className="mx-0.5 size-[1.35em] align-[-0.35em]" />
                       </span>
                     ))}
                   </div>
@@ -586,9 +587,9 @@ export function LabMushafSimPanel({surahs}: {surahs: Surah[]}) {
               <div className="flex flex-wrap gap-2">
                 {diff.groups.map((group) => (
                   <span className="inline-flex items-center gap-1 rounded-full border border-athar-line px-2 py-0.5 text-[0.78rem]" key={`${group.a_sym}-${group.b_sym}`}>
-                    <span className={mushafFontClass(diff.a)}>{mushafGlyph(group.a_sym, diff.a) || "بلا"}</span>
+                    <span>{mushafGlyph(group.a_sym, diff.a) ? <WaqfGlyph symbol={group.a_sym} mushafId={diff.a} className="mx-0.5 size-[1.35em] align-[-0.35em]" /> : "بلا"}</span>
                     ↔
-                    <span className={mushafFontClass(diff.b)}>{mushafGlyph(group.b_sym, diff.b) || "بلا"}</span>
+                    <span>{mushafGlyph(group.b_sym, diff.b) ? <WaqfGlyph symbol={group.b_sym} mushafId={diff.b} className="mx-0.5 size-[1.35em] align-[-0.35em]" /> : "بلا"}</span>
                     <b>{toArabicDigits(group.count)}</b>
                   </span>
                 ))}
@@ -606,9 +607,9 @@ export function LabMushafSimPanel({surahs}: {surahs: Surah[]}) {
                     surahName={surahs.find((surah) => surah.number === item.surah)?.name}
                     marks={(
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className={cn(mushafFontClass(diff.a), "text-athar-accent")}>{mushafGlyph(item.a_sym, diff.a) || "بلا"}</span>
+                        <span className="text-athar-accent">{mushafGlyph(item.a_sym, diff.a) ? <WaqfGlyph symbol={item.a_sym} mushafId={diff.a} className="mx-0.5 size-[1.35em] align-[-0.35em]" /> : "بلا"}</span>
                         <HitChip muted>↔</HitChip>
-                        <span className={cn(mushafFontClass(diff.b), "text-athar-waqf-solo")}>{mushafGlyph(item.b_sym, diff.b) || "بلا"}</span>
+                        <span className="text-athar-waqf-solo">{mushafGlyph(item.b_sym, diff.b) ? <WaqfGlyph symbol={item.b_sym} mushafId={diff.b} className="mx-0.5 size-[1.35em] align-[-0.35em]" /> : "بلا"}</span>
                       </div>
                     )}
                     key={`${item.surah}:${item.ayah}:${index}`}

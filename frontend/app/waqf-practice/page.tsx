@@ -1,9 +1,8 @@
 import type {Metadata} from "next";
 import {Suspense} from "react";
-import {PracticeAsrLink, PracticeWorkspace} from "@/components/practice-workspace";
+import {PracticeWorkspace} from "@/components/practice-workspace";
 import {ToolIntro} from "@/components/tool-chrome";
 import {RouteSkeleton} from "@/components/ui/primitives";
-import {introLinkClassName} from "@/lib/ui";
 
 export const metadata: Metadata = {
   title: "تدريب",
@@ -35,7 +34,6 @@ export default function PracticePage() {
             <span>راجع التقييم</span>
           </li>
         </ol>
-        <PracticeAsrLink className={introLinkClassName()}>التسجيل الصوتي</PracticeAsrLink>
       </ToolIntro>
       <Suspense fallback={<RouteSkeleton label="جارٍ تجهيز جلسة التدريب" />}>
         <PracticeWorkspace />

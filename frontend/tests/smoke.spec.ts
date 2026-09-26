@@ -323,7 +323,8 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   await expect(page.getByRole("heading", {level: 1, name: "علامة المصحف، ووقف القارئ، وقول الإمام."})).toBeVisible();
   await expect(page.getByRole("region", {name: "علامة المصحف، ووقف القارئ، وقول الإمام."}).getByText("مُكْث", {exact: true})).toBeVisible();
   await expect(page.getByRole("region", {name: "اختيار موضع الدراسة"})).toBeVisible();
-  const practiceLink = page.getByRole("link", {name: "تدرّب على هذا الموضع", exact: true}).first();
+  // The nav's تدريب link carries the ayah being studied (no duplicate in-page link).
+  const practiceLink = page.getByRole("link", {name: "تدريب", exact: true});
   await expect(practiceLink).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
   await expect(page.locator(".waqf-word-unit")).toHaveCount(50, {timeout: 15_000});
   const wordFlowSpacing = await page.locator(".waqf-word-flow").evaluate((flow) => {

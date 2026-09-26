@@ -6,12 +6,11 @@ import {Button, StatusState} from "@/components/ui/primitives";
 import {
   editorEditionsFromMarks,
   editorHref,
-  mushafFontClass,
-  mushafGlyph,
   verseHref,
   type ResearchOccurrence,
   type WaqfMarks,
 } from "@/lib/waqf-lab";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 
 export function AgreePill({agreement}: {agreement?: string}) {
   if (agreement === "full") return <ToneChip tone="consensus">تام</ToneChip>;
@@ -73,7 +72,7 @@ export function HitMarks({marks}: {marks?: WaqfMarks}) {
           key={`${mushaf}-${symbol}`}
           title={mushaf}
         >
-          <span className={cn(mushafFontClass(mushaf), "text-[1.05rem] text-athar-accent")}>{mushafGlyph(symbol, mushaf)}</span>
+          <span className="text-[1.05rem] text-athar-accent"><WaqfGlyph symbol={symbol} mushafId={mushaf} className="size-[1.4em] align-[-0.35em]" /></span>
           <span>{mushaf}</span>
         </span>
       ))}

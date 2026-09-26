@@ -3,9 +3,10 @@
 import {useMemo, useState} from "react";
 import type {WaqfPayload} from "@/lib/api";
 import {toArabicDigits} from "@/lib/mushaf";
-import {reciterPhrases, waqfMarkGlyph, waqfMarkLabel} from "@/lib/waqf";
+import {reciterPhrases, waqfMarkLabel} from "@/lib/waqf";
 import {ToolCard, ToolCardHead} from "@/components/tool-chrome";
 import {StatusState} from "@/components/ui/primitives";
+import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 
 function isNativeAudio(url: string | null | undefined) {
   return Boolean(url && !/youtu(?:\.be|be\.com)/i.test(url));
@@ -207,7 +208,7 @@ function ReciterGroup({
               </span>
               <span className="waqf-segment-time">
                 {active ? "Ⅱ" : "▶"} {toArabicDigits((phrase.end - phrase.start).toFixed(1))}ث
-                {isLast ? " · رأس الآية" : symbol ? ` · ${waqfMarkLabel(symbol)} ${waqfMarkGlyph(symbol)}` : ""}
+                {isLast ? " · رأس الآية" : symbol ? <> · {waqfMarkLabel(symbol)} <WaqfGlyph symbol={symbol} className="mx-0.5 size-[1.35em] align-[-0.35em]" /></> : ""}
                 {!isLast && soloSet.has(phrase.last_wpos) ? " · انفرد" : ""}
               </span>
             </button>

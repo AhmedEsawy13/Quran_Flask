@@ -10,7 +10,6 @@ import {introLinkClassName} from "@/lib/ui";
 import {
   ChromeField,
   ChromeInput,
-  ChromePill,
   ToolCard,
   ToolCardHead,
   ToolChrome,
@@ -64,7 +63,6 @@ export function WaqfLabWorkspace() {
 
   const familyTabs = useMemo(() => LAB_TABS.filter((item) => item.family === family), [family]);
   const activeLabel = LAB_TABS.find((item) => item.id === tab)?.label || "بحث بالكلمة";
-  const familyTitle = LAB_FAMILIES.find((item) => item.id === family)?.title || "كلمات وأنماط";
 
   useEffect(() => {
     const controller = new AbortController();
@@ -190,7 +188,6 @@ export function WaqfLabWorkspace() {
 
       <ToolChrome
         label="عائلات مختبر الوقف"
-        pill={<ChromePill>{familyTitle} · {activeLabel}</ChromePill>}
       >
         <div
           className="flex min-h-11 flex-wrap items-center rounded-xl border border-athar-line bg-athar-canvas-strong p-1"
