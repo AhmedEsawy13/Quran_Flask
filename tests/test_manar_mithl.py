@@ -77,10 +77,25 @@ def test_mithl_audit_is_clean():
     by = {}
     for r in recs:
         by.setdefault(r['status'], []).append(r)
-    missing = [(r['surah'], r['ayah'], r['wpos']) for r in by.get('missing', [])
-               if (r['surah'], r['ayah'], r['wpos']) not in audit.SKIP]
-    assert not missing, f'inherited rulings absent from the DB: {missing[:10]}'
+    assert not by.get('missing'), f"inherited rulings absent: {by['missing'][:5]}"
+    assert not by.get('unaligned'), f"unplaced chain items: {by['unaligned'][:5]}"
+    assert not by.get('grade_mismatch')
     assert len(recs) >= 1850
-    assert len(by.get('ok', [])) + len(by.get('ok_alt', [])) >= 1800
-    # the handful left are reviewed parser misreads (see SKIP / ADD_GRADE)
-    assert len(by.get('grade_mismatch', [])) <= 6
+
+
+def test_no_repeated_word_suspects_left():
+    from pipeline import audit_manar_mithl as audit
+    recs = audit.audit(audit.load_db(CLASSICAL_WAQF_DATABASE))
+    moves, review = audit.misplaced_rows(CLASSICAL_WAQF_DATABASE, recs)
+    assert not moves and not review, (moves[:5], review[:5])
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade', [
+    (6, 57, 18, 'جائز'),    # «يقض الحق» — Hafs «يَقُصُّ ٱلۡحَقَّۖ»
+    (81, 24, 4, 'كاف'),     # «بظنين» — Hafs «بِضَنِينٖ»
+    (78, 20, 3, 'حسن'),     # «سراجا» — the edition's typo for «سَرَابًا»
+    (49, 3, 6, 'لا'),       # {عند رسول الله} ليس بوقف, not «امتحن الله»
+    (2, 138, 1, 'حسن'),     # {صبغة الله} حسن; {صبغة} أحسن is w8
+])
+def test_reviewed_seats(db, surah, ayah, wpos, grade):
+    assert grade in grades_at(db, surah, ayah, wpos)

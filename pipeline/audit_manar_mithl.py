@@ -169,6 +169,42 @@ def find_in_span(surah, a0, w0, a1, quote, later=()):
             return a, (marked[0] if marked else free[0]), len(marked) != 1
     return None, None, False
 
+# Chain items the matcher cannot place — the book's spelling differs from the
+# Hafs text (qirāʾa «يقض»، «جدار»، «بظنين»; typos «سراجا» for «سرابا»،
+# «فتفكرون» for «فتكفرون»), or the stop lies past the window. Decided by
+# reading each line: (surah, head ayah, item) → (ayah, wpos).
+PINS = {
+    (2, 83, 'الصلاة'): (83, 19), (2, 83, 'الزكاة'): (83, 21),
+    (2, 222, 'فاعتزلوا النساء في المحيض حتى يطهرن'): (222, 13),
+    (2, 245, 'ويبسط'): (245, 13), (2, 275, 'الربا'): (275, 19),
+    (4, 63, 'وعظيم'): (63, 9), (6, 57, 'يقض الحق'): (57, 18), (7, 69, 'بسطة'): (69, 21),
+    (9, 55, 'إنهم لمنكم'): (56, 3), (11, 108, 'هؤلاء'): (109, 6), (12, 64, 'حفظا'): (64, 13),
+    (13, 20, 'سواء الحساب'): (21, 12), (14, 46, 'وعند الله مكرهم'): (46, 5),
+    (18, 57, 'إذن أبدا'): (57, 29), (20, 108, 'للرحمن'): (108, 8),
+    (23, 41, 'يستأخرون'): (43, 6), (23, 63, 'يجأرون'): (64, 7), (28, 31, 'ملأه'): (32, 20),
+    (28, 77, 'من المفسدين'): (77, 25), (30, 31, 'الصلاة'): (31, 4),
+    (34, 52, 'التناوش'): (52, 5), (40, 9, 'فتفكرون'): (10, 14), (40, 74, 'ضلو عنا'): (74, 5),
+    (51, 49, 'مبين'): (51, 10), (52, 18, 'تعلمون'): (19, 5), (52, 30, 'من غير شئ'): (35, 4),
+    (59, 13, 'جدار'): (14, 10), (77, 42, 'تعلمون'): (43, 5), (78, 18, 'سراجا'): (20, 3),
+    (81, 23, 'بظنين'): (24, 4), (83, 30, 'فاكهين'): (31, 5),
+}
+# «ومثله/و «X»» the parser reads that are remarks, not rulings: «و «ثم» لترتيب
+# الأخبار»، «وكذا «إن» نصب بإضمار أعني»، «ومثلها «سوف» … فيبتدأ بها»، rasm
+# and verse-count cross-references to other surahs.
+NOT_RULINGS = {
+    (4, 133, 'ولا الملائكة المقربون'), (23, 41, 'ثم'), (25, 7, 'فمال هؤلاء القوم'),
+    (27, 7, 'سوف'), (28, 86, 'فلن أكون ظهيرا للمجرمين'), (29, 58, 'إن'),
+    (54, 50, 'فعلوه'), (75, 12, 'ثم'), (48, 26, 'محلقين'), (48, 26, 'مقصرين'),
+    (2, 69, 'فاقع لونها'), (6, 91, 'للناس'),
+}
+# grade differences read and left as stored: 37:12 the book rules {ويسخرون}
+# جائز explicitly; 39:51 «كسبوا» تام فيهما; 51:26 «وهو: كاف، ومثله سمين».
+MISMATCH_OK = {(37, 12, 2), (39, 51, 3), (51, 26, 5)}
+
+
+def item_key(surah, head_ayah, item):
+    return (surah, head_ayah, strip(item).strip())
+
 
 def head_seat(surah, ayah, quote):
     """Word a {quote} [n] head rules on: the exact spelling first, then the
@@ -307,6 +343,11 @@ def audit(db_rows):
                     spots = [(a, w)] if a is not None else []
                 if len(spots) == 1 and spots[0][1] == 0 and hnorm(q) in _PARTICLES:
                     spots = []    # «و «ثم» لترتيب الأخبار» — a remark, not a stop
+                ik = item_key(surah, ayah, q)
+                if ik in NOT_RULINGS:
+                    continue
+                if not spots and ik in PINS:
+                    spots = [PINS[ik]]
                 base = {'surah': surah, 'head_ayah': ayah, 'head': hq, 'head_grade': grade,
                         'alt_grades': sorted(alt - {grade}), 'trigger': trig, 'item': q,
                         'grade': g, 'own_grade': bool(own), 'conditional': cond, 'ordinal': nth,
@@ -323,7 +364,7 @@ def audit(db_rows):
                         rec['status'] = 'missing'
                     elif g in grades:
                         rec['status'] = 'ok'
-                    elif grades & (alt | {grade}):
+                    elif grades & (alt | {grade}) or (surah, a, w) in MISMATCH_OK:
                         rec['status'] = 'ok_alt'
                     else:
                         rec['status'] = 'grade_mismatch'
@@ -392,6 +433,8 @@ def misplaced_rows(path, recs):
         if not same:
             continue
         marked = [x for x in same if pausable(words, x)]
+        if (s, a, w) in REVIEWED_OK:
+            continue
         if _ORD_NOTE.search(note) or pausable(words, w) or len(marked) != 1:
             review.append({'id': rid, 'surah': s, 'ayah': a, 'wpos': w, 'word': words[w],
                            'candidates': same, 'grade': g, 'quote': q, 'note': note})
@@ -424,7 +467,75 @@ MOVES = {
     # 2:165 «{كحب الله} حسن … وقال أبو عمرو فيهما: تام» sat on «وَأَنَّ ٱللَّهَ»;
     # two marked «الله» seats compete, so the mechanical rule leaves it.
     47259: (165, 10), 47260: (165, 10),
+    # review queue, decided against the book's own {quote} [n] line
+    # (2026-09-26): each row sat on a repeated word after the quoted one.
+    47022: (101, 14), 47023: (101, 14),      # {أوتوا الكتاب}
+    47167: (138, 1),                         # {صبغة الله} حسن ({صبغة} أحسن is w8)
+    47367: (194, 16),                        # {واتقوا الله} أحسن
+    47372: (196, 1), 47373: (196, 1),        # {وأتموا الحج}
+    47389: (197, 18),                        # {من خير} ليس بوقف
+    47577: (243, 22),                        # {على الناس}
+    47579: (244, 3),                         # {سبيل الله}
+    47776: (282, 64),                        # {من الشهداء}
+    47784: (282, 121),                       # {واتقوا الله} جائز
+    47801: (285, 13), 47802: (285, 13),      # {ورسله}
+    47934: (27, 3), 47935: (27, 3),          # {في النهار}
+    48027: (55, 11), 48028: (55, 11),        # {ومطهرك من الذين كفروا}
+    48214: (119, 7),                         # {بالكتاب كله}
+    48381: (174, 4),                         # {وفضل}
+    48408: (181, 5),                         # {قول الذين قالوا}
+    48484: (98, 6),                          # {بآيات الله}
+    48487: (199, 14),                        # {خاشعين لله}
+    48585: (23, 2), 48586: (23, 2),          # {أمهاتكم}
+    48935: (139, 9),                         # {عندهم العزة}
+    49046: (24, 8),                          # {كتاب الله}
+    49076: (3, 35),                          # {من دينكم}
+    49084: (4, 16), 49086: (4, 26),          # {مما علمكم الله} / {واتقوا الله}
+    49238: (49, 5),                          # {بما أنزل الله}
+    50299: (143, 5),                         # {وكلمه ربه}
+    50687: (19, 18),                         # {لا يستوون عند الله}
+    50792: (59, 9),                          # {حسبنا الله}
+    50840: (74, 3),                          # {ما قالوا}
+    51499: (71, 4), 51500: (71, 4), 51501: (71, 4),   # {فبشرناها بإسحاق}
+    51779: (66, 8),                          # {موثقا من الله}
+    52498: (76, 21),                         # {هل يستوي هو}
+    52874: (108, 2),                         # {سبحان ربنا}
+    53001: (46, 7),                          # {خير} ليس بوقف
+    53229: (48, 7),                          # {وأدعو ربي}
+    53367: (39, 6),                          # {في اليم}
+    53855: (36, 5),                          # {من شعائر الله}
+    54065: (70, 6), 54068: (71, 11),         # {بالحق} / {بذكرهم}
+    54147: (2, 14),                          # {في دين الله}
+    54177: (16, 9),                          # {بهذا}
+    54197: (25, 4),                          # {دينهم الحق}
+    54325: (40, 6),                          # {يغشاه موج}
+    54759: (18, 5),                          # {واد النمل}
+    55400: (54, 4),                          # {من ضعف}
+    55503: (33, 10),                         # {عن ولده}
+    55842: (22, 6),                          # {من دون الله}
+    56114: (47, 6),                          # {مما رزقكم الله}
+    56461: (51, 1),                          # {متكئين فيها}
+    57053: (50, 10),                         # {هذا لي}
+    57077: (6, 7),                           # {حفيظ عليهم}
+    57099: (13, 22), 57100: (13, 28),        # {ولا تتفرقوا فيه} / {ما تدعوهم إليه}
+    57726: (38, 11),                         # {ومن يبخل} الثاني
+    57811: (26, 6),                          # {الحمية}
+    57846: (3, 6),                           # {عند رسول الله}
+    57875: (12, 6),                          # {من الظن}
+    58075: (18, 3),                          # {بما آتاهم ربهم}
+    58407: (10, 6),                          # {في سبيل الله}
+    58423: (14, 16),                         # {حتى جاء أمر الله}
+    58471: (29, 14),                         # {بيد الله}
+    58911: (11, 6),                          # {امرأة فرعون}
+    59223: (14, 3),                          # {والجبال} الأول
+    50786: (56, 3),                          # ومثله «إنهم لمنكم»
 }
+# rows no {quote} [n] line of the book supports (3:73 كاف on «وَٱللَّهُ وَٰسِعٌ»،
+# 48:10 جائز on «عَٰهَدَ عَلَيۡهُ ٱللَّهَ»): kept, withheld from the live API.
+DEMOTE = {48071, 57755}
+# rows on a repeated word that the book does mean (checked): not suspects
+REVIEWED_OK = {(2, 218, 12), (2, 255, 43), (7, 195, 3), (7, 195, 8), (7, 195, 13),
+               (11, 119, 3), (13, 31, 28), (39, 51, 11), (59, 18, 11)}
 # Grade corrections: id → grade. 39:50 «ومثله «يكسبون»» inherits كاف; the
 # «تام فيهما» that follows is about «كسبوا» الأولى والثانية.
 REGRADE = {56650: 'كاف'}
@@ -437,7 +548,7 @@ ADD_GRADE = {
 }
 # chain items the parser reads that are not rulings («وكذا «محلقين»» is about
 # the حال), or whose grade the book states differently than inherited.
-SKIP = {(48, 27, 13)}
+SKIP = set()          # superseded by NOT_RULINGS
 GRADE_OVERRIDE = {(39, 51, 3): 'تام'}      # «كسبوا» الأولى والثانية تام فيهما
 REPORTED = {(25, 41, 10): 'أبو حاتم'}      # «ومثله «رسولا» عند أبي حاتم»
 # extra rows the chain implies but the resolver cannot emit on its own
@@ -540,6 +651,8 @@ def apply(recs, path):
             cur.execute("UPDATE classical SET wpos=?, stop_word=? WHERE id=?",
                         (w_to, verse_words(s, a)[w_to], rid))
             stats['repeat_moved'] += 1
+    stats['demoted'] += cur.execute(
+        f"UPDATE classical SET conf=0 WHERE conf=1 AND id IN ({','.join(map(str, DEMOTE))})").rowcount
     for rid, g in REGRADE.items():
         stats['regraded'] += cur.execute("UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?",
                                          (g, g, rid, g)).rowcount

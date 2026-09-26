@@ -36,11 +36,20 @@ _IDX = {'الأول': [0], 'الأولى': [0], 'الثاني': [1], 'الثان
 _MITHL = re.compile(r'(ومثله|وكذلك|ومثلها|ونحوه)\s*[:،]?\s*$')
 _SPAN = 5          # verses searched after the anchor
 
-# «وحقت» الثانية (84:5) — no confident entry precedes it in the surah.
-MANUAL = [(84, 5, 2, 'وحقت', 'تام')]
-# «ومثله {من قبل} الثاني» sat on the first «من قبل» (34:53).
-MOVES = {'34:من قبل': (54, 9)}
-
+# Read by hand where the anchor rule cannot count (2026-09-26):
+# «وحقت» الثانية (84:5) — no confident entry precedes it in the surah;
+# «ويعفو عن كثير» الأول تام (42:30) — the book spells it without the alif
+# (the second, 42:34, is تام only for «ويعلمُ» بالرفع, not Hafs).
+MANUAL = [(84, 5, 2, 'وحقت', 'تام'), (42, 30, 9, 'ويعفو عن كثير', 'تام')]
+# «ومثله {X} الثاني» items the builder put on the FIRST occurrence:
+# (surah, ayah, wpos, quote) → (ayah, wpos).
+MOVES = {
+    (34, 53, 4, 'من قبل'): (54, 9),
+    (4, 92, 32, 'وتحرير رقبة مؤمنة'): (92, 46),   # «وتحرير» — the one after «يصدقوا»
+    (26, 108, 2, 'وأطيعون'): (110, 2),
+    (37, 175, 2, 'فسوف يبصرون'): (179, 2),
+    (56, 90, 5, 'أصحاب اليمين'): (91, 4),
+}
 
 def occurrences(surah, after, quote):
     """Exact-spelling end seats of quote after (ayah, wpos), reading order."""
@@ -83,7 +92,7 @@ def resolve(con):
                 anchor = None
                 for e in reversed(prev):
                     rows = con.execute("SELECT ayah, wpos FROM classical WHERE source='muktafa' "
-                                       "AND conf=1 AND surah=? AND quote=?", (surah, e['quote'])).fetchall()
+                                       "AND conf=1 AND grade_raw<>'رؤوس الآي' AND surah=? AND quote=?", (surah, e['quote'])).fetchall()
                     if len(rows) == 1:
                         anchor = rows[0]
                         break
@@ -104,14 +113,13 @@ def resolve(con):
 def apply(con, found):
     cur = con.cursor()
     stats = collections.Counter()
-    for key, (a, w) in MOVES.items():
-        s, q = key.split(':', 1)
+    for (s, a0, w0, q), (a, w) in MOVES.items():
         stats['moved'] += cur.execute(
             "UPDATE classical SET ayah=?, wpos=?, stop_word=? WHERE source='muktafa' AND surah=? "
-            "AND quote=? AND NOT (ayah=? AND wpos=?)",
-            (a, w, mm.verse_words(int(s), a)[w], int(s), q, a, w)).rowcount
+            "AND ayah=? AND wpos=? AND quote=? AND grade_raw<>'رؤوس الآي'",
+            (a, w, mm.verse_words(s, a)[w], s, a0, w0, q)).rowcount
     rows = [(r['surah'], r['ayah'], r['wpos'], r['quote'], r['grade'], r['note']) for r in found]
-    rows += [(s, a, w, q, g, f'{q} الثانية {g}') for s, a, w, q, g in MANUAL]
+    rows += [(s, a, w, q, g, f'{q} {g}') for s, a, w, q, g in MANUAL]
     for s, a, w, q, g, note in rows:
         have = cur.execute("SELECT id, grade FROM classical WHERE source='muktafa' AND surah=? "
                            "AND ayah=? AND wpos=?", (s, a, w)).fetchall()

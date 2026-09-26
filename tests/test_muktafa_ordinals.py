@@ -46,3 +46,37 @@ def test_ordinal_audit_has_nothing_left_to_apply():
             assert r['grade'] in grades, r
     finally:
         conn.close()
+
+
+# ── blanket verse-end statements (pipeline/audit_muktafa_blanket.py) ─────────
+@pytest.mark.parametrize('surah,ayah,wpos,grade,phrase', [
+    (2, 97, 17, 'كاف', 'ورؤوس الآي بعد كافية'),
+    (2, 52, 7, 'كاف', 'إلى قوله {يظلمون}'),
+    (6, 160, 15, 'تام', 'إلى آخر السورة'),
+    (3, 6, 12, 'تام', 'ورأس الآية أتم'),
+    (21, 60, 6, 'كاف', 'إلى آخر القصة'),
+])
+def test_blanket_statement_covers_verse_end(db, surah, ayah, wpos, grade, phrase):
+    rows = db.execute("SELECT grade, note FROM classical WHERE source='muktafa' AND "
+                      "grade_raw='رؤوس الآي' AND surah=? AND ayah=? AND wpos=?",
+                      (surah, ayah, wpos)).fetchall()
+    assert rows and rows[0][0] == grade and phrase in rows[0][1]
+
+
+def test_blanket_never_overrides_an_explicit_ruling(db):
+    clash = db.execute(
+        "SELECT b.surah, b.ayah FROM classical b JOIN classical e ON e.source='muktafa' "
+        "AND e.surah=b.surah AND e.ayah=b.ayah AND e.wpos=b.wpos AND e.id<>b.id "
+        "WHERE b.source='muktafa' AND b.grade_raw='رؤوس الآي' AND e.grade_raw<>'رؤوس الآي'"
+    ).fetchall()
+    assert not clash
+
+
+def test_blanket_audit_has_nothing_left_to_apply():
+    from pipeline import audit_muktafa_blanket as blanket
+    conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
+    try:
+        _, rows = blanket.expand(conn)
+    finally:
+        conn.close()
+    assert not rows

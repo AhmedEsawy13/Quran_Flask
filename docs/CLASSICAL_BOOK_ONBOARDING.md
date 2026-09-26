@@ -149,8 +149,8 @@ Current deterministic catalog audit baseline:
 
 | Book | Rows | Surahs | Confident | Existing low-confidence review |
 |---|---:|---:|---:|---:|
-| المكتفى | 4,439 | 112 | 4,416 | 23 |
-| منار الهدى | 13,463 | 114 | 13,427 | 36 conf=0 + 82 repeated-word suspects |
+| المكتفى | 6,769 | 112 | 6,746 | 23 (+2,329 blanket verse-end rows) |
+| منار الهدى | 13,426 | 114 | 13,388 | 38 conf=0; 0 open suspects |
 | القطع والائتناف | 1,767 | 91 | 1,609 | 158 |
 | إيضاح الوقف والابتداء | 2,178 | 94 | 1,950 | 228 |
 
@@ -159,7 +159,11 @@ Inheritance and ordinal audits (2026-09-26) — rerun after any rebuild:
 ```bash
 python3 pipeline/audit_manar_mithl.py          # منار «ومثله/وكذا» chains + repeated-word seats
 python3 pipeline/audit_muktafa_ordinals.py     # المكتفى «الأول/الثاني/في الموضعين» rulings
+python3 pipeline/audit_muktafa_blanket.py      # المكتفى «ورؤوس الآي بعد كافية» statements
 ```
+
+Run them in that order (the blanket step fills only verse-ends no other
+المكتفى row rules on).
 
 Both are dry-run by default; `--apply` writes their curated, idempotent fixes.
 

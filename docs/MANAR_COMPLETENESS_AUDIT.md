@@ -74,3 +74,30 @@ text (qirāʾa spellings such as «يقض»، «جدار», or typos in the edit
 reviewed parser misreads. The completeness gate still reports 0 missing
 explicit rulings; its exact-seat drift rose to 17 because rows were moved
 off the last-occurrence aligner's mid-phrase seats (48:28 {كله} ≠ «بالله»).
+
+### Follow-up (same day): every item resolved
+
+- The 82 repeated-word suspects were each decided against the book's own
+  `{quote} [n]` line: 69 moved/merged onto the quoted word, 10 confirmed
+  correct where they sit, 2 withdrawn (conf=0) because no line of the book
+  supports them (3:73 كاف on «وَٱللَّهُ وَٰسِعٌ», 48:10 جائز on «عَٰهَدَ عَلَيۡهُ ٱللَّهَ»).
+- The 39 unplaced chain items: 31 pinned by hand (qirāʾa spellings «يقض
+  الحق»، «بظنين»، «جدار»; the edition's typos «سراجا»→«سرابا»،
+  «فتفكرون»→«فتكفرون»), 12 excluded as remarks rather than rulings
+  («و «ثم» لترتيب الأخبار»، «وكذا «إن» نصب …»، rasm cross-references).
+- Final: 1,866/1,866 chain items match; 0 suspects in the review queue.
+
+## المكتفى (same audit round)
+
+- `audit_muktafa_ordinals.py`: 19 rulings recovered that the builder dropped
+  when an ordinal sits between quote and grade, 5 «الثاني» items moved off
+  the first occurrence, 2:81 regraded تام.
+- `audit_muktafa_blanket.py`: الداني's 243 blanket statements («ورؤوس الآي بعد
+  كافية»، «إلى قوله {X}»، «إلى آخر السورة»، «وكذلك عامة فواصلها»، «ورأس الآية
+  أتم») expanded to the 2,329 verse-ends in their scope that carried no
+  المكتفى ruling. An explicit ruling always wins. Rows carry
+  `grade_raw='رؤوس الآي'` and the statement as note («حكم عام: «…»»); the
+  traceability gate checks the statement against the book. Open «بعد» runs
+  to the next blanket statement or the surah's end; «قبل/بين ذلك» covers the
+  «ومثله» chain it closes. Not expanded: «آخر كل قصة» / «أواخر القصص»
+  (story boundaries are not stated).

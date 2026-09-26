@@ -119,7 +119,7 @@ def test_munafiqun_pins_are_on_surah_63_not_62(muktafa):
         assert r['grade'] == grade, quote
         assert r['conf'] == 1, quote
         assert r['surah'] == 63
-    jumuah = [r for r in muktafa if r['surah'] == 62]
+    jumuah = [r for r in muktafa if r['surah'] == 62 and r['grade_raw'] != 'رؤوس الآي']
     assert {r['quote'] for r in jumuah} == {
         'العزيز الحكيم', 'لما يلحقوا بهم', 'يؤتيه من يشاء', 'العظيم',
         'يحمل أسفارا', 'بآيات الله', 'وذروا البيع', 'تفلحون',

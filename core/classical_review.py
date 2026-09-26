@@ -328,6 +328,15 @@ def _decision_counts(source, row_ids, review_db=None):
     return counts
 
 
+BLANKET_RAW = 'رؤوس الآي'      # pipeline/audit_muktafa_blanket.py
+
+
+def blanket_statement(row):
+    """The book's own clause stored in a blanket row's note («…»)."""
+    m = re.search(r'«(.*)»', row['note'] or '')
+    return re.sub(r'[{}()\[\]]', ' ', m.group(1)) if m else ''
+
+
 def muktafa_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
     review_db = _review_path(review_db)
     b = _builder()
@@ -347,7 +356,9 @@ def muktafa_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
     aligned = exact = fuzzy = 0
     for row in confident:
         qwords = b.quote_words(row['quote'])
-        if qwords and (' ' + ' '.join(qwords) + ' ') in source_words:
+        # a blanket «ورؤوس الآي بعد كافية» row is traced by its statement
+        traced = b.quote_words(blanket_statement(row)) if row['grade_raw'] == BLANKET_RAW else qwords
+        if traced and (' ' + ' '.join(traced) + ' ') in source_words:
             source_traceable += 1
         if quote_matches_position(row['surah'], row['ayah'], row['wpos'], row['quote']):
             aligned += 1

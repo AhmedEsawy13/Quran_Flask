@@ -31,6 +31,8 @@ import sys
 
 import pytest
 
+from core.classical_review import BLANKET_RAW, blanket_statement
+
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_ROOT, 'pipeline'))
 sys.path.insert(0, _ROOT)
@@ -224,6 +226,8 @@ def test_quotes_are_traceable_to_the_source_book(source, rows, source_word_strea
         if r['source'] != source or not r['conf']:
             continue
         qwords = pcw.quote_words(r['quote'])
+        if r['grade_raw'] == BLANKET_RAW:     # traced by its «ورؤوس الآي …» statement
+            qwords = pcw.quote_words(blanket_statement(r))
         if not qwords:
             continue
         needle = ' ' + ' '.join(qwords) + ' '

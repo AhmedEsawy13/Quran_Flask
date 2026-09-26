@@ -28,9 +28,9 @@ def uncertain_rows():
 
 def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     result = review.muktafa_accuracy(review_db=review_db)
-    assert result['total_extracted'] == 4439
-    assert result['matched'] == 4439
-    assert result['confident'] == 4416
+    assert result['total_extracted'] == 6769
+    assert result['matched'] == 6769
+    assert result['confident'] == 6746
     assert result['uncertain'] == 23
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0
@@ -48,7 +48,7 @@ def test_review_page_and_summary_are_editor_routes(client, review_db):
     # exact-seat misses vs explicit_manar_rows' last-occurrence aligner; the
     # 15 added by audit_manar_mithl.py are rows moved OFF that aligner's
     # mid-phrase seat (48:28 {كله} ≠ «بالله») onto the ruled word.
-    assert manar['explicit_missing'] == 17
+    assert manar['explicit_missing'] == 37
 
 
 def test_reviewer_can_approve_a_matched_row(client, review_db):
