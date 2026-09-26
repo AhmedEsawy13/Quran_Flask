@@ -16,9 +16,9 @@ export default function PracticePage() {
     <main id="athar-main" tabIndex={-1}>
       <ToolIntro
         kicker="تدريب"
-        title="علِّم وقوفــك، وقيّمه بالمطبوع."
+        tool="practice"
+        title="علِّم وقوفك، وقيّمه بالمطبوع."
         titleId="wp-title"
-        titleAriaLabel="علّم وقفك، وقيّمه بالمطبوع."
         lede="اختر مقطعًا ومصحفًا، ثم علّم أين وقفت. أثَر يقيّمك على علامات المصاحف — لا بالتخمين."
       >
         <ol className="m-0 flex list-none flex-wrap gap-x-[18px] gap-y-2 p-0" aria-label="خطوات التدريب">

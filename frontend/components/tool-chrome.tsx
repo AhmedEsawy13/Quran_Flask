@@ -1,9 +1,16 @@
 import type {HTMLAttributes, InputHTMLAttributes, ReactNode} from "react";
 import {cn} from "@/lib/cn";
 import {Button, Field, InputControl, SelectControl, Surface} from "@/components/ui/primitives";
+import {DoorIcon} from "@/components/ui/door-icon";
+import {waqfTools, type ToolKey} from "@/lib/nav";
 
+/**
+ * Compact page heading for the waqf tools: keeps the tool itself above the
+ * fold. `tool` places the page on the observe → search → practise path.
+ */
 export function ToolIntro({
   kicker,
+  tool,
   title,
   titleId,
   titleAriaLabel,
@@ -11,32 +18,49 @@ export function ToolIntro({
   children,
 }: {
   kicker: string;
+  tool?: ToolKey;
   title: string;
   titleId: string;
   titleAriaLabel?: string;
   lede: string;
   children?: ReactNode;
 }) {
+  const step = tool ? waqfTools.findIndex((item) => item.key === tool) : -1;
   return (
     <section
-      className="mx-auto grid w-full max-w-[1120px] gap-2.5 px-[clamp(14px,4vw,40px)] pt-[clamp(18px,4vw,52px)] pb-[clamp(12px,2.4vw,28px)]"
+      className="mx-auto grid w-full max-w-[1120px] items-end gap-x-8 gap-y-3 px-[clamp(14px,4vw,40px)] pt-[clamp(16px,3vw,34px)] pb-[clamp(12px,2vw,22px)] md:grid-cols-[minmax(0,1fr)_auto]"
       aria-labelledby={titleId}
     >
-      <p className="m-0 inline-flex w-fit items-center gap-1.5 rounded-full border border-athar-gold/25 bg-athar-gold/8 px-2.5 py-0.5 text-[0.74rem] font-bold text-athar-gold">
-        <span aria-hidden="true" className="size-1.5 rounded-full bg-athar-gold" />
-        {kicker}
-      </p>
-      <h1
-        className="m-0 max-w-[18ch] font-athar-display text-[clamp(1.6rem,4.2vw,3.2rem)] font-black leading-[1.08] text-balance text-athar-ink [font-feature-settings:'salt'_1]"
-        id={titleId}
-        aria-label={titleAriaLabel}
-      >
-        {title}
-      </h1>
-      <p className="m-0 max-w-[52ch] font-athar-ui text-[clamp(0.9rem,1.4vw,1.05rem)] leading-[1.75] text-athar-ink-soft">
-        {lede}
-      </p>
-      {children ? <div className="mt-1 flex flex-wrap gap-x-4 gap-y-2.5">{children}</div> : null}
+      <div className="grid gap-2">
+        <p className="m-0 flex flex-wrap items-center gap-2 text-[0.74rem] font-bold">
+          {step >= 0 ? (
+            <>
+              <span className="text-athar-accent">الوقف والابتداء</span>
+              <span aria-hidden="true" className="text-athar-ink-faint">/</span>
+            </>
+          ) : null}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-athar-gold/25 bg-athar-gold/8 px-2.5 py-0.5 text-athar-gold">
+            {tool ? <DoorIcon name={tool} className="size-3.5" /> : <span aria-hidden="true" className="size-1.5 rounded-full bg-athar-gold" />}
+            {kicker}
+          </span>
+          {step >= 0 ? (
+            <span className="text-athar-ink-faint" aria-label={`الخطوة ${step + 1} من ${waqfTools.length}`}>
+              {waqfTools[step].verb} · {["١", "٢", "٣"][step]} من ٣
+            </span>
+          ) : null}
+        </p>
+        <h1
+          className="m-0 font-athar-display text-[clamp(1.45rem,3vw,2.3rem)] font-black leading-[1.15] text-balance text-athar-ink [font-feature-settings:'salt'_1]"
+          id={titleId}
+          aria-label={titleAriaLabel}
+        >
+          {title}
+        </h1>
+        <p className="m-0 max-w-[62ch] font-athar-ui text-[0.92rem] leading-[1.7] text-athar-ink-soft">
+          {lede}
+        </p>
+      </div>
+      {children ? <div className="flex flex-wrap items-center gap-x-4 gap-y-2 md:justify-end md:pb-1">{children}</div> : null}
     </section>
   );
 }

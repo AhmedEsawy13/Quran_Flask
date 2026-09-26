@@ -498,21 +498,22 @@ export function WaqfWorkspace() {
     <div aria-label="مساحة مُكْث لدراسة الوقف">
       <ToolIntro
         kicker="مُكْث"
-        title="علامة المصحــف، ووقف القارئ، وقول الإمام."
+        tool="waqf"
+        title="علامة المصحف، ووقف القارئ، وقول الإمام."
         titleId="wq-title"
-        titleAriaLabel="علامة المصحف، ووقف القارئ، وقول الإمام."
-        lede="هذا تميّز أثَر: ثلاث شهادات على موضع الوقف — ثم ابنِ قراءةً تناسب نَفَسك."
+        lede="ثلاث شهادات على كل موضع وقف في الآية — اضغط أي موضع لترى دليله، ثم ابنِ قراءةً تناسب نَفَسك."
       >
-        <a className={introLinkClassName()} href="/waqf-lab">مختبر الوقف</a>
         <a className={introLinkClassName()} href={`/waqf-practice?surah=${surahNumber}&from=${ayahNumber}&to=${ayahNumber}`}>
           تدرّب على هذا الموضع
         </a>
-        <a
-          className={introLinkClassName()}
-          href={legacyUrl(`/mushaf-editor?edition=${encodeURIComponent("قطر")}&surah=${surahNumber}&ayah=${ayahNumber}`)}
-        >
-          محرّر الوقف
-        </a>
+        {process.env.NODE_ENV === "development" ? (
+          <a
+            className={introLinkClassName()}
+            href={legacyUrl(`/mushaf-editor?edition=${encodeURIComponent("قطر")}&surah=${surahNumber}&ayah=${ayahNumber}`)}
+          >
+            محرّر الوقف
+          </a>
+        ) : null}
       </ToolIntro>
       <audio ref={audioRef} preload="metadata" className="hidden" />
 

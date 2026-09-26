@@ -9,7 +9,7 @@ const themeBootstrap = `try{let t=localStorage.getItem("athar-theme");if(t!=="li
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "أثَر · مع القرآن",
+    default: "أثَر · الوقف والابتداء",
     template: "%s · أثَر",
   },
   description:

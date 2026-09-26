@@ -56,6 +56,13 @@ const uthmanicGlyphs: Record<string, string> = {
 
 export const commonWaqfMarks = ["م", "لا", "ج", "ق"] as const;
 
+/** The printed Hafs stop marks, strongest stop first, for legends. */
+export const waqfMarkGuide = (["م", "ق", "ج", "ص", "لا", "ع", "س"] as const).map((symbol) => ({
+  symbol,
+  glyph: uthmanicGlyphs[symbol],
+  ...markDescriptions[symbol],
+}));
+
 export const WAQF_SOURCES = ["المدينة الجديد", "المدينة القديم", "الأزهر", "الشمرلي"] as const;
 export type WaqfSource = (typeof WAQF_SOURCES)[number];
 

@@ -66,14 +66,22 @@ async function openMobileReaderSettings(page: Page) {
 
 test("landing exposes the migrated paths", async ({page}) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", {level: 1})).toContainText("تجويد الحروف");
+  await expect(page.getByRole("heading", {level: 1})).toContainText("اعرف أين تقف");
   await expect(page.getByRole("link", {name: "تثبيت", exact: true})).toHaveAttribute("href", "/memorize");
   await expect(page.getByRole("link", {name: "مُكْث", exact: true})).toHaveAttribute("href", "/waqf");
+  await expect(page.getByRole("link", {name: "المختبر", exact: true})).toHaveAttribute("href", "/waqf-lab");
   await expect(page.getByRole("link", {name: "تدريب", exact: true})).toHaveAttribute("href", "/waqf-practice");
-  const paths = page.getByRole("region", {name: "من الدليل إلى القراءة اليومية."});
-  await expect(paths.getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=255&to=257");
-  await expect(paths.getByRole("link", {name: /مُكْث/})).toHaveAttribute("href", "/waqf?surah=2&ayah=255");
-  await expect(paths.getByRole("link", {name: /تدريب/})).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
+  const path = page.getByRole("region", {name: "تأمّل الموضع، ثم ابحث عن نظائره، ثم اختبر نفسك."});
+  await expect(path.getByRole("link", {name: /دليل الوقف/})).toHaveAttribute("href", "/waqf?surah=2&ayah=255");
+  await expect(path.getByRole("link", {name: /مختبر الوقف/})).toHaveAttribute("href", "/waqf-lab");
+  await expect(path.getByRole("link", {name: /تدريب الوقف/})).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
+  const support = page.getByRole("region", {name: "مصحف للقراءة، ومساحة للحفظ."});
+  await expect(support.getByRole("link", {name: /تثبيت/})).toHaveAttribute("href", "/memorize?surah=2&from=255&to=257");
+  const explorer = page.getByRole("article", {name: /آية الكرسي/});
+  await expect(explorer.getByRole("button", {pressed: true})).toHaveCount(1, {timeout: 15_000});
+  // Stops are ordered by word; the second one sits on ٱلۡقَيُّومُ (wpos 6).
+  await explorer.getByRole("button", {name: /موضع الوقف عند/}).nth(1).click();
+  await expect(explorer.getByRole("link", {name: /افتح هذا الموضع/})).toHaveAttribute("href", "/waqf?surah=2&ayah=255&wpos=6");
   await expectNoHorizontalOverflow(page);
   await expectThemeCycle(page);
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -81,6 +89,23 @@ test("landing exposes the migrated paths", async ({page}) => {
   await expect(page).toHaveURL(/\/read(?:\?|$)/);
   await expect(page.getByRole("link", {name: "المصحف", exact: true})).toHaveAttribute("aria-current", "page");
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+});
+
+test("command palette jumps to an ayah in any tool", async ({page}) => {
+  await page.goto("/");
+  await page.keyboard.press("/");
+  const palette = page.getByRole("dialog", {name: "انتقل إلى آية أو أداة"});
+  await expect(palette).toBeVisible();
+  await palette.getByRole("combobox").fill("البقرة ٢٥٥");
+  await expect(palette.getByRole("option", {name: /ادرس وقفها في مُكْث/})).toHaveAttribute("aria-selected", "true");
+  await palette.getByRole("combobox").press("Enter");
+  await expect(page).toHaveURL(/\/waqf\?surah=2&ayah=255/);
+  await expect(palette).toBeHidden();
+  await page.keyboard.press("Control+k");
+  await palette.getByRole("combobox").fill("العليم");
+  await expect(palette.getByRole("option", {name: /مختبر الوقف/})).toBeVisible();
+  await palette.getByRole("combobox").press("Escape");
+  await expect(palette).toBeHidden();
 });
 
 test("Reader loads Quran, study tools, and timed audio", async ({page}) => {
@@ -320,7 +345,8 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   await expect(desk.getByRole("heading", {name: "أئمة"})).toBeVisible();
   await expect(desk.getByRole("heading", {name: "توجيه"})).toBeVisible();
   await expect(page.locator(".wq-score-panel")).toBeVisible();
-  await expect(page.getByRole("link", {name: "مختبر الوقف", exact: true}).first()).toHaveAttribute("href", "/waqf-lab");
+  await expect(page.getByRole("link", {name: "المختبر", exact: true})).toHaveAttribute("href", "/waqf-lab");
+  await expect(page.getByRole("link", {name: "تدريب", exact: true})).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
   await expect(page.getByRole("combobox", {name: "السورة"})).toBeVisible();
   await expect(page.getByRole("combobox", {name: "الآية"})).toBeVisible();
   await expect(page.getByRole("combobox", {name: "البحث عن آية"})).toBeVisible();
@@ -506,8 +532,8 @@ test("تثبيت loads a range, conceal mode, context, and repetition", async ({
 
 test("مختبر الوقف searches words and opens a verse in مُكْث", async ({page}) => {
   await page.goto("/waqf-lab");
-  await expect(page.getByRole("heading", {level: 1, name: "ادرس عبر القرآن، لا آيةً واحدة فقط."})).toBeVisible();
-  await expect(page.getByRole("region", {name: "ادرس عبر القرآن، لا آيةً واحدة فقط."}).getByText("مختبر الوقف", {exact: true})).toBeVisible();
+  await expect(page.getByRole("heading", {level: 1, name: "ادرس الوقف عبر القرآن، لا آيةً واحدة."})).toBeVisible();
+  await expect(page.getByRole("region", {name: "ادرس الوقف عبر القرآن، لا آيةً واحدة."}).getByText("مختبر الوقف", {exact: true})).toBeVisible();
   await expect(page.getByRole("tab", {name: /كلمات وأنماط/})).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('a[href="/waqf"][aria-current="page"]')).toHaveCount(0);
   const saktatTab = page.getByRole("tab", {name: "السكتات", exact: true});
@@ -531,8 +557,8 @@ test("مختبر الوقف searches words and opens a verse in مُكْث", asy
 
 test("تدريب grades tapped stops against the printed mushaf", async ({page}) => {
   await page.goto("/waqf-practice?surah=2&from=255&to=255");
-  await expect(page.getByRole("heading", {level: 1, name: "علّم وقفك، وقيّمه بالمطبوع."})).toBeVisible();
-  await expect(page.getByRole("region", {name: "علّم وقفك، وقيّمه بالمطبوع."}).getByText("تدريب", {exact: true})).toBeVisible();
+  await expect(page.getByRole("heading", {level: 1, name: "علِّم وقوفك، وقيّمه بالمطبوع."})).toBeVisible();
+  await expect(page.getByRole("region", {name: "علِّم وقوفك، وقيّمه بالمطبوع."}).getByText("تدريب", {exact: true})).toBeVisible();
   await expect(page.getByRole("region", {name: "إعدادات التدريب"})).toBeVisible();
   await expect(page.getByLabel("ملخص مقطع التدريب")).toContainText("سورة البقرة · ٢٥٥");
   await expect(page.locator(".reader-page.is-practice").first()).toBeVisible({timeout: 15_000});

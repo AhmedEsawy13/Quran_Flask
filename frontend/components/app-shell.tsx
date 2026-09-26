@@ -1,26 +1,106 @@
 "use client";
 
 import Link from "next/link";
-import {usePathname} from "next/navigation";
-import {useEffect, useRef} from "react";
+import {usePathname, useSearchParams} from "next/navigation";
+import {Suspense, useEffect, useRef, useState} from "react";
+import {CommandPalette} from "@/components/command-palette";
 import {ThemeToggle} from "@/components/theme-toggle";
-import {AtharMark, DoorIcon, type DoorKey} from "@/components/ui/door-icon";
+import {AtharMark, DoorIcon} from "@/components/ui/door-icon";
 import {cn} from "@/lib/cn";
+import {isToolPath, supportTools, toolHref, verseContextFrom, waqfTools, type ToolEntry, type VerseContext} from "@/lib/nav";
 
-const navItems: Array<{key: DoorKey; label: string; href: string}> = [
-  {key: "read", label: "المصحف", href: "/read"},
-  {key: "memorize", label: "تثبيت", href: "/memorize"},
-  {key: "waqf", label: "مُكْث", href: "/waqf"},
-  {key: "practice", label: "تدريب", href: "/waqf-practice"},
-];
+type NavVariant = "header" | "bar";
 
-function isActivePath(pathname: string, item: (typeof navItems)[number]) {
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+function NavLink({tool, pathname, context, variant}: {
+  tool: ToolEntry;
+  pathname: string;
+  context: VerseContext | null;
+  variant: NavVariant;
+}) {
+  const active = isToolPath(pathname, tool.key);
+  const href = toolHref(tool.key, context);
+  if (variant === "bar") {
+    return (
+      <Link
+        className={cn(
+          "group flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[0.68rem] font-semibold text-athar-ink-faint no-underline transition-colors focus-visible:outline-2 focus-visible:outline-athar-accent",
+          active && "text-athar-accent",
+        )}
+        href={href}
+        aria-current={active ? "page" : undefined}
+      >
+        <span className={cn(
+          "grid h-7 w-12 place-items-center rounded-full transition-colors",
+          active ? "bg-athar-accent/14" : "group-hover:bg-athar-line-soft",
+        )}>
+          <DoorIcon name={tool.key} />
+        </span>
+        <span>{tool.label}</span>
+      </Link>
+    );
+  }
+  return (
+    <Link
+      className={cn(
+        "inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-athar-ink-soft no-underline transition-colors hover:bg-athar-line-soft hover:text-athar-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent",
+        active && "bg-athar-accent text-athar-on-accent shadow-sm hover:bg-athar-accent hover:text-athar-on-accent",
+      )}
+      href={href}
+      title={tool.title}
+      aria-current={active ? "page" : undefined}
+    >
+      <DoorIcon name={tool.key} className="size-[17px]" />
+      <span>{tool.label}</span>
+    </Link>
+  );
+}
+
+function NavLinks({context, variant}: {context: VerseContext | null; variant: NavVariant}) {
+  const pathname = usePathname();
+  if (variant === "bar") {
+    return (
+      <>
+        {[...waqfTools, ...supportTools].map((tool) => (
+          <NavLink key={tool.key} tool={tool} pathname={pathname} context={context} variant="bar" />
+        ))}
+      </>
+    );
+  }
+  return (
+    <>
+      <div className="flex items-center gap-0.5 rounded-full border border-athar-accent/20 bg-athar-accent/[0.06] p-1" role="group" aria-label="الوقف والابتداء">
+        <span className="hidden px-2.5 text-[0.7rem] font-bold whitespace-nowrap text-athar-accent lg:inline">الوقف والابتداء</span>
+        {waqfTools.map((tool) => (
+          <NavLink key={tool.key} tool={tool} pathname={pathname} context={context} variant="header" />
+        ))}
+      </div>
+      <div className="flex items-center gap-0.5 p-1" role="group" aria-label="القراءة والحفظ">
+        {supportTools.map((tool) => (
+          <NavLink key={tool.key} tool={tool} pathname={pathname} context={context} variant="header" />
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** Links keep the ayah you are on, so moving between tools never loses your place. */
+function ContextualNavLinks({variant}: {variant: NavVariant}) {
+  const searchParams = useSearchParams();
+  return <NavLinks context={verseContextFrom(searchParams)} variant={variant} />;
+}
+
+function PrimaryNav({variant}: {variant: NavVariant}) {
+  return (
+    <Suspense fallback={<NavLinks context={null} variant={variant} />}>
+      <ContextualNavLinks variant={variant} />
+    </Suspense>
+  );
 }
 
 export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
   const pathname = usePathname();
   const previousPathname = useRef(pathname);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const isStudio = pathname === "/memorize";
   const isReader = pathname === "/read";
 
@@ -45,7 +125,7 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
       </a>
 
       <header className="sticky top-0 z-50 border-b border-athar-line-soft bg-[var(--bar-background)] backdrop-blur-xl backdrop-saturate-150">
-        <div className="mx-auto flex min-h-[var(--bar-height)] w-full max-w-[1180px] items-center gap-3 px-3 sm:px-5">
+        <div className="mx-auto flex min-h-[var(--bar-height)] w-full max-w-[1240px] items-center gap-2 px-3 sm:px-5">
           <Link
             className="group inline-flex items-center gap-2.5 whitespace-nowrap rounded-xl no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-athar-accent"
             href="/"
@@ -54,34 +134,26 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
             <AtharMark className="transition-transform group-hover:-rotate-6" />
             <span className="grid leading-none">
               <span className="font-athar-display text-[1.35rem] text-athar-ink">أثَر</span>
-              <span className="mt-0.5 hidden text-[0.66rem] text-athar-ink-faint sm:block">مع القرآن</span>
+              <span className="mt-0.5 hidden text-[0.66rem] text-athar-ink-faint sm:block">الوقف والابتداء</span>
             </span>
           </Link>
 
-          <nav
-            className="ms-auto hidden items-center gap-0.5 rounded-full border border-athar-line-soft bg-[color-mix(in_srgb,var(--athar-surface)_70%,transparent)] p-1 md:flex"
-            aria-label="التنقل الرئيسي"
-          >
-            {navItems.map((item) => {
-              const active = isActivePath(pathname, item);
-              return (
-                <Link
-                  className={cn(
-                    "inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold text-athar-ink-soft no-underline transition-colors hover:bg-athar-line-soft hover:text-athar-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent",
-                    active && "bg-athar-accent text-athar-on-accent shadow-sm hover:bg-athar-accent hover:text-athar-on-accent",
-                  )}
-                  href={item.href}
-                  key={item.key}
-                  aria-current={active ? "page" : undefined}
-                >
-                  <DoorIcon name={item.key} className="size-[18px]" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+          <nav className="ms-auto hidden items-center gap-1 md:flex" aria-label="التنقل الرئيسي">
+            <PrimaryNav variant="header" />
           </nav>
 
-          <div className="ms-auto md:ms-0">
+          <div className="ms-auto flex items-center gap-1.5 md:ms-1">
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-athar-line bg-athar-surface px-2.5 text-[0.8rem] font-semibold text-athar-ink-faint transition-colors hover:border-athar-accent hover:text-athar-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent"
+              aria-label="انتقل إلى آية أو أداة"
+              aria-keyshortcuts="Control+K Meta+K /"
+            >
+              <DoorIcon name="search" className="size-[17px]" />
+              <span className="hidden xl:inline">اذهب إلى آية</span>
+              <kbd className="hidden rounded border border-athar-line-soft px-1 font-athar-ui text-[0.66rem] xl:inline">/</kbd>
+            </button>
             <ThemeToggle />
           </div>
         </div>
@@ -94,32 +166,13 @@ export function AppShell({children}: Readonly<{children: React.ReactNode}>) {
       )}>{children}</div>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 gap-1 border-t border-athar-line-soft bg-[var(--bar-background)] px-2 pt-1.5 pb-[max(.45rem,env(safe-area-inset-bottom))] shadow-[var(--athar-nav-shadow)] backdrop-blur-xl backdrop-saturate-150 md:hidden"
+        className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 gap-0.5 border-t border-athar-line-soft bg-[var(--bar-background)] px-1.5 pt-1.5 pb-[max(.45rem,env(safe-area-inset-bottom))] shadow-[var(--athar-nav-shadow)] backdrop-blur-xl backdrop-saturate-150 md:hidden"
         aria-label="أبواب التطبيق"
       >
-        {navItems.map((item) => {
-          const active = isActivePath(pathname, item);
-          return (
-            <Link
-              className={cn(
-                "group flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[0.7rem] font-semibold text-athar-ink-faint no-underline transition-colors focus-visible:outline-2 focus-visible:outline-athar-accent",
-                active && "text-athar-accent",
-              )}
-              href={item.href}
-              key={item.key}
-              aria-current={active ? "page" : undefined}
-            >
-              <span className={cn(
-                "grid h-7 w-14 place-items-center rounded-full transition-colors",
-                active ? "bg-athar-accent/14" : "group-hover:bg-athar-line-soft",
-              )}>
-                <DoorIcon name={item.key} />
-              </span>
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        <PrimaryNav variant="bar" />
       </nav>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </>
   );
 }

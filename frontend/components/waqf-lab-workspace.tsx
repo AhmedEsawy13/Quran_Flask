@@ -1,7 +1,6 @@
 "use client";
 
 import {useEffect, useMemo, useState} from "react";
-import Link from "next/link";
 import {useSearchParams} from "next/navigation";
 import {getJson, type Surah} from "@/lib/api";
 import {toArabicDigits} from "@/lib/mushaf";
@@ -179,12 +178,14 @@ export function WaqfLabWorkspace() {
     <div aria-label="مساحة مختبر الوقف">
       <ToolIntro
         kicker="مختبر الوقف"
-        title="ادرس عبر القرآن، لا آيةً واحدة فقط."
+        tool="lab"
+        title="ادرس الوقف عبر القرآن، لا آيةً واحدة."
         titleId="wq-lab-title"
-        lede="ثلاث عائلات بحث: كلمات وأنماط، قرّاء، ومصاحف. أي نتيجة تفتح موضعها في مُكْث."
+        lede="ثلاث عائلات بحث: كلمات وأنماط، وقرّاء، ومصاحف. كل نتيجة تفتح موضعها في مُكْث."
       >
-        <Link className={introLinkClassName()} href="/waqf">← العودة إلى مُكْث</Link>
-        <a className={introLinkClassName()} href={legacyUrl("/mushaf-editor")}>محرّر الوقف</a>
+        {process.env.NODE_ENV === "development" ? (
+          <a className={introLinkClassName()} href={legacyUrl("/mushaf-editor")}>محرّر الوقف</a>
+        ) : null}
       </ToolIntro>
 
       <ToolChrome
