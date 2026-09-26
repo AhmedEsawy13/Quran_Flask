@@ -149,10 +149,19 @@ Current deterministic catalog audit baseline:
 
 | Book | Rows | Surahs | Confident | Existing low-confidence review |
 |---|---:|---:|---:|---:|
-| المكتفى | 4,421 | 112 | 4,419 | 2 |
-| منار الهدى | 13,252 | 114 | 13,252 | 102 heuristic suspects |
+| المكتفى | 4,439 | 112 | 4,416 | 23 |
+| منار الهدى | 13,463 | 114 | 13,427 | 36 conf=0 + 82 repeated-word suspects |
 | القطع والائتناف | 1,767 | 91 | 1,609 | 158 |
 | إيضاح الوقف والابتداء | 2,178 | 94 | 1,950 | 228 |
+
+Inheritance and ordinal audits (2026-09-26) — rerun after any rebuild:
+
+```bash
+python3 pipeline/audit_manar_mithl.py          # منار «ومثله/وكذا» chains + repeated-word seats
+python3 pipeline/audit_muktafa_ordinals.py     # المكتفى «الأول/الثاني/في الموضعين» rulings
+```
+
+Both are dry-run by default; `--apply` writes their curated, idempotent fixes.
 
 These counts are regression baselines, not claims that the discursive books
 have been exhaustively interpreted.

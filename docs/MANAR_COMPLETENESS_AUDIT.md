@@ -45,3 +45,32 @@ The audit deliberately makes a bounded claim: every explicit source ruling
 that can be deterministically aligned is present. Discursive prose and
 alternative opinions remain guarded by cache validation and regression tests;
 they cannot be proven exhaustive by a regex alone.
+
+## «ومثله / وكذا» inheritance audit (2026-09-26)
+
+`pipeline/audit_manar_mithl.py` re-resolves every chained item mechanically
+(1,878 items): inherited grade, collective grades («كلها حسان»، «وقوف
+كافية»), alternates voiced before the chain, ordinals («الثاني»،
+«الأخيرة»، «في الموضعين»), searching from the head's word up to the next
+marked verse. Exact spelling beats a prefixed one, and when a word repeats
+the mushaf's pause-marked occurrence wins unless a later chain item names it.
+
+Findings in the LLM release, all applied to `data/classical_waqf.db`:
+
+- 256 inherited rulings were absent (e.g. 28:88 «إلا وجهه» تام، 36:48
+  «صادقين» تام، 4:92 «مؤمنة» في الموضعين، 55:71 «تكذبان» ليس بوقف) and
+  16 more where only an alternate/relayed grade had been stored (39:20
+  «الأنهار»: الأشموني كاف، not only أبو حاتم's تام).
+- Repeated-word misplacement ("last occurrence wins"): 45 curated moves
+  (13:16 «قل الله» تام sat on «قل الله خالق»; 7:195 the لا belongs to the
+  first three «بها», the last is كاف) plus 114 mechanical ones — 81 of them
+  exact duplicates on a mid-phrase word such as «إِنَّ ٱللَّهَ» right after the
+  real stop, now removed. 82 remaining suspects are in
+  `review/manar_misplaced_review.jsonl` for a human reader.
+- 39:50 «يكسبون» regraded كاف (the «تام فيهما» is about «كسبوا»).
+
+Result: 1,828/1,878 chain items match the DB; 39 do not align to the Hafs
+text (qirāʾa spellings such as «يقض»، «جدار», or typos in the edition), 6 are
+reviewed parser misreads. The completeness gate still reports 0 missing
+explicit rulings; its exact-seat drift rose to 17 because rows were moved
+off the last-occurrence aligner's mid-phrase seats (48:28 {كله} ≠ «بالله»).

@@ -1,0 +1,602 @@
+#!/usr/bin/env python3
+"""Audit منار الهدى's «ومثله / وكذا» inherited rulings against the released DB.
+
+منار states a ruling on a quote that carries its own verse marker, then extends
+the SAME ruling to later stops with «ومثله «X»»، «وكذا «Y»»، «، و «Z»». Those
+items have no [n] of their own; they sit in the same verse or a following one,
+before the next verse the book marks. The LLM extraction resolved them by
+reading; this audit re-resolves them mechanically and checks each against the
+released rows.
+
+For every head entry  {Q} [n] GRADE … ومثله «X»، وكذا «Y» …  it:
+  1. takes the inherited grade (the head's, unless the item carries its own
+     grade right after it, e.g. «وكذا «X» حسن»);
+  2. searches X from just after Q's word through the verse before the next
+     line's [n] (the book never skips past the next marked verse), keeping the
+     FIRST occurrence in reading order; a phrase found nowhere in that span is
+     `unaligned` (often a qirāʾa, grammar or rasm aside, not a stop);
+  3. compares with the manar rows at that (ayah, wpos).
+
+Statuses: ok, grade_mismatch (row there, different grade), missing (no row at
+that word), unaligned. Conditional items («عند من…»، «إن…»، «على…») are
+flagged because منار often gives them a different grade in the alternative.
+
+Run:  python3 pipeline/audit_manar_mithl.py [--out pipeline/review/manar_mithl.jsonl]
+"""
+import argparse
+import collections
+import json
+import os
+import re
+import sqlite3
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import build_classical_waqf as rx  # noqa: E402
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SECTIONS = os.path.join(ROOT, 'pipeline', 'classical_sources', 'manar_shamela_sections.json')
+DB = os.path.join(ROOT, 'data', 'classical_waqf.db')
+
+_HARAKAT = re.compile('[ً-ْٰـ]')
+# a head entry: {quote} [n] then a grade (possibly after a short gap)
+_HEAD_RE = re.compile(r'\{([^{}]{1,120})\}\s*\[(\d{1,3})\]')
+_ITEM_RE = re.compile(r'«([^«»]{1,80})»|\{([^{}]{1,120})\}')
+_TRIGGER_RE = re.compile(r'(ومثله|ومثلها|وكذا|وكذلك|ونظيره|ونظيرها)(?:\s*ب)?\s*[:،]?\s*$')
+_CONT_RE = re.compile(r'^[\s،,]*و\s*(?:ب\s*)?$')
+_COND_RE = re.compile(r'^[\s،]*(?:عند|إن|ان|لمن|على|إذا|اذا|إلا|لو)\b')
+# text between the grade word and the trigger may not start a new topic
+_PLURAL = {'حسان': 'حسن', 'حسنة': 'حسن', 'تامة': 'تام', 'كافية': 'كاف',
+           'جائزة': 'جائز', 'صالحة': 'صالح'}
+# «… كلها حسان»، «كلها وقوف كافية»: one grade for the whole list just given
+_COLLECTIVE_RE = re.compile(r'^[\s،]*(?:\(|)?(?:كلها|كلهن)\s+(?:وقوف\s+)?\(?(' +
+                            '|'.join(_PLURAL) + r')\)?|^[\s،]*وقوف\s+(' + '|'.join(_PLURAL) + ')')
+_PARTICLES = {'ثم', 'ان', 'لا', 'ما', 'او', 'ام', 'بل', 'قد', 'من', 'في', 'الا', 'اذا', 'اذ'}
+_ANY_GRADE_RE = re.compile(r'(?<![ء-ي])(' + '|'.join(re.escape(g) for g, _ in rx.GRADES) + r')(?![ء-ي])')
+_TOPIC_BREAK = re.compile(r'[.؟]|\bوقال\b|\bقال\b|\bقرأ\b|\bوقرأ\b|\bرسم|\bورسم')
+
+
+def strip(s):
+    return _HARAKAT.sub('', s or '')
+
+
+def hnorm(tok):
+    """rx.norm, blind to hamza seats: the book spells شيئا/ورئيا/مسئول where
+    the mushaf writes شَيۡـٔٗا/وَرِءۡيٗا/مَسۡـُٔولٗا."""
+    return rx.norm(re.sub('[ئؤٔ]', '', tok or ''))
+
+
+def verse_words(surah, ayah):
+    vk = f'{surah}:{ayah}'
+    if vk not in rx.app.qpc_hafs_data_normalized:
+        return None
+    _, words, _ = rx.app._verse_word_texts(vk)
+    return words
+
+
+def hits_in_ayah(surah, ayah, quote, strict):
+    """End-wpos hits of quote in one verse. strict = every tail token equal
+    after normalisation; otherwise the builder's prefix/fuzzy tail rules."""
+    words = verse_words(surah, ayah)
+    if not words:
+        return []
+    wnorm = [hnorm(w) for w in words]
+    for part in rx.quote_parts_for_align(quote):
+        qwords = rx.quote_words(part, hnorm)
+        if not qwords:
+            continue
+        # the whole quoted phrase first (3:78 «ويقولون هو من عند الله» vs the
+        # later «وما هو من عند الله»), then the builder's 3-word tail
+        for full in (True, False):
+            hits = set()
+            for seq in rx.quote_token_variants(qwords):
+                k = len(seq) if full else min(3, len(seq))
+                if strict:
+                    tail = seq[-k:]
+                    hits.update(i + k - 1 for i in range(len(wnorm) - k + 1)
+                                if wnorm[i:i + k] == tail)
+                else:
+                    for level in (1, 2):
+                        hits.update(rx._align_seq_hits(wnorm, seq, level, k))
+            if hits:
+                return sorted(hits)
+    return []
+
+
+_ORDINAL_RE = re.compile(r'^[\s،]*(?:في\s+الموضع\s+)?(الأول|الأولى|الثاني|الثانية|الثالث|الثالثة|الرابع|الرابعة|الأخير|الأخيرة|في الموضعين)(?![ء-ي])')
+_ORDINAL = {'الأول': 0, 'الأولى': 0, 'الثاني': 1, 'الثانية': 1,
+            'الثالث': 2, 'الثالثة': 2, 'الرابع': 3, 'الرابعة': 3,
+            'الأخير': -1, 'الأخيرة': -1, 'في الموضعين': 'both'}
+
+
+_PAUSE_MARKS = set('\u06D6\u06D7\u06D8\u06D9\u06DA\u06DB')
+
+
+def pausable(words, w):
+    """Verse end, or a word the mushaf marks with a pause sign (ۖ ۗ ۚ ۛ ۘ ۙ)."""
+    return w == len(words) - 1 or bool(set(words[w]) & _PAUSE_MARKS)
+
+
+def find_nth(surah, a0, a1, quote, n):
+    """«X» الثاني / الأخيرة: the n-th (or last) occurrence inside the first verse
+    of the window that holds more than one; failing that, counted across the
+    window's verses («كيف قدر» الثاني). «في الموضعين» → both pause-marked
+    occurrences. Returns a list of (ayah, wpos)."""
+    for strict in (True, False):
+        for a in range(a0, a1 + 1):
+            hits = hits_in_ayah(surah, a, quote, strict)
+            if len(hits) < 2:
+                continue
+            if n == 'both':
+                words = verse_words(surah, a)
+                marked = [h for h in hits if pausable(words, h)]
+                return [(a, h) for h in (marked if len(marked) == 2 else hits[-2:])]
+            if n == -1 or len(hits) > n:
+                return [(a, hits[n])]
+    if n == 'both':
+        return []
+    for strict in (True, False):
+        seq = [(a, h) for a in range(a0, a1 + 1) for h in hits_in_ayah(surah, a, quote, strict)]
+        if len(seq) > max(n, 1):
+            return [seq[n]]
+    return []
+
+
+def find_in_span(surah, a0, w0, a1, quote, later=()):
+    """First end-wpos of quote in reading order after (a0, w0), up to verse a1.
+
+    An exact spelling anywhere in the window beats a prefixed/fuzzy one
+    (60:10 «لهن» is «يحلون لهن», not «لا هن»). When the phrase repeats inside
+    the verse where it is first found, the occurrence the mushaf marks as a
+    pause wins (2:85 «ببعض» is «وتكفرون ببعضٖۚ», not «أفتؤمنون ببعض الكتاب»).
+    An occurrence that a LATER item of the same chain names (6:144
+    «الأنثيين»، و «أرحام الأنثيين») is left for that item.
+    Returns (ayah, wpos, ambiguous).
+    """
+    for strict in (True, False):
+        for a in range(a0, a1 + 1):
+            hits = [h for h in hits_in_ayah(surah, a, quote, strict) if a > a0 or h > w0]
+            if not hits:
+                continue
+            if len(hits) == 1:
+                return a, hits[0], False
+            words = verse_words(surah, a)
+            claimed = {h for q in later for h in hits_in_ayah(surah, a, q, strict)}
+            free = [h for h in hits if h not in claimed] or hits
+            marked = [h for h in free if pausable(words, h)]
+            if len(free) == 1:
+                return a, free[0], False
+            return a, (marked[0] if marked else free[0]), len(marked) != 1
+    return None, None, False
+
+
+def head_seat(surah, ayah, quote):
+    """Word a {quote} [n] head rules on: the exact spelling first, then the
+    pause-marked occurrence, then the last (the builder's historical choice).
+    41:37 {والقمر} is «وَٱلۡقَمَرُۚ», not the later «ولا لِلۡقَمَرِ»."""
+    if not rx.quote_words(quote, hnorm):
+        return None
+    hits = hits_in_ayah(surah, ayah, quote, True) or hits_in_ayah(surah, ayah, quote, False)
+    if not hits:
+        return None
+    words = verse_words(surah, ayah)
+    marked = [h for h in hits if pausable(words, h)]
+    return marked[0] if marked else hits[-1]
+
+
+def surah_lines():
+    """(surah, line) in book order. Combined Shamela sections (العصر+الهمزة،
+    الكافرون+النصر+تبت …) are split on their in-text «سورة X» headings."""
+    sections = json.load(open(SECTIONS, encoding='utf-8'))
+    seen = set()
+    for key in sorted(sections, key=int):
+        text = sections[key]['text']
+        if text in seen:
+            continue
+        seen.add(text)
+        cur = int(key)
+        for ln in text.split('\r'):
+            st = strip(ln).strip()
+            if re.match(r'^سورة\s', st) and len(st) < 40:
+                n = rx.surah_number(st, cur - 1)
+                if n:
+                    cur = n
+            yield cur, ln
+
+
+def parse_chain(line, start):
+    """Items chained after a head ruling that ends at `start`.
+
+    Returns [(quote, own_grade, conditional, trigger, pos)] and the index where
+    the chain ended. An item needs an explicit trigger (ومثله/وكذا…) or a bare
+    «، و» straight after a previous item; a {…} without either is a new head.
+    """
+    items, last_end = [], None
+    for m in _ITEM_RE.finditer(line, start):
+        gap_from = last_end if last_end is not None else start
+        gap = line[gap_from:m.start()]
+        if last_end is not None and _CONT_RE.match(gap):
+            trig = 'و'
+        else:
+            t = _TRIGGER_RE.search(line[max(gap_from, m.start() - 16):m.start()])
+            if not t:
+                if m.group(2) is not None:
+                    break
+                continue          # an inline word quoted inside the علّة
+            pre = strip(line[gap_from:m.start() - len(t.group(0))])
+            if len(pre) > 90 or _TOPIC_BREAK.search(pre):
+                break
+            trig = t.group(1)
+        q = rx.clean_note(m.group(1) or m.group(2) or '', limit=200)
+        tail = strip(line[m.end():m.end() + 50]).lstrip(' ،:؛')
+        gm = rx.GRADE_RE.match(tail)
+        om = _ORDINAL_RE.match(tail)
+        nth = _ORDINAL[om.group(1)] if om else None
+        if om:
+            tail = tail[om.end():].lstrip(' ،:؛')
+            gm = rx.GRADE_RE.match(tail)
+        own = dict(rx.GRADES).get(gm.group(1)) if gm else None
+        items.append([q, own, bool(_COND_RE.match(tail)), trig, m.start(), m.end(), nth])
+        last_end = m.end()
+        if m.group(2) is not None:
+            break
+    # a collective grade right after the list overrides the inherited one
+    if items:
+        cm = _COLLECTIVE_RE.match(_ORDINAL_RE.sub('', strip(line[items[-1][5]:items[-1][5] + 50]), 1))
+        if cm:
+            g = _PLURAL[cm.group(1) or cm.group(2)]
+            for it in items:
+                it[1] = it[1] or g
+    return items
+
+
+def audit(db_rows):
+    lines = list(surah_lines())
+    heads = []   # (line index, surah, ayah) per line's first plausible marker
+    for li, (surah, ln) in enumerate(lines):
+        acount = rx.surah_ayah_count(surah)
+        m = _HEAD_RE.search(ln)
+        heads.append(int(m.group(2)) if m and 1 <= int(m.group(2)) <= acount else None)
+    out = []
+    for li, (surah, ln) in enumerate(lines):
+        acount = rx.surah_ayah_count(surah)
+        for hm in _HEAD_RE.finditer(ln):
+            ayah = int(hm.group(2))
+            if not 1 <= ayah <= acount:
+                continue
+            gtail = strip(ln[hm.end():hm.end() + 60]).lstrip(' ،:؛')
+            gm = rx.GRADE_RE.match(gtail)
+            if not gm:
+                continue
+            grade = dict(rx.GRADES)[gm.group(1)]
+            items = parse_chain(ln, hm.end())
+            if not items:
+                continue
+            # alternative grades voiced between the head and its chain
+            # («حسن، وقيل: كاف، ومثله …»، «حسن، تام للابتداء بالشرط، ومثله …»)
+            alt = {dict(rx.GRADES)[g] for g in
+                   _ANY_GRADE_RE.findall(strip(ln[hm.end():items[0][4]]))}
+            hq = rx.clean_note(hm.group(1), limit=200)
+            hw = head_seat(surah, ayah, hq)
+            # search window: up to the verse of the next line that marks a
+            # LATER verse; one marked verse further as a flagged fallback.
+            later = []
+            for j in range(li + 1, len(lines)):
+                if lines[j][0] != surah:
+                    break
+                if heads[j] and heads[j] > ayah and heads[j] not in later:
+                    later.append(heads[j])
+                    if len(later) == 2:
+                        break
+            span1 = later[0] if later else acount
+            span2 = later[1] if len(later) > 1 else acount
+            cur_a, cur_w = ayah, (hw if hw is not None else -1)
+            for ii, (q, own, cond, trig, pos, _end, nth) in enumerate(items):
+                later = [it[0] for it in items[ii + 1:]]
+                g = own or grade
+                far = False
+                amb = False
+                if nth is not None:
+                    spots = find_nth(surah, cur_a, span1, q, nth)
+                else:
+                    a, w, amb = find_in_span(surah, cur_a, cur_w, span1, q, later)
+                    if a is None:
+                        a, w, amb = find_in_span(surah, max(cur_a, span1),
+                                                 -1 if span1 > cur_a else cur_w, span2, q, later)
+                        far = a is not None
+                    spots = [(a, w)] if a is not None else []
+                if len(spots) == 1 and spots[0][1] == 0 and hnorm(q) in _PARTICLES:
+                    spots = []    # «و «ثم» لترتيب الأخبار» — a remark, not a stop
+                base = {'surah': surah, 'head_ayah': ayah, 'head': hq, 'head_grade': grade,
+                        'alt_grades': sorted(alt - {grade}), 'trigger': trig, 'item': q,
+                        'grade': g, 'own_grade': bool(own), 'conditional': cond, 'ordinal': nth,
+                        'ambiguous': amb, 'far': far,
+                        'context': strip(ln[max(0, pos - 80):pos + 140])}
+                if not spots:
+                    out.append(dict(base, status='unaligned'))
+                for a, w in spots:
+                    rec = dict(base, ayah=a, wpos=w, mushaf_word=verse_words(surah, a)[w])
+                    have = db_rows.get((surah, a, w), [])
+                    rec['db'] = have
+                    grades = {r['grade'] for r in have}
+                    if not have:
+                        rec['status'] = 'missing'
+                    elif g in grades:
+                        rec['status'] = 'ok'
+                    elif grades & (alt | {grade}):
+                        rec['status'] = 'ok_alt'
+                    else:
+                        rec['status'] = 'grade_mismatch'
+                    cur_a, cur_w = a, w
+                    out.append(rec)
+    return out
+
+
+# ── repeated-word misplacement (any منار row, not only chain items) ───────────
+# The extraction aligned short stop phrases with "last occurrence wins", so
+# «الله» often landed on the «إِنَّ ٱللَّهَ» right after the real stop
+# (5:7 «وَٱتَّقُواْ ٱللَّهَۚ إِنَّ ٱللَّهَ | عَلِيمُۢ»). A row is moved only when
+#   * the book rules on no word at its current seat (no {…} [n] head, no chain
+#     item resolves there),
+#   * its seat is not pause-marked / verse-end, and exactly one OTHER seat in
+#     the verse holds the same word, IS ruled on by the book, and is marked,
+#   * its note names no ordinal («الثاني»، «في الموضعين» …).
+# A row on a ruled seat is also moved when its quote spells exactly one OTHER
+# ruled word and its own seat is unmarked (41:37, 48:26 «الحمية» الأولى).
+# Everything else that looks misplaced goes to the review queue.
+_ORD_NOTE = re.compile(r'الثاني|الثانية|الموضعين|المواضع|كلاهما|كليهما|فيهما|الأخير|الأول|الأولى|الثالث')
+
+
+def ruled_seats(recs):
+    seats = set()
+    for r in recs:
+        if 'ayah' in r:
+            seats.add((r['surah'], r['ayah'], r['wpos']))
+    for surah, ln in surah_lines():
+        for hm in _HEAD_RE.finditer(ln):
+            a = int(hm.group(2))
+            if not 1 <= a <= rx.surah_ayah_count(surah):
+                continue
+            q = rx.clean_note(hm.group(1), limit=200)
+            if rx.quote_words(q, hnorm):
+                hits = hits_in_ayah(surah, a, q, True) or hits_in_ayah(surah, a, q, False)
+            else:
+                words = verse_words(surah, a)
+                hits = [len(words) - 1] if words else []
+            seats.update((surah, a, h) for h in hits)
+    return seats
+
+
+def misplaced_rows(path, recs):
+    """([(id, surah, ayah, from_wpos, to_wpos)], [review dicts])."""
+    seats = ruled_seats(recs)
+    con = sqlite3.connect(path)
+    moves, review = [], []
+    for rid, s, a, w, q, g, note in con.execute(
+            "SELECT id, surah, ayah, wpos, quote, grade, COALESCE(note,'') FROM classical "
+            "WHERE source='manar' AND conf=1 AND wpos IS NOT NULL"):
+        words = verse_words(s, a)
+        if not words or w >= len(words):
+            continue
+        if (s, a, w) in seats:
+            # the quote spells ANOTHER ruled word exactly (41:37 {والقمر} row
+            # sitting on «ولا لِلۡقَمَرِ»); move only off an unmarked seat
+            strict = hits_in_ayah(s, a, q, True) if rx.quote_words(q, hnorm) else []
+            if (len(strict) == 1 and strict[0] != w and (s, a, strict[0]) in seats
+                    and not pausable(words, w) and not _ORD_NOTE.search(note)):
+                moves.append((rid, s, a, w, strict[0]))
+            continue
+        last = hnorm(words[w])
+        same = [x for x in range(len(words)) if x != w and (s, a, x) in seats
+                and rx.match_word(hnorm(words[x]), last, 1)]
+        if not same:
+            continue
+        marked = [x for x in same if pausable(words, x)]
+        if _ORD_NOTE.search(note) or pausable(words, w) or len(marked) != 1:
+            review.append({'id': rid, 'surah': s, 'ayah': a, 'wpos': w, 'word': words[w],
+                           'candidates': same, 'grade': g, 'quote': q, 'note': note})
+        else:
+            moves.append((rid, s, a, w, marked[0]))
+    con.close()
+    return moves, review
+
+
+# ── curated decisions (each checked by hand against the book, 2026-09-26) ────
+# Rows the LLM put on the WRONG occurrence of a repeated word, moved to the
+# occurrence the book means: id → (ayah, wpos). E.g. 13:16 «قل الله» تام sat
+# on «قُلِ ٱللَّهُ خَٰلِقُ» (mid-sentence) instead of «قُلِ ٱللَّهُۚ»; 22:2
+# «سكارى» sat on the second one although its own note says «دون الثاني».
+MOVES = {
+    47261: (165, 15), 47262: (165, 15), 47522: (230, 23), 47626: (253, 17),
+    47770: (282, 21), 47793: (284, 16), 47794: (284, 16), 48026: (55, 7),
+    48087: (78, 22), 48543: (12, 33), 48656: (39, 10), 48694: (52, 3),
+    49209: (42, 10), 49230: (48, 16), 49242: (51, 7), 49279: (64, 38),
+    49827: (136, 20), 50110: (53, 3), 50221: (99, 2), 50489: (13, 4),
+    50511: (23, 5), 50575: (48, 32), 50618: (66, 22), 50642: (75, 16),
+    51113: (34, 8), 51732: (44, 2), 51957: (16, 6), 51998: (26, 8),
+    52080: (11, 24), 52717: (34, 12), 53219: (44, 3), 53773: (2, 14),
+    54916: (15, 16), 55011: (50, 16), 55401: (54, 10), 55455: (15, 21),
+    56422: (27, 10), 58481: (2, 7), 58610: (20, 5), 58718: (5, 17),
+    58733: (10, 9), 58828: (2, 14), 58850: (9, 2), 59502: (7, 3),
+    # 7:195 «وكذا «بها» الأخيرة، وفي المواضع الثلاثة لا يجوز الوقف»: the لا
+    # belongs to the first three بها, the last one is كاف.
+    50435: (195, 3),
+    # 2:165 «{كحب الله} حسن … وقال أبو عمرو فيهما: تام» sat on «وَأَنَّ ٱللَّهَ»;
+    # two marked «الله» seats compete, so the mechanical rule leaves it.
+    47259: (165, 10), 47260: (165, 10),
+}
+# Grade corrections: id → grade. 39:50 «ومثله «يكسبون»» inherits كاف; the
+# «تام فيهما» that follows is about «كسبوا» الأولى والثانية.
+REGRADE = {56650: 'كاف'}
+# grade_mismatch keys where منار's inherited ruling is absent and only another
+# (alternate / relayed / conditional) grade was stored: add it.
+ADD_GRADE = {
+    (6, 75, 5), (7, 195, 18), (15, 22, 7), (18, 102, 13), (18, 103, 4),
+    (25, 41, 10), (27, 10, 18), (28, 74, 7), (35, 10, 10), (39, 20, 13),
+    (40, 74, 12), (45, 7, 3), (50, 22, 11), (72, 17, 9), (72, 23, 15), (111, 4, 0),
+}
+# chain items the parser reads that are not rulings («وكذا «محلقين»» is about
+# the حال), or whose grade the book states differently than inherited.
+SKIP = {(48, 27, 13)}
+GRADE_OVERRIDE = {(39, 51, 3): 'تام'}      # «كسبوا» الأولى والثانية تام فيهما
+REPORTED = {(25, 41, 10): 'أبو حاتم'}      # «ومثله «رسولا» عند أبي حاتم»
+# extra rows the chain implies but the resolver cannot emit on its own
+EXTRA = [
+    (7, 195, 8, 'بها', 'لا', 'وفي المواضع الثلاثة لا يجوز الوقف؛ لأن «أم» عاطفة'),
+    (7, 195, 13, 'بها', 'لا', 'وفي المواضع الثلاثة لا يجوز الوقف؛ لأن «أم» عاطفة'),
+]
+
+
+def source_note(rec):
+    """The book's own clause for this item: from its trigger to the end of
+    the clause, verbatim (diacritics stripped), e.g. «ومثله «إلا وجهه»،
+    والمراد بالوجه: الذات»."""
+    ctx, item = rec['context'], strip(rec['item'])
+    k = ctx.find('«' + item[:6])
+    if k < 0:
+        k = ctx.find(item[:6])
+    start = max(0, k - 14)
+    t = re.search(r'(ومثله|ومثلها|وكذا|وكذلك|ونظيره|ونظيرها|و)\s*:?\s*(?:ب\s*)?$', ctx[start:k])
+    if t:
+        start += t.start()
+    end = len(ctx)
+    m = re.search(r'[.]|؛|،\s*(?:و|ومثله|ومثلها|وكذا|وكذلك)\s*:?\s*(?:ب\s*)?«', ctx[k + len(item) + 2:])
+    if m:
+        end = k + len(item) + 2 + m.start()
+    note = ctx[start:end].strip(' ،')
+    return rx.clean_note(f'{note} (مثل «{rec["head"]}» {rec["head_grade"]})', limit=300)
+
+
+def apply(recs, path):
+    con = sqlite3.connect(path)
+    cur = con.cursor()
+    stats = collections.Counter()
+
+    def exists(s, a, w, g):
+        return cur.execute("SELECT 1 FROM classical WHERE source='manar' AND surah=? AND ayah=? "
+                           "AND wpos=? AND grade=?", (s, a, w, g)).fetchone() is not None
+
+    def seq_near(s, a, w):
+        r = cur.execute("SELECT seq FROM classical WHERE source='manar' AND surah=? AND "
+                        "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC, seq DESC LIMIT 1",
+                        (s, a, a, w)).fetchone()
+        return r[0] if r else 0
+
+    def dedupe_note(s, a, reported, notes):
+        """First candidate that neither repeats nor contains/is contained in
+        another explanation of this ayah (the learner view shows them all)."""
+        have = [' '.join(n.split()) for (n,) in cur.execute(
+            "SELECT note FROM classical WHERE source='manar' AND surah=? AND ayah=? AND "
+            "COALESCE(reported_from,'')=? AND COALESCE(note,'')<>''", (s, a, reported or ''))]
+        for n in notes:
+            n = ' '.join(n.split())
+            if not any(n == h or (len(n) >= 30 and n in h) or (len(h) >= 30 and h in n)
+                       for h in have):
+                return n
+        return ''
+
+    def insert(s, a, w, quote, g, notes, reported=None):
+        if exists(s, a, w, g):
+            return False
+        if not rx.pin_matches_wpos(s, a, w, quote):
+            # the book's spelling (شيئا، السيئات) — cite the mushaf's words
+            n = max(1, len(rx.quote_words(quote)))
+            quote = ' '.join(verse_words(s, a)[max(0, w - n + 1):w + 1])
+        note = dedupe_note(s, a, reported, notes)
+        cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, "
+                    "grade_raw, note, seq, conf, reported_from) VALUES ('manar',?,?,?,?,?,?,?,?,?,1,?)",
+                    (s, a, w, verse_words(s, a)[w], quote, g, g, note, seq_near(s, a, w), reported))
+        return True
+
+    for rid, (a, w) in MOVES.items():
+        row = cur.execute("SELECT surah, ayah, wpos, grade, note FROM classical WHERE id=? AND source='manar'",
+                          (rid,)).fetchone()
+        if not row or (row[1], row[2]) == (a, w):
+            continue
+        s = row[0]
+        dup = cur.execute("SELECT id, note FROM classical WHERE source='manar' AND surah=? AND ayah=? "
+                          "AND wpos=? AND grade=? AND id<>?", (s, a, w, row[3], rid)).fetchone()
+        if dup:
+            if len(row[4] or '') > len(dup[1] or ''):
+                cur.execute("UPDATE classical SET note=? WHERE id=?", (row[4], dup[0]))
+            cur.execute("DELETE FROM classical WHERE id=?", (rid,))
+            stats['merged_duplicate'] += 1
+        else:
+            cur.execute("UPDATE classical SET ayah=?, wpos=?, stop_word=? WHERE id=?",
+                        (a, w, verse_words(s, a)[w], rid))
+            stats['moved'] += 1
+    con.commit()
+    for rid, s, a, w_from, w_to in misplaced_rows(path, recs)[0]:
+        row = cur.execute("SELECT grade, note, reported_from FROM classical WHERE id=?", (rid,)).fetchone()
+        dup = cur.execute("SELECT id, note FROM classical WHERE source='manar' AND surah=? AND ayah=? "
+                          "AND wpos=? AND grade=? AND COALESCE(reported_from,'')=? AND id<>?",
+                          (s, a, w_to, row[0], row[2] or '', rid)).fetchone()
+        if dup:
+            if len(row[1] or '') > len(dup[1] or ''):
+                cur.execute("UPDATE classical SET note=? WHERE id=?", (row[1], dup[0]))
+            cur.execute("DELETE FROM classical WHERE id=?", (rid,))
+            stats['repeat_merged'] += 1
+        else:
+            cur.execute("UPDATE classical SET wpos=?, stop_word=? WHERE id=?",
+                        (w_to, verse_words(s, a)[w_to], rid))
+            stats['repeat_moved'] += 1
+    for rid, g in REGRADE.items():
+        stats['regraded'] += cur.execute("UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?",
+                                         (g, g, rid, g)).rowcount
+    for r in recs:
+        if 'ayah' not in r:
+            continue
+        key = (r['surah'], r['ayah'], r['wpos'])
+        if key in SKIP:
+            continue
+        if r['status'] == 'missing' or (r['status'] == 'grade_mismatch' and key in ADD_GRADE):
+            g = GRADE_OVERRIDE.get(key, r['grade'])
+            short = f'مثل «{r["head"]}» ({r["head_grade"]})'
+            if insert(*key, r['item'], g, [source_note(r), short], REPORTED.get(key)):
+                stats['inserted_' + r['status']] += 1
+    for s, a, w, q, g, note in EXTRA:
+        stats['inserted_extra'] += insert(s, a, w, q, g, [note])
+    con.commit()
+    return stats
+
+
+def load_db(path):
+    con = sqlite3.connect(path)
+    con.row_factory = sqlite3.Row
+    rows = collections.defaultdict(list)
+    for r in con.execute("SELECT id, surah, ayah, wpos, quote, grade, conf FROM classical "
+                         "WHERE source='manar' AND wpos IS NOT NULL"):
+        rows[(r['surah'], r['ayah'], r['wpos'])].append(
+            {'id': r['id'], 'quote': r['quote'], 'grade': r['grade'], 'conf': r['conf']})
+    return rows
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--out', default=os.path.join(ROOT, 'pipeline', 'review', 'manar_mithl.jsonl'))
+    ap.add_argument('--db', default=DB)
+    ap.add_argument('--apply', action='store_true',
+                    help='write the curated moves + missing inherited rulings into --db')
+    args = ap.parse_args(argv)
+    recs = audit(load_db(args.db))
+    if args.apply:
+        print('applied:', dict(apply(recs, args.db)))
+        recs = audit(load_db(args.db))
+    moves, review = misplaced_rows(args.db, recs)
+    rq = os.path.join(os.path.dirname(args.out), 'manar_misplaced_review.jsonl')
+    with open(rq, 'w', encoding='utf-8') as f:
+        for r in review:
+            f.write(json.dumps(r, ensure_ascii=False) + '\n')
+    print(f'repeated-word misplacements: {len(moves)} mechanical, {len(review)} for review → {rq}')
+    with open(args.out, 'w', encoding='utf-8') as f:
+        for r in recs:
+            f.write(json.dumps(r, ensure_ascii=False) + '\n')
+    c = collections.Counter(r['status'] for r in recs)
+    print(f'{len(recs)} chained items:', dict(c.most_common()))
+    print('conditional:', dict(collections.Counter(r['status'] for r in recs if r['conditional'])))
+    print('far-window:', dict(collections.Counter(r['status'] for r in recs if r['far'])))
+    print('written', args.out)
+
+
+if __name__ == '__main__':
+    main()
