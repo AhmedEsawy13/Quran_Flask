@@ -1,7 +1,7 @@
 "use client";
 
 import type {ClassicalWaqfPayload} from "@/lib/api";
-import {toArabicDigits} from "@/lib/mushaf";
+import {arabicCount} from "@/lib/mushaf";
 import {classicalGradeMeta} from "@/lib/waqf";
 import {ToolCard, ToolCardHead} from "@/components/tool-chrome";
 import {StatusState} from "@/components/ui/primitives";
@@ -9,9 +9,11 @@ import {StatusState} from "@/components/ui/primitives";
 export function WaqfClassical({
   classical,
   words,
+  onSelectWpos,
 }: {
   classical: ClassicalWaqfPayload | null;
   words: string[];
+  onSelectWpos?: (wpos: number) => void;
 }) {
   if (!classical?.count) {
     return (
@@ -47,19 +49,24 @@ export function WaqfClassical({
       <ToolCardHead
         title="لماذا يُوقف هنا؟ — كتب الوقف والابتداء"
         titleId="waqf-classical-all-title"
-        meta={`${toArabicDigits(classical.count)} حكمًا · ${toArabicDigits(positions.length)} موضعًا`}
+        meta={`${arabicCount(classical.count, ["حكم واحد", "حكمان", "أحكام", "حكمًا"])} · ${arabicCount(positions.length, ["موضع واحد", "موضعان", "مواضع", "موضعًا"])}`}
       />
       {sources ? <p className="-mt-1 mb-3 text-[0.82rem] text-athar-ink-faint">{sources}</p> : null}
       <div>
         {rows.map(({wpos, list, phrase}) => (
           <article className="wq-classical-row" key={wpos}>
-            <p className="wq-classical-phrase">
+            <button
+              type="button"
+              className="wq-classical-phrase block w-full cursor-pointer rounded-md border-0 bg-transparent p-0 text-start font-[inherit] text-inherit hover:bg-athar-accent/5"
+              title="اعرض هذا الموضع في لوحة التفصيل"
+              onClick={() => onSelectWpos?.(wpos)}
+            >
               {phrase.map((word, index) => (
                 index === phrase.length - 1
                   ? <b key={`${wpos}-${index}`}>{word}</b>
                   : <span key={`${wpos}-${index}`}>{word} </span>
               ))}
-            </p>
+            </button>
             <div className={`wq-rulings${list.length > 1 ? " has-split" : ""}`}>
               {list.map((entry, index) => {
                 const meta = classicalGradeMeta[entry.grade] || {cls: "kafi", desc: entry.grade};

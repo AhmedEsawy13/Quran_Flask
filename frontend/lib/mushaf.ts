@@ -151,6 +151,19 @@ export function toArabicDigits(value: number | string) {
   return String(value).replace(/[0-9]/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
 }
 
+/**
+ * An Arabic counted noun: «موضع واحد»، «موضعان»، «٣ مواضع»، «١١ موضعًا».
+ * `forms` = [singular, dual, plural (3–10), accusative singular (11+)].
+ */
+export function arabicCount(value: number, forms: [string, string, string, string]) {
+  const [one, two, few, many] = forms;
+  if (value === 1) return one;
+  if (value === 2) return two;
+  const mod = value % 100;
+  if (mod >= 3 && mod <= 10) return `${toArabicDigits(value)} ${few}`;
+  return `${toArabicDigits(value)} ${value === 0 || mod <= 2 ? one : many}`;
+}
+
 export function parseAyahRange(value: string | null) {
   if (!value) return null;
   const [surah, from, to] = value.split(":").map(Number);

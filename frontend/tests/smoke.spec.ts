@@ -345,6 +345,22 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   await expect(desk.getByRole("heading", {name: "أئمة"})).toBeVisible();
   await expect(desk.getByRole("heading", {name: "توجيه"})).toBeVisible();
   await expect(page.locator(".wq-score-panel")).toBeVisible();
+  // Stepping between stops must not refetch the ayah (the URL's wpos used to feed back into the fetch).
+  let ayahFetches = 0;
+  page.on("request", (request) => {
+    if (/\/backend-api\/waqf\/2\/255$/.test(request.url())) ayahFetches += 1;
+  });
+  await expect(page.locator("#waqf-comparison header")).toContainText("الموضع ١ من");
+  await page.getByRole("button", {name: "الموضع التالي"}).click();
+  await expect(page.locator("#waqf-comparison header")).toContainText("الموضع ٢ من");
+  await expect(page).toHaveURL(/wpos=6/);
+  await page.waitForTimeout(400);
+  expect(ayahFetches).toBe(0);
+  // Ayah-wide views are tabs, one at a time.
+  await expect(page.getByRole("tab", {name: /القراءة حسب نَفَسك/})).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", {name: /كتب الوقف/}).click();
+  await expect(page.getByRole("tabpanel").getByRole("heading", {name: /كتب الوقف والابتداء/})).toBeVisible();
+  await expect(page.getByRole("heading", {name: "ترشيح القراءة حسب نَفَسك"})).toHaveCount(0);
   await expect(page.getByRole("link", {name: "المختبر", exact: true})).toHaveAttribute("href", "/waqf-lab");
   await expect(page.getByRole("link", {name: "تدريب", exact: true})).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
   await expect(page.getByRole("combobox", {name: "السورة"})).toBeVisible();
@@ -354,6 +370,8 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   await page.getByRole("combobox", {name: "البحث عن آية"}).press("Enter");
   await expect(page).toHaveURL(/ayah=256/);
   await expect(page.getByRole("heading", {name: /الآية ٢٥٦/})).toBeVisible({timeout: 15_000});
+  // The new ayah opens on its own first stop, not the previous ayah's word position.
+  await expect(page.locator("#waqf-comparison header")).toContainText("الموضع ١ من");
   await expect(practiceLink).toHaveAttribute("href", "/waqf-practice?surah=2&from=256&to=256");
   await page.getByRole("combobox", {name: "البحث عن آية"}).fill("الله");
   const searchResults = page.getByRole("listbox", {name: "نتائج البحث"});

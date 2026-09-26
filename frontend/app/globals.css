@@ -1536,10 +1536,9 @@ button.page-number {
 }
 
 .wq-score-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 0.72rem 0.9rem;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.8rem 0.9rem;
   border-block-end: 1px solid var(--athar-line-soft);
 }
 
@@ -1830,6 +1829,29 @@ button.page-number {
   border-color: color-mix(in srgb, var(--wq-solo, var(--athar-copper)) 48%, var(--athar-line));
   background: var(--wq-solo-soft, transparent);
   color: var(--wq-solo, var(--athar-copper));
+}
+
+/* A stop only the imams or a توجيه address: no mushaf mark, no reciter pause. */
+.waqf-inline-stop.is-scholarly {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--athar-gold) 60%, transparent);
+  background: transparent;
+  color: var(--athar-gold);
+}
+
+.waqf-inline-stop.is-avoid {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--athar-negative) 55%, transparent);
+  background: transparent;
+  color: var(--athar-negative);
+}
+
+.waqf-inline-stop.is-avoid .waqf-stop-icon {
+  color: inherit;
+}
+
+.waqf-word-unit.is-selected .waqf-inline-stop {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--athar-accent) 35%, transparent);
 }
 
 .waqf-inline-stop small {

@@ -153,6 +153,11 @@ export function reciterPhrases(detail: WaqfReciterDetail, lastWpos: number): Waq
   return phrases;
 }
 
+/** Classical grades that rule a stop out rather than in. */
+export function isNegativeGrade(grade: string) {
+  return grade === "لا" || grade === "قبيح";
+}
+
 export const classicalGradeMeta: Record<string, {cls: string; desc: string}> = {
   "تام": {cls: "tamm", desc: "وقفٌ تام — يُوقف عليه ويُبتدأ بما بعده"},
   "كاف": {cls: "kafi", desc: "وقفٌ كافٍ — يُوقف عليه، وما بعده متعلقٌ به معنًى"},

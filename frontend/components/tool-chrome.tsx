@@ -83,7 +83,7 @@ export function ToolChrome({
   return (
     <section
       className={cn(
-        "sticky top-[var(--bar-height)] z-40 flex w-full flex-wrap items-end justify-between gap-x-3 gap-y-2 border-b border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] px-[clamp(10px,2.4vw,28px)] py-1.5 shadow-[0_14px_34px_-32px_color-mix(in_srgb,var(--athar-ink)_55%,transparent)] backdrop-blur-[18px] backdrop-saturate-150",
+        "z-40 flex w-full md:sticky md:top-[var(--bar-height)] flex-wrap items-end justify-between gap-x-3 gap-y-2 border-b border-athar-line bg-[color-mix(in_srgb,var(--athar-surface)_92%,transparent)] px-[clamp(10px,2.4vw,28px)] py-1.5 shadow-[0_14px_34px_-32px_color-mix(in_srgb,var(--athar-ink)_55%,transparent)] backdrop-blur-[18px] backdrop-saturate-150",
         className,
       )}
       aria-label={label}
