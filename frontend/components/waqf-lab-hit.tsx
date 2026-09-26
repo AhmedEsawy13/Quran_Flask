@@ -1,6 +1,6 @@
 import type {ReactNode} from "react";
 import Link from "next/link";
-import {toArabicDigits} from "@/lib/mushaf";
+import {arabicCount, toArabicDigits} from "@/lib/mushaf";
 import {cn} from "@/lib/cn";
 import {Button, StatusState} from "@/components/ui/primitives";
 import {
@@ -61,21 +61,39 @@ export function LabTable({children}: {children: ReactNode}) {
   );
 }
 
+/**
+ * Printed marks for one position, grouped: «ج · ٨ مصاحف» once, and any
+ * mushaf that prints something else named beside it — the difference is
+ * what a reader is looking for.
+ */
 export function HitMarks({marks}: {marks?: WaqfMarks}) {
   const entries = Object.entries(marks || {});
   if (!entries.length) return <span className="text-[0.78rem] text-athar-ink-faint">بلا علامة مطبوعة</span>;
+  const groups = new Map<string, string[]>();
+  entries.forEach(([mushaf, symbol]) => groups.set(symbol, [...(groups.get(symbol) || []), mushaf]));
+  const ordered = [...groups].sort((a, b) => b[1].length - a[1].length);
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {entries.map(([mushaf, symbol]) => (
-        <span
-          className="inline-flex items-center gap-1 rounded-full border border-athar-line-soft bg-athar-surface px-2 py-0.5 text-[0.72rem] text-athar-ink-soft"
-          key={`${mushaf}-${symbol}`}
-          title={mushaf}
-        >
-          <span className="text-[1.05rem] text-athar-accent"><WaqfGlyph symbol={symbol} mushafId={mushaf} className="size-[1.4em] align-[-0.35em]" /></span>
-          <span>{mushaf}</span>
-        </span>
-      ))}
+    <div className="flex flex-wrap items-center gap-1.5" aria-label="علامات المصاحف">
+      {ordered.map(([symbol, mushafs], index) => {
+        const majority = index === 0 && ordered.length > 1 && mushafs.length > 1;
+        return (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[0.72rem]",
+              index === 0 ? "border-athar-line-soft bg-athar-surface text-athar-ink-soft" : "border-athar-waqf-solo/30 bg-athar-waqf-solo-soft text-athar-waqf-solo",
+            )}
+            key={symbol}
+            title={mushafs.join("، ")}
+          >
+            <WaqfGlyph symbol={symbol} mushafId={mushafs[0]} className={cn("size-[1.5em] align-[-0.35em]", index === 0 && "text-athar-accent")} />
+            <span className="font-semibold">
+              {mushafs.length === 1 ? mushafs[0] : majority || ordered.length === 1
+                ? arabicCount(mushafs.length, ["مصحف", "مصحفان", "مصاحف", "مصحفًا"])
+                : mushafs.join("، ")}
+            </span>
+          </span>
+        );
+      })}
     </div>
   );
 }

@@ -16,24 +16,29 @@ export type LabTab =
   | "agreement"
   | "mushafsim";
 
-export const LAB_TABS: Array<{id: LabTab; family: LabFamily; label: string}> = [
-  {id: "word", family: "words", label: "بحث بالكلمة"},
-  {id: "ibtidaa", family: "words", label: "الابتداء"},
-  {id: "saktat", family: "words", label: "السكتات"},
-  {id: "mandatory", family: "words", label: "لازم · ممنوع · معانقة"},
-  {id: "solos", family: "reciters", label: "انفرادات"},
-  {id: "stats", family: "reciters", label: "إحصائيات"},
-  {id: "cluster", family: "reciters", label: "تشابه القرّاء"},
-  {id: "patterns", family: "mushafs", label: "اختلاف المصاحف"},
-  {id: "agreement", family: "mushafs", label: "اتفاق مع المصاحف"},
-  {id: "mushafsim", family: "mushafs", label: "تقارب المصاحف"},
+/** Every tool, with the plain question it answers — the entry point for newcomers. */
+export const LAB_TABS: Array<{id: LabTab; family: LabFamily; label: string; question: string}> = [
+  {id: "word", family: "words", label: "بحث بالكلمة", question: "أين يُوقف على كلمةٍ ما في القرآن كله؟"},
+  {id: "ibtidaa", family: "words", label: "الابتداء بما قبله", question: "أين وقف القارئ ثم رجع يبتدئ بكلمة قبلها؟"},
+  {id: "saktat", family: "words", label: "السكتات", question: "أين يسكت حفص سكتةً يسيرة بلا تنفّس؟"},
+  {id: "mandatory", family: "words", label: "اللازم والممنوع والمعانقة", question: "أين يلزم الوقف، وأين يُمنع، وأين يتعانق موضعان؟"},
+  {id: "solos", family: "reciters", label: "انفرادات القرّاء", question: "أين وقف قارئ وحده دون بقية القرّاء؟"},
+  {id: "stats", family: "reciters", label: "اتفاق القرّاء", question: "أيّ السور والآيات اتفق فيها القرّاء أو اختلفوا؟"},
+  {id: "cluster", family: "reciters", label: "تشابه القرّاء", question: "أيّ القرّاء أقرب بعضهم إلى بعض في مواضع الوقف؟"},
+  {id: "patterns", family: "mushafs", label: "اختلاف المصاحف", question: "أين اختلفت المصاحف في علامة الوقف على الكلمة نفسها؟"},
+  {id: "agreement", family: "mushafs", label: "القرّاء والمصاحف", question: "هل يقف القرّاء حيث تضع المصاحف علاماتها؟"},
+  {id: "mushafsim", family: "mushafs", label: "تقارب المصاحف", question: "أيّ المصاحف أقرب بعضها إلى بعض في نظام الوقف؟"},
 ];
 
-export const LAB_FAMILIES: Array<{id: LabFamily; title: string; sub: string}> = [
-  {id: "words", title: "كلمات وأنماط", sub: "بحث"},
-  {id: "reciters", title: "قرّاء", sub: "أداء"},
-  {id: "mushafs", title: "مصاحف", sub: "طبع"},
+export const LAB_FAMILIES: Array<{id: LabFamily; title: string; sub: string; description: string}> = [
+  {id: "words", title: "كلمات وأنماط", sub: "بحث", description: "ابحث عن كلمة أو ظاهرة في القرآن كله."},
+  {id: "reciters", title: "قرّاء", sub: "أداء", description: "كيف وقف القرّاء المتقنون في تلاواتهم."},
+  {id: "mushafs", title: "مصاحف", sub: "طبع", description: "كيف وضعت المصاحف المطبوعة علامات الوقف."},
 ];
+
+export function labTool(id: LabTab) {
+  return LAB_TABS.find((item) => item.id === id) || LAB_TABS[0];
+}
 
 export const WORD_PRESETS: Array<{
   group: string;
@@ -261,6 +266,8 @@ export function editorHref(edition: string, surah: number, ayah: number) {
 }
 
 export function editorEditionsFromMarks(marks?: WaqfMarks) {
+  // The editor runs only locally; public pages must not link to it.
+  if (process.env.NODE_ENV !== "development") return [];
   return Object.keys(marks || {}).filter((edition) => EDITOR_EDITIONS.has(edition));
 }
 

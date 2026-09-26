@@ -96,7 +96,6 @@ export function LabPatternsPanel({surahs}: {surahs: Surah[]}) {
 
   return (
     <div className="grid gap-3">
-      <ToolBlurb shortText="مواضع اختلفت فيها المصاحف في علامة الوقف على نفس الكلمة." />
       <CountLabel>{toArabicDigits(items.length)} موضع اختلاف</CountLabel>
       <HitList
         items={items}
@@ -471,7 +470,7 @@ export function LabMushafSimPanel({surahs}: {surahs: Surah[]}) {
       />
       {view === "overview" ? (
         <div className="grid gap-3">
-          <ToolBlurb shortText="أقرب المصاحف في نظام الوقف — الشجرة على الشاشات الواسعة." />
+          <ToolBlurb shortText="تظهر شجرة القرابة على الشاشات الواسعة." />
           <span className="text-[0.78rem] font-bold text-athar-ink-soft">أقرب المصاحف بعضها لبعض</span>
           <div className="grid gap-2">
             {(data.pairs || []).slice(0, 12).map((pair) => (

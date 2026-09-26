@@ -93,7 +93,6 @@ export function LabSolosPanel({surahs}: {surahs: Surah[]}) {
   const maxSolo = Math.max(...summary.map((item) => item.solo_count), 1);
   return (
     <div className="grid gap-3">
-      <ToolBlurb shortText="مواضع وقف انفرد بها كل قارئ دون بقية القرّاء." />
       <div className="grid gap-1.5">
         {summary.map((reciter) => (
           <button

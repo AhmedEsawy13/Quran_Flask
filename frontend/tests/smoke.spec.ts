@@ -573,18 +573,16 @@ test("مختبر الوقف searches words and opens a verse in مُكْث", asy
   await page.goto("/waqf-lab");
   await expect(page.getByRole("heading", {level: 1, name: "ادرس الوقف عبر القرآن، لا آيةً واحدة."})).toBeVisible();
   await expect(page.getByRole("region", {name: "ادرس الوقف عبر القرآن، لا آيةً واحدة."}).getByText("مختبر الوقف", {exact: true})).toBeVisible();
-  await expect(page.getByRole("tab", {name: /كلمات وأنماط/})).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('a[href="/waqf"][aria-current="page"]')).toHaveCount(0);
-  const saktatTab = page.getByRole("tab", {name: "السكتات", exact: true});
-  if (await saktatTab.isVisible()) {
-    await saktatTab.click();
-  } else {
-    await page.getByRole("button", {name: "بحث بالكلمة", exact: true}).click();
-    const sectionDrawer = page.getByRole("dialog", {name: "أقسام المختبر"});
-    await expect(sectionDrawer).toBeVisible();
-    await sectionDrawer.getByRole("option", {name: "السكتات", exact: true}).click();
-    await expect(sectionDrawer).toBeHidden();
-  }
+  // The lab home: a word search with visible examples, and every tool as a question.
+  await expect(page.getByRole("search")).toBeVisible();
+  await expect(page.getByRole("button", {name: /أين وقف قارئ وحده/})).toBeVisible();
+  // An example runs a search and opens the word tool with a summary.
+  await page.getByRole("region", {name: "البحث بالكلمة"}).getByRole("button", {name: "كلا", exact: true}).click();
+  await expect(page).toHaveURL(/tab=word.*q=/);
+  await expect(page.getByLabel("ملخص النتائج")).toContainText("بعلامة وقف", {timeout: 15_000});
+  // Switching tools uses the tool list (sidebar on desktop, chip row on phones).
+  await page.getByRole("navigation", {name: "أدوات المختبر"}).filter({visible: true}).getByRole("button", {name: "السكتات", exact: true}).click();
   await expect(page.getByText(/سكتات حفص/)).toBeVisible({timeout: 15_000});
   const firstHit = page.locator('a[href^="/waqf?"]').first();
   await expect(firstHit).toBeVisible();
