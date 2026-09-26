@@ -351,16 +351,24 @@ HAND_PINNED = Path(_BASE_DIR) / 'pipeline' / 'review' / 'hand_pinned_seats.json'
 
 @lru_cache(maxsize=1)
 def _hand_pinned():
+    """{source: {id, "surah:ayah:wpos:quote", …}}. Ids suit books that are
+    never rebuilt; the seat key survives a rebuild (ids are reassigned)."""
     if not HAND_PINNED.exists():
         return {}
     data = json.loads(HAND_PINNED.read_text(encoding='utf-8'))
-    return {src: {int(i) for i in ids} for src, ids in data.items() if isinstance(ids, dict)}
+    return {src: {int(k) if k.isdigit() else k for k in ids}
+            for src, ids in data.items() if isinstance(ids, dict)}
 
 
 def hand_pinned(source):
-    """Row ids whose seat was verified by reading the book, though the book's
+    """Pins whose seat was verified by reading the book, though the book's
     spelling of the quote cannot match the Hafs word mechanically."""
     return _hand_pinned().get(source, set())
+
+
+def is_hand_pinned(source, row):
+    pins = hand_pinned(source)
+    return row['id'] in pins or f"{row['surah']}:{row['ayah']}:{row['wpos']}:{row['quote']}" in pins
 
 
 def blanket_statement(row):

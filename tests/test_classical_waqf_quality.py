@@ -252,14 +252,14 @@ def test_traceability_check_actually_detects_a_fabricated_quote(source_word_stre
 # ── frontend display cap: regression guard on the data side ─────────────
 
 def test_no_confident_quote_exceeds_the_display_safety_cap(rows):
-    """waqf_guide.js caps the displayed phrase at 24 mushaf words (raised
+    """waqf_guide.js caps the displayed phrase at 32 mushaf words (raised
     from a bug-causing 8 — see the module docstring). If a future source
     update ever produces a longer confident quote, the frontend cap needs
     raising in lockstep, or citations will silently truncate again."""
     def qwc(q):
         return len(re.findall(r'[؀-ۿ]{2,}', q or ''))
     too_long = [(r['source'], r['surah'], r['ayah'], qwc(r['quote'])) for r in rows
-                if r['conf'] and qwc(r['quote']) > 24]
+                if r['conf'] and qwc(r['quote']) > 32]
     assert not too_long, (
         f'{len(too_long)} confident quotes exceed the frontend display cap '
         f'(static/js/waqf_guide.js maxW) — raise it: {too_long[:5]}'

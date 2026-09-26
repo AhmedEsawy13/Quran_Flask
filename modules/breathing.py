@@ -388,9 +388,14 @@ _CLASSICAL_SOURCES = {
 # «ليس فيها وقف كاف») — empty surahs, not holes. classical_review.db is
 # gitignored, so this set — not book_decision — is the release switch.
 # ابن الأنباري joined 2026-09-27 after pipeline/audit_anbari.py re-derived every
-# row from its sentence (sections fixed, chains/negations/relays, grade-before
-# rulings) and a 50-row random sample read 50/50.
-_ACTIVE_CLASSICAL_SOURCES = {'manar', 'muktafa', 'anbari'}
+# row from its sentence (sections fixed, chains/negations/relays, reading-
+# dependent grade-before rulings held unless Hafs's side); a fresh 100-row
+# sample read 76/76 on the kinds still served.
+# النحاس joined 2026-09-27 after pipeline/nahhas_parse.py re-parsed the book
+# (chains, blanket verse-end rules, whose verdict each is — about a quarter are
+# أبو حاتم، الأخفش، نافع …) and pipeline/audit_nahhas.py; an untouched 100-row
+# sample read 97/100 (every word right).
+_ACTIVE_CLASSICAL_SOURCES = {'manar', 'muktafa', 'anbari', 'nahhas'}
 
 
 def _active_classical_sources():

@@ -24,7 +24,7 @@ sys.path.insert(0, str(PIPELINE))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 
 import build_classical_waqf as classical  # noqa: E402
-from core.classical_review import hand_pinned  # noqa: E402
+from core.classical_review import is_hand_pinned  # noqa: E402
 
 CATALOG = PIPELINE / 'classical_books.json'
 DEFAULT_DB = ROOT / 'data' / 'classical_waqf.db'
@@ -131,7 +131,7 @@ def audit(db_path: Path, catalog_path: Path) -> tuple[list[str], dict]:
             for row in confident:
                 if row['ayah'] is None or row['wpos'] is None:
                     continue
-                if row['id'] not in hand_pinned(key) and not _catalog_quote_aligns(row):
+                if not is_hand_pinned(key, row) and not _catalog_quote_aligns(row):
                     unaligned.append(row['id'])
                     unaligned_rows.append(row)
             source_report['unaligned'] = len(unaligned)
@@ -141,10 +141,8 @@ def audit(db_path: Path, catalog_path: Path) -> tuple[list[str], dict]:
                     for r in unaligned_rows[:8])
                 msg = (f'{key}: {len(unaligned)} confident quotes do not align'
                        + (f' ({sample})' if sample else ''))
-                # Released books (منار + المكتفى) are a CI gate. النحاس /
-                # ابن الأنباري stay in the report until those books are
-                # hardened the same way.
-                if key in ('muktafa', 'manar', 'anbari'):
+                # Every released book is a CI gate.
+                if key in ('muktafa', 'manar', 'anbari', 'nahhas'):
                     errors.append(msg)
                 else:
                     source_report['unaligned_note'] = msg

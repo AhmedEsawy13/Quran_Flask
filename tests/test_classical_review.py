@@ -177,7 +177,7 @@ def test_completed_review_can_activate_muktafa(client, review_db):
     })
     assert response.status_code == 200
     payload = client.get('/api/classical-waqf/2/255').get_json()
-    assert set(payload['sources']) == {'manar', 'muktafa', 'anbari'}
+    assert set(payload['sources']) == {'manar', 'muktafa', 'anbari', 'nahhas'}
     assert any(row['source'] == 'muktafa' for row in payload['entries'])
 
 

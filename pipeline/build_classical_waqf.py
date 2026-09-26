@@ -878,66 +878,87 @@ _AFTER_MAP = dict(_NAHHAS_AFTER)
 _BEFORE_MAP = dict(_NAHHAS_BEFORE)
 
 
-def harvest_nahhas(body, rows, seq0):
-    seq = seq0
-    unmatched = 0
-    last_num = 0
+# القطع والائتناف's old surah names (سورة الطول = غافر …); its «سورة القلم»
+# after التين is العلق, and «ذوات قل» holds الإخلاص–الناس.
+_NAHHAS_TITLES = [('الطول', 40), ('حم عسق', 42), ('الشريعة', 45), ('المنافقين', 63),
+                  ('سأل', 70), ('انفطرت', 82), ('ذوات قل', 112)]
+
+
+def nahhas_sections(body):
+    """[(surah, text)] for القطع والائتناف, in book order."""
+    out, last = [], 0
     for sec in re.split(r'\n### \|+ ?', body):
         title, _, text = sec.partition('\n')
         title = re.sub(r'^(AUTO|CHECK)\s*', '', title.strip())
-        if 'سورة' not in title:
-            continue
-        num = surah_number(title, last_num)
+        plain = re.sub(r'\[.*?\]', '', title).strip()
+        num = next((n for key, n in _NAHHAS_TITLES
+                    if plain == key or plain == 'سورة ' + key), None)
+        if num is None:
+            if 'سورة' not in title:
+                continue
+            num = surah_number(title, last)
+            if num == 68 and last >= 95:
+                num = 96                   # «سورة القلم» = اقرأ باسم ربك الذي خلق
         if num is None:
             continue
-        last_num = num
+        last = num
+        out.append((num, text))
+    return out
+
+
+def harvest_nahhas(body, rows, seq0):
+    """Rulings from pipeline/nahhas_parse.py, each seated where the WHOLE
+    quote matches the Hafs text, nearest forward from the previous seat.
+    Reading-dependent rulings and far jumps are held (conf=0)."""
+    try:
+        import nahhas_parse as nparse
+    except ImportError:
+        from pipeline import nahhas_parse as nparse
+    seq = seq0
+    unmatched = 0
+    for num, text in nahhas_sections(body):
         stream = build_stream(num)
         cursor = 0
-        # collect entries (quote, grade) by CONTENT position (dedup key — same
-        # convention for both patterns, right after the opening brace), but
-        # also keep each match's own START (m.start(), which for the البلاغ
-        # -pattern INCLUDES the leading grade word «والتمام ») separately —
-        # the note boundary must be the latter, or it always dangles at the
-        # NEXT entry's opening brace («…والتمام {»), never showing prose that
-        # is genuinely there.
-        # النحاس refers to HIMSELF in third person by his own kunya «أبو
-        # جعفر» throughout this book — that's his own voice, not a citation
-        # of someone else, so it's excluded from reported_scholar() below.
-        entries = {}   # content-start → (quote, grade, note_from, match_start, reported_from)
-        for m in _NAHHAS_AFTER_RE.finditer(text):
-            entries[m.start(1)] = (m.group(1), _AFTER_MAP[m.group(2)], m.end(), m.start(),
-                                    reported_scholar(text, m.start(), self_names={'أبو جعفر'}))
-        for m in _NAHHAS_BEFORE_RE.finditer(text):
-            entries.setdefault(m.start(2), (m.group(2), _BEFORE_MAP[m.group(1)], m.end(), m.start(),
-                                             reported_scholar(text, m.start(), self_names={'أبو جعفر'})))
-        positions = sorted(entries)
-        for i, pos in enumerate(positions):
-            quote, grade, note_from, _, reported_from = entries[pos]
-            quote = clean_note(quote, limit=200)
-            qwords = quote_words(quote)
-            if not qwords:
+        seats = {}                     # quote start → stream index
+        for r in nparse.parse(text):
+            if r.how == 'blanket':
                 continue
-            cursor_before = cursor
-            hit, cursor = align_cursor(stream, cursor, qwords)
+            if r.start not in seats:
+                idx, ok = nparse.seat(stream, cursor, quote_words(r.quote), match_word)
+                seats[r.start] = (idx, ok)
+                if idx is not None and ok:
+                    cursor = idx
+            idx, ok = seats[r.start]
             seq += 1
-            # Bound the note by the NEXT entry's WHOLE MATCH, not a flat
-            # 400-char slice — a hard pre-slice defeats clean_note()'s own
-            # word-boundary/ellipsis truncation (400 < its 500 default, so
-            # that safety net never engaged): 91% of نحاس's notes were
-            # silently cut mid-word.
-            nxt = entries[positions[i + 1]][3] if i + 1 < len(positions) else len(text)
-            note = clean_note(text[note_from:min(nxt, note_from + 700)])
-            if hit is None:
+            quote = clean_note(r.quote, limit=200)
+            note = clean_note(r.note, limit=500)
+            if idx is None:
                 unmatched += 1
-                rows.append(('nahhas', num, None, None, None, quote, grade, grade, note, seq, 0, reported_from))
+                rows.append(('nahhas', num, None, None, None, quote, r.grade, r.grade, note, seq, 0, r.by))
                 continue
-            conf = 1
-            if cursor_before > 0 and (hit < cursor_before - _BACK_WINDOW or hit > cursor_before + 300):
-                conf = 0
-                cursor = cursor_before
-            ayah, wpos, _ = stream[hit]
+            ayah, wpos, _ = stream[idx]
             _, words, _ = app._verse_word_texts(f'{num}:{ayah}')
-            rows.append(('nahhas', num, ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf, reported_from))
+            conf = 1 if ok and not r.reading else 0
+            rows.append(('nahhas', num, ayah, wpos, words[wpos], quote, r.grade, r.grade, note, seq, conf, r.by))
+        # «ثم القطع على رؤوس الآيات كاف إلى {X}»: verse ends from the quote
+        # just before the statement up to (not including) X's verse
+        for r in nparse.parse(text):
+            if r.how != 'blanket' or r.start not in seats or seats[r.start][0] is None or not r.prev_quote:
+                continue
+            end = seats[r.start][0]
+            before = [i for i in nparse.occurrences(stream, quote_words(r.prev_quote), match_word) if i < end]
+            if not before:
+                continue
+            a0, w0, _ = stream[before[-1]]
+            a1 = stream[end][0]
+            first = a0 if w0 < len(app._verse_word_texts(f'{num}:{a0}')[1]) - 1 else a0 + 1
+            if a1 - first > 40:
+                continue
+            for ay in range(first, a1):
+                _, words, _ = app._verse_word_texts(f'{num}:{ay}')
+                seq += 1
+                rows.append(('nahhas', num, ay, len(words) - 1, words[-1], words[-1], r.grade, 'رؤوس الآي',
+                             clean_note(r.note, limit=500), seq, 1, r.by))
     return seq, unmatched
 
 

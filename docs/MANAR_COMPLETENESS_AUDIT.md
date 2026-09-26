@@ -183,3 +183,24 @@ rulings (70 ordinary, 6 relayed, 24 grade-before). Ordinary and relayed were
 grade-before class was wrong for Hafs or wrongly seated in 8 of 24, which is
 why that class is now held. The 23 rule-inserted graded entries and the 4
 served grade-before rulings were each read by hand.
+
+### النحاس (القطع والائتناف), 2026-09-27
+
+The old harvester read one pattern and credited nearly every ruling to
+النحاس. `pipeline/nahhas_parse.py` now parses the book's own vocabulary:
+grade after a quote («قطع كاف»، «تم»، «فإنه تمام»، «فهذا الكافي من الوقف»)
+or before it («والتمام {X}»، «والكافي بعده عنده {X}»), «وكذا» chains,
+negations («ليس بقطع كاف»), and «ثم القطع على رؤوس الآيات كاف إلى {X}»
+ranges. Attribution: «قال فلان» covers only the quote it introduces (a bare
+«قال» continues it), «{X} كاف عند أبي حاتم»، «وعن نافع {X} تم»، «ومذهب فلان أن
+التمام»، «وعند غيره تام» (a second row); «قال جل وعز» and tafsir authorities
+are not waqf verdicts; «أبو جعفر» is النحاس. Each quote is seated where the
+whole quote matches the Hafs text, nearest forward from the previous seat.
+Surah sections were fixed (الطول، حم عسق، الشريعة، سأل، انفطرت; the second
+«سورة القلم» is العلق). `pipeline/audit_nahhas.py` adds الفاتحة, «ذوات قل»,
+«والتمام آخر السورة» rows and a few curated fixes.
+
+Rows 1,767 → 5,426 (5,118 served, 308 held). Three random samples of 100:
+88/100, then 97/100 after fixing what the first found, then 97/100 on an
+untouched sample (seed 20261004); word placement 100/100 on the last two.
+The remaining misses are attribution edge cases and one corrupted passage.

@@ -166,10 +166,25 @@ def test_reported_from_is_a_small_conservative_fraction(rows):
     NAME:»). A large fraction would mean the pattern went too broad and is
     now catching ordinary prose."""
     for src in pcw.SOURCES:
+        if src == 'nahhas':
+            continue        # a compilation of others' verdicts; see the test below
         sub = [r for r in rows if r['source'] == src]
         tagged = sum(1 for r in sub if r['reported_from'])
         frac = tagged / len(sub) if sub else 0
         assert frac < 0.05, f'{src}: {tagged}/{len(sub)} ({frac:.1%}) tagged — regex may be over-matching'
+
+
+def test_nahhas_attributions_are_known_scholars(rows):
+    """القطع والائتناف relays أبو حاتم، الأخفش، نافع … on most pages, so about
+    a quarter of its rulings are theirs. Every name must be a scholar the
+    parser knows (never a phrase), and النحاس's own voice stays the majority."""
+    from pipeline import nahhas_parse
+    known = set(nahhas_parse._WAQF) | {'غيره'}
+    sub = [r for r in rows if r['source'] == 'nahhas']
+    bad = sorted({r['reported_from'] for r in sub if r['reported_from'] and r['reported_from'] not in known})
+    assert not bad, bad
+    tagged = sum(1 for r in sub if r['reported_from'])
+    assert 0.15 < tagged / len(sub) < 0.35
 
 
 def test_reported_from_values_look_like_names_not_grade_words():

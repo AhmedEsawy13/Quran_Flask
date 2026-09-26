@@ -138,8 +138,10 @@ growing unnoticed.
    (section mapping fixed, chains/negations/relays resolved, grade-before
    rulings added, reading splits resolved to Hafs); 106 rows stay held, 68 of
    them grade-before rulings that hinge on i'rab or a non-Hafs reading.
-3. **القطع والائتناف** — most discursive; expand only structurally unambiguous
-   grade-before/grade-after forms, then scholar-review its 158 queued rows.
+3. **القطع والائتناف** — active since 2026-09-27. pipeline/nahhas_parse.py
+   reads its chains, blanket verse-end rules and whose verdict each ruling is
+   (about a quarter are أبو حاتم، الأخفش، نافع … and carry `reported_from`);
+   308 rows stay held.
 4. **منار الهدى** — keep the released guarded dataset, review the exported 102
    heuristic suspects in the منار tab of `/classical-review`, then replace
    historical LLM-only discursive records incrementally with source-located
@@ -152,7 +154,7 @@ Current deterministic catalog audit baseline:
 |---|---:|---:|---:|---:|
 | المكتفى | 6,749 | 112 | 6,749 | 0 (incl. blanket verse-end rows) |
 | منار الهدى | 13,407 | 114 | 13,407 | 0 |
-| القطع والائتناف | 1,767 | 91 | 1,609 | 158 |
+| القطع والائتناف | 5,426 | 113 | 5,118 | 308 held (157 quotes not found in their surah, reading-dependent or far-jump seats) |
 | إيضاح الوقف والابتداء | 2,414 | 112 | 2,308 | 106 held (68 i'rab/non-Hafs grade-before rulings, unplaceable single words, curated HOLD) |
 
 Inheritance and ordinal audits (2026-09-26) — rerun after any rebuild:
@@ -163,6 +165,8 @@ python3 pipeline/audit_muktafa_ordinals.py     # المكتفى «الأول/ا�
 python3 pipeline/audit_muktafa_blanket.py      # المكتفى «ورؤوس الآي بعد كافية» statements
 python3 pipeline/build_classical_waqf.py --only anbari && \
 python3 pipeline/audit_anbari.py --apply       # إيضاح: seats, chains, relays, grade-before rulings
+python3 pipeline/build_classical_waqf.py --only nahhas && \
+python3 pipeline/audit_nahhas.py --apply       # القطع: الفاتحة، ذوات قل، آخر السورة، curated fixes
 ```
 
 Run them in that order (the blanket step fills only verse-ends no other

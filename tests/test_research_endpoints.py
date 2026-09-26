@@ -187,8 +187,8 @@ def test_classical_waqf_alignment_quality(client):
     """الداني (المكتفى) + الأشموني (منار الهدى) + النحاس (القطع والائتناف) +
     ابن الأنباري (إيضاح الوقف) aligned to recited-word positions: known
     anchors hold and wpos always lands inside the verse. Checked directly
-    against the DB since only منار is currently exposed via the API
-    (see test_classical_waqf_api_serves_active_sources_only)."""
+    against the DB (the API serves the same rows; see
+    test_classical_waqf_api_serves_active_sources_only)."""
     rows = _classical_rows(2, 2)
     got = {(r["source"], r["wpos"], r["grade"]) for r in rows}
     # الداني: {لا ريب فيه} كاف on فيه (w4); {هدى للمتقين} تام on للمتقين (w6).
@@ -217,19 +217,17 @@ def test_classical_waqf_alignment_quality(client):
 
 
 def test_classical_waqf_api_serves_active_sources_only(client):
-    """منار + المكتفى + ابن الأنباري are on the serving allowlist. النحاس stays
-    aligned in the DB (previous test) but withheld until reviewed."""
+    """All four books are on the serving allowlist; only conf=1 rows are served."""
     j = client.get("/api/classical-waqf/2/255").get_json()
-    assert set(j["sources"].keys()) == {"manar", "muktafa", "anbari"}
+    assert set(j["sources"].keys()) == {"manar", "muktafa", "anbari", "nahhas"}
     assert j["sources"]["manar"]["title"].startswith("منار الهدى")
     assert j["sources"]["muktafa"]["title"].startswith("المكتفى")
     assert j["sources"]["anbari"]["title"].startswith("إيضاح الوقف")
+    assert j["sources"]["nahhas"]["title"].startswith("القطع")
     assert j["entries"], "active sources should still have entries for آية الكرسي"
-    assert {e["source"] for e in j["entries"]} <= {"manar", "muktafa", "anbari"}
-    assert "nahhas" not in {e["source"] for e in j["entries"]}
-    assert any(e["source"] == "manar" for e in j["entries"])
-    assert any(e["source"] == "muktafa" for e in j["entries"])
-    assert any(e["source"] == "anbari" for e in j["entries"])
+    assert {e["source"] for e in j["entries"]} <= {"manar", "muktafa", "anbari", "nahhas"}
+    for src in ("manar", "muktafa", "anbari", "nahhas"):
+        assert any(e["source"] == src for e in j["entries"]), src
     # bounds validation
     assert client.get("/api/classical-waqf/115/1").status_code == 400
 
