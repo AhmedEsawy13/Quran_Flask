@@ -152,3 +152,22 @@ def test_anbari_conditional_grade_before_rulings_are_held(db, surah, ayah, wpos,
                           "AND ayah=? AND wpos=? AND grade=? AND grade_raw IN "
                           "('يحسن الوقف','لا يحسن الوقف','يتم الوقف','يكفي الوقف')",
                           (surah, ayah, wpos, grade)).fetchone()
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade', [
+    (3, 36, 6, 'حسن'),      # Hafs «وضعَتْ»: كلام الله يبتدأ به
+    (23, 111, 4, 'قبيح'),   # Hafs «أنَّهم»
+    (8, 19, 19, 'قبيح'),    # Hafs «وأنَّ الله»
+    (7, 186, 5, 'حسن'),     # Hafs «ويذرُهم» بالياء والرفع
+    (10, 90, 14, 'قبيح'),   # the first «آمنت» (عامل في «أنَّه»)
+    (59, 17, 4, 'حسن'),     # Hafs «خالدَين»
+])
+def test_anbari_hafs_side_of_reading_splits_is_served(db, surah, ayah, wpos, grade):
+    assert db.execute("SELECT 1 FROM classical WHERE source='anbari' AND conf=1 AND surah=? "
+                      "AND ayah=? AND wpos=? AND grade=?", (surah, ayah, wpos, grade)).fetchone()
+
+
+def test_anbari_non_hafs_grade_after_rulings_dropped(db):
+    # «فمن أخذ بهذه القراءة (أنى صببنا) قال: الوقف على (طعامه) تام»
+    assert not db.execute("SELECT 1 FROM classical WHERE source='anbari' AND conf=1 AND surah=80 "
+                          "AND ayah=24 AND wpos=3 AND grade='تام'").fetchone()

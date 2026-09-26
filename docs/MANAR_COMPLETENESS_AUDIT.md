@@ -169,10 +169,15 @@ entries and book-end rows.
 
 The book's «يحسن / لا يحسن الوقف على (X)» sentences are nearly all tied to a
 reading or an i'rab («فمن قرأ …»، «فعلى هذا المذهب …»، «إن جعلت …»), often
-not Hafs's (3:36 «وضعت»، 23:111 «أنهم»، 8:19 «وأن الله»). Those 88 rows are
-kept but held; only 4 plain «والتمام على (X)» rulings are served.
+not Hafs's. Each was read by hand: where the split is between readings, the
+side Hafs reads (checked against the Hafs vowels: وضعَتْ، وأنَّ، أنَّهم، أنَّا،
+متاعَ، سواءً، خالدَين …) is served and marked «[على قراءة حفص]» (HAFS_SIDE,
+HAFS_ADD); plain or «من الوجهين جميعا» rulings are served (BEFORE_CONFIRMED).
+The 68 that hinge only on i'rab alternatives or a non-Hafs reading stay
+held. Two grade-after rows that were not the Hafs ruling are dropped (DROP).
 
-2,288 of 2,414 rows are served, 126 held. Accuracy check (seed 20261001): 100
+After that pass 2,288 of 2,414 rows were served; after the Hafs resolution
+2,308 are served and 106 held. Accuracy check (seed 20261001): 100
 rulings (70 ordinary, 6 relayed, 24 grade-before). Ordinary and relayed were
 76/76 right on word, grade and attribution (95% Wilson lower bound ≈ 95%). The
 grade-before class was wrong for Hafs or wrongly seated in 8 of 24, which is

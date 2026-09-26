@@ -261,8 +261,30 @@ _CONDITIONAL = re.compile(r'قرأ|قراءة|القراء[ةت]|يقرؤ|مذه
 
 
 # read by hand: plain «والتمام على (X)» with no reading or i'rab condition
-BEFORE_CONFIRMED = {(3, 'شديد العقاب'), (3, 'وبئس مثوى الظالمين'), (3, 'المؤمنين'),
-                    (7, 'والعاقبة للمتقين')}
+BEFORE_CONFIRMED = {(3, 'شديد العقاب', 'تام'), (3, 'وبئس مثوى الظالمين', 'تام'), (3, 'المؤمنين', 'تام'),
+                    (7, 'والعاقبة للمتقين', 'تام'), (10, 'تحكمون', 'تام'),
+                    (40, 'كذلك يضل الله الكافرين', 'تام'),
+                    # «من الوجهين جميعا»، or the author's own verdict against السجستاني
+                    (31, 'الحكيم', 'حسن'), (31, 'بغير علم', 'قبيح'), (46, 'الذين ظلموا', 'قبيح'),
+                    (7, 'حرج منه', 'قبيح'), (7, 'ليفسدوا في الأرض', 'قبيح')}
+# the side of a reading split that Hafs reads (checked against the Hafs
+# vowels: الملائكةُ، وضعَتْ، ظُلِمَ، والعينَ، وأنَّ، أنَّ، متاعَ، أنَّه، سواءً،
+# أنَّهم، أنَّا، خالدَين، أنَّا)
+HAFS_SIDE = {(2, 'الملائكة', 'حسن'), (3, 'وضعتها أنثى', 'حسن'), (4, 'شاكرا عليا', 'تام'),
+             (5, 'بالنفس', 'قبيح'), (8, 'ولو كثرت', 'قبيح'), (9, 'يوم الحج الأكبر', 'قبيح'),
+             (10, 'أنفسكم', 'حسن'), (10, 'آمنت', 'قبيح'), (22, 'الناس', 'قبيح'),
+             (23, 'صبروا', 'قبيح'), (27, 'عاقبة مكرهم', 'قبيح'), (59, 'النار', 'حسن'),
+             (80, 'طعامه', 'قبيح')}
+# «(آمنت) … لم يقف على (آمنت) لأنه عامل في (أن)» is the first «آمنت» of 10:90
+BEFORE_SEAT = {(10, 'آمنت', 'قبيح'): (90, 14)}
+# the Hafs side stated as «حسن له أن يقف على …», which the grade-before
+# pattern does not read: (surah, ayah, wpos, grade, quote, note)
+HAFS_ADD = [(7, 186, 5, 'حسن', 'فلا هادي له',
+             'فمن قرأ: (ونذرهم) بالنون والرفع حسن له أن يقف على قوله: (فلا هادي له) … '
+             'وكذلك من قرأها بالياء والرفع [على قراءة حفص]'),
+            (2, 285, 13, 'حسن', 'ملائكته وكتبه ورسله',
+             'من قرأ: (لا نفرق) بالنون حسن له أن يقف على (ملائكته وكتبه ورسله) ثم يبتديء: (لا نفرق) '
+             'وهي قراءة نافع وعاصم وأبي عمرو وحمزة والكسائي [على قراءة حفص]')]
 
 
 def conditional(text, start, end):
@@ -291,18 +313,21 @@ def missing_before_rulings(con):
                 continue                       # «ولا يحسن»
             qs = m.end() - len(q) - 1
             va, own = verse_at(text, qs, m.end(), acount)
-            a, w = seat(surah, va, q, acount, next_marker(text, m.end(), va, acount), own)
+            key = (surah, squash(q), g)
+            a, w = BEFORE_SEAT.get(key) or seat(surah, va, q, acount, next_marker(text, m.end(), va, acount), own)
             if a is None or (surah, a, w, g) in seen:
                 continue
             seen.add((surah, a, w, g))
-            held = (surah, squash(q)) not in BEFORE_CONFIRMED and conditional(text, m.start(), m.end())
+            held = key not in BEFORE_CONFIRMED and key not in HAFS_SIDE and \
+                conditional(text, m.start(), m.end())
             row = con.execute("SELECT id, grade_raw, conf FROM classical WHERE source='anbari' AND surah=? "
                               "AND ayah=? AND wpos=? AND grade=?", (surah, a, w, g)).fetchone()
             if row:
-                if held and row[1] == raw and row[2]:
-                    con.execute('UPDATE classical SET conf=0 WHERE id=?', (row[0],))
+                if row[1] == raw and bool(row[2]) == held:
+                    con.execute('UPDATE classical SET conf=? WHERE id=?', (0 if held else 1, row[0]))
                 continue
-            out.append((surah, a, w, g, raw, squash(q), clause(text, m.start(), m.end()), held))
+            note = clause(text, m.start(), m.end()) + (' [على قراءة حفص]' if key in HAFS_SIDE else '')
+            out.append((surah, a, w, g, raw, squash(q), note, held))
     return out
 
 
@@ -323,6 +348,8 @@ def missing_graded_entries(con):
             q = m.group(1)
             va, own = verse_at(text, m.start(), m.end(), acount)
             a, w = seat(surah, va, q, acount, next_marker(text, m.end(), va, acount), own)
+            if (surah, a, w, g) in DROP:
+                continue
             if a is None or (surah, a, w, g) in seen:
                 continue
             seen.add((surah, a, w, g))
@@ -334,6 +361,11 @@ def missing_graded_entries(con):
 
 
 # no grade in the book for these («ومثله» is grammatical there): keep held
+# not the book's ruling for Hafs: «فمن أخذ بهذه القراءة (أنى صببنا) قال: الوقف على
+# (طعامه) تام»; and a chain re-read from a repeated sentence (3:31 «ويغفر لكم
+# ذنوبكم» is «ومثله» of حسن, the تام is «والله غفور رحيم»'s)
+DROP = {(80, 24, 3, 'تام'), (3, 31, 10, 'تام')}
+
 HOLD = {(5, 'والجروح قصاص'), (7, 'وهم يلعبون'), (7, 'وجاءوا بسحر عظيم'),
         (28, 'ما كان لهم الخيرة'), (69, 'ولا بقول كاهن')}
 
@@ -434,6 +466,20 @@ def apply(con, recs):
         cur.execute('UPDATE classical SET ayah=?, wpos=?, stop_word=?, conf=1 WHERE id=?',
                     (a, w, mm.verse_words(s_, a)[w], rid))
         st['served_by_neighbours'] += 1
+    for key in DROP:
+        n = cur.execute("DELETE FROM classical WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
+                        "AND grade=? AND grade_raw=grade", key).rowcount
+        st['dropped'] += n
+    for surah, a, w, g, q, note in HAFS_ADD:
+        if not cur.execute("SELECT 1 FROM classical WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
+                           "AND grade=? AND conf=1", (surah, a, w, g)).fetchone():
+            seq = (cur.execute("SELECT seq FROM classical WHERE source='anbari' AND surah=? AND "
+                               "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
+                               (surah, a, a, w)).fetchone() or (0,))[0]
+            cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, grade_raw, "
+                        "note, seq, conf, reported_from) VALUES ('anbari',?,?,?,?,?,?,?,?,?,1,NULL)",
+                        (surah, a, w, mm.verse_words(surah, a)[w], q, g, BEFORE_RAW[g], note, seq))
+            st['inserted_hafs_side'] += 1
     for surah, g in BOOK_END:
         a = rx.surah_ayah_count(surah)
         w = len(mm.verse_words(surah, a)) - 1

@@ -136,8 +136,8 @@ growing unnoticed.
    الكتاب».
 2. **إيضاح الوقف والابتداء** — active since 2026-09-26 after audit_anbari.py
    (section mapping fixed, chains/negations/relays resolved, grade-before
-   rulings added); 126 rows stay held, 88 of them grade-before rulings
-   tied to one reading or i'rab (often not Hafs's).
+   rulings added, reading splits resolved to Hafs); 106 rows stay held, 68 of
+   them grade-before rulings that hinge on i'rab or a non-Hafs reading.
 3. **القطع والائتناف** — most discursive; expand only structurally unambiguous
    grade-before/grade-after forms, then scholar-review its 158 queued rows.
 4. **منار الهدى** — keep the released guarded dataset, review the exported 102
@@ -153,7 +153,7 @@ Current deterministic catalog audit baseline:
 | المكتفى | 6,749 | 112 | 6,749 | 0 (incl. blanket verse-end rows) |
 | منار الهدى | 13,407 | 114 | 13,407 | 0 |
 | القطع والائتناف | 1,767 | 91 | 1,609 | 158 |
-| إيضاح الوقف والابتداء | 2,414 | 112 | 2,288 | 126 held (88 reading/i'rab-conditional grade-before rulings, unplaceable single words, curated HOLD) |
+| إيضاح الوقف والابتداء | 2,414 | 112 | 2,308 | 106 held (68 i'rab/non-Hafs grade-before rulings, unplaceable single words, curated HOLD) |
 
 Inheritance and ordinal audits (2026-09-26) — rerun after any rebuild:
 
