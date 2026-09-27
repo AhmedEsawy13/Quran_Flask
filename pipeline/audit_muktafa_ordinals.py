@@ -40,7 +40,10 @@ _SPAN = 5          # verses searched after the anchor
 # «وحقت» الثانية (84:5) — no confident entry precedes it in the surah;
 # «ويعفو عن كثير» الأول تام (42:30) — the book spells it without the alif
 # (the second, 42:34, is تام only for «ويعلمُ» بالرفع, not Hafs).
-MANUAL = [(84, 5, 2, 'وحقت', 'تام'), (42, 30, 9, 'ويعفو عن كثير', 'تام')]
+# «{إلها آخر} كاف … {فسوف يعلمون} تام. وهو تهدد» (15:96) — the builder kept
+# only the first «فسوف يعلمون» (15:3).
+MANUAL = [(84, 5, 2, 'وحقت', 'تام'), (42, 30, 9, 'ويعفو عن كثير', 'تام'),
+          (15, 96, 7, 'فسوف يعلمون', 'تام'), (54, 21, 3, 'ونذر', 'تام'), (54, 39, 2, 'ونذر', 'تام')]
 # «ومثله {X} الثاني» items the builder put on the FIRST occurrence:
 # (surah, ayah, wpos, quote) → (ayah, wpos).
 MOVES = {
@@ -49,6 +52,23 @@ MOVES = {
     (26, 108, 2, 'وأطيعون'): (110, 2),
     (37, 175, 2, 'فسوف يبصرون'): (179, 2),
     (56, 90, 5, 'أصحاب اليمين'): (91, 4),
+    # repeated phrases the aligner put on another verse; the book's order
+    # (seq) puts each among the verses given here (2026-09-27 order sweep)
+    (2, 150, 30, 'تهتدون'): (135, 5),              # «كونوا هودا أو نصارى تهتدوا»
+    (9, 54, 18, 'لا ينفقون'): (92, 22),            # «{مع الخوالف} كاف. {لا ينفقون} تام»
+    (16, 89, 10, 'أمر بك'): (33, 9),               # «أو يأتي أمر ربك»
+    (51, 59, 8, 'به يستعجلون'): (14, 6),           # «هذا الذي كنتم به تستعجلون»
+    (6, 31, 21, 'وراء ظهورهم'): (94, 11),          # «{مثل ما أنزل الله} كاف. ومثله {وراء ظهورهم}»
+    (7, 145, 19, 'الفاسقين'): (102, 8),            # «وإن وجدنا أكثرهم لفاسقين»
+    (15, 8, 4, 'إلا بالحق'): (85, 7),              # «{لآية للمؤمنين} تام … ومثله {إلا بالحق}»
+    (15, 25, 6, 'الخلاق العليم'): (86, 4),
+    (16, 18, 9, 'لرؤوف رحيم'): (7, 13),            # «{بشق الأنفس} ومثله {لرؤوف رحيم}»
+    (38, 45, 7, 'والأبصار'): (63, 5),              # «{ضعفا في النار} تام. ومثله {والأبصار}»
+    (46, 14, 2, 'في أصحاب الجنة'): (16, 12),       # «{ووضعته كرها} كاف … ومثله {في أصحاب الجنة}»
+    (55, 33, 5, 'وبين حميم آن'): (44, 4),          # «{فلا تنتصران} تام ومثله {وبين حميم آن}»
+    # «{يوم عسر} تام ومثله {ونذر} حيث وقع في السورة إذا كان بعده {ولقد يسرنا
+    # القرآن للذكر}»: 54:16، 54:21، 54:39 (the other two are in MANUAL)
+    (54, 5, 4, 'ونذر'): (16, 3),
 }
 # conf=0 rows (the cursor aligner could not pin them confidently), each read
 # against its own surah's section (2026-09-26): all are الداني's rulings.
@@ -127,7 +147,7 @@ def resolve(con):
 
 # «وقال نافع {بل أحياء} تام» — no colon, so the builder's reported_scholar()
 # (which needs «وقال فلان:») missed it and the row reads as الداني's own.
-_RELAYED = re.compile(r'(?:^|[\s.،])و?قال(?:ت)?\s+([^{}:.،()]{2,45}?)\s*'
+_RELAYED = re.compile(r'(?:^|[\s.،])و?قال(?:ت)?\s+([^{}:.،()]{2,45}?)\s*:?\s*'
                       r'(?:\{([^{}]{1,80})\}|\(\(([^()]{1,60})\)\))\s*(تام|كاف|حسن|أتم|أكفى|قبيح)')
 RELAYED_SEAT = {(4, 'غفورا رحيما'): 23}     # the passage is on 4:23, not 4:152
 
@@ -146,6 +166,8 @@ def relayed_rows(con):
         last = surah
         for m in _RELAYED.finditer(mm.strip(text)):
             name = re.sub(r'\s+', ' ', m.group(1)).strip()
+            if name in ('أبو عمرو', 'الداني', 'أبو عمرو الداني'):      # الداني himself
+                continue
             quote = (m.group(2) or m.group(3)).strip()
             rows = con.execute("SELECT id, ayah FROM classical WHERE source='muktafa' AND surah=? "
                                "AND quote=? AND grade_raw<>'رؤوس الآي'", (surah, quote)).fetchall()

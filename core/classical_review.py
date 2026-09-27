@@ -400,7 +400,7 @@ def muktafa_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
         traced = b.quote_words(blanket_statement(row)) if row['grade_raw'] == BLANKET_RAW else qwords
         if traced and (' ' + ' '.join(traced) + ' ') in source_words:
             source_traceable += 1
-        if row['id'] in hand_pinned('muktafa'):
+        if is_hand_pinned('muktafa', row):
             aligned += 1
         elif quote_matches_position(row['surah'], row['ayah'], row['wpos'], row['quote']):
             aligned += 1

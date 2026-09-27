@@ -52,6 +52,10 @@ CURATED_BY = {(2, 'حذر الموت والله محيط بالكافرين', '�
 # so the «وكذا» chain after it is حسن (of «افتراء عليه»), not the تام before
 REGRADE = {(6, 'سيجزيهم بما كانوا يفترون', 'تام'): 'حسن', (6, 'فهم فيه شركاء', 'تام'): 'حسن',
            (6, 'سيجزيهم وصفهم', 'تام'): 'حسن'}
+# seats the book's order contradicts (2026-09-27 order sweep): (surah, ayah,
+# quote) → (ayah, wpos). «{كذلك يبين الله لكم الآيات} قطع كاف والتمام {والله
+# عليكم حكيم}» is 24:58; «وقال محمد بن عيسى {من بعد ما تبين لهم الهدى}» 47:25
+MOVES = {(24, 18, 'والله عليكم حكيم'): (58, 48), (47, 32, 'من بعد ما تبين لهم الهدى'): (25, 10)}
 # «ذوات قل» items the parser seated nowhere (they cite الفلق / الناس)
 DROP_UNSEATED = {(112, 'قل أعوذ برب الفلق'), (112, 'قل أعوذ برب الناس')}
 
@@ -76,6 +80,10 @@ def plan(con):
                                    "AND quote=? AND grade=?", (s, q, g)):
             if rf != who:
                 ops.append(('attribute', rid, who))
+    for (s, a0, q), (a, w) in MOVES.items():
+        for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND ayah=? "
+                                  "AND quote=?", (s, a0, q)):
+            ops.append(('move', rid, (a, w)))
     for (s, q, g), g2 in REGRADE.items():
         for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND quote=? "
                                   "AND grade=?", (s, q, g)):
@@ -116,6 +124,11 @@ def apply(con):
     for op, x, who in plan(con):
         if op == 'attribute':
             con.execute('UPDATE classical SET reported_from=? WHERE id=?', (who, x))
+        elif op == 'move':
+            s_ = con.execute('SELECT surah FROM classical WHERE id=?', (x,)).fetchone()[0]
+            a, w = who
+            con.execute('UPDATE classical SET ayah=?, wpos=?, stop_word=? WHERE id=?',
+                        (a, w, rx.app._verse_word_texts(f'{s_}:{a}')[1][w], x))
         elif op == 'regrade':
             con.execute('UPDATE classical SET grade=?, grade_raw=? WHERE id=?', (who, who, x))
         elif op == 'delete':
@@ -145,7 +158,7 @@ def main():
         print('applied:', apply(con))
     else:
         ops = plan(con)
-        print(len(ops), 'changes:', {k: sum(1 for o in ops if o[0] == k) for k in ('attribute', 'regrade', 'delete', 'insert')})
+        print(len(ops), 'changes:', {k: sum(1 for o in ops if o[0] == k) for k in ('attribute', 'move', 'regrade', 'delete', 'insert')})
     con.close()
 
 

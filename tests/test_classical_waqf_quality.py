@@ -118,7 +118,9 @@ def test_no_dangling_paren_at_quote_or_note_edges(rows):
     for r in rows:
         for field in ('quote', 'note'):
             v = (r[field] or '').strip()
-            if v and (v.startswith('(') or v.endswith('(')):
+            # a note may open with the book's own «(quote)» (ابن الأنباري notes
+            # start at the quote); only an UNMATCHED edge paren is an artifact
+            if v and (v.endswith('(') or (v.startswith('(') and ')' not in v)):
                 bad.append((r['source'], r['surah'], r['ayah'], field, v[:20]))
     assert not bad, f'{len(bad)} rows have a dangling paren at an edge, e.g. {bad[:5]}'
 

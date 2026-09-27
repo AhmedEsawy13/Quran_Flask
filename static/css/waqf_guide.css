@@ -1234,3 +1234,4 @@ body.wq-dark .wq-guide-sym.wq-guide-ras, body.wq-dark .wq-guide-lbl.wq-guide-ras
     .wq-mini-stop,
     .wq-word-hl { transition: none !important; animation: none !important; }
 }
+.wq-illa-follows { color: var(--wq-text); font-weight: 600; }

@@ -149,12 +149,24 @@ def next_marker(text, end, ayah, acount):
     return acount
 
 
+# the book's own number is wrong here (checked 2026-09-27 against the order of
+# its entries): «(إلا مكاء وتصدية) [35] حسن. (ليصدوا عن سبيل الله) [26]» is 8:36
+SEAT_FIX = {(8, 'ليصدوا عن سبيل الله'): (36, 8),
+            # «(فرهان مقبوضة) حسن. وكذلك (وليتق الله ربه)» — 2:283, not 2:282
+            (2, 'وليتق الله ربه'): (283, 19)}
+# a citation of another surah filed under this one: «وكذلك في سورة الروم:
+# (أولم يتفكروا في أنفسهم) [8]» (the الروم row exists)
+OTHER_SURAH = {(7, 'أولم يتفكروا في أنفسهم')}
+
+
 def seat(surah, ayah, quote, acount, upto, own, current=None):
     """The verse and word of a stop: its own [n] (±1), else forward from the
     last [n] to the next one; a multi-word quote found in exactly one verse of
     the surah is taken there (the book's numbers sometimes lag, 13:16 → 13:11).
     A single word is only trusted near its [n]. If nothing matches but the
     stored seat already spells the quote inside that window, keep it."""
+    if (surah, squash(quote)) in SEAT_FIX:
+        return SEAT_FIX[(surah, squash(quote))]
     if '.' in quote:
         # «(غدا. إلا أن يشاء الله) [23، 24]»: the period is a verse break inside
         # the quote; the ruling is on the phrase's end («(قليلا. ملعونين)»)
@@ -387,7 +399,7 @@ def held_by_neighbours(con):
     for rid, s_, q in con.execute("SELECT id, surah, quote FROM classical WHERE source='anbari' "
                                   "AND conf=0 AND grade_raw NOT IN (%s)" % ','.join('?' * len(BEFORE_RAW)),
                                   list(BEFORE_RAW.values())).fetchall():
-        if (s_, squash(q)) in HOLD:
+        if (s_, squash(q)) in HOLD or (s_, squash(q)) in OTHER_SURAH:
             continue
         occ = occurrences(secs.get(s_, ''), q)
         if not occ:
@@ -424,6 +436,8 @@ def apply(con, recs):
             st['deleted_negated'] += 1
             continue
         if (r['surah'], squash(r['quote']), r['grade']) in HAND_CONFIRMED:
+            continue
+        if (r['surah'], squash(r['quote'])) in OTHER_SURAH:
             continue
         if r['status'] in ('no_source_ruling', 'unplaced'):
             if r['conf'] == 1 and r['status'] == 'no_source_ruling':
@@ -494,8 +508,52 @@ def apply(con, recs):
     con.commit()
     # identical rulings on the same word collapse (the builder double-emits
     # «والوقف على (X) قبيح» when a sentence repeats the quote)
+    for s_, q in OTHER_SURAH:
+        st['other_surah_held'] += cur.execute("UPDATE classical SET conf=0 WHERE source='anbari' AND surah=? "
+                                              "AND quote=? AND conf=1", (s_, q)).rowcount
+    con.commit()
     st['merged'] = mm.merge_duplicates(con, ('anbari',))
+    st['renoted'] = renote(con)
     return st
+
+
+def note_for(text, s, e):
+    """The book from the quote's own «(» to the end of its sentence, so the
+    علّة that follows the quote is in the note (the builder's note began
+    inside the NEXT quote)."""
+    b = text.find('.', e)
+    b = b if 0 <= b - e < 400 else e + 300
+    lead = re.search(r'(?:و?مثله|و?كذلك|و?كذا)\s*:?\s*(?:على\s+)?(?:قوله\s*:?\s*)?$', text[max(0, s - 25):s])
+    if lead:
+        s = s - (len(text[max(0, s - 25):s]) - lead.start())
+    seg = text[s:b]
+    if seg.count('(') > seg.count(')'):
+        seg = seg[:seg.rfind('(')]
+    out = rx.clean_note(seg, limit=500)
+    return '(' + out if seg.startswith('(') and not out.startswith('(') else out
+
+
+def renote(con):
+    """Rewrite each harvested row's note from the book text around its quote
+    (the occurrence whose verse number matches the row). Idempotent."""
+    secs = sections()
+    n = 0
+    rows = con.execute("SELECT id, surah, ayah, quote, note FROM classical WHERE source='anbari' "
+                       "AND grade_raw NOT IN (%s)" % ','.join('?' * (len(BEFORE_RAW) + 1)),
+                       [*BEFORE_RAW.values(), 'آخر السورة']).fetchall()
+    for rid, surah, ayah, quote, note in rows:
+        text = secs.get(surah, '')
+        occ = occurrences(text, quote)
+        if not occ:
+            continue
+        acount = rx.surah_ayah_count(surah)
+        pick = next(((s_, e_) for s_, e_ in occ if verse_at(text, s_, e_, acount)[0] == ayah), occ[0])
+        new = note_for(text, *pick)
+        if new and new != note:
+            con.execute('UPDATE classical SET note=? WHERE id=?', (new, rid))
+            n += 1
+    con.commit()
+    return n
 
 
 def main(argv=None):

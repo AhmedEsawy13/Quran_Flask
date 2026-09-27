@@ -30,6 +30,7 @@ from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from core.classical_review import book_decision as _classical_book_decision
 from core.classical_review import decisions as _classical_review_decisions
 from core.classical_review import REVIEW_GRADE_LABELS
+from core import classical_illa
 from core.tawjih import TAWJIH_SOURCE, list_published as _list_published_tawjih
 from core.tawjih import published_ayahs as _published_tawjih_ayahs
 from core.tawjih import published_video_url as _published_video_url
@@ -471,8 +472,10 @@ def classical_waqf(surah, ayah):
         try:
             conn.row_factory = sqlite3.Row
             placeholders = ','.join('?' * len(active_sources))
+            has_illa = 'illa' in {c[1] for c in conn.execute('PRAGMA table_info(classical)')}
             rows = list(conn.execute(
-                    'SELECT id, source, wpos, stop_word, quote, grade, grade_raw, note, reported_from '
+                    'SELECT id, source, wpos, stop_word, quote, grade, grade_raw, note, reported_from'
+                    + (', illa, follows ' if has_illa else ' ') +
                     f'FROM classical WHERE surah=? AND ayah=? AND conf=1 AND source IN ({placeholders}) '
                     'ORDER BY wpos, source, seq',
                     (surah, ayah, *active_sources)))
@@ -494,11 +497,16 @@ def classical_waqf(surah, ayah):
                         grade=corrected_grade,
                         grade_raw=REVIEW_GRADE_LABELS[corrected_grade],
                     )
+                if item.get('illa') is None:          # DB rebuilt without pipeline/derive_illa.py
+                    item['illa'] = classical_illa.illa(item['note'], item['quote'], item['grade_raw'])
                 entries.append({
                     'source': item['source'],
                     'wpos': item['wpos'], 'stop_word': item['stop_word'],
                     'quote': item['quote'], 'grade': item['grade'],
                     'grade_raw': item['grade_raw'], 'note': item['note'] or '',
+                    # العلّة alone (core/classical_illa.py), and for a «ومثله /
+                    # وكذا» item the ruling it follows; `note` stays the book text.
+                    'illa': item['illa'] or '', 'follows': item.get('follows'),
                     # When set, this grade is the book RELAYING a named
                     # scholar's ruling («وقال ابن الأنباري: {…} تام»), not
                     # necessarily the book's own author's settled view —

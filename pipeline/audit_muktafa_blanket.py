@@ -231,8 +231,14 @@ def apply(con, rows):
                     "grade_raw, note, seq, conf, reported_from) VALUES ('muktafa',?,?,?,?,?,?,?,?,?,1,NULL)",
                     (s, a, w, word, word, g, RAW, note_for(statement), seq))
         n += 1
+    # a verse end a blanket row filled that now has an explicit ruling (e.g. a
+    # row moved onto it): the book's own word wins
+    stale = cur.execute(
+        "DELETE FROM classical WHERE source='muktafa' AND grade_raw=? AND EXISTS (SELECT 1 FROM classical e "
+        "WHERE e.source='muktafa' AND e.surah=classical.surah AND e.ayah=classical.ayah AND "
+        "e.wpos=classical.wpos AND e.grade_raw<>? AND e.conf=1)", (RAW, RAW)).rowcount
     con.commit()
-    return n
+    return {"inserted": n, "stale_removed": stale}
 
 
 def main(argv=None):

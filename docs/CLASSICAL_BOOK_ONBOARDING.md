@@ -167,7 +167,13 @@ python3 pipeline/build_classical_waqf.py --only anbari && \
 python3 pipeline/audit_anbari.py --apply       # إيضاح: seats, chains, relays, grade-before rulings
 python3 pipeline/build_classical_waqf.py --only nahhas && \
 python3 pipeline/audit_nahhas.py --apply       # القطع: الفاتحة، ذوات قل، آخر السورة، curated fixes
+python3 pipeline/derive_illa.py                # last: العلّة + «ومثله» heads for all four books
 ```
+
+`derive_illa.py` stores each ruling's العلّة (`illa`) and, for a «ومثله / وكذا»
+item, the ruling it follows (`follows`). The note is the book text around the
+quote; `core/classical_illa.py` keeps only the reason (no chain wording, no
+next item's ruling, no isnad), and the app shows the book text under «نص الكتاب».
 
 Run them in that order (the blanket step fills only verse-ends no other
 المكتفى row rules on).

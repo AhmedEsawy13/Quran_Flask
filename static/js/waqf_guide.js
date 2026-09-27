@@ -432,18 +432,22 @@
                         : g.desc;
                     const chip = `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${escHtml(title)}">`
                         + `${escHtml(e.grade_raw || e.grade)} <small>· ${attrib(e)}</small></span>`;
+                    // العلّة is the reason alone (backend: core/classical_illa.py);
+                    // a «ومثله / وكذا» item names the ruling it follows. The
+                    // book text around the quote stays one tap away.
+                    const reason = (e.illa || '').trim();
                     const raw = (e.note || '').trim();
                     let illa = '';
-                    if (raw) {
-                        const escaped = escHtml(raw);
-                        const preview = raw.length > 280
-                            ? escHtml(raw.slice(0, 280).trim() + '…')
-                            : escaped;
-                        illa = `<p class="wq-illa">${highlightCitedScholars(preview)}</p>`;
-                        if (raw.length > 280) {
-                            illa += `<details class="wq-mk3-note wq-illa-more"><summary>تتمة العلّة</summary>`
-                                + `<p>${highlightCitedScholars(escaped)}</p></details>`;
-                        }
+                    if (e.follows) {
+                        illa += `<p class="wq-illa wq-illa-follows">حكمه حكم «${escHtml(e.follows)}» قبله</p>`;
+                    }
+                    if (reason) {
+                        const preview = reason.length > 280 ? reason.slice(0, 280).trim() + '…' : reason;
+                        illa += `<p class="wq-illa">${highlightCitedScholars(escHtml(preview))}</p>`;
+                    }
+                    if (raw && raw !== reason) {
+                        illa += `<details class="wq-mk3-note wq-illa-more"><summary>نص الكتاب</summary>`
+                            + `<p>${highlightCitedScholars(escHtml(raw))}</p></details>`;
                     }
                     return `<div class="wq-ruling">${chip}${illa}</div>`;
                 }).join('');

@@ -59,9 +59,9 @@ def uncertain_rows():
 
 def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     result = review.muktafa_accuracy(review_db=review_db)
-    assert result['total_extracted'] == 6749
-    assert result['matched'] == 6749
-    assert result['confident'] == 6749
+    assert result['total_extracted'] == 6751
+    assert result['matched'] == 6751
+    assert result['confident'] == 6751
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

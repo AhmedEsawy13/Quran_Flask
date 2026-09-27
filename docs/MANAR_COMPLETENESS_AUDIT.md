@@ -204,3 +204,21 @@ Rows 1,767 → 5,426 (5,118 served, 308 held). Three random samples of 100:
 88/100, then 97/100 after fixing what the first found, then 97/100 on an
 untouched sample (seed 20261004); word placement 100/100 on the last two.
 The remaining misses are attribution edge cases and one corrupted passage.
+
+### العلّة and a book-order sweep (all four books), 2026-09-27
+
+العلّة shown in the app used to be the raw note — often «ومثله», «وكذا {X}», the
+next quote's ruling or an isnad. `core/classical_illa.py` now extracts the
+reason alone; `pipeline/derive_illa.py` stores it with, for chain items, the
+ruling they follow (from the منار audit's chains, المكتفى's quote order, and
+the notes of ابن الأنباري / النحاس, which now start before the quote).
+11,325 served rulings carry a reason; 4,668 name the ruling they follow.
+
+A sweep for rows whose verse breaks the book's own order (`seq`) found real
+mis-seats of repeated phrases: 13 in المكتفى (e.g. «تهتدون» on 2:150 instead
+of 2:135, «إلا بالحق» 15:8 → 15:85, «ونذر» — a rule for 54:16/21/39), 2 in
+منار (a stray «حسابا» and a rasm-list row), 2 in ابن الأنباري, 2 in النحاس.
+All fixed in the audits and pinned in tests/test_classical_illa.py. A fresh
+60-row sample (15 per book, seed 20260927) read 59/60 on word, grade,
+attribution and العلّة; the miss («قال نافع: {للكافرين} تام» in المكتفى) was
+a relay pattern without the colon, now fixed (4 rows relabelled).
