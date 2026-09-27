@@ -362,7 +362,7 @@ test("مُكْث compares evidence at a stop", async ({page}) => {
   await page.getByRole("tab", {name: /كتب الوقف/}).click();
   await expect(page.getByRole("tabpanel").getByRole("heading", {name: /كتب الوقف والابتداء/})).toBeVisible();
   await expect(page.getByRole("heading", {name: "ترشيح القراءة حسب نَفَسك"})).toHaveCount(0);
-  await expect(page.getByRole("link", {name: "المختبر", exact: true})).toHaveAttribute("href", "/waqf-lab");
+  await expect(page.getByRole("link", {name: "المختبر", exact: true})).toHaveAttribute("href", "/waqf-lab?surah=2");
   await expect(page.getByRole("link", {name: "تدريب", exact: true})).toHaveAttribute("href", "/waqf-practice?surah=2&from=255&to=255");
   await expect(page.getByRole("combobox", {name: "السورة"})).toBeVisible();
   await expect(page.getByRole("combobox", {name: "الآية"})).toBeVisible();
@@ -589,6 +589,32 @@ test("مختبر الوقف searches words and opens a verse in مُكْث", asy
   await firstHit.click();
   await expect(page).toHaveURL(/\/waqf\?/);
   await expect(page.getByRole("heading", {name: /سورة .+ · الآية|الآية [٠-٩]/}).first()).toBeVisible({timeout: 15_000});
+  await expectNoHorizontalOverflow(page);
+});
+
+test("مختبر الوقف finds by mark, narrows by scope, and shows evidence in place", async ({page}) => {
+  test.setTimeout(60_000);
+  // Search by printed mark, then narrow to the busiest surah from the distribution.
+  await page.goto("/waqf-lab?tab=marks");
+  await page.getByRole("radio", {name: "الأزهر"}).click();
+  await page.getByRole("radio", {name: /وقف لازم/}).click();
+  const distribution = page.getByLabel("توزيع النتائج على السور");
+  await expect(distribution).toBeVisible({timeout: 15_000});
+  await distribution.getByRole("button", {name: /البقرة/}).last().click();
+  await expect(page).toHaveURL(/surah=2/);
+  await expect(page.getByText(/ من ٦٦ في سورة البقرة/)).toBeVisible();
+  // Phrase search in modern spelling, with the stop's evidence opened in place.
+  await page.goto("/waqf-lab?tab=word&q=%D8%B0%D9%84%D9%83%20%D8%A7%D9%84%D9%83%D8%AA%D8%A7%D8%A8");
+  await expect(page.getByLabel("ملخص النتائج")).toContainText("موضع واحد", {timeout: 15_000});
+  await page.getByRole("button", {name: /الأدلة: القرّاء والأئمة/}).first().click();
+  const evidence = page.getByLabel("أدلة الموضع").first();
+  await expect(evidence).toContainText("القرّاء", {timeout: 15_000});
+  await expect(evidence.getByRole("link", {name: /التفصيل الكامل في مُكْث/})).toHaveAttribute("href", "/waqf?surah=2&ayah=2&wpos=1");
+  // «العلامة قبلها»: the evidence is for the word before the match, across ayahs.
+  await page.goto("/waqf-lab?tab=word&q=%D9%87%D9%84&mode=before");
+  await expect(page.getByLabel("ملخص النتائج")).toBeVisible({timeout: 20_000});
+  await page.getByRole("button", {name: /الأدلة: القرّاء والأئمة/}).first().click();
+  await expect(page.getByLabel("أدلة الموضع").first()).toContainText("حَكِيمٌ", {timeout: 15_000});
   await expectNoHorizontalOverflow(page);
 });
 

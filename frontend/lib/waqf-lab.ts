@@ -6,6 +6,7 @@ export const HIT_PAGE = 40;
 export type LabFamily = "words" | "reciters" | "mushafs";
 export type LabTab =
   | "word"
+  | "marks"
   | "ibtidaa"
   | "saktat"
   | "mandatory"
@@ -18,7 +19,8 @@ export type LabTab =
 
 /** Every tool, with the plain question it answers — the entry point for newcomers. */
 export const LAB_TABS: Array<{id: LabTab; family: LabFamily; label: string; question: string}> = [
-  {id: "word", family: "words", label: "بحث بالكلمة", question: "أين يُوقف على كلمةٍ ما في القرآن كله؟"},
+  {id: "word", family: "words", label: "بحث بالكلمة", question: "أين يُوقف على كلمةٍ أو عبارةٍ في القرآن كله؟"},
+  {id: "marks", family: "words", label: "بحث بالعلامة", question: "أين وضع مصحفٌ علامةً بعينها، ككل وقفٍ لازم؟"},
   {id: "ibtidaa", family: "words", label: "الابتداء بما قبله", question: "أين وقف القارئ ثم رجع يبتدئ بكلمة قبلها؟"},
   {id: "saktat", family: "words", label: "السكتات", question: "أين يسكت حفص سكتةً يسيرة بلا تنفّس؟"},
   {id: "mandatory", family: "words", label: "اللازم والممنوع والمعانقة", question: "أين يلزم الوقف، وأين يُمنع، وأين يتعانق موضعان؟"},
@@ -82,6 +84,8 @@ export type ResearchOccurrence = {
   surah: number;
   ayah: number;
   wpos?: number;
+  /** Phrase search: the first word of the match (wpos is the last). */
+  first_wpos?: number;
   word?: string;
   form?: string;
   waqf?: string;
@@ -309,3 +313,16 @@ export function agreeDesc(mark: AgreeMark) {
   }
   return `${mark.name} — موافق إذا ${mark.dir === "stop" ? "وقف" : "وصَل (لم يقف)"}`;
 }
+
+export type MarkSummary = {
+  meanings: Array<{id: string; label: string}>;
+  mushafs: Array<{id: string; counts: Record<string, number>}>;
+};
+
+export type MarkSearchPayload = {
+  mushaf: string;
+  mark: string;
+  label: string;
+  count: number;
+  occurrences: ResearchOccurrence[];
+};

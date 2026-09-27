@@ -13,6 +13,8 @@ import {Button, SegmentedControl, StatusState} from "@/components/ui/primitives"
 import {HitChip, HitList, HitRow, ToneChip, ToolBlurb} from "@/components/waqf-lab-hit";
 import {LabClusterPanel, LabSolosPanel, LabStatsPanel} from "@/components/waqf-lab-reciters";
 import {LabAgreementPanel, LabMandatoryPanel, LabMushafSimPanel, LabPatternsPanel} from "@/components/waqf-lab-mushafs";
+import {LabMarksPanel} from "@/components/lab-marks-panel";
+import {LabScopeBar, LabScopeProvider, type LabScope} from "@/components/lab-scope";
 import {
   HIT_PAGE,
   LAB_FAMILIES,
@@ -28,25 +30,38 @@ import {
 } from "@/lib/waqf-lab";
 
 type WordMode = "before" | "";
+type WordMatch = "word" | "affix";
+
+/** Tools whose results are ayah lists, so a surah/juz scope applies. */
+const SCOPED_TOOLS: ReadonlySet<LabTab> = new Set(["word", "marks", "ibtidaa", "saktat", "mandatory", "solos", "patterns", "agreement"]);
+
+function positiveParam(value: string | null, max: number) {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 1 && number <= max ? number : null;
+}
 
 /** The big search: a word, whether it must match exactly, and whether to read the mark on it or just before it. */
 function WordSearchForm({
   query,
   exact,
   mode,
+  match,
   large = false,
   onQueryChange,
   onExactChange,
   onModeChange,
+  onMatchChange,
   onSubmit,
 }: {
   query: string;
   exact: boolean;
   mode: WordMode;
+  match: WordMatch;
   large?: boolean;
   onQueryChange: (value: string) => void;
   onExactChange: (value: boolean) => void;
   onModeChange: (value: WordMode) => void;
+  onMatchChange: (value: WordMatch) => void;
   onSubmit: () => void;
 }) {
   return (
@@ -66,7 +81,7 @@ function WordSearchForm({
         <input
           type="search"
           aria-label="ابحث عن أي كلمة"
-          placeholder="اكتب كلمة من القرآن… مثل: كلا، ذلك، بلى"
+          placeholder="كلمة أو عبارة… مثل: كلا، ذلك الكتاب، إن الله غفور رحيم"
           className={cn("min-h-11 min-w-0 flex-1 bg-transparent text-athar-ink outline-none placeholder:text-athar-ink-faint", large ? "text-lg" : "text-base")}
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
@@ -85,8 +100,12 @@ function WordSearchForm({
           onChange={(value) => onModeChange(value === "before" ? "before" : "")}
         />
         <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-athar-line bg-athar-surface px-3 text-[0.8rem] font-semibold text-athar-ink-soft has-[:checked]:border-athar-accent has-[:checked]:text-athar-accent">
+          <input type="checkbox" className="accent-athar-accent" checked={match === "affix"} onChange={(event) => onMatchChange(event.target.checked ? "affix" : "word")} />
+          مع السوابق واللواحق (فكلا، ذلكم)
+        </label>
+        <label className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-full border border-athar-line bg-athar-surface px-3 text-[0.8rem] font-semibold text-athar-ink-soft has-[:checked]:border-athar-accent has-[:checked]:text-athar-accent">
           <input type="checkbox" className="accent-athar-accent" checked={exact} onChange={(event) => onExactChange(event.target.checked)} />
-          الكلمة نفسها فقط
+          الصيغة الأشهر فقط
         </label>
       </div>
     </form>
@@ -217,6 +236,11 @@ export function WaqfLabWorkspace() {
   const [query, setQuery] = useState(bootQuery);
   const [exact, setExact] = useState(searchParams.get("exact") === "1");
   const [mode, setMode] = useState<WordMode>(searchParams.get("mode") === "before" ? "before" : "");
+  const [match, setMatch] = useState<WordMatch>(searchParams.get("match") === "affix" ? "affix" : "word");
+  const [scope, setScope] = useState<LabScope>(() => {
+    const surah = positiveParam(searchParams.get("surah"), 114);
+    return {surah, juz: surah ? null : positiveParam(searchParams.get("juz"), 30)};
+  });
   const [searched, setSearched] = useState({query: bootQuery, mode: searchParams.get("mode") === "before" ? "before" as WordMode : ""});
   const [wordResult, setWordResult] = useState<WordResearchPayload | null>(null);
   const [wordForm, setWordForm] = useState<string | null>(null);
@@ -254,21 +278,28 @@ export function WaqfLabWorkspace() {
     else url.searchParams.delete("exact");
     if (wordParams && searched.mode) url.searchParams.set("mode", searched.mode);
     else url.searchParams.delete("mode");
+    if (wordParams && match === "affix") url.searchParams.set("match", "affix");
+    else url.searchParams.delete("match");
+    if (scope.surah) url.searchParams.set("surah", String(scope.surah));
+    else url.searchParams.delete("surah");
+    if (scope.juz) url.searchParams.set("juz", String(scope.juz));
+    else url.searchParams.delete("juz");
     window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
-  }, [tab, searched, exact]);
+  }, [tab, searched, exact, match, scope]);
 
   const openTool = (next: LabTab | null) => {
     setTab(next);
     window.scrollTo({top: 0, behavior: "smooth"});
   };
 
-  const runWordSearch = (word: string, nextExact = exact, nextMode: WordMode = mode) => {
+  const runWordSearch = (word: string, nextExact = exact, nextMode: WordMode = mode, nextMatch: WordMatch = match) => {
     const trimmed = word.trim();
     if (!trimmed) return;
     setTab("word");
     setQuery(trimmed);
     setExact(nextExact);
     setMode(nextMode);
+    setMatch(nextMatch);
     setSearched({query: trimmed, mode: nextMode});
     setWordForm(null);
     setWordWaqf("");
@@ -278,6 +309,7 @@ export function WaqfLabWorkspace() {
     const params = new URLSearchParams({word: trimmed});
     if (nextExact) params.set("exact", "1");
     if (nextMode) params.set("mode", nextMode);
+    if (nextMatch === "affix") params.set("match", "affix");
     getJson<WordResearchPayload>(`/backend-api/waqf-research?${params}`)
       .then((payload) => {
         setWordResult(payload);
@@ -293,6 +325,7 @@ export function WaqfLabWorkspace() {
     const params = new URLSearchParams({word: bootQuery});
     if (searchParams.get("exact") === "1") params.set("exact", "1");
     if (searchParams.get("mode") === "before") params.set("mode", "before");
+    if (searchParams.get("match") === "affix") params.set("match", "affix");
     getJson<WordResearchPayload>(`/backend-api/waqf-research?${params}`, controller.signal)
       .then((payload) => {
         setWordResult(payload);
@@ -344,10 +377,12 @@ export function WaqfLabWorkspace() {
       query={query}
       exact={exact}
       mode={mode}
+      match={match}
       onQueryChange={setQuery}
       onExactChange={setExact}
       onModeChange={setMode}
-      onSubmit={() => runWordSearch(query, exact, mode)}
+      onMatchChange={setMatch}
+      onSubmit={() => runWordSearch(query, exact, mode, match)}
     />
   );
 
@@ -365,6 +400,7 @@ export function WaqfLabWorkspace() {
         ) : null}
       </ToolIntro>
 
+      <LabScopeProvider value={{scope, setScope, surahs}}>
       {!tab ? (
         <ToolStack className="gap-8">
           <section className="grid gap-4 rounded-athar-lg border border-athar-line bg-athar-surface/70 p-[clamp(16px,3vw,28px)]" aria-label="البحث بالكلمة">
@@ -373,7 +409,8 @@ export function WaqfLabWorkspace() {
               <p className="m-0 text-[0.88rem] text-athar-ink-soft">اكتب أي كلمة لترى كل مواضعها في القرآن، وعلامة الوقف عليها في كل مصحف.</p>
             </div>
             {searchForm(true)}
-            <ExampleSearches onPick={runWordSearch} />
+            <LabScopeBar />
+            <ExampleSearches onPick={(word, nextExact, nextMode) => runWordSearch(word, nextExact, nextMode, "word")} />
           </section>
           <ToolGrid onOpen={openTool} />
         </ToolStack>
@@ -385,6 +422,7 @@ export function WaqfLabWorkspace() {
               <span className="text-[0.72rem] font-bold text-athar-gold">{LAB_FAMILIES.find((family) => family.id === tool!.family)?.title}</span>
               <h2 className="m-0 font-athar-display text-[1.3rem] text-athar-ink" id="wq-lab-panel-title">{tool!.label}</h2>
               <p className="m-0 text-[0.88rem] text-athar-ink-soft">{tool!.question}</p>
+              {SCOPED_TOOLS.has(tab) ? <div className="mt-2"><LabScopeBar /></div> : null}
             </header>
 
             {tab === "word" ? (
@@ -392,7 +430,7 @@ export function WaqfLabWorkspace() {
                 {searchForm(false)}
                 {wordLoading ? <StatusState tone="loading">جارٍ البحث في القرآن…</StatusState> : null}
                 {wordError ? <StatusState tone="error">{wordError}</StatusState> : null}
-                {!wordResult && !wordLoading ? <ExampleSearches onPick={runWordSearch} /> : null}
+                {!wordResult && !wordLoading ? <ExampleSearches onPick={(word, nextExact, nextMode) => runWordSearch(word, nextExact, nextMode, "word")} /> : null}
                 {wordResult && !wordLoading ? (
                   wordResult.occurrences.length ? (
                     <div className="grid gap-3">
@@ -401,7 +439,9 @@ export function WaqfLabWorkspace() {
                           «<span className="font-athar-quran text-[1.08em]">{searched.query}</span>»:{" "}
                           <b>{arabicCount(wordSource.length, ["موضع واحد", "موضعان", "مواضع", "موضعًا"])}</b>
                           {searched.mode === "before" ? " — العلامة على الكلمة قبلها" : ""}
-                          {wordSource.length ? <> · <b className="text-athar-accent">{toArabicDigits(wordWithMark)}</b> منها بعلامة وقف</> : null}
+                          {wordSource.length === 1
+                            ? (wordWithMark ? " · وعليه علامة وقف" : " · بلا علامة وقف")
+                            : wordSource.length ? <> · <b className="text-athar-accent">{toArabicDigits(wordWithMark)}</b> منها بعلامة وقف</> : null}
                         </p>
                         {wordSource.length ? (
                           <span className="block h-1.5 overflow-hidden rounded-full bg-athar-line-soft" aria-hidden="true">
@@ -447,6 +487,7 @@ export function WaqfLabWorkspace() {
                           <HitRow
                             occurrence={item}
                             surahName={surahs.find((surah) => surah.number === item.surah)?.name}
+                            evidenceAt={searched.mode === "before" ? beforeTarget(item) : undefined}
                             key={`${item.surah}:${item.ayah}:${item.wpos}:${index}`}
                           />
                         )}
@@ -454,7 +495,7 @@ export function WaqfLabWorkspace() {
                     </div>
                   ) : (
                     <StatusState>
-                      لا توجد مواضع لـ«{searched.query}».{exact ? " جرّب إلغاء «الكلمة نفسها فقط» ليشمل البحث صيغها الأخرى." : " تأكّد من الإملاء، أو جرّب كلمة من الأمثلة."}
+                      لا توجد مواضع لـ«{searched.query}».{match === "word" ? " جرّب «مع السوابق واللواحق»، أو تأكّد من الإملاء، أو اختر مثالًا." : " تأكّد من الإملاء، أو جرّب كلمة من الأمثلة."}
                     </StatusState>
                   )
                 ) : null}
@@ -559,6 +600,7 @@ export function WaqfLabWorkspace() {
               )
             ) : null}
 
+            {tab === "marks" ? <LabMarksPanel surahs={surahs} /> : null}
             {tab === "mandatory" ? <LabMandatoryPanel surahs={surahs} /> : null}
             {tab === "solos" ? <LabSolosPanel surahs={surahs} /> : null}
             {tab === "stats" ? <LabStatsPanel surahs={surahs} /> : null}
@@ -569,6 +611,15 @@ export function WaqfLabWorkspace() {
           </ToolCard>
         </ToolStack>
       )}
+      </LabScopeProvider>
     </div>
   );
+}
+
+/** With «العلامة قبلها», the stop being studied is just before the match (the previous ayah's end when it opens an ayah). */
+function beforeTarget(item: {surah: number; ayah: number; wpos?: number; first_wpos?: number}) {
+  const first = item.first_wpos ?? item.wpos;
+  if (first === undefined) return null;
+  if (first > 0) return {surah: item.surah, ayah: item.ayah, wpos: first - 1};
+  return item.ayah > 1 ? {surah: item.surah, ayah: item.ayah - 1, wpos: -1} : null;
 }

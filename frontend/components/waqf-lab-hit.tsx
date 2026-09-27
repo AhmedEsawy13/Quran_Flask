@@ -1,4 +1,6 @@
-import type {ReactNode} from "react";
+"use client";
+
+import {useState, type ReactNode} from "react";
 import Link from "next/link";
 import {arabicCount, toArabicDigits} from "@/lib/mushaf";
 import {cn} from "@/lib/cn";
@@ -11,6 +13,8 @@ import {
   type WaqfMarks,
 } from "@/lib/waqf-lab";
 import {WaqfGlyph} from "@/components/ui/waqf-glyph";
+import {LabEvidence, type EvidenceTarget} from "@/components/lab-evidence";
+import {ScopeDistribution, inScope, scopeLabel, useLabScope} from "@/components/lab-scope";
 
 export function AgreePill({agreement}: {agreement?: string}) {
   if (agreement === "full") return <ToneChip tone="consensus">تام</ToneChip>;
@@ -108,6 +112,7 @@ export function HitRow({
   title,
   extraClass,
   editorEditions,
+  evidenceAt,
 }: {
   occurrence: Pick<ResearchOccurrence, "surah" | "ayah" | "wpos" | "word" | "context" | "marks">;
   surahName?: string;
@@ -118,15 +123,21 @@ export function HitRow({
   title?: string;
   extraClass?: string;
   editorEditions?: string[];
+  /** The stop whose evidence «الأدلة» shows; defaults to the occurrence's word. `null` hides it. */
+  evidenceAt?: EvidenceTarget | null;
 }) {
+  const [open, setOpen] = useState(false);
+  const target = evidenceAt === undefined
+    ? (Number.isInteger(occurrence.wpos) ? {surah: occurrence.surah, ayah: occurrence.ayah, wpos: occurrence.wpos!} : null)
+    : evidenceAt;
   const name = surahName || `سورة ${toArabicDigits(occurrence.surah)}`;
   const ref = `${toArabicDigits(occurrence.surah)}:${toArabicDigits(occurrence.ayah)}`;
   const editions = editorEditions || editorEditionsFromMarks(occurrence.marks);
   return (
-    <div className="grid gap-1.5">
+    <div className={cn("grid overflow-hidden rounded-xl border border-athar-line bg-athar-surface transition-colors", open && "border-athar-accent/50")}>
       <Link
         className={cn(
-          "grid gap-1.5 rounded-xl border border-athar-line bg-athar-surface px-3 py-2.5 no-underline transition-colors hover:border-athar-accent hover:bg-athar-accent/6",
+          "grid gap-1.5 px-3 py-2.5 no-underline transition-colors hover:bg-athar-accent/6",
           extraClass,
         )}
         href={verseHref(occurrence.surah, occurrence.ayah, {wpos: occurrence.wpos, word: occurrence.word})}
@@ -144,8 +155,22 @@ export function HitRow({
         ) : null}
         {marks ? marks : hideMarks ? null : <HitMarks marks={occurrence.marks} />}
       </Link>
+      {target ? (
+        <div className="border-t border-athar-line-soft">
+          <button
+            type="button"
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
+            className="flex w-full items-center gap-1.5 px-3 py-1.5 text-start text-[0.76rem] font-bold text-athar-accent hover:bg-athar-accent/6"
+          >
+            <span aria-hidden="true" className={cn("transition-transform", open && "rotate-90")}>‹</span>
+            {open ? "أخفِ الأدلة" : "الأدلة: القرّاء والأئمة"}
+          </button>
+          {open ? <div className="px-3 pb-3"><LabEvidence target={target} /></div> : null}
+        </div>
+      ) : null}
       {editions.length ? (
-        <div className="flex flex-wrap gap-2 ps-1">
+        <div className="flex flex-wrap gap-2 border-t border-athar-line-soft px-3 py-1.5">
           {editions.map((edition) => (
             <a
               className="text-[0.72rem] font-bold text-athar-accent no-underline hover:underline"
@@ -182,21 +207,40 @@ export function HitList<T>({
   onShowMore,
   renderItem,
   empty = "لا نتائج",
+  distribution = true,
 }: {
   items: T[];
   shown: number;
   onShowMore: () => void;
   renderItem: (item: T, index: number) => ReactNode;
   empty?: string;
+  /** Show where the results fall across the surahs (and let the reader narrow to one). */
+  distribution?: boolean;
 }) {
+  const scopeState = useLabScope();
+  const scope = scopeState?.scope;
+  const scoped = scope && (scope.surah || scope.juz) ? items.filter((item) => inScope(item, scope)) : items;
   if (!items.length) return <StatusState>{empty}</StatusState>;
-  const visible = items.slice(0, shown);
+  const visible = scoped.slice(0, shown);
   return (
     <div className="grid gap-2">
+      {distribution ? <ScopeDistribution items={items} /> : null}
+      {scope && scoped.length !== items.length ? (
+        <p className="m-0 text-[0.8rem] text-athar-ink-soft">
+          {toArabicDigits(scoped.length)} من {toArabicDigits(items.length)} في {scopeLabel(scope, scopeState.surahs)}
+        </p>
+      ) : null}
+      {!scoped.length ? (
+        <StatusState
+          action={<Button size="sm" variant="secondary" onClick={() => scopeState?.setScope({surah: null, juz: null})}>اعرض القرآن كله</Button>}
+        >
+          لا نتائج في {scope ? scopeLabel(scope, scopeState!.surahs) : "هذا النطاق"}.
+        </StatusState>
+      ) : null}
       {visible.map((item, index) => renderItem(item, index))}
-      {shown < items.length ? (
+      {shown < scoped.length ? (
         <Button variant="secondary" className="justify-self-start" onClick={onShowMore}>
-          عرض المزيد · بقي {toArabicDigits(items.length - shown)}
+          عرض المزيد · بقي {toArabicDigits(scoped.length - shown)}
         </Button>
       ) : null}
     </div>

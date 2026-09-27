@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 116,
+  "route_count": 118,
   "routes": [
     {
       "auth": "editor",
@@ -3404,6 +3404,60 @@
       "source": "modules/waqf_research.py",
       "success_cache": "no-store",
       "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "breathing.waqf_research_marks",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/marks",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_research_marks_summary",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/marks/summary",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "meanings",
+        "mushafs"
+      ]
     },
     {
       "auth": "public",

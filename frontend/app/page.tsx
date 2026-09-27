@@ -112,7 +112,7 @@ export default function HomePage() {
               <li key={tool.key} className="relative">
                 <Link
                   className="group flex h-full flex-col rounded-athar-lg border border-athar-line bg-athar-surface p-6 no-underline shadow-[0_1px_0_var(--athar-line-soft)] transition-[border-color,box-shadow,transform] hover:-translate-y-1 hover:border-athar-accent/50 hover:shadow-athar-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-athar-accent"
-                  href={toolHref(tool.key, example)}
+                  href={tool.key === "lab" ? "/waqf-lab" : toolHref(tool.key, example)}
                 >
                   <span className="flex items-center justify-between gap-3">
                     <span className="grid size-12 place-items-center rounded-2xl bg-athar-accent/10 text-athar-accent transition-colors group-hover:bg-athar-accent group-hover:text-athar-on-accent">

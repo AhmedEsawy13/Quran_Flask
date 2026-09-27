@@ -73,7 +73,9 @@ export function toolPath(key: ToolKey) {
 /** Link to a tool, opened on the given ayah when the tool is ayah-based. */
 export function toolHref(key: ToolKey, context?: VerseContext | null) {
   const path = toolPaths[key];
-  if (!context || key === "lab") return path;
+  if (!context) return path;
+  // The lab studies across the Quran; carry the surah as its scope.
+  if (key === "lab") return `${path}?surah=${context.surah}`;
   const {surah, ayah} = context;
   if (key === "practice" || key === "memorize") return `${path}?surah=${surah}&from=${ayah}&to=${ayah}`;
   return `${path}?surah=${surah}&ayah=${ayah}`;

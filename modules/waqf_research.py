@@ -18,6 +18,7 @@ from core.config import MUSHAF_WAQF_DATABASE, WAQF_SYMBOL_CHARS, _BASE_DIR
 from core.text import _normalize_for_search
 from core.mushaf_waqf import (
     get_mushaf_waqf_symbols,
+    prefetch_cloud_published_for_ayahs,
     _get_mushaf_version_whitelist,
     _is_valid_mushaf_version,
 )
@@ -1181,6 +1182,34 @@ def waqf_research_mushaf_agreement_cases():
 
 _waqf_research_cache: _BoundedLRU = _BoundedLRU(maxsize=256)
 
+# Clitics that attach to a word in the rasm: conjunctions/prepositions before it,
+# pronouns and plural endings after it. Used by match=affix so a search for
+# «كلا» also finds «فكلا», and «ذلك» finds «ذلكم».
+_AFFIX_PREFIXES = ('وال', 'فال', 'بال', 'كال', 'لل', 'ال', 'و', 'ف', 'ب', 'ك', 'ل', 'س')
+_AFFIX_SUFFIXES = ('كما', 'هما', 'كم', 'كن', 'هم', 'هن', 'ها', 'نا', 'ني', 'ون', 'ين', 'ان', 'ات', 'وا', 'ه', 'ك', 'ي', 'ة')
+
+
+def _spelling_variants(term):
+    """A query in modern spelling and its rasm form: the Uthmani script drops
+    many internal alifs (الكتاب → الكتب، السماوات → السموت). The first and last
+    letters are kept so a particle like كلا does not collapse into كل."""
+    if len(term) <= 2:
+        return {term}
+    return {term, term[0] + term[1:-1].replace('ا', '') + term[-1]}
+
+
+def _affix_stems(token):
+    """Every reading of a normalised token with up to two prefixes and one suffix
+    removed (the token itself included). Stems shorter than two letters are
+    dropped so particles do not match everything."""
+    stems = {token}
+    heads = {token}
+    for _ in range(2):
+        heads |= {h[len(p):] for h in heads for p in _AFFIX_PREFIXES if h.startswith(p) and len(h) - len(p) >= 2}
+    stems |= heads
+    stems |= {h[:-len(x)] for h in heads for x in _AFFIX_SUFFIXES if h.endswith(x) and len(h) - len(x) >= 2}
+    return stems
+
 
 def _before_word_marks(s, a, i, words, marks_by_wpos):
     """Resolve waqf marks for the word preceding position *i*.
@@ -1234,11 +1263,16 @@ def waqf_research():
     # mode=before: show waqf marks on the word BEFORE the searched word
     # (useful for studying waqf before interrogatives like هل/كيف).
     before = request.args.get('mode') == 'before'
-    nt = _normalize_for_search(word)
+    # match=affix: also match the word with clitics attached (فكلا، ذلكم).
+    affix = request.args.get('match') == 'affix'
+    # Several words = a phrase, matched as consecutive words; its stop is
+    # after the last word (or, with mode=before, before the first).
+    terms = [t for t in (_normalize_for_search(part) for part in word.split()) if t]
+    nt = ' '.join(terms)
     if not nt:
         return jsonify({'word': word, 'normalized': '', 'count': 0, 'forms': [], 'occurrences': [], 'active_form': None})
 
-    cache_key = (nt, exact, before)
+    cache_key = (nt, exact, before, affix)
     cached = _waqf_research_cache.get(cache_key)
     if cached is not None:
         return jsonify(cached)
@@ -1255,18 +1289,41 @@ def waqf_research():
             out = out.replace(a, 'ا')
         return out
 
-    occ = []
-    forms = Counter()
+    variants = [_spelling_variants(term) for term in terms]
+
+    def _term_matches(token, options):
+        normalized = _normalize_for_search(token)
+        if normalized in options:
+            return True
+        return affix and bool(options & _affix_stems(normalized))
+
+    span = len(terms)
+    # Pass 1: find the matches. Pass 2 needs every matched verse's marks (and,
+    # with mode=before, the previous verse's), so the cloud editions are
+    # fetched in one batch instead of one Supabase round-trip per verse.
+    matches = []
     for vk in qpc_hafs_data_normalized:
         text, words, raw_to_wpos = _verse_word_texts(vk)
-        if not words or nt not in _normalize_for_search(text):
+        normalized_text = _normalize_for_search(text)
+        if not words or any(not any(option in normalized_text for option in options) for options in variants):
             continue  # quick reject — most verses don't contain the word
-        s, a = vk.split(':')
-        s, a = int(s), int(a)
+        starts = [start for start in range(len(words) - span + 1)
+                  if all(_term_matches(words[start + k], variants[k]) for k in range(span))]
+        if starts:
+            s, a = (int(part) for part in vk.split(':'))
+            matches.append((s, a, words, raw_to_wpos, starts))
+    ayah_keys = {(s, a) for s, a, *_ in matches}
+    if before:
+        ayah_keys |= {(s, a - 1) for s, a in ayah_keys if a > 1}
+    prefetch_cloud_published_for_ayahs(ayah_keys, _WAQF_MATCH_MUSHAFS)
+
+    occ = []
+    forms = Counter()
+    for s, a, words, raw_to_wpos, starts in matches:
         marks_by_wpos = None  # built lazily — only for verses that actually match
-        for i, w in enumerate(words):
-            if _normalize_for_search(w) != nt:
-                continue
+        for start in starts:
+            first, i = start, start + span - 1   # i = the phrase's last word
+            w = ' '.join(words[first:i + 1])
             if marks_by_wpos is None:
                 marks_by_wpos = {}
                 for ver in _WAQF_MATCH_MUSHAFS:
@@ -1277,22 +1334,22 @@ def waqf_research():
                         wp = raw_to_wpos[ti]
                         if wp is not None:
                             marks_by_wpos.setdefault(wp, {})[ver] = r['symbols']
-            fk = _form_key(w)
+            fk = ' '.join(_form_key(token) for token in words[first:i + 1])
             if before:
                 bw, bmarks, bwsym = _before_word_marks(
-                    s, a, i, words, marks_by_wpos)
+                    s, a, first, words, marks_by_wpos)
                 marks, wsym = bmarks, bwsym
-                lo, hi = max(0, i - 2), min(len(words), i + 2)
+                lo, hi = max(0, first - 2), min(len(words), i + 2)
                 ctx = ' '.join(words[lo:hi])
-                if i == 0 and bw:
+                if first == 0 and bw:
                     ctx = bw + ' ۞ ' + ctx
             else:
-                wsym = ''.join(c for c in w if c in WAQF_SYMBOL_CHARS)
+                wsym = ''.join(c for c in words[i] if c in WAQF_SYMBOL_CHARS)
                 marks = marks_by_wpos.get(i, {})
-                lo, hi = max(0, i - 1), min(len(words), i + 3)
+                lo, hi = max(0, first - 1), min(len(words), i + 3)
                 ctx = ' '.join(words[lo:hi])
             occ.append({
-                'surah': s, 'ayah': a, 'wpos': i,
+                'surah': s, 'ayah': a, 'wpos': i, 'first_wpos': first,
                 'word': w, 'form': fk, 'waqf': wsym,
                 'marks': marks, 'has_waqf': bool(marks or wsym),
                 'context': ctx,
@@ -1311,4 +1368,85 @@ def waqf_research():
         'active_form': active_form,
     }
     _waqf_research_cache[cache_key] = result
+    return jsonify(result)
+
+
+# ── Search by printed mark ───────────────────────────────────────────────────
+# «Every وقف لازم in the Azhar mushaf»: marks are matched by MEANING through
+# _mushaf_sem_class, so the same question works for every notation (ورش's صه,
+# the IndoPak glyphs, الأزهر's ج-for-everything).
+_MARK_MEANINGS = {
+    'MUST': 'وقف لازم', 'STOP': 'الوقف أولى', 'CONT': 'الوصل أولى', 'CHOICE': 'وقف جائز',
+    'NOSTOP': 'لا وقف', 'EMBRACE': 'وقف المعانقة', 'SAKTA': 'سكتة', 'ABS': 'وقف مطلق',
+}
+_mark_positions_cache: dict | None = None
+
+
+def _mark_positions():
+    """(surah, ayah, token_index) → {mushaf: raw symbol} for every marked token,
+    read once from mushaf_waqf.db."""
+    global _mark_positions_cache
+    if _mark_positions_cache is not None:
+        return _mark_positions_cache
+    columns = ', '.join(f'"{name}"' for name in _WAQF_MATCH_MUSHAFS)
+    positions = {}
+    with sqlite3.connect(MUSHAF_WAQF_DATABASE) as db:
+        for row in db.execute(f'SELECT السورة, الآية, token_index, {columns} FROM waqf WHERE token_index IS NOT NULL'):
+            marks = {name: value.strip() for name, value in zip(_WAQF_MATCH_MUSHAFS, row[3:]) if value and value.strip()}
+            if marks:
+                positions[(row[0], row[1], row[2])] = marks
+    _mark_positions_cache = positions
+    return positions
+
+
+@breathing_bp.route('/api/waqf-research/marks/summary', methods=['GET'])
+def waqf_research_marks_summary():
+    """How many positions each mushaf marks with each meaning — drives the picker."""
+    counts = defaultdict(Counter)
+    for marks in _mark_positions().values():
+        for mushaf, raw in marks.items():
+            meaning = _mushaf_sem_class(mushaf, raw)
+            if meaning:
+                counts[mushaf][meaning] += 1
+    return jsonify({
+        'meanings': [{'id': key, 'label': label} for key, label in _MARK_MEANINGS.items()],
+        'mushafs': [{'id': name, 'counts': dict(counts[name])} for name in _WAQF_MATCH_MUSHAFS if counts[name]],
+    })
+
+
+_mark_search_cache: _BoundedLRU = _BoundedLRU(maxsize=64)
+
+
+@breathing_bp.route('/api/waqf-research/marks', methods=['GET'])
+def waqf_research_marks():
+    """Every position where `mushaf` prints a mark meaning `mark` (MUST, STOP…),
+    with the word, a context snippet, and all mushafs' marks there."""
+    mushaf = request.args.get('mushaf', '').strip()
+    meaning = request.args.get('mark', '').strip().upper()
+    if mushaf not in _WAQF_MATCH_MUSHAFS or meaning not in _MARK_MEANINGS:
+        return jsonify({'error': 'unknown mushaf or mark'}), 400
+    cached = _mark_search_cache.get((mushaf, meaning))
+    if cached is not None:
+        return jsonify(cached)
+    occurrences = []
+    for (surah, ayah, token_index), marks in sorted(_mark_positions().items()):
+        if _mushaf_sem_class(mushaf, marks.get(mushaf)) != meaning:
+            continue
+        _, words, raw_to_wpos = _verse_word_texts(f'{surah}:{ayah}')
+        # Raw DB token_index is 1-based and counts ornaments (see
+        # _build_verse_waqf_detail); get_mushaf_waqf_symbols hides this, we don't.
+        if not words or not (1 <= token_index <= len(raw_to_wpos)):
+            continue
+        wpos = raw_to_wpos[token_index - 1]
+        if wpos is None:
+            continue
+        lo, hi = max(0, wpos - 3), min(len(words), wpos + 2)
+        occurrences.append({
+            'surah': surah, 'ayah': ayah, 'wpos': wpos,
+            'word': words[wpos], 'context': ' '.join(words[lo:hi]),
+            'marks': marks, 'has_waqf': True,
+        })
+    result = {'mushaf': mushaf, 'mark': meaning, 'label': _MARK_MEANINGS[meaning],
+              'count': len(occurrences), 'occurrences': occurrences}
+    _mark_search_cache[(mushaf, meaning)] = result
     return jsonify(result)
