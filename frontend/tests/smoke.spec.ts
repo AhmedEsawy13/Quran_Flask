@@ -614,7 +614,15 @@ test("مختبر الوقف finds by mark, narrows by scope, and shows evidence 
   await page.goto("/waqf-lab?tab=word&q=%D9%87%D9%84&mode=before");
   await expect(page.getByLabel("ملخص النتائج")).toBeVisible({timeout: 20_000});
   await page.getByRole("button", {name: /الأدلة: القرّاء والأئمة/}).first().click();
-  await expect(page.getByLabel("أدلة الموضع").first()).toContainText("حَكِيمٌ", {timeout: 15_000});
+  const ayahEndEvidence = page.getByLabel("أدلة الموضع").first();
+  await expect(ayahEndEvidence).toContainText("حَكِيمٌ", {timeout: 15_000});
+  // An ayah end is not in the within-ayah stops: report who stopped there, never «وصل القرّاء جميعًا».
+  await expect(ayahEndEvidence).toContainText("رأس آية");
+  // الوصل على رؤوس الآي: where the reciters joined an ayah to the next, with the other witnesses.
+  await page.goto("/waqf-lab?tab=ayahends");
+  await expect(page.getByRole("button", {name: /وصلها القرّاء/})).toHaveAttribute("aria-pressed", "true", {timeout: 20_000});
+  const joined = page.locator('a[href^="/waqf?surah=37&ayah=151"]');
+  await expect(joined).toContainText("وصلها ٦ من ١٥");
   await expectNoHorizontalOverflow(page);
 });
 

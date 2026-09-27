@@ -7,6 +7,7 @@ export type LabFamily = "words" | "reciters" | "mushafs";
 export type LabTab =
   | "word"
   | "marks"
+  | "ayahends"
   | "ibtidaa"
   | "saktat"
   | "mandatory"
@@ -21,6 +22,7 @@ export type LabTab =
 export const LAB_TABS: Array<{id: LabTab; family: LabFamily; label: string; question: string}> = [
   {id: "word", family: "words", label: "بحث بالكلمة", question: "أين يُوقف على كلمةٍ أو عبارةٍ في القرآن كله؟"},
   {id: "marks", family: "words", label: "بحث بالعلامة", question: "أين وضع مصحفٌ علامةً بعينها، ككل وقفٍ لازم؟"},
+  {id: "ayahends", family: "words", label: "الوصل على رؤوس الآي", question: "أيّ رؤوس الآي يُوصل بما بعده، ومن يشهد بذلك؟"},
   {id: "ibtidaa", family: "words", label: "الابتداء بما قبله", question: "أين وقف القارئ ثم رجع يبتدئ بكلمة قبلها؟"},
   {id: "saktat", family: "words", label: "السكتات", question: "أين يسكت حفص سكتةً يسيرة بلا تنفّس؟"},
   {id: "mandatory", family: "words", label: "اللازم والممنوع والمعانقة", question: "أين يلزم الوقف، وأين يُمنع، وأين يتعانق موضعان؟"},
@@ -325,4 +327,18 @@ export type MarkSearchPayload = {
   label: string;
   count: number;
   occurrences: ResearchOccurrence[];
+};
+
+export type AyahEndItem = ResearchOccurrence & {
+  imams: Array<{imam: string; grade: string}>;
+  joined: string[];
+  connect: {reciters: number; imams: number; mushafs: number};
+  witnesses: number;
+};
+
+export type AyahEndsPayload = {
+  reciters_total: number;
+  count: number;
+  counts: {reciters: number; imams: number; mushafs: number; all_three: number};
+  items: AyahEndItem[];
 };

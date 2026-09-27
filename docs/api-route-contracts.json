@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 118,
+  "route_count": 120,
   "routes": [
     {
       "auth": "editor",
@@ -3331,6 +3331,67 @@
         "normalized",
         "occurrences",
         "word"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200,
+        400
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_research_ayah_end",
+      "error_keys": [
+        "error"
+      ],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/ayah-end/<int:surah>/<int:ayah>",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "ayah",
+        "joined",
+        "reciters_total",
+        "surah"
+      ]
+    },
+    {
+      "auth": "public",
+      "availability": "default-feature",
+      "declared_statuses": [
+        200
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "breathing.waqf_research_ayah_ends",
+      "error_keys": [],
+      "feature": "breathing",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/waqf-research/ayah-ends",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/waqf_research.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "count",
+        "counts",
+        "items",
+        "reciters_total"
       ]
     },
     {

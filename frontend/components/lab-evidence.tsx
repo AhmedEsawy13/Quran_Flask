@@ -10,7 +10,8 @@ import {StatusState} from "@/components/ui/primitives";
 /** Where the stop being studied sits. `wpos: -1` = the ayah's last word. */
 export type EvidenceTarget = {surah: number; ayah: number; wpos: number};
 
-type VerseEvidence = {waqf: WaqfPayload | null; classical: ClassicalWaqfPayload | null};
+type AyahEnd = {reciters_total: number; joined: string[]};
+type VerseEvidence = {waqf: WaqfPayload | null; classical: ClassicalWaqfPayload | null; ayahEnd: AyahEnd | null};
 
 const verseCache = new Map<string, Promise<VerseEvidence>>();
 
@@ -21,7 +22,9 @@ function loadVerse(surah: number, ayah: number) {
     job = Promise.all([
       getJson<WaqfPayload>(`/backend-api/waqf/${surah}/${ayah}`).catch(() => null),
       getJson<ClassicalWaqfPayload>(`/backend-api/classical-waqf/${surah}/${ayah}`).catch(() => null),
-    ]).then(([waqf, classical]) => ({waqf, classical}));
+      // Ayah ends are absent from the within-ayah stops; ask who joined this one to the next.
+      getJson<AyahEnd>(`/backend-api/waqf-research/ayah-end/${surah}/${ayah}`).catch(() => null),
+    ]).then(([waqf, classical, ayahEnd]) => ({waqf, classical, ayahEnd}));
     verseCache.set(key, job);
   }
   return job;
@@ -45,8 +48,9 @@ export function LabEvidence({target}: {target: EvidenceTarget}) {
   }, [target.surah, target.ayah]);
 
   if (!evidence) return <StatusState tone="loading" className="min-h-10">جارٍ جمع الأدلة…</StatusState>;
-  const {waqf, classical} = evidence;
+  const {waqf, classical, ayahEnd} = evidence;
   const wpos = target.wpos < 0 ? Math.max(0, (waqf?.words.length || 1) - 1) : target.wpos;
+  const atAyahEnd = Boolean(waqf && wpos === waqf.words.length - 1);
   const union = waqf?.union_stops.find((stop) => stop.wpos === wpos);
   const stopped = union?.count ?? 0;
   const total = waqf?.reciters_total ?? 0;
@@ -68,7 +72,13 @@ export function LabEvidence({target}: {target: EvidenceTarget}) {
       </div>
       <div className="grid gap-1.5">
         <span className="text-[0.72rem] font-bold text-athar-gold">القرّاء</span>
-        {total ? (
+        {atAyahEnd && ayahEnd ? (
+          <span className="text-[0.8rem] text-athar-ink">
+            {ayahEnd.joined.length
+              ? `رأس آية — وصله بما بعده ${ayahEnd.joined.length === 1 ? ayahEnd.joined[0] : `${toArabicDigits(ayahEnd.joined.length)} من ${arabicCount(ayahEnd.reciters_total, ["قارئ واحد", "قارئين", "قرّاء", "قارئًا"])}`}، ووقف الباقون`
+              : `رأس آية — وقف عليه القرّاء جميعًا (${toArabicDigits(ayahEnd.reciters_total)})`}
+          </span>
+        ) : total ? (
           <div className="flex items-center gap-2.5">
             <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-athar-line-soft">
               <span className="block h-full rounded-full bg-athar-accent" style={{width: `${(stopped / total) * 100}%`}} />

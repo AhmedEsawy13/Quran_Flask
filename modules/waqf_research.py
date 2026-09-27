@@ -14,7 +14,7 @@ from collections import defaultdict, Counter
 from flask import jsonify, request
 
 from core.blueprints import breathing_bp
-from core.config import MUSHAF_WAQF_DATABASE, WAQF_SYMBOL_CHARS, _BASE_DIR
+from core.config import CLASSICAL_WAQF_DATABASE, MUSHAF_WAQF_DATABASE, WAQF_SYMBOL_CHARS, _BASE_DIR
 from core.text import _normalize_for_search
 from core.mushaf_waqf import (
     get_mushaf_waqf_symbols,
@@ -27,7 +27,7 @@ from core.loader import _json_load
 from core.lru import _BoundedLRU
 from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _build_breathing_guide,
-    _WAQF_CONSENSUS_GAP_MS,
+    _WAQF_CONSENSUS_GAP_MS, _load_memorization_word_ts,
 )
 from modules.breathing import (
     _verse_word_texts, _mark_word_context,
@@ -1450,3 +1450,141 @@ def waqf_research_marks():
               'count': len(occurrences), 'occurrences': occurrences}
     _mark_search_cache[(mushaf, meaning)] = result
     return jsonify(result)
+
+
+# ── الوقف والوصل على رؤوس الآي ─────────────────────────────────────────────────
+# Every other tool treats an ayah end as an automatic stop. Here the three
+# witnesses are asked about it directly:
+#   * reciters — QUL word timings: the ayah's last word ends exactly where the
+#     next ayah's first word starts (gap <= 0) = وصل. QUL's verse-level
+#     `silence_after` is NOT used: its boundaries absorb the pause (it reads
+#     <50ms at ~half the ends of fast reciters whose word gap is ~300ms).
+#   * imams — classical rulings on the ayah's last word; لا / قبيح = do not stop.
+#   * mushafs — marks printed on the last word; the IndoPak mushaf prints «لا».
+_NEGATIVE_GRADES = ('لا', 'قبيح')
+_ayah_end_state: dict | None = None
+
+
+def _ayah_end_reciters():
+    """(surah, ayah) → reciter ids that joined this ayah to the next, and the
+    installed reciter set (the same one مُكْث counts from)."""
+    reciter_ids = sorted(rid for rid in MEMORIZATION_RECITERS if _memo_reciter_installed(rid))
+    joined = defaultdict(list)
+    for rid in reciter_ids:
+        timings = _load_memorization_word_ts(rid)
+        for ref, value in timings.items():
+            if ref == '_meta' or not isinstance(value, list) or len(value) < 2 or not value[1]:
+                continue
+            surah, ayah = (int(part) for part in ref.split(':'))
+            following = timings.get(f'{surah}:{ayah + 1}')
+            if not following or len(following) < 2 or not following[1]:
+                continue
+            if following[1][0][1] - value[1][-1][2] <= 0:
+                joined[(surah, ayah)].append(rid)
+    return reciter_ids, joined
+
+
+def _ayah_end_state_build():
+    global _ayah_end_state
+    if _ayah_end_state is not None:
+        return _ayah_end_state
+    reciter_ids, joined = _ayah_end_reciters()
+    last_ayah = defaultdict(int)
+    for key in qpc_hafs_data_normalized:
+        surah, ayah = (int(part) for part in key.split(':'))
+        last_ayah[surah] = max(last_ayah[surah], ayah)
+    words_of = {}
+
+    def verse(surah, ayah):
+        key = (surah, ayah)
+        if key not in words_of:
+            words_of[key] = _verse_word_texts(f'{surah}:{ayah}')
+        return words_of[key]
+
+    # Printed marks on each ayah's last word (raw token_index is 1-based).
+    end_marks = defaultdict(dict)
+    for (surah, ayah, token_index), marks in _mark_positions().items():
+        _, words, raw_to_wpos = verse(surah, ayah)
+        if words and 1 <= token_index <= len(raw_to_wpos) and raw_to_wpos[token_index - 1] == len(words) - 1:
+            end_marks[(surah, ayah)].update(marks)
+
+    # Candidate ayahs: any witness hints at وصل. Exact rulings come from the
+    # classical endpoint below (active books, reviews, corrected grades).
+    candidates = set(joined)
+    candidates |= {key for key, marks in end_marks.items()
+                   if any(_mushaf_sem_class(name, raw) == 'NOSTOP' for name, raw in marks.items())}
+    if os.path.exists(CLASSICAL_WAQF_DATABASE):
+        with sqlite3.connect(CLASSICAL_WAQF_DATABASE) as db:
+            for surah, ayah, wpos in db.execute(
+                    'SELECT surah, ayah, wpos FROM classical WHERE grade IN (?, ?)', _NEGATIVE_GRADES):
+                if ayah and wpos is not None and wpos == len(verse(surah, ayah)[1]) - 1:
+                    candidates.add((surah, ayah))
+    candidates = {key for key in candidates if key[1] < last_ayah[key[0]]}
+
+    from modules.breathing import classical_waqf
+    items = []
+    for surah, ayah in sorted(candidates):
+        _, words, _ = verse(surah, ayah)
+        _, next_words, _ = verse(surah, ayah + 1)
+        if not words or not next_words:
+            continue
+        last = len(words) - 1
+        classical = classical_waqf(surah, ayah).get_json() or {}
+        sources = classical.get('sources') or {}
+        imams = [{'imam': (sources.get(entry['source']) or {}).get('name') or entry['source'],
+                  'grade': entry['grade']}
+                 for entry in classical.get('entries', []) if entry.get('wpos') == last]
+        marks = end_marks.get((surah, ayah), {})
+        connect = {
+            'reciters': len(joined.get((surah, ayah), [])),
+            'imams': sum(1 for ruling in imams if ruling['grade'] in _NEGATIVE_GRADES),
+            'mushafs': sum(1 for name, raw in marks.items() if _mushaf_sem_class(name, raw) == 'NOSTOP'),
+        }
+        if not any(connect.values()):
+            continue
+        items.append({
+            'surah': surah, 'ayah': ayah, 'wpos': last, 'word': words[last],
+            'context': ' '.join(words[-4:]) + ' ۝ ' + ' '.join(next_words[:4]),
+            'marks': marks, 'imams': imams,
+            'joined': [MEMORIZATION_RECITERS[rid]['name_ar'] for rid in joined.get((surah, ayah), [])],
+            'connect': connect,
+            'witnesses': sum(1 for value in connect.values() if value),
+        })
+    items.sort(key=lambda item: (-item['witnesses'], -item['connect']['reciters'], item['surah'], item['ayah']))
+    _ayah_end_state = {
+        'reciters_total': len(reciter_ids),
+        'joined': {f'{s}:{a}': [MEMORIZATION_RECITERS[rid]['name_ar'] for rid in rids] for (s, a), rids in joined.items()},
+        'items': items,
+    }
+    return _ayah_end_state
+
+
+@breathing_bp.route('/api/waqf-research/ayah-ends', methods=['GET'])
+def waqf_research_ayah_ends():
+    """Ayah ends where at least one witness says to join them to the next ayah."""
+    state = _ayah_end_state_build()
+    items = state['items']
+    return jsonify({
+        'reciters_total': state['reciters_total'],
+        'count': len(items),
+        'counts': {
+            'reciters': sum(1 for item in items if item['connect']['reciters']),
+            'imams': sum(1 for item in items if item['connect']['imams']),
+            'mushafs': sum(1 for item in items if item['connect']['mushafs']),
+            'all_three': sum(1 for item in items if item['witnesses'] == 3),
+        },
+        'items': items,
+    })
+
+
+@breathing_bp.route('/api/waqf-research/ayah-end/<int:surah>/<int:ayah>', methods=['GET'])
+def waqf_research_ayah_end(surah, ayah):
+    """Did the reciters stop at this ayah's end, or join it to the next?"""
+    if not (1 <= surah <= 114) or ayah < 1:
+        return jsonify({'error': 'invalid verse'}), 400
+    state = _ayah_end_state_build()
+    return jsonify({
+        'surah': surah, 'ayah': ayah,
+        'reciters_total': state['reciters_total'],
+        'joined': state['joined'].get(f'{surah}:{ayah}', []),
+    })

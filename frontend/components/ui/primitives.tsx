@@ -240,7 +240,7 @@ export function SegmentedControl<T extends string>({
       className={cn(
         "flex items-center",
         pills
-          ? "gap-1 rounded-full border border-athar-line bg-athar-canvas-strong p-0.5"
+          ? "gap-1 rounded-[18px] border border-athar-line bg-athar-canvas-strong p-0.5"
           : "min-h-11 rounded-xl border border-athar-line bg-athar-canvas-strong p-1",
         className,
       )}

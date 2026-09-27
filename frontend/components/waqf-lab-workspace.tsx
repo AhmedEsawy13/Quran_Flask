@@ -14,6 +14,7 @@ import {HitChip, HitList, HitRow, ToneChip, ToolBlurb} from "@/components/waqf-l
 import {LabClusterPanel, LabSolosPanel, LabStatsPanel} from "@/components/waqf-lab-reciters";
 import {LabAgreementPanel, LabMandatoryPanel, LabMushafSimPanel, LabPatternsPanel} from "@/components/waqf-lab-mushafs";
 import {LabMarksPanel} from "@/components/lab-marks-panel";
+import {LabAyahEndsPanel} from "@/components/lab-ayah-ends-panel";
 import {LabScopeBar, LabScopeProvider, type LabScope} from "@/components/lab-scope";
 import {
   HIT_PAGE,
@@ -33,7 +34,7 @@ type WordMode = "before" | "";
 type WordMatch = "word" | "affix";
 
 /** Tools whose results are ayah lists, so a surah/juz scope applies. */
-const SCOPED_TOOLS: ReadonlySet<LabTab> = new Set(["word", "marks", "ibtidaa", "saktat", "mandatory", "solos", "patterns", "agreement"]);
+const SCOPED_TOOLS: ReadonlySet<LabTab> = new Set(["word", "marks", "ayahends", "ibtidaa", "saktat", "mandatory", "solos", "patterns", "agreement"]);
 
 function positiveParam(value: string | null, max: number) {
   const number = Number(value);
@@ -601,6 +602,7 @@ export function WaqfLabWorkspace() {
             ) : null}
 
             {tab === "marks" ? <LabMarksPanel surahs={surahs} /> : null}
+            {tab === "ayahends" ? <LabAyahEndsPanel surahs={surahs} /> : null}
             {tab === "mandatory" ? <LabMandatoryPanel surahs={surahs} /> : null}
             {tab === "solos" ? <LabSolosPanel surahs={surahs} /> : null}
             {tab === "stats" ? <LabStatsPanel surahs={surahs} /> : null}
