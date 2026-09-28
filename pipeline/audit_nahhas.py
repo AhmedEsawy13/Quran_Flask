@@ -155,7 +155,12 @@ def main():
     args = ap.parse_args()
     con = sqlite3.connect(args.db)
     if args.apply:
-        print('applied:', apply(con))
+        st = apply(con)
+        # a move can land a row on a twin that the same pass already merged
+        # around: repeat until nothing changes (the second pass is a no-op)
+        while sum(st.values()):
+            print('applied:', st)
+            st = apply(con)
     else:
         ops = plan(con)
         print(len(ops), 'changes:', {k: sum(1 for o in ops if o[0] == k) for k in ('attribute', 'move', 'regrade', 'delete', 'insert')})

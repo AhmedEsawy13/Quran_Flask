@@ -37,7 +37,9 @@ DB = os.path.join(ROOT, 'data', 'classical_waqf.db')
 OUT = os.path.join(ROOT, 'pipeline', 'review', 'anbari_audit.jsonl')
 
 _G = (r'(?:وقف\s+)?(لا يحسن الوقف|ليس بوقف|لا يوقف|التمام|التام|أتم|تمام|تام|كافٍ|كاف|'
-      r'أحسن|حسن|صالح|قبيح)(?=[\s،.؛\]]|$)')
+      r'أحسن|حسن|صالح|قبيح)(?=[\s،.؛\]]|$)'
+      # «فمن قرأ (يأمرنا) حسن أن يقف على (وما الرحمن)»: grades the NEXT quote
+      r'(?!\s*(?:الوقف|له\s+أن|أن\s+[تيأن]))')
 _GRADE_AFTER = re.compile(r'^[\s،:؛]*\[?' + _G)       # «[تام]» too
 _MAP = {'التمام': 'تام', 'التام': 'تام', 'أتم': 'تام', 'تمام': 'تام', 'تام': 'تام',
         'كافٍ': 'كاف', 'كاف': 'كاف', 'أحسن': 'حسن', 'حسن': 'حسن', 'صالح': 'صالح',
@@ -78,8 +80,8 @@ def squash(s):
 
 
 def occurrences(text, quote):
-    """Start offsets of «(quote)» in a section, whitespace-insensitive."""
-    pat = r'\(\s*' + r'\s+'.join(re.escape(w) for w in squash(quote).split()) + r'\s*\)'
+    """Start offsets of «(quote)» — or ««quote»» — in a section, whitespace-insensitive."""
+    pat = r'[(«]\s*' + r'\s+'.join(re.escape(w) for w in squash(quote).split()) + r'\s*[)»]'
     return [(m.start(), m.end()) for m in re.finditer(pat, text)]
 
 
@@ -89,6 +91,19 @@ def verse_at(text, start, end, acount):
         return int(own.group(1)), True
     prev = [int(m.group(1)) for m in _MARK.finditer(text, 0, start) if 1 <= int(m.group(1)) <= acount]
     return (prev[-1] if prev else 1), False
+
+
+def verse_near(text, start, end, acount, ayah):
+    """verse_at, but a {…} [n] cross-reference may sit between a verse's
+    rulings («يتم الوقف على المتقين» citing {أولئك على هدى} [5] inside 2:3):
+    of the numbers in the stretch before the quote, take the one nearest the
+    row's current verse."""
+    va, own = verse_at(text, start, end, acount)
+    if own or not ayah:
+        return va, own
+    near = [int(m.group(1)) for m in _MARK.finditer(text, max(0, start - 700), start)
+            if 1 <= int(m.group(1)) <= acount]
+    return min([va] + near, key=lambda v: (abs(v - ayah), v != va)), own
 
 
 def grade_at(text, start, end):
@@ -153,7 +168,10 @@ def next_marker(text, end, ayah, acount):
 # its entries): «(إلا مكاء وتصدية) [35] حسن. (ليصدوا عن سبيل الله) [26]» is 8:36
 SEAT_FIX = {(8, 'ليصدوا عن سبيل الله'): (36, 8),
             # «(فرهان مقبوضة) حسن. وكذلك (وليتق الله ربه)» — 2:283, not 2:282
-            (2, 'وليتق الله ربه'): (283, 19)}
+            (2, 'وليتق الله ربه'): (283, 19),
+            # «(يقسمون رحمة ربك) [32] حسن» is the opening «أهم يقسمون رحمت ربكۚ»,
+            # not the verse-end «ورحمت ربك خير»
+            (43, 'يقسمون رحمة ربك'): (32, 3)}
 # a citation of another surah filed under this one: «وكذلك في سورة الروم:
 # (أولم يتفكروا في أنفسهم) [8]» (the الروم row exists)
 OTHER_SURAH = {(7, 'أولم يتفكروا في أنفسهم')}
@@ -177,11 +195,14 @@ def seat(surah, ayah, quote, acount, upto, own, current=None):
     order = [ayah, ayah + 1, ayah - 1]
     if not own and not single:
         order += list(range(ayah + 2, min(upto, ayah + 12) + 1))
-    for a in order:
-        if 1 <= a <= acount:
-            w = mm.head_seat(surah, a, quote)
-            if w is not None:
-                return a, w
+    # an exact spelling in any candidate verse beats a loose one in an earlier
+    # candidate: 5:107 «إنا إذا لمن الظالمين», not 5:106's «… لمن الآثمين»
+    for strict in (True, False):
+        for a in order:
+            if 1 <= a <= acount and (not strict or mm.hits_in_ayah(surah, a, quote, True)):
+                w = mm.head_seat(surah, a, quote)
+                if w is not None:
+                    return a, w
     if not single:
         found = [(a, w) for a in range(1, acount + 1)
                  for w in [mm.head_seat(surah, a, quote)] if w is not None]
@@ -211,7 +232,7 @@ def audit(con):
                 other = (gg, st, en, via)
             if gg != g:
                 continue
-            va, own = verse_at(text, st, en, acount)
+            va, own = verse_near(text, st, en, acount, a)
             cand = (abs((a or va) - va), st, en, va, own, via)
             if best is None or cand < best:
                 best = cand
@@ -350,6 +371,7 @@ def missing_graded_entries(con):
     out, seen = [], set()
     for surah, text in sections().items():
         acount = rx.surah_ayah_count(surah)
+        last_a = None                  # verse of the previous graded quote (book order)
         for m in re.finditer(r'\(([^()]{2,120})\)', text):
             if re.search(r'\[[^\]\d]{2,20}:\s*\d', text[m.end():m.end() + 30]) or \
                     re.search(r'في سورة', text[max(0, m.start() - 70):m.start()]):
@@ -358,8 +380,10 @@ def missing_graded_entries(con):
             if not g or g == 'NEG' or relayed_by(text, m.start()):
                 continue
             q = m.group(1)
-            va, own = verse_at(text, m.start(), m.end(), acount)
+            va, own = verse_near(text, m.start(), m.end(), acount, last_a)
             a, w = seat(surah, va, q, acount, next_marker(text, m.end(), va, acount), own)
+            if a is not None:
+                last_a = a
             if (surah, a, w, g) in DROP:
                 continue
             if a is None or (surah, a, w, g) in seen:

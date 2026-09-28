@@ -59,9 +59,9 @@ def uncertain_rows():
 
 def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     result = review.muktafa_accuracy(review_db=review_db)
-    assert result['total_extracted'] == 6751
-    assert result['matched'] == 6751
-    assert result['confident'] == 6751
+    assert result['total_extracted'] == 6752
+    assert result['matched'] == 6752
+    assert result['confident'] == 6752
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0
@@ -81,7 +81,9 @@ def test_review_page_and_summary_are_editor_routes(client, review_db):
     # pause-marked occurrence). The 8 left were read by hand: 3:20 the checker
     # reads «أأسلمتم» as «أسلمت»; 4:78, 4:131, 5:41, 29:47, 29:53, 42:15, 59:18
     # sit on the other occurrence on purpose (audit_manar_mithl SEAT_KEEP).
-    assert manar['explicit_missing'] == 8
+    # the explicit-key aligner seats 43:32 «رحمت ربك» on the verse-end (last
+    # occurrence); the served row was moved to «أهم يقسمون رحمت ربكۚ» (9 = 8 + that)
+    assert manar['explicit_missing'] == 9
 
 
 def test_reviewer_can_approve_a_matched_row(client, review_db, pending_muktafa):

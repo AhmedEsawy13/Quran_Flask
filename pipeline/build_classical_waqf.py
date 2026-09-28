@@ -107,6 +107,9 @@ def norm(tok):
     # (مُوسَىٰ، حَتَّىٰ) so ى→ي still matches موسى. Yeh+dagger is يا
     # (يَٰوَيْلَنَا، يَٰمُوسَىٰ). Remaining daggers (صَٰٓفَّٰت، عَٰلَمِين) → ا.
     t = re.sub(r'ىٰ(?=[ء-ي])', 'ا', t)
+    # و carrying the dagger directly is the imlāʾī ا: ٱلصَّلَوٰةَ / ٱلزَّكَوٰةَ /
+    # ٱلۡحَيَوٰةِ / ٱلرِّبَوٰاْ (not مَوَٰزِين or ٱلسَّمَٰوَٰتِ, whose و has its own fatha)
+    t = re.sub(r'وٰا?', 'ا', t)
     t = t.replace('ىٰ', 'ى').replace('يٰ', 'يا').replace('ٰ', 'ا')
     t = _normalize_for_search(t)
     t = t.replace('ء', '')
@@ -234,6 +237,16 @@ def _prefix_forms(w):
     for p in _PREFIXES:
         if w.startswith(p) and len(w) - len(p) >= 2:
             yield w[len(p):]
+
+
+def match_word_taa(a, b, level):
+    """match_word, plus the rasm's open tā' (كَلِمَتُ / نِعۡمَتَ) for the book's
+    ة at level 2. النحاس only: its whole-quote seating needs every word, while
+    the other books' seats and audits were settled without it (43:32 has two
+    «رحمت ربك»)."""
+    if match_word(a, b, level):
+        return True
+    return level >= 2 and len(a) >= 3 and a[:-1] == b[:-1] and {a[-1], b[-1]} == {'ه', 'ت'}
 
 
 def match_word(a, b, level):
@@ -924,7 +937,15 @@ def harvest_nahhas(body, rows, seq0):
             if r.how == 'blanket':
                 continue
             if r.start not in seats:
-                idx, ok = nparse.seat(stream, cursor, quote_words(r.quote), match_word)
+                # «{أكلها دائم وظلها ... وعقبى الكافرين النار} قطع تام»: the
+                # stop is the end of the elided span; «يا أيها» is one word
+                # in the mushaf (يَٰٓأَيُّهَا), so try the builder's variants
+                stop = re.split(r'\.\.\.|…', r.quote)[-1]
+                idx, ok = None, False
+                for qv in quote_token_variants(quote_words(stop)):
+                    idx, ok = nparse.seat(stream, cursor, qv, match_word_taa)
+                    if idx is not None:
+                        break
                 seats[r.start] = (idx, ok)
                 if idx is not None and ok:
                     cursor = idx
@@ -969,10 +990,13 @@ def harvest_nahhas(body, rows, seq0):
 # markers are frequent enough that a single-word stop in the current ayah is
 # trustworthy. «غير تام»/«لا يتم» are NOT extracted (ambiguous: "not COMPLETE"
 # ≠ forbidden; may still be كاف).
-_ANBARI_ENTRY_RE = re.compile(r'\(([^()]{2,120})\)\s*(?:\[(\d{1,3})\])?([^()]{0,60})')
+_ANBARI_ENTRY_RE = re.compile(r'[(«]([^()«»]{2,120})[)»]\s*(?:\[(\d{1,3})\])?([^()«»]{0,60})')
+_ANBARI_VERSE_MARK = re.compile(r'[)}]\s*\[(\d{1,3})\]')
 _ANBARI_GRADE_RE = re.compile(
     r'^[\s،:؛]*(?:وقف\s+)?(لا يحسن الوقف|ليس بوقف|لا يوقف|التمام|التام|أتم|تمام|تام'
-    r'|كافٍ|كاف|أحسن|حسن|صالح|قبيح)(?=[\s،.]|$)')
+    r'|كافٍ|كاف|أحسن|حسن|صالح|قبيح)(?=[\s،.]|$)'
+    # «(X) حسن الوقف على (Y)» / «حسن له أن يقف على» grade the NEXT quote
+    r'(?!\s*(?:الوقف|له\s+أن|أن\s+[تيأن]))')
 _ANBARI_MAP = {'التمام': 'تام', 'التام': 'تام', 'أتم': 'تام', 'تمام': 'تام', 'تام': 'تام',
                'كافٍ': 'كاف', 'كاف': 'كاف', 'أحسن': 'حسن', 'حسن': 'حسن', 'صالح': 'صالح',
                'قبيح': 'قبيح', 'لا يحسن الوقف': 'قبيح', 'ليس بوقف': 'لا', 'لا يوقف': 'لا'}
@@ -1024,6 +1048,11 @@ def harvest_anbari(body, rows, seq0):
         acount = surah_ayah_count(num)
         cur_ayah = 1                       # ayah context for entries lacking [n]
         entries = list(_ANBARI_ENTRY_RE.finditer(text))
+        # verse numbers after ANY quote, «{الذين يؤمنون بالغيب} [3]» included:
+        # the rulings that follow a {…} [n] lemma belong to verse n
+        markers = [(mk.start(), int(mk.group(1))) for mk in _ANBARI_VERSE_MARK.finditer(text)
+                   if 1 <= int(mk.group(1)) <= acount]
+        mstarts = [p for p, _ in markers]
         # Pre-scan for the note boundary, same reasoning as منار: a parenthesised
         # word quoted WITHIN the author's own prose (common in commentary) never
         # becomes its own row, so it must not truncate the PRECEDING entry's
@@ -1039,6 +1068,7 @@ def harvest_anbari(body, rows, seq0):
         qualifying_starts = [entries[i].start() for i in range(len(entries)) if qualifies[i]]
 
         prev = None                        # (raw, grade, reported_from) for ومثله inheritance
+        last_pos = 0
         for idx, m in enumerate(entries):
             quote = clean_note(m.group(1), limit=200)
             own = int(m.group(2)) if m.group(2) and 1 <= int(m.group(2)) <= acount else None
@@ -1066,7 +1096,21 @@ def harvest_anbari(body, rows, seq0):
             note = clean_note(text[m.end():min(nxt, m.end() + 600)])
             seq += 1
             wpos, hit_ayah = None, None
-            for a in (ayah, ayah + 1, ayah - 1):
+            tries = (ayah, ayah + 1, ayah - 1)
+            if own is None:
+                # the book runs in verse order, but a {…} [n] cross-reference
+                # («يتم الوقف على المتقين» citing {أولئك على هدى} [5]) can sit
+                # between two rulings on one verse: try the verse numbers seen
+                # since the last ruling (newest first), then walk forward from
+                # the last ruling's verse to the newest of them
+                lo = bisect.bisect_right(mstarts, last_pos)
+                hi = bisect.bisect_right(mstarts, m.start())
+                seen = [n for _, n in markers[lo:hi]][::-1]
+                top = max([ayah] + seen)
+                tries = tuple(dict.fromkeys(
+                    [n for n in seen if n >= ayah] + list(range(ayah, min(top + 1, ayah + 8, acount) + 1)) + [ayah - 1]))
+            last_pos = m.start()
+            for a in tries:
                 if a < 1:
                     continue
                 wpos, _ = align_in_ayah(num, a, qwords)
@@ -1083,7 +1127,9 @@ def harvest_anbari(body, rows, seq0):
             if own is not None:
                 conf = 1 if hit_ayah == own else 0
             else:
-                conf = 1 if hit_ayah == ayah else 0
+                conf = 1 if hit_ayah in tries[:-1] else 0
+                if conf:
+                    cur_ayah = hit_ayah
             _, words, _ = app._verse_word_texts(f'{num}:{hit_ayah}')
             rows.append(('anbari', num, hit_ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf, reported_from))
     return seq, unmatched

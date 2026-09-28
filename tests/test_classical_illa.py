@@ -98,6 +98,13 @@ def test_each_follows_names_an_earlier_row_with_the_same_grade(rows):
     ('anbari', 8, 36, 8, 'حسن'),       # «ليصدوا عن سبيل الله» [26] in the book
     ('anbari', 2, 283, 19, 'حسن'),     # «وليتق الله ربه» after «فرهان مقبوضة»
     ('nahhas', 24, 58, 48, 'تام'),     # «والله عليكم حكيم» — was 24:18
+    ('muktafa', 69, 3, 3, 'تام'),      # «وما أدراك ما الحاقة» — was 69:2 (last word only)
+    ('muktafa', 11, 99, 5, 'كاف'),     # «ويوم القيامة» — was 11:98's «يوم القيامة»
+    ('muktafa', 33, 20, 22, 'تام'),    # «إلا قليلا» after «أشحة على الخير» — was 33:18
+    ('anbari', 2, 3, 2, 'حسن'),        # «الغيب» — a «…» quote after a {…} [3] lemma
+    ('anbari', 5, 107, 25, 'حسن'),     # «… لمن الظالمين» — not 5:106's «لمن الآثمين»
+    ('nahhas', 13, 35, 18, 'تام'),     # «أكلها دائم وظلها ... وعقبى الكافرين النار»
+    ('nahhas', 9, 119, 7, 'تام'),      # «يا أيها …» is one word (يَٰٓأَيُّهَا) in the mushaf
 ])
 def test_rows_moved_by_the_book_order_sweep(rows, source, surah, ayah, wpos, grade):
     assert any((r['source'], r['surah'], r['ayah'], r['wpos'], r['grade']) == (source, surah, ayah, wpos, grade)
@@ -124,3 +131,27 @@ def test_blanket_rows_never_sit_under_an_explicit_ruling(rows):
                 if r['source'] == 'muktafa' and r['grade_raw'] != 'رؤوس الآي'}
     assert not [r['id'] for r in rows if r['source'] == 'muktafa' and r['grade_raw'] == 'رؤوس الآي'
                 and (r['surah'], r['ayah'], r['wpos']) in explicit]
+
+
+def test_multi_word_quotes_end_where_they_are_seated(rows):
+    """A quote of two or more words must end, word for word, in its own verse
+    when it does so in another verse of the surah: 69:2 held «وما أدراك ما
+    الحاقة» (69:3) and 11:98 «ويوم القيامة» (11:99, 11:98 has no و) because
+    only the last word was matched (found 2026-09-28 against quranpedia.app)."""
+    from pipeline import audit_manar_mithl as mm
+    from pipeline import build_classical_waqf as rx
+    # checked against the book's order: the book drops or adds a leading و
+    # («والله واسع عليم» for 2:115's «إن الله»), the phrase is still here
+    ok = {('muktafa', 2, 115, 11), ('muktafa', 2, 150, 30), ('muktafa', 4, 102, 55), ('muktafa', 53, 28, 4),
+          ('anbari', 2, 217, 17), ('anbari', 9, 106, 11), ('nahhas', 8, 4, 10), ('nahhas', 41, 15, 24)}
+    bad = []
+    for r in rows:
+        q = (r['quote'] or '').replace('...', ' ')
+        if (r['source'], r['surah'], r['ayah'], r['wpos']) in ok or r['grade_raw'] in ('رؤوس الآي', 'آخر السورة') or '.' in q or '…' in q:
+            continue
+        if len(rx.quote_words(q, mm.hnorm)) < 2 or mm.hits_in_ayah(r['surah'], r['ayah'], q, True):
+            continue
+        if any(mm.hits_in_ayah(r['surah'], b, q, True)
+               for b in range(1, rx.surah_ayah_count(r['surah']) + 1) if b != r['ayah']):
+            bad.append((r['id'], r['source'], r['surah'], r['ayah'], r['quote']))
+    assert not bad, bad[:5]

@@ -464,6 +464,9 @@ MOVES = {
     # 7:195 «وكذا «بها» الأخيرة، وفي المواضع الثلاثة لا يجوز الوقف»: the لا
     # belongs to the first three بها, the last one is كاف.
     50435: (195, 3),
+    # 43:32 «رحمت ربك» تام is «أهم يقسمون رحمت ربكۚ» (its stop_word), not the
+    # verse-end «ورحمت ربك خير» (found 2026-09-28)
+    57271: (32, 3),
     # 2:165 «{كحب الله} حسن … وقال أبو عمرو فيهما: تام» sat on «وَأَنَّ ٱللَّهَ»;
     # two marked «الله» seats compete, so the mechanical rule leaves it.
     47259: (165, 10), 47260: (165, 10),

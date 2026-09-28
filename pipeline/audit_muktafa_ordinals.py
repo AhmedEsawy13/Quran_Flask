@@ -43,7 +43,11 @@ _SPAN = 5          # verses searched after the anchor
 # «{إلها آخر} كاف … {فسوف يعلمون} تام. وهو تهدد» (15:96) — the builder kept
 # only the first «فسوف يعلمون» (15:3).
 MANUAL = [(84, 5, 2, 'وحقت', 'تام'), (42, 30, 9, 'ويعفو عن كثير', 'تام'),
-          (15, 96, 7, 'فسوف يعلمون', 'تام'), (54, 21, 3, 'ونذر', 'تام'), (54, 39, 2, 'ونذر', 'تام')]
+          (15, 96, 7, 'فسوف يعلمون', 'تام'), (54, 21, 3, 'ونذر', 'تام'), (54, 39, 2, 'ونذر', 'تام'),
+          # «وقال نافع والقتبي والدينوري والأخفش {ولا تقولوا ثلاثة} تمام وهو
+          # كاف» (4:171): الداني's own verdict is كاف; the relayed quote was lost
+          (4, 171, 30, 'ولا تقولوا ثلاثة', 'كاف',
+           'وقال نافع والقتبي والدينوري والأخفش {ولا تقولوا ثلاثة} تمام وهو كاف.')]
 # «ومثله {X} الثاني» items the builder put on the FIRST occurrence:
 # (surah, ayah, wpos, quote) → (ayah, wpos).
 MOVES = {
@@ -69,6 +73,32 @@ MOVES = {
     # «{يوم عسر} تام ومثله {ونذر} حيث وقع في السورة إذا كان بعده {ولقد يسرنا
     # القرآن للذكر}»: 54:16، 54:21، 54:39 (the other two are in MANUAL)
     (54, 5, 4, 'ونذر'): (16, 3),
+    # multi-word quotes seated on a neighbouring verse by their last word
+    # alone; the full phrase ends only at the target (2026-09-28 full-quote
+    # fit check, confirmed by book order and quranpedia.app's per-ayah text)
+    (2, 229, 27, 'أن يقيما حدود الله'): (230, 23),
+    (3, 172, 2, 'واتبعوا رضوان الله'): (174, 10),
+    (4, 104, 19, 'بما أراك الله'): (105, 10),
+    (5, 106, 50, 'لمن الظالمين'): (107, 25),
+    (10, 54, 7, 'ما في السماوات والأرض'): (55, 6),
+    (13, 38, 20, 'أم الكتاب'): (39, 7),
+    (20, 74, 10, 'خالدين فيها'): (76, 7),
+    (24, 27, 15, 'فيها متاع لكم'): (29, 10),
+    (25, 31, 0, 'جملة واحدة كذلك'): (32, 9),
+    (28, 52, 6, 'آمنا به'): (53, 5),
+    (30, 8, 6, 'بآيات الله'): (10, 9),
+    (31, 26, 6, 'كلمات الله'): (27, 16),
+    (48, 18, 4, 'آية للمؤمنين'): (20, 14),
+    (69, 2, 1, 'وما أدراك ما الحاقة'): (3, 3),
+    (75, 34, 2, 'ثم أولى لك فأولى'): (35, 3),
+    (82, 17, 4, 'ثم ما أدراك ما يوم الدين'): (18, 5),
+    (101, 2, 1, 'وما أدراك ما القارعة'): (3, 3),
+    (6, 57, 18, 'مولاهم الحق'): (62, 5),           # between 6:58 and «ألا له الحكم» (6:62)
+    # found against quranpedia.app's per-ayah text (2026-09-28)
+    (19, 41, 3, 'عن آلهتي يا إبراهيم'): (46, 5),   # «يا إبراهيم» of 19:46, not 19:41's «إبراهيم»
+    (11, 98, 3, 'ويوم القيامة'): (99, 5),          # 11:98 is «يوم القيامة» without و
+    (33, 18, 13, 'إلا قليلا'): (20, 22),           # after «أشحة على الخير» (33:19): «ما قاتلوا إلا قليلا»
+    (26, 147, 2, 'وجنات وعيون'): (134, 1),        # «{وجنات وعيون} تام. {فأهلكناهم} كاف» (26:139); 147 is «في جنات»
 }
 # conf=0 rows (the cursor aligner could not pin them confidently), each read
 # against its own surah's section (2026-09-26): all are الداني's rulings.
@@ -204,7 +234,7 @@ def apply(con, found):
         stats['regraded_own'] += cur.execute(
             "UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?", (g, g, rid, g)).rowcount
     rows = [(r['surah'], r['ayah'], r['wpos'], r['quote'], r['grade'], r['note']) for r in found]
-    rows += [(s, a, w, q, g, f'{q} {g}') for s, a, w, q, g in MANUAL]
+    rows += [(s, a, w, q, g, rest[0] if rest else f'{q} {g}') for s, a, w, q, g, *rest in MANUAL]
     for s, a, w, q, g, note in rows:
         have = cur.execute("SELECT id, grade FROM classical WHERE source='muktafa' AND surah=? "
                            "AND ayah=? AND wpos=?", (s, a, w)).fetchall()

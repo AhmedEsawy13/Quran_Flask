@@ -152,10 +152,10 @@ Current deterministic catalog audit baseline:
 
 | Book | Rows | Surahs | Confident | Existing low-confidence review |
 |---|---:|---:|---:|---:|
-| المكتفى | 6,749 | 112 | 6,749 | 0 (incl. blanket verse-end rows) |
-| منار الهدى | 13,407 | 114 | 13,407 | 0 |
-| القطع والائتناف | 5,426 | 113 | 5,118 | 308 held (157 quotes not found in their surah, reading-dependent or far-jump seats) |
-| إيضاح الوقف والابتداء | 2,414 | 112 | 2,308 | 106 held (68 i'rab/non-Hafs grade-before rulings, unplaceable single words, curated HOLD) |
+| المكتفى | 6,752 | 112 | 6,752 | 0 (incl. blanket verse-end rows) |
+| منار الهدى | 13,405 | 114 | 13,405 | 0 |
+| القطع والائتناف | 5,444 | 113 | 5,194 | 250 held (157 quotes not found in their surah, reading-dependent or far-jump seats) |
+| إيضاح الوقف والابتداء | 2,434 | 112 | 2,336 | 98 held (68 i'rab/non-Hafs grade-before rulings, unplaceable single words, curated HOLD) |
 
 Inheritance and ordinal audits (2026-09-26) — rerun after any rebuild:
 
@@ -164,9 +164,9 @@ python3 pipeline/audit_manar_mithl.py          # منار «ومثله/وكذا�
 python3 pipeline/audit_muktafa_ordinals.py     # المكتفى «الأول/الثاني/في الموضعين» rulings
 python3 pipeline/audit_muktafa_blanket.py      # المكتفى «ورؤوس الآي بعد كافية» statements
 python3 pipeline/build_classical_waqf.py --only anbari && \
-python3 pipeline/audit_anbari.py --apply       # إيضاح: seats, chains, relays, grade-before rulings
+python3 pipeline/audit_anbari.py --apply       # إيضاح: seats, chains, relays, grade-before rulings (run twice)
 python3 pipeline/build_classical_waqf.py --only nahhas && \
-python3 pipeline/audit_nahhas.py --apply       # القطع: الفاتحة، ذوات قل، آخر السورة، curated fixes
+python3 pipeline/audit_nahhas.py --apply       # القطع: الفاتحة، ذوات قل، آخر السورة، curated fixes (loops until stable)
 python3 pipeline/derive_illa.py                # last: العلّة + «ومثله» heads for all four books
 ```
 
@@ -182,3 +182,22 @@ Both are dry-run by default; `--apply` writes their curated, idempotent fixes.
 
 These counts are regression baselines, not claims that the discursive books
 have been exhaustively interpreted.
+
+## Cross-check against quranpedia.app (2026-09-28)
+
+quranpedia.app/uloom publishes the same five waqf books (ours plus السجاوندي's
+علل الوقوف) cut per ayah, quotes vowelled. Its «ayah» is the page a passage
+falls on, not each ruling's seat (it files «{ونقدس لك}» under 2:29), so it is
+a cross-check, never a source of seats. Matched by ayah and last word it agrees
+with 98% of منار and ~93% of المكتفى; every disagreement was read against the
+Quran text and book order. What it found, now fixed and guarded by tests:
+
+- multi-word quotes seated by their last word alone on a neighbouring verse
+  (69:2 «وما أدراك ما الحاقة», 11:98 «ويوم القيامة», 43:32 «رحمت ربك» on the
+  verse-end) — `test_multi_word_quotes_end_where_they_are_seated`;
+- ابن الأنباري: «{الذين يؤمنون بالغيب} [3]» verse numbers after {…}, «…»-quoted
+  stops, and «حسن الوقف على (X)» / «حسن أن يقف على» (grades the NEXT quote);
+- النحاس: «يا أيها» is one mushaf word (token variants), elided quotes «{X ... Y}»
+  stop on Y, «فوقف حسن / فقطع كاف», open tā' (كلمت/كلمة) in its seating only;
+- the aligner's `norm` reads وٰ as ا (الصلوة/الزكوة/الحيوة = الصلاة/الزكاة/الحياة).
+
