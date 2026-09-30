@@ -107,7 +107,7 @@ def _render_pdf_page(
     except ImportError as exc:
         raise RuntimeError(
             'pymupdf is required to render Bahrain pages '
-            '(pip install -r requirements-cv.txt)'
+            '(pip install -r requirements/cv.txt)'
         ) from exc
 
     out.parent.mkdir(parents=True, exist_ok=True)

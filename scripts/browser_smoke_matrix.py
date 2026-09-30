@@ -484,7 +484,7 @@ def run(args: argparse.Namespace, base_url: str) -> int:
     try:
         from playwright.sync_api import sync_playwright
     except ImportError:
-        print("Playwright is missing. Run: pip install -r requirements-dev.txt", file=sys.stderr)
+        print("Playwright is missing. Run: pip install -r requirements/dev.txt", file=sys.stderr)
         return 2
 
     journeys = [j for j in JOURNEYS if args.journey in {"all", j.name}]

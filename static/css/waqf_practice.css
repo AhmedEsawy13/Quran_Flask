@@ -260,7 +260,7 @@ body.athar-training {
 }
 
 /* Real mushaf page cards — same geometry/chrome as تثبيت. */
-@font-face { font-family: 'QCF Basmala'; src: url('../fonts/QCF BSML @Am9li9.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'QCF Basmala'; src: url('../fonts/QCF_Basmala.ttf') format('truetype'); font-display: swap; }
 
 .wp-passage.wp-ml-pages {
   --wp-paper: var(--athar-surface);

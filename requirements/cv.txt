@@ -2,10 +2,10 @@
 # (not a second virtualenv, not production requirements.txt):
 #
 #   python3 -m venv .venv
-#   .venv/bin/pip install -r requirements.txt -r requirements-cv.txt
+#   .venv/bin/pip install -r requirements.txt -r requirements/cv.txt
 #
 # Train-only (strip CNN export; not needed for detect/evaluate/bootstrap):
-#   .venv/bin/pip install -r requirements-cv-train.txt
+#   .venv/bin/pip install -r requirements/cv-train.txt
 #
 opencv-python==5.0.0.93
 numpy>=2.0

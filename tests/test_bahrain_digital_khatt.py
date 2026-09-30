@@ -632,7 +632,7 @@ def test_bahrain_cross_page_header_move_consumes_empty_row(
 def test_bahrain_header_move_controls_are_wired(client, monkeypatch):
     monkeypatch.setenv('ENABLE_EDITOR', '1')
     html = client.get('/layout-studio/bahrain').get_data(as_text=True)
-    js = (PROJECT_ROOT / 'static/js/azhar_layout.js').read_text(encoding='utf-8')
+    js = (PROJECT_ROOT / 'static/js/layout_studio.js').read_text(encoding='utf-8')
     assert 'سهما العنوان' in html
     assert 'attachHeaderTools' in js
     assert '/header-move' in js
@@ -740,8 +740,8 @@ def test_bahrain_rejects_edits_on_duplicated_page_stream(
 
 
 def test_layout_line_actions_use_compact_menu():
-    js = (PROJECT_ROOT / 'static/js/azhar_layout.js').read_text(encoding='utf-8')
-    css = (PROJECT_ROOT / 'static/css/azhar_layout.css').read_text(encoding='utf-8')
+    js = (PROJECT_ROOT / 'static/js/layout_studio.js').read_text(encoding='utf-8')
+    css = (PROJECT_ROOT / 'static/css/layout_studio.css').read_text(encoding='utf-8')
     assert 'az-line-menu' in js
     assert 'az-line-actions' in js
     assert 'aria-expanded' in js

@@ -87,8 +87,8 @@ def test_azhar_layout_page_and_api(client):
     page = client.get('/azhar-layout').get_data(as_text=True)
     assert 'id="az-title"' in page
     assert 'استوديو التخطيط' in page
-    assert 'azhar_layout.css' in page
-    assert 'azhar_layout.js' in page
+    assert 'layout_studio.css' in page
+    assert 'layout_studio.js' in page
     assert 'az-cancel' in page
     assert 'id="az-undo"' in page
     assert 'az-reseed-note' in page
@@ -97,11 +97,11 @@ def test_azhar_layout_page_and_api(client):
     assert 'id="az-compare"' in page
     assert 'id="az-ref-panel"' in page
     assert 'id="az-ref-img"' in page
-    js = (PROJECT_ROOT / 'static/js/azhar_layout.js').read_text(encoding='utf-8')
+    js = (PROJECT_ROOT / 'static/js/layout_studio.js').read_text(encoding='utf-8')
     assert 'AtharLayoutStudio' in js
     assert 'apiBase' in js
     assert 'shamarlyshamarly' in js
-    assert 'az-compare' in (PROJECT_ROOT / 'static/css/azhar_layout.css').read_text(encoding='utf-8')
+    assert 'az-compare' in (PROJECT_ROOT / 'static/css/layout_studio.css').read_text(encoding='utf-8')
     assert 'undoLast' in js
     assert 'pullNextWord' in js
     assert 'transferLineToNextPage' in js

@@ -647,7 +647,7 @@ def cv_waqf_page_data(page_number: int):
             public_fields={'hint': (
                 'Install OpenCV into the project venv and train once:\n'
                 '  python3 -m venv .venv\n'
-                '  .venv/bin/pip install -r requirements.txt -r requirements-cv.txt\n'
+                '  .venv/bin/pip install -r requirements.txt -r requirements/cv.txt\n'
                 '  PYTHONPATH=. .venv/bin/python -m pipeline.cv_waqf train'
             )},
         ) from exc

@@ -9,7 +9,7 @@ Does **not** run inside the public Flask reading path.
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt -r requirements-cv.txt
+.venv/bin/pip install -r requirements.txt -r requirements/cv.txt
 export PYTHONPATH=.
 ```
 
@@ -61,7 +61,7 @@ export PYTHONPATH=.
 # — that gated MLP remains the fallback when the strip ONNX is absent.
 # A real Bahrain strip net is not in git; train locally on hand labels +
 # cached pages (data/cv/crops_hand/bahrain is gitignored).
-.venv/bin/pip install -r requirements-cv-train.txt
+.venv/bin/pip install -r requirements/cv-train.txt
 .venv/bin/python -m pipeline.cv_waqf train-strip \
   --crops data/cv/crops_hand/bahrain
 # writes models/waqf_strip_bahrain.onnx + .json sidecar

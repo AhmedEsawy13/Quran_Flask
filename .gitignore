@@ -39,7 +39,7 @@ venv.bak/
 
 # AI coding tools — local session/index state, not project config
 .qoder/
-.claude/launch.json
+.claude/
 
 # OS
 .DS_Store
@@ -162,4 +162,4 @@ models/*.hand.onnx
 data/bahrain-digital-khatt.db
 
 # local archive of superseded review artifacts (not versioned)
-archive/
+/archive/

@@ -457,7 +457,7 @@ def run(args: argparse.Namespace) -> int:
         from playwright.sync_api import sync_playwright
     except ImportError as exc:  # pragma: no cover - exercised in dependency-missing environments
         raise SystemExit(
-            "Playwright is required. Install requirements-dev.txt, then run "
+            "Playwright is required. Install requirements/dev.txt, then run "
             "`python3 -m playwright install chromium`."
         ) from exc
 

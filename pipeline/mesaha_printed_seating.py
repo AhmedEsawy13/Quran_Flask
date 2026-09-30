@@ -29,7 +29,7 @@ try:
 except ImportError as exc:  # pragma: no cover - importer also requires this
     raise SystemExit(
         'rapidfuzz is required for Mesaha printed-line seating. '
-        'Install requirements-dev.txt first.'
+        'Install requirements/dev.txt first.'
     ) from exc
 
 LINE_Y_MERGE = 162

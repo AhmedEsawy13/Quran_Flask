@@ -23,7 +23,7 @@
 }
 @font-face {
   font-family: 'QCF Basmala';
-  src: url('../fonts/QCF BSML @Am9li9.ttf') format('truetype');
+  src: url('../fonts/QCF_Basmala.ttf') format('truetype');
   font-display: swap;
 }
 @font-palette-values --lp-dk-dark {

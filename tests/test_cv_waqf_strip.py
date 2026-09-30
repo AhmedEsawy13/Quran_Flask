@@ -324,7 +324,7 @@ def test_readme_documents_train_strip():
     text = (ROOT / 'pipeline' / 'cv_waqf' / 'README.md').read_text(encoding='utf-8')
     assert 'train-strip' in text
     assert 'waqf_strip_bahrain.onnx' in text
-    assert 'requirements-cv-train.txt' in text
+    assert 'requirements/cv-train.txt' in text
     assert 'Does not replace models/waqf_glyph_bahrain.onnx' in text
     assert 'defaults to hybrid proposals' in text
     assert 'writes only confidence >= 0.85' in text

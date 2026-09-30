@@ -83,7 +83,7 @@ GEMINI_API_KEY=your-key-here
 
 Then:
 ```bash
-pip install -r requirements-dev.txt   # installs anthropic, google-genai, python-dotenv
+pip install -r requirements/dev.txt   # installs anthropic, google-genai, python-dotenv
 python3 pipeline/build_classical_llm.py --book manar --api --provider gemini --write
 ```
 

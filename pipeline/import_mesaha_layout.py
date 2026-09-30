@@ -53,7 +53,7 @@ try:
 except ImportError as exc:  # pragma: no cover - friendly CLI dependency error
     raise SystemExit(
         'rapidfuzz is required for the offline importer. '
-        'Install requirements-dev.txt first.'
+        'Install requirements/dev.txt first.'
     ) from exc
 
 ROOT = Path(__file__).resolve().parents[1]

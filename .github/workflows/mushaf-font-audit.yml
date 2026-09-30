@@ -14,7 +14,7 @@ on:
       - 'modules/layouts.py'
       - 'scripts/audit_mushaf_fonts.py'
       - 'tests/test_mushaf_font_audit.py'
-      - 'requirements-font-audit.txt'
+      - 'requirements/font-audit.txt'
       - '.github/workflows/mushaf-font-audit.yml'
   schedule:
     - cron: '30 4 * * 0'
@@ -45,12 +45,12 @@ jobs:
 
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version-file: .python-version
           cache: pip
 
       - name: Install Python and Chromium dependencies
         run: |
-          pip install -r requirements.txt -r requirements-font-audit.txt
+          pip install -r requirements.txt -r requirements/font-audit.txt
           python3 -m playwright install --with-deps chromium
 
       # The memorize page loads its breathing guide before rendering the mushaf.

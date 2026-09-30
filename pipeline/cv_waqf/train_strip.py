@@ -3,7 +3,7 @@
 Inference never imports this module's optional torch dependency. Detect,
 evaluate-hand, and bootstrap load the ONNX through OpenCV DNN only.
 
-    pip install -r requirements-cv-train.txt   # torch, train-only
+    pip install -r requirements/cv-train.txt   # torch, train-only
     python -m pipeline.cv_waqf train-strip --crops data/cv/crops_hand/bahrain
 """
 from __future__ import annotations
@@ -325,7 +325,7 @@ def _require_torch():
     except ImportError as exc:
         raise SystemExit(
             'train-strip needs PyTorch (train-only extra). Install:\n'
-            '  pip install -r requirements-cv-train.txt\n'
+            '  pip install -r requirements/cv-train.txt\n'
             'Detect / evaluate-hand / bootstrap do not need torch; they load '
             'the exported ONNX with OpenCV DNN.'
         ) from exc
