@@ -1,4 +1,13 @@
-"""Azhar occupancy prior for Bahrain CV waqf detections.
+"""Seat-occupancy prior for CV waqf detections (Azhar, optionally more).
+
+Which editions supply the occupancy is per print (``EditionSpec
+.seat_prior_editions``); Azhar alone was the original choice and stays the
+default. Measured on the DB, adding المدينة الجديد + المدينة القديم grows the
+allowed set by 52 seats (4870 → 4922) yet recovers 11 of Bahrain's 12
+Azhar-empty seats and 29 of Qatar's 93. The prior never includes the print's
+own column, or it could not find anything new. Everything below that says
+"Azhar" describes the original single-edition behaviour and applies to any
+edition set.
 
 After a mark is attached to a word, keep it only if الأزهر has **some**
 waqf on that same word. Ignore the Azhar glyph. Match on
@@ -51,19 +60,30 @@ from pipeline.cv_waqf.config import WAQF_DB
 AZHAR_REJECT_REASON = 'azhar_empty'
 
 
-def reset_azhar_occupancy_cache() -> None:
-    """Drop the cached occupancy set (tests / swapped DB path)."""
-    load_azhar_occupied_seats.cache_clear()
+AZHAR_ONLY: tuple[str, ...] = ('الأزهر',)
 
 
-@lru_cache(maxsize=4)
-def load_azhar_occupied_seats(db_path: str = '') -> frozenset[tuple[int, int, int]] | None:
-    """Cached ``(surah, ayah, word_index)`` where الأزهر is non-empty.
+def _edition_columns(conn: sqlite3.Connection, editions: tuple[str, ...]) -> list[str]:
+    """Quoted column names for ``editions``, checked against the real table."""
+    known = {str(row[1]) for row in conn.execute('PRAGMA table_info(waqf)')}
+    missing = [edition for edition in editions if edition not in known]
+    if missing:
+        raise ValueError(f'unknown edition column(s) in waqf table: {missing}')
+    return ['"' + edition.replace('"', '""') + '"' for edition in editions]
+
+
+@lru_cache(maxsize=8)
+def load_occupied_seats(
+    db_path: str = '',
+    editions: tuple[str, ...] = AZHAR_ONLY,
+) -> frozenset[tuple[int, int, int]] | None:
+    """Cached ``(surah, ayah, word_index)`` where any of ``editions`` has a mark.
 
     ``word_index`` is the 1-based printed-word position in detect
     ``word_key``. Skip null or unparseable ``word_index``. Returns
-    ``None`` when the file is missing, unreadable, or has no occupied
-    Azhar seats — callers must fail open.
+    ``None`` when the file is missing, unreadable, or has no occupied seats
+    — callers must fail open. An unknown edition name is a configuration
+    error and raises.
     """
     path = Path(db_path) if db_path else Path(WAQF_DB)
     if not path.is_file():
@@ -71,9 +91,14 @@ def load_azhar_occupied_seats(db_path: str = '') -> frozenset[tuple[int, int, in
     try:
         conn = sqlite3.connect(f'file:{path.as_posix()}?mode=ro', uri=True)
         try:
+            columns = _edition_columns(conn, tuple(editions))
+            occupied = ' OR '.join(
+                f'({column} IS NOT NULL AND TRIM({column}) != \'\')'
+                for column in columns
+            )
             rows = conn.execute(
                 'SELECT "السورة", "الآية", word_index FROM waqf '
-                'WHERE "الأزهر" IS NOT NULL AND TRIM("الأزهر") != ""'
+                f'WHERE {occupied}'
             ).fetchall()
         finally:
             conn.close()
@@ -88,6 +113,18 @@ def load_azhar_occupied_seats(db_path: str = '') -> frozenset[tuple[int, int, in
     return frozenset(seats) if seats else None
 
 
+def load_azhar_occupied_seats(
+    db_path: str = '',
+) -> frozenset[tuple[int, int, int]] | None:
+    """Azhar-only occupancy (the original prior)."""
+    return load_occupied_seats(db_path, AZHAR_ONLY)
+
+
+def reset_azhar_occupancy_cache() -> None:
+    """Drop the cached occupancy sets (tests / swapped DB path)."""
+    load_occupied_seats.cache_clear()
+
+
 def word_has_azhar_waqf(
     surah: int,
     ayah: int,
@@ -96,7 +133,7 @@ def word_has_azhar_waqf(
     db_path: str | Path | None = None,
 ) -> bool:
     """True if الأزهر occupies this 1-based word_index, or if the DB is unavailable."""
-    occupied = load_azhar_occupied_seats('' if db_path is None else str(db_path))
+    occupied = load_occupied_seats('' if db_path is None else str(db_path))
     if not occupied:
         return True
     try:
@@ -132,12 +169,16 @@ def partition_marks_by_azhar_occupancy(
     marks: list[Any],
     *,
     db_path: str | Path | None = None,
+    editions: tuple[str, ...] = AZHAR_ONLY,
 ) -> tuple[list[Any], list[Any]]:
-    """Split attached marks / dicts into kept vs Azhar-empty rejected.
+    """Split attached marks / dicts into kept vs prior-rejected.
 
-    Empty or missing DB: return every mark as kept.
+    A mark is kept when any of ``editions`` (Azhar by default) prints a stop
+    on its word. Empty or missing DB: return every mark as kept.
     """
-    occupied = load_azhar_occupied_seats('' if db_path is None else str(db_path))
+    occupied = load_occupied_seats(
+        '' if db_path is None else str(db_path), tuple(editions),
+    )
     if not occupied:
         return list(marks), []
     kept: list[Any] = []

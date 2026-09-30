@@ -154,6 +154,7 @@ def build_ui_payload(
         'auto_set_min_conf': auto_set,
         'proposal_mode': detected.get('proposal_mode'),
         'azhar_prior': detected.get('azhar_prior'),
+        'seat_prior_editions': detected.get('seat_prior_editions') or [],
         'image': str(img_path),
         'summary': {
             'cv': len(cv_marks),

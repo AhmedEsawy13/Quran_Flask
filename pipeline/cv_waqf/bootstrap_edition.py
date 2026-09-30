@@ -32,6 +32,7 @@ def bootstrap_pages(
     changes: list[dict] = []
     review_candidates: list[dict] = []
     errors: list[str] = []
+    prior_rejected = 0
     seen: set[tuple[int, int, int]] = set()
     review_seen: set[tuple[int, int, int]] = set()
 
@@ -41,7 +42,9 @@ def bootstrap_pages(
         except Exception as exc:  # noqa: BLE001
             errors.append(f'page {page}: {exc}')
             continue
-        # detect_page already dropped Azhar-empty words from marks for البحرين.
+        # detect_page already dropped prior-empty words from marks. They are
+        # counted, not queued: measured on Qatar, 99.5% of them are noise.
+        prior_rejected += len(result.get('azhar_rejected') or [])
         trusted, review = split_marks_by_trust(result['marks'], write_conf)
         for mark in trusted:
             row = _draft_row(spec, edition_key, page, mark, errors)
@@ -79,6 +82,10 @@ def bootstrap_pages(
         'min_conf': write_conf,
         'review_min_conf': detect_conf,
         'auto_set_min_conf': spec.auto_set_min_conf,
+        'seat_prior_editions': (
+            list(spec.seat_prior_editions) if spec.azhar_seat_prior else []
+        ),
+        'seat_prior_rejected': prior_rejected,
         'changes': changes,
         'review_candidates': review_candidates,
         'errors': errors,

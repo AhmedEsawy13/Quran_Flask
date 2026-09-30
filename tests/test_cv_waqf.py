@@ -1074,9 +1074,10 @@ def test_bahrain_detect_keeps_word_index_when_token_index_differs(
     conn.execute(
         'CREATE TABLE waqf ('
         '"السورة" INTEGER, "الآية" INTEGER, token_index INTEGER, '
-        'word_index INTEGER, "الأزهر" TEXT, "البحرين" TEXT)'
+        'word_index INTEGER, "الأزهر" TEXT, "المدينة الجديد" TEXT, '
+        '"المدينة القديم" TEXT, "البحرين" TEXT)'
     )
-    conn.execute('INSERT INTO waqf VALUES (33,51,9,8,"ج","ص")')
+    conn.execute('INSERT INTO waqf VALUES (33,51,9,8,"ج",NULL,NULL,"ص")')
     conn.commit()
     conn.close()
     monkeypatch.setattr(azhar_prior, 'WAQF_DB', str(db))
@@ -1178,7 +1179,7 @@ def test_bahrain_detect_page_applies_azhar_seat_prior(monkeypatch):
 
     occupied = {(2, 5, 5)}
     monkeypatch.setattr(
-        azhar_prior, 'load_azhar_occupied_seats', lambda db_path='': occupied,
+        azhar_prior, 'load_occupied_seats', lambda db_path='', editions=(): occupied,
     )
     _stub_detect_pipeline(monkeypatch, [
         _attached_mark('2:5:5', symbol='ص', confidence=0.99, word_id=1),
@@ -1199,7 +1200,7 @@ def test_azhar_prior_off_does_not_drop_empty_azhar_word(monkeypatch):
     from pipeline.cv_waqf import azhar_prior, run_page
 
     monkeypatch.setattr(
-        azhar_prior, 'load_azhar_occupied_seats', lambda db_path='': {(2, 5, 5)},
+        azhar_prior, 'load_occupied_seats', lambda db_path='', editions=(): {(2, 5, 5)},
     )
     attached = [
         _attached_mark('4:23:11', symbol='ص', confidence=0.97, word_id=2),
@@ -1221,7 +1222,7 @@ def test_bahrain_detect_page_fails_open_without_azhar_db(monkeypatch):
     from pipeline.cv_waqf import azhar_prior, run_page
 
     monkeypatch.setattr(
-        azhar_prior, 'load_azhar_occupied_seats', lambda db_path='': None,
+        azhar_prior, 'load_occupied_seats', lambda db_path='', editions=(): None,
     )
     _stub_detect_pipeline(monkeypatch, [
         _attached_mark('4:23:11', symbol='ص', confidence=0.97, word_id=2),

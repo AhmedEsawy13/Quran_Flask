@@ -85,8 +85,37 @@ Read this honestly:
   92.8%): the ceiling is the 48×48 MLP, and the remaining errors are mostly
   `ص` read as `ج`. Do not expect more automatic labels to fix them.
 - Without the seat prior the detector alone fires on ~10% of empty words on
-  *both* prints; the prior removes nearly all of it, at the cost of stops on
-  words the prior edition leaves empty.
+  *both* prints; see "The seat prior" for what it removes and what it costs.
+
+## The seat prior
+
+The detector alone fires on about 10% of empty words on every print, so a
+mark is kept only if some *reference* edition prints a stop on that same word
+(`EditionSpec.seat_prior_editions`, on with `azhar_seat_prior=True`). The
+references are per print and never include the print's own column (config
+refuses that, since the prior could then find nothing new).
+
+Bahrain and Qatar use Azhar + المدينة الجديد + المدينة القديم. Whole-book
+(602 pages each, min_conf 0.55, reference = the print's own column):
+
+| prior | Bahrain real stops kept / false kept | Qatar real kept / false kept |
+|---|---|---|
+| Azhar only | 4076 / 71 (loses 12) | 4006 / 63 (loses 78) |
+| **Azhar + Madinah** | **4088 / 80 (loses 0)** | **4030 / 70** |
+| + الشمرلي | 4088 / 81 | 4032 / 71 |
+
+It admits 52 more seats than Azhar alone (4870 → 4922) and recovers exactly
+the edition-specific stops the prior existed to protect. الكويت's column adds
+379 seats for almost no gain; and Azhar covers only 91.9% of Kuwait's own
+stops, so Kuwait needs its own choice when it is added.
+
+**What is still lost.** Qatar keeps a floor of ~54 real stops that no
+reference edition prints. They are *not* queued for review: on 50 Qatar pages
+the prior rejected 761 marks and 4 were real (2 of 93 even at confidence
+≥ 0.99), so a review queue would be ~99% noise. `bootstrap` therefore records
+the drop as `seat_prior_rejected` in the plan, and detect lists the rejected
+marks under `azhar_rejected` (the `/cv-waqf` "rejected" toggle) so a human can
+still look. Finding those stops needs a better classifier, not a looser prior.
 
 ## Commands
 

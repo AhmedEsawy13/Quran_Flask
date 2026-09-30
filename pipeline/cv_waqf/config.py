@@ -82,6 +82,9 @@ class EditionSpec:
     # Occupancy only — ignore the Azhar glyph. FP cut, not a classifier.
     # On for البحرين only; other editions stay off.
     azhar_seat_prior: bool = False
+    # Which editions' printed stops define the allowed seats when the prior is
+    # on. Never the edition's own column (checked in ``__post_init__``).
+    seat_prior_editions: tuple[str, ...] = ('الأزهر',)
     # Measure the text rows and word cuts from each page's ink
     # (``geometry.py``) instead of trusting the fixed ``text_*`` fractions and
     # letter-count widths, which are hand-tuned per print. The fractions stay
@@ -91,6 +94,14 @@ class EditionSpec:
     # one hop only, so a transfer is visible in the registry and in the detect
     # payload instead of hiding in a path lookup.
     model_fallback: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.azhar_seat_prior and self.mushaf_version in self.seat_prior_editions:
+            raise ValueError(
+                f'{self.id}: the seat prior cannot include the edition\'s own '
+                f'column ({self.mushaf_version}); it could not find anything '
+                'the prior did not already contain'
+            )
 
     @property
     def seat_convention(self) -> str:
@@ -109,6 +120,15 @@ class EditionSpec:
         """Where this edition's own above-word strip net lives (may not exist)."""
         return ROOT / 'models' / f'waqf_strip_{self.id}.onnx'
 
+
+# Seat prior for prints that follow the Madinah layout: Azhar (the widest
+# printed-stop set) plus both Madinah editions. Whole-book, against each
+# print's own column, this recovers all 12 of Bahrain's Azhar-empty stops and
+# 24 of Qatar's for +9 / +7 false marks (allowed seats 4870 → 4922). Adding
+# الشمرلي gains 2 more on Qatar; الكويت grows the set by 379 for almost nothing.
+SEAT_PRIOR_AZHAR_MADINAH: tuple[str, ...] = (
+    'الأزهر', 'المدينة الجديد', 'المدينة القديم',
+)
 
 EDITIONS: dict[str, EditionSpec] = {
     'الشمرلي': EditionSpec(
@@ -152,6 +172,7 @@ EDITIONS: dict[str, EditionSpec] = {
         # 31→6 FP / 217→213 correct on the 44-page hand set.
         # 12 known Bahrain-only DB seats will be missed.
         azhar_seat_prior=True,
+        seat_prior_editions=SEAT_PRIOR_AZHAR_MADINAH,
         # 213 hand-labelled pages, gated MLP + hybrid, min_conf 0.55:
         #   with the Azhar prior   429→430 correct, FP 15→13
         #   without the prior      434→435 correct, FP 40→31
@@ -181,6 +202,7 @@ EDITIONS: dict[str, EditionSpec] = {
         # (758 false positives on 6.2k); with it, 2. Same trade-off as
         # Bahrain: a real Qatar-only stop on an Azhar-empty word is dropped.
         azhar_seat_prior=True,
+        seat_prior_editions=SEAT_PRIOR_AZHAR_MADINAH,
         measured_geometry=True,
     ),
     'المساحة': EditionSpec(

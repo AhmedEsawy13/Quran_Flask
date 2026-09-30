@@ -240,7 +240,9 @@ def _detect_page_with_strip(
     kept = attached
     rejected: list[AttachedMark] = []
     if use_azhar_prior:
-        kept, rejected = partition_marks_by_azhar_occupancy(attached)
+        kept, rejected = partition_marks_by_azhar_occupancy(
+            attached, editions=EDITIONS[edition_key].seat_prior_editions,
+        )
 
     if overlay_path is not None:
         overlay_path.parent.mkdir(parents=True, exist_ok=True)
@@ -257,6 +259,10 @@ def _detect_page_with_strip(
         'proposal_mode': 'strip',
         'detector': 'strip',
         'azhar_prior': use_azhar_prior,
+        'seat_prior_editions': (
+            list(EDITIONS[edition_key].seat_prior_editions)
+            if use_azhar_prior else []
+        ),
         'narrow_candidates': 0,
         'component_candidates': 0,
         'marks': [_mark_dict(m) for m in kept],
@@ -389,7 +395,9 @@ def detect_page(
     kept = attached
     rejected: list[AttachedMark] = []
     if use_azhar_prior:
-        kept, rejected = partition_marks_by_azhar_occupancy(attached)
+        kept, rejected = partition_marks_by_azhar_occupancy(
+            attached, editions=EDITIONS[edition_key].seat_prior_editions,
+        )
 
     if overlay_path is not None:
         overlay_path.parent.mkdir(parents=True, exist_ok=True)
@@ -409,6 +417,10 @@ def detect_page(
         'proposal_mode': proposal_mode,
         'detector': 'mlp',
         'azhar_prior': use_azhar_prior,
+        'seat_prior_editions': (
+            list(EDITIONS[edition_key].seat_prior_editions)
+            if use_azhar_prior else []
+        ),
         'narrow_candidates': len(narrow_hits),
         'component_candidates': len(broad_hits),
         'marks': [_mark_dict(m) for m in kept],

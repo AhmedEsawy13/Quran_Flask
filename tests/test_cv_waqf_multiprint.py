@@ -190,3 +190,125 @@ def test_splits_are_disjoint_and_deterministic():
     b_train, b_hold = splits.bahrain_holdout([9, 3, 5, 7, 11, 13, 15, 17])
     assert b_hold == [3, 11] and 3 not in b_train and len(b_train) == 6
     assert splits.group_ids('qatar', [7]) == ['qatar:p0007']
+
+
+# ------------------------------------------------------- seat prior
+
+def _prior_db(tmp_path):
+    import sqlite3
+
+    db = tmp_path / 'mushaf_waqf.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE waqf ("السورة" INTEGER, "الآية" INTEGER, token_index '
+        'INTEGER, word_index INTEGER, "الأزهر" TEXT, "المدينة الجديد" TEXT, '
+        '"المدينة القديم" TEXT, "قطر" TEXT)'
+    )
+    conn.executemany(
+        'INSERT INTO waqf VALUES (?,?,?,?,?,?,?,?)',
+        [
+            (2, 5, 5, 5, 'ج', 'ج', None, 'ج'),   # everyone
+            (2, 6, 3, 3, None, 'ص', None, 'ص'),   # Madinah only (Azhar empty)
+            (2, 7, 4, 4, None, None, 'ق', None),   # old Madinah only
+            (2, 8, 9, 9, None, None, None, 'ص'),   # the print's own column only
+        ],
+    )
+    conn.commit()
+    conn.close()
+    return db
+
+
+def test_seat_prior_takes_its_editions_from_the_caller(tmp_path):
+    from pipeline.cv_waqf import azhar_prior
+
+    db = _prior_db(tmp_path)
+    azhar_prior.reset_azhar_occupancy_cache()
+    azhar_only = azhar_prior.load_occupied_seats(str(db))
+    madinah = azhar_prior.load_occupied_seats(
+        str(db), ('الأزهر', 'المدينة الجديد', 'المدينة القديم'),
+    )
+    assert azhar_only == {(2, 5, 5)}
+    assert madinah == {(2, 5, 5), (2, 6, 3), (2, 7, 4)}
+    # The original Azhar-named entry point is unchanged.
+    assert azhar_prior.load_azhar_occupied_seats(str(db)) == azhar_only
+    # A seat only the print itself marks stays outside every prior.
+    assert (2, 8, 9) not in madinah
+
+
+def test_partition_uses_the_configured_editions(tmp_path):
+    from pipeline.cv_waqf import azhar_prior
+
+    db = _prior_db(tmp_path)
+    azhar_prior.reset_azhar_occupancy_cache()
+    marks = [
+        {'word_key': '2:5:5', 'surah': 2, 'ayah': 5, 'symbol': 'ج'},
+        {'word_key': '2:6:3', 'surah': 2, 'ayah': 6, 'symbol': 'ص'},
+        {'word_key': '2:8:9', 'surah': 2, 'ayah': 8, 'symbol': 'ص'},
+    ]
+    kept, rejected = azhar_prior.partition_marks_by_azhar_occupancy(
+        marks, db_path=db,
+    )
+    assert [m['word_key'] for m in kept] == ['2:5:5']
+    kept, rejected = azhar_prior.partition_marks_by_azhar_occupancy(
+        marks, db_path=db, editions=('الأزهر', 'المدينة الجديد'),
+    )
+    assert [m['word_key'] for m in kept] == ['2:5:5', '2:6:3']
+    assert [m['word_key'] for m in rejected] == ['2:8:9']
+
+
+def test_an_unknown_prior_edition_is_a_configuration_error(tmp_path):
+    from pipeline.cv_waqf import azhar_prior
+
+    db = _prior_db(tmp_path)
+    azhar_prior.reset_azhar_occupancy_cache()
+    with pytest.raises(ValueError, match='unknown edition'):
+        azhar_prior.load_occupied_seats(str(db), ('لا يوجد',))
+
+
+def test_a_print_cannot_use_its_own_column_as_its_prior():
+    import dataclasses
+
+    from pipeline.cv_waqf import config
+
+    qatar = config.EDITIONS['قطر']
+    with pytest.raises(ValueError, match='own'):
+        dataclasses.replace(qatar, seat_prior_editions=('الأزهر', 'قطر'))
+    # Inert when the prior is off (Azhar's own default names itself).
+    assert config.EDITIONS['الأزهر'].azhar_seat_prior is False
+    for spec in config.EDITIONS.values():
+        if spec.azhar_seat_prior:
+            assert spec.mushaf_version not in spec.seat_prior_editions
+
+
+def test_bahrain_and_qatar_use_the_azhar_plus_madinah_prior():
+    from pipeline.cv_waqf import config
+
+    for key in ('البحرين', 'قطر'):
+        spec = config.EDITIONS[key]
+        assert spec.azhar_seat_prior is True
+        assert spec.seat_prior_editions == config.SEAT_PRIOR_AZHAR_MADINAH
+        assert spec.mushaf_version not in spec.seat_prior_editions
+    # Untouched prints keep the original Azhar-only default and stay off.
+    assert config.EDITIONS['الشمرلي'].seat_prior_editions == ('الأزهر',)
+    assert config.EDITIONS['الشمرلي'].azhar_seat_prior is False
+
+
+def test_detect_reports_the_prior_editions_it_used(monkeypatch):
+    from pipeline.cv_waqf import azhar_prior, run_page
+    from tests.test_cv_waqf import _attached_mark, _stub_detect_pipeline
+
+    seen = {}
+
+    def fake_load(db_path='', editions=()):
+        seen['editions'] = tuple(editions)
+        return {(2, 5, 5)}
+
+    monkeypatch.setattr(azhar_prior, 'load_occupied_seats', fake_load)
+    _stub_detect_pipeline(monkeypatch, [
+        _attached_mark('2:5:5', symbol='ص', confidence=0.99, word_id=1),
+    ])
+    result = run_page.detect_page('قطر', 2)
+    assert seen['editions'] == ('الأزهر', 'المدينة الجديد', 'المدينة القديم')
+    assert result['seat_prior_editions'] == list(seen['editions'])
+    off = run_page.detect_page('قطر', 2, azhar_prior=False)
+    assert off['seat_prior_editions'] == []
