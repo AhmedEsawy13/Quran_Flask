@@ -48,9 +48,9 @@ _AYAH_NUM_CHARS = set('٠١٢٣٤٥٦٧٨٩0123456789')
 def _word_ids_in_map_span(word_map, first_word_id, last_word_id):
     """Expand endpoints inside the map's own ID namespace and reading order.
 
-    Madinah layout DBs sometimes use a phantom ``last_word_id`` one past the
-    final ayah marker at surah boundaries (e.g. 61191 after يس ۝٨٣). Those IDs
-    are absent from the word map — clamp to tokens that exist in the span.
+    A ``last_word_id`` with no token in the map is clamped out defensively.
+    (The three surah-end ids once believed to be layout "phantoms" — 36047,
+    52844 and 61191 — were our own tokenisation drift; see _DK_TOKEN_SPLITS.)
     """
     if first_word_id is None or last_word_id is None:
         return []
@@ -1019,6 +1019,26 @@ def _get_surah_name_ar(surah_number):
 _DK_LAYOUT_WORD_MAP = None
 
 
+# Verses where the 1421 layout counts ONE MORE word than our Digital Khatt text
+# has tokens, because QUL's word list splits a token that DK writes as one:
+# (surah, ayah) -> (index of that DK token, character offset of the split).
+# The token is split losslessly into two words on two layout ids. Without this,
+# every later verse in the surah lands one id early — page 442 ended on the
+# first word of 36:41 instead of on ۝٤٠, and يس's last id (61191) looked like a
+# "phantom" with no word.
+#
+# Provenance (all internal): the layout's per-surah id span exceeds the DK token
+# total only in surahs 15, 27 and 36; all 15 reciters' word timestamps
+# (script digital_khatt_v2) segment exactly these verses into one more word;
+# qpc_hafs_data already writes 15:7 and 27:20 as two words.
+# tests/test_layout_word_map.py keeps this table honest.
+_DK_TOKEN_SPLITS = {
+    (15, 7): (0, 5),    # لَّوْمَا   -> لَّوْ | مَا
+    (27, 20): (3, 3),   # مَالِيَ    -> مَا | لِيَ
+    (36, 22): (0, 5),   # وَمَالِيَ  -> وَمَا | لِيَ
+}
+
+
 def _get_dk_layout_word_map():
     """Authoritative ``layout_word_id -> token`` map for the Digital Khatt and
     QPC-v1 15-line layouts (both share the identical 1..83668 word numbering).
@@ -1097,14 +1117,20 @@ def _get_dk_layout_word_map():
                 tokens = [w for w in re.split(r'\s+', (text or '').strip()) if w]
                 first = None
                 overflow = []
-                for tok in tokens:
+                split_at = _DK_TOKEN_SPLITS.get((s, a))
+                for index, tok in enumerate(tokens):
                     if cid > cap:
                         overflow.append(tok)
                         continue
                     if first is None:
                         first = cid
-                    id2tok[cid] = {'surah': s, 'ayah': a, 'text': tok}
-                    cid += 1
+                    if split_at and index == split_at[0]:
+                        parts = [tok[:split_at[1]], tok[split_at[1]:]]
+                    else:
+                        parts = [tok]
+                    for part in parts:
+                        id2tok[cid] = {'surah': s, 'ayah': a, 'text': part}
+                        cid += 1
                 if first is not None:
                     result['first_id'][(s, a)] = first
                     result['last_id'][(s, a)] = cid - 1

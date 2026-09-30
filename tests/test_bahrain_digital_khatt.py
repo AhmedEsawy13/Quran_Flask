@@ -151,7 +151,9 @@ def test_bahrain_layout_project_is_isolated_and_complete():
         assert 9000 <= project.execute(
             'SELECT COUNT(*) FROM pages'
         ).fetchone()[0] <= 9100
-        assert project.execute('SELECT COUNT(*) FROM words').fetchone()[0] == 83665
+        # Every layout id 1..83668 is a word (it was 83665 while three surah-final
+        # ids were unmapped "phantoms" — see tests/test_layout_word_map.py).
+        assert project.execute('SELECT COUNT(*) FROM words').fetchone()[0] == 83668
         tables = {
             row[0] for row in project.execute(
                 "SELECT name FROM sqlite_master WHERE type = 'table'"

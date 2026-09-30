@@ -64,6 +64,7 @@ The four active books are المكتفى (الداني), منار الهدى (ا
 | `add_line_widths.py` | Adds per-line widths to `digital-khatt-15-lines.db` |
 | `import_shamarly_page_glyph_overrides.py` | Shemrly per-page glyph overrides |
 | `align_azhar_*.py`, `repair_shamarly_*.py` | **one-time** reviewer-confirmed page fixes |
+| `repair_bahrain_word_alignment.py` | **one-time** (idempotent). Moved the Bahrain project into true QUL word ids after the 15/27/36 tokenization fix; keep for provenance |
 | `cv_waqf/` | OpenCV detection of printed waqf marks (`python3 -m pipeline.cv_waqf`; extras in `requirements/cv.txt`) |
 
 ## Text, translation and reciter datasets

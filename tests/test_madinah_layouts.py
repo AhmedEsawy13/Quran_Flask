@@ -97,19 +97,22 @@ def test_all_three_waqf_editions_are_available_on_madinah_and_shamarly_layouts(c
             assert {entry['version'] for entry in entries} == {version}
 
 
-def test_madinah_yasin_closing_ayah_survives_phantom_last_word_id(client):
-    """Madinah layouts end يس with last_word_id 61191 (no map token).
+def test_madinah_yasin_closing_ayah_is_complete_with_its_marker(client):
+    """يس ends on layout id 61191, which is the real ۝٨٣ marker.
 
-    That phantom used to make the whole closing line expand to zero words,
-    dropping 36:83 (فسبحان الذي بيده ملكوت كل شيء وإليه ترجعون).
+    It used to look like a "phantom" with no word, because 36:22 (`وَمَا لِيَ`,
+    two layout words) was tokenised as one and shifted the rest of the surah by
+    a word. See tests/test_layout_word_map.py.
     """
     from modules.layouts import _get_dk_layout_word_map, _word_ids_in_map_span
 
     word_map = _get_dk_layout_word_map()
-    assert 61191 not in word_map['id2tok']
+    assert word_map['id2tok'][61191]['text'].endswith('٨٣')
     span = _word_ids_in_map_span(word_map, 61183, 61191)
-    assert span == list(range(61183, 61191))
+    assert span == list(range(61183, 61192))
     assert word_map['id2tok'][span[-1]]['ayah'] == 83
+    # A genuinely stray id past the map is still clamped out, defensively.
+    assert 99999999 not in _word_ids_in_map_span(word_map, 61183, 61191)
 
     for path in (
         '/api/digital-khatt/page/445',
@@ -124,9 +127,10 @@ def test_madinah_yasin_closing_ayah_survives_phantom_last_word_id(client):
             for word in line['words']
             if word.get('surah') == 36 and word.get('ayah') == 83
         ]
-        assert len(y83) >= 8, path
+        assert len(y83) >= 9, path
         joined = ' '.join(word['text'] for word in y83)
         assert 'تُرْجَعُونَ' in joined, path
+        assert '٨٣' in y83[-1]['text'], path
 
 
 def test_madinah_saffat_closing_ayah_keeps_verse_number(client):
