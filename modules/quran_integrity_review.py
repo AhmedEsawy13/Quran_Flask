@@ -1,4 +1,7 @@
-"""Read-only UI and API for the local Quran integrity audit report."""
+"""Read-only UI and API for the local Quran integrity audit report.
+
+Internal tooling: mounted on the editor blueprint, so it only exists where
+ENABLE_EDITOR is on (never on the public deployment)."""
 
 from __future__ import annotations
 
@@ -8,7 +11,8 @@ from typing import Any
 
 from flask import jsonify, render_template
 
-from core.blueprints import core_bp
+from core.blueprints import editor_bp
+from modules.editor_auth import require_editor
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -137,7 +141,7 @@ def report_summary(report: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
-@core_bp.route("/quran-integrity-review")
+@editor_bp.route("/quran-integrity-review")
 def quran_integrity_review_page():
     """Render the local, read-only audit review dashboard."""
     return render_template(
@@ -146,13 +150,13 @@ def quran_integrity_review_page():
     )
 
 
-@core_bp.route("/api/quran-integrity/report")
+@editor_bp.route("/api/quran-integrity/report")
+@require_editor
 def quran_integrity_report():
     """Return the generated report for the dashboard's expandable details."""
     report = load_report()
     if report is None:
         return jsonify({
             "error": "integrity report is unavailable; run the audit first",
-            "path": str(REPORT_PATH),
         }), 404
     return jsonify(report)

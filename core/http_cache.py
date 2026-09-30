@@ -13,6 +13,7 @@ EDITOR_PRIVATE_PATH_PREFIXES = (
 )
 
 NO_STORE_API_PREFIXES = (
+    '/api/health',  # the monitoring signal must never be served from a cache
     '/api/mushaf-editor/',
     '/api/azhar-layout/',
     '/api/azhar-waqf-review/',

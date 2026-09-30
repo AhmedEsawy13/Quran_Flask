@@ -1,4 +1,5 @@
 """Local reviewer for promoting المكتفى without an LLM."""
+import shutil
 import sqlite3
 
 import pytest
@@ -16,19 +17,26 @@ def review_db(tmp_path, monkeypatch):
 
 
 @pytest.fixture()
-def pending_muktafa():
+def pending_muktafa(tmp_path):
     """Every المكتفى row is resolved now; exercise the review workflow on one
-    real, correctly aligned row marked pending for the test's duration."""
-    conn = sqlite3.connect(review.CLASSICAL_WAQF_DATABASE)
+    real, correctly aligned row marked pending for the test's duration.
+
+    The live code paths read the shipped DB by path, so it is edited in place —
+    but byte-for-byte restored afterwards. Any SQLite write bumps header bytes,
+    which would otherwise leave the tracked file dirty after every run (and a
+    crashed test would leave a real ruling flipped)."""
+    db_path = review.CLASSICAL_WAQF_DATABASE
+    snapshot = tmp_path / 'classical_waqf.snapshot.db'
+    shutil.copyfile(db_path, snapshot)
+    conn = sqlite3.connect(db_path)
     row_id = 116          # 2:81 «هم فيها خالدون»
     conn.execute('UPDATE classical SET conf=0 WHERE id=?', (row_id,))
     conn.commit()
     try:
         yield row_id
     finally:
-        conn.execute('UPDATE classical SET conf=1 WHERE id=?', (row_id,))
-        conn.commit()
         conn.close()
+        shutil.copyfile(snapshot, db_path)
 
 
 @pytest.fixture()

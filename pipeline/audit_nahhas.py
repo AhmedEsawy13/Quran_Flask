@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import logging
 logging.disable(logging.INFO)
 import build_classical_waqf as rx          # noqa: E402
+from core.verse_words import verse_word_texts  # noqa: E402
 
 DB = Path(__file__).resolve().parent.parent / 'data' / 'classical_waqf.db'
 
@@ -93,16 +94,16 @@ def plan(con):
                                   "AND ayah IS NULL", (s, q)):
             ops.append(('delete', rid, None))
     for s, a, g, who, q, note in EXTRA:
-        w = len(rx.app._verse_word_texts(f'{s}:{a}')[1]) - 1
+        w = len(verse_word_texts(f'{s}:{a}')[1]) - 1
         if not con.execute("SELECT 1 FROM classical WHERE source='nahhas' AND surah=? AND ayah=? AND wpos=? "
                            "AND grade=? AND conf=1", (s, a, w, g)).fetchone():
             ops.append(('insert', (s, a, w, g, g, who, q, note), None))
     for s, note in surah_end_rulings():
         a = rx.surah_ayah_count(s)
-        w = len(rx.app._verse_word_texts(f'{s}:{a}')[1]) - 1
+        w = len(verse_word_texts(f'{s}:{a}')[1]) - 1
         if not con.execute("SELECT 1 FROM classical WHERE source='nahhas' AND surah=? AND ayah=? AND wpos=? "
                            "AND grade='تام' AND reported_from IS NULL", (s, a, w)).fetchone():
-            word = rx.app._verse_word_texts(f'{s}:{a}')[1][w]
+            word = verse_word_texts(f'{s}:{a}')[1][w]
             ops.append(('insert', (s, a, w, 'تام', 'آخر السورة', None, word, note), None))
     return ops
 
@@ -128,14 +129,14 @@ def apply(con):
             s_ = con.execute('SELECT surah FROM classical WHERE id=?', (x,)).fetchone()[0]
             a, w = who
             con.execute('UPDATE classical SET ayah=?, wpos=?, stop_word=? WHERE id=?',
-                        (a, w, rx.app._verse_word_texts(f'{s_}:{a}')[1][w], x))
+                        (a, w, verse_word_texts(f'{s_}:{a}')[1][w], x))
         elif op == 'regrade':
             con.execute('UPDATE classical SET grade=?, grade_raw=? WHERE id=?', (who, who, x))
         elif op == 'delete':
             con.execute('DELETE FROM classical WHERE id=?', (x,))
         else:
             s, a, w, g, raw, who_, q, note = x
-            word = rx.app._verse_word_texts(f'{s}:{a}')[1][w]
+            word = verse_word_texts(f'{s}:{a}')[1][w]
             seq = (con.execute("SELECT seq FROM classical WHERE source='nahhas' AND surah=? AND "
                                "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
                                (s, a, a, w)).fetchone() or (0,))[0]

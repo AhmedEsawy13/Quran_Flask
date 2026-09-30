@@ -10,6 +10,8 @@ from functools import lru_cache
 from pathlib import Path
 
 from core.config import CLASSICAL_REVIEW_DATABASE, CLASSICAL_WAQF_DATABASE, _BASE_DIR
+from core.datasets import qpc_hafs_data_normalized
+from core.verse_words import verse_word_texts
 
 MUKTAFA_SOURCE = Path(_BASE_DIR) / 'pipeline' / 'classical_sources' / 'muktafa_dani_shamela26461.md'
 MANAR_REVIEW_QUEUE = Path(_BASE_DIR) / 'pipeline' / 'review' / 'manar_traceability.jsonl'
@@ -191,9 +193,9 @@ def quote_matches_position(surah, ayah, wpos, quote):
     ت/ي/ن · ا/ه folds match pipeline/build_classical_waqf.align_in_ayah."""
     b = _builder()
     key = f'{surah}:{ayah}'
-    if key not in b.app.qpc_hafs_data_normalized:
+    if key not in qpc_hafs_data_normalized:
         return False
-    _, words, _ = b.app._verse_word_texts(key)
+    _, words, _ = verse_word_texts(key)
     if not 0 <= wpos < len(words):
         return False
     verse = [b.norm(word) for word in words]
@@ -405,7 +407,7 @@ def muktafa_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
         elif quote_matches_position(row['surah'], row['ayah'], row['wpos'], row['quote']):
             aligned += 1
             # Level-1 exact/prefix vs tight fuzzy orthographic fallback.
-            _, words, _ = b.app._verse_word_texts(f'{row["surah"]}:{row["ayah"]}')
+            _, words, _ = verse_word_texts(f'{row["surah"]}:{row["ayah"]}')
             verse = [b.norm(word) for word in words]
             is_exact = False
             for length in dict.fromkeys((min(3, len(qwords)), 2, 1)):

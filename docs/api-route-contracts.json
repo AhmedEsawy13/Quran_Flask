@@ -974,7 +974,7 @@
         "json"
       ],
       "source": "modules/quran_api.py",
-      "success_cache": "public-1h",
+      "success_cache": "no-store",
       "success_keys": []
     },
     {
@@ -2370,21 +2370,23 @@
       "success_keys": []
     },
     {
-      "auth": "public",
-      "availability": "default-feature",
+      "auth": "editor",
+      "availability": "editor-feature",
       "declared_statuses": [
         200,
-        404
+        401,
+        404,
+        503
       ],
       "dynamic_error": false,
       "dynamic_status": false,
       "dynamic_success": true,
-      "endpoint": "core.quran_integrity_report",
+      "endpoint": "editor.quran_integrity_report",
       "error_keys": [
         "error",
-        "path"
+        "login_required"
       ],
-      "feature": "core",
+      "feature": "editor",
       "methods": [
         "GET",
         "HEAD"

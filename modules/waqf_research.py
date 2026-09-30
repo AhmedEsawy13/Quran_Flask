@@ -29,8 +29,8 @@ from core.memorization import (
     MEMORIZATION_RECITERS, _memo_reciter_installed, _build_breathing_guide,
     _WAQF_CONSENSUS_GAP_MS, _load_memorization_word_ts,
 )
+from core.verse_words import mark_word_context, verse_word_texts
 from modules.breathing import (
-    _verse_word_texts, _mark_word_context,
     _WAQF_COMPARE_MUSHAFS, _WAQF_MATCH_MUSHAFS, QASR_MUNFASIL_RECITERS,
 )
 
@@ -57,7 +57,7 @@ def _build_solo_stops_index():
         for ayah_str, vdata in guide.get('verses', {}).items():
             ayah = int(ayah_str)
             vk = f"{surah}:{ayah}"
-            _, words, raw_to_wpos = _verse_word_texts(vk)
+            _, words, raw_to_wpos = verse_word_texts(vk)
             if not words:
                 continue
 
@@ -160,7 +160,7 @@ def _build_waqf_stats():
                                       'total': v_cons + v_div})
             if v_cons > 0:
                 vk = f"{surah}:{ayah}"
-                _, words, raw_to_wpos = _verse_word_texts(vk)
+                _, words, raw_to_wpos = verse_word_texts(vk)
                 if not words:
                     continue
                 mm_by_wpos = {}
@@ -243,7 +243,7 @@ def _build_mandatory_index():
                     if val:
                         marks[ver] = val
                 vk = f"{s}:{a}"
-                _, ctx = _mark_word_context(vk, ti)
+                _, ctx = mark_word_context(vk, ti)
                 if not ctx:
                     ctx = word or ''
                 all_same = len(set(marks.values())) == 1 and len(marks) == len(versions)
@@ -268,7 +268,7 @@ def _build_mandatory_index():
                 if val:
                     marks[ver] = val
             vk = f"{s}:{a}"
-            _, ctx = _mark_word_context(vk, ti)
+            _, ctx = mark_word_context(vk, ti)
             if not ctx:
                 ctx = word or ''
             all_same = len(set(marks.values())) == 1 and len(marks) == len(versions)
@@ -285,7 +285,7 @@ def _build_mandatory_index():
             if i_ain + 1 < len(raw_ain) and raw_ain[i_ain + 1]['surah'] == a1['surah'] and raw_ain[i_ain + 1]['ayah'] == a1['ayah']:
                 a2 = raw_ain[i_ain + 1]
                 vk = f"{a1['surah']}:{a1['ayah']}"
-                _, words, _ = _verse_word_texts(vk)
+                _, words, _ = verse_word_texts(vk)
                 embracing.append({
                     'surah': a1['surah'], 'ayah': a1['ayah'],
                     'pair': [
@@ -349,7 +349,7 @@ def _build_cross_verse_patterns():
             syms = set(marks.values())
             if len(syms) > 1:
                 vk = f"{s}:{a}"
-                _, ctx = _mark_word_context(vk, ti)
+                _, ctx = mark_word_context(vk, ti)
                 if not ctx:
                     ctx = word or ''
                 disagree.append({
@@ -891,7 +891,7 @@ def _build_ibtidaa_index():
     items = []
     for (surah, ayah, frm, to), rids in agg.items():
         vk = f"{surah}:{ayah}"
-        _, words, raw_to_wpos = _verse_word_texts(vk)
+        _, words, raw_to_wpos = verse_word_texts(vk)
         if not words or not (0 <= to <= frm < len(words)):
             continue
         lo, hi = max(0, to - 1), min(len(words), frm + 2)
@@ -986,7 +986,7 @@ def waqf_research_saktat():
     out = []
     for sk in HAFS_SAKTAT:
         vk = f"{sk['surah']}:{sk['ayah']}"
-        _, words, _ = _verse_word_texts(vk)
+        _, words, _ = verse_word_texts(vk)
         lo, hi = max(0, sk['wpos'] - 2), min(len(words), sk['wpos'] + 2)
         context = ' '.join(words[lo:hi]) if words else ''
         out.append({**sk, 'name': surah_names.get(sk['surah'], ''), 'context': context})
@@ -1088,7 +1088,7 @@ def _build_mushaf_agreement_index():
                 for rid in st.get('reciter_ids', []):
                     stoppers[st['wpos']].add(rid)
             vk = f"{surah}:{ayah}"
-            _, words, raw_to_wpos = _verse_word_texts(vk)
+            _, words, raw_to_wpos = verse_word_texts(vk)
             if not words:
                 continue
             for ver in versions:
@@ -1227,7 +1227,7 @@ def _before_word_marks(s, a, i, words, marks_by_wpos):
         return '', {}, ''
 
     prev_vk = f"{s}:{a - 1}"
-    _, prev_words, prev_r2w = _verse_word_texts(prev_vk)
+    _, prev_words, prev_r2w = verse_word_texts(prev_vk)
     if not prev_words:
         return '', {}, ''
 
@@ -1303,7 +1303,7 @@ def waqf_research():
     # fetched in one batch instead of one Supabase round-trip per verse.
     matches = []
     for vk in qpc_hafs_data_normalized:
-        text, words, raw_to_wpos = _verse_word_texts(vk)
+        text, words, raw_to_wpos = verse_word_texts(vk)
         normalized_text = _normalize_for_search(text)
         if not words or any(not any(option in normalized_text for option in options) for options in variants):
             continue  # quick reject — most verses don't contain the word
@@ -1432,7 +1432,7 @@ def waqf_research_marks():
     for (surah, ayah, token_index), marks in sorted(_mark_positions().items()):
         if _mushaf_sem_class(mushaf, marks.get(mushaf)) != meaning:
             continue
-        _, words, raw_to_wpos = _verse_word_texts(f'{surah}:{ayah}')
+        _, words, raw_to_wpos = verse_word_texts(f'{surah}:{ayah}')
         # Raw DB token_index is 1-based and counts ornaments (see
         # _build_verse_waqf_detail); get_mushaf_waqf_symbols hides this, we don't.
         if not words or not (1 <= token_index <= len(raw_to_wpos)):
@@ -1498,7 +1498,7 @@ def _ayah_end_state_build():
     def verse(surah, ayah):
         key = (surah, ayah)
         if key not in words_of:
-            words_of[key] = _verse_word_texts(f'{surah}:{ayah}')
+            words_of[key] = verse_word_texts(f'{surah}:{ayah}')
         return words_of[key]
 
     # Printed marks on each ayah's last word (raw token_index is 1-based).

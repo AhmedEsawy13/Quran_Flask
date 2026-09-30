@@ -57,7 +57,9 @@ except ImportError:
 # Reuse the vetted helpers from the regex builder (grades, normalisation, the
 # per-ayah phrase→wpos aligner, source loading, surah-title resolution).
 from pipeline import build_classical_waqf as rx  # noqa: E402
-import app  # noqa: E402
+from core.config import _BASE_DIR  # noqa: E402
+from core.datasets import qpc_hafs_data_normalized  # noqa: E402
+from core.verse_words import verse_word_texts  # noqa: E402
 from pipeline.classical_cleanup import clean_rows  # noqa: E402
 
 CACHE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'classical_llm_cache')
@@ -65,7 +67,7 @@ SHIPPED_DB = rx.OUT_DB
 # Pilot writes to a SEPARATE db by default so the shipped classical_waqf.db (served
 # live, unfiltered by source) is never touched with unreviewed rows. Point --db at
 # the shipped db only once the extraction is approved for release.
-PILOT_DB = os.path.join(app._BASE_DIR, 'data', 'classical_waqf_llm.db')
+PILOT_DB = os.path.join(_BASE_DIR, 'data', 'classical_waqf_llm.db')
 ANTHROPIC_MODEL = os.environ.get('CLASSICAL_LLM_MODEL', 'claude-sonnet-5')
 GEMINI_MODEL = os.environ.get('CLASSICAL_LLM_GEMINI_MODEL', 'gemini-2.5-flash')
 
@@ -300,10 +302,10 @@ def verses_block(surah):
     lines, n = [], 0
     while True:
         vk = f'{surah}:{n + 1}'
-        if vk not in app.qpc_hafs_data_normalized:
+        if vk not in qpc_hafs_data_normalized:
             break
         n += 1
-        _, words, _ = app._verse_word_texts(vk)
+        _, words, _ = verse_word_texts(vk)
         lines.append(f'آية {n}: ' + ' '.join(words))
     return '\n'.join(lines), n
 
@@ -492,7 +494,7 @@ def align_stops(surah, stops):
         if wpos is None:
             stats['unaligned'] += 1                        # phrase not verbatim in verse → reject (hallucination guard)
             continue
-        _, words, _ = app._verse_word_texts(f'{surah}:{ayah}')
+        _, words, _ = verse_word_texts(f'{surah}:{ayah}')
         stop_word = words[wpos] if 0 <= wpos < len(words) else phrase
         reason = rx.clean_note(s.get('reason') or '')
         reported = (s.get('reported_from') or None)
@@ -569,7 +571,7 @@ def explicit_manar_rows(surah, prose):
         next_pos = matches[seq + 1].start() if seq + 1 < len(matches) else len(prose)
         note_from = m.end() + gm.end()
         note = rx.clean_note(prose[note_from:min(next_pos, note_from + 600)])
-        _, words, _ = app._verse_word_texts(f'{surah}:{ayah}')
+        _, words, _ = verse_word_texts(f'{surah}:{ayah}')
         rows.append((surah, ayah, wpos, words[wpos], quote, grade, grade_raw,
                      note, seq, 1, rx.reported_scholar(prose, m.start())))
     return rows

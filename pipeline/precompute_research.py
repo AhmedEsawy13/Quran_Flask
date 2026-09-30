@@ -21,18 +21,18 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ['RESEARCH_PRECOMPUTE'] = '1'   # force builders to compute, not read disk
 
-import app  # noqa: E402
+from modules import waqf_research as research  # noqa: E402
 
 BUILDERS = {
-    'clustering':        app._build_reciter_clustering,
-    'mushaf_similarity': app._build_mushaf_similarity,
-    'mushaf_agreement':  app._build_mushaf_agreement_index,
-    'ibtidaa':           app._build_ibtidaa_index,
+    'clustering':        research._build_reciter_clustering,
+    'mushaf_similarity': research._build_mushaf_similarity,
+    'mushaf_agreement':  research._build_mushaf_agreement_index,
+    'ibtidaa':           research._build_ibtidaa_index,
 }
 
 
 def main():
-    out_dir = app._RESEARCH_CACHE_DIR
+    out_dir = research._RESEARCH_CACHE_DIR
     os.makedirs(out_dir, exist_ok=True)
     for name, build in BUILDERS.items():
         t0 = time.time()

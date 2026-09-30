@@ -72,8 +72,8 @@ def test_no_la_yuqaf_ala_ma_pinned_to_mithla(manar_226):
 
 
 def test_ma_rulings_sit_on_recited_ma(manar_226):
-    import app as quran_app
-    _, words, _ = quran_app._verse_word_texts('2:26')
+    from core.verse_words import verse_word_texts
+    _, words, _ = verse_word_texts('2:26')
     assert _norm_key(words[7]) == _norm_key(MA)
     assert words[7] == MA
     ma_rows = [r for r in manar_226 if r['wpos'] == 7]

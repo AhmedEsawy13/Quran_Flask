@@ -468,7 +468,7 @@ def verse_is_valid(surah: int, ayah: int) -> bool:
 
 
 def verse_words(surah: int, ayah: int) -> list[str]:
-    """Recited-word list (ornaments dropped), same basis as `_verse_word_texts`."""
+    """Recited-word list (ornaments dropped), same basis as `verse_word_texts`."""
     td = qpc_hafs_data_normalized.get(f'{surah}:{ayah}')
     text = (td.get('text', '') if isinstance(td, dict) else '') or ''
     return [tok for tok in text.split() if _has_arabic_letter(tok)]

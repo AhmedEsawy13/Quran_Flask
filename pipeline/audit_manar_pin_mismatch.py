@@ -32,7 +32,7 @@ sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, 'pipeline'))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 
-import app  # noqa: E402
+from core.verse_words import verse_word_texts  # noqa: E402
 import build_classical_waqf as rx  # noqa: E402
 
 _STOP_NAME_RE = re.compile(
@@ -97,7 +97,7 @@ def unique_keep_order(items):
 
 
 def ayah_words(surah, ayah):
-    _, words, _ = app._verse_word_texts(f'{surah}:{ayah}')
+    _, words, _ = verse_word_texts(f'{surah}:{ayah}')
     return words, [rx.norm(w) for w in words]
 
 

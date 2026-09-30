@@ -17,7 +17,8 @@ import sqlite3
 import difflib
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import app  # noqa: E402  (for _verse_word_texts + _normalize_for_search)
+from core.text import _normalize_for_search  # noqa: E402
+from core.verse_words import verse_word_texts  # noqa: E402
 
 DB = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'mushaf_waqf.db')
 OLD_COL = 'المدينة القديم'
@@ -52,7 +53,7 @@ def verse_marks(text):
 
 def align(sc_words, qpc_words):
     """Map each Simple-Clean word index → QPC word index (full coverage)."""
-    fold = app._normalize_for_search
+    fold = _normalize_for_search
     a = [fold(w) for w in sc_words]
     b = [fold(w) for w in qpc_words]
     mp = {}
@@ -86,7 +87,7 @@ def main(sql_path):
         if not marks:
             continue
         sc_words, _m2 = verse_marks(text)  # sc_words from same parse
-        _, qpc_words, raw_to_wpos = app._verse_word_texts(f'{sura}:{aya}')
+        _, qpc_words, raw_to_wpos = verse_word_texts(f'{sura}:{aya}')
         if not qpc_words:
             continue
         wpos_to_raw = {}

@@ -163,8 +163,8 @@ def _surah_name_map() -> dict[str, int]:
     if _SURAH_NAMES is None:
         names = {classical.norm(name): num for name, num in classical.ALIASES.items()}
         try:
-            import app as quran_app
-            for surah in getattr(quran_app, 'surahs_data', []) or []:
+            from core.datasets import surahs_data
+            for surah in surahs_data or []:
                 n = classical.norm(surah.get('name') or '')
                 if n:
                     names[n] = int(surah['number'])

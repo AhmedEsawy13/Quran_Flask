@@ -12,7 +12,7 @@ from core.classical_review import (
 )
 from core.config import CLASSICAL_REVIEW_DATABASE, CLASSICAL_WAQF_DATABASE
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
-from modules.breathing import _verse_word_texts
+from core.verse_words import verse_word_texts
 from modules.editor_auth import require_editor
 
 _SOURCES = {'muktafa', 'manar'}
@@ -112,7 +112,7 @@ def classical_review_items(source):
         words = []
         if effective_ayah is not None:
             try:
-                _, words, _ = _verse_word_texts(f'{row["surah"]}:{effective_ayah}')
+                _, words, _ = verse_word_texts(f'{row["surah"]}:{effective_ayah}')
             except Exception:
                 words = []
         if source == 'muktafa':
@@ -150,7 +150,7 @@ def classical_review_verse(source, surah, ayah):
     if not 1 <= surah <= 114 or ayah < 1:
         return jsonify({'error': 'invalid verse'}), 400
     try:
-        _, words, _ = _verse_word_texts(f'{surah}:{ayah}')
+        _, words, _ = verse_word_texts(f'{surah}:{ayah}')
     except Exception:
         words = []
     if not words:

@@ -33,6 +33,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_classical_waqf as rx  # noqa: E402
+from core.datasets import qpc_hafs_data_normalized  # noqa: E402
+from core.verse_words import verse_word_texts  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECTIONS = os.path.join(ROOT, 'pipeline', 'classical_sources', 'manar_shamela_sections.json')
@@ -68,9 +70,9 @@ def hnorm(tok):
 
 def verse_words(surah, ayah):
     vk = f'{surah}:{ayah}'
-    if vk not in rx.app.qpc_hafs_data_normalized:
+    if vk not in qpc_hafs_data_normalized:
         return None
-    _, words, _ = rx.app._verse_word_texts(vk)
+    _, words, _ = verse_word_texts(vk)
     return words
 
 

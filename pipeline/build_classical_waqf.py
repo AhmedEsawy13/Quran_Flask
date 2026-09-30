@@ -32,11 +32,13 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')   # skip disk caches on import
 
-import app  # noqa: E402
+from core.config import _BASE_DIR  # noqa: E402
+from core.datasets import qpc_hafs_data_normalized, surahs_data  # noqa: E402
+from core.verse_words import verse_word_texts  # noqa: E402
 from core.text import _normalize_for_search  # noqa: E402
 
 SRC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'classical_sources')
-OUT_DB = os.path.join(app._BASE_DIR, 'data', 'classical_waqf.db')
+OUT_DB = os.path.join(_BASE_DIR, 'data', 'classical_waqf.db')
 
 SOURCES = {
     'muktafa': 'muktafa_dani_shamela26461.md',
@@ -210,7 +212,7 @@ def surah_number(title, last=0):
     for name, num in ALIASES.items():
         if norm(name) in tn:
             cands.add(num)
-    for s in app.surahs_data:
+    for s in surahs_data:
         n = norm(s.get('name', ''))
         if not n:
             continue
@@ -416,7 +418,7 @@ _AYAH_COUNT = {}
 def surah_ayah_count(surah):
     if surah not in _AYAH_COUNT:
         n = 0
-        while f'{surah}:{n + 1}' in app.qpc_hafs_data_normalized:
+        while f'{surah}:{n + 1}' in qpc_hafs_data_normalized:
             n += 1
         _AYAH_COUNT[surah] = n
     return _AYAH_COUNT[surah]
@@ -428,9 +430,9 @@ def build_stream(surah):
     ayah = 1
     while True:
         vk = f'{surah}:{ayah}'
-        if vk not in app.qpc_hafs_data_normalized:
+        if vk not in qpc_hafs_data_normalized:
             break
-        _, words, _ = app._verse_word_texts(vk)
+        _, words, _ = verse_word_texts(vk)
         for w, tok in enumerate(words):
             n = norm(tok)
             if n:
@@ -521,7 +523,7 @@ def harvest_muktafa(body, rows, seq0):
             if conf == 0:
                 cursor = cursor_before
             ayah, wpos, _ = stream[hit]
-            _, words, _ = app._verse_word_texts(f'{num}:{ayah}')
+            _, words, _ = verse_word_texts(f'{num}:{ayah}')
             rows.append(('muktafa', num, ayah, wpos, words[wpos], e['quote'],
                          e['grade'], e['grade_raw'], e['note'], seq, conf, e['reported_from']))
     return seq, unmatched
@@ -611,9 +613,9 @@ def align_in_ayah(surah, ayah, qwords):
     ا/ه live in align_in_ayah_unique, not here, so منار 2:26 «ما» last-match
     behaviour is unchanged. A lone last token never uses SequenceMatcher."""
     vk = f'{surah}:{ayah}'
-    if vk not in app.qpc_hafs_data_normalized:
+    if vk not in qpc_hafs_data_normalized:
         return None, None
-    _, words, _ = app._verse_word_texts(vk)
+    _, words, _ = verse_word_texts(vk)
     wnorm = [norm(w) for w in words]
     if not qwords:
         return (len(words) - 1, 1) if words else (None, None)
@@ -630,9 +632,9 @@ def align_in_ayah_unique(surah, ayah, qwords):
     Used to promote leftover conf=0 rows: last-match alone is not enough
     (منار 2:26 «ما» class)."""
     vk = f'{surah}:{ayah}'
-    if vk not in app.qpc_hafs_data_normalized:
+    if vk not in qpc_hafs_data_normalized:
         return None, None
-    _, words, _ = app._verse_word_texts(vk)
+    _, words, _ = verse_word_texts(vk)
     wnorm = [norm(w) for w in words]
     if not qwords:
         return (len(words) - 1, 1) if words else (None, None)
@@ -650,9 +652,9 @@ def align_in_ayah_unique(surah, ayah, qwords):
 def align_in_ayah_legacy(surah, ayah, qwords):
     """Historical align_in_ayah (dagger stripped, no fusion / person-prefix)."""
     vk = f'{surah}:{ayah}'
-    if vk not in app.qpc_hafs_data_normalized:
+    if vk not in qpc_hafs_data_normalized:
         return None, None
-    _, words, _ = app._verse_word_texts(vk)
+    _, words, _ = verse_word_texts(vk)
     wnorm = [norm_legacy(w) for w in words]
     if not qwords:
         return (len(words) - 1, 1) if words else (None, None)
@@ -707,9 +709,9 @@ def pin_matches_wpos(surah, ayah, wpos, quote):
     match on the preceding tokens immediately before the recited stop.
     """
     vk = f'{surah}:{ayah}'
-    if vk not in app.qpc_hafs_data_normalized:
+    if vk not in qpc_hafs_data_normalized:
         return False
-    _, words, _ = app._verse_word_texts(vk)
+    _, words, _ = verse_word_texts(vk)
     if wpos is None or not 0 <= wpos < len(words):
         return False
     wnorm = [norm(w) for w in words]
@@ -863,7 +865,7 @@ def harvest_manar(body, rows, seq0):
                 conf = 1 if hit_ayah == own_ayah else 0
             else:
                 conf = 1 if (hit_ayah == ayah and (len(qwords) >= 2 or is_mithl)) else 0
-            _, words, _ = app._verse_word_texts(f'{current}:{hit_ayah}')
+            _, words, _ = verse_word_texts(f'{current}:{hit_ayah}')
             rows.append(('manar', current, hit_ayah, wpos, words[wpos], quote, grade, raw, note, seq, conf, reported_from))
     return seq, unmatched
 
@@ -958,7 +960,7 @@ def harvest_nahhas(body, rows, seq0):
                 rows.append(('nahhas', num, None, None, None, quote, r.grade, r.grade, note, seq, 0, r.by))
                 continue
             ayah, wpos, _ = stream[idx]
-            _, words, _ = app._verse_word_texts(f'{num}:{ayah}')
+            _, words, _ = verse_word_texts(f'{num}:{ayah}')
             conf = 1 if ok and not r.reading else 0
             rows.append(('nahhas', num, ayah, wpos, words[wpos], quote, r.grade, r.grade, note, seq, conf, r.by))
         # «ثم القطع على رؤوس الآيات كاف إلى {X}»: verse ends from the quote
@@ -972,11 +974,11 @@ def harvest_nahhas(body, rows, seq0):
                 continue
             a0, w0, _ = stream[before[-1]]
             a1 = stream[end][0]
-            first = a0 if w0 < len(app._verse_word_texts(f'{num}:{a0}')[1]) - 1 else a0 + 1
+            first = a0 if w0 < len(verse_word_texts(f'{num}:{a0}')[1]) - 1 else a0 + 1
             if a1 - first > 40:
                 continue
             for ay in range(first, a1):
-                _, words, _ = app._verse_word_texts(f'{num}:{ay}')
+                _, words, _ = verse_word_texts(f'{num}:{ay}')
                 seq += 1
                 rows.append(('nahhas', num, ay, len(words) - 1, words[-1], words[-1], r.grade, 'رؤوس الآي',
                              clean_note(r.note, limit=500), seq, 1, r.by))
@@ -1130,7 +1132,7 @@ def harvest_anbari(body, rows, seq0):
                 conf = 1 if hit_ayah in tries[:-1] else 0
                 if conf:
                     cur_ayah = hit_ayah
-            _, words, _ = app._verse_word_texts(f'{num}:{hit_ayah}')
+            _, words, _ = verse_word_texts(f'{num}:{hit_ayah}')
             rows.append(('anbari', num, hit_ayah, wpos, words[wpos], quote, grade, grade, note, seq, conf, reported_from))
     return seq, unmatched
 

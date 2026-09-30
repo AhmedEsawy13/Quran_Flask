@@ -39,7 +39,8 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / 'pipeline'))
 os.environ.setdefault('RESEARCH_PRECOMPUTE', '1')
 
-import app  # noqa: E402
+from core.datasets import qpc_hafs_data_normalized  # noqa: E402
+from core.verse_words import verse_word_texts  # noqa: E402
 import build_classical_waqf as classical  # noqa: E402
 
 CANONICAL_GRADES = {canonical for _, canonical in classical.GRADES}
@@ -76,9 +77,9 @@ def sha256_file(path: Path) -> str:
 def exact_alignment_candidates(surah: int, ayah: int, quote: str) -> list[int]:
     """Return every exact/prefix-aligned end position; fuzzy matches excluded."""
     key = f'{surah}:{ayah}'
-    if key not in app.qpc_hafs_data_normalized:
+    if key not in qpc_hafs_data_normalized:
         return []
-    _, words, _ = app._verse_word_texts(key)
+    _, words, _ = verse_word_texts(key)
     verse = [classical.norm(word) for word in words]
     quoted = classical.quote_words(quote)
     if not quoted:
@@ -142,7 +143,7 @@ def validate(candidate: Candidate) -> tuple[Accepted | None, str | None]:
     else:
         return None, 'ambiguous_repeated_phrase'
 
-    _, words, _ = app._verse_word_texts(f'{candidate.surah}:{candidate.ayah}')
+    _, words, _ = verse_word_texts(f'{candidate.surah}:{candidate.ayah}')
     return Accepted(candidate, wpos, words[wpos]), None
 
 

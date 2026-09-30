@@ -342,8 +342,8 @@ def test_quote_words_ama_tushrikun_does_not_align_to_tashkurun():
     unique, _ = pcw.align_in_ayah_unique(16, 14, q)
     assert hit is None
     assert unique is None
-    import app as quran_app
-    _, words, _ = quran_app._verse_word_texts('16:14')
+    from core.verse_words import verse_word_texts
+    _, words, _ = verse_word_texts('16:14')
     assert pcw.norm(words[20]) == pcw.norm('تشكرون')
     unique_nahl1, _ = pcw.align_in_ayah_unique(16, 1, q)
     assert unique_nahl1 == 8

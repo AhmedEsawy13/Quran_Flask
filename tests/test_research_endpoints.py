@@ -1,7 +1,9 @@
 """السكتات, الابتداء, and the API cache-control behaviour."""
 import sqlite3
 
-import app
+from core.text import _normalize_for_search
+from core.verse_words import verse_word_texts
+from modules.waqf_research import _RESEARCH_CACHE_DIR
 from core.config import CLASSICAL_WAQF_DATABASE
 
 
@@ -13,11 +15,11 @@ def test_saktat_dataset_integrity(client):
     assert j["obligatory"] == 4
     SAKTA = "ۜ"
     for sk in j["saktat"]:
-        _, words, _ = app._verse_word_texts(f"{sk['surah']}:{sk['ayah']}")
+        _, words, _ = verse_word_texts(f"{sk['surah']}:{sk['ayah']}")
         word = words[sk["wpos"]]
         assert SAKTA in word, f"{sk['surah']}:{sk['ayah']} word {word!r} lacks the sakta mark"
         # on_word matches the verse word once diacritics/sakta/waqf marks are folded.
-        assert app._normalize_for_search(word) == app._normalize_for_search(sk["on_word"])
+        assert _normalize_for_search(word) == _normalize_for_search(sk["on_word"])
         assert sk["reason"]
 
 
@@ -210,7 +212,7 @@ def test_classical_waqf_alignment_quality(client):
     dani = {r["wpos"] for r in rows255 if r["source"] == "muktafa"}
     assert {11, 18, 25, 31, 39} <= dani        # نوم، الأرض، بإذنه، خلفهم، شاء
     assert any(r["source"] == "manar" for r in rows255)
-    _, words, _ = app._verse_word_texts("2:255")
+    _, words, _ = verse_word_texts("2:255")
     for r in rows255:
         assert 0 <= r["wpos"] < len(words)
         assert r["grade"] in ("تام", "كاف", "حسن", "جائز", "صالح", "قبيح", "لا")
@@ -276,7 +278,7 @@ def test_research_disk_cache_is_served_verbatim(client):
     file and a live compute."""
     import json as _json
     import os as _os
-    path = _os.path.join(app._RESEARCH_CACHE_DIR, "mushaf_similarity.json")
+    path = _os.path.join(_RESEARCH_CACHE_DIR, "mushaf_similarity.json")
     assert _os.path.exists(path), "run pipeline/precompute_research.py"
     with open(path, encoding="utf-8") as f:
         baked = _json.load(f)
