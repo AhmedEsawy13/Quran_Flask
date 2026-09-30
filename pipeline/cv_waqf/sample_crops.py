@@ -47,6 +47,36 @@ LABELED_ROOT = CV_ROOT / 'crops_labeled'
 # Prefer covering every Athar stop class, including rare ones.
 TARGET_CLASSES = ('م', 'ق', 'ص', 'ج', 'لا', 'ع', 'س')
 
+# Prints that follow the Madinah layout and marks closely. Where all of them
+# agree the label is very likely what is printed; where they differ the print
+# is in doubt and the word is excluded rather than guessed.
+MADINAH_FAMILY_CONSENSUS = ('قطر', 'المدينة الجديد', 'المدينة القديم')
+
+
+def consensus_marks(
+    editions: tuple[str, ...],
+    ayah_keys: list[tuple[int, int]],
+    script_db: str,
+) -> tuple[dict[tuple[int, int, int], str], set[tuple[int, int, int]]]:
+    """``(agreed positives, every word any edition marks)``.
+
+    A positive needs the same symbol from every edition. A word marked by
+    some editions but not all, or with different symbols, is *disputed*: it
+    is in the second set (so it is never used as a negative) but not the
+    first (so it is never used as a positive).
+    """
+    per_edition = [
+        edition_marks_for_ayahs(edition, ayah_keys, script_db)
+        for edition in editions
+    ]
+    marked = set().union(*(set(marks) for marks in per_edition))
+    agreed: dict[tuple[int, int, int], str] = {}
+    for key in marked:
+        symbols = {marks.get(key) for marks in per_edition}
+        if len(symbols) == 1 and None not in symbols:
+            agreed[key] = symbols.pop()
+    return agreed, marked
+
 
 def _pages_for_edition(spec: EditionSpec) -> list[int]:
     conn = sqlite3.connect(spec.layout_db)
@@ -146,13 +176,29 @@ def choose_pages(
     return chosen[:n_pages]
 
 
-def _above_end_roi(word_x0: int, word_x1: int, word_y0: int, word_y1: int, line_y0: int) -> tuple[int, int, int, int]:
+def _above_end_roi(
+    word_x0: int, word_x1: int, word_y0: int, word_y1: int, line_y0: int,
+    convention: str = 'legacy',
+) -> tuple[int, int, int, int]:
     return above_word_strip_roi_from_box(
         word_x0, word_y0, word_x1, word_y1, line_y0=line_y0,
+        convention=convention,
     )
 
 
-def _best_ink_in_roi(binary: np.ndarray, roi: tuple[int, int, int, int]) -> Candidate | None:
+def _best_ink_in_roi(
+    binary: np.ndarray,
+    roi: tuple[int, int, int, int],
+    *,
+    expected: tuple[float, float] | None = None,
+    line_h: int | None = None,
+) -> Candidate | None:
+    """The ink blob in ``roi`` most likely to be the stop.
+
+    With ``expected`` (measured geometry) the winner is the stop-sized blob
+    nearest the known seat, not the biggest one: the biggest blob in a seat
+    ROI is usually a neighbouring letter body or frame ornament.
+    """
     h, w = binary.shape[:2]
     x0, y0, x1, y1 = roi
     x0, y0 = max(0, x0), max(0, y0)
@@ -162,17 +208,46 @@ def _best_ink_in_roi(binary: np.ndarray, roi: tuple[int, int, int, int]) -> Cand
     patch = binary[y0:y1, x0:x1]
     if patch.size == 0 or int(patch.sum()) < 255 * 10:
         return None
-    num, _lab, stats, _ = cv2.connectedComponentsWithStats(patch, connectivity=8)
+    num, lab, stats, _ = cv2.connectedComponentsWithStats(patch, connectivity=8)
     best = None
     best_score = -1.0
     rh, rw = y1 - y0, x1 - x0
     min_side = max(6, int(0.10 * max(rh, rw)))
     max_side = max(min_side + 2, int(0.85 * max(rh, rw)))
+    if expected is not None and line_h:
+        # Stop-sized only: 0.15h..0.55h, and not a long thin stroke.
+        min_side = max(6, int(0.15 * line_h))
+        max_side = max(min_side + 2, int(0.55 * line_h))
     for label in range(1, num):
         bx, by, bw, bh, area = (int(v) for v in stats[label])
         if area < 18:
             continue
         if not (min_side <= max(bw, bh) <= max_side):
+            continue
+        if expected is not None and line_h:
+            # Stops are compact (hand-drawn Bahrain boxes are ~1:1). A long
+            # diagonal is a fatha, and a blob cut by the ROI edge is frame
+            # ornament or a neighbouring letter, never the stop.
+            if max(bw, bh) / max(1, min(bw, bh)) > 2.0:
+                continue
+            if bx <= 0 or by <= 0 or bx + bw >= x1 - x0 or by + bh >= y1 - y0:
+                continue
+            # A diagonal fatha has a squarish bounding box but a long thin
+            # rotated one, so test elongation on the pixels themselves.
+            points = np.column_stack(np.where(lab[by:by + bh, bx:bx + bw] == label))
+            if len(points) >= 5:
+                (_c, (rw_, rh_), _a) = cv2.minAreaRect(points.astype(np.float32))
+                if max(rw_, rh_) / max(1.0, min(rw_, rh_)) > 2.0:
+                    continue
+            cx = x0 + bx + bw / 2.0
+            cy = y0 + by + bh / 2.0
+            distance = ((cx - expected[0]) ** 2 + (cy - expected[1]) ** 2) ** 0.5
+            if distance > 0.30 * line_h:
+                continue
+            score = 1000.0 - distance + 0.05 * area
+            if score > best_score:
+                best_score = score
+                best = Candidate(x=x0 + bx, y=y0 + by, w=bw, h=bh, area=area, score=score)
             continue
         score = area + 2.0 * max(bw, bh)
         if score > best_score:
@@ -180,6 +255,8 @@ def _best_ink_in_roi(binary: np.ndarray, roi: tuple[int, int, int, int]) -> Cand
             best = Candidate(x=x0 + bx, y=y0 + by, w=bw, h=bh, area=area, score=score)
     if best is not None:
         return best
+    if expected is not None:
+        return None  # measured seat: no stop-sized ink means no stop
     # Fallback: tight ink bbox of whole ROI.
     ys, xs = np.where(patch > 0)
     if len(xs) < 8:
@@ -194,6 +271,17 @@ def _best_ink_in_roi(binary: np.ndarray, roi: tuple[int, int, int, int]) -> Cand
     )
 
 
+def _seat_kwargs(word, measured: bool) -> dict:
+    if not measured:
+        return {}
+    from pipeline.cv_waqf import geometry
+
+    return {
+        'expected': geometry.mark_seat_centre(word.x0, word.y0, word.y1),
+        'line_h': word.y1 - word.y0,
+    }
+
+
 def sample_crops(
     edition: str,
     *,
@@ -203,7 +291,14 @@ def sample_crops(
     clear: bool = False,
     include_none: bool = True,
     none_per_page: int = 4,
+    pages: list[int] | None = None,
+    consensus: tuple[str, ...] | None = None,
 ) -> dict:
+    """Write labelled crops for ``pages`` (or ``n_pages`` chosen at random).
+
+    ``consensus`` replaces the edition's own column as the source of labels
+    with the marks all listed editions agree on (see ``consensus_marks``).
+    """
     spec = EDITIONS[edition]
     slug = spec.id
     out = Path(out_root or (LABELED_ROOT / slug))
@@ -212,7 +307,8 @@ def sample_crops(
         shutil.rmtree(out)
     out.mkdir(parents=True, exist_ok=True)
 
-    pages = choose_pages(edition, spec, n_pages=n_pages, seed=seed)
+    if pages is None:
+        pages = choose_pages(edition, spec, n_pages=n_pages, seed=seed)
     print(f'{edition}: sampling {len(pages)} pages → {pages}')
 
     counts: Counter = Counter()
@@ -229,17 +325,37 @@ def sample_crops(
         if not words:
             continue
         ayah_keys = sorted({(w.surah, w.ayah) for w in words if w.surah and w.ayah})
-        marks = edition_marks_for_ayahs(edition, ayah_keys, spec.script_db)
+        if consensus:
+            marks, marked_any = consensus_marks(
+                consensus, ayah_keys, spec.script_db,
+            )
+            disputed_ids = {wid for (_s, _a, wid) in marked_any - set(marks)}
+        else:
+            marks = edition_marks_for_ayahs(edition, ayah_keys, spec.script_db)
+            disputed_ids = set()
         by_id = {w.word_id: w for w in words}
         page_marks = {
             wid: sym for (s, a, wid), sym in marks.items()
             if wid in by_id and sym in TARGET_CLASSES
         }
         saved = 0
+        measured = spec.seat_convention == 'measured'
         for wid, sym in sorted(page_marks.items()):
             word = by_id[wid]
-            roi = _above_end_roi(word.x0, word.x1, word.y0, word.y1, word.y0)
-            cand = _best_ink_in_roi(prepared.binary, roi)
+            roi = _above_end_roi(
+                word.x0, word.x1, word.y0, word.y1, word.y0,
+                spec.seat_convention,
+            )
+            cand = _best_ink_in_roi(
+                prepared.binary, roi,
+                **_seat_kwargs(word, measured),
+            )
+            if cand is None and measured:
+                # A positive with no stop-sized ink at its seat is a geometry
+                # miss or a print difference; a whole-ROI crop would poison
+                # the class, so leave it out.
+                counts['skipped_no_ink'] += 1
+                continue
             if cand is None:
                 crop = _extract_roi(prepared.gray, roi, CROP_SIZE)
             else:
@@ -264,7 +380,10 @@ def sample_crops(
             })
 
         if include_none:
-            unmarked = [w for w in words if w.word_id not in page_marks]
+            unmarked = [
+                w for w in words
+                if w.word_id not in page_marks and w.word_id not in disputed_ids
+            ]
             random.Random(seed + page).shuffle(unmarked)
             for word in unmarked[:none_per_page]:
                 # Use the same above-word seat as positive inference. This
@@ -272,8 +391,12 @@ def sample_crops(
                 # not an easier and distribution-shifted mid-word crop.
                 roi = _above_end_roi(
                     word.x0, word.x1, word.y0, word.y1, word.y0,
+                    spec.seat_convention,
                 )
-                cand = _best_ink_in_roi(prepared.binary, roi)
+                cand = _best_ink_in_roi(
+                    prepared.binary, roi,
+                    **_seat_kwargs(word, measured),
+                )
                 crop = (
                     crop_candidate(prepared.gray, cand, size=CROP_SIZE, pad=3)
                     if cand is not None
@@ -357,6 +480,20 @@ def _write_gallery(
     return index
 
 
+def _parse_page_list(spec: str) -> list[int]:
+    pages: list[int] = []
+    for part in spec.split(','):
+        part = part.strip()
+        if not part:
+            continue
+        if '-' in part:
+            start, end = part.split('-', 1)
+            pages.extend(range(int(start), int(end) + 1))
+        else:
+            pages.append(int(part))
+    return pages
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--edition', default='الشمرلي', choices=list(EDITIONS))
@@ -371,7 +508,23 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--clear', action='store_true',
                         help='wipe previous labeled crops for this edition')
     parser.add_argument('--no-none', action='store_true')
+    parser.add_argument(
+        '--page-list', default=None,
+        help='explicit pages (comma/range, e.g. 12,40-45) instead of random',
+    )
+    parser.add_argument(
+        '--consensus', default=None,
+        help="comma-separated editions whose agreed marks are the labels, "
+             "or 'madinah' for the Madinah-family default",
+    )
     args = parser.parse_args(argv)
+    page_list = _parse_page_list(args.page_list) if args.page_list else None
+    consensus = None
+    if args.consensus:
+        consensus = (
+            MADINAH_FAMILY_CONSENSUS if args.consensus == 'madinah'
+            else tuple(part.strip() for part in args.consensus.split(','))
+        )
 
     editions = TRUSTED_WAQF_EDITIONS if args.trusted_all else (args.edition,)
     for edition in editions:
@@ -385,6 +538,8 @@ def main(argv: list[str] | None = None) -> int:
             out_root=out,
             clear=args.clear,
             include_none=not args.no_none,
+            pages=page_list,
+            consensus=consensus,
         )
         print(manifest)
         print(f'Open gallery: {manifest["gallery"]}')

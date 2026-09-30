@@ -13,6 +13,81 @@ python3 -m venv .venv
 export PYTHONPATH=.
 ```
 
+## Adding a print
+
+An edition is one `EditionSpec` in `config.py`; nothing else names it.
+
+- Its own models are found by convention: `models/waqf_glyph_<id>.onnx`
+  (+ `_gate.onnx`) and `models/waqf_strip_<id>.onnx`. `model_fallback` lets a
+  new print borrow another edition's model until it has its own; `run-page`
+  reports which one ran in `model_source` (`own`, `transfer:<edition>`,
+  `multiprint`, `shared`, `explicit`). See "One model for several prints".
+- `measured_geometry=True` reads the text rows and word cuts from each page's
+  ink (`geometry.py`) instead of the hand-tuned `text_*` fractions. It needs
+  only the layout DB (which words are on which line) and works on any print
+  with a frame; `text_*` stay as the fallback when a page gives no evidence.
+- `image_kind='cache'` editions use whatever width is cached (Qatar: 2000px);
+  the 1024px working copy is derived once beside it.
+
+## One model for several prints
+
+A new print does not need its own hand labels to get a usable model. What
+transfers between prints is the glyph vocabulary; what does not is rendering,
+so the model must be trained on crops cut *the way the detector cuts them*.
+Crops sampled any other way (tight boxes, human-drawn boxes) fill the 48×48
+input differently and score far worse at detect time.
+
+```bash
+# 1. Detector-window crops. Each candidate window the hybrid detector would
+#    classify is labelled by which word's stop seat it sits on; the label
+#    comes from an agreed mark (Madinah-family consensus for Qatar, the
+#    edition's own column for Bahrain). Disputed words are never labelled.
+.venv/bin/python -m pipeline.cv_waqf candidate-crops --edition قطر \
+  --page-list <pages> --consensus madinah --clear
+.venv/bin/python -m pipeline.cv_waqf candidate-crops --edition البحرين \
+  --page-list <pages> --consensus self --clear
+
+# 2. Fixed pages so every model is scored on pages it never trained on.
+.venv/bin/python -m pipeline.cv_waqf splits --groups-out /tmp/groups.json
+
+# 3. Train (byte-for-byte reproducible; needs onnx).
+.venv/bin/python -m pipeline.cv_waqf train --two-stage --augment 2 \
+  --cap-none 8000 --holdout-groups /tmp/groups.json \
+  --crops data/cv/crops_candidates/bahrain \
+  --crops data/cv/crops_candidates/qatar \
+  --out models/waqf_glyph_multiprint.onnx
+
+# 4. Score on unseen pages (no hand labels needed for the consensus prints).
+.venv/bin/python -m pipeline.cv_waqf evaluate-consensus --edition قطر --pages <eval pages>
+```
+
+`models/waqf_glyph_multiprint.onnx` is what an edition without its own model
+resolves to (own → `model_fallback` → multiprint → legacy shared). Measured on
+pages no model saw, min_conf 0.55, Azhar prior on:
+
+| trained on | Qatar (50 pp, consensus) | Bahrain (54 pp, hand labels) |
+|---|---|---|
+| production Bahrain model (hand crops) | 45% exact, 82 wrong, prec 60% | 92.8% (in-sample) |
+| Bahrain windows only | 51% exact, 26 wrong, prec 84% | 88.8% |
+| Qatar windows only | 83% exact, 15 wrong | 80.0% |
+| **both (promoted)** | **86% exact, 24 wrong, prec 91%** | **94.4%** |
+
+Read this honestly:
+
+- **The Qatar column is a proxy.** Its reference is the marks Qatar,
+  Madinah-new and Madinah-old agree on; disputed words are not scored, and a
+  genuine Qatar-only stop on a consensus-empty word counts as a false
+  positive. It ranks models fairly; it is not an accuracy claim. Score on the
+  print's own hand labels (`evaluate-hand`) before trusting output.
+- A print the model never saw is partly missed (51% and 80% above); adding
+  that print's consensus crops closes most of the gap without hand labels.
+- Tripling the training pages (100 → 300 per print) did not help (86.3% /
+  92.8%): the ceiling is the 48×48 MLP, and the remaining errors are mostly
+  `ص` read as `ج`. Do not expect more automatic labels to fix them.
+- Without the seat prior the detector alone fires on ~10% of empty words on
+  *both* prints; the prior removes nearly all of it, at the cost of stops on
+  words the prior edition leaves empty.
+
 ## Commands
 
 ```bash
@@ -72,6 +147,9 @@ export PYTHONPATH=.
 python3 -m pipeline.cv_waqf status-hand --slug shamarly  # read-only check
 python3 -m pipeline.cv_waqf push-hand --slug shamarly
 python3 -m pipeline.cv_waqf pull-hand --slug shamarly
+
+# Qatar (scans cached at 2000px; resolves to the multi-print model)
+.venv/bin/python -m pipeline.cv_waqf run-page --edition قطر --page 198 --overlay
 
 # Detect one page (line-by-line, above word-end band)
 .venv/bin/python -m pipeline.cv_waqf run-page --edition الشمرلي --page 5 --overlay

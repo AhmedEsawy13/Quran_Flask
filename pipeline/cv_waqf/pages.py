@@ -65,11 +65,52 @@ def ensure_page_image(spec: EditionSpec, page: int, width: int = IMG_WIDTH) -> P
     if spec.image_kind == 'archive':
         return _download_archive_leaf(spec, page, width, out)
     if spec.image_kind == 'cache':
+        derived = _derive_from_cached_width(spec, page, width, out)
+        if derived is not None:
+            return derived
         raise FileNotFoundError(
             f'{spec.id}: verified printed page is not cached at {out}. '
             'Cache the matching edition scan before generating trusted crops.'
         )
     raise ValueError(f'unsupported image_kind={spec.image_kind!r}')
+
+
+def _derive_from_cached_width(
+    spec: EditionSpec, page: int, width: int, out: Path,
+) -> Path | None:
+    """Downscale an already-cached scan of the same page to ``width``.
+
+    Cache-only editions are scanned at whatever size the source served
+    (Qatar: 2000px). Detection constants are pixel-based at ``IMG_WIDTH``, so
+    the working copy is derived once and cached beside the original. It is
+    the same verified print, only resampled — never a substitute image.
+    """
+    import cv2
+
+    candidates = sorted(
+        out.parent.glob(f'p{page:03d}_w*.jpg'),
+        key=lambda path: -path.stat().st_size,
+    )
+    for source in candidates:
+        if source == out or source.stat().st_size == 0:
+            continue
+        img = cv2.imread(str(source), cv2.IMREAD_COLOR)
+        if img is None:
+            continue
+        scale = width / float(img.shape[1])
+        resized = cv2.resize(
+            img, (width, max(1, round(img.shape[0] * scale))),
+            interpolation=cv2.INTER_AREA,
+        )
+        ok, encoded = cv2.imencode(
+            '.jpg', resized, [cv2.IMWRITE_JPEG_QUALITY, 88],
+        )
+        if not ok:
+            continue
+        with _atomic_output(out) as tmp:
+            tmp.write_bytes(encoded.tobytes())
+        return out
+    return None
 
 
 def _download_archive_leaf(

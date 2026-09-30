@@ -12,6 +12,7 @@ from core.config import (
     BAHRAIN_REF_CACHE,
     BAHRAIN_REF_PDF,
     BAHRAIN_REF_PDF_OFFSET,
+    QATAR_LAYOUT_DATABASE,
     MESAHA_ARCHIVE_ID,
     MESAHA_LAYOUT_DATABASE,
     MUSHAF_WAQF_DATABASE,
@@ -31,20 +32,6 @@ MESAHA_OCR_DIR = ROOT / 'data' / 'mesaha-ocr'
 MODEL_PATH = ROOT / 'models' / 'waqf_glyph.onnx'
 CLASSES_PATH = ROOT / 'models' / 'waqf_glyph_classes.json'
 ARTIFACTS_ROOT = ROOT / 'artifacts' / 'cv-waqf'
-
-# Target-print models are optional and fall back to the shared classifier when
-# absent. Keeping them separate prevents Bahrain-specific hard negatives from
-# degrading trusted Shamarly/Madinah/Azhar behavior.
-EDITION_MODEL_PATHS: dict[str, Path] = {
-    'البحرين': ROOT / 'models' / 'waqf_glyph_bahrain.onnx',
-}
-
-# Above-word strip detector (one NCHW strip per layout word). Optional; when
-# the ONNX is missing, detect/evaluate/bootstrap keep the gated MLP + hybrid
-# CC path. Do not commit an untrained net here.
-EDITION_STRIP_MODEL_PATHS: dict[str, Path] = {
-    'البحرين': ROOT / 'models' / 'waqf_strip_bahrain.onnx',
-}
 
 # Fixed-size above-word band fed to the strip CNN (H, W), not a 48×48 CC crop.
 STRIP_HEIGHT = 32
@@ -95,6 +82,32 @@ class EditionSpec:
     # Occupancy only — ignore the Azhar glyph. FP cut, not a classifier.
     # On for البحرين only; other editions stay off.
     azhar_seat_prior: bool = False
+    # Measure the text rows and word cuts from each page's ink
+    # (``geometry.py``) instead of trusting the fixed ``text_*`` fractions and
+    # letter-count widths, which are hand-tuned per print. The fractions stay
+    # as the fallback when a page gives too little evidence.
+    measured_geometry: bool = False
+    # Use another edition's model until this print has its own. Explicit and
+    # one hop only, so a transfer is visible in the registry and in the detect
+    # payload instead of hiding in a path lookup.
+    model_fallback: str | None = None
+
+    @property
+    def seat_convention(self) -> str:
+        """How a word's stop ROI is placed: ``measured`` follows the ink
+        grid convention of ``geometry.py``; ``legacy`` is the older
+        above-the-box band the Shamarly crops were sampled with."""
+        return 'measured' if self.measured_geometry else 'legacy'
+
+    @property
+    def model_path(self) -> Path:
+        """Where this edition's own glyph model lives (may not exist yet)."""
+        return ROOT / 'models' / f'waqf_glyph_{self.id}.onnx'
+
+    @property
+    def strip_model_path(self) -> Path:
+        """Where this edition's own above-word strip net lives (may not exist)."""
+        return ROOT / 'models' / f'waqf_strip_{self.id}.onnx'
 
 
 EDITIONS: dict[str, EditionSpec] = {
@@ -139,6 +152,36 @@ EDITIONS: dict[str, EditionSpec] = {
         # 31→6 FP / 217→213 correct on the 44-page hand set.
         # 12 known Bahrain-only DB seats will be missed.
         azhar_seat_prior=True,
+        # 213 hand-labelled pages, gated MLP + hybrid, min_conf 0.55:
+        #   with the Azhar prior   429→430 correct, FP 15→13
+        #   without the prior      434→435 correct, FP 40→31
+        # mark box → owning word 95.9%→96.7% (evaluate-candidates).
+        measured_geometry=True,
+    ),
+    # Same 15-line QPC layout as Madinah/Bahrain, different frame and margins.
+    # Scans are cached at 2000px; ensure_page_image derives the 1024px copy.
+    # No Qatar-only model: it resolves to the multi-print model, which was
+    # trained on detector-window crops labelled by Madinah-family consensus.
+    # 50 unseen pages vs that consensus: 85.7% exact, 91% precision.
+    'قطر': EditionSpec(
+        id='qatar',
+        mushaf_version='قطر',
+        layout_db=QATAR_LAYOUT_DATABASE,
+        word_space='qpc',
+        script_db=BAHRAIN_LAYOUT_DATABASE,
+        min_page=1,
+        max_page=604,
+        image_kind='cache',
+        page_cache_dir=str(PAGES_ROOT / 'qatar'),
+        text_top=0.155,
+        text_bottom=0.865,
+        default_proposal_mode='hybrid',
+        auto_set_min_conf=0.85,
+        # Without the prior the detector alone fires on ~12% of empty words
+        # (758 false positives on 6.2k); with it, 2. Same trade-off as
+        # Bahrain: a real Qatar-only stop on an Azhar-empty word is dropped.
+        azhar_seat_prior=True,
+        measured_geometry=True,
     ),
     'المساحة': EditionSpec(
         id='mesaha',
@@ -199,6 +242,42 @@ EDITIONS: dict[str, EditionSpec] = {
         text_bottom=0.90,
     ),
 }
+
+# Per-edition model locations follow ``EditionSpec.model_path`` /
+# ``strip_model_path``; nothing is hand-listed, so adding an edition to
+# EDITIONS is enough. Files are optional and checked at use time.
+EDITION_MODEL_PATHS: dict[str, Path] = {
+    key: spec.model_path for key, spec in EDITIONS.items()
+}
+EDITION_STRIP_MODEL_PATHS: dict[str, Path] = {
+    key: spec.strip_model_path for key, spec in EDITIONS.items()
+}
+
+
+# Trained on detector-window crops from several prints (see
+# ``candidate_crops``), so a print without its own model can use it directly.
+# Optional; when absent the legacy ``waqf_glyph.onnx`` path is unchanged.
+SHARED_MULTIPRINT_MODEL_PATH = ROOT / 'models' / 'waqf_glyph_multiprint.onnx'
+
+
+def resolve_edition_model(edition_key: str) -> tuple[Path | None, str | None]:
+    """Best model for an edition, and where it came from.
+
+    Order: the edition's own model → the explicit ``model_fallback`` edition's
+    → the multi-print model → ``(None, None)`` (legacy shared
+    ``waqf_glyph.onnx``). The label is ``own``, ``transfer:<edition>`` or
+    ``multiprint`` so a detect payload can say whether a transfer happened.
+    """
+    spec = EDITIONS[edition_key]
+    if spec.model_path.is_file():
+        return spec.model_path, 'own'
+    fallback = spec.model_fallback
+    if fallback and EDITIONS[fallback].model_path.is_file():
+        return EDITIONS[fallback].model_path, f'transfer:{fallback}'
+    if SHARED_MULTIPRINT_MODEL_PATH.is_file():
+        return SHARED_MULTIPRINT_MODEL_PATH, 'multiprint'
+    return None, None
+
 
 TRUSTED_WAQF_EDITIONS: tuple[str, ...] = (
     'الشمرلي', 'المدينة الجديد', 'المدينة القديم', 'الأزهر',

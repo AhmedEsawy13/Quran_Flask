@@ -13,6 +13,8 @@ def main(argv: list[str] | None = None) -> int:
             '  cache-pages     download/render page JPEGs\n'
             '  mesaha-boxes    export Mesaha DjVu word boxes\n'
             '  build-crops     weak-label glyph crop dataset\n'
+            '  candidate-crops detector-window crops labelled by seat + consensus\n'
+            '  splits          fixed train/eval pages for the multi-print recipe\n'
             '  sample-crops    word-anchored crops from trusted DB marks\n'
             '  train           page-split training → models/waqf_glyph.onnx\n'
             '  train-strip     above-word strip CNN → models/waqf_strip_bahrain.onnx\n'
@@ -20,6 +22,7 @@ def main(argv: list[str] | None = None) -> int:
             '  audit           CV vs mushaf_waqf.db report\n'
             '  evaluate-hand   exact mark + canonical-word holdout accuracy\n'
             '  evaluate-candidates proposal + word-attachment recall\n'
+            '  evaluate-consensus  score a print with no hand labels vs edition consensus\n'
             '  review-queue    stratified pages for hand calibration\n'
             '  bootstrap       draft plan.json for an edition\n'
             '  push-hand       upload hand crops + model to Supabase\n'
@@ -47,6 +50,12 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == 'sample-crops':
         from pipeline.cv_waqf.sample_crops import main as m
         return m(rest)
+    if cmd == 'splits':
+        from pipeline.cv_waqf.splits import main as m
+        return m(rest)
+    if cmd == 'candidate-crops':
+        from pipeline.cv_waqf.candidate_crops import main as m
+        return m(rest)
     if cmd == 'build-crops':
         from pipeline.cv_waqf.build_crops import main as m
         return m(rest)
@@ -64,6 +73,9 @@ def main(argv: list[str] | None = None) -> int:
         return m(rest)
     if cmd == 'evaluate-hand':
         from pipeline.cv_waqf.evaluate_hand import main as m
+        return m(rest)
+    if cmd == 'evaluate-consensus':
+        from pipeline.cv_waqf.evaluate_consensus import main as m
         return m(rest)
     if cmd == 'evaluate-candidates':
         from pipeline.cv_waqf.evaluate_candidates import main as m

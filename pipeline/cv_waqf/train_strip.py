@@ -210,7 +210,10 @@ def _edition_from_crops(crops: Path, explicit: str | None) -> str:
     for key, spec in EDITIONS.items():
         if spec.id in hay:
             return key
-    return 'البحرين'
+    raise SystemExit(
+        f'cannot infer the edition from {crops}; pass --edition '
+        f'(one of {", ".join(EDITIONS)})'
+    )
 
 
 def _labels_from_crops(crops: Path, edition_key: str) -> list[dict]:
@@ -292,6 +295,7 @@ def build_strip_dataset(
                 continue
             strip = crop_above_word_strip(
                 prepared.gray, word, width=width, height=height,
+                convention=spec.seat_convention,
             )
             xs.append(preprocess_strip(strip, height=height, width=width)[0])
             ys.append(class_index[symbol])
@@ -457,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         '--edition', default=None, choices=list(EDITIONS),
-        help='defaults from --crops path (bahrain → البحرين)',
+        help='defaults from the --crops path slug (e.g. bahrain, qatar)',
     )
     parser.add_argument('--out', type=Path, default=None)
     parser.add_argument('--epochs', type=int, default=25)
@@ -466,15 +470,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--seed', type=int, default=0)
     args = parser.parse_args(argv)
 
+    if args.crops is None:
+        raise SystemExit('--crops is required, e.g. data/cv/crops_hand/<slug>')
     crops = args.crops
-    if crops is None:
-        crops = Path('data/cv/crops_hand/bahrain')
     edition_key = _edition_from_crops(crops, args.edition)
     labels = _labels_from_crops(crops, edition_key)
     if not labels:
         raise SystemExit(
             f'no labels.jsonl / anchored labels under {crops}. '
-            'Label البحرين pages in /cv-waqf (mode تسمية) first.'
+            f'Label {edition_key} pages in /cv-waqf (mode تسمية) first.'
         )
     print(f'{edition_key}: {len(labels)} label rows from {crops}')
     x, y, groups = build_strip_dataset(edition_key, labels)
@@ -504,9 +508,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"wrote {out.with_suffix('.json')}")
     print(json.dumps(stats, ensure_ascii=False))
     print(
-        'This ONNX is for البحرين detect when present. '
-        'It does not replace models/waqf_glyph_bahrain.onnx '
-        '(gated MLP fallback).'
+        f'This ONNX is used for {edition_key} detect when present. '
+        'It does not replace the edition MLP (gated fallback).'
     )
     return 0
 

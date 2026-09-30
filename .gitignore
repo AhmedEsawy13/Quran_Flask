@@ -153,6 +153,7 @@ data/mesaha-ocr/
 data/cv/pages/
 data/cv/crops/
 data/cv/crops_labeled/
+data/cv/crops_candidates/
 data/cv/crops_hand/
 data/cv/word_boxes_mesaha.sqlite
 data/cv/overlays/

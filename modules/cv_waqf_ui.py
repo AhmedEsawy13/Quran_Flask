@@ -43,6 +43,13 @@ _UI_EDITIONS = (
         'max_page': 604,
     },
     {
+        'id': 'قطر',
+        'label': 'مصحف قطر',
+        'slug': 'qatar',
+        'min_page': 1,
+        'max_page': 604,
+    },
+    {
         'id': 'المساحة',
         'label': 'مصحف المساحة الأميرية',
         'slug': 'mesaha',

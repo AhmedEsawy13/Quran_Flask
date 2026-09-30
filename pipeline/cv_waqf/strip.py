@@ -22,6 +22,7 @@ from pipeline.cv_waqf.config import (
     STRIP_HEIGHT,
     STRIP_WIDTH,
 )
+from pipeline.cv_waqf import geometry
 from pipeline.cv_waqf.layout_geo import LayoutWord
 
 # Three 3×3 convs + 2×2 pools → spatial /8. Channels stay tiny so a local
@@ -55,15 +56,19 @@ def strip_flatten_size(
     return int(channels[-1]) * fh * fw
 
 
-def above_word_strip_roi(word: LayoutWord) -> tuple[int, int, int, int]:
-    """Pixel box of the band above the RTL end of a layout word.
+def above_word_strip_roi(
+    word: LayoutWord, convention: str = 'legacy',
+) -> tuple[int, int, int, int]:
+    """Pixel box of a word's stop seat, at the RTL (left) end of the word.
 
-    Matches ``sample_crops._above_end_roi`` / the search window in
-    ``line_gaps._above_roi``: above the letter skeleton, biased to the
-    left edge (word end in RTL), not a full-word or mid-body crop.
+    ``legacy``: the band above the letter skeleton, matching the search window
+    in ``line_gaps._above_roi``. ``measured``: where stops actually sit in a
+    slot box under ``geometry.py`` (mid-box; the legacy band would land one
+    row too high there).
     """
     return above_word_strip_roi_from_box(
         word.x0, word.y0, word.x1, word.y1, line_y0=word.y0,
+        convention=convention,
     )
 
 
@@ -74,8 +79,15 @@ def above_word_strip_roi_from_box(
     word_y1: int,
     *,
     line_y0: int | None = None,
+    convention: str = 'legacy',
 ) -> tuple[int, int, int, int]:
     """Same band as ``line_gaps``: above the body, near the RTL end."""
+    if convention == 'measured':
+        return geometry.mark_seat_roi_from_box(
+            word_x0, word_y0, word_x1, word_y1,
+        )
+    if convention != 'legacy':
+        raise ValueError(f'unknown seat convention {convention!r}')
     line_h = max(12, int(word_y1) - int(word_y0))
     width = max(8, int(word_x1) - int(word_x0))
     top = int(word_y0) if line_y0 is None else min(int(word_y0), int(line_y0))
@@ -94,10 +106,12 @@ def crop_above_word_strip(
     *,
     width: int = STRIP_WIDTH,
     height: int = STRIP_HEIGHT,
+    convention: str = 'legacy',
 ) -> np.ndarray:
-    """Letterbox the above-word band into a fixed ``height×width`` uint8 crop."""
+    """Letterbox the word's stop seat into a fixed ``height×width`` uint8 crop."""
     return crop_strip_roi(
-        gray, above_word_strip_roi(word), width=width, height=height,
+        gray, above_word_strip_roi(word, convention),
+        width=width, height=height,
     )
 
 
@@ -201,11 +215,13 @@ def strip_model_path_for_edition(
 class StripClassifier:
     """Small conv net over a fixed above-word strip (OpenCV 5 DNN)."""
 
-    def __init__(self, model_path: Path | None = None):
-        self.model_path = Path(
-            model_path
-            or EDITION_STRIP_MODEL_PATHS['البحرين']
-        )
+    def __init__(self, model_path: Path | str | None = None):
+        if model_path is None:
+            raise ValueError(
+                'StripClassifier needs an explicit model_path; resolve one '
+                'with strip_model_path_for_edition(edition_key)'
+            )
+        self.model_path = Path(model_path)
         self.classes: list[str] = list(CLASSES)
         self.pipeline = 'strip'
         self.height = STRIP_HEIGHT

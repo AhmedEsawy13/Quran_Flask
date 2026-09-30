@@ -21,11 +21,11 @@ from pipeline.cv_waqf.candidates import Candidate, crop_candidate
 from pipeline.cv_waqf.classify import GlyphClassifier
 from pipeline.cv_waqf.config import (
     CROP_SIZE,
-    EDITION_MODEL_PATHS,
     EDITIONS,
     OVERLAYS_ROOT,
     PROPOSAL_MODES,
     resolve_azhar_seat_prior,
+    resolve_edition_model,
     resolve_proposal_mode,
 )
 from pipeline.cv_waqf.layout_geo import estimate_layout_words
@@ -198,9 +198,11 @@ def _detect_page_with_strip(
         word for word in words
         if word.is_content_word and word.word_key
     ]
+    convention = EDITIONS[edition_key].seat_convention
     strips = [
         crop_above_word_strip(
             prepared.gray, word, width=clf.width, height=clf.height,
+            convention=convention,
         )
         for word in content_words
     ]
@@ -212,7 +214,7 @@ def _detect_page_with_strip(
         if not _prediction_is_clear(clf, label, conf, probs, min_conf):
             continue
         classified_n += 1
-        x0, y0, x1, y1 = above_word_strip_roi(word)
+        x0, y0, x1, y1 = above_word_strip_roi(word, convention)
         img_h, img_w = prepared.gray.shape[:2]
         x0, y0 = max(0, x0), max(0, y0)
         x1, y1 = min(img_w, x1), min(img_h, y1)
@@ -355,10 +357,11 @@ def detect_page(
         seen_boxes.add(box)
         hits.append(hit)
     resolved_model = model_path
+    model_source = 'explicit' if model_path is not None else 'shared'
     if resolved_model is None:
-        edition_model = EDITION_MODEL_PATHS.get(edition_key)
-        if edition_model is not None and edition_model.is_file():
-            resolved_model = edition_model
+        resolved_model, source = resolve_edition_model(edition_key)
+        if source is not None:
+            model_source = source
     clf = GlyphClassifier(model_path=resolved_model)
     if not clf.ready:
         raise RuntimeError(
@@ -416,6 +419,7 @@ def detect_page(
         'azhar_rejected_count': len(rejected),
         'model_ready': clf.ready,
         'model': str(clf.model_path),
+        'model_source': model_source,
         'model_pipeline': clf.pipeline,
     }
 
@@ -430,14 +434,14 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--model', type=Path, default=None)
     parser.add_argument(
         '--strip-model', type=Path, default=None,
-        help='above-word strip ONNX; when omitted, البحرين uses '
-             'models/waqf_strip_bahrain.onnx if that file exists',
+        help='above-word strip ONNX; when omitted, the edition uses '
+             'models/waqf_strip_<slug>.onnx if that file exists',
     )
     parser.add_argument(
         '--proposal-mode',
         choices=sorted(PROPOSAL_MODES),
         default=None,
-        help='override the edition default (hybrid for البحرين, narrow otherwise)',
+        help='override the edition default (see EditionSpec.default_proposal_mode)',
     )
     parser.add_argument(
         '--azhar-prior',

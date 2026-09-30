@@ -13,25 +13,35 @@ from pathlib import Path
 
 import requests
 
+from pipeline.cv_waqf.config import EDITIONS
+
 ROOT = Path(__file__).resolve().parents[2]
 HAND_ROOT = ROOT / 'data' / 'cv' / 'crops_hand'
 MODEL_ONNX = ROOT / 'models' / 'waqf_glyph.onnx'
 MODEL_CLASSES = ROOT / 'models' / 'waqf_glyph_classes.json'
 MODEL_META = ROOT / 'models' / 'waqf_glyph.json'
-BAHRAIN_MODEL_ONNX = ROOT / 'models' / 'waqf_glyph_bahrain.onnx'
-BAHRAIN_MODEL_META = ROOT / 'models' / 'waqf_glyph_bahrain.json'
-BAHRAIN_GATE_ONNX = ROOT / 'models' / 'waqf_glyph_bahrain_gate.onnx'
-BAHRAIN_GATE_META = ROOT / 'models' / 'waqf_glyph_bahrain_gate.json'
 
-MODEL_FILES = (
-    MODEL_ONNX,
-    MODEL_CLASSES,
-    MODEL_META,
-    BAHRAIN_MODEL_ONNX,
-    BAHRAIN_MODEL_META,
-    BAHRAIN_GATE_ONNX,
-    BAHRAIN_GATE_META,
-)
+
+def _edition_model_files() -> tuple[Path, ...]:
+    """Every per-edition model artifact the registry can name.
+
+    Includes the gate net and JSON sidecars; files that do not exist yet are
+    skipped by the push/pull loops, so a new edition needs no edit here.
+    """
+    files: list[Path] = []
+    for spec in EDITIONS.values():
+        stem = spec.model_path.with_suffix('')
+        strip = spec.strip_model_path
+        files += [
+            spec.model_path, spec.model_path.with_suffix('.json'),
+            stem.with_name(stem.name + '_gate.onnx'),
+            stem.with_name(stem.name + '_gate.json'),
+            strip, strip.with_suffix('.json'),
+        ]
+    return tuple(files)
+
+
+MODEL_FILES = (MODEL_ONNX, MODEL_CLASSES, MODEL_META, *_edition_model_files())
 
 BUCKET = 'cv-waqf-hand'
 TIMEOUT = 60

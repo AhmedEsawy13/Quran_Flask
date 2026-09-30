@@ -6,6 +6,7 @@ import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
 
+from pipeline.cv_waqf import geometry
 from pipeline.cv_waqf.config import EditionSpec
 from pipeline.cv_waqf.preprocess import PreparedPage
 
@@ -238,32 +239,71 @@ def estimate_layout_words(
     last_line = max(page_line_numbers, default=first_line + len(spans) - 1)
     line_slots = max(1, last_line - first_line + 1)
     out: list[LayoutWord] = []
+    measured = (
+        spec.measured_geometry and prepared.bgr is not None and bool(spans)
+    )
+    mask = grid = None
+    if measured:
+        mask = geometry.text_ink_mask(prepared.bgr)
+        grid = geometry.fit_line_grid(
+            mask,
+            [max(0, int(ln['line_number']) - first_line) for ln, _ in spans],
+            nominal_top=float(y0),
+            nominal_pitch=band_h / line_slots,
+        )
+        measured = grid.fitted
+        x_bounds = geometry.text_x_bounds(
+            prepared.bgr,
+            int(grid.top),
+            int(grid.top + grid.pitch * line_slots),
+        )
     for ln, ids in spans:
         line_slot = max(0, int(ln['line_number']) - first_line)
-        line_top = y0 + int(band_h * line_slot / line_slots)
-        line_bot = y0 + int(band_h * (line_slot + 1) / line_slots)
+        if measured:
+            line_top, line_bot = grid.slot(line_slot)
+        else:
+            line_top = y0 + int(band_h * line_slot / line_slots)
+            line_bot = y0 + int(band_h * (line_slot + 1) / line_slots)
         # Slight inset so mark crops sit above the baseline.
         word_top = line_top
         word_bot = line_bot
         n = len(ids)
-        line_left, line_right = _observed_line_bounds(
-            prepared, line_top, line_bot,
-        )
-        line_width = max(1, line_right - line_left)
         weights = [
             _arabic_width_weight(str((meta.get(wid) or {}).get('text') or ''))
             for wid in ids
         ]
-        total_weight = max(1.0, sum(weights))
-        cumulative_weight = 0.0
+        boxes = None
+        if measured:
+            baseline = grid.top + (
+                line_slot + 0.5 + geometry.LINE_CENTER_BIAS
+            ) * grid.pitch
+            # x_bounds are the inner frame rules; the measured extent
+            # handles whatever ornament remains inside them.
+            boxes = geometry.segment_line_words(
+                mask, baseline=baseline, pitch=grid.pitch,
+                weights=weights, x_range=x_bounds,
+            )
+        if boxes is None:
+            line_left, line_right = _observed_line_bounds(
+                prepared, line_top, line_bot,
+            )
+            line_width = max(1, line_right - line_left)
+            total_weight = max(1.0, sum(weights))
+            cumulative_weight = 0.0
+            boxes = []
+            for weight in weights:
+                # RTL: index 0 is rightmost.  Use the observed printed line
+                # span and Arabic-letter weights; equal slots place long words
+                # and short particles at systematically wrong x coordinates.
+                wx1 = line_right - int(
+                    line_width * cumulative_weight / total_weight
+                )
+                cumulative_weight += weight
+                wx0 = line_right - int(
+                    line_width * cumulative_weight / total_weight
+                )
+                boxes.append((min(wx0, wx1), max(wx0, wx1)))
         for i, wid in enumerate(ids):
-            # RTL: index 0 is rightmost.  Use the observed printed line span
-            # and Arabic-letter weights; equal slots place long words and
-            # short particles at systematically wrong x coordinates.
-            weight = weights[i]
-            wx1 = line_right - int(line_width * cumulative_weight / total_weight)
-            cumulative_weight += weight
-            wx0 = line_right - int(line_width * cumulative_weight / total_weight)
             info = meta.get(wid) or {}
             out.append(LayoutWord(
                 word_id=wid,
@@ -275,9 +315,9 @@ def estimate_layout_words(
                 line_number=int(ln['line_number']),
                 word_on_line=i + 1,
                 words_on_line=n,
-                x0=min(wx0, wx1),
+                x0=boxes[i][0],
                 y0=word_top,
-                x1=max(wx0, wx1),
+                x1=boxes[i][1],
                 y1=word_bot,
             ))
     return out

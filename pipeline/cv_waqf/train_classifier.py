@@ -15,7 +15,9 @@ from onnx import TensorProto, helper, numpy_helper
 
 from pipeline.cv_waqf import CLASSES
 from pipeline.cv_waqf.classify import save_classes
-from pipeline.cv_waqf.config import CLASSES_PATH, CROPS_ROOT, CROP_SIZE, MODEL_PATH
+from pipeline.cv_waqf.config import (
+    CLASSES_PATH, CROPS_ROOT, CROP_SIZE, EDITIONS, MODEL_PATH,
+)
 
 CLASS_DIRS = {
     'م': 'm',
@@ -35,9 +37,9 @@ _PAGE_RE = re.compile(r'(?:^|[-_])p(\d{1,4})(?:[-_]|$)', re.IGNORECASE)
 def _page_group(path: Path, crops_root: Path, match: re.Match) -> str:
     """Stable physical-page group across positive/negative crop roots."""
     haystack = '/'.join(part.lower() for part in (*crops_root.parts, path.stem))
-    for source in (
-        'bahrain', 'shamarly', 'mesaha', 'azhar',
-        'madinah_1441', 'madinah_1405',
+    # Every registered print, so a new edition needs no edit here.
+    for source in sorted(
+        {spec.id for spec in EDITIONS.values()}, key=len, reverse=True,
     ):
         if source in haystack:
             return f'{source}:p{int(match.group(1)):04d}'
@@ -98,7 +100,20 @@ def split_by_page_group(
     *,
     val_fraction: float = 0.15,
     seed: int = 0,
+    holdout: set[str] | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
+    """Train/validation indices with whole pages on one side.
+
+    ``holdout`` fixes the validation pages (``source:pNNNN`` group ids) so
+    several models can be scored on exactly the same unseen pages.
+    """
+    if holdout:
+        val_mask = np.asarray([str(group) in holdout for group in groups])
+        if not val_mask.any() or val_mask.all():
+            raise RuntimeError(
+                'holdout must match some, but not all, page groups'
+            )
+        return np.where(~val_mask)[0], np.where(val_mask)[0]
     unique = sorted({str(group) for group in groups.tolist()})
     if len(unique) < 2:
         raise RuntimeError(
@@ -111,6 +126,59 @@ def split_by_page_group(
     val_groups = set(unique[:val_n])
     val_mask = np.asarray([str(group) in val_groups for group in groups])
     return np.where(~val_mask)[0], np.where(val_mask)[0]
+
+
+def augment_crops(x: np.ndarray, copies: int, *, seed: int = 0) -> np.ndarray:
+    """``copies`` randomly re-rendered variants of each ink-positive crop.
+
+    Prints differ in scan sharpness, stroke weight, contrast and glyph scale,
+    not in the glyph vocabulary. These jitters stand in for that spread so a
+    model trained on a few prints does not lock onto one print's rendering.
+    Returns shape ``(len(x) * copies, d)``; the originals are not included.
+    """
+    if copies <= 0 or not len(x):
+        return np.empty((0, x.shape[1]), dtype=x.dtype)
+    rng = np.random.default_rng(seed)
+    side = CROP_SIZE
+    out = np.empty((len(x) * copies, x.shape[1]), dtype=np.float32)
+    kernel = np.ones((3, 3), np.uint8)
+    row = 0
+    for _ in range(copies):
+        for flat in x:
+            gray = 1.0 - flat.reshape(side, side)
+            scale = rng.uniform(0.85, 1.15)
+            angle = rng.uniform(-6.0, 6.0)
+            matrix = cv2.getRotationMatrix2D(
+                (side / 2.0, side / 2.0), angle, scale,
+            )
+            matrix[:, 2] += rng.uniform(-3.0, 3.0, size=2)
+            gray = cv2.warpAffine(
+                gray, matrix, (side, side),
+                flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE,
+            )
+            roll = rng.random()
+            if roll < 0.35:  # sharper/softer scan
+                sigma = rng.uniform(0.4, 1.3)
+                gray = cv2.GaussianBlur(gray, (0, 0), sigma)
+            elif roll < 0.6:  # lower-resolution scan
+                factor = rng.uniform(0.45, 0.8)
+                small = max(8, int(side * factor))
+                gray = cv2.resize(
+                    cv2.resize(gray, (small, small), interpolation=cv2.INTER_AREA),
+                    (side, side), interpolation=cv2.INTER_LINEAR,
+                )
+            if rng.random() < 0.3:  # heavier / lighter print stroke
+                ink = 1.0 - gray
+                ink = (
+                    cv2.dilate(ink, kernel) if rng.random() < 0.5
+                    else cv2.erode(ink, kernel)
+                )
+                gray = 1.0 - ink
+            gray = gray * rng.uniform(0.75, 1.1) + rng.uniform(-0.08, 0.08)
+            gray = gray + rng.normal(0.0, rng.uniform(0.0, 0.04), gray.shape)
+            out[row] = (1.0 - np.clip(gray, 0.0, 1.0)).reshape(-1)
+            row += 1
+    return out
 
 
 def _one_hot(y: np.ndarray, n: int) -> np.ndarray:
@@ -131,6 +199,7 @@ def train_mlp(
     num_classes: int | None = None,
     split_indices: tuple[np.ndarray, np.ndarray] | None = None,
     log_prefix: str = '',
+    augment: int = 0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     rng = np.random.default_rng(seed)
     n, d = x.shape
@@ -149,6 +218,10 @@ def train_mlp(
         train_i, val_i = idx[:split], idx[split:]
     x_tr, y_tr = x[train_i], y[train_i]
     x_va, y_va = x[val_i], y[val_i]
+    if augment > 0:
+        # Training pages only; validation stays the untouched real crops.
+        x_tr = np.concatenate([x_tr, augment_crops(x_tr, augment, seed=seed)])
+        y_tr = np.concatenate([y_tr] + [y_tr] * augment)
     x_tr, y_tr = _balance(x_tr, y_tr, seed=seed)
 
     w1 = rng.normal(0, 0.05, size=(d, hidden)).astype(np.float32)
@@ -304,6 +377,8 @@ def train_two_stage(
     epochs: int = 35,
     seed: int = 0,
     symbol_model_path: Path | None = None,
+    augment: int = 0,
+    holdout: set[str] | None = None,
 ) -> tuple[Path, Path]:
     """Train a binary mark gate followed by a mark-symbol classifier.
 
@@ -318,7 +393,7 @@ def train_two_stage(
         list(CLASSES).index(label): index
         for index, label in enumerate(mark_classes)
     }
-    train_i, val_i = split_by_page_group(groups, seed=seed)
+    train_i, val_i = split_by_page_group(groups, seed=seed, holdout=holdout)
 
     gate_y = (y != none_idx).astype(np.int64)
     gw1, gb1, gw2, gb2 = train_mlp(
@@ -329,6 +404,7 @@ def train_two_stage(
         num_classes=2,
         split_indices=(train_i, val_i),
         log_prefix='gate ',
+        augment=augment,
     )
 
     symbol_mask = y != none_idx
@@ -399,6 +475,7 @@ def train_two_stage(
             num_classes=len(mark_classes),
             split_indices=(symbol_train, symbol_val),
             log_prefix='symbol ',
+            augment=augment,
         )
         export_mlp_onnx(
             sw1, sb1, sw2, sb2, out_path,
@@ -432,10 +509,40 @@ def main(argv: list[str] | None = None) -> int:
         '--reuse-symbol-model', type=Path, default=None,
         help='with --two-stage, gate an existing proven symbol model',
     )
+    parser.add_argument(
+        '--augment', type=int, default=0,
+        help='augmented copies per training crop (scan sharpness, stroke '
+             'weight, contrast, scale); validation crops are never augmented',
+    )
+    parser.add_argument(
+        '--cap-none', type=int, default=0,
+        help='randomly keep at most this many `none` crops (candidate-window '
+             'sets are ~15:1 negative; balancing would otherwise upsample '
+             'every class to that size)',
+    )
+    parser.add_argument(
+        '--holdout-groups', type=Path, default=None,
+        help='JSON list of source:pNNNN page groups to hold out for '
+             'validation, so models are compared on the same unseen pages',
+    )
     args = parser.parse_args(argv)
+    holdout = (
+        set(json.loads(args.holdout_groups.read_text(encoding='utf-8')))
+        if args.holdout_groups else None
+    )
 
     crop_roots = args.crops or [CROPS_ROOT]
     x, y, groups = load_grouped_dataset(crop_roots)
+    if args.cap_none > 0:
+        none_idx = list(CLASSES).index('none')
+        none_rows = np.flatnonzero(y == none_idx)
+        if len(none_rows) > args.cap_none:
+            rng = np.random.default_rng(args.seed)
+            drop = rng.choice(
+                none_rows, size=len(none_rows) - args.cap_none, replace=False,
+            )
+            keep = np.setdiff1d(np.arange(len(y)), drop)
+            x, y, groups = x[keep], y[keep], groups[keep]
     print(
         f'loaded {len(y)} crops across {len(set(y.tolist()))} classes '
         f'from {len(set(groups.tolist()))} page/sample groups'
@@ -448,17 +555,27 @@ def main(argv: list[str] | None = None) -> int:
             epochs=args.epochs,
             seed=args.seed,
             symbol_model_path=args.reuse_symbol_model,
+            augment=args.augment,
+            holdout=holdout,
         )
         print(f'wrote {gate_path}')
     else:
+        split = (
+            split_by_page_group(groups, seed=args.seed, holdout=holdout)
+            if holdout else None
+        )
         w1, b1, w2, b2 = train_mlp(
             x, y, hidden=args.hidden, epochs=args.epochs, seed=args.seed,
-            groups=groups,
+            groups=groups, split_indices=split, augment=args.augment,
         )
         export_onnx(w1, b1, w2, b2, args.out)
-    save_classes(CLASSES_PATH, list(CLASSES))
     print(f'wrote {args.out}')
-    print(f'wrote {CLASSES_PATH}')
+    if Path(args.out).resolve() == Path(MODEL_PATH).resolve():
+        # Only the default shared model uses this fallback class list; a
+        # side experiment must not rewrite a tracked file. Every other model
+        # carries its own classes in its sidecar JSON.
+        save_classes(CLASSES_PATH, list(CLASSES))
+        print(f'wrote {CLASSES_PATH}')
     return 0
 
 

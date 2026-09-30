@@ -285,7 +285,13 @@ def test_bahrain_has_isolated_optional_model_path():
     assert strip != MODEL_PATH
 
 
-def test_only_bahrain_defaults_to_hybrid_proposals():
+# Bahrain's gated MLP needs hybrid proposals and a strict auto-set; Qatar
+# borrows that model, so it inherits the same operating point until it has its
+# own. Every other print keeps the narrow / 0.70 defaults.
+HYBRID_EDITIONS = {'البحرين', 'قطر'}
+
+
+def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
     from pipeline.cv_waqf.config import EDITIONS, resolve_proposal_mode
 
     assert EDITIONS['البحرين'].default_proposal_mode == 'hybrid'
@@ -293,8 +299,9 @@ def test_only_bahrain_defaults_to_hybrid_proposals():
     others = {
         key: spec.default_proposal_mode
         for key, spec in EDITIONS.items()
-        if key != 'البحرين'
+        if key not in HYBRID_EDITIONS
     }
+    assert EDITIONS['قطر'].default_proposal_mode == 'hybrid'
     assert others
     assert all(mode == 'narrow' for mode in others.values())
     assert resolve_proposal_mode('الشمرلي') == 'narrow'
@@ -397,7 +404,7 @@ def test_bahrain_readme_documents_hybrid_default():
     assert '31 → 6' in text
 
 
-def test_only_bahrain_auto_set_is_stricter_than_review():
+def test_only_bahrain_model_family_auto_set_is_stricter_than_review():
     from pipeline.cv_waqf.config import (
         EDITIONS,
         classify_mark_trust,
@@ -412,8 +419,9 @@ def test_only_bahrain_auto_set_is_stricter_than_review():
     others = {
         key: spec.auto_set_min_conf
         for key, spec in EDITIONS.items()
-        if key != 'البحرين'
+        if key not in HYBRID_EDITIONS
     }
+    assert EDITIONS['قطر'].auto_set_min_conf == 0.85
     assert others
     assert all(value == 0.70 for value in others.values())
     assert resolve_auto_set_min_conf('الشمرلي') == 0.70
@@ -898,15 +906,19 @@ def _stub_detect_pipeline(monkeypatch, attached):
     )
 
 
-def test_only_bahrain_enables_azhar_seat_prior():
+def test_only_the_hybrid_multiprint_prints_enable_azhar_seat_prior():
     from pipeline.cv_waqf.config import EDITIONS, resolve_azhar_seat_prior
 
+    # The two prints scored with the seat prior on (it removes ~99% of the
+    # detector's false positives there). Everything else stays off until it is
+    # scored the same way.
     assert EDITIONS['البحرين'].azhar_seat_prior is True
+    assert EDITIONS['قطر'].azhar_seat_prior is True
     assert resolve_azhar_seat_prior('البحرين') is True
     others = {
         key: spec.azhar_seat_prior
         for key, spec in EDITIONS.items()
-        if key != 'البحرين'
+        if key not in {'البحرين', 'قطر'}
     }
     assert others
     assert all(value is False for value in others.values())
