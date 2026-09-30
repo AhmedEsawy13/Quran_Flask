@@ -22,6 +22,18 @@ index handling, audio delivery, thematic memorization context, and print review.
 The remaining risk is concentration of responsibilities rather than a need for
 a rewrite.
 
+### Progress since the last audit (2026-09-30)
+
+- `app.py` is now only the application factory; HTTP plumbing moved to
+  `core/http.py` and route loading to `modules/__init__.py`.
+- Data pipelines and tests no longer import the web app: the recited-word helpers
+  live in `core/verse_words.py`, so `import app` is reserved for callers that
+  need a Flask app (`create_app`).
+- The integrity dashboard moved onto the editor blueprint; `/api/health` is
+  uncached; runtime dependencies are pinned and CI uses `.python-version`.
+- Tests no longer mutate tracked databases (the classical-review fixture
+  restores exact bytes).
+
 ### Audit corrections to the original proposal
 
 - Shared browser foundations (`athar-api.js`, `athar-ui.js`, mushaf/page chrome)

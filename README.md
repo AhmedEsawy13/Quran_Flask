@@ -1,414 +1,237 @@
-# أثَر — Quran Flask
+# أثَر — Athar
 
-Quran_Flask (product name **أثَر**, "mع القرآن") is a modular web application for
-reading, reciting, memorizing, and studying the Holy Quran, with a particular
-depth in **علم الوقف والابتداء** — the classical science of pause and resumption
-points. It is built with Flask and organized into independent feature
-**modules** (blueprints) over a shared `core`, so each module can be enabled
-per deployment and served on its own domain.
+Athar is a web app for reading, reciting, memorizing and **studying the Holy
+Quran**, with particular depth in **علم الوقف والابتداء** — the classical science
+of pause and resumption. It is a Flask backend organised as feature **modules**
+over a shared `core`, plus a Next.js public frontend (`frontend/`) that is
+progressively taking over the user-facing pages.
 
-## Modules · الوحدات
+- Flask origin (data plane + legacy pages): <https://waqfquran-d0b6fce4874e.herokuapp.com>
+- Next.js frontend: <https://athar-web-teal.vercel.app>
 
-| Page (nav) | Module | Blueprint | What it does |
-|---|---|---|---|
-| **المصحف** | Reading | `reading` | Main mushaf page: word-by-word audio, tafseer, tajweed, i'rāb, themes, bookmarks |
-| **تثبيت** | Memorization | `memorize` | Circular Segmented Repetition player for memorizing a surah, with live ASR listening |
-| **مُكْث** | Pause Guide | `breathing` | Multi-reciter waqf stops + all four classical waqf books («لماذا يُوقف هنا؟») + research tools |
-| **تدريب** | Waqf Practice | `breathing` | Tap-to-stop practice graded against mushaf marks and classical rulings, with ASR/tajweed checking |
-| *(local only)* | Mushaf Editor | `editor` | Click-to-edit waqf tool (Qatar/Kuwait/المدينة layouts). Admin-only — the **only writer** |
+## The product
 
-All modules sit on a shared **`core`** package (Quranic text, search, and
-mushaf page-rendering) that is always enabled. `مُكْث` and `تدريب` are two pages
-served by the same `breathing` blueprint — see [Architecture](#architecture)
-for how modules are turned on/off per deployment.
+Four public doors, one research lab, and a set of internal tools.
 
-## Features
+| Door | Route | What it does |
+|---|---|---|
+| **المصحف** — Reading | `/read` | Printed-mushaf reader: word-by-word audio, five tafsirs, tajweed colouring, i'rāb, asbāb al-nuzūl, المتشابهات, themes, bookmarks |
+| **تثبيت** — Memorize | `/memorize` | Circular Segmented Repetition player on per-reciter word timestamps, with optional live ASR listening |
+| **مُكْث** — Pause guide | `/waqf` | Multi-reciter validated waqf stops per verse, the four classical waqf books («لماذا يُوقف هنا؟»), contemporary توجيه |
+| **تدريب** — Waqf practice | `/waqf-practice` | Tap where you would pause; graded against the mushaf marks and classical rulings, with ASR/tajweed checking |
+| مختبر الوقف — Waqf lab | `/waqf-lab` | Quran-wide research: word/pattern search, reciter solos and clusters, mushaf agreement/disagreement, waqf at ayah ends |
+| `/`, `/credits` | | Landing page and source attribution |
 
-### 📜 **علم الوقف والابتداء — Waqf & Pause Science** (`مُكْث` + `تدريب`)
-This is the app's deepest feature area, well beyond a simple "where do I
-pause" guide:
-- **Multi-reciter breathing guide**: validated pause positions cross-checked
-  against several Qāris' actual recitation, with repeats filtered and solo
-  (منفرد) stops flagged separately.
-- **Classical waqf books**: four books — المكتفى (الداني), منار الهدى
-  (الأشموني), القطع والائتناف (النحاس), وإيضاح الوقف (ابن الأنباري) —
-  harvested from OpenITI, aligned to the exact recited word, and shown per
-  stop as a «لماذا يُوقف هنا؟» card with each imam's grade (تام/كاف/حسن/جائز/…),
-  the علّة (reasoning), and attribution when one book relays another
-  scholar's opinion rather than stating its own.
-  See [Deep dives](#deep-dives) for more on how this data is built and kept
-  correct.
-- **الابتداء بما قبله** and **المتشابهات**: research tabs for resumption-point
-  analysis and finding verses similar in wording across the Quran.
-  - **السكتات**: reference list of the mandatory Hafs pause points.
-- **تدريب الوقف (waqf practice)**: the learner taps where they'd pause in a
-  passage; their choices are graded against the mushaf's own marks and the
-  classical books' rulings, with a caution tier for genuinely disputed
-  (خلاف) stops rather than marking them flatly wrong.
-- **Recitation checking (تسميع)**: in-browser ASR (a ported zipformer
-  phoneme model) listens to the learner read and flags tajweed errors,
-  reusing the same silence/pause detection built for the breathing guide.
+Everything above exists twice on purpose during the migration: as a Flask-rendered
+page (`templates/`) and as a Next.js page (`frontend/app/`). Flask stays the
+**data plane** — every API, font, audio redirect and the ASR/editor tools; Next.js
+never re-implements Quran logic. What has moved and what has not:
+[`frontend/README.md`](frontend/README.md) and [`.cursor/rules/next-migration.mdc`](.cursor/rules/next-migration.mdc).
 
-### 🎨 **Theme & Display**
-- **Dark / Sepia modes**: comfortable reading in low light or for extended sessions
-- **Multiple Arabic Fonts**: UthmanicHafs (Hafs & Warsh), Digital Khatt, IndoPak Nastaleeq, and Mushaf (Shemrly page) fonts
-- **Responsive Design**: optimized for mobile and desktop
-- **Theme Persistence**: saved and restored on next visit
+### The waqf science, in brief
 
-### 📖 **Quranic Text Features**
-- **Word-by-word Highlighting**: real-time highlighting during audio recitation
-- **Word Meanings (غريب الكلمات)**: display meanings of difficult Arabic words
-- **Clickable Words**: click any word to hear its individual pronunciation
-- **Transliteration**: phonetic pronunciation of Arabic text
-- **Tafseer Integration**: 5 Arabic commentary sources (Al Qurtubi, Al Saddi, Al-Baghawi, Al-Muyassar, Al-Mukhtasar), served from local data — no live API calls
+- **Multi-reciter guide** — pause positions validated against several reciters'
+  actual recitation, repeats filtered, solo (منفرد) stops flagged.
+- **Four classical books** — المكتفى (الداني), منار الهدى (الأشموني), القطع والائتناف
+  (النحاس), إيضاح الوقف (ابن الأنباري): parsed from OpenITI/Shamela, aligned to the
+  exact recited word, each with its grade (تام/كاف/حسن/جائز/…), its علّة, and
+  attribution when a book relays another scholar. Guarded by audits that run in CI.
+- **Nine mushaf editions' marks** — المدينة (الجديد/القديم), الأزهر, الشمرلي, ورش,
+  الهندي, قطر, الكويت, البحرين — comparable side by side.
+- **Recitation checking** — an in-browser Zipformer phoneme model (onnxruntime-web)
+  follows the learner, detects stops and flags tajweed slips.
 
-### 🎵 **Advanced Audio Features**
-- **Multiple Reciters**: Abdul Basit Abdus Samad (Mujawwad/Murattal), Mohamed al-Minshawi (Mujawwad/Murattal), Mahmoud Khalil al-Husary (Mujawwad/Muallim), Ibrahim Al-Akhdar, Ayman Rushdi Suwaid, Mahmoud Ali Al-Banna, Mustafa Ismaeel, and more
-- **Audio Synchronization**: precise word-by-word audio timing
-- **Range Selection & Looping**: play or repeat multiple consecutive verses
-- **Audio Preloading**: next ayah preloaded for seamless navigation
+### Reader features
 
-### 🎧 **رُسوخ — Memorization Mode**
-- **Circular Segmented Repetition**: a structured repeat-and-expand drill
-  pattern for memorizing a surah segment by segment
-- **Live listening**: optional real-time ASR follows along and flags
-  silences/stalls during a memorization pass
-
-### 🔖 **Bookmark System**
-- Save, manage, and jump to bookmarked verses — no login required, stored in `localStorage`
-
-### 🎤 **Interactive Features**
-- **Voice Commands**: control the app using speech recognition (English)
-- **Keyboard Navigation**: arrow-key verse navigation
-- **Modal Dialogs & Toasts**: range selection and notification UI
-
-### 🔧 **Technical Features**
-- **RESTful API** across every module
-- **Caching**: `@lru_cache`, precomputed research caches on disk, and Cache-Control headers
-- **Security Headers**: CSP and related HTTP headers
-- **SQLite**, hardened for concurrent access (WAL mode + busy timeout) on Heroku's ephemeral filesystem
+Word-by-word highlighting and click-to-hear; غريب الكلمات meanings; five Arabic
+tafsirs served from local data (no live API calls); several reciters with range
+selection and looping; dark and sepia themes; multiple Arabic fonts (Uthmanic
+Hafs/Warsh, Digital Khatt, IndoPak, per-page Shemrly and QPC fonts); bookmarks in
+`localStorage` (no login); English voice commands and ←/→ verse navigation.
 
 ## Architecture
 
-The app is a single codebase split into a shared `core` package and
-per-feature `modules/`, assembled by an application factory in
-[`app.py`](app.py) — which is now just the factory itself (243 lines):
-static-asset hashing, the CSP/caching `after_request` hook, error handlers,
-and env-driven blueprint registration. Every blueprint's routes live in
-`modules/`:
-
-```
-core/
-├── config.py        # DB paths, reciter config, layout constants, waqf/search regexes
-├── blueprints.py     # Blueprint objects: core_bp, reading_bp, memorize_bp, breathing_bp, editor_bp
-├── db.py             # Shared per-request word_name.db connection (get_db / teardown)
-├── datasets.py        # Raw + normalised Quran text datasets (JSON, CDN fallback)
-├── loader.py          # JSON loading + CDN-or-local fetch helpers
-├── lru.py             # Bounded LRU cache used across modules
-├── mushaf_waqf.py      # Waqf DB access layer (mushaf_waqf.db / mushaf-qatar-layout.db)
-├── memorization.py     # Reciter catalog, audio-URL resolution, breathing-guide builder
-│                       #   (shared by modules/memorize.py AND modules/breathing.py)
-└── text.py            # Search normalisation + waqf-mark extraction
-
-modules/
-├── quran_api.py        # core_bp: surah/ayah text, audio (proxy/YouTube/reciters), search
-├── layouts.py         # Mushaf page builders + reading-page routes
-├── editor.py          # /mushaf-editor blueprint — the ONLY write path
-├── breathing.py        # مُكْث: pause guide, classical waqf books, waqf-practice grader
-├── waqf_research.py    # مُكْث research tabs: the /api/waqf-research/* analytics family
-├── reading.py          # المصحف: tafseer, tajweed, i'rab, waqf symbols, المتشابهات
-└── memorize.py         # تثبيت: the Circular Segmented Repetition player + routes
-
-app.py                 # create_app() factory + env-driven blueprint registration only
+```text
+app.py            create_app() factory + FEATURES-driven blueprint registry
+core/             shared, Flask-light foundation (always loaded)
+modules/          one file per feature area; importing a module attaches its routes
+pipeline/         offline data builds and audits (never run at request time)
+scripts/          operational tooling: smoke tests, browser matrix, reciter sync
+tests/            pytest suite (+ tests/js for the DTW ASR helper)
+data/ reciters/   the shipped datasets (SQLite + JSON), read-only at runtime
+templates/ static/  Flask-rendered pages, JS/CSS, per-page mushaf fonts
+frontend/         Next.js 16 public UI (Vercel)
+models/           ONNX waqf-glyph detectors used by the CV tooling
+docs/             operational and design docs — start at docs/README.md
 ```
 
-### Selecting modules per deployment
+### `core/`
 
-Every process runs the same entrypoint (`gunicorn app:app`); which modules it
-serves is controlled by environment variables:
-
-| Env var | Effect |
+| File | Role |
 |---|---|
-| `FEATURES` | Comma-separated module list to enable, e.g. `FEATURES=reading` or `FEATURES=memorize,breathing`. Defaults to `reading,memorize,breathing`. `core` is **always** included. |
-| `ENABLE_EDITOR` | A truthy value (`1`, `true`, `yes`, or `on`) mounts the write-capable `editor` module. **Off by default** on production read-only dynos; turn on for the editor-capable dyno / laptop. |
-| `EDITOR_DEPLOYMENT` | Required as a truthy opt-in when `DYNO` is present (for example on Heroku) before `ENABLE_EDITOR` can mount the editor. This keeps a stale public-dyno flag fail-closed. |
-| `SUPABASE_URL` | Supabase project URL for cloud mushaf-editor drafts (قطر/الكويت/البحرين) and Bahrain Layout Studio snapshots. When unset, the editor keeps the local SQLite write path. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service-role key (server-side only; never expose to the browser). |
-| `EDITOR_SESSION_SECRET` | Dedicated secret (at least 32 characters) that signs cloud editor sessions and peppers invite code hashes. Required when Supabase is configured. |
-| `PUBLIC_BASE_URL` | Canonical site origin for sitemap/canonical/OG URLs (no trailing slash), e.g. `https://waqfquran-d0b6fce4874e.herokuapp.com`. Falls back to the request host. |
+| `config.py`, `loader.py` | Paths, reciter/layout constants, JSON loading with CDN fallback |
+| `datasets.py`, `text.py` | Quran text datasets; search normalisation and waqf-mark extraction |
+| `verse_words.py` | A verse as recited words, and mapping printed-mushaf token indices to them |
+| `db.py`, `lru.py` | Per-request SQLite access (read-only mode available), bounded LRU cache |
+| `http.py`, `http_cache.py`, `errors.py` | Security headers/CSP, cache policy, gzip, typed errors → JSON |
+| `blueprints.py` | The five blueprint objects |
+| `mushaf_waqf.py`, `memorization.py`, `classical_review.py`, `classical_illa.py`, `tawjih.py` | Waqf marks, reciter catalog + breathing-guide builder, classical/توجيه data layers |
+| `supabase_editor.py`, `layout_persistence.py`, `edition_capabilities.py` | Cloud editor + layout persistence and the per-edition capability registry |
 
-This lets you put each module on its own domain while sharing one repo and one
-set of databases:
+### `modules/` → blueprints
 
-| Domain / app | Env | Serves |
-|---|---|---|
-| `mushaf.example.com` | `FEATURES=reading` | المصحف + core |
-| `repeat.example.com` | `FEATURES=memorize` | تثبيت + core |
-| `waqf.example.com` | `FEATURES=breathing` | مُكْث + تدريب + core |
-| your laptop | `ENABLE_EDITOR=1` | everything, incl. محرّر المصحف |
+| Blueprint | Modules |
+|---|---|
+| `core` | `quran_api` (text, search, audio, health), `layouts` (mushaf page payloads), `seo` (`robots.txt`, `sitemap.xml`, `llms.txt`), credits |
+| `reading` | `reading` |
+| `memorize` | `memorize` |
+| `breathing` | `breathing` (مُكْث + تدريب), `waqf_research` (the `/api/waqf-research/*` family) |
+| `editor` *(off in production)* | `editor`, `editor_auth`, `layout_studio` (+ `layout_engine`, `layout_editions`, `azhar_layout` aliases), `waqf_mark_review`, `classical_review`, `tawjih_review`, `cv_waqf_ui`, `activity`, `font_lab`, `quran_integrity_review` |
 
-> **Note on the editor:** with Supabase configured, قطر/الكويت/البحرين drafts live in
-> Postgres (invite-gated); public `/read` and مُكْث only see marks after an admin
-> **اعتماد**. Setup: [`docs/SUPABASE_EDITOR.md`](docs/SUPABASE_EDITOR.md).
-> Without Supabase env vars, the editor still writes local `data/mushaf_waqf.db`
-> (laptop workflow). Bahrain Layout Studio keeps a writable SQLite working copy
-> but automatically overlays and saves complete affected-page snapshots in
-> Supabase, so its corrected layout is also used by the waqf editor.
+### Choosing what a process serves
 
-## Installation
+One entrypoint (`gunicorn app:app`); environment variables pick the modules:
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/AhmedEsawy13/Quran_Flask.git
-   cd Quran_Flask
-   ```
+| Variable | Effect |
+|---|---|
+| `FEATURES` | Comma-separated blueprints, e.g. `FEATURES=reading` or `memorize,breathing`. Default `reading,memorize,breathing`; `core` is always on |
+| `ENABLE_EDITOR` | Truthy (`1/true/yes/on`) mounts the write-capable `editor` blueprint and every internal tool. **Unset in production** |
+| `EDITOR_DEPLOYMENT` | Required as well when `DYNO` is set (Heroku), so a stale `ENABLE_EDITOR` on a public dyno stays fail-closed |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `EDITOR_SESSION_SECRET` | Cloud editor (invite-gated drafts; admin publish). `EDITOR_SESSION_SECRET` ≥ 32 chars, required when Supabase is set |
+| `PUBLIC_BASE_URL` | Canonical origin for sitemap/canonical/OG URLs |
 
-2. **Create the one project virtualenv** (OpenCV extras are optional):
-   ```bash
-   python3.12 -m venv .venv
-   source .venv/bin/activate
-   python3 -m pip install -r requirements.txt
-   # tests:        python3 -m pip install -r requirements-dev.txt
-   # CV waqf only: python3 -m pip install -r requirements-cv.txt
-   ```
+`python3 app.py` (local) turns the editor on by default. Full production
+configuration: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md); editor policy:
+[`docs/EDITOR_AUTHORIZATION.md`](docs/EDITOR_AUTHORIZATION.md),
+[`docs/SUPABASE_EDITOR.md`](docs/SUPABASE_EDITOR.md).
 
-3. **Restore the reciter timestamp data** (not tracked in git — 52 MB
-   refreshed weekly upstream; downloads the release pinned in
-   `reciters/.qul_sync_state.json`):
-   ```bash
-   python3 scripts/import_qul_reciters.py --restore
-   ```
-   On **Heroku** this happens automatically on every build via
-   `bin/post_compile`.
+## Data
 
-4. **Run the Flask application:**
-   ```bash
-   python3 app.py            # serves on http://localhost:5001
-   ```
-   To work on the editor module locally, enable it explicitly:
-   ```bash
-   ENABLE_EDITOR=1 python3 app.py
-   ```
-   To serve only a subset of modules (as in production), set `FEATURES`:
-   ```bash
-   FEATURES=reading python3 app.py
-   ```
+Everything is pre-built and committed; no database server. Highlights of `data/`:
 
-5. Open `http://localhost:5001` in your browser.
+| Path | Contents |
+|---|---|
+| `quran_script.db`, `quran_text/`, `word_name.db` | Quran script and word positions, multi-edition text, word meanings |
+| `qpc-v1/v4-15-lines.db`, `digital-khatt-15-lines.db`, `mushaf-*-layout.db`, `glyph_mappings.db`, `mushaf_layout_inferred.db` | Page layouts for each printed edition |
+| `mushaf_waqf.db`, `waqf_symbols.db`, `waqf_glyphs.json` | Waqf marks per mushaf and their glyphs |
+| `classical_waqf.db` | The four classical books aligned to word positions |
+| `tafseer_local.db`, `asbab_local.db`, `tajweed_local.db`, `tajweed_notes_local.db`, `verse_topics.db` | Tafsir, asbāb, tajweed, Bahouth topics |
+| `research_cache/` | Baked مُكْث research payloads (rebuilt by `pipeline/precompute_research.py`) |
+| `reciters/<slug>/` | Per-reciter word/verse/letter timing |
 
-### Requirements
-- Python 3.10+
-- SQLite3 (included with Python)
-- Modern web browser with HTML5 support (WebAssembly + Web Audio for the ASR features)
-- Internet connection for external CDN resources
+Every dataset has a builder in [`pipeline/`](pipeline/README.md), which also
+records which scripts are one-time provenance. The 52 MB of QUL reciter
+timestamps are **not** in git; `scripts/import_qul_reciters.py --restore` fetches
+the release pinned in `reciters/.qul_sync_state.json` (Heroku does this in
+`bin/post_compile`; a weekly workflow proposes upgrades).
 
-## Testing
+Runtime never migrates or rebuilds data. After changing Quran sources or
+schemas, run `python3 pipeline/prepare_runtime_databases.py`.
+
+## Getting started
+
+Requirements: Python 3.12 (see `.python-version`), Node ≥ 20.19 for the frontend.
 
 ```bash
-source .venv/bin/activate   # after the install steps above
-python3 -m pip install -r requirements-dev.txt
-pytest              # full suite
-pytest -q tests/test_classical_waqf_quality.py -v   # a single file
+git clone https://github.com/AhmedEsawy13/Quran_Flask.git && cd Quran_Flask
+python3.12 -m venv .venv && source .venv/bin/activate
+python3 -m pip install -r requirements.txt
+python3 scripts/import_qul_reciters.py --restore     # reciter timestamps (not in git)
+python3 app.py                                        # http://localhost:5001, editor enabled
 ```
 
-The تثبيت font audit uses real Chromium layout measurements. Install its
-browser once, then run either the pull-request corpus or all 604 pages:
+Serve only the public modules, as production does:
 
 ```bash
-python3 -m playwright install chromium
-python3 scripts/audit_mushaf_fonts.py --mode risk
-python3 scripts/audit_mushaf_fonts.py --mode full
+ENABLE_EDITOR= FEATURES=reading,memorize,breathing python3 app.py
 ```
 
-Both modes test Old Madinah and Digital Khatt at desktop, mobile, and
-two-page-spread sizes. Reports are written under
-`artifacts/mushaf-font-audit/`; the command exits non-zero for compression,
-word-spacing, edge-alignment, expansion, or facing-page-size violations.
+Optional extras live in `requirements/`: `dev.txt` (tests, Playwright, LLM
+extraction clients), `cv.txt` / `cv-train.txt` (OpenCV waqf detection),
+`font-audit.txt`.
 
-`tests/` covers: app boot / feature-flag combinations, the classical waqf
-pipeline (text quality, attribution, and word-position alignment — three
-separate concerns, three files), مُتشابهات, and the waqf research endpoints.
-See [pipeline/build_classical_waqf.py](pipeline/build_classical_waqf.py) for
-the data these tests pin down, and the module docstring at the top of each
-`tests/test_classical_waqf_*.py` file for the specific bugs each guards
-against.
+**Recitation checking (ASR) needs a model that is not in git.** The 73 MB
+`quran_phoneme_zipformer.int8.onnx` and its source JSONs live in `static/asr/`
+locally (only the small `zipformer_meta.json` / `zipformer_phonemes.json` are
+tracked). Without the model the live-listening features in تثبيت and تدريب cannot
+start; everything else works.
 
-## API Endpoints
-
-Representative endpoints — see `app.py` (routes not yet split out) and
-`modules/*.py` for the full list.
-
-### Surahs & Text
-- `GET /api/surahs` · `GET /api/surahs/<surah>/ayahs` · `GET /api/surahs/<surah>/ayahs/<ayah>`
-- `GET /api/quran-text?source=<font_source>` — Quranic text in a given font/edition
-- `GET /api/search?q=<query>` · `GET /api/word-search?q=<query>`
-
-### Audio
-- `GET /api/reciters/<reciter>/ayahs/<ayah>/audio`
-- `GET /api/audio-proxy?url=<audio_url>`
-
-### Tafseer
-- `GET /api/tafseer/<surah>/<ayah>` — all 5 Arabic tafsirs, served from local data
-
-### Waqf & Pause Science (`مُكْث` / `تدريب`)
-- `GET /api/waqf/<surah>/<ayah>` — mushaf waqf marks for a verse
-- `GET /api/classical-waqf/<surah>/<ayah>` — the four classical books' rulings, aligned per word
-- `GET /api/tawjih/<surah>/<ayah>` — contemporary توجيه (د. أحمد صابر عبدالهادي); published unique alignments only
-- `GET /api/recitation-guide/<surah>/<ayah>` · `GET /api/reciter-compare/<surah>/<ayah>` — multi-reciter pause validation
-- `GET /api/waqf-research/{solos,patterns,clustering,ibtidaa,saktat,mushaf-agreement,mushaf-similarity,...}` — the مُكْث research tabs
-- `GET /api/waqf-practice/passage/<surah>/<from_ayah>/<to_ayah>` · `POST /api/waqf-practice/grade` — تدريب الوقف practice + grading
-- `POST /api/waqf-practice/tajweed` — ASR-based recitation/tajweed check
-
-### Monitoring
-- `GET /api/health`
-
-Release readiness is checked on every push and pull request by
-`.github/workflows/ci.yml`. A daily production workflow runs the critical HTTP
-smoke checks and verifies the Supabase capability/schema versions. The same
-checks can be run locally:
+Frontend:
 
 ```bash
+cd frontend && cp .env.example .env.local && npm install && npm run dev   # http://localhost:3000
+```
+
+## Testing and CI
+
+```bash
+python3 -m pip install -r requirements/dev.txt
+python3 -m pytest                       # full suite
+python3 -m pytest tests/test_classical_waqf_quality.py -v
 python3 pipeline/audit_release_readiness.py
 python3 scripts/smoke_test.py --local --include-editor
-python3 pipeline/check_supabase_readiness.py
+cd frontend && npm run verify && npm run test:smoke
 ```
 
-## Deep dives
+The suite covers app boot under every feature combination, the API route
+contracts (`docs/api-route-contracts.json` — regenerate with
+`python3 pipeline/generate_route_contracts.py` after an intentional change), the
+classical-book pipeline (text quality, attribution, word alignment), the research
+endpoints, the editor and layout tools, and read-only-at-import guarantees.
 
-Some subsystems have enough nuance that they're documented in more depth than
-fits here:
-- **The classical waqf pipeline** ([pipeline/build_classical_waqf.py](pipeline/build_classical_waqf.py)):
-  harvesting four differently-structured classical texts from OpenITI markdown,
-  aligning each citation to the exact recited word (including disambiguating
-  a word that repeats within the same verse), detecting when a book relays
-  another scholar's opinion rather than stating its own, and the text-quality
-  guards that keep quotes/notes from being silently truncated. The module
-  docstrings in `tests/test_classical_waqf_*.py` are the best entry point.
-- **The Shemrly (شمرلي) mushaf renderer**: three SQLite databases plus
-  per-page font subsets work together to reproduce the classical Madinah
-  mushaf's exact line breaks and glyphs — see `core/mushaf_waqf.py` and
-  `modules/layouts.py`.
-- **In-browser ASR**: Zipformer phonemes (`static/js/mushaf_zipformer.js`) plus
-  ReciteQuran-style DTW power التسميع on `/memorize` and pause-follow on `/waqf-practice`.
+The تثبيت typography audit uses real Chromium measurements
+(`python3 -m playwright install chromium`, then
+`python3 scripts/audit_mushaf_fonts.py --mode risk|full`; reports go to
+`artifacts/mushaf-font-audit/`).
 
-## Technology Stack
+GitHub Actions (`.github/workflows/`): core CI, frontend CI, browser smoke matrix,
+classical-data and font audits on relevant PRs, a daily production smoke test, and
+scheduled syncs (QUL reciters, QVP page engine, published waqf marks) that open PRs.
+Details: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
-### Backend
-- **Flask 3.0.3** — Python web framework, deployed via `gunicorn`
-- **SQLite3** — every dataset (Quranic script, waqf marks, classical books, tafseer, reciter timing) ships as a pre-built `.db` or `.json`, no external database server
-- **quran-transcript** — phoneme-level transcript/tajweed utilities backing the ASR features
+## API
 
-### Frontend
-- **Vanilla JavaScript** — no framework dependency
-- **WebAssembly (onnxruntime-web)** — in-browser ASR model inference
-- **Font Awesome 6**, **Tippy.js**, **Web Speech API**
+Representative public endpoints; the complete, generated inventory (methods, auth,
+cache class, response keys) is [`docs/api-route-contracts.json`](docs/api-route-contracts.json).
 
-## Usage
+| Area | Endpoints |
+|---|---|
+| Text | `/api/surahs` · `/api/surahs/<s>/ayahs[/<a>]` · `/api/quran-text?source=` · `/api/search?q=` · `/api/word-search?q=` · `/api/transliteration` |
+| Mushaf pages | `/api/{shamarly,azhar,qpc-v1,qpc-v2,digital-khatt}/page/<n>` and `…/page-by-ayah/<s>/<a>` · `/api/mushaf-versions` |
+| Reader aids | `/api/tafseer/<s>/<a>` · `/api/tajweed/<s>/<a>` · `/api/tajweed-notes/…` · `/api/eerab/…` · `/api/asbab/…` · `/api/mutashabihat/…` |
+| Audio | `/api/audio-proxy?url=` (allow-listed CDNs) · `/api/yt-audio?url=` (approved catalogue only) |
+| Memorize | `/api/memorization-reciters` · `/api/memorization/<s>` · `…/<s>/breathing` · `/api/memorization/context[-map]` |
+| Waqf | `/api/waqf/<s>/<a>` · `/api/classical-waqf/<s>/<a>` · `/api/tawjih/<s>/<a>` · `/api/waqf-map/<s>` |
+| Waqf research | `/api/waqf-research/{stats,solos,patterns,clustering,ibtidaa,saktat,mandatory,marks,mushaf-agreement,mushaf-similarity,mushaf-diff,ayah-ends}` |
+| Practice | `/api/waqf-practice/{passage/<s>/<from>/<to>,phonemes/…,grade,tajweed}` |
+| Monitoring | `/api/health` — `200` healthy / `503` degraded; never cached |
 
-### Basic Navigation
-1. **Select Reciter** from the dropdown
-2. **Choose Surah** and **Pick Ayah**
-3. **Play Audio** with the transport controls
+Unexpected errors return a generic JSON body; details (tracebacks, paths, SQL)
+stay in server logs.
 
-### Advanced Features
-- **Theme Toggle**: moon (🌙) icon for dark mode, leaf (🍃) icon for sepia mode
-- **Font Selection**: change Arabic font from the font dropdown
-- **Word Meanings**: click "عرض غريب الكلمات" to show/hide word meanings
-- **Voice Commands**: click "امر صوتي" and speak commands in English
-- **Range Selection / Loop**: "تحديد نطاق" / "تكرار الاية"
-- **Bookmarks**: "علامة مرجعية" to save, "المرجعيات" to view saved bookmarks
-- **مُكْث**: pick a verse to see multi-reciter pause validation and the classical books' rulings, with research tabs (المتشابهات، الابتداء، السكتات، …)
-- **تدريب**: tap where you'd pause in a passage, get graded, optionally read aloud for ASR/tajweed feedback
+## Security posture
 
-### Keyboard Shortcuts
-- **←** / **→** — previous / next verse
+- Content-Security-Policy, `X-Frame-Options: DENY`, `nosniff` on every response
+  (`core/http.py`); editor and error responses are `no-store`.
+- The audio proxy only redirects HTTPS URLs on an allow-list of audio CDNs (Drive
+  audio only for pre-approved URLs); `/api/yt-audio` accepts only catalogued videos.
+- Every write path lives on the `editor` blueprint, which is not mounted on a
+  public deployment; with Supabase configured it additionally requires an invite
+  session signed by `EDITOR_SESSION_SECRET`.
+- Secrets live in environment variables / a gitignored `.env`; nothing is baked
+  into the repo or the frontend bundle.
 
-### Voice Commands (English)
-- "chapter [number] verse [number]" / "chapter [number]" / "verse [number]"
+## Contributing and licence
 
-## Deployment
+Fork, branch, open a pull request; CI must pass. Keep Quran wording, tafsir and
+waqf rulings sourced from the local datasets or the Tafsir/Bahouth MCPs — never
+invented. New classical books follow
+[`docs/CLASSICAL_BOOK_ONBOARDING.md`](docs/CLASSICAL_BOOK_ONBOARDING.md). Source
+attributions are shown on `/credits`.
 
-The app deploys on **Heroku** via the [`Procfile`](Procfile)
-(`gunicorn app:app`). Because each module is selected by environment variables,
-the same repo can be deployed to several Heroku apps — one per domain/module —
-each scaled independently:
+No `LICENSE` file is included yet, so all rights are reserved by default. Several
+bundled datasets and fonts come from third parties (QUL, Tanzil, OpenITI,
+Digital Khatt, …) with their own terms — settle the licence before advertising the
+repo as open source.
 
-```bash
-heroku config:set FEATURES=reading   -a quran-reading
-heroku config:set FEATURES=memorize  -a quran-memorize
-git push https://git.heroku.com/quran-reading.git main
-```
-
-`bin/post_compile` runs on every build to restore the reciter timestamp data
-(see [Installation](#installation)) — if it fails, the build still succeeds
-and simply serves without that reciter's timing.
-
-> **Read-only at runtime:** the read modules (`reading`, `memorize`,
-> `breathing`, `core`) only read databases shipped in the slug, so they scale
-> horizontally across dynos cleanly. The writing `editor` module is excluded
-> from production (`ENABLE_EDITOR` unset) and run locally instead.
-
-## Project Structure
-
-```
-Quran_Flask/
-├── app.py                    # create_app() factory + remaining reading/memorize/breathing routes
-├── core/                     # Shared package (always enabled) — see Architecture
-├── modules/                  # Extracted per-feature blueprints (layouts, editor)
-├── pipeline/                 # Data-pipeline / DB-build scripts (one per source dataset)
-│   └── classical_sources/    # Vendored OpenITI classical waqf book texts
-├── scripts/                  # Maintenance scripts (e.g. QUL reciter sync)
-├── tests/                    # pytest suite — see Testing
-├── data/                     # Pre-built datasets (SQLite + JSON), see below
-├── reciters/                 # Per-reciter word/verse/letter timing data
-├── .venv/                    # Single local Python env (not committed)
-├── static/                   # JS, CSS, fonts; Zipformer ASR binaries stay local under static/asr/
-├── templates/                # One HTML template per page/module
-│   ├── index.html            #   المصحف (reading)
-│   ├── mushaf_memorize.html  #   تثبيت (memorize)
-│   ├── waqf_guide.html       #   مُكْث (breathing guide + classical waqf books)
-│   ├── waqf_practice.html    #   تدريب (waqf practice + ASR)
-│   └── mushaf_editor.html    #   محرّر المصحف (editor, local-only)
-├── Procfile / runtime.txt / bin/post_compile   # Heroku deployment
-└── requirements.txt / requirements-dev.txt
-```
-
-### Data sources (`data/`)
-- `quran_text/` — Quranic text in multiple fonts/editions (JSON)
-- `quran_script.db` — Quranic script + word positions
-- `word_name.db` — canonical per-word meanings from Tafsir MCP
-- `verse_topics.db` — Bahouth topics + contiguous context spans for تثبيت (`pipeline/harvest_bahouth_topics.py`)
-- `mushaf_waqf.db` / `mushaf-qatar-layout.db` — waqf marks per mushaf layout (written by the editor)
-- `classical_waqf.db` — the four classical waqf books, aligned per word (built by `pipeline/build_classical_waqf.py`)
-- `qpc-v4-15-lines.db` / `qpc-v1-15-lines.db` / `mushaf-qatar-layout.db` / `digital-khatt-15-lines.db` — page-layout databases
-- `glyph_mappings.db` / `mushaf_layout_inferred.db` — Shemrly page rendering
-- `tajweed_local.db` — tajweed coloring rules
-- `tafseer_local.db` — 5 Arabic tafsirs, built by `pipeline/build_tafseer_local.py` from QUL (qul.tarteel.ai) exports
-
-Runtime imports are read-only. After changing Quran source files or database
-schemas, prepare the derived indexes and waqf-symbol database explicitly with
-`python3 pipeline/prepare_runtime_databases.py` before starting Flask.
-
-The incremental architecture plan is tracked in
-[`docs/SOLID_CODEBASE_ROADMAP.md`](docs/SOLID_CODEBASE_ROADMAP.md).
-- `word_timestamps/`, `research_cache/` — additional per-feature datasets
-- `reciters/<reciter>/*.json.gz` — per-reciter word/verse/letter timing (restored at build time, not tracked)
-
-New classical books follow the deterministic, no-LLM ingestion and review
-process documented in [`docs/CLASSICAL_BOOK_ONBOARDING.md`](docs/CLASSICAL_BOOK_ONBOARDING.md).
-With `ENABLE_EDITOR=1`, `/classical-review` opens the local scholarly reviewer
-for المكتفى and منار الهدى; decisions are stored separately in
-`data/classical_review.db`.
-
-## License
-
-No LICENSE file is currently included in this repository — all rights are
-reserved by default until one is added.
-
-## Contributing
-
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
-
-## Contact
-
-For any inquiries or support, please contact [Ahmed Esawy](https://github.com/AhmedEsawy13).
+Contact: [Ahmed Esawy](https://github.com/AhmedEsawy13).

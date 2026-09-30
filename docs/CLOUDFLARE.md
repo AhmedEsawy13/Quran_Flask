@@ -73,4 +73,4 @@ Expect `cf-cache-status: HIT` (or `DYNAMIC` only on HTML).
 ## Notes
 
 - `atharquran.com` may already be on Cloudflare for a **different** site — do not point it at Heroku unless you intend to replace that site.
-- App-side: `ProxyFix` + long static `Cache-Control` are required so Cloudflare and HTTPS behave correctly (see `app.py`).
+- App-side: `ProxyFix` + long static `Cache-Control` are required so Cloudflare and HTTPS behave correctly (see `app.py` for ProxyFix and `core/http.py` for the headers).
