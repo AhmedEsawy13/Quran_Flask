@@ -194,8 +194,13 @@ EDITIONS: dict[str, EditionSpec] = {
         max_page=604,
         image_kind='cache',
         page_cache_dir=str(PAGES_ROOT / 'qatar'),
-        text_top=0.155,
-        text_bottom=0.865,
+        # Slot-box convention (what ``geometry.fit_line_grid`` expects), from
+        # ``calibrate-geometry``: the ink block is 0.155..0.865, but the slot
+        # box sits ~0.56 line higher. Using the ink extent here put the true
+        # alignment at the edge of the search window and let 10% of pages
+        # lock onto the neighbouring line.
+        text_top=0.1284,
+        text_bottom=0.8526,
         default_proposal_mode='hybrid',
         auto_set_min_conf=0.85,
         # Without the prior the detector alone fires on ~12% of empty words

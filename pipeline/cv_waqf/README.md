@@ -26,6 +26,15 @@ An edition is one `EditionSpec` in `config.py`; nothing else names it.
   ink (`geometry.py`) instead of the hand-tuned `text_*` fractions. It needs
   only the layout DB (which words are on which line) and works on any print
   with a frame; `text_*` stay as the fallback when a page gives no evidence.
+- **`text_top`/`text_bottom` must be in the slot-box convention, not the ink
+  extent** (the slot box sits ~0.56 line higher). Text rows are periodic, so
+  a nominal band that is off by half a line lets the fit lock onto the
+  *neighbouring* line on some pages: Qatar was set from its ink extent and
+  10% of its pages aliased, which cost ~7 points of Qatar accuracy. Do not
+  hand-tune them; run
+  `python -m pipeline.cv_waqf calibrate-geometry --edition <print>` and paste
+  the result (it recovers the true band to 0.0003 of page height from a
+  start 0.6 line off, and flags stray pages).
 - `image_kind='cache'` editions use whatever width is cached (Qatar: 2000px);
   the 1024px working copy is derived once beside it.
 
@@ -42,6 +51,7 @@ input differently and score far worse at detect time.
 #    classify is labelled by which word's stop seat it sits on; the label
 #    comes from an agreed mark (Madinah-family consensus for Qatar, the
 #    edition's own column for Bahrain). Disputed words are never labelled.
+#    Regenerate these whenever geometry changes: a wrong row alignment mislabels seats.
 .venv/bin/python -m pipeline.cv_waqf candidate-crops --edition قطر \
   --page-list <pages> --consensus madinah --clear
 .venv/bin/python -m pipeline.cv_waqf candidate-crops --edition البحرين \
@@ -50,27 +60,45 @@ input differently and score far worse at detect time.
 # 2. Fixed pages so every model is scored on pages it never trained on.
 .venv/bin/python -m pipeline.cv_waqf splits --groups-out /tmp/groups.json
 
-# 3. Train (byte-for-byte reproducible; needs onnx).
-.venv/bin/python -m pipeline.cv_waqf train --two-stage --augment 2 \
-  --cap-none 8000 --holdout-groups /tmp/groups.json \
-  --crops data/cv/crops_candidates/bahrain \
-  --crops data/cv/crops_candidates/qatar \
+# 3. Train three seeds (needs onnx), then average them into one ONNX.
+for seed in 0 1 2; do
+  .venv/bin/python -m pipeline.cv_waqf train --two-stage --augment 2 \
+    --cap-none 8000 --seed $seed --holdout-groups /tmp/groups.json \
+    --crops data/cv/crops_candidates/bahrain \
+    --crops data/cv/crops_candidates/qatar --out /tmp/mlp_s$seed.onnx
+done
+.venv/bin/python -m pipeline.cv_waqf ensemble-models \
+  --model /tmp/mlp_s0.onnx --model /tmp/mlp_s1.onnx --model /tmp/mlp_s2.onnx \
   --out models/waqf_glyph_multiprint.onnx
 
-# 4. Score on unseen pages (no hand labels needed for the consensus prints).
-.venv/bin/python -m pipeline.cv_waqf evaluate-consensus --edition قطر --pages <eval pages>
+# 4. Score on pages no model trained on (both prints, one table).
+.venv/bin/python -m pipeline.cv_waqf compare-models \
+  --model models/waqf_glyph_multiprint.onnx
 ```
 
 `models/waqf_glyph_multiprint.onnx` is what an edition without its own model
-resolves to (own → `model_fallback` → multiprint → legacy shared). Measured on
-pages no model saw, min_conf 0.55, Azhar prior on:
+resolves to (own → `model_fallback` → multiprint → legacy shared).
 
-| trained on | Qatar (50 pp, consensus) | Bahrain (54 pp, hand labels) |
+**One training run is not evidence.** Five seeds of the *same* recipe on the
+*same* data score Qatar 0.887–0.943 and Bahrain 0.864–0.912 (±2–2.5 points,
+~300 and ~125 seats), the same size as the differences between model
+designs. Judge a change by several seeds, or ship an ensemble. Averaging the
+logits of K MLPs is exactly one wider MLP (hidden units concatenated, output
+weights stacked and divided by K), so `ensemble-models` needs no inference
+change. Measured on the held-out pages, min_conf 0.55, seat prior on:
+
+| model | Qatar (50 pp, consensus) | Bahrain (54 pp, hand labels) |
 |---|---|---|
-| production Bahrain model (hand crops) | 45% exact, 82 wrong, prec 60% | 92.8% (in-sample) |
-| Bahrain windows only | 51% exact, 26 wrong, prec 84% | 88.8% |
-| Qatar windows only | 83% exact, 15 wrong | 80.0% |
-| **both (promoted)** | **86% exact, 24 wrong, prec 91%** | **94.4%** |
+| 5 single MLP seeds | 88.7–94.3% exact (mean 91.0), 12–24 wrong | 86.4–91.2% (mean 89.4) |
+| **3-seed MLP ensemble (shipped)** | **94.0% exact, 8 wrong, prec 96.3%** | **92.8%** |
+| 5-seed MLP ensemble | 94.3%, 6 wrong, prec 97.3% | 91.2% |
+
+`train-cnn` trains the same two-stage pair as a small CNN (needs `torch`,
+`pip install -r requirements/cv-train.txt`; ~25 min on CPU). torch and OpenCV
+cannot share a process here (two OpenMP runtimes abort), so data preparation
+and training run as two subprocesses; the exported ONNX is built by hand from
+the weights and loads through the unchanged `GlyphClassifier`. A CNN cannot be
+merged into one ONNX like the MLPs, so it is compared per seed.
 
 Read this honestly:
 
@@ -79,11 +107,11 @@ Read this honestly:
   genuine Qatar-only stop on a consensus-empty word counts as a false
   positive. It ranks models fairly; it is not an accuracy claim. Score on the
   print's own hand labels (`evaluate-hand`) before trusting output.
-- A print the model never saw is partly missed (51% and 80% above); adding
-  that print's consensus crops closes most of the gap without hand labels.
-- Tripling the training pages (100 → 300 per print) did not help (86.3% /
-  92.8%): the ceiling is the 48×48 MLP, and the remaining errors are mostly
-  `ص` read as `ج`. Do not expect more automatic labels to fix them.
+- **Earlier leave-one-edition-out numbers are stale.** "Bahrain-only → Qatar
+  51%", "Qatar-only → Bahrain 80%" and "3× more pages did not help" were
+  measured before the Qatar geometry fix and with single runs, so they carry
+  both the aliasing and ±2.5 points of seed noise. Re-run them (several
+  seeds) before relying on them.
 - Without the seat prior the detector alone fires on ~10% of empty words on
   *both* prints; see "The seat prior" for what it removes and what it costs.
 

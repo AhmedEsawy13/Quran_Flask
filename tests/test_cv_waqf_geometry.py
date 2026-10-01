@@ -208,3 +208,60 @@ def test_segment_line_words_returns_none_for_an_empty_line():
         mask, baseline=500, pitch=PITCH, weights=[1.0, 1.0],
         x_range=(0, 1024),
     ) is None
+
+
+def test_default_reach_cannot_reach_the_neighbouring_line():
+    assert geometry.DEFAULT_REACH <= 0.5
+
+
+def test_a_wide_search_can_lock_onto_the_neighbouring_line():
+    """Why ``reach`` is capped: text rows are periodic, so with a window wide
+    enough to hold two alignments the fit may pick the wrong one. Page
+    furniture (a page number one pitch below the block) makes the shifted
+    grid fit every expected line as well as the true one."""
+    page, _ = _synthetic_page([[120, 90, 150, 80]] * ROWS)
+    # A page-number row, one pitch below the last text line, central columns.
+    last = TOP + (ROWS - 1 + 0.5 + BASELINE_SHIFT) * PITCH
+    y = int(last + PITCH)
+    cv2.rectangle(page, (480, y - 12), (540, y + 12), (0, 0, 0), -1)
+    mask = geometry.text_ink_mask(page)
+    slots = list(range(ROWS))
+    narrow = geometry.fit_line_grid(
+        mask, slots, nominal_top=TOP + 0.2 * PITCH, nominal_pitch=PITCH,
+        reach=0.5,
+    )
+    assert narrow.top == pytest.approx(TOP, abs=3)       # true alignment
+    wide = geometry.fit_line_grid(
+        mask, slots, nominal_top=TOP + 0.5 * PITCH, nominal_pitch=PITCH,
+        reach=1.0,
+    )
+    # Both alignments are inside the window; the fit must at least report one
+    # of them (true, or shifted by exactly one line) — never something between.
+    offset = (wide.top - TOP) / PITCH
+    assert min(abs(offset), abs(offset - 1.0), abs(offset + 1.0)) < 0.1
+
+
+def test_calibration_recovers_the_band_from_a_wrong_nominal(monkeypatch):
+    import dataclasses
+
+    from pipeline.cv_waqf import calibrate_geometry
+
+    height = 1500
+    page, _ = _synthetic_page([[120, 90, 150, 80]] * ROWS)
+    monkeypatch.setattr(
+        calibrate_geometry, '_page_inputs',
+        lambda spec, p: (page, geometry.text_ink_mask(page), list(range(ROWS))),
+    )
+    spec = dataclasses.replace(
+        config.EDITIONS['قطر'],
+        text_top=(TOP - 0.4 * PITCH) / height,          # 0.4 line too high
+        text_bottom=(TOP - 0.4 * PITCH + ROWS * PITCH) / height,
+    )
+    report = calibrate_geometry.calibrate(spec, list(range(3, 40)))
+    assert report['text_top'] == pytest.approx(TOP / height, abs=0.003)
+    assert report['text_bottom'] == pytest.approx(
+        (TOP + ROWS * PITCH) / height, abs=0.004,
+    )
+    assert report['stray_pages'] == [] and report['unfitted_pages'] == []
+    with pytest.raises(ValueError, match='>=5'):
+        calibrate_geometry.calibrate(spec, [3, 4])

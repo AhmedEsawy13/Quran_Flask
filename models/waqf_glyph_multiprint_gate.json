@@ -4,11 +4,12 @@
     "mark"
   ],
   "crop_size": 48,
-  "hidden": 128,
+  "hidden": 384,
   "input": "input",
   "output": "logits",
   "input_layout": "NCHW",
   "ink_as_positive": true,
   "pipeline": "binary-gate",
-  "role": "mark-gate"
+  "role": "mark-gate",
+  "ensemble": 3
 }

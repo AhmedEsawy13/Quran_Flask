@@ -33,6 +33,9 @@ INK_S_MAX = 90
 # to one print's page margins. Set by ``calibrate_line_center_bias``.
 LINE_CENTER_BIAS = 0.56
 
+# How far (in line pitches) the fitted text top may move from the nominal one.
+DEFAULT_REACH = 0.5
+
 
 def text_ink_mask(bgr: np.ndarray) -> np.ndarray:
     """uint8 {0,1} mask of text ink with frame rules removed."""
@@ -139,6 +142,7 @@ def fit_line_grid(
     nominal_pitch: float,
     center_bias: float | None = None,
     min_support: float = 0.6,
+    reach: float = DEFAULT_REACH,
 ) -> LineGrid:
     """Fit ``(top, pitch)`` so expected line slots land on measured rows.
 
@@ -147,6 +151,13 @@ def fit_line_grid(
     and expected lines with no row simply do not vote, so short and heading
     pages fit as well as full ones. Falls back to the nominal grid when too
     few lines have evidence.
+
+    ``reach`` is how far (in pitches) the top may move from ``nominal_top``.
+    Keep it at or under 0.5: text lines are periodic, so a wider window admits
+    the grid shifted by one whole line as an equally good fit, and the fit
+    then picks between the two almost at random. That makes ``nominal_top``
+    matter: it must follow the slot-box convention (see ``LINE_CENTER_BIAS``),
+    not the ink extent; ``calibrate-geometry`` derives it from sample pages.
     """
     bias = LINE_CENTER_BIAS if center_bias is None else center_bias
     nominal = LineGrid(nominal_top, nominal_pitch, 0.0, False)
@@ -154,11 +165,11 @@ def fit_line_grid(
     if not slots or centres.size < 3:
         return nominal
     k = np.asarray(slots, dtype=float)
-    reach = 0.6 * nominal_pitch
+    reach_px = reach * nominal_pitch
     best: tuple[float, float, float] | None = None
     for pitch in nominal_pitch * np.linspace(0.90, 1.10, 41):
         for top in np.arange(
-            nominal_top - reach, nominal_top + reach + 1.0, 1.0,
+            nominal_top - reach_px, nominal_top + reach_px + 1.0, 1.0,
         ):
             predicted = top + (k + 0.5 + bias) * pitch
             dist = np.abs(predicted[:, None] - centres[None, :]).min(axis=1)

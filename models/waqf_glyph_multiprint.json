@@ -9,7 +9,7 @@
     "ع"
   ],
   "crop_size": 48,
-  "hidden": 128,
+  "hidden": 384,
   "input": "input",
   "output": "logits",
   "input_layout": "NCHW",
@@ -30,5 +30,6 @@
     "س",
     "ع",
     "none"
-  ]
+  ],
+  "ensemble": 3
 }
