@@ -4,12 +4,17 @@
     "mark"
   ],
   "crop_size": 48,
-  "hidden": 384,
+  "architecture": "cnn",
+  "conv_channels": [
+    16,
+    32,
+    64
+  ],
+  "hidden": 128,
   "input": "input",
   "output": "logits",
   "input_layout": "NCHW",
   "ink_as_positive": true,
   "pipeline": "binary-gate",
-  "role": "mark-gate",
-  "ensemble": 3
+  "role": "mark-gate"
 }

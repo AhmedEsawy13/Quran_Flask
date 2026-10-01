@@ -60,15 +60,12 @@ input differently and score far worse at detect time.
 # 2. Fixed pages so every model is scored on pages it never trained on.
 .venv/bin/python -m pipeline.cv_waqf splits --groups-out /tmp/groups.json
 
-# 3. Train three seeds (needs onnx), then average them into one ONNX.
-for seed in 0 1 2; do
-  .venv/bin/python -m pipeline.cv_waqf train --two-stage --augment 2 \
-    --cap-none 8000 --seed $seed --holdout-groups /tmp/groups.json \
-    --crops data/cv/crops_candidates/bahrain \
-    --crops data/cv/crops_candidates/qatar --out /tmp/mlp_s$seed.onnx
-done
-.venv/bin/python -m pipeline.cv_waqf ensemble-models \
-  --model /tmp/mlp_s0.onnx --model /tmp/mlp_s1.onnx --model /tmp/mlp_s2.onnx \
+# 3. Train the CNN pair (needs torch: pip install -r requirements/cv-train.txt;
+#    ~20 min on CPU; byte-for-byte reproducible for a given seed).
+.venv/bin/python -m pipeline.cv_waqf train-cnn --seed 0 --augment 2 \
+  --cap-none 8000 --holdout-groups /tmp/groups.json \
+  --crops data/cv/crops_candidates/bahrain \
+  --crops data/cv/crops_candidates/qatar \
   --out models/waqf_glyph_multiprint.onnx
 
 # 4. Score on pages no model trained on (both prints, one table).
@@ -79,26 +76,30 @@ done
 `models/waqf_glyph_multiprint.onnx` is what an edition without its own model
 resolves to (own → `model_fallback` → multiprint → legacy shared).
 
-**One training run is not evidence.** Five seeds of the *same* recipe on the
-*same* data score Qatar 0.887–0.943 and Bahrain 0.864–0.912 (±2–2.5 points,
-~300 and ~125 seats), the same size as the differences between model
-designs. Judge a change by several seeds, or ship an ensemble. Averaging the
-logits of K MLPs is exactly one wider MLP (hidden units concatenated, output
-weights stacked and divided by K), so `ensemble-models` needs no inference
-change. Measured on the held-out pages, min_conf 0.55, seat prior on:
+**One training run is not evidence.** Five seeds of the *same* MLP recipe on
+the *same* data score Qatar 0.887–0.943 and Bahrain 0.864–0.912 (±2–2.5
+points on ~300 and ~125 seats), the same size as the differences between
+model designs. Judge a change by several seeds. On the held-out pages,
+min_conf 0.55, seat prior on:
 
 | model | Qatar (50 pp, consensus) | Bahrain (54 pp, hand labels) |
 |---|---|---|
-| 5 single MLP seeds | 88.7–94.3% exact (mean 91.0), 12–24 wrong | 86.4–91.2% (mean 89.4) |
-| **3-seed MLP ensemble (shipped)** | **94.0% exact, 8 wrong, prec 96.3%** | **92.8%** |
-| 5-seed MLP ensemble | 94.3%, 6 wrong, prec 97.3% | 91.2% |
+| MLP, 5 single seeds | 88.7–94.3% exact (mean 91.0), 12–24 wrong | 86.4–91.2% (mean 89.4) |
+| MLP, 3-seed ensemble | 94.0%, 8 wrong, prec 96.3% | 92.8% |
+| **CNN, 3 seeds** | **95.7–97.0% (mean 96.5), 3–4 wrong, prec 97.7–98.3%** | **92.0–93.6% (mean 92.8)** |
 
-`train-cnn` trains the same two-stage pair as a small CNN (needs `torch`,
-`pip install -r requirements/cv-train.txt`; ~25 min on CPU). torch and OpenCV
-cannot share a process here (two OpenMP runtimes abort), so data preparation
-and training run as two subprocesses; the exported ONNX is built by hand from
-the weights and loads through the unchanged `GlyphClassifier`. A CNN cannot be
-merged into one ONNX like the MLPs, so it is compared per seed.
+The CNN (`train-cnn`) is shipped, seed 0 (the default; 97.0% / 93.6% is the
+top of its own 3-seed range, so expect the means above, not those). It is
+steadier than the MLP (1.3-point spread vs 5.6) and a single 2.6 MB model
+instead of an ensemble, at 0.49 s/page against 0.31. torch and OpenCV cannot
+share a process here (two OpenMP runtimes abort), so `train-cnn` runs data
+preparation and training as two subprocesses; the exported ONNX is built by
+hand from the weights and loads through the unchanged `GlyphClassifier`.
+
+`ensemble-models` is the lightweight alternative when torch is unavailable:
+averaging the logits of K MLPs is exactly one wider MLP (hidden units
+concatenated, output weights stacked and divided by K), so it needs no
+inference change. A CNN cannot be merged that way and is compared per seed.
 
 Read this honestly:
 

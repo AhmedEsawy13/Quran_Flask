@@ -9,7 +9,13 @@
     "ع"
   ],
   "crop_size": 48,
-  "hidden": 384,
+  "architecture": "cnn",
+  "conv_channels": [
+    16,
+    32,
+    64
+  ],
+  "hidden": 128,
   "input": "input",
   "output": "logits",
   "input_layout": "NCHW",
@@ -30,6 +36,5 @@
     "س",
     "ع",
     "none"
-  ],
-  "ensemble": 3
+  ]
 }

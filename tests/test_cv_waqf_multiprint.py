@@ -312,3 +312,29 @@ def test_detect_reports_the_prior_editions_it_used(monkeypatch):
     assert result['seat_prior_editions'] == list(seen['editions'])
     off = run_page.detect_page('قطر', 2, azhar_prior=False)
     assert off['seat_prior_editions'] == []
+
+
+def test_the_shipped_multiprint_model_is_complete_and_loadable():
+    """A sidecar naming a missing gate would only fail at detect time."""
+    import json
+
+    from pipeline.cv_waqf.classify import GlyphClassifier
+    from pipeline.cv_waqf.config import CROP_SIZE, SHARED_MULTIPRINT_MODEL_PATH
+
+    path = SHARED_MULTIPRINT_MODEL_PATH
+    if not path.is_file():
+        pytest.skip('multiprint model not present')
+    meta = json.loads(path.with_suffix('.json').read_text(encoding='utf-8'))
+    assert meta['pipeline'] == 'two-stage'
+    assert (path.parent / meta['gate_model']).is_file()
+    clf = GlyphClassifier(model_path=path)
+    assert clf.ready
+    # Not asserting a label: a blank crop never reaches the classifier (every
+    # window is centred on ink), so what it says about one is meaningless.
+    from pipeline.cv_waqf import CLASSES
+
+    noise = (np.random.default_rng(0).random((CROP_SIZE, CROP_SIZE)) * 255).astype(np.uint8)
+    label, confidence, probs = clf.predict_many_probs([noise])[0]
+    assert label in CLASSES and 0.0 <= confidence <= 1.0
+    assert probs.shape == (len(CLASSES),)
+    assert probs.sum() == pytest.approx(1.0, abs=1e-4)
