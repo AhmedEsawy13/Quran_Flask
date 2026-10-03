@@ -210,6 +210,28 @@ EDITIONS: dict[str, EditionSpec] = {
         seat_prior_editions=SEAT_PRIOR_AZHAR_MADINAH,
         measured_geometry=True,
     ),
+    # Kuwait (الكويت الحديث): 15-line QPC v1 layout, 604 pages, same scan the
+    # editor shows (Archive item kweat--h4794794946945969, page N = leaf N+3).
+    # NOT yet calibrated: text band is the Madinah-family default, so run
+    # ``calibrate-geometry --edition الكويت`` (then set measured_geometry and
+    # the text_* band) before trusting output. No Azhar seat prior on purpose:
+    # Azhar covers only 91.9% of Kuwait's own stops, so Kuwait needs its own
+    # prior (compare against its 5033 DB seats) rather than Azhar's.
+    'الكويت': EditionSpec(
+        id='kuwait',
+        mushaf_version='الكويت',
+        layout_db=QPC_V1_LAYOUT_DATABASE,
+        word_space='qpc',
+        script_db=BAHRAIN_LAYOUT_DATABASE,
+        min_page=1,
+        max_page=604,
+        image_kind='archive',
+        archive_id='kweat--h4794794946945969',
+        leaf_offset=3,
+        page_cache_dir=str(PAGES_ROOT / 'kuwait'),
+        text_top=0.10,
+        text_bottom=0.92,
+    ),
     'المساحة': EditionSpec(
         id='mesaha',
         mushaf_version='الشمرلي',  # reuse shemrly codes for pilot labels
