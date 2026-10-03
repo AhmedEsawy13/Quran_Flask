@@ -235,6 +235,11 @@ EDITIONS: dict[str, EditionSpec] = {
         page_cache_dir=str(PAGES_ROOT / 'kuwait'),
         text_top=0.0637,
         text_bottom=0.8406,
+        # Inner frame rule sits at ~0.138 / 0.867 (geometry.text_x_bounds);
+        # the default 0.06 / 0.94 let hybrid proposals fire on the ornamented
+        # border. 40 pages: wrong 24 -> 20, match 228 -> 230.
+        text_left=0.135,
+        text_right=0.868,
         default_proposal_mode='hybrid',
         auto_set_min_conf=0.85,
         azhar_seat_prior=True,

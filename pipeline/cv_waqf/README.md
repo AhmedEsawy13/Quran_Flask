@@ -189,6 +189,16 @@ Kuwait column is missing roughly one stop every six pages. Without the prior
 the same model adds ~15 false marks per page (frame ornaments, headers,
 harakat); narrow proposals find almost nothing (8 / 89 on 10 pages).
 
+Whole book (604 pages, same settings, text_left/right 0.06/0.94): 4160 / 4670
+waqf seats exact (89.1%), 307 wrong symbol, 203 missed, 161 not in the DB.
+Spot checks: 12 / 12 sampled not-in-DB marks at confidence ≥ 0.99 (131 such)
+are real printed stops the column lacks; below 0.99 about half are real
+(often a `لا` read as ج) and half are frame ornament or letter dots. The wrong
+symbols are mostly the model: Kuwait's `قلى` (ق→ج 101, ق→ص 51) and `لا`
+(لا→ج 46) glyphs differ from Bahrain/Qatar's, so it needs Kuwait crops, but
+some are DB errors (the print has ج where the column copies Madinah's ص).
+Review list: `artifacts/cv-waqf/kuwait-book/review.html` (not in git).
+
 **What is still lost.** Qatar keeps a floor of ~54 real stops that no
 reference edition prints. They are *not* queued for review: on 50 Qatar pages
 the prior rejected 761 marks and 4 were real (2 of 93 even at confidence
