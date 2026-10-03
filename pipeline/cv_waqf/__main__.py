@@ -18,6 +18,7 @@ def main(argv: list[str] | None = None) -> int:
             '  sample-crops    word-anchored crops from trusted DB marks\n'
             '  train           page-split training → models/waqf_glyph.onnx\n'
             '  train-cnn       two-stage CNN glyph classifier (needs torch)\n'
+            '  crop-bundle     pack training crops into one portable .npz\n'
             '  train-strip     above-word strip CNN → models/waqf_strip_bahrain.onnx\n'
             '  run-page        detect marks on one page\n'
             '  audit           CV vs mushaf_waqf.db report\n'
@@ -26,6 +27,7 @@ def main(argv: list[str] | None = None) -> int:
             '  evaluate-consensus  score a print with no hand labels vs edition consensus\n'
             '  calibrate-geometry  derive an edition\'s nominal text band from pages\n'
             '  ensemble-models average trained MLP glyph models into one ONNX\n'
+            '  gate            pass/fail a model (mean of seeds) on the held-out pages\n'
             '  compare-models  score glyph models on both prints\' held-out pages\n'
             '  review-queue    stratified pages for hand calibration\n'
             '  bootstrap       draft plan.json for an edition\n'
@@ -66,6 +68,9 @@ def main(argv: list[str] | None = None) -> int:
     if cmd == 'train':
         from pipeline.cv_waqf.train_classifier import main as m
         return m(rest)
+    if cmd == 'crop-bundle':
+        from pipeline.cv_waqf.crop_bundle import main as m
+        return m(rest)
     if cmd == 'train-cnn':
         from pipeline.cv_waqf.train_cnn_data import main as m
         return m(rest)
@@ -86,6 +91,9 @@ def main(argv: list[str] | None = None) -> int:
         return m(rest)
     if cmd == 'ensemble-models':
         from pipeline.cv_waqf.ensemble_models import main as m
+        return m(rest)
+    if cmd == 'gate':
+        from pipeline.cv_waqf.gate import main as m
         return m(rest)
     if cmd == 'compare-models':
         from pipeline.cv_waqf.compare_models import main as m

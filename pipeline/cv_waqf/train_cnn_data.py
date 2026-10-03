@@ -24,15 +24,33 @@ from pipeline.cv_waqf.train_classifier import (
 
 
 def prepare(
-    crops: list[Path],
+    crops: list[Path] | None,
     out_npz: Path,
     *,
     holdout: set[str] | None = None,
     cap_none: int = 0,
     augment: int = 2,
     seed: int = 0,
+    bundle: Path | None = None,
+    only: str | None = None,
 ) -> dict:
-    x, y, groups = load_grouped_dataset(crops)
+    """Load crops from folders or a bundle, split by page, augment, save.
+
+    With ``bundle`` the validation pages default to the ones stored in it, so
+    a checkout with no hand labels trains and validates on the same pages as
+    the machine that built it. ``only`` keeps a single print.
+    """
+    if bundle is not None:
+        from pipeline.cv_waqf import crop_bundle
+
+        x, y, groups, bundled_holdout = crop_bundle.load(bundle, only=only)
+        if holdout is None:
+            present = {str(g) for g in groups.tolist()}
+            holdout = {g for g in bundled_holdout if g in present} or None
+    else:
+        if only is not None:
+            raise ValueError('--only needs --bundle')
+        x, y, groups = load_grouped_dataset(crops)
     if cap_none > 0:
         none_rows = np.flatnonzero(y == list(CLASSES).index('none'))
         if len(none_rows) > cap_none:
@@ -61,7 +79,15 @@ def prepare(
 def main(argv: list[str] | None = None) -> int:
     """``train-cnn``: prepare data here, train in a torch-only subprocess."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--crops', type=Path, action='append', required=True)
+    parser.add_argument('--crops', type=Path, action='append', default=None)
+    parser.add_argument(
+        '--bundle', type=Path, default=None,
+        help='crop bundle (see crop_bundle) instead of --crops folders',
+    )
+    parser.add_argument(
+        '--only', default=None,
+        help='with --bundle, train on one print only, e.g. qatar',
+    )
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--epochs', type=int, default=25)
     parser.add_argument('--seed', type=int, default=0)
@@ -69,6 +95,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--cap-none', type=int, default=0)
     parser.add_argument('--holdout-groups', type=Path, default=None)
     args = parser.parse_args(argv)
+    if bool(args.crops) == bool(args.bundle):
+        parser.error('give exactly one of --crops or --bundle')
     holdout = (
         set(json.loads(args.holdout_groups.read_text(encoding='utf-8')))
         if args.holdout_groups else None
@@ -78,6 +106,7 @@ def main(argv: list[str] | None = None) -> int:
         info = prepare(
             args.crops, bundle, holdout=holdout, cap_none=args.cap_none,
             augment=args.augment, seed=args.seed,
+            bundle=args.bundle, only=args.only,
         )
         print(f'prepared {info}', flush=True)
         return subprocess.run(

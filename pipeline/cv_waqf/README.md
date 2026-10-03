@@ -101,6 +101,22 @@ averaging the logits of K MLPs is exactly one wider MLP (hidden units
 concatenated, output weights stacked and divided by K), so it needs no
 inference change. A CNN cannot be merged that way and is compared per seed.
 
+**Gate.** `python -m pipeline.cv_waqf gate [--model m.onnx ...]` scores a
+candidate on the held-out pages and exits non-zero below fixed floors (Qatar
+≥ 93.0% exact, ≤ 8 wrong symbols, ≥ 96.0% precision; Bahrain ≥ 89.0% exact),
+set a few standard errors under the shipped CNN's three seeds. Pass several
+seeds of one candidate: it is judged on their **mean**, because one run is
+noise. It needs the page scans and hand labels, so it runs on a developer
+machine, not in CI.
+
+**Training without the scans.** `crop-bundle build` packs the detector-window
+crops into one compressed `.npz` (uint8 pixels, labels, page groups, and the
+validation pages), which loads bit-identically to the folders it came from.
+`train-cnn --bundle FILE [--only qatar]` trains from it on any machine, with
+no scans, hand labels or local state, which is how a long run can be moved to a
+cloud box. Scoring still needs the scans, so models trained elsewhere are
+scored locally (cheap; training is the expensive part).
+
 Read this honestly:
 
 - **The Qatar column is a proxy.** Its reference is the marks Qatar,
