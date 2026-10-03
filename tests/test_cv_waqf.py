@@ -287,8 +287,9 @@ def test_bahrain_has_isolated_optional_model_path():
 
 # Bahrain's gated MLP needs hybrid proposals and a strict auto-set; Qatar
 # borrows that model, so it inherits the same operating point until it has its
-# own. Every other print keeps the narrow / 0.70 defaults.
-HYBRID_EDITIONS = {'البحرين', 'قطر'}
+# own; Kuwait runs the multiprint model the same way. Every other print keeps
+# the narrow / 0.70 defaults.
+HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت'}
 
 
 def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
@@ -909,7 +910,7 @@ def _stub_detect_pipeline(monkeypatch, attached):
 def test_only_the_hybrid_multiprint_prints_enable_azhar_seat_prior():
     from pipeline.cv_waqf.config import EDITIONS, resolve_azhar_seat_prior
 
-    # The two prints scored with the seat prior on (it removes ~99% of the
+    # The prints scored with the seat prior on (it removes ~99% of the
     # detector's false positives there). Everything else stays off until it is
     # scored the same way.
     assert EDITIONS['البحرين'].azhar_seat_prior is True
@@ -918,8 +919,9 @@ def test_only_the_hybrid_multiprint_prints_enable_azhar_seat_prior():
     others = {
         key: spec.azhar_seat_prior
         for key, spec in EDITIONS.items()
-        if key not in {'البحرين', 'قطر'}
+        if key not in HYBRID_EDITIONS
     }
+    assert EDITIONS['الكويت'].azhar_seat_prior is True
     assert others
     assert all(value is False for value in others.values())
     assert resolve_azhar_seat_prior('الشمرلي') is False

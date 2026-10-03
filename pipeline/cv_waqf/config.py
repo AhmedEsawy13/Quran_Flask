@@ -212,11 +212,15 @@ EDITIONS: dict[str, EditionSpec] = {
     ),
     # Kuwait (الكويت الحديث): 15-line QPC v1 layout, 604 pages, same scan the
     # editor shows (Archive item kweat--h4794794946945969, page N = leaf N+3).
-    # NOT yet calibrated: text band is the Madinah-family default, so run
-    # ``calibrate-geometry --edition الكويت`` (then set measured_geometry and
-    # the text_* band) before trusting output. No Azhar seat prior on purpose:
-    # Azhar covers only 91.9% of Kuwait's own stops, so Kuwait needs its own
-    # prior (compare against its 5033 DB seats) rather than Azhar's.
+    # Geometry measured with ``calibrate-geometry`` (30 pages across the book:
+    # 0.0637/0.8406, stray 0, p5-p95 spread -0.11..+0.12 line; an independent
+    # 36-page sample of p3-108 gave 0.0633/0.8423). Leaf offset verified by
+    # the printed folios (p5, p50, p300, p604) and Fatiha/Baqara at p1/p2.
+    # Hybrid + the Azhar+Madinah seat prior (see README "The seat prior"):
+    # 40 unseen pages, 86.7% exact vs the Kuwait DB column, 7 extras that are
+    # all real stops the DB lacks. Narrow finds 8/89; without the prior ~15
+    # false marks per page. The prior covers 99.66% of Kuwait's waqf seats
+    # (the 363 ركوع rows are section markers, not waqf).
     'الكويت': EditionSpec(
         id='kuwait',
         mushaf_version='الكويت',
@@ -229,8 +233,13 @@ EDITIONS: dict[str, EditionSpec] = {
         archive_id='kweat--h4794794946945969',
         leaf_offset=3,
         page_cache_dir=str(PAGES_ROOT / 'kuwait'),
-        text_top=0.10,
-        text_bottom=0.92,
+        text_top=0.0637,
+        text_bottom=0.8406,
+        default_proposal_mode='hybrid',
+        auto_set_min_conf=0.85,
+        azhar_seat_prior=True,
+        seat_prior_editions=SEAT_PRIOR_AZHAR_MADINAH,
+        measured_geometry=True,
     ),
     'المساحة': EditionSpec(
         id='mesaha',

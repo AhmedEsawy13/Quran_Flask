@@ -48,8 +48,11 @@ def audit_pages(
         db_marks = edition_marks_for_ayahs(edition_key, ayah_keys, spec.script_db)
         # Restrict DB marks to words actually on this page.
         page_word_ids = {w.word_id for w in words}
+        # ركوع is a section marker, not a waqf sign: the detector has no class
+        # for it and no prior edition records it (363 rows, Kuwait only).
         db_on_page = {
-            k: v for k, v in db_marks.items() if k[2] in page_word_ids
+            k: v for k, v in db_marks.items()
+            if k[2] in page_word_ids and v != 'ركوع'
         }
         cv_map = {
             (m['surah'], m['ayah'], m['word_id']): m

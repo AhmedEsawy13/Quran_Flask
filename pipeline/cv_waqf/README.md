@@ -124,11 +124,32 @@ Read this honestly:
   genuine Qatar-only stop on a consensus-empty word counts as a false
   positive. It ranks models fairly; it is not an accuracy claim. Score on the
   print's own hand labels (`evaluate-hand`) before trusting output.
-- **Earlier leave-one-edition-out numbers are stale.** "Bahrain-only → Qatar
-  51%", "Qatar-only → Bahrain 80%" and "3× more pages did not help" were
-  measured before the Qatar geometry fix and with single runs, so they carry
-  both the aliasing and ±2.5 points of seed noise. Re-run them (several
-  seeds) before relying on them.
+- **Leave-one-edition-out (CNN, 2 seeds each; post geometry fix).** Trained
+  on one print's crops only (`train-cnn --bundle … --only bahrain|qatar`,
+  `--cap-none 8000 --augment 2 --epochs 25`), scored on both prints'
+  held-out pages with `compare-models` (models in `models/loeo/`, training
+  log in `models/loeo/RESULTS.md`). Exact-match %, mean of the 2 seeds with
+  the per-seed range:
+
+  | trained on → scored on | exact (mean) | per seed | wrong | missed | false pos |
+  |---|---|---|---|---|---|
+  | Bahrain-only → Qatar (unseen print) | **80.7%** | 75.3 / 86.0 | 20 / 16 | 54 / 26 | 0 / 0 |
+  | Qatar-only → Bahrain (unseen print) | **84.0%** | 79.2 / 88.8 | 12 / 3 | 14 / 11 | 2 / 3 of 65 |
+  | Bahrain-only → Bahrain (in-distribution) | 92.0% | 92.0 / 92.0 | 3 / 2 | 7 / 8 | 2 / 2 of 65 |
+  | Qatar-only → Qatar (in-distribution) | 93.3% | 93.3 / 93.3 | 9 / 8 | 11 / 12 | 1 / 2 |
+  | *shipped CNN, both prints (3 seeds)* | | Qatar 95.7–97.0, Bahrain 92.0–93.6 | | | |
+
+  Reading it: an unseen print costs ~12–16 points against the in-distribution
+  number, almost all as *missed* stops (54 and 26 misses on Qatar), not false
+  marks, and the two seeds disagree by 6–10 points, so treat the means as
+  ±5. The old "Bahrain-only → Qatar 51%, Qatar-only → Bahrain 80%" figures
+  were pre-fix single runs; the real gap is much smaller on the Qatar side
+  (51 → 81) and about the same on the Bahrain side. Qatar-only is also 2–3
+  points under the shipped CNN on Qatar itself (93.3 vs 95.7–97.0): it did
+  not see Bahrain's crops, and these models were trained on a different torch
+  build (Linux, not byte-identical to the Mac one, per `RESULTS.md`). The
+  "3× more pages did not help" claim from the same pre-fix era is still
+  untested with the CNN.
 - Without the seat prior the detector alone fires on ~10% of empty words on
   *both* prints; see "The seat prior" for what it removes and what it costs.
 
@@ -150,9 +171,23 @@ Bahrain and Qatar use Azhar + المدينة الجديد + المدينة ال�
 | + الشمرلي | 4088 / 81 | 4032 / 71 |
 
 It admits 52 more seats than Azhar alone (4870 → 4922) and recovers exactly
-the edition-specific stops the prior existed to protect. الكويت's column adds
-379 seats for almost no gain; and Azhar covers only 91.9% of Kuwait's own
-stops, so Kuwait needs its own choice when it is added.
+the edition-specific stops the prior existed to protect.
+
+**الكويت** uses the same prior. The earlier "Azhar covers only 91.9% of
+Kuwait's stops" counted the 363 `ركوع` rows, which are section markers, not
+waqf signs (the classifier has no class for them and no other edition records
+them). On waqf signs only, Azhar + Madinah covers 4654 of Kuwait's 4670 seats
+(99.66%, 16 lost). `audit` now leaves `ركوع` out of the reference.
+
+Kuwait (Archive scan, leaf = page + 3; the scan is served at 1146 px and
+resampled to 1024 on download), shipped multiprint model, hybrid proposals +
+prior, min_conf 0.55, 40 unseen pages (12–597 step 15) vs the Kuwait DB column:
+228 / 263 exact (86.7%), 24 wrong symbol (mostly ق→ج 7, ج→ص 5, لا→ج 4),
+11 missed, 7 extra. All 7 extras are real `صلى` printed on the scan and absent
+from the DB column (Azhar has ج on each), so true precision is ≈ 90.7% and the
+Kuwait column is missing roughly one stop every six pages. Without the prior
+the same model adds ~15 false marks per page (frame ornaments, headers,
+harakat); narrow proposals find almost nothing (8 / 89 on 10 pages).
 
 **What is still lost.** Qatar keeps a floor of ~54 real stops that no
 reference edition prints. They are *not* queued for review: on 50 Qatar pages

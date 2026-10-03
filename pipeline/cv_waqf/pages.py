@@ -129,9 +129,32 @@ def _download_archive_leaf(
         data = resp.read()
     if len(data) < 1000 or data[:2] != b'\xff\xd8':
         raise RuntimeError(f'bad JPEG from {url} ({len(data)} bytes)')
+    data = _at_working_width(data, width)
     with _atomic_output(out) as tmp:
         tmp.write_bytes(data)
     return out
+
+
+def _at_working_width(data: bytes, width: int) -> bytes:
+    """Resample a JPEG to ``width`` px wide when the source served another.
+
+    Archive derivatives are named ``_w1024`` but some items (Kuwait: 1146px)
+    ignore that. Detection constants are pixel-based at ``IMG_WIDTH``, so an
+    off-size scan silently mis-scales every window.
+    """
+    import cv2
+    import numpy as np
+
+    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    if img is None or img.shape[1] == width:
+        return data
+    scale = width / float(img.shape[1])
+    img = cv2.resize(
+        img, (width, max(1, round(img.shape[0] * scale))),
+        interpolation=cv2.INTER_AREA,
+    )
+    ok, encoded = cv2.imencode('.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, 88])
+    return encoded.tobytes() if ok else data
 
 
 def _render_pdf_page(
