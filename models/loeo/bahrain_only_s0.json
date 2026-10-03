@@ -1,0 +1,40 @@
+{
+  "classes": [
+    "م",
+    "لا",
+    "ق",
+    "ص",
+    "ج",
+    "س",
+    "ع"
+  ],
+  "crop_size": 48,
+  "architecture": "cnn",
+  "conv_channels": [
+    16,
+    32,
+    64
+  ],
+  "hidden": 128,
+  "input": "input",
+  "output": "logits",
+  "input_layout": "NCHW",
+  "ink_as_positive": true,
+  "pipeline": "two-stage",
+  "role": "symbol-classifier",
+  "gate_model": "bahrain_only_s0_gate.onnx",
+  "gate_classes": [
+    "none",
+    "mark"
+  ],
+  "full_classes": [
+    "م",
+    "لا",
+    "ق",
+    "ص",
+    "ج",
+    "س",
+    "ع",
+    "none"
+  ]
+}

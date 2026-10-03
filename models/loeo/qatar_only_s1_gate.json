@@ -1,0 +1,20 @@
+{
+  "classes": [
+    "none",
+    "mark"
+  ],
+  "crop_size": 48,
+  "architecture": "cnn",
+  "conv_channels": [
+    16,
+    32,
+    64
+  ],
+  "hidden": 128,
+  "input": "input",
+  "output": "logits",
+  "input_layout": "NCHW",
+  "ink_as_positive": true,
+  "pipeline": "binary-gate",
+  "role": "mark-gate"
+}
