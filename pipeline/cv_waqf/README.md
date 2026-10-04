@@ -173,6 +173,24 @@ Score locally (needs the scans): `compare-models --model models/cloud/kuwait_s0.
 for Bahrain/Qatar (must not regress: Qatar ≥ 95.7, Bahrain ≥ 92.0 exact) and the
 audit on the 100 Kuwait hold-out pages against the column.
 
+**Kuwait cloud models** (`models/cloud/`, trained on the v2 bundle; scored on the
+100 held-out Kuwait pages against the synced Kuwait column, hybrid + prior +
+reattach, min_conf 0.55; there are no Kuwait hand labels, so this is a column
+proxy). `kuwait` = all three prints, `kuwait_only` = Kuwait crops only:
+
+| model | Kuwait exact | wrong | missed | extra | Qatar exact | Bahrain exact |
+|---|---|---|---|---|---|---|
+| shipped multiprint | 91.5% | 44 | 25 | 7 | 97.0% | 93.6% |
+| kuwait s0 / s1 / s2 | 92.1 / 94.8 / 93.0% | 54 / 29 / 46 | 10 / 13 / 11 | 10 / 7 / 9 | 95.7 / 96.0 / 95.7% | 90.4 / 94.4 / 92.8% |
+| **kuwait mean** | **93.3%** | 43 | **11.3** | 8.7 | 95.8% | 92.5% |
+| kuwait_only s0 / s1 / s2 | 92.3 / 95.2 / 92.6% | 38 / 27 / 40 | 24 / 12 / 20 | 6 / 8 / 8 | 72.7 / 85.0 / 78.0% | 72.0 / 69.6 / 71.2% |
+| **kuwait_only mean** | **93.4%** | 35 | 18.7 | 7.3 | 78.8% | 70.9% |
+
+Seeds differ by about 3 points on Kuwait, so the 1–2 point gains over the shipped
+model are within noise; the halved miss count (25 → 10–13 on every seed) is not.
+The three `kuwait` seeds pass `gate` on their mean (Qatar 95.8% / 7.3 wrong /
+96.9% precision, Bahrain 92.5%).
+
 ## The seat prior
 
 The detector alone fires on about 10% of empty words on every print, so a
