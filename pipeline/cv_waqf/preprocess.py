@@ -46,11 +46,66 @@ def deskew_gray(gray):
     )
 
 
+def strip_frame(bgr):
+    """Whiten the page frame and everything outside its inner rule.
+
+    The frame (and its ornament band) is the connected ink that spans most of
+    the page in both directions; text never does. After removing it, the
+    background component around the page centre is the area inside the inner
+    rule, so everything else (rules, ornaments between rules, headers, page
+    numbers, catchwords) goes white. Returns ``bgr`` unchanged when no closed
+    frame is found, so a broken scan degrades to the old behaviour.
+    """
+    import cv2
+    import numpy as np
+
+    h, w = bgr.shape[:2]
+    gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+    _t, ink = cv2.threshold(gray, 0, 1, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    n, labels, stats, _c = cv2.connectedComponentsWithStats(ink, connectivity=8)
+    frame_ids = [
+        i for i in range(1, n)
+        if stats[i, cv2.CC_STAT_WIDTH] >= 0.4 * w
+        and stats[i, cv2.CC_STAT_HEIGHT] >= 0.4 * h
+    ]
+    if not frame_ids:
+        return bgr
+    frame = np.isin(labels, frame_ids)
+    # The rule's anti-aliased edge is lighter than the Otsu cut, so grow the
+    # mask or a grey halo survives and the adaptive threshold reads it as ink.
+    frame = cv2.dilate(frame.astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool)
+    free = (~frame).astype(np.uint8)
+    m, comp, cstats, _cc = cv2.connectedComponentsWithStats(free, connectivity=4)
+    # Inside = every large free region that does not touch the page border
+    # (the page outside the frame does; the thin pockets between the rules
+    # are tiny). A surah banner that splits the inside in two keeps both.
+    inside = []
+    for i in range(1, m):
+        x, y, bw, bh, area = (int(v) for v in cstats[i])
+        touches = x == 0 or y == 0 or x + bw >= w or y + bh >= h
+        if not touches and area >= 0.04 * h * w:
+            inside.append(i)
+    if not inside:
+        return bgr
+    xs0 = min(int(cstats[i, cv2.CC_STAT_LEFT]) for i in inside)
+    xs1 = max(int(cstats[i, cv2.CC_STAT_LEFT] + cstats[i, cv2.CC_STAT_WIDTH]) for i in inside)
+    ys0 = min(int(cstats[i, cv2.CC_STAT_TOP]) for i in inside)
+    ys1 = max(int(cstats[i, cv2.CC_STAT_TOP] + cstats[i, cv2.CC_STAT_HEIGHT]) for i in inside)
+    if xs1 - xs0 < 0.4 * w or ys1 - ys0 < 0.4 * h or xs1 - xs0 > 0.97 * w:
+        return bgr  # nothing sensible, or the rule leaked
+    out = np.full_like(bgr, 255)
+    keep = np.isin(comp, inside)
+    out[keep] = bgr[keep]
+    return out
+
+
 def preprocess_page(bgr, spec: EditionSpec, page: int | None = None) -> PreparedPage:
     import cv2
 
     if bgr is None or bgr.size == 0:
         raise ValueError('empty page image')
+    if spec.strip_frame:
+        bgr = strip_frame(bgr)
     gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
     gray = deskew_gray(gray)
     gray = cv2.GaussianBlur(gray, (3, 3), 0)

@@ -1453,3 +1453,63 @@ def test_band_for_page_is_parity_aware_only_when_configured():
         if key != 'المساحة':
             assert spec.text_band_even is None
             assert spec.band_for_page(10) == (spec.text_top, spec.text_bottom)
+
+
+def test_strip_frame_whitens_frame_and_everything_outside_it():
+    import numpy as np
+
+    from pipeline.cv_waqf.preprocess import strip_frame
+
+    h, w = 600, 400
+    img = np.full((h, w, 3), 255, np.uint8)
+    img[40:560, 30:34] = 0      # frame: four closed rules
+    img[40:560, 366:370] = 0
+    img[40:44, 30:370] = 0
+    img[556:560, 30:370] = 0
+    img[10:20, 150:250] = 0     # header text outside the frame
+    img[300:320, 100:300] = 0   # text inside
+    out = strip_frame(img)
+    assert out[300:320, 100:300].max() == 0           # text kept
+    assert out[10:20, 150:250].min() == 255           # header gone
+    assert out[40:560, 30:34].min() == 255            # rule gone
+    assert out[40:560, 366:370].min() == 255
+    # No closed frame: returned untouched.
+    open_page = np.full((h, w, 3), 255, np.uint8)
+    open_page[300:320, 100:300] = 0
+    assert strip_frame(open_page) is open_page
+
+
+def test_printed_position_skips_ornament_tokens(tmp_path):
+    import sqlite3
+
+    from pipeline.cv_waqf.word_space import _printed_index, printed_position
+
+    db = tmp_path / 'script.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE words (word_index INTEGER, word_key TEXT, surah INT, ayah INT, text TEXT)'
+    )
+    rows = [('2:243:1', '۞'), ('2:243:2', 'أَلَمۡ'), ('2:243:3', 'تَرَ'), ('2:243:4', '٢٤٣')]
+    conn.executemany(
+        'INSERT INTO words VALUES (?,?,2,243,?)',
+        [(i, k, t) for i, (k, t) in enumerate(rows)],
+    )
+    conn.commit(); conn.close()
+    _printed_index.cache_clear()
+    assert printed_position(str(db), 2, 243, 1) is None      # hizb mark
+    assert printed_position(str(db), 2, 243, 2) == 1
+    assert printed_position(str(db), 2, 243, 3) == 2
+    assert printed_position(str(db), 2, 243, 4) is None      # ayah number
+
+
+def test_edition_marks_never_read_an_unknown_column_as_text():
+    import pytest
+
+    from pipeline.cv_waqf.marks import edition_marks_for_ayahs
+
+    # Mesaha has no column of its own: it borrows Shemrly's, and its marks are
+    # real symbols (the bug read the missing column name as a string literal).
+    marks = edition_marks_for_ayahs('المساحة', [(2, 243)], 'data/quran_script.db')
+    assert marks and set(marks.values()) <= {'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع'}
+    with pytest.raises(ValueError):
+        edition_marks_for_ayahs('not a column', [(2, 243)], 'data/quran_script.db')

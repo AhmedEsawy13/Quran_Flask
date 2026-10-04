@@ -241,13 +241,16 @@ def _detect_page_with_strip(
     kept = attached
     rejected: list[AttachedMark] = []
     if use_azhar_prior:
+        _spec = EDITIONS[edition_key]
+        # Non-QPC word spaces index words differently from the waqf table.
+        _script_db = _spec.script_db if _spec.word_space != 'qpc' else None
         kept, rejected = partition_marks_by_azhar_occupancy(
-            attached, editions=EDITIONS[edition_key].seat_prior_editions,
+            attached, editions=_spec.seat_prior_editions, script_db=_script_db,
         )
-        if EDITIONS[edition_key].prior_reattach:
+        if _spec.prior_reattach:
             kept, rejected = reattach_rejected_marks(
                 kept, rejected, words,
-                editions=EDITIONS[edition_key].seat_prior_editions,
+                editions=_spec.seat_prior_editions, script_db=_script_db,
             )
 
     if overlay_path is not None:
@@ -401,13 +404,16 @@ def detect_page(
     kept = attached
     rejected: list[AttachedMark] = []
     if use_azhar_prior:
+        _spec = EDITIONS[edition_key]
+        # Non-QPC word spaces index words differently from the waqf table.
+        _script_db = _spec.script_db if _spec.word_space != 'qpc' else None
         kept, rejected = partition_marks_by_azhar_occupancy(
-            attached, editions=EDITIONS[edition_key].seat_prior_editions,
+            attached, editions=_spec.seat_prior_editions, script_db=_script_db,
         )
-        if EDITIONS[edition_key].prior_reattach:
+        if _spec.prior_reattach:
             kept, rejected = reattach_rejected_marks(
                 kept, rejected, words,
-                editions=EDITIONS[edition_key].seat_prior_editions,
+                editions=_spec.seat_prior_editions, script_db=_script_db,
             )
 
     if overlay_path is not None:

@@ -215,6 +215,37 @@ pre-review column (`data/mushaf_waqf.backup_sync_20261004T112314Z.db`); the true
 gain lies between the two. `kuwait_s1` itself: 94.8% (pre-review) / 96.7%
 (corrected). No Kuwait hand labels exist yet, so neither is ground truth.
 
+## Mesaha (المساحة): status
+
+Scan: 827 pages, 12 lines, clean black-on-white, frame + ornament band.
+What is in place (all behind the Mesaha spec, nothing else changes):
+
+- `strip_frame=True`: `preprocess.strip_frame` whitens the frame (grown by 4 px,
+  its anti-aliased edge otherwise survives as a grey halo the adaptive threshold
+  reads as ink), the ornament band and everything outside the inner rule. Found
+  on 138 / 138 sampled pages; a closed frame is required, otherwise the page is
+  left untouched.
+- Per-parity text band (`text_band_even`, `band_for_page`): odd 0.1232/0.7393,
+  even 0.0954/0.7115, spread +-0.1 line.
+- Printed-word mapping (`word_space.printed_position`): the Shemrly word space
+  counts ornaments (`۞`, ayah numerals) as words, so its positions run ahead of
+  the waqf table's `word_index`. Counting only tokens that contain an Arabic
+  letter reproduces `word_index` for 11,699 / 12,445 rows (94%; the rest are the
+  known mis-indexed or duplicate rows). Used by the seat prior and re-attachment
+  for every non-QPC edition.
+- Bug fixed: `edition_marks_for_ayahs('المساحة')` read a non-existent column,
+  which SQLite treats as a string literal, so every Mesaha "reference mark" was
+  the text المساحة (normalised to م). All Mesaha audits before this fix were
+  meaningless. It now borrows `mushaf_version` (Shemrly) and raises on an
+  unknown column.
+
+Open: Mesaha prints many more stop signs than the Shemrly column records (about
+10 per page detected vs 4 per page in the column), so that column is **not** a
+usable reference and the multiprint model without a prior is about half false
+positives (verse ornament `*`, hamza, dagger alef, letter parts). Next step:
+hand-label ~20 Mesaha pages in `/cv-waqf`, then score, and train Mesaha crops
+(the ornaments become `none` examples).
+
 ## The seat prior
 
 The detector alone fires on about 10% of empty words on every print, so a

@@ -100,6 +100,10 @@ class EditionSpec:
     # Recto/verso prints sit at different heights. When set, EVEN pages use
     # this (text_top, text_bottom) and odd pages the plain text_* fields.
     text_band_even: tuple[float, float] | None = None
+    # Erase the page frame and everything outside its inner rule before any
+    # detection (preprocess.strip_frame). For prints whose frame confuses the
+    # text-extent and candidate steps.
+    strip_frame: bool = False
 
     def __post_init__(self) -> None:
         if self.azhar_seat_prior and self.mushaf_version in self.seat_prior_editions:
@@ -282,6 +286,7 @@ EDITIONS: dict[str, EditionSpec] = {
         text_top=0.1232,
         text_bottom=0.7393,
         text_band_even=(0.0954, 0.7115),
+        strip_frame=True,
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
         # cannot be compared with or filtered by the QPC-indexed columns.

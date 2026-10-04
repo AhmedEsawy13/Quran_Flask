@@ -165,11 +165,32 @@ def word_position_of(mark: Any) -> int | None:
     return None
 
 
+def _seat_position(mark: Any, script_db: str | None) -> int | None:
+    """Position used for the occupancy lookup: printed-word index.
+
+    QPC-indexed layouts already carry it in ``word_key``. For another word
+    space pass its ``script_db`` and ornament tokens map to ``None``.
+    """
+    position = word_position_of(mark)
+    if script_db is None or position is None:
+        return position
+    if isinstance(mark, dict):
+        surah, ayah = mark.get('surah'), mark.get('ayah')
+    else:
+        surah, ayah = getattr(mark, 'surah', None), getattr(mark, 'ayah', None)
+    if surah is None or ayah is None:
+        return None
+    from pipeline.cv_waqf.word_space import printed_position
+
+    return printed_position(script_db, int(surah), int(ayah), position)
+
+
 def partition_marks_by_azhar_occupancy(
     marks: list[Any],
     *,
     db_path: str | Path | None = None,
     editions: tuple[str, ...] = AZHAR_ONLY,
+    script_db: str | None = None,
 ) -> tuple[list[Any], list[Any]]:
     """Split attached marks / dicts into kept vs prior-rejected.
 
@@ -189,11 +210,14 @@ def partition_marks_by_azhar_occupancy(
         else:
             surah = getattr(mark, 'surah', None)
             ayah = getattr(mark, 'ayah', None)
-        position = word_position_of(mark)
-        if (
-            surah is None or ayah is None or position is None
-            or (int(surah), int(ayah), int(position)) in occupied
-        ):
+        position = _seat_position(mark, script_db)
+        if surah is None or ayah is None:
+            kept.append(mark)
+        elif position is None:
+            # QPC words always have a position; a script-space ornament has
+            # no printed seat, so it can never be a stop.
+            (rejected if script_db is not None else kept).append(mark)
+        elif (int(surah), int(ayah), int(position)) in occupied:
             kept.append(mark)
         else:
             rejected.append(mark)
@@ -207,6 +231,7 @@ def reattach_rejected_marks(
     *,
     editions: tuple[str, ...] = AZHAR_ONLY,
     db_path: str | Path | None = None,
+    script_db: str | None = None,
 ) -> tuple[list[Any], list[Any]]:
     """Move a prior-rejected mark to an adjacent occupied seat on its line.
 
@@ -235,12 +260,12 @@ def reattach_rejected_marks(
             for delta in (1, -1):
                 key = f'{mark.surah}:{mark.ayah}:{position + delta}'
                 word = by_key.get(key)
+                if word is None or key in taken or word.line_number != mark.line_number:
+                    continue
+                seat = _seat_position(word, script_db) if script_db else position + delta
                 if (
-                    word is None
-                    or key in taken
-                    or word.line_number != mark.line_number
-                    or (int(mark.surah), int(mark.ayah), position + delta)
-                    not in occupied
+                    seat is None
+                    or (int(mark.surah), int(mark.ayah), seat) not in occupied
                     or not getattr(word, 'is_content_word', True)
                 ):
                     continue

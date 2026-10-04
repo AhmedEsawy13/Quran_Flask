@@ -117,11 +117,23 @@ def edition_marks_for_ayahs(
     """Map (surah, ayah, layout_word_id) → letter code."""
     if not ayah_keys:
         return {}
-    quoted = '"' + edition.replace('"', '""') + '"'
     out: dict[tuple[int, int, int], str] = {}
     conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
     conn.row_factory = sqlite3.Row
     try:
+        # An edition without its own column borrows ``mushaf_version`` (Mesaha
+        # uses Shemrly's). Never let an unknown name through: SQLite reads an
+        # unknown double-quoted identifier as a *string literal*, which turned
+        # every Mesaha reference mark into the text 'المساحة'.
+        known = {str(r[1]) for r in conn.execute('PRAGMA table_info(waqf)')}
+        from pipeline.cv_waqf.config import EDITIONS
+
+        column = edition
+        if column not in known and edition in EDITIONS:
+            column = EDITIONS[edition].mushaf_version
+        if column not in known:
+            raise ValueError(f'no waqf column for edition {edition!r}')
+        quoted = '"' + column.replace('"', '""') + '"'
         for surah, ayah in ayah_keys:
             rows = conn.execute(
                 f'SELECT "الكلمة" AS word, token_index, word_index, '
