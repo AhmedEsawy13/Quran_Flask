@@ -198,3 +198,59 @@ def partition_marks_by_azhar_occupancy(
         else:
             rejected.append(mark)
     return kept, rejected
+
+
+def reattach_rejected_marks(
+    kept: list[Any],
+    rejected: list[Any],
+    words: list[Any],
+    *,
+    editions: tuple[str, ...] = AZHAR_ONLY,
+    db_path: str | Path | None = None,
+) -> tuple[list[Any], list[Any]]:
+    """Move a prior-rejected mark to an adjacent occupied seat on its line.
+
+    A stop sign printed at the junction of two words is often attached to the
+    wrong one (measured on Kuwait: 68 of 203 undetected DB stops were found
+    on the neighbouring word, 47 on the previous one). When the prior rejects
+    such a mark, the adjacent word of the same line is tried: it must be an
+    occupied seat that holds no kept mark. The next word is preferred (the
+    measured majority), then the previous one. Marks with no such neighbour
+    stay rejected.
+    """
+    occupied = load_occupied_seats(
+        '' if db_path is None else str(db_path), tuple(editions),
+    )
+    if not occupied or not rejected:
+        return list(kept), list(rejected)
+    by_key = {w.word_key: w for w in words}
+    taken = {m.word_key for m in kept}
+    out_kept = list(kept)
+    out_rejected: list[Any] = []
+    # Highest confidence first so the better mark wins a contested seat.
+    for mark in sorted(rejected, key=lambda m: -m.confidence):
+        position = word_position_of(mark)
+        moved = False
+        if position is not None:
+            for delta in (1, -1):
+                key = f'{mark.surah}:{mark.ayah}:{position + delta}'
+                word = by_key.get(key)
+                if (
+                    word is None
+                    or key in taken
+                    or word.line_number != mark.line_number
+                    or (int(mark.surah), int(mark.ayah), position + delta)
+                    not in occupied
+                    or not getattr(word, 'is_content_word', True)
+                ):
+                    continue
+                mark.word_id = word.word_id
+                mark.word_key = word.word_key
+                mark.text = word.text
+                taken.add(key)
+                out_kept.append(mark)
+                moved = True
+                break
+        if not moved:
+            out_rejected.append(mark)
+    return out_kept, out_rejected

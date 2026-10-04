@@ -153,6 +153,26 @@ Read this honestly:
 - Without the seat prior the detector alone fires on ~10% of empty words on
   *both* prints; see "The seat prior" for what it removes and what it costs.
 
+## Kuwait retraining (cloud)
+
+`data/cv/bundles/multiprint_crops_v2.npz` = v1 (Bahrain + Qatar) plus 23.6k
+Kuwait detector-window crops cut from 200 training pages (`splits.kuwait_pages`,
+seed 2027; 100 more pages are held out and never in the bundle). Kuwait labels
+are the print's own column as synced from the cloud on 2026-10-04. The bundle
+has 60 validation page groups (31 from v1 plus every 7th Kuwait page). Train
+off-machine (this Mac has no torch), three seeds fixed in advance:
+
+```bash
+for s in 0 1 2; do
+  python -m pipeline.cv_waqf train-cnn --bundle data/cv/bundles/multiprint_crops_v2.npz \
+    --out models/cloud/kuwait_s$s.onnx --seed $s --cap-none 8000 --augment 2 --epochs 25
+done
+```
+
+Score locally (needs the scans): `compare-models --model models/cloud/kuwait_s0.onnx ...`
+for Bahrain/Qatar (must not regress: Qatar ≥ 95.7, Bahrain ≥ 92.0 exact) and the
+audit on the 100 Kuwait hold-out pages against the column.
+
 ## The seat prior
 
 The detector alone fires on about 10% of empty words on every print, so a

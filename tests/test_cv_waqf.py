@@ -1362,3 +1362,62 @@ def test_hand_evaluation_inherits_edition_azhar_prior(monkeypatch):
     overridden = evaluate_hand.evaluate_labels('البحرين', labels, azhar_prior=False)
     assert calls[-1]['azhar_prior'] is False
     assert overridden['azhar_prior'] is False
+
+
+def test_reattach_moves_rejected_mark_to_adjacent_occupied_seat(monkeypatch):
+    from types import SimpleNamespace
+
+    from pipeline.cv_waqf import azhar_prior
+
+    monkeypatch.setattr(
+        azhar_prior, 'load_occupied_seats',
+        lambda *_a, **_k: frozenset({(2, 5, 4), (2, 5, 6)}),
+    )
+
+    def word(position, line=3):
+        return SimpleNamespace(
+            word_id=100 + position, word_key=f'2:5:{position}', text=f'w{position}',
+            line_number=line, is_content_word=True,
+        )
+
+    def mark(position, conf):
+        return SimpleNamespace(
+            word_id=100 + position, word_key=f'2:5:{position}', text=f'w{position}',
+            surah=2, ayah=5, line_number=3, confidence=conf, symbol='ص',
+        )
+
+    words = [word(p) for p in range(1, 8)] + [word(8, line=4)]
+    # Mark on word 5 (empty seat): neighbours 6 (occupied) and 4 (occupied).
+    # The next word is preferred; word 4 already holds a kept mark.
+    kept, rejected = azhar_prior.reattach_rejected_marks(
+        [mark(4, 0.9)], [mark(5, 0.8)], words,
+    )
+    assert sorted(m.word_key for m in kept) == ['2:5:4', '2:5:6']
+    assert rejected == []
+
+    # No occupied neighbour on the line: stays rejected.
+    far = mark(1, 0.8)
+    kept, rejected = azhar_prior.reattach_rejected_marks([], [far], words)
+    assert kept == [] and rejected == [far]
+    kept, rejected = azhar_prior.reattach_rejected_marks(
+        [mark(4, 0.9), mark(6, 0.9)], [mark(5, 0.8)], words,
+    )
+    assert len(kept) == 2 and len(rejected) == 1
+
+
+def test_only_kuwait_reattaches_prior_rejected_marks():
+    from pipeline.cv_waqf.config import EDITIONS
+
+    assert EDITIONS['الكويت'].prior_reattach is True
+    assert all(
+        not spec.prior_reattach for key, spec in EDITIONS.items() if key != 'الكويت'
+    )
+
+
+def test_kuwait_split_is_disjoint_and_fixed():
+    from pipeline.cv_waqf.splits import kuwait_pages
+
+    train, holdout = kuwait_pages()
+    assert (len(train), len(holdout)) == (200, 100)
+    assert not set(train) & set(holdout)
+    assert (train, holdout) == kuwait_pages()

@@ -5,6 +5,7 @@ Every model is scored on pages it never trained on, and every model sees the
 
 * ``qatar_pages``   – 100 training / 50 held-out pages of Qatar (seed 2026).
 * ``bahrain_holdout`` – every 4th hand-labelled Bahrain page.
+* ``kuwait_pages``  – 200 training / 100 held-out pages of Kuwait (seed 2027).
 """
 from __future__ import annotations
 
@@ -13,6 +14,8 @@ import random
 FIRST_PAGE, LAST_PAGE = 3, 604  # skip the Fatiha/opening spreads
 QATAR_SEED = 2026
 QATAR_TRAIN, QATAR_HOLDOUT = 100, 50
+KUWAIT_SEED = 2027
+KUWAIT_TRAIN, KUWAIT_HOLDOUT = 200, 100
 
 
 def qatar_pages() -> tuple[list[int], list[int]]:
@@ -21,6 +24,15 @@ def qatar_pages() -> tuple[list[int], list[int]]:
     random.Random(QATAR_SEED).shuffle(pool)
     train = sorted(pool[:QATAR_TRAIN])
     holdout = sorted(pool[QATAR_TRAIN:QATAR_TRAIN + QATAR_HOLDOUT])
+    return train, holdout
+
+
+def kuwait_pages() -> tuple[list[int], list[int]]:
+    """``(train, holdout)``, disjoint, sorted."""
+    pool = list(range(FIRST_PAGE, LAST_PAGE + 1))
+    random.Random(KUWAIT_SEED).shuffle(pool)
+    train = sorted(pool[:KUWAIT_TRAIN])
+    holdout = sorted(pool[KUWAIT_TRAIN:KUWAIT_TRAIN + KUWAIT_HOLDOUT])
     return train, holdout
 
 

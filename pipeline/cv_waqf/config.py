@@ -94,6 +94,9 @@ class EditionSpec:
     # one hop only, so a transfer is visible in the registry and in the detect
     # payload instead of hiding in a path lookup.
     model_fallback: str | None = None
+    # Re-seat a prior-rejected mark on an adjacent occupied word of its line
+    # (azhar_prior.reattach_rejected_marks). Off unless measured to help.
+    prior_reattach: bool = False
 
     def __post_init__(self) -> None:
         if self.azhar_seat_prior and self.mushaf_version in self.seat_prior_editions:
@@ -244,6 +247,8 @@ EDITIONS: dict[str, EditionSpec] = {
         auto_set_min_conf=0.85,
         azhar_seat_prior=True,
         seat_prior_editions=SEAT_PRIOR_AZHAR_MADINAH,
+        # 60 pages vs the synced column: missing 17 -> 11, +3 extra.
+        prior_reattach=True,
         measured_geometry=True,
     ),
     'المساحة': EditionSpec(

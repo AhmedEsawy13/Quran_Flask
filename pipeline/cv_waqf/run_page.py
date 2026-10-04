@@ -16,6 +16,7 @@ from pipeline.cv_waqf.attach import AttachedMark, _nearest_word, attach_to_words
 from pipeline.cv_waqf.azhar_prior import (
     AZHAR_REJECT_REASON,
     partition_marks_by_azhar_occupancy,
+    reattach_rejected_marks,
 )
 from pipeline.cv_waqf.candidates import Candidate, crop_candidate
 from pipeline.cv_waqf.classify import GlyphClassifier
@@ -243,6 +244,11 @@ def _detect_page_with_strip(
         kept, rejected = partition_marks_by_azhar_occupancy(
             attached, editions=EDITIONS[edition_key].seat_prior_editions,
         )
+        if EDITIONS[edition_key].prior_reattach:
+            kept, rejected = reattach_rejected_marks(
+                kept, rejected, words,
+                editions=EDITIONS[edition_key].seat_prior_editions,
+            )
 
     if overlay_path is not None:
         overlay_path.parent.mkdir(parents=True, exist_ok=True)
@@ -398,6 +404,11 @@ def detect_page(
         kept, rejected = partition_marks_by_azhar_occupancy(
             attached, editions=EDITIONS[edition_key].seat_prior_editions,
         )
+        if EDITIONS[edition_key].prior_reattach:
+            kept, rejected = reattach_rejected_marks(
+                kept, rejected, words,
+                editions=EDITIONS[edition_key].seat_prior_editions,
+            )
 
     if overlay_path is not None:
         overlay_path.parent.mkdir(parents=True, exist_ok=True)
