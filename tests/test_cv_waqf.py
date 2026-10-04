@@ -1430,3 +1430,13 @@ def test_kuwait_uses_its_own_model_and_others_are_unchanged():
     assert source == 'own' and path.name == 'waqf_glyph_kuwait.onnx'
     assert resolve_edition_model('قطر')[1] == 'multiprint'
     assert resolve_edition_model('البحرين')[1] == 'own'
+
+
+def test_kuwait_extended_train_keeps_the_holdout_out():
+    from pipeline.cv_waqf.splits import kuwait_extended_train, kuwait_pages
+
+    train, holdout = kuwait_pages()
+    extended = kuwait_extended_train()
+    assert not set(extended) & set(holdout)
+    assert set(train) <= set(extended)
+    assert len(extended) + len(holdout) == 602

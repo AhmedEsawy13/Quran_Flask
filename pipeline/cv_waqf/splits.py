@@ -36,6 +36,13 @@ def kuwait_pages() -> tuple[list[int], list[int]]:
     return train, holdout
 
 
+def kuwait_extended_train() -> list[int]:
+    """Every Kuwait page except the fixed hold-out (round-2 training pages)."""
+    _train, holdout = kuwait_pages()
+    held = set(holdout)
+    return [page for page in range(FIRST_PAGE, LAST_PAGE + 1) if page not in held]
+
+
 def bahrain_holdout(labelled_pages: list[int]) -> tuple[list[int], list[int]]:
     """``(train, holdout)`` of hand-labelled Bahrain pages: every 4th held out."""
     pages = sorted(set(labelled_pages))

@@ -194,6 +194,27 @@ mean (93.3%), not seed 1's 94.8%, since the seed was picked on these pages.
 The three `kuwait` seeds pass `gate` on their mean (Qatar 95.8% / 7.3 wrong /
 96.9% precision, Bahrain 92.5%).
 
+**Round 2 (Kuwait, `multiprint_crops_v3.npz`).** After the review corrections
+(Kuwait column synced 2026-10-04, 105 changes) the Kuwait crops were regenerated
+from 502 pages (every page except the 100 held-out, `splits.kuwait_extended_train`)
+and the `none` crops subsampled to 22k. `--cap-none` caps the *total* `none`
+crops at random, so the cap is raised to 14000 to keep the positive : none ratio
+of round 1 (positives went from ~3k to ~5.3k):
+
+```bash
+for s in 0 1 2; do
+  python -m pipeline.cv_waqf train-cnn --bundle data/cv/bundles/multiprint_crops_v3.npz \
+    --out models/cloud2/kuwait_s$s.onnx --seed $s --cap-none 14000 --augment 2 --epochs 25
+done
+```
+
+Scoring caveat: the corrected column now agrees with `kuwait_s1` by construction
+(only marks the reviewer ticked as "model is correct" were changed). Score every
+model on the 100 held-out pages against **both** the corrected column and the
+pre-review column (`data/mushaf_waqf.backup_sync_20261004T112314Z.db`); the true
+gain lies between the two. `kuwait_s1` itself: 94.8% (pre-review) / 96.7%
+(corrected). No Kuwait hand labels exist yet, so neither is ground truth.
+
 ## The seat prior
 
 The detector alone fires on about 10% of empty words on every print, so a
