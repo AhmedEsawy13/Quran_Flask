@@ -172,7 +172,7 @@ def test_detect_page_falls_back_to_mlp_when_strip_missing(monkeypatch):
     monkeypatch.setattr(
         run_page, 'load_bgr', lambda *_: np.zeros((10, 10, 3), dtype=np.uint8),
     )
-    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_, **__: FakePrepared())
     monkeypatch.setattr(run_page, 'estimate_layout_words', lambda *_: [])
     monkeypatch.setattr(run_page, 'find_above_word_candidates', lambda *_: [])
     monkeypatch.setattr(run_page, 'find_line_component_candidates', lambda *_: [])
@@ -227,7 +227,7 @@ def test_detect_page_uses_strip_for_bahrain_when_file_exists(monkeypatch, tmp_pa
     monkeypatch.setattr(
         run_page, 'load_bgr', lambda *_: np.zeros((160, 240, 3), dtype=np.uint8),
     )
-    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_, **__: FakePrepared())
     monkeypatch.setattr(run_page, 'estimate_layout_words', lambda *_: [word])
     monkeypatch.setattr(
         run_page, 'find_line_component_candidates',

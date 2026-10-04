@@ -289,7 +289,7 @@ def test_bahrain_has_isolated_optional_model_path():
 # borrows that model, so it inherits the same operating point until it has its
 # own; Kuwait runs the multiprint model the same way. Every other print keeps
 # the narrow / 0.70 defaults.
-HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت'}
+HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة'}
 
 
 def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
@@ -306,7 +306,7 @@ def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
     assert others
     assert all(mode == 'narrow' for mode in others.values())
     assert resolve_proposal_mode('الشمرلي') == 'narrow'
-    assert resolve_proposal_mode('المساحة') == 'narrow'
+    assert resolve_proposal_mode('المساحة') == 'hybrid'  # multiprint-model print
     assert resolve_proposal_mode('الأزهر') == 'narrow'
     assert resolve_proposal_mode('البحرين', 'narrow') == 'narrow'
     assert resolve_proposal_mode('الشمرلي', 'hybrid') == 'hybrid'
@@ -346,7 +346,7 @@ def test_detect_page_uses_hybrid_line_components_for_bahrain_only(monkeypatch):
     monkeypatch.setattr(
         run_page, 'load_bgr', lambda *_: np.zeros((10, 10, 3), dtype=np.uint8),
     )
-    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_, **__: FakePrepared())
     monkeypatch.setattr(run_page, 'estimate_layout_words', lambda *_: [])
     monkeypatch.setattr(run_page, 'find_above_word_candidates', lambda *_: [])
     monkeypatch.setattr(
@@ -518,7 +518,7 @@ def test_ui_payload_keeps_review_hits_out_of_auto_set(monkeypatch):
     class FakePrepared:
         pass
 
-    monkeypatch.setattr(ui_payload, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(ui_payload, 'preprocess_page', lambda *_, **__: FakePrepared())
     monkeypatch.setattr(ui_payload, 'estimate_layout_words', lambda *_: [])
     monkeypatch.setattr(ui_payload, 'edition_marks_for_ayahs', lambda *_: {})
 
@@ -895,7 +895,7 @@ def _stub_detect_pipeline(monkeypatch, attached):
     monkeypatch.setattr(
         run_page, 'load_bgr', lambda *_: np.zeros((10, 10, 3), dtype=np.uint8),
     )
-    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(run_page, 'preprocess_page', lambda *_, **__: FakePrepared())
     monkeypatch.setattr(run_page, 'estimate_layout_words', lambda *_: [])
     monkeypatch.setattr(run_page, 'find_above_word_candidates', lambda *_: [])
     monkeypatch.setattr(run_page, 'find_line_component_candidates', lambda *_: [])
@@ -1304,7 +1304,7 @@ def test_ui_payload_exposes_azhar_rejected_marks(monkeypatch):
     class FakePrepared:
         pass
 
-    monkeypatch.setattr(ui_payload, 'preprocess_page', lambda *_: FakePrepared())
+    monkeypatch.setattr(ui_payload, 'preprocess_page', lambda *_, **__: FakePrepared())
     monkeypatch.setattr(ui_payload, 'estimate_layout_words', lambda *_: [])
     monkeypatch.setattr(ui_payload, 'edition_marks_for_ayahs', lambda *_: {})
 
