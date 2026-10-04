@@ -117,8 +117,7 @@
 .cvw-body[data-ui-mode="detect"] .cvw-kicker,
 .cvw-body[data-ui-mode="detect"] .cvw-queue,
 .cvw-body[data-ui-mode="detect"] .cvw-palette,
-.cvw-body[data-ui-mode="detect"] .cvw-save-bar,
-.cvw-body[data-ui-mode="detect"] .cvw-fab {
+.cvw-body[data-ui-mode="detect"] .cvw-save-bar {
     display: none !important;
 }
 .cvw-body[data-ui-mode="detect"] .cvw-chrome {
@@ -379,18 +378,14 @@
     background: color-mix(in srgb, var(--cvw-accent) 16%, #fff);
 }
 .cvw-save-hint {
+    flex: 1 1 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     margin: 0;
     font-size: 0.88rem;
     color: var(--cvw-muted);
     font-weight: 600;
-}
-.cvw-word-field {
-    flex: 1 1 22rem;
-    min-width: min(100%, 18rem);
-}
-.cvw-word-field select {
-    width: 100%;
-    max-width: 34rem;
 }
 .cvw-save-actions {
     display: flex;
@@ -398,9 +393,7 @@
     margin-inline-start: auto;
 }
 .cvw-save-btn,
-.cvw-cancel-btn,
-.cvw-fab-save,
-.cvw-fab-cancel {
+.cvw-cancel-btn {
     border-radius: 12px;
     border: 1px solid var(--cvw-border);
     font-weight: 800;
@@ -411,22 +404,18 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
-.cvw-save-btn,
-.cvw-fab-save {
+.cvw-save-btn {
     background: var(--cvw-accent);
     border-color: var(--cvw-accent);
     color: #fff;
     min-width: 8.5rem;
 }
 .cvw-save-btn:disabled,
-.cvw-fab-save:disabled,
-.cvw-cancel-btn:disabled,
-.cvw-fab-cancel:disabled {
+.cvw-cancel-btn:disabled {
     opacity: 0.45;
     cursor: not-allowed;
 }
-.cvw-cancel-btn,
-.cvw-fab-cancel {
+.cvw-cancel-btn {
     background: #fff;
     color: var(--cvw-ink);
 }
@@ -434,35 +423,6 @@
     font-family: "UthmanicHafs", "Amiri Quran", serif;
     font-weight: 400;
     margin-inline-start: 4px;
-}
-
-/* Sticky bottom save for phones / iPad */
-.cvw-fab {
-    position: fixed;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: 40;
-    display: none;
-    gap: 10px;
-    padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--cvw-bg) 92%, white);
-    border-top: 1px solid var(--cvw-border);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 -8px 24px color-mix(in srgb, var(--cvw-ink) 10%, transparent);
-}
-.cvw-fab-save { flex: 1.4; }
-.cvw-fab-cancel { flex: 0.8; }
-.cvw-fab-word {
-    flex: 2;
-    min-width: 9rem;
-    max-width: 45vw;
-}
-.cvw-body:has(.cvw-fab:not([hidden])) .cvw-main {
-    padding-bottom: 88px;
-}
-@media (max-width: 719px) {
-    .cvw-fab:not([hidden]) { display: flex; }
-    .cvw-save-bar:not([hidden]) { display: none; }
 }
 
 .cvw-side-head {
@@ -659,4 +619,160 @@
     font-size: 0.7rem;
     color: var(--cvw-muted);
     font-variant-numeric: tabular-nums;
+}
+
+
+/* ── word picker: nearest candidates as chips, numbered like the page badges ── */
+.cvw-picker {
+    flex: 1 1 26rem;
+    min-width: min(100%, 18rem);
+}
+.cvw-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--cvw-muted);
+    margin-bottom: 4px;
+}
+.cvw-more-btn {
+    border: 0;
+    background: transparent;
+    color: var(--cvw-accent);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 2px 6px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+.cvw-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.cvw-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 44px;
+    padding: 4px 12px 4px 8px;
+    border-radius: 12px;
+    border: 1.5px solid color-mix(in srgb, #7a4f9d 35%, transparent);
+    background: #fff;
+    color: var(--cvw-ink);
+    cursor: pointer;
+    font: inherit;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+.cvw-chip:hover { border-color: #7a4f9d; }
+.cvw-chip.is-selected {
+    background: #7a4f9d;
+    border-color: #7a4f9d;
+    color: #fff;
+    box-shadow: 0 2px 8px color-mix(in srgb, #7a4f9d 35%, transparent);
+}
+.cvw-chip-num {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 800;
+    background: color-mix(in srgb, #7a4f9d 14%, #fff);
+    color: #5b3a78;
+}
+.cvw-chip.is-selected .cvw-chip-num { background: #fff; color: #5b3a78; }
+.cvw-chip-text {
+    font-family: "UthmanicHafs", "Amiri Quran", serif;
+    font-size: 1.35rem;
+    line-height: 1.5;
+}
+.cvw-chip-line {
+    font-size: 0.68rem;
+    opacity: 0.75;
+    font-weight: 700;
+}
+.cvw-chip-done {
+    font-family: "UthmanicHafs", "Amiri Quran", serif;
+    font-size: 1.1rem;
+    color: var(--cvw-missing);
+}
+.cvw-chip.is-selected .cvw-chip-done { color: #ffe9a8; }
+.cvw-more {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid var(--cvw-border);
+    border-radius: 12px;
+    background: #fff;
+}
+.cvw-more input { width: 100%; margin-bottom: 6px; }
+.cvw-more-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 11rem;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 4px;
+}
+.cvw-more-list button {
+    width: 100%;
+    text-align: start;
+    border: 1px solid var(--cvw-border);
+    background: #faf6ef;
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: "UthmanicHafs", "Amiri Quran", serif;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px;
+}
+.cvw-more-list button small { font-family: system-ui, sans-serif; font-size: 0.65rem; color: var(--cvw-muted); }
+.cvw-more-list button:hover { border-color: #7a4f9d; }
+.cvw-more-list .is-empty { grid-column: 1 / -1; color: var(--cvw-muted); font-size: 0.85rem; padding: 6px; }
+
+/* Idle state keeps the bar's height (no layout jump when a draft appears). */
+.cvw-save-bar[data-active="0"] .cvw-chips { min-height: 44px; align-content: center; }
+.cvw-save-bar[data-active="0"] .cvw-picker { opacity: 0.55; }
+.cvw-more-btn:disabled { opacity: 0.4; cursor: default; text-decoration: none; }
+/* Sample-queue box: one compact row (it is always visible, so it must be cheap). */
+.cvw-queue:not([hidden]) { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
+.cvw-queue .cvw-queue-head { margin: 0; }
+.cvw-queue .cvw-queue-nav { flex: 1 1 18rem; margin: 0; }
+.cvw-queue > p { display: none; }
+
+/* On phones / iPad portrait the save bar becomes a bottom sheet so the
+   candidates stay next to the thumb, not behind the page image. */
+@media (max-width: 719px) {
+    .cvw-save-bar[data-active="0"] { display: none; }
+    .cvw-save-bar[data-active="1"]:not([hidden]) {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 40;
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        background: color-mix(in srgb, var(--cvw-bg) 94%, white);
+        border: 0;
+        border-top: 1px solid var(--cvw-border);
+        box-shadow: 0 -8px 24px color-mix(in srgb, var(--cvw-ink) 12%, transparent);
+        backdrop-filter: blur(10px);
+        max-height: 55vh;
+        overflow: auto;
+    }
+    .cvw-save-bar .cvw-save-hint { display: none; }
+    .cvw-save-bar .cvw-save-actions { width: 100%; }
+    .cvw-save-bar .cvw-save-btn { flex: 1.5; }
+    .cvw-save-bar .cvw-cancel-btn { flex: 0.7; }
+    .cvw-body:has(.cvw-save-bar[data-active="1"]) .cvw-main { padding-bottom: 220px; }
 }

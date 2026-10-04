@@ -101,12 +101,17 @@
 
         <div class="cvw-save-bar cvw-label-only" id="cvw-save-bar" hidden>
             <p class="cvw-save-hint" id="cvw-save-hint">ارسم مربعاً حول العلامة أولاً</p>
-            <label class="cvw-field cvw-word-field">
-                <span>الكلمة التابعة للعلامة</span>
-                <select id="cvw-word" class="athar-field" disabled>
-                    <option value="">ارسم العلامة أولاً</option>
-                </select>
-            </label>
+            <div class="cvw-picker" id="cvw-picker" role="radiogroup" aria-label="الكلمة التابعة للعلامة">
+                <div class="cvw-picker-head">
+                    <span>الكلمة التابعة للعلامة</span>
+                    <button type="button" class="cvw-more-btn" id="cvw-more" aria-expanded="false" aria-controls="cvw-more-panel">كلمات أخرى</button>
+                </div>
+                <div class="cvw-chips" id="cvw-chips"></div>
+                <div class="cvw-more" id="cvw-more-panel" hidden>
+                    <input type="search" id="cvw-word-filter" class="athar-field" placeholder="ابحث في كلمات الصفحة…" autocomplete="off" aria-label="بحث في كلمات الصفحة">
+                    <ul class="cvw-more-list" id="cvw-more-list"></ul>
+                </div>
+            </div>
             <div class="cvw-save-actions">
                 <button type="button" class="cvw-cancel-btn" id="cvw-cancel" disabled>إلغاء</button>
                 <button type="button" class="cvw-save-btn" id="cvw-save" disabled>
@@ -133,14 +138,6 @@
 
         <p class="cvw-meta" id="cvw-meta" aria-live="polite">انقر العلامة أو اسحب حولها، راجع الكلمة، ثم اضغط حفظ.</p>
     </header>
-
-    <div class="cvw-fab cvw-label-only" id="cvw-fab" hidden>
-        <button type="button" class="cvw-fab-cancel" id="cvw-fab-cancel">إلغاء</button>
-        <select id="cvw-fab-word" class="athar-field cvw-fab-word" aria-label="الكلمة التابعة للعلامة">
-            <option value="">اختر الكلمة</option>
-        </select>
-        <button type="button" class="cvw-fab-save" id="cvw-fab-save">حفظ التسمية</button>
-    </div>
 
     <main class="cvw-main" id="cvw-main">
         <section class="cvw-stage" aria-label="صفحة المصحف">

@@ -1522,3 +1522,15 @@ def test_mesaha_eval_pages_are_fixed_and_balanced_by_parity():
     assert pages == mesaha_eval_pages() and len(set(pages)) == 20
     assert sum(p % 2 for p in pages) == 10
     assert all(3 <= p <= 826 for p in pages)
+
+
+def test_layout_only_word_payload_honours_the_page_parity_band():
+    """The no-OpenCV fallback used by /cv-waqf must place even Mesaha pages
+    on their own band, or the suggested word is half a line off."""
+    from modules.cv_waqf_ui import _build_logical_word_payload
+
+    odd = _build_logical_word_payload('المساحة', 51)['words']
+    even = _build_logical_word_payload('المساحة', 50)['words']
+    assert odd and even
+    # Same relative geometry, shifted by the even/odd band difference.
+    assert min(w['box'][1] for w in even) < min(w['box'][1] for w in odd)

@@ -33,11 +33,11 @@
         saveBtn: document.getElementById('cvw-save'),
         cancelBtn: document.getElementById('cvw-cancel'),
         saveSym: document.getElementById('cvw-save-sym'),
-        word: document.getElementById('cvw-word'),
-        fab: document.getElementById('cvw-fab'),
-        fabSave: document.getElementById('cvw-fab-save'),
-        fabCancel: document.getElementById('cvw-fab-cancel'),
-        fabWord: document.getElementById('cvw-fab-word'),
+        chips: document.getElementById('cvw-chips'),
+        more: document.getElementById('cvw-more'),
+        morePanel: document.getElementById('cvw-more-panel'),
+        wordFilter: document.getElementById('cvw-word-filter'),
+        moreList: document.getElementById('cvw-more-list'),
         queue: document.getElementById('cvw-queue'),
         queuePage: document.getElementById('cvw-queue-page'),
         queuePrev: document.getElementById('cvw-queue-prev'),
@@ -65,6 +65,8 @@
         labels: [], // hand labels for page
         words: [], // canonical page words + estimated pixel seats
         selectedWordKey: '',
+        ranked: [], // page words nearest the draft first
+        badgeHits: [], // on-page number badges: {key, cx, cy, r}
         selectedSymbol: 'ج',
         draft: null, // {x0,y0,x1,y1} image pixels
         dragging: false,
@@ -300,8 +302,12 @@
         );
         const glyph = GLYPH[state.selectedSymbol] || state.selectedSymbol;
         if (els.saveBar) {
-            els.saveBar.hidden = !(state.mode === 'label' && state.draft);
+            // Always present in label mode so the page below never jumps when
+            // a draft appears; the hint line explains the idle state.
+            els.saveBar.hidden = state.mode !== 'label';
+            els.saveBar.dataset.active = state.draft ? '1' : '0';
         }
+        if (els.more) els.more.disabled = !state.draft;
         if (els.saveSym) els.saveSym.textContent = glyph;
         if (els.saveBtn) els.saveBtn.disabled = !ready;
         if (els.cancelBtn) els.cancelBtn.disabled = !state.draft;
@@ -311,22 +317,16 @@
                 ? `مربع وكلمة جاهزان — اضغط حفظ لنوع «${glyph}»`
                 : (state.draft
                     ? 'اختر الكلمة التابعة للعلامة قبل الحفظ'
-                    : 'ارسم مربعاً حول العلامة، ثم اختر الكلمة');
-        }
-        if (els.fab) {
-            els.fab.hidden = !(state.mode === 'label' && state.draft);
-            if (els.fabSave) {
-                els.fabSave.textContent = `حفظ «${glyph}»`;
-                els.fabSave.disabled = !ready;
-            }
-            if (els.fabCancel) els.fabCancel.disabled = !state.draft;
+                    : 'انقر على علامة وقف في الصفحة (أو ارسم حولها)، ثم أكّد كلمتها');
         }
     }
 
     function clearDraft() {
         state.draft = null;
         state.selectedWordKey = '';
-        populateWordChoices();
+        state.ranked = [];
+        closeMore();
+        renderPicker();
         paint();
         syncSaveUi();
         setMeta('أُلغي المربع — ارسم من جديد ثم احفظ');
@@ -342,48 +342,109 @@
         return Math.abs(cx - wx) + 1.6 * Math.abs(cy - wy);
     }
 
-    function populateWordChoices() {
-        const previous = state.selectedWordKey;
-        const ordered = [...state.words].sort((a, b) => {
-            if (state.draft) {
-                const delta = wordDistance(a, state.draft) - wordDistance(b, state.draft);
-                if (delta) return delta;
-            }
-            return (a.line - b.line) || (a.word_on_line - b.word_on_line);
+    const CANDIDATES = 6;
+
+    function rankWords() {
+        state.ranked = state.draft
+            ? [...state.words].sort((x, y) => (
+                wordDistance(x, state.draft) - wordDistance(y, state.draft)
+            ))
+            : [];
+    }
+
+    function candidateWords() {
+        const top = state.ranked.slice(0, CANDIDATES);
+        // A word picked from "other words" stays visible as a chip.
+        if (state.selectedWordKey && !top.some((w) => w.word_key === state.selectedWordKey)) {
+            const picked = state.words.find((w) => w.word_key === state.selectedWordKey);
+            if (picked) top.push(picked);
+        }
+        return top;
+    }
+
+    function labelsOnWord(key) {
+        return state.labels.filter((l) => l.word_key === key);
+    }
+
+    function renderPicker() {
+        if (!els.chips) return;
+        els.chips.innerHTML = '';
+        if (!state.draft) return;
+        candidateWords().forEach((word, i) => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'cvw-chip' + (word.word_key === state.selectedWordKey ? ' is-selected' : '');
+            chip.dataset.key = word.word_key;
+            chip.setAttribute('role', 'radio');
+            chip.setAttribute('aria-checked', word.word_key === state.selectedWordKey ? 'true' : 'false');
+            const done = labelsOnWord(word.word_key);
+            chip.title = done.length ? 'لهذه الكلمة تسمية محفوظة بالفعل' : '';
+            chip.innerHTML = `
+                <span class="cvw-chip-num">${i < CANDIDATES ? toAr(i + 1) : '＋'}</span>
+                <span class="cvw-chip-text">${escapeHtml(word.text || word.word_key)}</span>
+                <span class="cvw-chip-line">س${toAr(word.line)}</span>
+                ${done.length ? `<span class="cvw-chip-done">${escapeHtml(done.map((l) => glyphOf(l.symbol)).join(''))}</span>` : ''}`;
+            els.chips.appendChild(chip);
         });
-        for (const select of [els.word, els.fabWord].filter(Boolean)) {
-            select.innerHTML = '';
-            const placeholder = document.createElement('option');
-            placeholder.value = '';
-            placeholder.textContent = state.draft
-                ? 'اختر الكلمة لتأكيد الربط'
-                : 'ارسم العلامة أولاً';
-            select.appendChild(placeholder);
-            for (const word of ordered) {
-                const option = document.createElement('option');
-                option.value = word.word_key;
-                option.textContent = `س${toAr(word.line)} · ${word.text || word.word_key} · ${word.word_key}`;
-                select.appendChild(option);
-            }
-            select.disabled = !state.draft || !ordered.length;
+    }
+
+    function renderMoreList() {
+        if (!els.moreList) return;
+        const needle = (els.wordFilter?.value || '').trim();
+        // Compare without vowel marks so a plain-letter search finds the word.
+        const strip = (t) => String(t || '').normalize('NFKD')
+            .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
+            .replace(/[\u0671\u0623\u0625\u0622]/g, '\u0627')
+            .replace(/\u0649/g, '\u064A')
+            .replace(/\u0629/g, '\u0647');
+        const key = strip(needle);
+        const rows = state.words.filter((w) => (
+            !key || strip(w.text).includes(key) || String(w.line) === needle
+        ));
+        els.moreList.innerHTML = '';
+        if (!rows.length) {
+            els.moreList.innerHTML = '<li class="is-empty">لا كلمات مطابقة</li>';
+            return;
         }
-        if (previous && ordered.some((word) => word.word_key === previous)) {
-            if (els.word) els.word.value = previous;
-            if (els.fabWord) els.fabWord.value = previous;
-        } else {
-            state.selectedWordKey = '';
-            if (els.word) els.word.value = '';
-            if (els.fabWord) els.fabWord.value = '';
+        for (const word of rows) {
+            const li = document.createElement('li');
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.dataset.key = word.word_key;
+            b.innerHTML = `<span>${escapeHtml(word.text || word.word_key)}</span><small>س${toAr(word.line)}</small>`;
+            li.appendChild(b);
+            els.moreList.appendChild(li);
         }
+    }
+
+    function openMore() {
+        if (!els.morePanel) return;
+        els.morePanel.hidden = false;
+        els.more?.setAttribute('aria-expanded', 'true');
+        renderMoreList();
+        els.wordFilter?.focus();
+    }
+
+    function closeMore() {
+        if (!els.morePanel) return;
+        els.morePanel.hidden = true;
+        els.more?.setAttribute('aria-expanded', 'false');
+        if (els.wordFilter) els.wordFilter.value = '';
     }
 
     function suggestNearestWord() {
         if (!state.draft || !state.words.length) return;
-        const nearest = [...state.words].sort(
-            (a, b) => wordDistance(a, state.draft) - wordDistance(b, state.draft)
-        )[0];
-        state.selectedWordKey = nearest?.word_key || '';
-        populateWordChoices();
+        rankWords();
+        state.selectedWordKey = state.ranked[0]?.word_key || '';
+        renderPicker();
+    }
+
+    function moveSelection(delta) {
+        const list = candidateWords();
+        if (!list.length) return;
+        const at = list.findIndex((w) => w.word_key === state.selectedWordKey);
+        const next = list[(at + delta + list.length) % list.length];
+        selectWord(next.word_key);
     }
 
     function selectSymbol(sym) {
@@ -431,13 +492,14 @@
                 if (gen !== state.loadGen) return;
                 state.labels = packed.labels;
                 state.words = packed.words;
-                populateWordChoices();
+                renderPicker();
                 paint();
                 renderLabelList();
                 setMeta(
-                    `صفحة ${toAr(page)} · ${toAr(state.labels.length)} تسمية محفوظة · ارسم العلامة ثم أكّد كلمتها`
+                    `صفحة ${toAr(page)} · ${toAr(state.labels.length)} تسمية محفوظة · انقر العلامة أو ارسم حولها`
                     + (packed.cloud ? ' · سحابة' : '')
                 );
+                prefetchPage(page + 1);
             } else {
                 setMeta('جاري الكشف…');
                 const url = `/api/cv-waqf/page/${page}`
@@ -484,8 +546,14 @@
         }
     }
 
+    function prefetchPage(page) {
+        if (page > state.maxPage || state.mode !== 'label') return;
+        const warm = new Image();
+        warm.src = imageUrlFor(page);
+    }
+
     function imageUrlFor(page) {
-        return `/api/cv-waqf/image/${state.slug}/${page}.jpg?t=${Date.now()}`;
+        return `/api/cv-waqf/image/${state.slug}/${page}.jpg`;
     }
 
     function loadImageFromUrl(url, gen) {
@@ -513,7 +581,12 @@
             };
             img.addEventListener('load', onLoad);
             img.addEventListener('error', onError);
-            img.src = url.includes('?') ? url : `${url}?t=${Date.now()}`;
+            // Same URL as the image already on screen: no load event will fire.
+            if (img.getAttribute('src') === url && img.complete && img.naturalWidth) {
+                onLoad();
+                return;
+            }
+            img.src = url;
         });
     }
 
@@ -640,11 +713,48 @@
                     state.draft.x0, state.draft.y0, state.draft.x1, state.draft.y1,
                 ], COLORS.draft, scale, true);
             }
-            if (state.selectedWordKey) {
-                const word = state.words.find((row) => row.word_key === state.selectedWordKey);
-                if (word) strokeBox(ctx, word.seat || word.box, COLORS.word, lw + 1, true);
-            }
+            paintCandidates(ctx, lw);
         }
+    }
+
+    // Candidate words for the current draft: a thin box around each word and a
+    // numbered badge matching the chip (and the 1-6 keys). The chosen word is
+    // drawn solid, with its stop seat dashed.
+    function paintCandidates(ctx, lw) {
+        state.badgeHits = [];
+        if (!state.draft) return;
+        const r = Math.max(11, Math.round(state.naturalW / 72));
+        candidateWords().forEach((word, i) => {
+            const box = word.box || word.seat;
+            if (!box) return;
+            const chosen = word.word_key === state.selectedWordKey;
+            const [x0, y0, x1, y1] = box;
+            ctx.save();
+            ctx.strokeStyle = COLORS.word;
+            ctx.globalAlpha = chosen ? 1 : 0.55;
+            ctx.lineWidth = chosen ? lw + 1 : 1.5;
+            if (!chosen) ctx.setLineDash([5, 4]);
+            ctx.strokeRect(x0, y0, Math.max(2, x1 - x0), Math.max(2, y1 - y0));
+            ctx.restore();
+            if (chosen && word.seat) strokeBox(ctx, word.seat, COLORS.word, lw, true);
+            const cx = Math.round((x0 + x1) / 2);
+            const cy = Math.round(y1 + r + 2);
+            state.badgeHits.push({ key: word.word_key, cx, cy, r });
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fillStyle = chosen ? COLORS.word : '#fff';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = COLORS.word;
+            ctx.stroke();
+            ctx.fillStyle = chosen ? '#fff' : COLORS.word;
+            ctx.font = `700 ${Math.round(r * 1.15)}px system-ui, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(i < CANDIDATES ? String(i + 1) : '+', cx, cy + 1);
+            ctx.restore();
+        });
     }
 
     function strokeBox(ctx, box, color, width, dashed) {
@@ -786,8 +896,11 @@
             return;
         }
         state.saving = true;
+        // The user may flip pages while the request is in flight; remember
+        // which page this label belongs to.
+        const savedPage = state.page;
+        const savedEdition = state.edition;
         if (els.saveBtn) els.saveBtn.disabled = true;
-        if (els.fabSave) els.fabSave.disabled = true;
         setMeta('جاري الحفظ…');
         try {
             const res = await fetch('/api/cv-waqf/labels', {
@@ -795,8 +908,8 @@
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    edition: state.edition,
-                    page: state.page,
+                    edition: savedEdition,
+                    page: savedPage,
                     symbol,
                     box: [x0, y0, x1, y1],
                     word_key: state.selectedWordKey,
@@ -812,15 +925,22 @@
                 setMeta(apiError(res, data).message);
                 return;
             }
-            state.labels.push(data.label);
-            const queueItem = state.reviewQueue.find((item) => item.page === state.page);
+            const queueItem = state.reviewQueue.find((item) => item.page === savedPage);
             if (queueItem) {
                 queueItem.label_count = Number(queueItem.label_count || 0) + 1;
                 state.reviewQueueTotalLabels += 1;
             }
+            if (savedPage !== state.page || savedEdition !== state.edition) {
+                syncQueueUi();
+                setMeta(`حُفظت «${symbol}» على صفحة ${toAr(savedPage)}`);
+                return;
+            }
+            state.labels.push(data.label);
             state.draft = null;
+            state.ranked = [];
+            closeMore();
             state.selectedWordKey = '';
-            populateWordChoices();
+            renderPicker();
             state.activeId = data.label.id;
             paint();
             renderLabelList();
@@ -871,14 +991,30 @@
         if (state.mode !== 'label') return;
         if (e.button != null && e.button !== 0) return;
         if (!state.naturalW) return;
+        if (state.loading) {
+            // The visible image is the previous page until the new one lands.
+            setMeta('انتظر اكتمال تحميل الصفحة قبل الرسم');
+            return;
+        }
         e.preventDefault();
-        els.wrap.setPointerCapture(e.pointerId);
         const p = canvasToImage(e.clientX, e.clientY);
+        if (state.draft && state.badgeHits.length) {
+            const hit = state.badgeHits.find((b) => (
+                Math.hypot(p.x - b.cx, p.y - b.cy) <= b.r * 1.5
+            ));
+            if (hit) {
+                selectWord(hit.key);
+                return;
+            }
+        }
+        els.wrap.setPointerCapture(e.pointerId);
         state.dragging = true;
         state.dragStart = p;
         state.draft = { x0: p.x, y0: p.y, x1: p.x, y1: p.y };
         state.selectedWordKey = '';
-        populateWordChoices();
+        state.ranked = [];
+        closeMore();
+        renderPicker();
         paint();
     }
     function onPointerMove(e) {
@@ -948,58 +1084,109 @@
         saveDraft(state.selectedSymbol);
     }
     els.saveBtn?.addEventListener('click', onSaveClick);
-    els.fabSave?.addEventListener('click', onSaveClick);
     els.cancelBtn?.addEventListener('click', clearDraft);
-    els.fabCancel?.addEventListener('click', clearDraft);
     function selectWord(wordKey) {
         state.selectedWordKey = wordKey || '';
-        if (els.word) els.word.value = state.selectedWordKey;
-        if (els.fabWord) els.fabWord.value = state.selectedWordKey;
+        renderPicker();
         paint();
         syncSaveUi();
         if (state.selectedWordKey) {
             const word = state.words.find((row) => row.word_key === state.selectedWordKey);
-            setMeta(`رُبطت العلامة بكلمة «${word?.text || state.selectedWordKey}» — اضغط حفظ`);
+            const done = labelsOnWord(state.selectedWordKey);
+            setMeta(
+                `رُبطت العلامة بكلمة «${word?.text || state.selectedWordKey}» — اضغط حفظ`
+                + (done.length ? ' · تنبيه: لهذه الكلمة تسمية محفوظة بالفعل' : '')
+            );
         }
     }
-    els.word?.addEventListener('change', () => selectWord(els.word.value));
-    els.fabWord?.addEventListener('change', () => selectWord(els.fabWord.value));
+    els.chips?.addEventListener('click', (e) => {
+        const chip = e.target.closest('.cvw-chip');
+        if (chip) selectWord(chip.dataset.key);
+    });
+    els.more?.addEventListener('click', () => {
+        if (els.morePanel?.hidden) openMore(); else closeMore();
+    });
+    els.wordFilter?.addEventListener('input', renderMoreList);
+    els.moreList?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-key]');
+        if (!btn) return;
+        selectWord(btn.dataset.key);
+        closeMore();
+    });
 
-    // keyboard shortcuts for symbols
-    const KEY_MAP = {
-        m: 'م', ق: 'ق', 'q': 'ق', ص: 'ص', s: 'ص', ج: 'ج', j: 'ج',
-        l: 'لا', ع: 'ع', a: 'ع', k: 'س', Escape: '__cancel', Backspace: '__undo',
-        Enter: '__save',
+    // Keyboard. Symbols use the physical key (e.code) so they work on an
+    // Arabic layout too; 1-6 / arrows pick the candidate word.
+    const CODE_SYMBOL = {
+        KeyM: 'م', KeyQ: 'ق', KeyS: 'ص', KeyJ: 'ج', KeyL: 'لا', KeyA: 'ع', KeyK: 'س',
     };
+    const CHAR_SYMBOL = { 'م': 'م', 'ق': 'ق', 'ص': 'ص', 'ج': 'ج', 'ع': 'ع', 'س': 'س' };
     window.addEventListener('keydown', (e) => {
         if (state.mode !== 'label') return;
-        if (e.target.matches('input, select, textarea')) return;
-        const mapped = KEY_MAP[e.key] || KEY_MAP[e.key.toLowerCase()];
-        if (!mapped) return;
-        e.preventDefault();
-        if (mapped === '__cancel') {
-            clearDraft();
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const tgt = e.target;
+        if (tgt?.matches?.('input, select, textarea')) {
+            if (e.key === 'Escape' && els.morePanel && !els.morePanel.hidden) {
+                closeMore();
+                e.preventDefault();
+            }
             return;
         }
-        if (mapped === '__undo') {
-            if (state.labels.length) deleteLabel(state.labels[state.labels.length - 1].id);
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            if (els.morePanel && !els.morePanel.hidden) closeMore(); else clearDraft();
             return;
         }
-        if (mapped === '__save') {
+        if (e.key === 'Enter') {
+            if (tgt?.matches?.('button, a')) return; // keep native activation
+            e.preventDefault();
             if (state.draft) saveDraft(state.selectedSymbol);
             return;
         }
+        if (e.key === 'Backspace') {
+            e.preventDefault();
+            if (state.draft) {
+                clearDraft();
+            } else if (e.shiftKey) {
+                undoLast();
+            } else if (state.labels.length) {
+                setMeta('Shift+⌫ لحذف آخر تسمية محفوظة');
+            }
+            return;
+        }
+        if (state.draft && /^[1-6]$/.test(e.key)) {
+            const word = candidateWords()[Number(e.key) - 1];
+            if (word) {
+                e.preventDefault();
+                selectWord(word.word_key);
+            }
+            return;
+        }
+        if (state.draft && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+            e.preventDefault();
+            // RTL page: the next word along the line is to the left.
+            moveSelection(e.key === 'ArrowLeft' ? 1 : -1);
+            return;
+        }
+        const mapped = CODE_SYMBOL[e.code] || CHAR_SYMBOL[e.key];
+        if (!mapped) return;
+        e.preventDefault();
         selectSymbol(mapped);
         if (state.draft) {
             setMeta(`النوع «${GLYPH[mapped] || mapped}» — اضغط حفظ أو Enter`);
         }
     });
 
+    function undoLast() {
+        const last = state.labels[state.labels.length - 1];
+        if (!last) return;
+        const word = last.word_text || last.word_key || '';
+        if (!window.confirm(`حذف آخر تسمية «${glyphOf(last.symbol)}» على كلمة ${word}؟`)) return;
+        deleteLabel(last.id);
+    }
+
     els.modeLabel.addEventListener('click', () => setMode('label'));
     els.modeDetect.addEventListener('click', () => setMode('detect'));
-    els.undo.addEventListener('click', () => {
-        if (state.labels.length) deleteLabel(state.labels[state.labels.length - 1].id);
-    });
+    els.undo.addEventListener('click', undoLast);
 
     els.edition.addEventListener('change', async () => {
         syncEditionBounds();

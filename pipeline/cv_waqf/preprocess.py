@@ -137,12 +137,14 @@ def synthetic_prepared_page(
     *,
     width: int = 1024,
     height: int = 1536,
+    page: int | None = None,
 ) -> PreparedPage:
     """Band geometry only — used when OpenCV / page images are unavailable."""
     x0 = int(width * spec.text_left)
     x1 = int(width * spec.text_right)
-    y0 = int(height * spec.text_top)
-    y1 = int(height * spec.text_bottom)
+    top, bottom = spec.band_for_page(page)
+    y0 = int(height * top)
+    y1 = int(height * bottom)
     return PreparedPage(
         bgr=None,
         gray=None,

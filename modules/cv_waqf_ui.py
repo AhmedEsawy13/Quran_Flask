@@ -161,7 +161,7 @@ def _build_logical_word_payload(edition: str, page: int) -> dict:
 
     spec = EDITIONS[edition]
     prepared = synthetic_prepared_page(
-        spec, width=IMG_WIDTH, height=int(IMG_WIDTH * 1.5),
+        spec, width=IMG_WIDTH, height=int(IMG_WIDTH * 1.5), page=page,
     )
     words = estimate_layout_words(spec, page, prepared)
     return {
