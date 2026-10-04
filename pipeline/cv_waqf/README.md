@@ -250,6 +250,24 @@ What is in place (all behind the Mesaha spec, nothing else changes):
   meaningless. It now borrows `mushaf_version` (Shemrly) and raises on an
   unknown column.
 
+Line breaks (`relayout.py`, `ocr_relayout=True`). The Mesaha layout DB was
+imported from OCR and never reviewed (221 pages graded high, 364 medium, 241
+low; on page 61 its last line holds 87 words), so words sat several positions
+from their printed row. The relayout re-derives row membership from three
+things the scan itself provides: the DjVu OCR words (aligned to the page's
+known text by dotless letter shape; accurate anchors for ~30% of words), the
+verse-end medallions (template-matched, accepted only when the best N beat the
+next by a margin, N = number of verse-number tokens), and the justified row
+widths (words between two anchors are split across the rows in between by a
+per-letter width model fitted from the anchors, 15.5% mean error per word
+against 21% for letter count). Anchors that make a row implausible are
+dropped; the result is used only when every row holds 5-14 words, otherwise
+the layout's own lines are kept. Against 37 hand labels (5 pages): the nearest
+word is the one you chose 38% -> 59% of the time (top-6 81% -> 89%); page 61
+6/14 -> 12/14. Used on 67% of 49 sampled pages, ~0.2 s per page. Surah-opening
+pages with poor OCR (62, 445) fall back. Validation is thin: only 3 labelled
+pages are eligible, so more labels are the best way to check it.
+
 Open: Mesaha prints many more stop signs than the Shemrly column records (about
 10 per page detected vs 4 per page in the column), so that column is **not** a
 usable reference and the multiprint model without a prior is about half false

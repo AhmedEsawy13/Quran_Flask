@@ -1555,3 +1555,46 @@ def test_label_page_seats_follow_each_editions_geometry_convention():
         w['seat'][1] < geometry.mark_seat_roi_from_box(*w['box'])[1]
         for w in legacy[:20]
     ), 'legacy seat stays above the word'
+
+
+def test_relayout_split_counts_follow_row_capacities():
+    from pipeline.cv_waqf.relayout import _split_counts
+
+    # 12 equal words across rows of capacity 3, 6 and 3 words.
+    assert _split_counts([1.0] * 12, [3.0, 6.0, 3.0], 1.0) == [3, 6, 3]
+    assert _split_counts([1.0] * 5, [5.0], 1.0) == [5]
+
+
+def test_relayout_chain_is_monotone_and_prefers_rings():
+    from pipeline.cv_waqf.relayout import OcrWord, _consistent_chain
+
+    def anchor(idx, row, x0, text='w'):
+        return idx, OcrWord(text, '', x0, 0, x0 + 20, 10, row)
+
+    good = [anchor(0, 0, 500), anchor(1, 0, 300), anchor(3, 1, 500), anchor(4, 1, 200)]
+    assert [i for i, _ in _consistent_chain(good)] == [0, 1, 3, 4]
+    # A word claimed to be in an earlier row than its predecessor is dropped.
+    bad = good[:2] + [anchor(2, 0, 450)] + good[2:]
+    assert 2 not in [i for i, _ in _consistent_chain(bad)]
+    # A ring that conflicts with two plain anchors outranks them (weight 5 > 2).
+    mixed = [anchor(0, 0, 500), anchor(1, 1, 500), anchor(2, 0, 300, '<ring>')]
+    assert [i for i, _ in _consistent_chain(mixed)] == [0, 2]
+
+
+def test_relayout_word_width_grows_with_letters_and_ignores_no_ocr():
+    from pipeline.cv_waqf.relayout import relayout_page_rows, word_width
+
+    assert word_width('بِسۡمِ') < word_width('ٱلۡمُسۡتَقِيمَ') < word_width('وَلِيُنذِرُواْ قَوۡمَهُمۡ')
+    assert word_width('٢٨٢') > 0
+    assert relayout_page_rows(
+        page=10 ** 6, leaf_offset=-1, image_width=1024.0, texts=['a'], weights=[1.0],
+        row_extents=[(0.0, 100.0)] * 12, row_baselines=[10.0 * i for i in range(12)],
+        pitch=10.0,
+    ) is None
+
+
+def test_only_mesaha_uses_ocr_relayout():
+    from pipeline.cv_waqf.config import EDITIONS
+
+    assert EDITIONS['المساحة'].ocr_relayout is True
+    assert all(not s.ocr_relayout for k, s in EDITIONS.items() if k != 'المساحة')

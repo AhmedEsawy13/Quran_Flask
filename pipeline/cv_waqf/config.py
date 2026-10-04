@@ -104,6 +104,9 @@ class EditionSpec:
     # detection (preprocess.strip_frame). For prints whose frame confuses the
     # text-extent and candidate steps.
     strip_frame: bool = False
+    # Re-derive line breaks from the scan's OCR + geometry instead of trusting
+    # an unreviewed layout (relayout.py). Falls back to the layout when unsure.
+    ocr_relayout: bool = False
 
     def __post_init__(self) -> None:
         if self.azhar_seat_prior and self.mushaf_version in self.seat_prior_editions:
@@ -289,6 +292,7 @@ EDITIONS: dict[str, EditionSpec] = {
         text_bottom=0.7902,
         text_band_even=(0.1487, 0.7648),
         strip_frame=True,
+        ocr_relayout=True,
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
         # cannot be compared with or filtered by the QPC-indexed columns.

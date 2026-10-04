@@ -176,6 +176,71 @@ def _observed_line_bounds(
     return observed_left, observed_right
 
 
+def _ocr_relayout_spans(
+    spec: EditionSpec, page: int, prepared: PreparedPage, mask, grid,
+    spans: list[tuple[dict, list[int]]], meta: dict[int, dict], slots: list[int],
+) -> list[tuple[dict, list[int]]] | None:
+    """Re-assign the page's words to its printed rows (see ``relayout``).
+
+    ``slots`` are the printed-row indexes of the lines that carry words (a
+    surah banner occupies rows without any). Any doubt returns ``None`` and the
+    layout's own lines are kept.
+    """
+    from pipeline.cv_waqf import relayout
+
+    if len(spans) < 6 or not grid.fitted or prepared.bgr is None:
+        return None
+    ordered: list[int] = []
+    seen: set[int] = set()
+    for _ln, ids in spans:
+        for word_id in ids:
+            if word_id not in seen and word_id in meta:
+                seen.add(word_id)
+                ordered.append(word_id)
+    texts = [str(meta[i].get('text') or '') for i in ordered]
+    weights = [relayout.word_width(t) for t in texts]
+    baselines, extents = [], []
+    for k in slots:
+        baseline = grid.top + (k + 0.5 + geometry.LINE_CENTER_BIAS) * grid.pitch
+        y0 = max(0, int(baseline - 0.50 * grid.pitch))
+        y1 = min(mask.shape[0], int(baseline + 0.22 * grid.pitch))
+        occupied = mask[y0:y1, :].any(axis=0)
+        extent = geometry._ink_extent(occupied, max_gap=max(8, int(0.45 * grid.pitch)))
+        if extent is None:
+            return None
+        baselines.append(baseline)
+        extents.append((float(extent[0]), float(extent[1] + 1)))
+    # Verse-number tokens are drawn as one medallion each: exact anchors.
+    digit_idx = [
+        n for n, t in enumerate(texts)
+        if t.strip() and all(c.isdigit() for c in t.strip())
+    ]
+    rings = None
+    if digit_idx:
+        import cv2
+
+        rings = relayout.find_ayah_rings(
+            cv2.cvtColor(prepared.bgr, cv2.COLOR_BGR2GRAY), len(digit_idx),
+        )
+    rows = relayout.relayout_page_rows(
+        rings=rings,
+        ring_word_idx=digit_idx,
+        page=page,
+        leaf_offset=int(spec.leaf_offset),
+        image_width=float(prepared.bgr.shape[1]),
+        texts=texts,
+        weights=weights,
+        row_extents=extents,
+        row_baselines=baselines,
+        pitch=float(grid.pitch),
+    )
+    if rows is None or any(not row for row in rows):
+        return None
+    return [
+        (ln, [ordered[i] for i in rows[k]]) for k, (ln, _ids) in enumerate(spans)
+    ]
+
+
 def estimate_layout_words(
     spec: EditionSpec,
     page: int,
@@ -257,6 +322,11 @@ def estimate_layout_words(
             int(grid.top),
             int(grid.top + grid.pitch * line_slots),
         )
+    if measured and spec.ocr_relayout:
+        spans = _ocr_relayout_spans(
+            spec, page, prepared, mask, grid, spans, meta,
+            [max(0, int(ln['line_number']) - first_line) for ln, _ in spans],
+        ) or spans
     for ln, ids in spans:
         line_slot = max(0, int(ln['line_number']) - first_line)
         if measured:
