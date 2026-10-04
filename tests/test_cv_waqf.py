@@ -1421,3 +1421,12 @@ def test_kuwait_split_is_disjoint_and_fixed():
     assert (len(train), len(holdout)) == (200, 100)
     assert not set(train) & set(holdout)
     assert (train, holdout) == kuwait_pages()
+
+
+def test_kuwait_uses_its_own_model_and_others_are_unchanged():
+    from pipeline.cv_waqf.config import resolve_edition_model
+
+    path, source = resolve_edition_model('الكويت')
+    assert source == 'own' and path.name == 'waqf_glyph_kuwait.onnx'
+    assert resolve_edition_model('قطر')[1] == 'multiprint'
+    assert resolve_edition_model('البحرين')[1] == 'own'

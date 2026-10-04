@@ -188,6 +188,9 @@ proxy). `kuwait` = all three prints, `kuwait_only` = Kuwait crops only:
 
 Seeds differ by about 3 points on Kuwait, so the 1–2 point gains over the shipped
 model are within noise; the halved miss count (25 → 10–13 on every seed) is not.
+**Installed:** `kuwait_s1` is Kuwait's own model (`models/waqf_glyph_kuwait*`); Bahrain
+keeps its own model and Qatar the shared multiprint. Expect about the family
+mean (93.3%), not seed 1's 94.8%, since the seed was picked on these pages.
 The three `kuwait` seeds pass `gate` on their mean (Qatar 95.8% / 7.3 wrong /
 96.9% precision, Bahrain 92.5%).
 
