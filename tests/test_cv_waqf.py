@@ -1513,3 +1513,12 @@ def test_edition_marks_never_read_an_unknown_column_as_text():
     assert marks and set(marks.values()) <= {'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع'}
     with pytest.raises(ValueError):
         edition_marks_for_ayahs('not a column', [(2, 243)], 'data/quran_script.db')
+
+
+def test_mesaha_eval_pages_are_fixed_and_balanced_by_parity():
+    from pipeline.cv_waqf.splits import mesaha_eval_pages
+
+    pages = mesaha_eval_pages()
+    assert pages == mesaha_eval_pages() and len(set(pages)) == 20
+    assert sum(p % 2 for p in pages) == 10
+    assert all(3 <= p <= 826 for p in pages)

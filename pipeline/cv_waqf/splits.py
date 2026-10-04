@@ -5,6 +5,8 @@ Every model is scored on pages it never trained on, and every model sees the
 
 * ``qatar_pages``   – 100 training / 50 held-out pages of Qatar (seed 2026).
 * ``bahrain_holdout`` – every 4th hand-labelled Bahrain page.
+* ``mesaha_eval_pages`` – 20 hand-label evaluation pages of Mesaha (seed 2028,
+  10 odd + 10 even, never used for training).
 * ``kuwait_pages``  – 200 training / 100 held-out pages of Kuwait (seed 2027).
 """
 from __future__ import annotations
@@ -14,6 +16,8 @@ import random
 FIRST_PAGE, LAST_PAGE = 3, 604  # skip the Fatiha/opening spreads
 QATAR_SEED = 2026
 QATAR_TRAIN, QATAR_HOLDOUT = 100, 50
+MESAHA_SEED = 2028
+MESAHA_FIRST, MESAHA_LAST = 3, 826
 KUWAIT_SEED = 2027
 KUWAIT_TRAIN, KUWAIT_HOLDOUT = 200, 100
 
@@ -34,6 +38,15 @@ def kuwait_pages() -> tuple[list[int], list[int]]:
     train = sorted(pool[:KUWAIT_TRAIN])
     holdout = sorted(pool[KUWAIT_TRAIN:KUWAIT_TRAIN + KUWAIT_HOLDOUT])
     return train, holdout
+
+
+def mesaha_eval_pages(per_parity: int = 10) -> list[int]:
+    """Fixed hand-label evaluation pages: ``per_parity`` odd + ``per_parity`` even."""
+    rng = random.Random(MESAHA_SEED)
+    pool = list(range(MESAHA_FIRST, MESAHA_LAST + 1))
+    odd = [p for p in pool if p % 2]
+    even = [p for p in pool if not p % 2]
+    return sorted(rng.sample(odd, per_parity) + rng.sample(even, per_parity))
 
 
 def kuwait_extended_train() -> list[int]:
