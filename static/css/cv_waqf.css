@@ -776,3 +776,15 @@
     .cvw-save-bar .cvw-cancel-btn { flex: 0.7; }
     .cvw-body:has(.cvw-save-bar[data-active="1"]) .cvw-main { padding-bottom: 220px; }
 }
+
+.cvw-note {
+    margin: 4px 0 0;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: #fff3d6;
+    color: #7a4b00;
+    border: 1px solid #e8c15a;
+}
+.cvw-note[hidden] { display: none; }

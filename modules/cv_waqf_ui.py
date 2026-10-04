@@ -156,7 +156,8 @@ def _build_word_payload(edition: str, page: int, slug: str) -> dict:
 def _build_logical_word_payload(edition: str, page: int) -> dict:
     """Word keys + approximate seats from the layout DB (no OpenCV)."""
     from pipeline.cv_waqf.config import EDITIONS, IMG_WIDTH
-    from pipeline.cv_waqf.layout_geo import estimate_layout_words, mark_roi_for_word
+    from pipeline.cv_waqf.layout_geo import estimate_layout_words
+    from pipeline.cv_waqf.ui_payload import _seat_roi
     from pipeline.cv_waqf.preprocess import synthetic_prepared_page
 
     spec = EDITIONS[edition]
@@ -178,7 +179,7 @@ def _build_logical_word_payload(edition: str, page: int) -> dict:
                 'line': word.line_number,
                 'word_on_line': word.word_on_line,
                 'box': [word.x0, word.y0, word.x1, word.y1],
-                'seat': list(mark_roi_for_word(word)),
+                'seat': list(_seat_roi(spec, word)),
             }
             for word in words
             if word.word_key
@@ -668,6 +669,40 @@ def cv_waqf_page_data(page_number: int):
     return jsonify(payload)
 
 
+def _layout_note(edition: str, page: int) -> str | None:
+    """Warn when a print's line breaks were imported by OCR and never reviewed.
+
+    The Mesaha layout DB was auto-imported (\"line boundaries require print
+    review\"); its word-to-line assignment can be off by several words even
+    on pages graded high, so the suggested word is only a starting point.
+    """
+    if edition != 'المساحة':
+        return None
+    status = ''
+    try:
+        import sqlite3
+
+        from pipeline.cv_waqf.config import EDITIONS
+
+        conn = sqlite3.connect(EDITIONS[edition].layout_db)
+        try:
+            row = conn.execute(
+                'SELECT status FROM layout_import_confidence WHERE page_number=?',
+                (page,),
+            ).fetchone()
+            status = row[0] if row else ''
+        finally:
+            conn.close()
+    except Exception:  # noqa: BLE001 - the note is advisory only
+        pass
+    grade = {'high': 'عالية', 'medium': 'متوسطة', 'low': 'منخفضة'}.get(status, '')
+    return (
+        'حدود الأسطر في المساحة مستوردة آليًا'
+        + (f' (ثقة هذه الصفحة {grade})' if grade else '')
+        + ' — قد تنحرف الكلمة المقترحة بكلمة أو أكثر، فاختر من الأرقام ما يطابق الكلمة المطبوعة'
+    )
+
+
 @editor_bp.route('/api/cv-waqf/labels', methods=['GET'])
 @require_editor
 def cv_waqf_labels_list():
@@ -694,6 +729,7 @@ def cv_waqf_labels_list():
         'words': word_payload.get('words') or [],
         'count': len(labels),
         'cloud': _cloud_ready(),
+        'layout_note': _layout_note(edition, page),
     })
 
 

@@ -29,6 +29,12 @@ def _page_inputs(spec: EditionSpec, page: int):
         return None
     if image is None:
         return None
+    if spec.strip_frame:
+        # Must match preprocess_page: otherwise the header line above the
+        # frame counts as an extra text row and the grid locks one line high.
+        from pipeline.cv_waqf.preprocess import strip_frame
+
+        image = strip_frame(image)
     lines = load_page_lines(spec, page)
     word_lines = [
         line for line in lines

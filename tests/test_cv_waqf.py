@@ -1534,3 +1534,24 @@ def test_layout_only_word_payload_honours_the_page_parity_band():
     assert odd and even
     # Same relative geometry, shifted by the even/odd band difference.
     assert min(w['box'][1] for w in even) < min(w['box'][1] for w in odd)
+
+
+def test_label_page_seats_follow_each_editions_geometry_convention():
+    """Measured editions put the stop 0.51 line down / 0.15 in from the word's
+    left edge; the legacy above-the-word seat made the suggestion pick the
+    line below on 11% of Bahrain hand labels."""
+    from modules.cv_waqf_ui import _build_logical_word_payload
+    from pipeline.cv_waqf import geometry
+    from pipeline.cv_waqf.config import EDITIONS
+    from pipeline.cv_waqf.layout_geo import mark_roi_for_word
+
+    measured = _build_logical_word_payload('المساحة', 51)['words']
+    assert EDITIONS['المساحة'].measured_geometry and measured
+    for word in measured[:20]:
+        assert tuple(word['seat']) == geometry.mark_seat_roi_from_box(*word['box'])
+    legacy = _build_logical_word_payload('الشمرلي', 10)['words']
+    assert not EDITIONS['الشمرلي'].measured_geometry and legacy
+    assert all(
+        w['seat'][1] < geometry.mark_seat_roi_from_box(*w['box'])[1]
+        for w in legacy[:20]
+    ), 'legacy seat stays above the word'

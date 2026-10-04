@@ -46,6 +46,21 @@ def _with_db_contrast(row: dict, db: dict | None) -> dict:
     return row
 
 
+def _seat_roi(spec, word) -> tuple[int, int, int, int]:
+    """Where the word's stop sits, in the convention its geometry uses.
+
+    Measured geometry (slot-box convention) puts the stop ~0.51 line down
+    and 0.15 line in from the word's left edge; the older above-the-word
+    seat is ~0.4 line higher, which made the nearest-word suggestion pick
+    the line below on 11% of Bahrain labels.
+    """
+    from pipeline.cv_waqf import geometry
+
+    if spec.measured_geometry:
+        return geometry.mark_seat_roi_from_box(word.x0, word.y0, word.x1, word.y1)
+    return mark_roi_for_word(word)
+
+
 def build_word_payload(edition: str, page: int) -> dict:
     """Return page words and their mark seats without running the classifier.
 
@@ -72,7 +87,7 @@ def build_word_payload(edition: str, page: int) -> dict:
                 'line': word.line_number,
                 'word_on_line': word.word_on_line,
                 'box': [word.x0, word.y0, word.x1, word.y1],
-                'seat': list(mark_roi_for_word(word)),
+                'seat': list(_seat_roi(spec, word)),
             }
             for word in words
             if word.word_key

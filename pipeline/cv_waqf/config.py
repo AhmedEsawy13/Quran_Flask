@@ -279,13 +279,15 @@ EDITIONS: dict[str, EditionSpec] = {
         archive_id=MESAHA_ARCHIVE_ID,
         leaf_offset=-1,
         page_cache_dir=str(PAGES_ROOT / 'mesaha'),
-        # Recto/verso differ by ~half a line; calibrate-geometry per parity
-        # (15 pages each, 12 lines, spread +-0.1 line, no stray pages):
-        # odd 0.1232/0.7393, even 0.0954/0.7115. One shared band aliased 8 of
-        # 16 sample pages onto the neighbouring line.
-        text_top=0.1232,
-        text_bottom=0.7393,
-        text_band_even=(0.0954, 0.7115),
+        # Recto/verso differ by ~half a line; calibrate-geometry per parity on
+        # FRAME-STRIPPED pages (15 pages each, 12 lines, spread +-0.13 line):
+        # odd 0.1771/0.7902, even 0.1487/0.7648. The first calibration ran on
+        # raw pages, where the header line above the frame counted as a text
+        # row, so every word box sat one line too high (hand labels: marks
+        # 1.5 line-heights below their word's box top instead of 0.51).
+        text_top=0.1771,
+        text_bottom=0.7902,
+        text_band_even=(0.1487, 0.7648),
         strip_frame=True,
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
