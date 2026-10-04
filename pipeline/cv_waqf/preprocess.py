@@ -46,7 +46,7 @@ def deskew_gray(gray):
     )
 
 
-def preprocess_page(bgr, spec: EditionSpec) -> PreparedPage:
+def preprocess_page(bgr, spec: EditionSpec, page: int | None = None) -> PreparedPage:
     import cv2
 
     if bgr is None or bgr.size == 0:
@@ -63,8 +63,9 @@ def preprocess_page(bgr, spec: EditionSpec) -> PreparedPage:
     h, w = binary.shape[:2]
     x0 = int(w * spec.text_left)
     x1 = int(w * spec.text_right)
-    y0 = int(h * spec.text_top)
-    y1 = int(h * spec.text_bottom)
+    top, bottom = spec.band_for_page(page)
+    y0 = int(h * top)
+    y1 = int(h * bottom)
     band = binary[y0:y1, x0:x1].copy()
     return PreparedPage(
         bgr=bgr,

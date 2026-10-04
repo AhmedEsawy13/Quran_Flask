@@ -329,7 +329,7 @@ def detect_page(
     # Freeze a clean page copy before preprocess so overlay never inherits
     # debug ink, word boxes, or in-place mutations.
     overlay_base = bgr.copy() if overlay_path is not None else None
-    prepared = preprocess_page(bgr, spec)
+    prepared = preprocess_page(bgr, spec, page=page)
     words = estimate_layout_words(spec, page, prepared)
 
     strip_path = strip_model_path_for_edition(

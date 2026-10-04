@@ -42,7 +42,7 @@ def audit_pages(
             continue
         result = detect_page(edition_key, page, min_conf=min_conf)
         bgr = load_bgr(result['image'])
-        prepared = preprocess_page(bgr, spec)
+        prepared = preprocess_page(bgr, spec, page=page)
         words = estimate_layout_words(spec, page, prepared)
         ayah_keys = sorted({(w.surah, w.ayah) for w in words if w.surah and w.ayah})
         db_marks = edition_marks_for_ayahs(edition_key, ayah_keys, spec.script_db)

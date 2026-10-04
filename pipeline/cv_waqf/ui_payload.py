@@ -56,7 +56,7 @@ def build_word_payload(edition: str, page: int) -> dict:
 
     spec = EDITIONS[edition]
     img_path = ensure_page_image(spec, page)
-    prepared = preprocess_page(load_bgr(img_path), spec)
+    prepared = preprocess_page(load_bgr(img_path), spec, page=page)
     words = estimate_layout_words(spec, page, prepared)
     return {
         'edition': edition,
@@ -95,7 +95,7 @@ def build_ui_payload(
     # Detect at the review floor so the UI can grade 0.55–auto_set hits.
     detected = detect_page(edition, page, min_conf=min_conf, seat_prior=True)
     img_path = ensure_page_image(spec, page)
-    prepared = preprocess_page(load_bgr(img_path), spec)
+    prepared = preprocess_page(load_bgr(img_path), spec, page=page)
     words = estimate_layout_words(spec, page, prepared)
     ayah_keys = sorted({(w.surah, w.ayah) for w in words if w.surah and w.ayah})
     marks = edition_marks_for_ayahs(edition, ayah_keys, spec.script_db)

@@ -97,6 +97,9 @@ class EditionSpec:
     # Re-seat a prior-rejected mark on an adjacent occupied word of its line
     # (azhar_prior.reattach_rejected_marks). Off unless measured to help.
     prior_reattach: bool = False
+    # Recto/verso prints sit at different heights. When set, EVEN pages use
+    # this (text_top, text_bottom) and odd pages the plain text_* fields.
+    text_band_even: tuple[float, float] | None = None
 
     def __post_init__(self) -> None:
         if self.azhar_seat_prior and self.mushaf_version in self.seat_prior_editions:
@@ -112,6 +115,12 @@ class EditionSpec:
         grid convention of ``geometry.py``; ``legacy`` is the older
         above-the-box band the Shamarly crops were sampled with."""
         return 'measured' if self.measured_geometry else 'legacy'
+
+    def band_for_page(self, page: int | None) -> tuple[float, float]:
+        """``(text_top, text_bottom)`` for ``page`` (parity-aware)."""
+        if self.text_band_even is not None and page is not None and page % 2 == 0:
+            return self.text_band_even
+        return self.text_top, self.text_bottom
 
     @property
     def model_path(self) -> Path:
@@ -266,8 +275,18 @@ EDITIONS: dict[str, EditionSpec] = {
         archive_id=MESAHA_ARCHIVE_ID,
         leaf_offset=-1,
         page_cache_dir=str(PAGES_ROOT / 'mesaha'),
-        text_top=0.14,
-        text_bottom=0.88,
+        # Recto/verso differ by ~half a line; calibrate-geometry per parity
+        # (15 pages each, 12 lines, spread +-0.1 line, no stray pages):
+        # odd 0.1232/0.7393, even 0.0954/0.7115. One shared band aliased 8 of
+        # 16 sample pages onto the neighbouring line.
+        text_top=0.1232,
+        text_bottom=0.7393,
+        text_band_even=(0.0954, 0.7115),
+        # WIP: vertical band only. Horizontal frame bounds are not parity-clean
+        # yet and Mesaha word positions use the Shemrly word space, so marks
+        # cannot be compared with or filtered by the QPC-indexed columns.
+        default_proposal_mode='hybrid',
+        measured_geometry=True,
     ),
     # Trusted annotation sources. Their page-image caches are intentionally
     # cache-only: do not silently train on a different print merely because it

@@ -320,7 +320,7 @@ def sample_crops(
         except Exception as exc:  # noqa: BLE001
             print(f'  page {page}: image skip ({exc})')
             continue
-        prepared = preprocess_page(load_bgr(img_path), spec)
+        prepared = preprocess_page(load_bgr(img_path), spec, page=page)
         words = estimate_layout_words(spec, page, prepared)
         if not words:
             continue

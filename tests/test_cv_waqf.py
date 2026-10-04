@@ -1440,3 +1440,16 @@ def test_kuwait_extended_train_keeps_the_holdout_out():
     assert not set(extended) & set(holdout)
     assert set(train) <= set(extended)
     assert len(extended) + len(holdout) == 602
+
+
+def test_band_for_page_is_parity_aware_only_when_configured():
+    from pipeline.cv_waqf.config import EDITIONS
+
+    mesaha = EDITIONS['المساحة']
+    assert mesaha.band_for_page(51) == (mesaha.text_top, mesaha.text_bottom)
+    assert mesaha.band_for_page(50) == mesaha.text_band_even
+    assert mesaha.band_for_page(50) != mesaha.band_for_page(51)
+    for key, spec in EDITIONS.items():
+        if key != 'المساحة':
+            assert spec.text_band_even is None
+            assert spec.band_for_page(10) == (spec.text_top, spec.text_bottom)

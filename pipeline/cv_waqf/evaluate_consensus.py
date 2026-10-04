@@ -55,7 +55,7 @@ def evaluate_consensus(
             detect_kwargs['model_path'] = model_path
         result = detect_page(edition, page, **detect_kwargs)
         words = estimate_layout_words(
-            spec, page, preprocess_page(load_bgr(ensure_page_image(spec, page)), spec),
+            spec, page, preprocess_page(load_bgr(ensure_page_image(spec, page)), spec, page=page),
         )
         content = {w.word_id: w for w in words if w.is_content_word and w.word_key}
         ayah_keys = sorted({(w.surah, w.ayah) for w in content.values()})
