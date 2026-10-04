@@ -188,7 +188,18 @@ proxy). `kuwait` = all three prints, `kuwait_only` = Kuwait crops only:
 
 Seeds differ by about 3 points on Kuwait, so the 1–2 point gains over the shipped
 model are within noise; the halved miss count (25 → 10–13 on every seed) is not.
-**Installed:** `kuwait_s1` is Kuwait's own model (`models/waqf_glyph_kuwait*`); Bahrain
+**Round 2 installed (`models/cloud2/kuwait_s1` = Kuwait's own model).** Trained on
+502 Kuwait pages with the reviewed column (bundle v3, `--cap-none 14000`). 100
+held-out pages, mean of 3 seeds, round 1 -> round 2: corrected column exact
+95.2% -> 96.4% (wrong 28 -> 22, missed 11.3 -> 7.3, extra 3.7 -> 6.0);
+pre-review column 93.3% -> 94.6% (wrong 43 -> 36). Seed 1 is the best seed on
+both (97.7% / 95.8%) and on Qatar (97.3%) and Bahrain (94.4%); expect about the
+family mean, 96.4% / 94.6%, not the best seed. The three seeds pass `gate`
+(Qatar 96.6%, 6.3 wrong, 97.2% precision; Bahrain 93.3%). Extras rose (6 vs 3.7):
+checked as likely real stops the column lacks, not yet confirmed. No Kuwait hand
+labels, so both columns remain proxies.
+
+Round 1 (superseded): `kuwait_s1` was Kuwait's own model (`models/waqf_glyph_kuwait*`); Bahrain
 keeps its own model and Qatar the shared multiprint. Expect about the family
 mean (93.3%), not seed 1's 94.8%, since the seed was picked on these pages.
 The three `kuwait` seeds pass `gate` on their mean (Qatar 95.8% / 7.3 wrong /

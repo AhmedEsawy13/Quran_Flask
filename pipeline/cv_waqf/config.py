@@ -260,9 +260,9 @@ EDITIONS: dict[str, EditionSpec] = {
         auto_set_min_conf=0.85,
         azhar_seat_prior=True,
         seat_prior_editions=SEAT_PRIOR_AZHAR_MADINAH,
-        # Own model: kuwait_s1 from the cloud v2 run (models/waqf_glyph_kuwait*).
-        # 100 held-out pages vs the column: 94.8% exact (family mean 93.3%),
-        # missed 25 -> 13 against the shared multiprint model.
+        # Own model: round-2 kuwait_s1 (models/cloud2, installed as
+        # models/waqf_glyph_kuwait*). 100 held-out pages: 97.7% exact on the
+        # corrected column / 95.8% on the pre-review one (3-seed mean 96.4 / 94.6).
         # 60 pages vs the synced column: missing 17 -> 11, +3 extra.
         prior_reattach=True,
         measured_geometry=True,
