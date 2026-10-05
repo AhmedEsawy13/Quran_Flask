@@ -9,7 +9,7 @@ from flask import Flask, jsonify, request, send_from_directory
 HERE = Path(__file__).resolve().parent            # the code
 DATA = Path(os.environ.get('MESAHA_REVIEW_DATA') or Path(__file__).resolve().parents[3] / 'artifacts' / 'cv-waqf' / 'mesaha-selflearn')   # data written by a run
 DATA.mkdir(parents=True, exist_ok=True)
-VERDICTS, DONE, LOG, EXPORT, RELINKS = (DATA / n for n in ('verdicts.json', 'done.json', 'verdicts.log.jsonl', 'reviewed_marks.json', 'relinks.json'))
+VERDICTS, DONE, LOG, EXPORT, RELINKS, POSITIONS = (DATA / n for n in ('verdicts.json', 'done.json', 'verdicts.log.jsonl', 'reviewed_marks.json', 'relinks.json', 'positions.json'))
 SYMBOLS = ['ج', 'ق', 'ص', 'م', 'لا', 'س', 'ع']
 lock = threading.Lock()
 app = Flask(__name__, static_folder=None)
@@ -58,7 +58,10 @@ def final_marks(done_pages, verdicts):
 def write_export():
     done, verdicts = set(read(DONE, [])), read(VERDICTS, {})
     marks = final_marks(done, verdicts)
-    write(EXPORT, {'pages': sorted(done), 'marks': marks, 'relinks': read(RELINKS, {}),
+    # Where the reviewer put the ring (the printed mark's true position), for the marks that survived.
+    pos = read(POSITIONS, {})
+    positions = {pg: {k: pos[f'{pg}:{k}'] for k in ms if f'{pg}:{k}' in pos} for pg, ms in marks.items()}
+    write(EXPORT, {'pages': sorted(done), 'marks': marks, 'positions': positions, 'relinks': read(RELINKS, {}),
                    'updated_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})
     return marks
 
@@ -77,7 +80,7 @@ def img(name):
 @app.get('/api/state')
 def state():
     return jsonify({'verdicts': read(VERDICTS, {}), 'done': read(DONE, []), 'symbols': SYMBOLS,
-                    'relinks': read(RELINKS, {})})
+                    'relinks': read(RELINKS, {}), 'positions': read(POSITIONS, {})})
 
 @app.post('/api/verdict')
 def verdict():
@@ -122,23 +125,55 @@ def relink():
     words = {w['key'] for p in pages() if p['page'] == page for w in p['words']}
     if src not in words or dst not in words:
         return jsonify({'error': 'unknown word'}), 400
+    pos = b.get('pos')
+    if pos is not None and not (isinstance(pos, list) and len(pos) == 2 and all(isinstance(n, (int, float)) for n in pos)):
+        return jsonify({'error': 'bad position'}), 400
     with lock:
-        v, r = read(VERDICTS, {}), read(RELINKS, {})
+        v, r, ps = read(VERDICTS, {}), read(RELINKS, {}), read(POSITIONS, {})
         if undo:
             v.pop(f'{page}:{src}', None)
             v.pop(f'{page}:{dst}', None)
             r.pop(f'{page}:{dst}', None)
+            ps.pop(f'{page}:{dst}', None)
         else:
             v[f'{page}:{src}'] = '-'
             v[f'{page}:{dst}'] = sym
+            if pos is not None:
+                ps[f'{page}:{dst}'] = [round(pos[0], 1), round(pos[1], 1)]
+            ps.pop(f'{page}:{src}', None)
             r[f'{page}:{dst}'] = {'from': src, 'symbol': sym, 't': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
         write(VERDICTS, v)
         write(RELINKS, r)
+        write(POSITIONS, ps)
         with LOG.open('a', encoding='utf-8') as f:
             f.write(json.dumps({'t': time.time(), 'page': page, 'relink': {'from': src, 'to': dst, 'symbol': sym, 'undo': undo}},
                                ensure_ascii=False) + '\n')
         write_export()
-    return jsonify({'ok': True, 'verdicts': v, 'relinks': r})
+    return jsonify({'ok': True, 'verdicts': v, 'relinks': r, 'positions': ps})
+
+
+@app.post('/api/position')
+def position():
+    """Where the reviewer put the ring: the printed mark's true position (``pos`` null clears it)."""
+    b = request.get_json(force=True) or {}
+    try:
+        page, key = int(b['page']), str(b['key'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'bad request'}), 400
+    pos = b.get('pos')
+    if pos is not None and not (isinstance(pos, list) and len(pos) == 2 and all(isinstance(n, (int, float)) for n in pos)):
+        return jsonify({'error': 'bad position'}), 400
+    if not any(key == w['key'] for p in pages() if p['page'] == page for w in p['words']):
+        return jsonify({'error': 'unknown word'}), 400
+    with lock:
+        ps = read(POSITIONS, {})
+        if pos is None:
+            ps.pop(f'{page}:{key}', None)
+        else:
+            ps[f'{page}:{key}'] = [round(pos[0], 1), round(pos[1], 1)]
+        write(POSITIONS, ps)
+        write_export()
+    return jsonify({'ok': True, 'positions': ps})
 
 
 @app.post('/api/done')

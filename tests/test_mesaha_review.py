@@ -17,7 +17,8 @@ def tool(tmp_path, monkeypatch):
     ]}]
     (tmp_path / 'pages.json').write_text(json.dumps(pages), encoding='utf-8')
     for name, fname in (('DATA', None), ('VERDICTS', 'verdicts.json'), ('DONE', 'done.json'), ('LOG', 'log.jsonl'),
-                        ('EXPORT', 'reviewed_marks.json'), ('RELINKS', 'relinks.json')):
+                        ('EXPORT', 'reviewed_marks.json'), ('RELINKS', 'relinks.json'),
+                        ('POSITIONS', 'positions.json')):
         monkeypatch.setattr(serve, name, tmp_path if fname is None else tmp_path / fname)
     return serve.app.test_client(), tmp_path
 
@@ -55,3 +56,23 @@ def test_relink_onto_a_proposal_replaces_its_symbol_and_rejects_bad_requests(too
     assert client.post('/api/relink', json={'page': 7, 'from': '2:1:1', 'to': '2:1:1', 'symbol': 'ج'}).status_code == 400
     assert client.post('/api/relink', json={'page': 7, 'from': '2:1:1', 'to': '9:9:9', 'symbol': 'ج'}).status_code == 400
     assert client.post('/api/relink', json={'page': 7, 'from': '2:1:1', 'to': '2:1:2', 'symbol': 'x'}).status_code == 400
+
+
+def test_ring_position_is_saved_exported_and_follows_a_move(tool):
+    client, tmp = tool
+    client.post('/api/done', json={'page': 7, 'done': True})
+    assert client.post('/api/position', json={'page': 7, 'key': '2:1:1', 'pos': [12.34, 56.78]}).status_code == 200
+    assert _marks(tmp)['positions']['7'] == {'2:1:1': [12.3, 56.8]}        # for the marks that survived
+    # Dragging the ring over another word moves the mark there and takes the position along.
+    client.post('/api/relink', json={'page': 7, 'from': '2:1:1', 'to': '2:1:2', 'symbol': 'ج', 'pos': [30, 40]})
+    out = _marks(tmp)
+    assert out['marks']['7'] == {'2:1:2': 'ج'} and out['positions']['7'] == {'2:1:2': [30, 40]}
+    client.post('/api/relink', json={'page': 7, 'from': '2:1:1', 'to': '2:1:2', 'undo': True})
+    assert _marks(tmp)['positions']['7'] == {}                              # undo drops the moved position
+
+
+def test_position_rejects_bad_input(tool):
+    client, _ = tool
+    assert client.post('/api/position', json={'page': 7, 'key': '2:1:1', 'pos': [1]}).status_code == 400
+    assert client.post('/api/position', json={'page': 7, 'key': '9:9:9', 'pos': [1, 2]}).status_code == 400
+    assert client.post('/api/relink', json={'page': 7, 'from': '2:1:1', 'to': '2:1:2', 'symbol': 'ج', 'pos': 'x'}).status_code == 400
