@@ -319,6 +319,20 @@ the time (251 / 260; DjVu relayout 93.8%, old OCR import 48.5%). Whole book
 63-827: Kraken 619 pages, DjVu 17, fallback to the layout's own rows 129 (83.1%
 coverage; mostly isolated pages, size-gate failures `r6`).
 
+**Relayout drafts in the layout DB (2026-10-05).** `python -m pipeline.cv_waqf.mesaha_drafts
+[--apply]` writes the relayout's rows for the covered pages (63-827) into
+`data/mushaf-mesaha-layout.db` (what Layout Studio edits; Supabase, the reviewed store, is not
+touched; pages 2-62 are left alone). 636 pages drafted (619 Kraken, 17 DjVu). The relayout can
+move a page's first/last word, so boundaries are reconciled to keep the DB's exact canonical
+continuity (every word on exactly one page; two layout tests pin it): between two drafts the next
+page's first word wins; an untouched (fallback) neighbour's edge rows are trimmed/extended to the
+draft's boundary (90 pages; 60 rows emptied, i.e. NULL-word `ayah` rows, where the old page held
+far more than the draft's edge row). Provenance is in the new table `relayout_drafts` (page,
+kind `draft`|`neighbour-edge`, source, flags); `layout_import_confidence` (the import's record)
+is unchanged. Review order: `artifacts/cv-waqf/mesaha-relayout-drafts/review_queue.csv`
+(emptied rows, moved edges, boundary notes, DjVu, then Kraken drafts). These are drafts: about a
+third of pages still have a one-word row error.
+
 **Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
 the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
 OCR-import DB; pull it with `layout_persistence.working_db_path(MESAHA,

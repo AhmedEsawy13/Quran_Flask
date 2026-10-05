@@ -1673,3 +1673,56 @@ def test_mesaha_relayout_words_pulled_from_a_neighbour_page_keep_their_text():
     prepared = preprocess_page(cv2.imread(str(cached)), spec, page=346)
     words = layout_geo.estimate_layout_words(spec, 346, prepared)
     assert words and all(w.text and w.word_key for w in words)
+
+
+def test_mesaha_drafts_move_a_page_edge_to_a_boundary():
+    from pipeline.cv_waqf.mesaha_drafts import _move_edge
+
+    rows = {1: [100, 108], 2: [109, 117], 3: [118, 126]}
+    assert _move_edge(rows, 'start', 103) == (3, 0)           # trim the start
+    assert rows[1] == [103, 108]
+    assert _move_edge(rows, 'start', 99) == (4, 0)            # extend backwards
+    assert rows[1] == [99, 108]
+    assert _move_edge(rows, 'end', 124) == (3, 0)             # trim the end (one past the last word)
+    assert rows[3] == [118, 123]
+    rows = {1: [100, 104], 2: [105, 110]}
+    moved, emptied = _move_edge(rows, 'start', 107)           # longer than the first row
+    assert (moved, emptied) == (7, 1) and rows[1][0] > rows[1][1] and rows[2] == [107, 110]
+
+
+def test_mesaha_draft_pages_make_every_boundary_contiguous(tmp_path):
+    import sqlite3
+
+    from pipeline.cv_waqf import mesaha_drafts
+
+    db = tmp_path / 'layout.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE pages (id INTEGER PRIMARY KEY, page_number INT, line_number INT, '
+        'line_type TEXT, is_centered INT, first_word_id INT, last_word_id INT, '
+        'surah_number INT, line_text TEXT)')
+    # page 63 draft, page 64 untouched (starts 5 words too early), page 65 draft
+    for page, rows in ((62, [(1, 1, 30)]), (63, [(1, 31, 60)]), (64, [(1, 56, 90)]), (65, [(1, 91, 120)])):
+        for ln, a, b in rows:
+            conn.execute('INSERT INTO pages (page_number, line_number, line_type, is_centered, '
+                         "first_word_id, last_word_id, surah_number, line_text) VALUES (?,?,?,?,?,?,?,?)",
+                         (page, ln, 'ayah', 0, a, b, 1, ''))
+    conn.commit()
+    conn.close()
+    positions = {i: i - 1 for i in range(1, 200)}
+    ids = tuple(range(1, 200))
+    collected = {63: {'source': 'kraken', 'rows': {1: [31, 60, 30]}},
+                 65: {'source': 'kraken', 'rows': {1: [91, 120, 30]}}}
+    import pytest
+
+    pytest.importorskip('pipeline.cv_waqf.layout_geo')
+    original = mesaha_drafts.layout_geo._ordered_word_ids
+    mesaha_drafts.layout_geo._ordered_word_ids = lambda _db: (ids, positions)
+    try:
+        drafts = mesaha_drafts.plan(collected, str(db), 'unused')
+    finally:
+        mesaha_drafts.layout_geo._ordered_word_ids = original
+    # Page 64 started 5 words early; it now starts where draft 63 ends (position 60 = word 61).
+    assert drafts['adjusted'][64] == {1: [60, 89]}
+    assert drafts['pages'][63]['rows'] == {1: [30, 59]}      # the draft's own boundary stands
+    assert drafts['stats']['untouched page adjusted (overlap)'] == 1
