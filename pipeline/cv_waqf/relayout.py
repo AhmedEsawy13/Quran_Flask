@@ -332,7 +332,11 @@ def kraken_rows(
     rows = [list(range(bounds[k], bounds[k + 1])) for k in range(n_rows)]
     sizes = [len(r) for r in rows]
     LAST_DEBUG.update(page=page, kraken=True, kept=len(matched), worst=0.0, sizes=sizes, matched=dict(matched), kraken_sizes=sizes)
-    if min(sizes) < MIN_ROW_WORDS or max(sizes) > MAX_ROW_WORDS:
+    # The last row before a surah banner holds the end of a surah, however few words.
+    short_ok = set(forced or ())
+    if any(
+        n < (1 if k in short_ok else MIN_ROW_WORDS) for k, n in enumerate(sizes)
+    ) or max(sizes) > MAX_ROW_WORDS:
         return _why('r6')
     return rows
 

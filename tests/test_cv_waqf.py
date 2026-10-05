@@ -1783,3 +1783,24 @@ def test_kraken_rows_honour_a_forced_surah_boundary(monkeypatch):
     assert relayout.kraken_rows(**kw, forced={2: 24}) == [list(range(k * 8, (k + 1) * 8)) for k in range(6)]
     # a boundary the Kraken matches contradict is refused, not forced
     assert relayout.kraken_rows(**kw, forced={2: 20}) is None
+
+
+def test_kraken_rows_accept_a_short_last_row_before_a_banner(monkeypatch):
+    import itertools
+
+    from pipeline.cv_waqf import relayout
+
+    letters = 'جدصطعفقكلمنهو'
+    words = [''.join(t) for t in itertools.islice(itertools.product(letters, repeat=3), 0, 4000, 37)]
+    sizes = [8, 8, 3, 8, 8, 8]                       # the surah ends on a 3-word row
+    bounds = [0] + list(itertools.accumulate(sizes))
+    texts = words[:bounds[-1]]
+    lines = [{'y': 100 * (k + 1), 'text': ' '.join(texts[bounds[k]:bounds[k + 1]]), 'width': 1000}
+             for k in range(6)]
+    monkeypatch.setattr(relayout, '_kraken_pages', lambda: {'7': lines})
+    kw = dict(page=7, image_width=4124.0, texts=texts, weights=[1.0] * len(texts),
+              row_extents=[(0.0, 1000.0)] * 6, row_baselines=[100.0 * (k + 1) for k in range(6)], pitch=100.0)
+    # Without a banner after row 3 the size gate rejects a 3-word row; with one it is the surah's end.
+    assert relayout.kraken_rows(**kw) is None
+    rows = relayout.kraken_rows(**kw, forced={2: bounds[3]})
+    assert rows is not None and [len(r) for r in rows] == sizes

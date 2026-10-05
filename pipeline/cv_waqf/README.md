@@ -342,7 +342,7 @@ as imported and their neighbours meet them.
 a 2-slot basmallah), but the layout DB, the Studio profile and the CV geometry treated it as 3, so a
 banner page carried one invented ayah row after the banner (page 62 had its single printed row
 after the basmallah split in two) and the CV geometry put every row below a banner one slot too
-high (the hand labels on page 445 scored 0/4 for this reason). Fixed everywhere: the Studio profile
+high. Fixed everywhere: the Studio profile
 (`basmallah_lines=2`) and row budget (`_page_row_budget`); `EditionSpec.header_slots` +
 `layout_geo.physical_slots` map logical rows to physical slots; the relayout forces the new
 surah's first word to start the row after the banner (`forced_boundaries`), which also removes the
@@ -350,8 +350,14 @@ rows that spanned two surahs; `mesaha_drafts --restructure` gives the 102 banner
 Pages 62 (merged back to the printed row), 96 (the Nisa banner belonged to page 97: twelve plain
 rows ending 3:200) and 97 (banner + eight rows from 4:1:1) were corrected by hand and saved to
 Supabase (old rows: `artifacts/cv-waqf/mesaha-relayout-drafts/cloud_backup_pages_62_96.json`).
-After the correction: 636 draft pages, only 3 kept as imported (283, 345, 783), 0 duplicated/missing
-words, nothing the Studio's save validation rejects, 50 empty rows left on 28 fallback pages.
+A second, separate cause of the banner-page failures: the relayout's row-size gate (>= 5 words)
+rejected the 3-word row that ends a surah just before the banner, so those pages fell back to the
+broken layout; that row is now exempt (`kraken_rows`, rows before a forced boundary). The hand
+labels (37, 5 pages) then score: first suggestion **32/37 (86.5%, was 59%)**, all 37 in the top six,
+detector finds 30/37 (was 26); page 445 0/4 -> 4/4. After the correction: 638 draft pages, only 3 kept
+as imported (283, 345, 783), 0 duplicated/missing words, nothing the Studio's save validation
+rejects, 48 empty rows left on 26 fallback pages (the relayout never attempts them; listed first
+in `review_queue.csv`).
 `artifacts/.../rebuild.py` redoes the whole draft deterministically from the OCR import.
 
 **Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
