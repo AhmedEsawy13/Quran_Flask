@@ -95,6 +95,12 @@ class EditionSpec:
     # counts match and favours words that another edition's script marks; on a print whose stops
     # differ from those editions (Mesaha) both put a mark on the neighbouring word.
     attach_by_seat: bool = False
+    # Cut words with the per-letter width model fitted on the scan (relayout.word_width) instead of
+    # the letter-count estimate, and pin the cuts to the OCR's word boxes where the OCR read the
+    # word (relayout.ocr_words). Both only for a print with an OCR layer; they halve the word boxes
+    # that are off by half a word.
+    learned_widths: bool = False
+    ocr_word_anchors: bool = False
     # Use another edition's model until this print has its own. Explicit and
     # one hop only, so a transfer is visible in the registry and in the detect
     # payload instead of hiding in a path lookup.
@@ -319,6 +325,8 @@ EDITIONS: dict[str, EditionSpec] = {
         trusted_layout_pages=(2, 60),
         header_slots=(('basmallah', 2),),
         attach_by_seat=True,
+        learned_widths=True,
+        ocr_word_anchors=True,
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
         # cannot be compared with or filtered by the QPC-indexed columns.

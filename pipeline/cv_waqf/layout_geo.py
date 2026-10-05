@@ -176,6 +176,38 @@ def _observed_line_bounds(
     return observed_left, observed_right
 
 
+_ANCHOR_HOLDOUT: str | None = None     # experiments only: 'even'/'odd' keeps half the anchors out
+
+
+def _ocr_row_anchors(
+    ocr_page, texts: list[str], baseline: float, pitch: float, x_range: tuple[int, int],
+) -> dict[int, tuple[float, float]]:
+    """``{word index: (left, right)}`` for the row's words the scan's OCR read, from its word boxes.
+
+    The OCR words of this row (by y) are aligned to the row's known words by dotless letter shape;
+    only matches the alignment is sure of are kept, so a misread word never pins a cut.
+    """
+    from pipeline.cv_waqf import relayout
+
+    row = [
+        w for w in ocr_page
+        if abs((w.y0 + w.y1) / 2 - baseline) <= 0.40 * pitch
+        and x_range[0] <= (w.x0 + w.x1) / 2 <= x_range[1]
+    ]
+    if len(row) < 2:
+        return {}
+    row.sort(key=lambda w: -(w.x0 + w.x1) / 2)
+    pairs = relayout.align(row, [relayout._rasm(t) for t in texts])
+    out: dict[int, tuple[float, float]] = {}
+    for j, i in pairs.items():
+        if _ANCHOR_HOLDOUT and (j % 2 == 0) == (_ANCHOR_HOLDOUT == 'even'):
+            continue
+        box = row[i]
+        if box.x1 - box.x0 >= 8:
+            out[j] = (float(box.x0), float(box.x1))
+    return out
+
+
 def physical_slots(spec: EditionSpec, lines: list[dict]) -> tuple[dict[int, int], int]:
     """``{line_number: first physical slot}`` and the page's physical slot count.
 
@@ -397,6 +429,16 @@ def estimate_layout_words(
             spec, page, prepared, mask, grid, spans, meta,
             [slot_of.get(int(ln['line_number']), 0) for ln, _ in spans],
         ) or spans
+    ocr_page = None
+    relayout_word_width = None
+    if spec.learned_widths or spec.ocr_word_anchors:
+        from pipeline.cv_waqf import relayout as _relayout
+
+        relayout_word_width = _relayout.word_width
+        if spec.ocr_word_anchors and measured and prepared.bgr is not None:
+            ocr_page = _relayout.ocr_words(
+                page, int(spec.leaf_offset), float(prepared.bgr.shape[1]),
+            ) or None
     for ln, ids in spans:
         if not ids:
             continue                           # still empty after the relayout
@@ -410,8 +452,9 @@ def estimate_layout_words(
         word_top = line_top
         word_bot = line_bot
         n = len(ids)
+        width_of = relayout_word_width if spec.learned_widths else _arabic_width_weight
         weights = [
-            _arabic_width_weight(str((meta.get(wid) or {}).get('text') or ''))
+            width_of(str((meta.get(wid) or {}).get('text') or ''))
             for wid in ids
         ]
         boxes = None
@@ -421,9 +464,15 @@ def estimate_layout_words(
             ) * grid.pitch
             # x_bounds are the inner frame rules; the measured extent
             # handles whatever ornament remains inside them.
+            anchors = (
+                _ocr_row_anchors(
+                    ocr_page, [str((meta.get(wid) or {}).get('text') or '') for wid in ids],
+                    baseline, grid.pitch, x_bounds,
+                ) if ocr_page else None
+            )
             boxes = geometry.segment_line_words(
                 mask, baseline=baseline, pitch=grid.pitch,
-                weights=weights, x_range=x_bounds,
+                weights=weights, x_range=x_bounds, anchors=anchors,
             )
         if boxes is None:
             line_left, line_right = _observed_line_bounds(

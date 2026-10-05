@@ -1933,3 +1933,51 @@ def test_reconcile_reopens_pages_with_unseen_proposals_and_tags_moves():
     moved = out['pages'][0]['proposals'][0]
     assert moved['moved_from'] == {'key': 'w1', 'text': 't1'}      # the rejected neighbour
     assert out['report']['lost_marks'] == []
+
+
+def test_word_cuts_are_pinned_by_anchors_so_one_bad_width_cannot_shift_a_row():
+    import numpy as np
+
+    from pipeline.cv_waqf import geometry
+
+    mask = np.zeros((100, 600), dtype=bool)
+    truth = [(560, 480), (470, 400), (390, 300), (290, 230), (220, 120), (110, 40)]   # RTL (right, left)
+    for right, left in truth:
+        mask[40:60, left:right] = True
+    weights = [1, 1, 4, 1, 1, 1]                      # a bad width estimate for the third word
+    plain = geometry.segment_line_words(mask, baseline=50, pitch=60, weights=weights, x_range=(0, 600))
+    pinned = geometry.segment_line_words(
+        mask, baseline=50, pitch=60, weights=weights, x_range=(0, 600),
+        anchors={1: (400.0, 470.0), 3: (230.0, 290.0)},
+    )
+    expected_cuts = [475, 395, 295, 225, 115]         # the middle of each real gap
+
+    def cut_error(spans):
+        return max(abs(spans[i][0] - expected_cuts[i]) for i in range(5))
+    assert cut_error(pinned) <= 12 and cut_error(plain) > 40
+    # anchors that contradict reading order are ignored, not trusted
+    bad = geometry.segment_line_words(mask, baseline=50, pitch=60, weights=[1] * 6, x_range=(0, 600),
+                                      anchors={1: (100.0, 150.0), 2: (400.0, 450.0)})
+    assert bad is not None and len(bad) == 6
+
+
+def test_ocr_row_anchors_only_pin_words_the_alignment_is_sure_of():
+    from pipeline.cv_waqf import layout_geo, relayout
+
+    def ocr(text, x0, x1, row_y=100):
+        return relayout.OcrWord(text, relayout._rasm(text), x0, row_y - 15, x1, row_y + 15)
+
+    texts = ['كتابنا', 'ربنا', 'الرحمن']                  # RTL: first word is rightmost
+    words = [ocr('كتابنا', 400, 500), ocr('ربنا', 300, 380), ocr('xyzw', 150, 250), ocr('الرحمن', 40, 140)]
+    got = layout_geo._ocr_row_anchors(words, texts, baseline=100.0, pitch=60.0, x_range=(0, 600))
+    assert got == {0: (400.0, 500.0), 1: (300.0, 380.0), 2: (40.0, 140.0)}
+    # a word on another row is not an anchor
+    far = [ocr('كتابنا', 400, 500, row_y=400), ocr('ربنا', 300, 380, row_y=400)]
+    assert layout_geo._ocr_row_anchors(far, texts, baseline=100.0, pitch=60.0, x_range=(0, 600)) == {}
+
+
+def test_only_mesaha_uses_learned_widths_and_ocr_anchors():
+    from pipeline.cv_waqf.config import EDITIONS
+
+    assert EDITIONS['المساحة'].learned_widths and EDITIONS['المساحة'].ocr_word_anchors
+    assert all(not (s.learned_widths or s.ocr_word_anchors) for k, s in EDITIONS.items() if k != 'المساحة')

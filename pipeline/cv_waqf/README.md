@@ -404,6 +404,18 @@ found 30/37 -> 32/37; all 124 marks the reviewer ended with stayed on their word
 neighbour used to crowd out (one mark per word) now surface. `mesaha_review.reconcile` re-opens finished pages
 that gained unseen proposals and tags those that moved from a rejected neighbour (`moved_from`).
 
+**Two words cut as one (Mesaha word boxes, 2026-10-05).** A row's words are cut from the empty ink gaps that
+best match each word's expected width. The width came from a letter count, so one wrong estimate (or a missing
+gap) merged two words or shifted the rest of the row by a word, and a mark was then linked to the wrong word.
+Measured against the scan's OCR word boxes (44 reviewed pages, 2,477 words the OCR read): 14.4% of boxes
+overlapped the real word by less than half and 8.2% were off by more than half a word. Now (Mesaha only):
+`EditionSpec.learned_widths` cuts with the per-letter model fitted on the scan (`relayout.word_width`), and
+`ocr_word_anchors` pins the cuts next to every word the OCR read (`layout_geo._ocr_row_anchors`,
+`geometry.segment_line_words(anchors=...)`; the cuts in between are interpolated by width). Result: 9% / 4% for
+words the OCR did NOT read (anchors from the other half held out), 3.1% / 1.2% for words it did. Hand labels
+found 32/37 -> 33/37; of your decisions on finished pages none moved to another word. Cases the learned widths
+alone still got wrong (a whole-row shift on page 39, a merged pair on page 81) were the reason for the anchors.
+
 **What the first 20 reviewed pages say (216 proposals).** Auto-accepted ones: 91/91 confirmed. Candidates the
 models make but neither the seat prior nor the Shemrly column supports ("Mesaha-only"): **0 of 85 were real**
 (69 with 2 of 3 models, 16 with all 3). Column marks that no model found: 12 of 14 were real marks. So on these

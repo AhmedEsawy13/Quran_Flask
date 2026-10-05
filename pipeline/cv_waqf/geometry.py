@@ -217,6 +217,8 @@ def segment_line_words(
     position_sigma: float = 0.06,
     virtual_penalty: float = 1.5,
     gap_reward: float = 1.0,
+    anchors: dict[int, tuple[float, float]] | None = None,
+    anchor_sigma: float = 0.015,
 ) -> list[tuple[int, int]] | None:
     """Cut one printed line into ``len(weights)`` word spans, RTL order.
 
@@ -227,6 +229,10 @@ def segment_line_words(
     needed, virtual cuts at the expected positions fill in, at a penalty, so
     the result always has one span per word. Returns ``None`` when the line
     has no measurable ink.
+
+    ``anchors`` maps a word index to its measured ``(left, right)`` x extent (an OCR word box).
+    The cuts next to an anchored word are pinned there, the others interpolated between
+    the pinned ones by width, so one wrong width estimate cannot shift the rest of the line.
     """
     n = len(weights)
     if n == 0:
@@ -262,17 +268,50 @@ def segment_line_words(
     cum = np.cumsum(weights)[:-1]
     expected = right - span * cum / total  # decreasing x for j = 0..N-2
     unit = max(1.0, 0.30 * pitch)
+    sigmas = np.full(n - 1, max(1.0, position_sigma * span))
+    if anchors:
+        # Boundary k sits between word k-1 and word k (0 = right edge, n = left edge).
+        cw = np.concatenate(([0.0], np.cumsum(weights)))
+        known: dict[int, float] = {0: float(right), n: float(left)}
+        last_k = 0                                  # the last boundary pinned so far
+        for j in sorted(anchors):
+            xl, xr = anchors[j]
+            if not (0 <= j < n) or not (left <= xl < xr <= right) or j < last_k:
+                continue
+            if j == last_k and j not in (0, n):     # neighbour anchors share a boundary: they must agree
+                if abs(known[j] - xr) > 0.35 * pitch:
+                    continue
+                right_edge = (known[j] + xr) / 2.0
+            else:
+                right_edge = float(right) if j == 0 else xr
+            left_edge = float(left) if j + 1 == n else xl
+            if not left_edge < right_edge - 1:
+                continue
+            if j > last_k and right_edge > known[last_k] - 1:
+                continue                            # would run backwards past the previous anchor
+            known[j] = right_edge
+            known[j + 1] = left_edge
+            last_k = j + 1
+        ks = sorted(known)
+        xs = {}
+        for a, b in zip(ks, ks[1:]):
+            for k in range(a, b + 1):
+                frac = 0.0 if cw[b] == cw[a] else (cw[k] - cw[a]) / (cw[b] - cw[a])
+                xs[k] = known[a] - (known[a] - known[b]) * frac
+        for k in range(1, n):
+            expected[k - 1] = xs.get(k, expected[k - 1])
+            if k in known and k not in (0, n):
+                sigmas[k - 1] = max(1.0, anchor_sigma * span)
 
     cands = [(x, gw, True) for x, gw in gaps]
     cands += [(float(x), 0.0, False) for x in expected]
     cands.sort(key=lambda c: -c[0])  # RTL: rightmost first
     m = len(cands)
     inf = float('inf')
-    sigma = max(1.0, position_sigma * span)
 
     def cost(j: int, i: int) -> float:
         x, gw, real = cands[i]
-        value = ((x - expected[j]) / sigma) ** 2
+        value = ((x - expected[j]) / sigmas[j]) ** 2
         if real:
             value -= gap_reward * min(gw / unit, 1.0)
         else:
