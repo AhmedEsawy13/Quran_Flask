@@ -1726,3 +1726,35 @@ def test_mesaha_draft_pages_make_every_boundary_contiguous(tmp_path):
     assert drafts['adjusted'][64] == {1: [60, 89]}
     assert drafts['pages'][63]['rows'] == {1: [30, 59]}      # the draft's own boundary stands
     assert drafts['stats']['untouched page adjusted (overlap)'] == 1
+
+
+def test_mesaha_drafts_never_move_a_fixed_page_and_neighbours_meet_it(tmp_path):
+    import sqlite3
+
+    from pipeline.cv_waqf import mesaha_drafts
+
+    db = tmp_path / 'layout.db'
+    conn = sqlite3.connect(db)
+    conn.execute(
+        'CREATE TABLE pages (id INTEGER PRIMARY KEY, page_number INT, line_number INT, '
+        'line_type TEXT, is_centered INT, first_word_id INT, last_word_id INT, '
+        'surah_number INT, line_text TEXT)')
+    # page 63 reviewed (fixed) ends at word 60; page 64 is a draft whose relayout starts at 56.
+    for page, a, b in ((62, 1, 30), (63, 31, 60), (64, 61, 90)):
+        conn.execute('INSERT INTO pages (page_number, line_number, line_type, is_centered, '
+                     'first_word_id, last_word_id, surah_number, line_text) VALUES (?,?,?,?,?,?,?,?)',
+                     (page, 1, 'ayah', 0, a, b, 1, ''))
+    conn.commit()
+    conn.close()
+    ids = tuple(range(1, 200))
+    positions = {i: i - 1 for i in ids}
+    collected = {64: {'source': 'kraken', 'rows': {1: [56, 90, 35]}}}
+    original = mesaha_drafts.layout_geo._ordered_word_ids
+    mesaha_drafts.layout_geo._ordered_word_ids = lambda _db: (ids, positions)
+    try:
+        drafts = mesaha_drafts.plan(collected, str(db), 'unused', fixed={63})
+    finally:
+        mesaha_drafts.layout_geo._ordered_word_ids = original
+    assert 63 not in drafts['pages'] and 63 not in drafts['adjusted']          # never rewritten
+    assert drafts['pages'][64]['rows'] == {1: [60, 89]}                          # starts after page 63's last word
+    assert 'moved to meet fixed page 63' in drafts['pages'][64]['notes'][0]

@@ -98,8 +98,13 @@ def _move_edge(rows: dict[int, list[int]], which: str, boundary: int) -> tuple[i
     return moved, emptied
 
 
-def plan(collected: dict[int, dict], db_path: str, script_db: str) -> dict:
-    """Draft rows per covered page, boundaries reconciled; no database writes."""
+def plan(collected: dict[int, dict], db_path: str, script_db: str,
+         fixed: frozenset[int] | set[int] = frozenset()) -> dict:
+    """Draft rows per covered page, boundaries reconciled; no database writes.
+
+    ``fixed`` pages (reviewed ones, or pages whose draft cannot be saved) keep their rows
+    as they are; their neighbours' edges move to meet them."""
+    fixed = set(fixed) | set(range(1, REVIEWED_THROUGH + 1))
     ids, pos = layout_geo._ordered_word_ids(script_db)
     conn = sqlite3.connect(db_path)
     try:
@@ -107,7 +112,7 @@ def plan(collected: dict[int, dict], db_path: str, script_db: str) -> dict:
         for page, ln, typ, ctr, a, b, sur, txt in conn.execute(
             'SELECT page_number, line_number, line_type, is_centered, first_word_id, '
             'last_word_id, surah_number, line_text FROM pages WHERE page_number >= ? '
-            'ORDER BY page_number, line_number', (REVIEWED_THROUGH,),
+            'ORDER BY page_number, line_number', (REVIEWED_THROUGH - 1,),
         ):
             old_lines[page].append(
                 {'line_number': ln, 'line_type': typ, 'is_centered': ctr,
@@ -123,7 +128,7 @@ def plan(collected: dict[int, dict], db_path: str, script_db: str) -> dict:
     pages: dict[int, dict] = {}
     for page, rec in collected.items():
         page = int(page)
-        if not rec.get('source') or not FIRST_PAGE <= page <= LAST_PAGE:
+        if not rec.get('source') or not FIRST_PAGE <= page <= LAST_PAGE or page in fixed:
             continue
         old_ayah = {l['line_number']: l for l in ayah_old(page)}
         rows = {}
@@ -154,7 +159,7 @@ def plan(collected: dict[int, dict], db_path: str, script_db: str) -> dict:
     # Every page boundary that touches a draft (the left page may be untouched).
     for page in sorted({q for d in pages for q in (d - 1, d)}):
         nxt = page + 1
-        if nxt > LAST_PAGE or page < REVIEWED_THROUGH:
+        if nxt > LAST_PAGE or page < REVIEWED_THROUGH or (page in fixed and nxt in fixed):
             continue
         a, b = edge(page), edge(nxt)
         if not a or not b or a[1] is None or b[0] is None:
@@ -163,12 +168,32 @@ def plan(collected: dict[int, dict], db_path: str, script_db: str) -> dict:
         if delta == 0:
             stats['contiguous'] += 1
             continue
-        if page == REVIEWED_THROUGH:
-            # The reviewed page never moves: the first draft starts where it ends.
-            rows = pages[nxt]['rows']
-            _move_edge(rows, 'start', a[1] + 1)
-            pages[nxt]['notes'].append(f'start {abs(delta)} word(s) moved to meet reviewed page {page}')
-            stats['aligned to reviewed page'] += 1
+        kind = 'overlap' if delta < 0 else 'gap'
+        if page in fixed or nxt in fixed:
+            # A reviewed (or unsavable) page never moves: its neighbour meets it.
+            if page in fixed:
+                other, which, boundary, fixed_page = nxt, 'start', a[1] + 1, page
+            else:
+                other, which, boundary, fixed_page = page, 'end', b[0], nxt
+            if other in pages:
+                _, emptied = _move_edge(pages[other]['rows'], which, boundary)
+                pages[other]['notes'].append(
+                    f'{which} {kind} {abs(delta)} moved to meet fixed page {fixed_page}'
+                    + (f' ({emptied} row(s) emptied)' if emptied else ''))
+                stats['draft aligned to a fixed page'] += 1
+                stats['rows emptied'] += emptied
+            else:
+                rows = adjusted.get(other) or {
+                    l['line_number']: [pos[l['first_word_id']], pos[l['last_word_id']]]
+                    for l in ayah_old(other) if l['first_word_id'] in pos and l['last_word_id'] in pos
+                }
+                if rows:
+                    _, emptied = _move_edge(rows, which, boundary)
+                    adjusted[other] = rows
+                    adjusted_notes[other].append(
+                        f'{which} {kind} {abs(delta)} moved to meet fixed page {fixed_page}'
+                        + (f' ({emptied} row(s) emptied)' if emptied else ''))
+                    stats['rows emptied'] += emptied
             continue
         if page in pages and nxt in pages and abs(delta) <= MAX_RECONCILE:
             boundary = min(b[0], a[1] + 1)  # the next page's first word wins an overlap
@@ -179,7 +204,6 @@ def plan(collected: dict[int, dict], db_path: str, script_db: str) -> dict:
                 first_row[0] = boundary
                 stats['reconciled'] += 1
                 continue
-        kind = 'overlap' if delta < 0 else 'gap'
         if nxt in pages and page in pages:
             # Two drafts that disagree by more than a stray word: the next page's
             # first word still wins (trim the earlier page's end / extend the
@@ -221,6 +245,74 @@ def plan(collected: dict[int, dict], db_path: str, script_db: str) -> dict:
         stats['rows emptied'] += emptied
     return {'pages': pages, 'adjusted': adjusted, 'adjusted_notes': dict(adjusted_notes),
             'stats': dict(stats), 'ids': ids}
+
+
+def reviewed_pages(db_path: str, offline: bool = False) -> set[int]:
+    """Pages whose rows must never be rewritten: the reviewed ones (2..REVIEWED_THROUGH),
+    anything saved to Supabase's Layout Studio store, pages marked reviewed there or in
+    the local progress table. Without the cloud answer the run stops (``offline`` skips it)."""
+    import os
+
+    out = set(range(1, REVIEWED_THROUGH + 1))
+    conn = sqlite3.connect(db_path)
+    try:
+        out |= {int(r[0]) for r in conn.execute(
+            'SELECT page_number FROM mesaha_layout_progress WHERE reviewed = 1')}
+    except sqlite3.OperationalError:
+        pass
+    finally:
+        conn.close()
+    if offline:
+        return out
+    env = ROOT / '.env'
+    if env.is_file():
+        for raw in env.read_text(encoding='utf-8').splitlines():
+            raw = raw.strip()
+            if raw and not raw.startswith('#') and '=' in raw:
+                k, v = raw.split('=', 1)
+                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+    from core import supabase_editor as sb
+
+    if not sb.is_configured():
+        raise SystemExit('Supabase is not configured: cannot tell which pages are reviewed '
+                         '(pass --offline to use only the local progress table)')
+    out |= {int(r['page_number']) for r in sb.fetch_layout_page_index(edition='mesaha', force=True)}
+    out |= set(sb.list_reviewed_pages('mesaha'))
+    return out
+
+
+def crossing_pages(drafts: dict, script_db: str) -> set[int]:
+    """Drafted/adjusted pages with an ayah row that spans two surahs: Layout Studio rejects
+    those on save (a surah change needs its banner row), so they cannot be drafts."""
+    ids, _pos = layout_geo._ordered_word_ids(script_db)
+    conn = sqlite3.connect(script_db)
+    try:
+        surah = {int(w): int(sr) for w, sr in conn.execute('SELECT word_index, surah FROM words')}
+    finally:
+        conn.close()
+    bad = set()
+    groups = [(p, d['rows']) for p, d in drafts['pages'].items()]
+    groups += list(drafts.get('adjusted', {}).items())
+    for page, rows in groups:
+        for a, b in rows.values():
+            if a <= b and len({surah.get(ids[i]) for i in range(a, b + 1)}) > 1:
+                bad.add(page)
+    return bad
+
+
+def make_plan(collected, spec, offline: bool = False) -> tuple[dict, set[int]]:
+    """``plan`` with the reviewed pages fixed, repeated with every page whose draft would
+    not save also fixed (its neighbours then meet it) until none is left."""
+    fixed = reviewed_pages(spec.layout_db, offline)
+    unsavable: set[int] = set()
+    for _ in range(12):
+        drafts = plan(collected, spec.layout_db, spec.script_db, fixed | unsavable)
+        bad = crossing_pages(drafts, spec.script_db) - fixed - unsavable
+        if not bad:
+            drafts['stats']['kept as imported (draft would not save)'] = len(unsavable)
+            return drafts, unsavable
+        unsavable |= bad
+    raise SystemExit(f'surah-crossing rows remain after 12 passes: {sorted(bad)}')
 
 
 def apply(drafts: dict, db_path: str, script_db: str) -> int:
@@ -295,6 +387,8 @@ def main(argv: list[str] | None = None) -> None:
                         help='relayout rows per page (JSON); regenerated when missing or --recollect')
     parser.add_argument('--recollect', action='store_true')
     parser.add_argument('--apply', action='store_true', help='write the drafts (default: dry run)')
+    parser.add_argument('--offline', action='store_true',
+                        help='do not ask Supabase which pages are reviewed (local progress only)')
     args = parser.parse_args(argv)
     spec = EDITIONS[EDITION]
     path = Path(args.collected)
@@ -304,11 +398,11 @@ def main(argv: list[str] | None = None) -> None:
         collected = collect()
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(collected), encoding='utf-8')
-    drafts = plan(collected, spec.layout_db, spec.script_db)
+    drafts, unsavable = make_plan(collected, spec, args.offline)
     by_source = collections.Counter(d['source'] for d in drafts['pages'].values())
     flagged = sum(1 for d in drafts['pages'].values() if d['notes'])
     print({'drafts': len(drafts['pages']), 'by_source': dict(by_source),
-           'boundary_notes': flagged, 'untouched pages adjusted': len(drafts['adjusted']),
+           'boundary_notes': flagged, 'untouched pages adjusted': len(drafts['adjusted']), 'kept as imported': sorted(unsavable),
            **drafts['stats']})
     if args.apply:
         print('written', apply(drafts, spec.layout_db, spec.script_db), 'pages to', spec.layout_db)

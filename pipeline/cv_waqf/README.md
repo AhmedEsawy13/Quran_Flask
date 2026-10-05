@@ -331,7 +331,12 @@ far more than the draft's edge row). Provenance is in the new table `relayout_dr
 kind `draft`|`neighbour-edge`, source, flags); `layout_import_confidence` (the import's record)
 is unchanged. Review order: `artifacts/cv-waqf/mesaha-relayout-drafts/review_queue.csv`
 (emptied rows, moved edges, boundary notes, DjVu, then Kraken drafts). These are drafts: about a
-third of pages still have a one-word row error.
+third of pages still have a one-word row error. **Safety:** `--apply` asks Supabase which pages are
+already saved/reviewed in Layout Studio (plus the local progress table) and never rewrites them: those
+pages stay fixed and their neighbours' edges meet them (it stops if Supabase cannot be reached;
+`--offline` skips the check). A draft row that spans two surahs is rejected by Studio's save
+validation (a surah change needs its banner row), so such pages (96, 97, 283, 419, 420, 783) are kept
+as imported and their neighbours meet them.
 
 **Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
 the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
