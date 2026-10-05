@@ -73,6 +73,17 @@ input differently and score far worse at detect time.
   --model models/waqf_glyph_multiprint.onnx
 ```
 
+**The shipped `waqf_glyph_multiprint` is the Bahrain + Qatar + Kuwait model**
+(round-2 `models/cloud2/kuwait_s1`, bundle v3; same weights as Kuwait's own
+model). Its gate on the held-out pages: Qatar 97.3% exact / 5 wrong / 98.0%
+precision, Bahrain 94.4% (seed 1 is the best of three; the three-seed mean is
+Qatar 96.6%, Bahrain 93.3%, GATE PASSED, i.e. level with the old two-print
+model on Qatar). Its benefit is on prints never trained on, which is not yet
+measured; score it against the old model on the Mesaha hand labels
+(`evaluate-hand`) when they exist. The old two-print model is in git history
+(`git show 90320fd:models/waqf_glyph_multiprint.onnx`). When copying a cloud
+model into `models/`, rewrite `gate_model` in its `.json` to the new file name.
+
 `models/waqf_glyph_multiprint.onnx` is what an edition without its own model
 resolves to (own → `model_fallback` → multiprint → legacy shared).
 
