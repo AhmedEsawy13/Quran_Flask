@@ -2090,3 +2090,25 @@ def test_cut_doubt_flags_cuts_the_second_reader_contradicts_and_boxes_of_unlikel
     assert geometry.cut_doubt({**sure, 'gap': 0.03})[0] == pytest.approx(geometry.DOUBT_NARROW_GAP)
     assert geometry.width_doubt(1.0, 1.0)[0] == 0.0 and geometry.width_doubt(0.3, 1.0)[0] >= 0.5
     assert geometry.width_doubt(3.0, 1.0)[0] >= 0.5 and geometry.width_doubt(0, 1.0) == (0.0, '')
+
+
+def test_a_rejected_cut_is_avoided_and_a_hand_set_cut_re_fits_the_others():
+    import numpy as np
+
+    from pipeline.cv_waqf import geometry
+
+    mask = np.zeros((100, 600), dtype=bool)
+    for right, left in ((590, 470), (460, 412), (400, 250), (235, 40)):
+        mask[40:60, left:right] = True
+    kwargs = dict(baseline=50, pitch=60, weights=[1, 1, 1], x_range=(0, 600))
+    plain = geometry.segment_line_words(mask, **kwargs)
+    assert abs(plain[0][0] - 406) <= 6                                  # the gap inside the middle word
+    again = geometry.segment_line_words(mask, **kwargs, avoid={1: [406.0]})
+    assert abs(again[0][0] - 465) <= 6                                  # told it is wrong, the next best is the real gap
+    # solid ink: nothing but the width model places the cuts; one cut set by hand moves the others with it
+    solid = np.zeros((100, 600), dtype=bool)
+    solid[40:60, 40:590] = True
+    even = geometry.segment_line_words(solid, baseline=50, pitch=60, weights=[1, 1, 1, 1], x_range=(0, 600))
+    pinned = geometry.segment_line_words(solid, baseline=50, pitch=60, weights=[1, 1, 1, 1], x_range=(0, 600), fixed={2: 250.0})
+    assert [c[0] for c in even][:3] == [pytest.approx(c, abs=8) for c in (452, 315, 177)] or abs(even[0][0] - 452) <= 8
+    assert abs(pinned[0][0] - 420) <= 10 and pinned[1][0] == 250 and abs(pinned[2][0] - 145) <= 10

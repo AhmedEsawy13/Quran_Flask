@@ -6,7 +6,7 @@ import json, os, threading, time
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
-from pipeline.cv_waqf.mesaha_review.cuts import apply_cuts, cut_key, neighbours, valid_x
+from pipeline.cv_waqf.mesaha_review.cuts import MIN_WORD_PX, apply_cuts, cut_key, neighbours, pinned_cuts, valid_x
 
 HERE = Path(__file__).resolve().parent            # the code
 DATA = Path(os.environ.get('MESAHA_REVIEW_DATA') or Path(__file__).resolve().parents[3] / 'artifacts' / 'cv-waqf' / 'mesaha-selflearn')   # data written by a run
@@ -230,6 +230,80 @@ def raw_cut(page: dict, right_key: str, left_key: str) -> float:
     """Where the cutter put the cut (the left edge of the word on the right)."""
     right, _left = neighbours(page['words'], right_key, left_key)
     return right['box'][0]
+
+
+def _row(page: dict, line: int) -> list[dict]:
+    return [w for w in page['words'] if w['line'] == line]
+
+
+@app.post('/api/resplit/options')
+def resplit_options():
+    """Alternative splits of one row, for when the reviewer says it is not right (see ``resplit``)."""
+    b = request.get_json(force=True) or {}
+    try:
+        page_no, line = int(b['page']), int(b['line'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'bad request'}), 400
+    cuts = read(CUTS, {})
+    page = next((p for p in apply_cuts(pages(), cuts) if p['page'] == page_no), None)
+    row = _row(page, line) if page else []
+    if len(row) < 2:
+        return jsonify({'error': 'unknown row'}), 400
+    from pipeline.cv_waqf.mesaha_review import resplit
+
+    with lock:                              # the cutter reads a module-level setting
+        options = resplit.compute(page_no, row, pinned_cuts(cuts))
+    return jsonify({'ok': True, 'options': options})
+
+
+@app.post('/api/resplit')
+def resplit_adopt():
+    """Adopt one of the alternative splits of a row (``cuts``: x of each border, right to left), or give it back.
+
+    Each border that moves is stored like a hand-set cut (``cuts.json``) marked ``via: resplit:<id>``, so it is
+    exported, pinned on a rebuild and can be told apart from cuts dragged by hand. ``undo`` removes the row's
+    adopted ones.
+    """
+    from pipeline.cv_waqf.mesaha_review import resplit
+
+    b = request.get_json(force=True) or {}
+    try:
+        page_no, line = int(b['page']), int(b['line'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'bad request'}), 400
+    raw = next((p for p in pages() if p['page'] == page_no), None)
+    row = _row(raw, line) if raw else []
+    if len(row) < 2:
+        return jsonify({'error': 'unknown row'}), 400
+    keys = [cut_key(page_no, a['key'], c['key']) for a, c in zip(row, row[1:])]
+    with lock:
+        cuts = read(CUTS, {})
+        if b.get('undo'):
+            for key in keys:
+                if str(cuts.get(key, {}).get('via', '')).startswith('resplit'):
+                    cuts.pop(key)
+        else:
+            xs = b.get('cuts')
+            if not (isinstance(xs, list) and len(xs) == len(row) - 1 and all(isinstance(x, (int, float)) for x in xs)):
+                return jsonify({'error': 'bad cuts'}), 400
+            row_now = _row(apply_cuts([raw], cuts)[0], line)
+            if not resplit.valid_row([float(x) for x in xs], row_now[0]['box'][2], row_now[-1]['box'][0], MIN_WORD_PX):
+                return jsonify({'error': 'cuts outside the row'}), 400
+            stamp = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
+            for i, (key, x) in enumerate(zip(keys, xs)):
+                if abs(float(x) - row_now[i]['box'][0]) < 0.5:
+                    continue                                                   # this border does not change
+                first = cuts.get(key, {})
+                cuts[key] = {'x': round(float(x), 1), 'was': first.get('was', row[i]['box'][0]),
+                             'via': 'resplit:' + str(b.get('via') or ''),
+                             'doubt': first.get('doubt', round(max(float(row[i].get('dl', 0)), float(row[i + 1].get('dr', 0))), 2)),
+                             't': stamp}
+        write(CUTS, cuts)
+        with LOG.open('a', encoding='utf-8') as f:
+            f.write(json.dumps({'t': time.time(), 'page': page_no, 'resplit': {'line': line, 'via': b.get('via'), 'undo': bool(b.get('undo'))}},
+                               ensure_ascii=False) + '\n')
+        write_export()
+    return jsonify({'ok': True, 'cuts': cuts, 'page': apply_cuts([raw], cuts)[0]})
 
 
 @app.post('/api/done')

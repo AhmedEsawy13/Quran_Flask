@@ -41,7 +41,7 @@ def label_rows() -> list[dict]:
         word = next((w for w in (page or {}).get('words', []) if w['key'] == right_key), None)
         pitch = max(12.0, (word['box'][3] - word['box'][1]) / 0.85) if word else 79.0
         rows.append({'page': int(page_text), 'right': right_key, 'left': left_key, 'was': value.get('was'),
-                     'x': float(value['x']), 'doubt': value.get('doubt'), 'pitch': pitch,
+                     'x': float(value['x']), 'doubt': value.get('doubt'), 'via': value.get('via') or 'drag', 'pitch': pitch,
                      'shift': (float(value['x']) - float(value['was'])) / pitch if value.get('was') is not None else None})
     return rows
 
@@ -55,6 +55,8 @@ def stats() -> dict:
     on_marked = sum(1 for r in rows if (r['page'], r['right']) in marked_cut_words or (r['page'], r['left']) in marked_cut_words)
     out = {
         'corrected cuts': len(rows),
+        '  dragged by hand': sum(1 for r in rows if r['via'] == 'drag'),
+        '  from an adopted alternative split': sum(1 for r in rows if r['via'].startswith('resplit')),
         'pages': len({r['page'] for r in rows}),
         'median |shift| (pitches)': round(shifts[len(shifts) // 2], 3) if shifts else None,
         'moved by more than 0.15 pitch': sum(1 for s in shifts if s > MISS),

@@ -132,3 +132,53 @@ def test_hand_cuts_are_handed_to_the_cutter_by_word_keys():
     from pipeline.cv_waqf.mesaha_review.cuts import pinned_cuts
 
     assert pinned_cuts({'7:2:1:1|2:1:2': {'x': 320.4, 'was': 300}}) == {('2:1:1', '2:1:2'): 320.4}
+
+
+def test_alternative_splits_keep_only_what_differs_and_validate_a_row():
+    from pipeline.cv_waqf.mesaha_review import resplit
+
+    current = [300.0, 200.0, 100.0]
+    options = [{'id': 'a', 'cuts': [300.0, 201.0, 100.0]},                     # the same cuts
+               {'id': 'b', 'cuts': [320.0, 200.0, 100.0]},
+               {'id': 'c', 'cuts': [321.0, 200.0, 100.0]},                     # the same as b
+               {'id': 'd', 'cuts': [300.0, 150.0, 80.0]}]
+    kept = resplit.distinct(current, options, pitch=100)
+    assert [o['id'] for o in kept] == ['b', 'd'] and [o['moved'] for o in kept] == [1, 2]
+    assert resplit.valid_row([310, 205, 95], 400, 0, 6)
+    assert not resplit.valid_row([310, 315, 95], 400, 0, 6) and not resplit.valid_row([399, 205, 95], 400, 0, 6)
+
+
+def test_a_row_the_reviewer_calls_wrong_gets_alternatives_and_the_chosen_one_is_saved(cut_tool, monkeypatch):
+    from pipeline.cv_waqf.mesaha_review import resplit
+
+    client, tmp = cut_tool
+    seen = {}
+
+    def fake(page, row, pins):
+        seen.update(page=page, words=[w['key'] for w in row], pins=pins)
+        return [{'id': 'reader', 'label': 'x', 'cuts': [310.0, 205.0, 95.0], 'moved': 3}]
+    monkeypatch.setattr(resplit, 'compute', fake)
+    client.post('/api/cut', json={'page': 7, 'right': '2:1:3', 'left': '2:1:4', 'x': 104})          # a hand-set cut stays pinned
+    out = client.post('/api/resplit/options', json={'page': 7, 'line': 1}).get_json()
+    assert out['options'][0]['id'] == 'reader' and seen['page'] == 7 and seen['words'] == ['2:1:1', '2:1:2', '2:1:3', '2:1:4']
+    assert seen['pins'] == {('2:1:3', '2:1:4'): 104.0}
+    r = client.post('/api/resplit', json={'page': 7, 'line': 1, 'cuts': [310, 205, 104], 'via': 'reader'})
+    assert r.status_code == 200
+    saved = json.loads((tmp / 'cuts.json').read_text())
+    assert saved['7:2:1:1|2:1:2']['x'] == 310 and saved['7:2:1:1|2:1:2']['via'] == 'resplit:reader' and saved['7:2:1:1|2:1:2']['was'] == 300
+    assert '7:2:1:3|2:1:4' in saved and 'via' not in saved['7:2:1:3|2:1:4']               # the hand-set one is untouched (it did not move)
+    boxes = [w['box'][0] for w in r.get_json()['page']['words']]
+    assert boxes == [310, 205, 104, 0]
+    # undo gives back the adopted borders only
+    client.post('/api/resplit', json={'page': 7, 'line': 1, 'undo': True})
+    left = json.loads((tmp / 'cuts.json').read_text())
+    assert list(left) == ['7:2:1:3|2:1:4']
+
+
+def test_resplit_refuses_bad_input(cut_tool):
+    client, _ = cut_tool
+    assert client.post('/api/resplit', json={'page': 7, 'line': 1, 'cuts': [310, 205]}).status_code == 400            # wrong count
+    assert client.post('/api/resplit', json={'page': 7, 'line': 1, 'cuts': [310, 315, 95]}).status_code == 400        # out of order
+    assert client.post('/api/resplit', json={'page': 7, 'line': 1, 'cuts': ['a', 205, 95]}).status_code == 400
+    assert client.post('/api/resplit', json={'page': 7, 'line': 9, 'cuts': [1, 2, 3]}).status_code == 400             # no such row
+    assert client.post('/api/resplit/options', json={'page': 7, 'line': 9}).status_code == 400

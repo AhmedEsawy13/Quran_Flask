@@ -379,14 +379,23 @@ def estimate_layout_words(
     page: int,
     prepared: PreparedPage,
     fixed_cuts: dict[tuple[str, str], float] | None = None,
+    cutter: dict | None = None,
 ) -> list[LayoutWord]:
     """Place each layout word in an estimated ROI inside the text band.
 
     RTL: word_on_line=1 is the rightmost slot on the line. ``fixed_cuts`` maps ``(key of the word on the
     right, key of the word on the left)`` to an x a person set for the cut between them (default: ``FIXED_CUTS``).
+
+    ``cutter`` re-runs the cutting with other evidence, for offering a person alternatives: ``anchors`` / ``windows``
+    (``False`` leaves out the OCR's word boxes / the second reader), ``avoid`` (``{(right key, left key): [x, ...]}``,
+    cuts already rejected) and any other keyword of ``geometry.segment_line_words``.
     """
     if fixed_cuts is None:
         fixed_cuts = FIXED_CUTS
+    options = dict(cutter or {})
+    use_anchors = options.pop('anchors', True)
+    use_windows = options.pop('windows', True)
+    avoid_pairs = options.pop('avoid', None) or {}
     lines = load_page_lines(spec, page)
     ayah_lines = [
         ln for ln in lines
@@ -521,24 +530,28 @@ def estimate_layout_words(
                 _ocr_row_anchors(
                     ocr_page, [str((meta.get(wid) or {}).get('text') or '') for wid in ids],
                     baseline, grid.pitch, x_bounds,
-                ) if ocr_page else None
+                ) if (ocr_page and use_anchors) else None
             )
             windows = (
                 _kraken_row_windows(
                     kraken_lines, [str((meta.get(wid) or {}).get('text') or '') for wid in ids],
                     baseline, grid.pitch,
-                ) if kraken_lines else None
+                ) if (kraken_lines and use_windows) else None
             )
             keys = [str((meta.get(wid) or {}).get('word_key') or '') for wid in ids]
             fixed = {
                 k: float(fixed_cuts[(keys[k - 1], keys[k])])
                 for k in range(1, n) if fixed_cuts and (keys[k - 1], keys[k]) in fixed_cuts
             } or None
+            avoid = {
+                k: list(avoid_pairs[(keys[k - 1], keys[k])])
+                for k in range(1, n) if (keys[k - 1], keys[k]) in avoid_pairs
+            } or None
             cut_report: list[dict] = []
             boxes = geometry.segment_line_words(
                 mask, baseline=baseline, pitch=grid.pitch,
                 weights=weights, x_range=x_bounds, anchors=anchors, windows=windows,
-                fixed=fixed, report=cut_report,
+                fixed=fixed, report=cut_report, avoid=avoid, **options,
             )
             boxes_measured = boxes is not None
             LAST_CUTS[int(ln['line_number'])] = cut_report

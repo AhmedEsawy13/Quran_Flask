@@ -479,6 +479,16 @@ from a wrong OCR box, so the review tool now collects real labels and shows wher
   (12%); combined as "either is wrong". `doubt >= 0.5` flags 9% of words and catches 48% of the disagreeing
   boxes (58% of those off by half a word) at 38% precision (5x the base rate). In the tool a flagged word gets an amber
   tag, the "المشكوك فيها أولًا" button sorts the review list by it, and the page list shows ⚠n.
+- *A row that is not right.* «السطر غير صحيح؟ اقترح تقطيعًا آخر» (per row, in the row editor) re-splits that row
+  with different evidence and shows each distinct result as its own strip (new borders purple, current dashed):
+  trust the second reader more / ink gaps only / the width model only / away from the current cuts
+  (`mesaha_review.resplit`, `layout_geo.estimate_layout_words(cutter=...)`, `segment_line_words(avoid=...)`). On the
+  162 held-out rows that had a box disagreeing with the scan OCR, some alternative had fewer disagreeing boxes in 90
+  and none in 80; the second-reader one was better in 76 rows and worse in 1, the others better in 54-59 and worse in
+  about 21 each, so no single setting replaces the default and the choice is yours. The row's hand-set cuts stay
+  fixed and now also re-fit the rest of the row (the others are placed between them by the width model). «اعتمد
+  هذا التقطيع» stores the borders that move like hand-set cuts (`cuts.json`, `via: resplit:<id>`), «تراجع»
+  gives them back. Computing the alternatives takes about 2 s a row.
 - *Using the labels.* `python -m pipeline.cv_waqf.mesaha_review.cut_labels stats` (how many cuts were corrected, by
   how much, how many the flag had caught) and `... tune` (re-runs the cutter with each setting of the second reader's
   slack/sigma/cap, the width trust and the gap reward, and scores them against the corrected cuts: replace the

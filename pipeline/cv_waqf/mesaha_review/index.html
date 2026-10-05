@@ -61,6 +61,9 @@ details.rows>summary{font-size:14px;color:var(--ink);font-weight:600}
 .rowstrip{direction:ltr;overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
 .rs{position:relative;background-repeat:no-repeat}
 .rs .cutl{top:0;bottom:22px;height:auto}
+.rowalt .alt{margin:4px 0 10px;border-inline-start:3px solid #7b4fb0;padding-inline-start:6px}.rowalt .hint{margin:4px 0}
+.rowlbl button{margin-inline-start:8px;padding:1px 8px;font-size:12px}.rowlbl button.adopt{background:#7b4fb0;color:#fff;border-color:#7b4fb0}
+.rs .cutl.alt{pointer-events:none}.rs .cutl.alt::before{background:#7b4fb0;width:3px}.rs .cutl.cur{pointer-events:none}.rs .cutl.cur::before{background:repeating-linear-gradient(to bottom,#888 0 4px,transparent 4px 8px);width:2px}
 .rt{position:absolute;bottom:2px;transform:translateX(-50%);font:13px/16px "Amiri Quran","Geeza Pro",serif;white-space:nowrap;color:#555;direction:rtl;pointer-events:none}.rt.d{color:var(--warn);font-weight:700}
 button.tg.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 @media(max-width:900px){#wrap{grid-template-columns:1fr}#pane{position:static}}
@@ -89,7 +92,7 @@ async function setV(pr,sym){const p=pg();const r=await api('/api/verdict',{page:
 async function addMark(w,sym){const p=pg();const r=await api('/api/verdict',{page:p.page,key:w.key,symbol:sym});if(!r)return;if(sym===null)delete V[key(p.page,w.key)];else V[key(p.page,w.key)]=sym;$('add').hidden=true;render(true)}
 async function relink(fromKey,toKey,sym,undo,pos){const p=pg();const r=await api('/api/relink',{page:p.page,from:fromKey,to:toKey,symbol:sym,undo:!!undo,pos:pos||null});if(!r)return;V=r.verdicts;R=r.relinks;X=r.positions||X;endPick();sel=undo?fromKey:toKey;render(true);document.querySelector('.item.cur')?.scrollIntoView({block:'center'})}
 const cutKey=(page,a,b)=>page+':'+a+'|'+b;
-async function setCut(right,left,x,undo){const p=pg();const r=await api('/api/cut',{page:p.page,right,left,x:undo?null:Math.round(x*10)/10,undo:!!undo});if(!r){render(true);return}P[cur]=r.page;K=r.cuts;render(true)}
+async function setCut(right,left,x,undo){const p=pg();Object.keys(rowOpts).filter(k=>k.startsWith(p.page+':')).forEach(k=>delete rowOpts[k]);const r=await api('/api/cut',{page:p.page,right,left,x:undo?null:Math.round(x*10)/10,undo:!!undo});if(!r){render(true);return}P[cur]=r.page;K=r.cuts;render(true)}
 function undoCuts(wordKey){const p=pg(),pre=p.page+':';const todo=Object.keys(K).filter(k=>k.startsWith(pre)).map(k=>k.slice(pre.length).split('|')).filter(([a,b])=>a===wordKey||b===wordKey);(async()=>{for(const [a,b] of todo)await setCut(a,b,0,true)})()}
 // Drag a cut sideways; ``toX`` turns a pointer position into a page x, ``place`` moves the handle while dragging.
 function dragCut(el,right,left,toX,place){let on=false,moved=false,sx=0;
@@ -164,23 +167,46 @@ function render(keep){const p=pg();const y=scrollY;const L=$('list');L.innerHTML
   const img=$('img');if(!img.src.endsWith(`/img/p${p.page}.jpg`))img.src=`/img/p${p.page}.jpg`;
   if(keep)scrollTo(0,y);fillSel()}
 // Every printed row of the page as an enlarged strip with a draggable handle between each two neighbouring words.
-function buildRows(box,p){const S=1.4;box.querySelectorAll('.rowlbl,.rowstrip').forEach(e=>e.remove());
+const ROW_S=1.4,rowOpts={};
+function rowFrame(p,ws){const h=Math.max(12,(ws[0].box[3]-ws[0].box[1])/0.85),S=ROW_S;
+  const x0=Math.max(0,Math.min(...ws.map(w=>w.box[0]))-14),x1=Math.min(p.w,Math.max(...ws.map(w=>w.box[2]))+14);
+  const y0=Math.max(0,ws[0].box[1]-0.45*h),y1=Math.min(p.h,ws[0].box[3]+3);return{S,x0,x1,y0,y1,W:Math.round((x1-x0)*S),H:Math.round((y1-y0)*S)}}
+function rowStrip(p,f){const sc=document.createElement('div');sc.className='rowstrip';const rs=document.createElement('div');rs.className='rs';
+  rs.style.cssText=`width:${f.W}px;height:${f.H+22}px;background-image:url(/img/p${p.page}.jpg);background-size:${p.w*f.S}px ${p.h*f.S}px;background-position:${-f.x0*f.S}px ${-f.y0*f.S}px`;sc.appendChild(rs);return[sc,rs]}
+function wordLabel(rs,f,text,cx,doubt){const lab=document.createElement('div');lab.className='rt'+(doubt?' d':'');lab.textContent=text;lab.style.left=(cx-f.x0)*f.S+'px';rs.appendChild(lab)}
+function buildRows(box,p){box.querySelectorAll('.rowlbl,.rowstrip,.rowalt').forEach(e=>e.remove());
   const lines=[...new Set(p.words.map(w=>w.line))];
-  for(const ln of lines){const ws=p.words.filter(w=>w.line===ln);if(ws.length<2)continue;
-    const h=Math.max(12,(ws[0].box[3]-ws[0].box[1])/0.85);
-    const x0=Math.max(0,Math.min(...ws.map(w=>w.box[0]))-14),x1=Math.min(p.w,Math.max(...ws.map(w=>w.box[2]))+14);
-    const y0=Math.max(0,ws[0].box[1]-0.45*h),y1=Math.min(p.h,ws[0].box[3]+3);
+  for(const ln of lines){const ws=p.words.filter(w=>w.line===ln);if(ws.length<2)continue;const f=rowFrame(p,ws),ok=p.page+':'+ln;
     const nd=ws.filter((w,i)=>i+1<ws.length&&(w.dl||0)>=UNSURE).length;
-    const lb=document.createElement('div');lb.className='rowlbl';lb.innerHTML=`سطر ${toAr(ln)}${nd?` · <b>⚠ ${toAr(nd)} حدّ مشكوك فيه</b>`:''}`;box.appendChild(lb);
-    const sc=document.createElement('div');sc.className='rowstrip';
-    const rs=document.createElement('div');rs.className='rs';const W=Math.round((x1-x0)*S),H=Math.round((y1-y0)*S);
-    rs.style.cssText=`width:${W}px;height:${H+22}px;background-image:url(/img/p${p.page}.jpg);background-size:${p.w*S}px ${p.h*S}px;background-position:${-x0*S}px ${-y0*S}px`;
-    sc.appendChild(rs);box.appendChild(sc);
-    ws.forEach((w,i)=>{const lab=document.createElement('div');lab.className='rt'+((w.doubt||0)>=UNSURE?' d':'');lab.textContent=w.text;lab.style.left=((w.box[0]+w.box[2])/2-x0)*S+'px';rs.appendChild(lab);
+    const adopted=ws.some((w,i)=>{const c=ws[i+1]&&K[cutKey(p.page,w.key,ws[i+1].key)];return c&&String(c.via||'').startsWith('resplit')});
+    const lb=document.createElement('div');lb.className='rowlbl';lb.innerHTML=`<span>سطر ${toAr(ln)}${nd?` · <b>⚠ ${toAr(nd)} حدّ مشكوك فيه</b>`:''}</span> `;
+    const bt=document.createElement('button');bt.textContent='السطر غير صحيح؟ اقترح تقطيعًا آخر';bt.onclick=()=>showAlternatives(box,p,ln,ok,altBox);lb.appendChild(bt);
+    if(adopted){const un=document.createElement('button');un.textContent='تراجع عن التقطيع المقترح';un.onclick=()=>resplit(p,ln,null,true);lb.appendChild(un)}
+    box.appendChild(lb);
+    const [sc,rs]=rowStrip(p,f);box.appendChild(sc);
+    const altBox=document.createElement('div');altBox.className='rowalt';box.appendChild(altBox);if(rowOpts[ok])drawAlternatives(altBox,p,ws,f,rowOpts[ok],ln);
+    ws.forEach((w,i)=>{wordLabel(rs,f,w.text,(w.box[0]+w.box[2])/2,(w.doubt||0)>=UNSURE);
       const b=ws[i+1];if(!b)return;const fixed=!!K[cutKey(p.page,w.key,b.key)],unsure=(w.dl||0)>=UNSURE;
-      const c=document.createElement('div');c.className='cutl'+(unsure?' unsure':'')+(fixed?' fixed':'');c.style.left=(w.box[0]-x0)*S+'px';c.title=unsure?('حدّ مشكوك فيه: '+(w.why||b.why||'')):'اسحب لضبط الحدّ بين الكلمتين';rs.appendChild(c);
-      dragCut(c,w.key,b.key,cx=>x0+(cx-rs.getBoundingClientRect().left)/S,xx=>{c.style.left=(xx-x0)*S+'px'})});
-    const k=p.page+':'+ln;sc.scrollLeft=rowScroll[k]!==undefined?rowScroll[k]:sc.scrollWidth;sc.addEventListener('scroll',()=>{rowScroll[k]=sc.scrollLeft})}}
+      const c=document.createElement('div');c.className='cutl'+(unsure?' unsure':'')+(fixed?' fixed':'');c.style.left=(w.box[0]-f.x0)*f.S+'px';c.title=unsure?('حدّ مشكوك فيه: '+(w.why||b.why||'')):'اسحب لضبط الحدّ بين الكلمتين';rs.appendChild(c);
+      dragCut(c,w.key,b.key,cx=>f.x0+(cx-rs.getBoundingClientRect().left)/f.S,xx=>{c.style.left=(xx-f.x0)*f.S+'px'})});
+    sc.scrollLeft=rowScroll[ok]!==undefined?rowScroll[ok]:sc.scrollWidth;sc.addEventListener('scroll',()=>{rowScroll[ok]=sc.scrollLeft})}}
+async function showAlternatives(box,p,ln,ok,altBox){altBox.innerHTML='<p class="hint">جارٍ حساب تقطيعات أخرى للسطر…</p>';
+  const r=await api('/api/resplit/options',{page:p.page,line:ln});if(!r){altBox.innerHTML='';return}
+  rowOpts[ok]=r.options;drawAlternatives(altBox,p,p.words.filter(w=>w.line===ln),rowFrame(p,p.words.filter(w=>w.line===ln)),r.options,ln)}
+// Each alternative split of a row as its own strip: the new borders in purple, the current ones dashed.
+function drawAlternatives(altBox,p,ws,f,options,ln){altBox.innerHTML='';
+  if(!options.length){altBox.innerHTML='<p class="hint">لا تقطيع آخر مختلف بما يكفي لهذا السطر — اسحب الحدود الخاطئة يدويًا.</p>';return}
+  const cur=ws.slice(0,-1).map(w=>w.box[0]);
+  for(const o of options){const row=document.createElement('div');row.className='alt';
+    const head=document.createElement('div');head.className='rowlbl';head.innerHTML=`<span>${esc(o.label)} · تغيّر ${toAr(o.moved)} من ${toAr(o.cuts.length)} حدًّا</span> `;
+    const ad=document.createElement('button');ad.className='adopt';ad.textContent='اعتمد هذا التقطيع';ad.onclick=()=>resplit(p,ln,o,false);head.appendChild(ad);row.appendChild(head);
+    const [sc,rs]=rowStrip(p,f);row.appendChild(sc);
+    const edges=[ws[0].box[2],...o.cuts,ws[ws.length-1].box[0]];
+    ws.forEach((w,i)=>wordLabel(rs,f,w.text,(edges[i]+edges[i+1])/2,false));
+    cur.forEach(x=>{const c=document.createElement('div');c.className='cutl cur';c.style.left=(x-f.x0)*f.S+'px';rs.appendChild(c)});
+    o.cuts.forEach(x=>{const c=document.createElement('div');c.className='cutl alt';c.style.left=(x-f.x0)*f.S+'px';rs.appendChild(c)});
+    sc.scrollLeft=rowScroll[p.page+':'+ln]!==undefined?rowScroll[p.page+':'+ln]:sc.scrollWidth;altBox.appendChild(row)}}
+async function resplit(p,ln,option,undo){const r=await api('/api/resplit',{page:p.page,line:ln,cuts:option?option.cuts:null,via:option?option.id:null,undo:!!undo});if(!r)return;delete rowOpts[p.page+':'+ln];P[cur]=r.page;K=r.cuts;render(true)}
 function openAdd(w,e){const a=$('add');$('addw').textContent=w.text;const S=$('addsyms');S.innerHTML=SYM.map(x=>`<button data-s="${x}">${x}</button>`).join('')+'<button data-s="-">لا علامة</button>';
   const cur=V[key(pg().page,w.key)];S.querySelectorAll('button').forEach(b=>{if(b.dataset.s===cur)b.classList.add('on');b.onclick=()=>{const prop=pg().proposals.find(q=>q.key===w.key);if(prop)setV(prop,b.dataset.s==='-'?'-':b.dataset.s).then(()=>a.hidden=true);else addMark(w,b.dataset.s==='-'?null:b.dataset.s)}});
   a.hidden=false;a.style.left=Math.min(innerWidth-260,e.clientX)+'px';a.style.top=Math.min(innerHeight-120,e.clientY+10)+'px'}

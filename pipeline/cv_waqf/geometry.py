@@ -226,6 +226,9 @@ def segment_line_words(
     window_cap: float = 9.0,
     fixed: dict[int, float] | None = None,
     report: list | None = None,
+    avoid: dict[int, list[float]] | None = None,
+    avoid_radius: float = 0.12,
+    avoid_cost: float = 8.0,
 ) -> list[tuple[int, int]] | None:
     """Cut one printed line into ``len(weights)`` word spans, RTL order.
 
@@ -246,7 +249,9 @@ def segment_line_words(
     ``window_slack`` pitches, pays a capped quadratic price, so a wrong window can be overruled by the ink.
 
     ``fixed`` maps a boundary index to an x a person set by hand: that cut is exactly there (a set that
-    contradicts reading order or leaves the line is dropped). ``report``, when given, receives one dict per cut
+    contradicts reading order or leaves the line is dropped); the other cuts are re-fitted around the ones set. ``avoid``
+    maps a boundary index to x positions already rejected: a cut within ``avoid_radius`` pitches of one pays
+    ``avoid_cost``. ``report``, when given, receives one dict per cut
     (boundary ``k``, ``x``, whether it sits in a measured gap and how wide, its distance from the width-model
     position, its distance outside the window, whether something pinned it) for ``cut_doubt``.
     """
@@ -285,8 +290,16 @@ def segment_line_words(
     expected = right - span * cum / total  # decreasing x for j = 0..N-2
     unit = max(1.0, 0.30 * pitch)
     sigmas = np.full(n - 1, max(1.0, position_sigma * span))
+    pins: dict[int, float] = {}
+    previous_k, previous_x = 0, float(right)
+    for k in sorted(fixed or {}):
+        x = float(fixed[k])
+        if 1 <= k <= n - 1 and left + (n - k) < x < previous_x - (k - previous_k):
+            pins[k] = x
+            previous_k, previous_x = k, x
     known_cuts: set[int] = set()
-    if anchors:
+    if anchors or pins:
+        anchors = anchors or {}
         # Boundary k sits between word k-1 and word k (0 = right edge, n = left edge).
         cw = np.concatenate(([0.0], np.cumsum(weights)))
         known: dict[int, float] = {0: float(right), n: float(left)}
@@ -309,6 +322,11 @@ def segment_line_words(
             known[j] = right_edge
             known[j + 1] = left_edge
             last_k = j + 1
+        for k, x in pins.items():                   # a cut set by hand is an exact anchor for the others
+            below = max((q for q in known if q < k), default=0)
+            above = min((q for q in known if q > k), default=n)
+            if known[above] + 1 < x < known[below] - 1:
+                known[k] = x
         ks = sorted(known)
         xs = {}
         for a, b in zip(ks, ks[1:]):
@@ -321,13 +339,7 @@ def segment_line_words(
                 sigmas[k - 1] = max(1.0, anchor_sigma * span)
                 known_cuts.add(k)
 
-    pins: dict[int, float] = {}
-    previous_k, previous_x = 0, float(right)
-    for k in sorted(fixed or {}):
-        x = float(fixed[k])
-        if 1 <= k <= n - 1 and left + (n - k) < x < previous_x - (k - previous_k):
-            pins[k] = x
-            previous_k, previous_x = k, x
+    rejects = avoid or {}
     cands = [(x, gw, True) for x, gw in gaps]
     cands += [(float(x), 0.0, False) for x in expected]
     cands += [(x, 0.0, False) for x in pins.values()]
@@ -351,6 +363,9 @@ def segment_line_words(
             off = max(bounds[0] - x, x - bounds[1], 0.0) - window_slack * pitch
             if off > 0:
                 value += min((off / (window_sigma * pitch)) ** 2, window_cap)
+        for rejected in rejects.get(j + 1, ()):
+            if abs(x - rejected) < avoid_radius * pitch:
+                value += avoid_cost
         return value
 
     dp = np.full((n - 1, m), inf)
