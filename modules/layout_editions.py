@@ -284,14 +284,17 @@ PROFILE_PRESETS: dict[str, dict] = {
         'id': 'mesaha',
         'name_ar': 'المساحة الأميرية',
         'description_ar': (
-            '١٢ سطراً، تدفّق مستمر، وراية السورة: اسم + معلومات + بسملة'
+            '١٢ سطراً، تدفّق مستمر، وراية السورة: اسم + معلومات + بسملة (البسملة بسطرين)'
         ),
+        # The printed banner block is four slots tall: a bordered name/info box (one
+        # slot each) and a basmallah box that is two slots (measured on pages 62, 445,
+        # 811: seven ayah rows, four header slots, one ayah row = 12).
         'profile': LayoutProfile(
             lines_per_page=12,
             page_end_mode='continuous',
             surah_name_lines=1,
             surah_info_lines=1,
-            basmallah_lines=1,
+            basmallah_lines=2,
         ),
         'short_pages': {'2': 8, '3': 8},
     },

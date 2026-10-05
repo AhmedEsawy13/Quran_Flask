@@ -40,13 +40,16 @@ def test_mesaha_split_span_does_not_inject_another_surah(client):
     page = client.get('/api/layout-studio/mesaha/page/61').get_json()
     line = next(row for row in page['lines'] if row['line_number'] == 12)
 
+    # Page 61's last row spans two id chunks (6399-6401, then 6481 on); the reviewed layout
+    # ends it at 6484 (word 6485 starts page 62). The ids between (6402-6480) are surah 3's
+    # opening and the banner's: none of them may leak into the row.
     assert [word['word_index'] for word in line['words']] == [
-        6399, 6400, 6401, 6481, 6482, 6483, 6484, 6485,
+        6399, 6400, 6401, 6481, 6482, 6483, 6484,
     ]
     assert {word['surah'] for word in line['words']} == {2}
     assert [word['word_key'] for word in line['words']] == [
         '2:285:12', '2:285:13', '2:285:14', '2:285:15',
-        '2:285:16', '2:285:17', '2:285:18', '2:285:19',
+        '2:285:16', '2:285:17', '2:285:18',
     ]
     assert client.get(
         '/api/layout-studio/mesaha/page-by-ayah/3/1'

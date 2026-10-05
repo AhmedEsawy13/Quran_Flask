@@ -221,6 +221,7 @@ def kraken_rows(
     *, page: int, image_width: float, texts: list[str], weights: list[float],
     row_extents: list[tuple[float, float]], row_baselines: list[float], pitch: float,
     anchors: list[tuple[int, OcrWord]] | None = None,
+    forced: dict[int, int] | None = None,
 ) -> list[list[int]] | None:
     """Row membership straight from Kraken's lines, or ``None`` when it cannot be
     trusted.
@@ -270,6 +271,11 @@ def kraken_rows(
         after = [j for j in pinned if matched[j] >= k + 1]
         lo[k] = (max(before) + 1) if before else 0
         hi[k] = min(after) if after else n
+        if forced and k in forced:
+            # A surah banner follows this row: row k+1 starts at the new surah's first word.
+            if not lo[k] <= forced[k] <= hi[k]:
+                return _why('rF')
+            lo[k] = hi[k] = forced[k]
         if lo[k] > hi[k]:
             return _why('r4')
     lo[-1], hi[-1] = e_lo, e_hi
@@ -534,6 +540,7 @@ def relayout_page_rows(
     ring_word_idx: list[int] | None = None,
     nominal: tuple[int, int] | None = None,
     use_kraken: bool = True,
+    forced_boundaries: dict[int, int] | None = None,
 ) -> list[list[int]] | None:
     """Row membership for the page's words, or ``None`` when not trustworthy.
 
@@ -578,7 +585,7 @@ def relayout_page_rows(
         rows = kraken_rows(
             page=page, image_width=image_width, texts=texts, weights=weights,
             row_extents=row_extents, row_baselines=row_baselines, pitch=pitch,
-            anchors=anchors,
+            anchors=anchors, forced=forced_boundaries,
         )
         if rows is not None and all(rows):
             LAST_DEBUG['source'] = 'kraken'

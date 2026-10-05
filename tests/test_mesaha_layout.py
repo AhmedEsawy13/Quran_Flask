@@ -223,3 +223,29 @@ def test_mesaha_confidence_upgrade_is_idempotent(tmp_path):
         assert round(conn.execute(
             'SELECT AVG(score) FROM layout_import_confidence'
         ).fetchone()[0], 4) == 0.7564
+
+
+def test_mesaha_banner_block_is_four_slots_so_a_banner_page_holds_eleven_rows():
+    from modules import layout_studio as studio
+    from modules.layout_editions import MESAHA
+
+    profile = MESAHA.profile
+    assert (profile.surah_name_lines, profile.surah_info_lines, profile.basmallah_lines) == (1, 1, 2)
+    plain = [{'line_type': 'ayah'}] * 12
+    banner = [{'line_type': 'ayah'}] * 7 + [
+        {'line_type': 'surah_name'}, {'line_type': 'surah_info'}, {'line_type': 'basmallah'},
+        {'line_type': 'ayah'},
+    ]
+    assert studio._page_row_budget(MESAHA, profile, 100, rows=plain) == 12
+    assert studio._page_row_budget(MESAHA, profile, 62 + 0, rows=banner) == 11
+    # No banner row, no extra reservation (surah Tawbah has a name box but no basmallah).
+    assert studio._page_row_budget(MESAHA, profile, 100, rows=[{'line_type': 'surah_name'}] + plain[:11]) == 12
+
+
+def test_other_editions_keep_one_row_per_slot():
+    from modules import layout_studio as studio
+    from modules.layout_editions import AZHAR
+
+    rows = [{'line_type': 'ayah'}] * 12 + [{'line_type': 'surah_name'}, {'line_type': 'basmallah'}]
+    assert studio._page_row_budget(AZHAR, AZHAR.profile, 10, rows=rows) == studio._page_line_budget(
+        AZHAR, AZHAR.profile, 10)

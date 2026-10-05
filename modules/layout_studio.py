@@ -435,6 +435,55 @@ def _page_line_budget(
     return int(special if special is not None else profile.lines_per_page)
 
 
+_HEADER_EXTRA_FIELDS = (
+    ('surah_name', 'surah_name_lines'),
+    ('surah_info', 'surah_info_lines'),
+    ('basmallah', 'basmallah_lines'),
+)
+
+
+def _page_row_budget(
+    edition: LayoutEdition,
+    profile: LayoutProfile,
+    page_number: int,
+    *,
+    rows: list | None = None,
+    cur=None,
+) -> int:
+    """Logical rows a page holds.
+
+    ``_page_line_budget`` is the page's *physical* slot count (what the page grid
+    draws). A header row can reserve more than one slot (Mesaha's basmallah box is
+    two), so the page then holds that many fewer logical rows. ``rows`` (dicts with a
+    ``line_type``) or ``cur`` say which header rows the page carries; without either
+    the page is read from the layout database. With every header span at one this
+    equals the slot budget, as before.
+    """
+    slots = _page_line_budget(edition, profile, page_number)
+    extra = {
+        line_type: max(0, int(getattr(profile, field)) - 1)
+        for line_type, field in _HEADER_EXTRA_FIELDS
+    }
+    if not any(extra.values()):
+        return slots
+    if rows is None:
+        owns = cur is None
+        conn = _sqlite_connect(_layout_db(edition)) if owns else None
+        try:
+            c = conn.cursor() if owns else cur
+            rows = [
+                {'line_type': r[0]} for r in c.execute(
+                    'SELECT line_type FROM pages WHERE page_number = ?',
+                    (int(page_number),),
+                ).fetchall()
+            ]
+        finally:
+            if conn is not None:
+                conn.close()
+    reserved = sum(extra.get(row['line_type'], 0) for row in rows)
+    return max(1, slots - reserved)
+
+
 def _build_page_payload(edition: LayoutEdition, page_number: int):
     if edition.payload_kind == 'azhar':
         payload = _build_azhar_page_payload(
@@ -693,7 +742,9 @@ def _shift_rows_down_one_slot(
             f'آخر {protected_source_count} سطر في الصفحة {page_number} '
             'محفوظة معاً كما في المطبوع ولا يمكن فصلها بترحيل سطر واحد'
         )
-    source_limit = _page_line_budget(edition, profile, page_number)
+    source_limit = _page_row_budget(
+        edition, profile, page_number, rows=source_rows,
+    )
     if len(source_rows) != source_limit:
         raise ValueError(
             f'الصفحة {page_number} تحتوي {len(source_rows)} سطراً '
@@ -709,7 +760,7 @@ def _shift_rows_down_one_slot(
         _structural_page_rows(cur, next_page) if will_spill else []
     )
     destination_limit = (
-        _page_line_budget(edition, profile, next_page)
+        _page_row_budget(edition, profile, next_page, rows=destination_rows)
         if will_spill else 0
     )
     if will_spill and not destination_rows:
@@ -1879,7 +1930,9 @@ def layout_studio_transfer_line(edition_id):
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
         profile = _load_profile(edition, cur)
-        expected_last = _page_line_budget(edition, profile, page_number)
+        expected_last = _page_row_budget(
+            edition, profile, page_number, cur=cur,
+        )
         if line_number != expected_last:
             return jsonify({
                 'error': 'ترحيل السطر الكامل متاح لآخر سطر في الصفحة فقط',
@@ -2253,8 +2306,8 @@ def layout_studio_header_move(edition_id):
             destination_rows.insert(insert_at, moving)
 
             profile = _load_profile(edition, cur)
-            destination_limit = _page_line_budget(
-                edition, profile, neighbor_page,
+            destination_limit = _page_row_budget(
+                edition, profile, neighbor_page, rows=destination_rows,
             )
             if len(destination_rows) > destination_limit:
                 empty_indices = [
@@ -2309,7 +2362,9 @@ def layout_studio_header_move(edition_id):
                 engine.rebalance_page_line_count(
                     cur,
                     affected_page,
-                    _page_line_budget(edition, profile, affected_page),
+                    _page_row_budget(
+                        edition, profile, affected_page, cur=cur,
+                    ),
                     script_db=edition.script_db,
                 )
         cloud_saved = _commit_layout_pages(
@@ -2389,8 +2444,8 @@ def layout_studio_undo(edition_id):
                     engine.rebalance_page_line_count(
                         cur,
                         restored_page,
-                        _page_line_budget(
-                            edition, profile, restored_page,
+                        _page_row_budget(
+                            edition, profile, restored_page, cur=cur,
                         ),
                         script_db=edition.script_db,
                     )

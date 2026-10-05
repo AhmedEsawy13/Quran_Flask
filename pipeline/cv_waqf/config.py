@@ -111,6 +111,13 @@ class EditionSpec:
     # book (Layout Studio, synced from Supabase). There the layout is used as
     # is and ``ocr_relayout`` is skipped.
     trusted_layout_pages: tuple[int, int] | None = None
+    # Physical slots a header row takes when it is more than one: Mesaha's basmallah
+    # box is two slots, so a surah banner block is four (name, info, 2). Row
+    # ``line_number`` is a logical row, not a slot, on such prints.
+    header_slots: tuple[tuple[str, int], ...] = ()
+
+    def slot_span(self, line_type: str | None) -> int:
+        return dict(self.header_slots).get(line_type or '', 1)
 
     def layout_trusted(self, page: int | None) -> bool:
         r = self.trusted_layout_pages
@@ -305,6 +312,7 @@ EDITIONS: dict[str, EditionSpec] = {
         # still in progress on 2026-10-05). The local DB must be synced from
         # the cloud first (`layout_persistence.working_db_path(MESAHA, force=True)`).
         trusted_layout_pages=(2, 60),
+        header_slots=(('basmallah', 2),),
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
         # cannot be compared with or filtered by the QPC-indexed columns.

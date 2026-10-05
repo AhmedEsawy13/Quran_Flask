@@ -56,6 +56,20 @@ python3 pipeline/import_mesaha_layout.py --upgrade-confidence
 This updates confidence metadata only. It does not rebuild pages or overwrite
 reviewer edits/progress.
 
+## The surah banner is four slots, not three
+
+Measured on the scans (pages 62, 445, 811 and the other banner pages), the printed banner block
+is four physical slots tall: a bordered name/info box (one slot each) and a basmallah box that
+is two slots. A banner page therefore holds **seven ayah rows, four header slots, one ayah row**
+on page 62, and one logical row fewer than the page's 12 slots (11, or 10 with two banners).
+The Mesaha profile (`modules/layout_editions.py`) is `surah_name_lines=1, surah_info_lines=1,
+basmallah_lines=2`, and the Studio's structural operations budget **logical rows** as
+`lines_per_page` minus the extra slots of the header rows on the page
+(`modules/layout_studio.py: _page_row_budget`). The OCR seed predates this and gives every
+banner page 12 rows (one invented ayah row after the banner); a regenerated seed needs
+`python -m pipeline.cv_waqf.mesaha_drafts --restructure --apply` afterwards (the DB validator in
+`import_mesaha_layout.py` accepts both row counts).
+
 ## Review order
 
 1. Review low-confidence pages first (red badge).

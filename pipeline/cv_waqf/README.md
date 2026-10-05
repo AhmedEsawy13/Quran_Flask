@@ -338,6 +338,22 @@ pages stay fixed and their neighbours' edges meet them (it stops if Supabase can
 validation (a surah change needs its banner row), so such pages (96, 97, 283, 419, 420, 783) are kept
 as imported and their neighbours meet them.
 
+**Banner pages (2026-10-05).** The printed surah banner block is 4 physical slots (name, info,
+a 2-slot basmallah), but the layout DB, the Studio profile and the CV geometry treated it as 3, so a
+banner page carried one invented ayah row after the banner (page 62 had its single printed row
+after the basmallah split in two) and the CV geometry put every row below a banner one slot too
+high (the hand labels on page 445 scored 0/4 for this reason). Fixed everywhere: the Studio profile
+(`basmallah_lines=2`) and row budget (`_page_row_budget`); `EditionSpec.header_slots` +
+`layout_geo.physical_slots` map logical rows to physical slots; the relayout forces the new
+surah's first word to start the row after the banner (`forced_boundaries`), which also removes the
+rows that spanned two surahs; `mesaha_drafts --restructure` gives the 102 banner pages 11 rows.
+Pages 62 (merged back to the printed row), 96 (the Nisa banner belonged to page 97: twelve plain
+rows ending 3:200) and 97 (banner + eight rows from 4:1:1) were corrected by hand and saved to
+Supabase (old rows: `artifacts/cv-waqf/mesaha-relayout-drafts/cloud_backup_pages_62_96.json`).
+After the correction: 636 draft pages, only 3 kept as imported (283, 345, 783), 0 duplicated/missing
+words, nothing the Studio's save validation rejects, 50 empty rows left on 28 fallback pages.
+`artifacts/.../rebuild.py` redoes the whole draft deterministically from the OCR import.
+
 **Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
 the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
 OCR-import DB; pull it with `layout_persistence.working_db_path(MESAHA,

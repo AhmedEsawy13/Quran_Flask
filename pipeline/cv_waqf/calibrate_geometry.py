@@ -43,8 +43,10 @@ def _page_inputs(spec: EditionSpec, page: int):
     ]
     if not word_lines or not lines:
         return None
-    first = min(int(line['line_number']) for line in lines)
-    slots = [int(line['line_number']) - first for line in word_lines]
+    from pipeline.cv_waqf.layout_geo import physical_slots
+
+    slot_of, _total = physical_slots(spec, lines)
+    slots = [slot_of[int(line['line_number'])] for line in word_lines]
     return image, geometry.text_ink_mask(image), slots
 
 

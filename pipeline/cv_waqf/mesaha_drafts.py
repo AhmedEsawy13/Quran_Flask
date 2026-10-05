@@ -35,6 +35,52 @@ DEFAULT_COLLECTED = ROOT / 'artifacts' / 'cv-waqf' / 'mesaha-relayout-drafts' / 
 AYAH_TYPES = (None, '', 'ayah', 'verse')
 
 
+def restructure(db_path: str, script_db: str, fixed: set[int], apply_changes: bool) -> dict:
+    """Give banner pages their true logical row count.
+
+    The printed banner block is four slots (name, info, a two-slot basmallah), so a page
+    with a banner holds ``12 - 1`` logical rows per basmallah, not 12. The OCR import
+    gave every page 12 rows, i.e. one invented ayah row after each banner. The shortest
+    adjacent ayah pair is merged (``layout_engine.rebalance_page_line_count``); the
+    relayout then redistributes the words. Pages in ``fixed`` are never touched.
+    """
+    from modules import layout_engine as engine
+
+    conn = sqlite3.connect(db_path)
+    report = collections.Counter()
+    try:
+        cur = conn.cursor()
+        pages = [r[0] for r in cur.execute(
+            'SELECT DISTINCT page_number FROM pages WHERE page_number > ? ORDER BY page_number',
+            (REVIEWED_THROUGH,))]
+        for page in pages:
+            if page in fixed:
+                report['fixed (skipped)'] += 1
+                continue
+            types = [r[0] for r in cur.execute(
+                'SELECT line_type FROM pages WHERE page_number = ? ORDER BY line_number', (page,))]
+            target = 12 - types.count('basmallah')
+            if len(types) == target:
+                report['already right'] += 1
+                continue
+            if len(types) != 12:
+                report['unexpected row count (skipped)'] += 1
+                continue
+            if apply_changes:
+                engine.rebalance_page_line_count(cur, page, target, script_db=script_db)
+            report['restructured'] += 1
+        if apply_changes:
+            conn.commit()
+        else:
+            conn.rollback()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+    return dict(report)
+
+
 def collect(pages=range(FIRST_PAGE, LAST_PAGE + 1)) -> dict[int, dict]:
     """The relayout's row bounds per page (first/last word id of each printed row)."""
     import cv2
@@ -125,18 +171,22 @@ def plan(collected: dict[int, dict], db_path: str, script_db: str,
         return [l for l in old_lines[page]
                 if l['line_type'] in AYAH_TYPES and l['first_word_id'] is not None]
 
+    def ayah_slots(page):
+        """Every ayah row of the page, empty ones included (the relayout fills those)."""
+        return {l['line_number'] for l in old_lines[page] if l['line_type'] in AYAH_TYPES}
+
     pages: dict[int, dict] = {}
     for page, rec in collected.items():
         page = int(page)
         if not rec.get('source') or not FIRST_PAGE <= page <= LAST_PAGE or page in fixed:
             continue
-        old_ayah = {l['line_number']: l for l in ayah_old(page)}
+        wanted = ayah_slots(page)
         rows = {}
         for k, (first, last, _n) in rec['rows'].items():
             k = int(k)
-            if k in old_ayah and first in pos and last in pos:
+            if k in wanted and first in pos and last in pos:
                 rows[k] = [pos[first], pos[last]]
-        if not rows or set(rows) != set(old_ayah):
+        if not rows or set(rows) != wanted:
             continue                       # the rows no longer match the layout's lines
         ks = sorted(rows)
         if any(rows[a][1] + 1 != rows[b][0] for a, b in zip(ks, ks[1:])):
@@ -387,10 +437,17 @@ def main(argv: list[str] | None = None) -> None:
                         help='relayout rows per page (JSON); regenerated when missing or --recollect')
     parser.add_argument('--recollect', action='store_true')
     parser.add_argument('--apply', action='store_true', help='write the drafts (default: dry run)')
+    parser.add_argument('--restructure', action='store_true',
+                        help='first give banner pages their true row count (see restructure())')
     parser.add_argument('--offline', action='store_true',
                         help='do not ask Supabase which pages are reviewed (local progress only)')
     args = parser.parse_args(argv)
     spec = EDITIONS[EDITION]
+    if args.restructure:
+        print('restructure', restructure(spec.layout_db, spec.script_db,
+                                         reviewed_pages(spec.layout_db, args.offline), args.apply))
+        if args.apply:
+            args.recollect = True
     path = Path(args.collected)
     if path.is_file() and not args.recollect:
         collected = {int(k): v for k, v in json.loads(path.read_text(encoding='utf-8')).items()}

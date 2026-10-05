@@ -1758,3 +1758,28 @@ def test_mesaha_drafts_never_move_a_fixed_page_and_neighbours_meet_it(tmp_path):
     assert 63 not in drafts['pages'] and 63 not in drafts['adjusted']          # never rewritten
     assert drafts['pages'][64]['rows'] == {1: [60, 89]}                          # starts after page 63's last word
     assert 'moved to meet fixed page 63' in drafts['pages'][64]['notes'][0]
+
+
+def test_mesaha_logical_rows_map_to_physical_slots_around_a_banner():
+    from pipeline.cv_waqf import layout_geo
+    from pipeline.cv_waqf.config import EDITIONS
+
+    spec = EDITIONS['المساحة']
+    lines = [{'line_number': n, 'line_type': 'ayah'} for n in range(1, 8)] + [
+        {'line_number': 8, 'line_type': 'surah_name'},
+        {'line_number': 9, 'line_type': 'surah_info'},
+        {'line_number': 10, 'line_type': 'basmallah'},
+        {'line_number': 11, 'line_type': 'ayah'},
+    ]
+    slot_of, total = layout_geo.physical_slots(spec, lines)
+    assert total == 12 and slot_of[7] == 6 and slot_of[10] == 9 and slot_of[11] == 11
+    # an edition without header_slots: one slot per row, as before
+    plain, total = layout_geo.physical_slots(EDITIONS['قطر'], lines)
+    assert total == 11 and plain[11] == 10
+
+
+def test_kraken_rows_honour_a_forced_surah_boundary(monkeypatch):
+    relayout, kw = _kraken_fixture(monkeypatch)
+    assert relayout.kraken_rows(**kw, forced={2: 24}) == [list(range(k * 8, (k + 1) * 8)) for k in range(6)]
+    # a boundary the Kraken matches contradict is refused, not forced
+    assert relayout.kraken_rows(**kw, forced={2: 20}) is None

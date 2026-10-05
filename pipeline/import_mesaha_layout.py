@@ -1201,8 +1201,20 @@ def validate_database(conn: sqlite3.Connection, words: list[QuranWord]) -> dict:
             'SELECT COUNT(*) FROM pages WHERE page_number = ?', (page,)
         ).fetchone()[0]
         expected = SHORT_LINES.get(page, DEFAULT_LINES)
-        if int(count) != expected:
-            raise RuntimeError(f'page {page}: {count} rows, expected {expected}')
+        accepted = {expected}
+        if page not in SHORT_LINES:
+            # The printed banner block is four slots (name, info, two-slot basmallah), so a
+            # page with a basmallah holds one logical row fewer: 12 rows is the OCR seed's
+            # structure, 12 - basmallah rows the corrected one (mesaha_drafts --restructure).
+            basmallahs = conn.execute(
+                "SELECT COUNT(*) FROM pages WHERE page_number = ? AND line_type = 'basmallah'",
+                (page,),
+            ).fetchone()[0]
+            accepted.add(expected - int(basmallahs))
+        if int(count) not in accepted:
+            raise RuntimeError(
+                f'page {page}: {count} rows, expected {" or ".join(map(str, sorted(accepted)))}'
+            )
     integrity = conn.execute('PRAGMA integrity_check').fetchone()[0]
     if integrity != 'ok':
         raise RuntimeError(f'SQLite integrity check failed: {integrity}')

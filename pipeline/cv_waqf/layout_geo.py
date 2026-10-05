@@ -176,6 +176,23 @@ def _observed_line_bounds(
     return observed_left, observed_right
 
 
+def physical_slots(spec: EditionSpec, lines: list[dict]) -> tuple[dict[int, int], int]:
+    """``{line_number: first physical slot}`` and the page's physical slot count.
+
+    A row's ``line_number`` is logical: a header row can take several physical slots
+    (``EditionSpec.header_slots``), so the rows after it sit lower than their number.
+    """
+    cursor = 0
+    first: dict[int, int] = {}
+    for ln in sorted(
+        (l for l in lines if l.get('line_number') is not None),
+        key=lambda l: int(l['line_number']),
+    ):
+        first[int(ln['line_number'])] = cursor
+        cursor += spec.slot_span(ln.get('line_type'))
+    return first, max(1, cursor)
+
+
 def _neighbour_ids(spec: EditionSpec, page: int, step: int, count: int) -> list[int]:
     """The ``count`` word ids of the neighbouring page nearest to ``page`` (the
     last words of the previous page, the first words of the next), in reading
@@ -252,6 +269,17 @@ def _ocr_relayout_spans(
         rings = relayout.find_ayah_rings(
             cv2.cvtColor(prepared.bgr, cv2.COLOR_BGR2GRAY), len(digit_idx),
         )
+    # A surah banner sits between two ayah rows: the word that starts the new surah
+    # is the first of the row after it (otherwise a row would span two surahs).
+    forced: dict[int, int] = {}
+    gaps = [i for i in range(len(spans) - 1) if slots[i + 1] - slots[i] > 1]
+    if gaps:
+        changes = [
+            n for n in range(offset + 1, offset + nominal_len)
+            if meta[ordered[n]].get('surah') != meta[ordered[n - 1]].get('surah')
+        ]
+        if len(changes) == len(gaps):
+            forced = dict(zip(gaps, changes))
     rows = relayout.relayout_page_rows(
         rings=rings,
         ring_word_idx=digit_idx,
@@ -264,6 +292,7 @@ def _ocr_relayout_spans(
         row_baselines=baselines,
         pitch=float(grid.pitch),
         nominal=(offset, offset + nominal_len - 1),
+        forced_boundaries=forced,
     )
     if rows is None or any(not row for row in rows):
         return None
@@ -293,11 +322,22 @@ def estimate_layout_words(
             )
         )
     ]
-    # Keep only rows with a word span.
-    ayah_lines = [
+    # Keep only rows with a word span. A relayout print also keeps the empty ayah rows
+    # of a page that has words elsewhere: they are rows for the relayout to fill.
+    with_words = [
         ln for ln in ayah_lines
         if ln.get('first_word_id') is not None and ln.get('last_word_id') is not None
     ]
+    if spec.ocr_relayout and with_words:
+        ayah_lines = [
+            ln for ln in ayah_lines
+            if ln in with_words or (
+                ln.get('line_type') in (None, '', 'ayah', 'verse')
+                and ln.get('first_word_id') is None and ln.get('last_word_id') is None
+            )
+        ]
+    else:
+        ayah_lines = with_words
     if not ayah_lines:
         return []
 
@@ -313,6 +353,9 @@ def estimate_layout_words(
     all_ids: list[int] = []
     spans: list[tuple[dict, list[int]]] = []
     for ln in ayah_lines:
+        if ln.get('first_word_id') is None or ln.get('last_word_id') is None:
+            spans.append((ln, []))             # an empty row, left for the relayout
+            continue
         first_id = int(ln['first_word_id'])
         last_id = int(ln['last_word_id'])
         ids = _ids_between(spec.script_db, first_id, last_id)
@@ -327,13 +370,9 @@ def estimate_layout_words(
     # Preserve physical page rows.  Compressing only the ayah rows over the
     # whole band is wrong whenever a surah heading/basmallah occupies a row:
     # all words below it are then attached one or more lines too high.
-    page_line_numbers = [
-        int(ln['line_number']) for ln in lines
-        if ln.get('line_number') is not None
-    ]
-    first_line = min(page_line_numbers, default=1)
-    last_line = max(page_line_numbers, default=first_line + len(spans) - 1)
-    line_slots = max(1, last_line - first_line + 1)
+    slot_of, line_slots = physical_slots(spec, lines)
+    if not slot_of:
+        line_slots = max(1, len(spans))
     out: list[LayoutWord] = []
     measured = (
         spec.measured_geometry and prepared.bgr is not None and bool(spans)
@@ -343,7 +382,7 @@ def estimate_layout_words(
         mask = geometry.text_ink_mask(prepared.bgr)
         grid = geometry.fit_line_grid(
             mask,
-            [max(0, int(ln['line_number']) - first_line) for ln, _ in spans],
+            [slot_of.get(int(ln['line_number']), 0) for ln, _ in spans],
             nominal_top=float(y0),
             nominal_pitch=band_h / line_slots,
         )
@@ -356,10 +395,12 @@ def estimate_layout_words(
     if measured and spec.ocr_relayout and not spec.layout_trusted(page):
         spans = _ocr_relayout_spans(
             spec, page, prepared, mask, grid, spans, meta,
-            [max(0, int(ln['line_number']) - first_line) for ln, _ in spans],
+            [slot_of.get(int(ln['line_number']), 0) for ln, _ in spans],
         ) or spans
     for ln, ids in spans:
-        line_slot = max(0, int(ln['line_number']) - first_line)
+        if not ids:
+            continue                           # still empty after the relayout
+        line_slot = slot_of.get(int(ln['line_number']), 0)
         if measured:
             line_top, line_bot = grid.slot(line_slot)
         else:
