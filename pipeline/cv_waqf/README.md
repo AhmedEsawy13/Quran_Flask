@@ -370,6 +370,10 @@ python -m pipeline.cv_waqf.mesaha_review.build_review    # proposals per page (t
 python -m pipeline.cv_waqf.mesaha_review.serve           # review tool on http://127.0.0.1:5004
 ```
 
+If a mark is right but linked to the wrong word, **move** it (neighbour buttons or "كلمة أخرى…" + a click on the right word):
+`/api/relink` rejects the old word and puts the symbol on the new one in one write, records it in
+`relinks.json` (also exported in `reviewed_marks.json`) and can be undone.
+
 A candidate is any word at least two models mark, or that the prior passes, or that the Shemrly
 column marks. **Auto-accepted** when the models agree, the seat prior passes it and the column has
 the same symbol; everything else is for the reviewer (symbol buttons, "ليست علامة", or click a word

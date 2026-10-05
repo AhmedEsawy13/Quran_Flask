@@ -27,6 +27,11 @@ button,select{font:inherit;border:1px solid var(--line);background:var(--card);c
 .item.s-accept .crop .ring{border-color:var(--ok)}.item.s-reject .crop .ring{border-color:#999}
 .body{min-width:0}.body .syms{margin-top:4px}
 .moved{color:var(--acc);border-color:var(--acc)}
+.mv{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px;font-size:13px;color:var(--mut)}
+.mv button{padding:2px 8px;font-size:13px}.mv .w2{font-family:"Amiri Quran","Geeza Pro",serif;font-size:16px}
+#pickbar{position:sticky;top:48px;z-index:25;background:var(--acc);color:#fff;padding:8px 14px;border-radius:8px;margin:0 0 8px;display:flex;gap:10px;align-items:center}
+#pickbar[hidden]{display:none}#pickbar button{background:#fff;color:#000}
+body.picking .wb{outline:1px dashed var(--acc);background:rgba(43,93,138,.10)}body.picking .wb:hover{background:rgba(43,93,138,.35)}
 .item.cur{outline:2px solid var(--acc)}.item.s-accept{border-inline-start:5px solid var(--ok)}.item.s-review{border-inline-start:5px solid var(--warn);background:var(--warnbg)}.item.s-reject{border-inline-start:5px solid #999;opacity:.6}
 .w{font-size:22px;font-family:"Amiri Quran","Geeza Pro",serif;min-width:80px}
 .syms{display:flex;gap:4px;flex-wrap:wrap}.syms button{min-width:36px;padding:3px 8px}.syms button.on{background:var(--ok);color:#fff;border-color:var(--ok)}.syms button.model{border-color:var(--acc)}
@@ -42,10 +47,11 @@ details>summary{cursor:pointer;color:var(--mut);font-size:13px;margin:10px 0 4px
 <header><h1>مراجعة علامات الوقف</h1><span id="save">…</span>
 <button id="prev">→</button><select id="sel"></select><button id="next">←</button>
 <span id="prog" style="font-size:13px;color:var(--mut)"></span></header>
+<div id="pickbar" hidden><span id="picktxt"></span><button id="pickcancel">إلغاء (Esc)</button></div>
 <div id="wrap"><div id="list"></div><div id="pane"><div class="fig" id="fig"><img id="img" alt=""></div></div></div>
 <div id="add" hidden><div id="addw" class="w"></div><div class="syms" id="addsyms"></div></div>
 <script>
-let P=[],V={},D=new Set(),SYM=[],cur=0,sel=null;const $=id=>document.getElementById(id);
+let P=[],V={},R={},D=new Set(),SYM=[],cur=0,sel=null,pick=null;const $=id=>document.getElementById(id);
 const toAr=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const status=(k,m)=>{$('save').className=k;$('save').textContent=m};
@@ -59,6 +65,13 @@ function counts(p){let rev=0,acc=0,rej=0;for(const pr of p.proposals){const v=V[
 function fillSel(){const s=$('sel');s.innerHTML='';P.forEach((p,i)=>{const c=counts(p);const o=document.createElement('option');o.value=i;o.textContent=`${D.has(p.page)?'✓ ':''}صفحة ${p.page} · للمراجعة ${c.rev}`;s.appendChild(o)});s.value=cur;$('prog').textContent=`${toAr(D.size)}/${toAr(P.length)} صفحة منتهية`}
 async function setV(pr,sym){const p=pg();const r=await api('/api/verdict',{page:p.page,key:pr.key,symbol:sym});if(!r)return;if(sym===null)delete V[key(p.page,pr.key)];else V[key(p.page,pr.key)]=sym;render(true)}
 async function addMark(w,sym){const p=pg();const r=await api('/api/verdict',{page:p.page,key:w.key,symbol:sym});if(!r)return;if(sym===null)delete V[key(p.page,w.key)];else V[key(p.page,w.key)]=sym;$('add').hidden=true;render(true)}
+async function relink(fromKey,toKey,sym,undo){const p=pg();const r=await api('/api/relink',{page:p.page,from:fromKey,to:toKey,symbol:sym,undo:!!undo});if(!r)return;V=r.verdicts;R=r.relinks;endPick();sel=undo?fromKey:toKey;render(true);document.querySelector('.item.cur')?.scrollIntoView({block:'center'})}
+function startPick(pr){pick=pr;document.body.classList.add('picking');$('picktxt').textContent=`انقر على الكلمة الصحيحة في الصورة لنقل العلامة (${finalSym(pr)||pr.symbol}) من «${pr.text}» إليها`;$('pickbar').hidden=false}
+function endPick(){pick=null;document.body.classList.remove('picking');$('pickbar').hidden=true}
+function neighbours(pr){const p=pg();const i=p.words.findIndex(w=>w.key===pr.key);return [p.words[i-1],p.words[i+1]].filter(Boolean).filter(w=>w.line===p.words[i].line)}
+function mvRow(pr){const sym=finalSym(pr)||pr.symbol;const d=document.createElement('div');d.className='mv';d.innerHTML='<span>العلامة صحيحة والكلمة خطأ؟ انقلها إلى:</span>';
+  for(const w of neighbours(pr)){const b=document.createElement('button');b.innerHTML=`<span class="w2">${esc(w.text)}</span>`;b.title='نقل العلامة إلى هذه الكلمة';b.onclick=e=>{e.stopPropagation();relink(pr.key,w.key,sym,false)};d.appendChild(b)}
+  const o=document.createElement('button');o.textContent='كلمة أخرى…';o.onclick=e=>{e.stopPropagation();startPick(pr)};d.appendChild(o);return d}
 function crop(pr){const p=pg(),S=1.5,h=Math.max(12,(pr.box[3]-pr.box[1])/0.85);
   const x0=Math.max(0,pr.box[0]-0.9*h),x1=Math.min(p.w,pr.box[2]+0.9*h),y0=Math.max(0,pr.seat[1]-0.75*h),y1=Math.min(p.h,pr.box[3]+4);
   const el=document.createElement('div');el.className='crop';el.style.width=Math.round((x1-x0)*S)+'px';el.style.height=Math.round((y1-y0)*S)+'px';
@@ -70,9 +83,10 @@ function item(pr){const s=state(pr),f=finalSym(pr);const d=document.createElemen
   const mods=Object.entries(pr.models||{}).map(([m,[sy,cf]])=>`${m}:${sy} ${Math.round(cf*100)}`).join(' · ');
   d.appendChild(crop(pr));const b=document.createElement('div');b.className='body';
   b.innerHTML=`<div class="w">${esc(pr.text)}</div><div class="syms">${SYM.map(x=>`<button data-s="${x}" class="${f===x?'on':''} ${x===pr.symbol&&f!==x?'model':''}">${x}</button>`).join('')}<button class="no ${s==='reject'||(f===null&&s!=='review')?'on':''}" data-s="-">ليست علامة</button></div>
-  <div class="meta"><span class="tag">${pr.why}</span><span class="tag">اقتراح ${pr.symbol} ${Math.round(pr.conf*100)}٪</span>${pr.column?`<span class="tag">المصحف المرجعي: ${pr.column}</span>`:'<span class="tag">لا علامة في المرجع</span>'}${pr.prior?'':'<span class="tag">خارج المقبول سابقًا</span>'}${pr.moved_from?`<span class="tag moved">انتقلت من «${esc(pr.moved_from.text)}» المجاورة التي رفضتَها</span>`:''} <span title="${esc(mods)}">سطر ${toAr(pr.line)}</span></div>`;
+  <div class="meta"><span class="tag">${pr.why}</span><span class="tag">اقتراح ${pr.symbol} ${Math.round(pr.conf*100)}٪</span>${pr.column?`<span class="tag">المصحف المرجعي: ${pr.column}</span>`:'<span class="tag">لا علامة في المرجع</span>'}${pr.prior?'':'<span class="tag">خارج المقبول سابقًا</span>'}${pr.moved_from?`<span class="tag moved">انتقلت من «${esc(pr.moved_from.text)}» المجاورة التي رفضتَها</span>`:''}${R[key(pg().page,pr.key)]?`<span class="tag moved">نقلتَها من «${esc((pg().words.find(w=>w.key===R[key(pg().page,pr.key)].from)||{}).text||'')}» <a href="#" data-undo="1">تراجع</a></span>`:''} <span title="${esc(mods)}">سطر ${toAr(pr.line)}</span></div>`;
+  if(s!=='reject'&&!R[key(pg().page,pr.key)])b.appendChild(mvRow(pr));
   d.appendChild(b);
-  d.onclick=e=>{const bt=e.target.closest('button[data-s]');sel=pr.key;if(bt){const v=bt.dataset.s;const same=(v==='-'?V[key(pg().page,pr.key)]==='-':finalSym(pr)===v&&V[key(pg().page,pr.key)]===v);setV(pr,same?null:v)}else render(true)};return d}
+  d.onclick=e=>{const un=e.target.closest('[data-undo]');if(un){e.preventDefault();const r0=R[key(pg().page,pr.key)];relink(r0.from,pr.key,null,true);return}const bt=e.target.closest('button[data-s]');sel=pr.key;if(bt){const v=bt.dataset.s;const same=(v==='-'?V[key(pg().page,pr.key)]==='-':finalSym(pr)===v&&V[key(pg().page,pr.key)]===v);setV(pr,same?null:v)}else render(true)};return d}
 function render(keep){const p=pg();const y=scrollY;const L=$('list');L.innerHTML='';
   const c=counts(p);const h=document.createElement('div');h.className='pgh';h.innerHTML=`<h2>صفحة ${p.page}</h2><span class="tag">للمراجعة ${toAr(c.rev)}</span><span class="tag">علامات ${toAr(c.acc+c.added)}</span><button id="doneb">${D.has(p.page)?'إلغاء الإنهاء':'أنهيت الصفحة ✓'}</button>`;L.appendChild(h);
   const hint=document.createElement('p');hint.className='hint';hint.textContent='الأخضر مقبول تلقائيًا (اتفقت النماذج وسبق أن اتفق معها المصحف المرجعي)، الأصفر يحتاج قرارك: اختر الرمز الصحيح أو «ليست علامة». علامة فاتت النماذج؟ انقر على الكلمة في الصورة. مفاتيح: ↑↓ تنقّل · ١–٧ الرمز · X ليست علامة · Enter قبول الاقتراح · D إنهاء الصفحة.';L.appendChild(hint);
@@ -83,11 +97,13 @@ function render(keep){const p=pg();const y=scrollY;const L=$('list');L.innerHTML
   if(dec.length){sec(`قرارات اتخذتها (${toAr(dec.length)})`);dec.forEach(x=>L.appendChild(item(x)))}
   const det=document.createElement('details');det.innerHTML=`<summary>مقبولة تلقائيًا (${toAr(auto.length)})</summary>`;auto.forEach(x=>det.appendChild(item(x)));L.appendChild(det);
   const added=Object.keys(V).filter(k=>k.startsWith(p.page+':')&&V[k]!=='-'&&!p.proposals.some(q=>key(p.page,q.key)===k));
-  if(added.length){sec(`علامات أضفتَها (${toAr(added.length)})`);for(const k of added){const w=p.words.find(w=>key(p.page,w.key)===k);if(!w)continue;const d=document.createElement('div');d.className='item s-accept';d.innerHTML=`<div class="w">${esc(w.text)}</div><div class="syms"><button class="on">${V[k]}</button><button data-rm="1">حذف</button></div>`;d.querySelector('[data-rm]').onclick=()=>addMark(w,null);L.appendChild(d)}}
+  if(added.length){sec(`علامات أضفتَها (${toAr(added.length)})`);for(const k of added){const w=p.words.find(w=>key(p.page,w.key)===k);if(!w)continue;const rl=R[k];const d=document.createElement('div');d.className='item s-accept';const wk=k.slice(String(p.page).length+1);
+    d.innerHTML=`<div class="w">${esc(w.text)}</div><div class="syms"><button class="on">${V[k]}</button><button data-rm="1">حذف</button>${rl?'<button data-undo="1">تراجع عن النقل</button>':''}</div>${rl?`<div class="meta"><span class="tag moved">نقلتَها من «${esc((p.words.find(x=>x.key===rl.from)||{}).text||'')}»</span></div>`:''}`;
+    d.querySelector('[data-rm]').onclick=()=>addMark(w,null);const u=d.querySelector('[data-undo]');if(u)u.onclick=()=>relink(rl.from,wk,null,true);L.appendChild(d)}}
   $('doneb').onclick=async()=>{const r=await api('/api/done',{page:p.page,done:!D.has(p.page)});if(!r)return;D=new Set(r.done);fillSel();render(true)};
   // image overlay
   const fig=$('fig');fig.querySelectorAll('.wb,.mk').forEach(e=>e.remove());const pc=n=>(100*n).toFixed(3)+'%';
-  for(const w of p.words){const b=document.createElement('div');b.className='wb';b.style.cssText=`left:${pc(w.box[0]/p.w)};top:${pc(w.box[1]/p.h)};width:${pc((w.box[2]-w.box[0])/p.w)};height:${pc((w.box[3]-w.box[1])/p.h)}`;b.title=w.text;b.onclick=e=>openAdd(w,e);fig.appendChild(b)}
+  for(const w of p.words){const b=document.createElement('div');b.className='wb';b.style.cssText=`left:${pc(w.box[0]/p.w)};top:${pc(w.box[1]/p.h)};width:${pc((w.box[2]-w.box[0])/p.w)};height:${pc((w.box[3]-w.box[1])/p.h)}`;b.title=w.text;b.onclick=e=>{if(pick){const src=pick;if(w.key===src.key){endPick();return}relink(src.key,w.key,finalSym(src)||src.symbol,false)}else openAdd(w,e)};fig.appendChild(b)}
   for(const pr of p.proposals){const f=finalSym(pr),s=state(pr);const m=document.createElement('div');m.className='mk s-'+s+(sel===pr.key?' cur':'');m.innerHTML='<span>'+esc(f||pr.symbol)+'</span>';m.style.left=pc(pr.seat[0]/p.w);m.style.top=pc(pr.seat[1]/p.h);m.onclick=e=>{e.stopPropagation();sel=pr.key;render(true);document.querySelector('.item.cur')?.scrollIntoView({block:'center'})};fig.appendChild(m)}
   const img=$('img');if(!img.src.endsWith(`/img/p${p.page}.jpg`))img.src=`/img/p${p.page}.jpg`;
   if(keep)scrollTo(0,y);fillSel()}
@@ -97,7 +113,7 @@ function openAdd(w,e){const a=$('add');$('addw').textContent=w.text;const S=$('a
 document.addEventListener('click',e=>{if(!e.target.closest('#add')&&!e.target.closest('.wb'))$('add').hidden=true});
 function go(i){if(i<0||i>=P.length)return;cur=i;sel=null;try{localStorage.setItem('msl_cur',i)}catch(e){}render();scrollTo(0,0)}
 function items(){return [...document.querySelectorAll('.item[data-k]')]}
-document.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;const p=pg();if(!p)return;const list=items();let idx=list.findIndex(x=>x.dataset.k===sel);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){endPick();$('add').hidden=true;return}if(e.metaKey||e.ctrlKey||e.altKey)return;const p=pg();if(!p)return;const list=items();let idx=list.findIndex(x=>x.dataset.k===sel);
   const pick=pr=>{sel=pr.key;render(true);document.querySelector('.item.cur')?.scrollIntoView({block:'center',behavior:'smooth'})};
   const byKey=k=>p.proposals.find(q=>q.key===k);
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();const n=Math.max(0,Math.min(list.length-1,(idx<0?0:idx+(e.key==='ArrowDown'?1:-1))));const pr=byKey(list[n]?.dataset.k);if(pr)pick(pr)}
@@ -107,7 +123,7 @@ document.addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return
   else if(e.key==='Backspace'){const pr=byKey(sel);if(pr){setV(pr,null)}e.preventDefault()}
   else if(e.key==='d'||e.key==='D'){$('doneb')?.click()}
   else if(e.key==='ArrowLeft')go(cur+1);else if(e.key==='ArrowRight')go(cur-1)});
-$('prev').onclick=()=>go(cur-1);$('next').onclick=()=>go(cur+1);$('sel').onchange=e=>go(+e.target.value);
-(async()=>{try{P=await (await fetch('/pages.json')).json();const s=await (await fetch('/api/state')).json();V=s.verdicts;D=new Set(s.done);SYM=s.symbols;status('ok','محفوظ على الخادم ✓')}catch(e){status('err','تعذّر الاتصال بالخادم');return}
+$('pickcancel').onclick=endPick;$('prev').onclick=()=>go(cur-1);$('next').onclick=()=>go(cur+1);$('sel').onchange=e=>go(+e.target.value);
+(async()=>{try{P=await (await fetch('/pages.json')).json();const s=await (await fetch('/api/state')).json();V=s.verdicts;R=s.relinks||{};D=new Set(s.done);SYM=s.symbols;status('ok','محفوظ على الخادم ✓')}catch(e){status('err','تعذّر الاتصال بالخادم');return}
   try{cur=Math.min(P.length-1,+(localStorage.getItem('msl_cur')||0))}catch(e){}render()})();
 </script></body></html>
