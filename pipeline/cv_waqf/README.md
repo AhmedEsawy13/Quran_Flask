@@ -279,6 +279,19 @@ word is the one you chose 38% -> 59% of the time (top-6 81% -> 89%); page 61
 pages with poor OCR (62, 445) fall back. Validation is thin: only 3 labelled
 pages are eligible, so more labels are the best way to check it.
 
+**Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
+the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
+OCR-import DB; pull it with `layout_persistence.working_db_path(MESAHA,
+force=True)` (backs nothing up: copy `data/mushaf-mesaha-layout.db` first).
+Pages 2-62 are there (61 and 62 still in progress: page 61's last row holds 86
+words), so `trusted_layout_pages=(2, 60)` skips the relayout on 2-60. Those 59
+pages are the first real test of it: the old OCR import put **85.6%** of words
+on the right row (all 59 pages had errors); the relayout, run from the OCR and
+the images only, puts **99.5%** on the row the reviewer chose (98.6% on the 21
+pages where it differed from the layout at all). Against the 37 hand labels
+with the reviewed layout the first suggestion is the right word on page 4 5/5,
+page 61 12/12 of 14 either way.
+
 Open: Mesaha prints many more stop signs than the Shemrly column records (about
 10 per page detected vs 4 per page in the column), so that column is **not** a
 usable reference and the multiprint model without a prior is about half false

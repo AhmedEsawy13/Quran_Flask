@@ -678,6 +678,10 @@ def _layout_note(edition: str, page: int) -> str | None:
     """
     if edition != 'المساحة':
         return None
+    from pipeline.cv_waqf.config import EDITIONS as _EDITIONS
+
+    if _EDITIONS[edition].layout_trusted(page):
+        return None
     status = ''
     try:
         import sqlite3

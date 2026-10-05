@@ -322,7 +322,7 @@ def estimate_layout_words(
             int(grid.top),
             int(grid.top + grid.pitch * line_slots),
         )
-    if measured and spec.ocr_relayout:
+    if measured and spec.ocr_relayout and not spec.layout_trusted(page):
         spans = _ocr_relayout_spans(
             spec, page, prepared, mask, grid, spans, meta,
             [max(0, int(ln['line_number']) - first_line) for ln, _ in spans],

@@ -1598,3 +1598,12 @@ def test_only_mesaha_uses_ocr_relayout():
 
     assert EDITIONS['المساحة'].ocr_relayout is True
     assert all(not s.ocr_relayout for k, s in EDITIONS.items() if k != 'المساحة')
+
+
+def test_mesaha_reviewed_layout_pages_skip_relayout():
+    from pipeline.cv_waqf.config import EDITIONS
+
+    spec = EDITIONS['المساحة']
+    assert spec.layout_trusted(2) and spec.layout_trusted(60)
+    assert not spec.layout_trusted(61) and not spec.layout_trusted(None)
+    assert not EDITIONS['قطر'].layout_trusted(5)

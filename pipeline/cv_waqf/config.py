@@ -107,6 +107,14 @@ class EditionSpec:
     # Re-derive line breaks from the scan's OCR + geometry instead of trusting
     # an unreviewed layout (relayout.py). Falls back to the layout when unsure.
     ocr_relayout: bool = False
+    # Inclusive page range whose line breaks were reviewed against the printed
+    # book (Layout Studio, synced from Supabase). There the layout is used as
+    # is and ``ocr_relayout`` is skipped.
+    trusted_layout_pages: tuple[int, int] | None = None
+
+    def layout_trusted(self, page: int | None) -> bool:
+        r = self.trusted_layout_pages
+        return bool(r and page is not None and r[0] <= page <= r[1])
 
     def __post_init__(self) -> None:
         if self.azhar_seat_prior and self.mushaf_version in self.seat_prior_editions:
@@ -293,6 +301,10 @@ EDITIONS: dict[str, EditionSpec] = {
         text_band_even=(0.1487, 0.7648),
         strip_frame=True,
         ocr_relayout=True,
+        # Reviewed in Layout Studio (Supabase `mesaha`: pages 2-62, 61 and 62
+        # still in progress on 2026-10-05). The local DB must be synced from
+        # the cloud first (`layout_persistence.working_db_path(MESAHA, force=True)`).
+        trusted_layout_pages=(2, 60),
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
         # cannot be compared with or filtered by the QPC-indexed columns.
