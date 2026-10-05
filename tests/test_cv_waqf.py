@@ -1869,3 +1869,67 @@ def test_reviewed_marks_file_is_a_consensus_source(tmp_path):
     agreed, marked = consensus_marks((f'reviewed:{marks}',), [(2, 5)], str(db))
     assert agreed == {(2, 5, 11): 'ج'}                    # only the ayahs asked for
     assert marked == {(2, 5, 11)}
+
+
+def _seat_words():
+    """Two neighbouring words on one row (RTL: ``a`` is on the right, ``b`` to its left);
+    ``a`` carries a script seat (waqf glyph), ``b`` does not."""
+    from pipeline.cv_waqf.layout_geo import LayoutWord
+
+    def word(i, text, x0, x1):
+        return LayoutWord(word_id=i, word_key=f'2:1:{i}', word_id_space='s', surah=2, ayah=1, text=text,
+                          line_number=1, word_on_line=i, words_on_line=2, x0=x0, y0=100, x1=x1, y1=177)
+    return word(1, 'كتابۖ', 300, 400), word(2, 'ربنا', 200, 296)
+
+
+def test_seat_owner_is_the_word_whose_seat_is_nearest():
+    from pipeline.cv_waqf import geometry
+    from pipeline.cv_waqf.attach import seat_owner
+    from pipeline.cv_waqf.candidates import Candidate
+
+    a, b = _seat_words()
+    sx, sy = geometry.mark_seat_centre(b.x0, b.y0, b.y1)
+    cand = Candidate(x=int(sx) - 12, y=int(sy) - 12, w=24, h=24, area=100, score=1.0)
+    assert seat_owner(cand, [a, b]).word_id == b.word_id           # b has no script seat; a does
+    far = Candidate(x=0, y=0, w=24, h=24, area=100, score=1.0)
+    assert seat_owner(far, [a, b]) is None                          # nothing near: no owner
+
+
+def test_attach_by_seat_ignores_a_misleading_cluster_pairing():
+    from types import SimpleNamespace
+
+    from pipeline.cv_waqf import geometry
+    from pipeline.cv_waqf.candidates import Candidate
+    from pipeline.cv_waqf.run_page import _attach_from_hits
+
+    a, b = _seat_words()
+    sx, sy = geometry.mark_seat_centre(b.x0, b.y0, b.y1)
+    cand = Candidate(x=int(sx) - 12, y=int(sy) - 12, w=24, h=24, area=100, score=1.0)
+    # The strip detector paired this ink with word ``a`` (counts matched, boundaries did not).
+    hit = SimpleNamespace(candidate=cand, layout_word=a, line_number=1)
+    default = _attach_from_hits([(hit, 'ج', 0.9)], 5, [a, b])
+    by_seat = _attach_from_hits([(hit, 'ج', 0.9)], 5, [a, b], by_seat=True)
+    assert [m.word_id for m in default] == [a.word_id]             # the bug: the neighbour
+    assert [m.word_id for m in by_seat] == [b.word_id]             # the fix: the word under the mark
+
+
+def test_only_mesaha_attaches_by_seat():
+    from pipeline.cv_waqf.config import EDITIONS
+
+    assert EDITIONS['المساحة'].attach_by_seat is True
+    assert all(not s.attach_by_seat for k, s in EDITIONS.items() if k != 'المساحة')
+
+
+def test_reconcile_reopens_pages_with_unseen_proposals_and_tags_moves():
+    from pipeline.cv_waqf.mesaha_review.reconcile import reconcile
+
+    words = [{'key': f'w{i}', 'text': f't{i}'} for i in range(4)]
+    prop = lambda k, sym, d: {'key': k, 'symbol': sym, 'default': d}
+    old = [{'page': 5, 'words': words, 'proposals': [prop('w1', 'ج', 'review'), prop('w3', 'ص', 'accept')]}]
+    new = [{'page': 5, 'words': words, 'proposals': [prop('w2', 'ج', 'review'), prop('w3', 'ص', 'accept')]},
+           {'page': 6, 'words': words, 'proposals': [prop('w0', 'ق', 'accept')]}]
+    out = reconcile(old, new, {'5:w1': '-'}, [5, 6])
+    assert out['reopen'] == [5]                                     # page 6 has nothing new
+    moved = out['pages'][0]['proposals'][0]
+    assert moved['moved_from'] == {'key': 'w1', 'text': 't1'}      # the rejected neighbour
+    assert out['report']['lost_marks'] == []

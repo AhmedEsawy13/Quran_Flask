@@ -41,7 +41,7 @@ for name, path in MODELS.items():
         for page in PAGES:
             r = detect_page(ED, page, min_conf=0.30, model_path=path, azhar_prior=prior)
             res[page] = [{'word_key': m.get('word_key'), 'symbol': m.get('symbol'), 'conf': round(float(m.get('confidence') or 0), 4),
-                          'text': m.get('text') or m.get('word_text') or ''} for m in (r.get('marks') or []) if m.get('word_key')]
+                          'text': m.get('text') or m.get('word_text') or '', 'box': m.get('box')} for m in (r.get('marks') or []) if m.get('word_key')]
         out[key] = res
         print(key, 'marks', sum(len(v) for v in res.values()), f'{time.time()-t0:.0f}s', flush=True)
 (DATA / 'model_marks.json').write_text(json.dumps(out, ensure_ascii=False), encoding='utf-8')

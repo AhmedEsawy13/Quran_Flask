@@ -40,7 +40,7 @@ for page in range(4, 135):
     cands = collections.defaultdict(dict)
     for cfg in CFGS + [PRIOR]:
         for m in M[cfg].get(str(page), []):
-            cands[m['word_key']][cfg] = (m['symbol'], m['conf'])
+            cands[m['word_key']][cfg] = (m['symbol'], m['conf'], m.get('box'))
     ref = REF.get(str(page), {})
     props = []
     for key in set(cands) | set(ref):
@@ -55,12 +55,15 @@ for page in range(4, 135):
             continue                                   # a single model with nothing else behind it: noise
         symbol = top or (d[PRIOR][0] if prior_pass else col)
         agree = [d[c][1] for c in CFGS if c in d and d[c][0] == symbol]
+        boxes = [d[c][2] for c in CFGS + [PRIOR] if c in d and d[c][0] == symbol and d[c][2]]
+        mbox = boxes[0] if boxes else None             # where the printed mark was actually found
         accept = prior_pass and votes >= 2 and col == symbol
         why = ('3 نماذج' if votes == 3 else '2 من 3' if votes == 2 else '1 من 3' if votes == 1 else 'لا نموذج')
         props.append({**byid[key], 'symbol': symbol, 'conf': round(sum(agree) / len(agree), 3) if agree else 0.0,
                       'votes': votes, 'why': why, 'prior': prior_pass, 'column': col,
                       'default': 'accept' if accept else 'review',
-                      'models': {c.split('|')[0]: d[c] for c in CFGS if c in d}})
+                      'mbox': mbox,
+                      'models': {c.split('|')[0]: d[c][:2] for c in CFGS if c in d}})
     props.sort(key=lambda p: (p['line'], -p['seat'][0]))
     pages_out.append({'page': page, 'w': int(prep.bgr.shape[1]), 'h': int(prep.bgr.shape[0]),
                       'words': sorted(byid.values(), key=lambda w: (w['line'], -w['box'][2])), 'proposals': props})

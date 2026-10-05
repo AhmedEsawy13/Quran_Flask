@@ -96,8 +96,35 @@ def _attach_from_hits(
     classified_hits: list[tuple[object, str, float]],
     page: int,
     fallback_words,
+    *,
+    by_seat: bool = False,
 ) -> list[AttachedMark]:
-    """Prefer the layout word already paired to the above-word hit."""
+    """Prefer the layout word already paired to the above-word hit.
+
+    ``by_seat`` (``EditionSpec.attach_by_seat``) ignores that pairing and the script's known
+    seats: every mark goes to the word whose stop seat is nearest to it.
+    """
+    if by_seat:
+        from pipeline.cv_waqf.attach import seat_owner
+
+        best_seat: dict[int, AttachedMark] = {}
+        for hit, symbol, conf in classified_hits:
+            owner = seat_owner(hit.candidate, fallback_words)
+            if owner is None:
+                continue
+            mark = AttachedMark(
+                word_id=owner.word_id, word_key=owner.word_key,
+                word_id_space=owner.word_id_space, surah=owner.surah, ayah=owner.ayah,
+                text=owner.text, symbol=symbol, confidence=float(conf), page=page,
+                line_number=owner.line_number, candidate=hit.candidate,
+            )
+            prev = best_seat.get(owner.word_id)
+            if prev is None or mark.confidence > prev.confidence:
+                best_seat[owner.word_id] = mark
+        return sorted(
+            best_seat.values(),
+            key=lambda m: (m.line_number, -m.candidate.x, -m.confidence),
+        )
     best: dict[int, AttachedMark] = {}
     orphan: list[tuple[Candidate, str, float]] = []
     page_width = max(
@@ -400,7 +427,9 @@ def detect_page(
         classified_hits.append((hit, label, conf))
         raw_classified.append((hit.candidate, label, conf))
 
-    attached = _attach_from_hits(classified_hits, page, words)
+    # Only pass the flag when it is on: the default path keeps its original signature.
+    seat_kwargs = {'by_seat': True} if getattr(spec, 'attach_by_seat', False) else {}
+    attached = _attach_from_hits(classified_hits, page, words, **seat_kwargs)
     kept = attached
     rejected: list[AttachedMark] = []
     if use_azhar_prior:

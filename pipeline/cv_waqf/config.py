@@ -90,6 +90,11 @@ class EditionSpec:
     # letter-count widths, which are hand-tuned per print. The fractions stay
     # as the fallback when a page gives too little evidence.
     measured_geometry: bool = False
+    # Attach a detected mark to the word whose stop SEAT is nearest to it (measured geometry),
+    # and nothing else. The default path pairs ink clusters with words by position whenever the
+    # counts match and favours words that another edition's script marks; on a print whose stops
+    # differ from those editions (Mesaha) both put a mark on the neighbouring word.
+    attach_by_seat: bool = False
     # Use another edition's model until this print has its own. Explicit and
     # one hop only, so a transfer is visible in the registry and in the detect
     # payload instead of hiding in a path lookup.
@@ -313,6 +318,7 @@ EDITIONS: dict[str, EditionSpec] = {
         # the cloud first (`layout_persistence.working_db_path(MESAHA, force=True)`).
         trusted_layout_pages=(2, 60),
         header_slots=(('basmallah', 2),),
+        attach_by_seat=True,
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
         # cannot be compared with or filtered by the QPC-indexed columns.

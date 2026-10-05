@@ -385,6 +385,24 @@ python -m pipeline.cv_waqf candidate-crops --edition المساحة --page-list 
 Caveats: reviewers tend to accept what the model proposes (that is why the blind pages are kept
 apart and labelled from scratch), and the auto-accepted marks inherit the column's view of Mesaha.
 
+**Mark attached to the neighbouring word (Mesaha, 2026-10-05).** Found by the reviewer on the self-learning
+pages. The default attachment pairs the strip detector's ink clusters with layout words by position
+whenever the two counts are equal (equal counts do not mean the boundaries line up, so the rest of the
+line shifts by a word), and `_nearest_word` adds a large bonus to a word that another edition's script marks
+(Mesaha prints different stops than those editions). `EditionSpec.attach_by_seat` (on for Mesaha only) attaches
+each mark to the word whose stop seat (`geometry.mark_seat_centre`) is nearest, nothing else (`attach.seat_owner`).
+On the 20 pages the reviewer had finished, marks with a closer neighbouring seat fell from 51 to 2; hand labels
+found 30/37 -> 32/37; all 124 marks the reviewer ended with stayed on their words; 47 marks that a misattached
+neighbour used to crowd out (one mark per word) now surface. `mesaha_review.reconcile` re-opens finished pages
+that gained unseen proposals and tags those that moved from a rejected neighbour (`moved_from`).
+
+**What the first 20 reviewed pages say (216 proposals).** Auto-accepted ones: 91/91 confirmed. Candidates the
+models make but neither the seat prior nor the Shemrly column supports ("Mesaha-only"): **0 of 85 were real**
+(69 with 2 of 3 models, 16 with all 3). Column marks that no model found: 12 of 14 were real marks. So on these
+pages Mesaha prints its stops where the reference editions do, and the earlier "Mesaha prints 2.5x more stops"
+(from un-priored detections) was false positives. The remaining work is recall (marks the models miss) and
+the symbol, not new stop positions.
+
 **Blind waqf test (Mesaha).** The pages whose layout was reviewed in Layout Studio (4-134) have
 correct word boxes, so a miss there is the model's. `splits.mesaha_blind_pages()` fixes 20 of them
 (seed 2028; eight from 5-60, ten from 63-134, plus the banner pages 97 and 134; not 2-4, 61, 62

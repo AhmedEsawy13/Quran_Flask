@@ -69,6 +69,28 @@ def attach_to_words(
     )
 
 
+def seat_owner(
+    cand: Candidate, words: list[LayoutWord], *, max_dist: float = 0.6,
+) -> LayoutWord | None:
+    """The word whose stop seat is nearest to the candidate (``geometry.mark_seat_centre``),
+    within ``max_dist`` word heights and on the word's own row. Geometry only: no script prior,
+    no positional cluster pairing."""
+    from pipeline.cv_waqf import geometry
+
+    best: tuple[float, LayoutWord] | None = None
+    for word in words:
+        if word.surah <= 0 or word.ayah <= 0 or not word.is_content_word:
+            continue
+        h = max(12, word.y1 - word.y0)
+        if not word.y0 - 0.3 * h <= cand.cy <= word.y1 + 0.3 * h:
+            continue
+        sx, sy = geometry.mark_seat_centre(word.x0, word.y0, word.y1)
+        d = ((cand.cx - sx) ** 2 + (cand.cy - sy) ** 2) ** 0.5 / h
+        if d <= max_dist and (best is None or d < best[0]):
+            best = (d, word)
+    return best[1] if best else None
+
+
 def _nearest_word(
     cand: Candidate,
     words: list[LayoutWord],

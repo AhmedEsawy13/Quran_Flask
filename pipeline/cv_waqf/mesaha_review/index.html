@@ -21,6 +21,12 @@ button,select{font:inherit;border:1px solid var(--line);background:var(--card);c
 .pgh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 8px}.pgh h2{margin:0;font-size:17px}
 .sec{font-size:13px;color:var(--mut);margin:12px 0 4px;display:flex;justify-content:space-between}
 .item{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:6px 0;padding:6px 10px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center}
+.crop{position:relative;border:1px solid var(--line);border-radius:6px;background:#fff no-repeat;overflow:hidden;flex:none}
+.crop .wbox{position:absolute;border:1.5px solid var(--acc);border-radius:3px;pointer-events:none}
+.crop .ring{position:absolute;width:30px;height:30px;border:3px solid var(--warn);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+.item.s-accept .crop .ring{border-color:var(--ok)}.item.s-reject .crop .ring{border-color:#999}
+.body{min-width:0}.body .syms{margin-top:4px}
+.moved{color:var(--acc);border-color:var(--acc)}
 .item.cur{outline:2px solid var(--acc)}.item.s-accept{border-inline-start:5px solid var(--ok)}.item.s-review{border-inline-start:5px solid var(--warn);background:var(--warnbg)}.item.s-reject{border-inline-start:5px solid #999;opacity:.6}
 .w{font-size:22px;font-family:"Amiri Quran","Geeza Pro",serif;min-width:80px}
 .syms{display:flex;gap:4px;flex-wrap:wrap}.syms button{min-width:36px;padding:3px 8px}.syms button.on{background:var(--ok);color:#fff;border-color:var(--ok)}.syms button.model{border-color:var(--acc)}
@@ -53,11 +59,20 @@ function counts(p){let rev=0,acc=0,rej=0;for(const pr of p.proposals){const v=V[
 function fillSel(){const s=$('sel');s.innerHTML='';P.forEach((p,i)=>{const c=counts(p);const o=document.createElement('option');o.value=i;o.textContent=`${D.has(p.page)?'✓ ':''}صفحة ${p.page} · للمراجعة ${c.rev}`;s.appendChild(o)});s.value=cur;$('prog').textContent=`${toAr(D.size)}/${toAr(P.length)} صفحة منتهية`}
 async function setV(pr,sym){const p=pg();const r=await api('/api/verdict',{page:p.page,key:pr.key,symbol:sym});if(!r)return;if(sym===null)delete V[key(p.page,pr.key)];else V[key(p.page,pr.key)]=sym;render(true)}
 async function addMark(w,sym){const p=pg();const r=await api('/api/verdict',{page:p.page,key:w.key,symbol:sym});if(!r)return;if(sym===null)delete V[key(p.page,w.key)];else V[key(p.page,w.key)]=sym;$('add').hidden=true;render(true)}
+function crop(pr){const p=pg(),S=1.5,h=Math.max(12,(pr.box[3]-pr.box[1])/0.85);
+  const x0=Math.max(0,pr.box[0]-0.9*h),x1=Math.min(p.w,pr.box[2]+0.9*h),y0=Math.max(0,pr.seat[1]-0.75*h),y1=Math.min(p.h,pr.box[3]+4);
+  const el=document.createElement('div');el.className='crop';el.style.width=Math.round((x1-x0)*S)+'px';el.style.height=Math.round((y1-y0)*S)+'px';
+  el.style.backgroundImage=`url(/img/p${p.page}.jpg)`;el.style.backgroundSize=`${p.w*S}px ${p.h*S}px`;el.style.backgroundPosition=`${-x0*S}px ${-y0*S}px`;
+  const wb=document.createElement('div');wb.className='wbox';wb.style.cssText=`left:${(pr.box[0]-x0)*S}px;top:${(pr.box[1]-y0)*S}px;width:${(pr.box[2]-pr.box[0])*S}px;height:${(pr.box[3]-pr.box[1])*S}px`;el.appendChild(wb);
+  const m=pr.mbox?[(pr.mbox[0]+pr.mbox[2])/2,(pr.mbox[1]+pr.mbox[3])/2]:pr.seat;
+  const rg=document.createElement('div');rg.className='ring';rg.style.left=(m[0]-x0)*S+'px';rg.style.top=(m[1]-y0)*S+'px';el.appendChild(rg);return el}
 function item(pr){const s=state(pr),f=finalSym(pr);const d=document.createElement('div');d.className='item s-'+s+(sel===pr.key?' cur':'');d.dataset.k=pr.key;
   const mods=Object.entries(pr.models||{}).map(([m,[sy,cf]])=>`${m}:${sy} ${Math.round(cf*100)}`).join(' · ');
-  d.innerHTML=`<div class="w">${esc(pr.text)}</div><div class="syms">${SYM.map(x=>`<button data-s="${x}" class="${f===x?'on':''} ${x===pr.symbol&&f!==x?'model':''}">${x}</button>`).join('')}<button class="no ${s==='reject'||(f===null&&s!=='review')?'on':''}" data-s="-">ليست علامة</button></div>
-  <div class="meta"><span class="tag">${pr.why}</span><span class="tag">اقتراح ${pr.symbol} ${Math.round(pr.conf*100)}٪</span>${pr.column?`<span class="tag">المصحف المرجعي: ${pr.column}</span>`:'<span class="tag">لا علامة في المرجع</span>'}${pr.prior?'':'<span class="tag">خارج المقبول سابقًا</span>'} <span title="${esc(mods)}">سطر ${toAr(pr.line)}</span></div>`;
-  d.onclick=e=>{const b=e.target.closest('button[data-s]');sel=pr.key;if(b){const v=b.dataset.s;const same=(v==='-'?V[key(pg().page,pr.key)]==='-':finalSym(pr)===v&&V[key(pg().page,pr.key)]===v);setV(pr,same?null:v)}else render(true)};return d}
+  d.appendChild(crop(pr));const b=document.createElement('div');b.className='body';
+  b.innerHTML=`<div class="w">${esc(pr.text)}</div><div class="syms">${SYM.map(x=>`<button data-s="${x}" class="${f===x?'on':''} ${x===pr.symbol&&f!==x?'model':''}">${x}</button>`).join('')}<button class="no ${s==='reject'||(f===null&&s!=='review')?'on':''}" data-s="-">ليست علامة</button></div>
+  <div class="meta"><span class="tag">${pr.why}</span><span class="tag">اقتراح ${pr.symbol} ${Math.round(pr.conf*100)}٪</span>${pr.column?`<span class="tag">المصحف المرجعي: ${pr.column}</span>`:'<span class="tag">لا علامة في المرجع</span>'}${pr.prior?'':'<span class="tag">خارج المقبول سابقًا</span>'}${pr.moved_from?`<span class="tag moved">انتقلت من «${esc(pr.moved_from.text)}» المجاورة التي رفضتَها</span>`:''} <span title="${esc(mods)}">سطر ${toAr(pr.line)}</span></div>`;
+  d.appendChild(b);
+  d.onclick=e=>{const bt=e.target.closest('button[data-s]');sel=pr.key;if(bt){const v=bt.dataset.s;const same=(v==='-'?V[key(pg().page,pr.key)]==='-':finalSym(pr)===v&&V[key(pg().page,pr.key)]===v);setV(pr,same?null:v)}else render(true)};return d}
 function render(keep){const p=pg();const y=scrollY;const L=$('list');L.innerHTML='';
   const c=counts(p);const h=document.createElement('div');h.className='pgh';h.innerHTML=`<h2>صفحة ${p.page}</h2><span class="tag">للمراجعة ${toAr(c.rev)}</span><span class="tag">علامات ${toAr(c.acc+c.added)}</span><button id="doneb">${D.has(p.page)?'إلغاء الإنهاء':'أنهيت الصفحة ✓'}</button>`;L.appendChild(h);
   const hint=document.createElement('p');hint.className='hint';hint.textContent='الأخضر مقبول تلقائيًا (اتفقت النماذج وسبق أن اتفق معها المصحف المرجعي)، الأصفر يحتاج قرارك: اختر الرمز الصحيح أو «ليست علامة». علامة فاتت النماذج؟ انقر على الكلمة في الصورة. مفاتيح: ↑↓ تنقّل · ١–٧ الرمز · X ليست علامة · Enter قبول الاقتراح · D إنهاء الصفحة.';L.appendChild(hint);
