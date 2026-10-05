@@ -6,6 +6,7 @@ when OpenCV is installed there; otherwise the current interpreter.
 from __future__ import annotations
 
 import json
+import time
 import logging
 import os
 import subprocess
@@ -707,6 +708,55 @@ def _layout_note(edition: str, page: int) -> str | None:
     )
 
 
+def _complete_path(slug: str) -> Path:
+    return _hand_dir(slug) / 'complete_pages.json'
+
+
+def _load_complete(slug: str) -> list[int]:
+    try:
+        data = json.loads(_complete_path(slug).read_text(encoding='utf-8'))
+        return sorted({int(p) for p in data.get('pages', [])})
+    except (OSError, ValueError, TypeError):
+        return []
+
+
+def _save_complete(slug: str, pages: list[int]) -> None:
+    """Atomic write: a half-written file would silently drop pages from the blind test."""
+    path = _complete_path(slug)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix('.tmp')
+    tmp.write_text(
+        json.dumps({'pages': sorted(set(pages)), 'updated_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}),
+        encoding='utf-8',
+    )
+    os.replace(tmp, path)
+
+
+@editor_bp.route('/api/cv-waqf/complete', methods=['GET', 'POST'])
+@require_editor
+def cv_waqf_complete():
+    """Pages whose labeller says every printed mark is recorded (the blind test needs them)."""
+    body = request.get_json(silent=True) if request.method == 'POST' else None
+    edition = ((body or {}).get('edition') or request.args.get('edition') or 'الشمرلي').strip()
+    meta = _BY_ID.get(edition)
+    if not meta:
+        return jsonify({'error': 'unsupported edition'}), 400
+    pages = _load_complete(meta['slug'])
+    if request.method == 'POST':
+        try:
+            page = int((body or {}).get('page'))
+        except (TypeError, ValueError):
+            return jsonify({'error': 'invalid page'}), 400
+        if not (meta['min_page'] <= page <= meta['max_page']):
+            return jsonify({'error': 'page out of range'}), 400
+        pages = [p for p in pages if p != page]
+        if (body or {}).get('complete'):
+            pages.append(page)
+        _save_complete(meta['slug'], pages)
+        pages = _load_complete(meta['slug'])
+    return jsonify({'edition': edition, 'complete': pages})
+
+
 @editor_bp.route('/api/cv-waqf/labels', methods=['GET'])
 @require_editor
 def cv_waqf_labels_list():
@@ -757,8 +807,10 @@ def cv_waqf_review_queue():
         except (TypeError, ValueError):
             continue
         counts[page] = counts.get(page, 0) + 1
+    complete = set(_load_complete(meta['slug']))
     for item in queue['pages']:
         item['label_count'] = counts.get(item['page'], 0)
+        item['complete'] = item['page'] in complete
     queue['total_labels'] = sum(item['label_count'] for item in queue['pages'])
     return jsonify(queue)
 

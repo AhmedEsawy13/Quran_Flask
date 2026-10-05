@@ -360,6 +360,28 @@ rejects, 48 empty rows left on 26 fallback pages (the relayout never attempts th
 in `review_queue.csv`).
 `artifacts/.../rebuild.py` redoes the whole draft deterministically from the OCR import.
 
+**Blind waqf test (Mesaha).** The pages whose layout was reviewed in Layout Studio (4-134) have
+correct word boxes, so a miss there is the model's. `splits.mesaha_blind_pages()` fixes 20 of them
+(seed 2028; eight from 5-60, ten from 63-134, plus the banner pages 97 and 134; not 2-4, 61, 62
+(already labelled with the model in view) or 113). In `/cv-waqf?edition=المساحة` the queue is that
+set (`review_queue.FIXED_QUEUES`) and each page has a **«الصفحة مكتملة»** tick
+(`/api/cv-waqf/complete`, stored in `data/cv/crops_hand/mesaha/complete_pages.json`, local only).
+Label mode never shows detections (its chips are the words nearest the click), so the labelling is
+blind. Mark EVERY printed waqf mark on a page, then tick it complete: on a complete page every
+unmarked word is a true negative.
+
+```bash
+python -m pipeline.cv_waqf blind-eval --edition المساحة                  # complete pages, default model
+python -m pipeline.cv_waqf blind-eval --edition المساحة --no-azhar-prior  # without the seat prior
+python -m pipeline.cv_waqf blind-eval --edition المساحة --model models/waqf_glyph_kuwait.onnx
+```
+
+It reports recall (right symbol), found-at-all, **precision (what `evaluate-hand` could not
+measure: detections with no label are false positives)**, per-symbol recall, symbol confusions,
+and lists every miss / wrong symbol / false positive with its confidence
+(`artifacts/cv-waqf/blind-eval-mesaha.json`). Compare the models and the prior on the same pages
+before deciding whether Mesaha needs its own model.
+
 **Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
 the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
 OCR-import DB; pull it with `layout_persistence.working_db_path(MESAHA,

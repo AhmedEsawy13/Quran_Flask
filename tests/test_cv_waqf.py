@@ -1804,3 +1804,48 @@ def test_kraken_rows_accept_a_short_last_row_before_a_banner(monkeypatch):
     assert relayout.kraken_rows(**kw) is None
     rows = relayout.kraken_rows(**kw, forced={2: bounds[3]})
     assert rows is not None and [len(r) for r in rows] == sizes
+
+
+def test_mesaha_blind_pages_are_finished_unlabelled_and_stable():
+    from pipeline.cv_waqf.splits import mesaha_blind_pages
+
+    pages = mesaha_blind_pages()
+    assert pages == mesaha_blind_pages() and pages == sorted(pages) and len(set(pages)) == 20
+    assert all(5 <= p <= 134 for p in pages)                       # layout reviewed
+    assert not {2, 3, 4, 61, 62, 113} & set(pages)                 # opening / already labelled / unmarked
+    assert {97, 134} <= set(pages)                                 # the banner pages
+
+
+def test_blind_score_counts_unlabelled_detections_as_false_positives():
+    from pipeline.cv_waqf.blind_eval import positives_by_page, score_pages
+
+    labels = [
+        {'page': 5, 'word_key': '2:1:1', 'symbol': 'ج', 'word_text': 'a', 'id': '1'},
+        {'page': 5, 'word_key': '2:1:2', 'symbol': 'ق', 'word_text': 'b', 'id': '2'},
+        {'page': 5, 'word_key': '2:1:3', 'symbol': 'ص', 'word_text': 'c', 'id': '3'},
+        {'page': 5, 'word_key': '2:1:9', 'symbol': 'none', 'id': '4'},      # a rejected crop: not a mark
+        {'page': 6, 'word_key': '2:2:1', 'symbol': 'ج', 'id': '5'},         # page 6 is not complete
+    ]
+    truth = positives_by_page(labels, {5})
+    assert set(truth) == {5} and set(truth[5]) == {'2:1:1', '2:1:2', '2:1:3'}
+    detected = {5: {
+        '2:1:1': {'symbol': 'ج', 'confidence': 0.9},      # right
+        '2:1:2': {'symbol': 'ص', 'confidence': 0.8},      # wrong symbol
+        '2:1:7': {'symbol': 'ج', 'confidence': 0.99},     # nothing labelled there: false positive
+    }}                                                    # 2:1:3 is missed
+    r = score_pages(truth, detected)
+    assert (r['labelled_marks'], r['detected_marks']) == (3, 3)
+    assert (r['correct'], r['wrong_symbol'], r['missed'], r['false_positive']) == (1, 1, 1, 1)
+    assert r['recall'] == round(1 / 3, 4) and r['found'] == round(2 / 3, 4) and r['precision'] == round(1 / 3, 4)
+    assert r['confusion'] == {'ق->ص': 1} and r['false_positives'][0]['word_key'] == '2:1:7'
+    assert r['by_symbol']['ص'] == {'missed': 1}
+
+
+def test_latest_label_per_word_wins_in_blind_scoring():
+    from pipeline.cv_waqf.blind_eval import positives_by_page
+
+    labels = [
+        {'page': 5, 'word_key': 'w', 'symbol': 'ج', 'created_at': '2026-10-05T10:00:00Z', 'id': 'a'},
+        {'page': 5, 'word_key': 'w', 'symbol': 'ص', 'created_at': '2026-10-05T11:00:00Z', 'id': 'b'},
+    ]
+    assert positives_by_page(labels, {5})[5]['w']['symbol'] == 'ص'

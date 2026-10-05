@@ -44,6 +44,9 @@
         queuePrev: document.getElementById('cvw-queue-prev'),
         queueNext: document.getElementById('cvw-queue-next'),
         queueProgress: document.getElementById('cvw-queue-progress'),
+        queueTitle: document.getElementById('cvw-queue-title'),
+        completeWrap: document.getElementById('cvw-complete-wrap'),
+        complete: document.getElementById('cvw-complete'),
         login: document.getElementById('cvw-login'),
         loginForm: document.getElementById('cvw-login-form'),
         loginUsername: document.getElementById('cvw-login-username'),
@@ -82,6 +85,7 @@
         authChecked: false,
         reviewQueue: [],
         reviewQueueTotalLabels: 0,
+        reviewQueueBlind: false,
     };
 
     const COLORS = {
@@ -163,6 +167,7 @@
         dense: 'كثيفة',
         sparse: 'خفيفة',
         regular: 'عادية',
+        blind: 'اختبار أعمى',
         targeted: 'مطلوبة الآن',
         'rare-q': 'تدريب ق',
         'rare-m': 'تدريب م',
@@ -189,21 +194,38 @@
             option.value = String(item.page);
             const tags = (item.tags || []).map((tag) => QUEUE_TAG_AR[tag] || tag).join('، ');
             option.textContent = `${toAr(index + 1)}/${toAr(rows.length)} · صفحة ${toAr(item.page)}`
-                + ` · ${tags} · ${toAr(item.label_count || 0)} تسمية`;
+                + (state.reviewQueueBlind
+                    ? ` · ${item.complete ? '✓ مكتملة' : 'غير مكتملة'} · ${toAr(item.label_count || 0)} علامة`
+                    : ` · ${tags} · ${toAr(item.label_count || 0)} تسمية`);
             els.queuePage.appendChild(option);
         }
         els.queuePage.value = activeIndex >= 0 ? String(state.page) : '';
         if (els.queuePrev) els.queuePrev.disabled = !rows.length || activeIndex === 0;
         if (els.queueNext) els.queueNext.disabled = !rows.length || activeIndex === rows.length - 1;
+        if (els.queueTitle) {
+            els.queueTitle.textContent = state.reviewQueueBlind
+                ? 'اختبار أعمى — سجّل كل علامات الوقف من المطبوع'
+                : 'عينة المعايرة الموزعة';
+        }
         if (els.queueProgress) {
             const position = activeIndex >= 0 ? `${toAr(activeIndex + 1)}/${toAr(rows.length)}` : `٠/${toAr(rows.length)}`;
-            els.queueProgress.textContent = `${position} · ${toAr(state.reviewQueueTotalLabels)} تسمية في العينة`;
+            const done = rows.filter((item) => item.complete).length;
+            els.queueProgress.textContent = state.reviewQueueBlind
+                ? `${position} · ${toAr(done)}/${toAr(rows.length)} صفحة مكتملة`
+                : `${position} · ${toAr(state.reviewQueueTotalLabels)} تسمية في العينة`;
+        }
+        // The "page complete" tick exists for the blind set: it makes every unmarked word a negative.
+        if (els.completeWrap && els.complete) {
+            const active = activeIndex >= 0 ? rows[activeIndex] : null;
+            els.completeWrap.hidden = !(state.reviewQueueBlind && active);
+            els.complete.checked = Boolean(active && active.complete);
         }
     }
 
     async function loadReviewQueue() {
         state.reviewQueue = [];
         state.reviewQueueTotalLabels = 0;
+        state.reviewQueueBlind = false;
         syncQueueUi();
         try {
             await ensureEditorAccess();
@@ -213,6 +235,7 @@
             if (!res.ok) throw apiError(res, data);
             state.reviewQueue = data.pages || [];
             state.reviewQueueTotalLabels = Number(data.total_labels || 0);
+            state.reviewQueueBlind = Boolean(data.blind);
         } catch (err) {
             if (err.status !== 401) console.warn('review queue unavailable', err);
         }
@@ -228,6 +251,33 @@
         els.page.value = String(state.page);
         loadPage();
     }
+
+    async function setPageComplete(complete) {
+        const item = state.reviewQueue[queueIndex()];
+        if (!item) return;
+        els.complete.disabled = true;
+        try {
+            const res = await fetch('/api/cv-waqf/complete', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ edition: state.edition, page: item.page, complete }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw apiError(res, data);
+            // The server's list is the truth: show what was actually saved.
+            const saved = new Set(data.complete || []);
+            state.reviewQueue.forEach((row) => { row.complete = saved.has(row.page); });
+            setMeta(complete ? `صفحة ${toAr(item.page)} مكتملة ✓` : `أُلغي إكمال صفحة ${toAr(item.page)}`);
+        } catch (err) {
+            els.complete.checked = !complete;
+            setMeta(`تعذّر حفظ حالة الإكمال: ${err.message}`);
+        } finally {
+            els.complete.disabled = false;
+            syncQueueUi();
+        }
+    }
+    if (els.complete) els.complete.addEventListener('change', () => setPageComplete(els.complete.checked));
 
     function setMeta(text) {
         els.meta.textContent = text;

@@ -23,6 +23,7 @@ def main(argv: list[str] | None = None) -> int:
             '  run-page        detect marks on one page\n'
             '  audit           CV vs mushaf_waqf.db report\n'
             '  evaluate-hand   exact mark + canonical-word holdout accuracy\n'
+            '  blind-eval      score the detector on fully hand-labelled (complete) pages\n'
             '  evaluate-candidates proposal + word-attachment recall\n'
             '  evaluate-consensus  score a print with no hand labels vs edition consensus\n'
             '  calibrate-geometry  derive an edition\'s nominal text band from pages\n'
@@ -85,6 +86,9 @@ def main(argv: list[str] | None = None) -> int:
         return m(rest)
     if cmd == 'evaluate-hand':
         from pipeline.cv_waqf.evaluate_hand import main as m
+        return m(rest)
+    if cmd == 'blind-eval':
+        from pipeline.cv_waqf.blind_eval import main as m
         return m(rest)
     if cmd == 'calibrate-geometry':
         from pipeline.cv_waqf.calibrate_geometry import main as m

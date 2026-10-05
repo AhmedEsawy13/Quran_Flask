@@ -788,3 +788,12 @@
     border: 1px solid #e8c15a;
 }
 .cvw-note[hidden] { display: none; }
+
+/* Blind test: the "page complete" tick under the queue picker. */
+.cvw-complete {
+    display: flex; align-items: center; gap: 8px; flex-basis: 100%;
+    padding: 6px 10px; border: 1px dashed var(--cvw-muted, #8a8578); border-radius: 8px;
+    font-size: .85rem; cursor: pointer;
+}
+.cvw-complete[hidden] { display: none; }
+.cvw-complete input { width: 18px; height: 18px; }

@@ -238,3 +238,26 @@ def test_cv_waqf_short_names_match_real_pause_glyphs():
     assert GLYPH_FOR_CLASS['ج'] == 'ۚ'
     assert GLYPH_FOR_CLASS['م'] == 'ۘ'
     assert {code for code, _glyph, _name in SYMBOL_META} == set(SHORT_NAME)
+
+
+def test_complete_pages_endpoint_needs_editor_and_saves_atomically(app, monkeypatch, tmp_path):
+    monkeypatch.setattr(sb, 'is_configured', lambda: True)
+    monkeypatch.setenv('EDITOR_SESSION_SECRET', 'test-editor-session-secret-at-least-32-chars')
+    client = app.test_client()
+    assert client.get('/api/cv-waqf/complete?edition=المساحة').status_code == 401
+    assert client.post('/api/cv-waqf/complete', json={}).status_code == 401
+
+    monkeypatch.setattr(cv_waqf_ui, 'HAND_ROOT', tmp_path)
+    assert cv_waqf_ui._load_complete('mesaha') == []
+    cv_waqf_ui._save_complete('mesaha', [20, 6, 20])
+    assert cv_waqf_ui._load_complete('mesaha') == [6, 20]
+    assert not list((tmp_path / 'mesaha').glob('*.tmp'))          # the temp file was replaced
+    (tmp_path / 'mesaha' / 'complete_pages.json').write_text('{broken', encoding='utf-8')
+    assert cv_waqf_ui._load_complete('mesaha') == []               # a corrupt file is not a crash
+
+
+def test_blind_queue_ui_has_the_page_complete_tick():
+    html = Path('templates/cv_waqf.html').read_text(encoding='utf-8')
+    js = Path('static/js/cv_waqf.js').read_text(encoding='utf-8')
+    assert 'id="cvw-complete"' in html and 'id="cvw-queue-title"' in html
+    assert '/api/cv-waqf/complete' in js and 'reviewQueueBlind' in js

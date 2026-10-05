@@ -49,6 +49,22 @@ def mesaha_eval_pages(per_parity: int = 10) -> list[int]:
     return sorted(rng.sample(odd, per_parity) + rng.sample(even, per_parity))
 
 
+def mesaha_blind_pages() -> list[int]:
+    """Twenty finished Mesaha pages for the blind waqf-mark test.
+
+    Pages whose layout was reviewed in Layout Studio (4-134), so every word box is right and a
+    miss is the model's, not the layout's. Not the pages already hand-labelled with the model
+    in view (4, 61, 62), not 2-3 (opening pages), not 113 (saved but never marked reviewed).
+    Eight from the Baqarah stretch (5-60), ten from 63-134 and the two banner pages 97 and 134
+    (the new banner structure). Seeded, so two machines get the same set.
+    """
+    rng = random.Random(2028)
+    skip = {113}
+    early = [p for p in range(5, 61) if p not in skip]
+    late = [p for p in range(63, 135) if p not in skip and p not in (97, 134)]
+    return sorted(rng.sample(early, 8) + rng.sample(late, 10) + [97, 134])
+
+
 def kuwait_extended_train() -> list[int]:
     """Every Kuwait page except the fixed hold-out (round-2 training pages)."""
     _train, holdout = kuwait_pages()

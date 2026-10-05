@@ -75,7 +75,7 @@
 
         <div class="cvw-queue cvw-label-only" id="cvw-queue" hidden>
             <div class="cvw-queue-head">
-                <strong>عينة المعايرة الموزعة</strong>
+                <strong id="cvw-queue-title">عينة المعايرة الموزعة</strong>
                 <span id="cvw-queue-progress"></span>
             </div>
             <div class="cvw-queue-nav">
@@ -83,6 +83,10 @@
                 <select id="cvw-queue-page" class="athar-field" aria-label="صفحات عينة المعايرة"></select>
                 <button type="button" id="cvw-queue-next" class="cvw-nav-btn" aria-label="التالي في العينة">›</button>
             </div>
+            <label class="cvw-complete" id="cvw-complete-wrap" hidden>
+                <input type="checkbox" id="cvw-complete">
+                <span>الصفحة مكتملة — سجّلتُ كل علامات الوقف المطبوعة فيها</span>
+            </label>
             <p>في كل صفحة: سمِّ كل علامات الوقف، ثم أضف مثالين صعبين على الأقل من نوع <code>none</code>.</p>
         </div>
 

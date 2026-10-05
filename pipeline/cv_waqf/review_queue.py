@@ -24,6 +24,16 @@ PRIORITY_PAGES: dict[str, tuple[int, ...]] = {
 }
 
 
+def _mesaha_blind():
+    from pipeline.cv_waqf.splits import mesaha_blind_pages
+
+    return mesaha_blind_pages()
+
+
+# Editions whose queue is a fixed page set instead of the stratified sample.
+FIXED_QUEUES = {'المساحة': _mesaha_blind}
+
+
 def load_page_stats(layout_db: str) -> list[dict]:
     """Return stable page-level features derived only from the edition layout."""
     conn = sqlite3.connect(layout_db)
@@ -204,8 +214,31 @@ def build_review_queue(
 ) -> dict:
     spec = EDITIONS[edition]
     stats = load_page_stats(spec.layout_db)
-    chosen = select_stratified_pages(stats, size=size, bands=bands)
     by_page = {row['page']: row for row in stats}
+    fixed = FIXED_QUEUES.get(edition)
+    if fixed is not None:
+        # A fixed, blind set (see splits.mesaha_blind_pages): exactly these pages, in page order.
+        pages = [by_page[page] for page in fixed() if page in by_page]
+        return {
+            'schema_version': SCHEMA_VERSION,
+            'edition': edition,
+            'slug': spec.id,
+            'generated_at': datetime.now(timezone.utc).isoformat(),
+            'strategy': 'fixed-blind-v1',
+            'blind': True,
+            'requested_size': len(pages),
+            'targeted_size': 0,
+            'bands': 1,
+            'pages': [
+                {**row, 'band': 1, 'tags': ['blind'], 'priority': False} for row in pages
+            ],
+            'instructions': {
+                'positive': 'Label EVERY printed waqf mark on the page and confirm its word, then tick the page complete.',
+                'negative': 'No hard negatives needed: on a complete page every unmarked word is a negative.',
+                'blind': 'The model is not shown on these pages; label from the printed page only.',
+            },
+        }
+    chosen = select_stratified_pages(stats, size=size, bands=bands)
     priority_numbers = [
         page for page in PRIORITY_PAGES.get(edition, ()) if page in by_page
     ]
