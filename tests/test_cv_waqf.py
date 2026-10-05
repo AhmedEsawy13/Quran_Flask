@@ -1607,3 +1607,50 @@ def test_mesaha_reviewed_layout_pages_skip_relayout():
     assert spec.layout_trusted(2) and spec.layout_trusted(60)
     assert not spec.layout_trusted(61) and not spec.layout_trusted(None)
     assert not EDITIONS['قطر'].layout_trusted(5)
+
+
+def _kraken_fixture(monkeypatch, n_rows=6, per_row=8, drop=None, extra=0):
+    """Distinct synthetic words, one Kraken line per row, optional dropped token."""
+    import itertools
+
+    from pipeline.cv_waqf import relayout
+
+    letters = 'جدصطعفقكلمنهو'
+    words = [''.join(t) for t in itertools.islice(itertools.product(letters, repeat=3), 0, 4000, 37)]
+    page_words = words[extra: extra + n_rows * per_row]
+    texts = words[: extra + n_rows * per_row + extra]
+    lines = []
+    for k in range(n_rows):
+        row = page_words[k * per_row:(k + 1) * per_row]
+        if drop is not None and drop // per_row == k:
+            row = [w for w in row if w != page_words[drop]]
+        lines.append({'y': 100 * (k + 1), 'text': ' '.join(row), 'width': 1000})
+    monkeypatch.setattr(relayout, '_kraken_pages', lambda: {'7': lines})
+    kw = dict(
+        page=7, image_width=4124.0, texts=texts, weights=[1.0] * len(texts),
+        row_extents=[(0.0, 1000.0)] * n_rows,
+        row_baselines=[100.0 * (k + 1) for k in range(n_rows)], pitch=100.0,
+    )
+    return relayout, kw
+
+
+def test_kraken_rows_place_a_word_kraken_missed_by_width(monkeypatch):
+    relayout, kw = _kraken_fixture(monkeypatch, drop=16)
+    rows = relayout.kraken_rows(**kw)
+    assert rows == [list(range(k * 8, (k + 1) * 8)) for k in range(6)]
+
+
+def test_kraken_rows_find_the_page_inside_neighbouring_words(monkeypatch):
+    relayout, kw = _kraken_fixture(monkeypatch, extra=10)
+    rows = relayout.kraken_rows(**kw)
+    assert rows == [list(range(10 + k * 8, 10 + (k + 1) * 8)) for k in range(6)]
+
+
+def test_token_alignment_prefers_the_real_occurrence_of_a_repeated_word():
+    from pipeline.cv_waqf import relayout
+
+    canon = ['كلم', 'نصر', 'جدع', 'وفق', 'كلم', 'نصر', 'جدع', 'طعم']
+    tokens = [('كلم', 0), ('نصر', 0), ('جدع', 0), ('طعم', 1)]
+    got = relayout._token_alignment(tokens, canon)
+    # The page's words are the second run; the identical first run is another page's.
+    assert sorted(got) == [4, 5, 6, 7]

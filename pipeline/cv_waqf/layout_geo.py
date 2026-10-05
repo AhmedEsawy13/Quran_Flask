@@ -176,6 +176,22 @@ def _observed_line_bounds(
     return observed_left, observed_right
 
 
+def _neighbour_ids(spec: EditionSpec, page: int, step: int, count: int) -> list[int]:
+    """The ``count`` word ids of the neighbouring page nearest to ``page`` (the
+    last words of the previous page, the first words of the next), in reading
+    order. Empty when there is no such page."""
+    if count <= 0:
+        return []
+    ids: list[int] = []
+    for ln in load_page_lines(spec, page + step):
+        if ln.get('first_word_id') is None or ln.get('last_word_id') is None:
+            continue
+        if (ln.get('line_type') or '') in ('surah_name', 'surah_info', 'basmallah', 'basmala'):
+            continue
+        ids.extend(_ids_between(spec.script_db, int(ln['first_word_id']), int(ln['last_word_id'])))
+    return ids[-count:] if step < 0 else ids[:count]
+
+
 def _ocr_relayout_spans(
     spec: EditionSpec, page: int, prepared: PreparedPage, mask, grid,
     spans: list[tuple[dict, list[int]]], meta: dict[int, dict], slots: list[int],
@@ -197,6 +213,19 @@ def _ocr_relayout_spans(
             if word_id not in seen and word_id in meta:
                 seen.add(word_id)
                 ordered.append(word_id)
+    # Words of the neighbouring pages on each side: the layout's page boundary
+    # can be wrong by dozens of words, and Kraken's text finds the real one.
+    nominal_len = len(ordered)
+    before = _neighbour_ids(spec, page, -1, relayout.EXTENSION_WORDS)
+    after = _neighbour_ids(spec, page, +1, relayout.EXTENSION_WORDS)
+    before = [i for i in before if i not in seen]
+    after = [i for i in after if i not in seen and i not in before]
+    extra_meta = _word_rows(spec, before + after) if (before or after) else {}
+    before = [i for i in before if i in extra_meta]
+    after = [i for i in after if i in extra_meta]
+    ordered = before + ordered + after
+    meta = {**meta, **extra_meta}
+    offset = len(before)
     texts = [str(meta[i].get('text') or '') for i in ordered]
     weights = [relayout.word_width(t) for t in texts]
     baselines, extents = [], []
@@ -213,7 +242,8 @@ def _ocr_relayout_spans(
     # Verse-number tokens are drawn as one medallion each: exact anchors.
     digit_idx = [
         n for n, t in enumerate(texts)
-        if t.strip() and all(c.isdigit() for c in t.strip())
+        if offset <= n < offset + nominal_len
+        and t.strip() and all(c.isdigit() for c in t.strip())
     ]
     rings = None
     if digit_idx:
@@ -233,6 +263,7 @@ def _ocr_relayout_spans(
         row_extents=extents,
         row_baselines=baselines,
         pitch=float(grid.pitch),
+        nominal=(offset, offset + nominal_len - 1),
     )
     if rows is None or any(not row for row in rows):
         return None

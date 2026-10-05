@@ -279,6 +279,35 @@ word is the one you chose 38% -> 59% of the time (top-6 81% -> 89%); page 61
 pages with poor OCR (62, 445) fall back. Validation is thin: only 3 labelled
 pages are eligible, so more labels are the best way to check it.
 
+**Kraken line OCR (2026-10-05).** `local/mesaha-kraken-fuse` (Aug 30) had already
+run Kraken's printed-Arabic model (zenodo 7050296) over every Mesaha page on
+Kaggle; its output is committed as `assets/mesaha_kraken_lines.json` (one entry
+per OCR line: `y`, `text`, `width`, DjVu scale). It is far better than the
+DjVu OCR: on the 59 reviewed pages 98.6% of printed rows have a Kraken line,
+93.8% of them >= 0.8 similar to the true row text (median 0.968). The relayout
+now uses it first (`kraken_rows`, falling back to the DjVu path):
+
+1. Each good line (>= 3 Arabic words, >= 75% of the row width) is a printed
+   row, from its y alone. Its words are aligned to the canonical text by a
+   semi-global Needleman-Wunsch (`_token_alignment`; leading/trailing canonical
+   words are free, so a repeated word cannot tie with its twin on the
+   neighbouring page; short words are kept, the sequence context settles them).
+2. Matched words pin their rows; verse medallions and DjVu anchors add x
+   positions when they agree with the pins. Everything else lies between two
+   pins, so only the row *boundaries* are unknown: a DP over the rows picks
+   them to make every row's words fill its width (`row_cost`).
+3. The page's own word list is wrong by dozens of words on some pages (page 390
+   starts at 18:58 where the print starts at 18:61), so the alignment is offered
+   `EXTENSION_WORDS = 80` words of each neighbouring page and the page starts
+   and ends where Kraken's text does (`MAX_EDGE_MISS` words of slack).
+
+Results (reviewed pages 2-60, run with the reviewed-page skip off): Kraken used
+on 52 of 59 pages, 94.1% of their rows exactly right (DjVu-only: 91.9% with
+about half the coverage), 99.6% of words on the right row. On the 16 random
+pages the user spot-checked (row-level verdicts, blank = wrong): the relayout
+now runs on 13 instead of 8; hand labels page 277 first suggestion 2/6 -> 6/6.
+Remaining errors are single short words at a row edge that Kraken did not read.
+
 **Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
 the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
 OCR-import DB; pull it with `layout_persistence.working_db_path(MESAHA,

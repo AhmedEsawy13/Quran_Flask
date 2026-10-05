@@ -17,6 +17,7 @@ own lines.
 from __future__ import annotations
 
 import difflib
+import re
 import functools
 import unicodedata
 import xml.etree.ElementTree as ET
@@ -104,6 +105,232 @@ def ocr_words(page: int, leaf_offset: int, image_width: float) -> list[OcrWord]:
     return out
 
 
+KRAKEN_JSON = Path(__file__).parent / 'assets' / 'mesaha_kraken_lines.json'
+KRAKEN_ROW_TOL = 0.45        # pitches between a Kraken line's y and a row's baseline
+KRAKEN_MIN_FILL = 0.75       # a line shorter than this share of its row is a fragment
+_ARABIC_LETTER = re.compile('[\u0621-\u064a\u0671]')
+
+
+@functools.lru_cache(maxsize=1)
+def _kraken_pages() -> dict:
+    import json
+
+    try:
+        return json.loads(KRAKEN_JSON.read_text(encoding='utf-8')).get('pages') or {}
+    except (OSError, ValueError):
+        return {}
+
+
+def kraken_row_tokens(
+    page: int, image_width: float, row_baselines: list[float],
+    row_extents: list[tuple[float, float]], pitch: float,
+) -> dict[int, list[str]]:
+    """Words of each printed row according to Kraken's printed-Arabic *line* OCR
+    (``kraken_lines.json``; a line is a whole printed row, so its row follows
+    from its y alone). Fragments (short lines, stop-sign strips, banners) are
+    skipped; rows without a good line are absent."""
+    lines = _kraken_pages().get(str(page)) or []
+    scale = 4124.0 / float(image_width)
+    best: dict[int, list[str]] = {}
+    for line in lines:
+        tokens = [
+            t for t in str(line.get('text') or '').split()
+            if len(_ARABIC_LETTER.findall(t)) >= 2
+        ]
+        if len(tokens) < 3:
+            continue
+        cy = float(line.get('y') or 0) / scale
+        k = int(np.argmin([abs(cy - y) for y in row_baselines]))
+        if abs(cy - row_baselines[k]) > KRAKEN_ROW_TOL * pitch:
+            continue
+        left, right = row_extents[k]
+        if float(line.get('width') or 0) / scale < KRAKEN_MIN_FILL * (right - left):
+            continue
+        if k not in best or len(tokens) > len(best[k]):
+            best[k] = tokens
+    return best
+
+
+def _token_alignment(tokens: list[tuple[str, int]], canon: list[str]) -> dict[int, int]:
+    """Needleman-Wunsch of Kraken tokens (rasm, row) against the canonical words'
+    rasm; returns ``canonical index -> row`` for the words that matched. Unlike
+    ``align`` it keeps short words: both sequences are near-identical, so the
+    sequence context settles which "من" is which."""
+    n, m = len(tokens), len(canon)
+    if not n or not m:
+        return {}
+    band = max(25, abs(n - m) + 20)
+    NEG = -1e9
+    dp = np.full((n + 1, m + 1), NEG)
+    move = np.zeros((n + 1, m + 1), dtype=np.int8)
+    dp[0, 0] = 0.0
+    sim_cache: dict[tuple[str, str], float] = {}
+
+    def sim(a: str, b: str) -> float:
+        if not a or not b:
+            return 0.0
+        if a == b:
+            return 1.0
+        if abs(len(a) - len(b)) > 2:
+            return 0.0
+        key = (a, b)
+        if key not in sim_cache:
+            sim_cache[key] = _similarity(a, b)
+        return sim_cache[key]
+
+    for i in range(n + 1):
+        for j in range(max(0, int(i * m / max(n, 1)) - band), min(m, int(i * m / max(n, 1)) + band) + 1):
+            if i == 0:
+                dp[0, j], move[0, j] = 0.0, 2     # words before the page start: free
+                continue
+            best, step = NEG, 0
+            if i > 0 and dp[i - 1, j] > NEG:
+                best, step = dp[i - 1, j] - 1.0, 1          # Kraken token with no canonical word
+            if j > 0 and dp[i, j - 1] > NEG and dp[i, j - 1] - 1.0 > best:
+                best, step = dp[i, j - 1] - 1.0, 2          # canonical word Kraken missed
+            if i > 0 and j > 0 and dp[i - 1, j - 1] > NEG:
+                s = sim(tokens[i - 1][0], canon[j - 1])
+                v = dp[i - 1, j - 1] + (2 * s - 0.5 if s >= 0.75 else -1.0)
+                if v > best:
+                    best, step = v, 3
+            dp[i, j], move[i, j] = best, step
+    # Words after the page's end are free too: end where the last row is best.
+    j = max(range(m + 1), key=lambda jj: dp[n, jj])
+    i, out = n, {}
+    while i > 0:
+        step = move[i, j]
+        if step == 3:
+            if sim(tokens[i - 1][0], canon[j - 1]) >= 0.75:
+                out[j - 1] = tokens[i - 1][1]
+            i, j = i - 1, j - 1
+        elif step == 1:
+            i -= 1
+        elif step == 2:
+            j -= 1
+        else:
+            break
+    return out
+
+
+def _why(tag):
+    LAST_DEBUG['kraken_fail'] = tag
+    return None
+
+
+def kraken_rows(
+    *, page: int, image_width: float, texts: list[str], weights: list[float],
+    row_extents: list[tuple[float, float]], row_baselines: list[float], pitch: float,
+    anchors: list[tuple[int, OcrWord]] | None = None,
+) -> list[list[int]] | None:
+    """Row membership straight from Kraken's lines, or ``None`` when it cannot be
+    trusted.
+
+    The words Kraken's lines matched (and the verse medallions, ``ring_rows``:
+    word index -> row) pin their rows. Every other word sits between two pinned
+    ones, so only the row *boundaries* are unknown: they are chosen, by dynamic
+    programming over the rows, to fit each row's width (justified text fills its
+    row) while keeping every pinned word in its row.
+    """
+    n_rows, n = len(row_extents), len(texts)
+    by_row = kraken_row_tokens(page, image_width, row_baselines, row_extents, pitch)
+    if len(by_row) < MIN_KRAKEN_ROWS:
+        return _why('r1')
+    tokens = [(_rasm(t), k) for k in sorted(by_row) for t in by_row[k]]
+    matched = _token_alignment(tokens, [_rasm(t) for t in texts])
+    if len(matched) < MIN_KRAKEN_MATCHES:
+        return _why('r2')
+    pinned = sorted(matched)
+    if any(matched[a] > matched[b] for a, b in zip(pinned, pinned[1:])):
+        return _why('r3')                                  # the rows must not decrease
+    # Positioned anchors (DjVu words, verse medallions) keep only the ones whose
+    # row agrees with what Kraken's matches allow at that point in the text.
+    pos_anchor: dict[int, OcrWord] = {}
+    k_first, k_last = pinned[0], pinned[-1]
+    for j, w in anchors or []:
+        if not k_first - MAX_EDGE_MISS <= j <= k_last + MAX_EDGE_MISS:
+            continue                       # beyond Kraken's page: a stray anchor
+        before = [matched[q] for q in pinned if q < j]
+        after = [matched[q] for q in pinned if q > j]
+        if (before and w.row < max(before)) or (after and w.row > min(after)):
+            continue
+        if j in matched and matched[j] != w.row:
+            continue
+        pos_anchor[j] = w
+        matched.setdefault(j, w.row)
+    pinned = sorted(matched)
+    # The page may start/end a few words away from its first/last matched word
+    # (Kraken skips short edge words); anything beyond is another page's.
+    first_p, last_p = pinned[0], pinned[-1]
+    s_lo, s_hi = max(0, first_p - MAX_EDGE_MISS), first_p
+    e_lo, e_hi = last_p + 1, min(n, last_p + 1 + MAX_EDGE_MISS)
+    # b[k] = index where row k+1 starts; b[n_rows-1] = the page's end.
+    lo, hi = [0] * n_rows, [n] * n_rows
+    for k in range(n_rows - 1):
+        before = [j for j in pinned if matched[j] <= k]
+        after = [j for j in pinned if matched[j] >= k + 1]
+        lo[k] = (max(before) + 1) if before else 0
+        hi[k] = min(after) if after else n
+        if lo[k] > hi[k]:
+            return _why('r4')
+    lo[-1], hi[-1] = e_lo, e_hi
+    cap = [r - l for l, r in row_extents]
+    unit = sum(cap) / max(1.0, float(sum(weights[first_p:last_p + 1])))
+    prefix = np.concatenate(([0.0], np.cumsum(weights))) * unit
+    inf = float('inf')
+    by_idx = sorted(pos_anchor)
+
+    def row_cost(k: int, start: int, end: int) -> float:
+        """Misfit of row ``k`` holding words ``start..end-1``: the words between
+        its positioned anchors must fill the gaps between those anchors."""
+        left, right = row_extents[k]
+        x, at, c = right, start, 0.0
+        for j in by_idx:
+            if j < start:
+                continue
+            if j >= end:
+                break
+            w = pos_anchor[j]
+            if w.row != k:
+                c += 1.0
+                continue
+            seg = max(x - w.x1, 1.0)
+            c += ((prefix[j] - prefix[at] - seg) / max(seg, pitch)) ** 2
+            x, at = w.x0, j + 1
+        seg = max(x - left, 1.0)
+        return c + ((prefix[end] - prefix[at] - seg) / max(seg, pitch)) ** 2
+
+    cost: list[dict[int, float]] = []
+    back: list[dict[int, int]] = []
+    for k in range(n_rows):
+        cost.append({}); back.append({})
+        starts = {st: 0.0 for st in range(s_lo, s_hi + 1)} if k == 0 else cost[k - 1]
+        for end in range(lo[k], hi[k] + 1):
+            best, arg = inf, -1
+            for start, c in starts.items():
+                if end <= start:
+                    continue
+                v = c + row_cost(k, start, end)
+                if v < best:
+                    best, arg = v, start
+            if arg >= 0:
+                cost[k][end], back[k][end] = best, arg
+        if not cost[k]:
+            return _why('r5')
+    end = min(cost[-1], key=cost[-1].get)
+    ends = [end]
+    for k in range(n_rows - 1, 0, -1):
+        ends.append(back[k][ends[-1]])
+    first = back[0][ends[-1]]
+    ends = ends[::-1]                                # b[0..n_rows-1]
+    bounds = [first] + ends
+    rows = [list(range(bounds[k], bounds[k + 1])) for k in range(n_rows)]
+    sizes = [len(r) for r in rows]
+    LAST_DEBUG.update(page=page, kraken=True, kept=len(matched), worst=0.0, sizes=sizes, matched=dict(matched), kraken_sizes=sizes)
+    if min(sizes) < MIN_ROW_WORDS or max(sizes) > MAX_ROW_WORDS:
+        return _why('r6')
+    return rows
+
+
 def _similarity(a: str, b: str) -> float:
     if a == b:
         return 1.0
@@ -181,6 +408,10 @@ def word_width(text: str) -> float:
     return max(0.25, total)
 
 
+MIN_KRAKEN_ROWS, MIN_KRAKEN_MATCHES = 6, 40
+MAX_EDGE_MISS = 6          # words Kraken may skip at the page's first/last row
+EXTENSION_WORDS = 80       # neighbouring-page words offered to the alignment each side
+USE_KRAKEN = True          # fuse Kraken line OCR (see kraken_words)
 LAST_DEBUG: dict = {}   # last decision, for diagnostics and tests
 RING_TEMPLATE = Path(__file__).parent / 'assets' / 'mesaha_ayah_ring.png'
 RING_MIN_SCORE = 0.33
@@ -301,8 +532,15 @@ def relayout_page_rows(
     pitch: float,
     rings: list[tuple[float, float, float, float]] | None = None,
     ring_word_idx: list[int] | None = None,
+    nominal: tuple[int, int] | None = None,
+    use_kraken: bool = True,
 ) -> list[list[int]] | None:
     """Row membership for the page's words, or ``None`` when not trustworthy.
+
+    ``texts`` may carry words of the neighbouring pages around the page's own
+    (``nominal`` = inclusive index range of the page's own words); Kraken's text
+    then decides where the page really starts and ends. Without Kraken only
+    the nominal words are used.
 
     ``texts``/``weights`` are the page's words in reading order;
     ``row_extents[k]`` is ``(left, right)`` ink extent of printed row ``k``
@@ -311,16 +549,18 @@ def relayout_page_rows(
     """
     n_rows = len(row_extents)
     words = ocr_words(page, leaf_offset, image_width)
-    if not words or not texts or n_rows < 2:
+    if not texts or n_rows < 2:
         return None
     for word in words:
         cy = (word.y0 + word.y1) / 2
         k = int(np.argmin([abs(cy - y) for y in row_baselines]))
         word.row = k if abs(cy - row_baselines[k]) <= 0.7 * pitch else -1
+    if not words and not USE_KRAKEN:
+        return None
     words = sorted(
         (w for w in words if w.row >= 0), key=lambda w: (w.row, -(w.x0 + w.x1) / 2),
     )
-    pairs = align(words, [_rasm(t) for t in texts])
+    pairs = align(words, [_rasm(t) for t in texts]) if words else {}
     found = {j: words[i] for j, i in pairs.items()}
     if rings and ring_word_idx and len(rings) == len(ring_word_idx):
         placed = []
@@ -334,6 +574,29 @@ def relayout_page_rows(
             for j, w in zip(ring_word_idx, placed):
                 found[j] = w   # a ring beats an OCR guess for the same word
     anchors = _consistent_chain(sorted(found.items()))
+    if USE_KRAKEN and use_kraken:
+        rows = kraken_rows(
+            page=page, image_width=image_width, texts=texts, weights=weights,
+            row_extents=row_extents, row_baselines=row_baselines, pitch=pitch,
+            anchors=anchors,
+        )
+        if rows is not None and all(rows):
+            LAST_DEBUG['source'] = 'kraken'
+            return [sorted(r) for r in rows]
+        if nominal is not None:
+            a, b = nominal
+            ring_n = (
+                [j - a for j in ring_word_idx] if ring_word_idx else ring_word_idx
+            )
+            sub = relayout_page_rows(
+                page=page, leaf_offset=leaf_offset, image_width=image_width,
+                texts=texts[a:b + 1], weights=weights[a:b + 1],
+                row_extents=row_extents, row_baselines=row_baselines, pitch=pitch,
+                rings=rings, ring_word_idx=ring_n, use_kraken=False,
+            )
+            if sub is not None:
+                LAST_DEBUG['source'] = 'djvu'
+            return None if sub is None else [[j + a for j in r] for r in sub]
     if len(anchors) < MIN_ANCHORS:
         return None
 
@@ -412,4 +675,5 @@ def relayout_page_rows(
         return None
     for k in range(n_rows):
         rows[k] = sorted(set(rows[k]))
+    LAST_DEBUG['source'] = 'djvu'
     return rows
