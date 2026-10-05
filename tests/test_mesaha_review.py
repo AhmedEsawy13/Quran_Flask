@@ -76,3 +76,59 @@ def test_position_rejects_bad_input(tool):
     assert client.post('/api/position', json={'page': 7, 'key': '2:1:1', 'pos': [1]}).status_code == 400
     assert client.post('/api/position', json={'page': 7, 'key': '9:9:9', 'pos': [1, 2]}).status_code == 400
     assert client.post('/api/relink', json={'page': 7, 'from': '2:1:1', 'to': '2:1:2', 'symbol': 'ج', 'pos': 'x'}).status_code == 400
+
+
+@pytest.fixture()
+def cut_tool(tmp_path, monkeypatch):
+    """A page with one row of four words (right to left) whose cuts sit at x = 300, 200 and 100."""
+    def word(i, x0, x1):
+        return {'key': f'2:1:{i}', 'text': f't{i}', 'line': 1, 'box': [x0, 10, x1, 50], 'seat': [x0 + 6, 30],
+                'doubt': 0.9, 'why': 'x', 'dr': 0.9, 'dl': 0.9, 'dw': 0.0}
+    words = [word(1, 300, 400), word(2, 200, 300), word(3, 100, 200), word(4, 0, 100)]
+    pages = [{'page': 7, 'w': 400, 'h': 100, 'words': words, 'proposals': [dict(words[1], symbol='ج', default='review')]}]
+    (tmp_path / 'pages.json').write_text(json.dumps(pages), encoding='utf-8')
+    for name, fname in (('DATA', None), ('VERDICTS', 'verdicts.json'), ('DONE', 'done.json'), ('LOG', 'log.jsonl'),
+                        ('EXPORT', 'reviewed_marks.json'), ('RELINKS', 'relinks.json'),
+                        ('POSITIONS', 'positions.json'), ('CUTS', 'cuts.json')):
+        monkeypatch.setattr(serve, name, tmp_path if fname is None else tmp_path / fname)
+    return serve.app.test_client(), tmp_path
+
+
+def test_a_dragged_cut_moves_both_words_is_saved_and_survives_in_the_export(cut_tool):
+    client, tmp = cut_tool
+    r = client.post('/api/cut', json={'page': 7, 'right': '2:1:1', 'left': '2:1:2', 'x': 320.4})
+    assert r.status_code == 200
+    page = r.get_json()['page']
+    one, two = page['words'][0], page['words'][1]
+    assert one['box'][0] == 320 and two['box'][2] == 320                   # the shared edge moved
+    assert two['seat'][0] == 206                                          # nothing of the word on the left moved
+    assert one['seat'][0] == 326.4                                        # the seat of the word on the right follows its left edge
+    assert one['dl'] == 0 and two['dr'] == 0 and one['cut_fixed'] and two['cut_fixed']   # a person looked at that cut
+    assert page['proposals'][0]['box'][2] == 320                          # the proposal carries the new box too
+    saved = json.loads((tmp / 'cuts.json').read_text())
+    assert saved['7:2:1:1|2:1:2']['x'] == 320.4 and saved['7:2:1:1|2:1:2']['was'] == 300   # the cutter's own cut is kept
+    assert saved['7:2:1:1|2:1:2']['doubt'] == 0.9                          # and how unsure it was
+    assert client.get('/pages.json').get_json()[0]['words'][0]['box'][0] == 320            # the tool serves it from now on
+    client.post('/api/cut', json={'page': 7, 'right': '2:1:1', 'left': '2:1:2', 'x': 330})
+    assert json.loads((tmp / 'cuts.json').read_text())['7:2:1:1|2:1:2']['was'] == 300     # still the original
+    assert _marks(tmp)['cuts']['7:2:1:1|2:1:2']['x'] == 330
+
+
+def test_a_cut_can_be_undone_and_bad_cuts_are_refused(cut_tool):
+    client, tmp = cut_tool
+    client.post('/api/cut', json={'page': 7, 'right': '2:1:2', 'left': '2:1:3', 'x': 230})
+    r = client.post('/api/cut', json={'page': 7, 'right': '2:1:2', 'left': '2:1:3', 'undo': True})
+    assert r.status_code == 200 and json.loads((tmp / 'cuts.json').read_text()) == {}
+    assert r.get_json()['page']['words'][1]['box'][0] == 200                # back to the cutter's own
+    assert client.post('/api/cut', json={'page': 7, 'right': '2:1:2', 'left': '2:1:3', 'x': 'a'}).status_code == 400
+    assert client.post('/api/cut', json={'page': 7, 'right': '2:1:1', 'left': '2:1:3', 'x': 250}).status_code == 400   # not neighbours
+    assert client.post('/api/cut', json={'page': 7, 'right': '2:1:2', 'left': '2:1:1', 'x': 250}).status_code == 400   # wrong order
+    assert client.post('/api/cut', json={'page': 7, 'right': '2:1:1', 'left': '2:1:2', 'x': 401}).status_code == 400   # past the word
+    assert client.post('/api/cut', json={'page': 7, 'right': '2:1:1', 'left': '2:1:2', 'x': 203}).status_code == 400   # leaves the word too narrow
+    assert client.post('/api/cut', json={'page': 9, 'right': '2:1:1', 'left': '2:1:2', 'x': 250}).status_code == 400
+
+
+def test_hand_cuts_are_handed_to_the_cutter_by_word_keys():
+    from pipeline.cv_waqf.mesaha_review.cuts import pinned_cuts
+
+    assert pinned_cuts({'7:2:1:1|2:1:2': {'x': 320.4, 'was': 300}}) == {('2:1:1', '2:1:2'): 320.4}

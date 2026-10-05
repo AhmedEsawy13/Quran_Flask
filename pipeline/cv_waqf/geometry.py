@@ -18,6 +18,7 @@ constant is ``LINE_CENTER_BIAS`` (see its comment).
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import numpy as np
@@ -223,6 +224,8 @@ def segment_line_words(
     window_slack: float = 0.08,
     window_sigma: float = 0.15,
     window_cap: float = 9.0,
+    fixed: dict[int, float] | None = None,
+    report: list | None = None,
 ) -> list[tuple[int, int]] | None:
     """Cut one printed line into ``len(weights)`` word spans, RTL order.
 
@@ -241,6 +244,11 @@ def segment_line_words(
     ``windows`` maps a boundary index (``k`` = between word ``k-1`` and word ``k``) to the ``(low, high)`` x
     interval a second reader (a text recogniser) puts that boundary in. A cut outside it, by more than
     ``window_slack`` pitches, pays a capped quadratic price, so a wrong window can be overruled by the ink.
+
+    ``fixed`` maps a boundary index to an x a person set by hand: that cut is exactly there (a set that
+    contradicts reading order or leaves the line is dropped). ``report``, when given, receives one dict per cut
+    (boundary ``k``, ``x``, whether it sits in a measured gap and how wide, its distance from the width-model
+    position, its distance outside the window, whether something pinned it) for ``cut_doubt``.
     """
     n = len(weights)
     if n == 0:
@@ -277,6 +285,7 @@ def segment_line_words(
     expected = right - span * cum / total  # decreasing x for j = 0..N-2
     unit = max(1.0, 0.30 * pitch)
     sigmas = np.full(n - 1, max(1.0, position_sigma * span))
+    known_cuts: set[int] = set()
     if anchors:
         # Boundary k sits between word k-1 and word k (0 = right edge, n = left edge).
         cw = np.concatenate(([0.0], np.cumsum(weights)))
@@ -310,9 +319,18 @@ def segment_line_words(
             expected[k - 1] = xs.get(k, expected[k - 1])
             if k in known and k not in (0, n):
                 sigmas[k - 1] = max(1.0, anchor_sigma * span)
+                known_cuts.add(k)
 
+    pins: dict[int, float] = {}
+    previous_k, previous_x = 0, float(right)
+    for k in sorted(fixed or {}):
+        x = float(fixed[k])
+        if 1 <= k <= n - 1 and left + (n - k) < x < previous_x - (k - previous_k):
+            pins[k] = x
+            previous_k, previous_x = k, x
     cands = [(x, gw, True) for x, gw in gaps]
     cands += [(float(x), 0.0, False) for x in expected]
+    cands += [(x, 0.0, False) for x in pins.values()]
     win = {k: (min(lo, hi), max(lo, hi)) for k, (lo, hi) in (windows or {}).items() if 1 <= k <= n - 1}
     cands += [(float((lo + hi) / 2.0), 0.0, False) for lo, hi in win.values() if left < (lo + hi) / 2.0 < right]
     cands.sort(key=lambda c: -c[0])  # RTL: rightmost first
@@ -321,6 +339,8 @@ def segment_line_words(
 
     def cost(j: int, i: int) -> float:
         x, gw, real = cands[i]
+        if j + 1 in pins:
+            return 0.0 if abs(x - pins[j + 1]) < 0.5 else inf
         value = ((x - expected[j]) / sigmas[j]) ** 2
         if real:
             value -= gap_reward * min(gw / unit, 1.0)
@@ -354,12 +374,83 @@ def segment_line_words(
     chosen = [last]
     for j in range(n - 2, 0, -1):
         chosen.append(int(back[j, chosen[-1]]))
-    cuts = [cands[i][0] for i in reversed(chosen)]  # x for cut after word j
+    picked = list(reversed(chosen))
+    cuts = [cands[i][0] for i in picked]  # x for cut after word j
+    if report is not None:
+        for j, i in enumerate(picked):
+            x, gw, real = cands[i]
+            window = win.get(j + 1)
+            report.append({
+                'k': j + 1, 'x': float(x), 'real': bool(real), 'gap': float(gw) / pitch,
+                'off_expected': float(x - expected[j]) / pitch,
+                'window': None if window is None else max(window[0] - x, x - window[1], 0.0) / pitch,
+                'pinned': (j + 1) in pins or (j + 1) in known_cuts,
+                'fixed': (j + 1) in pins,
+            })
     bounds = [float(right), *cuts, float(left)]
     return [
         (int(round(bounds[i + 1])), int(round(bounds[i])))
         for i in range(n)
     ]
+
+
+# What makes a cut or a word box doubtful. Probabilities read off how often a word the cutter placed disagreed
+# with the scan OCR's box (held-out words, 2,477 of them, 7% disagreeing overall; see the README, "Cut doubt").
+DOUBT_NO_GAP = 0.6          # the cut runs through ink: the words touch, or nothing measured says where
+DOUBT_NARROW_GAP = 0.2      # a gap under NARROW_GAP pitches
+NARROW_GAP = 0.07
+DOUBT_WINDOW_FAR = 0.8      # the text recogniser puts this boundary elsewhere, by more than WINDOW_FAR pitches (48% bad)
+WINDOW_FAR = 0.25
+DOUBT_WINDOW = 0.35         # ... by more than WINDOW_MISS pitches (12% bad)
+WINDOW_MISS = 0.12
+DOUBT_FAR = 0.3             # far from where the width model expects it
+FAR_FROM_EXPECTED = 0.8
+# |log(box width / expected width)|: 0.45 = off by about a third, 0.8 = under half or over twice
+WIDTH_STEPS = ((0.8, 0.9), (0.6, 0.6), (0.45, 0.35))
+
+
+def _either(*chances: float) -> float:
+    miss = 1.0
+    for c in chances:
+        miss *= 1.0 - c
+    return 1.0 - miss
+
+
+def cut_doubt(entry: dict) -> tuple[float, str]:
+    """``(doubt, reason)`` for one cut from ``segment_line_words(report=...)``: 0 is sure, 1 is a guess.
+
+    A cut a person set is certain; one pinned to a word the scan's OCR read is nearly so unless the
+    recogniser says otherwise.
+    """
+    if entry.get('fixed'):
+        return 0.0, ''
+    chances, why = [], []
+    if not entry.get('pinned'):
+        if not entry.get('real'):
+            chances.append(DOUBT_NO_GAP)
+            why.append('بلا فراغ')
+        elif entry.get('gap', 1.0) < NARROW_GAP:
+            chances.append(DOUBT_NARROW_GAP)
+            why.append('فراغ ضيق')
+        if abs(entry.get('off_expected', 0.0)) > FAR_FROM_EXPECTED:
+            chances.append(DOUBT_FAR)
+            why.append('بعيد عن المتوقع')
+    window = entry.get('window')
+    if window is not None and window > WINDOW_MISS:
+        chances.append(DOUBT_WINDOW_FAR if window > WINDOW_FAR else DOUBT_WINDOW)
+        why.append('القارئ الثاني يخالف')
+    return _either(*chances), '، '.join(why)
+
+
+def width_doubt(width: float, expected: float) -> tuple[float, str]:
+    """Doubt that a word's box is right, from how far its width is from the width the model expects."""
+    if width <= 0 or expected <= 0:
+        return 0.0, ''
+    off = abs(math.log(width / expected))
+    for step, chance in WIDTH_STEPS:
+        if off >= step:
+            return chance, 'عرض غير معتاد'
+    return 0.0, ''
 
 
 # Where a printed stop sits inside a word's slot box under measured geometry,

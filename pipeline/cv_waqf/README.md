@@ -460,6 +460,28 @@ python3 -m pipeline.cv_waqf.mesaha_kraken_chars merge /tmp/mesaha-rows          
 (9,310 rows, 3.5 MB; about 20 minutes for the crops and 9 for Kraken on the CPU.) Kraken reads the row at the same
 quality on the 2x scan, so the working image is enough.
 
+**Cut labels and cut doubt (review tool, 2026-10-05).** The OCR-box comparison above cannot tell a wrong cut
+from a wrong OCR box, so the review tool now collects real labels and shows where the cutter is unsure.
+
+- *Drag a cut.* Each crop has a handle on both edges of the word's box; the page image has a line between every two
+  neighbouring words (amber = the cutter is unsure, green = set by you; "كل الحدود" shows all). Dragging moves the
+  shared edge of the two words, saves it at once (`cuts.json`: the new x, the x the cutter had, how doubtful it was) and
+  exports it with the marks (`reviewed_marks.json: cuts`). A cut is keyed by the two word keys, so it survives a
+  rebuild: `run_models`, `tiers` and `build_review` call `mesaha_review.cuts.use_hand_cuts`, the cutter then puts
+  the cut exactly there (`geometry.segment_line_words(fixed=...)`, `layout_geo.FIXED_CUTS`). The mark that sat on the
+  wrong side is NOT moved for you: relink it as before (or rebuild).
+- *Cut doubt* (`geometry.cut_doubt`, `geometry.width_doubt`, stored per word as `doubt`/`why`, parts `dr`/`dl`/`dw`).
+  Calibrated on the 2,477 held-out words (7% disagree with the scan OCR's box): the second reader contradicts the cut
+  by more than 0.25 pitch (48% disagree; 12% for 0.12-0.25), the box is under half or over twice the width the model
+  expects (86% / 27% / 13% for log-ratio 0.8 / 0.6 / 0.45), the cut runs through ink (30%), a gap under 0.07 pitch
+  (12%); combined as "either is wrong". `doubt >= 0.5` flags 9% of words and catches 48% of the disagreeing
+  boxes (58% of those off by half a word) at 38% precision (5x the base rate). In the tool a flagged word gets an amber
+  tag, the "المشكوك فيها أولًا" button sorts the review list by it, and the page list shows ⚠n.
+- *Using the labels.* `python -m pipeline.cv_waqf.mesaha_review.cut_labels stats` (how many cuts were corrected, by
+  how much, how many the flag had caught) and `... tune` (re-runs the cutter with each setting of the second reader's
+  slack/sigma/cap, the width trust and the gap reward, and scores them against the corrected cuts: replace the
+  hand-set weights once there are ~100 labels).
+
 **What the first 20 reviewed pages say (216 proposals).** Auto-accepted ones: 91/91 confirmed. Candidates the
 models make but neither the seat prior nor the Shemrly column supports ("Mesaha-only"): **0 of 85 were real**
 (69 with 2 of 3 models, 16 with all 3). Column marks that no model found: 12 of 14 were real marks. So on these

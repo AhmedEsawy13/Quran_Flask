@@ -6,10 +6,12 @@ import json, os, threading, time
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
+from pipeline.cv_waqf.mesaha_review.cuts import apply_cuts, cut_key, neighbours, valid_x
+
 HERE = Path(__file__).resolve().parent            # the code
 DATA = Path(os.environ.get('MESAHA_REVIEW_DATA') or Path(__file__).resolve().parents[3] / 'artifacts' / 'cv-waqf' / 'mesaha-selflearn')   # data written by a run
 DATA.mkdir(parents=True, exist_ok=True)
-VERDICTS, DONE, LOG, EXPORT, RELINKS, POSITIONS = (DATA / n for n in ('verdicts.json', 'done.json', 'verdicts.log.jsonl', 'reviewed_marks.json', 'relinks.json', 'positions.json'))
+VERDICTS, DONE, LOG, EXPORT, RELINKS, POSITIONS, CUTS = (DATA / n for n in ('verdicts.json', 'done.json', 'verdicts.log.jsonl', 'reviewed_marks.json', 'relinks.json', 'positions.json', 'cuts.json'))
 SYMBOLS = ['ج', 'ق', 'ص', 'م', 'لا', 'س', 'ع']
 lock = threading.Lock()
 app = Flask(__name__, static_folder=None)
@@ -27,6 +29,10 @@ def write(path, data):
 
 def pages():
     return read(DATA / 'pages.json', [])
+
+def cut_pages():
+    """The pages with the reviewer's hand-set cuts applied (the boxes the tool shows)."""
+    return apply_cuts(pages(), read(CUTS, {}))
 
 def final_marks(done_pages, verdicts):
     """The reviewed marks of the pages the reviewer finished.
@@ -62,6 +68,7 @@ def write_export():
     pos = read(POSITIONS, {})
     positions = {pg: {k: pos[f'{pg}:{k}'] for k in ms if f'{pg}:{k}' in pos} for pg, ms in marks.items()}
     write(EXPORT, {'pages': sorted(done), 'marks': marks, 'positions': positions, 'relinks': read(RELINKS, {}),
+                   'cuts': read(CUTS, {}),
                    'updated_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())})
     return marks
 
@@ -71,7 +78,7 @@ def index():
 
 @app.get('/pages.json')
 def pages_json():
-    return send_from_directory(DATA, 'pages.json')
+    return jsonify(cut_pages())
 
 @app.get('/img/<path:name>')
 def img(name):
@@ -80,7 +87,7 @@ def img(name):
 @app.get('/api/state')
 def state():
     return jsonify({'verdicts': read(VERDICTS, {}), 'done': read(DONE, []), 'symbols': SYMBOLS,
-                    'relinks': read(RELINKS, {}), 'positions': read(POSITIONS, {})})
+                    'relinks': read(RELINKS, {}), 'positions': read(POSITIONS, {}), 'cuts': read(CUTS, {})})
 
 @app.post('/api/verdict')
 def verdict():
@@ -174,6 +181,55 @@ def position():
         write(POSITIONS, ps)
         write_export()
     return jsonify({'ok': True, 'positions': ps})
+
+
+@app.post('/api/cut')
+def cut():
+    """Put the cut between two neighbouring words of a row at ``x`` (page pixels); ``undo`` gives it back.
+
+    Stored in ``cuts.json`` with the x the cutter had chosen (``was``), so the labels also measure the cutter.
+    The reply is the page with the cut applied.
+    """
+    b = request.get_json(force=True) or {}
+    try:
+        page, right_key, left_key = int(b['page']), str(b['right']), str(b['left'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'bad request'}), 400
+    undo = bool(b.get('undo'))
+    x = b.get('x')
+    if not undo and not isinstance(x, (int, float)):
+        return jsonify({'error': 'bad position'}), 400
+    raw = next((p for p in pages() if p['page'] == page), None)
+    if raw is None or neighbours(raw['words'], right_key, left_key) is None:
+        return jsonify({'error': 'unknown cut'}), 400
+    key = cut_key(page, right_key, left_key)
+    with lock:
+        cuts = read(CUTS, {})
+        if undo:
+            cuts.pop(key, None)
+        else:
+            current = apply_cuts([raw], {k: v for k, v in cuts.items() if k != key})[0]
+            right, left = neighbours(current['words'], right_key, left_key)
+            if not valid_x(right, left, float(x)):
+                return jsonify({'error': 'cut outside the two words'}), 400
+            first = cuts.get(key, {})
+            was = first.get('was', raw_cut(raw, right_key, left_key))
+            # how doubtful the cutter was about this cut when it was first corrected (kept through later edits)
+            doubt = first.get('doubt', round(max(float(right.get('dl', 0)), float(left.get('dr', 0))), 2))
+            cuts[key] = {'x': round(float(x), 1), 'was': was, 'doubt': doubt,
+                         't': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}
+        write(CUTS, cuts)
+        with LOG.open('a', encoding='utf-8') as f:
+            f.write(json.dumps({'t': time.time(), 'page': page, 'cut': {'right': right_key, 'left': left_key, 'x': x, 'undo': undo}},
+                               ensure_ascii=False) + '\n')
+        write_export()
+    return jsonify({'ok': True, 'cuts': cuts, 'page': apply_cuts([raw], cuts)[0]})
+
+
+def raw_cut(page: dict, right_key: str, left_key: str) -> float:
+    """Where the cutter put the cut (the left edge of the word on the right)."""
+    right, _left = neighbours(page['words'], right_key, left_key)
+    return right['box'][0]
 
 
 @app.post('/api/done')

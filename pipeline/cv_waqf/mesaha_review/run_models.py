@@ -5,6 +5,7 @@
 import json, sys, time
 from pathlib import Path
 from pipeline.cv_waqf.run_page import detect_page
+from pipeline.cv_waqf.mesaha_review.cuts import use_hand_cuts
 HERE = Path(__file__).resolve().parent            # the code
 DATA = Path(__file__).resolve().parents[3] / 'artifacts' / 'cv-waqf' / 'mesaha-selflearn'   # data written by a run
 DATA.mkdir(parents=True, exist_ok=True)
@@ -26,6 +27,7 @@ def ensure_old_multiprint():
 
 
 ensure_old_multiprint()
+print('hand-set cuts kept:', use_hand_cuts(DATA))
 MODELS = {
     'multiprint3': Path('models/waqf_glyph_multiprint.onnx'),   # Bahrain+Qatar+Kuwait (also Kuwait's own)
     'bahrain': Path('models/waqf_glyph_bahrain.onnx'),

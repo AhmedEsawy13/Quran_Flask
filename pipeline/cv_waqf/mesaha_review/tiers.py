@@ -5,11 +5,13 @@ from pipeline.cv_waqf.marks import edition_marks_for_ayahs
 from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import preprocess_page
 from pipeline.cv_waqf import layout_geo
+from pipeline.cv_waqf.mesaha_review.cuts import use_hand_cuts
 HERE = Path(__file__).resolve().parent            # the code
 DATA = Path(__file__).resolve().parents[3] / 'artifacts' / 'cv-waqf' / 'mesaha-selflearn'   # data written by a run
 DATA.mkdir(parents=True, exist_ok=True)
 M = json.loads((DATA / 'model_marks.json').read_text())
 spec = EDITIONS['المساحة']
+use_hand_cuts(DATA)
 ref = {}      # page -> {word_key: symbol}  (Shemrly column, restricted to the page)
 for page in range(4, 135):
     prep = preprocess_page(cv2.imread(str(ensure_page_image(spec, page))), spec, page)

@@ -11,6 +11,7 @@ from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import preprocess_page
 from pipeline.cv_waqf.splits import mesaha_blind_pages
 from pipeline.cv_waqf import layout_geo, geometry
+from pipeline.cv_waqf.mesaha_review.cuts import use_hand_cuts
 
 HERE = Path(__file__).resolve().parent            # the code
 DATA = Path(__file__).resolve().parents[3] / 'artifacts' / 'cv-waqf' / 'mesaha-selflearn'   # data written by a run
@@ -18,6 +19,7 @@ DATA.mkdir(parents=True, exist_ok=True)
 M = json.loads((DATA / 'model_marks.json').read_text())
 REF = json.loads((DATA / 'reference_column.json').read_text())
 spec = EDITIONS['المساحة']
+print('hand-set cuts kept:', use_hand_cuts(DATA))        # cuts the reviewer set stay where they put them
 CFGS = ['multiprint3|prior=0', 'bahrain|prior=0', 'multiprint2|prior=0']
 PRIOR = 'multiprint3|prior=1'
 blind = set(mesaha_blind_pages())              # these stay unseen: they are labelled from scratch
@@ -36,7 +38,9 @@ for page in range(4, 135):
         sx, sy = geometry.mark_seat_centre(w.x0, w.y0, w.y1)
         byid[w.word_key] = {'key': w.word_key, 'text': w.text, 'line': w.line_number,
                             'box': [int(w.x0), int(w.y0 + 0.45 * h), int(w.x1), int(w.y0 + 1.3 * h)],
-                            'seat': [round(sx), round(sy)]}
+                            'seat': [round(sx), round(sy)],
+                            'doubt': round(w.cut_doubt, 2), 'why': w.cut_why,
+                            'dr': round(w.cut_parts[0], 2), 'dl': round(w.cut_parts[1], 2), 'dw': round(w.cut_parts[2], 2)}
     cands = collections.defaultdict(dict)
     for cfg in CFGS + [PRIOR]:
         for m in M[cfg].get(str(page), []):
@@ -64,7 +68,7 @@ for page in range(4, 135):
                       'default': 'accept' if accept else 'review',
                       'mbox': mbox,
                       'models': {c.split('|')[0]: d[c][:2] for c in CFGS if c in d}})
-    props.sort(key=lambda p: (p['line'], -p['seat'][0]))
+    props.sort(key=lambda p: (p['line'], -p['seat'][0], p['key']))
     pages_out.append({'page': page, 'w': int(prep.bgr.shape[1]), 'h': int(prep.bgr.shape[0]),
                       'words': sorted(byid.values(), key=lambda w: (w['line'], -w['box'][2])), 'proposals': props})
     print(page, 'proposals', len(props), 'auto-accept', sum(p['default'] == 'accept' for p in props), flush=True)

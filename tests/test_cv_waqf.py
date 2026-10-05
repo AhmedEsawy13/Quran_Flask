@@ -2038,3 +2038,55 @@ def test_kraken_chars_are_scaled_into_the_working_image(monkeypatch):
     got = relayout.kraken_chars(8, 500.0)
     assert got == [{'y': 200.0, 'text': 'ab c', 'x': [5.0, 10.0, 15.0, 20.0]}]
     assert relayout.kraken_chars(9, 500.0) == []
+
+
+def test_a_hand_set_cut_is_exact_and_a_contradicting_one_is_dropped():
+    import numpy as np
+
+    from pipeline.cv_waqf import geometry
+
+    mask = np.zeros((100, 600), dtype=bool)
+    for right, left in ((590, 470), (460, 412), (400, 250), (235, 40)):
+        mask[40:60, left:right] = True
+    kwargs = dict(baseline=50, pitch=60, weights=[1, 1, 1], x_range=(0, 600))
+    pinned = geometry.segment_line_words(mask, **kwargs, fixed={1: 300.0})
+    assert pinned[0][0] == 300                          # the cut after the first word is exactly where it was set
+    # reading order is respected: a cut right of the first one set for a later boundary is ignored
+    bad = geometry.segment_line_words(mask, **kwargs, fixed={1: 300.0, 2: 350.0})
+    assert bad is not None and len(bad) == 3 and bad[0][0] == 300 and bad[1][0] != 350
+    out = geometry.segment_line_words(mask, **kwargs, fixed={5: 10.0, 1: 9999.0})
+    assert out is not None and len(out) == 3            # impossible cuts never break the row
+
+
+def test_the_cut_report_says_how_each_cut_was_found():
+    import numpy as np
+
+    from pipeline.cv_waqf import geometry
+
+    mask = np.zeros((100, 600), dtype=bool)
+    for right, left in ((590, 470), (460, 412), (400, 250), (235, 40)):
+        mask[40:60, left:right] = True
+    report: list = []
+    geometry.segment_line_words(mask, baseline=50, pitch=60, weights=[1, 1, 1], x_range=(0, 600),
+                                windows={1: (465.0, 465.0)}, report=report)
+    assert [r['k'] for r in report] == [1, 2]
+    assert report[0]['real'] and report[0]['window'] < 0.05 and not report[0]['fixed']   # in the real gap, inside the window
+    fixed_report: list = []
+    geometry.segment_line_words(mask, baseline=50, pitch=60, weights=[1, 1, 1], x_range=(0, 600),
+                                fixed={1: 300.0}, report=fixed_report)
+    assert fixed_report[0]['fixed'] and fixed_report[0]['pinned']
+
+
+def test_cut_doubt_flags_cuts_the_second_reader_contradicts_and_boxes_of_unlikely_width():
+    from pipeline.cv_waqf import geometry
+
+    sure = {'real': True, 'gap': 0.3, 'off_expected': 0.1, 'window': 0.0, 'pinned': False}
+    assert geometry.cut_doubt(sure) == (0.0, '')
+    assert geometry.cut_doubt({**sure, 'fixed': True, 'window': 5.0}) == (0.0, '')   # a person decided
+    far, why = geometry.cut_doubt({**sure, 'window': 0.4})
+    assert far >= 0.5 and 'القارئ الثاني' in why
+    assert geometry.cut_doubt({**sure, 'real': False})[0] >= 0.5                        # through ink
+    assert geometry.cut_doubt({**sure, 'real': False, 'pinned': True})[0] == 0.0       # pinned to a word the OCR read
+    assert geometry.cut_doubt({**sure, 'gap': 0.03})[0] == pytest.approx(geometry.DOUBT_NARROW_GAP)
+    assert geometry.width_doubt(1.0, 1.0)[0] == 0.0 and geometry.width_doubt(0.3, 1.0)[0] >= 0.5
+    assert geometry.width_doubt(3.0, 1.0)[0] >= 0.5 and geometry.width_doubt(0, 1.0) == (0.0, '')

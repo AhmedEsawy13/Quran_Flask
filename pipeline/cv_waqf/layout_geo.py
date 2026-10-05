@@ -27,6 +27,11 @@ class LayoutWord:
     y0: int
     x1: int
     y1: int
+    # How little the word's two cuts can be trusted (0 sure .. 1 a guess) and why; see ``geometry.cut_doubt``.
+    cut_doubt: float = 0.0
+    cut_why: str = ''
+    # The parts of it: doubt of the cut on the word's right, of the cut on its left, of its width.
+    cut_parts: tuple[float, float, float] = (0.0, 0.0, 0.0)
 
     @property
     def cx(self) -> float:
@@ -176,6 +181,11 @@ def _observed_line_bounds(
     return observed_left, observed_right
 
 
+# Cuts a person set by hand, ``{(key right, key left): x}``, used by every estimate that is not given its own
+# ``fixed_cuts`` (the Mesaha review pipeline sets it from the reviewer's cuts so detection, tiers and the review
+# data all see the same boxes).
+FIXED_CUTS: dict[tuple[str, str], float] = {}
+LAST_CUTS: dict[int, list[dict]] = {}      # debugging: the cut reports of the last estimate, by line number
 _ANCHOR_HOLDOUT: str | None = None     # experiments only: 'even'/'odd' keeps half the anchors out
 
 
@@ -368,11 +378,15 @@ def estimate_layout_words(
     spec: EditionSpec,
     page: int,
     prepared: PreparedPage,
+    fixed_cuts: dict[tuple[str, str], float] | None = None,
 ) -> list[LayoutWord]:
     """Place each layout word in an estimated ROI inside the text band.
 
-    RTL: word_on_line=1 is the rightmost slot on the line.
+    RTL: word_on_line=1 is the rightmost slot on the line. ``fixed_cuts`` maps ``(key of the word on the
+    right, key of the word on the left)`` to an x a person set for the cut between them (default: ``FIXED_CUTS``).
     """
+    if fixed_cuts is None:
+        fixed_cuts = FIXED_CUTS
     lines = load_page_lines(spec, page)
     ayah_lines = [
         ln for ln in lines
@@ -437,6 +451,7 @@ def estimate_layout_words(
     if not slot_of:
         line_slots = max(1, len(spans))
     out: list[LayoutWord] = []
+    LAST_CUTS.clear()
     measured = (
         spec.measured_geometry and prepared.bgr is not None and bool(spans)
     )
@@ -488,12 +503,14 @@ def estimate_layout_words(
         word_top = line_top
         word_bot = line_bot
         n = len(ids)
+        doubts: dict[int, tuple[float, str]] = {}
         width_of = relayout_word_width if spec.learned_widths else _arabic_width_weight
         weights = [
             width_of(str((meta.get(wid) or {}).get('text') or ''))
             for wid in ids
         ]
         boxes = None
+        boxes_measured = False
         if measured:
             baseline = grid.top + (
                 line_slot + 0.5 + geometry.LINE_CENTER_BIAS
@@ -512,11 +529,23 @@ def estimate_layout_words(
                     baseline, grid.pitch,
                 ) if kraken_lines else None
             )
+            keys = [str((meta.get(wid) or {}).get('word_key') or '') for wid in ids]
+            fixed = {
+                k: float(fixed_cuts[(keys[k - 1], keys[k])])
+                for k in range(1, n) if fixed_cuts and (keys[k - 1], keys[k]) in fixed_cuts
+            } or None
+            cut_report: list[dict] = []
             boxes = geometry.segment_line_words(
                 mask, baseline=baseline, pitch=grid.pitch,
                 weights=weights, x_range=x_bounds, anchors=anchors, windows=windows,
+                fixed=fixed, report=cut_report,
             )
+            boxes_measured = boxes is not None
+            LAST_CUTS[int(ln['line_number'])] = cut_report
+            for entry in cut_report:
+                doubts[entry['k']] = geometry.cut_doubt(entry)
         if boxes is None:
+            doubts = {k: (1.0, 'لم يُقَس') for k in range(1, n)}
             line_left, line_right = _observed_line_bounds(
                 prepared, line_top, line_bot,
             )
@@ -538,6 +567,15 @@ def estimate_layout_words(
                 boxes.append((min(wx0, wx1), max(wx0, wx1)))
         for i, wid in enumerate(ids):
             info = meta.get(wid) or {}
+            parts = [doubts[k] for k in (i, i + 1) if k in doubts]
+            wide = (0.0, '')
+            if spec.learned_widths and boxes_measured:
+                wide = geometry.width_doubt((boxes[i][1] - boxes[i][0]) / max(1.0, float(grid.pitch)), weights[i])
+                parts.append(wide)
+            word_doubt = (
+                geometry._either(*(p[0] for p in parts)),
+                ' / '.join(dict.fromkeys(p[1] for p in parts if p[1])),
+            )
             out.append(LayoutWord(
                 word_id=wid,
                 word_key=str(info.get('word_key') or ''),
@@ -552,6 +590,9 @@ def estimate_layout_words(
                 y0=word_top,
                 x1=boxes[i][1],
                 y1=word_bot,
+                cut_doubt=word_doubt[0],
+                cut_why=word_doubt[1],
+                cut_parts=(doubts.get(i, (0.0, ''))[0], doubts.get(i + 1, (0.0, ''))[0], wide[0]),
             ))
     return out
 
