@@ -360,6 +360,31 @@ rejects, 48 empty rows left on 26 fallback pages (the relayout never attempts th
 in `review_queue.csv`).
 `artifacts/.../rebuild.py` redoes the whole draft deterministically from the OCR import.
 
+**Self-learning loop (Mesaha).** Use the models we have to propose the marks on the finished pages,
+let a person confirm them, and train on the confirmed ones.
+
+```bash
+python -m pipeline.cv_waqf.mesaha_review.run_models      # 3 models x with/without the seat prior over pages 4-134
+python -m pipeline.cv_waqf.mesaha_review.tiers           # how far the models agree; writes the reference column
+python -m pipeline.cv_waqf.mesaha_review.build_review    # proposals per page (the blind-test pages are left out)
+python -m pipeline.cv_waqf.mesaha_review.serve           # review tool on http://127.0.0.1:5004
+```
+
+A candidate is any word at least two models mark, or that the prior passes, or that the Shemrly
+column marks. **Auto-accepted** when the models agree, the seat prior passes it and the column has
+the same symbol; everything else is for the reviewer (symbol buttons, "ليست علامة", or click a word
+in the scan to add a mark the models missed). Every decision is saved on the server; "أنهيت الصفحة"
+makes the page complete (anything still unreviewed on it is not a mark). The tool exports
+`reviewed_marks.json`. Train from it like any consensus source:
+
+```bash
+python -m pipeline.cv_waqf candidate-crops --edition المساحة --page-list <done pages> \
+    --consensus reviewed:artifacts/cv-waqf/mesaha-selflearn/reviewed_marks.json --clear
+```
+
+Caveats: reviewers tend to accept what the model proposes (that is why the blind pages are kept
+apart and labelled from scratch), and the auto-accepted marks inherit the column's view of Mesaha.
+
 **Blind waqf test (Mesaha).** The pages whose layout was reviewed in Layout Studio (4-134) have
 correct word boxes, so a miss there is the model's. `splits.mesaha_blind_pages()` fixes 20 of them
 (seed 2028; eight from 5-60, ten from 63-134, plus the banner pages 97 and 134; not 2-4, 61, 62

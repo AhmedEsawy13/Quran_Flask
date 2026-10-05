@@ -53,6 +53,49 @@ TARGET_CLASSES = ('م', 'ق', 'ص', 'ج', 'لا', 'ع', 'س')
 MADINAH_FAMILY_CONSENSUS = ('قطر', 'المدينة الجديد', 'المدينة القديم')
 
 
+# A consensus source can also be a file of marks a person confirmed on finished pages:
+# ``reviewed:<path>`` with ``{"marks": {"<page>": {"<surah>:<ayah>:<position>": "<symbol>"}}}``
+# (what the Mesaha review tool exports). Only pages the file lists are complete, so train on those pages.
+REVIEWED_PREFIX = 'reviewed:'
+
+
+def _reviewed_marks_for_ayahs(
+    path: str, ayah_keys: list[tuple[int, int]], script_db: str,
+) -> dict[tuple[int, int, int], str]:
+    import json
+
+    data = json.loads(Path(path).read_text(encoding='utf-8'))
+    wanted = set(ayah_keys)
+    keys = []
+    for marks in (data.get('marks') or {}).values():
+        for word_key in marks:
+            try:
+                surah, ayah, _pos = (int(x) for x in word_key.split(':'))
+            except ValueError:
+                continue
+            if (surah, ayah) in wanted:
+                keys.append(word_key)
+    if not keys:
+        return {}
+    conn = sqlite3.connect(script_db)
+    try:
+        ids = {
+            row[0]: (int(row[1]), int(row[2]), int(row[3]))
+            for row in conn.execute(
+                f'SELECT word_key, surah, ayah, word_index FROM words '
+                f'WHERE word_key IN ({",".join("?" * len(keys))})', keys,
+            )
+        }
+    finally:
+        conn.close()
+    out: dict[tuple[int, int, int], str] = {}
+    for marks in (data.get('marks') or {}).values():
+        for word_key, symbol in marks.items():
+            if word_key in ids:
+                out[ids[word_key]] = symbol
+    return out
+
+
 def consensus_marks(
     editions: tuple[str, ...],
     ayah_keys: list[tuple[int, int]],
@@ -66,7 +109,11 @@ def consensus_marks(
     first (so it is never used as a positive).
     """
     per_edition = [
-        edition_marks_for_ayahs(edition, ayah_keys, script_db)
+        (
+            _reviewed_marks_for_ayahs(edition[len(REVIEWED_PREFIX):], ayah_keys, script_db)
+            if edition.startswith(REVIEWED_PREFIX)
+            else edition_marks_for_ayahs(edition, ayah_keys, script_db)
+        )
         for edition in editions
     ]
     marked = set().union(*(set(marks) for marks in per_edition))

@@ -1849,3 +1849,23 @@ def test_latest_label_per_word_wins_in_blind_scoring():
         {'page': 5, 'word_key': 'w', 'symbol': 'ص', 'created_at': '2026-10-05T11:00:00Z', 'id': 'b'},
     ]
     assert positives_by_page(labels, {5})[5]['w']['symbol'] == 'ص'
+
+
+def test_reviewed_marks_file_is_a_consensus_source(tmp_path):
+    import json
+    import sqlite3
+
+    from pipeline.cv_waqf.sample_crops import consensus_marks
+
+    db = tmp_path / 'script.db'
+    conn = sqlite3.connect(db)
+    conn.execute('CREATE TABLE words (word_index INT, word_key TEXT, surah INT, ayah INT, text TEXT)')
+    conn.executemany('INSERT INTO words VALUES (?,?,?,?,?)',
+                     [(10, '2:5:1', 2, 5, 'a'), (11, '2:5:2', 2, 5, 'b'), (12, '3:1:1', 3, 1, 'c')])
+    conn.commit()
+    conn.close()
+    marks = tmp_path / 'reviewed.json'
+    marks.write_text(json.dumps({'pages': [4], 'marks': {'4': {'2:5:2': 'ج'}, '9': {'3:1:1': 'ق'}}}), encoding='utf-8')
+    agreed, marked = consensus_marks((f'reviewed:{marks}',), [(2, 5)], str(db))
+    assert agreed == {(2, 5, 11): 'ج'}                    # only the ayahs asked for
+    assert marked == {(2, 5, 11)}
