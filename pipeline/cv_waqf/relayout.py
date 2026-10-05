@@ -105,6 +105,119 @@ def ocr_words(page: int, leaf_offset: int, image_width: float) -> list[OcrWord]:
     return out
 
 
+KRAKEN_CHARS_JSON = Path(__file__).parent / 'assets' / 'mesaha_kraken_chars.json'
+# Where a word's edges lie against the first / last character Kraken emitted for it, in line pitches
+# (median over ~2,400 words both Kraken and the scan's own OCR read; the spread between the quartiles is
+# 0.09 and 0.05 pitch, so the emission point is a steady landmark once the offset is removed).
+KRAKEN_LEFT_BIAS = -0.173
+KRAKEN_RIGHT_BIAS = -0.085
+# The space Kraken emits between two words sits right of the middle of the printed gap by this much.
+KRAKEN_SPACE_BIAS = -0.112
+KRAKEN_MIN_SPAN = 0.15       # pitches between a word's first and last emission; a shorter word has no usable width
+KRAKEN_ROW_TOLERANCE = 0.45  # pitches between a Kraken line and the row's baseline
+
+
+@functools.lru_cache(maxsize=1)
+def _kraken_chars_asset() -> dict:
+    import json
+
+    try:
+        return json.loads(KRAKEN_CHARS_JSON.read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return {}
+
+
+def kraken_chars(page: int, image_width: float) -> list[dict]:
+    """Kraken's character positions for the printed rows of ``page``, in the working image's pixels.
+
+    One entry per recognised row: ``{'y': baseline, 'text': display-order text, 'x': emission x per
+    character}``. The model reads whole rows without any word boxes; each character is placed at the
+    point where the network emitted it.
+    """
+    data = _kraken_chars_asset()
+    scale = float(image_width) / float(data.get('width') or image_width)
+    out: list[dict] = []
+    for row in (data.get('pages') or {}).get(str(page), []):
+        out.append({
+            'y': float(row['y']) * scale,
+            'text': str(row['t']),
+            'x': [float(x) * scale for x in row['x']],
+        })
+    return out
+
+
+def _fill_unread(pairs: dict[int, int], n_known: int, n_read: int) -> dict[int, int]:
+    """Pair the words between two matched ones in order when both sides hold the same number of them.
+
+    A word Kraken misread does not match by letter shape, but when it sits between matched neighbours
+    and the counts agree it can only be the one at that place.
+    """
+    if not pairs:
+        return pairs
+    out = dict(pairs)
+    known = sorted(pairs)
+    marks = [(-1, -1), *[(j, pairs[j]) for j in known], (n_known, n_read)]
+    for (j1, i1), (j2, i2) in zip(marks, marks[1:]):
+        gap_known, gap_read = j2 - j1 - 1, i2 - i1 - 1
+        if gap_known > 0 and gap_known == gap_read:
+            for step in range(1, gap_known + 1):
+                out[j1 + step] = i1 + step
+    return out
+
+
+def kraken_row_marks(
+    lines: list[dict], texts: list[str], baseline: float, pitch: float,
+) -> tuple[dict[int, tuple[float, float]], dict[int, float]]:
+    """What Kraken says about the row's words: ``(edges, cuts)``.
+
+    ``edges`` is ``{word index: (left, right)}`` for the known words Kraken read, from its first / last
+    emission point moved by the measured offset (single-character words carry no width and are skipped).
+    ``cuts`` is ``{k: x}`` for the boundary between known word ``k-1`` and word ``k`` when both were read
+    and are neighbours in Kraken's line: the space the network emitted between them, moved by the offset.
+
+    The nearest Kraken line (by y) is split into words at its spaces and the words are aligned to the
+    row's known words by dotless letter shape.
+    """
+    near = [ln for ln in lines if abs(ln['y'] - baseline) <= KRAKEN_ROW_TOLERANCE * pitch]
+    if not near or not texts:
+        return {}, {}
+    line = min(near, key=lambda ln: abs(ln['y'] - baseline))
+    words: list[list[tuple[str, float]]] = [[]]
+    after: list[float] = []                          # x of the space that closes display word d
+    for ch, x in zip(line['text'], line['x']):
+        if ch.isspace():
+            if words[-1]:
+                words.append([])
+                after.append(x)
+        else:
+            words[-1].append((ch, x))
+    if not words[-1]:
+        words.pop()
+    if len(words) < 2:
+        return {}, {}
+    m = len(words)
+    # Display order is left to right; the text reads right to left, so display word d is reading word m-1-d.
+    shaped = []
+    for w in reversed(words):
+        text = ''.join(c for c, _ in w)[::-1]
+        xs = [x for _, x in w]
+        shaped.append((text, min(xs), max(xs)))
+    objs = [OcrWord(t, _rasm(t), lo, baseline - pitch / 2, hi, baseline + pitch / 2) for t, lo, hi in shaped]
+    pairs = _fill_unread(align(objs, [_rasm(t) for t in texts]), len(texts), m)
+    edges: dict[int, tuple[float, float]] = {}
+    for j, i in pairs.items():
+        lo, hi = shaped[i][1], shaped[i][2]
+        if hi - lo >= KRAKEN_MIN_SPAN * pitch:
+            edges[j] = (lo + KRAKEN_LEFT_BIAS * pitch, hi + KRAKEN_RIGHT_BIAS * pitch)
+    cuts: dict[int, float] = {}
+    for j, i in pairs.items():
+        if j + 1 in pairs and pairs[j + 1] == i + 1:
+            d = m - 1 - pairs[j + 1]                 # display index of the left-hand word; its space follows it
+            if 0 <= d < len(after):
+                cuts[j + 1] = after[d] + KRAKEN_SPACE_BIAS * pitch
+    return edges, cuts
+
+
 KRAKEN_JSON = Path(__file__).parent / 'assets' / 'mesaha_kraken_lines.json'
 KRAKEN_ROW_TOL = 0.45        # pitches between a Kraken line's y and a row's baseline
 KRAKEN_MIN_FILL = 0.75       # a line shorter than this share of its row is a fragment

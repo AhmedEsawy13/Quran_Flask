@@ -101,6 +101,9 @@ class EditionSpec:
     # that are off by half a word.
     learned_widths: bool = False
     ocr_word_anchors: bool = False
+    # Kraken (a text recogniser) reads every row and places each character; its word edges become soft
+    # windows for the cuts (relayout.kraken_row_edges), covering the words the scan's own OCR missed.
+    kraken_word_windows: bool = False
     # Use another edition's model until this print has its own. Explicit and
     # one hop only, so a transfer is visible in the registry and in the detect
     # payload instead of hiding in a path lookup.
@@ -327,6 +330,7 @@ EDITIONS: dict[str, EditionSpec] = {
         attach_by_seat=True,
         learned_widths=True,
         ocr_word_anchors=True,
+        kraken_word_windows=True,
         # WIP: vertical band only. Horizontal frame bounds are not parity-clean
         # yet and Mesaha word positions use the Shemrly word space, so marks
         # cannot be compared with or filtered by the QPC-indexed columns.

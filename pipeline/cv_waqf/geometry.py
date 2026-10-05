@@ -219,6 +219,10 @@ def segment_line_words(
     gap_reward: float = 1.0,
     anchors: dict[int, tuple[float, float]] | None = None,
     anchor_sigma: float = 0.015,
+    windows: dict[int, tuple[float, float]] | None = None,
+    window_slack: float = 0.08,
+    window_sigma: float = 0.15,
+    window_cap: float = 9.0,
 ) -> list[tuple[int, int]] | None:
     """Cut one printed line into ``len(weights)`` word spans, RTL order.
 
@@ -233,6 +237,10 @@ def segment_line_words(
     ``anchors`` maps a word index to its measured ``(left, right)`` x extent (an OCR word box).
     The cuts next to an anchored word are pinned there, the others interpolated between
     the pinned ones by width, so one wrong width estimate cannot shift the rest of the line.
+
+    ``windows`` maps a boundary index (``k`` = between word ``k-1`` and word ``k``) to the ``(low, high)`` x
+    interval a second reader (a text recogniser) puts that boundary in. A cut outside it, by more than
+    ``window_slack`` pitches, pays a capped quadratic price, so a wrong window can be overruled by the ink.
     """
     n = len(weights)
     if n == 0:
@@ -305,6 +313,8 @@ def segment_line_words(
 
     cands = [(x, gw, True) for x, gw in gaps]
     cands += [(float(x), 0.0, False) for x in expected]
+    win = {k: (min(lo, hi), max(lo, hi)) for k, (lo, hi) in (windows or {}).items() if 1 <= k <= n - 1}
+    cands += [(float((lo + hi) / 2.0), 0.0, False) for lo, hi in win.values() if left < (lo + hi) / 2.0 < right]
     cands.sort(key=lambda c: -c[0])  # RTL: rightmost first
     m = len(cands)
     inf = float('inf')
@@ -316,6 +326,11 @@ def segment_line_words(
             value -= gap_reward * min(gw / unit, 1.0)
         else:
             value += virtual_penalty
+        bounds = win.get(j + 1)
+        if bounds is not None:
+            off = max(bounds[0] - x, x - bounds[1], 0.0) - window_slack * pitch
+            if off > 0:
+                value += min((off / (window_sigma * pitch)) ** 2, window_cap)
         return value
 
     dp = np.full((n - 1, m), inf)

@@ -416,6 +416,50 @@ words the OCR did NOT read (anchors from the other half held out), 3.1% / 1.2% f
 found 32/37 -> 33/37; of your decisions on finished pages none moved to another word. Cases the learned widths
 alone still got wrong (a whole-row shift on page 39, a merged pair on page 81) were the reason for the anchors.
 
+**Word cuts, second round: what the Shemrly project taught (Mesaha, 2026-10-05).** The ShemrlyMushaf and
+quran-page-splitter projects solve the same problem for another print. Tried here, in this order:
+
+- *Piece counts* (the splitter engine's core idea: the spelling predicts how many disconnected ink pieces each
+  word prints as, so words are aligned to pieces). **Does not carry over**: Mesaha joins its letters tightly, only
+  14% of words show any gap inside them, and in 66% of OCR-read words there are fewer ink pieces than the spelling
+  predicts (more in only 1.6%). Run as is, the engine put 36% of word boxes under half overlap with the scan OCR's
+  (against about 8% for our cutter). 98% of true word boundaries are an empty ink column, so candidate gaps were
+  never the problem; choosing among them is. Not used (the same conclusion as its own experiment log's NO-GOs).
+- *A second, independent reader of the row's text* (the environment Shemrly keeps has Kraken installed; this
+  repo's does not). Kraken run as a baseline-line recogniser reads **94% of the words** (the scan's own OCR: 56%),
+  and it places every character where the network emitted it. Against the scan OCR's boxes the emission point is a
+  steady landmark once its offset is removed: the space it emits between two words lies 0.112 pitch right of the middle
+  of the printed gap (quartiles 0.087-0.133, so +-0.02 pitch), a word's left/right edge lies 0.173/0.085 pitch from its
+  first/last character.
+  `EditionSpec.kraken_word_windows` (Mesaha only) turns that into soft windows for the cuts
+  (`relayout.kraken_row_marks` -> `layout_geo._kraken_row_windows` -> `geometry.segment_line_words(windows=...)`):
+  a space between two neighbouring read words is a point estimate of that cut, otherwise the cut lies between
+  the neighbours' edges; a cut outside its window by more than 0.08 pitch pays a capped quadratic price, so the ink
+  can overrule a wrong window. Words Kraken misread are paired in order between matched neighbours when the counts
+  agree (`relayout._fill_unread`).
+
+Held out against the scan OCR's boxes (half the OCR anchors withheld, same method as above; IoU < 0.5 / centre off by
+more than half a word / boundary outside the printed gap):
+
+| pages | without | with windows |
+|---|---|---|
+| 44 reviewed (5-134 step 3) | 8.7% / 3.9% / 0.39% | 7.2% / 3.0% / 0.19% |
+| 22 other reviewed (6-132 step 6) | 9.0% / 4.7% / 0.64% | 7.5% / 3.1% / 0.40% |
+| 35 across the book (136-820 step 20) | 7.8% / 4.1% / 0.93% | 7.1% / 3.3% / 0.49% |
+
+Hand labels (`evaluate-hand`): 33 -> 34 of 37 exact, missing 3 -> 2. The remaining "bad" boxes are mostly the
+OCR's own errors (merged or split boxes), so these numbers bound the real error from above; a cut through ink is
+down from 38% to 29% on the cuts the windows moved. Kraken only needs to run once per print:
+
+```bash
+python3 -m pipeline.cv_waqf.mesaha_kraken_chars crops /tmp/mesaha-rows             # one PNG per printed row
+~/Development/ShemrlyMushaf/.venv/bin/python pipeline/cv_waqf/kraken_read_rows.py /tmp/mesaha-rows
+python3 -m pipeline.cv_waqf.mesaha_kraken_chars merge /tmp/mesaha-rows             # assets/mesaha_kraken_chars.json
+```
+
+(9,310 rows, 3.5 MB; about 20 minutes for the crops and 9 for Kraken on the CPU.) Kraken reads the row at the same
+quality on the 2x scan, so the working image is enough.
+
 **What the first 20 reviewed pages say (216 proposals).** Auto-accepted ones: 91/91 confirmed. Candidates the
 models make but neither the seat prior nor the Shemrly column supports ("Mesaha-only"): **0 of 85 were real**
 (69 with 2 of 3 models, 16 with all 3). Column marks that no model found: 12 of 14 were real marks. So on these

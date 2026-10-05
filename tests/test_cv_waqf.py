@@ -1976,8 +1976,65 @@ def test_ocr_row_anchors_only_pin_words_the_alignment_is_sure_of():
     assert layout_geo._ocr_row_anchors(far, texts, baseline=100.0, pitch=60.0, x_range=(0, 600)) == {}
 
 
-def test_only_mesaha_uses_learned_widths_and_ocr_anchors():
+def test_only_mesaha_uses_learned_widths_ocr_anchors_and_kraken_windows():
     from pipeline.cv_waqf.config import EDITIONS
 
-    assert EDITIONS['المساحة'].learned_widths and EDITIONS['المساحة'].ocr_word_anchors
-    assert all(not (s.learned_widths or s.ocr_word_anchors) for k, s in EDITIONS.items() if k != 'المساحة')
+    mesaha = EDITIONS['المساحة']
+    assert mesaha.learned_widths and mesaha.ocr_word_anchors and mesaha.kraken_word_windows
+    assert all(
+        not (s.learned_widths or s.ocr_word_anchors or s.kraken_word_windows)
+        for k, s in EDITIONS.items() if k != 'المساحة'
+    )
+
+
+def test_a_kraken_window_picks_the_real_word_gap_over_a_nearer_gap_inside_a_word():
+    import numpy as np
+
+    from pipeline.cv_waqf import geometry
+
+    mask = np.zeros((100, 600), dtype=bool)
+    for right, left in ((590, 470), (460, 412), (400, 250), (235, 40)):     # RTL pieces; gaps at 465, 406 and 242
+        mask[40:60, left:right] = True
+    kwargs = dict(baseline=50, pitch=60, weights=[1, 1, 1], x_range=(0, 600))
+    plain = geometry.segment_line_words(mask, **kwargs)
+    windowed = geometry.segment_line_words(mask, **kwargs, windows={1: (465.0, 465.0)})
+    assert abs(plain[0][0] - 406) <= 6                  # the gap inside the middle word sits on the expected cut
+    assert abs(windowed[0][0] - 465) <= 6               # the window moves the cut to the real word gap
+    assert abs(windowed[1][0] - 242) <= 6               # the rest of the row is unchanged
+    # a window that is wrong by a lot is overruled by the ink rather than followed
+    wrong = geometry.segment_line_words(mask, **kwargs, windows={1: (130.0, 130.0)})
+    assert wrong is not None and len(wrong) == 3
+
+
+def test_kraken_row_marks_read_edges_and_the_space_between_neighbouring_words():
+    from pipeline.cv_waqf import relayout
+
+    texts = ['كتابنا', 'ربنا', 'الرحمن']                 # reading order: the first word is rightmost
+    # Kraken's line is in display order (left to right), so each word's letters come out reversed.
+    text = 'نمحرلا انبر انباتك'
+    xs = [40, 50, 60, 70, 80, 90, 105, 120, 130, 140, 150, 165, 180, 190, 200, 210, 220, 230]
+    line = {'y': 100.0, 'text': text, 'x': [float(x) for x in xs]}
+    edges, cuts = relayout.kraken_row_marks([line], texts, baseline=100.0, pitch=60.0)
+    assert edges[0] == (180 + relayout.KRAKEN_LEFT_BIAS * 60, 230 + relayout.KRAKEN_RIGHT_BIAS * 60)
+    assert cuts == {1: 165 + relayout.KRAKEN_SPACE_BIAS * 60, 2: 105 + relayout.KRAKEN_SPACE_BIAS * 60}
+    # a line on another row says nothing about this one
+    assert relayout.kraken_row_marks([line], texts, baseline=400.0, pitch=60.0) == ({}, {})
+
+
+def test_unread_words_between_matched_neighbours_are_paired_in_order_only_when_counts_agree():
+    from pipeline.cv_waqf.relayout import _fill_unread
+
+    assert _fill_unread({0: 0, 3: 3}, 5, 5) == {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
+    # two known words between the matches but one read: no guess there; the single word after the last match is paired
+    assert _fill_unread({0: 0, 3: 2}, 5, 4) == {0: 0, 3: 2, 4: 3}
+    assert _fill_unread({}, 3, 3) == {}
+
+
+def test_kraken_chars_are_scaled_into_the_working_image(monkeypatch):
+    from pipeline.cv_waqf import relayout
+
+    asset = {'width': 1000, 'pages': {'8': [{'y': 400.0, 't': 'ab c', 'x': [10, 20, 30, 40]}]}}
+    monkeypatch.setattr(relayout, '_kraken_chars_asset', lambda: asset)
+    got = relayout.kraken_chars(8, 500.0)
+    assert got == [{'y': 200.0, 'text': 'ab c', 'x': [5.0, 10.0, 15.0, 20.0]}]
+    assert relayout.kraken_chars(9, 500.0) == []

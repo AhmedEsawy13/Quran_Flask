@@ -208,6 +208,37 @@ def _ocr_row_anchors(
     return out
 
 
+def _kraken_row_windows(
+    kraken_lines: list[dict], texts: list[str], baseline: float, pitch: float,
+) -> dict[int, tuple[float, float]]:
+    """``{boundary k: (low, high)}``: where Kraken puts the cut between word ``k-1`` and word ``k``.
+
+    The space Kraken emitted between two neighbouring words it read is a point estimate. Otherwise the
+    cut lies between the left edge of the right-hand word and the right edge of the left-hand one, with
+    the side that was not read left open.
+    """
+    from pipeline.cv_waqf import relayout
+
+    edges, cuts = relayout.kraken_row_marks(kraken_lines, texts, baseline, pitch)
+    if not edges and not cuts:
+        return {}
+    windows: dict[int, tuple[float, float]] = {}
+    inf = float('inf')
+    for k in range(1, len(texts)):
+        if k in cuts:
+            windows[k] = (cuts[k], cuts[k])
+            continue
+        right_word, left_word = edges.get(k - 1), edges.get(k)
+        low = left_word[1] if left_word else -inf       # right edge of the word on the left
+        high = right_word[0] if right_word else inf     # left edge of the word on the right
+        if low == -inf and high == inf:
+            continue
+        if low > high:
+            low = high = (low + high) / 2.0
+        windows[k] = (low, high)
+    return windows
+
+
 def physical_slots(spec: EditionSpec, lines: list[dict]) -> tuple[dict[int, int], int]:
     """``{line_number: first physical slot}`` and the page's physical slot count.
 
@@ -430,7 +461,12 @@ def estimate_layout_words(
             [slot_of.get(int(ln['line_number']), 0) for ln, _ in spans],
         ) or spans
     ocr_page = None
+    kraken_lines: list[dict] = []
     relayout_word_width = None
+    if spec.kraken_word_windows and measured and prepared.bgr is not None:
+        from pipeline.cv_waqf import relayout as _kraken_relayout
+
+        kraken_lines = _kraken_relayout.kraken_chars(page, float(prepared.bgr.shape[1]))
     if spec.learned_widths or spec.ocr_word_anchors:
         from pipeline.cv_waqf import relayout as _relayout
 
@@ -470,9 +506,15 @@ def estimate_layout_words(
                     baseline, grid.pitch, x_bounds,
                 ) if ocr_page else None
             )
+            windows = (
+                _kraken_row_windows(
+                    kraken_lines, [str((meta.get(wid) or {}).get('text') or '') for wid in ids],
+                    baseline, grid.pitch,
+                ) if kraken_lines else None
+            )
             boxes = geometry.segment_line_words(
                 mask, baseline=baseline, pitch=grid.pitch,
-                weights=weights, x_range=x_bounds, anchors=anchors,
+                weights=weights, x_range=x_bounds, anchors=anchors, windows=windows,
             )
         if boxes is None:
             line_left, line_right = _observed_line_bounds(
