@@ -224,7 +224,7 @@ def _ocr_relayout_spans(
     before = [i for i in before if i in extra_meta]
     after = [i for i in after if i in extra_meta]
     ordered = before + ordered + after
-    meta = {**meta, **extra_meta}
+    meta.update(extra_meta)          # the caller renders the words moved onto this page
     offset = len(before)
     texts = [str(meta[i].get('text') or '') for i in ordered]
     weights = [relayout.word_width(t) for t in texts]

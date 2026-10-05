@@ -1654,3 +1654,22 @@ def test_token_alignment_prefers_the_real_occurrence_of_a_repeated_word():
     got = relayout._token_alignment(tokens, canon)
     # The page's words are the second run; the identical first run is another page's.
     assert sorted(got) == [4, 5, 6, 7]
+
+
+def test_mesaha_relayout_words_pulled_from_a_neighbour_page_keep_their_text():
+    """Words the Kraken relayout moves onto a page from the next/previous page
+    must carry their text and key (page 346's word list starts ~36 words late)."""
+    import cv2
+    import pytest
+
+    from pipeline.cv_waqf import layout_geo
+    from pipeline.cv_waqf.config import EDITIONS
+    from pipeline.cv_waqf.preprocess import preprocess_page
+
+    spec = EDITIONS['المساحة']
+    cached = Path(spec.page_cache_dir) / 'p346_w1024.jpg'
+    if not cached.is_file():
+        pytest.skip('page 346 scan not cached')
+    prepared = preprocess_page(cv2.imread(str(cached)), spec, page=346)
+    words = layout_geo.estimate_layout_words(spec, 346, prepared)
+    assert words and all(w.text and w.word_key for w in words)
