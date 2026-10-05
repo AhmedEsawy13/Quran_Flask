@@ -308,6 +308,17 @@ pages the user spot-checked (row-level verdicts, blank = wrong): the relayout
 now runs on 13 instead of 8; hand labels page 277 first suggestion 2/6 -> 6/6.
 Remaining errors are single short words at a row edge that Kraken did not read.
 
+**Kraken relayout, round 2 (fresh random pages, user verdicts).** 16 random
+pages 63-827 (seed 2027, not used for tuning): the relayout produced rows on 15
+(all Kraken), **167 / 177 rows right (94.4%)**, 10 / 15 pages fully right; the
+10 wrong rows are single short words at a row edge (a verse's first word left at
+the previous row's end: "بل", "لا"; Kraken does not read the row's first token
+and the width fit cannot settle a 1-word difference). On 14 reviewed pages, the
+detector's marks land on the same word as under the reviewed layout 96.5% of
+the time (251 / 260; DjVu relayout 93.8%, old OCR import 48.5%). Whole book
+63-827: Kraken 619 pages, DjVu 17, fallback to the layout's own rows 129 (83.1%
+coverage; mostly isolated pages, size-gate failures `r6`).
+
 **Reviewed layout (Supabase, 2026-10-05).** The reviewed Mesaha layout lives in
 the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
 OCR-import DB; pull it with `layout_persistence.working_db_path(MESAHA,
