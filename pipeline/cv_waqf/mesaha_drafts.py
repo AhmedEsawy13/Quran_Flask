@@ -327,7 +327,9 @@ def reviewed_pages(db_path: str, offline: bool = False) -> set[int]:
         raise SystemExit('Supabase is not configured: cannot tell which pages are reviewed '
                          '(pass --offline to use only the local progress table)')
     out |= {int(r['page_number']) for r in sb.fetch_layout_page_index(edition='mesaha', force=True)}
-    out |= set(sb.list_reviewed_pages('mesaha'))
+    # The Studio keeps its review marks under 'layout:<edition>' (a page reviewed without edits is
+    # never saved to the layout store, so it only shows up here).
+    out |= set(sb.list_reviewed_pages('mesaha')) | set(sb.list_reviewed_pages('layout:mesaha'))
     return out
 
 
@@ -386,6 +388,14 @@ def apply(drafts: dict, db_path: str, script_db: str) -> int:
             "flags TEXT NOT NULL DEFAULT '', drafted_at TEXT NOT NULL)",
         )
         cur.execute('DELETE FROM relayout_drafts')
+        # What reviewers measured for each kind of draft (shown by the Studio's page badge).
+        accuracy = ROOT / 'pipeline' / 'cv_waqf' / 'assets' / 'mesaha_draft_accuracy.json'
+        if accuracy.is_file():
+            for source, record in json.loads(accuracy.read_text(encoding='utf-8')).items():
+                cur.execute(
+                    'INSERT OR REPLACE INTO layout_import_meta (key, value) VALUES (?, ?)',
+                    (f'draft_accuracy_{source}', json.dumps(record, ensure_ascii=False)),
+                )
         written = 0
         for page, d in sorted(pages.items()):
             for line, (a, b) in d['rows'].items():

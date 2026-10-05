@@ -15,6 +15,7 @@ Legacy /azhar-layout* aliases live in modules.azhar_layout.
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sqlite3
@@ -533,8 +534,11 @@ def _build_page_payload(edition: LayoutEdition, page_number: int):
             ).fetchone()
             if has_confidence else None
         )
+        draft_info = _draft_info(conn, page_number)
     finally:
         conn.close()
+    if draft_info:
+        payload['draft_info'] = draft_info
     if confidence:
         payload['import_confidence'] = {
             'score': float(confidence[0]),
@@ -545,6 +549,44 @@ def _build_page_payload(edition: LayoutEdition, page_number: int):
             'notes': confidence[5] or '',
         }
     return payload
+
+
+def _draft_info(conn, page_number: int) -> dict | None:
+    """What kind of page this is for a print whose rows came from the relayout drafts.
+
+    ``None`` for editions without a ``relayout_drafts`` table. ``kind`` is ``draft`` (rows
+    re-derived from the scan), ``neighbour-edge`` (an edge moved to meet a draft) or ``legacy``
+    (not re-derived: the OCR seed's rows). ``review_status`` is the review priority (``low`` or
+    ``medium``); ``accuracy`` is what reviewers measured for this kind of draft.
+    """
+    exists = conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='relayout_drafts'"
+    ).fetchone()
+    if not exists:
+        return None
+    row = conn.execute(
+        'SELECT kind, source, flags FROM relayout_drafts WHERE page_number = ?',
+        (int(page_number),),
+    ).fetchone()
+    kind, source, flags = (row or ('legacy', None, ''))
+    info = {
+        'kind': kind,
+        'source': source or '',
+        'flags': flags or '',
+        'review_status': (
+            'medium' if kind == 'draft' and source == 'kraken' and not flags else 'low'
+        ),
+    }
+    meta = conn.execute(
+        "SELECT value FROM layout_import_meta WHERE key = ?",
+        (f'draft_accuracy_{source}',),
+    ).fetchone() if source else None
+    if meta:
+        try:
+            info['accuracy'] = json.loads(meta[0])
+        except ValueError:
+            pass
+    return info
 
 
 def _page_in_range(edition: LayoutEdition, page_number: int) -> bool:
@@ -2631,14 +2673,20 @@ def layout_studio_import_confidence(edition_id):
                 page_number
             '''
         ).fetchall()
-        pages = [
-            {
+        pages = []
+        for page, score, status in rows:
+            record = {
                 'page_number': int(page),
                 'score': float(score),
                 'status': status,
             }
-            for page, score, status in rows
-        ]
+            info = _draft_info(conn, int(page))
+            if info:
+                # The seed's confidence describes the OCR import; for relayout drafts the
+                # review priority is the draft's own.
+                record['review_status'] = info['review_status']
+                record['draft_kind'] = info['kind']
+            pages.append(record)
         counts = {'high': 0, 'medium': 0, 'low': 0}
         for page in pages:
             status = page['status']

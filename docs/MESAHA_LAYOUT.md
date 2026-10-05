@@ -70,6 +70,18 @@ banner page 12 rows (one invented ayah row after the banner); a regenerated seed
 `python -m pipeline.cv_waqf.mesaha_drafts --restructure --apply` afterwards (the DB validator in
 `import_mesaha_layout.py` accepts both row counts).
 
+## The page badge describes the draft, not the OCR seed
+
+The old badge ("ثقة البذرة الآلية") scored the first OCR import. Rows are now re-derived from the
+scan (see `pipeline/cv_waqf/README.md`), so for Mesaha the badge says what kind of page this is:
+a reviewed page, a Kraken draft (with the accuracy reviewers measured, from
+`pipeline/cv_waqf/assets/mesaha_draft_accuracy.json`), a DjVu draft, a page whose edge was moved to
+meet a draft, or a page that was never re-derived. It comes from the `relayout_drafts` table
+(`modules/layout_studio.py: _draft_info`, payload field `draft_info`); the "next uncertain" queue
+follows the same priority (`review_status` on `/import-confidence`). `layout_import_confidence`
+is left alone (a test pins it). Update the accuracy file when more draft pages have been reviewed:
+compare the draft rows with the saved rows.
+
 ## Review order
 
 1. Review low-confidence pages first (red badge).

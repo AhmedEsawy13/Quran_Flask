@@ -279,3 +279,39 @@ def test_ayah_row_without_words_is_flagged_empty(tmp_path, monkeypatch):
     )
     assert out['lines'][0].get('empty') is True
     assert out['lines'][1]['display_text'] == 'مدنية · آياتها ٢٠٠'
+
+
+def test_draft_info_describes_relayout_drafts_not_the_old_seed(tmp_path):
+    import json
+    import sqlite3
+
+    from modules import layout_studio as studio
+
+    db = tmp_path / 'layout.db'
+    conn = sqlite3.connect(db)
+    assert studio._draft_info(conn, 100) is None                      # a print without drafts
+    conn.executescript(
+        'CREATE TABLE layout_import_meta (key TEXT PRIMARY KEY, value TEXT);'
+        'CREATE TABLE relayout_drafts (page_number INTEGER PRIMARY KEY, kind TEXT, source TEXT, flags TEXT, drafted_at TEXT);'
+    )
+    conn.execute("INSERT INTO layout_import_meta VALUES ('draft_accuracy_kraken', ?)",
+                 (json.dumps({'pages': 37, 'untouched_pages': 28, 'rows': 442, 'rows_exact': 419}),))
+    conn.executemany(
+        'INSERT INTO relayout_drafts VALUES (?, ?, ?, ?, ?)',
+        [(100, 'draft', 'kraken', '', ''), (101, 'draft', 'kraken', 'end gap 2 with page 102, reconciled', ''),
+         (102, 'draft', 'djvu', '', ''), (103, 'neighbour-edge', None, 'start gap 4', '')],
+    )
+    plain = studio._draft_info(conn, 100)
+    assert (plain['kind'], plain['review_status'], plain['accuracy']['rows_exact']) == ('draft', 'medium', 419)
+    assert studio._draft_info(conn, 101)['review_status'] == 'low'    # a boundary note
+    assert studio._draft_info(conn, 102)['review_status'] == 'low' and 'accuracy' not in studio._draft_info(conn, 102)
+    assert studio._draft_info(conn, 103)['kind'] == 'neighbour-edge'
+    legacy = studio._draft_info(conn, 150)                            # not re-derived
+    assert (legacy['kind'], legacy['review_status']) == ('legacy', 'low')
+
+
+def test_mesaha_review_queue_carries_the_draft_priority(client):
+    pages = client.get('/api/layout-studio/mesaha/import-confidence').get_json()['pages']
+    with_status = [p for p in pages if 'review_status' in p]
+    assert with_status and all(p['review_status'] in ('low', 'medium') for p in with_status)
+    assert {p['draft_kind'] for p in with_status} <= {'draft', 'neighbour-edge', 'legacy'}

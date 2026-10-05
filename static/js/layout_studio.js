@@ -108,6 +108,7 @@
     const state = {
         page: clampPage(parseInt(localStorage.getItem(STORAGE_KEY) || String(MIN_PAGE), 10)),
         reviewedPages: new Set(),
+        lastPayload: null,
         uncertainPages: [],
         busy: false,
         drag: null,
@@ -718,6 +719,94 @@
         root.style.setProperty('--az-line-span', String(span));
     }
 
+    /* Draft notes are written by the pipeline in English ("end overlap 2 with page 142, reconciled");
+       the tooltip shows them in Arabic. */
+    function arabicDraftFlags(flags) {
+        const side = { start: 'بداية', end: 'نهاية' };
+        const kind = { overlap: 'تداخل', gap: 'فجوة' };
+        return String(flags || '').split('; ').filter(Boolean).map(part => {
+            let m = part.match(/^(start|end) (overlap|gap) (\d+) (?:with|moved to meet) (?:draft |fixed )?page (\d+)(, reconciled)?(?: \((\d+) row\(s\) emptied\))?$/);
+            if (m) {
+                const fixed = /fixed page/.test(part);
+                return `${side[m[1]]} الصفحة: ${kind[m[2]]} ${toAr(m[3])} كلمة مع الصفحة ${toAr(m[4])}`
+                    + (fixed ? ' (صفحة مراجَعة لا تتحرك)' : m[5] ? ' (سُوّي)' : '')
+                    + (m[6] ? ` (أُفرغ ${toAr(m[6])} سطر)` : '');
+            }
+            m = part.match(/^start (\d+) word\(s\) moved to meet reviewed page (\d+)$/);
+            if (m) return `بداية الصفحة: نُقلت ${toAr(m[1])} كلمة لتلتقي بالصفحة المراجَعة ${toAr(m[2])}`;
+            return part;
+        }).join('، ');
+    }
+
+    /* The badge under the title. For a print whose rows were re-derived from the scan
+       (Mesaha) it says what kind of draft this page is and how reliable that kind was when
+       reviewed; a reviewed page says so; any other print keeps the seed's confidence. */
+    function renderConfidenceBadge() {
+        const badge = els.importConfidence;
+        if (!badge) return;
+        const payload = state.lastPayload;
+        const reset = () => {
+            badge.hidden = true;
+            badge.removeAttribute('title');
+            badge.className = 'az-import-confidence';
+        };
+        if (!payload) { reset(); return; }
+        const show = (cls, text, title) => {
+            badge.className = `az-import-confidence ${cls}`;
+            badge.textContent = text;
+            if (title) badge.title = title; else badge.removeAttribute('title');
+            badge.hidden = false;
+        };
+        if (state.reviewedPages.has(Number(payload.page_number))) {
+            show('az-confidence-high', 'تمت مراجعة هذه الصفحة ومطابقتها للمطبوع ✓');
+            return;
+        }
+        const draft = payload.draft_info;
+        if (draft) {
+            const acc = draft.accuracy;
+            const pct = acc && acc.rows ? Math.round(100 * acc.rows_exact / acc.rows) : null;
+            const untouched = acc && acc.pages ? Math.round(100 * acc.untouched_pages / acc.pages) : null;
+            const measured = acc
+                ? `عند مراجعة ${toAr(acc.pages)} صفحة: ${toAr(pct)}٪ من الأسطر صحيحة و${toAr(untouched)}٪ من الصفحات بلا أي تعديل. `
+                : '';
+            const flags = draft.flags ? `ملاحظات: ${arabicDraftFlags(draft.flags)}. ` : '';
+            const how = 'تحقّق أن كل سطر يبدأ وينتهي بالكلمتين المطبوعتين.';
+            if (draft.kind === 'draft' && draft.source === 'kraken') {
+                show(
+                    draft.flags ? 'az-confidence-low' : 'az-confidence-medium',
+                    `مسودة آلية من قراءة الأسطر (Kraken)${pct != null ? ` · نحو ${toAr(pct)}٪ من الأسطر صحيحة` : ''}`
+                    + (draft.flags ? ' · عند حدّ الصفحة ملاحظة' : ''),
+                    `${measured}${flags}${how}`,
+                );
+            } else if (draft.kind === 'draft') {
+                show('az-confidence-low', 'مسودة آلية (DjVu) · دقة أقل — راجع كل سطر',
+                    `${flags}هذه المسودة أقل دقة من مسودات Kraken. ${how}`);
+            } else if (draft.kind === 'neighbour-edge') {
+                show('az-confidence-low', 'حدّ الصفحة عُدّل ليلتقي بمسودة مجاورة — راجع أولها وآخرها',
+                    `${flags}بقية الأسطر من الاستيراد الآلي الأول لم تُقرأ من الصورة. ${how}`);
+            } else {
+                show('az-confidence-low', 'لم تُقرأ هذه الصفحة آليًا بعد — الأسطر من الاستيراد الأول، راجعها كاملة',
+                    'تعذّرت قراءة أسطر هذه الصفحة من الصورة، فالتقسيم تقدير قديم وقد يكون بعيدًا عن المطبوع. '
+                    + 'قد توجد أسطر فارغة تحتاج إلى ملء.');
+            }
+            return;
+        }
+        const confidence = payload.import_confidence;
+        if (!confidence) { reset(); return; }
+        const labels = { high: 'مرتفعة', medium: 'متوسطة', low: 'منخفضة — راجع الحدود بعناية' };
+        const score = Math.round((Number(confidence.score) || 0) * 100);
+        show(
+            `az-confidence-${confidence.status || 'low'}`,
+            `ثقة البذرة الآلية: ${labels[confidence.status] || labels.low}`
+            + ` · ${toAr(score)}٪`
+            + ` · ${toAr(confidence.anchored_lines || 0)} حدّاً مثبتاً`,
+            confidence.notes || (
+                'هذه درجة ثقة للاستيراد وليست اعتماداً علمياً؛ '
+                + 'الاعتماد يكون بعد المطابقة مع صورة المطبوع.'
+            ),
+        );
+    }
+
     function renderPage(payload) {
         cancelDrag();
         const container = els.page;
@@ -727,37 +816,12 @@
                 juzEl: els.juz, surahEl: els.surah, pageNumberEl: els.pageNum,
                 juzGlyphClass: 'athar-page-juz-glyph',
             });
-            if (els.importConfidence) els.importConfidence.hidden = true;
+            state.lastPayload = null;
+            renderConfidenceBadge();
             return;
         }
-        if (els.importConfidence) {
-            const confidence = payload.import_confidence;
-            if (!confidence) {
-                els.importConfidence.hidden = true;
-                els.importConfidence.removeAttribute('title');
-                els.importConfidence.className = 'az-import-confidence';
-            } else {
-                const labels = {
-                    high: 'مرتفعة',
-                    medium: 'متوسطة',
-                    low: 'منخفضة — راجع الحدود بعناية',
-                };
-                const score = Math.round((Number(confidence.score) || 0) * 100);
-                els.importConfidence.className = (
-                    `az-import-confidence az-confidence-${confidence.status || 'low'}`
-                );
-                els.importConfidence.textContent = (
-                    `ثقة البذرة الآلية: ${labels[confidence.status] || labels.low}`
-                    + ` · ${toAr(score)}٪`
-                    + ` · ${toAr(confidence.anchored_lines || 0)} حدّاً مثبتاً`
-                );
-                els.importConfidence.title = confidence.notes || (
-                    'هذه درجة ثقة للاستيراد وليست اعتماداً علمياً؛ '
-                    + 'الاعتماد يكون بعد المطابقة مع صورة المطبوع.'
-                );
-                els.importConfidence.hidden = false;
-            }
-        }
+        state.lastPayload = payload;
+        renderConfidenceBadge();
         state.pageSlotBudget = Math.max(
             1,
             Number(payload.lines_per_page)
@@ -1357,6 +1421,7 @@
         updateProgressLabel();
         updateReviewedCheckbox();
         updateUncertainButton();
+        renderConfidenceBadge();
     }
     function updateProgressLabel() {
         const total = MAX_PAGE - MIN_PAGE + 1;
@@ -1387,11 +1452,14 @@
             const data = await window.AtharApi.json(
                 `${API_BASE}/import-confidence`
             );
+            // For relayout drafts the queue follows the draft's own review priority
+            // (review_status); the seed's confidence only orders prints without drafts.
+            const priority = item => item.review_status || item.status;
             state.uncertainPages = (data.pages || [])
-                .filter(item => item.status === 'low' || item.status === 'medium')
+                .filter(item => priority(item) === 'low' || priority(item) === 'medium')
                 .sort((a, b) => {
                     const rank = { low: 0, medium: 1 };
-                    return rank[a.status] - rank[b.status]
+                    return rank[priority(a)] - rank[priority(b)]
                         || a.page_number - b.page_number;
                 })
                 .map(item => Number(item.page_number))
@@ -1416,6 +1484,7 @@
             else state.reviewedPages.delete(page);
             updateProgressLabel();
             updateUncertainButton();
+            renderConfidenceBadge();
             setSavedStatus(data, 'تم حفظ حالة المطابقة');
         } catch (e) {
             els.reviewed.checked = !reviewed;
