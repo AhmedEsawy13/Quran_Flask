@@ -55,6 +55,13 @@ details>summary{cursor:pointer;color:var(--mut);font-size:13px;margin:10px 0 4px
 .crop .edge.doubt::before,.crop .edge.doubt::after{background:var(--warn);opacity:1}.crop .edge.fixed::before,.crop .edge.fixed::after{background:var(--ok);opacity:1}
 .crop .edge.drag::before,.crop .edge.drag::after{background:var(--acc);opacity:1}
 .item.dbt{box-shadow:inset 0 0 0 1px var(--warn)}.tag.doubt{color:var(--warn);border-color:var(--warn)}
+/* every row of the page enlarged, a handle on every border, for fixing borders that carry no mark */
+details.rows>summary{font-size:14px;color:var(--ink);font-weight:600}
+.rowlbl{font-size:12px;color:var(--mut);margin:8px 0 2px}.rowlbl b{color:var(--warn)}
+.rowstrip{direction:ltr;overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:#fff}
+.rs{position:relative;background-repeat:no-repeat}
+.rs .cutl{top:0;bottom:22px;height:auto}
+.rt{position:absolute;bottom:2px;transform:translateX(-50%);font:13px/16px "Amiri Quran","Geeza Pro",serif;white-space:nowrap;color:#555;direction:rtl;pointer-events:none}.rt.d{color:var(--warn);font-weight:700}
 button.tg.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 @media(max-width:900px){#wrap{grid-template-columns:1fr}#pane{position:static}}
 </style></head><body>
@@ -66,7 +73,7 @@ button.tg.on{background:var(--acc);color:#fff;border-color:var(--acc)}
 <div id="wrap"><div id="list"></div><div id="pane"><div class="fig" id="fig"><img id="img" alt=""></div></div></div>
 <div id="add" hidden><div id="addw" class="w"></div><div class="syms" id="addsyms"></div></div>
 <script>
-let P=[],V={},R={},X={},K={},D=new Set(),SYM=[],cur=0,sel=null,pick=null,showCuts=false,sortDoubt=false;const UNSURE=0.5;const $=id=>document.getElementById(id);
+let P=[],V={},R={},X={},K={},D=new Set(),SYM=[],cur=0,sel=null,pick=null,showCuts=false,sortDoubt=false,rowsOpen=false;const rowScroll={};const UNSURE=0.5;const $=id=>document.getElementById(id);
 const toAr=n=>String(n).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 const status=(k,m)=>{$('save').className=k;$('save').textContent=m};
@@ -133,6 +140,8 @@ function item(pr){const s=state(pr),f=finalSym(pr);const d=document.createElemen
 function render(keep){const p=pg();const y=scrollY;const L=$('list');L.innerHTML='';
   const c=counts(p);const h=document.createElement('div');h.className='pgh';h.innerHTML=`<h2>صفحة ${p.page}</h2><span class="tag">للمراجعة ${toAr(c.rev)}</span><span class="tag">علامات ${toAr(c.acc+c.added)}</span><button id="doneb">${D.has(p.page)?'إلغاء الإنهاء':'أنهيت الصفحة ✓'}</button>`;L.appendChild(h);
   const hint=document.createElement('p');hint.className='hint';hint.textContent='الأخضر مقبول تلقائيًا (اتفقت النماذج وسبق أن اتفق معها المصحف المرجعي)، الأصفر يحتاج قرارك: اختر الرمز الصحيح أو «ليست علامة». علامة فاتت النماذج؟ انقر على الكلمة في الصورة. الحلقة ليست على العلامة المطبوعة؟ اسحبها إليها (في الصورة أو في المقطع)، وإن أفلتَّها فوق كلمة أخرى تُنقل العلامة إليها. حدود الكلمات: الخط البرتقالي في الصورة (وعلى حافتي الكلمة في المقطع) حدّ مشكوك فيه — اسحبه إلى الفراغ الصحيح بين الكلمتين، والأخضر ما ضبطتَه أنت. «كل الحدود» تُظهر الباقي. مفاتيح: ↑↓ تنقّل · ١–٧ الرمز · X ليست علامة · Enter قبول الاقتراح · D إنهاء الصفحة.';L.appendChild(hint);
+  const rd=document.createElement('details');rd.className='rows';rd.open=rowsOpen;rd.innerHTML='<summary>تعديل حدود كل الكلمات في الصفحة (حتى التي لا علامة عليها)</summary>';L.appendChild(rd);
+  if(rowsOpen)buildRows(rd,p);rd.addEventListener('toggle',()=>{rowsOpen=rd.open;try{localStorage.setItem('msl_rows',rd.open?'1':'0')}catch(e){}if(rd.open&&!rd.querySelector('.rowstrip'))buildRows(rd,pg())});
   const rev=p.proposals.filter(x=>state(x)==='review');if(sortDoubt)rev.sort((a,b)=>(b.doubt||0)-(a.doubt||0));const dec=p.proposals.filter(x=>state(x)!=='review'&&!(x.default==='accept'&&V[key(p.page,x.key)]===undefined));
   const auto=p.proposals.filter(x=>x.default==='accept'&&V[key(p.page,x.key)]===undefined);
   const sec=(t)=>{const e=document.createElement('div');e.className='sec';e.innerHTML=`<span>${t}</span>`;L.appendChild(e)};
@@ -154,6 +163,24 @@ function render(keep){const p=pg();const y=scrollY;const L=$('list');L.innerHTML
     dragCut(c,a.key,b.key,cx=>{const r=fig.getBoundingClientRect();return (cx-r.left)/r.width*p.w},xx=>{c.style.left=pc(xx/p.w)})}
   const img=$('img');if(!img.src.endsWith(`/img/p${p.page}.jpg`))img.src=`/img/p${p.page}.jpg`;
   if(keep)scrollTo(0,y);fillSel()}
+// Every printed row of the page as an enlarged strip with a draggable handle between each two neighbouring words.
+function buildRows(box,p){const S=1.4;box.querySelectorAll('.rowlbl,.rowstrip').forEach(e=>e.remove());
+  const lines=[...new Set(p.words.map(w=>w.line))];
+  for(const ln of lines){const ws=p.words.filter(w=>w.line===ln);if(ws.length<2)continue;
+    const h=Math.max(12,(ws[0].box[3]-ws[0].box[1])/0.85);
+    const x0=Math.max(0,Math.min(...ws.map(w=>w.box[0]))-14),x1=Math.min(p.w,Math.max(...ws.map(w=>w.box[2]))+14);
+    const y0=Math.max(0,ws[0].box[1]-0.45*h),y1=Math.min(p.h,ws[0].box[3]+3);
+    const nd=ws.filter((w,i)=>i+1<ws.length&&(w.dl||0)>=UNSURE).length;
+    const lb=document.createElement('div');lb.className='rowlbl';lb.innerHTML=`سطر ${toAr(ln)}${nd?` · <b>⚠ ${toAr(nd)} حدّ مشكوك فيه</b>`:''}`;box.appendChild(lb);
+    const sc=document.createElement('div');sc.className='rowstrip';
+    const rs=document.createElement('div');rs.className='rs';const W=Math.round((x1-x0)*S),H=Math.round((y1-y0)*S);
+    rs.style.cssText=`width:${W}px;height:${H+22}px;background-image:url(/img/p${p.page}.jpg);background-size:${p.w*S}px ${p.h*S}px;background-position:${-x0*S}px ${-y0*S}px`;
+    sc.appendChild(rs);box.appendChild(sc);
+    ws.forEach((w,i)=>{const lab=document.createElement('div');lab.className='rt'+((w.doubt||0)>=UNSURE?' d':'');lab.textContent=w.text;lab.style.left=((w.box[0]+w.box[2])/2-x0)*S+'px';rs.appendChild(lab);
+      const b=ws[i+1];if(!b)return;const fixed=!!K[cutKey(p.page,w.key,b.key)],unsure=(w.dl||0)>=UNSURE;
+      const c=document.createElement('div');c.className='cutl'+(unsure?' unsure':'')+(fixed?' fixed':'');c.style.left=(w.box[0]-x0)*S+'px';c.title=unsure?('حدّ مشكوك فيه: '+(w.why||b.why||'')):'اسحب لضبط الحدّ بين الكلمتين';rs.appendChild(c);
+      dragCut(c,w.key,b.key,cx=>x0+(cx-rs.getBoundingClientRect().left)/S,xx=>{c.style.left=(xx-x0)*S+'px'})});
+    const k=p.page+':'+ln;sc.scrollLeft=rowScroll[k]!==undefined?rowScroll[k]:sc.scrollWidth;sc.addEventListener('scroll',()=>{rowScroll[k]=sc.scrollLeft})}}
 function openAdd(w,e){const a=$('add');$('addw').textContent=w.text;const S=$('addsyms');S.innerHTML=SYM.map(x=>`<button data-s="${x}">${x}</button>`).join('')+'<button data-s="-">لا علامة</button>';
   const cur=V[key(pg().page,w.key)];S.querySelectorAll('button').forEach(b=>{if(b.dataset.s===cur)b.classList.add('on');b.onclick=()=>{const prop=pg().proposals.find(q=>q.key===w.key);if(prop)setV(prop,b.dataset.s==='-'?'-':b.dataset.s).then(()=>a.hidden=true);else addMark(w,b.dataset.s==='-'?null:b.dataset.s)}});
   a.hidden=false;a.style.left=Math.min(innerWidth-260,e.clientX)+'px';a.style.top=Math.min(innerHeight-120,e.clientY+10)+'px'}
@@ -172,7 +199,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){endPick();$('add').
   else if(e.key==='ArrowLeft')go(cur+1);else if(e.key==='ArrowRight')go(cur-1)});
 $('pickcancel').onclick=endPick;$('prev').onclick=()=>go(cur-1);$('next').onclick=()=>go(cur+1);$('sel').onchange=e=>go(+e.target.value);
 (async()=>{try{P=await (await fetch('/pages.json')).json();const s=await (await fetch('/api/state')).json();V=s.verdicts;R=s.relinks||{};X=s.positions||{};K=s.cuts||{};D=new Set(s.done);SYM=s.symbols;status('ok','محفوظ على الخادم ✓')}catch(e){status('err','تعذّر الاتصال بالخادم');return}
-  try{cur=Math.min(P.length-1,+(localStorage.getItem('msl_cur')||0));sortDoubt=localStorage.getItem('msl_sort')==='1';showCuts=localStorage.getItem('msl_cuts')==='1'}catch(e){}
+  try{cur=Math.min(P.length-1,+(localStorage.getItem('msl_cur')||0));sortDoubt=localStorage.getItem('msl_sort')==='1';showCuts=localStorage.getItem('msl_cuts')==='1';rowsOpen=localStorage.getItem('msl_rows')==='1'}catch(e){}
   const tg=(id,get,set,k)=>{const b=$(id);b.classList.toggle('on',get());b.onclick=()=>{set(!get());b.classList.toggle('on',get());try{localStorage.setItem(k,get()?'1':'0')}catch(e){}render(true)}};
   tg('tgsort',()=>sortDoubt,v=>sortDoubt=v,'msl_sort');tg('tgcuts',()=>showCuts,v=>showCuts=v,'msl_cuts');
   render()})();

@@ -469,7 +469,9 @@ from a wrong OCR box, so the review tool now collects real labels and shows wher
   exports it with the marks (`reviewed_marks.json: cuts`). A cut is keyed by the two word keys, so it survives a
   rebuild: `run_models`, `tiers` and `build_review` call `mesaha_review.cuts.use_hand_cuts`, the cutter then puts
   the cut exactly there (`geometry.segment_line_words(fixed=...)`, `layout_geo.FIXED_CUTS`). The mark that sat on the
-  wrong side is NOT moved for you: relink it as before (or rebuild).
+  wrong side is NOT moved for you: relink it as before (or rebuild). Borders that carry no mark are edited in
+  the collapsible «تعديل حدود كل الكلمات في الصفحة» at the top of each page: every printed row enlarged (1.4x,
+  scrolls sideways) with a handle between each two words and the word under it, doubtful ones in amber.
 - *Cut doubt* (`geometry.cut_doubt`, `geometry.width_doubt`, stored per word as `doubt`/`why`, parts `dr`/`dl`/`dw`).
   Calibrated on the 2,477 held-out words (7% disagree with the scan OCR's box): the second reader contradicts the cut
   by more than 0.25 pitch (48% disagree; 12% for 0.12-0.25), the box is under half or over twice the width the model
