@@ -376,11 +376,13 @@ def _build_project_payload(
     try:
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
+        columns = {row[1] for row in cur.execute('PRAGMA table_info(pages)').fetchall()}
+        line_text = 'line_text' if 'line_text' in columns else "'' AS line_text"
         lines = [
             dict(row) for row in cur.execute(
-                '''
+                f'''
                 SELECT page_number, line_number, line_type, is_centered,
-                       first_word_id, last_word_id, surah_number
+                       first_word_id, last_word_id, surah_number, {line_text}
                 FROM pages
                 WHERE page_number = ?
                 ORDER BY line_number

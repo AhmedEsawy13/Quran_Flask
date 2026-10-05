@@ -249,3 +249,33 @@ def test_other_editions_keep_one_row_per_slot():
     rows = [{'line_type': 'ayah'}] * 12 + [{'line_type': 'surah_name'}, {'line_type': 'basmallah'}]
     assert studio._page_row_budget(AZHAR, AZHAR.profile, 10, rows=rows) == studio._page_line_budget(
         AZHAR, AZHAR.profile, 10)
+
+
+def test_mesaha_banner_rows_carry_their_text_and_empty_rows_are_flagged():
+    from modules import layout_studio as studio
+    from modules.layout_editions import MESAHA
+
+    page = studio._build_page_payload(MESAHA, 62)
+    headers = {line['line_type']: line for line in page['lines'] if line['line_type'] != 'ayah'}
+    # These rows carry reserved word ids outside the word map; they used to draw as nothing.
+    assert headers['surah_name']['display_text'] == 'سورة آل عمران'
+    assert headers['surah_info']['display_text'].startswith('مدنية')
+    assert headers['basmallah']['display_text'].startswith('بِسْمِ')
+    assert headers['basmallah']['slot_span'] == 2
+    assert not any(line.get('empty') for line in page['lines'])
+
+
+def test_ayah_row_without_words_is_flagged_empty(tmp_path, monkeypatch):
+    from modules import layouts
+
+    out = layouts._assemble_layout_page(
+        [{'line_number': 1, 'line_type': 'ayah', 'is_centered': 0, 'first_word_id': None,
+          'last_word_id': None, 'surah_number': 2, 'line_text': ''},
+         {'line_number': 2, 'line_type': 'surah_info', 'is_centered': 1, 'first_word_id': None,
+          'last_word_id': None, 'surah_number': 3, 'line_text': 'مدنية · آياتها ٢٠٠'}],
+        None, 1, None, None, source='t', font_name_default='Amiri Quran',
+        include_advance=False, mushaf_version='x', word_map={'id2tok': {}, 'ordered_ids': [],
+                                                              'position_by_id': {}},
+    )
+    assert out['lines'][0].get('empty') is True
+    assert out['lines'][1]['display_text'] == 'مدنية · آياتها ٢٠٠'

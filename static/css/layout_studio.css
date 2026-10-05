@@ -270,6 +270,13 @@ body.az-layout {
     min-height: 0; overflow: visible; direction: rtl; position: relative;
 }
 .az-line[data-slot-span="0"] { display: none; }
+/* An ayah row with no words yet (e.g. a page the relayout could not read): keep the slot visible. */
+.az-line[data-empty="1"] {
+    outline: 1px dashed color-mix(in srgb, var(--az-muted) 55%, transparent);
+    outline-offset: -2px; border-radius: 4px;
+    color: var(--az-muted); font-size: calc(var(--az-fs) * 0.5);
+}
+.az-line[data-empty="1"]::after { content: 'سطر فارغ'; }
 .az-line-special {
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
     color: var(--az-accent); font-size: calc(var(--az-fs) * 0.7);

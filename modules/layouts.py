@@ -1443,6 +1443,37 @@ def _layout_page_resolve(layout_db, surah_number, ayah_number):
     return row[0] if row else None
 
 
+_HEADER_LINE_TYPES = ('surah_name', 'surah_info', 'basmallah')
+
+
+def _header_display_text(line_type, line_surah, line, font_name_default, bismillah):
+    """Text of a surah banner row (name, info line, basmallah).
+
+    Used for header rows whatever their word ids: a print whose seed gave them reserved ids
+    outside the word map (Mesaha) would otherwise draw them as an empty ayah row.
+    """
+    if line_type == 'surah_name':
+        surah_name = _get_surah_name_ar(line_surah)
+        return f'سورة {surah_name}' if surah_name else (line.get('line_text') or '')
+    if line_type == 'surah_info':
+        text = (line.get('line_text') or '').strip()
+        if not text and line_surah:
+            try:
+                from modules import layout_engine as _layout_engine
+
+                text = _layout_engine.surah_info_text(
+                    int(line_surah), script_db=QURAN_SCRIPT_DATABASE,
+                )
+            except Exception:  # noqa: BLE001 - a missing info line must not break the page
+                text = ''
+        return text
+    return (
+        normalize_amiri_quran_text(bismillah)
+        if 'amiri' in (font_name_default or '').lower()
+        else bismillah
+    )
+
+
 def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
                           source, font_name_default, include_advance, mushaf_version='',
                           word_map=None):
@@ -1514,6 +1545,10 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
                 if focus_surah is not None and tok['surah'] == focus_surah and tok['ayah'] == focus_ayah:
                     contains_focus_ayah = True
             display_text = ' '.join(w['text'] for w in line_words)
+            if not line_words and line_type in _HEADER_LINE_TYPES:
+                display_text = _header_display_text(
+                    line_type, line_surah, line, font_name_default, bismillah,
+                )
             # Placeholder basmala rows sometimes keep line_type=ayah with
             # reserved word ids outside the map — promote them so the UI
             # still renders the basmala.
@@ -1528,14 +1563,9 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
                     if 'amiri' in (font_name_default or '').lower()
                     else bismillah
                 )
-        elif line_type == 'surah_name':
-            surah_name = _get_surah_name_ar(line_surah)
-            display_text = f"سورة {surah_name}" if surah_name else ''
-        elif line_type == 'basmallah':
-            display_text = (
-                normalize_amiri_quran_text(bismillah)
-                if 'amiri' in (font_name_default or '').lower()
-                else bismillah
+        elif line_type in _HEADER_LINE_TYPES:
+            display_text = _header_display_text(
+                line_type, line_surah, line, font_name_default, bismillah,
             )
 
         out_line = {
@@ -1549,6 +1579,8 @@ def _assemble_layout_page(lines, info_row, page_number, focus_surah, focus_ayah,
             'contains_focus_ayah': contains_focus_ayah,
             'words': line_words,
         }
+        if line_type == 'ayah' and not line_words and not display_text:
+            out_line['empty'] = True            # a row with no words yet: the Studio draws the slot
         if include_advance:
             out_line['total_advance'] = line.get('total_advance')
             out_line['x_offset'] = line.get('x_offset', 0)

@@ -799,6 +799,7 @@
                 root.dataset.lineNumber = String(line.line_number);
                 root.dataset.lineType = line.line_type || 'ayah';
                 root.dataset.justify = line.is_centered ? '0' : '1';
+                if (line.empty) root.dataset.empty = '1';   // a row with no words: draw the slot
                 applyLineSpan(root, line);
                 if (line.line_type === 'ayah') attachLineTools(root, line);
             },
