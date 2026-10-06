@@ -121,10 +121,10 @@ class EditionSpec:
     # Re-derive line breaks from the scan's OCR + geometry instead of trusting
     # an unreviewed layout (relayout.py). Falls back to the layout when unsure.
     ocr_relayout: bool = False
-    # Inclusive page range whose line breaks were reviewed against the printed
+    # Inclusive page ranges whose line breaks were reviewed against the printed
     # book (Layout Studio, synced from Supabase). There the layout is used as
     # is and ``ocr_relayout`` is skipped.
-    trusted_layout_pages: tuple[int, int] | None = None
+    trusted_layout_pages: tuple[tuple[int, int], ...] = ()
     # Physical slots a header row takes when it is more than one: Mesaha's basmallah
     # box is two slots, so a surah banner block is four (name, info, 2). Row
     # ``line_number`` is a logical row, not a slot, on such prints.
@@ -134,8 +134,7 @@ class EditionSpec:
         return dict(self.header_slots).get(line_type or '', 1)
 
     def layout_trusted(self, page: int | None) -> bool:
-        r = self.trusted_layout_pages
-        return bool(r and page is not None and r[0] <= page <= r[1])
+        return page is not None and any(lo <= page <= hi for lo, hi in self.trusted_layout_pages)
 
     def __post_init__(self) -> None:
         if self.azhar_seat_prior and self.mushaf_version in self.seat_prior_editions:
@@ -325,7 +324,9 @@ EDITIONS: dict[str, EditionSpec] = {
         # Reviewed in Layout Studio (Supabase `mesaha`: pages 2-62, 61 and 62
         # still in progress on 2026-10-05). The local DB must be synced from
         # the cloud first (`layout_persistence.working_db_path(MESAHA, force=True)`).
-        trusted_layout_pages=(2, 60),
+        # Pages 2-225 reviewed in Layout Studio (2026-10-06), except 162 and 192, which were left
+        # unfinished (banner structure; see artifacts/cv-waqf/mesaha-relayout-drafts/fix_pages_162_191_192.py).
+        trusted_layout_pages=((2, 161), (163, 191), (193, 225)),
         header_slots=(('basmallah', 2),),
         attach_by_seat=True,
         learned_widths=True,

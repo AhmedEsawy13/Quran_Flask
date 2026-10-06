@@ -528,7 +528,7 @@ the cloud (`editor_layout_pages`, edition `mesaha`), not in the local
 OCR-import DB; pull it with `layout_persistence.working_db_path(MESAHA,
 force=True)` (backs nothing up: copy `data/mushaf-mesaha-layout.db` first).
 Pages 2-62 are there (61 and 62 still in progress: page 61's last row holds 86
-words), so `trusted_layout_pages=(2, 60)` skips the relayout on 2-60. Those 59
+words), so `trusted_layout_pages` skips the relayout on 2-60 (now 2-225 except 162 and 192, see below). Those 59
 pages are the first real test of it: the old OCR import put **85.6%** of words
 on the right row (all 59 pages had errors); the relayout, run from the OCR and
 the images only, puts **99.5%** on the row the reviewer chose (98.6% on the 21

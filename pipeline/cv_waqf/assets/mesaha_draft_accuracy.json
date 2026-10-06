@@ -1,10 +1,10 @@
 {
   "kraken": {
     "source": "kraken",
-    "pages": 37,
-    "untouched_pages": 28,
-    "rows": 442,
-    "rows_exact": 419,
-    "measured_on": "pages 97-134 reviewed in Layout Studio, 2026-10-05 (draft rows vs the rows saved after review)"
+    "pages": 126,
+    "untouched_pages": 90,
+    "rows": 1510,
+    "rows_exact": 1434,
+    "measured_on": "pages 97-134 and 135-225 reviewed in Layout Studio, 2026-10-06 (draft rows vs the rows saved after review; 162 and 192 left out)"
   }
 }
