@@ -277,6 +277,40 @@ body.az-layout {
     color: var(--az-muted); font-size: calc(var(--az-fs) * 0.5);
 }
 .az-line[data-empty="1"]::after { content: 'سطر فارغ'; }
+.az-fill-btn {
+    margin-inline-start: 10px; padding: 2px 12px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--az-accent); background: var(--az-accent-soft); color: var(--az-accent);
+    font: inherit; font-size: 0.8rem; font-weight: 700;
+}
+.az-fill-btn:hover { background: var(--az-accent); color: var(--az-paper); }
+.az-fill-overlay {
+    position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
+    background: rgba(0, 0, 0, 0.45); padding: 16px;
+}
+.az-fill-panel {
+    background: var(--az-paper); color: var(--az-ink); border: 1px solid var(--az-border); border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35); padding: 16px 18px; width: min(720px, 100%); max-height: 90vh; overflow: auto;
+    direction: rtl;
+}
+.az-fill-panel h3 { margin: 0 0 4px; font-size: 1.05rem; }
+.az-fill-help { margin: 0 0 8px; font-size: 0.82rem; color: var(--az-muted); }
+.az-fill-cap { margin: 10px 0 4px; font-size: 0.8rem; color: var(--az-muted); }
+.az-fill-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.az-fill-chip {
+    font-family: 'Amiri Quran', 'Amiri', serif; font-size: 1.25rem; line-height: 1.5; padding: 2px 10px; cursor: pointer;
+    border: 1px solid var(--az-border); border-radius: 8px; background: transparent; color: var(--az-ink);
+}
+.az-fill-chip:disabled { opacity: 0.35; cursor: not-allowed; }
+.az-fill-chip.az-sel { background: var(--az-accent); border-color: var(--az-accent); color: var(--az-paper); }
+.az-fill-chip.az-gap { cursor: default; outline: 2px dashed var(--az-paper); outline-offset: -4px; }
+.az-fill-result {
+    margin: 12px 0 8px; padding: 8px 10px; border-radius: 8px; background: var(--az-accent-soft);
+    font-family: 'Amiri Quran', 'Amiri', serif; font-size: 1.2rem; line-height: 1.8;
+}
+.az-fill-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.az-fill-actions button { padding: 5px 14px; border-radius: 8px; border: 1px solid var(--az-border); background: transparent; color: var(--az-ink); cursor: pointer; font: inherit; }
+.az-fill-actions .az-fill-apply { background: var(--az-accent); border-color: var(--az-accent); color: var(--az-paper); font-weight: 700; }
+.az-fill-actions .az-fill-apply:disabled { opacity: 0.4; cursor: not-allowed; }
 .az-line-special {
     font-family: 'Thmanyah Sans', 'IBM Plex Sans Arabic', sans-serif; font-weight: 700;
     color: var(--az-accent); font-size: calc(var(--az-fs) * 0.7);

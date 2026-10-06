@@ -1120,3 +1120,95 @@ def test_seed_script_exists():
     assert script.is_file()
     db = PROJECT_ROOT / 'data' / 'mushaf-azhar-layout.db'
     assert db.is_file()
+
+
+def _make_row_empty(page_number):
+    """Empty one middle ayah row of a page by giving its words to its neighbours (rows stay in reading order)."""
+    import sqlite3
+
+    from core.config import AZHAR_LAYOUT_DATABASE
+
+    conn = sqlite3.connect(AZHAR_LAYOUT_DATABASE)
+    try:
+        rows = conn.execute(
+            'SELECT line_number, first_word_id, last_word_id FROM pages '
+            "WHERE page_number=? AND line_type='ayah' AND first_word_id IS NOT NULL ORDER BY line_number",
+            (page_number,),
+        ).fetchall()
+        return conn, rows
+    except Exception:
+        conn.close()
+        raise
+
+
+def test_fill_empty_line_takes_words_from_both_neighbours_and_undo(client, restore_azhar_layout_db):
+    page_number = 300
+    page = client.get(f'/api/layout-studio/azhar/page/{page_number}').get_json()
+    ayah = [line for line in page['lines'] if line['line_type'] == 'ayah' and line.get('words')]
+    triple = next(
+        (ayah[i:i + 3] for i in range(len(ayah) - 2)
+         if ayah[i + 1]['line_number'] == ayah[i]['line_number'] + 1
+         and ayah[i + 2]['line_number'] == ayah[i + 1]['line_number'] + 1
+         and len(ayah[i + 1]['words']) >= 6 and len(ayah[i]['words']) >= 3 and len(ayah[i + 2]['words']) >= 3),
+        None,
+    )
+    assert triple, 'the test page needs three consecutive ayah rows'
+    above, middle, below = triple
+    words = [w['word_index'] for w in middle['words']]
+    k = len(words) // 2
+
+    def stream(payload):
+        return [w['word_index'] for line in payload['lines'] if line['line_type'] == 'ayah' for w in (line.get('words') or [])]
+
+    before_stream = stream(page)
+    conn, _ = _make_row_empty(page_number)
+    try:
+        conn.execute('UPDATE pages SET last_word_id=? WHERE page_number=? AND line_number=?', (words[k - 1], page_number, above['line_number']))
+        conn.execute('UPDATE pages SET first_word_id=?, line_text=? WHERE page_number=? AND line_number=?', (words[k], '', page_number, below['line_number']))
+        conn.execute('UPDATE pages SET first_word_id=NULL, last_word_id=NULL, line_text=? WHERE page_number=? AND line_number=?', ('', page_number, middle['line_number']))
+        conn.commit()
+    finally:
+        conn.close()
+    emptied = client.get(f'/api/layout-studio/azhar/page/{page_number}').get_json()
+    assert stream(emptied) == before_stream                                   # the words are all still on the page
+    row = next(line for line in emptied['lines'] if line['line_number'] == middle['line_number'])
+    assert not row.get('words')
+
+    base = {'page_number': page_number, 'line_number': middle['line_number']}
+    pv = client.post('/api/layout-studio/azhar/fill-line', json={**base, 'preview': True})
+    assert pv.status_code == 200, pv.get_json()
+    pre = pv.get_json()['preview']
+    assert pre['prev']['line_number'] == above['line_number'] and pre['next']['line_number'] == below['line_number']
+    assert pre['prev']['words'][-1]['word_index'] == words[k - 1] and pre['next']['words'][0]['word_index'] == words[k]
+    assert pre['suggest']['take_prev'] + pre['suggest']['take_next'] >= 1 and pre['gap'] == []
+
+    # a neighbour must keep a word, and nothing is taken blindly
+    assert client.post('/api/layout-studio/azhar/fill-line', json={**base, 'take_prev': 0, 'take_next': 0}).status_code == 400
+    assert client.post('/api/layout-studio/azhar/fill-line', json={**base, 'take_prev': 999}).status_code == 400
+    assert client.post('/api/layout-studio/azhar/fill-line', json={**base, 'take_next': 999}).status_code == 400
+    assert client.post('/api/layout-studio/azhar/fill-line', json={'page_number': page_number, 'line_number': above['line_number'], 'take_next': 1}).status_code == 400   # not empty
+
+    done = client.post('/api/layout-studio/azhar/fill-line', json={**base, 'take_prev': k, 'take_next': len(words) - k})
+    assert done.status_code == 200, done.get_json()
+    body = done.get_json()
+    assert body['filled_words'] == len(words)
+    filled = next(line for line in body['page']['lines'] if line['line_number'] == middle['line_number'])
+    assert [w['word_index'] for w in filled['words']] == words                # the row is the original one again
+    assert stream(body['page']) == before_stream
+    assert body['undo_available'] >= 1
+    undone = client.post('/api/layout-studio/azhar/undo', json={'page_number': page_number})
+    assert undone.status_code == 200
+    again = next(line for line in undone.get_json()['page']['lines'] if line['line_number'] == middle['line_number'])
+    assert not again.get('words')                                             # undo gives the empty row back
+
+
+def test_plan_fill_line_unit():
+    from modules import layout_engine as engine
+
+    plan = engine.plan_fill_line([1, 2, 3, 4], [5, 6, 7], [], take_prev=2, take_next=1)
+    assert plan == {'new_words': [3, 4, 5], 'prev_keep': [1, 2], 'next_keep': [6, 7]}
+    # words that sit between the neighbours and belong to neither are always included
+    assert engine.plan_fill_line([1, 2], [5, 6], [3, 4], 0, 1)['new_words'] == [3, 4, 5]
+    assert 'error' in engine.plan_fill_line([1, 2], [5, 6], [], 2, 0)        # the neighbour would be left empty
+    assert 'error' in engine.plan_fill_line([1, 2], [5, 6], [], 0, 0)
+    assert 'error' in engine.plan_fill_line([], [5, 6], [], 1, 0)

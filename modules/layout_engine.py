@@ -234,6 +234,35 @@ def assign_words_to_line(line, word_ids, text_map):
     ).strip()
 
 
+def plan_fill_line(prev_words, next_words, gap_words, take_prev: int, take_next: int) -> dict:
+    """Which words an empty row takes: the last ``take_prev`` of the row before it, any words that sit between
+    the two neighbours and belong to neither, and the first ``take_next`` of the row after it.
+
+    The neighbours must each keep at least one word (taking all of one would only move the empty row).
+    Returns ``{'new_words', 'prev_keep', 'next_keep'}`` or ``{'error': message}``.
+    """
+    take_prev, take_next = int(take_prev), int(take_next)
+    if take_prev < 0 or take_next < 0:
+        return {'error': 'عدد الكلمات لا يكون سالبًا'}
+    if take_prev and not prev_words:
+        return {'error': 'لا يوجد سطر سابق به كلمات'}
+    if take_next and not next_words:
+        return {'error': 'لا يوجد سطر تالٍ به كلمات'}
+    if take_prev > len(prev_words) - 1 and take_prev:
+        return {'error': 'يجب أن تبقى كلمة واحدة على الأقل في السطر السابق'}
+    if take_next > len(next_words) - 1 and take_next:
+        return {'error': 'يجب أن تبقى كلمة واحدة على الأقل في السطر التالي'}
+    new_words = (list(prev_words[len(prev_words) - take_prev:]) if take_prev else []) \
+        + list(gap_words) + list(next_words[:take_next])
+    if not new_words:
+        return {'error': 'اختر كلمة واحدة على الأقل لملء السطر'}
+    return {
+        'new_words': [int(w) for w in new_words],
+        'prev_keep': list(prev_words[:len(prev_words) - take_prev]),
+        'next_keep': list(next_words[take_next:]),
+    }
+
+
 def persist_line(cur, line):
     cur.execute(
         '''

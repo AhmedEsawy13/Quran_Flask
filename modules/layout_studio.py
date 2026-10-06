@@ -1941,6 +1941,198 @@ def layout_studio_push_last_word(edition_id):
         conn.close()
 
 
+FILL_PREVIEW_WORDS = 16     # words of each neighbouring row the fill dialog shows
+
+
+def _fill_suggestion(page_rows: list[int], prev_count: int, next_count: int, gap: int) -> dict:
+    """A starting split for an empty row: a typical row's worth of words from the longer neighbour, the rest
+    from the other, each neighbour keeping at least one word."""
+    typical = round(sum(page_rows) / len(page_rows)) if page_rows else 9
+    need = max(1, typical - gap)
+    longer_next = next_count >= prev_count
+    donors = [('next', next_count), ('prev', prev_count)] if longer_next else [('prev', prev_count), ('next', next_count)]
+    take = {'prev': 0, 'next': 0}
+    for side, count in donors:
+        give = min(need, max(0, count - 1))
+        take[side], need = give, need - give
+        if need <= 0:
+            break
+    return {'take_prev': take['prev'], 'take_next': take['next']}
+
+
+@editor_bp.route('/api/layout-studio/<edition_id>/fill-line', methods=['POST'])
+@require_editor
+def layout_studio_fill_line(edition_id):
+    """Fill an empty ayah row with words taken from the rows around it.
+
+    ``take_prev`` words come from the end of the row before, ``take_next`` from the start of the row after (words
+    that sit between those two rows and belong to neither go in too). The rows stay in reading order, each
+    neighbour keeps at least one word, and a surah banner can not be crossed. ``preview`` returns the neighbouring
+    rows' words and a suggested split without changing anything. Across a page boundary it is the same intentional
+    one-word-at-a-time correction as pull/push.
+    """
+    edition, err = _edition_or_404(edition_id)
+    if err:
+        return err
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
+    try:
+        page_number = int(data.get('page_number'))
+        line_number = int(data.get('line_number'))
+        take_prev = int(data.get('take_prev') or 0)
+        take_next = int(data.get('take_next') or 0)
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid page_number, line_number or word counts'}), 400
+    preview = bool(data.get('preview'))
+    if not _page_in_range(edition, page_number):
+        return jsonify({'error': 'page_number out of range'}), 400
+
+    conn = _sqlite_connect(_layout_db(edition))
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        lines = engine.load_all_lines(cur)
+        universe = _all_script_word_ids(edition)
+        profile = _load_profile(edition, cur)
+        target_idx = next(
+            (
+                i for i, line in enumerate(lines)
+                if int(line['page_number']) == page_number
+                and int(line['line_number']) == line_number
+            ),
+            None,
+        )
+        if target_idx is None:
+            return jsonify({'error': 'line not found'}), 404
+        target = lines[target_idx]
+        if target['line_type'] != 'ayah':
+            return jsonify({'error': 'fill-line only applies to ayah lines'}), 400
+        if _expand_ayah_words(edition, target, universe=universe):
+            return jsonify({'error': 'السطر ليس فارغًا'}), 400
+
+        prev_idx, prev_err = _neighbor_ayah(
+            edition, lines, target_idx, direction=-1, universe=universe,
+        )
+        next_idx, next_err = _neighbor_ayah(
+            edition, lines, target_idx, direction=1, universe=universe,
+        )
+        prev_words = _expand_ayah_words(edition, lines[prev_idx], universe=universe) if prev_idx is not None else []
+        next_words = _expand_ayah_words(edition, lines[next_idx], universe=universe) if next_idx is not None else []
+        gap: list[int] = []
+        if prev_words and next_words:
+            between = engine.existing_word_ids_between(
+                prev_words[-1], next_words[0], universe=universe,
+            )
+            gap = [w for w in between if w not in (prev_words[-1], next_words[0])]
+
+        if preview:
+            shown = set(prev_words[-FILL_PREVIEW_WORDS:]) | set(next_words[:FILL_PREVIEW_WORDS]) | set(gap)
+            texts = _word_texts(edition, sorted(shown))
+
+            def side(idx, words, tail):
+                if idx is None:
+                    return None
+                part = words[-FILL_PREVIEW_WORDS:] if tail else words[:FILL_PREVIEW_WORDS]
+                return {
+                    'page': int(lines[idx]['page_number']),
+                    'line_number': int(lines[idx]['line_number']),
+                    'count': len(words),
+                    'words': [{'word_index': int(w), 'text': texts.get(w, '')} for w in part],
+                }
+
+            page_rows = [
+                len(_expand_ayah_words(edition, line, universe=universe))
+                for line in lines
+                if int(line['page_number']) == page_number and line['line_type'] == 'ayah'
+            ]
+            page_rows = [n for n in page_rows if n]
+            return jsonify({
+                'ok': True,
+                'preview': {
+                    'prev': side(prev_idx, prev_words, True),
+                    'next': side(next_idx, next_words, False),
+                    'prev_error': prev_err if prev_idx is None else None,
+                    'next_error': next_err if next_idx is None else None,
+                    'gap': [{'word_index': int(w), 'text': texts.get(w, '')} for w in gap],
+                    'suggest': _fill_suggestion(page_rows, len(prev_words), len(next_words), len(gap)),
+                },
+            })
+
+        plan = engine.plan_fill_line(prev_words, next_words, gap, take_prev, take_next)
+        if 'error' in plan:
+            return jsonify({'error': plan['error']}), 400
+        pages_involved = {int(page_number)}
+        if take_prev:
+            pages_involved.add(int(lines[prev_idx]['page_number']))
+        if take_next:
+            pages_involved.add(int(lines[next_idx]['page_number']))
+        cross_page = len(pages_involved) > 1
+        page_scope = _page_scope_for_edit(edition, profile, page_number)
+        edit_scope = None if (page_scope is not None and cross_page) else page_scope
+        fixed_page_stream, stream_err = _fixed_page_stream_or_error(
+            edition, lines, edit_scope, universe=universe,
+        )
+        if stream_err:
+            return jsonify({'error': stream_err}), 409
+        text_map = _word_texts(
+            edition, sorted(set(prev_words) | set(next_words) | set(gap)),
+        )
+        engine.assign_words_to_line(target, plan['new_words'], text_map)
+        persist_idxs = [target_idx]
+        if take_prev:
+            engine.assign_words_to_line(lines[prev_idx], plan['prev_keep'], text_map)
+            persist_idxs.append(prev_idx)
+        if take_next:
+            engine.assign_words_to_line(lines[next_idx], plan['next_keep'], text_map)
+            persist_idxs.append(next_idx)
+        if (
+            fixed_page_stream is not None
+            and _page_ayah_words(edition, lines, edit_scope, universe=universe) != fixed_page_stream
+        ):
+            return jsonify({
+                'error': 'أُلغي الملء لأنه كان سيكرر كلمات الصفحة أو يفقدها',
+            }), 409
+        page_from, page_to = min(pages_involved), max(pages_involved)
+        _push_undo(
+            edition, cur, 'fill-line', page_number, page_from, page_to,
+        )
+        for i in persist_idxs:
+            engine.persist_line(cur, lines[i])
+        token = (engine.script_word_map(edition.script_db).get('id2tok') or {}).get(target['first_word_id'])
+        if token and token.get('surah') is not None:
+            cur.execute(
+                'UPDATE pages SET surah_number = ? WHERE id = ?',
+                (int(token['surah']), target['id']),
+            )
+        if edit_scope is not None:
+            _seal_closed_page(
+                edition, cur, lines, text_map, edit_scope, universe=universe,
+            )
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_from, page_to, op='fill-line',
+        )
+        return jsonify({
+            'ok': True,
+            'cloud_saved': cloud_saved,
+            'filled_words': len(plan['new_words']),
+            'crossed_page': cross_page,
+            'page': _build_page_payload(edition, page_number),
+            'undo_available': _undo_available(edition, cur, page_number),
+        })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error(
+            'layout-studio fill-line cloud save failed (%s): %s', edition_id, e,
+        )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except Exception as e:
+        conn.rollback()
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
+    finally:
+        conn.close()
+
+
 @editor_bp.route('/api/layout-studio/<edition_id>/transfer-line', methods=['POST'])
 @require_editor
 def layout_studio_transfer_line(edition_id):

@@ -863,9 +863,11 @@
                 root.dataset.lineNumber = String(line.line_number);
                 root.dataset.lineType = line.line_type || 'ayah';
                 root.dataset.justify = line.is_centered ? '0' : '1';
-                if (line.empty) root.dataset.empty = '1';   // a row with no words: draw the slot
+                const emptyAyah = line.line_type === 'ayah' && (line.empty || !(line.words && line.words.length));
+                if (emptyAyah) root.dataset.empty = '1';   // a row with no words: draw the slot
                 applyLineSpan(root, line);
                 if (line.line_type === 'ayah') attachLineTools(root, line);
+                if (emptyAyah) attachFillButton(root, line);
             },
             decorateWord: (wordElement, { line, word, wordIndex }) => {
                 const words = line.words || [];
@@ -1185,6 +1187,202 @@
             setSavedStatus(data, 'تم دمج السطر مع التالي');
         } catch (e) {
             setStatus(layoutEditError(e, 'تعذّر الدمج'), true);
+        } finally {
+            state.busy = false;
+            window.AtharUi.setBusy(els.main, false);
+            updateNav();
+        }
+    }
+
+    /* ── Fill an empty row with words from the rows around it ─────────
+       The dialog shows the end of the row before and the start of the row after; clicking a word takes everything from
+       it to the boundary (rows keep their reading order, each neighbour keeps a word). */
+
+    function attachFillButton(root, line) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'az-fill-btn';
+        button.textContent = 'ملء السطر بكلمات';
+        button.title = 'اختر الكلمات التي تملأ هذا السطر من السطرين المجاورين';
+        button.addEventListener('click', e => {
+            e.stopPropagation();
+            openFillDialog(line.line_number);
+        });
+        root.appendChild(button);
+    }
+
+    async function openFillDialog(lineNumber) {
+        if (state.busy) return;
+        let preview;
+        try {
+            const data = await window.AtharApi.json(`${API_BASE}/fill-line`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ page_number: state.page, line_number: lineNumber, preview: true }),
+            });
+            preview = data.preview;
+        } catch (e) {
+            setStatus(layoutEditError(e, 'تعذّر قراءة السطرين المجاورين'), true);
+            return;
+        }
+        const prev = preview.prev;
+        const next = preview.next;
+        if (!prev && !next) {
+            setStatus(preview.prev_error || preview.next_error || 'لا يوجد سطر مجاور به كلمات', true);
+            return;
+        }
+        let takePrev = Math.min(preview.suggest.take_prev, prev ? prev.words.length : 0);
+        let takeNext = Math.min(preview.suggest.take_next, next ? next.words.length : 0);
+        const overlay = document.createElement('div');
+        overlay.className = 'az-fill-overlay';
+        overlay.innerHTML = '<div class="az-fill-panel" role="dialog" aria-modal="true" aria-label="ملء السطر الفارغ"></div>';
+        const panel = overlay.firstElementChild;
+        const close = () => overlay.remove();
+        overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+        overlay.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+        const sideLabel = (side, who) => (side
+            ? `${who} — صفحة ${side.page} سطر ${side.line_number} (${side.count} كلمة)`
+            : `${who} — ${who === 'من السطر السابق' ? preview.prev_error : preview.next_error || 'غير متاح'}`);
+
+        function render() {
+            panel.innerHTML = '';
+            const h = document.createElement('h3');
+            h.textContent = `ملء السطر الفارغ (سطر ${lineNumber})`;
+            panel.appendChild(h);
+            const help = document.createElement('p');
+            help.className = 'az-fill-help';
+            help.textContent = 'انقر كلمة لتأخذ من عندها حتى حدّ السطر. الكلمات المحدّدة تصير هذا السطر.';
+            panel.appendChild(help);
+
+            const caption = (text) => {
+                const c = document.createElement('div');
+                c.className = 'az-fill-cap';
+                c.textContent = text;
+                panel.appendChild(c);
+            };
+            if (prev) {
+                caption(sideLabel(prev, 'من السطر السابق'));
+                const row = document.createElement('div');
+                row.className = 'az-fill-chips';
+                row.dir = 'rtl';
+                prev.words.forEach((w, i) => {
+                    const count = prev.words.length - i;
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    const selected = count <= takePrev;
+                    chip.className = `az-fill-chip${selected ? ' az-sel' : ''}`;
+                    chip.textContent = w.text;
+                    chip.disabled = count > prev.count - 1;
+                    chip.addEventListener('click', () => { takePrev = takePrev === count ? count - 1 : count; render(); });
+                    row.appendChild(chip);
+                });
+                panel.appendChild(row);
+            } else {
+                caption(sideLabel(null, 'من السطر السابق'));
+            }
+            if (preview.gap.length) {
+                caption('كلمات بين السطرين لا يملكها أي سطر (تدخل تلقائيًا)');
+                const row = document.createElement('div');
+                row.className = 'az-fill-chips';
+                row.dir = 'rtl';
+                preview.gap.forEach(w => {
+                    const chip = document.createElement('span');
+                    chip.className = 'az-fill-chip az-sel az-gap';
+                    chip.textContent = w.text;
+                    row.appendChild(chip);
+                });
+                panel.appendChild(row);
+            }
+            if (next) {
+                caption(sideLabel(next, 'من السطر التالي'));
+                const row = document.createElement('div');
+                row.className = 'az-fill-chips';
+                row.dir = 'rtl';
+                next.words.forEach((w, j) => {
+                    const count = j + 1;
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    const selected = count <= takeNext;
+                    chip.className = `az-fill-chip${selected ? ' az-sel' : ''}`;
+                    chip.textContent = w.text;
+                    chip.disabled = count > next.count - 1;
+                    chip.addEventListener('click', () => { takeNext = takeNext === count ? count - 1 : count; render(); });
+                    row.appendChild(chip);
+                });
+                panel.appendChild(row);
+            } else {
+                caption(sideLabel(null, 'من السطر التالي'));
+            }
+
+            const chosen = [
+                ...(prev ? prev.words.slice(prev.words.length - takePrev) : []),
+                ...preview.gap,
+                ...(next ? next.words.slice(0, takeNext) : []),
+            ];
+            const out = document.createElement('div');
+            out.className = 'az-fill-result';
+            out.textContent = chosen.length
+                ? `السطر الجديد (${chosen.length} كلمة): ${chosen.map(w => w.text).join(' ')}`
+                : 'لم تختر كلمات بعد';
+            panel.appendChild(out);
+
+            const actions = document.createElement('div');
+            actions.className = 'az-fill-actions';
+            const apply = document.createElement('button');
+            apply.type = 'button';
+            apply.className = 'az-fill-apply';
+            apply.textContent = 'ملء السطر';
+            apply.disabled = !chosen.length;
+            apply.addEventListener('click', async () => {
+                close();
+                await fillLine(lineNumber, takePrev, takeNext);
+            });
+            const suggest = document.createElement('button');
+            suggest.type = 'button';
+            suggest.textContent = 'الاقتراح التلقائي';
+            suggest.addEventListener('click', () => {
+                takePrev = Math.min(preview.suggest.take_prev, prev ? prev.words.length : 0);
+                takeNext = Math.min(preview.suggest.take_next, next ? next.words.length : 0);
+                render();
+            });
+            const cancel = document.createElement('button');
+            cancel.type = 'button';
+            cancel.textContent = 'إلغاء';
+            cancel.addEventListener('click', close);
+            actions.append(apply, suggest, cancel);
+            panel.appendChild(actions);
+        }
+        render();
+        document.body.appendChild(overlay);
+        overlay.tabIndex = -1;
+        overlay.focus();
+    }
+
+    async function fillLine(lineNumber, takePrev, takeNext) {
+        if (state.busy) return;
+        state.busy = true;
+        window.AtharUi.setBusy(els.main, true);
+        updateNav();
+        try {
+            const data = await window.AtharApi.json(`${API_BASE}/fill-line`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    page_number: state.page,
+                    line_number: lineNumber,
+                    take_prev: takePrev,
+                    take_next: takeNext,
+                }),
+            });
+            if (data.page) {
+                renderPage(data.page);
+                fitPages();
+            }
+            if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
+            setSavedStatus(data, `تم ملء السطر بـ ${data.filled_words} كلمة`);
+        } catch (e) {
+            setStatus(layoutEditError(e, 'تعذّر ملء السطر'), true);
         } finally {
             state.busy = false;
             window.AtharUi.setBusy(els.main, false);

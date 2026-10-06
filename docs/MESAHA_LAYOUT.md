@@ -82,6 +82,17 @@ follows the same priority (`review_status` on `/import-confidence`). `layout_imp
 is left alone (a test pins it). Update the accuracy file when more draft pages have been reviewed:
 compare the draft rows with the saved rows.
 
+## Filling an empty row
+
+An ayah row with no words (a page the relayout could not read, or a placeholder) shows a «ملء السطر بكلمات» button.
+It opens a dialog with the end of the row before and the start of the row after (up to 16 words each, with their page
+and row); clicking a word takes everything from it to the boundary, and the new row's text is shown before anything is
+saved. The suggested split is a typical row's worth of words from the longer neighbour. Each neighbour keeps at least one
+word, rows stay in reading order, words that sit between the two neighbours and belong to neither are included, and a
+surah banner can not be crossed (an empty row next to a banner is a structure problem, not a fill). It is one undoable
+operation (`POST /api/layout-studio/<edition>/fill-line`, `preview: true` for the dialog; across a page boundary it is the
+same intentional correction as pull/push).
+
 ## Review order
 
 1. Review low-confidence pages first (red badge).

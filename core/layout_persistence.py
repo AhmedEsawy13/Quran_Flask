@@ -514,6 +514,7 @@ _LAYOUT_OP_AR = {
     'merge-line': 'دمج سطر',
     'pull-next-word': 'سحب كلمة',
     'push-last-word': 'دفع كلمة',
+    'fill-line': 'ملء سطر فارغ',
     'transfer-line': 'ترحيل سطر',
     'line-center': 'توسيط سطر',
     'header-move': 'نقل عنوان',
