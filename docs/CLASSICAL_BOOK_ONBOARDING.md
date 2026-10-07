@@ -201,3 +201,22 @@ Quran text and book order. What it found, now fixed and guarded by tests:
   stop on Y, «فوقف حسن / فقطع كاف», open tā' (كلمت/كلمة) in its seating only;
 - the aligner's `norm` reads وٰ as ا (الصلوة/الزكوة/الحيوة = الصلاة/الزكاة/الحياة).
 
+
+## Corpus sweeps (2026-10-07)
+
+Run over all four books after the quranpedia pass, each disagreement read in the book:
+
+- **Same-word stop vs «ليس بوقف»**: two rulings stacked on one occurrence of a
+  word the verse repeats (2:13 «السفهاء»: كاف «لحرف التنبيه» is the first,
+  the لا «للاستدراك» the second). 30 منار rows moved by curated
+  `audit_manar_mithl.MOVES`; that dict now outranks the generic repeat-word
+  mover and `explicit_seat_moves`, which only guess (pause mark / last
+  occurrence). Guarded by `test_repeated_words_do_not_stack_a_stop_and_a_no_stop`.
+- **Book order** (seq vs neighbours): المكتفى quotes that are the book's slips
+  («تعلمون» for 7:43 «تعملون», «بيضاء» for 28:71 «بضياء») and a mid-verse
+  «يؤمنون» that is 39:52's (hand-pinned).
+- **Remarks read as stops**: «و «ثم» لترتيب الأخبار» (4:153), «و «كتب» أجرى مجرى
+  القسم» (58:21) — `NOT_RULINGS` is keyed by the chain HEAD's verse — and a
+  braced «{عند} غيره» in النحاس (`audit_nahhas.QUOTE_FIX`).
+- 60-row random read (15 per book): 58/60 right; the two misses fixed above
+  (58:21) and in `audit_nahhas.CURATED_BY` (42:45 «عند بعضهم»).

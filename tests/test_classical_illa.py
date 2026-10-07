@@ -155,3 +155,56 @@ def test_multi_word_quotes_end_where_they_are_seated(rows):
                for b in range(1, rx.surah_ayah_count(r['surah']) + 1) if b != r['ayah']):
             bad.append((r['id'], r['source'], r['surah'], r['ayah'], r['quote']))
     assert not bad, bad[:5]
+
+
+def test_repeated_words_do_not_stack_a_stop_and_a_no_stop(rows):
+    """Two unattributed rulings of one book on ONE occurrence of a word the
+    verse repeats, one a stop and one «ليس بوقف», mean one belongs on the other
+    occurrence (2:13 «السفهاء» كاف «لحرف التنبيه» is the first, the لا «للاستدراك»
+    the second) — unless the book makes one of them conditional."""
+    from pipeline import build_classical_waqf as rx
+    from core.verse_words import verse_word_texts
+    cond = re.compile(r'إن\s|إذا\s|لمن\s|من\s+(?:قرأ|رفع|نصب|جعل|فتح|كسر|وقف)|قرأ|قراءة|جعل|على\s+قول')
+    seat = {}
+    for r in rows:
+        if r['reported_from'] or r['grade_raw'] in ('رؤوس الآي', 'آخر السورة'):
+            continue
+        seat.setdefault((r['source'], r['surah'], r['ayah'], r['wpos']), []).append(r)
+    bad = []
+    for (src, s, a, w), rs in seat.items():
+        gs = {r['grade'] for r in rs}
+        if not (gs & {'لا', 'قبيح'}) or not (gs - {'لا', 'قبيح'}):
+            continue
+        if any(cond.search(r['note'] or '') for r in rs):
+            continue
+        words = verse_word_texts(f'{s}:{a}')[1]
+        if sum(rx.norm(x) == rx.norm(words[w]) for x in words) > 1:
+            bad.append((src, s, a, w, sorted(gs)))
+    assert not bad, bad[:5]
+
+
+@pytest.mark.parametrize('source,surah,ayah,wpos,grade', [
+    ('manar', 2, 13, 11, 'كاف'),       # «السفهاءۗ ألا» — was on the second «السفهاء»
+    ('manar', 3, 7, 4, 'لا'),          # «أنزل عليك الكتابَ» («منه آيات» صفته)
+    ('manar', 2, 246, 20, 'حسن'),      # «{في سبيل الله} حسن. {ألا تقاتلوا} كاف»
+    ('manar', 61, 14, 5, 'لا'),        # «ولا يوقف على «الله»» — «كونوا أنصار الله»
+    ('manar', 65, 1, 29, 'لا'),        # «حدود الله فقد ظلم» — جواب الشرط لم يأت
+    ('manar', 89, 17, 0, 'تام'),       # «كلا» (أبو عمرو), not «بل لا»
+    ('manar', 89, 21, 0, 'تام'),       # «كلا في الموضعين»
+    ('muktafa', 7, 43, 35, 'تام'),     # «{تعلمون} تام» between «رسل ربنا بالحق» and «قالوا نعم»
+    ('muktafa', 28, 71, 16, 'تام'),    # «{بيضاء} تام. والآية أتم» = «بضياء» (28:68…72)
+    ('muktafa', 39, 52, 14, 'تام'),    # «لقوم يؤمنون», after «سيئات ما كسبوا» (48)
+    ('nahhas', 35, 28, 16, 'تام'),     # «والتمام عند غيره {إن الله عزيز غفور}»
+])
+def test_rows_seated_by_the_2026_10_07_sweeps(rows, source, surah, ayah, wpos, grade):
+    assert any((r['source'], r['surah'], r['ayah'], r['wpos'], r['grade']) == (source, surah, ayah, wpos, grade)
+               for r in rows)
+
+
+def test_remarks_are_not_stops(rows):
+    """«و «ثم» لترتيب الأخبار» (4:153), «و «كتب» أجرى مجرى القسم» (58:21) and a
+    braced «{عند} غيره» (35:39) are the books' remarks, not rulings."""
+    from pipeline import build_classical_waqf as rx
+    assert not [(r['source'], r['surah'], r['ayah'], r['quote']) for r in rows
+                if ' '.join(map(rx.norm, (r['quote'] or '').split())) in ('ثم', 'كتب', 'عند') and r['grade'] != 'لا'
+                and (r['source'], r['surah'], r['ayah']) not in {('manar', 23, 41), ('manar', 75, 12)}]

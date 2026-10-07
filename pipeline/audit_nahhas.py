@@ -48,7 +48,9 @@ EXTRA = [
 ]
 # «قال الأخفش سعيد: وأما قوله جل وعز {مثلهم كمثل الذي استوقد نارا} فالتمام فيه
 # عند قوله جل وعز {حذر الموت والله محيط بالكافرين}»
-CURATED_BY = {(2, 'حذر الموت والله محيط بالكافرين', 'تام'): 'الأخفش'}
+CURATED_BY = {(2, 'حذر الموت والله محيط بالكافرين', 'تام'): 'الأخفش',
+              # «{وتراهم يعرضون عليها خاشعين} تمام عند بعضهم وأكثر أصحاب التمام …»
+              (42, 'وتراهم يعرضون عليها خاشعين', 'تام'): 'بعضهم'}
 # 6:137–139: the text repeats «{فذرهم وما يفترون} افتراء عليه قطع حسن وكذا …»,
 # so the «وكذا» chain after it is حسن (of «افتراء عليه»), not the تام before
 REGRADE = {(6, 'سيجزيهم بما كانوا يفترون', 'تام'): 'حسن', (6, 'فهم فيه شركاء', 'تام'): 'حسن',
@@ -56,7 +58,11 @@ REGRADE = {(6, 'سيجزيهم بما كانوا يفترون', 'تام'): 'حس
 # seats the book's order contradicts (2026-09-27 order sweep): (surah, ayah,
 # quote) → (ayah, wpos). «{كذلك يبين الله لكم الآيات} قطع كاف والتمام {والله
 # عليكم حكيم}» is 24:58; «وقال محمد بن عيسى {من بعد ما تبين لهم الهدى}» 47:25
-MOVES = {(24, 18, 'والله عليكم حكيم'): (58, 48), (47, 32, 'من بعد ما تبين لهم الهدى'): (25, 10)}
+MOVES = {(24, 18, 'والله عليكم حكيم'): (58, 48), (47, 32, 'من بعد ما تبين لهم الهدى'): (25, 10),
+         # «والتمام {عند} غيره {إن الله عزيز غفور}»: the copy braced «عند»
+         (35, 39, 'عند'): (28, 16)}
+# (surah, ayah, quote as parsed) → (quote, reported_from) the book means
+QUOTE_FIX = {(35, 28, 'عند'): ('إن الله عزيز غفور', 'غيره')}
 # «ذوات قل» items the parser seated nowhere (they cite الفلق / الناس)
 DROP_UNSEATED = {(112, 'قل أعوذ برب الفلق'), (112, 'قل أعوذ برب الناس')}
 
@@ -85,6 +91,10 @@ def plan(con):
         for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND ayah=? "
                                   "AND quote=?", (s, a0, q)):
             ops.append(('move', rid, (a, w)))
+    for (s, a0, q), fix in QUOTE_FIX.items():
+        for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND ayah IN (?, ?) "
+                                  "AND quote=?", (s, a0, MOVES.get((s, 39, q), (a0,))[0], q)):
+            ops.append(('requote', rid, fix))
     for (s, q, g), g2 in REGRADE.items():
         for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND quote=? "
                                   "AND grade=?", (s, q, g)):
@@ -130,6 +140,8 @@ def apply(con):
             a, w = who
             con.execute('UPDATE classical SET ayah=?, wpos=?, stop_word=? WHERE id=?',
                         (a, w, verse_word_texts(f'{s_}:{a}')[1][w], x))
+        elif op == 'requote':
+            con.execute('UPDATE classical SET quote=?, reported_from=? WHERE id=?', (who[0], who[1], x))
         elif op == 'regrade':
             con.execute('UPDATE classical SET grade=?, grade_raw=? WHERE id=?', (who, who, x))
         elif op == 'delete':

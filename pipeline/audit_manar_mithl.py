@@ -198,6 +198,8 @@ NOT_RULINGS = {
     (27, 7, 'سوف'), (28, 86, 'فلن أكون ظهيرا للمجرمين'), (29, 58, 'إن'),
     (54, 50, 'فعلوه'), (75, 12, 'ثم'), (48, 26, 'محلقين'), (48, 26, 'مقصرين'),
     (2, 69, 'فاقع لونها'), (6, 91, 'للناس'),
+    (4, 153, 'ثم'),     # «… ومثله «بظلمهم»، و «ثم»؛ لترتيب الأخبار»: why one stops before ثم
+    (58, 19, 'كتب'),    # head «الخاسرون» (19); «ومثله: «في الأذلين» و «كتب» أجرى مجرى القسم»: an explanation, not a stop
 }
 # grade differences read and left as stored: 37:12 the book rules {ويسخرون}
 # جائز explicitly; 39:51 «كسبوا» تام فيهما; 51:26 «وهو: كاف، ومثله سمين».
@@ -418,6 +420,8 @@ def misplaced_rows(path, recs):
     for rid, s, a, w, q, g, note in con.execute(
             "SELECT id, surah, ayah, wpos, quote, grade, COALESCE(note,'') FROM classical "
             "WHERE source='manar' AND conf=1 AND wpos IS NOT NULL"):
+        if rid in MOVES:           # read against the book; this mover only guesses
+            continue
         words = verse_words(s, a)
         if not words or w >= len(words):
             continue
@@ -466,6 +470,42 @@ MOVES = {
     # 7:195 «وكذا «بها» الأخيرة، وفي المواضع الثلاثة لا يجوز الوقف»: the لا
     # belongs to the first three بها, the last one is كاف.
     50435: (195, 3),
+    59714: (17, 0),        # 89:17 «كلا» (أبو عمرو) sat on «بل لا»'s «لا»
+    # two rulings on a repeated word stacked on ONE occurrence (2026-10-07
+    # same-seat conflict sweep); the quote's pause mark / vowel, «الأول»,
+    # the stated reason or the book's own phrase picks the occurrence
+    46711: (13, 11),       # 2:13 «السفهاءۗ» كاف «لحرف التنبيه بعده» (ألا)
+    46903: (69, 15),       # 2:69 «فاقع لونها» جائز («ما لونها» stays on 7)
+    47098: (121, 8),       # 2:121 «يؤمنون بهۗ» حسن; «ومن يكفر به» ليس بوقف
+    47409: (203, 11),      # 2:203 «عليه» الأول جائز
+    47410: (203, 11),      # «لا يوقف على الأول حتى يؤتى بالثاني» (يحيى بن نصير)
+    47588: (246, 37),      # 2:246 «ألا نقاتل في سبيل الله» (no pause mark)
+    47603: (249, 13),      # 2:249 «فليس مني» جائز; «فإنه منيٓ» حسن (الاستثناء)
+    47862: (7, 4),         # 3:7 «أنزل عليك الكتابَ» ليس بوقف («منه آيات» صفته)
+    48534: (11, 26),       # 4:11 «لكل واحد منهما السدس» — «مما ترك» متعلق به
+    48544: (12, 24),       # 4:12 «أو دينٖۚ» حسن (the first); «أو دين غير مضار» لا
+    48641: (35, 3),        # 4:35 «شقاق بينهما» لمكان الفاء
+    48762: (78, 16),       # 4:78 «هذه من عند الله» حسن; «قل كل من عند الله» كاف
+    48817: (94, 8),        # 4:94 «في سبيل الله فتبينوا» حسن; the second كاف
+    48966: (153, 14),      # 4:153 «أكبر من ذلك» ليس بوقف (لمكان الفاء)
+    49172: (32, 20),       # 5:32 «{قتل الناس جميعا} كاف»; «{أحيا الناس جميعا} حسن»
+    50057: (38, 12),       # 7:38 «في النار» كاف; «ضعفا من النار» حسن
+    50161: (73, 7),        # 7:73 «اعبدوا اللهَ» جائز
+    50309: (146, 22),      # 7:146 «لا يتخذوه سبيلا» حسن; «يتخذوه سبيلاۚ» كاف
+    50852: (80, 5),        # 9:80 «{أو لا تستغفر لهم} جائز»
+    52597: (116, 13),      # 16:116 «الكذب» الثاني حسن
+    52933: (22, 3),        # 18:22 «{رابعهم كلبهم} جائز؛ للفصل بين المقالتين»
+    53130: (109, 6),       # 18:109 «لكلمات ربي» لا: جواب «لو» «لنفد»
+    53939: (73, 5),        # 22:73 «فاستمعوا لهۥٓۚ» كاف; «ولو اجتمعوا له» حسن
+    55230: (47, 8),        # 29:47 «يؤمنون بهۦۖ» جائز «فصلًا بين الفريقين»
+    55975: (27, 12),       # 35:27 «مختلفا ألوانهاۚ» حسن; the second: «وغرابيب» عطف
+    56610: (38, 7),        # 39:38 «ليقولن اللهۚ» كاف; «حسبي اللهۖ» حسن
+    58624: (1, 10),        # 60:1 «بالمودة» الأولى ليس بوقف
+    58702: (14, 5),        # 61:14 «ولا يوقف على «الله»، ولا على «الحواريين»» (after 61:13):
+                           # «كونوا أنصار الله»; «{إلى الله} حسن» is the next entry
+    47840: (246, 20),      # 2:246 «{في سبيل الله} حسن. {ألا تقاتلوا} كاف»: the first
+    55409: (56, 15),       # 30:56 «يوم البعث» لا «لحرف الاستدراك بعده» (ولكنكم): the second
+    58823: (1, 29),        # 65:1 «حدود الله فقد ظلم» — «جواب الشرط لم يأت»
     # 43:32 «رحمت ربك» تام is «أهم يقسمون رحمت ربكۚ» (its stop_word), not the
     # verse-end «ورحمت ربك خير» (found 2026-09-28)
     57271: (32, 3),
@@ -554,10 +594,14 @@ DEMOTE = {48071, 57755,
           46685,      # 2:6 «أم لم تنذرهم» — «وهذا ينبغي أن يرد ولا يلتفت إليه»
           53454,      # 20:95 «يا سامري» — no ruling in the book
           56342,      # 37:165 «الصافون» — the book's ومثله names «المسبحون»
+          60181,      # 58:21 «كتب» (see NOT_RULINGS)
+          59954,      # 4:153 «ثم»: «{أرنا الله جهرة} جائز، ومثله «بظلمهم»، و «ثم»؛ لترتيب
+                      # الأخبار» — «ثم» is why one may stop on «بظلمهم» (row 59953)
           59445,      # 78:36 «حسابا» كاف — «{وفاقا} كاف، ومثله: «حسابا»» is 78:27 (row there)
           47571}      # 2:234 «بالمعروف» — a rasm list («فموصول باتفاق»), not a ruling
 # rows on a repeated word that the book does mean (checked): not suspects
-REVIEWED_OK = {(2, 218, 12), (2, 255, 43), (7, 195, 3), (7, 195, 8), (7, 195, 13),
+REVIEWED_OK = {(60, 1, 10),      # «بالمودة» الأولى ليس بوقف (2026-10-07)
+               (2, 218, 12), (2, 255, 43), (7, 195, 3), (7, 195, 8), (7, 195, 13),
                (11, 119, 3), (13, 31, 28), (39, 51, 11), (59, 18, 11)}
 # Grade corrections: id → grade. 39:50 «ومثله «يكسبون»» inherits كاف; the
 # «تام فيهما» that follows is about «كسبوا» الأولى والثانية.
@@ -579,12 +623,14 @@ ADD_GRADE = {
     (6, 75, 5), (7, 195, 18), (15, 22, 7), (18, 102, 13), (18, 103, 4),
     (25, 41, 10), (27, 10, 18), (28, 74, 7), (35, 10, 10), (39, 20, 13),
     (40, 74, 12), (45, 7, 3), (50, 22, 11), (72, 17, 9), (72, 23, 15), (111, 4, 0),
+    (2, 275, 24),   # «{من المس} حسن، وكذا … «وحرم الربا»» beside «الربوا» كاف «للابتداء بالشرط»
 }
 # chain items the parser reads that are not rulings («وكذا «محلقين»» is about
 # the حال), or whose grade the book states differently than inherited.
 SKIP = set()          # superseded by NOT_RULINGS
 GRADE_OVERRIDE = {(39, 51, 3): 'تام'}      # «كسبوا» الأولى والثانية تام فيهما
-REPORTED = {(25, 41, 10): 'أبو حاتم'}      # «ومثله «رسولا» عند أبي حاتم»
+REPORTED = {(25, 41, 10): 'أبو حاتم',      # «ومثله «رسولا» عند أبي حاتم»
+            (89, 21, 0): 'أبو عمرو'}       # «وقال أبو عمرو: «كلا» في الموضعين تام»
 # extra rows the chain implies but the resolver cannot emit on its own
 EXTRA = [
     (7, 195, 8, 'بها', 'لا', 'وفي المواضع الثلاثة لا يجوز الوقف؛ لأن «أم» عاطفة'),
@@ -595,6 +641,8 @@ EXTRA = [
     (12, 51, 7, 'عن نفسه', 'حسن', '{عن نفسه} حسن، ومثله «من سوء»، وكذا «عن نفسه» (الثاني)'),
     (18, 17, 8, 'ذات اليمين', 'حسن', '{ذات اليمين .... ذات الشمال} حسن'),
     (3, 49, 22, 'بإذن الله', 'جائز', '{بإذن الله} جائز في الموضعين'),
+    # «وقال أبو عمرو: «كلا» في الموضعين تام … وقال غيره: لا يوقف عليها» (89:17، 89:21)
+    (89, 21, 0, 'كلا', 'تام', 'وقال أبو عمرو: «كلا» في الموضعين تام؛ لأنهما بمعنى: لا، وقال غيره: لا يوقف عليها في الموضعين'),
 ]
 
 
@@ -729,7 +777,7 @@ def apply(recs, path):
             if insert(*key, r['item'], g, [source_note(r), short], REPORTED.get(key)):
                 stats['inserted_' + r['status']] += 1
     for s, a, w, q, g, note in EXTRA:
-        stats['inserted_extra'] += insert(s, a, w, q, g, [note])
+        stats['inserted_extra'] += insert(s, a, w, q, g, [note], REPORTED.get((s, a, w)))
     con.commit()
     for rid, a, w in explicit_seat_moves(con, recs):
         s_ = cur.execute('SELECT surah FROM classical WHERE id=?', (rid,)).fetchone()[0]
@@ -813,7 +861,9 @@ def explicit_seat_moves(con, recs):
         key = hnorm(words[w])
         for rid, x in con.execute("SELECT id, wpos FROM classical WHERE source='manar' AND surah=? "
                                   "AND ayah=? AND grade=? AND wpos<>?", (surah, a, g, w)).fetchall():
-            if (rid not in SEAT_KEEP and rx.match_word(hnorm(words[x]), key, 1)
+            # a hand-curated MOVES seat (read against the book) wins over
+            # head_seat's pause-mark/last-occurrence guess
+            if (rid not in SEAT_KEEP and rid not in MOVES and rx.match_word(hnorm(words[x]), key, 1)
                     and g not in ruled[(surah, a, x)]):
                 moves.append((rid, a, w))
                 break

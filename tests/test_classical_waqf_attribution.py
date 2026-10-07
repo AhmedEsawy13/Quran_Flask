@@ -179,7 +179,7 @@ def test_nahhas_attributions_are_known_scholars(rows):
     a quarter of its rulings are theirs. Every name must be a scholar the
     parser knows (never a phrase), and النحاس's own voice stays the majority."""
     from pipeline import nahhas_parse
-    known = set(nahhas_parse._WAQF) | {'غيره'}
+    known = set(nahhas_parse._WAQF) | {'غيره', 'بعضهم'}
     sub = [r for r in rows if r['source'] == 'nahhas']
     bad = sorted({r['reported_from'] for r in sub if r['reported_from'] and r['reported_from'] not in known})
     assert not bad, bad
