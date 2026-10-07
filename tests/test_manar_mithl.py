@@ -144,7 +144,6 @@ def test_anbari_audit_is_stable():
     (23, 111, 4, 'حسن'),    # «إنهم» (حمزة والكسائي) — Hafs reads «أنهم»
     (8, 19, 19, 'حسن'),     # «وإن الله» — Hafs reads «وأنَّ»
     (7, 186, 5, 'قبيح'),    # «ويذرهم» بالجزم — Hafs reads it رفعًا
-    (29, 41, 15, 'قبيح'),   # الفراء، about the first «العنكبوت»
 ])
 def test_anbari_conditional_grade_before_rulings_are_held(db, surah, ayah, wpos, grade):
     # «فمن قرأ … يحسن الوقف على (X)» depends on a reading; not served as the book's ruling

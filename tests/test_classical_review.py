@@ -92,8 +92,9 @@ def test_review_page_and_summary_are_editor_routes(client, review_db):
     # the explicit-key aligner seats a repeated word on its last / pause-marked
     # occurrence; rows read against the book sit elsewhere: 43:32 «رحمت ربك»
     # (2026-09-28) and 2:69, 3:7, 4:11, 4:94, 7:146, 30:56 (2026-10-07), while
-    # 4:78 and 29:47 now agree with it — 8 + 1 + 6 − 2 = 13
-    assert manar['explicit_missing'] == 13
+    # 4:78 and 29:47 now agree with it — 8 + 1 + 6 − 2 = 13; the book-order read
+    # of repeated words adds 3:154, 20:10, 63:6 and settles 4:131 — 13 + 3 − 1 = 15
+    assert manar['explicit_missing'] == 15
 
 
 def test_reviewer_can_approve_a_matched_row(client, review_db, pending_muktafa):

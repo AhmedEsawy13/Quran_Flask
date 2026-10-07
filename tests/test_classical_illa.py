@@ -208,3 +208,44 @@ def test_remarks_are_not_stops(rows):
     assert not [(r['source'], r['surah'], r['ayah'], r['quote']) for r in rows
                 if ' '.join(map(rx.norm, (r['quote'] or '').split())) in ('ثم', 'كتب', 'عند') and r['grade'] != 'لا'
                 and (r['source'], r['surah'], r['ayah']) not in {('manar', 23, 41), ('manar', 75, 12)}]
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade', [
+    (1, 4, 0, 'قبيح'),       # «والوقف على (ملك) قبيح لأنه مضاف» — no [n] in the book
+    (2, 11, 10, 'حسن'),      # «والوقف على «المصلحين» حسن»
+    (2, 39, 9, 'تام'),       # «والوقف على «خالدين» [39] تام»
+    (4, 176, 40, 'حسن'),     # «(مثل حظ الأونثيين) [76]» — a garbled [176]
+    (29, 41, 8, 'قبيح'),     # «فلا يحسن الوقف على (العنكبوت)» against الأخفش's «(كمثل العنكبوت) تام»
+    (36, 19, 2, 'حسن'),      # Hafs «أئن» بالكسر: «وقف: (طائركم معكم)»
+    (24, 36, 13, 'قبيح'),    # Hafs «يسبِّح»: «لم يقف على (الآصال)»
+    (53, 6, 2, 'قبيح'),      # «الوقف على (استوى) قبيح لأن (هو) نسق»
+])
+def test_anbari_rulings_read_from_the_held_list(rows, surah, ayah, wpos, grade):
+    assert any((r['source'], r['surah'], r['ayah'], r['wpos'], r['grade']) == ('anbari', surah, ayah, wpos, grade)
+               for r in rows)
+
+
+def test_manar_rulings_on_a_repeated_word_follow_book_order(rows):
+    """منار lists a verse's stops in order, so a ruling on a word the verse
+    repeats sits between the verse's previous and next rulings (2:229 «حدود
+    الله» الأول كاف is 21, not 42; 28:9 ابن عباس's «لا» is «لا تقتلوه»)."""
+    from pipeline import audit_manar_mithl as mm
+    ok = {(7, 143, 10)}        # «إليك» heads a «ومثله» chain whose items follow it
+    byv = {}
+    for r in rows:
+        if r['source'] == 'manar':
+            byv.setdefault((r['surah'], r['ayah']), []).append(r)
+    bad = []
+    for (s, a), rs in byv.items():
+        rs.sort(key=lambda r: (r['seq'], r['id']))
+        for i, r in enumerate(rs):
+            if (s, a, r['wpos']) in ok:
+                continue
+            occ = sorted(set(mm.hits_in_ayah(s, a, r['quote'], True) or mm.hits_in_ayah(s, a, r['quote'], False)))
+            if len(occ) < 2 or r['wpos'] not in occ:
+                continue
+            lo = max([x['wpos'] for x in rs[:i] if x['wpos'] != r['wpos']] or [-1])
+            hi = min([x['wpos'] for x in rs[i + 1:] if x['wpos'] != r['wpos']] or [999])
+            if not lo < r['wpos'] < hi and any(lo < o < hi for o in occ):
+                bad.append((s, a, r['wpos'], r['quote']))
+    assert not bad, bad[:5]

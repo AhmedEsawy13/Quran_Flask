@@ -171,7 +171,9 @@ SEAT_FIX = {(8, 'ليصدوا عن سبيل الله'): (36, 8),
             (2, 'وليتق الله ربه'): (283, 19),
             # «(يقسمون رحمة ربك) [32] حسن» is the opening «أهم يقسمون رحمت ربكۚ»,
             # not the verse-end «ورحمت ربك خير»
-            (43, 'يقسمون رحمة ربك'): (32, 3)}
+            (43, 'يقسمون رحمة ربك'): (32, 3),
+            # «(إحداهما) قبيح لأن معنى التذكير التقديم قبل الضلال»: «أن تضل إحداهما»
+            (2, 'إحداهما'): (282, 67)}
 # a citation of another surah filed under this one: «وكذلك في سورة الروم:
 # (أولم يتفكروا في أنفسهم) [8]» (the الروم row exists)
 OTHER_SURAH = {(7, 'أولم يتفكروا في أنفسهم')}
@@ -309,10 +311,43 @@ HAFS_SIDE = {(2, 'الملائكة', 'حسن'), (3, 'وضعتها أنثى', 'ح
              (23, 'صبروا', 'قبيح'), (27, 'عاقبة مكرهم', 'قبيح'), (59, 'النار', 'حسن'),
              (80, 'طعامه', 'قبيح')}
 # «(آمنت) … لم يقف على (آمنت) لأنه عامل في (أن)» is the first «آمنت» of 10:90
-BEFORE_SEAT = {(10, 'آمنت', 'قبيح'): (90, 14)}
+BEFORE_SEAT = {(10, 'آمنت', 'قبيح'): (90, 14),
+               # «وقال الأخفش: (كمثل العنكبوت) وقف تام … وهذا غلط … فلا يحسن الوقف
+               # على (العنكبوت)»: the first «العنكبوت», not «لبيت العنكبوت»
+               (29, 'العنكبوت', 'قبيح'): (41, 8)}
+# held rows the book rules on plainly, read one by one (2026-10-07):
+# (surah, quote, grade) → [(ayah, wpos), …] given to matching rows in id order.
+# Most lacked a [n] («والوقف على «المصلحين» حسن»); the rest are his own
+# verdict («فلا يحسن الوقف على (العنكبوت)» against الأخفش), the plain
+# alternative he allows («ويحسن الوقف على (يحفظونه)»), or the Hafs side
+# («أئن» بالكسر عند عاصم: «وقف: (طائركم معكم)»).
+SERVE = {
+    (1, 'ملك', 'قبيح'): [(4, 0)],
+    (2, 'أأنذرتهم', 'قبيح'): [(6, 5)],
+    (2, 'المصلحين', 'حسن'): [(11, 10)],
+    (2, 'المفسدين', 'حسن'): [(12, 3)],
+    (2, 'المستهزئين', 'حسن'): [(14, 15)],
+    (2, 'خالدين', 'تام'): [(25, 33), (39, 9)],         # «وهم فيها خالدون» / «[39]»
+    (2, 'اليوم', 'قبيح'): [(48, 1)],                   # «واتقوا يوما» — «لا تجزي نفس» صلته
+    (2, 'والله عزيز حليم', 'تام'): [(228, 39)],        # the book's «حليم» for «حكيم»
+    (3, 'الأموات', 'قبيح'): [(169, 7)],
+    (4, 'إلا أن صدقوا', 'حسن'): [(92, 21)],
+    (4, 'مثل حظ الأونثيين', 'حسن'): [(176, 40)],       # «[76]» is a garbled [176]
+    (9, 'فأن له نار جهنم خالدا فيه', 'حسن'): [(63, 12)],
+    (11, 'ويؤت كل ذي فضل فضله', 'حسن'): [(3, 16)],
+    (12, 'إنه من عبادنا المخلصين', 'تام'): [(24, 18)],  # «قال عامة أهل العلم … والتمام»
+    (13, 'يحفظونه', 'حسن'): [(11, 7)],
+    (29, 'العنكبوت', 'قبيح'): [(41, 8)],
+    (36, 'معكم', 'حسن'): [(19, 2)],
+    (40, 'الذين يجادلون في آيات الله بغير سلطان أتاهم', 'قبيح'): [(56, 8)],
+    (53, 'استوى', 'قبيح'): [(6, 2)],
+}
 # the Hafs side stated as «حسن له أن يقف على …», which the grade-before
 # pattern does not read: (surah, ayah, wpos, grade, quote, note)
-HAFS_ADD = [(7, 186, 5, 'حسن', 'فلا هادي له',
+HAFS_ADD = [(24, 36, 13, 'قبيح', 'الآصال',
+             'ومن قرأ: (يسبح) بكسر الباء لم يقف على (الآصال) لأن (يسبح) فعل ل «الرجال» '
+             '[وكذلك روى أبو عمر عن عاصم: قراءة حفص]'),
+            (7, 186, 5, 'حسن', 'فلا هادي له',
              'فمن قرأ: (ونذرهم) بالنون والرفع حسن له أن يقف على قوله: (فلا هادي له) … '
              'وكذلك من قرأها بالياء والرفع [على قراءة حفص]'),
             (2, 285, 13, 'حسن', 'ملائكته وكتبه ورسله',
@@ -351,7 +386,7 @@ def missing_before_rulings(con):
             if a is None or (surah, a, w, g) in seen:
                 continue
             seen.add((surah, a, w, g))
-            held = key not in BEFORE_CONFIRMED and key not in HAFS_SIDE and \
+            held = key not in BEFORE_CONFIRMED and key not in HAFS_SIDE and key not in SERVE and \
                 conditional(text, m.start(), m.end())
             row = con.execute("SELECT id, grade_raw, conf FROM classical WHERE source='anbari' AND surah=? "
                               "AND ayah=? AND wpos=? AND grade=?", (surah, a, w, g)).fetchone()
@@ -459,7 +494,7 @@ def apply(con, recs):
             cur.execute('DELETE FROM classical WHERE id=?', (rid,))
             st['deleted_negated'] += 1
             continue
-        if (r['surah'], squash(r['quote']), r['grade']) in HAND_CONFIRMED:
+        if (r['surah'], squash(r['quote']), r['grade']) in HAND_CONFIRMED | set(SERVE):
             continue
         if (r['surah'], squash(r['quote'])) in OTHER_SURAH:
             continue
@@ -535,6 +570,14 @@ def apply(con, recs):
     for s_, q in OTHER_SURAH:
         st['other_surah_held'] += cur.execute("UPDATE classical SET conf=0 WHERE source='anbari' AND surah=? "
                                               "AND quote=? AND conf=1", (s_, q)).rowcount
+    con.commit()
+    for (s_, q, g), seats in SERVE.items():
+        ids = [r[0] for r in cur.execute("SELECT id FROM classical WHERE source='anbari' AND surah=? AND quote=? "
+                                         "AND grade=? AND conf=0 ORDER BY id", (s_, q, g))]
+        for rid, (a, w) in zip(ids, seats):
+            cur.execute("UPDATE classical SET ayah=?, wpos=?, stop_word=?, conf=1 WHERE id=?",
+                        (a, w, mm.verse_words(s_, a)[w], rid))
+            st['served_curated'] += 1
     con.commit()
     st['merged'] = mm.merge_duplicates(con, ('anbari',))
     st['renoted'] = renote(con)

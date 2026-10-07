@@ -220,3 +220,24 @@ Run over all four books after the quranpedia pass, each disagreement read in the
   braced «{عند} غيره» in النحاس (`audit_nahhas.QUOTE_FIX`).
 - 60-row random read (15 per book): 58/60 right; the two misses fixed above
   (58:21) and in `audit_nahhas.CURATED_BY` (42:45 «عند بعضهم»).
+
+## Raising the per-book confidence (2026-10-07, second pass)
+
+- **ابن الأنباري held rows** (98 → 78): every held row read in the book.
+  `audit_anbari.SERVE` serves the plain rulings the audit could not seat
+  (no [n]: «والوقف على «المصلحين» حسن»), his own verdicts against others
+  («فلا يحسن الوقف على (العنكبوت)» — the first one, via `BEFORE_SEAT`) and the
+  Hafs side of reading splits («أئن» بالكسر: «وقف: (طائركم معكم)»; 24:36
+  «يسبِّح» → «الآصال» لا يحسن in `HAFS_ADD`). The 78 left are i'rab-conditional
+  or non-Hafs grade-before rulings, a paraphrase, a grammarian's example and
+  reviewed HOLDs.
+- **النحاس attribution**: a 100-row read (60 attributed, 40 unattributed with a
+  name nearby) found the name placed after the grade («تمام على ما روى عن
+  نافع»، «تمام عند أبي عبيده») or between quote and grade («{X} عند نافع تم»)
+  unread; the parser now reads all three (+29 attributions, each checked).
+- **منار repeated words**: every ruling on a word its verse repeats checked
+  against book order (the verse's previous and next rulings); 11 moved, one
+  `explicit_seat_moves` side effect pinned with `SEAT_KEEP`; guarded by
+  `test_manar_rulings_on_a_repeated_word_follow_book_order`.
+- Fresh 60-row read after the fixes: 57/60; the three misses (2:282
+  «إحداهما» the first, 2:51 الأخفش, and a ruling covered above) fixed.
