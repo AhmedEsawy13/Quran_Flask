@@ -47,7 +47,22 @@ MANUAL = [(84, 5, 2, 'وحقت', 'تام'), (42, 30, 9, 'ويعفو عن كثي�
           # «وقال نافع والقتبي والدينوري والأخفش {ولا تقولوا ثلاثة} تمام وهو
           # كاف» (4:171): الداني's own verdict is كاف; the relayed quote was lost
           (4, 171, 30, 'ولا تقولوا ثلاثة', 'كاف',
-           'وقال نافع والقتبي والدينوري والأخفش {ولا تقولوا ثلاثة} تمام وهو كاف.')]
+           'وقال نافع والقتبي والدينوري والأخفش {ولا تقولوا ثلاثة} تمام وهو كاف.'),
+          # «تمام القصة / تمام الكلام» — الداني's own تام the parser did not read
+          # (2026-10-07 recall check: every «{X} GRADE» in the book has a row)
+          (2, 255, 49, 'العلي العظيم', 'تام', '{العلي العظيم} تمام الكلام.'),
+          (4, 14, 12, 'مهين', 'تام', '{مهين} تمام القصة.'),
+          (22, 24, 8, 'إلى صراط الحميد', 'تام', '{إلى صراط الحميد} تمام القصة.'),
+          (37, 10, 6, 'ثاقب', 'تام', '{ثاقب} تمام القصة.'),
+          (38, 25, 8, 'وحسن مآب', 'تام', '{وحسن مآب} تمام. ومثله {عن سبيل الله}'),
+          (38, 40, 5, 'وحسن مآب', 'تام', '{وحسن مآب} تمام القصة.'),
+          (43, 45, 12, 'يعبدون', 'تام', '{ولقومك} تام. {يعبدون} تمام القصة.'),
+          (54, 5, 4, 'النذر', 'تام', '{بالغة} كاف على الوجهين. {النذر} تام.'),
+          # «وقال الدينوري: … تمام … وليس كذلك، هما كافيان» / «وهما كافيان»
+          (6, 163, 2, 'لا شريك له', 'كاف', 'وقال الدينوري: {لا شريك له} تمام. {وبذلك أمرت} تام. وليس كذلك، هما كافيان.'),
+          (6, 163, 4, 'وبذلك أمرت', 'كاف', 'وقال الدينوري: {لا شريك له} تمام. {وبذلك أمرت} تام. وليس كذلك، هما كافيان.'),
+          (57, 13, 19, 'له باب', 'كاف', 'وقال نافع والدينوري {له باب} تمام، وقالا {قالوا بلى} تمام، وهما كافيان.'),
+          (57, 14, 5, 'قالوا بلى', 'كاف', 'وقال نافع والدينوري {له باب} تمام، وقالا {قالوا بلى} تمام، وهما كافيان.')]
 # «ومثله {X} الثاني» items the builder put on the FIRST occurrence:
 # (surah, ayah, wpos, quote) → (ayah, wpos).
 MOVES = {
@@ -116,6 +131,8 @@ REPAIR = {
     2693: (37, 18),       # «والأبصار» ends 24:37, not 24:36
 }
 REPORTED = {2542: 'الدينوري'}
+# a ruling the book relays and then corrects: (surah, ayah, wpos, quote, grade) → scholar
+RELAYED_BY = {(6, 163, 4, 'وبذلك أمرت', 'تام'): 'الدينوري'}   # «… وليس كذلك، هما كافيان»
 # «{…} كاف عند أصحاب التمام … وهو عندي تام» (4:123): الداني's own verdict is تام
 REGRADE = {877: 'تام'}     # «وقال الدينوري: ((ذلك هو الضلال البعيد يدعو)) تام»
 
@@ -234,6 +251,10 @@ def apply(con, found):
         stats['relayed_labelled'] += cur.execute(
             "UPDATE classical SET reported_from=? WHERE id=? AND COALESCE(reported_from,'')<>?",
             (name, rid, name)).rowcount
+    for (s, a, w, q, g), name in RELAYED_BY.items():
+        stats['relayed_labelled'] += cur.execute(
+            "UPDATE classical SET reported_from=? WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
+            "AND quote=? AND grade=? AND COALESCE(reported_from,'')<>?", (name, s, a, w, q, g, name)).rowcount
     for rid, g in REGRADE.items():
         stats['regraded_own'] += cur.execute(
             "UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?", (g, g, rid, g)).rowcount
@@ -241,7 +262,8 @@ def apply(con, found):
     rows += [(s, a, w, q, g, rest[0] if rest else f'{q} {g}') for s, a, w, q, g, *rest in MANUAL]
     for s, a, w, q, g, note in rows:
         have = cur.execute("SELECT id, grade FROM classical WHERE source='muktafa' AND surah=? "
-                           "AND ayah=? AND wpos=?", (s, a, w)).fetchall()
+                           "AND ayah=? AND wpos=? AND reported_from IS NULL AND grade_raw<>'رؤوس الآي'",
+                           (s, a, w)).fetchall()
         if any(h[1] == g for h in have):
             continue
         if len(have) == 1 and q == cur.execute("SELECT quote FROM classical WHERE id=?",

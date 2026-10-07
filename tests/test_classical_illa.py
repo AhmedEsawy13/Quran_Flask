@@ -249,3 +249,25 @@ def test_manar_rulings_on_a_repeated_word_follow_book_order(rows):
             if not lo < r['wpos'] < hi and any(lo < o < hi for o in occ):
                 bad.append((s, a, r['wpos'], r['quote']))
     assert not bad, bad[:5]
+
+
+@pytest.mark.parametrize('source,surah,ayah,wpos,grade', [
+    # every «{X} GRADE» the book states has a row (2026-10-07 recall check)
+    ('muktafa', 2, 255, 49, 'تام'),    # «{العلي العظيم} تمام الكلام»
+    ('muktafa', 54, 5, 4, 'تام'),      # «{بالغة} كاف على الوجهين. {النذر} تام»
+    ('muktafa', 6, 163, 4, 'كاف'),     # «وقال الدينوري … تام. وليس كذلك، هما كافيان»
+    ('muktafa', 57, 14, 5, 'كاف'),     # «وقالا {قالوا بلى} تمام، وهما كافيان»
+    ('nahhas', 3, 122, 7, 'حسن'),      # the grade on the next line after «}»
+    ('nahhas', 7, 202, 6, 'كاف'),
+    ('anbari', 7, 49, 6, 'حسن'),       # «(لا ينالهم الله برحمة) [49] وقف حسن:»
+])
+def test_rulings_recalled_from_the_book(rows, source, surah, ayah, wpos, grade):
+    assert any((r['source'], r['surah'], r['ayah'], r['wpos'], r['grade']) == (source, surah, ayah, wpos, grade)
+               for r in rows)
+
+
+def test_a_relayed_ruling_and_the_authors_correction_both_stand(rows):
+    """6:163 «وقال الدينوري: … {وبذلك أمرت} تام. وليس كذلك، هما كافيان»."""
+    got = {(r['grade'], r['reported_from']) for r in rows
+           if (r['source'], r['surah'], r['ayah'], r['wpos']) == ('muktafa', 6, 163, 4)}
+    assert got == {('تام', 'الدينوري'), ('كاف', None)}

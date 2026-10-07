@@ -76,7 +76,15 @@ _OTHER_BEFORE = re.compile(r'(?:وقال\s+غيره|وعند\s+غيره|عند\s
                            r'(?:و)?(?:ال)?(التمام|الكافي|الحسن)\s+عند\s+غيره(?:ما|هم)?\s*$')
 # second opinion on the same quote: «وعند غيره تام»، «وهو عند غيره كاف»، «وأبو حاتم يذهب إلى أنه كاف»
 _SECOND = re.compile(r'(?:و(?:هو\s+)?عند\s+' + _NAME + r'|و' + _NAME + r'\s+يذهب\s+إلى\s+أنه|وقال\s+' + _NAME + r'\s*:?)\s+'
-                     r'(?:(?:قطع|وقف)\s+)?' + _GW + r'(?![ء-ي])')
+                     r'(?:هو\s+)?(?:(?:قطع|وقف)\s+)?' + _GW + r'(?![ء-ي])')
+# the other forms of a second view on the same quote; «وكذا {B}» after it
+# continues THIS view, not the first: «{A} تم وهو كاف عند أبي حاتم وكذا {B}»،
+# «وغيره يقول هو الوقف الصالح وكذا»، «وخولف في هذا … ولكنه قطع صالح وكذا»
+_SECOND_GRADE_FIRST = re.compile(r'(?:^|[\s،.])و(?:هو\s+)?(?:(?:قطع|وقف)\s+)?' + _GW + r'\s+عند\s+' + _NAME +
+                                 r'(?=\s*(?:$|[،.{]|\s+و))')
+_SECOND_SAYS = re.compile(r'(?:^|[\s،.])و' + _NAME + r'\s+يقول\s+(?:هو\s+)?(?:(?:ال)?(?:وقف|قطع)\s+)?(?:ال)?'
+                          r'(تمام|تام|كافي|كاف|حسن|صالح)(?![ء-ي])')
+_SECOND_OWN = re.compile(r'(?:^|[\s،.])(?:ولكنه|لكنه|ولكن\s+هو)\s+(?:(?:قطع|وقف)\s+)?' + _GW + r'(?![ء-ي])')
 # «{X} قال الأخفش: هذا التمام»، «{X} قال أبو حاتم: كاف»
 _SAID_AFTER = re.compile(r'^(?:و)?قالت?\s+' + _NAME + r'\s*:\s*(?:هذا\s+|هو\s+)?(?:(?:قطع|وقف|القطع|الوقف)\s+)?'
                          r'(التمام|تمام|تام|الكافي|كافٍ|كاف|حسن|صالح)(?![ء-ي])')
@@ -144,6 +152,15 @@ class Ruling:
     note: str = ''
 
 
+# words that may stand between «قال X» and the quote it introduces
+_INTRO_WORDS = {'و', 'ومن', 'من', 'الوقف', 'وقف', 'القطع', 'قطع', 'التمام', 'تمام', 'التام', 'الكافي', 'الحسن',
+                'الصالح', 'هذا', 'هو', 'عنده', 'قوله', 'جل', 'وعز', 'عز', 'وجل', 'تعالى', 'الله', 'قال', 'ثم',
+                'في', 'أيضا', 'والتمام', 'والوقف', 'والقطع', 'والكافي', 'الكلام', 'بعده', 'على',
+                'قول', 'عند', 'فيه', 'فيها', 'أول', 'الوقوف', 'الواضح', 'وإن', 'شئت', 'جعلت', 'إن', 'ذلك'}
+# «وقال غيره: هو قطع كاف، والتمام {X}»: the speaker goes on to introduce X
+_INTRODUCES = re.compile(r'(?:و?(?:ال)?(?:تمام|كافي|وقف|قطع)|ومن\s+(?:ال)?(?:وقف|تمام|كافي))(?:\s+(?:عنده|فيه|بعده))?\s*:?\s*$')
+
+
 def _speaker(text, pos, prev_end=0):
     """Scholar whose words the quote at `pos` is: a «قال NAME» between the
     previous quote and this one that introduces it directly («قال أبو حاتم
@@ -157,8 +174,9 @@ def _speaker(text, pos, prev_end=0):
     for rx_ in (_SPEAKER, _SPEAKER_AFTER):
         for m in rx_.finditer(gap):
             rest = gap[m.end():].strip(' :،{')
-            if len(rest) > 30:
-                continue
+            if len(rest) > 30 or (any(w not in _INTRO_WORDS for w in re.findall(r'[ء-ي]+', rest))
+                                  and not _INTRODUCES.search(rest)):
+                continue                  # «وقال نصير: أكره أن أقف على النون الثقيلة {X}»
             named = name(m.group(1), strict=True) or named
     if named in (BREAK, SELF_MARK):
         return None
@@ -196,7 +214,7 @@ def parse(text):
         nxt = quotes[i + 1][0] if i + 1 < len(quotes) else len(text)
         prv = quotes[i - 1][1] if i else 0
         prv_s = quotes[i - 1][0] if i else 0
-        after = text[e:nxt].lstrip(' ،')
+        after = text[e:nxt].lstrip(' ،\n\t')        # the grade may start the next line
         before = text[prv:s].rstrip()
         reading = bool(_READING.search(text[max(prv, s - 120):s]) or
                        re.search(r'على\s+قراءة|قراءة\s+من|من\s+قرأ', text[e:min(nxt, e + 90)]))
@@ -300,14 +318,34 @@ def parse(text):
                 if w2 not in (None, BREAK, SELF_MARK) and (g2, w2) != (g, by):
                     out.append(Ruling(s, e, q, g2, w2, 'second', reading, note=_clause(text, s, e, prv_s)))
         # a second view on the same quote
-        m = _SECOND.search(tail[:80]) if how == 'after' else None
-        if m:
-            who = name(m.group(1) or m.group(2) or m.group(3))
-            who = None if who in (SELF_MARK, BREAK) else who
-            g2 = _G[m.group(4)]
-            if g2 != g:
-                if who:
+        seconds = []
+        if how == 'after':
+            seg = tail[:120]
+            m = _SECOND.search(seg)
+            if m:
+                seconds.append((m.start(), _G[m.group(4)], name(m.group(1) or m.group(2) or m.group(3))))
+            m = _SECOND_GRADE_FIRST.search(seg)
+            if m:
+                seconds.append((m.start(), _G[m.group(1)], name(m.group(2))))
+            m = _SECOND_SAYS.search(seg)
+            if m:
+                seconds.append((m.start(), _G[m.group(2)], name(m.group(1))))
+            m = _SECOND_OWN.search(seg)
+            if m:
+                # «وقال غيره ليس بتمام ولكنه قطع صالح»: still the named speaker
+                said = list(re.finditer(r'(?:^|[\s،.])(?:وقال|و)\s*' + _NAME + r'\s*:?\s+(?:ليس|غير|هو)', seg[:m.start()]))
+                who_ = name(said[-1].group(1)) if said else None
+                seconds.append((m.start(), _G[m.group(1)], who_ if who_ not in (None, BREAK) else SELF_MARK))
+        for pos2, g2, who in sorted(seconds):
+            if who is None or who == BREAK:
+                continue
+            if re.search(r'(?<![ء-ي])(?:ليس|لا|غير|لم)(?![ء-ي])', seg[pos2:pos2 + 60].split('{')[0]):
+                continue                  # «وقال أبو حاتم ليس في قصة ذا النون تمام»
+            who = None if who == SELF_MARK else who
+            if (g2, who) != (g, by):
+                if who or by:
                     out.append(Ruling(s, e, q, g2, who, 'second', reading, note=_clause(text, s, e, prv_s)))
+                grades[i], bys[i] = g2, who      # what a following «وكذا» continues
     # back-propagate «{A} وكذا {B} grade» to A
     for i in range(len(quotes) - 1, 0, -1):
         if grades[i - 1] is None and grades[i] not in (None, 'NEG'):

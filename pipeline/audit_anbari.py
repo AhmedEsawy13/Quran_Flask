@@ -37,7 +37,7 @@ DB = os.path.join(ROOT, 'data', 'classical_waqf.db')
 OUT = os.path.join(ROOT, 'pipeline', 'review', 'anbari_audit.jsonl')
 
 _G = (r'(?:وقف\s+)?(لا يحسن الوقف|ليس بوقف|لا يوقف|التمام|التام|أتم|تمام|تام|كافٍ|كاف|'
-      r'أحسن|حسن|صالح|قبيح)(?=[\s،.؛\]]|$)'
+      r'أحسن|حسن|صالح|قبيح)(?=[\s،.؛:\]]|$)'
       # «فمن قرأ (يأمرنا) حسن أن يقف على (وما الرحمن)»: grades the NEXT quote
       r'(?!\s*(?:الوقف|له\s+أن|أن\s+[تيأن]))')
 _GRADE_AFTER = re.compile(r'^[\s،:؛]*\[?' + _G)       # «[تام]» too

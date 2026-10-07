@@ -52,7 +52,12 @@ CURATED_BY = {(2, 'حذر الموت والله محيط بالكافرين', '�
               # «{وتراهم يعرضون عليها خاشعين} تمام عند بعضهم وأكثر أصحاب التمام …»
               (42, 'وتراهم يعرضون عليها خاشعين', 'تام'): 'بعضهم',
               # «وأما قول الأخفش المعنى {وإذ واعدنا موسى} تمام … فمخالف للظاهر»
-              (2, 'وإذ واعدنا موسى', 'تام'): 'الأخفش'}
+              (2, 'وإذ واعدنا موسى', 'تام'): 'الأخفش',
+              # «قال أبو حاتم {والقرآن الحكيم} {إنك لمن المرسلين} كاف، قال والتمام
+              # {على صراط مستقيم}. وغلط في القولين جميعا»
+              (36, 'إنك لمن المرسلين', 'كاف'): 'أبو حاتم', (36, 'على صراط مستقيم', 'تام'): 'أبو حاتم',
+              # «قال محمد بن يزيد: قال لي المازني {فستبصر ويبصرون} تمام»
+              (68, 'فستبصر ويبصرون', 'تام'): 'المازني'}
 # 6:137–139: the text repeats «{فذرهم وما يفترون} افتراء عليه قطع حسن وكذا …»,
 # so the «وكذا» chain after it is حسن (of «افتراء عليه»), not the تام before
 REGRADE = {(6, 'سيجزيهم بما كانوا يفترون', 'تام'): 'حسن', (6, 'فهم فيه شركاء', 'تام'): 'حسن',
@@ -62,7 +67,10 @@ REGRADE = {(6, 'سيجزيهم بما كانوا يفترون', 'تام'): 'حس
 # عليكم حكيم}» is 24:58; «وقال محمد بن عيسى {من بعد ما تبين لهم الهدى}» 47:25
 MOVES = {(24, 18, 'والله عليكم حكيم'): (58, 48), (47, 32, 'من بعد ما تبين لهم الهدى'): (25, 10),
          # «والتمام {عند} غيره {إن الله عزيز غفور}»: the copy braced «عند»
-         (35, 39, 'عند'): (28, 16)}
+         (35, 39, 'عند'): (28, 16),
+         # «لأن ما بعده نعت للمؤمنين إلى قوله {الذين يرثون الفردوس}… يكون التمام
+         # {الذين يرثون الفردوس}»: the verse (23:11) ends the description
+         (23, 11, 'الذين يرثون الفردوس'): (11, 5)}
 # (surah, ayah, quote as parsed) → (quote, reported_from) the book means
 QUOTE_FIX = {(35, 28, 'عند'): ('إن الله عزيز غفور', 'غيره')}
 # «ذوات قل» items the parser seated nowhere (they cite الفلق / الناس)
@@ -91,7 +99,7 @@ def plan(con):
                 ops.append(('attribute', rid, who))
     for (s, a0, q), (a, w) in MOVES.items():
         for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND ayah=? "
-                                  "AND quote=?", (s, a0, q)):
+                                  "AND quote=? AND NOT (ayah=? AND wpos=?)", (s, a0, q, a, w)):
             ops.append(('move', rid, (a, w)))
     for (s, a0, q), fix in QUOTE_FIX.items():
         for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND ayah IN (?, ?) "
@@ -173,9 +181,13 @@ def main():
         st = apply(con)
         # a move can land a row on a twin that the same pass already merged
         # around: repeat until nothing changes (the second pass is a no-op)
-        while sum(st.values()):
+        for _ in range(5):
+            if not sum(st.values()):
+                break
             print('applied:', st)
             st = apply(con)
+        else:
+            raise SystemExit(f'audit_nahhas does not converge: {st}')
     else:
         ops = plan(con)
         print(len(ops), 'changes:', {k: sum(1 for o in ops if o[0] == k) for k in ('attribute', 'move', 'regrade', 'delete', 'insert')})

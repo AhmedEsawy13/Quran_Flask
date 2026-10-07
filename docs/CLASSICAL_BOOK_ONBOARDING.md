@@ -241,3 +241,22 @@ Run over all four books after the quranpedia pass, each disagreement read in the
   `test_manar_rulings_on_a_repeated_word_follow_book_order`.
 - Fresh 60-row read after the fixes: 57/60; the three misses (2:282
   «إحداهما» the first, 2:51 الأخفش, and a ruling covered above) fixed.
+
+## Recall and chain attribution (2026-10-07, third pass)
+
+- **Recall check**: every «{X} GRADE» / «(X) GRADE» the four books state was
+  matched to a row. Gaps fixed: المكتفى «تمام القصة / تمام الكلام» and «… وليس
+  كذلك، هما كافيان» (`audit_muktafa_ordinals.MANUAL`, `RELAYED_BY` — a relayed
+  ruling and الداني's correction both stand); النحاس grades on the line after
+  «}» (`after` now strips newlines, +11); ابن الأنباري «وقف حسن:» (colon after
+  the grade). منار had no real gaps (its section file overlaps at the last
+  surahs; the DB rows are in the right surahs).
+- **النحاس chains**: «وكذا {B}» continues the LAST view stated on the quote
+  before it — «وهو كاف عند أبي حاتم»، «وقال غيره هو كاف»، «وغيره يقول هو الوقف
+  الصالح»، «ولكنه قطع صالح» — not the first. «قال X» introduces a quote only if
+  what stands between is waqf vocabulary or ends in a grade that introduces it
+  («وقال غيره: هو قطع كاف، والتمام {X}»); «قال نافع: تم {X}» and «وقال نصير:
+  أكره …» end X's scope. 40-row chain read: ~32/40 → ~38/40.
+- `audit_nahhas --apply` repeats at most five passes and refuses to spin;
+  MOVES skip rows already at their target.
+- Final 100-row read (25 per book): 99/100, the miss (23:11) fixed.
