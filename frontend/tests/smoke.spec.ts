@@ -93,9 +93,12 @@ test("landing exposes the migrated paths", async ({page}) => {
 
 test("command palette jumps to an ayah in any tool", async ({page}) => {
   await page.goto("/");
-  await page.keyboard.press("/");
   const palette = page.getByRole("dialog", {name: "انتقل إلى آية أو أداة"});
-  await expect(palette).toBeVisible();
+  // A slow CI runner can take the key before the shortcut listener hydrates.
+  await expect(async () => {
+    await page.keyboard.press("/");
+    await expect(palette).toBeVisible({timeout: 1_000});
+  }).toPass({timeout: 15_000});
   await palette.getByRole("combobox").fill("البقرة ٢٥٥");
   await expect(palette.getByRole("option", {name: /ادرس وقفها في مُكْث/})).toHaveAttribute("aria-selected", "true");
   await palette.getByRole("combobox").press("Enter");

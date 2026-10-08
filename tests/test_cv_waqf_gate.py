@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import pytest
 
-from pipeline.cv_waqf import gate
+# gate imports the scoring chain, which needs OpenCV at import time.
+pytest.importorskip('cv2')
+
+from pipeline.cv_waqf import gate  # noqa: E402
 
 
 def _result(q_exact=0.965, q_wrong=4, q_prec=0.98, b_exact=0.93):

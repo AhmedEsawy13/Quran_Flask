@@ -94,7 +94,7 @@ JOURNEYS: tuple[Journey, ...] = (
         f"/cv-waqf?edition={quote('البحرين')}&page=17&mode=label", ".cvw-title",
         "!document.querySelector('#cvw-img').hidden"
         " && document.querySelector('#cvw-img').naturalWidth > 0"
-        " && document.querySelectorAll('#cvw-word option').length > 1"
+        " && document.querySelector('#cvw-meta').textContent.includes('تسمية محفوظة')"
         " && document.querySelector('#cvw-empty').hidden",
     ),
 )

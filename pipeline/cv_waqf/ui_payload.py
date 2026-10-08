@@ -6,7 +6,6 @@ from pipeline.cv_waqf.layout_geo import estimate_layout_words, mark_roi_for_word
 from pipeline.cv_waqf.marks import edition_marks_for_ayahs
 from pipeline.cv_waqf.pages import ensure_page_image
 from pipeline.cv_waqf.preprocess import load_bgr, preprocess_page
-from pipeline.cv_waqf.run_page import detect_page
 
 from core.waqf_glyphs import (
     GLYPH_FOR_CLASS as _GLYPH,
@@ -15,6 +14,14 @@ from core.waqf_glyphs import (
 )
 
 _GLYPH_NAME = {code: name for code, _glyph, name in _SYMBOL_META}
+
+
+def detect_page(*args, **kwargs):
+    # run_page needs OpenCV; import it on call so the layout-only fallback
+    # (modules/cv_waqf_ui) can still import _seat_roi on servers without cv2.
+    from pipeline.cv_waqf.run_page import detect_page as _detect
+
+    return _detect(*args, **kwargs)
 
 
 def _glyph_fields(symbol: str | None) -> dict:

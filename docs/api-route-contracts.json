@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 120,
+  "route_count": 122,
   "routes": [
     {
       "auth": "editor",
@@ -665,6 +665,40 @@
         200,
         400,
         401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.cv_waqf_complete",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD",
+        "POST"
+      ],
+      "path": "/api/cv-waqf/complete",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/cv_waqf_ui.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "complete",
+        "edition"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
         404,
         503
       ],
@@ -761,6 +795,7 @@
         "count",
         "edition",
         "labels",
+        "layout_note",
         "page",
         "slug",
         "words"
@@ -976,6 +1011,48 @@
       "source": "modules/quran_api.py",
       "success_cache": "no-store",
       "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_fill_line",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/fill-line",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "cloud_saved",
+        "crossed_page",
+        "filled_words",
+        "ok",
+        "page",
+        "preview",
+        "undo_available"
+      ]
     },
     {
       "auth": "editor",
