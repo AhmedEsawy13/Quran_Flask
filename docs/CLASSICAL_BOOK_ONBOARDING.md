@@ -286,3 +286,24 @@ each flag was then re-read by hand:
   inside their book-order window, 55 confident, each read — 53 seated
   (`SEAT_HELD`), 2 rejected (not rulings on the quoted phrase). 44 stay held.
 - Guarded by `tests/test_classical_random_check.py`.
+
+### Second round: attribution and reading conditions (2026-10-08)
+
+160 rows aimed at the weak spots (`make_attribution_packets.py`, brief
+`INSTRUCTIONS_ATTRIBUTION.md`): per book 20 credited rows + 20 own-voice rows
+whose note names another scholar or a reading. 149 OK, 10 WRONG, 2 UNSURE;
+re-read by hand, 8 real plus 3 found while verifying:
+
+- **منار**: 11:18 «{على ربهم} الثاني، قال محمد بن جرير: تم الكلام» was stored
+  as لا (the «لا يوقف» is on «الظالمين», now its own row) and «الأول» sat on
+  the second «ربهم»; 30:25 a duplicate on «الأرض» credited to نافع; 2:7 a
+  «لا» on «سمعهم» credited to الفراء (the author's inference under نصب
+  «غشاوة»); 13:33 the Hafs side is «مكرهم» ليس بوقف («وصُدّوا» الكوفيون), the
+  كاف is the other reading's. `NOTE_FIX` replaces a note that carried another
+  ruling's clause. منار keeps both sides of a reading split as rows whose notes
+  name the reading (12:105 جائز «على قراءة عكرمة» + Hafs لا) — the explicit-ruling
+  test requires the book's own head grade to stay.
+- **المكتفى**: 29:58 «تام عند ابن الأنباري. وليس كذلك» (`RELAYED_BY`).
+- **النحاس**: 2:259 نافع (and the missing «وكذا قال {أعلم أن الله …}»), 35:35
+  الأخفش, 38:45 بعضهم; 38:45 «واذكر عبدنا إبراهيم» is ابن عباس's reading
+  (`DROP_NON_HAFS`). «قال X {A} تمام الكلام {B} قطع تام» stays own-voice at B.

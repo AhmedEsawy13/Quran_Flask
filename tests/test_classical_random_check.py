@@ -81,3 +81,48 @@ def test_nahhas_rejected_held_quotes_stay_unseated(con):
     for q in ('وإذ قال إبراهيم رب اجعل هذا البلد آمنا', 'قالوا طائركم أين ذكرتم'):
         rows = con.execute("SELECT wpos, conf FROM classical WHERE source='nahhas' AND quote=?", (q,)).fetchall()
         assert rows and all(w is None and c == 0 for w, c in rows)
+
+
+# ── second round: attribution and reading conditions (2026-10-08) ─────────────
+
+def test_manar_11_18_ibn_jarir_tamm_on_the_second_rabbihim(con):
+    # «{على ربهم} الأول كاف … {على ربهم} الثاني، قال محمد بن جرير: تم الكلام …
+    # فعلى قوله لا يوقف على «الظالمين»»
+    got = rulings(con, 'manar', 11, 18)
+    assert {(10, 'كاف', ''), (17, 'تام', 'محمد بن جرير'), (22, 'لا', 'محمد بن جرير')} <= got
+    assert (17, 'لا', 'محمد بن جرير') not in got
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,expected', [
+    (12, 105, 4, {(4, 'جائز', ''), (4, 'لا', '')}),   # جائز for رفع/نصب «والأرض» (note says so); Hafs جر: لا
+    (13, 33, 28, {(28, 'لا', '')}),       # كاف only for «وصَدّوا»; Hafs «وصُدّوا»: ليس بوقف
+    (13, 33, 23, {(23, 'كاف', '')}),
+    (2, 7, 5, {(5, 'تام', ''), (5, 'جائز', '')}),   # no «لا» credited to الفراء (نصب «غشاوة»)
+    (30, 25, 10, {(10, 'جائز', '')}),     # «{ثم إذا دعاكم دعوة} جائز», the author's own
+])
+def test_manar_hafs_side_of_reading_splits(con, surah, ayah, wpos, expected):
+    assert rulings(con, 'manar', surah, ayah, wpos) == expected
+
+
+def test_manar_30_25_no_duplicate_on_al_ard(con):
+    assert not rulings(con, 'manar', 30, 25, 12)
+
+
+def test_muktafa_29_58_relayed_from_ibn_al_anbari(con):
+    # «{أجر العاملين} تام عند ابن الأنباري. وليس كذلك …»
+    assert rulings(con, 'muktafa', 29, 58, 16) == {(16, 'تام', 'ابن الأنباري')}
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (2, 259, 55, 'حسن', 'نافع'),       # «وعن نافع … {ثم نكسوها لحما} قطع حسن وكذا قال {…}»
+    (2, 259, 66, 'حسن', 'نافع'),       # «وكذا قال {أعلم أن الله على كل شيء قدير}»
+    (35, 35, 13, 'تام', 'الأخفش'),     # «… إلى {ولا يمسنا فيها لغوب} هذا التمام عنده»
+    (38, 45, 7, 'كاف', 'بعضهم'),       # «وقال بعض أهل التمام … ومن قرأ {عبادنا} فوقفه الكافي …»
+])
+def test_nahhas_relayed_views(con, surah, ayah, wpos, grade, by):
+    assert (wpos, grade, by) in rulings(con, 'nahhas', surah, ayah, wpos)
+
+
+def test_nahhas_non_hafs_abdana_dropped(con):
+    # «من قرأ بقراءة ابن عباس {واذكر عبدنا} فوقفه الكافي {واذكر عبدنا إبراهيم}»
+    assert not rulings(con, 'nahhas', 38, 45, 2)

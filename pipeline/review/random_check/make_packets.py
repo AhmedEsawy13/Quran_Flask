@@ -50,26 +50,31 @@ def excerpts(src, quote, n=4, span=700):
         out.append({'line': line, 'text': texts[src][a:b]})
     return out, len(hits)
 
-con = sqlite3.connect('data/classical_waqf.db'); con.row_factory = sqlite3.Row
-packets = []
-for src in ['muktafa', 'manar', 'anbari', 'nahhas']:
-    rows = con.execute("select * from classical where source=? order by random()", (src,)).fetchall()
-    random.shuffle(rows := list(rows))
-    for r in rows[:60]:
-        words = verse_word_texts(f"{r['surah']}:{r['ayah']}")[1]
-        ex, nhits = excerpts(src, r['quote'] or r['stop_word']) or ([], 0)
-        packets.append({
-            'id': r['id'], 'book': src, 'surah': r['surah'], 'ayah': r['ayah'], 'wpos': r['wpos'],
-            'seated_word': words[r['wpos']] if r['wpos'] is not None and 0 <= r['wpos'] < len(words) else '(no word seat)' if r['wpos'] is None else '?',
-            'verse_numbered': ' '.join(f'{i}:{w}' for i, w in enumerate(words)),
-            'quote': r['quote'], 'grade': r['grade'], 'grade_raw': r['grade_raw'],
-            'reported_from': r['reported_from'], 'note': r['note'], 'illa': r['illa'],
-            'follows': r['follows'], 'conf': r['conf'],
-            'book_file': str(SRC / FILES[src]), 'quote_hits_in_book': nhits, 'excerpts': ex,
-        })
-random.shuffle(packets)
-# 8 batches, each mixing books
-for b in range(8):
-    (OUT / f'batch{b+1}.json').write_text(json.dumps(packets[b::8], ensure_ascii=False, indent=1), encoding='utf-8')
-print(len(packets), {s: sum(p['book'] == s for p in packets) for s in FILES},
-      'no excerpt:', sum(not p['excerpts'] for p in packets))
+def main():
+    con = sqlite3.connect('data/classical_waqf.db'); con.row_factory = sqlite3.Row
+    packets = []
+    for src in ['muktafa', 'manar', 'anbari', 'nahhas']:
+        rows = con.execute("select * from classical where source=? order by random()", (src,)).fetchall()
+        random.shuffle(rows := list(rows))
+        for r in rows[:60]:
+            words = verse_word_texts(f"{r['surah']}:{r['ayah']}")[1]
+            ex, nhits = excerpts(src, r['quote'] or r['stop_word']) or ([], 0)
+            packets.append({
+                'id': r['id'], 'book': src, 'surah': r['surah'], 'ayah': r['ayah'], 'wpos': r['wpos'],
+                'seated_word': words[r['wpos']] if r['wpos'] is not None and 0 <= r['wpos'] < len(words) else '(no word seat)' if r['wpos'] is None else '?',
+                'verse_numbered': ' '.join(f'{i}:{w}' for i, w in enumerate(words)),
+                'quote': r['quote'], 'grade': r['grade'], 'grade_raw': r['grade_raw'],
+                'reported_from': r['reported_from'], 'note': r['note'], 'illa': r['illa'],
+                'follows': r['follows'], 'conf': r['conf'],
+                'book_file': str(SRC / FILES[src]), 'quote_hits_in_book': nhits, 'excerpts': ex,
+            })
+    random.shuffle(packets)
+    # 8 batches, each mixing books
+    for b in range(8):
+        (OUT / f'batch{b+1}.json').write_text(json.dumps(packets[b::8], ensure_ascii=False, indent=1), encoding='utf-8')
+    print(len(packets), {s: sum(p['book'] == s for p in packets) for s in FILES},
+          'no excerpt:', sum(not p['excerpts'] for p in packets))
+
+
+if __name__ == '__main__':
+    main()
