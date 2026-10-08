@@ -68,10 +68,11 @@ def uncertain_rows():
 def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     result = review.muktafa_accuracy(review_db=review_db)
     # +12 rulings recalled from the book (2026-10-07: «تمام القصة», «هما كافيان»…),
-    # −1 blanket verse-end row an explicit ruling replaced
-    assert result['total_extracted'] == 6762
-    assert result['matched'] == 6762
-    assert result['confident'] == 6762
+    # −1 blanket verse-end row an explicit ruling replaced; −3 blanket rows on
+    # 33:45–47, which «ومثله {وكيلا}. وكذلك الفواصل إلى …» (33:48 on) never covered
+    assert result['total_extracted'] == 6759
+    assert result['matched'] == 6759
+    assert result['confident'] == 6759
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

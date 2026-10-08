@@ -383,7 +383,7 @@ def missing_before_rulings(con):
             va, own = verse_at(text, qs, m.end(), acount)
             key = (surah, squash(q), g)
             a, w = BEFORE_SEAT.get(key) or seat(surah, va, q, acount, next_marker(text, m.end(), va, acount), own)
-            if a is None or (surah, a, w, g) in seen:
+            if a is None or (surah, a, w, g) in seen or (surah, a, w, g) in DROP_ANY:
                 continue
             seen.add((surah, a, w, g))
             held = key not in BEFORE_CONFIRMED and key not in HAFS_SIDE and key not in SERVE and \
@@ -436,6 +436,17 @@ def missing_graded_entries(con):
 # (طعامه) تام»; and a chain re-read from a repeated sentence (3:31 «ويغفر لكم
 # ذنوبكم» is «ومثله» of حسن, the تام is «والله غفور رحيم»'s)
 DROP = {(80, 24, 3, 'تام'), (3, 31, 10, 'تام')}
+# same, whatever the stored raw wording: 2:210 «لا يحسن أن تقف على (الملائكة)» is
+# for معاذ's «والملائكةِ وقضاءِ الأمر», not the Hafs text (Hafs side: HAFS_SIDE)
+DROP_ANY = {(2, 210, 10, 'قبيح')}
+# a relayed view the builder stored as the author's: «وروي عن الحسن أنه قال:
+# (ويقولون حجرا) وقف تام» — (surah, ayah, wpos, grade) → who
+RELAYED_BY = {(25, 22, 8, 'تام'): 'الحسن'}
+# rulings the builder cannot read because the book's [n] is garbled
+# («(ويقولون حجرا محجورا) [22 ي حسن»): (surah, ayah, wpos, grade, raw, quote, note)
+BOOK_ADD = [(25, 22, 9, 'حسن', 'حسن', 'ويقولون حجرا محجورا',
+             '(ويقولون حجرا محجورا) حسن. والمعنى «يقولون: أي وتقول الملائكة: '
+             'حراما محرما أن تكون لهم البشرى»')]
 
 HOLD = {(5, 'والجروح قصاص'), (7, 'وهم يلعبون'), (7, 'وجاءوا بسحر عظيم'),
         (28, 'ما كان لهم الخيرة'), (69, 'ولا بقول كاهن')}
@@ -496,6 +507,8 @@ def apply(con, recs):
             continue
         if (r['surah'], squash(r['quote']), r['grade']) in HAND_CONFIRMED | set(SERVE):
             continue
+        if (r['surah'], r['ayah'], r['wpos'], r['grade']) in {b[:4] for b in BOOK_ADD}:
+            continue
         if (r['surah'], squash(r['quote'])) in OTHER_SURAH:
             continue
         if r['status'] in ('no_source_ruling', 'unplaced'):
@@ -543,6 +556,23 @@ def apply(con, recs):
         n = cur.execute("DELETE FROM classical WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
                         "AND grade=? AND grade_raw=grade", key).rowcount
         st['dropped'] += n
+    for key in DROP_ANY:
+        st['dropped'] += cur.execute("DELETE FROM classical WHERE source='anbari' AND surah=? AND ayah=? "
+                                     "AND wpos=? AND grade=?", key).rowcount
+    for (surah, a, w, g), who in RELAYED_BY.items():
+        st['relayed_curated'] += cur.execute(
+            "UPDATE classical SET reported_from=? WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
+            "AND grade=? AND COALESCE(reported_from,'')<>?", (who, surah, a, w, g, who)).rowcount
+    for surah, a, w, g, raw, q, note in BOOK_ADD:
+        if not cur.execute("SELECT 1 FROM classical WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
+                           "AND grade=? AND conf=1", (surah, a, w, g)).fetchone():
+            seq = (cur.execute("SELECT seq FROM classical WHERE source='anbari' AND surah=? AND "
+                               "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
+                               (surah, a, a, w)).fetchone() or (0,))[0]
+            cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, grade_raw, "
+                        "note, seq, conf, reported_from) VALUES ('anbari',?,?,?,?,?,?,?,?,?,1,NULL)",
+                        (surah, a, w, mm.verse_words(surah, a)[w], q, g, raw, note, seq))
+            st['inserted_book_add'] += 1
     for surah, a, w, g, q, note in HAFS_ADD:
         if not cur.execute("SELECT 1 FROM classical WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
                            "AND grade=? AND conf=1", (surah, a, w, g)).fetchone():

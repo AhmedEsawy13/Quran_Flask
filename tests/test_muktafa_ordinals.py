@@ -77,6 +77,7 @@ def test_blanket_audit_has_nothing_left_to_apply():
     conn = sqlite3.connect(CLASSICAL_WAQF_DATABASE)
     try:
         _, rows = blanket.expand(conn)
+        add, drop = blanket.plan(conn, rows)
     finally:
         conn.close()
-    assert not rows
+    assert not add and not drop

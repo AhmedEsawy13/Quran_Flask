@@ -260,3 +260,29 @@ Run over all four books after the quranpedia pass, each disagreement read in the
 - `audit_nahhas --apply` repeats at most five passes and refuses to spin;
   MOVES skip rows already at their target.
 - Final 100-row read (25 per book): 99/100, the miss (23:11) fixed.
+
+## Random check by independent reviewers (2026-10-08)
+
+240 rows (60 per book, `pipeline/review/random_check/make_packets.py`) were
+split into 8 batches and read against the book by separate reviewers following
+`pipeline/review/random_check/INSTRUCTIONS.md`. 224 OK, 12 WRONG, 4 UNSURE;
+each flag was then re-read by hand:
+
+- **المكتفى blanket scope**: «ومثله {X}. وكذلك الفواصل إلى …» anchored on an
+  earlier verse when X ends two verses of the surah (33:3/33:48 «وكيلا»):
+  `ANCHOR_FIX`. The audit now recomputes the whole expansion and removes rows
+  that fall out of scope (it used to only add). Open «بعد» statements still
+  run to the next statement or the surah end (the 14:42 and 25:15 flags are
+  kept by design); «وكذلك رؤوس الآي بعد ((مسلمون)) تام» reads «… بعد [كافية].
+  ((مسلمون)) تام».
+- **منار**: 43:80 أبو حاتم's كاف sits on «بلى» (the «وقيل» on «نجواهم» has no
+  grade); 3:45 «والآخرة» is only جائز; 17:104 «لفيفا» is the author's own
+  (السجاوندي gives the reason). `REPORTED_FIX` can now clear a name (None).
+- **ابن الأنباري**: 25:22 «[22 ي» is garbled — the own حسن on «محجورا» is
+  added (`BOOK_ADD`) and the تام relayed «عن الحسن» (`RELAYED_BY`); 2:210
+  «لا يحسن» on «الملائكة» is معاذ's non-Hafs reading (`DROP_ANY`).
+- **النحاس**: 11:3 أبو حاتم, 4:162 «على مذهب سيبويه» (`CURATED_BY`). The
+  sample's one unseated row led to all 97 held unseated rows: fuzzy-matched
+  inside their book-order window, 55 confident, each read — 53 seated
+  (`SEAT_HELD`), 2 rejected (not rulings on the quoted phrase). 44 stay held.
+- Guarded by `tests/test_classical_random_check.py`.

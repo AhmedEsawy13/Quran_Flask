@@ -53,6 +53,11 @@ _GRADE_BEFORE = re.compile(r'(والتمام|التمام|فالتمام)\s*$')
 # «ورؤوس الآي من قوله {ولقد آتينا إبراهيم رشده} إلى آخر القصة كافية» —
 # the story's end is not quoted: الأنبياء 51–73 (74 begins «ولوطا»).
 MANUAL_RANGES = [(21, 51, 73, 'كاف', 'ورؤوس الآي من قوله {ولقد آتينا إبراهيم رشده} إلى آخر القصة كافية')]
+# «ومثله {X}» whose X ends two verses of the surah, so the nearest unique
+# entry is an earlier one: (surah, X) → the verse the book means.
+# 33: «... ((أجرا كريما)). ومثله {وكيلا}. وكذلك الفواصل إلى قوله {تكون
+# قريبا}» — {وكيلا} is 33:48 (also 33:3), so the range starts after 48.
+ANCHOR_FIX = {(33, 'وكيلا', 'تكون قريبا'): 48}
 _UPTO = re.compile(r'إلى\s+(?:قوله\s*:?\s*)?(?:\{([^{}]{1,80})\}|\(\(([^()]{1,60})\)\))')
 # «وهو رأس آية»، «ليس برأس آية»، verse-count remarks — not rulings
 _NOT = re.compile(r'(وهو|ليس ب|وليس ب|وهما|عند|في عدد|في غير)\s*$')
@@ -140,6 +145,9 @@ def statements(con):
                 return rows[0][0] if len(rows) == 1 else None
 
             anchor = next((a for a in (unique_ayah(e) for e in reversed(prev)) if a), 0)
+            for (fs, fq, fup), fa in ANCHOR_FIX.items():
+                if fs == surah and prev and prev[-1]['quote'] == fq and fup in span:
+                    anchor = fa
             # head of the «ومثله» chain the statement closes
             j = len(prev) - 1
             while j > 0 and re.search(r'(ومثله|وكذلك|ومثلها|ونحوه)\s*[:،]?\s*$',
@@ -184,8 +192,11 @@ def expand(con):
     by_surah = collections.defaultdict(list)
     for st in stmts:
         by_surah[st['surah']].append(st)
+    # blanket rows themselves don't count as rulings: the expansion is
+    # recomputed in full so a row that falls out of scope can be removed
     ruled = {(s, a, w) for s, a, w in con.execute(
-        "SELECT surah, ayah, wpos FROM classical WHERE source='muktafa' AND wpos IS NOT NULL")}
+        "SELECT surah, ayah, wpos FROM classical WHERE source='muktafa' AND wpos IS NOT NULL "
+        "AND grade_raw<>?", (RAW,))}
     out, seen = [], set()
     for surah, sts in by_surah.items():
         n = rx.surah_ayah_count(surah)
@@ -219,8 +230,24 @@ def note_for(statement):
     return rx.clean_note(f'حكم عام: «{statement}»', limit=300)
 
 
+def plan(con, rows):
+    """(rows to insert, ids of blanket rows the expansion no longer covers)."""
+    have = {}
+    for rid, s, a, w, g, note in con.execute(
+            "SELECT id, surah, ayah, wpos, grade, note FROM classical WHERE source='muktafa' AND grade_raw=?",
+            (RAW,)):
+        have.setdefault((s, a, w), []).append((rid, g, note))
+    want = {(s, a, w): (g, note_for(st)) for s, a, w, g, st in rows}
+    add = [r for r in rows if (r[0], r[1], r[2]) not in have]
+    drop = [rid for key, rs in have.items() for rid, _g, _n in rs if key not in want]
+    return add, drop
+
+
 def apply(con, rows):
+    rows, drop = plan(con, rows)
     cur = con.cursor()
+    if drop:
+        cur.execute(f"DELETE FROM classical WHERE id IN ({','.join('?' * len(drop))})", drop)
     n = 0
     for s, a, w, g, statement in rows:
         seq = (cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND "
@@ -238,7 +265,7 @@ def apply(con, rows):
         "WHERE e.source='muktafa' AND e.surah=classical.surah AND e.ayah=classical.ayah AND "
         "e.wpos=classical.wpos AND e.grade_raw<>? AND e.conf=1)", (RAW, RAW)).rowcount
     con.commit()
-    return {"inserted": n, "stale_removed": stale}
+    return {"inserted": n, "out_of_scope_removed": len(drop), "stale_removed": stale}
 
 
 def main(argv=None):
@@ -249,8 +276,12 @@ def main(argv=None):
     args = ap.parse_args(argv)
     con = sqlite3.connect(args.db)
     stmts, rows = expand(con)
-    print(f'{len(stmts)} blanket statements → {len(rows)} unruled verse-ends',
-          dict(collections.Counter(r[3] for r in rows)))
+    add, drop = plan(con, rows)
+    print(f'{len(stmts)} blanket statements → {len(rows)} covered verse-ends; '
+          f'{len(add)} to add, {len(drop)} out of scope', dict(collections.Counter(r[3] for r in add)))
+    for rid in drop:
+        print('  out of scope:', con.execute("SELECT id, surah, ayah, wpos, grade FROM classical WHERE id=?",
+                                              (rid,)).fetchone())
     for st in stmts[:args.samples]:
         print(f"  {st['surah']}:{st['anchor']} {st['grade']} «{st['statement']}» → {st['verses']}")
     if args.apply:

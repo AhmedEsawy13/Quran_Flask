@@ -611,7 +611,11 @@ DEMOTE = {48071, 57755,
           59954,      # 4:153 «ثم»: «{أرنا الله جهرة} جائز، ومثله «بظلمهم»، و «ثم»؛ لترتيب
                       # الأخبار» — «ثم» is why one may stop on «بظلمهم» (row 59953)
           59445,      # 78:36 «حسابا» كاف — «{وفاقا} كاف، ومثله: «حسابا»» is 78:27 (row there)
-          47571}      # 2:234 «بالمعروف» — a rasm list («فموصول باتفاق»), not a ruling
+          47571,      # 2:234 «بالمعروف» — a rasm list («فموصول باتفاق»), not a ruling
+          57354,      # 43:80 «نجواهم» كاف — «وقيل: الوقف على «نجواهم»» names no grade;
+                      # أبو حاتم's كاف is on «بلى» (row 57376)
+          47997}      # 3:45 «والآخرة» ليس بوقف — the book rules it جائز (47996); only
+                      # «كهلا» is «فلا يوقف عليه»
 # rows on a repeated word that the book does mean (checked): not suspects
 REVIEWED_OK = {(60, 1, 10),      # «بالمودة» الأولى ليس بوقف (2026-10-07)
                (2, 218, 12), (2, 255, 43), (7, 195, 3), (7, 195, 8), (7, 195, 13),
@@ -629,7 +633,12 @@ REGRADE = {
 # relayed opinions that were stored as the author's own
 REPORTED_FIX = {50554: 'قيل', 59098: 'الأخفش', 46946: 'شيخ الإسلام',
                 # «كاف إن جعلت اللام للقسم على قول أبي حاتم» / «كما يقول أبو حاتم»
-                55651: 'أبو حاتم', 55982: 'أبو حاتم'}
+                55651: 'أبو حاتم', 55982: 'أبو حاتم',
+                # 43:80 «{ونجواهم بلى} كاف عند أبي حاتم» (57354 on «نجواهم» dropped)
+                57376: 'أبو حاتم',
+                # 17:104 «… و «لفيفا» كلها وقوف كافية. قال السجاوندي: …» — the
+                # grade is the author's; السجاوندي is quoted for the reason only
+                52866: None}
 # grade_mismatch keys where منار's inherited ruling is absent and only another
 # (alternate / relayed / conditional) grade was stored: add it.
 ADD_GRADE = {
@@ -773,7 +782,7 @@ def apply(recs, path):
         stats['repaired'] += 1
     for rid, who in REPORTED_FIX.items():
         stats['reattributed'] += cur.execute(
-            "UPDATE classical SET reported_from=? WHERE id=? AND COALESCE(reported_from,'')<>?",
+            "UPDATE classical SET reported_from=? WHERE id=? AND COALESCE(reported_from,'')<>COALESCE(?,'')",
             (who, rid, who)).rowcount
     for rid, g in REGRADE.items():
         stats['regraded'] += cur.execute("UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?",
