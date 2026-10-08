@@ -6,13 +6,13 @@
   },
   "engine": {
     "npm_package": "@quran.ws/engine",
-    "npm": "0.4.0",
-    "acknowledged_git_tag": "v0.4.0",
+    "npm": "0.6.0",
+    "acknowledged_git_tag": "v0.6.0",
     "consumed": "lite-fork"
   },
   "lite": {
     "source_path": "web/lite.mjs",
-    "source_ref": "v0.4.0",
+    "source_ref": "v0.6.0",
     "athar_extensions": [
       "path family/mark columns",
       "hideWaqf",
