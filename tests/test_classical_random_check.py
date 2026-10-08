@@ -126,3 +126,91 @@ def test_nahhas_relayed_views(con, surah, ayah, wpos, grade, by):
 def test_nahhas_non_hafs_abdana_dropped(con):
     # «من قرأ بقراءة ابن عباس {واذكر عبدنا} فوقفه الكافي {واذكر عبدنا إبراهيم}»
     assert not rulings(con, 'nahhas', 38, 45, 2)
+
+
+# ── third round: wide check weighted toward منار (2026-10-08) ─────────────────
+
+_ORD = {'الأول': 0, 'الأولى': 0, 'الثاني': 1, 'الثانية': 1, 'الثالث': 2, 'الثالثة': 2}
+
+
+def test_manar_ordinal_heads_sit_on_the_named_occurrence(con):
+    """Every «{X} [n] الأول/الأولى/الثاني…» head has a row on THAT occurrence of X
+    in ayah n (the extraction used to put them on the last one)."""
+    import json
+    import re
+    import sys
+    from core.verse_words import verse_word_texts
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'pipeline'))
+    import build_classical_waqf as rx
+    path = os.path.join(os.path.dirname(__file__), '..', 'pipeline', 'classical_sources',
+                        'manar_shamela_sections.json')
+    sections = json.load(open(path, encoding='utf-8'))
+    head = re.compile(r'\{([^{}]{1,80})\}\s*\[(\d{1,3})\]\s*(الأولى|الأول|الثانية|الثاني|الثالثة|الثالث)(?![ء-ي])')
+    bad = []
+    for s in range(1, 115):
+        sec = sections[str(s)]
+        text = re.sub(r'[ً-ٰٟۖ-ۭ]', '', sec['text'] if isinstance(sec, dict) else sec)
+        for m in head.finditer(text):
+            a, o = int(m.group(2)), _ORD[m.group(3)]
+            if a > rx.surah_ayah_count(s):
+                continue
+            q = [rx.norm(t) for t in re.sub(r'\s*\(\d+\)\s*$', '', m.group(1)).split()]
+            w = [rx.norm(x) for x in verse_word_texts(f'{s}:{a}')[1]]
+            occ = [i + len(q) - 1 for i in range(len(w) - len(q) + 1) if w[i:i + len(q)] == q]
+            if len(occ) < 2 or o >= len(occ):
+                continue
+            if not con.execute("SELECT 1 FROM classical WHERE source='manar' AND surah=? AND ayah=? AND wpos=?",
+                               (s, a, occ[o])).fetchone():
+                bad.append((s, a, m.group(1), m.group(3)))
+    assert not bad
+
+
+def test_manar_names_are_nominative(con):
+    assert not con.execute("SELECT 1 FROM classical WHERE source='manar' AND "
+                           "(reported_from LIKE 'أبي %' OR reported_from LIKE '% وأبي %')").fetchone()
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (9, 55, 4, 'حسن', 'أبو حاتم'),       # «… متصلا بالعذاب … وهو قول أبي حاتم»
+    (43, 32, 24, 'تام', 'أبو حاتم'),     # «{سخريا} تام عند أبي حاتم، ومثله: «مما يجمعون»»
+    (56, 10, 1, 'كاف', ''),              # «{ما أصحاب الميمنة} كاف، ومثله … «والسابقون السابقون»»
+    (2, 89, 15, 'لا', ''),               # «ومثله في عدم الوقف «كفروا»؛ لأن جواب «لما» الأولى …»
+    (2, 33, 6, 'لا', ''),                # «والثاني ليس بوقف»
+    (38, 26, 22, 'لا', ''),
+])
+def test_manar_third_round(con, surah, ayah, wpos, grade, by):
+    assert (wpos, grade, by) in rulings(con, 'manar', surah, ayah, wpos)
+
+
+def test_manar_third_round_drops(con):
+    assert not rulings(con, 'manar', 5, 116, 34)              # «في نفسي» is not named
+    assert (15, 'كاف', '') not in rulings(con, 'manar', 2, 69, 15)   # the كاف is «ما لونها»
+
+
+@pytest.mark.parametrize('ayah', [67, 103, 121, 139, 158, 174, 190])
+def test_muktafa_shuara_refrain(con, ayah):
+    # «{إن في ذلك لآية} كاف. {مؤمنين} تام. {العزيز الرحيم} أتم منه. وكذلك جميع ما في السورة من ذلك»
+    got = rulings(con, 'muktafa', 26, ayah)
+    end = max(w for w, _, _ in got)
+    assert (end, 'تام', '') in got                              # «مؤمنين»
+    assert any(g == 'كاف' and w < end for w, g, _ in got)       # «لآية»
+    assert rulings(con, 'muktafa', 26, ayah + 1, 4) == {(4, 'تام', '')}
+
+
+@pytest.mark.parametrize('surah,ayah,quote,by', [
+    (5, 95, 'أو عدل ذلك صياما', 'الأخفش'),
+    (58, 8, 'حسبهم جهنم يصلونها', 'يعقوب'),
+])
+def test_nahhas_third_round(con, surah, ayah, quote, by):
+    assert con.execute("SELECT reported_from FROM classical WHERE source='nahhas' AND surah=? AND ayah=? "
+                       "AND quote=?", (surah, ayah, quote)).fetchone() == (by,)
+
+
+@pytest.mark.parametrize('surah,ayah,grade', [
+    (2, 1, 'تام'), (10, 1, 'تام'),                       # «{الم} حيث وقع»، «{الر} حيث وقع»
+    (27, 61, 'كاف'), (27, 64, 'كاف'),                    # «{أإله مع الله} حيث وقع»
+    (54, 15, 'تام'), (54, 51, 'تام'),                    # «وكذلك ما فيها ((من مدكر))»
+    (77, 15, 'تام'), (77, 49, 'تام'), (77, 48, 'تام'),   # «{للمكذبين} … وكذلك ما قبل {ويل …}»
+])
+def test_muktafa_surah_wide_statements_reach_every_occurrence(con, surah, ayah, grade):
+    assert any(g == grade and by == '' for _, g, by in rulings(con, 'muktafa', surah, ayah))

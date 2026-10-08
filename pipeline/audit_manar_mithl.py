@@ -457,6 +457,21 @@ def misplaced_rows(path, recs):
 # on «قُلِ ٱللَّهُ خَٰلِقُ» (mid-sentence) instead of «قُلِ ٱللَّهُۚ»; 22:2
 # «سكارى» sat on the second one although its own note says «دون الثاني».
 MOVES = {
+    # third random check (2026-10-08): ordinal / named occurrence of a repeated word
+    49804: (128, 8),     # 6:128 «{من الإنس} [128] الأول حسن» (sat on the second, w12)
+    52003: (28, 5),      # 13:28 «{بذكر الله} [28] الأولى كاف؛ للابتداء بأداة التنبيه» (sat on w8)
+    # «{X} [n] الأول/الأولى» heads the extraction put on the LAST occurrence (sweep of every
+    # ordinal head against the verse, phrase-matched)
+    46796: (33, 3),      # 2:33 «{بأسمائهم} الأول حسن. والثاني ليس بوقف» (EXTRA)
+    48282: (145, 15),    # 3:145 «{نؤته منها} الأول حسن. و {نؤته منها} الثاني أحسن منه» (EXTRA)
+    48518: (7, 5), 48519: (7, 5),        # 4:7 «{والأقربون} الأول حسن، وقيل: كاف»
+    48823: (95, 13), 48824: (95, 13),    # 4:95 «{وأنفسهم} الأول حسن، وقال الأخفش: تام»
+    49132: (17, 9),      # 5:17 «{ابن مريم} الأول كاف»
+    49225: (46, 11),     # 5:46 «{من التوراة} الأول حسن»
+    49913: (158, 13),    # 6:158 «{آيات ربك} الأولى حسن»
+    56419: (26, 16),     # 38:26 «{عن سبيل الله} الأول تام عند نافع … والثاني ليس بوقف» (EXTRA)
+    46982: (89, 15),     # 2:89 «ومثله في عدم الوقف «كفروا»؛ لأن جواب «لما» الأولى دل عليه جواب
+                         # الثانية» — «على الذين كفروا», not «كفروا به» ({كفروا به} حسن)
     51340: (18, 10),     # 11:18 «{على ربهم} الأول كاف» sat on the second «ربهم» (w17)
     47261: (165, 15), 47262: (165, 15), 47522: (230, 23), 47626: (253, 17),
     47770: (282, 21), 47793: (284, 16), 47794: (284, 16), 48026: (55, 7),
@@ -624,7 +639,9 @@ DEMOTE = {48071, 57755,
           55332,      # 30:25 «الأرض» جائز نافع — duplicate of 55419 on «دعوة», the
                       # book's quote «{ثم إذا دعاكم دعوة} جائز» in the author's voice
           52020,      # 13:33 «ليس بوقف لمن قرأ ببنائه للمفعول» is about «مكرهم» (EXTRA), not «من القول»
-          60022}      # 13:33 «مكرهم» كاف — the active «وصَدّوا» reading only (NOT_RULINGS)
+          60022,      # 13:33 «مكرهم» كاف — the active «وصَدّوا» reading only (NOT_RULINGS)
+          49426,      # 5:116 «في نفسي» حسن — «ومثله «ما في نفسك»» names the other (59966)
+          46901}      # 2:69 كاف on «فاقع لونها» — the كاف is «ما لونها» (59918); {لونها} جائز
 # rows on a repeated word that the book does mean (checked): not suspects
 REVIEWED_OK = {(60, 1, 10),      # «بالمودة» الأولى ليس بوقف (2026-10-07)
                (2, 218, 12), (2, 255, 43), (7, 195, 3), (7, 195, 8), (7, 195, 13),
@@ -654,7 +671,11 @@ REPORTED_FIX = {50554: 'قيل', 59098: 'الأخفش', 46946: 'شيخ الإس�
                 57376: 'أبو حاتم',
                 # 17:104 «… و «لفيفا» كلها وقوف كافية. قال السجاوندي: …» — the
                 # grade is the author's; السجاوندي is quoted for the reason only
-                52866: None}
+                52866: None,
+                # «{ولا أولادهم} [55] حسن، إن جعل … متصلا بالعذاب … وهو قول أبي حاتم»
+                50784: 'أبو حاتم',
+                # «{سخريا} [32] تام عند أبي حاتم، ومثله: «مما يجمعون»»
+                57275: 'أبو حاتم'}
 # grade_mismatch keys where منار's inherited ruling is absent and only another
 # (alternate / relayed / conditional) grade was stored: add it.
 ADD_GRADE = {
@@ -684,6 +705,11 @@ EXTRA = [
     (89, 21, 0, 'كلا', 'تام', 'وقال أبو عمرو: «كلا» في الموضعين تام؛ لأنهما بمعنى: لا، وقال غيره: لا يوقف عليها في الموضعين'),
     (11, 18, 22, 'الظالمين', 'لا', 'فعلى قوله [محمد بن جرير] لا يوقف على «الظالمين»؛ لأن الله إنما لعن '
      'الظالمين الذين وصفهم خاصة بقوله: «الذين يصدون عن سبيل الله»'),
+    (2, 33, 6, 'بأسمائهم', 'لا', 'والثاني ليس بوقف؛ لأن قوله: «قال ألم أقل لكم» جواب لـ «ما»'),
+    (3, 145, 21, 'نؤته منها', 'حسن', 'و {نؤته منها} [145] الثاني أحسن منه'),
+    (38, 26, 22, 'عن سبيل الله', 'لا', 'والثاني ليس بوقف؛ لأن ما بعده خبر «إن»'),
+    (56, 10, 1, 'والسابقون السابقون', 'كاف', '{ما أصحاب الميمنة (8)} كاف، ومثله: «ما أصحاب المشأمة» '
+     '«والسابقون السابقون» الثاني منهما خبر عن الأول'),
     (13, 33, 28, 'مكرهم', 'لا', 'وليس بوقف لمن قرأ «وصُدّوا» ببنائه للمفعول [قراءة حفص]، أي: بضم الصاد؛ '
      'لعطفه على «زين»، وبها قرأ الكوفيون'),
     # 12:105 «{في السماوات} جائز، على قراءة عكرمة … وكذا من قرأ بالنصب … وليس بوقف لمن
@@ -811,6 +837,13 @@ def apply(recs, path):
     for rid, g in REGRADE.items():
         stats['regraded'] += cur.execute("UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?",
                                          (g, g, rid, g)).rowcount
+    # the extraction kept the book's genitive («عند أبي حاتم»): name scholars in
+    # the nominative like the other three books
+    for gen in [r[0] for r in cur.execute("SELECT DISTINCT reported_from FROM classical WHERE source='manar' "
+                                          "AND (reported_from LIKE 'أبي %' OR reported_from LIKE '% وأبي %')")]:
+        nom = re.sub(r'(^|\sو)أبي ', r'\1أبو ', gen)
+        stats['nominative'] += cur.execute("UPDATE classical SET reported_from=? WHERE source='manar' AND "
+                                           "reported_from=?", (nom, gen)).rowcount
     for rid, note in NOTE_FIX.items():
         stats['renoted'] += cur.execute("UPDATE classical SET note=?, illa=NULL WHERE id=? AND COALESCE(note,'')<>?",
                                         (note, rid, note)).rowcount

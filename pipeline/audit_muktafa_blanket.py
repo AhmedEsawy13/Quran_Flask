@@ -53,6 +53,10 @@ _GRADE_BEFORE = re.compile(r'(والتمام|التمام|فالتمام)\s*$')
 # «ورؤوس الآي من قوله {ولقد آتينا إبراهيم رشده} إلى آخر القصة كافية» —
 # the story's end is not quoted: الأنبياء 51–73 (74 begins «ولوطا»).
 MANUAL_RANGES = [(21, 51, 73, 'كاف', 'ورؤوس الآي من قوله {ولقد آتينا إبراهيم رشده} إلى آخر القصة كافية')]
+# verse lists a statement names without a range: (surah, ayahs, grade, statement).
+# 77: «{للمكذبين} تام، جميع ما في السورة. وكذلك ما قبل {ويل يومئذ للمكذبين} فيها»
+MANUAL_VERSES = [(77, (14, 18, 23, 27, 33, 36, 39, 44, 46, 48), 'تام',
+                  'وكذلك ما قبل {ويل يومئذ للمكذبين} فيها')]
 # «ومثله {X}» whose X ends two verses of the surah, so the nearest unique
 # entry is an earlier one: (surah, X) → the verse the book means.
 # 33: «... ((أجرا كريما)). ومثله {وكيلا}. وكذلك الفواصل إلى قوله {تكون
@@ -217,7 +221,8 @@ def expand(con):
                     continue
                 seen.add((surah, *seat))
                 out.append((surah, seat[0], seat[1], st['grade'], st['statement']))
-    for surah, a0, a1, g, statement in MANUAL_RANGES:
+    for surah, a0, a1, g, statement in MANUAL_RANGES + [(s, a, a, g, st) for s, ayahs, g, st in MANUAL_VERSES
+                                                           for a in ayahs]:
         for a in range(a0, a1 + 1):
             seat = verse_end_seat(surah, a)
             if seat and (surah, *seat) not in ruled and (surah, *seat) not in seen:

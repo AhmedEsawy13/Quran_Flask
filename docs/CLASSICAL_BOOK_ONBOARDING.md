@@ -307,3 +307,32 @@ re-read by hand, 8 real plus 3 found while verifying:
 - **النحاس**: 2:259 نافع (and the missing «وكذا قال {أعلم أن الله …}»), 35:35
   الأخفش, 38:45 بعضهم; 38:45 «واذكر عبدنا إبراهيم» is ابن عباس's reading
   (`DROP_NON_HAFS`). «قال X {A} تمام الكلام {B} قطع تام» stays own-voice at B.
+
+### Third round: wide check weighted toward منار (2026-10-08)
+
+250 new rows (`make_wide_packets.py`, brief `INSTRUCTIONS_WIDE.md`): 150 منار
+in four strata (plain, «ومثله» chain, reading-conditional, repeated word) +
+~33 per other book; 10 reviewers. 232 OK, 16 WRONG, 2 UNSURE; re-read by hand.
+
+- **منار ordinal heads**: three flags were «{X} [n] الأول/الأولى» on the last
+  occurrence. A sweep of every ordinal head (phrase-matched against the verse)
+  found 10, all moved (`MOVES`), plus the book's «والثاني ليس بوقف / أحسن منه»
+  rows that were missing (`EXTRA`). Guarded by
+  `test_manar_ordinal_heads_sit_on_the_named_occurrence`.
+- **منار**: 2:89 «ومثله في عدم الوقف «كفروا»» is the first «كفروا»; 5:116 and
+  2:69 rows on the wrong item dropped; 9:55 and 43:32 أبو حاتم; 56:10 the
+  «ومثله» كاف added; scholar names normalized to the nominative («أبي حاتم» →
+  «أبو حاتم», 31 rows).
+- **المكتفى**: الشعراء's refrain «{إن في ذلك لآية} كاف. {مؤمنين} تام. {العزيز
+  الرحيم} أتم منه. وكذلك جميع ما في السورة من ذلك» applied to its seven repeats
+  (21 rows), replacing the general «ورؤوس الآي بعد كافية». A sweep of every
+  other «حيث وقع / جميع ما في السورة» statement added 26 more: 2:1 «الم», 10:1
+  «الر», 27:61–64 «أإله مع الله», 54's six «فهل من مدكر», 77's ten «ويل يومئذ
+  للمكذبين»; the verse before each «ويل» («وكذلك ما قبل …») is a blanket row
+  (`audit_muktafa_blanket.MANUAL_VERSES`) so its citation traces to the book.
+- **النحاس**: 5:95 الأخفش, 58:8 يعقوب.
+- Not changed (read and kept): 70:44 «ذلة» لا is the conditioned يعقوب-reading
+  side beside the Hafs تام; 20:62 كاف on the «إنّ هذان» reading is the book's
+  only ruling there, conditioned; «قال X {A} … {B} قطع …» stays own-voice at B.
+- Many reviewers noted `note`s that also carry a neighbouring ruling's text —
+  cosmetic (grades, seats and attributions right), not yet cleaned.
