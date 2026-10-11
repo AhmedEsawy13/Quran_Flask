@@ -184,7 +184,17 @@ MANUAL += [(7, 74, 16, 'وتنحتون الجبال بيوتا', 'كاف', '{ع�
            (9, 30, 9, 'وقالت النصارى المسيح ابن الله', 'كاف', '[وقالت النصارى المسيح ابن الله. كاف]'),
            (74, 31, 45, 'ويهدي من يشاء', 'كاف', '{تسعة عشر} كاف. ومثله {بهذا مثلا} [ومثله] {ويهدي من يشاء}'),
            (74, 53, 0, 'كلا', 'تام', '{منشرة} تام. {كلا} أيضا تام. أي: لا يؤتاها.'),
-           (89, 14, 2, 'إن ربك لبالمرصاد', 'تام', 'جواب القسم {إن ربك لبالمرصاد} وهو تام.')]
+           (89, 14, 2, 'إن ربك لبالمرصاد', 'تام', 'جواب القسم {إن ربك لبالمرصاد} وهو تام.'),
+           # round 8: «جواب القسم: {إن إلهكم لواحد} وهو وقف كاف. {ورب المشارق} التمام.»
+           (37, 4, 2, 'إن إلهكم لواحد', 'كاف', 'جواب القسم: {إن إلهكم لواحد} وهو وقف كاف.'),
+           (37, 5, 6, 'ورب المشارق', 'تام', '{ورب المشارق} التمام.')]
+# relayed views with no row at all (RELAYED_BY only relabels): inserted credited
+# (surah, ayah, wpos, quote, grade, reported_from, note)
+RELAYED_ADD = [
+    (38, 25, 1, 'فغفرنا له', 'تام', 'يعقوب والدينوري',
+     'وقال يعقوب والدينوري: التمام ((فغفرنا له)) ثم يبتدأ ((ذلك)) أي الأمر ذلك'),
+    (68, 6, 1, 'بأيكم المفتون', 'تام', 'غيره', 'وقال غيره {بأيكم المفتون} التمام. ومثله {بالمهتدين} ومثله {فيدهنون}'),
+]
 # the Hafs side of a reading split whose other side is the stored row: inserted
 # beside it (MANUAL would regrade a lone row with the same quote instead)
 HAFS_SIDE = [
@@ -216,6 +226,11 @@ MANUAL += [(6, 25, 12, 'وفي آذانهم وقرا', 'كاف', '{أو كذب �
 RELAYED_BY = {(6, 163, 4, 'وبذلك أمرت', 'تام'): 'الدينوري',   # «… وليس كذلك، هما كافيان»
               # «قال نصير بن يوسف ومحمد بن عيسى: الوقف على قوله: {أولياء} [كاف]»
               (60, 1, 7, 'أولياء', 'كاف'): 'نصير بن يوسف ومحمد بن عيسى',
+              # «وقال المازني: {ويبصرون} تام … وقال غيره {بأيكم المفتون} التمام. ومثله {بالمهتدين}
+              # ومثله {فيدهنون}» — the chain continues غيره's view
+              (68, 5, 1, 'ويبصرون', 'تام'): 'المازني',
+              (68, 7, 10, 'بالمهتدين', 'تام'): 'غيره',
+              (68, 9, 3, 'فيدهنون', 'تام'): 'غيره',
               # «{أجر العاملين} تام عند ابن الأنباري. وليس كذلك من حيث لم يأت ل {الذين صبروا} خبر بعد»
               (29, 58, 16, 'أجر العاملين', 'تام'): 'ابن الأنباري',
               # «{ولا أماني أهل الكتاب} كاف عند أصحاب التمام … وهو عندي تام» (his تام is its own row)
@@ -366,6 +381,16 @@ def apply(con, found):
                          cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND ayah=? "
                                      "AND wpos=?", (s, a, w)).fetchone()[0]))
             stats['hafs_side'] += 1
+    for s, a, w, q, g, by, note in RELAYED_ADD:
+        if not cur.execute("SELECT 1 FROM classical WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
+                           "AND grade=? AND reported_from=?", (s, a, w, g, by)).fetchone():
+            seq = (cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND "
+                               "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
+                               (s, a, a, w)).fetchone() or (0,))[0]
+            cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, grade_raw, "
+                        "note, seq, conf, reported_from) VALUES ('muktafa',?,?,?,?,?,?,?,?,?,1,?)",
+                        (s, a, w, mm.verse_words(s, a)[w], q, g, g, note, seq, by))
+            stats['relayed_added'] += 1
     rows = [(r['surah'], r['ayah'], r['wpos'], r['quote'], r['grade'], r['note']) for r in found]
     rows += [(s, a, w, q, g, rest[0] if rest else f'{q} {g}') for s, a, w, q, g, *rest in MANUAL]
     for s, a, w, q, g, note in rows:

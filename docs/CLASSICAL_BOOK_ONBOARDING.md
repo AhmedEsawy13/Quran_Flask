@@ -483,3 +483,17 @@ third of the model's findings held up against the book. Fixed:
   (11:44) and also stops at «قد» (74:53 «قد استقصينا أمرها»).
 - **منار**: 15:72 «والوقف على «لعمرك» قبيح»; 44:5 «مرسلين» حسن is the
   author's (سعيد بن جبير's reading is the «لا» side).
+
+### Eighth passage check (2026-10-11, gpt-6-luna)
+
+24 fresh passages (`make_passages.py 8 manar:8,muktafa:8,anbari:8`); most model
+findings were by-design kinds or wrong (several cited evidence from another
+surah). Fixed:
+
+- **المكتفى**: 37:4–5 «جواب القسم: {X} وهو وقف كاف. {Y} التمام»; 68:5–9 «وقال
+  المازني … وقال غيره {بأيكم المفتون} التمام. ومثله …» credited (the chain
+  continues غيره); `RELAYED_ADD` inserts relayed views that had no row at all
+  (38:25 يعقوب والدينوري «فغفرنا له», 68:6 غيره) — RELAYED_BY only relabels.
+- **ابن الأنباري**: «[ومثله]:» (the editor's bracket) opens a chain (65:1).
+- **منار**: 34:13 ابن كثير is cited for the ياء, not the ruling; 57:4 stray
+  جائز beside «أحسن مما قبله» deleted.

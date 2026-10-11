@@ -450,3 +450,25 @@ def test_seventh_passage_check_drops(con):
     assert 'تام' not in {g for _, g, _ in rulings(con, 'muktafa', 60, 10, 46)}
     assert not rulings(con, 'muktafa', 15, 25, 5)
     assert not rulings(con, 'anbari', 74, 53, 0)          # «و (كلا) [53] قد استقصينا أمرها …»
+
+
+# ── eighth passage check (2026-10-11, reviewed by gpt-6-luna) ────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 37, 4, 2, 'كاف', ''),          # «جواب القسم: {إن إلهكم لواحد} وهو وقف كاف»
+    ('muktafa', 37, 5, 6, 'تام', ''),          # «{ورب المشارق} التمام»
+    ('muktafa', 38, 25, 1, 'تام', 'يعقوب والدينوري'),   # «التمام ((فغفرنا له))»
+    ('muktafa', 68, 5, 1, 'تام', 'المازني'),
+    ('muktafa', 68, 6, 1, 'تام', 'غيره'),      # «وقال غيره {بأيكم المفتون} التمام. ومثله …»
+    ('muktafa', 68, 9, 3, 'تام', 'غيره'),
+    ('manar', 34, 13, 8, 'لا', ''),            # ابن كثير is cited for the ياء, not the ruling
+    ('anbari', 65, 1, 11, 'حسن', ''),          # «[ومثله]: (وأحصوا العدة واتقوا الله ربكم)، …»
+    ('anbari', 65, 1, 25, 'حسن', ''),
+])
+def test_eighth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_eighth_passage_check_drops(con):
+    assert 'جائز' not in {g for _, g, _ in rulings(con, 'manar', 57, 4, 31)}   # stray beside «أحسن»
