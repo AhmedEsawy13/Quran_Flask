@@ -121,14 +121,15 @@ def grade_at(text, start, end):
     m = _COMPARATIVE_BEFORE.search(text[max(0, start - 20):start])
     if m:
         return _COMPARATIVE[m.group(1)], 'own'
-    pos, linked = start, False
+    # walk back through the list: «ومثله: (A) [3] (B) [4] (C)» — B and C are joined by
+    # «] (» or «، (» alone, so a connector may come first, but the chain only counts
+    # if it reaches a «ومثله / وكذلك» before the graded head
+    pos, mithl = start, False
     for _ in range(20):
-        gap_ok = _MITHL.search(text[max(0, pos - 16):pos])
-        if not gap_ok and linked:
-            gap_ok = re.search(r'[،,]\s*(?:و\s*)?$|\]\s*[،,]?\s*(?:و\s*)?$', text[max(0, pos - 8):pos])
-        if not gap_ok:
+        if _MITHL.search(text[max(0, pos - 16):pos]):
+            mithl = True
+        elif not re.search(r'[،,]\s*(?:و\s*)?$|\]\s*[،,]?\s*(?:و\s*)?$', text[max(0, pos - 8):pos]):
             break
-        linked = True
         prev = None
         for mm_ in re.finditer(r'\(([^()]{1,120})\)', text[max(0, pos - 600):pos]):
             prev = mm_
@@ -139,9 +140,9 @@ def grade_at(text, start, end):
         head_tail = re.sub(r'^\s*\[\d{1,3}\]', '', text[pe:pe + 90])
         g = _GRADE_AFTER.match(head_tail)
         if g:
-            return _MAP[g.group(1)], 'chain'
+            return (_MAP[g.group(1)], 'chain') if mithl else (None, None)
         if _NEG_AFTER.match(head_tail):
-            return 'NEG', 'chain'
+            return ('NEG', 'chain') if mithl else (None, None)
         pos = ps
     return None, None
 
@@ -556,9 +557,9 @@ def apply(con, recs):
                      seq, 0 if held else 1, None))
         st['held_conditional' if held else 'inserted_grade_before'] += 1
     for surah, a, w, g, q, note in missing_graded_entries(con):
-        seq = (cur.execute("SELECT seq FROM classical WHERE source='anbari' AND surah=? AND "
-                           "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
-                           (surah, a, a, w)).fetchone() or (0,))[0]
+        # after every row seated before it (the book may rule 2:256 «قد تبين» after 2:256 «لا انفصام»)
+        seq = cur.execute("SELECT COALESCE(MAX(seq), 0) FROM classical WHERE source='anbari' AND surah=? AND "
+                          "(ayah<? OR (ayah=? AND wpos<=?))", (surah, a, a, w)).fetchone()[0]
         cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, grade_raw, "
                     "note, seq, conf, reported_from) VALUES ('anbari',?,?,?,?,?,?,?,?,?,1,NULL)",
                     (surah, a, w, mm.verse_words(surah, a)[w], q, g, g, rx.clean_note(note, limit=400), seq))

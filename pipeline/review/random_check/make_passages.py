@@ -2,7 +2,7 @@
 reviewer lists every ruling the passage states and reconciles it with the DB
 rows for those verses: missing rulings, unsupported rows, wrong ones.
 
-Run from the repo root:  python3 pipeline/review/random_check/make_passages.py
+Run from the repo root:  python3 pipeline/review/random_check/make_passages.py [ROUND]
 """
 import json
 import random
@@ -15,9 +15,18 @@ sys.path.insert(0, 'pipeline')
 import audit_anbari  # noqa: E402
 import build_classical_waqf as rx  # noqa: E402
 
-OUT = Path('artifacts/waqf-random-check/passages')
+ROUND = sys.argv[1] if len(sys.argv) > 1 else ''          # e.g. «2»: a fresh draw
+OUT = Path('artifacts/waqf-random-check/passages' + ROUND)
 OUT.mkdir(parents=True, exist_ok=True)
-random.seed(20261011)
+random.seed(20261011 + (int(ROUND) if ROUND else 0))
+# surahs already drawn in earlier rounds are skipped per book
+DONE = {}
+for d in Path('artifacts/waqf-random-check').glob('passages*'):
+    if d != OUT:
+        for f in d.glob('batch*.json'):
+            if 'result' not in f.name:
+                for p in json.loads(f.read_text(encoding='utf-8')):
+                    DONE.setdefault(p['book'], set()).add(p['surah'])
 PLAN = {'manar': 8, 'nahhas': 6, 'muktafa': 6, 'anbari': 4}   # passages per book
 SPAN = {'manar': 2600, 'nahhas': 2400, 'muktafa': 2200, 'anbari': 2600}
 
@@ -48,7 +57,7 @@ def sections(book):
 
 passages = []
 for book, n in PLAN.items():
-    secs = {s: t for s, t in sections(book).items() if s > 1 and len(t) > 400}
+    secs = {s: t for s, t in sections(book).items() if s > 1 and len(t) > 400 and s not in DONE.get(book, ())}
     surahs = random.sample(sorted(secs), n)
     for s in surahs:
         t = secs[s]

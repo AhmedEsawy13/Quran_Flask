@@ -46,6 +46,17 @@ Write a JSON object to your result file:
 ]}
 ```
 `held_but_plain` = a held [held] row whose ruling the passage states plainly
-(it should be served). Be precise: report only what the passage decides.
+(it should be served).
+
+For every `missing` issue also give `"kind"`:
+- `plain` — a graded ruling (own or relayed) stated in its own right;
+- `in_note` — the ruling's text already sits in another row's note (typically
+  «وقيل: X» or a relayed view right after the author's own);
+- `conditional_side` — the «وليس بوقف إن …» / «وإلا فلا» side of a conditional
+  ruling whose other side has a row;
+- `ghayr_tamm` — ابن الأنباري's «غير تام» (or «ليس بتام» with no grade);
+- `ungraded` — a stop the passage names with no grade word («فالوقف على …»).
+
+Be precise: report only what the passage decides.
 Use your own uniquely named temp files if you script anything. Do not modify
 any file other than your result file. End with a short summary per passage.

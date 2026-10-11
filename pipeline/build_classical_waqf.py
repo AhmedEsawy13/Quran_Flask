@@ -917,6 +917,8 @@ def nahhas_sections(body):
         if num is None:
             continue
         last = num
+        # a graded quote the copy put in parentheses: «(ختامه مسك) قطع كاف» (23 places)
+        text = re.sub(r'\(([^(){}]{3,80})\)(?=\s*(?:قطع|وقف)\s+(?:تام|كاف|حسن|صالح))', r'{\1}', text)
         out.append((num, text))
     return out
 
@@ -1052,6 +1054,10 @@ def anbari_sections(body):
         if num is None:
             continue
         last = num
+        # the copy switches to {…} for its quotes in a few sections (المجادلة):
+        # where braces outnumber parentheses they are the section's quote marks
+        if len(re.findall(r'\{[^{}]{2,120}\}', text)) > len(re.findall(r'\([^()]{2,120}\)', text)):
+            text = re.sub(r'\{([^{}]{2,120})\}', r'(\1)', text)
         out.append((num, text))
     return out
 
