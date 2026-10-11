@@ -550,3 +550,15 @@ gaps were المكتفى general statements with no rows at all:
 - 77:7, 81:21 نافع, 81:27 / 28:25 «لا».
 - **منار**: 82:7 «وجوز بعضهم الوقف على: «فسواك» لمن خفف «فعدلك»» (Hafs reads
   it light) on «فسواك»; 112:3 «كذا وسمه بعضهم بالكافي» credited.
+
+### Coverage sweep (2026-10-11)
+
+1,637 of 6,236 verse ends had no المكتفى row. The 29 surahs over half uncovered
+were searched for general phrasing (`رؤوس الآي`, `الفواصل`, `رأس كل آية`, `بين
+ذلك`, `لا وقف … إلى`): most short late surahs simply have few rulings (the gap is
+the book's). One systemic fix: «قبل ذلك» / «قبل وبعد» ranges now start after the
+previous statement or at the surah start, as the docstring always said; «بين ذلك»
+keeps starting at the «ومثله» head (70:35 «{فأوعى} … ومثله {مكرمون} والفواصل بين
+ذلك» is between those two). +64 rows: 50:1–28, 19:1–20, 9:1–10, 5:1–30,
+16:78–88, 18:60–62, 59:1–8. Left as is: 76 «وبين ذلك وقوف كافية» and 79 «وبين
+ذلك وقوف كافية حسنة» (stops, not verse ends).

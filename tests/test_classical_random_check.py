@@ -532,3 +532,16 @@ def test_ninth_passage_check(con, book, surah, ayah, wpos, grade, by):
 def test_tenth_passage_check(con, book, surah, ayah, wpos, grade, by):
     got = rulings(con, book, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── coverage sweep (2026-10-11): «قبل» ranges reach back to the previous statement ──
+
+@pytest.mark.parametrize('surah,ayah', [(50, 5), (50, 28), (19, 3), (9, 6), (16, 85), (59, 5)])
+def test_qabl_ranges_reach_back(con, surah, ayah):
+    # «{بظلام للعبيد} كاف. وكذلك الفواصل قبل» (50:29); «ورؤوس الآي قبل وبعد كافية» (19:21, 9:11 …)
+    assert 'كاف' in {g for _, g, _ in rulings(con, 'muktafa', surah, ayah, None)}
+
+
+def test_bayna_dhalika_stays_between_the_items(con):
+    # «{فأوعى} تام. ومثله {مكرمون} والفواصل بين ذلك كافية» — not back to 70:1
+    assert not rulings(con, 'muktafa', 70, 9, None)

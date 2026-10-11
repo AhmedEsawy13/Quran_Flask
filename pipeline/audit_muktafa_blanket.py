@@ -145,6 +145,7 @@ def statements(con):
         last = surah
         entries = rx.parse_muktafa_entries(text)
         plain, idx = strip_map(text)
+        prev_anchor = 0                 # the last range statement's anchor in this surah
         for m in _SUBJ.finditer(plain):
             head = plain[max(0, m.start() - 30):m.start()]
             if _NOT.search(head):
@@ -216,9 +217,15 @@ def statements(con):
                     end = min(n, (anchor // 10 + 1) * 10)
                 elif has('آخر'):
                     end = n
-                verses = list(range(min(head_a, anchor), anchor + 1)) if before else []
+                # «بين ذلك»: between the items just listed (from the «ومثله» head); «قبل ذلك» /
+                # «قبل وبعد»: back to the previous statement or the surah start (50:29 «وكذلك
+                # الفواصل قبل», 19:21 «ورؤوس الآي قبل وبعد كافية»)
+                start = prev_anchor + 1 if has('قبل') else min(head_a, anchor)
+                verses = list(range(min(start, anchor), anchor + 1)) if before else []
                 if after:
                     verses.append(('after', anchor, end))
+            if subject != 'رأس الآية' and anchor:
+                prev_anchor = max(prev_anchor, anchor)
             yield {'surah': surah, 'anchor': anchor, 'grade': grade, 'pos': pos, 'single': subject == 'رأس الآية',
                    'statement': statement_text(plain, m.start(), m.end() + len(span)),
                    'verses': verses}
