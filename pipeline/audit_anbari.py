@@ -45,7 +45,7 @@ _MAP = {'التمام': 'تام', 'التام': 'تام', 'أتم': 'تام', '�
         'كافٍ': 'كاف', 'كاف': 'كاف', 'أحسن': 'حسن', 'حسن': 'حسن', 'صالح': 'صالح',
         'قبيح': 'قبيح', 'لا يحسن الوقف': 'قبيح', 'ليس بوقف': 'لا', 'لا يوقف': 'لا'}
 _MARK = re.compile(r'\[(\d{1,3})\]')
-_MITHL = re.compile(r'\[?(ومثله|ومثلها|وكذلك|وكذا)\]?(?:\s+(?:الوقف\s+)?على)?(?:\s+قوله)?\s*:?\s*$')  # «[ومثله]:» too
+_MITHL = re.compile(r'\[?(و?مثله|ومثلها|وكذلك|وكذا)\]?(?:\s+(?:الوقف\s+)?على)?(?:\s+قوله)?\s*:?\s*$')  # «[ومثله]:» too
 # a chain head that is NOT a stop grade: «(X) [4] غير تام. وكذلك: (Y)»
 _NEG_AFTER = re.compile(r'^[\s،:؛]*(?:وقف\s+)?(غير تام|ليس بتام|لا يتم|لا يحسن|لم يتم)')
 # a sentence opened by someone else's voice
@@ -106,7 +106,7 @@ def verse_near(text, start, end, acount, ayah):
     return min([va] + near, key=lambda v: (abs(v - ayah), v != va)), own
 
 
-_COMPARATIVE_BEFORE = re.compile(r'(?:^|[\s،.])و?(أتم|أحسن|أكفى)\s+منه(?:ما)?\s*:?\s*$')
+_COMPARATIVE_BEFORE = re.compile(r'(?:^|[\s،.])و?(أتم|أحسن|أكفى)\s+منه(?:ما|ن|م)?\s*:?\s*$')  # «وأحسن منهن:»
 _COMPARATIVE = {'أتم': 'تام', 'أحسن': 'حسن', 'أكفى': 'كاف'}
 
 

@@ -513,3 +513,21 @@ and no other word of the verse may fit the quote's closing run better. It
 caught all three planted moves and six real ones — المكتفى 4:78 «قل كل من عند
 الله», 6:158 «بعض آيات ربك», 9:37 «فيحلوا ما حرم الله», 20:69 «كيد ساحر»; منار
 2:14 duplicate on «إنا». Book slips are pinned (7:18, 9:51, 16:33, 101:10).
+
+### Ninth passage check (2026-10-11, gpt-6-luna)
+
+24 fresh passages (`make_passages.py 9 manar:8,muktafa:8,anbari:8`). Fixed:
+
+- **ابن الأنباري** (text clean-up in `anbari_sections`): «ب 6]» → «[6]» (4),
+  «[حسني» → «حسن», «[151]. حسن» (the grade after a full stop, not only «وقف
+  …»), «[1، 2] وقف حسن» / «[78، 79] وقف التمام» → the last verse's marker (9);
+  «مثله:» without «و» opens a chain; «وأحسن منهن:» comparative.
+- **المكتفى**: 24:28 «{هو أزكى لكم} شبيه بالتام ورأس الآية أتم», 24:45 «وآخر
+  الآية أتم منهما»; relayed views with no row: 18:22 الزجاج, 18:44 الدينوري (on
+  «هنالك»), 48:29 مجاهد; 18:63 credited to بعض أهل التأويل.
+- **منار**: 104:3–4 «{أخلده (3) كلا} [3، 4] تام» stops on «كلا» (the wrong-word
+  check caught the first attempt, a move that left the quote «أخلده» on «كلا»).
+
+Left as is: 5:76–87 (an open «وكذلك رؤوس الآي بعد» after a تام overlaps «ورؤوس
+الآي قبل ذلك كافية»; the book does not say where one ends), 36:52 (a range «إلى
+قوله {من مرقدنا}» that ends mid-verse), 89:16-style «وكذلك» after «وقيل».

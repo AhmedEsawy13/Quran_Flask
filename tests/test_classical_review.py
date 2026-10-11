@@ -85,9 +85,11 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # عندي», 60:4 «والتمام {X}»
     # +4 eighth check: 37:4 «وهو وقف كاف», 37:5 «{ورب المشارق} التمام», relayed 38:25 (يعقوب
     # والدينوري) and 68:6 (غيره)
-    assert result['total_extracted'] == 7068
-    assert result['matched'] == 7068
-    assert result['confident'] == 7068
+    # +6 ninth check: 24:28 ×2 «شبيه بالتام ورأس الآية أتم», 24:45 «وآخر الآية أتم منهما»; relayed
+    # 18:22 الزجاج, 18:44 الدينوري, 48:29 مجاهد
+    assert result['total_extracted'] == 7074
+    assert result['matched'] == 7074
+    assert result['confident'] == 7074
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

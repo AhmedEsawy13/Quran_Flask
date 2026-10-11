@@ -484,3 +484,27 @@ def test_eighth_passage_check_drops(con):
 ])
 def test_wrong_word_check_moves(con, book, surah, ayah, wpos):
     assert rulings(con, book, surah, ayah, wpos)
+
+
+# ── ninth passage check (2026-10-11, reviewed by gpt-6-luna) ─────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 24, 28, 17, 'كاف', ''),        # «{هو أزكى لكم} شبيه بالتام
+    ('muktafa', 24, 28, 21, 'تام', ''),        #  ورأس الآية أتم»
+    ('muktafa', 24, 45, 30, 'تام', ''),        # «وآخر الآية أتم منهما»
+    ('muktafa', 18, 22, 11, 'تام', 'أبو إسحاق الزجاج'),
+    ('muktafa', 18, 44, 0, 'تام', 'الدينوري'),  # «{وما كان منتصرا. هنالك} تمام»
+    ('muktafa', 48, 29, 30, 'تام', 'مجاهد'),   # «والتمام على قول مجاهد: {ومثلهم في الإنجيل}»
+    ('muktafa', 18, 63, 19, 'تام', 'بعض أهل التأويل'),
+    ('manar', 104, 4, 0, 'تام', ''),           # «{أخلده (3) كلا} [3، 4] تام» — on «كلا»
+    ('anbari', 7, 150, 38, 'حسن', ''),         # «وأحسن منهن: (ولا تجعلني مع القوم الظالمين)»
+    ('anbari', 7, 151, 7, 'حسن', ''),          # «[151]. حسن»
+    ('anbari', 75, 30, 3, 'حسن', ''),          # «[30] [حسني.» — a scan slip
+    ('anbari', 19, 6, 7, 'تام', ''),           # «ب 6] وقف تام»
+    ('anbari', 19, 79, 0, 'تام', ''),          # «(… عهدا. كلا) [78، 79] وقف التمام»
+    ('anbari', 42, 2, 0, 'حسن', ''),           # «(حم. عسق) [1، 2] وقف حسن»
+    ('anbari', 15, 85, 13, 'تام', ''),         # «… تام. مثله: (فاصفح الصفح الجميل)»
+])
+def test_ninth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
