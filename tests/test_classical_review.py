@@ -73,9 +73,10 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # +21 الشعراء refrain rulings («وكذلك جميع ما في السورة من ذلك») − 14 blanket rows
     # they replace; +26 other «حيث وقع / جميع ما في السورة» occurrences (2:1, 10:1,
     # 27:61–64, 54 «من مدكر», 77 «ويل يومئذ للمكذبين» and the verse before each)
-    assert result['total_extracted'] == 6792
-    assert result['matched'] == 6792
-    assert result['confident'] == 6792
+    # +2 Hafs-side rows (40:20, 91:14) − 1 blanket row under the moved «لدا» (19:97)
+    assert result['total_extracted'] == 6793
+    assert result['matched'] == 6793
+    assert result['confident'] == 6793
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

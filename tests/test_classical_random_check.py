@@ -214,3 +214,54 @@ def test_nahhas_third_round(con, surah, ayah, quote, by):
 ])
 def test_muktafa_surah_wide_statements_reach_every_occurrence(con, surah, ayah, grade):
     assert any(g == grade and by == '' for _, g, by in rulings(con, 'muktafa', surah, ayah))
+
+
+# ── fourth round: book → DB passages (2026-10-11) ─────────────────────────────
+
+def test_manar_prose_nostops_all_have_a_row(con):
+    """Every «فلا يوقف على «X»، ولا على «Y»» item the book lists in prose (and that
+    sits on one occurrence near its entry) has a row on that word."""
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'pipeline'))
+    import audit_manar_mithl as mm
+    missing = [x[:4] for x in mm.prose_nostops()
+               if not con.execute("SELECT 1 FROM classical WHERE source='manar' AND surah=? AND ayah=? AND wpos=?",
+                                  x[:3]).fetchone()]
+    assert not missing
+
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    # المكتفى: a blanket «وكذلك رؤوس الآي إلى قوله {يصنعون}» after «{العزيز الحكيم} تام» is تام
+    # (it took the كاف of the next ruling «{فاتخذوه عدوا} كاف»)
+    ('muktafa', 35, 3, 20, 'تام', ''),
+    ('muktafa', 16, 63, 16, 'تام', ''),
+    ('muktafa', 40, 20, 2, 'لا', ''),            # Hafs «يدعون»: «فلا يقطع»
+    ('muktafa', 91, 14, 6, 'لا', ''),            # Hafs «ولا يخاف»: الواو حال
+    ('muktafa', 19, 97, 9, 'تام', ''),           # «لدا» (sat on «ودا»)
+    ('muktafa', 4, 123, 5, 'كاف', 'أصحاب التمام'),
+    ('manar', 7, 54, 18, 'لا', ''),              # Hafs نصب «والشمس»
+    ('manar', 47, 31, 5, 'لا', ''),              # Hafs «ونبلوَ»
+    ('manar', 47, 31, 7, 'تام', ''),
+    ('manar', 9, 72, 8, 'لا', ''),               # «فلا يوقف على «الأنهار»»
+    ('manar', 9, 71, 19, 'كاف', 'قيل'),
+    ('manar', 47, 27, 6, 'كاف', ''),
+    ('nahhas', 2, 144, 33, 'تام', ''),           # «… الأولى والثانية جميعا تمام»
+    ('nahhas', 2, 149, 16, 'تام', ''),
+    ('nahhas', 2, 144, 19, 'كاف', ''),           # «{… شطره} مثله»
+    ('nahhas', 32, 5, 5, 'تام', 'الأخفش'),
+    ('nahhas', 32, 10, 13, 'كاف', ''),           # range from the book-spelled «والأفئدة»
+    ('nahhas', 32, 9, 13, 'تام', ''),            # … which leaves the explicit تام alone
+    ('nahhas', 5, 45, 15, 'تام', 'يعقوب'),
+    ('nahhas', 18, 19, 14, 'كاف', ''),           # «وكذا {…} تم الكلام متصل» = ثم
+    ('nahhas', 77, 43, 5, 'تام', ''),            # «… رؤوس الآيات تمام إلى آخر السورة»
+    ('nahhas', 15, 25, 6, 'تام', ''),            # «… وكذا الآيات التي بعدها إلى {فسجد …}»
+])
+def test_fourth_round(con, book, surah, ayah, wpos, grade, by):
+    assert (wpos, grade, by) in rulings(con, book, surah, ayah, wpos)
+
+
+def test_fourth_round_negatives(con):
+    assert (14, 'تام', '') not in rulings(con, 'nahhas', 18, 19, 14)
+    assert (9, 'كاف', '') not in rulings(con, 'nahhas', 32, 9, 13)
+    assert con.execute("SELECT conf FROM classical WHERE source='nahhas' AND surah=5 AND ayah=47 "
+                       "AND wpos=6 AND grade='حسن'").fetchone() == (1,)

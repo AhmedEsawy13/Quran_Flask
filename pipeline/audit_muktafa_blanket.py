@@ -124,8 +124,11 @@ def statements(con):
             stop = re.search(r'[.\n]|\{|\(\(', rest)
             span = rest[:stop.start()] if stop else rest[:60]
             if up and (not stop or up.start() <= stop.start() + 12):
-                span = rest[:up.end() + 40].split('.')[0]
-                tail_after = rest[up.end():up.end() + 30].split('.')[0]
+                # stop at the next quote: «إلى قوله {يصنعون} {فاتخذوه عدوا} كاف» — that كاف
+                # is the next ruling's, not the statement's
+                after_up = re.split(r'\{|\(\(', rest[up.end():up.end() + 40])[0]
+                span = (rest[:up.end()] + after_up).split('.')[0]
+                tail_after = after_up[:30].split('.')[0]
             else:
                 tail_after = ''
             subject = m.group(1)
@@ -245,12 +248,16 @@ def plan(con, rows):
     want = {(s, a, w): (g, note_for(st)) for s, a, w, g, st in rows}
     add = [r for r in rows if (r[0], r[1], r[2]) not in have]
     drop = [rid for key, rs in have.items() for rid, _g, _n in rs if key not in want]
-    return add, drop
+    regrade = [(rid, want[key][0], want[key][1]) for key, rs in have.items() if key in want
+               for rid, g, note in rs if g != want[key][0]]
+    return add, drop, regrade
 
 
 def apply(con, rows):
-    rows, drop = plan(con, rows)
+    rows, drop, regrade = plan(con, rows)
     cur = con.cursor()
+    for rid, g, note in regrade:
+        cur.execute("UPDATE classical SET grade=?, note=? WHERE id=?", (g, note, rid))
     if drop:
         cur.execute(f"DELETE FROM classical WHERE id IN ({','.join('?' * len(drop))})", drop)
     n = 0
@@ -270,7 +277,7 @@ def apply(con, rows):
         "WHERE e.source='muktafa' AND e.surah=classical.surah AND e.ayah=classical.ayah AND "
         "e.wpos=classical.wpos AND e.grade_raw<>? AND e.conf=1)", (RAW, RAW)).rowcount
     con.commit()
-    return {"inserted": n, "out_of_scope_removed": len(drop), "stale_removed": stale}
+    return {"inserted": n, "out_of_scope_removed": len(drop), "regraded": len(regrade), "stale_removed": stale}
 
 
 def main(argv=None):
@@ -281,9 +288,10 @@ def main(argv=None):
     args = ap.parse_args(argv)
     con = sqlite3.connect(args.db)
     stmts, rows = expand(con)
-    add, drop = plan(con, rows)
+    add, drop, regrade = plan(con, rows)
     print(f'{len(stmts)} blanket statements → {len(rows)} covered verse-ends; '
-          f'{len(add)} to add, {len(drop)} out of scope', dict(collections.Counter(r[3] for r in add)))
+          f'{len(add)} to add, {len(drop)} out of scope, {len(regrade)} to regrade',
+          dict(collections.Counter(r[3] for r in add)))
     for rid in drop:
         print('  out of scope:', con.execute("SELECT id, surah, ayah, wpos, grade FROM classical WHERE id=?",
                                               (rid,)).fetchone())

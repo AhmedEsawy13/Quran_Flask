@@ -336,3 +336,36 @@ in four strata (plain, «ومثله» chain, reading-conditional, repeated word)
   only ruling there, conditioned; «قال X {A} … {B} قطع …» stays own-voice at B.
 - Many reviewers noted `note`s that also carry a neighbouring ruling's text —
   cosmetic (grades, seats and attributions right), not yet cleaned.
+
+### Fourth round: book → database passages (2026-10-11)
+
+24 random continuous passages (`make_passages.py`, brief
+`INSTRUCTIONS_PASSAGES.md`, helper `show_rows.py`): the reviewer lists every
+ruling the passage states and reconciles both ways. Precision held (few wrong
+rows); recall was the gap (≈ منار 89%, المكتفى 88%, ابن الأنباري 76%, النحاس 72% of
+stated rulings had a row — mostly relayed «وقيل» views and the other side of a
+conditional ruling, which live in the notes). Fixed book-wide:
+
+- **المكتفى blankets** took the grade of the NEXT ruling («إلى قوله {يصنعون}
+  {فاتخذوه عدوا} كاف»): the span now stops at the next quote (42 verse ends
+  كاف → تام); the audit also regrades rows still in scope (`plan` → add/drop/
+  regrade).
+- **النحاس parser**: «{X} مثله» (13), «{X} الأولى والثانية جميعا تمام»,
+  «تم الكلام متصل» (= ثم, not a grade), «رؤوس الآيات X إلى آخر السورة» (5
+  ranges); a range now starts from where the main pass seated its quote (book
+  spellings «والأفئدة»، «لا يستوون» used to drop the range) and leaves verse
+  ends the book rules itself; `VERSE_ENDS` for «والتمام رأس الآية (وكذا الآيات
+  التي بعدها)»; +80 rows.
+- **منار prose no-stops** «ولا وقف من قوله … فلا يوقف على «A»، ولا على «B»»:
+  `prose_nostops()` seats each item on its single occurrence near the entry
+  (prefix-tolerant uniqueness), note = the book's sentence, speaker from «قال X:»
+  / «قاله X»; +125 rows; guarded by `test_manar_prose_nostops_all_have_a_row`.
+- **Hafs sides** where only the other reading's row existed: منار 7:54, 47:31;
+  المكتفى 40:20, 91:14 (`HAFS_SIDE`).
+- Single rows: النحاس 32:5 الأخفش تام, 32:9 أبو عبد الله, 5:45 يعقوب, 2:143 seated,
+  5:47 served; المكتفى 19:97 «لدا» moved, 4:123 أصحاب التمام; منار 9:71 قيل, 47:27
+  own.
+- **Open**: relayed «وقيل: X» views and the negative side of conditionals that
+  sit only in a note (shown to the reader, but not separate rows); ابن الأنباري's
+  «غير تام» (a negation, not a grade); النحاس ungraded «ثم الوقف {X}» stops and
+  «كل أمر ونهي ها هنا إلى …» spans.

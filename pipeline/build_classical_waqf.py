@@ -936,7 +936,7 @@ def harvest_nahhas(body, rows, seq0):
         cursor = 0
         seats = {}                     # quote start → stream index
         for r in nparse.parse(text):
-            if r.how == 'blanket':
+            if r.how in ('blanket', 'blanket_end'):
                 continue
             if r.start not in seats:
                 # «{أكلها دائم وظلها ... وعقبى الكافرين النار} قطع تام»: the
@@ -965,20 +965,33 @@ def harvest_nahhas(body, rows, seq0):
             rows.append(('nahhas', num, ayah, wpos, words[wpos], quote, r.grade, r.grade, note, seq, conf, r.by))
         # «ثم القطع على رؤوس الآيات كاف إلى {X}»: verse ends from the quote
         # just before the statement up to (not including) X's verse
+        # «… إلى آخر السورة» runs through the last verse
+        ruled = {stream[i][:2] for i, ok in seats.values() if i is not None and ok}
         for r in nparse.parse(text):
-            if r.how != 'blanket' or r.start not in seats or seats[r.start][0] is None or not r.prev_quote:
+            if r.how == 'blanket_end':
+                end, a1 = None, surah_ayah_count(num) + 1
+            elif r.how == 'blanket' and r.start in seats and seats[r.start][0] is not None and r.prev_quote:
+                end = seats[r.start][0]
+                a1 = stream[end][0]
+            else:
                 continue
-            end = seats[r.start][0]
-            before = [i for i in nparse.occurrences(stream, quote_words(r.prev_quote), match_word) if i < end]
-            if not before:
-                continue
-            a0, w0, _ = stream[before[-1]]
-            a1 = stream[end][0]
+            # the quote before the statement: where the main pass seated it (it knows the
+            # book's spellings — «لا يستوون»، «والأفئدة»), else its last plain occurrence
+            prev = seats.get(r.prev_start, (None,))[0]
+            if prev is None or (end is not None and prev >= end):
+                before = [i for i in nparse.occurrences(stream, quote_words(r.prev_quote), match_word)
+                          if end is None or i < end]
+                if not before:
+                    continue
+                prev = before[-1]
+            a0, w0, _ = stream[prev]
             first = a0 if w0 < len(verse_word_texts(f'{num}:{a0}')[1]) - 1 else a0 + 1
             if a1 - first > 40:
                 continue
             for ay in range(first, a1):
                 _, words, _ = verse_word_texts(f'{num}:{ay}')
+                if (ay, len(words) - 1) in ruled:      # the book's own ruling there wins
+                    continue
                 seq += 1
                 rows.append(('nahhas', num, ay, len(words) - 1, words[-1], words[-1], r.grade, 'رؤوس الآي',
                              clean_note(r.note, limit=500), seq, 1, r.by))

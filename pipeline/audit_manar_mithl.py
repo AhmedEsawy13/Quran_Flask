@@ -643,7 +643,7 @@ DEMOTE = {48071, 57755,
           49426,      # 5:116 «في نفسي» حسن — «ومثله «ما في نفسك»» names the other (59966)
           46901}      # 2:69 كاف on «فاقع لونها» — the كاف is «ما لونها» (59918); {لونها} جائز
 # rows on a repeated word that the book does mean (checked): not suspects
-REVIEWED_OK = {(60, 1, 10),      # «بالمودة» الأولى ليس بوقف (2026-10-07)
+REVIEWED_OK = {(60, 1, 10), (9, 79, 13),   # «فيسخرون منهم» (prose «ولا على …», the phrase is unique)      # «بالمودة» الأولى ليس بوقف (2026-10-07)
                (2, 218, 12), (2, 255, 43), (7, 195, 3), (7, 195, 8), (7, 195, 13),
                (11, 119, 3), (13, 31, 28), (39, 51, 11), (59, 18, 11)}
 # Grade corrections: id → grade. 39:50 «ومثله «يكسبون»» inherits كاف; the
@@ -675,7 +675,10 @@ REPORTED_FIX = {50554: 'قيل', 59098: 'الأخفش', 46946: 'شيخ الإس�
                 # «{ولا أولادهم} [55] حسن، إن جعل … متصلا بالعذاب … وهو قول أبي حاتم»
                 50784: 'أبو حاتم',
                 # «{سخريا} [32] تام عند أبي حاتم، ومثله: «مما يجمعون»»
-                57275: 'أبو حاتم'}
+                57275: 'أبو حاتم',
+                # fourth (book → DB) check: «{إسرارهم} كاف، ومثله: «وأدبارهم»، وقال نافع: …» —
+                # the كاف is the author's; «{سيرحمهم الله} أحسن منه، وقيل: كاف»
+                57702: None, 50832: 'قيل'}
 # grade_mismatch keys where منار's inherited ruling is absent and only another
 # (alternate / relayed / conditional) grade was stored: add it.
 ADD_GRADE = {
@@ -705,6 +708,11 @@ EXTRA = [
     (89, 21, 0, 'كلا', 'تام', 'وقال أبو عمرو: «كلا» في الموضعين تام؛ لأنهما بمعنى: لا، وقال غيره: لا يوقف عليها في الموضعين'),
     (11, 18, 22, 'الظالمين', 'لا', 'فعلى قوله [محمد بن جرير] لا يوقف على «الظالمين»؛ لأن الله إنما لعن '
      'الظالمين الذين وصفهم خاصة بقوله: «الذين يصدون عن سبيل الله»'),
+    # Hafs sides of reading splits the extraction folded into the other side's row
+    (7, 54, 18, 'حثيثا', 'لا', 'وليس بوقف على قراءة الباقين [ومنهم حفص] بالنصب في الموضعين عطفا على «السموات»'),
+    (47, 31, 5, 'والصابرين', 'لا', 'وليس بوقف إن عطف [«ونبلوَ» بالنصب، قراءة حفص] على «ولنبلونكم»، '
+     'وكان الوقف التام «أخباركم» للابتداء ب «إن»'),
+    (47, 31, 7, 'أخباركم', 'تام', 'وكان الوقف التام «أخباركم» للابتداء ب «إن»'),
     (2, 33, 6, 'بأسمائهم', 'لا', 'والثاني ليس بوقف؛ لأن قوله: «قال ألم أقل لكم» جواب لـ «ما»'),
     (3, 145, 21, 'نؤته منها', 'حسن', 'و {نؤته منها} [145] الثاني أحسن منه'),
     (38, 26, 22, 'عن سبيل الله', 'لا', 'والثاني ليس بوقف؛ لأن ما بعده خبر «إن»'),
@@ -736,6 +744,54 @@ def source_note(rec):
         end = k + len(item) + 2 + m.start()
     note = ctx[start:end].strip(' ،')
     return rx.clean_note(f'{note} (مثل «{rec["head"]}» {rec["head_grade"]})', limit=300)
+
+
+# «ولا وقف من قوله: «X» إلى «Y»، فلا يوقف على «A»، ولا على «B»» — no-stop items the
+# book lists in prose, outside any {quote} [n] head. Seated only when the item is
+# a single occurrence in the head's ayah or the three after it; the note is the
+# book's sentence (conditions included), the speaker a «قال X:» before it.
+_PROSE_NEG = re.compile(r'(?:فلا|ولا|لا)\s+(?:يوقف|يجوز\s+الوقف|وقف)\s+على\s+«([^«»]{1,40})»'
+                        r'|،\s*ولا\s+على\s+«([^«»]{1,40})»')
+_PROSE_GOV = re.compile(r'(?:ولا\s+وقف\s+من\s+قوله|(?:فلا|ولا|لا)\s+(?:يوقف|يجوز\s+الوقف))')
+_PROSE_SAID_IN = re.compile(r'(?:وقال|قال)\s+([^:«»{}\[\].،]{2,30}?)\s*:')
+_PROSE_SAID_AFTER = re.compile(r'قاله\s+([^\s.،؛]{3,20})')
+
+
+def prose_nostops():
+    """[(surah, ayah, wpos, item, note, speaker)] for «فلا يوقف على «X»» items."""
+    sections = json.load(open(SECTIONS, encoding='utf-8'))
+    out, seen = [], set()
+    for s in range(1, 115):
+        sec = sections[str(s)]
+        text = strip(sec['text'] if isinstance(sec, dict) else sec).replace('\r', '\n')
+        n = rx.surah_ayah_count(s)
+        for m in _PROSE_NEG.finditer(text):
+            marks = [int(k.group(1)) for k in re.finditer(r'\[(\d{1,3})\]', text[:m.start()])]
+            if not marks or marks[-1] > n:
+                continue
+            item = (m.group(1) or m.group(2)).strip()
+            q = [rx.norm(t) for t in item.split()]
+            bare = lambda t: re.sub(r'^[وف]', '', t)       # «رسله» may cite «ورسله»
+            hits, loose = [], 0
+            for a in range(marks[-1], min(n, marks[-1] + 3) + 1):
+                w = [rx.norm(t) for t in verse_words(s, a)]
+                hits += [(a, i + len(q) - 1) for i in range(len(w) - len(q) + 1) if w[i:i + len(q)] == q]
+                loose += sum(1 for i in range(len(w) - len(q) + 1)
+                             if [bare(x) for x in w[i:i + len(q)]] == [bare(x) for x in q])
+            if len(hits) != 1 or loose != 1 or (s, *hits[0]) in seen:
+                continue
+            seen.add((s, *hits[0]))
+            # the nearest governing «فلا يوقف / ولا وقف من قوله» and the sentence it opens
+            gov = [g.start() for g in _PROSE_GOV.finditer(text, max(0, m.start() - 250), m.start() + 1)]
+            start = gov[-1] if gov else m.start()
+            lo = max(text.rfind(c, 0, start) for c in '.؛\n}]')
+            end = min([i for i in (text.find(c, m.end()) for c in '.؛\n{') if i >= 0] + [m.end() + 160])
+            said = list(_PROSE_SAID_IN.finditer(text, lo + 1, start))
+            after = _PROSE_SAID_AFTER.search(text, m.end(), end)
+            by = said[-1].group(1).strip() if said else (after.group(1) if after else None)
+            note = ' '.join(text[lo + 1:end].split()).strip(' ،')
+            out.append((s, *hits[0], item, rx.clean_note(note, limit=300), by))
+    return out
 
 
 def apply(recs, path):
@@ -860,6 +916,10 @@ def apply(recs, path):
                 stats['inserted_' + r['status']] += 1
     for s, a, w, q, g, note in EXTRA:
         stats['inserted_extra'] += insert(s, a, w, q, g, [note], REPORTED.get((s, a, w)))
+    for s, a, w, q, note, by in prose_nostops():
+        if not cur.execute("SELECT 1 FROM classical WHERE source='manar' AND surah=? AND ayah=? AND wpos=?",
+                           (s, a, w)).fetchone():          # a ruled seat: the book's own head wins
+            stats['inserted_prose_nostop'] += insert(s, a, w, q, 'لا', [note], by)
     con.commit()
     for rid, a, w in explicit_seat_moves(con, recs):
         s_ = cur.execute('SELECT surah FROM classical WHERE id=?', (rid,)).fetchone()[0]

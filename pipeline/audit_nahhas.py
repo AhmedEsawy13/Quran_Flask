@@ -76,10 +76,17 @@ CURATED_BY = {(2, 'حذر الموت والله محيط بالكافرين', '�
               # third random check: «قال الأخفش {…} التمام فيه {أو عدل ذلك صياما}، قال أبو جعفر:
               # هذا ليس بتمام»; «قال يعقوب: ومن الوقف … ثم قال جل وعز {حسبهم جهنم يصلونها} كاف»
               (5, 'أو عدل ذلك صياما', 'تام'): 'الأخفش',
-              (58, 'حسبهم جهنم يصلونها', 'كاف'): 'يعقوب'}
+              (58, 'حسبهم جهنم يصلونها', 'كاف'): 'يعقوب',
+              # fourth (book → DB) check: «{يدبر الأمر …} عن الأخفش قال: ها هنا تمام الكلام وخولف»;
+              # «وقد زعم أبو عبد الله أن {والأفئدة} تمام»; «ومذهب يعقوب … ومن نصبها كلها
+              # فوقفه التام {والجروح قصاص}» (Hafs نصب)
+              (32, 'يدبر الأمر من السماء إلى الأرض', 'تام'): 'الأخفش',
+              (32, 'والأفئدة', 'تام'): 'أبو عبد الله',
+              (5, 'والجروح قصاص', 'تام'): 'يعقوب'}
 # 6:137–139: the text repeats «{فذرهم وما يفترون} افتراء عليه قطع حسن وكذا …»,
 # so the «وكذا» chain after it is حسن (of «افتراء عليه»), not the تام before
-REGRADE = {(6, 'سيجزيهم بما كانوا يفترون', 'تام'): 'حسن', (6, 'فهم فيه شركاء', 'تام'): 'حسن',
+REGRADE = {(32, 'يدبر الأمر من السماء إلى الأرض', 'كاف'): 'تام',
+           (6, 'سيجزيهم بما كانوا يفترون', 'تام'): 'حسن', (6, 'فهم فيه شركاء', 'تام'): 'حسن',
            (6, 'سيجزيهم وصفهم', 'تام'): 'حسن'}
 # seats the book's order contradicts (2026-09-27 order sweep): (surah, ayah,
 # quote) → (ayah, wpos). «{كذلك يبين الله لكم الآيات} قطع كاف والتمام {والله
@@ -97,6 +104,7 @@ QUOTE_FIX = {(35, 28, 'عند'): ('إن الله عزيز غفور', 'غيره')
 # fuzzy match inside the book-order window and read one by one (2026-10-08):
 # (surah, quote as parsed, grade, reported_from) → (ayah, wpos, reported_from)
 SEAT_HELD = {
+    (2, 'إن الله بالناس لرؤوس رحيم', 'تام', None): (143, 44, None),   # «… قطع صالح والتمام {…}»
     (2, 'هل ينظرون إلا أن يأتيهم في ظلل من الغمام', 'تام', None): (210, 9, 'يعقوب'),
     (3, 'أولئك هم المفلحون', 'تام', None): (104, 13, None),
     (4, 'وآتوا النساء صدقاتهن حلة', 'تام', 'نافع'): (4, 3, 'نافع'),
@@ -151,6 +159,21 @@ SEAT_HELD = {
     (76, 'إ الله كان عليما حكيما', 'تام', None): (30, 10, None),
     (80, 'ثم أشاء أنشره', 'تام', 'محمد بن عيسى'): (22, 3, 'محمد بن عيسى'),
 }
+# held only because a reading is discussed nearby, though the ruling is Hafs's:
+# «{وليحكم أهل الإنجيل بما أنزل الله فيه} قطع حسن» (Hafs: ولْيحكمْ, لام الأمر)
+SERVE_HELD = {(5, 'وليحكم أهل الإنجيل بما أنزل الله فيه', 'حسن')}
+# verse ends the book rules with «والتمام رأس الآية (وكذا الآية/الآيات التي بعدها إلى …)»
+# or «الأولى والثانية جميعا», where no quote stands at the stop: (surah, ayahs, grade, clause).
+# Stored like the builder's blanket rows (grade_raw «رؤوس الآي», the clause as note).
+VERSE_ENDS = [
+    (2, (145,), 'تام', '{وما بعضهم بتابع قبلة بعض} قطع حسن، والتمام رأس الآية'),
+    (2, (148,), 'تام', '{فاستبقوا الخيرات} كاف، وكذلك {يأت بكم الله جميعا} والتمام رأس الآية'),
+    (2, (149,), 'تام', '{وما الله بغافل عما يعملون} الأولى والثانية جميعا تمام'),
+    (6, (46,), 'تام', '{من إله غير الله يأتيكم به} قطع حسن والتمام رأس الآية'),
+    (6, (76, 77), 'تام', '{قال هذا ربي} قطع كاف والتمام رأس الآية وكذا الآية التي بعدها'),
+    (15, tuple(range(21, 30)), 'تام', '{وإن من شيء إلا عندنا خزائنه} قطع صالح والتمام رأس الآية وكذا '
+                                      'الآيات التي بعدها إلى {فسجد الملائكة كلهم أجمعون}'),
+]
 # rulings for a non-Hafs reading: «من قرأ بقراءة ابن عباس {واذكر عبدنا} فوقفه
 # الكافي {واذكر عبدنا إبراهيم}» — Hafs reads «عبادنا» (its stop: أولى الأيدي والأبصار)
 DROP_NON_HAFS = {(38, 'واذكر عبدنا إبراهيم', 'كاف')}
@@ -208,6 +231,17 @@ def plan(con):
         if not con.execute("SELECT 1 FROM classical WHERE source='nahhas' AND surah=? AND ayah=? AND wpos=? "
                            "AND grade=? AND conf=1", (s, a, w, g)).fetchone():
             ops.append(('insert', (s, a, w, g, g, who, q, note), None))
+    for s, q, g in SERVE_HELD:
+        for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND quote=? "
+                                  "AND grade=? AND conf=0 AND ayah IS NOT NULL", (s, q, g)):
+            ops.append(('serve', rid, None))
+    for s, ayahs, g, note in VERSE_ENDS:
+        for a in ayahs:
+            w = len(verse_word_texts(f'{s}:{a}')[1]) - 1
+            if not con.execute("SELECT 1 FROM classical WHERE source='nahhas' AND surah=? AND ayah=? AND wpos=? "
+                               "AND grade=? AND conf=1", (s, a, w, g)).fetchone():
+                word = verse_word_texts(f'{s}:{a}')[1][w]
+                ops.append(('insert', (s, a, w, g, 'رؤوس الآي', None, word, note), None))
     for s, note in surah_end_rulings():
         a = rx.surah_ayah_count(s)
         w = len(verse_word_texts(f'{s}:{a}')[1]) - 1
@@ -245,6 +279,8 @@ def apply(con):
             a, w, by = who
             con.execute('UPDATE classical SET ayah=?, wpos=?, stop_word=?, reported_from=?, conf=1 WHERE id=?',
                         (a, w, verse_word_texts(f'{s_}:{a}')[1][w], by, x))
+        elif op == 'serve':
+            con.execute('UPDATE classical SET conf=1 WHERE id=?', (x,))
         elif op == 'requote':
             con.execute('UPDATE classical SET quote=?, reported_from=? WHERE id=?', (who[0], who[1], x))
         elif op == 'regrade':

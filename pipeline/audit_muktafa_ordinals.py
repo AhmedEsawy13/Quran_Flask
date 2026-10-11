@@ -66,6 +66,7 @@ MANUAL = [(84, 5, 2, 'وحقت', 'تام'), (42, 30, 9, 'ويعفو عن كثي�
 # «ومثله {X} الثاني» items the builder put on the FIRST occurrence:
 # (surah, ayah, wpos, quote) → (ayah, wpos).
 MOVES = {
+    (19, 96, 8, 'لدا'): (97, 9),                    # «لدا» ends 19:97; it sat on «ودا» (19:96)
     (34, 53, 4, 'من قبل'): (54, 9),
     (4, 92, 32, 'وتحرير رقبة مؤمنة'): (92, 46),   # «وتحرير» — the one after «يصدقوا»
     (26, 108, 2, 'وأطيعون'): (110, 2),
@@ -157,10 +158,21 @@ MANUAL += [(54, _a, len(mm.verse_words(54, _a)) - 1, 'فهل من مدكر', 'ت
 _WAYL_77 = '{للمكذبين} تام، جميع ما في السورة. وكذلك ما قبل {ويل يومئذ للمكذبين} فيها.'
 # (the verse before each is a general «ما قبل …» rule: audit_muktafa_blanket.MANUAL_VERSES)
 MANUAL += [(77, _a, 2, 'ويل يومئذ للمكذبين', 'تام', _WAYL_77) for _a in (15, 19, 24, 28, 34, 37, 40, 45, 47, 49)]
+# the Hafs side of a reading split whose other side is the stored row: inserted
+# beside it (MANUAL would regrade a lone row with the same quote instead)
+HAFS_SIDE = [
+    # «{بالحق} كاف لمن قرأ {والذين تدعون} بالتاء. ومن قرأ بالياء فهو راجع إلى ما قبله … فلا يقطع»
+    (40, 20, 2, 'بالحق', 'لا', 'ومن قرأ بالياء [«يدعون»، قراءة حفص] فهو راجع إلى ما قبله من الخبر فلا يقطع'),
+    # «{فسواها} … ومن قرأ ((ولا يخاف)) بالواو لم يبتدئ بذلك لأن الكلام متعلق بما قبله»
+    (91, 14, 6, 'فسواها', 'لا', 'ومن قرأ ((ولا يخاف)) بالواو [قراءة حفص] لم يبتدئ بذلك لأن الكلام متعلق بما '
+                                  'قبله، وذلك أن الواو في موضع الحال'),
+]
 # a ruling the book relays and then corrects: (surah, ayah, wpos, quote, grade) → scholar
 RELAYED_BY = {(6, 163, 4, 'وبذلك أمرت', 'تام'): 'الدينوري',   # «… وليس كذلك، هما كافيان»
               # «{أجر العاملين} تام عند ابن الأنباري. وليس كذلك من حيث لم يأت ل {الذين صبروا} خبر بعد»
-              (29, 58, 16, 'أجر العاملين', 'تام'): 'ابن الأنباري'}
+              (29, 58, 16, 'أجر العاملين', 'تام'): 'ابن الأنباري',
+              # «{ولا أماني أهل الكتاب} كاف عند أصحاب التمام … وهو عندي تام» (his تام is its own row)
+              (4, 123, 5, 'ولا أماني أهل الكتاب', 'كاف'): 'أصحاب التمام'}
 # «{…} كاف عند أصحاب التمام … وهو عندي تام» (4:123): الداني's own verdict is تام
 REGRADE = {877: 'تام'}     # «وقال الدينوري: ((ذلك هو الضلال البعيد يدعو)) تام»
 
@@ -286,6 +298,15 @@ def apply(con, found):
     for rid, g in REGRADE.items():
         stats['regraded_own'] += cur.execute(
             "UPDATE classical SET grade=?, grade_raw=? WHERE id=? AND grade<>?", (g, g, rid, g)).rowcount
+    for s, a, w, q, g, note in HAFS_SIDE:
+        if not cur.execute("SELECT 1 FROM classical WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
+                           "AND grade=?", (s, a, w, g)).fetchone():
+            cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, grade_raw, "
+                        "note, seq, conf, reported_from) VALUES ('muktafa',?,?,?,?,?,?,?,?,?,1,NULL)",
+                        (s, a, w, mm.verse_words(s, a)[w], q, g, 'ليس بوقف', note,
+                         cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND ayah=? "
+                                     "AND wpos=?", (s, a, w)).fetchone()[0]))
+            stats['hafs_side'] += 1
     rows = [(r['surah'], r['ayah'], r['wpos'], r['quote'], r['grade'], r['note']) for r in found]
     rows += [(s, a, w, q, g, rest[0] if rest else f'{q} {g}') for s, a, w, q, g, *rest in MANUAL]
     for s, a, w, q, g, note in rows:

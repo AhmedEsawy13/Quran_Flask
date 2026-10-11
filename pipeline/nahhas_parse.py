@@ -36,9 +36,13 @@ _AFTER = [
     (re.compile(r'^و?ف?هذا\s+(?:هو\s+)?(?:(?:القطع|الوقف|قطع|وقف)\s+)?'
                 r'(التمام|التام|الكافي|الحسن|الصالح|تمام|تام|كاف|حسن|صالح)(?![ء-ي])'), 1),
     # «تم القطع على رؤوس الآيات» is a miscopied «ثم»
-    (re.compile(r'^تم(?:\s+الكلام)?(?![ء-ي])(?!\s+(?:القطع|الوقف|الوقوف|التمام|على))'), None),
+    (re.compile(r'^تم(?![ء-ي])(?!\s+(?:الكلام\s+)?(?:القطع|الوقف|الوقوف|التمام|على|متصل))(?:\s+الكلام)?'), None),
     (re.compile(r'^(?:عن|وعن)\s+نافع\s+تم(?![ء-ي])'), None),
+    # «{وما الله بغافل عما يعملون} الأولى والثانية جميعا تمام» (the second: audit_nahhas.EXTRA)
+    (re.compile(r'^الأولى\s+والثانية\s+(?:جميعا\s+)?' + _GW + r'(?![ء-ي])'), 1),
 ]
+# «{قالوا أتتخذنا هزوا} مثله»، «{والهدى والقلائد} مثله عند نافع»: the previous quote's grade
+_MITHL_AFTER = re.compile(r'^مثله(?![ء-ي])(?:\s+عند\s+([^{}.،]{2,30}?)(?=\s*[{،.]|\s+و|$))?')
 # «ليس بقطع كاف»، «ليس بتمام»، «لا يكفي»: no ruling; «ليس بوقف» alone: لا
 _NEG = re.compile(r'^(?:و?ليس|ولا|لا|غير)\s+(?:ب(?:قطع|وقف|تمام|تام|كاف|حسن|صالح)|يكفي|يتم|يوقف|يقف|تمام|تام|كاف)')
 _NOSTOP = re.compile(r'^(?:و?ليس\s+بوقف|ليس\s+بموضع\s+قطع|لا\s+يوقف\s+عليه)(?!\s+(?:كاف|تام|حسن|صالح))')
@@ -56,6 +60,8 @@ _CHAIN = re.compile(r'(?:^|[\s،])(?:و|ثم\s+)?(?:كذا|كذلك|مثله|ب�
 
 # «ثم القطع على رؤوس الآيات كاف إلى {X}»، «رؤوس الآي حسن إلى {X}»
 _BLANKET = re.compile(r'رؤوس\s+(?:الآيات|الآي|الآية)\s+(?:(?:قطع|وقف)\s+)?' + _GW + r'\s+(?:إلى|حتى)\s*(?:قوله)?\s*(?:جل\s+وعز)?\s*$')
+# «ثم القطع على رؤوس الآيات كاف إلى آخر السورة»: from the quote before it to the end
+_BLANKET_END = re.compile(r'رؤوس\s+(?:الآيات|الآي|الآية)\s+(?:(?:قطع|وقف)\s+)?' + _GW + r'\s+(?:إلى|حتى)\s+آخر\s+السورة')
 
 _NAME = r'([^{}:.،؛]{2,40}?)'
 _SPEAKER = re.compile(r'(?:^|[\s،.])(?:و|ثم\s+)?قالت?\s*:?\s+' + _NAME + r'\s*(?::|(?=[\s،]*\{)|(?=\s+ومن\s)|(?=\s+والتمام)|(?=\s+التمام)|(?=\s+الوقف))')
@@ -149,6 +155,7 @@ class Ruling:
     reading: bool = False          # tied to a reading («على قراءة من قرأ …»)
     blanket_to: int = None         # for blanket rows: index of the {X} quote
     prev_quote: str = None         # for blanket rows: the quote before the statement
+    prev_start: int = None         # … and where it starts (its seat, if the builder placed it)
     note: str = ''
 
 
@@ -295,6 +302,13 @@ def parse(text):
                 else:
                     by = bys[i - 1]
         if g is None:
+            m = _MITHL_AFTER.match(after)
+            if m and i and grades[i - 1] not in (None, 'NEG'):
+                g, how = grades[i - 1], 'chain'
+                by = name(m.group(1)) if m.group(1) else bys[i - 1]
+                if by in (BREAK, SELF_MARK):
+                    by = None
+        if g is None:
             # «{A} وكذا {B} قطع كاف»: B's grade reaches back to A
             continue
         if how == 'after' and by is None:
@@ -363,7 +377,14 @@ def parse(text):
         if m:
             out.append(Ruling(s, e, q, _G[m.group(1)], None, 'blanket', blanket_to=i,
                               prev_quote=quotes[i - 1][2] if i else None,
+                              prev_start=quotes[i - 1][0] if i else None,
                               note=_clause(text, prv + m.start(), e, quotes[i - 1][0] if i else 0)))
+    for m in _BLANKET_END.finditer(text):
+        before = [(qs, qe, q) for qs, qe, q in quotes if qe <= m.start()]
+        if before:
+            qs, qe, q = before[-1]
+            out.append(Ruling(m.start(), m.end(), q, _G[m.group(1)], None, 'blanket_end', prev_quote=q,
+                              prev_start=qs, note=_clause(text, qs, m.end(), qs)))
     out.sort(key=lambda r: (r.start, r.how == 'second'))
     return out
 
