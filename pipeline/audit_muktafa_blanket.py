@@ -181,7 +181,9 @@ def statements(con):
             def unique_ayah(e):
                 rows = con.execute("SELECT ayah FROM classical WHERE source='muktafa' AND conf=1 "
                                    "AND grade_raw<>'رؤوس الآي' AND surah=? AND quote=?", (surah, e['quote'])).fetchall()
-                return rows[0][0] if len(rows) == 1 else None
+                # one verse, not one row: an own grade beside a relayed one (25:21) is still one seat
+                ayahs = {r[0] for r in rows}
+                return ayahs.pop() if len(ayahs) == 1 else None
 
             anchor = next((a for a in (unique_ayah(e) for e in reversed(prev)) if a), 0)
             for (fs, fq, fup), fa in ANCHOR_FIX.items():

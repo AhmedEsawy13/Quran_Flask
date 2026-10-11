@@ -10,6 +10,7 @@ batchN_result.json in the INSTRUCTIONS_PASSAGES.md shape. Existing results are
 skipped, so a failed run can be resumed.
 """
 import argparse
+import http.client
 import json
 import os
 import re
@@ -52,7 +53,7 @@ def api(path, body=None):
         except urllib.error.HTTPError as e:
             if e.code != 429 and e.code < 500 or attempt == 5:
                 raise
-        except (urllib.error.URLError, ConnectionError, TimeoutError):
+        except (urllib.error.URLError, ConnectionError, TimeoutError, http.client.HTTPException):
             if attempt == 5:
                 raise
         time.sleep(5 * 2 ** attempt)
@@ -150,7 +151,8 @@ def run_batch(model, f, passes=1):
         for p in json.loads(f.read_text(encoding='utf-8')):
             try:
                 res.append(merge([review(model, p, log) for _ in range(passes)]))
-            except (urllib.error.URLError, ConnectionError, TimeoutError, RuntimeError, ValueError, KeyError) as e:
+            except (urllib.error.URLError, ConnectionError, TimeoutError, http.client.HTTPException, RuntimeError,
+                    ValueError, KeyError) as e:
                 body = e.read().decode()[:300] if isinstance(e, urllib.error.HTTPError) else ''
                 res.append({'book': p['book'], 'surah': p['surah'], 'error': f'{e} {body}'})
     out.write_text(json.dumps({'passages': res}, ensure_ascii=False, indent=1), encoding='utf-8')

@@ -545,3 +545,20 @@ def test_qabl_ranges_reach_back(con, surah, ayah):
 def test_bayna_dhalika_stays_between_the_items(con):
     # «{فأوعى} تام. ومثله {مكرمون} والفواصل بين ذلك كافية» — not back to 70:1
     assert not rulings(con, 'muktafa', 70, 9, None)
+
+
+# ── eleventh passage check (2026-10-11, reviewed by gpt-6-luna) ──────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 25, 21, 11, 'تام', ''),        # «… كاف عند أبي حاتم … وهو عندي تام»
+    ('muktafa', 25, 21, 11, 'كاف', 'أبو حاتم وابن الأنباري وابن عبد الرزاق'),
+    ('muktafa', 25, 21, 18, 'كاف', ''),        # «تام ورؤوس الآي كافية» — not «والفواصل تامة» (22 on)
+    ('muktafa', 12, 52, 11, 'تام', ''),        # «{… كيد الخائنين} تمام الكلام»
+    ('muktafa', 27, 43, 11, 'تام', ''),        # «ورأس الآية أتم»
+    ('manar', 102, 5, 4, 'كاف', ''),           # «كلا لو تعلمون علم اليقين»، وهو أكفى مما قبله
+    ('manar', 12, 15, 8, 'حسن', ''),           # «وبهذا يحسن الوقف على «الجب»»
+    ('anbari', 26, 208, 6, 'حسن', ''),         # «(لها منذرون) [208] وهذا عندنا وقف حسن»
+])
+def test_eleventh_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

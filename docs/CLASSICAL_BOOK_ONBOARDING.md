@@ -562,3 +562,14 @@ keeps starting at the «ومثله» head (70:35 «{فأوعى} … ومثله {
 ذلك» is between those two). +64 rows: 50:1–28, 19:1–20, 9:1–10, 5:1–30,
 16:78–88, 18:60–62, 59:1–8. Left as is: 76 «وبين ذلك وقوف كافية» and 79 «وبين
 ذلك وقوف كافية حسنة» (stops, not verse ends).
+
+### Eleventh passage check (2026-10-11, gpt-6-luna)
+
+24 fresh passages (`make_passages.py 11 manar:8,muktafa:8,anbari:8`); the
+quietest round so far (about ten real items). Fixed: المكتفى 25:21 «كاف عند
+أبي حاتم وابن الأنباري وابن عبد الرزاق وهو عندي تام» (credit + own تام), 12:52
+«تمام الكلام», 27:43 «ورأس الآية أتم»; منار 102:5 «علم اليقين … أكفى مما قبله»,
+12:15 «يحسن الوقف على «الجب»»; ابن الأنباري 26:208 «وهذا عندنا وقف حسن» (after
+a line break). The blanket anchor now asks for one verse, not one row: a second
+row on the anchor quote (25:21) had pushed «والفواصل تامة» back a verse. The
+runner retries `http.client` errors (a cut-off response stopped the run).

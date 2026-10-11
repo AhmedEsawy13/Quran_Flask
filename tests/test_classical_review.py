@@ -92,9 +92,11 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # and 81:14, 77:7 (−4 blanket rows they replace), +4 relayed (72 ×3, 81:21 نافع), +2 «لا»
     # +64 sweep: «قبل ذلك» / «قبل وبعد» ranges start after the previous statement or at the
     # surah start, not at the «ومثله» head (50:1–28, 19:1–20, 9, 5, 16:78–88, 18:60–62, 59)
-    assert result['total_extracted'] == 7201
-    assert result['matched'] == 7201
-    assert result['confident'] == 7201
+    # +1 eleventh check: 25:21 «وهو عندي تام» beside the relayed كاف; 12:52 «تمام الكلام» and 27:43
+    # «ورأس الآية أتم» replace their blanket كاف (+2 −2)
+    assert result['total_extracted'] == 7202
+    assert result['matched'] == 7202
+    assert result['confident'] == 7202
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0
