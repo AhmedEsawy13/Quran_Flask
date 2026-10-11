@@ -40,7 +40,7 @@ _G = (r'(?:وقف\s+)?(لا يحسن الوقف|ليس بوقف|لا يوقف|ا
       r'أحسن|حسن|صالح|قبيح)(?=[\s،.؛:\]]|$)'
       # «فمن قرأ (يأمرنا) حسن أن يقف على (وما الرحمن)»: grades the NEXT quote
       r'(?!\s*(?:الوقف|له\s+أن|أن\s+[تيأن]))')
-_GRADE_AFTER = re.compile(r'^[\s،:؛]*\[?' + _G)       # «[تام]» too
+_GRADE_AFTER = re.compile(r'^[\s،:؛]*\[?(?:هذا\s+)?' + _G)       # «[تام]», «هذا وقف تام» too
 _MAP = {'التمام': 'تام', 'التام': 'تام', 'أتم': 'تام', 'تمام': 'تام', 'تام': 'تام',
         'كافٍ': 'كاف', 'كاف': 'كاف', 'أحسن': 'حسن', 'حسن': 'حسن', 'صالح': 'صالح',
         'قبيح': 'قبيح', 'لا يحسن الوقف': 'قبيح', 'ليس بوقف': 'لا', 'لا يوقف': 'لا'}
@@ -106,6 +106,10 @@ def verse_near(text, start, end, acount, ayah):
     return min([va] + near, key=lambda v: (abs(v - ayah), v != va)), own
 
 
+_COMPARATIVE_BEFORE = re.compile(r'(?:^|[\s،.])و?(أتم|أحسن|أكفى)\s+منه(?:ما)?\s*:?\s*$')
+_COMPARATIVE = {'أتم': 'تام', 'أحسن': 'حسن', 'أكفى': 'كاف'}
+
+
 def grade_at(text, start, end):
     """(grade, via): the grade after the quote, or — for «ومثله/وكذلك (X)»
     and list items «، و (Y)» that follow one — the grade of the chain head."""
@@ -113,6 +117,10 @@ def grade_at(text, start, end):
     m = _GRADE_AFTER.match(tail)
     if m:
         return _MAP[m.group(1)], 'own'
+    # «(في هذا القرآن من كل مثل) [58] تام، وأتم منه: (إلا مبطلون)»: a comparative before it
+    m = _COMPARATIVE_BEFORE.search(text[max(0, start - 20):start])
+    if m:
+        return _COMPARATIVE[m.group(1)], 'own'
     pos, linked = start, False
     for _ in range(20):
         gap_ok = _MITHL.search(text[max(0, pos - 16):pos])
@@ -441,12 +449,20 @@ DROP = {(80, 24, 3, 'تام'), (3, 31, 10, 'تام')}
 DROP_ANY = {(2, 210, 10, 'قبيح')}
 # a relayed view the builder stored as the author's: «وروي عن الحسن أنه قال:
 # (ويقولون حجرا) وقف تام» — (surah, ayah, wpos, grade) → who
-RELAYED_BY = {(25, 22, 8, 'تام'): 'الحسن'}
+RELAYED_BY = {(25, 22, 8, 'تام'): 'الحسن',
+              (48, 29, 27, 'تام'): 'الفراء',
+              (30, 25, 10, 'تام'): 'المفسرون'}
 # rulings the builder cannot read because the book's [n] is garbled
 # («(ويقولون حجرا محجورا) [22 ي حسن»): (surah, ayah, wpos, grade, raw, quote, note)
 BOOK_ADD = [(25, 22, 9, 'حسن', 'حسن', 'ويقولون حجرا محجورا',
              '(ويقولون حجرا محجورا) حسن. والمعنى «يقولون: أي وتقول الملائكة: '
-             'حراما محرما أن تكون لهم البشرى»')]
+             'حراما محرما أن تكون لهم البشرى»'),
+            # relayed views stated in prose (credited by RELAYED_BY)
+            (48, 29, 27, 'تام', 'تمام الكلام', 'ذلك مثلهم في التوراة',
+             'قال الفراء: فيه وجهان … وإن شئت قلت: تمام الكلام على قوله: (ذلك مثلهم في التوراة)'),
+            (30, 25, 10, 'تام', 'يتم الكلام', 'ثم إذا دعاكم دعوة',
+             'وقال المفسرون: الكلام يتم على (ثم إذا دعاكم دعوة) … وهذا خطأ في العربية لأن (إذا) '
+             'لا يعمل ما بعدها فيما قبلها')]
 
 HOLD = {(5, 'والجروح قصاص'), (7, 'وهم يلعبون'), (7, 'وجاءوا بسحر عظيم'),
         (28, 'ما كان لهم الخيرة'), (69, 'ولا بقول كاهن')}
@@ -559,10 +575,6 @@ def apply(con, recs):
     for key in DROP_ANY:
         st['dropped'] += cur.execute("DELETE FROM classical WHERE source='anbari' AND surah=? AND ayah=? "
                                      "AND wpos=? AND grade=?", key).rowcount
-    for (surah, a, w, g), who in RELAYED_BY.items():
-        st['relayed_curated'] += cur.execute(
-            "UPDATE classical SET reported_from=? WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
-            "AND grade=? AND COALESCE(reported_from,'')<>?", (who, surah, a, w, g, who)).rowcount
     for surah, a, w, g, raw, q, note in BOOK_ADD:
         if not cur.execute("SELECT 1 FROM classical WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
                            "AND grade=? AND conf=1", (surah, a, w, g)).fetchone():
@@ -573,6 +585,10 @@ def apply(con, recs):
                         "note, seq, conf, reported_from) VALUES ('anbari',?,?,?,?,?,?,?,?,?,1,NULL)",
                         (surah, a, w, mm.verse_words(surah, a)[w], q, g, raw, note, seq))
             st['inserted_book_add'] += 1
+    for (surah, a, w, g), who in RELAYED_BY.items():
+        st['relayed_curated'] += cur.execute(
+            "UPDATE classical SET reported_from=? WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
+            "AND grade=? AND COALESCE(reported_from,'')<>?", (who, surah, a, w, g, who)).rowcount
     for surah, a, w, g, q, note in HAFS_ADD:
         if not cur.execute("SELECT 1 FROM classical WHERE source='anbari' AND surah=? AND ayah=? AND wpos=? "
                            "AND grade=? AND conf=1", (surah, a, w, g)).fetchone():

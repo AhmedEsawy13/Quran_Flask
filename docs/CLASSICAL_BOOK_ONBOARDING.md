@@ -369,3 +369,15 @@ conditional ruling, which live in the notes). Fixed book-wide:
   sit only in a note (shown to the reader, but not separate rows); ابن الأنباري's
   «غير تام» (a negation, not a grade); النحاس ungraded «ثم الوقف {X}» stops and
   «كل أمر ونهي ها هنا إلى …» spans.
+
+### Follow-up: recall patterns (2026-10-11)
+
+- **ابن الأنباري**: comparatives before the quote («تام، وأتم منه: (X)»,
+  «وأحسن منه: (X)») and «(X) هذا وقف تام» are read (+16); prose relays
+  «قال الفراء: … تمام الكلام على (X)», «وقال المفسرون: الكلام يتم على (X)»
+  curated (`BOOK_ADD` + `RELAYED_BY`, relay applied after the adds so one pass
+  is complete). Most remaining gaps are by design: «غير تام» (108 — a negation,
+  not a grade) and «فعلى هذا المذهب / لم يتم الكلام على» reading- or
+  i'rab-conditional rulings (held).
+- **النحاس**: «والتمام عند X {A} وعند غيره {B}» — B is the others' تمام (21
+  places, none parsed before).

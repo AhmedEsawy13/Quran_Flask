@@ -301,6 +301,10 @@ def parse(text):
                     by = None
                 else:
                     by = bys[i - 1]
+        if g is None and i and grades[i - 1] not in (None, 'NEG') and \
+                re.search(r'(?:^|[\s،])و?عند\s+غيره\s*:?\s*$', before):
+            # «والتمام عند أبي حاتم {A} وعند غيره {B}»: B is the others' تمام
+            g, how, by = grades[i - 1], 'chain', 'غيره'
         if g is None:
             m = _MITHL_AFTER.match(after)
             if m and i and grades[i - 1] not in (None, 'NEG'):

@@ -265,3 +265,19 @@ def test_fourth_round_negatives(con):
     assert (9, 'كاف', '') not in rulings(con, 'nahhas', 32, 9, 13)
     assert con.execute("SELECT conf FROM classical WHERE source='nahhas' AND surah=5 AND ayah=47 "
                        "AND wpos=6 AND grade='حسن'").fetchone() == (1,)
+
+
+# ── follow-up: ابن الأنباري and النحاس recall patterns (2026-10-11) ────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('anbari', 30, 58, 18, 'تام', ''),            # «… تام، وأتم منه: (إلا مبطلون)»
+    ('anbari', 23, 11, 5, 'تام', ''),             # «وأتم منه: (هم فيها خالدون)»
+    ('anbari', 64, 1, 16, 'حسن', ''),             # «وأحسن منه: (وهو على كل شيء قدير)»
+    ('anbari', 27, 34, 10, 'تام', ''),            # «(وجعلوا أعزة أهلها أذلة) [34] هذا وقف تام»
+    ('anbari', 48, 29, 27, 'تام', 'الفراء'),       # «قال الفراء: … تمام الكلام على قوله: (ذلك مثلهم في التوراة)»
+    ('anbari', 30, 25, 10, 'تام', 'المفسرون'),     # «وقال المفسرون: الكلام يتم على (ثم إذا دعاكم دعوة)»
+    ('nahhas', 11, 83, 7, 'تام', 'غيره'),          # «والتمام عند أبي حاتم {…} وعند غيره {وما هي من الظالمين ببعيد}»
+    ('nahhas', 19, 65, 11, 'تام', 'غيره'),         # «… وعند غيره {هل تعلم له سميا}»
+])
+def test_recall_followup(con, book, surah, ayah, wpos, grade, by):
+    assert (wpos, grade, by) in rulings(con, book, surah, ayah, wpos)
