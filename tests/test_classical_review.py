@@ -87,9 +87,12 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # والدينوري) and 68:6 (غيره)
     # +6 ninth check: 24:28 ×2 «شبيه بالتام ورأس الآية أتم», 24:45 «وآخر الآية أتم منهما»; relayed
     # 18:22 الزجاج, 18:44 الدينوري, 48:29 مجاهد
-    assert result['total_extracted'] == 7074
-    assert result['matched'] == 7074
-    assert result['confident'] == 7074
+    # +63 tenth check: +54 blanket verse ends (81:1–13 «ورؤوس الآي بين ذلك», 72 «رأس كل آية كاف»
+    # (بعض العلماء), 69 «هاءات الاستراحة» and 69:30–50, 112:4, 113:5), +7 «والآية أتم» verse ends
+    # and 81:14, 77:7 (−4 blanket rows they replace), +4 relayed (72 ×3, 81:21 نافع), +2 «لا»
+    assert result['total_extracted'] == 7137
+    assert result['matched'] == 7137
+    assert result['confident'] == 7137
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

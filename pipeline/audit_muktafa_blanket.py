@@ -61,7 +61,17 @@ MANUAL_RANGES = [(21, 51, 73, 'كاف', 'ورؤوس الآي من قوله {ول
                  (38, 29, 48, 'كاف', 'والفواصل بين ذلك كافية'),
                  (54, 8, 51, 'كاف', '((من مدكر)) والفواصل بين ذلك كافية'),
                  # «{قم فأنذر} كاف. وكذلك كل آية بعدها كافية إلى {ولربك فاصبر} وهو كاف»
-                 (74, 3, 7, 'كاف', 'وكذلك كل آية بعدها كافية إلى {ولربك فاصبر} وهو كاف')]
+                 (74, 3, 7, 'كاف', 'وكذلك كل آية بعدها كافية إلى {ولربك فاصبر} وهو كاف'),
+                 # round 10: «جواب {إذا} {علمت نفس ما أحضرت} ولا تمام دونه، وهو تام. ورؤوس الآي
+                 # بين ذلك كافية» — between the opening and that answer (81:1–13)
+                 (81, 1, 13, 'كاف', 'ولا تمام دونه، وهو تام. ورؤوس الآي بين ذلك كافية'),
+                 # «{لحق اليقين} كاف. ورؤوس الآي بين ذلك كافية» — since «سائر هاءات الاستراحة» (69:29)
+                 (69, 30, 50, 'كاف', '{لحق اليقين} كاف. ورؤوس الآي بين ذلك كافية'),
+                 # «قال بعض العلماء: ليس من أول هذه السورة وقف تام إلى قوله {إلا بلاغا من الله
+                 # ورسالاته} … والوقف على رأس كل آية كاف» (72:5, 7, 15 تام: ordinals RELAYED_ADD)
+                 (72, 1, 22, 'كاف', 'والوقف على رأس كل آية كاف')]
+# blanket statements the book relays from someone else: statement → reported_from
+STATEMENT_BY = {'والوقف على رأس كل آية كاف': 'بعض العلماء'}
 # verse lists a statement names without a range: (surah, ayahs, grade, statement).
 # 77: «{للمكذبين} تام، جميع ما في السورة. وكذلك ما قبل {ويل يومئذ للمكذبين} فيها»
 MANUAL_VERSES = [(77, (14, 18, 23, 27, 33, 36, 39, 44, 46, 48), 'تام',
@@ -73,6 +83,10 @@ MANUAL_VERSES = [(77, (14, 18, 23, 27, 33, 36, 39, 44, 46, 48), 'تام',
                   'كل شيء في هذه السورة من {فبأي آلاء ربكما تكذبان} تام ما لم يتعلق'),
                  # «… والتمام آخر السورة» with no quote at the stop
                  (110, (3,), 'تام', 'والتمام آخر السورة'),
+                 (112, (4,), 'تام', 'والتمام في آخرها'),
+                 (113, (5,), 'تام', 'ليس فيها وقف كاف، والتمام في آخرها'),
+                 # «{سلطانية} كاف وكذلك سائر هاءات الاستراحة في هذه السورة» (كتابيه، حسابيه، ماليه)
+                 (69, (19, 20, 25, 26, 28), 'كاف', '{سلطانية} كاف وكذلك سائر هاءات الاستراحة في هذه السورة'),
                  (114, (6,), 'تام', 'والتمام آخر السورة')]
 # «ومثله {X}» whose X ends two verses of the surah, so the nearest unique
 # entry is an earlier one: (surah, X) → the verse the book means.
@@ -286,8 +300,8 @@ def apply(con, rows):
                            (s, a, a, w)).fetchone() or (0,))[0]
         word = mm.verse_words(s, a)[w]
         cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, "
-                    "grade_raw, note, seq, conf, reported_from) VALUES ('muktafa',?,?,?,?,?,?,?,?,?,1,NULL)",
-                    (s, a, w, word, word, g, RAW, note_for(statement), seq))
+                    "grade_raw, note, seq, conf, reported_from) VALUES ('muktafa',?,?,?,?,?,?,?,?,?,1,?)",
+                    (s, a, w, word, word, g, RAW, note_for(statement), seq, STATEMENT_BY.get(statement)))
         n += 1
     # a verse end a blanket row filled that now has an explicit ruling (e.g. a
     # row moved onto it): the book's own word wins

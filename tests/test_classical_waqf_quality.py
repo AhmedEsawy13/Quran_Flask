@@ -232,6 +232,8 @@ def test_quotes_are_traceable_to_the_source_book(source, rows, source_word_strea
             qwords = pcw.quote_words(blanket_statement(r))
         elif r['grade_raw'] == 'آخر السورة':  # «والوقف التام في سورة الإخلاص … آخر السورة»
             qwords = pcw.quote_words(r['note'])
+        elif r['grade_raw'] == 'رأس الآية':   # «{X} تام، والآية أتم» — the verse end has no quote
+            qwords = pcw.quote_words(r['note'])
         if not qwords:
             continue
         needle = ' ' + ' '.join(qwords) + ' '

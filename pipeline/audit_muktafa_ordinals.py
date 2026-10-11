@@ -143,6 +143,7 @@ REPAIR = {
 REPORTED = {2542: 'الدينوري'}
 # rows on a word the book does not rule on: «{الر} حيث وقع و {المر} تام» (يونس's opening)
 # was seated on «ضره مر» (10:12); المر is 13:1, which has its own row
+VERSE_END_RAW = 'رأس الآية'
 DROP_IDS = {1736}
 # «{عليم حكيم} تام. ومثله {ما أنفقوا} {مؤمنون} أتم» is 60:11's «مثل ما أنفقوا»; this تام sat on
 # 60:10's second «ما أنفقوا» beside its own كاف (المكتفى is never rebuilt, so ids are stable)
@@ -197,7 +198,16 @@ MANUAL += [(7, 74, 16, 'وتنحتون الجبال بيوتا', 'كاف', '{ع�
            # الآية أتم منهما» (24:45)
            (24, 28, 17, 'هو أزكى لكم', 'كاف', '{هو أزكى لكم} شبيه بالتام ورأس الآية أتم.'),
            (24, 28, 21, 'عَلِيمٞ', 'تام', '{هو أزكى لكم} شبيه بالتام ورأس الآية أتم.'),
-           (24, 45, 30, 'قَدِيرٞ', 'تام', '{ما يشاء} أتم منه وآخر الآية أتم منهما.')]
+           (24, 45, 30, 'قَدِيرٞ', 'تام', '{ما يشاء} أتم منه وآخر الآية أتم منهما.'),
+           # round 10: «والآية أتم» / «ورأس الآية أتم» on a verse end a blanket كاف had filled
+           (3, 122, 11, 'ٱلۡمُؤۡمِنُونَ', 'تام', '{والله وليهما} تام، والآية أتم.'),
+           (25, 16, 9, 'مَّسۡـُٔولٗا', 'تام', '{ما يشاءون خالدين} تام والآية أتم.'),
+           (25, 20, 19, 'بَصِيرٗا', 'تام', '{أتصبرون} تام، والآية أتم.'),
+           (28, 35, 14, 'ٱلۡغَٰلِبُونَ', 'تام', 'ومثله {إليكما بآياتنا} ورأس الآية أتم.'),
+           (60, 3, 12, 'بَصِيرٞ', 'تام', 'ومثله {يفصل بينكم} والآية أتم.'),
+           # «جواب {إذا} {علمت نفس ما أحضرت} ولا تمام دونه، وهو تام» / «جواب القسم {…} وهو تمام»
+           (81, 14, 3, 'علمت نفس ما أحضرت', 'تام', 'جواب {إذا} {علمت نفس ما أحضرت} ولا تمام دونه، وهو تام.'),
+           (77, 7, 2, 'إنما توعدون لواقع', 'تام', 'جواب القسم {إنما توعدون لواقع} وهو تمام.')]
 # relayed views with no row at all (RELAYED_BY only relabels): inserted credited
 # (surah, ayah, wpos, quote, grade, reported_from, note)
 RELAYED_ADD = [
@@ -208,10 +218,18 @@ RELAYED_ADD = [
     # «{وما كان منتصرا. هنالك} تمام … ويكون العامل [فيه] منتصرا»: the stop is «هنالك»
     (18, 44, 0, 'وما كان منتصرا. هنالك', 'تام', 'الدينوري', 'وقال الدينوري: {وما كان منتصرا. هنالك} تمام'),
     (48, 29, 30, 'ومثلهم في الإنجيل', 'تام', 'مجاهد', 'والتمام على قول مجاهد: {ومثلهم في الإنجيل}'),
+    (72, 5, 9, 'على الله كذبا', 'تام', 'بعض العلماء', 'قال بعض العلماء: … والوقف على رأس كل آية كاف. ويتم على قوله {على الله كذبا} و {لجهنم حطبا} … وكذلك قوله {أن لن يبعث الله أحدا}'),
+    (72, 7, 8, 'أن لن يبعث الله أحدا', 'تام', 'بعض العلماء', 'قال بعض العلماء: … والوقف على رأس كل آية كاف. ويتم على قوله {على الله كذبا} و {لجهنم حطبا} … وكذلك قوله {أن لن يبعث الله أحدا}'),
+    (72, 15, 4, 'لجهنم حطبا', 'تام', 'بعض العلماء', 'قال بعض العلماء: … والوقف على رأس كل آية كاف. ويتم على قوله {على الله كذبا} و {لجهنم حطبا} … وكذلك قوله {أن لن يبعث الله أحدا}'),
+    (81, 21, 1, 'مطاع ثم', 'تام', 'نافع', 'وقال نافع: {مطاع ثم} تم. وليس بتام ولا كاف لأن ((أمين)) نعت ل ((مطاع))'),
 ]
 # the Hafs side of a reading split whose other side is the stored row: inserted
 # beside it (MANUAL would regrade a lone row with the same quote instead)
 HAFS_SIDE = [
+    # round 10: «ولا يوقف على {العالمين} لأن {لمن يشاء} بدل منه» (81:27); «لم يوقف على قوله
+    # ((تمشي)) ولا يبتدأ ب ((على استحياء))» (28:25)
+    (81, 27, 4, 'العالمين', 'لا', 'ولا يوقف على {العالمين} لأن {لمن يشاء} بدل منه'),
+    (28, 25, 2, 'تمشي', 'لا', 'لم يوقف على قوله ((تمشي)) ولا يبتدأ ب ((على استحياء))'),
     # «{بالحق} كاف لمن قرأ {والذين تدعون} بالتاء. ومن قرأ بالياء فهو راجع إلى ما قبله … فلا يقطع»
     (40, 20, 2, 'بالحق', 'لا', 'ومن قرأ بالياء [«يدعون»، قراءة حفص] فهو راجع إلى ما قبله من الخبر فلا يقطع'),
     # a stop the book rules out where a blanket «والفواصل بين ذلك كافية» put كاف:
@@ -394,8 +412,12 @@ def apply(con, found):
             cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, grade_raw, "
                         "note, seq, conf, reported_from) VALUES ('muktafa',?,?,?,?,?,?,?,?,?,1,NULL)",
                         (s, a, w, mm.verse_words(s, a)[w], q, g, 'ليس بوقف', note,
-                         cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND ayah=? "
-                                     "AND wpos=?", (s, a, w)).fetchone()[0]))
+                         # the seq of the row it sits beside, else of the nearest earlier row
+                         (cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND ayah=? "
+                                      "AND wpos=?", (s, a, w)).fetchone()
+                          or cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND "
+                                         "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
+                                         (s, a, a, w)).fetchone() or (0,))[0]))
             stats['hafs_side'] += 1
     for s, a, w, q, g, by, note in RELAYED_ADD:
         if not cur.execute("SELECT 1 FROM classical WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
@@ -408,6 +430,10 @@ def apply(con, found):
                         (s, a, w, mm.verse_words(s, a)[w], q, g, g, note, seq, by))
             stats['relayed_added'] += 1
     rows = [(r['surah'], r['ayah'], r['wpos'], r['quote'], r['grade'], r['note']) for r in found]
+    stats['verse_end_raw'] += sum(cur.execute(
+        "UPDATE classical SET grade_raw=? WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? AND quote=? "
+        "AND grade_raw=grade", (VERSE_END_RAW, s, a, w, q)).rowcount
+        for s, a, w, q, g, *_ in MANUAL if re.search('[\u064b-\u0652]', q))
     rows += [(s, a, w, q, g, rest[0] if rest else f'{q} {g}') for s, a, w, q, g, *rest in MANUAL]
     for s, a, w, q, g, note in rows:
         have = cur.execute("SELECT id, grade FROM classical WHERE source='muktafa' AND surah=? "
@@ -424,9 +450,12 @@ def apply(con, found):
         seq = (cur.execute("SELECT seq FROM classical WHERE source='muktafa' AND surah=? AND "
                            "(ayah<? OR (ayah=? AND wpos<=?)) ORDER BY ayah DESC, wpos DESC LIMIT 1",
                            (s, a, a, w)).fetchone() or (0,))[0]
+        # a verse end the book names only as «ورأس الآية أتم» / «والآية أتم» has no quote of
+        # its own: the row carries the mushaf word and grade_raw «رأس الآية» (traced by its note)
+        raw = VERSE_END_RAW if re.search('[\u064b-\u0652]', q) else g
         cur.execute("INSERT INTO classical (source, surah, ayah, wpos, stop_word, quote, grade, "
                     "grade_raw, note, seq, conf, reported_from) VALUES ('muktafa',?,?,?,?,?,?,?,?,?,1,NULL)",
-                    (s, a, w, mm.verse_words(s, a)[w], q, g, g, note, seq))
+                    (s, a, w, mm.verse_words(s, a)[w], q, g, raw, note, seq))
         stats['inserted'] += 1
     con.commit()
     return stats

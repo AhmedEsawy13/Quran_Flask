@@ -146,10 +146,11 @@ def test_mukhtalif_alwanuhu_is_the_bee_ayah_not_ibrahim(muktafa):
 
 
 def test_asr_and_falaq_have_no_db_rows(muktafa):
-    """Book: لا وقف فيها دون آخرها / ليس فيها وقف كاف. No {quote} grade."""
+    """Book: لا وقف فيها دون آخرها / ليس فيها وقف كاف. No {quote} grade — only
+    الفلق's «والتمام في آخرها» (its last verse end, as for 110 and 114)."""
     surahs = {r['surah'] for r in muktafa}
     assert 103 not in surahs
-    assert 113 not in surahs
+    assert [(r['ayah'], r['grade']) for r in muktafa if r['surah'] == 113] == [(5, 'تام')]
     assert 63 in surahs
 
 

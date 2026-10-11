@@ -531,3 +531,22 @@ caught all three planted moves and six real ones — المكتفى 4:78 «قل 
 Left as is: 5:76–87 (an open «وكذلك رؤوس الآي بعد» after a تام overlaps «ورؤوس
 الآي قبل ذلك كافية»; the book does not say where one ends), 36:52 (a range «إلى
 قوله {من مرقدنا}» that ends mid-verse), 89:16-style «وكذلك» after «وقيل».
+
+### Tenth passage check (2026-10-11, gpt-6-luna)
+
+24 fresh passages (`make_passages.py 10 manar:8,muktafa:8,anbari:8`). Most real
+gaps were المكتفى general statements with no rows at all:
+
+- 81:1–13 «جواب {إذا} {علمت نفس ما أحضرت} ولا تمام دونه، وهو تام. ورؤوس الآي
+  بين ذلك كافية» (+ 81:14 تام); 72 «والوقف على رأس كل آية كاف. ويتم على …»
+  inside «قال بعض العلماء: …» — credited (`STATEMENT_BY` for the blanket rows,
+  RELAYED_ADD for 72:5, 7, 15); 69 «سائر هاءات الاستراحة في هذه السورة» (كتابيه،
+  حسابيه، ماليه) and «ورؤوس الآي بين ذلك كافية» (69:30–50); 112:4, 113:5
+  «والتمام في آخرها» (`test_asr_and_falaq_have_no_db_rows` now expects 113:5).
+- «والآية أتم» / «ورأس الآية أتم» over a blanket كاف (3:122, 25:16, 25:20,
+  28:35, 60:3): these verse ends have no quote in the book, so the row carries
+  the mushaf word with grade_raw «رأس الآية» and is traced by its note (like
+  «آخر السورة»), in the quality test and `core.classical_review`.
+- 77:7, 81:21 نافع, 81:27 / 28:25 «لا».
+- **منار**: 82:7 «وجوز بعضهم الوقف على: «فسواك» لمن خفف «فعدلك»» (Hafs reads
+  it light) on «فسواك»; 112:3 «كذا وسمه بعضهم بالكافي» credited.

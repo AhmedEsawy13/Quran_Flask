@@ -508,3 +508,27 @@ def test_wrong_word_check_moves(con, book, surah, ayah, wpos):
 def test_ninth_passage_check(con, book, surah, ayah, wpos, grade, by):
     got = rulings(con, book, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── tenth passage check (2026-10-11, reviewed by gpt-6-luna) ─────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 81, 5, None, 'كاف', ''),       # «ورؤوس الآي بين ذلك كافية» before the answer
+    ('muktafa', 81, 14, 3, 'تام', ''),         # «جواب {إذا} {علمت نفس ما أحضرت} … وهو تام»
+    ('muktafa', 81, 21, 1, 'تام', 'نافع'),     # «وقال نافع: {مطاع ثم} تم»
+    ('muktafa', 81, 27, 4, 'لا', ''),          # «ولا يوقف على {العالمين}»
+    ('muktafa', 72, 10, None, 'كاف', 'بعض العلماء'),    # «والوقف على رأس كل آية كاف»
+    ('muktafa', 72, 5, 9, 'تام', 'بعض العلماء'),        # «ويتم على قوله {على الله كذبا}»
+    ('muktafa', 69, 19, None, 'كاف', ''),      # «وكذلك سائر هاءات الاستراحة في هذه السورة»
+    ('muktafa', 69, 45, None, 'كاف', ''),
+    ('muktafa', 3, 122, 11, 'تام', ''),        # «{والله وليهما} تام، والآية أتم»
+    ('muktafa', 28, 35, 14, 'تام', ''),        # «ورأس الآية أتم»
+    ('muktafa', 77, 7, 2, 'تام', ''),          # «جواب القسم {إنما توعدون لواقع} وهو تمام»
+    ('muktafa', 112, 4, None, 'تام', ''),      # «والتمام في آخرها»
+    ('muktafa', 28, 25, 2, 'لا', ''),          # «لم يوقف على قوله ((تمشي))»
+    ('manar', 82, 7, 2, 'جائز', 'بعضهم'),      # «وجوز بعضهم الوقف على: «فسواك» لمن خفف»
+    ('manar', 112, 3, None, 'كاف', 'بعضهم'),   # «كذا وسمه بعضهم بالكافي»
+])
+def test_tenth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

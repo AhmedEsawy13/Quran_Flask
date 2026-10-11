@@ -348,6 +348,7 @@ def _decision_counts(source, row_ids, review_db=None):
 
 
 BLANKET_RAW = 'رؤوس الآي'      # pipeline/audit_muktafa_blanket.py
+VERSE_END_RAW = 'رأس الآية'    # pipeline/audit_muktafa_ordinals.py: «{X} تام، والآية أتم»
 HAND_PINNED = Path(_BASE_DIR) / 'pipeline' / 'review' / 'hand_pinned_seats.json'
 
 
@@ -398,8 +399,14 @@ def muktafa_accuracy(db_path=CLASSICAL_WAQF_DATABASE, review_db=None):
     aligned = exact = fuzzy = 0
     for row in confident:
         qwords = b.quote_words(row['quote'])
-        # a blanket «ورؤوس الآي بعد كافية» row is traced by its statement
-        traced = b.quote_words(blanket_statement(row)) if row['grade_raw'] == BLANKET_RAW else qwords
+        # a blanket «ورؤوس الآي بعد كافية» row is traced by its statement; a verse end the
+        # book names only as «والآية أتم» (grade_raw «رأس الآية») by the sentence in its note
+        if row['grade_raw'] == BLANKET_RAW:
+            traced = b.quote_words(blanket_statement(row))
+        elif row['grade_raw'] == VERSE_END_RAW:
+            traced = b.quote_words(row['note'])
+        else:
+            traced = qwords
         if traced and (' ' + ' '.join(traced) + ' ') in source_words:
             source_traceable += 1
         if is_hand_pinned('muktafa', row):
