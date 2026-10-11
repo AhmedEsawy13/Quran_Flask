@@ -56,7 +56,10 @@ MANUAL_RANGES = [(21, 51, 73, 'كاف', 'ورؤوس الآي من قوله {ول
 # verse lists a statement names without a range: (surah, ayahs, grade, statement).
 # 77: «{للمكذبين} تام، جميع ما في السورة. وكذلك ما قبل {ويل يومئذ للمكذبين} فيها»
 MANUAL_VERSES = [(77, (14, 18, 23, 27, 33, 36, 39, 44, 46, 48), 'تام',
-                  'وكذلك ما قبل {ويل يومئذ للمكذبين} فيها')]
+                  'وكذلك ما قبل {ويل يومئذ للمكذبين} فيها'),
+                 # «… والتمام آخر السورة» with no quote at the stop
+                 (110, (3,), 'تام', 'والتمام آخر السورة'),
+                 (114, (6,), 'تام', 'والتمام آخر السورة')]
 # «ومثله {X}» whose X ends two verses of the surah, so the nearest unique
 # entry is an earlier one: (surah, X) → the verse the book means.
 # 33: «... ((أجرا كريما)). ومثله {وكيلا}. وكذلك الفواصل إلى قوله {تكون
@@ -188,7 +191,7 @@ def statements(con):
                 verses = list(range(min(head_a, anchor), anchor + 1)) if before else []
                 if after:
                     verses.append(('after', anchor, end))
-            yield {'surah': surah, 'anchor': anchor, 'grade': grade, 'pos': pos,
+            yield {'surah': surah, 'anchor': anchor, 'grade': grade, 'pos': pos, 'single': subject == 'رأس الآية',
                    'statement': statement_text(plain, m.start(), m.end() + len(span)),
                    'verses': verses}
 
@@ -213,7 +216,9 @@ def expand(con):
                 if isinstance(v, tuple):
                     _, a0, end = v
                     if end is None:
-                        later = [t['anchor'] for t in sts[i + 1:] if t['anchor'] > a0]
+                        # the next RANGE statement ends an open «بعد»; a single «ورأس الآية
+                        # أكفى منه» (11:31) rules one verse end and does not
+                        later = [t['anchor'] for t in sts[i + 1:] if t['anchor'] > a0 and not t['single']]
                         end = later[0] if later else n
                     verses += list(range(a0 + 1, end + 1))
                 else:

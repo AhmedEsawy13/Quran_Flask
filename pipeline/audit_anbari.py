@@ -122,13 +122,13 @@ def grade_at(text, start, end):
     if m:
         return _COMPARATIVE[m.group(1)], 'own'
     # walk back through the list: «ومثله: (A) [3] (B) [4] (C)» — B and C are joined by
-    # «] (» or «، (» alone, so a connector may come first, but the chain only counts
+    # «] (», «]. (», a line break or «، (» alone, so a connector may come first, but the chain only counts
     # if it reaches a «ومثله / وكذلك» before the graded head
     pos, mithl = start, False
     for _ in range(20):
         if _MITHL.search(text[max(0, pos - 16):pos]):
             mithl = True
-        elif not re.search(r'[،,]\s*(?:و\s*)?$|\]\s*[،,]?\s*(?:و\s*)?$', text[max(0, pos - 8):pos]):
+        elif not re.search(r'[،,]\s*(?:و\s*)?$|\]\s*[.،,]?\s*(?:و\s*)?$', text[max(0, pos - 8):pos]):
             break
         prev = None
         for mm_ in re.finditer(r'\(([^()]{1,120})\)', text[max(0, pos - 600):pos]):

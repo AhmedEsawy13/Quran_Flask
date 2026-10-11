@@ -331,3 +331,30 @@ def test_nahhas_ranges_and_relays(con, surah, ayah, wpos, grade, by):
 def test_nahhas_range_stops_before_its_target(con):
     # «إلى {سحاب مركوم} فإنه تمام، {يومهم الذي فيه يصعقون} ليس بتمام»
     assert not any(g == 'صالح' for _, g, _ in rulings(con, 'nahhas', 52, 45))
+
+
+# ── fourth passage check: منار، المكتفى، ابن الأنباري (2026-10-11) ────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('anbari', 20, 53, 18, 'حسن', ''),        # «ومثله: (…) [36].\n(…) [40]\n(من نبات شتى) [53]» — list over lines
+    ('anbari', 93, 8, 2, 'تام', ''),         # «ومثله: (من الأولى) [4]. (فترضى) [5] (فإغنى) [8]»
+    ('muktafa', 27, 45, None, 'كاف', ''),    # «ورؤوس الآي بعد كافية» (34) not cut off by «ورأس الآية أتم» (43)
+    ('muktafa', 114, 6, 2, 'تام', ''),       # «والتمام آخر السورة»
+    ('muktafa', 45, 10, 15, 'كاف', ''),      # «{كأن لم يسمعها} كاف. مثله {من دون الله أولياء}»
+    ('muktafa', 111, 4, 0, 'كاف', ''),       # Hafs «حمالةَ»: «يكفي الوقف على قوله {وامرأته}»
+    ('manar', 3, 81, 9, 'لا', ''),           # «ولا يوقف على قوله: «وحكمة»»
+    ('manar', 95, 3, 2, 'لا', ''),           # «ولا وقف من أولها إلى «تقويم» فلا يوقف على «الأمين»» (no [n] yet)
+    ('manar', 31, 14, 2, 'كاف', 'أبو حاتم'),  # «قال أبو حاتم السجستاني: هذه الثلاثة كافية»
+    ('manar', 31, 14, 14, 'حسن', 'العماني'),
+    ('manar', 5, 64, 4, 'جائز', 'بعضهم'),
+    ('manar', 8, 65, 25, 'حسن', ''),         # «و «لا يفقهون» كذلك» (of حسن)
+])
+def test_fourth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    if wpos is None:
+        assert any(g == grade and b == by for _, g, b in rulings(con, book, surah, ayah))
+    else:
+        assert (wpos, grade, by) in rulings(con, book, surah, ayah, wpos)
+
+
+def test_manar_33_13_no_duplicate_on_biawra(con):
+    assert (20, 'حسن', '') not in rulings(con, 'manar', 33, 13, 20)

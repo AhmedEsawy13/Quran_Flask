@@ -411,3 +411,17 @@ recall: ابن الأنباري 93% (was 60% before the list/brace fixes), ال�
 has its own grade after it. +80 rows. Most of النحاس's remaining gap is by
 design: «ليس بتمام / ليس بقطع كاف» (a negation, not a grade) and prose relays
 the parser cannot scope.
+
+### Fourth passage check: منار، المكتفى، ابن الأنباري (2026-10-11)
+
+24 fresh passages (`make_passages.py 4 manar:8,muktafa:8,anbari:8`). Plain
+recall before fixes: منار 97.6%, المكتفى 91.4%, ابن الأنباري 86.5%. Fixed:
+
+- **ابن الأنباري**: «ومثله» lists that run over «]. » and line breaks (+192).
+- **المكتفى**: an open «بعد» range ran only to the next statement of any kind —
+  a single «ورأس الآية أكفى منه» cut it off; now only range statements do
+  (+87 verse ends); «والتمام آخر السورة» (110, 114); «مثله {X}» without «و» and
+  «{X} مثل {Y}» (6:25, 45:10, 98:4, 111:2); 111:4 «وامرأته» (Hafs نصب «حمالة»).
+- **منار**: prose no-stops «على قوله: «X»» and those before the first «[n]»
+  (+8); 31:14 أبو حاتم ×3 and العماني; 5:64 بعضهم; 8:65 «لا يفقهون» حسن; 33:13
+  duplicate dropped.

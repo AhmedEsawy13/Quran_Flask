@@ -641,6 +641,7 @@ DEMOTE = {48071, 57755,
           52020,      # 13:33 «ليس بوقف لمن قرأ ببنائه للمفعول» is about «مكرهم» (EXTRA), not «من القول»
           60022,      # 13:33 «مكرهم» كاف — the active «وصَدّوا» reading only (NOT_RULINGS)
           49426,      # 5:116 «في نفسي» حسن — «ومثله «ما في نفسك»» names the other (59966)
+          55619,      # 33:13 «عورة» حسن on «بعورة» — «إن بيوتنا عورة» حسن is 60130 (w17)
           46901}      # 2:69 كاف on «فاقع لونها» — the كاف is «ما لونها» (59918); {لونها} جائز
 # rows on a repeated word that the book does mean (checked): not suspects
 REVIEWED_OK = {(60, 1, 10), (9, 79, 13),   # «فيسخرون منهم» (prose «ولا على …», the phrase is unique)      # «بالمودة» الأولى ليس بوقف (2026-10-07)
@@ -656,6 +657,7 @@ REGRADE = {
     46721: 'صالح',    # 2:16 {تجارتهم} أصلح
     59098: 'حسن',     # 70:3 «الوقف الجيد ذي المعارج» (الأخفش)
     51341: 'تام',     # 11:18 «{على ربهم} الثاني، قال محمد بن جرير: تم الكلام»
+    50614: 'حسن',     # 8:65 «{على القتال} حسن … و «لا يفقهون» كذلك»
 }
 # notes that carried another ruling's clause: id → the book's own clause
 NOTE_FIX = {
@@ -678,7 +680,9 @@ REPORTED_FIX = {50554: 'قيل', 59098: 'الأخفش', 46946: 'شيخ الإس�
                 57275: 'أبو حاتم',
                 # fourth (book → DB) check: «{إسرارهم} كاف، ومثله: «وأدبارهم»، وقال نافع: …» —
                 # the كاف is the author's; «{سيرحمهم الله} أحسن منه، وقيل: كاف»
-                57702: None, 50832: 'قيل'}
+                57702: None, 50832: 'قيل',
+                # «قال أبو حاتم السجستاني: هذه الثلاثة كافية» (31:14); «{مغلولة} جائز عند بعضهم»
+                55449: 'أبو حاتم', 55450: 'أبو حاتم', 55451: 'أبو حاتم', 49273: 'بعضهم'}
 # grade_mismatch keys where منار's inherited ruling is absent and only another
 # (alternate / relayed / conditional) grade was stored: add it.
 ADD_GRADE = {
@@ -693,7 +697,8 @@ SKIP = set()          # superseded by NOT_RULINGS
 GRADE_OVERRIDE = {(39, 51, 3): 'تام'}      # «كسبوا» الأولى والثانية تام فيهما
 REPORTED = {(25, 41, 10): 'أبو حاتم',      # «ومثله «رسولا» عند أبي حاتم»
             (89, 21, 0): 'أبو عمرو',       # «وقال أبو عمرو: «كلا» في الموضعين تام»
-            (11, 18, 22): 'محمد بن جرير'}
+            (11, 18, 22): 'محمد بن جرير',
+            (31, 14, 14): 'العماني'}
 # extra rows the chain implies but the resolver cannot emit on its own
 EXTRA = [
     (7, 195, 8, 'بها', 'لا', 'وفي المواضع الثلاثة لا يجوز الوقف؛ لأن «أم» عاطفة'),
@@ -716,6 +721,8 @@ EXTRA = [
     (2, 33, 6, 'بأسمائهم', 'لا', 'والثاني ليس بوقف؛ لأن قوله: «قال ألم أقل لكم» جواب لـ «ما»'),
     (3, 145, 21, 'نؤته منها', 'حسن', 'و {نؤته منها} [145] الثاني أحسن منه'),
     (38, 26, 22, 'عن سبيل الله', 'لا', 'والثاني ليس بوقف؛ لأن ما بعده خبر «إن»'),
+    (31, 14, 14, 'لي ولوالديك', 'حسن', 'قال العماني: وتبعه شيخ الإسلام؛ أنها ليست كافية … و «لي ولوالديك» '
+     'أرقى حسنا من الثلاثة'),
     (56, 10, 1, 'والسابقون السابقون', 'كاف', '{ما أصحاب الميمنة (8)} كاف، ومثله: «ما أصحاب المشأمة» '
      '«والسابقون السابقون» الثاني منهما خبر عن الأول'),
     (13, 33, 28, 'مكرهم', 'لا', 'وليس بوقف لمن قرأ «وصُدّوا» ببنائه للمفعول [قراءة حفص]، أي: بضم الصاد؛ '
@@ -750,9 +757,12 @@ def source_note(rec):
 # book lists in prose, outside any {quote} [n] head. Seated only when the item is
 # a single occurrence in the head's ayah or the three after it; the note is the
 # book's sentence (conditions included), the speaker a «قال X:» before it.
-_PROSE_NEG = re.compile(r'(?:فلا|ولا|لا)\s+(?:يوقف|يجوز\s+الوقف|وقف)\s+على\s+«([^«»]{1,40})»'
-                        r'|،\s*ولا\s+على\s+«([^«»]{1,40})»')
+_PROSE_NEG = re.compile(r'(?:فلا|ولا|لا)\s+(?:يوقف|يجوز\s+الوقف|وقف)\s+على\s+(?:قوله\s*:?\s*)?«([^«»]{1,40})»'
+                        r'|،\s*ولا\s+على\s+(?:قوله\s*:?\s*)?«([^«»]{1,40})»')
 _PROSE_GOV = re.compile(r'(?:ولا\s+وقف\s+من\s+قوله|(?:فلا|ولا|لا)\s+(?:يوقف|يجوز\s+الوقف))')
+# speaker read from too far back: 3:81 «وقيل: الكاف والميم ضمير الأنبياء … وعلى هذا لا يوقف
+# على قوله: «وحكمة»» is a condition (in the note), not «بعضهم»'s ruling
+PROSE_BY_FIX = {(3, 81, 9): None}
 _PROSE_SAID_IN = re.compile(r'(?:وقال|قال)\s+([^:«»{}\[\].،]{2,30}?)\s*:')
 _PROSE_SAID_AFTER = re.compile(r'قاله\s+([^\s.،؛]{3,20})')
 
@@ -766,8 +776,9 @@ def prose_nostops():
         text = strip(sec['text'] if isinstance(sec, dict) else sec).replace('\r', '\n')
         n = rx.surah_ayah_count(s)
         for m in _PROSE_NEG.finditer(text):
-            marks = [int(k.group(1)) for k in re.finditer(r'\[(\d{1,3})\]', text[:m.start()])]
-            if not marks or marks[-1] > n:
+            # before the first «[n]» (the surah's opening note: «ولا وقف من أولها …») — ayah 1
+            marks = [int(k.group(1)) for k in re.finditer(r'\[(\d{1,3})\]', text[:m.start()])] or [1]
+            if marks[-1] > n:
                 continue
             item = (m.group(1) or m.group(2)).strip()
             q = [rx.norm(t) for t in item.split()]
@@ -917,6 +928,7 @@ def apply(recs, path):
     for s, a, w, q, g, note in EXTRA:
         stats['inserted_extra'] += insert(s, a, w, q, g, [note], REPORTED.get((s, a, w)))
     for s, a, w, q, note, by in prose_nostops():
+        by = PROSE_BY_FIX.get((s, a, w), by)
         if not cur.execute("SELECT 1 FROM classical WHERE source='manar' AND surah=? AND ayah=? AND wpos=?",
                            (s, a, w)).fetchone():          # a ruled seat: the book's own head wins
             stats['inserted_prose_nostop'] += insert(s, a, w, q, 'لا', [note], by)
