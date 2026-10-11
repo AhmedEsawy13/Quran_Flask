@@ -59,7 +59,9 @@ def api(path, body=None):
 
 
 def show_rows(book, surah, first, last):
-    last = min(int(last), int(first) + 40)
+    # short dumps: with 30–40 verses at once the model skimmed past single bad rows
+    # (planted-error test, 2026-10-11); 10 verses per call
+    last = min(int(last), int(first) + 9)
     out = subprocess.run([sys.executable, str(HERE / 'show_rows.py'), book, str(surah), str(first), str(last)],
                          capture_output=True, text=True, timeout=60)
     return (out.stdout + out.stderr)[:40000]
@@ -77,7 +79,7 @@ def search_book(book, pattern):
 
 TOOLS = [  # Responses API shape
     {'type': 'function', 'name': 'show_rows',
-     'description': 'DB rows and 0-based numbered verse words for ayahs FIRST..LAST (max 40).',
+     'description': 'DB rows and 0-based numbered verse words for ayahs FIRST..LAST (max 10; call again for the next verses).',
      'parameters': {'type': 'object', 'required': ['surah', 'first', 'last'], 'additionalProperties': False,
                     'properties': {'surah': {'type': 'integer'}, 'first': {'type': 'integer'},
                                    'last': {'type': 'integer'}}}},
@@ -122,7 +124,24 @@ def review(model, passage, log):
     raise RuntimeError('no answer after 30 turns')
 
 
-def run_batch(model, f):
+def merge(passes):
+    """One result from independent passes: the union of their issues, deduplicated by
+    (type, ayah, row or quote). Each pass misses different rows."""
+    ok = [r for r in passes if 'error' not in r]
+    if not ok:
+        return passes[0]
+    out, seen = dict(ok[0], issues=[]), set()
+    for r in ok:
+        for i in r.get('issues', []):
+            k = (i.get('type'), i.get('ayah'), i.get('row_id') or i.get('quote'))
+            if k not in seen:
+                seen.add(k)
+                out['issues'].append(i)
+    out['passes'] = len(ok)
+    return out
+
+
+def run_batch(model, f, passes=1):
     out = f.with_name(f.stem + '_result.json')
     if out.exists():
         return f'{f.name}: skipped (result exists)'
@@ -130,7 +149,7 @@ def run_batch(model, f):
     with open(f.with_name(f.stem + '_openai.log'), 'w', encoding='utf-8') as log:
         for p in json.loads(f.read_text(encoding='utf-8')):
             try:
-                res.append(review(model, p, log))
+                res.append(merge([review(model, p, log) for _ in range(passes)]))
             except (urllib.error.URLError, ConnectionError, TimeoutError, RuntimeError, ValueError, KeyError) as e:
                 body = e.read().decode()[:300] if isinstance(e, urllib.error.HTTPError) else ''
                 res.append({'book': p['book'], 'surah': p['surah'], 'error': f'{e} {body}'})
@@ -143,6 +162,7 @@ if __name__ == '__main__':
     ap.add_argument('round_dir')
     ap.add_argument('--model', default='gpt-6-luna')
     ap.add_argument('--jobs', type=int, default=6)
+    ap.add_argument('--passes', type=int, default=1, help='independent reviews per passage, merged (2 gave no clear gain in the planted-error test)')
     ap.add_argument('--check', action='store_true', help='only check the key and that the model exists')
     a = ap.parse_args()
     if not KEY:
@@ -155,5 +175,5 @@ if __name__ == '__main__':
     batches = sorted(Path(a.round_dir).glob('batch*.json'), key=lambda p: p.name)
     batches = [b for b in batches if re.fullmatch(r'batch\d+\.json', b.name)]
     with ThreadPoolExecutor(a.jobs) as ex:
-        for msg in ex.map(lambda b: run_batch(a.model, b), batches):
+        for msg in ex.map(lambda b: run_batch(a.model, b, a.passes), batches):
             print(msg, flush=True)

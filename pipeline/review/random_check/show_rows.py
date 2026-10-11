@@ -5,6 +5,7 @@
 BOOK is muktafa | manar | anbari | nahhas. wpos is 0-based. conf=0 rows are held
 back (not shown to users); they are listed with [held].
 """
+import os
 import sqlite3
 import sys
 
@@ -12,7 +13,8 @@ sys.path.insert(0, '.')
 from core.verse_words import verse_word_texts  # noqa: E402
 
 book, surah, a0, a1 = sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])
-con = sqlite3.connect('data/classical_waqf.db')
+# CLASSICAL_WAQF_DB points at a copy (reviewer calibration with planted errors)
+con = sqlite3.connect(os.environ.get('CLASSICAL_WAQF_DB', 'data/classical_waqf.db'))
 for a in range(a0, a1 + 1):
     words = verse_word_texts(f'{surah}:{a}')[1]
     if not words:
