@@ -281,3 +281,34 @@ def test_fourth_round_negatives(con):
 ])
 def test_recall_followup(con, book, surah, ayah, wpos, grade, by):
     assert (wpos, grade, by) in rulings(con, book, surah, ayah, wpos)
+
+
+# ── second passage check (2026-10-11) ─────────────────────────────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('anbari', 61, 4, 10, 'تام', ''),             # «ومثله: (…) [3] (كأنهم بنيان مرصوص) [4] (…)»
+    ('anbari', 61, 5, 17, 'تام', ''),             # … «(أزاغ الله قلوبهم)، وأتم منه»
+    ('anbari', 2, 255, 25, 'حسن', ''),            # «وكذلك (…) [255]، (سنة ولا نوم)، (وما في الأرض)، (إلا بإذنه)…»
+    ('anbari', 2, 257, 17, 'حسن', ''),            # «[وكذلك] (يخرجونهم من النور إلى الظلمات)»
+    ('anbari', 58, 2, 18, 'حسن', ''),             # المجادلة quotes in {…}: «{… وزورا} [2] حسن»
+    ('anbari', 58, 7, 46, 'تام', ''),
+    ('nahhas', 83, 26, 1, 'كاف', ''),             # «(ختامه مسك) قطع كاف وكذا {المتنافسون}»
+    ('nahhas', 83, 26, 5, 'كاف', ''),
+    ('nahhas', 13, 16, 36, 'تام', 'الأخفش'),       # «… وبعده {فتشابه الخلق عليهم} هذا كله عن الأخفش»
+    ('nahhas', 6, 30, 12, 'تام', 'نافع'),          # «… {قالوا بلى وربنا} … هذا كله عن نافع»
+    ('nahhas', 81, 21, 2, 'تام', 'أبو حاتم'),      # «قال أبو حاتم … والتمام بعده عنده {مطاع ثم أمين}»
+    ('nahhas', 35, 10, 13, 'تام', 'أبو حاتم'),     # «{والعمل الصالح يرفعه} هذا اختيار أبي حاتم»
+    ('muktafa', 23, 89, 1, 'كاف', ''),            # «{سيقولون لله} كاف في الثلاثة»
+    ('muktafa', 8, 42, 30, 'تام', ''),            # «{ويحيى من حي عن بينة} … وهو التمام»
+    ('muktafa', 21, 20, 1, 'تام', 'أحمد بن موسى'),
+])
+def test_second_passage_check(con, book, surah, ayah, wpos, grade, by):
+    assert (wpos, grade, by) in rulings(con, book, surah, ayah, wpos)
+
+
+def test_anbari_chain_heads_precede_items(con):
+    """An inserted chain item takes the book-order seq after every row seated
+    before it, so «قد تبين» (2:256) is not taken to follow «يخرجونهم» (2:257)."""
+    follows = con.execute("SELECT COALESCE(follows, '') FROM classical WHERE source='anbari' AND surah=2 "
+                          "AND ayah=256 AND wpos=8").fetchone()[0]
+    assert '257' not in follows

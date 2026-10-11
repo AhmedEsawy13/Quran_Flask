@@ -381,3 +381,22 @@ conditional ruling, which live in the notes). Fixed book-wide:
   i'rab-conditional rulings (held).
 - **النحاس**: «والتمام عند X {A} وعند غيره {B}» — B is the others' تمام (21
   places, none parsed before).
+
+### Second passage check (2026-10-11)
+
+24 fresh passages (`make_passages.py 2`, surahs not drawn before); every
+missing ruling now carries a `kind` (plain / in_note / conditional_side /
+ghayr_tamm / ungraded). Plain-ruling recall: منار 98%, المكتفى 97%, النحاس 77%,
+ابن الأنباري 60%. Fixed:
+
+- **ابن الأنباري**: «ومثله: (A) [3] (B) [4] (C)» — list items joined only by
+  «] (» / «، (» now chain when the list opens with «ومثله / وكذلك» (`grade_at`,
+  +104); المجادلة's quotes in {…} read as (…) in `anbari_sections` (+11);
+  graded inserts take the seq after every earlier seat (a later verse's chain
+  head was being found after its items).
+- **النحاس**: «(X) قطع كاف» — graded quotes the copy put in parentheses become
+  {X} in `nahhas_sections` (23); «هذا كله عن X» runs (13:16 الأخفش, 6:30–35
+  نافع via `EXTRA_AT`); 81:21, 35:10 أبو حاتم.
+- **المكتفى**: «سيقولون لله» في الثلاثة, 8:42 «وهو التمام», 21:20 أحمد بن موسى.
+- What remains of the gap is mostly by design: «وقيل» views and the other
+  side of conditionals kept in notes (المكتفى 26, منار 1 in this sample).
