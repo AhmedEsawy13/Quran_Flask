@@ -358,3 +358,34 @@ def test_fourth_passage_check(con, book, surah, ayah, wpos, grade, by):
 
 def test_manar_33_13_no_duplicate_on_biawra(con):
     assert (20, 'حسن', '') not in rulings(con, 'manar', 33, 13, 20)
+
+
+# ── fifth passage check (2026-10-11) ──────────────────────────────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 55, 13, None, 'تام', ''),     # «كل شيء في هذه السورة من {فبأي آلاء ربكما تكذبان} تام»
+    ('muktafa', 55, 75, None, 'تام', ''),
+    ('muktafa', 70, 21, 3, 'لا', ''),         # «{إلا المصلين} استثناء … فلا يكفي الوقف قبله»
+    ('muktafa', 43, 81, 4, 'تام', 'الحسن وقتادة'),
+    ('muktafa', 55, 62, 2, 'تام', 'ابن الأنباري'),
+    ('manar', 53, 45, None, 'لا', ''),        # «ولا يوقف على شيء من أواخر الآيات … في ثلاثة عشر موضعا»
+    ('manar', 89, 7, 0, 'جائز', 'نافع'),       # «{بعاد (6) إرم} [6، 7] وقف عند نافع»
+    ('manar', 89, 14, 2, 'تام', 'الأخفش'),
+])
+def test_fifth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_fifth_passage_check_drops(con):
+    assert not rulings(con, 'muktafa', 10, 12, 14)       # «المر» of 13:1 seated on «ضره مر»
+    assert not rulings(con, 'manar', 89, 6, 5)           # «بعاد» — the stop is «إرم»
+    assert ('كاف' not in {g for _, g, _ in rulings(con, 'muktafa', 70, 21, 3)})
+
+
+def test_anbari_chain_skips_discussed_or_negated_quotes(con):
+    # «(… الله ربكم) [125، 126] كان الربيع … يقرؤون»; «(… وأهلك) [40] قال السجستاني: هو وقف …
+    # وليس يوقف»; «(وأن الله ليس بظلام للعبيد) [51] غير تام»
+    assert not rulings(con, 'anbari', 37, 126, 1)
+    assert not rulings(con, 'anbari', 11, 40, 13)
+    assert not rulings(con, 'anbari', 8, 51, 8)

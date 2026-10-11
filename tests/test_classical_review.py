@@ -77,9 +77,11 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # +3: «سيقولون لله» في الثلاثة (23:87، 89), 8:42 «وهو التمام»; +87 blanket verse ends
     # a single «ورأس الآية أكفى منه» no longer cuts off an open «بعد»; +2 «والتمام آخر
     # السورة» (110, 114); +5 «مثله {X}» / «{X} مثل {Y}» items (6:25, 45:10, 98:4, 111)
-    assert result['total_extracted'] == 6890
-    assert result['matched'] == 6890
-    assert result['confident'] == 6890
+    # +30 الرحمن refrain («كل شيء في هذه السورة من فبأي آلاء ربكما تكذبان تام»), −1 «المر»
+    # seated in 10:12, 70:21 «لا» (إلا المصلين) replacing its blanket كاف
+    assert result['total_extracted'] == 6919
+    assert result['matched'] == 6919
+    assert result['confident'] == 6919
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

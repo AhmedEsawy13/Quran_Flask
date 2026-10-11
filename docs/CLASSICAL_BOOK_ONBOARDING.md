@@ -425,3 +425,20 @@ recall before fixes: منار 97.6%, المكتفى 91.4%, ابن الأنبار
 - **منار**: prose no-stops «على قوله: «X»» and those before the first «[n]»
   (+8); 31:14 أبو حاتم ×3 and العماني; 5:64 بعضهم; 8:65 «لا يفقهون» حسن; 33:13
   duplicate dropped.
+
+### Fifth passage check (2026-10-11)
+
+24 fresh passages (`make_passages.py 5 manar:8,muktafa:8,anbari:8`). Plain
+recall: المكتفى 94.8%, ابن الأنباري 90.7%, منار 84.4% (one range statement in 53
+and a few items in 89 made most of منار's gap). Fixed:
+
+- **ابن الأنباري**: a chain item cannot be a quote followed at once by «قال /
+  كان / غير تام / ليس / لا يحسن / لم يتم / فيه وجهان» — those open a discussion
+  or negate (37:126, 11:40, 8:51 …, −12 rows). A closing grade after a
+  «، (»-joined group is NOT shared (4:11 «… وقوف حسنة غير تامة»).
+- **المكتفى**: الرحمن's refrain («كل شيء في هذه السورة من {فبأي آلاء ربكما
+  تكذبان} تام ما لم يتعلق», 30 verses, blanket so explicit rulings win); 70:21 لا
+  («إلا المصلين» استثناء — pinned, the لا sits before the quote); «المر» row
+  seated on 10:12 dropped; 43:81 الحسن وقتادة, 55:62 ابن الأنباري.
+- **منار**: 53:41–50 «ولا يوقف على شيء من أواخر الآيات … في ثلاثة عشر موضعا»;
+  89:7 «{بعاد إرم} وقف عند نافع» on «إرم»; 89:14 الأخفش.

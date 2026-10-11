@@ -124,6 +124,12 @@ def grade_at(text, start, end):
     # walk back through the list: «ومثله: (A) [3] (B) [4] (C)» — B and C are joined by
     # «] (», «]. (», a line break or «، (» alone, so a connector may come first, but the chain only counts
     # if it reaches a «ومثله / وكذلك» before the graded head
+    # not a list item when the quote opens a discussion or is negated right after it:
+    # «(… الله ربكم) [125، 126] كان الربيع … يقرؤون»، «(… وأهلك) [40] قال السجستاني: هو وقف.
+    # قال أبو بكر: وليس يوقف»، «(أكاد أخفيها) [15] غير تام»
+    after = re.sub(r'^\s*(?:\[[\d،, ]{1,12}\])?\s*', '', text[end:end + 30])
+    if re.match(r'(?:و?قال|كان|غير\s+تام|ليس|لا\s+يحسن|لم\s+يتم|فيه\s+وجهان)(?![ء-ي])', after):
+        return None, None
     pos, mithl = start, False
     for _ in range(20):
         if _MITHL.search(text[max(0, pos - 16):pos]):
@@ -144,6 +150,8 @@ def grade_at(text, start, end):
         if _NEG_AFTER.match(head_tail):
             return ('NEG', 'chain') if mithl else (None, None)
         pos = ps
+    # A closing grade after a «، (»-joined group is NOT shared: 4:11 «(فلهن ثلثا ما ترك)،
+    # …، (يوصي بها أو دين) تام … والوقوف التي وصفناها وقوف حسنة غير تامة»
     return None, None
 
 
