@@ -81,9 +81,11 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # seated in 10:12, 70:21 «لا» (إلا المصلين) replacing its blanket كاف
     # +134 «والفواصل بين ذلك كافية» after surah-wide refrains (26, 37, 38, 54) and 74:3–7
     # «كل آية بعدها كافية»; +4 (9:30 [bracketed], 74:31 «[ومثله]», 74:53 «كلا», 89:14)
-    assert result['total_extracted'] == 7057
-    assert result['matched'] == 7057
-    assert result['confident'] == 7057
+    # +7 seventh check: «[ومثله]» 7:74/7:176, 7:92, «وهو عندي كاف» 15:13 + 26:201, 60:1 «وكذلك هو
+    # عندي», 60:4 «والتمام {X}»
+    assert result['total_extracted'] == 7064
+    assert result['matched'] == 7064
+    assert result['confident'] == 7064
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

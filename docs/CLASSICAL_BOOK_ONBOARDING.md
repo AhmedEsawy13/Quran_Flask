@@ -466,3 +466,20 @@ were «بعضهم» blanket views (kept in notes like «وقيل»). Fixed:
   التمام. ومثله», 16:125 «[مثله]».
 - **منار**: 52:29 «كاف؛ … قال الخليل:» is the author's grade (الخليل gives the
   reason only).
+
+### Seventh passage check (2026-10-11, gpt-6-luna)
+
+24 fresh passages (`make_passages.py 7 manar:8,muktafa:8,anbari:8`). About a
+third of the model's findings held up against the book. Fixed:
+
+- **المكتفى**: «[ومثله] {X}» items (7:74, 7:176); a bare quote between two
+  «ومثله» items (7:92); «{X} … تام. وهو عندي كاف» (15:13, and 26:201 «وفي
+  الشعراء»); 60:1 «وكذلك هو عندي» (حسن beside نافع's تام); 60:4 «والتمام {X}»;
+  60:1 «أولياء» credited to نصير بن يوسف ومحمد بن عيسى; seats: 7:96 → 7:39
+  «تكسبون» (by book order), 15:25 to the verse end (the book reverses «حكيم
+  عليم»; pinned), 60:10 → 60:11 «مثل ما أنفقوا» (`ID_MOVES`).
+- **ابن الأنباري**: «(X) [n] مثله» takes the previous graded quote's grade (3
+  in the book); the discussion guard no longer cuts a direct «ومثله: (X)» item
+  (11:44) and also stops at «قد» (74:53 «قد استقصينا أمرها»).
+- **منار**: 15:72 «والوقف على «لعمرك» قبيح»; 44:5 «مرسلين» حسن is the
+  author's (سعيد بن جبير's reading is the «لا» side).

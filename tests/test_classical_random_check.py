@@ -420,3 +420,33 @@ def test_sixth_passage_check_drops(con):
     assert not rulings(con, 'muktafa', 56, 27, 1)        # first «اليمين»
     assert not rulings(con, 'anbari', 68, 14, 4)         # «(أن كان ذا مال وبنين) [14] قرأ …»
     assert 'حسن' not in {g for _, g, _ in rulings(con, 'anbari', 16, 116, 21)}
+
+
+# ── seventh passage check (2026-10-11, reviewed by gpt-6-luna) ───────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 7, 74, 16, 'كاف', ''),         # «[ومثله] {وتنحتون الجبال بيوتا}»
+    ('muktafa', 7, 176, 19, 'كاف', ''),        # «[ومثله] {أو تتركه يلهث}»
+    ('muktafa', 7, 92, 6, 'تام', ''),          # bare quote between two «ومثله» items
+    ('muktafa', 7, 39, 13, 'تام', ''),         # «{ومن فوقهم غواش} {يكسبون} تام» — 7:39, not 7:96
+    ('muktafa', 15, 13, 2, 'كاف', ''),         # «… تام. وهو عندي كاف»
+    ('muktafa', 15, 25, 6, 'تام', ''),         # Hafs «حكيم عليم»: the verse end
+    ('muktafa', 60, 1, 7, 'كاف', 'نصير بن يوسف ومحمد بن عيسى'),
+    ('muktafa', 60, 1, 19, 'حسن', ''),         # «وقال ابن الأنباري: هو حسن. وكذلك هو عندي»
+    ('muktafa', 60, 4, 44, 'تام', ''),         # «والتمام {وما أملك لك من الله من شيء}»
+    ('muktafa', 60, 11, 14, 'تام', ''),        # «{عليم حكيم} تام. ومثله {ما أنفقوا}»
+    ('manar', 15, 72, 0, 'قبيح', ''),          # «والوقف على «لعمرك» قبيح»
+    ('manar', 44, 5, 5, 'حسن', ''),            # the author's, not سعيد بن جبير's
+    ('anbari', 79, 36, 3, 'حسن', ''),          # «(وبرزت الجحيم لمن يرى) [36] مثله»
+    ('anbari', 11, 44, 5, 'حسن', ''),          # «ومثله: (يا سماء أقلعي) [44] قال السجستاني: …»
+])
+def test_seventh_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_seventh_passage_check_drops(con):
+    assert 'تام' not in {g for _, g, _ in rulings(con, 'muktafa', 7, 96, 17)}
+    assert 'تام' not in {g for _, g, _ in rulings(con, 'muktafa', 60, 10, 46)}
+    assert not rulings(con, 'muktafa', 15, 25, 5)
+    assert not rulings(con, 'anbari', 74, 53, 0)          # «و (كلا) [53] قد استقصينا أمرها …»

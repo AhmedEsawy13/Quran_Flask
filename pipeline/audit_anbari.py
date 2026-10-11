@@ -126,9 +126,20 @@ def grade_at(text, start, end):
     # if it reaches a «ومثله / وكذلك» before the graded head
     # not a list item when the quote opens a discussion or is negated right after it:
     # «(… الله ربكم) [125، 126] كان الربيع … يقرؤون»، «(… وأهلك) [40] قال السجستاني: هو وقف.
-    # قال أبو بكر: وليس يوقف»، «(أكاد أخفيها) [15] غير تام»، «(أن كان ذا مال وبنين) [14] قرأ …»
+    # قال أبو بكر: وليس يوقف»، «(أكاد أخفيها) [15] غير تام»، «(أن كان ذا مال وبنين) [14] قرأ …»،
+    # «و (كلا) [53] قد استقصينا أمرها في صدر الكتاب»
     after = re.sub(r'^\s*(?:\[[\d،, ]{1,12}\])?\s*', '', text[end:end + 30])
-    if re.match(r'(?:و?قال|كان|قرأ|غير\s+تام|ليس|لا\s+يحسن|لم\s+يتم|فيه\s+وجهان)(?![ء-ي])', after):
+    # «(وبرزت الجحيم لمن يرى) [36] مثله»: «مثله» after the quote — the previous graded quote's grade
+    if re.match(r'مثله(?![ء-ي])', after):
+        for prev in reversed(list(re.finditer(r'\(([^()]{1,120})\)', text[max(0, start - 400):start]))):
+            g = _GRADE_AFTER.match(re.sub(r'^\s*\[\d{1,3}\]', '', text[max(0, start - 400) + prev.end():][:90]))
+            if g:
+                return _MAP[g.group(1)], 'chain'
+        return None, None
+    # a direct «ومثله: (X)» item stays one even when a discussion follows (11:44 «ومثله: (يا سماء
+    # أقلعي) [44] قال السجستاني: …»); only a bare list item is cut off
+    if not _MITHL.search(text[max(0, start - 16):start]) and \
+            re.match(r'(?:و?قال|كان|قرأ|قد|غير\s+تام|ليس|لا\s+يحسن|لم\s+يتم|فيه\s+وجهان)(?![ء-ي])', after):
         return None, None
     pos, mithl = start, False
     for _ in range(20):
