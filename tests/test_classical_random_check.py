@@ -472,3 +472,15 @@ def test_eighth_passage_check(con, book, surah, ayah, wpos, grade, by):
 
 def test_eighth_passage_check_drops(con):
     assert 'جائز' not in {g for _, g, _ in rulings(con, 'manar', 57, 4, 31)}   # stray beside «أحسن»
+
+
+# ── wrong-word check (seat_check.py, 2026-10-11) ─────────────────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos', [
+    ('muktafa', 4, 78, 28),      # «قل كل من عند الله» — the second «من عند الله»
+    ('muktafa', 6, 158, 13),     # «بعض آيات ربك»
+    ('muktafa', 9, 37, 21),      # «فيحلوا ما حرم الله»
+    ('muktafa', 20, 69, 10),     # «كيد ساحر», not «الساحر»
+])
+def test_wrong_word_check_moves(con, book, surah, ayah, wpos):
+    assert rulings(con, book, surah, ayah, wpos)

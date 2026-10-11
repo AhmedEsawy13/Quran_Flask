@@ -497,3 +497,19 @@ surah). Fixed:
 - **ابن الأنباري**: «[ومثله]:» (the editor's bracket) opens a chain (65:1).
 - **منار**: 34:13 ابن كثير is cited for the ياء, not the ruling; 57:4 stray
   جائز beside «أحسن مما قبله» deleted.
+
+### Reviewer calibration and the wrong-word check (2026-10-11)
+
+12 known errors were planted in a DB copy (`CLASSICAL_WAQF_DB`, read by
+`show_rows.py`) under round-7/8 passages, twice. gpt-6-luna caught 8/12 and
+8/11: wrong grades, invented rows and wrong credits every time; deleted and
+held rows about two in three; rows moved off their word never. 10-verse dumps
+and two merged passes gave no clear gain (`--passes` defaults to 1).
+
+`pipeline/review/seat_check.py` (and `tests/test_classical_seats.py`) covers
+the gap mechanically: a row's quote must end on its seated word, compared by
+consonant skeleton (waṣla/dagger alif, hamza seats, prefixes, one-edit typos),
+and no other word of the verse may fit the quote's closing run better. It
+caught all three planted moves and six real ones — المكتفى 4:78 «قل كل من عند
+الله», 6:158 «بعض آيات ربك», 9:37 «فيحلوا ما حرم الله», 20:69 «كيد ساحر»; منار
+2:14 duplicate on «إنا». Book slips are pinned (7:18, 9:51, 16:33, 101:10).
