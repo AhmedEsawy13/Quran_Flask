@@ -72,6 +72,7 @@ MOVES = {
     (26, 108, 2, 'وأطيعون'): (110, 2),
     (37, 175, 2, 'فسوف يبصرون'): (179, 2),
     (56, 90, 5, 'أصحاب اليمين'): (91, 4),
+    (56, 27, 1, 'ما أصحاب اليمين'): (27, 4),      # «وأصحاب اليمين ما أصحاب اليمين»: the second
     # repeated phrases the aligner put on another verse; the book's order
     # (seq) puts each among the verses given here (2026-09-27 order sweep)
     (2, 150, 30, 'تهتدون'): (135, 5),              # «كونوا هودا أو نصارى تهتدوا»
@@ -161,6 +162,13 @@ MANUAL += [(54, _a, len(mm.verse_words(54, _a)) - 1, 'فهل من مدكر', 'ت
 _WAYL_77 = '{للمكذبين} تام، جميع ما في السورة. وكذلك ما قبل {ويل يومئذ للمكذبين} فيها.'
 # (the verse before each is a general «ما قبل …» rule: audit_muktafa_blanket.MANUAL_VERSES)
 MANUAL += [(77, _a, 2, 'ويل يومئذ للمكذبين', 'تام', _WAYL_77) for _a in (15, 19, 24, 28, 34, 37, 40, 45, 47, 49)]
+# sixth passage check (2026-10-11): rulings the parser missed — an editor's
+# restoration in brackets (9:30), «[ومثله]» (74:31), «{كلا} أيضا» (74:53) and
+# «جواب القسم {X} وهو تام» (89:14)
+MANUAL += [(9, 30, 9, 'وقالت النصارى المسيح ابن الله', 'كاف', '[وقالت النصارى المسيح ابن الله. كاف]'),
+           (74, 31, 45, 'ويهدي من يشاء', 'كاف', '{تسعة عشر} كاف. ومثله {بهذا مثلا} [ومثله] {ويهدي من يشاء}'),
+           (74, 53, 0, 'كلا', 'تام', '{منشرة} تام. {كلا} أيضا تام. أي: لا يؤتاها.'),
+           (89, 14, 2, 'إن ربك لبالمرصاد', 'تام', 'جواب القسم {إن ربك لبالمرصاد} وهو تام.')]
 # the Hafs side of a reading split whose other side is the stored row: inserted
 # beside it (MANUAL would regrade a lone row with the same quote instead)
 HAFS_SIDE = [

@@ -1058,6 +1058,9 @@ def anbari_sections(body):
         # where braces outnumber parentheses they are the section's quote marks
         if len(re.findall(r'\{[^{}]{2,120}\}', text)) > len(re.findall(r'\([^()]{2,120}\)', text)):
             text = re.sub(r'\{([^{}]{2,120})\}', r'(\1)', text)
+        # scan slips: «[43 ي حسن» is the marker «[43]»; «[116]. وقف تام» grades the quote
+        text = re.sub(r'\[(\d{1,3}) ي', r'[\1]', text)
+        text = re.sub(r'\]\s*\.\s*(وقف\s+(?:تام|حسن|كاف|قبيح))', r'] \1', text)
         out.append((num, text))
     return out
 

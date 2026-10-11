@@ -389,3 +389,34 @@ def test_anbari_chain_skips_discussed_or_negated_quotes(con):
     assert not rulings(con, 'anbari', 37, 126, 1)
     assert not rulings(con, 'anbari', 11, 40, 13)
     assert not rulings(con, 'anbari', 8, 51, 8)
+
+
+# ── sixth passage check (2026-10-11, reviewed by gpt-6-luna) ─────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    # «والفواصل بين ذلك كافية» after a surah-wide refrain: between its first and last occurrence
+    ('muktafa', 26, 15, None, 'كاف', ''),
+    ('muktafa', 37, 90, None, 'كاف', ''),
+    ('muktafa', 38, 35, None, 'كاف', ''),
+    ('muktafa', 54, 20, None, 'كاف', ''),
+    ('muktafa', 74, 4, None, 'كاف', ''),       # «وكذلك كل آية بعدها كافية إلى {ولربك فاصبر}»
+    ('muktafa', 9, 30, 9, 'كاف', ''),          # «[وقالت النصارى المسيح ابن الله. كاف]»
+    ('muktafa', 74, 31, 45, 'كاف', ''),        # «[ومثله] {ويهدي من يشاء}»
+    ('muktafa', 74, 53, 0, 'تام', ''),         # «{كلا} أيضا تام»
+    ('muktafa', 89, 14, 2, 'تام', ''),         # «جواب القسم {إن ربك لبالمرصاد} وهو تام»
+    ('muktafa', 56, 27, 4, 'تام', ''),         # the second «اليمين» of «… ما أصحاب اليمين»
+    ('manar', 52, 29, 7, 'كاف', ''),           # «كاف؛ للابتداء بالاستفهام، قال الخليل: …» (reason only)
+    ('anbari', 16, 116, 21, 'تام', ''),        # «[116]. وقف تام» — not the list's حسن
+    ('anbari', 12, 43, 14, 'حسن', ''),         # «[43 ي حسن غير تام» — a scan slip for «[43]»
+    ('anbari', 82, 5, 4, 'تام', ''),           # «… [5] جواب (إذا) [1] وهو وقف التمام»
+    ('anbari', 82, 12, 2, 'تام', ''),          # «ومثله: (يعلمون ما تفعلون)»
+])
+def test_sixth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_sixth_passage_check_drops(con):
+    assert not rulings(con, 'muktafa', 56, 27, 1)        # first «اليمين»
+    assert not rulings(con, 'anbari', 68, 14, 4)         # «(أن كان ذا مال وبنين) [14] قرأ …»
+    assert 'حسن' not in {g for _, g, _ in rulings(con, 'anbari', 16, 116, 21)}

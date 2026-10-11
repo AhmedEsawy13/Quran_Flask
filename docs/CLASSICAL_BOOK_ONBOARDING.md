@@ -442,3 +442,27 @@ and a few items in 89 made most of منار's gap). Fixed:
   seated on 10:12 dropped; 43:81 الحسن وقتادة, 55:62 ابن الأنباري.
 - **منار**: 53:41–50 «ولا يوقف على شيء من أواخر الآيات … في ثلاثة عشر موضعا»;
   89:7 «{بعاد إرم} وقف عند نافع» on «إرم»; 89:14 الأخفش.
+
+### Sixth passage check (2026-10-11, gpt-6-luna)
+
+24 fresh passages (`make_passages.py 6 manar:8,muktafa:8,anbari:8`), reviewed by
+an OpenAI model through `random_check/run_openai.py` (key in `.env`; the model
+gets `show_rows` and a book search as tools, via `/v1/responses` because chat
+completions refuses tools with reasoning on). Its ruling counts are inflated
+(blanket verse ends counted one by one), so recall was not computed from them;
+every issue was checked against the book. Its «ungraded» claims on bare
+«(X) [n].» lines under «ومثله» contradict the list rule and were rejected, as
+were «بعضهم» blanket views (kept in notes like «وقيل»). Fixed:
+
+- **المكتفى**: «والفواصل بين ذلك كافية» after a surah-wide refrain («جميع ما في
+  السورة»، «حيث وقع في السورة»، «أواخر القصص فيها») spans first to last
+  occurrence, not just up to the anchor — 26:9–191, 37:60–148, 38:29–48,
+  54:8–51; 74:3–7 «كل آية بعدها كافية» (+134 blanket rows). 9:30 (an editor's
+  bracketed restoration), 74:31 «[ومثله]», 74:53 «{كلا} أيضا تام», 89:14 «جواب
+  القسم … وهو تام»; 56:27 moved to the second «اليمين».
+- **ابن الأنباري**: scan slips «[43 ي» → «[43]» (13 in the book) and «[116]. وقف
+  تام» (the full stop hid the grade, so the list's حسن won); «قرأ» after a quote
+  opens a reading discussion, not a list item (68:14); 82:5/82:12 «… وهو وقف
+  التمام. ومثله», 16:125 «[مثله]».
+- **منار**: 52:29 «كاف؛ … قال الخليل:» is the author's grade (الخليل gives the
+  reason only).
