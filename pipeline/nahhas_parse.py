@@ -51,7 +51,8 @@ _NOSTOP = re.compile(r'^(?:و?ليس\s+بوقف|ليس\s+بموضع\s+قطع|ل�
 _BEFORE = re.compile(
     r'(?:^|[\s،:؛.])(?:و|ف)?(?:(?:القطع|الوقف|الوقوف)\s+)?'
     r'(التمام|التام|الكافي|الحسن|الصالح|أتم منه|أتم منهما|أكفى منه|أحسن منه)'
-    r'(?:\s+أيضا)?(?:\s+(?:بعده|بعد\s+هذا|فيه))?(?:\s+(?:عنده|عندهما|عند\s+[^{}.،]{2,30}?|على\s+قول\s+[^{}.،]{2,30}?))?'
+    r'(?:\s+أيضا)?(?:\s+(?:بعده|بعد\s+هذا|فيه))?(?:\s+(?:عنده|عندهما|عند\s+[^{}.،]{2,30}?|على\s+قول\s+[^{}.،]{2,30}?'
+    r'|على\s+ما\s+(?:روى|روي|روينا)\s+عن\s+[^{}.،]{2,30}?))?'
     r'\s*:?\s*$')
 _FROM_TAIL = re.compile(r'(?:ومن|من)\s+(التمام|الكافي|الحسن|الوقف\s+التام|الوقف\s+الكافي|الوقف\s+الحسن)\s*:?\s*$')
 _BEFORE_MAP = {'أتم منه': 'تام', 'أتم منهما': 'تام', 'أكفى منه': 'كاف', 'أحسن منه': 'حسن'}
@@ -59,9 +60,11 @@ _BEFORE_MAP = {'أتم منه': 'تام', 'أتم منهما': 'تام', 'أكف
 _CHAIN = re.compile(r'(?:^|[\s،])(?:و|ثم\s+)?(?:كذا|كذلك|مثله|بعده)(?:\s+(عنده|عند\s+[^{}.،]{2,30}?))?\s*[:،]?\s*$')
 
 # «ثم القطع على رؤوس الآيات كاف إلى {X}»، «رؤوس الآي حسن إلى {X}»
-_BLANKET = re.compile(r'رؤوس\s+(?:الآيات|الآي|الآية)\s+(?:(?:قطع|وقف)\s+)?' + _GW + r'\s+(?:إلى|حتى)\s*(?:قوله)?\s*(?:جل\s+وعز)?\s*$')
+_BLANKET = re.compile(r'رؤوس\s+(?:ال[آا]يات|ال[آا]ي|ال[آا]ية)\s+(?:(?:قطع|وقف)\s+)?' + _GW + r'\s+(?:إلى|حتى)\s*(?:قوله)?\s*(?:جل\s+وعز)?\s*$')
+# «{A} قطع صالح وكذا رؤوس الآيات / آخر الآيات إلى {X}»: no grade word — A's grade
+_BLANKET_CHAIN = re.compile(r'(?:وكذا|وكذلك)\s+(?:رؤوس|آخر|اخر)\s+ال[آا]يا?ت\s+(?:إلى|حتى)\s*(?:قوله)?\s*(?:جل\s+وعز)?\s*$')
 # «ثم القطع على رؤوس الآيات كاف إلى آخر السورة»: from the quote before it to the end
-_BLANKET_END = re.compile(r'رؤوس\s+(?:الآيات|الآي|الآية)\s+(?:(?:قطع|وقف)\s+)?' + _GW + r'\s+(?:إلى|حتى)\s+آخر\s+السورة')
+_BLANKET_END = re.compile(r'رؤوس\s+(?:ال[آا]يات|ال[آا]ي|ال[آا]ية)\s+(?:(?:قطع|وقف)\s+)?' + _GW + r'\s+(?:إلى|حتى)\s+آخر\s+السورة')
 
 _NAME = r'([^{}:.،؛]{2,40}?)'
 _SPEAKER = re.compile(r'(?:^|[\s،.])(?:و|ثم\s+)?قالت?\s*:?\s+' + _NAME + r'\s*(?::|(?=[\s،]*\{)|(?=\s+ومن\s)|(?=\s+والتمام)|(?=\s+التمام)|(?=\s+الوقف))')
@@ -271,6 +274,8 @@ def parse(text):
                                 re.finditer(r'عند\s+([^{}.،]{2,40}?)(?=\s+(?:و?التمام|لأن)|\s*[{،.])', text[max(0, s - 300):s])]
                         near = [n for n in near if n not in (None, BREAK, SELF_MARK)]
                         by = near[-1] if near else None
+                elif re.search(r'على\s+ما\s+(?:روى|روي|روينا)\s+عن\s+', m.group(0)):
+                    by = name(re.search(r'عن\s+([^{}.،]{2,30}?)\s*:?\s*$', m.group(0)).group(1))
                 elif re.search(r'على\s+قول\s+', m.group(0)):
                     by = name(re.search(r'على\s+قول\s+([^{}.،]{2,30}?)\s*:?\s*$', m.group(0)).group(1))
             else:
@@ -329,7 +334,9 @@ def parse(text):
         out.append(Ruling(s, e, q, g, by, how, reading, note=_clause(text, s, e, prv_s)))
         if how == 'after':
             m = _BEFORE.search(before)
-            at = m and re.search(r'عند\s+([^{}.،]{2,30}?)\s*:?\s*$', m.group(0))
+            at = m and (re.search(r'عند\s+([^{}.،]{2,30}?)\s*:?\s*$', m.group(0)) or
+                        re.search(r'(?:على\s+ما\s+(?:روى|روي|روينا)\s+عن|على\s+قول)\s+([^{}.،]{2,30}?)\s*:?\s*$',
+                                  m.group(0)))
             if at:
                 w2 = name(at.group(1))
                 g2 = _BEFORE_MAP.get(m.group(1)) or _G[m.group(1)]
@@ -378,6 +385,11 @@ def parse(text):
     for i, (s, e, q) in enumerate(quotes):
         prv = quotes[i - 1][1] if i else 0
         m = _BLANKET.search(text[prv:s])
+        mc = None if m else _BLANKET_CHAIN.search(text[prv:s])
+        if mc and i and grades[i - 1] not in (None, 'NEG'):
+            out.append(Ruling(s, e, q, grades[i - 1], bys[i - 1], 'blanket', blanket_to=i,
+                              prev_quote=quotes[i - 1][2], prev_start=quotes[i - 1][0],
+                              note=_clause(text, prv + mc.start(), e, quotes[i - 1][0])))
         if m:
             out.append(Ruling(s, e, q, _G[m.group(1)], None, 'blanket', blanket_to=i,
                               prev_quote=quotes[i - 1][2] if i else None,

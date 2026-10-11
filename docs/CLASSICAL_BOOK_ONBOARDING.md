@@ -400,3 +400,14 @@ ghayr_tamm / ungraded). Plain-ruling recall: منار 98%, المكتفى 97%, �
 - **المكتفى**: «سيقولون لله» في الثلاثة, 8:42 «وهو التمام», 21:20 أحمد بن موسى.
 - What remains of the gap is mostly by design: «وقيل» views and the other
   side of conditionals kept in notes (المكتفى 26, منار 1 in this sample).
+
+### Third passage check: النحاس and ابن الأنباري (2026-10-11)
+
+16 fresh passages (`make_passages.py 3 nahhas:8,anbari:8`). Plain-ruling
+recall: ابن الأنباري 93% (was 60% before the list/brace fixes), النحاس 69%.
+النحاس fixes: «رؤوس الايات» without madda in ranges (4); ungraded «وكذا رؤوس /
+آخر الآيات إلى {X}» takes the previous grade (11); «والتمام على ما روى عن X
+{Y}» grade-before credited to X (46), kept as a second view when the quote also
+has its own grade after it. +80 rows. Most of النحاس's remaining gap is by
+design: «ليس بتمام / ليس بقطع كاف» (a negation, not a grade) and prose relays
+the parser cannot scope.

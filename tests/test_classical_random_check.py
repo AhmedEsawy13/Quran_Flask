@@ -312,3 +312,22 @@ def test_anbari_chain_heads_precede_items(con):
     follows = con.execute("SELECT COALESCE(follows, '') FROM classical WHERE source='anbari' AND surah=2 "
                           "AND ayah=256 AND wpos=8").fetchone()[0]
     assert '257' not in follows
+
+
+# ── third passage check: النحاس ranges and «على ما روى عن» (2026-10-11) ───────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (52, 30, 6, 'صالح', ''),        # «تم القطع على رؤوس الايات صالح إلى {سحاب مركوم}» (no madda)
+    (52, 42, 6, 'صالح', ''),
+    (29, 43, 7, 'تام', ''),         # «قطع تام وكذا رؤوس الآيات إلى {…}»: the previous grade
+    (91, 13, 6, 'صالح', ''),        # «قطع صالح وكذا آخر الايات إلى {فسواها}»
+    (52, 13, 5, 'تام', 'نافع'),     # «والتمام على ما روى عن نافع {يوم يدعون إلى نار جهنم دعا}»
+    (8, 74, 13, 'تام', 'نافع'),
+])
+def test_nahhas_ranges_and_relays(con, surah, ayah, wpos, grade, by):
+    assert (wpos, grade, by) in rulings(con, 'nahhas', surah, ayah, wpos)
+
+
+def test_nahhas_range_stops_before_its_target(con):
+    # «إلى {سحاب مركوم} فإنه تمام، {يومهم الذي فيه يصعقون} ليس بتمام»
+    assert not any(g == 'صالح' for _, g, _ in rulings(con, 'nahhas', 52, 45))

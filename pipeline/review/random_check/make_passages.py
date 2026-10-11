@@ -28,6 +28,8 @@ for d in Path('artifacts/waqf-random-check').glob('passages*'):
                 for p in json.loads(f.read_text(encoding='utf-8')):
                     DONE.setdefault(p['book'], set()).add(p['surah'])
 PLAN = {'manar': 8, 'nahhas': 6, 'muktafa': 6, 'anbari': 4}   # passages per book
+if len(sys.argv) > 2:                                          # e.g. «nahhas:8,anbari:8»
+    PLAN = {b: int(n) for b, n in (x.split(':') for x in sys.argv[2].split(','))}
 SPAN = {'manar': 2600, 'nahhas': 2400, 'muktafa': 2200, 'anbari': 2600}
 
 
@@ -72,7 +74,7 @@ for book, n in PLAN.items():
         passages.append({'book': book, 'surah': s, 'surah_ayahs': rx.surah_ayah_count(s),
                          'starts_at_surah_start': start == 0, 'text': t[start:end]})
 random.shuffle(passages)
-for b in range(12):
-    (OUT / f'batch{b + 1}.json').write_text(json.dumps(passages[b::12], ensure_ascii=False, indent=1),
+for b in range(len(passages) // 2):
+    (OUT / f'batch{b + 1}.json').write_text(json.dumps(passages[b::len(passages) // 2], ensure_ascii=False, indent=1),
                                             encoding='utf-8')
 print(len(passages), [(p['book'], p['surah']) for p in passages])
