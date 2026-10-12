@@ -1,4 +1,5 @@
 """Bahrain editor edition uses Madinah 1421 (QPC v2) layout + Digital Khatt font."""
+import json
 import os
 import shutil
 import sqlite3
@@ -22,6 +23,21 @@ def restore_bahrain_layout_db(tmp_path):
         yield
     finally:
         shutil.copy2(backup, db)
+
+
+@pytest.fixture
+def bahrain_header_at_page_bottom(restore_bahrain_layout_db):
+    """Put a surah header on a page's last line (548 → 549), which the print no longer has anywhere."""
+    from core.config import BAHRAIN_LAYOUT_DATABASE
+
+    rows = json.loads((PROJECT_ROOT / 'tests/fixtures/bahrain_header_at_page_bottom.json').read_text(encoding='utf-8'))['rows']
+    with sqlite3.connect(BAHRAIN_LAYOUT_DATABASE) as conn:
+        conn.execute('DELETE FROM pages WHERE page_number IN (548, 549)')
+        conn.executemany(
+            'INSERT INTO pages (page_number, line_number, line_type, is_centered, first_word_id, last_word_id, '
+            'surah_number, line_text) VALUES (:page_number, :line_number, :line_type, :is_centered, '
+            ':first_word_id, :last_word_id, :surah_number, :line_text)', rows)
+    yield
 
 
 def test_editor_ui_references_digital_khatt_for_bahrain():
@@ -402,7 +418,7 @@ def test_bahrain_push_last_word_page_262_boundary(
 
 
 def test_bahrain_header_rows_move_across_pages_and_undo(
-    client, monkeypatch, restore_bahrain_layout_db,
+    client, monkeypatch, bahrain_header_at_page_bottom,
 ):
     from core.config import BAHRAIN_LAYOUT_DATABASE
 
@@ -486,7 +502,7 @@ def test_bahrain_header_rows_move_across_pages_and_undo(
 
 
 def test_bahrain_cross_page_header_move_consumes_empty_row(
-    client, monkeypatch, restore_bahrain_layout_db,
+    client, monkeypatch, bahrain_header_at_page_bottom,
 ):
     """The 548→549 pattern keeps name then basmallah, not an exchange."""
     from core.config import BAHRAIN_LAYOUT_DATABASE

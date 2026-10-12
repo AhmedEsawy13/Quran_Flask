@@ -1,0 +1,305 @@
+{
+"note": "Bahrain pages 548-549 with the سورة الممتحنة header on the last line of 548 (the pre-2026-10-12 layout; the print has it atop 549). Header-move tests need a header at a page bottom.",
+"rows": [
+{
+"page_number": 548,
+"line_number": 1,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75791,
+"last_word_id": 75799,
+"surah_number": 59,
+"line_text": "فَكَانَ عَٰقِبَتَهُمَآ أَنَّهُمَا فِي ٱلنَّارِ خَٰلِدَيْنِ فِيهَاۚ وَذَٰلِكَ جَزَٰٓؤُا۟"
+},
+{
+"page_number": 548,
+"line_number": 2,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75800,
+"last_word_id": 75808,
+"surah_number": 59,
+"line_text": "ٱلظَّٰلِمِينَ ۝١٧ يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ ٱتَّقُوا۟ ٱللَّهَ وَلْتَنظُرْ نَفْسࣱ"
+},
+{
+"page_number": 548,
+"line_number": 3,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75809,
+"last_word_id": 75819,
+"surah_number": 59,
+"line_text": "مَّا قَدَّمَتْ لِغَدࣲۖ وَٱتَّقُوا۟ ٱللَّهَۚ إِنَّ ٱللَّهَ خَبِيرُۢ بِمَا تَعْمَلُونَ ۝١٨"
+},
+{
+"page_number": 548,
+"line_number": 4,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75820,
+"last_word_id": 75827,
+"surah_number": 59,
+"line_text": "وَلَا تَكُونُوا۟ كَٱلَّذِينَ نَسُوا۟ ٱللَّهَ فَأَنسَىٰهُمْ أَنفُسَهُمْۚ أُو۟لَٰٓئِكَ"
+},
+{
+"page_number": 548,
+"line_number": 5,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75828,
+"last_word_id": 75835,
+"surah_number": 59,
+"line_text": "هُمُ ٱلْفَٰسِقُونَ ۝١٩ لَا يَسْتَوِيٓ أَصْحَٰبُ ٱلنَّارِ وَأَصْحَٰبُ"
+},
+{
+"page_number": 548,
+"line_number": 6,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75836,
+"last_word_id": 75844,
+"surah_number": 59,
+"line_text": "ٱلْجَنَّةِۚ أَصْحَٰبُ ٱلْجَنَّةِ هُمُ ٱلْفَآئِزُونَ ۝٢٠ لَوْ أَنزَلْنَا هَٰذَا"
+},
+{
+"page_number": 548,
+"line_number": 7,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75845,
+"last_word_id": 75852,
+"surah_number": 59,
+"line_text": "ٱلْقُرْءَانَ عَلَىٰ جَبَلࣲ لَّرَأَيْتَهُۥ خَٰشِعࣰا مُّتَصَدِّعࣰا مِّنْ خَشْيَةِ"
+},
+{
+"page_number": 548,
+"line_number": 8,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75853,
+"last_word_id": 75860,
+"surah_number": 59,
+"line_text": "ٱللَّهِۚ وَتِلْكَ ٱلْأَمْثَٰلُ نَضْرِبُهَا لِلنَّاسِ لَعَلَّهُمْ يَتَفَكَّرُونَ ۝٢١"
+},
+{
+"page_number": 548,
+"line_number": 9,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75861,
+"last_word_id": 75870,
+"surah_number": 59,
+"line_text": "هُوَ ٱللَّهُ ٱلَّذِي لَآ إِلَٰهَ إِلَّا هُوَۖ عَٰلِمُ ٱلْغَيْبِ وَٱلشَّهَٰدَةِۖ"
+},
+{
+"page_number": 548,
+"line_number": 10,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75871,
+"last_word_id": 75881,
+"surah_number": 59,
+"line_text": "هُوَ ٱلرَّحْمَٰنُ ٱلرَّحِيمُ ۝٢٢ هُوَ ٱللَّهُ ٱلَّذِي لَآ إِلَٰهَ إِلَّا هُوَ"
+},
+{
+"page_number": 548,
+"line_number": 11,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75882,
+"last_word_id": 75892,
+"surah_number": 59,
+"line_text": "ٱلْمَلِكُ ٱلْقُدُّوسُ ٱلسَّلَٰمُ ٱلْمُؤْمِنُ ٱلْمُهَيْمِنُ ٱلْعَزِيزُ ٱلْجَبَّارُ ٱلْمُتَكَبِّرُۚ سُبْحَٰنَ ٱللَّهِ عَمَّا"
+},
+{
+"page_number": 548,
+"line_number": 12,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75893,
+"last_word_id": 75899,
+"surah_number": 59,
+"line_text": "يُشْرِكُونَ ۝٢٣ هُوَ ٱللَّهُ ٱلْخَٰلِقُ ٱلْبَارِئُ ٱلْمُصَوِّرُۖ"
+},
+{
+"page_number": 548,
+"line_number": 13,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75900,
+"last_word_id": 75907,
+"surah_number": 59,
+"line_text": "لَهُ ٱلْأَسْمَآءُ ٱلْحُسْنَىٰۚ يُسَبِّحُ لَهُۥ مَا فِي ٱلسَّمَٰوَٰتِ"
+},
+{
+"page_number": 548,
+"line_number": 14,
+"line_type": "ayah",
+"is_centered": 1,
+"first_word_id": 75908,
+"last_word_id": 75912,
+"surah_number": 59,
+"line_text": "وَٱلْأَرْضِۖ وَهُوَ ٱلْعَزِيزُ ٱلْحَكِيمُ ۝٢٤"
+},
+{
+"page_number": 548,
+"line_number": 15,
+"line_type": "surah_name",
+"is_centered": 1,
+"first_word_id": null,
+"last_word_id": null,
+"surah_number": 60,
+"line_text": ""
+},
+{
+"page_number": 549,
+"line_number": 1,
+"line_type": "basmallah",
+"is_centered": 1,
+"first_word_id": null,
+"last_word_id": null,
+"surah_number": "",
+"line_text": ""
+},
+{
+"page_number": 549,
+"line_number": 2,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75913,
+"last_word_id": 75921,
+"surah_number": 60,
+"line_text": "يَٰٓأَيُّهَا ٱلَّذِينَ ءَامَنُوا۟ لَا تَتَّخِذُوا۟ عَدُوِّي وَعَدُوَّكُمْ أَوْلِيَآءَ تُلْقُونَ"
+},
+{
+"page_number": 549,
+"line_number": 3,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75922,
+"last_word_id": 75933,
+"surah_number": 60,
+"line_text": "إِلَيْهِم بِٱلْمَوَدَّةِ وَقَدْ كَفَرُوا۟ بِمَا جَآءَكُم مِّنَ ٱلْحَقِّ يُخْرِجُونَ ٱلرَّسُولَ وَإِيَّاكُمْ أَن"
+},
+{
+"page_number": 549,
+"line_number": 4,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75934,
+"last_word_id": 75944,
+"surah_number": 60,
+"line_text": "تُؤْمِنُوا۟ بِٱللَّهِ رَبِّكُمْ إِن كُنتُمْ خَرَجْتُمْ جِهَٰدࣰا فِي سَبِيلِي وَٱبْتِغَآءَ مَرْضَاتِيۚ"
+},
+{
+"page_number": 549,
+"line_number": 5,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75945,
+"last_word_id": 75955,
+"surah_number": 60,
+"line_text": "تُسِرُّونَ إِلَيْهِم بِٱلْمَوَدَّةِ وَأَنَا۠ أَعْلَمُ بِمَآ أَخْفَيْتُمْ وَمَآ أَعْلَنتُمْۚ وَمَن يَفْعَلْهُ"
+},
+{
+"page_number": 549,
+"line_number": 6,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75956,
+"last_word_id": 75966,
+"surah_number": 60,
+"line_text": "مِنكُمْ فَقَدْ ضَلَّ سَوَآءَ ٱلسَّبِيلِ ۝١ إِن يَثْقَفُوكُمْ يَكُونُوا۟ لَكُمْ أَعْدَآءࣰ"
+},
+{
+"page_number": 549,
+"line_number": 7,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75967,
+"last_word_id": 75976,
+"surah_number": 60,
+"line_text": "وَيَبْسُطُوٓا۟ إِلَيْكُمْ أَيْدِيَهُمْ وَأَلْسِنَتَهُم بِٱلسُّوٓءِ وَوَدُّوا۟ لَوْ تَكْفُرُونَ ۝٢ لَن"
+},
+{
+"page_number": 549,
+"line_number": 8,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75977,
+"last_word_id": 75986,
+"surah_number": 60,
+"line_text": "تَنفَعَكُمْ أَرْحَامُكُمْ وَلَآ أَوْلَٰدُكُمْۚ يَوْمَ ٱلْقِيَٰمَةِ يَفْصِلُ بَيْنَكُمْۚ وَٱللَّهُ بِمَا"
+},
+{
+"page_number": 549,
+"line_number": 9,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75987,
+"last_word_id": 75998,
+"surah_number": 60,
+"line_text": "تَعْمَلُونَ بَصِيرࣱ ۝٣ قَدْ كَانَتْ لَكُمْ أُسْوَةٌ حَسَنَةࣱ فِيٓ إِبْرَٰهِيمَ وَٱلَّذِينَ مَعَهُۥٓ"
+},
+{
+"page_number": 549,
+"line_number": 10,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 75999,
+"last_word_id": 76005,
+"surah_number": 60,
+"line_text": "إِذْ قَالُوا۟ لِقَوْمِهِمْ إِنَّا بُرَءَٰٓؤُا۟ مِنكُمْ وَمِمَّا"
+},
+{
+"page_number": 549,
+"line_number": 11,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 76006,
+"last_word_id": 76011,
+"surah_number": 60,
+"line_text": "تَعْبُدُونَ مِن دُونِ ٱللَّهِ كَفَرْنَا بِكُمْ"
+},
+{
+"page_number": 549,
+"line_number": 12,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 76012,
+"last_word_id": 76022,
+"surah_number": 60,
+"line_text": "وَبَدَا بَيْنَنَا وَبَيْنَكُمُ ٱلْعَدَٰوَةُ وَٱلْبَغْضَآءُ أَبَدًا حَتَّىٰ تُؤْمِنُوا۟ بِٱللَّهِ وَحْدَهُۥٓ إِلَّا"
+},
+{
+"page_number": 549,
+"line_number": 13,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 76023,
+"last_word_id": 76034,
+"surah_number": 60,
+"line_text": "قَوْلَ إِبْرَٰهِيمَ لِأَبِيهِ لَأَسْتَغْفِرَنَّ لَكَ وَمَآ أَمْلِكُ لَكَ مِنَ ٱللَّهِ مِن شَيْءࣲۖ"
+},
+{
+"page_number": 549,
+"line_number": 14,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 76035,
+"last_word_id": 76045,
+"surah_number": 60,
+"line_text": "رَّبَّنَا عَلَيْكَ تَوَكَّلْنَا وَإِلَيْكَ أَنَبْنَا وَإِلَيْكَ ٱلْمَصِيرُ ۝٤ رَبَّنَا لَا تَجْعَلْنَا"
+},
+{
+"page_number": 549,
+"line_number": 15,
+"line_type": "ayah",
+"is_centered": 0,
+"first_word_id": 76046,
+"last_word_id": 76056,
+"surah_number": 60,
+"line_text": "فِتْنَةࣰ لِّلَّذِينَ كَفَرُوا۟ وَٱغْفِرْ لَنَا رَبَّنَآۖ إِنَّكَ أَنتَ ٱلْعَزِيزُ ٱلْحَكِيمُ ۝٥"
+}
+]
+}
