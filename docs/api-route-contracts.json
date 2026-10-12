@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 122,
+  "route_count": 125,
   "routes": [
     {
       "auth": "editor",
@@ -1886,6 +1886,104 @@
         "cloud",
         "login_required",
         "user"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.audit_review_queue",
+      "error_keys": [
+        "error",
+        "login_required",
+        "message"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/book-audit",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/audit_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.audit_review_crop",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/book-audit/crop",
+      "response_kinds": [
+        "binary"
+      ],
+      "source": "modules/audit_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.audit_review_decision",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/book-audit/decision",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/audit_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "decision",
+        "marks",
+        "ok"
       ]
     },
     {

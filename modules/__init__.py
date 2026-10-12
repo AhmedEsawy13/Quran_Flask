@@ -18,6 +18,7 @@ ROUTE_MODULES = (
     'modules.waqf_research',
     # editor_bp — write-capable and internal review tools (gated by ENABLE_EDITOR)
     'modules.editor',
+    'modules.audit_review',
     'modules.waqf_mark_review',
     'modules.quran_integrity_review',
     'modules.cv_waqf_ui',

@@ -31,6 +31,8 @@ from pipeline.cv_waqf.config import EDITIONS
 # edited as Supabase drafts there. The :5001 dev server runs without Supabase
 # and refuses those edits.
 EDITOR = 'http://localhost:5002/mushaf-editor'
+# Approve / reject each card in the cloud (modules/audit_review.py).
+IN_EDITOR_REVIEW = 'http://localhost:5002/mushaf-editor/book-audit'
 REFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر')
 SYM = {'ص': 'صلى', 'ج': 'جائز', 'ق': 'قلى', 'لا': 'لا', 'م': 'لازم', 'س': 'سكتة', 'ع': 'معانقة'}
 SURAHS = (
@@ -206,6 +208,13 @@ def build(edition: str, out_dir: Path) -> dict:
                 if f(i):
                     w.writerow([k, i['page'], i['word_key'], i['text'], i['db'] or '', i['cv'] or '', i['conf'] or '',
                                 *((i.get('others') or {}).get(r, '') for r in REFS), 'crops/' + i['crop']])
+    # The editor's in-app review (/mushaf-editor/audit) reads this queue.
+    keep = ('page', 'word_key', 'text', 'db', 'cv', 'conf', 'others', 'crop', 'from_key', 'from_text', 'from_crop')
+    queue = {'edition': edition, 'built': stamp, 'summary': summary,
+             'tabs': [{'id': k, 'title': title, 'note': note} for k, title, note, _ in TABS],
+             'items': [dict({f: i.get(f) for f in keep}, tab=k, lean=ref_lean(i), note=notes.get(i['crop']) or '')
+                       for k, _, _, f in TABS for i in items if f(i)]}
+    (out_dir / 'queue.json').write_text(json.dumps(queue, ensure_ascii=False))
 
     def surah_name(n):
         return SURAHS[n - 1] if 0 < n <= len(SURAHS) else str(n)
@@ -364,6 +373,7 @@ def build(edition: str, out_dir: Path) -> dict:
     </style></head><body>
     <div class="bar"><div class="top">
     <h1>مراجعة وقوف مصحف {esc(edition)} <small style="font-size:13px;color:var(--muted)">{esc(stamp)}</small></h1>
+    <a class="open" href="{IN_EDITOR_REVIEW}?edition={quote(edition)}">راجِع واحفظ في السحابة ↖</a>
     <span class="stat"><b>{tot['match']:,}</b> مطابقة · <b>{tot['wrong']}</b> رمز مختلف · <b>{tot['missing']}</b> لم تُكتشف ·
     <b>{db_total and tot['match'] / db_total:.1%}</b> دقة مطابقة الرمز ·
     <b>{sum(1 for i in items if i.get('pending'))}</b> مسودة بانتظار النشر</span>
@@ -440,4 +450,5 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     summary = build(args.edition, args.dir or default_out(args.edition))
     print(json.dumps(summary['tabs'], ensure_ascii=False))
+    print(f'review in the editor: {IN_EDITOR_REVIEW}?edition={quote(args.edition)}')
     return 0
