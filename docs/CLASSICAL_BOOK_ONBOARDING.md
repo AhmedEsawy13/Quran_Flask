@@ -758,3 +758,18 @@ hand, EXTRA_AT), ~15 other misses (mostly relayed: 46:17–18 غيره, 40:50 أ
 that is ≈ 93% complete. The traceability test now treats «، ؛ ؟» as word
 separators on both sides (quotes without marks end before a comma), and «قيل»
 is a known credit for النحاس.
+
+### النحاس: credit sweep (2026-10-12)
+
+Round 18 showed relayed views stored in the author's voice, so every own-voice
+conf=1 النحاس row was checked for a speaker cue in its sentence before the quote
+(«قال/عند/وعن/زعم/وخالفه X», «عنده», «وقال غيره», 211 rows). The 56 with no grade
+of the author's right after the quote were each read in the book: 37 credited
+(CURATED_BY — e.g. «وخالفهما أبو حاتم وجعل التمام {وهم يطمعون}», «زعم الأخفش أن
+التمام {ألم نشرح لك صدرك}», «وقيل: ليس بتمام … ولكنه كاف»; 79:14 is a view
+النحاس calls «خطأ»), 2 regraded («والكافي عنده بعده {X}» was stored تام — 30:44,
+43:80), 2 dropped (cross-references «لأن بعده {وعد الله}» 39:20, «{وعمروها أكثر
+مما عمروها}» 30:9), and 2 added (40:9 «وهما عند أبي حاتم كافيات»). Left in the
+author's voice by design: «X كاف عند أبي حاتم والتمام {Y}» with no «عنده», views
+النحاس adopts («والقول ما قال أبو حاتم»، «وهو الصواب»), and conditionals («ومن
+قال … فالتمام عنده {Y}»، «ومن قرأ …») whose note carries the condition.

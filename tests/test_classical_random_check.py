@@ -775,3 +775,33 @@ def test_nahhas_second_pass(con, surah, ayah, wpos, grade, by):
 def test_nahhas_third_pass(con, surah, ayah, wpos, grade, by):
     got = rulings(con, 'nahhas', surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── النحاس: credit sweep (2026-10-12) — relayed views stored in the author's voice ──
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (2, 26, 33, 'تام', 'الفراء'),        # «وأما الفراء … والتمام عنده {ويهدي به كثيرا}»
+    (3, 86, 10, 'كاف', 'قيل'),           # «وقيل: ليس بتمام … ولكنه كاف»
+    (7, 46, 17, 'تام', 'أبو حاتم'),      # «وخالفهما أبو حاتم وجعل التمام {وهم يطمعون}»
+    (79, 14, 2, 'تام', 'أبو حاتم'),      # «… وهذا القول ذكره أبو حاتم وهو … خطأ»
+    (94, 1, 3, 'تام', 'الأخفش'),         # «زعم الأخفش أن التمام {ألم نشرح لك صدرك}»
+    (12, 92, 4, 'تام', 'نافع'),          # «وفيما روينا عن نافع قال (لا تثريب عليكم اليوم) تم»
+    (30, 44, 8, 'كاف', 'أبو حاتم'),      # «والكافي عنده بعده {فلأنفسهم يمهدون}» (was تام, own)
+    (43, 80, 7, 'كاف', 'أبو حاتم'),      # «والكافي عنده بعده {سرهم ونجواهم بلى}» (was تام, own)
+    (40, 9, 1, 'كاف', 'أبو حاتم'),       # «وهما عند أبي حاتم كافيات»
+    (40, 9, 7, 'كاف', 'أبو حاتم'),
+])
+def test_nahhas_credit_sweep(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_nahhas_credit_sweep_no_own_voice_left(con):
+    for s, a, w in [(2, 26, 33), (7, 46, 17), (79, 14, 2), (30, 44, 8), (43, 80, 7)]:
+        assert all(b for _, _, b in rulings(con, 'nahhas', s, a, w)), (s, a, w)
+
+
+def test_nahhas_cross_references_dropped(con):
+    # «لأن بعده {وعد الله}» and «لأن بعده {وعمروها أكثر مما عمروها}» cite the next words, no ruling
+    assert not rulings(con, 'nahhas', 39, 20, 15)
+    assert all(b == 'أحمد بن جعفر' for _, _, b in rulings(con, 'nahhas', 30, 9, 20))
