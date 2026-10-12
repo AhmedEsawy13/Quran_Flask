@@ -11,6 +11,8 @@ frontend/lib/qvp.ts — those two must match.
 `--apply` writes a newer page CDN release and/or engine/npm acknowledgement
 into the pin and qvp.ts after a QVP1 smoke of pages 1, 42, 272, 540.
 It does not rewrite the Athar lite fork (family/mark overlay).
+After a page release bump, re-extract the printed pause signs with
+pipeline/audit_qvp_waqf.py (tests/test_qvp_waqf_ink.py checks the pin).
 """
 from __future__ import annotations
 
