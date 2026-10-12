@@ -94,6 +94,7 @@ _POST_FOLDS = [
 _SPLIT_FUSED = {
     'فيما': ('في', 'ما'),
     'ماهيه': ('ما', 'هيه'),
+    'كيلا': ('كي', 'لا'), 'لكيلا': ('لكي', 'لا'),     # «كَيۡ لَا» is two words in the mushaf
 }
 _PERSON_PREFIX = set('تين')
 
@@ -939,6 +940,7 @@ def nahhas_sections(body):
             continue
         last = num
         text = text.replace('ثطع', 'قطع')       # «{ثم أناب} ثطع صالح» (38:34): a scan slip
+        text = text.replace('{{', '{').replace('}}', '}')   # «{{فيعذبه الله العذاب الأكبر}}» (88:24)
         # a graded quote the copy put in parentheses: «(ختامه مسك) قطع كاف» (23 places)
         text = re.sub(r'\(([^(){}]{3,80})\)(?=\s*(?:قطع|وقف)\s+(?:تام|كاف|حسن|صالح))', r'{\1}', text)
         # the copy quotes with plain double quotes in a few sections (المؤمنون، النور: « " إلا وسعها "

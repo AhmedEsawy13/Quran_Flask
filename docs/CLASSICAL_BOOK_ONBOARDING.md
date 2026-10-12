@@ -733,3 +733,15 @@ and most verse-end ranges were missing. Fixed:
 
 Not rows (by design): «ليس بكاف / ليس بتمام» negations, «ومن الوقف {X}» stops
 with no grade, other readings and conditional parses.
+
+### النحاس: second pass (2026-10-12)
+
+Round 17 (12 fresh passages), measured after the first pass: ≈ 95.5% of the
+explicit rulings had rows (262 held, 8 confirmed misses + ~4 likely relayed),
+2 wrong credits — up from ≈ 87% in round 16. Fixed: ranges with a qualifier
+(«كاف على أن تبتديء الخبر إلى»), «والتمام على أواخر الايات إلى» (grade first),
+«كيلا» / «لكيلا» split as in the mushaf (seating variant; ابن الأنباري unchanged),
+doubled braces «{{…}}»; أبو حاتم's «وقف جيد / الوقف الجيد» read as حسن (the book
+pairs them: «وقف جيد حسن»); hand additions (EXTRA_AT, now with an optional raw
+«رأس الآية» for unquoted verse ends): 88:17–20 أبو حاتم, 73:1–3 نافع, 54:46,
+54:50 أبو حاتم, 54:51, 59:23; credits 73:4 and 89:7 to نافع.

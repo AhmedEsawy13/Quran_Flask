@@ -737,3 +737,23 @@ def test_nahhas_first_pass(con, surah, ayah, wpos, grade, by):
 
 def test_nahhas_misplaced_duplicate_dropped(con):
     assert not rulings(con, 'nahhas', 23, 11, 5)      # «الذين يرثون الفردوس» stops on w2
+
+
+# ── النحاس: second pass (2026-10-12, reviewed by gpt-6-luna) ─────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (54, 12, None, 'كاف', ''),        # «رؤوس الآيات كاف على أن تبتديء الخبر إلى {…}» (a qualifier)
+    (61, 8, None, 'تام', ''),         # «والتمام على أواخر الايات إلى {…}»
+    (59, 4, None, 'كاف', ''),         # range to {كيلا يكون …} — «كَيۡ لَا» is two words
+    (88, 24, 3, 'كاف', ''),           # «والوقف الكافي {{فيعذبه الله العذاب الأكبر}}» (doubled braces)
+    (59, 23, 18, 'تام', ''),          # «والتمام آخر الاية»
+    (88, 18, 3, 'كاف', 'أبو حاتم'),   # «الوقف عنده على كل آية من الأربع الآيات … كاف»
+    (73, 2, 3, 'تام', 'نافع'),        # «عن نافع {…} {قم الليل إلا قليلا} … {أو زد عليه} تم»
+    (73, 4, 2, 'تام', 'نافع'),
+    (54, 51, 5, 'تام', ''),           # «{فهل من مدكر} قطع تام» — the refrain's last occurrence
+    (89, 7, 0, 'تام', 'نافع'),        # «والرواية عن نافع {بعاد} {إرم} تم»
+    (2, 143, None, 'حسن', 'أبو حاتم'),  # «قال أبو حاتم: والوقف الجيد {…}» — «جيد» read as حسن
+])
+def test_nahhas_second_pass(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
