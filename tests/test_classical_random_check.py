@@ -662,3 +662,23 @@ def test_own_voice_conflict_drops(con):
     assert 'حسن' not in {g for _, g, b in rulings(con, 'anbari', 3, 169, 7) if not b}   # «… [169] الوقف على …»
     assert 'تام' not in {g for _, g, b in rulings(con, 'anbari', 27, 43, 6) if not b}
     assert 'حسن' not in {g for _, g, b in rulings(con, 'manar', 5, 31, 21) if not b}   # «سوءة أخي» صالح only
+
+
+# ── fifteenth passage check (2026-10-12, reviewed by gpt-6-luna) ─────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 4, 8, 12, 'كاف', ''),          # «{فارزقوهم منه} كاف. وآخر الآية أكفى»
+    ('muktafa', 4, 24, 41, 'تام', ''),         # «{عليما حكيما} تمام القصة»
+    ('muktafa', 4, 30, 12, 'تام', ''),         # «[يسيرا] تام»
+    ('muktafa', 5, 25, 7, 'كاف', ''),          # «والوجه أن يكون الوقف على ((وأخي)) وهو كاف»
+    ('muktafa', 5, 20, 14, 'تام', 'نافع'),     # «قال نافع: … قال: {وجعلكم ملوكا} تام»
+    ('muktafa', 7, 190, 7, 'كاف', 'أصحاب الوقف'),
+    ('muktafa', 7, 190, 7, 'تام', ''),         # «كاف عند أصحاب الوقف، وهو عندي تام»
+    ('manar', 105, 4, 3, 'لا', ''),            # «… وهكذا إلى آخر السورة»
+    ('manar', 13, 1, 0, 'لا', 'قيل'),          # «وقيل: هي قسم … فعلى هذا التقدير لا يوقف عليها»
+    ('anbari', 2, 24, 1, 'قبيح', ''),          # «والوقف على (لم) في (تفعلوا) قبيح»
+    ('anbari', 2, 24, 4, 'قبيح', ''),          # «والوقف على (تفعلوا) الأول والثاني قبيح»
+])
+def test_fifteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

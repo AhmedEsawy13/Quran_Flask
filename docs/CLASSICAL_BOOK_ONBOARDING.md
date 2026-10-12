@@ -670,3 +670,15 @@ under another reading (منار 145, المكتفى 21): `pipeline/review/readin
 returns `reading`, and the app labels them «على غير قراءة حفص» (Next.js
 imam-rulings and the legacy guide); the «اتفق / اختلف الأئمة» summary ignores
 them. `tests/test_classical_reading.py`.
+
+### Fifteenth passage check (2026-10-12, gpt-6-luna)
+
+15 passages (المكتفى and ابن الأنباري are nearly out of unread text). Accuracy
+before this round's fixes: منار 99.4% (159 held, 1 miss, 1 credit), المكتفى
+98.0% (244, 5 misses, 2 credits), ابن الأنباري 96.5% (82, 3 misses). Fixed:
+المكتفى 4:8 «وآخر الآية أكفى», 4:24 «تمام القصة», 4:30 «[يسيرا] تام», 5:25
+«وأخي» كاف, 7:190 «كاف عند أصحاب الوقف، وهو عندي تام» (credit + own), 5:20 نافع;
+منار 105:4 «وهكذا إلى آخر السورة», 13:1 «وقيل: هي قسم … لا يوقف عليها» credited;
+ابن الأنباري 2:24 «(لم) في (تفعلوا) قبيح … (تفعلوا) الأول والثاني قبيح»
+(KEEP_SEAT keeps both occurrences). Left: 2:87–96 «ثم الوقف على رؤوس الآيات إلى
+قوله …» (no grade).
