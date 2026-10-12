@@ -1429,7 +1429,7 @@ def test_kuwait_uses_its_own_model_and_others_are_unchanged():
     path, source = resolve_edition_model('الكويت')
     assert source == 'own' and path.name == 'waqf_glyph_kuwait.onnx'
     assert resolve_edition_model('قطر')[1] == 'multiprint'
-    assert resolve_edition_model('البحرين')[1] == 'own'
+    assert resolve_edition_model('البحرين')[1] == 'multiprint'   # prefer_multiprint (measured)
 
 
 def test_kuwait_extended_train_keeps_the_holdout_out():
