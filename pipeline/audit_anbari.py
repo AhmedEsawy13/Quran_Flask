@@ -117,6 +117,10 @@ def grade_at(text, start, end):
     m = _GRADE_AFTER.match(tail)
     if m:
         return _MAP[m.group(1)], 'own'
+    # «والوقف على (خطاياكم) [58] وعلى (المحسنين) حسن»: A shares the grade after «وعلى (B)»
+    m = re.match(r'^[\s.،]*وعلى\s*\([^()]{1,60}\)\s*(?:\[[\d،, ]{1,12}\])?' + _G, tail)
+    if m:
+        return _MAP[m.group(1)], 'own'
     # «(في هذا القرآن من كل مثل) [58] تام، وأتم منه: (إلا مبطلون)»: a comparative before it
     m = _COMPARATIVE_BEFORE.search(text[max(0, start - 20):start])
     if m:
@@ -249,8 +253,9 @@ def audit(con):
     secs = sections()
     recs = []
     for r in con.execute("SELECT id, surah, ayah, wpos, quote, grade, conf, reported_from "
-                         "FROM classical WHERE source='anbari' AND grade_raw NOT IN (?,?,?,?,?)",
-                         tuple(BEFORE_RAW.values()) + ('آخر السورة',)).fetchall():
+                         "FROM classical WHERE source='anbari' AND grade_raw NOT IN (?,?,?,?,?,?)",
+                         # «رأس الآية»: a verse end the book rules without quoting it (BOOK_ADD)
+                         tuple(BEFORE_RAW.values()) + ('آخر السورة', 'رأس الآية')).fetchall():
         rid, s, a, w, q, g, conf, rep = r
         text = secs.get(s, '')
         acount = rx.surah_ayah_count(s)
@@ -477,7 +482,20 @@ RELAYED_BY = {(25, 22, 8, 'تام'): 'الحسن',
               (30, 25, 10, 'تام'): 'المفسرون'}
 # rulings the builder cannot read because the book's [n] is garbled
 # («(ويقولون حجرا محجورا) [22 ي حسن»): (surah, ayah, wpos, grade, raw, quote, note)
-BOOK_ADD = [(2, 205, 9, 'تام', 'تام', 'ويهلك الحرث والنسل', 'والوقف على ويهلك الحرث والنسل تام.'),
+BOOK_ADD = [# round 14: verse ends the book rules without quoting them (grade_raw «رأس الآية», traced by the note)
+            (2, 51, 11, 'حسن', 'رأس الآية', 'ظَٰلِمُونَ', 'والوقف على رأس كل آية إلى قوله: (ولكن كانوا أنفسهم يظلمون) [57] حسن.'),
+            (2, 52, 7, 'حسن', 'رأس الآية', 'تَشۡكُرُونَ', 'والوقف على رأس كل آية إلى قوله: (ولكن كانوا أنفسهم يظلمون) [57] حسن.'),
+            (2, 53, 6, 'حسن', 'رأس الآية', 'تَهۡتَدُونَ', 'والوقف على رأس كل آية إلى قوله: (ولكن كانوا أنفسهم يظلمون) [57] حسن.'),
+            (2, 54, 25, 'حسن', 'رأس الآية', 'ٱلرَّحِيمُ', 'والوقف على رأس كل آية إلى قوله: (ولكن كانوا أنفسهم يظلمون) [57] حسن.'),
+            (2, 55, 13, 'حسن', 'رأس الآية', 'تَنظُرُونَ', 'والوقف على رأس كل آية إلى قوله: (ولكن كانوا أنفسهم يظلمون) [57] حسن.'),
+            (2, 56, 6, 'حسن', 'رأس الآية', 'تَشۡكُرُونَ', 'والوقف على رأس كل آية إلى قوله: (ولكن كانوا أنفسهم يظلمون) [57] حسن.'),
+            (2, 280, 13, 'تام', 'رأس الآية', 'تَعۡلَمُونَ',
+             'والوقف على (وهم لا يظلمون) [281] تام. وكذلك الوقف على آخر الآية التي قبلها.'),
+            (2, 251, 2, 'حسن', 'حسن', 'فهزموهم بإذن الله', '(فهزموهم بإذن الله) الوقف عليه حسن غير تام'),
+            (2, 260, 38, 'تام', 'تام', 'حكيم', 'والوقف على (حكيم) وعلى (يحزنون) [262] تام.'),   # «حكيم» ends many verses
+            (2, 258, 37, 'حسن', 'حسن', 'فبهت الذي كفر',
+             'والوقف على (فبهت الذي كفر) [258] وكذلك الوقف على (والله لا يهدي القوم الظالمين) حسن'),
+            (2, 205, 9, 'تام', 'تام', 'ويهلك الحرث والنسل', 'والوقف على ويهلك الحرث والنسل تام.'),
             (2, 205, 13, 'تام', 'تام', 'الفساد', 'والوقف على ويهلك الحرث والنسل تام. وكذلك الوقف على (الفساد).'),
             (2, 215, 21, 'تام', 'تام', 'فإن الله به عليم', 'والوقف على فإن الله به عليم) تام.'),
             (2, 28, 2, 'حسن', 'حسن', 'تكفرون بالله', 'والوقف على (تكفرون بالله) غير تام وهو حسن'),
@@ -694,8 +712,8 @@ def renote(con):
     secs = sections()
     n = 0
     rows = con.execute("SELECT id, surah, ayah, quote, note FROM classical WHERE source='anbari' "
-                       "AND grade_raw NOT IN (%s)" % ','.join('?' * (len(BEFORE_RAW) + 1)),
-                       [*BEFORE_RAW.values(), 'آخر السورة']).fetchall()
+                       "AND grade_raw NOT IN (%s)" % ','.join('?' * (len(BEFORE_RAW) + 2)),
+                       [*BEFORE_RAW.values(), 'آخر السورة', 'رأس الآية']).fetchall()   # notes are the statement
     for rid, surah, ayah, quote, note in rows:
         text = secs.get(surah, '')
         occ = occurrences(text, quote)

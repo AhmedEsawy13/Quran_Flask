@@ -614,3 +614,28 @@ def test_twelfth_passage_check_drops(con):
 def test_thirteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
     got = rulings(con, book, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── fourteenth passage check (2026-10-12, reviewed by gpt-6-luna) ────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 2, 26, 7, 'حسن', 'أحمد بن جعفر الدينوري وأحمد بن محمد النحاس'),   # «… وليس كما قالوا»
+    ('muktafa', 7, 172, 15, 'تام', 'نافع ومحمد بن عيسى والقتبي والدينوري'),
+    ('muktafa', 7, 30, 5, 'كاف', ''),          # «[عليهم الضلالة] كاف على الوجهين»
+    ('muktafa', 3, 156, 35, 'تام', ''),        # «والتمام آخر الآية»
+    ('muktafa', 4, 157, 8, 'كاف', ''),         # «والوقف عندي على ((رسول الله)) وهو كاف»
+    ('muktafa', 4, 158, None, 'كاف', ''),      # «ورؤوس الآي فيما بين ذلك كافية»
+    ('manar', 77, 5, 1, 'لا', ''),             # «ولا وقف من أولها إلى قوله: «لواقع»»
+    ('manar', 111, 1, 3, 'لا', ''),            # «ولا وقف من أولها إلى «وتب»»
+    ('manar', 55, 22, 3, 'كاف', ''),           # «وكذا: «تكذبان»، «والمرجان»»
+    ('manar', 55, 26, 3, 'كاف', ''),           # «وفان» الأولى
+    ('anbari', 2, 58, 17, 'حسن', ''),          # «والوقف على: (خطاياكم) [58] وعلى (المحسنين) حسن»
+    ('anbari', 3, 86, 6, 'قبيح', ''),          # «والوقف على (إيمانهم) وعلى (أن الرسول حق) قبيح»
+    ('anbari', 2, 54, 25, 'حسن', ''),          # «والوقف على رأس كل آية إلى قوله: (…) [57] حسن»
+    ('anbari', 2, 280, 13, 'تام', ''),         # «وكذلك الوقف على آخر الآية التي قبلها»
+    ('anbari', 2, 251, 2, 'حسن', ''),          # «(فهزموهم بإذن الله) الوقف عليه حسن غير تام»
+    ('anbari', 2, 260, 38, 'تام', ''),         # «والوقف على (حكيم) وعلى (يحزنون) [262] تام»
+])
+def test_fourteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

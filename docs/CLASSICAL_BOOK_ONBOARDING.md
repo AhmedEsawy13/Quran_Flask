@@ -612,3 +612,25 @@ shorter than «وكذلك الوقف على قوله: »; now 30, and «كذلك
 parentheses, 2:28 «غير تام وهو حسن», 4:46 «لكان خيرا وأقوم» (the book drops
 «لهم»), 4:83 «وقال قوم» credit. المكتفى: 22:27 صالح, 3:34, 33:33, 22:41, 11:109.
 منار: 93:1–2 «ولا وقف من أولها إلى: {قلى (3)}».
+
+### Fourteenth passage check and accuracy (2026-10-12, gpt-6-luna)
+
+22 passages (ابن الأنباري: 6 unread stretches of 2–4). Accuracy before this
+round's fixes, measured as in round 13:
+
+| book | held | confirmed misses | completeness | wrong rows |
+|---|---|---|---|---|
+| منار | 100 | 4 | 96.2% | 0 |
+| المكتفى | 375 | 3 | 99.2% | 1 credit |
+| ابن الأنباري | 240 | 5 | 98.0% (94.2% before the round-13 chain fix) | 0 |
+
+Rounds 13–14 together: منار 98.2% (320/326), المكتفى 99.0% (710/717). Not
+counted above: two ابن الأنباري general statements with no rows (2:51–56, 2:280).
+
+Fixed: ابن الأنباري «(A) وعلى (B) GRADE» — A shares B's grade (2:4, 2:58, 3:86,
+2:260); verse ends it rules without quoting (2:51–56 «رأس كل آية إلى قوله: (…)
+[57] حسن», 2:280 «آخر الآية التي قبلها») as grade_raw «رأس الآية», which the
+seat audit and `renote` now skip; 2:251, 2:258. المكتفى: 2:26 credited to
+الدينوري والنحاس, 7:172 relayed, 7:30, 3:156, 4:157, 4:155–160. منار: 77:5,
+111:1, 55:22, 55:26. Left: 91 (a conditional pair), 3:175 / 4:148 (whether a
+mid-verse statement covers its own verse end).
