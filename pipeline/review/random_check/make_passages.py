@@ -21,12 +21,14 @@ OUT.mkdir(parents=True, exist_ok=True)
 random.seed(20261011 + (int(ROUND) if ROUND else 0))
 # surahs already drawn in earlier rounds are skipped per book
 DONE = {}
+SEEN = {}          # (book, surah) → passage texts already drawn
 for d in Path('artifacts/waqf-random-check').glob('passages*'):
     if d != OUT:
         for f in d.glob('batch*.json'):
             if 'result' not in f.name:
                 for p in json.loads(f.read_text(encoding='utf-8')):
                     DONE.setdefault(p['book'], set()).add(p['surah'])
+                    SEEN.setdefault((p['book'], p['surah']), []).append(p['text'])
 PLAN = {'manar': 8, 'nahhas': 6, 'muktafa': 6, 'anbari': 4}   # passages per book
 if len(sys.argv) > 2:                                          # e.g. «nahhas:8,anbari:8»
     PLAN = {b: int(n) for b, n in (x.split(':') for x in sys.argv[2].split(','))}
@@ -57,18 +59,44 @@ def sections(book):
     return {int(k): (v['text'] if isinstance(v, dict) else v) for k, v in d.items()}
 
 
+def unseen_runs(book, s, text, span):
+    """[(start, end)] stretches of a section no earlier passage covered, at least a span long."""
+    covered = []
+    for x in SEEN.get((book, s), []):
+        # the section text may have been cleaned since (scan slips): find it by short probes
+        for k in range(0, max(1, len(x) - 60), 120):
+            i = text.find(x[k:k + 60])
+            if i >= 0:
+                covered.append((max(0, i - k - 200), i - k + len(x) + 200))
+                break
+    covered.sort()
+    runs, pos = [], 0
+    for a, b in covered + [(len(text), len(text))]:
+        if a - pos >= span:
+            runs.append((pos, a))
+        pos = max(pos, b)
+    return runs
+
+
 passages = []
 for book, n in PLAN.items():
-    secs = {s: t for s, t in sections(book).items() if s > 1 and len(t) > 400 and s not in DONE.get(book, ())}
-    surahs = random.sample(sorted(secs), n)
-    for s in surahs:
-        t = secs[s]
+    allsecs = {s: t for s, t in sections(book).items() if s > 1 and len(t) > 400}
+    fresh = sorted(s for s in allsecs if s not in DONE.get(book, ()))
+    picks = [(s, None) for s in random.sample(fresh, min(n, len(fresh)))]
+    if len(picks) < n:
+        # every surah drawn once: an unread stretch of a long section instead
         span = SPAN[book]
-        start = 0 if len(t) <= span else random.randrange(0, len(t) - span)
+        pool = [(s, r) for s in sorted(allsecs) if s not in fresh for r in unseen_runs(book, s, allsecs[s], span)]
+        picks += random.sample(pool, min(n - len(picks), len(pool)))
+    for s, run in picks:
+        t = allsecs[s]
+        span = SPAN[book]
+        lo, hi = run if run else (0, len(t))
+        start = lo if hi - lo <= span else random.randrange(lo, hi - span)
         if start:
             nl = t.find('\n', start)
             start = nl + 1 if 0 <= nl < start + 300 else start
-        end = min(len(t), start + span)
+        end = min(hi, start + span)
         nl = t.rfind('\n', start, end)
         end = nl if nl > start + span // 2 else end
         passages.append({'book': book, 'surah': s, 'surah_ayahs': rx.surah_ayah_count(s),

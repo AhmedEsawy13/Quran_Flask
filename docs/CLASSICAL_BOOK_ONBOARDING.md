@@ -573,3 +573,22 @@ quietest round so far (about ten real items). Fixed: المكتفى 25:21 «كا
 a line break). The blanket anchor now asks for one verse, not one row: a second
 row on the anchor quote (25:21) had pushed «والفواصل تامة» back a verse. The
 runner retries `http.client` errors (a cut-off response stopped the run).
+
+### Twelfth passage check (2026-10-12, gpt-6-luna)
+
+Every ابن الأنباري surah had been drawn once (المكتفى: 11 left), so
+`make_passages.py` now falls back to an unread stretch of an already-drawn
+surah; earlier passages are located by 60-character probes, since cleaned scan
+slips changed the section text. Fixed:
+
+- **المكتفى**: 53 «والوقف {وما ينطق عن الهوى} وهو كاف. ومثله {يوحى} …» (7 rows;
+  «والوقف {X} وهو كاف» opens no chain for the parser); «جواب القسم {X} فلا وقف
+  دونه» → «لا» on the oath verses before the answer (51:1–4, 52:1–6, 53:1;
+  grade_raw «رأس الآية»); 50:42 «وهو كاف», 83:28 «المقربون» الثاني, 59:15
+  الأخفش, 44:53 الحسن; 20:77 «لا تخف دركا» dropped (the jussive reading).
+  «X. كذلك» stays on X — `test_period_quotes_pin_before_the_period` records that
+  convention.
+- **منار**: 56:18–20 «ولا على «أباريق» ولا على «من معين» … ولا على «يتخيرون»»;
+  20:55–57 «كلها وقوف تقرب من التام» → كاف (MISMATCH_OK).
+- **ابن الأنباري**: 5:68 «فلا تأس على القوم الكافرين. تام.» (no parentheses in
+  the copy); 8:3–4 «ويحسن الوقف على قوله أيضا: (…) ويتم على قوله: (…)».

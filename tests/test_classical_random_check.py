@@ -562,3 +562,31 @@ def test_bayna_dhalika_stays_between_the_items(con):
 def test_eleventh_passage_check(con, book, surah, ayah, wpos, grade, by):
     got = rulings(con, book, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── twelfth passage check (2026-10-12, reviewed by gpt-6-luna) ───────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 53, 3, 3, 'كاف', ''),          # «والوقف {وما ينطق عن الهوى} وهو كاف. ومثله …»
+    ('muktafa', 53, 22, 3, 'كاف', ''),
+    ('muktafa', 53, 1, 2, 'لا', ''),           # «جواب القسم {ما ضل صاحبكم وما غوى} فلا وقف دونه»
+    ('muktafa', 51, 3, 1, 'لا', ''),
+    ('muktafa', 52, 6, 1, 'لا', ''),
+    ('muktafa', 50, 42, 3, 'كاف', ''),         # «وقال نافع {الصيحة بالحق} تام، وهو كاف»
+    ('muktafa', 59, 15, 4, 'تام', 'الأخفش'),
+    ('muktafa', 83, 28, 3, 'تام', ''),         # «و {المقربون} الثاني»
+    ('muktafa', 44, 53, 4, 'تام', 'الحسن'),    # «{متقابلين. كذلك} تام على قول الحسن»
+    ('manar', 56, 18, 1, 'لا', ''),            # «ولا على «أباريق» ولا على «من معين»»
+    ('manar', 56, 20, 2, 'لا', ''),
+    ('manar', 20, 56, 5, 'كاف', ''),           # «كلها وقوف تقرب من التام»
+    ('anbari', 5, 68, 29, 'تام', ''),          # «فلا تأس على القوم الكافرين. تام.» (no parentheses)
+    ('anbari', 8, 3, 5, 'حسن', ''),            # «ويحسن الوقف على قوله أيضا: (…)»
+    ('anbari', 8, 4, 10, 'تام', ''),           # «ويتم على قوله: (…)»
+])
+def test_twelfth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_twelfth_passage_check_drops(con):
+    assert not rulings(con, 'muktafa', 20, 77, 15)       # jussive «لا تخف دركا», not Hafs
