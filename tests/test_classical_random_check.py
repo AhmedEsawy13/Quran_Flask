@@ -757,3 +757,21 @@ def test_nahhas_misplaced_duplicate_dropped(con):
 def test_nahhas_second_pass(con, surah, ayah, wpos, grade, by):
     got = rulings(con, 'nahhas', surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── النحاس: third pass (2026-10-12, reviewed by gpt-6-luna) ──────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (24, 43, 37, 'تام', 'أحمد بن موسى'),  # النور 43–58 lost its quote marks: «… يكاد سنا برقه يذهب بالأبصار، تمام»
+    (24, 47, 14, 'تام', ''),            # «والتمام وما أولئك بالمؤمنين»
+    (24, 53, 9, 'تام', 'الأخفش'),        # «قل لا تقسموا، هذا التمام عند الأخفش ويعقوب …»
+    (56, 37, 1, 'تام', 'الأخفش'),        # «قال الأخفش … والتمام {عربا أترابا}»
+    (39, 10, 14, 'تام', 'أبو حاتم'),      # 39:10 «والتمام عنده {وأرض الله واسعة}»
+    (46, 19, 3, 'كاف', 'قيل'),          # «وقيل {ولكل درجات مما عملوا} كاف»
+    (40, 50, 9, 'تام', 'أبو حاتم'),      # «وعن أبي حاتم {قالوا بلى قالوا فادعوا}»
+    (39, 24, 6, 'كاف', ''),             # «والكافي بعده (أفمن يتقي …)» — parentheses
+    (33, 26, 15, 'كاف', ''),            # «وكذا {وتأسرون فريقا}»
+])
+def test_nahhas_third_pass(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

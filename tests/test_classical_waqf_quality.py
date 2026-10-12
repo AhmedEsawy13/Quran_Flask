@@ -211,7 +211,8 @@ def source_word_streams():
     streams = {}
     for name, fname in pcw.SOURCES.items():
         body = pcw.load_book(fname)
-        words = [pcw.norm(t) for t in re.findall(r'[؀-ۿ]+', body)]
+        # Arabic punctuation (، ؛ ؟) separates words: «بالأبصار، تمام» must still trace
+        words = [pcw.norm(t) for t in re.findall(r'[؀-ۿ]+', re.sub('[،؛؟]', ' ', body))]
         streams[name] = ' ' + ' '.join(w for w in words if w) + ' '
     return streams
 
@@ -234,6 +235,7 @@ def test_quotes_are_traceable_to_the_source_book(source, rows, source_word_strea
             qwords = pcw.quote_words(r['note'])
         elif r['grade_raw'] == 'رأس الآية':   # «{X} تام، والآية أتم» — the verse end has no quote
             qwords = pcw.quote_words(r['note'])
+        qwords = [w for w in (re.sub('[،؛؟]', '', x) for x in qwords) if w]   # as the stream
         if not qwords:
             continue
         needle = ' ' + ' '.join(qwords) + ' '

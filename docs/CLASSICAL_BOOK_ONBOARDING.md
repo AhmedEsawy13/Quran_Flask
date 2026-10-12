@@ -745,3 +745,16 @@ doubled braces «{{…}}»; أبو حاتم's «وقف جيد / الوقف ال�
 pairs them: «وقف جيد حسن»); hand additions (EXTRA_AT, now with an optional raw
 «رأس الآية» for unquoted verse ends): 88:17–20 أبو حاتم, 73:1–3 نافع, 54:46,
 54:50 أبو حاتم, 54:51, 59:23; credits 73:4 and 89:7 to نافع.
+
+### النحاس: third pass (2026-10-12)
+
+Round 18 (12 fresh passages). Before its fixes: 212 explicit rulings held;
+confirmed 21 misses in النور 43–58, where the copy lost its quote marks
+altogether («قال أحمد بن موسى: يكاد سنا برقه يذهب بالأبصار، تمام» — read by
+hand, EXTRA_AT), ~15 other misses (mostly relayed: 46:17–18 غيره, 40:50 أبو
+حاتم/غيره, 33:22 الأخفش, 51:20 يعقوب, 53:32 نافع, 66:1 محمد بن عيسى; own:
+33:26–27, 39:22, 39:24 «(…)»), and 12 relayed views stored as the author's
+(«قال الأخفش … والتمام {X}», «والتمام عنده {X}», «وقيل {X} كاف»). Outside النور
+that is ≈ 93% complete. The traceability test now treats «، ؛ ؟» as word
+separators on both sides (quotes without marks end before a comma), and «قيل»
+is a known credit for النحاس.
