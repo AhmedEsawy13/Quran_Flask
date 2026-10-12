@@ -788,3 +788,22 @@ views still in the author's voice, e.g. 45:21 نافع, 42:24 أبو عمرو ب
 (lower than round 18 — the unbraced and inverted-brace stretches). New: OWN_BY
 credits only the own-voice copy when a credited row shares its quote; one own
 grade per word holds (50:25 keeps the first of three parses, the note the second).
+
+### النحاس: whole-book brace scan (2026-10-12)
+
+Round 19's misses clustered where the copy lost its quote marks, so the whole
+book was scanned: Quran text (≥ 2 contiguous words of the surah) right after a
+ruling cue («وكذا / والتمام / والكافي بعده / الوقف الكافي …») but outside braces,
+and every unbalanced «{ }». Fixes at the source (build_classical_waqf
+`_NAHHAS_BRACE_FIXES`, line-break tolerant): 17 dropped/swapped marks
+(«ولكن يناله التقوى منكم}», «} يا أيها النبي … العدة {هذا», «{ذلك} بأنهم …}»
+which had seated 47:9 on its first word, 47:1's section start), mixed
+brackets «{X)» / «(X}» (29:7, 29:39, 33:47, 34:15 …), and «والتمام عند {X}»
+which the parser read as a scholar's name (10:40, 13:30). Unbraced rulings read
+by hand (EXTRA_AT): النور 38–42 (the lapse before 43–58), 7:40–41, 40:57, and
+relayed views quoted without marks (2:28 أبو حاتم, 2:217 أبو حاتم, 17:20 أبو
+حاتم, 23:67 العباس بن الفضل, 24:40 أحمد بن جعفر). Net +35 rows, 1 wrong seat
+fixed. A test pins brace balance (only 43:88's garbled «وقيله» passage remains).
+The rebuild also restored an own-voice «والتمام {فإذا هم بالساهرة}» (79:14) that
+an earlier merge had folded into the relayed row. Left as is: the copy's typo
+«آكنوا» (47:3), since quotes must stay traceable to the book's own spelling.

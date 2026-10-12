@@ -797,7 +797,8 @@ def test_nahhas_credit_sweep(con, surah, ayah, wpos, grade, by):
 
 
 def test_nahhas_credit_sweep_no_own_voice_left(con):
-    for s, a, w in [(2, 26, 33), (7, 46, 17), (79, 14, 2), (30, 44, 8), (43, 80, 7)]:
+    # (79:14 also has النحاس's own «والتمام {فإذا هم بالساهرة}» from another sentence)
+    for s, a, w in [(2, 26, 33), (7, 46, 17), (30, 44, 8), (43, 80, 7)]:
         assert all(b for _, _, b in rulings(con, 'nahhas', s, a, w)), (s, a, w)
 
 
@@ -834,3 +835,44 @@ def test_nahhas_round19(con, surah, ayah, wpos, grade, by):
 def test_nahhas_round19_no_stale_rows(con):
     assert not any(g == 'حسن' for _, g, _ in rulings(con, 'nahhas', 21, 52, 10))   # range starts after 52
     assert not any(g == 'كاف' for _, g, _ in rulings(con, 'nahhas', 90, 11, 2))
+
+
+# ── النحاس: whole-book scan for quotes outside braces (2026-10-12) ──────────
+
+def test_nahhas_braces_balance():
+    """Every «{» closes before the next opens; only 43:88's garbled «وقيله» passage is left."""
+    import re
+    import build_classical_waqf as rx
+    bad = []
+    for s, t in rx.nahhas_sections(rx.load_book(rx.SOURCES['nahhas'])):
+        depth = 0
+        for c in t:
+            if c in '{}':
+                if (c == '{') == bool(depth):
+                    bad.append(s)
+                depth = c == '{'
+    assert set(bad) <= {43} and len(bad) <= 2, bad
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (10, 40, 11, 'تام', ''),            # «والتمام عند {وربك أعلم بالمفسدين}» (no name after «عند»)
+    (13, 30, 27, 'تام', ''),
+    (29, 39, 12, 'تام', ''),            # «{وما كانوا سابقين)» — mixed brackets
+    (47, 1, 7, 'تام', ''),              # section opens without «{»
+    (47, 9, 7, 'تام', ''),              # «{ذلك} بأنهم كرهوا …}» — was seated on «ذلك»
+    (43, 81, 4, 'تام', 'بعضهم'),         # «فهذا الوقف التام عند قوم»
+    (65, 1, 8, 'كاف', 'أبو حاتم'),       # «} يا أيها النبي … وأحصوا العدة {هذا القطع الكافي»
+    (96, 14, 4, 'تام', 'أبو حاتم'),
+    (22, 37, 9, 'تام', 'نافع'),
+    (24, 38, 7, 'تام', ''),             # النور 38–42 unbraced
+    (24, 40, 6, 'تام', 'أحمد بن جعفر'),
+    (40, 57, 11, 'تام', ''),            # «قطع تام وكذا ولكن أكثر الناس لا يعلمون»
+    (2, 28, 7, 'تام', 'أبو حاتم'),       # «إن التمام عنده ثم يميتكم»
+])
+def test_nahhas_unbraced_scan(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_nahhas_47_9_not_on_its_first_word(con):
+    assert not rulings(con, 'nahhas', 47, 9, 0)
