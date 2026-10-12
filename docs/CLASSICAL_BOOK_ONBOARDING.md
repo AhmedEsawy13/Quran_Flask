@@ -694,3 +694,19 @@ other readings. Added: 2:5 «ربهم» حسن (no parentheses), 38:84 «(الح
 no condition (15): served 2:5 «أولئك» قبيح and 37:138 «وبالليل» تام (SERVE,
 pinned), 29:66 «يتمتعوا» حسن (the لام كي parse is Hafs's: HAFS_SIDE); the rest
 are held on purpose (HOLD, other-surah citations, an example sentence, «غير تام»).
+
+### المكتفى / منار coverage sweep (2026-10-12)
+
+The ابن الأنباري sweep, extended to the other two books and kept as a check:
+`pipeline/review/coverage_check.py` lists every quote followed by a grade word
+with no row ending on the same word (skeleton match; منار at the verse its
+«[n]» names), and `tests/test_classical_coverage.py` fails on any gap not in
+`pipeline/review/coverage_exceptions.json` (book slips whose row sits at the
+right seat, other-reading sides — each with its reason) or on a stale exception.
+
+Found: المكتفى «جواب القسم {X} وهو GRADE» — «وهو» before the grade had left the
+oath answers and their «ومثله» chains without rows (82:5, 8, 12, 16; 86:4;
+90:4; 92:4; 93:3–4; 95:4, 6) — and «تام على القراءتين / في كلا الوجهين» (14:2,
+28:68, 29:66); منار 44:2 «{حم (1) والكتاب المبين (2)} حسن؛ إن … وليس بوقف إن …»
+(both sides) and relayed «كلا» views 70:15 (الأخفش والفراء وأبو حاتم), 70:39
+(نافع), 74:16 (الأكثر).

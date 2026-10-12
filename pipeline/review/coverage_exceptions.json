@@ -1,0 +1,19 @@
+{
+ "manar": {
+  "24:(منفضله": "scan merged the brackets of «{من فضله}» [32] حسن — row 24:32 «فضله» حسن exists",
+  "36:(طائركممعكم": "scan merged «{طائركم معكم}» [19] حسن — row 36:19 «معكم» حسن exists (both reading sides)",
+  "36:يسعى": "marker slip «[2]» for [20] — row 36:20 «يسعى» لا exists",
+  "36:(منثمره": "scan merged «{من ثمره}» [35] حسن — row 36:35 «ثمره» حسن exists (both sides)",
+  "36:الشيطان": "marker slip «[6]» for [60] — row 36:60 «الشيطان» جائز exists",
+  "36:نارا": "marker slip «[8]» for [80] — row 36:80 «نارا» لا exists",
+  "37:ما تؤمر": "marker slip «[101]» for [102] — row 37:102 «تؤمر» جائز exists",
+  "68:(سبحانربنا": "scan merged «{سبحان ربنا}» [29] حسن — row 68:29 «ربنا» حسن exists",
+  "76:على حبه": "misquote: the [13] entry is «على الأرائك» (row 76:13 حسن exists); 76:8 «على حبه» is ليس بوقف",
+  "78:ميقاتا": "«{ميقاتا (16)} [16] تام» is the book slip for 78:16 «ألفافا» — row 78:16 تام exists",
+  "105:والصيف": "the قريش entry under الفيل (combined section) — row 106:2 «والصيف» كاف exists"
+ },
+ "muktafa": {
+  "6:وما يشعركم": "other reading: «ومن قرأ {إنها} بكسر الهمزة وقف على ((وما يشعركم))» — Hafs reads «أنها»",
+  "20:لا تخف دركا": "other reading: the jussive «لا تخف» — Hafs «لا تخاف» (row dropped on purpose)"
+ }
+}

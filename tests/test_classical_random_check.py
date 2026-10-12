@@ -696,3 +696,21 @@ def test_fifteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
 ])
 def test_anbari_sweep(con, surah, ayah, wpos, grade):
     assert grade in {g for _, g, b in rulings(con, 'anbari', surah, ayah, wpos) if not b}
+
+
+# ── المكتفى / منار coverage sweep (2026-10-12) ───────────────────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 82, 5, 4, 'تام', ''),          # «جواب {إذا} {ما قدمت وأخرت} وهو تام. ومثله …»
+    ('muktafa', 82, 16, 3, 'تام', ''),         # «… ومثله. {بغائبين}»
+    ('muktafa', 92, 4, 2, 'تام', ''),          # «جواب القسم {إن سعيكم لشتى} وهو تام»
+    ('muktafa', 95, 6, 4, 'كاف', ''),          # «… وهو كاف. ومثله {وعملوا الصالحات}»
+    ('muktafa', 28, 68, 8, 'تام', ''),         # «فالوقف على {الخيرة} ، وهو تام في كلا الوجهين»
+    ('manar', 44, 2, 1, 'حسن', ''),            # «… حسن؛ إن جعل جواب القسم «حم» مقدما
+    ('manar', 44, 2, 1, 'لا', ''),             #  وليس بوقف إن جعل جوابه: «إنا أنزلناه»»
+    ('manar', 70, 39, 0, 'تام', 'نافع'),       # «{جنة نعيم (38) كلا} [38، 39] تام عند نافع»
+    ('manar', 74, 16, 0, 'تام', 'الأكثر'),     # «{أن أزيد (15) كلا} [15، 16] تام عند الأكثر»
+])
+def test_coverage_sweep_rows(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
