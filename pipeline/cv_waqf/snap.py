@@ -30,6 +30,7 @@ it cannot tell a vowel from the sign above it).
 
 Kuwait: 60 random pages unchanged (487 match / 1 wrong / 2 extra); on the 55
 pages behind the review's sign-differs cards 58 → 41 wrong, no page worse.
+Qatar: 60 random pages unchanged (430/4/6); 107 hard pages 788 → 788 matches.
 Enabled per edition by ``EditionSpec.snap_boxes``.
 """
 from __future__ import annotations
@@ -43,7 +44,8 @@ from pipeline.cv_waqf.line_gaps import _ccs_in_roi
 WINDOW = 24            # the proposer's window (find_line_component_candidates)
 REACH_X = 30           # how far from the hit a competing component may sit
 REACH_UP, REACH_DOWN = 34, 16
-OTHER_REACH_UP = 44    # a rival reading a DIFFERENT sign may sit this far above
+OTHER_REACH_UP = 28    # a rival reading a DIFFERENT sign may sit this far above
+                       #   (44 let Qatar 22:60 jump onto a letter of the line above)
 OTHER_DX = 20          # ...and at most this far sideways
 SIGN_MAX_SIDE = 24     # px: a rival bigger than this is a letter, not a stop sign
 TEXT_GAP = 2           # px: a rival this close to a letter-sized stroke is text (6:157)

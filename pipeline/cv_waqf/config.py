@@ -258,6 +258,8 @@ EDITIONS: dict[str, EditionSpec] = {
         # Bahrain: a real Qatar-only stop on an Azhar-empty word is dropped.
         azhar_seat_prior=True,
         seat_prior_editions=SEAT_PRIOR_AZHAR_MADINAH,
+        # Box snapping (snap.py): 60 random pages unchanged vs the column (430/4/6).
+        snap_boxes=True,
         measured_geometry=True,
     ),
     # Kuwait (الكويت الحديث): 15-line QPC v1 layout, 604 pages, same scan the
