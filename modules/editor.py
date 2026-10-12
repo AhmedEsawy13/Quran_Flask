@@ -359,6 +359,10 @@ def _get_or_set_word_waqf_cloud(layout_word_id, edition, symbol, user: dict | No
     return clean
 
 
+def _truthy(value) -> bool:
+    return (value or '').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
 def _get_or_set_word_waqf(layout_word_id, edition, symbol, user=None):
     """Compatibility wrapper for seed scripts: cloud when configured, else SQLite."""
     if edition in CLOUD_EDITOR_EDITIONS and sb.is_configured():
@@ -566,6 +570,19 @@ def set_mushaf_editor_waqf():
     symbol = '' if symbol is None else str(symbol).strip()
     if symbol not in _EDITOR_SYMBOLS:
         return jsonify({'error': 'invalid symbol'}), 400
+
+    # A cloud edition's marks live in Supabase; the SQLite column is only a
+    # synced copy. Writing it here would be undone by the next
+    # sync_published_waqf run and never reach the published edition (Kuwait
+    # 16:126 on 2026-10-12, via the Supabase-less dev server). Refuse unless
+    # explicitly allowed.
+    if (edition in CLOUD_EDITOR_EDITIONS and not sb.is_configured()
+            and not _truthy(os.environ.get('EDITOR_ALLOW_LOCAL_CLOUD_EDITS'))):
+        return jsonify({
+            'error': 'cloud_not_configured',
+            'message': f'هذا الخادم غير متصل بالسحابة؛ تعديلات «{edition}» لا تُحفظ إلا في السحابة. '
+                       'افتح المحرر من خادم السحابة (المنفذ 5002).',
+        }), 409
 
     user = current_editor()
     try:

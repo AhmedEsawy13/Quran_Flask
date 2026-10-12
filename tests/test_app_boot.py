@@ -610,3 +610,15 @@ def test_memorization_old_madina_justification_is_adaptive():
     assert 'const inheritedScaleX = visualLineWidth / layoutLineWidth' in shared
     assert 'const spacedWidth = renderedWidth(inner, lineEl)' in shared
     assert 'Reconcile every justified line once' in shared
+
+
+def test_editor_refuses_local_writes_to_cloud_editions(client, monkeypatch):
+    """Without Supabase, a cloud edition edit must fail loudly, not land in SQLite
+    where the next sync silently undoes it (Kuwait 16:126, 2026-10-12)."""
+    monkeypatch.delenv('SUPABASE_URL', raising=False)
+    monkeypatch.delenv('SUPABASE_SERVICE_ROLE_KEY', raising=False)
+    monkeypatch.delenv('EDITOR_ALLOW_LOCAL_CLOUD_EDITS', raising=False)
+    for edition in ('قطر', 'الكويت', 'البحرين'):
+        r = client.post('/api/mushaf-editor/waqf', json={'word_id': 1, 'edition': edition, 'symbol': 'ج'})
+        assert r.status_code == 409, edition
+        assert r.get_json()['error'] == 'cloud_not_configured'

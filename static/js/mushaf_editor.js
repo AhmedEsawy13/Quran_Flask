@@ -1218,6 +1218,9 @@
             if (e && e.status === 401) {
                 showLogin();
                 setStatus('يلزم تسجيل الدخول', true);
+            } else if (e && e.status === 409 && e.data && e.data.message) {
+                // the server is not connected to the cloud: say so, never save locally
+                setStatus(e.data.message, true);
             } else {
                 setStatus('تعذّر حفظ التعديل', true);
             }

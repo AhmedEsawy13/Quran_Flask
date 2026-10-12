@@ -27,7 +27,10 @@ from urllib.parse import quote
 
 from pipeline.cv_waqf.config import EDITIONS
 
-EDITOR = 'http://localhost:5001/mushaf-editor'
+# The cloud-backed editor (launch config quran-flask-cloud): cloud editions are
+# edited as Supabase drafts there. The :5001 dev server runs without Supabase
+# and refuses those edits.
+EDITOR = 'http://localhost:5002/mushaf-editor'
 REFS = ('المدينة الجديد', 'المدينة القديم', 'الأزهر')
 SYM = {'ص': 'صلى', 'ج': 'جائز', 'ق': 'قلى', 'لا': 'لا', 'م': 'لازم', 'س': 'سكتة', 'ع': 'معانقة'}
 SURAHS = (
