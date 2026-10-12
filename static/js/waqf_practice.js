@@ -72,7 +72,7 @@
             return;
         }
         catalog.renderSurahOptions(els.surah);
-        const prefer = ['المدينة الجديد', 'المدينة القديم'];
+        const prefer = ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم'];
         const ordered = [...prefer.filter(v => versions.includes(v)),
                          ...versions.filter(v => !prefer.includes(v))];
         els.mushaf.innerHTML = ordered.map(v => `<option value="${v}">${v}</option>`).join('');
@@ -341,7 +341,9 @@
 
     function renderLayoutPages(pages, s, f, t, mushaf) {
         const src = layoutSourceFor(mushaf);
-        const oldSelected = mushaf === 'المدينة القديم';
+        // Older Madinah prints: drop the current print's embedded marks and
+        // fold in the selected print's own mark instead.
+        const olderPrint = mushaf === 'المدينة القديم' || mushaf === 'المدينة ١٤٢٧';
         els.passage.className = 'wp-passage wp-ml wp-ml-pages'
             + (src === 'qpc_v1' ? ' wp-ml-src-qpc-v1' : ' wp-ml-src-digital-khatt');
         els.passage.replaceChildren();
@@ -387,10 +389,10 @@
                 identityKey: ({ word, position }) => Number(word.surah) === s
                     && Number(word.ayah) >= f && Number(word.ayah) <= t ? `${word.ayah}:${position}` : null,
                 textForWord: ({ word, raw }) => {
-                    if (oldSelected) {
+                    if (olderPrint) {
                         const entries = Array.isArray(word.waqf_symbols) ? word.waqf_symbols : [];
-                        const oldMark = entries.find(entry => entry && entry.version === 'المدينة القديم');
-                        return withAyahOrnament(stripEmbeddedWaqf(raw) + (oldMark ? integratedWaqfGlyph(oldMark) : ''));
+                        const printMark = entries.find(entry => entry && entry.version === mushaf);
+                        return withAyahOrnament(stripEmbeddedWaqf(raw) + (printMark ? integratedWaqfGlyph(printMark) : ''));
                     }
                     return withAyahOrnament(raw);
                 },

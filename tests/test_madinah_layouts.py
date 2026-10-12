@@ -69,7 +69,7 @@ def test_memorize_exposes_three_independent_waqf_choices(client):
     # compatibility container where it previously existed.
     assert page.index('id="mz-waqf-pills"') < page.index('class="mz-compat"')
     assert 'role="radiogroup"' in page
-    assert "const WAQF_CHOICES = ['المدينة الجديد', 'المدينة القديم', 'الشمرلي']" in script
+    assert "const WAQF_CHOICES = ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي']" in script
     assert "return state.mushafVersions.slice(0, 1)" in script
     assert "p.classList.toggle('mz-src-shamarly', state.src === 'shamarly')" in script
     assert "if (state.src === 'shamarly') return raw;" in script

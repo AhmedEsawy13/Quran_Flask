@@ -1017,6 +1017,7 @@ _HAFS_AGREE_MARKS = [
 ]
 MUSHAF_AGREE_MARKS = {
     'المدينة الجديد': _HAFS_AGREE_MARKS,
+    'المدينة ١٤٢٧': _HAFS_AGREE_MARKS,
     'المدينة القديم': _HAFS_AGREE_MARKS,
     'الشمرلي': _HAFS_AGREE_MARKS,
     'قطر':     _HAFS_AGREE_MARKS,

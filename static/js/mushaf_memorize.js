@@ -351,7 +351,7 @@
        supported sets are mutually exclusive: Madinah new/old are folded into
        Madinah text when possible; Shemrly (and every set on a Shemrly glyph
        page) is drawn as a readable overlay. */
-    const WAQF_CHOICES = ['المدينة الجديد', 'المدينة القديم', 'الشمرلي'];
+    const WAQF_CHOICES = ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي'];
     function syncWaqfChoiceButtons() {
         if (!els.waqfPills) return;
         els.waqfPills.querySelectorAll('.mz-waqf-pill').forEach(button => {
@@ -380,6 +380,7 @@
             btn.className = 'mz-waqf-pill';
             btn.setAttribute('role', 'radio');
             btn.textContent = v;
+            if (v === 'المدينة ١٤٢٧') btn.title = 'طبعة ١٤٢٠هـ كما في نسخة ١٤٢٧هـ — مُعاد بناؤه من فروق ملتقى أهل التفسير';
             btn.addEventListener('click', () => toggleWaqfVersion(v));
             els.waqfPills.appendChild(btn);
         });

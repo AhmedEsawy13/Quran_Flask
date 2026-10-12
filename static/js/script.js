@@ -49,10 +49,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadUserPreferences();
     addEventListeners();
 
+    // The three Madinah prints share the Madinah card styling; a modifier
+    // class gives each older print its own glyph shade.
+    const MADINAH_PRINT_CLASS = {
+        'المدينة القديم': 'waqf-print-old',
+        'المدينة ١٤٢٧': 'waqf-print-1427',
+    };
+    const MUSHAF_VERSION_NOTES = {
+        'المدينة الجديد': 'مصحف المدينة — الطبعة المراجَعة (نحو ١٤٢٩هـ إلى اليوم)',
+        'المدينة ١٤٢٧': 'مصحف المدينة — طبعة ١٤٢٠هـ كما في نسخة ١٤٢٧هـ. مُعاد بناؤه: علامات القديم مع فروق ملتقى أهل التفسير (١٧١ موضعًا) وحذف «لا»',
+        'المدينة القديم': 'مصحف المدينة — طبعة ١٤٠٥هـ',
+    };
+
     function getMushafColorClass(version) {
         if (!version) return 'waqf-mushaf-other';
         for (const entry of MUSHAF_COLOR_MAP) {
-            if (entry.match.test(version)) return entry.cls;
+            if (entry.match.test(version)) {
+                const printCls = MADINAH_PRINT_CLASS[version];
+                return printCls ? `${entry.cls} ${printCls}` : entry.cls;
+            }
         }
         return 'waqf-mushaf-other';
     }
@@ -286,12 +301,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             const versions = await fetchData('/api/mushaf-versions');
             if (Array.isArray(versions)) {
                 const filtered = versions.filter((v) => !['token_index', 'word_index'].includes(v));
+                // Keep the Madinah prints in place but newest → oldest.
+                const madinahOrder = Object.keys(MUSHAF_VERSION_NOTES).filter((v) => filtered.includes(v));
+                let madinahSlot = 0;
+                filtered.forEach((v, i) => {
+                    if (madinahOrder.includes(v)) filtered[i] = madinahOrder[madinahSlot++];
+                });
                 const saved = JSON.parse(localStorage.getItem('quranApp_mushafVersions') || '[]');
                 filtered.forEach((version) => {
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     btn.value = version;
                     btn.textContent = version;
+                    if (MUSHAF_VERSION_NOTES[version]) btn.title = MUSHAF_VERSION_NOTES[version];
                     const colorCls = getMushafColorClass(version);
                     btn.className = 'mushaf-pill athar-chip ' + colorCls;
                     if (saved.includes(version)) btn.classList.add('active');
@@ -1174,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             byMushaf.get(ver).push(e);
         }
 
-        const ORDER = ['المدينة الجديد', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'ورش', 'الحصري', 'الهندي'];
+        const ORDER = ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'ورش', 'الحصري', 'الهندي'];
         const sortedMushafs = [...byMushaf.keys()].sort((a, b) => {
             const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
             if (ia === -1 && ib === -1) return a.localeCompare(b, 'ar');
@@ -2767,7 +2789,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const reciter = elements.reciterSelect.value;
             const lastW = d.words.length - 1;
             const markByWpos = new Map();
-            ['المدينة الجديد', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين'].forEach((id) => {
+            ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين'].forEach((id) => {
                 const m = (d.mushafs || []).find((x) => x.id === id);
                 if (m) m.marks.forEach((mk) => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
             });

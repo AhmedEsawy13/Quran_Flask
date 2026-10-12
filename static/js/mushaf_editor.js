@@ -58,9 +58,10 @@
     // ركوع marks are anchored to the ayah-end number rather than appearing
     // inline like other waqf marks — render them as a small badge above it.
     const ABOVE_VERSE_MARKS = new Set(['ركوع']);
-    const PEER_VERSIONS = ['المدينة الجديد', 'المدينة القديم', 'الأزهر', 'الشمرلي'];
+    const PEER_VERSIONS = ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الأزهر', 'الشمرلي'];
     const PEER_SHORT = {
         'المدينة الجديد': 'المدينة',
+        'المدينة ١٤٢٧': '١٤٢٧',
         'المدينة القديم': 'القديم',
         'الأزهر': 'الأزهر',
         'الشمرلي': 'الشمرلي',

@@ -366,6 +366,8 @@ body.sepia-mode #controls .waqf-mode-btn.active { background: linear-gradient(13
 .waqf-mushaf-husary   { color: #be123c !important; }
 .waqf-mushaf-hindi    { color: #be185d !important; font-family: 'IndoPakNastaleeq2', sans-serif; }
 .waqf-mushaf-other    { color: #475569 !important; }
+.waqf-mushaf-madinah.waqf-print-old  { color: #0f766e !important; }
+.waqf-mushaf-madinah.waqf-print-1427 { color: #4d7c0f !important; }
 
 body.dark-mode .waqf-mushaf-madinah  { color: #34d399 !important; }
 body.dark-mode .waqf-mushaf-shamarly { color: #60a5fa !important; }
@@ -374,6 +376,8 @@ body.dark-mode .waqf-mushaf-warsh    { color: #c084fc !important; }
 body.dark-mode .waqf-mushaf-husary   { color: #f87171 !important; }
 body.dark-mode .waqf-mushaf-hindi    { color: #f472b6 !important; }
 body.dark-mode .waqf-mushaf-other    { color: #94a3b8 !important; }
+body.dark-mode .waqf-mushaf-madinah.waqf-print-old  { color: #2dd4bf !important; }
+body.dark-mode .waqf-mushaf-madinah.waqf-print-1427 { color: #a3e635 !important; }
 
 body.sepia-mode .waqf-mushaf-madinah  { color: #065f46 !important; }
 body.sepia-mode .waqf-mushaf-shamarly { color: #1e40af !important; }
@@ -382,6 +386,8 @@ body.sepia-mode .waqf-mushaf-warsh    { color: #5b21b6 !important; }
 body.sepia-mode .waqf-mushaf-husary   { color: #881337 !important; }
 body.sepia-mode .waqf-mushaf-hindi    { color: #9d174d !important; }
 body.sepia-mode .waqf-mushaf-other    { color: #57534e !important; }
+body.sepia-mode .waqf-mushaf-madinah.waqf-print-old  { color: #115e59 !important; }
+body.sepia-mode .waqf-mushaf-madinah.waqf-print-1427 { color: #3f6212 !important; }
 
 .waqf-color-latin { color: #be123c !important; font-family: sans-serif !important; }
 body.dark-mode .waqf-color-latin { color: #f87171 !important; }
@@ -2137,6 +2143,8 @@ body.dark-mode .tafseer-group #show-tafseer:hover { background: rgba(51,65,85,0.
 .waqf-mushaf-hindi    { color: #be185d !important; font-family: 'IndoPakNastaleeq2', sans-serif; }
 /* fallback */
 .waqf-mushaf-other    { color: #475569 !important; }
+.waqf-mushaf-madinah.waqf-print-old  { color: #0f766e !important; }
+.waqf-mushaf-madinah.waqf-print-1427 { color: #4d7c0f !important; }
 
 /* ── Dark mode ───────────────────────────────────────────────────── */
 body.dark-mode .waqf-mushaf-madinah  { color: #34d399 !important; }   /* bright emerald */
@@ -2146,6 +2154,8 @@ body.dark-mode .waqf-mushaf-warsh    { color: #c084fc !important; }   /* lavende
 body.dark-mode .waqf-mushaf-husary   { color: #f87171 !important; }   /* coral red      */
 body.dark-mode .waqf-mushaf-hindi    { color: #f472b6 !important; }   /* pink           */
 body.dark-mode .waqf-mushaf-other    { color: #94a3b8 !important; }
+body.dark-mode .waqf-mushaf-madinah.waqf-print-old  { color: #2dd4bf !important; }
+body.dark-mode .waqf-mushaf-madinah.waqf-print-1427 { color: #a3e635 !important; }
 
 /* ── Sepia mode ──────────────────────────────────────────────────── */
 body.sepia-mode .waqf-mushaf-madinah  { color: #065f46 !important; }  /* dark forest green */
@@ -2155,6 +2165,8 @@ body.sepia-mode .waqf-mushaf-warsh    { color: #5b21b6 !important; }  /* dark pu
 body.sepia-mode .waqf-mushaf-husary   { color: #881337 !important; }  /* dark ruby         */
 body.sepia-mode .waqf-mushaf-hindi    { color: #9d174d !important; }  /* dark pink         */
 body.sepia-mode .waqf-mushaf-other    { color: #57534e !important; }
+body.sepia-mode .waqf-mushaf-madinah.waqf-print-old  { color: #115e59 !important; }
+body.sepia-mode .waqf-mushaf-madinah.waqf-print-1427 { color: #3f6212 !important; }
 
 /* Latin symbols (↺ ▶) follow الحصري color */
 .waqf-color-latin  { color: #be123c !important; font-family: sans-serif !important; }
