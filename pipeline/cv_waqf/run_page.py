@@ -349,6 +349,7 @@ def detect_page(
     proposal_mode: str | None = None,
     seat_prior: bool = True,  # kept for CLI compat; above-word path is always used
     azhar_prior: bool | None = None,
+    snap_boxes: bool | None = None,
 ) -> dict:
     del seat_prior  # unused — geometry is above-word, not old seat prior
     proposal_mode = resolve_proposal_mode(edition_key, proposal_mode)
@@ -427,6 +428,10 @@ def detect_page(
         classified_hits.append((hit, label, conf))
         raw_classified.append((hit.candidate, label, conf))
 
+    if snap_boxes if snap_boxes is not None else getattr(spec, 'snap_boxes', False):
+        from pipeline.cv_waqf.snap import snap_hits
+
+        classified_hits = snap_hits(classified_hits, prepared, clf)
     # Only pass the flag when it is on: the default path keeps its original signature.
     seat_kwargs = {'by_seat': True} if getattr(spec, 'attach_by_seat', False) else {}
     attached = _attach_from_hits(classified_hits, page, words, **seat_kwargs)

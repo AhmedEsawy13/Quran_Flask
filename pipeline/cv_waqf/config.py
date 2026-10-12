@@ -111,6 +111,9 @@ class EditionSpec:
     # Re-seat a prior-rejected mark on an adjacent occupied word of its line
     # (azhar_prior.reattach_rejected_marks). Off unless measured to help.
     prior_reattach: bool = False
+    # Move each detected box from a neighbouring vowel onto the sign itself
+    # (snap.snap_hits). Off unless measured to help.
+    snap_boxes: bool = False
     # Recto/verso prints sit at different heights. When set, EVEN pages use
     # this (text_top, text_bottom) and odd pages the plain text_* fields.
     text_band_even: tuple[float, float] | None = None
@@ -296,6 +299,9 @@ EDITIONS: dict[str, EditionSpec] = {
         # corrected column / 95.8% on the pre-review one (3-seed mean 96.4 / 94.6).
         # 60 pages vs the synced column: missing 17 -> 11, +3 extra.
         prior_reattach=True,
+        # Boxes on a vowel next to the sign ~1 in 5 → ~1 in 29 on a 59-box
+        # sample; owners and DB agreement unchanged on 60 pages (snap.py).
+        snap_boxes=True,
         measured_geometry=True,
     ),
     'المساحة': EditionSpec(
