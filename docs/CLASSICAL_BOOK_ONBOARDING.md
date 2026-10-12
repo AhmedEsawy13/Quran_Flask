@@ -682,3 +682,15 @@ before this round's fixes: منار 99.4% (159 held, 1 miss, 1 credit), المك
 ابن الأنباري 2:24 «(لم) في (تفعلوا) قبيح … (تفعلوا) الأول والثاني قبيح»
 (KEEP_SEAT keeps both occurrences). Left: 2:87–96 «ثم الوقف على رؤوس الآيات إلى
 قوله …» (no grade).
+
+### ابن الأنباري coverage sweep (2026-10-12)
+
+Every graded quote in the book was checked for a row in its surah. The standard
+«(X) [n] GRADE» form had 3 gaps: 7:195 is the existing «فلا تنظرون», 25:60 a
+reading other than Hafs's, and 70:15 «لظى» real (below). Other forms («يحسن الوقف على …», «الوقف على (X) … GRADE», quotes
+without parentheses): 64 hits, nearly all «غير تام», conditional parses or
+other readings. Added: 2:5 «ربهم» حسن (no parentheses), 38:84 «(الحق) الثاني»
+قبيح (KEEP_SEAT), 70:15 «لظى» حسن (Hafs «نَزَّاعَةٗ»: HAFS_ADD). Held rows with
+no condition (15): served 2:5 «أولئك» قبيح and 37:138 «وبالليل» تام (SERVE,
+pinned), 29:66 «يتمتعوا» حسن (the لام كي parse is Hafs's: HAFS_SIDE); the rest
+are held on purpose (HOLD, other-surah citations, an example sentence, «غير تام»).

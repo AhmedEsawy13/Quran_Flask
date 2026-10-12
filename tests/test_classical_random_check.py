@@ -682,3 +682,17 @@ def test_own_voice_conflict_drops(con):
 def test_fifteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
     got = rulings(con, book, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── ابن الأنباري coverage sweep (2026-10-12) ─────────────────────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade', [
+    (2, 5, 4, 'حسن'),       # «والوقف على ربهم حسن وليس بتام» (no parentheses)
+    (2, 5, 0, 'قبيح'),      # «والوقف على (بما) وعلى (أولئك) قبيح» — seated and served
+    (38, 84, 2, 'قبيح'),    # «والوقف على (الحق) الثاني قبيح لأنه منصوب ب (أقول)»
+    (70, 15, 2, 'حسن'),     # «ومن نصب (نزاعة) حسن له أن يقف على (لظى)» — Hafs «نَزَّاعَةٗ»
+    (37, 138, 0, 'تام'),    # «(وإنكم لتمرون عليهم مصبحين. وبالليل) [138] وقف تام»
+    (29, 66, 3, 'حسن'),     # «لام كي … فيحسن الوقف على (يتمتعوا)» — Hafs «وَلِيَتَمَتَّعُواْ»
+])
+def test_anbari_sweep(con, surah, ayah, wpos, grade):
+    assert grade in {g for _, g, b in rulings(con, 'anbari', surah, ayah, wpos) if not b}
