@@ -396,10 +396,12 @@ def classical_waqf(surah, ayah):
         try:
             conn.row_factory = sqlite3.Row
             placeholders = ','.join('?' * len(active_sources))
-            has_illa = 'illa' in {c[1] for c in conn.execute('PRAGMA table_info(classical)')}
+            cols = {c[1] for c in conn.execute('PRAGMA table_info(classical)')}
+            has_illa = 'illa' in cols
             rows = list(conn.execute(
                     'SELECT id, source, wpos, stop_word, quote, grade, grade_raw, note, reported_from'
-                    + (', illa, follows ' if has_illa else ' ') +
+                    + (', illa, follows' if has_illa else '')
+                    + (', reading ' if 'reading' in cols else ' ') +
                     f'FROM classical WHERE surah=? AND ayah=? AND conf=1 AND source IN ({placeholders}) '
                     'ORDER BY wpos, source, seq',
                     (surah, ayah, *active_sources)))
@@ -436,6 +438,9 @@ def classical_waqf(surah, ayah):
                     # necessarily the book's own author's settled view —
                     # must not be displayed as a flat "SOURCE: grade".
                     'reported_from': item['reported_from'],
+                    # 'other': the ruling holds only under a reading other than Hafs's
+                    # (pipeline/audit_reading_side.py) — shown with that label.
+                    'reading': item.get('reading'),
                 })
         finally:
             conn.close()

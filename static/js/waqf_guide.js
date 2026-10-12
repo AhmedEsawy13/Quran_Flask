@@ -430,8 +430,12 @@
                     const title = e.reported_from
                         ? `${g.desc} — نقل ${srcName(e.source)} هذا عن ${e.reported_from}، وليس بالضرورة رأيه الخاص`
                         : g.desc;
+                    // a ruling for another reading than Hafs's (pipeline/audit_reading_side.py)
+                    const otherReading = e.reading === 'other'
+                        ? ' <span class="wq-mk3-relayed" title="هذا الحكم مبنيّ على قراءة غير قراءة حفص؛ انظر الشرط في النص">على غير قراءة حفص</span>'
+                        : '';
                     const chip = `<span class="wq-mk3-grade wq-mk3-${g.cls}" title="${escHtml(title)}">`
-                        + `${escHtml(e.grade_raw || e.grade)} <small>· ${attrib(e)}</small></span>`;
+                        + `${escHtml(e.grade_raw || e.grade)} <small>· ${attrib(e)}${otherReading}</small></span>`;
                     // العلّة is the reason alone (backend: core/classical_illa.py);
                     // a «ومثله / وكذا» item names the ruling it follows. The
                     // book text around the quote stays one tap away.

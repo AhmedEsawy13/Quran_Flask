@@ -168,6 +168,8 @@ export type ClassicalWaqfPayload = {
     grade_raw: string;
     note: string;
     reported_from: string | null;
+    /** "other": the ruling holds only under a reading other than Hafs's. */
+    reading?: string | null;
   }>;
 };
 

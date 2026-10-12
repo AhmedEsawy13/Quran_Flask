@@ -167,7 +167,8 @@ python3 pipeline/build_classical_waqf.py --only anbari && \
 python3 pipeline/audit_anbari.py --apply       # إيضاح: seats, chains, relays, grade-before rulings (run twice)
 python3 pipeline/build_classical_waqf.py --only nahhas && \
 python3 pipeline/audit_nahhas.py --apply       # القطع: الفاتحة، ذوات قل، آخر السورة، curated fixes (loops until stable)
-python3 pipeline/derive_illa.py                # last: العلّة + «ومثله» heads for all four books
+python3 pipeline/derive_illa.py                # العلّة + «ومثله» heads for all four books
+python3 pipeline/audit_reading_side.py --apply # last: mark rows for a reading other than Hafs's
 ```
 
 `derive_illa.py` stores each ruling's العلّة (`illa`) and, for a «ومثله / وكذا»
@@ -656,3 +657,16 @@ One word graded twice by the same book in its own voice reads, in the app, as
 Open: 296 served rows (منار 251, المكتفى 45) are tied to a reading («لمن قرأ
 …»). Both sides are kept with the condition in the note; which side is
 Hafs's is not marked.
+
+### Rulings for another reading than Hafs's (2026-10-12)
+
+منار and المكتفى keep both sides of a reading split, each with its condition in
+the note («كاف لمن قرأ "نفصل" بالنون»). 297 served rows were tied to a reading;
+each was classified by comparing the note with the Hafs text (gpt-6-luna, then
+every verdict read by hand — 25 corrected, e.g. 3:114 «بالتحتية فيهما», 73:8
+«ربُّ» بالرفع and 11:110 «من شدد النون والميم» are Hafs's). 166 hold only
+under another reading (منار 145, المكتفى 21): `pipeline/review/reading_side.json`
+→ `pipeline/audit_reading_side.py` sets `classical.reading = 'other'`, the API
+returns `reading`, and the app labels them «على غير قراءة حفص» (Next.js
+imam-rulings and the legacy guide); the «اتفق / اختلف الأئمة» summary ignores
+them. `tests/test_classical_reading.py`.

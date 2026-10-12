@@ -68,7 +68,9 @@ function attribution(reportedFrom: string) {
   return name === "قيل" ? "قولٌ منقول بلا تسمية (وقيل)" : `قاله: ${name}`;
 }
 
-function verdict(entries: Entry[], sources: Sources) {
+function verdict(all: Entry[], sources: Sources) {
+  // agreement is judged on Hafs's reading: a ruling for another reading is not a disagreement
+  const entries = all.filter((entry) => entry.reading !== "other");
   const grades = [...new Set(entries.map((entry) => entry.grade))];
   const imams = [...new Set(entries.map((entry) => entry.source))];
   if (imams.length < 2) return null;
@@ -123,6 +125,14 @@ export function ImamRulings({entries, sources, showQuote = true}: {entries: Entr
                     </span>
                     <span className="text-[0.8rem] text-athar-ink-soft">{gradeMeaning[entry.grade] || meta?.desc}</span>
                   </div>
+                  {entry.reading === "other" ? (
+                    <span
+                      className="w-fit rounded-full bg-athar-copper/12 px-2 py-0.5 text-[0.72rem] font-bold text-athar-copper"
+                      title="هذا الحكم مبنيّ على قراءة غير قراءة حفص عن عاصم؛ انظر الشرط في النص"
+                    >
+                      على غير قراءة حفص
+                    </span>
+                  ) : null}
                   {entry.reported_from ? (
                     <span className="w-fit rounded-full bg-athar-gold/10 px-2 py-0.5 text-[0.72rem] font-bold text-athar-gold">
                       {attribution(entry.reported_from)}
