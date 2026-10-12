@@ -22,6 +22,8 @@ def main(argv: list[str] | None = None) -> int:
             '  train-strip     above-word strip CNN → models/waqf_strip_bahrain.onnx\n'
             '  run-page        detect marks on one page\n'
             '  audit           CV vs mushaf_waqf.db report\n'
+            '  book-audit      whole-book audit of an edition vs its scans (parallel)\n'
+            '  book-review     Arabic review page for a book-audit run\n'
             '  evaluate-hand   exact mark + canonical-word holdout accuracy\n'
             '  blind-eval      score the detector on fully hand-labelled (complete) pages\n'
             '  evaluate-candidates proposal + word-attachment recall\n'
@@ -51,6 +53,12 @@ def main(argv: list[str] | None = None) -> int:
         paths = cache_page_range(EDITIONS[args.edition], pages[0], pages[-1])
         print(f'cached {len(paths)} pages')
         return 0
+    if cmd == 'book-audit':
+        from pipeline.cv_waqf.book_audit import main as m
+        return m(rest)
+    if cmd == 'book-review':
+        from pipeline.cv_waqf.book_review import main as m
+        return m(rest)
     if cmd == 'mesaha-boxes':
         from pipeline.cv_waqf.mesaha_boxes import main as m
         return m(rest)
