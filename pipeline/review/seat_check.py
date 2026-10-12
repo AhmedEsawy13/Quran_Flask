@@ -28,7 +28,7 @@ from core.verse_words import verse_word_texts  # noqa: E402
 
 DB = os.path.join(ROOT, 'data', 'classical_waqf.db')
 PINS = os.path.join(ROOT, 'pipeline', 'review', 'hand_pinned_seats.json')
-BOOKS = ('manar', 'muktafa', 'anbari')
+BOOKS = ('manar', 'muktafa', 'anbari', 'nahhas')
 
 
 def skel(word):

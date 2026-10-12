@@ -710,3 +710,26 @@ oath answers and their «ومثله» chains without rows (82:5, 8, 12, 16; 86:4
 28:68, 29:66); منار 44:2 «{حم (1) والكتاب المبين (2)} حسن؛ إن … وليس بوقف إن …»
 (both sides) and relayed «كلا» views 70:15 (الأخفش والفراء وأبو حاتم), 70:39
 (نافع), 74:16 (الأكثر).
+
+### النحاس: first pass (2026-10-12, gpt-6-luna + sweep)
+
+12 passages (round 16) plus a full-book sweep. Before the fixes, about 87% of
+the explicit rulings in the passages had rows (217 held, ~31 confirmed misses),
+and most verse-end ranges were missing. Fixed:
+
+- **Plain «"…"» quote marks** (المؤمنون، النور): the copy quotes with straight
+  quotes there and drops some, so they were never read (23:55–100 had 3 rows).
+  `_nahhas_requote` turns each stretch between two marks into a quote only if
+  it is short Arabic with no commentary words — pairing marks in order shifted
+  every later quote. 23: 3 → 82 rows, 24: 21 → 68.
+- **Verse-end ranges** «ثم القطع على رؤوس الآيات GRADE إلى {X}»: the expansion
+  needed X seated by the main pass, so a range whose X has no grade of its own
+  (8:63) or an orthographic variant («فأنظر»، «الرحمن»، «السموات») was dropped;
+  X and the quote before it are now found by a level-2 match. Also «القطع على
+  الآيات … إلى» (no «رؤوس») and «وكذا رؤوس الآيات بعده إلى». Range rows 388 → 658.
+- «ثطع» for «قطع» (38:34); 11:81 «بالنصب والرفع فإنه كاف»; relayed 11:87 يعقوب,
+  11:107–108 أبو حاتم (الأول والثاني), 38:41 محمد بن عيسى; 23:11 duplicate on the
+  verse end dropped (DROP_AT). The wrong-word check now covers النحاس (3 slips pinned).
+
+Not rows (by design): «ليس بكاف / ليس بتمام» negations, «ومن الوقف {X}» stops
+with no grade, other readings and conditional parses.

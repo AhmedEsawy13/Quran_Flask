@@ -899,6 +899,27 @@ _NAHHAS_TITLES = [('الطول', 40), ('حم عسق', 42), ('الشريعة', 45
                   ('سأل', 70), ('انفطرت', 82), ('ذوات قل', 112)]
 
 
+# commentary inside a «"…"» stretch means the copy dropped a quote mark there
+_NAHHAS_COMMENT = re.compile(r'(?<![ء-ي])[وف]?(?:قطع|كاف|تام|تمام|التمام|الكافي|الوقف|وكذا|فإنه|لأنه|لأنها|لأن|والمعنى)(?![ء-ي])')
+
+
+def _nahhas_requote(text):
+    """Plain «"…"» quote marks → braces, judging each stretch between two marks on
+    its own: the copy drops marks (« " وهم لها سابقون " إلا وسعها " قطع كاف»), so
+    pairing them in order shifts every later quote. A stretch is a quote if it is
+    short Arabic with no commentary words; otherwise it stays plain text."""
+    parts = text.split('"')
+    out = [parts[0]]
+    for seg in parts[1:]:
+        core = seg.strip()
+        if 2 <= len(core) <= 90 and re.search(r'[ء-ي]', core) and not _NAHHAS_COMMENT.search(core) \
+                and '{' not in core and '}' not in core:
+            out.append('{' + core + '}')
+        else:
+            out.append(seg)
+    return ' '.join(out)
+
+
 def nahhas_sections(body):
     """[(surah, text)] for القطع والائتناف, in book order."""
     out, last = [], 0
@@ -917,8 +938,13 @@ def nahhas_sections(body):
         if num is None:
             continue
         last = num
+        text = text.replace('ثطع', 'قطع')       # «{ثم أناب} ثطع صالح» (38:34): a scan slip
         # a graded quote the copy put in parentheses: «(ختامه مسك) قطع كاف» (23 places)
         text = re.sub(r'\(([^(){}]{3,80})\)(?=\s*(?:قطع|وقف)\s+(?:تام|كاف|حسن|صالح))', r'{\1}', text)
+        # the copy quotes with plain double quotes in a few sections (المؤمنون، النور: « " إلا وسعها "
+        # قطع كاف»): where they outnumber braces they are the section's quote marks
+        if len(re.findall(r'"\s*[^"]{2,90}?\s*"', text)) > len(re.findall(r'\{[^{}]{2,90}\}', text)):
+            text = _nahhas_requote(text)
         out.append((num, text))
     return out
 
@@ -972,8 +998,20 @@ def harvest_nahhas(body, rows, seq0):
         for r in nparse.parse(text):
             if r.how == 'blanket_end':
                 end, a1 = None, surah_ayah_count(num) + 1
-            elif r.how == 'blanket' and r.start in seats and seats[r.start][0] is not None and r.prev_quote:
-                end = seats[r.start][0]
+            elif r.how == 'blanket' and r.prev_quote:
+                end = seats.get(r.start, (None,))[0]
+                if end is None:
+                    # «… إلى {X}» where X has no grade of its own (never seated by the main pass)
+                    # or a spelling the strict pass missed («فأنظر»): its first plain occurrence
+                    # after the quote before the statement
+                    p0 = seats.get(r.prev_start, (None,))[0]
+                    stop = re.split(r'\.\.\.|…', r.quote)[-1]
+                    hits = [i for qv in quote_token_variants(quote_words(stop))
+                            for i in nparse.occurrences(stream, qv, match_word_taa, 2)   # «الرحمن»
+                            if p0 is None or i > p0]
+                    if not hits:
+                        continue
+                    end = min(hits)
                 a1 = stream[end][0]
             else:
                 continue
@@ -981,7 +1019,9 @@ def harvest_nahhas(body, rows, seq0):
             # book's spellings — «لا يستوون»، «والأفئدة»), else its last plain occurrence
             prev = seats.get(r.prev_start, (None,))[0]
             if prev is None or (end is not None and prev >= end):
-                before = [i for i in nparse.occurrences(stream, quote_words(r.prev_quote), match_word)
+                stop = re.split(r'\.\.\.|…', r.prev_quote)[-1]
+                before = [i for qv in quote_token_variants(quote_words(stop))
+                          for i in nparse.occurrences(stream, qv, match_word_taa, 2)   # «السموات»
                           if end is None or i < end]
                 if not before:
                     continue

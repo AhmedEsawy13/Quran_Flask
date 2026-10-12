@@ -190,12 +190,23 @@ _NAFI_6 = ('والتمام بعده ما روينا عن نافع {قالوا ب
            'وبعده {فتأتيهم بآية} هذا كله عن نافع')
 EXTRA_AT = [(6, 30, 12, 'تام', 'نافع', 'قالوا بلى وربنا', _NAFI_6),
             (6, 31, 16, 'تام', 'نافع', 'قالوا يا حسرتنا على ما فرطنا فيها', _NAFI_6),
-            (6, 35, 17, 'تام', 'نافع', 'فتأتيهم بآية', _NAFI_6)]
+            (6, 35, 17, 'تام', 'نافع', 'فتأتيهم بآية', _NAFI_6),
+            # النحاس passage check (2026-10-12)
+            (11, 81, 18, 'كاف', None, 'ولا يلتفت منكم أحد إلا امرأتك',
+             '{ولا يلتفت منكم أحد إلا امرأتك} بالنصب والرفع فإنه كاف'),
+            (11, 87, 8, 'كاف', 'يعقوب', 'قالوا يا شعيب أصلاتك تأمرك أن نترك ما يعبد آباؤنا',
+             'والقطع على رؤوس الآيات صالح إلى {قالوا يا شعيب أصلاتك تأمرك أن نترك ما يعبد آباؤنا} قال يعقوب: فهذا الوقف الكافي'),
+            (11, 107, 9, 'كاف', 'أبو حاتم', 'إلا ما شاء ربك', '{إلا ما شاء ربك} الأول والثاني قطع كاف عند أبي حاتم.'),
+            (11, 108, 14, 'كاف', 'أبو حاتم', 'إلا ما شاء ربك', '{إلا ما شاء ربك} الأول والثاني قطع كاف عند أبي حاتم.'),
+            (38, 41, 10, 'تام', 'محمد بن عيسى', 'وعذاب', 'قال محمد بن عيسى: ينصب وعذاب تمام')]
 # rulings for a non-Hafs reading: «من قرأ بقراءة ابن عباس {واذكر عبدنا} فوقفه
 # الكافي {واذكر عبدنا إبراهيم}» — Hafs reads «عبادنا» (its stop: أولى الأيدي والأبصار)
 DROP_NON_HAFS = {(38, 'واذكر عبدنا إبراهيم', 'كاف')}
 # «ذوات قل» items the parser seated nowhere (they cite الفلق / الناس)
 DROP_UNSEATED = {(112, 'قل أعوذ برب الفلق'), (112, 'قل أعوذ برب الناس')}
+# a duplicate seated on the wrong word: «يكون التمام {الذين يرثون الفردوس}» stops on «الفردوس»
+# (23:11 w2 holds it); this copy landed on the verse end (wrong-word check, 2026-10-12)
+DROP_AT = {(23, 11, 5, 'الذين يرثون الفردوس')}
 
 _END = re.compile(r'(?:والتمام|ثم|والوقف\s+التام|التمام)\s+آخر\s+السورة')
 
@@ -238,6 +249,10 @@ def plan(con):
     for s, q, g in DROP_NON_HAFS:
         for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND quote=? "
                                   "AND grade=?", (s, q, g)):
+            ops.append(('delete', rid, None))
+    for s, a, w, q in DROP_AT:
+        for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND ayah=? "
+                                  "AND wpos=? AND quote=?", (s, a, w, q)):
             ops.append(('delete', rid, None))
     for s, q in DROP_UNSEATED:
         for (rid,) in con.execute("SELECT id FROM classical WHERE source='nahhas' AND surah=? AND quote=? "

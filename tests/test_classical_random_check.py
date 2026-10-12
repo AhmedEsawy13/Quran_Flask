@@ -714,3 +714,26 @@ def test_anbari_sweep(con, surah, ayah, wpos, grade):
 def test_coverage_sweep_rows(con, book, surah, ayah, wpos, grade, by):
     got = rulings(con, book, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── النحاس: first pass (2026-10-12, reviewed by gpt-6-luna) ──────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (23, 62, None, 'كاف', ''),        # «" إلا وسعها " قطع كاف» — this copy quotes with plain «"»
+    (23, 75, None, 'كاف', ''),        # «ثم القطع على رؤوس الآيات كاف إلى " لفسدت … "»
+    (24, 6, None, 'كاف', ''),         # النور: same plain-quote copy
+    (11, 85, None, 'صالح', ''),       # «والقطع على رؤوس الآيات صالح إلى {…}» (X has no grade of its own)
+    (27, 47, None, 'حسن', ''),        # «… حسن إلى {فأنظر كيف كان عاقبة مكرهم}» («فأنظر» spelling)
+    (19, 83, None, 'تام', ''),        # «ثم القطع على الآيات تام إلى {…}» (no «رؤوس»)
+    (38, 34, 8, 'صالح', ''),          # «{ثم أناب} ثطع صالح» — a scan slip for «قطع»
+    (11, 81, 18, 'كاف', ''),          # «{… إلا امرأتك} بالنصب والرفع فإنه كاف»
+    (11, 107, 9, 'كاف', 'أبو حاتم'),  # «{إلا ما شاء ربك} الأول والثاني قطع كاف عند أبي حاتم»
+    (11, 108, 14, 'كاف', 'أبو حاتم'),
+])
+def test_nahhas_first_pass(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_nahhas_misplaced_duplicate_dropped(con):
+    assert not rulings(con, 'nahhas', 23, 11, 5)      # «الذين يرثون الفردوس» stops on w2
