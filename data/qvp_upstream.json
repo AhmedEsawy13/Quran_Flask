@@ -6,8 +6,8 @@
   },
   "engine": {
     "npm_package": "@quran.ws/engine",
-    "npm": "0.6.0",
-    "acknowledged_git_tag": "v0.6.0",
+    "npm": "0.6.1",
+    "acknowledged_git_tag": "v0.6.1",
     "consumed": "lite-fork"
   },
   "lite": {
