@@ -41,8 +41,10 @@ def main():
     changed = 0
     for surah, ayah, wrong, right, text in MOVES:
         src, dst = _row(conn, surah, ayah, wrong), _row(conn, surah, ayah, right)
-        if not src or not dst:
-            raise SystemExit(f'{surah}:{ayah}: expected rows at tokens {wrong} and {right}')
+        if not dst:
+            raise SystemExit(f'{surah}:{ayah}: expected a row at token {right}')
+        if not src:
+            continue                     # already repaired and the empty row removed
         for col in LOCAL_COLS:
             value = conn.execute(f'SELECT "{col}" FROM waqf WHERE rowid=?', src).fetchone()[0]
             if not value:

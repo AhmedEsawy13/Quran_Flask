@@ -10,14 +10,17 @@ def _marks(surah, ayah, token):
     row = conn.execute('SELECT * FROM waqf WHERE السورة=? AND الآية=? AND token_index=?',
                        (surah, ayah, token)).fetchone()
     conn.close()
-    return dict(row)
+    return dict(row) if row else {}
 
 
 def test_repeated_word_marks_sit_on_the_right_occurrence():
     for surah, ayah, wrong, right, mark in ((3, 7, 16, 41, 'ق'), (3, 66, 7, 14, 'ج')):
         assert _marks(surah, ayah, right)['المدينة الجديد'] == mark
         wrong_row = _marks(surah, ayah, wrong)
-        assert not any(wrong_row[col] for col in LOCAL_COLS)
+        assert not any(wrong_row.get(col) for col in LOCAL_COLS)
+        # the cloud editions were repaired too (published 2026-10-12)
+        assert not any(wrong_row.get(col) for col in ('قطر', 'الكويت', 'البحرين'))
+    assert _marks(3, 66, 14)['البحرين'] == 'ج' and _marks(3, 66, 14)['الكويت'] == 'ج'
 
 
 def test_new_madinah_keeps_the_maliyah_sakt():
