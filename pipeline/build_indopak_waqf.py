@@ -124,10 +124,18 @@ def place_symbol(
     sura: int, aya: int, word_pos: int,
     symbol: str,
 ) -> None:
-    """Insert/update a symbol at (sura, aya, word_pos) in mushaf_waqf.db."""
+    """Insert/update a symbol at content word ``word_pos`` in mushaf_waqf.db.
+
+    quran_script.db and token_index count a leading ۞ as a word; word_pos
+    does not. Look rows up by token_index (word_pos + that offset) — rows
+    disagree on word_index in ۞ verses, which once put these marks one word
+    early (fixed by pipeline/fix_hizb_verse_rows.py).
+    """
+    first = get_word_text(qs_cur, sura, aya, 1).strip()
+    token = word_pos + (1 if first == '۞' else 0)
     row = waqf_cur.execute(
-        f'SELECT rowid, "{INDOPAK_COL}" FROM waqf WHERE "السورة"=? AND "الآية"=? AND word_index=?',
-        (sura, aya, word_pos),
+        f'SELECT rowid, "{INDOPAK_COL}" FROM waqf WHERE "السورة"=? AND "الآية"=? AND token_index=?',
+        (sura, aya, token),
     ).fetchone()
 
     if row:
@@ -138,12 +146,12 @@ def place_symbol(
             (new_val, rowid),
         )
     else:
-        word_text = get_word_text(qs_cur, sura, aya, word_pos)
+        word_text = get_word_text(qs_cur, sura, aya, token)
         waqf_cur.execute(
             f"""INSERT INTO waqf
                 ("السورة", "السورة.1", "الآية", "الكلمة", "{INDOPAK_COL}", word_index, token_index)
                 VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (sura, sura_names.get(sura, ""), aya, word_text, symbol, word_pos, word_pos),
+            (sura, sura_names.get(sura, ""), aya, word_text, symbol, word_pos, token),
         )
 
 

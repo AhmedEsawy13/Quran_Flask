@@ -1,4 +1,4 @@
-"""Repair three seats in data/mushaf_waqf.db that the QPC 1441 text and the
+"""Repair four seats in data/mushaf_waqf.db that the QPC 1441 text and the
 quran-engine (QVP) page ink both contradict.
 
 * 3:7  — the row at token 16 carries «رَبِّنَا» marks, but word 16 is «فِي»;
@@ -6,6 +6,9 @@ quran-engine (QVP) page ink both contradict.
 * 3:66 — the row at token 7 is the FIRST «عِلۡمٞ»; the marks belong on the
          second one, token 14 («…لَيۡسَ لَكُم بِهِۦ عِلۡمٞۚ وَٱللَّهُ يَعۡلَمُ»).
 * 69:28 — «المدينة الجديد» lacks the sakt on «مَالِيَهۡ» (QPC prints ۜ).
+* 36:52 — «مَرۡقَدِنَا» carries both the sakt and قلى (ۜۗ) in both prints; the
+         cell held only ق. Stored as «ق,س» — ruling first, since the research
+         code reads the first symbol and the UI splits on the comma.
 
 Only locally owned columns move. قطر / الكويت / البحرين are synced from the
 published cloud editions (pipeline/sync_published_waqf.py), so they are left
@@ -23,6 +26,8 @@ MOVES = (
     (3, 66, 7, 14, 'عِلۡمٞۚ'),
 )
 SAKT = ((69, 28, 4, 'المدينة الجديد', 'س'),)
+# (surah, ayah, token, columns, current value, value with the sakt added)
+DUAL = ((36, 52, 6, ('المدينة الجديد', 'المدينة القديم'), 'ق', 'ق,س'),)
 
 
 def _row(conn, surah, ayah, token):
@@ -57,6 +62,14 @@ def main():
         if cur.rowcount:
             changed += 1
             print(f'{surah}:{ayah} {col}: added {mark}')
+    for surah, ayah, token, cols, before, after in DUAL:
+        for col in cols:
+            cur = conn.execute(
+                f'UPDATE waqf SET "{col}"=? WHERE السورة=? AND الآية=? AND token_index=? AND "{col}"=?',
+                (after, surah, ayah, token, before))
+            if cur.rowcount:
+                changed += 1
+                print(f'{surah}:{ayah} {col}: {before} → {after}')
     conn.commit()
     conn.close()
     print(f'{changed} changes')

@@ -110,9 +110,11 @@ def main(sql_path):
             raw_i = wpos_to_raw.get(j)
             token_index = (raw_i + 1) if raw_i is not None else word_index
             word_text = qpc_words[j] if 0 <= j < len(qpc_words) else ''
+            # token_index, not word_index: rows disagree on word_index in
+            # verses opening with ۞, which once put marks one word early.
             row = cur.execute(
-                'SELECT rowid FROM waqf WHERE "السورة"=? AND "الآية"=? AND word_index=?',
-                (sura, aya, word_index)).fetchone()
+                'SELECT rowid FROM waqf WHERE "السورة"=? AND "الآية"=? AND token_index=?',
+                (sura, aya, token_index)).fetchone()
             if row:
                 cur.execute(f'UPDATE waqf SET "{OLD_COL}"=? WHERE rowid=?', (letter, row[0]))
                 updated += 1
