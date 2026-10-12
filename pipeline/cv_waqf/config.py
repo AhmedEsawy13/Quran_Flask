@@ -108,6 +108,9 @@ class EditionSpec:
     # one hop only, so a transfer is visible in the registry and in the detect
     # payload instead of hiding in a path lookup.
     model_fallback: str | None = None
+    # Use the multi-print model even though this edition has its own. Only when
+    # it measured better on the edition's own hand labels.
+    prefer_multiprint: bool = False
     # Re-seat a prior-rejected mark on an adjacent occupied word of its line
     # (azhar_prior.reattach_rejected_marks). Off unless measured to help.
     prior_reattach: bool = False
@@ -228,6 +231,9 @@ EDITIONS: dict[str, EditionSpec] = {
         #   without the prior      434→435 correct, FP 40→31
         # mark box → owning word 95.9%→96.7% (evaluate-candidates).
         measured_geometry=True,
+        # Multi-print CNN beats waqf_glyph_bahrain on the hand labels, also on the 169 pages
+        # labelled after that model was trained: 230/237 vs 205/237 exact, FP 0 vs 3 (2026-10-12).
+        prefer_multiprint=True,
     ),
     # Same 15-line QPC layout as Madinah/Bahrain, different frame and margins.
     # Scans are cached at 2000px; ensure_page_image derives the 1024px copy.
@@ -411,12 +417,14 @@ SHARED_MULTIPRINT_MODEL_PATH = ROOT / 'models' / 'waqf_glyph_multiprint.onnx'
 def resolve_edition_model(edition_key: str) -> tuple[Path | None, str | None]:
     """Best model for an edition, and where it came from.
 
-    Order: the edition's own model → the explicit ``model_fallback`` edition's
+    Order: the multi-print model when ``prefer_multiprint`` → the edition's own model → the explicit ``model_fallback`` edition's
     → the multi-print model → ``(None, None)`` (legacy shared
     ``waqf_glyph.onnx``). The label is ``own``, ``transfer:<edition>`` or
     ``multiprint`` so a detect payload can say whether a transfer happened.
     """
     spec = EDITIONS[edition_key]
+    if spec.prefer_multiprint and SHARED_MULTIPRINT_MODEL_PATH.is_file():
+        return SHARED_MULTIPRINT_MODEL_PATH, 'multiprint'
     if spec.model_path.is_file():
         return spec.model_path, 'own'
     fallback = spec.model_fallback

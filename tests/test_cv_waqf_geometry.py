@@ -265,3 +265,12 @@ def test_calibration_recovers_the_band_from_a_wrong_nominal(monkeypatch):
     assert report['stray_pages'] == [] and report['unfitted_pages'] == []
     with pytest.raises(ValueError, match='>=5'):
         calibrate_geometry.calibrate(spec, [3, 4])
+
+
+def test_bahrain_prefers_the_multiprint_model(monkeypatch, tmp_path):
+    # measured better on Bahrain's own hand labels; Kuwait keeps its own model
+    mp = tmp_path / 'mp.onnx'
+    mp.write_bytes(b'')
+    monkeypatch.setattr(config, 'SHARED_MULTIPRINT_MODEL_PATH', mp)
+    assert config.resolve_edition_model('البحرين') == (mp, 'multiprint')
+    assert config.EDITIONS['الكويت'].prefer_multiprint is False
