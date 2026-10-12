@@ -96,9 +96,11 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # «ورأس الآية أتم» replace their blanket كاف (+2 −2)
     # +20 twelfth check: 53 «والوقف {X} وهو كاف. ومثله …» (7), «جواب القسم {…} فلا وقف دونه»
     # لا on 51:1–4, 52:1–6, 53:1 (11), 50:42, 83:28, 59:15 الأخفش; −1 20:77 jussive «لا تخف دركا»
-    assert result['total_extracted'] == 7222
-    assert result['matched'] == 7222
-    assert result['confident'] == 7222
+    # +3 thirteenth check: 22:27 «صالح غير تام ولا كاف», 3:34 «[ {سميع عليم} ] . تام», 33:33 «والتمام
+    # تطهيرا»; 22:41 and 11:109 «ورأس الآية أتم / والآية تمام» replace their blanket كاف (+2 −2)
+    assert result['total_extracted'] == 7225
+    assert result['matched'] == 7225
+    assert result['confident'] == 7225
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

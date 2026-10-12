@@ -592,3 +592,23 @@ slips changed the section text. Fixed:
   20:55–57 «كلها وقوف تقرب من التام» → كاف (MISMATCH_OK).
 - **ابن الأنباري**: 5:68 «فلا تأس على القوم الكافرين. تام.» (no parentheses in
   the copy); 8:3–4 «ويحسن الوقف على قوله أيضا: (…) ويتم على قوله: (…)».
+
+### Thirteenth passage check and accuracy (2026-10-12, gpt-6-luna)
+
+21 passages (ابن الأنباري had only 5 unread stretches left). Accuracy before
+this round's fixes, explicit rulings only (by-design kinds excluded): rulings
+held = DB rows whose quote occurs in the passage; misses = issues confirmed
+against the book.
+
+| book | held | confirmed misses | completeness | ÷ ⅔ catch rate | wrong rows |
+|---|---|---|---|---|---|
+| منار | 220 | 2 | 99.1% | ≈ 98.7% | 0 |
+| المكتفى | 335 | 4 | 98.8% | ≈ 98.2% | 0 (2 blanket verse ends graded كاف for «أتم») |
+| ابن الأنباري | 179 | 11 | 94.2% | ≈ 91.6% | 1 credit |
+
+Most ابن الأنباري misses were one bug: the chain look-back was 16 characters,
+shorter than «وكذلك الوقف على قوله: »; now 30, and «كذلك» without «و» counts
+(2:200–231, 7:101). Also «(توبة من الله). حسن», 2:205 / 2:215 quotes without
+parentheses, 2:28 «غير تام وهو حسن», 4:46 «لكان خيرا وأقوم» (the book drops
+«لهم»), 4:83 «وقال قوم» credit. المكتفى: 22:27 صالح, 3:34, 33:33, 22:41, 11:109.
+منار: 93:1–2 «ولا وقف من أولها إلى: {قلى (3)}».

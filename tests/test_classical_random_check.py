@@ -590,3 +590,27 @@ def test_twelfth_passage_check(con, book, surah, ayah, wpos, grade, by):
 
 def test_twelfth_passage_check_drops(con):
     assert not rulings(con, 'muktafa', 20, 77, 15)       # jussive «لا تخف دركا», not Hafs
+
+
+# ── thirteenth passage check (2026-10-12, reviewed by gpt-6-luna) ────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('muktafa', 22, 27, 13, 'صالح', ''),       # «{من كل فج عميق} أي بعيد صالح غير تام ولا كاف»
+    ('muktafa', 3, 34, 6, 'تام', ''),          # «[ {سميع عليم} ] . تام»
+    ('muktafa', 33, 33, 24, 'تام', ''),        # «والتمام ((تطهيرا))»
+    ('muktafa', 22, 41, 16, 'تام', ''),        # «ورأس الآية أتم»
+    ('muktafa', 11, 109, 19, 'تام', ''),       # «والآية تمام»
+    ('manar', 93, 1, 0, 'لا', ''),             # «ولا وقف من أولها إلى: {قلى (3)}
+    ('manar', 93, 2, 2, 'لا', ''),             #  فلا يوقف على: {سجى (2)}»
+    ('anbari', 2, 200, 9, 'حسن', ''),          # «وكذلك الوقف على قوله: (أو أشد ذكرا)» — 22 chars back
+    ('anbari', 2, 223, 15, 'تام', ''),         # «وكذلك الوقف على: (المؤمنين)»
+    ('anbari', 2, 207, 10, 'تام', ''),         # «كذلك الوقف على (العباد)» — no «و»
+    ('anbari', 2, 205, 9, 'تام', ''),          # «والوقف على ويهلك الحرث والنسل تام» (no parentheses)
+    ('anbari', 2, 205, 13, 'تام', ''),         # «وكذلك الوقف على (الفساد)»
+    ('anbari', 2, 28, 2, 'حسن', ''),           # «غير تام وهو حسن»
+    ('anbari', 4, 92, 55, 'حسن', ''),          # «(توبة من الله). حسن»
+    ('anbari', 4, 83, 29, 'تام', 'قوم'),       # «وقال قوم: … والوقف على (إلا قليلا) تام»
+])
+def test_thirteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

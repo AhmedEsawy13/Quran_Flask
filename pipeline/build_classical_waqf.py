@@ -1063,7 +1063,7 @@ def anbari_sections(body):
         text = re.sub(r'(?<!\[)(?<=\s)ب (\d{1,3})\]', r'[\1]', text)          # «ب 6]» for «[6]»
         text = re.sub(r'\[حسني', 'حسن', text)                                    # «[30] [حسني.»
         # «[151]. حسن» / «[116]. وقف تام»: the full stop hides the quote's own grade
-        text = re.sub(r'\]\s*\.\s*((?:وقف\s+)?(?:تام|حسن|كاف|قبيح))', r'] \1', text)
+        text = re.sub(r'([\])])\s*\.\s*((?:وقف\s+)?(?:تام|حسن|كاف|قبيح))', r'\1 \2', text)   # «(توبة من الله). حسن»
         # «(حم. عسق) [1، 2] وقف حسن»: a quote over two verses stops in the last
         text = re.sub(r'\[(\d{1,3})\s*[،,]\s*(\d{1,3})\](?=\s*(?:وقف\s+)?(?:تام|التمام|حسن|كاف|قبيح))', r'[\2]', text)
         out.append((num, text))
