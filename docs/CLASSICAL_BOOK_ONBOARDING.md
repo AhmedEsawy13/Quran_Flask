@@ -634,3 +634,25 @@ seat audit and `renote` now skip; 2:251, 2:258. المكتفى: 2:26 credited to
 الدينوري والنحاس, 7:172 relayed, 7:30, 3:156, 4:157, 4:155–160. منار: 77:5,
 111:1, 55:22, 55:26. Left: 91 (a conditional pair), 3:175 / 4:148 (whether a
 mid-verse statement covers its own verse end).
+
+### Own-voice conflict check (2026-10-12)
+
+One word graded twice by the same book in its own voice reads, in the app, as
+«وجهٌ آخر عنده» — the author contradicting himself. Checked every such seat:
+
+- **منار**: 37 rows were the book's relayed view stored as the author's —
+  «{حذر الموت} [19] حسن، وقيل: كاف» (also «… وقيل: كاف، وقيل: تام», «ومثله …
+  وقيل: حسن», «وكاف عند أبي حاتم»). Credited via REPORTED_FIX;
+  `pipeline/review/qila_check.py` / `tests/test_classical_qila.py` keep the
+  «G1، وقيل: G2» form at zero. Misplaced duplicates: 5:27's second «لأقتلنك»
+  is 5:28 «لأقتلك» (pinned — `test_stop_phrase_words_occur_in_the_verse` now
+  honours pins), 42:15 «بينكم» the first occurrence, 5:31 duplicate removed.
+  The remaining ~60 conflicts are reading/i'rab splits (one side carries the
+  condition), which منار keeps by design.
+- **ابن الأنباري**: a quote followed by «الوقف على …» opens a discussion, not a
+  list item (3:169, 27:43 had inherited a grade beside the real one).
+- **المكتفى**: 16:8 «وزينة» تام is ابن الأنباري's.
+
+Open: 296 served rows (منار 251, المكتفى 45) are tied to a reading («لمن قرأ
+…»). Both sides are kept with the condition in the note; which side is
+Hafs's is not marked.

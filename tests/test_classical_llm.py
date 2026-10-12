@@ -156,10 +156,13 @@ def test_stop_phrase_words_occur_in_the_verse(app, llm_rows):
     """
     import modules.reading  # noqa: F401 — ensure app helpers loaded
     from pipeline.build_classical_waqf import quote_words, align_in_ayah  # type: ignore
+    from core.classical_review import is_hand_pinned
     with app.test_request_context():
         miss = []
         for r in llm_rows:
             if int(r['conf'] if 'conf' in r.keys() else 0) != 1:
+                continue
+            if is_hand_pinned('manar', r):     # a book slip whose seat was read by hand
                 continue
             wpos, _ = align_in_ayah(r['surah'], r['ayah'], quote_words(r['quote']))
             if wpos is None:

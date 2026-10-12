@@ -639,3 +639,26 @@ def test_thirteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
 def test_fourteenth_passage_check(con, book, surah, ayah, wpos, grade, by):
     got = rulings(con, book, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── own-voice conflict check (2026-10-12) ────────────────────────────────────
+
+@pytest.mark.parametrize('book,surah,ayah,wpos,grade,by', [
+    ('manar', 2, 19, 15, 'كاف', 'قيل'),        # «{حذر الموت} [19] حسن، وقيل: كاف»
+    ('manar', 2, 19, 15, 'حسن', ''),
+    ('manar', 4, 171, 33, 'تام', 'قيل'),       # «حسن، وقيل: كاف، وقيل: تام»
+    ('manar', 7, 37, 9, 'كاف', 'أبو حاتم'),    # «حسن، وكاف عند أبي حاتم»
+    ('manar', 11, 64, 5, 'حسن', 'قيل'),        # «جائز، ومثله: «في أرض الله»، وقيل: حسن»
+    ('manar', 5, 28, 10, 'جائز', ''),          # «{لاقتلنك} [27] جائز» — 5:28 «لأقتلك» (pinned)
+    ('manar', 42, 15, 17, 'تام', ''),          # «{بينكم} [15] تام» — the first «بينكم»
+    ('muktafa', 16, 8, 4, 'تام', 'ابن الأنباري'),   # «وقال: ((وزينة)) تام»
+])
+def test_own_voice_conflict_fixes(con, book, surah, ayah, wpos, grade, by):
+    got = rulings(con, book, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_own_voice_conflict_drops(con):
+    assert 'حسن' not in {g for _, g, b in rulings(con, 'anbari', 3, 169, 7) if not b}   # «… [169] الوقف على …»
+    assert 'تام' not in {g for _, g, b in rulings(con, 'anbari', 27, 43, 6) if not b}
+    assert 'حسن' not in {g for _, g, b in rulings(con, 'manar', 5, 31, 21) if not b}   # «سوءة أخي» صالح only
