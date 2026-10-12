@@ -773,3 +773,18 @@ of the author's right after the quote were each read in the book: 37 credited
 author's voice by design: «X كاف عند أبي حاتم والتمام {Y}» with no «عنده», views
 النحاس adopts («والقول ما قال أبو حاتم»، «وهو الصواب»), and conditionals («ومن
 قال … فالتمام عنده {Y}»، «ومن قرأ …») whose note carries the condition.
+
+### النحاس: round 19 (2026-10-12)
+
+12 fresh passages, after the credit sweep. gpt-6-luna matched ≈ 211 rulings and
+raised 83 issues; about 50 were by-design non-rows (negations, ungraded stops,
+conditional sides, non-Hafs readings) or misreadings («تم التمام بعده»). The
+confirmed ones: ≈ 25 misses (unbraced quotes in الأنبياء 33/46/47/52, inverted
+braces at نوح 12, verse-end rulings «والتمام رأس الاية» at الفتح 17/19/26 and
+الشورى 16, two unexpanded ranges — يونس 41–49 «إلى رأس الخمسين» and القلم 45–52
+«إلى آخر السورة» — 3 held rows served, 7 relayed views), 10 credits (8 relayed
+views still in the author's voice, e.g. 45:21 نافع, 42:24 أبو عمرو بن العلاء),
+1 wrong grade (90:11 كاف → تام), and 2 stale rows. Observed completeness ≈ 89%
+(lower than round 18 — the unbraced and inverted-brace stretches). New: OWN_BY
+credits only the own-voice copy when a credited row shares its quote; one own
+grade per word holds (50:25 keeps the first of three parses, the note the second).

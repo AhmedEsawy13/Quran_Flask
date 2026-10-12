@@ -805,3 +805,32 @@ def test_nahhas_cross_references_dropped(con):
     # «لأن بعده {وعد الله}» and «لأن بعده {وعمروها أكثر مما عمروها}» cite the next words, no ruling
     assert not rulings(con, 'nahhas', 39, 20, 15)
     assert all(b == 'أحمد بن جعفر' for _, _, b in rulings(con, 'nahhas', 30, 9, 20))
+
+
+# ── النحاس: round 19 (2026-10-12, reviewed by gpt-6-luna) ───────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (48, 9, 4, 'تام', 'أبو حاتم'),       # «وافق أبو حاتم الجماعة … وقال إن التمام {وتعزروه وتوقروه}»
+    (48, 9, 4, 'تام', 'أحمد بن موسى'),   # «وهذا أيضا تمام عند أحمد بن موسى»
+    (48, 19, 6, 'تام', ''),             # «{يأخذونها} قطع كاف والتمام رأس الاية»
+    (45, 21, 10, 'تام', 'نافع'),         # «وعن نافع تم»
+    (45, 21, 10, 'تام', 'أبو عبيدة'),
+    (45, 13, 9, 'كاف', 'يعقوب'),         # held row now served
+    (90, 11, 2, 'تام', 'أبو حاتم'),      # «والتمام عنده وعند غيره {فلا اقتحم العقبة}» (was كاف غيره)
+    (68, 18, 1, 'تام', 'الأخفش'),        # «والأخفش يقول التمام {ولا يستثنون}»
+    (68, 50, None, 'كاف', ''),           # «وكذا رؤوس الآيات إلى آخر السورة»
+    (21, 47, 8, 'تام', ''),             # unbraced «وكذا: فلا تظلم نفس شيئا»
+    (21, 52, 10, 'تام', ''),            # «والتمام التي أنتم لها عاكفون»
+    (10, 44, None, 'حسن', ''),           # «والقطع على رؤوس الآيات بعد هذا حسن إلى رأس الخمسين»
+    (71, 12, 8, 'حسن', ''),             # inverted braces «ولكن} ويجعل لكم أنهارا {قطع حسن»
+    (71, 8, 3, 'تام', 'الأخفش'),         # «وزعم الأخفش أن {ثم إني دعوتهم جهارا} تمام»
+    (42, 24, 11, 'تام', 'أبو عمرو بن العلاء'),
+])
+def test_nahhas_round19(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_nahhas_round19_no_stale_rows(con):
+    assert not any(g == 'حسن' for _, g, _ in rulings(con, 'nahhas', 21, 52, 10))   # range starts after 52
+    assert not any(g == 'كاف' for _, g, _ in rulings(con, 'nahhas', 90, 11, 2))
