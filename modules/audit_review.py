@@ -179,13 +179,15 @@ def audit_review_decision():
         for key, mark in want.items():
             if now.get(key, '') != mark:
                 _get_or_set_word_waqf_cloud(ids[key], edition, mark, user)
+        # «ok» whenever the result is the DB's own state (✕ on an add card, or its sign re-picked).
+        decision = 'ok' if want == targets(item, 'db') else 'wrong'
         if undo:
             sb.delete_mark_review_decision(edition=edition, page_number=int(item['page']), word_id=word_id)
         else:
             s, a, _w = _split(item['word_key'])
             sb.upsert_mark_review_decision(
                 edition=edition, page_number=int(item['page']), word_id=word_id,
-                decision='ok' if choice == 'db' else 'wrong',
+                decision=decision,
                 our_mark=item.get('db') or '', correct_mark=want[item['word_key']],
                 surah=s, ayah=a, word_text=item.get('text') or '',
                 updated_by=user['id'] if user else None,
@@ -195,5 +197,4 @@ def audit_review_decision():
         logger.error('audit decision failed: %s', exc)
         return jsonify({'error': 'cloud write failed'}), 503
     return jsonify({'ok': True, 'marks': after,
-                    'decision': None if undo else {'decision': 'ok' if choice == 'db' else 'wrong',
-                                                    'mark': want[item['word_key']]}})
+                    'decision': None if undo else {'decision': decision, 'mark': want[item['word_key']]}})

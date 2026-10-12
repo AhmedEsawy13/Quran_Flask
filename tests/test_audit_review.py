@@ -108,3 +108,13 @@ def test_refused_without_the_cloud(client, cloud, monkeypatch):
 
 def test_crop_names_cannot_escape_the_audit_dir(client, cloud):
     assert client.get(f'/api/mushaf-editor/book-audit/crop?edition={ED}&f=../queue.json').status_code == 404
+
+
+def test_clearing_an_add_card_counts_as_the_db_being_right(client, cloud):
+    cloud['draft']['2:5:3'] = ''                  # pretend the queue card is an «add» on an empty word
+    import json as _j
+    q = _j.loads((ar._audit_dir(ED) / 'queue.json').read_text())
+    q['items'][0].update(tab='add', db=None)
+    (ar._audit_dir(ED) / 'queue.json').write_text(_j.dumps(q, ensure_ascii=False))
+    assert _post(client, tab='add', word_key='2:5:3', choice='set', symbol='').status_code == 200
+    assert [d['decision'] for d in cloud['decisions'].values()] == ['ok']
