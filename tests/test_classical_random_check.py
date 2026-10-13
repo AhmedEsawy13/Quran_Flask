@@ -906,3 +906,36 @@ def test_nahhas_round20_dropped(con):
     assert not rulings(con, 'nahhas', 60, 4, 35)           # «لأن بعده {إلا قول إبراهيم لأبيه}»
     assert not rulings(con, 'nahhas', 34, 48, 6)           # moved to «بالحق»
     assert not any(g == 'لا' for _, g, _ in rulings(con, 'nahhas', 12, 52, 5))
+
+
+# ── النحاس: held-row sweep and «{X} G عند Y» credits (2026-10-13) ───────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (2, 125, 5, 'تام', 'الأخفش'),        # «على قراءة {واتخذوا} بكسر الخاء» — Hafs
+    (24, 9, 8, 'تام', ''),              # «وإن قرأت والخامسة بالنصب» — Hafs reads «وَٱلۡخَٰمِسَةَ» in 24:9
+    (24, 58, 26, 'تام', ''),            # «على قراءة من رفع ما بعده» — Hafs «ثَلَٰثُ عَوۡرَٰتٖ»
+    (55, 29, 9, 'تام', 'الأخفش'),        # «فصحيح على قراءة من قرأ {سنفرغ لكم}» — Hafs
+    (40, 85, 6, 'تام', 'أبو حاتم'),      # was seated on 40:84's «بأسنا»
+    (2, 86, 12, 'تام', ''),             # unseated, now seated
+    (73, 20, 51, 'كاف', ''),            # «قاقرءوا» — the copy's slip
+    (67, 15, 13, 'تام', 'أبو حاتم'),     # «وإليه المصير» — slip for «النشور» (pinned)
+    (2, 197, 21, 'كاف', 'ابن شاذان'),    # «{وتزودوا} قطع كاف عن ابن شاذان»
+    (47, 16, 23, 'تام', 'النضر بن شميل'),
+])
+def test_nahhas_held_sweep(con, surah, ayah, wpos, grade, by):
+    got = {(g, b) for _, g, b in rulings(con, 'nahhas', surah, ayah, wpos) if True}
+    row = con.execute("SELECT conf FROM classical WHERE source='nahhas' AND surah=? AND ayah=? AND wpos=? "
+                      "AND grade=? AND COALESCE(reported_from,'')=?", (surah, ayah, wpos, grade, by)).fetchone()
+    assert (grade, by) in got and row and row[0] == 1
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade', [
+    (10, 5, 18, 'حسن'),      # «على قراءة من قرأ نفصل بالنون» — Hafs «يُفَصِّلُ»
+    (3, 130, 11, 'تام'),     # «سارعوا» بغير واو — Hafs «وَسَارِعُوٓاْ»
+    (29, 25, 6, 'كاف'),      # «مودةُ بينِكم» — Hafs «مَّوَدَّةَ»
+    (34, 3, 9, 'تام'),       # «عالمُ الغيب» — Hafs «عَٰلِمِ»
+])
+def test_nahhas_other_reading_rows_stay_held(con, surah, ayah, wpos, grade):
+    rows = con.execute("SELECT conf FROM classical WHERE source='nahhas' AND surah=? AND ayah=? AND wpos=? AND grade=?",
+                       (surah, ayah, wpos, grade)).fetchall()
+    assert rows and all(c == 0 for c, in rows)

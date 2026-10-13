@@ -144,6 +144,8 @@ def test_multi_word_quotes_end_where_they_are_seated(rows):
     # («والله واسع عليم» for 2:115's «إن الله»), the phrase is still here
     ok = {('muktafa', 2, 115, 11), ('muktafa', 2, 150, 30), ('muktafa', 4, 102, 55), ('muktafa', 53, 28, 4),
           ('anbari', 2, 217, 17), ('anbari', 9, 106, 11), ('nahhas', 8, 4, 10), ('nahhas', 41, 15, 24),
+          # «والتمام {فلا تجعلني من القوم الظالمين}» after «{إما تريني ما يوعدون}»: 23:94 («في القوم»)
+          ('nahhas', 23, 94, 5),
           # «{إلا المصلين} استثناء … فلا يكفي الوقف قبله»: the لا sits on the word before it
           ('muktafa', 70, 21, 3)}
     bad = []

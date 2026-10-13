@@ -825,3 +825,23 @@ and 20:127 غيره) — 10 credits (e.g. 22:9 أبو إسحاق, 20:123 أحم�
 before the بدل; quote trimmed via QUOTE_FIX), 1 reason quoted as a ruling (60:4).
 Observed completeness ≈ 91% (round 19: 89%). A fresh rebuild reproduces the
 incremental result exactly.
+
+### النحاس: held-row sweep and «{X} G عند Y» credits (2026-10-13)
+
+The parser holds (conf=0) every النحاس ruling with «قراءة / قرأ» within ~120
+characters before it or ~90 after, so the note about a neighbouring stop, or a
+ruling stated for Hafs's own reading, kept plain rulings out of the app. All 199
+held rows were read against Hafs's reading: 95 seated rows are now served
+(SERVE_AT, keyed by seat — e.g. «واتخذوا» بالكسر 2:125، «والخامسةَ» 24:9،
+«ثلاثُ عورات» 24:58، «سنفرغ» بالنون 55:29، «يغلي» بالياء), 28 unseated ones placed
+(SEAT_HELD: slips «عافلين»، «قاقرءوا»، «إ ذا»، an elided «… غفورا رحيما»), one
+reseated (40:84 → 40:85). About 77 stay held: rulings for a reading Hafs does not
+have («يفصّل» 10:5، «سارعوا» بلا واو 3:130، «مودةُ بينِكم» 29:25، «عالمُ الغيب» 34:3،
+«الريحُ» 34:12 …), citations of other surahs, and garbled quotes. Served rows
+6,066 → 6,187.
+
+A second scan found own-voice rows whose grade the book gives to a scholar right
+after the quote — «{X} فإنه تمام عند أبي حاتم»، «{X} قطع كاف عن ابن شاذان»، «{X} تمام
+على ما روى عن نافع» — 12, credited by seat (CREDIT_AT, own-voice rows only). Two
+book slips are pinned or allowed: 67:15 «وإليه المصير» for «النشور» and 23:94
+«من القوم» for «في القوم».
