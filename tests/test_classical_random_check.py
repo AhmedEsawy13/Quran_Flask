@@ -965,3 +965,10 @@ def test_nahhas_round21(con, surah, ayah, wpos, grade, by):
 def test_nahhas_round21_dropped(con):
     assert not rulings(con, 'nahhas', 28, 25, 2)          # «وليس {فجاءته إحداهما تمشي} كاف»
     assert not any(b == '' for _, _, b in rulings(con, 'nahhas', 77, 15, 2))
+
+
+def test_nahhas_qabih_and_paren_hasan(con):
+    # «وذكر الفراء أنه يقبح الوقف على {فلما رأوا بأسنا … مشركين}» — النحاس's one قبيح ruling
+    assert ('قبيح', 'الفراء') in {(g, b) for _, g, b in rulings(con, 'nahhas', 40, 84, 11)}
+    # «والقطع على (ما) لعمري حسن … ولكن الائتناف لما بعدها قبيح» (2:26 «مثلا ما»)
+    assert ('حسن', '') in {(g, b) for _, g, b in rulings(con, 'nahhas', 2, 26, 7)}

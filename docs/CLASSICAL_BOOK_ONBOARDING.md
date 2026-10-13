@@ -874,3 +874,13 @@ is not one of the eight, so those verse ends stay unstored. «التام / ال�
 one grade (تام): the book uses «تمام» as its usual noun for it. The grade tables
 (frontend/lib/waqf.ts, imam-rulings, stop-explorer, waqf_guide.js,
 core/classical_review) carry the two new names.
+
+### النحاس: «قبيح» (2026-10-13)
+
+All eight «قبيح / أقبح / يقبح» in the book were read. One is a ruling: «وذكر الفراء
+أنه يقبح الوقف على {فلما رأوا بأسنا قالوا آمنا بالله وحده وكفرنا بما كنا به
+مشركين}» (40:84, now قبيح credited to الفراء — the first قبيح row for النحاس; the
+app treats it as a negative ruling). The rest are vocabulary («سنة قبيحة»،
+«ليست قبيحة»), grammar («قبيح في المنصوب»، «غلط قبيح»), or النحاس's general case
+against stopping on every «كلا». Reading them turned up a missed parenthesized
+ruling beside one: «والقطع على (ما) لعمري حسن» (2:26 «مثلا ما»), added.
