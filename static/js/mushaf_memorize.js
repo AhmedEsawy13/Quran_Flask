@@ -149,7 +149,7 @@
         rangeDraft: null,       // { anchor, previousRange } while waiting for the end verse
         justify: 50,
         tajweedOn: false,
-        contextOn: true,
+        contextOn: false,          // off by default: a clean mushaf; the toggle is remembered
         contextSpan: null,      // latest /api/memorization/context payload
         contextKeys: new Set(), // soft-highlighted ayah keys for thematic span
         contextSegments: [],    // non-overlapping topics on the visible spread
@@ -313,7 +313,7 @@
         updateJustifyLabel();
 
         state.tajweedOn = localStorage.getItem('quranApp_tajweedEnabled') === 'true';
-        state.contextOn = localStorage.getItem('mz_contextOn') !== '0';
+        state.contextOn = localStorage.getItem('mz_contextOn') === '1';
         syncTajweedButton();
 
         const savedSrc = localStorage.getItem('mz_src');
@@ -1052,6 +1052,17 @@
     }
 
     const pageRequests = window.AtharMushaf.createRequestGate();
+    /* A short slide in the reading direction when the page changes (CSS skips it under reduced motion). */
+    function animateTurn(before, after) {
+        if (!before || before === after) return;
+        const cls = after > before ? 'mz-turn-next' : 'mz-turn-prev';
+        document.querySelectorAll('.mz-page-card').forEach(card => {
+            card.classList.remove('mz-turn-next', 'mz-turn-prev', 'mz-turn-fade');
+            void card.offsetWidth;                       // restart the animation
+            card.classList.add(cls);
+        });
+    }
+
     async function renderSpread(focusPage, intent) {
         const request = intent == null ? pageRequests.next() : intent;
         try {
@@ -1060,10 +1071,12 @@
                 const fp = await fetchPageByNumber(focusPage);
                 if (state.src === 'shamarly' && fp) await ensureShemrlyFont(fp.font_name);
                 if (!pageRequests.isCurrent(request)) return false;
+                const before = state.focusPage;
                 state.focusPage = focusPage;
                 state.spread = [focusPage, null];
                 renderCard(cards.right, fp);
                 renderCard(cards.left, null);
+                animateTurn(before, focusPage);
             } else {
                 const [right, left] = spreadFor(focusPage);
                 const canLoad = page => state.src !== 'shamarly' || SHEMRLY_PAGE_SET.has(page);
@@ -1073,10 +1086,12 @@
                 ]);
                 if (state.src === 'shamarly') await Promise.all([rp, lp].map(p => p && ensureShemrlyFont(p.font_name)));
                 if (!pageRequests.isCurrent(request)) return false;
+                const before = state.focusPage;
                 state.focusPage = focusPage;
                 state.spread = [right, left];
                 renderCard(cards.right, rp);
                 renderCard(cards.left, lp);
+                animateTurn(before, focusPage);
             }
         } catch (e) {
             if (pageRequests.isCurrent(request)) setStatus('تعذّر تحميل الصفحة', true);
@@ -2646,6 +2661,24 @@
         const navNext = () => { const page = adjacentPage(1); if (page) gotoSpread(page); };
         els.prev.addEventListener('click', navPrev);
         els.next.addEventListener('click', navNext);
+        if (els.stage) {
+            let touch = null;
+            els.stage.addEventListener('touchstart', (e) => {
+                touch = e.touches.length === 1
+                    ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now() } : null;
+            }, { passive: true });
+            els.stage.addEventListener('touchend', (e) => {
+                if (!touch || e.changedTouches.length !== 1) { touch = null; return; }
+                const dx = e.changedTouches[0].clientX - touch.x;
+                const dy = e.changedTouches[0].clientY - touch.y;
+                const quick = Date.now() - touch.t < 700;
+                touch = null;
+                // Zoomed in and panning sideways: leave the gesture to the scroll.
+                const pannable = els.stage.scrollWidth > els.stage.clientWidth + 4;
+                if (!quick || pannable || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 2) return;
+                (dx > 0 ? navNext : navPrev)();
+            }, { passive: true });
+        }
         // Keyboard page-turn (RTL): → previous page, ← next page.
         document.addEventListener('keydown', (e) => {
             if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
