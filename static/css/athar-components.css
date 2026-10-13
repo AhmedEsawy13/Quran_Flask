@@ -642,6 +642,10 @@ dialog.athar-auth::backdrop {
 }
 .athar-auth-hint { margin: 0 0 6px; color: var(--athar-ink-soft); font-size: 0.86rem; line-height: 1.6; }
 .athar-auth-label { margin-top: 4px; color: var(--athar-ink-soft); font-size: 0.8rem; font-weight: 700; }
-.athar-auth-error { margin: 2px 0 0; color: #b3261e; font-size: 0.84rem; }
+.athar-auth-error { margin: 2px 0 0; color: var(--athar-danger); font-size: 0.84rem; }
 .athar-auth-actions { display: flex; gap: 8px; margin-top: 10px; }
 .athar-auth-actions .athar-button-accent { flex: 1; }
+
+/* Tool pages: plain links follow the theme instead of the browser's default blue. */
+body.athar-tool a:not([class]) { color: var(--athar-accent); }
+body.athar-tool a:not([class]):visited { color: var(--athar-accent); }

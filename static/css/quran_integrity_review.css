@@ -4,9 +4,9 @@
     --qir-muted: var(--athar-ink-muted, #6b6358);
     --qir-accent: var(--athar-accent, #2f5d4a);
     --qir-gold: var(--athar-gold, #a9782f);
-    --qir-danger: #a13f36;
+    --qir-danger: color-mix(in srgb, #a13f36 58%, var(--athar-ink));
     --qir-border: color-mix(in srgb, var(--qir-ink) 13%, transparent);
-    --qir-soft: color-mix(in srgb, white 48%, var(--qir-bg));
+    --qir-soft: color-mix(in srgb, var(--athar-surface) 48%, var(--qir-bg));
 }
 
 .qir-body {
@@ -22,13 +22,14 @@
 .qir-hero {
     padding: 24px clamp(14px, 4vw, 54px) 20px;
     border-bottom: 1px solid var(--qir-border);
-    background: color-mix(in srgb, var(--qir-bg) 94%, white);
+    background: color-mix(in srgb, var(--qir-bg) 94%, var(--athar-surface));
 }
 
 .qir-hero-inner,
 .qir-overview,
 .qir-main {
     width: min(1440px, 100%);
+    box-sizing: border-box;
     margin-inline: auto;
 }
 
@@ -85,7 +86,7 @@
 
 .qir-button-primary {
     border-color: var(--qir-accent);
-    color: #fff;
+    color: var(--athar-on-accent);
     background: var(--qir-accent);
 }
 
@@ -212,7 +213,7 @@
 
 .qir-filters button.is-active {
     border-color: var(--qir-accent);
-    color: #fff;
+    color: var(--athar-on-accent);
     background: var(--qir-accent);
 }
 
@@ -262,7 +263,7 @@
     padding: 14px;
     border: 1px solid var(--qir-border);
     border-radius: 13px;
-    background: color-mix(in srgb, white 39%, var(--qir-bg));
+    background: color-mix(in srgb, var(--athar-surface) 39%, var(--qir-bg));
     box-shadow: 0 2px 12px color-mix(in srgb, var(--qir-ink) 4%, transparent);
 }
 

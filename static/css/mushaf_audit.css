@@ -2,7 +2,7 @@
   url('../fonts/uthmanic_hafs_v20.ttf') format('truetype');font-display:swap}
 :root{--bg:var(--athar-parchment);--fg:var(--athar-ink);--muted:var(--athar-ink-soft);--card:var(--athar-surface);
   --line:var(--athar-line);--accent:var(--athar-accent);--accent-soft:var(--athar-line-soft);--cv:var(--athar-accent);
-  --db:#9a5b00;--warn:#b3261e;--pend-bg:rgba(201,151,0,.14);--pend-fg:#8a5a00;--ref-img-bg:rgba(201,151,0,.14);
+  --db:#9a5b00;--warn:var(--athar-danger);--pend-bg:rgba(201,151,0,.14);--pend-fg:#8a5a00;--ref-img-bg:rgba(201,151,0,.14);
   --ref-img-fg:#8a5a00;--ref-db-bg:rgba(31,122,90,.12);--ref-db-fg:var(--athar-accent);--quran:'UthmanicHafs','Amiri Quran',serif}
 *{box-sizing:border-box} [hidden]{display:none!important}
 body.au-body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 var(--font-ui)}

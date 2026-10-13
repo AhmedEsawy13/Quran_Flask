@@ -73,7 +73,7 @@
 }
 .act-btn-primary {
     background: var(--act-accent);
-    color: #fff;
+    color: var(--athar-on-accent);
 }
 .act-btn-secondary {
     background: color-mix(in srgb, var(--act-accent) 12%, transparent);
@@ -176,3 +176,38 @@
     }
     .act-filter-actions { padding-bottom: 2px; }
 }
+
+/* ── Per-editor dashboard (theme tokens only, so light/dark/sepia all read) ── */
+.act-dash { margin-bottom: 28px; }
+.act-dash-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.act-dash-title, .act-section-title {
+    margin: 0; font-family: var(--font-display); font-size: 1.35rem; color: var(--athar-ink);
+}
+.act-section-title { margin: 6px 0 12px; font-size: 1.15rem; }
+.act-dash-team { margin: 8px 0 14px; color: var(--athar-ink-soft); font-size: 0.9rem; }
+.act-dash-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.act-person {
+    display: flex; flex-direction: column; gap: 8px; padding: 14px 16px;
+    border: 1px solid var(--athar-line); border-radius: 14px; background: var(--athar-surface);
+}
+.act-person.is-idle { opacity: 0.7; }
+.act-person-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.act-person-name { margin: 0; font-size: 1.02rem; font-weight: 700; color: var(--athar-ink); }
+.act-role {
+    font-size: 0.7rem; font-weight: 700; padding: 1px 8px; border-radius: 999px;
+    background: var(--athar-accent); color: var(--athar-on-accent);
+}
+.act-person-when { margin-inline-start: auto; font-size: 0.76rem; color: var(--athar-ink-soft); }
+.act-person-total { margin: 0; color: var(--athar-ink-soft); font-size: 0.86rem; }
+.act-person-total b { color: var(--athar-accent); font-size: 1.35rem; margin-inline-end: 2px; }
+.act-work { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: 0.82rem; color: var(--athar-ink-soft); }
+.act-work b { color: var(--athar-ink); }
+.act-spark { display: flex; align-items: flex-end; gap: 2px; height: 34px; padding-top: 2px; border-bottom: 1px solid var(--athar-line); }
+.act-spark i { flex: 1; min-width: 2px; height: max(2px, var(--h)); background: var(--athar-accent); border-radius: 2px 2px 0 0; opacity: .85; }
+.act-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.act-chip {
+    font-size: 0.74rem; padding: 2px 8px; border-radius: 999px;
+    border: 1px solid var(--athar-line); color: var(--athar-ink);
+}
+.act-chip-soft { background: var(--athar-line-soft); border-color: transparent; color: var(--athar-ink-soft); }
+.act-person-log { align-self: flex-start; font-size: 0.8rem; padding: 4px 12px; }

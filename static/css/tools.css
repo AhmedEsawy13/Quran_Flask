@@ -4,7 +4,7 @@
 .tl-head { margin-bottom: 26px; }
 .tl-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 4px 0 8px; }
 .tl-lead { color: var(--athar-ink-soft); margin: 0; line-height: 1.7; }
-.tl-warn { color: #b3261e; font-weight: 600; margin-inline-start: 6px; }
+.tl-warn { color: var(--athar-danger); font-weight: 600; margin-inline-start: 6px; }
 .tl-group { margin-top: 30px; }
 .tl-group-title { font-size: 1.05rem; font-weight: 700; color: var(--athar-ink-soft); margin: 0 0 12px;
   display: flex; align-items: center; gap: 8px; }

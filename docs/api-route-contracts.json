@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 125,
+  "route_count": 126,
   "routes": [
     {
       "auth": "editor",
@@ -37,6 +37,43 @@
         "items",
         "next_cursor",
         "user"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.activity_summary",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/activity/summary",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/activity.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "active",
+        "cloud",
+        "days",
+        "people",
+        "team",
+        "total"
       ]
     },
     {

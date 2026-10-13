@@ -755,3 +755,8 @@ body.ed-compare-print .ed-word.ed-diff .ed-waqf-mark { color: inherit; }
     .ed-legend::-webkit-scrollbar { display: none; }
     .ed-legend-chip { flex: 0 0 auto; }
 }
+
+/* Phones: the page-navigation row wraps instead of pushing the page sideways. */
+@media (max-width: 720px) {
+    .ed-location-tools { flex-wrap: wrap; min-width: 0; max-width: 100%; box-sizing: border-box; justify-content: center; }
+}

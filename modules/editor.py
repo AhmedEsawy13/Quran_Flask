@@ -581,7 +581,7 @@ def set_mushaf_editor_waqf():
         return jsonify({
             'error': 'cloud_not_configured',
             'message': f'هذا الخادم غير متصل بالسحابة؛ تعديلات «{edition}» لا تُحفظ إلا في السحابة. '
-                       'افتح المحرر من خادم السحابة (المنفذ 5002).',
+                       'افتح المحرر من خادم متصل بالسحابة (Heroku، أو المنفذ 5002 محليًا).',
         }), 409
 
     user = current_editor()

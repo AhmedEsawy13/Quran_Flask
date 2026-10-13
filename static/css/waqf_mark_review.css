@@ -5,10 +5,10 @@
     --wmr-muted: var(--athar-ink-muted, #6b6358);
     --wmr-accent: var(--athar-accent, #2f5d4a);
     --wmr-border: color-mix(in srgb, var(--wmr-ink) 12%, transparent);
-    --wmr-ok: #1f6b45;
-    --wmr-bad: #8a3b2a;
-    --wmr-warn: #8a6a1f;
-    --wmr-quran: #1a1510;
+    --wmr-ok: color-mix(in srgb, #1f6b45 58%, var(--athar-ink));
+    --wmr-bad: color-mix(in srgb, #8a3b2a 58%, var(--athar-ink));
+    --wmr-warn: color-mix(in srgb, #8a6a1f 58%, var(--athar-ink));
+    --wmr-quran: var(--athar-ink);
 }
 
 .wmr-body {
@@ -26,7 +26,7 @@
     top: 0;
     z-index: 20;
     padding: 10px 14px 12px;
-    background: color-mix(in srgb, var(--wmr-bg) 92%, white);
+    background: color-mix(in srgb, var(--wmr-bg) 92%, var(--athar-surface));
     border-bottom: 1px solid var(--wmr-border);
     backdrop-filter: blur(8px);
 }
@@ -88,7 +88,7 @@
     height: 48px;
     border-radius: 12px;
     border: 1px solid var(--wmr-border);
-    background: #fff;
+    background: var(--athar-surface);
     color: var(--wmr-ink);
     font-size: 1.6rem;
     line-height: 1;
@@ -116,7 +116,7 @@
     padding: 0 9px;
     border-radius: 999px;
     border: 1px solid var(--wmr-border);
-    background: #fff;
+    background: var(--athar-surface);
     font-size: 0.72rem;
     color: var(--wmr-muted);
 }
@@ -160,7 +160,7 @@
 .wmr-card {
     border: 1px solid var(--wmr-border);
     border-radius: 14px;
-    background: #fff;
+    background: var(--athar-surface);
     padding: 12px;
     scroll-margin-block: 150px 100px;
     transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
@@ -226,7 +226,7 @@
     height: 64px;
     flex-shrink: 0;
     border-radius: 16px;
-    background: color-mix(in srgb, var(--wmr-accent) 12%, white);
+    background: color-mix(in srgb, var(--wmr-accent) 12%, var(--athar-surface));
     color: var(--wmr-accent);
     overflow: hidden;
 }
@@ -255,24 +255,24 @@
     min-height: 44px;
     border-radius: 10px;
     border: 1px solid var(--wmr-border);
-    background: #faf7f2;
+    background: var(--athar-surface);
     font-weight: 800;
     font-size: 0.9rem;
     color: var(--wmr-ink);
 }
 
 .wmr-act.is-on[data-decision="ok"] {
-    background: color-mix(in srgb, var(--wmr-ok) 18%, white);
+    background: color-mix(in srgb, var(--wmr-ok) 18%, var(--athar-surface));
     border-color: var(--wmr-ok);
     color: var(--wmr-ok);
 }
 .wmr-act.is-on[data-decision="wrong"] {
-    background: color-mix(in srgb, var(--wmr-bad) 16%, white);
+    background: color-mix(in srgb, var(--wmr-bad) 16%, var(--athar-surface));
     border-color: var(--wmr-bad);
     color: var(--wmr-bad);
 }
 .wmr-act.is-on[data-decision="extra"] {
-    background: color-mix(in srgb, var(--wmr-warn) 18%, white);
+    background: color-mix(in srgb, var(--wmr-warn) 18%, var(--athar-surface));
     border-color: var(--wmr-warn);
     color: var(--wmr-warn);
 }
@@ -307,7 +307,7 @@
     border: 1px solid var(--wmr-border);
     padding: 10px;
     font: inherit;
-    background: #fff;
+    background: var(--athar-surface);
     resize: vertical;
 }
 .wmr-missing-list {
@@ -322,7 +322,7 @@
     font-size: 0.82rem;
     padding: 8px 10px;
     border-radius: 8px;
-    background: color-mix(in srgb, var(--wmr-warn) 10%, white);
+    background: color-mix(in srgb, var(--wmr-warn) 10%, var(--athar-surface));
 }
 
 .wmr-footer {
@@ -334,7 +334,7 @@
     grid-template-columns: 1fr auto;
     gap: 8px;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--wmr-bg) 94%, white);
+    background: color-mix(in srgb, var(--wmr-bg) 94%, var(--athar-surface));
     border-top: 1px solid var(--wmr-border);
 }
 
@@ -348,9 +348,9 @@
 .wmr-btn-primary {
     background: var(--wmr-accent);
     border-color: var(--wmr-accent);
-    color: #fff;
+    color: var(--athar-on-accent);
 }
-.wmr-btn-secondary { background: #fff; color: var(--wmr-ink); }
+.wmr-btn-secondary { background: var(--athar-surface); color: var(--wmr-ink); }
 .wmr-btn-ghost { background: transparent; color: var(--wmr-muted); }
 
 .wmr-sheet[hidden] { display: none !important; }
@@ -382,7 +382,7 @@
     min-height: 64px;
     border-radius: 12px;
     border: 1px solid var(--wmr-border);
-    background: #fff;
+    background: var(--athar-surface);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -417,7 +417,7 @@
     padding: 8px 14px;
     border-radius: 999px;
     background: var(--wmr-ink);
-    color: #fff;
+    color: var(--athar-surface);
     font-size: 0.82rem;
     white-space: nowrap;
 }
@@ -489,3 +489,5 @@
         inset-inline: max(0px, calc(50% - 360px));
     }
 }
+
+.wmr-body a:not([class]), .wmr-chrome a:not([class]) { color: var(--athar-accent); }

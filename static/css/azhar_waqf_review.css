@@ -21,7 +21,7 @@
     position: relative;
     padding: 18px clamp(14px, 4vw, 48px) 14px;
     border-bottom: 1px solid var(--azr-border);
-    background: color-mix(in srgb, var(--azr-bg) 94%, white);
+    background: color-mix(in srgb, var(--azr-bg) 94%, var(--athar-surface));
     backdrop-filter: blur(10px);
 }
 
@@ -30,6 +30,7 @@
 .azr-status-row,
 .azr-main {
     width: min(1440px, 100%);
+    box-sizing: border-box;
     margin-inline: auto;
 }
 
@@ -81,7 +82,7 @@
     min-height: 42px;
     border: 1px solid var(--azr-border);
     border-radius: 10px;
-    background: color-mix(in srgb, white 58%, var(--azr-bg));
+    background: color-mix(in srgb, var(--athar-surface) 58%, var(--azr-bg));
     color: var(--azr-ink);
     font: inherit;
     padding: 6px 10px;
@@ -93,7 +94,7 @@
     border-radius: 10px;
     padding: 0 15px;
     color: var(--azr-ink);
-    background: white;
+    background: var(--athar-surface);
     font: inherit;
     font-weight: 800;
     cursor: pointer;
@@ -102,7 +103,7 @@
 .azr-button-primary {
     border-color: var(--azr-accent);
     background: var(--azr-accent);
-    color: #fff;
+    color: var(--athar-on-accent);
 }
 
 .azr-controls {
@@ -127,7 +128,7 @@
     padding: 3px;
     border: 1px solid var(--azr-border);
     border-radius: 11px;
-    background: color-mix(in srgb, white 48%, var(--azr-bg));
+    background: color-mix(in srgb, var(--athar-surface) 48%, var(--azr-bg));
 }
 
 .azr-view-switch button {
@@ -144,7 +145,7 @@
 
 .azr-view-switch button.is-active {
     color: var(--azr-accent);
-    background: #fff;
+    background: var(--athar-surface);
     box-shadow: 0 2px 8px color-mix(in srgb, var(--azr-ink) 10%, transparent);
 }
 
@@ -198,7 +199,7 @@
     padding: 9px 11px;
     border: 1px solid color-mix(in srgb, var(--azr-accent) 15%, var(--azr-border));
     border-radius: 10px;
-    background: color-mix(in srgb, white 43%, var(--azr-bg));
+    background: color-mix(in srgb, var(--athar-surface) 43%, var(--azr-bg));
 }
 
 .azr-stat b {
@@ -300,7 +301,7 @@
     padding: 4px 8px;
     border: 1px solid var(--azr-border);
     border-radius: 999px;
-    background: color-mix(in srgb, white 45%, var(--azr-bg));
+    background: color-mix(in srgb, var(--athar-surface) 45%, var(--azr-bg));
 }
 
 .azr-legend-glyph,
@@ -338,7 +339,7 @@
 
 .azr-table thead th {
     position: static;
-    background: color-mix(in srgb, var(--azr-bg) 97%, white);
+    background: color-mix(in srgb, var(--azr-bg) 97%, var(--athar-surface));
     color: var(--azr-muted);
     font-size: 0.76rem;
     font-weight: 800;
@@ -447,7 +448,7 @@
     padding: 5px 8px;
     border: 1px solid color-mix(in srgb, var(--azr-accent) 25%, var(--azr-border));
     border-radius: 8px;
-    background: color-mix(in srgb, var(--azr-accent) 6%, white);
+    background: color-mix(in srgb, var(--azr-accent) 6%, var(--athar-surface));
     color: var(--azr-ink);
     font-size: 0.8rem;
     white-space: nowrap;

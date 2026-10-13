@@ -31,6 +31,21 @@
     </header>
 
     <main class="act-main" id="act-main" tabindex="-1">
+        <section class="act-dash" id="act-dash" aria-labelledby="act-dash-title" hidden>
+            <div class="act-dash-head">
+                <h2 class="act-dash-title" id="act-dash-title">لوحة المحرّرين</h2>
+                <div class="act-period athar-tabs" role="group" aria-label="الفترة">
+                    <button type="button" class="athar-tab" data-days="7">٧ أيام</button>
+                    <button type="button" class="athar-tab" data-days="30">٣٠ يومًا</button>
+                    <button type="button" class="athar-tab" data-days="90">٩٠ يومًا</button>
+                    <button type="button" class="athar-tab" data-days="0">الكل</button>
+                </div>
+            </div>
+            <p class="act-dash-team" id="act-dash-team" aria-live="polite"></p>
+            <div class="act-dash-grid" id="act-dash-grid"></div>
+        </section>
+
+        <h2 class="act-section-title">السجل</h2>
         <form class="act-filters" id="act-filters">
             <label class="act-field">
                 <span>المصحف / المشروع</span>

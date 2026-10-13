@@ -45,6 +45,7 @@
 
 /* ---- Design tokens ---- */
 :root {
+  --athar-danger:      #A33B2B;
   --font-display: 'Thmanyah Display', 'Amiri', Georgia, serif;
   --font-ui:      'Thmanyah Sans', 'IBM Plex Sans Arabic', system-ui, sans-serif;
   --font-serif:   'Thmanyah Text', 'Thmanyah Display', Georgia, serif;
@@ -107,6 +108,7 @@
   --athar-danger:      #FF9287;
 }
 :root[data-theme="light"] {
+  --athar-danger:      #A33B2B;
   --athar-accent:      #1f7a5a;
   --athar-accent-soft: #2e9c76;
   --athar-on-accent:   #FFFDF6;
@@ -129,7 +131,7 @@
   --athar-surface:     #FAF3E0;
   --athar-ink:         #3A2F1A;
   --athar-ink-soft:    #6F5E42;
-  --athar-ink-faint:   #978562;
+  --athar-ink-faint:   #836F4C;  /* ≥3:1 on sepia paper */
   --athar-gold:        #A66F24;
   --athar-line:        rgba(74, 59, 36, 0.17);
   --athar-line-soft:   rgba(74, 59, 36, 0.09);
@@ -162,8 +164,12 @@
   --athar-shadow-sm: 0 5px 18px rgba(24, 23, 15, 0.07);
   --athar-shadow-md: 0 18px 48px rgba(24, 23, 15, 0.11);
   --athar-focus-ring: color-mix(in srgb, var(--athar-accent) 54%, transparent);
-  --athar-danger: #A33B2B;
   --athar-warning: var(--athar-gold);
+  /* Older tool stylesheets use these names; alias them so they follow the theme
+     instead of falling back to fixed light-mode colours in dark mode. */
+  --athar-ink-muted: var(--athar-ink-soft);
+  --athar-sans: var(--font-ui);
+  --athar-display: var(--font-display);
   --athar-success: var(--athar-accent);
 
   --athar-motion-fast: 160ms;

@@ -94,7 +94,7 @@ def _cloud_guard(edition: str):
     if not sb.is_configured():
         return jsonify({
             'error': 'cloud_not_configured',
-            'message': 'هذه المراجعة تُحفظ في السحابة فقط؛ افتحها من خادم السحابة (المنفذ 5002).',
+            'message': 'هذه المراجعة تُحفظ في السحابة فقط؛ افتحها من خادم متصل بالسحابة (Heroku، أو المنفذ 5002 محليًا).',
         }), 409
     return None
 

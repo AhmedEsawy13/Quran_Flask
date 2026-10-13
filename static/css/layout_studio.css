@@ -85,7 +85,7 @@ body.az-layout {
     background: color-mix(in srgb, #f59e0b 10%, var(--az-paper));
 }
 .az-confidence-low {
-    color: #991b1b; border-color: color-mix(in srgb, #dc2626 45%, var(--az-border));
+    color: var(--athar-danger); border-color: color-mix(in srgb, #dc2626 45%, var(--az-border));
     background: color-mix(in srgb, #ef4444 9%, var(--az-paper));
 }
 .az-reseed-note {
@@ -103,7 +103,7 @@ body.az-layout {
     min-height: 34px; display: inline-flex; align-items: center; gap: 6px;
     padding: 0 10px; border: 1px solid color-mix(in srgb, #dc2626 38%, var(--az-border));
     border-radius: 8px; background: color-mix(in srgb, #ef4444 7%, var(--az-paper));
-    color: #991b1b; cursor: pointer; font-family: inherit; font-size: 0.76rem; font-weight: 800;
+    color: var(--athar-danger); cursor: pointer; font-family: inherit; font-size: 0.76rem; font-weight: 800;
 }
 .az-uncertain-btn:hover { border-color: #dc2626; background: color-mix(in srgb, #ef4444 13%, var(--az-paper)); }
 .az-uncertain-btn:disabled { cursor: default; opacity: 0.55; }
@@ -161,7 +161,7 @@ body.az-layout {
     margin: 0; color: var(--az-muted); font-size: 0.72rem; line-height: 1.55;
 }
 .az-profile-budget { color: var(--az-accent); font-weight: 700; }
-.az-profile-budget.az-invalid { color: #b91c1c; }
+.az-profile-budget.az-invalid { color: var(--athar-danger); }
 .az-profile-flow {
     margin: 0; padding: 9px; display: grid; gap: 8px;
     border: 1px solid var(--az-border); border-radius: 9px;
@@ -173,7 +173,7 @@ body.az-layout {
 .az-profile-header-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .az-profile-save {
     min-height: 40px; border: 0; border-radius: 9px;
-    background: var(--az-accent); color: #fff; cursor: pointer;
+    background: var(--az-accent); color: var(--athar-on-accent); cursor: pointer;
     font-family: inherit; font-size: 0.82rem; font-weight: 800;
 }
 .az-profile-save:hover { filter: brightness(1.06); }
@@ -496,4 +496,13 @@ body.az-dragging .az-line-tools { opacity: 0; pointer-events: none; }
         position: fixed; inset: auto 14px 14px; width: auto; max-height: 78vh;
     }
     .az-profile-header-grid { grid-template-columns: 1fr; }
+}
+
+/* Phones: the page-navigation row wraps instead of pushing the page sideways. */
+@media (max-width: 720px) {
+    .az-location-tools { flex-wrap: wrap; min-width: 0; max-width: 100%; box-sizing: border-box; justify-content: center; }
+}
+@media (max-width: 720px) {
+    .az-ref-header { flex-wrap: wrap; }
+    .az-ref-open { max-width: 100%; }
 }

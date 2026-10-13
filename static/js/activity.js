@@ -91,6 +91,7 @@
                 state.user = user;
                 renderAuth();
                 loadFeed({ append: false });
+                loadSummary();
             });
             return;
         }
@@ -397,8 +398,91 @@
         });
     }
 
+
+    /* ── Per-editor dashboard ───────────────────────────────────── */
+    const dash = { el: $('act-dash'), grid: $('act-dash-grid'), team: $('act-dash-team'), days: 30 };
+    const WORK_LABELS = { marks: 'علامات', decisions: 'قرارات مراجعة', layout: 'تخطيط', pages: 'صفحات', publish: 'نشر' };
+    const arNum = (n) => Number(n || 0).toLocaleString('ar-EG');
+
+    function sinceText(iso) {
+        if (!iso) return 'لم يبدأ بعد';
+        const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+        if (mins < 60) return `منذ ${arNum(mins)} دقيقة`;
+        const hours = Math.round(mins / 60);
+        if (hours < 48) return `منذ ${arNum(hours)} ساعة`;
+        return `منذ ${arNum(Math.round(hours / 24))} يومًا`;
+    }
+
+    function personCard(p, dayKeys) {
+        const work = Object.entries(p.work || {}).filter(([, n]) => n > 0)
+            .map(([k, n]) => `<li><b>${arNum(n)}</b> ${WORK_LABELS[k] || k}</li>`).join('');
+        const peak = Math.max(1, ...(p.daily || [0]));
+        const bars = (p.daily || []).map((n, i) => `<i style="--h:${Math.round((n / peak) * 100)}%" title="${escapeHtml(dayKeys[i] || '')}: ${arNum(n)}"></i>`).join('');
+        const editions = (p.editions || []).slice(0, 4).map((e) => `<span class="act-chip">${escapeHtml(e.name)} · ${arNum(e.count)}</span>`).join('');
+        const actions = (p.actions || []).filter((a) => a.id !== 'login').slice(0, 4)
+            .map((a) => `<span class="act-chip act-chip-soft">${escapeHtml(a.label)} · ${arNum(a.count)}</span>`).join('');
+        const idle = (p.total - (p.logins || 0)) <= 0;
+        return `<article class="act-person${idle ? ' is-idle' : ''}">
+            <header class="act-person-head">
+                <h3 class="act-person-name">${escapeHtml(p.name)}</h3>
+                ${p.role === 'admin' ? '<span class="act-role">مشرف</span>' : ''}
+                <span class="act-person-when">${escapeHtml(sinceText(p.last_at))}</span>
+            </header>
+            <p class="act-person-total"><b>${arNum(p.total - (p.logins || 0))}</b> تعديلًا · ${arNum(p.pages_touched)} صفحة${p.logins ? ` · ${arNum(p.logins)} دخول` : ''}</p>
+            ${work ? `<ul class="act-work">${work}</ul>` : ''}
+            <div class="act-spark" aria-hidden="true">${bars}</div>
+            ${actions ? `<div class="act-chips">${actions}</div>` : ''}
+            ${editions ? `<div class="act-chips">${editions}</div>` : ''}
+            ${p.id && !String(p.id).startsWith('name:') && !idle ? `<button type="button" class="act-btn act-btn-ghost act-person-log" data-actor="${escapeHtml(p.id)}">سجلّه ↓</button>` : ''}
+        </article>`;
+    }
+
+    async function loadSummary() {
+        if (!dash.el) return;
+        try {
+            const data = await api(`/api/activity/summary?days=${dash.days}`);
+            if (!data.cloud) { dash.el.hidden = true; return; }
+            dash.el.hidden = false;
+            const t = data.team || {};
+            const parts = Object.entries(t).filter(([, n]) => n > 0).map(([k, n]) => `${arNum(n)} ${WORK_LABELS[k] || k}`);
+            dash.team.textContent = `${arNum(data.active)} محرّرًا نشطًا من ${arNum((data.people || []).length)}`
+                + (parts.length ? ` — ${parts.join(' · ')}` : '');
+            dash.grid.innerHTML = (data.people || []).map((p) => personCard(p, data.day_keys || [])).join('')
+                || '<p class="act-status">لا نشاط في هذه الفترة.</p>';
+        } catch (err) {
+            if (err && err.status === 401) return;     // the shared sign-in panel handles it
+            dash.el.hidden = false;
+            dash.grid.innerHTML = '<p class="act-status">تعذّر تحميل اللوحة.</p>';
+        }
+    }
+
+    if (dash.el) {
+        dash.el.addEventListener('click', (e) => {
+            const period = e.target.closest('[data-days]');
+            if (period) {
+                dash.days = Number(period.dataset.days);
+                dash.el.querySelectorAll('[data-days]').forEach((b) => b.classList.toggle('is-active', b === period));
+                loadSummary();
+                return;
+            }
+            const log = e.target.closest('[data-actor]');
+            if (log && els.actor) {
+                if (![...els.actor.options].some((o) => o.value === log.dataset.actor)) {
+                    els.actor.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(log.dataset.actor)}">${escapeHtml(log.closest('.act-person').querySelector('.act-person-name').textContent)}</option>`);
+                }
+                els.actor.value = log.dataset.actor;
+                state.cursor = null;
+                loadFeed({ append: false });
+                els.filters.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+        const initial = dash.el.querySelector('[data-days="30"]');
+        if (initial) initial.classList.add('is-active');
+    }
+
     (async function init() {
         await checkAuth();
         await loadFeed({ append: false });
+        loadSummary();
     })();
 })();

@@ -980,6 +980,29 @@ def list_audit_page(
     return out, next_cursor
 
 
+def audit_rows_since(since: str | None, *, page_size: int = 1000, max_rows: int = 50000) -> list[dict]:
+    """Every audit row at or after ``since`` (all rows when None), newest first.
+
+    Light columns only; paged with offset so PostgREST's per-request row cap
+    does not truncate a busy period. Feeds the per-editor dashboard.
+    """
+    out: list[dict] = []
+    while len(out) < max_rows:
+        params = {
+            'select': 'id,at,actor_id,actor_name,action,edition,page_number',
+            'order': 'at.desc,id.desc',
+            'limit': str(page_size),
+            'offset': str(len(out)),
+        }
+        if since:
+            params['at'] = f'gte.{since}'
+        rows = _request('GET', 'editor_audit', params=params) or []
+        out.extend(rows)
+        if len(rows) < page_size:
+            break
+    return out
+
+
 def list_audit(
     *,
     edition: str | None = None,
