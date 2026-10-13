@@ -333,6 +333,19 @@ main[tabindex="-1"] {
   color: var(--athar-bar-fg);
   font-weight: 600;
 }
+/* Editor deployments only: the tools entry sits apart from the public pages. */
+.athar-bar .athar-nav a.athar-nav-tools {
+  margin-inline-start: 6px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--athar-bar-border);
+  border-radius: 0 7px 7px 0;
+}
+.athar-bar .athar-nav a.athar-nav-tools i { font-size: .8em; margin-inline-end: 3px; }
+@media (max-width: 520px) {
+  .athar-bar .athar-nav a.athar-nav-tools { padding-inline: 10px; }
+  .athar-bar .athar-nav a.athar-nav-tools i { font-size: .95em; margin: 0; }
+  .athar-nav-tools-label { display: none; }
+}
 /* subtle active indicator — a short rounded underline (Apple-like) */
 .athar-bar .athar-nav a.is-active::after {
   content: "";

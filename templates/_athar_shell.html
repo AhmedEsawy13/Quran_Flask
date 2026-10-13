@@ -46,6 +46,10 @@
         <a href="/memorize"{% if current_path == '/memorize' %} class="is-active" aria-current="page"{% endif %}>تثبيت</a>
         <a href="/waqf"{% if current_path == '/waqf' or current_path.startswith('/waqf-lab') %} class="is-active" aria-current="page"{% endif %}>مُكْث</a>
         <a href="/waqf-practice"{% if current_path == '/waqf-practice' %} class="is-active" aria-current="page"{% endif %}>تدريب</a>
+        {% if editor_enabled %}
+        {% set tool_paths = ('/tools', '/mushaf-editor', '/layout-studio', '/azhar-layout', '/waqf-mark-review', '/azhar-waqf-review', '/cv-waqf', '/font-lab', '/classical-review', '/tawjih-review', '/quran-integrity-review', '/activity') %}
+        <a title="الأدوات" aria-label="الأدوات" class="athar-nav-tools{% for p in tool_paths if current_path == p or current_path.startswith(p ~ '/') %}{% if loop.first %} is-active{% endif %}{% endfor %}" href="/tools"{% if current_path == '/tools' %} aria-current="page"{% endif %}><i class="fas fa-screwdriver-wrench" aria-hidden="true"></i><span class="athar-nav-tools-label"> الأدوات</span></a>
+        {% endif %}
     </nav>
     <button class="athar-icon-btn" data-athar-theme="cycle" type="button" title="الوضع الليلي" aria-label="الوضع الليلي">
         <i class="fas fa-moon" aria-hidden="true"></i>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {% set page_title = 'أثَر · الأدوات' %}
+    {% set page_description = 'أدوات التحرير والمراجعة الداخلية في أثَر.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/tools', noindex=true) }}
+    {{ athar_shell_head() }}
+    <link rel="stylesheet" href="{{ static_hash('css/tools.css') }}">
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+</head>
+<body class="athar-tool tl-body">
+    {{ athar_app_bar('tl-main') }}
+    <main class="tl-main" id="tl-main" tabindex="-1">
+        <header class="tl-head">
+            <p class="athar-kicker">أثَر · للمحرّرين</p>
+            <h1 class="tl-title">الأدوات</h1>
+            <p class="tl-lead">أدوات التحرير والمراجعة. الحفظ يحتاج تسجيل الدخول بحساب محرّر.
+                {% if not cloud %}<span class="tl-warn">هذا الخادم غير متصل بالسحابة.</span>{% endif %}</p>
+        </header>
+        {% for group in groups %}
+        <section class="tl-group" aria-labelledby="tl-g{{ loop.index }}">
+            <h2 class="tl-group-title" id="tl-g{{ loop.index }}"><i class="fas {{ group.icon }}" aria-hidden="true"></i> {{ group.title }}</h2>
+            <div class="tl-grid">
+                {% for tool in group.tools %}
+                <article class="tl-card{% if tool.note %} is-limited{% endif %}">
+                    <a class="tl-card-link" href="{{ tool.href }}">
+                        <h3 class="tl-name">{{ tool.name }}</h3>
+                        <p class="tl-desc">{{ tool.desc }}</p>
+                    </a>
+                    {% if tool.links %}
+                    <div class="tl-links">
+                        {% for link in tool.links %}<a href="{{ link.href }}">{{ link.label }}</a>{% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if tool.note %}<p class="tl-note">{{ tool.note }}</p>{% endif %}
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endfor %}
+    </main>
+</body>
+</html>

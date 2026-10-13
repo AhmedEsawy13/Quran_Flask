@@ -1,0 +1,27 @@
+/* /tools — the editor's tool index. Colours come from brand.css tokens (light/dark/sepia). */
+.tl-body { background: var(--athar-bg, var(--athar-surface)); color: var(--athar-ink); }
+.tl-main { max-width: 1080px; margin: 0 auto; padding: 28px 16px 64px; font-family: var(--font-ui); }
+.tl-head { margin-bottom: 26px; }
+.tl-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 4px 0 8px; }
+.tl-lead { color: var(--athar-ink-soft); margin: 0; line-height: 1.7; }
+.tl-warn { color: #b3261e; font-weight: 600; margin-inline-start: 6px; }
+.tl-group { margin-top: 30px; }
+.tl-group-title { font-size: 1.05rem; font-weight: 700; color: var(--athar-ink-soft); margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px; }
+.tl-group-title i { color: var(--athar-accent); }
+.tl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.tl-card { background: var(--athar-surface); border: 1px solid var(--athar-line); border-radius: 14px;
+  display: flex; flex-direction: column; transition: border-color .18s ease, transform .18s ease; }
+.tl-card:hover { border-color: var(--athar-accent); transform: translateY(-1px); }
+.tl-card-link { display: block; padding: 16px 18px 12px; color: inherit; text-decoration: none; flex: 1; }
+.tl-card-link:focus-visible { outline: 2px solid var(--athar-accent); outline-offset: -2px; border-radius: 14px; }
+.tl-name { font-size: 1.08rem; font-weight: 700; margin: 0 0 6px; color: var(--athar-accent); }
+.tl-desc { margin: 0; color: var(--athar-ink-soft); font-size: .92rem; line-height: 1.65; }
+.tl-links { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 18px 12px; }
+.tl-links a { font-size: .82rem; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--athar-line);
+  color: var(--athar-ink); text-decoration: none; }
+.tl-links a:hover { border-color: var(--athar-accent); color: var(--athar-accent); }
+.tl-note { margin: 0; padding: 8px 18px 12px; font-size: .8rem; color: var(--athar-ink-faint);
+  border-top: 1px dashed var(--athar-line); }
+.tl-card.is-limited .tl-name { color: var(--athar-ink-soft); }
+@media (max-width: 600px) { .tl-main { padding-top: 18px; } .tl-grid { grid-template-columns: 1fr; } }
