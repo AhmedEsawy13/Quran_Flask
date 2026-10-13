@@ -378,9 +378,18 @@ EDITIONS: dict[str, EditionSpec] = {
         min_page=1,
         max_page=604,
         image_kind='cache',
-        page_cache_dir=str(PAGES_ROOT / 'madinah_1405'),
-        text_top=0.10,
-        text_bottom=0.92,
+        # Scan: quranpedia.net/book/20275 «مصحف المدينة الإصدار القديم» (King Fahd Complex), the 1405 print with
+        # the «لا» marks; rendered once from the PDF (mushaf page = 0-based PDF page - 2) into data/refs (gitignored).
+        # Source images are 759x1100, upscaled to the 1024 working width.
+        page_cache_dir=str(ROOT / 'data' / 'refs' / 'madinah_1405' / 'cache'),
+        # calibrate-geometry on 86 pages (3-604:7), 2026-10-13
+        text_top=0.1054,
+        text_bottom=0.87,
+        default_proposal_mode='hybrid',
+        measured_geometry=True,
+        # The test must not let Madinah vouch for its own marks: Azhar alone defines the allowed seats.
+        azhar_seat_prior=True,
+        seat_prior_editions=('الأزهر',),
     ),
     'الأزهر': EditionSpec(
         id='azhar',
