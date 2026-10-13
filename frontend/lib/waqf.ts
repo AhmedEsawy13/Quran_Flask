@@ -164,6 +164,9 @@ export const classicalGradeMeta: Record<string, {cls: string; desc: string}> = {
   "حسن": {cls: "hasan", desc: "وقفٌ حسن — يَحسُن الوقف ولا يَحسُن الابتداء بما بعده"},
   "جائز": {cls: "jaiz", desc: "وقفٌ جائز"},
   "صالح": {cls: "kafi", desc: "وقفٌ صالح"},
+  // النحاس's own kinds (القطع والائتناف counts eight: التام، التمام، الكافي، الحسن، الصالح، الجيد، البيان، القبيح)
+  "جيد": {cls: "hasan", desc: "وقفٌ جيد — من أقسام الوقف عند النحاس"},
+  "بيان": {cls: "jaiz", desc: "وقف بيان — يُوقف عليه لبيان المعنى"},
   "قبيح": {cls: "qabih", desc: "وقفٌ قبيح — لا يُوقف عليه"},
   "لا": {cls: "qabih", desc: "ليس بوقف"},
   "لازم": {cls: "tamm", desc: "وقفٌ لازم"},

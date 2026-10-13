@@ -24,6 +24,7 @@ const gradeTone: Record<string, string> = {
   "تام": "bg-athar-accent text-athar-on-accent",
   "كاف": "bg-athar-positive/15 text-athar-positive",
   "حسن": "bg-athar-gold/15 text-athar-gold",
+  "جيد": "bg-athar-gold/15 text-athar-gold",
 };
 
 function buildStops({waqf, classical}: Loaded): Stop[] {

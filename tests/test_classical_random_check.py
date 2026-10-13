@@ -752,7 +752,7 @@ def test_nahhas_misplaced_duplicate_dropped(con):
     (73, 4, 2, 'تام', 'نافع'),
     (54, 51, 5, 'تام', ''),           # «{فهل من مدكر} قطع تام» — the refrain's last occurrence
     (89, 7, 0, 'تام', 'نافع'),        # «والرواية عن نافع {بعاد} {إرم} تم»
-    (2, 143, None, 'حسن', 'أبو حاتم'),  # «قال أبو حاتم: والوقف الجيد {…}» — «جيد» read as حسن
+    (2, 143, None, 'جيد', 'أبو حاتم'),  # «قال أبو حاتم: والوقف الجيد {…}» — النحاس's own «جيد»
 ])
 def test_nahhas_second_pass(con, surah, ayah, wpos, grade, by):
     got = rulings(con, 'nahhas', surah, ayah, wpos)
@@ -881,7 +881,7 @@ def test_nahhas_47_9_not_on_its_first_word(con):
 # ── النحاس: round 20 (2026-10-13, reviewed by gpt-6-luna) ───────────────────
 
 @pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
-    (12, 24, 9, 'حسن', 'أبو حاتم'),      # held, unseated: «وقال أبو حاتم {… برهان ربه} … وقف جيد»
+    (12, 24, 9, 'جيد', 'أبو حاتم'),      # held, unseated: «وقال أبو حاتم {… برهان ربه} … وقف جيد»
     (65, 5, 13, 'تام', 'أبو حاتم'),      # «..» elision the seater missed
     (44, 46, 1, 'كاف', ''),             # held for the «يغلي» reading note (Hafs reads بالياء)
     (12, 76, 23, 'كاف', ''),            # «على قراءة من قرأ {نرفع درجات من نشاء}» — Hafs

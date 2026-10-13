@@ -862,3 +862,15 @@ credits (47:31–33's «ومن فتح الواو فالتمام عنده» is th
 own row is 77:19; MOVE_OWN moves only the own-voice copy). Not stored: «الوقف على
 رؤوس الآيات مفهوم إلى …» (37:114–124, 126–136) — النحاس's «مفهوم» has no grade in
 the scheme yet. Observed completeness ≈ 91%.
+
+### النحاس: its own kinds — «جيد» and «بيان» (2026-10-13)
+
+النحاس counts eight kinds of stop: التام، التمام، الكافي، الحسن، الصالح، الجيد،
+البيان، القبيح. «جيد» (أبو حاتم's «وقف جيد / الوقف الجيد», 16 rows) had been read
+as حسن since round 18; it is now its own grade, and «وقف البيان» (40:28, 60:1 —
+both أبو حاتم) is stored as «بيان» instead of being skipped. «كاف جيد» stays كاف
+(the first word grades). «مفهوم» («الوقف على رؤوس الآيات مفهوم إلى …», الصافات)
+is not one of the eight, so those verse ends stay unstored. «التام / التمام» are
+one grade (تام): the book uses «تمام» as its usual noun for it. The grade tables
+(frontend/lib/waqf.ts, imam-rulings, stop-explorer, waqf_guide.js,
+core/classical_review) carry the two new names.
