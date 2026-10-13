@@ -16,19 +16,7 @@
       data-actions='{{ actions | tojson }}'>
     {{ athar_app_bar('act-main') }}
 
-    <div class="act-login" id="act-login" hidden>
-        <form class="act-login-card athar-surface" id="act-login-form" autocomplete="on">
-            <p class="act-kicker">أثَر · محرّر</p>
-            <h2 class="act-login-title">تسجيل الدخول</h2>
-            <p class="act-login-hint">سجل التعديلات يظهر للحسابات المدعوة فقط.</p>
-            <label class="act-login-label" for="act-login-username">اسم المستخدم</label>
-            <input class="athar-field" type="text" id="act-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
-            <label class="act-login-label" for="act-login-password">كلمة المرور</label>
-            <input class="athar-field" type="password" id="act-login-password" name="password" required autocomplete="current-password" dir="ltr">
-            <p class="act-login-error" id="act-login-error" role="alert" hidden></p>
-            <button class="act-btn act-btn-primary" type="submit" id="act-login-submit">دخول</button>
-        </form>
-    </div>
+    {# Sign-in: the shared panel from js/athar-auth.js. #}
 
     <header class="act-chrome">
         <p class="act-kicker">محرّر · تتبّع</p>

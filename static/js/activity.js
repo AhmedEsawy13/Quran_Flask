@@ -83,6 +83,17 @@
     }
 
     function showLogin() {
+        // One sign-in panel for every tool (static/js/athar-auth.js).
+        if (window.AtharAuth) {
+            window.AtharAuth.prompt('سجل التعديلات يظهر للحسابات المدعوة فقط.').then(user => {
+                if (!user) return;
+                state.authenticated = true;
+                state.user = user;
+                renderAuth();
+                loadFeed({ append: false });
+            });
+            return;
+        }
         if (els.login) els.login.hidden = false;
     }
 

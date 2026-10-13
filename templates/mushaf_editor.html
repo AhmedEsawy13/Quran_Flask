@@ -31,19 +31,7 @@
 <body class="athar-editor">
     {{ athar_app_bar() }}
 
-    <div class="ed-login" id="ed-login" hidden>
-        <form class="ed-login-card athar-surface" id="ed-login-form" autocomplete="on">
-            <p class="athar-kicker">— محرّر الوقف</p>
-            <h1 class="ed-login-title athar-display">تسجيل الدخول</h1>
-            <p class="ed-login-hint">حساب شخصي لكل مراجع. التعديلات تبقى مسودّة حتى يعتمدها المشرف.</p>
-            <label class="ed-login-label" for="ed-login-username">اسم المستخدم</label>
-            <input class="athar-field ed-login-input" type="text" id="ed-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
-            <label class="ed-login-label" for="ed-login-password">كلمة المرور</label>
-            <input class="athar-field ed-login-input" type="password" id="ed-login-password" name="password" required autocomplete="current-password" dir="ltr">
-            <p class="ed-login-error" id="ed-login-error" role="alert" hidden></p>
-            <button class="ed-login-submit" type="submit" id="ed-login-submit">دخول</button>
-        </form>
-    </div>
+    {# Sign-in: the shared panel from js/athar-auth.js (app-bar «دخول»). #}
 
     <section class="ed-bar" id="ed-bar" aria-labelledby="ed-title" data-expanded="true">
         <div class="ed-bar-intro" id="ed-bar-intro">
@@ -74,10 +62,8 @@
             </button>
 
             <div class="ed-session" id="ed-session" hidden>
-                <span class="ed-session-name ed-bar-extra" id="ed-session-name"></span>
                 <button class="ed-publish-btn" id="ed-publish" type="button" hidden title="مراجعة المسودّة ثم نشرها للقراء">اعتماد</button>
                 <button class="ed-invites-btn ed-bar-extra" id="ed-invites-open" type="button" hidden title="إدارة حسابات المراجعين">حسابات</button>
-                <button class="ed-logout-btn" id="ed-logout" type="button" title="خروج">خروج</button>
             </div>
 
             <div class="ed-edition-toggle athar-tabs" id="ed-edition-toggle" role="group" aria-label="نسخة المصحف">

@@ -21,19 +21,7 @@
       data-max-page="{{ max_page }}">
     {{ athar_app_bar('cvw-main') }}
 
-    <div class="cvw-login" id="cvw-login" hidden>
-        <form class="cvw-login-card athar-surface" id="cvw-login-form" autocomplete="on">
-            <p class="cvw-kicker">مراجعة علامات الوقف</p>
-            <h2>تسجيل دخول المراجع</h2>
-            <p>يلزم الدخول قبل الرسم حتى نستطيع تحميل كلمات الصفحة وحفظ ربط كل علامة بكلمتها.</p>
-            <label for="cvw-login-username">اسم المستخدم</label>
-            <input class="athar-field" type="text" id="cvw-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
-            <label for="cvw-login-password">كلمة المرور</label>
-            <input class="athar-field" type="password" id="cvw-login-password" name="password" required autocomplete="current-password" dir="ltr">
-            <p class="cvw-login-error" id="cvw-login-error" role="alert" hidden></p>
-            <button class="cvw-login-submit" type="submit" id="cvw-login-submit">دخول وفتح صفحة التسمية</button>
-        </form>
-    </div>
+    {# Sign-in: the shared panel from js/athar-auth.js. #}
 
     <header class="cvw-chrome" aria-label="أدوات التسمية">
         <div class="cvw-chrome-top">

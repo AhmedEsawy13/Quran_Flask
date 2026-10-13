@@ -10,8 +10,6 @@
     <title>{{ page_title }}</title>
     {{ athar_page_meta(page_title, page_description, path=studio_path, noindex=true) }}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com">
 
     <link rel="preload" href="{{ url_for('static', filename='fonts/amiri_quran.woff2') }}" as="font" type="font/woff2" crossorigin="anonymous">
@@ -25,9 +23,6 @@
     <script src="{{ static_hash('js/athar-mushaf.js') }}"></script>
     <script src="{{ static_hash('js/athar-page-chrome.js') }}"></script>
     <script src="{{ static_hash('js/athar-pdf-ref.js') }}"></script>
-
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" as="style" onload="this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"></noscript>
     <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" as="style" onload="this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 </head>

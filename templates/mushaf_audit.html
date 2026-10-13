@@ -1,18 +1,21 @@
 <!DOCTYPE html>
+{% from "_athar_shell.html" import athar_shell_head, athar_app_bar, athar_page_meta with context %}
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex">
-    <title>مراجعة الفحص · محرّر الوقف</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    {% set page_title = 'أثَر · مراجعة الفحص' %}
+    {% set page_description = 'بطاقات فحص صور المصحف: اعتمد الصورة أو القاعدة، ويُحفظ القرار في السحابة.' %}
+    <title>{{ page_title }}</title>
+    {{ athar_page_meta(page_title, page_description, path='/mushaf-editor/book-audit', noindex=true) }}
+    {{ athar_shell_head() }}
     <link rel="stylesheet" href="{{ static_hash('css/mushaf_audit.css') }}">
 </head>
-<body>
+<body class="athar-tool au-body">
+    {{ athar_app_bar('au-main') }}
     <div class="bar">
         <div class="top">
-            <h1>مراجعة الفحص</h1>
+            <h1 class="au-title">مراجعة الفحص</h1>
             <label class="ed">المصحف
                 <select id="au-edition">
                     <option value="البحرين">البحرين</option>
@@ -24,21 +27,12 @@
             <div class="prog"><i><u id="au-bar"></u></i><span id="au-count"></span></div>
             <label class="tools"><input type="checkbox" id="au-hide"> إخفاء ما حُسم</label>
             <a class="link" id="au-editor" href="/mushaf-editor">المحرّر والنشر ↖</a>
-            <a class="link" href="/tools">الأدوات</a>
         </div>
         <nav class="tabs" role="tablist" id="au-tabs"></nav>
     </div>
 
-    <form class="login" id="au-login" hidden autocomplete="on">
-        <h2>تسجيل الدخول</h2>
-        <p>القرارات تُحفظ في السحابة باسمك.</p>
-        <input type="text" name="username" placeholder="اسم المستخدم" autocomplete="username" dir="ltr" required>
-        <input type="password" name="password" placeholder="كلمة المرور" autocomplete="current-password" dir="ltr" required>
-        <button type="submit">دخول</button>
-        <p class="err" id="au-login-err"></p>
-    </form>
 
-    <main id="au-main"><p class="note" id="au-msg">جارٍ التحميل…</p></main>
+    <main id="au-main" tabindex="-1"><p class="note" id="au-msg">جارٍ التحميل…</p></main>
     <div id="lb"><img alt=""></div>
     <div class="toast" id="au-toast" hidden></div>
     <script src="{{ static_hash('js/mushaf_audit.js') }}"></script>

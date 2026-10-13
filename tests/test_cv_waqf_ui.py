@@ -41,8 +41,7 @@ def test_cv_waqf_cloud_apis_require_editor_session(app, monkeypatch):
     assert 'els.showRejected && els.showRejected.checked' in js
 
     html = client.get('/cv-waqf').get_data(as_text=True)
-    assert 'cvw-login-form' in html
-    assert 'تسجيل دخول المراجع' in html
+    assert 'js/athar-auth.js' in html          # the shared sign-in panel
     assert 'انقر على العلامة' in html
     assert 'cvw-show-review' in html
     assert 'cvw-show-rejected' in html

@@ -28,3 +28,28 @@ def test_nav_shows_tools_only_with_the_editor(client):
     body = public.get('/read').get_data(as_text=True)
     assert 'href="/tools"' not in body
     assert public.get('/tools').status_code == 404
+
+
+def test_every_tool_page_uses_the_shared_shell_and_sign_in(client):
+    """Same head (fonts, tokens, theme), app bar and sign-in panel on every tool."""
+    from modules.tools import tool_groups
+    for group in tool_groups():
+        for tool in group['tools']:
+            body = client.get(tool['href'], follow_redirects=True).get_data(as_text=True)
+            assert 'css/brand.css' in body, tool['href']
+            assert 'class="athar-bar"' in body, tool['href']
+            assert 'js/athar-auth.js' in body, tool['href']
+            assert 'fonts.googleapis.com' not in body, tool['href']
+
+
+def test_public_pages_do_not_load_the_sign_in_script():
+    public = create_app({'core', 'reading', 'memorize', 'breathing'}).test_client()
+    assert 'athar-auth.js' not in public.get('/read').get_data(as_text=True)
+
+
+def test_every_tool_page_loads_the_app_bar_icons(client):
+    from modules.tools import tool_groups
+    for group in tool_groups():
+        for tool in group['tools']:
+            body = client.get(tool['href'], follow_redirects=True).get_data(as_text=True)
+            assert 'font-awesome/6.4.0' in body, tool['href']

@@ -1237,6 +1237,16 @@
 
     /* ── Auth / session ──────────────────────────────────────────── */
     function showLogin() {
+        // One sign-in panel for every tool (static/js/athar-auth.js).
+        if (window.AtharAuth) {
+            window.AtharAuth.prompt('سجّل الدخول لتعديل علامات الوقف وحفظها في السحابة.').then(user => {
+                if (!user) return;
+                state.user = user;
+                state.cloud = true;
+                if (state.ready) updateSessionUI(); else enterEditor();
+            });
+            return;
+        }
         if (!els.login) return;
         els.login.hidden = false;
         if (els.loginError) {
@@ -1489,6 +1499,13 @@
             }
         });
     }
+    window.addEventListener('athar:auth', e => {
+        const d = e.detail || {};
+        if (!d.cloud) return;
+        state.user = d.user || null;
+        updateSessionUI();
+        if (!state.user) showLogin();
+    });
     if (els.logoutBtn) {
         els.logoutBtn.addEventListener('click', async () => {
             try {

@@ -29,20 +29,7 @@
       data-start-page="4">
     {{ athar_app_bar('wmr-main') }}
 
-    <div class="wmr-login" id="wmr-login" hidden>
-        <form class="wmr-login-card athar-surface" id="wmr-login-form" autocomplete="on">
-            <p class="wmr-kicker">أثَر · محرّر</p>
-            <h2 class="wmr-login-title">تسجيل الدخول</h2>
-            <p class="wmr-login-hint">لحفظ قرارات المراجعة على الخادم (ومزامنتها بين الأجهزة).</p>
-            <label class="wmr-login-label" for="wmr-login-username">اسم المستخدم</label>
-            <input class="athar-field" type="text" id="wmr-login-username" name="username" required autocomplete="username" dir="ltr" spellcheck="false">
-            <label class="wmr-login-label" for="wmr-login-password">كلمة المرور</label>
-            <input class="athar-field" type="password" id="wmr-login-password" name="password" required autocomplete="current-password" dir="ltr">
-            <p class="wmr-login-error" id="wmr-login-error" role="alert" hidden></p>
-            <button class="wmr-btn wmr-btn-primary" type="submit" id="wmr-login-submit">دخول</button>
-            <button class="wmr-btn wmr-btn-ghost" type="button" id="wmr-login-skip">متابعة محليًا</button>
-        </form>
-    </div>
+    {# Sign-in: the shared panel from js/athar-auth.js. #}
 
     <header class="wmr-chrome" aria-label="أدوات المراجعة">
         <div class="wmr-chrome-top">

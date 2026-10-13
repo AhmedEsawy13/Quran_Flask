@@ -293,6 +293,16 @@
     }
 
     function showLogin() {
+        // One sign-in panel for every tool (static/js/athar-auth.js).
+        if (window.AtharAuth) {
+            window.AtharAuth.prompt('سجّل الدخول لتسمية العلامات وحفظها.').then(async user => {
+                if (!user) return;
+                state.authChecked = true;
+                await loadReviewQueue();
+                await loadPage();
+            });
+            return;
+        }
         if (!els.login) return;
         els.login.hidden = false;
         if (els.loginError) {
@@ -600,7 +610,7 @@
             els.empty.hidden = false;
             if (err.status === 401) {
                 showLogin();
-                els.empty.innerHTML = 'يلزم تسجيل الدخول · <a href="/mushaf-editor">افتح محرر المصحف</a>';
+                els.empty.textContent = 'يلزم تسجيل الدخول — زر «دخول» أعلى الصفحة';
             } else {
                 els.empty.textContent = 'تعذّر التحميل';
             }

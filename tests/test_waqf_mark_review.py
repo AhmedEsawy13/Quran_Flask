@@ -47,7 +47,7 @@ def test_waqf_mark_review_page_renders_shemrly(client):
     assert 'المدينة القديم' in body
     assert 'uthmanic_hafs' in body
     assert 'js/athar-mushaf.js' in body
-    assert 'id="wmr-login"' in body
+    assert 'js/athar-auth.js' in body          # the shared sign-in panel
     assert 'js/waqf_mark_review.js' in body
     assert '/waqf-mark-review/print?edition=الشمرلي&amp;pack=1' in body
     assert '/waqf-mark-review/print?edition=المدينة الجديد&amp;pack=2' in body

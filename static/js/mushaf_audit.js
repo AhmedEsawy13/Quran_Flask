@@ -29,22 +29,18 @@
     return body;
   }
 
+  // One sign-in panel for every tool (static/js/athar-auth.js).
   function showLogin() {
-    $('#au-login').hidden = false;
-    $('#au-main').hidden = true;
+    if (window.AtharAuth) {
+      window.AtharAuth.prompt('القرارات تُحفظ في السحابة باسمك.').then((user) => {
+        if (user) load();
+        else $('#au-main').innerHTML = '<p class="note">يلزم تسجيل الدخول لعرض البطاقات — زر «دخول» أعلى الصفحة.</p>';
+      });
+      return;
+    }
+    $('#au-main').innerHTML = '<p class="note err">يلزم تسجيل الدخول.</p>';
   }
 
-  $('#au-login').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const f = new FormData(e.target);
-    try {
-      await api('/api/mushaf-editor/login', { method: 'POST', body: JSON.stringify({ username: f.get('username'), password: f.get('password') }) });
-      $('#au-login').hidden = true; $('#au-main').hidden = false;
-      load();
-    } catch (err) {
-      $('#au-login-err').textContent = err.message === 'invalid credentials' ? 'بيانات الدخول غير صحيحة' : err.message;
-    }
-  });
 
   // What "the image is right" does on each tab.
   function imageLabel(i) {

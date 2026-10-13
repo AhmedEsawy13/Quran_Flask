@@ -148,7 +148,25 @@
         }
     }
 
+    async function afterLogin(user) {
+        state.authenticated = true;
+        state.userName = (user && user.name) || '';
+        renderAuth();
+        await loadServerDecisions();
+        await loadProgress();
+        renderList();
+        renderMissing();
+        toast('تم الدخول — جارٍ المزامنة');
+    }
+
     function showLogin(force) {
+        // One sign-in panel for every tool (static/js/athar-auth.js); «لاحقًا» keeps saving locally.
+        if (window.AtharAuth) {
+            if (!state.cloud && !force) return;
+            window.AtharAuth.prompt('لحفظ قرارات المراجعة على الخادم ومزامنتها بين الأجهزة؛ «لاحقًا» يحفظها على هذا الجهاز.')
+                .then(user => { if (user) afterLogin(user); });
+            return;
+        }
         if (!els.login) return;
         if (!state.cloud && !force) return;
         els.login.hidden = false;
