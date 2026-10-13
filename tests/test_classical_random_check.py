@@ -939,3 +939,29 @@ def test_nahhas_other_reading_rows_stay_held(con, surah, ayah, wpos, grade):
     rows = con.execute("SELECT conf FROM classical WHERE source='nahhas' AND surah=? AND ayah=? AND wpos=? AND grade=?",
                        (surah, ayah, wpos, grade)).fetchall()
     assert rows and all(c == 0 for c, in rows)
+
+
+# ── النحاس: round 21 (2026-10-13, reviewed by gpt-6-luna) ───────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (37, 91, None, 'تام', ''),           # «وكذا الآيات إلى {فراغ عليهم ضربا باليمين}»
+    (37, 93, 3, 'تام', 'أحمد بن جعفر'),
+    (37, 100, None, 'تام', ''),          # «وكذا الآيات إلى {وتله للجبين}»
+    (37, 138, 0, 'تام', 'نافع'),
+    (17, 47, None, 'تام', ''),           # «ثم القطع على رؤوس الآيات تمام إلى {أو حديدا}»
+    (74, 5, 1, 'كاف', 'أبو حاتم'),       # «وكل آية بعدها كافية حتى يبلغ {ولربك فاصبر}»
+    (77, 19, 2, 'تام', ''),             # moved from 77:15 (the غيره row stays there)
+    (77, 15, 2, 'تام', 'غيره'),
+    (28, 16, 12, 'تام', 'غيره'),         # «والتمام عند غيره. {إنه هو الغفور الرحيم}»
+    (28, 28, 14, 'تام', 'قيل'),
+    (47, 31, 7, 'تام', ''),             # «ومن فتح الواو فالتمام عنده {أخباركم}» — Hafs side
+    (3, 113, 13, 'تام', 'نافع'),
+])
+def test_nahhas_round21(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_nahhas_round21_dropped(con):
+    assert not rulings(con, 'nahhas', 28, 25, 2)          # «وليس {فجاءته إحداهما تمشي} كاف»
+    assert not any(b == '' for _, _, b in rulings(con, 'nahhas', 77, 15, 2))

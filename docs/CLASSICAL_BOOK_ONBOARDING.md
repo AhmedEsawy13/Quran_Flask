@@ -845,3 +845,20 @@ after the quote — «{X} فإنه تمام عند أبي حاتم»، «{X} ق�
 على ما روى عن نافع» — 12, credited by seat (CREDIT_AT, own-voice rows only). Two
 book slips are pinned or allowed: 67:15 «وإليه المصير» for «النشور» and 23:94
 «من القوم» for «في القوم».
+
+### النحاس: round 21 (2026-10-13)
+
+12 fresh passages after the held-row and credit sweeps. gpt-6-luna matched ≈ 238
+rulings and raised 88 issues; about half were by-design non-rows (negations,
+«أجاز الوقف», co-credits, a commentator's paraphrase such as قتادة / ابن عباس)
+or misreadings (37:105's كاف and أبو حاتم's تام are both right). Confirmed ≈ 24
+misses, most in الصافات: «وكذا الآيات إلى {X}» ranges (37:90–92, 98–102,
+143–144), «فكان كافيا وكذا» (37:79–80), 37:93 أحمد بن جعفر / غيره, 37:138; also
+17:46–49 («تمام إلى {أو حديدا}»), 74:3–7 (أبو حاتم's «وكل آية بعدها كافية»),
+75:2, 75:19, 77:12, 16:19 (غيره on Hafs's «يدعون»), 16:28, 3:113, 3:133, and
+28:16–17 / 28:21–22 («والتمام عند غيره.» — a stray period before the quote). 5
+credits (47:31–33's «ومن فتح الواو فالتمام عنده» is the Hafs side, not يعقوب's;
+28:28 قيل; 74:10 غيره), 1 negation stored as كاف (28:25), 1 wrong seat (77:15's
+own row is 77:19; MOVE_OWN moves only the own-voice copy). Not stored: «الوقف على
+رؤوس الآيات مفهوم إلى …» (37:114–124, 126–136) — النحاس's «مفهوم» has no grade in
+the scheme yet. Observed completeness ≈ 91%.
