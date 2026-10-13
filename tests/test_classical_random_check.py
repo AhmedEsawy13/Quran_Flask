@@ -876,3 +876,33 @@ def test_nahhas_unbraced_scan(con, surah, ayah, wpos, grade, by):
 
 def test_nahhas_47_9_not_on_its_first_word(con):
     assert not rulings(con, 'nahhas', 47, 9, 0)
+
+
+# ── النحاس: round 20 (2026-10-13, reviewed by gpt-6-luna) ───────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (12, 24, 9, 'حسن', 'أبو حاتم'),      # held, unseated: «وقال أبو حاتم {… برهان ربه} … وقف جيد»
+    (65, 5, 13, 'تام', 'أبو حاتم'),      # «..» elision the seater missed
+    (44, 46, 1, 'كاف', ''),             # held for the «يغلي» reading note (Hafs reads بالياء)
+    (12, 76, 23, 'كاف', ''),            # «على قراءة من قرأ {نرفع درجات من نشاء}» — Hafs
+    (12, 52, 5, 'كاف', 'يعقوب'),         # was «لا» own (ابن جريج's «ليس بوقف» is about 12:51)
+    (12, 41, 13, 'تام', 'الأخفش'),
+    (12, 60, None, 'حسن', ''),           # «ثم القطع على رؤوس الآيات حسن {إلا أن يحاط بكم}»
+    (12, 48, None, 'صالح', ''),
+    (7, 37, 36, 'حسن', ''),             # «والتمام على ما روينا عن نافع {…} قطع حسن»
+    (7, 37, 36, 'تام', 'نافع'),
+    (34, 48, 4, 'كاف', 'يعقوب'),         # stop before the بدل «علام الغيوب»
+    (20, 119, 5, 'تام', ''),            # «والتمام على القراءتين {ولا تضحى}»
+    (20, 123, 6, 'تام', 'أحمد بن جعفر'),
+    (30, 18, 7, 'تام', ''),             # unbraced «وحين تظهرون هذا التمام»
+    (60, 4, 31, 'تام', 'بعضهم'),         # «وزعم المفسرون … وليس كما قالوا»
+])
+def test_nahhas_round20(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_nahhas_round20_dropped(con):
+    assert not rulings(con, 'nahhas', 60, 4, 35)           # «لأن بعده {إلا قول إبراهيم لأبيه}»
+    assert not rulings(con, 'nahhas', 34, 48, 6)           # moved to «بالحق»
+    assert not any(g == 'لا' for _, g, _ in rulings(con, 'nahhas', 12, 52, 5))

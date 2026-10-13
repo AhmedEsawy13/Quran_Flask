@@ -807,3 +807,21 @@ fixed. A test pins brace balance (only 43:88's garbled «وقيله» passage re
 The rebuild also restored an own-voice «والتمام {فإذا هم بالساهرة}» (79:14) that
 an earlier merge had folded into the relayed row. Left as is: the copy's typo
 «آكنوا» (47:3), since quotes must stay traceable to the book's own spelling.
+
+### النحاس: round 20 (2026-10-13)
+
+12 fresh passages after the brace scan. gpt-6-luna matched ≈ 307 rulings and
+raised 80 issues besides ungraded / conditional ones; ≈ 30 were by-design
+non-rows («ليس بكاف»، «وقف بيان»، محمد بن عيسى's «أجاز الوقوف» — النحاس has no
+جائز grade, as with 30:9's «وأجاز نصير»), a fabricated quote (60:1 «وعند غيرهما
+وأن تؤمنوا»), or extra co-credits (first name kept). Confirmed: ≈ 30 misses —
+11 rows held or unseated though plain (SERVE_HELD / SEAT_HELD: «..» elision at
+65:5, «لكيلا» at 22:5, rulings held for a nearby reading note whose Hafs side
+they are), يوسف ranges 47–50 and 56–65, unbraced 30:18, 20:77, relayed views
+(80:32 الأخفش, 12:37 الأخفش, 14:28 نافع, 14:45 يعقوب, 60:1–2, 34:41–42 غيره, 20:123
+and 20:127 غيره) — 10 credits (e.g. 22:9 أبو إسحاق, 20:123 أحمد بن جعفر, 7:37's
+حسن back to the author), 1 wrong grade (12:52 «لا» → يعقوب's كاف: the «ليس
+بوقف» there is ابن جريج's parse of 12:51), 1 wrong seat (34:48 يعقوب stops
+before the بدل; quote trimmed via QUOTE_FIX), 1 reason quoted as a ruling (60:4).
+Observed completeness ≈ 91% (round 19: 89%). A fresh rebuild reproduces the
+incremental result exactly.
