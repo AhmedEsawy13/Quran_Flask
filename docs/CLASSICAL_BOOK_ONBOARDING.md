@@ -1128,3 +1128,45 @@ are left in it. gpt-6-luna checked them, and every flag was checked against the 
 
 The rest were by design: conditional and other-reading sides, «يجوز» permissions, notes asking for
 conditions, ungraded mentions, and «وبعده» chains.
+
+### النحاس and ابن الأنباري: round 29, full coverage (2026-10-15)
+
+Random rounds had read only part of each book. Measured strictly, with no margin around earlier passages,
+53% of النحاس (312k chars) and 34k chars of ابن الأنباري had never been in a passage.
+`pipeline/review/random_check/make_cover.py ROUND anbari,nahhas` tiles every gap, however short, into
+passages. Each gap is widened by 150 chars on both sides, so a ruling cut at a boundary is read whole by
+one of the two passages, and the passages are packed ≤ 4 / ~5000 chars per call. That came to
+363 passages in 116 gpt-6-luna calls. `make_cover.py --verify anbari,nahhas` now reports
+**0 uncovered characters in both books**.
+
+Every flag was triaged and the rest checked against the book. Set aside:
+- by design: conditional and other-reading sides, «يجوز» permissions, negations, ungraded mentions,
+  notes asking for conditions
+- «missing» flags whose row already exists in the surah
+- «unsupported» flags that only reflect the reviewer seeing one passage
+
+Each new row's note is the book's own words, checked verbatim, and its quote is the book's spelling.
+
+**النحاس: about 280 corrections over ~4,860 rulings checked (≈ 94%).**
+- 218 new served rows, including 37 verse ends from graded «رؤوس الآيات … إلى {X}» ranges.
+- 57 re-credited. Scholars' chains had been read as the author's own: «قال يعقوب وأبو حاتم: {A} {B} كاف
+  وكذا {C} …», «قال أبو حاتم … وقال: والتمام {X}», «وعن نافع {X} قطع حسن وكذا {Y}», and
+  «قال الأخفش {…} فالتمام فيه {X}». Most are seat-keyed through `CREDIT_AT`, because quotes such as
+  «إن الله على كل شيء قدير» recur in a surah.
+- Parser slip: in «{X}، قال الأخفش: التمام {Z}» the bare definite grade belongs to Z, not X (2:87).
+  «هذا التمام» still refers back to X.
+- Grades: 2:41 «إلا أنه حسن» and 40:74 «والتمام كذلك {يضل الله الكافرين}».
+- Dropped:
+  - 25:75 «وليس {تحية وسلاما} تمام»
+  - 33:6, re-seated to «معروفا»
+  - 27:82, which is تام on Hafs's «أن الناس», not the blanket كاف
+- `surah_end_rulings` respects a credited surah end («والتمام عند غيره آخر السورة»).
+
+**ابن الأنباري: 27 corrections over ~790 rulings (≈ 96.6%).**
+- New rows:
+  - the second «إياك» and «الصراط» قبيح
+  - «بمنزلة الوقف على (الأنهار)»
+  - bare «ومثله» lists in النور
+  - three surah ends
+  - السجستاني's rejected «هو تام» at 2:177, 3:14 and 10:2
+- 1:7 «عليهم» re-seated to the first «عليهم».
