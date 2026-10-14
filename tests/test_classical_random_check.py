@@ -1011,3 +1011,17 @@ def test_nahhas_range_scan(con, surah, ayah, wpos, grade, by):
 def test_nahhas_round22_and_chains(con, surah, ayah, wpos, grade, by):
     got = rulings(con, 'nahhas', surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (18, 54, None, 'كاف', ''),           # round 23: «ثم القطع على رؤوس الآيات كاف، إلى {ونسي ما قدمت يداه}»
+    (18, 60, None, 'حسن', ''),           # «تم القطع على رؤوس الآيات حسن، إلى {وما أنسانيه …}»
+    (18, 63, 19, 'تام', ''),            # «إذا وقفت على (عجبا) فلا اختف فيه أنه تمام»
+    (22, 40, 26, 'تام', 'أحمد بن جعفر'),
+    (10, 88, 22, 'كاف', 'يعقوب'),
+    (2, 235, 46, 'تام', ''),            # held «غفور رحيم» (the copy's slip for «حليم»), seated
+    (18, 90, 14, 'تام', 'أحمد بن موسى'),
+])
+def test_nahhas_round23(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

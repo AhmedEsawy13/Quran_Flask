@@ -921,3 +921,15 @@ essay). 44 graded chain rows added, e.g. 2:85 «وكذا عنده {…}» (أب�
 «فإنه يكفي الوقوف عليه وكذا {…}», الشورى 14–15 / 26–28, 31:22–24 غيره, 26:4–5
 «والتمام خاضعين وكذا {…}», 51:38–45 «وإن وقفت على رؤوس الآيات كان قطعا صالحا».
 Served النحاس rows 6,296 → 6,366.
+
+### النحاس: round 23 (2026-10-14)
+
+12 more unread stretches. gpt-6-luna matched ≈ 346 rulings (its counts run high:
+it counts each verse end of a range) and raised 52 issues besides negations;
+most were ungraded ranges («تم الوقوف على رؤوس الآيات إلى …», by design), first-
+name co-credits, or commentators (اليزيدي، الحسن). Confirmed ≈ 14 misses: الكهف
+52–56 (كاف) and 58–62 (حسن) ranges, 18:63 «عجبا», 18:64 الأخفش, 7:124 «والتمام تم
+{…}», 22:31 الأخفش, 22:40 بعضهم / أحمد بن جعفر, 10:88 يعقوب, 10:92, 20:23 أبو حاتم,
+4:118 and 27:10 نافع, and the held 2:235 (the copy writes «غفور رحيم» for «حليم»,
+pinned); 2 credits (9:3 بعضهم, 18:90 أحمد بن موسى). Observed ≈ 95%, up from
+89–91% — the first round after the range, coverage and chain scans.
