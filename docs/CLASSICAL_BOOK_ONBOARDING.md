@@ -981,3 +981,20 @@ agreed on 234 of 240 graded quotes. Two real fixes: 13:11 «ومثله {فلا �
 منه» is تام (it was the «ومثله»'s كاف), and القتبي's relayed «{كذلك} التمام» at 10:103
 was missing. The rest were quranpedia filing a quote on a neighbouring page. The
 fetch and compare scripts and the page cache are in the gitignored artifacts/quranpedia/.
+
+### Placement checks across the four books (2026-10-14)
+
+Random rounds catch misplaced rows least (the planted-error test: 0 of 4), so two
+placement checks were run over every confident row:
+
+- **Unique two-word endings.** A quote whose last two words occur once in the surah
+  must sit there. 8 rows were elsewhere: 6 are the book's spelling against the
+  mushaf («تعلمون» for «تعملون», «من بعده», a dropped «اتقوا») or seats already read
+  against the book; 1 is a matcher limit («(قالوا سلاما)» = «فقالوا سلاما»); 1 was
+  wrong — المكتفى «ومثله {سوأة أخيه}» on 5:30's «قتل أخيه», now 5:31. Kept as
+  tests/test_classical_seats.py::test_unique_two_word_endings_sit_on_their_spot.
+- **The same quote in two books, a few verses apart.** 20 pairs; most are phrases a
+  verse repeats («بإذن الله»، «إلا ما شاء ربك»), where each book rules its own
+  occurrence. By the book's own order two المكتفى rows were on the earlier
+  occurrence: «ومثله {ويقدر له} ومثله {ليقولن الله} ومثله {قل الحمد لله}» is 29:63,
+  not 29:61, and «{وأصلح بالهم} تام. {الحق من ربهم} كاف» is 47:3, not 47:2.

@@ -1069,3 +1069,13 @@ def test_muktafa_quranpedia_fixes(con):
     # «ومثله {فلا مرد له} وهو أتم منه» — تام, not the كاف of the «ومثله»
     assert ('تام', '') in {(g, b) for _, g, b in rulings(con, 'muktafa', 13, 11, 28)}
     assert ('تام', 'القتبي') in {(g, b) for _, g, b in rulings(con, 'muktafa', 10, 103, 5)}
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,quote_start', [
+    (5, 31, 10, 'سوأة'),     # «ومثله {سوأة أخيه}» — 5:31, not 5:30's «قتل أخيه»
+    (29, 63, 14, 'ليقولن'),  # «… {ويقدر له} ومثله {ليقولن الله} ومثله {قل الحمد لله}»
+    (47, 3, 12, 'الحق'),     # «{وأصلح بالهم} تام. {الحق من ربهم} كاف»
+])
+def test_muktafa_placement_check(con, surah, ayah, wpos, quote_start):
+    assert con.execute("SELECT 1 FROM classical WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
+                       "AND quote LIKE ?", (surah, ayah, wpos, quote_start + '%')).fetchone()
