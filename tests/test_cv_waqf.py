@@ -290,7 +290,9 @@ def test_bahrain_has_isolated_optional_model_path():
 # own; Kuwait runs the multiprint model the same way. Every other print keeps
 # the narrow / 0.70 defaults.
 # المدينة القديم joined on 2026-10-14 once its 1405 scan was scored the same way (96.5% whole book).
-HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة', 'المدينة القديم'}
+# الشمرلي joined on 2026-10-14 with its calibrated band (0% -> 55% before any Shamarly training);
+# الأزهر is now the legacy (narrow, no prior, legacy geometry) example in the tests below.
+HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة', 'المدينة القديم', 'الشمرلي'}
 
 
 def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
@@ -306,11 +308,11 @@ def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
     assert EDITIONS['قطر'].default_proposal_mode == 'hybrid'
     assert others
     assert all(mode == 'narrow' for mode in others.values())
-    assert resolve_proposal_mode('الشمرلي') == 'narrow'
+    assert resolve_proposal_mode('الأزهر') == 'narrow'
     assert resolve_proposal_mode('المساحة') == 'hybrid'  # multiprint-model print
     assert resolve_proposal_mode('الأزهر') == 'narrow'
     assert resolve_proposal_mode('البحرين', 'narrow') == 'narrow'
-    assert resolve_proposal_mode('الشمرلي', 'hybrid') == 'hybrid'
+    assert resolve_proposal_mode('الأزهر', 'hybrid') == 'hybrid'
     with pytest.raises(ValueError, match='proposal_mode'):
         resolve_proposal_mode('البحرين', 'wide')
 
@@ -368,7 +370,7 @@ def test_detect_page_uses_hybrid_line_components_for_bahrain_only(monkeypatch):
     assert bahrain['detector'] == 'mlp'
 
     hybrid_calls.clear()
-    shamarly = run_page.detect_page('الشمرلي', 5)
+    shamarly = run_page.detect_page('الأزهر', 5)
     assert hybrid_calls == []
     assert shamarly['proposal_mode'] == 'narrow'
     assert shamarly['strategy'] == 'above-word-per-line'
@@ -774,7 +776,7 @@ def test_hand_evaluation_defaults_to_edition_proposal_mode(monkeypatch):
     assert calls[-1]['proposal_mode'] == 'hybrid'
     assert bahrain['proposal_mode'] == 'hybrid'
 
-    shamarly = evaluate_hand.evaluate_labels('الشمرلي', labels)
+    shamarly = evaluate_hand.evaluate_labels('الأزهر', labels)
     assert calls[-1]['proposal_mode'] == 'narrow'
     assert shamarly['proposal_mode'] == 'narrow'
 
@@ -927,9 +929,9 @@ def test_only_the_hybrid_multiprint_prints_enable_azhar_seat_prior():
     assert EDITIONS['المدينة القديم'].seat_prior_editions == ('الأزهر',)
     assert others
     assert all(value is False for value in others.values())
-    assert resolve_azhar_seat_prior('الشمرلي') is False
+    assert resolve_azhar_seat_prior('الأزهر') is False
     assert resolve_azhar_seat_prior('البحرين', False) is False
-    assert resolve_azhar_seat_prior('الشمرلي', True) is True
+    assert resolve_azhar_seat_prior('الأزهر', True) is True
 
 
 def test_azhar_occupancy_keeps_mark_regardless_of_glyph(tmp_path):
@@ -1212,7 +1214,7 @@ def test_azhar_prior_off_does_not_drop_empty_azhar_word(monkeypatch):
     ]
     _stub_detect_pipeline(monkeypatch, attached)
 
-    shamarly = run_page.detect_page('الشمرلي', 5)
+    shamarly = run_page.detect_page('الأزهر', 5)
     assert shamarly['azhar_prior'] is False
     assert [row['word_key'] for row in shamarly['marks']] == ['4:23:11']
     assert shamarly['azhar_rejected'] == []
@@ -1358,7 +1360,7 @@ def test_hand_evaluation_inherits_edition_azhar_prior(monkeypatch):
     assert calls[-1]['azhar_prior'] is True
     assert bahrain['azhar_prior'] is True
 
-    shamarly = evaluate_hand.evaluate_labels('الشمرلي', labels)
+    shamarly = evaluate_hand.evaluate_labels('الأزهر', labels)
     assert calls[-1]['azhar_prior'] is False
     assert shamarly['azhar_prior'] is False
 
@@ -1552,8 +1554,8 @@ def test_label_page_seats_follow_each_editions_geometry_convention():
     assert EDITIONS['المساحة'].measured_geometry and measured
     for word in measured[:20]:
         assert tuple(word['seat']) == geometry.mark_seat_roi_from_box(*word['box'])
-    legacy = _build_logical_word_payload('الشمرلي', 10)['words']
-    assert not EDITIONS['الشمرلي'].measured_geometry and legacy
+    legacy = _build_logical_word_payload('الأزهر', 10)['words']
+    assert not EDITIONS['الأزهر'].measured_geometry and legacy
     assert all(
         w['seat'][1] < geometry.mark_seat_roi_from_box(*w['box'])[1]
         for w in legacy[:20]

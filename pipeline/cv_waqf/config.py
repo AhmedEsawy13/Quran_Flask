@@ -196,8 +196,15 @@ EDITIONS: dict[str, EditionSpec] = {
         archive_id='shamarlyshamarly',
         leaf_offset=-1,
         page_cache_dir=str(PAGES_ROOT / 'shamarly'),
-        text_top=0.11,
-        text_bottom=0.90,
+        # calibrate-geometry on 48 cached pages (4-145:3), 2026-10-14; the old 0.11/0.90 sat ~0.9 line off
+        text_top=0.0609,
+        text_bottom=0.8865,
+        # 2026-10-14: same detector setup as the scored prints (hybrid windows, measured geometry, Azhar
+        # occupancy prior). The archive serves 1157px pages; they are resampled to the working width.
+        default_proposal_mode='hybrid',
+        measured_geometry=True,
+        azhar_seat_prior=True,
+        seat_prior_editions=('الأزهر',),
     ),
     'البحرين': EditionSpec(
         id='bahrain',
