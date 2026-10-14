@@ -1010,3 +1010,18 @@ name: «قال أبو حاتم (ولو افتدى به) كاف» and «ومن ا
 (3:91–92), «وقال الأخفش: وعلى أمم ممن معك: تمام» (11:48), «وقول الأخفش إن تمام الكلام
 إلا قليلا ملعونين» (33:61), 21:88 أبو حاتم, 21:93 الأخفش, 9:90 نافع, 3:97 قيل; plus
 the 3:81–85 range «ثم التمام على رأس كل آية إلى انتهاء أربع آيات». Observed ≈ 93%.
+
+### النحاس: relayed views in parentheses (2026-10-14)
+
+Round 26's النحاس misses were mostly another scholar's ruling with the quote in
+parentheses or bare («قال أبو حاتم (X) كاف», «وقال الأخفش: X: تمام»). A book-wide scan
+(speaker + quote, then any «(X) G» or «…: X: G» with no row) found 11, 10 real:
+أحمد بن موسى «(وأملي لهم) تمام» 7:183, «(ولا يرغبوا بأنفسهم عن نفسه) تمام» 9:120,
+«أول خلق نعيدة، تمام» 21:104; أبو عبيدة «(لا يبصرون) تام» 2:17; «وقيل: (ثم توليتم إلا
+قليلا منكم) التمام» 2:83; النحاس's own «(وما يشعرون) تمام» 2:9, «(وكلا نمد) كاف» 17:20,
+«(لا ريب) التمام» 2:2; الأخفش «(وكهلا) حسن» 3:46; and 3:7 «وما يعلم تأويله إلا الله»,
+which had no النحاس row although he reports at length that نافع، يعقوب، الكسائي،
+الأخفش، الفراء and أبو حاتم stop there (stored تام, credited نافع, the list in the
+note; the other view's «القطع … (والراسخون في العلم)» is ungraded). coverage_check now
+reads «(X) G» for النحاس too; يعقوب's «(لا تلبسوا الحق بالباطل) تام كاف», quoted in an
+argument with two grades at once, is a listed exception.

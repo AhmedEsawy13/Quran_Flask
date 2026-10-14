@@ -71,7 +71,8 @@ def check(db=DB, books=('manar', 'muktafa')):
             pat = (r'\(([^()]{2,80})\)()\s*(?:\[[\d،, ]+\])?\s*[.،]?\s*(?:(?:و?هو|فهو)\s+)?(?:الوقف\s+|وقف\s+)?'
                    r'(تام|حسن|قبيح|التام|الحسن)(?![ء-ي])')
         elif book == 'nahhas':
-            pat = (r'\{([^{}]{2,80})\}()\s*[.،]?\s*(?:(?:و?هو|فإنه|فهو|هذا)\s+)?(?:(?:قطع|وقف)\s+)?'
+            # «{X} G» and the parenthesized «(X) G» of relayed views («قال أحمد بن موسى (X) تمام»)
+            pat = (r'(?:\{([^{}]{2,80})\}|\(([^(){}]{3,80})\))\s*[.،]?\s*(?:(?:و?هو|فإنه|فهو|هذا)\s+)?(?:(?:قطع|وقف)\s+)?'
                    r'(تام|تمام|كاف|كافٍ|حسن|صالح|جيد)(?![ء-ي])')
         else:
             pat = r'(?:\{([^{}]{2,80})\}|\(\(([^()]{2,60})\)\))\s*[.،]?\s*(?:وهو\s+)?' + _G + r'(?![ء-ي])'
@@ -85,7 +86,7 @@ def check(db=DB, books=('manar', 'muktafa')):
             for m in (m for p in pats for m in re.finditer(p, text)):
                 if re.search(r'(?:غير|ليس)\s*$', text[max(0, m.start() - 8):m.start()]):
                     continue
-                quote = m.group(1) if book in ('manar', 'nahhas', 'anbari') else (m.group(1) or m.group(2))
+                quote = m.group(1) if book in ('manar', 'anbari') else (m.group(1) or m.group(2))
                 # «منزلين. بلى»: either side of the period may carry the stop
                 ends = [w[-1] for w in (_words(part) for part in quote.split('.')) if w]
                 if not ends:

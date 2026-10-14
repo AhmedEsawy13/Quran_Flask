@@ -1094,3 +1094,15 @@ def test_muktafa_placement_check(con, surah, ayah, wpos, quote_start):
 def test_round26(con, source, surah, ayah, wpos, grade, by):
     got = rulings(con, source, surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (3, 7, 30, 'تام', 'نافع'),          # «وما يعلم تأويله إلا الله» — النحاس reports the many who stop here
+    (2, 9, 9, 'تام', ''),               # «(وما يشعرون) تمام»
+    (7, 183, 1, 'تام', 'أحمد بن موسى'),  # «وقال أحمد بن موسى (وأملي لهم) تمام»
+    (17, 20, 1, 'كاف', ''),             # «قال أبو جعفر (وكلا نمد) كاف»
+    (3, 46, 4, 'حسن', 'الأخفش'),         # «والوقوف على (وكهلا) حسن عند الأخفش»
+])
+def test_nahhas_relayed_scan(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
