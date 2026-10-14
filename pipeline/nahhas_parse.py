@@ -267,6 +267,9 @@ def parse(text):
                 g, how, by, tail = ('تام' if m.group(2) == 'تم' else _G[m.group(2)]), 'after', name(m.group(1)), after[m.end():]
         if g is None:
             m = _SAID_AFTER.match(after)
+            # «{X}، قال الأخفش: التمام {Z}»: the definite grade introduces the next quote, not X
+            if m and m.group(2) in ('التمام', 'الكافي') and not re.search(r'هذا|هو', m.group(0)) and not after[m.end():].strip(' :،'):   # `after` ends at the next «{»
+                m = None
             if m:
                 g, how, by, tail = _G[m.group(2)], 'after', name(m.group(1)), after[m.end():]
                 by = by or SELF_MARK
