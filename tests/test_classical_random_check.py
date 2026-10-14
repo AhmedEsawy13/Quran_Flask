@@ -736,7 +736,9 @@ def test_nahhas_first_pass(con, surah, ayah, wpos, grade, by):
 
 
 def test_nahhas_misplaced_duplicate_dropped(con):
-    assert not rulings(con, 'nahhas', 23, 11, 5)      # «الذين يرثون الفردوس» stops on w2
+    # «الذين يرثون الفردوس» stops on w2; w5 carries only «وأتم منه {هم فيها خالدون}»
+    assert not con.execute("SELECT 1 FROM classical WHERE source='nahhas' AND surah=23 AND ayah=11 AND wpos=5 "
+                           "AND quote LIKE '%الفردو%'").fetchone()
 
 
 # ── النحاس: second pass (2026-10-12, reviewed by gpt-6-luna) ─────────────────
@@ -972,3 +974,21 @@ def test_nahhas_qabih_and_paren_hasan(con):
     assert ('قبيح', 'الفراء') in {(g, b) for _, g, b in rulings(con, 'nahhas', 40, 84, 11)}
     # «والقطع على (ما) لعمري حسن … ولكن الائتناف لما بعدها قبيح» (2:26 «مثلا ما»)
     assert ('حسن', '') in {(g, b) for _, g, b in rulings(con, 'nahhas', 2, 26, 7)}
+
+
+# ── النحاس: whole-book range scan (2026-10-14) ──────────────────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (4, 105, 10, 'حسن', ''),            # «والقطع الحسن (بما أراك الله)»
+    (4, 110, None, 'حسن', ''),           # «وكذا رؤوس الآي إلى قوله جل وعز {وما يضرونك من شيء}»
+    (4, 113, 17, 'تام', 'نافع'),
+    (12, 15, None, 'تام', ''),           # «وكذا رؤوس الآيات إلى {بل سولت لكم أنفسكم أمرا}»
+    (12, 18, 10, 'كاف', 'يعقوب'),
+    (23, 115, None, 'تام', ''),          # «وكذا رؤوس الآيات إلى آخر السورة»
+    (43, 84, None, 'كاف', ''),
+    (60, 12, None, 'كاف', ''),
+    (23, 61, 6, 'تام', 'أبو حاتم'),      # «لا تمام فيه حتى {وهم لها سابقون}»
+])
+def test_nahhas_range_scan(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'nahhas', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

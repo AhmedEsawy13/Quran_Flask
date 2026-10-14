@@ -884,3 +884,22 @@ app treats it as a negative ruling). The rest are vocabulary («سنة قبيح�
 «ليست قبيحة»), grammar («قبيح في المنصوب»، «غلط قبيح»), or النحاس's general case
 against stopping on every «كلا». Reading them turned up a missed parenthesized
 ruling beside one: «والقطع على (ما) لعمري حسن» (2:26 «مثلا ما»), added.
+
+### النحاس: whole-book range and coverage checks (2026-10-14)
+
+Rounds 19–21 kept finding unfilled verse-end ranges, so every graded range
+statement in the book («ثم القطع على رؤوس الآيات G إلى {X}», «وكذا رؤوس الآيات
+إلى …» chains) was placed — its start by the quote before it, its end by X's row or
+the verse text — and its verse ends checked. 13 ranges had gaps (51 verse ends):
+4:106–112 (with «والقطع الحسن (بما أراك الله)» and نافع's 4:113), 12:12–17 (+يعقوب's
+12:18), 14:6–8, 21:109–111, 23:112–118, 26:70–71, 27:82–85, 28:10–11, 43:82–86,
+60:10–13, and verse-end rulings at 23:11 and 23:61 (أبو حاتم). Ungraded ranges
+(«ثم الوقف على رؤوس الآيات إلى …») stay unstored by design.
+
+coverage_check.py now covers النحاس (its standing test runs on all three books):
+«{X} (قطع|وقف) G» and the grade-first «والتمام / والكافي (بعده|عند فلان|على ما روى
+عن فلان) {X}», a quote counting as covered when a row in its surah ends on the same
+last two words. It found 19 misses, mostly a comma or period between grade and
+quote («والتمام، {X}», «على ما روى عن نافع. {X}»), fused two-verse quotes, and
+«هذا وقف جيد»; 7 by-design cases are listed with reasons in
+coverage_exceptions.json. Served النحاس rows 6,228 → 6,296.

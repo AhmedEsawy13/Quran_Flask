@@ -30,6 +30,11 @@ _G = r'(تام|كاف|حسن|صالح|جائز|ليس بوقف|أتم|أكفى|�
 
 
 def _sections(book):
+    if book == 'nahhas':                 # the cleaned sections the builder parses
+        secs = {}
+        for n, text in rx.nahhas_sections(rx.load_book(rx.SOURCES['nahhas'])):
+            secs[n] = secs.get(n, '') + text
+        return secs
     body = rx.load_book(rx.SOURCES[book])
     if book == 'muktafa':
         body = rx.normalize_muktafa_headings(body)
@@ -58,14 +63,22 @@ def check(db=DB, books=('manar', 'muktafa')):
             rows[s].append((a, q))
         if book == 'manar':
             pat = r'\{([^{}]{2,80})\}\s*\[([\d،, ]{1,12})\]\s*[.،]?\s*' + _G + r'(?![ء-ي])'
+        elif book == 'nahhas':
+            pat = (r'\{([^{}]{2,80})\}()\s*[.،]?\s*(?:(?:و?هو|فإنه|فهو|هذا)\s+)?(?:(?:قطع|وقف)\s+)?'
+                   r'(تام|تمام|كاف|كافٍ|حسن|صالح|جيد)(?![ء-ي])')
         else:
             pat = r'(?:\{([^{}]{2,80})\}|\(\(([^()]{2,60})\)\))\s*[.،]?\s*(?:وهو\s+)?' + _G + r'(?![ء-ي])'
+        pats = [pat]
+        if book == 'nahhas':            # the grade first: «والتمام {X}»، «والكافي بعده {X}»، «والتمام عند فلان، {X}»
+            pats.append(r'(?<![ء-ي])(?:و|ف)?(?:التمام|الكافي|الوقف\s+الكافي|الوقف\s+التام|القطع\s+الكافي|القطع\s+التام)'
+                        r'(?:\s+(?:بعده|عنده|عندهما|عند\s+\S+(?:\s+بن\s+\S+)?(?:\s+و\S+(?:\s+بن\s+\S+)?)?'
+                        r'|على\s+ما\s+روى?\s+عن\s+\S+))*\s*[:،.]?\s*\{([^{}]{2,80})\}()')
         for s, text in sorted(_sections(book).items()):
             text = re.sub(r'\s+', ' ', text)
-            for m in re.finditer(pat, text):
+            for m in (m for p in pats for m in re.finditer(p, text)):
                 if re.search(r'(?:غير|ليس)\s*$', text[max(0, m.start() - 8):m.start()]):
                     continue
-                quote = m.group(1) if book == 'manar' else (m.group(1) or m.group(2))
+                quote = m.group(1) if book in ('manar', 'nahhas') else (m.group(1) or m.group(2))
                 # «منزلين. بلى»: either side of the period may carry the stop
                 ends = [w[-1] for w in (_words(part) for part in quote.split('.')) if w]
                 if not ends:
@@ -76,7 +89,15 @@ def check(db=DB, books=('manar', 'muktafa')):
                     cands = [q for a, q in rows[s] if a in marks]
                 else:
                     cands = [q for _, q in rows[s]]
-                if any(sc.score(e, (_words(q) or [''])[-1]) for e in ends for q in cands):
+                if book == 'nahhas':
+                    # common last words («يعلمون») match some row in every surah: النحاس
+                    # quotes are long, so ask for the last two words
+                    tail = _words(quote.split('.')[-1])[-2:]
+                    if any(len(_words(q)) >= len(tail) and
+                           all(sc.score(a, b) for a, b in zip(tail, _words(q)[-len(tail):]))
+                           for q in cands):
+                        continue
+                elif any(sc.score(e, (_words(q) or [''])[-1]) for e in ends for q in cands):
                     continue
                 out.append({'book': book, 'surah': s, 'quote': re.sub(r'\(\d+\)', '', quote).strip(),
                             'context': text[max(0, m.start() - 50):m.end() + 50]})
@@ -87,9 +108,9 @@ def exceptions():
     return json.load(open(EXCEPTIONS, encoding='utf-8'))
 
 
-def unexplained(db=DB):
+def unexplained(db=DB, books=('manar', 'muktafa', 'nahhas')):
     ex = exceptions()
-    return [m for m in check(db) if f"{m['surah']}:{m['quote']}" not in ex.get(m['book'], {})]
+    return [m for m in check(db, books) if f"{m['surah']}:{m['quote']}" not in ex.get(m['book'], {})]
 
 
 if __name__ == '__main__':

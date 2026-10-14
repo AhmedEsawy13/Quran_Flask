@@ -15,5 +15,14 @@
  "muktafa": {
   "6:وما يشعركم": "other reading: «ومن قرأ {إنها} بكسر الهمزة وقف على ((وما يشعركم))» — Hafs reads «أنها»",
   "20:لا تخف دركا": "other reading: the jussive «لا تخف» — Hafs «لا تخاف» (row dropped on purpose)"
+ },
+ "nahhas": {
+  "2:فلا خوف عليهم ولا هم يحزنون والذين كفروا وكذبوا بآياتنا": "two verses fused in one quote: the تمام is 2:38's end («ولا هم يحزنون»), stored with the trimmed quote",
+  "2:أولئك أصحاب النار هم فيها خالدون يا بني إسرائيل اذكروا نعمتي التي أنعمت عليكم": "fused quote: the تمام is 2:39's end («هم فيها خالدون»), stored with the trimmed quote",
+  "4:يا ليتي كنت معهم": "«قال الأخفش {…ليبطئن} هذا التمام {يا ليتي كنت معهم} ليس بقطع كاف» — the تمام is the quote before; this one is a negation",
+  "13:إن في ذلك لآيات لقوم يعقلون": "«وقفت على {في الأكل} التمام، {إن في ذلك…}» — the تمام is «في الأكل» (on the «ويفضل» reading)",
+  "27:وأمرت أن أكون من المسلمين": "«وهذا التمام {وأمرت…} ليس بكاف» — «وهذا التمام» closes the quote before; this one is a negation",
+  "35:عند": "the copy's slip «والتمام {عند} غيره {إن الله عزيز غفور}» (QUOTE_FIX seats it on 35:28)",
+  "38:واذكر عبدنا إبراهيم": "other reading: ابن عباس's «عبدنا» — Hafs reads «عبادنا» (DROP_NON_HAFS)"
  }
 }
