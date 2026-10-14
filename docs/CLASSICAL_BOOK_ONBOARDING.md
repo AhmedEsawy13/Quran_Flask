@@ -1025,3 +1025,37 @@ which had no النحاس row although he reports at length that نافع، يع
 note; the other view's «القطع … (والراسخون في العلم)» is ungraded). coverage_check now
 reads «(X) G» for النحاس too; يعقوب's «(لا تلبسوا الحق بالباطل) تام كاف», quoted in an
 argument with two grades at once, is a listed exception.
+
+### النحاس and ابن الأنباري: round 27 measurement (2026-10-14)
+
+Sixteen passages (8 per book), checked by gpt-6-luna, with every flag checked against the book.
+ابن الأنباري had only short stretches left unread, and `make_passages.py` halved 2600 → 1300 → 650,
+so it skipped the 800 floor and drew nothing. It now tries 800 last.
+
+- **ابن الأنباري: 2 real misses in 63 rulings (≈ 97%).**
+  - 3:16 «(النار) تلم إذا نصبت … على المدح», where the copy has «تلم» for تام.
+  - 8:75 «والتمام آخر السورة».
+  - Both added in `BOOK_ADD`. The other flags were conditional or other-reading sides,
+    or rows that were already right.
+- **النحاس: 26 real errors in 260 rulings (≈ 90%).**
+  - Relayed views after a braced quote, about 20 of them:
+    - «{X} عن نافع قال: تم» (4:62, 9:114, 9:115, 24:21, 4:151)
+    - «قال الأخفش {X} هاهنا تم الكلام» (6:43)
+    - «{X} فإن الأخفش ذكر أنه تمام» (7:95)
+    - «قال أبو حاتم: ومن الكافي {…} {ومثله} {X}» (24:11 ×2)
+    - «وهو كاف على قول الكسائي» (24:20)
+    - «وقال غيره … كاف» (4:58, 4:151)
+    - «وعند غيره {X}» (24:21)
+    - 28:68: نافع's long list, and علي بن سليمان's «ويختار»
+  - Credits fixed with `CURATED_BY`:
+    - 4:58 الأخفش
+    - 28:68 «ما كان لهم الخيرة» أبو حاتم
+    - 34:3 الأخفش (held row)
+    - 9:114 «تبرأ منه»: back to the author's own. «وكذا قال أحمد بن جعفر» closes نافع's ruling before it.
+  - The author's own rulings:
+    - 4:148 «إلا من ظلم» كاف
+    - 7:86 «وانظروا كيف كان عاقبة المفسدين» قطع صالح
+    - 24:16 «{وكذلك} {سبحانك هذا بهتان عظيم}»
+    - 28:78 «علم عندي» كاف, and «وبعده {وأكثر جمعا}»
+- **Not real:** the النحاس flags on «وبعده {X}» rows (6:51, 28:79/81/82) are wrong. «وبعده» carries the
+  grade before it.

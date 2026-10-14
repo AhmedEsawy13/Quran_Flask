@@ -87,11 +87,11 @@ for book, n in PLAN.items():
         # every surah drawn once: an unread stretch of a long section instead
         # short books (ابن الأنباري) run out of full-span stretches: accept shorter ones
         span, pool = SPAN[book], []
-        while span >= 800:
+        while True:
             pool = [(s, r) for s in sorted(allsecs) if s not in fresh for r in unseen_runs(book, s, allsecs[s], span)]
-            if len(pool) >= n - len(picks):
+            if len(pool) >= n - len(picks) or span == 800:
                 break
-            span //= 2
+            span = max(800, span // 2)          # 2600 → 1300 → 800: the last try at the floor
         picks += random.sample(pool, min(n - len(picks), len(pool)))
     for s, run in picks:
         t = allsecs[s]
