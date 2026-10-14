@@ -289,7 +289,8 @@ def test_bahrain_has_isolated_optional_model_path():
 # borrows that model, so it inherits the same operating point until it has its
 # own; Kuwait runs the multiprint model the same way. Every other print keeps
 # the narrow / 0.70 defaults.
-HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة'}
+# المدينة القديم joined on 2026-10-14 once its 1405 scan was scored the same way (96.5% whole book).
+HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة', 'المدينة القديم'}
 
 
 def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
@@ -922,6 +923,8 @@ def test_only_the_hybrid_multiprint_prints_enable_azhar_seat_prior():
         if key not in HYBRID_EDITIONS
     }
     assert EDITIONS['الكويت'].azhar_seat_prior is True
+    # a Madinah print must never let Madinah define its own allowed seats
+    assert EDITIONS['المدينة القديم'].seat_prior_editions == ('الأزهر',)
     assert others
     assert all(value is False for value in others.values())
     assert resolve_azhar_seat_prior('الشمرلي') is False
