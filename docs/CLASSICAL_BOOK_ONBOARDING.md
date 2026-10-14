@@ -947,3 +947,18 @@ negations and its usual misreading of bare «(X) [n].» list lines (they take th
 list's grade). Confirmed: 6 misses (2:6 conditional تام, 2:10, 5:4 ×2 list items,
 6:12 conditional تام, 7:174), 1 held row served (6:109 «يشعركم» — Hafs «أنها»), 1
 credit (2:28 «فأحياكم» تام is السجستاني's, refuted). Observed ≈ 96–97%.
+
+### منار and المكتفى: round 25 confirmation (2026-10-14)
+
+6 unread منار and 6 unread المكتفى stretches, to confirm the shared-code changes
+since their last measurement. منار: Luna matched ≈ 103 rulings; nothing needed
+a change (its flags were «وقيل» views kept in notes by design, an «ويجوز الوقف على كل
+منها» set against «ولا وقف من … إلى …», a conditional «حسن الوقف على» that describes
+the كاف row, and rows whose ruling lies outside its passage). المكتفى: ≈ 158
+matched; confirmed 3 verse ends the book names over a blanket كاف («والتمام عندي آخر
+الآية» 6:3، «وكذلك [الذي] عند رأس الجزء» 2:141، «ورأس الآية أتم. وكذلك {…}» 12:92–93),
+the Hafs side of 3:79 (نصب «ولا يأمركم»: «لم يقف على ((تدرسون))», which replaces the
+blanket تام), 6:14 «فاطر السموات والأرض» reseated from 6:12, and أبو جعفر النحاس's
+relayed «(كمثل آدم) تمام الكلام» (3:59). Left as the parser read it: «{من الشاهدين} أكفى
+منه. وكذلك رؤوس الآي بعد ((مسلمون)) تام» (3:81–90) — it can be read either way.
+Observed: منار ≈ 99–100%, المكتفى ≈ 96%.

@@ -105,9 +105,12 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # كاف, 7:190 «وهو عندي تام»
     # +14 coverage sweep: «جواب القسم {X} وهو GRADE» heads and their «ومثله» items (82, 86, 90, 92,
     # 93, 95), «تام على القراءتين / في كلا الوجهين» (14:2, 28:68, 29:66)
-    assert result['total_extracted'] == 7251
-    assert result['matched'] == 7251
-    assert result['confident'] == 7251
+    # +1 round 25: 6:3 «والتمام عندي آخر الآية», 2:141 «وكذلك [الذي] عند رأس الجزء», 12:92–93
+    # «ورأس الآية أتم. وكذلك {…}», 3:79 Hafs «لم يقف على تدرسون» (+5 −4 blankets they replace),
+    # 3:59 relayed النحاس (+1), 12:93's old كاف dropped (−1)
+    assert result['total_extracted'] == 7252
+    assert result['matched'] == 7252
+    assert result['confident'] == 7252
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

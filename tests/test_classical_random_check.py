@@ -1040,3 +1040,26 @@ def test_nahhas_round23(con, surah, ayah, wpos, grade, by):
 def test_anbari_round24(con, surah, ayah, wpos, grade, by):
     got = rulings(con, 'anbari', surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── منار / المكتفى: round 25 confirmation (2026-10-14) ───────────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (6, 3, 11, 'تام', ''),              # «والتمام عندي آخر الآية» over «ورؤوس الآي بعد كافية»
+    (2, 141, 14, 'تام', ''),            # «{عما كانوا يعملون} تام، وكذلك [الذي] عند رأس الجزء»
+    (12, 92, 10, 'تام', ''),            # «ورأس الآية أتم»
+    (12, 93, 11, 'تام', ''),            # «وكذلك {بأهلكم أجمعين}»
+    (6, 14, 7, 'كاف', ''),              # «{فاطر السموات والأرض} كاف» (was on 6:12)
+    (3, 79, 27, 'لا', ''),              # Hafs «ولا يأمركم»: «ومن قرأ ذلك بالنصب لم يقف على ((تدرسون))»
+    (3, 59, 6, 'تام', 'أبو جعفر النحاس'),
+])
+def test_muktafa_round25(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'muktafa', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)
+
+
+def test_muktafa_round25_blankets_replaced(con):
+    for s, a, w in [(6, 3, 11), (2, 141, 14), (12, 92, 10), (3, 79, 27)]:
+        assert not con.execute("SELECT 1 FROM classical WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
+                               "AND grade_raw='رؤوس الآي'", (s, a, w)).fetchone()
+    assert not rulings(con, 'muktafa', 6, 12, 5)
