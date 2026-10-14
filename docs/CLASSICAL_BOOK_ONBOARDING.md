@@ -903,3 +903,21 @@ last two words. It found 19 misses, mostly a comma or period between grade and
 quote («والتمام، {X}», «على ما روى عن نافع. {X}»), fused two-verse quotes, and
 «هذا وقف جيد»; 7 by-design cases are listed with reasons in
 coverage_exceptions.json. Served النحاس rows 6,228 → 6,296.
+
+### النحاس: round 22 and the «وكذا» chain scan (2026-10-14)
+
+Round 22 (12 unread stretches of already-drawn surahs; gpt-6-luna matched ≈ 227
+rulings, raised 61 issues, ~20 of them negations) confirmed ≈ 29 misses: the
+الصافات 61–72 range and its «والكافي {A} {B} وكذا {C}» chains (37:32–50), unbraced
+«والتمام بأجماع: {X} وكذا {Y}» (25:59–62), 11:12–18, 13:22/28, 38:2/22, 43:76,
+57:7/13, 36:58 (أبو حاتم's تمام النحاس calls a slip); 6:145 credited to أبو حاتم;
+17:12 «فصلناه تفصيلا» regraded كاف → تام. Observed ≈ 89% — these stretches were the
+parts earlier rounds had not read.
+
+Its pattern — a bare quote between a graded quote and «وكذا», and the «وكذا» items
+after it, left ungraded — was then scanned book-wide (147 hits; most are «وكذا»
+after a negation, i.e. negations themselves, or cross-references in the «كلا»
+essay). 44 graded chain rows added, e.g. 2:85 «وكذا عنده {…}» (أبو حاتم), 23:38–40
+«فإنه يكفي الوقوف عليه وكذا {…}», الشورى 14–15 / 26–28, 31:22–24 غيره, 26:4–5
+«والتمام خاضعين وكذا {…}», 51:38–45 «وإن وقفت على رؤوس الآيات كان قطعا صالحا».
+Served النحاس rows 6,296 → 6,366.
