@@ -111,9 +111,10 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # +2 named verse-end check: 2:181 and 4:1 «وآخر الآية أكفى» (+2), 3:75 «ورأس الآية أكفى منه»
     # and 10:92 «ورأس الآية أتم منه» replace general-rule rows of the other grade (+2 −2)
     # +1 quranpedia cross-check: 10:103 relayed «وقال القتبي: {كذلك} التمام» (13:11 regraded in place)
-    assert result['total_extracted'] == 7255
-    assert result['matched'] == 7255
-    assert result['confident'] == 7255
+    # +3 round 26: 24:9 «مثله {من الصادقين}», relayed أبو حاتم «الم» كاف and نافع «لا ريب فيه» تام
+    assert result['total_extracted'] == 7258
+    assert result['matched'] == 7258
+    assert result['confident'] == 7258
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

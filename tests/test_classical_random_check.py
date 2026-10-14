@@ -1079,3 +1079,18 @@ def test_muktafa_quranpedia_fixes(con):
 def test_muktafa_placement_check(con, surah, ayah, wpos, quote_start):
     assert con.execute("SELECT 1 FROM classical WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
                        "AND quote LIKE ?", (surah, ayah, wpos, quote_start + '%')).fetchone()
+
+
+@pytest.mark.parametrize('source,surah,ayah,wpos,grade,by', [
+    ('nahhas', 3, 83, None, 'تام', ''),          # round 26: «ثم التمام على رأس كل آية إلى انتهاء أربع آيات»
+    ('nahhas', 3, 91, 15, 'كاف', 'أبو حاتم'),     # «قال أبو حاتم (ولو افتدى به) كاف»
+    ('nahhas', 33, 61, 0, 'تام', 'الأخفش'),
+    ('nahhas', 9, 90, 5, 'تام', 'نافع'),
+    ('muktafa', 24, 9, 8, 'تام', ''),            # «{من الكاذبين} تام. مثله {من الصادقين}»
+    ('muktafa', 2, 262, 23, 'تام', ''),          # «والتمام آخر الآية وكذلك {يحزنون}»
+    ('muktafa', 2, 259, 47, 'تام', 'إبراهيم بن عبد الرزاق'),
+    ('muktafa', 2, 2, 4, 'تام', 'نافع'),
+])
+def test_round26(con, source, surah, ayah, wpos, grade, by):
+    got = rulings(con, source, surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

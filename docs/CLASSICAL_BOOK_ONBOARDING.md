@@ -998,3 +998,15 @@ placement checks were run over every confident row:
   occurrence. By the book's own order two المكتفى rows were on the earlier
   occurrence: «ومثله {ويقدر له} ومثله {ليقولن الله} ومثله {قل الحمد لله}» is 29:63,
   not 29:61, and «{وأصلح بالهم} تام. {الحق من ربهم} كاف» is 47:3, not 47:2.
+
+### المكتفى and النحاس: round 26 measurement (2026-10-14)
+
+6 unread stretches of each. المكتفى: ≈ 237 matched; besides «وقيل» views (notes by
+design), 5 fixes — 24:9 «{من الكاذبين} تام. مثله {من الصادقين}» had no row; 2:262
+«والتمام آخر الآية وكذلك {يحزنون}» was كاف (now تام); 2:259 «آية للناس» is إبراهيم بن
+عبد الرزاق's; relayed أبو حاتم «الم» كاف and نافع «لا ريب فيه» تام added. Observed
+≈ 98%. النحاس: ≈ 128 matched; 9 misses, almost all relayed views with a scholar's
+name: «قال أبو حاتم (ولو افتدى به) كاف» and «ومن الوقوف الكافي (حتى تنفقوا مما تحبون)»
+(3:91–92), «وقال الأخفش: وعلى أمم ممن معك: تمام» (11:48), «وقول الأخفش إن تمام الكلام
+إلا قليلا ملعونين» (33:61), 21:88 أبو حاتم, 21:93 الأخفش, 9:90 نافع, 3:97 قيل; plus
+the 3:81–85 range «ثم التمام على رأس كل آية إلى انتهاء أربع آيات». Observed ≈ 93%.
