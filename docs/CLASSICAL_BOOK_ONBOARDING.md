@@ -1059,3 +1059,41 @@ so it skipped the 800 floor and drew nothing. It now tries 800 last.
     - 28:78 «علم عندي» كاف, and «وبعده {وأكثر جمعا}»
 - **Not real:** the النحاس flags on «وبعده {X}» rows (6:51, 28:79/81/82) are wrong. «وبعده» carries the
   grade before it.
+
+### النحاس: relayed views beside braced quotes (2026-10-14)
+
+Round 27's main class of error was a scholar's view stated right next to a braced quote. A book-wide scan
+for it is now a standing test: `pipeline/review/nahhas_relayed_check.py` with its exceptions, run by
+`tests/test_nahhas_relayed.py`. The scan reports any quote where a scholar and a grade sit next to
+it and no row in the surah is credited to him. It started with 94 candidates.
+
+**Parser (`nahhas_parse.py`)**
+- New patterns:
+  - «{X} عن نافع قال: تم», «{X} عند نافع: تم», «{X} عن نافع: تام»
+  - «قال الأخفش {X} هاهنا تم الكلام»
+  - «قال أبو حاتم {X} التمام،»
+  - «{X} قال نافع: تم» / «{X} قال أحمد بن جعفر: تم» (`_SAID_AFTER_BARE`). The text before the grade must be
+    exactly a name (strict match). A loose match read «وقال يعقوب هو وقف كاف» and «قال أبو إسحاق (فما لكم) تم»
+    as names, which changed 7 rows until it was made strict.
+- «قال X: {Q} تمام وهو قول Y» and «وعن نافع {Q} تم وهو قول Y» now credit X / نافع (first-name convention).
+  `_AT` had given the row to Y. An explicit «وهو كاف عند Y» still goes to Y.
+
+**Curation (`audit_nahhas.py`)**
+- `CURATED_BY`:
+  - «قال الأخفش {X} التمام فيه {Y}»: the تمام is at Y, so the Y row is الأخفش's (nine places, as at 4:58).
+  - 11:60, 13:17, 18:64, 29:3, 87:7. At 87:7 the كاف is the author's, and محمد بن عيسى's تمام is
+    an extra row.
+- `EXTRA_AT`, views the parser rule can't reach:
+  - 2:61 «وبصلها», which is unbraced
+  - 7:2, 13:17, 22:72, 24:35, 29:22, 31:10, 35:18, 48:1
+- `DROP_AT`, three rows the new rule wrongly attached to the previous quote's grade:
+  - 2:264 «وبعده {X}» after نافع's rejected تم
+  - 2:270 «أن بعده {X}», which is an argument
+  - 4:127 «معطوف على {X} وكذا»
+
+**Result**
+- 72 new النحاس rows: about 60 from نافع, الأخفش, أبو حاتم, أحمد بن جعفر and others, plus 3 of the
+  author's own via «وكذا» chains.
+- 24 rows re-credited. Everything added was checked against the book.
+- 29 exceptions remain, each with a reason: «التمام فيه» on the X side, a name that belongs to the
+  quote before, other readings, and own grades where the named scholar is someone who agrees.

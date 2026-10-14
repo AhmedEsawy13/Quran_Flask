@@ -41,7 +41,12 @@ _AFTER = [
                 r'(التمام|التام|الكافي|الحسن|الصالح|تمام|تام|كاف|حسن|صالح)(?![ء-ي])'), 1),
     # «تم القطع على رؤوس الآيات» is a miscopied «ثم»
     (re.compile(r'^تم(?![ء-ي])(?!\s+(?:الكلام\s+)?(?:القطع|الوقف|الوقوف|التمام|على|متصل))(?:\s+الكلام)?'), None),
-    (re.compile(r'^(?:عن|وعن)\s+نافع\s+تم(?![ء-ي])'), None),
+    # «{X} عن نافع تم»، «{X} عن نافع قال: تم»، «{X} عند نافع: تم»، «{X} عن نافع: تام» (relayed-view scan, 2026-10-14)
+    (re.compile(r'^(?:عن|وعن|عند)\s+نافع\s*(?:قال)?\s*:?\s*(?:تم|تام|تمام)(?![ء-ي])'), None),
+    # «قال الأخفش {X} هاهنا تم الكلام»، «{X} ها هنا تمام الكلام»: the speaker before the quote
+    (re.compile(r'^(?:هاهنا|ها\s+هنا)\s+(?:تم|تمام|التمام)(?![ء-ي])(?:\s+الكلام)?'), None),
+    # «قال أبو حاتم {X} التمام، قال …»: «التمام» closing the clause (not «التمام فيه {Y}»)
+    (re.compile(r'^التمام(?=\s*[،.])'), None),
     # «{وما الله بغافل عما يعملون} الأولى والثانية جميعا تمام» (the second: audit_nahhas.EXTRA)
     (re.compile(r'^الأولى\s+والثانية\s+(?:جميعا\s+)?' + _GW + r'(?![ء-ي])'), 1),
 ]
@@ -106,6 +111,8 @@ _SECOND_OWN = re.compile(r'(?:^|[\s،.])(?:ولكنه|لكنه|ولكن\s+هو)\
 # «{X} قال الأخفش: هذا التمام»، «{X} قال أبو حاتم: كاف»
 _SAID_AFTER = re.compile(r'^(?:و)?قالت?\s+' + _NAME + r'\s*:\s*(?:هذا\s+|هو\s+)?(?:(?:قطع|وقف|القطع|الوقف)\s+)?'
                          r'(التمام|تمام|تام|الكافي|كافٍ|كاف|حسن|صالح)(?![ء-ي])')
+# «{X} قال نافع تم»، «{X} قال نافع: تم»، «{X} قال أحمد بن موسى تمام»، «{X} قال أبو حاتم: تم الكلام»
+_SAID_AFTER_BARE = re.compile(r'^(?:و)?قال\s+' + _NAME + r'\s*:?\s*(?:هو\s+)?(?:هذا\s+)?(?<![ء-ي])(تم|تمام|تام|كاف)(?![ء-ي])')
 _READING = re.compile(r'قراءة|قرأ|يقرأ|يقرؤ')
 
 # waqf authorities the book cites, with the spellings it uses
@@ -264,6 +271,11 @@ def parse(text):
                 g, how, by, tail = _G[m.group(2)], 'after', name(m.group(1)), after[m.end():]
                 by = by or SELF_MARK
         if g is None:
+            m = _SAID_AFTER_BARE.match(after)
+            if m and name(m.group(1), strict=True) not in (None, BREAK):   # the whole span a name
+                g, how, by, tail = (('تام' if m.group(2) == 'تم' else _G[m.group(2)]), 'after',
+                                    name(m.group(1), strict=True), after[m.end():])
+        if g is None:
             m = _BEFORE.search(before)
             if m and m.group(1) in ('الحسن', 'التمام', 'الكافي') and \
                     re.search(r'(?:قال|وقال|عن|روى|وروى|قول|مذهب)\s+(?:ال)?$', before[:m.start(1)].rstrip() + ' '):
@@ -329,6 +341,10 @@ def parse(text):
         if g is None:
             # «{A} وكذا {B} قطع كاف»: B's grade reaches back to A
             continue
+        # «قال الأخفش: {X} تمام وهو قول نافع»: the speaker before the quote first; «وهو قول …» names
+        # those who agree (first-name convention, 2026-10-14)
+        if by is None and how == 'after' and re.match(r'[\s،]*وهو\s+(?:قول|مذهب)\s', tail):
+            by = 'نافع' if _NAFI_BEFORE.search(before) else _speaker(text, s, prv)   # «وعن نافع {X} تم وهو قول …»
         if how == 'after' and by is None:
             m = _AT.match(tail)
             if m:
