@@ -192,13 +192,16 @@ EDITIONS: dict[str, EditionSpec] = {
         script_db=QURAN_SCRIPT_DATABASE,
         min_page=2,
         max_page=522,
-        image_kind='archive',
+        # Pages rendered once from the vector PDF of this print (quranpedia book 27111, kept in the
+        # ShemrlyMushaf project): mushaf page N = 0-based PDF page N-1, same text and line breaks as the
+        # archive.org scan («shamarlyshamarly»), sharper, and complete without downloads.
+        image_kind='cache',
         archive_id='shamarlyshamarly',
         leaf_offset=-1,
-        page_cache_dir=str(PAGES_ROOT / 'shamarly'),
-        # calibrate-geometry on 48 cached pages (4-145:3), 2026-10-14; the old 0.11/0.90 sat ~0.9 line off
-        text_top=0.0609,
-        text_bottom=0.8865,
+        page_cache_dir=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'cache'),
+        # calibrate-geometry on 104 PDF-rendered pages (3-522:5), 2026-10-14
+        text_top=0.0817,
+        text_bottom=0.8702,
         # 2026-10-14: same detector setup as the scored prints (hybrid windows, measured geometry, Azhar
         # occupancy prior). The archive serves 1157px pages; they are resampled to the working width.
         default_proposal_mode='hybrid',
