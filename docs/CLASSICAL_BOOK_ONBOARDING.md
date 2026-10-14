@@ -933,3 +933,17 @@ name co-credits, or commentators (اليزيدي، الحسن). Confirmed ≈ 14
 4:118 and 27:10 نافع, and the held 2:235 (the copy writes «غفور رحيم» for «حليم»,
 pinned); 2 credits (9:3 بعضهم, 18:90 أحمد بن موسى). Observed ≈ 95%, up from
 89–91% — the first round after the range, coverage and chain scans.
+
+### ابن الأنباري: coverage check and round 24 (2026-10-14)
+
+coverage_check.py now covers ابن الأنباري too — «(X) [n] (وهو الوقف|وقف)? G» — so
+its standing test runs on all four books. One miss: 77:7 «جواب القسم (إنما توعدون
+لواقع) [7] وهو الوقف التام»; two «حسن أن يقف» verb phrases are listed exceptions.
+
+Round 24 measured the book again (10 unread stretches; make_passages now
+falls back to shorter stretches when a short book runs out of 2,600-character
+ones). gpt-6-luna matched ≈ 194 rulings and raised 36 issues; most were «غير تام»
+negations and its usual misreading of bare «(X) [n].» list lines (they take the
+list's grade). Confirmed: 6 misses (2:6 conditional تام, 2:10, 5:4 ×2 list items,
+6:12 conditional تام, 7:174), 1 held row served (6:109 «يشعركم» — Hafs «أنها»), 1
+credit (2:28 «فأحياكم» تام is السجستاني's, refuted). Observed ≈ 96–97%.

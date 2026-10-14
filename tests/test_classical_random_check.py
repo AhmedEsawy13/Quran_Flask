@@ -1025,3 +1025,18 @@ def test_nahhas_round22_and_chains(con, surah, ayah, wpos, grade, by):
 def test_nahhas_round23(con, surah, ayah, wpos, grade, by):
     got = rulings(con, 'nahhas', surah, ayah, wpos)
     assert any(g == grade and b == by for _, g, b in got)
+
+
+# ── ابن الأنباري: round 24 and the coverage check (2026-10-14) ────────────────
+
+@pytest.mark.parametrize('surah,ayah,wpos,grade,by', [
+    (77, 7, 2, 'تام', ''),              # «جواب القسم (إنما توعدون لواقع) [7] وهو الوقف التام»
+    (2, 10, 2, 'حسن', ''),              # «والوقف على قوله: {في قلوبهم مرض} [10] حسن»
+    (5, 4, 12, 'تام', ''),              # «(من الجوارح مكلبين) [4]، (مما علمكم الله)، (…) تام»
+    (7, 174, 4, 'تام', ''),             # «وتمام الكلام على قوله: (ولعلهم يرجعون)»
+    (2, 28, 5, 'تام', 'السجستاني'),      # «… على ما زعم السجستاني» — his view, refuted
+    (6, 109, 15, 'حسن', ''),            # Hafs «أنها»: «فيحسن الوقف على (يشعركم)»
+])
+def test_anbari_round24(con, surah, ayah, wpos, grade, by):
+    got = rulings(con, 'anbari', surah, ayah, wpos)
+    assert any(g == grade and b == by for _, g, b in got)

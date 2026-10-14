@@ -1,4 +1,4 @@
-"""Coverage check: every graded quote in منار and المكتفى has a row.
+"""Coverage check: every graded quote in منار، المكتفى، النحاس and ابن الأنباري has a row.
 
 A sweep of the whole book text (2026-10-12) found rulings the parser had
 skipped — المكتفى's «جواب القسم {X} وهو تام» and its «ومثله» chain, منار's
@@ -23,6 +23,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path[:0] = [ROOT, os.path.join(ROOT, 'pipeline'), os.path.dirname(os.path.abspath(__file__))]
 import build_classical_waqf as rx  # noqa: E402
 import seat_check as sc  # noqa: E402
+import audit_anbari  # noqa: E402
 
 DB = os.path.join(ROOT, 'data', 'classical_waqf.db')
 EXCEPTIONS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'coverage_exceptions.json')
@@ -30,6 +31,8 @@ _G = r'(تام|كاف|حسن|صالح|جائز|ليس بوقف|أتم|أكفى|�
 
 
 def _sections(book):
+    if book == 'anbari':
+        return audit_anbari.sections()
     if book == 'nahhas':                 # the cleaned sections the builder parses
         secs = {}
         for n, text in rx.nahhas_sections(rx.load_book(rx.SOURCES['nahhas'])):
@@ -63,6 +66,10 @@ def check(db=DB, books=('manar', 'muktafa')):
             rows[s].append((a, q))
         if book == 'manar':
             pat = r'\{([^{}]{2,80})\}\s*\[([\d،, ]{1,12})\]\s*[.،]?\s*' + _G + r'(?![ء-ي])'
+        elif book == 'anbari':
+            # «(X) [n] وقف حسن»، «(X) [n] وهو الوقف التام»
+            pat = (r'\(([^()]{2,80})\)()\s*(?:\[[\d،, ]+\])?\s*[.،]?\s*(?:(?:و?هو|فهو)\s+)?(?:الوقف\s+|وقف\s+)?'
+                   r'(تام|حسن|قبيح|التام|الحسن)(?![ء-ي])')
         elif book == 'nahhas':
             pat = (r'\{([^{}]{2,80})\}()\s*[.،]?\s*(?:(?:و?هو|فإنه|فهو|هذا)\s+)?(?:(?:قطع|وقف)\s+)?'
                    r'(تام|تمام|كاف|كافٍ|حسن|صالح|جيد)(?![ء-ي])')
@@ -78,7 +85,7 @@ def check(db=DB, books=('manar', 'muktafa')):
             for m in (m for p in pats for m in re.finditer(p, text)):
                 if re.search(r'(?:غير|ليس)\s*$', text[max(0, m.start() - 8):m.start()]):
                     continue
-                quote = m.group(1) if book in ('manar', 'nahhas') else (m.group(1) or m.group(2))
+                quote = m.group(1) if book in ('manar', 'nahhas', 'anbari') else (m.group(1) or m.group(2))
                 # «منزلين. بلى»: either side of the period may carry the stop
                 ends = [w[-1] for w in (_words(part) for part in quote.split('.')) if w]
                 if not ends:
@@ -89,7 +96,7 @@ def check(db=DB, books=('manar', 'muktafa')):
                     cands = [q for a, q in rows[s] if a in marks]
                 else:
                     cands = [q for _, q in rows[s]]
-                if book == 'nahhas':
+                if book in ('nahhas', 'anbari'):
                     # common last words («يعلمون») match some row in every surah: النحاس
                     # quotes are long, so ask for the last two words
                     tail = _words(quote.split('.')[-1])[-2:]
@@ -108,7 +115,7 @@ def exceptions():
     return json.load(open(EXCEPTIONS, encoding='utf-8'))
 
 
-def unexplained(db=DB, books=('manar', 'muktafa', 'nahhas')):
+def unexplained(db=DB, books=('manar', 'muktafa', 'nahhas', 'anbari')):
     ex = exceptions()
     return [m for m in check(db, books) if f"{m['surah']}:{m['quote']}" not in ex.get(m['book'], {})]
 

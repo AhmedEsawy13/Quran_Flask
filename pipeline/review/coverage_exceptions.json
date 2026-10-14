@@ -24,5 +24,9 @@
   "27:وأمرت أن أكون من المسلمين": "«وهذا التمام {وأمرت…} ليس بكاف» — «وهذا التمام» closes the quote before; this one is a negation",
   "35:عند": "the copy's slip «والتمام {عند} غيره {إن الله عزيز غفور}» (QUOTE_FIX seats it on 35:28)",
   "38:واذكر عبدنا إبراهيم": "other reading: ابن عباس's «عبدنا» — Hafs reads «عبادنا» (DROP_NON_HAFS)"
+ },
+ "anbari": {
+  "25:يأمرنا": "«فمن قرأ: (يأمرنا) حسن أن يقف على (وما الرحمن)» — «حسن أن يقف» is a verb phrase, not a grade on «يأمرنا» (the row is on «وما الرحمن»)",
+  "70:نزاعة": "«ومن نصب (نزاعة) حسن له أن يقف على (لظى)» — a verb phrase: the حسن stop is «لظى» (70:15, stored), not «نزاعة»"
  }
 }
