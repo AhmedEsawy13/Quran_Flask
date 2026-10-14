@@ -962,3 +962,14 @@ blanket تام), 6:14 «فاطر السموات والأرض» reseated from 6:1
 relayed «(كمثل آدم) تمام الكلام» (3:59). Left as the parser read it: «{من الشاهدين} أكفى
 منه. وكذلك رؤوس الآي بعد ((مسلمون)) تام» (3:81–90) — it can be read either way.
 Observed: منار ≈ 99–100%, المكتفى ≈ 96%.
+
+### المكتفى: named verse ends (2026-10-14)
+
+Round 25's misses shared a cause: الداني names a verse end («ورأس الآية أتم»، «وآخر الآية
+أكفى منه»، «والتمام آخر الآية»، «عند رأس الجزء») and the only row there came from a general
+«رؤوس الآي» rule. A book-wide scan placed each such statement on its verse (by the quote
+before it) and compared grades: 34 hits, 28 already carrying the stated grade through the
+general rule (أتم = تام, أكفى = كاف), 1 «وقيل» view, 1 range. Fixed: 2:181 and 4:1 «وآخر
+الآية أكفى» had no row; 3:75 «ورأس الآية أكفى منه» was تام and 10:92 «ورأس الآية أتم منه»
+was كاف (explicit rows now replace the general ones). tests/test_muktafa_named_verse_ends.py
+keeps it so: 39 of the 40 such statements are placed and checked.
