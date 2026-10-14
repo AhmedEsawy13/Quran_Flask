@@ -1097,3 +1097,34 @@ it and no row in the surah is credited to him. It started with 94 candidates.
 - 24 rows re-credited. Everything added was checked against the book.
 - 29 exceptions remain, each with a reason: «التمام فيه» on the X side, a name that belongs to the
   quote before, other readings, and own grades where the named scholar is someone who agrees.
+
+### النحاس and ابن الأنباري: round 28 measurement (2026-10-14)
+
+Thirteen passages: 10 النحاس and 3 ابن الأنباري. ابن الأنباري is nearly fully read, so few unread stretches
+are left in it. gpt-6-luna checked them, and every flag was checked against the book.
+
+**النحاس: 13 real errors in 281 rulings (≈ 95%, up from ≈ 90% in round 27).**
+- Credits:
+  - 4:38: «وللأخفش فيه قول حسن … {X} وهذا التمام عنده»
+  - 42:45: «وأكثر أصحاب التمام يقولون التمام {X}», now غيره
+  - 6:12: «في قول أبي حاتم وهو أحد قولي الفراء»
+  - 6:3: «قال العباس بن الفضل … قال: وقال أبي {X} وقف كاف», now credited to العباس بن الفضل
+- Missing rows:
+  - 4:162: الأخفش «هو تمام»
+  - 2:30: «فالوقف الكافي على هذا (ونقدس لك)»
+  - 6:109: «والتمام على قول الجماعة (لا يؤمنون)»
+  - 19:21: أبو حاتم «هو علي هين»
+  - 19:34: «والكافي بإجماع {الذي فيه يمترون}»
+  - 21:82 and 21:83: «{X} كان». The copy has «كان» for «كاف»; the sentence before reads «كان كافيا … لم يكف».
+- Rows dropped:
+  - 23:1: «يجوز أن يكون التمام {قد أفلح المؤمنون}» comes after «البين … ليس بتمام ولا بكاف».
+  - 4:171: «والتمام {إنما المسيح عيسى بن مريم رسول الله} ليس بتمام». An earlier coverage pass had added
+    this row. Both are now coverage exceptions.
+
+**ابن الأنباري: 1 real error in 21 rulings.**
+- 3:4: «وقال السجستاني: هو تام، وهو خطأ منه» added (BOOK_ADD and RELAYED_BY).
+- `audit()` now skips BOOK_ADD rows, as `--apply` already did. Before, the hand-added تام beside the book's
+  حسن showed up as a pending regrade.
+
+The rest were by design: conditional and other-reading sides, «يجوز» permissions, notes asking for
+conditions, ungraded mentions, and «وبعده» chains.

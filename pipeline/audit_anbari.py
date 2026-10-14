@@ -252,6 +252,8 @@ def seat(surah, ayah, quote, acount, upto, own, current=None):
 
 
 def audit(con):
+    global _BOOK_ADD_SEATS
+    _BOOK_ADD_SEATS = {b[:4] for b in BOOK_ADD}
     secs = sections()
     recs = []
     for r in con.execute("SELECT id, surah, ayah, wpos, quote, grade, conf, reported_from "
@@ -259,6 +261,8 @@ def audit(con):
                          # «رأس الآية»: a verse end the book rules without quoting it (BOOK_ADD)
                          tuple(BEFORE_RAW.values()) + ('آخر السورة', 'رأس الآية')).fetchall():
         rid, s, a, w, q, g, conf, rep = r
+        if (s, a, w, g) in _BOOK_ADD_SEATS:
+            continue                       # hand-read rows (BOOK_ADD), e.g. a relayed «هو تام» on a حسن quote
         text = secs.get(s, '')
         acount = rx.surah_ayah_count(s)
         best, best_neg, other = None, False, None
@@ -486,6 +490,7 @@ DROP_ANY = {(2, 210, 10, 'قبيح')}
 # a relayed view the builder stored as the author's: «وروي عن الحسن أنه قال:
 # (ويقولون حجرا) وقف تام» — (surah, ayah, wpos, grade) → who
 RELAYED_BY = {(25, 22, 8, 'تام'): 'الحسن',
+              (3, 4, 3, 'تام'): 'السجستاني',   # round 28: «وقال السجستاني: هو تام، وهو خطأ منه»
               # round 24: «… فهذا أصح من أن تجعله … على ما زعم السجستاني» — his «(فأحياكم) تام»
               (2, 28, 5, 'تام'): 'السجستاني',
               # «وقال قوم: هو مستثنى من قوله: (الذين يستنبطونه - إلا قليلا) والوقف على (إلا قليلا) تام»
@@ -553,7 +558,8 @@ BOOK_ADD = [# round 14: verse ends the book rules without quoting them (grade_ra
             # round 27 (gpt-6-luna): «(النار) تلم إذا نصبت …» (the copy's «تلم» for تام) and a surah-end تمام
             (3, 16, 10, 'تام', 'رأس الآية', 'ٱلنَّارِ',
              'والوقف على (النار) تلم إذا نصبت (الصابرين والصادقين) على المدح'),
-            (8, 75, 21, 'تام', 'رأس الآية', 'عَلِيمُۢ', 'ومثله: (بعضهم أولى ببعض في كتاب الله) والتمام آخر السورة.')]
+            (8, 75, 21, 'تام', 'رأس الآية', 'عَلِيمُۢ', 'ومثله: (بعضهم أولى ببعض في كتاب الله) والتمام آخر السورة.'),
+            (3, 4, 3, 'تام', 'تام', 'من قبل هدى للناس', 'وقال السجستاني: هو تام، وهو خطأ منه')]
 
 HOLD = {(5, 'والجروح قصاص'), (7, 'وهم يلعبون'), (7, 'وجاءوا بسحر عظيم'),
         (28, 'ما كان لهم الخيرة'), (69, 'ولا بقول كاهن')}
