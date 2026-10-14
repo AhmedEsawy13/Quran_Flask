@@ -1063,3 +1063,9 @@ def test_muktafa_round25_blankets_replaced(con):
         assert not con.execute("SELECT 1 FROM classical WHERE source='muktafa' AND surah=? AND ayah=? AND wpos=? "
                                "AND grade_raw='رؤوس الآي'", (s, a, w)).fetchone()
     assert not rulings(con, 'muktafa', 6, 12, 5)
+
+
+def test_muktafa_quranpedia_fixes(con):
+    # «ومثله {فلا مرد له} وهو أتم منه» — تام, not the كاف of the «ومثله»
+    assert ('تام', '') in {(g, b) for _, g, b in rulings(con, 'muktafa', 13, 11, 28)}
+    assert ('تام', 'القتبي') in {(g, b) for _, g, b in rulings(con, 'muktafa', 10, 103, 5)}

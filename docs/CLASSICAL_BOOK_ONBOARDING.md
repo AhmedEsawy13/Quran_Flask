@@ -973,3 +973,11 @@ general rule (أتم = تام, أكفى = كاف), 1 «وقيل» view, 1 range.
 الآية أكفى» had no row; 3:75 «ورأس الآية أكفى منه» was تام and 10:92 «ورأس الآية أتم منه»
 was كاف (explicit rows now replace the general ones). tests/test_muktafa_named_verse_ends.py
 keeps it so: 39 of the 40 such statements are placed and checked.
+
+### المكتفى: first quranpedia cross-check fixes (2026-10-14)
+
+A partial re-run of the quranpedia.app cross-check (293 المكتفى pages, then paused)
+agreed on 234 of 240 graded quotes. Two real fixes: 13:11 «ومثله {فلا مرد له} وهو أتم
+منه» is تام (it was the «ومثله»'s كاف), and القتبي's relayed «{كذلك} التمام» at 10:103
+was missing. The rest were quranpedia filing a quote on a neighbouring page. The
+fetch and compare scripts and the page cache are in the gitignored artifacts/quranpedia/.
