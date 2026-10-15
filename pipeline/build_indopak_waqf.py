@@ -222,6 +222,9 @@ SOURCE_CORRECTIONS = {
     (20, 88, 11): 'ۙۚ۬', # «موسى» p.319: ۵ with لا and ج above printed; the source has only ۵
     (59, 2, 28): '',     # «يحتسبوا» p.546: nothing printed, nor in either text copy; the
                          # margin «وقف النبي ﷺ» belongs to «لأول الحشر» (ؔؕ), kept
+    (19, 31, 11): 'ۙ',   # «حيًّا» verse end p.308: only لا printed over the circle (source ص+صلے)
+    (37, 35, 9): '',     # «الله» p.448: nothing printed (quranwbw agrees; source has ۙ)
+    (69, 7, 7): '',      # «حسومًا» p.568: nothing printed (quranwbw agrees; source has ۙ)
 }
 
 

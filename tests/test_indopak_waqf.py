@@ -50,6 +50,8 @@ def test_printed_page_corrections_are_applied():
     assert have[(20, 88, 11)] == 'ۙۚ۬'                # «موسى»: ۵ with لا and ج above
     assert (59, 2, 28) not in have                    # «يحتسبوا»: stray ۗ, nothing printed
     assert have[(59, 2, 12)] == 'ؔؕ'                  # «لأول الحشر»: the margin «وقف النبي»
+    assert have[(19, 31, 11)] == 'ۙ'                  # «حيًّا»: only لا over the verse circle
+    assert (37, 35, 9) not in have and (69, 7, 7) not in have   # «الله», «حسومًا»: nothing printed
 
 
 def test_indopak_meanings_follow_the_printed_key():
