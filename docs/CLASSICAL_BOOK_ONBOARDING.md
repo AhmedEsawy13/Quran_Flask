@@ -1229,3 +1229,20 @@ Left out:
 - the copy's slips 7:18 «مذعورا» and 43:60 «يخلقون», which the seat and alignment tests reject
 - 19:81 «عزا كلا»: the quote must end on its seated word
 - 28:71 «بيضاء»: the copy's slip for that verse's «بضياء»; an earlier test pins it there
+
+### منار: round 33, partial full pass (2026-10-15)
+
+`make_cover.py` now tiles منار too, from `manar_shamela_sections.json`. Earlier random rounds had read
+only 16% of منار (1.18M of 1.41M chars never reviewed). `make_cover.py 33 manar --all` gave 797
+passages in 376 calls. The run was stopped on purpose after 89 batches (~24% of the book), and those
+results were triaged. Token use, now logged by `run_openai.py`: ~40k input / 6k output tokens per batch.
+
+Most real flags were relayed views stated right after the author's grade: «{X} [n] حسن، وقال نافع /
+الأخفش / أبو عمرو / أبو حاتم / يحيى بن نصير النحوي: تام». They go in the new `RELAYED_EXTRA`
+(audit_manar_mithl.py). It inserts each row with its own credit; `REPORTED` is seat-keyed and would
+also credit the author's own row at that seat. 21 relayed rows were added. Also:
+- 13:38 «تم الكلام» regraded to تام.
+- Credits:
+  - 7:137 «فلا يوقف على يستضعفون» and 10:24 «فلا يوقف على فاختلط» are the author's own.
+  - 16:6 «وكذا تسرحون» is أبو عمرو's.
+- نافع's 10:37 «تام» re-seated on «لا ريب فيه» (it sat on «العالمين»).
