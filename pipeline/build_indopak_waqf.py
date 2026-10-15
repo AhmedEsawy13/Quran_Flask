@@ -25,23 +25,33 @@ Traditional IndoPak letter names ↔ Unicode marks stored in DB:
   ۠  U+06E0  RECTANGULAR ZERO             = sajda/ruku marker (SKIPPED)
   Private Use Area U+F500–U+F6FF          = font ligatures for verse numbers (SKIPPED)
 
+Placement: the IndoPak text does not always split a verse into the same words as
+quran_script.db (27:20 «مَا لِيَ», 72:16, 73:20 …), so each verse's IndoPak words are
+ALIGNED to its quran_script words by their letters (difflib on a consonant skeleton),
+not counted. Counting put 12 marks on the wrong word; 32 marks in 14 verses were never
+written (found 2026-10-15). `--check` compares the column with the source and exits 1
+on any difference.
+
 Usage:
-  python pipeline/build_indopak_waqf.py
-  python pipeline/build_indopak_waqf.py --dry-run
-  python pipeline/build_indopak_waqf.py --reset
+  python pipeline/build_indopak_waqf.py --check
+  python pipeline/build_indopak_waqf.py --reset      # rebuild the column from the source
 """
 
 import argparse
+import collections
+import difflib
 import json
 import re
 import sqlite3
+import sys
+import unicodedata
 from pathlib import Path
 
 BASE            = Path(__file__).parent.parent
-INDOPAK_JSON    = BASE / "QUL_data/indopak-nastaleeq 2.json"
-MUSHAF_WAQF_DB  = BASE / "QUL_data/mushaf_waqf.db"
-QURAN_SCRIPT_DB = BASE / "QUL_data/quran_script.db"
-SURAHS_JSON     = BASE / "QUL_data/surahs.json"
+INDOPAK_JSON    = BASE / "data/quran_text/Indopak Nastaleeq_Waqf.json"
+MUSHAF_WAQF_DB  = BASE / "data/mushaf_waqf.db"
+QURAN_SCRIPT_DB = BASE / "data/quran_script.db"
+SURAHS_JSON     = BASE / "data/quran_text/surahs.json"
 
 INDOPAK_COL = "الهندي"
 
@@ -117,7 +127,7 @@ def get_word_text(qs_cur: sqlite3.Cursor, sura: int, aya: int, pos: int) -> str:
     return row[0] if row else ""
 
 
-def place_symbol(
+def _unused_place_symbol(
     waqf_cur: sqlite3.Cursor,
     qs_cur: sqlite3.Cursor,
     sura_names: dict,
@@ -155,89 +165,121 @@ def place_symbol(
         )
 
 
+# ── Alignment ────────────────────────────────────────────────────────────────
+
+_FOLD = str.maketrans({'ی': 'ي', 'ى': 'ي', 'ئ': 'ي', 'ک': 'ك', 'ہ': 'ه', 'ۃ': 'ة', 'ة': 'ه',
+                       'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ؤ': 'و'})
+# IndoPak font ligatures that stand for whole words
+_PUA_WORDS = {'\uf664': 'انثي', '\uf668': 'وفي'}
+_VERSE_NUMBER = re.compile(r'[\u06dd٠-٩0-9 ]+')
+
+
+def _skeleton(word: str) -> str:
+    """Consonant skeleton for matching an IndoPak word to its Uthmani spelling."""
+    for k, v in _PUA_WORDS.items():
+        word = word.replace(k, v)
+    word = ''.join(c for c in word if not ('\ue000' <= c <= '\uf8ff'))
+    word = ''.join(c for c in unicodedata.normalize('NFKD', word) if unicodedata.category(c) != 'Mn')
+    word = re.sub(r'[^ء-ي]', '', word.translate(_FOLD).replace('ـ', ''))
+    return re.sub('[اويء]', '', word)
+
+
+def derive_marks(indopak: dict, qs_conn: sqlite3.Connection) -> tuple[dict, list]:
+    """{(surah, ayah, token_index): symbols} from the IndoPak text, placed by alignment.
+
+    token_index counts a leading ۞ like the waqf table does. Returns the marks and the
+    list of marks that could not be aligned (should be empty)."""
+    words = collections.defaultdict(list)
+    for key, text in qs_conn.execute('SELECT word_key, text FROM words'):
+        s, a, w = map(int, key.split(':'))
+        words[(s, a)].append((w, text))
+    marks, unplaced = {}, []
+    for vk, entry in indopak.items():
+        s, a = map(int, vk.split(':'))
+        verse = sorted(words[(s, a)])
+        hizb = 1 if verse and verse[0][1].strip() == '۞' else 0
+        db = [t for w, t in verse if t.strip() != '۞' and not _VERSE_NUMBER.fullmatch(t.strip())]
+        ip, found = [], []
+        for tok in entry.get('text', '').split():
+            if is_content_word(tok):
+                ip.append(tok)
+            elif (sym := extract_waqf_symbol(tok)) and ip:
+                found.append((len(ip) - 1, sym))
+        to_db = {}
+        matcher = difflib.SequenceMatcher(None, [_skeleton(t) for t in ip], [_skeleton(t) for t in db], autojunk=False)
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'equal' or (tag == 'replace' and i2 - i1 == j2 - j1):
+                for k in range(i2 - i1):
+                    to_db[i1 + k] = j1 + k
+            elif tag == 'replace':          # n IndoPak words <-> m words: a mark after the block goes on its last word
+                to_db[i2 - 1] = j2 - 1
+        for i, sym in found:
+            if i not in to_db:
+                unplaced.append((vk, i + 1, ip[i], sym))
+                continue
+            key = (s, a, to_db[i] + 1 + hizb)
+            marks[key] = marks.get(key, '') + sym
+    return marks, unplaced
+
+
+def stored_marks(conn: sqlite3.Connection) -> dict:
+    return {(s, a, t): v for s, a, t, v in conn.execute(
+        f'SELECT "السورة", "الآية", token_index, "{INDOPAK_COL}" FROM waqf '
+        f'WHERE "{INDOPAK_COL}" IS NOT NULL AND "{INDOPAK_COL}" != ""')}
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
-def build(dry_run: bool = False, reset: bool = False) -> None:
-    print(f"Loading {INDOPAK_JSON.name} …")
+def build(check: bool = False, reset: bool = False) -> int:
     with open(INDOPAK_JSON, encoding="utf-8") as f:
         indopak = json.load(f)
-    print(f"  {len(indopak):,} verses")
+    qs_conn = sqlite3.connect(QURAN_SCRIPT_DB)
+    waqf_conn = sqlite3.connect(MUSHAF_WAQF_DB)
+    marks, unplaced = derive_marks(indopak, qs_conn)
+    have = stored_marks(waqf_conn)
+    add = {k: v for k, v in marks.items() if k not in have}
+    drop = {k: v for k, v in have.items() if k not in marks}
+    change = {k: (have[k], v) for k, v in marks.items() if k in have and have[k] != v}
+    print(f"{len(indopak):,} verses, {len(marks):,} marks in the source, {len(have):,} in the column; "
+          f"unaligned {len(unplaced)}")
+    print(f"missing {len(add)}, extra/misplaced {len(drop)}, symbol differs {len(change)}")
+    for name, rows in (('missing', add), ('extra', drop), ('differs', change)):
+        for k, v in list(rows.items())[:15]:
+            print(f"  {name:8s} {k[0]}:{k[1]} token {k[2]}  {v!r}")
+    if check:
+        return 1 if (add or drop or change or unplaced) else 0
+    if unplaced:
+        print('refusing to write: some marks could not be aligned'); return 1
 
-    if dry_run:
-        print("\n=== DRY RUN — first 10 waqf finds ===")
-        found = 0
-        for vk, entry in sorted(indopak.items(),
-                                  key=lambda x: (int(x[0].split(':')[0]), int(x[0].split(':')[1]))):
-            sura, aya = map(int, vk.split(':'))
-            tokens = entry.get('text', '').split()
-            word_pos = 0
-            for tok in tokens:
-                if is_content_word(tok):
-                    word_pos += 1
-                elif sym := extract_waqf_symbol(tok):
-                    print(f"  {vk} word {word_pos}: '{sym}' (raw={tok!r})")
-                    found += 1
-                    if found >= 10:
-                        print("[DRY RUN] No changes written.")
-                        return
-        print("[DRY RUN] No changes written.")
-        return
-
-    sura_names = load_sura_names(SURAHS_JSON)
-    waqf_conn  = sqlite3.connect(MUSHAF_WAQF_DB)
-    qs_conn    = sqlite3.connect(QURAN_SCRIPT_DB)
-    qs_cur     = qs_conn.cursor()
-    waqf_cur   = waqf_conn.cursor()
-
-    print(f"\nOpening {MUSHAF_WAQF_DB.name} …")
     ensure_column(waqf_conn, reset)
-
-    total_placed = 0
-    for vk, entry in sorted(indopak.items(),
-                              key=lambda x: (int(x[0].split(':')[0]), int(x[0].split(':')[1]))):
-        sura, aya = map(int, vk.split(':'))
-        tokens = entry.get('text', '').split()
-
-        word_pos = 0  # 1-based position matching quran_script.db word_key
-        for tok in tokens:
-            if is_content_word(tok):
-                word_pos += 1
-            elif sym := extract_waqf_symbol(tok):
-                if word_pos > 0:
-                    place_symbol(waqf_cur, qs_cur, sura_names, sura, aya, word_pos, sym)
-                    total_placed += 1
-
-        if sura == 1 and aya <= 3:  # progress sample
-            print(f"  Sample {vk}: {tokens}")
-
+    cur, qs_cur = waqf_conn.cursor(), qs_conn.cursor()
+    if not reset:   # targeted: clear only the rows that are wrong
+        marks_cols = [c[1] for c in cur.execute('PRAGMA table_info(waqf)')
+                      if c[1] not in ('السورة', 'الآية', 'الكلمة', 'token_index', 'word_index')]
+        nothing_left = ' AND '.join(f'("{c}" IS NULL OR "{c}" = \'\')' for c in marks_cols)
+        for (s, a, t) in drop:
+            cur.execute(f'UPDATE waqf SET "{INDOPAK_COL}"=NULL WHERE "السورة"=? AND "الآية"=? AND token_index=?', (s, a, t))
+            # a row that only held this misplaced mark goes with it
+            cur.execute(f'DELETE FROM waqf WHERE "السورة"=? AND "الآية"=? AND token_index=? AND {nothing_left}', (s, a, t))
+    targets = marks if reset else {**add, **{k: v for k, (_, v) in change.items()}}
+    for (s, a, t), sym in targets.items():
+        row = cur.execute('SELECT rowid FROM waqf WHERE "السورة"=? AND "الآية"=? AND token_index=?', (s, a, t)).fetchone()
+        if row:
+            cur.execute(f'UPDATE waqf SET "{INDOPAK_COL}"=? WHERE rowid=?', (sym, row[0]))
+        else:
+            first = get_word_text(qs_cur, s, a, 1).strip()
+            cur.execute(f'''INSERT INTO waqf ("السورة", "الآية", "الكلمة", "{INDOPAK_COL}", word_index, token_index)
+                            VALUES (?, ?, ?, ?, ?, ?)''',
+                        (s, a, get_word_text(qs_cur, s, a, t), sym, t - (1 if first == '۞' else 0), t))
     waqf_conn.commit()
-    waqf_cur.close()
-    qs_cur.close()
-    waqf_conn.close()
-    qs_conn.close()
-
-    # ── Summary ──────────────────────────────────────────────────────────────
-    verify = sqlite3.connect(MUSHAF_WAQF_DB)
-    total = verify.execute(
-        f'SELECT COUNT(*) FROM waqf WHERE "{INDOPAK_COL}" IS NOT NULL'
-    ).fetchone()[0]
-    breakdown = verify.execute(
-        f'SELECT "{INDOPAK_COL}", COUNT(*) FROM waqf '
-        f'WHERE "{INDOPAK_COL}" IS NOT NULL GROUP BY "{INDOPAK_COL}" ORDER BY COUNT(*) DESC LIMIT 20'
-    ).fetchall()
-    verify.close()
-
-    print(f"\n=== Done ===")
-    print(f"Symbols placed during scan: {total_placed:,}")
-    print(f"Total rows with '{INDOPAK_COL}': {total:,}")
-    print("\nTop symbol breakdown:")
-    for sym, cnt in breakdown:
-        print(f"  {sym!r:<20} : {cnt:,}")
+    left = stored_marks(waqf_conn)
+    print(f"wrote; column now {len(left):,} marks, equal to the source: {left == marks}")
+    return 0 if left == marks else 1
 
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Build الهندي waqf column from IndoPak JSON")
-    p.add_argument("--dry-run", action="store_true", help="Preview without writing")
-    p.add_argument("--reset",   action="store_true", help="Clear existing symbols first")
+    p.add_argument("--check", action="store_true", help="Compare the column with the source; write nothing")
+    p.add_argument("--reset", action="store_true", help="Clear the column and rebuild it entirely")
     args = p.parse_args()
-    build(dry_run=args.dry_run, reset=args.reset)
+    sys.exit(build(check=args.check, reset=args.reset))
