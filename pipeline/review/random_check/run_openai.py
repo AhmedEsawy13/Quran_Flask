@@ -3,11 +3,14 @@ Claude subagents. The model gets the same two tools the subagents used: the DB
 rows for a span (show_rows.py) and a search of the book text.
 
     python3 pipeline/review/random_check/run_openai.py ROUND_DIR [--model M] [--jobs N]
+    python3 pipeline/review/random_check/run_openai.py ROUND_DIR --usage [--price-in P --price-out P]
 
 The key comes from OPENAI_API_KEY (environment or a gitignored .env file);
 OPENAI_BASE_URL overrides the endpoint. Each batchN.json in ROUND_DIR gets a
 batchN_result.json in the INSTRUCTIONS_PASSAGES.md shape. Existing results are
-skipped, so a failed run can be resumed.
+skipped, so a failed run can be resumed. Token usage per batch (input, cached input, output,
+reasoning — as the API reports it) is written to batchN_usage.json; --usage sums a round and, given
+prices per million tokens, estimates its cost.
 """
 import argparse
 import http.client
@@ -101,12 +104,27 @@ def instructions():
             + '\n\n---\n\n'.join(parts))
 
 
-def review(model, passage, log):
+def add_usage(total, r):
+    u = r.get('usage') or {}
+    total['calls'] += 1
+    total['input_tokens'] += u.get('input_tokens', 0)
+    total['cached_input_tokens'] += (u.get('input_tokens_details') or {}).get('cached_tokens', 0)
+    total['output_tokens'] += u.get('output_tokens', 0)
+    total['reasoning_tokens'] += (u.get('output_tokens_details') or {}).get('reasoning_tokens', 0)
+
+
+def new_usage():
+    return dict.fromkeys(('calls', 'input_tokens', 'cached_input_tokens', 'output_tokens', 'reasoning_tokens'), 0)
+
+
+def review(model, passage, log, usage=None):
     # /v1/responses: function tools work there with reasoning on (chat completions refuses them)
     items = [{'role': 'user', 'content': json.dumps(passage, ensure_ascii=False)}]
     for _ in range(30):
         r = api('/responses', {'model': model, 'instructions': instructions(), 'input': items,
                                'tools': TOOLS, 'store': False, 'include': ['reasoning.encrypted_content']})
+        if usage is not None:
+            add_usage(usage, r)
         items += r['output']
         calls = [o for o in r['output'] if o['type'] == 'function_call']
         if not calls:
@@ -146,17 +164,36 @@ def run_batch(model, f, passes=1):
     out = f.with_name(f.stem + '_result.json')
     if out.exists():
         return f'{f.name}: skipped (result exists)'
-    res = []
+    res, usage = [], new_usage()
     with open(f.with_name(f.stem + '_openai.log'), 'w', encoding='utf-8') as log:
         for p in json.loads(f.read_text(encoding='utf-8')):
             try:
-                res.append(merge([review(model, p, log) for _ in range(passes)]))
+                res.append(merge([review(model, p, log, usage) for _ in range(passes)]))
             except (urllib.error.URLError, ConnectionError, TimeoutError, http.client.HTTPException, RuntimeError,
                     ValueError, KeyError) as e:
                 body = e.read().decode()[:300] if isinstance(e, urllib.error.HTTPError) else ''
                 res.append({'book': p['book'], 'surah': p['surah'], 'error': f'{e} {body}'})
+    f.with_name(f.stem + '_usage.json').write_text(json.dumps(dict(usage, model=model)), encoding='utf-8')
     out.write_text(json.dumps({'passages': res}, ensure_ascii=False, indent=1), encoding='utf-8')
-    return f'{f.name}: {sum("error" not in r for r in res)}/{len(res)} passages'
+    return f'{f.name}: {sum("error" not in r for r in res)}/{len(res)} passages, {usage["input_tokens"]:,} in / {usage["output_tokens"]:,} out tokens'
+
+
+def usage_report(round_dir, price_in=None, price_out=None, price_cached=None):
+    tot, n = new_usage(), 0
+    for f in Path(round_dir).glob('batch*_usage.json'):
+        u = json.loads(f.read_text(encoding='utf-8'))
+        for k in tot:
+            tot[k] += u.get(k, 0)
+        n += 1
+    done = len(list(Path(round_dir).glob('batch*_result.json')))
+    print(f'{n} batches with usage logged ({done} results in all)')
+    for k, v in tot.items():
+        print(f'  {k}: {v:,}')
+    if price_in is not None and price_out is not None:
+        cached = tot['cached_input_tokens']
+        pc = price_cached if price_cached is not None else price_in
+        cost = ((tot['input_tokens'] - cached) * price_in + cached * pc + tot['output_tokens'] * price_out) / 1e6
+        print(f'  estimated cost: ${cost:,.2f}' + (f'  (≈ ${cost / n:,.3f} per batch)' if n else ''))
 
 
 if __name__ == '__main__':
@@ -166,7 +203,13 @@ if __name__ == '__main__':
     ap.add_argument('--jobs', type=int, default=6)
     ap.add_argument('--passes', type=int, default=1, help='independent reviews per passage, merged (2 gave no clear gain in the planted-error test)')
     ap.add_argument('--check', action='store_true', help='only check the key and that the model exists')
+    ap.add_argument('--usage', action='store_true', help='sum the logged token usage of ROUND_DIR and exit')
+    ap.add_argument('--price-in', type=float, help='USD per 1M input tokens (for --usage)')
+    ap.add_argument('--price-out', type=float, help='USD per 1M output tokens (reasoning included)')
+    ap.add_argument('--price-cached', type=float, help='USD per 1M cached input tokens (default: --price-in)')
     a = ap.parse_args()
+    if a.usage:
+        sys.exit(usage_report(a.round_dir, a.price_in, a.price_out, a.price_cached))
     if not KEY:
         sys.exit('OPENAI_API_KEY is not set (environment or .env)')
     ids = {m['id'] for m in api('/models')['data']}

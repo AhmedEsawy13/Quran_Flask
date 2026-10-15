@@ -41,6 +41,9 @@ def sections(book):
             if n:
                 out[n], last = text, n
         return out
+    if book == 'manar':                   # as make_passages.sections
+        d = json.load(open('pipeline/classical_sources/manar_shamela_sections.json', encoding='utf-8'))
+        return {int(k): (v['text'] if isinstance(v, dict) else v) for k, v in d.items()}
     raise SystemExit(f'{book}: not supported')
 
 
