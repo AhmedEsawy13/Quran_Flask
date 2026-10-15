@@ -47,6 +47,9 @@ def test_printed_page_corrections_are_applied():
     have = stored_marks(sqlite3.connect(MUSHAF_WAQF_DB))
     assert have[(49, 10, 6)] == 'ۚ' and have[(9, 18, 17)] == '۫' and have[(43, 45, 7)] == 'ۗ'
     assert have[(42, 13, 39)] == 'ؕ' and have[(42, 34, 7)] == 'ؗۙ' and have[(79, 27, 6)] == '۫'
+    assert have[(20, 88, 11)] == 'ۙۚ۬'                # «موسى»: ۵ with لا and ج above
+    assert (59, 2, 28) not in have                    # «يحتسبوا»: stray ۗ, nothing printed
+    assert have[(59, 2, 12)] == 'ؔؕ'                  # «لأول الحشر»: the margin «وقف النبي»
 
 
 def test_indopak_meanings_follow_the_printed_key():

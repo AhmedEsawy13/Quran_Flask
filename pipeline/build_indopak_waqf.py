@@ -219,6 +219,9 @@ SOURCE_CORRECTIONS = {
     (42, 13, 38): 'ؕ',   # «ينيب» verse end p.485: ط printed
     (42, 34, 7): 'ؗۙ',   # «كثير» verse end p.488: لا printed; ز in both text copies
     (79, 27, 6): '۫',    # «بناها» verse end p.589: «قف» printed, not لا
+    (20, 88, 11): 'ۙۚ۬', # «موسى» p.319: ۵ with لا and ج above printed; the source has only ۵
+    (59, 2, 28): '',     # «يحتسبوا» p.546: nothing printed, nor in either text copy; the
+                         # margin «وقف النبي ﷺ» belongs to «لأول الحشر» (ؔؕ), kept
 }
 
 
@@ -258,6 +261,8 @@ def derive_marks(indopak: dict, qs_conn: sqlite3.Connection) -> tuple[dict, list
             elif tag == 'replace':          # n IndoPak words <-> m words: a mark after the block goes on its last word
                 to_db[i2 - 1] = j2 - 1
         for i, sym in found:
+            if not sym:                     # a correction that removes a stray sign
+                continue
             if i not in to_db:
                 unplaced.append((vk, i + 1, ip[i], sym))
                 continue
