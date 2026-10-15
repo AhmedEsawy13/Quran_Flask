@@ -1186,3 +1186,18 @@ rounds. gpt-6-luna counted ~8,900 rulings. 103 flags repeated ones already judge
   is تام.
 - **Dropped.** 7:123 «ليس في هذا تمام … وكذا {فسوف تعلمون}».
 - **Fixed two of my own round-29 seats.** 3:20 «فقل أسلمتم» is «ءأسلمتم» (wpos 13). 3:47 «كن» is wpos 21.
+
+### ابن الأنباري: round 31, second full pass (2026-10-15)
+
+`make_cover.py 31 anbari --all` gave 166 passages in 67 calls. Midway the OpenAI account ran out of
+credits, so 124 passages came back «HTTP 429: no credits». Those batches were deleted and rerun once
+credits were added. gpt-6-luna counted ~3,600 rulings. Most of the 88 «wrong grade» flags were bare
+«ومثله» list items, which inherit by design, and the held rows are مذهب / other-reading sides.
+
+31 rows added, each traced verbatim:
+- السجستاني's rejected «هو تام» at 2:106, 3:45, 3:196, 4:12, 15:3 and 65:10, and his «فالوقف الكافي
+  (من ذهب)» on the نصب of «اللؤلؤ», which is Hafs (22:23).
+- Bare «وكذلك / ومثله» items in 4:92, 4:130, 5:16, 9:114, 18:23, 24:32–33 and 35:43.
+- 31:17 «أقم الصلاة، بالمعروف، عن المنكر، ما أصابك» حسن.
+- «فتم الكلام على …» 12:52, «جواب القسم وهو وقف حسن» 37:4, and «وأحسن من هذا كله» 95:7.
+- 72:23 «فعلى هذا المذهب …». The reading cited is «روى أبو عمر عن عاصم», i.e. حفص.
