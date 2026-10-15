@@ -8,6 +8,7 @@ cut at line ends into passages of at most SPAN characters that overlap by OVERLA
 
     python3 pipeline/review/random_check/make_cover.py ROUND anbari,nahhas   # write passagesROUND/
     python3 pipeline/review/random_check/make_cover.py --verify anbari,nahhas  # uncovered chars per book
+    python3 pipeline/review/random_check/make_cover.py ROUND nahhas --all       # a fresh full pass of the book
 """
 import json
 import re
@@ -93,8 +94,8 @@ def cut(text, lo, hi, span):
     return out
 
 
-def plan(book, exclude=None):
-    secs, prev = sections(book), seen(book, exclude)
+def plan(book, exclude=None, fresh=False):
+    secs, prev = sections(book), ({} if fresh else seen(book, exclude))
     out = []
     for s, text in sorted(secs.items()):
         windows = []
@@ -124,10 +125,10 @@ if __name__ == '__main__':
             total, left = verify(book)
             print(book, 'chars', total, 'uncovered', sum(left.values()), left)
         sys.exit()
-    rnd, books = sys.argv[1], sys.argv[2].split(',')
+    rnd, books, fresh = sys.argv[1], sys.argv[2].split(','), '--all' in sys.argv
     out_dir = BASE / f'passages{rnd}'
     out_dir.mkdir(parents=True, exist_ok=True)
-    passages = [p for b in books for p in plan(b, exclude=out_dir.name)]
+    passages = [p for b in books for p in plan(b, exclude=out_dir.name, fresh=fresh)]
     # pack small gap passages together: at most 4 passages / ~5000 chars per reviewer call
     batches = [[]]
     for p in passages:

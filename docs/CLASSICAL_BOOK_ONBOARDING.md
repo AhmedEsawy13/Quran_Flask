@@ -1170,3 +1170,19 @@ Each new row's note is the book's own words, checked verbatim, and its quote is 
   - three surah ends
   - السجستاني's rejected «هو تام» at 2:177, 3:14 and 10:2
 - 1:7 «عليهم» re-seated to the first «عليهم».
+
+### النحاس: round 30, second full pass (2026-10-15)
+
+`make_cover.py 30 nahhas --all` re-tiled the whole book (331 passages, 152 calls), ignoring earlier
+rounds. gpt-6-luna counted ~8,900 rulings. 103 flags repeated ones already judged in round 29. Of the rest,
+~150 survived checking against the book:
+- **New rows.** «قال الأخفش: ولو وقف على (قلوبهم) كان أيضا تماما», أبو حاتم's
+  «{ولو أعجبتكم} {ولو أعجبكم} كافيان», «وكذا {يا بني أقم الصلاة} … وكذا {وأمر بالمعروف}», and نافع's and
+  يعقوب's relayed «تم» in passages round 29 had read once.
+- **Verse ends.** The 10:72–80 حسن range, where the range's end quote is in parentheses, not braces.
+- **Credits (`CREDIT_AT`).** «قال يعقوب يعني الأزرق المقرئ {…} … وكذا …» (10:24–25), أبو حاتم's chain in
+  الملك (67:11–19), «قالا {X} تمام» (24:35), «وخالفهم كلهم الأخفش فقال: التمام {X}» (2:68), and others.
+- **Grades.** 3:20 «وكذا {فقد اهتدوا} وكذا {فإنما عليك البلاغ}» is كاف. 46:26–28 «والتمام كذا {…} وكذا {…}»
+  is تام.
+- **Dropped.** 7:123 «ليس في هذا تمام … وكذا {فسوف تعلمون}».
+- **Fixed two of my own round-29 seats.** 3:20 «فقل أسلمتم» is «ءأسلمتم» (wpos 13). 3:47 «كن» is wpos 21.
