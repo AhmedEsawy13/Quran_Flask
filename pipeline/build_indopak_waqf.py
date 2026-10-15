@@ -184,6 +184,36 @@ def _skeleton(word: str) -> str:
     return re.sub('[اويء]', '', word)
 
 
+# Stop signs as they end a word; 15 in the source are typed with no space before them
+# (2:219 «الْعَفْوَؕ», 3:2 «هُوَۙ» …) and quranwbw's IndoPak text has them on those words.
+# Not ؔ: attached to a word (76:15-16 «قَوَارِیْرَاۡؔ») it marks an unread alif, not a stop.
+_STOP_SIGNS = set('۪ؕؗۖۗۘۙۚۛ۫۬')
+
+
+def _attached_marks(word: str) -> str:
+    tail = ''
+    for ch in reversed(word):
+        if ch in _STOP_SIGNS:
+            tail = ch + tail
+        elif '\ue000' <= ch <= '\uf8ff':      # font glyphs between the word and its sign
+            continue
+        else:
+            break
+    return tail
+
+
+# Where the source disagrees with two independent copies of the same IndoPak text —
+# quranwbw.com (Qalam Hanafi edition, words-data/arabic/6.json) and quran.com
+# (api/v4 quran/verses/indopak) — and both say the same thing (checked 2026-10-15).
+# Key: (surah, ayah, IndoPak word position) -> the sign that word carries.
+SOURCE_CORRECTIONS = {
+    (3, 4, 18): 'ؕ',     # «انتقام» verse end: ط missing in the source
+    (11, 94, 10): 'ۚ',   # «منّا»: ج missing in the source
+    (41, 24, 5): 'ؕ',    # «لهم»: source ج, both copies ط
+    (58, 4, 10): 'ؕ',    # «يتماسّا»: source ج, both copies ط
+}
+
+
 def derive_marks(indopak: dict, qs_conn: sqlite3.Connection) -> tuple[dict, list]:
     """{(surah, ayah, token_index): symbols} from the IndoPak text, placed by alignment.
 
@@ -203,8 +233,14 @@ def derive_marks(indopak: dict, qs_conn: sqlite3.Connection) -> tuple[dict, list
         for tok in entry.get('text', '').split():
             if is_content_word(tok):
                 ip.append(tok)
+                if (tail := _attached_marks(tok)):          # a sign typed without its space
+                    found.append((len(ip) - 1, tail))
             elif (sym := extract_waqf_symbol(tok)) and ip:
                 found.append((len(ip) - 1, sym))
+        corrected = {(s, a, i + 1) for i, _ in found} & set(SOURCE_CORRECTIONS)
+        found = [(i, SOURCE_CORRECTIONS.get((s, a, i + 1), sym)) for i, sym in found]
+        found += [(p - 1, sym) for (cs, ca, p), sym in SOURCE_CORRECTIONS.items()
+                  if (cs, ca) == (s, a) and (cs, ca, p) not in corrected]
         to_db = {}
         matcher = difflib.SequenceMatcher(None, [_skeleton(t) for t in ip], [_skeleton(t) for t in db], autojunk=False)
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():

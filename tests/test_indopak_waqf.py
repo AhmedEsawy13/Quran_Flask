@@ -25,3 +25,18 @@ def test_marks_follow_the_words_not_the_count():
     assert word(27, 20, 7) == 'ٱلۡهُدۡهُدَ' and have[(27, 20, 7)] == 'ۖؗ'
     assert (72, 16, 7) in have and word(72, 16, 7) == 'غَدَقٗا'
     assert have[(2, 286, 6)] == 'ؕ'          # one of the 32 that were never written
+
+
+def test_signs_typed_without_a_space_count():
+    # 15 signs in the source sit on their word with no space (2:219 «الْعَفْوَؕ» …);
+    # an attached ؔ (76:15 «قَوَارِیْرَاۡؔ») is a spelling sign, not a stop.
+    have = stored_marks(sqlite3.connect(MUSHAF_WAQF_DB))
+    assert have[(2, 219, 20)] == 'ؕ' and have[(3, 2, 5)] == 'ۙ'
+    assert 'ؔ' not in have.get((76, 15, 8), '') and (76, 16, 1) not in have
+
+
+def test_two_source_corrections_are_applied():
+    # quranwbw.com and quran.com agree against the source here (2026-10-15)
+    have = stored_marks(sqlite3.connect(MUSHAF_WAQF_DB))
+    assert have[(41, 24, 5)] == 'ؕ' and have[(58, 4, 10)] == 'ؕ'
+    assert have[(11, 94, 10)] == 'ۚ' and have[(3, 4, 18)] == 'ؕ'
