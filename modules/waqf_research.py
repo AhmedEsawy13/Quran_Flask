@@ -553,6 +553,7 @@ def _mushaf_sem_class(version, raw):
             'ۙ': 'NOSTOP', 'ۚ': 'CHOICE', 'ۘ': 'MUST',
             'ۗ': 'STOP', 'ۖ': 'CONT', 'ؕ': 'ABS',
             'ؗ': 'CHOICE', 'ۜ': 'SAKTA',
+            '۫': 'STOP',                     # IndoPak «قف» (seen printed at 9:18, 79:27)
         }.get(raw[0])                        # leading IndoPak glyph; rare marks → None
     base = raw.split(',')[0].strip()
     return {'م': 'MUST', 'ق': 'STOP', 'ص': 'CONT', 'ج': 'CHOICE',

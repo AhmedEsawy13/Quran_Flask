@@ -211,6 +211,14 @@ SOURCE_CORRECTIONS = {
     (11, 94, 10): 'ۚ',   # «منّا»: ج missing in the source
     (41, 24, 5): 'ؕ',    # «لهم»: source ج, both copies ط
     (58, 4, 10): 'ؕ',    # «يتماسّا»: source ج, both copies ط
+    # Settled by the printed IndoPak pages at app.quranflash.com/book/NaskhTaleek
+    # (image = printed page + 2), where quranwbw and the source disagreed:
+    (49, 10, 6): 'ۚ',    # «أخويكم» p.517: ج printed
+    (9, 18, 17): '۫',    # «الله» p.190: «قف» printed (۫ is the IndoPak قف)
+    (43, 45, 7): 'ۗ',    # «رسلنا» p.493: ق sign printed
+    (42, 13, 38): 'ؕ',   # «ينيب» verse end p.485: ط printed
+    (42, 34, 7): 'ؗۙ',   # «كثير» verse end p.488: لا printed; ز in both text copies
+    (79, 27, 6): '۫',    # «بناها» verse end p.589: «قف» printed, not لا
 }
 
 

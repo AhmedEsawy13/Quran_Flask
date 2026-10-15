@@ -40,3 +40,10 @@ def test_two_source_corrections_are_applied():
     have = stored_marks(sqlite3.connect(MUSHAF_WAQF_DB))
     assert have[(41, 24, 5)] == 'ؕ' and have[(58, 4, 10)] == 'ؕ'
     assert have[(11, 94, 10)] == 'ۚ' and have[(3, 4, 18)] == 'ؕ'
+
+
+def test_printed_page_corrections_are_applied():
+    # settled on the printed IndoPak pages (app.quranflash.com NaskhTaleek), 2026-10-15
+    have = stored_marks(sqlite3.connect(MUSHAF_WAQF_DB))
+    assert have[(49, 10, 6)] == 'ۚ' and have[(9, 18, 17)] == '۫' and have[(43, 45, 7)] == 'ۗ'
+    assert have[(42, 13, 39)] == 'ؕ' and have[(42, 34, 7)] == 'ؗۙ' and have[(79, 27, 6)] == '۫'

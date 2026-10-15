@@ -1448,7 +1448,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         '\u06DA': { meaning: 'ۚ — ج الجائز (مصحف هندي)' },
         '\u06DB': { meaning: 'ۛ — ع المعانقة (مصحف هندي)' },
         '\u06EA': { meaning: '۪ — علامة وقف تحتية (مصحف هندي)' },
-        '\u06EB': { meaning: '۫ — علامة وقف فوقية (مصحف هندي)' },
+        '\u06EB': { meaning: '۫ — قف، يُستحب الوقف (مصحف هندي)' },   // verified on printed IndoPak pages (9:18, 79:27)
         '\u06EC': { meaning: '۬ — علامة وقف دائرية (مصحف هندي)' },
         '\u06DF': { meaning: '۟ — رأس آية (ليس حكم وقف)' },
         '\u06E0': { meaning: '۠ — رأس خمس / ركوع (ليس حكم وقف)' },
