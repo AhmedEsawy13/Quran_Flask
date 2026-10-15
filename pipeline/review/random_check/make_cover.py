@@ -30,6 +30,17 @@ def sections(book):
         return dict(rx.nahhas_sections(rx.load_book(rx.SOURCES['nahhas'])))
     if book == 'anbari':
         return audit_anbari.sections()
+    if book == 'muktafa':                 # as make_passages.muktafa_sections
+        body = rx.normalize_muktafa_headings(rx.load_book(rx.SOURCES['muktafa']))
+        out, last = {}, 0
+        for sec in re.split(r'\n### \| ', body):
+            title, _, text = sec.partition('\n')
+            if 'سورة' not in title and 'أم القرآن' not in title:
+                continue
+            n = rx.surah_number(title, last)
+            if n:
+                out[n], last = text, n
+        return out
     raise SystemExit(f'{book}: not supported')
 
 

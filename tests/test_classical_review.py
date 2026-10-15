@@ -112,9 +112,13 @@ def test_accuracy_baseline_is_fully_traceable_and_aligned(review_db):
     # and 10:92 «ورأس الآية أتم منه» replace general-rule rows of the other grade (+2 −2)
     # +1 quranpedia cross-check: 10:103 relayed «وقال القتبي: {كذلك} التمام» (13:11 regraded in place)
     # +3 round 26: 24:9 «مثله {من الصادقين}», relayed أبو حاتم «الم» كاف and نافع «لا ريب فيه» تام
-    assert result['total_extracted'] == 7258
-    assert result['matched'] == 7258
-    assert result['confident'] == 7258
+        # +41 round 32 (second full pass): 33 relayed «وقال نافع / الأخفش / أبو حاتم …: تام» (+33), the author's own
+        # «ومثله»/«والتمام» rulings (+10), 24 verse ends graded تام by «ورؤوس الآي تامة» / «وآخر كل قصة تمام» /
+        # «وكذلك الفواصل» (+24 −24 blanket rows they replace), 28:5 «ما خلا {الوارثين}» dropped (−1);
+        # 7:18's relayed «مذعورا» and 43:60's «يخلقون» (the copy's slips for «مدحورا» / «يخلفون») left out
+    assert result['total_extracted'] == 7298
+    assert result['matched'] == 7298
+    assert result['confident'] == 7298
     assert result['uncertain'] == 0
     assert result['source_traceable_rate'] == 100.0
     assert result['quran_aligned_rate'] == 100.0

@@ -1201,3 +1201,31 @@ credits were added. gpt-6-luna counted ~3,600 rulings. Most of the 88 «wrong gr
 - 31:17 «أقم الصلاة، بالمعروف، عن المنكر، ما أصابك» حسن.
 - «فتم الكلام على …» 12:52, «جواب القسم وهو وقف حسن» 37:4, and «وأحسن من هذا كله» 95:7.
 - 72:23 «فعلى هذا المذهب …». The reading cited is «روى أبو عمر عن عاصم», i.e. حفص.
+
+### المكتفى: round 32, first full pass (2026-10-15)
+
+`make_cover.py` now tiles المكتفى too, using `make_passages`' section split. `make_cover.py 32 muktafa --all`
+gave 183 passages in 67 calls. gpt-6-luna counted ~7,500 rulings. Most flags were المكتفى's
+«{X} كاف. وقيل: تام» (kept in the note by design) and conditional or other-reading sides.
+
+Fixes, each traced verbatim (`audit_muktafa_ordinals.py`):
+- **`RELAYED_ADD` (32 rows).** Named views after the author's grade: «وقال نافع / الأخفش / أبو حاتم / يعقوب
+  / القتبي / الدينوري …: تام», and «ومثله» items inside such a ruling (16:7, 16:18).
+- **`MANUAL` (32 rows).** The author's own rulings the parser missed: «والتمام: {لساحر مبين}», «{أو نتخذه ولدا}
+  لأنه انقضاء كلام امرأة فرعون», «جواب القسم … [وهو تام]». Also 24 verse ends graded تام by «ورؤوس الآي تامة»
+  (3:136), «وكذلك رؤوس الآي بعد» after a تمام (3:141–145), «ورؤوس الآي إلى العشر تامة» (3:175),
+  «وآخر كل قصة تمام» (11:49, 11:68), «ورؤوس الآي تامة إلى قوله ((مريب))» (11:56–61), «وكذلك آخر كل
+  قصة فيها» (51) and «وكذلك الفواصل إلى آخر السورة» (66:6–12). These replace the blanket كاف.
+- **`REGRADE`.**
+  - «ومثله» after a تام: 13:25 and 42:18–23.
+  - «{يعلمون} الأول كاف. والثاني تام» (2:102).
+  - «وهو أتم منه» (23:27).
+  - «ومثله» after a كاف: 2:105 and 9:118.
+  - 10:100 «وحسن على قراءة من قرأ بالياء» (Hafs «ويجعل»).
+- **`RELAYED_BY`.** 17:20 يعقوب and 25:22 الحسن.
+- **`DROP_IDS`.** 28:5 «والفواصل تامة ما خلا قوله {الوارثين}».
+
+Left out:
+- the copy's slips 7:18 «مذعورا» and 43:60 «يخلقون», which the seat and alignment tests reject
+- 19:81 «عزا كلا»: the quote must end on its seated word
+- 28:71 «بيضاء»: the copy's slip for that verse's «بضياء»; an earlier test pins it there
