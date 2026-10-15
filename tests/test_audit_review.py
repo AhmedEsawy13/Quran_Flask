@@ -65,8 +65,9 @@ def cloud(monkeypatch, tmp_path):
 
 
 def _post(client, method='POST', **body):
+    body.setdefault('edition', ED)
     return getattr(client, method.lower())('/api/mushaf-editor/book-audit/decision',
-                                           data=json.dumps(dict(edition=ED, **body)), content_type='application/json')
+                                           data=json.dumps(body), content_type='application/json')
 
 
 def test_image_decision_writes_the_draft_and_records_it(client, cloud):
@@ -118,3 +119,33 @@ def test_clearing_an_add_card_counts_as_the_db_being_right(client, cloud):
     (ar._audit_dir(ED) / 'queue.json').write_text(_j.dumps(q, ensure_ascii=False))
     assert _post(client, tab='add', word_key='2:5:3', choice='set', symbol='').status_code == 200
     assert [d['decision'] for d in cloud['decisions'].values()] == ['ok']
+
+
+def test_review_only_prints_record_the_decision_and_write_nothing(client, cloud, monkeypatch):
+    """الشمرلي / المدينة القديم keep their marks locally: a decision is recorded, no draft is written."""
+    sham = 'الشمرلي'
+    r = _post(client, edition=sham, tab='differs', word_key='2:5:3', choice='image')
+    assert r.status_code == 200, r.get_json()
+    assert cloud['writes'] == []
+    [(page, wid)] = cloud['decisions']
+    d = cloud['decisions'][(page, wid)]
+    assert d['edition'] == 'الشمرلي · فحص'            # apart from the phone checklist's own keys
+    assert wid == 2 * 1_000_000 + 5 * 1_000 + 3
+    assert (d['decision'], d['our_mark'], d['correct_mark']) == ('wrong', 'ص', 'ج')
+    assert r.get_json()['marks'] == {'2:5:3': 'ص'}       # the local column is untouched
+
+    seen = []
+    monkeypatch.setattr(ar.sb, 'list_mark_review_decisions',
+                        lambda e: seen.append(e) or [dict(v, page_number=p, word_id=w)
+                                                      for (p, w), v in cloud['decisions'].items()])
+    q = client.get(f'/api/mushaf-editor/book-audit?edition={sham}').get_json()
+    assert seen == ['الشمرلي · فحص'] and q['review_only'] is True
+    item = q['items'][0]
+    assert item['cloud'] == 'ص' and item['decision']['mark'] == 'ج'
+
+    r = _post(client, 'DELETE', edition=sham, tab='differs', word_key='2:5:3')
+    assert r.status_code == 200 and cloud['decisions'] == {} and cloud['writes'] == []
+
+
+def test_unknown_edition_is_refused(client, cloud):
+    assert _post(client, edition='الأزهر', tab='differs', word_key='2:5:3', choice='image').status_code == 400

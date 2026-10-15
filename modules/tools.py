@@ -10,13 +10,13 @@ from flask import render_template
 
 from core import supabase_editor as sb
 from core.blueprints import editor_bp
-from core.config import CLOUD_EDITOR_EDITIONS
 from modules.layout_editions import list_editions
 
 
 def _book_audits() -> list[str]:
+    from modules.audit_review import REVIEW_EDITIONS
     from pipeline.cv_waqf.config import ARTIFACTS_ROOT, EDITIONS
-    return [name for name in sorted(CLOUD_EDITOR_EDITIONS)
+    return [name for name in sorted(REVIEW_EDITIONS)
             if name in EDITIONS and (ARTIFACTS_ROOT / f'{EDITIONS[name].id}-audit' / 'queue.json').is_file()]
 
 
@@ -36,7 +36,8 @@ def tool_groups() -> list[dict]:
              'desc': 'ضبط علامات الوقف في مصاحف قطر والكويت والبحرين بالنقر على الكلمة، ثم النشر.',
              'note': cloud_note},
             {'href': '/mushaf-editor/book-audit', 'name': 'مراجعة الفحص',
-             'desc': 'بطاقات فحص الصور لكل مصحف: اعتمد الصورة أو القاعدة، ويُحفظ القرار في السحابة.',
+             'desc': 'بطاقات فحص الصور لكل مصحف: اعتمد الصورة أو القاعدة، ويُحفظ القرار في السحابة. '
+                     'الشمرلي والمدينة القديم للمراجعة فقط: يُسجَّل القرار ويُطبَّق على القاعدة لاحقًا.',
              'links': [{'href': f'/mushaf-editor/book-audit?edition={name}', 'label': name} for name in audits],
              'note': None if audits else 'لا يوجد فحص على هذا الخادم — يعمل حيث شُغّل الفحص (جهازك)'},
             {'href': '/waqf-mark-review', 'name': 'مراجعة علامات الشمرلي',

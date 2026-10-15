@@ -68,8 +68,12 @@
   function statusLine(i) {
     if (i.decision) {
       const what = i.decision.decision === 'ok' ? 'القاعدة صحيحة' : `الصحيح ${sym(i.decision.mark)}`;
-      return `<div class="status">✓ حُسمت: ${what}<small>— في السحابة ${sym(i.cloud)}</small><button type="button" data-act="undo">تراجع</button></div>`;
+      const where = state.data.review_only
+        ? (i.decision.decision === 'ok' ? '' : '<small>— يُطبَّق على القاعدة لاحقًا</small>')
+        : `<small>— في السحابة ${sym(i.cloud)}</small>`;
+      return `<div class="status">✓ حُسمت: ${what}${where}<button type="button" data-act="undo">تراجع</button></div>`;
     }
+    if (state.data.review_only) return '';
     const base = i.from_key ? '' : (i.db || '');
     if ((i.cloud || '') !== base) return `<div class="status pend">في السحابة الآن ${sym(i.cloud)} (غير ما في القاعدة)</div>`;
     return '';
@@ -89,7 +93,7 @@
     return `<figure class="card${i.decision ? ' decided' : ''}" data-n="${n}">${imgs}
       <figcaption class="body">
         <div class="head"><span class="word">${esc(i.text)}</span><span class="where">${s}:${a} · كلمة ${w} · ص ${i.page}</span>
-          <a href="/mushaf-editor?edition=${encodeURIComponent(state.edition)}&page=${i.page}" target="_blank" rel="noopener">الصفحة ↖</a></div>
+          ${state.data.review_only ? '' : `<a href="/mushaf-editor?edition=${encodeURIComponent(state.edition)}&page=${i.page}" target="_blank" rel="noopener">الصفحة ↖</a>`}</div>
         <div class="verdict">${verdict(i)}</div>
         ${refBadge(i)}${i.note ? `<div class="cnote">${esc(i.note)}</div>` : ''}
         <div class="others">${others}</div>
@@ -115,7 +119,8 @@
     $('#au-bar').style.width = `${act.length ? (100 * done / act.length) : 0}%`;
     $('#au-count').textContent = `حُسم ${done} من ${act.length}`;
     const sm = d.summary || {};
-    $('#au-stat').textContent = `${d.built} · تطابق ${pct(sm.exact_recall)}`;
+    $('#au-stat').textContent = `${d.built} · تطابق ${pct(sm.exact_recall)}` + (d.review_only ? ' · مراجعة فقط: القرارات تُسجَّل ولا تُغيّر القاعدة الآن' : '');
+    $('#au-editor').hidden = !!d.review_only;
     const tab = d.tabs.find((t) => t.id === state.tab);
     const list = items.map((i, n) => [i, n]).filter(([i]) => i.tab === state.tab);
     $('#au-main').innerHTML = `<p class="note">${esc(tab ? tab.note : '')}</p><div class="grid">${list.map(([i, n]) => card(i, n)).join('') || '<p class="note">لا شيء هنا.</p>'}</div>`;
