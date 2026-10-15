@@ -1,0 +1,97 @@
+diff --git a/pipeline/cv_waqf/train_cnn.py b/pipeline/cv_waqf/train_cnn.py
+index d5ceaf4..3d3542b 100644
+--- a/pipeline/cv_waqf/train_cnn.py
++++ b/pipeline/cv_waqf/train_cnn.py
+@@ -21,6 +21,7 @@ from __future__ import annotations
+ 
+ import argparse
+ import json
++import os
+ from pathlib import Path
+ 
+ import numpy as np
+@@ -177,12 +178,14 @@ def _extract(net) -> tuple[list, tuple, tuple]:
+     convs = [m for m in net if isinstance(m, nn.Conv2d)]
+     linears = [m for m in net if isinstance(m, nn.Linear)]
+     conv_w = [
+-        (m.weight.detach().numpy().copy(), m.bias.detach().numpy().copy())
++        (m.weight.detach().cpu().numpy().copy(),
++         m.bias.detach().cpu().numpy().copy())
+         for m in convs
+     ]
+     # torch Linear stores (out, in); Gemm with transB=0 wants (in, out).
+     fc = [
+-        (m.weight.detach().numpy().T.copy(), m.bias.detach().numpy().copy())
++        (m.weight.detach().cpu().numpy().T.copy(),
++         m.bias.detach().cpu().numpy().copy())
+         for m in linears
+     ]
+     return conv_w, fc[0], fc[1]
+@@ -223,18 +226,40 @@ def train_cnn(
+             a.astype(np.float32).reshape(-1, 1, CROP_SIZE, CROP_SIZE)
+         )
+ 
+-    xt, yt = tensor(x_tr), torch.from_numpy(y_tr)
+-    xv, yv = tensor(x_va), torch.from_numpy(y_va)
+-    net = _build(num_classes)
++    # Opt-in GPU: WAQF_DEVICE=cuda (default cpu, unchanged behaviour).
++    device = torch.device(os.environ.get('WAQF_DEVICE', 'cpu'))
++    xt, yt = tensor(x_tr).to(device), torch.from_numpy(y_tr).to(device)
++    xv, yv = tensor(x_va).to(device), torch.from_numpy(y_va).to(device)
++    net = _build(num_classes).to(device)
+     opt = torch.optim.Adam(net.parameters(), lr=lr)
+     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
+     gen = torch.Generator().manual_seed(seed)
+     best_acc, best_state = -1.0, None
+-    for epoch in range(epochs):
++    start_epoch = 0
++    # Opt-in resume: with WAQF_CKPT_DIR set, the full state is saved after
++    # every epoch and a rerun of the same command picks up where it stopped.
++    ckpt = None
++    if os.environ.get('WAQF_CKPT_DIR'):
++        ckpt = Path(os.environ['WAQF_CKPT_DIR'])
++        ckpt.mkdir(parents=True, exist_ok=True)
++        ckpt = ckpt / f'{log_prefix.strip() or "net"}_s{seed}.pt'
++        if ckpt.exists():
++            st = torch.load(ckpt, weights_only=False, map_location=device)
++            net.load_state_dict(st['net'])
++            opt.load_state_dict(st['opt'])
++            sched.load_state_dict(st['sched'])
++            gen.set_state(st['gen'].cpu())
++            torch.set_rng_state(st['rng'].cpu())
++            if st.get('cuda_rng') is not None and device.type == 'cuda':
++                torch.cuda.set_rng_state(st['cuda_rng'].cpu(), device)
++            best_acc, best_state = st['best_acc'], st['best_state']
++            start_epoch = st['epoch']
++            print(f'{log_prefix}resumed at epoch {start_epoch}', flush=True)
++    for epoch in range(start_epoch, epochs):
+         net.train()
+         order = torch.randperm(len(xt), generator=gen)
+         for start in range(0, len(xt), batch):
+-            idx = order[start:start + batch]
++            idx = order[start:start + batch].to(device)
+             opt.zero_grad()
+             F.cross_entropy(net(xt[idx]), yt[idx]).backward()
+             opt.step()
+@@ -249,9 +274,20 @@ def train_cnn(
+             f'{log_prefix}epoch {epoch + 1:02d} val_acc={acc:.3f} n={len(x)}',
+             flush=True,
+         )
++        if ckpt is not None:
++            tmp = ckpt.with_suffix('.tmp')
++            torch.save({
++                'net': net.state_dict(), 'opt': opt.state_dict(),
++                'sched': sched.state_dict(), 'gen': gen.get_state(),
++                'rng': torch.get_rng_state(), 'best_acc': best_acc,
++                'cuda_rng': (torch.cuda.get_rng_state(device)
++                             if device.type == 'cuda' else None),
++                'best_state': best_state, 'epoch': epoch + 1,
++            }, tmp)
++            os.replace(tmp, ckpt)
+     net.load_state_dict(best_state)
+     net.eval()
+-    return _extract(net)
++    return _extract(net.cpu())
+ 
+ 
+ def train_cnn_two_stage(
