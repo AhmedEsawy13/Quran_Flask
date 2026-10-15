@@ -47,3 +47,15 @@ def test_printed_page_corrections_are_applied():
     have = stored_marks(sqlite3.connect(MUSHAF_WAQF_DB))
     assert have[(49, 10, 6)] == 'ۚ' and have[(9, 18, 17)] == '۫' and have[(43, 45, 7)] == 'ۗ'
     assert have[(42, 13, 39)] == 'ؕ' and have[(42, 34, 7)] == 'ؗۙ' and have[(79, 27, 6)] == '۫'
+
+
+def test_indopak_meanings_follow_the_printed_key():
+    """«رموز اوقاف قرآن مجید» at the end of the IndoPak mushaf, checked on its pages."""
+    from modules.waqf_research import _mushaf_sem_class as sem
+    assert sem('الهندي', 'ۗ') == 'NOSTOP'         # ق قيل عليه الوقف (2:5 «ربهم»)
+    assert sem('الهندي', '۪') == 'CONT'           # ص مرخَّص (2:16, 2:23)
+    assert sem('الهندي', 'ۖۚ') == 'CONT'          # صلے over ج (2:2 «ريب»)
+    assert sem('الهندي', '۫') == 'STOP'           # قف (9:18, 79:27)
+    assert sem('الهندي', 'ۥ') == 'SAKTA'          # وقفہ (2:286)
+    assert sem('الهندي', '۬') is None             # ۵ — verse end for non-Kufans
+    assert sem('الهندي', 'ؔؕ') == 'ABS'            # ؔ is a margin-note flag; ط is the ruling

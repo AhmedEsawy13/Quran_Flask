@@ -1216,7 +1216,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             '\u06E1', // ۡ — not waqf
             '\u06E2', // ۢ — not waqf
             '\u06E4', // ۤ — not waqf
-            '\u06E5', // ۥ — not waqf
             '\u06E6', // ۦ — not waqf
             '\u06ED', // ۭ — not waqf
         ]);
@@ -1438,27 +1437,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     // IndoPak (الهندي): DB stores Unicode small-high marks; ط/ز/م… are the
     // traditional letter names readers know. Keep letter keys as aliases.
     const WAQF_INFO_HINDI = {
-        '\u0615': { meaning: 'ؕ — ط المطلق (مصحف هندي)' },
-        '\u0617': { meaning: 'ؗ — ز المجوَّز لوجه (مصحف هندي)' },
-        '\u0614': { meaning: 'ؔ — قف ولا تصل (مصحف هندي)' },
-        '\u06D6': { meaning: 'ۖ — ص المرخّص لضرورة (مصحف هندي)' },
-        '\u06D7': { meaning: 'ۗ — قلى، الأفضل الوقف (مصحف هندي)' },
+        // Meanings follow the key printed in the IndoPak mushaf itself («رموز اوقاف قرآن مجید»,
+        // quranflash NaskhTaleek after سورة الناس), each sign checked on its printed pages.
+        '\u0615': { meaning: 'ؕ — ط المطلق: يُوقف (مصحف هندي)' },
+        '\u0617': { meaning: 'ؗ — ز المجوَّز: يجوز الوقف والوصل أولى (مصحف هندي)' },
+        '\u0614': { meaning: 'ؔ — وقفٌ مأثور يُنبَّه عليه في الحاشية: وقف منزل / النبي / غفران (مصحف هندي)' },
+        '\u06D6': { meaning: 'ۖ — صلے: الوصل أولى (مصحف هندي)' },
+        '\u06D7': { meaning: 'ۗ — ق «قيل عليه الوقف»: الأَولى ألّا يُوقف (مصحف هندي)' },
         '\u06D8': { meaning: 'ۘ — م اللازم (مصحف هندي)' },
-        '\u06D9': { meaning: 'ۙ — لا، لا يجوز الوقف (مصحف هندي)' },
-        '\u06DA': { meaning: 'ۚ — ج الجائز (مصحف هندي)' },
-        '\u06DB': { meaning: 'ۛ — ع المعانقة (مصحف هندي)' },
-        '\u06EA': { meaning: '۪ — علامة وقف تحتية (مصحف هندي)' },
-        '\u06EB': { meaning: '۫ — قف، يُستحب الوقف (مصحف هندي)' },   // verified on printed IndoPak pages (9:18, 79:27)
-        '\u06EC': { meaning: '۬ — علامة وقف دائرية (مصحف هندي)' },
+        '\u06D9': { meaning: 'ۙ — لا: لا يُوقف داخل الآية، وعلى رأس الآية خلاف (مصحف هندي)' },
+        '\u06DA': { meaning: 'ۚ — ج الجائز: الوقف أولى (مصحف هندي)' },
+        '\u06DB': { meaning: 'ۛ — ∴ المعانقة: يُوقف على أحد الموضعين (مصحف هندي)' },
+        '\u06E5': { meaning: 'ۥ — وقفہ: وقفةٌ أطول من السكتة بلا تنفّس (مصحف هندي)' },
+        '\u06EA': { meaning: '۪ — ص المرخَّص: الوصل، ويُرخَّص الوقف للتعب (مصحف هندي)' },
+        '\u06EB': { meaning: '۫ — قف: يُستحب الوقف (مصحف هندي)' },
+        '\u06EC': { meaning: '۬ — ۵ رأس آية عند غير الكوفيين (ليس حكم وقف)' },
         '\u06DF': { meaning: '۟ — رأس آية (ليس حكم وقف)' },
         '\u06E0': { meaning: '۠ — رأس خمس / ركوع (ليس حكم وقف)' },
         // Traditional letter aliases (legend / older docs)
         'ط':  { meaning: 'ؕ — ط المطلق (مصحف هندي)' },
         'ز':  { meaning: 'ؗ — ز المجوَّز لوجه (مصحف هندي)' },
         'م':  { meaning: 'ۘ — م اللازم (مصحف هندي)' },
-        'ص':  { meaning: 'ۖ — ص المرخّص لضرورة (مصحف هندي)' },
+        'ص':  { meaning: '۪ — ص المرخَّص: الوصل، ويُرخَّص الوقف للتعب (مصحف هندي)' },
+        'ق':  { meaning: 'ۗ — ق «قيل عليه الوقف»: الأَولى ألّا يُوقف (مصحف هندي)' },
         'ج':  { meaning: 'ۚ — ج الجائز (مصحف هندي)' },
-        'لا': { meaning: 'ۙ — لا، لا يجوز الوقف (مصحف هندي)' },
+        'لا': { meaning: 'ۙ — لا: لا يُوقف داخل الآية، وعلى رأس الآية خلاف (مصحف هندي)' },
     };
 
     function getWaqfInfo(rawSymbol, version = '') {

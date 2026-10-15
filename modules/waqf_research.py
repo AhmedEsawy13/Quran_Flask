@@ -549,12 +549,21 @@ def _mushaf_sem_class(version, raw):
             return None                      # رأس آية only — not a stop ruling
         return 'STOP'                        # صه = قف هنا
     if version == 'الهندي':
-        return {
+        # Per the key printed in the IndoPak mushaf (رموز اوقاف قرآن مجید), checked on its pages.
+        ruling = {
             'ۙ': 'NOSTOP', 'ۚ': 'CHOICE', 'ۘ': 'MUST',
-            'ۗ': 'STOP', 'ۖ': 'CONT', 'ؕ': 'ABS',
-            'ؗ': 'CHOICE', 'ۜ': 'SAKTA',
-            '۫': 'STOP',                     # IndoPak «قف» (seen printed at 9:18, 79:27)
-        }.get(raw[0])                        # leading IndoPak glyph; rare marks → None
+            'ۗ': 'NOSTOP',                   # ق «قيل عليه الوقف» — a weak view; don't stop
+            'ۖ': 'CONT',                     # صلے — الوصل أولى
+            '۪': 'CONT',                     # ص مرخَّص — continue, stop allowed if tired
+            'ؕ': 'ABS', 'ؗ': 'CHOICE', 'ۜ': 'SAKTA',
+            'ۥ': 'SAKTA',                    # وقفہ — a longer pause without breath
+            '۫': 'STOP',                     # قف (9:18, 79:27)
+            'ۛ': 'EMBRACE',
+        }
+        # first ruling glyph — ؔ (margin-note stop), ۬ (non-Kufan verse end), ۟ and the
+        # PUA verse numbers say nothing about stopping here
+        lead = next((ch for ch in raw if ch in ruling), '')
+        return ruling.get(lead)
     base = raw.split(',')[0].strip()
     return {'م': 'MUST', 'ق': 'STOP', 'ص': 'CONT', 'ج': 'CHOICE',
             'لا': 'NOSTOP', 'ع': 'EMBRACE', 'س': 'SAKTA'}.get(base)
