@@ -37,7 +37,7 @@ def tool_groups() -> list[dict]:
              'note': cloud_note},
             {'href': '/mushaf-editor/book-audit', 'name': 'مراجعة الفحص',
              'desc': 'بطاقات فحص الصور لكل مصحف: اعتمد الصورة أو القاعدة، ويُحفظ القرار في السحابة. '
-                     'الشمرلي والمدينة القديم للمراجعة فقط: يُسجَّل القرار ويُطبَّق على القاعدة لاحقًا.',
+                     'الشمرلي والمدينة القديم والجديد للمراجعة فقط: يُسجَّل القرار ويُطبَّق على القاعدة لاحقًا.',
              'links': [{'href': f'/mushaf-editor/book-audit?edition={name}', 'label': name} for name in audits],
              'note': None if audits else 'لا يوجد فحص على هذا الخادم — يعمل حيث شُغّل الفحص (جهازك)'},
             {'href': '/waqf-mark-review', 'name': 'مراجعة علامات الشمرلي',

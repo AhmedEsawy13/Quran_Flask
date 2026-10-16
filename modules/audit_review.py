@@ -29,7 +29,7 @@ from modules.layouts import _get_dk_layout_word_map
 
 logger = logging.getLogger(__name__)
 
-REVIEW_ONLY_EDITIONS = frozenset({'الشمرلي', 'المدينة القديم'})
+REVIEW_ONLY_EDITIONS = frozenset({'الشمرلي', 'المدينة القديم', 'المدينة الجديد'})
 REVIEW_EDITIONS = CLOUD_EDITOR_EDITIONS | REVIEW_ONLY_EDITIONS
 ACTIONABLE_TABS = {'shift', 'shift_unsure', 'add', 'maybe', 'differs', 'missed'}
 _CROP_NAME = re.compile(r'^[\w.-]+\.(?:jpg|png)$')
