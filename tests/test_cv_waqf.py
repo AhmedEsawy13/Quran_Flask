@@ -292,7 +292,7 @@ def test_bahrain_has_isolated_optional_model_path():
 # المدينة القديم joined on 2026-10-14 once its 1405 scan was scored the same way (96.5% whole book).
 # الشمرلي joined on 2026-10-14 with its calibrated band (0% -> 55% before any Shamarly training);
 # الأزهر is now the legacy (narrow, no prior, legacy geometry) example in the tests below.
-HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة', 'المدينة القديم', 'الشمرلي'}
+HYBRID_EDITIONS = {'البحرين', 'قطر', 'الكويت', 'المساحة', 'المدينة القديم', 'المدينة الجديد', 'الشمرلي'}
 
 
 def test_only_bahrain_model_family_defaults_to_hybrid_proposals():
@@ -927,6 +927,7 @@ def test_only_the_hybrid_multiprint_prints_enable_azhar_seat_prior():
     assert EDITIONS['الكويت'].azhar_seat_prior is True
     # a Madinah print must never let Madinah define its own allowed seats
     assert EDITIONS['المدينة القديم'].seat_prior_editions == ('الأزهر',)
+    assert EDITIONS['المدينة الجديد'].seat_prior_editions == ('الأزهر',)
     assert others
     assert all(value is False for value in others.values())
     assert resolve_azhar_seat_prior('الأزهر') is False

@@ -375,9 +375,17 @@ EDITIONS: dict[str, EditionSpec] = {
         min_page=1,
         max_page=604,
         image_kind='cache',
-        page_cache_dir=str(PAGES_ROOT / 'madinah_1441'),
-        text_top=0.10,
-        text_bottom=0.92,
+        # Print: archive.org MushafMadinaHafsGreen1441 (King Fahd Complex, green regular size, 1441 AH), the 62 MB
+        # PDF; rendered once to 1024 px (mushaf page = 0-based PDF page - 2) into data/refs (gitignored).
+        page_cache_dir=str(ROOT / 'data' / 'refs' / 'madinah_1441' / 'cache'),
+        # calibrate-geometry on 86 pages (3-604:7), 2026-10-16
+        text_top=0.1123,
+        text_bottom=0.8503,
+        default_proposal_mode='hybrid',
+        measured_geometry=True,
+        # Test print: Madinah must not vouch for its own marks, Azhar alone defines the allowed seats.
+        azhar_seat_prior=True,
+        seat_prior_editions=('الأزهر',),
     ),
     'المدينة القديم': EditionSpec(
         id='madinah_1405',
