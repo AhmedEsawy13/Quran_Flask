@@ -13,9 +13,13 @@ Policy (no inferred grades or verses):
 Reads `public.dr_ahmed21_posts` and upserts `public.tawjih` when Supabase is
 configured. `--sqlite` writes `data/tawjih.db` for tests / offline fallback.
 
+Writes are insert-only per tweet: a tweet_id that already has any row is left
+alone, so editor decisions (reviewer_discard, re-pointed wpos, status moves,
+grade/quote edits) survive a rerun. To realign one tweet, delete its rows first.
+
 Run:
   python3 pipeline/build_tawjih.py              # dry-run stats
-  python3 pipeline/build_tawjih.py --write      # upsert Supabase
+  python3 pipeline/build_tawjih.py --write      # insert new tweets into Supabase
   python3 pipeline/build_tawjih.py --sqlite data/tawjih.db --write
 """
 from __future__ import annotations
@@ -342,14 +346,20 @@ def row_payload(row: TawjihRow) -> dict:
     return payload
 
 
-def write_sqlite(path: Path, rows: list[TawjihRow]) -> None:
+def new_tweet_rows(rows: list[TawjihRow], existing_ids: set[str]) -> list[TawjihRow]:
+    """Drop rows whose tweet_id is already stored (reviewer decisions win)."""
+    return [row for row in rows if row.tweet_id not in existing_ids]
+
+
+def write_sqlite(path: Path, rows: list[TawjihRow]) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(path)
     try:
         ensure_sqlite_schema(conn)
-        conn.execute('DELETE FROM tawjih')
+        existing = {r[0] for r in conn.execute('SELECT DISTINCT tweet_id FROM tawjih')}
+        rows = new_tweet_rows(rows, existing)
         conn.executemany(
-            'INSERT INTO tawjih ('
+            'INSERT OR IGNORE INTO tawjih ('
             'tweet_id,surah,ayah,wpos,quote,note,grade,status,align_conf,'
             'skip_reason,locator,url,created_at) '
             'VALUES (:tweet_id,:surah,:ayah,:wpos,:quote,:note,:grade,:status,'
@@ -359,6 +369,7 @@ def write_sqlite(path: Path, rows: list[TawjihRow]) -> None:
         conn.commit()
     finally:
         conn.close()
+    return len(rows)
 
 
 def fetch_posts() -> list[dict]:
@@ -388,9 +399,32 @@ def fetch_posts() -> list[dict]:
     return out
 
 
-def upsert_supabase(rows: list[TawjihRow], batch_size: int = 200) -> None:
+def fetch_existing_tweet_ids() -> set[str]:
+    out: set[str] = set()
+    page = 1000
+    offset = 0
+    while True:
+        batch = sb._request(
+            'GET',
+            'tawjih',
+            params={
+                'select': 'tweet_id',
+                'order': 'id.asc',
+                'limit': str(page),
+                'offset': str(offset),
+            },
+        ) or []
+        out.update(str(r['tweet_id']) for r in batch)
+        if len(batch) < page:
+            break
+        offset += page
+    return out
+
+
+def upsert_supabase(rows: list[TawjihRow], batch_size: int = 200) -> int:
     if not sb.is_configured():
         raise RuntimeError('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
+    rows = new_tweet_rows(rows, fetch_existing_tweet_ids())
     payloads = [row_payload(row) for row in rows]
     for start in range(0, len(payloads), batch_size):
         chunk = payloads[start:start + batch_size]
@@ -399,8 +433,9 @@ def upsert_supabase(rows: list[TawjihRow], batch_size: int = 200) -> None:
             'tawjih',
             params={'on_conflict': 'tweet_id,surah,ayah,wpos'},
             json_body=chunk,
-            prefer='resolution=merge-duplicates,return=minimal',
+            prefer='resolution=ignore-duplicates,return=minimal',
         )
+    return len(rows)
 
 
 def _stats(rows: list[TawjihRow]) -> dict[str, int]:
@@ -453,11 +488,11 @@ def main(argv: list[str] | None = None) -> int:
         sqlite_path = Path(TAWJIH_DATABASE)
 
     if sqlite_path is not None:
-        write_sqlite(sqlite_path, rows)
-        print(f'wrote sqlite {sqlite_path}')
+        added = write_sqlite(sqlite_path, rows)
+        print(f'wrote sqlite {sqlite_path} ({added} new rows)')
     if sb.is_configured() and args.sqlite is None:
-        upsert_supabase(rows)
-        print(f'upserted supabase tawjih ({len(rows)} rows)')
+        added = upsert_supabase(rows)
+        print(f'inserted supabase tawjih ({added} new rows; existing tweets kept)')
     return 0
 
 

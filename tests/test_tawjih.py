@@ -195,6 +195,56 @@ def test_sqlite_write_roundtrip(tmp_path):
     assert stored == [(UNIQUE_SURAH, UNIQUE_AYAH, 'published', 1, 'تام')]
 
 
+def test_sqlite_rerun_preserves_reviewer_decisions(tmp_path):
+    db = tmp_path / 'tawjih.db'
+    words = verse_words(UNIQUE_SURAH, UNIQUE_AYAH)
+    # 1001: editor discarded it. 1002: editor re-pointed it to wpos 0.
+    _write_fixture(db, [
+        _published_fixture(tweet_id='1001', wpos=len(words) - 1,
+                           status='skipped', skip_reason='reviewer_discard'),
+        _published_fixture(tweet_id='1002', wpos=0, grade='كاف'),
+    ])
+    posts = [
+        _post(tweet_id='1001'),
+        _post(tweet_id='1002'),
+        _post(tweet_id='1003', url='https://x.com/Dr_ahmed21/status/1003'),
+    ]
+    added = tawjih.write_sqlite(db, tawjih.classify_posts(posts))
+    conn = sqlite3.connect(db)
+    try:
+        stored = conn.execute(
+            'SELECT tweet_id,wpos,status,skip_reason,grade FROM tawjih '
+            'ORDER BY tweet_id,wpos'
+        ).fetchall()
+    finally:
+        conn.close()
+    assert added == 1
+    assert stored == [
+        ('1001', len(words) - 1, 'skipped', 'reviewer_discard', 'تام'),
+        ('1002', 0, 'published', None, 'كاف'),
+        ('1003', len(words) - 1, 'published', None, 'تام'),
+    ]
+
+
+def test_supabase_upsert_skips_existing_tweets(monkeypatch):
+    calls = []
+
+    def fake_request(method, table, params=None, json_body=None, prefer=None):
+        calls.append((method, table, params, json_body, prefer))
+        if method == 'GET':
+            return [{'tweet_id': '1001'}]
+        return None
+
+    monkeypatch.setattr(tawjih.sb, 'is_configured', lambda: True)
+    monkeypatch.setattr(tawjih.sb, '_request', fake_request)
+    rows = tawjih.classify_posts([_post(tweet_id='1001'), _post(tweet_id='1003')])
+    assert tawjih.upsert_supabase(rows) == 1
+    posts = [c for c in calls if c[0] == 'POST']
+    assert len(posts) == 1
+    assert [r['tweet_id'] for r in posts[0][3]] == ['1003']
+    assert 'merge-duplicates' not in posts[0][4]
+
+
 def test_api_returns_fixture_published_row(client, tmp_path, monkeypatch):
     db = tmp_path / 'tawjih.db'
     fixture = _published_fixture()
