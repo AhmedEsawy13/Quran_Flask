@@ -546,9 +546,20 @@ def estimate_layout_words(
             ocr_page = _relayout.ocr_words(
                 page, int(spec.leaf_offset), float(prepared.bgr.shape[1]),
             ) or None
+
     font_widths = (
         _font_word_widths(spec.word_width_fonts, page, tuple(all_ids)) if spec.word_width_fonts else {}
     )
+    # Letter-body gaps only help once the widths are right (font pages); on letter-count widths they
+    # made more wrong cuts (whole book, 2026-10-17), so they are used with the font widths only.
+    body_mask = None
+    if spec.body_mask_dir and measured and font_widths:
+        bm = Path(spec.body_mask_dir) / f'p{page:03d}.png'
+        if bm.is_file():
+            import cv2
+            raw = cv2.imread(str(bm), cv2.IMREAD_GRAYSCALE)
+            if raw is not None and raw.shape == mask.shape:
+                body_mask = raw > 0
     for ln, ids in spans:
         if not ids:
             continue                           # still empty after the relayout
@@ -599,7 +610,7 @@ def estimate_layout_words(
             } or None
             cut_report: list[dict] = []
             boxes = geometry.segment_line_words(
-                mask, baseline=baseline, pitch=grid.pitch,
+                body_mask if body_mask is not None else mask, baseline=baseline, pitch=grid.pitch,
                 weights=weights, x_range=x_bounds, anchors=anchors, windows=windows,
                 fixed=fixed, report=cut_report, avoid=avoid, **options,
             )
