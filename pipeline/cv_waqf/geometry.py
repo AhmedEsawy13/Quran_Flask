@@ -93,17 +93,30 @@ def text_x_bounds(bgr: np.ndarray, y0: int, y1: int) -> tuple[int, int]:
 
 @dataclass(frozen=True)
 class LineGrid:
-    """Text block rows: slot ``k`` spans ``top + k*pitch`` .. ``+ pitch``."""
+    """Text block rows: slot ``k`` spans ``top + k*pitch`` .. ``+ pitch``, moved by ``shifts[k]``.
+
+    ``shifts`` holds each line's offset from the uniform grid to its printed row (from a vector
+    PDF, see ``layout_geo._vector_line_grid``): a surah banner is taller than one line, so the
+    rows under it sit lower than a uniform grid puts them.
+    """
 
     top: float
     pitch: float
     support: float  # share of expected lines that found a measured row
     fitted: bool    # False → nominal values returned unchanged
+    shifts: tuple[tuple[int, float], ...] = ()
+
+    def shift(self, k: int) -> float:
+        return dict(self.shifts).get(k, 0.0)
 
     def slot(self, k: int) -> tuple[int, int]:
-        return int(round(self.top + k * self.pitch)), int(
-            round(self.top + (k + 1) * self.pitch)
+        d = self.shift(k)
+        return int(round(self.top + k * self.pitch + d)), int(
+            round(self.top + (k + 1) * self.pitch + d)
         )
+
+    def baseline(self, k: int) -> float:
+        return self.top + (k + 0.5 + LINE_CENTER_BIAS) * self.pitch + self.shift(k)
 
 
 def measured_line_centres(mask: np.ndarray) -> list[float]:
@@ -186,6 +199,7 @@ def fit_line_grid(
     if support < min_support:
         return LineGrid(nominal_top, nominal_pitch, support, False)
     return LineGrid(top, pitch, support, True)
+
 
 
 def _ink_extent(

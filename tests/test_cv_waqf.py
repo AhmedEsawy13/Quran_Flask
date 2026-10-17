@@ -2119,3 +2119,22 @@ def test_a_rejected_cut_is_avoided_and_a_hand_set_cut_re_fits_the_others():
     pinned = geometry.segment_line_words(solid, baseline=50, pitch=60, weights=[1, 1, 1, 1], x_range=(0, 600), fixed={2: 250.0})
     assert [c[0] for c in even][:3] == [pytest.approx(c, abs=8) for c in (452, 315, 177)] or abs(even[0][0] - 452) <= 8
     assert abs(pinned[0][0] - 420) <= 10 and pinned[1][0] == 250 and abs(pinned[2][0] - 145) <= 10
+
+
+def test_shamarly_lines_follow_the_vector_pdf_bands():
+    """Lines under a surah banner move down by about one line; ordinary pages barely move."""
+    from pipeline.cv_waqf import geometry, layout_geo
+    from pipeline.cv_waqf.config import EDITIONS
+
+    spec = EDITIONS['الشمرلي']
+    if not layout_geo._vector_lines(spec.vector_lines):
+        pytest.skip('vector_lines.json not present')
+    grid = geometry.LineGrid(100.0, 76.0, 1.0, True)
+    slots = {n: n - 1 for n in range(1, 16)}
+    rec = layout_geo._vector_lines(spec.vector_lines)['105']
+    scale = 1024 / rec['width_pt']
+    k = slots[3]
+    printed = 0.5 * (rec['lines'][1]['top'] + rec['lines'][1]['bottom']) * scale
+    shifted = layout_geo._vector_line_grid(spec, 105, grid, slots, 1024)
+    assert shifted.shift(k) == pytest.approx(printed - (100 + (k + 0.5) * 76) - 0.39 * 76)
+    assert geometry.LineGrid(1.0, 2.0, 1.0, True).baseline(0) == pytest.approx(1.0 + (0.5 + geometry.LINE_CENTER_BIAS) * 2.0)

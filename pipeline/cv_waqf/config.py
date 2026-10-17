@@ -135,6 +135,12 @@ class EditionSpec:
     # box is two slots, so a surah banner block is four (name, info, 2). Row
     # ``line_number`` is a logical row, not a slot, on such prints.
     header_slots: tuple[tuple[str, int], ...] = ()
+    # JSON of exact line bands from a vector PDF ({'pages': {page: {'width_pt', 'lines': [{line_number,
+    # top, bottom}]}}}, see shamarly_vector_lines.py); each line is moved onto its printed band.
+    vector_lines: str | None = None
+    # The band's middle includes the marks above the text, so it sits lower than the grid's slot
+    # centre by a constant (in pitches); measured on 675 lines of 45 header-free Shamarly pages.
+    vector_line_offset: float = 0.0
 
     def slot_span(self, line_type: str | None) -> int:
         return dict(self.header_slots).get(line_type or '', 1)
@@ -199,6 +205,8 @@ EDITIONS: dict[str, EditionSpec] = {
         archive_id='shamarlyshamarly',
         leaf_offset=-1,
         page_cache_dir=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'cache'),
+        vector_lines=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'vector_lines.json'),
+        vector_line_offset=0.39,
         # calibrate-geometry on 104 PDF-rendered pages (3-522:5), 2026-10-14
         text_top=0.0817,
         text_bottom=0.8702,

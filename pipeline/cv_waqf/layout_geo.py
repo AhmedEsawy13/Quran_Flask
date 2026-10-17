@@ -1,6 +1,10 @@
 """Logical page geometry: line bands + fractional word boxes (no pixel DB)."""
 from __future__ import annotations
 
+import functools
+import json
+from pathlib import Path
+
 import sqlite3
 import unicodedata
 from dataclasses import dataclass
@@ -249,6 +253,28 @@ def _kraken_row_windows(
     return windows
 
 
+@functools.lru_cache(maxsize=2)
+def _vector_lines(path: str) -> dict:
+    p = Path(path)
+    return json.loads(p.read_text(encoding='utf-8'))['pages'] if p.is_file() else {}
+
+
+def _vector_line_grid(spec: EditionSpec, page: int, grid, slot_of: dict[int, int], width_px: int):
+    """``grid`` with every line that has a printed band (``spec.vector_lines``) moved onto it."""
+    rec = _vector_lines(spec.vector_lines).get(str(page))
+    if not rec:
+        return grid
+    scale = width_px / float(rec['width_pt'])
+    shifts = {}
+    for ln in rec['lines']:
+        k = slot_of.get(int(ln['line_number']))
+        if k is None:
+            continue
+        printed = 0.5 * (ln['top'] + ln['bottom']) * scale
+        shifts[k] = printed - (grid.top + (k + 0.5) * grid.pitch) - spec.vector_line_offset * grid.pitch
+    return geometry.LineGrid(grid.top, grid.pitch, grid.support, True, tuple(sorted(shifts.items())))
+
+
 def physical_slots(spec: EditionSpec, lines: list[dict]) -> tuple[dict[int, int], int]:
     """``{line_number: first physical slot}`` and the page's physical slot count.
 
@@ -320,7 +346,7 @@ def _ocr_relayout_spans(
     weights = [relayout.word_width(t) for t in texts]
     baselines, extents = [], []
     for k in slots:
-        baseline = grid.top + (k + 0.5 + geometry.LINE_CENTER_BIAS) * grid.pitch
+        baseline = grid.baseline(k)
         y0 = max(0, int(baseline - 0.50 * grid.pitch))
         y1 = min(mask.shape[0], int(baseline + 0.22 * grid.pitch))
         occupied = mask[y0:y1, :].any(axis=0)
@@ -474,6 +500,8 @@ def estimate_layout_words(
             nominal_pitch=band_h / line_slots,
         )
         measured = grid.fitted
+        if measured and spec.vector_lines:
+            grid = _vector_line_grid(spec, page, grid, slot_of, prepared.bgr.shape[1])
         x_bounds = geometry.text_x_bounds(
             prepared.bgr,
             int(grid.top),
@@ -521,9 +549,7 @@ def estimate_layout_words(
         boxes = None
         boxes_measured = False
         if measured:
-            baseline = grid.top + (
-                line_slot + 0.5 + geometry.LINE_CENTER_BIAS
-            ) * grid.pitch
+            baseline = grid.baseline(line_slot)
             # x_bounds are the inner frame rules; the measured extent
             # handles whatever ornament remains inside them.
             anchors = (
