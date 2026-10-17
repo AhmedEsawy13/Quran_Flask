@@ -247,6 +247,7 @@ def find_line_component_candidates(
     words: list[LayoutWord],
     *,
     window: int = 24,
+    components: list[tuple[int, int, int, int, int]] | None = None,
 ) -> list[AboveWordHit]:
     """High-recall proposals from small ink components on known Quran rows.
 
@@ -272,7 +273,9 @@ def find_line_component_candidates(
         ))
 
     x0, y0, x1, y1 = prepared.band_box
-    ccs = _ccs_in_roi(binary, x0, y0, x1, y1)
+    # ``components`` (x, y, w, h, area) replaces the image's connected components, e.g. a print's
+    # vector small-mark clusters, which stay separate where the raster merges them with a descender.
+    ccs = components if components is not None else _ccs_in_roi(binary, x0, y0, x1, y1)
     half = max(6, int(window) // 2)
     proposals: list[AboveWordHit] = []
     for x, y, w, h, area in ccs:

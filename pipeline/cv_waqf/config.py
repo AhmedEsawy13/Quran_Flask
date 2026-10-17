@@ -149,6 +149,9 @@ class EditionSpec:
     # JSON of word spans per line from a vector partition ({'pages': {page: {'width_pt', 'lines': {line_number:
     # [[word_index, left_pt, right_pt, method], ...]}}}}); their boundaries are used as fixed cuts.
     vector_word_cuts: str | None = None
+    # JSON of small-mark cluster boxes per page ({'pages': {page: [[x0, y0, x1, y1], ...]}}, px at the page
+    # images' width), proposed as extra candidates next to the image's own components.
+    vector_mark_boxes: str | None = None
 
     def slot_span(self, line_type: str | None) -> int:
         return dict(self.header_slots).get(line_type or '', 1)
@@ -217,6 +220,7 @@ EDITIONS: dict[str, EditionSpec] = {
         vector_line_offset=0.39,
         word_width_fonts=str(ROOT / 'static' / 'fonts' / 'Shemrly-Page{page:03d}.woff2'),
         vector_word_cuts=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'word_cuts.json'),
+        vector_mark_boxes=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'mark_boxes.json'),
         body_mask_dir=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'bodymask'),
         # calibrate-geometry on 104 PDF-rendered pages (3-522:5), 2026-10-14
         text_top=0.0817,
@@ -226,7 +230,9 @@ EDITIONS: dict[str, EditionSpec] = {
         default_proposal_mode='hybrid',
         measured_geometry=True,
         azhar_seat_prior=True,
-        seat_prior_editions=('الأزهر',),
+        # Azhar or either Madinah print: Shamarly prints signs Azhar lacks, and the Azhar-only prior
+        # threw those true detections away (whole book 95.26% vs 94.61%; Shamarly itself never votes).
+        seat_prior_editions=('الأزهر', 'المدينة القديم', 'المدينة الجديد'),
     ),
     'البحرين': EditionSpec(
         id='bahrain',

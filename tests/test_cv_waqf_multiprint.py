@@ -291,10 +291,14 @@ def test_bahrain_and_qatar_use_the_azhar_plus_madinah_prior():
     # Untouched prints keep the original Azhar-only default and stay off.
     assert config.EDITIONS['الأزهر'].seat_prior_editions == ('الأزهر',)
     assert config.EDITIONS['الأزهر'].azhar_seat_prior is False
-    # Shamarly and Madinah 1405 use the prior with Azhar alone (2026-10-14).
-    for key in ('الشمرلي', 'المدينة القديم'):
-        assert config.EDITIONS[key].azhar_seat_prior is True
-        assert config.EDITIONS[key].seat_prior_editions == ('الأزهر',)
+    # Madinah 1405 uses the prior with Azhar alone (2026-10-14).
+    assert config.EDITIONS['المدينة القديم'].azhar_seat_prior is True
+    assert config.EDITIONS['المدينة القديم'].seat_prior_editions == ('الأزهر',)
+    # Shamarly: Azhar or either Madinah print (2026-10-17), never its own column.
+    sham = config.EDITIONS['الشمرلي']
+    assert sham.azhar_seat_prior is True
+    assert sham.seat_prior_editions == ('الأزهر', 'المدينة القديم', 'المدينة الجديد')
+    assert sham.mushaf_version not in sham.seat_prior_editions
 
 
 def test_detect_reports_the_prior_editions_it_used(monkeypatch):

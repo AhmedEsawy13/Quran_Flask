@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+from functools import lru_cache
 from pathlib import Path
 
 import cv2
@@ -90,6 +91,16 @@ def _prediction_is_clear(
     if none_p > 0.25 and confidence - none_p < 0.28:
         return False
     return True
+
+
+@lru_cache(maxsize=2)
+def _vector_mark_file(path: str) -> dict:
+    p = Path(path)
+    return json.loads(p.read_text(encoding='utf-8'))['pages'] if p.is_file() else {}
+
+
+def _vector_mark_boxes(path: str, page: int) -> list[list[int]]:
+    return _vector_mark_file(path).get(str(page)) or []
 
 
 def _attach_from_hits(
@@ -386,6 +397,13 @@ def detect_page(
         find_line_component_candidates(prepared, words)
         if proposal_mode == 'hybrid' else []
     )
+    vector_boxes = _vector_mark_boxes(spec.vector_mark_boxes, page) if spec.vector_mark_boxes else None
+    if vector_boxes:
+        broad_hits = [*broad_hits, *find_line_component_candidates(
+            prepared, words,
+            components=[(b[0], b[1], max(1, b[2] - b[0]), max(1, b[3] - b[1]),
+                         max(2, (b[2] - b[0]) * (b[3] - b[1]))) for b in vector_boxes],
+        )]
     # Keep alternate crop scales because the glyph can be a single component
     # or several nearby components.  Suppress only exact duplicate boxes.
     hits = []
