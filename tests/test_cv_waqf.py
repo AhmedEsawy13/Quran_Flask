@@ -2138,3 +2138,20 @@ def test_shamarly_lines_follow_the_vector_pdf_bands():
     shifted = layout_geo._vector_line_grid(spec, 105, grid, slots, 1024)
     assert shifted.shift(k) == pytest.approx(printed - (100 + (k + 0.5) * 76) - 0.39 * 76)
     assert geometry.LineGrid(1.0, 2.0, 1.0, True).baseline(0) == pytest.approx(1.0 + (0.5 + geometry.LINE_CENTER_BIAS) * 2.0)
+
+
+def test_shamarly_word_widths_come_from_its_page_font():
+    from pipeline.cv_waqf import layout_geo
+    from pipeline.cv_waqf.config import EDITIONS
+
+    spec = EDITIONS['الشمرلي']
+    lines = layout_geo.load_page_lines(spec, 210)
+    ids = []
+    for ln in lines:
+        if ln.get('first_word_id') is not None:
+            ids += layout_geo._ids_between(spec.script_db, int(ln['first_word_id']), int(ln['last_word_id']))
+    widths = layout_geo._font_word_widths(spec.word_width_fonts, 210, tuple(ids))
+    if not widths:
+        pytest.skip('Shemrly page font 210 not present')
+    assert len(widths) == len(ids) and all(w > 0 for w in widths.values())
+    assert layout_geo._font_word_widths(spec.word_width_fonts, 210, tuple(ids[:-1])) == {}   # count mismatch → none

@@ -141,6 +141,9 @@ class EditionSpec:
     # The band's middle includes the marks above the text, so it sits lower than the grid's slot
     # centre by a constant (in pitches); measured on 675 lines of 45 header-free Shamarly pages.
     vector_line_offset: float = 0.0
+    # Per-page word fonts (path pattern with {page:03d}) whose glyph i draws the page's i-th word: their
+    # advance widths replace the letter-count width estimate when a line is split into words.
+    word_width_fonts: str | None = None
 
     def slot_span(self, line_type: str | None) -> int:
         return dict(self.header_slots).get(line_type or '', 1)
@@ -207,6 +210,7 @@ EDITIONS: dict[str, EditionSpec] = {
         page_cache_dir=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'cache'),
         vector_lines=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'vector_lines.json'),
         vector_line_offset=0.39,
+        word_width_fonts=str(ROOT / 'static' / 'fonts' / 'Shemrly-Page{page:03d}.woff2'),
         # calibrate-geometry on 104 PDF-rendered pages (3-522:5), 2026-10-14
         text_top=0.0817,
         text_bottom=0.8702,

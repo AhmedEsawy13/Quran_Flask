@@ -275,6 +275,25 @@ def _vector_line_grid(spec: EditionSpec, page: int, grid, slot_of: dict[int, int
     return geometry.LineGrid(grid.top, grid.pitch, grid.support, True, tuple(sorted(shifts.items())))
 
 
+@functools.lru_cache(maxsize=8)
+def _font_word_widths(pattern: str, page: int, ids: tuple[int, ...]) -> dict[int, float]:
+    """{word id: advance width} from a per-page word font, or {} unless it holds one glyph per word."""
+    path = Path(pattern.format(page=page))
+    if not path.is_file():
+        return {}
+    from fontTools.ttLib import TTFont
+
+    font = TTFont(str(path))
+    cmap = {}
+    for table in font['cmap'].tables:
+        cmap.update(table.cmap)
+    codes = sorted(c for c in cmap if c > 0xFB50)     # glyph i = the page's i-th word (base U+FB51)
+    if len(codes) != len(ids):
+        return {}
+    hmtx = font['hmtx']
+    return {wid: float(hmtx[cmap[c]][0]) for wid, c in zip(ids, codes)}
+
+
 def physical_slots(spec: EditionSpec, lines: list[dict]) -> tuple[dict[int, int], int]:
     """``{line_number: first physical slot}`` and the page's physical slot count.
 
@@ -527,6 +546,9 @@ def estimate_layout_words(
             ocr_page = _relayout.ocr_words(
                 page, int(spec.leaf_offset), float(prepared.bgr.shape[1]),
             ) or None
+    font_widths = (
+        _font_word_widths(spec.word_width_fonts, page, tuple(all_ids)) if spec.word_width_fonts else {}
+    )
     for ln, ids in spans:
         if not ids:
             continue                           # still empty after the relayout
@@ -546,6 +568,8 @@ def estimate_layout_words(
             width_of(str((meta.get(wid) or {}).get('text') or ''))
             for wid in ids
         ]
+        if font_widths and all(wid in font_widths for wid in ids):
+            weights = [font_widths[wid] for wid in ids]
         boxes = None
         boxes_measured = False
         if measured:
