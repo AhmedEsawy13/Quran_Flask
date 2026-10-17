@@ -146,6 +146,9 @@ class EditionSpec:
     word_width_fonts: str | None = None
     # Directory of letter-body-only masks (p{page:03d}.png at the page images' size) used to find word gaps.
     body_mask_dir: str | None = None
+    # JSON of word spans per line from a vector partition ({'pages': {page: {'width_pt', 'lines': {line_number:
+    # [[word_index, left_pt, right_pt, method], ...]}}}}); their boundaries are used as fixed cuts.
+    vector_word_cuts: str | None = None
 
     def slot_span(self, line_type: str | None) -> int:
         return dict(self.header_slots).get(line_type or '', 1)
@@ -213,6 +216,7 @@ EDITIONS: dict[str, EditionSpec] = {
         vector_lines=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'vector_lines.json'),
         vector_line_offset=0.39,
         word_width_fonts=str(ROOT / 'static' / 'fonts' / 'Shemrly-Page{page:03d}.woff2'),
+        vector_word_cuts=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'word_cuts.json'),
         body_mask_dir=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'bodymask'),
         # calibrate-geometry on 104 PDF-rendered pages (3-522:5), 2026-10-14
         text_top=0.0817,

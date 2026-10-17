@@ -2155,3 +2155,12 @@ def test_shamarly_word_widths_come_from_its_page_font():
         pytest.skip('Shemrly page font 210 not present')
     assert len(widths) == len(ids) and all(w > 0 for w in widths.values())
     assert layout_geo._font_word_widths(spec.word_width_fonts, 210, tuple(ids[:-1])) == {}   # count mismatch → none
+
+
+def test_vector_word_cuts_become_fixed_cuts_only_for_the_same_words():
+    from pipeline.cv_waqf import layout_geo
+
+    rec = {'width_pt': 512.0, 'lines': {'3': [[10, 400.0, 500.0, 't'], [11, 300.0, 400.0, 't'], [12, 200.0, 300.0, 't']]}}
+    assert layout_geo._vector_cuts_for_line(rec, 3, [10, 11, 12], 1024) == {1: 800.0, 2: 600.0}
+    assert layout_geo._vector_cuts_for_line(rec, 3, [10, 11], 1024) is None      # different words → not used
+    assert layout_geo._vector_cuts_for_line(rec, 4, [10, 11, 12], 1024) is None

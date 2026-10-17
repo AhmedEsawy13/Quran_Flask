@@ -294,6 +294,15 @@ def _font_word_widths(pattern: str, page: int, ids: tuple[int, ...]) -> dict[int
     return {wid: float(hmtx[cmap[c]][0]) for wid, c in zip(ids, codes)}
 
 
+def _vector_cuts_for_line(rec: dict, line_number: int, ids: list[int], width_px: int) -> dict[int, float] | None:
+    """Fixed cuts {boundary k: x px} from a vector word partition, when it has exactly this line's words."""
+    cells = (rec.get('lines') or {}).get(str(line_number))
+    if not cells or [c[0] for c in cells] != list(ids):
+        return None
+    scale = width_px / float(rec['width_pt'])
+    return {k: 0.5 * (cells[k - 1][1] + cells[k][2]) * scale for k in range(1, len(cells))}
+
+
 def physical_slots(spec: EditionSpec, lines: list[dict]) -> tuple[dict[int, int], int]:
     """``{line_number: first physical slot}`` and the page's physical slot count.
 
@@ -550,6 +559,9 @@ def estimate_layout_words(
     font_widths = (
         _font_word_widths(spec.word_width_fonts, page, tuple(all_ids)) if spec.word_width_fonts else {}
     )
+    vector_cuts = (
+        _vector_lines(spec.vector_word_cuts).get(str(page)) if spec.vector_word_cuts else None
+    )
     # Letter-body gaps only help once the widths are right (font pages); on letter-count widths they
     # made more wrong cuts (whole book, 2026-10-17), so they are used with the font widths only.
     body_mask = None
@@ -604,6 +616,8 @@ def estimate_layout_words(
                 k: float(fixed_cuts[(keys[k - 1], keys[k])])
                 for k in range(1, n) if fixed_cuts and (keys[k - 1], keys[k]) in fixed_cuts
             } or None
+            if not fixed and not font_widths and vector_cuts:
+                fixed = _vector_cuts_for_line(vector_cuts, int(ln['line_number']), ids, prepared.bgr.shape[1])
             avoid = {
                 k: list(avoid_pairs[(keys[k - 1], keys[k])])
                 for k in range(1, n) if (keys[k - 1], keys[k]) in avoid_pairs
