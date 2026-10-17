@@ -209,7 +209,12 @@ def build(edition: str, out_dir: Path) -> dict:
                     w.writerow([k, i['page'], i['word_key'], i['text'], i['db'] or '', i['cv'] or '', i['conf'] or '',
                                 *((i.get('others') or {}).get(r, '') for r in REFS), 'crops/' + i['crop']])
     # The editor's in-app review (/mushaf-editor/audit) reads this queue.
-    keep = ('page', 'word_key', 'text', 'db', 'cv', 'conf', 'others', 'crop', 'from_key', 'from_text', 'from_crop')
+    from pipeline.cv_waqf.line_view import write_line_views
+    actionable = {'shift', 'shift_unsure', 'add', 'maybe', 'differs', 'missed'}
+    lines = write_line_views(edition, out_dir, [i for k, _, _, f in TABS if k in actionable for i in items if f(i)])
+    for i in items:
+        i['line'] = lines.get(i['crop'])
+    keep = ('page', 'word_key', 'text', 'db', 'cv', 'conf', 'others', 'crop', 'from_key', 'from_text', 'from_crop', 'line')
     queue = {'edition': edition, 'built': stamp, 'summary': summary,
              'tabs': [{'id': k, 'title': title, 'note': note} for k, title, note, _ in TABS],
              'items': [dict({f: i.get(f) for f in keep}, tab=k, lean=ref_lean(i), note=notes.get(i['crop']) or '')

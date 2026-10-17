@@ -210,6 +210,7 @@ def audit_page(edition_key: str, page: int, out_dir: str) -> dict:
             rec['items'].append({
                 'kind': 'cv_missed', 'word_key': w.word_key, 'text': w.text, 'cv': None, 'conf': None,
                 'db': sym, 'others': others(w.word_key, spec.mushaf_version),
+                'word_box': [w.x0, w.y0, w.x1, w.y1],
                 'crop': _crop(img, (w.x0, w.y0, w.x1, w.y1), out, name),
             })
         rec['counts'] = counts

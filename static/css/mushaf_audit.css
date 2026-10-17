@@ -58,6 +58,11 @@ body.hide-done .card.decided{display:none}
 .picker button.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .err{color:var(--warn)!important}
 #lb{position:fixed;inset:0;background:#000d;display:none;align-items:center;justify-content:center;z-index:20;cursor:zoom-out}
-#lb img{max-width:94vw;max-height:90vh;background:#fff;border-radius:8px} #lb.on{display:flex}
+#lb{flex-direction:column;gap:10px}
+#lb img{max-width:96vw;max-height:84vh;background:#fff;border-radius:8px} #lb.on{display:flex}
+#lb-legend{margin:0;color:#fff;font-size:14px;background:#0008;padding:6px 12px;border-radius:8px}
+#lb-legend .g{color:#2c962c} #lb-legend .r{color:#e04040}
+.card .line-btn{display:block;width:100%;border:0;border-top:1px solid var(--line);background:var(--accent-soft);
+  color:var(--accent);font:inherit;font-size:13px;font-weight:700;padding:5px;cursor:zoom-in}
 .toast{position:fixed;bottom:16px;inset-inline:16px;margin:auto;max-width:480px;background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:10px;z-index:30;font-size:14px}
 @media (max-width:760px){.bar{padding:8px 16px 0}.grid{grid-template-columns:1fr}}

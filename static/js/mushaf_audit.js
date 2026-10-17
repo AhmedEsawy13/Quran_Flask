@@ -82,8 +82,10 @@
   function card(i, n) {
     const [s, a, w] = i.word_key.split(':');
     const others = Object.entries(i.others || {}).map(([k, v]) => `<span class="oth"><i>${esc(k.replace('المدينة ', 'م. '))}</i>${esc(v)}</span>`).join('');
-    const imgs = `<img loading="lazy" src="${crop(i.crop)}" alt="" title="ما رآه النموذج">` +
-      (i.from_crop ? `<img loading="lazy" src="${crop(i.from_crop)}" alt="" title="موضع القاعدة">` : '');
+    const line = i.line ? ` data-line="${crop(i.line)}"` : '';
+    const imgs = `<img loading="lazy" src="${crop(i.crop)}"${line} alt="" title="اضغط لعرض السطر كاملًا">` +
+      (i.from_crop ? `<img loading="lazy" src="${crop(i.from_crop)}"${line} alt="" title="موضع القاعدة">` : '') +
+      (i.line ? '<button type="button" class="line-btn" data-act-line>السطر كاملًا ⤢</button>' : '');
     const acts = i.actionable && !i.decision ? `
       <div class="acts">
         <button type="button" class="yes" data-act="image">${esc(imageLabel(i))}</button>
@@ -163,8 +165,15 @@
     if (t) { state.tab = t.dataset.tab; history.replaceState(null, '', `?edition=${encodeURIComponent(state.edition)}&tab=${state.tab}`); render(); return; }
     const b = e.target.closest('button[data-act]');
     if (b) { decide(Number(b.closest('.card').dataset.n), b.dataset.act, b.dataset.sym); return; }
-    const img = e.target.closest('.card img');
-    if (img) { $('#lb img').src = img.src; $('#lb').classList.add('on'); return; }
+    const img = e.target.closest('.card img') || e.target.closest('[data-act-line]')?.closest('.card').querySelector('img');
+    if (img) {
+      $('#lb img').src = img.dataset.line || img.src;
+      $('#lb-legend').hidden = !img.dataset.line;
+      const c = state.data.items[Number(img.closest('.card').dataset.n)];
+      $('#lb-word').textContent = c ? `«${c.text}» ${c.word_key}` : '';
+      $('#lb').classList.add('on');
+      return;
+    }
     if (e.target.closest('#lb')) $('#lb').classList.remove('on');
   });
   $('#au-edition').addEventListener('change', (e) => {
