@@ -265,12 +265,23 @@ def _vector_line_grid(spec: EditionSpec, page: int, grid, slot_of: dict[int, int
     if not rec:
         return grid
     scale = width_px / float(rec['width_pt'])
+    heights = sorted(ln['bottom'] - ln['top'] for ln in rec['lines'])
+    usual = heights[len(heights) // 2] if heights else 0.0
+    numbers = {int(ln['line_number']) for ln in rec['lines']}
     shifts = {}
     for ln in rec['lines']:
         k = slot_of.get(int(ln['line_number']))
         if k is None:
             continue
-        printed = 0.5 * (ln['top'] + ln['bottom']) * scale
+        top, bottom = ln['top'], ln['bottom']
+        # A line next to a surah banner (not one of the extracted lines) gets the banner's space in its
+        # band: keep the edge that borders a text line and the page's usual band height.
+        if usual and bottom - top > 1.3 * usual:
+            if int(ln['line_number']) + 1 not in numbers:
+                bottom = top + usual
+            elif int(ln['line_number']) - 1 not in numbers:
+                top = bottom - usual
+        printed = 0.5 * (top + bottom) * scale
         shifts[k] = printed - (grid.top + (k + 0.5) * grid.pitch) - spec.vector_line_offset * grid.pitch
     return geometry.LineGrid(grid.top, grid.pitch, grid.support, True, tuple(sorted(shifts.items())))
 
