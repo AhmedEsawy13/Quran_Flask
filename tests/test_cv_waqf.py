@@ -1411,13 +1411,13 @@ def test_reattach_moves_rejected_mark_to_adjacent_occupied_seat(monkeypatch):
     assert len(kept) == 2 and len(rejected) == 1
 
 
-def test_only_kuwait_reattaches_prior_rejected_marks():
+def test_only_kuwait_and_shamarly_reattach_prior_rejected_marks():
     from pipeline.cv_waqf.config import EDITIONS
 
-    assert EDITIONS['الكويت'].prior_reattach is True
-    assert all(
-        not spec.prior_reattach for key, spec in EDITIONS.items() if key != 'الكويت'
-    )
+    # Kuwait (measured 2026-10) and Shamarly (whole book 96.26 -> 98.43%, 2026-10-18).
+    on = {'الكويت', 'الشمرلي'}
+    assert all(EDITIONS[key].prior_reattach is True for key in on)
+    assert all(not spec.prior_reattach for key, spec in EDITIONS.items() if key not in on)
 
 
 def test_kuwait_split_is_disjoint_and_fixed():
