@@ -221,6 +221,9 @@ EDITIONS: dict[str, EditionSpec] = {
         word_width_fonts=str(ROOT / 'static' / 'fonts' / 'Shemrly-Page{page:03d}.woff2'),
         vector_word_cuts=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'word_cuts.json'),
         vector_mark_boxes=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'mark_boxes.json'),
+        # A sign the seat prior would drop moves to the adjacent word when that one has an allowed seat:
+        # Shamarly prints signs over the word's last letters, so some land on the previous word.
+        prior_reattach=True,
         body_mask_dir=str(ROOT / 'data' / 'refs' / 'shamarly_pdf' / 'bodymask'),
         # calibrate-geometry on 104 PDF-rendered pages (3-522:5), 2026-10-14
         text_top=0.0817,
