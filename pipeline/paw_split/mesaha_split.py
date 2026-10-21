@@ -13,6 +13,7 @@ from pipeline.paw_split._common import ROOT, QATAR_APP_ASSETS, workdir  # noqa: 
 workdir('mesaha-trace')
 
 import json
+import re
 import os
 import sqlite3
 import sys
@@ -68,7 +69,13 @@ for _ln, _type, a, b, text in rows:
     # 39:5, 59:19 and 60:1 (the Shamarly fonts are keyed on that order, so the ids stay as they are)
     ids = _ids_between(_SCRIPT_DB, a, b)
     assert len(toks) == len(ids), (PAGE, _ln, len(toks), a, b)
-    line_tokens.append(list(zip(ids, toks)))
+    row = []
+    for wi, t in zip(ids, toks):
+        # quran_script.db keeps a few word+verse-number tokens merged on purpose (ٱلۡمُهۡتَدُونَ١٥٧, 2:157):
+        # on the page they are a word and a medallion
+        word, num = t.rstrip('٠١٢٣٤٥٦٧٨٩'), t[len(t.rstrip('٠١٢٣٤٥٦٧٨٩')):]
+        row += [(wi, word), (wi, num)] if word and num else [(wi, t)]
+    line_tokens.append(row)
 NL = len(line_tokens)
 
 # --- lines: a comb of NL evenly spaced rows fitted to the ink profile ------------------------------
@@ -110,6 +117,17 @@ for _sx in (1.0, 0.85, 1.15):
 _hw, _hh = _tmpl.shape[1] / 2.0, _tmpl.shape[0] / 2.0
 # First choice: the medallion's own shape - one closed outline around a large empty inside (inner hole
 # ~0.45 of its box; letters <= 0.04). The template only fills in where a scan broke the outline.
+def _ellipse_cover(m):
+    """Share of an ellipse just inside the box that lies on (dilated) ink: a medallion outline covers it
+    even when the scan broke it (rings >= 0.84, ring-sized letters <= 0.64)."""
+    h, w = m.shape
+    d = cv2.dilate(m.astype(np.uint8), np.ones((7, 7), np.uint8))
+    t = np.linspace(0, 2 * np.pi, 96, endpoint=False)
+    xs = (w / 2 + (w / 2 - 4) * np.cos(t)).astype(int).clip(0, w - 1)
+    ys = (h / 2 + (h / 2 - 4) * np.sin(t)).astype(int).clip(0, h - 1)
+    return float(d[ys, xs].mean())
+
+
 _n0, _lab0, _st0, _ = cv2.connectedComponentsWithStats(ink.astype(np.uint8), 8)
 _shape_rings = []
 for _i in range(1, _n0):
@@ -124,8 +142,29 @@ for _i in range(1, _n0):
     # separate pieces), while letters of that size carry ink through the middle or are much flatter.
     _ring_size = 0.48 * PITCH < _w < 0.55 * PITCH and 0.43 * PITCH < _h < 0.50 * PITCH and 1.0 < _w / _h < 1.25
     _centre = _m[int(0.25 * _h):int(0.75 * _h), int(0.25 * _w):int(0.75 * _w)].sum() / max(1, int(_m.sum()))
-    if _hole / (_w * _h) > 0.25 or (_ring_size and _centre < 0.08):
+    if _hole / (_w * _h) > 0.25 or (_ring_size and (_centre < 0.08 or _ellipse_cover(_m) >= 0.8)):
         _shape_rings.append((_x, _x + _w, _y + _h / 2.0))
+def _ring_from_parts(cx, cy):
+    """Template fallback check: the pieces lying wholly inside a ring-sized box around (cx, cy) - an
+    outline the scan broke into parts, plus the digits - must form a ring-sized shape whose outline
+    follows an ellipse.
+    Letters at a false match reach outside the box, so they never qualify (p441 ٥١: outline in 3 parts)."""
+    bw, bh = 0.62 * PITCH, 0.56 * PITCH
+    x0, y0 = int(max(0, cx - bw / 2)), int(max(0, cy - bh / 2))
+    x1, y1 = int(cx + bw / 2), int(cy + bh / 2)
+    sub = _lab0[y0:y1, x0:x1]
+    inside = [i for i in np.unique(sub)[1:]
+              if _st0[i][0] >= x0 and _st0[i][1] >= y0 and _st0[i][0] + _st0[i][2] <= x1 and _st0[i][1] + _st0[i][3] <= y1]
+    if not inside:
+        return False
+    m = np.isin(sub, inside).astype(np.uint8)
+    ys, xs = np.nonzero(m)
+    w, h = xs.max() - xs.min() + 1, ys.max() - ys.min() + 1
+    if not (0.44 * PITCH < w < 0.6 * PITCH and 0.39 * PITCH < h < 0.52 * PITCH):
+        return False
+    return _ellipse_cover(m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]) >= 0.8
+
+
 rings = []
 RING_SHORT = []
 for _li, _toks in enumerate(line_tokens):
@@ -141,12 +180,15 @@ for _li, _toks in enumerate(line_tokens):
         _cx = (_x0r + _x1r) / 2 * _s
         _found.append((_cx, _cyr * _s, 1.0))
         _band[max(0, int(_cyr * _s) - 22):int(_cyr * _s) + 22, max(0, int(_cx - 1.6 * _hw)):int(_cx + 1.6 * _hw)] = -1
-    for _ in range(_k - len(_found)):
+    _tries = 0
+    while len(_found) < _k and _tries < 12:
         _, _v, _, (_x, _y) = cv2.minMaxLoc(_band)
-        if _v < 0.25:
+        if _v < 0.2:
             break
-        _found.append((_x, _y, _v))
+        _tries += 1
         _band[max(0, _y - 22):_y + 22, max(0, int(_x - 1.6 * _hw)):int(_x + 1.6 * _hw)] = -1
+        if _ring_from_parts(_x / _s, _y / _s):
+            _found.append((_x, _y, _v))
     if len(_found) < _k:
         print(f'page {PAGE} line {_li + 1}: {_k} verse numbers but {len(_found)} rings found')
         RING_SHORT.append(_li + 1)
@@ -156,6 +198,10 @@ for _li, _toks in enumerate(line_tokens):
 line_h = np.median([b - a for a, b in bands])
 KR_SHIFT = float(os.environ.get('KR_SHIFT', '-0.112'))
 KR_PEN = float(os.environ.get('KR_PEN', '0'))   # Kraken spaces: review flags only; as a DP cost they moved a correct alif (p15)
+# one body for the last letter group of a word and the first of the next (1.0: fixes 5 merged-word pages of the
+# full run, keeps p411's genuinely touching فَتَنَٰزَعُوٓاْ أَمۡرَهُم; 1.5 broke it)
+CROSS_WORD_PEN = float(os.environ.get('CROSS_WORD_PEN', '1.0'))
+WIDE_FACTOR = float(os.environ.get('WIDE_FACTOR', '0.66'))   # 0.33-0.5 broke p411's touching words
 centres = [(a + b) / 2 for a, b in bands]
 # Baseline of each line = its densest ink row. A letter body reaches the baseline; dots and
 # harakat sit clear above or below it (short letters such as ز ر و ن are as small as a mark).
@@ -292,7 +338,10 @@ def align_stretch(li, toks, span):
             return 0.0              # a lone alif is a thin stem whatever the letter width
         actual = max(1.0, sum(p['x1'] - p['x0'] for p in ps))
         expect = max(1.0, scale * sum(units(g) for g in gs))
-        return np.log(actual / expect) ** 2
+        r = np.log(actual / expect)
+        # lines are justified with kashida: wider than expected is normal (كُلِّ on p94 was 1.37 line high wide),
+        # narrower is not
+        return r * r if r < 0 else WIDE_FACTOR * r * r
 
     def shape_cost(ps, gs):
         if gs == ['۞'] or '۞' in gs:
@@ -323,6 +372,9 @@ def align_stretch(li, toks, span):
                 if not dg and ps[0]['area'] < 0.03 * line_h * line_h and ps[0]['y1'] - ps[0]['y0'] < 0.3 * line_h:
                     pen = 0.3       # a small body the text has no group for (dagger alif, tanween on the line)
                 c = pen + (width_cost(ps, gs) + shape_cost(ps, gs) if dg else 0.0)
+                if dg > 1 and len({seq[q][0] for q in range(k, nk)}) > 1:
+                    c += CROSS_WORD_PEN   # one body for the end of one word and the start of the next:
+                                          # possible (touching letters) but rare, and it can leave a word empty
                 if dg and spaces and 0 < i and 0 < k:
                     gap = (bodies[i - 1]['x0'] + bodies[i]['x1']) / 2
                     near = min((abs(x - gap) for x in spaces), default=1e9) <= KR_TOL
@@ -555,12 +607,80 @@ if not SUFFIX:
     np.savez_compressed(f'labels-{PAGE:03d}.npz', lab=lab.astype(np.uint16))
 if os.path.exists(f'labels-{PAGE:03d}.npy'):
     os.remove(f'labels-{PAGE:03d}.npy')        # older uncompressed copy
+# --- layout line-break checks (independent of the alignment) -------------------------------------
+import difflib as _dl
+import unicodedata as _ud
+
+
+def _rasm_words(text):
+    t = ''.join(c for c in _ud.normalize('NFD', text) if not _ud.combining(c))
+    for a, b in (('ٱ', 'ا'), ('أ', 'ا'), ('إ', 'ا'), ('آ', 'ا'), ('ى', 'ي'), ('ة', 'ه')):
+        t = t.replace(a, b)
+    return [w for w in re.sub(r'[^\u0621-\u064A ]', ' ', t).split() if w]
+
+
+def _like(a, b):
+    return _dl.SequenceMatcher(None, a, b).ratio() >= 0.75
+
+
+_layout_words = [_rasm_words(' '.join(t for _, t in toks)) for toks in line_tokens]
+_kr_rows = kraken_chars(PAGE, W) if os.environ.get('NO_KRAKEN') != '1' else []
+LINE_BREAKS = []          # Kraken reads a word on this printed line that the layout puts on the next/previous one
+for _li, _lw in enumerate(_layout_words):
+    if not _lw or not _kr_rows:
+        continue
+    _row = min(_kr_rows, key=lambda r: abs(r['y'] - baselines[_li]))
+    if abs(_row['y'] - baselines[_li]) > 0.4 * PITCH:
+        continue
+    _kw = _rasm_words(_row['text'][::-1])           # stored in display order
+    if len(_kw) < 2:
+        continue
+    _prev = _layout_words[_li - 1] if _li > 0 else []
+    _next = _layout_words[_li + 1] if _li + 1 < len(_layout_words) else []
+    if not _like(_kw[0], _lw[0]):
+        if _prev and _like(_kw[0], _prev[-1]) and _like(_kw[1], _lw[0]):
+            LINE_BREAKS.append({'line': _li + 1, 'where': 'start', 'print_has_extra': _kw[0]})
+        elif len(_lw) > 1 and _like(_kw[0], _lw[1]):
+            LINE_BREAKS.append({'line': _li + 1, 'where': 'start', 'layout_has_extra': _lw[0]})
+    if not _like(_kw[-1], _lw[-1]):
+        if _next and _like(_kw[-1], _next[0]) and _like(_kw[-2], _lw[-1]):
+            LINE_BREAKS.append({'line': _li + 1, 'where': 'end', 'print_has_extra': _kw[-1]})
+        elif len(_lw) > 1 and _like(_kw[-1], _lw[-2]):
+            LINE_BREAKS.append({'line': _li + 1, 'where': 'end', 'layout_has_extra': _lw[-1]})
+# One Kraken mismatch is weak evidence (it merges or skips short words: لا, ما, أو ...). A line-break
+# error shows as a matching pair: the word missing at one line's edge is extra at the neighbour's edge.
+def _pairs(hints):
+    out = []
+    for a in hints:
+        for b in hints:
+            if b['line'] == a['line'] + 1 and a['where'] == 'end' and b['where'] == 'start':
+                wa = a.get('layout_has_extra') or a.get('print_has_extra')
+                wb = b.get('layout_has_extra') or b.get('print_has_extra')
+                if wa and wb and _like(wa, wb) and ('layout_has_extra' in a) != ('layout_has_extra' in b):
+                    moved = 'down' if 'layout_has_extra' in b else 'up'
+                    out.append({'lines': [a['line'], b['line']], 'word': wa,
+                                'fix': f"move «{wa}» to line {b['line'] if moved == 'up' else a['line']}"})
+    return out
+
+
+LINE_BREAK_PAIRS = _pairs(LINE_BREAKS)
+# a medallion printed on a line whose text has no verse number there (p191: ١٦٤ not in the layout's line)
+EXTRA_RINGS = []
+for _li, _toks in enumerate(line_tokens):
+    _k = sum(is_number(t) for _, t in _toks)
+    _n = sum(1 for _a, _b, _c in _shape_rings if abs(_c - centres[_li]) < 0.4 * PITCH)
+    if _n > _k:
+        EXTRA_RINGS.append({'line': _li + 1, 'rings_printed': _n, 'verse_numbers_in_text': _k})
+
 checks = {
     'lines_short_of_rings': RING_SHORT,                       # a verse number with no medallion found
     'forced_lines': sorted(forced_lines),                     # no letter-group alignment: rough cuts
     'words_without_ink': [w['text'] for w in words_out if not w['ring'] and not w.get('pieces')],
     'kraken_flags': sum(bool(w.get('doubt')) for w in words_out),
     'unclaimed_bodies': UNCLAIMED,                            # letter bodies the text has no letter for
+    'line_breaks': LINE_BREAK_PAIRS,                          # Kraken: a word on the wrong line (matched pair)
+    'line_break_hints': LINE_BREAKS,                          # single Kraken edge mismatches (weak; not a flag)
+    'extra_rings': EXTRA_RINGS,                               # medallion printed, no verse number in text
 }
 json.dump({'page': PAGE, 'bands': bands, 'words': words_out, 'checks': checks},
           open(f'paw-words-{PAGE:03d}{SUFFIX}.json', 'w'), ensure_ascii=False, indent=1)

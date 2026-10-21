@@ -87,7 +87,7 @@ def main(argv: list[str]) -> int:
         summary['kraken_flags'] += c['kraken_flags']
         if d['kraken_lines']:
             summary['kraken_lines'][page] = d['kraken_lines']
-        structural = {k: v for k, v in c.items() if v and k != 'kraken_flags'}
+        structural = {k: v for k, v in c.items() if v and k not in ('kraken_flags', 'line_break_hints')}
         if structural:
             summary['flagged'][page] = structural
     json.dump(summary, open('batch-summary.json', 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
