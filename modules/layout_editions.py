@@ -108,6 +108,12 @@ class LayoutEdition:
     cloud_enabled: bool = False
     line_page_transfer: bool = False
     header_down_cascade: bool = False
+    # A transcribed print (every line checked against the page image): moving a word between two
+    # lines changes only those two lines instead of reflowing the rest of the surah.
+    local_word_moves: bool = False
+    # Refuse any edit that would change a page marked reviewed other than the edited page and its
+    # direct neighbours (a reflow once rewrote 18 and 35 reviewed Mesaha pages, 2026-10-21).
+    guard_reviewed_pages: bool = False
     protected_trailing_lines: tuple[tuple[int, int], ...] = ()
 
     def __post_init__(self):
@@ -451,6 +457,8 @@ MESAHA = LayoutEdition(
     closed_pages=(_MESAHA_FATIHA, _MESAHA_BAQARAH_OPEN),
     storage_key='layout_studio_mesaha_page',
     cloud_enabled=True,
+    local_word_moves=True,
+    guard_reviewed_pages=True,
 )
 
 _REGISTRY: dict[str, LayoutEdition] = {

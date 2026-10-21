@@ -26,7 +26,7 @@ from core import layout_persistence
 from core import supabase_editor as sb
 from core.blueprints import editor_bp
 from core.db import connect as _sqlite_connect
-from core.errors import PersistenceError
+from core.errors import AppError, ConflictError, PersistenceError
 from core.loader import IS_SERVERLESS as _IS_SERVERLESS
 from modules import layout_engine as engine
 from modules.editor_auth import current_editor, require_editor
@@ -57,6 +57,48 @@ def _cloud_actor_id() -> str | None:
     return str(user['id']) if user and user.get('id') else None
 
 
+def _reviewed_layout_pages(edition: LayoutEdition, cur) -> set[int]:
+    """Pages marked reviewed in Layout Studio (cloud progress when configured, else the local table)."""
+    if sb.is_configured() and layout_persistence.is_cloud_layout(edition):
+        return {int(p) for p in sb.list_reviewed_pages(f'layout:{edition.id}')}
+    try:
+        return {int(r[0]) for r in cur.execute(
+            f'SELECT page_number FROM {edition.progress_table} WHERE reviewed = 1')}
+    except sqlite3.Error:
+        return set()
+
+
+def _pages_changed_by_edit(edition: LayoutEdition, cur, page_from: int, page_to: int) -> list[int]:
+    """Pages whose rows differ between this uncommitted edit (``cur``) and the saved file."""
+    cols = ', '.join(layout_persistence._LINE_COLUMNS)
+    query = f'SELECT {cols} FROM pages WHERE page_number = ? ORDER BY line_number'
+    saved = sqlite3.connect(f'file:{layout_persistence._working_path(edition)}?mode=ro', uri=True)
+    try:
+        return [
+            page for page in range(int(page_from), int(page_to) + 1)
+            if [tuple(r) for r in cur.execute(query, (page,)).fetchall()]
+            != [tuple(r) for r in saved.execute(query, (page,)).fetchall()]
+        ]
+    finally:
+        saved.close()
+
+
+def _guard_reviewed_pages(edition: LayoutEdition, cur, page_from: int, page_to: int, edit_page: int) -> None:
+    """Refuse an edit that rewrites reviewed pages beyond the edited page and its direct neighbours."""
+    changed = _pages_changed_by_edit(edition, cur, page_from, page_to)
+    far = [p for p in changed if abs(p - int(edit_page)) > 1]
+    if not far:
+        return
+    hit = sorted(set(far) & _reviewed_layout_pages(edition, cur))
+    if hit:
+        shown = '، '.join(str(p) for p in hit[:8]) + (' …' if len(hit) > 8 else '')
+        raise ConflictError(
+            f'أُلغي التعديل لأنه كان سيعيد ترتيب صفحات مراجَعة أخرى ({len(hit)}): {shown}. '
+            'عدّل السطرين المعنيين مباشرة بدل إعادة التدفق.',
+            code='reviewed_pages_changed',
+        )
+
+
 def _commit_layout_pages(
     edition: LayoutEdition,
     conn,
@@ -66,8 +108,11 @@ def _commit_layout_pages(
     *,
     audit_action: str = 'layout_save',
     op: str | None = None,
+    edit_page: int | None = None,
 ) -> bool:
     end = int(page_to) if page_to is not None else int(page_from)
+    if edit_page is not None and getattr(edition, 'guard_reviewed_pages', False):
+        _guard_reviewed_pages(edition, cur, int(page_from), end, int(edit_page))
     before_by_page: dict[int, list] = {}
     if sb.is_configured() and layout_persistence.is_cloud_layout(edition):
         try:
@@ -1427,6 +1472,7 @@ def layout_studio_line_break(edition_id):
             _seal_closed_page(edition, cur, lines, text_map, page_scope, universe=universe)
         cloud_saved = _commit_layout_pages(
             edition, conn, cur, page_from, page_to, op='line-break',
+            edit_page=page_number,
         )
         payload = _build_page_payload(edition, page_number)
         return jsonify({
@@ -1443,6 +1489,9 @@ def layout_studio_line_break(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -1588,6 +1637,7 @@ def layout_studio_merge_line(edition_id):
             _seal_closed_page(edition, cur, lines, text_map, page_scope, universe=universe)
         cloud_saved = _commit_layout_pages(
             edition, conn, cur, page_from, page_to, op='merge-line',
+            edit_page=page_number,
         )
         payload = _build_page_payload(edition, page_number)
         return jsonify({
@@ -1603,6 +1653,9 @@ def layout_studio_merge_line(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -1688,8 +1741,14 @@ def layout_studio_pull_next_word(edition_id):
         moved_word_id = int(next_words[0])
         needed = set(current_words) | set(next_words)
         text_map = _word_texts(edition, sorted(needed))
+        local_move = bool(getattr(edition, 'local_word_moves', False))
+        if local_move and len(next_words) < 2:
+            return jsonify({
+                'error': 'لا يمكن سحب الكلمة — السطر التالي يحتاج كلمة واحدة على الأقل تبقى فيه',
+            }), 400
 
-        if boundary_correction:
+        if boundary_correction or local_move:
+            # Only these two lines change; a transcribed print keeps every other line as reviewed.
             engine.assign_words_to_line(
                 target, current_words + [moved_word_id], text_map,
             )
@@ -1752,6 +1811,7 @@ def layout_studio_pull_next_word(edition_id):
             )
         cloud_saved = _commit_layout_pages(
             edition, conn, cur, page_from, page_to, op='pull-next-word',
+            edit_page=page_number,
         )
         return jsonify({
             'ok': True,
@@ -1769,6 +1829,9 @@ def layout_studio_pull_next_word(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -1869,8 +1932,8 @@ def layout_studio_push_last_word(edition_id):
                 ))
         text_map = _word_texts(edition, sorted(needed))
 
-        if boundary_correction or cross_page:
-            # Direct boundary transfer — do not reflow the whole next page.
+        if boundary_correction or cross_page or getattr(edition, 'local_word_moves', False):
+            # Direct transfer between the two lines — do not reflow the next lines/pages.
             engine.assign_words_to_line(target, kept, text_map)
             engine.assign_words_to_line(
                 lines[next_idx], [moved_word_id] + next_words, text_map,
@@ -1917,6 +1980,7 @@ def layout_studio_push_last_word(edition_id):
             )
         cloud_saved = _commit_layout_pages(
             edition, conn, cur, page_from, page_to, op='push-last-word',
+            edit_page=page_number,
         )
         return jsonify({
             'ok': True,
@@ -1934,6 +1998,9 @@ def layout_studio_push_last_word(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -2111,6 +2178,7 @@ def layout_studio_fill_line(edition_id):
             )
         cloud_saved = _commit_layout_pages(
             edition, conn, cur, page_from, page_to, op='fill-line',
+            edit_page=page_number,
         )
         return jsonify({
             'ok': True,
@@ -2126,6 +2194,9 @@ def layout_studio_fill_line(edition_id):
             'layout-studio fill-line cloud save failed (%s): %s', edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -2213,6 +2284,7 @@ def layout_studio_transfer_line(edition_id):
             shifted['page_from'],
             shifted['page_to'],
             op='transfer-line',
+            edit_page=page_number,
         )
         return jsonify({
             'ok': True,
@@ -2236,6 +2308,9 @@ def layout_studio_transfer_line(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -2296,6 +2371,7 @@ def layout_studio_line_center(edition_id):
         )
         cloud_saved = _commit_layout_pages(
             edition, conn, cur, page_number, page_number, op='line-center',
+            edit_page=page_number,
         )
         return jsonify({
             'ok': True,
@@ -2311,6 +2387,9 @@ def layout_studio_line_center(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -2384,6 +2463,7 @@ def layout_studio_header_move(edition_id):
                 shifted['page_from'],
                 shifted['page_to'],
                 op='header-down-cascade',
+                edit_page=page_number,
             )
             moved = cur.execute(
                 '''
@@ -2605,6 +2685,7 @@ def layout_studio_header_move(edition_id):
                 )
         cloud_saved = _commit_layout_pages(
             edition, conn, cur, page_from, page_to, op='header-move',
+            edit_page=page_number,
         )
         moved_page = int(neighbor['page_number'])
         moved_line = (
@@ -2636,6 +2717,9 @@ def layout_studio_header_move(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
@@ -2714,6 +2798,9 @@ def layout_studio_undo(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ التراجع في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ التراجع') from e
@@ -2827,6 +2914,9 @@ def layout_studio_progress(edition_id):
             edition_id, e,
         )
         return jsonify({'error': 'تعذّر حفظ تقدم المراجعة في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
     except Exception as e:
         conn.rollback()
         raise PersistenceError('تعذّر حفظ تقدم المراجعة') from e

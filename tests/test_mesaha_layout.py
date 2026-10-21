@@ -315,3 +315,64 @@ def test_mesaha_review_queue_carries_the_draft_priority(client):
     with_status = [p for p in pages if 'review_status' in p]
     assert with_status and all(p['review_status'] in ('low', 'medium') for p in with_status)
     assert {p['draft_kind'] for p in with_status} <= {'draft', 'neighbour-edge', 'legacy'}
+
+
+# --- edits must not reflow reviewed pages (2026-10-21: one edit rewrote 347-363, another 193-226) ---
+
+@pytest.fixture
+def restore_mesaha_layout_db(tmp_path):
+    db = Path(MESAHA_LAYOUT_DATABASE)
+    backup = tmp_path / db.name
+    shutil.copy2(db, backup)
+    try:
+        yield db
+    finally:
+        shutil.copy2(backup, db)
+
+
+def _rows(db, first, last):
+    with sqlite3.connect(db) as conn:
+        return conn.execute(
+            'SELECT page_number, line_number, first_word_id, last_word_id, line_text FROM pages '
+            'WHERE page_number BETWEEN ? AND ? ORDER BY page_number, line_number', (first, last)).fetchall()
+
+
+def test_mesaha_word_moves_change_only_the_two_lines(client, restore_mesaha_layout_db):
+    db = restore_mesaha_layout_db
+    before = _rows(db, 350, 363)
+    pulled = client.post('/api/layout-studio/mesaha/pull-next-word', json={'page_number': 350, 'line_number': 5})
+    assert pulled.status_code == 200, pulled.get_json()
+    after = _rows(db, 350, 363)
+    changed = [(b[0], b[1]) for b, a in zip(before, after) if b != a]
+    assert changed == [(350, 5), (350, 6)]
+    assert after[4][3] == before[4][3] + 1 and after[5][2] == before[5][2] + 1
+
+    pushed = client.post('/api/layout-studio/mesaha/push-last-word', json={'page_number': 350, 'line_number': 5})
+    assert pushed.status_code == 200, pushed.get_json()
+    assert _rows(db, 350, 363) == before
+
+
+def test_mesaha_edit_refused_when_it_would_reflow_reviewed_pages(client, restore_mesaha_layout_db):
+    db = restore_mesaha_layout_db
+    with sqlite3.connect(db) as conn:
+        conn.executemany('INSERT OR REPLACE INTO mesaha_layout_progress (page_number, reviewed) VALUES (?, 1)',
+                         [(p,) for p in range(347, 364)])
+    before = _rows(db, 347, 363)
+    # a line break mid-surah reflows every later line of the surah (continuous profile)
+    broken = client.post('/api/layout-studio/mesaha/line-break', json={
+        'page_number': 350, 'line_number': 5, 'word_id': 36754})
+    assert broken.status_code == 409, broken.get_json()
+    body = broken.get_json()
+    assert body.get('code') == 'reviewed_pages_changed' or 'reviewed_pages_changed' in str(body)
+    assert _rows(db, 347, 363) == before
+
+
+def test_mesaha_reflow_still_allowed_on_unreviewed_pages(client, restore_mesaha_layout_db):
+    db = restore_mesaha_layout_db
+    with sqlite3.connect(db) as conn:
+        conn.execute('DELETE FROM mesaha_layout_progress')
+    before = _rows(db, 350, 363)
+    broken = client.post('/api/layout-studio/mesaha/line-break', json={
+        'page_number': 350, 'line_number': 5, 'word_id': 36754})
+    assert broken.status_code == 200, broken.get_json()
+    assert _rows(db, 350, 363) != before
