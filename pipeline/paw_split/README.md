@@ -12,11 +12,13 @@ Pages `data/cv/pages/mesaha/pNNN_w1600.jpg` (2062 px), words from `data/mushaf-m
 
     python3 pipeline/paw_split/mesaha_split.py 15                 # -> paw-words-015.json/.png, labels-015.npy
     python3 pipeline/paw_split/word_tiles.py mesaha-trace paw-words-015.json /tmp/t015   # check by eye
-    python3 pipeline/paw_split/regress.py mesaha-trace 015 021 041 085 104 170 271 339 397 411
+    python3 pipeline/paw_split/regress.py mesaha-trace             # every hand-checked page
     python3 pipeline/paw_split/mesaha_debug_pieces.py 15 1 2       # pieces of words 1, 2
 
-`regress.py` compares with the hand-checked `paw-words-NNN.truth.json` (1,009/1,009 words on those
-ten pages, 2026-10-21). Run it after any change to the rules.
+`regress.py` compares a run with the hand-checked splits in `tests/fixtures/paw_split/mesaha/`
+(pages 15, 21, 41, 85, 104, 170, 271, 339, 397, 411: 1,009/1,009 words, checked tile by tile on
+2026-10-21). `tests/test_paw_split.py` re-splits page 15 (all ten with `PAW_SPLIT_ALL=1`) where the
+scans exist. Run it after any change to the rules.
 
 ## Qatar (قطر) — app pages 1-49
 
