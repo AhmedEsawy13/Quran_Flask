@@ -820,6 +820,51 @@ def upsert_mark_review_decision(*, edition: str, page_number: int, word_id: int,
     )
 
 
+def list_mark_review_decisions_all(edition: str, page_size: int = 1000) -> list[dict]:
+    """Every decision of an edition, read in pages (the server caps one response at 1000 rows)."""
+    out: list[dict] = []
+    while True:
+        rows = _request(
+            'GET', 'waqf_mark_review_decisions',
+            params={
+                'edition': f'eq.{edition}',
+                'select': 'edition,page_number,word_id,decision,our_mark,correct_mark,surah,ayah,word_text,updated_at',
+                'order': 'page_number,word_id',
+                'limit': str(page_size),
+                'offset': str(len(out)),
+            },
+        ) or []
+        out.extend(rows)
+        if len(rows) < page_size:
+            return out
+
+
+def upsert_mark_review_decisions_batch(rows: list[dict], updated_by: str | None = None) -> int:
+    """Bulk upsert waqf_mark_review_decisions (same fields as upsert_mark_review_decision)."""
+    now = _now_iso()
+    payload = [{
+        'edition': r['edition'],
+        'page_number': int(r['page_number']),
+        'word_id': int(r['word_id']),
+        'decision': r['decision'],
+        'our_mark': r.get('our_mark') or '',
+        'correct_mark': r.get('correct_mark') or '',
+        'surah': r.get('surah'),
+        'ayah': r.get('ayah'),
+        'word_text': r.get('word_text') or '',
+        'updated_by': updated_by,
+        'updated_at': now,
+    } for r in rows]
+    for i in range(0, len(payload), 200):
+        _request(
+            'POST', 'waqf_mark_review_decisions',
+            params={'on_conflict': 'edition,page_number,word_id'},
+            json_body=payload[i:i + 200],
+            prefer='resolution=merge-duplicates,return=minimal',
+        )
+    return len(payload)
+
+
 def delete_mark_review_decision(*, edition: str, page_number: int, word_id: int) -> None:
     _request(
         'DELETE', 'waqf_mark_review_decisions',

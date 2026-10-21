@@ -11,6 +11,7 @@ from flask import render_template
 from core import supabase_editor as sb
 from core.blueprints import editor_bp
 from modules.layout_editions import list_editions
+from modules.mesaha_waqf_review import available_sets as mesaha_waqf_sets
 
 
 def _book_audits() -> list[str]:
@@ -40,6 +41,10 @@ def tool_groups() -> list[dict]:
                      'الشمرلي والمدينة القديم والجديد للمراجعة فقط: يُسجَّل القرار ويُطبَّق على القاعدة لاحقًا.',
              'links': [{'href': f'/mushaf-editor/book-audit?edition={name}', 'label': name} for name in audits],
              'note': None if audits else 'لا يوجد فحص على هذا الخادم — يعمل حيث شُغّل الفحص (جهازك)'},
+            {'href': '/mushaf-editor/mesaha-waqf', 'name': 'وقوف المساحة',
+             'desc': 'علامات الوقف التي قرأها النموذج من صفحات المساحة: صحّح ما خالف، واعتمد الباقي دفعة واحدة. '
+                     'تُحفظ القرارات في السحابة.',
+             'note': None if mesaha_waqf_sets() else 'لا توجد بطاقات على هذا الخادم — تُبنى على جهازك'},
             {'href': '/waqf-mark-review', 'name': 'مراجعة علامات الشمرلي',
              'desc': 'قائمة مراجعة صفحة بصفحة لعلامات مصحف الشمرلي، مع نسخ للطباعة.'},
             {'href': '/azhar-waqf-review', 'name': 'مراجعة علامات الأزهر',

@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 126,
+  "route_count": 131,
   "routes": [
     {
       "auth": "editor",
@@ -2148,6 +2148,176 @@
       "source": "modules/editor_auth.py",
       "success_cache": "no-store",
       "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mesaha_waqf_cards",
+      "error_keys": [
+        "error",
+        "login_required",
+        "message",
+        "sets"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/mesaha-waqf",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/mesaha_waqf_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "a_sample",
+        "cards",
+        "pages",
+        "set",
+        "sets",
+        "store"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mesaha_waqf_accept",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/mesaha-waqf/accept",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/mesaha_waqf_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "accepted",
+        "ok"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mesaha_waqf_card_image",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "GET",
+        "HEAD"
+      ],
+      "path": "/api/mushaf-editor/mesaha-waqf/card",
+      "response_kinds": [
+        "binary"
+      ],
+      "source": "modules/mesaha_waqf_review.py",
+      "success_cache": "no-store",
+      "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mesaha_waqf_decision",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/mesaha-waqf/decision",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/mesaha_waqf_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "decision",
+        "ok"
+      ]
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": false,
+      "endpoint": "editor.mesaha_waqf_import",
+      "error_keys": [
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/mushaf-editor/mesaha-waqf/import",
+      "response_kinds": [
+        "json"
+      ],
+      "source": "modules/mesaha_waqf_review.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "imported",
+        "ok",
+        "skipped"
+      ]
     },
     {
       "auth": "public",
