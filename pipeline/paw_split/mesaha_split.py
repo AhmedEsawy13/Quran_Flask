@@ -32,7 +32,6 @@ H, W = img.shape[:2]
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 _t, _ = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 ink = gray < _t
-cv2.imwrite(f'ink-{PAGE:03d}.pbm', np.where(ink, 0, 255).astype(np.uint8))
 
 # --- the frame's inner edge: scan out from the page centre to the first tall/wide frame rule ----
 n0, lab0, st0, _ = cv2.connectedComponentsWithStats(ink.astype(np.uint8), 8)
@@ -120,9 +119,15 @@ for _i in range(1, _n0):
     _m = (_lab0[_y:_y + _h, _x:_x + _w] == _i).astype(np.uint8)
     _cn, _hi = cv2.findContours(_m, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     _hole = max((cv2.contourArea(c) for c, hh in zip(_cn, _hi[0]) if hh[3] >= 0), default=0)
-    if _hole / (_w * _h) > 0.25:
+    # A medallion is 0.49-0.52 pitch wide, 0.44-0.47 tall (aspect 1.08-1.16): with a closed outline it
+    # has a big hole; a scan can break the outline (p459 ١٨), but its middle stays empty (digits are
+    # separate pieces), while letters of that size carry ink through the middle or are much flatter.
+    _ring_size = 0.48 * PITCH < _w < 0.55 * PITCH and 0.43 * PITCH < _h < 0.50 * PITCH and 1.0 < _w / _h < 1.25
+    _centre = _m[int(0.25 * _h):int(0.75 * _h), int(0.25 * _w):int(0.75 * _w)].sum() / max(1, int(_m.sum()))
+    if _hole / (_w * _h) > 0.25 or (_ring_size and _centre < 0.08):
         _shape_rings.append((_x, _x + _w, _y + _h / 2.0))
 rings = []
+RING_SHORT = []
 for _li, _toks in enumerate(line_tokens):
     _k = sum(is_number(t) for _, t in _toks)
     if not _k:
@@ -144,6 +149,7 @@ for _li, _toks in enumerate(line_tokens):
         _band[max(0, _y - 22):_y + 22, max(0, int(_x - 1.6 * _hw)):int(_x + 1.6 * _hw)] = -1
     if len(_found) < _k:
         print(f'page {PAGE} line {_li + 1}: {_k} verse numbers but {len(_found)} rings found')
+        RING_SHORT.append(_li + 1)
     for _x, _y, _v in _found:
         rings.append(dict(x0=(_x - _hw) / _s, x1=(_x + _hw) / _s, cy=_y / _s))
 
@@ -200,14 +206,15 @@ def paws(token):
         return ['۞']                         # the hizb star printed inline
     letters = [ch for ch in token if ch in LETTERS]
     groups, cur = [], []
-    for ch in letters:
+    for k, ch in enumerate(letters):
         if ch == 'ء':
             if cur:
                 groups.append(''.join(cur)); cur = []
             groups.append('ء')
             continue
         cur.append(ch)
-        if ch in NON_JOIN:
+        # ى inside a word (فَتَىٰهَا, هُدَىٰهُمۡ) is written as a joining tooth: it only ends a group at the end
+        if ch in NON_JOIN and not (ch == 'ى' and k < len(letters) - 1):
             groups.append(''.join(cur)); cur = []
     if cur:
         groups.append(''.join(cur))
@@ -338,6 +345,12 @@ def align_stretch(li, toks, span):
                 # bodies of a group (or of two touching groups) go to the first group's word
                 for p in bodies[pi:i]:
                     words[seq[pk][0]]['pieces'].append(p['id'])
+            elif (bodies[pi]['area'] >= 0.03 * line_h * line_h
+                  and bodies[pi]['y0'] < baselines[li] - 0.1 * line_h):   # a letter rises above the line;
+                                                                       # a hamza/kasra under an alif does not
+                # a real letter body no word of the text accounts for: the layout's line break or a
+                # word's text may be wrong (p346: the print's line ends one word later than the layout)
+                UNCLAIMED.append({'line': li + 1, 'x0': bodies[pi]['x0'], 'x1': bodies[pi]['x1'], 'area': bodies[pi]['area']})
             i, k = pi, pk
             if os.environ.get('DBG_LINE') == str(li + 1):
                 print('   ', [p['id'] for p in bodies[pi:pi + db]], [g for _, g in seq[pk:pk + dg]], round(best[pi + db, pk + dg] - best[pi, pk], 2))
@@ -349,6 +362,7 @@ def align_stretch(li, toks, span):
 # --- words per line ----------------------------------------------------------------------------
 words_out = []
 forced_lines = set()
+UNCLAIMED = []
 for li, tokens in enumerate(line_tokens):
     bodies = sorted((p for p in pieces if p['line'] == li and not p['mark']), key=lambda p: -p['x1'])
     line_rings = sorted((r for r in rings if r['line'] == li), key=lambda r: -r['x1'])
@@ -536,18 +550,31 @@ for li, spaces in KRAKEN.items():
             w.setdefault('doubt', []).append('Kraken space inside')
 print('words flagged by Kraken for review:', sum(bool(w.get('doubt')) for w in words_out))
 
-np.save(f'labels-{PAGE:03d}.npy', lab.astype(np.uint16))
-json.dump({'page': PAGE, 'bands': bands, 'words': words_out}, open(f'paw-words-{PAGE:03d}.json', 'w'), ensure_ascii=False, indent=1)
+SUFFIX = os.environ.get('PAW_SUFFIX', '')       # mesaha_batch.py's second (Kraken-cost) pass writes paw-words-NNN.kr.json
+if not SUFFIX:
+    np.savez_compressed(f'labels-{PAGE:03d}.npz', lab=lab.astype(np.uint16))
+if os.path.exists(f'labels-{PAGE:03d}.npy'):
+    os.remove(f'labels-{PAGE:03d}.npy')        # older uncompressed copy
+checks = {
+    'lines_short_of_rings': RING_SHORT,                       # a verse number with no medallion found
+    'forced_lines': sorted(forced_lines),                     # no letter-group alignment: rough cuts
+    'words_without_ink': [w['text'] for w in words_out if not w['ring'] and not w.get('pieces')],
+    'kraken_flags': sum(bool(w.get('doubt')) for w in words_out),
+    'unclaimed_bodies': UNCLAIMED,                            # letter bodies the text has no letter for
+}
+json.dump({'page': PAGE, 'bands': bands, 'words': words_out, 'checks': checks},
+          open(f'paw-words-{PAGE:03d}{SUFFIX}.json', 'w'), ensure_ascii=False, indent=1)
 
 # --- picture: every word in its own colour ----------------------------------------------------------
-PAL = [(180, 111, 31), (12, 65, 194), (61, 128, 21), (176, 63, 126), (92, 35, 180), (134, 124, 14), (0, 106, 138), (105, 85, 71)]
-out = np.full_like(img, 255)
-for li in range(len(bands)):
+if os.environ.get('PAW_PNG') == '1':          # optional picture: every word in its own colour (slow)
+  PAL = [(180, 111, 31), (12, 65, 194), (61, 128, 21), (176, 63, 126), (92, 35, 180), (134, 124, 14), (0, 106, 138), (105, 85, 71)]
+  out = np.full_like(img, 255)
+  for li in range(len(bands)):
     for j, w in enumerate(x for x in words_out if x['line'] == li + 1):
         colour = (40, 40, 200) if w['ring'] else PAL[j % len(PAL)]
         for pid in w.get('pieces', []):
             out[lab == pid] = colour
-cv2.imwrite(f'paw-words-{PAGE:03d}.png', out)
+  cv2.imwrite(f'paw-words-{PAGE:03d}.png', out)
 print('page', PAGE, '· words', sum(not w['ring'] for w in words_out), '· rings', sum(w['ring'] for w in words_out),
       '· layout tokens', sum(len(t) for t in line_tokens), '· rings found', len(rings), '· forced lines', sorted(forced_lines),
       '· pitch', round(PITCH, 1))
