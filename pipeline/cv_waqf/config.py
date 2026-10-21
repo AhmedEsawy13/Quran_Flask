@@ -376,9 +376,14 @@ EDITIONS: dict[str, EditionSpec] = {
         # Reviewed in Layout Studio (Supabase `mesaha`: pages 2-62, 61 and 62
         # still in progress on 2026-10-05). The local DB must be synced from
         # the cloud first (`layout_persistence.working_db_path(MESAHA, force=True)`).
-        # Pages 2-225 reviewed in Layout Studio (2026-10-06), except 162 and 192, which were left
-        # unfinished (banner structure; see artifacts/cv-waqf/mesaha-relayout-drafts/fix_pages_162_191_192.py).
-        trusted_layout_pages=((2, 161), (163, 191), (193, 225)),
+        # Pages marked reviewed in Layout Studio's cloud progress (`layout:mesaha`) up to 472, pulled into
+        # the local DB 2026-10-21. Not reviewed: 113, 162, 192 (banner structure; see
+        # artifacts/cv-waqf/mesaha-relayout-drafts/fix_pages_162_191_192.py), 226, 239, 264, 283, 329,
+        # 337, 345, 395, 396, 419, 420, 456, 457. Pages 61-63 are reviewed but their word ids run into the
+        # scrambled 2:285-3:7 stretch of quran_script.db.
+        trusted_layout_pages=((2, 112), (114, 161), (163, 191), (193, 225), (227, 238), (240, 263),
+                              (265, 282), (284, 328), (330, 336), (338, 344), (346, 394), (397, 418),
+                              (421, 455), (458, 472)),
         header_slots=(('basmallah', 2),),
         attach_by_seat=True,
         learned_widths=True,

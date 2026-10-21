@@ -1613,6 +1613,8 @@ def test_mesaha_reviewed_layout_pages_skip_relayout():
     assert spec.layout_trusted(2) and spec.layout_trusted(60) and spec.layout_trusted(134) and spec.layout_trusted(225)
     assert not spec.layout_trusted(162) and not spec.layout_trusted(192)          # saved but not reviewed
     assert not spec.layout_trusted(226) and not spec.layout_trusted(None)
+    assert spec.layout_trusted(227) and spec.layout_trusted(400) and spec.layout_trusted(472)   # reviewed to 472
+    assert not spec.layout_trusted(113) and not spec.layout_trusted(457) and not spec.layout_trusted(473)
     assert not EDITIONS['قطر'].layout_trusted(5)
 
 
