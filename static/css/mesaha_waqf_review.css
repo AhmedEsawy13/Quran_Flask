@@ -10,3 +10,6 @@
 .card .picker button.none{font:inherit;font-size:13px}
 /* show the whole card: mushaf_audit.css crops its strips to a fixed 340:140 band */
 .card img{aspect-ratio:auto;object-fit:contain;max-height:none}
+/* all five tabs always visible: wrap instead of the sideways-scrolling strip, which hid tabs on phones */
+#au-tabs{flex-wrap:wrap;overflow-x:visible}
+#au-tabs button{padding:6px 10px}
