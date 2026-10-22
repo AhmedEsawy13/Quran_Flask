@@ -8,3 +8,5 @@
 .mw-import input{display:none}
 .card .hint{font-size:12.5px;color:var(--muted);margin:2px 0}
 .card .picker button.none{font:inherit;font-size:13px}
+/* show the whole card: mushaf_audit.css crops its strips to a fixed 340:140 band */
+.card img{aspect-ratio:auto;object-fit:contain;max-height:none}

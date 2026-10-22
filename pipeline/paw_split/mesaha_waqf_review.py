@@ -30,7 +30,7 @@ from pipeline.cv_waqf.word_space import printed_position  # noqa: E402
 TRACE = ROOT / 'artifacts' / 'mesaha-trace'
 MIN_SIGN_CONF = 0.99
 MIN_AREA = {'ص': 330, 'ق': 330}
-CARD_WIDTH = 320          # px; the cards are committed, so kept small
+CARD_WIDTH = 380          # px; the cards are committed, so kept small
 SIGNS = ['ص', 'ق', 'ج', 'م', 'لا', 'س', 'ع']
 
 
@@ -39,12 +39,18 @@ def counts(r) -> bool:
 
 
 def card_image(page, word, d, sign_box, path):
+    """The word with a little of each neighbour and the line above: the word itself tinted, its
+    baseline underlined, the sign the model read boxed in red."""
     img = cv2.imread(str(ROOT / 'data' / 'cv' / 'pages' / 'mesaha' / f'p{page:03d}_w1600.jpg'))
     pitch = float(np.median(np.diff([(a + b) / 2 for a, b in d['bands']])))
     a, b = d['bands'][word['line'] - 1]
-    x0 = int(max(0, word['x0'] - 0.6 * pitch)); x1 = int(min(img.shape[1], word['x1'] + 0.35 * pitch))
-    y0 = int(max(0, a - 0.75 * pitch)); y1 = int(min(img.shape[0], b + 0.1 * pitch))
-    cv2.line(img, (int(word['x0']), int(b)), (int(word['x1']), int(b)), (200, 120, 0), 3)
+    wx0, wx1 = int(word['x0']), int(word['x1'])
+    x0 = int(max(0, wx0 - 0.9 * pitch)); x1 = int(min(img.shape[1], wx1 + 0.9 * pitch))
+    y0 = int(max(0, a - 0.8 * pitch)); y1 = int(min(img.shape[0], b + 0.15 * pitch))
+    ty0 = int(max(0, a - 0.55 * pitch))
+    tint = img[ty0:int(b), wx0:wx1]
+    tint[:] = cv2.addWeighted(tint, 0.78, np.full_like(tint, (120, 230, 255)), 0.22, 0)
+    cv2.line(img, (wx0, int(b)), (wx1, int(b)), (200, 120, 0), 3)
     if sign_box:
         cx, cy, half = sign_box
         cv2.rectangle(img, (int(cx - half), int(cy - half)), (int(cx + half), int(cy + half)), (0, 0, 230), 3)
