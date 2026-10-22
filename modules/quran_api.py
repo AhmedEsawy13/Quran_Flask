@@ -18,7 +18,7 @@ from flask import Response, jsonify, request, redirect, stream_with_context
 from core.blueprints import core_bp
 from core.config import DATABASE, WAQF_DATABASE, MAX_AYAH_NUMBER
 from core.text import _normalize_for_search, _search_normalization_variants
-from core.mushaf_waqf import _get_mushaf_version_whitelist
+from core.mushaf_waqf import public_mushaf_versions
 from core.datasets import (
     digital_khatt_data, qpc_hafs_data, indopak_nastaleeq_data,
     transliteration_data, surahs_data,
@@ -71,7 +71,7 @@ def _get_imlaey_search_index():
 @core_bp.route('/api/mushaf-versions', methods=['GET'])
 def get_mushaf_versions():
     """Returns available Mushaf versions from the waqf database."""
-    return jsonify(sorted(_get_mushaf_version_whitelist()))
+    return jsonify(public_mushaf_versions())
 
 
 @core_bp.route('/api/health', methods=['GET'])

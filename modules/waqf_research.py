@@ -19,7 +19,7 @@ from core.text import _normalize_for_search
 from core.mushaf_waqf import (
     get_mushaf_waqf_symbols,
     prefetch_cloud_published_for_ayahs,
-    _get_mushaf_version_whitelist,
+    public_mushaf_versions,
     _is_valid_mushaf_version,
 )
 from core.datasets import surahs_data, qpc_hafs_data_normalized
@@ -616,7 +616,7 @@ def _build_mushaf_similarity(force_compute=False):
             _mushaf_sim_cache = disk
             return disk
 
-    versions = sorted(_get_mushaf_version_whitelist())
+    versions = public_mushaf_versions()
     place: dict[str, set] = {v: set() for v in versions}
     sem: dict[str, dict] = {v: {} for v in versions}
     raw_by: dict[str, dict] = {v: {} for v in versions}   # pos -> raw DB symbol

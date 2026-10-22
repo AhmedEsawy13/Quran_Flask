@@ -57,6 +57,17 @@ def _get_mushaf_version_whitelist():
     return frozenset(col for col in cols[4:] if col not in helper_columns)
 
 
+# Columns that cover only part of the book so far (the reviewed Mesaha pages, listed in the
+# waqf_column_pages table). They stay queryable, but are left out of the public print list and of
+# whole-book comparisons until complete.
+PARTIAL_WAQF_COLUMNS = frozenset({'المساحة'})
+
+
+def public_mushaf_versions() -> list[str]:
+    """Prints offered to readers and compared book-wide: every complete waqf column."""
+    return sorted(_get_mushaf_version_whitelist() - PARTIAL_WAQF_COLUMNS)
+
+
 @lru_cache(maxsize=1)
 def _get_mushaf_position_column():
     """Optional disambiguation column for absolute word position/token key.

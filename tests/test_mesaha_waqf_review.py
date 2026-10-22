@@ -72,3 +72,21 @@ def test_import_old_export(client, review):
 def test_card_image_name_is_checked(client, review):
     assert client.get(f'/api/mushaf-editor/mesaha-waqf/card?set={SET}&f=../data.json').status_code == 404
     assert client.get('/api/mushaf-editor/mesaha-waqf/card?set=other&f=005-264.jpg').status_code == 404
+
+
+def test_partial_mesaha_column_is_not_offered_to_readers(client):
+    from core.mushaf_waqf import PARTIAL_WAQF_COLUMNS, _get_mushaf_version_whitelist
+    versions = client.get('/api/mushaf-versions').get_json()
+    assert 'المساحة' in PARTIAL_WAQF_COLUMNS
+    assert 'المساحة' not in versions and 'البحرين' in versions
+    assert 'المساحة' in _get_mushaf_version_whitelist()      # still queryable
+
+
+def test_mesaha_column_matches_resolved_cards():
+    pytest.importorskip('cv2')     # the column builder reads the script DB through the cv_waqf pipeline
+    from pipeline.add_mesaha_waqf_column import resolve
+    cards = [_card('005-264', 'A', 'ج'), _card('006-300', 'B', 'ق', page=6, word=300, key='2:19:17')]
+    marks, problems = resolve(cards, {(6, 300): 'ص'})
+    assert problems == [] and set(marks.values()) == {'ج', 'ص'}
+    _, problems = resolve([_card('006-310', 'N', None, page=6, word=310)], {})
+    assert problems == ['006-310 (N) has no decision']

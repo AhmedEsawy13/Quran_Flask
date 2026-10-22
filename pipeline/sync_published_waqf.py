@@ -32,7 +32,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from core import supabase_editor as sb  # noqa: E402
-from core.config import MUSHAF_WAQF_DATABASE, PUBLIC_CLOUD_WAQF_EDITIONS  # noqa: E402
+from core.config import CLOUD_EDITOR_EDITIONS, MUSHAF_WAQF_DATABASE, PUBLIC_CLOUD_WAQF_EDITIONS  # noqa: E402
 from modules.layouts import (  # noqa: E402
     _find_mushaf_row_match_index,
     _get_dk_layout_word_map,
@@ -58,7 +58,8 @@ def _iso_now() -> str:
 
 
 def _quote_identifier(value: str) -> str:
-    if value not in PUBLIC_CLOUD_WAQF_EDITIONS:
+    # a fixed allow-list of registered cloud editions (column names cannot be SQL parameters)
+    if value not in CLOUD_EDITOR_EDITIONS:
         raise SyncError(f'unsupported edition: {value!r}')
     return '"' + value.replace('"', '""') + '"'
 
