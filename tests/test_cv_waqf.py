@@ -66,6 +66,7 @@ def test_onnx_model_loads_when_present():
 
 
 def test_export_onnx_roundtrip(tmp_path):
+    pytest.importorskip('onnx')
     from pipeline.cv_waqf import CLASSES
     from pipeline.cv_waqf.classify import GlyphClassifier
     from pipeline.cv_waqf.config import CROP_SIZE
@@ -208,6 +209,7 @@ def test_two_stage_veto_never_rescues_existing_none_prediction():
 
 
 def test_two_stage_export_roundtrip(tmp_path):
+    pytest.importorskip('onnx')
     from pipeline.cv_waqf import CLASSES
     from pipeline.cv_waqf.classify import GlyphClassifier
     from pipeline.cv_waqf.config import CROP_SIZE

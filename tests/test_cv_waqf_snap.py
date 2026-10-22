@@ -2,6 +2,9 @@
 from dataclasses import dataclass
 
 import numpy as np
+import pytest
+
+pytest.importorskip('cv2')     # the cv_waqf pipeline needs OpenCV
 
 from pipeline.cv_waqf.candidates import Candidate
 from pipeline.cv_waqf.snap import snap_hits

@@ -10,8 +10,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import onnx
-from onnx import TensorProto, helper, numpy_helper
 
 from pipeline.cv_waqf import CLASSES
 from pipeline.cv_waqf.classify import save_classes
@@ -308,6 +306,10 @@ def export_mlp_onnx(
     metadata: dict | None = None,
 ) -> Path:
     """Export Flatten→Gemm→Relu→Gemm as ONNX (NCHW input)."""
+    # imported here so the data helpers (page split, crop loading) work without onnx installed
+    import onnx
+    from onnx import TensorProto, helper, numpy_helper
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     hidden = w1.shape[1]
     k = w2.shape[1]

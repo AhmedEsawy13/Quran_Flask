@@ -1,4 +1,8 @@
 """Decision rules of the whole-book audit (book_audit / book_review)."""
+import pytest
+
+pytest.importorskip('cv2')     # the cv_waqf pipeline needs OpenCV
+
 from pipeline.cv_waqf.book_audit import one_sign_one_word, pick_confirming
 from pipeline.cv_waqf.book_review import classify_items, ref_lean
 

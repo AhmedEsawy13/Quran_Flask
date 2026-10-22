@@ -82,6 +82,7 @@ def line_mid(word) -> int:
 
 
 def test_strip_onnx_input_output_contract(tmp_path):
+    pytest.importorskip('onnx')     # train_strip builds ONNX graphs
     from pipeline.cv_waqf import CLASSES
     from pipeline.cv_waqf.config import STRIP_HEIGHT, STRIP_WIDTH
     from pipeline.cv_waqf.strip import StripClassifier, preprocess_strip
@@ -188,6 +189,7 @@ def test_detect_page_falls_back_to_mlp_when_strip_missing(monkeypatch):
 
 
 def test_detect_page_uses_strip_for_bahrain_when_file_exists(monkeypatch, tmp_path):
+    pytest.importorskip('onnx')     # train_strip builds ONNX graphs
     from pipeline.cv_waqf import CLASSES, run_page
     from pipeline.cv_waqf.train_strip import export_random_strip_onnx
 
@@ -271,6 +273,7 @@ def test_detect_page_uses_strip_for_bahrain_when_file_exists(monkeypatch, tmp_pa
 
 
 def test_explicit_mlp_model_disables_bahrain_strip(tmp_path):
+    pytest.importorskip('onnx')     # train_strip builds ONNX graphs
     from pipeline.cv_waqf.strip import strip_model_path_for_edition
     from pipeline.cv_waqf.train_strip import export_random_strip_onnx
 
@@ -299,6 +302,7 @@ def test_train_strip_command_is_registered():
 
 
 def test_train_strip_requires_labels(tmp_path):
+    pytest.importorskip('onnx')     # train_strip builds ONNX graphs
     from pipeline.cv_waqf.train_strip import main
 
     empty = tmp_path / 'bahrain'
