@@ -51,6 +51,20 @@ top = first(is_rule[cy0::-1, cx0 - 200:cx0 + 200].any(1)) or cy0
 bottom = first(is_rule[cy0:, cx0 - 200:cx0 + 200].any(1)) or (H - cy0)
 M = 8
 bx0, bx1, by0, by1 = cx0 - left + M, cx0 + right - M, cy0 - top + M, cy0 + bottom - M
+# A surah banner has its own wide rules inside the frame, which stop the scan above; on those pages the
+# frame is taken from the tall side rules only (the banner has none).
+HEADER_PAGE = sqlite3.connect(os.environ.get('PAW_LAYOUT_DB', f'{ROOT}/data/mushaf-mesaha-layout.db')).execute(
+    "SELECT COUNT(*) FROM pages WHERE page_number = ? AND line_type != 'ayah'", (PAGE,)).fetchone()[0] > 0
+if HEADER_PAGE:
+    _tall = np.zeros(n0, bool)
+    _tall[1:] = st0[1:, cv2.CC_STAT_HEIGHT] > 0.5 * H
+    _is_tall = _tall[lab0]
+    left = max(first(_is_tall[_band, cx0::-1].any(0)) or cx0, 0)
+    right = first(_is_tall[_band, cx0:].any(0)) or (W - cx0)
+    _ys = [(int(st0[i, cv2.CC_STAT_TOP]), int(st0[i, cv2.CC_STAT_TOP] + st0[i, cv2.CC_STAT_HEIGHT])) for i in np.nonzero(_tall)[0]]
+    bx0, bx1 = cx0 - left + M, cx0 + right - M
+    FRAME_TOP, FRAME_BOT = min(a for a, _ in _ys), max(b for _, b in _ys)
+    by0, by1 = FRAME_TOP + M, FRAME_BOT - M
 inside = np.zeros_like(ink); inside[by0:by1, bx0:bx1] = True
 ink &= inside
 
@@ -61,8 +75,16 @@ rows = sqlite3.connect(LAYOUT_DB).execute(
 DIGITS = set('٠١٢٣٤٥٦٧٨٩')
 def is_number(t):
     return bool(t) and all(ch in DIGITS for ch in t)
-if any(r[1] != 'ayah' for r in rows):
-    sys.exit(f'page {PAGE}: header rows {[r[1] for r in rows if r[1] != "ayah"]} - only plain text pages for now')
+# Printed slots: a surah banner takes two (name, info) and its basmala two more, so on a header page the
+# text rows sit lower than their row number. The comb is fitted to all slots; only text slots get words.
+from pipeline.cv_waqf.layout_geo import physical_slots  # noqa: E402
+_slot_of, NSLOTS = physical_slots(EDITIONS['المساحة'], [{'line_number': r[0], 'line_type': r[1]} for r in rows])
+if any(r[1] != 'ayah' for r in rows) and NSLOTS != 12:
+    sys.exit(f'page {PAGE}: {NSLOTS} printed slots - only 12-slot pages')
+TEXT_ROWS = [r for r in rows if r[1] == 'ayah']
+TEXT_SLOTS = [_slot_of[r[0]] for r in TEXT_ROWS]
+LINE_NUMBERS = [r[0] for r in TEXT_ROWS]       # layout row number of each text line (differs on header pages)
+rows = TEXT_ROWS
 line_tokens = []
 for _ln, _type, a, b, text in rows:
     toks = text.split()                       # word ids count verse numbers and ۞ as tokens too
@@ -77,18 +99,58 @@ for _ln, _type, a, b, text in rows:
         word, num = t.rstrip('٠١٢٣٤٥٦٧٨٩'), t[len(t.rstrip('٠١٢٣٤٥٦٧٨٩')):]
         row += [(wi, word), (wi, num)] if word and num else [(wi, t)]
     line_tokens.append(row)
-NL = len(line_tokens)
+NL = NSLOTS if NSLOTS != len(line_tokens) else len(line_tokens)    # comb lines = printed slots
 
 # --- lines: a comb of NL evenly spaced rows fitted to the ink profile ------------------------------
 _prof = np.convolve(ink[:, bx0:bx1].sum(1).astype(float), np.ones(25) / 25, mode='same')
 _span = by1 - by0
-_best = max(((sum(_prof[int(y0 + i * pt)] for i in range(NL)), y0, pt)
-             for pt in np.arange(0.075 * _span, 0.095 * _span, 0.5)
-             for y0 in range(by0, int(by1 - (NL - 1) * pt), 2)))
+if NL != len(line_tokens):
+    # Header page: on 25 plain pages the first line's centre sat 193-214 px below the top of the frame's
+    # side rules and the last 169-188 px above their bottom, at 152-158 px pitch. Within those limits the
+    # comb is scored on the text slots only (the banner's and the frame strip's ink is not text).
+    _best = max(((sum(_prof[int(y0 + i * pt)] for i in TEXT_SLOTS), y0, pt)
+                 for pt in np.arange(150.0, 160.5, 0.5)
+                 for y0 in range(FRAME_TOP + 188, FRAME_TOP + 220, 2)
+                 if 164 <= FRAME_BOT - (y0 + (NL - 1) * pt) <= 194))
+else:
+    _best = max(((sum(_prof[int(y0 + i * pt)] for i in range(NL)), y0, pt)
+                 for pt in np.arange(0.075 * _span, 0.095 * _span, 0.5)
+                 for y0 in range(by0, int(by1 - (NL - 1) * pt), 2)))
 _, _y0, _pt = _best
 centres = [max(range(int(_y0 + i * _pt) - 12, int(_y0 + i * _pt) + 13), key=lambda y: _prof[y]) for i in range(NL)]
 PITCH = float(_pt)
+SLOT_CENTRES = centres
+HEADER_CENTRES = [c for k, c in enumerate(SLOT_CENTRES) if k not in TEXT_SLOTS]
+centres = [SLOT_CENTRES[k] for k in TEXT_SLOTS] if NL != len(line_tokens) else centres
 bands = [(c - 0.36 * PITCH, c + 0.30 * PITCH) for c in centres]
+
+if HEADER_PAGE:
+    # The frame's inner rule is broken where a banner joins it, so the tall-rule search above can stop at the
+    # outer rule and leave the dotted border strip inside. Along a text line, the nearest piece taller than
+    # two lines on each side (a rule, or the strip joined to it) is the inner edge.
+    _vert = np.zeros(n0, bool)
+    _vert[1:] = st0[1:, cv2.CC_STAT_HEIGHT] > 2 * PITCH          # no letter is two lines tall
+    _rows = slice(int(centres[0] - 0.3 * PITCH), int(centres[0] + 0.3 * PITCH))
+    _is_vert = _vert[lab0[_rows]]
+    _l = first(_is_vert[:, cx0::-1].any(0))
+    _r = first(_is_vert[:, cx0:].any(0))
+    if _l is not None and cx0 - _l + M > bx0:
+        bx0 = cx0 - _l + M
+    if _r is not None and cx0 + _r - M < bx1:
+        bx1 = cx0 + _r - M
+    # Same up and down: from the first and last text line to the nearest piece wider than three lines (a
+    # rule, the border strip, or a banner's edge - no word is that wide).
+    _wide = np.zeros(n0, bool)
+    _wide[1:] = st0[1:, cv2.CC_STAT_WIDTH] > 3 * PITCH
+    _cols = slice(cx0 - 200, cx0 + 200)
+    _u = first(_wide[lab0[int(centres[0]) - int(0.3 * PITCH)::-1, _cols]].any(1))
+    _d = first(_wide[lab0[int(centres[-1]) + int(0.3 * PITCH):, _cols]].any(1))
+    if _u is not None:
+        by0 = max(by0, int(centres[0]) - int(0.3 * PITCH) - _u + M)
+    if _d is not None:
+        by1 = min(by1, int(centres[-1]) + int(0.3 * PITCH) + _d - M)
+    _inside = np.zeros_like(ink); _inside[by0:by1, bx0:bx1] = True
+    ink &= _inside
 
 # --- ink pieces, verse rings ------------------------------------------------------------------------
 n, lab, st, cen = cv2.connectedComponentsWithStats(ink.astype(np.uint8), 8)
@@ -210,6 +272,9 @@ baselines = []
 for a, b in bands:
     rows = ink[int(a):int(b), int(bx0):int(bx1)].sum(1)
     baselines.append(int(a) + int(np.argmax(rows)))
+if HEADER_CENTRES:   # banner, its ornament and the basmala are not text
+    pieces = [p for p in pieces
+              if min(abs(p['cy'] - c) for c in centres) <= min(abs(p['cy'] - c) for c in HEADER_CENTRES)]
 for p in pieces:
     p['line'] = int(np.argmin([abs(p['cy'] - c) for c in centres]))
     base = baselines[p['line']]
@@ -683,7 +748,7 @@ checks = {
     'line_break_hints': LINE_BREAKS,                          # single Kraken edge mismatches (weak; not a flag)
     'extra_rings': EXTRA_RINGS,                               # medallion printed, no verse number in text
 }
-json.dump({'page': PAGE, 'bands': bands, 'words': words_out, 'checks': checks},
+json.dump({'page': PAGE, 'bands': bands, 'line_numbers': LINE_NUMBERS, 'words': words_out, 'checks': checks},
           open(f'paw-words-{PAGE:03d}{SUFFIX}.json', 'w'), ensure_ascii=False, indent=1)
 
 # --- picture: every word in its own colour ----------------------------------------------------------

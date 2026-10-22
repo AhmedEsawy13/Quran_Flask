@@ -654,7 +654,8 @@ def _triage_info(conn, page_number: int) -> dict | None:
     lines = sorted({int(f['line']) for f in flags.get('unclaimed_bodies') or [] if 'line' in f}
                    | {int(n) for f in flags.get('line_breaks') or [] for n in f.get('lines') or []}
                    | {int(n) for n in flags.get('forced_lines') or []}
-                   | {int(n) for n in flags.get('lines_short_of_rings') or []})
+                   | {int(n) for n in flags.get('lines_short_of_rings') or []}
+                   | {int(n) for n in flags.get('empty_lines') or []})
     return {
         'status': row[0], 'lines': lines, 'kinds': sorted(flags),
         'words_without_ink': (flags.get('words_without_ink') or [])[:6],

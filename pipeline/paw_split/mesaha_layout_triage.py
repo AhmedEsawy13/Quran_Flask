@@ -13,8 +13,9 @@
    (45 before); 4 wrong ones looked clean.
 
 Writes artifacts/mesaha-triage/triage.json and the ``layout_triage`` table of the layout DB, which
-Layout Studio shows on the page. Pages with a surah header are listed but not ink-checked (the
-split handles plain pages only).
+Layout Studio shows on the page. Surah-header pages are checked too (the banner and basmala lines are
+left out): all 13 reviewed ones came out clean, and a one-word line-break error put into each was
+caught on 12, each time with the right fix. The opening pages 2-3 are not checked.
 
     python3 pipeline/paw_split/mesaha_layout_triage.py                 # every unreviewed page
     python3 pipeline/paw_split/mesaha_layout_triage.py 475-520
@@ -133,12 +134,42 @@ def save_triage(db, report: dict) -> None:
 
 
 def split(page: int) -> tuple[int, dict | str]:
+    empty = [r[0] for r in sqlite3.connect(LAYOUT_DB).execute(
+        "SELECT line_number FROM pages WHERE page_number = ? AND line_type = 'ayah' "
+        "AND (first_word_id IS NULL OR last_word_id IS NULL)", (page,))]
+    if empty:                      # the draft left a text line without words: nothing to check against
+        return page, {'empty_lines': empty}
     env = dict(os.environ, PAW_WORK=WORK)
     done = subprocess.run([sys.executable, SPLIT, str(page)], capture_output=True, text=True, env=env)
     if done.returncode:
         return page, (done.stderr.strip().splitlines() or ['failed'])[-1]
     d = json.loads((ROOT / 'artifacts' / WORK / f'paw-words-{page:03d}.json').read_text(encoding='utf-8'))
-    return page, {k: v for k, v in d.get('checks', {}).items() if v and k not in IGNORED}
+    checks = {k: v for k, v in d.get('checks', {}).items() if v and k not in IGNORED}
+    return page, to_layout_lines(checks, d.get('line_numbers'))
+
+
+def to_layout_lines(checks: dict, line_numbers: list[int] | None) -> dict:
+    """The split counts text lines 1..n; on a header page Layout Studio's row numbers skip the banner."""
+    if not line_numbers or line_numbers == list(range(1, len(line_numbers) + 1)):
+        return checks
+    row = lambda n: line_numbers[int(n) - 1] if 1 <= int(n) <= len(line_numbers) else int(n)  # noqa: E731
+    out = dict(checks)
+    for key in ('unclaimed_bodies', 'extra_rings'):
+        if key in out:
+            out[key] = [dict(f, line=row(f['line'])) if 'line' in f else f for f in out[key]]
+    for key in ('forced_lines', 'lines_short_of_rings'):
+        if key in out:
+            out[key] = [row(n) for n in out[key]]
+    if 'line_breaks' in out:
+        fixed = []
+        for f in out['line_breaks']:
+            a, b = f['lines']
+            text = f.get('fix', '')
+            for n in (b, a):
+                text = text.replace(f'to line {n}', f'to line {row(n)}')
+            fixed.append(dict(f, lines=[row(a), row(b)], fix=text))
+        out['line_breaks'] = fixed
+    return out
 
 
 def _pages(spec: str | None, reviewed: set[int]) -> list[int]:
@@ -162,6 +193,10 @@ def main(argv=None) -> int:
     skipped = sorted(p for p in _pages(args.pages, reviewed) if p in in_cloud and p not in reviewed)
     if skipped:
         print('saved in the cloud (Layout Studio shows that copy), skipped:', skipped)
+        if args.apply:            # an earlier check of the local draft no longer describes that page
+            with sqlite3.connect(LAYOUT_DB) as _db:
+                if _db.execute("SELECT 1 FROM sqlite_master WHERE name = 'layout_triage'").fetchone():
+                    _db.executemany('DELETE FROM layout_triage WHERE page_number = ?', [(p,) for p in skipped])
     pages = [p for p in _pages(args.pages, reviewed) if p not in reviewed and p not in in_cloud]
     db = sqlite3.connect(LAYOUT_DB)
     fixes = start_fixes(db, pages, reviewed)
@@ -171,9 +206,10 @@ def main(argv=None) -> int:
                 apply_start(db, page, new)
         print('page starts fixed:', sorted(fixes))
     headers = {r[0] for r in db.execute("SELECT DISTINCT page_number FROM pages WHERE line_type != 'ayah'")}
+    banner_ok = {p for p in headers if p > 3}      # the split handles 12-slot banner pages (not the opening pages)
     db.close()
 
-    plain = [p for p in pages if p not in headers]
+    plain = [p for p in pages if p not in headers or p in banner_ok]
     with ThreadPoolExecutor(args.jobs) as pool:
         results = dict(pool.map(split, plain))
     moved = {}
@@ -193,7 +229,7 @@ def main(argv=None) -> int:
     report = {}
     for page in pages:
         r = results.get(page)
-        entry = {'header': page in headers, 'start_fix': fixes.get(page),
+        entry = {'header': page in headers and page not in banner_ok, 'start_fix': fixes.get(page),
                  'start_fixed': bool(args.apply and page in fixes), 'breaks_moved': moved.get(page, 0),
                  'flags': r if isinstance(r, dict) else {}, 'error': r if isinstance(r, str) else None}
         entry['status'] = ('header' if entry['header'] else 'error' if entry['error']

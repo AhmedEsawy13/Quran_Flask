@@ -391,3 +391,13 @@ def test_triage_info_lists_flagged_lines():
     info = _triage_info(conn, 480)
     assert info['status'] == 'look' and info['lines'] == [8, 9]
     assert info['words_without_ink'] == ['مَا'] and info['start_fixed'] and info['breaks_moved'] == 1
+
+
+def test_triage_maps_header_page_lines_to_layout_rows():
+    from pipeline.paw_split.mesaha_layout_triage import to_layout_lines
+    checks = {'line_breaks': [{'lines': [3, 4], 'word': 'كان', 'fix': 'move «كان» to line 3'}],
+              'forced_lines': [2], 'unclaimed_bodies': [{'line': 8}]}
+    out = to_layout_lines(checks, [4, 5, 6, 7, 8, 9, 10, 11])      # banner and basmala take rows 1-3
+    assert out['line_breaks'] == [{'lines': [6, 7], 'word': 'كان', 'fix': 'move «كان» to line 6'}]
+    assert out['forced_lines'] == [5] and out['unclaimed_bodies'] == [{'line': 11}]
+    assert to_layout_lines(checks, list(range(1, 13))) is checks   # plain page: unchanged
