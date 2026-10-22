@@ -5,7 +5,8 @@ on six fully checked pages this kept 53/53 true signs and dropped all but one of
   A  a word other Hafs prints mark, the sign read = old Madinah's or Shamarly's sign  -> accept in bulk
   B  a word other prints mark, the sign read differs from both                        -> review
   N  a word other prints mark (old Madinah or Shamarly), no sign read                -> review
-  C  a word no other print marks, a confident sign read                              -> review
+(A confident sign on a word no other print marks was never a real sign on the 33-page pilot, 0 of 15:
+a shadda, hamza or iqlab mim. Those words get no card.)
 
 Writes data/mesaha-waqf/<out>/data.json + cards/*.jpg (committed: the cloud app serves them), reviewed in the app at
 /mushaf-editor/mesaha-waqf (modules/mesaha_waqf_review.py; decisions saved in the cloud).
@@ -83,9 +84,9 @@ def main(argv):
                 group = 'B'
             elif union and not sign and (old or sham):
                 group = 'N'
-            elif not union and sign:
-                group = 'C'
             else:
+                # a confident sign on a word no other print marks ("C") was a shadda, hamza or
+                # iqlab mim in all 15 pilot cards, so those are not shown
                 continue
             cid = f'{page:03d}-{w["word_index"]}'
             box = (r['cx'], r['cy'], 0.33 * pitch) if r and sign else None

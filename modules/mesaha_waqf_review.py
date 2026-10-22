@@ -30,7 +30,7 @@ SIGNS = frozenset({'ص', 'ق', 'ج', 'م', 'لا', 'س', 'ع'})
 GROUPS = ('A', 'S', 'B', 'N', 'C')          # S = the random sample of A
 _SET_NAME = re.compile(r'^mesaha-waqf[\w-]*$')
 _CARD_NAME = re.compile(r'^\d{3}-\d+\.jpg$')
-DEFAULT_SET = 'mesaha-waqf-pilot'
+DEFAULT_SET = 'mesaha-waqf-all'      # every reviewed page; the pilot sets stay for reference
 
 
 def _sets_root() -> Path:
