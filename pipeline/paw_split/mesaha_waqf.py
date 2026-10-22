@@ -92,11 +92,11 @@ def page_signs(page: int, clf, key_of, columns) -> dict:
         # the middle of its own right half; vertically between the line above and its own letter tops
         # along the word, 0 = its end (left edge), 1 = its start: checked signs sit at -0.24..0.31; a hamza on
         # the word's initial alif sits near 1, the next word's hamza below -0.3 (both read as ج)
-        # a short word (بِهِۦ) is narrower than its sign, which may sit over any part of it: search at
-        # least half a line pitch wide, and over the whole word
+        # a short word (بِهِۦ, رَبِّهِۦ, أُنثَىٰ) may carry its sign over any part of it: search at least
+        # half a line pitch wide, and over the whole word when it is under 0.7 pitch
         width = max(w['x1'] - w['x0'], 0.5 * pitch)
         x_lo, x_hi = w['x0'] - 0.3 * width - 5, w['x0'] + 0.45 * width + 5
-        if w['x1'] - w['x0'] < 0.5 * pitch:
+        if w['x1'] - w['x0'] < 0.7 * pitch:
             x_hi = max(x_hi, w['x1'] + 5)
         y_lo, y_hi = base - 0.95 * pitch, base - 0.2 * line_h
         cands = []

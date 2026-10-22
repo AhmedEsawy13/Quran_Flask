@@ -29,13 +29,20 @@ from pipeline.cv_waqf.word_space import printed_position  # noqa: E402
 
 TRACE = ROOT / 'artifacts' / 'mesaha-trace'
 MIN_SIGN_CONF = 0.99
+PRIOR_SIGN_CONF = 0.7      # enough when another print has the same sign on the word
 MIN_AREA = {'ص': 330, 'ق': 330}
 CARD_WIDTH = 380          # px; the cards are committed, so kept small
 SIGNS = ['ص', 'ق', 'ج', 'م', 'لا', 'س', 'ع']
 
 
-def counts(r) -> bool:
-    return r['conf'] >= MIN_SIGN_CONF and r['piece_area'] >= MIN_AREA.get(r['sign'], 100)
+def counts(r, hint=None) -> bool:
+    """A real sign: confident, or fairly sure (>= 0.7) and the sign another print has on this word.
+    Not for ج: harakat inside a word read as ج at 0.7-0.97 (7 of 8 such cards were false)."""
+    if r['piece_area'] < MIN_AREA.get(r['sign'], 100):
+        return False
+    if r['conf'] >= MIN_SIGN_CONF:
+        return True
+    return r['sign'] != 'ج' and r['conf'] >= PRIOR_SIGN_CONF and r['sign'] in (hint or {}).values()
 
 
 def card_image(page, word, d, sign_box, path):
@@ -82,7 +89,7 @@ def main(argv):
                 hint = columns.get((s, a, pos), {}) if pos else {}
             union = any(hint.values())
             r = signs.get(w['word_index'])
-            sign = r['sign'] if r and counts(r) else None
+            sign = r['sign'] if r and counts(r, hint) else None
             old, sham = hint.get('المدينة القديم', ''), hint.get('الشمرلي', '')
             if union and sign and sign in (old, sham):
                 group = 'A'
