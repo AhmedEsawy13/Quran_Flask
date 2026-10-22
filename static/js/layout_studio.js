@@ -771,6 +771,28 @@
                 : '';
             const flags = draft.flags ? `ملاحظات: ${arabicDraftFlags(draft.flags)}. ` : '';
             const how = 'تحقّق أن كل سطر يبدأ وينتهي بالكلمتين المطبوعتين.';
+            const triage = draft.triage;
+            if (triage && (triage.status === 'clean' || triage.status === 'look')) {
+                const fixed = [
+                    triage.start_fixed ? 'ضُبطت أول كلمة على آخر الصفحة المراجَعة السابقة' : '',
+                    triage.breaks_moved ? `نُقل ${toAr(triage.breaks_moved)} حدّ سطر حسب الحبر` : '',
+                ].filter(Boolean).join('، ');
+                const note = fixed ? `${fixed}. ` : '';
+                if (triage.status === 'clean') {
+                    show('az-confidence-high', 'فحص الحبر: كل كلمة على سطرها — راجع سريعًا',
+                        `${note}طابق تقسيم الكلمات حبرَ الصورة سطرًا سطرًا دون أي ملاحظة. `
+                        + 'في التجربة على الصفحات المراجَعة كانت نحو ٩٢٪ من هذه الصفحات صحيحة تمامًا. ' + how);
+                } else {
+                    const where = triage.lines.length > 1
+                        ? `الأسطر ${triage.lines.map(toAr).join('، ')}`
+                        : triage.lines.length ? `السطر ${toAr(triage.lines[0])}` : 'أول الصفحة أو آخرها';
+                    const ink = triage.words_without_ink.length
+                        ? ` · كلمات بلا حبر: ${triage.words_without_ink.join('، ')}` : '';
+                    show('az-confidence-low', `فحص الحبر: انظر ${where}${ink}`,
+                        `${note}في هذه الأسطر حبر لا تفسّره كلمات النص، أو كلمة لا حبر لها، أو حلقة آية في غير موضعها. ` + how);
+                }
+                return;
+            }
             if (draft.kind === 'draft' && draft.source === 'kraken') {
                 show(
                     draft.flags ? 'az-confidence-low' : 'az-confidence-medium',

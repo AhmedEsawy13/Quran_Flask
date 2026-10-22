@@ -10,7 +10,8 @@ import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[2]))
 from pipeline.paw_split._common import ROOT, QATAR_APP_ASSETS, workdir  # noqa: E402
-workdir('mesaha-trace')
+import os as _os
+workdir(_os.environ.get('PAW_WORK', 'mesaha-trace'))     # another folder when checking draft layouts
 
 import json
 import re
@@ -27,7 +28,7 @@ from pipeline.cv_waqf.config import EDITIONS  # noqa: E402
 _SCRIPT_DB = EDITIONS['المساحة'].script_db
 
 PAGE = int(sys.argv[1]) if len(sys.argv) > 1 else 15
-LAYOUT_DB = f'{ROOT}/data/mushaf-mesaha-layout.db'
+LAYOUT_DB = os.environ.get('PAW_LAYOUT_DB', f'{ROOT}/data/mushaf-mesaha-layout.db')
 img = cv2.imread(f'{ROOT}/data/cv/pages/mesaha/p{PAGE:03d}_w1600.jpg')
 H, W = img.shape[:2]
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

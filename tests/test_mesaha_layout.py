@@ -376,3 +376,18 @@ def test_mesaha_reflow_still_allowed_on_unreviewed_pages(client, restore_mesaha_
         'page_number': 350, 'line_number': 5, 'word_id': 36754})
     assert broken.status_code == 200, broken.get_json()
     assert _rows(db, 350, 363) != before
+
+
+def test_triage_info_lists_flagged_lines():
+    import json as _json
+    import sqlite3 as _sqlite3
+    from modules.layout_studio import _triage_info
+    conn = _sqlite3.connect(':memory:')
+    assert _triage_info(conn, 480) is None
+    conn.execute('CREATE TABLE layout_triage (page_number INTEGER PRIMARY KEY, status TEXT, detail TEXT, checked_at TEXT)')
+    detail = {'flags': {'unclaimed_bodies': [{'line': 9}], 'line_breaks': [{'lines': [8, 9], 'fix': 'move «في» to line 9'}],
+                        'words_without_ink': ['مَا']}, 'start_fixed': True, 'breaks_moved': 1}
+    conn.execute("INSERT INTO layout_triage VALUES (480, 'look', ?, 'now')", (_json.dumps(detail),))
+    info = _triage_info(conn, 480)
+    assert info['status'] == 'look' and info['lines'] == [8, 9]
+    assert info['words_without_ink'] == ['مَا'] and info['start_fixed'] and info['breaks_moved'] == 1

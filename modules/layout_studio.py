@@ -631,7 +631,36 @@ def _draft_info(conn, page_number: int) -> dict | None:
             info['accuracy'] = json.loads(meta[0])
         except ValueError:
             pass
+    info['triage'] = _triage_info(conn, page_number)
     return info
+
+
+def _triage_info(conn, page_number: int) -> dict | None:
+    """The ink check of this draft page (pipeline/paw_split/mesaha_layout_triage.py), if run."""
+    if not conn.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='layout_triage'"
+    ).fetchone():
+        return None
+    row = conn.execute(
+        'SELECT status, detail, checked_at FROM layout_triage WHERE page_number = ?', (int(page_number),),
+    ).fetchone()
+    if not row:
+        return None
+    try:
+        detail = json.loads(row[1])
+    except ValueError:
+        detail = {}
+    flags = detail.get('flags') or {}
+    lines = sorted({int(f['line']) for f in flags.get('unclaimed_bodies') or [] if 'line' in f}
+                   | {int(n) for f in flags.get('line_breaks') or [] for n in f.get('lines') or []}
+                   | {int(n) for n in flags.get('forced_lines') or []}
+                   | {int(n) for n in flags.get('lines_short_of_rings') or []})
+    return {
+        'status': row[0], 'lines': lines, 'kinds': sorted(flags),
+        'words_without_ink': (flags.get('words_without_ink') or [])[:6],
+        'start_fixed': bool(detail.get('start_fixed')), 'breaks_moved': int(detail.get('breaks_moved') or 0),
+        'checked_at': row[2],
+    }
 
 
 def _page_in_range(edition: LayoutEdition, page_number: int) -> bool:
