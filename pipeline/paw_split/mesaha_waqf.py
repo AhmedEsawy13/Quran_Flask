@@ -92,8 +92,12 @@ def page_signs(page: int, clf, key_of, columns) -> dict:
         # the middle of its own right half; vertically between the line above and its own letter tops
         # along the word, 0 = its end (left edge), 1 = its start: checked signs sit at -0.24..0.31; a hamza on
         # the word's initial alif sits near 1, the next word's hamza below -0.3 (both read as ج)
-        width = w['x1'] - w['x0']
+        # a short word (بِهِۦ) is narrower than its sign, which may sit over any part of it: search at
+        # least half a line pitch wide, and over the whole word
+        width = max(w['x1'] - w['x0'], 0.5 * pitch)
         x_lo, x_hi = w['x0'] - 0.3 * width - 5, w['x0'] + 0.45 * width + 5
+        if w['x1'] - w['x0'] < 0.5 * pitch:
+            x_hi = max(x_hi, w['x1'] + 5)
         y_lo, y_hi = base - 0.95 * pitch, base - 0.2 * line_h
         cands = []
         for pid in range(1, n):
@@ -132,12 +136,16 @@ def page_signs(page: int, clf, key_of, columns) -> dict:
                     'line': w['line'], 'sign': label, 'conf': round(float(conf), 4), 'piece': int(pid),
                     'piece_area': sign_area, 'cx': round(cx), 'cy': round(cy),
                     'word_box': [round(w['x0']), round(w['x1'])], 'hint': hint})
-    # one sign piece -> one word: if two words claim the same piece, the word whose end is nearer keeps it
+    # one sign piece -> one word: if two words claim the same piece, the word the split gave it to keeps
+    # it (a sign over a short word like بِهِۦ), else the word whose end is nearer
+    def claim(r):
+        own = owner.get(r['piece'])
+        return (own is not None and own['word_index'] == r['word_index'], -abs(r['cx'] - r['word_box'][0]))
+
     by_piece = {}
     for r in out:
         prev = by_piece.get(r['piece'])
-        dist = abs(r['cx'] - r['word_box'][0])
-        if prev is None or dist < abs(prev['cx'] - prev['word_box'][0]):
+        if prev is None or claim(r) > claim(prev):
             by_piece[r['piece']] = r
     kept = sorted(by_piece.values(), key=lambda r: (r['line'], -r['word_box'][1]))
     return {'page': page, 'pitch': pitch, 'signs': kept}
