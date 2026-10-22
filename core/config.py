@@ -18,6 +18,8 @@ _BASE_DIR = _ROOT  # kept under the original name for callers that reference it
 DATABASE = os.path.join(_ROOT, 'data', 'word_name.db')
 WAQF_DATABASE = os.path.join(_ROOT, 'data', 'waqf_symbols.db')
 MUSHAF_WAQF_DATABASE = os.path.join(_ROOT, 'data', 'mushaf_waqf.db')
+# Mesaha waqf review cards (pipeline/paw_split/mesaha_waqf_review.py), tracked so the cloud app has them
+MESAHA_WAQF_CARDS_DIR = os.path.join(_ROOT, 'data', 'mesaha-waqf')
 # Bahouth-derived verse topics + contiguous context spans for تثبيت.
 VERSE_TOPICS_DATABASE = os.path.join(_ROOT, 'data', 'verse_topics.db')
 # مصاحف being adjusted via /mushaf-editor.

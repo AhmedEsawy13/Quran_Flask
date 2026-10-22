@@ -7,7 +7,7 @@ on six fully checked pages this kept 53/53 true signs and dropped all but one of
   N  a word other prints mark (old Madinah or Shamarly), no sign read                -> review
   C  a word no other print marks, a confident sign read                              -> review
 
-Writes artifacts/cv-waqf/<out>/data.json + cards/*.jpg, reviewed in the app at
+Writes data/mesaha-waqf/<out>/data.json + cards/*.jpg (committed: the cloud app serves them), reviewed in the app at
 /mushaf-editor/mesaha-waqf (modules/mesaha_waqf_review.py; decisions saved in the cloud).
 
     python3 pipeline/paw_split/mesaha_waqf_review.py mesaha-waqf-pilot 5 9 48 ...
@@ -29,6 +29,7 @@ from pipeline.cv_waqf.word_space import printed_position  # noqa: E402
 TRACE = ROOT / 'artifacts' / 'mesaha-trace'
 MIN_SIGN_CONF = 0.99
 MIN_AREA = {'ص': 330, 'ق': 330}
+CARD_WIDTH = 320          # px; the cards are committed, so kept small
 SIGNS = ['ص', 'ق', 'ج', 'م', 'لا', 'س', 'ع']
 
 
@@ -47,14 +48,14 @@ def card_image(page, word, d, sign_box, path):
         cx, cy, half = sign_box
         cv2.rectangle(img, (int(cx - half), int(cy - half)), (int(cx + half), int(cy + half)), (0, 0, 230), 3)
     crop = img[y0:y1, x0:x1]
-    scale = min(1.0, 420 / max(1, crop.shape[1]))
+    scale = min(1.0, CARD_WIDTH / max(1, crop.shape[1]))
     crop = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
-    cv2.imwrite(str(path), crop, [cv2.IMWRITE_JPEG_QUALITY, 82])
+    cv2.imwrite(str(path), crop, [cv2.IMWRITE_JPEG_QUALITY, 72])
 
 
 def main(argv):
     out_name, pages = argv[0], [int(x) for x in argv[1:]]
-    out = ROOT / 'artifacts' / 'cv-waqf' / out_name
+    out = ROOT / 'data' / 'mesaha-waqf' / out_name
     (out / 'cards').mkdir(parents=True, exist_ok=True)
     key_of = dict(sqlite3.connect(SCRIPT_DB).execute('SELECT word_index, word_key FROM words'))
     columns = load_columns()

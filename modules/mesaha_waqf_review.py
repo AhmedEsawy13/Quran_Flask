@@ -1,7 +1,7 @@
 """In-app review of the Mesaha waqf signs read from the page scans (pipeline/paw_split/mesaha_waqf.py).
 
 The cards are built on the machine that holds the scans (mesaha_waqf_review.py ->
-artifacts/cv-waqf/<set>/data.json + cards/*.jpg). Each decision is the sign actually printed on
+data/mesaha-waqf/<set>/data.json + cards/*.jpg, committed). Each decision is the sign actually printed on
 the word ('' = none), saved like every other review decision in ``waqf_mark_review_decisions``
 under «المساحة · فحص» (word_id = the Mesaha word_index): in the cloud when it is configured,
 otherwise in the local review store. One decision per word, whichever card set showed it.
@@ -18,6 +18,7 @@ from flask import abort, jsonify, render_template, request, send_from_directory
 
 from core import supabase_editor as sb
 from core.blueprints import editor_bp
+from core.config import MESAHA_WAQF_CARDS_DIR
 from core.db import connect as _sqlite_connect
 from modules import waqf_mark_review as wmr
 from modules.editor_auth import current_editor, require_editor
@@ -33,8 +34,7 @@ DEFAULT_SET = 'mesaha-waqf-pilot'
 
 
 def _sets_root() -> Path:
-    from pipeline.cv_waqf.config import ARTIFACTS_ROOT
-    return ARTIFACTS_ROOT
+    return Path(MESAHA_WAQF_CARDS_DIR)
 
 
 def available_sets() -> list[str]:
