@@ -456,3 +456,41 @@ def test_mesaha_empty_row_move_refusals(client, restore_mesaha_layout_db):
         refused = client.post('/api/layout-studio/mesaha/empty-line-move', json=body)
         assert refused.status_code == 400 and reason in refused.get_json()['error']
     assert _rows(db, 578, 580) == before
+
+
+def test_mesaha_row_emptied_on_purpose_then_carried_past_the_banner(client, restore_mesaha_layout_db):
+    db = restore_mesaha_layout_db
+    with sqlite3.connect(db) as conn:
+        conn.execute('DELETE FROM mesaha_layout_progress WHERE page_number BETWEEN 519 AND 521')
+    assert _types(db, 520) == '.....NIB...'
+    before = _rows(db, 519, 521)
+
+    emptied = client.post('/api/layout-studio/mesaha/empty-line',
+                          json={'page_number': 520, 'line_number': 5, 'into': 'prev'})
+    assert emptied.status_code == 200, emptied.get_json()
+    body = emptied.get_json()
+    assert body['into_line'] == 4 and body['banner_moves'] == ['down']
+    after = _rows(db, 519, 521)
+    changed = [(b[0], b[1]) for b, a in zip(before, after) if b != a]
+    assert changed == [(520, 4), (520, 5)]                     # only the two rows
+    old, new = ({(r[0], r[1]): r for r in rows} for rows in (before, after))
+    assert new[520, 4][2:4] == (old[520, 4][2], old[520, 5][3])   # line 4 now ends where line 5 ended
+    assert _types(db, 520) == '....ENIB...'
+
+    moved = client.post('/api/layout-studio/mesaha/empty-line-move',
+                        json={'page_number': 520, 'line_number': 5, 'direction': 'down'})
+    assert moved.status_code == 200, moved.get_json()
+    assert _types(db, 520) == '....NIBE...'
+
+    for _ in range(2):
+        assert client.post('/api/layout-studio/mesaha/undo', json={'page_number': 520}).status_code == 200
+    assert _rows(db, 519, 521) == before
+
+
+def test_mesaha_emptying_never_crosses_a_banner(client, restore_mesaha_layout_db):
+    db = restore_mesaha_layout_db
+    before = _rows(db, 519, 521)
+    refused = client.post('/api/layout-studio/mesaha/empty-line',
+                          json={'page_number': 520, 'line_number': 9, 'into': 'prev'})   # first row after the basmala
+    assert refused.status_code == 400 and 'السطر التالي' in refused.get_json()['error']
+    assert _rows(db, 519, 521) == before

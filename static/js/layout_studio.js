@@ -8,7 +8,7 @@
      GET  {apiBase}/page/<n>
      GET/POST {apiBase}/profile
      POST {apiBase}/line-break|pull-next-word|push-last-word|transfer-line
-          |merge-line|line-center|header-move|empty-line-move|undo
+          |merge-line|line-center|header-move|empty-line|empty-line-move|undo
      GET  {apiBase}/undo-status?page_number=
      GET/POST {apiBase}/progress
    ═══════════════════════════════════════════════════════════════════ */
@@ -637,6 +637,26 @@
             mergeLine(lineNumber);
         });
 
+        // Push/pull always leave a word behind; these move every word of the row to one neighbour, so the row
+        // can be emptied on purpose (e.g. to carry it past a surah banner and fill it there).
+        const hasWords = Array.isArray(line.words) && line.words.length > 0;
+        const emptyButtons = hasWords ? [
+            ['prev', 'fa-angles-up', 'تفريغ السطر: انقل كل كلماته إلى آخر السطر السابق'],
+            ['next', 'fa-angles-down', 'تفريغ السطر: انقل كل كلماته إلى أول السطر التالي'],
+        ].map(([into, icon, title]) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `az-line-tool az-empty-line-btn az-empty-${into}`;
+            button.title = title;
+            button.setAttribute('aria-label', title);
+            button.innerHTML = `<i class="fas ${icon}" aria-hidden="true"></i>`;
+            button.addEventListener('click', e => {
+                e.stopPropagation();
+                emptyLine(lineNumber, into);
+            });
+            return button;
+        }) : [];
+
         const centerBtn = document.createElement('button');
         const isCentered = Boolean(line.is_centered);
         centerBtn.type = 'button';
@@ -674,6 +694,7 @@
             actions.appendChild(transferBtn);
         }
         actions.appendChild(mergeBtn);
+        emptyButtons.forEach(button => actions.appendChild(button));
         actions.appendChild(centerBtn);
         tools.appendChild(menuBtn);
         tools.appendChild(actions);
@@ -1255,6 +1276,38 @@
             });
             root.appendChild(button);
         });
+    }
+
+    async function emptyLine(lineNumber, into) {
+        if (state.busy) return;
+        state.busy = true;
+        window.AtharUi.setBusy(els.main, true);
+        updateNav();
+        try {
+            const data = await window.AtharApi.json(`${API_BASE}/empty-line`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ page_number: state.page, line_number: lineNumber, into }),
+            });
+            if (data.page) {
+                renderPage(data.page);
+                fitPages();
+            }
+            if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
+            const where = data.into_page !== state.page
+                ? `السطر ${data.into_line} من الصفحة ${data.into_page}`
+                : `السطر ${data.into_line}`;
+            const next = (data.banner_moves || []).includes('down')
+                ? '؛ انقله الآن إلى ما بعد العنوان'
+                : (data.banner_moves || []).includes('up') ? '؛ انقله الآن إلى ما قبل العنوان' : '';
+            setSavedStatus(data, `فُرّغ السطر ${lineNumber}: نُقلت ${data.moved_words} كلمة إلى ${where}${next}`);
+        } catch (e) {
+            setStatus(layoutEditError(e, 'تعذّر تفريغ السطر'), true);
+        } finally {
+            state.busy = false;
+            window.AtharUi.setBusy(els.main, false);
+            updateNav();
+        }
     }
 
     async function moveEmptyAcrossBanner(lineNumber, direction) {

@@ -2812,6 +2812,110 @@ def layout_studio_header_move(edition_id):
         conn.close()
 
 
+@editor_bp.route('/api/layout-studio/<edition_id>/empty-line', methods=['POST'])
+@require_editor
+def layout_studio_empty_line(edition_id):
+    """Empty an ayah row by moving all its words onto the row before (``into: prev``) or after (``into: next``).
+
+    Push and pull always leave a row one word, so this is the way to free a row on purpose, typically one above a
+    surah banner that should sit after it. Only the two rows change (no reflow); the neighbour is the nearest row
+    with words in that direction, possibly on the adjacent page, and a surah banner is never crossed.
+    """
+    edition, err = _edition_or_404(edition_id)
+    if err:
+        return err
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
+    try:
+        page_number = int(data.get('page_number'))
+        line_number = int(data.get('line_number'))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid page_number or line_number'}), 400
+    into = str(data.get('into') or '').strip().lower()
+    if into not in {'prev', 'next'}:
+        return jsonify({'error': 'into must be prev or next'}), 400
+    if not _page_in_range(edition, page_number):
+        return jsonify({'error': 'page_number out of range'}), 400
+    if edition.closed_rule_for(page_number) is not None:
+        return jsonify({'error': 'لا يمكن تفريغ سطر في الصفحة الافتتاحية الثابتة'}), 400
+
+    conn = _sqlite_connect(_layout_db(edition))
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        lines = engine.load_all_lines(cur)
+        universe = _all_script_word_ids(edition)
+        target_idx = next(
+            (
+                i for i, line in enumerate(lines)
+                if int(line['page_number']) == page_number and int(line['line_number']) == line_number
+            ),
+            None,
+        )
+        if target_idx is None:
+            return jsonify({'error': 'line not found'}), 404
+        target = lines[target_idx]
+        if target['line_type'] != 'ayah':
+            return jsonify({'error': 'التفريغ متاح لأسطر الآيات فقط'}), 400
+        words = _expand_ayah_words(edition, target, universe=universe)
+        if not words:
+            return jsonify({'error': 'السطر فارغ بالفعل'}), 400
+        other_idx, neighbor_err = _neighbor_ayah(
+            edition, lines, target_idx, direction=-1 if into == 'prev' else 1, universe=universe,
+        )
+        if other_idx is None:
+            other = 'التالي' if into == 'prev' else 'السابق'
+            return jsonify({
+                'error': f'{neighbor_err or "لا يوجد سطر آيات مجاور"}؛ جرّب التفريغ إلى السطر {other}',
+            }), 400
+        other_page = int(lines[other_idx]['page_number'])
+        if edition.closed_rule_for(other_page) is not None:
+            return jsonify({'error': 'لا يمكن نقل الكلمات إلى الصفحة الافتتاحية الثابتة'}), 400
+        other_words = _expand_ayah_words(edition, lines[other_idx], universe=universe)
+        combined = other_words + words if into == 'prev' else words + other_words
+        if not _strict_word_order(combined, universe=universe):
+            return jsonify({'error': 'أُلغي التفريغ لأنه كان سيخلّ بترتيب الكلمات'}), 409
+
+        text_map = _word_texts(edition, sorted(set(combined)))
+        engine.assign_words_to_line(lines[other_idx], combined, text_map)
+        engine.assign_words_to_line(target, [], text_map)
+        page_from, page_to = sorted((page_number, other_page))
+        _push_undo(edition, cur, f'empty-line-{into}', page_number, page_from, page_to)
+        engine.persist_line(cur, lines[other_idx])
+        engine.persist_line(cur, target)
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_from, page_to, op=f'empty-line-{into}', edit_page=page_number,
+        )
+        payload = _build_page_payload(edition, page_number)
+        emptied = next(
+            (line for line in (payload or {}).get('lines') or [] if int(line['line_number']) == line_number),
+            {},
+        )
+        return jsonify({
+            'ok': True,
+            'cloud_saved': cloud_saved,
+            'moved_words': len(words),
+            'into_page': other_page,
+            'into_line': int(lines[other_idx]['line_number']),
+            'banner_moves': emptied.get('banner_moves') or [],
+            'page': payload,
+            'undo_available': _undo_available(edition, cur, page_number),
+        })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error('layout-studio empty-line cloud save failed (%s): %s', edition_id, e)
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
+    finally:
+        conn.close()
+
+
 @editor_bp.route('/api/layout-studio/<edition_id>/empty-line-move', methods=['POST'])
 @require_editor
 def layout_studio_empty_line_move(edition_id):

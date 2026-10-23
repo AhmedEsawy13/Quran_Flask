@@ -1,6 +1,6 @@
 {
   "generated_by": "pipeline/generate_route_contracts.py",
-  "route_count": 132,
+  "route_count": 133,
   "routes": [
     {
       "auth": "editor",
@@ -1048,6 +1048,49 @@
       "source": "modules/quran_api.py",
       "success_cache": "no-store",
       "success_keys": []
+    },
+    {
+      "auth": "editor",
+      "availability": "editor-feature",
+      "declared_statuses": [
+        200,
+        400,
+        401,
+        404,
+        409,
+        500,
+        503
+      ],
+      "dynamic_error": false,
+      "dynamic_status": false,
+      "dynamic_success": true,
+      "endpoint": "editor.layout_studio_empty_line",
+      "error_keys": [
+        "code",
+        "error",
+        "login_required"
+      ],
+      "feature": "editor",
+      "methods": [
+        "POST"
+      ],
+      "path": "/api/layout-studio/<edition_id>/empty-line",
+      "response_kinds": [
+        "delegated-or-dynamic",
+        "json"
+      ],
+      "source": "modules/layout_studio.py",
+      "success_cache": "no-store",
+      "success_keys": [
+        "banner_moves",
+        "cloud_saved",
+        "into_line",
+        "into_page",
+        "moved_words",
+        "ok",
+        "page",
+        "undo_available"
+      ]
     },
     {
       "auth": "editor",
