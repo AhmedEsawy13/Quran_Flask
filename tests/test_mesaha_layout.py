@@ -494,3 +494,31 @@ def test_mesaha_emptying_never_crosses_a_banner(client, restore_mesaha_layout_db
                           json={'page_number': 520, 'line_number': 9, 'into': 'prev'})   # first row after the basmala
     assert refused.status_code == 400 and 'السطر التالي' in refused.get_json()['error']
     assert _rows(db, 519, 521) == before
+
+
+@pytest.mark.parametrize('layout, words', [
+    ('data/mushaf-mesaha-layout.db', 'data/quran_script.db'),
+    ('data/mushaf-azhar-layout.db', 'data/quran_script.db'),
+    ('data/mushaf_layout_inferred.db', 'data/quran_script.db'),
+    ('data/mushaf-bahrain-layout.db', 'data/mushaf-bahrain-layout.db'),
+])
+def test_no_ayah_row_sits_on_the_wrong_side_of_a_surah_banner(layout, words):
+    """Every ayah row after a surah's banner holds that surah's words (a 12→11-row redraft once put the last row
+    of 58, 68 and 91 under the next surah's banner on Mesaha 729, 761 and 810)."""
+    with sqlite3.connect(PROJECT_ROOT / words) as conn:
+        surah_of = dict(conn.execute('SELECT word_index, surah FROM words'))
+    with sqlite3.connect(PROJECT_ROOT / layout) as conn:
+        rows = conn.execute(
+            'SELECT page_number, line_number, line_type, first_word_id, last_word_id, surah_number '
+            'FROM pages ORDER BY page_number, line_number').fetchall()
+    wrong, banner = [], None
+    for page, line, kind, first, last, surah in rows:
+        if kind == 'surah_name':
+            banner = int(surah)
+        elif kind == 'ayah' and first is not None:
+            first_surah, last_surah = surah_of.get(first), surah_of.get(last)
+            if first_surah != last_surah or (banner is not None and first_surah < banner):
+                wrong.append((page, line, first_surah, last_surah, banner))
+            elif banner is not None:
+                banner = max(banner, first_surah)
+    assert wrong == []
