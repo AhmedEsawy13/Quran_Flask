@@ -54,7 +54,8 @@ bx0, bx1, by0, by1 = cx0 - left + M, cx0 + right - M, cy0 - top + M, cy0 + botto
 # A surah banner has its own wide rules inside the frame, which stop the scan above; on those pages the
 # frame is taken from the tall side rules only (the banner has none).
 HEADER_PAGE = sqlite3.connect(os.environ.get('PAW_LAYOUT_DB', f'{ROOT}/data/mushaf-mesaha-layout.db')).execute(
-    "SELECT COUNT(*) FROM pages WHERE page_number = ? AND line_type != 'ayah'", (PAGE,)).fetchone()[0] > 0
+    "SELECT COUNT(*) FROM pages WHERE page_number = ? AND (line_type != 'ayah' OR first_word_id IS NULL)",
+    (PAGE,)).fetchone()[0] > 0        # a banner or an empty row: the comb is anchored to the frame
 if HEADER_PAGE:
     _tall = np.zeros(n0, bool)
     _tall[1:] = st0[1:, cv2.CC_STAT_HEIGHT] > 0.5 * H
@@ -79,9 +80,11 @@ def is_number(t):
 # text rows sit lower than their row number. The comb is fitted to all slots; only text slots get words.
 from pipeline.cv_waqf.layout_geo import physical_slots  # noqa: E402
 _slot_of, NSLOTS = physical_slots(EDITIONS['المساحة'], [{'line_number': r[0], 'line_type': r[1]} for r in rows])
-if any(r[1] != 'ayah' for r in rows) and NSLOTS != 12:
+# An empty ayah row is a printed slot with no text (a band before a banner, a short page end): like a
+# banner slot, the comb keeps it and no words go there.
+if any(r[1] != 'ayah' or r[2] is None for r in rows) and NSLOTS != 12:
     sys.exit(f'page {PAGE}: {NSLOTS} printed slots - only 12-slot pages')
-TEXT_ROWS = [r for r in rows if r[1] == 'ayah']
+TEXT_ROWS = [r for r in rows if r[1] == 'ayah' and r[2] is not None]
 TEXT_SLOTS = [_slot_of[r[0]] for r in TEXT_ROWS]
 LINE_NUMBERS = [r[0] for r in TEXT_ROWS]       # layout row number of each text line (differs on header pages)
 rows = TEXT_ROWS

@@ -1196,11 +1196,12 @@ def validate_database(conn: sqlite3.Connection, words: list[QuranWord]) -> dict:
     ).fetchone()[0]
     if int(page_count) != PAGE_COUNT:
         raise RuntimeError(f'expected {PAGE_COUNT} pages, found {page_count}')
+    from modules.layout_editions import MESAHA     # per-page slot counts (pages with two banner blocks)
     for page in range(PAGE_MIN, PAGE_MAX + 1):
         count = conn.execute(
             'SELECT COUNT(*) FROM pages WHERE page_number = ?', (page,)
         ).fetchone()[0]
-        expected = SHORT_LINES.get(page, DEFAULT_LINES)
+        expected = SHORT_LINES.get(page) or MESAHA.line_count_for(page)
         accepted = {expected}
         if page not in SHORT_LINES:
             # The printed banner block is four slots (name, info, two-slot basmallah), so a

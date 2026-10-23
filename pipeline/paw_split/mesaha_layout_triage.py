@@ -79,6 +79,9 @@ def rewrite_text(db, page: int) -> None:
     from pipeline.cv_waqf.config import EDITIONS
     spec = EDITIONS['المساحة']
     for rid, _ln, first, last in _rows(db, page):
+        if first is None or last is None:         # an empty row (a band or a short page end)
+            db.execute("UPDATE pages SET line_text = '' WHERE id = ?", (rid,))
+            continue
         span = layout_geo._ids_between(spec.script_db, first, last)
         words = layout_geo._word_rows(spec, span)
         text = ' '.join(str((words.get(w) or {}).get('text') or '') for w in span).strip()
@@ -134,11 +137,6 @@ def save_triage(db, report: dict) -> None:
 
 
 def split(page: int) -> tuple[int, dict | str]:
-    empty = [r[0] for r in sqlite3.connect(LAYOUT_DB).execute(
-        "SELECT line_number FROM pages WHERE page_number = ? AND line_type = 'ayah' "
-        "AND (first_word_id IS NULL OR last_word_id IS NULL)", (page,))]
-    if empty:                      # the draft left a text line without words: nothing to check against
-        return page, {'empty_lines': empty}
     env = dict(os.environ, PAW_WORK=WORK)
     done = subprocess.run([sys.executable, SPLIT, str(page)], capture_output=True, text=True, env=env)
     if done.returncode:

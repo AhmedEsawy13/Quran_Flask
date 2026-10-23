@@ -455,6 +455,10 @@ MESAHA = LayoutEdition(
     ref_image_template=None,
     ref_open_template=None,
     closed_pages=(_MESAHA_FATIHA, _MESAHA_BAQARAH_OPEN),
+    # Two short surahs on one page: the print gives the second basmala less room than a full banner block,
+    # so with every printed line as its own row these pages count 13 slots (820: 102/103, 824: 108/109,
+    # 826: 112/113).
+    line_count_overrides=((820, 13), (824, 13), (826, 13)),
     storage_key='layout_studio_mesaha_page',
     cloud_enabled=True,
     local_word_moves=True,
