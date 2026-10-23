@@ -551,10 +551,22 @@ def _build_page_payload(edition: LayoutEdition, page_number: int):
         'basmallah': profile.basmallah_lines,
     }
     occupied = 0
-    for line in payload.get('lines') or []:
+    page_lines = payload.get('lines') or []
+    for index, line in enumerate(page_lines):
         span = int(span_by_type.get(line.get('line_type'), 1))
         line['slot_span'] = span
         occupied += span
+        if (
+            line.get('line_type') == 'ayah'
+            and not line.get('words')
+            and edition.closed_rule_for(page_number) is None
+        ):
+            # An empty row next to a surah banner can be carried across it (the usual draft error: the
+            # empty rows sit above the banner while the new surah's text is crammed below it).
+            line['banner_moves'] = [
+                d for d in ('down', 'up')
+                if _empty_row_banner_target(page_lines, index, d)[0] is not None
+            ]
     payload['lines_per_page'] = _page_line_budget(
         edition, profile, page_number,
     )
@@ -1056,6 +1068,49 @@ def _neighbor_ayah(edition, lines, from_idx, *, direction, universe=None):
                 return i, None
         i += step
     return None, 'لا يوجد سطر آيات مجاور'
+
+
+def _is_empty_ayah_row(row) -> bool:
+    return (
+        row.get('line_type') == 'ayah'
+        and row.get('first_word_id') in (None, '')
+        and row.get('last_word_id') in (None, '')
+    )
+
+
+def _empty_row_banner_target(rows: list[dict], index: int, direction: str) -> tuple[int | None, str | None]:
+    """Where an empty ayah row lands when it crosses the surah banner next to it on the same page.
+
+    ``rows`` is one page in line order. Other empty rows between it and the banner are passed over, and the whole
+    banner (name, info, basmala, whichever are present) is crossed in one step. Returns the index the row is
+    inserted at once removed from the list, or ``(None, reason)``.
+    """
+    if not 0 <= index < len(rows) or not _is_empty_ayah_row(rows[index]):
+        return None, 'النقل عبر العنوان متاح للأسطر الفارغة فقط'
+    step = 1 if direction == 'down' else -1
+    j = index + step
+    while 0 <= j < len(rows) and _is_empty_ayah_row(rows[j]):
+        j += step
+    if not (0 <= j < len(rows)) or not engine.is_surah_separator(rows[j]):
+        if not 0 <= j < len(rows):
+            return None, (
+                'لا يوجد عنوان سورة بعد هذا السطر في هذه الصفحة؛ إن كان العنوان في أول الصفحة التالية '
+                'فاملأ السطر من السطر الذي قبله، أو انقل العنوان نفسه'
+                if direction == 'down' else
+                'لا يوجد عنوان سورة قبل هذا السطر في هذه الصفحة؛ إن كان العنوان في آخر الصفحة السابقة '
+                'فاملأ السطر من السطر الذي بعده، أو انقل العنوان نفسه'
+            )
+        return None, (
+            'السطر لا يجاور عنوان سورة من الأسفل' if direction == 'down'
+            else 'السطر لا يجاور عنوان سورة من الأعلى'
+        )
+    while 0 <= j < len(rows) and engine.is_surah_separator(rows[j]):
+        j += step
+    # j is now the first row past the banner (or one past the page edge); convert to an insert index in the list
+    # with the moving row removed.
+    if direction == 'down':
+        return j - 1, None
+    return j + 1, None
 
 
 def _purge_closed_spill(edition, lines, text_map, page_number, universe=None):
@@ -2746,6 +2801,100 @@ def layout_studio_header_move(edition_id):
             'layout-studio header-move cloud save failed (%s): %s',
             edition_id, e,
         )
+        return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
+    except AppError:
+        conn.rollback()
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise PersistenceError('تعذّر حفظ تعديل التخطيط') from e
+    finally:
+        conn.close()
+
+
+@editor_bp.route('/api/layout-studio/<edition_id>/empty-line-move', methods=['POST'])
+@require_editor
+def layout_studio_empty_line_move(edition_id):
+    """Carry an empty ayah row across the surah banner next to it, on the same page.
+
+    ``down`` puts it right after the banner (it then belongs to the new surah and can be filled from its text);
+    ``up`` puts it right before the banner (the end of the previous surah). Only rows are reordered: no words move,
+    and the page keeps its row count, so neither neighbouring page changes.
+    """
+    edition, err = _edition_or_404(edition_id)
+    if err:
+        return err
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({'error': 'JSON object required'}), 400
+    try:
+        page_number = int(data.get('page_number'))
+        line_number = int(data.get('line_number'))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'invalid page_number or line_number'}), 400
+    direction = str(data.get('direction') or '').strip().lower()
+    if direction not in {'up', 'down'}:
+        return jsonify({'error': 'direction must be up or down'}), 400
+    if not _page_in_range(edition, page_number):
+        return jsonify({'error': 'page_number out of range'}), 400
+    if edition.closed_rule_for(page_number) is not None:
+        return jsonify({'error': 'لا يمكن إعادة ترتيب أسطر الصفحة الافتتاحية الثابتة'}), 400
+
+    conn = _sqlite_connect(_layout_db(edition))
+    try:
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        rows = [
+            dict(row) for row in cur.execute(
+                '''
+                SELECT id, line_number, line_type, first_word_id, last_word_id, surah_number
+                FROM pages WHERE page_number = ? ORDER BY line_number
+                ''',
+                (page_number,),
+            ).fetchall()
+        ]
+        index = next((i for i, row in enumerate(rows) if int(row['line_number']) == line_number), None)
+        if index is None:
+            return jsonify({'error': 'line not found'}), 404
+        insert_at, reason = _empty_row_banner_target(rows, index, direction)
+        if insert_at is None:
+            return jsonify({'error': reason}), 400
+
+        _push_undo(edition, cur, f'empty-line-{direction}', page_number, page_number, page_number)
+        moving = rows.pop(index)
+        rows.insert(insert_at, moving)
+        # The row now belongs to the surah on its new side of the banner.
+        banner = rows[insert_at - 1] if direction == 'down' else rows[insert_at + 1]
+        surah = banner.get('surah_number')
+        if direction == 'up' and surah is not None:
+            before = next(
+                (row for row in reversed(rows[:insert_at]) if row['line_type'] == 'ayah' and row.get('surah_number')),
+                None,
+            )
+            surah = before['surah_number'] if before else max(1, int(surah) - 1)
+        # Free every position first: some layouts keep a unique (page_number, line_number) index.
+        cur.execute('UPDATE pages SET line_number = -id WHERE page_number = ?', (page_number,))
+        for new_line, row in enumerate(rows, 1):
+            cur.execute('UPDATE pages SET line_number = ? WHERE id = ?', (new_line, int(row['id'])))
+        cur.execute(
+            'UPDATE pages SET surah_number = ?, is_centered = 0 WHERE id = ?',
+            (surah, int(moving['id'])),
+        )
+        cloud_saved = _commit_layout_pages(
+            edition, conn, cur, page_number, page_number, op=f'empty-line-{direction}',
+            edit_page=page_number,
+        )
+        return jsonify({
+            'ok': True,
+            'cloud_saved': cloud_saved,
+            'direction': direction,
+            'moved_to_line': insert_at + 1,
+            'page': _build_page_payload(edition, page_number),
+            'undo_available': _undo_available(edition, cur, page_number),
+        })
+    except sb.SupabaseEditorError as e:
+        conn.rollback()
+        logger.error('layout-studio empty-line-move cloud save failed (%s): %s', edition_id, e)
         return jsonify({'error': 'تعذّر حفظ تعديل التخطيط في Supabase'}), 503
     except AppError:
         conn.rollback()

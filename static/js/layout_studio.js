@@ -8,7 +8,7 @@
      GET  {apiBase}/page/<n>
      GET/POST {apiBase}/profile
      POST {apiBase}/line-break|pull-next-word|push-last-word|transfer-line
-          |merge-line|line-center|header-move|undo
+          |merge-line|line-center|header-move|empty-line-move|undo
      GET  {apiBase}/undo-status?page_number=
      GET/POST {apiBase}/progress
    ═══════════════════════════════════════════════════════════════════ */
@@ -890,6 +890,7 @@
                 applyLineSpan(root, line);
                 if (line.line_type === 'ayah') attachLineTools(root, line);
                 if (emptyAyah) attachFillButton(root, line);
+                if (emptyAyah) attachBannerMoveButtons(root, line);
             },
             decorateWord: (wordElement, { line, word, wordIndex }) => {
                 const words = line.words || [];
@@ -1231,6 +1232,60 @@
             openFillDialog(line.line_number);
         });
         root.appendChild(button);
+    }
+
+    /* An empty row next to a surah banner can be carried across it in one step: the usual draft error puts the
+       empty rows above the banner while the new surah's text is crammed into too few rows below it. */
+    function attachBannerMoveButtons(root, line) {
+        const moves = Array.isArray(line.banner_moves) ? line.banner_moves : [];
+        moves.forEach(direction => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'az-fill-btn az-banner-move-btn';
+            button.innerHTML = direction === 'down'
+                ? '<i class="fas fa-arrow-down" aria-hidden="true"></i> بعد العنوان'
+                : '<i class="fas fa-arrow-up" aria-hidden="true"></i> قبل العنوان';
+            button.title = direction === 'down'
+                ? 'انقل هذا السطر الفارغ إلى أول السورة التالية (بعد اسمها والبسملة) ثم املأه من نصها'
+                : 'انقل هذا السطر الفارغ إلى آخر السورة السابقة (قبل عنوان السورة)';
+            button.setAttribute('aria-label', button.title);
+            button.addEventListener('click', e => {
+                e.stopPropagation();
+                moveEmptyAcrossBanner(line.line_number, direction);
+            });
+            root.appendChild(button);
+        });
+    }
+
+    async function moveEmptyAcrossBanner(lineNumber, direction) {
+        if (state.busy) return;
+        state.busy = true;
+        window.AtharUi.setBusy(els.main, true);
+        updateNav();
+        try {
+            const data = await window.AtharApi.json(`${API_BASE}/empty-line-move`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ page_number: state.page, line_number: lineNumber, direction }),
+            });
+            if (data.page) {
+                renderPage(data.page);
+                fitPages();
+            }
+            if (typeof data.undo_available === 'number') setUndoAvailable(data.undo_available);
+            setSavedStatus(
+                data,
+                direction === 'down'
+                    ? `نُقل السطر الفارغ إلى ما بعد العنوان (السطر ${data.moved_to_line})؛ املأه الآن من نص السورة`
+                    : `نُقل السطر الفارغ إلى ما قبل العنوان (السطر ${data.moved_to_line})`
+            );
+        } catch (e) {
+            setStatus(layoutEditError(e, 'تعذّر نقل السطر الفارغ'), true);
+        } finally {
+            state.busy = false;
+            window.AtharUi.setBusy(els.main, false);
+            updateNav();
+        }
     }
 
     async function openFillDialog(lineNumber) {

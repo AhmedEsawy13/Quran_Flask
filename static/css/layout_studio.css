@@ -283,6 +283,8 @@ body.az-layout {
     font: inherit; font-size: 0.8rem; font-weight: 700;
 }
 .az-fill-btn:hover { background: var(--az-accent); color: var(--az-paper); }
+.az-fill-btn { white-space: nowrap; }
+.az-banner-move-btn { margin-inline-start: 6px; padding-inline: 8px; }
 .az-fill-overlay {
     position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
     background: rgba(0, 0, 0, 0.45); padding: 16px;

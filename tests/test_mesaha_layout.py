@@ -401,3 +401,58 @@ def test_triage_maps_header_page_lines_to_layout_rows():
     assert out['line_breaks'] == [{'lines': [6, 7], 'word': 'كان', 'fix': 'move «كان» to line 6'}]
     assert out['forced_lines'] == [5] and out['unclaimed_bodies'] == [{'line': 11}]
     assert to_layout_lines(checks, list(range(1, 13))) is checks   # plain page: unchanged
+
+
+def _types(db, page):
+    with sqlite3.connect(db) as conn:
+        return ''.join(
+            {'surah_name': 'N', 'surah_info': 'I', 'basmallah': 'B'}.get(t, 'E' if a is None else '.')
+            for t, a in conn.execute(
+                'SELECT line_type, first_word_id FROM pages WHERE page_number = ? ORDER BY line_number', (page,)))
+
+
+def test_mesaha_empty_row_crosses_the_surah_banner(client, restore_mesaha_layout_db):
+    db = restore_mesaha_layout_db
+    with sqlite3.connect(db) as conn:
+        conn.execute('DELETE FROM mesaha_layout_progress WHERE page_number BETWEEN 578 AND 580')
+    assert _types(db, 579) == 'EENIB......'           # the draft: empty rows above the banner
+    words_before = [r[2:4] for r in _rows(db, 578, 580) if r[2] is not None]
+    page = client.get('/api/layout-studio/mesaha/page/579').get_json()
+    assert page['lines'][0]['banner_moves'] == ['down']
+    assert 'banner_moves' not in page['lines'][5]     # rows with words get no button
+
+    moved = client.post('/api/layout-studio/mesaha/empty-line-move',
+                        json={'page_number': 579, 'line_number': 1, 'direction': 'down'})
+    assert moved.status_code == 200, moved.get_json()
+    assert moved.get_json()['moved_to_line'] == 5
+    assert _types(db, 579) == 'ENIBE......'           # crossed the whole banner, landed in the new surah
+    with sqlite3.connect(db) as conn:
+        banner_surah, row_surah = (r[0] for r in conn.execute(
+            "SELECT surah_number FROM pages WHERE page_number = 579 AND line_number IN (2, 5) ORDER BY line_number"))
+    assert row_surah == banner_surah
+    assert [r[2:4] for r in _rows(db, 578, 580) if r[2] is not None] == words_before   # no word moved
+
+    # Now next to the new surah's text, the fill dialog offers its words.
+    preview = client.post('/api/layout-studio/mesaha/fill-line',
+                          json={'page_number': 579, 'line_number': 5, 'preview': True}).get_json()['preview']
+    assert preview['next'] and preview['next']['page'] == 579
+
+    back = client.post('/api/layout-studio/mesaha/empty-line-move',
+                       json={'page_number': 579, 'line_number': 5, 'direction': 'up'})
+    assert back.status_code == 200, back.get_json()
+    assert _types(db, 579) == 'EENIB......'
+    undone = client.post('/api/layout-studio/mesaha/undo', json={'page_number': 579})
+    assert undone.status_code == 200
+    assert _types(db, 579) == 'ENIBE......'
+
+
+def test_mesaha_empty_row_move_refusals(client, restore_mesaha_layout_db):
+    db = restore_mesaha_layout_db
+    before = _rows(db, 578, 580)
+    for body, reason in (
+        ({'page_number': 579, 'line_number': 6, 'direction': 'up'}, 'الفارغة'),     # a row with words
+        ({'page_number': 579, 'line_number': 1, 'direction': 'up'}, 'لا يوجد'),     # no banner above it on the page
+    ):
+        refused = client.post('/api/layout-studio/mesaha/empty-line-move', json=body)
+        assert refused.status_code == 400 and reason in refused.get_json()['error']
+    assert _rows(db, 578, 580) == before
