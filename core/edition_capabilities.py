@@ -29,6 +29,8 @@ EDITOR_EDITION_CAPABILITIES: tuple[EditorEditionCapability, ...] = (
     # published and read publicly like the others; the column covers the whole book. Not editable in
     # /mushaf-editor yet (no Mesaha spread pages there).
     EditorEditionCapability('المساحة', editor_enabled=False),
+    # The 1371 AH / 1952 printing of the same plates with its revised signs (pipeline/add_mesaha1371_waqf_column.py).
+    EditorEditionCapability('المساحة ١٣٧١', editor_enabled=False),
 )
 
 _BY_EDITION = {

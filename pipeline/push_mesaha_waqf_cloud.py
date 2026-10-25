@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Upload the «المساحة» waqf column from mushaf_waqf.db to the cloud and publish it.
+"""Upload a Mesaha waqf column («المساحة», or «المساحة ١٣٧١» with --edition) from mushaf_waqf.db to the cloud and publish it.
 
 The local column (built by add_mesaha_waqf_column.py from the reviewed cards) is the source:
 each local mark is mapped onto the cloud's word numbering (the canonical within-ayah token, as
@@ -57,9 +57,12 @@ def diff(local: dict, published: dict[tuple[int, int, int], str]) -> list[dict]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    global EDITION
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--apply', action='store_true', help='upload the differences and publish them')
+    ap.add_argument('--edition', default='المساحة', choices=['المساحة', 'المساحة ١٣٧١'])
     args = ap.parse_args(argv)
+    EDITION = args.edition
     from dotenv import load_dotenv
     load_dotenv(ROOT / '.env')
     if not sb.is_configured():

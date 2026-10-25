@@ -84,6 +84,7 @@ def test_complete_mesaha_column_is_offered_to_readers(client):
     with sqlite3.connect(MUSHAF_WAQF_DATABASE) as conn:      # every page but the cover is covered
         pages = {r[0] for r in conn.execute("SELECT page_number FROM waqf_column_pages WHERE edition = 'المساحة'")}
     assert pages == set(range(2, 828))
+    assert 'المساحة ١٣٧١' in versions                       # the 1952 printing, also complete
 
 
 def test_mesaha_column_matches_resolved_cards():

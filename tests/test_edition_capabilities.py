@@ -18,8 +18,8 @@ from pipeline.check_supabase_readiness import _compare_edition_capabilities
 
 
 EXPECTED = frozenset({'قطر', 'الكويت', 'البحرين'})
-# المساحة: cloud drafts, publish and public reading, but no editor pages yet
-CLOUD_ONLY = frozenset({'المساحة'})
+# المساحة (1924) and المساحة ١٣٧١ (1952): cloud drafts, publish and public reading, but no editor pages yet
+CLOUD_ONLY = frozenset({'المساحة', 'المساحة ١٣٧١'})
 
 
 def test_compatibility_sets_are_registry_projections():
@@ -97,3 +97,4 @@ def test_supabase_migrations_seed_registry_capabilities():
         for edition in EXPECTED:
             assert f"('{edition}', true, true, true, true, now())" in sql
         assert "('المساحة', false, true, true, true, now())" in sql
+        assert "('المساحة ١٣٧١', false, true, true, true, now())" in sql

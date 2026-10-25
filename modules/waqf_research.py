@@ -1034,6 +1034,7 @@ MUSHAF_AGREE_MARKS = {
     'الكويت':  _HAFS_AGREE_MARKS,
     'البحرين': _HAFS_AGREE_MARKS,
     'المساحة': _HAFS_AGREE_MARKS,
+    'المساحة ١٣٧١': _HAFS_AGREE_MARKS,
     'الأزهر': [
         {'sym': 'م',  'dir': 'stop',   'name': 'لازم',   'glyph': 'ۘ'},
         {'sym': 'لا', 'dir': 'nostop', 'name': 'لا وقف', 'glyph': 'ۙ'},
