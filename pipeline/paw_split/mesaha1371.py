@@ -307,6 +307,35 @@ def build_cards(pages: list[int]) -> dict:
     return dict(Counter(c['group'] for c in cards))
 
 
+EXTRA_SET = 'mesaha-waqf-1371-la'
+
+
+def build_extra_cards() -> dict:
+    """Cards for the signs 1952 adds on words no print marks (extra_marks.json: the «لا» before a verse ring),
+    so the reviewer can confirm each one. Same decision store as the main 1952 set."""
+    from collections import Counter
+    extra = json.loads((ROOT / 'data' / 'mesaha-waqf' / CARD_SET / 'extra_marks.json').read_text(encoding='utf-8'))
+    out = ROOT / 'data' / 'mesaha-waqf' / EXTRA_SET
+    (out / 'cards').mkdir(parents=True, exist_ok=True)
+    cards = []
+    for x in extra:
+        if x.get('word_index') is None:          # 2:2, read off the opening page by eye
+            continue
+        page = x['page']
+        d = json.load(open(TRACE / f'paw-words-{page:03d}.json', encoding='utf-8'))
+        w = next(v for v in d['words'] if v['word_index'] == x['word_index'])
+        r = next((v for v in json.load(open(WORK / f'waqf-{page:03d}.json', encoding='utf-8'))['signs']
+                  if v['word_index'] == x['word_index']), None)
+        cid = f'{page:03d}-{x["word_index"]}'
+        card_image(page, w, d, r, out / 'cards' / f'{cid}.jpg')
+        cards.append({'id': cid, 'page': page, 'line': w['line'], 'word_index': x['word_index'], 'key': x['key'],
+                      'text': x['text'], 'group': 'B', 'model': x['mark'], 'conf': r['conf'] if r else None,
+                      'hint': {}, 'suggest': x['mark']})
+    data = {'pages': sorted({c['page'] for c in cards}), 'decision_edition': DECISION_EDITION, 'cards': cards, 'a_sample': []}
+    (out / 'data.json').write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding='utf-8')
+    return dict(Counter(c['model'] for c in cards))
+
+
 def main(argv: list[str]) -> int:
     cmd, pages = argv[0], [int(x) for x in argv[1:]]
     OUT.mkdir(parents=True, exist_ok=True)
@@ -333,6 +362,9 @@ def main(argv: list[str]) -> int:
         return 0
     if cmd == 'cards':
         print(CARD_SET, build_cards(pages))
+        return 0
+    if cmd == 'extra-cards':
+        print(EXTRA_SET, build_extra_cards())
         return 0
     raise SystemExit(f'unknown command {cmd!r}')
 

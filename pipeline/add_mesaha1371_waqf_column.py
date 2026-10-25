@@ -6,7 +6,8 @@ column is the 1924 «المساحة» column with:
   - every 1952 review card's decision (data/mesaha-waqf/mesaha-waqf-1371, saved under «المساحة ١٣٧١ · فحص»);
     the cards cover every word some print marks whose 1952 reading differs from 1924;
   - data/mesaha-waqf/mesaha-waqf-1371/extra_marks.json: signs 1952 adds on words no print marks (103 «لا»
-    before a verse ring) and 2:2, read by eye.
+    before a verse ring) and 2:2, read by eye; the «لا» are reviewed as the set mesaha-waqf-1371-la, whose
+    decisions win.
 Every card must be decided. A mark on a word with no waqf row gets a new row.
 
 Dry run by default; ``--apply`` writes, after a backup.
@@ -65,7 +66,9 @@ def target(conn, cards: list[dict], decisions: dict, extra: list[dict]) -> tuple
         if key is None or x['mark'] not in SIGNS:
             problems.append(f"extra {x['key']}: bad key or mark")
             continue
-        marks[key] = x['mark']
+        # reviewed in the mesaha-waqf-1371-la set: the decision wins (undecided: the mark read by eye)
+        decided = decisions.get((int(x['page']), int(x['word_index']))) if x.get('word_index') else None
+        marks[key] = x['mark'] if decided is None else decided
     return {k: v for k, v in marks.items()}, problems
 
 
