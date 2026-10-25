@@ -44,6 +44,12 @@ def available_sets() -> list[str]:
     return sorted(p.name for p in root.iterdir() if _SET_NAME.match(p.name) and (p / 'data.json').is_file())
 
 
+def set_edition(data: dict) -> str:
+    """The decision store a card set writes to: «المساحة · فحص» for the 1924 print unless the set names
+    another (the 1952 print's cards keep their own decisions on the same words)."""
+    return str(data.get('decision_edition') or DECISION_EDITION)
+
+
 def _load_set(name: str) -> dict | None:
     if not _SET_NAME.match(name or ''):
         return None
@@ -65,9 +71,9 @@ def _cloud() -> bool:
     return sb.is_configured()
 
 
-def load_decisions() -> dict[tuple[int, int], dict]:
+def load_decisions(edition: str = DECISION_EDITION) -> dict[tuple[int, int], dict]:
     if _cloud():
-        rows = sb.list_mark_review_decisions_all(DECISION_EDITION)
+        rows = sb.list_mark_review_decisions_all(edition)
     else:
         if not os.path.isfile(wmr.MARK_REVIEW_STORE_DATABASE):
             return {}
@@ -77,7 +83,7 @@ def load_decisions() -> dict[tuple[int, int], dict]:
                 return {}
             cur = conn.execute(
                 'SELECT page_number, word_id, decision, our_mark, correct_mark, updated_at '
-                'FROM waqf_mark_review_decisions WHERE edition = ?', (DECISION_EDITION,))
+                'FROM waqf_mark_review_decisions WHERE edition = ?', (edition,))
             cols = [c[0] for c in cur.description]
             rows = [dict(zip(cols, r)) for r in cur.fetchall()]
         finally:
@@ -85,10 +91,10 @@ def load_decisions() -> dict[tuple[int, int], dict]:
     return {(int(r['page_number']), int(r['word_id'])): r for r in rows}
 
 
-def _row(card: dict, mark: str) -> dict:
+def _row(card: dict, mark: str, edition: str = DECISION_EDITION) -> dict:
     s, a = (int(x) for x in card['key'].split(':')[:2]) if card.get('key') else (None, None)
     model = card.get('model') or ''
-    return {'edition': DECISION_EDITION, 'page_number': int(card['page']), 'word_id': int(card['word_index']),
+    return {'edition': edition, 'page_number': int(card['page']), 'word_id': int(card['word_index']),
             'decision': 'ok' if mark == model else 'wrong', 'our_mark': model, 'correct_mark': mark,
             'surah': s, 'ayah': a, 'word_text': card.get('text') or ''}
 
@@ -105,12 +111,12 @@ def save_decisions(rows: list[dict]) -> None:
                                  r['correct_mark'], r['surah'], r['ayah'], r['word_text'])
 
 
-def delete_decision(card: dict) -> None:
+def delete_decision(card: dict, edition: str = DECISION_EDITION) -> None:
     if _cloud():
-        sb.delete_mark_review_decision(edition=DECISION_EDITION, page_number=int(card['page']),
+        sb.delete_mark_review_decision(edition=edition, page_number=int(card['page']),
                                        word_id=int(card['word_index']))
     else:
-        wmr._delete_decision_local(DECISION_EDITION, int(card['page']), int(card['word_index']))
+        wmr._delete_decision_local(edition, int(card['page']), int(card['word_index']))
 
 
 def _decision_view(row: dict | None) -> dict | None:
@@ -141,7 +147,7 @@ def mesaha_waqf_cards():
         return jsonify({'error': 'no_set', 'sets': sets,
                         'message': 'لا توجد بطاقات المساحة على هذا الخادم — تُبنى على الجهاز الذي فيه صور الصفحات.'}), 404
     try:
-        decisions = load_decisions()
+        decisions = load_decisions(set_edition(data))
     except sb.SupabaseEditorError as exc:
         logger.error('mesaha waqf decisions read failed: %s', exc)
         return jsonify({'error': 'cloud unavailable'}), 503
@@ -172,12 +178,12 @@ def mesaha_waqf_decision():
         return jsonify({'error': 'unknown card'}), 404
     try:
         if request.method == 'DELETE':
-            delete_decision(card)
+            delete_decision(card, set_edition(data))
             return jsonify({'ok': True, 'decision': None})
         mark = str(body.get('mark') or '').strip()
         if mark and mark not in SIGNS:
             return jsonify({'error': 'invalid mark'}), 400
-        save_decisions([_row(card, mark)])
+        save_decisions([_row(card, mark, set_edition(data))])
     except sb.SupabaseEditorError as exc:
         logger.error('mesaha waqf decision failed: %s', exc)
         return jsonify({'error': 'cloud write failed'}), 503
@@ -195,8 +201,8 @@ def mesaha_waqf_accept():
     if group not in GROUPS:
         return jsonify({'error': 'invalid group'}), 400
     try:
-        decided = load_decisions()
-        rows = [_row(c, c.get('model') or '') for c in data['cards']
+        decided = load_decisions(set_edition(data))
+        rows = [_row(c, c.get('model') or '', set_edition(data)) for c in data['cards']
                 if _in_group(data, c, group) and (int(c['page']), int(c['word_index'])) not in decided]
         save_decisions(rows)
     except sb.SupabaseEditorError as exc:
