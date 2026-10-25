@@ -66,3 +66,9 @@ body.athar-waqf-lab .wq-lab-chrome { padding: 10px clamp(14px, 3vw, 28px) 6px; }
     body.athar-waqf-lab .wq-lab-family-sub { font-size: 0.68rem; }
     body.athar-waqf-lab .wq-lab-families { gap: 4px; padding: 4px; }
 }
+.wq-research-export {
+    margin-inline-start: 10px; font: inherit; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+    padding: 2px 12px; border-radius: 999px; color: var(--wq-accent-strong);
+    background: var(--wq-surface); border: 1px solid var(--wq-border);
+}
+.wq-research-export:hover { border-color: var(--wq-accent); }

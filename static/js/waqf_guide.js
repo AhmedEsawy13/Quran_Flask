@@ -759,9 +759,25 @@
         const renderItem = o => hitRowFromOcc(o, {
             title: `افتح ${surahName(o.surah)} ${toAr(o.surah)}:${toAr(o.ayah)} لرؤية وقوف القرّاء والمصاحف`,
         });
-        els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا</div>`
-            + modeNote + paginateList('word', list, renderItem);
+        els.researchResults.innerHTML = `<div class="wq-research-count">${toAr(list.length)} موضعًا`
+            + (IS_LAB ? ' <button type="button" class="wq-research-export" id="wq-research-export"><i class="fas fa-download" aria-hidden="true"></i> CSV</button>' : '')
+            + '</div>' + modeNote + paginateList('word', list, renderItem);
         wireHitMore(els.researchResults, 'word', list, renderItem);
+        const exp = $('wq-research-export');
+        if (exp) exp.addEventListener('click', () => exportResearchCsv(list));
+    }
+
+    function exportResearchCsv(list) {
+        const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+        const rows = [['surah', 'ayah', 'wpos', 'word', 'waqf_sign', 'marks', 'context'].join(',')]
+            .concat(list.map(o => [o.surah, o.ayah, o.wpos, q(o.word), q(o.waqf),
+                q(Object.entries(o.marks || {}).map(([k, v]) => k + ':' + v).join(' | ')), q(o.context)].join(',')));
+        const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'waqf-lab-' + (researchState.word || 'results') + '.csv';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }
 
     /* ── solo stops (انفرادات القرّاء) ────────────────────────────── */
@@ -2641,6 +2657,17 @@
     /* ── init ─────────────────────────────────────────────────── */
     async function init() {
         try {
+            if (IS_LAB) {
+                // "/" jumps to the word search, like most research tools
+                document.addEventListener('keydown', e => {
+                    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+                    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) return;
+                    if (!els.researchInput) return;
+                    e.preventDefault();
+                    document.querySelector('.wq-lab-tab[data-tab="word"]')?.click();
+                    els.researchInput.focus();
+                });
+            }
             await loadSurahs();
             if (IS_LAB) {
                 setupResearch();

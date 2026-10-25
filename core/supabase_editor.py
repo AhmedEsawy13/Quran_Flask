@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from typing import Any
 
@@ -367,10 +368,8 @@ def fetch_marks_for_ayahs(*, edition: str, status: str,
         return out
 
     # PostgREST or=(and(...),and(...)) — chunk to keep URLs sane.
-    chunk_size = 40
-    fresh: list[dict] = []
-    for i in range(0, len(missing), chunk_size):
-        chunk = missing[i:i + chunk_size]
+    chunk_size = 80
+    def _fetch_chunk(chunk):
         parts = [f'and(surah.eq.{s},ayah.eq.{a})' for s, a in chunk]
         params = {
             'edition': f'eq.{edition}',
@@ -378,7 +377,19 @@ def fetch_marks_for_ayahs(*, edition: str, status: str,
             'or': f'({",".join(parts)})',
             'select': 'edition,surah,ayah,token_index,symbol,word_text,status',
         }
-        fresh.extend(_request('GET', 'editor_marks', params=params) or [])
+        return _request('GET', 'editor_marks', params=params) or []
+
+    chunks = [missing[i:i + chunk_size] for i in range(0, len(missing), chunk_size)]
+    fresh: list[dict] = []
+    if len(chunks) == 1:
+        fresh.extend(_fetch_chunk(chunks[0]))
+    else:
+        # Independent GETs: run them concurrently (a whole-Quran word search
+        # needs ~25 chunks; sequentially that was 10+ s). map() keeps order and
+        # re-raises the first failure like the sequential loop did.
+        with ThreadPoolExecutor(max_workers=_CHUNK_WORKERS) as pool:
+            for rows in pool.map(_fetch_chunk, chunks):
+                fresh.extend(rows)
 
     by_ayah: dict[tuple[int, int], list[dict]] = {key: [] for key in missing}
     for row in fresh:
@@ -393,6 +404,7 @@ def fetch_marks_for_ayahs(*, edition: str, status: str,
     return out
 
 
+_CHUNK_WORKERS = 8
 # Short-lived ayah mark cache — spread navigation re-hits the same verses.
 _MARK_AYAH_CACHE: dict[tuple[str, str, int, int], tuple[float, list[dict]]] = {}
 _MARK_AYAH_TTL_SEC = 45.0
