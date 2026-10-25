@@ -18,7 +18,7 @@ from pipeline.check_supabase_readiness import _compare_edition_capabilities
 
 
 EXPECTED = frozenset({'قطر', 'الكويت', 'البحرين'})
-# المساحة: cloud drafts + publish only (no editor pages yet, partial column not read publicly)
+# المساحة: cloud drafts, publish and public reading, but no editor pages yet
 CLOUD_ONLY = frozenset({'المساحة'})
 
 
@@ -26,7 +26,7 @@ def test_compatibility_sets_are_registry_projections():
     assert EDITOR_EDITIONS == editions_with('editor_enabled') == EXPECTED
     assert CLOUD_EDITOR_EDITIONS == editions_with('cloud_draft_enabled') == EXPECTED | CLOUD_ONLY
     assert PUBLISHABLE_EDITOR_EDITIONS == editions_with('publish_enabled') == EXPECTED | CLOUD_ONLY
-    assert PUBLIC_CLOUD_WAQF_EDITIONS == editions_with('public_read_enabled') == EXPECTED
+    assert PUBLIC_CLOUD_WAQF_EDITIONS == editions_with('public_read_enabled') == EXPECTED | CLOUD_ONLY
     assert get_editor_edition_capability(' البحرين ').publish_enabled is True
     assert get_editor_edition_capability('unknown') is None
 
@@ -96,4 +96,4 @@ def test_supabase_migrations_seed_registry_capabilities():
         assert 'grant select on table public.editor_edition_capabilities to service_role' in sql
         for edition in EXPECTED:
             assert f"('{edition}', true, true, true, true, now())" in sql
-        assert "('المساحة', false, true, true, false, now())" in sql
+        assert "('المساحة', false, true, true, true, now())" in sql

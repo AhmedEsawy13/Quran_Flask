@@ -74,12 +74,16 @@ def test_card_image_name_is_checked(client, review):
     assert client.get('/api/mushaf-editor/mesaha-waqf/card?set=other&f=005-264.jpg').status_code == 404
 
 
-def test_partial_mesaha_column_is_not_offered_to_readers(client):
-    from core.mushaf_waqf import PARTIAL_WAQF_COLUMNS, _get_mushaf_version_whitelist
+def test_complete_mesaha_column_is_offered_to_readers(client):
+    import sqlite3
+    from core.config import MUSHAF_WAQF_DATABASE
+    from core.mushaf_waqf import PARTIAL_WAQF_COLUMNS
     versions = client.get('/api/mushaf-versions').get_json()
-    assert 'المساحة' in PARTIAL_WAQF_COLUMNS
-    assert 'المساحة' not in versions and 'البحرين' in versions
-    assert 'المساحة' in _get_mushaf_version_whitelist()      # still queryable
+    assert 'المساحة' not in PARTIAL_WAQF_COLUMNS
+    assert 'المساحة' in versions and 'البحرين' in versions
+    with sqlite3.connect(MUSHAF_WAQF_DATABASE) as conn:      # every page but the cover is covered
+        pages = {r[0] for r in conn.execute("SELECT page_number FROM waqf_column_pages WHERE edition = 'المساحة'")}
+    assert pages == set(range(2, 828))
 
 
 def test_mesaha_column_matches_resolved_cards():

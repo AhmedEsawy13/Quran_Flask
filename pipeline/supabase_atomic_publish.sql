@@ -25,7 +25,7 @@ values
   ('قطر', true, true, true, true, now()),
   ('الكويت', true, true, true, true, now()),
   ('البحرين', true, true, true, true, now()),
-  ('المساحة', false, true, true, false, now())
+  ('المساحة', false, true, true, true, now())
 on conflict (edition) do update
 set editor_enabled = excluded.editor_enabled,
     cloud_draft_enabled = excluded.cloud_draft_enabled,

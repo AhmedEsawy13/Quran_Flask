@@ -57,10 +57,10 @@ def _get_mushaf_version_whitelist():
     return frozenset(col for col in cols[4:] if col not in helper_columns)
 
 
-# Columns that cover only part of the book so far (the reviewed Mesaha pages, listed in the
-# waqf_column_pages table). They stay queryable, but are left out of the public print list and of
-# whole-book comparisons until complete.
-PARTIAL_WAQF_COLUMNS = frozenset({'المساحة'})
+# Columns that cover only part of the book so far (their pages are listed in the waqf_column_pages
+# table). They stay queryable, but are left out of the public print list and of whole-book
+# comparisons until complete. «المساحة» became complete on 2026-10-25 (pages 2-827).
+PARTIAL_WAQF_COLUMNS: frozenset[str] = frozenset()
 
 
 def public_mushaf_versions() -> list[str]:

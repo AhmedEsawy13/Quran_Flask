@@ -25,10 +25,10 @@ EDITOR_EDITION_CAPABILITIES: tuple[EditorEditionCapability, ...] = (
     EditorEditionCapability('قطر'),
     EditorEditionCapability('الكويت'),
     EditorEditionCapability('البحرين'),
-    # Reviewed Mesaha signs (pipeline/add_mesaha_waqf_column.py → push_mesaha_waqf_cloud.py), stored and
-    # published in the cloud like the others. Not editable in /mushaf-editor yet (no Mesaha spread
-    # pages there) and not read publicly: the column covers only the layout-checked pages so far.
-    EditorEditionCapability('المساحة', editor_enabled=False, public_read_enabled=False),
+    # Reviewed Mesaha signs (pipeline/add_mesaha_waqf_column.py → push_mesaha_waqf_cloud.py), stored,
+    # published and read publicly like the others; the column covers the whole book. Not editable in
+    # /mushaf-editor yet (no Mesaha spread pages there).
+    EditorEditionCapability('المساحة', editor_enabled=False),
 )
 
 _BY_EDITION = {
