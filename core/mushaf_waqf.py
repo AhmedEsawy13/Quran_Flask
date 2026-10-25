@@ -10,6 +10,7 @@ cloud marks only (drafts stay editor-private). Other editions stay on SQLite.
 import logging
 import os
 import sqlite3
+from concurrent.futures import ThreadPoolExecutor
 from collections import OrderedDict
 from functools import lru_cache
 
@@ -210,6 +211,8 @@ def _fetch_published_cloud_waqf(surah_number, ayah_number, mushaf_version):
 
 def _cloud_rows_to_mushaf_rows(rows) -> list[dict]:
     result = []
+    # batch fetches return rows unordered; the per-verse query is token-ordered
+    rows = sorted(rows, key=lambda r: (r.get('token_index') is None, r.get('token_index') or 0))
     for row in rows:
         symbol = (row.get('symbol') or '').strip()
         if not symbol:
@@ -245,20 +248,18 @@ def prefetch_cloud_published_for_ayahs(ayah_keys, mushaf_versions) -> None:
         return
 
     unique_keys = sorted({(int(s), int(a)) for s, a in ayah_keys})
-    for ver in cloud_versions:
-        missing = []
-        for surah, ayah in unique_keys:
-            if _mushaf_waqf_cache.get((surah, ayah, ver)) is None:
-                missing.append((surah, ayah))
+
+    def _fill(ver):
+        missing = [key for key in unique_keys if _mushaf_waqf_cache.get((*key, ver)) is None]
         if not missing:
-            continue
+            return
         try:
             rows = sb.fetch_marks_for_ayahs(
                 edition=ver, status='published', ayah_keys=missing,
             )
         except sb.SupabaseEditorError as e:
             logger.error('cloud published batch fetch failed: %s', e)
-            continue
+            return
 
         by_ayah: dict[tuple[int, int], list] = {key: [] for key in missing}
         for row in rows:
@@ -267,6 +268,13 @@ def prefetch_cloud_published_for_ayahs(ayah_keys, mushaf_versions) -> None:
                 by_ayah[key].append(row)
         for key, ayah_rows in by_ayah.items():
             _mushaf_waqf_cache[(*key, ver)] = _cloud_rows_to_mushaf_rows(ayah_rows)
+
+    if len(cloud_versions) == 1:
+        _fill(cloud_versions[0])
+    else:
+        # one request per edition, independent — overlap the round trips
+        with ThreadPoolExecutor(max_workers=len(cloud_versions)) as pool:
+            list(pool.map(_fill, cloud_versions))
 
 
 def _fetch_single_mushaf_waqf(surah_number, ayah_number, mushaf_version):

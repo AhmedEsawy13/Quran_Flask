@@ -22,6 +22,7 @@ from core.config import (
 from core.mushaf_waqf import (
     _is_valid_mushaf_version,
     get_mushaf_waqf_symbols,
+    prefetch_cloud_published_for_ayahs,
 )
 from core.lru import _BoundedLRU
 from core.db import connect as _sqlite_connect
@@ -150,6 +151,8 @@ def _build_verse_waqf_detail_uncached(surah, ayah):
 
     # Mushaf waqf marks (المدينة / الأزهر / الشمرلي): the *prescribed* stops, so
     # we can compare how closely the reciters follow each printed mushaf.
+    # cloud editions: one overlapped batch instead of a serial request per edition
+    prefetch_cloud_published_for_ayahs([(surah, ayah)], tuple(dict.fromkeys(_WAQF_COMPARE_MUSHAFS + _WAQF_MATCH_MUSHAFS)))
     mushafs = []
     for ver in _WAQF_COMPARE_MUSHAFS:
         marks = []
