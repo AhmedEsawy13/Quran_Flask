@@ -82,8 +82,10 @@ from pipeline.cv_waqf.layout_geo import physical_slots  # noqa: E402
 _slot_of, NSLOTS = physical_slots(EDITIONS['المساحة'], [{'line_number': r[0], 'line_type': r[1]} for r in rows])
 # An empty ayah row is a printed slot with no text (a band before a banner, a short page end): like a
 # banner slot, the comb keeps it and no words go there.
-if any(r[1] != 'ayah' or r[2] is None for r in rows) and NSLOTS != 12:
-    sys.exit(f'page {PAGE}: {NSLOTS} printed slots - only 12-slot pages')
+if any(r[1] != 'ayah' or r[2] is None for r in rows) and NSLOTS not in (12, 13):
+    sys.exit(f'page {PAGE}: {NSLOTS} printed slots - only 12- and 13-slot pages')
+# 820, 824 and 826 squeeze 13 slots into the frame of 12: the same span, eleven gaps become twelve
+PITCH_SCALE = 11 / (NSLOTS - 1) if NSLOTS > 1 else 1.0
 TEXT_ROWS = [r for r in rows if r[1] == 'ayah' and r[2] is not None]
 TEXT_SLOTS = [_slot_of[r[0]] for r in TEXT_ROWS]
 LINE_NUMBERS = [r[0] for r in TEXT_ROWS]       # layout row number of each text line (differs on header pages)
@@ -112,7 +114,7 @@ if NL != len(line_tokens):
     # side rules and the last 169-188 px above their bottom, at 152-158 px pitch. Within those limits the
     # comb is scored on the text slots only (the banner's and the frame strip's ink is not text).
     _best = max(((sum(_prof[int(y0 + i * pt)] for i in TEXT_SLOTS), y0, pt)
-                 for pt in np.arange(150.0, 160.5, 0.5)
+                 for pt in np.arange(150.0 * PITCH_SCALE, 160.5 * PITCH_SCALE, 0.5)
                  for y0 in range(FRAME_TOP + 188, FRAME_TOP + 220, 2)
                  if 164 <= FRAME_BOT - (y0 + (NL - 1) * pt) <= 194))
 else:
