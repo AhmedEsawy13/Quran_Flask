@@ -3,7 +3,7 @@
 (QUL) release.
 
 Source (CC-BY-4.0):
-  https://github.com/Wider-Community/quranic-universal-audio
+  https://github.com/QUD-Technologies/quranic-universal-audio
 
 Each reciter is published as a .zip containing word_timestamps.json.gz (and
 verse/letter timestamp variants) + catalog.json. The memorize player only needs
@@ -20,7 +20,7 @@ verse/letter timestamp variants) + catalog.json. The memorize player only needs
   4) Restart the app — the reciter now appears in the memorize «القارئ» list.
 
 ── Auto-sync mode (no manual download) ──────────────────────────────────────
-  Checks the LATEST GitHub release of Wider-Community/quranic-universal-audio
+  Checks the LATEST GitHub release of QUD-Technologies/quranic-universal-audio
   and re-downloads only the reciters whose data actually changed (compared via
   the release's manifest.json `content_hash`, tracked in
   reciters/.qul_sync_state.json).
@@ -68,7 +68,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WANTED = ('word_timestamps.json.gz', 'verse_timestamps.json.gz',
           'letter_timestamps.json.gz', 'catalog.json')
 
-QUL_REPO = 'Wider-Community/quranic-universal-audio'
+QUL_REPO = 'QUD-Technologies/quranic-universal-audio'
 GITHUB_API = 'https://api.github.com'
 STATE_PATH = os.path.join(ROOT, 'reciters', '.qul_sync_state.json')
 

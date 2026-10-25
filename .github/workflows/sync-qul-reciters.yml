@@ -1,7 +1,7 @@
 name: Sync QUL reciter data
 
 # Periodically checks the latest release of
-# https://github.com/Wider-Community/quranic-universal-audio for updated
+# https://github.com/QUD-Technologies/quranic-universal-audio for updated
 # per-reciter word/verse/letter timestamps and opens a PR with any changes.
 
 on:
@@ -55,7 +55,7 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         run: |
           {
-            echo "Auto-sync from https://github.com/Wider-Community/quranic-universal-audio releases."
+            echo "Auto-sync from https://github.com/QUD-Technologies/quranic-universal-audio releases."
             echo
             python3 scripts/import_qul_reciters.py --sync
           } | tee /tmp/sync.log

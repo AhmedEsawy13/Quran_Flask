@@ -192,7 +192,7 @@ def _gd_browser_audio_url(reciter_id: str, surah: int) -> str | None:
 
 # ── Memorization reciters ────────────────────────────────────────────────
 # Each reciter needs a QUL `word_timestamps.json.gz` (from
-# Wider-Community/quranic-universal-audio — the same format as Husary above) in
+# QUD-Technologies/quranic-universal-audio — the same format as Husary above) in
 # its `dir`, plus a per-surah audio URL template. Reciters whose data file is
 # present are offered in the UI; the rest are ignored until imported.
 # To add one: drop <reciter>/word_timestamps.json.gz under reciters/ and add an
