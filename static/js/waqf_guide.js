@@ -1961,7 +1961,7 @@
         // back-ups (إعادة) are reconstructed identically and never double-counted.
         const lastW = d.words.length - 1;
         const markByWpos = new Map();
-        ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين'].forEach(id => {
+        ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين', 'المساحة'].forEach(id => {
             const m = (d.mushafs || []).find(x => x.id === id);
             if (m) m.marks.forEach(mk => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
         });
@@ -2315,7 +2315,7 @@
         // waqf symbol at each position (المدينة first, then others) so each
         // reciter stop can show its printed waqf rule like the main-page guide.
         const markByWpos = new Map();
-        ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين'].forEach(id => {
+        ['المدينة الجديد', 'المدينة ١٤٢٧', 'المدينة القديم', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين', 'المساحة'].forEach(id => {
             const m = (d.mushafs || []).find(x => x.id === id);
             if (m) m.marks.forEach(mk => { if (!markByWpos.has(mk.wpos)) markByWpos.set(mk.wpos, mk.symbol); });
         });
