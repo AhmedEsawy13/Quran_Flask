@@ -72,7 +72,7 @@
       ? `<div class="status">حُسم: ${sym(c.decision.mark)}${c.decision.mark === (c.model || '') ? ' (كما قرأ النموذج)' : ''}<button type="button" data-undo>تراجع</button></div>`
       : '';
     return `<figure class="card ${c.decision ? 'decided' : ''}" data-id="${esc(c.id)}">
-      <img loading="lazy" src="${img(c.id)}" alt="">
+      <img loading="lazy" src="${img(c.id)}" alt="" width="360" height="380">
       <div class="body">
         <div class="head"><span class="word">${esc(c.text)}</span><span class="where">ص ${c.page} · س ${c.line} · ${esc(c.key || '')}</span></div>
         <div class="verdict">النموذج ${sym(c.model)}${c.conf != null ? `<small>ثقة ${(c.conf * 100).toFixed(1)}%</small>` : ''}</div>
@@ -115,8 +115,20 @@
         method: undo ? 'DELETE' : 'POST', body: JSON.stringify({ set: state.set, id: card.id, mark }),
       });
       card.decision = r.decision;
-      // the same word can sit on another tab (the sample is part of A)
-      render();
+      // Update only this card (the sample is part of A, so it is the same object on both tabs): rebuilding the
+      // whole grid reloaded every image and threw the reviewer off their place.
+      const fig = $('#mw-grid').querySelector(`.card[data-id="${CSS.escape(card.id)}"]`);
+      if (fig) {
+        const top = fig.getBoundingClientRect().top;
+        fig.outerHTML = cardHtml(card);
+        if (document.body.classList.contains('hide-done') && card.decision) {
+          // the card hides itself; bring the next undecided card to where this one was
+          const next = [...$('#mw-grid').querySelectorAll('.card:not(.decided)')]
+            .find((el) => el.getBoundingClientRect().top >= top - 2);
+          if (next) window.scrollBy(0, next.getBoundingClientRect().top - top);
+        }
+      }
+      renderBar();
     } catch (e) { if (e.message !== 'login') toast(`لم يُحفظ: ${e.message}`); }
   }
 

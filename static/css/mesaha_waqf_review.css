@@ -13,3 +13,7 @@
 /* all five tabs always visible: wrap instead of the sideways-scrolling strip, which hid tabs on phones */
 #au-tabs{flex-wrap:wrap;overflow-x:visible}
 #au-tabs button{padding:6px 10px}
+
+/* Show each card image whole: the shared audit style crops to a 340:140 strip, which cut the 1924 | 1952
+   cards (1342 above 1371) down to their middle. */
+.card img { aspect-ratio: auto; height: auto; object-fit: contain; }
