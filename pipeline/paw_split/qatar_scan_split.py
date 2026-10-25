@@ -13,7 +13,8 @@ import sys as _sys
 from pathlib import Path as _Path
 _sys.path.insert(0, str(_Path(__file__).resolve().parents[2]))
 from pipeline.paw_split._common import ROOT, workdir  # noqa: E402
-workdir('qatar-scan')
+import os as _os
+workdir('qatar-scan' if _os.environ.get('PAW_PRINT', 'qatar') == 'qatar' else 'kuwait-scan')
 
 import json
 import os
@@ -24,17 +25,24 @@ import cv2
 import numpy as np
 
 PAGE = int(sys.argv[1]) if len(sys.argv) > 1 else 50
-QATAR_DB = f'{ROOT}/data/mushaf-qatar-layout.db'
+# The same split serves Kuwait (QPC v1 = 1405 Madinah layout) with PAW_PRINT=kuwait: its scan is 1024 px wide.
+PRINT = os.environ.get('PAW_PRINT', 'qatar')
+QATAR_DB = {'qatar': f'{ROOT}/data/mushaf-qatar-layout.db', 'kuwait': f'{ROOT}/data/qpc-v1-15-lines.db'}[PRINT]
 SCRIPT_DB = f'{ROOT}/data/mushaf-bahrain-layout.db'
 SLOTS = 15
 
-img = cv2.imread(f'{ROOT}/data/cv/pages/qatar/p{PAGE:03d}_w2000.jpg')
+img = cv2.imread(f'{ROOT}/data/cv/pages/{PRINT}/p{PAGE:03d}_' + ('w2000' if PRINT == 'qatar' else 'w1024') + '.jpg')
 H, W = img.shape[:2]
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 # The scan's "black" text is a dark, tinted ink (saturation up to ~240, value under ~100); the frame and the
 # verse rings are lighter colours. Brightness separates them, saturation does not.
 coloured = (hsv[..., 1] >= 90) & (hsv[..., 2] >= 110) & (hsv[..., 2] < 235)
 ink = (hsv[..., 2] < 110) & ~coloured
+if PRINT == 'kuwait':
+    # Kuwait: text, frame rules and verse rings are all the same dark brown; nothing is told apart by colour
+    _g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    ink = _g < cv2.threshold(_g, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[0]
+    coloured = np.zeros_like(ink)
 
 # --- text block: inside the coloured frame -------------------------------------------------------
 # From each page edge inward: the frame is the first thick band where the colour fills most of the middle;
@@ -56,8 +64,19 @@ def _inner_edge(frac, forward):
 
 _byrow = np.convolve(coloured[:, int(0.3 * W):int(0.7 * W)].mean(1), np.ones(5) / 5, mode='same')
 _bycol = np.convolve(coloured[int(0.3 * H):int(0.7 * H)].mean(0), np.ones(5) / 5, mode='same')
-by0, by1 = _inner_edge(_byrow, True), _inner_edge(_byrow, False)
-bx0, bx1 = _inner_edge(_bycol, True), _inner_edge(_bycol, False)
+if PRINT == 'kuwait':
+    # the frame's rules: ink pieces longer than half the page; the block is inside the innermost ones
+    _n0, _l0, _st0, _ = cv2.connectedComponentsWithStats(ink.astype(np.uint8), 8)
+    _rules = [i for i in range(1, _n0) if _st0[i, 2] > 0.5 * W or _st0[i, 3] > 0.5 * H]
+    # text touches the frame's inner rule, so the rules and the text near them are one piece: take the frame's
+    # box and step in by its border band; the sides by the measured inner rule (EditionSpec text_left/right)
+    _f = max(_rules, key=lambda i: _st0[i, 4])
+    _fx, _fy, _fw, _fh = (int(v) for v in _st0[_f][:4])
+    by0, by1 = _fy + int(0.006 * H), _fy + _fh - int(0.006 * H)
+    bx0, bx1 = int(0.135 * W), int(0.868 * W)
+else:
+    by0, by1 = _inner_edge(_byrow, True), _inner_edge(_byrow, False)
+    bx0, bx1 = _inner_edge(_bycol, True), _inner_edge(_bycol, False)
 M = 6
 bx0, bx1, by0, by1 = bx0 + M, bx1 - M, by0 + M, by1 - M
 inside = np.zeros_like(ink); inside[by0:by1, bx0:bx1] = True
@@ -84,9 +103,30 @@ _, _y0, _pt = _best
 _r = int(0.25 * _pt)
 SLOT_CENTRES = [max(range(int(_y0 + i * _pt) - _r, int(_y0 + i * _pt) + _r + 1), key=lambda y: _prof[y]) for i in range(SLOTS)]
 PITCH = float(_pt)
+if PRINT == 'kuwait':
+    # Kuwait prints a short header row (juz / surah name) inside the frame, one pitch above line 1, which a comb
+    # can take for line 1: take the 15 consecutive row peaks that hold the most ink instead
+    from scipy.signal import find_peaks
+    _sm = np.convolve(ink[:, bx0:bx1].sum(1).astype(float), np.ones(15) / 15, mode='same')
+    _pk, _ = find_peaks(_sm, distance=int(0.6 * _pt), prominence=_sm.max() * 0.1)
+    # text lines are justified to the full width (as are banners); the header row and page number are short
+    _bw = bx1 - bx0
+    def _extent(y):
+        cols = np.nonzero(ink[max(0, y - int(0.25 * _pt)):y + int(0.25 * _pt), bx0:bx1].any(0))[0]
+        return (cols[-1] - cols[0]) / _bw if len(cols) else 0
+    _pk = [y for y in _pk if _extent(y) > 0.6]
+    if len(_pk) >= SLOTS:
+        def _uneven(k):
+            d = np.diff(_pk[k:k + SLOTS])
+            return max(d) > 1.2 * np.median(d) or min(d) < 0.8 * np.median(d)
+        # the first full-width row is line 1 (the short header row above it is gone); the band around the page
+        # number below the text is wide too, so take the first evenly spaced run, not the inkiest one
+        _k = next((k for k in range(len(_pk) - SLOTS + 1) if not _uneven(k)), 0)
+        SLOT_CENTRES = [int(y) for y in _pk[_k:_k + SLOTS]]
+        PITCH = float(np.median(np.diff(SLOT_CENTRES)))
 
 bands = [(SLOT_CENTRES[n - 1] - 0.42 * PITCH, SLOT_CENTRES[n - 1] + 0.30 * PITCH) for n in LINE_NUMBERS]
-print('page', PAGE, 'pitch', round(PITCH, 1), 'text rows', len(rows))
+print('page', PAGE, 'pitch', round(PITCH, 1), 'text rows', len(rows), 'block', bx0, bx1, by0, by1, 'slots', [int(c) for c in SLOT_CENTRES])
 
 # --- ink pieces, verse rings ---------------------------------------------------------------------
 inside = np.zeros_like(ink); inside[int(by0):int(by1), int(bx0):int(bx1)] = True
@@ -111,6 +151,22 @@ rings = _ring_boxes(_grown)
 for r in _ring_boxes(cv2.morphologyEx(_grown, cv2.MORPH_CLOSE, np.ones((int(0.25 * PITCH), 9), np.uint8))):
     if not any(min(r['x1'], q['x1']) - max(r['x0'], q['x0']) > 0 and abs(r['cy'] - q['cy']) < 0.5 * PITCH for q in rings):
         rings.append(r)
+if PRINT == 'kuwait':
+    rings = []
+    # the ring outline is a light grey line (~200), lighter than the text: read it on a lighter threshold
+    _light = ((cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) < 228) & inside).astype(np.uint8)
+    _ln, _ll, _ls, _lc = cv2.connectedComponentsWithStats(_light, 8)
+    for i in range(1, _ln):
+        x, y, w, h, a = (int(v) for v in _ls[i])
+        if not (0.35 * PITCH < w < 0.8 * PITCH and 0.35 * PITCH < h < 0.8 * PITCH and 0.75 < w / h < 1.35):
+            continue
+        sub = (_ll[y:y + h, x:x + w] == i).astype(np.uint8)
+        filled = cv2.morphologyEx(sub, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
+        cnts, _h = cv2.findContours(filled, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        outer = np.zeros_like(filled); cv2.drawContours(outer, cnts, -1, 1, -1)
+        if outer.sum() and (outer.sum() - filled.sum()) / outer.sum() > 0.45:     # a ring: mostly hollow
+            rings.append(dict(x0=x, x1=x + w, cy=_lc[i][1]))
+    # the ring's own ink (outline darker spots, digits) goes to the ring token later (pieces inside its box)
 RING_SIZES = []
 
 line_h = np.median([b - a for a, b in bands])

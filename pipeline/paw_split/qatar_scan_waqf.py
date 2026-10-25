@@ -16,7 +16,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from pipeline.paw_split._common import ROOT  # noqa: E402
 
-WORK = ROOT / 'artifacts' / 'qatar-scan'
+PRINT = os.environ.get('PAW_PRINT', 'qatar')            # 'kuwait': kuwait_glyph.py's word boxes, «الكويت»
+WORK = ROOT / 'artifacts' / ('qatar-scan' if PRINT == 'qatar' else 'kuwait-scan')
+COLUMN = {'qatar': 'قطر', 'kuwait': 'الكويت'}[PRINT]
+SCAN = {'qatar': '_w2000.jpg', 'kuwait': '_w1024.jpg'}[PRINT]
+AREA_SCALE = {'qatar': 1.0, 'kuwait': (2062 / 1024) ** 2}[PRINT]
 SCRIPT_DB = ROOT / 'data' / 'mushaf-bahrain-layout.db'     # the Qatar layout's word ids; word n of a verse = waqf position n
 HAFS = ['المدينة الجديد', 'المدينة القديم', 'المدينة ١٤٢٧', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين', 'المساحة']
 
@@ -40,7 +44,7 @@ def read_signs(pages: list[int]) -> None:
     def imread(path, flags=None):          # page_signs opens the Mesaha page: hand it the Qatar scan
         p = str(path)
         if '/data/cv/pages/mesaha/' in p:
-            p = str(ROOT / 'data' / 'cv' / 'pages' / 'qatar' / Path(p).name.replace('_w1600.jpg', '_w2000.jpg'))
+            p = str(ROOT / 'data' / 'cv' / 'pages' / PRINT / Path(p).name.replace('_w1600.jpg', SCAN))
         return real(p, flags) if flags is not None else real(p)
     old = Path.cwd()
     os.chdir(WORK)
@@ -77,14 +81,16 @@ def compare(pages: list[int]) -> dict:
             if not hint:
                 continue
             r = signs.get(w['word_index'])
-            read = r['sign'] if r and counts(r, {c: v for c, v in hint.items() if c != 'قطر'}) else ''
-            col = hint.get('قطر', '')
+            if r and AREA_SCALE != 1:      # the size rule is in Mesaha-scan pixels (2062 px wide)
+                r = dict(r, piece_area=r['piece_area'] * AREA_SCALE)
+            read = r['sign'] if r and counts(r, {c: v for c, v in hint.items() if c != COLUMN}) else ''
+            col = hint.get(COLUMN, '')
             if read == col:
                 same += 1
             else:
                 diffs.append({'page': page, 'key': k, 'text': w['text'], 'word_index': w['word_index'], 'line': w['line'],
                               'qatar': col, 'read': read, 'conf': r['conf'] if r else None, 'r': r,
-                              'others': {c: v for c, v in hint.items() if c != 'قطر'}})
+                              'others': {c: v for c, v in hint.items() if c != COLUMN}})
     return {'same': same, 'diffs': diffs}
 
 
@@ -95,7 +101,7 @@ def main(argv: list[str]) -> int:
     elif cmd == 'compare':
         r = compare(pages)
         n = r['same'] + len(r['diffs'])
-        print(f"words any print marks: {n} · reading = «قطر» {r['same']} ({100 * r['same'] / max(1, n):.1f}%) · differ {len(r['diffs'])}")
+        print(f"words any print marks: {n} · reading = «{COLUMN}» {r['same']} ({100 * r['same'] / max(1, n):.1f}%) · differ {len(r['diffs'])}")
         print(Counter(f"{x['qatar'] or '-'}→{x['read'] or '-'}" for x in r['diffs']).most_common(12))
         (WORK / 'compare.json').write_text(json.dumps(r, ensure_ascii=False, indent=1), encoding='utf-8')
     return 0
