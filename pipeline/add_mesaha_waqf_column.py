@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Write the reviewed Mesaha waqf signs into mushaf_waqf.db as the «المساحة» column.
 
-Source: the review cards (data/mesaha-waqf/mesaha-waqf-all) and the decisions saved for them in
+Source: the review cards (data/mesaha-waqf/mesaha-waqf-all, pages 4-472; mesaha-waqf-473-827; and
+mesaha-waqf-header-pages, the 28 pages of 4-472 the split could not read at first) and
+the decisions saved for them in
 ``waqf_mark_review_decisions`` under «المساحة · فحص» (/mushaf-editor/mesaha-waqf). A word's mark
 is the decision when there is one; an undecided (أ) card takes the model's reading (what
 «اعتماد الكل» would save — 1,346 (أ) cards were checked by eye with no error); an undecided
@@ -36,7 +38,7 @@ from pipeline.paw_split.mesaha_waqf import SCRIPT_DB  # noqa: E402
 
 COLUMN = 'المساحة'
 DECISION_EDITION = 'المساحة · فحص'
-CARD_SET = 'mesaha-waqf-all'
+CARD_SETS = ('mesaha-waqf-all', 'mesaha-waqf-473-827', 'mesaha-waqf-header-pages')
 SIGNS = frozenset({'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع'})
 
 
@@ -98,7 +100,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument('--database', default=MUSHAF_WAQF_DATABASE)
     args = ap.parse_args(argv)
 
-    data = json.loads((Path(MESAHA_WAQF_CARDS_DIR) / CARD_SET / 'data.json').read_text(encoding='utf-8'))
+    data = {'cards': [], 'pages': []}
+    for name in CARD_SETS:
+        part = json.loads((Path(MESAHA_WAQF_CARDS_DIR) / name / 'data.json').read_text(encoding='utf-8'))
+        data['cards'] += part['cards']
+        data['pages'] += part['pages']
     decisions = load_decisions()
     marks, problems = resolve(data['cards'], decisions)
     pages = sorted(set(data['pages']))
