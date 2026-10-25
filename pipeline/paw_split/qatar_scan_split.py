@@ -63,18 +63,6 @@ bx0, bx1, by0, by1 = bx0 + M, bx1 - M, by0 + M, by1 - M
 inside = np.zeros_like(ink); inside[by0:by1, bx0:bx1] = True
 ink &= inside
 
-# --- 15 rows: an evenly spaced comb over the ink profile ------------------------------------------
-_prof = np.convolve(ink[:, bx0:bx1].sum(1).astype(float), np.ones(41) / 41, mode='same')
-_span = by1 - by0
-_best = max(((sum(_prof[int(y0 + i * pt)] for i in range(SLOTS)), y0, pt)
-             for pt in np.arange(0.060 * _span, 0.070 * _span, 0.5)
-             for y0 in range(by0, int(by0 + 0.06 * _span), 2) if y0 + (SLOTS - 1) * pt < by1))
-_, _y0, _pt = _best
-# each row settles on its own ink peak within a quarter pitch (the rows are not perfectly even on the scan)
-_r = int(0.25 * _pt)
-SLOT_CENTRES = [max(range(int(_y0 + i * _pt) - _r, int(_y0 + i * _pt) + _r + 1), key=lambda y: _prof[y]) for i in range(SLOTS)]
-PITCH = float(_pt)
-
 # --- layout tokens per line (ayah rows only; a header row keeps its slot) -------------------------
 q = sqlite3.connect(QATAR_DB)
 rows = q.execute("SELECT line_number, first_word_id, last_word_id FROM pages WHERE page_number=? AND line_type='ayah' "
@@ -83,6 +71,20 @@ s = sqlite3.connect(SCRIPT_DB)
 text = dict(s.execute('SELECT word_index, text FROM words WHERE word_index BETWEEN ? AND ?', (rows[0][1], rows[-1][2])))
 line_tokens = [[(wi, text[wi]) for wi in range(a, b + 1)] for _, a, b in rows]
 LINE_NUMBERS = [r[0] for r in rows]
+# --- 15 rows: an evenly spaced comb over the ink profile ------------------------------------------
+_prof = np.convolve(ink[:, bx0:bx1].sum(1).astype(float), np.ones(41) / 41, mode='same')
+_span = by1 - by0
+# scored on the text rows only: a surah banner or basmala row has its own ink, often at a different height
+_TEXT = [n - 1 for n in LINE_NUMBERS]
+_best = max(((sum(_prof[int(y0 + i * pt)] for i in _TEXT), y0, pt)
+             for pt in np.arange(0.060 * _span, 0.070 * _span, 0.5)
+             for y0 in range(by0, int(by0 + 0.06 * _span), 2) if y0 + (SLOTS - 1) * pt < by1))
+_, _y0, _pt = _best
+# each row settles on its own ink peak within a quarter pitch (the rows are not perfectly even on the scan)
+_r = int(0.25 * _pt)
+SLOT_CENTRES = [max(range(int(_y0 + i * _pt) - _r, int(_y0 + i * _pt) + _r + 1), key=lambda y: _prof[y]) for i in range(SLOTS)]
+PITCH = float(_pt)
+
 bands = [(SLOT_CENTRES[n - 1] - 0.42 * PITCH, SLOT_CENTRES[n - 1] + 0.30 * PITCH) for n in LINE_NUMBERS]
 print('page', PAGE, 'pitch', round(PITCH, 1), 'text rows', len(rows))
 
@@ -96,10 +98,20 @@ for i in range(1, n):
         continue
     pieces.append({'id': i, 'x0': x, 'x1': x + w, 'y0': y, 'y1': y + h, 'cx': cen[i][0], 'cy': cen[i][1], 'area': a})
 col = (coloured & inside).astype(np.uint8)
-cn, cl, cs, cc = cv2.connectedComponentsWithStats(cv2.dilate(col, np.ones((9, 9), np.uint8)), 8)
+def _ring_boxes(mask):
+    n_, _l, st_, cc_ = cv2.connectedComponentsWithStats(mask, 8)
+    return [dict(x0=int(st_[i][0]), x1=int(st_[i][0] + st_[i][2]), cy=cc_[i][1]) for i in range(1, n_)
+            if 0.45 * PITCH < st_[i][2] < 0.95 * PITCH and 0.5 * PITCH < st_[i][3] < 1.05 * PITCH]
+
+
+_grown = cv2.dilate(col, np.ones((9, 9), np.uint8))
+rings = _ring_boxes(_grown)
+# a ring's outline can break at its sides into a top and a bottom half (~0.3 pitch tall each): close them
+# vertically, and keep a joined ring only where no whole ring was found (closing merges neighbours otherwise)
+for r in _ring_boxes(cv2.morphologyEx(_grown, cv2.MORPH_CLOSE, np.ones((int(0.25 * PITCH), 9), np.uint8))):
+    if not any(min(r['x1'], q['x1']) - max(r['x0'], q['x0']) > 0 and abs(r['cy'] - q['cy']) < 0.5 * PITCH for q in rings):
+        rings.append(r)
 RING_SIZES = []
-rings = [dict(x0=int(cs[i][0]), x1=int(cs[i][0] + cs[i][2]), cy=cc[i][1]) for i in range(1, cn)
-         if 0.45 * PITCH < cs[i][2] < 0.95 * PITCH and 0.5 * PITCH < cs[i][3] < 1.05 * PITCH]
 
 line_h = np.median([b - a for a, b in bands])
 centres = [(a + b) / 2 for a, b in bands]
