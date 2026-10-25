@@ -32,6 +32,12 @@ SCRIPT_DB = EDITIONS['المساحة'].script_db
 HAFS = ['المدينة الجديد', 'المدينة القديم', 'المدينة ١٤٢٧', 'الشمرلي', 'الأزهر', 'قطر', 'الكويت', 'البحرين']
 WORK_WIDTH = 1024
 MIN_CONF = 0.5
+# how far from its end (left edge) into the word a sign may sit: Mesaha prints it over the end; Qatar centres
+# some signs over the word (qatar_scan_waqf sets 1.0)
+X_HI_FRAC = 0.45
+# a small piece at most this far (in line heights) above an alif's top is its hamza or madda, not a sign;
+# Qatar sets its signs lower, close over a final alif (qatar_scan_waqf sets 0.12)
+ALIF_GAP = 0.3
 
 
 def load_columns() -> dict:
@@ -46,7 +52,7 @@ def page_signs(page: int, clf, key_of, columns) -> dict:
     lab = np.load(f'labels-{page:03d}.npz')['lab']
     gray = cv2.imread(str(ROOT / 'data' / 'cv' / 'pages' / 'mesaha' / f'p{page:03d}_w1600.jpg'), cv2.IMREAD_GRAYSCALE)
     H, W = gray.shape
-    s = WORK_WIDTH / W
+    s = WORK_WIDTH / W                       # module attribute: qatar_scan_waqf reads at a larger size
     small = cv2.resize(gray, None, fx=s, fy=s, interpolation=cv2.INTER_AREA)
     ink = lab > 0
     bands = d['bands']
@@ -80,7 +86,7 @@ def page_signs(page: int, clf, key_of, columns) -> dict:
             alifs.append((sl[1].start, sl[1].stop, sl[0].start))
 
     def on_alif(px0, px1, py1):
-        return any(min(ax1, px1) - max(ax0, px0) >= 0.4 * (px1 - px0) and -0.05 * line_h <= ay0 - py1 <= 0.3 * line_h
+        return any(min(ax1, px1) - max(ax0, px0) >= 0.4 * (px1 - px0) and -0.05 * line_h <= ay0 - py1 <= ALIF_GAP * line_h
                    for ax0, ax1, ay0 in alifs)
 
     words = [w for w in d['words'] if not w['ring'] and w.get('pieces')]
@@ -95,7 +101,7 @@ def page_signs(page: int, clf, key_of, columns) -> dict:
         # a short word (بِهِۦ, رَبِّهِۦ, أُنثَىٰ) may carry its sign over any part of it: search at least
         # half a line pitch wide, and over the whole word when it is under 0.7 pitch
         width = max(w['x1'] - w['x0'], 0.5 * pitch)
-        x_lo, x_hi = w['x0'] - 0.3 * width - 5, w['x0'] + 0.45 * width + 5
+        x_lo, x_hi = w['x0'] - 0.3 * width - 5, w['x0'] + X_HI_FRAC * width + 5
         if w['x1'] - w['x0'] < 0.7 * pitch:
             x_hi = max(x_hi, w['x1'] + 5)
         y_lo, y_hi = base - 0.95 * pitch, base - 0.2 * line_h
