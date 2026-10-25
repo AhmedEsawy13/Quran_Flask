@@ -1,0 +1,68 @@
+/* مختبر الوقف — presentation layer over waqf_guide.css (lab page only).
+   Structure/colors still come from the shared أثَر tokens. */
+body.athar-waqf-lab .wq-intro.athar-tool-intro {
+    max-width: 1120px; padding-block: clamp(20px, 3.5vw, 36px) 14px;
+    grid-template-columns: 1fr auto; align-items: end; column-gap: 24px;
+}
+body.athar-waqf-lab .wq-intro .athar-kicker,
+body.athar-waqf-lab .wq-intro .athar-title,
+body.athar-waqf-lab .wq-intro .athar-lede { grid-column: 1; }
+body.athar-waqf-lab .wq-intro .athar-title { font-size: clamp(1.5rem, 3vw, 2.2rem); max-width: none; }
+body.athar-waqf-lab .wq-intro .athar-lede { font-size: 1rem; line-height: 1.8; max-width: 60ch; }
+body.athar-waqf-lab .wq-lab-back { grid-column: 2; grid-row: 1 / span 3; margin: 0; align-self: end; white-space: nowrap; }
+@media (max-width: 720px) {
+    body.athar-waqf-lab .wq-intro.athar-tool-intro { grid-template-columns: 1fr; }
+    body.athar-waqf-lab .wq-lab-back { grid-column: 1; grid-row: auto; }
+}
+
+body.athar-waqf-lab .wq-lab-main { max-width: 1120px; margin-inline: auto; padding-inline: clamp(12px, 3vw, 32px); }
+body.athar-waqf-lab .wq-lab-workspace { border-radius: 18px; min-height: 60vh; }
+
+/* family switcher: three large segmented cards */
+body.athar-waqf-lab .wq-lab-families { gap: 8px; padding: 6px; border-radius: 16px; }
+body.athar-waqf-lab .wq-lab-family {
+    flex-direction: row; justify-content: center; gap: 10px;
+    padding: 12px 14px; border-radius: 12px; font-size: 1.05rem;
+}
+body.athar-waqf-lab .wq-lab-family-sub { font-size: 0.74rem; padding: 2px 8px; border-radius: 999px; background: var(--wq-surface); }
+body.athar-waqf-lab .wq-lab-family-active { box-shadow: var(--wq-shadow-sm), 0 0 0 1px var(--wq-accent); }
+
+/* section tabs → pills */
+body.athar-waqf-lab .wq-lab-tabs { gap: 8px; padding: 4px 2px 8px; margin-bottom: 4px; }
+body.athar-waqf-lab .wq-lab-tab {
+    font-size: 0.92rem; padding: 7px 16px; border: 1px solid var(--wq-border); border-radius: 999px;
+    background: var(--wq-surface);
+}
+body.athar-waqf-lab .wq-lab-tab:hover { border-color: var(--wq-accent); }
+body.athar-waqf-lab .wq-lab-tab-active {
+    background: var(--wq-accent); color: var(--wq-on-accent); border-color: var(--wq-accent);
+}
+
+/* content: roomier, larger, calmer */
+body.athar-waqf-lab .wq-lab-results { padding: 20px clamp(14px, 3vw, 28px) 32px; font-size: 1.02rem; line-height: 1.85; }
+body.athar-waqf-lab .wq-tool-blurb { font-size: 0.95rem; max-width: 60ch; }
+body.athar-waqf-lab .wq-research-free-lead {
+    padding: 10px 16px; border-radius: 14px; font-size: 1.05rem;
+    background: var(--wq-surface-2); border: 1px solid var(--wq-border);
+}
+body.athar-waqf-lab .wq-research-free-lead:focus-within { border-color: var(--wq-accent); box-shadow: 0 0 0 3px var(--wq-accent-soft); }
+body.athar-waqf-lab .wq-research-chip { font-size: 1.05rem; padding: 4px 14px; border-radius: 999px; }
+body.athar-waqf-lab .wq-research-glabel { font-size: 0.85rem; font-weight: 700; }
+body.athar-waqf-lab .wq-lab-results table { font-size: 0.95rem; }
+body.athar-waqf-lab .wq-lab-results table th { position: sticky; top: 0; background: var(--wq-surface); }
+body.athar-waqf-lab .wq-lab-results table tbody tr:nth-child(even) { background: color-mix(in srgb, var(--wq-surface-2) 55%, transparent); }
+body.athar-waqf-lab .wq-lab-results table td, body.athar-waqf-lab .wq-lab-results table th { padding-block: 8px; }
+
+/* loading: calm shimmer card instead of a bare spinner line */
+body.athar-waqf-lab .athar-state { padding: 40px 16px; font-size: 1rem; }
+body.athar-waqf-lab .athar-state-loading { border-radius: 14px; min-height: 160px;
+    background: linear-gradient(100deg, var(--wq-surface-2) 30%, var(--wq-surface) 50%, var(--wq-surface-2) 70%) 0 0 / 200% 100%;
+    animation: wq-lab-shimmer 1.4s linear infinite; }
+@keyframes wq-lab-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { body.athar-waqf-lab .athar-state-loading { animation: none; } }
+body.athar-waqf-lab .wq-lab-chrome { padding: 10px clamp(14px, 3vw, 28px) 6px; }
+@media (max-width: 560px) {
+    body.athar-waqf-lab .wq-lab-family { flex-direction: column; gap: 2px; padding: 9px 6px; font-size: 0.92rem; }
+    body.athar-waqf-lab .wq-lab-family-sub { font-size: 0.68rem; }
+    body.athar-waqf-lab .wq-lab-families { gap: 4px; padding: 4px; }
+}

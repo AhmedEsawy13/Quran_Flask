@@ -38,6 +38,42 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+_local_marks_cache: dict | None = None
+
+
+def _local_marks_by_verse():
+    """{(surah, ayah, mushaf): [{'token_index', 'symbols'}]} from the committed
+    mushaf_waqf.db in ONE query. Static whole-Quran builders use this instead of
+    get_mushaf_waqf_symbols, which does a Supabase round trip per verse for the
+    cloud editions (minutes for 6236 verses). token_index is 0-based like there."""
+    global _local_marks_cache
+    if _local_marks_cache is not None:
+        return _local_marks_cache
+    versions = list(dict.fromkeys(list(_WAQF_MATCH_MUSHAFS) + list(_WAQF_COMPARE_MUSHAFS)))
+    conn = sqlite3.connect(MUSHAF_WAQF_DATABASE)
+    try:
+        cols = {r[1] for r in conn.execute('PRAGMA table_info(waqf)')}
+        versions = [v for v in versions if v in cols]
+        sel = ', '.join('"%s"' % v.replace('"', '""') for v in versions)
+        out = {}
+        for row in conn.execute(
+                f'SELECT "السورة", "الآية", CAST(token_index AS INTEGER), {sel} FROM waqf ORDER BY rowid'):
+            s_, a_, ti = row[0], row[1], row[2]
+            for i, ver in enumerate(versions):
+                sym = row[3 + i]
+                if sym:
+                    out.setdefault((s_, a_, ver), []).append(
+                        {'token_index': (ti - 1) if ti is not None else None, 'symbols': sym})
+    finally:
+        conn.close()
+    _local_marks_cache = out
+    return out
+
+
+def _local_marks(surah, ayah, ver):
+    return _local_marks_by_verse().get((surah, ayah, ver), ())
+
+
 _solo_stops_index: dict | None = None
 
 
@@ -73,7 +109,7 @@ def _build_solo_stops_index():
                 if mushaf_marks is None:
                     mushaf_marks = {}
                     for ver in _WAQF_MATCH_MUSHAFS:
-                        for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+                        for r in _local_marks(surah, ayah, ver):
                             ti = r.get('token_index')
                             if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
                                 continue
@@ -165,7 +201,7 @@ def _build_waqf_stats():
                     continue
                 mm_by_wpos = {}
                 for ver in _WAQF_COMPARE_MUSHAFS:
-                    for r in get_mushaf_waqf_symbols(surah, ayah, ver):
+                    for r in _local_marks(surah, ayah, ver):
                         ti = r.get('token_index')
                         if ti is None or not r.get('symbols') or not (0 <= ti < len(raw_to_wpos)):
                             continue
