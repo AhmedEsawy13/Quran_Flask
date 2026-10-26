@@ -56,6 +56,11 @@ def codes(page: int) -> list[dict]:
     return out
 
 
+# page -> lines whose words come from our layout instead of quran.com: on these the Kuwait scan breaks the line
+# where our layout does (the line fits the drawing 0.81/0.76 and 0.81/0.74 against 0.82/0.72 and 0.72/0.72)
+USE_LAYOUT: dict[int, set[int]] = {177: {11, 12}, 443: {12, 13}}
+
+
 # quran.com positions whose single glyph draws two words (the print joins them): verse -> positions
 MERGED_PAIRS = {'2:181': (3,), '8:6': (4,), '13:37': (8,), '37:130': (3,)}
 
@@ -174,6 +179,12 @@ def page(page_no: int) -> dict:
         if kind != 'ayah' or a is None:
             continue
         line_words = [w for w in words if w['line'] == ln]
+        if ln in USE_LAYOUT.get(page_no, ()):
+            # this line's words as OUR layout has them (to test which of the two matches the scan)
+            by_first = {w['ids'][0]: w for w in words if w['ids'] and w['ids'][0] is not None}
+            line_words, i, ids = [], 0, list(range(a, b + 1))
+            while i < len(ids) and ids[i] in by_first:
+                line_words.append(by_first[ids[i]]); i += len(by_first[ids[i]]['ids'])
         if not line_words:
             continue
         drawn_lines[ln] = (line_words, *draw_line(fnt, ttf, [w['code'] for w in line_words]))
