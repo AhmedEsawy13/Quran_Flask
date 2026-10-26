@@ -43,8 +43,33 @@ def codes(page: int) -> list[dict]:
         with urllib.request.urlopen(url, timeout=60) as r:
             path.write_bytes(r.read())
     d = json.loads(path.read_text(encoding='utf-8'))
-    return [{'line': w['line_number'], 'code': w['code_v1'], 'type': w['char_type_name']}
-            for v in d['verses'] for w in v['words']]
+    # each word's id comes from its own verse and position, not from the layout's line contents: quran.com's
+    # 1405 page lines differ from our qpc-v1-15-lines.db on pages 27, 177, 254, 443, 451 and 452
+    out = []
+    for v in d['verses']:
+        merged = MERGED_PAIRS.get(v['verse_key'], ())
+        for w in v['words']:
+            # a joined glyph holds two words of our word table: every word after it is one position further on
+            base = w['position'] + sum(m < w['position'] for m in merged)
+            ids = [_key2id().get(f"{v['verse_key']}:{base + k}") for k in range(2 if w['position'] in merged else 1)]
+            out.append({'line': w['line_number'], 'code': w['code_v1'], 'type': w['char_type_name'], 'ids': ids})
+    return out
+
+
+# quran.com positions whose single glyph draws two words (the print joins them): verse -> positions
+MERGED_PAIRS = {'2:181': (3,), '8:6': (4,), '13:37': (8,), '37:130': (3,)}
+
+
+_KEY2ID: dict[str, int] = {}
+_TEXT: dict[int, str] = {}
+
+
+def _key2id() -> dict[str, int]:
+    if not _KEY2ID:
+        rows = sqlite3.connect(SCRIPT_DB).execute('SELECT word_key, word_index, text FROM words').fetchall()
+        _KEY2ID.update({k: i for k, i, _ in rows})
+        _TEXT.update({i: t for _, i, t in rows})
+    return _KEY2ID
 
 
 def font(page: int):
@@ -141,17 +166,16 @@ def page(page_no: int) -> dict:
     all_rows = scan_rows(ink, n_slots + 2, strict=False)
     words = codes(page_no)
     fnt, ttf = font(page_no)
-    script = sqlite3.connect(SCRIPT_DB)
-    text = dict(script.execute('SELECT word_index, text FROM words WHERE word_index BETWEEN ? AND ?',
-                               (min(r[2] for r in layout if r[2]), max(r[3] for r in layout if r[3]))))
+    _key2id()
+    text = _TEXT
     x0, x1 = int(0.135 * W), int(0.868 * W)
     drawn_lines = {}
     for ln, kind, a, b in layout:
         if kind != 'ayah' or a is None:
             continue
         line_words = [w for w in words if w['line'] == ln]
-        if len(line_words) != b - a + 1:
-            raise ValueError(f'page {page_no} line {ln}: {len(line_words)} glyph words vs {b - a + 1} layout tokens')
+        if not line_words:
+            continue
         drawn_lines[ln] = (line_words, *draw_line(fnt, ttf, [w['code'] for w in line_words]))
 
     def place(rows, only=None):
@@ -167,9 +191,18 @@ def page(page_no: int) -> dict:
             bands.append((y - 0.42 * pitch, y + 0.30 * pitch))
             line_numbers.append(ln)
             li = len(bands)
-            for wid, (sx0, sx1), w in zip(range(a, b + 1), spans, line_words):
-                out.append({'line': li, 'word_index': wid, 'text': text.get(wid, ''), 'ring': w['type'] == 'end',
-                            'x0': x0 + off + scale * sx0, 'x1': x0 + off + scale * sx1})
+            for (sx0, sx1), w in zip(spans, line_words):
+                ids = [i for i in w['ids'] if i is not None]
+                if not ids:            # a final verse ring our word table folds into the word before it
+                    continue
+                # a joined glyph is split between its words in proportion to their letters
+                weights = [max(1, len(text.get(i, ''))) for i in ids]
+                cut = sx1
+                for i, wt in zip(ids, weights):        # right to left: the first word is on the right
+                    nxt = cut - (sx1 - sx0) * wt / sum(weights)
+                    out.append({'line': li, 'word_index': i, 'text': text.get(i, ''), 'ring': w['type'] == 'end',
+                                'x0': x0 + off + scale * nxt, 'x1': x0 + off + scale * cut})
+                    cut = nxt
         return pitch, bands, line_numbers, out, fits
 
     # the n text rows: the evenly spaced run of full-width rows whose lines match the drawing best (a header row
@@ -183,17 +216,30 @@ def page(page_no: int) -> dict:
     pitch0 = float(np.median([g for g in gaps if 0.03 * H < g < 0.07 * H] or [0.052 * H]))
     sm = np.convolve(ink[:, x0:x1].sum(1).astype(float), np.ones(9) / 9, mode='same')
     ayah_slots = [i for i, (ln, kind, a_, b_) in enumerate(layout) if ln in drawn_lines]
+    # the frame: the text rows sit between the header row (inside the frame's top) and the page-number band
+    # (inside its bottom); the catchword under the page is outside it
+    nf, lf, sf, _ = cv2.connectedComponentsWithStats(ink.astype(np.uint8), 8)
+    fi = max(range(1, nf), key=lambda i: sf[i, 3] if sf[i, 3] > 0.5 * H else 0)
+    ftop, fbot = int(sf[fi, 1]), int(sf[fi, 1] + sf[fi, 3])
+    lo, hi = ftop + 1.2 * pitch0, fbot - 0.8 * pitch0
     grids = set()
     for y in all_rows:
         for j in range(n_slots):
             for pt in (pitch0 * 0.99, pitch0, pitch0 * 1.01):
                 g = tuple(int(round(y + (i - j) * pt)) for i in range(n_slots))
-                if g[0] > 0.02 * H and g[-1] < 0.98 * H:
+                if g[0] > lo and g[-1] < hi:
                     grids.add(g)
-    def snap(g):        # each row onto its own ink peak within a fifth of a pitch
+    def snap(g):
+        # each row onto its own ink peak within a fifth of a pitch, measured from the row above (the scan's rows
+        # are not perfectly even, and a fixed grid drifts off by the bottom of the page)
         r = int(0.2 * pitch0)
-        return [max(range(y - r, y + r + 1), key=lambda t: sm[min(max(t, 0), H - 1)]) for y in g]
-    ranked = sorted(grids, key=lambda g: -sum(sm[min(max(g[i], 0), H - 1)] for i in ayah_slots))[:16]
+        out = []
+        for i, y in enumerate(g):
+            guess = y if i == 0 else out[-1] + pitch0
+            out.append(max(range(int(guess) - r, int(guess) + r + 1), key=lambda t: sm[min(max(t, 0), H - 1)]))
+        return out
+    # every slot carries ink, banner and basmala rows too: rank grids on all of them
+    ranked = sorted(grids, key=lambda g: -sum(sm[min(max(y, 0), H - 1)] for y in g))[:16]
     probe = {layout[i][0] for i in (ayah_slots[0], ayah_slots[len(ayah_slots) // 2], ayah_slots[-1])}
     quick = []
     for g in ranked:
@@ -201,9 +247,16 @@ def page(page_no: int) -> dict:
         res = place(rows, only=probe)
         quick.append((float(np.mean(res[4])) if res[4] else 0, rows))
     cands = []
+    tried = set()
     for _, rows in sorted(quick, reverse=True)[:2]:
-        res = place(rows)
-        cands.append((float(np.mean(res[4])) if res[4] else 0, rows, res))
+        # the chosen grid and the same grid a row up and down: a row shift can look almost as good on 3 lines
+        for shift in (0, -1, 1):
+            r = snap([int(y + shift * pitch0) for y in rows])
+            if tuple(r) in tried or r[0] < lo - 0.3 * pitch0 or r[-1] > hi + 0.3 * pitch0:
+                continue
+            tried.add(tuple(r))
+            res = place(r)
+            cands.append((float(np.mean(res[4])) if res[4] else 0, r, res))
     if not cands:
         raise ValueError(f'page {page_no}: no row grid')
     _, _, (pitch, bands, line_numbers, out, fits) = max(cands)
