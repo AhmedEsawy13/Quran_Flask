@@ -56,7 +56,7 @@ export function ToolIntro({
         >
           {title}
         </h1>
-        <p className="m-0 max-w-[62ch] font-athar-ui text-[0.92rem] leading-[1.7] text-athar-ink-soft">
+        <p className="m-0 line-clamp-2 max-w-[62ch] font-athar-ui text-[0.92rem] leading-[1.7] text-athar-ink-soft sm:line-clamp-none">
           {lede}
         </p>
       </div>

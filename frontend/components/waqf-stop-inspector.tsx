@@ -64,7 +64,12 @@ export function WaqfStopInspector({
   const marks = data.mushafs
     .map((mushaf) => ({mushaf, mark: mushaf.marks.find((item) => item.wpos === wpos) || null}));
   const marked = marks.filter((item) => item.mark);
-  const majority = majorityWaqfSymbol(marked.map((item) => item.mark!.symbol));
+  // ورش is a different riwaya with its own sign system: it is shown, but never counted for or against agreement.
+  const hafsMarked = marked.filter((item) => item.mushaf.id !== "ورش");
+  const majority = majorityWaqfSymbol(hafsMarked.map((item) => item.mark!.symbol));
+  const dissenters = hafsMarked.filter(({mark}) => majority && waqfMarkCanonical(mark!.symbol) !== majority);
+  const hafsTotal = marks.filter((item) => item.mushaf.id !== "ورش").length;
+  const mushafsAgree = hafsMarked.length > 0 && hafsMarked.length === hafsTotal && dissenters.length === 0;
   const stoppedReciters = data.reciters.filter((reciter) => (
     union?.reciters.includes(reciter.id)
     || Boolean(data.per_reciter[reciter.id]?.stops.some((item) => item.wpos === wpos))
@@ -97,9 +102,9 @@ export function WaqfStopInspector({
                 {othersStop ? "الأئمة ينهون عن الوقف هنا" : "نهى الأئمة عن الوقف"}
               </em>
             ) : null}
-            {data.mushafs.length && marked.length === data.mushafs.length ? (
+            {mushafsAgree ? (
               <em className="rounded-full bg-athar-positive/12 px-2 py-0.5 text-[0.68rem] not-italic font-bold text-athar-positive">المصاحف متفقة</em>
-            ) : marked.length ? (
+            ) : hafsMarked.length ? (
               <em className="rounded-full bg-athar-copper/12 px-2 py-0.5 text-[0.68rem] not-italic font-bold text-athar-copper">خلاف بين المصاحف</em>
             ) : null}
           </span>
@@ -134,17 +139,20 @@ export function WaqfStopInspector({
         <Row
           id="wq-score-mushaf"
           title="مصحف"
-          summary={data.mushafs.length ? `${toArabicDigits(marked.length)} من ${toArabicDigits(data.mushafs.length)}` : undefined}
+          summary={hafsTotal ? `${toArabicDigits(hafsMarked.length)} من ${toArabicDigits(hafsTotal)} تضع علامة` : undefined}
         >
           {data.mushafs.length ? (
             <div className="grid grid-cols-4 gap-1.5">
               {marks.map(({mushaf, mark}) => {
-                const minority = Boolean(mark && majority && waqfMarkCanonical(mark.symbol) !== majority);
+                const isWarsh = mushaf.id === "ورش";
+                const minority = Boolean(mark && !isWarsh && majority && waqfMarkCanonical(mark.symbol) !== majority);
                 return (
                   <div
                     className={cn(
                       "flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5",
                       mark ? "border-athar-line-soft bg-athar-surface" : "border-transparent",
+                      minority && "border-[var(--wq-solo)]/40 bg-[var(--wq-solo-soft)]",
+                      isWarsh && "opacity-70",
                     )}
                     key={mushaf.id}
                     title={mark ? `${mushaf.name} · ${waqfMarkLabel(mark.symbol)}` : `${mushaf.name} · لا علامة`}
@@ -153,23 +161,31 @@ export function WaqfStopInspector({
                       <WaqfGlyph
                         symbol={mark.symbol}
                         mushafId={mushaf.id}
-                        className={cn("size-9", minority ? "text-[var(--wq-solo)]" : "text-athar-accent")}
+                        className={cn("size-9", minority ? "text-[var(--wq-solo)]" : isWarsh ? "text-athar-ink-soft" : "text-athar-accent")}
                         title={`${mushaf.name} · ${waqfMarkLabel(mark.symbol)}`}
                       />
                     ) : (
                       <span className="grid size-9 place-items-center text-athar-ink-faint">—</span>
                     )}
                     <span className="wq-score-mushaf-name max-w-full truncate">{mushaf.name}</span>
+                    {isWarsh ? <span className="text-[0.6rem] font-bold text-athar-ink-faint">رواية أخرى</span> : null}
                   </div>
                 );
               })}
             </div>
           ) : null}
-          {majority || marked.length === 1 ? (
-            <p className="wq-score-caption">
-              {waqfMarkLabel(majority || marked[0].mark!.symbol)}
-              {marked.some(({mark}) => majority && waqfMarkCanonical(mark!.symbol) !== majority) ? " — وبعضها يخالف (بلون مختلف)" : ""}
-            </p>
+          {hafsMarked.length ? (
+            <div className="wq-score-caption grid gap-1">
+              <span>
+                {majority ? waqfMarkLabel(majority) : "تتعادل المصاحف بين علامتين"}
+                {majority && hafsMarked.length > 1 ? ` · ${toArabicDigits(hafsMarked.length - dissenters.length)} من ${toArabicDigits(hafsMarked.length)} مصحفًا` : ""}
+              </span>
+              {(majority ? dissenters : hafsMarked.length > 1 ? hafsMarked : []).length ? (
+                <span className="font-bold text-[var(--wq-solo)]">
+                  {majority ? "يخالف" : "العلامات"}: {(majority ? dissenters : hafsMarked).map(({mushaf, mark}) => `${mushaf.name} (${waqfMarkLabel(mark!.symbol)})`).join("، ")}
+                </span>
+              ) : null}
+            </div>
           ) : null}
           {!marked.length ? <p className="wq-score-empty">لا تحمل المصاحف المقارنة علامةً هنا.</p> : null}
         </Row>
