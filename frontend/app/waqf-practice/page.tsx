@@ -18,7 +18,7 @@ export default function PracticePage() {
         tool="practice"
         title="علِّم وقوفك، وقيّمه بالمطبوع."
         titleId="wp-title"
-        lede="اختر مقطعًا ومصحفًا، ثم علّم أين وقفت. أثَر يقيّمك على علامات المصاحف — لا بالتخمين."
+        lede="أثَر يقيّم وقوفك على علامات المصاحف المطبوعة — لا بالتخمين."
       >
         <ol className="m-0 flex list-none flex-wrap gap-x-[18px] gap-y-2 p-0" aria-label="خطوات التدريب">
           <li className="inline-flex items-center gap-2 text-[0.86rem] font-semibold text-athar-ink-soft">

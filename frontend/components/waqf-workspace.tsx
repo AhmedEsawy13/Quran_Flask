@@ -539,7 +539,7 @@ export function WaqfWorkspace() {
         tool="waqf"
         title="علامة المصحف، ووقف القارئ، وقول الإمام."
         titleId="wq-title"
-        lede="ثلاث شهادات على كل موضع وقف في الآية — اضغط أي موضع لترى دليله، ثم ابنِ قراءةً تناسب نَفَسك."
+        lede="اضغط أي موضع وقف في الآية لترى دليله، ثم ابنِ قراءةً تناسب نَفَسك."
       >
         {process.env.NODE_ENV === "development" ? (
           <a
@@ -743,7 +743,6 @@ export function WaqfWorkspace() {
                                 <span>{data.per_reciter[union.reciters[0]]?.name_ar || union.reciters[0]}</span>
                               </>
                             ) : union ? <b>{toArabicDigits(union.count)}/{toArabicDigits(data.reciters_total)}</b> : <b>{marks.length ? "مصحف" : scholarly}</b>}
-                            {union ? <small>~{toArabicDigits(union.avg_duration.toFixed(1))}ث</small> : null}
                           </button>
                         ) : null}
                       </span>
