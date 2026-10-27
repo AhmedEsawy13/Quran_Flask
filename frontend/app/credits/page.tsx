@@ -30,7 +30,7 @@ export default function CreditsPage() {
               <p className="mt-1.5 mb-0 leading-8 text-athar-ink-soft">
                 بيانات الألوان مبنيّة على مشروع{" "}
                 <a href="https://github.com/cpfair/quran-tajweed" target="_blank" rel="noopener">cpfair/quran-tajweed</a>
-                {" "}(رخصة CC-BY 4.0)، مع نص عثماني من Tanzil — وتُعرض محليًا عبر <code>/api/tajweed</code>.
+                {" "}(رخصة CC-BY 4.0)، مع نص عثماني من Tanzil — وتُعرض من بيانات محلية.
               </p>
             </li>
             <li>
@@ -67,7 +67,7 @@ export default function CreditsPage() {
           <ul className="mt-4 grid list-none gap-5 p-0">
             <li>
               <h3 className="m-0 text-base font-bold text-athar-ink">علامات المصاحف</h3>
-              <p className="mt-1.5 mb-0 leading-8 text-athar-ink-soft">علامات الوقف في الطبعات المعتمدة داخل التطبيق (المدينة وغيرها) كما ضُبطت في بيانات التخطيط المحلية.</p>
+              <p className="mt-1.5 mb-0 leading-8 text-athar-ink-soft">علامات الوقف في اثني عشر مصحفًا: المدينة (ثلاث طبعات)، والأزهر، والشمرلي، وقطر، والكويت، والبحرين، والمساحة (طبعتان)، وورش، ومصحف مسقط الإلكتروني الصادر عن وزارة الأوقاف والشؤون الدينية في سلطنة عُمان. تُقرأ العلامات من المصاحف نفسها ثم تُراجع بمقابلة بعضها ببعض.</p>
             </li>
             <li>
               <h3 className="m-0 text-base font-bold text-athar-ink">كتب الوقف الكلاسيكية</h3>

@@ -152,7 +152,8 @@ function ToolGrid({onOpen}: {onOpen: (tab: LabTab) => void}) {
             <p className="m-0 text-[0.84rem] text-athar-ink-soft">{family.description}</p>
           </header>
           <div className="grid grid-cols-3 gap-2.5 max-lg:grid-cols-2 max-sm:grid-cols-1">
-            {LAB_TABS.filter((tool) => tool.family === family.id).map((tool) => (
+            {/* «بحث بالكلمة» is the search box above this grid, so it gets no card of its own */}
+            {LAB_TABS.filter((tool) => tool.family === family.id && tool.id !== "word").map((tool) => (
               <button
                 type="button"
                 key={tool.id}
