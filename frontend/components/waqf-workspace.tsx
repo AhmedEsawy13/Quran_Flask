@@ -680,7 +680,7 @@ export function WaqfWorkspace() {
 
         {data ? (
           <>
-            <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(340px,1fr)]">
+            <div className="grid items-start gap-4">
               <ToolCard raised aria-labelledby="waqf-verse-title">
                 <ToolCardHead
                   title={`سورة ${selectedSurah?.name || ""} · الآية ${toArabicDigits(ayahNumber)}`}
@@ -780,7 +780,7 @@ export function WaqfWorkspace() {
                 </div>
               </ToolCard>
 
-              <aside className="lg:sticky lg:top-[calc(var(--bar-height)+4.75rem)] lg:max-h-[calc(100dvh-var(--bar-height)-5.75rem)] lg:overflow-y-auto lg:overscroll-contain lg:pb-1">
+              <aside>
                 <WaqfStopInspector
                   data={data}
                   classical={classical}

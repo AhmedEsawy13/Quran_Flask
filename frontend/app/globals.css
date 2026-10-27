@@ -1508,21 +1508,30 @@ button.page-number {
 }
 
 .wq-score-panel {
-  overflow: hidden;
-  border: 1px solid var(--athar-line-soft);
-  border-radius: 10px;
-  background: var(--athar-parchment-2);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
 }
 
 .wq-score-row {
   display: grid;
   gap: 0.55rem;
+  min-width: 0;
   padding: 0.8rem 0.9rem;
-  border-block-end: 1px solid var(--athar-line-soft);
+  border: 1px solid var(--athar-line-soft);
+  border-radius: 10px;
+  background: var(--athar-parchment-2);
 }
 
-.wq-score-row:last-child {
-  border-block-end: 0;
+.wq-score-row-wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1023px) {
+  .wq-score-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .wq-score-label {
