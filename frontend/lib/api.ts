@@ -166,7 +166,12 @@ export type ClassicalWaqfPayload = {
     quote: string;
     grade: string;
     grade_raw: string;
+    /** The book text around the quote (it may start or stop mid-sentence). */
     note: string;
+    /** العلّة alone, separated from that text (core/classical_illa.py); "" when the book gives none. */
+    illa?: string;
+    /** For a «ومثله / وكذا» item, the ruling it follows («X (n)»). */
+    follows?: string | null;
     reported_from: string | null;
     /** "other": the ruling holds only under a reading other than Hafs's. */
     reading?: string | null;

@@ -128,10 +128,22 @@ def split(note, quote='', grade_raw=None):
     m = _STOP.search(text)
     if m:
         text = text[:m.start()]
+    elif re.search(r'…\s*$', text):
+        # the note's window cut the reason off («… كما تقول هو أسخى …»): keep its complete clauses
+        text = text.rstrip(' …')
+        k = max(text.rfind('.'), text.rfind('؛'), text.rfind('،'))
+        # one long clause with no break: keep it, marked as cut, rather than lose the reason
+        text = text[:k] if k > 0 else (text + ' …' if len(re.findall(r'[ء-ي]{2,}', text)) >= 6 else '')
     # a trailing «… ومثله» / «وكذا» introduces the NEXT item, not this reason
     text = re.sub(r'(?:[\s.،؛]+(?:و|ثم|وليس|وكذا|وكذلك|ومثله|ومثلها|ونظيره|قال|وقال|ف))+\s*[:،]?\s*$', '',
                   text.strip(' ،.؛:-')).strip(' ،.؛:-')
-    text = re.sub(r'[\s،.]+و?قال\s+[^\s:،.]{2,}(?:\s+[^\s:،.]+){0,3}$', '', text).strip(' ،.؛:-')   # «… وقال القتبي»
+    # «… وقال القتبي»، «… وقال نافع وأحمد بن جعفر الدينوري»: a speaker list whose words the window cut off
+    text = re.sub(r'[\s،.]+و?(?:قال|قالا|زعم|روى|حكى)\s+[^\s:،.]{2,}(?:\s+[^\s:،.]+){0,7}$', '', text).strip(' ،.؛:-')
+    # «… وخالفهم كلهم الأخفش فقال»، «… كما قال»، «… قال: …»: the clause stops before what is said
+    m = re.search(r'(?:^|[.،؛])[^.،؛]*?(?:(?<![ء-ي])(?:ف|و)?قالا?|كأنه\s+قال)\s*:?\s*…?\s*$', text)
+    if m:
+        text = text[:m.start()].strip(' ،.؛:-')
+    text = re.sub(r'(?:\s+(?:و|كما|كأنه|أي))+\s*$', '', text).strip(' ،.؛:-')   # a lone trailing «و» / «كما»
     # never end inside a bracket
     for o, c in zip(_OPEN, _CLOSE):
         if text.count(o) > text.count(c):

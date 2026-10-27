@@ -223,11 +223,19 @@ def _clause(text, s, e, lo=0):
     a = max(text.rfind('.', 0, s), text.rfind('\n', 0, s)) + 1
     a = max(a, lo)
     b = text.find('.', e)
-    b = b if 0 <= b - e < 220 else e + 160
+    cut = not 0 <= b - e < 220
+    if cut:
+        # no full stop near: end on the last clause («،» / «؛») or word boundary, never mid-word
+        # («… هو أسخى ال» was shown as the علّة), and mark the elision
+        b = e + 160
+        tail = text[e:b]
+        k = max(tail.rfind('،'), tail.rfind('؛'))
+        b = e + k if k > 40 else e + max(tail.rfind(' '), 0)
     seg = text[a:b]
     if seg.count('{') > seg.count('}'):
         seg = seg[:seg.rfind('{')]            # don't end inside the next quote
-    return re.sub(r'\s+', ' ', seg).strip(' ،')
+    seg = re.sub(r'\s+', ' ', seg).strip(' ،')
+    return seg + ' …' if cut and seg else seg
 
 
 def parse(text):

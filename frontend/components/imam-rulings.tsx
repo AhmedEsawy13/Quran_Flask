@@ -41,15 +41,25 @@ function withQuranQuotes(text: string): ReactNode[] {
   ));
 }
 
-function Illa({note}: {note: string}) {
+/** العلّة is the reason alone (core/classical_illa.py), never the raw book text: that text is a
+ *  window around the quote and can start or stop mid-sentence («… وقال القتبي»). A «ومثله / وكذا»
+ *  item names the ruling it follows; the book text stays one tap away. */
+function Illa({illa, follows, note}: {illa: string; follows?: string | null; note: string}) {
   const [open, setOpen] = useState(false);
-  const long = note.length > LONG_NOTE;
+  const long = illa.length > LONG_NOTE;
   return (
     <div className="grid gap-1">
-      <p className={cn("m-0 text-[0.94rem] leading-[1.95] text-athar-ink", long && !open && "line-clamp-4")}>
-        <span className="me-1.5 text-[0.72rem] font-bold text-athar-ink-faint">العلّة:</span>
-        {withQuranQuotes(note)}
-      </p>
+      {follows ? (
+        <p className="m-0 text-[0.86rem] leading-[1.8] text-athar-ink-soft">
+          حكمه حكم <span className="font-athar-quran text-[1.1em] text-athar-accent">{follows}</span> قبله
+        </p>
+      ) : null}
+      {illa ? (
+        <p className={cn("m-0 text-[0.94rem] leading-[1.95] text-athar-ink", long && !open && "line-clamp-4")}>
+          <span className="me-1.5 text-[0.72rem] font-bold text-athar-ink-faint">العلّة:</span>
+          {withQuranQuotes(illa)}
+        </p>
+      ) : null}
       {long ? (
         <button
           type="button"
@@ -59,6 +69,12 @@ function Illa({note}: {note: string}) {
         >
           {open ? "اطوِ العلّة" : "اقرأ العلّة كاملة"}
         </button>
+      ) : null}
+      {note && note !== illa && note.split(/\s+/).length >= 4 ? (
+        <details className="text-[0.82rem] text-athar-ink-soft">
+          <summary className="w-fit cursor-pointer font-bold text-athar-accent">نص الكتاب</summary>
+          <p className="m-0 mt-1 leading-[1.9]">{withQuranQuotes(note)}</p>
+        </details>
       ) : null}
     </div>
   );
@@ -117,6 +133,7 @@ export function ImamRulings({entries, sources, showQuote = true}: {entries: Entr
             {rulings.map((entry, index) => {
               const meta = classicalGradeMeta[entry.grade];
               const note = (entry.note || "").trim();
+              const illa = (entry.illa || "").trim();
               const quote = (entry.quote || "").trim();
               return (
                 <div key={`${entry.grade}-${index}`} className={cn("grid gap-2", index > 0 && "border-t border-dashed border-athar-line pt-3")}>
@@ -145,7 +162,7 @@ export function ImamRulings({entries, sources, showQuote = true}: {entries: Entr
                       {quote}
                     </blockquote>
                   ) : null}
-                  {note ? <Illa note={note} /> : null}
+                  {illa || entry.follows || note ? <Illa illa={illa} follows={entry.follows} note={note} /> : null}
                 </div>
               );
             })}
