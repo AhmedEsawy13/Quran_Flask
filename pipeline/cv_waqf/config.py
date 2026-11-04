@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from core.config import (
+    QPC_V2_LAYOUT_DATABASE,
     AZHAR_LAYOUT_DATABASE,
     AZHAR_LAYOUT_MAX_PAGE,
     AZHAR_LAYOUT_MIN_PAGE,
@@ -445,7 +446,7 @@ EDITIONS: dict[str, EditionSpec] = {
     'المدينة ١٤٢٧': EditionSpec(
         id='madinah_1427',
         mushaf_version='المدينة ١٤٢٧',
-        layout_db=QPC_V1_LAYOUT_DATABASE,
+        layout_db=QPC_V2_LAYOUT_DATABASE,
         word_space='qpc',
         script_db=BAHRAIN_LAYOUT_DATABASE,
         min_page=1,
@@ -454,9 +455,11 @@ EDITIONS: dict[str, EditionSpec] = {
         # Print: archive.org arabic-568335686835685363568q3an1 «مصحف المدينه أزرق كبير» (King Fahd Complex, the
         # 1420 edition - approval 5/1420 - printed 1427). Its PDF holds 750 px pages, so the 3123 px page images
         # (page/n{page+2}.jpg) are fetched and shrunk to the 1024 working width into data/refs (gitignored).
+        # Line breaks are the 1421 (QPC v2) layout's: pages 1-284 read 96.0% (v4 94.7%, never better; v1 75%).
         page_cache_dir=str(ROOT / 'data' / 'refs' / 'madinah_1427' / 'cache'),
-        text_top=0.1054,
-        text_bottom=0.87,
+        # calibrate-geometry on 50 pages (3-250:5), 2026-11-04
+        text_top=0.1025,
+        text_bottom=0.8671,
         default_proposal_mode='hybrid',
         measured_geometry=True,
         # Test print: Madinah must not vouch for its own marks, Azhar alone defines the allowed seats.
