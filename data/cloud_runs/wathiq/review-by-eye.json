@@ -876,8 +876,9 @@
   "read": "",
   "conf": null,
   "kind": "missed",
-  "verdict": "REAL?",
-  "note": "no ج visible after الأمثال in Wathiq (checked the line end and the next line start); old Madinah has ج — could be a real difference or fully faded ink"
+  "verdict": "real",
+  "note": "no sign after الأمثال in Wathiq (confirmed by the user on a paper copy); old Madinah has ج",
+  "print_sign": ""
  },
  {
   "page": 283,
