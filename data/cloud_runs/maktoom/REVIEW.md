@@ -8,27 +8,23 @@ possible real differences were re-checked zoomed in). Verdict per row: `review-b
 |---|---|---|
 | `position` | 212 | The sign is printed as old Madinah has it, but credited to the neighbouring word. 175: Maktoum prints the sign over the gap, often above the next word's first letter, and the split gives it to that word. 37: on 7 pages (32, 46, 59, 158, 175, 347, 446) the print breaks lines differently from the layout and every label on those lines is off. |
 | `false_fire` | 138 | No sign there: the reader fired on a verse ring (most), a shadda, damma, tanween, the small س of يبصط, or an ornament. |
-| `reader_missed` | 123 | The sign is printed as old Madinah has it; the reader did not find it (mostly صلى and ج). |
+| `reader_missed` | 128 | The sign is printed as old Madinah has it; the reader did not find it (mostly صلى and ج; also 5 small lazim م that look like a damma at scan resolution). |
 | `reader_misread` | 38 | The sign is printed as old Madinah has it; the reader named it wrongly (قلى as ج, معانقة dots as ج/م, م as ج, the sakta س as ج). |
 | `unsure` | 1 | 9:42:19. |
-| **`real`** | **8** | The print differs from old Madinah (below). |
+| **`real`** | **3** | The print differs from old Madinah (below). |
 
-## Real differences (print vs «المدينة القديم»)
+## Real differences (print vs «المدينة القديم»), confirmed by the user
 
 | verse:word | page | Maktoum prints | old Madinah |
 |---|---|---|---|
-| 2:212:9 آمنوا | 33 | nothing | م |
-| 3:7:31 الله («إلا الله») | 50 | nothing | قلى |
-| 5:64:10 قالوا | 118 | nothing | م |
-| 7:148:19 سبيلا | 168 | nothing | م |
-| 11:20:14 أولياء | 224 | nothing | م |
+| 3:7:31 الله («إلا الله») | 50 | م | قلى |
 | 18:5:12 أفواههم | 294 | nothing | ج |
 | 31:12:6 لله («أن اشكر لله») | 412 | ج | nothing |
-| 54:6:2 عنهم | 528 | nothing | م |
 
-Five of the eight are a lazim م that Maktoum does not print. Maktoum's ink is black and sharp, so a missing
-sign is not faded ink, but a paper copy is the final word.
+Maktoum's lazim م is printed very small and looks like a damma at the scan's resolution: a first eye pass
+took five of them (2:212, 5:64, 7:148, 11:20, 54:6) for missing signs. They are printed; a mark over a final
+alif (قالوا، سبيلا، آمنوا) cannot be a damma.
 
-Bottom line: 511 of 520 are the tools' errors; 8 are real; 1 unsure. The two split fixes (attach a sign to the
+Bottom line: 516 of 520 are the tools' errors; 3 are real; 1 unsure. The two split fixes (attach a sign to the
 word whose end it sits over; choose the page's line breaks jointly, as already done for Wathiq) would remove
 the 212 `position` rows.

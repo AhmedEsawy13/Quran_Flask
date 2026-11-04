@@ -326,9 +326,8 @@
   "read": "",
   "conf": null,
   "kind": "missed",
-  "verdict": "real",
-  "note": "nothing printed above آمنوا (only its vowels); old Madinah has م",
-  "print_sign": "none"
+  "verdict": "reader_missed",
+  "note": "the small م is printed (it looks like a damma at scan resolution; re-read and confirmed by the user); the reader missed it"
  },
  {
   "page": 36,
@@ -526,8 +525,8 @@
   "conf": 0.9978,
   "kind": "other_symbol",
   "verdict": "real",
-  "note": "nothing printed above «إلا الله» but the damma; old Madinah has قلى",
-  "print_sign": "none"
+  "note": "Maktoum prints the small م over «إلا الله»; old Madinah has قلى (confirmed by the user)",
+  "print_sign": "م"
  },
  {
   "page": 50,
@@ -1076,9 +1075,8 @@
   "read": "",
   "conf": null,
   "kind": "missed",
-  "verdict": "real",
-  "note": "nothing printed above قالوا; old Madinah has م",
-  "print_sign": "none"
+  "verdict": "reader_missed",
+  "note": "the small م is printed (it looks like a damma at scan resolution; re-read and confirmed by the user); the reader missed it"
  },
  {
   "page": 120,
@@ -1649,9 +1647,8 @@
   "read": "",
   "conf": null,
   "kind": "missed",
-  "verdict": "real",
-  "note": "nothing printed above سبيلا; old Madinah has م",
-  "print_sign": "none"
+  "verdict": "reader_missed",
+  "note": "the small م is printed (it looks like a damma at scan resolution; re-read and confirmed by the user); the reader missed it"
  },
  {
   "page": 169,
@@ -2255,9 +2252,8 @@
   "read": "ج",
   "conf": 0.7799,
   "kind": "other_symbol",
-  "verdict": "real",
-  "note": "only dammas above أولياء; old Madinah has م",
-  "print_sign": "none"
+  "verdict": "reader_missed",
+  "note": "the small م is printed (it looks like a damma at scan resolution; re-read and confirmed by the user); the reader missed it"
  },
  {
   "page": 224,
@@ -3060,7 +3056,7 @@
   "conf": null,
   "kind": "missed",
   "verdict": "real",
-  "note": "nothing printed after أفواههم (line end); old Madinah has ج",
+  "note": "nothing printed after أفواههم; old Madinah has ج (confirmed by the user)",
   "print_sign": "none"
  },
  {
@@ -4051,7 +4047,7 @@
   "conf": 1.0,
   "kind": "print_only",
   "verdict": "real",
-  "note": "ج printed after «أن اشكر لله»; old Madinah has none",
+  "note": "ج printed after «أن اشكر لله»; old Madinah has none (confirmed by the user)",
   "print_sign": "ج"
  },
  {
@@ -5074,9 +5070,8 @@
   "read": "ج",
   "conf": 0.9938,
   "kind": "other_symbol",
-  "verdict": "real",
-  "note": "only a damma above عنهم; old Madinah has م",
-  "print_sign": "none"
+  "verdict": "reader_missed",
+  "note": "the small م is printed (it looks like a damma at scan resolution; re-read and confirmed by the user); the reader missed it"
  },
  {
   "page": 531,
