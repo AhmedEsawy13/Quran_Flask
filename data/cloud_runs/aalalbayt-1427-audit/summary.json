@@ -1,0 +1,21 @@
+{
+ "edition": "آل البيت",
+ "pages": 604,
+ "errors": 0,
+ "match": 3851,
+ "wrong": 45,
+ "missing": 397,
+ "extra": 30,
+ "db_waqf_marks_on_pages": 4293,
+ "exact_recall": 0.897,
+ "tabs": {
+  "shift": 0,
+  "shift_unsure": 0,
+  "add": 3,
+  "maybe": 27,
+  "differs": 36,
+  "missed": 380,
+  "resolved": 0,
+  "confirmed": 26
+ }
+}

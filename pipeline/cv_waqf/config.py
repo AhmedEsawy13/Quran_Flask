@@ -467,7 +467,11 @@ EDITIONS: dict[str, EditionSpec] = {
     # layout's), so book-audit lists where they differ. Pages: python -m pipeline.cv_waqf.fetch_scans <id>.
     'آل البيت': EditionSpec(
         id='aalalbayt',
-        mushaf_version='المدينة القديم',
+        # Line breaks follow old Madinah 1405 (layout_db). The waqf signs are the Jordanian review committee's
+        # (1424-1429 AH, printed 2008, colophon), and match the Madinah 1427 print: of 125 real differences from
+        # «المدينة القديم» found by eye, 112 are 1427's sign; where 1427 and the new Madinah differ, the print
+        # shows 1427's sign 91 times and the new one twice (2026-11-04).
+        mushaf_version='المدينة ١٤٢٧',
         layout_db=QPC_V1_LAYOUT_DATABASE,
         word_space='qpc',
         script_db=BAHRAIN_LAYOUT_DATABASE,
