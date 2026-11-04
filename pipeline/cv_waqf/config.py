@@ -456,6 +456,8 @@ EDITIONS: dict[str, EditionSpec] = {
         # 1420 edition - approval 5/1420 - printed 1427). Its PDF holds 750 px pages, so the 3123 px page images
         # (page/n{page+2}.jpg) are fetched and shrunk to the 1024 working width into data/refs (gitignored).
         # Line breaks are the 1421 (QPC v2) layout's: pages 1-284 read 96.0% (v4 94.7%, never better; v1 75%).
+        # Its SIGNS are the 1441 style (user checked by eye, 2026-11-04): equal to «المدينة الجديد» but for 9 seats
+        # (7 قلى where 1441 has ج, 3:78, 19:38). Not a witness for the reconstructed ١٤٢٧ column; another copy needed.
         page_cache_dir=str(ROOT / 'data' / 'refs' / 'madinah_1427' / 'cache'),
         # calibrate-geometry on 50 pages (3-250:5), 2026-11-04
         text_top=0.1025,
