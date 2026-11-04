@@ -58,7 +58,7 @@
     }).join('');
     const left = cardsOf(state.tab).filter((c) => !c.decision).length;
     $('#mw-actions').hidden = false;
-    $('#mw-note').textContent = GROUPS[state.tab].note + ' المربع الأحمر = ما قرأه النموذج، والخط تحت الكلمة.';
+    $('#mw-note').textContent = (state.data.note || GROUPS[state.tab].note) + ' المربع الأحمر = ما قرأه النموذج، والخط تحت الكلمة.';
     const acc = $('#mw-accept');
     acc.textContent = left ? `اعتماد الكل كما قرأه النموذج (${left})` : 'كل بطاقات هذا التبويب محسومة';
     acc.disabled = !left || state.busy;

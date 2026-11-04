@@ -9,7 +9,8 @@ column is the 1924 «المساحة» column with:
     before a verse ring) and 2:2, read by eye; the «لا» are reviewed as the set mesaha-waqf-1371-la, whose
     decisions win;
   - the set mesaha-waqf-1371-gaps: signs the reader missed on both prints, found by eye where other prints mark
-    the word (2026-11-04), same decision store.
+    the word (2026-11-04), same decision store;
+  - the set mesaha-waqf-1371-lone: signs the reviewer confirms on words no print marks (only decided signs).
 Every card must be decided. A mark on a word with no waqf row gets a new row.
 
 Dry run by default; ``--apply`` writes, after a backup.
@@ -39,6 +40,7 @@ COLUMN = 'المساحة ١٣٧١'
 BASE = 'المساحة'
 CARD_SET = 'mesaha-waqf-1371'
 GAP_SET = 'mesaha-waqf-1371-gaps'
+LONE_SET = 'mesaha-waqf-1371-lone'
 SIGNS = frozenset({'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع'})
 PAGES = range(2, 828)
 
@@ -91,6 +93,14 @@ def main(argv: list[str] | None = None) -> int:
         data['cards'] = data['cards'] + json.loads(gaps.read_text(encoding='utf-8'))['cards']
     extra = json.loads((folder / 'extra_marks.json').read_text(encoding='utf-8'))
     decisions = {k: (r.get('correct_mark') or '') for k, r in mw.load_decisions(mw.set_edition(data)).items()}
+    # mesaha-waqf-1371-lone: confident 1952 reads on words nothing marks; only a sign decided by the reviewer
+    # counts (undecided cards add nothing)
+    lone = Path(MESAHA_WAQF_CARDS_DIR) / LONE_SET / 'data.json'
+    if lone.is_file():
+        for c in json.loads(lone.read_text(encoding='utf-8'))['cards']:
+            mark = decisions.get((int(c['page']), int(c['word_index'])))
+            if mark:
+                extra = extra + [{'page': c['page'], 'word_index': c['word_index'], 'key': c['key'], 'mark': mark}]
     conn = sqlite3.connect(args.database)
     marks, problems = target(conn, data['cards'], decisions, extra)
     rows = {(s, a, w): rid for rid, s, a, w in conn.execute('SELECT rowid, "السورة", "الآية", word_index FROM waqf')}
