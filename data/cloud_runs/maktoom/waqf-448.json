@@ -1,0 +1,142 @@
+{
+ "page": 448,
+ "pitch": 131.0,
+ "signs": [
+  {
+   "word_index": 61513,
+   "key": "37:53:6",
+   "text": "أَءِنَّا",
+   "line": 2,
+   "sign": "ص",
+   "conf": 0.6562,
+   "piece": 148,
+   "piece_area": 178,
+   "cx": 1468,
+   "cy": 455,
+   "word_box": [
+    1446,
+    1510
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 61514,
+   "key": "37:53:7",
+   "text": "لَمَدِينُونَ",
+   "line": 2,
+   "sign": "ج",
+   "conf": 0.6395,
+   "piece": 157,
+   "piece_area": 206,
+   "cx": 1322,
+   "cy": 462,
+   "word_box": [
+    1258,
+    1429
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 61528,
+   "key": "37:56:2",
+   "text": "تَٱللَّهِ",
+   "line": 3,
+   "sign": "ج",
+   "conf": 0.793,
+   "piece": 336,
+   "piece_area": 182,
+   "cx": 970,
+   "cy": 586,
+   "word_box": [
+    939,
+    1020
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 61541,
+   "key": "37:58:2",
+   "text": "نَحْنُ",
+   "line": 4,
+   "sign": "ص",
+   "conf": 0.7574,
+   "piece": 514,
+   "piece_area": 207,
+   "cx": 719,
+   "cy": 724,
+   "word_box": [
+    704,
+    804
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 61576,
+   "key": "37:64:3",
+   "text": "تَخْرُجُ",
+   "line": 8,
+   "sign": "ج",
+   "conf": 0.5577,
+   "piece": 1241,
+   "piece_area": 158,
+   "cx": 1256,
+   "cy": 1245,
+   "word_box": [
+    1235,
+    1369
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 61601,
+   "key": "37:68:1",
+   "text": "ثُمَّ",
+   "line": 10,
+   "sign": "ص",
+   "conf": 0.9616,
+   "piece": 1542,
+   "piece_area": 454,
+   "cx": 826,
+   "cy": 1506,
+   "word_box": [
+    807,
+    841
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 61620,
+   "key": "37:71:4",
+   "text": "أَكْثَرُ",
+   "line": 12,
+   "sign": "ص",
+   "conf": 0.8747,
+   "piece": 1869,
+   "piece_area": 371,
+   "cx": 911,
+   "cy": 1767,
+   "word_box": [
+    879,
+    1052
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 61624,
+   "key": "37:72:2",
+   "text": "أَرْسَلْنَا",
+   "line": 12,
+   "sign": "ص",
+   "conf": 0.7258,
+   "piece": 1880,
+   "piece_area": 166,
+   "cx": 336,
+   "cy": 1772,
+   "word_box": [
+    299,
+    457
+   ],
+   "hint": {}
+  }
+ ]
+}

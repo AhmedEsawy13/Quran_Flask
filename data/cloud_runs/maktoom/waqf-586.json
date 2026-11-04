@@ -1,0 +1,74 @@
+{
+ "page": 586,
+ "pitch": 129.0,
+ "signs": [
+  {
+   "word_index": 81434,
+   "key": "81:7:1",
+   "text": "وَإِذَا",
+   "line": 3,
+   "sign": "م",
+   "conf": 0.5643,
+   "piece": 885,
+   "piece_area": 82,
+   "cx": 1072,
+   "cy": 860,
+   "word_box": [
+    1004,
+    1082
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 81456,
+   "key": "81:12:3",
+   "text": "سُعِّرَتْ",
+   "line": 5,
+   "sign": "ج",
+   "conf": 0.9997,
+   "piece": 1354,
+   "piece_area": 66,
+   "cx": 682,
+   "cy": 1134,
+   "word_box": [
+    713,
+    844
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 81482,
+   "key": "81:19:1",
+   "text": "إِنَّهُۥ",
+   "line": 7,
+   "sign": "ص",
+   "conf": 0.8729,
+   "piece": 1735,
+   "piece_area": 320,
+   "cx": 336,
+   "cy": 1373,
+   "word_box": [
+    316,
+    366
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 81495,
+   "key": "81:21:2",
+   "text": "ثَمَّ",
+   "line": 9,
+   "sign": "ج",
+   "conf": 0.8704,
+   "piece": 2205,
+   "piece_area": 300,
+   "cx": 1475,
+   "cy": 1641,
+   "word_box": [
+    1445,
+    1490
+   ],
+   "hint": {}
+  }
+ ]
+}
