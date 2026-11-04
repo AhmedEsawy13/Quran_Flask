@@ -7,7 +7,9 @@ column is the 1924 «المساحة» column with:
     the cards cover every word some print marks whose 1952 reading differs from 1924;
   - data/mesaha-waqf/mesaha-waqf-1371/extra_marks.json: signs 1952 adds on words no print marks (103 «لا»
     before a verse ring) and 2:2, read by eye; the «لا» are reviewed as the set mesaha-waqf-1371-la, whose
-    decisions win.
+    decisions win;
+  - the set mesaha-waqf-1371-gaps: signs the reader missed on both prints, found by eye where other prints mark
+    the word (2026-11-04), same decision store.
 Every card must be decided. A mark on a word with no waqf row gets a new row.
 
 Dry run by default; ``--apply`` writes, after a backup.
@@ -36,6 +38,7 @@ from pipeline.paw_split.mesaha_waqf import SCRIPT_DB  # noqa: E402
 COLUMN = 'المساحة ١٣٧١'
 BASE = 'المساحة'
 CARD_SET = 'mesaha-waqf-1371'
+GAP_SET = 'mesaha-waqf-1371-gaps'
 SIGNS = frozenset({'م', 'لا', 'ق', 'ص', 'ج', 'س', 'ع'})
 PAGES = range(2, 828)
 
@@ -83,6 +86,9 @@ def main(argv: list[str] | None = None) -> int:
 
     folder = Path(MESAHA_WAQF_CARDS_DIR) / CARD_SET
     data = json.loads((folder / 'data.json').read_text(encoding='utf-8'))
+    gaps = Path(MESAHA_WAQF_CARDS_DIR) / GAP_SET / 'data.json'
+    if gaps.is_file():
+        data['cards'] = data['cards'] + json.loads(gaps.read_text(encoding='utf-8'))['cards']
     extra = json.loads((folder / 'extra_marks.json').read_text(encoding='utf-8'))
     decisions = {k: (r.get('correct_mark') or '') for k, r in mw.load_decisions(mw.set_edition(data)).items()}
     conn = sqlite3.connect(args.database)
