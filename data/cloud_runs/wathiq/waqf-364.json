@@ -7,7 +7,7 @@
    "text": "يَعْقِلُونَۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9988,
    "box": [
     731,
     257,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49656,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 49704,
    "text": "رَحْمَتِهِۦۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     711,
     847,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49772,
    "text": "وَصِهْرࣰاۗ",
    "line": 14,
    "sign": "ق",
-   "conf": 0.9619,
+   "conf": 0.7684,
    "box": [
     1389,
     1782,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ق",
-     0.962
+     0.768
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 49785,
    "text": "يَضُرُّهُمْۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 0.9683,
+   "conf": 0.9994,
    "box": [
     1177,
     1898,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ق",
-     0.968
+     0.999
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

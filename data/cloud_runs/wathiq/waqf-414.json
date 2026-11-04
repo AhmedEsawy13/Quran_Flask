@@ -7,7 +7,7 @@
    "text": "ءَايَٰتِهِۦٓۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9989,
+   "conf": 1.0,
    "box": [
     496,
     725,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 56797,
    "text": "مُّقْتَصِدࣱۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1205,
     1049,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 56823,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 56827,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 56847,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 56853,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 56859,
    "text": "تَمُوتُۚ",
    "line": 14,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     878,
     1771,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

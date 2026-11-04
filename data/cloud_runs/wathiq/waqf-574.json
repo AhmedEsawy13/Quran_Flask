@@ -7,7 +7,7 @@
    "text": "بِهِۦۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 0.9963,
+   "conf": 0.7793,
    "box": [
     890,
     1797,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.996
+     0.779
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 79690,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

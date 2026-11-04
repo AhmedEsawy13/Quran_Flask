@@ -7,7 +7,7 @@
    "text": "صٓۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9989,
    "box": [
     1480,
     370,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.278
+     0.999
     ],
     [
-     "ع",
+     "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 62261,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ص",
-     0.0
+     0.439
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 62271,
    "text": "وَٰحِدًاۖ",
    "line": 4,
    "sign": "ص",
-   "conf": 0.9745,
+   "conf": 1.0,
    "box": [
     1107,
     726,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ص",
-     0.974
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 62284,
@@ -92,18 +98,20 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 62305,
    "text": "بَيْنِنَاۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.5207,
+   "conf": 0.9993,
    "box": [
     1193,
     1072,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     0.521
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 62311,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 62331,
@@ -168,14 +180,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 62356,
    "text": "لْـَٔيْكَةِۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 0.9756,
+   "conf": 1.0,
    "box": [
     1421,
     1666,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ج",
-     0.976
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

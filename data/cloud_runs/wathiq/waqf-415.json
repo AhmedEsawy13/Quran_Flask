@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 56908,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 56916,
    "text": "شَفِيعٍۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 0.9499,
    "box": [
     399,
     852,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.95
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 56949,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 56970,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 56975,
    "text": "وَٱلْأَفْـِٔدَةَۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     432,
     1541,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 56988,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

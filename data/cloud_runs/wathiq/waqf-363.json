@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 49584,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 49596,
    "text": "ٱلسَّوْءِۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9986,
+   "conf": 0.9948,
    "box": [
     989,
     1315,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.995
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49599,
    "text": "يَرَوْنَهَاۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 1.0,
    "box": [
     481,
     1315,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49626,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

@@ -20,18 +20,20 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 23177,
    "text": "بَلَىٰ",
    "line": 4,
    "sign": "ع",
-   "conf": 0.9712,
+   "conf": 1.0,
    "box": [
     709,
     608,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ع",
-     0.971
+     0.013
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ع",
+   "loose": "ع"
   },
   {
    "word_index": 23178,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ع",
-     0.276
+     0.071
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ع",
+   "loose": "ع"
   },
   {
    "word_index": 23199,
@@ -92,11 +98,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 23234,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 23244,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 23250,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 23270,
@@ -192,7 +206,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

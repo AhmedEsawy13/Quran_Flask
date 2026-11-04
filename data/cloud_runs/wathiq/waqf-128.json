@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 16990,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 16993,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 17003,
    "text": "ٱلْأَرْضِ",
    "line": 4,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9972,
    "box": [
     630,
     864,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ص",
-     1.0
+     0.997
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 17027,
@@ -116,18 +124,20 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 17089,
    "text": "مَلَكࣱۖ",
    "line": 13,
    "sign": "ص",
-   "conf": 0.9998,
+   "conf": 0.9993,
    "box": [
     1339,
     1908,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ص",
-     1.0
+     0.999
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

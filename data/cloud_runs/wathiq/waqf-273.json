@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 36801,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 36811,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 36821,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   },
   {
    "word_index": 36843,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 36850,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 36861,
@@ -168,14 +180,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 36864,
    "text": "ٱلْأَعْلَىٰۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9998,
    "box": [
     803,
     955,
@@ -192,7 +206,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 36883,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 36889,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 36902,
@@ -264,7 +284,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 36938,
@@ -288,7 +310,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   }
  ]
 }

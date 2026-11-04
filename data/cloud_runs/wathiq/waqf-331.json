@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 45093,
    "text": "لِلْكُتُبِۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     578,
     602,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 45098,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 45100,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 45138,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 45148,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 45178,
    "text": "بِٱلْحَقِّۗ",
    "line": 14,
    "sign": "ق",
-   "conf": 0.9994,
+   "conf": 0.9968,
    "box": [
     1280,
     1779,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ق",
-     0.999
+     0.997
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

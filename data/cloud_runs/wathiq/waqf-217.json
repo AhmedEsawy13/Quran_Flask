@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 28991,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 29009,
    "text": "بِـَٔايَٰتِنَاۖ",
    "line": 7,
    "sign": "ص",
-   "conf": 0.9977,
+   "conf": 1.0,
    "box": [
     880,
     955,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ص",
-     0.998
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 29032,
    "text": "قَبْلُۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 1.0,
    "box": [
     704,
     1184,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 29070,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

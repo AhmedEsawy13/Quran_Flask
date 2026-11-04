@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49839,
    "text": "ٱلْعَرْشِۖ",
    "line": 5,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9992,
    "box": [
     692,
     731,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49910,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

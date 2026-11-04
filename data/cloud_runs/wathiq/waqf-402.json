@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 55085,
    "text": "ٱلْكِتَٰبَۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 0.9999,
    "box": [
     1034,
     610,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 55090,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 55095,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 55111,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 55124,
    "text": "ٱلْعِلْمَۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9998,
    "box": [
     729,
     1080,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 55137,
@@ -168,14 +180,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 55155,
    "text": "عَلَيْهِمْۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9983,
    "box": [
     1380,
     1557,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.998
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 55169,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 55174,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

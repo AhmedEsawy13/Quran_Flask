@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.093
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76806,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 76824,
    "text": "ٱلْأَذَلَّۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9977,
+   "conf": 0.9985,
    "box": [
     1288,
     1040,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     0.998
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76844,
    "text": "ٱللَّهِۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9997,
+   "conf": 1.0,
    "box": [
     690,
     1293,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76880,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

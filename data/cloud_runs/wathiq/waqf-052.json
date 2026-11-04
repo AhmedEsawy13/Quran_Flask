@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.009
+     0.243
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 6748,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6761,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6778,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6784,
    "text": "ءَأَسْلَمْتُمْۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.7784,
+   "conf": 0.8621,
    "box": [
     1249,
     1325,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ج",
-     0.778
+     0.862
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 6788,
    "text": "ٱهْتَدَوا۟ۖ",
    "line": 10,
    "sign": "ص",
-   "conf": 0.9781,
+   "conf": 0.9999,
    "box": [
     728,
     1311,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ص",
-     0.978
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 6793,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

@@ -7,7 +7,7 @@
    "text": "ٱلسَّمَآءُۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     498,
     697,
@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

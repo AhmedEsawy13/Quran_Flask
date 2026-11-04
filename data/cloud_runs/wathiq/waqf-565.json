@@ -7,7 +7,7 @@
    "text": "ٱلْعَذَابُۖ",
    "line": 9,
    "sign": "ص",
-   "conf": 0.9997,
+   "conf": 0.9999,
    "box": [
     552,
     1190,
@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 78259,
    "text": "أَكْبَرُۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.8513,
+   "conf": 0.8866,
    "box": [
     1354,
     1298,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.851
+     0.887
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 78299,
@@ -68,11 +72,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   }
  ]
 }

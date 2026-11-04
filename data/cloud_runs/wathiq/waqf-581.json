@@ -7,7 +7,7 @@
    "text": "ٱلْفَصْلِۖ",
    "line": 9,
    "sign": "ص",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     976,
     1193,
@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

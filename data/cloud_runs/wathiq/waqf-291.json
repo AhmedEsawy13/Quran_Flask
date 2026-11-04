@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 39393,
    "text": "نَّقْرَؤُهُۥۗ",
    "line": 10,
    "sign": "ق",
-   "conf": 0.9979,
+   "conf": 0.9993,
    "box": [
     815,
     1291,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ق",
-     0.998
+     0.999
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 39439,
    "text": "وَبَيْنَكُمْۚ",
    "line": 15,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9998,
    "box": [
     1042,
     1892,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

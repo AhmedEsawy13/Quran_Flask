@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 58119,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 58141,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 58189,
    "text": "ٱلْمُؤْمِنِينَۗ",
    "line": 13,
    "sign": "ق",
-   "conf": 0.9774,
+   "conf": 0.9978,
    "box": [
     838,
     1664,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ق",
-     0.977
+     0.998
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 58203,
    "text": "حَرَجࣱۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 0.9312,
+   "conf": 1.0,
    "box": [
     1078,
     1894,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ق",
-     0.931
+     0.193
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

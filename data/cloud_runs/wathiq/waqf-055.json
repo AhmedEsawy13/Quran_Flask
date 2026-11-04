@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7145,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7181,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ص",
-     0.002
+     0.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7193,
    "text": "ءَايَةࣰۖ",
    "line": 6,
    "sign": "ص",
-   "conf": 0.7941,
+   "conf": 0.9994,
    "box": [
     341,
     832,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ص",
-     0.794
+     0.999
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7202,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 7236,
    "text": "إِلَيْكَۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 0.9995,
+   "conf": 0.992,
    "box": [
     1339,
     1546,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.992
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

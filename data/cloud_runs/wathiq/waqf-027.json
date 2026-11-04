@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 3402,
    "text": "ٱلْبَأْسِۗ",
    "line": 6,
    "sign": "ق",
-   "conf": 0.9998,
+   "conf": 0.9974,
    "box": [
     502,
     834,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.997
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 3405,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 3417,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 3423,
    "text": "بِٱلْأُنثَىٰۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.9991,
+   "conf": 0.9743,
    "box": [
     1217,
     1196,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.974
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 3434,
    "text": "بِإِحْسَٰنࣲۗ",
    "line": 10,
    "sign": "ق",
-   "conf": 0.9982,
+   "conf": 0.9974,
    "box": [
     1087,
     1309,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ق",
-     0.998
+     0.997
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 3439,
    "text": "وَرَحْمَةࣱۗ",
    "line": 10,
    "sign": "ق",
-   "conf": 0.8022,
+   "conf": 0.5438,
    "box": [
     466,
     1285,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ق",
-     0.802
+     0.544
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 3469,
@@ -192,14 +206,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 3483,
    "text": "يُبَدِّلُونَهُۥٓۚ",
    "line": 15,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     640,
     1890,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

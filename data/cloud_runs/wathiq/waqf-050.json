@@ -20,11 +20,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6475,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6499,
    "text": "يَشَآءُۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 0.9993,
+   "conf": 0.8518,
    "box": [
     1049,
     1091,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.852
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 6519,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 6532,
@@ -116,11 +124,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6537,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6547,
@@ -168,14 +180,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6565,
    "text": "رَحْمَةًۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 0.9102,
+   "conf": 0.8457,
    "box": [
     1091,
     1792,
@@ -185,21 +199,23 @@
    "top2": [
     [
      "ج",
-     0.91
+     0.846
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 6577,
    "text": "فِيهِۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.9986,
+   "conf": 0.9968,
    "box": [
     998,
     1930,
@@ -209,14 +225,16 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.997
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49018,
    "text": "وَرَسُولِهِۦۚ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.9977,
+   "conf": 0.9987,
    "box": [
     643,
     506,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.998
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49029,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49042,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49049,
    "text": "لِوَاذࣰاۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9992,
    "box": [
     987,
     968,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 49069,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 49080,
    "text": "عَمِلُوا۟ۗ",
    "line": 10,
    "sign": "ق",
-   "conf": 0.7332,
+   "conf": 0.9898,
    "box": [
     775,
     1308,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ق",
-     0.733
+     0.99
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

@@ -7,7 +7,7 @@
    "text": "تَتْرَاۖ",
    "line": 1,
    "sign": "ص",
-   "conf": 0.9844,
+   "conf": 1.0,
    "box": [
     416,
     261,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ص",
-     0.984
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 46992,
    "text": "كَذَّبُوهُۖ",
    "line": 2,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9996,
    "box": [
     1009,
     376,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.441
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 46997,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 47058,
    "text": "صَٰلِحًاۖ",
    "line": 9,
    "sign": "ص",
-   "conf": 0.5704,
+   "conf": 1.0,
    "box": [
     556,
     1213,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ص",
-     0.57
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 47076,
@@ -116,18 +124,20 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 47100,
    "text": "ٱلْخَيْرَٰتِۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 0.999,
    "box": [
     665,
     1686,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

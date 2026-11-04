@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 36130,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 36141,
    "text": "جَآئِرࣱۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     784,
     599,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 36152,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 36170,
    "text": "ٱلثَّمَرَٰتِۚ",
    "line": 8,
    "sign": "ق",
-   "conf": 0.9218,
+   "conf": 1.0,
    "box": [
     1329,
     1081,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ق",
-     0.922
+     0.481
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 36183,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 36186,
    "text": "بِأَمْرِهِۦٓۚ",
    "line": 10,
    "sign": "ق",
-   "conf": 0.9995,
+   "conf": 0.9984,
    "box": [
     1172,
     1314,
@@ -161,21 +173,23 @@
    "top2": [
     [
      "ق",
-     0.999
+     0.998
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 36200,
    "text": "أَلْوَٰنُهُۥٓۚ",
    "line": 11,
    "sign": "ق",
-   "conf": 0.8947,
+   "conf": 0.8593,
    "box": [
     535,
     1416,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ق",
-     0.895
+     0.859
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

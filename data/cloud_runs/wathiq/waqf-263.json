@@ -7,7 +7,7 @@
    "text": "يَحْشُرُهُمْۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 0.9997,
    "box": [
     1126,
     1304,
@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

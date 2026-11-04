@@ -7,7 +7,7 @@
    "text": "ٱلْمَسِّۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9998,
    "box": [
     880,
     391,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     0.475
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 6049,
    "text": "ٱلرِّبَوٰا۟ۗ",
    "line": 3,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9882,
    "box": [
     1240,
     484,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.988
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 6054,
    "text": "ٱلرِّبَوٰا۟ۚ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.9923,
+   "conf": 1.0,
    "box": [
     688,
     487,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     0.992
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 6066,
    "text": "ٱللَّهِۖ",
    "line": 4,
    "sign": "ص",
-   "conf": 0.9965,
+   "conf": 1.0,
    "box": [
     573,
     617,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ص",
-     0.0
+     0.003
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 6071,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ص",
-     0.0
+     0.181
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 6080,
    "text": "ٱلصَّدَقَٰتِۗ",
    "line": 6,
-   "sign": "ج",
-   "conf": 0.9155,
+   "sign": "ق",
+   "conf": 1.0,
    "box": [
     912,
     863,
@@ -136,22 +146,24 @@
    ],
    "top2": [
     [
-     "ج",
-     0.915
+     "ق",
+     1.0
     ],
     [
-     "ص",
-     0.062
+     "ج",
+     0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ق"
   },
   {
    "word_index": 6129,
    "text": "وَرَسُولِهِۦۖ",
    "line": 11,
    "sign": "ص",
-   "conf": 0.9537,
+   "conf": 1.0,
    "box": [
     863,
     1447,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ص",
-     0.954
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 6146,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ج",
-     0.122
+     0.085
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 6150,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 6160,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

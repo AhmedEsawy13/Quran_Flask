@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 81781,
    "text": "مِسْكࣱۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9996,
+   "conf": 0.9981,
    "box": [
     1367,
     1314,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.998
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

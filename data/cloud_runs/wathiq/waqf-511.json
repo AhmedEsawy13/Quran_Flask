@@ -7,7 +7,7 @@
    "text": "إِيمَٰنِهِمْۗ",
    "line": 4,
    "sign": "ق",
-   "conf": 0.9967,
+   "conf": 0.9728,
    "box": [
     794,
     843,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ق",
-     0.997
+     0.973
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 70512,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     0.029
+     0.027
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 70530,
    "text": "سَيِّـَٔاتِهِمْۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.9968,
+   "conf": 1.0,
    "box": [
     1331,
     1204,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     0.997
+     0.081
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 70546,
    "text": "ٱلسَّوْءِۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.9979,
+   "conf": 0.9993,
    "box": [
     1179,
     1439,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     0.998
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 70549,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70556,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70563,
    "text": "وَٱلْأَرْضِۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.9931,
+   "conf": 0.9989,
    "box": [
     1168,
     1678,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ج",
-     0.993
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

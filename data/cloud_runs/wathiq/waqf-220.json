@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 29423,
    "text": "ٱللَّهِۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 0.996,
    "box": [
     735,
     726,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.996
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 29436,
    "text": "وَٱلْأَرْضِۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9997,
    "box": [
     1360,
     969,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 29454,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 29466,
    "text": "ءَامَنُوا۟ۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9237,
+   "conf": 0.9997,
    "box": [
     1069,
     1309,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     0.924
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 29493,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 29519,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

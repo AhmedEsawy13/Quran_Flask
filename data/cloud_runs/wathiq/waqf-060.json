@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 7919,
    "text": "وَلَتَنصُرُنَّهُۥۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.7613,
+   "conf": 1.0,
    "box": [
     1175,
     1437,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.761
+     0.013
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 7925,
@@ -68,18 +72,20 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7927,
    "text": "أَقْرَرْنَاۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.937,
    "box": [
     1188,
     1556,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     0.145
+     0.937
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

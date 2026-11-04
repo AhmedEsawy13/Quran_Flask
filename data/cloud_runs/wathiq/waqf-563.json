@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 77877,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 77901,
    "text": "حَاصِبࣰاۖ",
    "line": 5,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     412,
     720,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 77921,
    "text": "وَيَقْبِضْنَۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.9997,
+   "conf": 0.9594,
    "box": [
     466,
     950,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.959
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77925,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77940,
    "text": "ٱلرَّحْمَٰنِۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.9924,
+   "conf": 0.9974,
    "box": [
     873,
     1199,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ج",
-     0.992
+     0.997
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77953,
    "text": "رِزْقَهُۥۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9845,
+   "conf": 1.0,
    "box": [
     716,
     1298,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ج",
-     0.984
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77981,
@@ -188,11 +202,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

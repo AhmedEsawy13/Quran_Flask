@@ -7,7 +7,7 @@
    "text": "ذِلَّةࣱۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9997,
+   "conf": 0.9981,
    "box": [
     992,
     586,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.998
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 79026,
    "text": "مُّسَمًّىۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     1248,
     1315,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 79033,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

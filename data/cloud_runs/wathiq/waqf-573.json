@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 79420,
    "text": "فِيهِۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9966,
+   "conf": 1.0,
    "box": [
     1451,
     607,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.997
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 79485,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

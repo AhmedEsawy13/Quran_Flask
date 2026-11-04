@@ -7,7 +7,7 @@
    "text": "مَرْيَمَۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.995,
+   "conf": 0.9994,
    "box": [
     1184,
     728,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.995
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 16020,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 16031,
    "text": "كَفَرُوا۟ۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9926,
+   "conf": 0.9305,
    "box": [
     892,
     1069,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ج",
-     0.993
+     0.931
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 16070,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 16079,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

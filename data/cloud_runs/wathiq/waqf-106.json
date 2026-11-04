@@ -20,11 +20,13 @@
      1.0
     ],
     [
-     "ص",
+     "ق",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14010,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14017,
    "text": "وَلَدࣱۚ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.884,
+   "conf": 0.7407,
    "box": [
     1251,
     496,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     0.884
+     0.741
     ],
     [
      "ع",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14024,
    "text": "تَرَكَۚ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     453,
     500,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14033,
    "text": "ٱلْأُنثَيَيْنِۗ",
    "line": 4,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     454,
     614,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 14038,
    "text": "تَضِلُّوا۟ۗ",
    "line": 5,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1018,
     716,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 14048,
    "text": "بِٱلْعُقُودِۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9981,
    "box": [
     821,
     1096,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.998
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14061,
@@ -188,11 +202,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 14090,
@@ -216,14 +232,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14093,
    "text": "فَٱصْطَادُوا۟ۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9988,
+   "conf": 1.0,
    "box": [
     452,
     1553,
@@ -233,14 +251,16 @@
    "top2": [
     [
      "ج",
-     0.999
+     1.0
     ],
     [
-     "ص",
+     "ق",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14104,
@@ -264,7 +284,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "م",
+   "loose": "م"
   },
   {
    "word_index": 14108,
@@ -284,11 +306,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 14113,
@@ -312,14 +336,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14115,
    "text": "ٱللَّهَۖ",
    "line": 13,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.993,
    "box": [
     958,
     1919,
@@ -329,14 +355,16 @@
    "top2": [
     [
      "ص",
-     0.458
+     0.993
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

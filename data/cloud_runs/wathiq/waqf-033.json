@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 4183,
@@ -48,7 +50,9 @@
      0.001
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "م",
+   "loose": "ج"
   },
   {
    "word_index": 4188,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 4214,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 4227,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 4237,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 4257,
@@ -168,14 +180,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 4270,
    "text": "ٱللَّهِۗ",
    "line": 12,
    "sign": "ق",
-   "conf": 0.9966,
+   "conf": 0.9999,
    "box": [
     348,
     1531,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ق",
-     0.997
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 4279,
@@ -216,14 +232,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 4290,
    "text": "ٱلسَّبِيلِۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 0.9262,
+   "conf": 1.0,
    "box": [
     1187,
     1902,
@@ -233,14 +251,16 @@
    "top2": [
     [
      "ق",
-     0.926
+     0.337
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

@@ -7,7 +7,7 @@
    "text": "رَبَّكُمْۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1015,
     365,
@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 45269,
    "text": "لَكُمْۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9996,
    "box": [
     523,
     1309,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 45283,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 45298,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

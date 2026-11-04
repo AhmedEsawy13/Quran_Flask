@@ -7,7 +7,7 @@
    "text": "مَّعْلُومَٰتࣱۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     1011,
     248,
@@ -24,43 +24,21 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 3918,
    "text": "ٱلْحَجِّۗ",
    "line": 2,
    "sign": "ق",
-   "conf": 0.9993,
+   "conf": 1.0,
    "box": [
     753,
     368,
     777,
     396
-   ],
-   "top2": [
-    [
-     "ق",
-     0.999
-    ],
-    [
-     "ج",
-     0.0
-    ]
-   ],
-   "gate_none": false
-  },
-  {
-   "word_index": 3924,
-   "text": "ٱللَّهُۗ",
-   "line": 3,
-   "sign": "ق",
-   "conf": 1.0,
-   "box": [
-    1224,
-    484,
-    1248,
-    511
    ],
    "top2": [
     [
@@ -72,14 +50,42 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
+  },
+  {
+   "word_index": 3924,
+   "text": "ٱللَّهُۗ",
+   "line": 3,
+   "sign": "ق",
+   "conf": 0.9954,
+   "box": [
+    1224,
+    484,
+    1248,
+    511
+   ],
+   "top2": [
+    [
+     "ق",
+     0.995
+    ],
+    [
+     "ج",
+     0.0
+    ]
+   ],
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 3929,
    "text": "ٱلتَّقْوَىٰۖ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.9885,
+   "conf": 0.9985,
    "box": [
     525,
     511,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     0.988
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 3941,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 3950,
    "text": "ٱلْحَرَامِۖ",
    "line": 6,
    "sign": "ص",
-   "conf": 0.9902,
+   "conf": 0.9998,
    "box": [
     351,
     858,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ص",
-     0.99
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 3968,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 3983,
@@ -192,14 +206,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 4018,
    "text": "كَسَبُوا۟ۚ",
    "line": 15,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     827,
     1908,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

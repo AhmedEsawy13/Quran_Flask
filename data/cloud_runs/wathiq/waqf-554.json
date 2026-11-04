@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76681,
    "text": "قَآئِمࣰاۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 0.9996,
    "box": [
     580,
     730,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76690,
    "text": "ٱلتِّجَٰرَةِۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 0.9969,
+   "conf": 0.7204,
    "box": [
     931,
     852,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     0.997
+     0.72
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76702,
    "text": "ٱللَّهِۗ",
    "line": 7,
    "sign": "ق",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     691,
     1206,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.259
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 76719,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76741,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 76745,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 76748,
@@ -192,14 +206,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 76752,
    "text": "عَلَيْهِمْۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.9993,
+   "conf": 1.0,
    "box": [
     1377,
     1913,
@@ -209,21 +225,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76755,
    "text": "فَٱحْذَرْهُمْۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.9996,
+   "conf": 1.0,
    "box": [
     1025,
     1912,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76757,
@@ -264,7 +284,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70100,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70121,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70129,
    "text": "رَّبِّهِمْۖ",
    "line": 8,
    "sign": "ص",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     772,
     1062,
@@ -92,18 +98,20 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70156,
    "text": "ءَانِفًاۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.849,
+   "conf": 0.999,
    "box": [
     418,
     1298,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     0.849
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 70179,
@@ -140,11 +150,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70182,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 70198,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ق",
-     0.003
+     0.237
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

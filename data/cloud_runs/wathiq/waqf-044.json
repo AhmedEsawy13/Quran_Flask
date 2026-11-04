@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 5659,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 5664,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 5682,
    "text": "سَعْيࣰاۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.999,
+   "conf": 0.9916,
    "box": [
     1034,
     610,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.992
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 5705,
    "text": "حَبَّةࣲۗ",
    "line": 6,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.997,
    "box": [
     841,
     852,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.997
     ],
     [
-     "ع",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
-   "word_index": 5708,
-   "text": "لِمَن",
+   "word_index": 5709,
+   "text": "يَشَآءُۚ",
    "line": 7,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9847,
    "box": [
     1420,
     962,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.985
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 5727,
    "text": "أَذࣰى",
    "line": 8,
    "sign": "لا",
-   "conf": 0.9999,
+   "conf": 0.9993,
    "box": [
     587,
     1087,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "لا",
-     1.0
+     0.999
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   },
   {
    "word_index": 5746,
@@ -192,14 +206,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 5768,
    "text": "ٱلْـَٔاخِرِۖ",
    "line": 13,
    "sign": "ص",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     989,
     1687,
@@ -216,14 +232,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 5777,
    "text": "صَلْدࣰاۖ",
    "line": 14,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9997,
    "box": [
     787,
     1795,
@@ -233,14 +251,16 @@
    "top2": [
     [
      "ص",
-     0.484
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 5783,
@@ -264,7 +284,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

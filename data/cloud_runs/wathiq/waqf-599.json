@@ -20,18 +20,20 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 83177,
    "text": "عَنْهُۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9957,
    "box": [
     771,
     355,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.113
+     0.996
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

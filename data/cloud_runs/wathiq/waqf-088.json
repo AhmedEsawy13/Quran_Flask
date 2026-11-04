@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.483
+     0.084
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

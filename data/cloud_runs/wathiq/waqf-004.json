@@ -7,7 +7,7 @@
    "text": "ٱلْمَوْتِۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9498,
+   "conf": 1.0,
    "box": [
     1222,
     719,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.95
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 264,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 273,
    "text": "قَامُوا۟ۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     361,
     819,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 279,
    "text": "وَأَبْصَٰرِهِمْۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.9873,
+   "conf": 1.0,
    "box": [
     667,
     955,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     0.987
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 315,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 354,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

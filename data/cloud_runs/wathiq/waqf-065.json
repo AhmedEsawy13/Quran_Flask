@@ -7,7 +7,7 @@
    "text": "شَيْـࣰٔاۖ",
    "line": 2,
    "sign": "ص",
-   "conf": 0.7211,
+   "conf": 0.6554,
    "box": [
     1184,
     373,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ص",
-     0.721
+     0.655
     ],
     [
      "ع",
-     0.0
+     0.336
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 8519,
    "text": "ٱلنَّارِۖ",
    "line": 2,
    "sign": "ج",
-   "conf": 0.9924,
+   "conf": 1.0,
    "box": [
     719,
     378,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     0.992
+     0.07
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8540,
    "text": "فَأَهْلَكَتْهُۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.5837,
+   "conf": 1.0,
    "box": [
     435,
     608,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ج",
-     0.584
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8570,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8574,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ص",
-     0.0
+     0.002
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 8597,
    "text": "ٱلْغَيْظِۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.9995,
+   "conf": 1.0,
    "box": [
     1248,
     1443,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8600,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 8615,
@@ -192,14 +206,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 8622,
    "text": "شَيْـًٔاۗ",
    "line": 13,
    "sign": "ق",
-   "conf": 0.5679,
+   "conf": 0.9863,
    "box": [
     345,
     1663,
@@ -209,21 +225,23 @@
    "top2": [
     [
      "ق",
-     0.568
+     0.986
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 8636,
    "text": "لِلْقِتَالِۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 0.9998,
+   "conf": 0.9999,
    "box": [
     811,
     1899,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

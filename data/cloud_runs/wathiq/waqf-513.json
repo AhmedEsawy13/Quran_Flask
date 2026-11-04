@@ -20,11 +20,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70744,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70766,
    "text": "حَرَجࣱۗ",
    "line": 4,
    "sign": "ق",
-   "conf": 0.889,
+   "conf": 1.0,
    "box": [
     312,
     588,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ق",
-     0.889
+     0.066
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 70776,
    "text": "ٱلْأَنْهَٰرُۖ",
    "line": 5,
    "sign": "ص",
-   "conf": 0.9483,
+   "conf": 1.0,
    "box": [
     305,
     733,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ص",
-     0.948
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 70805,
    "text": "يَأْخُذُونَهَاۗ",
    "line": 9,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9985,
    "box": [
     1088,
     1192,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.998
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 70837,
    "text": "بِهَاۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9652,
    "box": [
     304,
     1547,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ج",
-     0.045
+     0.965
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 70864,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

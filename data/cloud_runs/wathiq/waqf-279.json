@@ -7,7 +7,7 @@
    "text": "بَشَرࣱۗ",
    "line": 1,
    "sign": "ق",
-   "conf": 0.983,
+   "conf": 0.9853,
    "box": [
     538,
     241,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ق",
-     0.983
+     0.985
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 37663,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 37714,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

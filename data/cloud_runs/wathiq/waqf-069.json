@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 9073,
    "text": "سُلْطَٰنࣰاۖ",
    "line": 5,
    "sign": "ص",
-   "conf": 0.9986,
+   "conf": 0.9997,
    "box": [
     807,
     722,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ص",
-     0.999
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 9075,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 9086,
    "text": "بِإِذْنِهِۦۖ",
    "line": 7,
    "sign": "ص",
-   "conf": 0.9982,
+   "conf": 0.9977,
    "box": [
     673,
     976,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 9099,
    "text": "تُحِبُّونَۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.9987,
+   "conf": 0.9997,
    "box": [
     1075,
     1204,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 9107,
    "text": "ٱلْـَٔاخِرَةَۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9718,
    "box": [
     967,
     1308,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ج",
-     0.152
+     0.972
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 9111,
    "text": "لِيَبْتَلِيَكُمْۖ",
    "line": 10,
    "sign": "ص",
-   "conf": 0.9994,
+   "conf": 0.9998,
    "box": [
     232,
     1308,
@@ -161,21 +173,23 @@
    "top2": [
     [
      "ص",
-     0.999
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 9114,
    "text": "عَنكُمْۗ",
    "line": 11,
    "sign": "ق",
-   "conf": 0.9942,
+   "conf": 1.0,
    "box": [
     930,
     1426,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ق",
-     0.994
+     1.0
     ],
     [
-     "ص",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 9141,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

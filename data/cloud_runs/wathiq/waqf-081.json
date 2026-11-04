@@ -7,7 +7,7 @@
    "text": "شَيْـًٔاۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.995,
    "box": [
     584,
     373,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.995
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 10683,
    "text": "سَلَفَۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9989,
    "box": [
     954,
     848,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 10739,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ق",
-     0.002
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

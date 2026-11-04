@@ -7,7 +7,7 @@
    "text": "بِهِمْۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9998,
    "box": [
     311,
     850,
@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76558,
    "text": "يَشَآءُۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9482,
+   "conf": 0.5516,
    "box": [
     395,
     966,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     0.948
+     0.552
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76574,
    "text": "أَسْفَارَۢاۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 0.9998,
    "box": [
     648,
     1207,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76581,
    "text": "ٱللَّهِۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9991,
+   "conf": 0.935,
    "box": [
     977,
     1327,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.935
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76611,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 76623,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

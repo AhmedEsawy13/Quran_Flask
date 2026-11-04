@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 74844,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.016
+     0.004
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 74858,
@@ -68,18 +72,20 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 74860,
    "text": "مُّهْتَدࣲۖ",
    "line": 5,
    "sign": "ص",
-   "conf": 0.9995,
+   "conf": 1.0,
    "box": [
     416,
     737,
@@ -92,18 +98,20 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 74895,
    "text": "رِعَايَتِهَاۖ",
    "line": 10,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9932,
    "box": [
     1115,
     1326,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ص",
-     0.0
+     0.993
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 74900,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ص",
-     0.0
+     0.002
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 74922,
    "text": "لَكُمْۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.9479,
+   "conf": 0.9919,
    "box": [
     1011,
     1677,
@@ -161,21 +173,23 @@
    "top2": [
     [
      "ج",
-     0.948
+     0.992
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 74937,
    "text": "ٱللَّهِ",
    "line": 14,
    "sign": "لا",
-   "conf": 0.9865,
+   "conf": 1.0,
    "box": [
     500,
     1800,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "لا",
-     0.986
+     1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   },
   {
    "word_index": 74944,
@@ -209,14 +225,16 @@
    "top2": [
     [
      "ج",
-     0.0
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

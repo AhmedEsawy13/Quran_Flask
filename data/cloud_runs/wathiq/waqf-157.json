@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 21086,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 21119,
    "text": "بِأَمْرِهِۦٓۗ",
    "line": 8,
    "sign": "ق",
-   "conf": 0.9976,
+   "conf": 0.9999,
    "box": [
     688,
     1075,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ق",
-     0.998
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 21123,
    "text": "وَٱلْأَمْرُۗ",
    "line": 9,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1384,
     1184,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 21132,
    "text": "وَخُفْيَةًۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.8428,
+   "conf": 0.9802,
    "box": [
     1359,
     1291,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ج",
-     0.843
+     0.98
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 21146,
    "text": "وَطَمَعًاۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 0.9958,
    "box": [
     624,
     1427,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.996
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 21161,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 21177,
@@ -192,7 +206,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     0.0
+     0.002
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 82055,
    "text": "ٱلْأَنْهَٰرُۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9744,
+   "conf": 0.9182,
    "box": [
     1005,
     1307,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.974
+     0.918
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

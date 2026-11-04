@@ -7,7 +7,7 @@
    "text": "تَرَىٰۚ",
    "line": 14,
    "sign": "ج",
-   "conf": 0.9892,
+   "conf": 1.0,
    "box": [
     409,
     1792,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.989
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 61804,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

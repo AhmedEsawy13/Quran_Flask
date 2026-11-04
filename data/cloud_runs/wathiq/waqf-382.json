@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 52357,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 52369,
@@ -65,26 +69,80 @@
    "top2": [
     [
      "ق",
-     0.307
+     0.207
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 52394,
    "text": "شَجَرَهَآۗ",
    "line": 8,
    "sign": "ق",
-   "conf": 0.9987,
+   "conf": 0.9325,
    "box": [
     1262,
     1058,
     1288,
     1087
+   ],
+   "top2": [
+    [
+     "ق",
+     0.932
+    ],
+    [
+     "ج",
+     0.0
+    ]
+   ],
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
+  },
+  {
+   "word_index": 52397,
+   "text": "ٱللَّهِۚ",
+   "line": 8,
+   "sign": "ج",
+   "conf": 1.0,
+   "box": [
+    1023,
+    1077,
+    1040,
+    1101
+   ],
+   "top2": [
+    [
+     "ج",
+     1.0
+    ],
+    [
+     "ص",
+     0.0
+    ]
+   ],
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
+  },
+  {
+   "word_index": 52416,
+   "text": "حَاجِزًاۗ",
+   "line": 10,
+   "sign": "ق",
+   "conf": 0.9987,
+   "box": [
+    844,
+    1300,
+    870,
+    1330
    ],
    "top2": [
     [
@@ -96,55 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
-  },
-  {
-   "word_index": 52397,
-   "text": "ٱللَّهِۚ",
-   "line": 8,
-   "sign": "ج",
-   "conf": 0.997,
-   "box": [
-    1023,
-    1077,
-    1040,
-    1101
-   ],
-   "top2": [
-    [
-     "ج",
-     0.997
-    ],
-    [
-     "ص",
-     0.0
-    ]
-   ],
-   "gate_none": false
-  },
-  {
-   "word_index": 52416,
-   "text": "حَاجِزًاۗ",
-   "line": 10,
-   "sign": "ق",
-   "conf": 0.9736,
-   "box": [
-    844,
-    1300,
-    870,
-    1330
-   ],
-   "top2": [
-    [
-     "ق",
-     0.974
-    ],
-    [
-     "ج",
-     0.0
-    ]
-   ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 52419,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 52434,
@@ -188,11 +202,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 52437,
@@ -216,14 +232,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 52454,
    "text": "رَحْمَتِهِۦٓۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 0.9951,
+   "conf": 0.9967,
    "box": [
     1476,
     1899,
@@ -233,14 +251,16 @@
    "top2": [
     [
      "ق",
-     0.995
+     0.997
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 52457,
@@ -264,7 +284,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

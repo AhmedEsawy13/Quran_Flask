@@ -20,18 +20,20 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 47152,
    "text": "بِٱلْحَقِّ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.8964,
+   "conf": 0.9997,
    "box": [
     781,
     500,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.896
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 47183,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 47226,
    "text": "جِنَّةُۢۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9887,
+   "conf": 1.0,
    "box": [
     1072,
     1305,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ج",
-     0.989
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 47242,
    "text": "فِيهِنَّۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 0.9631,
+   "conf": 0.9858,
    "box": [
     1063,
     1561,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ج",
-     0.963
+     0.986
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 47256,
    "text": "خَيْرࣱۖ",
    "line": 13,
    "sign": "ص",
-   "conf": 0.9191,
+   "conf": 1.0,
    "box": [
     402,
     1677,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ص",
-     0.919
+     1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

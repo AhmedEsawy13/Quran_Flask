@@ -7,7 +7,7 @@
    "text": "ٱلزَّكَوٰةَۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9981,
+   "conf": 1.0,
    "box": [
     664,
     1536,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     0.998
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 83145,
    "text": "فِيهَآۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9997,
+   "conf": 1.0,
    "box": [
     1031,
     1772,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

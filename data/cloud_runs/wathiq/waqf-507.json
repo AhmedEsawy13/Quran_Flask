@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   },
   {
    "word_index": 69934,
    "text": "رَّبِّهِمْۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9684,
+   "conf": 1.0,
    "box": [
     552,
     706,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     0.968
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 69960,
    "text": "أَوْزَارَهَاۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.9982,
+   "conf": 1.0,
    "box": [
     1276,
     1056,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     0.998
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 69970,
    "text": "بِبَعْضࣲۗ",
    "line": 8,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9713,
    "box": [
     1308,
     1174,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.971
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 70025,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 70028,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

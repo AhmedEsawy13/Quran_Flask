@@ -7,7 +7,7 @@
    "text": "مَلَٰٓئِكَةࣰۖ",
    "line": 5,
    "sign": "لا",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     863,
     711,
@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   },
   {
    "word_index": 79922,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   },
   {
    "word_index": 79928,
    "text": "وَٱلْمُؤْمِنُونَ",
    "line": 7,
    "sign": "لا",
-   "conf": 1.0,
+   "conf": 0.9978,
    "box": [
     903,
     965,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "لا",
-     1.0
+     0.998
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "لا",
+   "loose": "لا"
   },
   {
    "word_index": 79939,
    "text": "مَثَلࣰاۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 1.0,
    "box": [
     958,
     1072,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 79947,
    "text": "يَشَآءُۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 0.9998,
    "box": [
     1392,
     1190,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 79953,
    "text": "هُوَۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.9915,
+   "conf": 0.9941,
    "box": [
     947,
     1190,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ج",
-     0.992
+     0.994
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

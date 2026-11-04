@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 38888,
    "text": "بِهَاۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     776,
     351,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 38901,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 38913,
    "text": "ٱلْقُرْءَانِۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 0.9999,
    "box": [
     1307,
     720,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 38975,
    "text": "وَعِدْهُمْۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     968,
     1538,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 38987,
    "text": "سُلْطَٰنࣱۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.9986,
+   "conf": 0.9995,
    "box": [
     531,
     1648,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 39001,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

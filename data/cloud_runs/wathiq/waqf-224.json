@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "م",
+   "loose": "ج"
   },
   {
    "word_index": 29960,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 29997,
    "text": "ٱلْجَنَّةِۖ",
    "line": 6,
    "sign": "ص",
-   "conf": 0.9922,
+   "conf": 1.0,
    "box": [
     598,
     829,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ص",
-     0.992
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 30007,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 30010,
    "text": "مَثَلًاۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9977,
+   "conf": 0.9407,
    "box": [
     784,
     1066,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     0.998
+     0.941
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 30028,
@@ -140,11 +150,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

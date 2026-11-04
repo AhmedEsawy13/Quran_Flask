@@ -7,7 +7,7 @@
    "text": "فَأَهْلَكْنَٰهُمْۚ",
    "line": 2,
    "sign": "ق",
-   "conf": 0.9682,
+   "conf": 1.0,
    "box": [
     1305,
     378,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ق",
-     0.968
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 51010,
@@ -44,11 +46,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 51047,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 51133,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 51137,
    "text": "لَـَٔايَةࣰۖ",
    "line": 14,
    "sign": "ص",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     608,
     1785,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

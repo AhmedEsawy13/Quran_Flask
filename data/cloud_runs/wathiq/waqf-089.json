@@ -7,7 +7,7 @@
    "text": "مِّنْهُمْۖ",
    "line": 2,
    "sign": "ص",
-   "conf": 0.999,
+   "conf": 0.9999,
    "box": [
     784,
     395,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ص",
-     0.999
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 11716,
    "text": "وَٱلصَّٰلِحِينَۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 1.0,
    "box": [
     396,
     852,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 11724,
    "text": "ٱللَّهِۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.9981,
+   "conf": 1.0,
    "box": [
     373,
     975,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ج",
-     0.998
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 11785,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

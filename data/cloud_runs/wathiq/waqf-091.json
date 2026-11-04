@@ -17,14 +17,16 @@
    "top2": [
     [
      "ص",
-     0.002
+     0.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 11981,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ص",
-     0.002
+     0.001
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 11985,
    "text": "يُبَيِّتُونَۖ",
    "line": 4,
    "sign": "ص",
-   "conf": 0.983,
+   "conf": 1.0,
    "box": [
     1238,
     613,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ص",
-     0.983
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 11990,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 11997,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     0.399
+     0.013
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 12017,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ص",
-     0.033
+     0.002
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 12029,
    "text": "مِنْهُمْۗ",
    "line": 8,
    "sign": "ق",
-   "conf": 0.9678,
+   "conf": 0.8002,
    "box": [
     603,
     1081,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ق",
-     0.968
+     0.8
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 12047,
@@ -185,21 +199,23 @@
    "top2": [
     [
      "ج",
-     0.119
+     0.054
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 12049,
    "text": "ٱلْمُؤْمِنِينَۖ",
    "line": 10,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9191,
    "box": [
     344,
     1323,
@@ -209,21 +225,23 @@
    "top2": [
     [
      "ص",
-     0.062
+     0.919
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 12056,
    "text": "كَفَرُوا۟ۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 1.0,
    "box": [
     700,
     1434,
@@ -240,14 +258,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 12070,
    "text": "مِّنْهَاۖ",
    "line": 13,
    "sign": "ص",
-   "conf": 0.9991,
+   "conf": 1.0,
    "box": [
     1244,
     1672,
@@ -257,21 +277,23 @@
    "top2": [
     [
      "ص",
-     0.999
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 12078,
    "text": "مِّنْهَاۗ",
    "line": 13,
-   "sign": "ج",
-   "conf": 0.8459,
+   "sign": "ق",
+   "conf": 0.9999,
    "box": [
     339,
     1674,
@@ -280,22 +302,24 @@
    ],
    "top2": [
     [
-     "ج",
-     0.045
+     "ق",
+     0.001
     ],
     [
-     "ص",
-     0.007
+     "ج",
+     0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ق"
   },
   {
    "word_index": 12093,
    "text": "رُدُّوهَآۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1027,
     1893,
@@ -312,7 +336,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

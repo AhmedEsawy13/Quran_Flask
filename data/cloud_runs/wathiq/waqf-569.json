@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 78806,
    "text": "كَلَّآۖ",
    "line": 3,
    "sign": "ص",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     978,
     488,
@@ -48,55 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
-  },
-  {
-   "word_index": 78915,
-   "text": "جَنَّٰتࣲ",
-   "line": 13,
-   "sign": "ص",
-   "conf": 0.0001,
-   "box": [
-    996,
-    1702,
-    1005,
-    1733
-   ],
-   "top2": [
-    [
-     "ص",
-     0.0
-    ],
-    [
-     "ج",
-     0.0
-    ]
-   ],
-   "gate_none": true
-  },
-  {
-   "word_index": 78926,
-   "text": "وَعَنِ",
-   "line": 14,
-   "sign": "ج",
-   "conf": 0.9998,
-   "box": [
-    999,
-    1818,
-    1005,
-    1847
-   ],
-   "top2": [
-    [
-     "ج",
-     0.001
-    ],
-    [
-     "ص",
-     0.0
-    ]
-   ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 78939,
@@ -120,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

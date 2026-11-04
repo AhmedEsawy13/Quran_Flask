@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 66484,
    "text": "فَوْقِهِنَّۚ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.9221,
+   "conf": 0.95,
    "box": [
     423,
     722,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     0.922
+     0.95
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 66492,
    "text": "ٱلْأَرْضِۗ",
    "line": 5,
    "sign": "ق",
-   "conf": 0.568,
+   "conf": 0.9889,
    "box": [
     1382,
     960,
@@ -65,26 +69,54 @@
    "top2": [
     [
      "ق",
-     0.568
+     0.989
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 66528,
    "text": "فِيهِۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9662,
    "box": [
     867,
     1324,
     886,
     1349
+   ],
+   "top2": [
+    [
+     "ج",
+     0.966
+    ],
+    [
+     "ص",
+     0.0
+    ]
+   ],
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
+  },
+  {
+   "word_index": 66547,
+   "text": "رَحْمَتِهِۦۚ",
+   "line": 10,
+   "sign": "ج",
+   "conf": 1.0,
+   "box": [
+    1236,
+    1556,
+    1253,
+    1581
    ],
    "top2": [
     [
@@ -96,31 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
-  },
-  {
-   "word_index": 66547,
-   "text": "رَحْمَتِهِۦۚ",
-   "line": 10,
-   "sign": "ج",
-   "conf": 0.9994,
-   "box": [
-    1236,
-    1556,
-    1253,
-    1581
-   ],
-   "top2": [
-    [
-     "ج",
-     0.999
-    ],
-    [
-     "ص",
-     0.0
-    ]
-   ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 66560,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 66580,
    "text": "ٱللَّهِۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1395,
     1909,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

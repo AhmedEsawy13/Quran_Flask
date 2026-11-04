@@ -7,7 +7,7 @@
    "text": "ٱلْقِيَٰمَةِۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.6058,
    "box": [
     1387,
     606,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     0.002
+     0.606
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 45527,
    "text": "ٱلنَّاسِۖ",
    "line": 6,
    "sign": "ص",
-   "conf": 0.9736,
+   "conf": 1.0,
    "box": [
     524,
     849,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ص",
-     0.066
+     1.0
     ],
     [
      "ج",
-     0.002
+     0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 45531,
    "text": "ٱلْعَذَابُۗ",
    "line": 7,
    "sign": "ق",
-   "conf": 0.9999,
+   "conf": 0.9998,
    "box": [
     1172,
     951,
@@ -68,18 +72,20 @@
      1.0
     ],
     [
-     "ع",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 45538,
    "text": "مُّكْرِمٍۚ",
    "line": 7,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.816,
    "box": [
     535,
     974,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ص",
-     0.003
+     0.816
     ],
     [
      "ج",
-     0.0
+     0.001
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 45549,
    "text": "رَبِّهِمْۖ",
    "line": 9,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1460,
     1201,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 45606,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ص",
-     0.095
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

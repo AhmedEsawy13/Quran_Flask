@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 61102,
    "text": "قَوْلُهُمْۘ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9754,
+   "conf": 0.9131,
    "box": [
     417,
     720,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     0.975
+     0.913
     ],
     [
      "ص",
-     0.024
+     0.086
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 61126,
    "text": "خَلْقَهُۥۖ",
    "line": 8,
    "sign": "ص",
-   "conf": 0.9998,
+   "conf": 1.0,
    "box": [
     1172,
     1062,
@@ -68,11 +72,13 @@
      1.0
     ],
     [
-     "ج",
+     "م",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 61139,
@@ -92,11 +98,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 61166,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 67344,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 67360,
    "text": "ٱلْأَرْضِۗ",
    "line": 4,
    "sign": "ق",
-   "conf": 0.9319,
+   "conf": 0.9778,
    "box": [
     979,
     607,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ق",
-     0.932
+     0.978
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

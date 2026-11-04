@@ -24,43 +24,21 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 8839,
    "text": "فِيهَاۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 0.5762,
+   "conf": 0.9989,
    "box": [
     1249,
     1197,
     1264,
     1220
-   ],
-   "top2": [
-    [
-     "ج",
-     0.576
-    ],
-    [
-     "ص",
-     0.0
-    ]
-   ],
-   "gate_none": false
-  },
-  {
-   "word_index": 8882,
-   "text": "مِّثْلُهُۥۚ",
-   "line": 13,
-   "sign": "ج",
-   "conf": 0.9992,
-   "box": [
-    257,
-    1664,
-    273,
-    1688
    ],
    "top2": [
     [
@@ -72,14 +50,42 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
+  },
+  {
+   "word_index": 8882,
+   "text": "مِّثْلُهُۥۚ",
+   "line": 13,
+   "sign": "ج",
+   "conf": 1.0,
+   "box": [
+    257,
+    1664,
+    273,
+    1688
+   ],
+   "top2": [
+    [
+     "ج",
+     1.0
+    ],
+    [
+     "ص",
+     0.0
+    ]
+   ],
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8894,
    "text": "شُهَدَآءَۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     783,
     1893,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

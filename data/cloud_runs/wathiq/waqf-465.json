@@ -7,7 +7,7 @@
    "text": "مُّسْوَدَّةٌۚ",
    "line": 5,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 0.765,
    "box": [
     634,
     698,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.765
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 64085,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 64095,
    "text": "وَٱلْأَرْضِۗ",
    "line": 9,
    "sign": "ق",
-   "conf": 0.962,
+   "conf": 0.8596,
    "box": [
     1157,
     1184,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ق",
-     0.962
+     0.86
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 64146,
    "text": "بِيَمِينِهِۦۚ",
    "line": 15,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9579,
    "box": [
     1172,
     1902,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     0.01
+     0.958
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

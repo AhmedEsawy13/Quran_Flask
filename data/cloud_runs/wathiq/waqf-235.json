@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 31565,
    "text": "رَبُّكَۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 0.9996,
+   "conf": 1.0,
    "box": [
     1100,
     360,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 31567,
    "text": "خَلَقَهُمْۗ",
    "line": 2,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9995,
    "box": [
     793,
     360,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 31587,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 31620,
    "text": "عَلَيْهِۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9973,
+   "conf": 1.0,
    "box": [
     1078,
     1078,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     0.997
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 31627,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

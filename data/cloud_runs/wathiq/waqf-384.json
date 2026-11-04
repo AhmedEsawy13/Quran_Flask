@@ -7,7 +7,7 @@
    "text": "بِحُكْمِهِۦۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 0.9951,
+   "conf": 0.9998,
    "box": [
     1492,
     394,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.995
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 52634,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 52657,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 52727,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 52749,
    "text": "ٱللَّهُۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.9983,
+   "conf": 1.0,
    "box": [
     703,
     1679,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ج",
-     0.998
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 52761,
    "text": "ٱلسَّحَابِۚ",
    "line": 14,
    "sign": "ج",
-   "conf": 0.9997,
+   "conf": 0.9999,
    "box": [
     529,
     1809,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 52767,
    "text": "شَيْءٍۚ",
    "line": 15,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     1084,
     1923,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

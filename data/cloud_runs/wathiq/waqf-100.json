@@ -7,7 +7,7 @@
    "text": "وَٱلْأَقْرَبِينَۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 0.9946,
+   "conf": 0.9989,
    "box": [
     755,
     369,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.995
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 13191,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 13196,
    "text": "تَعْدِلُوا۟ۚ",
    "line": 3,
    "sign": "ج",
-   "conf": 0.9995,
+   "conf": 1.0,
    "box": [
     545,
     481,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 13223,
    "text": "قَبْلُۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 0.9998,
+   "conf": 0.9969,
    "box": [
     684,
     845,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.997
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 13271,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 13301,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 13304,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

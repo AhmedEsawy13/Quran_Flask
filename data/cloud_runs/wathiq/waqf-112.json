@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 14764,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 14774,
    "text": "عَلَيْهِمْۛ",
    "line": 4,
    "sign": "ع",
-   "conf": 1.0,
+   "conf": 0.9932,
    "box": [
     722,
     600,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ع",
-     1.0
+     0.993
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ع",
+   "loose": "ع"
   },
   {
    "word_index": 14776,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ع",
+   "loose": "ع"
   },
   {
    "word_index": 14779,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14803,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 14821,
    "text": "لِأَقْتُلَكَۖ",
    "line": 9,
    "sign": "ص",
-   "conf": 0.9997,
+   "conf": 0.9999,
    "box": [
     805,
     1197,
@@ -168,14 +180,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 14837,
    "text": "ٱلنَّارِۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.9886,
+   "conf": 0.9995,
    "box": [
     1218,
     1443,
@@ -185,21 +199,23 @@
    "top2": [
     [
      "ج",
-     0.989
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14862,
    "text": "أَخِيهِۚ",
    "line": 14,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9993,
    "box": [
     1300,
     1797,
@@ -209,14 +225,16 @@
    "top2": [
     [
      "ج",
-     0.335
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 14873,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

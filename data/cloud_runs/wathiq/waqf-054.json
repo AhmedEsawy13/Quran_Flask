@@ -7,7 +7,7 @@
    "text": "بَعِيدࣰاۗ",
    "line": 2,
    "sign": "ق",
-   "conf": 0.9998,
+   "conf": 1.0,
    "box": [
     725,
     373,
@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 7003,
    "text": "نَفْسَهُۥۗ",
    "line": 3,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9998,
    "box": [
     1372,
     488,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 7018,
    "text": "ذُنُوبَكُمْۚ",
    "line": 4,
    "sign": "ق",
-   "conf": 0.998,
+   "conf": 0.8975,
    "box": [
     784,
     613,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ق",
-     0.998
+     0.897
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 7026,
    "text": "وَٱلرَّسُولَۖ",
    "line": 5,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9909,
    "box": [
     984,
     731,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ص",
-     1.0
+     0.991
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7050,
@@ -120,7 +128,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 7068,
@@ -140,11 +150,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7087,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7107,
@@ -192,7 +206,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7115,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7120,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 7125,
@@ -264,7 +284,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

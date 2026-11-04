@@ -7,7 +7,7 @@
    "text": "الٓرۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 0.9871,
+   "conf": 0.9995,
    "box": [
     1462,
     369,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ج",
-     0.987
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 27670,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 27691,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 27693,
@@ -96,43 +102,21 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 27700,
    "text": "إِذْنِهِۦۚ",
    "line": 6,
    "sign": "ج",
-   "conf": 0.999,
+   "conf": 0.9998,
    "box": [
     1208,
     958,
     1227,
     981
-   ],
-   "top2": [
-    [
-     "ج",
-     0.999
-    ],
-    [
-     "ص",
-     0.0
-    ]
-   ],
-   "gate_none": false
-  },
-  {
-   "word_index": 27704,
-   "text": "فَٱعْبُدُوهُۚ",
-   "line": 6,
-   "sign": "ج",
-   "conf": 1.0,
-   "box": [
-    513,
-    940,
-    532,
-    965
    ],
    "top2": [
     [
@@ -144,7 +128,35 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
+  },
+  {
+   "word_index": 27704,
+   "text": "فَٱعْبُدُوهُۚ",
+   "line": 6,
+   "sign": "ج",
+   "conf": 0.9983,
+   "box": [
+    513,
+    940,
+    532,
+    965
+   ],
+   "top2": [
+    [
+     "ج",
+     0.998
+    ],
+    [
+     "ص",
+     0.0
+    ]
+   ],
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 27710,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 27713,
@@ -192,7 +206,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 27724,
@@ -216,14 +232,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 27749,
    "text": "وَٱلْحِسَابَۚ",
    "line": 12,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     1325,
     1657,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 27755,
@@ -264,7 +284,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

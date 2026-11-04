@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 11005,
@@ -44,18 +46,20 @@
      1.0
     ],
     [
-     "ع",
+     "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 11013,
    "text": "وَٱضْرِبُوهُنَّۖ",
    "line": 5,
    "sign": "ص",
-   "conf": 0.9994,
+   "conf": 0.9984,
    "box": [
     1307,
     733,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ص",
-     0.999
+     0.998
     ],
     [
-     "ع",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 11019,
    "text": "سَبِيلًاۗ",
    "line": 5,
    "sign": "ق",
-   "conf": 0.9999,
+   "conf": 0.9971,
    "box": [
     448,
     733,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.997
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 11042,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ق",
-     0.073
+     0.118
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 11054,
    "text": "شَيْـࣰٔاۖ",
    "line": 9,
    "sign": "ص",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     650,
     1206,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 11072,
    "text": "أَيْمَٰنُكُمْۗ",
    "line": 12,
-   "sign": "ج",
-   "conf": 0.4039,
+   "sign": "ق",
+   "conf": 0.9949,
    "box": [
     835,
     1561,
@@ -160,15 +172,17 @@
    ],
    "top2": [
     [
-     "ج",
-     0.0
+     "ق",
+     0.995
     ],
     [
-     "ق",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ق"
   },
   {
    "word_index": 11092,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ق",
-     0.004
+     0.027
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

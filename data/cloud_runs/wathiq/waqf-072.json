@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 9468,
@@ -48,14 +50,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 9473,
    "text": "لَّٱتَّبَعْنَٰكُمْۗ",
    "line": 3,
    "sign": "ق",
-   "conf": 0.9994,
+   "conf": 0.9998,
    "box": [
     740,
     480,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ق",
-     0.999
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 9479,
    "text": "لِلْإِيمَٰنِۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9997,
+   "conf": 1.0,
    "box": [
     1051,
     614,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 9485,
    "text": "قُلُوبِهِمْۚ",
    "line": 5,
    "sign": "ق",
-   "conf": 0.9995,
+   "conf": 0.9987,
    "box": [
     1353,
     725,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ق",
-     1.0
+     0.999
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 9498,
@@ -144,14 +154,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 9515,
    "text": "أَمْوَٰتَۢاۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.8624,
+   "conf": 0.9782,
    "box": [
     1235,
     1067,
@@ -161,21 +173,23 @@
    "top2": [
     [
      "ج",
-     0.862
+     0.978
     ],
     [
-     "ص",
+     "ع",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 9562,
    "text": "ٱلْقَرْحُۚ",
    "line": 13,
    "sign": "ج",
-   "conf": 0.995,
+   "conf": 0.999,
    "box": [
     1266,
     1665,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ج",
-     0.995
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

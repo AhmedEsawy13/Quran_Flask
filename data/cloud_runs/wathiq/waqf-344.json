@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 46963,
    "text": "غُثَآءࣰۚ",
    "line": 14,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 0.9956,
    "box": [
     793,
     1789,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.996
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

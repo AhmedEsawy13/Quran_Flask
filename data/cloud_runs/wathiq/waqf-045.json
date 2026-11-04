@@ -7,7 +7,7 @@
    "text": "فَطَلࣱّۗ",
    "line": 3,
    "sign": "ق",
-   "conf": 0.9983,
+   "conf": 0.999,
    "box": [
     346,
     482,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ق",
-     0.998
+     0.999
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 5845,
    "text": "فَٱحْتَرَقَتْۗ",
    "line": 7,
-   "sign": "ج",
-   "conf": 0.7953,
+   "sign": "ق",
+   "conf": 0.9999,
    "box": [
     755,
     976,
@@ -40,15 +42,17 @@
    ],
    "top2": [
     [
-     "ج",
-     0.174
+     "ق",
+     1.0
     ],
     [
-     "ق",
-     0.045
+     "ج",
+     0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ق"
   },
   {
    "word_index": 5866,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 5877,
    "text": "فِيهِۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.999,
+   "conf": 1.0,
    "box": [
     880,
     1456,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     1.0
     ],
     [
-     "ص",
+     "ع",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 5888,
    "text": "بِٱلْفَحْشَآءِۖ",
    "line": 12,
    "sign": "ص",
-   "conf": 0.9989,
+   "conf": 0.992,
    "box": [
     345,
     1549,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ص",
-     0.999
+     0.992
     ],
     [
      "ع",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 5893,
    "text": "وَفَضْلࣰاۗ",
    "line": 13,
    "sign": "ق",
-   "conf": 0.9979,
+   "conf": 0.9998,
    "box": [
     793,
     1676,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ق",
-     0.998
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 5901,
@@ -168,14 +180,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 5908,
    "text": "كَثِيرࣰاۗ",
    "line": 15,
    "sign": "ق",
-   "conf": 0.9973,
+   "conf": 1.0,
    "box": [
     1045,
     1907,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ق",
-     0.997
+     1.0
     ],
     [
-     "ع",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

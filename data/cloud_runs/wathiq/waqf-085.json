@@ -7,7 +7,7 @@
    "text": "ٱلْـَٔاخِرِۗ",
    "line": 2,
    "sign": "ق",
-   "conf": 0.9929,
+   "conf": 0.9091,
    "box": [
     988,
     368,
@@ -17,14 +17,16 @@
    "top2": [
     [
      "ق",
-     0.993
+     0.909
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 11127,
@@ -48,7 +50,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 11138,
@@ -72,14 +76,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 11195,
    "text": "تَغْتَسِلُوا۟ۚ",
    "line": 11,
    "sign": "ج",
-   "conf": 0.9991,
+   "conf": 0.9805,
    "box": [
     1034,
     1416,
@@ -89,21 +95,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.981
     ],
     [
-     "م",
+     "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
-   "word_index": 11220,
-   "text": "إِنَّ",
+   "word_index": 11219,
+   "text": "وَأَيْدِيكُمْۗ",
    "line": 13,
    "sign": "ق",
-   "conf": 0.9941,
+   "conf": 1.0,
    "box": [
     346,
     1653,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ق",
-     0.994
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

@@ -7,7 +7,7 @@
    "text": "أَمْرَهَاۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 0.9996,
+   "conf": 1.0,
    "box": [
     422,
     252,
@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 65745,
    "text": "وَحِفْظࣰاۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9902,
    "box": [
     801,
     368,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.011
+     0.99
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 65772,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 65796,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 65806,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ص",
-     0.093
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 65823,
    "text": "ٱلدُّنْيَاۖ",
    "line": 10,
    "sign": "ص",
-   "conf": 1.0,
+   "conf": 0.9999,
    "box": [
     947,
     1311,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 65826,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

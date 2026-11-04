@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 77048,
    "text": "ٱللَّهِۗ",
    "line": 3,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.7964,
    "box": [
     1136,
     459,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ق",
-     0.097
+     0.796
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 77053,
    "text": "قَلْبَهُۥۚ",
    "line": 3,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9902,
    "box": [
     624,
     453,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.99
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77062,
    "text": "ٱلرَّسُولَۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9999,
+   "conf": 1.0,
    "box": [
     564,
     572,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77075,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77090,
    "text": "فَٱحْذَرُوهُمْۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 0.9933,
+   "conf": 1.0,
    "box": [
     1124,
     1053,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ج",
-     0.993
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77103,
    "text": "فِتْنَةࣱۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9989,
+   "conf": 1.0,
    "box": [
     1418,
     1264,
@@ -161,21 +173,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 77117,
    "text": "لِّأَنفُسِكُمْۗ",
    "line": 11,
    "sign": "ق",
-   "conf": 0.9972,
+   "conf": 0.9724,
    "box": [
     560,
     1399,
@@ -185,14 +199,16 @@
    "top2": [
     [
      "ق",
-     0.997
+     0.972
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 77134,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

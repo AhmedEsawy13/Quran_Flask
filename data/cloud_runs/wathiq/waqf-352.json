@@ -7,7 +7,7 @@
    "text": "ٱلشَّيْطَٰنِۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 0.9995,
+   "conf": 0.9988,
    "box": [
     705,
     268,
@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 48022,
    "text": "وَٱلْمُنكَرِۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 0.9997,
+   "conf": 0.9994,
    "box": [
     746,
     379,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 48038,
    "text": "يَشَآءُۗ",
    "line": 4,
    "sign": "ق",
-   "conf": 0.8902,
+   "conf": 0.885,
    "box": [
     1475,
     603,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ق",
-     0.89
+     0.885
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 48057,
@@ -96,14 +102,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 48059,
    "text": "وَلْيَصْفَحُوٓا۟ۗ",
    "line": 6,
    "sign": "ق",
-   "conf": 0.9711,
+   "conf": 0.9961,
    "box": [
     1059,
     834,
@@ -113,21 +121,23 @@
    "top2": [
     [
      "ق",
-     0.971
+     0.996
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 48065,
    "text": "لَكُمْۚ",
    "line": 6,
    "sign": "ق",
-   "conf": 0.9294,
+   "conf": 0.996,
    "box": [
     525,
     836,
@@ -137,14 +147,16 @@
    "top2": [
     [
      "ق",
-     0.929
+     0.996
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 48109,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 48113,
@@ -192,7 +206,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 48117,
@@ -216,7 +232,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 48135,
@@ -240,7 +258,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

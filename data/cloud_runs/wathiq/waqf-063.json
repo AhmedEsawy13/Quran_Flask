@@ -7,7 +7,7 @@
    "text": "رَسُولُهُۥۗ",
    "line": 2,
    "sign": "ق",
-   "conf": 1.0,
+   "conf": 0.9997,
    "box": [
     1306,
     362,
@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 8279,
    "text": "تَفَرَّقُوا۟ۚ",
    "line": 4,
    "sign": "ج",
-   "conf": 0.9994,
+   "conf": 0.9979,
    "box": [
     348,
     604,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ج",
-     0.999
+     0.998
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8300,
    "text": "مِّنْهَاۗ",
    "line": 7,
    "sign": "ق",
-   "conf": 0.9527,
+   "conf": 0.9967,
    "box": [
     1184,
     960,
@@ -65,21 +69,23 @@
    "top2": [
     [
      "ق",
-     0.953
+     0.997
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   },
   {
    "word_index": 8319,
    "text": "ٱلْمُنكَرِۚ",
    "line": 9,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.9284,
    "box": [
     903,
     1210,
@@ -89,14 +95,16 @@
    "top2": [
     [
      "ج",
-     0.003
+     0.928
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8333,
@@ -113,14 +121,16 @@
    "top2": [
     [
      "ج",
-     0.005
+     0.002
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": true
+   "gate_none": true,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8343,
@@ -144,7 +154,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 8373,
@@ -168,7 +180,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ق",
+   "loose": "ق"
   }
  ]
 }

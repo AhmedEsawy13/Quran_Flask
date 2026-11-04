@@ -24,14 +24,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 68766,
    "text": "يَسْمَعْهَاۖ",
    "line": 7,
    "sign": "ص",
-   "conf": 0.9981,
+   "conf": 1.0,
    "box": [
     645,
     1059,
@@ -41,21 +43,23 @@
    "top2": [
     [
      "ص",
-     0.998
+     1.0
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 68777,
    "text": "هُزُوًاۚ",
    "line": 8,
    "sign": "ج",
-   "conf": 1.0,
+   "conf": 0.7372,
    "box": [
     624,
     1177,
@@ -65,14 +69,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.737
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 68785,
@@ -92,11 +98,13 @@
      1.0
     ],
     [
-     "م",
+     "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 68798,
@@ -120,14 +128,16 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 68804,
    "text": "هُدࣰىۖ",
    "line": 11,
    "sign": "ص",
-   "conf": 0.9975,
+   "conf": 0.9976,
    "box": [
     1317,
     1544,
@@ -137,21 +147,23 @@
    "top2": [
     [
      "ص",
-     0.997
+     0.998
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 68839,
    "text": "مِّنْهُۚ",
    "line": 14,
    "sign": "ج",
-   "conf": 0.9965,
+   "conf": 0.9999,
    "box": [
     1056,
     1883,
@@ -161,14 +173,16 @@
    "top2": [
     [
      "ج",
-     0.997
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

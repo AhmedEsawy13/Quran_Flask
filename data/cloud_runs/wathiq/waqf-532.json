@@ -7,7 +7,7 @@
    "text": "وَٱلْأَرْضِۚ",
    "line": 7,
    "sign": "ج",
-   "conf": 0.6683,
+   "conf": 0.899,
    "box": [
     920,
     948,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     0.668
+     0.899
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 73617,
    "text": "فَٱنفُذُوا۟ۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.7138,
+   "conf": 0.9739,
    "box": [
     648,
     1288,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.714
+     0.974
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   }
  ]
 }

@@ -7,7 +7,7 @@
    "text": "وَزُخْرُفࣰاۚ",
    "line": 1,
    "sign": "ج",
-   "conf": 0.9966,
+   "conf": 0.9103,
    "box": [
     498,
     249,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ج",
-     0.997
+     0.91
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 67742,
    "text": "ٱلدُّنْيَاۚ",
    "line": 2,
    "sign": "ج",
-   "conf": 0.9965,
+   "conf": 1.0,
    "box": [
     864,
     361,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     0.997
+     1.0
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 67820,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 67829,
@@ -96,7 +102,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }

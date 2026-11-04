@@ -7,7 +7,7 @@
    "text": "قَبْلُۖ",
    "line": 4,
    "sign": "ص",
-   "conf": 0.9789,
+   "conf": 0.8685,
    "box": [
     1317,
     594,
@@ -17,21 +17,23 @@
    "top2": [
     [
      "ص",
-     0.979
+     0.868
     ],
     [
      "ج",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 73061,
    "text": "أَهْوَآءَهُمْۚ",
    "line": 10,
    "sign": "ج",
-   "conf": 0.9996,
+   "conf": 0.9992,
    "box": [
     544,
     1552,
@@ -41,14 +43,16 @@
    "top2": [
     [
      "ج",
-     1.0
+     0.999
     ],
     [
      "ص",
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ج",
+   "loose": "ج"
   },
   {
    "word_index": 73075,
@@ -72,7 +76,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   },
   {
    "word_index": 73081,
@@ -96,7 +102,9 @@
      0.471
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "م",
+   "loose": "ج"
   }
  ]
 }

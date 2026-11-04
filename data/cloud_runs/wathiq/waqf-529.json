@@ -7,7 +7,7 @@
    "text": "ٱلدَّاعِۖ",
    "line": 2,
    "sign": "ص",
-   "conf": 0.9997,
+   "conf": 1.0,
    "box": [
     1101,
     379,
@@ -24,7 +24,9 @@
      0.0
     ]
    ],
-   "gate_none": false
+   "gate_none": false,
+   "strict": "ص",
+   "loose": "ص"
   }
  ]
 }
