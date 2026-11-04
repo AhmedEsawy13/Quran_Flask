@@ -396,6 +396,59 @@ def build_gap_cards() -> dict:
     return dict(Counter(c['group'] for c in cards))
 
 
+LONE_SET = 'mesaha-waqf-1371-lone'
+LONE_NOTE = ('علامة قرأها النموذج بثقة على كلمة لا تقف عليها المصاحف الأخرى ولا طبعة ١٩٢٤ (مثل صلى على «ورهبانية» '
+             '57:27). أكثرها حركات أو زخرفة أو علامة الكلمة المجاورة: اختر المطبوع فعلًا على الكلمة المسطّرة، ثم اعتمد '
+             'الباقي «لا شيء».')
+
+
+def build_lone_cards(skip: set[str]) -> dict:
+    """Cards for confident 1952 signs on words no print marks and neither Mesaha column has (2026-11-04: 313
+    such reads, a sample of 24 had no real sign but 57:27:19 is real). The model's sign is shown as a hint,
+    not as the card's reading, so «اعتماد الكل» saves «no sign» for every undecided card. ``skip``: word keys
+    (database numbering) already checked. Same decision store as the main 1952 set."""
+    import sqlite3
+    from collections import Counter
+    from pipeline.cv_waqf.word_space import printed_position
+    from pipeline.paw_split.mesaha_waqf import SCRIPT_DB, load_columns
+    from pipeline.paw_split.mesaha_waqf_review import counts
+    out = ROOT / 'data' / 'mesaha-waqf' / LONE_SET
+    (out / 'cards').mkdir(parents=True, exist_ok=True)
+    key_of = dict(sqlite3.connect(SCRIPT_DB).execute('SELECT word_index, word_key FROM words'))
+    hints = load_columns()
+    db = sqlite3.connect(ROOT / 'data' / 'mushaf_waqf.db')
+    marked = {(s_, a_, w_) for s_, a_, w_, x, y in db.execute(
+        'SELECT "السورة", "الآية", word_index, "المساحة", "المساحة ١٣٧١" FROM waqf')
+        if (x or '').strip() or (y or '').strip()}
+    extra = {x['key'] for x in json.loads((ROOT / 'data' / 'mesaha-waqf' / CARD_SET / 'extra_marks.json').read_text(encoding='utf-8'))}
+    cards = []
+    for f in sorted(WORK.glob('waqf-*.json')):
+        page = int(f.stem.split('-')[-1])
+        d = None
+        for r in json.loads(f.read_text(encoding='utf-8'))['signs']:
+            k = key_of.get(r['word_index'])
+            if not k or k in extra:
+                continue
+            s_, a_, n_ = map(int, k.split(':'))
+            pos = printed_position(SCRIPT_DB, s_, a_, n_)
+            if not pos or (s_, a_, pos) in marked or f'{s_}:{a_}:{pos}' in skip:
+                continue
+            hint = {c: v for c, v in hints.get((s_, a_, pos), {}).items() if v}
+            if hint or not counts(r, hint):
+                continue
+            d = d or json.load(open(TRACE / f'paw-words-{page:03d}.json', encoding='utf-8'))
+            w = next(v for v in d['words'] if v['word_index'] == r['word_index'])
+            cid = f'{page:03d}-{r["word_index"]}'
+            card_image(page, w, d, r, out / 'cards' / f'{cid}.jpg')
+            cards.append({'id': cid, 'page': page, 'line': w['line'], 'word_index': r['word_index'], 'key': k,
+                          'text': w['text'], 'group': 'N', 'model': None, 'conf': None,
+                          'hint': {'قرأ النموذج': r['sign']}, 'suggest': ''})
+    data = {'pages': sorted({c['page'] for c in cards}), 'decision_edition': DECISION_EDITION, 'note': LONE_NOTE,
+            'cards': cards, 'a_sample': []}
+    (out / 'data.json').write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding='utf-8')
+    return dict(Counter(c['hint']['قرأ النموذج'] for c in cards))
+
+
 def main(argv: list[str]) -> int:
     cmd, pages = argv[0], [int(x) for x in argv[1:]]
     OUT.mkdir(parents=True, exist_ok=True)
@@ -425,6 +478,12 @@ def main(argv: list[str]) -> int:
         return 0
     if cmd == 'extra-cards':
         print(EXTRA_SET, build_extra_cards())
+        return 0
+    if cmd == 'lone-cards':
+        # the 24-seat sample checked by eye on 2026-11-04 (no real sign), in database numbering
+        sample = ROOT / 'data' / 'mesaha-waqf' / LONE_SET / 'checked.json'
+        skip = set(json.loads(sample.read_text(encoding='utf-8'))) if sample.is_file() else set()
+        print(LONE_SET, build_lone_cards(skip))
         return 0
     if cmd == 'gap-cards':
         print(GAP_SET, build_gap_cards())

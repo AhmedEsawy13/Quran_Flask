@@ -1,0 +1,4570 @@
+{
+ "pages": [
+  6,
+  8,
+  11,
+  13,
+  15,
+  16,
+  20,
+  21,
+  27,
+  31,
+  38,
+  39,
+  42,
+  44,
+  46,
+  47,
+  51,
+  56,
+  61,
+  63,
+  68,
+  70,
+  71,
+  76,
+  82,
+  87,
+  88,
+  91,
+  92,
+  95,
+  96,
+  97,
+  99,
+  100,
+  101,
+  104,
+  106,
+  107,
+  108,
+  109,
+  117,
+  120,
+  126,
+  127,
+  131,
+  133,
+  137,
+  139,
+  143,
+  147,
+  152,
+  168,
+  175,
+  182,
+  184,
+  185,
+  187,
+  191,
+  195,
+  196,
+  199,
+  200,
+  203,
+  204,
+  209,
+  211,
+  215,
+  216,
+  217,
+  218,
+  222,
+  223,
+  226,
+  228,
+  229,
+  230,
+  232,
+  234,
+  235,
+  236,
+  240,
+  241,
+  243,
+  244,
+  245,
+  250,
+  251,
+  253,
+  254,
+  255,
+  257,
+  260,
+  261,
+  262,
+  267,
+  269,
+  270,
+  277,
+  279,
+  289,
+  291,
+  301,
+  305,
+  310,
+  312,
+  313,
+  318,
+  319,
+  320,
+  321,
+  322,
+  324,
+  326,
+  328,
+  331,
+  332,
+  337,
+  346,
+  354,
+  356,
+  358,
+  360,
+  362,
+  363,
+  365,
+  368,
+  372,
+  375,
+  377,
+  378,
+  386,
+  392,
+  395,
+  396,
+  397,
+  398,
+  400,
+  404,
+  405,
+  414,
+  417,
+  429,
+  432,
+  435,
+  437,
+  442,
+  448,
+  450,
+  452,
+  453,
+  454,
+  455,
+  457,
+  458,
+  461,
+  462,
+  464,
+  470,
+  473,
+  480,
+  489,
+  493,
+  499,
+  502,
+  507,
+  515,
+  518,
+  529,
+  530,
+  531,
+  538,
+  540,
+  542,
+  543,
+  544,
+  545,
+  551,
+  553,
+  558,
+  571,
+  575,
+  580,
+  584,
+  592,
+  608,
+  610,
+  613,
+  615,
+  620,
+  624,
+  628,
+  635,
+  644,
+  648,
+  649,
+  650,
+  652,
+  655,
+  662,
+  669,
+  673,
+  674,
+  677,
+  679,
+  684,
+  686,
+  687,
+  693,
+  696,
+  698,
+  702,
+  708,
+  711,
+  712,
+  717,
+  719,
+  720,
+  725,
+  731,
+  735,
+  741,
+  742,
+  746,
+  747,
+  748,
+  750,
+  753,
+  771,
+  773,
+  775,
+  777,
+  779,
+  783,
+  784,
+  786,
+  787,
+  814,
+  815,
+  816,
+  822,
+  824
+ ],
+ "decision_edition": "المساحة ١٣٧١ · فحص",
+ "note": "علامة قرأها النموذج بثقة على كلمة لا تقف عليها المصاحف الأخرى ولا طبعة ١٩٢٤ (مثل صلى على «ورهبانية» 57:27). أكثرها حركات أو زخرفة أو علامة الكلمة المجاورة: اختر المطبوع فعلًا على الكلمة المسطّرة، ثم اعتمد الباقي «لا شيء».",
+ "cards": [
+  {
+   "id": "006-295",
+   "page": 6,
+   "line": 1,
+   "word_index": 295,
+   "key": "2:21:1",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "006-384",
+   "page": 6,
+   "line": 10,
+   "word_index": 384,
+   "key": "2:25:19",
+   "text": "قَالُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "008-575",
+   "page": 8,
+   "line": 6,
+   "word_index": 575,
+   "key": "2:33:21",
+   "text": "كُنتُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "011-840",
+   "page": 11,
+   "line": 1,
+   "word_index": 840,
+   "key": "2:53:5",
+   "text": "وَٱلۡفُرۡقَانَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "013-1145",
+   "page": 13,
+   "line": 11,
+   "word_index": 1145,
+   "key": "2:68:4",
+   "text": "رَبَّكَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "015-1291",
+   "page": 15,
+   "line": 1,
+   "word_index": 1291,
+   "key": "2:75:3",
+   "text": "أَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "016-1399",
+   "page": 16,
+   "line": 1,
+   "word_index": 1399,
+   "key": "2:80:19",
+   "text": "عَلَى",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "020-1848",
+   "page": 20,
+   "line": 2,
+   "word_index": 1848,
+   "key": "2:102:11",
+   "text": "وَلَٰكِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "020-1909",
+   "page": 20,
+   "line": 9,
+   "word_index": 1909,
+   "key": "2:102:72",
+   "text": "لَوۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "021-2041",
+   "page": 21,
+   "line": 10,
+   "word_index": 2041,
+   "key": "2:109:19",
+   "text": "تَبَيَّنَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "021-2050",
+   "page": 21,
+   "line": 11,
+   "word_index": 2050,
+   "key": "2:109:28",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "027-2651",
+   "page": 27,
+   "line": 4,
+   "word_index": 2651,
+   "key": "2:140:13",
+   "text": "قُلۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "031-3063",
+   "page": 31,
+   "line": 3,
+   "word_index": 3063,
+   "key": "2:161:6",
+   "text": "كُفَّارٌ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "031-3078",
+   "page": 31,
+   "line": 5,
+   "word_index": 3078,
+   "key": "2:162:7",
+   "text": "وَلَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "038-3872",
+   "page": 38,
+   "line": 9,
+   "word_index": 3872,
+   "key": "2:196:25",
+   "text": "مِّن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "039-3987",
+   "page": 39,
+   "line": 10,
+   "word_index": 3987,
+   "key": "2:199:9",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "042-4249",
+   "page": 42,
+   "line": 2,
+   "word_index": 4249,
+   "key": "2:213:35",
+   "text": "ٱلَّذِينَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "044-4536",
+   "page": 44,
+   "line": 11,
+   "word_index": 4536,
+   "key": "2:222:22",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "046-4741",
+   "page": 46,
+   "line": 11,
+   "word_index": 4741,
+   "key": "2:231:11",
+   "text": "وَلَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "047-4820",
+   "page": 47,
+   "line": 8,
+   "word_index": 4820,
+   "key": "2:233:10",
+   "text": "يُتِمَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "047-4834",
+   "page": 47,
+   "line": 10,
+   "word_index": 4834,
+   "key": "2:233:24",
+   "text": "تُضَآرَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "051-5219",
+   "page": 51,
+   "line": 4,
+   "word_index": 5219,
+   "key": "2:247:27",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "056-5775",
+   "page": 56,
+   "line": 2,
+   "word_index": 5775,
+   "key": "2:264:1",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "061-6352",
+   "page": 61,
+   "line": 7,
+   "word_index": 6352,
+   "key": "2:283:28",
+   "text": "ءَاثِمٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "063-6450",
+   "page": 63,
+   "line": 4,
+   "word_index": 6450,
+   "key": "3:5:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "068-7102",
+   "page": 68,
+   "line": 8,
+   "word_index": 7102,
+   "key": "3:35:13",
+   "text": "فَتَقَبَّلۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "070-7321",
+   "page": 70,
+   "line": 8,
+   "word_index": 7321,
+   "key": "3:47:6",
+   "text": "وَلَدٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "070-7325",
+   "page": 70,
+   "line": 9,
+   "word_index": 7325,
+   "key": "3:47:10",
+   "text": "قَالَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "071-7371",
+   "page": 71,
+   "line": 2,
+   "word_index": 7371,
+   "key": "3:49:26",
+   "text": "وَٱلۡأَبۡرَصَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "076-7967",
+   "page": 76,
+   "line": 7,
+   "word_index": 7967,
+   "key": "3:81:30",
+   "text": "وَأَنَا۠",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "082-8610",
+   "page": 82,
+   "line": 8,
+   "word_index": 8610,
+   "key": "3:118:25",
+   "text": "بَيَّنَّا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "087-9172",
+   "page": 87,
+   "line": 12,
+   "word_index": 9172,
+   "key": "3:153:13",
+   "text": "غَمَّۢا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "088-9283",
+   "page": 88,
+   "line": 11,
+   "word_index": 9283,
+   "key": "3:155:21",
+   "text": "حَلِيمٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "091-9615",
+   "page": 91,
+   "line": 10,
+   "word_index": 9615,
+   "key": "3:173:5",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "092-9640",
+   "page": 92,
+   "line": 1,
+   "word_index": 9640,
+   "key": "3:174:12",
+   "text": "وَٱللَّهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "095-9963",
+   "page": 95,
+   "line": 2,
+   "word_index": 9963,
+   "key": "3:190:7",
+   "text": "ٱلَّيۡلِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "096-10094",
+   "page": 96,
+   "line": 4,
+   "word_index": 10094,
+   "key": "3:197:4",
+   "text": "مَأۡوَىٰهُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "097-10169",
+   "page": 97,
+   "line": 1,
+   "word_index": 10169,
+   "key": "4:1:1",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "097-10192",
+   "page": 97,
+   "line": 3,
+   "word_index": 10192,
+   "key": "4:1:24",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "099-10430",
+   "page": 99,
+   "line": 11,
+   "word_index": 10430,
+   "key": "4:11:53",
+   "text": "بِهَآ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "100-10464",
+   "page": 100,
+   "line": 2,
+   "word_index": 10464,
+   "key": "4:12:15",
+   "text": "وَلَدٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "101-10583",
+   "page": 101,
+   "line": 3,
+   "word_index": 10583,
+   "key": "4:15:11",
+   "text": "شَهِدُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "104-10885",
+   "page": 104,
+   "line": 3,
+   "word_index": 10885,
+   "key": "4:25:47",
+   "text": "ذَٰلِكَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "104-10943",
+   "page": 104,
+   "line": 10,
+   "word_index": 10943,
+   "key": "4:29:8",
+   "text": "بِٱلۡبَٰطِلِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "106-11070",
+   "page": 106,
+   "line": 1,
+   "word_index": 11070,
+   "key": "4:34:36",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "107-11184",
+   "page": 107,
+   "line": 1,
+   "word_index": 11184,
+   "key": "4:40:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "107-11234",
+   "page": 107,
+   "line": 7,
+   "word_index": 11234,
+   "key": "4:43:7",
+   "text": "وَأَنتُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "108-11365",
+   "page": 108,
+   "line": 9,
+   "word_index": 11365,
+   "key": "4:47:25",
+   "text": "وَكَانَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "109-11501",
+   "page": 109,
+   "line": 12,
+   "word_index": 11501,
+   "key": "4:56:10",
+   "text": "جُلُودُهُم",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "117-12363",
+   "page": 117,
+   "line": 11,
+   "word_index": 12363,
+   "key": "4:93:7",
+   "text": "خَٰلِدٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "120-12642",
+   "page": 120,
+   "line": 7,
+   "word_index": 12642,
+   "key": "4:103:14",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "126-13332",
+   "page": 126,
+   "line": 10,
+   "word_index": 13332,
+   "key": "4:139:11",
+   "text": "فَإِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "127-13408",
+   "page": 127,
+   "line": 7,
+   "word_index": 13408,
+   "key": "4:142:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "131-13785",
+   "page": 131,
+   "line": 1,
+   "word_index": 13785,
+   "key": "4:162:22",
+   "text": "ٱلۡأٓخِرِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "133-14063",
+   "page": 133,
+   "line": 10,
+   "word_index": 14063,
+   "key": "4:176:12",
+   "text": "وَلَدٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "137-14427",
+   "page": 137,
+   "line": 9,
+   "word_index": 14427,
+   "key": "5:8:22",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "139-14629",
+   "page": 139,
+   "line": 8,
+   "word_index": 14629,
+   "key": "5:17:5",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "143-15087",
+   "page": 143,
+   "line": 11,
+   "word_index": 15087,
+   "key": "5:38:1",
+   "text": "وَٱلسَّارِقُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "147-15456",
+   "page": 147,
+   "line": 4,
+   "word_index": 15456,
+   "key": "5:50:5",
+   "text": "أَحۡسَنُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "152-16013",
+   "page": 152,
+   "line": 7,
+   "word_index": 16013,
+   "key": "5:75:14",
+   "text": "كَانَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "168-17708",
+   "page": 168,
+   "line": 4,
+   "word_index": 17708,
+   "key": "6:39:12",
+   "text": "وَمَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "175-18500",
+   "page": 175,
+   "line": 8,
+   "word_index": 18500,
+   "key": "6:81:16",
+   "text": "فَأَيُّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "182-19243",
+   "page": 182,
+   "line": 9,
+   "word_index": 19243,
+   "key": "6:120:5",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "184-19469",
+   "page": 184,
+   "line": 11,
+   "word_index": 19469,
+   "key": "6:131:2",
+   "text": "أَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "185-19508",
+   "page": 185,
+   "line": 3,
+   "word_index": 19508,
+   "key": "6:134:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "187-19767",
+   "page": 187,
+   "line": 9,
+   "word_index": 19767,
+   "key": "6:144:35",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "191-20163",
+   "page": 191,
+   "line": 3,
+   "word_index": 20163,
+   "key": "6:159:18",
+   "text": "كَانُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "195-20602",
+   "page": 195,
+   "line": 9,
+   "word_index": 20602,
+   "key": "7:26:14",
+   "text": "ذَٰلِكَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "196-20651",
+   "page": 196,
+   "line": 2,
+   "word_index": 20651,
+   "key": "7:28:12",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "196-20654",
+   "page": 196,
+   "line": 2,
+   "word_index": 20654,
+   "key": "7:28:15",
+   "text": "يَأۡمُرُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "199-21016",
+   "page": 199,
+   "line": 7,
+   "word_index": 21016,
+   "key": "7:44:21",
+   "text": "فَأَذَّنَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "200-21116",
+   "page": 200,
+   "line": 7,
+   "word_index": 21116,
+   "key": "7:50:16",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "203-21435",
+   "page": 203,
+   "line": 7,
+   "word_index": 21435,
+   "key": "7:69:4",
+   "text": "ذِكۡرٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "204-21522",
+   "page": 204,
+   "line": 5,
+   "word_index": 21522,
+   "key": "7:73:5",
+   "text": "قَالَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "209-22093",
+   "page": 209,
+   "line": 11,
+   "word_index": 22093,
+   "key": "7:106:6",
+   "text": "فَأۡتِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "211-22250",
+   "page": 211,
+   "line": 4,
+   "word_index": 22250,
+   "key": "7:124:7",
+   "text": "لَأُصَلِّبَنَّكُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "211-22304",
+   "page": 211,
+   "line": 11,
+   "word_index": 22304,
+   "key": "7:128:7",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "215-22682",
+   "page": 215,
+   "line": 7,
+   "word_index": 22682,
+   "key": "7:147:3",
+   "text": "بِـَٔايَٰتِنَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "216-22746",
+   "page": 216,
+   "line": 2,
+   "word_index": 22746,
+   "key": "7:150:11",
+   "text": "مِنۢ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "217-22906",
+   "page": 217,
+   "line": 8,
+   "word_index": 22906,
+   "key": "7:156:30",
+   "text": "بِـَٔايَٰتِنَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "218-22954",
+   "page": 218,
+   "line": 2,
+   "word_index": 22954,
+   "key": "7:158:2",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "222-23355",
+   "page": 222,
+   "line": 1,
+   "word_index": 23355,
+   "key": "7:176:29",
+   "text": "لَعَلَّهُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "222-23422",
+   "page": 222,
+   "line": 9,
+   "word_index": 23422,
+   "key": "7:180:13",
+   "text": "كَانُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "223-23471",
+   "page": 223,
+   "line": 3,
+   "word_index": 23471,
+   "key": "7:185:12",
+   "text": "وَأَنۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "226-23768",
+   "page": 226,
+   "line": 1,
+   "word_index": 23768,
+   "key": "7:203:19",
+   "text": "رَّبِّكُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "228-23940",
+   "page": 228,
+   "line": 1,
+   "word_index": 23940,
+   "key": "8:9:10",
+   "text": "ٱلۡمَلَٰٓئِكَةِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "228-24001",
+   "page": 228,
+   "line": 8,
+   "word_index": 24001,
+   "key": "8:12:17",
+   "text": "فَٱضۡرِبُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "228-24035",
+   "page": 228,
+   "line": 12,
+   "word_index": 24035,
+   "key": "8:15:6",
+   "text": "ٱلَّذِينَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "229-24111",
+   "page": 229,
+   "line": 9,
+   "word_index": 24111,
+   "key": "8:19:20",
+   "text": "كَثُرَتۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "230-24144",
+   "page": 230,
+   "line": 1,
+   "word_index": 24144,
+   "key": "8:22:7",
+   "text": "ٱلصُّمُّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "232-24355",
+   "page": 232,
+   "line": 1,
+   "word_index": 24355,
+   "key": "8:35:7",
+   "text": "مُكَآءٗ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "234-24583",
+   "page": 234,
+   "line": 3,
+   "word_index": 24583,
+   "key": "8:46:10",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "235-24757",
+   "page": 235,
+   "line": 11,
+   "word_index": 24757,
+   "key": "8:56:6",
+   "text": "عَهۡدَهُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "236-24785",
+   "page": 236,
+   "line": 1,
+   "word_index": 24785,
+   "key": "8:58:10",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "240-25188",
+   "page": 240,
+   "line": 2,
+   "word_index": 25188,
+   "key": "9:3:32",
+   "text": "أَلِيمٍ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "241-25278",
+   "page": 241,
+   "line": 1,
+   "word_index": 25278,
+   "key": "9:7:20",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "241-25344",
+   "page": 241,
+   "line": 9,
+   "word_index": 25344,
+   "key": "9:12:6",
+   "text": "عَهۡدِهِمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "م"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "241-25371",
+   "page": 241,
+   "line": 12,
+   "word_index": 25371,
+   "key": "9:13:14",
+   "text": "فَٱللَّهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "243-25528",
+   "page": 243,
+   "line": 6,
+   "word_index": 25528,
+   "key": "9:22:4",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "244-25644",
+   "page": 244,
+   "line": 8,
+   "word_index": 25644,
+   "key": "9:28:1",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "245-25744",
+   "page": 245,
+   "line": 8,
+   "word_index": 25744,
+   "key": "9:31:19",
+   "text": "إِلَّا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "245-25785",
+   "page": 245,
+   "line": 12,
+   "word_index": 25785,
+   "key": "9:34:5",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "250-26238",
+   "page": 250,
+   "line": 5,
+   "word_index": 26238,
+   "key": "9:55:6",
+   "text": "إِنَّمَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "251-26405",
+   "page": 251,
+   "line": 11,
+   "word_index": 26405,
+   "key": "9:64:14",
+   "text": "ٱللَّهَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "253-26538",
+   "page": 253,
+   "line": 4,
+   "word_index": 26538,
+   "key": "9:71:1",
+   "text": "وَٱلۡمُؤۡمِنُونَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "253-26544",
+   "page": 253,
+   "line": 5,
+   "word_index": 26544,
+   "key": "9:71:7",
+   "text": "بِٱلۡمَعۡرُوفِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "254-26630",
+   "page": 254,
+   "line": 4,
+   "word_index": 26630,
+   "key": "9:74:31",
+   "text": "يَتَوَلَّوۡاْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "255-26770",
+   "page": 255,
+   "line": 7,
+   "word_index": 26770,
+   "key": "9:81:25",
+   "text": "لَّوۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "257-26963",
+   "page": 257,
+   "line": 5,
+   "word_index": 26963,
+   "key": "9:92:14",
+   "text": "تَوَلَّواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "260-27298",
+   "page": 260,
+   "line": 9,
+   "word_index": 27298,
+   "key": "9:108:21",
+   "text": "وَٱللَّهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "261-27342",
+   "page": 261,
+   "line": 2,
+   "word_index": 27342,
+   "key": "9:110:13",
+   "text": "وَٱللَّهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "262-27441",
+   "page": 262,
+   "line": 2,
+   "word_index": 27441,
+   "key": "9:114:19",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "267-27993",
+   "page": 267,
+   "line": 6,
+   "word_index": 27993,
+   "key": "10:12:16",
+   "text": "كَأَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "269-28248",
+   "page": 269,
+   "line": 10,
+   "word_index": 28248,
+   "key": "10:23:10",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "270-28299",
+   "page": 270,
+   "line": 4,
+   "word_index": 28299,
+   "key": "10:24:35",
+   "text": "كَأَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "277-29038",
+   "page": 277,
+   "line": 2,
+   "word_index": 29038,
+   "key": "10:68:11",
+   "text": "ٱلسَّمَٰوَٰتِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "279-29255",
+   "page": 279,
+   "line": 2,
+   "word_index": 29255,
+   "key": "10:81:12",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "289-30308",
+   "page": 289,
+   "line": 3,
+   "word_index": 30308,
+   "key": "11:33:3",
+   "text": "يَأۡتِيكُم",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "291-30607",
+   "page": 291,
+   "line": 10,
+   "word_index": 30607,
+   "key": "11:49:17",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "301-31645",
+   "page": 301,
+   "line": 3,
+   "word_index": 31645,
+   "key": "11:114:9",
+   "text": "ٱلۡحَسَنَٰتِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "301-31667",
+   "page": 301,
+   "line": 6,
+   "word_index": 31667,
+   "key": "11:116:8",
+   "text": "بَقِيَّةٖ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "305-32022",
+   "page": 305,
+   "line": 2,
+   "word_index": 32022,
+   "key": "12:18:12",
+   "text": "فَصَبۡرٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "305-32042",
+   "page": 305,
+   "line": 5,
+   "word_index": 32042,
+   "key": "12:19:13",
+   "text": "وَٱللَّهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "310-32618",
+   "page": 310,
+   "line": 10,
+   "word_index": 32618,
+   "key": "12:50:5",
+   "text": "فَلَمَّا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "312-32762",
+   "page": 312,
+   "line": 2,
+   "word_index": 32762,
+   "key": "12:59:6",
+   "text": "بِأَخٖ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "313-32908",
+   "page": 313,
+   "line": 5,
+   "word_index": 32908,
+   "key": "12:67:15",
+   "text": "مِّنَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "318-33544",
+   "page": 318,
+   "line": 12,
+   "word_index": 33544,
+   "key": "12:104:9",
+   "text": "ذِكۡرٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "319-33590",
+   "page": 319,
+   "line": 5,
+   "word_index": 33590,
+   "key": "12:108:9",
+   "text": "أَنَا۠",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "320-33709",
+   "page": 320,
+   "line": 7,
+   "word_index": 33709,
+   "key": "13:2:15",
+   "text": "كُلّٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "م"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "321-33781",
+   "page": 321,
+   "line": 8,
+   "word_index": 33781,
+   "key": "13:5:7",
+   "text": "كُنَّا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "م"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "322-33887",
+   "page": 322,
+   "line": 8,
+   "word_index": 33887,
+   "key": "13:11:12",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "324-34127",
+   "page": 324,
+   "line": 11,
+   "word_index": 34127,
+   "key": "13:21:3",
+   "text": "مَآ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "326-34273",
+   "page": 326,
+   "line": 3,
+   "word_index": 34273,
+   "key": "13:30:9",
+   "text": "أُمَمٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "328-34569",
+   "page": 328,
+   "line": 11,
+   "word_index": 34569,
+   "key": "13:43:6",
+   "text": "قُلۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "331-34822",
+   "page": 331,
+   "line": 7,
+   "word_index": 34822,
+   "key": "14:11:20",
+   "text": "أَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "332-34890",
+   "page": 332,
+   "line": 3,
+   "word_index": 34890,
+   "key": "14:16:6",
+   "text": "مَّآءٖ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "337-35442",
+   "page": 337,
+   "line": 4,
+   "word_index": 35442,
+   "key": "14:50:5",
+   "text": "وُجُوهَهُمُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "346-36331",
+   "page": 346,
+   "line": 5,
+   "word_index": 36331,
+   "key": "16:9:7",
+   "text": "وَلَوۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "354-37244",
+   "page": 354,
+   "line": 11,
+   "word_index": 37244,
+   "key": "16:70:17",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "356-37452",
+   "page": 356,
+   "line": 9,
+   "word_index": 37452,
+   "key": "16:80:18",
+   "text": "وَمِنۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "358-37632",
+   "page": 358,
+   "line": 6,
+   "word_index": 37632,
+   "key": "16:91:16",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "360-37833",
+   "page": 360,
+   "line": 4,
+   "word_index": 37833,
+   "key": "16:103:12",
+   "text": "أَعۡجَمِيّٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "362-38077",
+   "page": 362,
+   "line": 9,
+   "word_index": 38077,
+   "key": "16:119:2",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "363-38208",
+   "page": 363,
+   "line": 11,
+   "word_index": 38208,
+   "key": "16:128:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "365-38329",
+   "page": 365,
+   "line": 5,
+   "word_index": 38329,
+   "key": "17:7:18",
+   "text": "أَوَّلَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "368-38643",
+   "page": 368,
+   "line": 5,
+   "word_index": 38643,
+   "key": "17:29:9",
+   "text": "كُلَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "372-39123",
+   "page": 372,
+   "line": 11,
+   "word_index": 39123,
+   "key": "17:60:24",
+   "text": "طُغۡيَٰنٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "375-39428",
+   "page": 375,
+   "line": 10,
+   "word_index": 39428,
+   "key": "17:81:6",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "375-39431",
+   "page": 375,
+   "line": 11,
+   "word_index": 39431,
+   "key": "17:81:9",
+   "text": "زَهُوقٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "377-39570",
+   "page": 377,
+   "line": 1,
+   "word_index": 39570,
+   "key": "17:92:2",
+   "text": "تُسۡقِطَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "378-39686",
+   "page": 378,
+   "line": 2,
+   "word_index": 39686,
+   "key": "17:98:7",
+   "text": "أَءِذَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "378-39770",
+   "page": 378,
+   "line": 11,
+   "word_index": 39770,
+   "key": "17:103:1",
+   "text": "فَأَرَادَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "386-40517",
+   "page": 386,
+   "line": 1,
+   "word_index": 40517,
+   "key": "18:36:2",
+   "text": "أَظُنُّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "392-41193",
+   "page": 392,
+   "line": 3,
+   "word_index": 41193,
+   "key": "18:80:7",
+   "text": "أَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "395-41533",
+   "page": 395,
+   "line": 5,
+   "word_index": 41533,
+   "key": "18:107:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "396-41621",
+   "page": 396,
+   "line": 3,
+   "word_index": 41621,
+   "key": "19:4:7",
+   "text": "وَٱشۡتَعَلَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "397-41701",
+   "page": 397,
+   "line": 3,
+   "word_index": 41701,
+   "key": "19:10:6",
+   "text": "قَالَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "397-41724",
+   "page": 397,
+   "line": 6,
+   "word_index": 41724,
+   "key": "19:12:3",
+   "text": "ٱلۡكِتَٰبَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "398-41811",
+   "page": 398,
+   "line": 3,
+   "word_index": 41811,
+   "key": "19:21:4",
+   "text": "رَبُّكِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "398-41882",
+   "page": 398,
+   "line": 11,
+   "word_index": 41882,
+   "key": "19:26:18",
+   "text": "إِنسِيّٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "400-42081",
+   "page": 400,
+   "line": 8,
+   "word_index": 42081,
+   "key": "19:44:5",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "404-42485",
+   "page": 404,
+   "line": 5,
+   "word_index": 42485,
+   "key": "19:77:4",
+   "text": "بِـَٔايَٰتِنَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "404-42542",
+   "page": 404,
+   "line": 11,
+   "word_index": 42542,
+   "key": "19:84:2",
+   "text": "تَعۡجَلۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "405-42626",
+   "page": 405,
+   "line": 9,
+   "word_index": 42626,
+   "key": "19:96:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "414-43533",
+   "page": 414,
+   "line": 4,
+   "word_index": 43533,
+   "key": "20:87:8",
+   "text": "أَوۡزَارٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "417-43838",
+   "page": 417,
+   "line": 1,
+   "word_index": 43838,
+   "key": "20:113:8",
+   "text": "ٱلۡوَعِيدِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "429-45055",
+   "page": 429,
+   "line": 1,
+   "word_index": 45055,
+   "key": "21:81:2",
+   "text": "ٱلرِّيحَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "429-45071",
+   "page": 429,
+   "line": 3,
+   "word_index": 45071,
+   "key": "21:82:3",
+   "text": "مَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "432-45413",
+   "page": 432,
+   "line": 6,
+   "word_index": 45413,
+   "key": "21:111:3",
+   "text": "لَعَلَّهُۥ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "432-45441",
+   "page": 432,
+   "line": 8,
+   "word_index": 45441,
+   "key": "22:1:5",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "435-45745",
+   "page": 435,
+   "line": 8,
+   "word_index": 45745,
+   "key": "22:17:11",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "437-45925",
+   "page": 437,
+   "line": 4,
+   "word_index": 45925,
+   "key": "22:27:10",
+   "text": "يَأۡتِينَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "442-46462",
+   "page": 442,
+   "line": 5,
+   "word_index": 46462,
+   "key": "22:60:14",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "442-46524",
+   "page": 442,
+   "line": 11,
+   "word_index": 46524,
+   "key": "22:64:8",
+   "text": "وَإِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "448-47114",
+   "page": 448,
+   "line": 9,
+   "word_index": 47114,
+   "key": "23:31:3",
+   "text": "مِنۢ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "450-47279",
+   "page": 450,
+   "line": 4,
+   "word_index": 47279,
+   "key": "23:46:7",
+   "text": "عَالِينَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "452-47528",
+   "page": 452,
+   "line": 8,
+   "word_index": 47528,
+   "key": "23:74:1",
+   "text": "وَإِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "453-47640",
+   "page": 453,
+   "line": 8,
+   "word_index": 47640,
+   "key": "23:85:1",
+   "text": "سَيَقُولُونَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "454-47775",
+   "page": 454,
+   "line": 11,
+   "word_index": 47775,
+   "key": "23:100:1",
+   "text": "لَعَلِّيٓ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "455-47876",
+   "page": 455,
+   "line": 10,
+   "word_index": 47876,
+   "key": "23:110:2",
+   "text": "سِخۡرِيًّا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "457-48057",
+   "page": 457,
+   "line": 9,
+   "word_index": 48057,
+   "key": "24:5:8",
+   "text": "فَإِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "458-48130",
+   "page": 458,
+   "line": 6,
+   "word_index": 48130,
+   "key": "24:11:9",
+   "text": "شَرّٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "458-48156",
+   "page": 458,
+   "line": 8,
+   "word_index": 48156,
+   "key": "24:12:6",
+   "text": "وَٱلۡمُؤۡمِنَٰتُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "461-48459",
+   "page": 461,
+   "line": 8,
+   "word_index": 48459,
+   "key": "24:30:8",
+   "text": "ذَٰلِكَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "462-48498",
+   "page": 462,
+   "line": 1,
+   "word_index": 48498,
+   "key": "24:31:31",
+   "text": "أَوۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "464-48745",
+   "page": 464,
+   "line": 5,
+   "word_index": 48745,
+   "key": "24:39:18",
+   "text": "فَوَفَّىٰهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "470-49423",
+   "page": 470,
+   "line": 7,
+   "word_index": 49423,
+   "key": "25:4:8",
+   "text": "ٱفۡتَرَىٰهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "473-49746",
+   "page": 473,
+   "line": 10,
+   "word_index": 49746,
+   "key": "25:29:2",
+   "text": "أَضَلَّنِي",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "480-50381",
+   "page": 480,
+   "line": 1,
+   "word_index": 50381,
+   "key": "26:6:3",
+   "text": "فَسَيَأۡتِيهِمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "489-51390",
+   "page": 489,
+   "line": 4,
+   "word_index": 51390,
+   "key": "26:154:6",
+   "text": "فَأۡتِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "493-51837",
+   "page": 493,
+   "line": 6,
+   "word_index": 51837,
+   "key": "26:221:5",
+   "text": "تَنَزَّلُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "499-52489",
+   "page": 499,
+   "line": 11,
+   "word_index": 52489,
+   "key": "27:44:18",
+   "text": "قَالَتۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "502-52816",
+   "page": 502,
+   "line": 11,
+   "word_index": 52816,
+   "key": "27:67:9",
+   "text": "لَمُخۡرَجُونَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "507-53224",
+   "page": 507,
+   "line": 1,
+   "word_index": 53224,
+   "key": "28:7:15",
+   "text": "وَلَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "507-53240",
+   "page": 507,
+   "line": 3,
+   "word_index": 53240,
+   "key": "28:8:8",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "507-53248",
+   "page": 507,
+   "line": 4,
+   "word_index": 53248,
+   "key": "28:9:2",
+   "text": "ٱمۡرَأَتُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "515-54123",
+   "page": 515,
+   "line": 6,
+   "word_index": 54123,
+   "key": "28:57:22",
+   "text": "وَلَٰكِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "518-54417",
+   "page": 518,
+   "line": 2,
+   "word_index": 54417,
+   "key": "28:76:26",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "529-55622",
+   "page": 529,
+   "line": 9,
+   "word_index": 55622,
+   "key": "29:63:8",
+   "text": "فَأَحۡيَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "530-55702",
+   "page": 530,
+   "line": 5,
+   "word_index": 55702,
+   "key": "29:68:9",
+   "text": "كَذَّبَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "531-55788",
+   "page": 531,
+   "line": 6,
+   "word_index": 55788,
+   "key": "30:8:2",
+   "text": "يَتَفَكَّرُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "538-56552",
+   "page": 538,
+   "line": 8,
+   "word_index": 56552,
+   "key": "30:56:17",
+   "text": "وَلَٰكِنَّكُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "540-56679",
+   "page": 540,
+   "line": 2,
+   "word_index": 56679,
+   "key": "31:8:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "540-56745",
+   "page": 540,
+   "line": 9,
+   "word_index": 56745,
+   "key": "31:12:6",
+   "text": "ٱشۡكُرۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "542-56894",
+   "page": 542,
+   "line": 1,
+   "word_index": 56894,
+   "key": "31:20:1",
+   "text": "أَلَمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "542-56997",
+   "page": 542,
+   "line": 12,
+   "word_index": 56997,
+   "key": "31:25:10",
+   "text": "ٱلۡحَمۡدُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "543-57064",
+   "page": 543,
+   "line": 6,
+   "word_index": 57064,
+   "key": "31:29:16",
+   "text": "كُلّٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "م"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "544-57166",
+   "page": 544,
+   "line": 4,
+   "word_index": 57166,
+   "key": "31:34:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "545-57274",
+   "page": 545,
+   "line": 7,
+   "word_index": 57274,
+   "key": "32:6:2",
+   "text": "عَٰلِمُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "م"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "551-57868",
+   "page": 551,
+   "line": 6,
+   "word_index": 57868,
+   "key": "33:15:10",
+   "text": "وَكَانَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "553-58122",
+   "page": 553,
+   "line": 10,
+   "word_index": 58122,
+   "key": "33:28:12",
+   "text": "أُمَتِّعۡكُنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "558-58572",
+   "page": 558,
+   "line": 3,
+   "word_index": 58572,
+   "key": "33:51:20",
+   "text": "تَقَرَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "571-59943",
+   "page": 571,
+   "line": 3,
+   "word_index": 59943,
+   "key": "35:1:19",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "575-60396",
+   "page": 575,
+   "line": 9,
+   "word_index": 60396,
+   "key": "35:28:14",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "580-60839",
+   "page": 580,
+   "line": 3,
+   "word_index": 60839,
+   "key": "36:12:7",
+   "text": "قَدَّمُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "584-61288",
+   "page": 584,
+   "line": 4,
+   "word_index": 61288,
+   "key": "36:55:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "592-62072",
+   "page": 592,
+   "line": 2,
+   "word_index": 62072,
+   "key": "37:85:3",
+   "text": "لِأَبِيهِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "608-63774",
+   "page": 608,
+   "line": 8,
+   "word_index": 63774,
+   "key": "39:17:11",
+   "text": "فَبَشِّرۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "610-63945",
+   "page": 610,
+   "line": 3,
+   "word_index": 63945,
+   "key": "39:26:10",
+   "text": "لَوۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "610-63982",
+   "page": 610,
+   "line": 7,
+   "word_index": 63982,
+   "key": "39:29:14",
+   "text": "ٱلۡحَمۡدُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "613-64301",
+   "page": 613,
+   "line": 7,
+   "word_index": 64301,
+   "key": "39:49:19",
+   "text": "وَلَٰكِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "615-64569",
+   "page": 615,
+   "line": 12,
+   "word_index": 64569,
+   "key": "39:68:21",
+   "text": "قِيَامٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "620-65029",
+   "page": 620,
+   "line": 9,
+   "word_index": 65029,
+   "key": "40:22:8",
+   "text": "فَأَخَذَهُمُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "624-65469",
+   "page": 624,
+   "line": 7,
+   "word_index": 65469,
+   "key": "40:48:7",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "628-65934",
+   "page": 628,
+   "line": 11,
+   "word_index": 65934,
+   "key": "40:81:3",
+   "text": "فَأَيَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "635-66574",
+   "page": 635,
+   "line": 5,
+   "word_index": 66574,
+   "key": "41:39:13",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "635-66585",
+   "page": 635,
+   "line": 6,
+   "word_index": 66585,
+   "key": "41:40:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "644-67573",
+   "page": 644,
+   "line": 12,
+   "word_index": 67573,
+   "key": "42:43:4",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "648-67917",
+   "page": 648,
+   "line": 6,
+   "word_index": 67917,
+   "key": "43:13:20",
+   "text": "مُقۡرِنِينَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "لا"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "649-68023",
+   "page": 649,
+   "line": 6,
+   "word_index": 68023,
+   "key": "43:23:9",
+   "text": "نَّذِيرٍ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "649-68034",
+   "page": 649,
+   "line": 7,
+   "word_index": 68034,
+   "key": "43:23:20",
+   "text": "ءَاثَٰرِهِم",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "650-68146",
+   "page": 650,
+   "line": 8,
+   "word_index": 68146,
+   "key": "43:33:5",
+   "text": "أُمَّةٗ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ق"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "652-68293",
+   "page": 652,
+   "line": 2,
+   "word_index": 68293,
+   "key": "43:47:3",
+   "text": "بِـَٔايَٰتِنَآ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "652-68314",
+   "page": 652,
+   "line": 4,
+   "word_index": 68314,
+   "key": "43:49:2",
+   "text": "يَٰٓأَيُّهَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "655-68681",
+   "page": 655,
+   "line": 10,
+   "word_index": 68681,
+   "key": "43:86:2",
+   "text": "يَمۡلِكُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "662-69380",
+   "page": 662,
+   "line": 12,
+   "word_index": 69380,
+   "key": "45:19:8",
+   "text": "وَإِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "669-70109",
+   "page": 669,
+   "line": 12,
+   "word_index": 70109,
+   "key": "46:24:2",
+   "text": "رَأَوۡهُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "673-70504",
+   "page": 673,
+   "line": 12,
+   "word_index": 70504,
+   "key": "47:12:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "674-70547",
+   "page": 674,
+   "line": 5,
+   "word_index": 70547,
+   "key": "47:14:6",
+   "text": "رَّبِّهِۦ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "677-70862",
+   "page": 677,
+   "line": 5,
+   "word_index": 70862,
+   "key": "47:34:11",
+   "text": "كُفَّارٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "679-71061",
+   "page": 679,
+   "line": 10,
+   "word_index": 71061,
+   "key": "48:10:11",
+   "text": "فَمَن",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "684-71545",
+   "page": 684,
+   "line": 5,
+   "word_index": 71545,
+   "key": "49:1:12",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "684-71573",
+   "page": 684,
+   "line": 8,
+   "word_index": 71573,
+   "key": "49:3:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "686-71778",
+   "page": 686,
+   "line": 12,
+   "word_index": 71778,
+   "key": "49:12:28",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "687-71794",
+   "page": 687,
+   "line": 2,
+   "word_index": 71794,
+   "key": "49:13:12",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "693-72385",
+   "page": 693,
+   "line": 2,
+   "word_index": 72385,
+   "key": "51:14:1",
+   "text": "ذُوقُواْ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "693-72393",
+   "page": 693,
+   "line": 3,
+   "word_index": 72393,
+   "key": "51:15:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "696-72704",
+   "page": 696,
+   "line": 1,
+   "word_index": 72704,
+   "key": "51:55:2",
+   "text": "فَإِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "698-72897",
+   "page": 698,
+   "line": 4,
+   "word_index": 72897,
+   "key": "52:23:3",
+   "text": "كَأۡسٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "702-73285",
+   "page": 702,
+   "line": 1,
+   "word_index": 73285,
+   "key": "53:26:15",
+   "text": "يَأۡذَنَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "708-73944",
+   "page": 708,
+   "line": 6,
+   "word_index": 73944,
+   "key": "54:54:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "711-74195",
+   "page": 711,
+   "line": 4,
+   "word_index": 74195,
+   "key": "55:42:1",
+   "text": "فَبِأَيِّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "711-74213",
+   "page": 711,
+   "line": 6,
+   "word_index": 74213,
+   "key": "55:45:1",
+   "text": "فَبِأَيِّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "711-74224",
+   "page": 711,
+   "line": 7,
+   "word_index": 74224,
+   "key": "55:47:1",
+   "text": "فَبِأَيِّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "712-74311",
+   "page": 712,
+   "line": 6,
+   "word_index": 74311,
+   "key": "55:63:1",
+   "text": "فَبِأَيِّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "712-74318",
+   "page": 712,
+   "line": 6,
+   "word_index": 74318,
+   "key": "55:65:1",
+   "text": "فَبِأَيِّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "717-74774",
+   "page": 717,
+   "line": 4,
+   "word_index": 74774,
+   "key": "56:78:2",
+   "text": "كِتَٰبٖ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "717-74825",
+   "page": 717,
+   "line": 10,
+   "word_index": 74825,
+   "key": "56:88:1",
+   "text": "فَأَمَّآ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "719-75015",
+   "page": 719,
+   "line": 11,
+   "word_index": 75015,
+   "key": "57:9:13",
+   "text": "وَإِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "720-75047",
+   "page": 720,
+   "line": 2,
+   "word_index": 75047,
+   "key": "57:10:27",
+   "text": "مِنۢ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "725-75582",
+   "page": 725,
+   "line": 8,
+   "word_index": 75582,
+   "key": "58:5:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "731-76145",
+   "page": 731,
+   "line": 2,
+   "word_index": 76145,
+   "key": "59:7:34",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "731-76148",
+   "page": 731,
+   "line": 3,
+   "word_index": 76148,
+   "key": "59:7:37",
+   "text": "ٱلۡعِقَابِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "731-76211",
+   "page": 731,
+   "line": 10,
+   "word_index": 76211,
+   "key": "59:10:11",
+   "text": "سَبَقُونَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "735-76601",
+   "page": 735,
+   "line": 10,
+   "word_index": 76601,
+   "key": "60:5:5",
+   "text": "لِّلَّذِينَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "741-77156",
+   "page": 741,
+   "line": 8,
+   "word_index": 77156,
+   "key": "62:6:2",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "742-77202",
+   "page": 742,
+   "line": 1,
+   "word_index": 77202,
+   "key": "62:9:1",
+   "text": "يَٰٓأَيُّهَا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "746-77536",
+   "page": 746,
+   "line": 1,
+   "word_index": 77536,
+   "key": "64:6:2",
+   "text": "بِأَنَّهُۥ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "747-77669",
+   "page": 747,
+   "line": 5,
+   "word_index": 77669,
+   "key": "64:14:9",
+   "text": "لَّكُمۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "747-77713",
+   "page": 747,
+   "line": 10,
+   "word_index": 77713,
+   "key": "64:17:8",
+   "text": "وَيَغۡفِرۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "747-77719",
+   "page": 747,
+   "line": 11,
+   "word_index": 77719,
+   "key": "64:18:1",
+   "text": "عَٰلِمُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "748-77766",
+   "page": 748,
+   "line": 5,
+   "word_index": 77766,
+   "key": "65:1:36",
+   "text": "لَعَلَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "750-77963",
+   "page": 750,
+   "line": 7,
+   "word_index": 77963,
+   "key": "65:10:12",
+   "text": "قَدۡ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ص"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "753-78218",
+   "page": 753,
+   "line": 3,
+   "word_index": 78218,
+   "key": "66:9:5",
+   "text": "وَٱلۡمُنَٰفِقِينَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "771-80008",
+   "page": 771,
+   "line": 8,
+   "word_index": 80008,
+   "key": "72:13:1",
+   "text": "وَأَنَّا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "773-80229",
+   "page": 773,
+   "line": 6,
+   "word_index": 80229,
+   "key": "73:7:1",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "775-80408",
+   "page": 775,
+   "line": 7,
+   "word_index": 80408,
+   "key": "73:20:76",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "777-80594",
+   "page": 777,
+   "line": 6,
+   "word_index": 80594,
+   "key": "74:31:51",
+   "text": "إِلَّا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "779-80807",
+   "page": 779,
+   "line": 8,
+   "word_index": 80807,
+   "key": "75:14:5",
+   "text": "بَصِيرَةٞ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "783-81206",
+   "page": 783,
+   "line": 11,
+   "word_index": 81206,
+   "key": "76:30:7",
+   "text": "إِنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "784-81239",
+   "page": 784,
+   "line": 2,
+   "word_index": 81239,
+   "key": "77:5:1",
+   "text": "فَٱلۡمُلۡقِيَٰتِ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "786-81453",
+   "page": 786,
+   "line": 7,
+   "word_index": 81453,
+   "key": "77:50:1",
+   "text": "فَبِأَيِّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "787-81519",
+   "page": 787,
+   "line": 6,
+   "word_index": 81519,
+   "key": "78:14:5",
+   "text": "ثَجَّاجٗا",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "814-83795",
+   "page": 814,
+   "line": 8,
+   "word_index": 83795,
+   "key": "96:14:3",
+   "text": "بِأَنَّ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "815-83838",
+   "page": 815,
+   "line": 4,
+   "word_index": 83838,
+   "key": "97:2:4",
+   "text": "لَيۡلَةُ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "816-83900",
+   "page": 816,
+   "line": 4,
+   "word_index": 83900,
+   "key": "98:4:7",
+   "text": "مِنۢ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "822-84277",
+   "page": 822,
+   "line": 3,
+   "word_index": 84277,
+   "key": "105:5:2",
+   "text": "كَعَصۡفٖ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  },
+  {
+   "id": "824-84372",
+   "page": 824,
+   "line": 3,
+   "word_index": 84372,
+   "key": "109:1:3",
+   "text": "ٱلۡكَٰفِرُونَ",
+   "group": "N",
+   "model": null,
+   "conf": null,
+   "hint": {
+    "قرأ النموذج": "ج"
+   },
+   "suggest": ""
+  }
+ ],
+ "a_sample": []
+}

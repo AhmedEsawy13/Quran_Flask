@@ -154,7 +154,8 @@ def mesaha_waqf_cards():
     for c in data['cards']:
         c['decision'] = _decision_view(decisions.get((int(c['page']), int(c['word_index']))))
     return jsonify({'set': name, 'sets': sets, 'store': 'cloud' if _cloud() else 'local',
-                    'pages': data.get('pages', []), 'a_sample': data.get('a_sample', []), 'cards': data['cards']})
+                    'pages': data.get('pages', []), 'a_sample': data.get('a_sample', []), 'cards': data['cards'],
+                    'note': data.get('note') or ''})
 
 
 @editor_bp.route('/api/mushaf-editor/mesaha-waqf/card', methods=['GET'])
