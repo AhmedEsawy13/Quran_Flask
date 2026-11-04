@@ -3,7 +3,7 @@
 import type {ClassicalWaqfPayload, TawjihPayload, WaqfPayload} from "@/lib/api";
 import {cn} from "@/lib/cn";
 import {arabicCount, toArabicDigits} from "@/lib/mushaf";
-import {isNegativeGrade, majorityWaqfSymbol, waqfMarkCanonical, waqfMarkLabel} from "@/lib/waqf";
+import {imamsLean, isNegativeGrade, majorityWaqfSymbol, printLean, readersLean, waqfMarkCanonical, waqfMarkLabel, waqfVerdict, type WaqfLean} from "@/lib/waqf";
 import {TawjihEntryCard} from "@/components/waqf-tawjih";
 import {WaqfGlyph} from "@/components/ui/waqf-glyph";
 import {ImamRulings} from "@/components/imam-rulings";
@@ -14,9 +14,9 @@ function isNativeAudio(url: string | null | undefined) {
 
 
 
-function Row({id, title, summary, children}: {id: string; title: string; summary?: React.ReactNode; children: React.ReactNode}) {
+function Row({id, title, summary, wide, children}: {id: string; title: string; summary?: React.ReactNode; wide?: boolean; children: React.ReactNode}) {
   return (
-    <section className="wq-score-row" aria-labelledby={id}>
+    <section className={cn("wq-score-row", wide && "wq-score-row-wide")} aria-labelledby={id}>
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="wq-score-label" id={id}>{title}</h3>
         {summary ? <span className="text-[0.72rem] font-bold text-athar-ink-faint">{summary}</span> : null}
@@ -64,7 +64,12 @@ export function WaqfStopInspector({
   const marks = data.mushafs
     .map((mushaf) => ({mushaf, mark: mushaf.marks.find((item) => item.wpos === wpos) || null}));
   const marked = marks.filter((item) => item.mark);
-  const majority = majorityWaqfSymbol(marked.map((item) => item.mark!.symbol));
+  // ورش is a different riwaya with its own sign system: it is shown, but never counted for or against agreement.
+  const hafsMarked = marked.filter((item) => item.mushaf.id !== "ورش");
+  const majority = majorityWaqfSymbol(hafsMarked.map((item) => item.mark!.symbol));
+  const dissenters = hafsMarked.filter(({mark}) => majority && waqfMarkCanonical(mark!.symbol) !== majority);
+  const hafsTotal = marks.filter((item) => item.mushaf.id !== "ورش").length;
+  const mushafsAgree = hafsMarked.length > 0 && hafsMarked.length === hafsTotal && dissenters.length === 0;
   const stoppedReciters = data.reciters.filter((reciter) => (
     union?.reciters.includes(reciter.id)
     || Boolean(data.per_reciter[reciter.id]?.stops.some((item) => item.wpos === wpos))
@@ -78,6 +83,26 @@ export function WaqfStopInspector({
   const isLastWord = wpos === data.words.length - 1;
   const imamsRuleOut = rulings.length > 0 && rulings.every((entry) => isNegativeGrade(entry.grade));
   const othersStop = Boolean(union || marked.length);
+
+  const printSymbol = majority || (hafsMarked.length === 1 ? hafsMarked[0].mark!.symbol : null);
+  const imamGrades = rulings.filter((entry) => entry.reading !== "other").map((entry) => entry.grade);
+  const readersTotal = data.reciters_total || 0;
+  const verdict = waqfVerdict([
+    {key: "mushaf", label: "المصاحف", lean: hafsMarked.length ? (printSymbol ? printLean(printSymbol) : 0) : null},
+    {key: "reciters", label: "القرّاء", lean: readersLean(stoppedReciters.length, readersTotal)},
+    {key: "imams", label: "الأئمة", lean: imamsLean(imamGrades)},
+  ]);
+  const witnessDetail: Record<"mushaf" | "reciters" | "imams", string> = {
+    mushaf: printSymbol ? waqfMarkLabel(printSymbol) : hafsMarked.length ? "مختلفة" : "لا علامة",
+    reciters: readersTotal ? `${toArabicDigits(stoppedReciters.length)} من ${toArabicDigits(readersTotal)}` : "لا تلاوات",
+    imams: imamGrades.length ? [...new Set(imamGrades)].join("، ") : "لا حكم",
+  };
+  const leanClass = (lean: WaqfLean) => (
+    lean === 1 ? "bg-athar-positive/12 text-athar-positive"
+      : lean === -1 ? "bg-athar-copper/12 text-athar-copper"
+        : lean === 0 ? "bg-athar-line-soft text-athar-ink-soft"
+          : "bg-transparent text-athar-ink-faint border border-dashed border-athar-line"
+  );
 
   return (
     <div id="waqf-comparison" className="grid scroll-mt-4 gap-3" aria-label="تفصيل موضع الوقف">
@@ -97,9 +122,9 @@ export function WaqfStopInspector({
                 {othersStop ? "الأئمة ينهون عن الوقف هنا" : "نهى الأئمة عن الوقف"}
               </em>
             ) : null}
-            {data.mushafs.length && marked.length === data.mushafs.length ? (
+            {mushafsAgree ? (
               <em className="rounded-full bg-athar-positive/12 px-2 py-0.5 text-[0.68rem] not-italic font-bold text-athar-positive">المصاحف متفقة</em>
-            ) : marked.length ? (
+            ) : hafsMarked.length ? (
               <em className="rounded-full bg-athar-copper/12 px-2 py-0.5 text-[0.68rem] not-italic font-bold text-athar-copper">خلاف بين المصاحف</em>
             ) : null}
           </span>
@@ -128,23 +153,43 @@ export function WaqfStopInspector({
             </button>
           </div>
         ) : null}
+        {verdict ? (
+          <div className="flex basis-full flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-athar-line-soft pt-2.5" aria-label="خلاصة الشهود الثلاثة">
+            <strong className={cn(
+              "text-[1.02rem]",
+              verdict.tone === "stop" ? "text-athar-positive" : verdict.tone === "connect" ? "text-athar-copper" : verdict.tone === "split" ? "text-athar-copper" : "text-athar-ink",
+            )}>
+              {verdict.text}
+            </strong>
+            <span className="flex flex-wrap gap-1.5">
+              {verdict.witnesses.map((item) => (
+                <span key={item.key} className={cn("rounded-full px-2.5 py-0.5 text-[0.72rem] font-bold", leanClass(item.lean))}>
+                  {item.label}: {witnessDetail[item.key]}
+                </span>
+              ))}
+            </span>
+          </div>
+        ) : null}
       </header>
 
       <div className="wq-score-panel">
         <Row
           id="wq-score-mushaf"
           title="مصحف"
-          summary={data.mushafs.length ? `${toArabicDigits(marked.length)} من ${toArabicDigits(data.mushafs.length)}` : undefined}
+          summary={hafsTotal ? `${toArabicDigits(hafsMarked.length)} من ${toArabicDigits(hafsTotal)} تضع علامة` : undefined}
         >
           {data.mushafs.length ? (
             <div className="grid grid-cols-4 gap-1.5">
               {marks.map(({mushaf, mark}) => {
-                const minority = Boolean(mark && majority && waqfMarkCanonical(mark.symbol) !== majority);
+                const isWarsh = mushaf.id === "ورش";
+                const minority = Boolean(mark && !isWarsh && majority && waqfMarkCanonical(mark.symbol) !== majority);
                 return (
                   <div
                     className={cn(
                       "flex flex-col items-center gap-0.5 rounded-lg border px-1 py-1.5",
                       mark ? "border-athar-line-soft bg-athar-surface" : "border-transparent",
+                      minority && "border-[var(--wq-solo)]/40 bg-[var(--wq-solo-soft)]",
+                      isWarsh && "opacity-70",
                     )}
                     key={mushaf.id}
                     title={mark ? `${mushaf.name} · ${waqfMarkLabel(mark.symbol)}` : `${mushaf.name} · لا علامة`}
@@ -153,23 +198,31 @@ export function WaqfStopInspector({
                       <WaqfGlyph
                         symbol={mark.symbol}
                         mushafId={mushaf.id}
-                        className={cn("size-9", minority ? "text-[var(--wq-solo)]" : "text-athar-accent")}
+                        className={cn("size-9", minority ? "text-[var(--wq-solo)]" : isWarsh ? "text-athar-ink-soft" : "text-athar-accent")}
                         title={`${mushaf.name} · ${waqfMarkLabel(mark.symbol)}`}
                       />
                     ) : (
                       <span className="grid size-9 place-items-center text-athar-ink-faint">—</span>
                     )}
                     <span className="wq-score-mushaf-name max-w-full truncate">{mushaf.name}</span>
+                    {isWarsh ? <span className="text-[0.6rem] font-bold text-athar-ink-faint">رواية أخرى</span> : null}
                   </div>
                 );
               })}
             </div>
           ) : null}
-          {majority || marked.length === 1 ? (
-            <p className="wq-score-caption">
-              {waqfMarkLabel(majority || marked[0].mark!.symbol)}
-              {marked.some(({mark}) => majority && waqfMarkCanonical(mark!.symbol) !== majority) ? " — وبعضها يخالف (بلون مختلف)" : ""}
-            </p>
+          {hafsMarked.length ? (
+            <div className="wq-score-caption grid gap-1">
+              <span>
+                {majority ? waqfMarkLabel(majority) : "تتعادل المصاحف بين علامتين"}
+                {majority && hafsMarked.length > 1 ? ` · ${toArabicDigits(hafsMarked.length - dissenters.length)} من ${toArabicDigits(hafsMarked.length)} مصحفًا` : ""}
+              </span>
+              {(majority ? dissenters : hafsMarked.length > 1 ? hafsMarked : []).length ? (
+                <span className="font-bold text-[var(--wq-solo)]">
+                  {majority ? "يخالف" : "العلامات"}: {(majority ? dissenters : hafsMarked).map(({mushaf, mark}) => `${mushaf.name} (${waqfMarkLabel(mark!.symbol)})`).join("، ")}
+                </span>
+              ) : null}
+            </div>
           ) : null}
           {!marked.length ? <p className="wq-score-empty">لا تحمل المصاحف المقارنة علامةً هنا.</p> : null}
         </Row>
@@ -236,7 +289,7 @@ export function WaqfStopInspector({
           )}
         </Row>
 
-        <Row id="wq-score-tawjih" title="توجيه" summary={tawjihHere.length ? toArabicDigits(tawjihHere.length) : undefined}>
+        <Row id="wq-score-tawjih" wide title="توجيه" summary={tawjihHere.length ? toArabicDigits(tawjihHere.length) : undefined}>
           {tawjihHere.length ? (
             <div className="grid gap-2.5">
               {tawjihHere.map((entry, position) => (

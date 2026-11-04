@@ -111,6 +111,8 @@ export function ImamRulings({entries, sources, showQuote = true}: {entries: Entr
   const byImam = new Map<string, Entry[]>();
   unique.forEach((entry) => byImam.set(entry.source, [...(byImam.get(entry.source) || []), entry]));
   const summary = verdict(unique, sources);
+  // a grade's plain meaning is spelled out once; the next imam with the same grade only shows the chip
+  const explained = new Set<string>();
 
   return (
     <div className="grid gap-2.5">
@@ -135,6 +137,8 @@ export function ImamRulings({entries, sources, showQuote = true}: {entries: Entr
               const note = (entry.note || "").trim();
               const illa = (entry.illa || "").trim();
               const quote = (entry.quote || "").trim();
+              const showMeaning = !explained.has(entry.grade);
+              explained.add(entry.grade);
               return (
                 <div key={`${entry.grade}-${index}`} className={cn("grid gap-2", index > 0 && "border-t border-dashed border-athar-line pt-3")}>
                   {index > 0 ? <span className="text-[0.72rem] font-bold text-athar-ink-faint">وجهٌ آخر عنده</span> : null}
@@ -142,7 +146,7 @@ export function ImamRulings({entries, sources, showQuote = true}: {entries: Entr
                     <span className={cn("rounded-lg px-2.5 py-1 text-[0.95rem] font-extrabold leading-none", gradeStyle[meta?.cls || "jaiz"])} title={meta?.desc}>
                       {entry.grade_raw || entry.grade}
                     </span>
-                    <span className="text-[0.8rem] text-athar-ink-soft">{gradeMeaning[entry.grade] || meta?.desc}</span>
+                    {showMeaning ? <span className="text-[0.8rem] text-athar-ink-soft">{gradeMeaning[entry.grade] || meta?.desc}</span> : null}
                   </div>
                   {entry.reading === "other" ? (
                     <span

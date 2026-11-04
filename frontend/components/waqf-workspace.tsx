@@ -539,7 +539,7 @@ export function WaqfWorkspace() {
         tool="waqf"
         title="علامة المصحف، ووقف القارئ، وقول الإمام."
         titleId="wq-title"
-        lede="ثلاث شهادات على كل موضع وقف في الآية — اضغط أي موضع لترى دليله، ثم ابنِ قراءةً تناسب نَفَسك."
+        lede="اضغط أي موضع وقف في الآية لترى دليله، ثم ابنِ قراءةً تناسب نَفَسك."
       >
         {process.env.NODE_ENV === "development" ? (
           <a
@@ -680,7 +680,7 @@ export function WaqfWorkspace() {
 
         {data ? (
           <>
-            <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(340px,1fr)]">
+            <div className="grid items-start gap-4">
               <ToolCard raised aria-labelledby="waqf-verse-title">
                 <ToolCardHead
                   title={`سورة ${selectedSurah?.name || ""} · الآية ${toArabicDigits(ayahNumber)}`}
@@ -743,7 +743,6 @@ export function WaqfWorkspace() {
                                 <span>{data.per_reciter[union.reciters[0]]?.name_ar || union.reciters[0]}</span>
                               </>
                             ) : union ? <b>{toArabicDigits(union.count)}/{toArabicDigits(data.reciters_total)}</b> : <b>{marks.length ? "مصحف" : scholarly}</b>}
-                            {union ? <small>~{toArabicDigits(union.avg_duration.toFixed(1))}ث</small> : null}
                           </button>
                         ) : null}
                       </span>
@@ -781,7 +780,7 @@ export function WaqfWorkspace() {
                 </div>
               </ToolCard>
 
-              <aside className="lg:sticky lg:top-[calc(var(--bar-height)+4.75rem)] lg:max-h-[calc(100dvh-var(--bar-height)-5.75rem)] lg:overflow-y-auto lg:overscroll-contain lg:pb-1">
+              <aside>
                 <WaqfStopInspector
                   data={data}
                   classical={classical}

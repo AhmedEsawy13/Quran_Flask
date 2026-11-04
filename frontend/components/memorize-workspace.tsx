@@ -794,9 +794,10 @@ export function MemorizeWorkspace() {
   };
 
   const positionLabel = focusPage
-    ? `${dualActive && rightPageNumber && leftPageNumber
+    // the range is already on the «الموضع» button above, so the caption only says which page(s) are on screen
+    ? (dualActive && rightPageNumber && leftPageNumber
       ? `صفحتا ${toArabicDigits(rightPageNumber)}–${toArabicDigits(leftPageNumber)}`
-      : `صفحة ${toArabicDigits(focusPage)}`} · ${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)}`
+      : `صفحة ${toArabicDigits(focusPage)}`)
     : `${selectedSurah?.name || `سورة ${toArabicDigits(surahNumber)}`} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)} · الآية ${toArabicDigits(activeAyah)}`;
 
 
@@ -820,9 +821,6 @@ export function MemorizeWorkspace() {
             value={`${selectedSurah?.name || "السورة"} · ${toArabicDigits(fromAyah)}–${toArabicDigits(toAyah)}`}
           >
             <span className="text-[0.68rem] font-bold text-athar-gold">نطاق التثبيت</span>
-            <span className="text-sm font-bold text-athar-ink" aria-label="ملخص نطاق التثبيت">
-              {selectedSurah ? `سورة ${selectedSurah.name}` : "السورة"} · {toArabicDigits(fromAyah)}–{toArabicDigits(toAyah)}
-            </span>
             <div className="grid grid-cols-2 gap-2">
               <label className="col-span-2 grid gap-1 text-[0.7rem] font-semibold text-athar-ink-faint">
                 <span>السورة</span>

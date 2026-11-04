@@ -158,6 +158,64 @@ export function isNegativeGrade(grade: string) {
   return grade === "لا" || grade === "قبيح";
 }
 
+/** Grades that rule a stop in firmly (a stop the reader can start again from). */
+const FIRM_GRADES = new Set(["تام", "كاف", "لازم", "صالح", "جيد", "بيان"]);
+
+/** Which way a witness leans: 1 stop, -1 connect, 0 allows both, null = no evidence. */
+export type WaqfLean = 1 | 0 | -1 | null;
+
+export type WaqfVerdict = {
+  tone: "stop" | "connect" | "split" | "open";
+  text: string;
+  witnesses: Array<{key: "mushaf" | "reciters" | "imams"; label: string; lean: WaqfLean}>;
+};
+
+export function printLean(symbol: string | null): WaqfLean {
+  if (!symbol) return null;
+  const canonical = waqfMarkCanonical(symbol);
+  if (canonical === "م" || canonical === "ق") return 1;
+  if (canonical === "ص" || canonical === "لا") return -1;
+  if (canonical === "ج") return 0;
+  return null;
+}
+
+export function readersLean(stopped: number, total: number): WaqfLean {
+  if (!total) return null;
+  const ratio = stopped / total;
+  if (ratio >= 0.6) return 1;
+  if (ratio <= 0.25) return -1;
+  return 0;
+}
+
+export function imamsLean(grades: string[]): WaqfLean {
+  if (!grades.length) return null;
+  const negative = grades.some(isNegativeGrade);
+  const firm = grades.some((grade) => FIRM_GRADES.has(grade));
+  if (negative && firm) return 0;
+  if (negative) return -1;
+  return firm ? 1 : 0;
+}
+
+/**
+ * One-line summary of the three witnesses for a stop. It only says «الأرجح» when
+ * two witnesses lean the same way and none leans against them.
+ */
+export function waqfVerdict(witnesses: WaqfVerdict["witnesses"]): WaqfVerdict | null {
+  const known = witnesses.filter((item) => item.lean !== null);
+  if (!known.length) return null;
+  const stop = known.filter((item) => item.lean === 1).length;
+  const connect = known.filter((item) => item.lean === -1).length;
+  const names = (lean: WaqfLean) => known.filter((item) => item.lean === lean).map((item) => item.label).join(" و");
+  if (stop && connect) {
+    return {tone: "split", text: `موضع خلاف: ${names(1)} تميل إلى الوقف، و${names(-1)} إلى الوصل`, witnesses};
+  }
+  if (stop >= 2) return {tone: "stop", text: "الأرجح: الوقف", witnesses};
+  if (connect >= 2) return {tone: "connect", text: "الأرجح: الوصل", witnesses};
+  if (stop) return {tone: "stop", text: `يميل إلى الوقف عند ${names(1)}`, witnesses};
+  if (connect) return {tone: "connect", text: `يميل إلى الوصل عند ${names(-1)}`, witnesses};
+  return {tone: "open", text: "الوقف والوصل جائزان", witnesses};
+}
+
 export const classicalGradeMeta: Record<string, {cls: string; desc: string}> = {
   "تام": {cls: "tamm", desc: "وقفٌ تام — يُوقف عليه ويُبتدأ بما بعده"},
   "كاف": {cls: "kafi", desc: "وقفٌ كافٍ — يُوقف عليه، وما بعده متعلقٌ به معنًى"},

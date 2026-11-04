@@ -1,0 +1,57 @@
+{
+ "page": 597,
+ "pitch": 128.5,
+ "signs": [
+  {
+   "word_index": 82955,
+   "key": "96:1:1",
+   "text": "ٱقْرَأْ",
+   "line": 5,
+   "sign": "ج",
+   "conf": 0.9997,
+   "piece": 1510,
+   "piece_area": 201,
+   "cx": 1388,
+   "cy": 1378,
+   "word_box": [
+    1357,
+    1410
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 82974,
+   "key": "96:5:1",
+   "text": "عَلَّمَ",
+   "line": 6,
+   "sign": "ج",
+   "conf": 0.8497,
+   "piece": 1667,
+   "piece_area": 199,
+   "cx": 818,
+   "cy": 1489,
+   "word_box": [
+    782,
+    840
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 82989,
+   "key": "96:8:1",
+   "text": "إِنَّ",
+   "line": 7,
+   "sign": "ج",
+   "conf": 0.6069,
+   "piece": 1916,
+   "piece_area": 149,
+   "cx": 706,
+   "cy": 1625,
+   "word_box": [
+    692,
+    727
+   ],
+   "hint": {}
+  }
+ ]
+}

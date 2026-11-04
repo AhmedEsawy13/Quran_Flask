@@ -1,0 +1,8 @@
+{
+ "2": [
+  "subprocess.CalledProcessError: Command '['/usr/local/bin/python3', '/home/user/Quran_Flask/pipeline/paw_split/wathiq_split.py', '2']' returned non-zero exit status 1."
+ ],
+ "1": [
+  "subprocess.CalledProcessError: Command '['/usr/local/bin/python3', '/home/user/Quran_Flask/pipeline/paw_split/wathiq_split.py', '1']' returned non-zero exit status 1."
+ ]
+}

@@ -1,0 +1,142 @@
+{
+ "page": 531,
+ "pitch": 128.0,
+ "signs": [
+  {
+   "word_index": 73419,
+   "key": "54:52:1",
+   "text": "وَكُلُّ",
+   "line": 2,
+   "sign": "ج",
+   "conf": 1.0,
+   "piece": 115,
+   "piece_area": 202,
+   "cx": 569,
+   "cy": 455,
+   "word_box": [
+    547,
+    626
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 73423,
+   "key": "54:52:5",
+   "text": "ٱلزُّبُرِ",
+   "line": 3,
+   "sign": "ج",
+   "conf": 0.7992,
+   "piece": 241,
+   "piece_area": 120,
+   "cx": 1328,
+   "cy": 600,
+   "word_box": [
+    1295,
+    1394
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 73430,
+   "key": "54:54:1",
+   "text": "إِنَّ",
+   "line": 3,
+   "sign": "ج",
+   "conf": 0.9065,
+   "piece": 231,
+   "piece_area": 317,
+   "cx": 459,
+   "cy": 602,
+   "word_box": [
+    449,
+    497
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 73460,
+   "key": "55:6:3",
+   "text": "يَسْجُدَانِ",
+   "line": 7,
+   "sign": "ص",
+   "conf": 0.5612,
+   "piece": 1345,
+   "piece_area": 93,
+   "cx": 1130,
+   "cy": 1364,
+   "word_box": [
+    1062,
+    1235
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 73477,
+   "key": "55:9:6",
+   "text": "ٱلْمِيزَانَ",
+   "line": 9,
+   "sign": "ج",
+   "conf": 0.9841,
+   "piece": 1667,
+   "piece_area": 114,
+   "cx": 1024,
+   "cy": 1640,
+   "word_box": [
+    1068,
+    1225
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 73480,
+   "key": "55:10:2",
+   "text": "وَضَعَهَا",
+   "line": 9,
+   "sign": "ج",
+   "conf": 0.6807,
+   "piece": 1643,
+   "piece_area": 168,
+   "cx": 663,
+   "cy": 1624,
+   "word_box": [
+    620,
+    757
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 73484,
+   "key": "55:11:2",
+   "text": "فَٰكِهَةࣱ",
+   "line": 10,
+   "sign": "ص",
+   "conf": 0.9908,
+   "piece": 1779,
+   "piece_area": 446,
+   "cx": 1297,
+   "cy": 1746,
+   "word_box": [
+    1278,
+    1396
+   ],
+   "hint": {}
+  },
+  {
+   "word_index": 73494,
+   "key": "55:13:1",
+   "text": "فَبِأَيِّ",
+   "line": 11,
+   "sign": "ج",
+   "conf": 0.7734,
+   "piece": 1925,
+   "piece_area": 98,
+   "cx": 908,
+   "cy": 1882,
+   "word_box": [
+    930,
+    1029
+   ],
+   "hint": {}
+  }
+ ]
+}
